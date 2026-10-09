@@ -294,16 +294,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "website-115-060",
-      "source": "site/src/pages/press.astro",
-      "exactWording": "current product captures",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "website-115-061",
       "source": "site/src/pages/press.astro",
       "exactWording": "More of the browser, ready to show.",
@@ -518,16 +508,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "website-115-085",
-      "source": "site/src/components/guides/start-page.astro",
-      "exactWording": "a little room to play",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "startPage"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "website-115-086",
       "source": "site/src/components/guides/start-page.astro",
       "exactWording": "Eight boards. A different Daily deal.",
@@ -636,16 +616,6 @@
         "startPage",
         "glance",
         "profiles"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-110",
-      "source": "site/src/components/guides/glance.astro",
-      "exactWording": "choose your reference",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
       ],
       "verdict": "qualified"
     },
@@ -1151,16 +1121,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "website-115-183",
-      "source": "site/src/components/guides/reopen-closed-tabs.astro",
-      "exactWording": "a short second chance",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "reopening"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "website-115-184",
       "source": "site/src/components/guides/reopen-closed-tabs.astro",
       "exactWording": "Some pages can return without a reload.",
@@ -1244,16 +1204,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "website-115-196",
-      "source": "site/src/components/guides/island.astro",
-      "exactWording": "little everyday choices",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "website-115-197",
       "source": "site/src/components/guides/island.astro",
       "exactWording": "Get to a new page with one click.",
@@ -1324,16 +1274,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "website-115-204",
-      "source": "site/src/components/guides/security.astro",
-      "exactWording": "your existing password manager",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "security"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "website-115-206",
       "source": "site/src/components/guides/security.astro",
       "exactWording": "Optional 1Password fill on macOS.",
@@ -1367,16 +1307,6 @@
       "id": "website-115-209",
       "source": "site/src/components/guides/security.astro",
       "exactWording": "A small hint can appear when the visible page has a current-password field. It uses bounded structure-only metadata, never field values or page text, and makes no request to 1Password. Settings can explicitly verify your saved 1Password account identifier.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "security"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-210",
-      "source": "site/src/components/guides/security.astro",
-      "exactWording": "calls and permissions",
       "subject": "Blanc",
       "evidenceGroups": [
         "security"
@@ -1427,16 +1357,6 @@
       "id": "website-115-215",
       "source": "site/src/components/guides/security.astro",
       "exactWording": "Call audio buffering offers Automatic, Stable, and Resilient receive-buffer modes for WebRTC calls. Stable targets about 400 ms; Resilient targets about one second. Extra buffering trades conversational responsiveness for more tolerance of choppy playback. It cannot guarantee a fix for network, source, Bluetooth, driver, or hardware faults.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "security"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-216",
-      "source": "site/src/components/guides/security.astro",
-      "exactWording": "when something goes wrong",
       "subject": "Blanc",
       "evidenceGroups": [
         "security"
@@ -2972,16 +2892,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "messaging-125-004",
-      "source": "site/src/components/guides/island.astro",
-      "exactWording": "browser controls, together",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "navigation"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "messaging-125-005",
       "source": "site/src/components/guides/island.astro",
       "exactWording": "A compact home for browser controls.",
@@ -3367,16 +3277,6 @@
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
         "workspaces",
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-453",
-      "source": "site/src/components/guides/security.astro",
-      "exactWording": "what runs, and what does not",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
         "trust"
       ],
       "verdict": "qualified"
@@ -3812,16 +3712,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "reddit-502",
-      "source": "site/src/components/guides/ad-blocking.astro",
-      "exactWording": "the blocker is part of the browser",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "reddit-503",
       "source": "site/src/components/guides/ad-blocking.astro",
       "exactWording": "Start protected, not set up.",
@@ -3905,16 +3795,6 @@
       "id": "reddit-511",
       "source": "site/src/components/guides/ad-blocking.astro",
       "exactWording": "Blanc uses EasyList and EasyPrivacy to reduce ads and known tracking. No blocker can promise to remove every advertisement or tracker, and some sites may need an exception to work as intended.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-512",
-      "source": "site/src/components/guides/ad-blocking.astro",
-      "exactWording": "help improve coverage",
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
         "trust"
@@ -4568,17 +4448,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "e2-kicker",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Switching to Blanc",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "importing",
-        "navigation"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "e2-heading",
       "source": "site/src/pages/index.astro",
       "exactWording": "Bring your bookmarks and tabs.",
@@ -4807,16 +4676,6 @@
       "id": "revamp-copy-073",
       "source": "site/src/components/guides/command-palette.astro",
       "exactWording": "The command palette floats over the page instead of moving content to make room. Dismiss it with Escape when you are done.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "navigation"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-074",
-      "source": "site/src/components/guides/command-palette.astro",
-      "exactWording": "one place for the little chores",
       "subject": "Blanc",
       "evidenceGroups": [
         "navigation"
@@ -5317,16 +5176,6 @@
       "id": "revamp-copy-124",
       "source": "site/src/components/guides/tab-groups.astro",
       "exactWording": "Groups can tuck away in the panel, and the Quick Switcher finds them by name when it is time to return.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-125",
-      "source": "site/src/components/guides/tab-groups.astro",
-      "exactWording": "fewer things asking for attention",
       "subject": "Blanc",
       "evidenceGroups": [
         "foundations"
@@ -5906,16 +5755,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "reddit-516",
-      "source": "site/src/pages/features/ad-blocking.astro",
-      "exactWording": "built into every download",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "reddit-517",
       "source": "site/src/pages/features/ad-blocking.astro",
       "exactWording": "Browse with less following you around.",
@@ -6086,16 +5925,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "feature-retained-website-115-085",
-      "source": "site/src/pages/features/start-page.astro",
-      "exactWording": "a little room to play",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "startPage"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "feature-retained-website-115-086",
       "source": "site/src/pages/features/start-page.astro",
       "exactWording": "Eight boards. A different Daily deal.",
@@ -6204,16 +6033,6 @@
         "startPage",
         "glance",
         "profiles"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "feature-retained-website-115-110",
-      "source": "site/src/pages/features/glance.astro",
-      "exactWording": "choose your reference",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
       ],
       "verdict": "qualified"
     },
@@ -6709,16 +6528,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "feature-retained-website-115-183",
-      "source": "site/src/pages/features/reopen-closed-tabs.astro",
-      "exactWording": "a short second chance",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "reopening"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "feature-retained-website-115-184",
       "source": "site/src/pages/features/reopen-closed-tabs.astro",
       "exactWording": "Some pages can return without a reload.",
@@ -6802,16 +6611,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "feature-retained-website-115-196",
-      "source": "site/src/pages/features/island.astro",
-      "exactWording": "little everyday choices",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "feature-retained-website-115-197",
       "source": "site/src/pages/features/island.astro",
       "exactWording": "Get to a new page with one click.",
@@ -6882,16 +6681,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "feature-retained-website-115-204",
-      "source": "site/src/pages/features/security.astro",
-      "exactWording": "your existing password manager",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "security"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "feature-retained-website-115-206",
       "source": "site/src/pages/features/security.astro",
       "exactWording": "Optional 1Password fill on macOS.",
@@ -6925,16 +6714,6 @@
       "id": "feature-retained-website-115-209",
       "source": "site/src/pages/features/security.astro",
       "exactWording": "A small hint can appear when the visible page has a current-password field. It uses bounded structure-only metadata, never field values or page text, and makes no request to 1Password. Settings can explicitly verify your saved 1Password account identifier.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "security"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "feature-retained-website-115-210",
-      "source": "site/src/pages/features/security.astro",
-      "exactWording": "calls and permissions",
       "subject": "Blanc",
       "evidenceGroups": [
         "security"
@@ -6985,16 +6764,6 @@
       "id": "feature-retained-website-115-215",
       "source": "site/src/pages/features/security.astro",
       "exactWording": "Call audio buffering offers Automatic, Stable, and Resilient receive-buffer modes for WebRTC calls. Stable targets about 400 ms; Resilient targets about one second. Extra buffering trades conversational responsiveness for more tolerance of choppy playback. It cannot guarantee a fix for network, source, Bluetooth, driver, or hardware faults.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "security"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "feature-retained-website-115-216",
-      "source": "site/src/pages/features/security.astro",
-      "exactWording": "when something goes wrong",
       "subject": "Blanc",
       "evidenceGroups": [
         "security"
@@ -7179,16 +6948,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "feature-retained-messaging-125-004",
-      "source": "site/src/pages/features/island.astro",
-      "exactWording": "browser controls, together",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "navigation"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "feature-retained-messaging-125-005",
       "source": "site/src/pages/features/island.astro",
       "exactWording": "A compact home for browser controls.",
@@ -7246,16 +7005,6 @@
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
         "workspaces",
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "feature-retained-reddit-453",
-      "source": "site/src/pages/features/security.astro",
-      "exactWording": "what runs, and what does not",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
         "trust"
       ],
       "verdict": "qualified"
@@ -7561,16 +7310,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "feature-retained-reddit-502",
-      "source": "site/src/pages/features/ad-blocking.astro",
-      "exactWording": "the blocker is part of the browser",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "feature-retained-reddit-503",
       "source": "site/src/pages/features/ad-blocking.astro",
       "exactWording": "Start protected, not set up.",
@@ -7654,16 +7393,6 @@
       "id": "feature-retained-reddit-511",
       "source": "site/src/pages/features/ad-blocking.astro",
       "exactWording": "Blanc uses EasyList and EasyPrivacy to reduce ads and known tracking. No blocker can promise to remove every advertisement or tracker, and some sites may need an exception to work as intended.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "feature-retained-reddit-512",
-      "source": "site/src/pages/features/ad-blocking.astro",
-      "exactWording": "help improve coverage",
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
         "trust"
@@ -7914,16 +7643,6 @@
       "id": "feature-retained-revamp-copy-073",
       "source": "site/src/pages/features/command-palette.astro",
       "exactWording": "The command palette floats over the page instead of moving content to make room. Dismiss it with Escape when you are done.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "navigation"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "feature-retained-revamp-copy-074",
-      "source": "site/src/pages/features/command-palette.astro",
-      "exactWording": "one place for the little chores",
       "subject": "Blanc",
       "evidenceGroups": [
         "navigation"
@@ -8424,16 +8143,6 @@
       "id": "feature-retained-revamp-copy-124",
       "source": "site/src/pages/features/tab-groups.astro",
       "exactWording": "Groups can tuck away in the panel, and the Quick Switcher finds them by name when it is time to return.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "feature-retained-revamp-copy-125",
-      "source": "site/src/pages/features/tab-groups.astro",
-      "exactWording": "fewer things asking for attention",
       "subject": "Blanc",
       "evidenceGroups": [
         "foundations"
@@ -9219,17 +8928,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "seo-2026-10-05-ad-blocking-02",
-      "source": "site/src/pages/features/ad-blocking.astro",
-      "exactWording": "prefer uBlock Origin?",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "blockingProviders",
-        "blockingDefault"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "seo-2026-10-05-ad-blocking-03",
       "source": "site/src/pages/features/ad-blocking.astro",
       "exactWording": "Full uBlock Origin, not a Lite version.",
@@ -9332,16 +9030,6 @@
       "id": "seo-2026-10-05-private-tabs-01",
       "source": "site/src/pages/features/private-tabs.astro",
       "exactWording": "Private browsing tabs that stay out of the record.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "seoGuideBehaviors"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "seo-2026-10-05-private-tabs-02",
-      "source": "site/src/pages/features/private-tabs.astro",
-      "exactWording": "how private tabs work",
       "subject": "Blanc",
       "evidenceGroups": [
         "seoGuideBehaviors"
@@ -9470,16 +9158,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "seo-2026-10-05-tab-groups-02",
-      "source": "site/src/pages/features/tab-groups.astro",
-      "exactWording": "working with groups",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "seoGuideBehaviors"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "seo-2026-10-05-tab-groups-03",
       "source": "site/src/pages/features/tab-groups.astro",
       "exactWording": "Group, jump, close, and bring it back.",
@@ -9570,17 +9248,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "seo-2026-10-05-quiet-tabs-01",
-      "source": "site/src/pages/features/quiet-tabs.astro",
-      "exactWording": "at launch, and when you want it off",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "seoGuideBehaviors",
-        "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "seo-2026-10-05-quiet-tabs-02",
       "source": "site/src/pages/features/quiet-tabs.astro",
       "exactWording": "A big session opens without loading every page.",
@@ -9636,16 +9303,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "seo-2026-10-05-arc-alternative-01",
-      "source": "site/src/pages/arc-alternative.astro",
-      "exactWording": "moving on from arc",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "seo-2026-10-05-arc-alternative-02",
       "source": "site/src/pages/arc-alternative.astro",
       "exactWording": "Looking for an Arc alternative? Here is what Blanc does.",
@@ -9665,16 +9322,6 @@
       "externalSources": [
         "https://browsercompany.substack.com/p/letter-to-arc-members-2025"
       ]
-    },
-    {
-      "id": "seo-2026-10-05-arc-alternative-04",
-      "source": "site/src/pages/arc-alternative.astro",
-      "exactWording": "what you will find in blanc",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
-      ],
-      "verdict": "qualified"
     },
     {
       "id": "seo-2026-10-05-arc-alternative-05",
@@ -9810,16 +9457,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "seo-2026-10-05-arc-alternative-18",
-      "source": "site/src/pages/arc-alternative.astro",
-      "exactWording": "moving in",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "seo-2026-10-05-arc-alternative-19",
       "source": "site/src/pages/arc-alternative.astro",
       "exactWording": "Bring what you can, then start fresh.",
@@ -9870,16 +9507,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "seo-2026-10-05-arc-alternative-24",
-      "source": "site/src/pages/arc-alternative.astro",
-      "exactWording": "good to know",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "seo-2026-10-05-arc-alternative-25",
       "source": "site/src/pages/arc-alternative.astro",
       "exactWording": "Blanc is not a copy of Arc.",
@@ -9901,32 +9528,12 @@
       "verdict": "qualified"
     },
     {
-      "id": "seo-2026-10-05-arc-alternative-27",
-      "source": "site/src/pages/arc-alternative.astro",
-      "exactWording": "try it alongside arc",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "seo-2026-10-05-arc-alternative-28",
       "source": "site/src/pages/arc-alternative.astro",
       "exactWording": "See if one small island suits you.",
       "subject": "Blanc",
       "evidenceGroups": [
         "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "seo-2026-10-05-ublock-after-chrome-01",
-      "source": "site/src/pages/ublock-origin-after-chrome.astro",
-      "exactWording": "after manifest v2",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "blockingProviders"
       ],
       "verdict": "qualified"
     },
@@ -9957,16 +9564,6 @@
       "externalSources": [
         "https://developer.chrome.com/docs/extensions/develop/migrate/mv2-deprecation-timeline"
       ]
-    },
-    {
-      "id": "seo-2026-10-05-ublock-after-chrome-04",
-      "source": "site/src/pages/ublock-origin-after-chrome.astro",
-      "exactWording": "what you get",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "blockingProviders"
-      ],
-      "verdict": "qualified"
     },
     {
       "id": "seo-2026-10-05-ublock-after-chrome-05",
@@ -10038,16 +9635,6 @@
       "externalSources": [
         "https://github.com/uBlockOrigin/uBOL-home"
       ]
-    },
-    {
-      "id": "seo-2026-10-05-ublock-after-chrome-12",
-      "source": "site/src/pages/ublock-origin-after-chrome.astro",
-      "exactWording": "switching",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "blockingProviders"
-      ],
-      "verdict": "qualified"
     },
     {
       "id": "seo-2026-10-05-ublock-after-chrome-13",
@@ -10122,16 +9709,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "seo-2026-10-05-ublock-after-chrome-20",
-      "source": "site/src/pages/ublock-origin-after-chrome.astro",
-      "exactWording": "good to know",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "blockingProviders"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "seo-2026-10-05-ublock-after-chrome-21",
       "source": "site/src/pages/ublock-origin-after-chrome.astro",
       "exactWording": "Where it runs, and its limits.",
@@ -10174,16 +9751,6 @@
       "externalSources": [
         "https://github.com/gorhill/uBlock"
       ]
-    },
-    {
-      "id": "seo-2026-10-05-ublock-after-chrome-25",
-      "source": "site/src/pages/ublock-origin-after-chrome.astro",
-      "exactWording": "keep the blocker you trust",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "blockingProviders"
-      ],
-      "verdict": "qualified"
     },
     {
       "id": "seo-2026-10-05-ublock-after-chrome-26",
@@ -12629,6 +12196,584 @@
             "after": "<article><h3>Drag tabs into the order you want.</h3><p>Drag a tab or a group header in the rail to reorder it, move a tab between groups, or move a whole group. On a focused row, Option+Shift+Up or Down on a Mac, or Alt+Shift+Up or Down on Windows and Linux, does the same from the keyboard. The expanded Island uses the same moves.</p></article>\n      <article><h3>Still one island.</h3>"
           }
         ]
+      },
+      {
+        "source": "site/src/pages/features.astro",
+        "reason": "October 8 eyebrow reduction: removes the small labels above headlines that repeat or paraphrase the headline, keeping only status, platform, version, Patron and page-identity labels. No sentence of body copy changes. See docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md.",
+        "replacements": [
+          {
+            "before": "<p class=\"pop-eyebrow\">Glance</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">The Island</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">Quiet Tabs</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">Time-of-day wallpaper</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">Site protection</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">Mahjong</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">Blanc</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">Reopen Closed Tab</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">Private tabs</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">Profiles</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">Quick Switcher</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">Slash commands</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">Start Page</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">Named Groups</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">Named Workspaces · Patron</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">Sync</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">Vertical tabs</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">Mouse gestures</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">1Password · macOS</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">uBlock Origin</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">Dark websites</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">Touch ID passkeys</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">Drag to reorder</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">Import</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">Camera and microphone</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">Recovery</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">Downloads</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">Search</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">Pin and mute</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">Default browser</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">Sandboxed pages</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">Signed releases</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"pop-eyebrow\">Appearance</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">ready when you are</p>",
+            "after": ""
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/island.astro",
+        "reason": "October 8 eyebrow reduction: removes the small labels above headlines that repeat or paraphrase the headline, keeping only status, platform, version, Patron and page-identity labels. No sentence of body copy changes. See docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md.",
+        "replacements": [
+          {
+            "before": "<p class=\"section-kicker\">the blanc island</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">browser controls, together</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">little everyday choices</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">see less browser</p>",
+            "after": ""
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/command-palette.astro",
+        "reason": "October 8 eyebrow reduction: removes the small labels above headlines that repeat or paraphrase the headline, keeping only status, platform, version, Patron and page-identity labels. No sentence of body copy changes. See docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md.",
+        "replacements": [
+          {
+            "before": "<p class=\"section-kicker\">keyboard first</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">jump, don't hunt</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">one place for the little chores</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">the browser stays quiet</p>",
+            "after": ""
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/tab-groups.astro",
+        "reason": "October 8 eyebrow reduction: removes the small labels above headlines that repeat or paraphrase the headline, keeping only status, platform, version, Patron and page-identity labels. No sentence of body copy changes. See docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md.",
+        "replacements": [
+          {
+            "before": "<p class=\"section-kicker\">a little order</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">keep work in context</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">working with groups</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">fewer things asking for attention</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">make room for the task</p>",
+            "after": ""
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/vertical-tabs.astro",
+        "reason": "October 8 eyebrow reduction: removes the small labels above headlines that repeat or paraphrase the headline, keeping only status, platform, version, Patron and page-identity labels. No sentence of body copy changes. See docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md.",
+        "replacements": [
+          {
+            "before": "<p class=\"section-kicker\">room for a list</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">how it works</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">good to know</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">ready when you are</p>",
+            "after": ""
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/quiet-tabs.astro",
+        "reason": "October 8 eyebrow reduction: removes the small labels above headlines that repeat or paraphrase the headline, keeping only status, platform, version, Patron and page-identity labels. No sentence of body copy changes. See docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md.",
+        "replacements": [
+          {
+            "before": "<p class=\"section-kicker\">a lighter session</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">how it works</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">left alone</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">at launch, and when you want it off</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">good to know</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">ready when you are</p>",
+            "after": ""
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/reopen-closed-tabs.astro",
+        "reason": "October 8 eyebrow reduction: removes the small labels above headlines that repeat or paraphrase the headline, keeping only status, platform, version, Patron and page-identity labels. No sentence of body copy changes. See docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md.",
+        "replacements": [
+          {
+            "before": "<p class=\"section-kicker\">reopen closed tabs</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">undo a close</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">a short second chance</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">good to know</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">ready when you are</p>",
+            "after": ""
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/profiles.astro",
+        "reason": "October 8 eyebrow reduction: removes the small labels above headlines that repeat or paraphrase the headline, keeping only status, platform, version, Patron and page-identity labels. No sentence of body copy changes. See docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md.",
+        "replacements": [
+          {
+            "before": "<p class=\"section-kicker\">profiles & windows</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">separate identities</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">what is shared</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">good to know</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">ready when you are</p>",
+            "after": ""
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/workspaces.astro",
+        "reason": "October 8 eyebrow reduction: removes the small labels above headlines that repeat or paraphrase the headline, keeping only status, platform, version, Patron and page-identity labels. No sentence of body copy changes. See docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md.",
+        "replacements": [
+          {
+            "before": "<p class=\"section-kicker\">your sets of tabs</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">part of Patron</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">good to know</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">ready when you are</p>",
+            "after": ""
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/sync.astro",
+        "reason": "October 8 eyebrow reduction: removes the small labels above headlines that repeat or paraphrase the headline, keeping only status, platform, version, Patron and page-identity labels. No sentence of body copy changes. See docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md.",
+        "replacements": [
+          {
+            "before": "<p class=\"section-kicker\">pick up anywhere</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">what syncs</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">a menu, not a mirror</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">the honest part</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">continue where you were</p>",
+            "after": ""
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/start-page.astro",
+        "reason": "October 8 eyebrow reduction: removes the small labels above headlines that repeat or paraphrase the headline, keeping only status, platform, version, Patron and page-identity labels. No sentence of body copy changes. See docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md.",
+        "replacements": [
+          {
+            "before": "<p class=\"section-kicker\">start page</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">four layouts</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">familiar places</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">a little room to play</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">good to know</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">ready when you are</p>",
+            "after": ""
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/glance.astro",
+        "reason": "October 8 eyebrow reduction: removes the small labels above headlines that repeat or paraphrase the headline, keeping only status, platform, version, Patron and page-identity labels. No sentence of body copy changes. See docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md.",
+        "replacements": [
+          {
+            "before": "<p class=\"section-kicker\">glance</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">choose your reference</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">stay with the page</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">good to know</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">ready when you are</p>",
+            "after": ""
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/mouse-gestures.astro",
+        "reason": "October 8 eyebrow reduction: removes the small labels above headlines that repeat or paraphrase the headline, keeping only status, platform, version, Patron and page-identity labels. No sentence of body copy changes. See docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md.",
+        "replacements": [
+          {
+            "before": "<p class=\"section-kicker\">one motion</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">start anywhere</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">make it yours</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">good to know</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">ready when you are</p>",
+            "after": ""
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/1password.astro",
+        "reason": "October 8 eyebrow reduction: removes the small labels above headlines that repeat or paraphrase the headline, keeping only status, platform, version, Patron and page-identity labels. No sentence of body copy changes. See docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md.",
+        "replacements": [
+          {
+            "before": "<p class=\"section-kicker\">1Password · macOS</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">a one-time setup</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">you choose when</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">ready when you are</p>",
+            "after": ""
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/security.astro",
+        "reason": "October 8 eyebrow reduction: removes the small labels above headlines that repeat or paraphrase the headline, keeping only status, platform, version, Patron and page-identity labels. No sentence of body copy changes. See docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md.",
+        "replacements": [
+          {
+            "before": "<p class=\"section-kicker\">the quiet parts</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">what runs, and what does not</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">the sensitive parts</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">on the network</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">your existing password manager</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">calls and permissions</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">when something goes wrong</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">documented practice</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">verify a release</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">independent review</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">good to know</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">ready when you are</p>",
+            "after": ""
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/ad-blocking.astro",
+        "reason": "October 8 eyebrow reduction: removes the small labels above headlines that repeat or paraphrase the headline, keeping only status, platform, version, Patron and page-identity labels. No sentence of body copy changes. See docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md.",
+        "replacements": [
+          {
+            "before": "<p class=\"section-kicker\">built in</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">the blocker is part of the browser</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">prefer uBlock Origin?</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">good to know</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">help improve coverage</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">built into every download</p>",
+            "after": ""
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/private-tabs.astro",
+        "reason": "October 8 eyebrow reduction: removes the small labels above headlines that repeat or paraphrase the headline, keeping only status, platform, version, Patron and page-identity labels. No sentence of body copy changes. See docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md.",
+        "replacements": [
+          {
+            "before": "<p class=\"section-kicker\">a clean trail</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">what stays private</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">how private tabs work</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">good to know</p>",
+            "after": ""
+          },
+          {
+            "before": "<p class=\"section-kicker\">ready when you need it</p>",
+            "after": ""
+          }
+        ]
       }
     ]
   },
@@ -12658,6 +12803,484 @@
       "publisher": "uBlock Origin project",
       "accessedAt": "2026-10-05",
       "supports": "“uBO Lite (uBOL) is an efficient content blocker based on the MV3 API.” “uBOL operates entirely declaratively.” Supports the uBO Lite description only."
+    }
+  ],
+  "retiredWithEyebrows": [
+    {
+      "id": "website-115-060",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "current product captures",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "website-115-085",
+      "source": "site/src/components/guides/start-page.astro",
+      "exactWording": "a little room to play",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "website-115-110",
+      "source": "site/src/components/guides/glance.astro",
+      "exactWording": "choose your reference",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "website-115-183",
+      "source": "site/src/components/guides/reopen-closed-tabs.astro",
+      "exactWording": "a short second chance",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "website-115-196",
+      "source": "site/src/components/guides/island.astro",
+      "exactWording": "little everyday choices",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "website-115-204",
+      "source": "site/src/components/guides/security.astro",
+      "exactWording": "your existing password manager",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "website-115-210",
+      "source": "site/src/components/guides/security.astro",
+      "exactWording": "calls and permissions",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "website-115-216",
+      "source": "site/src/components/guides/security.astro",
+      "exactWording": "when something goes wrong",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "messaging-125-004",
+      "source": "site/src/components/guides/island.astro",
+      "exactWording": "browser controls, together",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "reddit-453",
+      "source": "site/src/components/guides/security.astro",
+      "exactWording": "what runs, and what does not",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "reddit-502",
+      "source": "site/src/components/guides/ad-blocking.astro",
+      "exactWording": "the blocker is part of the browser",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "reddit-512",
+      "source": "site/src/components/guides/ad-blocking.astro",
+      "exactWording": "help improve coverage",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "e2-kicker",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Switching to Blanc",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "importing",
+        "navigation"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "revamp-copy-074",
+      "source": "site/src/components/guides/command-palette.astro",
+      "exactWording": "one place for the little chores",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "revamp-copy-125",
+      "source": "site/src/components/guides/tab-groups.astro",
+      "exactWording": "fewer things asking for attention",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "reddit-516",
+      "source": "site/src/pages/features/ad-blocking.astro",
+      "exactWording": "built into every download",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "feature-retained-website-115-085",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "a little room to play",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "feature-retained-website-115-110",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "choose your reference",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "feature-retained-website-115-183",
+      "source": "site/src/pages/features/reopen-closed-tabs.astro",
+      "exactWording": "a short second chance",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "feature-retained-website-115-196",
+      "source": "site/src/pages/features/island.astro",
+      "exactWording": "little everyday choices",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "feature-retained-website-115-204",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "your existing password manager",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "feature-retained-website-115-210",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "calls and permissions",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "feature-retained-website-115-216",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "when something goes wrong",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "feature-retained-messaging-125-004",
+      "source": "site/src/pages/features/island.astro",
+      "exactWording": "browser controls, together",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "feature-retained-reddit-453",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "what runs, and what does not",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "feature-retained-reddit-502",
+      "source": "site/src/pages/features/ad-blocking.astro",
+      "exactWording": "the blocker is part of the browser",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "feature-retained-reddit-512",
+      "source": "site/src/pages/features/ad-blocking.astro",
+      "exactWording": "help improve coverage",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "feature-retained-revamp-copy-074",
+      "source": "site/src/pages/features/command-palette.astro",
+      "exactWording": "one place for the little chores",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "feature-retained-revamp-copy-125",
+      "source": "site/src/pages/features/tab-groups.astro",
+      "exactWording": "fewer things asking for attention",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "seo-2026-10-05-ad-blocking-02",
+      "source": "site/src/pages/features/ad-blocking.astro",
+      "exactWording": "prefer uBlock Origin?",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders",
+        "blockingDefault"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "seo-2026-10-05-private-tabs-02",
+      "source": "site/src/pages/features/private-tabs.astro",
+      "exactWording": "how private tabs work",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "seoGuideBehaviors"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "seo-2026-10-05-tab-groups-02",
+      "source": "site/src/pages/features/tab-groups.astro",
+      "exactWording": "working with groups",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "seoGuideBehaviors"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "seo-2026-10-05-quiet-tabs-01",
+      "source": "site/src/pages/features/quiet-tabs.astro",
+      "exactWording": "at launch, and when you want it off",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "seoGuideBehaviors",
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "seo-2026-10-05-arc-alternative-01",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "moving on from arc",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "seo-2026-10-05-arc-alternative-04",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "what you will find in blanc",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "seo-2026-10-05-arc-alternative-18",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "moving in",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "seo-2026-10-05-arc-alternative-24",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "good to know",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "seo-2026-10-05-arc-alternative-27",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "try it alongside arc",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "seo-2026-10-05-ublock-after-chrome-01",
+      "source": "site/src/pages/ublock-origin-after-chrome.astro",
+      "exactWording": "after manifest v2",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "seo-2026-10-05-ublock-after-chrome-04",
+      "source": "site/src/pages/ublock-origin-after-chrome.astro",
+      "exactWording": "what you get",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "seo-2026-10-05-ublock-after-chrome-12",
+      "source": "site/src/pages/ublock-origin-after-chrome.astro",
+      "exactWording": "switching",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "seo-2026-10-05-ublock-after-chrome-20",
+      "source": "site/src/pages/ublock-origin-after-chrome.astro",
+      "exactWording": "good to know",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    },
+    {
+      "id": "seo-2026-10-05-ublock-after-chrome-25",
+      "source": "site/src/pages/ublock-origin-after-chrome.astro",
+      "exactWording": "keep the blocker you trust",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
     }
   ]
 }

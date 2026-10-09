@@ -27,7 +27,6 @@ import MemoryChart from '../../components/MemoryChart.astro';
 <main id="main-content" class="feature-page feature-detail-page">
   <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">home</a><span aria-hidden="true">/</span><a href="/features">features</a><span aria-hidden="true">/</span><span aria-current="page">ad blocking</span></nav>
   <section class="feature-hero feature-hero--detail" aria-labelledby="blocking-title">
-    <p class="section-kicker">built in</p>
     <h1 id="blocking-title">Ad blocking built in. uBlock Origin if you prefer it.</h1>
     <p>Blanc Blocker uses built-in lists to stop ads and known trackers at the browser level. Its shield on the island — a shield cut by the diagonal from Blanc&rsquo;s own mark — opens direct controls for the site you are visiting.</p>
   </section>
@@ -74,7 +73,6 @@ import MemoryChart from '../../components/MemoryChart.astro';
 
   <section class="feature-copy-grid" aria-labelledby="built-in-title">
     <div>
-      <p class="section-kicker">the blocker is part of the browser</p>
       <h2 id="built-in-title">Start protected, not set up.</h2>
     </div>
     <div class="feature-copy-list">
@@ -95,7 +93,6 @@ import MemoryChart from '../../components/MemoryChart.astro';
 
   <section class="feature-copy-grid" aria-labelledby="ublock-title">
     <div>
-      <p class="section-kicker">prefer uBlock Origin?</p>
       <h2 id="ublock-title">Full uBlock Origin, not a Lite version.</h2>
     </div>
     <div class="feature-copy-list">
@@ -119,25 +116,22 @@ import MemoryChart from '../../components/MemoryChart.astro';
   </section>
 
   <aside class="truth-note" aria-labelledby="truth-note-title">
-    <p class="section-kicker">good to know</p>
     <h2 id="truth-note-title">Blocking is a strong default, not a guarantee.</h2>
     <p>Blanc uses EasyList and EasyPrivacy to reduce ads and known tracking. No blocker can promise to remove every advertisement or tracker, and some sites may need an exception to work as intended.</p>
     <a class="text-link" href="/privacy#browsing-the-web-with-blanc">Read Blanc's network and privacy details <span aria-hidden="true">↗</span></a>
   </aside>
 
   <section class="feature-copy-grid feature-copy-grid--report" aria-labelledby="missed-ad-title">
-    <div><p class="section-kicker">help improve coverage</p><h2 id="missed-ad-title">An ad got through? Send a reproducible example.</h2></div>
+    <div><h2 id="missed-ad-title">An ad got through? Send a reproducible example.</h2></div>
     <div class="feature-copy-list"><article><h3>A page we can test</h3><p><a href="https://github.com/bnfy/blanc/issues/new?template=ad_blocking.yml">Report a missed ad</a> with its page URL, Blanc version, operating system, blocker settings, expected result and the ad you observed. A screenshot is optional. For examples containing private information, email <!--email_off--><a href="mailto:support@blancbrowser.com">support@blancbrowser.com</a><!--/email_off-->.</p><p>Reports help distinguish filter coverage, a blocker integration defect and an ad format the blocker does not support. A report is closed with reproduction and verification evidence, or a documented limitation.</p></article></div>
   </section>
   <MemoryChart
     headingId="blocking-memory-title"
-    kicker="what blocking is worth"
     heading="Blocking saves memory, not just noise."
     intro="Ads and trackers cost real memory to render. With six ad-heavy news sites open, blocking them at the network layer is worth gigabytes."
   />
 
   <section class="feature-close" aria-labelledby="blocking-close-title">
-    <p class="section-kicker">built into every download</p>
     <h2 id="blocking-close-title">Browse with less following you around.</h2>
     <a class="cta" href="/download" data-track="feature_cta_click" data-feature="ad-blocking" data-cta-position="feature-close">download blanc</a>
   </section>

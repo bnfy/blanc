@@ -240,7 +240,6 @@
 .pop-pair { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; width: 86%; height: 100%; }
 .pop-pair img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
 .pop-copy { padding: 28px 40px 8px; }
-.pop-eyebrow { margin: 0; font: 600 13px var(--font-ui); color: var(--bento-accent-a); }
 .pop-copy h2 { max-width: 24ch; margin: 6px 0 0; font-family: var(--site-font-display); font-size: clamp(28px, 3.4vw, 40px); font-weight: 400; letter-spacing: -.02em; line-height: 1.06; text-wrap: balance; }
 .pop-copy p:not(.pop-eyebrow) { max-width: 64ch; margin: 12px 0 0; color: var(--site-text-dim); font-size: 15px; line-height: 1.6; }
 .pop-copy .pop-note { font-size: 13px; }

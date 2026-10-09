@@ -28,9 +28,9 @@ test('retained feature pages preserve their search metadata, prose and anchors f
  const prose = source => [...source.matchAll(/<(?:h[1-6]|p|figcaption)\b[^>]*>([\s\S]*?)<\/(?:h[1-6]|p|figcaption)>/g)].map(match => match[1].replace(/<[^>]*(?:>|$)/g, '').replace(/\s+/g, ' ').trim());
  for (const file of files) {
   const before = execFileSync('git', ['show', `${revision}:${file}`], {cwd: ROOT, encoding: 'utf8'});
-  const approved = JSON.parse(read('docs/website-revamp-claims-v1.27.json')).retainedFeaturePages.reviewedCopyUpdates.find(update => update.source === file);
+  const approved = JSON.parse(read('docs/website-revamp-claims-v1.27.json')).retainedFeaturePages.reviewedCopyUpdates.filter(update => update.source === file);
   let reviewedBefore = before;
-  for (const {before: oldCopy, after: newCopy} of approved?.replacements || []) {
+  for (const {before: oldCopy, after: newCopy} of approved.flatMap(update => update.replacements)) {
    assert.ok(reviewedBefore.includes(oldCopy), `${file}: obsolete review exception`);
    reviewedBefore = reviewedBefore.replace(oldCopy, newCopy);
   }

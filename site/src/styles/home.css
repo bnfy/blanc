@@ -70,13 +70,6 @@
 .home-revamp [hidden] {
   display: none !important;
 }
-.home-revamp .eyebrow {
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--gold);
-  margin-bottom: 16px;
-}
 .home-revamp .beat {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 270px;
