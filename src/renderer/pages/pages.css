@@ -1241,30 +1241,36 @@ a.ledger-label:hover { color: var(--accent); }
 .cluster i { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); opacity: 0.85; }
 
 
-/* Quiet Patron chip — the last item of every informational layout, hidden
-   for Patrons and in private tabs. Outlined in Sunrise gold with no fill, so
-   it never outweighs the layout's own content. */
-.js-patron-callout { margin: 0; font-family: var(--font-ui); font-size: 12px; }
-.js-patron-callout a {
+/* Quiet Patron pill on the footer's left, hidden for Patrons, in private
+   tabs, and for 90 days after it is closed. Outlined in Sunrise gold with no
+   fill, so it never outweighs the page; its × matches the checklist pill's. */
+.js-patron-callout {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  min-height: 32px;
-  padding: 4px 12px 4px 8px;
+  min-height: 28px;
   border: 1px solid color-mix(in srgb, var(--patron-gold) 60%, transparent);
   border-radius: 999px;
   background: transparent;
-  color: var(--text);
   font-family: var(--font-ui);
-  font-weight: 600;
-  text-decoration: none;
   transition: border-color 120ms ease;
 }
-.js-patron-callout a:hover { color: var(--text); background: transparent; border-color: var(--patron-gold); }
+.js-patron-callout[hidden] { display: none; }
+.js-patron-callout:hover { border-color: var(--patron-gold); }
+.js-patron-callout a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
+  padding: 3px 4px 3px 7px;
+  border-radius: 999px;
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+.js-patron-callout a:hover { color: var(--text); background: transparent; }
 .js-patron-callout a:focus-visible {
   outline: 1px solid var(--text-dim);
-  outline-offset: 4px;
-  border-radius: 999px;
+  outline-offset: 0;
 }
 .patron-cta-mark {
   width: 16px;
@@ -1272,22 +1278,13 @@ a.ledger-label:hover { color: var(--accent); }
   flex: 0 0 auto;
   object-fit: contain;
 }
-.patron-cta-arrow {
-  color: var(--patron-gold);
-  transition: transform 120ms ease;
-}
-.js-patron-callout a:hover .patron-cta-arrow { transform: translateX(2px); }
-.ledger-patron { margin-top: 50px; }
-.bb-patron { margin-top: 28px; text-align: center; }
-.shelf-patron { margin-top: 20px; }
-.tally-patron { margin-top: 28px; }
 
 /* A single moving-in checklist replaces the separate Sync and tab-import
-   promos. Its slot is the start page header's right cell (frame section). */
+   promos. It is a pill in the footer's left group whose popover holds the
+   full list (frame section, which also owns its motion). */
 .migration-checklist {
   color: var(--text);
   user-select: none;
-  transition: opacity 180ms ease, transform 180ms ease;
 }
 .migration-checklist-heading {
   display: flex;
@@ -1340,9 +1337,7 @@ a.ledger-label:hover { color: var(--accent); }
   cursor: pointer;
 }
 .migration-task:hover { background: transparent; border-color: transparent; color: var(--text); }
-.migration-task:focus-visible,
-.migration-checklist-hide:focus-visible,
-.migration-checklist-compact:focus-visible {
+.migration-task:focus-visible {
   outline: 1px solid var(--text-dim);
   outline-offset: 3px;
 }
@@ -1373,18 +1368,7 @@ a.ledger-label:hover { color: var(--accent); }
   transform: rotate(43deg);
 }
 .migration-checklist-tasks li.is-complete .migration-task-label { opacity: 0.48; }
-.migration-checklist-hide {
-  display: block;
-  margin: 10px 0 0 auto;
-  padding: 3px 0;
-  border: 0;
-  background: transparent;
-  color: var(--text-dim);
-  font: 11.5px/1.3 var(--font-ui);
-}
-.migration-checklist-hide:hover { background: transparent; border-color: transparent; color: var(--text); }
-.migration-checklist-compact { display: none; }
-.migration-compact-label { display: none; }
+.migration-checklist-shell.is-completing,
 .migration-checklist-shell.is-completing .migration-checklist {
   animation: migration-checklist-retire 200ms 1.3s ease forwards;
 }
@@ -1396,10 +1380,8 @@ a.ledger-label:hover { color: var(--accent); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .js-patron-callout a { transition: none; }
-  .patron-cta-arrow { transition: none; }
-  .js-patron-callout a:hover .patron-cta-arrow { transform: none; }
-  .migration-checklist { transition: none; }
+  .js-patron-callout { transition: none; }
+  .migration-checklist-shell.is-completing,
   .migration-checklist-shell.is-completing .migration-checklist { animation: none; }
 }
 
@@ -2443,7 +2425,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
   margin: 0;
   padding: 0;
 }
-.footer-left { display: inline-flex; align-items: baseline; gap: 8px; }
+.footer-left { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .footer-right { display: inline-flex; align-items: baseline; gap: 16px; white-space: nowrap; }
 #mahjongLink { color: var(--text-dim); text-decoration: none; }
 #mahjongLink:hover { color: var(--text); text-decoration: underline; }
@@ -2480,7 +2462,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
   justify-content: center;
   user-select: none;
 }
-.bb-clock-row { display: flex; align-items: baseline; gap: 14px; margin-top: 18px; }
+.bb-clock-row { display: flex; margin-top: 18px; }
 .bb-clock {
   font-family: var(--font-ui);
   font-size: 148px;
@@ -2489,7 +2471,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
-.bb-meridiem { font-family: var(--font-ui); font-size: 24px; color: var(--text-dim); }
 .bb-blocked {
   font-family: var(--font-ui);
   font-size: 12.5px;
@@ -2715,7 +2696,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
   text-overflow: ellipsis;
 }
 /* The clock is exactly 148px at any normal window; the clamp only bites in
-   windows too narrow to hold "12:58 pm" at full size. */
+   windows too narrow to hold "12:58" at full size. */
 .bb-clock { font-size: clamp(64px, 14vw, 148px); }
 /* Keep the appearance controls centered independently of the footer's
    differently sized status and shortcut columns. */
@@ -2752,7 +2733,8 @@ body:not([data-layout="ledger"]) .ledger-footer {
   isolation: isolate;
   position: relative;
   min-height: 100vh;
-  padding: 0 0 72px;
+  /* Reserves exactly the fixed footer (its height is set by newtab.js). */
+  padding: 0 0 var(--start-footer-h, 72px);
   overflow-x: hidden;
   background-color: var(--bg);
   --start-wallpaper-evening-overlay: linear-gradient(180deg, rgba(247, 240, 229, 0.94) 0%, rgba(247, 240, 229, 0.84) 60%, rgba(247, 240, 229, 0.35) 100%);
@@ -2823,12 +2805,11 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .group-row .gcount { color: var(--text-dim); }
 .group-row .gname { font-family: var(--font-ui); }
 .cluster i { background: var(--accent); }
-.ledger-patron { margin-top: 34px; }
 
 
 /* Billboard: a centered clock and recents composition, set slightly above
    the horizon so the background remains legible rather than decorative noise. */
-.bb-clock-row { gap: 8px; margin-top: 0; }
+.bb-clock-row { margin-top: 0; }
 .bb-clock {
   font-family: var(--font-display);
   font-size: clamp(80px, 12vw, 148px);
@@ -2838,8 +2819,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
   text-shadow: 0 2px 24px rgba(255, 252, 247, 0.34);
   font-optical-sizing: auto;
 }
-.bb-meridiem { font-family: var(--font-ui); font-size: 18px; }
-.bb-meridiem:empty { display: none; }
 .bb-blocked { margin-top: 10px; font-family: var(--font-ui); font-size: 11.5px; }
 .bb-favs { gap: 16px; margin-top: 34px; }
 .bb-site { width: 100px; }
@@ -2848,7 +2827,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .bb-fav .tile.has-icon { background-size: 26px; }
 .bb-fav .label { font-family: var(--font-ui); font-size: 11px; }
 .bb-groups { margin-top: 24px; }
-.bb-patron { margin-top: 20px; }
 
 /* Shelf: dense, modular cards with enough space on wide screens for the
    shared moving-in checklist at the right edge. */
@@ -2861,7 +2839,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .shelf-tile .host { font-family: var(--font-ui); }
 .shelf-count { font-family: var(--font-ui); font-size: 32px; color: var(--accent); }
 .shelf-unit { font-family: var(--font-ui); }
-.shelf-patron { margin-top: 16px; }
 
 /* Tally: readable lists on the left, data on the right, and a reserved lower
    right zone for the migration checklist. */
@@ -2880,12 +2857,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
 
 /* Migration checklist: editorial Newsreader title plus Inter controls. The
    former handwritten underline is intentionally gone. */
-.migration-checklist {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-}
 .migration-checklist-heading { gap: 14px; }
 .migration-checklist-heading h2 {
   font-size: 27px;
@@ -2906,13 +2877,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
   top: 1px;
   width: 5px;
   height: 9px;
-}
-.migration-checklist-hide {
-  width: fit-content;
-  margin: 7px 0 0 87px;
-  padding: 5px 0;
-  font-size: 10.5px;
-  text-align: left;
 }
 
 /* One straight footer divider replaces the exploratory freehand flourish. */
@@ -2989,7 +2953,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
 #goAnywhere { font-family: var(--font-ui); }
 
 @media (max-width: 760px) {
-  .ledger-body { padding-bottom: 104px; background-size: auto 100%, auto 100%; }
+  .ledger-body { padding-bottom: var(--start-footer-h, 104px); background-size: auto 100%, auto 100%; }
   .start-brand-mark { width: 44px; height: 44px; }
   .bb-favs { gap: 10px; }
   .bb-site { width: 86px; }
@@ -3009,6 +2973,24 @@ body:not([data-layout="ledger"]) .ledger-footer {
   .ledger-footer .footer-left { order: 2; }
   .ledger-footer .footer-appearance { order: 1; flex-basis: 100%; }
   .ledger-footer .footer-right { order: 3; align-items: center; }
+}
+
+/* Ledger also carries the weekly blocked count on the footer's left, which
+   with the version, Finish setup and Patron pills outgrows its third of a
+   one-row footer below ~1220px (F35-10 sweeps 1000-1320px). Stack it the
+   same way, with Customize on its own centred row, before that happens. */
+@media (max-width: 1240px) {
+  body[data-layout="ledger"] .ledger-footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    min-height: 86px;
+    padding: 8px 20px 10px;
+    row-gap: 6px;
+  }
+  body[data-layout="ledger"] .ledger-footer .footer-left { order: 2; }
+  body[data-layout="ledger"] .ledger-footer .footer-appearance { order: 1; flex-basis: 100%; }
+  body[data-layout="ledger"] .ledger-footer .footer-right { order: 3; align-items: center; }
 }
 
 @media (max-height: 640px) {
@@ -3071,7 +3053,15 @@ body:not([data-layout="ledger"]) .ledger-footer {
   margin-inline: auto;
   padding: clamp(32px, 6vh, 64px) var(--start-gutter) 48px;
 }
-body[data-layout="billboard"] .start-content { justify-content: center; }
+/* Billboard centres whatever it shows between the window top and the
+   footer: the content area reaches up behind the brand row and carries equal
+   padding top and bottom, so on a short window the content stops just below
+   the brand row instead of sliding under it. */
+body[data-layout="billboard"] .start-content {
+  justify-content: center;
+  margin-top: calc(-1 * var(--start-header-h, 0px));
+  padding-block: calc(var(--start-header-h, 0px) + 16px);
+}
 .start-content-end { flex: 0 0 auto; height: 0; }
 
 /* PR 1 places the three other layouts in flow; their reworks follow. */
@@ -3097,80 +3087,83 @@ body[data-layout="tally"] #layoutTally { display: grid; }
 }
 .tally-left,
 .tally-right { position: static; width: auto; margin: 0; padding: 0; }
-.tally-patron { grid-column: 1 / -1; margin-top: 0; }
 @media (max-width: 900px) {
   #layoutTally { grid-template-columns: minmax(0, 1fr); }
   .tally-right { order: -1; }
 }
 
-/* The checklist owns the header's right cell on every layout. Tight windows
-   keep it in that same corner as a ring that opens downward. */
+/* The moving-in checklist is a pill in the footer's left group, after the
+   version, with the same outline as Customize: its label opens the native
+   popover upward (growing rightward, away from the window edge) on the same
+   level-2 material, and the trailing close button hides it for good. The
+   pill fits every window size, so it has no compact variant. */
 .migration-checklist-shell {
-  position: relative;
-  z-index: 8;
-  flex: 0 0 auto;
-  width: 286px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+  border-radius: 999px;
+  anchor-name: --start-checklist;
 }
-@media (max-width: 960px), (max-height: 640px) {
-  .migration-checklist-shell { width: 48px; }
-  .migration-checklist-compact {
-    display: grid;
-    width: 48px;
-    height: 48px;
-    min-width: 0;
-    padding: 0;
-    place-items: center;
-    border: 0;
-    border-radius: 50%;
-    background: var(--surface-raised);
-    box-shadow: var(--start-shadow-float);
-  }
-  .migration-checklist-compact .migration-progress-ring {
-    width: 48px;
-    height: 48px;
-    border-width: 3px;
-    font-size: 11px;
-  }
-  .migration-checklist {
-    position: absolute;
-    top: 58px;
-    right: 0;
-    bottom: auto;
-    display: none;
-    width: 276px;
-    padding: 16px 18px 14px;
-    border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
-    border-radius: 14px;
-    background: var(--start-float-fill);
-    box-shadow: var(--start-shadow-float);
-    backdrop-filter: blur(20px) saturate(140%);
-  }
-  .migration-checklist-shell.is-expanded .migration-checklist { display: block; }
+.migration-checklist-shell[hidden] { display: none; }
+.migration-checklist-shell:hover,
+.migration-checklist-shell:has([aria-expanded="true"]) { border-color: var(--border); }
+.migration-checklist-compact {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 4px 4px 4px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-dim);
+  font: inherit;
+  cursor: pointer;
 }
-@media (max-width: 760px) {
-  .migration-checklist-shell { width: 136px; }
-  .migration-checklist-compact {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    width: 136px;
-    height: 44px;
-    padding: 3px 10px 3px 3px;
-    border: 1px solid var(--border);
-    border-radius: 999px;
-  }
-  .migration-checklist-compact .migration-progress-ring {
-    width: 36px;
-    height: 36px;
-    border-width: 2px;
-    font-size: 10px;
-  }
-  .migration-compact-label {
-    display: inline;
-    color: var(--text);
-    font: 600 11px/1.1 var(--font-ui);
-    white-space: nowrap;
-  }
+.migration-checklist-compact:hover,
+.migration-checklist-compact[aria-expanded="true"] { color: var(--text); background: transparent; }
+.migration-compact-label { white-space: nowrap; }
+.start-pill-close {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  margin: 0 2px 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+.start-pill-close:hover {
+  border-color: transparent;
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+  color: var(--text);
+}
+.start-pill-close svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+.migration-checklist-shell.is-completing .start-pill-close { visibility: hidden; }
+.migration-checklist-compact:focus-visible,
+.start-pill-close:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 0; }
+.migration-checklist {
+  position: fixed;
+  position-anchor: --start-checklist;
+  position-area: top span-right;
+  inset: auto;
+  margin: 0 0 10px;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: 16px 20px 12px 16px;
+  border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+  border-radius: 14px;
+  background: var(--start-float-fill);
+  backdrop-filter: blur(20px) saturate(140%);
+  box-shadow: var(--start-shadow-float);
 }
 
 .start-empty-hint {
@@ -3395,14 +3388,17 @@ body.has-underflow .ledger-footer::before { opacity: 1; }
   .group-chip,
   .start-customize,
   .start-customize-popover,
+  .migration-checklist-shell,
+  .migration-checklist,
   .layout-thumb,
-  .js-patron-callout a { border-color: var(--text-dim); }
+  .js-patron-callout { border-color: var(--text-dim); }
 }
 
 /* Motion: settle without overshoot, grow from the source, leave the frame
    still. CSS transitions reverse from the current value when toggled
    mid-flight, which is all the interruptibility this page needs. */
-.start-customize-popover {
+.start-customize-popover,
+.migration-checklist {
   opacity: 0;
   transform: translateY(4px) scale(0.96);
   transform-origin: bottom center;
@@ -3412,22 +3408,16 @@ body.has-underflow .ledger-footer::before { opacity: 1; }
     overlay 150ms allow-discrete,
     display 150ms allow-discrete;
 }
-.start-customize-popover:popover-open {
+.migration-checklist { transform-origin: bottom left; }
+.start-customize-popover:popover-open,
+.migration-checklist:popover-open {
   opacity: 1;
   transform: none;
   transition-duration: 200ms;
 }
 @starting-style {
-  .start-customize-popover:popover-open { opacity: 0; transform: translateY(4px) scale(0.96); }
-}
-@media (max-width: 960px), (max-height: 640px) {
-  .migration-checklist {
-    transform-origin: top right;
-    transition: opacity 200ms var(--start-ease), transform 200ms var(--start-ease), display 200ms allow-discrete;
-  }
-  @starting-style {
-    .migration-checklist-shell.is-expanded .migration-checklist { opacity: 0; transform: translateY(-4px) scale(0.96); }
-  }
+  .start-customize-popover:popover-open,
+  .migration-checklist:popover-open { opacity: 0; transform: translateY(4px) scale(0.96); }
 }
 
 /* A layout change fades in only the new content; never on first paint. */
@@ -3443,20 +3433,22 @@ body.layout-ready .start-content > main { transition: opacity 160ms var(--start-
 .group-chip,
 .layout-preview,
 .start-customize,
-.js-patron-callout a { transition: transform 120ms var(--start-ease), border-color 120ms ease; }
+.js-patron-callout { transition: transform 120ms var(--start-ease), border-color 120ms ease; }
 .shelf-tile:hover { transform: translateY(-1px); }
+.js-patron-callout:has(> a:active),
+.migration-checklist-shell:has(> .migration-checklist-compact:active),
 .fav:active,
 .bb-fav:active,
 .shelf-tile:active,
 .group-chip:active,
 .layout-preview:active,
-.start-customize:active,
-.js-patron-callout a:active { transform: scale(0.98); transition-duration: 0ms; }
+.start-customize:active { transform: scale(0.98); transition-duration: 0ms; }
 
 @media (prefers-reduced-motion: reduce) {
   .start-customize-popover,
   .start-customize-popover:popover-open,
-  .migration-checklist {
+  .migration-checklist,
+  .migration-checklist:popover-open {
     transform: none;
     transition: opacity 120ms linear, overlay 120ms allow-discrete, display 120ms allow-discrete;
   }
@@ -3468,12 +3460,14 @@ body.layout-ready .start-content > main { transition: opacity 160ms var(--start-
   .group-chip:active,
   .layout-preview:active,
   .start-customize:active,
-  .js-patron-callout a:active { transform: none; }
+  .migration-checklist-shell:has(> .migration-checklist-compact:active),
+  .js-patron-callout:has(> a:active) { transform: none; }
   .ledger-footer::before { transition: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   @starting-style {
-    .start-customize-popover:popover-open { transform: none; }
+    .start-customize-popover:popover-open,
+    .migration-checklist:popover-open { transform: none; }
   }
 }
 
@@ -3507,7 +3501,6 @@ body[data-layout="ledger"] .ledger:not(:has(.ledger-col-secondary > section:not(
 .ledger-spread:not(:has(.ledger-col-secondary > section:not([hidden]))) .ledger-col-secondary { display: none; }
 .ledger-col > .ledger-section:first-child,
 .ledger-col > .ledger-section[hidden] + .ledger-section { margin-top: 0; }
-.ledger-patron { margin-top: 34px; }
 .group-row .cluster { flex: 0 0 46px; width: 46px; justify-content: flex-end; }
 @media (max-width: 900px) {
   .ledger-spread { grid-template-columns: minmax(0, 1fr); }
@@ -3542,7 +3535,6 @@ body[data-layout="shelf"] #layoutShelf { display: grid; }
 #layoutShelf[data-columns="3"] .shelf-card-groups { grid-column: span 2; }
 #layoutShelf[data-columns="4"] .shelf-card-groups { grid-column: span 3; }
 #layoutShelf:has(.shelf-card-blocked[hidden]) .shelf-card-groups { grid-column: 1 / -1; }
-.shelf-patron { grid-column: 1 / -1; justify-self: start; margin-top: 4px; }
 .shelf-tile { min-height: 92px; padding: 14px; gap: 12px; }
 .shelf-card { min-height: 0; padding: 14px; }
 @media (max-width: 760px) {

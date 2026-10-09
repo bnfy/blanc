@@ -296,6 +296,7 @@ From the desktop `DEFAULTS`:
 | `onePasswordEnabled` | `false` | desktop-only boolean; device-local, never synced (F38/D26) |
 | `onePasswordAccount` | `""` | desktop-only account name/id, trimmed and capped at 200 characters; device-local, never synced (F38/D26) |
 | `migrationChecklistDismissed` | `false` | desktop-only boolean set when the moving-in checklist is hidden; device-local, never synced |
+| `patronCalloutDismissedAt` | `0` | desktop-only time (ms) the start page's Patron pill was last closed; it stays hidden for 90 days; device-local, never synced |
 | `syncMigrationCompleted` | `false` | desktop-only boolean set once Sync credentials persist, including for already-enabled profiles; device-local, never synced |
 | `tabImportCompleted` | `false` | desktop-only boolean set after a Bring Your Tabs apply succeeds; device-local, never synced |
 | `usagePing` | `true` | boolean (F21) |
@@ -805,14 +806,20 @@ From the desktop `DEFAULTS`:
   Favorites: ledger, shelf, and tally show "Favorite a page with ♥ to pin it
   here" when there are none. Billboard, which shows recent sites, shows no
   hint. Private start pages show no Patron upgrade and no blocked counts.
-- After first run, Personal non-private start pages show one corner
-  moving-in checklist on ledger, billboard, shelf, and tally. It sits in the
-  start page header's right corner on every layout, in normal flow, so it
-  never covers content. It tracks the
-  device-local, once-completed states of Sync and Bring Your Tabs, can be hidden
-  permanently, and retires after a brief 2/2 confirmation. The standalone game omits it.
-  Tight windows collapse it to a progress-ring trigger in that same corner,
-  opening downward.
+- Billboard centres whatever it shows (clock, blocked line, groups, recent
+  sites) vertically between the window top and the footer; on a short window
+  it stops just below the brand row rather than sliding under it.
+- Non-Patron, non-private start pages show one "Upgrade to Blanc Patron" pill
+  at the end of the footer's left group, on every layout. The × at its end
+  hides it on that device for 90 days, after which it returns.
+- After first run, Personal non-private start pages show one moving-in
+  checklist on ledger, billboard, shelf, and tally: a "Finish setup" pill in
+  the footer's left group, after the version, whose popover opens upward with
+  the full list and its 0/2 progress. Customize stays alone in the centre. Living in the footer, it never covers content, at
+  any window size. It tracks the device-local, once-completed states of Sync
+  and Bring Your Tabs. The × at the pill's end hides it permanently on that
+  device. It retires after the pill briefly reads "All moved in", without
+  opening the popover on its own. The standalone game omits it.
 - **Acceptance:**
   [`acceptance/newtab-layouts.feature`](./acceptance/newtab-layouts.feature)
   renders the saved layout on a new tab, persists a footer switch, verifies

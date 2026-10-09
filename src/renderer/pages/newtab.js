@@ -119,21 +119,43 @@ function renderLaunchStatus({ startup, recovery, privacy } = {}) {
   }, state.onboarding);
 }
 
-// Quiet Patron chip — one per layout, always its layout's last item. Hidden
-// for Patrons and, whatever the Patron state, in private tabs: a private
-// window is never a place to sell. Driven from both the initial
-// pages:start:data load and every later pages:start:status push.
-function renderPatronCallout(patronActive) {
-  const hide = !!patronActive || isPrivate;
-  for (const el of document.querySelectorAll('.js-patron-callout')) el.hidden = hide;
+// Quiet Patron pill on the footer's left. Hidden for Patrons, for 90 days
+// after it is closed (main owns that clock), and, whatever the Patron state,
+// in private tabs: a private window is never a place to sell. Driven from
+// both the initial pages:start:data load and every later pages:start:status
+// push.
+const patronCalloutEl = document.getElementById('patronCallout');
+const patronCalloutHide = document.getElementById('patronCalloutHide');
+const patronCallout = { active: false, snoozedUntil: 0 };
+function renderPatronCallout() {
+  const hide = patronCallout.active || Date.now() < patronCallout.snoozedUntil || isPrivate;
+  patronCalloutEl.hidden = hide;
 }
+function applyPatronStatus(status) {
+  if ('patronActive' in status) patronCallout.active = !!status.patronActive;
+  if ('patronCalloutSnoozedUntil' in status) patronCallout.snoozedUntil = Number(status.patronCalloutSnoozedUntil) || 0;
+  renderPatronCallout();
+}
+// A page left open past the snooze's end shows the pill the next time it is
+// on screen; the 90-day span is too long for a single timer.
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) renderPatronCallout();
+});
+patronCalloutHide.addEventListener('click', () => {
+  patronCallout.snoozedUntil = Infinity;
+  renderPatronCallout();
+  window.bowserPages?.start.dismissPatronCallout().catch(() => {});
+});
 
 // Main owns durable checklist progress; this renderer only reflects that
 // projection. The one local exception is the 1.5 s final confirmation, which
-// lets an already-open page show 2/2 before the now-complete checklist retires.
+// lets an already-open page show 2/2 on the footer pill before the
+// now-complete checklist retires. The full list lives in the pill's popover.
 const migrationChecklistShell = document.getElementById('migrationChecklistShell');
 const migrationChecklistTitle = document.getElementById('migrationChecklistTitle');
 const migrationChecklistCompact = document.getElementById('migrationChecklistCompact');
+const migrationChecklistLabel = document.getElementById('migrationChecklistLabel');
+const migrationChecklist = document.getElementById('migrationChecklist');
 const migrationSyncTask = document.getElementById('migrationSyncTask');
 const migrationTabsTask = document.getElementById('migrationTabsTask');
 const migrationSyncAction = document.getElementById('migrationSyncAction');
@@ -155,6 +177,7 @@ function paintMigrationChecklist(checklist, { completing = false } = {}) {
     el.textContent = `${checklist.completedCount}/2`;
   }
   migrationChecklistTitle.textContent = completing ? 'all moved in' : 'ready to move in?';
+  migrationChecklistLabel.textContent = completing ? 'All moved in' : 'Finish setup';
   setMigrationTask(migrationSyncTask, migrationSyncAction, checklist.syncComplete, 'Set up Sync');
   setMigrationTask(migrationTabsTask, migrationTabsAction, checklist.tabsComplete, 'Bring your tabs');
 }
@@ -163,9 +186,9 @@ function hideMigrationChecklist() {
   clearTimeout(migrationChecklistRetireTimer);
   migrationChecklistRetireTimer = null;
   migrationChecklistPendingCompletion = null;
+  if (migrationChecklist.matches(':popover-open')) migrationChecklist.hidePopover();
   migrationChecklistShell.hidden = true;
-  migrationChecklistShell.classList.remove('is-completing', 'is-expanded');
-  migrationChecklistCompact.setAttribute('aria-expanded', 'false');
+  migrationChecklistShell.classList.remove('is-completing');
 }
 
 function canPresentMigrationChecklistCompletion() {
@@ -182,11 +205,9 @@ function presentPendingMigrationChecklistCompletion() {
   migrationChecklistPendingCompletion = null;
   paintMigrationChecklist(checklist, { completing: true });
   migrationChecklistShell.hidden = false;
-  // Compact layouts normally keep the full list collapsed. Completion is the
-  // one exception: expose both checked rows and the final heading for the same
-  // dwell the full layout receives, rather than showing only a 2/2 ring.
-  migrationChecklistShell.classList.add('is-completing', 'is-expanded');
-  migrationChecklistCompact.setAttribute('aria-expanded', 'true');
+  // The pill confirms 2/2 itself and fades with its popover if that happens
+  // to be open; completion never opens the popover on its own.
+  migrationChecklistShell.classList.add('is-completing');
   clearTimeout(migrationChecklistRetireTimer);
   migrationChecklistRetireTimer = setTimeout(hideMigrationChecklist, 1500);
   return true;
@@ -232,15 +253,21 @@ function renderMigrationChecklist(checklist) {
   migrationChecklistShell.hidden = false;
 }
 
+// Both tasks leave the start page (Settings, the tab-import sheet), so the
+// popover closes behind them instead of waiting there on return.
+const closeMigrationChecklistPopover = () => {
+  if (migrationChecklist.matches(':popover-open')) migrationChecklist.hidePopover();
+};
 migrationSyncAction.addEventListener('click', () => {
+  closeMigrationChecklistPopover();
   window.bowserPages?.start.openSettings('sync').catch(() => {});
 });
+migrationTabsAction.addEventListener('click', closeMigrationChecklistPopover);
 migrationChecklistHide.addEventListener('click', () => {
   window.bowserPages?.start.dismissMigrationChecklist().catch(() => {});
 });
-migrationChecklistCompact.addEventListener('click', () => {
-  const expanded = migrationChecklistShell.classList.toggle('is-expanded');
-  migrationChecklistCompact.setAttribute('aria-expanded', String(expanded));
+migrationChecklist.addEventListener('toggle', (event) => {
+  migrationChecklistCompact.setAttribute('aria-expanded', String(event.newState === 'open'));
 });
 window.addEventListener('focus', presentPendingMigrationChecklistCompletion);
 document.addEventListener('visibilitychange', () => {
@@ -664,12 +691,17 @@ function renderTally() {
 }
 
 // The billboard clock ticks on the minute, and only while it is on screen.
+// It shows the hour and minute in the locale's own form but no day period
+// (am/pm, p. m., 午後…): a glanceable clock, like the lock screen's.
 let clockTimer = null;
+const clockFormat = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' });
 function updateClock() {
-  const t = new Date().toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-  document.getElementById('bbClock').textContent = t.replace(/\s?[AP]M$/i, '');
-  // 24-hour locales have no meridiem; the span simply stays empty.
-  document.getElementById('bbMeridiem').textContent = (t.match(/[AP]M$/i) || [''])[0].toLowerCase();
+  document.getElementById('bbClock').textContent = clockFormat
+    .formatToParts(new Date())
+    .filter((part) => part.type !== 'dayPeriod')
+    .map((part) => part.value)
+    .join('')
+    .trim();
 }
 function startClock() {
   updateClock();
@@ -787,7 +819,7 @@ const dataReady = window.bowserPages?.start.data().then((data) => {
   topSitesOffset = state.topSites.length;
   topSitesExhausted = isPrivate || state.topSites.length < TOP_SITES_PAGE_SIZE;
   renderLaunchStatus({ startup: data.startup, recovery: data.recovery, privacy: data.privacy });
-  renderPatronCallout(data.patronActive);
+  applyPatronStatus(data);
   renderMigrationChecklist(data.migrationChecklist ?? null);
   if (!isPrivate) {
     document.getElementById('footerLeft').textContent =
@@ -812,7 +844,7 @@ window.bowserPages?.start.onStatus((status) => {
     applyDynamicWallpaper(status.dynamicWallpaperEnabled);
   }
   if (status?.layout && status.layout !== state.layout) applyLayout(status.layout);
-  if (status && 'patronActive' in status) renderPatronCallout(status.patronActive);
+  if (status) applyPatronStatus(status);
   if (status && 'migrationChecklist' in status) {
     renderMigrationChecklist(status.migrationChecklist ?? null);
   }
@@ -832,8 +864,23 @@ function observeUnderflow() {
   }, { rootMargin: `0px 0px -${layoutFooter.offsetHeight}px 0px` });
   underflowObserver.observe(startContentEnd);
 }
-observeUnderflow();
-new ResizeObserver(observeUnderflow).observe(layoutFooter);
+
+// The fixed footer wraps to two rows in narrow windows and the brand row
+// changes with the viewport, so the stylesheet reads their real heights:
+// the body reserves exactly the footer, and Billboard centres its content
+// in the open area between the window top and the footer. One observer
+// watches both and also re-aims the footer-edge fade above.
+const startHeader = document.querySelector('.start-header');
+function publishFrameHeights() {
+  const root = document.documentElement.style;
+  root.setProperty('--start-header-h', `${startHeader.offsetHeight}px`);
+  root.setProperty('--start-footer-h', `${layoutFooter.offsetHeight}px`);
+  observeUnderflow();
+}
+publishFrameHeights();
+const frameHeightObserver = new ResizeObserver(publishFrameHeights);
+frameHeightObserver.observe(startHeader);
+frameHeightObserver.observe(layoutFooter);
 
 // The pill's caret says keystrokes land somewhere. They do: a printable
 // character typed on a blank start page opens the island with that character
@@ -845,12 +892,6 @@ new ResizeObserver(observeUnderflow).observe(layoutFooter);
 // controls. `target === document.body` is that check: a keystroke aimed at
 // any control has that control as its target.
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && migrationChecklistShell.classList.contains('is-expanded')) {
-    migrationChecklistShell.classList.remove('is-expanded');
-    migrationChecklistCompact.setAttribute('aria-expanded', 'false');
-    migrationChecklistCompact.focus();
-    return;
-  }
   if (e.target !== document.body) return;
   // ...and not while a modal is up. The onboarding dialog focuses its own
   // Continue button when it opens, so target is that button and the check

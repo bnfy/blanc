@@ -47,6 +47,8 @@ export interface NewtabPagesAPI {
     openSettings: (section: unknown) => Promise<unknown>;
     /** Dismiss the migration checklist. IPC: invoke `pages:start:migration-checklist-dismiss`. */
     dismissMigrationChecklist: () => Promise<unknown>;
+    /** Hide the start page's Patron upgrade pill for 90 days. IPC: invoke `pages:start:patron-callout-dismiss`. */
+    dismissPatronCallout: () => Promise<unknown>;
     /** Default-browser status, for onboarding. IPC: invoke `pages:default-browser:get`. */
     defaultBrowser: () => Promise<unknown>;
     /** Ask to become the default browser (opens system settings on Windows). IPC: invoke `pages:default-browser:set`. */

@@ -79,13 +79,15 @@ Feature: Start page layouts
     Then the moving-in checklist appears in all four start-page layouts
 
   @F35-8 @desktop
-  Scenario: Billboard keeps the moving-in checklist clear of recent sites
+  Scenario: The moving-in checklist opens from the footer's left
     Given a profile that completed first run
     And the moving-in checklist is incomplete and not hidden
-    And local history contains repeated visits for the Billboard
-    And a profile whose start page layout is "billboard"
     When I open a new tab
-    Then the Billboard moving-in checklist stays above its recent sites
+    Then the moving-in checklist pill sits on the footer's left with Customize centred
+    When I open the moving-in checklist
+    Then the moving-in checklist popover opens above its pill
+    When I press Escape on the start page
+    Then the moving-in checklist popover closes and its pill has focus
 
   @F35-10 @desktop
   Scenario: The checklist and the footer never cover start-page content
@@ -95,12 +97,19 @@ Feature: Start page layouts
     And eight favorites fill the Start Page
     When I open a new tab
     Then no start-page layout is covered by its checklist or footer at 1440x840 or 820x840
+    And every start-page footer keeps its left group on one line with Customize centred from 1000 to 1320 wide
 
   @F35-11 @desktop
-  Scenario: The Patron upgrade sits in the same slot on every layout
+  Scenario: The Patron upgrade sits in the footer and closes for 90 days
     Given a profile that completed first run
+    And the Patron upgrade has never been closed
     When I open a new tab
-    Then every start-page layout ends with a visible Patron upgrade
+    Then every start-page layout shows the Patron upgrade on the footer's left
+    When I close the Patron upgrade
+    Then the Patron upgrade stays hidden on a new tab
+    When 90 days pass since the Patron upgrade was closed
+    And I open a new tab
+    Then every start-page layout shows the Patron upgrade on the footer's left
 
   @F35-12 @desktop
   Scenario: Private start pages never offer Patron or blocked counts
@@ -147,3 +156,14 @@ Feature: Start page layouts
     When I open a new tab
     Then Tally shows two equal, top-aligned columns centered at 1440x840
     And Tally stacks the data above the list at 820x840
+
+  @F35-18 @desktop
+  Scenario: Billboard centers whatever it shows between the window top and the footer
+    Given a profile that completed first run
+    And the moving-in checklist is incomplete and not hidden
+    And a profile whose start page layout is "billboard"
+    When I open a new tab
+    Then the Billboard content is centered between the window top and the footer at 1280x800, 900x900, 700x1000 and 1440x600
+    Given local history contains repeated visits for the Billboard
+    When I open a new tab
+    Then the Billboard content is centered between the window top and the footer at 1280x800, 900x900, 700x1000 and 1440x600

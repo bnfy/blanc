@@ -29,36 +29,6 @@
       <img class="start-brand-mark" src="sunrise-mark.png" alt="" />
       <span id="startDate" class="start-brand-date"></span>
     </div>
-    <div id="migrationChecklistShell" class="migration-checklist-shell" hidden>
-      <button id="migrationChecklistCompact" class="migration-checklist-compact" type="button" aria-controls="migrationChecklist" aria-expanded="false">
-        <span class="migration-progress-ring"><span class="js-migration-progress">0/2</span></span>
-        <span class="migration-compact-label" aria-hidden="true">finish setup</span>
-        <span class="page-sr-only">Open moving-in checklist</span>
-      </button>
-      <aside id="migrationChecklist" class="migration-checklist" aria-labelledby="migrationChecklistTitle" aria-live="polite">
-        <div class="migration-checklist-heading">
-          <span class="migration-progress-ring" aria-hidden="true"><span class="js-migration-progress">0/2</span></span>
-          <h2 id="migrationChecklistTitle">ready to move in?</h2>
-        </div>
-        <ul class="migration-checklist-tasks">
-          <li id="migrationSyncTask">
-            <button id="migrationSyncAction" class="migration-task" type="button">
-              <span class="migration-task-check" aria-hidden="true"></span>
-              <span class="migration-task-label">Set up Sync</span>
-              <span class="page-sr-only migration-task-status">Not completed</span>
-            </button>
-          </li>
-          <li id="migrationTabsTask">
-            <a id="migrationTabsAction" class="migration-task" href="blanc://tab-import/">
-              <span class="migration-task-check" aria-hidden="true"></span>
-              <span class="migration-task-label">Bring your tabs</span>
-              <span class="page-sr-only migration-task-status">Not completed</span>
-            </a>
-          </li>
-        </ul>
-        <button id="migrationChecklistHide" class="migration-checklist-hide" type="button" aria-label="Hide moving-in checklist">hide</button>
-      </aside>
-    </div>
   </header>
 
   <div class="start-content" id="startContent">
@@ -86,10 +56,6 @@
           </section>
         </div>
       </div>
-
-      <p id="patron-callout" class="ledger-patron js-patron-callout" hidden>
-        <a href="blanc://settings/#group-patron"><img class="patron-cta-mark" src="sunrise-mark.png" alt="" /><span>Upgrade to Blanc Patron</span><span class="patron-cta-arrow" aria-hidden="true">→</span></a>
-      </p>
     </main>
 
     <!-- The three alternative layouts (design system, "New tab v2" handoff).
@@ -99,15 +65,11 @@
       <h1 class="page-sr-only">Billboard start page</h1>
       <div class="bb-clock-row">
         <span id="bbClock" class="bb-clock"></span>
-        <span id="bbMeridiem" class="bb-meridiem"></span>
       </div>
       <div id="bbBlocked" class="bb-blocked"></div>
       <div id="bbFavorites" class="bb-favs"></div>
       <div id="bbTopSitesStatus" class="page-sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
       <div id="bbGroups" class="bb-groups"></div>
-      <p class="bb-patron js-patron-callout" hidden>
-        <a href="blanc://settings/#group-patron"><img class="patron-cta-mark" src="sunrise-mark.png" alt="" /><span>Upgrade to Blanc Patron</span><span class="patron-cta-arrow" aria-hidden="true">→</span></a>
-      </p>
     </main>
 
     <main class="shelf" id="layoutShelf">
@@ -126,9 +88,6 @@
           </div>
         </div>
       </div>
-      <p class="shelf-patron js-patron-callout" hidden>
-        <a href="blanc://settings/#group-patron"><img class="patron-cta-mark" src="sunrise-mark.png" alt="" /><span>Upgrade to Blanc Patron</span><span class="patron-cta-arrow" aria-hidden="true">→</span></a>
-      </p>
     </main>
 
     <main class="tally" id="layoutTally">
@@ -146,9 +105,6 @@
         <div id="tlDays" class="tally-days"></div>
         <div id="tlCaption" class="tally-caption"></div>
       </div>
-      <p class="tally-patron js-patron-callout" hidden>
-        <a href="blanc://settings/#group-patron"><img class="patron-cta-mark" src="sunrise-mark.png" alt="" /><span>Upgrade to Blanc Patron</span><span class="patron-cta-arrow" aria-hidden="true">→</span></a>
-      </p>
     </main>
     <div id="startContentEnd" class="start-content-end" aria-hidden="true"></div>
   </div>
@@ -157,6 +113,42 @@
     <span class="footer-left">
       <span id="footerLeft"></span>
       <span id="version" class="ledger-version"></span>
+      <span id="migrationChecklistShell" class="migration-checklist-shell" hidden>
+        <button id="migrationChecklistCompact" class="migration-checklist-compact" type="button" popovertarget="migrationChecklist" aria-expanded="false">
+          <span id="migrationChecklistLabel" class="migration-compact-label">Finish setup</span>
+        </button>
+        <button id="migrationChecklistHide" class="start-pill-close" type="button" aria-label="Hide moving-in checklist">
+          <svg viewBox="0 0 10 10" width="10" height="10" aria-hidden="true"><path d="M2 2l6 6M8 2l-6 6"></path></svg>
+        </button>
+        <aside id="migrationChecklist" class="migration-checklist" popover role="dialog" aria-labelledby="migrationChecklistTitle" aria-live="polite">
+          <div class="migration-checklist-heading">
+            <span class="migration-progress-ring" aria-hidden="true"><span class="js-migration-progress">0/2</span></span>
+            <h2 id="migrationChecklistTitle">ready to move in?</h2>
+          </div>
+          <ul class="migration-checklist-tasks">
+            <li id="migrationSyncTask">
+              <button id="migrationSyncAction" class="migration-task" type="button">
+                <span class="migration-task-check" aria-hidden="true"></span>
+                <span class="migration-task-label">Set up Sync</span>
+                <span class="page-sr-only migration-task-status">Not completed</span>
+              </button>
+            </li>
+            <li id="migrationTabsTask">
+              <a id="migrationTabsAction" class="migration-task" href="blanc://tab-import/">
+                <span class="migration-task-check" aria-hidden="true"></span>
+                <span class="migration-task-label">Bring your tabs</span>
+                <span class="page-sr-only migration-task-status">Not completed</span>
+              </a>
+            </li>
+          </ul>
+        </aside>
+      </span>
+      <span id="patronCallout" class="patron-pill js-patron-callout" hidden>
+        <a href="blanc://settings/#group-patron"><img class="patron-cta-mark" src="sunrise-mark.png" alt="" /><span>Upgrade to Blanc Patron</span></a>
+        <button id="patronCalloutHide" class="start-pill-close" type="button" aria-label="Hide the Blanc Patron upgrade for 90 days">
+          <svg viewBox="0 0 10 10" width="10" height="10" aria-hidden="true"><path d="M2 2l6 6M8 2l-6 6"></path></svg>
+        </button>
+      </span>
     </span>
     <span class="footer-appearance">
       <button id="customizeButton" class="start-customize" type="button" popovertarget="customizePopover" aria-expanded="false">Customize</button>
