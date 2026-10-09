@@ -87,9 +87,10 @@ test('feature hub reaches all sixteen guides and Media kit downloads are real PN
     for (const route of ['island', 'start-page', 'glance', 'ad-blocking', 'private-tabs', 'command-palette', 'mouse-gestures', 'reopen-closed-tabs', 'tab-groups', 'workspaces', 'vertical-tabs', 'quiet-tabs', 'profiles', 'sync', 'security', '1password']) assert.ok(hrefs.has(`/features/${route}`), route);
     assert.equal(await page.locator('#small-details-title').innerText(), 'Smaller details that matter.');
     await page.goto(`${baseURL}/media`);
-    // The media kit downloads are native 2x captures of one release, plus the mark.
+    // The media kit downloads are native 2x captures of one release, plus the
+    // Sunrise mark in full color and in black.
     const downloads = page.locator('.media-kit figcaption a[download]');
-    assert.equal(await downloads.count(), 3);
+    assert.equal(await downloads.count(), 4);
     for (const link of await downloads.all()) {
       const href = await link.getAttribute('href');
       const response = await context.request.get(new URL(href, baseURL).href);
@@ -97,7 +98,7 @@ test('feature hub reaches all sixteen guides and Media kit downloads are real PN
       const bytes = await response.body();
       assert.equal(bytes.subarray(1, 4).toString(), 'PNG');
       const size = [bytes.readUInt32BE(16), bytes.readUInt32BE(20)].join('x');
-      assert.ok(['2560x1600', '1024x1024'].includes(size), `${href}: ${size}`);
+      assert.ok(['2560x1600', '4096x4096', '1024x1024'].includes(size), `${href}: ${size}`);
     }
     const downloaded = page.waitForEvent('download');
     const firstHref = await downloads.first().getAttribute('href');
