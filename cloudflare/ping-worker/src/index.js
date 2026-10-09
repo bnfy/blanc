@@ -30,7 +30,14 @@ import {
   dlCountKey,
   groupDlCounts,
 } from './dl.js';
-import { markFirstSeen, markNextDayReturn } from './first-seen.js';
+import {
+  markFirstSeen,
+  markNextDayReturn,
+  markDayOneEligible,
+  markDayOneSignal,
+  DAY_ONE_SIGNALS,
+  DAY_ONE_GROUPS,
+} from './first-seen.js';
 
 const ALLOWED_PLATFORMS = new Set(['darwin', 'win32', 'linux']);
 const ALLOWED_ARCHES = new Set(['arm64', 'x64', 'ia32']);
@@ -41,6 +48,8 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 // forged body — both become 'unknown' rather than opening an unbounded key
 // space in KV.
 const OS_VERSION_RE = /^\d{1,4}$/;
+// 'mahjong' is historic: app versions before 1.20.0 offered Mahjong as a
+// start-page layout and still send it. Current builds never do.
 const NEWTAB_LAYOUTS = new Set(['ledger', 'billboard', 'shelf', 'tally', 'mahjong']);
 const USAGE_METRICS = Object.freeze({
   mahjong: 'mahjong-play',
@@ -74,6 +83,25 @@ const MONTH_SEEN_TTL = 400 * 24 * 3600; // ~13 months of monthly cohorts (retent
 // Earlier cohorts have no return counter and are omitted from /stats rather
 // than reported as 0%. Set to the UTC day the write path first deploys.
 const NEXT_DAY_RETURN_FIRST_COHORT = '2026-10-03';
+
+// First cohort whose day-one signal split is fully counted: the d1had/d1ret
+// write paths must be live for all of day D and D+1. Earlier cohorts carry no
+// `signals` section rather than zeros. Set to the UTC day AFTER the collector
+// deploy.
+const DAY_ONE_SIGNALS_FIRST_COHORT = '2026-10-12';
+// First desktop version that sends the first-day signals. Installs first seen
+// on this version or later form the `eligible` comparison group; release prep
+// updates it if that release ships under another number.
+const DAY_ONE_SIGNALS_MIN_VERSION = '1.31.0';
+
+// VERSION_RE has already validated `version`, so its first three parts are
+// numeric. A pre-release of the minimum version counts as eligible.
+function sendsDayOneSignals(version) {
+  const have = version.split(/[.-]/, 3).map(Number);
+  const need = DAY_ONE_SIGNALS_MIN_VERSION.split('.').map(Number);
+  for (let i = 0; i < 3; i++) if (have[i] !== need[i]) return have[i] > need[i];
+  return true;
+}
 
 // Keyed hash of the install id — the only form that ever touches storage or
 // GA. HMAC-SHA-256 under a worker secret, hex-encoded. Returns null (uniques
@@ -300,7 +328,8 @@ async function handlePing(request, env, ctx, now) {
     work.push(
       // One extra KV read per install per launch-day at most — the event:
       // dedup and markActive reads already dwarf it.
-      markFirstSeen(env.PINGS, hashedId, dayBucket(now), bump),
+      markFirstSeen(env.PINGS, hashedId, dayBucket(now), bump).then((isNew) =>
+        isNew && sendsDayOneSignals(version) && markDayOneEligible(env.PINGS, hashedId, dayBucket(now), bump)),
       markNextDayReturn(env.PINGS, hashedId, dayBucket(now), prevDayBucket(now), bump),
       markActive(env.PINGS, 'day', dayBucket(now), hashedId, DAY_SEEN_TTL),
       markActive(env.PINGS, 'week', weekBucket(now), hashedId, WEEK_SEEN_TTL),
@@ -326,8 +355,27 @@ function usageEventFrom(body) {
   return null;
 }
 
+// The two first-day signals have their own path: no GA forward, no
+// productUsage metric, no per-session replay key (the install-day marker is
+// the dedup). See markDayOneSignal in first-seen.js.
+const DAY_ONE_EVENTS = Object.freeze(Object.fromEntries(DAY_ONE_SIGNALS.map((s) => [`day1_${s}`, s])));
+
+async function handleDayOneSignal(env, fields, signal, now) {
+  const hashedId = await hashInstallId(env, fields.installId);
+  if (hashedId) {
+    await markDayOneSignal(env.PINGS, hashedId, signal, dayBucket(now), bump)
+      .catch((err) => console.error('KV write failed:', err.message));
+  }
+  return new Response(null, { status: 204 });
+}
+
 async function handleUsageEvent(request, env, ctx, now) {
   const client = await readClientRequest(request);
+  // hasOwn: an event named '__proto__' or 'constructor' must not match.
+  const signal = client && Object.hasOwn(DAY_ONE_EVENTS, client.body.event)
+    ? DAY_ONE_EVENTS[client.body.event]
+    : undefined;
+  if (signal) return handleDayOneSignal(env, client.fields, signal, now);
   const usage = client ? usageEventFrom(client.body) : null;
   if (!client || !usage) {
     console.warn(JSON.stringify({ event: 'usage-rejected', reason: 'implausible-payload' }));
@@ -487,13 +535,44 @@ async function handlePurgeLegacy(request, env) {
   }
 }
 
+// The cohort days /stats shows: the newest 30 install days from the first
+// tracked next-day cohort on.
+function shownCohortDays(newByDay) {
+  return Object.keys(newByDay).sort().slice(-30).filter((day) => day >= NEXT_DAY_RETURN_FIRST_COHORT);
+}
+
+// First-day group counts for exactly the shown days, read directly so the
+// cost stays bounded (3 groups x 2 counters x <= 30 days) however long the
+// never-expiring d1had/d1ret history grows.
+async function readDayOneCounts(kv, days) {
+  const byDay = {};
+  await Promise.all(days.filter((day) => day >= DAY_ONE_SIGNALS_FIRST_COHORT).map(async (day) => {
+    const entries = await Promise.all(DAY_ONE_GROUPS.map(async (group) => {
+      const [had, returned] = await Promise.all([
+        kv.get(`d1had:${group}:${day}`),
+        kv.get(`d1ret:${group}:${day}`),
+      ]);
+      return [group, { had: parseInt(had ?? '0', 10), returnedNextDay: parseInt(returned ?? '0', 10) }];
+    }));
+    const counts = Object.fromEntries(entries);
+    byDay[day] = {
+      eligible: { installs: counts.eligible.had, returnedNextDay: counts.eligible.returnedNextDay },
+      ...Object.fromEntries(DAY_ONE_SIGNALS.map((signal) => [signal, counts[signal]])),
+    };
+  }));
+  return byDay;
+}
+
 // Next-day return per new-install cohort day: installs first seen on D that
 // launched again on D+1 (UTC). `complete` is false while D+1 is still today
 // (or D is today), so a partial reading is never mistaken for a final rate.
-function nextDayReturnByCohort(newByDay, returnD1ByDay, today) {
+// From DAY_ONE_SIGNALS_FIRST_COHORT each day also carries `signals`: how many
+// of that day's new installs could send the first-day signals (`eligible`),
+// how many had each signal, and how many of each returned. Readers derive the
+// "didn't" group from eligible, never from newInstalls.
+function nextDayReturnByCohort(newByDay, returnD1ByDay, today, dayOneByDay = {}) {
   const byDay = {};
-  for (const day of Object.keys(newByDay).sort().slice(-30)) {
-    if (day < NEXT_DAY_RETURN_FIRST_COHORT) continue;
+  for (const day of shownCohortDays(newByDay)) {
     const newInstalls = newByDay[day];
     const returnedNextDay = returnD1ByDay[day] ?? 0;
     const nextDay = dayBucket(new Date(Date.parse(`${day}T00:00:00Z`) + 86400000));
@@ -503,6 +582,7 @@ function nextDayReturnByCohort(newByDay, returnD1ByDay, today) {
       rate: newInstalls ? Number((returnedNextDay / newInstalls).toFixed(4)) : 0,
       complete: nextDay < today,
     };
+    if (dayOneByDay[day]) byDay[day].signals = dayOneByDay[day];
   }
   return { firstCohort: NEXT_DAY_RETURN_FIRST_COHORT, byDay };
 }
@@ -539,9 +619,12 @@ async function handleStats(request, env, now) {
   // came back this month. Bounded by collectSeen's cap.
   const thisMonth = monthBucket(now);
   const lastMonth = prevMonthBucket(now);
-  const [cohort, current] = await Promise.all([
+  // The first-day split needs the shown cohort days, so it runs alongside the
+  // retention scan rather than in the first batch.
+  const [cohort, current, dayOneByDay] = await Promise.all([
     collectSeen(env.PINGS, 'month', lastMonth),
     collectSeen(env.PINGS, 'month', thisMonth),
+    readDayOneCounts(env.PINGS, shownCohortDays(newByDay)),
   ]);
   let returned = 0;
   for (const id of cohort.ids) if (current.ids.has(id)) returned++;
@@ -574,7 +657,7 @@ async function handleStats(request, env, now) {
     newInstalls: {
       byDay: pickRecent(newByDay, 60),
     },
-    nextDayReturn: nextDayReturnByCohort(newByDay, returnD1ByDay, dayBucket(now)),
+    nextDayReturn: nextDayReturnByCohort(newByDay, returnD1ByDay, dayBucket(now), dayOneByDay),
     productUsage,
   };
   return new Response(JSON.stringify(stats, null, 2), {
