@@ -32,6 +32,7 @@ const surface = window.bowserPages?.surface;
 const el = (id) => document.getElementById(id);
 const pageEl = document.querySelector('.tab-import-page');
 const statusEl = el('tabImportStatus');
+const announceEl = el('tabImportAnnounce');
 const stepProgressEl = el('tabImportStepProgress');
 const browserListEl = el('tabImportBrowserList');
 const sourceRecoveryEl = el('tabImportSourceRecovery');
@@ -41,6 +42,8 @@ const sourceListEl = el('tabImportSourceList');
 const tabsListEl = el('tabImportTabsList');
 const selectedCountEl = el('tabImportSelectedCount');
 const continueToOrganizeBtn = el('tabImportContinueToOrganize');
+const selectAllBtn = el('tabImportSelectAll');
+const selectNoneBtn = el('tabImportSelectNone');
 const newGroupNameEl = el('tabImportNewGroupName');
 const organizeBoardEl = el('tabImportOrganizeBoard');
 const continueToReviewBtn = el('tabImportContinueToReview');
@@ -62,6 +65,14 @@ let selectedSourceBrowserKey = null;
 let sourceBrowserGroups = [];
 
 function setStatus(message = '') { statusEl.textContent = message; }
+// Routine confirmations of an edit the person can already see. Spoken, but
+// kept out of the visible status box so the board doesn't jump on every move.
+function announce(message) {
+  setStatus();
+  // Clear first so a repeated message ("Tab placement updated.") is spoken again.
+  announceEl.textContent = '';
+  requestAnimationFrame(() => { announceEl.textContent = message; });
+}
 
 function cloneProposal(value) {
   return value ? {
@@ -503,9 +514,9 @@ function selectedCount() {
   return candidates.filter((candidate) => candidate.selected && !candidate.excluded).length;
 }
 
-function candidateMeta(candidate) {
+function candidateMeta(candidate, { sourceGroup = true } = {}) {
   const parts = [candidate.hostname || 'site'];
-  if (candidate.sourceGroupName) parts.push(`group: ${candidate.sourceGroupName}`);
+  if (sourceGroup && candidate.sourceGroupName) parts.push(`group: ${candidate.sourceGroupName}`);
   if (candidate.pinned) parts.push('pinned');
   return parts.join(' · ');
 }
@@ -534,7 +545,8 @@ function candidateRow(candidate, selectable = true) {
   title.textContent = candidate.title || candidate.hostname || 'Untitled';
   const meta = document.createElement('span');
   meta.className = 'meta';
-  meta.textContent = candidateMeta(candidate);
+  // Organize rows already show their group in the heading and the move menu.
+  meta.textContent = candidateMeta(candidate, { sourceGroup: selectable });
   main.append(title, meta);
   row.append(main);
   return row;
@@ -571,8 +583,14 @@ function renderTabs() {
     note.textContent = `${unsupportedCount} unsupported ${unsupportedCount === 1 ? 'tab was' : 'tabs were'} left out.`;
     tabsListEl.append(note);
   }
-  selectedCountEl.textContent = `${selectedCount()} of ${candidates.length} selected`;
-  continueToOrganizeBtn.disabled = selectedCount() < 1;
+  const count = selectedCount();
+  selectedCountEl.textContent = `${count} of ${candidates.length} selected`;
+  const focused = document.activeElement;
+  selectAllBtn.disabled = count === candidates.length;
+  selectNoneBtn.disabled = count === 0;
+  // Disabling the button that was just pressed would drop keyboard focus.
+  if (focused?.disabled) (focused === selectAllBtn ? selectNoneBtn : selectAllBtn).focus();
+  continueToOrganizeBtn.disabled = count < 1;
 }
 
 async function selectAll(value) {
@@ -635,7 +653,7 @@ async function moveCandidate(candidateId, lane, restoring = false) {
     const current = candidates.find((item) => item.candidateId === candidateId);
     if (current) Object.assign(current, oldSelection);
   } else {
-    setStatus(restoring ? 'Restored the original placement.' : 'Tab placement updated.');
+    announce(restoring ? 'Restored the original placement.' : 'Tab placement updated.');
   }
   renderOrganize();
 }
@@ -657,7 +675,7 @@ function moveSelect(candidate) {
   for (const group of proposal.groups) {
     const option = document.createElement('option');
     option.value = group.suggestionId;
-    option.textContent = `group: ${group.name}`;
+    option.textContent = group.name;
     select.append(option);
   }
   for (const [value, label] of [[UNGROUPED_LANE, 'ungrouped'], [EXCLUDED_LANE, 'leave out']]) {
@@ -679,6 +697,7 @@ function organizeRow(candidate) {
   const current = candidate.excluded ? EXCLUDED_LANE : proposalLaneFor(proposal, candidate.candidateId);
   const original = proposalLaneFor(originalProposal, candidate.candidateId) ?? UNGROUPED_LANE;
   if (current !== original) {
+    if (candidate.sourceGroupName) row.querySelector('.meta').textContent = candidateMeta(candidate);
     const restore = document.createElement('button');
     restore.type = 'button';
     restore.className = 'tab-import-restore-btn';
@@ -695,7 +714,7 @@ function removeGroup(group) {
   for (const id of group.candidateIds) {
     if (!proposal.ungroupedCandidateIds.includes(id)) proposal.ungroupedCandidateIds.push(id);
   }
-  setStatus(`Removed ${group.name}; its tabs are now ungrouped.`);
+  announce(`Removed ${group.name}; its tabs are now ungrouped.`);
   renderOrganize();
 }
 
@@ -814,7 +833,7 @@ function createGroup(name) {
     confidence: 'review',
   });
   newGroupNameEl.value = '';
-  setStatus(`Created ${normalized}. Move at least two tabs into it.`);
+  announce(`Created ${normalized}. Move at least two tabs into it.`);
   renderOrganize();
 }
 
@@ -894,8 +913,8 @@ async function applyImport() {
   }
 }
 
-el('tabImportSelectAll').addEventListener('click', () => selectAll(true));
-el('tabImportSelectNone').addEventListener('click', () => selectAll(false));
+selectAllBtn.addEventListener('click', () => selectAll(true));
+selectNoneBtn.addEventListener('click', () => selectAll(false));
 el('tabImportBackToSource').addEventListener('click', () => returnToSource());
 continueToOrganizeBtn.addEventListener('click', () => beginOrganize());
 el('tabImportNewGroupForm').addEventListener('submit', (event) => {
