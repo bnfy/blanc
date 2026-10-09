@@ -19,11 +19,22 @@ require.cache[electronId] = {
   },
 };
 
+const loaded = [];
 function loadSettings(userData) {
   activeUserData = userData;
   delete require.cache[require.resolve('../../src/main/settings')];
   delete require.cache[require.resolve('../../src/main/store')];
-  return require('../../src/main/settings');
+  const settings = require('../../src/main/settings');
+  loaded.push({ userData, settings });
+  return settings;
+}
+
+// Write any pending debounced save now, synchronously, then remove the
+// directory. Waiting a fixed 300 ms let the 250 ms save start on its own and
+// race the removal (ENOTEMPTY on a slow Windows runner).
+function removeUserData(dir) {
+  for (const { userData, settings } of loaded) if (userData === dir) settings.flushSettings();
+  fs.rmSync(dir, { recursive: true, force: true });
 }
 
 test.after(() => {
@@ -35,10 +46,7 @@ test.after(() => {
 
 test('the WebRTC policy accepts Compatibility, rejects unknown values, and never syncs', (t) => {
   const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-webrtc-policy-'));
-  t.after(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    fs.rmSync(userData, { recursive: true, force: true });
-  });
+  t.after(() => removeUserData(userData));
   const settings = loadSettings(userData);
 
   assert.equal(settings.getSettings().webrtcPolicy, 'standard');

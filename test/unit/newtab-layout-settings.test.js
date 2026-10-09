@@ -20,11 +20,22 @@ require.cache[electronId] = {
   },
 };
 
+const loaded = [];
 function loadSettings(userData) {
   activeUserData = userData;
   delete require.cache[require.resolve('../../src/main/settings')];
   delete require.cache[require.resolve('../../src/main/store')];
-  return require('../../src/main/settings');
+  const settings = require('../../src/main/settings');
+  loaded.push({ userData, settings });
+  return settings;
+}
+
+// Write any pending debounced save now, synchronously, then remove the
+// directory. Waiting a fixed 300 ms let the 250 ms save start on its own and
+// race the removal (ENOTEMPTY on a slow Windows runner).
+function removeUserData(dir) {
+  for (const { userData, settings } of loaded) if (userData === dir) settings.flushSettings();
+  fs.rmSync(dir, { recursive: true, force: true });
 }
 
 test.after(() => {
@@ -36,12 +47,7 @@ test.after(() => {
 
 test('the start-page layout defaults to billboard, validates its enum, and syncs', (t) => {
   const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-newtab-layout-'));
-  t.after(async () => {
-    // JsonStore writes on a 250 ms debounce; let it finish before removing
-    // the isolated directory so a passing test does not emit an ENOENT warning.
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    fs.rmSync(userData, { recursive: true, force: true });
-  });
+  t.after(() => removeUserData(userData));
   const settings = loadSettings(userData);
 
   assert.deepEqual(settings.NEWTAB_LAYOUTS, ['ledger', 'billboard', 'shelf', 'tally']);
@@ -72,10 +78,7 @@ test('the start-page layout defaults to billboard, validates its enum, and syncs
 
 test('a local layout choice outranks a future-dated preference already observed from sync', (t) => {
   const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-newtab-layout-clock-'));
-  t.after(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    fs.rmSync(userData, { recursive: true, force: true });
-  });
+  t.after(() => removeUserData(userData));
   const settings = loadSettings(userData);
   const remoteTimestamp = Date.now() + 60_000;
   const remote = {
@@ -99,10 +102,9 @@ test('a local layout choice outranks a future-dated preference already observed 
 test('concurrent equal-clock layout choices converge deterministically', (t) => {
   const deviceADir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-layout-device-a-'));
   const deviceBDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-layout-device-b-'));
-  t.after(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    fs.rmSync(deviceADir, { recursive: true, force: true });
-    fs.rmSync(deviceBDir, { recursive: true, force: true });
+  t.after(() => {
+    removeUserData(deviceADir);
+    removeUserData(deviceBDir);
   });
   const baseTimestamp = Date.now() + 60_000;
   const base = JSON.stringify({
@@ -139,10 +141,7 @@ test('concurrent equal-clock layout choices converge deterministically', (t) => 
 
 test('unsafe remote timestamps are ignored and never re-exported', (t) => {
   const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-layout-invalid-clock-'));
-  t.after(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    fs.rmSync(userData, { recursive: true, force: true });
-  });
+  t.after(() => removeUserData(userData));
   fs.writeFileSync(path.join(userData, 'settings.json'), JSON.stringify({
     onboardingVersion: 1,
     presentationDefaultsResetVersion: 1,
@@ -223,10 +222,7 @@ test('Settings offers every supported start-page layout', () => {
 
 test('retired Mahjong layout migrates durably to Billboard and rejects old synced values', (t) => {
   const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-mahjong-layout-migrate-'));
-  t.after(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    fs.rmSync(userData, { recursive: true, force: true });
-  });
+  t.after(() => removeUserData(userData));
   const previousClock = Date.now() + 60_000;
   fs.writeFileSync(path.join(userData, 'settings.json'), JSON.stringify({
     onboardingVersion: 1,
@@ -269,10 +265,7 @@ test('each start page has a separate Mahjong link and no iframe', () => {
 
 test('privacy choices re-save after first run completes (tour replay)', (t) => {
   const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-privacy-resave-'));
-  t.after(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    fs.rmSync(userData, { recursive: true, force: true });
-  });
+  t.after(() => removeUserData(userData));
   const settings = loadSettings(userData);
 
   // First run: invalid choices are rejected before anything persists.
@@ -306,10 +299,7 @@ test('privacy choices re-save after first run completes (tour replay)', (t) => {
 
 test('time-of-day wallpaper is free, strict, persistent and synced without its local phase', async (t) => {
   const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-wallpaper-'));
-  t.after(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    fs.rmSync(userData, { recursive: true, force: true });
-  });
+  t.after(() => removeUserData(userData));
   let settings = loadSettings(userData);
   assert.equal(settings.getSettings().newtabDynamicWallpaper, false);
   assert.equal(settings.isDynamicWallpaperEnabled(), false);
