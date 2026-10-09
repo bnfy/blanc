@@ -850,6 +850,21 @@ function observeUnderflow() {
 observeUnderflow();
 new ResizeObserver(observeUnderflow).observe(layoutFooter);
 
+// The fixed footer wraps to two rows in narrow windows and the brand row
+// changes with the viewport, so the stylesheet reads their real heights:
+// the body reserves exactly the footer, and Billboard centres its content
+// in the open area between the window top and the footer.
+const startHeader = document.querySelector('.start-header');
+function publishFrameHeights() {
+  const root = document.documentElement.style;
+  root.setProperty('--start-header-h', `${startHeader.offsetHeight}px`);
+  root.setProperty('--start-footer-h', `${layoutFooter.offsetHeight}px`);
+}
+publishFrameHeights();
+const frameHeightObserver = new ResizeObserver(publishFrameHeights);
+frameHeightObserver.observe(startHeader);
+frameHeightObserver.observe(layoutFooter);
+
 // The pill's caret says keystrokes land somewhere. They do: a printable
 // character typed on a blank start page opens the island with that character
 // already in it.

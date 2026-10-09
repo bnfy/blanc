@@ -1258,7 +1258,7 @@ a.ledger-label:hover { color: var(--accent); }
   gap: 6px;
   min-height: 26px;
   padding: 3px 4px 3px 7px;
-  border-radius: 999px 0 0 999px;
+  border-radius: 999px;
   color: var(--text);
   font-weight: 600;
   text-decoration: none;
@@ -2425,7 +2425,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
   margin: 0;
   padding: 0;
 }
-.footer-left { display: inline-flex; align-items: center; gap: 8px; }
+.footer-left { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .footer-right { display: inline-flex; align-items: baseline; gap: 16px; white-space: nowrap; }
 #mahjongLink { color: var(--text-dim); text-decoration: none; }
 #mahjongLink:hover { color: var(--text); text-decoration: underline; }
@@ -2734,7 +2734,8 @@ body:not([data-layout="ledger"]) .ledger-footer {
   isolation: isolate;
   position: relative;
   min-height: 100vh;
-  padding: 0 0 72px;
+  /* Reserves exactly the fixed footer (its height is set by newtab.js). */
+  padding: 0 0 var(--start-footer-h, 72px);
   overflow-x: hidden;
   background-color: var(--bg);
   --start-wallpaper-evening-overlay: linear-gradient(180deg, rgba(247, 240, 229, 0.94) 0%, rgba(247, 240, 229, 0.84) 60%, rgba(247, 240, 229, 0.35) 100%);
@@ -2955,7 +2956,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
 #goAnywhere { font-family: var(--font-ui); }
 
 @media (max-width: 760px) {
-  .ledger-body { padding-bottom: 104px; background-size: auto 100%, auto 100%; }
+  .ledger-body { padding-bottom: var(--start-footer-h, 104px); background-size: auto 100%, auto 100%; }
   .start-brand-mark { width: 44px; height: 44px; }
   .bb-favs { gap: 10px; }
   .bb-site { width: 86px; }
@@ -3037,7 +3038,15 @@ body:not([data-layout="ledger"]) .ledger-footer {
   margin-inline: auto;
   padding: clamp(32px, 6vh, 64px) var(--start-gutter) 48px;
 }
-body[data-layout="billboard"] .start-content { justify-content: center; }
+/* Billboard centres whatever it shows between the window top and the
+   footer: the content area reaches up behind the brand row and carries equal
+   padding top and bottom, so on a short window the content stops just below
+   the brand row instead of sliding under it. */
+body[data-layout="billboard"] .start-content {
+  justify-content: center;
+  margin-top: calc(-1 * var(--start-header-h, 0px));
+  padding-block: calc(var(--start-header-h, 0px) + 16px);
+}
 .start-content-end { flex: 0 0 auto; height: 0; }
 
 /* PR 1 places the three other layouts in flow; their reworks follow. */
@@ -3068,11 +3077,11 @@ body[data-layout="tally"] #layoutTally { display: grid; }
   .tally-right { order: -1; }
 }
 
-/* The moving-in checklist is a footer pill just before Customize, with the
-   same outline: its label opens the native popover upward on the same
+/* The moving-in checklist is a pill in the footer's left group, after the
+   version, with the same outline as Customize: its label opens the native
+   popover upward (growing rightward, away from the window edge) on the same
    level-2 material, and the trailing close button hides it for good. The
    pill fits every window size, so it has no compact variant. */
-.footer-appearance { gap: 8px; }
 .migration-checklist-shell {
   display: inline-flex;
   align-items: center;
@@ -3090,7 +3099,7 @@ body[data-layout="tally"] #layoutTally { display: grid; }
   min-height: 26px;
   padding: 4px 4px 4px 12px;
   border: 0;
-  border-radius: 999px 0 0 999px;
+  border-radius: 999px;
   background: transparent;
   color: var(--text-dim);
   font: inherit;
@@ -3129,7 +3138,7 @@ body[data-layout="tally"] #layoutTally { display: grid; }
 .migration-checklist {
   position: fixed;
   position-anchor: --start-checklist;
-  position-area: top center;
+  position-area: top span-right;
   inset: auto;
   margin: 0 0 10px;
   width: max-content;
@@ -3384,6 +3393,7 @@ body.has-underflow .ledger-footer::before { opacity: 1; }
     overlay 150ms allow-discrete,
     display 150ms allow-discrete;
 }
+.migration-checklist { transform-origin: bottom left; }
 .start-customize-popover:popover-open,
 .migration-checklist:popover-open {
   opacity: 1;

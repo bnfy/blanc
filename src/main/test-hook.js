@@ -831,7 +831,8 @@ function install(refs) {
           footerBounds: bounds(document.getElementById('layoutFooter')),
           customizeBounds: bounds(document.getElementById('customizeButton')),
           hideBounds: bounds(document.getElementById('migrationChecklistHide')),
-          pillFollowedByCustomize: shell?.nextElementSibling?.id === 'customizeButton',
+          pillInFooterLeft: !!shell?.closest('#layoutFooter .footer-left'),
+          viewportWidth: innerWidth,
         };
       })()`);
     },
@@ -876,6 +877,35 @@ function install(refs) {
           patronVisible: !!patron && !patron.hidden && !!rect(patron),
           patron: patron && !patron.hidden ? rect(patron) : null,
           emptyHints: [...rootEl.querySelectorAll('.start-empty-hint')].filter((element) => rect(element)).length,
+        };
+      })()`);
+    },
+    // F35-18: the Billboard's visible content block against the open area
+    // between the window top and the fixed footer.
+    readBillboardVerticalBox() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const shown = [...document.getElementById('layoutBillboard').children].filter((element) => {
+          const style = getComputedStyle(element);
+          const box = element.getBoundingClientRect();
+          return !element.hidden && style.display !== 'none' && style.position !== 'absolute' && box.height > 1;
+        });
+        if (!shown.length) return null;
+        const top = Math.min(...shown.map((element) => element.getBoundingClientRect().top));
+        const bottom = Math.max(...shown.map((element) => element.getBoundingClientRect().bottom));
+        const footerTop = document.getElementById('layoutFooter').getBoundingClientRect().top;
+        const headerBottom = document.querySelector('.start-header').getBoundingClientRect().bottom;
+        const round = (value) => Math.round(value * 10) / 10;
+        return {
+          layout: document.body.dataset.layout,
+          viewportWidth: innerWidth,
+          headerBottom: round(headerBottom),
+          contentTop: round(top),
+          above: round(top),
+          below: round(footerTop - bottom),
+          parts: shown.map((element) => element.id || element.className),
         };
       })()`);
     },

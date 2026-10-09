@@ -16,6 +16,16 @@ const frameCss = () => {
   return css.slice(start, end);
 };
 
+test('Billboard centres its content between the window top and the measured footer', () => {
+  const css = read('src/renderer/pages/pages.css');
+  const js = read('src/renderer/pages/newtab.js');
+  assert.match(js, /root\.setProperty\('--start-header-h', `\$\{startHeader\.offsetHeight\}px`\);/);
+  assert.match(js, /root\.setProperty\('--start-footer-h', `\$\{layoutFooter\.offsetHeight\}px`\);/);
+  assert.match(js, /frameHeightObserver\.observe\(startHeader\);\s*frameHeightObserver\.observe\(layoutFooter\);/);
+  assert.match(css, /padding: 0 0 var\(--start-footer-h, 72px\);/, 'the body reserves exactly the footer');
+  assert.match(css, /body\[data-layout="billboard"\] \.start-content \{[^}]*justify-content: center;[^}]*margin-top: calc\(-1 \* var\(--start-header-h, 0px\)\);[^}]*padding-block: calc\(var\(--start-header-h, 0px\) \+ 16px\);/s);
+});
+
 test('the header row holds the brand, in flow', () => {
   const html = read('src/renderer/pages/newtab.html');
   assert.match(
@@ -45,7 +55,8 @@ test('every layout renders inside one centered content area', () => {
 
 test('the checklist is a footer pill with an anchored popover', () => {
   const css = frameCss();
-  assert.match(css, /\.footer-appearance \{[^}]*gap: 8px;/s);
+  assert.match(read('src/renderer/pages/pages.css'), /\.footer-left \{[^}]*flex-wrap: wrap;/s,
+    'the left group wraps rather than overflowing narrow windows');
   assert.match(css, /\.migration-checklist-shell \{[^}]*display: inline-flex;[^}]*min-height: 28px;/s);
   assert.doesNotMatch(css, /\.migration-checklist-compact \.migration-progress-ring/, 'the pill carries no ring');
   assert.match(css, /\.migration-checklist \{[^}]*background: var\(--start-float-fill\);[^}]*backdrop-filter: blur\(20px\) saturate\(140%\);/s,

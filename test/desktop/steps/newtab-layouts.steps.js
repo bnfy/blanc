@@ -772,3 +772,33 @@ Then('Tally stacks the data above the list at 820x840', async function () {
     if (original) await this.call('setWindowContentSize', original.width, original.height);
   }
 });
+
+Then('the Billboard content is centered between the window top and the footer at 1280x800, 900x900, 700x1000 and 1440x600', async function () {
+  const original = await this.call('windowContentBounds');
+  try {
+    for (const [width, height] of [[1280, 800], [900, 900], [700, 1000], [1440, 600]]) {
+      await this.call('setWindowContentSize', width, height);
+      // Settle on the renderer's own viewport and on two equal reads, so a
+      // resize or font swap still in flight cannot pass or fail the check.
+      let previous = null;
+      const box = await waitForValue(
+        async () => {
+          const next = await this.call('readBillboardVerticalBox');
+          const stable = previous && JSON.stringify(previous) === JSON.stringify(next);
+          previous = next;
+          return stable ? next : null;
+        },
+        (value) => value?.layout === 'billboard' && value.viewportWidth === width,
+        `Billboard at ${width}x${height}`,
+      );
+      const context = `${width}x${height}: ${JSON.stringify(box)}`;
+      assert.ok(box.contentTop >= box.headerBottom, `content slid under the brand row at ${context}`);
+      if (box.contentTop > box.headerBottom + 1) {
+        assert.ok(Math.abs(box.above - box.below) <= 1,
+          `above ${box.above}px vs below ${box.below}px at ${context}`);
+      }
+    }
+  } finally {
+    await this.call('setWindowContentSize', original.width, original.height);
+  }
+});

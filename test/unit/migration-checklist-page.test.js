@@ -36,8 +36,8 @@ test('one footer Patron pill names the upgrade and can be closed', () => {
   assert.doesNotMatch(html, /patron-cta-arrow|ledger-patron|bb-patron|shelf-patron|tally-patron/);
   assert.doesNotMatch(html, />Support Blanc</);
   const footer = html.match(/<footer id="layoutFooter"[\s\S]*?<\/footer>/)[0];
-  assert.match(footer, /<span class="footer-left">\s*<span id="footerLeft"><\/span>\s*<span id="version" class="ledger-version"><\/span>\s*<span id="patronCallout" class="patron-pill js-patron-callout" hidden>/,
-    'the pill follows the version on the footer\'s left');
+  assert.match(footer, /<span class="footer-left">\s*<span id="footerLeft"><\/span>\s*<span id="version" class="ledger-version"><\/span>\s*<span id="migrationChecklistShell"[\s\S]*?<\/aside>\s*<\/span>\s*<span id="patronCallout" class="patron-pill js-patron-callout" hidden>/,
+    'the Patron pill ends the footer\'s left group');
   assert.match(footer, /<\/a>\s*<button id="patronCalloutHide" class="start-pill-close" type="button" aria-label="Hide the Blanc Patron upgrade for 90 days">/);
   const chip = css.match(/\.js-patron-callout \{([\s\S]*?)\n\}/)?.[1] ?? '';
   assert.match(chip, /border: 1px solid color-mix\(in srgb, var\(--patron-gold\) 60%, transparent\);/,
@@ -63,11 +63,13 @@ test('checklist is a footer pill beside Customize whose popover opens upward, an
 
   assert.doesNotMatch(html.match(/<header class="start-header"[\s\S]*?<\/header>/)[0], /migrationChecklist/,
     'the header no longer carries the checklist');
-  assert.match(html, /<span class="footer-appearance">\s*<span id="migrationChecklistShell" class="migration-checklist-shell" hidden>[\s\S]*?<\/span>\s*<button id="customizeButton"/,
-    'the checklist pill sits just before Customize in the footer');
+  assert.match(html, /<span id="version" class="ledger-version"><\/span>\s*<span id="migrationChecklistShell" class="migration-checklist-shell" hidden>[\s\S]*?<\/aside>\s*<\/span>\s*<span id="patronCallout"/,
+    'the checklist pill sits on the footer\'s left, after the version and before the Patron pill');
+  assert.match(html, /<span class="footer-appearance">\s*<button id="customizeButton"/,
+    'Customize stays alone in the footer\'s centre');
   assert.match(css, /\.migration-checklist-shell \{[^}]*border-radius: 999px;[^}]*anchor-name: --start-checklist;/s);
-  assert.match(css, /\.migration-checklist \{[^}]*position: fixed;[^}]*position-anchor: --start-checklist;[^}]*position-area: top center;/s,
-    'the checklist popover opens above its pill, like Customize');
+  assert.match(css, /\.migration-checklist \{[^}]*position: fixed;[^}]*position-anchor: --start-checklist;[^}]*position-area: top span-right;/s,
+    'the checklist popover opens above its pill and grows rightward, away from the window edge');
   assert.doesNotMatch(css, /@media \(max-width: 960px\), \(max-height: 640px\) \{[^@]*migration-checklist/,
     'no tight-window checklist variants remain');
   assert.doesNotMatch(css, /body\[data-layout="mahjong"\] \.migration-checklist-shell/);

@@ -79,11 +79,11 @@ Feature: Start page layouts
     Then the moving-in checklist appears in all four start-page layouts
 
   @F35-8 @desktop
-  Scenario: The moving-in checklist opens from the footer beside Customize
+  Scenario: The moving-in checklist opens from the footer's left
     Given a profile that completed first run
     And the moving-in checklist is incomplete and not hidden
     When I open a new tab
-    Then the moving-in checklist pill sits in the footer just before Customize
+    Then the moving-in checklist pill sits on the footer's left with Customize centred
     When I open the moving-in checklist
     Then the moving-in checklist popover opens above its pill
     When I press Escape on the start page
@@ -155,3 +155,14 @@ Feature: Start page layouts
     When I open a new tab
     Then Tally shows two equal, top-aligned columns centered at 1440x840
     And Tally stacks the data above the list at 820x840
+
+  @F35-18 @desktop
+  Scenario: Billboard centers whatever it shows between the window top and the footer
+    Given a profile that completed first run
+    And the moving-in checklist is incomplete and not hidden
+    And a profile whose start page layout is "billboard"
+    When I open a new tab
+    Then the Billboard content is centered between the window top and the footer at 1280x800, 900x900, 700x1000 and 1440x600
+    Given local history contains repeated visits for the Billboard
+    When I open a new tab
+    Then the Billboard content is centered between the window top and the footer at 1280x800, 900x900, 700x1000 and 1440x600

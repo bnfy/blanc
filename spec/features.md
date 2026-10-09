@@ -806,13 +806,16 @@ From the desktop `DEFAULTS`:
   Favorites: ledger, shelf, and tally show "Favorite a page with ♥ to pin it
   here" when there are none. Billboard, which shows recent sites, shows no
   hint. Private start pages show no Patron upgrade and no blocked counts.
+- Billboard centres whatever it shows (clock, blocked line, groups, recent
+  sites) vertically between the window top and the footer; on a short window
+  it stops just below the brand row rather than sliding under it.
 - Non-Patron, non-private start pages show one "Upgrade to Blanc Patron" pill
-  on the footer's left, after the version, on every layout. The × at its end
+  at the end of the footer's left group, on every layout. The × at its end
   hides it on that device for 90 days, after which it returns.
 - After first run, Personal non-private start pages show one moving-in
   checklist on ledger, billboard, shelf, and tally: a "Finish setup" pill in
-  the footer just before Customize, whose popover opens upward with the full
-  list and its 0/2 progress. Living in the footer, it never covers content, at
+  the footer's left group, after the version, whose popover opens upward with
+  the full list and its 0/2 progress. Customize stays alone in the centre. Living in the footer, it never covers content, at
   any window size. It tracks the device-local, once-completed states of Sync
   and Bring Your Tabs. The × at the pill's end hides it permanently on that
   device. It retires after the pill briefly reads "All moved in", without
