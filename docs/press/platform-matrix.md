@@ -12,7 +12,7 @@ builds unless `BLANC_MAC_ARCH_WAIVER` records why one is missing.
 |---|---|---|
 | macOS Apple Silicon | `Blanc-1.31.0-arm64.dmg`: the contained `Blanc.app` is accepted by Gatekeeper as a notarized Developer ID app, passes strict deep `codesign` verification, validates its stapled ticket, and reports 1.31.0 (1310). The exact-tag public run verified the published DMG on native `macos-15`. The owner confirmed the in-app update from public 1.30.1 | Released |
 | macOS Intel | `Blanc-1.31.0.dmg` (x86_64): the same Gatekeeper, `codesign`, stapled-ticket, and version checks pass. The exact-tag public run verified the published DMG on native `macos-15-intel`. Under Rosetta, Blanc uses Blanc Blocker; optional uBlock Origin needs a native Intel Mac | Released |
-| Windows x64 | `Blanc-Setup-1.31.0.exe`: `windows-signature.json` records a valid, timestamped signature for `CN=Bananify Creative` whose SHA-256 matches the downloaded installer. The native release run and the exact-tag DNS and window checks passed. The in-app update from public 1.30.1 is pending owner confirmation | Released |
+| Windows x64 | `Blanc-Setup-1.31.0.exe`: `windows-signature.json` records a valid, timestamped signature for `CN=Bananify Creative` whose SHA-256 matches the downloaded installer. The native release run and the exact-tag DNS and window checks passed. The owner confirmed the in-app update from public 1.30.1 | Released |
 | Linux x64 | `Blanc-1.31.0.AppImage`: AppImages carry no OS-level publisher signature, so the authenticated release manifest is the publisher check. The exact-tag public run passed the AppImage launch and the DNS and window checks | Released |
 
 Every one of the 18 public assets, freshly downloaded, matched its
