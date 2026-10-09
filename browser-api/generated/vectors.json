@@ -2357,6 +2357,28 @@
         }
       ]
     },
+    "reportPanelDrawn": {
+      "kind": "send",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "overlay:panel-drawn",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "overlay:panel-drawn",
+              "args": []
+            }
+          ]
+        }
+      ]
+    },
     "setWorkspaceSwitcherOpen": {
       "kind": "send",
       "platforms": [
@@ -4490,6 +4512,23 @@
                 "restoreTrigger": "shield"
               }
             ]
+          ]
+        }
+      ]
+    },
+    "onIslandCovered": {
+      "kind": "event",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:island-covered",
+      "deliveries": [
+        {
+          "emit": [],
+          "callbacks": [
+            []
           ]
         }
       ]

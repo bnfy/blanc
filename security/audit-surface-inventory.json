@@ -220,7 +220,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "951f743d57faba04d5dd2b1f1be28218512b784f89b9ca0ff111a591738bd367",
+      "sha256": "97616fc43ab223aa6d35a584b7a04167396bb2b15e6a5e41f3b6c7b6ce9fe132",
       "literalChannels": [
         "activate",
         "before-input-event",
@@ -247,6 +247,7 @@
         "chrome:glance-status",
         "chrome:history-clear",
         "chrome:history-list",
+        "chrome:island-covered",
         "chrome:island-proximity",
         "chrome:island-rect",
         "chrome:island-state",
@@ -302,6 +303,7 @@
         "overlay:drag-state",
         "overlay:escape",
         "overlay:hide",
+        "overlay:panel-drawn",
         "overlay:shield-anchor",
         "overlay:show",
         "overlay:toggle",
@@ -505,7 +507,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "badda35b6c4e4a485336916b6961224d4bcc761bacdae7e37423aa66ed00af1b",
+      "sha256": "3be28e317e394024279bd408fc7dd828560c167d8b848ba3621780ccab5cfc91",
       "literalChannels": [
         "chrome:adblock-exempt-active",
         "chrome:adblock-toggle",
@@ -523,6 +525,7 @@
         "chrome:glance-status",
         "chrome:history-clear",
         "chrome:history-list",
+        "chrome:island-covered",
         "chrome:island-proximity",
         "chrome:island-rect",
         "chrome:island-state",
@@ -567,6 +570,7 @@
         "overlay:drag-state",
         "overlay:escape",
         "overlay:hide",
+        "overlay:panel-drawn",
         "overlay:shield-anchor",
         "overlay:show",
         "overlay:toggle",

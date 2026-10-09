@@ -991,6 +991,10 @@ body > .tab-drag-ghost[aria-hidden="true"] {
   box-shadow: var(--shadow-island-resting);
 }
 
+/* Expanded in place: the overlay has drawn the panel over the pill
+   (onIslandCovered in renderer.js). */
+#islandPill.covered { visibility: hidden; }
+
 #islandPill.proximity-active:not(.shield-open) {
   transform:
     translateY(calc(-2px * var(--island-k, 0)))
@@ -1836,8 +1840,9 @@ body[data-mode="palette"] #backdrop {
   padding: 10px 12px 8px;
 }
 /* Opening: the panel grows out of the resting pill rather than appearing.
-   The two are separate views, so overlay.js is handed the pill's box and sets
-   the panel's starting width, height and corner from it.
+   The two are separate views, so overlay.js is handed the pill's box and steps
+   the panel's width, height, corner and offset from it to full size, one
+   display frame at a time (no CSS transition: see morphPanelFromPill).
 
    SIZE, not transform scale. Scaling warps the corners — a round corner under
    a non-uniform scale renders as an ellipse, and pre-compensating the radius
@@ -1851,20 +1856,12 @@ body[data-mode="palette"] #backdrop {
   overflow: hidden;
   transform: translate(var(--morph-x, 0), var(--morph-y, 0));
 }
-#islandPanel.morph-start {
-  opacity: 0;
-  transition: none;
-}
+/* The box itself is opaque from its first frame, sitting exactly on the pill,
+   so it can take the pill's place without a gap: the strip keeps the pill on
+   screen until the overlay reports this frame drawn. It used to fade in from
+   transparent while the pill was already gone, which left the island missing
+   for two or three frames on every click. Only the contents fade. */
 #islandPanel.morph-start > * { opacity: 0; }
-#islandPanel.morph-run {
-  opacity: 1;
-  transition:
-    width 320ms cubic-bezier(0.4, 0, 0.2, 1),
-    height 320ms cubic-bezier(0.4, 0, 0.2, 1),
-    border-radius 320ms cubic-bezier(0.4, 0, 0.2, 1),
-    transform 320ms cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 90ms ease;
-}
 /* Contents come in early now — nothing squashes them any more, they are simply
    uncovered as the box grows. */
 #islandPanel.morph-run > * { transition: opacity 160ms ease 60ms; }

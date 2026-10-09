@@ -2042,16 +2042,37 @@
   });
   /* The panel grows out of the resting pill. They are separate views, so the
    * pill's box arrives from main; we start the panel matching it — same width,
-   * same top, capsule corners — and let one frame later carry it to full size.
+   * same top, capsule corners — and carry it to full size frame by frame.
    *
-   * Scale rather than width/height: animating the box would reflow the list on
-   * every frame. The contents are held invisible until the growth is underway,
-   * so the squash a uniform scale puts on them is never on screen. */
-  const MORPH_MS = 320;   // long enough for the contents' 190ms delay + fade
+   * Size, not a transform scale (see morphPanelFromPill), and stepped here
+   * rather than by a CSS transition: a transition runs on the wall clock, so
+   * when the overlay is starved of frames for a moment (100–550 ms has been
+   * measured mid-expand) the panel froze and then jumped most of the way at
+   * once. Capping how far one frame may advance turns a stall into a pause. */
+  const MORPH_MS = 320;          // the contents' 60 ms delay + 160 ms fade in styles.css finish inside this
+  const MORPH_MAX_STEP_MS = 50;  // a longer gap between frames is a stall, not time to make up
   const RETRACT_MS = 200; // keep in step with OVERLAY_RETRACT_MS in main.js
   let lastPillRect = null;
   let morphTimer = null;
+  let morphFrame = 0;
   let morphGeneration = 0;
+  let drawnGeneration = 0;
+
+  /** cubic-bezier(0.4, 0, 0.2, 1) at progress x, 0..1: the curve the CSS
+   * transition used. Bisection finds the curve parameter whose x matches. */
+  function morphEase(x) {
+    const at = (p1, p2, t) => 3 * (1 - t) * (1 - t) * t * p1 + 3 * (1 - t) * t * t * p2 + t * t * t;
+    if (x <= 0) return 0;
+    if (x >= 1) return 1;
+    let lo = 0;
+    let hi = 1;
+    for (let i = 0; i < 24; i += 1) {
+      const mid = (lo + hi) / 2;
+      if (at(0.4, 0.2, mid) < x) lo = mid;
+      else hi = mid;
+    }
+    return at(0, 1, (lo + hi) / 2);
+  }
 
   function morphPanelFromPill(pillRect) {
     if (!pillRect || !pillRect.width) return;          // no box reported yet
@@ -2071,40 +2092,64 @@
     // It also means the contents are revealed rather than squashed, so they
     // never rubber out on the way in.
     lastPillRect = pillRect;
-    const naturalWidth = panelBox.width;
-    const naturalHeight = panelBox.height;
-    const pillCentre = pillRect.x + pillRect.width / 2;
-    const panelCentre = panelBox.left + panelBox.width / 2;
+    const from = {
+      width: pillRect.width,
+      height: pillRect.height,
+      x: (pillRect.x + pillRect.width / 2) - (panelBox.left + panelBox.width / 2),
+      y: pillRect.y - panelBox.top,
+    };
+    const to = { width: panelBox.width, height: panelBox.height };
+    const paint = (p) => {
+      islandPanel.style.width = `${(from.width + (to.width - from.width) * p).toFixed(1)}px`;
+      islandPanel.style.height = `${(from.height + (to.height - from.height) * p).toFixed(1)}px`;
+      islandPanel.style.borderRadius =
+        `calc(var(--island-resting-radius) * ${(1 - p).toFixed(4)} + var(--island-panel-radius) * ${p.toFixed(4)})`;
+      islandPanel.style.setProperty('--morph-x', `${(from.x * (1 - p)).toFixed(2)}px`);
+      islandPanel.style.setProperty('--morph-y', `${(from.y * (1 - p)).toFixed(2)}px`);
+    };
 
     clearTimeout(morphTimer);
+    cancelAnimationFrame(morphFrame);
     const generation = ++morphGeneration;
     islandPanel.classList.add('morph-start');
-    islandPanel.style.width = `${pillRect.width.toFixed(1)}px`;
-    islandPanel.style.height = `${pillRect.height.toFixed(1)}px`;
-    islandPanel.style.borderRadius = 'var(--island-resting-radius)';
-    islandPanel.style.setProperty('--morph-x', `${(pillCentre - panelCentre).toFixed(2)}px`);
-    islandPanel.style.setProperty('--morph-y', `${(pillRect.y - panelBox.top).toFixed(2)}px`);
+    paint(0);
 
     // Two frames: one for the start state to be painted, one to leave it. A
     // single frame lands both in the same style recalculation and the panel
     // simply appears at full size.
-    requestAnimationFrame(() => requestAnimationFrame(() => {
+    requestAnimationFrame(() => requestAnimationFrame((start) => {
       if (generation !== morphGeneration) return;
       islandPanel.classList.remove('morph-start');
       islandPanel.classList.add('morph-run');
-      islandPanel.style.width = `${naturalWidth.toFixed(1)}px`;
-      islandPanel.style.height = `${naturalHeight.toFixed(1)}px`;
-      islandPanel.style.borderRadius = '';
-      islandPanel.style.removeProperty('--morph-x');
-      islandPanel.style.removeProperty('--morph-y');
-      morphTimer = setTimeout(() => {
+      let elapsed = 0;
+      let last = start;
+      const step = (now) => {
         if (generation !== morphGeneration) return;
+        elapsed += Math.min(Math.max(0, now - last), MORPH_MAX_STEP_MS);
+        last = now;
+        const t = Math.min(1, elapsed / MORPH_MS);
+        paint(morphEase(t));
+        if (t < 1) {
+          morphFrame = requestAnimationFrame(step);
+          return;
+        }
         // Hand the box back to layout, so the panel resizes normally again
         // when tabs open and close underneath it.
-        islandPanel.classList.remove('morph-run');
-        islandPanel.style.width = '';
-        islandPanel.style.height = '';
-      }, MORPH_MS + 60);
+        morphFrame = 0;
+        clearMorphStyles();
+      };
+      morphFrame = requestAnimationFrame(step);
+    }));
+  }
+
+  /** Tell main once the panel's first frame has been produced (the same
+   * two-frame wait as the morph): over the pill's own box when it morphs, at
+   * full size when it doesn't. Main then lets the strip hide the pill under it.
+   * The palette keeps its pill, so only the panel reports. */
+  function reportPanelDrawn() {
+    const generation = ++drawnGeneration;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (generation === drawnGeneration && mode === 'panel') window.browserAPI.reportPanelDrawn();
     }));
   }
 
@@ -2124,7 +2169,10 @@
     // but cannot be clicked and is hidden when the old timer fires.
     if (!wasOpen && (next === 'panel' || next === 'palette')) clearMorphStyles();
     applyMode(next, prefill, purpose);
-    if (!wasOpen && (next === 'panel' || next === 'palette')) morphPanelFromPill(pillRect);
+    if (!wasOpen && (next === 'panel' || next === 'palette')) {
+      morphPanelFromPill(pillRect);
+      reportPanelDrawn();
+    }
   });
   // Main's overlay before-input owns Escape; when the workspace popover is
   // open it forwards here instead of hideOverlay so editors dismiss first.
@@ -2146,6 +2194,7 @@
     if (!box.width) return false;
 
     clearTimeout(morphTimer);
+    cancelAnimationFrame(morphFrame);
     const generation = ++morphGeneration;
     // Pin the current size first, or transitioning from `auto` does nothing.
     islandPanel.classList.add('morph-run', 'retracting');
@@ -2167,6 +2216,8 @@
   /** Put the panel back to its resting styles once it is off screen. */
   function clearMorphStyles() {
     clearTimeout(morphTimer);
+    cancelAnimationFrame(morphFrame);
+    morphFrame = 0;
     morphGeneration += 1;
     islandPanel.classList.remove('morph-start', 'morph-run', 'retracting');
     islandPanel.style.width = '';
@@ -2178,6 +2229,7 @@
 
   window.browserAPI.onOverlayHide((payload) => {
     islandDrag.cancel();
+    drawnGeneration += 1;
     const retracting = payload?.retract && (mode === 'panel' || mode === 'palette')
       && retractPanelIntoPill();
     if (mode === 'find') resetFind();
