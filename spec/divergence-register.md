@@ -609,3 +609,18 @@ system-provider scenario remains `@D12`.
 
 **Status:** macOS-only first release accepted by the product owner 2026-08-24;
 the signed macOS live matrix is complete.
+
+## D27 — Interface-language picker location
+**Features:** F44
+
+**Why:** iOS and Android already provide a per-app language screen that also
+applies to the system UI the app shows; an in-app picker there would duplicate
+it and disagree with it. Desktop has no such OS facility for Electron apps.
+
+- **Desktop:** Settings → General → Language with System plus supported
+  languages by endonym; the choice is device-local and applies after a relaunch.
+- **iOS:** Settings → Blanc → Language (the system per-app language screen).
+- **Android 13+:** per-app language preferences (`LocaleManager`).
+
+**Parity contract that still holds:** the same catalog, the same fixed terms,
+the same English fallback and the same selectable set on every platform.
