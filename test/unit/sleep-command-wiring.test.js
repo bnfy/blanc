@@ -117,9 +117,12 @@ test('/sleep sits at the same index in all four hand-synced copies', () => {
   // 14 since /sync joined the catalogue after /settings (2026-09-17).
   assert.equal(index, 14, '/sleep must follow /mute and precede /group');
   const entry = json.commands[index];
-  assert.equal(entry.hint, 'Quiet background tabs and free their memory');
+  // Hint text lives in the interface catalog; the registry keeps order and names.
+  const catalog = JSON.parse(read('copy/messages/en.json'));
+  assert.equal(catalog['slash.sleep.hint'].message, 'Quiet background tabs and free their memory');
   assert.equal(entry.doc, undefined);
-  assert.doesNotMatch(entry.hint, /'/);
+  assert.equal(catalog['slash.sleep.doc'], undefined);
+  assert.doesNotMatch(catalog['slash.sleep.hint'].message, /'/);
 
   const overlay = read('src/renderer/overlay.js');
   const overlayCommands = [...overlay.matchAll(/^\s*\{\s*cmd: '([^']+)'/gm)].map((m) => m[1]);

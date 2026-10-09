@@ -262,7 +262,7 @@
 
     const meta = document.createElement('div');
     meta.className = 'meta';
-    meta.textContent = new Date(b.addedAt).toLocaleDateString();
+    meta.textContent = new Date(b.addedAt).toLocaleDateString(blancI18n.formatLocale());
 
     const actions = document.createElement('div');
     actions.className = 'actions bookmark-actions';

@@ -1003,3 +1003,20 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
   [`acceptance/settings-and-theming.feature`](./acceptance/settings-and-theming.feature)
   (`@F42`); `test/desktop/dark-websites-smoke.mjs` drives the shipping app.
 
+## F44 — Interface language
+
+**Contract.** Every Blanc-authored interface string comes from the shared
+catalog (`copy/messages/`). Brand names, slash command names and macOS modifier
+symbols are never translated. A missing translation falls back to English text,
+never to a key. The user can use a supported language different from the OS
+language. The interface language never changes the language signals websites
+receive (`Accept-Language`, Chromium's in-page widgets).
+
+**Desktop.** Settings → General → Language (System, then supported languages by
+endonym); a change applies after a relaunch. Device-local, never Profile Synced.
+A pinned language that is no longer available renders English and stays stored.
+
+**Mobile.** The OS per-app language screen chooses the language (D27). Same
+catalog, same fixed terms, same fallback, same selectable set.
+
+**Acceptance.** `spec/acceptance/interface-language.feature` (F44-1 … F44-5).

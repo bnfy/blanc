@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; font-src 'self';" />
+  <script src="strings.js"></script>
+  <script src="i18n.js"></script>
   <title>Settings</title>
   <link rel="icon" type="image/png" href="icon-sunrise.png" />
   <link rel="stylesheet" href="pages.css" />
@@ -114,6 +116,15 @@
                 <option value="1h">After 1 hour</option>
                 <option value="6h">After 6 hours</option>
               </select>
+            </div>
+
+            <div class="setting" id="uiLanguageSetting" hidden>
+              <div class="label">
+                <span data-i18n="settings.language.label">Language</span>
+                <span class="hint" data-i18n="settings.language.hint">Translations are machine-generated.</span>
+              </div>
+              <select id="uiLanguage" aria-label="Language" data-i18n-aria-label="settings.language.label"></select>
+              <button id="uiLanguageRelaunch" type="button" hidden data-i18n="settings.language.relaunch">Relaunch to apply</button>
             </div>
 
             <div class="setting" id="mouseGesturesSetting">
@@ -605,6 +616,7 @@
   <script src="sheet.js"></script>
   <script src="settings-verify-model.js"></script>
   <script src="settings-nav-model.js"></script>
+  <script src="settings-language-model.js"></script>
   <script src="settings-sync-setup-model.js"></script>
   <script src="settings.js"></script>
 </body>

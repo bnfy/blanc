@@ -423,6 +423,7 @@ function install(refs) {
     blockingDecisionDeadline() { return refs.blockingDecisionDeadline(); },
     blockingPopup() { return refs.blockingPopup({ right: 20 }); },
     workspaceAction(action, ...args) { return refs.workspaceTestAction(action, args); },
+    i18nState() { return refs.i18nState(); },
     workspaceActionInWindow(id, action, ...args) { return refs.runInWindowRuntime(id, () => refs.workspaceTestAction(action, args)); },
     workspacePatron() { settings.setPatron({ kind: 'founding', status: 'active' }); },
     workspacePageScript(id, script) { return tabs.get(id)?.view?.webContents?.executeJavaScript(script); },

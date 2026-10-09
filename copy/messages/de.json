@@ -1,0 +1,140 @@
+{
+  "$meta": {
+    "locale": "de",
+    "endonym": "Deutsch",
+    "dir": "ltr",
+    "status": "hidden"
+  },
+  "slash.favorites.hint": {
+    "message": "Favoriten öffnen",
+    "source": "sha256:4003c3557d7edb38752c1ec314681188af0d96213612fafd9e8e39d6f5cbdd71"
+  },
+  "slash.bringTabs.hint": {
+    "message": "Offene Tabs aus einem anderen Browser übernehmen",
+    "source": "sha256:5945124f2fca25eecf803247bfefa55f0e78869bc3dfc3325923ef14f3bef9f4"
+  },
+  "slash.save.hint": {
+    "message": "Diese Seite zu den Favoriten hinzufügen – mit Ordnernamen direkt einsortieren",
+    "source": "sha256:e9916376c8ff6435790e53cb63890d84c7fb6f0841326a391a8c408000f18a62"
+  },
+  "slash.save.doc": {
+    "message": "Diese Seite zu den Favoriten hinzufügen, in einen Ordner, wenn du einen nennst",
+    "source": "sha256:9238f1f272ff3660d8448539ce9531df770c04358a2832bb9fd98c57b4443b79"
+  },
+  "slash.history.hint": {
+    "message": "Verlauf öffnen",
+    "source": "sha256:2fe6be7d6c896865b21a56859f0089adb0b0d79b54b2c01e5b64a28d4843b3b1"
+  },
+  "slash.downloads.hint": {
+    "message": "Downloads öffnen",
+    "source": "sha256:de5dda86535350198af94dd025f1bfc49ea8f6fc730a1005dae18bc8e01d0ff3"
+  },
+  "slash.settings.hint": {
+    "message": "Einstellungen öffnen",
+    "source": "sha256:6204138efda17f6cb77cce285618a87747eaa4d0d607beac0e0157b1448283d6"
+  },
+  "slash.sync.hint": {
+    "message": "Synchronisierung einrichten oder verwalten",
+    "source": "sha256:638e996cf89e2171157cab4ec6f2b73ec2570e0ceac4104b270b271162651be5"
+  },
+  "slash.clear.hint": {
+    "message": "Verlauf löschen",
+    "source": "sha256:9c9e56d0688bdc2f1e1fca49d775dffe8df4fed2985250a712e4ad5a413c89bc"
+  },
+  "slash.new.hint": {
+    "message": "Neuen Tab öffnen",
+    "source": "sha256:3b0eb291921e8fec74312aa0e7f1be3b8a66e5f5d37b0c8dafbcdea8e3c2536d"
+  },
+  "slash.private.hint": {
+    "message": "Privaten Tab öffnen (der Verlauf bleibt unberührt)",
+    "source": "sha256:2f1220c27647d93b315324379ac5150fce223030e23719a674f35d06fe559f35"
+  },
+  "slash.close.hint": {
+    "message": "Diesen Tab schließen",
+    "source": "sha256:56efb9640e25e752812e9e0c3da194e71e1081627f90484b59280faf1dda68b2"
+  },
+  "slash.reopen.hint": {
+    "message": "Zuletzt geschlossenen Tab wieder öffnen",
+    "source": "sha256:41f22da6378a566e2d7264ee4bd43b12c585a712dae7d6be39e91d79808f7d38"
+  },
+  "slash.pin.hint": {
+    "message": "Diesen Tab anheften oder lösen",
+    "source": "sha256:8dc9e7e00f77552f0ad58da6137bf3328683c8e6112fa9d2814d5b6ed5d5c96e"
+  },
+  "slash.mute.hint": {
+    "message": "Diesen Tab stummschalten oder den Ton wieder einschalten",
+    "source": "sha256:269257650ea0481c9c2b0f12a02925dbcc43f3ecb0a169438ec10f5674d02fcd"
+  },
+  "slash.sleep.hint": {
+    "message": "Hintergrund-Tabs ruhen lassen und ihren Speicher freigeben",
+    "source": "sha256:cec72b6a93330577e374f69bf56df1bddb607dbd1d2046ff9c66ad5238be8c98"
+  },
+  "slash.group.hint": {
+    "message": "Leerzeichen, dann einen Gruppennamen eingeben – z. B. „arbeit“",
+    "source": "sha256:00bf14a528ffda6c42a8e8c425f0b133e23a101c17b993cc05efafb1fef2159e"
+  },
+  "slash.group.doc": {
+    "message": "Diesen Tab in eine Gruppe verschieben (wird beim ersten Mal angelegt)",
+    "source": "sha256:44da7f98797e83d2468a09a2a84e2ba9a6730b847c91aaa08a25955191d3c0b7"
+  },
+  "slash.ungroup.hint": {
+    "message": "Diesen Tab aus seiner Gruppe nehmen",
+    "source": "sha256:f54ec12008e1b2727a9f90c14ce049d62f97cfffd7328f8cc7aef93079f81e03"
+  },
+  "slash.closeGroup.hint": {
+    "message": "Alle Tabs dieser Gruppe schließen",
+    "source": "sha256:65697e13aaa071b61f996e2ae086fc038ae81eab05c4101c1b2d683db000e703"
+  },
+  "slash.find.hint": {
+    "message": "Auf der Seite suchen",
+    "source": "sha256:ce83be0d3cf00a5cfbd7e64cc62e5957eccd7dcfd7e557c001bf2ab93c8e1207"
+  },
+  "slash.blockAds.hint": {
+    "message": "Werbung hier blockieren oder das Blockieren überall umschalten",
+    "source": "sha256:2b3a06f5e4650cf5a7d5dd202c1769a6011f7331d5a83d71101b93dc4ea3f980"
+  },
+  "slash.allowAds.hint": {
+    "message": "Werbung auf dieser Website erlauben",
+    "source": "sha256:a4dcd49616b5c6c05a27e8fbe166491b13c6d9d92c482d6096e00dc6bf030401"
+  },
+  "slash.darkSite.hint": {
+    "message": "Diese Website abdunkeln oder so lassen, wie sie gestaltet ist",
+    "source": "sha256:ff525b1b76f536964552a68e8b19248c6a27a4a86602a2c1828d86555e32945e"
+  },
+  "slash.1password.hint": {
+    "message": "Anmeldedaten aus 1Password ausfüllen",
+    "source": "sha256:91e7b778054c9d197be7303b3d3a465541d01d31c472ba9e75e7513fc3c5c91a"
+  },
+  "slash.theme.hint": {
+    "message": "Darstellung wechseln oder system / light / dark wählen",
+    "source": "sha256:d1c446e6b147cf3cb5389447ae35eca9d4121b10703b432c095b52a925bbb23e"
+  },
+  "slash.theme.doc": {
+    "message": "Darstellung wechseln oder direkt zu system, light oder dark wechseln",
+    "source": "sha256:c8318aa17693e36601fc55e6d4b471bbefe57311c3a28d2ebf7bec9b22f77756"
+  },
+  "slash.patron.hint": {
+    "message": "Blanc mit einem Patron-Abo unterstützen",
+    "source": "sha256:7f9b7b6c077870e1426a398ba65b49edc90473beed799ed6fce9a3dc14abf650"
+  },
+  "slash.workspace.hint": {
+    "message": "Zu einem benannten Arbeitsbereich wechseln oder einen neuen Namen eingeben, um dieses Fenster zu speichern",
+    "source": "sha256:481040f4c8794c8345b64a857750a1090a6239bee6169b5f031bfd59f9915d4e"
+  },
+  "settings.language.label": {
+    "message": "Sprache",
+    "source": "sha256:f0879385146ff54dfc9d1707c76f07c9b9cd66f9057ea176c076ab2b1b7b1cb8"
+  },
+  "settings.language.hint": {
+    "message": "Übersetzungen werden maschinell erstellt.",
+    "source": "sha256:9fd6230e8921b270eb643365b059137f8b8b9519820b5a14e8fa830c0ccddea6"
+  },
+  "settings.language.system": {
+    "message": "System ({language})",
+    "source": "sha256:4e2d8eb8ca85fc4a78097c73bab00896de4326d8bd079bdc78ba92de1559a9cd"
+  },
+  "settings.language.relaunch": {
+    "message": "Zum Übernehmen neu starten",
+    "source": "sha256:08c3210416025f2a7b33e50fa60fa9ff9528a86d14a948c002ecb3c34c67d746"
+  }
+}

@@ -42,6 +42,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | Blank-tab affordance | `blank-tab-affordance.feature` | F37 |
 | Certificate safety | `site-certificate-safety.feature` | F39 |
 | Tab migration | `tab-migration.feature` | F40 (D22) |
+| Interface language | `interface-language.feature` | F44 (D27) |
 
 ## Grid
 
@@ -194,6 +195,11 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F40-13 | Workspace save stays separate from migration | — | ⬜ | ➖ | ➖ |
 | F40-14 | Cancel destroys the ephemeral migration session | — | ✅ | ⬜ | ⬜ |
 | F40-15 | A 500-candidate import keeps one live imported tab | — | ✅ | ➖ | ➖ |
+| F44-1 | System resolves to a supported OS language | D27 | ⬜ | ⬜ | ⬜ |
+| F44-2 | A pinned language wins over the OS | D27 | ⬜ | ⬜ | ⬜ |
+| F44-3 | Choosing a language asks to relaunch and applies after it | D27 | ⬜ | ➖ | ➖ |
+| F44-4 | A pinned language that is no longer available renders English | D27 | ⬜ | ⬜ | ⬜ |
+| F44-5 | Websites are unaffected by the interface language | — | ⬜ | ⬜ | ⬜ |
 
 > **M0–M1 note (2026-07-08):** F5 (address/search + OS hand-off) and F1 (minimal
 > address surface) are implemented and unit-tested on iOS, but the iOS acceptance

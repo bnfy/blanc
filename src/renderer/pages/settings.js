@@ -6,6 +6,7 @@
     appInfo,
     capabilities,
     onePasswordAvailable,
+    languages,
   } =
     await window.bowserPages.settings.get();
 
@@ -261,6 +262,34 @@
   } else {
     document.getElementById('darkWebsitesSetting')?.remove();
     document.getElementById('darkWebsitesExceptionsBlock')?.remove();
+  }
+
+  if (supports('uiLanguage')) {
+    const languageSetting = document.getElementById('uiLanguageSetting');
+    const row = window.blancSettingsLanguage.languageRow({ uiLanguage: settings.uiLanguage, languages, t: blancI18n.t });
+    if (!row.visible) {
+      languageSetting.remove();
+    } else {
+      const select = document.getElementById('uiLanguage');
+      const relaunch = document.getElementById('uiLanguageRelaunch');
+      select.replaceChildren(...row.options.map((option) => {
+        const el = document.createElement('option');
+        el.value = option.value;
+        el.textContent = option.label;
+        return el;
+      }));
+      select.value = row.selected;
+      let committed = row.selected;
+      const syncRelaunch = () => { relaunch.hidden = !window.blancSettingsLanguage.needsRelaunch(select.value, languages); };
+      select.addEventListener('change', async () => {
+        if (await window.bowserPages.settings.language(select.value, false)) committed = select.value;
+        else select.value = committed;
+        syncRelaunch();
+      });
+      relaunch.addEventListener('click', () => window.bowserPages.settings.language(select.value, true));
+      languageSetting.hidden = false;
+      syncRelaunch();
+    }
   }
 
   if (supports('tabSleep')) {
@@ -750,7 +779,7 @@
       // (only founding/lifetime carry a mirror date). Show it when present,
       // but the row above is already driven by the `patronActive` boolean.
       const when = settings.supporterActivatedAt
-        ? new Date(settings.supporterActivatedAt).toLocaleDateString()
+        ? new Date(settings.supporterActivatedAt).toLocaleDateString(blancI18n.formatLocale())
         : null;
       patronStatus.textContent = when
         ? `You’re a Patron — thank you. Activated ${when}.`

@@ -1,0 +1,269 @@
+{
+  "$note": "Every desktop file with user-visible strings. 'pending' files are not yet extracted; 'guarded' files fail copy:check on hard-coded English and unknown keys, and their surfaces join the pseudo-locale sweep (npm run test:i18n:desktop). German stays hidden until every file is guarded. 'allow' lists reviewed literals that are not user-facing English (symbols, brand-only text), each with a reason in the commit that adds it.",
+  "files": {
+    "src/renderer/index.html": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/renderer.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/vertical-tabs.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/workspace-ui.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/tab-drag.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/overlay.html": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/overlay.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/permission.html": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/permission.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/fill-status.html": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/fill-status.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/fill-status-copy.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/display-capture-helper.html": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/display-capture-helper.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/pages/settings.html": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/pages/settings.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/pages/settings-sync-setup-model.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/pages/settings-verify-model.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/pages/settings-nav-model.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/pages/newtab.html": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/pages/newtab.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/pages/onboarding.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/pages/error.html": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/pages/error.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/pages/bookmarks.html": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/pages/bookmarks.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/pages/history.html": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/pages/history.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/pages/history-groups.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/pages/downloads.html": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/pages/downloads.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/pages/shortcuts.html": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/pages/shortcuts.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/pages/tab-import.html": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/pages/tab-import-open-tabs.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/pages/tab-handoff.html": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/pages/tab-handoff.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/pages/sheet.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/pages/mahjong.html": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/pages/mahjong.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/pages/mahjong-state.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/main/main.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/main/context-menu.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/main/tab-context-menu-model.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/main/address-menu-model.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/main/dock-menu.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/main/workspace-context-menu-model.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/main/browser-shortcuts.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/main/updater.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/main/site-security.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/main/shield-model.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/main/about-panel.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/main/external-protocols.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/main/linux-sandbox-launch.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/main/webauthn.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/main/pages.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/main/browser-data-import.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/main/ublock-popup-mainworld.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/main/ublock-dashboard-mainworld.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/main/patron.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/main/supporter.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/main/sync.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/main/sync-wipe.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/main/tab-view.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/main/diagnostics.js": {
+      "state": "pending",
+      "allow": []
+    },
+    "src/renderer/pages/settings-language-model.js": {
+      "state": "pending",
+      "allow": []
+    }
+  }
+}

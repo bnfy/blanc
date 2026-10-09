@@ -19,7 +19,9 @@ const sync = require('./sync');
 const telemetry = require('./telemetry');
 const diagnostics = require('./diagnostics');
 const { listDecisions, removeDecision } = require('./permissions');
-const { KNOWN_PAGES, UTILITY_PAGES } = require('./utility-pages');
+const { UTILITY_PAGES } = require('./utility-pages');
+const { resolvePagesAsset } = require('./pages-assets');
+const { stringsScriptFor } = require('./i18n');
 const { isTrustedPagesEvent } = require('./pages-ipc-trust');
 const { developmentBrandAssetPath } = require('./development-brand-preview');
 const { ublockBrandResourcePath } = require('./ublock-brand-resource');
@@ -82,16 +84,26 @@ function setupPages(hooks = {}) {
     return signatureInspection;
   };
 
+  // The active language's catalog for the virtual strings.js; main supplies it.
+  // Without the hook (isolated harnesses) pages get English.
+  const stringsScript = hooks.stringsScript ?? (() =>
+    stringsScriptFor({ source: fs.readFileSync(path.join(PAGES_DIR, 'strings.en.js'), 'utf8'), formatLocale: 'en', strict: false }));
+
   const serveBlanc = (request) => {
     const branding = ublockBrandResourcePath(request.url);
     if (branding) return net.fetch(pathToFileURL(branding).toString());
     const { host, pathname } = new URL(request.url);
-    if (!KNOWN_PAGES.has(host)) return new Response('Not found', { status: 404 });
-
     // `blanc://bookmarks/` serves the page itself; any deeper path is a
     // shared asset (pages.css, pages.js) resolved inside PAGES_DIR only.
-    const name = pathname === '/' ? `${host}.html` : path.basename(pathname);
-    if (!/^[\w.-]+$/.test(name)) return new Response('Bad request', { status: 400 });
+    // Unknown host → 404; malformed name on a known host → 400.
+    const asset = resolvePagesAsset(host, pathname);
+    if (asset.kind === 'error') {
+      return new Response(asset.status === 404 ? 'Not found' : 'Bad request', { status: asset.status });
+    }
+    if (asset.kind === 'strings') {
+      return new Response(stringsScript(), { headers: { 'content-type': 'text/javascript; charset=utf-8' } });
+    }
+    const name = asset.name;
     const defaultPath = path.join(PAGES_DIR, name);
     const resource = developmentBrandAssetPath({
       name,
@@ -344,6 +356,7 @@ function setupPages(hooks = {}) {
       Object.entries(settings.SEARCH_ENGINES).map(([key, { label }]) => [key, label])
     ),
     appIcons: settings.APP_ICON_LABELS,
+    languages: hooks.i18n?.languagesInfo() ?? { active: 'en', system: 'en', options: [] },
   }));
   handle('pages:settings:check-for-updates', 'settings', () => hooks.checkForUpdates());
   handle('pages:blocking:status', 'settings', () => hooks.blocking?.status() ?? null);
@@ -361,6 +374,10 @@ function setupPages(hooks = {}) {
     // raw getSettings() — that includes the supporter key.
     return clientSettings();
   });
+  // The only renderer write path for uiLanguage: sanitize() has no entry for
+  // it, so pages:settings:set drops it like any unknown key.
+  handle('pages:settings:language', 'settings', (code, restart) =>
+    hooks.i18n?.changeUiLanguage(code, { restart }) ?? false);
   handle('pages:settings:trust-receipt', 'settings', async () => {
     const current = settings.getSettings();
     const blocker = JSON.parse(fs.readFileSync(path.join(app.getAppPath(), 'adblock/sources/pinned.json'), 'utf8'));

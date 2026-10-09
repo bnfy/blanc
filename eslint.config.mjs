@@ -50,6 +50,12 @@ export default [
     languageOptions: { globals: globals.browser },
   },
   {
+    // Every chrome and internal document loads strings.js then i18n.js first;
+    // i18n.js publishes the interface-string API as self.blancI18n.
+    files: ['src/renderer/**/*.js'],
+    languageOptions: { globals: { blancI18n: 'readonly' } },
+  },
+  {
     // overlay.html loads workspace-ui.js first; it publishes window.WorkspaceUI.
     files: ['src/renderer/overlay.js'],
     languageOptions: { globals: { WorkspaceUI: 'readonly' } },

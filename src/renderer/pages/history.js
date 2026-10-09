@@ -20,7 +20,7 @@
 
     const meta = document.createElement('div');
     meta.className = 'meta';
-    meta.textContent = window.blancHistoryGroups.timeLabel(e.visitedAt);
+    meta.textContent = window.blancHistoryGroups.timeLabel(e.visitedAt, blancI18n.formatLocale());
 
     const actions = document.createElement('div');
     actions.className = 'actions';
@@ -51,7 +51,7 @@
       return;
     }
 
-    for (const group of window.blancHistoryGroups.groupByDay(entries)) {
+    for (const group of window.blancHistoryGroups.groupByDay(entries, new Date(), blancI18n.formatLocale())) {
       const heading = document.createElement('h2');
       heading.className = 'day-heading';
       heading.textContent = group.label;

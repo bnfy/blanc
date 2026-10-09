@@ -1,0 +1,272 @@
+'use strict';
+// Blanc interface strings: an ICU MessageFormat subset (placeholders, one
+// plural per message, numbered non-nesting tags) plus the DOM applier.
+// Served flat to every blanc-chrome:// and blanc:// document AND required by
+// main and by node tests. Output is always plain text: callers assign it with
+// textContent/setAttribute, never innerHTML.
+(function (root, factory) {
+  const api = factory();
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else {
+    root.blancI18n = api;
+    if (root.document && root.blancStrings) api.bootstrap(root);
+  }
+})(typeof self !== 'undefined' ? self : this, function () {
+  const SELECTOR = /^\s*(=\d+|zero|one|two|few|many|other)\s*\{/;
+  const ARG_HEAD = /^\s*([A-Za-z_]\w*)\s*(?:,\s*(plural)\s*,)?\s*/;
+
+  function parseMessage(source) {
+    const text = String(source);
+    let i = 0;
+    let pluralCount = 0;
+    const seenTags = new Set();
+    const fail = (why) => { throw new SyntaxError(`${why} at ${i} in ${JSON.stringify(text)}`); };
+
+    function parseArgument(ctx) {
+      i += 1; // '{'
+      const head = ARG_HEAD.exec(text.slice(i));
+      if (!head) fail('Expected an argument name');
+      i += head[0].length;
+      if (!head[2]) {
+        if (text[i] !== '}') fail('Expected }');
+        i += 1;
+        return { type: 'arg', name: head[1] };
+      }
+      pluralCount += 1;
+      if (pluralCount > 1) fail('Only one plural per message');
+      const branches = {};
+      for (;;) {
+        const sel = SELECTOR.exec(text.slice(i));
+        if (!sel) break;
+        i += sel[0].length;
+        if (branches[sel[1]]) fail(`Duplicate branch ${sel[1]}`);
+        branches[sel[1]] = parseNodes({ inPlural: true, tag: ctx.tag });
+        if (text[i] !== '}') fail('Expected } after a plural branch');
+        i += 1;
+      }
+      const tail = /^\s*\}/.exec(text.slice(i));
+      if (!tail) fail('Expected } after the plural');
+      i += tail[0].length;
+      if (!branches.other) fail('A plural needs an other branch');
+      return { type: 'plural', name: head[1], branches };
+    }
+
+    function parseNodes(ctx) {
+      const nodes = [];
+      let buffer = '';
+      const flush = () => { if (buffer) { nodes.push({ type: 'text', value: buffer }); buffer = ''; } };
+      while (i < text.length) {
+        const ch = text[i];
+        if (ch === "'" && text[i + 1] === "'") { buffer += "'"; i += 2; continue; }
+        if (ch === '}') { if (ctx.inPlural) break; fail('Unexpected }'); }
+        if (ch === '{') { flush(); nodes.push(parseArgument(ctx)); continue; }
+        if (ch === '#' && ctx.inPlural) { flush(); nodes.push({ type: 'pound' }); i += 1; continue; }
+        if (ch === '<') {
+          const close = /^<\/(\d+)>/.exec(text.slice(i));
+          if (close) {
+            if (ctx.tag === Number(close[1])) break;
+            fail('Unexpected closing tag');
+          }
+          const open = /^<(\d+)>/.exec(text.slice(i));
+          if (open) {
+            if (ctx.tag !== undefined) fail('Tags cannot nest');
+            const index = Number(open[1]);
+            if (seenTags.has(index)) fail(`Tag <${index}> used twice`);
+            seenTags.add(index);
+            flush();
+            i += open[0].length;
+            const children = parseNodes({ inPlural: ctx.inPlural, tag: index });
+            const end = `</${index}>`;
+            if (!text.startsWith(end, i)) fail(`Missing ${end}`);
+            i += end.length;
+            nodes.push({ type: 'tag', index, children });
+            continue;
+          }
+        }
+        buffer += ch;
+        i += 1;
+      }
+      flush();
+      return nodes;
+    }
+
+    const nodes = parseNodes({ inPlural: false, tag: undefined });
+    if (i < text.length) fail('Unexpected input');
+    return nodes;
+  }
+
+  function walk(nodes, visit) {
+    for (const node of nodes) {
+      visit(node);
+      if (node.type === 'tag') walk(node.children, visit);
+      if (node.type === 'plural') for (const branch of Object.values(node.branches)) walk(branch, visit);
+    }
+  }
+
+  function analyzeMessage(nodes) {
+    const args = new Set();
+    const plurals = {};
+    const tags = new Set();
+    let pluralCount = 0;
+    walk(nodes, (node) => {
+      if (node.type === 'arg') args.add(node.name);
+      if (node.type === 'plural') {
+        pluralCount += 1;
+        args.add(node.name);
+        plurals[node.name] = Object.keys(node.branches).sort();
+      }
+      if (node.type === 'tag') tags.add(node.index);
+    });
+    return { args: [...args].sort(), plurals, tags: [...tags].sort((a, b) => a - b), pluralCount };
+  }
+
+  function maxLiteralLength(nodes) {
+    let total = 0;
+    for (const node of nodes) {
+      if (node.type === 'text') total += node.value.length;
+      else if (node.type === 'tag') total += maxLiteralLength(node.children);
+      else if (node.type === 'plural') {
+        total += Math.max(...Object.values(node.branches).map(maxLiteralLength));
+      }
+    }
+    return total;
+  }
+
+  function stringifyMessage(nodes) {
+    return nodes.map((node) => {
+      if (node.type === 'text') return node.value.replace(/'/g, "''");
+      if (node.type === 'arg') return `{${node.name}}`;
+      if (node.type === 'pound') return '#';
+      if (node.type === 'tag') return `<${node.index}>${stringifyMessage(node.children)}</${node.index}>`;
+      const branches = Object.entries(node.branches)
+        .map(([selector, branch]) => `${selector} {${stringifyMessage(branch)}}`).join(' ');
+      return `{${node.name}, plural, ${branches}}`;
+    }).join('');
+  }
+
+  function render(nodes, ctx, out, tag) {
+    const push = (value) => {
+      const last = out[out.length - 1];
+      if (last && last.tag === tag) last.text += value;
+      else out.push(tag === undefined ? { text: value } : { tag, text: value });
+    };
+    for (const node of nodes) {
+      if (node.type === 'text') push(node.value);
+      else if (node.type === 'arg') {
+        push(Object.prototype.hasOwnProperty.call(ctx.params, node.name)
+          ? String(ctx.params[node.name]) : `{${node.name}}`);
+      } else if (node.type === 'pound') push(ctx.number.format(ctx.count));
+      else if (node.type === 'tag') render(node.children, ctx, out, node.index);
+      else if (node.type === 'plural') {
+        const count = Number(ctx.params[node.name]);
+        const branch = node.branches[`=${count}`]
+          ?? node.branches[ctx.plural.select(count)]
+          ?? node.branches.other;
+        render(branch, { ...ctx, count }, out, tag);
+      }
+    }
+    return out;
+  }
+
+  function createTranslator({ locale, formatLocale = locale, messages, fallback = {}, onMissing } = {}) {
+    const own = Object.prototype.hasOwnProperty;
+    const number = new Intl.NumberFormat(formatLocale);
+    const pluralFor = { own: new Intl.PluralRules(locale), fallback: new Intl.PluralRules('en') };
+    const cache = new Map();
+    const reported = new Set();
+
+    function lookup(key) {
+      if (cache.has(key)) return cache.get(key);
+      let entry = null;
+      if (own.call(messages, key)) entry = { nodes: parseMessage(messages[key]), plural: pluralFor.own };
+      else if (own.call(fallback, key)) entry = { nodes: parseMessage(fallback[key]), plural: pluralFor.fallback };
+      if (entry) cache.set(key, entry);
+      return entry;
+    }
+
+    function parts(key, params = {}) {
+      const entry = lookup(key);
+      if (!entry) {
+        if (!reported.has(key)) { reported.add(key); onMissing?.(key); }
+        return [{ text: key }];
+      }
+      return render(entry.nodes, { params, number, plural: entry.plural, count: 0 }, [], undefined);
+    }
+
+    const t = (key, params) => parts(key, params).map((part) => part.text).join('');
+    t.parts = parts;
+    t.has = (key) => own.call(messages, key) || own.call(fallback, key);
+    t.locale = locale;
+    t.formatLocale = formatLocale;
+    return t;
+  }
+
+  const ATTRIBUTES = [
+    ['i18nTitle', 'title'],
+    ['i18nAriaLabel', 'aria-label'],
+    ['i18nPlaceholder', 'placeholder'],
+    ['i18nAlt', 'alt'],
+    ['i18nTooltip', 'data-tooltip'],
+  ];
+  const SELECTOR_ALL = '[data-i18n],[data-i18n-title],[data-i18n-aria-label],[data-i18n-placeholder],[data-i18n-alt],[data-i18n-tooltip]';
+
+  function applyElement(el, t) {
+    const key = el.dataset.i18n;
+    if (key) {
+      const parts = t.parts(key);
+      if (!parts.some((part) => part.tag !== undefined)) {
+        el.textContent = parts.map((part) => part.text).join('');
+      } else {
+        const children = Array.from(el.children);
+        el.replaceChildren(...parts.map((part) => {
+          if (part.tag === undefined) return el.ownerDocument.createTextNode(part.text);
+          const child = children[part.tag];
+          if (!child) throw new Error(`data-i18n="${key}": tag <${part.tag}> has no child element`);
+          child.textContent = part.text;
+          return child;
+        }));
+      }
+    }
+    for (const [prop, attribute] of ATTRIBUTES) {
+      if (el.dataset[prop]) el.setAttribute(attribute, t(el.dataset[prop]));
+    }
+  }
+
+  function applyDocument(root, t) {
+    for (const el of root.querySelectorAll(SELECTOR_ALL)) applyElement(el, t);
+  }
+
+  const api = { parseMessage, analyzeMessage, maxLiteralLength, stringifyMessage, createTranslator, applyElement, applyDocument };
+
+  api.bootstrap = function bootstrap(scope) {
+    const data = scope.blancStrings;
+    const doc = scope.document;
+    const t = createTranslator({
+      locale: data.locale,
+      formatLocale: data.formatLocale ?? data.locale,
+      messages: data.messages,
+      fallback: data.fallback ?? {},
+      onMissing: (key) => {
+        if (data.strict) throw new Error(`missing interface string: ${key}`);
+        scope.console?.warn?.(`missing interface string: ${key}`);
+      },
+    });
+    api.t = t;
+    api.parts = t.parts;
+    api.formatLocale = () => data.formatLocale ?? data.locale;
+    doc.documentElement.lang = data.locale;
+    doc.documentElement.dir = data.dir ?? 'ltr';
+    // Hide a translated document until its static text is applied, so it never
+    // flashes English. CSSOM (not a style attribute) is allowed by style-src 'self'.
+    const hide = data.locale !== 'en';
+    const reveal = () => { if (hide) doc.documentElement.style.visibility = ''; };
+    if (hide) doc.documentElement.style.visibility = 'hidden';
+    scope.setTimeout?.(reveal, 1000);
+    const run = () => { try { applyDocument(doc, t); } finally { reveal(); } };
+    if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', run, { once: true });
+    else run();
+    return t;
+  };
+
+  return api;
+});

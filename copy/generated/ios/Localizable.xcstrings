@@ -1,0 +1,600 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "slash.favorites.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /favorites.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open favorites"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favoriten öffnen"
+          }
+        }
+      }
+    },
+    "slash.bringTabs.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /bring-tabs.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bring open tabs from another browser"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offene Tabs aus einem anderen Browser übernehmen"
+          }
+        }
+      }
+    },
+    "slash.save.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /save.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save this page to favorites — name a folder to file it"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Seite zu den Favoriten hinzufügen – mit Ordnernamen direkt einsortieren"
+          }
+        }
+      }
+    },
+    "slash.save.doc": {
+      "comment": "Reference description of /save [folder] on blanc://shortcuts and in Help → Slash Commands.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save this page to favorites, into a folder if you name one"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Seite zu den Favoriten hinzufügen, in einen Ordner, wenn du einen nennst"
+          }
+        }
+      }
+    },
+    "slash.history.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /history.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open browsing history"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verlauf öffnen"
+          }
+        }
+      }
+    },
+    "slash.downloads.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /downloads.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open downloads"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downloads öffnen"
+          }
+        }
+      }
+    },
+    "slash.settings.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /settings.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open settings"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einstellungen öffnen"
+          }
+        }
+      }
+    },
+    "slash.sync.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /sync.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set up or manage sync"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisierung einrichten oder verwalten"
+          }
+        }
+      }
+    },
+    "slash.clear.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /clear.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear browsing history"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verlauf löschen"
+          }
+        }
+      }
+    },
+    "slash.new.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /new.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open a new tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuen Tab öffnen"
+          }
+        }
+      }
+    },
+    "slash.private.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /private.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open a private tab (history stays untouched)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privaten Tab öffnen (der Verlauf bleibt unberührt)"
+          }
+        }
+      }
+    },
+    "slash.close.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /close.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close this tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diesen Tab schließen"
+          }
+        }
+      }
+    },
+    "slash.reopen.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /reopen.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reopen the tab you just closed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zuletzt geschlossenen Tab wieder öffnen"
+          }
+        }
+      }
+    },
+    "slash.pin.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /pin.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pin or unpin this tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diesen Tab anheften oder lösen"
+          }
+        }
+      }
+    },
+    "slash.mute.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /mute.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mute or unmute this tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diesen Tab stummschalten oder den Ton wieder einschalten"
+          }
+        }
+      }
+    },
+    "slash.sleep.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /sleep.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet background tabs and free their memory"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hintergrund-Tabs ruhen lassen und ihren Speicher freigeben"
+          }
+        }
+      }
+    },
+    "slash.group.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /group.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type a space, then a group name — e.g. \"work\""
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leerzeichen, dann einen Gruppennamen eingeben – z. B. „arbeit“"
+          }
+        }
+      }
+    },
+    "slash.group.doc": {
+      "comment": "Reference description of /group <name> on blanc://shortcuts and in Help → Slash Commands.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move this tab into a group, creating it on first use"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diesen Tab in eine Gruppe verschieben (wird beim ersten Mal angelegt)"
+          }
+        }
+      }
+    },
+    "slash.ungroup.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /ungroup.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Take this tab out of its group"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diesen Tab aus seiner Gruppe nehmen"
+          }
+        }
+      }
+    },
+    "slash.closeGroup.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /close-group.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close every tab in this group"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Tabs dieser Gruppe schließen"
+          }
+        }
+      }
+    },
+    "slash.find.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /find.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find in page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf der Seite suchen"
+          }
+        }
+      }
+    },
+    "slash.blockAds.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /block-ads.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Block ads here, or toggle blocking everywhere"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Werbung hier blockieren oder das Blockieren überall umschalten"
+          }
+        }
+      }
+    },
+    "slash.allowAds.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /allow-ads.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow ads on this site"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Werbung auf dieser Website erlauben"
+          }
+        }
+      }
+    },
+    "slash.darkSite.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /dark-site.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Darken this site, or leave it as drawn"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Website abdunkeln oder so lassen, wie sie gestaltet ist"
+          }
+        }
+      }
+    },
+    "slash.1password.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /1password.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fill a login from 1Password"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anmeldedaten aus 1Password ausfüllen"
+          }
+        }
+      }
+    },
+    "slash.theme.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /theme.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cycle appearance, or choose system / light / dark"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Darstellung wechseln oder system / light / dark wählen"
+          }
+        }
+      }
+    },
+    "slash.theme.doc": {
+      "comment": "Reference description of /theme [system|light|dark] on blanc://shortcuts and in Help → Slash Commands.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cycle appearance, or switch directly to system, light, or dark"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Darstellung wechseln oder direkt zu system, light oder dark wechseln"
+          }
+        }
+      }
+    },
+    "slash.patron.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /patron.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Support Blanc with a Patron subscription"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc mit einem Patron-Abo unterstützen"
+          }
+        }
+      }
+    },
+    "slash.workspace.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /workspace.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switch to a named workspace, or type a new name to save this window"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zu einem benannten Arbeitsbereich wechseln oder einen neuen Namen eingeben, um dieses Fenster zu speichern"
+          }
+        }
+      }
+    },
+    "settings.language.label": {
+      "comment": "Settings → General row label and the language menu's accessible name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprache"
+          }
+        }
+      }
+    },
+    "settings.language.hint": {
+      "comment": "Disclosure under the language menu; translations are AI-generated without human review.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Translations are machine-generated."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Übersetzungen werden maschinell erstellt."
+          }
+        }
+      }
+    },
+    "settings.language.system": {
+      "comment": "Menu option that follows the OS language; {language} is the endonym it currently resolves to, e.g. Deutsch.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System (%1$@)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System (%1$@)"
+          }
+        }
+      }
+    },
+    "settings.language.relaunch": {
+      "comment": "Button that restarts Blanc so a new interface language takes effect.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Relaunch to apply"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zum Übernehmen neu starten"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
