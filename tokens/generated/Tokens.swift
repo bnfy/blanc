@@ -153,7 +153,7 @@ public enum BlancTokens {
     }
     public static let patronGold = "#d4ad66"
     public static let fontUi = "\"Inter\", -apple-system, \"Segoe UI Variable\", \"Segoe UI\", system-ui, sans-serif"
-    public static let fontDisplay = "\"Newsreader Variable\", \"Newsreader\", \"Iowan Old Style\", \"Palatino Linotype\", Palatino, serif"
+    public static let fontDisplay = "\"Newsreader Condensed\", \"Newsreader\", \"Iowan Old Style\", \"Palatino Linotype\", Palatino, serif"
     public static let typeBodySize = "13px"
     public static let typePageTitleSize = "24px"
     public static let typePageTitleWeight = "650"

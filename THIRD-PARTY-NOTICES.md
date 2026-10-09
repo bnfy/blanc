@@ -54,8 +54,9 @@ Copyright (c) 2024 1Password. Full licence text in
 - `src/renderer/pages/caveat-latin.woff2` — Copyright 2014 The Caveat Project
   Authors. Full licence text:
   [src/renderer/pages/caveat-OFL.txt](src/renderer/pages/caveat-OFL.txt).
-- `src/renderer/pages/newsreader-latin-opsz-normal.woff2` — Copyright 2020 The
-  Newsreader Project Authors. Full licence text:
+- `src/renderer/pages/newsreader-condensed-latin-opsz-normal.woff2` — Copyright
+  2020 The Newsreader Project Authors; a Modified Version, "Newsreader
+  Condensed", described below. Full licence text:
   [src/renderer/pages/newsreader-OFL.txt](src/renderer/pages/newsreader-OFL.txt).
 
 All four font files remain under the SIL Open Font License, Version 1.1; Blanc's
@@ -70,10 +71,9 @@ its display typography, self-hosted through
 "Newsreader Condensed" (`site/src/fonts/newsreader-condensed-*.woff2`), which
 `site/scripts/build-condensed-newsreader.py` derives from those pinned files by
 scaling every horizontal measurement to 92% and adding 0.02em of tracking; Newsreader declares no Reserved
-Font Name, and the Modified Version remains under the same licence. Product
-replicas on the website keep the unmodified build. The desktop application bundles the
-same pinned Latin optical-size upright build for its narrowly scoped invitation
-headings, as listed above. The font remains under the SIL Open Font License,
+Font Name, and the Modified Version remains under the same licence. The desktop
+application bundles the same Newsreader Condensed Latin upright file for its
+narrowly scoped invitation headings, as listed above. The font remains under the SIL Open Font License,
 Version 1.1; Blanc's MIT grant does not supersede it. The full website copyright
 notice and licence ship at
 [site/public/fonts/newsreader-OFL.txt](site/public/fonts/newsreader-OFL.txt).

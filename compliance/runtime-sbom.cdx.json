@@ -302,12 +302,12 @@
     {
       "type": "file",
       "bom-ref": "asset:newsreader-font",
-      "name": "Newsreader Latin optical-size variable webfont",
+      "name": "Newsreader Condensed Latin optical-size variable webfont",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6e4f2958c3a7c4a80acde4e5a679abe7e01bc1e30b92be3c7a8b696ef401d101"
+          "content": "a8db667705f61be6ce54322c7bb87b9e29adfe7ad7390f060f26a3adec4767aa"
         }
       ],
       "licenses": [
@@ -320,7 +320,7 @@
       "properties": [
         {
           "name": "blanc:file",
-          "value": "src/renderer/pages/newsreader-latin-opsz-normal.woff2"
+          "value": "src/renderer/pages/newsreader-condensed-latin-opsz-normal.woff2"
         },
         {
           "name": "blanc:licenseFile",

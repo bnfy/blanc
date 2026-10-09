@@ -968,7 +968,7 @@ function install(refs) {
       const tab = tabs.get(getActiveTabId());
       if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
       const page = await tab.view.webContents.executeJavaScript(`(async () => {
-        await document.fonts.load('22px "Newsreader Variable"');
+        await document.fonts.load('22px "Newsreader Condensed"');
         const selectors = [
           '.start-brand-date', '.ledger-label', '.bb-clock', '.bb-meridiem',
           '.bb-blocked', '.shelf-label', '.shelf-count', '.tally-count',
@@ -989,7 +989,7 @@ function install(refs) {
             selector: element.className || 'onboarding h1',
             family: getComputedStyle(element).fontFamily,
           })),
-          newsreaderLoaded: document.fonts.check('22px "Newsreader Variable"'),
+          newsreaderLoaded: document.fonts.check('22px "Newsreader Condensed"'),
           newsreaderOutsideApproved: newsreaderElements
             .filter((element) => !element.matches(newsreaderSelector))
             .slice(0, 20)
@@ -1727,7 +1727,7 @@ function install(refs) {
           }
           return {
             theme: dark ? 'dark' : 'light',
-            fontLoaded: document.fonts.check('22px "Newsreader Variable"'),
+            fontLoaded: document.fonts.check('22px "Newsreader Condensed"'),
             dialogOverflow: dialog.scrollWidth > dialog.clientWidth + 1,
             pageOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
             steps,
