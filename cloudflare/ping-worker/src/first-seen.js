@@ -13,6 +13,49 @@ export async function markFirstSeen(kv, hashedId, day, bumpFn) {
   return true;
 }
 
+// First-day signals (docs/superpowers/specs/2026-10-09-first-day-retention-
+// signals-design.md). Three groups share one marker scheme:
+//   - eligible: written by the Worker itself when an install is first seen on
+//     an app version that can send the signals. It is the comparison group,
+//     so installs on older or community builds never count as "didn't".
+//   - default / browsed: sent by the app on the install day (Blanc is the
+//     default browser; three web pages opened).
+// Each group keeps a per-install marker d1sig:<group>:<D>:<hash> that only
+// has to outlive D+1 for the next-day join in markNextDayReturn, so it
+// expires after two days, plus a d1had:<group>:<D> counter that never
+// expires (growth history). Key families deliberately avoid the return:d1:
+// prefix, which /stats reads whole as day -> count.
+export const DAY_ONE_SIGNALS = Object.freeze(['default', 'browsed']);
+export const DAY_ONE_GROUPS = Object.freeze(['eligible', ...DAY_ONE_SIGNALS]);
+export const DAY_ONE_MARKER_TTL = 2 * 24 * 3600;
+
+async function markDayOneGroup(kv, hashedId, group, day, bumpFn) {
+  const markerKey = `d1sig:${group}:${day}:${hashedId}`;
+  if ((await kv.get(markerKey)) !== null) return false;
+  await bumpFn(kv, `d1had:${group}:${day}`);
+  await kv.put(markerKey, '1', { expirationTtl: DAY_ONE_MARKER_TTL });
+  return true;
+}
+
+// Called by the launch handler only when markFirstSeen just counted a new
+// install, so no first-seen check is needed here.
+export function markDayOneEligible(kv, hashedId, day, bumpFn) {
+  return markDayOneGroup(kv, hashedId, 'eligible', day, bumpFn);
+}
+
+// A signal counts only for an eligible install on its install day, so a
+// late, replayed or out-of-group event stores nothing and the "had" count
+// can never exceed the eligible count. The eligible marker is written by the
+// install's launch ping; KV can serve a cached "not found" for about 60 s at
+// the edge that read it, so a signal sent right after that ping could be
+// dropped. The desktop client therefore waits 2 minutes after its launch
+// report before sending either signal (src/main/day-one-signals.js).
+export async function markDayOneSignal(kv, hashedId, signal, day, bumpFn) {
+  if (!DAY_ONE_SIGNALS.includes(signal)) return false;
+  if ((await kv.get(`d1sig:eligible:${day}:${hashedId}`)) === null) return false;
+  return markDayOneGroup(kv, hashedId, signal, day, bumpFn);
+}
+
 // Next-day return: of the installs first seen on day D, how many launch again
 // on day D+1 (UTC). Counted on the install's first ping of D+1 — first:<id>
 // already records D, so only returners pay the extra marker write. The
@@ -28,5 +71,11 @@ export async function markNextDayReturn(kv, hashedId, day, prevDay, bumpFn) {
   if ((await kv.get(markerKey)) !== null) return false;
   await bumpFn(kv, `return:d1:${prevDay}`);
   await kv.put(markerKey, '1', { expirationTtl: NEXT_DAY_RETURN_MARKER_TTL });
+  // Split the return by first-day group: three reads, paid only by returners.
+  await Promise.all(DAY_ONE_GROUPS.map(async (group) => {
+    if ((await kv.get(`d1sig:${group}:${prevDay}:${hashedId}`)) !== null) {
+      await bumpFn(kv, `d1ret:${group}:${prevDay}`);
+    }
+  }));
   return true;
 }

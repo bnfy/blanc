@@ -134,6 +134,11 @@ test('new-tab layouts use separate allowlisted counters and appear in stats', as
   assert.equal(stats.productUsage.newtabLayouts.shelf.events.total, 1);
   assert.equal(stats.productUsage.newtabLayouts.billboard.events.total, 0);
   assert.equal(Object.values(stats.productUsage.newtabLayouts.ledger.activeUsers.daily)[0], 1);
+  assert.deepEqual(
+    Object.keys(stats.productUsage.newtabLayouts),
+    ['ledger', 'billboard', 'shelf', 'tally', 'mahjong'],
+    'the historic mahjong layout stays readable',
+  );
 });
 
 test('unknown usage events and layout values are rejected without usage writes', async () => {
@@ -397,4 +402,144 @@ test('/stats reports next-day return per new-install cohort from the first track
   for (const key of env.PINGS.map.keys()) {
     assert.ok(!key.includes(RAW_ID), `raw id must not appear in any key: ${key}`);
   }
+});
+
+test('a day-one signal counts once, only on the install day, and never reaches GA', async (t) => {
+  const env = { PINGS: fakeKV(), INSTALL_HASH_SECRET: 'test-secret', GA_API_SECRET: 'ga' };
+  t.mock.timers.enable({ apis: ['Date'], now: Date.parse('2027-01-10T15:00:00Z') });
+  const NEW = { ...PING_BODY, version: '1.31.0' };
+  await ping(env, NEW); // first seen 2027-01-10 on a sending version
+
+  const first = await usageEvent(env, { ...NEW, event: 'day1_default' });
+  const repeat = await usageEvent(env, { ...NEW, sessionId: 43, event: 'day1_default' });
+  const browsed = await usageEvent(env, { ...NEW, event: 'day1_browsed' });
+  assert.equal(first.res.status, 204);
+  assert.equal(repeat.res.status, 204);
+  assert.equal(browsed.res.status, 204);
+  assert.equal(env.PINGS.map.get('d1had:default:2027-01-10'), '1');
+  assert.equal(env.PINGS.map.get('d1had:browsed:2027-01-10'), '1');
+  assert.equal(first.gaCalls.length + repeat.gaCalls.length + browsed.gaCalls.length, 0);
+  assert.equal([...env.PINGS.map.keys()].filter((k) => k.startsWith('usage:')).length, 0,
+    'day-one signals never enter productUsage metrics');
+  assert.equal([...env.PINGS.map.keys()].filter((k) => k.startsWith('d1sig:default:2027-01-10:')).length, 1);
+  for (const key of env.PINGS.map.keys()) {
+    assert.ok(!key.includes(RAW_ID), `raw id must not appear in any key: ${key}`);
+  }
+});
+
+test('a day-one signal after the install day, for an unknown install, or from an older version stores nothing', async (t) => {
+  const env = { PINGS: fakeKV(), INSTALL_HASH_SECRET: 'test-secret' };
+  const NEW = { ...PING_BODY, version: '1.31.0' };
+  const OLD_ID = '33333333-4444-4555-8666-777777777777';
+  t.mock.timers.enable({ apis: ['Date'], now: Date.parse('2027-01-10T15:00:00Z') });
+  const unknown = await usageEvent(env, { ...NEW, event: 'day1_browsed' });
+  assert.equal(unknown.res.status, 204);
+  // First seen on a version that cannot send signals: never eligible, so a
+  // signal (say, after a same-day update) is not counted either.
+  await ping(env, { ...PING_BODY, installId: OLD_ID });
+  const older = await usageEvent(env, { ...NEW, installId: OLD_ID, event: 'day1_default' });
+  assert.equal(older.res.status, 204);
+  assert.equal([...env.PINGS.map.keys()].filter((k) => k.startsWith('d1')).length, 0);
+  await ping(env, NEW);
+  t.mock.timers.setTime(Date.parse('2027-01-11T01:00:00Z'));
+  const late = await usageEvent(env, { ...NEW, sessionId: 43, event: 'day1_browsed' });
+  assert.equal(late.res.status, 204);
+  assert.deepEqual(
+    [...env.PINGS.map.keys()].filter((k) => k.startsWith('d1had:')),
+    ['d1had:eligible:2027-01-10'],
+    'only the eligible install itself is counted; the late signal stores nothing',
+  );
+});
+
+test('a day-one signal without a hashing secret stores nothing', async () => {
+  const env = { PINGS: fakeKV() };
+  const { res } = await usageEvent(env, { ...PING_BODY, event: 'day1_default' });
+  assert.equal(res.status, 204);
+  assert.equal([...env.PINGS.map.keys()].filter((k) => k.startsWith('d1')).length, 0);
+});
+
+test('/stats splits next-day return by day-one signal among installs that can send them', async (t) => {
+  const env = { PINGS: fakeKV(), INSTALL_HASH_SECRET: 'test-secret', STATS_TOKEN: 't' };
+  const NEW = { ...PING_BODY, version: '1.31.0' };
+  const B = '11111111-2222-4333-8444-555555555555';
+  const C = '22222222-3333-4444-8555-666666666666';
+  const OLD = '33333333-4444-4555-8666-777777777777';
+  t.mock.timers.enable({ apis: ['Date'], now: Date.parse('2027-01-10T15:00:00Z') });
+  for (const installId of [RAW_ID, B, C]) await ping(env, { ...NEW, installId });
+  await ping(env, { ...PING_BODY, installId: OLD }); // an older build cannot send signals
+  await usageEvent(env, { ...NEW, event: 'day1_default' }); // A: default
+  await usageEvent(env, { ...NEW, event: 'day1_browsed' }); // A: browsed
+  await usageEvent(env, { ...NEW, installId: B, event: 'day1_browsed' }); // B: browsed
+  // An older cohort must carry no signals section at all.
+  await env.PINGS.put('new:day:2026-10-04', '3');
+
+  t.mock.timers.setTime(Date.parse('2027-01-11T09:00:00Z'));
+  await ping(env, { ...NEW, sessionId: 50 }); // A returns
+  await ping(env, { ...NEW, installId: C, sessionId: 51 }); // C returns, no signals
+  await ping(env, { ...PING_BODY, installId: OLD, sessionId: 52 }); // OLD returns, not eligible
+
+  t.mock.timers.setTime(Date.parse('2027-01-12T09:00:00Z'));
+  const stats = await (await worker.fetch(
+    new Request('https://ping.test/stats', { headers: { Authorization: 'Bearer t' } }),
+    env, { waitUntil() {} },
+  )).json();
+  assert.deepEqual(stats.nextDayReturn.byDay['2027-01-10'], {
+    newInstalls: 4, returnedNextDay: 3, rate: 0.75, complete: true,
+    signals: {
+      eligible: { installs: 3, returnedNextDay: 2 },
+      default: { had: 1, returnedNextDay: 1 },
+      browsed: { had: 2, returnedNextDay: 1 },
+    },
+  });
+  assert.equal('signals' in stats.nextDayReturn.byDay['2026-10-04'], false);
+  assert.equal(env.PINGS.map.get('return:d1:2027-01-10'), '3', 'the overall counter is untouched');
+});
+
+test('/stats reads day-one counts only for the cohort days it shows', async (t) => {
+  const env = { PINGS: fakeKV(), INSTALL_HASH_SECRET: 'test-secret', STATS_TOKEN: 't' };
+  t.mock.timers.enable({ apis: ['Date'], now: Date.parse('2027-03-01T15:00:00Z') });
+  // Forty days of history; /stats shows the newest thirty cohorts.
+  for (let i = 0; i < 40; i++) {
+    const day = new Date(Date.parse('2027-01-01T00:00:00Z') + i * 86400000).toISOString().slice(0, 10);
+    await env.PINGS.put(`new:day:${day}`, '1');
+    await env.PINGS.put(`d1had:default:${day}`, '1');
+  }
+  const gets = [];
+  const realGet = env.PINGS.get;
+  env.PINGS.get = async (key) => { gets.push(key); return realGet(key); };
+  const stats = await (await worker.fetch(
+    new Request('https://ping.test/stats', { headers: { Authorization: 'Bearer t' } }),
+    env, { waitUntil() {} },
+  )).json();
+  assert.equal(Object.keys(stats.nextDayReturn.byDay).length, 30);
+  assert.equal(stats.nextDayReturn.byDay['2027-02-09'].signals.default.had, 1);
+  assert.equal(gets.filter((k) => k.startsWith('d1had:') || k.startsWith('d1ret:')).length, 30 * 3 * 2,
+    'three groups x had/returned x thirty shown days, never the whole history');
+  assert.equal(gets.includes('d1had:default:2027-01-01'), false);
+});
+
+test('an install is eligible for the split only when first seen on a sending version', async (t) => {
+  const env = { PINGS: fakeKV(), INSTALL_HASH_SECRET: 'test-secret' };
+  t.mock.timers.enable({ apis: ['Date'], now: Date.parse('2027-01-10T15:00:00Z') });
+  const ids = {
+    '1.30.1': '44444444-5555-4666-8777-888888888888',
+    '1.31.0': '55555555-6666-4777-8888-999999999999',
+    '1.31.0-rc.1': '66666666-7777-4888-8999-aaaaaaaaaaaa',
+    '2.0.0': '77777777-8888-4999-8aaa-bbbbbbbbbbbb',
+  };
+  for (const [version, installId] of Object.entries(ids)) {
+    await ping(env, { ...PING_BODY, version, installId });
+    await ping(env, { ...PING_BODY, version, installId, sessionId: 99 }); // a second launch adds nothing
+  }
+  assert.equal(env.PINGS.map.get('d1had:eligible:2027-01-10'), '3');
+});
+
+
+test('event names that exist on Object.prototype are rejected, not treated as day-one signals', async () => {
+  const env = { PINGS: fakeKV(), INSTALL_HASH_SECRET: 'test-secret' };
+  for (const [i, event] of ['__proto__', 'constructor', 'toString', 'hasOwnProperty'].entries()) {
+    const { res } = await usageEvent(env, { ...PING_BODY, sessionId: 60 + i, event });
+    assert.equal(res.status, 400, event);
+  }
+  assert.equal([...env.PINGS.map.keys()].filter((k) => k.startsWith('d1') || k.startsWith('usage:')).length, 0);
 });
