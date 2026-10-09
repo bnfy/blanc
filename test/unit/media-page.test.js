@@ -75,7 +75,7 @@ test('the media page keeps its release links, indexability, and no-analytics bou
 
   // The captures are pinned to the release they were taken from, so the copy
   // that names that release must match the files rather than follow VERSION.
-  for (const capture of CAPTURES) assert.match(page, new RegExp(`/press/${path.basename(capture).replace(/\./g, '\\.')}`));
+  for (const capture of CAPTURES) assert.ok(page.includes(`/press/${path.basename(capture)}`), `${capture} is on the page`);
   assert.match(page, /Native captures of public Blanc 1\.30\.1 with a sample profile/);
   assert.doesNotMatch(page, /Native captures of public Blanc \{/);
   assert.match(page, /Make the island the lead image/);
