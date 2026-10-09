@@ -2889,7 +2889,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .migration-checklist-heading { gap: 14px; }
 .migration-checklist-heading h2 {
   font-size: 27px;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.045em;
 }
 .migration-progress-ring {
   width: 46px;
