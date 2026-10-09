@@ -20,7 +20,7 @@
 
 /* Header */
 .bento-head { max-width: 860px; margin: 0 auto; padding: 88px 0 48px; text-align: center; }
-.bento-head h1 { margin: 0; font-family: var(--site-font-display); font-size: clamp(44px, 6vw, 76px); font-weight: 400; letter-spacing: -0.02em; line-height: 1; }
+.bento-head h1 { margin: 0; font-family: var(--site-font-display); font-size: clamp(44px, 6vw, 76px); font-weight: 400; letter-spacing: -0.035em; line-height: 1; }
 .bento-lead { max-width: 44ch; margin: 18px auto 0; color: var(--site-text-dim); font-size: clamp(18px, 1.5vw, 20px); font-weight: 600; letter-spacing: -.01em; line-height: 1.45; text-wrap: balance; }
 /* Wrap between the lede's two sentences, never inside one. */
 .bento-lead span { display: inline-block; }
@@ -180,7 +180,7 @@
 
 /* Dense grid */
 .bento-more { width: var(--W); margin: calc(var(--bento-gap) * 8) 0 0; margin-inline: calc(50% - var(--W) / 2); }
-.bento-more h2 { margin: 0 0 calc(var(--bento-gap) * 3); font-family: var(--site-font-display); font-size: clamp(30px, 3.4vw, 44px); font-weight: 400; letter-spacing: -0.02em; line-height: 1.05; text-align: center; }
+.bento-more h2 { margin: 0 0 calc(var(--bento-gap) * 3); font-family: var(--site-font-display); font-size: clamp(30px, 3.4vw, 44px); font-weight: 400; letter-spacing: -0.035em; line-height: 1.05; text-align: center; }
 .bento-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: calc(var(--W) * .012); }
 .bento-small { display: flex; flex-direction: column; justify-content: space-between; aspect-ratio: 307 / 162; padding: 7.5%; border-radius: calc(var(--W) * .015); background: #FFFFFF; color: var(--site-text); text-decoration: none; transition: scale .45s cubic-bezier(.2, .8, .2, 1); }
 .bento-small:active { scale: .97; transition-duration: .12s; }
@@ -211,7 +211,7 @@
 /* Patron band */
 .bento-patron { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(220px, .6fr); gap: clamp(40px, 7vw, 96px); align-items: end; padding: clamp(64px, 8vw, 96px) 0; color: var(--bento-on-ink); border-image: conic-gradient(var(--bento-ink) 0 0) fill 0 / / 0 100vw; }
 .bento-patron .section-kicker { color: var(--site-gold-on-dark); }
-.bento-patron-copy h2 { max-width: 13ch; margin: 0; font-family: var(--site-font-display); font-size: clamp(32px, 4vw, 50px); font-weight: 400; letter-spacing: -0.02em; line-height: 1.04; }
+.bento-patron-copy h2 { max-width: 13ch; margin: 0; font-family: var(--site-font-display); font-size: clamp(32px, 4vw, 50px); font-weight: 400; letter-spacing: -0.035em; line-height: 1.04; }
 .bento-patron-copy > p:last-child { max-width: 54ch; margin: 22px 0 0; color: var(--bento-on-ink-dim); font-size: 15px; line-height: 1.65; }
 .bento-patron-offer { padding-left: 32px; border-left: 1px solid #3A3427; }
 .bento-patron-price { margin: 0; letter-spacing: -.035em; }
@@ -240,7 +240,7 @@
 .pop-pair { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; width: 86%; height: 100%; }
 .pop-pair img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
 .pop-copy { padding: 28px 40px 8px; }
-.pop-copy h2 { max-width: 24ch; margin: 6px 0 0; font-family: var(--site-font-display); font-size: clamp(28px, 3.4vw, 40px); font-weight: 400; letter-spacing: -.02em; line-height: 1.06; text-wrap: balance; }
+.pop-copy h2 { max-width: 24ch; margin: 6px 0 0; font-family: var(--site-font-display); font-size: clamp(28px, 3.4vw, 40px); font-weight: 400; letter-spacing: -0.035em; line-height: 1.06; text-wrap: balance; }
 .pop-copy p:not(.pop-eyebrow) { max-width: 64ch; margin: 12px 0 0; color: var(--site-text-dim); font-size: 15px; line-height: 1.6; }
 .pop-copy .pop-note { font-size: 13px; }
 .pop-link { display: inline-flex; gap: 6px; margin-top: 16px; color: var(--site-text); font-weight: 600; font-size: 14px; text-decoration: none; }

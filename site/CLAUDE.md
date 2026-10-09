@@ -20,7 +20,9 @@ plus `revamp.css`, both imported by `BaseLayout.astro`; pages add their own
 (bundled + hashed; fonts self-hosted via fontsource — the UI family is `"Inter
 Variable"`, the heading family is `"Newsreader Condensed"` — Newsreader
 condensed to 88%, with 0.02em tracking built in so CSS letter-spacing values
-keep their designed look, by `scripts/build-condensed-newsreader.py` into `src/fonts/`
+keep their designed look (so CSS `-0.035em` is an effective `-0.015em`, the
+loosest any Newsreader text may be set; `test/site/newsreader-reach.test.mjs`
+enforces it), by `scripts/build-condensed-newsreader.py` into `src/fonts/`
 (rerun it after a fontsource bump with the hash-locked tools in
 `scripts/build-condensed-newsreader.requirements.txt`; the site workflow fails
 if the committed fonts are stale; Newsreader has no width axis, and a CSS

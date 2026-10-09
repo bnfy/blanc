@@ -54,7 +54,7 @@ test('the homepage headline and footer tagline are Newsreader regular, and the d
 // Since the website revamp (#491) legal pages set their headline in Newsreader
 // too, while their section headings stay Inter like the legal text.
 const legalRoutes = ['/privacy', '/terms'];
-const serifRoutes = ['/features', '/features/island', '/features/ad-blocking', '/download', '/changelog', '/about', '/faq', '/press', '/ambassadors', '/privacy', '/terms'];
+const serifRoutes = ['/', '/features', '/features/island', '/features/security', '/mail', '/features/ad-blocking', '/download', '/changelog', '/about', '/faq', '/press', '/ambassadors', '/privacy', '/terms'];
 
 test('every page headline and section heading is Newsreader regular with tight tracking, and nothing overflows', { timeout: 120000 }, async () => {
   const { page, context } = await openPage('/');
@@ -75,15 +75,26 @@ test('every page headline and section heading is Newsreader regular with tight t
             size: parseFloat(s.fontSize),
             h2Font: h2Style ? h2Style.fontFamily : null, h2Weight: h2Style ? h2Style.fontWeight : null,
             overflow: document.documentElement.scrollWidth > innerWidth,
+            // Loosest Newsreader text on the page, as CSS letter-spacing in em.
+            loosest: [...document.querySelectorAll('body *')]
+              .filter(el => el.getBoundingClientRect().width > 1 && el.textContent.trim() && // skips screen-reader-only text
+                 /^"?Newsreader Condensed/.test(getComputedStyle(el).fontFamily)
+                && !/^"?Newsreader Condensed/.test(getComputedStyle(el.parentElement).fontFamily))
+              .map(el => { const cs = getComputedStyle(el); return { em: (parseFloat(cs.letterSpacing) || 0) / parseFloat(cs.fontSize), text: el.textContent.trim().slice(0, 40) }; })
+              .sort((a, b) => b.em - a.em)[0] || null,
           };
         });
         assert.equal(type.overflow, false, `${width}px ${route} overflows`);
         assert.match(type.font, serif, `${width}px ${route} h1 is Newsreader`);
         assert.equal(type.weight, '400', `${route} h1 weight`);
-        // Display tracking is negative and tight: -0.02em on guides, -0.045em on
-        // the revamp's utility pages (revamp.css).
+        // Display tracking is negative and tight. Newsreader Condensed builds in
+        // 0.02em of tracking, so -0.035em in CSS (an effective -0.015em) is the
+        // loosest any Newsreader text may be set; big titles go to -0.045em.
         const em = type.tracking / type.size;
-        assert.ok(em <= -0.015 && em >= -0.05, `${route} h1 tracking is tight, got ${em.toFixed(3)}em`);
+        assert.ok(em <= -0.0345 && em >= -0.05, `${route} h1 tracking is tight, got ${em.toFixed(3)}em`);
+        if (type.loosest) {
+          assert.ok(type.loosest.em <= -0.0345, `${width}px ${route} "${type.loosest.text}" is set looser than -0.035em (${type.loosest.em.toFixed(3)}em)`);
+        }
         if (type.h2Font && legalRoutes.includes(route)) {
           assert.match(type.h2Font, sans, `${route} legal section headings stay Inter`);
         } else if (type.h2Font) {
