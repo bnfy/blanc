@@ -22,7 +22,7 @@
     for (const [kind, valueId, rowId, key] of fields) {
       const raw = params.get(key);
       if (!raw) continue;
-      const value = kind === 'date' ? new Date(Number(raw)).toLocaleDateString() : raw;
+      const value = kind === 'date' ? new Date(Number(raw)).toLocaleDateString(blancI18n.formatLocale()) : raw;
       if (!value || value === 'Invalid Date') continue;
       document.getElementById(valueId).textContent = value;
       document.getElementById(rowId).hidden = false;

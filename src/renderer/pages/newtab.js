@@ -48,7 +48,7 @@ if (isPrivate) document.documentElement.dataset.theme = 'private';
 // Shared by every layout through the single Sunrise header.
 const dateText = isPrivate
   ? 'Private tab'
-  : new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+  : new Date().toLocaleDateString(blancI18n.formatLocale(), { weekday: 'long', month: 'long', day: 'numeric' });
 
 document.getElementById('startDate').textContent = dateText;
 
@@ -608,7 +608,7 @@ function shelfColumns(count) {
 }
 
 function renderShelf() {
-  document.getElementById('shBlocked').textContent = state.blockedThisWeek.toLocaleString();
+  document.getElementById('shBlocked').textContent = state.blockedThisWeek.toLocaleString(blancI18n.formatLocale());
   // Private tabs show no blocked counts on any layout.
   document.getElementById('shBlocked').closest('.shelf-card').hidden = isPrivate;
 
@@ -644,7 +644,7 @@ function renderShelf() {
 }
 
 function renderTally() {
-  document.getElementById('tlCount').textContent = state.blockedThisWeek.toLocaleString();
+  document.getElementById('tlCount').textContent = state.blockedThisWeek.toLocaleString(blancI18n.formatLocale());
   // Private tabs show no blocked counts; the data column goes entirely.
   document.querySelector('.tally-right').hidden = isPrivate;
 
@@ -694,7 +694,7 @@ function renderTally() {
 // It shows the hour and minute in the locale's own form but no day period
 // (am/pm, p. m., 午後…): a glanceable clock, like the lock screen's.
 let clockTimer = null;
-const clockFormat = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' });
+const clockFormat = new Intl.DateTimeFormat(blancI18n.formatLocale(), { hour: 'numeric', minute: '2-digit' });
 function updateClock() {
   document.getElementById('bbClock').textContent = clockFormat
     .formatToParts(new Date())

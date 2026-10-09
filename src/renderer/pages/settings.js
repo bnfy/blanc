@@ -779,7 +779,7 @@
       // (only founding/lifetime carry a mirror date). Show it when present,
       // but the row above is already driven by the `patronActive` boolean.
       const when = settings.supporterActivatedAt
-        ? new Date(settings.supporterActivatedAt).toLocaleDateString()
+        ? new Date(settings.supporterActivatedAt).toLocaleDateString(blancI18n.formatLocale())
         : null;
       patronStatus.textContent = when
         ? `You’re a Patron — thank you. Activated ${when}.`

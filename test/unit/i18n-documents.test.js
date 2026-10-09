@@ -34,3 +34,16 @@ for (const file of documents.filter((f) => !DEFERRED.has(path.relative(renderer,
     assert.match(html, /<html lang="en">/, 'source keeps lang="en"; i18n.js sets the runtime language');
   });
 }
+
+test('standalone formatting sites pass the runtime formatting locale', () => {
+  const sites = {
+    'overlay.js': 2, 'pages/newtab.js': 4, 'pages/error.js': 1, 'pages/bookmarks.js': 1,
+    'pages/settings-sync-setup-model.js': 1, 'pages/settings.js': 1, 'pages/mahjong.js': 3,
+  };
+  for (const [rel, count] of Object.entries(sites)) {
+    const js = fs.readFileSync(path.join(renderer, rel), 'utf8');
+    const found = (js.match(/formatLocale\??\.?\(\)/g) ?? []).length;
+    assert.ok(found >= count, `${rel}: expected ${count} formatting-locale uses, found ${found}`);
+    assert.doesNotMatch(js, /toLocaleDateString\(\)|Intl\.(DateTimeFormat|NumberFormat)\(undefined|Intl\.NumberFormat\(\)/, rel);
+  }
+});

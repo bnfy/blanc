@@ -141,7 +141,7 @@
     const days = Math.floor(hours / 24);
     if (days === 1) return 'yesterday';
     if (days < 30) return plural(days, 'day');
-    return new Date(timestamp).toLocaleDateString();
+    return new Date(timestamp).toLocaleDateString(typeof self !== 'undefined' ? self.blancI18n?.formatLocale?.() : undefined);
   }
 
   return { createSyncSetupModel, transition, view, passphraseStrong, relativeSyncTime };
