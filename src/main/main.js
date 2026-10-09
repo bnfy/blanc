@@ -1,4 +1,4 @@
-const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell, net, powerMonitor, webContents, clipboard, utilityProcess, systemPreferences, desktopCapturer } = require('electron');
+const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell, net, powerMonitor, webContents, clipboard, utilityProcess, systemPreferences, desktopCapturer, screen } = require('electron');
 const { enforceLinuxSandbox } = require('./linux-sandbox-launch');
 if (!enforceLinuxSandbox({ app, dialog, shell, clipboard })) return;
 const path = require('path');
@@ -2823,6 +2823,14 @@ function sendIslandProximity(runtime, next) {
   }
 }
 
+/** Drop a value parked by the frame-budget throttle below. */
+function cancelPendingIslandProximity(runtime) {
+  if (!runtime.islandProximityTimer) return;
+  clearTimeout(runtime.islandProximityTimer);
+  runtime.islandProximityTimer = null;
+  runtime.islandProximityPending = null;
+}
+
 function updateIslandProximity(point) {
   const runtime = rt();
   if (!runtime?.window || runtime.window.isDestroyed()) return;
@@ -2842,10 +2850,7 @@ function updateIslandProximity(point) {
 
   const since = Date.now() - runtime.islandProximitySentAt;
   if (since >= 16) {
-    if (runtime.islandProximityTimer) {
-      clearTimeout(runtime.islandProximityTimer);
-      runtime.islandProximityTimer = null;
-    }
+    cancelPendingIslandProximity(runtime);
     sendIslandProximity(runtime, next);
     return;
   }
@@ -3367,7 +3372,14 @@ function showOverlay(mode, { prefill, purpose } = {}) {
   hideUtilitySheet({ refocusContent: false });
   // Opening the panel is a freshness signal: pull other devices' tabs
   // (throttled to 1/min inside refreshSession — tab-sync spec §6).
-  if (mode === 'panel' || mode === 'palette') sync.refreshSession();
+  if (mode === 'panel' || mode === 'palette') {
+    sync.refreshSession();
+    // Proximity sleeps while the island is expanded: now, not on the cursor's
+    // next move, and with no parked value left to swell the pill under the
+    // panel. The strip snaps its own pill to rest on the same island-state.
+    cancelPendingIslandProximity(rt());
+    if (rt().islandProximity.k !== 0) sendIslandProximity(rt(), { k: 0 });
+  }
   rt().overlayMode = mode;
   rt().overlayPrefill = prefill ?? null;
   rt().overlayPurpose = purpose ?? null;
@@ -3492,6 +3504,14 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
     if (restoreTrigger) rt().window.webContents.focus();
     rt().window.webContents.send('chrome:island-state', { mode: null, trigger: null, restoreTrigger });
     if (refocusContent && !restoreTrigger) liveContents(tabs.get(rt().activeTabId))?.focus();
+    if (retracts) {
+      // Wake proximity from where the cursor is now. Moves over the expanded
+      // overlay are never watched, so waiting for the next one would leave the
+      // pill flat under a resting cursor until the mouse twitched.
+      const cursor = screen.getCursorScreenPoint();
+      const content = rt().window.getContentBounds();
+      updateIslandProximity({ x: cursor.x - content.x, y: cursor.y - content.y });
+    }
   }
 }
 
@@ -7387,6 +7407,15 @@ function registerIpcHandlers() {
   chromeOn('chrome:resize-glance', (_e, point) => resizeGlanceAt(point));
   chromeHandle('chrome:reset-glance', () => resetGlanceRatio());
   chromeOn('overlay:close', (_e, reason) => hideOverlay({ reason }));
+  // The overlay has drawn the expanding panel exactly over the resting pill.
+  // Only now may the strip hide the pill: the two are separate views painting
+  // on their own schedules, and hiding it any earlier left nothing on screen
+  // until the overlay caught up. The palette keeps its pill, so panel only.
+  chromeOn('overlay:panel-drawn', (event) => {
+    if (event.sender !== rt().overlayView?.webContents) return;
+    if (rt().overlayMode !== 'panel') return;
+    rt().window.webContents.send('chrome:island-covered');
+  });
   chromeOn('chrome:downloads-ack', () => {
     acknowledgeDownloads();
     broadcastDownloadsActivity();

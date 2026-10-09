@@ -743,8 +743,6 @@
     applyStripTint(tab);
     renderGlance();
 
-    islandPill.style.visibility = islandMode === 'panel' ? 'hidden' : '';
-
     // The strip's draggable region is registered at the WINDOW level and
     // hit-tests above every WebContentsView — with the command bar overlay
     // expanded over the strip band, it would swallow clicks meant for the
@@ -929,8 +927,22 @@
   window.browserAPI.onGlanceStatus((message) => {
     glanceStatus.textContent = message;
   });
+  // The panel expanded in place ('panel') covers the pill, so the pill hides,
+  // but only once main reports that the overlay has actually drawn the panel
+  // over it. The two are separate views painting on their own schedules:
+  // hiding the pill on the island-state alone left nothing on screen until the
+  // overlay caught up, a blink on every click and the whole island gone
+  // whenever the overlay was slow. Any other mode uncovers it at once (in
+  // onIslandState); the palette never covers it.
+  window.browserAPI.onIslandCovered(() => {
+    if (islandMode === 'panel') islandPill.classList.add('covered');
+  });
+
   window.browserAPI.onIslandState(({ mode, trigger, restoreTrigger, nativePopup }) => {
     islandMode = mode;
+    if (mode !== 'panel') islandPill.classList.remove('covered');
+    // Expanding over the pill: drop its proximity swell at once (restIsland).
+    if (mode === 'panel' || mode === 'palette') restIsland();
     // Truthful per-control expanded state: the popover is one surface with
     // two doors, and only the door that opened it reads as expanded.
     const shieldOpen = mode === 'shield';
@@ -1034,18 +1046,26 @@
     paintIslandK(Math.round(islandShown * 10000) / 10000);
     islandFrame = islandShown === islandTarget ? 0 : requestAnimationFrame(stepIslandK);
   };
+  // Paint the pill at rest this frame, with no easing. Also used when the
+  // island expands: the panel starts on the pill's RESTING box, so a pill
+  // easing down from a swell would show its edge around the panel's first
+  // frames.
+  const restIsland = () => {
+    cancelAnimationFrame(islandFrame);
+    islandFrame = 0;
+    islandTarget = 0;
+    islandShown = 0;
+    paintIslandK(0);
+  };
   window.browserAPI.onIslandProximity(({ k }) => {
-    islandTarget = Number(k) || 0;
     if (reducedMotion.matches) {
       // The effect is off entirely under reduced motion (styles.css forces the
       // transform to none), so the value must say so too: reportIslandRect
       // divides the scale for --island-k back out of the measured box.
-      cancelAnimationFrame(islandFrame);
-      islandFrame = 0;
-      islandShown = 0;
-      paintIslandK(0);
+      restIsland();
       return;
     }
+    islandTarget = Number(k) || 0;
     if (!islandFrame) {
       // Time the first step from the message, so the pace is the same at any
       // refresh rate.

@@ -2042,6 +2042,14 @@
       "doc": "Dismiss the overlay."
     },
     {
+      "name": "reportPanelDrawn",
+      "group": "overlay",
+      "kind": "send",
+      "channel": "overlay:panel-drawn",
+      "params": [],
+      "doc": "The expanding panel has been drawn over the resting pill (overlay only)."
+    },
+    {
       "name": "setWorkspaceSwitcherOpen",
       "group": "workspaces",
       "kind": "send",
@@ -2469,6 +2477,14 @@
       "channel": "chrome:island-state",
       "payload": "IslandState",
       "doc": "Island presentation state changed."
+    },
+    {
+      "name": "onIslandCovered",
+      "group": "island",
+      "kind": "event",
+      "channel": "chrome:island-covered",
+      "payload": null,
+      "doc": "The expanded panel now covers the resting pill, which may hide (strip only)."
     },
     {
       "name": "onFindResult",
