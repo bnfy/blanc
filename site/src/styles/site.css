@@ -2,12 +2,12 @@
    reflow the page (measured 2026-10-05: the phone hero heading wrapped to two
    lines in Iowan Old Style, then shrank to one in Newsreader, shifting the hero
    by 46px). size-adjust is the condensed Newsreader's width relative to Georgia
-   at the phone hero size (measured 2026-10-08 on the 44px hero headline with
-   the build's 88% width and 0.02em tracking; optical sizing narrows it further
+   at the phone hero size (measured 2026-10-09 on the 44px hero headline with
+   the build's 92% width and 0.02em tracking; optical sizing narrows it further
    at larger sizes) and Inter's
    relative to Arial; the overrides are each web font's own vertical metrics
    divided by that scale. Re-measure if either web font changes. */
-@font-face { font-family: "Newsreader Fallback"; src: local("Georgia"); font-weight: 400; size-adjust: 87.7%; ascent-override: 83.81%; descent-override: 30.21%; line-gap-override: 0%; }
+@font-face { font-family: "Newsreader Fallback"; src: local("Georgia"); font-weight: 400; size-adjust: 91.9%; ascent-override: 79.98%; descent-override: 28.83%; line-gap-override: 0%; }
 @font-face { font-family: "Inter Fallback"; src: local("Arial"), local("ArialMT"); font-weight: 400; size-adjust: 106.69%; ascent-override: 90.8%; descent-override: 22.61%; line-gap-override: 0%; }
 @font-face { font-family: "Inter Fallback"; src: local("Arial Bold"), local("Arial-BoldMT"); font-weight: 700; size-adjust: 106.69%; ascent-override: 90.8%; descent-override: 22.61%; line-gap-override: 0%; }
 
@@ -39,7 +39,7 @@
   --pill-zoom: 1.15;
 
   /* Website presentation only. Ivory is sampled from the Sunrise source art. */
-  /* Newsreader, condensed to 88% (site/scripts/build-condensed-newsreader.py).
+  /* Newsreader, condensed to 92% (site/scripts/build-condensed-newsreader.py).
      Its optical-size axis sharpens automatically at Patron display sizes. An
      installed upstream Newsreader is deliberately skipped: it is wider. */
   --site-font-patron: "Newsreader Condensed", "Newsreader Fallback", "Iowan Old Style", "Palatino Linotype", Palatino, serif;

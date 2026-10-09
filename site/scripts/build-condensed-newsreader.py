@@ -28,7 +28,7 @@ from pathlib import Path
 
 from fontTools.ttLib import TTFont
 
-WIDTH = 0.88
+WIDTH = 0.92
 TRACKING = 0.02  # em added after each spacing glyph
 FAMILY = 'Newsreader Condensed'
 ROOT = Path(__file__).resolve().parents[2]

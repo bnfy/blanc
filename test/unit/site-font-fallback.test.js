@@ -36,18 +36,18 @@ test('the page head preloads the condensed Newsreader latin file the headings us
   assert.match(layout, /<link rel="preload" href=\{newsreaderLatin\} as="font" type="font\/woff2" crossorigin>/);
 });
 
-// The website's headings use Newsreader condensed to 88% (decision of 8 Oct
-// 2026) with 0.02em tracking built in, generated from the pinned fontsource
-// files. The display stack must not reach the wider upstream face, and the
+// The website's headings use Newsreader condensed to 92% (decision of 8 Oct
+// 2026, widened from 88% on 9 Oct because 88% read too tall and narrow) with
+// 0.02em tracking built in, generated from the pinned fontsource files. The display stack must not reach the wider upstream face, and the
 // Georgia fallback is matched to the condensed build's measured width.
 test('the display stack uses the condensed Newsreader build and a matching fallback', () => {
   const css = read('site/src/styles/site.css');
   const script = read('site/scripts/build-condensed-newsreader.py');
-  assert.match(script, /^WIDTH = 0\.88$/m);
+  assert.match(script, /^WIDTH = 0\.92$/m);
   assert.match(script, /^TRACKING = 0\.02 /m);
   assert.match(css, /--site-font-patron: "Newsreader Condensed", "Newsreader Fallback",/);
   assert.doesNotMatch(css.match(/--site-font-patron:[^;]*/)[0], /Newsreader Variable/);
-  assert.match(css, /font-family: "Newsreader Fallback"; src: local\("Georgia"\); font-weight: 400; size-adjust: 87\.7%;/);
+  assert.match(css, /font-family: "Newsreader Fallback"; src: local\("Georgia"\); font-weight: 400; size-adjust: 91\.9%;/);
   for (const file of ['newsreader-condensed.css', 'newsreader-condensed-italic.css']) {
     const faces = read(`site/src/styles/${file}`);
     const urls = [...faces.matchAll(/url\(\.\.\/fonts\/(newsreader-condensed-[a-z-]+\.woff2)\)/g)].map(m => m[1]);
