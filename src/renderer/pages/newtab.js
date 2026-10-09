@@ -58,9 +58,12 @@ document.getElementById('goAnywhere').textContent = `${isMac ? '⌘' : 'Ctrl+'}L
 document.getElementById('obIslandShortcut').textContent = isMac ? '⌘L' : 'Ctrl+L';
 document.getElementById('obIslandShortcut').setAttribute('aria-label', isMac ? 'Command L' : 'Control L');
 
+// Short enough for one line beside the version at a 1200px window. Passkeys
+// made here aren't deleted at quit, they stop working (webauthn.js), hence
+// "ends" rather than "cleared".
 if (isPrivate) {
   document.getElementById('footerLeft').textContent =
-    'not saved to history · site data and new passkeys clear when you quit';
+    'no history · separate from regular tabs · ends at quit, passkeys made here too';
 }
 
 const startupCard = document.getElementById('startupCard');

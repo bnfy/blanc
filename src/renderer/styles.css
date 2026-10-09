@@ -727,13 +727,21 @@ body.mac .vertical-tabs-toolbar {
   color: var(--text-dim);
 }
 
-/* The rail's private word-marker. (Quiet is dim-only — 2026-08-18 spec.) */
+/* The rail's private marker: the same dashed capsule as the ⌘L row tag.
+   (Quiet is dim-only — 2026-08-18 spec.) */
 .vertical-tab-private {
+  display: inline-flex;
+  align-items: center;
+  height: 14px;
   max-width: 50px;
+  padding: 0 5px;
   overflow: hidden;
   color: var(--text-dim);
+  border: 1px dashed var(--text-dim);
+  border-radius: 999px;
   font-family: var(--font-ui);
   font-size: 9px;
+  line-height: 1;
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 0 1 auto;
