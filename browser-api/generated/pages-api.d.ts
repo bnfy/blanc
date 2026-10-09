@@ -177,6 +177,8 @@ export interface SettingsPagesAPI {
     get: () => Promise<unknown>;
     /** Write a partial settings update. IPC: invoke `pages:settings:set`. */
     set: (partial: unknown) => Promise<unknown>;
+    /** Choose the interface language; optionally relaunch to apply it. IPC: invoke `pages:settings:language`. */
+    language: (code: unknown, restart: unknown) => Promise<unknown>;
     /** Blocking provider status. IPC: invoke `pages:blocking:status`. */
     blockingStatus: () => Promise<unknown>;
     /** Retry a blocking provider that failed to start. IPC: invoke `pages:blocking:retry`. */

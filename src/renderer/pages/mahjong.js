@@ -306,7 +306,7 @@ function scoreElements() {
 }
 
 function setDisplayedScore(value) {
-  const label = Number(value || 0).toLocaleString();
+  const label = Number(value || 0).toLocaleString(blancI18n.formatLocale());
   for (const element of scoreElements()) element.textContent = label;
 }
 
@@ -1289,7 +1289,7 @@ function renderWinScore(target, { isBurst, score, time }) {
   }
 
   target.replaceChildren();
-  for (const part of new Intl.NumberFormat().formatToParts(score)) {
+  for (const part of new Intl.NumberFormat(blancI18n.formatLocale()).formatToParts(score)) {
     if (part.type !== 'group') {
       target.append(part.value);
       continue;
@@ -1660,7 +1660,7 @@ function paintRecords() {
     layoutIds: S.LAYOUT_IDS,
     currentLayoutId: game?.layoutId || null,
   });
-  document.getElementById('mjRecordsCleared').textContent = summary.overview.cleared.toLocaleString();
+  document.getElementById('mjRecordsCleared').textContent = summary.overview.cleared.toLocaleString(blancI18n.formatLocale());
   document.getElementById('mjRecordsStreak').textContent = String(summary.overview.streak);
   document.getElementById('mjRecordsLongest').textContent = String(summary.overview.longest);
   document.getElementById('mjRecordsDailies').textContent = String(summary.overview.dailies);

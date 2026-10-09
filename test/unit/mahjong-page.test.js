@@ -520,7 +520,7 @@ test('completion results promote the score and separate time from Burst performa
   assert.match(html, /class="mj-win-glint" src="mahjong-combo-glint\.png"/);
   assert.match(controller, /win\.dataset\.mode = isBurst \? 'burst' : 'classic'/);
   assert.match(controller, /renderWinScore\(document\.getElementById\('mjWinScore'\), \{ isBurst, score: game\.score, time \}\)/);
-  assert.match(controller, /new Intl\.NumberFormat\(\)\.formatToParts\(score\)/);
+  assert.match(controller, /new Intl\.NumberFormat\(blancI18n\.formatLocale\(\)\)\.formatToParts\(score\)/);
   assert.match(controller, /separator\.className = 'mj-win-score-separator'/);
   assert.match(controller, /getElementById\('mjWinTime'\)\.textContent = time/);
   assert.match(controller, /record\.classList\.toggle\('is-record', game\._outcome === 'record' \|\| game\._outcome === 'first'\)/);

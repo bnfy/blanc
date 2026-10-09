@@ -31,6 +31,7 @@ try {
   app = await _electron.launch({ chromiumSandbox: true, args: [path.resolve('.'), `--user-data-dir=${profile}`], env: { ...env, BLANC_TEST: '1', BLANC_TEST_UNCAUGHT_LOG: uncaught } });
   const page = await waitForValue(async () => (await app.windows()).find((p) => p.url() === 'blanc://newtab/'), Boolean, 'new tab');
   const footerToggle = page.getByRole('button', { name: 'Time-of-day wallpaper', exact: true });
+  await page.waitForLoadState('domcontentloaded'); // found by URL while <head> scripts may still load
   await page.waitForFunction(() => !document.getElementById('dynamicWallpaperToggle').disabled);
   const data = await page.evaluate(() => window.bowserPages.start.data());
   assert.equal(data.patronActive, false);
@@ -51,6 +52,9 @@ try {
   await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].setContentSize(1200, 820));
   const privateId = await callTestHook(app, 'openTab', ['blanc://newtab/?private=1', { private: true }]);
   const privatePage = await waitForValue(async () => (await app.windows()).find((p) => p.url() === 'blanc://newtab/?private=1'), Boolean, 'private start page');
+  // The page is found by URL while its <head> scripts may still be loading, so
+  // document.body can be null until the DOM is parsed.
+  await privatePage.waitForLoadState('domcontentloaded');
   await privatePage.waitForFunction(() => document.body.dataset.wallpaperPhase);
   await page.waitForFunction(() => document.body.dataset.wallpaperVisible === 'false');
   const publicId = (await callTestHook(app, 'state')).tabs.find((tab) => tab.url === 'blanc://newtab/').id;

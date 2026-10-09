@@ -1,0 +1,138 @@
+{
+  "$note": "Source of every Blanc-authored interface string. Edit here, translate in the same PR, run copy:ack for the keys you translated, then copy:build.",
+  "slash.favorites.hint": {
+    "message": "Open favorites",
+    "note": "Slash command hint shown in the ⌘L palette for /favorites."
+  },
+  "slash.bringTabs.hint": {
+    "message": "Bring open tabs from another browser",
+    "note": "Slash command hint shown in the ⌘L palette for /bring-tabs."
+  },
+  "slash.save.hint": {
+    "message": "Save this page to favorites — name a folder to file it",
+    "note": "Slash command hint shown in the ⌘L palette for /save."
+  },
+  "slash.save.doc": {
+    "message": "Save this page to favorites, into a folder if you name one",
+    "note": "Reference description of /save [folder] on blanc://shortcuts and in Help → Slash Commands."
+  },
+  "slash.history.hint": {
+    "message": "Open browsing history",
+    "note": "Slash command hint shown in the ⌘L palette for /history."
+  },
+  "slash.downloads.hint": {
+    "message": "Open downloads",
+    "note": "Slash command hint shown in the ⌘L palette for /downloads."
+  },
+  "slash.settings.hint": {
+    "message": "Open settings",
+    "note": "Slash command hint shown in the ⌘L palette for /settings."
+  },
+  "slash.sync.hint": {
+    "message": "Set up or manage sync",
+    "note": "Slash command hint shown in the ⌘L palette for /sync."
+  },
+  "slash.clear.hint": {
+    "message": "Clear browsing history",
+    "note": "Slash command hint shown in the ⌘L palette for /clear."
+  },
+  "slash.new.hint": {
+    "message": "Open a new tab",
+    "note": "Slash command hint shown in the ⌘L palette for /new."
+  },
+  "slash.private.hint": {
+    "message": "Open a private tab (history stays untouched)",
+    "note": "Slash command hint shown in the ⌘L palette for /private."
+  },
+  "slash.close.hint": {
+    "message": "Close this tab",
+    "note": "Slash command hint shown in the ⌘L palette for /close."
+  },
+  "slash.reopen.hint": {
+    "message": "Reopen the tab you just closed",
+    "note": "Slash command hint shown in the ⌘L palette for /reopen."
+  },
+  "slash.pin.hint": {
+    "message": "Pin or unpin this tab",
+    "note": "Slash command hint shown in the ⌘L palette for /pin."
+  },
+  "slash.mute.hint": {
+    "message": "Mute or unmute this tab",
+    "note": "Slash command hint shown in the ⌘L palette for /mute."
+  },
+  "slash.sleep.hint": {
+    "message": "Quiet background tabs and free their memory",
+    "note": "Slash command hint shown in the ⌘L palette for /sleep."
+  },
+  "slash.group.hint": {
+    "message": "Type a space, then a group name — e.g. \"work\"",
+    "note": "Slash command hint shown in the ⌘L palette for /group."
+  },
+  "slash.group.doc": {
+    "message": "Move this tab into a group, creating it on first use",
+    "note": "Reference description of /group <name> on blanc://shortcuts and in Help → Slash Commands."
+  },
+  "slash.ungroup.hint": {
+    "message": "Take this tab out of its group",
+    "note": "Slash command hint shown in the ⌘L palette for /ungroup."
+  },
+  "slash.closeGroup.hint": {
+    "message": "Close every tab in this group",
+    "note": "Slash command hint shown in the ⌘L palette for /close-group."
+  },
+  "slash.find.hint": {
+    "message": "Find in page",
+    "note": "Slash command hint shown in the ⌘L palette for /find."
+  },
+  "slash.blockAds.hint": {
+    "message": "Block ads here, or toggle blocking everywhere",
+    "note": "Slash command hint shown in the ⌘L palette for /block-ads."
+  },
+  "slash.allowAds.hint": {
+    "message": "Allow ads on this site",
+    "note": "Slash command hint shown in the ⌘L palette for /allow-ads."
+  },
+  "slash.darkSite.hint": {
+    "message": "Darken this site, or leave it as drawn",
+    "note": "Slash command hint shown in the ⌘L palette for /dark-site."
+  },
+  "slash.1password.hint": {
+    "message": "Fill a login from 1Password",
+    "note": "Slash command hint shown in the ⌘L palette for /1password."
+  },
+  "slash.theme.hint": {
+    "message": "Cycle appearance, or choose system / light / dark",
+    "note": "Slash command hint shown in the ⌘L palette for /theme."
+  },
+  "slash.theme.doc": {
+    "message": "Cycle appearance, or switch directly to system, light, or dark",
+    "note": "Reference description of /theme [system|light|dark] on blanc://shortcuts and in Help → Slash Commands."
+  },
+  "slash.patron.hint": {
+    "message": "Support Blanc with a Patron subscription",
+    "note": "Slash command hint shown in the ⌘L palette for /patron."
+  },
+  "slash.workspace.hint": {
+    "message": "Switch to a named workspace, or type a new name to save this window",
+    "note": "Slash command hint shown in the ⌘L palette for /workspace."
+  },
+  "settings.language.label": {
+    "message": "Language",
+    "note": "Settings → General row label and the language menu's accessible name.",
+    "maxLength": 24
+  },
+  "settings.language.hint": {
+    "message": "Translations are machine-generated.",
+    "note": "Disclosure under the language menu; translations are AI-generated without human review."
+  },
+  "settings.language.system": {
+    "message": "System ({language})",
+    "note": "Menu option that follows the OS language; {language} is the endonym it currently resolves to, e.g. Deutsch.",
+    "maxLength": 12
+  },
+  "settings.language.relaunch": {
+    "message": "Relaunch to apply",
+    "note": "Button that restarts Blanc so a new interface language takes effect.",
+    "maxLength": 28
+  }
+}

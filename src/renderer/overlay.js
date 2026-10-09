@@ -1391,8 +1391,8 @@
       };
       add('Certificate for', info.certificate.subject);
       add('Issued by', info.certificate.issuer);
-      add('Valid from', info.certificate.validFrom ? new Date(info.certificate.validFrom).toLocaleDateString() : null);
-      add('Valid until', info.certificate.validTo ? new Date(info.certificate.validTo).toLocaleDateString() : null);
+      add('Valid from', info.certificate.validFrom ? new Date(info.certificate.validFrom).toLocaleDateString(blancI18n.formatLocale()) : null);
+      add('Valid until', info.certificate.validTo ? new Date(info.certificate.validTo).toLocaleDateString(blancI18n.formatLocale()) : null);
       add('Fingerprint', info.certificate.fingerprint);
       if (details.children.length) card.append(details);
     }
