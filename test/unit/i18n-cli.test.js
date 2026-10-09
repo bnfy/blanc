@@ -112,3 +112,21 @@ test('generated runtime files and locale registry have the expected shape', (t) 
   assert.equal(sandbox.self.blancStrings.fallback['slash.new.hint'], 'Open a new tab');
   assert.equal(cli.slashKey('/close-group', 'hint'), 'slash.closeGroup.hint');
 });
+
+test('mobile output refuses exact plural branches instead of silently dropping them', async () => {
+  const mobile = await import('../../copy/lib/mobile.mjs');
+  const en = { 'a.count': { message: '{n, plural, =0 {no tabs} one {# tab} other {# tabs}}', note: 'n' } };
+  const locales = { en: { 'a.count': en['a.count'].message } };
+  assert.throws(() => mobile.xcstrings({ en, locales }), /=0/);
+  assert.throws(() => mobile.androidStrings({ en, messages: locales.en }), /=0/);
+});
+
+test('mobile output keeps every plural category as a full string', async () => {
+  const mobile = await import('../../copy/lib/mobile.mjs');
+  const en = { 'a.count': { message: 'Close {count, plural, one {# tab} other {# tabs}}', note: 'n' } };
+  const messages = { 'a.count': en['a.count'].message };
+  const ios = JSON.parse(mobile.xcstrings({ en, locales: { en: messages } })).strings['a.count'].localizations.en.variations.plural;
+  assert.deepEqual(Object.keys(ios).sort(), ['one', 'other']);
+  assert.equal(ios.one.stringUnit.value, 'Close %1$lld tab');
+  assert.match(mobile.androidStrings({ en, messages }), /<item quantity="other">Close %1\$d tabs<\/item>/);
+});

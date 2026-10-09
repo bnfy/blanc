@@ -17,6 +17,29 @@ function tryParse(message) {
   try { return { nodes: parseMessage(message) }; } catch (error) { return { error: error.message }; }
 }
 
+// Each plural must carry exactly its language's CLDR categories (en/de: one,
+// other; pl: one, few, many, other; ja: other). Exact =N branches are rejected:
+// iOS and Android plural resources cannot represent them, so a "none" state
+// gets its own key instead.
+const cldrCategories = (locale) => [...new Intl.PluralRules(locale).resolvedOptions().pluralCategories].sort();
+
+function pluralProblems(key, plurals, locale) {
+  const expected = cldrCategories(locale);
+  const problems = [];
+  for (const [name, selectors] of Object.entries(plurals)) {
+    const exact = selectors.filter((s) => s.startsWith('='));
+    if (exact.length) problems.push(`${key}: exact plural branches (${exact.join(', ')}) are not supported; mobile catalogs cannot represent them, use a separate key`);
+    const named = selectors.filter((s) => !s.startsWith('='));
+    const missing = expected.filter((c) => !named.includes(c));
+    const extra = named.filter((c) => !expected.includes(c));
+    if (missing.length || extra.length) {
+      problems.push(`${key}: plural {${name}} in ${locale} needs exactly ${expected.join(', ')}`
+        + (missing.length ? ` (missing ${missing.join(', ')})` : '') + (extra.length ? ` (extra ${extra.join(', ')})` : ''));
+    }
+  }
+  return problems;
+}
+
 export function validateSource(en) {
   const problems = [];
   for (const [key, entry] of Object.entries(en).filter(([k]) => isEntryKey(k))) {
@@ -25,6 +48,7 @@ export function validateSource(en) {
     if (typeof entry.note !== 'string' || !entry.note.trim()) problems.push(`${key}: note is required`);
     const parsed = tryParse(entry.message);
     if (parsed.error) { problems.push(`${key}: ${parsed.error}`); continue; }
+    problems.push(...pluralProblems(key, analyzeMessage(parsed.nodes).plurals, 'en'));
     if (entry.maxLength !== undefined) {
       if (!Number.isInteger(entry.maxLength) || entry.maxLength < 1) problems.push(`${key}: maxLength must be a positive integer`);
       else if (maxLiteralLength(parsed.nodes) > entry.maxLength) problems.push(`${key}: English exceeds maxLength ${entry.maxLength}`);
@@ -52,11 +76,7 @@ export function checkTranslation({ key, enEntry, trEntry, glossary, locale }) {
   const a = analyzeMessage(enParsed.nodes);
   const b = analyzeMessage(trParsed.nodes);
   if (a.args.join() !== b.args.join()) problems.push(`${key}: placeholders differ (${a.args} vs ${b.args})`);
-  for (const [name, selectors] of Object.entries(a.plurals)) {
-    const exact = (list) => (list ?? []).filter((s) => s.startsWith('=')).join();
-    if (!b.plurals[name]) continue; // reported as a placeholder difference
-    if (exact(selectors) !== exact(b.plurals[name])) problems.push(`${key}: exact plural branches differ`);
-  }
+  problems.push(...pluralProblems(key, b.plurals, locale));
   if (a.tags.join() !== b.tags.join()) problems.push(`${key}: tags differ (${a.tags} vs ${b.tags})`);
   for (const term of glossary.fixed ?? []) {
     if (enEntry.message.includes(term) && !trEntry.message.includes(term)) problems.push(`${key}: fixed term "${term}" missing`);

@@ -46,8 +46,30 @@ test('missing other branch fails (parse error)', () => {
   assert.match(problemsFor(en('{n, plural, one {# tab} other {# tabs}}'), '{n, plural, one {# Tab}}').join(), /other/);
 });
 
-test('different exact branches fail', () => {
-  assert.match(problemsFor(en('{n, plural, =0 {none} other {# tabs}}'), '{n, plural, other {# Tabs}}').join(), /exact/);
+test('exact =N branches are rejected in English and in translations (not representable on mobile)', () => {
+  assert.match(lib.validateSource({ 'a.none': en('{n, plural, =0 {no tabs} one {# tab} other {# tabs}}') }).join(), /=0/);
+  assert.match(problemsFor(en('{n, plural, one {# tab} other {# tabs}}'), '{n, plural, =0 {keine} one {# Tab} other {# Tabs}}').join(), /=0/);
+});
+
+test('English plurals must use exactly the English CLDR categories', () => {
+  assert.match(lib.validateSource({ 'a.only': en('{n, plural, other {# tabs}}') }).join(), /one/);
+  assert.match(lib.validateSource({ 'a.extra': en('{n, plural, one {# tab} few {# tabz} other {# tabs}}') }).join(), /few/);
+});
+
+test('a translation that drops a category its language needs fails', () => {
+  assert.match(problemsFor(en('{n, plural, one {# tab} other {# tabs}}'), '{n, plural, other {# Tabs}}').join(), /one/);
+});
+
+test('a translation that adds a category its language does not have fails', () => {
+  assert.match(problemsFor(en('{n, plural, one {# tab} other {# tabs}}'), '{n, plural, one {# Tab} few {# Tabz} other {# Tabs}}').join(), /few/);
+});
+
+test('categories follow the translation language, not English', () => {
+  const enEntry = en('{n, plural, one {# tab} other {# tabs}}');
+  const check = (locale, message) => lib.checkTranslation({ key: 'k.x', enEntry, trEntry: { message, source: lib.entryHash(enEntry) }, glossary, locale });
+  assert.deepEqual(check('ja', '{n, plural, other {# タブ}}'), []);
+  assert.match(check('ja', '{n, plural, one {# タブ} other {# タブ}}').join(), /one/);
+  assert.deepEqual(check('pl', '{n, plural, one {# karta} few {# karty} many {# kart} other {# karty}}'), []);
 });
 
 test('tag mismatch fails', () => {

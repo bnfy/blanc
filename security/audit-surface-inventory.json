@@ -406,7 +406,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "01ee247a664ec861fd53cee34e13e256ff776fb28afc30d17b4c4681bb4beda7",
+      "sha256": "1d22e93f85a7277c1201c689b802d5903eb5dc7acd02c5da527cc3bb4a56ba96",
       "literalChannels": [
         "blanc",
         "pages:app-version",

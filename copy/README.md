@@ -58,9 +58,12 @@ stale, because the note is the translator's context.
 A deliberate ICU MessageFormat subset:
 
 - `{name}` placeholder; the caller supplies the value.
-- `{count, plural, =0 {no tabs} one {# tab} other {# tabs}}`, where `#` is the
-  number formatted for the active language. `other` is required; at most one
-  plural per message.
+- `{count, plural, one {# tab} other {# tabs}}`, where `#` is the number
+  formatted for the active language. Each plural carries exactly its
+  language's CLDR categories (English and German: `one`, `other`; Polish adds
+  `few`, `many`; Japanese has only `other`). At most one plural per message.
+  Exact branches like `=0` are rejected because iOS and Android cannot
+  represent them; give a "none" state its own key.
 - `<0>…</0>` numbered, non-nesting tags for rich text. The element's existing
   children receive the tagged text, so links keep their listeners.
 - `''` for a literal apostrophe. Literal `{` and `}` are not allowed.
@@ -84,7 +87,9 @@ message.
 `guarded` file fails `copy:check` on hard-coded English (HTML text and labelled
 attributes without `data-i18n*`, string literals assigned to `textContent`,
 `title` and the like, menu and dialog literals in main) and on `t('key')` calls
-naming a key that is not in `en.json`. Each file's `allow` list holds reviewed
+naming a key that is not in `en.json` (single, double or backtick quotes,
+including `?.()` and `.parts()` calls; a backtick key with `${…}` fails unless
+allowlisted, because it cannot be checked). Each file's `allow` list holds reviewed
 literals that are not user-facing English, each justified in the commit that
 adds it.
 

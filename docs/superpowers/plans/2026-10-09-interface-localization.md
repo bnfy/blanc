@@ -19,7 +19,7 @@
 - Fixed terms (never translated): Blanc, Blanc Blocker, Blanc Patron, Patron, uBlock Origin, 1Password, every `/command`, ⌘ ⌥ ⇧ ⌃. Windows/Linux key words (Ctrl, Shift, Alt) **are** translated.
 - German uses the informal **du** form throughout (plan-time amendment; see below).
 - Translated text reaches the DOM only through `textContent`/`setAttribute`. Never `innerHTML` a message.
-- Messages: `{name}`, `{n, plural, one {…} other {…}}` (+ `=N`), `#`, numbered non-nesting tags `<0>…</0>`, `''` for a literal apostrophe. At most one `plural` per message. Nothing else.
+- Messages: `{name}`, `{n, plural, one {…} other {…}}` (exactly the language's CLDR categories; no `=N`), `#`, numbered non-nesting tags `<0>…</0>`, `''` for a literal apostrophe. At most one `plural` per message. Nothing else.
 - `source` hashes advance only through `npm run copy:ack -- <locale> <key…>`. `copy:build` and `copy:check` never write them.
 - `maxLength` is a lint on literal text (placeholders count 0), not a fit guarantee.
 - No `--lang`, no `Accept-Language` change, no `electronLanguages` restriction, no network access for translations.

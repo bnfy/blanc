@@ -88,12 +88,22 @@ function stripComments(js) {
   return js.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:\\])\/\/.*$/gm, '$1');
 }
 
-const KEY_CALL = /(?:\bt|\.t|\.parts)\(\s*'([a-z][A-Za-z0-9]*(?:\.[a-z0-9][A-Za-z0-9]*)+)'/g;
+// t('k'), t("k"), t(`k`), optional calls (t?.(…)) and .parts(…). A template
+// key with ${…} cannot be checked statically, so it fails unless allowlisted;
+// keys held in variables are left to strict test runs, which throw on a miss.
+const KEY_CALL = /(?:\bt|\.t|\.parts)(?:\?\.)?\(\s*(['"`])((?:(?!\1)[^\\\n])*)\1/g;
+const KEY_LITERAL = /^[a-z][A-Za-z0-9]*(?:\.[a-z0-9][A-Za-z0-9]*)+$/;
 
 export function scanJs(js, { allow = [], kind = 'renderer', en = null }) {
   const source = stripComments(js);
   const problems = [];
-  if (en) for (const m of source.matchAll(KEY_CALL)) if (!Object.hasOwn(en, m[1])) problems.push(`unknown key '${m[1]}'`);
+  if (en) {
+    for (const [, quote, key] of source.matchAll(KEY_CALL)) {
+      if (quote === '`' && key.includes('${')) {
+        if (!allow.includes(key)) problems.push(`dynamic key \`${key}\` cannot be verified`);
+      } else if (KEY_LITERAL.test(key) && !Object.hasOwn(en, key)) problems.push(`unknown key '${key}'`);
+    }
+  }
   const literal = (raw) => raw.slice(1, -1);
   const report = (raw) => {
     const value = literal(raw);

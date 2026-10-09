@@ -194,8 +194,10 @@ A deliberate subset of ICU MessageFormat:
 - `{name}`: plain placeholder.
 - `{count, plural, one {…} other {…}}`: plural on a numeric argument, with
   `#` meaning the locale-formatted number. Branch selection uses
-  `Intl.PluralRules(locale)`. Exact-value branches (`=0 {…}`) are allowed.
-  `other` is required.
+  `Intl.PluralRules(locale)`. Each plural carries exactly its language's CLDR
+  categories (en/de `one`, `other`; pl `one`, `few`, `many`, `other`; ja
+  `other`). Exact-value branches (`=0 {…}`) are not supported: iOS and Android
+  plural resources cannot represent them, so a "none" state is its own key.
 - `<0>…</0>`, `<1>…</1>`: numbered tags for rich text (see
   [Applying strings to the DOM](#applying-strings-to-the-dom)).
 - Apostrophe escaping follows ICU (`''` for a literal apostrophe). `{` and `}`
@@ -491,8 +493,8 @@ reviewer would otherwise make:
    **`npm run copy:build`** then regenerates the runtime and mobile files. It
    never touches `source`.
 4. **Mechanical checks** (`copy:check`):
-   - placeholder names and plural branches match English (`other` is always
-     present)
+   - placeholder names match English, and every plural has exactly the
+     translation language's CLDR categories, no `=N` branches
    - numbered tags match English, in count and nesting
    - every `fixed` term and `fixedPatterns` match in the English appears
      verbatim in the translation
@@ -598,7 +600,7 @@ last.
 
 - **Formatter:**
   - placeholders, apostrophe escaping
-  - plural selection for `en` and `de` (`one`/`other`, `=0`), and `#` formatting
+  - plural selection for `en` and `de` (`one`/`other`), and `#` formatting
     per locale
   - tags and `tParts`
   - fallback order (active → English → key), and throw-on-missing under
@@ -776,3 +778,9 @@ Found while writing the implementation plan against the code (2026-10-09):
    the owner may reverse it before German unhides.
 8. The source scanner also fails a literal `t('key')` whose key is not in
    `en.json`, since strict test runs throw on a missing key.
+
+Phase 1 review fixes (2026-10-09): plurals must match the language's CLDR
+categories exactly; exact `=N` branches are rejected in the catalog and the
+mobile generators refuse them; the key guard covers `'`, `"` and backtick
+literals and `?.()`/`.parts()` calls, and fails an interpolated template key
+unless it is allowlisted.

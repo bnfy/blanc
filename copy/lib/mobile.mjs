@@ -35,6 +35,14 @@ const pluralOf = (nodes) => {
   return null;
 };
 
+// Exact =N branches have no lossless iOS/Android form; the catalog rejects
+// them, and this refuses rather than silently changing a message's meaning.
+function categoriesOf(plural, key) {
+  const exact = Object.keys(plural.branches).filter((s) => s.startsWith('='));
+  if (exact.length) throw new Error(`${key}: exact plural branches (${exact.join(', ')}) cannot be emitted for mobile`);
+  return Object.keys(plural.branches);
+}
+
 export const androidName = (key) => key.replace(/([A-Z])/g, '_$1').replace(/\./g, '_').toLowerCase();
 
 export function xcstrings({ en, locales }) {
@@ -50,7 +58,7 @@ export function xcstrings({ en, locales }) {
         localizations[code] = { stringUnit: { state: 'translated', value: flatten(nodes, order, 'ios') } };
       } else {
         const variations = {};
-        for (const category of Object.keys(plural.branches).filter((s) => !s.startsWith('='))) {
+        for (const category of categoriesOf(plural, key)) {
           variations[category] = { stringUnit: { state: 'translated', value: flatten(nodes, order, 'ios', null, category) } };
         }
         localizations[code] = { variations: { plural: variations } };
@@ -75,7 +83,7 @@ export function androidStrings({ en, messages }) {
       out += `    <string name="${name}">${xmlEsc(flatten(nodes, order, 'android'))}</string>\n`;
     } else {
       out += `    <plurals name="${name}">\n`;
-      for (const category of Object.keys(plural.branches).filter((s) => !s.startsWith('='))) {
+      for (const category of categoriesOf(plural, key)) {
         out += `        <item quantity="${category}">${xmlEsc(flatten(nodes, order, 'android', null, category))}</item>\n`;
       }
       out += '    </plurals>\n';

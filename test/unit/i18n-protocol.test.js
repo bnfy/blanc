@@ -46,6 +46,9 @@ test('blanc:// pages resolve strings.js specially and every other name as before
   assert.deepEqual(resolvePagesAsset('settings', '/nested/strings.js'), { kind: 'strings' });
   assert.deepEqual(resolvePagesAsset('settings', '/i18n.js'), { kind: 'file', name: 'i18n.js' });
   assert.deepEqual(resolvePagesAsset('settings', '/strings.de.js'), { kind: 'file', name: 'strings.de.js' });
-  assert.equal(resolvePagesAsset('settings', '/bad name.js'), null);
-  assert.equal(resolvePagesAsset('not-a-page', '/strings.js'), null);
+  // Fail-closed contract unchanged from before strings.js: unknown host → 404,
+  // malformed name on a known host → 400.
+  assert.deepEqual(resolvePagesAsset('settings', '/bad name.js'), { kind: 'error', status: 400 });
+  assert.deepEqual(resolvePagesAsset('not-a-page', '/strings.js'), { kind: 'error', status: 404 });
+  assert.deepEqual(resolvePagesAsset('not-a-page', '/'), { kind: 'error', status: 404 });
 });

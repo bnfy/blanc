@@ -19,7 +19,7 @@ const sync = require('./sync');
 const telemetry = require('./telemetry');
 const diagnostics = require('./diagnostics');
 const { listDecisions, removeDecision } = require('./permissions');
-const { KNOWN_PAGES, UTILITY_PAGES } = require('./utility-pages');
+const { UTILITY_PAGES } = require('./utility-pages');
 const { resolvePagesAsset } = require('./pages-assets');
 const { stringsScriptFor } = require('./i18n');
 const { isTrustedPagesEvent } = require('./pages-ipc-trust');
@@ -93,12 +93,13 @@ function setupPages(hooks = {}) {
     const branding = ublockBrandResourcePath(request.url);
     if (branding) return net.fetch(pathToFileURL(branding).toString());
     const { host, pathname } = new URL(request.url);
-    if (!KNOWN_PAGES.has(host)) return new Response('Not found', { status: 404 });
-
     // `blanc://bookmarks/` serves the page itself; any deeper path is a
     // shared asset (pages.css, pages.js) resolved inside PAGES_DIR only.
+    // Unknown host → 404; malformed name on a known host → 400.
     const asset = resolvePagesAsset(host, pathname);
-    if (!asset) return new Response('Bad request', { status: 400 });
+    if (asset.kind === 'error') {
+      return new Response(asset.status === 404 ? 'Not found' : 'Bad request', { status: asset.status });
+    }
     if (asset.kind === 'strings') {
       return new Response(stringsScript(), { headers: { 'content-type': 'text/javascript; charset=utf-8' } });
     }

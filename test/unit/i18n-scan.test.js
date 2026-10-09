@@ -64,6 +64,26 @@ test('JS: a t() call naming a key missing from en.json fails', () => {
   assert.match(r.problems[0], /a\.missing/);
 });
 
+test('JS: unknown keys are caught in every literal and call form', () => {
+  for (const call of [
+    "blancI18n.t('a.missing')", 'blancI18n.t("a.missing")', 'blancI18n.t(`a.missing`)',
+    "blancI18n.t?.('a.missing')", "t('a.missing', { n })", 't?.("a.missing")',
+    "mainI18n.parts('a.missing')", "blancI18n.parts?.(`a.missing`)",
+  ]) {
+    const r = scan.scanJs(`x = ${call};`, { allow: [], kind: 'renderer', en });
+    assert.deepEqual(r.problems, ["unknown key 'a.missing'"], call);
+  }
+  for (const call of ["blancI18n.t('a.title')", 'blancI18n.t("a.title")', 'mainI18n.t?.(`a.title`)']) {
+    assert.deepEqual(scan.scanJs(`x = ${call};`, { allow: [], kind: 'renderer', en }).problems, [], call);
+  }
+});
+
+test('JS: an interpolated template key cannot be verified and fails unless allowlisted', () => {
+  const js = 'x = blancI18n.t(`slash.${name}.hint`);';
+  assert.match(scan.scanJs(js, { allow: [], kind: 'renderer', en }).problems.join(), /dynamic key/);
+  assert.deepEqual(scan.scanJs(js, { allow: ['slash.${name}.hint'], kind: 'renderer', en }).problems, []);
+});
+
 test('JS: commented-out code is not scanned', () => {
   const r = scan.scanJs("// el.textContent = 'Close tab';\n/* el.title = 'x y' */", { allow: [], kind: 'renderer' });
   assert.deepEqual(r.problems, []);
