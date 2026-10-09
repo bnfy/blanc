@@ -2,6 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const { execFileSync } = require('node:child_process');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const read = (relativePath) => fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
@@ -21,7 +22,9 @@ test('media-kit raster assets exist at their declared dimensions', () => {
   for (const capture of CAPTURES) {
     // Native 2x captures of a 1280 × 800 Blanc window.
     assert.deepEqual(pngSize(capture), { width: 2560, height: 1600 }, capture);
-    assert.equal(fs.existsSync(path.join(ROOT, capture.replace(/\.png$/, '.webp'))), true, `${capture} display copy`);
+    for (const display of ['.webp', '-1280.webp']) {
+      assert.equal(fs.existsSync(path.join(ROOT, capture.replace(/\.png$/, display))), true, `${capture} ${display} display copy`);
+    }
   }
   assert.deepEqual(pngSize('site/public/press/blanc-press-card.png'), { width: 2400, height: 1260 });
   assert.deepEqual(pngSize('site/public/logo.png'), { width: 1024, height: 1024 });
@@ -64,7 +67,7 @@ test('the media page keeps its release links, indexability, and no-analytics bou
   assert.match(page, /import releaseData from '\.\.\/data\/releases\.json'/);
   assert.match(page, /\?\?\s*ALL_RELEASES\[0\]/);
   assert.match(page, /const RELEASE_VERSION = CURRENT_RELEASE\.tag\.replace/);
-  assert.match(page, /<dt>version<\/dt><dd>Blanc \{RELEASE_VERSION\}<span class="media-fact-note">Released <time datetime=\{RELEASED_MACHINE\}>\{RELEASED_HUMAN\}<\/time>/);
+  assert.match(page, /<dt>version<\/dt><dd>Blanc \{RELEASE_VERSION\} <span class="media-fact-note">Released <time datetime=\{RELEASED_MACHINE\}>\{RELEASED_HUMAN\}<\/time>/);
   assert.doesNotMatch(page, /<dd>Blanc \{VERSION\}<\/dd>/);
   assert.match(page, /<dt>date<\/dt><dd><time datetime=\{RELEASED_MACHINE\}>\{RELEASED_HUMAN\}<\/time>/);
   assert.doesNotMatch(page, /<dt>(?:released|date)<\/dt><dd>[A-Z][a-z]+ \d/);
@@ -111,10 +114,28 @@ test('the island index lists every section it links to, in page order', () => {
   assert.deepEqual([...positions].sort((a, b) => a - b), positions, 'sections follow the index order');
 });
 
+test('the black Sunrise mark still matches what its renderer makes from the color master', () => {
+  // The two marks must share one canvas and crop; a changed master without a
+  // re-render would silently break that.
+  execFileSync(process.execPath, [path.join(ROOT, 'site/scripts/render-sunrise-black-mark.mjs'), '--check'], { cwd: ROOT, stdio: 'pipe' });
+});
+
+test('description and copy controls work without :has(), and the copy path falls back when the clipboard refuses', () => {
+  const css = read('site/src/styles/media.css');
+  const script = read('site/src/scripts/media.js');
+  // Short is the CSS default; only Long depends on :has().
+  assert.match(css, /\.media-describe-card \[data-description="long"\],\n\.media-describe-card:has\(input\[value="long"\]:checked\) \[data-description="short"\] \{ display: none; \}/);
+  assert.doesNotMatch(css, /\.media-description \{ display: none/);
+  assert.match(script, /await navigator\.clipboard\.writeText\(text\);\n  \} catch \{\n    copyWithSelection\(text\);/);
+  assert.match(script, /getPropertyValue\('--media-spring'\)/);
+});
+
 test('the press card renderer builds from the native capture and keeps third-party brands out of frame', () => {
   const renderer = read('site/scripts/render-press-card.mjs');
   assert.match(renderer, /public\/press\/blanc-island-expanded-v1\.30\.1\.png/);
   assert.match(renderer, /const CROP = \{ x: (\d+),/);
-  // The Met wordmark ends at x ≈ 262 in the 2560-wide capture.
+  // The Met wordmark ends at x ≈ 262 in the 2560-wide capture, and the
+  // renderer refuses any other capture size rather than shifting the crop.
   assert.ok(Number(renderer.match(/const CROP = \{ x: (\d+),/)[1]) > 262);
+  assert.match(renderer, /CAPTURE_SIZE\.width !== 2560 \|\| CAPTURE_SIZE\.height !== 1600/);
 });

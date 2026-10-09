@@ -305,10 +305,8 @@ body:has(.site-header.is-scroll-hidden) .media-index { top: 14px; }
 .media-kit-row > :first-child { grid-column: 1 / -1; }
 .media-tile { margin: 0; }
 .media-tile > a { display: block; overflow: hidden; background: #fff; border: 1px solid var(--site-border); border-radius: 18px; }
-.media-tile img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; object-fit: cover; }
+.media-tile img { display: block; width: 100%; height: auto; }
 .media-kit-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 36px; margin: clamp(48px, 6vw, 72px) 0 0; padding: 0; list-style: none; font-size: 15px; }
-.media-tile--mark img { aspect-ratio: 1; }
-.media-tile:first-child img { aspect-ratio: auto; }
 .media-kit .media-tile--mark figcaption { flex-direction: column; gap: 4px; }
 /* ---------- descriptions ---------- */
 .media-describe-card {
@@ -358,9 +356,10 @@ body:has(.site-header.is-scroll-hidden) .media-index { top: 14px; }
   transition: translate var(--media-spring-ms) var(--media-spring);
 }
 .media-segments:has(label:nth-of-type(2) input:checked) .media-segments-thumb { translate: 100% 0; }
-.media-describe-card .media-copy,
-.media-description { display: none; }
-.media-describe-card:has(input[value="short"]:checked) [data-description="short"],
+/* Short shows by default, so a browser without :has() still gets a usable
+   card; choosing Long swaps the text and its Copy button. */
+.media-describe-card [data-description="long"],
+.media-describe-card:has(input[value="long"]:checked) [data-description="short"] { display: none; }
 .media-describe-card:has(input[value="long"]:checked) [data-description="long"] { display: block; }
 .media-description { animation: media-arrive 320ms var(--media-spring) both; }
 .media-description p:first-child {

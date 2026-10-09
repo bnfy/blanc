@@ -24,6 +24,13 @@ function dataUrl(file, mimeType) {
 const CROP = { x: 470, y: 0, width: 1560 };
 const FRAME = { width: 1420, height: 1020 };
 const scale = FRAME.width / CROP.width;
+// The crop is authored against a 2560 × 1600 capture; a recapture at another
+// size would move it (possibly onto the site's logo), so refuse instead.
+const header = fs.readFileSync(CAPTURE);
+const CAPTURE_SIZE = { width: header.readUInt32BE(16), height: header.readUInt32BE(20) };
+if (CAPTURE_SIZE.width !== 2560 || CAPTURE_SIZE.height !== 1600) {
+  throw new Error(`Expected a 2560 × 1600 capture, got ${CAPTURE_SIZE.width} × ${CAPTURE_SIZE.height}. Re-author CROP for the new capture.`);
+}
 
 const productCapture = dataUrl(CAPTURE, 'image/png');
 const brandMark = dataUrl(path.join(SITE_ROOT, 'public/favicon.svg'), 'image/svg+xml');
@@ -49,7 +56,7 @@ try {
           h1 { position: absolute; top: 246px; left: 94px; width: 720px; margin: 0; font-family: Newsreader, serif; font-size: 122px; font-weight: 400; letter-spacing: -0.02em; line-height: 1.0; font-optical-sizing: auto; }
           .meta { position: absolute; left: 100px; bottom: 96px; color: #6b6257; font: 500 26px/1 Inter, sans-serif; letter-spacing: 0.04em; }
           .frame { position: absolute; top: 120px; right: 86px; width: ${FRAME.width}px; height: ${FRAME.height}px; overflow: hidden; border-radius: 26px; background: #fff; box-shadow: 0 0 0 1px rgba(18, 16, 11, 0.12), 0 30px 80px rgba(18, 16, 11, 0.16); }
-          .frame img { position: absolute; left: ${-CROP.x * scale}px; top: ${-CROP.y * scale}px; width: ${2560 * scale}px; height: ${1600 * scale}px; }
+          .frame img { position: absolute; left: ${-CROP.x * scale}px; top: ${-CROP.y * scale}px; width: ${CAPTURE_SIZE.width * scale}px; height: ${CAPTURE_SIZE.height * scale}px; }
         </style>
       </head>
       <body>

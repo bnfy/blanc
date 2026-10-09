@@ -2,6 +2,8 @@
 // Renders the media kit's black Sunrise mark from the full-color 4096 master,
 // so the two downloads share one canvas, crop, and scale:
 //   node site/scripts/render-sunrise-black-mark.mjs
+// With --check it renders in memory and fails if the committed file has
+// drifted from the master (test/unit/media-page.test.js runs this).
 // Only true ivory connected to the canvas edge stays white; the gold, its dark
 // insets, and its enclosed highlights all become ink, keeping soft outer edges.
 import { createRequire } from 'node:module';
@@ -42,6 +44,15 @@ const INK = 14;
     else t = 1;
     const v = Math.round(255 + (INK - 255) * t);
     out[3 * p] = out[3 * p + 1] = out[3 * p + 2] = v;
+  }
+  if (process.argv.includes('--check')) {
+    const committed = await sharp(OUTPUT).removeAlpha().raw().toBuffer();
+    if (!committed.equals(out)) {
+      console.error(`${path.relative(ROOT, OUTPUT)} is stale. Run node site/scripts/render-sunrise-black-mark.mjs and commit the result.`);
+      process.exit(1);
+    }
+    console.log(`${path.relative(ROOT, OUTPUT)} matches the color master.`);
+    return;
   }
   await sharp(out, { raw: { width: W, height: H, channels: 3 } }).png({ compressionLevel: 9, adaptiveFiltering: true }).toFile(OUTPUT);
   console.log(`Rendered ${OUTPUT}`);

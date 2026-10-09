@@ -4,15 +4,10 @@
 
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const status = document.querySelector('[data-media-status]');
-const SPRING = 'linear(0, 0.090 6%, 0.263 11%, 0.441 17%, 0.593 22%, 0.711 28%, 0.800 33%, 0.863 39%, 0.908 44%, 0.938 50%, 0.959 56%, 0.973 61%, 0.982 67%, 0.989 72%, 0.993 78%, 0.995 83%, 0.997 89%, 0.998 94%, 1)';
 
 /* ---------- copy ---------- */
 
-async function writeClipboard(text) {
-  if (navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(text);
-    return;
-  }
+function copyWithSelection(text) {
   const field = document.createElement('textarea');
   field.value = text;
   field.setAttribute('readonly', '');
@@ -23,6 +18,16 @@ async function writeClipboard(text) {
   const copied = document.execCommand('copy');
   field.remove();
   if (!copied) throw new Error('copy unavailable');
+}
+
+// The async clipboard can be missing (insecure contexts) or refuse the write
+// (in-app browsers, webviews); the selection path still works in many of those.
+async function writeClipboard(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    copyWithSelection(text);
+  }
 }
 
 for (const button of document.querySelectorAll('.media-copy[data-copy]')) {
@@ -67,7 +72,8 @@ function showLabel(label, direction) {
       { opacity: 0, transform: `translateY(${direction * 7}px)` },
       { opacity: 1, transform: 'none' },
     ],
-    { duration: 420, easing: SPRING },
+    // The page's one spring curve lives in media.css as --media-spring.
+    { duration: 420, easing: getComputedStyle(now).getPropertyValue('--media-spring').trim() || 'ease-out' },
   );
 }
 
