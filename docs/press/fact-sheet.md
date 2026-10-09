@@ -116,4 +116,5 @@ Public 1.30.1 ships signed and notarized macOS builds for Apple Silicon and
 Intel, a signed Windows x64 installer, and a Linux x64 AppImage. A platform is
 included in any new release only after its exact artifact passes the native
 release gate; each version's [release notes](https://github.com/bnfy/blanc/releases)
-remain the authority for what that version includes.
+and the [platform matrix](./platform-matrix.md) remain the authority for what
+that version includes.
