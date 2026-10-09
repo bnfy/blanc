@@ -53,7 +53,7 @@ Then('the Sync task stays checked at {string}', async function (progress) {
 Then('the moving-in checklist briefly confirms completion', async function () {
   await waitForValue(
     () => this.call('readMigrationChecklistDom'),
-    (dom) => dom?.visible === true && dom.progress === '2/2' && dom.label === 'all moved in',
+    (dom) => dom?.visible === true && dom.progress === '2/2' && dom.label === 'All moved in',
     'the moving-in checklist pill to confirm 2/2',
   );
   const dom = await this.call('readMigrationChecklistDom');
@@ -116,7 +116,9 @@ Then('the moving-in checklist pill sits in the footer just before Customize', as
     'the checklist pill and Customize to render',
   );
   assert.equal(dom.pillFollowedByCustomize, true);
-  assert.equal(dom.label, 'finish setup');
+  assert.equal(dom.label, 'Finish setup');
+  assert.ok(dom.hideBounds && inside(dom.hideBounds, dom.shellBounds), 'the pill ends in its close button');
+  assert.ok(dom.hideBounds.left >= dom.shellBounds.right - dom.hideBounds.width - 4, 'the close button sits at the pill\'s right end');
   assert.equal(dom.open, false);
   assert.ok(inside(dom.shellBounds, dom.footerBounds),
     `pill ${JSON.stringify(dom.shellBounds)} outside footer ${JSON.stringify(dom.footerBounds)}`);

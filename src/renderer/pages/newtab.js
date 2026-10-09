@@ -158,7 +158,7 @@ function paintMigrationChecklist(checklist, { completing = false } = {}) {
     el.textContent = `${checklist.completedCount}/2`;
   }
   migrationChecklistTitle.textContent = completing ? 'all moved in' : 'ready to move in?';
-  migrationChecklistLabel.textContent = completing ? 'all moved in' : 'finish setup';
+  migrationChecklistLabel.textContent = completing ? 'All moved in' : 'Finish setup';
   setMigrationTask(migrationSyncTask, migrationSyncAction, checklist.syncComplete, 'Set up Sync');
   setMigrationTask(migrationTabsTask, migrationTabsAction, checklist.tabsComplete, 'Bring your tabs');
 }

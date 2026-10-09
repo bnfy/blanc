@@ -131,9 +131,10 @@
     <span class="footer-appearance">
       <span id="migrationChecklistShell" class="migration-checklist-shell" hidden>
         <button id="migrationChecklistCompact" class="migration-checklist-compact" type="button" popovertarget="migrationChecklist" aria-expanded="false">
-          <span class="migration-progress-ring"><span class="js-migration-progress">0/2</span></span>
-          <span id="migrationChecklistLabel" class="migration-compact-label" aria-hidden="true">finish setup</span>
-          <span class="page-sr-only">Open moving-in checklist</span>
+          <span id="migrationChecklistLabel" class="migration-compact-label">Finish setup</span>
+        </button>
+        <button id="migrationChecklistHide" class="migration-checklist-hide" type="button" aria-label="Hide moving-in checklist">
+          <svg viewBox="0 0 10 10" width="10" height="10" aria-hidden="true"><path d="M2 2l6 6M8 2l-6 6"></path></svg>
         </button>
         <aside id="migrationChecklist" class="migration-checklist" popover role="dialog" aria-labelledby="migrationChecklistTitle" aria-live="polite">
           <div class="migration-checklist-heading">
@@ -156,7 +157,6 @@
               </a>
             </li>
           </ul>
-          <button id="migrationChecklistHide" class="migration-checklist-hide" type="button" aria-label="Hide moving-in checklist">hide</button>
         </aside>
       </span>
       <button id="customizeButton" class="start-customize" type="button" popovertarget="customizePopover" aria-expanded="false">Customize</button>

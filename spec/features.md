@@ -806,13 +806,13 @@ From the desktop `DEFAULTS`:
   here" when there are none. Billboard, which shows recent sites, shows no
   hint. Private start pages show no Patron upgrade and no blocked counts.
 - After first run, Personal non-private start pages show one moving-in
-  checklist on ledger, billboard, shelf, and tally: a progress-ring pill in
+  checklist on ledger, billboard, shelf, and tally: a "Finish setup" pill in
   the footer just before Customize, whose popover opens upward with the full
-  list. Living in the footer, it never covers content, at any window size. It
-  tracks the device-local, once-completed states of Sync and Bring Your Tabs,
-  can be hidden permanently from its popover, and retires after the pill
-  briefly shows a 2/2 "all moved in" confirmation, without opening the popover
-  on its own. The standalone game omits it.
+  list and its 0/2 progress. Living in the footer, it never covers content, at
+  any window size. It tracks the device-local, once-completed states of Sync
+  and Bring Your Tabs. The × at the pill's end hides it permanently on that
+  device. It retires after the pill briefly reads "All moved in", without
+  opening the popover on its own. The standalone game omits it.
 - **Acceptance:**
   [`acceptance/newtab-layouts.feature`](./acceptance/newtab-layouts.feature)
   renders the saved layout on a new tab, persists a footer switch, verifies

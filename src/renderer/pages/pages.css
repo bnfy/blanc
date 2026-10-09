@@ -1370,17 +1370,7 @@ a.ledger-label:hover { color: var(--accent); }
   transform: rotate(43deg);
 }
 .migration-checklist-tasks li.is-complete .migration-task-label { opacity: 0.48; }
-.migration-checklist-hide {
-  display: block;
-  margin: 10px 0 0 auto;
-  padding: 3px 0;
-  border: 0;
-  background: transparent;
-  color: var(--text-dim);
-  font: 11.5px/1.3 var(--font-ui);
-}
-.migration-checklist-hide:hover { background: transparent; border-color: transparent; color: var(--text); }
-.migration-checklist-shell.is-completing .migration-checklist-compact,
+.migration-checklist-shell.is-completing,
 .migration-checklist-shell.is-completing .migration-checklist {
   animation: migration-checklist-retire 200ms 1.3s ease forwards;
 }
@@ -1396,7 +1386,7 @@ a.ledger-label:hover { color: var(--accent); }
   .patron-cta-arrow { transition: none; }
   .js-patron-callout a:hover .patron-cta-arrow { transform: none; }
   .migration-checklist { transition: none; }
-  .migration-checklist-shell.is-completing .migration-checklist-compact,
+  .migration-checklist-shell.is-completing,
   .migration-checklist-shell.is-completing .migration-checklist { animation: none; }
 }
 
@@ -2898,13 +2888,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
   width: 5px;
   height: 9px;
 }
-.migration-checklist-hide {
-  width: fit-content;
-  margin: 7px 0 0 87px;
-  padding: 5px 0;
-  font-size: 10.5px;
-  text-align: left;
-}
 
 /* One straight footer divider replaces the exploratory freehand flourish. */
 .ledger-footer,
@@ -3095,34 +3078,63 @@ body[data-layout="tally"] #layoutTally { display: grid; }
 }
 
 /* The moving-in checklist is a footer pill just before Customize, with the
-   same outline; its native popover opens upward on the same level-2
-   material. The pill fits every window size, so it has no compact variant. */
+   same outline: its label opens the native popover upward on the same
+   level-2 material, and the trailing close button hides it for good. The
+   pill fits every window size, so it has no compact variant. */
 .footer-appearance { gap: 8px; }
-.migration-checklist-shell { display: inline-flex; }
+.migration-checklist-shell {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+  border-radius: 999px;
+  anchor-name: --start-checklist;
+}
 .migration-checklist-shell[hidden] { display: none; }
+.migration-checklist-shell:hover,
+.migration-checklist-shell:has([aria-expanded="true"]) { border-color: var(--border); }
 .migration-checklist-compact {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  min-height: 28px;
-  padding: 2px 12px 2px 2px;
-  border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
-  border-radius: 999px;
+  min-height: 26px;
+  padding: 4px 4px 4px 12px;
+  border: 0;
+  border-radius: 999px 0 0 999px;
   background: transparent;
   color: var(--text-dim);
   font: inherit;
   cursor: pointer;
-  anchor-name: --start-checklist;
 }
 .migration-checklist-compact:hover,
-.migration-checklist-compact[aria-expanded="true"] { color: var(--text); border-color: var(--border); background: transparent; }
-.migration-checklist-compact .migration-progress-ring {
+.migration-checklist-compact[aria-expanded="true"] { color: var(--text); background: transparent; }
+.migration-compact-label { white-space: nowrap; }
+.migration-checklist-hide {
+  display: inline-grid;
+  place-items: center;
   width: 22px;
   height: 22px;
-  border-width: 2px;
-  font-size: 8.5px;
+  margin: 0 2px 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
 }
-.migration-compact-label { white-space: nowrap; }
+.migration-checklist-hide:hover {
+  border-color: transparent;
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+  color: var(--text);
+}
+.migration-checklist-hide svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+.migration-checklist-shell.is-completing .migration-checklist-hide { visibility: hidden; }
+.migration-checklist-compact:focus-visible,
+.migration-checklist-hide:focus-visible { outline-offset: 0; }
 .migration-checklist {
   position: fixed;
   position-anchor: --start-checklist;
@@ -3361,7 +3373,7 @@ body.has-underflow .ledger-footer::before { opacity: 1; }
   .group-chip,
   .start-customize,
   .start-customize-popover,
-  .migration-checklist-compact,
+  .migration-checklist-shell,
   .migration-checklist,
   .layout-thumb,
   .js-patron-callout a { border-color: var(--text-dim); }
@@ -3413,7 +3425,7 @@ body.layout-ready .start-content > main { transition: opacity 160ms var(--start-
 .group-chip:active,
 .layout-preview:active,
 .start-customize:active,
-.migration-checklist-compact:active,
+.migration-checklist-shell:has(> .migration-checklist-compact:active),
 .js-patron-callout a:active { transform: scale(0.98); transition-duration: 0ms; }
 
 @media (prefers-reduced-motion: reduce) {
@@ -3432,7 +3444,7 @@ body.layout-ready .start-content > main { transition: opacity 160ms var(--start-
   .group-chip:active,
   .layout-preview:active,
   .start-customize:active,
-  .migration-checklist-compact:active,
+  .migration-checklist-shell:has(> .migration-checklist-compact:active),
   .js-patron-callout a:active { transform: none; }
   .ledger-footer::before { transition: none; }
 }

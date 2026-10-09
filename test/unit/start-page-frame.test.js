@@ -46,7 +46,8 @@ test('every layout renders inside one centered content area', () => {
 test('the checklist is a footer pill with an anchored popover', () => {
   const css = frameCss();
   assert.match(css, /\.footer-appearance \{[^}]*gap: 8px;/s);
-  assert.match(css, /\.migration-checklist-compact \{[^}]*display: inline-flex;[^}]*min-height: 28px;/s);
+  assert.match(css, /\.migration-checklist-shell \{[^}]*display: inline-flex;[^}]*min-height: 28px;/s);
+  assert.doesNotMatch(css, /\.migration-checklist-compact \.migration-progress-ring/, 'the pill carries no ring');
   assert.match(css, /\.migration-checklist \{[^}]*background: var\(--start-float-fill\);[^}]*backdrop-filter: blur\(20px\) saturate\(140%\);/s,
     'the popover uses the same floating material as Customize');
   assert.doesNotMatch(read('src/renderer/pages/pages.css'), /body\[data-layout="(billboard|tally)"\] \.migration-checklist-shell \{ top:/,

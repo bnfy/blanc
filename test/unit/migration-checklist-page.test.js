@@ -15,9 +15,13 @@ test('start page carries one shared accessible migration checklist', () => {
   assert.match(html, /id="migrationChecklistTitle">ready to move in\?<\/h2>/);
   assert.match(html, /id="migrationSyncAction"[^>]*>[\s\S]*?Set up Sync/);
   assert.match(html, /id="migrationTabsAction"[^>]*href="blanc:\/\/tab-import\/"[\s\S]*?Bring your tabs/);
-  assert.match(html, /aria-label="Hide moving-in checklist">hide<\/button>/);
-  assert.match(html, /id="migrationChecklistCompact"[^>]*popovertarget="migrationChecklist"[^>]*aria-expanded="false"/);
-  assert.match(html, /<aside id="migrationChecklist" class="migration-checklist" popover role="dialog"/);
+  assert.match(html, /id="migrationChecklistCompact"[^>]*popovertarget="migrationChecklist"[^>]*aria-expanded="false">\s*<span id="migrationChecklistLabel" class="migration-compact-label">Finish setup<\/span>\s*<\/button>/,
+    'the pill is plain sentence-case text, with no progress ring');
+  assert.match(html, /<\/button>\s*<button id="migrationChecklistHide" class="migration-checklist-hide" type="button" aria-label="Hide moving-in checklist">\s*<svg [^>]*aria-hidden="true"/,
+    'the pill ends in its own close button');
+  const popover = html.match(/<aside id="migrationChecklist" class="migration-checklist" popover role="dialog"[\s\S]*?<\/aside>/)?.[0] ?? '';
+  assert.ok(popover, 'the full checklist is a popover dialog');
+  assert.doesNotMatch(popover, /migrationChecklistHide/, 'the popover no longer carries a separate hide link');
   assert.doesNotMatch(html, /tab-import-promo|js-sync-nudge|syncNudge/);
   assert.doesNotMatch(html, /style="/);
 });
@@ -58,7 +62,7 @@ test('checklist is a footer pill beside Customize whose popover opens upward, an
     'the header no longer carries the checklist');
   assert.match(html, /<span class="footer-appearance">\s*<span id="migrationChecklistShell" class="migration-checklist-shell" hidden>[\s\S]*?<\/span>\s*<button id="customizeButton"/,
     'the checklist pill sits just before Customize in the footer');
-  assert.match(css, /\.migration-checklist-compact \{[^}]*border-radius: 999px;[^}]*anchor-name: --start-checklist;/s);
+  assert.match(css, /\.migration-checklist-shell \{[^}]*border-radius: 999px;[^}]*anchor-name: --start-checklist;/s);
   assert.match(css, /\.migration-checklist \{[^}]*position: fixed;[^}]*position-anchor: --start-checklist;[^}]*position-area: top center;/s,
     'the checklist popover opens above its pill, like Customize');
   assert.doesNotMatch(css, /@media \(max-width: 960px\), \(max-height: 640px\) \{[^@]*migration-checklist/,
@@ -81,13 +85,13 @@ test('moving-in checklist uses Newsreader and Inter without handwritten styling'
     'the checklist no longer draws a freehand underline');
 });
 
-test('checklist dismissal stays attached to the task-label column', () => {
+test('checklist dismissal is a round close button at the pill\'s end', () => {
   const css = read('src/renderer/pages/pages.css');
 
-  assert.match(
-    css,
-    /\.migration-checklist-hide \{[^}]*width: fit-content;[^}]*margin: 7px 0 0 87px;[^}]*padding: 5px 0;[^}]*text-align: left;/s
-  );
+  assert.match(css, /\.migration-checklist-hide \{[^}]*width: 22px;[^}]*height: 22px;[^}]*border-radius: 50%;/s);
+  assert.match(css, /\.migration-checklist-shell\.is-completing \.migration-checklist-hide \{ visibility: hidden; \}/,
+    'the close button steps aside while the pill confirms completion');
+  assert.doesNotMatch(css, /margin: 7px 0 0 87px/, 'the in-popover hide link is gone');
 });
 
 test('renderer reflects progress, keeps completed rows actionable, and retires after 1.5 seconds', () => {
@@ -101,7 +105,7 @@ test('renderer reflects progress, keeps completed rows actionable, and retires a
     'completion waits until main reports that the utility sheet is gone');
   assert.match(js, /onUtilitySheetVisibility\(\(visible\) =>/);
   assert.match(js, /migrationChecklistShell\.classList\.add\('is-completing'\)/);
-  assert.match(js, /migrationChecklistLabel\.textContent = completing \? 'all moved in' : 'finish setup'/,
+  assert.match(js, /migrationChecklistLabel\.textContent = completing \? 'All moved in' : 'Finish setup'/,
     'the footer pill itself confirms completion');
   assert.doesNotMatch(js, /showPopover\(/, 'completion never opens the popover on its own');
   assert.doesNotMatch(js, /is-expanded/);

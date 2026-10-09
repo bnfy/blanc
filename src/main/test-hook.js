@@ -830,6 +830,7 @@ function install(refs) {
           popoverBounds: popover?.matches(':popover-open') ? bounds(popover) : null,
           footerBounds: bounds(document.getElementById('layoutFooter')),
           customizeBounds: bounds(document.getElementById('customizeButton')),
+          hideBounds: bounds(document.getElementById('migrationChecklistHide')),
           pillFollowedByCustomize: shell?.nextElementSibling?.id === 'customizeButton',
         };
       })()`);
