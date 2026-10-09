@@ -410,7 +410,12 @@ From the desktop `DEFAULTS`:
   real free-tile move and `{event:'newtab_layout', layout}` when each start-page
   layout actually renders. `layout` is strictly one of
   `ledger|billboard|shelf|tally`; no arbitrary label or content crosses
-  the boundary. Product events are never sent for a private tab. `installId` is
+  the boundary. Product events are never sent for a private tab. Desktop
+  1.31.0 and later may also send `{event:'day1_default'}` and
+  `{event:'day1_browsed'}` once per installation within 24 hours of the
+  install time recorded in `install.json`, used only to split next-day return
+  (see `docs/superpowers/specs/2026-10-09-first-day-retention-signals-design.md`).
+  `installId` is
   a random per-install token stored in its own
   `install.json` (not in settings, never synced) — it maps to a device install,
   never a person. `sessionId` is a random 32-bit integer per launch for GA4
