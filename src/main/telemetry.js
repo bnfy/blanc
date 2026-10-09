@@ -17,22 +17,62 @@ const EVENT_ENDPOINT = 'https://blanc-ping.bnfy-441.workers.dev/event';
 //
 // electron/store requires are lazy so this module loads under plain
 // `node --test` — the reset test injects a fake store instead.
+//
+// install.json also records when this install's id was minted, for the
+// first-day signals (docs/superpowers/specs/2026-10-09-first-day-retention-
+// signals-design.md). createdAt never leaves the device. Flat fields because
+// JsonStore merges defaults shallowly; an install that already had an id
+// before this field existed reads createdAt as null and is marked 'legacy',
+// which never sends a first-day signal.
+const DAY_ONE_FIELDS = Object.freeze({ default: 'day1Default', browsed: 'day1Browsed' });
+const DAY_ONE_SIGNALS = Object.freeze(Object.keys(DAY_ONE_FIELDS));
+
+// A fresh identity: new id, new first-day window, neither signal sent.
+function startFreshInstall(d, now) {
+  d.id = randomUUID();
+  d.createdAt = now;
+  d.day1Default = false;
+  d.day1Browsed = false;
+}
+
 let installStore = null;
 function ensureInstallStore() {
   if (!installStore) {
     const { JsonStore } = require('./store');
-    installStore = new JsonStore('install', { id: null });
+    installStore = new JsonStore('install', {
+      id: null, createdAt: null, day1Default: false, day1Browsed: false,
+    });
   }
   return installStore;
 }
 
+function installMeta(store = ensureInstallStore(), now = Date.now()) {
+  if (!store.data.id) {
+    store.update((d) => startFreshInstall(d, now));
+    store.flush(); // persist now so a crash before the debounce can't lose (and thus re-mint) the id
+  } else if (store.data.createdAt === null || store.data.createdAt === undefined) {
+    store.update((d) => { d.createdAt = 'legacy'; });
+    store.flush();
+  }
+  return {
+    createdAt: store.data.createdAt,
+    sent: { default: store.data.day1Default === true, browsed: store.data.day1Browsed === true },
+  };
+}
+
 function installId() {
   const store = ensureInstallStore();
-  if (!store.data.id) {
-    store.update((d) => { d.id = randomUUID(); });
-    store.flush(); // persist now so a crash before the debounce can't lose (and thus re-mint) the id
-  }
+  installMeta(store);
   return store.data.id;
+}
+
+// Success is the WRITE succeeding: the flag must be on disk before the event
+// leaves, so a crash or restart can never send it twice.
+function markDayOneSent(signal, store = ensureInstallStore()) {
+  if (!Object.hasOwn(DAY_ONE_FIELDS, signal)) return false;
+  const field = DAY_ONE_FIELDS[signal];
+  store.update((d) => { d[field] = true; });
+  return store.flush() === true;
 }
 
 // Settings → "Reset install ID": mint a fresh id immediately (rather than
@@ -40,9 +80,10 @@ function installId() {
 // crash could resurrect. Success is the WRITE succeeding, not the attempt —
 // the settings page tells the user the reset stuck, so a swallowed disk
 // error must not read as done (the old id would come back next launch).
-// From the collector's perspective the install simply counts as brand new.
-function resetInstallId(store = ensureInstallStore()) {
-  store.update((d) => { d.id = randomUUID(); });
+// From the collector's perspective the install simply counts as brand new,
+// so the first-day window restarts with it.
+function resetInstallId(store = ensureInstallStore(), now = Date.now()) {
+  store.update((d) => startFreshInstall(d, now));
   return store.flush() === true;
 }
 
@@ -155,7 +196,17 @@ function createTelemetrySender({
     );
   }
 
-  return { sendLaunchPing, sendMahjongPlay, sendNewtabLayoutUsed };
+  function sendDayOneSignal(signal) {
+    if (!DAY_ONE_SIGNALS.includes(signal)) return false;
+    return postOnce(
+      `day1:${signal}`,
+      EVENT_ENDPOINT,
+      () => ({ ...commonPayload(), event: `day1_${signal}` }),
+      'first-day event',
+    );
+  }
+
+  return { sendLaunchPing, sendMahjongPlay, sendNewtabLayoutUsed, sendDayOneSignal };
 }
 
 let defaultSender = null;
@@ -183,15 +234,20 @@ function sendMahjongPlay() { return ensureDefaultSender().sendMahjongPlay(); }
 function sendNewtabLayoutUsed(layout) {
   return ensureDefaultSender().sendNewtabLayoutUsed(layout);
 }
+function sendDayOneSignal(signal) { return ensureDefaultSender().sendDayOneSignal(signal); }
 
 module.exports = {
   PING_ENDPOINT,
   EVENT_ENDPOINT,
+  DAY_ONE_SIGNALS,
   createTelemetrySender,
   productUsageAllowed,
   sendLaunchPing,
   sendMahjongPlay,
   sendNewtabLayoutUsed,
+  sendDayOneSignal,
+  installMeta,
+  markDayOneSent,
   resetInstallId,
   coarseOsVersion,
 };

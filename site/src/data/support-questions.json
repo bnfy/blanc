@@ -26,6 +26,14 @@
     ]
   },
   {
+    "id": "first-day-signals",
+    "q": "What does Blanc report on its first day?",
+    "a": [
+      "With usage measurement on, Blanc 1.31.0 and later can send two extra events once per installation, only on the day it is installed: one if Blanc is your default browser, and one after three web pages open in regular tabs. Each carries the same install and session IDs, app version, platform, architecture and coarse OS major as the launch event, and nothing else: no addresses, pages or counts. Private tabs and Blanc's own pages are never counted.",
+      "Blanc keeps the installation time in install.json on your device so it knows when the first day ends; that time is never sent. The collector keeps a per-installation record for about two days, only to count how many new installations come back the next day, then keeps daily totals. These events are never sent to the Google Analytics mirror."
+    ]
+  },
+  {
     "id": "open-source",
     "q": "Is Blanc open source?",
     "a": [

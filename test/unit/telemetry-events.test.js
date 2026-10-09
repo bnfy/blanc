@@ -78,6 +78,30 @@ test('development builds and unknown layout values send nothing', () => {
   assert.equal(packaged.calls.length, 0);
 });
 
+test('first-day signals carry only the launch fields plus a fixed event name', () => {
+  const { sender, calls } = senderHarness();
+  assert.equal(sender.sendDayOneSignal('default'), true);
+  assert.equal(sender.sendDayOneSignal('browsed'), true);
+  assert.equal(sender.sendDayOneSignal('default'), false, 'once per session at this layer too');
+  for (const value of ['', 'mahjong', 'eligible', 'day1_default', 'constructor', null]) {
+    assert.equal(sender.sendDayOneSignal(value), false);
+  }
+  assert.equal(calls.length, 2);
+  assert.equal(calls[0].url, EVENT_ENDPOINT);
+  const base = {
+    installId: '01234567-89ab-4cde-8f01-23456789abcd', sessionId: 0x3fffffff,
+    version: '1.10.0', platform: 'darwin', arch: 'arm64', osVersion: '26',
+  };
+  assert.deepEqual(JSON.parse(calls[0].body), { ...base, event: 'day1_default' });
+  assert.deepEqual(JSON.parse(calls[1].body), { ...base, event: 'day1_browsed' });
+});
+
+test('development builds send no first-day signal', () => {
+  const dev = senderHarness({ packaged: false });
+  assert.equal(dev.sender.sendDayOneSignal('default'), false);
+  assert.equal(dev.calls.length, 0);
+});
+
 test('product usage requires saved consent and never reports a private tab', () => {
   assert.equal(productUsageAllowed({ firstRunComplete: true, usagePing: true, privateTab: false }), true);
   assert.equal(productUsageAllowed({ firstRunComplete: false, usagePing: true, privateTab: false }), false);
