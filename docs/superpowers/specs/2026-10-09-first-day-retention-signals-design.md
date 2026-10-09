@@ -144,16 +144,35 @@ navigations never reach it. On reaching 3 (three web pages open), send
 
 ## Part 2 — Collector (`cloudflare/ping-worker/`)
 
+### Eligible installs (the comparison group)
+
+Not every new install can send the signals: older desktop builds,
+community packages that lag behind, and cached installers cannot. Deriving
+"didn't have the signal" from all new installs would therefore count them
+as "didn't", and before the sending release ships every day would read as
+"nobody set Blanc as default". So the collector keeps its own group:
+
+- `DAY_ONE_SIGNALS_MIN_VERSION` (`1.31.0`) is the first sending version.
+  Release prep updates it if that release ships under another number.
+- When `handlePing`'s `markFirstSeen` counts a **new** install and the
+  launch's `version` is at or above the minimum (a pre-release of the
+  minimum counts), `markDayOneEligible` writes marker
+  `d1sig:eligible:<day>:<hash>` (TTL 2 days) and bumps
+  `d1had:eligible:<day>` (never expires).
+
 ### Intake
 
 `handleUsageEvent` routes `event` ∈ {`day1_default`, `day1_browsed`} to a
 new `handleDayOneSignal`, after the existing `validatedClientFields` check
-and install-ID hashing.
+and install-ID hashing. The event-name table is derived from
+`DAY_ONE_SIGNALS`, and the lookup uses `Object.hasOwn` so names such as
+`constructor` fall through to the normal rejection.
 
 1. If there is no hashed ID (secret unset), return 204 and store nothing.
-2. If `first:<hash>` ≠ today's `dayBucket(now)`, return 204 and store
-   nothing. Late or replayed signals are expected from real clients and are
-   not errors.
+2. If there is no `d1sig:eligible:<today>:<hash>` marker, return 204 and
+   store nothing. That single check means "first seen today, on a sending
+   version", so a late, replayed or out-of-group signal is ignored, and the
+   "had" count can never exceed the eligible count.
 3. Marker key `d1sig:<signal>:<day>:<hash>`, TTL 2 days. If absent: bump
    `d1had:<signal>:<day>` (never expires), then put the marker
    (counter-before-marker, matching `markFirstSeen`'s documented ordering).
@@ -164,45 +183,65 @@ These events are **not** forwarded to Google Analytics and **not** recorded
 in `productUsage` active-user metrics. They have their own handler, so
 neither code path is reachable from it.
 
+**Timing dependency.** KV can serve a cached "not found" for about 60
+seconds at the edge location that read a key. The launch ping reads the
+install's keys before writing the eligible marker, so a signal arriving at
+that location within the minute could miss it and be dropped. The desktop
+client therefore waits 2 minutes after its launch report (Part 1, Gate).
+This is documented beside `markDayOneSignal` and in the README.
+
 ### Join
 
 In `markNextDayReturn` (`src/first-seen.js`), after a return is counted for
-`prevDay`, read `d1sig:default:<prevDay>:<hash>` and
-`d1sig:browsed:<prevDay>:<hash>`. For each present marker, bump
-`d1ret:<signal>:<prevDay>`. This costs two KV reads, and only for people
-who return. `d1ret:<signal>:*` counters never expire, like `return:d1:*`.
-These keys avoid the `return:d1:` prefix because `/stats` reads that whole
-prefix as day → count.
+`prevDay`, read `d1sig:<group>:<prevDay>:<hash>` for each of `eligible`,
+`default` and `browsed`. For each present marker, bump
+`d1ret:<group>:<prevDay>`. This costs three KV reads, and only for people
+who return. `d1ret:*` counters never expire, like `return:d1:*`. These keys
+avoid the `return:d1:` prefix because `/stats` reads that whole prefix as
+day → count.
 
 ### `/stats`
 
-Add `DAY_ONE_SIGNALS_FIRST_COHORT` (the collector's deploy date). For each
-`nextDayReturn.byDay[D]` with `D >= DAY_ONE_SIGNALS_FIRST_COHORT`, add:
+`DAY_ONE_SIGNALS_FIRST_COHORT` is the UTC day after the collector deploy.
+For each shown `nextDayReturn.byDay[D]` with
+`D >= DAY_ONE_SIGNALS_FIRST_COHORT`, add:
 
 ```json
 "signals": {
+  "eligible": {"installs": 90, "returnedNextDay": 14},
   "default": {"had": 22, "returnedNextDay": 9},
   "browsed": {"had": 70, "returnedNextDay": 13}
 }
 ```
 
-Missing counters read as 0 from the first cohort onward. Days before it
-carry no `signals` key (absent, not zero), the same rule `nextDayReturn`
-already applies. The "without the signal" figures are derived by the
-reader (`newInstalls - had`, `returnedNextDay - signals.x.returnedNextDay`).
+- The counters are read with direct `get`s for exactly the shown cohort days
+  (3 groups × 2 counters × at most 30 days), never by listing the
+  never-expiring `d1had:`/`d1ret:` families, so the cost of `/stats` stays
+  bounded however long the history grows.
+- Missing counters read as 0 from the first cohort onward. Days before it
+  carry no `signals` key (absent, not zero), the same rule `nextDayReturn`
+  already applies.
+- Until the sending release ships, `eligible.installs` is 0, which makes the
+  empty split self-explanatory.
+- The "didn't have the signal" figures are derived from the eligible group,
+  never from `newInstalls`: `eligible.installs - had` and
+  `eligible.returnedNextDay - signals.x.returnedNextDay`.
 
-### Cleanup in the same change
+### The historic `mahjong` layout stays
 
-`NEWTAB_LAYOUTS` in the collector drops `'mahjong'`, which the app never
-sends and the privacy page does not list. The historic
-`newtab-layout-mahjong` readout in `readProductUsage` is removed as well;
-its stored counters stay in KV untouched.
+The collector keeps accepting and reporting the `mahjong` start-page layout.
+Current builds never send it, but versions before 1.20.0 offered Mahjong as a
+layout and are still in use, and `/stats` holds its 61-event history. A code
+comment and the README say why it is there.
 
-### README
+### README and agent docs
 
-`cloudflare/ping-worker/README.md` documents the two events, the
-first-seen-today rule, the 2-day markers, the join and the new `/stats`
-fields.
+`cloudflare/ping-worker/README.md` documents the two events, the eligible
+group, the first-seen-today rule, the 2-day markers, the join, the timing
+dependency and the new `/stats` fields. The telemetry paragraph in
+`CLAUDE.md` and `AGENTS.md` is updated in the collector change too, so it
+is true from the moment the collector deploys; it says no released build
+sends the signals yet, and the app change updates that clause.
 
 ## Part 3 — Public copy
 
@@ -271,15 +310,19 @@ Edits to existing sentences:
 
 ### Collector (`test/unit/ping-worker.test.js`)
 
-- Signal stored only when `first:<hash>` is today; otherwise 204 with no
-  KV writes.
+- An install is eligible only when first seen on 1.31.0 or later
+  (pre-releases included); a second launch adds nothing.
+- Signal stored only for an eligible install on its install day; otherwise
+  204 with no KV writes (unknown install, older version, next day).
 - A duplicate signal is a no-op.
-- Return join: a returner with the marker bumps `d1ret:<signal>:D`; a
+- Return join: a returner with a marker bumps `d1ret:<group>:D`; a
   returner without it does not; a non-returner never does.
-- `/stats`: `signals` present from the first cohort with correct
-  `had`/`returnedNextDay`; absent before it.
+- `/stats`: `signals` (with `eligible`) present from the first cohort with
+  correct counts; absent before it; day-one counters read only for the 30
+  shown days.
 - No GA forward for either signal (outbound fetch mock not called).
-- Unknown events and `layout: 'mahjong'` return 400.
+- Event names that exist on `Object.prototype` return 400 and write
+  nothing; the historic `mahjong` layout is still accepted and reported.
 
 ### Public copy
 
@@ -298,7 +341,8 @@ Edits to existing sentences:
 
 1. **Collector PR**, merged and deployed first (needs the owner's explicit
    "deploy"). Safe alone: no client sends the events yet; `/stats` gains
-   `signals` from the deploy day with zeros.
+   `signals` from the day after the deploy, with `eligible.installs` 0 until
+   the sending release ships.
 2. **App PR**: code, tests and every copy change in Part 3. Ships in the
    next normal release; the site copy deploys in that release's
    post-publication site deploy.
@@ -307,6 +351,8 @@ Edits to existing sentences:
    split in plain language, e.g. "Of Tuesday's new people, those who made
    Blanc their default came back 41% of the time; those who didn't, 7%",
    with the small-sample warning until each group has about 30 installs.
+   "Didn't" always comes from the eligible group, never from all new
+   installs.
 
 ## Reading the result
 

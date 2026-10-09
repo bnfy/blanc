@@ -19,7 +19,7 @@
 - Installs whose `install.json` already has an `id` but no `createdAt` are `'legacy'` and never send.
 - Collector: count a signal only if `first:<hash>` equals today's UTC day; otherwise 204 with no writes. Markers live 2 days; counters never expire. Never forwarded to GA; never added to `productUsage`.
 - KV key names (deliberately **not** under `return:d1:`, because `/stats` reads that whole prefix as day→count): marker `d1sig:<signal>:<day>:<hash>`, had-counter `d1had:<signal>:<day>`, returned-counter `d1ret:<signal>:<day>`. `<signal>` ∈ {`default`, `browsed`}.
-- Remove the stray `'mahjong'` new-tab layout from the collector.
+- Keep the historic `'mahjong'` new-tab layout in the collector (pre-1.20 builds still send it; changed in review, see the PR 1 note).
 - Privacy copy names the version: **Blanc 1.31.0 and later**. If release prep picks a different version number, release prep updates every occurrence (listed in Task 8).
 - Repo rules that apply to every task: run `npm run audit-inventory:write` after editing `src/main/main.js`, `src/main/pages.js` or `src/main/tab-view.js` and commit the inventory with the change; run the `/verify` and `/simplify` skills right before each commit that changes code (not docs- or test-only commits); end every commit message with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
 - Delivery: **PR 1** = spec + plan + collector (Tasks 1–3), deployed before **PR 2** = app + copy (Tasks 4–8). PR 2 ships in the next normal release. Task 9 runs after that release is public.
@@ -31,7 +31,7 @@
 | File | Change | Responsibility |
 |---|---|---|
 | `cloudflare/ping-worker/src/first-seen.js` | modify | `DAY_ONE_SIGNALS`, `markDayOneSignal`, join inside `markNextDayReturn` |
-| `cloudflare/ping-worker/src/index.js` | modify | route day-one events, `/stats` `signals`, `DAY_ONE_SIGNALS_FIRST_COHORT`, drop `'mahjong'` layout |
+| `cloudflare/ping-worker/src/index.js` | modify | route day-one events, `/stats` `signals`, `DAY_ONE_SIGNALS_FIRST_COHORT`, eligible group, bounded day-one reads |
 | `cloudflare/ping-worker/README.md` | modify | document the two events and the new `/stats` fields |
 | `test/unit/ping-worker.test.js` | modify | collector tests |
 | `src/main/telemetry.js` | modify | `install.json` fields, `installMeta`, `markDayOneSent`, reset, `sendDayOneSignal` |
@@ -51,6 +51,24 @@
 ---
 
 ## PR 1 — Collector
+
+> **Review changes (2026-10-09, bnfy/blanc#668).** Tasks 1–3 below are the
+> original steps. Code review then changed PR 1 as follows; the spec's Part 2
+> is the source of truth for the result:
+> 1. An **eligible** group (installs first seen on `DAY_ONE_SIGNALS_MIN_VERSION`
+>    1.31.0 or later) is written by the launch handler and is the comparison
+>    group; a signal counts only for an eligible install on its install day,
+>    and `/stats` reports `signals.eligible.{installs,returnedNextDay}`.
+> 2. The historic `mahjong` layout is **kept** (pre-1.20 builds still send it);
+>    Task 3's removal was reverted.
+> 3. `/stats` reads day-one counters with direct gets for the ≤30 shown days
+>    instead of listing the `d1had:`/`d1ret:` families.
+> 4. The KV negative-cache timing dependency (why the client waits 2 minutes)
+>    is documented beside `markDayOneSignal` and in the README.
+> 5. `DAY_ONE_EVENTS` is derived from `DAY_ONE_SIGNALS`.
+> 6. `CLAUDE.md`/`AGENTS.md` describe the collector's new events now, ending
+>    "No released desktop build sends them yet." (Task 8 updates that clause.)
+> 7. A test covers event names that exist on `Object.prototype`.
 
 Work on a branch cut from the spec branch so the spec and plan travel with the collector change:
 
@@ -1379,7 +1397,7 @@ On line 111, append to the answer: ` Blanc 1.31.0 and later also notes, once, on
 
 - `spec/parity-matrix.md` F21 row: after "each rendered start-page layout." insert " Desktop 1.31.0+ also sends two once-per-install first-day signals (default browser; three web pages opened) used only for next-day return."
 - `spec/features.md` F21 telemetry paragraph (near line 405): append "Desktop 1.31.0 and later may also send `{event:'day1_default'}` and `{event:'day1_browsed'}` once per installation within 24 hours of the install time recorded in `install.json`; see `docs/superpowers/specs/2026-10-09-first-day-retention-signals-design.md`."
-- `CLAUDE.md` line 137 and `AGENTS.md` line 145: replace "each at most once per app session." with "each at most once per app session, plus `day1_default`/`day1_browsed` at most once per installation within 24 hours of the `install.json` `createdAt` (`src/main/day-one-signals.js`; never sent to GA)." Run `diff <(sed -n 137p CLAUDE.md) <(sed -n 145p AGENTS.md)` and confirm no output.
+- `CLAUDE.md` and `AGENTS.md` telemetry paragraph (PR 1 already describes the collector side): replace "No released desktop build sends them yet." with "Desktop 1.31.0+ sends each at most once per installation within 24 hours of the `install.json` `createdAt`, two minutes after the launch report (`src/main/day-one-signals.js`)." Then run `diff <(grep day1_default CLAUDE.md) <(grep day1_default AGENTS.md)` and confirm no output.
 - `docs/marketing-claims.md`: read it and confirm nothing needs to change; these signals are a privacy disclosure, not a marketing claim, and no marketing copy may present them as more than counting.
 
 - [ ] **Step 5: Run every gate**
@@ -1414,10 +1432,10 @@ EOF
 )"
 ```
 
-Merge when every check passes. Release prep: if the release is not 1.31.0, update "1.31.0" in `privacy.astro`, `support-questions.json` (two places), `spec/parity-matrix.md`, `spec/features.md` and `cloudflare/ping-worker/README.md`, and include the new privacy paragraph in that release's website claims ledger.
+Merge when every check passes. Release prep: if the release is not 1.31.0, update "1.31.0" in `privacy.astro`, `support-questions.json` (two places), `spec/parity-matrix.md`, `spec/features.md`, `CLAUDE.md`/`AGENTS.md`, `cloudflare/ping-worker/README.md` and **`DAY_ONE_SIGNALS_MIN_VERSION` in `cloudflare/ping-worker/src/index.js`** (a collector redeploy, which needs the owner's "deploy"), and include the new privacy paragraph in that release's website claims ledger.
 
 ### Task 9: After the release is public
 
 - [ ] **Step 1: Live proof, release day + 1** — `/stats` shows `nextDayReturn.byDay[<release day>].signals.default.had` or `.browsed.had` greater than 0.
 - [ ] **Step 2: Live proof, release day + 2** — the release-day row is `complete: true` and carries `signals`.
-- [ ] **Step 3: Update the daily digest** — in `/Users/anthonyjloria/.claude/scheduled-tasks/blanc-daily-analytics/SKILL.md` section 1b, add: read `signals` from the newest complete row; derive "without" figures (`newInstalls - had`, `returnedNextDay - signals.x.returnedNextDay`); report in plain language, e.g. "Of Tuesday's new people, those who made Blanc their default came back 41% of the time; those who didn't, 7%"; flag any group under about 30 people as too small to read; add `signals` to the `next-day-return-history.jsonl` row and the state.json `nextDayReturn` block. Show the owner the edited section before saving it.
+- [ ] **Step 3: Update the daily digest** — in `/Users/anthonyjloria/.claude/scheduled-tasks/blanc-daily-analytics/SKILL.md` section 1b, add: read `signals` from the newest complete row; derive "without" figures from the eligible group, never from all new installs (`signals.eligible.installs - had`, `signals.eligible.returnedNextDay - signals.x.returnedNextDay`); report in plain language, e.g. "Of Tuesday's new people, those who made Blanc their default came back 41% of the time; those who didn't, 7%"; flag any group under about 30 people as too small to read; add `signals` to the `next-day-return-history.jsonl` row and the state.json `nextDayReturn` block. Show the owner the edited section before saving it.

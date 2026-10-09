@@ -30,7 +30,14 @@ import {
   dlCountKey,
   groupDlCounts,
 } from './dl.js';
-import { markFirstSeen, markNextDayReturn, markDayOneSignal, DAY_ONE_SIGNALS } from './first-seen.js';
+import {
+  markFirstSeen,
+  markNextDayReturn,
+  markDayOneEligible,
+  markDayOneSignal,
+  DAY_ONE_SIGNALS,
+  DAY_ONE_GROUPS,
+} from './first-seen.js';
 
 const ALLOWED_PLATFORMS = new Set(['darwin', 'win32', 'linux']);
 const ALLOWED_ARCHES = new Set(['arm64', 'x64', 'ia32']);
@@ -41,7 +48,9 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 // forged body — both become 'unknown' rather than opening an unbounded key
 // space in KV.
 const OS_VERSION_RE = /^\d{1,4}$/;
-const NEWTAB_LAYOUTS = new Set(['ledger', 'billboard', 'shelf', 'tally']);
+// 'mahjong' is historic: app versions before 1.20.0 offered Mahjong as a
+// start-page layout and still send it. Current builds never do.
+const NEWTAB_LAYOUTS = new Set(['ledger', 'billboard', 'shelf', 'tally', 'mahjong']);
 const USAGE_METRICS = Object.freeze({
   mahjong: 'mahjong-play',
   newtabLayouts: Object.freeze({
@@ -49,6 +58,7 @@ const USAGE_METRICS = Object.freeze({
     billboard: 'newtab-layout-billboard',
     shelf: 'newtab-layout-shelf',
     tally: 'newtab-layout-tally',
+    mahjong: 'newtab-layout-mahjong',
   }),
 });
 const PING_RATE_LIMIT = 20; // per edge-observed IP per minute
@@ -79,6 +89,19 @@ const NEXT_DAY_RETURN_FIRST_COHORT = '2026-10-03';
 // `signals` section rather than zeros. Set to the UTC day AFTER the collector
 // deploy.
 const DAY_ONE_SIGNALS_FIRST_COHORT = '2026-10-12';
+// First desktop version that sends the first-day signals. Installs first seen
+// on this version or later form the `eligible` comparison group; release prep
+// updates it if that release ships under another number.
+const DAY_ONE_SIGNALS_MIN_VERSION = '1.31.0';
+
+// VERSION_RE has already validated `version`, so its first three parts are
+// numeric. A pre-release of the minimum version counts as eligible.
+function sendsDayOneSignals(version) {
+  const have = version.split(/[.-]/, 3).map(Number);
+  const need = DAY_ONE_SIGNALS_MIN_VERSION.split('.').map(Number);
+  for (let i = 0; i < 3; i++) if (have[i] !== need[i]) return have[i] > need[i];
+  return true;
+}
 
 // Keyed hash of the install id — the only form that ever touches storage or
 // GA. HMAC-SHA-256 under a worker secret, hex-encoded. Returns null (uniques
@@ -305,7 +328,8 @@ async function handlePing(request, env, ctx, now) {
     work.push(
       // One extra KV read per install per launch-day at most — the event:
       // dedup and markActive reads already dwarf it.
-      markFirstSeen(env.PINGS, hashedId, dayBucket(now), bump),
+      markFirstSeen(env.PINGS, hashedId, dayBucket(now), bump).then((isNew) =>
+        isNew && sendsDayOneSignals(version) && markDayOneEligible(env.PINGS, hashedId, dayBucket(now), bump)),
       markNextDayReturn(env.PINGS, hashedId, dayBucket(now), prevDayBucket(now), bump),
       markActive(env.PINGS, 'day', dayBucket(now), hashedId, DAY_SEEN_TTL),
       markActive(env.PINGS, 'week', weekBucket(now), hashedId, WEEK_SEEN_TTL),
@@ -334,7 +358,7 @@ function usageEventFrom(body) {
 // The two first-day signals have their own path: no GA forward, no
 // productUsage metric, no per-session replay key (the install-day marker is
 // the dedup). See markDayOneSignal in first-seen.js.
-const DAY_ONE_EVENTS = Object.freeze({ day1_default: 'default', day1_browsed: 'browsed' });
+const DAY_ONE_EVENTS = Object.freeze(Object.fromEntries(DAY_ONE_SIGNALS.map((s) => [`day1_${s}`, s])));
 
 async function handleDayOneSignal(env, fields, signal, now) {
   const hashedId = await hashInstallId(env, fields.installId);
@@ -511,16 +535,31 @@ async function handlePurgeLegacy(request, env) {
   }
 }
 
-// 'default:2027-01-10' -> { '2027-01-10': { default: n } }
-function signalCountsByDay(flat) {
+// The cohort days /stats shows: the newest 30 install days from the first
+// tracked next-day cohort on.
+function shownCohortDays(newByDay) {
+  return Object.keys(newByDay).sort().slice(-30).filter((day) => day >= NEXT_DAY_RETURN_FIRST_COHORT);
+}
+
+// First-day group counts for exactly the shown days, read directly so the
+// cost stays bounded (3 groups x 2 counters x <= 30 days) however long the
+// never-expiring d1had/d1ret history grows.
+async function readDayOneCounts(kv, days) {
   const byDay = {};
-  for (const [key, value] of Object.entries(flat)) {
-    const sep = key.indexOf(':');
-    const signal = key.slice(0, sep);
-    if (!DAY_ONE_SIGNALS.includes(signal)) continue;
-    const day = key.slice(sep + 1);
-    byDay[day] = { ...byDay[day], [signal]: value };
-  }
+  await Promise.all(days.filter((day) => day >= DAY_ONE_SIGNALS_FIRST_COHORT).map(async (day) => {
+    const entries = await Promise.all(DAY_ONE_GROUPS.map(async (group) => {
+      const [had, returned] = await Promise.all([
+        kv.get(`d1had:${group}:${day}`),
+        kv.get(`d1ret:${group}:${day}`),
+      ]);
+      return [group, { had: parseInt(had ?? '0', 10), returnedNextDay: parseInt(returned ?? '0', 10) }];
+    }));
+    const counts = Object.fromEntries(entries);
+    byDay[day] = {
+      eligible: { installs: counts.eligible.had, returnedNextDay: counts.eligible.returnedNextDay },
+      ...Object.fromEntries(DAY_ONE_SIGNALS.map((signal) => [signal, counts[signal]])),
+    };
+  }));
   return byDay;
 }
 
@@ -528,12 +567,12 @@ function signalCountsByDay(flat) {
 // launched again on D+1 (UTC). `complete` is false while D+1 is still today
 // (or D is today), so a partial reading is never mistaken for a final rate.
 // From DAY_ONE_SIGNALS_FIRST_COHORT each day also carries `signals`: how many
-// of that day's new installs had each first-day signal, and how many of those
-// returned.
-function nextDayReturnByCohort(newByDay, returnD1ByDay, today, hadByDay = {}, returnedByDay = {}) {
+// of that day's new installs could send the first-day signals (`eligible`),
+// how many had each signal, and how many of each returned. Readers derive the
+// "didn't" group from eligible, never from newInstalls.
+function nextDayReturnByCohort(newByDay, returnD1ByDay, today, dayOneByDay = {}) {
   const byDay = {};
-  for (const day of Object.keys(newByDay).sort().slice(-30)) {
-    if (day < NEXT_DAY_RETURN_FIRST_COHORT) continue;
+  for (const day of shownCohortDays(newByDay)) {
     const newInstalls = newByDay[day];
     const returnedNextDay = returnD1ByDay[day] ?? 0;
     const nextDay = dayBucket(new Date(Date.parse(`${day}T00:00:00Z`) + 86400000));
@@ -543,12 +582,7 @@ function nextDayReturnByCohort(newByDay, returnD1ByDay, today, hadByDay = {}, re
       rate: newInstalls ? Number((returnedNextDay / newInstalls).toFixed(4)) : 0,
       complete: nextDay < today,
     };
-    if (day >= DAY_ONE_SIGNALS_FIRST_COHORT) {
-      byDay[day].signals = Object.fromEntries(DAY_ONE_SIGNALS.map((signal) => [signal, {
-        had: hadByDay[day]?.[signal] ?? 0,
-        returnedNextDay: returnedByDay[day]?.[signal] ?? 0,
-      }]));
-    }
+    if (dayOneByDay[day]) byDay[day].signals = dayOneByDay[day];
   }
   return { firstCohort: NEXT_DAY_RETURN_FIRST_COHORT, byDay };
 }
@@ -562,7 +596,7 @@ async function handleStats(request, env, now) {
 
   const [
     total, byDay, byVersion, byPlatform, byOsVersion,
-    daily, weekly, monthly, dlFlat, newByDay, returnD1ByDay, dayOneHad, dayOneReturned, productUsage,
+    daily, weekly, monthly, dlFlat, newByDay, returnD1ByDay, productUsage,
   ] = await Promise.all([
     env.PINGS.get('total'),
     readMap(env.PINGS, 'day:'),
@@ -578,9 +612,6 @@ async function handleStats(request, env, now) {
     // No other key family starts 'new:'.
     readMap(env.PINGS, 'new:day:'),
     readMap(env.PINGS, 'return:d1:'),
-    // No other key family starts 'd1had:' or 'd1ret:'.
-    readMap(env.PINGS, 'd1had:'),
-    readMap(env.PINGS, 'd1ret:'),
     readProductUsage(env.PINGS),
   ]);
 
@@ -588,9 +619,12 @@ async function handleStats(request, env, now) {
   // came back this month. Bounded by collectSeen's cap.
   const thisMonth = monthBucket(now);
   const lastMonth = prevMonthBucket(now);
-  const [cohort, current] = await Promise.all([
+  // The first-day split needs the shown cohort days, so it runs alongside the
+  // retention scan rather than in the first batch.
+  const [cohort, current, dayOneByDay] = await Promise.all([
     collectSeen(env.PINGS, 'month', lastMonth),
     collectSeen(env.PINGS, 'month', thisMonth),
+    readDayOneCounts(env.PINGS, shownCohortDays(newByDay)),
   ]);
   let returned = 0;
   for (const id of cohort.ids) if (current.ids.has(id)) returned++;
@@ -623,10 +657,7 @@ async function handleStats(request, env, now) {
     newInstalls: {
       byDay: pickRecent(newByDay, 60),
     },
-    nextDayReturn: nextDayReturnByCohort(
-      newByDay, returnD1ByDay, dayBucket(now),
-      signalCountsByDay(dayOneHad), signalCountsByDay(dayOneReturned),
-    ),
+    nextDayReturn: nextDayReturnByCohort(newByDay, returnD1ByDay, dayBucket(now), dayOneByDay),
     productUsage,
   };
   return new Response(JSON.stringify(stats, null, 2), {

@@ -34,8 +34,10 @@ event. Mahjong is reported only after the first real free-tile move:
 ```
 
 A rendered start-page layout uses `"event": "newtab_layout"` and a `layout`
-value strictly allowlisted to `ledger`, `billboard`, `shelf`, or `tally`. The desktop client attempts each product metric at most once per app
-session and never sends a product event for a private tab.
+value strictly allowlisted to `ledger`, `billboard`, `shelf`, `tally`, or
+`mahjong` (historic: app versions before 1.20.0 offered Mahjong as a layout and
+still send it). The desktop client attempts each product metric at most once per
+app session and never sends a product event for a private tab.
 
 There are no URLs, searches, page content, game state, custom labels, names,
 accounts, email addresses, or precise locations. The raw installation UUID is
@@ -76,22 +78,44 @@ earlier cohorts are omitted rather than shown as 0%.
 
 First-day signals: `{event:'day1_default'}` (Blanc is the default browser) and
 `{event:'day1_browsed'}` (three web pages opened in regular tabs) carry only the
-common launch fields. Desktop builds 1.31.0 and later send each at most once per
-installation, during its first 24 hours. The Worker counts one only when the
-installation's `first:<hash>` equals today's UTC day; otherwise it replies 204
-and stores nothing. It writes a keyed-hash marker `d1sig:<signal>:<D>:<hash>`
-that expires after two days and bumps `d1had:<signal>:<D>`. When that
-installation's next-day return is counted, each present marker also bumps
-`d1ret:<signal>:<D>`. These keys deliberately avoid the `return:d1:` prefix.
-`/stats` adds `nextDayReturn.byDay[D].signals.{default,browsed}.{had,returnedNextDay}`
-from `DAY_ONE_SIGNALS_FIRST_COHORT` in `src/index.js` (the UTC day after the
-deploy); earlier cohorts carry no `signals` key. First-day signals are never
+common launch fields. Desktop builds from `DAY_ONE_SIGNALS_MIN_VERSION` (1.31.0)
+send each at most once per installation, during its first 24 hours.
+
+- When a launch first sees an installation on that version or later, the Worker
+  marks it **eligible**. Eligible installations are the comparison group, so
+  installations on older or community builds, which cannot send the signals,
+  never count as "didn't".
+- A signal counts only for an eligible installation on its first-seen UTC day;
+  otherwise the Worker replies 204 and stores nothing.
+- Each group (`eligible`, `default`, `browsed`) keeps a keyed-hash marker
+  `d1sig:<group>:<D>:<hash>` that expires after two days and a never-expiring
+  `d1had:<group>:<D>` counter. When the installation's next-day return is
+  counted, each present marker bumps `d1ret:<group>:<D>`. These keys
+  deliberately avoid the `return:d1:` prefix.
+- KV can serve a cached "not found" for about 60 seconds at the edge that read
+  it, so a signal sent right after the launch could miss the eligible marker.
+  The desktop client waits two minutes after its launch report before sending.
+
+`/stats` adds `nextDayReturn.byDay[D].signals` from
+`DAY_ONE_SIGNALS_FIRST_COHORT` (the UTC day after the deploy), read directly
+for the shown days only:
+
+```json
+"signals": {
+  "eligible": {"installs": 90, "returnedNextDay": 14},
+  "default": {"had": 22, "returnedNextDay": 9},
+  "browsed": {"had": 70, "returnedNextDay": 13}
+}
+```
+
+The "didn't" group is `eligible` minus the signal, never `newInstalls` minus
+it. Earlier cohorts carry no `signals` key. First-day signals are never
 forwarded to GA4 and are not part of `productUsage`.
 
 `GET /stats` is protected by `STATS_TOKEN`. If `GA_API_SECRET` is configured,
 the Worker forwards the keyed installation hash and the same narrow launch and
-product-event fields to GA4 (never the first-day signals). The raw UUID never goes to Google. The response's `productUsage`
-object exposes event totals/by-day and recent daily/weekly/monthly active-install
+product-event fields to GA4 (never the first-day signals). The raw UUID never
+goes to Google. The response's `productUsage` object exposes event totals/by-day and recent daily/weekly/monthly active-install
 counts for Mahjong and each start-page layout.
 
 ## Deploy
