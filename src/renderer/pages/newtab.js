@@ -679,12 +679,17 @@ function renderTally() {
 }
 
 // The billboard clock ticks on the minute, and only while it is on screen.
+// It shows the hour and minute in the locale's own form but no day period
+// (am/pm, p. m., 午後…): a glanceable clock, like the lock screen's.
 let clockTimer = null;
+const clockFormat = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' });
 function updateClock() {
-  const t = new Date().toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-  document.getElementById('bbClock').textContent = t.replace(/\s?[AP]M$/i, '');
-  // 24-hour locales have no meridiem; the span simply stays empty.
-  document.getElementById('bbMeridiem').textContent = (t.match(/[AP]M$/i) || [''])[0].toLowerCase();
+  document.getElementById('bbClock').textContent = clockFormat
+    .formatToParts(new Date())
+    .filter((part) => part.type !== 'dayPeriod')
+    .map((part) => part.value)
+    .join('')
+    .trim();
 }
 function startClock() {
   updateClock();

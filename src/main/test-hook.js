@@ -1025,7 +1025,7 @@ function install(refs) {
       const page = await tab.view.webContents.executeJavaScript(`(async () => {
         await document.fonts.load('22px "Newsreader Condensed"');
         const selectors = [
-          '.start-brand-date', '.ledger-label', '.bb-clock', '.bb-meridiem',
+          '.start-brand-date', '.ledger-label', '.bb-clock',
           '.bb-blocked', '.shelf-label', '.shelf-count', '.tally-count',
           '.tally-caption', '.ledger-footer', '.layout-switcher button',
           '.ob-step-label', '.ob-content p'

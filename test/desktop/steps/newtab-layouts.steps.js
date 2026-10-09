@@ -138,7 +138,7 @@ Then('the Billboard backfills with {string}', async function (key) {
 Then('the start page uses Newsreader for the Billboard clock and invitation headings', async function () {
   const usage = await waitForValue(
     () => this.call('readStartPageFontUsage'),
-    (value) => value?.page?.samples?.length === 13,
+    (value) => value?.page?.samples?.length === 12,
     'the new-tab document to expose its computed fonts',
   );
   assert.deepEqual(usage.page.jetbrains, []);

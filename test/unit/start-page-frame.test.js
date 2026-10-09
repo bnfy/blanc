@@ -26,6 +26,12 @@ test('Billboard centres its content between the window top and the measured foot
   assert.match(css, /body\[data-layout="billboard"\] \.start-content \{[^}]*justify-content: center;[^}]*margin-top: calc\(-1 \* var\(--start-header-h, 0px\)\);[^}]*padding-block: calc\(var\(--start-header-h, 0px\) \+ 16px\);/s);
 });
 
+test('the Billboard clock drops the day period in every locale', () => {
+  const js = read('src/renderer/pages/newtab.js');
+  assert.match(js, /\.formatToParts\(new Date\(\)\)\s*\.filter\(\(part\) => part\.type !== 'dayPeriod'\)/);
+  assert.doesNotMatch(js, /bbMeridiem|\[AP\]M/);
+});
+
 test('the header row holds the brand, in flow', () => {
   const html = read('src/renderer/pages/newtab.html');
   assert.match(

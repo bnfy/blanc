@@ -49,6 +49,8 @@ test('Newsreader is bundled for the Billboard clock, invitations, and sheet head
   assert.match(pages, /\.migration-checklist-heading \{ gap: 14px; \}\s*\.migration-checklist-heading h2 \{\s*font-size: 27px;\s*letter-spacing: -0\.045em;/,
     'the later Sunrise override is the effective checklist heading spacing, so it carries the -0.02em compensation too');
   assert.match(pages, /\.ob-content h1\s*\{[^}]*font-family:\s*var\(--font-display\)[^}]*font-size:\s*22px[^}]*font-weight:\s*400[^}]*line-height:\s*1\.15[^}]*letter-spacing:\s*-0\.035em[^}]*font-optical-sizing:\s*auto[^}]*text-wrap:\s*balance/s);
+  assert.doesNotMatch(newtab, /bbMeridiem|bb-meridiem/, 'the Billboard clock shows no am/pm');
+  assert.doesNotMatch(pages, /bb-meridiem/);
   assert.match(newtab, /id="startDate" class="start-brand-date"/);
   assert.match(newtab, /<h2 class="ledger-where">Where to\?<\/h2>/, 'Ledger leads with one Newsreader line');
   assert.match(pages, /\.ledger-where \{[^}]*font-family: var\(--font-display\);[^}]*font-size: 32px;[^}]*font-weight: 400;[^}]*line-height: 1\.1;[^}]*letter-spacing: -0\.035em;[^}]*font-optical-sizing: auto;/s);
