@@ -35,7 +35,7 @@ if (dialog && typeof dialog.showModal === 'function') {
   }
 
   const wrap = i => (i + tiles.length) % tiles.length;
-  const labelOf = tile => bodies.get(tile.dataset.pop)?.querySelector('.pop-eyebrow')?.textContent.trim() ?? '';
+  const labelOf = tile => bodies.get(tile.dataset.pop)?.dataset.popLabel ?? '';
   const stop = () => { running.forEach(animation => animation.cancel()); running = []; };
   const toTile = tile => {
     const from = card.getBoundingClientRect();

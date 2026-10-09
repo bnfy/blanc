@@ -24,14 +24,12 @@ const rows = [
 
 interface Props {
   headingId?: string;
-  kicker?: string;
   heading?: string;
   intro?: string;
 }
 
 const {
   headingId = 'memory-title',
-  kicker = 'measured, not claimed',
   heading = 'A quarter of Chrome’s memory.',
   intro = 'Six ad-heavy news sites open in every browser, on the same Mac, in the same sitting.',
 } = Astro.props;
@@ -39,7 +37,6 @@ const {
 
 <section class="memchart-section" aria-labelledby={headingId}>
   <div class="memchart-heading">
-    <p class="section-kicker">{kicker}</p>
     <h2 id={headingId}>{heading}</h2>
     <p>{intro}</p>
   </div>

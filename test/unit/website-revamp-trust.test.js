@@ -52,7 +52,13 @@ test("release evidence, audit status and known Sync findings stay visible outsid
     )[0];
     assert.ok(
       comparisonText(evidence).includes(
-        comparisonText(section.replaceAll("v1.26.0", "v1.27.0").replaceAll("October 2, 2026", "October 3, 2026")),
+        comparisonText(
+          section
+            .replaceAll("v1.26.0", "v1.27.0")
+            .replaceAll("October 2, 2026", "October 3, 2026")
+            // Removed with the other filler eyebrows on October 8, 2026.
+            .replace('<p class="section-kicker">independent review</p>', ""),
+        ),
       ),
       `${id} loses reviewed evidence`,
     );
