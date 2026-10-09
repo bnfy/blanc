@@ -1,0 +1,157 @@
+{
+  "release": "v1.31.0",
+  "sourceSha": "5bb0e0da01e05d612382fa99a434524ed2c5b108",
+  "captureDate": "2026-10-09",
+  "source": {
+    "artifact": "Blanc-1.31.0-arm64.dmg (public release asset)",
+    "app": "Unchanged signed Blanc.app from the public DMG, mounted read-only",
+    "version": "1.31.0",
+    "bundleBuild": "1310",
+    "architecture": "arm64",
+    "teamId": "XYGUCY4498",
+    "verification": "The downloaded DMG matched SHA256SUMS; its Blanc.app passed Gatekeeper (Notarized Developer ID), strict deep codesign and stapler validation.",
+    "releaseEvidence": "docs/release-incidents/2026-10-09-v1.31.0.md"
+  },
+  "method": "npm run capture:wallpaper:installed. Unretouched native window captures (screencapture -o -x -l, 2560×1600) of the signed public app in one disposable fixture profile per appearance. A capture-only init script fixes the Start Page renderer clock at the top of a sample hour on the capture date; the released wallpaper controller and Billboard clock read that clock. Reduced motion settles each phase without a cross-fade, and each phase is reloaded so the released top-edge sampler tints the native Island strip; the strip tint is measured from the capture. No shipped code, controls, block totals or OS clock are changed. The owner approved these images on October 9, 2026.",
+  "settings": {
+    "theme": "light and dark",
+    "layout": "billboard",
+    "newtabDynamicWallpaper": true,
+    "usagePing": false,
+    "searchSuggestions": false,
+    "sync": "not configured",
+    "patron": "not configured"
+  },
+  "fixtures": "Four sample Favorites (MDN, GitHub, Wikipedia, Hacker News) and one visit each. No personal browsing, account or permission records; blocking totals are not seeded, so the visible zero is not a measurement.",
+  "displayMethod": "Proportional 1440px WebP exports at quality 90; source PNGs retained. CSS presentation clips only the upper-left native traffic-light corner, backed by each captured native tint in the same fading layer.",
+  "captures": [
+    {
+      "phase": "dawn",
+      "localHourFixture": 6,
+      "chromeTint": "#f8f1e7",
+      "file": "site/public/feature-captures/home-wallpaper-dawn-v1.31.0.png",
+      "width": 2560,
+      "height": 1600,
+      "sha256": "c3534ec2e56375949cc950c0daaa3b6ffdd10ad99297f839dc8bc748bd95d6b5",
+      "displayAsset": {
+        "file": "site/public/feature-captures/home-wallpaper-dawn-v1.31.0.webp",
+        "width": 1440,
+        "height": 900,
+        "sha256": "f6a37ff3e173787e8da1e30eec268ed6fa57982db5d310180578f4e3b135f26e"
+      },
+      "theme": "light"
+    },
+    {
+      "phase": "dawn",
+      "localHourFixture": 6,
+      "chromeTint": "#383430",
+      "file": "site/public/feature-captures/home-wallpaper-dawn-dark-v1.31.0.png",
+      "width": 2560,
+      "height": 1600,
+      "sha256": "85fd7ac8492028398a0499b2bab67f1c8b218fe70db3997db392e2811afd3073",
+      "displayAsset": {
+        "file": "site/public/feature-captures/home-wallpaper-dawn-dark-v1.31.0.webp",
+        "width": 1440,
+        "height": 900,
+        "sha256": "b19b92bbfad65552175df700ee597c9237afe347c09a38fc7cbcc264c9a724c4"
+      },
+      "theme": "dark"
+    },
+    {
+      "phase": "day",
+      "localHourFixture": 12,
+      "chromeTint": "#e3e8e9",
+      "file": "site/public/feature-captures/home-wallpaper-day-v1.31.0.png",
+      "width": 2560,
+      "height": 1600,
+      "sha256": "00677859b1b2b8a06a466742d42e0868d371a014068fafe26cdc955b7d9313f0",
+      "displayAsset": {
+        "file": "site/public/feature-captures/home-wallpaper-day-v1.31.0.webp",
+        "width": 1440,
+        "height": 900,
+        "sha256": "58187ae29574ab882d56cbb90bde3ffcbfb069d598bba5659d4d81391e55799e"
+      },
+      "theme": "light"
+    },
+    {
+      "phase": "day",
+      "localHourFixture": 12,
+      "chromeTint": "#292d31",
+      "file": "site/public/feature-captures/home-wallpaper-day-dark-v1.31.0.png",
+      "width": 2560,
+      "height": 1600,
+      "sha256": "9ae1148787add0b38882d0a3eab9c9bd8768f354adbeae13e53e3717fcc946a9",
+      "displayAsset": {
+        "file": "site/public/feature-captures/home-wallpaper-day-dark-v1.31.0.webp",
+        "width": 1440,
+        "height": 900,
+        "sha256": "637a519fde48e94611e1f4d260d53650befe573861d632451f8c4e6e6a5a8d82"
+      },
+      "theme": "dark"
+    },
+    {
+      "phase": "dusk",
+      "localHourFixture": 18,
+      "chromeTint": "#f1e7df",
+      "file": "site/public/feature-captures/home-wallpaper-dusk-v1.31.0.png",
+      "width": 2560,
+      "height": 1600,
+      "sha256": "08c2375a350d5ded00c8fe499e4e2df61c23816b5cc0be05e63105fa5e86cd39",
+      "displayAsset": {
+        "file": "site/public/feature-captures/home-wallpaper-dusk-v1.31.0.webp",
+        "width": 1440,
+        "height": 900,
+        "sha256": "60d19b35e58419ef72b12d6251ecc864d2b4e952062710cd63a7df4b4323555f"
+      },
+      "theme": "light"
+    },
+    {
+      "phase": "dusk",
+      "localHourFixture": 18,
+      "chromeTint": "#251e1f",
+      "file": "site/public/feature-captures/home-wallpaper-dusk-dark-v1.31.0.png",
+      "width": 2560,
+      "height": 1600,
+      "sha256": "7f6297c56a504d8ab940ac563a67cd75727a4a4caeac732c7544430c72d34286",
+      "displayAsset": {
+        "file": "site/public/feature-captures/home-wallpaper-dusk-dark-v1.31.0.webp",
+        "width": 1440,
+        "height": 900,
+        "sha256": "3852998fd6025265ab9b180a2b8bf6226409b2b6e0cf80d8ef29ca4a424720d2"
+      },
+      "theme": "dark"
+    },
+    {
+      "phase": "night",
+      "localHourFixture": 23,
+      "chromeTint": "#e9e4db",
+      "file": "site/public/feature-captures/home-wallpaper-night-v1.31.0.png",
+      "width": 2560,
+      "height": 1600,
+      "sha256": "1ebb45e54a0ee3cd07e3f988560f1829d9ade28663fba9cbea77b8fd272d06b1",
+      "displayAsset": {
+        "file": "site/public/feature-captures/home-wallpaper-night-v1.31.0.webp",
+        "width": 1440,
+        "height": 900,
+        "sha256": "488f8db0c4bf6ce57a94cf7e361740dd7e163a33af4abcae25e9655c37b656d6"
+      },
+      "theme": "light"
+    },
+    {
+      "phase": "night",
+      "localHourFixture": 23,
+      "chromeTint": "#111114",
+      "file": "site/public/feature-captures/home-wallpaper-night-dark-v1.31.0.png",
+      "width": 2560,
+      "height": 1600,
+      "sha256": "066a545e352646b922bb6176c363c95799cc116a4712c745c2c5b3cb8c229a1d",
+      "displayAsset": {
+        "file": "site/public/feature-captures/home-wallpaper-night-dark-v1.31.0.webp",
+        "width": 1440,
+        "height": 900,
+        "sha256": "73bab726b6a82d59a51445a2398fc97cf865530cf01cd6cdb7bc00f3bed35093"
+      },
+      "theme": "dark"
+    }
+  ]
+}

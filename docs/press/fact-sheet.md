@@ -1,6 +1,6 @@
 # Blanc Browser — press fact sheet
 
-Last updated: October 8, 2026 (public Blanc 1.30.1)
+Last updated: October 9, 2026 (public Blanc 1.31.0)
 
 ## The short version
 
@@ -24,7 +24,7 @@ assistant or a general extension runtime.
 | Item | Fact |
 |---|---|
 | Product | Blanc Browser |
-| Current public release | [1.30.1](https://github.com/bnfy/blanc/releases/tag/v1.30.1), released October 8, 2026 |
+| Current public release | [1.31.0](https://github.com/bnfy/blanc/releases/tag/v1.31.0), released October 9, 2026 |
 | Platforms | macOS (Apple Silicon and Intel), Windows x64, and Linux x64 (AppImage) |
 | Price | Free |
 | Optional support | Blanc Patron subscription, US$30/year or $4/month, plus applicable taxes; unlocks Named Workspaces on every platform. Founding supporters from the earlier one-time purchase keep their benefits permanently |
@@ -112,7 +112,7 @@ produced it is `bench/memory/` in the repository.
 
 ## Availability note
 
-Public 1.30.1 ships signed and notarized macOS builds for Apple Silicon and
+Public 1.31.0 ships signed and notarized macOS builds for Apple Silicon and
 Intel, a signed Windows x64 installer, and a Linux x64 AppImage. A platform is
 included in any new release only after its exact artifact passes the native
 release gate; each version's [release notes](https://github.com/bnfy/blanc/releases)

@@ -16,7 +16,7 @@ function pngSize(relativePath) {
   };
 }
 
-const CAPTURES = ['resting', 'expanded'].map((state) => `site/public/press/blanc-island-${state}-v1.30.1.png`);
+const CAPTURES = ['resting', 'expanded'].map((state) => `site/public/press/blanc-island-${state}-v1.31.0.png`);
 
 test('media-kit raster assets exist at their declared dimensions', () => {
   for (const capture of CAPTURES) {
@@ -76,7 +76,7 @@ test('the media page keeps its release links, indexability, and no-analytics bou
   // The captures are pinned to the release they were taken from, so the copy
   // that names that release must match the files rather than follow VERSION.
   for (const capture of CAPTURES) assert.ok(page.includes(`/press/${path.basename(capture)}`), `${capture} is on the page`);
-  assert.match(page, /Native captures of public Blanc 1\.30\.1 with a sample profile/);
+  assert.match(page, /Native captures of public Blanc 1\.31\.0 with a sample profile/);
   assert.doesNotMatch(page, /Native captures of public Blanc \{/);
   assert.match(page, /Make the island the lead image/);
   assert.match(page, /href="\/press\/blanc-sunrise-mark-4096\.png" download/);
@@ -132,7 +132,7 @@ test('description and copy controls work without :has(), and the copy path falls
 
 test('the press card renderer builds from the native capture and keeps third-party brands out of frame', () => {
   const renderer = read('site/scripts/render-press-card.mjs');
-  assert.match(renderer, /public\/press\/blanc-island-expanded-v1\.30\.1\.png/);
+  assert.match(renderer, /public\/press\/blanc-island-expanded-v1\.31\.0\.png/);
   assert.match(renderer, /const CROP = \{ x: (\d+),/);
   // The Met wordmark ends at x ≈ 262 in the 2560-wide capture, and the
   // renderer refuses any other capture size rather than shifting the crop.

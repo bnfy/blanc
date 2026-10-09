@@ -12,22 +12,22 @@ initHorizonShield(document.querySelector(".horizon-study"));
   const body = document.body;
   const layoutAssets = {
     ledger: {
-      src: "/feature-captures/ledger-v1.21.0.webp",
+      src: "/feature-captures/ledger-v1.31.0.webp",
       label: "Ledger",
       caption: "Ledger — a simple list of Favorites.",
     },
     billboard: {
-      src: "/feature-captures/billboard-v1.21.0.webp",
+      src: "/feature-captures/billboard-v1.31.0.webp",
       label: "Billboard",
       caption: "Billboard — a large clock and local frequently visited sites.",
     },
     shelf: {
-      src: "/feature-captures/shelf-v1.21.0.webp",
+      src: "/feature-captures/shelf-v1.31.0.webp",
       label: "Shelf",
       caption: "Shelf — Favorites arranged as individual cards.",
     },
     tally: {
-      src: "/feature-captures/tally-v1.21.0.webp",
+      src: "/feature-captures/tally-v1.31.0.webp",
       label: "Tally",
       caption: "Tally — Favorites alongside local blocking activity.",
     },

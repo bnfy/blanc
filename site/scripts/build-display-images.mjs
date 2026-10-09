@@ -30,10 +30,11 @@ const jobs = [
     source: `revamp/${name}.webp`,
     output: `revamp/${name}-display.webp`,
   })),
-  ...['ledger', 'billboard', 'shelf', 'tally', 'mahjong'].map(name => ({
-    source: `feature-captures/${name}-v1.21.0.png`,
-    output: `feature-captures/${name}-v1.21.0.webp`,
+  ...['ledger', 'billboard', 'shelf', 'tally'].map(name => ({
+    source: `feature-captures/${name}-v1.31.0.png`,
+    output: `feature-captures/${name}-v1.31.0.webp`,
   })),
+  { source: 'feature-captures/mahjong-v1.21.0.png', output: 'feature-captures/mahjong-v1.21.0.webp' },
 ];
 
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
