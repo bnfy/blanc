@@ -2183,5 +2183,221 @@
   "linuxSandbox.copied.detail": {
     "message": "Paste it into another browser, then choose Quit.",
     "note": "Linux dialog detail after copying the guide’s link (always English)."
+  },
+  "menu.checkForUpdates": {
+    "message": "Check for Updates…",
+    "note": "App menu command that checks for a newer Blanc; also named in update dialogs."
+  },
+  "update.stalled.message": {
+    "message": "Update download stalled",
+    "note": "Dialog when an update the person asked for stopped downloading."
+  },
+  "update.stalled.detail": {
+    "message": "The update download stopped making progress. You can retry with “{command}”, or reinstall from blancbrowser.com.",
+    "note": "Dialog detail; {command} is the Check for Updates… menu command’s name."
+  },
+  "update.ready.message": {
+    "message": "Update {version} downloaded",
+    "note": "Dialog when an update is ready; {version} is Blanc’s new version number."
+  },
+  "update.ready.detail": {
+    "message": "Restart to apply it. Blanc will reopen when installation completes.",
+    "note": "Dialog detail when an update is ready."
+  },
+  "update.ready.restart": {
+    "message": "Restart Now",
+    "note": "Button that restarts Blanc to install the update."
+  },
+  "update.ready.later": {
+    "message": "Later",
+    "note": "Button that postpones installing the update."
+  },
+  "update.failed.message": {
+    "message": "Update download failed",
+    "note": "Dialog when an update the person asked for failed to download."
+  },
+  "update.failed.detail": {
+    "message": "{error}\n\nYou can retry with “{command}”, or reinstall from blancbrowser.com.",
+    "note": "Dialog detail; {error} is the technical error and {command} the Check for Updates… menu command’s name."
+  },
+  "update.devOnly": {
+    "message": "Updates are only available in packaged builds.",
+    "note": "Dialog in development builds, which cannot update."
+  },
+  "update.flatpak.message": {
+    "message": "Flatpak keeps Blanc up to date",
+    "note": "Dialog in the Flatpak build, whose updates come from Flatpak."
+  },
+  "update.flatpak.detail": {
+    "message": "Update Blanc from your software center, or run \"flatpak update\" in a terminal.",
+    "note": "Dialog detail in the Flatpak build; flatpak update is a terminal command, keep it as is."
+  },
+  "update.disabled.message": {
+    "message": "Updates are disabled for this launch",
+    "note": "Dialog when this launch’s update settings are invalid; the detail is a technical reason."
+  },
+  "update.verifying.message": {
+    "message": "Verifying the update",
+    "note": "Dialog while Windows verifies a downloaded update’s signature."
+  },
+  "update.verifying.detail": {
+    "message": "Blanc will prompt you when the update is ready to restart.",
+    "note": "Dialog detail while an update is verified."
+  },
+  "update.current.message": {
+    "message": "You’re up to date",
+    "note": "Dialog when no newer version exists."
+  },
+  "update.current.detail": {
+    "message": "Blanc {version} is the latest version.",
+    "note": "Dialog detail; {version} is the running version number."
+  },
+  "update.downloading.message": {
+    "message": "Downloading Blanc {version}",
+    "note": "Dialog when a newer version starts downloading; {version} is its version number."
+  },
+  "update.downloading.detail": {
+    "message": "The update is downloading in the background. Blanc will prompt you as soon as it is ready to restart.",
+    "note": "Dialog detail while an update downloads."
+  },
+  "update.checkFailed.message": {
+    "message": "Update check failed",
+    "note": "Dialog when checking for updates failed; the detail is the technical error."
+  },
+  "patron.error.empty": {
+    "message": "Enter a license key.",
+    "note": "Blanc Patron activation error in Settings when the key field is empty."
+  },
+  "patron.error.tooLong": {
+    "message": "That key is too long.",
+    "note": "Blanc Patron activation error."
+  },
+  "patron.error.offline": {
+    "message": "Could not reach Polar. Check your connection and try again.",
+    "note": "Blanc Patron activation error; Polar is the payment service."
+  },
+  "patron.error.unavailable": {
+    "message": "Polar is not responding right now. Try again in a few minutes.",
+    "note": "Blanc Patron activation error when Polar is busy or down."
+  },
+  "patron.error.notActivated": {
+    "message": "That license key could not be activated.",
+    "note": "Blanc Patron activation error."
+  },
+  "patron.error.notRecognized": {
+    "message": "That license key is not recognized.",
+    "note": "Blanc Patron activation error for a key that is not a Blanc Patron key."
+  },
+  "patron.error.inactive": {
+    "message": "That subscription is not currently active.",
+    "note": "Blanc Patron activation error."
+  },
+  "patron.error.invalidExpiry": {
+    "message": "That subscription has an invalid expiry.",
+    "note": "Blanc Patron activation error."
+  },
+  "patron.error.expired": {
+    "message": "That subscription has expired.",
+    "note": "Blanc Patron activation error."
+  },
+  "sync.error.serviceUnavailable": {
+    "message": "Sync is available only in official Blanc builds.",
+    "note": "Profile Sync error in builds that cannot reach Blanc’s sync service."
+  },
+  "sync.error.nameTooShort": {
+    "message": "Choose a sync name (at least 2 characters).",
+    "note": "Profile Sync setup error."
+  },
+  "sync.error.weakPassphrase": {
+    "message": "Use a longer passphrase — 16+ characters, or 10+ with mixed characters.",
+    "note": "Profile Sync setup error."
+  },
+  "sync.error.keyStore": {
+    "message": "{reason}. Configure the OS keychain/credential store and try again.",
+    "note": "Profile Sync setup error; {reason} is one of the sync.keyStorage messages."
+  },
+  "sync.error.keyProtect": {
+    "message": "Could not protect the sync key.",
+    "note": "Profile Sync setup error."
+  },
+  "sync.error.credentialsSave": {
+    "message": "Could not save protected sync credentials.",
+    "note": "Profile Sync setup error."
+  },
+  "sync.error.badPassphrase": {
+    "message": "Passphrase doesn’t match this sync account.",
+    "note": "Profile Sync error."
+  },
+  "sync.error.rateLimited": {
+    "message": "Too many sync attempts — try again in a minute.",
+    "note": "Profile Sync error."
+  },
+  "sync.error.conflict": {
+    "message": "Sync kept getting interrupted — try again in a moment.",
+    "note": "Profile Sync error."
+  },
+  "sync.error.server": {
+    "message": "Sync sent an unexpected response — try again later.",
+    "note": "Profile Sync error."
+  },
+  "sync.error.rejected": {
+    "message": "Sync rejected the request (HTTP {status}).",
+    "note": "Profile Sync error; {status} is the HTTP status code."
+  },
+  "sync.error.serverError": {
+    "message": "Sync server error — try again later.",
+    "note": "Profile Sync error."
+  },
+  "sync.error.offline": {
+    "message": "Couldn’t reach sync — check your connection.",
+    "note": "Profile Sync error."
+  },
+  "sync.error.off": {
+    "message": "Sync is off.",
+    "note": "Profile Sync status when syncing is requested while it is off."
+  },
+  "sync.error.localKeyProtect": {
+    "message": "Could not protect the local sync key",
+    "note": "Profile Sync status line when the saved key could not be protected."
+  },
+  "sync.error.localKeyUnlock": {
+    "message": "Could not unlock the local sync key",
+    "note": "Profile Sync status line when the saved key could not be unlocked."
+  },
+  "sync.error.wipeOffline": {
+    "message": "Couldn’t reach sync to erase the server copy — check your connection and try again.",
+    "note": "Profile Sync error when turning sync off with erase."
+  },
+  "sync.error.wipeFailed": {
+    "message": "Sync couldn’t erase the server copy (HTTP {status}) — try again later.",
+    "note": "Profile Sync error when erasing failed; {status} is the HTTP status code."
+  },
+  "sync.keyStorage.encryptionUnavailable": {
+    "message": "OS credential encryption is unavailable",
+    "note": "Why Profile Sync could not store its key (a status line, no final period)."
+  },
+  "sync.keyStorage.storeUnavailable": {
+    "message": "A secure OS credential store is unavailable",
+    "note": "Why Profile Sync could not store its key (a status line, no final period)."
+  },
+  "sync.keyStorage.invalidKey": {
+    "message": "Invalid sync key",
+    "note": "Why Profile Sync could not store its key (a status line, no final period)."
+  },
+  "sync.keyStorage.encryptionFailed": {
+    "message": "OS credential encryption failed",
+    "note": "Why Profile Sync could not store its key (a status line, no final period)."
+  },
+  "sync.keyStorage.missing": {
+    "message": "Protected sync key is missing",
+    "note": "Why Profile Sync could not read its key (a status line, no final period)."
+  },
+  "sync.keyStorage.decryptionFailed": {
+    "message": "OS credential decryption failed",
+    "note": "Why Profile Sync could not read its key (a status line, no final period)."
+  },
+  "sync.keyStorage.persistFailed": {
+    "message": "Could not persist protected sync key",
+    "note": "Why Profile Sync could not store its key (a status line, no final period)."
   }
 }

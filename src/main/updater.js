@@ -16,6 +16,9 @@ const {
 
 // Attach update dialogs to the browser window so they can't appear behind
 // it; fall back to an unparented dialog if no window exists.
+// The interface translator, supplied by setupAutoUpdater() at startup.
+let t = null;
+
 function showDialog(options) {
   const parent = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0];
   return parent ? dialog.showMessageBox(parent, options) : dialog.showMessageBox(options);
@@ -116,13 +119,12 @@ function handleDownloadStall() {
   clearDownloadTracking();
   setDownloadProgress(-1);
 
-  const detail = `The update download stopped making progress. You can retry with “Check for Updates…”, or reinstall from blancbrowser.com.`;
   if (manualDownloadPending) {
     manualDownloadPending = false;
     showDialog({
       type: 'warning',
-      message: 'Update download stalled',
-      detail,
+      message: t('update.stalled.message'),
+      detail: t('update.stalled.detail', { command: t('menu.checkForUpdates') }),
     });
   }
 }
@@ -150,17 +152,18 @@ function promptRestart(info) {
   if (windowsTrustGate && !windowsTrustGate.isReady()) return Promise.resolve();
   return showDialog({
     type: 'info',
-    buttons: ['Restart Now', 'Later'],
+    buttons: [t('update.ready.restart'), t('update.ready.later')],
     defaultId: 0,
-    message: `Update ${info.version} downloaded`,
-    detail: 'Restart to apply it. Blanc will reopen when installation completes.',
+    message: t('update.ready.message', { version: info.version }),
+    detail: t('update.ready.detail'),
   }).then(({ response }) => {
     if (response === 0 && updateDownloaded && downloadedUpdateInfo === info
       && (!windowsTrustGate || windowsTrustGate.isReady())) restartToInstallUpdate();
   });
 }
 
-function setupAutoUpdater() {
+function setupAutoUpdater({ t: translate }) {
+  t = translate;
   if (!app.isPackaged) return; // dev builds have nothing to update against
 
   activePolicy = resolveUpdaterPolicy({ isPackaged: app.isPackaged });
@@ -302,8 +305,8 @@ function setupAutoUpdater() {
       manualDownloadPending = false;
       showDialog({
         type: 'warning',
-        message: 'Update download failed',
-        detail: `${err?.message ?? err}\n\nYou can retry with “Check for Updates…”, or reinstall from blancbrowser.com.`,
+        message: t('update.failed.message'),
+        detail: t('update.failed.detail', { error: err?.message ?? err, command: t('menu.checkForUpdates') }),
       });
     }
   });
@@ -316,21 +319,23 @@ function setupAutoUpdater() {
 /** Menu-triggered check with visible feedback. */
 async function checkForUpdatesManually() {
   if (!app.isPackaged) {
-    showDialog({ type: 'info', message: 'Updates are only available in packaged builds.' });
+    showDialog({ type: 'info', message: t('update.devOnly') });
     return;
   }
   if (activePolicy?.mode === FLATPAK_CHANNEL) {
     showDialog({
       type: 'info',
-      message: 'Flatpak keeps Blanc up to date',
-      detail: 'Update Blanc from your software center, or run "flatpak update" in a terminal.',
+      message: t('update.flatpak.message'),
+      detail: t('update.flatpak.detail'),
     });
     return;
   }
   if (activePolicy && !activePolicy.enabled) {
     showDialog({
       type: 'warning',
-      message: 'Updates are disabled for this launch',
+      message: t('update.disabled.message'),
+      // A developer diagnostic for the staging channel's environment, not
+      // interface text.
       detail: activePolicy.reason,
     });
     return;
@@ -339,8 +344,8 @@ async function checkForUpdatesManually() {
     manualDownloadPending = true;
     await showDialog({
       type: 'info',
-      message: 'Verifying the update',
-      detail: 'Blanc will prompt you when the update is ready to restart.',
+      message: t('update.verifying.message'),
+      detail: t('update.verifying.detail'),
     });
     return;
   }
@@ -354,8 +359,8 @@ async function checkForUpdatesManually() {
     if (!result?.updateInfo || result.updateInfo.version === app.getVersion()) {
       showDialog({
         type: 'info',
-        message: 'You’re up to date',
-        detail: `Blanc ${app.getVersion()} is the latest version.`,
+        message: t('update.current.message'),
+        detail: t('update.current.detail', { version: app.getVersion() }),
       });
       return;
     }
@@ -365,11 +370,11 @@ async function checkForUpdatesManually() {
     manualDownloadPending = true;
     await showDialog({
       type: 'info',
-      message: `Downloading Blanc ${result.updateInfo.version}`,
-      detail: 'The update is downloading in the background. Blanc will prompt you as soon as it is ready to restart.',
+      message: t('update.downloading.message', { version: result.updateInfo.version }),
+      detail: t('update.downloading.detail'),
     });
   } catch (err) {
-    showDialog({ type: 'warning', message: 'Update check failed', detail: err.message });
+    showDialog({ type: 'warning', message: t('update.checkFailed.message'), detail: err.message });
   }
 }
 

@@ -10753,7 +10753,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     });
   }
 
-  setupAutoUpdater();
+  setupAutoUpdater({ t: mainI18n.t });
 
   app.on('activate', () => {
     if (isQuitting) return;

@@ -58,6 +58,8 @@ fs.writeFileSync(path.join(tmp, 'sync.json'), JSON.stringify({
 }));
 
 const sync = require('../../src/main/sync');
+const { englishT: t } = require('../support/english-t');
+const { syncErrorText } = require('../../src/main/sync-messages');
 sync.setTabStateReady(true);
 
 const creds = { handle: 'renamed-build', passphrase: 'a passphrase long enough to pass' };
@@ -68,21 +70,21 @@ test('preflight explains sync is unavailable without contacting the server', asy
   const res = await sync.preflight(creds);
   assert.equal(res.ok, false);
   assert.equal(res.outcome, 'error');
-  assert.match(res.message, /official Blanc builds/);
+  assert.match(syncErrorText(res.error, t), /official Blanc builds/);
   assert.deepEqual(fetchCalls, []);
 });
 
 test('a sync pass on an already-enabled profile makes no requests', async () => {
   const res = await sync.syncNow();
   assert.equal(res.ok, false);
-  assert.match(res.message, /official Blanc builds/);
+  assert.match(syncErrorText(res.error, t), /official Blanc builds/);
   assert.deepEqual(fetchCalls, []);
 });
 
 test('enable refuses without protecting a key or contacting the server', async () => {
   const res = await sync.enable(creds);
   assert.equal(res.ok, false);
-  assert.match(res.message, /official Blanc builds/);
+  assert.match(syncErrorText(res.error, t), /official Blanc builds/);
   assert.equal(encryptCalls, 0);
   assert.deepEqual(fetchCalls, []);
   assert.equal(sync.status().handle, 'copied-profile');

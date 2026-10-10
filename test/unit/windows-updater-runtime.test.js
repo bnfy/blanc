@@ -1,3 +1,4 @@
+const { englishT } = require('../support/english-t');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -38,7 +39,7 @@ test('Windows cached completion cannot show Restart Now or install before asynch
   put(ids[1], { autoUpdater });
   put(ids[2], { createWindowsUpdateTrustGate: (options) => createWindowsUpdateTrustGate({ ...options, verify: () => { checks++; return new Promise((resolve) => { finish = resolve; }); } }) });
   delete require.cache[ids[3]];
-  const subject = require(ids[3]); subject.setupAutoUpdater();
+  const subject = require(ids[3]); subject.setupAutoUpdater({ t: englishT });
   assert.equal(autoUpdater.autoInstallOnAppQuit, false);
   const info = { version: '1.26.0', downloadedFile: file };
   autoUpdater.emit('update-available', info);

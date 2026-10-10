@@ -1,21 +1,27 @@
 'use strict';
 
-class SyncKeyStorageError extends Error {}
+// `code` is what the interface shows (sync-messages.js); the message is for logs.
+class SyncKeyStorageError extends Error {
+  constructor(message, code) {
+    super(message);
+    this.code = code;
+  }
+}
 
 function assertSecureBackend(safeStorage) {
   if (!safeStorage?.isEncryptionAvailable?.()) {
-    throw new SyncKeyStorageError('OS credential encryption is unavailable');
+    throw new SyncKeyStorageError('OS credential encryption is unavailable', 'encryption-unavailable');
   }
   // Electron can fall back to reversible "basic_text" on Linux when no
   // secret store is available. That is not at-rest protection, so fail closed.
   if (safeStorage.getSelectedStorageBackend?.() === 'basic_text') {
-    throw new SyncKeyStorageError('A secure OS credential store is unavailable');
+    throw new SyncKeyStorageError('A secure OS credential store is unavailable', 'store-unavailable');
   }
 }
 
 function validateKey(key) {
   if (!Buffer.isBuffer(key) || key.length !== 32) {
-    throw new SyncKeyStorageError('Invalid sync key');
+    throw new SyncKeyStorageError('Invalid sync key', 'invalid-key');
   }
 }
 
@@ -24,7 +30,7 @@ function protectSyncKey(safeStorage, key) {
   validateKey(key);
   const encrypted = safeStorage.encryptString(key.toString('base64'));
   if (!Buffer.isBuffer(encrypted) || encrypted.length === 0) {
-    throw new SyncKeyStorageError('OS credential encryption failed');
+    throw new SyncKeyStorageError('OS credential encryption failed', 'encryption-failed');
   }
   return encrypted.toString('base64');
 }
@@ -32,13 +38,13 @@ function protectSyncKey(safeStorage, key) {
 function unprotectSyncKey(safeStorage, protectedKey) {
   assertSecureBackend(safeStorage);
   if (typeof protectedKey !== 'string' || !protectedKey) {
-    throw new SyncKeyStorageError('Protected sync key is missing');
+    throw new SyncKeyStorageError('Protected sync key is missing', 'missing');
   }
   let plaintext;
   try {
     plaintext = safeStorage.decryptString(Buffer.from(protectedKey, 'base64'));
   } catch {
-    throw new SyncKeyStorageError('OS credential decryption failed');
+    throw new SyncKeyStorageError('OS credential decryption failed', 'decryption-failed');
   }
   const key = Buffer.from(plaintext, 'base64');
   validateKey(key);

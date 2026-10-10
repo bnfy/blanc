@@ -9062,7 +9062,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@ startet …"
+            "value": "%1$@ startet…"
           }
         }
       }
@@ -9909,6 +9909,978 @@
           "stringUnit": {
             "state": "translated",
             "value": "Füge ihn in einem anderen Browser ein und wähle dann „Beenden“."
+          }
+        }
+      }
+    },
+    "menu.checkForUpdates": {
+      "comment": "App menu command that checks for a newer Blanc; also named in update dialogs.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check for Updates…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach Updates suchen…"
+          }
+        }
+      }
+    },
+    "update.stalled.message": {
+      "comment": "Dialog when an update the person asked for stopped downloading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update download stalled"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Download des Updates hängt"
+          }
+        }
+      }
+    },
+    "update.stalled.detail": {
+      "comment": "Dialog detail; {command} is the Check for Updates… menu command’s name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The update download stopped making progress. You can retry with “%1$@”, or reinstall from blancbrowser.com."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Download des Updates kommt nicht mehr voran. Versuche es erneut mit „%1$@“ oder installiere Blanc neu von blancbrowser.com."
+          }
+        }
+      }
+    },
+    "update.ready.message": {
+      "comment": "Dialog when an update is ready; {version} is Blanc’s new version number.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update %1$@ downloaded"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update %1$@ heruntergeladen"
+          }
+        }
+      }
+    },
+    "update.ready.detail": {
+      "comment": "Dialog detail when an update is ready.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restart to apply it. Blanc will reopen when installation completes."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starte neu, um es anzuwenden. Blanc öffnet sich wieder, sobald die Installation abgeschlossen ist."
+          }
+        }
+      }
+    },
+    "update.ready.restart": {
+      "comment": "Button that restarts Blanc to install the update.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restart Now"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jetzt neu starten"
+          }
+        }
+      }
+    },
+    "update.ready.later": {
+      "comment": "Button that postpones installing the update.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Later"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Später"
+          }
+        }
+      }
+    },
+    "update.failed.message": {
+      "comment": "Dialog when an update the person asked for failed to download.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update download failed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Download des Updates fehlgeschlagen"
+          }
+        }
+      }
+    },
+    "update.failed.detail": {
+      "comment": "Dialog detail; {error} is the technical error and {command} the Check for Updates… menu command’s name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@\n\nYou can retry with “%2$@”, or reinstall from blancbrowser.com."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@\n\nVersuche es erneut mit „%2$@“ oder installiere Blanc neu von blancbrowser.com."
+          }
+        }
+      }
+    },
+    "update.devOnly": {
+      "comment": "Dialog in development builds, which cannot update.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updates are only available in packaged builds."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updates gibt es nur in installierbaren Builds."
+          }
+        }
+      }
+    },
+    "update.flatpak.message": {
+      "comment": "Dialog in the Flatpak build, whose updates come from Flatpak.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flatpak keeps Blanc up to date"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flatpak hält Blanc aktuell"
+          }
+        }
+      }
+    },
+    "update.flatpak.detail": {
+      "comment": "Dialog detail in the Flatpak build; flatpak update is a terminal command, keep it as is.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update Blanc from your software center, or run \"flatpak update\" in a terminal."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktualisiere Blanc in deinem Software-Center oder führe \"flatpak update\" in einem Terminal aus."
+          }
+        }
+      }
+    },
+    "update.disabled.message": {
+      "comment": "Dialog when this launch’s update settings are invalid; the detail is a technical reason.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updates are disabled for this launch"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updates sind für diesen Start deaktiviert"
+          }
+        }
+      }
+    },
+    "update.verifying.message": {
+      "comment": "Dialog while Windows verifies a downloaded update’s signature.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verifying the update"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update wird geprüft"
+          }
+        }
+      }
+    },
+    "update.verifying.detail": {
+      "comment": "Dialog detail while an update is verified.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc will prompt you when the update is ready to restart."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc meldet sich, sobald das Update für einen Neustart bereit ist."
+          }
+        }
+      }
+    },
+    "update.current.message": {
+      "comment": "Dialog when no newer version exists.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You’re up to date"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du bist auf dem neuesten Stand"
+          }
+        }
+      }
+    },
+    "update.current.detail": {
+      "comment": "Dialog detail; {version} is the running version number.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc %1$@ is the latest version."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc %1$@ ist die neueste Version."
+          }
+        }
+      }
+    },
+    "update.downloading.message": {
+      "comment": "Dialog when a newer version starts downloading; {version} is its version number.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downloading Blanc %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc %1$@ wird heruntergeladen"
+          }
+        }
+      }
+    },
+    "update.downloading.detail": {
+      "comment": "Dialog detail while an update downloads.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The update is downloading in the background. Blanc will prompt you as soon as it is ready to restart."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Update wird im Hintergrund heruntergeladen. Blanc meldet sich, sobald es für einen Neustart bereit ist."
+          }
+        }
+      }
+    },
+    "update.checkFailed.message": {
+      "comment": "Dialog when checking for updates failed; the detail is the technical error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update check failed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suche nach Updates fehlgeschlagen"
+          }
+        }
+      }
+    },
+    "patron.error.empty": {
+      "comment": "Blanc Patron activation error in Settings when the key field is empty.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a license key."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib einen Lizenzschlüssel ein."
+          }
+        }
+      }
+    },
+    "patron.error.tooLong": {
+      "comment": "Blanc Patron activation error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That key is too long."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Schlüssel ist zu lang."
+          }
+        }
+      }
+    },
+    "patron.error.offline": {
+      "comment": "Blanc Patron activation error; Polar is the payment service.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not reach Polar. Check your connection and try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Polar ist nicht erreichbar. Prüfe deine Verbindung und versuche es erneut."
+          }
+        }
+      }
+    },
+    "patron.error.unavailable": {
+      "comment": "Blanc Patron activation error when Polar is busy or down.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Polar is not responding right now. Try again in a few minutes."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Polar antwortet gerade nicht. Versuche es in ein paar Minuten erneut."
+          }
+        }
+      }
+    },
+    "patron.error.notActivated": {
+      "comment": "Blanc Patron activation error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That license key could not be activated."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Lizenzschlüssel konnte nicht aktiviert werden."
+          }
+        }
+      }
+    },
+    "patron.error.notRecognized": {
+      "comment": "Blanc Patron activation error for a key that is not a Blanc Patron key.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That license key is not recognized."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Lizenzschlüssel wird nicht erkannt."
+          }
+        }
+      }
+    },
+    "patron.error.inactive": {
+      "comment": "Blanc Patron activation error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That subscription is not currently active."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Abo ist derzeit nicht aktiv."
+          }
+        }
+      }
+    },
+    "patron.error.invalidExpiry": {
+      "comment": "Blanc Patron activation error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That subscription has an invalid expiry."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Abo hat ein ungültiges Ablaufdatum."
+          }
+        }
+      }
+    },
+    "patron.error.expired": {
+      "comment": "Blanc Patron activation error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That subscription has expired."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Abo ist abgelaufen."
+          }
+        }
+      }
+    },
+    "sync.error.serviceUnavailable": {
+      "comment": "Profile Sync error in builds that cannot reach Blanc’s sync service.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync is available only in official Blanc builds."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisierung gibt es nur in offiziellen Blanc-Builds."
+          }
+        }
+      }
+    },
+    "sync.error.nameTooShort": {
+      "comment": "Profile Sync setup error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a sync name (at least 2 characters)."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle einen Synchronisierungsnamen (mindestens 2 Zeichen)."
+          }
+        }
+      }
+    },
+    "sync.error.weakPassphrase": {
+      "comment": "Profile Sync setup error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use a longer passphrase — 16+ characters, or 10+ with mixed characters."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nutze eine längere Passphrase – 16+ Zeichen oder 10+ mit gemischten Zeichen."
+          }
+        }
+      }
+    },
+    "sync.error.keyStore": {
+      "comment": "Profile Sync setup error; {reason} is one of the sync.keyStorage messages.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@. Configure the OS keychain/credential store and try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@. Richte den Schlüsselbund bzw. Anmeldedatenspeicher des Systems ein und versuche es erneut."
+          }
+        }
+      }
+    },
+    "sync.error.keyProtect": {
+      "comment": "Profile Sync setup error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not protect the sync key."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Synchronisierungsschlüssel konnte nicht geschützt werden."
+          }
+        }
+      }
+    },
+    "sync.error.credentialsSave": {
+      "comment": "Profile Sync setup error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not save protected sync credentials."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die geschützten Synchronisierungsdaten konnten nicht gespeichert werden."
+          }
+        }
+      }
+    },
+    "sync.error.badPassphrase": {
+      "comment": "Profile Sync error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passphrase doesn’t match this sync account."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Passphrase passt nicht zu diesem Synchronisierungskonto."
+          }
+        }
+      }
+    },
+    "sync.error.rateLimited": {
+      "comment": "Profile Sync error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Too many sync attempts — try again in a minute."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zu viele Synchronisierungsversuche – versuche es in einer Minute erneut."
+          }
+        }
+      }
+    },
+    "sync.error.conflict": {
+      "comment": "Profile Sync error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync kept getting interrupted — try again in a moment."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Synchronisierung wurde wiederholt unterbrochen – versuche es gleich erneut."
+          }
+        }
+      }
+    },
+    "sync.error.server": {
+      "comment": "Profile Sync error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync sent an unexpected response — try again later."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Synchronisierung hat eine unerwartete Antwort gesendet – versuche es später erneut."
+          }
+        }
+      }
+    },
+    "sync.error.rejected": {
+      "comment": "Profile Sync error; {status} is the HTTP status code.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync rejected the request (HTTP %1$@)."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Synchronisierung hat die Anfrage abgelehnt (HTTP %1$@)."
+          }
+        }
+      }
+    },
+    "sync.error.serverError": {
+      "comment": "Profile Sync error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync server error — try again later."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Serverfehler bei der Synchronisierung – versuche es später erneut."
+          }
+        }
+      }
+    },
+    "sync.error.offline": {
+      "comment": "Profile Sync error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t reach sync — check your connection."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisierung nicht erreichbar – prüfe deine Verbindung."
+          }
+        }
+      }
+    },
+    "sync.error.off": {
+      "comment": "Profile Sync status when syncing is requested while it is off.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync is off."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Synchronisierung ist aus."
+          }
+        }
+      }
+    },
+    "sync.error.localKeyProtect": {
+      "comment": "Profile Sync status line when the saved key could not be protected.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not protect the local sync key"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der lokale Synchronisierungsschlüssel konnte nicht geschützt werden"
+          }
+        }
+      }
+    },
+    "sync.error.localKeyUnlock": {
+      "comment": "Profile Sync status line when the saved key could not be unlocked.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not unlock the local sync key"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der lokale Synchronisierungsschlüssel konnte nicht entsperrt werden"
+          }
+        }
+      }
+    },
+    "sync.error.wipeOffline": {
+      "comment": "Profile Sync error when turning sync off with erase.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t reach sync to erase the server copy — check your connection and try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisierung nicht erreichbar, um die Serverkopie zu löschen – prüfe deine Verbindung und versuche es erneut."
+          }
+        }
+      }
+    },
+    "sync.error.wipeFailed": {
+      "comment": "Profile Sync error when erasing failed; {status} is the HTTP status code.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync couldn’t erase the server copy (HTTP %1$@) — try again later."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Serverkopie konnte nicht gelöscht werden (HTTP %1$@) – versuche es später erneut."
+          }
+        }
+      }
+    },
+    "sync.keyStorage.encryptionUnavailable": {
+      "comment": "Why Profile Sync could not store its key (a status line, no final period).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OS credential encryption is unavailable"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Verschlüsselung für Anmeldedaten des Systems ist nicht verfügbar"
+          }
+        }
+      }
+    },
+    "sync.keyStorage.storeUnavailable": {
+      "comment": "Why Profile Sync could not store its key (a status line, no final period).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A secure OS credential store is unavailable"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein sicherer Anmeldedatenspeicher des Systems verfügbar"
+          }
+        }
+      }
+    },
+    "sync.keyStorage.invalidKey": {
+      "comment": "Why Profile Sync could not store its key (a status line, no final period).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invalid sync key"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ungültiger Synchronisierungsschlüssel"
+          }
+        }
+      }
+    },
+    "sync.keyStorage.encryptionFailed": {
+      "comment": "Why Profile Sync could not store its key (a status line, no final period).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OS credential encryption failed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Verschlüsselung über das System ist fehlgeschlagen"
+          }
+        }
+      }
+    },
+    "sync.keyStorage.missing": {
+      "comment": "Why Profile Sync could not read its key (a status line, no final period).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protected sync key is missing"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der geschützte Synchronisierungsschlüssel fehlt"
+          }
+        }
+      }
+    },
+    "sync.keyStorage.decryptionFailed": {
+      "comment": "Why Profile Sync could not read its key (a status line, no final period).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OS credential decryption failed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Entschlüsselung über das System ist fehlgeschlagen"
+          }
+        }
+      }
+    },
+    "sync.keyStorage.persistFailed": {
+      "comment": "Why Profile Sync could not store its key (a status line, no final period).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not persist protected sync key"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der geschützte Synchronisierungsschlüssel konnte nicht gespeichert werden"
           }
         }
       }

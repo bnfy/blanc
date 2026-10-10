@@ -7,26 +7,17 @@
 /**
  * @param {{ error: true } | { status: number }} outcome - the DELETE attempt:
  *   { error: true } for a network failure, { status } for an HTTP response.
- * @returns {{ clearCredentials: boolean, ok: boolean, message: string | null }}
+ * @returns {{ clearCredentials: boolean, ok: boolean, error: string | null }} —
+ *   `error` is a sync error code (sync-messages.js).
  */
 function wipeDecision(outcome) {
   if (outcome.error) {
-    return {
-      clearCredentials: false,
-      ok: false,
-      message: 'Couldn’t reach sync to erase the server copy — check your connection and try again.',
-    };
+    return { clearCredentials: false, ok: false, error: 'wipe-offline' };
   }
   const s = outcome.status;
-  if (s >= 200 && s < 300) return { clearCredentials: true, ok: true, message: null };
-  if (s === 429) {
-    return { clearCredentials: false, ok: false, message: 'Too many sync attempts — try again in a minute.' };
-  }
-  return {
-    clearCredentials: false,
-    ok: false,
-    message: `Sync couldn’t erase the server copy (HTTP ${s}) — try again later.`,
-  };
+  if (s >= 200 && s < 300) return { clearCredentials: true, ok: true, error: null };
+  if (s === 429) return { clearCredentials: false, ok: false, error: 'rate-limited' };
+  return { clearCredentials: false, ok: false, error: `wipe-failed:${s}` };
 }
 
 module.exports = { wipeDecision };

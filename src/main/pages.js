@@ -15,6 +15,7 @@ const { runOnePasswordVerify } = require('./onepassword-verify-flow');
 const { createDefaultBrowserStatus } = require('./default-browser-status');
 const patron = require('./patron');
 const sync = require('./sync');
+const { syncErrorText } = require('./sync-messages');
 const telemetry = require('./telemetry');
 const diagnostics = require('./diagnostics');
 const { listDecisions, removeDecision } = require('./permissions');
@@ -57,6 +58,14 @@ function registerPagesScheme() {
  * bookmarks page). */
 function setupPages(hooks = {}) {
   const t = (key, params) => hooks.i18n.t(key, params);
+  // Sync replies carry error codes; Settings gets their text as `message`
+  // and `status.lastError`, as before.
+  const syncStatus = (status) => status && { ...status, lastError: syncErrorText(status.lastError, t) };
+  const syncReply = ({ error, ...reply } = {}) => ({
+    ...reply,
+    ...(error === undefined ? {} : { message: syncErrorText(error, t) }),
+    ...(reply.status ? { status: syncStatus(reply.status) } : {}),
+  });
   const trustLinks = trustLinksForVersion(app.getVersion());
   const onePasswordAvailable = () => hooks.onePasswordAvailable?.() === true;
   const developmentBrandMarkPath = hooks.developmentBrandMarkPath ?? null;
@@ -395,7 +404,7 @@ function setupPages(hooks = {}) {
       },
       signature: await localSignature(),
       blocker,
-      sync: sync.status(),
+      sync: syncStatus(sync.status()),
       choices: current,
       diagnostics: diagnostics.status(),
       links: Object.keys(trustLinks).map((id) => ({
@@ -409,7 +418,7 @@ function setupPages(hooks = {}) {
     await shell.openExternal(trustLinks[kind]);
     return { ok: true };
   });
-  handle('pages:settings:supporter-activate', 'settings', (key) => patron.activate(key));
+  handle('pages:settings:supporter-activate', 'settings', (key) => patron.activate(key, t));
   if (onePasswordAvailable()) {
     // App presence is a HINT (movable installs false-negative); Verify is
     // the authoritative check. The verify flow persists first and replies
@@ -446,18 +455,18 @@ function setupPages(hooks = {}) {
 
   // Sync: the passphrase arrives once on enable and never leaves main; every
   // response is status-only (enabled/handle/lastSyncedAt/lastError) — no keys.
-  handle('pages:settings:sync-get', 'settings', () => sync.status());
+  handle('pages:settings:sync-get', 'settings', () => syncStatus(sync.status()));
   handle('pages:settings:sync-enable', 'settings', async (payload) => {
     const result = await sync.enable(payload ?? {});
     // Persisted credentials complete the migration task even when the first
     // pull failed (ok: false). The marker never clears if Sync is later off.
     if (result?.status?.enabled === true) settings.setSettings({ syncMigrationCompleted: true });
-    return result;
+    return syncReply(result);
   });
   // Join-path probe: outcome-only reply, nothing persisted (see sync.preflight).
-  handle('pages:settings:sync-preflight', 'settings', (payload) => sync.preflight(payload ?? {}));
-  handle('pages:settings:sync-disable', 'settings', (opts) => sync.disable(opts ?? {}));
-  handle('pages:settings:sync-now', 'settings', () => sync.syncNow().then(() => sync.status()));
+  handle('pages:settings:sync-preflight', 'settings', async (payload) => syncReply(await sync.preflight(payload ?? {})));
+  handle('pages:settings:sync-disable', 'settings', async (opts) => syncReply(await sync.disable(opts ?? {})));
+  handle('pages:settings:sync-now', 'settings', () => sync.syncNow().then(() => syncStatus(sync.status())));
   // Per-device consent for publishing this device's open tabs (spec §3) —
   // lives in sync.json, never settings.json, so it cannot cross sync.
   handle('pages:settings:sync-tabs-set', 'settings', (on) => sync.setSyncTabs(!!on));

@@ -1,3 +1,4 @@
+const { englishT: t } = require('../support/english-t');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -76,7 +77,7 @@ test('a 404 that is not Polar\'s ResourceNotFound keeps the outage grace', async
 test('Polar rate limits and outages during activation report a retry, not a bad key', async () => {
   for (const status of [429, 500, 503]) {
     const subject = loadPatron({ responses: [response(status, {})] });
-    const result = await subject.api.activate('fixture');
+    const result = await subject.api.activate('fixture', t);
     assert.equal(result.ok, false);
     assert.match(result.message, /not responding right now/);
     assert.equal(subject.requests.length, 1);
@@ -85,10 +86,10 @@ test('Polar rate limits and outages during activation report a retry, not a bad 
 
 test('activation accepts only Browser benefits: a Mail key is not recognized', async () => {
   const mail = loadPatron({ responses: [response(200, { id: 'act_1', license_key: { benefit_id: mailID, status: 'granted' } })] });
-  assert.equal((await mail.api.activate('mail-key')).ok, false);
+  assert.equal((await mail.api.activate('mail-key', t)).ok, false);
   assert.equal(mail.record(), null);
   const rejected = loadPatron({ responses: [response(403, {})] });
-  assert.match((await rejected.api.activate('fixture')).message, /could not be activated/);
+  assert.match((await rejected.api.activate('fixture', t)).message, /could not be activated/);
   assert.equal(rejected.requests.length, 1, 'a rejected activation makes no second request');
 });
 

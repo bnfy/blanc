@@ -23,35 +23,35 @@ const BENEFIT_ALLOWLIST = app.isPackaged
 
 async function readJson(res) { try { return await res.json(); } catch { return null; } }
 
-const UNAVAILABLE = 'Polar is not responding right now. Try again in a few minutes.';
 // Rate limiting and server errors say nothing about the key itself.
 const isServiceFailure = res => res.status === 429 || res.status >= 500;
 
-async function activate(key) {
+// `t` is the interface translator for the error the Settings page shows.
+async function activate(key, t) {
   const trimmed = String(key ?? '').trim();
-  if (!trimmed) return { ok: false, message: 'Enter a license key.' };
-  if (trimmed.length > MAX_KEY_LENGTH) return { ok: false, message: 'That key is too long.' };
+  if (!trimmed) return { ok: false, message: t('patron.error.empty') };
+  if (trimmed.length > MAX_KEY_LENGTH) return { ok: false, message: t('patron.error.tooLong') };
   let res;
   try {
     res = await net.fetch(API_BASE + '/v1/customer-portal/license-keys/activate', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ key: trimmed, organization_id: ORG_ID, label: 'Blanc' }),
     });
-  } catch { return { ok: false, message: 'Could not reach Polar. Check your connection and try again.' }; }
-  if (isServiceFailure(res)) return { ok: false, message: UNAVAILABLE };
-  if (!res.ok) return { ok: false, message: 'That license key could not be activated.' };
+  } catch { return { ok: false, message: t('patron.error.offline') }; }
+  if (isServiceFailure(res)) return { ok: false, message: t('patron.error.unavailable') };
+  if (!res.ok) return { ok: false, message: t('patron.error.notActivated') };
   const payload = await readJson(res);
   const benefitId = model.readBenefitId(payload);
   const kind = model.resolveKind(benefitId, BENEFIT_ALLOWLIST);
-  if (!payload || !kind) return { ok: false, message: 'That license key is not recognized.' };
+  if (!payload || !kind) return { ok: false, message: t('patron.error.notRecognized') };
   if (kind === 'subscription') {
     // Defensive readers accept the license key at the top level or nested,
     // so the check holds whichever shape Polar's activate response uses.
     const lkStatus = model.readLicenseStatus(payload);
     const lkExpiry = model.readExpiresAt(payload);
-    if (lkStatus !== 'granted') return { ok: false, message: 'That subscription is not currently active.' };
-    if (lkExpiry === false) return { ok: false, message: 'That subscription has an invalid expiry.' };
-    if (typeof lkExpiry === 'number' && lkExpiry <= Date.now()) return { ok: false, message: 'That subscription has expired.' };
+    if (lkStatus !== 'granted') return { ok: false, message: t('patron.error.inactive') };
+    if (lkExpiry === false) return { ok: false, message: t('patron.error.invalidExpiry') };
+    if (typeof lkExpiry === 'number' && lkExpiry <= Date.now()) return { ok: false, message: t('patron.error.expired') };
   }
   const now = Date.now();
   const activationId = payload.activation?.id ?? payload.id ?? null;

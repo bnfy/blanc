@@ -26,7 +26,9 @@ const { bananifyServiceAllowed } = require('./bananify-services');
 const SYNC_ENDPOINT = 'https://blanc-sync.bnfy-441.workers.dev'; // wrangler dev -> http://127.0.0.1:8787
 // A renamed build may not store data on Bananify's server (bananify-services.js).
 // disable() still lets it erase a copy that is already there.
-const SERVICE_UNAVAILABLE = 'Sync is available only in official Blanc builds.';
+// Errors are codes (`error` in replies, `lastError` in the store); pages.js
+// turns them into interface text with sync-messages.js.
+const SERVICE_UNAVAILABLE = 'service-unavailable';
 
 let store = null;
 let keyProtectionError = null;
@@ -65,12 +67,10 @@ function ensureStore() {
       if (!store.flush()) {
         store.data.protectedKey = '';
         store.data.key = legacyKey;
-        throw new SyncKeyStorageError('Could not persist protected sync key');
+        throw new SyncKeyStorageError('Could not persist protected sync key', 'persist-failed');
       }
     } catch (error) {
-      keyProtectionError = error instanceof SyncKeyStorageError
-        ? error.message
-        : 'Could not protect the local sync key';
+      keyProtectionError = error instanceof SyncKeyStorageError ? `key:${error.code}` : 'local-key-protect';
     }
   }
   return store;
@@ -197,28 +197,23 @@ function passphraseStrong(p) {
   return [/[a-z]/, /[A-Z]/, /[0-9]/, /[^a-zA-Z0-9]/].filter((re) => re.test(p)).length >= 2;
 }
 
-function describe(err) {
+function errorCode(err) {
   const code = err instanceof SyncError ? err.message : '';
-  if (code === 'bad-passphrase') return 'Passphrase doesn’t match this sync account.';
-  if (code === 'rate-limited') return 'Too many sync attempts — try again in a minute.';
-  if (code === 'conflict') return 'Sync kept getting interrupted — try again in a moment.';
-  if (code === 'server') return 'Sync sent an unexpected response — try again later.';
-  if (/^http-4/.test(code)) return `Sync rejected the request (HTTP ${code.slice(5)}).`;
-  if (/^http-5/.test(code)) return 'Sync server error — try again later.';
-  return 'Couldn’t reach sync — check your connection.';
+  if (['bad-passphrase', 'rate-limited', 'conflict', 'server'].includes(code)) return code;
+  if (/^http-4/.test(code)) return `rejected:${code.slice(5)}`;
+  if (/^http-5/.test(code)) return 'server-error';
+  return 'offline';
 }
 
 async function enable({ handle, passphrase }) {
   if (!isDefaultLocalProfile()) {
     return withLocalProfile(DEFAULT_PROFILE_ID, () => enable({ handle, passphrase }));
   }
-  if (!bananifyServiceAllowed(SYNC_ENDPOINT)) return { ok: false, message: SERVICE_UNAVAILABLE, status: status() };
+  if (!bananifyServiceAllowed(SYNC_ENDPOINT)) return { ok: false, error: SERVICE_UNAVAILABLE, status: status() };
   const h = String(handle ?? '').trim();
   const p = String(passphrase ?? '');
-  if (h.length < 2) return { ok: false, message: 'Choose a sync name (at least 2 characters).', status: status() };
-  if (!passphraseStrong(p)) {
-    return { ok: false, message: 'Use a longer passphrase — 16+ characters, or 10+ with mixed characters.', status: status() };
-  }
+  if (h.length < 2) return { ok: false, error: 'name-too-short', status: status() };
+  if (!passphraseStrong(p)) return { ok: false, error: 'weak-passphrase', status: status() };
   const { accountId, key } = deriveKeys(h, p);
   let protectedKey;
   try {
@@ -227,9 +222,7 @@ async function enable({ handle, passphrase }) {
     key.fill(0);
     return {
       ok: false,
-      message: error instanceof SyncKeyStorageError
-        ? `${error.message}. Configure the OS keychain/credential store and try again.`
-        : 'Could not protect the sync key.',
+      error: error instanceof SyncKeyStorageError ? `key-store:${error.code}` : 'key-protect-failed',
       status: status(),
     };
   }
@@ -247,7 +240,7 @@ async function enable({ handle, passphrase }) {
     syncStore.data.accountId = '';
     syncStore.data.protectedKey = '';
     key.fill(0);
-    return { ok: false, message: 'Could not save protected sync credentials.', status: status() };
+    return { ok: false, error: 'credentials-save-failed', status: status() };
   }
   keyProtectionError = null;
   refreshTabIcons().catch(() => {});
@@ -261,7 +254,7 @@ async function enable({ handle, passphrase }) {
   } catch { /* offline — leave created null */ }
   key.fill(0);
   const res = await syncNow();
-  return { ok: res.ok, message: res.message, created, status: status() };
+  return { ok: res.ok, error: res.error, created, status: status() };
 }
 
 // Join-path probe (design 2026-09-17 §4.3): does data already exist under
@@ -273,26 +266,22 @@ async function preflight({ handle, passphrase }) {
   if (!isDefaultLocalProfile()) {
     return withLocalProfile(DEFAULT_PROFILE_ID, () => preflight({ handle, passphrase }));
   }
-  if (!bananifyServiceAllowed(SYNC_ENDPOINT)) return { ok: false, outcome: 'error', message: SERVICE_UNAVAILABLE };
+  if (!bananifyServiceAllowed(SYNC_ENDPOINT)) return { ok: false, outcome: 'error', error: SERVICE_UNAVAILABLE };
   const h = String(handle ?? '').trim();
   const p = String(passphrase ?? '');
-  if (h.length < 2) {
-    return { ok: false, outcome: 'invalid', message: 'Choose a sync name (at least 2 characters).' };
-  }
-  if (!passphraseStrong(p)) {
-    return { ok: false, outcome: 'invalid', message: 'Use a longer passphrase — 16+ characters, or 10+ with mixed characters.' };
-  }
+  if (h.length < 2) return { ok: false, outcome: 'invalid', error: 'name-too-short' };
+  if (!passphraseStrong(p)) return { ok: false, outcome: 'invalid', error: 'weak-passphrase' };
   const { accountId, key } = deriveKeys(h, p);
   try {
     const res = await net.fetch(`${SYNC_ENDPOINT}/v1/blob/${accountId}/settings`);
     if (res.status === 200) return { ok: true, outcome: 'found' };
     if (res.status === 404) return { ok: true, outcome: 'notFound' };
     if (res.status === 429) {
-      return { ok: false, outcome: 'rateLimited', message: describe(new SyncError('rate-limited')) };
+      return { ok: false, outcome: 'rateLimited', error: errorCode(new SyncError('rate-limited')) };
     }
-    return { ok: false, outcome: 'error', message: describe(new SyncError(`http-${res.status}`)) };
+    return { ok: false, outcome: 'error', error: errorCode(new SyncError(`http-${res.status}`)) };
   } catch {
-    return { ok: false, outcome: 'offline', message: describe(new Error('offline')) };
+    return { ok: false, outcome: 'offline', error: errorCode(new Error('offline')) };
   } finally {
     key.fill(0);
   }
@@ -337,7 +326,7 @@ async function disable({ wipeRemote = false } = {}) {
       }
       const decision = wipeDecision(outcome);
       if (!decision.clearCredentials) {
-        return { ok: false, message: decision.message, status: status() };
+        return { ok: false, error: decision.error, status: status() };
       }
     }
     ensureStore().update((s) => {
@@ -419,9 +408,9 @@ async function syncNow(names = null) {
   // `suspended` bars new passes while disable() drains and wipes — a fresh
   // pass dispatching requests mid-drain would defeat the barrier.
   if (suspended || !d.enabled || !d.accountId || !d.protectedKey) {
-    return { ok: false, message: keyProtectionError || 'Sync is off.' };
+    return { ok: false, error: keyProtectionError || 'sync-off' };
   }
-  if (!bananifyServiceAllowed(SYNC_ENDPOINT)) return { ok: false, message: SERVICE_UNAVAILABLE };
+  if (!bananifyServiceAllowed(SYNC_ENDPOINT)) return { ok: false, error: SERVICE_UNAVAILABLE };
   // Palette open / Sync Now / scheduled session churn can fire before restore
   // finishes. Skip only the tab-dependent stores; Favorites/settings still run.
   if (names && names.length > 0 && names.every((name) => !tabSyncStoreReady(name))) {
@@ -443,10 +432,8 @@ async function syncNow(names = null) {
       key = unprotectSyncKey(safeStorage, d.protectedKey);
       keyProtectionError = null;
     } catch (error) {
-      keyProtectionError = error instanceof SyncKeyStorageError
-        ? error.message
-        : 'Could not unlock the local sync key';
-      return { ok: false, message: keyProtectionError };
+      keyProtectionError = error instanceof SyncKeyStorageError ? `key:${error.code}` : 'local-key-unlock';
+      return { ok: false, error: keyProtectionError };
     }
     // The whole pass runs under ONE generation and ONE tab-sync context; a
     // credential/consent change mid-flight strands it at the next checkpoint.
@@ -482,14 +469,14 @@ async function syncNow(names = null) {
       }
     }
     // If sync was turned off mid-flight, don't stamp status onto a disabled store.
-    if (!ensureStore().data.enabled) return { ok: false, message: 'Sync is off.' };
+    if (!ensureStore().data.enabled) return { ok: false, error: 'sync-off' };
     // A stranded pass stamps nothing: its results belong to a dead generation.
     // Cosmetic-only passes must not erase a real required-store error or make
     // lastSyncedAt imply that Favorites/settings/session were refreshed.
     // Partial pre-restore passes (session gated) also must not stamp success.
     if (!stranded && ranRequiredStore) {
       ensureStore().update((s) => {
-        if (firstError) s.lastError = describe(firstError);
+        if (firstError) s.lastError = errorCode(firstError);
         else if (!skippedRequiredSelected) {
           s.lastError = null;
           s.lastSyncedAt = Date.now();
@@ -507,7 +494,7 @@ async function syncNow(names = null) {
       });
     }
     if (stranded) return { ok: true };
-    return firstError ? { ok: false, message: describe(firstError) } : { ok: true };
+    return firstError ? { ok: false, error: errorCode(firstError) } : { ok: true };
   } finally {
     // This guard owns the entire pass, including credential unlock. Reset it
     // here so every exit path can be retried; limiting the
