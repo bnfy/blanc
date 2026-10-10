@@ -39,10 +39,10 @@
     defaultWidth: 248,
   };
 
-  newTabShortcut.textContent = api.platform === 'darwin' ? '⌘T' : 'Ctrl T';
+  newTabShortcut.textContent = api.platform === 'darwin' ? '⌘T' : `${blancI18n.t('key.ctrl')} T`;
 
   function titleFor(tab) {
-    return tab.title || (tab.private ? 'Private Tab' : 'New Tab');
+    return tab.title || (tab.private ? blancI18n.t('tab.untitledPrivate') : blancI18n.t('tab.untitled'));
   }
 
   function bucketKey(tab) {
@@ -110,7 +110,7 @@
     resizeHandle.setAttribute('aria-valuemin', String(widthMetrics.minWidth));
     resizeHandle.setAttribute('aria-valuemax', String(widthMetrics.maxWidth));
     resizeHandle.setAttribute('aria-valuenow', String(width));
-    resizeHandle.setAttribute('aria-valuetext', `${width} pixels`);
+    resizeHandle.setAttribute('aria-valuetext', blancI18n.t('rail.widthValue', { width }));
     return true;
   }
 
@@ -300,23 +300,28 @@
     primary.dataset.focusKey = `tab:${tab.id}`;
     primary.tabIndex = -1;
     const states = [
-      active && 'active',
-      tab.private && 'private',
-      tab.pinned && 'pinned',
-      tab.isLoading && 'loading',
-      tab.asleep && 'quiet',
-      tab.muted ? 'muted' : tab.audible && 'playing audio',
+      active && blancI18n.t('rail.state.active'),
+      tab.private && blancI18n.t('rail.state.private'),
+      tab.pinned && blancI18n.t('rail.state.pinned'),
+      tab.isLoading && blancI18n.t('rail.state.loading'),
+      tab.asleep && blancI18n.t('rail.state.quiet'),
+      tab.muted ? blancI18n.t('rail.state.muted') : tab.audible && blancI18n.t('rail.state.playingAudio'),
     ].filter(Boolean);
+    const rowLabel = active ? blancI18n.t('rail.tab.current', { title }) : blancI18n.t('dot.switchTo', { title });
     primary.setAttribute(
       'aria-label',
-      `${active ? 'Current tab' : 'Switch to'} ${title}${states.length ? `, ${states.join(', ')}` : ''}`
+      states.length ? blancI18n.t('rail.tab.withStates', { label: rowLabel, states: states.join(', ') }) : rowLabel
     );
     if (active) primary.setAttribute('aria-current', 'page');
     primary.title = title;
+    // A tab title is page data, not interface copy (pseudo-locale sweep): only
+    // this button's title attribute and the title text below are exempt.
+    if (tab.title) primary.dataset.i18nIgnore = 'title';
 
     primary.appendChild(faviconFor(tab));
     const titleEl = document.createElement('span');
     titleEl.className = 'vertical-tab-title';
+    titleEl.dataset.i18nIgnore = '';
     titleEl.setAttribute('aria-hidden', 'true');
     const titleText = document.createElement('span');
     titleText.className = 'vertical-tab-title-text';
@@ -329,27 +334,27 @@
     if (tab.private) {
       const privateMarker = document.createElement('span');
       privateMarker.className = 'vertical-tab-private';
-      privateMarker.textContent = 'private';
+      privateMarker.textContent = blancI18n.t('rail.private.marker');
       privateMarker.setAttribute('aria-hidden', 'true');
       primary.appendChild(privateMarker);
     }
     // Quiet is dim-only here too (row dim + the aria states entry above); see
     // the 2026-08-18 quiet-marker-dim-only spec before reintroducing a marker.
     if (tab.pinned) {
-      primary.appendChild(makeMarker('vertical-tab-state vertical-tab-pin', ICONS.pin, 'Pinned'));
+      primary.appendChild(makeMarker('vertical-tab-state vertical-tab-pin', ICONS.pin, blancI18n.t('rail.marker.pinned')));
     }
     if (tab.muted) {
-      primary.appendChild(makeMarker('vertical-tab-state vertical-tab-audio muted', ICONS.muted, 'Muted'));
+      primary.appendChild(makeMarker('vertical-tab-state vertical-tab-audio muted', ICONS.muted, blancI18n.t('rail.marker.muted')));
     } else if (tab.audible) {
-      primary.appendChild(makeMarker('vertical-tab-state vertical-tab-audio', ICONS.audible, 'Playing audio'));
+      primary.appendChild(makeMarker('vertical-tab-state vertical-tab-audio', ICONS.audible, blancI18n.t('rail.marker.playingAudio')));
     }
 
     const close = document.createElement('button');
     close.type = 'button';
     close.className = 'vertical-tab-close';
     close.innerHTML = ICONS.close;
-    close.title = `Close ${title}`;
-    close.setAttribute('aria-label', `Close ${title}`);
+    close.title = blancI18n.t('rail.close', { title });
+    close.setAttribute('aria-label', close.title);
     close.dataset.focusKey = `close:${tab.id}`;
     // ArrowRight from the row primary reaches this sibling without placing
     // every close action into the document's sequential Tab order.
@@ -430,10 +435,16 @@
     header.dataset.groupId = group.id;
     header.dataset.dragTitle = group.name;
     header.setAttribute('aria-expanded', String(!group.collapsed));
+    const groupLabel = {
+      name: group.name,
+      count: members.length,
+      state: group.collapsed ? blancI18n.t('rail.group.collapsed') : blancI18n.t('rail.group.expanded'),
+    };
     header.setAttribute(
       'aria-label',
-      `${group.name}, ${members.length} ${members.length === 1 ? 'tab' : 'tabs'}, ` +
-        `${group.collapsed ? 'collapsed' : 'expanded'}${containsActive ? ', contains current tab' : ''}`
+      containsActive
+        ? blancI18n.t('rail.group.labelWithCurrent', groupLabel)
+        : blancI18n.t('rail.group.label', groupLabel)
     );
     const headerId = `vertical-tabs-group-${index}`;
     header.id = headerId;
@@ -446,6 +457,7 @@
     const name = document.createElement('span');
     name.className = 'vertical-tabs-group-name';
     name.textContent = group.name;
+    name.dataset.i18nIgnore = ''; // a user-chosen group name
     const count = document.createElement('span');
     count.className = 'vertical-tabs-group-count';
     count.textContent = String(members.length);
@@ -453,7 +465,7 @@
     if (containsActive && group.collapsed) {
       const activeMarker = document.createElement('span');
       activeMarker.className = 'vertical-tabs-group-active';
-      activeMarker.title = 'Contains current tab';
+      activeMarker.title = blancI18n.t('rail.group.containsCurrent');
       activeMarker.setAttribute('aria-hidden', 'true');
       header.appendChild(activeMarker);
     }
@@ -562,7 +574,7 @@
     const fragment = document.createDocumentFragment();
 
     const standalonePins = tabs.filter((tab) => tab.pinned && (tab.groupId ?? null) === null);
-    fragment.appendChild(staticBucket('pinned', 'pinned', standalonePins, activeTabId));
+    fragment.appendChild(staticBucket(blancI18n.t('rail.section.pinned'), 'pinned', standalonePins, activeTabId));
 
     groups.forEach((group, index) => {
       const members = tabs.filter((tab) => tab.groupId === group.id);
@@ -576,7 +588,7 @@
       !tab.pinned &&
       ((tab.groupId ?? null) === null || !knownGroupIds.has(tab.groupId))
     ));
-    fragment.appendChild(staticBucket('tabs', 'loose', looseTabs, activeTabId));
+    fragment.appendChild(staticBucket(blancI18n.t('rail.section.tabs'), 'loose', looseTabs, activeTabId));
 
     list.replaceChildren(fragment);
     list.scrollTop = scrollTop;
@@ -631,7 +643,7 @@
       : dragApi.keyboardTabMove(lastPayload, id, direction);
     if (!result) return;
     if (result.stop) {
-      announce(result.stop === 'top' ? 'Already at the top' : 'Already at the bottom');
+      announce(result.stop === 'top' ? blancI18n.t('rail.move.top') : blancI18n.t('rail.move.bottom'));
       return;
     }
     invoke('move with keyboard', () => railMove(result.intent));
@@ -669,7 +681,7 @@
     if (resizeHandle.hasPointerCapture(event.pointerId)) {
       resizeHandle.releasePointerCapture(event.pointerId);
     }
-    commitWidth(width, (committed) => `Vertical tabs width ${committed} pixels`);
+    commitWidth(width, (committed) => blancI18n.t('rail.widthAnnounce', { width: committed }));
   });
   resizeHandle.addEventListener('pointercancel', (event) => {
     if (!resizeState || resizeState.pointerId !== event.pointerId) return;
@@ -685,13 +697,13 @@
     resizeState = null;
     clearQueuedWidthPreview();
     delete document.documentElement.dataset.verticalTabsResizing;
-    commitWidth(width, (committed) => `Vertical tabs width ${committed} pixels`);
+    commitWidth(width, (committed) => blancI18n.t('rail.widthAnnounce', { width: committed }));
   });
   resizeHandle.addEventListener('dblclick', (event) => {
     event.preventDefault();
     commitWidth(
       widthMetrics.defaultWidth,
-      (committed) => `Vertical tabs width reset to ${committed} pixels`
+      (committed) => blancI18n.t('rail.widthReset', { width: committed })
     );
   });
   resizeHandle.addEventListener('keydown', (event) => {
@@ -707,7 +719,7 @@
     if (nextWidth === null) return;
     event.preventDefault();
     event.stopPropagation();
-    commitWidth(nextWidth, (committed) => `Vertical tabs width ${committed} pixels`);
+    commitWidth(nextWidth, (committed) => blancI18n.t('rail.widthAnnounce', { width: committed }));
   });
   rail.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape' || !rail.dataset.activeTabId) return;

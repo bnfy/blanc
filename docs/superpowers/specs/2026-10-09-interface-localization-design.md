@@ -183,8 +183,8 @@ keyboards print "Strg" for Ctrl, so the hand-formatted shortcut text
 own accelerator rendering in native menus is not Blanc's to translate.
 Beyond those, descriptive feature names (Quiet Tabs, Favorites, Profile
 Sync, Named Workspaces, Quick Switcher) are translated with a pinned form.
-Coined names that sit between the two ("Island", "Glance") are listed for
-explicit owner confirmation in the foundation PR. Any later change to the
+The coined names "Island" and "Glance" are fixed product names, like Blanc
+Blocker (owner decision 2026-10-09, Phase 2). Any later change to the
 glossary needs a recorded reason, because it changes every language.
 
 ### Message format
@@ -367,7 +367,10 @@ known at runtime.
   documents skip it entirely. No stylesheet changes.
 - **`data-i18n-ignore`** marks containers of user or page data (tab titles,
   URLs, hostnames, favorite names). The source scanner treats them as data
-  and the pseudo-locale sweep skips them.
+  and the pseudo-locale sweep skips them. An empty value exempts the element
+  and its subtree; a value lists only that element's own attributes
+  (`data-i18n-ignore="title"` when only a tooltip carries a page title), so
+  translated text inside it is still checked.
 - JS-built strings call `t(key, params)` and assign the result with
   `textContent` or `setAttribute`.
 - Page `<title>`s are localized the same way. They become tab titles and

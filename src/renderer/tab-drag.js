@@ -156,18 +156,30 @@
     return gi === 0 ? { stop: 'top' } : intent(groups[gi - 1].id);
   }
 
+  // Announcements come from the interface catalog: i18n.js publishes
+  // blancI18n on every chrome document; tests inject an English translator.
   function describeMove(snapshot, intent) {
     const groups = snapshot?.groups || [];
     const tabs = snapshot?.tabs || [];
     const nameOf = (gid) => groups.find((g) => g.id === gid)?.name ?? '';
-    if (intent.kind === 'group') return `Moved group ${nameOf(intent.id)}`;
+    if (intent.kind === 'group') return globalThis.blancI18n.t('drag.movedGroup', { group: nameOf(intent.id) });
     const tab = tabs.find((t) => t.id === intent.id);
     const from = tab?.groupId ?? null;
     const to = intent.groupId ?? null;
-    if (from === to) return `Moved ${tab?.title || 'tab'}`;
-    const base = to ? `Moved to ${nameOf(to)}` : `Moved out of ${nameOf(from)}`;
+    if (from === to) {
+      return tab?.title
+        ? globalThis.blancI18n.t('drag.movedTab', { title: tab.title })
+        : globalThis.blancI18n.t('drag.movedTabUntitled');
+    }
     const dissolves = from && tabs.filter((t) => t.groupId === from).length === 1;
-    return dissolves ? `${base}. Group ${nameOf(from)} removed` : base;
+    if (to) {
+      return dissolves
+        ? globalThis.blancI18n.t('drag.movedToRemoved', { group: nameOf(to), from: nameOf(from) })
+        : globalThis.blancI18n.t('drag.movedTo', { group: nameOf(to) });
+    }
+    return dissolves
+      ? globalThis.blancI18n.t('drag.movedOutOfRemoved', { from: nameOf(from) })
+      : globalThis.blancI18n.t('drag.movedOutOf', { group: nameOf(from) });
   }
 
   function createDragSession(fx) {
@@ -263,7 +275,8 @@
     function drop() {
       const intent = hit?.intent;
       if (!intent) { end(); return; }
-      const title = source.title || (source.kind === 'group' ? 'group' : 'tab');
+      const failedMessage = source.title ? globalThis.blancI18n.t('drag.failed', { title: source.title })
+        : source.kind === 'group' ? globalThis.blancI18n.t('drag.failedGroup') : globalThis.blancI18n.t('drag.failedTab');
       // Settling first: releasing capture can fire lostpointercapture
       // synchronously, and that must not cancel the drop being committed.
       phase = 'settling';
@@ -274,7 +287,7 @@
       const mine = generation;
       const finish = (ok) => {
         if (mine !== generation || phase !== 'settling') return; // aborted or already ended
-        if (ok !== true) fx.announce(`Couldn't move ${title}`);
+        if (ok !== true) fx.announce(failedMessage);
         end();
       };
       let result;

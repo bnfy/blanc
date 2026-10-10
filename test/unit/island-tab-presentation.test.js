@@ -174,6 +174,10 @@ test('pinned and active-section dots use spacing alone as their separator', () =
 });
 
 test('overflow copy describes the window-wide remainder, not the active group', () => {
-  assert.match(source, /more \$\{hidden === 1 \? 'tab' : 'tabs'\} — open the list/);
-  assert.doesNotMatch(source, /more \$\{hidden === 1 \? 'tab' : 'tabs'\} in this group/);
+  // Copy lives in the interface catalog (F44); the English is unchanged.
+  const catalog = JSON.parse(require('node:fs').readFileSync(require('node:path').join(__dirname, '../../copy/messages/en.json'), 'utf8'));
+  assert.match(source, /more\.title = blancI18n\.t\('pill\.moreTabs', \{ count: hidden \}\)/);
+  assert.equal(catalog['pill.moreTabs'].message,
+    '{count, plural, one {# more tab — open the list} other {# more tabs — open the list}}');
+  assert.doesNotMatch(catalog['pill.moreTabs'].message, /in this group/);
 });

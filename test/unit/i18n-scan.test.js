@@ -33,6 +33,11 @@ test('HTML: inline English of rich text comes from its text, not from stripping 
   assert.deepEqual(scan.scanHtml(html, { en: rich, allow: [] }).problems, []);
 });
 
+test('HTML: data-i18n-ignore with a value exempts only those attributes, not the subtree', () => {
+  const html = '<header data-i18n-ignore="title" title="Page title"><span>Visible copy</span></header>';
+  assert.deepEqual(scan.scanHtml(html, { en, allow: [] }).problems, ['text "Visible copy" has no data-i18n']);
+});
+
 test('HTML: attribute without data-i18n counterpart fails', () => {
   const r = scan.scanHtml('<button aria-label="Close tab">✕</button>', { en, allow: [] });
   assert.match(r.problems.join(), /aria-label/);

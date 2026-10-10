@@ -5,7 +5,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self'; img-src 'self' data: blanc:;" />
   <script src="strings.js"></script>
   <script src="i18n.js"></script>
-  <title>Blanc</title>
+  <title data-i18n="app.title">Blanc</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -17,6 +17,8 @@
         type="button"
         title="Main menu (Alt+F)"
         aria-label="Main menu"
+        data-i18n-title="menu.main.title"
+        data-i18n-aria-label="menu.main.label"
         aria-haspopup="menu"
         aria-expanded="false"
         hidden
@@ -25,21 +27,21 @@
           <path d="M3 4.5h10M3 8h10M3 11.5h10"/>
         </svg>
       </button>
-      <div id="islandPill" class="no-drag" role="button" tabindex="0" title="Search, tabs & commands (Ctrl/Cmd+L)">
+      <div id="islandPill" class="no-drag" role="button" tabindex="0" title="Search, tabs & commands (Ctrl/Cmd+L)" data-i18n-title="pill.title">
         <div id="pillNav" class="pill-btns"></div>
         <div id="pillDots"></div>
         <span id="pillFavicon" class="favicon"></span>
-        <button id="pillInsecure" class="insecure-badge" type="button" aria-expanded="false" aria-label="Not secure — this site uses an unencrypted connection. Open site controls." title="Not secure — this site uses an unencrypted connection (HTTP)" hidden>
+        <button id="pillInsecure" class="insecure-badge" type="button" aria-expanded="false" aria-label="Not secure — this site uses an unencrypted connection. Open site controls." title="Not secure — this site uses an unencrypted connection (HTTP)" data-i18n-aria-label="pill.insecure.label" data-i18n-title="pill.insecure.title" hidden>
           <svg viewBox="0 0 16 16"><rect x="3.25" y="7.25" width="9.5" height="6" rx="1.75"/><path d="M5.5 7.25V4.9a2.6 2.6 0 0 1 5.1-.72"/></svg>
         </button>
-        <span id="pillDomain">new tab</span>
+        <span id="pillDomain" data-i18n="pill.domainDefault">new tab</span>
         <span id="pillShortcuts" class="pill-shortcuts">
-          <button id="pillSlash" class="pill-slash" type="button" title="Commands (/)" aria-label="Commands (/)" hidden>/</button>
+          <button id="pillSlash" class="pill-slash" type="button" title="Commands (/)" aria-label="Commands (/)" data-i18n-title="pill.commands" data-i18n-aria-label="pill.commands" hidden>/</button>
         </span>
-        <button id="pillPrivateChip" title="Leave private mode — closes this tab" hidden>private
+        <button id="pillPrivateChip" title="Leave private mode — closes this tab" data-i18n-title="pill.private.title" hidden><span data-i18n="pill.private.chip">private</span>
           <svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>
         </button>
-        <button id="pillSourceChip" title="Close this page source view" hidden>source
+        <button id="pillSourceChip" title="Close this page source view" data-i18n-title="pill.source.title" hidden><span data-i18n="pill.source.chip">source</span>
           <svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>
         </button>
         <button id="pillCapture" class="capture-chip" type="button" aria-expanded="false" hidden>
@@ -58,7 +60,7 @@
             <path d="M6 13h4M8 11v2"/>
           </svg>
         </button>
-        <button id="pillFillHint" class="fill-hint-chip" type="button" title="Fill login from 1Password (⌥⌘P)" aria-label="Fill login from 1Password (⌥⌘P)" hidden>
+        <button id="pillFillHint" class="fill-hint-chip" type="button" title="Fill login from 1Password (⌥⌘P)" aria-label="Fill login from 1Password (⌥⌘P)" data-i18n-title="pill.fillHint" data-i18n-aria-label="pill.fillHint" hidden>
           <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="6.4" r="3.1"/><path d="M8.3 8.7 13.2 13.6M10.9 11.3l1.7-1.7M12.7 13.1l1.3-1.3"/></svg>
         </button>
         <button id="pillShield" class="shield" aria-expanded="false" hidden>
@@ -68,21 +70,21 @@
         <span class="pill-sep"></span>
         <div id="pillActions" class="pill-btns"></div>
       </div>
-      <header id="glanceHeader" class="glance-header no-drag" role="group" aria-labelledby="glanceEyebrow" hidden>
+      <header id="glanceHeader" class="glance-header no-drag" role="group" aria-labelledby="glanceEyebrow" data-i18n-ignore="title" hidden>
         <div class="glance-copy">
-          <span id="glanceEyebrow" class="glance-eyebrow">GLANCE</span>
+          <span id="glanceEyebrow" class="glance-eyebrow" data-i18n="glance.eyebrow">GLANCE</span>
           <span class="glance-tab-identity">
             <span id="glanceFavicon" class="favicon" aria-hidden="true"></span>
-            <span id="glanceTitle"></span>
+            <span id="glanceTitle" data-i18n-ignore></span>
           </span>
         </div>
         <div class="glance-actions">
-          <button id="glancePromote" class="glance-action glance-promote" type="button" title="Make Glance the main page" aria-label="Make Glance the main page">
+          <button id="glancePromote" class="glance-action glance-promote" type="button" title="Make Glance the main page" aria-label="Make Glance the main page" data-i18n-title="glance.promote" data-i18n-aria-label="glance.promote">
             <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.25 3.5 10.75 8l-4.5 4.5"/></svg>
-            <span>Make main</span>
+            <span data-i18n="glance.promoteShort">Make main</span>
           </button>
-          <button id="glanceChange" class="glance-action" type="button" title="Choose a different tab for Glance" aria-expanded="false">Change</button>
-          <button id="glanceClose" class="glance-close" type="button" title="Close Glance" aria-label="Close Glance">
+          <button id="glanceChange" class="glance-action" type="button" title="Choose a different tab for Glance" data-i18n-title="glance.change.title" aria-expanded="false" data-i18n="glance.change">Change</button>
+          <button id="glanceClose" class="glance-close" type="button" title="Close Glance" aria-label="Close Glance" data-i18n-title="glance.close" data-i18n-aria-label="glance.close">
             <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>
           </button>
         </div>
@@ -95,15 +97,17 @@
       class="glance-divider no-drag"
       role="separator"
       aria-label="Resize Glance"
+      data-i18n-aria-label="glance.resize"
       aria-valuemin="50"
       aria-valuemax="78"
       aria-valuenow="62"
       tabindex="0"
       title="Drag to resize; double-click to reset"
+      data-i18n-title="resize.hint"
       hidden
     ><span aria-hidden="true"></span></div>
   </div>
-  <aside id="verticalTabsRail" class="vertical-tabs-rail no-drag" aria-label="Vertical tabs" hidden>
+  <aside id="verticalTabsRail" class="vertical-tabs-rail no-drag" aria-label="Vertical tabs" data-i18n-aria-label="rail.label" hidden>
     <div class="vertical-tabs-toolbar">
       <button
         id="verticalTabsUseIsland"
@@ -111,23 +115,26 @@
         type="button"
         title="Turn vertical tabs off"
         aria-label="Turn vertical tabs off"
+        data-i18n-title="rail.islandLayout"
+        data-i18n-aria-label="rail.islandLayout"
         data-focus-key="layout:island"
       >
         <span class="vertical-tabs-layout-icon" aria-hidden="true"></span>
       </button>
     </div>
-    <div id="verticalTabsList" class="vertical-tabs-list" role="list" aria-label="Open tabs"></div>
+    <div id="verticalTabsList" class="vertical-tabs-list" role="list" aria-label="Open tabs" data-i18n-aria-label="rail.list"></div>
     <div class="vertical-tabs-footer">
       <button
         id="verticalTabsNew"
         class="vertical-tabs-new"
         type="button"
         aria-label="New tab"
+        data-i18n-aria-label="tab.new"
         data-focus-key="action:new-tab"
       >
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
-        <span>New tab</span>
-        <kbd id="verticalTabsNewShortcut"></kbd>
+        <span data-i18n="tab.new">New tab</span>
+        <kbd id="verticalTabsNewShortcut" data-i18n-ignore></kbd>
       </button>
     </div>
     <div
@@ -135,12 +142,14 @@
       class="vertical-tabs-resize-handle"
       role="separator"
       aria-label="Resize vertical tabs"
+      data-i18n-aria-label="rail.resize"
       aria-orientation="vertical"
       aria-valuemin="200"
       aria-valuemax="360"
       aria-valuenow="248"
       tabindex="0"
       title="Drag to resize; double-click to reset"
+      data-i18n-title="resize.hint"
     ></div>
     <div id="verticalTabsAnnouncer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
   </aside>

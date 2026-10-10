@@ -60,7 +60,8 @@ export function scanHtml(html, { en, allow = [] }) {
     for (const [attr, counterpart] of Object.entries(ATTRS)) {
       if (attrs[attr] === undefined || !LETTER.test(attrs[attr])) continue;
       scanned += 1;
-      if (attrs[counterpart] === undefined && !allow.includes(attrs[attr]) && !translatedAncestor()) {
+      const exemptAttr = (attrs['data-i18n-ignore'] ?? '').split(/\s+/).includes(attr);
+      if (attrs[counterpart] === undefined && !allow.includes(attrs[attr]) && !translatedAncestor() && !exemptAttr) {
         problems.push(`<${tag} ${attr}="${attrs[attr]}"> has no ${counterpart}`);
       } else if (attrs[counterpart] !== undefined && !t.has(attrs[counterpart])) {
         problems.push(`${counterpart}="${attrs[counterpart]}": unknown key`);
@@ -71,7 +72,9 @@ export function scanHtml(html, { en, allow = [] }) {
       tag,
       key: attrs['data-i18n'],
       translated: attrs['data-i18n'] !== undefined,
-      ignored: attrs['data-i18n-ignore'] !== undefined,
+      // data-i18n-ignore="" exempts the subtree; a value names only this
+      // element's own attributes (e.g. "title"), checked below.
+      ignored: attrs['data-i18n-ignore'] === '',
       skip: SKIP_CONTENT.has(tag),
       text: '',
     });

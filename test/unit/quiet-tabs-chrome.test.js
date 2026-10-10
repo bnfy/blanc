@@ -52,8 +52,12 @@ test('the pill dots carry no quiet treatment — quiet lives on the row-level di
   assert.doesNotMatch(styles, /\.island-dot\.asleep/);
   assert.doesNotMatch(rendererSource, /' asleep'/);
   // The dot's accessible name is just the switch target; no quiet mention.
-  assert.match(rendererSource, /aria-label',\s*`Switch to \$\{t\.title \|\| 'New Tab'\}`/);
-  assert.doesNotMatch(rendererSource, /Switch to[^`]*quiet/);
+  // Copy lives in the interface catalog (F44); the English is unchanged.
+  const catalog = JSON.parse(require('node:fs').readFileSync(require('node:path').join(__dirname, '../../copy/messages/en.json'), 'utf8'));
+  assert.match(rendererSource, /const dotTitle = t\.title \|\| blancI18n\.t\('tab\.untitled'\);/);
+  assert.match(rendererSource, /aria-label', blancI18n\.t\('dot\.switchTo', \{ title: dotTitle \}\)/);
+  assert.equal(catalog['dot.switchTo'].message, 'Switch to {title}');
+  assert.equal(catalog['tab.untitled'].message, 'New Tab');
   // dotsSignature no longer tracks asleep, so the dot row never redraws for it.
   assert.doesNotMatch(dotsSource, /asleep/);
 });
@@ -129,8 +133,10 @@ test('the rail tabRow could be lifted from source', () => {
 
 test('a quiet rail row is classed and named "quiet" — dim-only, like the panel', () => {
   assert.match(railRowSource, /\(tab\.asleep \? ' quiet' : ''\)/);
-  // The field is `asleep`; the string in the accessible name is 'quiet'.
-  assert.match(railRowSource, /tab\.asleep && 'quiet'/);
+  // The field is `asleep`; the word in the accessible name is 'quiet'
+  // (from the interface catalog, F44).
+  assert.match(railRowSource, /tab\.asleep && blancI18n\.t\('rail\.state\.quiet'\)/);
+  assert.equal(JSON.parse(require('node:fs').readFileSync(require('node:path').join(__dirname, '../../copy/messages/en.json'), 'utf8'))['rail.state.quiet'].message, 'quiet');
   // A word in the accessible name, never a glyph — no icon entry survives.
   assert.doesNotMatch(railSource, /QUIET_GLYPH|ICONS\.quiet/);
 });

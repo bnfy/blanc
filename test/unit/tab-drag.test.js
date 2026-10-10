@@ -9,7 +9,10 @@ const vm = require('node:vm');
 // make deepStrictEqual reject identical intents); globalThis is still a
 // private sandbox object, so the browser global never leaks into Node.
 function load() {
-  const sandbox = {};
+  // The page's interface strings, as every chrome document loads them.
+  const { createTranslator } = require('../../src/renderer/pages/i18n.js');
+  const strings = require('../../src/renderer/pages/strings.en.js');
+  const sandbox = { blancI18n: { t: createTranslator({ locale: 'en', messages: strings.messages }) } };
   const source = fs.readFileSync(path.join(__dirname, '../../src/renderer/tab-drag.js'), 'utf8');
   vm.runInThisContext(`(function (globalThis) {\n${source}\n})`)(sandbox);
   return sandbox.blancTabDrag;

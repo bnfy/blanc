@@ -3354,7 +3354,7 @@ Run the desktop smokes that cover the touched surface (listed per phase below). 
 
 ### Phase 2 — Chrome
 
-Files: `src/renderer/index.html`, `renderer.js`, `vertical-tabs.js`, `workspace-ui.js`, `tab-drag.js`, `permission.html`, `permission.js`, `fill-status.html`, `fill-status.js`, `fill-status-copy.js`, `display-capture-helper.html`, `display-capture-helper.js`.
+Files: `src/renderer/index.html`, `renderer.js`, `vertical-tabs.js`, `tab-drag.js`, `permission.html`, `permission.js`, `fill-status.html`, `fill-status.js`, `fill-status-copy.js`, `display-capture-helper.html`, `display-capture-helper.js`. Split into two PRs: 2a (strip, rail, drag) and 2b (permission prompts, fill capsule, capture helper). `workspace-ui.js` renders inside the overlay, so it moved to Phase 3.
 Specifics:
 - `FILL_COPY` moves into `en.json` as `fill.<kind>.title|body|primaryLabel|cancelLabel`; `fill-status-copy.js` becomes a thin adapter returning the same object shape built from `t()` (main's native fallback at `main.js:3893` uses `mainI18n.t`), keeping its "fixed strings only" rule.
 - Permission prompts: one message per permission type; re-measure `permissionViewBounds()` (`main.js:2963`) with the longest German prompt and a 60-character host; truncate the host with an ellipsis and full host in `title`, or derive the height from the rendered prompt.
@@ -3363,7 +3363,7 @@ Smokes: `npm run test:browser-shortcuts:desktop`, `npm run test:acceptance:deskt
 
 ### Phase 3 — Overlay
 
-Files: `src/renderer/overlay.html`, `overlay.js`.
+Files: `src/renderer/overlay.html`, `overlay.js`, `workspace-ui.js` (moved from Phase 2).
 Specifics: the slash table reads hints from `blancI18n.t(slashKey)`; then delete the overlay branch of `slashDrift` in `copy/lib/cli.mjs` and its source entry in `slash-commands.json` (the catalog is now the only copy). Do the same for `pages/shortcuts.js` and `main.js` `SLASH_COMMANDS` in their phases. `overlay.js:1003` ("recently closed" in `innerHTML`) becomes `textContent`.
 Smokes: `npm run test:browser-shortcuts:desktop`.
 
@@ -3411,7 +3411,7 @@ Smokes: `node test/desktop/shield-provider.mjs` (uBO targets only; skip where uB
 
 - [ ] **Step 1: Owner decisions recorded**
 
-Confirm with the owner: "Island"/"Glance" fixed or translated (move them from `pendingOwnerDecision` into `fixed` or `terms`, then re-translate affected keys), and the du-form (or switch to Sie and re-translate). Do not proceed without both answers.
+Confirm with the owner the du-form (or switch to Sie and re-translate); do not proceed without that answer. "Island" and "Glance" were decided on 2026-10-09 (Phase 2): fixed product names, already in `glossary.json` `fixed`.
 
 - [ ] **Step 2: Coverage proof**
 

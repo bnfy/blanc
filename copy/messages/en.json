@@ -134,5 +134,392 @@
     "message": "Relaunch to apply",
     "note": "Button that restarts Blanc so a new interface language takes effect.",
     "maxLength": 28
+  },
+  "key.ctrl": {
+    "message": "Ctrl",
+    "note": "Name of the Control key in shortcut hints on Windows and Linux (German keyboards print Strg).",
+    "maxLength": 5
+  },
+  "app.title": {
+    "message": "Blanc",
+    "note": "Window title of the browser chrome."
+  },
+  "menu.main.title": {
+    "message": "Main menu (Alt+F)",
+    "note": "Tooltip of the main-menu button on Windows and Linux; Alt+F is its shortcut."
+  },
+  "menu.main.label": {
+    "message": "Main menu",
+    "note": "Accessible name of the main-menu button on Windows and Linux."
+  },
+  "pill.title": {
+    "message": "Search, tabs & commands (Ctrl/Cmd+L)",
+    "note": "Tooltip of the resting Island pill; Ctrl/Cmd+L opens it."
+  },
+  "pill.insecure.title": {
+    "message": "Not secure — this site uses an unencrypted connection (HTTP)",
+    "note": "Default tooltip of the pill's not-secure badge."
+  },
+  "pill.insecure.label": {
+    "message": "Not secure — this site uses an unencrypted connection. Open site controls.",
+    "note": "Default accessible name of the pill's not-secure badge (a button that opens site controls)."
+  },
+  "pill.insecure.fallback": {
+    "message": "Connection is not secure",
+    "note": "Not-secure badge tooltip when main sends no specific reason."
+  },
+  "pill.insecure.open": {
+    "message": "{title}. Open site controls.",
+    "note": "Accessible name of the not-secure badge; {title} is the security warning shown as its tooltip."
+  },
+  "pill.domainDefault": {
+    "message": "new tab",
+    "note": "Initial lowercase label in the pill before the first tab state arrives.",
+    "maxLength": 14
+  },
+  "pill.placeholder": {
+    "message": "Search or type a URL",
+    "note": "Pill label on a blank new tab, inviting the user to open the command bar.",
+    "maxLength": 28
+  },
+  "pill.commands": {
+    "message": "Commands (/)",
+    "note": "Tooltip and accessible name of the pill's slash button that opens commands."
+  },
+  "pill.private.chip": {
+    "message": "private",
+    "note": "Lowercase chip in the pill on a private tab; clicking it closes the tab.",
+    "maxLength": 10
+  },
+  "pill.private.title": {
+    "message": "Leave private mode — closes this tab",
+    "note": "Tooltip of the private chip."
+  },
+  "pill.source.chip": {
+    "message": "source",
+    "note": "Lowercase chip in the pill on a view-source tab; clicking it closes the tab.",
+    "maxLength": 12
+  },
+  "pill.source.title": {
+    "message": "Close this page source view",
+    "note": "Tooltip of the source chip."
+  },
+  "pill.fillHint": {
+    "message": "Fill login from 1Password (⌥⌘P)",
+    "note": "Tooltip and accessible name of the macOS-only 1Password fill chip."
+  },
+  "pill.back": {
+    "message": "Back",
+    "note": "Pill button: go back in this tab's history."
+  },
+  "pill.forward": {
+    "message": "Forward",
+    "note": "Pill button: go forward in this tab's history."
+  },
+  "pill.newTab.title": {
+    "message": "New tab ({shortcut})",
+    "note": "Tooltip of the pill's new-tab button; {shortcut} is ⌘T or Ctrl+T."
+  },
+  "pill.reload": {
+    "message": "Reload",
+    "note": "Pill button: reload the page."
+  },
+  "pill.stop": {
+    "message": "Stop",
+    "note": "Pill button while a page loads: stop loading."
+  },
+  "pill.favorite": {
+    "message": "Favorite this page",
+    "note": "Pill heart button when the page is not a favorite."
+  },
+  "pill.unfavorite": {
+    "message": "Remove favorite",
+    "note": "Pill heart button when the page is already a favorite."
+  },
+  "pill.closeTab": {
+    "message": "Close tab",
+    "note": "Pill button that closes the active tab."
+  },
+  "pill.downloads": {
+    "message": "Downloads",
+    "note": "Pill downloads button; opens the Downloads sheet."
+  },
+  "pill.downloading": {
+    "message": "{count, plural, one {Downloading — # active} other {Downloading — # active}}",
+    "note": "Downloads button tooltip while downloads run; # is the number of active downloads."
+  },
+  "pill.downloadDone": {
+    "message": "Download complete — open Downloads",
+    "note": "Downloads button tooltip right after a download finishes."
+  },
+  "pill.moreTabs": {
+    "message": "{count, plural, one {# more tab — open the list} other {# more tabs — open the list}}",
+    "note": "Tooltip of the +N overflow beside the pill's tab dots; opens the tab list."
+  },
+  "dot.switchTo": {
+    "message": "Switch to {title}",
+    "note": "Accessible name of a tab dot or rail row; {title} is the tab's title."
+  },
+  "capture.both": {
+    "message": "camera & microphone in use — open capture controls",
+    "note": "Capture chip tooltip while a page uses camera and microphone."
+  },
+  "capture.camera": {
+    "message": "camera in use — open capture controls",
+    "note": "Capture chip tooltip while a page uses the camera."
+  },
+  "capture.microphone": {
+    "message": "microphone in use — open capture controls",
+    "note": "Capture chip tooltip while a page uses the microphone."
+  },
+  "share.choosing": {
+    "message": "Choosing what to share — open share controls",
+    "note": "Screen-share chip tooltip while the share picker is open."
+  },
+  "share.sharing": {
+    "message": "Sharing {surface} — open share controls",
+    "note": "Screen-share chip tooltip; {surface} names the shared window or screen."
+  },
+  "share.sharingScreen": {
+    "message": "Sharing this screen — open share controls",
+    "note": "Screen-share chip tooltip when the shared surface has no name."
+  },
+  "share.count": {
+    "message": "{count, plural, one {# screen share — open share controls} other {# screen shares — open share controls}}",
+    "note": "Screen-share chip tooltip with several shares in this window."
+  },
+  "window.minimize": {
+    "message": "Minimize",
+    "note": "Window control button on Windows and Linux."
+  },
+  "window.maximize": {
+    "message": "Maximize / Restore",
+    "note": "Window control button on Windows and Linux."
+  },
+  "window.close": {
+    "message": "Close",
+    "note": "Window control button on Windows and Linux."
+  },
+  "tab.loading": {
+    "message": "Loading…",
+    "note": "Shown while a tab loads and has no title yet."
+  },
+  "tab.new": {
+    "message": "New tab",
+    "note": "Label for opening a new tab (rail button, accessible names).",
+    "maxLength": 16
+  },
+  "tab.untitled": {
+    "message": "New Tab",
+    "note": "Fallback title of a tab that has none yet."
+  },
+  "tab.untitledPrivate": {
+    "message": "Private Tab",
+    "note": "Fallback title of a private tab that has none yet."
+  },
+  "tab.privateLabel": {
+    "message": "Private tab",
+    "note": "Glance header label for a private tab that has no title yet."
+  },
+  "glance.eyebrow": {
+    "message": "GLANCE",
+    "note": "Uppercase eyebrow of the Glance reference-pane header. Glance is a fixed product name."
+  },
+  "glance.promote": {
+    "message": "Make Glance the main page",
+    "note": "Tooltip and accessible name of the button that swaps Glance with the main page."
+  },
+  "glance.promoteShort": {
+    "message": "Make main",
+    "note": "Short visible label of that same button.",
+    "maxLength": 13
+  },
+  "glance.change": {
+    "message": "Change",
+    "note": "Button that picks a different tab for Glance.",
+    "maxLength": 10
+  },
+  "glance.change.title": {
+    "message": "Choose a different tab for Glance",
+    "note": "Tooltip of the Change button."
+  },
+  "glance.close": {
+    "message": "Close Glance",
+    "note": "Tooltip and accessible name of the Glance close button."
+  },
+  "glance.resize": {
+    "message": "Resize Glance",
+    "note": "Accessible name of the divider between the main page and Glance."
+  },
+  "glance.dividerValue": {
+    "message": "Main page {percent} percent",
+    "note": "Screen-reader value of the Glance divider; {percent} is the main page's share of the width."
+  },
+  "resize.hint": {
+    "message": "Drag to resize; double-click to reset",
+    "note": "Tooltip of resize handles (Glance divider, vertical tabs edge)."
+  },
+  "rail.label": {
+    "message": "Vertical tabs",
+    "note": "Accessible name of the vertical tabs rail."
+  },
+  "rail.islandLayout": {
+    "message": "Turn vertical tabs off",
+    "note": "Rail toolbar button that returns to the Island layout."
+  },
+  "rail.list": {
+    "message": "Open tabs",
+    "note": "Accessible name of the rail's tab list."
+  },
+  "rail.resize": {
+    "message": "Resize vertical tabs",
+    "note": "Accessible name of the rail's resize handle."
+  },
+  "rail.widthValue": {
+    "message": "{width} pixels",
+    "note": "Screen-reader value of the rail's resize handle; {width} is the rail width."
+  },
+  "rail.widthAnnounce": {
+    "message": "Vertical tabs width {width} pixels",
+    "note": "Announced after resizing the rail."
+  },
+  "rail.widthReset": {
+    "message": "Vertical tabs width reset to {width} pixels",
+    "note": "Announced after resetting the rail width."
+  },
+  "rail.tab.current": {
+    "message": "Current tab {title}",
+    "note": "Accessible name of the rail row for the active tab."
+  },
+  "rail.tab.withStates": {
+    "message": "{label}, {states}",
+    "note": "Rail row accessible name followed by its comma-separated states."
+  },
+  "rail.state.active": {
+    "message": "active",
+    "note": "Rail row state read by screen readers."
+  },
+  "rail.state.private": {
+    "message": "private",
+    "note": "Rail row state read by screen readers."
+  },
+  "rail.state.pinned": {
+    "message": "pinned",
+    "note": "Rail row state read by screen readers."
+  },
+  "rail.state.loading": {
+    "message": "loading",
+    "note": "Rail row state read by screen readers."
+  },
+  "rail.state.quiet": {
+    "message": "quiet",
+    "note": "Rail row state read by screen readers (a Quiet Tab)."
+  },
+  "rail.state.muted": {
+    "message": "muted",
+    "note": "Rail row state read by screen readers."
+  },
+  "rail.state.playingAudio": {
+    "message": "playing audio",
+    "note": "Rail row state read by screen readers."
+  },
+  "rail.marker.pinned": {
+    "message": "Pinned",
+    "note": "Tooltip of the rail row's pin marker."
+  },
+  "rail.marker.muted": {
+    "message": "Muted",
+    "note": "Tooltip of the rail row's muted marker."
+  },
+  "rail.marker.playingAudio": {
+    "message": "Playing audio",
+    "note": "Tooltip of the rail row's audio marker."
+  },
+  "rail.close": {
+    "message": "Close {title}",
+    "note": "Tooltip and accessible name of a rail row's close button."
+  },
+  "rail.group.containsCurrent": {
+    "message": "Contains current tab",
+    "note": "Tooltip of the marker on a collapsed group holding the active tab."
+  },
+  "rail.move.top": {
+    "message": "Already at the top",
+    "note": "Announced when a keyboard move cannot go further up."
+  },
+  "rail.move.bottom": {
+    "message": "Already at the bottom",
+    "note": "Announced when a keyboard move cannot go further down."
+  },
+  "drag.movedGroup": {
+    "message": "Moved group {group}",
+    "note": "Announced after moving a tab group; {group} is its name."
+  },
+  "drag.movedTab": {
+    "message": "Moved {title}",
+    "note": "Announced after reordering a tab; {title} is its title."
+  },
+  "drag.movedTabUntitled": {
+    "message": "Moved tab",
+    "note": "Announced after reordering a tab that has no title."
+  },
+  "drag.movedTo": {
+    "message": "Moved to {group}",
+    "note": "Announced after moving a tab into a group."
+  },
+  "drag.movedOutOf": {
+    "message": "Moved out of {group}",
+    "note": "Announced after moving a tab out of a group."
+  },
+  "drag.movedToRemoved": {
+    "message": "Moved to {group}. Group {from} removed",
+    "note": "Announced when moving a tab into {group} empties and removes group {from}."
+  },
+  "drag.movedOutOfRemoved": {
+    "message": "Moved out of {from}. Group {from} removed",
+    "note": "Announced when moving the last tab out of group {from} removes it."
+  },
+  "drag.failed": {
+    "message": "Couldn't move {title}",
+    "note": "Announced when a drag-and-drop move fails; {title} is the tab title or group name."
+  },
+  "drag.failedTab": {
+    "message": "Couldn't move tab",
+    "note": "Announced when moving an untitled tab fails."
+  },
+  "drag.failedGroup": {
+    "message": "Couldn't move group",
+    "note": "Announced when moving an unnamed group fails."
+  },
+  "rail.group.label": {
+    "message": "{name}, {count, plural, one {# tab} other {# tabs}}, {state}",
+    "note": "Accessible name of a rail group header; {name} is the group name, {state} is collapsed or expanded."
+  },
+  "rail.group.labelWithCurrent": {
+    "message": "{name}, {count, plural, one {# tab} other {# tabs}}, {state}, contains current tab",
+    "note": "Accessible name of a rail group header that holds the active tab."
+  },
+  "rail.group.collapsed": {
+    "message": "collapsed",
+    "note": "Rail group state read by screen readers."
+  },
+  "rail.group.expanded": {
+    "message": "expanded",
+    "note": "Rail group state read by screen readers."
+  },
+  "rail.private.marker": {
+    "message": "private",
+    "note": "Lowercase marker on a private tab's rail row.",
+    "maxLength": 10
+  },
+  "rail.section.pinned": {
+    "message": "pinned",
+    "note": "Lowercase heading of the rail section holding pinned tabs that are not in a group.",
+    "maxLength": 14
+  },
+  "rail.section.tabs": {
+    "message": "tabs",
+    "note": "Lowercase heading of the rail section holding ungrouped tabs.",
+    "maxLength": 10
   }
 }
