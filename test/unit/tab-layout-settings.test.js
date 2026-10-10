@@ -186,9 +186,9 @@ test('native menu binds a mnemonic vertical-tabs toggle without taking paste sho
     'utf8'
   );
 
-  assert.match(main, /label: 'Toggle Vertical Tabs',\s+accelerator: 'CmdOrCtrl\+Alt\+V'/);
+  assert.match(main, /label: t\('menu\.toggleVerticalTabs'\),\s+accelerator: 'CmdOrCtrl\+Alt\+V'/);
   assert.match(main, /tabLayout === 'vertical' \? 'island' : 'vertical'/);
-  assert.doesNotMatch(main, /Toggle Vertical Tabs'[^}]+CmdOrCtrl\+(?:Shift\+)?V'/s);
+  assert.doesNotMatch(main, /menu\.toggleVerticalTabs'\)[^}]+CmdOrCtrl\+(?:Shift\+)?V'/s);
 });
 
 test('vertical rail depth fade is inset, theme-aware, and cannot intercept page input', () => {

@@ -2423,7 +2423,7 @@ async function failWake(tab, generation, { failedUrl = tab.url } = {}) {
   if (wc) {
     const q = new URLSearchParams({
       url: failedUrl ?? '', code: 'wake-failed',
-      desc: 'The page could not be reloaded', title: tab.title ?? '',
+      desc: mainI18n.t('error.reloadFailed'), title: tab.title ?? '',
     });
     const destination = `blanc://error/?${q}`;
     await wc.loadURL(destination).catch(() => {});
@@ -5765,7 +5765,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     runtimeId: owner.id,
     profileId: owner.profileId,
     view: bornQuiet ? null : view,
-    title: typeof title === 'string' && title ? title : 'New Tab',
+    title: typeof title === 'string' && title ? title : mainI18n.t('tab.untitled'),
     url,
     // Main-process grant, never copied from an IPC option. Cleared when the
     // document leaves this local file; only an OS handoff can originate it.
@@ -6163,7 +6163,7 @@ async function setGlanceTab(id) {
   resizeActiveView();
   broadcastTabs();
   scheduleMenuRebuild();
-  rt().window.webContents.send('chrome:glance-status', `${tab.title || 'Tab'} opened in Glance`);
+  rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.opened', { title: tab.title || mainI18n.t('tab.untitledShort') }));
   return true;
 }
 
@@ -6179,7 +6179,7 @@ function closeGlance({ focusContent = true } = {}) {
   resizeActiveView();
   broadcastTabs();
   scheduleMenuRebuild();
-  if (hasLiveWindow()) rt().window.webContents.send('chrome:glance-status', 'Glance closed');
+  if (hasLiveWindow()) rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.closed'));
   if (focusContent) liveContents(tabs.get(rt().activeTabId))?.focus();
   return true;
 }
@@ -6190,7 +6190,7 @@ function promoteGlance() {
   setActiveTab(id, { focusContent: true });
   const promoted = rt().activeTabId === id;
   if (promoted && hasLiveWindow()) {
-    rt().window.webContents.send('chrome:glance-status', 'Glance made main');
+    rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.promoted'));
   }
   return promoted;
 }
@@ -6504,7 +6504,7 @@ function closeTab(id) {
   // surviving main WebContentsView its full page bounds in the same turn.
   if (wasGlance && hasLiveWindow()) resizeActiveView();
   if (wasGlance && hasLiveWindow()) {
-    rt().window.webContents.send('chrome:glance-status', 'Glance closed because its tab was closed');
+    rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.tabClosed'));
   }
   broadcastTabs();
   scheduleMenuRebuild();
@@ -7695,7 +7695,7 @@ function tabMenuItems(owner = rt()) {
     } catch {
       /* not a parseable URL (blank tab, blanc:// page) — show it as-is */
     }
-    const label = `${tab.title || 'New Tab'} — ${domain}${group ? ` (${group.name})` : ''}`;
+    const label = `${tab.title || mainI18n.t('tab.untitled')} — ${domain}${group ? ` (${group.name})` : ''}`;
     return {
       label: escapeMenuLabel(label.length > 120 ? `${label.slice(0, 119)}…` : label),
       type: 'checkbox',
@@ -7738,7 +7738,9 @@ function formatAccelerator(accelerator) {
   const KEYS = { Left: '←', Right: '→', Up: '↑', Down: '↓', Plus: '+' };
   const label = KEYS[key] ?? key;
   if (process.platform !== 'darwin') {
-    const OTHER = { CmdOrCtrl: 'Ctrl', CommandOrControl: 'Ctrl', Control: 'Ctrl' };
+    // Modifier words in the interface language (Ctrl is “Strg” in German).
+    const ctrl = mainI18n.t('key.ctrl');
+    const OTHER = { CmdOrCtrl: ctrl, CommandOrControl: ctrl, Control: ctrl, Ctrl: ctrl, Alt: mainI18n.t('key.alt'), Shift: mainI18n.t('key.shift') };
     return [...parts.map((m) => OTHER[m] ?? m), label].join('+');
   }
   const MAC = {
@@ -7767,7 +7769,7 @@ function listShortcuts() {
       if (/^CmdOrCtrl\+[1-9]$/.test(item.accelerator)) {
         if (!collapsedTabJumps) {
           collapsedTabJumps = true;
-          rows.push({ category, label: 'Tab or Group 1–9', keys: `${formatAccelerator('CmdOrCtrl+1')}–9` });
+          rows.push({ category, label: mainI18n.t('menu.tabOrGroupRange'), keys: `${formatAccelerator('CmdOrCtrl+1')}–9` });
         }
         continue;
       }
@@ -7780,44 +7782,46 @@ function listShortcuts() {
   for (const top of Menu.getApplicationMenu()?.items ?? []) {
     collect(top.submenu?.items, top.label);
   }
-  const mod = process.platform === 'darwin' ? '⌘' : 'Ctrl+';
+  const modifier = process.platform === 'darwin' ? '⌘' : `${mainI18n.t('key.ctrl')}+`;
+  const island = mainI18n.t('shortcuts.island');
   rows.push(
-    { category: 'Island', label: 'Dismiss island panel / find bar', keys: 'Esc' },
-    { category: 'Island', label: 'Open address or run command (in command bar)', keys: 'Return' },
-    { category: 'Island', label: 'Open link in background tab', keys: `${mod}click` },
+    { category: island, label: mainI18n.t('shortcuts.dismiss'), keys: mainI18n.t('key.escape') },
+    { category: island, label: mainI18n.t('shortcuts.submit'), keys: mainI18n.t('key.return') },
+    { category: island, label: mainI18n.t('shortcuts.backgroundLink'), keys: mainI18n.t('key.click', { modifier }) },
   );
   return rows;
 }
 
-// Also listed in overlay.js's COMMANDS and pages/shortcuts.js's
-// SLASH_COMMANDS — keep all three in sync when adding or changing a command.
+// The Help menu's slash-command reference: each command's reference spelling
+// and its catalog key, in the registry's order (copy:check verifies both
+// against copy/slash-commands.json).
 const SLASH_COMMANDS = [
-  ['/favorites', 'Open favorites'],
-  ['/bring-tabs', 'Bring open tabs from another browser'],
-  ['/save [folder]', 'Save this page to favorites, into a folder if you name one'],
-  ['/history', 'Open browsing history'],
-  ['/downloads', 'Open downloads'],
-  ['/settings', 'Open settings'],
-  ['/sync', 'Set up or manage sync'],
-  ['/clear', 'Clear browsing history'],
-  ['/new', 'Open a new tab'],
-  ['/private', 'Open a private tab (history stays untouched)'],
-  ['/close', 'Close this tab'],
-  ['/reopen', 'Reopen the tab you just closed'],
-  ['/pin', 'Pin or unpin this tab'],
-  ['/mute', 'Mute or unmute this tab'],
-  ['/sleep', 'Quiet background tabs and free their memory'],
-  ['/group <name>', 'Move this tab into a group, creating it on first use'],
-  ['/ungroup', 'Take this tab out of its group'],
-  ['/close-group', 'Close every tab in this group'],
-  ['/find', 'Find in page'],
-  ['/block-ads', 'Block ads here, or toggle blocking everywhere'],
-  ['/allow-ads', 'Allow ads on this site'],
-  ['/dark-site', 'Darken this site, or leave it as drawn'],
-  ['/1password', 'Fill a login from 1Password'],
-  ['/theme [system|light|dark]', 'Cycle appearance, or switch directly to system, light, or dark'],
-  ['/patron', 'Support Blanc with a Patron subscription'],
-  ['/workspace', 'Switch to a named workspace, or type a new name to save this window'],
+  ['/favorites', 'slash.favorites.hint'],
+  ['/bring-tabs', 'slash.bringTabs.hint'],
+  ['/save [folder]', 'slash.save.doc'],
+  ['/history', 'slash.history.hint'],
+  ['/downloads', 'slash.downloads.hint'],
+  ['/settings', 'slash.settings.hint'],
+  ['/sync', 'slash.sync.hint'],
+  ['/clear', 'slash.clear.hint'],
+  ['/new', 'slash.new.hint'],
+  ['/private', 'slash.private.hint'],
+  ['/close', 'slash.close.hint'],
+  ['/reopen', 'slash.reopen.hint'],
+  ['/pin', 'slash.pin.hint'],
+  ['/mute', 'slash.mute.hint'],
+  ['/sleep', 'slash.sleep.hint'],
+  ['/group <name>', 'slash.group.doc'],
+  ['/ungroup', 'slash.ungroup.hint'],
+  ['/close-group', 'slash.closeGroup.hint'],
+  ['/find', 'slash.find.hint'],
+  ['/block-ads', 'slash.blockAds.hint'],
+  ['/allow-ads', 'slash.allowAds.hint'],
+  ['/dark-site', 'slash.darkSite.hint'],
+  ['/1password', 'slash.1password.hint'],
+  ['/theme [system|light|dark]', 'slash.theme.doc'],
+  ['/patron', 'slash.patron.hint'],
+  ['/workspace', 'slash.workspace.hint'],
 ];
 
 // A hand-picked subset of the full inventory (blanc://shortcuts/, via
@@ -7829,28 +7833,29 @@ const LAST_ACTIVE_TAB_ACCELERATOR = process.platform === 'darwin'
   ? 'Cmd+Alt+Z'
   : null;
 const ONE_PASSWORD_ACCELERATOR = onePasswordAccelerator();
+// [catalog key, accelerator]; labels are translated when the menu is built.
 const COMMON_KEYSTROKES = [
-  ['New Window', 'CmdOrCtrl+N'],
-  ['New Tab', 'CmdOrCtrl+T'],
-  ['New Private Tab', 'CmdOrCtrl+Shift+N'],
-  ['Close Tab', 'CmdOrCtrl+W'],
-  ['Reopen Closed Tab', 'CmdOrCtrl+Shift+T'],
-  ['Search & Commands', 'CmdOrCtrl+L'],
-  ['Find in Page', 'CmdOrCtrl+F'],
+  ['menu.newWindow', 'CmdOrCtrl+N'],
+  ['menu.newTab', 'CmdOrCtrl+T'],
+  ['menu.newPrivateTab', 'CmdOrCtrl+Shift+N'],
+  ['menu.closeTab', 'CmdOrCtrl+W'],
+  ['menu.reopenClosedTab', 'CmdOrCtrl+Shift+T'],
+  ['menu.searchCommands', 'CmdOrCtrl+L'],
+  ['menu.findInPage', 'CmdOrCtrl+F'],
   ...(ONE_PASSWORD_ACCELERATOR
-    ? [['Fill Login from 1Password', ONE_PASSWORD_ACCELERATOR]]
+    ? [['menu.fillOnePassword', ONE_PASSWORD_ACCELERATOR]]
     : []),
-  ['Toggle Vertical Tabs', 'CmdOrCtrl+Alt+V'],
-  ['Open or Close Glance', 'CmdOrCtrl+Shift+G'],
+  ['menu.toggleVerticalTabs', 'CmdOrCtrl+Alt+V'],
+  ['menu.toggleGlance', 'CmdOrCtrl+Shift+G'],
   ...(LAST_ACTIVE_TAB_ACCELERATOR
-    ? [['Switch to Last Active Tab', LAST_ACTIVE_TAB_ACCELERATOR]]
+    ? [['menu.switchLastTab', LAST_ACTIVE_TAB_ACCELERATOR]]
     : []),
-  ['Next Tab', 'Ctrl+Tab'],
-  ['Previous Tab', 'Ctrl+Shift+Tab'],
-  ['Next Tab in Group', 'Alt+CmdOrCtrl+Right'],
-  ['Previous Tab in Group', 'Alt+CmdOrCtrl+Left'],
-  ['Next Group', 'Alt+CmdOrCtrl+Down'],
-  ['Previous Group', 'Alt+CmdOrCtrl+Up'],
+  ['menu.nextTab', 'Ctrl+Tab'],
+  ['menu.previousTab', 'Ctrl+Shift+Tab'],
+  ['menu.nextTabInGroup', 'Alt+CmdOrCtrl+Right'],
+  ['menu.previousTabInGroup', 'Alt+CmdOrCtrl+Left'],
+  ['menu.nextGroup', 'Alt+CmdOrCtrl+Down'],
+  ['menu.previousGroup', 'Alt+CmdOrCtrl+Up'],
 ];
 
 function buildMenu(runtime = focusedRuntime ?? primaryRuntime) {
@@ -7863,6 +7868,7 @@ function buildMenuForRuntime(runtime) {
   // mnemonic and is swallowed; a literal ampersand must be doubled. macOS
   // has no mnemonics, so leave labels untouched there.
   const mn = escapeMenuLabel; // literal '&' → '&&' on Win/Linux; see helper
+  const t = mainI18n.t;
   const favItems = favoritesMenuItems(runtime); // computed once; drives the separator below
   const profileItems = localProfiles.listLocalProfiles()
     .filter((profile) => !profileDeletions.hasPendingProfileDeletion(profile.id))
@@ -7881,6 +7887,7 @@ function buildMenuForRuntime(runtime) {
     const definition = browserCommandDefinition(id);
     return {
       id: `browser-${id}`,
+      label: mn(t(definition.labelKey)),
       accelerator: definition.primary,
       click: (_item, window) => {
         const target = window
@@ -7898,88 +7905,129 @@ function buildMenuForRuntime(runtime) {
     ? [{
         label: app.name,
         submenu: [
-          { role: 'about' },
-          { label: 'Check for Updates…', click: bound(checkForUpdatesManually) },
+          { role: 'about', label: t('menu.app.about', { app: app.name }) },
+          { label: t('menu.checkForUpdates'), click: bound(checkForUpdatesManually) },
           { type: 'separator' },
-          { role: 'services' },
+          { role: 'services', label: t('menu.app.services') },
           { type: 'separator' },
-          { role: 'hide' },
-          { role: 'hideOthers' },
-          { role: 'unhide' },
+          { role: 'hide', label: t('menu.app.hide', { app: app.name }) },
+          { role: 'hideOthers', label: t('menu.app.hideOthers') },
+          { role: 'unhide', label: t('menu.app.unhide') },
           { type: 'separator' },
-          { role: 'quit' },
+          { role: 'quit', label: t('menu.app.quit', { app: app.name }) },
         ],
       }]
     : [];
   const template = [
     ...appMenu,
     {
-      label: 'File',
+      label: t('menu.file'),
       submenu: [
-        { label: 'New Window', ...command('new-window') },
-        { label: 'New Profile Window', click: bound(() => openNewProfileWindow()) },
-        { label: 'New Tab', ...command('new-tab') },
-        { label: 'New Private Tab', ...command('new-private-tab') },
-        { label: 'Close Tab', ...command('close-tab') },
+        command('new-window'),
+        { label: t('menu.newProfileWindow'), click: bound(() => openNewProfileWindow()) },
+        command('new-tab'),
+        command('new-private-tab'),
+        command('close-tab'),
         {
-          label: 'Reopen Closed Tab',
           ...command('reopen-tab'),
           enabled: (runtime.closedEntries?.length ?? 0) > 0,
         },
-        { label: 'Print…', accelerator: 'CmdOrCtrl+P', click: bound(() => rt().activeTabId && tabs.get(rt().activeTabId)?.view.webContents.print()) },
+        { label: t('menu.print'), accelerator: 'CmdOrCtrl+P', click: bound(() => rt().activeTabId && tabs.get(rt().activeTabId)?.view.webContents.print()) },
         { type: 'separator' },
-        { label: 'Downloads', ...command('downloads') },
-        { label: 'Settings', ...command('settings') },
+        command('downloads'),
+        command('settings'),
         { type: 'separator' },
-        ...(isMac ? [] : [{ label: 'Check for Updates…', click: bound(checkForUpdatesManually) }, { type: 'separator' }]),
-        isMac ? { role: 'close' } : { role: 'quit' },
+        ...(isMac ? [] : [{ label: t('menu.checkForUpdates'), click: bound(checkForUpdatesManually) }, { type: 'separator' }]),
+        // Electron's own labels for these roles: Close Window; Exit on Windows, Quit on Linux.
+        isMac ? { role: 'close', label: t('menu.closeWindow') }
+          : { role: 'quit', label: t(process.platform === 'win32' ? 'menu.exit' : 'menu.quit') },
       ],
     },
     {
-      label: 'Profiles',
+      label: t('menu.profiles'),
       submenu: [
-        { label: 'New Profile Window', click: bound(() => openNewProfileWindow()) },
-        { label: 'Manage Profiles…', click: bound(() => openInternalPage('blanc://settings/#group-profiles')) },
+        { label: t('menu.newProfileWindow'), click: bound(() => openNewProfileWindow()) },
+        { label: t('menu.manageProfiles'), click: bound(() => openInternalPage('blanc://settings/#group-profiles')) },
         { type: 'separator' },
         ...profileItems,
       ],
     },
-    { role: 'editMenu' }, // required for copy/paste/undo to work in inputs
+    // Required for copy/paste/undo to work in inputs. Spelled out (the same
+    // items Electron's editMenu role builds on each platform) so every label
+    // can be translated; each item keeps its native role.
     {
-      label: 'View',
+      label: t('menu.edit'),
       submenu: [
-        { label: mn('Search & Commands'), ...command('address') },
-        { label: 'Find…', ...command('find') },
+        { role: 'undo', label: t('menu.undo') },
+        { role: 'redo', label: t('menu.redo') },
+        { type: 'separator' },
+        { role: 'cut', label: t('menu.cut') },
+        { role: 'copy', label: t('menu.copy') },
+        { role: 'paste', label: t('menu.paste') },
+        ...(isMac ? [
+          { role: 'pasteAndMatchStyle', label: t('menu.pasteAndMatchStyle') },
+          { role: 'delete', label: t('menu.delete') },
+          { role: 'selectAll', label: t('menu.selectAll') },
+          { type: 'separator' },
+          {
+            label: t('menu.substitutions'),
+            submenu: [
+              { role: 'showSubstitutions', label: t('menu.showSubstitutions') },
+              { type: 'separator' },
+              { role: 'toggleSmartQuotes', label: t('menu.smartQuotes') },
+              { role: 'toggleSmartDashes', label: t('menu.smartDashes') },
+              { role: 'toggleTextReplacement', label: t('menu.textReplacement') },
+            ],
+          },
+          {
+            label: t('menu.speech'),
+            submenu: [
+              { role: 'startSpeaking', label: t('menu.startSpeaking') },
+              { role: 'stopSpeaking', label: t('menu.stopSpeaking') },
+            ],
+          },
+        ] : [
+          { role: 'delete', label: t('menu.delete') },
+          { type: 'separator' },
+          { role: 'selectAll', label: t('menu.selectAll') },
+        ]),
+      ],
+    },
+    {
+      label: t('menu.view'),
+      submenu: [
+        command('address'),
+        command('find'),
         ...(ONE_PASSWORD_AVAILABLE ? [{
-          label: 'Fill Login from 1Password',
+          label: t('menu.fillOnePassword'),
           accelerator: ONE_PASSWORD_ACCELERATOR,
           click: bound(fillLoginFromOnePassword),
         }] : []),
-        { label: 'Reload Tab', ...command('reload') },
-        { label: 'Hard Reload Tab (Bypass Cache)', ...command('hard-reload') },
-        { label: 'Zoom In', accelerator: 'CmdOrCtrl+Plus', click: bound(() => zoomActiveTab(ZOOM_STEP)) },
+        command('reload'),
+        command('hard-reload'),
+        { label: t('menu.zoomIn'), accelerator: 'CmdOrCtrl+Plus', click: bound(() => zoomActiveTab(ZOOM_STEP)) },
         // Plus requires Shift on most keyboards; Cmd/Ctrl+= is the common alternate, bound silently to the same action.
-        { label: 'Zoom In', accelerator: 'CmdOrCtrl+=', visible: false, click: bound(() => zoomActiveTab(ZOOM_STEP)) },
-        { label: 'Zoom Out', accelerator: 'CmdOrCtrl+-', click: bound(() => zoomActiveTab(-ZOOM_STEP)) },
-        { label: 'Actual Size', accelerator: 'CmdOrCtrl+0', click: bound(resetZoomForActiveTab) },
+        { label: t('menu.zoomIn'), accelerator: 'CmdOrCtrl+=', visible: false, click: bound(() => zoomActiveTab(ZOOM_STEP)) },
+        { label: t('menu.zoomOut'), accelerator: 'CmdOrCtrl+-', click: bound(() => zoomActiveTab(-ZOOM_STEP)) },
+        { label: t('menu.actualSize'), accelerator: 'CmdOrCtrl+0', click: bound(resetZoomForActiveTab) },
         { type: 'separator' },
         {
           id: 'toggle-vertical-tabs',
-          label: 'Toggle Vertical Tabs',
+          label: t('menu.toggleVerticalTabs'),
           accelerator: 'CmdOrCtrl+Alt+V',
           click: bound(toggleTabLayout),
         },
         {
-          label: 'Tab Layout',
+          label: t('menu.tabLayout'),
           submenu: [
             {
-              label: 'Island',
+              label: t('menu.layoutIsland'),
               type: 'radio',
               checked: tabLayout === 'island',
               click: bound(() => setTabLayout('island')),
             },
             {
-              label: 'Vertical Tabs',
+              label: t('menu.layoutVertical'),
               type: 'radio',
               checked: tabLayout === 'vertical',
               click: bound(() => setTabLayout('vertical')),
@@ -7988,21 +8036,21 @@ function buildMenuForRuntime(runtime) {
         },
         {
           id: 'toggle-glance',
-          label: activeGlanceTab() ? 'Close Glance' : 'Open Glance…',
+          label: t(activeGlanceTab() ? 'menu.closeGlance' : 'menu.openGlance'),
           accelerator: 'CmdOrCtrl+Shift+G',
           enabled: !!activeGlanceTab() || rt().tabOrder.length > 1,
           click: bound(toggleGlance),
         },
         { type: 'separator' },
-        { role: 'toggleDevTools' },
+        { role: 'toggleDevTools', label: t('menu.toggleDevTools') },
       ],
     },
     {
-      label: 'Tabs',
+      label: t('menu.tabs'),
       submenu: [
         {
           id: 'switch-last-active-tab',
-          label: 'Switch to Last Active Tab',
+          label: t('menu.switchLastTab'),
           ...(LAST_ACTIVE_TAB_ACCELERATOR
             ? { accelerator: LAST_ACTIVE_TAB_ACCELERATOR }
             : {}),
@@ -8010,29 +8058,29 @@ function buildMenuForRuntime(runtime) {
           click: bound(switchToLastActiveTab),
         },
         { type: 'separator' },
-        { label: 'Next Tab', ...command('next-tab') },
-        { label: 'Previous Tab', ...command('previous-tab') },
-        { label: 'Next Tab in Group', accelerator: 'Alt+CmdOrCtrl+Right', click: bound(() => cycleTabInCluster(1)) },
-        { label: 'Previous Tab in Group', accelerator: 'Alt+CmdOrCtrl+Left', click: bound(() => cycleTabInCluster(-1)) },
-        { label: 'Next Group', accelerator: 'Alt+CmdOrCtrl+Down', click: bound(() => cycleCluster(1)) },
-        { label: 'Previous Group', accelerator: 'Alt+CmdOrCtrl+Up', click: bound(() => cycleCluster(-1)) },
+        command('next-tab'),
+        command('previous-tab'),
+        { label: t('menu.nextTabInGroup'), accelerator: 'Alt+CmdOrCtrl+Right', click: bound(() => cycleTabInCluster(1)) },
+        { label: t('menu.previousTabInGroup'), accelerator: 'Alt+CmdOrCtrl+Left', click: bound(() => cycleTabInCluster(-1)) },
+        { label: t('menu.nextGroup'), accelerator: 'Alt+CmdOrCtrl+Down', click: bound(() => cycleCluster(1)) },
+        { label: t('menu.previousGroup'), accelerator: 'Alt+CmdOrCtrl+Up', click: bound(() => cycleCluster(-1)) },
         { type: 'separator' },
-        { label: 'Duplicate Tab', enabled: !!rt().activeTabId, click: bound(() => rt().activeTabId && duplicateTab(rt().activeTabId)) },
-        { label: tabs.get(rt().activeTabId)?.pinned ? 'Unpin Tab' : 'Pin Tab', enabled: !!rt().activeTabId, click: bound(() => rt().activeTabId && toggleTabPinned(rt().activeTabId)) },
-        { label: tabs.get(rt().activeTabId)?.muted ? 'Unmute Tab' : 'Mute Tab', enabled: !!rt().activeTabId, click: bound(() => rt().activeTabId && toggleTabMuted(rt().activeTabId)) },
+        { label: t('tabMenu.duplicate'), enabled: !!rt().activeTabId, click: bound(() => rt().activeTabId && duplicateTab(rt().activeTabId)) },
+        { label: t(tabs.get(rt().activeTabId)?.pinned ? 'tabMenu.unpin' : 'tabMenu.pin'), enabled: !!rt().activeTabId, click: bound(() => rt().activeTabId && toggleTabPinned(rt().activeTabId)) },
+        { label: t(tabs.get(rt().activeTabId)?.muted ? 'tabMenu.unmute' : 'tabMenu.mute'), enabled: !!rt().activeTabId, click: bound(() => rt().activeTabId && toggleTabMuted(rt().activeTabId)) },
         { type: 'separator' },
         {
-          label: 'New Group…',
+          label: t('tabMenu.newGroup'),
           enabled: !!rt().activeTabId,
           click: bound(() => { if (hasLiveWindow()) { rt().window.focus(); showOverlay('palette', { prefill: '/group ' }); } }),
         },
         {
-          label: 'Ungroup Tab',
+          label: t('menu.ungroupTab'),
           enabled: !!tabs.get(rt().activeTabId)?.groupId,
           click: bound(() => rt().activeTabId && setTabGroup(rt().activeTabId, null)),
         },
         {
-          label: 'Close Group',
+          label: t('menu.closeGroup'),
           enabled: !!tabs.get(rt().activeTabId)?.groupId,
           click: bound(() => {
             const groupId = tabs.get(rt().activeTabId)?.groupId;
@@ -8042,7 +8090,7 @@ function buildMenuForRuntime(runtime) {
         { type: 'separator' },
         // "Tab or Group": with groups these jump to the nth pill cluster.
         ...Array.from({ length: 9 }, (_, i) => ({
-          label: i === 8 ? 'Last Tab or Group' : `Tab or Group ${i + 1}`,
+          label: i === 8 ? t('menu.lastTabOrGroup') : t('menu.tabOrGroup', { number: i + 1 }),
           accelerator: `CmdOrCtrl+${i + 1}`,
           click: bound(() => selectTabAtIndex(i)),
         })),
@@ -8051,10 +8099,10 @@ function buildMenuForRuntime(runtime) {
       ],
     },
     {
-      label: 'Favorites',
+      label: t('menu.favorites'),
       submenu: [
         {
-          label: tabs.get(rt().activeTabId)?.bookmarked ? 'Remove from Favorites' : 'Add to Favorites',
+          label: t(tabs.get(rt().activeTabId)?.bookmarked ? 'tabMenu.removeFavorite' : 'menu.addFavorite'),
           accelerator: 'CmdOrCtrl+D',
           // Same guard as toggleBookmarkForActiveTab itself — blanc://
           // pages and blank tabs can't be favorited, so don't offer to.
@@ -8062,7 +8110,7 @@ function buildMenuForRuntime(runtime) {
           click: bound(toggleBookmarkForActiveTab),
         },
         {
-          label: 'Add All Open Tabs to Favorites',
+          label: t('menu.addAllTabsFavorites'),
           enabled: rt().tabOrder.some((id) => {
             const tab = tabs.get(id);
             return tab && !tab.private && /^https?:\/\//.test(tab.url) && !bookmarks.isBookmarked(tab.url);
@@ -8074,34 +8122,34 @@ function buildMenuForRuntime(runtime) {
         // Only divide the favorites list from Show Favorites when there ARE
         // favorites — otherwise the two separators would collapse into one gap.
         ...(favItems.length ? [{ type: 'separator' }] : []),
-        { label: 'Show Favorites', accelerator: isMac ? 'Cmd+Alt+B' : 'Ctrl+Shift+O', click: bound(() => openInternalPage('blanc://bookmarks/')) },
-        { label: 'Show History', ...command('history') },
+        { label: t('menu.showFavorites'), accelerator: isMac ? 'Cmd+Alt+B' : 'Ctrl+Shift+O', click: bound(() => openInternalPage('blanc://bookmarks/')) },
+        command('history'),
       ],
     },
     {
-      label: 'Help',
+      label: t('menu.help'),
       ...(isMac ? { role: 'help' } : {}),
       submenu: [
         {
-          label: 'Slash Commands',
+          label: t('menu.slashCommands'),
           // Plain reference rows, not disabled — legible at a glance, and a
           // stray click just closes the menu since none of them has a handler.
           submenu: SLASH_COMMANDS
             .filter(([cmd]) => ONE_PASSWORD_AVAILABLE || cmd !== '/1password')
-            .map(([cmd, hint]) => ({ label: mn(`${cmd} — ${hint}`) })),
+            .map(([cmd, key]) => ({ label: mn(`${cmd} — ${t(key)}`) })),
         },
         {
-          label: 'Keyboard Shortcuts',
+          label: t('menu.keyboardShortcuts'),
           submenu: [
-            ...COMMON_KEYSTROKES.map(([label, accelerator]) => ({ label: mn(`${label} — ${formatAccelerator(accelerator)}`) })),
-            { label: `Tab or Group 1–9 — ${formatAccelerator('CmdOrCtrl+1')}–9` },
+            ...COMMON_KEYSTROKES.map(([key, accelerator]) => ({ label: mn(`${t(key)} — ${formatAccelerator(accelerator)}`) })),
+            { label: `${t('menu.tabOrGroupRange')} — ${formatAccelerator('CmdOrCtrl+1')}–9` },
             { type: 'separator' },
-            { label: 'Show All Shortcuts…', accelerator: 'CmdOrCtrl+/', click: bound(() => openInternalPage('blanc://shortcuts/')) },
+            { label: t('menu.showAllShortcuts'), accelerator: 'CmdOrCtrl+/', click: bound(() => openInternalPage('blanc://shortcuts/')) },
           ],
         },
         ...(isMac ? [] : [
           { type: 'separator' },
-          { label: 'About Blanc', click: bound(() => showAboutPanel({ app })) },
+          { label: t('menu.app.about', { app: app.name }), click: bound(() => showAboutPanel({ app })) },
         ]),
       ],
     },
@@ -8392,8 +8440,8 @@ function dockActiveTabDescriptor() {
   const id = focusedRuntime.activeTabId;
   const tab = id != null ? tabs.get(id) : null;
   if (!tab) return null;
-  if (tab.private) return { label: 'Private tab', iconDataUrl: null };
-  const raw = tab.title || (tab.isLoading ? 'Loading…' : 'New Tab');
+  if (tab.private) return { label: mainI18n.t('tab.privateLabel'), iconDataUrl: null };
+  const raw = tab.title || mainI18n.t(tab.isLoading ? 'tab.loading' : 'tab.untitled');
   const label = raw.length > 75 ? `${raw.slice(0, 74)}…` : raw;
   const favicon = typeof tab.favicon === 'string' && tab.favicon.startsWith('data:image/')
     ? tab.favicon : null;

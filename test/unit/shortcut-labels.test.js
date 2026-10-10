@@ -17,8 +17,10 @@ test('formatAccelerator is liftable from main.js', () => {
   assert.ok(source, 'formatAccelerator not found — update this test');
 });
 
+// Modifier words come from the interface catalog (F44); English here.
+const { englishT } = require('../support/english-t');
 const label = (platform, accelerator) => {
-  const sandbox = { process: { platform } };
+  const sandbox = { process: { platform }, mainI18n: { t: englishT } };
   vm.createContext(sandbox);
   return vm.runInContext(`${source}; formatAccelerator(${JSON.stringify(accelerator)})`, sandbox);
 };

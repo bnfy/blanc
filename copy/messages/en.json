@@ -2399,5 +2399,289 @@
   "sync.keyStorage.persistFailed": {
     "message": "Could not persist protected sync key",
     "note": "Why Profile Sync could not store its key (a status line, no final period)."
+  },
+  "key.alt": {
+    "message": "Alt",
+    "note": "Alt modifier key name in shortcuts on Windows and Linux (macOS shows ⌥)."
+  },
+  "key.escape": {
+    "message": "Esc",
+    "note": "Escape key name in the keyboard shortcuts list."
+  },
+  "key.return": {
+    "message": "Return",
+    "note": "Return/Enter key name in the keyboard shortcuts list."
+  },
+  "key.click": {
+    "message": "{modifier}click",
+    "note": "Shortcut for a modifier-click; {modifier} is ⌘ on macOS or “Ctrl+” elsewhere, written right before “click”."
+  },
+  "menu.app.about": {
+    "message": "About {app}",
+    "note": "App menu (macOS) item and Windows/Linux Help menu item; {app} is Blanc."
+  },
+  "menu.app.services": {
+    "message": "Services",
+    "note": "App menu (macOS) item."
+  },
+  "menu.app.hide": {
+    "message": "Hide {app}",
+    "note": "App menu (macOS) item; {app} is Blanc."
+  },
+  "menu.app.hideOthers": {
+    "message": "Hide Others",
+    "note": "App menu (macOS) item."
+  },
+  "menu.app.unhide": {
+    "message": "Show All",
+    "note": "App menu (macOS) item that shows other apps’ windows again."
+  },
+  "menu.app.quit": {
+    "message": "Quit {app}",
+    "note": "App menu (macOS) item; {app} is Blanc."
+  },
+  "menu.exit": {
+    "message": "Exit",
+    "note": "Windows File menu item that quits Blanc."
+  },
+  "menu.quit": {
+    "message": "Quit",
+    "note": "Linux File menu item that quits Blanc."
+  },
+  "menu.closeWindow": {
+    "message": "Close Window",
+    "note": "macOS File menu item."
+  },
+  "menu.toggleDevTools": {
+    "message": "Toggle Developer Tools",
+    "note": "View menu item."
+  },
+  "menu.file": {
+    "message": "File",
+    "note": "Top-level menu name."
+  },
+  "menu.edit": {
+    "message": "Edit",
+    "note": "Top-level menu name."
+  },
+  "menu.view": {
+    "message": "View",
+    "note": "Top-level menu name."
+  },
+  "menu.profiles": {
+    "message": "Profiles",
+    "note": "Top-level menu name."
+  },
+  "menu.tabs": {
+    "message": "Tabs",
+    "note": "Top-level menu name."
+  },
+  "menu.favorites": {
+    "message": "Favorites",
+    "note": "Top-level menu name."
+  },
+  "menu.help": {
+    "message": "Help",
+    "note": "Top-level menu name."
+  },
+  "menu.pasteAndMatchStyle": {
+    "message": "Paste and Match Style",
+    "note": "macOS Edit menu item."
+  },
+  "menu.substitutions": {
+    "message": "Substitutions",
+    "note": "macOS Edit menu submenu."
+  },
+  "menu.showSubstitutions": {
+    "message": "Show Substitutions",
+    "note": "macOS Edit → Substitutions item."
+  },
+  "menu.smartQuotes": {
+    "message": "Smart Quotes",
+    "note": "macOS Edit → Substitutions item."
+  },
+  "menu.smartDashes": {
+    "message": "Smart Dashes",
+    "note": "macOS Edit → Substitutions item."
+  },
+  "menu.textReplacement": {
+    "message": "Text Replacement",
+    "note": "macOS Edit → Substitutions item."
+  },
+  "menu.speech": {
+    "message": "Speech",
+    "note": "macOS Edit menu submenu."
+  },
+  "menu.startSpeaking": {
+    "message": "Start Speaking",
+    "note": "macOS Edit → Speech item."
+  },
+  "menu.stopSpeaking": {
+    "message": "Stop Speaking",
+    "note": "macOS Edit → Speech item."
+  },
+  "menu.newProfileWindow": {
+    "message": "New Profile Window",
+    "note": "File and Profiles menu item that creates a profile and opens it in a window."
+  },
+  "menu.print": {
+    "message": "Print…",
+    "note": "File menu item."
+  },
+  "menu.manageProfiles": {
+    "message": "Manage Profiles…",
+    "note": "Profiles menu item that opens profile settings."
+  },
+  "menu.fillOnePassword": {
+    "message": "Fill Login from 1Password",
+    "note": "View menu item and shortcut list entry."
+  },
+  "menu.zoomIn": {
+    "message": "Zoom In",
+    "note": "View menu item."
+  },
+  "menu.zoomOut": {
+    "message": "Zoom Out",
+    "note": "View menu item."
+  },
+  "menu.actualSize": {
+    "message": "Actual Size",
+    "note": "View menu item that resets zoom."
+  },
+  "menu.toggleVerticalTabs": {
+    "message": "Toggle Vertical Tabs",
+    "note": "View menu item and shortcut list entry."
+  },
+  "menu.tabLayout": {
+    "message": "Tab Layout",
+    "note": "View menu submenu choosing how tabs are shown."
+  },
+  "menu.layoutIsland": {
+    "message": "Island",
+    "note": "Tab Layout choice: tabs in the Island (a fixed product name)."
+  },
+  "menu.layoutVertical": {
+    "message": "Vertical Tabs",
+    "note": "Tab Layout choice: tabs in a vertical rail."
+  },
+  "menu.openGlance": {
+    "message": "Open Glance…",
+    "note": "View menu item that opens a second tab beside this one (Glance is a fixed product name)."
+  },
+  "menu.closeGlance": {
+    "message": "Close Glance",
+    "note": "View menu item."
+  },
+  "menu.toggleGlance": {
+    "message": "Open or Close Glance",
+    "note": "Shortcut list entry."
+  },
+  "menu.findInPage": {
+    "message": "Find in Page",
+    "note": "Shortcut list entry."
+  },
+  "menu.switchLastTab": {
+    "message": "Switch to Last Active Tab",
+    "note": "Tabs menu item and shortcut list entry."
+  },
+  "menu.nextTabInGroup": {
+    "message": "Next Tab in Group",
+    "note": "Tabs menu item and shortcut list entry."
+  },
+  "menu.previousTabInGroup": {
+    "message": "Previous Tab in Group",
+    "note": "Tabs menu item and shortcut list entry."
+  },
+  "menu.nextGroup": {
+    "message": "Next Group",
+    "note": "Tabs menu item and shortcut list entry."
+  },
+  "menu.previousGroup": {
+    "message": "Previous Group",
+    "note": "Tabs menu item and shortcut list entry."
+  },
+  "menu.ungroupTab": {
+    "message": "Ungroup Tab",
+    "note": "Tabs menu item."
+  },
+  "menu.closeGroup": {
+    "message": "Close Group",
+    "note": "Tabs menu item."
+  },
+  "menu.tabOrGroup": {
+    "message": "Tab or Group {number}",
+    "note": "Tabs menu item that jumps to the nth tab, or nth group when groups exist; {number} is 1–8."
+  },
+  "menu.lastTabOrGroup": {
+    "message": "Last Tab or Group",
+    "note": "Tabs menu item (⌘9)."
+  },
+  "menu.tabOrGroupRange": {
+    "message": "Tab or Group 1–9",
+    "note": "Shortcut list entry for ⌘1–9."
+  },
+  "menu.addFavorite": {
+    "message": "Add to Favorites",
+    "note": "Favorites menu item."
+  },
+  "menu.addAllTabsFavorites": {
+    "message": "Add All Open Tabs to Favorites",
+    "note": "Favorites menu item."
+  },
+  "menu.showFavorites": {
+    "message": "Show Favorites",
+    "note": "Favorites menu item."
+  },
+  "menu.slashCommands": {
+    "message": "Slash Commands",
+    "note": "Help menu submenu listing slash commands."
+  },
+  "menu.keyboardShortcuts": {
+    "message": "Keyboard Shortcuts",
+    "note": "Help menu submenu."
+  },
+  "menu.showAllShortcuts": {
+    "message": "Show All Shortcuts…",
+    "note": "Help menu item that opens the shortcuts page."
+  },
+  "shortcuts.island": {
+    "message": "Island",
+    "note": "Shortcuts page category for the Island’s own keys (a fixed product name)."
+  },
+  "shortcuts.dismiss": {
+    "message": "Dismiss island panel / find bar",
+    "note": "Shortcuts page row (Esc)."
+  },
+  "shortcuts.submit": {
+    "message": "Open address or run command (in command bar)",
+    "note": "Shortcuts page row (Return)."
+  },
+  "shortcuts.backgroundLink": {
+    "message": "Open link in background tab",
+    "note": "Shortcuts page row (⌘-click or Ctrl-click)."
+  },
+  "glance.status.opened": {
+    "message": "{title} opened in Glance",
+    "note": "Screen reader announcement; {title} is the page title."
+  },
+  "glance.status.closed": {
+    "message": "Glance closed",
+    "note": "Screen reader announcement."
+  },
+  "glance.status.promoted": {
+    "message": "Glance made main",
+    "note": "Screen reader announcement after the Glance tab becomes the main tab."
+  },
+  "glance.status.tabClosed": {
+    "message": "Glance closed because its tab was closed",
+    "note": "Screen reader announcement."
+  },
+  "tab.untitledShort": {
+    "message": "Tab",
+    "note": "Fallback name for a tab without a title in announcements."
+  },
+  "error.reloadFailed": {
+    "message": "The page could not be reloaded",
+    "note": "Description on the error page when reloading a page failed."
   }
 }
