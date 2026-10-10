@@ -172,19 +172,20 @@ test('macOS and missing window/menu state never open a popup', async () => {
 
 test('Downloads and Settings live in File rather than View', () => {
   const main = fs.readFileSync(path.join(ROOT, 'src/main/main.js'), 'utf8');
-  const fileStart = main.indexOf("label: 'File'");
-  const profilesStart = main.indexOf("label: 'Profiles'", fileStart);
-  const viewStart = main.indexOf("label: 'View'", profilesStart);
-  const tabsStart = main.indexOf("label: 'Tabs'", viewStart);
+  // Menu labels come from the interface catalog (F44); the menus are found by key.
+  const fileStart = main.indexOf("label: t('menu.file')");
+  const profilesStart = main.indexOf("label: t('menu.profiles')", fileStart);
+  const viewStart = main.indexOf("label: t('menu.view')", profilesStart);
+  const tabsStart = main.indexOf("label: t('menu.tabs')", viewStart);
 
   assert.ok(fileStart >= 0 && profilesStart > fileStart);
   assert.ok(viewStart > profilesStart && tabsStart > viewStart);
 
   const fileMenu = main.slice(fileStart, profilesStart);
   const viewMenu = main.slice(viewStart, tabsStart);
-  assert.match(fileMenu, /label: 'Downloads'[^\n]*command\('downloads'\)/);
-  assert.match(fileMenu, /label: 'Settings'[^\n]*command\('settings'\)/);
-  assert.doesNotMatch(viewMenu, /label: '(?:Downloads|Settings)'/);
+  assert.match(fileMenu, /command\('downloads'\)/);
+  assert.match(fileMenu, /command\('settings'\)/);
+  assert.doesNotMatch(viewMenu, /command\('(?:downloads|settings)'\)/);
 });
 
 test('Tabs exposes the last-active-tab chord only on macOS', () => {
@@ -195,7 +196,7 @@ test('Tabs exposes the last-active-tab chord only on macOS', () => {
   );
   assert.match(
     main,
-    /id: 'switch-last-active-tab',[\s\S]*?label: 'Switch to Last Active Tab',[\s\S]*?LAST_ACTIVE_TAB_ACCELERATOR[\s\S]*?enabled: !!lastActiveTabId\(runtime\),[\s\S]*?click: bound\(switchToLastActiveTab\)/
+    /id: 'switch-last-active-tab',[\s\S]*?label: t\('menu\.switchLastTab'\),[\s\S]*?LAST_ACTIVE_TAB_ACCELERATOR[\s\S]*?enabled: !!lastActiveTabId\(runtime\),[\s\S]*?click: bound\(switchToLastActiveTab\)/
   );
   assert.doesNotMatch(main, /CmdOrCtrl\+Alt\+Z/);
 });
@@ -221,7 +222,7 @@ test('chrome markup and IPC keep one native menu definition', () => {
   assert.match(preload, /ipcRenderer\.invoke\('chrome:open-main-menu', point\)/);
   assert.match(main, /event\.sender !== rt\(\)\.window\?\.webContents/);
   assert.match(main, /popupPlatformMainMenu\(\{ Menu, window: rt\(\)\.window, point \}\)/);
-  assert.match(main, /label: 'Help'[\s\S]*isMac \? \[\] : \[[\s\S]*label: 'About Blanc'[\s\S]*showAboutPanel\(\{ app \}\)/);
+  assert.match(main, /label: t\('menu\.help'\)[\s\S]*isMac \? \[\] : \[[\s\S]*label: t\('menu\.app\.about', \{ app: app\.name \}\)[\s\S]*showAboutPanel\(\{ app \}\)/);
   assert.match(main, /function installChromeShortcuts\(webContents, owner = rt\(\)\) \{[\s\S]*installVerticalTabsShortcut\(webContents, owner\);[\s\S]*installPlatformMainMenuShortcut/);
   // [^)]* can't span a nested-paren argument like rt().window.webContents, so
   // this stops at the next statement boundary (;) instead of the next ')'.

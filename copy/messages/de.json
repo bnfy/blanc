@@ -2332,5 +2332,289 @@
   "sync.keyStorage.persistFailed": {
     "message": "Der geschützte Synchronisierungsschlüssel konnte nicht gespeichert werden",
     "source": "sha256:16c95bb2754d9179fa645b19ef25037e46a421731b9bc32c5f50e423039f376a"
+  },
+  "key.alt": {
+    "message": "Alt",
+    "source": "sha256:b8727c8c6dc3b2e58dd7901faa040fdc2dead776bc3bae5ec86bebe51046586d"
+  },
+  "key.escape": {
+    "message": "Esc",
+    "source": "sha256:bf88bd487b5d8317dbec1b55006e2b6d89839b226434e657861f4ad40493f103"
+  },
+  "key.return": {
+    "message": "Eingabe",
+    "source": "sha256:b1cb9b7c1f2a0471132055a484b44da0b5cb99b7d969d3bf50bbf699b6d01168"
+  },
+  "key.click": {
+    "message": "{modifier}Klick",
+    "source": "sha256:e696f465e174d367a42786bd8a48e201f303d63ad16dab46b1beb89a96cac65e"
+  },
+  "menu.app.about": {
+    "message": "Über {app}",
+    "source": "sha256:f87846ea0cffb5bb7d666f124f3a1c6955be0284b9069308dc77f0867e43cb86"
+  },
+  "menu.app.services": {
+    "message": "Dienste",
+    "source": "sha256:eec5c7f6616aaf5236e0e41c88cd9c7dcf35426c5169546b4bed6ec3cb55a870"
+  },
+  "menu.app.hide": {
+    "message": "{app} ausblenden",
+    "source": "sha256:303495cb07f4406b085ae8b6de10b7283fbb1c110789883fcd3fa39296284850"
+  },
+  "menu.app.hideOthers": {
+    "message": "Andere ausblenden",
+    "source": "sha256:7c69dfd482d50d7afdc9acc9e039e16f148afc803a09c638253686b4ad3af333"
+  },
+  "menu.app.unhide": {
+    "message": "Alle einblenden",
+    "source": "sha256:253996e10d3ddefd5c65ae10907d36cbe5431472271afa774b99d8ff9b72cf7c"
+  },
+  "menu.app.quit": {
+    "message": "{app} beenden",
+    "source": "sha256:338a19a39f3102b7541d5d02f4e449ab975e2e8f035d88a6771c96f9764f71ac"
+  },
+  "menu.exit": {
+    "message": "Beenden",
+    "source": "sha256:74fab968e1466a74059b6316030886a02bf443f7c3ea22c59177dfd51f94bcdb"
+  },
+  "menu.quit": {
+    "message": "Beenden",
+    "source": "sha256:95305710b0c970ada50ec95852542519f6b9e602f9f60580029514e1d9f8df55"
+  },
+  "menu.closeWindow": {
+    "message": "Fenster schließen",
+    "source": "sha256:4821112eb1cdef015476589829335cdffedde6ca5f5241299789504414e76147"
+  },
+  "menu.toggleDevTools": {
+    "message": "Entwicklertools ein-/ausblenden",
+    "source": "sha256:0da28cc499f8c516388338f687515e37f7b839fd2647dcc3ac8fbcb0eb7f78ef"
+  },
+  "menu.file": {
+    "message": "Ablage",
+    "source": "sha256:a8738151be826c3d8c8d8166dbf865ce773ede61ed7ddf7bcf94f5aa42deccf2"
+  },
+  "menu.edit": {
+    "message": "Bearbeiten",
+    "source": "sha256:20370c9b2f13268a5ae8d0293ab96c0d5aa51147808b221accc5cad7ab4eae9c"
+  },
+  "menu.view": {
+    "message": "Darstellung",
+    "source": "sha256:ae0e4e546b129bebebaff19a454f3af5d721d04c34b3e2d969ac42920fa4311b"
+  },
+  "menu.profiles": {
+    "message": "Profile",
+    "source": "sha256:cf8af5913c9cd94719e686b95eb00a14fb9198a507acf64d8872827f669043c8"
+  },
+  "menu.tabs": {
+    "message": "Tabs",
+    "source": "sha256:7fad4a369fe705f0287e4b9510cf17475d554853b6c06700f7a689837ad0189d"
+  },
+  "menu.favorites": {
+    "message": "Favoriten",
+    "source": "sha256:c616016cc0142bd0de5fe5d918cb6b7e9f39d2c4699e0b512037881e10e84560"
+  },
+  "menu.help": {
+    "message": "Hilfe",
+    "source": "sha256:ff11ba4806d33c9aeca61bb1e7ea72604446bf6ac611141f93c7da3d810d4e60"
+  },
+  "menu.pasteAndMatchStyle": {
+    "message": "Einsetzen und Stil anpassen",
+    "source": "sha256:c7db72dd5b7630989b28fb66d0aabf10c47a815c28143bd4a9afde8f3ee3fbcc"
+  },
+  "menu.substitutions": {
+    "message": "Ersetzungen",
+    "source": "sha256:639d7d0d56e68102c5956978b8f2310892914e07a9270308ffc1556edaf5d270"
+  },
+  "menu.showSubstitutions": {
+    "message": "Ersetzungen einblenden",
+    "source": "sha256:695293e7524982b77edd4f5424ec1db8a2f9b48578df87c958a672942604ef5c"
+  },
+  "menu.smartQuotes": {
+    "message": "Intelligente Anführungszeichen",
+    "source": "sha256:faa6f7c29d16f46a0ed4d3c4d9b48354b66e3c4de8411896fdccc3458ddc064d"
+  },
+  "menu.smartDashes": {
+    "message": "Intelligente Gedankenstriche",
+    "source": "sha256:024d4898704574906fc3b4b6c044aaba63a6296bef7188a6bfab5587d321b6c6"
+  },
+  "menu.textReplacement": {
+    "message": "Textersetzung",
+    "source": "sha256:d406991187edfdb1b31f95c8c36734ecffe2c93de8f5292f63b92fda1ef48734"
+  },
+  "menu.speech": {
+    "message": "Sprachausgabe",
+    "source": "sha256:728f6175b9e0e6c210c5c5dcfd000548cd1041cbbf11b2d1e952786470c95059"
+  },
+  "menu.startSpeaking": {
+    "message": "Sprachausgabe starten",
+    "source": "sha256:6ccc731dddc2b02d36299f03caceff478d4b3aa10ee01fbc3b9bdf936a2a67a6"
+  },
+  "menu.stopSpeaking": {
+    "message": "Sprachausgabe stoppen",
+    "source": "sha256:63929fde52ea92e15fb08f7c7286eb3e62aa2c324b1b889fde1bda1fbff690a2"
+  },
+  "menu.newProfileWindow": {
+    "message": "Neues Profilfenster",
+    "source": "sha256:631380079839e8919e676b548d532bdf8ccad427d3853600b2bad83f55902371"
+  },
+  "menu.print": {
+    "message": "Drucken…",
+    "source": "sha256:a195706cd017e014ecc9af99c8233bfdae70fa41d0aadd3a77ee8ae2dea974f2"
+  },
+  "menu.manageProfiles": {
+    "message": "Profile verwalten…",
+    "source": "sha256:75eaf26df4198c4d87aa176b11109b0b387cdd4596cd2641aedc6a71fad22559"
+  },
+  "menu.fillOnePassword": {
+    "message": "Login aus 1Password ausfüllen",
+    "source": "sha256:5b8644e6c74289799dd6c29d14f65262e893eefb6598f0111115e407b831aa25"
+  },
+  "menu.zoomIn": {
+    "message": "Vergrößern",
+    "source": "sha256:1ad8e485b85d5a5d721883a34c94610c98e7ec1b834721bc1509f128b4493b61"
+  },
+  "menu.zoomOut": {
+    "message": "Verkleinern",
+    "source": "sha256:ff9932fc85d612d1f00713219d7478f4f3b0d7511a28df6867017ac01ce2de70"
+  },
+  "menu.actualSize": {
+    "message": "Originalgröße",
+    "source": "sha256:2d5441a0266850a26d832f22aae236583079af1058fb5d64cfe723be597db89d"
+  },
+  "menu.toggleVerticalTabs": {
+    "message": "Vertikale Tabs ein-/ausschalten",
+    "source": "sha256:865466509e3065f3fcbd56c0c32ac3d8fe09d42053ff89337532291ba01d70b2"
+  },
+  "menu.tabLayout": {
+    "message": "Tab-Layout",
+    "source": "sha256:4c328813077335981a1240160d5f7fa2ac2a8c5790420bbc165ebdb61d464088"
+  },
+  "menu.layoutIsland": {
+    "message": "Island",
+    "source": "sha256:a4cf6409da162ee42c31f15630a40a5eea390105efc17dfd8404b9ecf193d68b"
+  },
+  "menu.layoutVertical": {
+    "message": "Vertikale Tabs",
+    "source": "sha256:fac86ad022ac113da182e2c509a08fba44911ddb9a2e6de2f8ac99867558016a"
+  },
+  "menu.openGlance": {
+    "message": "Glance öffnen…",
+    "source": "sha256:e5e456b056249d2cb6330d71af395e3ea01efea38c23f31b2a1da3b3a6d3a16d"
+  },
+  "menu.closeGlance": {
+    "message": "Glance schließen",
+    "source": "sha256:0611f23e6a629ad64d7bab203ca788880797e3b66983c216a27a3451276e4254"
+  },
+  "menu.toggleGlance": {
+    "message": "Glance öffnen oder schließen",
+    "source": "sha256:4f52ce8550a94c789fd44f0478d4f1f2376b758d79de9b0cecd87e23f96f8871"
+  },
+  "menu.findInPage": {
+    "message": "Auf Seite suchen",
+    "source": "sha256:33ddd8dd74335ba6e12c4d45867a467cd27cb3f67e7a20177022e9255fcf7178"
+  },
+  "menu.switchLastTab": {
+    "message": "Zum zuletzt aktiven Tab wechseln",
+    "source": "sha256:7e014d0888458d341b2c7e9aca4f9649b2245581d097b70f221ca4eabfab853d"
+  },
+  "menu.nextTabInGroup": {
+    "message": "Nächster Tab in der Gruppe",
+    "source": "sha256:759e743fab2466bdbd30e1b4f411257eb39ce7cac58e23fd5faa3ee81a81ae99"
+  },
+  "menu.previousTabInGroup": {
+    "message": "Vorheriger Tab in der Gruppe",
+    "source": "sha256:479d1295b96ffe3728eb75bac0dc2ec66441c4e39ce42779aadfaa655f255c3e"
+  },
+  "menu.nextGroup": {
+    "message": "Nächste Gruppe",
+    "source": "sha256:5e11752136ab62fbd1d55fe013058e68ceb5f3252b53b5ec1dc0a751128b4a9f"
+  },
+  "menu.previousGroup": {
+    "message": "Vorherige Gruppe",
+    "source": "sha256:2dae48338e24dd403ed81e01aac5344bcdecc2db13ec28f2379cd9bbbd56aa9b"
+  },
+  "menu.ungroupTab": {
+    "message": "Tab aus Gruppe lösen",
+    "source": "sha256:7749d14fb9b836fc1d6b42e6ea01e3ce0e02b0870f6130ccc5358893e51474d4"
+  },
+  "menu.closeGroup": {
+    "message": "Gruppe schließen",
+    "source": "sha256:6718ab08b0a152eed6e1f709cefa4b51bb15c0822b4933720e1332b79324b629"
+  },
+  "menu.tabOrGroup": {
+    "message": "Tab oder Gruppe {number}",
+    "source": "sha256:c990847742ccb22e010510b5781010e0fb730365dcc8eb311f46633b96ba4f60"
+  },
+  "menu.lastTabOrGroup": {
+    "message": "Letzter Tab oder letzte Gruppe",
+    "source": "sha256:cfecbd04fba52a6e69a985d646e235a9e99d3c5b661211d607b33ec6bd024654"
+  },
+  "menu.tabOrGroupRange": {
+    "message": "Tab oder Gruppe 1–9",
+    "source": "sha256:1d90e66397c72e3e33bf52f980f38a9d07075815638e4ef5117354dc210525b9"
+  },
+  "menu.addFavorite": {
+    "message": "Zu Favoriten hinzufügen",
+    "source": "sha256:bb2d84bb25d1cfc659bcda88bf9c7b46f27e92329189bdff9d49d1a504cd1982"
+  },
+  "menu.addAllTabsFavorites": {
+    "message": "Alle offenen Tabs zu Favoriten hinzufügen",
+    "source": "sha256:12594f9e4ea545a27266e4bcd6ae141fe0b2e342a5c4d711aa6424ca757b3387"
+  },
+  "menu.showFavorites": {
+    "message": "Favoriten anzeigen",
+    "source": "sha256:dffd7582187cb7b54bf2fc1d30d746cb438c04e4a266f2ee97d37bd0f966c12f"
+  },
+  "menu.slashCommands": {
+    "message": "Slash-Befehle",
+    "source": "sha256:6b033ff3c6ca07d75f4310a6bd5ce375c66dbee7d0701f839286ed7e5bc87846"
+  },
+  "menu.keyboardShortcuts": {
+    "message": "Tastenkürzel",
+    "source": "sha256:dd318436324fd517aaf08cfaa0b89aca6229ff9bd79d13f7f930c0bb2a37a9f9"
+  },
+  "menu.showAllShortcuts": {
+    "message": "Alle Tastenkürzel anzeigen…",
+    "source": "sha256:74f9fe1ce3e762ed4893bb1141e00b21f991cb7297a0bcd0f198bf6a1648b8b4"
+  },
+  "shortcuts.island": {
+    "message": "Island",
+    "source": "sha256:4ab6acf10b67faae79c0f8b6ff76a616e90ae1bbedb0091bcca4eab3e95cda0f"
+  },
+  "shortcuts.dismiss": {
+    "message": "Island-Panel / Suchleiste schließen",
+    "source": "sha256:1083d624ba5c6fc2940c7a12aa9279773a410f0d62d5752e6323eb7634a8b0fe"
+  },
+  "shortcuts.submit": {
+    "message": "Adresse öffnen oder Befehl ausführen (in der Befehlsleiste)",
+    "source": "sha256:ceeedf11b95268511a50457dfabe34794cd4b6458d052979d99c618b9ac18fa4"
+  },
+  "shortcuts.backgroundLink": {
+    "message": "Link in Hintergrund-Tab öffnen",
+    "source": "sha256:9c2233b1dc36de8236d0159e3fd180562fbb3ababdfaf10e2d341da9e0cdcb55"
+  },
+  "glance.status.opened": {
+    "message": "{title} in Glance geöffnet",
+    "source": "sha256:d2e990d28a8c1959a49a2feaac026f30a0a44c4b76b2b2cb513081717fe10af6"
+  },
+  "glance.status.closed": {
+    "message": "Glance geschlossen",
+    "source": "sha256:1008c10836b5872a9ac50e128369c885836df91e8e756948e2b3abf4aed4a15e"
+  },
+  "glance.status.promoted": {
+    "message": "Glance zur Hauptseite gemacht",
+    "source": "sha256:3bdc56c9dd0203256fac739476588ec54861f814522b375a9ec992cdfbec3990"
+  },
+  "glance.status.tabClosed": {
+    "message": "Glance geschlossen, weil sein Tab geschlossen wurde",
+    "source": "sha256:a0b11623f0c9f9f5a23f8181842e04caa5dce18b06fa1baf21cbfddd8a618332"
+  },
+  "tab.untitledShort": {
+    "message": "Tab",
+    "source": "sha256:6a2e12823685d42cfa2fca9e5f62508d84af5a893cff50476b913b3396aea0a1"
+  },
+  "error.reloadFailed": {
+    "message": "Die Seite konnte nicht neu geladen werden",
+    "source": "sha256:a1c9370bbc2edc0eb1c3cfac36b5918b02332af7b38c1b7bc5c6564ba0c8c962"
   }
 }

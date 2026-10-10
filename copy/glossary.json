@@ -68,7 +68,11 @@
       "row.glance",
       "result.tag.tab",
       "menu.downloads",
-      "passkey.fallbackLabel"
+      "passkey.fallbackLabel",
+      "key.alt",
+      "key.escape",
+      "menu.tabs",
+      "tab.untitledShort"
     ]
   }
 }

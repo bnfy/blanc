@@ -130,6 +130,17 @@ const NATIVE_MENU_SURFACES = [
     },
   },
   {
+    name: 'app menu',
+    files: ['src/main/main.js', 'src/main/browser-shortcuts.js'],
+    // Checkbox items list open tabs and profiles by name, which are data.
+    native: ({ app }) => app.evaluate(({ Menu }) => {
+      const entries = (items) => items.flatMap((item) => (item.type === 'separator' || !item.visible ? [] : [
+        { text: item.label, ignored: item.type === 'checkbox' }, ...(item.submenu ? entries(item.submenu.items) : []),
+      ]));
+      return entries(Menu.getApplicationMenu().items);
+    }),
+  },
+  {
     name: 'Dock menu',
     files: ['src/main/dock-menu.js'],
     // macOS only. Its top line is the active tab's title, which is data.

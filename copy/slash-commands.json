@@ -3,7 +3,7 @@
   "sources": {
     "overlayKeys": "src/renderer/overlay.js",
     "shortcuts": "src/renderer/pages/shortcuts.js",
-    "main": "src/main/main.js"
+    "mainKeys": "src/main/main.js"
   },
   "commands": [
     {

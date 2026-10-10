@@ -115,7 +115,13 @@ function slashDrift(root, { en, registry }) {
     compare(keysRel.split('/').pop(), actual, registry.commands.map((c) => ({ command: c.command, hint: slashKey(c.command, 'hint') })));
   }
   compare('shortcuts.js', parseTuples(registry.sources?.shortcuts), expectedDoc);
-  compare('main.js', parseTuples(registry.sources?.main), expectedDoc);
+  // main.js lists each command's reference spelling with the catalog key of
+  // its reference text (the doc key where one exists, else the hint key).
+  const expectedDocKeys = registry.commands.map((c) => ({
+    command: c.doc?.command ?? c.command,
+    hint: slashKey(c.command, en[slashKey(c.command, 'doc')] ? 'doc' : 'hint'),
+  }));
+  compare('main.js', parseTuples(registry.sources?.mainKeys), expectedDocKeys);
   for (const c of registry.commands) if (!en[slashKey(c.command, 'hint')]) problems.push(`${slashKey(c.command, 'hint')} missing from en.json`);
   return problems;
 }

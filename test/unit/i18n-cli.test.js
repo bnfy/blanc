@@ -160,3 +160,26 @@ test('the overlay slash table must follow the registry order and use each comman
     "    { cmd: '/close-group', hint: blancI18n.t('slash.closeGroup.hint'), run: () => {} },"]);
   assert.ok(cli.runCheck(root).failures.some((f) => f.includes('overlay.js')), 'wrong key fails');
 });
+
+test('the main.js slash table pairs each reference spelling with its doc or hint key, in registry order', (t) => {
+  const { root } = fixtureRoot(t);
+  fs.writeFileSync(path.join(root, 'copy/slash-commands.json'), JSON.stringify({
+    sources: { mainKeys: 'src/main/main.js' },
+    commands: [{ command: '/new' }, { command: '/group', doc: { command: '/group <name>' } }],
+  }));
+  const en = JSON.parse(fs.readFileSync(path.join(root, 'copy/messages/en.json'), 'utf8'));
+  en['slash.group.hint'] = { message: 'Type a space, then a group name', note: 'n' };
+  en['slash.group.doc'] = { message: 'Move this tab into a group', note: 'n' };
+  fs.writeFileSync(path.join(root, 'copy/messages/en.json'), JSON.stringify(en));
+  fs.mkdirSync(path.join(root, 'src/main'), { recursive: true });
+  const write = (rows) => fs.writeFileSync(path.join(root, 'src/main/main.js'), `const SLASH_COMMANDS = [\n${rows.join('\n')}\n];\n`);
+  cli.runBuild(root);
+  write(["  ['/new', 'slash.new.hint'],", "  ['/group <name>', 'slash.group.doc'],"]);
+  assert.deepEqual(cli.runCheck(root).failures.filter((f) => f.includes('main.js')), []);
+  write(["  ['/new', 'slash.new.hint'],", "  ['/group <name>', 'slash.group.hint'],"]);
+  assert.ok(cli.runCheck(root).failures.some((f) => f.includes('main.js')), 'hint key where a doc key exists fails');
+  write(["  ['/new', 'slash.new.hint'],", "  ['/group', 'slash.group.doc'],"]);
+  assert.ok(cli.runCheck(root).failures.some((f) => f.includes('main.js')), 'command instead of its reference spelling fails');
+  write(["  ['/group <name>', 'slash.group.doc'],", "  ['/new', 'slash.new.hint'],"]);
+  assert.ok(cli.runCheck(root).failures.some((f) => f.includes('main.js')), 'reordered table fails');
+});

@@ -29,5 +29,6 @@ test('/sync exists in all four command copies with the same hint', () => {
   // overlay.js reads the hint from the interface catalog (F44).
   assert.match(read('src/renderer/overlay.js'), /\{ cmd: '\/sync', hint: blancI18n\.t\('slash\.sync\.hint'\), run: \(\) => window\.browserAPI\.openPage\('settings', 'sync'\) \}/);
   assert.match(read('src/renderer/pages/shortcuts.js'), new RegExp(`\\['/sync', '${hint}'\\]`));
-  assert.match(read('src/main/main.js'), new RegExp(`\\['/sync', '${hint}'\\]`));
+  // main.js pairs the command with its catalog key (F44).
+  assert.match(read('src/main/main.js'), /\['\/sync', 'slash\.sync\.hint'\]/);
 });
