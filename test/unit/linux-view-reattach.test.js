@@ -52,3 +52,17 @@ test('the permission prompt shares the overlay lifecycle and never detaches dire
   const ensure = functionBody('ensurePermissionView');
   assert.match(ensure.slice(ensure.indexOf("once('destroyed'")), /removeChildView\(view\)/);
 });
+
+// #692: the 1Password fill capsule is reused for every message. Re-attached on
+// Linux, it drew only once per launch: later errors, confirmations and the
+// success notice were invisible while the fill itself kept running.
+test('the 1Password fill capsule shares the overlay lifecycle and never detaches directly', () => {
+  const attach = functionBody('attachFillStatusView');
+  assert.match(attach, /showOverlayView\(rt\(\)\.window, view\)/);
+  assert.doesNotMatch(attach, /addChildView\(view\)/);
+  const detach = functionBody('detachFillStatusView');
+  assert.match(detach, /hideOverlayView\(rt\(\)\.window, rt\(\)\.fillStatusView\)/);
+  assert.doesNotMatch(detach, /removeChildView/);
+  const ensure = functionBody('ensureFillStatusView');
+  assert.match(ensure.slice(ensure.indexOf("once('destroyed'")), /removeChildView\(view\)/);
+});
