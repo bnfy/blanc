@@ -30,7 +30,7 @@ test('network/data inventory is complete enough to act as a release drift guard'
       assert.equal(fs.existsSync(path.join(ROOT, source)), true, `${flow.id}: missing ${source}`);
     }
   }
-  for (const id of ['profile-sync', 'supporter-activation', 'newsletter']) {
+  for (const id of ['profile-sync', 'patron-license', 'newsletter']) {
     assert.equal(inventory.flows.find((flow) => flow.id === id)?.default, 'off', id);
   }
   for (const id of ['tab-handoff-chatgpt', 'tab-handoff-companion', 'tab-handoff-desktop-claim']) {
