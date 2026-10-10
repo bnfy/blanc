@@ -2144,6 +2144,10 @@
     "message": "Blanc refused to start because Chromium sandboxing was disabled. Use a Linux environment that permits Chromium sandboxing and launch Blanc without sandbox-disabling options.",
     "note": "Linux dialog when Blanc is launched with sandboxing disabled. Shown before Blanc can read the interface language, so it is always English."
   },
+  "linuxSandbox.guidance": {
+    "message": "{refusal} Setup guidance: {url}",
+    "note": "Terminal output when Blanc refuses a Linux launch with sandboxing disabled; {refusal} is linuxSandbox.refusal and {url} the setup guide’s address (always English)."
+  },
   "linuxSandbox.message": {
     "message": "Blanc requires Chromium sandboxing",
     "note": "Linux dialog message when Blanc is launched with sandboxing disabled (always English)."

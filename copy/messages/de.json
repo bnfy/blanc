@@ -2077,6 +2077,10 @@
     "message": "Blanc wurde nicht gestartet, weil die Chromium-Sandbox deaktiviert war. Nutze eine Linux-Umgebung, die die Chromium-Sandbox erlaubt, und starte Blanc ohne Optionen, die die Sandbox deaktivieren.",
     "source": "sha256:895e95bdb870f6c01cfc11d0dca11647c0326a0207a60e0848dd3ce16b744e4e"
   },
+  "linuxSandbox.guidance": {
+    "message": "{refusal} Einrichtungsanleitung: {url}",
+    "source": "sha256:7100d533db1a49af8759f41fff77867edc136ce931271df801b2d4455ac62cde"
+  },
   "linuxSandbox.message": {
     "message": "Blanc benötigt die Chromium-Sandbox",
     "source": "sha256:b712ba598980c6cbeb95e75946a6743c583e9c0bbcaf2d9702dc8fd727d2a395"

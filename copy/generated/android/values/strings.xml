@@ -570,6 +570,7 @@
     <string name="settings_trust_sbom">Release SBOM</string>
     <string name="settings_trust_provenance">Provenance attestations</string>
     <string name="linux_sandbox_refusal">Blanc refused to start because Chromium sandboxing was disabled. Use a Linux environment that permits Chromium sandboxing and launch Blanc without sandbox-disabling options.</string>
+    <string name="linux_sandbox_guidance">%1$s Setup guidance: %2$s</string>
     <string name="linux_sandbox_message">Blanc requires Chromium sandboxing</string>
     <string name="linux_sandbox_detail">%1$s
 

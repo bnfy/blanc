@@ -9733,6 +9733,24 @@
         }
       }
     },
+    "linuxSandbox.guidance": {
+      "comment": "Terminal output when Blanc refuses a Linux launch with sandboxing disabled; {refusal} is linuxSandbox.refusal and {url} the setup guide’s address (always English).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ Setup guidance: %2$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ Einrichtungsanleitung: %2$@"
+          }
+        }
+      }
+    },
     "linuxSandbox.message": {
       "comment": "Linux dialog message when Blanc is launched with sandboxing disabled (always English).",
       "extractionState": "manual",

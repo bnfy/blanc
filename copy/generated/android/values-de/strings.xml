@@ -570,6 +570,7 @@
     <string name="settings_trust_sbom">Release-SBOM</string>
     <string name="settings_trust_provenance">Herkunftsnachweise</string>
     <string name="linux_sandbox_refusal">Blanc wurde nicht gestartet, weil die Chromium-Sandbox deaktiviert war. Nutze eine Linux-Umgebung, die die Chromium-Sandbox erlaubt, und starte Blanc ohne Optionen, die die Sandbox deaktivieren.</string>
+    <string name="linux_sandbox_guidance">%1$s Einrichtungsanleitung: %2$s</string>
     <string name="linux_sandbox_message">Blanc benötigt die Chromium-Sandbox</string>
     <string name="linux_sandbox_detail">%1$s
 
