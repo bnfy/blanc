@@ -350,4 +350,9 @@
     <string name="hint_private">privat · hier wird nichts im Verlauf gespeichert</string>
     <string name="hint_groups">/group verschiebt diesen Tab · %1$s1–9 springt zwischen Abschnitten</string>
     <string name="hint_default">%1$sL ruft auf · / für Befehle</string>
+    <plurals name="result_group_count">
+        <item quantity="one">%1$d Tab</item>
+        <item quantity="other">%1$d Tabs</item>
+    </plurals>
+    <string name="result_tag_search">suche</string>
 </resources>

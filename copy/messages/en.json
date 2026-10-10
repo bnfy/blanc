@@ -1348,5 +1348,14 @@
   "hint.default": {
     "message": "{mod}L summons · / for commands",
     "note": "Lowercase hint under the Island list; {mod} is ⌘ or ctrl+."
+  },
+  "result.groupCount": {
+    "message": "{count, plural, one {# tab} other {# tabs}}",
+    "note": "Detail line of a Quick Switcher group result: how many tabs the group holds."
+  },
+  "result.tag.search": {
+    "message": "search",
+    "note": "Lowercase tag on a Quick Switcher search row when the search engine's own name is not available.",
+    "maxLength": 10
   }
 }

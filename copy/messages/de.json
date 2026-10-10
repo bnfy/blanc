@@ -1304,5 +1304,13 @@
   "hint.default": {
     "message": "{mod}L ruft auf · / für Befehle",
     "source": "sha256:98a24b911d008f703429d923a2d30c3bfe7c76da8023abf7f4e1efa5195118e8"
+  },
+  "result.groupCount": {
+    "message": "{count, plural, one {# Tab} other {# Tabs}}",
+    "source": "sha256:8b02624af5db598735fb0be9f0cf76fa52854083bfe98681a4fb88a33c9ae2a7"
+  },
+  "result.tag.search": {
+    "message": "suche",
+    "source": "sha256:4a9e353d79af51531dec5d47747b7d434ba44159ce7f6193bbc64e64d9defd7e"
   }
 }

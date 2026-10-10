@@ -4,13 +4,13 @@
 
 const LETTER = /\p{L}/u;
 
-function classifyTextEntries(entries, { allow = [] } = {}) {
+function classifyTextEntries(entries, { allow = [], allowPatterns = [] } = {}) {
   return entries
     .filter(({ text, ignored }) => {
       const value = text.trim();
       if (!value || !LETTER.test(value) || ignored) return false;
       if (value.includes('⟦') || value.includes('⟧')) return false;
-      return !allow.includes(value);
+      return !allow.includes(value) && !allowPatterns.some((pattern) => pattern.test(value));
     })
     .map(({ text }) => text.trim());
 }
@@ -18,7 +18,9 @@ function classifyTextEntries(entries, { allow = [] } = {}) {
 // A function body evaluated in the page as page.evaluate(`(() => {${COLLECT}})()`).
 const COLLECT = String.raw`
   const out = [];
-  const visible = (el) => el && el.checkVisibility?.({ checkOpacity: true, checkVisibilityCSS: true }) !== false
+  // Opacity is deliberately not "hidden": Island row details are revealed on
+  // hover (opacity 0 at rest) and are still interface text.
+  const visible = (el) => el && el.checkVisibility?.({ checkVisibilityCSS: true }) !== false
     && el.getClientRects().length > 0;
   // data-i18n-ignore="" exempts an element and its subtree; a value lists only
   // that element's own attributes to exempt (e.g. data-i18n-ignore="title").

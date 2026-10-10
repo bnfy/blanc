@@ -350,4 +350,9 @@
     <string name="hint_private">private · nothing here is saved to history</string>
     <string name="hint_groups">/group moves this tab · %1$s1–9 jumps between sections</string>
     <string name="hint_default">%1$sL summons · / for commands</string>
+    <plurals name="result_group_count">
+        <item quantity="one">%1$d tab</item>
+        <item quantity="other">%1$d tabs</item>
+    </plurals>
+    <string name="result_tag_search">search</string>
 </resources>

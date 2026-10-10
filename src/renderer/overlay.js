@@ -161,7 +161,9 @@
   let providerSuggestions = [];
   let providerSuggestionQuery = '';
   let searchProviderId = null;
-  let searchProviderLabel = 'search';
+  // The search engine's name, once a suggestions response supplies it; null
+  // means the row shows the catalog's generic "search" tag.
+  let searchProviderLabel = null;
   let suggestionDebounce = null;
   let suggestionRequestGeneration = 0;
   let addressInputComposing = false;
@@ -594,6 +596,7 @@
     if (tab.title) title.title = tab.title;
     if (tab.title && !tab.isLoading) title.dataset.i18nIgnore = ''; // a page title is data
     row.setAttribute('aria-label', label);
+    if (tab.title && !tab.isLoading) row.dataset.i18nIgnore = 'aria-label'; // the page title again
 
     const primary = document.createElement('button');
     primary.type = 'button';
@@ -1177,7 +1180,7 @@
       const count = state.tabs.filter((t) => t.groupId === g.id).length;
       if (!count) continue;
       const s = matchScore(query, g.name);
-      if (s) results.push({ kind: 'group', title: g.name, sub: `${count} ${count === 1 ? 'tab' : 'tabs'}`, group: g, count, score: s + 0.3 });
+      if (s) results.push({ kind: 'group', title: g.name, sub: blancI18n.t('result.groupCount', { count }), group: g, count, score: s + 0.3 });
     }
     for (const t of state.tabs) {
       const s = matchScore(query, matchableText(t.title, t.url));
@@ -1330,17 +1333,23 @@
     const title = document.createElement('span');
     title.className = 'row-title';
     title.textContent = result.title || result.url || '';
-    title.dataset.i18nIgnore = ''; // a page, group or search title is data
+    // Page, group and search titles are data; an untitled tab's label is not.
+    if (!(result.kind === 'tab' && !result.tab.title)) title.dataset.i18nIgnore = '';
 
     const sub = document.createElement('span');
     sub.className = 'row-sub';
     sub.textContent = result.sub || '';
-    sub.dataset.i18nIgnore = ''; // a domain or URL
+    // Domains, URLs and device names are data; a group's tab count is not.
+    if (result.kind !== 'group') sub.dataset.i18nIgnore = '';
 
     const tag = document.createElement('span');
     tag.className = 'row-tag';
-    tag.textContent = result.kind === 'search' ? result.providerLabel : RESULT_TAGS[result.kind];
-    if (result.kind === 'search') tag.dataset.i18nIgnore = ''; // a search engine's name
+    tag.textContent = result.kind === 'search'
+      ? result.providerLabel ?? blancI18n.t('result.tag.search')
+      : RESULT_TAGS[result.kind];
+    // A search engine's name from the suggestions response is data; the
+    // generic tag is interface text.
+    if (result.kind === 'search' && result.providerLabel) tag.dataset.i18nIgnore = '';
 
     row.append(leading, title, sub, tag);
     if (isEnterTarget) row.append(enterGlyph());
@@ -1610,7 +1619,7 @@
     providerSuggestions = [];
     providerSuggestionQuery = '';
     searchProviderId = null;
-    searchProviderLabel = 'search';
+    searchProviderLabel = null;
   }
 
   function scheduleSearchSuggestions() {
@@ -1646,7 +1655,7 @@
       searchProviderId = typeof response?.engine === 'string' ? response.engine : null;
       searchProviderLabel = typeof response?.label === 'string' && response.label
         ? response.label
-        : 'search';
+        : null;
       providerSuggestionQuery = query;
       providerSuggestions = Array.isArray(response?.suggestions)
         ? response.suggestions.filter((item) => typeof item === 'string')

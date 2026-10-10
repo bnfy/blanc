@@ -6042,6 +6042,66 @@
           }
         }
       }
+    },
+    "result.groupCount": {
+      "comment": "Detail line of a Quick Switcher group result: how many tabs the group holds.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld tab"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld tabs"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Tab"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Tabs"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "result.tag.search": {
+      "comment": "Lowercase tag on a Quick Switcher search row when the search engine's own name is not available.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "search"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "suche"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
