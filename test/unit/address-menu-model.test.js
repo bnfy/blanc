@@ -2,6 +2,7 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 
 const { buildAddressMenu } = require('../../src/main/address-menu-model');
+const { englishT } = require('../support/english-t');
 
 const ALL_FLAGS = {
   canUndo: true, canRedo: true, canCut: true, canCopy: true,
@@ -13,6 +14,7 @@ function build(overrides = {}) {
     editFlags: ALL_FLAGS,
     clipboardText: 'https://paste.example/',
     fieldText: 'https://ex.com/?utm_source=x',
+    t: englishT,
     ...overrides,
   });
 }

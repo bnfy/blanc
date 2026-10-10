@@ -2,29 +2,30 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 const { buildDockMenu, installDockMenu } = require('../../src/main/dock-menu');
+const { englishT: t } = require('../support/english-t');
 
 test('dock menu offers New Window and New Private Window, in order', () => {
-  const items = buildDockMenu();
+  const items = buildDockMenu({ t });
   assert.deepEqual(items.map((i) => i.id), ['new-window', 'new-private-window']);
   assert.deepEqual(items.map((i) => i.label), ['New Window', 'New Private Window']);
 });
 
 test('an active tab adds a top line above a separator', () => {
-  const items = buildDockMenu({ activeTab: { label: 'Example — example.com' } });
+  const items = buildDockMenu({ activeTab: { label: 'Example — example.com' }, t });
   assert.deepEqual(items.map((i) => i.id ?? i.type),
     ['active-tab', 'separator', 'new-window', 'new-private-window']);
   assert.equal(items[0].label, 'Example — example.com');
 });
 
 test('an empty active-tab label is omitted (no dangling separator)', () => {
-  const items = buildDockMenu({ activeTab: { label: '' } });
+  const items = buildDockMenu({ activeTab: { label: '' }, t });
   assert.deepEqual(items.map((i) => i.id), ['new-window', 'new-private-window']);
 });
 
 test('installDockMenu is a no-op off macOS and returns an inert handle', () => {
   let called = false;
   const app = { dock: { setMenu() { called = true; } } };
-  const handle = installDockMenu({ app, Menu: { buildFromTemplate: () => ({}) }, actions: {}, platform: 'win32' });
+  const handle = installDockMenu({ app, t, Menu: { buildFromTemplate: () => ({}) }, actions: {}, platform: 'win32' });
   handle.update({ label: 'x' });
   assert.equal(called, false);
 });
@@ -42,7 +43,7 @@ function fakeDarwin(actions) {
   };
   const menus = [];
   const app = { dock: { setMenu: (m) => menus.push(m) } };
-  const handle = installDockMenu({ app, Menu, nativeImage: null, actions, platform: 'darwin' });
+  const handle = installDockMenu({ app, t, Menu, nativeImage: null, actions, platform: 'darwin' });
   return { handle, templates, menus };
 }
 

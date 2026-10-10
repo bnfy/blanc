@@ -78,7 +78,7 @@ async function isInPill(wc, params) {
 // Two menu surfaces share the document: vertical-rail tab rows (recorded id →
 // the shared row menu) and the resting pill (hit-test → the active-tab menu).
 // deps: { resolveActiveTab(): ctx|null, resolveTab(rawId): ctx|null,
-//         getWindow(), actions }
+//         getWindow(), actions, t }
 function attachChromeMenu(wc, deps) {
   wc.on('context-menu', async (_event, params) => {
     let rowId;
@@ -86,7 +86,7 @@ function attachChromeMenu(wc, deps) {
     if (rowId != null) {
       const ctx = deps.resolveTab(rowId);
       if (!ctx) return;
-      const template = buildTabContextMenu({ ...ctx, surface: 'row' });
+      const template = buildTabContextMenu({ ...ctx, surface: 'row', t: deps.t });
       const menu = Menu.buildFromTemplate(toElectronTemplate(template, { tab: ctx.tab, actions: deps.actions }));
       try {
         menu.popup({ window: deps.getWindow(), x: Math.round(params.x), y: Math.round(params.y), sourceType: params.menuSourceType });
@@ -98,7 +98,7 @@ function attachChromeMenu(wc, deps) {
     if (!inPill) return;
     const ctx = deps.resolveActiveTab();
     if (!ctx) return;
-    const template = buildTabContextMenu({ ...ctx, surface: 'pill' });
+    const template = buildTabContextMenu({ ...ctx, surface: 'pill', t: deps.t });
     const menu = Menu.buildFromTemplate(toElectronTemplate(template, { tab: ctx.tab, actions: deps.actions }));
     try {
       menu.popup({ window: deps.getWindow(), x: Math.round(params.x), y: Math.round(params.y), sourceType: params.menuSourceType });
@@ -110,7 +110,7 @@ function attachChromeMenu(wc, deps) {
 // Coords are overlay-relative → offset by overlay bounds for popup placement;
 // reuse the overlay blur-guard.
 // deps: { isOverlayLive(), resolveTab(rawId): ctx|null, getWindow(),
-//         getOverlayBounds(), acquireMenuGuard(), releaseMenuGuard(ticket), actions }
+//         getOverlayBounds(), acquireMenuGuard(), releaseMenuGuard(ticket), actions, t }
 function attachRowMenu(wc, deps) {
   wc.on('context-menu', async (_event, params) => {
     if (params.isEditable) return; // the address menu owns editable targets
@@ -120,7 +120,7 @@ function attachRowMenu(wc, deps) {
     if (!deps.isOverlayLive()) return;
     const ctx = deps.resolveTab(rawId);
     if (!ctx) return;
-    const template = buildTabContextMenu({ ...ctx, surface: 'row' });
+    const template = buildTabContextMenu({ ...ctx, surface: 'row', t: deps.t });
     const menu = Menu.buildFromTemplate(toElectronTemplate(template, { tab: ctx.tab, actions: deps.actions }));
     const bounds = deps.getOverlayBounds();
     const ticket = deps.acquireMenuGuard();

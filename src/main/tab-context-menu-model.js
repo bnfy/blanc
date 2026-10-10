@@ -24,22 +24,22 @@ const ACCEL = {
 const isFavoritable = (tab) => !tab.private && /^https?:\/\//.test(tab.url || '');
 const isCopyable = (tab) => /^(https?|file):\/\//.test(tab.url || '');
 
-function buildGroupSubmenu(tab, groups) {
+function buildGroupSubmenu(tab, groups, t) {
   const sub = [];
   for (const g of groups) {
     sub.push({ id: 'group-move', label: g.name, type: 'radio', checked: tab.groupId === g.id, groupId: g.id });
   }
   if (groups.length) sub.push({ type: 'separator' });
-  if (tab.groupId != null) sub.push({ id: 'group-none', label: 'Remove from Group' });
-  sub.push({ id: 'group-new', label: 'New Group…' });
+  if (tab.groupId != null) sub.push({ id: 'group-none', label: t('tabMenu.removeFromGroup') });
+  sub.push({ id: 'group-new', label: t('tabMenu.newGroup') });
   return sub;
 }
 
-function buildTabContextMenu({ tab, groups = [], activeTabId, surface, canCloseOthers, canMoveToNewWindow, canQuiet }) {
+function buildTabContextMenu({ tab, groups = [], activeTabId, surface, canCloseOthers, canMoveToNewWindow, canQuiet, t }) {
   const isActive = tab.id === activeTabId;
   const items = [];
 
-  items.push({ id: 'copy-link', label: 'Copy Link', enabled: isCopyable(tab) });
+  items.push({ id: 'copy-link', label: t('tabMenu.copyLink'), enabled: isCopyable(tab) });
   // Hidden (not disabled) when cleaning changes nothing: cleanLink returns
   // tracker-free http(s) URLs unchanged and non-http(s) input as null, and a
   // "Copy Clean Link" identical to "Copy Link" is noise (design §4). The
@@ -47,43 +47,43 @@ function buildTabContextMenu({ tab, groups = [], activeTabId, surface, canCloseO
   // visibility check evaluated — never a recomputed value.
   const cleaned = cleanLink(tab.url);
   if (cleaned !== null && cleaned !== tab.url) {
-    items.push({ id: 'copy-clean-link', label: 'Copy Clean Link', cleanedUrl: cleaned });
+    items.push({ id: 'copy-clean-link', label: t('menu.copyCleanLink'), cleanedUrl: cleaned });
   }
   items.push({ type: 'separator' });
 
-  items.push({ id: 'reload', label: 'Reload', accelerator: ACCEL.reload });
-  items.push({ id: 'duplicate', label: 'Duplicate Tab' });
+  items.push({ id: 'reload', label: t('menu.reload'), accelerator: ACCEL.reload });
+  items.push({ id: 'duplicate', label: t('tabMenu.duplicate') });
   items.push({ type: 'separator' });
 
-  items.push({ id: 'toggle-pin', label: tab.pinned ? 'Unpin Tab' : 'Pin Tab' });
-  items.push({ id: 'toggle-mute', label: tab.muted ? 'Unmute Tab' : 'Mute Tab' });
+  items.push({ id: 'toggle-pin', label: t(tab.pinned ? 'tabMenu.unpin' : 'tabMenu.pin') });
+  items.push({ id: 'toggle-mute', label: t(tab.muted ? 'tabMenu.unmute' : 'tabMenu.mute') });
   items.push({
     id: 'toggle-favorite',
-    label: tab.bookmarked ? 'Remove from Favorites' : 'Save to Favorites',
+    label: t(tab.bookmarked ? 'tabMenu.removeFavorite' : 'tabMenu.saveFavorite'),
     enabled: isFavoritable(tab),
   });
-  items.push({ id: 'group', label: 'Move to Group', submenu: buildGroupSubmenu(tab, groups) });
+  items.push({ id: 'group', label: t('tabMenu.moveToGroup'), submenu: buildGroupSubmenu(tab, groups, t) });
   items.push({ type: 'separator' });
 
   if (surface === 'row' && !isActive) {
-    items.push({ id: 'glance', label: 'Open in Glance' });
+    items.push({ id: 'glance', label: t('tabMenu.glance') });
     // canQuiet is main's explicit-quiet predicate (the sweep's full policy
     // minus the idle threshold) — the same check the action runs, so this
     // item can never render enabled for a tab the action would refuse.
-    items.push({ id: 'quiet', label: 'Quiet This Tab Now', enabled: !!canQuiet });
+    items.push({ id: 'quiet', label: t('tabMenu.quiet'), enabled: !!canQuiet });
     items.push({ type: 'separator' });
   }
 
-  items.push({ id: 'new-tab', label: 'New Tab', accelerator: ACCEL.newTab });
-  items.push({ id: 'new-private-tab', label: 'New Private Tab', accelerator: ACCEL.newPrivateTab });
+  items.push({ id: 'new-tab', label: t('menu.newTab'), accelerator: ACCEL.newTab });
+  items.push({ id: 'new-private-tab', label: t('menu.newPrivateTab'), accelerator: ACCEL.newPrivateTab });
   items.push({ type: 'separator' });
 
-  items.push({ id: 'close-others', label: 'Close Other Tabs', enabled: !!canCloseOthers });
-  items.push({ id: 'move-new-window', label: 'Move Tab to New Window', enabled: !!canMoveToNewWindow });
+  items.push({ id: 'close-others', label: t('tabMenu.closeOthers'), enabled: !!canCloseOthers });
+  items.push({ id: 'move-new-window', label: t('tabMenu.moveToNewWindow'), enabled: !!canMoveToNewWindow });
   items.push({ type: 'separator' });
 
-  items.push({ id: 'reopen-closed', label: 'Reopen Closed Tab', accelerator: ACCEL.reopen });
-  items.push({ id: 'close', label: 'Close Tab', accelerator: ACCEL.close });
+  items.push({ id: 'reopen-closed', label: t('menu.reopenClosedTab'), accelerator: ACCEL.reopen });
+  items.push({ id: 'close', label: t('menu.closeTab'), accelerator: ACCEL.close });
 
   return items;
 }

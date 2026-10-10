@@ -2,6 +2,7 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 const { buildTabContextMenu, closableTabIds } = require('../../src/main/tab-context-menu-model');
+const { englishT } = require('../support/english-t');
 
 const baseTab = {
   id: 1, url: 'https://example.com/p?utm_source=x', title: 'Example',
@@ -16,6 +17,7 @@ const build = (over = {}) => buildTabContextMenu({
   canCloseOthers: over.canCloseOthers ?? true,
   canMoveToNewWindow: over.canMoveToNewWindow ?? true,
   canQuiet: over.canQuiet ?? true,
+  t: englishT,
 });
 const ids = (items) => items.filter((i) => i.id).map((i) => i.id);
 const byId = (items, id) => items.find((i) => i.id === id);

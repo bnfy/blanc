@@ -1584,5 +1584,225 @@
     "message": "search",
     "note": "Lowercase tag on a Quick Switcher search row when the search engine's own name is not available.",
     "maxLength": 10
+  },
+  "menu.newWindow": {
+    "message": "New Window",
+    "note": "Menu command (app menu, Dock menu) that opens a new browser window."
+  },
+  "menu.newPrivateWindow": {
+    "message": "New Private Window",
+    "note": "Dock menu command that opens a new window with a private tab."
+  },
+  "menu.newTab": {
+    "message": "New Tab",
+    "note": "Menu command (app menu, tab context menu) that opens a new tab."
+  },
+  "menu.newPrivateTab": {
+    "message": "New Private Tab",
+    "note": "Menu command (app menu, tab context menu) that opens a new private tab."
+  },
+  "menu.closeTab": {
+    "message": "Close Tab",
+    "note": "Menu command (app menu, tab context menu) that closes the tab."
+  },
+  "menu.reopenClosedTab": {
+    "message": "Reopen Closed Tab",
+    "note": "Menu command (app menu, tab context menu) that reopens the most recently closed tab."
+  },
+  "menu.searchCommands": {
+    "message": "Search & Commands",
+    "note": "App menu command that opens the Island command bar (⌘L). The & is a literal ampersand."
+  },
+  "menu.find": {
+    "message": "Find…",
+    "note": "App menu command that opens the find bar."
+  },
+  "menu.reloadTab": {
+    "message": "Reload Tab",
+    "note": "App menu command that reloads the current tab."
+  },
+  "menu.hardReloadTab": {
+    "message": "Hard Reload Tab (Bypass Cache)",
+    "note": "App menu command that reloads the tab without using the cache."
+  },
+  "menu.showHistory": {
+    "message": "Show History",
+    "note": "App menu command that opens History."
+  },
+  "menu.downloads": {
+    "message": "Downloads",
+    "note": "App menu command that opens Downloads."
+  },
+  "menu.settings": {
+    "message": "Settings",
+    "note": "App menu command that opens Settings."
+  },
+  "menu.nextTab": {
+    "message": "Next Tab",
+    "note": "App menu command that switches to the next tab."
+  },
+  "menu.previousTab": {
+    "message": "Previous Tab",
+    "note": "App menu command that switches to the previous tab."
+  },
+  "menu.reload": {
+    "message": "Reload",
+    "note": "Context menu command (page background, tab) that reloads the page."
+  },
+  "menu.copyCleanLink": {
+    "message": "Copy Clean Link",
+    "note": "Context menu command (address bar, tab) that copies the link with tracking parameters removed."
+  },
+  "menu.undo": {
+    "message": "Undo",
+    "note": "Text editing command in context menus."
+  },
+  "menu.redo": {
+    "message": "Redo",
+    "note": "Text editing command in context menus."
+  },
+  "menu.cut": {
+    "message": "Cut",
+    "note": "Text editing command in context menus."
+  },
+  "menu.copy": {
+    "message": "Copy",
+    "note": "Text editing command in context menus; also copies selected page text."
+  },
+  "menu.paste": {
+    "message": "Paste",
+    "note": "Text editing command in context menus."
+  },
+  "menu.delete": {
+    "message": "Delete",
+    "note": "Text editing command in the address bar context menu that deletes the selection."
+  },
+  "menu.selectAll": {
+    "message": "Select All",
+    "note": "Text editing command in context menus."
+  },
+  "contextMenu.openLinkInNewTab": {
+    "message": "Open Link in New Tab",
+    "note": "Page context menu command for a link."
+  },
+  "contextMenu.copyLinkAddress": {
+    "message": "Copy Link Address",
+    "note": "Page context menu command for a link."
+  },
+  "contextMenu.openImageInNewTab": {
+    "message": "Open Image in New Tab",
+    "note": "Page context menu command for an image."
+  },
+  "contextMenu.copyImage": {
+    "message": "Copy Image",
+    "note": "Page context menu command for an image."
+  },
+  "contextMenu.copyImageAddress": {
+    "message": "Copy Image Address",
+    "note": "Page context menu command for an image."
+  },
+  "contextMenu.saveImageAs": {
+    "message": "Save Image As…",
+    "note": "Page context menu command for an image."
+  },
+  "contextMenu.addToDictionary": {
+    "message": "Add to Dictionary",
+    "note": "Page context menu command that adds a misspelled word to the spelling dictionary."
+  },
+  "contextMenu.searchFor": {
+    "message": "Search for “{query}”",
+    "note": "Page context menu command for selected text; {query} is the selection, shortened to 30 characters."
+  },
+  "contextMenu.back": {
+    "message": "Back",
+    "note": "Page context menu command that goes back in history."
+  },
+  "contextMenu.forward": {
+    "message": "Forward",
+    "note": "Page context menu command that goes forward in history."
+  },
+  "contextMenu.viewSource": {
+    "message": "View Page Source",
+    "note": "Page context menu command that opens the page source in a new tab."
+  },
+  "contextMenu.inspect": {
+    "message": "Inspect Element",
+    "note": "Page context menu command that opens the developer tools at the clicked element."
+  },
+  "addressMenu.pasteAndGo": {
+    "message": "Paste and Go",
+    "note": "Address bar context menu command that pastes and opens the clipboard text."
+  },
+  "tabMenu.copyLink": {
+    "message": "Copy Link",
+    "note": "Tab context menu command that copies the tab’s address."
+  },
+  "tabMenu.duplicate": {
+    "message": "Duplicate Tab",
+    "note": "Tab context menu command."
+  },
+  "tabMenu.pin": {
+    "message": "Pin Tab",
+    "note": "Tab context menu command."
+  },
+  "tabMenu.unpin": {
+    "message": "Unpin Tab",
+    "note": "Tab context menu command."
+  },
+  "tabMenu.mute": {
+    "message": "Mute Tab",
+    "note": "Tab context menu command."
+  },
+  "tabMenu.unmute": {
+    "message": "Unmute Tab",
+    "note": "Tab context menu command."
+  },
+  "tabMenu.saveFavorite": {
+    "message": "Save to Favorites",
+    "note": "Tab context menu command that adds the page to Favorites."
+  },
+  "tabMenu.removeFavorite": {
+    "message": "Remove from Favorites",
+    "note": "Tab context menu command that removes the page from Favorites."
+  },
+  "tabMenu.moveToGroup": {
+    "message": "Move to Group",
+    "note": "Tab context menu submenu listing tab groups."
+  },
+  "tabMenu.removeFromGroup": {
+    "message": "Remove from Group",
+    "note": "Tab context menu command in the Move to Group submenu."
+  },
+  "tabMenu.newGroup": {
+    "message": "New Group…",
+    "note": "Tab context menu command in the Move to Group submenu that creates a group."
+  },
+  "tabMenu.glance": {
+    "message": "Open in Glance",
+    "note": "Tab context menu command that shows the tab side by side in Glance."
+  },
+  "tabMenu.quiet": {
+    "message": "Quiet This Tab Now",
+    "note": "Tab context menu command that makes the tab a quiet tab (its memory is released until it is opened again)."
+  },
+  "tabMenu.closeOthers": {
+    "message": "Close Other Tabs",
+    "note": "Tab context menu command."
+  },
+  "tabMenu.moveToNewWindow": {
+    "message": "Move Tab to New Window",
+    "note": "Tab context menu command."
+  },
+  "workspaceMenu.rename": {
+    "message": "Rename…",
+    "note": "Context menu command on a workspace row."
+  },
+  "workspaceMenu.delete": {
+    "message": "Delete…",
+    "note": "Context menu command on a workspace row."
+  },
+  "dock.activeTab": {
+    "message": "Active tab",
+    "note": "Placeholder for the Dock menu’s active-tab line while it is hidden; never shown."
   }
 }

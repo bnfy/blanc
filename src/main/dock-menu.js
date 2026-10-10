@@ -4,14 +4,14 @@
 // Safari), above the app-authored New Window / New Private Window. macOS still
 // supplies Options ▸ / Show All Windows / Hide / Quit below.
 
-function buildDockMenu({ activeTab } = {}) {
+function buildDockMenu({ activeTab, t }) {
   const items = [];
   if (activeTab && activeTab.label) {
     items.push({ id: 'active-tab', label: activeTab.label });
     items.push({ type: 'separator' });
   }
-  items.push({ id: 'new-window', label: 'New Window' });
-  items.push({ id: 'new-private-window', label: 'New Private Window' });
+  items.push({ id: 'new-window', label: t('menu.newWindow') });
+  items.push({ id: 'new-private-window', label: t('menu.newPrivateWindow') });
   return items;
 }
 
@@ -24,9 +24,10 @@ function buildDockMenu({ activeTab } = {}) {
  * AppKit holding a stale native submenu pointer (observed with Electron 44).
  *
  * `activeTab` is `{ label, iconDataUrl }` or null. `actions` supplies
- * `focusActiveWindow` / `newWindow` / `newPrivateWindow`.
+ * `focusActiveWindow` / `newWindow` / `newPrivateWindow`; `t` is the
+ * interface translator.
  */
-function installDockMenu({ app, Menu, nativeImage, actions, platform = process.platform }) {
+function installDockMenu({ app, Menu, nativeImage, actions, t, platform = process.platform }) {
   if (platform !== 'darwin' || !app.dock) return { update() {} };
   const clicks = {
     'active-tab': actions.focusActiveWindow,
@@ -36,19 +37,19 @@ function installDockMenu({ app, Menu, nativeImage, actions, platform = process.p
   const menu = Menu.buildFromTemplate([
     {
       id: 'active-tab',
-      label: 'Active tab',
+      label: t('dock.activeTab'),
       visible: false,
       click: () => clicks['active-tab'] && clicks['active-tab'](),
     },
     { id: 'active-tab-separator', type: 'separator', visible: false },
     {
       id: 'new-window',
-      label: 'New Window',
+      label: t('menu.newWindow'),
       click: () => clicks['new-window'] && clicks['new-window'](),
     },
     {
       id: 'new-private-window',
-      label: 'New Private Window',
+      label: t('menu.newPrivateWindow'),
       click: () => clicks['new-private-window'] && clicks['new-private-window'](),
     },
   ]);
@@ -66,7 +67,7 @@ function installDockMenu({ app, Menu, nativeImage, actions, platform = process.p
     const visible = Boolean(activeTab && activeTab.label);
     activeItem.visible = visible;
     separator.visible = visible;
-    activeItem.label = visible ? activeTab.label : 'Active tab';
+    activeItem.label = visible ? activeTab.label : t('dock.activeTab');
     activeItem.icon = undefined;
     if (visible && activeTab.iconDataUrl && nativeImage) {
       try {

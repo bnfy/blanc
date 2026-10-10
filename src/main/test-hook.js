@@ -2096,6 +2096,7 @@ function install(refs) {
         },
         clipboardText: await clipboard.readText(),
         fieldText,
+        t: refs.t,
       });
     },
     runAddressMenuItem(id, fieldText) {

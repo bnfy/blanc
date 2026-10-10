@@ -78,6 +78,17 @@ test('JS: literals inside a conditional assignment fail too', () => {
   assert.deepEqual(r.problems.sort(), ["literal 'Retry later'", "literal 'off'", "literal 'on'"]);
 });
 
+test('JS main: conditional property values are checked branch by branch', () => {
+  const r = scan.scanJs([
+    "items.push({ id: 'pin', label: tab.pinned ? 'Unpin Tab' : 'Pin Tab' });",
+    "menu.push({ label: visible ? activeTab.label : 'Active tab', accelerator: 'CmdOrCtrl+R' });",
+    "menu.push({ label: t(muted ? 'tab.unmute' : 'tab.mute'), accelerator: 'CmdOrCtrl+M' });",
+    "menu.push({ label: t(muted ? 'tab.unmute' : 'tab.typo') });",
+    "menu.push({ title: ok ? name : other, id: 'Some id' });",
+  ].join('\n'), { allow: [], kind: 'main', en: { 'tab.mute': {}, 'tab.unmute': {} } });
+  assert.deepEqual(r.problems.sort(), ["literal 'Active tab'", "literal 'Pin Tab'", "literal 'Unpin Tab'", "unknown key 'tab.typo'"]);
+});
+
 test('JS main: menu/dialog literals fail', () => {
   const r = scan.scanJs("{ label: 'Reload', click }\ndialog.showMessageBox({ message: 'Update ready', buttons: ['Restart Now'] })",
     { allow: [], kind: 'main' });

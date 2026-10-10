@@ -1520,5 +1520,225 @@
   "result.tag.search": {
     "message": "suche",
     "source": "sha256:4a9e353d79af51531dec5d47747b7d434ba44159ce7f6193bbc64e64d9defd7e"
+  },
+  "menu.newWindow": {
+    "message": "Neues Fenster",
+    "source": "sha256:2dc6308ea1b44a65c98b9d218a6ac6501230833a08aab7a3d4c3011eea6ac2e3"
+  },
+  "menu.newPrivateWindow": {
+    "message": "Neues privates Fenster",
+    "source": "sha256:49b6a3cd3f05b283ed038ed3ab028c43c0cd76bb93b4188f75fd2b4423e8aefc"
+  },
+  "menu.newTab": {
+    "message": "Neuer Tab",
+    "source": "sha256:7d40eba8925fa69bc33ccea4fa2b2e435cf468118c8afe76918fc3de5bb0feb1"
+  },
+  "menu.newPrivateTab": {
+    "message": "Neuer privater Tab",
+    "source": "sha256:c976cec0c1599aadea11fe9a8b1f9212b1b4cdadddd0bb4d67c58aa33366909c"
+  },
+  "menu.closeTab": {
+    "message": "Tab schließen",
+    "source": "sha256:97d36a9e6615e1e6d04eee11b1355ef66e29ed957e268e2ed96a71fc9efe1576"
+  },
+  "menu.reopenClosedTab": {
+    "message": "Geschlossenen Tab wieder öffnen",
+    "source": "sha256:eb5df9e8a92575d2efd727419b5927feefd384672d3990ca304d7d8563ed0125"
+  },
+  "menu.searchCommands": {
+    "message": "Suche & Befehle",
+    "source": "sha256:5126a5a6e03ee6ff812ccb9c7bbb7ef56f7ba514aca656058ee00f9b4c10b32e"
+  },
+  "menu.find": {
+    "message": "Suchen…",
+    "source": "sha256:522c37617eb874febbd56bd6a4353757db4ddc12b0b67b0af4bad423e7f09d94"
+  },
+  "menu.reloadTab": {
+    "message": "Tab neu laden",
+    "source": "sha256:c407395396f08a5c7cce4788709d8a38d517bba8eed3b030bdc3bfb48363a8e3"
+  },
+  "menu.hardReloadTab": {
+    "message": "Tab vollständig neu laden (ohne Cache)",
+    "source": "sha256:c7e5ef3dc2cbe01963cc11cc08e1f9a5a56201ca9cb916cab5ee84a904e9ef93"
+  },
+  "menu.showHistory": {
+    "message": "Verlauf anzeigen",
+    "source": "sha256:430562e9d9aa27624a90da40ab8f5478df73d5db4e848bdec9d967893ba4f91f"
+  },
+  "menu.downloads": {
+    "message": "Downloads",
+    "source": "sha256:297d007af1c680fae681b97aaea262051a70b3355fe95669a15784891f555d7f"
+  },
+  "menu.settings": {
+    "message": "Einstellungen",
+    "source": "sha256:9b1c989f8c31297b6f4cdf0fc658ae48b6ec6521bd5877e9edd8de16dba5682d"
+  },
+  "menu.nextTab": {
+    "message": "Nächster Tab",
+    "source": "sha256:12ca40176db7453b154628a13c40288eb1b4ca366f30e6aa973011e104b44441"
+  },
+  "menu.previousTab": {
+    "message": "Vorheriger Tab",
+    "source": "sha256:17a53effd3df2242fbf3526f8a7296c65780d0f38eaa60684204f7c68df4be05"
+  },
+  "menu.reload": {
+    "message": "Neu laden",
+    "source": "sha256:e2f5815fdce174cb326df99f9ac7adce09274b3a50ab0330bbbb5c3b899098bc"
+  },
+  "menu.copyCleanLink": {
+    "message": "Bereinigten Link kopieren",
+    "source": "sha256:4381fb192ca5aae8fdeeb5dc24d88c14bdaa3cdd967058127169c8f686507fa5"
+  },
+  "menu.undo": {
+    "message": "Rückgängig",
+    "source": "sha256:3f82d3d7cac23aa791ed84fcc955e61c487ebfdfb7d83d0a717b64fe15d7ec68"
+  },
+  "menu.redo": {
+    "message": "Wiederholen",
+    "source": "sha256:23df754a36929e5f84b12b6cff9179f3b420cb9eca81024195a2e5b9552349d9"
+  },
+  "menu.cut": {
+    "message": "Ausschneiden",
+    "source": "sha256:803ace8ad037664b84d97748c8e357988ce5d409deabcd523115f0e018986f92"
+  },
+  "menu.copy": {
+    "message": "Kopieren",
+    "source": "sha256:91c2e9bc85901e9b25d0a61287d50e379eb7ae6d315ea11ba7a0af4da7171117"
+  },
+  "menu.paste": {
+    "message": "Einfügen",
+    "source": "sha256:3b7102f5189f0f2b2d186c57fc6c91a6048dc5a2c1aca8a1cc6a7d81f3ff7466"
+  },
+  "menu.delete": {
+    "message": "Löschen",
+    "source": "sha256:34e7c1a4dc4a19f6cc3e76407bcffa560dd282e0b98d5c0ce6b0d45d697bd45d"
+  },
+  "menu.selectAll": {
+    "message": "Alles auswählen",
+    "source": "sha256:23840b4967c388d3755a75f34e85f14ea88d2b5d42a683d8c1361160e7e8a580"
+  },
+  "contextMenu.openLinkInNewTab": {
+    "message": "Link in neuem Tab öffnen",
+    "source": "sha256:f2910732c77c1df03fcb642c344a5b13976f53a769f74d5939890d36d87ffd6e"
+  },
+  "contextMenu.copyLinkAddress": {
+    "message": "Linkadresse kopieren",
+    "source": "sha256:bbb75b2920ecf9f3a1e840623ff46bbb93fb592c3104a9dbb0213f28dd7872f1"
+  },
+  "contextMenu.openImageInNewTab": {
+    "message": "Bild in neuem Tab öffnen",
+    "source": "sha256:a5276d1269e0a97082eeea970aa542e06c51131dab9e49248289ed378d8da614"
+  },
+  "contextMenu.copyImage": {
+    "message": "Bild kopieren",
+    "source": "sha256:88d6f83be7cec94caf006e55fec0b93e15470c8d0c43e839f6a2ec84549ee35b"
+  },
+  "contextMenu.copyImageAddress": {
+    "message": "Bildadresse kopieren",
+    "source": "sha256:77c06c3a2c93b5ed7de3030fbac76f39d040c6e3e92b913d474bb90d9a56a383"
+  },
+  "contextMenu.saveImageAs": {
+    "message": "Bild speichern unter…",
+    "source": "sha256:fab27cbc98454e8a3ad74498f663a03e764c7b865f1ed258b0ae4f19356bcd5e"
+  },
+  "contextMenu.addToDictionary": {
+    "message": "Zum Wörterbuch hinzufügen",
+    "source": "sha256:40055473e35ee261eeb398da672766a55091a82fd9ffa98557c16be0dfe933cb"
+  },
+  "contextMenu.searchFor": {
+    "message": "Nach „{query}“ suchen",
+    "source": "sha256:70a0c120776408b27690d02494a26f918bf3273a87b1eea51d35e0ccf4dc3d5a"
+  },
+  "contextMenu.back": {
+    "message": "Zurück",
+    "source": "sha256:21947d6cc3941c4b77a7ed4a082822df6aa47ea88ee2538ae9abc7bd67ed9533"
+  },
+  "contextMenu.forward": {
+    "message": "Vorwärts",
+    "source": "sha256:2e3b91e07fe9ea808427834bf732ba1d47af22cbfebbf933f1f6721c49401806"
+  },
+  "contextMenu.viewSource": {
+    "message": "Quelltext anzeigen",
+    "source": "sha256:2c023f41cd20bfa51e247e1216d3fc7a365a30dab1d380f90c5ea89983100eb3"
+  },
+  "contextMenu.inspect": {
+    "message": "Element untersuchen",
+    "source": "sha256:b3dc9d693558ac2a0308a6444f041db7312e122d74c350f4b0a7bb4885239a0e"
+  },
+  "addressMenu.pasteAndGo": {
+    "message": "Einfügen und öffnen",
+    "source": "sha256:e1a55a58e57e70e78bde0af787014bc7b67aac7e2695e576914f3e66ee581080"
+  },
+  "tabMenu.copyLink": {
+    "message": "Link kopieren",
+    "source": "sha256:559b4bdbe948e7fac2972c4d3d60828a82f29119fa3ccc3b71fefba825b7d2f9"
+  },
+  "tabMenu.duplicate": {
+    "message": "Tab duplizieren",
+    "source": "sha256:6a5abab1ab91972a4ab09925b624a3e1c9c6615e1d07dc7da8be6ccde1a2fd3b"
+  },
+  "tabMenu.pin": {
+    "message": "Tab anheften",
+    "source": "sha256:9d4454dac78cbfcc82689d9fad43f533edc9b26fef2759ab52253cb1d982e2b6"
+  },
+  "tabMenu.unpin": {
+    "message": "Tab lösen",
+    "source": "sha256:40251613e30f182261988b473510203a1f8ac40239ccc606593cb2d5ffbb79fe"
+  },
+  "tabMenu.mute": {
+    "message": "Tab stummschalten",
+    "source": "sha256:5f41ef1d2970f37a646c04c9876a11601833ac6ffc512a8a9d184fc77782c472"
+  },
+  "tabMenu.unmute": {
+    "message": "Ton einschalten",
+    "source": "sha256:d96b53fb09f68554b67ce357d217e9ae6c75db0251a8bdb63ca1db22ff030638"
+  },
+  "tabMenu.saveFavorite": {
+    "message": "Zu Favoriten hinzufügen",
+    "source": "sha256:cdf90db56c13a5387f212afc76eef71285b4990cd237f9963d9db5961e4586fa"
+  },
+  "tabMenu.removeFavorite": {
+    "message": "Aus Favoriten entfernen",
+    "source": "sha256:11f30e93f20f0577e0e069e894d71fb2e12a78d131a79c8fa85530776ddfbf60"
+  },
+  "tabMenu.moveToGroup": {
+    "message": "In Gruppe verschieben",
+    "source": "sha256:a9cb65ecce0b3e63ce684799e3574b7f13ed662d025c1b214fcf8d4baab9ef54"
+  },
+  "tabMenu.removeFromGroup": {
+    "message": "Aus Gruppe entfernen",
+    "source": "sha256:de7feaf933480a11b6e087380c9621315d04fc790efc12c588c3779497248e57"
+  },
+  "tabMenu.newGroup": {
+    "message": "Neue Gruppe…",
+    "source": "sha256:5183c08f721fc9630e19c4dfadfce0364284c82c62097ec5123c76b64226bb6c"
+  },
+  "tabMenu.glance": {
+    "message": "In Glance öffnen",
+    "source": "sha256:bf25a819598671d9190f5691056b9199189f18daeeda80355842b3c499aa526d"
+  },
+  "tabMenu.quiet": {
+    "message": "Tab jetzt ruhen lassen",
+    "source": "sha256:97f23a0ef735a21a60857b81b9d7b00b6885cf4edc29d94eb53b1d323e9d1735"
+  },
+  "tabMenu.closeOthers": {
+    "message": "Andere Tabs schließen",
+    "source": "sha256:b65c00746b337e55b63c11203703ea5196d0e2611bfa2447371e0d4c51056b03"
+  },
+  "tabMenu.moveToNewWindow": {
+    "message": "Tab in neues Fenster verschieben",
+    "source": "sha256:4afc1d856579c6cc12d392bfca7d0d8256afb75495e3a21c6cf804ac3204c1e6"
+  },
+  "workspaceMenu.rename": {
+    "message": "Umbenennen…",
+    "source": "sha256:ce9a0b098f5bf6fb0da605608fac2ee7402d634301fa97a2bb7c7be8c476e263"
+  },
+  "workspaceMenu.delete": {
+    "message": "Löschen…",
+    "source": "sha256:1c8656813fabfb592f520e0a37cfc6b41652154a8f7328f5c0fc30d29d33b3eb"
+  },
+  "dock.activeTab": {
+    "message": "Aktiver Tab",
+    "source": "sha256:a2297ffe7054da22856de5f981b5c22b910375ece0936643c6681ee887c4087c"
   }
 }

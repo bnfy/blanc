@@ -91,6 +91,13 @@ const MAIN_SITES = [
   new RegExp(String.raw`(?:^|[\s{,])(?:label|message|detail|title|checkboxLabel)\s*:\s*` + STRING, 'gm'),
   new RegExp(String.raw`buttons\s*:\s*\[\s*` + STRING, 'g'),
 ];
+// A main-process property whose value is a conditional (`label: c ? 'a' : 'b'`),
+// to the end of the line; only its branches are checked, not later properties.
+const MAIN_CONDITIONAL_SITE = new RegExp(String.raw`(?:^|[\s{,])(?:label|message|detail|title|checkboxLabel)\s*:\s*([^,'"\`\n]*\?[^\n]*)`, 'gm');
+const BRANCHES = [
+  new RegExp(String.raw`\?\s*` + STRING + String.raw`\s*:\s*` + STRING + '?', 'g'),
+  new RegExp(String.raw`\?\s*[^'"\`?:\s][^'"\`?:]*:\s*` + STRING, 'g'),
+];
 const CONDITIONAL_SITE = new RegExp(String.raw`\.(?:textContent|innerText|title|placeholder|ariaLabel)\s*=\s*([^;'"\`]*\?[^;]*);`, 'g');
 const ANY_SITE = new RegExp(String.raw`\.(?:textContent|innerText|title|placeholder|ariaLabel)\s*=|setAttribute\(\s*['"](?:title|aria-label|placeholder|alt)['"]`, 'g');
 
@@ -125,7 +132,19 @@ export function scanJs(js, { allow = [], kind = 'renderer', en = null }) {
   for (const m of source.matchAll(CONDITIONAL_SITE)) {
     for (const lit of m[1].matchAll(new RegExp(String.raw`[?:]\s*` + STRING, 'g'))) report(lit[1]);
   }
-  if (kind === 'main') for (const pattern of MAIN_SITES) for (const m of source.matchAll(pattern)) report(m[1]);
+  if (kind === 'main') {
+    for (const pattern of MAIN_SITES) for (const m of source.matchAll(pattern)) report(m[1]);
+    // A branch naming a catalog key (`t(c ? 'a.b' : 'a.c')`) must exist; any
+    // other branch is a literal.
+    const branch = (raw) => {
+      const value = literal(raw);
+      if (!KEY_LITERAL.test(value)) report(raw);
+      else if (en && !Object.hasOwn(en, value)) problems.push(`unknown key '${value}'`);
+    };
+    for (const m of source.matchAll(MAIN_CONDITIONAL_SITE)) {
+      for (const pattern of BRANCHES) for (const b of m[1].matchAll(pattern)) b.slice(1).filter(Boolean).forEach(branch);
+    }
+  }
   let scanned = [...source.matchAll(ANY_SITE)].length;
   if (kind === 'main') for (const pattern of MAIN_SITES) scanned += [...source.matchAll(pattern)].length;
   return { problems, scanned };
