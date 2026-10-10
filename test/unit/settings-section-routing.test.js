@@ -26,7 +26,8 @@ test('/sync exists in all four command copies with the same hint', () => {
   // Hint text lives in the interface catalog; the registry keeps order and names.
   assert.equal(JSON.parse(read('copy/messages/en.json'))['slash.sync.hint'].message, hint);
   assert.equal(copy.commands[idx - 1].command, '/settings');
-  assert.match(read('src/renderer/overlay.js'), new RegExp(`\\{ cmd: '/sync', hint: '${hint}', run: \\(\\) => window\\.browserAPI\\.openPage\\('settings', 'sync'\\) \\}`));
+  // overlay.js reads the hint from the interface catalog (F44).
+  assert.match(read('src/renderer/overlay.js'), /\{ cmd: '\/sync', hint: blancI18n\.t\('slash\.sync\.hint'\), run: \(\) => window\.browserAPI\.openPage\('settings', 'sync'\) \}/);
   assert.match(read('src/renderer/pages/shortcuts.js'), new RegExp(`\\['/sync', '${hint}'\\]`));
   assert.match(read('src/main/main.js'), new RegExp(`\\['/sync', '${hint}'\\]`));
 });

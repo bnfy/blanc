@@ -24,6 +24,10 @@ test('hero extraction retains native dimensions, material and actual action SVGs
     assert.ok(art.html.includes(svg), name);
   }
   assert.match(art.html, /id="pillShieldCount">1<\/span>/, 'fixed illustration matches the supplied one-count reference');
+  // The app's markup carries data-i18n* keys (F44); the replica must still
+  // rewrite the domain and must not ship the keys.
+  assert.match(art.html, /<span id="pillDomain">blancbrowser\.com<\/span>/, 'the hero pill shows the site domain');
+  assert.doesNotMatch(art.html, /data-i18n/, 'interface-string keys are stripped from the replica');
   assert.match(art.html, /id="pillShield" class="shield"/, 'use the native ink state from the reference');
   assert.ok(art.css.includes('#pillShieldCount {'), 'include the original badge styling');
   const shield = source.document.match(/id="pillShield"[\s\S]*?(<svg[\s\S]*?<\/svg>)/)[1];
@@ -55,11 +59,21 @@ test('the shield popover replica renders the native overlay in the states the ap
   for (const expected of [site.host, controls.detail, site.countLine, ...controls.scope.split('\n'), 'Uses HTTPS', 'Applies while Blanc is dark.']) {
     assert.ok(text(summary.html).includes(expected), `summary shows: ${expected}`);
   }
-  assert.match(overlayScript, /https: 'Uses HTTPS'/);
+  // The replica's state text mirrors what overlay.js renders from the
+  // interface catalog (F44): the keys are used there and hold this English.
+  const catalog = JSON.parse(read('copy/messages/en.json'));
+  const english = key => catalog[key].message;
+  assert.match(overlayScript, /https: blancI18n\.t\('connection\.https'\)/);
+  assert.equal(english('connection.https'), 'Uses HTTPS');
   assert.match(summary.html, /id="shieldPopToggle" class="on"/);
   assert.match(summary.html, /<div id="shieldPopChooser" hidden>/);
-  for (const literal of ["'Choose a blocker'", "'For regular tabs on this device.'", "'Restart Blanc to use your selected blocker.'", "'Changes take effect after restarting Blanc.'", "'Restart Blanc'"]) {
-    assert.ok(overlayScript.includes(literal), `overlay.js still renders ${literal}`);
+  for (const [key, literal] of [
+    ['shield.chooseBlocker', 'Choose a blocker'], ['shield.scopeRegular', 'For regular tabs on this device.'],
+    ['shield.restartNeeded', 'Restart Blanc to use your selected blocker.'], ['shield.restartNote', 'Changes take effect after restarting Blanc.'],
+    ['shield.restart', 'Restart Blanc'],
+  ]) {
+    assert.ok(overlayScript.includes(`blancI18n.t('${key}')`), `overlay.js still renders ${key}`);
+    assert.equal(english(key), literal, `${key} is still "${literal}"`);
   }
   const chooser = art({step:'chooser'}), switching = art({step:'chooser', draft:'ublock-origin'});
   assert.match(chooser.html, /value="blanc" checked/);
@@ -69,7 +83,7 @@ test('the shield popover replica renders the native overlay in the states the ap
   assert.ok(switching.html.includes('>Restart Blanc</button>') && switching.html.includes('Restart Blanc to use your selected blocker.'));
   for (const state of [chooser, switching]) assert.match(state.html, /<div id="shieldPopSummary" hidden>/);
   assert.ok(summary.css.includes('#shieldPop {') && summary.css.includes('#shieldPopProvider label {'), 'native popover rules travel with it');
-  assert.doesNotMatch(summary.html + chooser.html, /<script|browserAPI/);
+  assert.doesNotMatch(summary.html + chooser.html, /<script|browserAPI|data-i18n/);
   assert.throws(() => art({step:'summary', overlay:''}), /Missing native shield popover markup/);
   assert.throws(() => art({step:'summary', overlay:overlay.replace('<div id="shieldPopCount"></div>', '<div id="shieldPopCount"></div ')}), /shieldPopCount/);
 });

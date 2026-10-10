@@ -91,7 +91,7 @@ test('/bring-tabs is catalogued and dispatches through the privileged page allow
   const overlay = read('src/renderer/overlay.js');
   assert.match(
     overlay,
-    /cmd: '\/bring-tabs', hint: 'Bring open tabs from another browser', run: \(\) => window\.browserAPI\.openPage\('tab-import'\)/,
+    /cmd: '\/bring-tabs', hint: blancI18n\.t\('slash\.bringTabs\.hint'\), run: \(\) => window\.browserAPI\.openPage\('tab-import'\)/,
   );
 
   const main = read('src/main/main.js');

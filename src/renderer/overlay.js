@@ -5,8 +5,11 @@
 (() => {
   const { platform } = window.browserAPI;
   const isMac = platform === 'darwin';
-  const modKey = isMac ? '⌘' : 'ctrl+';
-  const modShiftKey = isMac ? '⌘⇧' : 'ctrl+shift+';
+  // Lowercase key words in the mono voice; Windows/Linux names come from the
+  // catalog (German keyboards print Strg).
+  const keyWord = (key) => key.toLocaleLowerCase(blancI18n.formatLocale());
+  const modKey = isMac ? '⌘' : `${keyWord(blancI18n.t('key.ctrl'))}+`;
+  const modShiftKey = isMac ? '⌘⇧' : `${keyWord(blancI18n.t('key.ctrl'))}+${keyWord(blancI18n.t('key.shift'))}+`;
 
   const backdrop = document.getElementById('backdrop');
   const panelAnchor = document.getElementById('panelAnchor');
@@ -65,9 +68,9 @@
   let displayShareModel = null;
   let displayShareSelection = null;
   const CONNECTION_LABEL = {
-    https: 'Uses HTTPS',
-    http: 'Not encrypted',
-    local: 'Local',
+    https: blancI18n.t('connection.https'),
+    http: blancI18n.t('connection.http'),
+    local: blancI18n.t('connection.local'),
   };
   const findInput = document.getElementById('findInput');
   const findCount = document.getElementById('findCount');
@@ -158,7 +161,9 @@
   let providerSuggestions = [];
   let providerSuggestionQuery = '';
   let searchProviderId = null;
-  let searchProviderLabel = 'search';
+  // The search engine's name, once a suggestions response supplies it; null
+  // means the row shows the catalog's generic "search" tag.
+  let searchProviderLabel = null;
   let suggestionDebounce = null;
   let suggestionRequestGeneration = 0;
   let addressInputComposing = false;
@@ -240,7 +245,7 @@
     event.preventDefault();
     event.stopPropagation();
     if (result.stop) {
-      announceIsland(result.stop === 'top' ? 'Already at the top' : 'Already at the bottom');
+      announceIsland(result.stop === 'top' ? blancI18n.t('rail.move.top') : blancI18n.t('rail.move.bottom'));
       return;
     }
     islandMove(result.intent);
@@ -405,11 +410,13 @@
     if (mode !== 'glance') return;
     glancePickerBusy = false;
     if (selected) {
-      glancePickerLive.textContent = `${tab.title || 'Tab'} opened in Glance`;
+      glancePickerLive.textContent = tab.title
+        ? blancI18n.t('glance.opened', { title: tab.title })
+        : blancI18n.t('glance.openedUntitled');
       window.browserAPI.closeOverlay('selected');
       return;
     }
-    glancePickerError = 'Couldn’t open that tab in Glance';
+    glancePickerError = blancI18n.t('glance.openFailed');
     renderGlancePicker({ announce: true });
     glancePickerInput.focus();
   }
@@ -443,19 +450,22 @@
       // Keep an already-known title visible while a tab continues loading.
       // Replacing useful identity with a generic spinner label makes the
       // picker impossible to use on a slow or long-lived navigation.
-      title.textContent = tab.title || (tab.isLoading ? 'Loading…' : 'New tab');
+      title.textContent = tab.title || (tab.isLoading ? blancI18n.t('tab.loading') : blancI18n.t('tab.new'));
+      if (tab.title) title.dataset.i18nIgnore = ''; // a page title is data
       const metadata = [
         tabDomain(tab),
         groupById(tab.groupId)?.name,
-        tab.private ? 'private' : '',
-        tab.asleep ? 'quiet' : '',
+        tab.private ? blancI18n.t('rail.state.private') : '',
+        tab.asleep ? blancI18n.t('rail.state.quiet') : '',
       ].filter(Boolean);
       const sub = document.createElement('span');
       sub.className = 'glance-picker-option-sub';
-      sub.textContent = metadata.join(' · ') || 'open tab';
+      sub.textContent = metadata.join(' · ') || blancI18n.t('glance.picker.openTab');
+      // Host and group name are data; the state words are translated.
+      if (tabDomain(tab) || tab.groupId) sub.dataset.i18nIgnore = '';
       copy.append(title, sub);
       row.append(favicon, copy);
-      row.setAttribute('aria-label', `${title.textContent}, ${sub.textContent}`);
+      row.setAttribute('aria-label', blancI18n.t('glance.picker.optionLabel', { title: title.textContent, details: sub.textContent }));
       row.addEventListener('pointerdown', (event) => event.preventDefault());
       row.addEventListener('mousemove', () => {
         if (glancePickerSelectedId !== tab.id) selectGlanceResult(tab.id);
@@ -473,8 +483,8 @@
     glancePickerInput.setAttribute('aria-busy', String(glancePickerBusy));
 
     const emptyMessage = eligible.length
-      ? 'No matching open tabs'
-      : 'Open another tab to use Glance';
+      ? blancI18n.t('glance.picker.noMatches')
+      : blancI18n.t('glance.picker.noTabs');
     const message = glancePickerError || (!results.length ? emptyMessage : '');
     glancePickerState.hidden = !message;
     glancePickerState.textContent = message;
@@ -483,7 +493,7 @@
     if (announce) {
       glancePickerLive.textContent = glancePickerError || (
         results.length
-          ? `${results.length} ${results.length === 1 ? 'tab' : 'tabs'} available`
+          ? blancI18n.t('glance.picker.available', { count: results.length })
           : emptyMessage
       );
     }
@@ -526,11 +536,11 @@
     if (reloadBtn.dataset.mode !== (wantStop ? 'stop' : 'reload')) {
       reloadBtn.dataset.mode = wantStop ? 'stop' : 'reload';
       reloadBtn.innerHTML = wantStop ? ICONS.stop : ICONS.reload;
-      reloadBtn.title = wantStop ? 'Stop' : 'Reload';
+      reloadBtn.title = wantStop ? blancI18n.t('pill.stop') : blancI18n.t('pill.reload');
     }
     heartBtn.disabled = !tab || !isFavoritable(tab.url);
     heartBtn.classList.toggle('favorited', !!tab?.bookmarked);
-    heartBtn.title = tab?.bookmarked ? 'Remove favorite' : 'Favorite this page (Ctrl/Cmd+D)';
+    heartBtn.title = tab?.bookmarked ? blancI18n.t('pill.unfavorite') : blancI18n.t('panel.favoriteShortcut');
     const siteInfo = tab?.siteInfo;
     const visible = !!siteInfo && !tab?.isLoading && !['internal', 'neutral'].includes(siteInfo.state);
     panelSiteInfo.hidden = !visible;
@@ -538,15 +548,15 @@
     panelSiteInfo.innerHTML = ['insecure', 'certificate-error', 'certificate-exception'].includes(siteInfo?.state)
       ? ICONS.insecure
       : siteInfo?.state === 'local' ? ICONS.local : ICONS.secure;
-    panelSiteInfo.title = siteInfo?.title ?? 'Site information';
-    panelSiteInfo.setAttribute('aria-label', siteInfo?.title ?? 'Site information');
+    panelSiteInfo.title = siteInfo?.title ?? blancI18n.t('panel.siteInfo');
+    panelSiteInfo.setAttribute('aria-label', siteInfo?.title ?? blancI18n.t('panel.siteInfo'));
     panelSiteInfo.setAttribute('aria-expanded', String(visible && siteInfoOpen));
     if (!visible) siteInfoOpen = false;
 
     const verticalTabsActive = state.tabLayout === 'vertical';
     footerTabLayout.title = verticalTabsActive
-      ? 'Turn vertical tabs off'
-      : 'Turn vertical tabs on';
+      ? blancI18n.t('rail.islandLayout')
+      : blancI18n.t('footer.tabLayoutOn');
     footerTabLayout.setAttribute('aria-pressed', String(verticalTabsActive));
   }
 
@@ -562,7 +572,7 @@
     row.dataset.dragTab = '';
     row.dataset.pinned = String(!!tab.pinned);
     row.dataset.groupId = tab.groupId ?? '';
-    row.dataset.dragTitle = tab.title || 'New Tab';
+    row.dataset.dragTitle = tab.title || blancI18n.t('tab.untitled');
     // A row contains multiple real buttons, so it is a labelled group—not an
     // option/button, whose children would become presentational.
     row.setAttribute('role', 'group');
@@ -579,20 +589,28 @@
       faviconWrap.append(muteBadge);
     }
 
-    const label = tab.isLoading ? 'Loading…' : tab.title || 'New Tab';
+    const label = tab.isLoading ? blancI18n.t('tab.loading') : tab.title || blancI18n.t('tab.untitled');
     const title = document.createElement('span');
     title.className = 'row-title';
     title.textContent = label;
     if (tab.title) title.title = tab.title;
+    if (tab.title && !tab.isLoading) title.dataset.i18nIgnore = ''; // a page title is data
     row.setAttribute('aria-label', label);
+    if (tab.title && !tab.isLoading) row.dataset.i18nIgnore = 'aria-label'; // the page title again
 
     const primary = document.createElement('button');
     primary.type = 'button';
     primary.className = 'row-primary';
     // tabDomain() is '' for a blank new tab; filter rather than emit ", ,".
     // The word a person hears is quiet; the field name stays internal.
-    const parts = [label, tabDomain(tab), tab.asleep ? 'quiet' : '', tab.private ? 'private' : ''].filter(Boolean);
-    primary.setAttribute('aria-label', `Switch to ${parts.join(', ')}`);
+    const parts = [
+      label,
+      tabDomain(tab),
+      tab.asleep ? blancI18n.t('rail.state.quiet') : '',
+      tab.private ? blancI18n.t('rail.state.private') : '',
+    ].filter(Boolean);
+    primary.setAttribute('aria-label', blancI18n.t('dot.switchTo', { title: parts.join(', ') }));
+    if (tab.title) primary.dataset.i18nIgnore = 'aria-label'; // carries the page title
     primary.append(faviconWrap, title);
     primary.addEventListener('click', () => {
       window.browserAPI.switchTab(tab.id);
@@ -607,7 +625,7 @@
     const pin = document.createElement('button');
     pin.className = 'row-pin' + (tab.pinned ? ' on' : '');
     pin.dataset.noDrag = '';
-    pin.title = tab.pinned ? 'Unpin tab' : 'Pin tab';
+    pin.title = tab.pinned ? blancI18n.t('row.unpin') : blancI18n.t('row.pin');
     pin.setAttribute('aria-label', pin.title);
     pin.innerHTML = ICONS.pin;
     pin.addEventListener('click', (e) => {
@@ -620,7 +638,7 @@
       const mute = document.createElement('button');
       mute.className = 'row-mute' + (tab.muted ? ' on' : '');
       mute.dataset.noDrag = '';
-      mute.title = tab.muted ? 'Unmute tab' : 'Mute tab';
+      mute.title = tab.muted ? blancI18n.t('row.unmute') : blancI18n.t('row.mute');
       mute.setAttribute('aria-label', mute.title);
       mute.innerHTML = ICONS.mute;
       mute.addEventListener('click', (e) => {
@@ -635,9 +653,10 @@
       const isGlance = tab.id === state.glanceTabId;
       glance.className = 'row-glance' + (isGlance ? ' on' : '');
       glance.dataset.noDrag = '';
-      glance.textContent = 'glance';
-      glance.title = isGlance ? 'Close Glance' : 'Open this tab in Glance';
-      glance.setAttribute('aria-label', `${glance.title}: ${label}`);
+      glance.textContent = blancI18n.t('row.glance');
+      glance.title = isGlance ? blancI18n.t('glance.close') : blancI18n.t('row.glanceOpen');
+      glance.setAttribute('aria-label', blancI18n.t('row.actionLabel', { action: glance.title, title: label }));
+      if (tab.title) glance.dataset.i18nIgnore = 'aria-label'; // carries the page title
       glance.setAttribute('aria-pressed', String(isGlance));
       glance.addEventListener('click', async (e) => {
         e.stopPropagation();
@@ -654,7 +673,7 @@
     if (tab.private) {
       const tag = document.createElement('span');
       tag.className = 'row-private';
-      tag.textContent = 'private';
+      tag.textContent = blancI18n.t('rail.private.marker');
       tag.setAttribute('aria-hidden', 'true');
       row.append(tag);
     }
@@ -662,8 +681,8 @@
     const close = document.createElement('button');
     close.className = 'row-close';
     close.dataset.noDrag = '';
-    close.title = 'Close tab';
-    close.setAttribute('aria-label', 'Close tab');
+    close.title = blancI18n.t('pill.closeTab');
+    close.setAttribute('aria-label', close.title);
     close.innerHTML = ICONS.close;
     close.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -687,6 +706,15 @@
   }
 
   const CARET = '<svg class="caret" viewBox="0 0 10 10"><path d="M3.5 2 L7 5 L3.5 8"/></svg>';
+  // Lowercase kind tags on Quick Switcher results (search rows show the
+  // provider name instead).
+  const RESULT_TAGS = {
+    tab: blancI18n.t('result.tag.tab'),
+    favorite: blancI18n.t('result.tag.favorite'),
+    history: blancI18n.t('result.tag.history'),
+    group: blancI18n.t('result.tag.group'),
+    remote: blancI18n.t('result.tag.remote'),
+  };
 
   /** Named-group band: present --surface tint behind header + member tabs.
    * Only named groups get this — pinned / loose / furniture stay flat. */
@@ -725,7 +753,7 @@
     row.className = 'island-ghead static';
     const name = document.createElement('span');
     name.className = 'ghead-name';
-    name.textContent = 'pinned';
+    name.textContent = blancI18n.t('rail.section.pinned');
     const n = document.createElement('span');
     n.className = 'ghead-n';
     n.textContent = String(count);
@@ -740,8 +768,9 @@
     row.innerHTML = `${CARET}<span class="ghead-name"></span><span class="ghead-n"></span><span class="ghead-kbd">${modKey}${clusterIndex + 1}</span>`;
     row.querySelector('.caret').classList.toggle('open', !group.collapsed);
     row.querySelector('.ghead-name').textContent = group.name;
+    row.querySelector('.ghead-name').dataset.i18nIgnore = ''; // a user-chosen group name
     row.querySelector('.ghead-n').textContent = String(count);
-    row.title = group.collapsed ? 'Unfold group' : 'Fold group';
+    row.title = group.collapsed ? blancI18n.t('group.unfold') : blancI18n.t('group.fold');
     row.dataset.dragHeader = '';
     row.dataset.groupId = group.id;
     row.dataset.dragTitle = group.name;
@@ -800,12 +829,15 @@
     try { return new URL(url).host.replace(/^www\./, ''); } catch { return url; }
   };
 
+  // Narrow relative time in the interface formatting locale: "5m ago" in
+  // English, "vor 5 m" in German.
+  const relativeTime = new Intl.RelativeTimeFormat(blancI18n.formatLocale(), { style: 'narrow', numeric: 'always' });
   function timeAgo(ts) {
     const mins = Math.max(1, Math.round((Date.now() - ts) / 60000));
-    if (mins < 60) return `${mins}m ago`;
+    if (mins < 60) return relativeTime.format(-mins, 'minute');
     const hours = Math.round(mins / 60);
-    if (hours < 24) return `${hours}h ago`;
-    return `${Math.round(hours / 24)}d ago`;
+    if (hours < 24) return relativeTime.format(-hours, 'hour');
+    return relativeTime.format(-Math.round(hours / 24), 'day');
   }
 
   /** Remote presentation mirrors clusterList() (main.js): each group in
@@ -830,11 +862,12 @@
     row.innerHTML = `${CARET}<span class="ghead-name"></span><span class="ghead-n"></span><span class="ghead-n"></span>`;
     row.querySelector('.caret').classList.toggle('open', open);
     row.querySelector('.ghead-name').textContent = device.name;
+    row.querySelector('.ghead-name').dataset.i18nIgnore = ''; // a device name
     const ns = row.querySelectorAll('.ghead-n');
     ns[0].textContent = String(device.tabs.length);
     ns[1].textContent = timeAgo(device.updatedAt);
     ns[1].style.marginLeft = 'auto';
-    row.title = open ? 'Fold device' : 'Unfold device';
+    row.title = open ? blancI18n.t('device.fold') : blancI18n.t('device.unfold');
     row.addEventListener('click', () => {
       if (open) unfoldedDevices.delete(device.deviceId);
       else unfoldedDevices.add(device.deviceId);
@@ -886,25 +919,25 @@
   const COMMANDS = [
     // Also listed on blanc://shortcuts/ — update SLASH_COMMANDS in
     // pages/shortcuts.js when adding or changing a command here.
-    { cmd: '/favorites', hint: 'Open favorites', run: () => window.browserAPI.openPage('bookmarks') },
-    { cmd: '/bring-tabs', hint: 'Bring open tabs from another browser', run: () => window.browserAPI.openPage('tab-import') },
-    { cmd: '/save', hint: 'Save this page to favorites — name a folder to file it', run: (input) => {
+    { cmd: '/favorites', hint: blancI18n.t('slash.favorites.hint'), run: () => window.browserAPI.openPage('bookmarks') },
+    { cmd: '/bring-tabs', hint: blancI18n.t('slash.bringTabs.hint'), run: () => window.browserAPI.openPage('tab-import') },
+    { cmd: '/save', hint: blancI18n.t('slash.save.hint'), run: (input) => {
       const folder = (input ?? '').replace(/^\/save\s*/, '').trim();
       window.browserAPI.saveFavorite(folder || null);
     } },
-    { cmd: '/history', hint: 'Open browsing history', run: () => window.browserAPI.openPage('history') },
-    { cmd: '/downloads', hint: 'Open downloads', run: () => window.browserAPI.openPage('downloads') },
-    { cmd: '/settings', hint: 'Open settings', run: () => window.browserAPI.openPage('settings') },
-    { cmd: '/sync', hint: 'Set up or manage sync', run: () => window.browserAPI.openPage('settings', 'sync') },
-    { cmd: '/clear', hint: 'Clear browsing history', run: () => window.browserAPI.clearHistory() },
-    { cmd: '/new', hint: 'Open a new tab', run: () => window.browserAPI.createTab(null, { focusAddress: false }) },
-    { cmd: '/private', hint: 'Open a private tab (history stays untouched)', run: () => window.browserAPI.createTab(null, { private: true, focusAddress: false }) },
-    { cmd: '/close', hint: 'Close this tab', run: () => state.activeTabId && window.browserAPI.closeTab(state.activeTabId) },
-    { cmd: '/reopen', hint: 'Reopen the tab you just closed', run: () => window.browserAPI.reopenClosedTab() },
-    { cmd: '/pin', hint: 'Pin or unpin this tab', run: () => state.activeTabId && window.browserAPI.toggleTabPinned(state.activeTabId) },
-    { cmd: '/mute', hint: 'Mute or unmute this tab', run: () => state.activeTabId && window.browserAPI.toggleTabMuted(state.activeTabId) },
-    { cmd: '/sleep', hint: 'Quiet background tabs and free their memory', run: () => window.browserAPI.sleepBackgroundTabs(), keepOverlay: true, clearInput: true, resultNotice: (quieted) => Array.isArray(quieted) && quieted.length === 0 ? 'No background tabs can be quieted right now.' : '' },
-    { cmd: '/group', hint: 'Type a space, then a group name — e.g. "work"', run: (input) => {
+    { cmd: '/history', hint: blancI18n.t('slash.history.hint'), run: () => window.browserAPI.openPage('history') },
+    { cmd: '/downloads', hint: blancI18n.t('slash.downloads.hint'), run: () => window.browserAPI.openPage('downloads') },
+    { cmd: '/settings', hint: blancI18n.t('slash.settings.hint'), run: () => window.browserAPI.openPage('settings') },
+    { cmd: '/sync', hint: blancI18n.t('slash.sync.hint'), run: () => window.browserAPI.openPage('settings', 'sync') },
+    { cmd: '/clear', hint: blancI18n.t('slash.clear.hint'), run: () => window.browserAPI.clearHistory() },
+    { cmd: '/new', hint: blancI18n.t('slash.new.hint'), run: () => window.browserAPI.createTab(null, { focusAddress: false }) },
+    { cmd: '/private', hint: blancI18n.t('slash.private.hint'), run: () => window.browserAPI.createTab(null, { private: true, focusAddress: false }) },
+    { cmd: '/close', hint: blancI18n.t('slash.close.hint'), run: () => state.activeTabId && window.browserAPI.closeTab(state.activeTabId) },
+    { cmd: '/reopen', hint: blancI18n.t('slash.reopen.hint'), run: () => window.browserAPI.reopenClosedTab() },
+    { cmd: '/pin', hint: blancI18n.t('slash.pin.hint'), run: () => state.activeTabId && window.browserAPI.toggleTabPinned(state.activeTabId) },
+    { cmd: '/mute', hint: blancI18n.t('slash.mute.hint'), run: () => state.activeTabId && window.browserAPI.toggleTabMuted(state.activeTabId) },
+    { cmd: '/sleep', hint: blancI18n.t('slash.sleep.hint'), run: () => window.browserAPI.sleepBackgroundTabs(), keepOverlay: true, clearInput: true, resultNotice: (quieted) => Array.isArray(quieted) && quieted.length === 0 ? blancI18n.t('slash.sleep.none') : '' },
+    { cmd: '/group', hint: blancI18n.t('slash.group.hint'), run: (input) => {
       const name = (input ?? '').replace(/^\/group\s*/, '').trim();
       // A context-menu "New Group…" targets the right-clicked tab, not the
       // active one (overlay:show's purpose payload sets the pending target).
@@ -912,24 +945,24 @@
       if (name && target) window.browserAPI.groupTabByName(target, name);
       pendingGroupTabId = null;
     } },
-    { cmd: '/ungroup', hint: 'Take this tab out of its group', run: () => state.activeTabId && window.browserAPI.setTabGroup(state.activeTabId, null) },
-    { cmd: '/close-group', hint: 'Close every tab in this group', run: () => {
+    { cmd: '/ungroup', hint: blancI18n.t('slash.ungroup.hint'), run: () => state.activeTabId && window.browserAPI.setTabGroup(state.activeTabId, null) },
+    { cmd: '/close-group', hint: blancI18n.t('slash.closeGroup.hint'), run: () => {
       const groupId = activeTab()?.groupId;
       if (groupId) window.browserAPI.closeGroup(groupId);
     } },
-    { cmd: '/find', hint: 'Find in page', run: () => window.browserAPI.openFindBar(), keepOverlay: true },
-    { cmd: '/block-ads', hint: 'Block ads here, or toggle blocking everywhere', run: () => window.browserAPI.toggleAdblock() },
-    { cmd: '/allow-ads', hint: 'Allow ads on this site', run: () => window.browserAPI.allowAdsOnActiveSite() },
-    { cmd: '/dark-site', hint: 'Darken this site, or leave it as drawn', run: () => window.browserAPI.toggleDarkSiteOnActiveSite() },
-    { cmd: '/1password', hint: 'Fill a login from 1Password',
+    { cmd: '/find', hint: blancI18n.t('slash.find.hint'), run: () => window.browserAPI.openFindBar(), keepOverlay: true },
+    { cmd: '/block-ads', hint: blancI18n.t('slash.blockAds.hint'), run: () => window.browserAPI.toggleAdblock() },
+    { cmd: '/allow-ads', hint: blancI18n.t('slash.allowAds.hint'), run: () => window.browserAPI.allowAdsOnActiveSite() },
+    { cmd: '/dark-site', hint: blancI18n.t('slash.darkSite.hint'), run: () => window.browserAPI.toggleDarkSiteOnActiveSite() },
+    { cmd: '/1password', hint: blancI18n.t('slash.1password.hint'),
       available: typeof window.browserAPI.fillLoginFromOnePassword === 'function',
       run: () => window.browserAPI.fillLoginFromOnePassword() },
-    { cmd: '/theme', hint: 'Cycle appearance, or choose system / light / dark', run: (input) => {
+    { cmd: '/theme', hint: blancI18n.t('slash.theme.hint'), run: (input) => {
       const requested = (input ?? '').replace(/^\/theme\s*/, '').trim();
       window.browserAPI.cycleTheme(requested || null);
     } },
-    { cmd: '/patron', hint: 'Support Blanc with a Patron subscription', run: () => window.browserAPI.openPage('settings', 'patron') },
-    { cmd: '/workspace', hint: 'Switch to a named workspace, or type a new name to save this window', keepOverlay: true, clearInput: true, run: runWorkspaceCommand },
+    { cmd: '/patron', hint: blancI18n.t('slash.patron.hint'), run: () => window.browserAPI.openPage('settings', 'patron') },
+    { cmd: '/workspace', hint: blancI18n.t('slash.workspace.hint'), keepOverlay: true, clearInput: true, run: runWorkspaceCommand },
   ];
 
   function runCommand(command) {
@@ -960,7 +993,7 @@
       }, () => {
         if (resultGeneration !== commandResultGeneration) return;
         islandDrag.cancel();
-        commandNotice = 'Could not quiet background tabs.';
+        commandNotice = blancI18n.t('slash.sleep.failed');
         renderList();
       });
     }
@@ -1003,10 +1036,11 @@
   function closedHeaderRow(count) {
     const row = document.createElement('div');
     row.className = 'island-ghead';
-    row.innerHTML = `${CARET}<span class="ghead-name dim">recently closed</span><span class="ghead-n"></span>`;
+    row.innerHTML = `${CARET}<span class="ghead-name dim"></span><span class="ghead-n"></span>`;
+    row.querySelector('.ghead-name').textContent = blancI18n.t('closed.header');
     row.querySelector('.caret').classList.toggle('open', closedSectionOpen);
     row.querySelector('.ghead-n').textContent = String(count);
-    row.title = closedSectionOpen ? 'Fold recently closed' : 'Unfold recently closed';
+    row.title = closedSectionOpen ? blancI18n.t('closed.fold') : blancI18n.t('closed.unfold');
     row.addEventListener('click', (e) => {
       if (e.target.closest('button')) return;
       closedSectionOpen = !closedSectionOpen;
@@ -1016,8 +1050,8 @@
       const clear = document.createElement('button');
       clear.type = 'button';
       clear.className = 'closed-clear';
-      clear.textContent = 'clear';
-      clear.title = 'Forget all closed tabs';
+      clear.textContent = blancI18n.t('closed.clear');
+      clear.title = blancI18n.t('closed.clearAll');
       clear.setAttribute('aria-label', clear.title);
       clear.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -1036,20 +1070,22 @@
     const row = document.createElement('div');
     row.className = 'island-row closed-row';
     row.setAttribute('role', 'button');
-    row.title = 'Reopen closed tab';
+    row.title = blancI18n.t('closed.reopen');
     const glyph = document.createElement('span');
     glyph.className = 'closed-glyph';
     glyph.innerHTML = ICONS.reopen;
     const title = document.createElement('span');
     title.className = 'row-title';
     title.textContent = entry.tabCount > 1
-      ? `${entry.title} · ${entry.tabCount} tabs`
+      ? blancI18n.t('closed.groupTitle', { title: entry.title, count: entry.tabCount })
       : entry.title;
+    title.dataset.i18nIgnore = ''; // a closed page or group title is data
     const forget = document.createElement('button');
     forget.type = 'button';
     forget.className = 'row-close closed-forget';
-    forget.title = 'Forget closed tab';
-    forget.setAttribute('aria-label', `${forget.title}: ${title.textContent}`);
+    forget.title = blancI18n.t('closed.forget');
+    forget.setAttribute('aria-label', blancI18n.t('row.actionLabel', { action: forget.title, title: title.textContent }));
+    forget.dataset.i18nIgnore = 'aria-label'; // carries the closed page title
     forget.innerHTML = ICONS.close;
     forget.addEventListener('click', (event) => {
       event.stopPropagation();
@@ -1144,14 +1180,14 @@
       const count = state.tabs.filter((t) => t.groupId === g.id).length;
       if (!count) continue;
       const s = matchScore(query, g.name);
-      if (s) results.push({ kind: 'group', title: g.name, sub: `${count} ${count === 1 ? 'tab' : 'tabs'}`, group: g, count, score: s + 0.3 });
+      if (s) results.push({ kind: 'group', title: g.name, sub: blancI18n.t('result.groupCount', { count }), group: g, count, score: s + 0.3 });
     }
     for (const t of state.tabs) {
       const s = matchScore(query, matchableText(t.title, t.url));
       // Quiet is not shown here: it lives only on the row-level dim (panel row
       // and rail). The switcher sub is just the tab's domain.
       const sub = tabDomain(t);
-      if (s) results.push({ kind: 'tab', title: t.title || 'New Tab', sub, tab: t, score: s + 0.2 });
+      if (s) results.push({ kind: 'tab', title: t.title || blancI18n.t('tab.untitled'), sub, tab: t, score: s + 0.2 });
     }
     for (const f of favorites) {
       const s = matchScore(query, matchableText(f.title, f.url));
@@ -1297,14 +1333,23 @@
     const title = document.createElement('span');
     title.className = 'row-title';
     title.textContent = result.title || result.url || '';
+    // Page, group and search titles are data; an untitled tab's label is not.
+    if (!(result.kind === 'tab' && !result.tab.title)) title.dataset.i18nIgnore = '';
 
     const sub = document.createElement('span');
     sub.className = 'row-sub';
     sub.textContent = result.sub || '';
+    // Domains, URLs and device names are data; a group's tab count is not.
+    if (result.kind !== 'group') sub.dataset.i18nIgnore = '';
 
     const tag = document.createElement('span');
     tag.className = 'row-tag';
-    tag.textContent = result.kind === 'search' ? result.providerLabel : result.kind;
+    tag.textContent = result.kind === 'search'
+      ? result.providerLabel ?? blancI18n.t('result.tag.search')
+      : RESULT_TAGS[result.kind];
+    // A search engine's name from the suggestions response is data; the
+    // generic tag is interface text.
+    if (result.kind === 'search' && result.providerLabel) tag.dataset.i18nIgnore = '';
 
     row.append(leading, title, sub, tag);
     if (isEnterTarget) row.append(enterGlyph());
@@ -1356,7 +1401,7 @@
     }
     const card = document.createElement('section');
     card.className = `site-info-card ${info.state}`;
-    card.setAttribute('aria-label', 'Site information');
+    card.setAttribute('aria-label', blancI18n.t('panel.siteInfo'));
     const head = document.createElement('div');
     head.className = 'site-info-head';
     const stateDot = document.createElement('span');
@@ -1368,7 +1413,8 @@
     title.textContent = info.title;
     const origin = document.createElement('div');
     origin.className = 'site-info-origin';
-    origin.textContent = info.origin || info.host || 'local page';
+    origin.textContent = info.origin || info.host || blancI18n.t('siteInfo.localPage');
+    if (info.origin || info.host) origin.dataset.i18nIgnore = ''; // an origin is data
     copy.append(title, origin);
     head.append(stateDot, copy);
     const summary = document.createElement('p');
@@ -1386,14 +1432,15 @@
         const dd = document.createElement('dd');
         dt.textContent = label;
         dd.textContent = value;
+        dd.dataset.i18nIgnore = ''; // certificate values are data
         row.append(dt, dd);
         details.append(row);
       };
-      add('Certificate for', info.certificate.subject);
-      add('Issued by', info.certificate.issuer);
-      add('Valid from', info.certificate.validFrom ? new Date(info.certificate.validFrom).toLocaleDateString(blancI18n.formatLocale()) : null);
-      add('Valid until', info.certificate.validTo ? new Date(info.certificate.validTo).toLocaleDateString(blancI18n.formatLocale()) : null);
-      add('Fingerprint', info.certificate.fingerprint);
+      add(blancI18n.t('siteInfo.cert.subject'), info.certificate.subject);
+      add(blancI18n.t('siteInfo.cert.issuer'), info.certificate.issuer);
+      add(blancI18n.t('siteInfo.cert.validFrom'), info.certificate.validFrom ? new Date(info.certificate.validFrom).toLocaleDateString(blancI18n.formatLocale()) : null);
+      add(blancI18n.t('siteInfo.cert.validUntil'), info.certificate.validTo ? new Date(info.certificate.validTo).toLocaleDateString(blancI18n.formatLocale()) : null);
+      add(blancI18n.t('siteInfo.cert.fingerprint'), info.certificate.fingerprint);
       if (details.children.length) card.append(details);
     }
 
@@ -1403,12 +1450,12 @@
     const protection = document.createElement('span');
     protection.className = 'site-info-protection';
     protection.textContent = blocked
-      ? `Blanc blocked ${blocked} ${blocked === 1 ? 'request' : 'requests'}`
-      : 'No blocked requests on this page';
+      ? blancI18n.t('siteInfo.blocked', { count: blocked })
+      : blancI18n.t('siteInfo.noneBlocked');
     const settingsButton = document.createElement('button');
     settingsButton.type = 'button';
     settingsButton.className = 'site-info-settings';
-    settingsButton.textContent = 'Privacy settings';
+    settingsButton.textContent = blancI18n.t('siteInfo.privacySettings');
     settingsButton.addEventListener('click', () => {
       window.browserAPI.closeOverlay();
       window.browserAPI.openPage('settings');
@@ -1418,7 +1465,7 @@
       const stopButton = document.createElement('button');
       stopButton.type = 'button';
       stopButton.className = 'site-info-settings site-info-stop-allowing';
-      stopButton.textContent = 'Stop allowing';
+      stopButton.textContent = blancI18n.t('siteInfo.stopAllowing');
       stopButton.addEventListener('click', () => {
         window.browserAPI.closeOverlay();
         window.browserAPI.siteInfoForgetCertificateException();
@@ -1430,10 +1477,10 @@
     card.append(footer);
     islandList.replaceChildren(card);
     islandHint.textContent = info.state === 'certificate-error'
-      ? 'this certificate could not be verified'
+      ? blancI18n.t('siteInfo.hint.certError')
       : info.state === 'certificate-exception'
-        ? 'you continued past a certificate warning'
-        : 'connection details are supplied by Chromium';
+        ? blancI18n.t('siteInfo.hint.certException')
+        : blancI18n.t('siteInfo.hint.chromium');
   }
 
   function renderList() {
@@ -1459,7 +1506,7 @@
       islandList.replaceChildren(
         ...(visibleCommands.length
           ? visibleCommands.map((c, i) => commandRow(c, i === 0))
-          : [emptyRow('no matching command')])
+          : [emptyRow(blancI18n.t('list.noCommand'))])
       );
     } else if (inputTouched && value.trim()) {
       const query = value.trim();
@@ -1488,7 +1535,7 @@
       islandList.replaceChildren(
         ...(visibleResults.length
           ? visibleResults.map((r, i) => resultRow(r, i === activeIndex, i === enterIndex))
-          : [emptyRow('no matches — ↵ opens as address or search')])
+          : [emptyRow(blancI18n.t('list.noMatches'))])
       );
     } else {
       selectedResultIndex = -1;
@@ -1550,10 +1597,10 @@
 
     if (!siteInfoOpen) {
       islandHint.textContent = activeTab()?.private
-        ? 'private · nothing here is saved to history'
+        ? blancI18n.t('hint.private')
         : state.groups.length
-          ? `/group moves this tab · ${modKey}1–9 jumps between sections`
-          : `${modKey}L summons · / for commands`;
+          ? blancI18n.t('hint.groups', { mod: modKey })
+          : blancI18n.t('hint.default', { mod: modKey });
     }
   }
 
@@ -1572,7 +1619,7 @@
     providerSuggestions = [];
     providerSuggestionQuery = '';
     searchProviderId = null;
-    searchProviderLabel = 'search';
+    searchProviderLabel = null;
   }
 
   function scheduleSearchSuggestions() {
@@ -1608,7 +1655,7 @@
       searchProviderId = typeof response?.engine === 'string' ? response.engine : null;
       searchProviderLabel = typeof response?.label === 'string' && response.label
         ? response.label
-        : 'search';
+        : null;
       providerSuggestionQuery = query;
       providerSuggestions = Array.isArray(response?.suggestions)
         ? response.suggestions.filter((item) => typeof item === 'string')
@@ -1625,10 +1672,10 @@
     displayShareAudioLabel.hidden = !model.audioRequested;
     displayShareAudio.disabled = model.loading;
     displayShareStatus.textContent = model.loading
-      ? (model.portal ? 'Choose what to share in the system dialog.' : 'Finding screens and windows…')
-      : model.portal ? 'Continue to choose a screen or window. Your system may open its own sharing dialog.'
-        : 'Choose a screen or window to share with this site.';
-    displayShareAllow.textContent = model.portal ? 'Continue' : 'Share';
+      ? (model.portal ? blancI18n.t('share.status.portalLoading') : blancI18n.t('share.status.loading'))
+      : model.portal ? blancI18n.t('share.status.portal')
+        : blancI18n.t('share.status.choose');
+    displayShareAllow.textContent = model.portal ? blancI18n.t('share.picker.continue') : blancI18n.t('share.picker.share');
     displayShareAllow.disabled = model.loading || (!model.portal && !displayShareSelection);
     displayShareSources.replaceChildren(...model.sources.map((source) => {
       const button = document.createElement('button');
@@ -1643,6 +1690,7 @@
       }
       const name = document.createElement('span');
       name.textContent = source.name;
+      name.dataset.i18nIgnore = ''; // a window or screen name
       button.append(name);
       button.addEventListener('click', () => {
         displayShareSelection = source.id;
@@ -1816,7 +1864,9 @@
   function renderCapturePop() {
     const rows = state.capturePopover?.rows ?? [];
     const shares = state.displayShares ?? [];
-    capturePopHead.textContent = rows.length === 0 && shares.length > 0 ? 'sharing' : 'in use';
+    capturePopHead.textContent = rows.length === 0 && shares.length > 0
+      ? blancI18n.t('capture.pop.sharing')
+      : blancI18n.t('capture.pop.inUse');
     const micItems = rows.map((row) => {
       // Two REAL sibling buttons in a plain list item — a role=button row
       // wrapping the Stop button would be an invalid accessibility tree
@@ -1824,12 +1874,13 @@
       // Enter/Space handling for free.
       const li = document.createElement('li');
       li.className = 'capture-pop-row';
-      const scopeLabel = row.audio && row.video ? 'camera & microphone in use'
-        : row.video ? 'camera in use' : 'microphone in use';
-      const hostLabel = row.host || 'popup window';
+      const hostLabel = row.host || blancI18n.t('capture.popupWindow');
       const go = document.createElement('button');
       go.className = 'capture-pop-go';
-      go.setAttribute('aria-label', `${hostLabel} — ${scopeLabel}; go to it`);
+      go.setAttribute('aria-label', row.audio && row.video ? blancI18n.t('capture.row.goBoth', { host: hostLabel })
+        : row.video ? blancI18n.t('capture.row.goCamera', { host: hostLabel })
+          : blancI18n.t('capture.row.goMicrophone', { host: hostLabel }));
+      go.dataset.i18nIgnore = 'aria-label'; // carries the host
       const glyphs = document.createElement('span');
       glyphs.className = 'capture-pop-glyphs';
       if (row.audio) glyphs.append(captureGlyph(MIC_SHAPES));
@@ -1837,12 +1888,16 @@
       const host = document.createElement('span');
       host.className = 'host';
       host.textContent = hostLabel;
+      if (row.host) host.dataset.i18nIgnore = ''; // a host name
       go.append(glyphs, host);
       go.addEventListener('click', () => window.browserAPI.captureFocus(row.surfaceId));
       const stop = document.createElement('button');
       stop.className = 'capture-pop-stop';
-      stop.textContent = 'stop';
-      stop.setAttribute('aria-label', `stop — ${hostLabel} ${scopeLabel}`);
+      stop.textContent = blancI18n.t('capture.stop');
+      stop.setAttribute('aria-label', row.audio && row.video ? blancI18n.t('capture.row.stopBoth', { host: hostLabel })
+        : row.video ? blancI18n.t('capture.row.stopCamera', { host: hostLabel })
+          : blancI18n.t('capture.row.stopMicrophone', { host: hostLabel }));
+      stop.dataset.i18nIgnore = 'aria-label'; // carries the host
       stop.addEventListener('click', () => window.browserAPI.captureStop(row.surfaceId));
       li.append(go, stop);
       return li;
@@ -1850,13 +1905,14 @@
     const shareItems = shares.map((row) => {
       const li = document.createElement('li');
       li.className = 'display-share-row';
-      const surface = row.surfaceLabel || 'this screen';
-      const titleText = row.pending ? 'Sharing…' : `Sharing ${surface}`;
-      const audioText = row.computerAudio ? 'Computer audio on' : 'Computer audio off';
+      const titleText = row.pending ? blancI18n.t('share.row.pending')
+        : row.surfaceLabel ? blancI18n.t('share.row.sharing', { surface: row.surfaceLabel })
+          : blancI18n.t('share.row.sharingScreen');
+      const audioText = row.computerAudio ? blancI18n.t('share.audioOn') : blancI18n.t('share.audioOff');
       const go = document.createElement('button');
       go.type = 'button';
       go.className = 'display-share-go';
-      go.setAttribute('aria-label', `${titleText}. ${audioText}. Go to tab`);
+      go.setAttribute('aria-label', blancI18n.t('share.row.label', { title: titleText, audio: audioText }));
       const title = document.createElement('span');
       title.className = 'display-share-title';
       title.textContent = titleText;
@@ -1870,8 +1926,10 @@
       const stop = document.createElement('button');
       stop.type = 'button';
       stop.className = 'display-share-stop';
-      stop.textContent = 'Stop sharing';
-      stop.setAttribute('aria-label', `Stop sharing ${surface}`);
+      stop.textContent = blancI18n.t('share.stop');
+      stop.setAttribute('aria-label', row.surfaceLabel
+        ? blancI18n.t('share.stopLabel', { surface: row.surfaceLabel })
+        : blancI18n.t('share.stopLabelScreen'));
       stop.addEventListener('click', () => window.browserAPI.stopDisplayShare(row.shareId));
       li.append(go, stop);
       return li;
@@ -1887,15 +1945,16 @@
     if (!v) { window.browserAPI.closeOverlay(); return; }
     if (activeTab()?.private) document.documentElement.dataset.theme = 'private';
     else delete document.documentElement.dataset.theme;
-    shieldPopHost.textContent = shieldChoosing ? 'For regular tabs on this device.' : v.host;
-    shieldPopTitle.textContent = shieldChoosing ? 'Choose a blocker' : 'Site protection';
+    shieldPopHost.textContent = shieldChoosing ? blancI18n.t('shield.scopeRegular') : v.host;
+    shieldPopHost.toggleAttribute('data-i18n-ignore', !shieldChoosing); // a host name
+    shieldPopTitle.textContent = shieldChoosing ? blancI18n.t('shield.chooseBlocker') : blancI18n.t('shield.title');
     shieldPopSummary.hidden = shieldChoosing;
     shieldPopChooser.hidden = !shieldChoosing;
     shieldPopBack.hidden = !shieldChoosing;
     shieldPop.dataset.step = shieldChoosing ? 'chooser' : 'summary';
     document.getElementById('shieldPopSiteControl').hidden = v.variant === 'ublock';
-    shieldPopLabel.textContent = 'Ad & tracker blocking';
-    shieldPopOnOff.textContent = v.variant === 'ublock' ? '' : v.on ? 'on' : 'off';
+    shieldPopLabel.textContent = blancI18n.t('shield.adBlocking');
+    shieldPopOnOff.textContent = v.variant === 'ublock' ? '' : v.on ? blancI18n.t('shield.on') : blancI18n.t('shield.off');
     const controls = v.controls;
     shieldPop.dataset.restartPending = String(controls.restartPending);
     for (const input of shieldPopProvider.querySelectorAll('input')) input.checked = input.value === (shieldChoosing ? shieldDraft : controls.choice);
@@ -1909,9 +1968,11 @@
     }
     const needsRestart = shieldDraft !== controls.active;
     shieldPopApply.disabled = shieldSaving || controls.disabled || (needsRestart && shieldDraft === 'ublock-origin' && !controls.ublockAvailable);
-    shieldPopApply.textContent = shieldSaving ? (needsRestart ? 'Restarting…' : 'Saving…') : needsRestart ? 'Restart Blanc' : 'Done';
+    shieldPopApply.textContent = shieldSaving
+      ? (needsRestart ? blancI18n.t('shield.restarting') : blancI18n.t('shield.saving'))
+      : needsRestart ? blancI18n.t('shield.restart') : blancI18n.t('shield.done');
     document.getElementById('shieldPopRestartNote').textContent = needsRestart
-      ? 'Restart Blanc to use your selected blocker.' : 'Changes take effect after restarting Blanc.';
+      ? blancI18n.t('shield.restartNeeded') : blancI18n.t('shield.restartNote');
     shieldPopProvider.querySelector('[value="ublock-origin"]').disabled = !controls.ublockAvailable;
     if (shieldPopProviderStatus.textContent !== controls.detail) shieldPopProviderStatus.textContent = controls.detail;
     shieldPopProviderScope.textContent = controls.scope;
@@ -1937,7 +1998,7 @@
     const dark = v.darkSite;
     shieldPopDark.hidden = !dark;
     if (dark) {
-      document.getElementById('shieldPopDarkOnOff').textContent = dark.on ? 'on' : 'off';
+      document.getElementById('shieldPopDarkOnOff').textContent = dark.on ? blancI18n.t('shield.on') : blancI18n.t('shield.off');
       shieldPopDarkToggle.classList.toggle('on', dark.on);
       shieldPopDarkToggle.setAttribute('aria-checked', String(dark.on));
       document.getElementById('shieldPopDarkNote').hidden = dark.appliesNow;
@@ -2002,7 +2063,7 @@
       if (generation !== shieldSaveGeneration || mode !== 'shield') return;
       shieldSaving = false;
       renderShieldPop();
-      shieldPopChooserError.textContent = 'Could not complete the change. Your choice is shown above; try again when you’re ready.';
+      shieldPopChooserError.textContent = blancI18n.t('shield.error');
       shieldPopChooserError.hidden = false;
     }
   });
@@ -2344,8 +2405,8 @@
   // slash commands or Quick-Switcher results. Platform-correct shortcut hints.
   document.getElementById('footerNewTabKbd').textContent = `${modKey}T`;
   document.getElementById('footerNewPrivateKbd').textContent = `${modShiftKey}N`;
-  footerNewTab.title = `New tab (${modKey}T)`;
-  footerNewPrivate.title = `New private tab (${modShiftKey}N)`;
+  footerNewTab.title = blancI18n.t('pill.newTab.title', { shortcut: `${modKey}T` });
+  footerNewPrivate.title = blancI18n.t('footer.newPrivate.title', { shortcut: `${modShiftKey}N` });
 
   // focusAddress:false keeps the panel closed and lands the user on the fresh
   // tab, rather than main re-summoning the launchpad (its default for ⌘T).

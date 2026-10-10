@@ -22,12 +22,19 @@
       "allow": []
     },
     "src/renderer/overlay.html": {
-      "state": "pending",
-      "allow": []
+      "state": "guarded",
+      "allow": [
+        "Blanc Blocker",
+        "uBlock Origin",
+        "EasyList + EasyPrivacy"
+      ]
     },
     "src/renderer/overlay.js": {
-      "state": "pending",
-      "allow": []
+      "state": "guarded",
+      "allow": [
+        "${modKey}T",
+        "${modShiftKey}N"
+      ]
     },
     "src/renderer/permission.html": {
       "state": "guarded",

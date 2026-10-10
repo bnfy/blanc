@@ -105,6 +105,15 @@ function slashDrift(root, { en, registry }) {
     const js = fs.readFileSync(path.join(root, overlayRel), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
     compare('overlay.js', [...js.matchAll(/^\s*\{\s*cmd:\s*'([^']+)',\s*hint:\s*'([^']*)'/gm)].map((m) => ({ command: m[1], hint: m[2] })), expectedOverlay);
   }
+  // A copy that reads its hints from the catalog keeps the registry's order
+  // and uses each command's own slash.<name>.hint key.
+  const keysRel = registry.sources?.overlayKeys;
+  if (keysRel && fs.existsSync(path.join(root, keysRel))) {
+    const js = fs.readFileSync(path.join(root, keysRel), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+    const actual = [...js.matchAll(/^\s*\{\s*cmd:\s*'([^']+)',\s*hint:\s*blancI18n\.t\('([^']+)'\)/gm)]
+      .map((m) => ({ command: m[1], hint: m[2] }));
+    compare(keysRel.split('/').pop(), actual, registry.commands.map((c) => ({ command: c.command, hint: slashKey(c.command, 'hint') })));
+  }
   compare('shortcuts.js', parseTuples(registry.sources?.shortcuts), expectedDoc);
   compare('main.js', parseTuples(registry.sources?.main), expectedDoc);
   for (const c of registry.commands) if (!en[slashKey(c.command, 'hint')]) problems.push(`${slashKey(c.command, 'hint')} missing from en.json`);

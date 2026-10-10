@@ -64,7 +64,9 @@
       "glance.eyebrow",
       "pill.downloads",
       "rail.section.tabs",
-      "dialog.ok"
+      "dialog.ok",
+      "row.glance",
+      "result.tag.tab"
     ]
   }
 }

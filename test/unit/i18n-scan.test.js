@@ -69,6 +69,15 @@ test('JS renderer: literal assignments fail, t() calls and allowlisted literals 
   assert.equal(good.scanned, 4);
 });
 
+test('JS: literals inside a conditional assignment fail too', () => {
+  const r = scan.scanJs([
+    "el.textContent = dark.on ? 'on' : 'off';",
+    "el.title = busy ? blancI18n.t('a.title') : 'Retry later';",
+    "el.textContent = ok ? blancI18n.t('a.title') : blancI18n.t('a.rich');",
+  ].join('\n'), { allow: [], kind: 'renderer' });
+  assert.deepEqual(r.problems.sort(), ["literal 'Retry later'", "literal 'off'", "literal 'on'"]);
+});
+
 test('JS main: menu/dialog literals fail', () => {
   const r = scan.scanJs("{ label: 'Reload', click }\ndialog.showMessageBox({ message: 'Update ready', buttons: ['Restart Now'] })",
     { allow: [], kind: 'main' });

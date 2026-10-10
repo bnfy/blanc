@@ -15,12 +15,19 @@ const { callTestHook } = testHookCall;
 const includePending = process.argv.includes('--include-pending');
 const scope = JSON.parse(fs.readFileSync('copy/i18n-scope.json', 'utf8')).files;
 const allow = ['Blanc', 'Blanc Blocker', 'Blanc Patron', 'Patron', 'uBlock Origin', '1Password'];
+// Fixed terms by pattern: slash command names are never translated.
+const allowPatterns = [/^\/[a-z0-9][a-z0-9-]*$/];
 
 const findPage = (app, prefix, label) =>
   waitForValue(async () => (await app.windows()).find((p) => p.url().startsWith(prefix)), Boolean, label);
 
 // Each extraction phase adds its surfaces here (Phase recipe, step 7).
 const CHROME_FILES = ['src/renderer/index.html', 'src/renderer/renderer.js', 'src/renderer/vertical-tabs.js', 'src/renderer/tab-drag.js'];
+// Elements whose text another, still-pending file writes (main-computed text,
+// or a renderer module converted in a later phase). They are exempt only while
+// that file is pending; once it is guarded, they are checked like everything else.
+const SHIELD_TEXT = { selector: '#pillShield', files: ['src/main/shield-model.js'] };
+const WORKSPACE_TEXT = { selector: '#footerWorkspace', files: ['src/renderer/workspace-ui.js'] };
 // A local page that asks for a permission, so the real prompt surface shows.
 const server = http.createServer((req, res) => {
   res.setHeader('content-type', 'text/html');
@@ -37,7 +44,68 @@ const fillSurface = (kind) => async ({ app }) => {
   return page;
 };
 
+const OVERLAY_FILES = ['src/renderer/overlay.html', 'src/renderer/overlay.js'];
+const overlayPage = (app) => findPage(app, 'blanc-chrome://overlay/', 'overlay');
+const openPanel = async ({ app, chrome }) => {
+  await chrome.locator('#islandPill').click();
+  const overlay = await overlayPage(app);
+  await overlay.locator('#islandPanel').waitFor({ state: 'visible' });
+  return overlay;
+};
+const typeInPanel = (text, settle) => async (ctx) => {
+  const overlay = await openPanel(ctx);
+  await overlay.locator('#addressInput').fill(text);
+  await overlay.waitForFunction(settle);
+  return overlay;
+};
+
 const SURFACES = [
+  {
+    name: 'island panel (tab list)',
+    files: OVERLAY_FILES,
+    pendingText: [WORKSPACE_TEXT],
+    open: openPanel,
+  },
+  {
+    name: 'island panel (slash commands)',
+    files: OVERLAY_FILES,
+    pendingText: [WORKSPACE_TEXT],
+    open: typeInPanel('/', () => document.querySelectorAll('#islandList .island-row').length > 5),
+  },
+  {
+    name: 'island panel (quick switcher)',
+    files: OVERLAY_FILES,
+    pendingText: [WORKSPACE_TEXT],
+    // A group result (its tab count is interface text) and the exact-search
+    // row, whose tag is the fallback label: suggestions are off in this profile.
+    open: async (ctx) => {
+      const { activeTabId } = await callTestHook(ctx.app, 'state');
+      await ctx.chrome.evaluate((id) => window.browserAPI.groupTabByName(id, 'zzzqqq-group'), activeTabId);
+      const page = await typeInPanel('zzzqqq', () => document.querySelectorAll('#islandList .island-row').length > 1)(ctx);
+      return page;
+    },
+  },
+  {
+    name: 'find bar',
+    files: OVERLAY_FILES,
+    open: async ({ app, chrome }) => {
+      await chrome.evaluate(() => window.browserAPI.openFindBar());
+      const overlay = await overlayPage(app);
+      await overlay.locator('#findBar').waitFor({ state: 'visible' });
+      return overlay;
+    },
+  },
+  {
+    name: 'glance picker',
+    files: OVERLAY_FILES,
+    open: async ({ app, chrome }) => {
+      await chrome.evaluate(() => window.browserAPI.createTab('blanc://newtab/'));
+      await chrome.evaluate(() => window.browserAPI.openGlancePicker());
+      const overlay = await overlayPage(app);
+      await overlay.locator('#glancePicker').waitFor({ state: 'visible' });
+      return overlay;
+    },
+  },
   {
     name: 'permission prompt',
     files: ['src/renderer/permission.html', 'src/renderer/permission.js'],
@@ -64,11 +132,13 @@ const SURFACES = [
   {
     name: 'chrome strip',
     files: CHROME_FILES,
+    pendingText: [SHIELD_TEXT],
     open: ({ chrome }) => chrome,
   },
   {
     name: 'vertical tabs rail',
     files: CHROME_FILES,
+    pendingText: [SHIELD_TEXT],
     open: async ({ chrome }) => {
       await chrome.evaluate(() => window.browserAPI.setTabLayout('vertical'));
       await chrome.waitForFunction(() => !document.getElementById('verticalTabsRail').hidden);
@@ -111,8 +181,15 @@ try {
     if (pending.length && !includePending) { console.log(`skip ${surface.name} (pending: ${pending.join(', ')})`); continue; }
     const page = await surface.open({ app, chrome });
     if (!page) { console.log(`skip ${surface.name} (not available on this platform)`); continue; }
+    for (const { selector, files } of surface.pendingText ?? []) {
+      const waiting = files.filter((f) => scope[f]?.state !== 'guarded');
+      if (!waiting.length) continue;
+      console.log(`     ${surface.name}: ${selector} exempt until ${waiting.join(', ')} is guarded`);
+      await page.evaluate((sel) => { for (const el of document.querySelectorAll(sel)) el.dataset.i18nIgnore = ''; }, selector);
+    }
     await page.waitForLoadState('domcontentloaded');
-    const offending = classifyTextEntries(await page.evaluate(`(() => {${COLLECT}})()`), { allow });
+    const offending = classifyTextEntries(await page.evaluate(`(() => {${COLLECT}})()`), { allow, allowPatterns });
+    if (page.url() === 'blanc-chrome://overlay/') await page.evaluate(() => window.browserAPI.closeOverlay()).catch(() => {});
     if (offending.length) failures.push(`${surface.name}:\n    ${offending.join('\n    ')}`);
     else console.log(`ok   ${surface.name}`);
   }
