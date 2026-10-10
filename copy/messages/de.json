@@ -748,5 +748,561 @@
   "fill.filled.title": {
     "message": "Aus 1Password ausgefüllt",
     "source": "sha256:2b7329ca89d78a1d05bda0b4e614593c54a812db58d730f034be32f27a232da7"
+  },
+  "overlay.surfaceTitle": {
+    "message": "Blanc-Overlay",
+    "source": "sha256:1425de7e16ab5892a69629d6ac98da63f964666ce8e0e444c8cd00a5f7db2ba2"
+  },
+  "common.cancel": {
+    "message": "Abbrechen",
+    "source": "sha256:11c5810d5b061fd158c6cfba47fd58111b1e43a2753be6d8ad53390f2408d6d2"
+  },
+  "share.picker.title": {
+    "message": "Bildschirm teilen",
+    "source": "sha256:35b107a0008eddb4acd851160c257f87bdcc110e76f1242fd4706fd0ef6ae817"
+  },
+  "share.picker.sources": {
+    "message": "Bildschirme und Fenster",
+    "source": "sha256:7777b82bdf94c589425c73c7ff7d88564921ce868fbf719737c95a6e4cc040a9"
+  },
+  "share.picker.audio": {
+    "message": "Computer-Audio teilen",
+    "source": "sha256:55d8c5a4d68d81de3861e085404806c6c58e00c380710dd92059ca3d4e773506"
+  },
+  "share.picker.share": {
+    "message": "Teilen",
+    "source": "sha256:8184364c93d3bab0172346f74ca34520d2ec0b228112965f538f8bfe219c04d2"
+  },
+  "share.picker.continue": {
+    "message": "Weiter",
+    "source": "sha256:cc6ea744a48ab0c2a7bc17452be35a74c35932130632df4c8f169b1b5c8dae26"
+  },
+  "share.status.portalLoading": {
+    "message": "Wähle im Systemdialog aus, was geteilt werden soll.",
+    "source": "sha256:53a37c6236e9c3a0ff93e8ff38959f84033ab948dcd87c9504820d04a5279235"
+  },
+  "share.status.loading": {
+    "message": "Bildschirme und Fenster werden gesucht…",
+    "source": "sha256:1450ae6d24f038f5078671b57c0f453b9f7f849f5734476392e81ad3dfcd6d0d"
+  },
+  "share.status.portal": {
+    "message": "Fahre fort, um einen Bildschirm oder ein Fenster zu wählen. Dein System öffnet eventuell einen eigenen Freigabedialog.",
+    "source": "sha256:a31f959897f888c5ffb8799c19cec74283cc98900bef033391be28c74d3f5289"
+  },
+  "share.status.choose": {
+    "message": "Wähle einen Bildschirm oder ein Fenster, das du mit dieser Website teilen möchtest.",
+    "source": "sha256:d72ec79edf4bbbe13244b88d385e39482ec932f6917bf4a91168998f6543e761"
+  },
+  "panel.siteInfo": {
+    "message": "Website-Informationen",
+    "source": "sha256:e345312de39025ffe42f2814e85a419ff21d00e7f9730be7a5643d7e5235c214"
+  },
+  "panel.addressPlaceholder": {
+    "message": "Suchen, Adresse eingeben oder / für Befehle",
+    "source": "sha256:8d241125b36ac8b6d4f7a1ddb25b08959384d4f92c75aac85530386045652b02"
+  },
+  "panel.favoriteShortcut": {
+    "message": "Diese Seite zu den Favoriten hinzufügen (Strg/Cmd+D)",
+    "source": "sha256:afe34761f68cb50e552e7ff096acd365a88f6d3a5651171563e6213e6bca71f1"
+  },
+  "panel.collapse.title": {
+    "message": "Island einklappen (Esc)",
+    "source": "sha256:35584bd59e4cbb3dbbcfec2d5f7df6542cda12b35421fa64d3abe31c054e8570"
+  },
+  "panel.collapse.label": {
+    "message": "Island einklappen",
+    "source": "sha256:df61005d5af90a138d642ddc54b03d0f03047e4b19b57aab441000049ad3839e"
+  },
+  "footer.newTab": {
+    "message": "neuer tab",
+    "source": "sha256:feba5a0567244bc790b19fff9320c0895644d4cc5ad2aeb8ed6a392bd5d6d8dc"
+  },
+  "footer.private": {
+    "message": "privat",
+    "source": "sha256:43c444ff49ddbe64847d8df70e34e13e99d32a2df67320d472867ca093e3cafc"
+  },
+  "footer.newPrivate.title": {
+    "message": "Neuer privater Tab ({shortcut})",
+    "source": "sha256:f4a5361c85abec2519697e079fe31da39f4d234ff7923ac11b92a399766f73fc"
+  },
+  "footer.workspaces": {
+    "message": "Arbeitsbereiche",
+    "source": "sha256:3f6af490ab99b47b52519e4eb084dbce8ae5151bd0d4a646b31b79c848e3e9cc"
+  },
+  "footer.favorites": {
+    "message": "Favoriten",
+    "source": "sha256:42aafd5ce3bbd16bc17f13f0bcd3d17d4466c7113e06b431f2375e954e4bbe8c"
+  },
+  "footer.history": {
+    "message": "Verlauf",
+    "source": "sha256:26f147e810d3338b9614c763f315e1933f6f12b904ceace4029e1889fb910b36"
+  },
+  "footer.tabLayoutOn": {
+    "message": "Vertikale Tabs einschalten",
+    "source": "sha256:6020e0a21c6df993613b35bf3f173ecba0ac3515e4040ca1db03573cfe7dc95d"
+  },
+  "footer.settings": {
+    "message": "Einstellungen",
+    "source": "sha256:e7fbf60bb96fb20c47e0384d5d691af8c4306ceaca2a1581aca93965046ec1cb"
+  },
+  "ws.newEmpty": {
+    "message": "Neuer leerer Arbeitsbereich",
+    "source": "sha256:b580d16b3a3fab710fcf4680c7e1c0e240c9853ccbab73d43cdfa6c6d7064be0"
+  },
+  "ws.saveAs": {
+    "message": "Dieses Fenster speichern als…",
+    "source": "sha256:b7a8789726f4f74036880d7ca03e49305bb52931787ee318f748d90d45da69cc"
+  },
+  "glance.picker.title": {
+    "message": "Einen Tab für Glance wählen",
+    "source": "sha256:e9be5c52b5a920183450cc09ac5c8f4d7bf8d22e175c3ee05dbe26da5df3c871"
+  },
+  "glance.picker.cancelLabel": {
+    "message": "Auswahl eines Tabs für Glance abbrechen",
+    "source": "sha256:8dae0cb7eff4568b7466ede5cad13bee8af9dbe94f0e2e43c48e4f85c76eeed4"
+  },
+  "glance.picker.filter": {
+    "message": "Offene Tabs filtern",
+    "source": "sha256:79fe9d0f0e0351d4bfbebef20169538bd87c167185a47618190f813618f361d2"
+  },
+  "glance.picker.hintNavigate": {
+    "message": "↑↓ navigieren",
+    "source": "sha256:cea79cb0826808ae991a956ef9e23281394c8918601accbfecea2a8c8eea2d75"
+  },
+  "glance.picker.hintOpen": {
+    "message": "↵ öffnen",
+    "source": "sha256:b93811939eff3b440b99dd66cb17e15bce1c6291bf560110c3f5eab51745ebc0"
+  },
+  "glance.picker.hintCancel": {
+    "message": "esc abbrechen",
+    "source": "sha256:9e04aa3c67aa002f776478f054d8945e78a2b161b4cb837b873e491ddf27c17b"
+  },
+  "glance.picker.openTab": {
+    "message": "offener Tab",
+    "source": "sha256:e74bdb15c55e690253918cb9eb49ca12a085968a210dfe8189551a0416f587d3"
+  },
+  "glance.picker.noMatches": {
+    "message": "Keine passenden offenen Tabs",
+    "source": "sha256:9ec4b46164a398bbac1fc154a087d5a513fe0267910c0a15e85b1e926e42d1ea"
+  },
+  "glance.picker.noTabs": {
+    "message": "Öffne einen weiteren Tab, um Glance zu nutzen",
+    "source": "sha256:95a57118c91a36edbe39ff563f0dc4c393c7eb43f0a3b288308f61a3da7b600c"
+  },
+  "glance.picker.available": {
+    "message": "{count, plural, one {# Tab verfügbar} other {# Tabs verfügbar}}",
+    "source": "sha256:739637917b2a85128aad7283aecb69a6e416002e415cf003857b193eaa2cbaf0"
+  },
+  "glance.picker.optionLabel": {
+    "message": "{title}, {details}",
+    "source": "sha256:b1a55283147c26cb305382f87813a1e4d1b0220b593ffb4a5d6616a0b7bb997e"
+  },
+  "glance.opened": {
+    "message": "{title} in Glance geöffnet",
+    "source": "sha256:3a03152afd19cd8a2e18c315a99f8829b8ad54d1b0fd63a1ce9fbfdcd26486f3"
+  },
+  "glance.openedUntitled": {
+    "message": "Tab in Glance geöffnet",
+    "source": "sha256:1f2f12240566efbd16f01fdd1f275d2f05e1e426e8b0017f8c2b9782788b45b9"
+  },
+  "glance.openFailed": {
+    "message": "Dieser Tab konnte nicht in Glance geöffnet werden",
+    "source": "sha256:75e359192d83849c84d985ab8d801e51b79d9d3e5b84806db13bde9c310b2097"
+  },
+  "find.placeholder": {
+    "message": "Auf der Seite suchen",
+    "source": "sha256:cd0e11cb1114d5af61365c53968cdadc56aba77270c93a4fba2bef30659f1266"
+  },
+  "find.prev": {
+    "message": "Vorheriger Treffer",
+    "source": "sha256:83375b38a813b2ebf1dc534b02ccf88e6727afd9b23798fd6c8a862f55e42170"
+  },
+  "find.next": {
+    "message": "Nächster Treffer",
+    "source": "sha256:916f8c39ebff372659e2631271f08452550047e664b6b238da885421d4ccbc2c"
+  },
+  "shield.back": {
+    "message": "Zurück zum Website-Schutz",
+    "source": "sha256:b78fa2aca7d0355c6dd58eff61f227a63fd0212cb57b92c7f80c0aab10ff9615"
+  },
+  "shield.title": {
+    "message": "Website-Schutz",
+    "source": "sha256:e3d34d783ee2ccd29bd94c68b15330aebbdaed26f00b9349e345451345fee6c8"
+  },
+  "shield.close": {
+    "message": "Website-Schutz schließen",
+    "source": "sha256:5cc9c81dd8c17f8b1f4506c52c6312a421b2d63a0462eed8d7067d9266a274f6"
+  },
+  "shield.currentBlocker": {
+    "message": "Aktueller Blocker",
+    "source": "sha256:f4b014bf46859114a22d7fa6b35945a5035b94056fd81e8a4374eebd7a5f1a5f"
+  },
+  "shield.change": {
+    "message": "Ändern",
+    "source": "sha256:15164748b741ad46392ff705c32af716d47ae6f15d269686f3fd0258d8b4ce7b"
+  },
+  "shield.changeLabel": {
+    "message": "Blocker ändern",
+    "source": "sha256:5e1ee2adff6b52e2f2bd8b536a7e910038eb3346e6a487baee08debef4e22ac0"
+  },
+  "shield.adBlocking": {
+    "message": "Werbe- und Tracker-Blockierung",
+    "source": "sha256:425de4db5866dc406862ec7d990b50cf0064db1fb6222ea25a4668106dea283e"
+  },
+  "shield.on": {
+    "message": "an",
+    "source": "sha256:8be80f361dc8ab9b6c6da477c4d0ac924e0a57b0a8ed9eed2f65fa1683345158"
+  },
+  "shield.off": {
+    "message": "aus",
+    "source": "sha256:b792e4076627384a502932dd67077b7dd5db39c5bec3b0f076cd0361bcdaca04"
+  },
+  "shield.toggleLabel": {
+    "message": "Werbe- und Tracker-Schutz für diese Website",
+    "source": "sha256:5aa9f2ad9a2bcebcd47d49c3c3fc45de87429e6b0208a28ada4b340f61f56aed"
+  },
+  "shield.reloadNote": {
+    "message": "Eine Änderung des Website-Schutzes lädt diese Seite neu.",
+    "source": "sha256:873ab18a89db0535e9a7a4c6d9f0fb602304477fcf2adf7278931c8ec897ebeb"
+  },
+  "shield.uboLabel": {
+    "message": "Steuerung von uBlock Origin öffnen",
+    "source": "sha256:2da9bf9aadd47796fc605d6729f6f7551a810797cf573bf83c59d7e5feefad02"
+  },
+  "shield.uboOpen": {
+    "message": "Steuerung öffnen",
+    "source": "sha256:0f8cd447319d8d8dce256f48c766f81893c5e3b8fd71c7edbf6f658e215c6b9c"
+  },
+  "shield.dark": {
+    "message": "Dunkle Website",
+    "source": "sha256:8023bef3056aa3f2a04839113898abe7536e527b48099a0da11fcba39bb297dd"
+  },
+  "shield.darkLabel": {
+    "message": "Dunkle Darstellung für diese Website",
+    "source": "sha256:dbdd71ffc11e1ecc51a89c3fe77bd019230027ec3ac4ca4dfc098c48c37b153b"
+  },
+  "shield.darkNote": {
+    "message": "Gilt, solange Blanc dunkel ist.",
+    "source": "sha256:29cbc4c053936adc34d23fe294929603a8459491e410dafd089bdbca5a3f72ad"
+  },
+  "shield.connection": {
+    "message": "Verbindung",
+    "source": "sha256:ec117adfff19a1d6a7742e453d4a3289bfdd54502dc2591e1d42f5927f6c865e"
+  },
+  "shield.settings": {
+    "message": "Blocker-Einstellungen",
+    "source": "sha256:8ac7b4732f352cf75653c46feaf32bcb9f0faa1a6443ea85ebc748156e08b203"
+  },
+  "shield.chooseBlocker": {
+    "message": "Blocker wählen",
+    "source": "sha256:f158f686730f6dae8ecce5270d304b3a8107ac7a9983981d7e91701be4861999"
+  },
+  "shield.active": {
+    "message": "Aktiv",
+    "source": "sha256:2ce4a29097999096830121d15ab0cae75ca34208358fcda730fe02ad9d60114e"
+  },
+  "shield.uboTagline": {
+    "message": "Erweiterte Filter und Steuerung",
+    "source": "sha256:ebc3cbc44684123a05e1c7e20514b53608288747b1a4a1be6abeef476f6a2a74"
+  },
+  "shield.restartNote": {
+    "message": "Änderungen werden nach einem Neustart von Blanc wirksam.",
+    "source": "sha256:e9d98c2ae41be1b0c9064ce77af9e7963bd4f765515ca126fb7bd0e81f0f9008"
+  },
+  "shield.restartNeeded": {
+    "message": "Starte Blanc neu, um den gewählten Blocker zu verwenden.",
+    "source": "sha256:fa057ed8eb52f4c21e45eb40053d6ad1dddcf4e701b097a8d231d824f4956bf2"
+  },
+  "shield.privateNote": {
+    "message": "Private Tabs nutzen Blanc Blocker; uBO wird in temporären privaten Sitzungen nicht unterstützt.",
+    "source": "sha256:8d5ed309cfbac5c2d8466d852256440ea14d5894ecdaa2c02c28bbfbc9b3f489"
+  },
+  "shield.done": {
+    "message": "Fertig",
+    "source": "sha256:523b1b2364b3ec6f3104f0f5cb238d456fdb3a98e4dd407073adf687bf618288"
+  },
+  "shield.restart": {
+    "message": "Blanc neu starten",
+    "source": "sha256:c45d9185ae75d56971228e619d428e9154f08fc0cedac57f6b7966a9c9660e38"
+  },
+  "shield.restarting": {
+    "message": "Wird neu gestartet…",
+    "source": "sha256:33b0929dc49d640fd3b17a412665669440a25cf54c9181fb7940a37a768616a3"
+  },
+  "shield.saving": {
+    "message": "Wird gespeichert…",
+    "source": "sha256:971e20608729212ed821729c85590b31f9d22f8a11b9aadd8e870735a7d875a8"
+  },
+  "shield.scopeRegular": {
+    "message": "Für normale Tabs auf diesem Gerät.",
+    "source": "sha256:b736164ac91588c08354c6c944e54e4d10d7c391d51b7f532d325381a0a1575f"
+  },
+  "shield.error": {
+    "message": "Die Änderung konnte nicht abgeschlossen werden. Deine Auswahl steht oben; versuche es erneut, wenn du bereit bist.",
+    "source": "sha256:2daea67c2498fdac41af0592877097dbe4110b3e61b3ad864b98798d196e5829"
+  },
+  "connection.https": {
+    "message": "Nutzt HTTPS",
+    "source": "sha256:671f8bb131c1dfc23f0cad1d27d5ddd1ba7d9121a9c4f39c8bf312db85347743"
+  },
+  "connection.http": {
+    "message": "Nicht verschlüsselt",
+    "source": "sha256:b5aa6a6d55205996adcd973afae2d7d0a95103585cbc667bf9e9cd6316c5427d"
+  },
+  "connection.local": {
+    "message": "Lokal",
+    "source": "sha256:0c12847595a86d75a22c055f73444f465a20ea374f6ff04e4fc2fbcd4fb75418"
+  },
+  "capture.pop.inUse": {
+    "message": "in Verwendung",
+    "source": "sha256:b253443c5f04426f02d290ff29f6d4db7e158b6d64f4937b71beabf6a45d12a8"
+  },
+  "capture.pop.sharing": {
+    "message": "wird geteilt",
+    "source": "sha256:aaa8cec9a890a10e10552a55488d615c00d982f5b80fdc8cdc516fd243ca2d9f"
+  },
+  "capture.popupWindow": {
+    "message": "Pop-up-Fenster",
+    "source": "sha256:3bf103d5e03cfb259b77d9e4a377a2745f0a546926d3097253bb3f31a7385c67"
+  },
+  "capture.stop": {
+    "message": "stoppen",
+    "source": "sha256:3404da0388bb0b65d0793e8bb4f8ff44640c6f282dedb8072c5f4ff3571d99e7"
+  },
+  "capture.row.goBoth": {
+    "message": "{host} – Kamera & Mikrofon in Verwendung; dorthin wechseln",
+    "source": "sha256:edc57fe420ebda233985d87402f3fe672db455f734d684159218c7c229c64b77"
+  },
+  "capture.row.goCamera": {
+    "message": "{host} – Kamera in Verwendung; dorthin wechseln",
+    "source": "sha256:3c29a297ceed073ae9e02a697e9b3a10e4c69ef263eacca5700bdd104d8d8017"
+  },
+  "capture.row.goMicrophone": {
+    "message": "{host} – Mikrofon in Verwendung; dorthin wechseln",
+    "source": "sha256:51541130ac1d261a83a98caf51500ba4121e72746234d3c18e78486f0ba2a273"
+  },
+  "capture.row.stopBoth": {
+    "message": "stoppen – {host} Kamera & Mikrofon in Verwendung",
+    "source": "sha256:70952c3876bb2c3c3d409a8ac4b9ad15e1cec77be210542fad0f93d4e4056b63"
+  },
+  "capture.row.stopCamera": {
+    "message": "stoppen – {host} Kamera in Verwendung",
+    "source": "sha256:b5d146d9078fa228f81f787a42e7d2058bedcdc201799d72e52b2080619b0cb2"
+  },
+  "capture.row.stopMicrophone": {
+    "message": "stoppen – {host} Mikrofon in Verwendung",
+    "source": "sha256:2aa4c25b72ec0077ceb3add402786fa35458254cd7a1b618000a95a03ca9fb37"
+  },
+  "share.row.pending": {
+    "message": "Wird geteilt…",
+    "source": "sha256:0ba21e3c6377da45332f75052f3b841cbdafd33efa458177cf057f5995cb3d7c"
+  },
+  "share.row.sharing": {
+    "message": "{surface} wird geteilt",
+    "source": "sha256:332d8412a5bce901cf0c3b80ee147651c90ace491e570b1f43dc5be339ac3cd7"
+  },
+  "share.row.sharingScreen": {
+    "message": "Dieser Bildschirm wird geteilt",
+    "source": "sha256:17d2458e099eec3a12ccede5f55859898bc5a0e1aa144b5f0d5c4b0430b8e7f0"
+  },
+  "share.audioOn": {
+    "message": "Computer-Audio an",
+    "source": "sha256:826647ac883008e4ef0e0c6ee479ce86e36ad852c4681c2d40f530b5541166df"
+  },
+  "share.audioOff": {
+    "message": "Computer-Audio aus",
+    "source": "sha256:b1285f97fd7cdb50e4b6cca1784cdcb16c7d2fdb6acf9ab8d47d17ca171fdb17"
+  },
+  "share.row.label": {
+    "message": "{title}. {audio}. Zum Tab wechseln",
+    "source": "sha256:b6b0094602d771b4b197696da95a2d95ad96bd89d273531a3a6ed35cd8642089"
+  },
+  "share.stop": {
+    "message": "Teilen beenden",
+    "source": "sha256:66e3d02ee8de8d98bbb2319c2193e4cca13a0989875d21f38d3db50a55f3ec30"
+  },
+  "share.stopLabel": {
+    "message": "Teilen von {surface} beenden",
+    "source": "sha256:6162349087e538c7a8949d92810ebae58087abea9e085ad4564cce013fdeced5"
+  },
+  "share.stopLabelScreen": {
+    "message": "Teilen dieses Bildschirms beenden",
+    "source": "sha256:38aa99be367f55ff8fdbba5b665cda7d4db9e80215519958ba4a1fb93c86ce1f"
+  },
+  "row.pin": {
+    "message": "Tab anheften",
+    "source": "sha256:85b0e01058f5d0a296fe5cc6d8bb375baadb29ecfaf2cbbbd6a7e47884f59c1b"
+  },
+  "row.unpin": {
+    "message": "Tab lösen",
+    "source": "sha256:bb7eb7a998987664a027a8cb169a12f37a02c8bca1bb1736d23efcea22f1f6be"
+  },
+  "row.mute": {
+    "message": "Tab stummschalten",
+    "source": "sha256:a4fd276a4bf4ed9cbb56792a41c340b8d5cb64ab07f636d8f88f94385b80a737"
+  },
+  "row.unmute": {
+    "message": "Ton des Tabs einschalten",
+    "source": "sha256:f6c522aa80b75241c2a403d2a3dab4b72714b001238f13a6b290bc8c6f495735"
+  },
+  "row.glance": {
+    "message": "glance",
+    "source": "sha256:1d0003411ede87c53c55a91e44471849215cb33fa121091d1057c2c9b0efa206"
+  },
+  "row.glanceOpen": {
+    "message": "Diesen Tab in Glance öffnen",
+    "source": "sha256:ab2e1433aa5729822e7063ec36c52b2e12f0d8d788835340148b8109d7ca4711"
+  },
+  "row.actionLabel": {
+    "message": "{action}: {title}",
+    "source": "sha256:b9ca4e8b20f2c1bec0ad0609e67881944333e1028b6895e19c767174890b6e63"
+  },
+  "group.fold": {
+    "message": "Gruppe einklappen",
+    "source": "sha256:f22d396b965b64c52f07c8264973565d66c74cbf9491b2a7f3769a8e9d7867be"
+  },
+  "group.unfold": {
+    "message": "Gruppe aufklappen",
+    "source": "sha256:68276fcb29a265a19735a60a4fa60c4b9a66eac8fdf1c53a33642f5191d3d5c1"
+  },
+  "device.fold": {
+    "message": "Gerät einklappen",
+    "source": "sha256:398fa74666b5cb9adb9ffe79a407088784fa82317b5b7f23ffce196181a70ff1"
+  },
+  "device.unfold": {
+    "message": "Gerät aufklappen",
+    "source": "sha256:9200571799aeea4b84f9d7ded7bcc82a733c82ea9293840c1f58b769a6becc3e"
+  },
+  "slash.sleep.none": {
+    "message": "Gerade können keine Hintergrund-Tabs ruhen gelassen werden.",
+    "source": "sha256:632dd5ec7dd38c87300403911ccbf797aaf4ac6b48cf33b68d6dde30f7da4434"
+  },
+  "slash.sleep.failed": {
+    "message": "Hintergrund-Tabs konnten nicht ruhen gelassen werden.",
+    "source": "sha256:37d383571027c67881018ba394feb3a5cb1585f4339ac130044ebd1922cf1c23"
+  },
+  "closed.header": {
+    "message": "zuletzt geschlossen",
+    "source": "sha256:cbc7e14f3edf5e1abe1feea365a75b19165b22cba9acfb0d22b2d6f624e4dcd9"
+  },
+  "closed.fold": {
+    "message": "Zuletzt geschlossene einklappen",
+    "source": "sha256:55def727ad4599fa2609bae4f46b6950590ed3f9f5fc7aebf6e5f86a9163d553"
+  },
+  "closed.unfold": {
+    "message": "Zuletzt geschlossene aufklappen",
+    "source": "sha256:4bc30c90c25307eab3099bf53c8e5d704691f266093560c7f98518f33c0f550e"
+  },
+  "closed.clear": {
+    "message": "leeren",
+    "source": "sha256:15853a29b524a3eb5ac7f1839b7eb966f1f4dfcb667365906323b2bc1fe61d48"
+  },
+  "closed.clearAll": {
+    "message": "Alle geschlossenen Tabs vergessen",
+    "source": "sha256:8cd07077304ced21fc3187c82516115f7ab2659586f16130d95b86c5d71832cf"
+  },
+  "closed.reopen": {
+    "message": "Geschlossenen Tab wieder öffnen",
+    "source": "sha256:89a0491db13b32cfdbe952fdfdf93504e1c7170045452fe3abdf83abb063040b"
+  },
+  "closed.groupTitle": {
+    "message": "{title} · {count, plural, one {# Tab} other {# Tabs}}",
+    "source": "sha256:735dd024a65b4c25abe7c9250200c095d01a69e04ac3768311669ea43e1edbf7"
+  },
+  "closed.forget": {
+    "message": "Geschlossenen Tab vergessen",
+    "source": "sha256:c17f825f519dfcc810dffc79dc8d20833c01f89938a1e5944dc3399075e3f199"
+  },
+  "result.tag.tab": {
+    "message": "tab",
+    "source": "sha256:fd8a43d2ad2023b53d65cba56ce5c954c0041d69993d7d7ad68dccac7b29792f"
+  },
+  "result.tag.favorite": {
+    "message": "favorit",
+    "source": "sha256:69f8323bc36492e0df1328b147f385312ef178a35384badff379feefe4b8a0d9"
+  },
+  "result.tag.history": {
+    "message": "verlauf",
+    "source": "sha256:ea72ce23e7ef39fe20829d02f3f11b8d596a87d9da4907b5ebada3451fa68d4b"
+  },
+  "result.tag.group": {
+    "message": "gruppe",
+    "source": "sha256:d210da758e3eeaf1449350f5c224a048cc7a9fcea5f662dc4e60200c48bb9d22"
+  },
+  "result.tag.remote": {
+    "message": "gerät",
+    "source": "sha256:ed93bbf312aac9cfb6218b67d37a3a56c890871140f42557f4b9ac302cda64ec"
+  },
+  "siteInfo.localPage": {
+    "message": "lokale Seite",
+    "source": "sha256:afaf351361fc6ce5f91f9fe6edf1b274447283a97904902308f5d050c7b62f93"
+  },
+  "siteInfo.cert.subject": {
+    "message": "Zertifikat für",
+    "source": "sha256:5a1b1103cfd3d827f27edec6051a477c062da1cf6f3389de74e4107ddd43438a"
+  },
+  "siteInfo.cert.issuer": {
+    "message": "Ausgestellt von",
+    "source": "sha256:ebec952916952a61fa8485246232fabc745b4db6d051607383c96eae2401ab1d"
+  },
+  "siteInfo.cert.validFrom": {
+    "message": "Gültig ab",
+    "source": "sha256:c438ef6c2a609395dbe19107e7ae0cd13d6a1b5a15ae5d042ad2f68be8af2c10"
+  },
+  "siteInfo.cert.validUntil": {
+    "message": "Gültig bis",
+    "source": "sha256:4a1f33260688ab8a2ee1f19cd85d9742cb650941d4f3e134a141e58427b3fda3"
+  },
+  "siteInfo.cert.fingerprint": {
+    "message": "Fingerabdruck",
+    "source": "sha256:4565d039ec0e9f4857c1675cea2ddc19d547a37a1d4cbd9f174fafb3c0c36ffa"
+  },
+  "siteInfo.blocked": {
+    "message": "{count, plural, one {Blanc hat # Anfrage blockiert} other {Blanc hat # Anfragen blockiert}}",
+    "source": "sha256:3bc535cebd56e0ad139b1e4ac880c042576892c3a26047174836ab2fa97f2d64"
+  },
+  "siteInfo.noneBlocked": {
+    "message": "Keine blockierten Anfragen auf dieser Seite",
+    "source": "sha256:6ec596da0b867955541c39231fa205eb7f5dca2e3705fe6bcf7092af37e3cc1f"
+  },
+  "siteInfo.privacySettings": {
+    "message": "Datenschutzeinstellungen",
+    "source": "sha256:40f632ae1e2ba239d36cdbf26485a634afe67073477d0603bbded48040f08826"
+  },
+  "siteInfo.stopAllowing": {
+    "message": "Nicht mehr erlauben",
+    "source": "sha256:cda5318b566be09f3864f26d7a56525208a698966bbf403647f76d4579b738b1"
+  },
+  "siteInfo.hint.certError": {
+    "message": "dieses Zertifikat konnte nicht überprüft werden",
+    "source": "sha256:a2ab4b3bda0cbb8f33645f53b441811d29a7bd3325c27a06a320e6f9e45d61de"
+  },
+  "siteInfo.hint.certException": {
+    "message": "du hast eine Zertifikatswarnung übergangen",
+    "source": "sha256:ff5969b3f60be54e48af68a01b5c35cdfac04c38cf893e7322f8f0c9c6babbd6"
+  },
+  "siteInfo.hint.chromium": {
+    "message": "Verbindungsdetails stammen von Chromium",
+    "source": "sha256:391e0418d31592418023c5aaf10e8967dd1d0e8a6417478e50d5f621601b95fc"
+  },
+  "list.noCommand": {
+    "message": "kein passender Befehl",
+    "source": "sha256:9600022cab713f09fedfc2e1b7d2212d040308f6ee4b4ca713d6fe8bf6612576"
+  },
+  "list.noMatches": {
+    "message": "keine Treffer – ↵ öffnet als Adresse oder Suche",
+    "source": "sha256:9228597eea4e330cdf99391128acb497ceabf682cb04a97c4208f0f772eb24f5"
+  },
+  "hint.private": {
+    "message": "privat · hier wird nichts im Verlauf gespeichert",
+    "source": "sha256:feefda763965f9187e4eb9dd56a30b5b98c6c8794c7a3ad92f61d0dde8467299"
+  },
+  "hint.groups": {
+    "message": "/group verschiebt diesen Tab · {mod}1–9 springt zwischen Abschnitten",
+    "source": "sha256:05b0db2c1933caa7bcabbb35df9ec4b899c4e586b9c9c272200e172d269c04cc"
+  },
+  "hint.default": {
+    "message": "{mod}L ruft auf · / für Befehle",
+    "source": "sha256:98a24b911d008f703429d923a2d30c3bfe7c76da8023abf7f4e1efa5195118e8"
   }
 }

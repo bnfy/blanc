@@ -1,7 +1,7 @@
 {
-  "$note": "Slash-command registry (substrate S3): order, command names, reference-page spellings (doc.command) and platform limits. The hint text lives in copy/messages/en.json as slash.<name>.hint and slash.<name>.doc. Until each desktop copy moves to t() (overlay.js, pages/shortcuts.js, main.js SLASH_COMMANDS), copy:check compares those hand-synced copies against the catalog.",
+  "$note": "Slash-command registry (substrate S3): order, command names, reference-page spellings (doc.command) and platform limits. The hint text lives in copy/messages/en.json as slash.<name>.hint and slash.<name>.doc. overlay.js reads its hints from the catalog (sources.overlayKeys: copy:check verifies its order and keys); until pages/shortcuts.js and main.js SLASH_COMMANDS move to t(), copy:check compares those hand-synced copies against the catalog.",
   "sources": {
-    "overlay": "src/renderer/overlay.js",
+    "overlayKeys": "src/renderer/overlay.js",
     "shortcuts": "src/renderer/pages/shortcuts.js",
     "main": "src/main/main.js"
   },

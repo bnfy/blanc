@@ -3468,6 +3468,2580 @@
           }
         }
       }
+    },
+    "overlay.surfaceTitle": {
+      "comment": "Title of the hidden document that hosts the Island's expanded states.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc Overlay"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc-Overlay"
+          }
+        }
+      }
+    },
+    "common.cancel": {
+      "comment": "Generic cancel button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abbrechen"
+          }
+        }
+      }
+    },
+    "share.picker.title": {
+      "comment": "Heading of the screen-share picker.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share your screen"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bildschirm teilen"
+          }
+        }
+      }
+    },
+    "share.picker.sources": {
+      "comment": "Accessible name of the list of shareable screens and windows.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screens and windows"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bildschirme und Fenster"
+          }
+        }
+      }
+    },
+    "share.picker.audio": {
+      "comment": "Checkbox label in the screen-share picker.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share computer audio"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Computer-Audio teilen"
+          }
+        }
+      }
+    },
+    "share.picker.share": {
+      "comment": "Button that starts sharing the chosen screen or window.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teilen"
+          }
+        }
+      }
+    },
+    "share.picker.continue": {
+      "comment": "Button that continues to the system's own share dialog.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weiter"
+          }
+        }
+      }
+    },
+    "share.status.portalLoading": {
+      "comment": "Share picker status while the system dialog is open.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose what to share in the system dialog."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle im Systemdialog aus, was geteilt werden soll."
+          }
+        }
+      }
+    },
+    "share.status.loading": {
+      "comment": "Share picker status while sources load.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finding screens and windows…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bildschirme und Fenster werden gesucht…"
+          }
+        }
+      }
+    },
+    "share.status.portal": {
+      "comment": "Share picker status before handing off to the system dialog.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue to choose a screen or window. Your system may open its own sharing dialog."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fahre fort, um einen Bildschirm oder ein Fenster zu wählen. Dein System öffnet eventuell einen eigenen Freigabedialog."
+          }
+        }
+      }
+    },
+    "share.status.choose": {
+      "comment": "Share picker status prompting a choice.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a screen or window to share with this site."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle einen Bildschirm oder ein Fenster, das du mit dieser Website teilen möchtest."
+          }
+        }
+      }
+    },
+    "panel.siteInfo": {
+      "comment": "Site-information button in the command bar and its card's accessible name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Site information"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Website-Informationen"
+          }
+        }
+      }
+    },
+    "panel.addressPlaceholder": {
+      "comment": "Placeholder of the Island command bar input.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search, enter address, or / for commands"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suchen, Adresse eingeben oder / für Befehle"
+          }
+        }
+      }
+    },
+    "panel.favoriteShortcut": {
+      "comment": "Heart button tooltip in the command bar; Ctrl/Cmd+D is its shortcut.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favorite this page (Ctrl/Cmd+D)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Seite zu den Favoriten hinzufügen (Strg/Cmd+D)"
+          }
+        }
+      }
+    },
+    "panel.collapse.title": {
+      "comment": "Tooltip of the button that collapses the expanded Island.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collapse island (Esc)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Island einklappen (Esc)"
+          }
+        }
+      }
+    },
+    "panel.collapse.label": {
+      "comment": "Accessible name of the button that collapses the expanded Island.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collapse island"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Island einklappen"
+          }
+        }
+      }
+    },
+    "footer.newTab": {
+      "comment": "Lowercase launcher label in the Island footer.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "new tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neuer tab"
+          }
+        }
+      }
+    },
+    "footer.private": {
+      "comment": "Lowercase launcher label for a private tab in the Island footer.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "private"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "privat"
+          }
+        }
+      }
+    },
+    "footer.newPrivate.title": {
+      "comment": "Tooltip of the private-tab launcher; {shortcut} is its keyboard shortcut.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New private tab (%1$@)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer privater Tab (%1$@)"
+          }
+        }
+      }
+    },
+    "footer.workspaces": {
+      "comment": "Island footer button and dialog name for Named Workspaces.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Workspaces"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeitsbereiche"
+          }
+        }
+      }
+    },
+    "footer.favorites": {
+      "comment": "Island footer button that opens Favorites.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favorites"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favoriten"
+          }
+        }
+      }
+    },
+    "footer.history": {
+      "comment": "Island footer button that opens History.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "History"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verlauf"
+          }
+        }
+      }
+    },
+    "footer.tabLayoutOn": {
+      "comment": "Island footer button tooltip while vertical tabs are off.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn vertical tabs on"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vertikale Tabs einschalten"
+          }
+        }
+      }
+    },
+    "footer.settings": {
+      "comment": "Island footer button that opens Settings.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einstellungen"
+          }
+        }
+      }
+    },
+    "ws.newEmpty": {
+      "comment": "Workspace switcher command.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New empty workspace"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer leerer Arbeitsbereich"
+          }
+        }
+      }
+    },
+    "ws.saveAs": {
+      "comment": "Workspace switcher command that saves this window as a named workspace.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save this window as…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Fenster speichern als…"
+          }
+        }
+      }
+    },
+    "glance.picker.title": {
+      "comment": "Heading of the Glance tab picker.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a tab for Glance"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einen Tab für Glance wählen"
+          }
+        }
+      }
+    },
+    "glance.picker.cancelLabel": {
+      "comment": "Accessible name of the Glance picker's close button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel choosing a Glance tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auswahl eines Tabs für Glance abbrechen"
+          }
+        }
+      }
+    },
+    "glance.picker.filter": {
+      "comment": "Label and placeholder of the Glance picker's filter input.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filter open tabs"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offene Tabs filtern"
+          }
+        }
+      }
+    },
+    "glance.picker.hintNavigate": {
+      "comment": "Keyboard hint in the Glance picker footer.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "↑↓ navigate"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "↑↓ navigieren"
+          }
+        }
+      }
+    },
+    "glance.picker.hintOpen": {
+      "comment": "Keyboard hint in the Glance picker footer.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "↵ open"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "↵ öffnen"
+          }
+        }
+      }
+    },
+    "glance.picker.hintCancel": {
+      "comment": "Keyboard hint in the Glance picker footer.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "esc cancel"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "esc abbrechen"
+          }
+        }
+      }
+    },
+    "glance.picker.openTab": {
+      "comment": "Glance picker row detail when a tab has no other details.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "open tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "offener Tab"
+          }
+        }
+      }
+    },
+    "glance.picker.noMatches": {
+      "comment": "Glance picker empty state for a filter with no results.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No matching open tabs"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine passenden offenen Tabs"
+          }
+        }
+      }
+    },
+    "glance.picker.noTabs": {
+      "comment": "Glance picker empty state with no other tab.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open another tab to use Glance"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffne einen weiteren Tab, um Glance zu nutzen"
+          }
+        }
+      }
+    },
+    "glance.picker.available": {
+      "comment": "Screen-reader announcement of the Glance picker's result count.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld tab available"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld tabs available"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Tab verfügbar"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Tabs verfügbar"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "glance.picker.optionLabel": {
+      "comment": "Accessible name of a Glance picker row: its title and comma-separated details.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@"
+          }
+        }
+      }
+    },
+    "glance.opened": {
+      "comment": "Screen-reader announcement after choosing a tab for Glance.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ opened in Glance"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ in Glance geöffnet"
+          }
+        }
+      }
+    },
+    "glance.openedUntitled": {
+      "comment": "Screen-reader announcement after choosing an untitled tab for Glance.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tab opened in Glance"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tab in Glance geöffnet"
+          }
+        }
+      }
+    },
+    "glance.openFailed": {
+      "comment": "Glance picker error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t open that tab in Glance"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Tab konnte nicht in Glance geöffnet werden"
+          }
+        }
+      }
+    },
+    "find.placeholder": {
+      "comment": "Placeholder of the find-in-page input.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find in page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf der Seite suchen"
+          }
+        }
+      }
+    },
+    "find.prev": {
+      "comment": "Find bar button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previous match"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorheriger Treffer"
+          }
+        }
+      }
+    },
+    "find.next": {
+      "comment": "Find bar button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next match"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nächster Treffer"
+          }
+        }
+      }
+    },
+    "shield.back": {
+      "comment": "Accessible name of the shield popover's back button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to site protection"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurück zum Website-Schutz"
+          }
+        }
+      }
+    },
+    "shield.title": {
+      "comment": "Heading of the shield popover.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Site protection"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Website-Schutz"
+          }
+        }
+      }
+    },
+    "shield.close": {
+      "comment": "Accessible name of the shield popover's close button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close site protection"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Website-Schutz schließen"
+          }
+        }
+      }
+    },
+    "shield.currentBlocker": {
+      "comment": "Eyebrow above the active blocker's name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current blocker"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktueller Blocker"
+          }
+        }
+      }
+    },
+    "shield.change": {
+      "comment": "Button that opens the blocker chooser.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ändern"
+          }
+        }
+      }
+    },
+    "shield.changeLabel": {
+      "comment": "Accessible name of that button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change blocker"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blocker ändern"
+          }
+        }
+      }
+    },
+    "shield.adBlocking": {
+      "comment": "Label of the site's blocking switch.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ad & tracker blocking"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Werbe- und Tracker-Blockierung"
+          }
+        }
+      }
+    },
+    "shield.on": {
+      "comment": "Lowercase state beside a switch that is on.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "on"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "an"
+          }
+        }
+      }
+    },
+    "shield.off": {
+      "comment": "Lowercase state beside a switch that is off.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "off"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "aus"
+          }
+        }
+      }
+    },
+    "shield.toggleLabel": {
+      "comment": "Accessible name of the site's blocking switch.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ad & tracker protection for this site"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Werbe- und Tracker-Schutz für diese Website"
+          }
+        }
+      }
+    },
+    "shield.reloadNote": {
+      "comment": "Note under the site's blocking switch.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changing site protection reloads this page."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Änderung des Website-Schutzes lädt diese Seite neu."
+          }
+        }
+      }
+    },
+    "shield.uboLabel": {
+      "comment": "Accessible name of the button that opens uBlock Origin's own popup.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open uBlock Origin controls"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Steuerung von uBlock Origin öffnen"
+          }
+        }
+      }
+    },
+    "shield.uboOpen": {
+      "comment": "Visible label of that button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open controls"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Steuerung öffnen"
+          }
+        }
+      }
+    },
+    "shield.dark": {
+      "comment": "Label of the per-site dark website switch.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dark website"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dunkle Website"
+          }
+        }
+      }
+    },
+    "shield.darkLabel": {
+      "comment": "Accessible name of the per-site dark website switch.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dark website for this site"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dunkle Darstellung für diese Website"
+          }
+        }
+      }
+    },
+    "shield.darkNote": {
+      "comment": "Note under the dark website switch.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applies while Blanc is dark."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gilt, solange Blanc dunkel ist."
+          }
+        }
+      }
+    },
+    "shield.connection": {
+      "comment": "Label of the connection row in the shield popover.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbindung"
+          }
+        }
+      }
+    },
+    "shield.settings": {
+      "comment": "Link to Settings at the bottom of the shield popover.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blocking settings"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blocker-Einstellungen"
+          }
+        }
+      }
+    },
+    "shield.chooseBlocker": {
+      "comment": "Heading of the blocker chooser.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a blocker"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blocker wählen"
+          }
+        }
+      }
+    },
+    "shield.active": {
+      "comment": "Badge on the blocker that is currently in use.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Active"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktiv"
+          }
+        }
+      }
+    },
+    "shield.uboTagline": {
+      "comment": "Description of uBlock Origin in the blocker chooser.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Advanced filtering and controls"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erweiterte Filter und Steuerung"
+          }
+        }
+      }
+    },
+    "shield.restartNote": {
+      "comment": "Note in the blocker chooser.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changes take effect after restarting Blanc."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Änderungen werden nach einem Neustart von Blanc wirksam."
+          }
+        }
+      }
+    },
+    "shield.restartNeeded": {
+      "comment": "Note in the blocker chooser when the choice differs from the active blocker.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restart Blanc to use your selected blocker."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starte Blanc neu, um den gewählten Blocker zu verwenden."
+          }
+        }
+      }
+    },
+    "shield.privateNote": {
+      "comment": "Note in the blocker chooser.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Private tabs use Blanc Blocker; uBO isn’t supported in temporary private sessions."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Private Tabs nutzen Blanc Blocker; uBO wird in temporären privaten Sitzungen nicht unterstützt."
+          }
+        }
+      }
+    },
+    "shield.done": {
+      "comment": "Blocker chooser button when nothing needs a restart.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fertig"
+          }
+        }
+      }
+    },
+    "shield.restart": {
+      "comment": "Blocker chooser button that restarts to apply the choice.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restart Blanc"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc neu starten"
+          }
+        }
+      }
+    },
+    "shield.restarting": {
+      "comment": "Blocker chooser button while restarting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restarting…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird neu gestartet…"
+          }
+        }
+      }
+    },
+    "shield.saving": {
+      "comment": "Blocker chooser button while saving.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saving…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird gespeichert…"
+          }
+        }
+      }
+    },
+    "shield.scopeRegular": {
+      "comment": "Subtitle of the blocker chooser.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For regular tabs on this device."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Für normale Tabs auf diesem Gerät."
+          }
+        }
+      }
+    },
+    "shield.error": {
+      "comment": "Blocker chooser error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not complete the change. Your choice is shown above; try again when you’re ready."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Änderung konnte nicht abgeschlossen werden. Deine Auswahl steht oben; versuche es erneut, wenn du bereit bist."
+          }
+        }
+      }
+    },
+    "connection.https": {
+      "comment": "Connection row value for an HTTPS page.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uses HTTPS"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nutzt HTTPS"
+          }
+        }
+      }
+    },
+    "connection.http": {
+      "comment": "Connection row value for an HTTP page.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not encrypted"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht verschlüsselt"
+          }
+        }
+      }
+    },
+    "connection.local": {
+      "comment": "Connection row value for a local page.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lokal"
+          }
+        }
+      }
+    },
+    "capture.pop.inUse": {
+      "comment": "Lowercase heading of the capture popover while a page uses camera or microphone.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "in use"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "in Verwendung"
+          }
+        }
+      }
+    },
+    "capture.pop.sharing": {
+      "comment": "Lowercase heading of the capture popover while only a screen share is active.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "sharing"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "wird geteilt"
+          }
+        }
+      }
+    },
+    "capture.popupWindow": {
+      "comment": "Stands in for the host when a capture comes from a popup window.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "popup window"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pop-up-Fenster"
+          }
+        }
+      }
+    },
+    "capture.stop": {
+      "comment": "Lowercase button that stops a camera or microphone capture.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "stop"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "stoppen"
+          }
+        }
+      }
+    },
+    "capture.row.goBoth": {
+      "comment": "Accessible name of a capture row's go button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ — camera & microphone in use; go to it"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ – Kamera & Mikrofon in Verwendung; dorthin wechseln"
+          }
+        }
+      }
+    },
+    "capture.row.goCamera": {
+      "comment": "Accessible name of a capture row's go button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ — camera in use; go to it"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ – Kamera in Verwendung; dorthin wechseln"
+          }
+        }
+      }
+    },
+    "capture.row.goMicrophone": {
+      "comment": "Accessible name of a capture row's go button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ — microphone in use; go to it"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ – Mikrofon in Verwendung; dorthin wechseln"
+          }
+        }
+      }
+    },
+    "capture.row.stopBoth": {
+      "comment": "Accessible name of a capture row's stop button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "stop — %1$@ camera & microphone in use"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "stoppen – %1$@ Kamera & Mikrofon in Verwendung"
+          }
+        }
+      }
+    },
+    "capture.row.stopCamera": {
+      "comment": "Accessible name of a capture row's stop button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "stop — %1$@ camera in use"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "stoppen – %1$@ Kamera in Verwendung"
+          }
+        }
+      }
+    },
+    "capture.row.stopMicrophone": {
+      "comment": "Accessible name of a capture row's stop button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "stop — %1$@ microphone in use"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "stoppen – %1$@ Mikrofon in Verwendung"
+          }
+        }
+      }
+    },
+    "share.row.pending": {
+      "comment": "Screen-share row title while the share starts.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sharing…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird geteilt…"
+          }
+        }
+      }
+    },
+    "share.row.sharing": {
+      "comment": "Screen-share row title; {surface} names the shared window or screen.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sharing %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ wird geteilt"
+          }
+        }
+      }
+    },
+    "share.row.sharingScreen": {
+      "comment": "Screen-share row title when the shared surface has no name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sharing this screen"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Bildschirm wird geteilt"
+          }
+        }
+      }
+    },
+    "share.audioOn": {
+      "comment": "Screen-share row detail.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Computer audio on"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Computer-Audio an"
+          }
+        }
+      }
+    },
+    "share.audioOff": {
+      "comment": "Screen-share row detail.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Computer audio off"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Computer-Audio aus"
+          }
+        }
+      }
+    },
+    "share.row.label": {
+      "comment": "Accessible name of a screen-share row.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@. %2$@. Go to tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@. %2$@. Zum Tab wechseln"
+          }
+        }
+      }
+    },
+    "share.stop": {
+      "comment": "Button that stops a screen share.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop sharing"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teilen beenden"
+          }
+        }
+      }
+    },
+    "share.stopLabel": {
+      "comment": "Accessible name of the stop button; {surface} names the shared window or screen.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop sharing %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teilen von %1$@ beenden"
+          }
+        }
+      }
+    },
+    "share.stopLabelScreen": {
+      "comment": "Accessible name of the stop button when the shared surface has no name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop sharing this screen"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teilen dieses Bildschirms beenden"
+          }
+        }
+      }
+    },
+    "row.pin": {
+      "comment": "Tab row button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pin tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tab anheften"
+          }
+        }
+      }
+    },
+    "row.unpin": {
+      "comment": "Tab row button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unpin tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tab lösen"
+          }
+        }
+      }
+    },
+    "row.mute": {
+      "comment": "Tab row button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mute tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tab stummschalten"
+          }
+        }
+      }
+    },
+    "row.unmute": {
+      "comment": "Tab row button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unmute tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ton des Tabs einschalten"
+          }
+        }
+      }
+    },
+    "row.glance": {
+      "comment": "Lowercase tab row button that opens the tab in Glance (a fixed product name).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "glance"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "glance"
+          }
+        }
+      }
+    },
+    "row.glanceOpen": {
+      "comment": "Tooltip of that button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open this tab in Glance"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diesen Tab in Glance öffnen"
+          }
+        }
+      }
+    },
+    "row.actionLabel": {
+      "comment": "Accessible name of a row action: the action, then the tab title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: %2$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: %2$@"
+          }
+        }
+      }
+    },
+    "group.fold": {
+      "comment": "Tooltip of an expanded group header.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fold group"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gruppe einklappen"
+          }
+        }
+      }
+    },
+    "group.unfold": {
+      "comment": "Tooltip of a collapsed group header.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unfold group"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gruppe aufklappen"
+          }
+        }
+      }
+    },
+    "device.fold": {
+      "comment": "Tooltip of an expanded synced-device header.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fold device"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gerät einklappen"
+          }
+        }
+      }
+    },
+    "device.unfold": {
+      "comment": "Tooltip of a collapsed synced-device header.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unfold device"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gerät aufklappen"
+          }
+        }
+      }
+    },
+    "slash.sleep.none": {
+      "comment": "Notice after /sleep when nothing could be quieted.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No background tabs can be quieted right now."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gerade können keine Hintergrund-Tabs ruhen gelassen werden."
+          }
+        }
+      }
+    },
+    "slash.sleep.failed": {
+      "comment": "Notice when /sleep fails.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not quiet background tabs."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hintergrund-Tabs konnten nicht ruhen gelassen werden."
+          }
+        }
+      }
+    },
+    "closed.header": {
+      "comment": "Lowercase header of the recently-closed section in the Island.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "recently closed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "zuletzt geschlossen"
+          }
+        }
+      }
+    },
+    "closed.fold": {
+      "comment": "Tooltip of the expanded recently-closed header.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fold recently closed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zuletzt geschlossene einklappen"
+          }
+        }
+      }
+    },
+    "closed.unfold": {
+      "comment": "Tooltip of the collapsed recently-closed header.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unfold recently closed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zuletzt geschlossene aufklappen"
+          }
+        }
+      }
+    },
+    "closed.clear": {
+      "comment": "Lowercase button that forgets every recently-closed entry.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "clear"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "leeren"
+          }
+        }
+      }
+    },
+    "closed.clearAll": {
+      "comment": "Tooltip of that button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forget all closed tabs"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle geschlossenen Tabs vergessen"
+          }
+        }
+      }
+    },
+    "closed.reopen": {
+      "comment": "Tooltip of a recently-closed row.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reopen closed tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geschlossenen Tab wieder öffnen"
+          }
+        }
+      }
+    },
+    "closed.groupTitle": {
+      "comment": "Recently-closed row for a closed group; {title} is the group name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$@ · %2$lld tab"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$@ · %2$lld tabs"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$@ · %2$lld Tab"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$@ · %2$lld Tabs"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "closed.forget": {
+      "comment": "Button that forgets one recently-closed entry.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forget closed tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geschlossenen Tab vergessen"
+          }
+        }
+      }
+    },
+    "result.tag.tab": {
+      "comment": "Lowercase tag on a Quick Switcher result that is an open tab.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "tab"
+          }
+        }
+      }
+    },
+    "result.tag.favorite": {
+      "comment": "Lowercase tag on a Quick Switcher result from Favorites.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "favorite"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "favorit"
+          }
+        }
+      }
+    },
+    "result.tag.history": {
+      "comment": "Lowercase tag on a Quick Switcher result from History.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "history"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "verlauf"
+          }
+        }
+      }
+    },
+    "result.tag.group": {
+      "comment": "Lowercase tag on a Quick Switcher result that is a tab group.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "group"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "gruppe"
+          }
+        }
+      }
+    },
+    "result.tag.remote": {
+      "comment": "Lowercase tag on a Quick Switcher result that is a tab on another device.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "remote"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "gerät"
+          }
+        }
+      }
+    },
+    "siteInfo.localPage": {
+      "comment": "Site information origin line for a local page.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "local page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "lokale Seite"
+          }
+        }
+      }
+    },
+    "siteInfo.cert.subject": {
+      "comment": "Certificate detail label.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Certificate for"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zertifikat für"
+          }
+        }
+      }
+    },
+    "siteInfo.cert.issuer": {
+      "comment": "Certificate detail label.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Issued by"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ausgestellt von"
+          }
+        }
+      }
+    },
+    "siteInfo.cert.validFrom": {
+      "comment": "Certificate detail label.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valid from"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gültig ab"
+          }
+        }
+      }
+    },
+    "siteInfo.cert.validUntil": {
+      "comment": "Certificate detail label.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valid until"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gültig bis"
+          }
+        }
+      }
+    },
+    "siteInfo.cert.fingerprint": {
+      "comment": "Certificate detail label.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fingerprint"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fingerabdruck"
+          }
+        }
+      }
+    },
+    "siteInfo.blocked": {
+      "comment": "Site information blocking summary.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Blanc blocked %1$lld request"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Blanc blocked %1$lld requests"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Blanc hat %1$lld Anfrage blockiert"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Blanc hat %1$lld Anfragen blockiert"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "siteInfo.noneBlocked": {
+      "comment": "Site information blocking summary when nothing was blocked.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No blocked requests on this page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine blockierten Anfragen auf dieser Seite"
+          }
+        }
+      }
+    },
+    "siteInfo.privacySettings": {
+      "comment": "Site information button that opens Settings.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy settings"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datenschutzeinstellungen"
+          }
+        }
+      }
+    },
+    "siteInfo.stopAllowing": {
+      "comment": "Site information button that forgets a certificate exception.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop allowing"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht mehr erlauben"
+          }
+        }
+      }
+    },
+    "siteInfo.hint.certError": {
+      "comment": "Lowercase hint under the site information card.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "this certificate could not be verified"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dieses Zertifikat konnte nicht überprüft werden"
+          }
+        }
+      }
+    },
+    "siteInfo.hint.certException": {
+      "comment": "Lowercase hint under the site information card.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "you continued past a certificate warning"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "du hast eine Zertifikatswarnung übergangen"
+          }
+        }
+      }
+    },
+    "siteInfo.hint.chromium": {
+      "comment": "Lowercase hint under the site information card.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "connection details are supplied by Chromium"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbindungsdetails stammen von Chromium"
+          }
+        }
+      }
+    },
+    "list.noCommand": {
+      "comment": "Lowercase empty row in the slash command list.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "no matching command"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "kein passender Befehl"
+          }
+        }
+      }
+    },
+    "list.noMatches": {
+      "comment": "Lowercase empty row in the Quick Switcher.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "no matches — ↵ opens as address or search"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "keine Treffer – ↵ öffnet als Adresse oder Suche"
+          }
+        }
+      }
+    },
+    "hint.private": {
+      "comment": "Lowercase hint under the Island list on a private tab.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "private · nothing here is saved to history"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "privat · hier wird nichts im Verlauf gespeichert"
+          }
+        }
+      }
+    },
+    "hint.groups": {
+      "comment": "Lowercase hint under the Island list when groups exist; {mod} is ⌘ or ctrl+.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "/group moves this tab · %1$@1–9 jumps between sections"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "/group verschiebt diesen Tab · %1$@1–9 springt zwischen Abschnitten"
+          }
+        }
+      }
+    },
+    "hint.default": {
+      "comment": "Lowercase hint under the Island list; {mod} is ⌘ or ctrl+.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@L summons · / for commands"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@L ruft auf · / für Befehle"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -137,3 +137,26 @@ test('Android output escapes backslashes before quotes and apostrophes', async (
   assert.match(mobile.androidStrings({ en, messages: { 'a.path': en['a.path'].message } }),
     /<string name="a_path">Saved to C:\\\\Downloads, \\"done\\" isn\\'t it<\/string>/);
 });
+
+test('the overlay slash table must follow the registry order and use each command its own catalog key', (t) => {
+  const { root } = fixtureRoot(t);
+  fs.writeFileSync(path.join(root, 'copy/slash-commands.json'), JSON.stringify({
+    sources: { overlayKeys: 'src/renderer/overlay.js' },
+    commands: [{ command: '/new' }, { command: '/close-group' }],
+  }));
+  const en = JSON.parse(fs.readFileSync(path.join(root, 'copy/messages/en.json'), 'utf8'));
+  en['slash.closeGroup.hint'] = { message: 'Close every tab in this group', note: 'n' };
+  fs.writeFileSync(path.join(root, 'copy/messages/en.json'), JSON.stringify(en));
+  fs.mkdirSync(path.join(root, 'src/renderer'), { recursive: true });
+  const write = (rows) => fs.writeFileSync(path.join(root, 'src/renderer/overlay.js'), rows.join('\n'));
+  cli.runBuild(root);
+  write(["    { cmd: '/new', hint: blancI18n.t('slash.new.hint'), run: () => {} },",
+    "    { cmd: '/close-group', hint: blancI18n.t('slash.closeGroup.hint'), run: () => {} },"]);
+  assert.deepEqual(cli.runCheck(root).failures.filter((f) => f.includes('overlay.js')), []);
+  write(["    { cmd: '/close-group', hint: blancI18n.t('slash.closeGroup.hint'), run: () => {} },",
+    "    { cmd: '/new', hint: blancI18n.t('slash.new.hint'), run: () => {} },"]);
+  assert.ok(cli.runCheck(root).failures.some((f) => f.includes('overlay.js')), 'reordered table fails');
+  write(["    { cmd: '/new', hint: blancI18n.t('slash.closeGroup.hint'), run: () => {} },",
+    "    { cmd: '/close-group', hint: blancI18n.t('slash.closeGroup.hint'), run: () => {} },"]);
+  assert.ok(cli.runCheck(root).failures.some((f) => f.includes('overlay.js')), 'wrong key fails');
+});

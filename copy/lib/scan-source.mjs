@@ -91,6 +91,7 @@ const MAIN_SITES = [
   new RegExp(String.raw`(?:^|[\s{,])(?:label|message|detail|title|checkboxLabel)\s*:\s*` + STRING, 'gm'),
   new RegExp(String.raw`buttons\s*:\s*\[\s*` + STRING, 'g'),
 ];
+const CONDITIONAL_SITE = new RegExp(String.raw`\.(?:textContent|innerText|title|placeholder|ariaLabel)\s*=\s*([^;'"\`]*\?[^;]*);`, 'g');
 const ANY_SITE = new RegExp(String.raw`\.(?:textContent|innerText|title|placeholder|ariaLabel)\s*=|setAttribute\(\s*['"](?:title|aria-label|placeholder|alt)['"]`, 'g');
 
 function stripComments(js) {
@@ -119,6 +120,11 @@ export function scanJs(js, { allow = [], kind = 'renderer', en = null }) {
     if (LETTER.test(value.replace(/\$\{[^}]*\}/g, '')) && !allow.includes(value)) problems.push(`literal ${raw}`);
   };
   for (const pattern of RENDERER_SITES) for (const m of source.matchAll(pattern)) report(m[1]);
+  // A conditional assignment: every literal branch of `= cond ? 'a' : 'b'`
+  // (to the end of the statement) is checked too.
+  for (const m of source.matchAll(CONDITIONAL_SITE)) {
+    for (const lit of m[1].matchAll(new RegExp(String.raw`[?:]\s*` + STRING, 'g'))) report(lit[1]);
+  }
   if (kind === 'main') for (const pattern of MAIN_SITES) for (const m of source.matchAll(pattern)) report(m[1]);
   let scanned = [...source.matchAll(ANY_SITE)].length;
   if (kind === 'main') for (const pattern of MAIN_SITES) scanned += [...source.matchAll(pattern)].length;

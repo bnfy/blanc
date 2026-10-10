@@ -770,5 +770,583 @@
   "fill.filled.title": {
     "message": "Filled from 1Password",
     "note": "Fill success confirmation (title only)."
+  },
+  "overlay.surfaceTitle": {
+    "message": "Blanc Overlay",
+    "note": "Title of the hidden document that hosts the Island's expanded states."
+  },
+  "common.cancel": {
+    "message": "Cancel",
+    "note": "Generic cancel button.",
+    "maxLength": 12
+  },
+  "share.picker.title": {
+    "message": "Share your screen",
+    "note": "Heading of the screen-share picker."
+  },
+  "share.picker.sources": {
+    "message": "Screens and windows",
+    "note": "Accessible name of the list of shareable screens and windows."
+  },
+  "share.picker.audio": {
+    "message": "Share computer audio",
+    "note": "Checkbox label in the screen-share picker."
+  },
+  "share.picker.share": {
+    "message": "Share",
+    "note": "Button that starts sharing the chosen screen or window.",
+    "maxLength": 12
+  },
+  "share.picker.continue": {
+    "message": "Continue",
+    "note": "Button that continues to the system's own share dialog.",
+    "maxLength": 12
+  },
+  "share.status.portalLoading": {
+    "message": "Choose what to share in the system dialog.",
+    "note": "Share picker status while the system dialog is open."
+  },
+  "share.status.loading": {
+    "message": "Finding screens and windows…",
+    "note": "Share picker status while sources load."
+  },
+  "share.status.portal": {
+    "message": "Continue to choose a screen or window. Your system may open its own sharing dialog.",
+    "note": "Share picker status before handing off to the system dialog."
+  },
+  "share.status.choose": {
+    "message": "Choose a screen or window to share with this site.",
+    "note": "Share picker status prompting a choice."
+  },
+  "panel.siteInfo": {
+    "message": "Site information",
+    "note": "Site-information button in the command bar and its card's accessible name."
+  },
+  "panel.addressPlaceholder": {
+    "message": "Search, enter address, or / for commands",
+    "note": "Placeholder of the Island command bar input."
+  },
+  "panel.favoriteShortcut": {
+    "message": "Favorite this page (Ctrl/Cmd+D)",
+    "note": "Heart button tooltip in the command bar; Ctrl/Cmd+D is its shortcut."
+  },
+  "panel.collapse.title": {
+    "message": "Collapse island (Esc)",
+    "note": "Tooltip of the button that collapses the expanded Island."
+  },
+  "panel.collapse.label": {
+    "message": "Collapse island",
+    "note": "Accessible name of the button that collapses the expanded Island."
+  },
+  "footer.newTab": {
+    "message": "new tab",
+    "note": "Lowercase launcher label in the Island footer.",
+    "maxLength": 12
+  },
+  "footer.private": {
+    "message": "private",
+    "note": "Lowercase launcher label for a private tab in the Island footer.",
+    "maxLength": 10
+  },
+  "footer.newPrivate.title": {
+    "message": "New private tab ({shortcut})",
+    "note": "Tooltip of the private-tab launcher; {shortcut} is its keyboard shortcut."
+  },
+  "footer.workspaces": {
+    "message": "Workspaces",
+    "note": "Island footer button and dialog name for Named Workspaces."
+  },
+  "footer.favorites": {
+    "message": "Favorites",
+    "note": "Island footer button that opens Favorites."
+  },
+  "footer.history": {
+    "message": "History",
+    "note": "Island footer button that opens History."
+  },
+  "footer.tabLayoutOn": {
+    "message": "Turn vertical tabs on",
+    "note": "Island footer button tooltip while vertical tabs are off."
+  },
+  "footer.settings": {
+    "message": "Settings",
+    "note": "Island footer button that opens Settings."
+  },
+  "ws.newEmpty": {
+    "message": "New empty workspace",
+    "note": "Workspace switcher command."
+  },
+  "ws.saveAs": {
+    "message": "Save this window as…",
+    "note": "Workspace switcher command that saves this window as a named workspace."
+  },
+  "glance.picker.title": {
+    "message": "Choose a tab for Glance",
+    "note": "Heading of the Glance tab picker."
+  },
+  "glance.picker.cancelLabel": {
+    "message": "Cancel choosing a Glance tab",
+    "note": "Accessible name of the Glance picker's close button."
+  },
+  "glance.picker.filter": {
+    "message": "Filter open tabs",
+    "note": "Label and placeholder of the Glance picker's filter input."
+  },
+  "glance.picker.hintNavigate": {
+    "message": "↑↓ navigate",
+    "note": "Keyboard hint in the Glance picker footer."
+  },
+  "glance.picker.hintOpen": {
+    "message": "↵ open",
+    "note": "Keyboard hint in the Glance picker footer."
+  },
+  "glance.picker.hintCancel": {
+    "message": "esc cancel",
+    "note": "Keyboard hint in the Glance picker footer."
+  },
+  "glance.picker.openTab": {
+    "message": "open tab",
+    "note": "Glance picker row detail when a tab has no other details."
+  },
+  "glance.picker.noMatches": {
+    "message": "No matching open tabs",
+    "note": "Glance picker empty state for a filter with no results."
+  },
+  "glance.picker.noTabs": {
+    "message": "Open another tab to use Glance",
+    "note": "Glance picker empty state with no other tab."
+  },
+  "glance.picker.available": {
+    "message": "{count, plural, one {# tab available} other {# tabs available}}",
+    "note": "Screen-reader announcement of the Glance picker's result count."
+  },
+  "glance.picker.optionLabel": {
+    "message": "{title}, {details}",
+    "note": "Accessible name of a Glance picker row: its title and comma-separated details."
+  },
+  "glance.opened": {
+    "message": "{title} opened in Glance",
+    "note": "Screen-reader announcement after choosing a tab for Glance."
+  },
+  "glance.openedUntitled": {
+    "message": "Tab opened in Glance",
+    "note": "Screen-reader announcement after choosing an untitled tab for Glance."
+  },
+  "glance.openFailed": {
+    "message": "Couldn’t open that tab in Glance",
+    "note": "Glance picker error."
+  },
+  "find.placeholder": {
+    "message": "Find in page",
+    "note": "Placeholder of the find-in-page input."
+  },
+  "find.prev": {
+    "message": "Previous match",
+    "note": "Find bar button."
+  },
+  "find.next": {
+    "message": "Next match",
+    "note": "Find bar button."
+  },
+  "shield.back": {
+    "message": "Back to site protection",
+    "note": "Accessible name of the shield popover's back button."
+  },
+  "shield.title": {
+    "message": "Site protection",
+    "note": "Heading of the shield popover."
+  },
+  "shield.close": {
+    "message": "Close site protection",
+    "note": "Accessible name of the shield popover's close button."
+  },
+  "shield.currentBlocker": {
+    "message": "Current blocker",
+    "note": "Eyebrow above the active blocker's name."
+  },
+  "shield.change": {
+    "message": "Change",
+    "note": "Button that opens the blocker chooser.",
+    "maxLength": 10
+  },
+  "shield.changeLabel": {
+    "message": "Change blocker",
+    "note": "Accessible name of that button."
+  },
+  "shield.adBlocking": {
+    "message": "Ad & tracker blocking",
+    "note": "Label of the site's blocking switch."
+  },
+  "shield.on": {
+    "message": "on",
+    "note": "Lowercase state beside a switch that is on.",
+    "maxLength": 5
+  },
+  "shield.off": {
+    "message": "off",
+    "note": "Lowercase state beside a switch that is off.",
+    "maxLength": 5
+  },
+  "shield.toggleLabel": {
+    "message": "Ad & tracker protection for this site",
+    "note": "Accessible name of the site's blocking switch."
+  },
+  "shield.reloadNote": {
+    "message": "Changing site protection reloads this page.",
+    "note": "Note under the site's blocking switch."
+  },
+  "shield.uboLabel": {
+    "message": "Open uBlock Origin controls",
+    "note": "Accessible name of the button that opens uBlock Origin's own popup."
+  },
+  "shield.uboOpen": {
+    "message": "Open controls",
+    "note": "Visible label of that button.",
+    "maxLength": 18
+  },
+  "shield.dark": {
+    "message": "Dark website",
+    "note": "Label of the per-site dark website switch."
+  },
+  "shield.darkLabel": {
+    "message": "Dark website for this site",
+    "note": "Accessible name of the per-site dark website switch."
+  },
+  "shield.darkNote": {
+    "message": "Applies while Blanc is dark.",
+    "note": "Note under the dark website switch."
+  },
+  "shield.connection": {
+    "message": "Connection",
+    "note": "Label of the connection row in the shield popover."
+  },
+  "shield.settings": {
+    "message": "Blocking settings",
+    "note": "Link to Settings at the bottom of the shield popover."
+  },
+  "shield.chooseBlocker": {
+    "message": "Choose a blocker",
+    "note": "Heading of the blocker chooser."
+  },
+  "shield.active": {
+    "message": "Active",
+    "note": "Badge on the blocker that is currently in use.",
+    "maxLength": 10
+  },
+  "shield.uboTagline": {
+    "message": "Advanced filtering and controls",
+    "note": "Description of uBlock Origin in the blocker chooser."
+  },
+  "shield.restartNote": {
+    "message": "Changes take effect after restarting Blanc.",
+    "note": "Note in the blocker chooser."
+  },
+  "shield.restartNeeded": {
+    "message": "Restart Blanc to use your selected blocker.",
+    "note": "Note in the blocker chooser when the choice differs from the active blocker."
+  },
+  "shield.privateNote": {
+    "message": "Private tabs use Blanc Blocker; uBO isn’t supported in temporary private sessions.",
+    "note": "Note in the blocker chooser."
+  },
+  "shield.done": {
+    "message": "Done",
+    "note": "Blocker chooser button when nothing needs a restart.",
+    "maxLength": 14
+  },
+  "shield.restart": {
+    "message": "Restart Blanc",
+    "note": "Blocker chooser button that restarts to apply the choice.",
+    "maxLength": 20
+  },
+  "shield.restarting": {
+    "message": "Restarting…",
+    "note": "Blocker chooser button while restarting."
+  },
+  "shield.saving": {
+    "message": "Saving…",
+    "note": "Blocker chooser button while saving."
+  },
+  "shield.scopeRegular": {
+    "message": "For regular tabs on this device.",
+    "note": "Subtitle of the blocker chooser."
+  },
+  "shield.error": {
+    "message": "Could not complete the change. Your choice is shown above; try again when you’re ready.",
+    "note": "Blocker chooser error."
+  },
+  "connection.https": {
+    "message": "Uses HTTPS",
+    "note": "Connection row value for an HTTPS page."
+  },
+  "connection.http": {
+    "message": "Not encrypted",
+    "note": "Connection row value for an HTTP page."
+  },
+  "connection.local": {
+    "message": "Local",
+    "note": "Connection row value for a local page."
+  },
+  "capture.pop.inUse": {
+    "message": "in use",
+    "note": "Lowercase heading of the capture popover while a page uses camera or microphone."
+  },
+  "capture.pop.sharing": {
+    "message": "sharing",
+    "note": "Lowercase heading of the capture popover while only a screen share is active."
+  },
+  "capture.popupWindow": {
+    "message": "popup window",
+    "note": "Stands in for the host when a capture comes from a popup window."
+  },
+  "capture.stop": {
+    "message": "stop",
+    "note": "Lowercase button that stops a camera or microphone capture.",
+    "maxLength": 10
+  },
+  "capture.row.goBoth": {
+    "message": "{host} — camera & microphone in use; go to it",
+    "note": "Accessible name of a capture row's go button."
+  },
+  "capture.row.goCamera": {
+    "message": "{host} — camera in use; go to it",
+    "note": "Accessible name of a capture row's go button."
+  },
+  "capture.row.goMicrophone": {
+    "message": "{host} — microphone in use; go to it",
+    "note": "Accessible name of a capture row's go button."
+  },
+  "capture.row.stopBoth": {
+    "message": "stop — {host} camera & microphone in use",
+    "note": "Accessible name of a capture row's stop button."
+  },
+  "capture.row.stopCamera": {
+    "message": "stop — {host} camera in use",
+    "note": "Accessible name of a capture row's stop button."
+  },
+  "capture.row.stopMicrophone": {
+    "message": "stop — {host} microphone in use",
+    "note": "Accessible name of a capture row's stop button."
+  },
+  "share.row.pending": {
+    "message": "Sharing…",
+    "note": "Screen-share row title while the share starts."
+  },
+  "share.row.sharing": {
+    "message": "Sharing {surface}",
+    "note": "Screen-share row title; {surface} names the shared window or screen."
+  },
+  "share.row.sharingScreen": {
+    "message": "Sharing this screen",
+    "note": "Screen-share row title when the shared surface has no name."
+  },
+  "share.audioOn": {
+    "message": "Computer audio on",
+    "note": "Screen-share row detail."
+  },
+  "share.audioOff": {
+    "message": "Computer audio off",
+    "note": "Screen-share row detail."
+  },
+  "share.row.label": {
+    "message": "{title}. {audio}. Go to tab",
+    "note": "Accessible name of a screen-share row."
+  },
+  "share.stop": {
+    "message": "Stop sharing",
+    "note": "Button that stops a screen share.",
+    "maxLength": 18
+  },
+  "share.stopLabel": {
+    "message": "Stop sharing {surface}",
+    "note": "Accessible name of the stop button; {surface} names the shared window or screen."
+  },
+  "share.stopLabelScreen": {
+    "message": "Stop sharing this screen",
+    "note": "Accessible name of the stop button when the shared surface has no name."
+  },
+  "row.pin": {
+    "message": "Pin tab",
+    "note": "Tab row button."
+  },
+  "row.unpin": {
+    "message": "Unpin tab",
+    "note": "Tab row button."
+  },
+  "row.mute": {
+    "message": "Mute tab",
+    "note": "Tab row button."
+  },
+  "row.unmute": {
+    "message": "Unmute tab",
+    "note": "Tab row button."
+  },
+  "row.glance": {
+    "message": "glance",
+    "note": "Lowercase tab row button that opens the tab in Glance (a fixed product name).",
+    "maxLength": 8
+  },
+  "row.glanceOpen": {
+    "message": "Open this tab in Glance",
+    "note": "Tooltip of that button."
+  },
+  "row.actionLabel": {
+    "message": "{action}: {title}",
+    "note": "Accessible name of a row action: the action, then the tab title."
+  },
+  "group.fold": {
+    "message": "Fold group",
+    "note": "Tooltip of an expanded group header."
+  },
+  "group.unfold": {
+    "message": "Unfold group",
+    "note": "Tooltip of a collapsed group header."
+  },
+  "device.fold": {
+    "message": "Fold device",
+    "note": "Tooltip of an expanded synced-device header."
+  },
+  "device.unfold": {
+    "message": "Unfold device",
+    "note": "Tooltip of a collapsed synced-device header."
+  },
+  "slash.sleep.none": {
+    "message": "No background tabs can be quieted right now.",
+    "note": "Notice after /sleep when nothing could be quieted."
+  },
+  "slash.sleep.failed": {
+    "message": "Could not quiet background tabs.",
+    "note": "Notice when /sleep fails."
+  },
+  "closed.header": {
+    "message": "recently closed",
+    "note": "Lowercase header of the recently-closed section in the Island.",
+    "maxLength": 22
+  },
+  "closed.fold": {
+    "message": "Fold recently closed",
+    "note": "Tooltip of the expanded recently-closed header."
+  },
+  "closed.unfold": {
+    "message": "Unfold recently closed",
+    "note": "Tooltip of the collapsed recently-closed header."
+  },
+  "closed.clear": {
+    "message": "clear",
+    "note": "Lowercase button that forgets every recently-closed entry.",
+    "maxLength": 8
+  },
+  "closed.clearAll": {
+    "message": "Forget all closed tabs",
+    "note": "Tooltip of that button."
+  },
+  "closed.reopen": {
+    "message": "Reopen closed tab",
+    "note": "Tooltip of a recently-closed row."
+  },
+  "closed.groupTitle": {
+    "message": "{title} · {count, plural, one {# tab} other {# tabs}}",
+    "note": "Recently-closed row for a closed group; {title} is the group name."
+  },
+  "closed.forget": {
+    "message": "Forget closed tab",
+    "note": "Button that forgets one recently-closed entry."
+  },
+  "result.tag.tab": {
+    "message": "tab",
+    "note": "Lowercase tag on a Quick Switcher result that is an open tab.",
+    "maxLength": 8
+  },
+  "result.tag.favorite": {
+    "message": "favorite",
+    "note": "Lowercase tag on a Quick Switcher result from Favorites.",
+    "maxLength": 10
+  },
+  "result.tag.history": {
+    "message": "history",
+    "note": "Lowercase tag on a Quick Switcher result from History.",
+    "maxLength": 10
+  },
+  "result.tag.group": {
+    "message": "group",
+    "note": "Lowercase tag on a Quick Switcher result that is a tab group.",
+    "maxLength": 10
+  },
+  "result.tag.remote": {
+    "message": "remote",
+    "note": "Lowercase tag on a Quick Switcher result that is a tab on another device.",
+    "maxLength": 10
+  },
+  "siteInfo.localPage": {
+    "message": "local page",
+    "note": "Site information origin line for a local page."
+  },
+  "siteInfo.cert.subject": {
+    "message": "Certificate for",
+    "note": "Certificate detail label."
+  },
+  "siteInfo.cert.issuer": {
+    "message": "Issued by",
+    "note": "Certificate detail label."
+  },
+  "siteInfo.cert.validFrom": {
+    "message": "Valid from",
+    "note": "Certificate detail label."
+  },
+  "siteInfo.cert.validUntil": {
+    "message": "Valid until",
+    "note": "Certificate detail label."
+  },
+  "siteInfo.cert.fingerprint": {
+    "message": "Fingerprint",
+    "note": "Certificate detail label."
+  },
+  "siteInfo.blocked": {
+    "message": "{count, plural, one {Blanc blocked # request} other {Blanc blocked # requests}}",
+    "note": "Site information blocking summary."
+  },
+  "siteInfo.noneBlocked": {
+    "message": "No blocked requests on this page",
+    "note": "Site information blocking summary when nothing was blocked."
+  },
+  "siteInfo.privacySettings": {
+    "message": "Privacy settings",
+    "note": "Site information button that opens Settings."
+  },
+  "siteInfo.stopAllowing": {
+    "message": "Stop allowing",
+    "note": "Site information button that forgets a certificate exception."
+  },
+  "siteInfo.hint.certError": {
+    "message": "this certificate could not be verified",
+    "note": "Lowercase hint under the site information card."
+  },
+  "siteInfo.hint.certException": {
+    "message": "you continued past a certificate warning",
+    "note": "Lowercase hint under the site information card."
+  },
+  "siteInfo.hint.chromium": {
+    "message": "connection details are supplied by Chromium",
+    "note": "Lowercase hint under the site information card."
+  },
+  "list.noCommand": {
+    "message": "no matching command",
+    "note": "Lowercase empty row in the slash command list."
+  },
+  "list.noMatches": {
+    "message": "no matches — ↵ opens as address or search",
+    "note": "Lowercase empty row in the Quick Switcher."
+  },
+  "hint.private": {
+    "message": "private · nothing here is saved to history",
+    "note": "Lowercase hint under the Island list on a private tab."
+  },
+  "hint.groups": {
+    "message": "/group moves this tab · {mod}1–9 jumps between sections",
+    "note": "Lowercase hint under the Island list when groups exist; {mod} is ⌘ or ctrl+."
+  },
+  "hint.default": {
+    "message": "{mod}L summons · / for commands",
+    "note": "Lowercase hint under the Island list; {mod} is ⌘ or ctrl+."
   }
 }

@@ -32,6 +32,12 @@ function fakeElement(tag) {
   };
 }
 
+const englishT = (() => {
+  const { createTranslator } = require('../../src/renderer/pages/i18n.js');
+  const strings = require('../../src/renderer/pages/strings.en.js');
+  return createTranslator({ locale: 'en', messages: strings.messages });
+})();
+
 function buildRow(tab, { activeTabId = 'active' } = {}) {
   const sandbox = {
     document: { createElement: fakeElement },
@@ -40,6 +46,8 @@ function buildRow(tab, { activeTabId = 'active' } = {}) {
     setFavicon() {},
     tabDomain: () => 'example.com',
     window: { browserAPI: {} },
+    // Interface strings as every chrome document loads them (F44); English.
+    blancI18n: { t: englishT },
   };
   vm.runInNewContext(`${tabRowSource}\nthis.__row = tabRow(${JSON.stringify(tab)});`, sandbox);
   return sandbox.__row;

@@ -91,7 +91,9 @@ test('the row primary button carries the row layout', () => {
 
 test('a quiet panel row is classed and named "quiet" — dim-only, no visual tag', () => {
   assert.match(panelRowSource, /tab\.asleep \? ' quiet' : ''/);
-  assert.match(panelRowSource, /tab\.asleep \? 'quiet' : ''/);
+  // The word comes from the interface catalog (F44) and is still "quiet".
+  assert.match(panelRowSource, /tab\.asleep \? blancI18n\.t\('rail\.state\.quiet'\) : ''/);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(__dirname, '../../copy/messages/en.json'), 'utf8'))['rail.state.quiet'].message, 'quiet');
   assert.doesNotMatch(panelRowSource, /QUIET_GLYPH|<svg/);
 });
 
@@ -241,7 +243,8 @@ test('/find keeps its typed query — clearing is opt-in, not blanket', () => {
 test('/sleep explains an empty result instead of looking broken', () => {
   const sleepEntry = overlaySource.match(/\{ cmd: '\/sleep',[^\n]*\}/)?.[0] ?? '';
   assert.match(sleepEntry, /resultNotice:/);
-  assert.match(sleepEntry, /No background tabs can be quieted right now\./);
+  assert.match(sleepEntry, /blancI18n\.t\('slash\.sleep\.none'\)/);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(__dirname, '../../copy/messages/en.json'), 'utf8'))['slash.sleep.none'].message, 'No background tabs can be quieted right now.');
   assert.match(runCommandSource, /command\.resultNotice/);
   assert.match(overlaySource, /commandNotice/);
   assert.match(overlaySource, /setAttribute\('role', 'status'\)/);

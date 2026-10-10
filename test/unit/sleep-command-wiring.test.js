@@ -136,7 +136,8 @@ test('/sleep sits at the same index in all four hand-synced copies', () => {
   assert.equal(tupleIndex(mainSource), index);
 
   const line = overlay.split('\n').find((candidate) => candidate.includes("cmd: '/sleep'"));
-  assert.match(line, /hint: 'Quiet background tabs and free their memory'/);
+  // The hint comes from the interface catalog (F44); its English is checked above.
+  assert.match(line, /hint: blancI18n\.t\('slash\.sleep\.hint'\)/);
   assert.match(line, /window\.browserAPI\.sleepBackgroundTabs\(\)/);
   assert.match(line, /keepOverlay: true/);
 });

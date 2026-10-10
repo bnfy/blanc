@@ -37,11 +37,12 @@ export function nativeIslandArt({ styles, document, renderer, extraSelectors = [
     return value;
   };
   const button = (key, extra = '') => `<button class="pill-btn" ${extra}>${icon(key)}</button>`;
-  let html = document.slice(start, end).trim();
+  let html = stripInterfaceKeys(document.slice(start, end).trim());
   html = html.replace('<div id="pillNav" class="pill-btns"></div>',
     `<div id="pillNav" class="pill-btns">${button('back')}${button('forward', 'disabled')}</div>`);
   html = html.replace('<div id="pillDots"></div>', `<div id="pillDots">${[0, 1, 2, 3, 4].map(i => `<button class="island-dot${i === 2 ? ' active' : ''}"></button>`).join('')}</div>`);
   html = html.replace('id="pillFavicon" class="favicon"', 'id="pillFavicon" class="favicon has-icon" style="background-image:url(/favicon.svg)"');
+  if (!html.includes('<span id="pillDomain">new tab</span>')) throw new Error('Missing native resting Island markup: pillDomain');
   html = html.replace('<span id="pillDomain">new tab</span>', '<span id="pillDomain">blancbrowser.com</span>');
   html = html.replace(/(<button id="pillSlash"[\s\S]*?<\/button>)/, `$1<button id="pillNewTab" class="pill-btn pill-shortcut">${icon('plus')}</button>`);
   // Match the owner's October 3 reference: original ink shield with a one-count badge.
@@ -50,6 +51,13 @@ export function nativeIslandArt({ styles, document, renderer, extraSelectors = [
   html = html.replace('<span id="pillShieldCount"></span>', '<span id="pillShieldCount">1</span>');
   html = html.replace('<div id="pillActions" class="pill-btns"></div>', `<div id="pillActions" class="pill-btns">${button('reload')}${button('heart')}${button('close')}</div>`);
   return { css, html };
+}
+
+// The app's documents carry data-i18n* attributes naming interface-string keys
+// (F44). The replica keeps the English inline text and drops the keys, so the
+// exact-markup rewrites below match and the site ships no app-only attributes.
+function stripInterfaceKeys(html) {
+  return html.replace(/\s+data-i18n(?:-[a-z-]+)?(?:="[^"]*")?(?=[\s>/])/g, '');
 }
 
 // Rules the resting Island adds while its shield popover is open.
@@ -73,7 +81,7 @@ export function nativeShieldPopoverArt({ styles, overlay, mark, step, host, coun
   const start = overlay.indexOf('<div id="shieldPopPointer"');
   const end = overlay.indexOf('</section>', start);
   if (start < 0 || end < start) throw new Error('Missing native shield popover markup');
-  let html = overlay.slice(start, end + '</section>'.length);
+  let html = stripInterfaceKeys(overlay.slice(start, end + '</section>'.length));
   const set = (from, to) => {
     if (!html.includes(from)) throw new Error(`Missing native shield popover markup: ${from}`);
     html = html.replace(from, to);

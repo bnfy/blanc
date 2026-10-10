@@ -5,7 +5,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self'; img-src 'self' data: blanc:;" />
   <script src="strings.js"></script>
   <script src="i18n.js"></script>
-  <title>Blanc Overlay</title>
+  <title data-i18n="overlay.surfaceTitle">Blanc Overlay</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body class="overlay-body">
@@ -13,16 +13,16 @@
   <div id="displayShareBackdrop" hidden>
     <section id="displaySharePicker" class="display-share-picker" role="dialog" aria-modal="true"
       aria-labelledby="displayShareTitle" aria-describedby="displayShareOrigin displayShareStatus">
-      <header><h2 id="displayShareTitle">Share your screen</h2>
+      <header><h2 id="displayShareTitle" data-i18n="share.picker.title">Share your screen</h2>
         <p id="displayShareOrigin"></p></header>
       <p id="displayShareStatus" role="status"></p>
-      <div id="displayShareSources" class="display-share-sources" aria-label="Screens and windows"></div>
+      <div id="displayShareSources" class="display-share-sources" aria-label="Screens and windows" data-i18n-aria-label="share.picker.sources"></div>
       <label id="displayShareAudioLabel" class="display-share-audio">
-        <input id="displayShareAudio" type="checkbox" /> Share computer audio
+        <input id="displayShareAudio" type="checkbox" /> <span data-i18n="share.picker.audio">Share computer audio</span>
       </label>
       <footer>
-        <button id="displayShareCancel" type="button">Cancel</button>
-        <button id="displayShareAllow" type="button" class="display-share-allow" disabled>Share</button>
+        <button id="displayShareCancel" type="button" data-i18n="common.cancel">Cancel</button>
+        <button id="displayShareAllow" type="button" class="display-share-allow" disabled data-i18n="share.picker.share">Share</button>
       </footer>
     </section>
   </div>
@@ -30,20 +30,20 @@
     <div id="islandPanel">
       <div class="panel-row">
         <button id="panelSiteInfo" class="site-info-button" type="button"
-          title="Site information" aria-label="Site information" aria-expanded="false" hidden></button>
-        <input id="addressInput" spellcheck="false" autocomplete="off" placeholder="Search, enter address, or / for commands" />
+          title="Site information" aria-label="Site information" data-i18n-title="panel.siteInfo" data-i18n-aria-label="panel.siteInfo" aria-expanded="false" hidden></button>
+        <input id="addressInput" spellcheck="false" autocomplete="off" placeholder="Search, enter address, or / for commands" data-i18n-placeholder="panel.addressPlaceholder" />
         <div class="panel-actions">
-          <button id="backBtn" class="act-btn" title="Back" disabled>
+          <button id="backBtn" class="act-btn" title="Back" data-i18n-title="pill.back" disabled>
             <svg viewBox="0 0 16 16"><path d="M9.75 3.5 5.25 8l4.5 4.5"/></svg>
           </button>
-          <button id="fwdBtn" class="act-btn" title="Forward" disabled>
+          <button id="fwdBtn" class="act-btn" title="Forward" data-i18n-title="pill.forward" disabled>
             <svg viewBox="0 0 16 16"><path d="M6.25 3.5 10.75 8l-4.5 4.5"/></svg>
           </button>
-          <button id="reloadBtn" class="act-btn" title="Reload"></button>
-          <button id="heartBtn" class="act-btn" title="Favorite this page (Ctrl/Cmd+D)">
+          <button id="reloadBtn" class="act-btn" title="Reload" data-i18n-title="pill.reload"></button>
+          <button id="heartBtn" class="act-btn" title="Favorite this page (Ctrl/Cmd+D)" data-i18n-title="panel.favoriteShortcut">
             <svg viewBox="0 0 16 16"><path d="M8 13.25C4.6 11 2.75 8.9 2.75 6.6a2.85 2.85 0 0 1 5.25-1.54A2.85 2.85 0 0 1 13.25 6.6c0 2.3-1.85 4.4-5.25 6.65z"/></svg>
           </button>
-          <button id="dismissBtn" class="act-btn" title="Collapse island (Esc)" aria-label="Collapse island">
+          <button id="dismissBtn" class="act-btn" title="Collapse island (Esc)" aria-label="Collapse island" data-i18n-title="panel.collapse.title" data-i18n-aria-label="panel.collapse.label">
             <svg viewBox="0 0 16 16"><path d="M4.5 10.25 8 6.75l3.5 3.5"/></svg>
           </button>
         </div>
@@ -53,12 +53,12 @@
         <div class="footer-launchers">
         <button id="footerNewTab" class="footer-new">
           <svg viewBox="0 0 16 16"><path d="M8 3.25v9.5M3.25 8h9.5"/></svg>
-          <span>new tab</span>
+          <span data-i18n="footer.newTab">new tab</span>
           <span id="footerNewTabKbd" class="footer-kbd"></span>
         </button>
         <button id="footerNewPrivate" class="footer-new private">
           <svg viewBox="0 0 16 16"><path d="M8 3.25v9.5M3.25 8h9.5"/></svg>
-          <span>private</span>
+          <span data-i18n="footer.private">private</span>
           <span id="footerNewPrivateKbd" class="footer-kbd"></span>
         </button>
         </div>
@@ -69,6 +69,8 @@
           type="button"
           title="Workspaces"
           aria-label="Workspaces"
+          data-i18n-title="footer.workspaces"
+          data-i18n-aria-label="footer.workspaces"
           aria-expanded="false"
           aria-haspopup="true"
         >
@@ -80,13 +82,13 @@
           </svg>
           <span id="footerWorkspaceLabel" class="footer-ws-label" hidden></span>
         </button>
-        <button id="footerFavorites" class="footer-act" title="Favorites">
+        <button id="footerFavorites" class="footer-act" title="Favorites" data-i18n-title="footer.favorites">
           <svg viewBox="0 0 16 16"><path d="M4.25 2.75h7.5v10.5L8 10.5l-3.75 2.75z"/></svg>
         </button>
-        <button id="footerHistory" class="footer-act" title="History">
+        <button id="footerHistory" class="footer-act" title="History" data-i18n-title="footer.history">
           <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.75"/><path d="M8 4.75V8l2.25 1.5"/></svg>
         </button>
-        <button id="footerDownloads" class="footer-act" title="Downloads">
+        <button id="footerDownloads" class="footer-act" title="Downloads" data-i18n-title="pill.downloads">
           <svg viewBox="0 0 16 16"><path d="M8 2.5v6.5M5.3 6.3 8 9l2.7-2.7M3.5 12.5h9"/></svg>
         </button>
         <button
@@ -95,11 +97,13 @@
           type="button"
           title="Turn vertical tabs on"
           aria-label="Vertical tabs"
+          data-i18n-title="footer.tabLayoutOn"
+          data-i18n-aria-label="rail.label"
           aria-pressed="false"
         >
           <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.75" width="11" height="10.5" rx="1.5"/><path d="M6 2.75v10.5"/></svg>
         </button>
-        <button id="footerSettings" class="footer-act" title="Settings">
+        <button id="footerSettings" class="footer-act" title="Settings" data-i18n-title="footer.settings">
           <svg viewBox="0 0 16 16"><path d="M2.5 4.75h6M12 4.75h1.5M2.5 11.25h1.5M7.5 11.25h6"/><circle cx="10.25" cy="4.75" r="1.75"/><circle cx="5.75" cy="11.25" r="1.75"/></svg>
         </button>
         </div>
@@ -108,21 +112,21 @@
       <div id="islandHint"></div>
     </div>
     <!-- Outside #islandPanel so fixed placement isn't clipped by the panel box. -->
-    <div id="workspaceSwitcher" class="ws-switcher" hidden role="dialog" aria-label="Workspaces">
+    <div id="workspaceSwitcher" class="ws-switcher" hidden role="dialog" aria-label="Workspaces" data-i18n-aria-label="footer.workspaces">
       <div id="workspaceSwitcherList"></div>
       <div id="wsSwitcherSep" class="ws-switcher-sep" role="separator"></div>
-      <button type="button" class="ws-switcher-cmd" id="wsSwitcherNew">New empty workspace</button>
-      <button type="button" class="ws-switcher-cmd" id="wsSwitcherSaveAs">Save this window as…</button>
+      <button type="button" class="ws-switcher-cmd" id="wsSwitcherNew" data-i18n="ws.newEmpty">New empty workspace</button>
+      <button type="button" class="ws-switcher-cmd" id="wsSwitcherSaveAs" data-i18n="ws.saveAs">Save this window as…</button>
     </div>
   </div>
   <section id="glancePicker" class="glance-picker" aria-labelledby="glancePickerTitle" hidden>
     <header class="glance-picker-head">
-      <h2 id="glancePickerTitle">Choose a tab for Glance</h2>
-      <button id="glancePickerClose" class="glance-picker-close" type="button" title="Cancel" aria-label="Cancel choosing a Glance tab">
+      <h2 id="glancePickerTitle" data-i18n="glance.picker.title">Choose a tab for Glance</h2>
+      <button id="glancePickerClose" class="glance-picker-close" type="button" title="Cancel" aria-label="Cancel choosing a Glance tab" data-i18n-title="common.cancel" data-i18n-aria-label="glance.picker.cancelLabel">
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>
       </button>
     </header>
-    <label class="sr-only" for="glancePickerInput">Filter open tabs</label>
+    <label class="sr-only" for="glancePickerInput" data-i18n="glance.picker.filter">Filter open tabs</label>
     <input
       id="glancePickerInput"
       class="glance-picker-input"
@@ -130,88 +134,89 @@
       spellcheck="false"
       autocomplete="off"
       placeholder="Filter open tabs"
+      data-i18n-placeholder="glance.picker.filter"
       role="combobox"
       aria-autocomplete="list"
       aria-controls="glancePickerList"
       aria-expanded="true"
     />
-    <div id="glancePickerList" class="glance-picker-list" role="listbox" aria-label="Open tabs"></div>
+    <div id="glancePickerList" class="glance-picker-list" role="listbox" aria-label="Open tabs" data-i18n-aria-label="rail.list"></div>
     <div id="glancePickerState" class="glance-picker-state" hidden></div>
     <footer class="glance-picker-hint" aria-hidden="true">
-      <span>↑↓ navigate</span><span>↵ open</span><span>esc cancel</span>
+      <span data-i18n="glance.picker.hintNavigate">↑↓ navigate</span><span data-i18n="glance.picker.hintOpen">↵ open</span><span data-i18n="glance.picker.hintCancel">esc cancel</span>
     </footer>
     <div id="glancePickerLive" class="sr-only" aria-live="polite" aria-atomic="true"></div>
     <div id="islandDragLive" class="sr-only" aria-live="polite" aria-atomic="true"></div>
   </section>
   <div id="findBar" hidden>
-    <input id="findInput" spellcheck="false" autocomplete="off" placeholder="Find in page" />
+    <input id="findInput" spellcheck="false" autocomplete="off" placeholder="Find in page" data-i18n-placeholder="find.placeholder" />
     <div id="findCount"></div>
-    <button id="findPrevBtn" class="act-btn" title="Previous match">
+    <button id="findPrevBtn" class="act-btn" title="Previous match" data-i18n-title="find.prev">
       <svg viewBox="0 0 16 16"><path d="M4.5 10.25 8 6.75l3.5 3.5"/></svg>
     </button>
-    <button id="findNextBtn" class="act-btn" title="Next match">
+    <button id="findNextBtn" class="act-btn" title="Next match" data-i18n-title="find.next">
       <svg viewBox="0 0 16 16"><path d="M4.5 5.75 8 9.25l3.5-3.5"/></svg>
     </button>
-    <button id="findCloseBtn" class="act-btn" title="Close">
+    <button id="findCloseBtn" class="act-btn" title="Close" data-i18n-title="window.close">
       <svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>
     </button>
   </div>
   <div id="shieldPopPointer" aria-hidden="true" hidden></div>
   <section id="shieldPop" role="dialog" aria-labelledby="shieldPopTitle" aria-describedby="shieldPopHost" hidden>
     <header class="shield-pop-header">
-      <button id="shieldPopBack" class="shield-pop-nav shield-pop-back" aria-label="Back to site protection" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m9.5 3.5-4.5 4.5 4.5 4.5"/></svg></button>
+      <button id="shieldPopBack" class="shield-pop-nav shield-pop-back" aria-label="Back to site protection" data-i18n-aria-label="shield.back" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m9.5 3.5-4.5 4.5 4.5 4.5"/></svg></button>
       <img class="shield-pop-mark" src="sunrise-hero-mark.png" width="28" height="28" alt="" />
-      <h2 id="shieldPopTitle">Site protection</h2>
+      <h2 id="shieldPopTitle" data-i18n="shield.title">Site protection</h2>
       <p id="shieldPopHost"></p>
-      <button id="shieldPopClose" class="shield-pop-nav shield-pop-close" aria-label="Close site protection"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m5 5 6 6m0-6-6 6"/></svg></button>
+      <button id="shieldPopClose" class="shield-pop-nav shield-pop-close" aria-label="Close site protection" data-i18n-aria-label="shield.close"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m5 5 6 6m0-6-6 6"/></svg></button>
     </header>
     <div id="shieldPopSummary">
       <div class="shield-pop-provider-summary">
         <div class="shield-pop-provider-row">
-          <div><p class="shield-pop-eyebrow">Current blocker</p><strong id="shieldPopCurrentProvider">Blanc Blocker</strong></div>
-          <button id="shieldPopChangeProvider" class="shield-pop-change" aria-label="Change blocker">Change <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
+          <div><p class="shield-pop-eyebrow" data-i18n="shield.currentBlocker">Current blocker</p><strong id="shieldPopCurrentProvider">Blanc Blocker</strong></div>
+          <button id="shieldPopChangeProvider" class="shield-pop-change" aria-label="Change blocker" data-i18n-aria-label="shield.changeLabel"><span data-i18n="shield.change">Change</span> <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
         </div>
         <p id="shieldPopProviderStatus" role="status"></p>
       </div>
       <div class="shield-pop-summary">
         <div id="shieldPopSiteControl" class="shield-pop-head">
-          <div class="shield-pop-state"><span id="shieldPopLabel">Ad &amp; tracker blocking</span> <strong id="shieldPopOnOff">on</strong></div>
-          <button id="shieldPopToggle" role="switch" aria-checked="true" aria-label="Ad &amp; tracker protection for this site"><span class="knob"></span></button>
+          <div class="shield-pop-state"><span id="shieldPopLabel" data-i18n="shield.adBlocking">Ad &amp; tracker blocking</span> <strong id="shieldPopOnOff" data-i18n="shield.on">on</strong></div>
+          <button id="shieldPopToggle" role="switch" aria-checked="true" aria-label="Ad &amp; tracker protection for this site" data-i18n-aria-label="shield.toggleLabel"><span class="knob"></span></button>
         </div>
         <div id="shieldPopCount"></div>
-        <div id="shieldPopNote" class="shield-pop-note">Changing site protection reloads this page.</div>
-        <button id="shieldPopUblock" class="shield-pop-ubo" aria-label="Open uBlock Origin controls" hidden>Open controls <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></svg></button>
+        <div id="shieldPopNote" class="shield-pop-note" data-i18n="shield.reloadNote">Changing site protection reloads this page.</div>
+        <button id="shieldPopUblock" class="shield-pop-ubo" aria-label="Open uBlock Origin controls" data-i18n-aria-label="shield.uboLabel" hidden><span data-i18n="shield.uboOpen">Open controls</span> <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></svg></button>
       </div>
       <div id="shieldPopDark" class="shield-pop-dark" hidden>
         <div class="shield-pop-head">
-          <div class="shield-pop-state"><span>Dark website</span> <strong id="shieldPopDarkOnOff">off</strong></div>
-          <button id="shieldPopDarkToggle" role="switch" aria-checked="false" aria-label="Dark website for this site" aria-describedby="shieldPopDarkNote"><span class="knob"></span></button>
+          <div class="shield-pop-state"><span data-i18n="shield.dark">Dark website</span> <strong id="shieldPopDarkOnOff" data-i18n="shield.off">off</strong></div>
+          <button id="shieldPopDarkToggle" role="switch" aria-checked="false" aria-label="Dark website for this site" data-i18n-aria-label="shield.darkLabel" aria-describedby="shieldPopDarkNote"><span class="knob"></span></button>
         </div>
-        <p id="shieldPopDarkNote" class="shield-pop-note" hidden>Applies while Blanc is dark.</p>
+        <p id="shieldPopDarkNote" class="shield-pop-note" hidden data-i18n="shield.darkNote">Applies while Blanc is dark.</p>
       </div>
       <div class="shield-pop-metadata">
-        <div id="shieldPopConnection" hidden><span>Connection</span><span id="shieldPopConnectionValue"></span></div>
-        <button id="shieldPopSettings" class="shield-pop-footer">Blocking settings <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
+        <div id="shieldPopConnection" hidden><span data-i18n="shield.connection">Connection</span><span id="shieldPopConnectionValue"></span></div>
+        <button id="shieldPopSettings" class="shield-pop-footer"><span data-i18n="shield.settings">Blocking settings</span> <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
       </div>
       <p id="shieldPopProviderScope" class="shield-pop-note"></p>
     </div>
     <div id="shieldPopChooser" hidden>
       <fieldset id="shieldPopProvider" aria-describedby="shieldPopRestartNote shieldPopPrivateNote shieldPopAvailability">
-        <legend class="sr-only">Choose a blocker</legend>
-        <label><span class="shield-provider-name"><span class="shield-provider-heading"><strong>Blanc Blocker</strong><span class="shield-provider-active" data-provider="blanc" hidden>Active</span></span><small>EasyList + EasyPrivacy</small></span><input type="radio" name="shieldProvider" value="blanc" /></label>
-        <label><span class="shield-provider-name"><span class="shield-provider-heading"><strong>uBlock Origin</strong><span class="shield-provider-active" data-provider="ublock-origin" hidden>Active</span></span><small>Advanced filtering and controls</small></span><input type="radio" name="shieldProvider" value="ublock-origin" /></label>
+        <legend class="sr-only" data-i18n="shield.chooseBlocker">Choose a blocker</legend>
+        <label><span class="shield-provider-name"><span class="shield-provider-heading"><strong>Blanc Blocker</strong><span class="shield-provider-active" data-provider="blanc" hidden data-i18n="shield.active">Active</span></span><small>EasyList + EasyPrivacy</small></span><input type="radio" name="shieldProvider" value="blanc" /></label>
+        <label><span class="shield-provider-name"><span class="shield-provider-heading"><strong>uBlock Origin</strong><span class="shield-provider-active" data-provider="ublock-origin" hidden data-i18n="shield.active">Active</span></span><small data-i18n="shield.uboTagline">Advanced filtering and controls</small></span><input type="radio" name="shieldProvider" value="ublock-origin" /></label>
       </fieldset>
       <div class="shield-pop-chooser-note">
-        <p id="shieldPopRestartNote">Changes take effect after restarting Blanc.</p>
-        <p id="shieldPopPrivateNote">Private tabs use Blanc Blocker; uBO isn’t supported in temporary private sessions.</p>
+        <p id="shieldPopRestartNote" data-i18n="shield.restartNote">Changes take effect after restarting Blanc.</p>
+        <p id="shieldPopPrivateNote" data-i18n="shield.privateNote">Private tabs use Blanc Blocker; uBO isn’t supported in temporary private sessions.</p>
       </div>
       <p id="shieldPopAvailability" class="shield-pop-note" hidden></p>
       <p id="shieldPopChooserError" role="alert" hidden></p>
-      <div class="shield-pop-actions"><button id="shieldPopApply" class="shield-pop-primary">Done</button></div>
+      <div class="shield-pop-actions"><button id="shieldPopApply" class="shield-pop-primary" data-i18n="shield.done">Done</button></div>
     </div>
   </section>
   <section id="capturePop" class="capture-pop" hidden>
-    <header id="capturePopHead" class="capture-pop-head">in use</header>
+    <header id="capturePopHead" class="capture-pop-head" data-i18n="capture.pop.inUse">in use</header>
     <ul id="capturePopRows" class="capture-pop-rows"></ul>
   </section>
   <script src="tab-drag.js"></script>
