@@ -87,11 +87,11 @@ function report() {
   });
 }
 
-async function exportReport(parent) {
+async function exportReport(parent, t) {
   try {
     const date = new Date().toISOString().slice(0, 10);
     const picked = await dialog.showSaveDialog(parent ?? undefined, {
-      title: 'Export Blanc diagnostics',
+      title: t('diagnostics.export.title'),
       defaultPath: path.join(app.getPath('downloads'), `Blanc-Diagnostics-${date}.json`),
       filters: [{ name: 'JSON', extensions: ['json'] }],
     });

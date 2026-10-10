@@ -1740,5 +1740,381 @@
   "dock.activeTab": {
     "message": "Aktiver Tab",
     "source": "sha256:a2297ffe7054da22856de5f981b5c22b910375ece0936643c6681ee887c4087c"
+  },
+  "siteSecurity.unavailable.title": {
+    "message": "Verbindungsinformationen nicht verfügbar",
+    "source": "sha256:a198d2f99607779bee2955511d6bac818d5b819dda241ebbcbbccf8b4dee50fa"
+  },
+  "siteSecurity.unavailable.summary": {
+    "message": "Blanc konnte die Herkunft dieser Seite nicht erkennen.",
+    "source": "sha256:f772ef7b199e1e0189b6cd4a31ce9058f8ef8cdd82aada59073527775fecf55a"
+  },
+  "siteSecurity.certError.title": {
+    "message": "Zertifikatsproblem",
+    "source": "sha256:915da9bd4ab61af2721a388cf2da407170dcda260693a3f2e469ebd45dae7af0"
+  },
+  "siteSecurity.certException.title": {
+    "message": "Nicht sicher",
+    "source": "sha256:178c056e60df1919c5963b9715d0cc26389a0f8ce0953350b4b86cf0004b2ff4"
+  },
+  "siteSecurity.certException.summary": {
+    "message": "Du hast trotz eines nicht vertrauenswürdigen Zertifikats fortgefahren. Blanc warnt dich nach einem Neustart erneut.",
+    "source": "sha256:95634480cad720522bca0b7edabc8828ef97519c7a8f640ea80e6e4414ed937d"
+  },
+  "siteSecurity.secure.title": {
+    "message": "Verbindung ist sicher",
+    "source": "sha256:ef68f52ccb3f9f607c6aa17de9f09990ff011ab5c7409379e9800ecb70259dd5"
+  },
+  "siteSecurity.secure.summary": {
+    "message": "Verschlüsselt und vom Zertifikatsprüfer von Chromium bestätigt.",
+    "source": "sha256:303811d7213cc07f22bbfdddb8f7d1459f65ccc66a8076a3021db3d0cec51906"
+  },
+  "siteSecurity.secure.summaryPrivateRoot": {
+    "message": "Verschlüsselt. Dieses Gerät vertraut dem Zertifikat, sein Aussteller ist aber keine öffentliche Standard-Stammzertifizierungsstelle.",
+    "source": "sha256:a7f7baaabcc7b51163b34f04f56f47f525c756a1e6a590a11c6ee3df9c1d3205"
+  },
+  "siteSecurity.local.title": {
+    "message": "Lokale Verbindung",
+    "source": "sha256:172bd6828c8b1d2a0349a0de19482c67b3b6b3c128d1024753f6a4c1a8af5696"
+  },
+  "siteSecurity.local.summary": {
+    "message": "Diese Loopback-Adresse bleibt auf diesem Gerät.",
+    "source": "sha256:e6a1eb7dbba3c4e8271461794ed2472eb73ee3868e0506674a1fcf59fbe8e3f1"
+  },
+  "siteSecurity.insecure.title": {
+    "message": "Verbindung ist nicht sicher",
+    "source": "sha256:aebaf4b0b12e0c55dbe2083e01d5536e9627e4e1a25fcc7690668f70488232b7"
+  },
+  "siteSecurity.insecure.summary": {
+    "message": "An diese Website gesendete Informationen können unterwegs gelesen oder verändert werden.",
+    "source": "sha256:df6c304424025f1b8ee399e465d6b87db5d2bd1138fdb720853145a1a6235a9a"
+  },
+  "siteSecurity.internal.title": {
+    "message": "Blanc-Seite",
+    "source": "sha256:771b8b40ed356d0f235ba86ff64207c80b323b1ca31ed7a95ed5e792a7499ee4"
+  },
+  "siteSecurity.internal.summary": {
+    "message": "Diese Seite gehört zu Blanc.",
+    "source": "sha256:4d6c8e9779491e568b78c92e52d3b1296b399c9a643a7dd97ceb6c1e5258d836"
+  },
+  "siteSecurity.neutral.title": {
+    "message": "Verbindungsinformationen",
+    "source": "sha256:2a44b0f554034426ef611cd44a4c962aa52ae1f8316e6a589780f134ce9a0907"
+  },
+  "siteSecurity.neutral.summary": {
+    "message": "Diese Seite nutzt keine HTTP-Verbindung.",
+    "source": "sha256:9dcd4369b11967765463ddcbd0ad60731eee19b1351d0be35f8ba2f41bf79d13"
+  },
+  "certError.dateInvalid": {
+    "message": "Das Zertifikat ist abgelaufen oder noch nicht gültig.",
+    "source": "sha256:59d5cf77a81a769f6dece0e927df9e71bf7b9d15db3548985165a7d0c906d8cb"
+  },
+  "certError.commonNameInvalid": {
+    "message": "Das Zertifikat passt nicht zu dieser Website.",
+    "source": "sha256:52f45393432f69a90f67203872ad5b9fa526772b8bfab3700fe150a9813e4920"
+  },
+  "certError.authorityInvalid": {
+    "message": "Dieses Gerät vertraut dem Aussteller des Zertifikats nicht.",
+    "source": "sha256:81f5d5d219bf173b2dd978484e1b8700b61ca6a9790100be36e10225ecea64d3"
+  },
+  "certError.revoked": {
+    "message": "Das Zertifikat wurde widerrufen.",
+    "source": "sha256:8858d79c2657f4b678a6032ced2f323da88ff9ca5a880a8d9d82ebeed4c5c7c7"
+  },
+  "certError.weakSignature": {
+    "message": "Das Zertifikat verwendet eine schwache Signatur.",
+    "source": "sha256:98971ffddf016e56a4535f72eddc3b2be09b8e364bfb16494e9d239b9424c14f"
+  },
+  "certError.invalid": {
+    "message": "Das Zertifikat ist ungültig.",
+    "source": "sha256:eb1f416658651fa2878c2a5edada13af3eb3e38d7e98fb0899e75e9195ed12e7"
+  },
+  "certError.generic": {
+    "message": "Die Website konnte ihre Identität nicht mit einem gültigen Zertifikat nachweisen.",
+    "source": "sha256:16ab9b89c57b3f70f26000698cc43d31a3d71cbb24a7beb47ee40e7ad8f29574"
+  },
+  "shield.uboRestarting": {
+    "message": "uBlock Origin wird neu gestartet. Neue Anfragen werden angehalten.",
+    "source": "sha256:4b2a6a560ee3c1d1c13580fd987fb97058bfcd47fa4d9ff53aadf7072584f5cb"
+  },
+  "shield.chip.uboUnavailable": {
+    "message": "uBlock Origin nicht verfügbar – Einstellungen zur Wiederherstellung öffnen",
+    "source": "sha256:404c2f7efe293c2584bc107b7e9a1bc6fdf2572b7159e0b0a7c62871f0d3d232"
+  },
+  "shield.chip.uboOff": {
+    "message": "uBlock Origin ist aus – klicken für Steuerelemente",
+    "source": "sha256:488a7cbac3bff64d4487fa08922173f1ae33961895f12d1f2b02401243b7fc23"
+  },
+  "shield.chip.uboCount": {
+    "message": "{count, plural, one {uBlock Origin – # Anfrage blockiert – klicken für Steuerelemente} other {uBlock Origin – # Anfragen blockiert – klicken für Steuerelemente}}",
+    "source": "sha256:b063ec84b81651d1e1358c55336fb5ecf675e1bbbe6f8bb98f4774e1eafc1f05"
+  },
+  "shield.chip.siteOff": {
+    "message": "Blanc Blocker für diese Website aus – klicken für Website-Einstellungen",
+    "source": "sha256:dd066831dda30729763cbd7cccc1744b2cd7cf9805a654844a862dc4eb598a07"
+  },
+  "shield.chip.globalOff": {
+    "message": "Blanc Blocker ist überall aus – klicken für Details",
+    "source": "sha256:a13b3f9edfe5e37f0846b2ffa1e22e13edc8d8bad45eca2e1356f0626def8881"
+  },
+  "shield.chip.count": {
+    "message": "{count, plural, one {Blanc Blocker – # Anzeige oder Tracker hier blockiert – klicken für Website-Einstellungen} other {Blanc Blocker – # Anzeigen und Tracker hier blockiert – klicken für Website-Einstellungen}}",
+    "source": "sha256:367419a17870d20e7d8981a3ab075139035a2d3e49396a128653104d0a485400"
+  },
+  "shield.chip.quiet": {
+    "message": "Blanc Blocker – geschützt, noch nichts blockiert – klicken für Website-Einstellungen",
+    "source": "sha256:dcb6f33ba5610672d1e55b5add4d94d720139418fcb164f0959bd87758301521"
+  },
+  "shield.count.globalOff": {
+    "message": "Werbe- und Tracker-Blockierung ist überall aus",
+    "source": "sha256:58e73674663ab345a4fe48716c2d2a3a75aeb1fe265aaf41c1d92351b2ba24e8"
+  },
+  "shield.count.needsAttention": {
+    "message": "Der Blocker braucht Aufmerksamkeit. Öffne die Blocker-Einstellungen zur Wiederherstellung.",
+    "source": "sha256:5e15530c0579618db3b0d10f8eeed5f9ae65fdaf8a94627ef801d79438b356b5"
+  },
+  "shield.count.uboRequests": {
+    "message": "{count, plural, one {# Anfrage auf dieser Seite blockiert} other {# Anfragen auf dieser Seite blockiert}}",
+    "source": "sha256:9d7cd7db5c77f676b7ca36d2294b3880e3cca42f7a9531ea09ad4e268daa8519"
+  },
+  "shield.count.siteOff": {
+    "message": "Werbung auf dieser Website erlaubt",
+    "source": "sha256:a93169ce122d3542b1080585c65f32d68733e737c533231f4c23ec07f9856323"
+  },
+  "shield.count.none": {
+    "message": "Auf dieser Seite noch nichts blockiert",
+    "source": "sha256:16b9b4655be32ea7763869b474a41475971c8d8385ce950bcbf9b4e6659bf292"
+  },
+  "shield.count.blocked": {
+    "message": "{count, plural, one {# Anzeige oder Tracker auf dieser Seite blockiert} other {# Anzeigen und Tracker auf dieser Seite blockiert}}",
+    "source": "sha256:7587cf2ab1854502acc8e32b1b845782fb2cd5c87c5d02d904b0d1d4a3855a07"
+  },
+  "shield.badge.off": {
+    "message": "Aus",
+    "source": "sha256:6ebfd1575d1a68b5a9857df022d6134b81c9e4ef7eb31928f37de709c407508d"
+  },
+  "shield.badge.starting": {
+    "message": "Startet",
+    "source": "sha256:c2e5ca81313e7f7231057ca4b670485da8f6f1cbeec5390f1f6a4747864c1c3c"
+  },
+  "shield.badge.unavailable": {
+    "message": "Nicht verfügbar",
+    "source": "sha256:035e999268f5170d21f784b805aa04d71bd7dfd6f691b1b7ccfffac5e6d92d90"
+  },
+  "shield.provider.active": {
+    "message": "Aktiv",
+    "source": "sha256:2a52ea5e61a0c8ad838768a8c29ae7fbf170fb0271b51672bffcd768996a3d28"
+  },
+  "shield.provider.privateProtects": {
+    "message": "Blanc Blocker schützt diesen privaten Tab.",
+    "source": "sha256:3ad7213cf4bad996e587734772f55a6bea860a5cf826f961fc22797e781369a5"
+  },
+  "shield.provider.privateNoUbo": {
+    "message": "Blancs Browser-Engine kann uBO in temporären privaten Sitzungen nicht laden. Blanc Blocker schützt diesen Tab.",
+    "source": "sha256:86099929bd67603bc5f36204c7712450b3e68672ca1127d0c924f5de3422feec"
+  },
+  "shield.provider.unavailable": {
+    "message": "{provider} ist nicht verfügbar. Öffne die Blocker-Einstellungen zur Wiederherstellung.",
+    "source": "sha256:ebac626b4afb00f6885f04dcf48dbe0f44506928d281de79f48596e0d9ece8a4"
+  },
+  "shield.provider.unavailableOff": {
+    "message": "{provider} ist nicht verfügbar. Der Blocker ist aus. Öffne die Blocker-Einstellungen zur Wiederherstellung.",
+    "source": "sha256:d0f040d400f11c391ae9d28d66aaac5fae08183465b4250eee4402f044b99943"
+  },
+  "shield.provider.off": {
+    "message": "Der Blocker ist aus.",
+    "source": "sha256:2fa83a65477d6631782263baa6584c41ebe34349dd9397cfcd68ea8aeb7faa56"
+  },
+  "shield.provider.starting": {
+    "message": "{provider} startet …",
+    "source": "sha256:ab3de231ff142f6eec452edddf26e8fc49d3ab7ce506d21fb62271fff0c9a767"
+  },
+  "shield.provider.protecting": {
+    "message": "Blanc Blocker schützt diesen Tab.",
+    "source": "sha256:7eadf0ed7eb28463e7c6f776924fc45ca4bae47fc99e11efd82094dae87b6400"
+  },
+  "shield.provider.engineNoUbo": {
+    "message": "Diese Browser-Engine kann uBlock Origin nicht ausführen.",
+    "source": "sha256:2f172080d573ea5dc513ec6de687d9e2b1b7c1c7ebdf4a2d40bfa4e0de2b1928"
+  },
+  "shield.provider.buildNoUbo": {
+    "message": "uBlock Origin ist in diesem Build nicht enthalten.",
+    "source": "sha256:f497cc15e652210dc7d7ac67f8443e0c0390cca45e8ed6826c5e5efa0f7bc3e8"
+  },
+  "shield.provider.fallback": {
+    "message": "{reason} {current} Deine uBO-Einstellungen bleiben gespeichert.",
+    "source": "sha256:c33d6fdef7703731c1044e931012a4d4925da1499931d21a4b90a4cfffd74a70"
+  },
+  "shield.provider.stillActive": {
+    "message": "{provider} ist weiterhin aktiv.",
+    "source": "sha256:e49763f1d5d30af7f20e3534557df74ecaf66b2b1d482bfedd663e808c3d56f2"
+  },
+  "shield.provider.restartPending": {
+    "message": "{selected} ausgewählt. Starte Blanc neu, um es anzuwenden; {current}",
+    "source": "sha256:05600c618f33b6313b05bcdc90338eebf7775b0e02c5044b04f813e60cd212ad"
+  },
+  "shield.provider.availability": {
+    "message": "uBlock Origin ist in diesem Build nicht verfügbar.",
+    "source": "sha256:74ab70cd1b00cf52e502a2ca7acedd4c1d23672c954c51fc82af594efcb2c581"
+  },
+  "shield.provider.ownSettings": {
+    "message": "Jeder Blocker behält seine eigenen Website-Einstellungen.",
+    "source": "sha256:6f15e27c48d2f4bb2ca6857c6ccdebc997b620d35733b497c83d0a766bbbf8ab"
+  },
+  "tabView.leave.message": {
+    "message": "Diese Seite verlassen?",
+    "source": "sha256:aba75b84a18acb3e58195d96235b1d0651877ff3514c5b25161f0443d526211a"
+  },
+  "tabView.leave.detail": {
+    "message": "Deine Änderungen werden möglicherweise nicht gespeichert.",
+    "source": "sha256:313300d2cc0f0bb6df5632991be0991348c8178ca5297766beee489a31e322e5"
+  },
+  "tabView.leave.leave": {
+    "message": "Verlassen",
+    "source": "sha256:36912751dc76323f0e0e3ac8a9530df32dc68ac455cb06804aab46c831aa664c"
+  },
+  "tabView.leave.stay": {
+    "message": "Bleiben",
+    "source": "sha256:6d8d1d53ba94d4a7b58c58b7f27561ac60e3e2ea829f524c1e1e59ca47be6004"
+  },
+  "error.crashed": {
+    "message": "Die Seite ist abgestürzt",
+    "source": "sha256:c929a887826f00d66368adad6e12826ef9036bdfa580c20574eb74bf477186c7"
+  },
+  "externalApp.none.title": {
+    "message": "Keine App gefunden",
+    "source": "sha256:8b9bd7fc921cfd3e8f3d4803425625be7c40226f2130d233606b03ba9551be86"
+  },
+  "externalApp.none.message": {
+    "message": "Keine installierte App kann {protocol}-Links öffnen.",
+    "source": "sha256:daadd3413b4e2f946c53f394df85f7253ccaa6ca672683be8dc693bf8dfee790"
+  },
+  "externalApp.none.detail": {
+    "message": "Installiere die App und starte dann die Anmeldung erneut.",
+    "source": "sha256:e27dad8fedbe1c3a7e37fa137073d4ef5eeee9e10f9e7fe97ee01019792dcfa9"
+  },
+  "externalApp.confirm.title": {
+    "message": "Externe App öffnen?",
+    "source": "sha256:71ef3737b67b5e5196a5115697a781ee1c3f1006ef74128b8a97dc2c3d00c0ac"
+  },
+  "externalApp.confirm.message": {
+    "message": "{app} öffnen?",
+    "source": "sha256:44ac4de16f546f3c45f0a8968de1f3b5fd62f98111f17d0bd0ce4bfd2055402b"
+  },
+  "externalApp.confirm.detail": {
+    "message": "{origin} möchte eine App auf deinem Computer öffnen ({protocol}).",
+    "source": "sha256:b040ecf58cda81255844e8554fc5e051b1c9281c60e588b929fe9ef399ac4aa5"
+  },
+  "externalApp.confirm.detailNoOrigin": {
+    "message": "Dieser Link möchte eine App auf deinem Computer öffnen ({protocol}).",
+    "source": "sha256:16929b185b8021f563d985153d663d789ca2731a471b12b474f76fc8ecc22e9b"
+  },
+  "externalApp.confirm.open": {
+    "message": "App öffnen",
+    "source": "sha256:11b23ba41ce5bdca00cb50662d6cce70eb61e869898a78d4dd874eec489228a3"
+  },
+  "externalApp.failed.title": {
+    "message": "App konnte nicht geöffnet werden",
+    "source": "sha256:637e718e95a08fbf7e174c5484f546bc5a6595479acaa06042803e29219d5990"
+  },
+  "externalApp.failed.message": {
+    "message": "Die App konnte nicht geöffnet werden.",
+    "source": "sha256:778310443a498b9c3ca4464b14a7b81d41ab4733a7d4662ba310bef099f25803"
+  },
+  "externalApp.failed.detail": {
+    "message": "Öffne die App selbst und starte dann die Anmeldung erneut.",
+    "source": "sha256:212904c0b89e74b4efa62c0217492eaa936b62b79945d5a97e911122cb7d1594"
+  },
+  "passkey.title": {
+    "message": "Passkey auswählen",
+    "source": "sha256:02bbdddcde6c24ef773dd2c8756c40009baae7cb9586b1053905383271133d30"
+  },
+  "passkey.message": {
+    "message": "Passkey für {site} auswählen",
+    "source": "sha256:0fec5832b1a547662775babee4b92441b6ba1e3c2fc8731bed97c7f995687777"
+  },
+  "passkey.messageNoSite": {
+    "message": "Passkey für diese Website auswählen",
+    "source": "sha256:7d67a5f03e84b8a4670d317858ce4ea6f39986e71ec504a6293bb4dc1d969252"
+  },
+  "passkey.detail": {
+    "message": "Für diese Website sind in Blanc auf diesem Mac mehrere Passkeys verfügbar.",
+    "source": "sha256:c46af6f4d1be9cb42981e4fd47e97a8ecf5691b3f284f5ea2844fbc6ff4290f4"
+  },
+  "passkey.fallbackLabel": {
+    "message": "Passkey {number}",
+    "source": "sha256:2fc02eedd98c08212ac705e424a8504bcc668ed9253d0a3f1750ac830d6d4cab"
+  },
+  "favorites.import.title": {
+    "message": "Favoriten importieren",
+    "source": "sha256:8a7a1e06cbf21363f52b551c331c3954307aa414a449f2bbb9af878b9a906a0a"
+  },
+  "favorites.import.filter": {
+    "message": "Lesezeichen",
+    "source": "sha256:7b8b2b99c9e909df79c622510518cb448f536f45d512837bf9782c2acaf0676e"
+  },
+  "diagnostics.export.title": {
+    "message": "Blanc-Diagnose exportieren",
+    "source": "sha256:74c4a8c29cf350ee5ea5a33a236460bbec754f8fb4b5b28704c678bb83878bb7"
+  },
+  "settings.trust.release": {
+    "message": "Passendes Release",
+    "source": "sha256:7ce02e1a6d767423c2805a7b3eb545ef1148cd258f5a6025bf32c7be1bd038a9"
+  },
+  "settings.trust.verification": {
+    "message": "Prüfanleitung",
+    "source": "sha256:a7cf552dbb0438351ddab2d4583dbc7629dda270cd0113cf21193ddaf65fa5fa"
+  },
+  "settings.trust.sbom": {
+    "message": "Release-SBOM",
+    "source": "sha256:13bb3fa7e9efdf4517e0a458baf2ca21ce703d812c8dd1ff5418ecc13d840b0a"
+  },
+  "settings.trust.provenance": {
+    "message": "Herkunftsnachweise",
+    "source": "sha256:f9a96449638150ddaf87055058d18ab18ab922936fb3a7ec6028e615ab20ab20"
+  },
+  "linuxSandbox.refusal": {
+    "message": "Blanc wurde nicht gestartet, weil die Chromium-Sandbox deaktiviert war. Nutze eine Linux-Umgebung, die die Chromium-Sandbox erlaubt, und starte Blanc ohne Optionen, die die Sandbox deaktivieren.",
+    "source": "sha256:895e95bdb870f6c01cfc11d0dca11647c0326a0207a60e0848dd3ce16b744e4e"
+  },
+  "linuxSandbox.guidance": {
+    "message": "{refusal} Einrichtungsanleitung: {url}",
+    "source": "sha256:7100d533db1a49af8759f41fff77867edc136ce931271df801b2d4455ac62cde"
+  },
+  "linuxSandbox.message": {
+    "message": "Blanc benötigt die Chromium-Sandbox",
+    "source": "sha256:b712ba598980c6cbeb95e75946a6743c583e9c0bbcaf2d9702dc8fd727d2a395"
+  },
+  "linuxSandbox.detail": {
+    "message": "{refusal}\n\nEinrichtungsanleitung: {url}",
+    "source": "sha256:2559f15e3ef61d7b21f78772bbf092fae340171be25982fb4db5ea62ce834f85"
+  },
+  "linuxSandbox.detailCopy": {
+    "message": "{refusal}\n\nBlanc kann die Einrichtungsanleitung nicht selbst öffnen, solange es nicht starten kann. Kopiere den Link und öffne ihn in einem anderen Browser.\n\n{url}",
+    "source": "sha256:f2e1169acb69deb870daccfc6b04bc13a5c729d669b436d4a95f60e37afd6571"
+  },
+  "linuxSandbox.detailOpenElsewhere": {
+    "message": "{refusal}\n\nBlanc kann die Einrichtungsanleitung nicht selbst öffnen, solange es nicht starten kann. Öffne diese Adresse in einem anderen Browser.\n\n{url}",
+    "source": "sha256:4601b7c0d4b56fe05433da6b5d3c8e0c2d9d676eeda22bf292dcdedc2c1a3b1c"
+  },
+  "linuxSandbox.openGuide": {
+    "message": "Einrichtungsanleitung öffnen",
+    "source": "sha256:c6daab60739bb79e9d93bbc89d7f09fb22a0f43d421de4b0badbde0dbdbcff82"
+  },
+  "linuxSandbox.copyLink": {
+    "message": "Link kopieren",
+    "source": "sha256:87b124c9f37808fb40d93f4d292a78fb0d3ede7371a6d9ad7ceb466e90ed012d"
+  },
+  "linuxSandbox.quit": {
+    "message": "Beenden",
+    "source": "sha256:6d05c971bfccb4e2f48a17249ebf9ffe8468d159738adf53e3aedd66661c9845"
+  },
+  "linuxSandbox.copied.message": {
+    "message": "Link zur Einrichtungsanleitung kopiert",
+    "source": "sha256:7772426177319bf06389a6d4876af9dec5eb3dedfc52181a6af2ae45eb883f27"
+  },
+  "linuxSandbox.copied.detail": {
+    "message": "Füge ihn in einem anderen Browser ein und wähle dann „Beenden“.",
+    "source": "sha256:cbc5cba06970f39df11ec842d13ffcac2b2b3cefc30c0c05274895ec4da6f27d"
   }
 }

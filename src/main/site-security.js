@@ -60,17 +60,19 @@ function sanitizeCertificate(certificate) {
   };
 }
 
-function certificateErrorMessage(error) {
+const CERTIFICATE_ERROR_KEYS = {
+  ERR_CERT_DATE_INVALID: 'certError.dateInvalid',
+  ERR_CERT_COMMON_NAME_INVALID: 'certError.commonNameInvalid',
+  ERR_CERT_AUTHORITY_INVALID: 'certError.authorityInvalid',
+  ERR_CERT_REVOKED: 'certError.revoked',
+  ERR_CERT_WEAK_SIGNATURE_ALGORITHM: 'certError.weakSignature',
+  ERR_CERT_INVALID: 'certError.invalid',
+};
+
+// `t` is the interface translator; every text-producing function takes it.
+function certificateErrorMessage(error, t) {
   const code = String(error ?? '').replace(/^net::/, '');
-  const messages = {
-    ERR_CERT_DATE_INVALID: 'The certificate is expired or not valid yet.',
-    ERR_CERT_COMMON_NAME_INVALID: 'The certificate does not match this site.',
-    ERR_CERT_AUTHORITY_INVALID: 'The certificate issuer is not trusted by this device.',
-    ERR_CERT_REVOKED: 'The certificate has been revoked.',
-    ERR_CERT_WEAK_SIGNATURE_ALGORITHM: 'The certificate uses a weak signature.',
-    ERR_CERT_INVALID: 'The certificate is invalid.',
-  };
-  return messages[code] ?? 'The site could not prove its identity with a valid certificate.';
+  return t(Object.hasOwn(CERTIFICATE_ERROR_KEYS, code) ? CERTIFICATE_ERROR_KEYS[code] : 'certError.generic');
 }
 
 function createCertificateObserver() {
@@ -138,14 +140,15 @@ function buildSiteInfo(url, {
   certificateException = null,
   blockedCount = 0,
   permissions = [],
+  t,
 } = {}) {
   const target = certificateError?.url ?? unwrapViewSource(url);
   let parsed;
   try { parsed = new URL(target); } catch {
     return {
       state: 'neutral', origin: '', host: '',
-      title: 'Connection information unavailable',
-      summary: 'Blanc could not identify this page origin.',
+      title: t('siteSecurity.unavailable.title'),
+      summary: t('siteSecurity.unavailable.summary'),
       certificate: null, blockedCount: 0, permissions: [],
     };
   }
@@ -160,8 +163,8 @@ function buildSiteInfo(url, {
     return {
       ...base,
       state: 'certificate-error',
-      title: 'Certificate problem',
-      summary: certificateErrorMessage(certificateError.error),
+      title: t('siteSecurity.certError.title'),
+      summary: certificateErrorMessage(certificateError.error, t),
       error: cleanText(certificateError.error, 120),
     };
   }
@@ -170,33 +173,33 @@ function buildSiteInfo(url, {
       ...base,
       certificate: certificateException.certificate ?? base.certificate,
       state: 'certificate-exception',
-      title: 'Not secure',
-      summary: 'You chose to continue even though this site’s certificate isn’t trusted. Blanc will warn you again after it restarts.',
+      title: t('siteSecurity.certException.title'),
+      summary: t('siteSecurity.certException.summary'),
     };
   }
   if (parsed.protocol === 'https:') {
     return {
       ...base,
       state: 'secure',
-      title: 'Connection is secure',
-      summary: certificateRecord?.isIssuedByKnownRoot === false
-        ? 'Encrypted. The certificate is trusted by this device, but its issuer is not a standard public root.'
-        : 'Encrypted and authenticated by Chromium’s certificate verifier.',
+      title: t('siteSecurity.secure.title'),
+      summary: t(certificateRecord?.isIssuedByKnownRoot === false
+        ? 'siteSecurity.secure.summaryPrivateRoot'
+        : 'siteSecurity.secure.summary'),
     };
   }
   if (parsed.protocol === 'http:' && isLoopbackHost(parsed.hostname)) {
-    return { ...base, state: 'local', title: 'Local connection', summary: 'This loopback address stays on this device.' };
+    return { ...base, state: 'local', title: t('siteSecurity.local.title'), summary: t('siteSecurity.local.summary') };
   }
   if (parsed.protocol === 'http:') {
-    return { ...base, state: 'insecure', title: 'Connection is not secure', summary: 'Information sent to this site can be read or changed in transit.' };
+    return { ...base, state: 'insecure', title: t('siteSecurity.insecure.title'), summary: t('siteSecurity.insecure.summary') };
   }
   if (parsed.protocol === 'blanc:') {
-    return { ...base, state: 'internal', title: 'Blanc page', summary: 'This page is part of Blanc.' };
+    return { ...base, state: 'internal', title: t('siteSecurity.internal.title'), summary: t('siteSecurity.internal.summary') };
   }
-  return { ...base, state: 'neutral', title: 'Connection information', summary: 'This page does not use an HTTP connection.' };
+  return { ...base, state: 'neutral', title: t('siteSecurity.neutral.title'), summary: t('siteSecurity.neutral.summary') };
 }
 
-function certificateErrorQuery(record, fallback = {}, { canContinue = false } = {}) {
+function certificateErrorQuery(record, fallback = {}, { canContinue = false, t } = {}) {
   const certificate = record?.certificate ?? null;
   const query = new URLSearchParams({
     kind: 'certificate',
@@ -204,7 +207,7 @@ function certificateErrorQuery(record, fallback = {}, { canContinue = false } = 
     code: String(fallback.code ?? ''),
     desc: fallback.desc ?? '',
     certError: record?.error ?? '',
-    certMessage: certificateErrorMessage(record?.error),
+    certMessage: certificateErrorMessage(record?.error, t),
     issuer: certificate?.issuer ?? '',
     subject: certificate?.subject ?? '',
     validTo: certificate?.validTo ? String(certificate.validTo) : '',

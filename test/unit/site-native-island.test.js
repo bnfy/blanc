@@ -49,12 +49,13 @@ test('native geometry edits flow into the artwork and missing source fails close
 test('the shield popover replica renders the native overlay in the states the app shows', async () => {
   const {nativeShieldPopoverArt} = await load('site/src/lib/native-island-art.mjs');
   const {shieldProviderModel, shieldPopoverModel} = require('../../src/main/shield-model.js');
+  const {englishT: t} = require('../support/english-t');
   const overlay = read('src/renderer/overlay.html'), overlayScript = read('src/renderer/overlay.js');
   const text = html => html.replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ');
   const art = state => nativeShieldPopoverArt({styles:source.styles, overlay, mark:'/mark.png', host:'nytimes.com', count:24, ...state});
   // A regular tab with Blanc Blocker ready and active, default settings.
-  const controls = shieldProviderModel({active:'blanc', selected:'blanc', phase:'ready', enabled:true, supported:true, exposed:true});
-  const site = shieldPopoverModel({url:'https://www.nytimes.com/', blockedCount:24, adblockEnabled:true, connection:'https'});
+  const controls = shieldProviderModel({active:'blanc', selected:'blanc', phase:'ready', enabled:true, supported:true, exposed:true}, false, t);
+  const site = shieldPopoverModel({url:'https://www.nytimes.com/', blockedCount:24, adblockEnabled:true, connection:'https', t});
   const summary = art({step:'summary'});
   for (const expected of [site.host, controls.detail, site.countLine, ...controls.scope.split('\n'), 'Uses HTTPS', 'Applies while Blanc is dark.']) {
     assert.ok(text(summary.html).includes(expected), `summary shows: ${expected}`);

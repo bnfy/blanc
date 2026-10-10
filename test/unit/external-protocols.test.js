@@ -94,6 +94,7 @@ function harness(options = {}) {
     getApplicationName: (url) => { lookups.push(url); return 'Example App'; },
     showMessageBox: async (_, prompt) => { prompts.push(prompt); return { response: 0 }; },
     openExternal: async (url) => { launches.push(url); },
+    t: require('../support/english-t').englishT,
     ...options,
   });
   return { handOff, prompts, launches, lookups };

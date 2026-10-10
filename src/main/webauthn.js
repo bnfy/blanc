@@ -12,27 +12,28 @@ const { APP_ID: BUNDLE_ID } = require('./app-identity');
 const APPLE_TEAM_ID = 'XYGUCY4498';
 const WEBAUTHN_KEYCHAIN_ACCESS_GROUP = `${APPLE_TEAM_ID}.${BUNDLE_ID}`;
 
-function accountLabel(account, index) {
+function accountLabel(account, index, t) {
   const label = account?.displayName || account?.name;
-  return typeof label === 'string' && label.trim() ? label.trim() : `Passkey ${index + 1}`;
+  return typeof label === 'string' && label.trim() ? label.trim() : t('passkey.fallbackLabel', { number: index + 1 });
 }
 
-async function chooseWebAuthnAccount({ dialog, getParentWindow, details }) {
+// `t` is the interface translator for the picker.
+async function chooseWebAuthnAccount({ dialog, getParentWindow, details, t }) {
   const accounts = Array.isArray(details?.accounts) ? details.accounts : [];
   if (!accounts.length) return undefined;
 
   const relyingPartyId = typeof details?.relyingPartyId === 'string' && details.relyingPartyId
     ? details.relyingPartyId
-    : 'this website';
-  const buttons = accounts.map(accountLabel);
+    : '';
+  const buttons = accounts.map((account, index) => accountLabel(account, index, t));
   const cancelId = buttons.length;
-  buttons.push('Cancel');
+  buttons.push(t('common.cancel'));
 
   const options = {
     type: 'question',
-    title: 'Choose a passkey',
-    message: `Choose a passkey for ${relyingPartyId}`,
-    detail: 'This website has more than one passkey available in Blanc on this Mac.',
+    title: t('passkey.title'),
+    message: relyingPartyId ? t('passkey.message', { site: relyingPartyId }) : t('passkey.messageNoSite'),
+    detail: t('passkey.detail'),
     buttons,
     cancelId,
     noLink: true,
@@ -63,7 +64,7 @@ async function chooseWebAuthnAccount({ dialog, getParentWindow, details }) {
  * The access group itself is app-global — Electron offers no per-session
  * opt-out, so private-tab ceremonies can't be selectively disabled.
  */
-function setupWebAuthn({ app, session, dialog, getParentWindow, platform = process.platform }) {
+function setupWebAuthn({ app, session, dialog, getParentWindow, t, platform = process.platform }) {
   if (platform !== 'darwin' || typeof app?.configureWebAuthn !== 'function') return false;
 
   try {
@@ -88,7 +89,7 @@ function setupWebAuthn({ app, session, dialog, getParentWindow, platform = proce
         else callback(); // No argument cancels the request with NotAllowedError.
       };
 
-      chooseWebAuthnAccount({ dialog, getParentWindow, details })
+      chooseWebAuthnAccount({ dialog, getParentWindow, details, t })
         .then(finish)
         .catch((error) => {
           console.warn('Unable to choose a WebAuthn account:', error.message);

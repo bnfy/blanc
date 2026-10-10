@@ -474,4 +474,120 @@
     <string name="workspace_menu_rename">Rename…</string>
     <string name="workspace_menu_delete">Delete…</string>
     <string name="dock_active_tab">Active tab</string>
+    <string name="site_security_unavailable_title">Connection information unavailable</string>
+    <string name="site_security_unavailable_summary">Blanc could not identify this page origin.</string>
+    <string name="site_security_cert_error_title">Certificate problem</string>
+    <string name="site_security_cert_exception_title">Not secure</string>
+    <string name="site_security_cert_exception_summary">You chose to continue even though this site’s certificate isn’t trusted. Blanc will warn you again after it restarts.</string>
+    <string name="site_security_secure_title">Connection is secure</string>
+    <string name="site_security_secure_summary">Encrypted and authenticated by Chromium’s certificate verifier.</string>
+    <string name="site_security_secure_summary_private_root">Encrypted. The certificate is trusted by this device, but its issuer is not a standard public root.</string>
+    <string name="site_security_local_title">Local connection</string>
+    <string name="site_security_local_summary">This loopback address stays on this device.</string>
+    <string name="site_security_insecure_title">Connection is not secure</string>
+    <string name="site_security_insecure_summary">Information sent to this site can be read or changed in transit.</string>
+    <string name="site_security_internal_title">Blanc page</string>
+    <string name="site_security_internal_summary">This page is part of Blanc.</string>
+    <string name="site_security_neutral_title">Connection information</string>
+    <string name="site_security_neutral_summary">This page does not use an HTTP connection.</string>
+    <string name="cert_error_date_invalid">The certificate is expired or not valid yet.</string>
+    <string name="cert_error_common_name_invalid">The certificate does not match this site.</string>
+    <string name="cert_error_authority_invalid">The certificate issuer is not trusted by this device.</string>
+    <string name="cert_error_revoked">The certificate has been revoked.</string>
+    <string name="cert_error_weak_signature">The certificate uses a weak signature.</string>
+    <string name="cert_error_invalid">The certificate is invalid.</string>
+    <string name="cert_error_generic">The site could not prove its identity with a valid certificate.</string>
+    <string name="shield_ubo_restarting">uBlock Origin is restarting. New requests are paused.</string>
+    <string name="shield_chip_ubo_unavailable">uBlock Origin unavailable — open Settings for recovery</string>
+    <string name="shield_chip_ubo_off">uBlock Origin is off — click for controls</string>
+    <plurals name="shield_chip_ubo_count">
+        <item quantity="one">uBlock Origin — %1$d request blocked — click for controls</item>
+        <item quantity="other">uBlock Origin — %1$d requests blocked — click for controls</item>
+    </plurals>
+    <string name="shield_chip_site_off">Blanc Blocker off for this site — click for site controls</string>
+    <string name="shield_chip_global_off">Blanc Blocker is off everywhere — click for details</string>
+    <plurals name="shield_chip_count">
+        <item quantity="one">Blanc Blocker — %1$d ad or tracker blocked here — click for site controls</item>
+        <item quantity="other">Blanc Blocker — %1$d ads &amp; trackers blocked here — click for site controls</item>
+    </plurals>
+    <string name="shield_chip_quiet">Blanc Blocker — protected, nothing blocked yet — click for site controls</string>
+    <string name="shield_count_global_off">Ad blocking is off everywhere</string>
+    <string name="shield_count_needs_attention">Blocking needs attention. Open blocking settings to recover.</string>
+    <plurals name="shield_count_ubo_requests">
+        <item quantity="one">%1$d request blocked on this page</item>
+        <item quantity="other">%1$d requests blocked on this page</item>
+    </plurals>
+    <string name="shield_count_site_off">Ads allowed on this site</string>
+    <string name="shield_count_none">Nothing blocked on this page yet</string>
+    <plurals name="shield_count_blocked">
+        <item quantity="one">%1$d ad or tracker blocked on this page</item>
+        <item quantity="other">%1$d ads &amp; trackers blocked on this page</item>
+    </plurals>
+    <string name="shield_badge_off">Off</string>
+    <string name="shield_badge_starting">Starting</string>
+    <string name="shield_badge_unavailable">Unavailable</string>
+    <string name="shield_provider_active">Active</string>
+    <string name="shield_provider_private_protects">Blanc Blocker protects this private tab.</string>
+    <string name="shield_provider_private_no_ubo">Blanc’s browser engine can’t load uBO in temporary private sessions. Blanc Blocker protects this tab.</string>
+    <string name="shield_provider_unavailable">%1$s is unavailable. Open blocking settings to recover.</string>
+    <string name="shield_provider_unavailable_off">%1$s is unavailable. Blocking is off. Open blocking settings to recover.</string>
+    <string name="shield_provider_off">Blocking is off.</string>
+    <string name="shield_provider_starting">%1$s is starting…</string>
+    <string name="shield_provider_protecting">Blanc Blocker is protecting this tab.</string>
+    <string name="shield_provider_engine_no_ubo">This browser engine can’t run uBlock Origin.</string>
+    <string name="shield_provider_build_no_ubo">uBlock Origin isn’t available in this build.</string>
+    <string name="shield_provider_fallback">%1$s %2$s Your uBO settings are saved.</string>
+    <string name="shield_provider_still_active">%1$s is still active.</string>
+    <string name="shield_provider_restart_pending">%1$s selected. Restart Blanc to apply; %2$s</string>
+    <string name="shield_provider_availability">uBlock Origin is unavailable on this build.</string>
+    <string name="shield_provider_own_settings">Each blocker keeps its own site settings.</string>
+    <string name="tab_view_leave_message">Leave this page?</string>
+    <string name="tab_view_leave_detail">Changes you made may not be saved.</string>
+    <string name="tab_view_leave_leave">Leave</string>
+    <string name="tab_view_leave_stay">Stay</string>
+    <string name="error_crashed">The page crashed</string>
+    <string name="external_app_none_title">No application found</string>
+    <string name="external_app_none_message">No installed application can open %1$s links.</string>
+    <string name="external_app_none_detail">Install the application, then restart its sign-in flow.</string>
+    <string name="external_app_confirm_title">Open external application?</string>
+    <string name="external_app_confirm_message">Open %1$s?</string>
+    <string name="external_app_confirm_detail">%1$s wants to open an application on your computer (%2$s).</string>
+    <string name="external_app_confirm_detail_no_origin">This link wants to open an application on your computer (%1$s).</string>
+    <string name="external_app_confirm_open">Open Application</string>
+    <string name="external_app_failed_title">Could not open application</string>
+    <string name="external_app_failed_message">The application could not be opened.</string>
+    <string name="external_app_failed_detail">Try opening the application yourself, then restart its sign-in flow.</string>
+    <string name="passkey_title">Choose a passkey</string>
+    <string name="passkey_message">Choose a passkey for %1$s</string>
+    <string name="passkey_message_no_site">Choose a passkey for this website</string>
+    <string name="passkey_detail">This website has more than one passkey available in Blanc on this Mac.</string>
+    <string name="passkey_fallback_label">Passkey %1$s</string>
+    <string name="favorites_import_title">Import favorites</string>
+    <string name="favorites_import_filter">Bookmarks</string>
+    <string name="diagnostics_export_title">Export Blanc diagnostics</string>
+    <string name="settings_trust_release">Matching release</string>
+    <string name="settings_trust_verification">Verification guide</string>
+    <string name="settings_trust_sbom">Release SBOM</string>
+    <string name="settings_trust_provenance">Provenance attestations</string>
+    <string name="linux_sandbox_refusal">Blanc refused to start because Chromium sandboxing was disabled. Use a Linux environment that permits Chromium sandboxing and launch Blanc without sandbox-disabling options.</string>
+    <string name="linux_sandbox_guidance">%1$s Setup guidance: %2$s</string>
+    <string name="linux_sandbox_message">Blanc requires Chromium sandboxing</string>
+    <string name="linux_sandbox_detail">%1$s
+
+Setup guide: %2$s</string>
+    <string name="linux_sandbox_detail_copy">%1$s
+
+Blanc can’t open the setup guide itself while it can’t start. Copy the link and open it in another browser.
+
+%2$s</string>
+    <string name="linux_sandbox_detail_open_elsewhere">%1$s
+
+Blanc can’t open the setup guide itself while it can’t start. Open this address in another browser.
+
+%2$s</string>
+    <string name="linux_sandbox_open_guide">Open Setup Guide</string>
+    <string name="linux_sandbox_copy_link">Copy Link</string>
+    <string name="linux_sandbox_quit">Quit</string>
+    <string name="linux_sandbox_copied_message">Setup guide link copied</string>
+    <string name="linux_sandbox_copied_detail">Paste it into another browser, then choose Quit.</string>
 </resources>

@@ -1,9 +1,12 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
-const {
-  buildSiteInfo, certificateErrorMessage, certificateErrorQuery,
-  createCertificateObserver, isLocalNetworkHost, isLoopbackHost, sanitizeCertificate,
-} = require('../../src/main/site-security');
+const siteSecurity = require('../../src/main/site-security');
+const { englishT: t } = require('../support/english-t');
+const { createCertificateObserver, isLocalNetworkHost, isLoopbackHost, sanitizeCertificate } = siteSecurity;
+// The text-producing functions take the interface translator; these tests read English.
+const buildSiteInfo = (url, options = {}) => siteSecurity.buildSiteInfo(url, { ...options, t });
+const certificateErrorMessage = (error) => siteSecurity.certificateErrorMessage(error, t);
+const certificateErrorQuery = (record, fallback, options = {}) => siteSecurity.certificateErrorQuery(record, fallback, { ...options, t });
 
 test('certificate metadata is bounded and contains display fields only', () => {
   const certificate = sanitizeCertificate({

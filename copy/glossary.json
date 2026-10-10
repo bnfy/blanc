@@ -67,7 +67,8 @@
       "dialog.ok",
       "row.glance",
       "result.tag.tab",
-      "menu.downloads"
+      "menu.downloads",
+      "passkey.fallbackLabel"
     ]
   }
 }

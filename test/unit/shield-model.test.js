@@ -1,10 +1,13 @@
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const {
-  shieldChipState, shieldPopoverModel, shieldProviderModel, connectionState, connectionFor,
-  committedUrlOf, activeConnection,
-} = require('../../src/main/shield-model');
+const shieldModel = require('../../src/main/shield-model');
+const { englishT: t } = require('../support/english-t');
+const { connectionState, connectionFor, committedUrlOf, activeConnection } = shieldModel;
+// The text builders take the interface translator; these tests read English.
+const shieldChipState = (input) => shieldModel.shieldChipState({ ...input, t });
+const shieldPopoverModel = (input) => shieldModel.shieldPopoverModel({ ...input, t });
+const shieldProviderModel = (status, privateTab = false) => shieldModel.shieldProviderModel(status, privateTab, t);
 
 const HTTP = 'https://www.theverge.com/article';
 

@@ -57,6 +57,7 @@ function registerPagesScheme() {
  * (e.g. so the star button updates when a bookmark is deleted from the
  * bookmarks page). */
 function setupPages(hooks = {}) {
+  const t = (key, params) => hooks.i18n.t(key, params);
   const trustLinks = trustLinksForVersion(app.getVersion());
   const onePasswordAvailable = () => hooks.onePasswordAvailable?.() === true;
   const developmentBrandMarkPath = hooks.developmentBrandMarkPath ?? null;
@@ -194,8 +195,8 @@ function setupPages(hooks = {}) {
   handle('pages:bookmarks:import', ['bookmarks', 'newtab'], async () => {
     const parent = hooks.getMainWindow?.();
     const picked = await dialog.showOpenDialog(parent ?? undefined, {
-      title: 'Import favorites',
-      filters: [{ name: 'Bookmarks', extensions: ['html', 'htm'] }],
+      title: t('favorites.import.title'),
+      filters: [{ name: t('favorites.import.filter'), extensions: ['html', 'htm'] }],
       properties: ['openFile'],
     });
     if (picked.canceled || !picked.filePaths.length) return { cancelled: true };
@@ -400,7 +401,7 @@ function setupPages(hooks = {}) {
       diagnostics: diagnostics.status(),
       links: Object.keys(trustLinks).map((id) => ({
         id,
-        label: { release: 'Matching release', verification: 'Verification guide', sbom: 'Release SBOM', provenance: 'Provenance attestations' }[id],
+        label: t({ release: 'settings.trust.release', verification: 'settings.trust.verification', sbom: 'settings.trust.sbom', provenance: 'settings.trust.provenance' }[id]),
       })),
     });
   });
@@ -626,7 +627,7 @@ function setupPages(hooks = {}) {
   // through an explicit native save dialog opened from Settings.
   handle('pages:diagnostics:status', 'settings', () => diagnostics.status());
   handle('pages:diagnostics:export', 'settings', () =>
-    diagnostics.exportReport(hooks.getMainWindow?.()));
+    diagnostics.exportReport(hooks.getMainWindow?.(), t));
   handle('pages:diagnostics:clear', 'settings', () => diagnostics.clear());
 
   // The settings page promises "cookies, cache & site data" — clear both.

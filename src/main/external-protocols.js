@@ -47,7 +47,8 @@ function classifyExternalNavigation(url, { trusted = false } = {}) {
 
 // Dependency injection keeps OS launches and native confirmation testable.
 // No callback URL, authorization code, or token is displayed or persisted.
-function createExternalHandoff({ getWindow, getApplicationName, showMessageBox, openExternal }) {
+// `t` is the interface translator for the dialogs.
+function createExternalHandoff({ getWindow, getApplicationName, showMessageBox, openExternal, t }) {
   let pending = false;
   // One page-initiated handoff may prompt per native activation, across all
   // tabs and frames. A timer cannot reopen a dismissed dialog indefinitely.
@@ -74,9 +75,9 @@ function createExternalHandoff({ getWindow, getApplicationName, showMessageBox, 
         // the original callback byte-for-byte for the eventual launch.
         try { name = getApplicationName(`${decision.protocol}//`); } catch { /* OS lookup can fail. */ }
         if (!name) {
-          await show({ type: 'info', title: 'No application found',
-            message: `No installed application can open ${decision.protocol} links.`,
-            detail: 'Install the application, then restart its sign-in flow.', buttons: ['OK'] });
+          await show({ type: 'info', title: t('externalApp.none.title'),
+            message: t('externalApp.none.message', { protocol: decision.protocol }),
+            detail: t('externalApp.none.detail'), buttons: [t('dialog.ok')] });
           return;
         }
         if (decision.action === 'confirm') {
@@ -85,10 +86,12 @@ function createExternalHandoff({ getWindow, getApplicationName, showMessageBox, 
             const parsed = new URL(source);
             if (['http:', 'https:'].includes(parsed.protocol)) origin = parsed.origin;
           } catch { /* Address-bar input has no referring page. */ }
-          const { response } = await show({ type: 'question', title: 'Open external application?',
-            message: `Open ${name}?`,
-            detail: `${origin || 'This link'} wants to open an application on your computer (${decision.protocol}).`,
-            buttons: ['Open Application', 'Cancel'], defaultId: 1, cancelId: 1, noLink: true });
+          const { response } = await show({ type: 'question', title: t('externalApp.confirm.title'),
+            message: t('externalApp.confirm.message', { app: name }),
+            detail: origin
+              ? t('externalApp.confirm.detail', { origin, protocol: decision.protocol })
+              : t('externalApp.confirm.detailNoOrigin', { protocol: decision.protocol }),
+            buttons: [t('externalApp.confirm.open'), t('common.cancel')], defaultId: 1, cancelId: 1, noLink: true });
           // The initiating OAuth popup may close itself or navigate to a
           // fallback while this native prompt is open. The captured URL and
           // source are immutable, so its WebContents need not remain alive.
@@ -97,9 +100,9 @@ function createExternalHandoff({ getWindow, getApplicationName, showMessageBox, 
         await openExternal(url);
       } catch {
         if (!parent.isDestroyed()) {
-          try { await show({ type: 'error', title: 'Could not open application',
-            message: 'The application could not be opened.',
-            detail: 'Try opening the application yourself, then restart its sign-in flow.', buttons: ['OK'] });
+          try { await show({ type: 'error', title: t('externalApp.failed.title'),
+            message: t('externalApp.failed.message'),
+            detail: t('externalApp.failed.detail'), buttons: [t('dialog.ok')] });
           } catch { /* Window may close while showing the failure. */ }
         }
       } finally { pending = false; }
