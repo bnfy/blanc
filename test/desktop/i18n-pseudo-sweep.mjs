@@ -27,7 +27,8 @@ const CHROME_FILES = ['src/renderer/index.html', 'src/renderer/renderer.js', 'sr
 // or a renderer module converted in a later phase). They are exempt only while
 // that file is pending; once it is guarded, they are checked like everything else.
 const SHIELD_TEXT = { selector: '#pillShield', files: ['src/main/shield-model.js'] };
-const WORKSPACE_TEXT = { selector: '#footerWorkspace', files: ['src/renderer/workspace-ui.js'] };
+// The panel's site-information button is titled by main (site-security.js).
+const SITE_INFO_TEXT = { selector: '#panelSiteInfo', files: ['src/main/site-security.js'] };
 // A local page that asks for a permission, so the real prompt surface shows.
 const server = http.createServer((req, res) => {
   res.setHeader('content-type', 'text/html');
@@ -59,23 +60,93 @@ const typeInPanel = (text, settle) => async (ctx) => {
   return overlay;
 };
 
+// The workspace switcher, driven by its buttons' language-independent focus
+// keys. Surfaces run in order and share state: Patron and two workspaces are
+// set up once, and later surfaces delete one.
+const WORKSPACE_FILES = [...OVERLAY_FILES, 'src/renderer/workspace-ui.js'];
+const openSwitcher = async (ctx) => {
+  // Reopen only once the previous surface's close has landed; otherwise the
+  // late hide closes the freshly opened panel.
+  const overlay = await overlayPage(ctx.app);
+  await overlay.locator('#panelAnchor').waitFor({ state: 'hidden' });
+  // Not a pill click: with a private tab active, the pill's centre is the
+  // leave-private chip, which closes the tab.
+  await ctx.chrome.evaluate(() => window.browserAPI.openIsland());
+  await overlay.locator('#islandPanel').waitFor({ state: 'visible' });
+  await overlay.locator('#footerWorkspace').click();
+  await overlay.locator('#workspaceSwitcher').waitFor({ state: 'visible' });
+  return overlay;
+};
+const switcherStep = (...steps) => async (ctx) => {
+  const overlay = await openSwitcher(ctx);
+  for (const [click, waitFor] of steps) {
+    await overlay.locator(click).first().click();
+    await overlay.locator(waitFor).first().waitFor({ state: 'visible' });
+  }
+  return overlay;
+};
+// Escape steps back one view at a time (editor, confirmation, decision) and
+// finally closes the switcher, leaving no state for the next surface.
+const closeSwitcher = async (page) => {
+  for (let i = 0; i < 5 && await page.locator('#workspaceSwitcher').isVisible(); i++) await page.keyboard.press('Escape');
+  assert.equal(await page.locator('#workspaceSwitcher').isVisible(), false, 'the workspace switcher closes');
+};
+const manageFirst = ['#workspaceSwitcher .ws-manage-button', '#workspaceSwitcher [data-focus-key="rename"]'];
+const WORKSPACE_SURFACES = [
+  { name: 'workspace switcher (without Patron)', open: openSwitcher },
+  {
+    name: 'workspace switcher (list)',
+    open: async (ctx) => {
+      await callTestHook(ctx.app, 'workspacePatron');
+      for (const name of ['zzz-ws-a', 'zzz-ws-b']) assert.equal((await callTestHook(ctx.app, 'workspaceAction', ['save', name])).ok, true);
+      const overlay = await openSwitcher(ctx);
+      await overlay.locator('#workspaceSwitcher .ws-managed-row + .ws-managed-row').waitFor();
+      return overlay;
+    },
+  },
+  { name: 'workspace editor', open: switcherStep(['#wsSwitcherNew', '#workspaceName']) },
+  { name: 'workspace management', open: switcherStep(manageFirst) },
+  {
+    name: 'workspace switch decision',
+    // A private page (a blank private start page doesn't count) in the bound
+    // window makes switching ask first.
+    open: async (ctx) => {
+      await callTestHook(ctx.app, 'openTab', [`${permissionPageUrl}?private`, { private: true }]);
+      // Opening a tab dismisses the overlay; reopen only once it has settled.
+      await waitForValue(async () => (await callTestHook(ctx.app, 'state')).tabs.find((t) => t.private && !t.isLoading), Boolean, 'private page loaded');
+      return switcherStep(['#workspaceSwitcher .ws-switcher-row:not(.on)', '.ws-switcher-confirm'])(ctx);
+    },
+  },
+  {
+    name: 'workspace delete confirmation',
+    open: switcherStep(manageFirst, ['[data-focus-key="delete"]', '[data-focus-key="delete-workspace"]']),
+  },
+  {
+    name: 'workspace switcher (after delete)',
+    open: switcherStep(manageFirst, ['[data-focus-key="delete"]', '[data-focus-key="delete-workspace"]'],
+      ['[data-focus-key="delete-workspace"]', '[data-focus-key="undo"]']),
+  },
+  { name: 'workspace recently deleted', open: switcherStep(['[data-focus-key="recently-deleted"]', '.ws-recovery']) },
+  {
+    name: 'workspace permanent delete confirmation',
+    open: switcherStep(['[data-focus-key="recently-deleted"]', '.ws-recovery'], ['[data-focus-key^="forget:"]', '.ws-switcher-confirm']),
+  },
+].map((surface) => ({ ...surface, files: WORKSPACE_FILES, pendingText: [SITE_INFO_TEXT], close: closeSwitcher }));
+
 const SURFACES = [
   {
     name: 'island panel (tab list)',
     files: OVERLAY_FILES,
-    pendingText: [WORKSPACE_TEXT],
     open: openPanel,
   },
   {
     name: 'island panel (slash commands)',
     files: OVERLAY_FILES,
-    pendingText: [WORKSPACE_TEXT],
     open: typeInPanel('/', () => document.querySelectorAll('#islandList .island-row').length > 5),
   },
   {
     name: 'island panel (quick switcher)',
     files: OVERLAY_FILES,
-    pendingText: [WORKSPACE_TEXT],
     // A group result (its tab count is interface text) and the exact-search
     // row, whose tag is the fallback label: suggestions are off in this profile.
     open: async (ctx) => {
@@ -145,6 +216,7 @@ const SURFACES = [
       return chrome;
     },
   },
+  ...WORKSPACE_SURFACES,
   {
     name: 'start page',
     files: ['src/renderer/pages/newtab.html', 'src/renderer/pages/newtab.js', 'src/renderer/pages/onboarding.js'],
@@ -189,6 +261,7 @@ try {
     }
     await page.waitForLoadState('domcontentloaded');
     const offending = classifyTextEntries(await page.evaluate(`(() => {${COLLECT}})()`), { allow, allowPatterns });
+    await surface.close?.(page);
     if (page.url() === 'blanc-chrome://overlay/') await page.evaluate(() => window.browserAPI.closeOverlay()).catch(() => {});
     if (offending.length) failures.push(`${surface.name}:\n    ${offending.join('\n    ')}`);
     else console.log(`ok   ${surface.name}`);
