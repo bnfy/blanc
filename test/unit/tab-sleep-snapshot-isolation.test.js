@@ -21,6 +21,7 @@ function serialize(tabList) {
     tabs: new Map(tabList.map((tab) => [tab.id, tab])),
     isHostnameExcepted: () => false,
     shieldChipState: () => ({ kind: 'stub' }),
+    mainI18n: { t: (key) => key },
     connectionFor: () => 'secure',
     committedUrlOf: () => 'https://committed.example/',
     buildSiteInfo: () => ({ state: 'secure', certificate: null }),

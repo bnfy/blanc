@@ -14,7 +14,8 @@ const { classifyTextEntries, COLLECT } = sweep;
 const { callTestHook } = testHookCall;
 const includePending = process.argv.includes('--include-pending');
 const scope = JSON.parse(fs.readFileSync('copy/i18n-scope.json', 'utf8')).files;
-const allow = ['Blanc', 'Blanc Blocker', 'Blanc Patron', 'Patron', 'uBlock Origin', '1Password'];
+// Fixed terms, plus file format names, which are the same in every language.
+const allow = ['Blanc', 'Blanc Blocker', 'Blanc Patron', 'Patron', 'uBlock Origin', '1Password', 'JSON'];
 // Fixed terms by pattern: slash command names are never translated.
 const allowPatterns = [/^\/[a-z0-9][a-z0-9-]*$/];
 
@@ -26,9 +27,6 @@ const CHROME_FILES = ['src/renderer/index.html', 'src/renderer/renderer.js', 'sr
 // Elements whose text another, still-pending file writes (main-computed text,
 // or a renderer module converted in a later phase). They are exempt only while
 // that file is pending; once it is guarded, they are checked like everything else.
-const SHIELD_TEXT = { selector: '#pillShield', files: ['src/main/shield-model.js'] };
-// The panel's site-information button is titled by main (site-security.js).
-const SITE_INFO_TEXT = { selector: '#panelSiteInfo', files: ['src/main/site-security.js'] };
 // A local page that asks for a permission, so the real prompt surface shows.
 const server = http.createServer((req, res) => {
   res.setHeader('content-type', 'text/html');
@@ -84,13 +82,16 @@ const rightClick = async (app, target, params) => {
   }, { target, params });
   return waitForValue(() => app.evaluate(() => globalThis.__sweepMenus.shift() ?? null), Boolean, `context menu on ${target}`);
 };
+const activeTab = async (app) => {
+  const { activeTabId, tabs } = await callTestHook(app, 'state');
+  return tabs.find((t) => t.id === activeTabId);
+};
 const NATIVE_MENU_SURFACES = [
   {
     name: 'page context menus',
     files: ['src/main/context-menu.js'],
     native: async ({ app }) => {
-      const { activeTabId, tabs } = await callTestHook(app, 'state');
-      const id = tabs.find((t) => t.id === activeTabId).webContentsId;
+      const id = (await activeTab(app)).webContentsId;
       return [
         ...await rightClick(app, id, {}),
         ...await rightClick(app, id, { linkURL: 'https://example.com/', srcURL: 'https://example.com/a.png', mediaType: 'image', isEditable: true, misspelledWord: 'teh' }),
@@ -136,6 +137,56 @@ const NATIVE_MENU_SURFACES = [
       .filter((item) => item.visible && item.type !== 'separator')
       .map((item) => ({ text: item.label, ignored: item.id === 'active-tab' })) ?? null),
   },
+];
+
+// Native dialogs are recorded the same way: each call's title, message,
+// detail, buttons and file-type names are captured and answered as Cancel.
+const recordDialogs = (app) => app.evaluate(({ dialog }) => {
+  if (globalThis.__sweepDialogs) return;
+  globalThis.__sweepDialogs = [];
+  const record = (options = {}) => {
+    globalThis.__sweepDialogs.push([options.title, options.message, options.detail, ...(options.buttons ?? []),
+      ...(options.filters ?? []).map((filter) => filter.name)].filter(Boolean).map((text) => ({ text, ignored: false })));
+    return options.cancelId ?? 0;
+  };
+  dialog.showMessageBox = async (...args) => ({ response: record(args.at(-1)), checkboxChecked: false });
+  dialog.showMessageBoxSync = (...args) => record(args.at(-1));
+  dialog.showOpenDialog = async (...args) => { record(args.at(-1)); return { canceled: true, filePaths: [] }; };
+  dialog.showSaveDialog = async (...args) => { record(args.at(-1)); return { canceled: true }; };
+});
+const dialogSurface = (name, files, trigger) => ({
+  name,
+  files,
+  native: async (ctx) => {
+    await recordDialogs(ctx.app);
+    if ((await trigger(ctx)) === null) return null;
+    return waitForValue(() => ctx.app.evaluate(() => globalThis.__sweepDialogs.shift() ?? null), Boolean, name);
+  },
+});
+const NATIVE_DIALOG_SURFACES = [
+  dialogSurface('leave page dialog', ['src/main/tab-view.js'], async ({ app }) => {
+    const { webContentsId } = await activeTab(app);
+    await app.evaluate(({ webContents }, id) => { webContents.fromId(id).emit('will-prevent-unload', { preventDefault() {} }); }, webContentsId);
+  }),
+  // A scheme no application handles: Blanc says so instead of launching.
+  dialogSurface('external application dialog', ['src/main/external-protocols.js'], async ({ app, chrome }) => {
+    const { id } = await activeTab(app);
+    await chrome.evaluate((tabId) => window.browserAPI.navigate(tabId, 'zzzblancsweep://test'), id);
+  }),
+  dialogSurface('import favorites dialog', ['src/main/pages.js'], async ({ app }) => {
+    const page = await findPage(app, 'blanc://newtab/', 'new tab');
+    await page.evaluate(() => { window.bowserPages.bookmarks.import(); });
+  }),
+  // Unnamed passkeys, so every button is interface text. macOS only.
+  dialogSurface('passkey picker', ['src/main/webauthn.js'], ({ app }) => app.evaluate(({ session }) =>
+    session.defaultSession.emit('select-webauthn-account', { preventDefault() {} },
+      { relyingPartyId: 'example.com', accounts: [{ credentialId: 'a' }, { credentialId: 'b' }] }, () => {}) || null)),
+  dialogSurface('diagnostics export dialog', ['src/main/diagnostics.js'], async ({ app, chrome }) => {
+    await chrome.evaluate(() => window.browserAPI.createTab('blanc://settings/'));
+    const page = await findPage(app, 'blanc://settings', 'settings sheet');
+    await page.waitForFunction(() => window.bowserPages?.diagnostics);
+    await page.evaluate(() => { window.bowserPages.diagnostics.export(); });
+  }),
 ];
 
 // The workspace switcher, driven by its buttons' language-independent focus
@@ -213,7 +264,7 @@ const WORKSPACE_SURFACES = [
     name: 'workspace permanent delete confirmation',
     open: switcherStep(['[data-focus-key="recently-deleted"]', '.ws-recovery'], ['[data-focus-key^="forget:"]', '.ws-switcher-confirm']),
   },
-].map((surface) => ({ ...surface, files: WORKSPACE_FILES, pendingText: [SITE_INFO_TEXT], close: closeSwitcher }));
+].map((surface) => ({ ...surface, files: WORKSPACE_FILES, close: closeSwitcher }));
 WORKSPACE_SURFACES.push({
   name: 'workspace row context menu',
   files: ['src/main/workspace-context-menu-model.js'],
@@ -297,20 +348,29 @@ const SURFACES = [
   {
     name: 'chrome strip',
     files: CHROME_FILES,
-    pendingText: [SHIELD_TEXT],
     open: ({ chrome }) => chrome,
   },
   {
     name: 'vertical tabs rail',
     files: CHROME_FILES,
-    pendingText: [SHIELD_TEXT],
     open: async ({ chrome }) => {
       await chrome.evaluate(() => window.browserAPI.setTabLayout('vertical'));
       await chrome.waitForFunction(() => !document.getElementById('verticalTabsRail').hidden);
       return chrome;
     },
   },
+  {
+    name: 'shield popover',
+    files: [...OVERLAY_FILES, 'src/main/shield-model.js'],
+    open: async ({ app, chrome }) => {
+      await chrome.locator('#pillShield').click();
+      const overlay = await overlayPage(app);
+      await overlay.locator('#shieldPop').waitFor({ state: 'visible' });
+      return overlay;
+    },
+  },
   ...NATIVE_MENU_SURFACES,
+  ...NATIVE_DIALOG_SURFACES,
   ...WORKSPACE_SURFACES,
   {
     name: 'start page',

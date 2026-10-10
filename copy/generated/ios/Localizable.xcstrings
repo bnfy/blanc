@@ -8124,6 +8124,1776 @@
           }
         }
       }
+    },
+    "siteSecurity.unavailable.title": {
+      "comment": "Site information title when the page origin cannot be read.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection information unavailable"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbindungsinformationen nicht verfügbar"
+          }
+        }
+      }
+    },
+    "siteSecurity.unavailable.summary": {
+      "comment": "Site information summary when the page origin cannot be read.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc could not identify this page origin."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc konnte die Herkunft dieser Seite nicht erkennen."
+          }
+        }
+      }
+    },
+    "siteSecurity.certError.title": {
+      "comment": "Site information title when the site’s certificate failed verification; the summary says why.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Certificate problem"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zertifikatsproblem"
+          }
+        }
+      }
+    },
+    "siteSecurity.certException.title": {
+      "comment": "Site information title after the person chose to continue past a certificate error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not secure"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht sicher"
+          }
+        }
+      }
+    },
+    "siteSecurity.certException.summary": {
+      "comment": "Site information summary after continuing past a certificate error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You chose to continue even though this site’s certificate isn’t trusted. Blanc will warn you again after it restarts."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du hast trotz eines nicht vertrauenswürdigen Zertifikats fortgefahren. Blanc warnt dich nach einem Neustart erneut."
+          }
+        }
+      }
+    },
+    "siteSecurity.secure.title": {
+      "comment": "Site information title for a verified HTTPS connection.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection is secure"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbindung ist sicher"
+          }
+        }
+      }
+    },
+    "siteSecurity.secure.summary": {
+      "comment": "Site information summary for HTTPS with a public certificate authority.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encrypted and authenticated by Chromium’s certificate verifier."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verschlüsselt und vom Zertifikatsprüfer von Chromium bestätigt."
+          }
+        }
+      }
+    },
+    "siteSecurity.secure.summaryPrivateRoot": {
+      "comment": "Site information summary for HTTPS whose certificate chains to a locally installed root (for example a company proxy).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encrypted. The certificate is trusted by this device, but its issuer is not a standard public root."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verschlüsselt. Dieses Gerät vertraut dem Zertifikat, sein Aussteller ist aber keine öffentliche Standard-Stammzertifizierungsstelle."
+          }
+        }
+      }
+    },
+    "siteSecurity.local.title": {
+      "comment": "Site information title for an http:// page on this computer (localhost).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local connection"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lokale Verbindung"
+          }
+        }
+      }
+    },
+    "siteSecurity.local.summary": {
+      "comment": "Site information summary for an http:// page on this computer.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This loopback address stays on this device."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Loopback-Adresse bleibt auf diesem Gerät."
+          }
+        }
+      }
+    },
+    "siteSecurity.insecure.title": {
+      "comment": "Site information title for a plain http:// website.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection is not secure"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbindung ist nicht sicher"
+          }
+        }
+      }
+    },
+    "siteSecurity.insecure.summary": {
+      "comment": "Site information summary for a plain http:// website.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Information sent to this site can be read or changed in transit."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An diese Website gesendete Informationen können unterwegs gelesen oder verändert werden."
+          }
+        }
+      }
+    },
+    "siteSecurity.internal.title": {
+      "comment": "Site information title for Blanc’s own pages.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc-Seite"
+          }
+        }
+      }
+    },
+    "siteSecurity.internal.summary": {
+      "comment": "Site information summary for Blanc’s own pages.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This page is part of Blanc."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Seite gehört zu Blanc."
+          }
+        }
+      }
+    },
+    "siteSecurity.neutral.title": {
+      "comment": "Site information title for pages that are not http or https (for example a file).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection information"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbindungsinformationen"
+          }
+        }
+      }
+    },
+    "siteSecurity.neutral.summary": {
+      "comment": "Site information summary for pages that are not http or https.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This page does not use an HTTP connection."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Seite nutzt keine HTTP-Verbindung."
+          }
+        }
+      }
+    },
+    "certError.dateInvalid": {
+      "comment": "Why a certificate failed; shown in site information and on the certificate error page.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The certificate is expired or not valid yet."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Zertifikat ist abgelaufen oder noch nicht gültig."
+          }
+        }
+      }
+    },
+    "certError.commonNameInvalid": {
+      "comment": "Why a certificate failed; shown in site information and on the certificate error page.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The certificate does not match this site."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Zertifikat passt nicht zu dieser Website."
+          }
+        }
+      }
+    },
+    "certError.authorityInvalid": {
+      "comment": "Why a certificate failed; shown in site information and on the certificate error page.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The certificate issuer is not trusted by this device."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Gerät vertraut dem Aussteller des Zertifikats nicht."
+          }
+        }
+      }
+    },
+    "certError.revoked": {
+      "comment": "Why a certificate failed; shown in site information and on the certificate error page.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The certificate has been revoked."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Zertifikat wurde widerrufen."
+          }
+        }
+      }
+    },
+    "certError.weakSignature": {
+      "comment": "Why a certificate failed; shown in site information and on the certificate error page.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The certificate uses a weak signature."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Zertifikat verwendet eine schwache Signatur."
+          }
+        }
+      }
+    },
+    "certError.invalid": {
+      "comment": "Why a certificate failed; shown in site information and on the certificate error page.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The certificate is invalid."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Zertifikat ist ungültig."
+          }
+        }
+      }
+    },
+    "certError.generic": {
+      "comment": "Why a certificate failed, for any other certificate error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The site could not prove its identity with a valid certificate."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Website konnte ihre Identität nicht mit einem gültigen Zertifikat nachweisen."
+          }
+        }
+      }
+    },
+    "shield.uboRestarting": {
+      "comment": "Shield tooltip and status while uBlock Origin restarts.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "uBlock Origin is restarting. New requests are paused."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "uBlock Origin wird neu gestartet. Neue Anfragen werden angehalten."
+          }
+        }
+      }
+    },
+    "shield.chip.uboUnavailable": {
+      "comment": "Shield chip tooltip when uBlock Origin cannot run.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "uBlock Origin unavailable — open Settings for recovery"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "uBlock Origin nicht verfügbar – Einstellungen zur Wiederherstellung öffnen"
+          }
+        }
+      }
+    },
+    "shield.chip.uboOff": {
+      "comment": "Shield chip tooltip when blocking is turned off and uBlock Origin is the blocker.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "uBlock Origin is off — click for controls"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "uBlock Origin ist aus – klicken für Steuerelemente"
+          }
+        }
+      }
+    },
+    "shield.chip.uboCount": {
+      "comment": "Shield chip tooltip with uBlock Origin’s blocked request count on this page.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "uBlock Origin — %1$lld request blocked — click for controls"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "uBlock Origin — %1$lld requests blocked — click for controls"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "uBlock Origin – %1$lld Anfrage blockiert – klicken für Steuerelemente"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "uBlock Origin – %1$lld Anfragen blockiert – klicken für Steuerelemente"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "shield.chip.siteOff": {
+      "comment": "Shield chip tooltip when ads are allowed on this site.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc Blocker off for this site — click for site controls"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc Blocker für diese Website aus – klicken für Website-Einstellungen"
+          }
+        }
+      }
+    },
+    "shield.chip.globalOff": {
+      "comment": "Shield chip tooltip when ad blocking is turned off in Settings.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc Blocker is off everywhere — click for details"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc Blocker ist überall aus – klicken für Details"
+          }
+        }
+      }
+    },
+    "shield.chip.count": {
+      "comment": "Shield chip tooltip with the number of ads and trackers blocked on this page.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Blanc Blocker — %1$lld ad or tracker blocked here — click for site controls"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Blanc Blocker — %1$lld ads & trackers blocked here — click for site controls"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Blanc Blocker – %1$lld Anzeige oder Tracker hier blockiert – klicken für Website-Einstellungen"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Blanc Blocker – %1$lld Anzeigen und Tracker hier blockiert – klicken für Website-Einstellungen"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "shield.chip.quiet": {
+      "comment": "Shield chip tooltip when nothing has been blocked on this page yet.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc Blocker — protected, nothing blocked yet — click for site controls"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc Blocker – geschützt, noch nichts blockiert – klicken für Website-Einstellungen"
+          }
+        }
+      }
+    },
+    "shield.count.globalOff": {
+      "comment": "Shield popover status when ad blocking is turned off in Settings.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ad blocking is off everywhere"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Werbe- und Tracker-Blockierung ist überall aus"
+          }
+        }
+      }
+    },
+    "shield.count.needsAttention": {
+      "comment": "Shield popover status when the blocker failed to start.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blocking needs attention. Open blocking settings to recover."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Blocker braucht Aufmerksamkeit. Öffne die Blocker-Einstellungen zur Wiederherstellung."
+          }
+        }
+      }
+    },
+    "shield.count.uboRequests": {
+      "comment": "Shield popover status with uBlock Origin’s blocked request count.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld request blocked on this page"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld requests blocked on this page"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Anfrage auf dieser Seite blockiert"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Anfragen auf dieser Seite blockiert"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "shield.count.siteOff": {
+      "comment": "Shield popover status when ads are allowed on this site.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ads allowed on this site"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Werbung auf dieser Website erlaubt"
+          }
+        }
+      }
+    },
+    "shield.count.none": {
+      "comment": "Shield popover status when nothing has been blocked yet.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing blocked on this page yet"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf dieser Seite noch nichts blockiert"
+          }
+        }
+      }
+    },
+    "shield.count.blocked": {
+      "comment": "Shield popover status with the number of ads and trackers blocked.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld ad or tracker blocked on this page"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld ads & trackers blocked on this page"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Anzeige oder Tracker auf dieser Seite blockiert"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Anzeigen und Tracker auf dieser Seite blockiert"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "shield.badge.off": {
+      "comment": "Badge beside the blocker’s name when blocking is off.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aus"
+          }
+        }
+      }
+    },
+    "shield.badge.starting": {
+      "comment": "Badge beside the blocker’s name while it starts.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starting"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Startet"
+          }
+        }
+      }
+    },
+    "shield.badge.unavailable": {
+      "comment": "Badge beside the blocker’s name when it cannot run.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unavailable"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht verfügbar"
+          }
+        }
+      }
+    },
+    "shield.provider.active": {
+      "comment": "Shield popover blocker status when the blocker is running normally.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Active"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktiv"
+          }
+        }
+      }
+    },
+    "shield.provider.privateProtects": {
+      "comment": "Shield popover blocker status in a private tab.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc Blocker protects this private tab."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc Blocker schützt diesen privaten Tab."
+          }
+        }
+      }
+    },
+    "shield.provider.privateNoUbo": {
+      "comment": "Shield popover blocker status in a private tab when uBlock Origin is the regular blocker.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc’s browser engine can’t load uBO in temporary private sessions. Blanc Blocker protects this tab."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blancs Browser-Engine kann uBO in temporären privaten Sitzungen nicht laden. Blanc Blocker schützt diesen Tab."
+          }
+        }
+      }
+    },
+    "shield.provider.unavailable": {
+      "comment": "Shield popover blocker status; {provider} is Blanc Blocker or uBlock Origin.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ is unavailable. Open blocking settings to recover."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ ist nicht verfügbar. Öffne die Blocker-Einstellungen zur Wiederherstellung."
+          }
+        }
+      }
+    },
+    "shield.provider.unavailableOff": {
+      "comment": "Shield popover blocker status when the blocker cannot run and blocking is off; {provider} is Blanc Blocker or uBlock Origin.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ is unavailable. Blocking is off. Open blocking settings to recover."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ ist nicht verfügbar. Der Blocker ist aus. Öffne die Blocker-Einstellungen zur Wiederherstellung."
+          }
+        }
+      }
+    },
+    "shield.provider.off": {
+      "comment": "Shield popover blocker status when blocking is turned off.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blocking is off."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Blocker ist aus."
+          }
+        }
+      }
+    },
+    "shield.provider.starting": {
+      "comment": "Shield popover blocker status while it starts; {provider} is Blanc Blocker or uBlock Origin.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ is starting…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ startet …"
+          }
+        }
+      }
+    },
+    "shield.provider.protecting": {
+      "comment": "Shield popover sentence when Blanc Blocker stands in for uBlock Origin.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc Blocker is protecting this tab."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc Blocker schützt diesen Tab."
+          }
+        }
+      }
+    },
+    "shield.provider.engineNoUbo": {
+      "comment": "Shield popover sentence when this Blanc build’s engine cannot load uBlock Origin.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This browser engine can’t run uBlock Origin."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Browser-Engine kann uBlock Origin nicht ausführen."
+          }
+        }
+      }
+    },
+    "shield.provider.buildNoUbo": {
+      "comment": "Shield popover sentence when this Blanc build does not include uBlock Origin.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "uBlock Origin isn’t available in this build."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "uBlock Origin ist in diesem Build nicht enthalten."
+          }
+        }
+      }
+    },
+    "shield.provider.fallback": {
+      "comment": "Shield popover status when Blanc Blocker stands in for uBlock Origin. {reason} is why uBlock Origin is not running and {current} the current blocker status; both are full sentences.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@ Your uBO settings are saved."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@ Deine uBO-Einstellungen bleiben gespeichert."
+          }
+        }
+      }
+    },
+    "shield.provider.stillActive": {
+      "comment": "Sentence used in {current} of the restart status; {provider} is Blanc Blocker or uBlock Origin.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ is still active."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ ist weiterhin aktiv."
+          }
+        }
+      }
+    },
+    "shield.provider.restartPending": {
+      "comment": "Shield popover status after choosing another blocker. {selected} is Blanc Blocker or uBlock Origin; {current} is a full sentence about the blocker running now.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ selected. Restart Blanc to apply; %2$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ ausgewählt. Starte Blanc neu, um es anzuwenden; %2$@"
+          }
+        }
+      }
+    },
+    "shield.provider.availability": {
+      "comment": "Shield popover note when this build cannot offer uBlock Origin.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "uBlock Origin is unavailable on this build."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "uBlock Origin ist in diesem Build nicht verfügbar."
+          }
+        }
+      }
+    },
+    "shield.provider.ownSettings": {
+      "comment": "Shield popover note under the private-tab note.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each blocker keeps its own site settings."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeder Blocker behält seine eigenen Website-Einstellungen."
+          }
+        }
+      }
+    },
+    "tabView.leave.message": {
+      "comment": "Dialog when a page asks to confirm leaving (unsaved changes).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave this page?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Seite verlassen?"
+          }
+        }
+      }
+    },
+    "tabView.leave.detail": {
+      "comment": "Dialog detail when a page asks to confirm leaving.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changes you made may not be saved."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Änderungen werden möglicherweise nicht gespeichert."
+          }
+        }
+      }
+    },
+    "tabView.leave.leave": {
+      "comment": "Button that leaves the page.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verlassen"
+          }
+        }
+      }
+    },
+    "tabView.leave.stay": {
+      "comment": "Button that stays on the page.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stay"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bleiben"
+          }
+        }
+      }
+    },
+    "error.crashed": {
+      "comment": "Description on the error page when a tab’s renderer crashed.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The page crashed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Seite ist abgestürzt"
+          }
+        }
+      }
+    },
+    "externalApp.none.title": {
+      "comment": "Dialog title when no app on the computer handles a link’s scheme.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No application found"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine App gefunden"
+          }
+        }
+      }
+    },
+    "externalApp.none.message": {
+      "comment": "Dialog message; {protocol} is the link scheme, for example zoommtg:.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No installed application can open %1$@ links."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine installierte App kann %1$@-Links öffnen."
+          }
+        }
+      }
+    },
+    "externalApp.none.detail": {
+      "comment": "Dialog detail when no app handles a link.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install the application, then restart its sign-in flow."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installiere die App und starte dann die Anmeldung erneut."
+          }
+        }
+      }
+    },
+    "externalApp.confirm.title": {
+      "comment": "Dialog title asking to open another app for a link.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open external application?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Externe App öffnen?"
+          }
+        }
+      }
+    },
+    "externalApp.confirm.message": {
+      "comment": "Dialog message; {app} is the app’s name, for example Zoom.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open %1$@?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ öffnen?"
+          }
+        }
+      }
+    },
+    "externalApp.confirm.detail": {
+      "comment": "Dialog detail; {origin} is the website (https://example.com) and {protocol} the link scheme.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ wants to open an application on your computer (%2$@)."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ möchte eine App auf deinem Computer öffnen (%2$@)."
+          }
+        }
+      }
+    },
+    "externalApp.confirm.detailNoOrigin": {
+      "comment": "Dialog detail when the link has no website origin; {protocol} is the link scheme.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This link wants to open an application on your computer (%1$@)."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Link möchte eine App auf deinem Computer öffnen (%1$@)."
+          }
+        }
+      }
+    },
+    "externalApp.confirm.open": {
+      "comment": "Button that opens the other app.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Application"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App öffnen"
+          }
+        }
+      }
+    },
+    "externalApp.failed.title": {
+      "comment": "Dialog title when opening the other app failed.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not open application"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App konnte nicht geöffnet werden"
+          }
+        }
+      }
+    },
+    "externalApp.failed.message": {
+      "comment": "Dialog message when opening the other app failed.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The application could not be opened."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die App konnte nicht geöffnet werden."
+          }
+        }
+      }
+    },
+    "externalApp.failed.detail": {
+      "comment": "Dialog detail when opening the other app failed.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try opening the application yourself, then restart its sign-in flow."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffne die App selbst und starte dann die Anmeldung erneut."
+          }
+        }
+      }
+    },
+    "passkey.title": {
+      "comment": "Title of the macOS passkey picker dialog.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a passkey"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passkey auswählen"
+          }
+        }
+      }
+    },
+    "passkey.message": {
+      "comment": "Passkey picker message; {site} is the website’s domain.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a passkey for %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passkey für %1$@ auswählen"
+          }
+        }
+      }
+    },
+    "passkey.messageNoSite": {
+      "comment": "Passkey picker message when the website’s domain is unknown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a passkey for this website"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passkey für diese Website auswählen"
+          }
+        }
+      }
+    },
+    "passkey.detail": {
+      "comment": "Passkey picker detail.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This website has more than one passkey available in Blanc on this Mac."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Für diese Website sind in Blanc auf diesem Mac mehrere Passkeys verfügbar."
+          }
+        }
+      }
+    },
+    "passkey.fallbackLabel": {
+      "comment": "Passkey picker button for a passkey without a name; {number} is its position, starting at 1.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passkey %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passkey %1$@"
+          }
+        }
+      }
+    },
+    "favorites.import.title": {
+      "comment": "Title of the file dialog for importing a bookmarks HTML file into Favorites.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import favorites"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favoriten importieren"
+          }
+        }
+      }
+    },
+    "favorites.import.filter": {
+      "comment": "File type name in the import dialog for bookmarks HTML files exported from other browsers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bookmarks"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lesezeichen"
+          }
+        }
+      }
+    },
+    "diagnostics.export.title": {
+      "comment": "Title of the save dialog for the diagnostics report.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export Blanc diagnostics"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc-Diagnose exportieren"
+          }
+        }
+      }
+    },
+    "settings.trust.release": {
+      "comment": "Settings link to the GitHub release that matches this build.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Matching release"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passendes Release"
+          }
+        }
+      }
+    },
+    "settings.trust.verification": {
+      "comment": "Settings link to the guide for verifying a Blanc download.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verification guide"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prüfanleitung"
+          }
+        }
+      }
+    },
+    "settings.trust.sbom": {
+      "comment": "Settings link to the release’s software bill of materials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Release SBOM"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Release-SBOM"
+          }
+        }
+      }
+    },
+    "settings.trust.provenance": {
+      "comment": "Settings link to the release’s build provenance attestations.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provenance attestations"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Herkunftsnachweise"
+          }
+        }
+      }
+    },
+    "linuxSandbox.refusal": {
+      "comment": "Linux dialog when Blanc is launched with sandboxing disabled. Shown before Blanc can read the interface language, so it is always English.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc refused to start because Chromium sandboxing was disabled. Use a Linux environment that permits Chromium sandboxing and launch Blanc without sandbox-disabling options."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc wurde nicht gestartet, weil die Chromium-Sandbox deaktiviert war. Nutze eine Linux-Umgebung, die die Chromium-Sandbox erlaubt, und starte Blanc ohne Optionen, die die Sandbox deaktivieren."
+          }
+        }
+      }
+    },
+    "linuxSandbox.message": {
+      "comment": "Linux dialog message when Blanc is launched with sandboxing disabled (always English).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc requires Chromium sandboxing"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc benötigt die Chromium-Sandbox"
+          }
+        }
+      }
+    },
+    "linuxSandbox.detail": {
+      "comment": "Linux dialog detail; {refusal} is linuxSandbox.refusal and {url} the setup guide’s address (always English).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@\n\nSetup guide: %2$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@\n\nEinrichtungsanleitung: %2$@"
+          }
+        }
+      }
+    },
+    "linuxSandbox.detailCopy": {
+      "comment": "Linux dialog detail when the guide cannot open (always English).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@\n\nBlanc can’t open the setup guide itself while it can’t start. Copy the link and open it in another browser.\n\n%2$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@\n\nBlanc kann die Einrichtungsanleitung nicht selbst öffnen, solange es nicht starten kann. Kopiere den Link und öffne ihn in einem anderen Browser.\n\n%2$@"
+          }
+        }
+      }
+    },
+    "linuxSandbox.detailOpenElsewhere": {
+      "comment": "Linux dialog detail when the guide cannot open and the link cannot be copied (always English).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@\n\nBlanc can’t open the setup guide itself while it can’t start. Open this address in another browser.\n\n%2$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@\n\nBlanc kann die Einrichtungsanleitung nicht selbst öffnen, solange es nicht starten kann. Öffne diese Adresse in einem anderen Browser.\n\n%2$@"
+          }
+        }
+      }
+    },
+    "linuxSandbox.openGuide": {
+      "comment": "Linux dialog button (always English).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Setup Guide"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einrichtungsanleitung öffnen"
+          }
+        }
+      }
+    },
+    "linuxSandbox.copyLink": {
+      "comment": "Linux dialog button (always English).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy Link"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link kopieren"
+          }
+        }
+      }
+    },
+    "linuxSandbox.quit": {
+      "comment": "Linux dialog button (always English).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quit"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beenden"
+          }
+        }
+      }
+    },
+    "linuxSandbox.copied.message": {
+      "comment": "Linux dialog after copying the guide’s link (always English).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setup guide link copied"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link zur Einrichtungsanleitung kopiert"
+          }
+        }
+      }
+    },
+    "linuxSandbox.copied.detail": {
+      "comment": "Linux dialog detail after copying the guide’s link (always English).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paste it into another browser, then choose Quit."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Füge ihn in einem anderen Browser ein und wähle dann „Beenden“."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

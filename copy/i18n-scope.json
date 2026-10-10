@@ -202,11 +202,11 @@
       "allow": []
     },
     "src/main/site-security.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/main/shield-model.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/main/about-panel.js": {
@@ -214,19 +214,21 @@
       "allow": []
     },
     "src/main/external-protocols.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/main/linux-sandbox-launch.js": {
-      "state": "pending",
-      "allow": []
+      "state": "guarded",
+      "allow": [
+        "Blanc"
+      ]
     },
     "src/main/webauthn.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/main/pages.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/main/browser-data-import.js": {
@@ -258,11 +260,11 @@
       "allow": []
     },
     "src/main/tab-view.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/main/diagnostics.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/renderer/pages/settings-language-model.js": {

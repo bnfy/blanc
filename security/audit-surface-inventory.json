@@ -183,7 +183,7 @@
     },
     {
       "file": "src/main/external-protocols.js",
-      "sha256": "f0b5700627610be1dc79086ebfed1aaafd14fad66f9c12ec8021662a7fad0689",
+      "sha256": "73cb077e081e7b7436226b4fc2232201cd8f8e97f6887f86d7a77254f35cbeca",
       "literalChannels": [
         "will-frame-navigate",
         "will-redirect"
@@ -208,7 +208,7 @@
     },
     {
       "file": "src/main/linux-sandbox-launch.js",
-      "sha256": "051a2d9d23ba0f46173fe67e1aacfe749d7ec4dbc0f16f249baa5feabb7fb8c3",
+      "sha256": "7d0494ec637be4192766992369da2b67f241cdffd1c947238df164a4f7c73109",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -220,7 +220,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "d92b13c6879aa6c7cfd5f2cc819cc22c4f80a83b1dc03122da38880dc662ff6f",
+      "sha256": "a043ccae845819189e64164de8a11c2bfe2e6f7362fdf13e320e12184fce1058",
       "literalChannels": [
         "activate",
         "before-input-event",
@@ -416,7 +416,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "6af935b83b1aae24babf129a9b5a7638551bebbd9d5e051e266900883f908691",
+      "sha256": "5ffc5c04935d3cd75646a7d30fe26ef487c44555e80d66369e5cc3dab6d5f0f2",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -829,7 +829,7 @@
     },
     {
       "file": "src/main/tab-view.js",
-      "sha256": "2e457999d32779be50c6951b45ce6a40263624b8f2684f6d906196e70824d009",
+      "sha256": "0342fed009157b5cba25faf7fd961baedf39843b043a4307be7978efd0ed9891",
       "literalChannels": [
         "audio-state-changed",
         "before-input-event",
@@ -905,7 +905,7 @@
     },
     {
       "file": "src/main/webauthn.js",
-      "sha256": "fb590bb561b35993b3d83d298c82dcc2d94ee3f1a147013ab31160f8cb17425e",
+      "sha256": "24d2465c172b05495344bde155b6a224e419f7957d985a838aaaeef3e3fa3a44",
       "literalChannels": [
         "select-webauthn-account"
       ],

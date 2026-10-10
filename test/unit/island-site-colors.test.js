@@ -87,6 +87,7 @@ function runSerializeTabs(tab, islandSiteColors) {
     tabs: new Map([[tab.id, tab]]),
     isHostnameExcepted: () => false,
     shieldChipState, connectionFor, committedUrlOf,
+    mainI18n: { t: require('../support/english-t').englishT },
     buildSiteInfo: () => ({ state: 'secure' }),
     liveContents: () => null,
     certificateObserver: { get: () => null },
