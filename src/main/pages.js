@@ -13,7 +13,6 @@ const downloads = require('./downloads');
 const settings = require('./settings');
 const { runOnePasswordVerify } = require('./onepassword-verify-flow');
 const { createDefaultBrowserStatus } = require('./default-browser-status');
-const supporter = require('./supporter');
 const patron = require('./patron');
 const sync = require('./sync');
 const telemetry = require('./telemetry');
