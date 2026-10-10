@@ -5,6 +5,16 @@ const { EventEmitter } = require('node:events');
 const test = require('node:test');
 const { brokerEnvironment, createOnePasswordClient } = require('../../src/main/onepassword-client');
 
+test('broker environment keeps the Windows locations the native library may need', () => {
+  assert.deepEqual(brokerEnvironment({
+    USERPROFILE: 'C:\\Users\\alice', LOCALAPPDATA: 'C:\\Users\\alice\\AppData\\Local',
+    APPDATA: 'C:\\Users\\alice\\AppData\\Roaming', SystemDrive: 'C:', OP_CONNECT_TOKEN: 'secret',
+  }), {
+    USERPROFILE: 'C:\\Users\\alice', LOCALAPPDATA: 'C:\\Users\\alice\\AppData\\Local',
+    APPDATA: 'C:\\Users\\alice\\AppData\\Roaming', SystemDrive: 'C:',
+  });
+});
+
 test('broker environment excludes unrelated application secrets', () => {
   assert.deepEqual(brokerEnvironment({
     HOME: '/home/alice', PATH: '/bin', OP_SERVICE_ACCOUNT_TOKEN: 'secret',

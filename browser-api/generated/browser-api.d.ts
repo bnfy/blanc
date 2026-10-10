@@ -1045,7 +1045,7 @@ export interface BlancBrowserAPI {
   /**
    * Fill a login from 1Password (explicit invoke only). Resolves to false when the broker is unavailable.
    * IPC: invoke `chrome:onepassword-fill`.
-   * Present only on darwin.
+   * Present only on darwin, win32, linux.
    */
   fillLoginFromOnePassword?(): Promise<FillLoginSuccess | FillLoginFailure | false>;
   /**

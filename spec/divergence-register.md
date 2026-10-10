@@ -578,7 +578,7 @@ no platform silently expands Profile Sync’s approved data scope.
 
 **Status:** Accepted 2026-08-14.
 
-## D26 — macOS 1Password SDK bridge vs. other platforms
+## D26 — Desktop 1Password SDK bridge vs. mobile
 **Features:** F38, F24
 
 **Why:** Desktop Blanc cannot participate in third-party credential providers'
@@ -588,14 +588,13 @@ Mobile web views already participate in the operating system's credential
 provider surface (F24), where adding a second Blanc-specific picker would be
 duplicative and less native.
 
-- **macOS:** an off-by-default, explicit Fill command uses the installed
-  1Password desktop app and the user's configured account. Blanc applies the
-  item's saved-website policy, offers a bounded native chooser, and fills only
-  the revalidated active login form. It never becomes a credential store.
-- **Windows/Linux:** F38 is N/A for its first production release. The setting,
-  commands, shortcuts, preload method, and IPC handler are absent, and the
-  credential broker cannot start. A future expansion requires a new review and
-  signed live-account validation on each added platform.
+- **macOS, Windows, Linux:** an off-by-default, explicit Fill command uses the
+  installed 1Password desktop app and the user's configured account. Blanc
+  applies the item's saved-website policy, offers a bounded native chooser, and
+  fills only the revalidated active login form. It never becomes a credential
+  store. The shortcut is ⌥⌘P on macOS and Ctrl+Shift+P on Windows and Linux.
+  Any other desktop platform exposes no setting, command, shortcut, preload
+  method, or IPC handler, and cannot start the credential broker.
 - **iOS/Android:** F38 is N/A. Use F24's system AutoFill/Credential Manager
   surface, through which 1Password and other installed providers participate.
 
@@ -604,11 +603,14 @@ user-controlled provider surface, fill only into the intended login page, and
 are never added to Blanc persistence, Profile Sync, telemetry, or browsing
 records. The provider-specific setup and picker are platform-native.
 
-**Tagging:** the macOS SDK scenario tags `@macos @D26`; the mobile
-system-provider scenario remains `@D12`.
+**Tagging:** the live-account SDK scenario tags `@D26`, and the drivable fill
+UX scenarios run on every desktop platform; the mobile system-provider scenario
+remains `@D12`.
 
 **Status:** macOS-only first release accepted by the product owner 2026-08-24;
-the signed macOS live matrix is complete.
+the signed macOS live matrix is complete. Windows and Linux enabled on
+2026-10-10 at the owner's request; their real-account matrix on physical
+machines is pending (`docs/1password-integration.md`).
 
 ## D27 — Interface-language picker location
 **Features:** F44

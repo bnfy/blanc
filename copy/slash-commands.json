@@ -81,7 +81,9 @@
     {
       "command": "/1password",
       "platforms": [
-        "macos"
+        "macos",
+        "windows",
+        "linux"
       ]
     },
     {

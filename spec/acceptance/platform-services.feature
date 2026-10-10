@@ -46,8 +46,8 @@ Feature: Platform services — telemetry, updates, zoom, autofill
     When I complete a passkey sign-in
     Then the platform authenticator is invoked
 
-  @F38-1 @F38 @desktop @macos @D26
-  Scenario: macOS fills only a matching 1Password login after an explicit ask
+  @F38-1 @F38 @desktop @D26
+  Scenario: Blanc fills only a matching 1Password login after an explicit ask
     Given filling logins from 1Password is disabled by default
     And the installed 1Password app has ExactDomain, AnywhereOnWebsite, and Never Login items
     When I explicitly ask Blanc to fill the focused login form
@@ -60,7 +60,7 @@ Feature: Platform services — telemetry, updates, zoom, autofill
     And no credential is persisted, synced, logged, telemetered, or sent through renderer IPC
     And Blanc makes no 1Password request while I merely browse
 
-  @F38-2 @F38 @desktop @macos @D26
+  @F38-2 @F38 @desktop @D26
   Scenario: The island offers Fill only for a visible, uncontradicted login form
     Given filling logins from 1Password is configured on this device
     When I open a page whose login form authoritatively declares a current-password field
@@ -72,7 +72,7 @@ Feature: Platform services — telemetry, updates, zoom, autofill
     When I open a page whose login field is invisible
     Then the island never shows the fill hint
 
-  @F38-3 @F38 @desktop @macos @D26
+  @F38-3 @F38 @desktop @D26
   Scenario: Fill questions open as a dialog capsule with Cancel focused and full keyboard control
     Given filling logins from 1Password is configured on this device
     When a fill confirmation question is presented
@@ -84,7 +84,7 @@ Feature: Platform services — telemetry, updates, zoom, autofill
     When a fill confirmation question is presented
     Then pressing Escape cancels the question
 
-  @F38-4 @F38 @desktop @macos @D26
+  @F38-4 @F38 @desktop @D26
   Scenario: Fill errors persist until dismissed and their announcement survives
     Given filling logins from 1Password is configured on this device
     When a no-matching-login notice is presented
@@ -94,21 +94,21 @@ Feature: Platform services — telemetry, updates, zoom, autofill
     Then the capsule is gone
     And the announcement is not retracted
 
-  @F38-5 @F38 @desktop @macos @D26
+  @F38-5 @F38 @desktop @D26
   Scenario: A successful fill confirms politely and gets out of the way on its own
     Given filling logins from 1Password is configured on this device
     When a filled confirmation is presented
     Then the confirmation is announced politely
     And the capsule dismisses itself without any interaction
 
-  @F38-6 @F38 @desktop @macos @D26
+  @F38-6 @F38 @desktop @D26
   Scenario: Switching tabs withdraws a pending fill question
     Given filling logins from 1Password is configured on this device
     And a fill confirmation question is presented
     When I switch to another tab
     Then the capsule is gone
 
-  @F38-7 @F38 @desktop @macos @D26
+  @F38-7 @F38 @desktop @D26
   Scenario: The success confirmation waits while pointed at or focused
     Given filling logins from 1Password is configured on this device
     When a filled confirmation is presented

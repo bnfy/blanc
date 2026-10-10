@@ -220,7 +220,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "716a0168782ddcfe7286e3110348b134da163fa25404940613b31fafe50cc530",
+      "sha256": "c4c9975329ee079ef7977d07df6cef7f76e7920855e312348312ea2edea9bac3",
       "literalChannels": [
         "activate",
         "before-input-event",
@@ -373,6 +373,14 @@
       "role": "privileged implementation or service"
     },
     {
+      "file": "src/main/onepassword-app.js",
+      "sha256": "b9b44266ece513e0ca0bd87c7bf8eb5083a7eb30cdcfbc1fee2a5152a984b4bc",
+      "literalChannels": [
+        "error"
+      ],
+      "role": "privileged implementation or service"
+    },
+    {
       "file": "src/main/onepassword-broker.js",
       "sha256": "066e80738097b22848cd6fb337fe0e5d79bc18d72a15f1b3c7702e540270e17e",
       "literalChannels": [
@@ -382,7 +390,7 @@
     },
     {
       "file": "src/main/onepassword-client.js",
-      "sha256": "b2b264dff1d67d31b4cb0381f5d31ab0f76ae6525370ef22df67a331d2717c6d",
+      "sha256": "cb81c973eda55b4a2e17ac5f28f668058ea63a79dee8d5e8632d969beda24851",
       "literalChannels": [
         "message"
       ],
@@ -508,7 +516,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "3be28e317e394024279bd408fc7dd828560c167d8b848ba3621780ccab5cfc91",
+      "sha256": "3cdafb15d5a8cc4fd9d24a2ebf03a849f6b9cc27da2bfd9203ea0ef3115ed565",
       "literalChannels": [
         "chrome:adblock-exempt-active",
         "chrome:adblock-toggle",
