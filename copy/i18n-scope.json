@@ -247,10 +247,6 @@
       "state": "pending",
       "allow": []
     },
-    "src/main/supporter.js": {
-      "state": "pending",
-      "allow": []
-    },
     "src/main/sync.js": {
       "state": "pending",
       "allow": []

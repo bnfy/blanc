@@ -130,14 +130,14 @@
       "code": ["src/main/network-privacy.js", "src/main/settings.js"]
     },
     {
-      "id": "supporter-activation",
+      "id": "patron-license",
       "surface": "desktop",
-      "trigger": "user submits a supporter license",
+      "trigger": "user submits a Patron or Supporter license key; while a subscription license is active, a validation at startup and at most once a day",
       "default": "off",
       "recipient": "Polar",
-      "data": ["license key", "public organization ID", "Blanc desktop label", "ordinary network metadata"],
-      "retentionByBlanc": "local activation record trusted offline",
-      "code": ["src/main/supporter.js"]
+      "data": ["license key", "public organization ID", "Blanc label on activation", "activation ID on validation", "ordinary network metadata"],
+      "retentionByBlanc": "local Patron record (license key, activation and benefit IDs, timestamps, last validation status); founding Supporter licenses are trusted offline",
+      "code": ["src/main/patron.js", "src/main/main.js"]
     },
     {
       "id": "tab-import-local-ipc",

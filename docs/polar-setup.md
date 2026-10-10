@@ -1,7 +1,7 @@
 # Polar setup — Blanc Supporter (done; kept as a rotation runbook)
 
 **Status: complete.** The production organization id is hardcoded in
-`POLAR_ORGANIZATION_ID` in `src/main/supporter.js`, and the live hosted
+`PRODUCTION_ORG_ID` in `src/main/patron.js`, and the live hosted
 checkout URL is in the "become a supporter" links in
 `site/src/pages/index.astro` and `site/src/pages/about.astro`. The steps
 below describe how it was set up — useful again only if the org, product,
@@ -15,9 +15,9 @@ or checkout URL ever changes.
    Do the same in the sandbox dashboard (https://sandbox.polar.sh) with a
    test product for dev testing.
 3. Copy the organization id (Settings → General in the Polar dashboard)
-   into `POLAR_ORGANIZATION_ID` in `src/main/supporter.js`. Note the
-   sandbox org has its own id — for dev testing, temporarily use the
-   sandbox org id (dev builds already point at sandbox-api.polar.sh).
+   into `PRODUCTION_ORG_ID` in `src/main/patron.js`. The sandbox org has
+   its own id, kept in `SANDBOX_ORG_ID`; dev builds use it and
+   sandbox-api.polar.sh automatically.
 4. Put the hosted checkout URL into the "become a supporter" links
    (`site/src/pages/index.astro`, `site/src/pages/about.astro`).
 5. Test end-to-end in dev: buy the sandbox product with Polar's test
