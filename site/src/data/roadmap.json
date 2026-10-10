@@ -1,0 +1,60 @@
+{
+  "updated": "2026-10-10",
+  "stages": [
+    { "id": "now", "label": "Now", "summary": "In the works" },
+    { "id": "next", "label": "Next", "summary": "On the horizon" },
+    { "id": "later", "label": "Later", "summary": "Further out" }
+  ],
+  "items": [
+    {
+      "id": "interface-languages",
+      "stage": "now",
+      "product": "Blanc Browser",
+      "title": "Blanc in your language",
+      "line": "Choose the language of Blanc’s menus and settings. German comes first."
+    },
+    {
+      "id": "1password-windows-linux",
+      "stage": "now",
+      "product": "Blanc Browser",
+      "title": "1Password fill on Windows and Linux",
+      "line": "Built, and now being tested on real PCs before it ships."
+    },
+    {
+      "id": "blanc-mail",
+      "stage": "now",
+      "product": "Blanc Mail",
+      "title": "Blanc Mail for Mac",
+      "line": "A native Gmail app from the makers of Blanc.",
+      "link": { "href": "/mail", "label": "Join the waitlist" }
+    },
+    {
+      "id": "crash-reports",
+      "stage": "next",
+      "product": "Blanc Browser",
+      "title": "Opt-in crash reports",
+      "line": "Help us fix bugs faster, only if you turn it on. Reports never include the pages you visit."
+    },
+    {
+      "id": "iphone",
+      "stage": "later",
+      "product": "Mobile",
+      "title": "Blanc on iPhone",
+      "line": "An early version runs in development. It isn’t ready for testers yet."
+    },
+    {
+      "id": "page-translation",
+      "stage": "later",
+      "product": "Blanc Browser",
+      "title": "Translate pages on your computer",
+      "line": "Paused until a fast enough on-device translation engine is available."
+    },
+    {
+      "id": "bitwarden",
+      "stage": "later",
+      "product": "Blanc Browser",
+      "title": "Bitwarden login fill",
+      "line": "Depends on Bitwarden offering a secure way for Blanc to connect."
+    }
+  ]
+}
