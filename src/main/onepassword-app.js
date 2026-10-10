@@ -1,13 +1,23 @@
 'use strict';
 
+const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+
+// 1Password's MSIX package (its MSIX installer and Microsoft Store listing)
+// installs under WindowsApps, which users can't list and whose folder name
+// carries the version. Its fixed handle is the per-package app execution
+// alias. The publisher-id suffix has changed between 1Password releases, so
+// any Agilebits.1Password package counts (#701).
+const MSIX_ALIAS_FOLDER = /^Agilebits\.1Password_[0-9a-z]{13}$/i;
 
 // Where the 1Password desktop app installs on each supported platform. This
 // only drives Settings' soft "installed" hint and its Open 1Password button:
 // Verify (an authenticated SDK call) stays the authoritative check, so a
 // missed custom install location degrades to a hint, never a broken fill.
-function onePasswordAppCandidates({ platform = process.platform, env = process.env } = {}) {
+function onePasswordAppCandidates({
+  platform = process.platform, env = process.env, listDir = () => [],
+} = {}) {
   if (platform === 'darwin') return ['/Applications/1Password.app'];
   if (platform === 'win32') {
     const roots = [
@@ -15,7 +25,20 @@ function onePasswordAppCandidates({ platform = process.platform, env = process.e
       env.ProgramFiles,
       env['ProgramFiles(x86)'],
     ].filter((root) => typeof root === 'string' && path.win32.isAbsolute(root));
-    return roots.map((root) => path.win32.join(root, '1Password', 'app', '8', '1Password.exe'));
+    const candidates = roots.map((root) => path.win32.join(root, '1Password', 'app', '8', '1Password.exe'));
+    if (typeof env.LOCALAPPDATA === 'string' && path.win32.isAbsolute(env.LOCALAPPDATA)) {
+      const aliases = path.win32.join(env.LOCALAPPDATA, 'Microsoft', 'WindowsApps');
+      let names = [];
+      try {
+        names = listDir(aliases);
+      } catch {
+        // An unreadable alias folder adds nothing.
+      }
+      for (const name of names) {
+        if (MSIX_ALIAS_FOLDER.test(name)) candidates.push(path.win32.join(aliases, name, '1Password.exe'));
+      }
+    }
+    return candidates;
   }
   // The deb, rpm and tarball installs. The Snap is deliberately absent: pinned
   // SDK 0.5.0 cannot load 1Password's IPC library from it, so reporting it as
@@ -24,8 +47,17 @@ function onePasswordAppCandidates({ platform = process.platform, env = process.e
   return [];
 }
 
-function findOnePasswordApp({ platform, env, exists } = {}) {
-  for (const candidate of onePasswordAppCandidates({ platform, env })) {
+// lstat, not fs.existsSync: on Windows existsSync also stats through reparse
+// points, and an app execution alias refuses that open
+// (ERROR_CANT_ACCESS_FILE), so the MSIX alias would read as missing.
+function pathExists(candidate) {
+  return fs.lstatSync(candidate, { throwIfNoEntry: false }) !== undefined;
+}
+
+function findOnePasswordApp({
+  platform, env, exists = pathExists, listDir = fs.readdirSync,
+} = {}) {
+  for (const candidate of onePasswordAppCandidates({ platform, env, listDir })) {
     try {
       if (exists(candidate)) return candidate;
     } catch {
@@ -84,6 +116,7 @@ function openOnePasswordApp({
 module.exports = {
   onePasswordAppCandidates,
   findOnePasswordApp,
+  pathExists,
   launchEnvironment,
   openOnePasswordApp,
 };
