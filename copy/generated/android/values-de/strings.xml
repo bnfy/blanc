@@ -35,6 +35,7 @@
     <string name="settings_language_system">System (%1$s)</string>
     <string name="settings_language_relaunch">Zum Übernehmen neu starten</string>
     <string name="key_ctrl">Strg</string>
+    <string name="key_shift">Umschalt</string>
     <string name="app_title">Blanc</string>
     <string name="menu_main_title">Hauptmenü (Alt+F)</string>
     <string name="menu_main_label">Hauptmenü</string>
@@ -50,7 +51,7 @@
     <string name="pill_private_title">Privaten Modus verlassen – schließt diesen Tab</string>
     <string name="pill_source_chip">quelltext</string>
     <string name="pill_source_title">Quelltextansicht dieser Seite schließen</string>
-    <string name="pill_fill_hint">Anmeldedaten aus 1Password ausfüllen (⌥⌘P)</string>
+    <string name="pill_fill_hint">Anmeldedaten aus 1Password ausfüllen (%1$s)</string>
     <string name="pill_back">Zurück</string>
     <string name="pill_forward">Vorwärts</string>
     <string name="pill_new_tab_title">Neuer Tab (%1$s)</string>

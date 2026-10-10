@@ -16,6 +16,10 @@ class OnePasswordError extends Error {
 function brokerEnvironment(source = process.env) {
   const allowed = [
     'HOME', 'USERPROFILE', 'SystemRoot', 'WINDIR', 'PATH',
+    // Windows per-user and machine locations 1Password's native IPC library
+    // may resolve its app data and endpoints from.
+    'LOCALAPPDATA', 'APPDATA', 'ProgramData', 'ProgramFiles', 'ProgramFiles(x86)',
+    'SystemDrive', 'USERNAME', 'USERDOMAIN',
     'TMPDIR', 'TMP', 'TEMP',
     'XDG_RUNTIME_DIR', 'XDG_DATA_HOME', 'XDG_CONFIG_HOME',
     'DISPLAY', 'WAYLAND_DISPLAY', 'DBUS_SESSION_BUS_ADDRESS',

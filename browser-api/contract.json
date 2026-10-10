@@ -2363,7 +2363,9 @@
       "returns": "FillLoginSuccess | FillLoginFailure | false",
       "doc": "Fill a login from 1Password (explicit invoke only). Resolves to false when the broker is unavailable.",
       "platforms": [
-        "darwin"
+        "darwin",
+        "win32",
+        "linux"
       ]
     },
     {

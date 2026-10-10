@@ -613,6 +613,24 @@
         }
       }
     },
+    "key.shift": {
+      "comment": "Name of the Shift key in shortcut hints on Windows and Linux (German keyboards print Umschalt).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shift"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Umschalt"
+          }
+        }
+      }
+    },
     "app.title": {
       "comment": "Window title of the browser chrome.",
       "extractionState": "manual",
@@ -884,19 +902,19 @@
       }
     },
     "pill.fillHint": {
-      "comment": "Tooltip and accessible name of the macOS-only 1Password fill chip.",
+      "comment": "Tooltip and accessible name of the 1Password fill chip; {shortcut} is ⌥⌘P on macOS or Ctrl+Shift+P on Windows and Linux.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fill login from 1Password (⌥⌘P)"
+            "value": "Fill login from 1Password (%1$@)"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Anmeldedaten aus 1Password ausfüllen (⌥⌘P)"
+            "value": "Anmeldedaten aus 1Password ausfüllen (%1$@)"
           }
         }
       }

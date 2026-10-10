@@ -3697,7 +3697,9 @@
     "fillLoginFromOnePassword": {
       "kind": "invoke",
       "platforms": [
-        "darwin"
+        "darwin",
+        "win32",
+        "linux"
       ],
       "channel": "chrome:onepassword-fill",
       "calls": [

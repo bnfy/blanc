@@ -194,9 +194,9 @@ test('Windows releases fail closed and carry a verified signature attestation', 
   assert.match(releaseWorkflow, /actions\/upload-artifact@[0-9a-f]{40}/);
   assert.match(releaseWorkflow, /retention-days: 3/);
   assert.equal(
-    (releaseWorkflow.match(/Verify 1Password macOS-only boundary/g) ?? []).length,
+    (releaseWorkflow.match(/Verify 1Password broker loads the pinned SDK/g) ?? []).length,
     2,
-    'Windows and Linux native candidates must prove the 1Password broker is unavailable'
+    'Windows and Linux native candidates must prove the 1Password broker loads the pinned SDK'
   );
   assert.match(releaseWorkflow, /run: npm run test:onepassword:utility/);
   assert.match(releaseWorkflow, /run: xvfb-run -a npm run test:onepassword:utility/);
