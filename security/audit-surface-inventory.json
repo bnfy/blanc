@@ -147,7 +147,7 @@
     },
     {
       "file": "src/main/credential-fill-controller.js",
-      "sha256": "ee66d05296580924f3c6ea86fd96d7622571a05aa4907e823942a3bfac111cfb",
+      "sha256": "9de2d93f829cd112a8cd82dedc08b627ca73bed86e54325711ae8c1c1ebc1914",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },

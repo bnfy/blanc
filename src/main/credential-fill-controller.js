@@ -11,9 +11,14 @@ const {
   parseWebUrl,
 } = require('./onepassword-policy');
 const { kindForErrorCode } = require('./fill-status-kinds');
-const { pickCredential } = require('./credential-picker');
+const { pickCredential, PICKER_FOCUS_LOST } = require('./credential-picker');
 
 const nextTurn = () => new Promise((resolve) => setImmediate(resolve));
+
+// A picker closed by focus loss reopens when Blanc has focus again (#693):
+// within this wait, and at most this many times per fill.
+const REFOCUS_WAIT_MS = 2 * 60 * 1000;
+const MAX_PICKER_REOPENS = 3;
 
 /** Every message kind this controller can emit through notify()/confirm().
  * The kind-registry test walks this list, so a new emission without copy
@@ -54,8 +59,29 @@ function createCredentialFillController({
   notify,
   confirm,
   toWindowPoint,
+  refocusWaitMs = REFOCUS_WAIT_MS,
 } = {}) {
   let activeFlow = false;
+  let waitingFill = null; // { webContents, resume } while a picker waits for focus
+
+  /** Resolves true once the target's window has focus (at once if it
+   * already does), false if it doesn't regain it within refocusWaitMs. */
+  const waitForWindowFocus = (target) => new Promise((resolve) => {
+    const { window } = target;
+    if (!window || window.isDestroyed?.()) { resolve(false); return; }
+    if (window.isFocused()) { resolve(true); return; }
+    let timer = null;
+    const finish = (focused) => {
+      clearTimeout(timer);
+      window.removeListener('focus', onFocus);
+      waitingFill = null;
+      resolve(focused);
+    };
+    const onFocus = () => finish(true);
+    window.once('focus', onFocus);
+    timer = setTimeout(() => finish(false), refocusWaitMs);
+    waitingFill = { webContents: target.webContents, resume: () => finish(true) };
+  });
 
   /** A rejected await can land AFTER a surface change or navigation — the
    * broker error must never surface under the successor surface or page.
@@ -97,6 +123,12 @@ function createCredentialFillController({
     const initial = captureTarget(runtime);
     if (!initial) return { ok: false, reason: 'no-active-page' };
     if (activeFlow) {
+      // The shortcut pressed again on the page whose fill waits for focus
+      // resumes it; any other page gets the busy notice.
+      if (waitingFill?.webContents === initial.webContents) {
+        waitingFill.resume();
+        return { ok: false, reason: 'resumed' };
+      }
       await notify(initial, 'busy');
       return { ok: false, reason: 'busy' };
     }
@@ -190,33 +222,42 @@ function createCredentialFillController({
           vaultName: candidate.vaultName,
           username: candidate.username,
         }));
-        // Geometry has exactly one channel: a live read immediately before
-        // the popup — the broker await above can sit in DesktopAuth for many
-        // seconds, during which the user may scroll or reflow the page.
-        let anchor = initial.pickerPoint ?? { x: 16, y: 68 };
-        let geo = null;
-        try {
-          geo = await initial.webContents.executeJavaScriptInIsolatedWorld(
-            FILL_WORLD_ID,
-            [{ code: buildFieldRectScript({
-              expectedURL: initial.url,
-              expectedTimeOrigin: probe.timeOrigin,
-              nonce,
-            }) }]
-          );
-        } catch { /* anchor falls back to the island pill — flow unaffected */ }
-        // The geometry read is a new await: a navigation or successor
-        // surface can land inside it. Re-check before converting or popping,
-        // preserving the silent-vs-page-changed classification — never pop a
-        // picker over content the user has left.
-        if (!await focusAndCheck(initial)) {
-          await currentOrExplain(initial);
-          return { ok: false, reason: 'page-changed' };
+        for (let reopens = 0; ; reopens += 1) {
+          // Geometry has exactly one channel: a live read immediately before
+          // the popup — the broker await above can sit in DesktopAuth for many
+          // seconds, during which the user may scroll or reflow the page.
+          let anchor = initial.pickerPoint ?? { x: 16, y: 68 };
+          let geo = null;
+          try {
+            geo = await initial.webContents.executeJavaScriptInIsolatedWorld(
+              FILL_WORLD_ID,
+              [{ code: buildFieldRectScript({
+                expectedURL: initial.url,
+                expectedTimeOrigin: probe.timeOrigin,
+                nonce,
+              }) }]
+            );
+          } catch { /* anchor falls back to the island pill — flow unaffected */ }
+          // The geometry read is a new await: a navigation or successor
+          // surface can land inside it. Re-check before converting or popping,
+          // preserving the silent-vs-page-changed classification — never pop a
+          // picker over content the user has left.
+          if (!await focusAndCheck(initial)) {
+            await currentOrExplain(initial);
+            return { ok: false, reason: 'page-changed' };
+          }
+          if (geo?.ok) anchor = toWindowPoint?.(initial, geo.rect) ?? anchor;
+          selectedIndex = await pickCredential({
+            Menu, window: initial.window, rows, point: anchor,
+          });
+          if (selectedIndex !== PICKER_FOCUS_LOST) break;
+          // Another app took focus and closed the menu — on Linux, 1Password's
+          // approval dialog closing right after the picker opened (#693).
+          // Reopen at the field's then-current position once Blanc has focus.
+          if (reopens >= MAX_PICKER_REOPENS || !await waitForWindowFocus(initial)) {
+            return { ok: false, reason: 'cancelled' };
+          }
         }
-        if (geo?.ok) anchor = toWindowPoint?.(initial, geo.rect) ?? anchor;
-        selectedIndex = await pickCredential({
-          Menu, window: initial.window, rows, point: anchor,
-        });
         if (!isValidPickIndex(selectedIndex, candidates.length)) selectedIndex = null;
         if (selectedIndex === null) return { ok: false, reason: 'cancelled' };
         if (!await focusAndCheck(initial)) {
