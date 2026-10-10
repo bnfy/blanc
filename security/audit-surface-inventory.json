@@ -220,7 +220,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "ecd2ba0fbd8cedd16fa28c72727f73faddb6ceeaa56a209c39402c268b28ba5e",
+      "sha256": "62eebe6fb8fba88c990b4891b0b1ec9ab65cf30bd6c52bbad8dd2cbfd9d20ef1",
       "literalChannels": [
         "activate",
         "before-input-event",
@@ -374,7 +374,7 @@
     },
     {
       "file": "src/main/onepassword-app.js",
-      "sha256": "b9b44266ece513e0ca0bd87c7bf8eb5083a7eb30cdcfbc1fee2a5152a984b4bc",
+      "sha256": "f0fb209a71887df5aa55b9c2970ab77074c83acd400a350a43432536d9caae0d",
       "literalChannels": [
         "error"
       ],
