@@ -1,5 +1,5 @@
 {
-  "$note": "Every desktop file with user-visible strings. 'pending' files are not yet extracted; 'guarded' files fail copy:check on hard-coded English and unknown keys, and their surfaces join the pseudo-locale sweep (npm run test:i18n:desktop). German stays hidden until every file is guarded. 'allow' lists reviewed literals that are not user-facing English (symbols, brand-only text), each with a reason in the commit that adds it.",
+  "$note": "Every desktop file with user-visible strings. 'pending' files are not yet extracted; 'guarded' files fail copy:check on hard-coded English and unknown keys, and their surfaces join the pseudo-locale sweep (npm run test:i18n:desktop). German stays hidden until every file is guarded. 'allow' lists reviewed literals that are not user-facing English (symbols, brand-only text), each with a reason in the commit that adds it. Out of scope by design: the display-capture helper documents (display-capture-helper*.html/js) load in a never-shown BrowserWindow (show: false); their strings are internal signals and DOMException messages returned to web pages, which stay English like Chromium's own API errors.",
   "files": {
     "src/renderer/index.html": {
       "state": "guarded",
@@ -30,32 +30,29 @@
       "allow": []
     },
     "src/renderer/permission.html": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/renderer/permission.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/renderer/fill-status.html": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/renderer/fill-status.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/renderer/fill-status-copy.js": {
-      "state": "pending",
-      "allow": []
-    },
-    "src/renderer/display-capture-helper.html": {
-      "state": "pending",
-      "allow": []
-    },
-    "src/renderer/display-capture-helper.js": {
-      "state": "pending",
-      "allow": []
+      "state": "guarded",
+      "allow": [
+        "fill.${id}.title",
+        "fill.${id}.body",
+        "fill.${id}.primaryLabel",
+        "fill.${id}.cancelLabel"
+      ]
     },
     "src/renderer/pages/settings.html": {
       "state": "pending",

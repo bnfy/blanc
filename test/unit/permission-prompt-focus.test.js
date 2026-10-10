@@ -24,6 +24,9 @@ function fakeElement(id) {
     focusCalls: 0,
     focus() { this.focusCalls += 1; },
     toggleAttribute(name, force) { if (name === 'hidden') this.hidden = !!force; },
+    dataset: {},
+    // The prompt sentence is built from text nodes plus a host element (F44).
+    replaceChildren(...nodes) { this.textContent = nodes.map((node) => node.textContent ?? node.data).join(''); },
     addEventListener(type, fn) {
       if (!listeners.has(type)) listeners.set(type, []);
       listeners.get(type).push(fn);
@@ -42,6 +45,8 @@ function loadPromptDocument() {
   const elements = Object.fromEntries(ids.map((id) => [id, fakeElement(id)]));
   const document = fakeElement('document');
   document.getElementById = (id) => elements[id] ?? null;
+  document.createTextNode = (data) => ({ data });
+  document.createElement = (tag) => fakeElement(tag);
   const answers = [];
   let deliver = null;
   const window = {
@@ -50,7 +55,12 @@ function loadPromptDocument() {
       onPermissionPrompt: (callback) => { deliver = callback; },
     },
   };
-  vm.runInNewContext(promptSource, { document, window, URL });
+  // The prompt's text comes from the interface catalog, as every chrome
+  // document loads it (strings.js + i18n.js); English here.
+  const { createTranslator } = require('../../src/renderer/pages/i18n.js');
+  const strings = require('../../src/renderer/pages/strings.en.js');
+  const t = createTranslator({ locale: 'en', messages: strings.messages });
+  vm.runInNewContext(promptSource, { document, window, URL, blancI18n: { t, parts: t.parts } });
   assert.ok(deliver, 'permission.js did not subscribe to prompts');
   return { elements, document, answers, deliver };
 }

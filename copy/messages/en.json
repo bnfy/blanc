@@ -526,5 +526,249 @@
     "message": "tabs",
     "note": "Lowercase heading of the rail section holding ungrouped tabs.",
     "maxLength": 10
+  },
+  "permission.surfaceTitle": {
+    "message": "Permission",
+    "note": "Title of the hidden document that hosts site permission prompts."
+  },
+  "permission.label": {
+    "message": "Site permission request",
+    "note": "Accessible name of the permission prompt bar."
+  },
+  "permission.allow": {
+    "message": "Allow",
+    "note": "Button that grants the site's permission request.",
+    "maxLength": 12
+  },
+  "permission.block": {
+    "message": "Block",
+    "note": "Button that denies the site's permission request.",
+    "maxLength": 12
+  },
+  "permission.prompt.cameraMicrophone": {
+    "message": "<0>{host}</0> wants to use your camera and microphone",
+    "note": "Permission prompt; <0>{host}</0> is the requesting site's host, possibly shortened from the start."
+  },
+  "permission.prompt.camera": {
+    "message": "<0>{host}</0> wants to use your camera",
+    "note": "Permission prompt; <0>{host}</0> is the requesting site's host."
+  },
+  "permission.prompt.microphone": {
+    "message": "<0>{host}</0> wants to use your microphone",
+    "note": "Permission prompt; <0>{host}</0> is the requesting site's host."
+  },
+  "permission.prompt.geolocation": {
+    "message": "<0>{host}</0> wants to know your location",
+    "note": "Permission prompt; <0>{host}</0> is the requesting site's host."
+  },
+  "permission.prompt.notifications": {
+    "message": "<0>{host}</0> wants to show notifications",
+    "note": "Permission prompt; <0>{host}</0> is the requesting site's host."
+  },
+  "permission.prompt.other": {
+    "message": "<0>{host}</0> wants to use “{permission}”",
+    "note": "Permission prompt for another permission; {permission} is Chromium's permission name."
+  },
+  "fill.surfaceTitle": {
+    "message": "Fill status",
+    "note": "Title of the hidden document that hosts the 1Password fill capsule."
+  },
+  "fill.dismiss": {
+    "message": "Dismiss",
+    "note": "Accessible name of the fill notice's close button."
+  },
+  "dialog.ok": {
+    "message": "OK",
+    "note": "Single button of an informational native dialog.",
+    "maxLength": 6
+  },
+  "fill.setupEnable.title": {
+    "message": "Set up 1Password",
+    "note": "Fill capsule title when 1Password fill is turned off in Settings."
+  },
+  "fill.setupEnable.body": {
+    "message": "Turn on “Fill logins from 1Password” in Settings. Blanc only reads a matching login when you ask.",
+    "note": "Fill capsule body; the quoted text is the Settings toggle's label and must match it exactly.",
+    "maxLength": 100
+  },
+  "fill.setupEnable.primaryLabel": {
+    "message": "Open Settings",
+    "note": "Fill capsule button that opens Settings.",
+    "maxLength": 16
+  },
+  "fill.setupEnable.cancelLabel": {
+    "message": "Cancel",
+    "note": "Fill capsule cancel button.",
+    "maxLength": 12
+  },
+  "fill.setupAccount.title": {
+    "message": "Add your 1Password account",
+    "note": "Fill capsule title when no 1Password account email is configured."
+  },
+  "fill.setupAccount.body": {
+    "message": "Add the email address you sign in to 1Password with, in Settings.",
+    "note": "Fill capsule body.",
+    "maxLength": 100
+  },
+  "fill.setupAccount.primaryLabel": {
+    "message": "Open Settings",
+    "note": "Fill capsule button that opens Settings.",
+    "maxLength": 16
+  },
+  "fill.setupAccount.cancelLabel": {
+    "message": "Cancel",
+    "note": "Fill capsule cancel button.",
+    "maxLength": 12
+  },
+  "fill.confirmHeuristic.title": {
+    "message": "Fill this login form?",
+    "note": "Fill capsule question when the page did not clearly mark its password field."
+  },
+  "fill.confirmHeuristic.body": {
+    "message": "This page didn’t clearly mark its password field. Blanc re-checks the exact fields before filling.",
+    "note": "Fill capsule body.",
+    "maxLength": 100
+  },
+  "fill.confirmHeuristic.primaryLabel": {
+    "message": "Fill Login",
+    "note": "Fill capsule button that fills the login.",
+    "maxLength": 18
+  },
+  "fill.confirmHeuristic.cancelLabel": {
+    "message": "Cancel",
+    "note": "Fill capsule cancel button.",
+    "maxLength": 12
+  },
+  "fill.busy.title": {
+    "message": "1Password is already open",
+    "note": "Fill notice title."
+  },
+  "fill.busy.body": {
+    "message": "Finish or cancel the current request first.",
+    "note": "Fill notice body."
+  },
+  "fill.unsupportedPage.title": {
+    "message": "Open a website first",
+    "note": "Fill notice title on a page that is not HTTP or HTTPS."
+  },
+  "fill.unsupportedPage.body": {
+    "message": "1Password fill works on HTTP and HTTPS pages.",
+    "note": "Fill notice body."
+  },
+  "fill.pageChanged.title": {
+    "message": "The page changed",
+    "note": "Fill notice title."
+  },
+  "fill.pageChanged.body": {
+    "message": "Nothing was filled. Return to the login form and try again.",
+    "note": "Fill notice body."
+  },
+  "fill.noForm.title": {
+    "message": "No login form found",
+    "note": "Fill notice title."
+  },
+  "fill.noForm.body": {
+    "message": "Blanc couldn’t find a safe username or password field here.",
+    "note": "Fill notice body."
+  },
+  "fill.noMatch.title": {
+    "message": "No matching login",
+    "note": "Fill notice title."
+  },
+  "fill.noMatch.body": {
+    "message": "1Password has no Login item saved for this site.",
+    "note": "Fill notice body; \"Login item\" is 1Password's item type."
+  },
+  "fill.emptyLogin.title": {
+    "message": "Login has no fillable fields",
+    "note": "Fill notice title."
+  },
+  "fill.emptyLogin.body": {
+    "message": "The selected item has no username or password value.",
+    "note": "Fill notice body."
+  },
+  "fill.nothingFilled.title": {
+    "message": "Nothing was filled",
+    "note": "Fill notice title."
+  },
+  "fill.nothingFilled.body": {
+    "message": "The selected login had no value for the fields Blanc found.",
+    "note": "Fill notice body."
+  },
+  "fill.unexpected.title": {
+    "message": "1Password fill stopped",
+    "note": "Fill notice title."
+  },
+  "fill.unexpected.body": {
+    "message": "Nothing was filled. Try again from the login form.",
+    "note": "Fill notice body."
+  },
+  "fill.desktopUnavailable.title": {
+    "message": "1Password isn’t available",
+    "note": "Fill notice title."
+  },
+  "fill.desktopUnavailable.body": {
+    "message": "Open the 1Password app and turn on Settings → Developer → Integrate with 1Password SDKs.",
+    "note": "Fill notice body; the arrow path names 1Password's own settings, which the user sees in 1Password's language."
+  },
+  "fill.accountNotFound.title": {
+    "message": "Account not found",
+    "note": "Fill notice title."
+  },
+  "fill.accountNotFound.body": {
+    "message": "Check your 1Password email address in Blanc Settings, then try again.",
+    "note": "Fill notice body."
+  },
+  "fill.notAuthorized.title": {
+    "message": "1Password didn’t authorize Blanc",
+    "note": "Fill notice title."
+  },
+  "fill.notAuthorized.body": {
+    "message": "Unlock 1Password and approve Blanc Browser, then try again.",
+    "note": "Fill notice body; \"Blanc Browser\" is the app name 1Password shows in its approval prompt."
+  },
+  "fill.sessionExpired.title": {
+    "message": "Authorization expired",
+    "note": "Fill notice title."
+  },
+  "fill.sessionExpired.body": {
+    "message": "Try again to authorize a fresh session.",
+    "note": "Fill notice body."
+  },
+  "fill.timedOut.title": {
+    "message": "1Password timed out",
+    "note": "Fill notice title."
+  },
+  "fill.timedOut.body": {
+    "message": "Nothing was filled. Try again when 1Password is ready.",
+    "note": "Fill notice body."
+  },
+  "fill.brokerStopped.title": {
+    "message": "1Password helper stopped",
+    "note": "Fill notice title."
+  },
+  "fill.brokerStopped.body": {
+    "message": "Nothing was filled. Try again.",
+    "note": "Fill notice body."
+  },
+  "fill.sdkError.title": {
+    "message": "1Password couldn’t finish",
+    "note": "Fill notice title."
+  },
+  "fill.sdkError.body": {
+    "message": "Nothing was filled. Check 1Password and try again.",
+    "note": "Fill notice body."
+  },
+  "fill.selectionChanged.title": {
+    "message": "Login changed",
+    "note": "Fill notice title."
+  },
+  "fill.selectionChanged.body": {
+    "message": "The item changed while the list was open. Nothing was filled.",
+    "note": "Fill notice body."
+  },
+  "fill.filled.title": {
+    "message": "Filled from 1Password",
+    "note": "Fill success confirmation (title only)."
   }
 }

@@ -5,11 +5,11 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self'; img-src 'self' data: blanc:;" />
   <script src="strings.js"></script>
   <script src="i18n.js"></script>
-  <title>Permission</title>
+  <title data-i18n="permission.surfaceTitle">Permission</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body class="permission-surface">
-  <div id="permissionBar" class="no-drag" role="group" aria-label="Site permission request" aria-describedby="permissionText" hidden>
+  <div id="permissionBar" class="no-drag" role="group" aria-label="Site permission request" data-i18n-aria-label="permission.label" aria-describedby="permissionText" hidden>
     <span id="permissionGlyphs" aria-hidden="true" hidden>
       <svg id="permGlyphMic" viewBox="0 0 16 16" hidden>
         <rect x="6" y="2.2" width="4" height="7" rx="2"/>
@@ -21,8 +21,8 @@
       </svg>
     </span>
     <span id="permissionText"></span>
-    <button id="permAllowBtn">Allow</button>
-    <button id="permBlockBtn">Block</button>
+    <button id="permAllowBtn" data-i18n="permission.allow">Allow</button>
+    <button id="permBlockBtn" data-i18n="permission.block">Block</button>
   </div>
   <script src="permission.js"></script>
 </body>
