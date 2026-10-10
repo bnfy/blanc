@@ -184,6 +184,15 @@ opened by `bnfy` at 18:15:38 UTC. It includes the broken header, browser parsing
 error, reproduction and control results, and troubleshooting text recorded here.
 The issue was open when checked; no upstream fix or release is claimed.
 
+On October 10, 2026, the issue was closed as completed (18:23:35 UTC). The fix
+is [gorhill/uBlock@bb2e13b](https://github.com/gorhill/uBlock/commit/bb2e13b3c67feb7f04c5d680fb10d1e114c1bf8c)
+(17:50:25 UTC, "Fix parsing of`permissions` filter option"), which changes the
+`src/js/traffic.js` line quoted above to `directive.value.replaceAll('|', ', ')`.
+GitHub's compare API reported that commit as contained in the `1.75.1b9` tag, a
+beta build; no stable release containing it was checked. The bundled uBO 1.75.0
+predates the fix, and Blanc's host adaptation already applies the same
+`replaceAll` change (`ublock/adaptation.patch`, marked `// Blanc:`).
+
 When updating the bundled uBO to an official release containing an equivalent
 fix, re-run the stock-browser reproduction and Blanc's Permissions-Policy
 regression before removing the corresponding host-adaptation patch. An issue
