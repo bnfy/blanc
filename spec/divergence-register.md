@@ -609,8 +609,8 @@ remains `@D12`.
 
 **Status:** macOS-only first release accepted by the product owner 2026-08-24;
 the signed macOS live matrix is complete. Windows and Linux enabled on
-2026-10-10 at the owner's request; their real-account matrix on physical
-machines is pending (`docs/1password-integration.md`).
+2026-10-10 at the owner's request; their real-account matrix (physical
+machines or VMs) is pending (`docs/1password-integration.md`).
 
 ## D27 — Interface-language picker location
 **Features:** F44
