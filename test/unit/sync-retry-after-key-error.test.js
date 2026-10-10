@@ -56,12 +56,14 @@ fs.writeFileSync(path.join(tmp, 'sync.json'), JSON.stringify({
 }));
 
 const sync = require('../../src/main/sync');
+const { englishT: t } = require('../support/english-t');
+const { syncErrorText } = require('../../src/main/sync-messages');
 sync.setTabStateReady(true);
 
 test('credential failures release the sync guard so later passes can retry', async () => {
   const unlockFailure = await sync.syncNow(['icons']);
   assert.equal(unlockFailure.ok, false);
-  assert.match(unlockFailure.message, /unlock|decrypt|credential/i);
+  assert.match(syncErrorText(unlockFailure.error, t), /unlock|decrypt|credential/i);
 
   const recovered = await sync.syncNow(['icons']);
   assert.equal(recovered.ok, true);

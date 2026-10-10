@@ -187,6 +187,11 @@ const NATIVE_DIALOG_SURFACES = [
     await page.waitForFunction(() => window.bowserPages?.diagnostics);
     await page.evaluate(() => { window.bowserPages.diagnostics.export(); });
   }),
+  // A development build cannot update, so a check says so in a dialog.
+  dialogSurface('update check dialog', ['src/main/updater.js'], async ({ app }) => {
+    const page = await findPage(app, 'blanc://settings', 'settings sheet');
+    await page.evaluate(() => { window.bowserPages.settings.checkForUpdates(); });
+  }),
 ];
 
 // The workspace switcher, driven by its buttons' language-independent focus

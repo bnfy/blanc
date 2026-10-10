@@ -220,7 +220,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "a043ccae845819189e64164de8a11c2bfe2e6f7362fdf13e320e12184fce1058",
+      "sha256": "8f2213f36b418c050b70ffcf768d2c8cb589365d35076522f1945854701f4b10",
       "literalChannels": [
         "activate",
         "before-input-event",
@@ -416,7 +416,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "5ffc5c04935d3cd75646a7d30fe26ef487c44555e80d66369e5cc3dab6d5f0f2",
+      "sha256": "02ccbe9c7f80f03c5a17757659b82420598f354f829343e2bbef3f6b15efcffa",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -705,13 +705,13 @@
     },
     {
       "file": "src/main/sync-key-storage.js",
-      "sha256": "91c67e66b1ffca614013e3ea53ae898113cb53fc1063c88f62c4c8ddcfc5f148",
+      "sha256": "9e4f99c2eabe2ed60f4597f5f220ca386d54519e76cdb808571e01fa12c6d27f",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
     {
       "file": "src/main/sync.js",
-      "sha256": "bfbd535c13e79ac75efa1b6fc64dee073118cadb9400d6927e90607cfe353472",
+      "sha256": "d8f5ab3be9384db75b90dbe3c042930ae4b100cd89101edcc79c0777df53b571",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -891,7 +891,7 @@
     },
     {
       "file": "src/main/updater.js",
-      "sha256": "c5b0c2cd43642dd76a49f76a1b91796e7db854bf01e78205db319dfe1096b49d",
+      "sha256": "4512ff51ed0be90ddff2ae13e1912e41fc57d197a873ed7735bc7aa275e2341e",
       "literalChannels": [
         "browser-window-focus",
         "checking-for-update",

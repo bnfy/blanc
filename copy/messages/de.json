@@ -1926,7 +1926,7 @@
     "source": "sha256:2fa83a65477d6631782263baa6584c41ebe34349dd9397cfcd68ea8aeb7faa56"
   },
   "shield.provider.starting": {
-    "message": "{provider} startet …",
+    "message": "{provider} startet…",
     "source": "sha256:ab3de231ff142f6eec452edddf26e8fc49d3ab7ce506d21fb62271fff0c9a767"
   },
   "shield.provider.protecting": {
@@ -2116,5 +2116,221 @@
   "linuxSandbox.copied.detail": {
     "message": "Füge ihn in einem anderen Browser ein und wähle dann „Beenden“.",
     "source": "sha256:cbc5cba06970f39df11ec842d13ffcac2b2b3cefc30c0c05274895ec4da6f27d"
+  },
+  "menu.checkForUpdates": {
+    "message": "Nach Updates suchen…",
+    "source": "sha256:496c6580318e78038859f7be054113a4c02d67c3e8a6ba8fe0e0596e6ca2d96b"
+  },
+  "update.stalled.message": {
+    "message": "Download des Updates hängt",
+    "source": "sha256:fccab6c32a2e34636967513e8c3690a83d5eece75d630d69740d183d3f2fade5"
+  },
+  "update.stalled.detail": {
+    "message": "Der Download des Updates kommt nicht mehr voran. Versuche es erneut mit „{command}“ oder installiere Blanc neu von blancbrowser.com.",
+    "source": "sha256:7c354ceda8bcb469f50a2fd1fb2c6b28942e655f78d737dd50ba4e7bef8562ae"
+  },
+  "update.ready.message": {
+    "message": "Update {version} heruntergeladen",
+    "source": "sha256:ab21e1274c9379cd1fa2b2f252ace459d320fe3c1803ffef31ecde1b14609990"
+  },
+  "update.ready.detail": {
+    "message": "Starte neu, um es anzuwenden. Blanc öffnet sich wieder, sobald die Installation abgeschlossen ist.",
+    "source": "sha256:35a54283ab5d231f0a54c9d3ff4f97332c983f264db66382231e1e0b5eabf717"
+  },
+  "update.ready.restart": {
+    "message": "Jetzt neu starten",
+    "source": "sha256:f4984f02e9d34a67c2836e9b2b180f42fc45f4eaa07957a1eb0dd765949063a3"
+  },
+  "update.ready.later": {
+    "message": "Später",
+    "source": "sha256:1cfd257f796d332dc0ccc98bd4bb34164e6bac6ec53351be7baf68c6f9ac1d07"
+  },
+  "update.failed.message": {
+    "message": "Download des Updates fehlgeschlagen",
+    "source": "sha256:3c4cc96d0fc1d79ede6a4abdc316746ac203eefffe62dd35ab6385b2753f76a1"
+  },
+  "update.failed.detail": {
+    "message": "{error}\n\nVersuche es erneut mit „{command}“ oder installiere Blanc neu von blancbrowser.com.",
+    "source": "sha256:de76de7decd3768bb43eabde90a24b32a70b0d83925be2d133fc28d3856625ec"
+  },
+  "update.devOnly": {
+    "message": "Updates gibt es nur in installierbaren Builds.",
+    "source": "sha256:42caff29e265491ff98a63ac79b2c83627ae0fc38f879d5abe899dd464b46b45"
+  },
+  "update.flatpak.message": {
+    "message": "Flatpak hält Blanc aktuell",
+    "source": "sha256:d4e25307ed45049e96fb4c7f85ef95f16a7b145ed13e72c4a3a8ae943736568c"
+  },
+  "update.flatpak.detail": {
+    "message": "Aktualisiere Blanc in deinem Software-Center oder führe \"flatpak update\" in einem Terminal aus.",
+    "source": "sha256:ef8e206d469da1c128098ed14fd1794bad223d4b318257c01740e4804759f5b9"
+  },
+  "update.disabled.message": {
+    "message": "Updates sind für diesen Start deaktiviert",
+    "source": "sha256:0d616b6e453cfe65172cd13baf49a943db71a116e7f26cff26e2945ff7a71483"
+  },
+  "update.verifying.message": {
+    "message": "Update wird geprüft",
+    "source": "sha256:9b89646951dd7dc06c271babd2c28a7ddaf6160500e796ac62a42f220350b67f"
+  },
+  "update.verifying.detail": {
+    "message": "Blanc meldet sich, sobald das Update für einen Neustart bereit ist.",
+    "source": "sha256:fb5350499260b39ceaca539e4b1ed3f05e83c606e2e955c834f5e422d9c1c8ac"
+  },
+  "update.current.message": {
+    "message": "Du bist auf dem neuesten Stand",
+    "source": "sha256:2174186aa6a92624ccd4babc168fde5f8a332fb625b5e70848916d9d2ffbf146"
+  },
+  "update.current.detail": {
+    "message": "Blanc {version} ist die neueste Version.",
+    "source": "sha256:ce041ad01dfd6a10a801fdb6b698ba23c8fb67d629136a557e1dca92602020d9"
+  },
+  "update.downloading.message": {
+    "message": "Blanc {version} wird heruntergeladen",
+    "source": "sha256:686accd96e874c40cf447d389da602b7e8e402c918620207cf23d0a885a3f50f"
+  },
+  "update.downloading.detail": {
+    "message": "Das Update wird im Hintergrund heruntergeladen. Blanc meldet sich, sobald es für einen Neustart bereit ist.",
+    "source": "sha256:a30c63e5e9a46a170921c577564306d5c9e87c8800e4104ac20a3a7b97390f3b"
+  },
+  "update.checkFailed.message": {
+    "message": "Suche nach Updates fehlgeschlagen",
+    "source": "sha256:8011d99da7f12059ceabc86e667edd4b42a09ffb55a060c15e36209976cc03a1"
+  },
+  "patron.error.empty": {
+    "message": "Gib einen Lizenzschlüssel ein.",
+    "source": "sha256:8726a0e8cbf8b5296d5ca147c5ba5f89db16a2f41e7a976accc5c1c429d57af5"
+  },
+  "patron.error.tooLong": {
+    "message": "Dieser Schlüssel ist zu lang.",
+    "source": "sha256:956f51ea78829806d781c4b9cc45d0eedf4429d1ebf9e0e64e3971e3890eeb3f"
+  },
+  "patron.error.offline": {
+    "message": "Polar ist nicht erreichbar. Prüfe deine Verbindung und versuche es erneut.",
+    "source": "sha256:ed36527b205d1c05df9cbc2d2957aa9065783e34e93f93586ad59327dc3be2f9"
+  },
+  "patron.error.unavailable": {
+    "message": "Polar antwortet gerade nicht. Versuche es in ein paar Minuten erneut.",
+    "source": "sha256:85bc2968d0fa8cb53b4f3504c2d8b0d5ce6c860be27b256020a8428050911955"
+  },
+  "patron.error.notActivated": {
+    "message": "Dieser Lizenzschlüssel konnte nicht aktiviert werden.",
+    "source": "sha256:f763087c62b3ed2a88351f17caec2d7f0541425f884a1e1a807358620cc28e94"
+  },
+  "patron.error.notRecognized": {
+    "message": "Dieser Lizenzschlüssel wird nicht erkannt.",
+    "source": "sha256:1bc3cc68a258afb6cc1a0b6e100030978991cb3c587084d85b6b62c70260703c"
+  },
+  "patron.error.inactive": {
+    "message": "Dieses Abo ist derzeit nicht aktiv.",
+    "source": "sha256:a754c82f894fa80ba27f4d7f1f32bd39c5156403b328c8c9b13f4c6c26b2cb58"
+  },
+  "patron.error.invalidExpiry": {
+    "message": "Dieses Abo hat ein ungültiges Ablaufdatum.",
+    "source": "sha256:28868718a1f3f8595383f722bb5a723b32c6a2981fa61b98d6b1c483ad36f7c8"
+  },
+  "patron.error.expired": {
+    "message": "Dieses Abo ist abgelaufen.",
+    "source": "sha256:6842ba77eceb4c8fbce2157b63f386f7e221cd28aabb92c26eb3e9f8ef59ab80"
+  },
+  "sync.error.serviceUnavailable": {
+    "message": "Synchronisierung gibt es nur in offiziellen Blanc-Builds.",
+    "source": "sha256:631c03f8cc6578972ce5d515d4126a7d4d2e61c7826d524252093c4467317d9f"
+  },
+  "sync.error.nameTooShort": {
+    "message": "Wähle einen Synchronisierungsnamen (mindestens 2 Zeichen).",
+    "source": "sha256:ce16aa94fde2e2ba5f5a19d493cd99c68362873fb7dd83ffadfca41ed6e1acf4"
+  },
+  "sync.error.weakPassphrase": {
+    "message": "Nutze eine längere Passphrase – 16+ Zeichen oder 10+ mit gemischten Zeichen.",
+    "source": "sha256:5350088efc9d04663b367c8d1e5f35eef105fabe10cf15e67213ac073380cbfa"
+  },
+  "sync.error.keyStore": {
+    "message": "{reason}. Richte den Schlüsselbund bzw. Anmeldedatenspeicher des Systems ein und versuche es erneut.",
+    "source": "sha256:2ad3934b31b0fdb7d2a232c6b496fcd49f44204008a7825cad5fe05aec8ea3b1"
+  },
+  "sync.error.keyProtect": {
+    "message": "Der Synchronisierungsschlüssel konnte nicht geschützt werden.",
+    "source": "sha256:ef53a1d8ee1023e9818ea2688241751481cabc93a71306dd706c5b0063f211ba"
+  },
+  "sync.error.credentialsSave": {
+    "message": "Die geschützten Synchronisierungsdaten konnten nicht gespeichert werden.",
+    "source": "sha256:70e38feb5c2a4ddfb0bc1b5e0762c85cf55a0651dd74ec42600a7d05d21cb918"
+  },
+  "sync.error.badPassphrase": {
+    "message": "Die Passphrase passt nicht zu diesem Synchronisierungskonto.",
+    "source": "sha256:ebbe4c1f297191d43cb8f58784541377d11f4cc09440ae5cb38700185bde8213"
+  },
+  "sync.error.rateLimited": {
+    "message": "Zu viele Synchronisierungsversuche – versuche es in einer Minute erneut.",
+    "source": "sha256:36696c71cccde33bccdec782d619e7ba6bb81b25bfb5acd140773a8174847f12"
+  },
+  "sync.error.conflict": {
+    "message": "Die Synchronisierung wurde wiederholt unterbrochen – versuche es gleich erneut.",
+    "source": "sha256:7b4e1f6e11f44b503ef160b06e25e98548321d073b16c4835154282b84439a07"
+  },
+  "sync.error.server": {
+    "message": "Die Synchronisierung hat eine unerwartete Antwort gesendet – versuche es später erneut.",
+    "source": "sha256:fabd1f3be915e81c23279b539b0d84b89350ecac247d190860e0d4005f479015"
+  },
+  "sync.error.rejected": {
+    "message": "Die Synchronisierung hat die Anfrage abgelehnt (HTTP {status}).",
+    "source": "sha256:c200481e6a74144ca38a6fe3d7398db4ff281af61347209794f244ad4dc1f409"
+  },
+  "sync.error.serverError": {
+    "message": "Serverfehler bei der Synchronisierung – versuche es später erneut.",
+    "source": "sha256:7c6235fb808d4eaeff5024491e634d938196da490fd9aa9571231af9796c8cee"
+  },
+  "sync.error.offline": {
+    "message": "Synchronisierung nicht erreichbar – prüfe deine Verbindung.",
+    "source": "sha256:442ec24d8a7c729d1bc1f24c7f771bdb2e95a758c2e6788f1f0efab17a074eec"
+  },
+  "sync.error.off": {
+    "message": "Die Synchronisierung ist aus.",
+    "source": "sha256:a6b94c2efc548ceae8da66471f7f2a1917d874cf56b34623e92f11790da5323d"
+  },
+  "sync.error.localKeyProtect": {
+    "message": "Der lokale Synchronisierungsschlüssel konnte nicht geschützt werden",
+    "source": "sha256:198194f02697dd740a8180fa7dbf9382b5bb034a8d0af88ef01fc06e1b1b8c51"
+  },
+  "sync.error.localKeyUnlock": {
+    "message": "Der lokale Synchronisierungsschlüssel konnte nicht entsperrt werden",
+    "source": "sha256:5e736a93af1fbb26eee0c1a81c1debf851bf8887f1a47347f530533ee7c779b2"
+  },
+  "sync.error.wipeOffline": {
+    "message": "Synchronisierung nicht erreichbar, um die Serverkopie zu löschen – prüfe deine Verbindung und versuche es erneut.",
+    "source": "sha256:b679e44fcd949bc0263e1b63477a3a4862265a461674cb234d5e1d7c3d159348"
+  },
+  "sync.error.wipeFailed": {
+    "message": "Die Serverkopie konnte nicht gelöscht werden (HTTP {status}) – versuche es später erneut.",
+    "source": "sha256:af6bb2d7bb4e4bdb3a1b0ea65fbb55af4da604a6f570fdcf61b41a33b2ef8de6"
+  },
+  "sync.keyStorage.encryptionUnavailable": {
+    "message": "Die Verschlüsselung für Anmeldedaten des Systems ist nicht verfügbar",
+    "source": "sha256:ef9d25984c0af8c426f715e70ce03e6f40b0f1448e867e8c871c319b0fb3d6a2"
+  },
+  "sync.keyStorage.storeUnavailable": {
+    "message": "Kein sicherer Anmeldedatenspeicher des Systems verfügbar",
+    "source": "sha256:f089d71f4bf165db0401bfec70d76211bb8317497ffb8c8475d4788ebc7a9b1b"
+  },
+  "sync.keyStorage.invalidKey": {
+    "message": "Ungültiger Synchronisierungsschlüssel",
+    "source": "sha256:f3bb805028f71700225cd31bb863fd9ba1b3272fdd6fd83e3fb909c6ef72ecd2"
+  },
+  "sync.keyStorage.encryptionFailed": {
+    "message": "Die Verschlüsselung über das System ist fehlgeschlagen",
+    "source": "sha256:b79515753f65417181675d0948d8ec247b0d3bcfbda3ad50a5a9540aa8445e2c"
+  },
+  "sync.keyStorage.missing": {
+    "message": "Der geschützte Synchronisierungsschlüssel fehlt",
+    "source": "sha256:c5d1367385a56fef116d1b8d9f0ab263157b96f4067dc47e2fb0018cef249427"
+  },
+  "sync.keyStorage.decryptionFailed": {
+    "message": "Die Entschlüsselung über das System ist fehlgeschlagen",
+    "source": "sha256:26c06a1374891a8355328c5e6a478bcebacaa7302391bc818c7b4d71d7c14617"
+  },
+  "sync.keyStorage.persistFailed": {
+    "message": "Der geschützte Synchronisierungsschlüssel konnte nicht gespeichert werden",
+    "source": "sha256:16c95bb2754d9179fa645b19ef25037e46a421731b9bc32c5f50e423039f376a"
   }
 }

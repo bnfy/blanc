@@ -1,3 +1,4 @@
+const { englishT: t } = require('../support/english-t');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { EventEmitter } = require('node:events');
@@ -45,7 +46,7 @@ test.after(() => {
 });
 
 test('a Flatpak launch never checks, and a manual check points to Flatpak', async () => {
-  updater.setupAutoUpdater();
+  updater.setupAutoUpdater({ t });
   await updater.checkForUpdatesManually();
 
   assert.equal(checkCount, 0);

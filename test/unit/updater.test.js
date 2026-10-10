@@ -1,3 +1,4 @@
+const { englishT: t } = require('../support/english-t');
 const hostPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
 Object.defineProperty(process, 'platform', { value: 'darwin' });
 const test = require('node:test');
@@ -88,7 +89,7 @@ test.after(() => {
 });
 
 test('packaged setup pins full downloads, a file logger, and a thirty-minute schedule', async () => {
-  updater.setupAutoUpdater();
+  updater.setupAutoUpdater({ t });
   await new Promise((resolve) => setImmediate(resolve));
 
   assert.equal(autoUpdater.autoDownload, true);

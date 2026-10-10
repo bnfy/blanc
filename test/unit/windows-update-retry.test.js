@@ -1,3 +1,4 @@
+const { englishT } = require('../support/english-t');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -97,7 +98,7 @@ async function fixture(t, { corrupt = false, firstRejection = null } = {}) {
   } });
   delete require.cache[ids[3]];
   const subject = require(ids[3]);
-  subject.setupAutoUpdater();
+  subject.setupAutoUpdater({ t: englishT });
   return { subject, updater, helper, file, bytes, errors, installs, dialogs, gate,
     chooseRestart: () => { choice = 0; }, downloads: () => downloads,
     checks: () => checks, quits: () => quits, signatureChecks: () => signatureChecks };

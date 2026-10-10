@@ -71,18 +71,18 @@ test('notFound: a 404 on the settings blob', async () => {
   assert.deepEqual(await sync.preflight(creds), { ok: true, outcome: 'notFound' });
 });
 
-test('rateLimited, error, and offline map to distinct outcomes with messages', async () => {
+test('rateLimited, error, and offline map to distinct outcomes with error codes', async () => {
   nextResponse = { status: 429, ok: false };
   let res = await sync.preflight(creds);
-  assert.equal(res.ok, false); assert.equal(res.outcome, 'rateLimited'); assert.ok(res.message);
+  assert.equal(res.ok, false); assert.equal(res.outcome, 'rateLimited'); assert.equal(res.error, 'rate-limited');
 
   nextResponse = { status: 500, ok: false };
   res = await sync.preflight(creds);
-  assert.equal(res.ok, false); assert.equal(res.outcome, 'error'); assert.ok(res.message);
+  assert.equal(res.ok, false); assert.equal(res.outcome, 'error'); assert.ok(res.error);
 
   nextResponse = new Error('ENOTFOUND');
   res = await sync.preflight(creds);
-  assert.equal(res.ok, false); assert.equal(res.outcome, 'offline'); assert.ok(res.message);
+  assert.equal(res.ok, false); assert.equal(res.outcome, 'offline'); assert.equal(res.error, 'offline');
 });
 
 test('invalid inputs never reach the network', async () => {
@@ -138,6 +138,6 @@ test('preflight writes nothing on any outcome', async () => {
 test('the settings page can reach preflight only through the guarded channel', () => {
   const pages = fs.readFileSync(path.join(__dirname, '../../src/main/pages.js'), 'utf8');
   const preload = fs.readFileSync(path.join(__dirname, '../../src/main/tab-preload.js'), 'utf8');
-  assert.match(pages, /handle\('pages:settings:sync-preflight', 'settings', \(payload\) => sync\.preflight\(payload \?\? \{\}\)\)/);
+  assert.match(pages, /handle\('pages:settings:sync-preflight', 'settings', async \(payload\) => syncReply\(await sync\.preflight\(payload \?\? \{\}\)\)\)/);
   assert.match(preload, /syncPreflight: \(payload\) => invoke\('pages:settings:sync-preflight', payload\)/);
 });

@@ -198,7 +198,7 @@
       "allow": []
     },
     "src/main/updater.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/main/site-security.js": {
@@ -244,19 +244,25 @@
       "allow": []
     },
     "src/main/patron.js": {
-      "state": "pending",
-      "allow": []
+      "state": "guarded",
+      "allow": [
+        "Blanc"
+      ]
     },
     "src/main/supporter.js": {
       "state": "pending",
       "allow": []
     },
     "src/main/sync.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/main/sync-wipe.js": {
-      "state": "pending",
+      "state": "guarded",
+      "allow": []
+    },
+    "src/main/sync-messages.js": {
+      "state": "guarded",
       "allow": []
     },
     "src/main/tab-view.js": {

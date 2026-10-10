@@ -1,3 +1,4 @@
+const { englishT } = require('../support/english-t');
 const hostPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
 Object.defineProperty(process, 'platform', { value: 'darwin' });
 const assert = require('node:assert/strict');
@@ -65,7 +66,7 @@ test('staging runtime selects the generic feed and records an automated install 
   });
   global.setInterval = () => 1;
 
-  loadUpdater(fake, root).setupAutoUpdater();
+  loadUpdater(fake, root).setupAutoUpdater({ t: englishT });
   assert.deepEqual(fake.feed, {
     provider: 'generic', url: 'http://127.0.0.1:4321/feed/',
     channel: 'staging', useMultipleRangeRequest: false,
