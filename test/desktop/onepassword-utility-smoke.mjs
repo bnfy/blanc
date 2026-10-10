@@ -8,6 +8,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { _electron } from 'playwright';
 import testHookCall from './support/test-hook-call.js';
+import onePasswordAvailability from '../../src/main/onepassword-availability.js';
 
 const { callTestHook } = testHookCall;
 const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-onepassword-utility-'));
@@ -20,7 +21,7 @@ try {
   });
   await electronApp.firstWindow();
   const result = await callTestHook(electronApp, 'probeOnePasswordUtilityProcess');
-  const available = ['darwin', 'win32', 'linux'].includes(process.platform);
+  const available = onePasswordAvailability.isOnePasswordAvailable();
   const expected = available
     ? { loaded: true, processCount: 1 }
     : { available: false, loaded: false, processCount: 0 };

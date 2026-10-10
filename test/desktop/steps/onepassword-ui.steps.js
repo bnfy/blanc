@@ -10,7 +10,7 @@ const assert = require('node:assert/strict');
 const { Given, When, Then } = require('@cucumber/cucumber');
 const ctx = require('../support/context');
 
-const AVAILABLE = ['darwin', 'win32', 'linux'].includes(process.platform);
+const AVAILABLE = require('../../../src/main/onepassword-availability').isOnePasswordAvailable();
 const SUCCESS_DISMISS_MS = 4000; // fill-status.js's timer; waits use +25%
 
 const readCapsule = (world, script) => world.call('readFillStatusDom', script);

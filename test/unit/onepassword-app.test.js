@@ -23,8 +23,9 @@ test('each supported platform has fixed 1Password app locations', () => {
     'C:\\Program Files\\1Password\\app\\8\\1Password.exe',
     'C:\\Program Files (x86)\\1Password\\app\\8\\1Password.exe',
   ]);
+  // The Snap is absent: SDK 0.5.0 cannot load the IPC library from it.
   assert.deepEqual(onePasswordAppCandidates({ platform: 'linux', env: {} }),
-    ['/opt/1Password/1password', '/snap/bin/1password']);
+    ['/opt/1Password/1password']);
   assert.deepEqual(onePasswordAppCandidates({ platform: 'freebsd', env: {} }), []);
 });
 
@@ -38,16 +39,16 @@ test('Windows ignores missing or relative install roots from the environment', (
 test('detection returns the first existing location and treats errors as absent', () => {
   const seen = [];
   const found = findOnePasswordApp({
-    platform: 'linux',
-    env: {},
+    platform: 'win32',
+    env: WINDOWS_ENV,
     exists: (candidate) => {
       seen.push(candidate);
-      if (candidate === '/opt/1Password/1password') throw new Error('EACCES');
-      return candidate === '/snap/bin/1password';
+      if (candidate.startsWith('C:\\Users')) throw new Error('EACCES');
+      return candidate.startsWith('C:\\Program Files\\');
     },
   });
-  assert.equal(found, '/snap/bin/1password');
-  assert.deepEqual(seen, ['/opt/1Password/1password', '/snap/bin/1password']);
+  assert.equal(found, 'C:\\Program Files\\1Password\\app\\8\\1Password.exe');
+  assert.equal(seen.length, 2);
   assert.equal(findOnePasswordApp({ platform: 'linux', env: {}, exists: () => false }), null);
 });
 
@@ -60,13 +61,16 @@ test('Linux starts the detected binary detached with no arguments', () => {
     shell: { openPath: () => assert.fail('xdg-open would not run the binary') },
     spawn: (file, args, options) => { calls.push({ file, args, options }); return child; },
     env: { HOME: '/home/alice', DISPLAY: ':0', LD_LIBRARY_PATH: '/tmp/.mount_Blanc/usr/lib' },
+    cwd: '/home/alice',
   });
   assert.equal(opened, true);
   assert.deepEqual(calls, [
     {
       file: '/opt/1Password/1password',
       args: [],
-      options: { detached: true, stdio: 'ignore', env: { HOME: '/home/alice', DISPLAY: ':0' } },
+      options: {
+        cwd: '/home/alice', detached: true, stdio: 'ignore', env: { HOME: '/home/alice', DISPLAY: ':0' },
+      },
     },
     'unref',
   ]);
@@ -93,6 +97,21 @@ test('the Linux launch drops AppImage, loader and Electron overrides only', () =
     WAYLAND_DISPLAY: 'wayland-0',
     LANG: 'fr_FR.UTF-8',
   });
+});
+
+test('the Linux launch strips AppImage mount entries from search-path lists', () => {
+  assert.deepEqual(launchEnvironment({
+    APPDIR: '/tmp/.mount_BlancX',
+    PATH: '/tmp/.mount_BlancX:/tmp/.mount_BlancX/usr/sbin:/home/alice/bin:/usr/bin',
+    XDG_DATA_DIRS: './share/:/tmp/.mount_BlancX/usr/share:/usr/local/share/:/usr/share/',
+    GSETTINGS_SCHEMA_DIR: '/tmp/.mount_BlancX/usr/share/glib-2.0/schemas',
+  }), {
+    PATH: '/home/alice/bin:/usr/bin',
+    XDG_DATA_DIRS: '/usr/local/share/:/usr/share/',
+  });
+  // A sibling directory that merely shares the mount's prefix is kept.
+  assert.deepEqual(launchEnvironment({ PATH: '/tmp/.mount_BlancXY/bin', APPDIR: '/tmp/.mount_BlancX' }),
+    { PATH: '/tmp/.mount_BlancXY/bin' });
 });
 
 test('macOS and Windows open the detected app through the shell', async () => {

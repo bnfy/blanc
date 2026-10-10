@@ -263,7 +263,14 @@ for Windows Hello on Windows and a PolKit agent with system-authentication
 unlock on Linux; whether the SDK needs the same is unverified, and Settings
 copy should name any such prerequisite once confirmed. Also confirm the
 Settings install hint and **Open 1Password** button on per-user and
-machine-wide Windows installs and on deb/rpm and Snap Linux installs.
+machine-wide Windows installs and on deb/rpm Linux installs. The 1Password Snap
+is not detected: pinned SDK 0.5.0 looks for its IPC library only in fixed
+locations a Snap install does not provide, so fill cannot work there.
+
+On Windows and Linux, **Ctrl+Shift+P** is handled before page dispatch
+(`matchesOnePasswordShortcut` in `onepassword-availability.js`), like Blanc's
+other browser shortcuts there, so it works while a page has focus and a site's
+own Ctrl+Shift+P binding does not receive it.
 
 ### Windows/Linux live-account harness
 

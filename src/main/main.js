@@ -290,7 +290,11 @@ const {
   resolveBatchGroupId,
 } = require('./tab-import-batch');
 const { createOnePasswordClient } = require('./onepassword-client');
-const { isOnePasswordAvailable } = require('./onepassword-availability');
+const {
+  isOnePasswordAvailable,
+  matchesOnePasswordShortcut,
+  onePasswordAccelerator,
+} = require('./onepassword-availability');
 const { findOnePasswordApp, openOnePasswordApp } = require('./onepassword-app');
 const { createCredentialFillController } = require('./credential-fill-controller');
 const { createFillStatusSurface } = require('./fill-status-surface');
@@ -310,10 +314,10 @@ const { createWorkspaceController } = require('./workspace-controller');
 const { transferSession, residencyCapacity } = require('./workspace-residency');
 const { scratchSwitchGuardResult } = require('./workspaces-model');
 
-// The SDK never loads in main. The first production release is macOS-only;
-// unsupported platforms do not even create the lazy client, so no command can
-// fork a credential broker there. On macOS the Plugin utility process still
-// starts only after an explicit Fill command reaches the controller below.
+// The SDK never loads in main. Only macOS, Windows and Linux create the lazy
+// client; any other platform cannot fork a credential broker. The broker
+// utility process (macOS's Plugin helper) starts only after an explicit Fill
+// command reaches the controller below.
 const ONE_PASSWORD_AVAILABLE = isOnePasswordAvailable();
 const onePasswordBroker = ONE_PASSWORD_AVAILABLE
   ? createOnePasswordClient({ utilityProcess })
@@ -4706,6 +4710,19 @@ function installVerticalTabsShortcut(webContents, owner = rt()) {
   }));
 }
 
+// Windows/Linux only: macOS keeps its native menu key equivalent.
+function installOnePasswordShortcut(webContents, owner = rt()) {
+  if (!ONE_PASSWORD_AVAILABLE) return;
+  webContents.on('before-input-event', bindWindowRuntime(owner, (event, input) => {
+    if (!matchesOnePasswordShortcut(input)) return;
+    // Handled before page dispatch whichever surface has focus; this also
+    // suppresses the duplicate native-menu accelerator for the same event.
+    event.preventDefault();
+    if (input.isAutoRepeat) return;
+    fillLoginFromOnePassword();
+  }));
+}
+
 function installGlanceShortcut(webContents, owner = rt()) {
   webContents.on('before-input-event', bindWindowRuntime(owner, (event, input) => {
     const primaryModifier = process.platform === 'darwin'
@@ -4790,6 +4807,7 @@ function installChromeShortcuts(webContents, owner = rt()) {
   });
   installVerticalTabsShortcut(webContents, owner);
   installGlanceShortcut(webContents, owner);
+  installOnePasswordShortcut(webContents, owner);
   // Escape dismisses a visible fill capsule no matter which surface holds
   // focus (the capsule's own document also handles Escape when focused).
   // Guarded by this window's attach flag, so other windows' messages and
@@ -7789,10 +7807,7 @@ const SLASH_COMMANDS = [
 const LAST_ACTIVE_TAB_ACCELERATOR = process.platform === 'darwin'
   ? 'Cmd+Alt+Z'
   : null;
-// Windows and Linux use Ctrl+Shift+P rather than Ctrl+Alt+P for the same
-// AltGr reason as above.
-const ONE_PASSWORD_ACCELERATOR = !ONE_PASSWORD_AVAILABLE ? null
-  : process.platform === 'darwin' ? 'Cmd+Alt+P' : 'Ctrl+Shift+P';
+const ONE_PASSWORD_ACCELERATOR = onePasswordAccelerator();
 const COMMON_KEYSTROKES = [
   ['New Window', 'CmdOrCtrl+N'],
   ['New Tab', 'CmdOrCtrl+T'],

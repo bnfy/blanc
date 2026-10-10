@@ -645,7 +645,7 @@
     });
     // App presence is a soft hint — Verify above is the authoritative check.
     window.bowserPages.settings.onePasswordStatus().then(({ appDetected }) => {
-      const onMac = navigator.platform.startsWith('Mac');
+      const onMac = appInfo ? appInfo.platform === 'darwin' : navigator.platform.startsWith('Mac');
       appHint.textContent = appDetected
         ? (onMac ? 'Installed on this Mac.' : 'Installed on this computer.')
         : onMac
