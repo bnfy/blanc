@@ -1,10 +1,14 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
 const test = require('node:test');
 const {
   onePasswordAppCandidates,
   findOnePasswordApp,
+  pathExists,
   launchEnvironment,
   openOnePasswordApp,
 } = require('../../src/main/onepassword-app');
@@ -50,6 +54,88 @@ test('detection returns the first existing location and treats errors as absent'
   assert.equal(found, 'C:\\Program Files\\1Password\\app\\8\\1Password.exe');
   assert.equal(seen.length, 2);
   assert.equal(findOnePasswordApp({ platform: 'linux', env: {}, exists: () => false }), null);
+});
+
+// #701: 1Password's MSIX package (its MSIX installer and Microsoft Store
+// listing) installs under WindowsApps, which users can't list. Its fixed
+// handle is the per-package app execution alias.
+const ALIASES = 'C:\\Users\\alice\\AppData\\Local\\Microsoft\\WindowsApps';
+
+test('Windows adds the MSIX alias for any Agilebits.1Password package after the classic locations', () => {
+  const listed = [];
+  const candidates = onePasswordAppCandidates({
+    platform: 'win32',
+    env: WINDOWS_ENV,
+    listDir: (dir) => {
+      listed.push(dir);
+      return [
+        '1Password.exe', // the global alias any package can claim
+        'Agilebits.1Password_amwd9z03whsfe',
+        'Agilebits.1Password_gh85et3mt782r', // an earlier publisher id
+        'Agilebits.1PasswordBeta_amwd9z03whsfe',
+        'Agilebits.1Password_tooshort',
+        'Lookalike.1Password_amwd9z03whsfe',
+      ];
+    },
+  });
+  assert.deepEqual(listed, [ALIASES]);
+  assert.deepEqual(candidates, [
+    'C:\\Users\\alice\\AppData\\Local\\1Password\\app\\8\\1Password.exe',
+    'C:\\Program Files\\1Password\\app\\8\\1Password.exe',
+    'C:\\Program Files (x86)\\1Password\\app\\8\\1Password.exe',
+    `${ALIASES}\\Agilebits.1Password_amwd9z03whsfe\\1Password.exe`,
+    `${ALIASES}\\Agilebits.1Password_gh85et3mt782r\\1Password.exe`,
+  ]);
+});
+
+test('an unreadable or unusable alias folder adds no MSIX candidates', () => {
+  const classic = onePasswordAppCandidates({ platform: 'win32', env: WINDOWS_ENV });
+  assert.deepEqual(onePasswordAppCandidates({
+    platform: 'win32',
+    env: WINDOWS_ENV,
+    listDir: () => { throw new Error('ENOENT'); },
+  }), classic);
+  assert.deepEqual(onePasswordAppCandidates({
+    platform: 'win32',
+    env: { LOCALAPPDATA: 'relative\\dir' },
+    listDir: () => assert.fail('a relative LOCALAPPDATA is never listed'),
+  }), []);
+});
+
+test('detection finds the MSIX alias when no classic install exists', () => {
+  const alias = `${ALIASES}\\Agilebits.1Password_amwd9z03whsfe\\1Password.exe`;
+  assert.equal(findOnePasswordApp({
+    platform: 'win32',
+    env: WINDOWS_ENV,
+    listDir: () => ['Agilebits.1Password_amwd9z03whsfe'],
+    exists: (candidate) => candidate === alias,
+  }), alias);
+});
+
+// An app execution alias is a reparse point Windows won't open as a file, so
+// a stat through it fails and fs.existsSync reports it missing. Detection
+// checks the entry itself, the way a link that can't be followed still is.
+test('default detection counts an entry that exists even when it cannot be followed', (t) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-1p-'));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const link = path.join(dir, '1Password.exe');
+  try {
+    fs.symlinkSync(path.join(dir, 'missing-target'), link);
+  } catch (error) {
+    if (error.code !== 'EPERM') throw error;
+    t.skip('this Windows account cannot create symlinks');
+    return;
+  }
+  assert.equal(fs.existsSync(link), false, 'the stat-based check misses it');
+  assert.equal(pathExists(link), true);
+  assert.equal(pathExists(path.join(dir, 'absent')), false);
+});
+
+test('main uses the default, alias-aware detection', () => {
+  const main = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'), 'utf8');
+  const calls = main.match(/findOnePasswordApp\([^)]*\)/g) ?? [];
+  assert.ok(calls.length >= 2, 'main detects the app for the hint and for Open 1Password');
+  for (const call of calls) assert.equal(call, 'findOnePasswordApp()');
 });
 
 test('Linux starts the detected binary detached with no arguments', () => {

@@ -9873,10 +9873,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     },
     onePasswordAvailable: () => ONE_PASSWORD_AVAILABLE,
     // Settings status card (Task 9): presence is a hint, Verify is truth.
-    onePasswordAppDetected: () => findOnePasswordApp({ exists: fs.existsSync }) !== null,
+    onePasswordAppDetected: () => findOnePasswordApp() !== null,
     onePasswordVerify: (probed) => onePasswordBroker.verifyAccount(probed),
     openOnePasswordApp: () => {
-      openOnePasswordApp({ appPath: findOnePasswordApp({ exists: fs.existsSync }), shell, spawn });
+      openOnePasswordApp({ appPath: findOnePasswordApp(), shell, spawn });
     },
   });
 
