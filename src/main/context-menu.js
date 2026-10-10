@@ -10,8 +10,10 @@ const { VIEW_SOURCE_PREFIX, canViewSource } = require('./view-source');
  * main.js (which requires this file — avoid the cycle):
  *   openBackgroundTab(url) — new tab, not activated
  *   openTab(url)           — new tab, activated
+ *   t(key, params)         — the interface translator
  */
 function attachContextMenu(wc, actions, menuGate = null) {
+  const { t } = actions;
   const showContextMenu = (params) => {
     const items = [];
     const push = (item) => items.push(item);
@@ -20,16 +22,16 @@ function attachContextMenu(wc, actions, menuGate = null) {
     };
 
     if (params.linkURL) {
-      push({ label: 'Open Link in New Tab', click: () => actions.openBackgroundTab(params.linkURL) });
-      push({ label: 'Copy Link Address', click: () => clipboard.writeText(params.linkURL) });
+      push({ label: t('contextMenu.openLinkInNewTab'), click: () => actions.openBackgroundTab(params.linkURL) });
+      push({ label: t('contextMenu.copyLinkAddress'), click: () => clipboard.writeText(params.linkURL) });
       sep();
     }
 
     if (params.mediaType === 'image' && params.srcURL) {
-      push({ label: 'Open Image in New Tab', click: () => actions.openBackgroundTab(params.srcURL) });
-      push({ label: 'Copy Image', click: () => wc.copyImageAt(params.x, params.y) });
-      push({ label: 'Copy Image Address', click: () => clipboard.writeText(params.srcURL) });
-      push({ label: 'Save Image As…', click: () => wc.downloadURL(params.srcURL) });
+      push({ label: t('contextMenu.openImageInNewTab'), click: () => actions.openBackgroundTab(params.srcURL) });
+      push({ label: t('contextMenu.copyImage'), click: () => wc.copyImageAt(params.x, params.y) });
+      push({ label: t('contextMenu.copyImageAddress'), click: () => clipboard.writeText(params.srcURL) });
+      push({ label: t('contextMenu.saveImageAs'), click: () => wc.downloadURL(params.srcURL) });
       sep();
     }
 
@@ -39,34 +41,34 @@ function attachContextMenu(wc, actions, menuGate = null) {
       }
       if (params.misspelledWord) {
         push({
-          label: 'Add to Dictionary',
+          label: t('contextMenu.addToDictionary'),
           click: () => wc.session.addWordToSpellCheckerDictionary(params.misspelledWord),
         });
       }
       sep();
       // Explicit calls (not menu roles) so edits always target this tab's
       // webContents, never whatever happens to hold focus.
-      push({ label: 'Undo', accelerator: 'CmdOrCtrl+Z', click: () => wc.undo() });
-      push({ label: 'Redo', accelerator: 'Shift+CmdOrCtrl+Z', click: () => wc.redo() });
+      push({ label: t('menu.undo'), accelerator: 'CmdOrCtrl+Z', click: () => wc.undo() });
+      push({ label: t('menu.redo'), accelerator: 'Shift+CmdOrCtrl+Z', click: () => wc.redo() });
       sep();
-      push({ label: 'Cut', accelerator: 'CmdOrCtrl+X', enabled: !!params.selectionText, click: () => wc.cut() });
-      push({ label: 'Copy', accelerator: 'CmdOrCtrl+C', enabled: !!params.selectionText, click: () => wc.copy() });
-      push({ label: 'Paste', accelerator: 'CmdOrCtrl+V', click: () => wc.paste() });
-      push({ label: 'Select All', accelerator: 'CmdOrCtrl+A', click: () => wc.selectAll() });
+      push({ label: t('menu.cut'), accelerator: 'CmdOrCtrl+X', enabled: !!params.selectionText, click: () => wc.cut() });
+      push({ label: t('menu.copy'), accelerator: 'CmdOrCtrl+C', enabled: !!params.selectionText, click: () => wc.copy() });
+      push({ label: t('menu.paste'), accelerator: 'CmdOrCtrl+V', click: () => wc.paste() });
+      push({ label: t('menu.selectAll'), accelerator: 'CmdOrCtrl+A', click: () => wc.selectAll() });
       sep();
     } else if (params.selectionText.trim()) {
-      push({ label: 'Copy', accelerator: 'CmdOrCtrl+C', click: () => wc.copy() });
+      push({ label: t('menu.copy'), accelerator: 'CmdOrCtrl+C', click: () => wc.copy() });
       const query = params.selectionText.trim().slice(0, 100);
       const shown = query.length > 30 ? `${query.slice(0, 30)}…` : query;
-      push({ label: `Search for “${shown}”`, click: () => actions.openTab(settings.searchUrlFor(query)) });
+      push({ label: t('contextMenu.searchFor', { query: shown }), click: () => actions.openTab(settings.searchUrlFor(query)) });
       sep();
     }
 
     // Plain page background: navigation controls.
     if (!params.linkURL && !params.isEditable && !params.selectionText.trim() && params.mediaType === 'none') {
-      push({ label: 'Back', enabled: wc.navigationHistory.canGoBack(), click: () => wc.navigationHistory.goBack() });
-      push({ label: 'Forward', enabled: wc.navigationHistory.canGoForward(), click: () => wc.navigationHistory.goForward() });
-      push({ label: 'Reload', click: () => wc.reload() });
+      push({ label: t('contextMenu.back'), enabled: wc.navigationHistory.canGoBack(), click: () => wc.navigationHistory.goBack() });
+      push({ label: t('contextMenu.forward'), enabled: wc.navigationHistory.canGoForward(), click: () => wc.navigationHistory.goForward() });
+      push({ label: t('menu.reload'), click: () => wc.reload() });
       // New tab, NOT in-place — and don't "simplify" this to wc.loadURL().
       // Chromium REPLACES the current history entry when navigating to
       // view-source: of the page you're already on (measured: entry count
@@ -77,14 +79,14 @@ function attachContextMenu(wc, actions, menuGate = null) {
       // landed inside a subframe.
       if (canViewSource(params.pageURL)) {
         push({
-          label: 'View Page Source',
+          label: t('contextMenu.viewSource'),
           click: () => actions.openTab(`${VIEW_SOURCE_PREFIX}${params.pageURL}`),
         });
       }
       sep();
     }
 
-    push({ label: 'Inspect Element', click: () => wc.inspectElement(params.x, params.y) });
+    push({ label: t('contextMenu.inspect'), click: () => wc.inspectElement(params.x, params.y) });
     const extensionItems = actions.extensionItems?.(params) ?? [];
     if (extensionItems.length) { sep(); for (const item of extensionItems) push(item); }
 

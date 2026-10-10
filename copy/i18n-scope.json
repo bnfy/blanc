@@ -14,7 +14,7 @@
       "allow": []
     },
     "src/renderer/workspace-ui.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/renderer/tab-drag.js": {
@@ -174,27 +174,27 @@
       "allow": []
     },
     "src/main/context-menu.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/main/tab-context-menu-model.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/main/address-menu-model.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/main/dock-menu.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/main/workspace-context-menu-model.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/main/browser-shortcuts.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/main/updater.js": {

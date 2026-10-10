@@ -142,8 +142,11 @@ this device and are excluded from Profile Sync.
   process. A release requires the ordinary explicit owner go-ahead; preparing
   this feature does not itself authorize tagging/publishing.
 - Before Windows or Linux 1Password fill is announced or listed as shipped,
-  repeat the real-account matrix above on a physical Windows PC and a physical
-  Linux machine (not a virtual machine), using the enablement harness below.
+  repeat the real-account matrix above on a Windows machine and a Linux
+  machine, using the enablement harness below. Either may be a physical
+  computer or a virtual machine (owner decision, October 10, 2026); record
+  which, and for a VM the hypervisor and host. Windows Hello in a VM may offer
+  only a PIN, which counts.
 
 ### macOS signed-candidate evidence — 2026-08-23
 
@@ -258,8 +261,8 @@ without the 1Password app, Verify fails closed with `desktop-unavailable`;
 and acceptance scenarios F38-2 to F38-7 pass on Linux (they used to be skipped
 there). The hosted Windows and Linux native workflows run the same smoke test.
 
-Still open before release: the real-account matrix on physical Windows and
-Linux machines. Confirm on each that 1Password's **Integrate with 1Password
+Still open before release: the real-account matrix on Windows and Linux
+machines, physical or virtual. Confirm on each that 1Password's **Integrate with 1Password
 SDKs** setting is present and sufficient. 1Password's CLI documentation asks
 for Windows Hello on Windows and a PolKit agent with system-authentication
 unlock on Linux; whether the SDK needs the same is unverified, and Settings

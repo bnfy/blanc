@@ -880,6 +880,233 @@
     "message": "Save this window as…",
     "note": "Workspace switcher command that saves this window as a named workspace."
   },
+  "ws.error.duplicateName": {
+    "message": "That name is already in use. Choose another name.",
+    "note": "Workspace switcher error when a workspace name is already taken."
+  },
+  "ws.error.invalidName": {
+    "message": "Enter a workspace name.",
+    "note": "Workspace switcher error when the name field is empty."
+  },
+  "ws.error.limit": {
+    "message": "You have {limit} workspaces. Delete one before adding another.",
+    "note": "Workspace switcher error at the workspace limit; {limit} is the maximum number of workspaces (always more than one)."
+  },
+  "ws.error.notPatron": {
+    "message": "Creating workspaces needs Blanc Patron.",
+    "note": "Workspace switcher error when someone without Blanc Patron tries to create a workspace."
+  },
+  "ws.error.notFound": {
+    "message": "That workspace is no longer available.",
+    "note": "Workspace switcher error when the chosen workspace was removed meanwhile."
+  },
+  "ws.error.readFailed": {
+    "message": "Couldn’t read your workspace file. Restart Blanc after checking that the file is accessible.",
+    "note": "Workspace switcher error when the saved workspace file cannot be read."
+  },
+  "ws.error.storageFailed": {
+    "message": "Couldn’t save changes. Check available disk space and try again.",
+    "note": "Workspace switcher error when saving workspaces to disk fails."
+  },
+  "ws.error.futureFormat": {
+    "message": "These workspaces need a newer version of Blanc. Your saved file has not been changed.",
+    "note": "Workspace switcher error when the workspace file was written by a newer Blanc."
+  },
+  "ws.error.repairFailed": {
+    "message": "Couldn’t preserve a recovery copy. Your workspace file has not been changed.",
+    "note": "Workspace switcher error when Blanc cannot back up a damaged workspace file before repairing it."
+  },
+  "ws.error.busy": {
+    "message": "Another workspace action is still finishing. Try again.",
+    "note": "Workspace switcher error while another workspace action is in progress."
+  },
+  "ws.error.activationFailed": {
+    "message": "Couldn’t open the workspace. Your current pages are still available.",
+    "note": "Workspace switcher error when switching to a workspace fails."
+  },
+  "ws.error.savedNotOpened": {
+    "message": "The workspace was saved, but Blanc couldn’t open it. It remains in your workspace list.",
+    "note": "Workspace switcher error when a new workspace was saved but switching to it failed."
+  },
+  "ws.error.recoveryDuplicate": {
+    "message": "An existing workspace uses this name. Rename it before restoring this workspace.",
+    "note": "Workspace switcher error when restoring a deleted workspace whose name is now taken."
+  },
+  "ws.error.generic": {
+    "message": "Couldn’t complete that action. Try again.",
+    "note": "Workspace switcher error for any other failure."
+  },
+  "ws.trigger.current": {
+    "message": "Workspace · {name}",
+    "note": "Tooltip and accessible name of the Island footer workspace button; {name} is the current workspace’s name."
+  },
+  "ws.editor.rename": {
+    "message": "Rename workspace",
+    "note": "Label of the workspace name field when renaming a workspace."
+  },
+  "ws.editor.create": {
+    "message": "New empty workspace",
+    "note": "Label of the workspace name field when creating an empty workspace."
+  },
+  "ws.editor.saveAs": {
+    "message": "Save this window as…",
+    "note": "Label of the workspace name field when saving this window as a workspace."
+  },
+  "ws.editor.help": {
+    "message": "Ordinary tabs save automatically on this device, in this profile. Private pages are excluded. Workspaces share this profile’s sign-ins.",
+    "note": "Help text under the workspace name field."
+  },
+  "ws.editor.save": {
+    "message": "Save",
+    "note": "Button that saves the workspace name.",
+    "maxLength": 12
+  },
+  "ws.editor.saving": {
+    "message": "Saving…",
+    "note": "The save button’s text while the workspace is being saved.",
+    "maxLength": 12
+  },
+  "ws.decision.label": {
+    "message": "Workspace switch decision",
+    "note": "Accessible name of the box asking what to do with this window’s tabs before switching workspace."
+  },
+  "ws.decision.capacity": {
+    "message": "Your retained workspaces are full. Open this workspace in another window to keep your pages available.",
+    "note": "Shown before switching workspace when no more workspaces can be kept in memory."
+  },
+  "ws.decision.protected": {
+    "message": "This window has pages that need to stay open. Open the workspace in another window, or finish the active page operation and try again.",
+    "note": "Shown before switching workspace when a page in this window is busy (for example uploading or capturing)."
+  },
+  "ws.decision.closePrivate": {
+    "message": "{count, plural, one {# private tab will close. Page drafts are not saved to disk.} other {# private tabs will close. Page drafts are not saved to disk.}}",
+    "note": "Shown before switching workspace when every tab that would close is private."
+  },
+  "ws.decision.closeUnsaved": {
+    "message": "{count, plural, one {# unsaved tab will close. Page drafts are not saved to disk.} other {# unsaved tabs will close. Page drafts are not saved to disk.}}",
+    "note": "Shown before switching workspace when tabs that are not saved in any workspace would close."
+  },
+  "ws.decision.newWindow": {
+    "message": "Open in another window",
+    "note": "Button that opens the workspace in a new window instead of this one.",
+    "maxLength": 31
+  },
+  "ws.decision.saveFirst": {
+    "message": "Save this window first…",
+    "note": "Button that saves this window as a workspace before switching.",
+    "maxLength": 33
+  },
+  "ws.decision.closeAndSwitch": {
+    "message": "Close tabs and switch",
+    "note": "Button that closes this window’s unsaved tabs and switches workspace.",
+    "maxLength": 30
+  },
+  "ws.row.current": {
+    "message": "Current workspace",
+    "note": "Part of a workspace row’s tooltip: this is the workspace shown in this window."
+  },
+  "ws.row.showWindow": {
+    "message": "Show window",
+    "note": "Workspace row: the workspace is open in another window; choosing it brings that window forward. Also part of the row tooltip.",
+    "maxLength": 16
+  },
+  "ws.row.retained": {
+    "message": "Retained in memory",
+    "note": "Part of a workspace row’s tooltip: the workspace is kept loaded in the background."
+  },
+  "ws.row.open": {
+    "message": "Open workspace",
+    "note": "Part of a workspace row’s tooltip: choosing it opens the workspace."
+  },
+  "ws.row.title": {
+    "message": "{count, plural, one {{name} · {context} · # tab} other {{name} · {context} · # tabs}}",
+    "note": "Tooltip and accessible name of a workspace row; {name} is the workspace name, {context} one of the ws.row.current/showWindow/retained/open phrases."
+  },
+  "ws.manage.label": {
+    "message": "Manage {name}",
+    "note": "Accessible name of a workspace row’s ••• button; {name} is the workspace name."
+  },
+  "ws.manage.back": {
+    "message": "Back",
+    "note": "Button that leaves a workspace’s management view.",
+    "maxLength": 12
+  },
+  "ws.manage.rename": {
+    "message": "Rename",
+    "note": "Button that renames a workspace.",
+    "maxLength": 12
+  },
+  "ws.manage.delete": {
+    "message": "Delete…",
+    "note": "Button that asks to delete a workspace.",
+    "maxLength": 12
+  },
+  "ws.manage.moveUp": {
+    "message": "Move up",
+    "note": "Button that moves a workspace up the list.",
+    "maxLength": 12
+  },
+  "ws.manage.moveDown": {
+    "message": "Move down",
+    "note": "Button that moves a workspace down the list.",
+    "maxLength": 13
+  },
+  "ws.delete.confirm": {
+    "message": "Delete “{name}”? Open tabs stay available. You can restore the saved workspace from Recently Deleted for seven days.",
+    "note": "Confirmation before deleting a workspace; {name} is its name."
+  },
+  "ws.delete.button": {
+    "message": "Delete workspace",
+    "note": "Button that confirms deleting a workspace.",
+    "maxLength": 23
+  },
+  "ws.recovery.back": {
+    "message": "Back to workspaces",
+    "note": "Button that leaves Recently Deleted.",
+    "maxLength": 26
+  },
+  "ws.recovery.help": {
+    "message": "Saved workspaces are recoverable for seven days. Up to {limit} deleted workspaces are kept.",
+    "note": "Help text in Recently Deleted; {limit} is how many deleted workspaces are kept (always more than one)."
+  },
+  "ws.recovery.restore": {
+    "message": "Restore",
+    "note": "Button that restores a deleted workspace.",
+    "maxLength": 18
+  },
+  "ws.recovery.forget": {
+    "message": "Delete permanently…",
+    "note": "Button that asks to permanently delete a deleted workspace.",
+    "maxLength": 27
+  },
+  "ws.forget.confirm": {
+    "message": "Permanently delete “{name}”? This saved workspace cannot be restored.",
+    "note": "Confirmation before permanently deleting a workspace; {name} is its name."
+  },
+  "ws.forget.button": {
+    "message": "Delete permanently",
+    "note": "Button that confirms permanent deletion.",
+    "maxLength": 26
+  },
+  "ws.list.empty": {
+    "message": "No saved workspaces yet.",
+    "note": "Shown in the workspace switcher when there are no workspaces."
+  },
+  "ws.list.undo": {
+    "message": "Workspace deleted · Undo",
+    "note": "Button shown after deleting a workspace that restores it.",
+    "maxLength": 40
+  },
+  "ws.list.recentlyDeleted": {
+    "message": "{count, plural, one {Recently Deleted (#)} other {Recently Deleted (#)}}",
+    "note": "Button that opens deleted workspaces; # is how many there are.",
+    "maxLength": 32
+  },
+  "ws.list.patronSettings": {
+    "message": "Patron settings",
+    "note": "Button that opens the Blanc Patron section of Settings.",
+    "maxLength": 21
+  },
   "glance.picker.title": {
     "message": "Choose a tab for Glance",
     "note": "Heading of the Glance tab picker."
@@ -1357,5 +1584,225 @@
     "message": "search",
     "note": "Lowercase tag on a Quick Switcher search row when the search engine's own name is not available.",
     "maxLength": 10
+  },
+  "menu.newWindow": {
+    "message": "New Window",
+    "note": "Menu command (app menu, Dock menu) that opens a new browser window."
+  },
+  "menu.newPrivateWindow": {
+    "message": "New Private Window",
+    "note": "Dock menu command that opens a new window with a private tab."
+  },
+  "menu.newTab": {
+    "message": "New Tab",
+    "note": "Menu command (app menu, tab context menu) that opens a new tab."
+  },
+  "menu.newPrivateTab": {
+    "message": "New Private Tab",
+    "note": "Menu command (app menu, tab context menu) that opens a new private tab."
+  },
+  "menu.closeTab": {
+    "message": "Close Tab",
+    "note": "Menu command (app menu, tab context menu) that closes the tab."
+  },
+  "menu.reopenClosedTab": {
+    "message": "Reopen Closed Tab",
+    "note": "Menu command (app menu, tab context menu) that reopens the most recently closed tab."
+  },
+  "menu.searchCommands": {
+    "message": "Search & Commands",
+    "note": "App menu command that opens the Island command bar (⌘L). The & is a literal ampersand."
+  },
+  "menu.find": {
+    "message": "Find…",
+    "note": "App menu command that opens the find bar."
+  },
+  "menu.reloadTab": {
+    "message": "Reload Tab",
+    "note": "App menu command that reloads the current tab."
+  },
+  "menu.hardReloadTab": {
+    "message": "Hard Reload Tab (Bypass Cache)",
+    "note": "App menu command that reloads the tab without using the cache."
+  },
+  "menu.showHistory": {
+    "message": "Show History",
+    "note": "App menu command that opens History."
+  },
+  "menu.downloads": {
+    "message": "Downloads",
+    "note": "App menu command that opens Downloads."
+  },
+  "menu.settings": {
+    "message": "Settings",
+    "note": "App menu command that opens Settings."
+  },
+  "menu.nextTab": {
+    "message": "Next Tab",
+    "note": "App menu command that switches to the next tab."
+  },
+  "menu.previousTab": {
+    "message": "Previous Tab",
+    "note": "App menu command that switches to the previous tab."
+  },
+  "menu.reload": {
+    "message": "Reload",
+    "note": "Context menu command (page background, tab) that reloads the page."
+  },
+  "menu.copyCleanLink": {
+    "message": "Copy Clean Link",
+    "note": "Context menu command (address bar, tab) that copies the link with tracking parameters removed."
+  },
+  "menu.undo": {
+    "message": "Undo",
+    "note": "Text editing command in context menus."
+  },
+  "menu.redo": {
+    "message": "Redo",
+    "note": "Text editing command in context menus."
+  },
+  "menu.cut": {
+    "message": "Cut",
+    "note": "Text editing command in context menus."
+  },
+  "menu.copy": {
+    "message": "Copy",
+    "note": "Text editing command in context menus; also copies selected page text."
+  },
+  "menu.paste": {
+    "message": "Paste",
+    "note": "Text editing command in context menus."
+  },
+  "menu.delete": {
+    "message": "Delete",
+    "note": "Text editing command in the address bar context menu that deletes the selection."
+  },
+  "menu.selectAll": {
+    "message": "Select All",
+    "note": "Text editing command in context menus."
+  },
+  "contextMenu.openLinkInNewTab": {
+    "message": "Open Link in New Tab",
+    "note": "Page context menu command for a link."
+  },
+  "contextMenu.copyLinkAddress": {
+    "message": "Copy Link Address",
+    "note": "Page context menu command for a link."
+  },
+  "contextMenu.openImageInNewTab": {
+    "message": "Open Image in New Tab",
+    "note": "Page context menu command for an image."
+  },
+  "contextMenu.copyImage": {
+    "message": "Copy Image",
+    "note": "Page context menu command for an image."
+  },
+  "contextMenu.copyImageAddress": {
+    "message": "Copy Image Address",
+    "note": "Page context menu command for an image."
+  },
+  "contextMenu.saveImageAs": {
+    "message": "Save Image As…",
+    "note": "Page context menu command for an image."
+  },
+  "contextMenu.addToDictionary": {
+    "message": "Add to Dictionary",
+    "note": "Page context menu command that adds a misspelled word to the spelling dictionary."
+  },
+  "contextMenu.searchFor": {
+    "message": "Search for “{query}”",
+    "note": "Page context menu command for selected text; {query} is the selection, shortened to 30 characters."
+  },
+  "contextMenu.back": {
+    "message": "Back",
+    "note": "Page context menu command that goes back in history."
+  },
+  "contextMenu.forward": {
+    "message": "Forward",
+    "note": "Page context menu command that goes forward in history."
+  },
+  "contextMenu.viewSource": {
+    "message": "View Page Source",
+    "note": "Page context menu command that opens the page source in a new tab."
+  },
+  "contextMenu.inspect": {
+    "message": "Inspect Element",
+    "note": "Page context menu command that opens the developer tools at the clicked element."
+  },
+  "addressMenu.pasteAndGo": {
+    "message": "Paste and Go",
+    "note": "Address bar context menu command that pastes and opens the clipboard text."
+  },
+  "tabMenu.copyLink": {
+    "message": "Copy Link",
+    "note": "Tab context menu command that copies the tab’s address."
+  },
+  "tabMenu.duplicate": {
+    "message": "Duplicate Tab",
+    "note": "Tab context menu command."
+  },
+  "tabMenu.pin": {
+    "message": "Pin Tab",
+    "note": "Tab context menu command."
+  },
+  "tabMenu.unpin": {
+    "message": "Unpin Tab",
+    "note": "Tab context menu command."
+  },
+  "tabMenu.mute": {
+    "message": "Mute Tab",
+    "note": "Tab context menu command."
+  },
+  "tabMenu.unmute": {
+    "message": "Unmute Tab",
+    "note": "Tab context menu command."
+  },
+  "tabMenu.saveFavorite": {
+    "message": "Save to Favorites",
+    "note": "Tab context menu command that adds the page to Favorites."
+  },
+  "tabMenu.removeFavorite": {
+    "message": "Remove from Favorites",
+    "note": "Tab context menu command that removes the page from Favorites."
+  },
+  "tabMenu.moveToGroup": {
+    "message": "Move to Group",
+    "note": "Tab context menu submenu listing tab groups."
+  },
+  "tabMenu.removeFromGroup": {
+    "message": "Remove from Group",
+    "note": "Tab context menu command in the Move to Group submenu."
+  },
+  "tabMenu.newGroup": {
+    "message": "New Group…",
+    "note": "Tab context menu command in the Move to Group submenu that creates a group."
+  },
+  "tabMenu.glance": {
+    "message": "Open in Glance",
+    "note": "Tab context menu command that shows the tab side by side in Glance."
+  },
+  "tabMenu.quiet": {
+    "message": "Quiet This Tab Now",
+    "note": "Tab context menu command that makes the tab a quiet tab (its memory is released until it is opened again)."
+  },
+  "tabMenu.closeOthers": {
+    "message": "Close Other Tabs",
+    "note": "Tab context menu command."
+  },
+  "tabMenu.moveToNewWindow": {
+    "message": "Move Tab to New Window",
+    "note": "Tab context menu command."
+  },
+  "workspaceMenu.rename": {
+    "message": "Rename…",
+    "note": "Context menu command on a workspace row."
+  },
+  "workspaceMenu.delete": {
+    "message": "Delete…",
+    "note": "Context menu command on a workspace row."
+  },
+  "dock.activeTab": {
+    "message": "Active tab",
+    "note": "Placeholder for the Dock menu’s active-tab line while it is hidden; never shown."
   }
 }

@@ -110,6 +110,7 @@ function attachAddressMenu(wc, deps) {
       editFlags: params.editFlags,
       clipboardText,
       fieldText,
+      t: deps.t,
     });
     const menu = Menu.buildFromTemplate(items.map((item) =>
       item.type === 'separator' ? item : {

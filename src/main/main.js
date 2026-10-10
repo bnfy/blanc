@@ -3328,6 +3328,7 @@ function createOverlay() {
 
   attachAddressMenu(rt().overlayView.webContents, {
     ...overlayMenuGuardDeps,
+    t: mainI18n.t,
     actions: {
       pasteAndGo: bindWindowRuntime(owner, (text) => { if (rt().activeTabId) pasteAndGo(rt().activeTabId, text); }),
     },
@@ -3336,6 +3337,7 @@ function createOverlay() {
   // Tab-row context menu, same webContents; shares the guard above.
   attachRowMenu(rt().overlayView.webContents, {
     ...overlayMenuGuardDeps,
+    t: mainI18n.t,
     resolveTab: bindWindowRuntime(owner, (rawId) => {
       const id = tabs.has(rawId) ? rawId : (tabs.has(Number(rawId)) ? Number(rawId) : null);
       return id == null ? null : tabContextData(tabs.get(id), owner);
@@ -3349,6 +3351,7 @@ function createOverlay() {
   // renderer recorded on the last right-click.
   attachWorkspaceRowMenu(rt().overlayView.webContents, {
     ...overlayMenuGuardDeps,
+    t: mainI18n.t,
     resolveWorkspace: bindWindowRuntime(owner, (rawId) =>
       (typeof rawId === 'string' && rawId ? namedWorkspaces.get(rawId) : null)),
     actions: workspaceMenuContextActions(owner),
@@ -5587,6 +5590,7 @@ function notePopupChild(openerTabId, childWindow, sourceContentsId, targetUrl) {
 // Function declarations below are hoisted; every const this reads is already
 // initialized before this module-scope call.
 initTabView({
+  t: mainI18n.t,
   claimOutage: (tab, wc, url) => (tab.private ? null : blockingProviders?.forTab(tab)?.claimOutage?.(wc.id, url) ?? null),
   noteMainFrameCommitted: (tab, wc, url) => { if (!tab.private) blockingProviders?.forTab(tab)?.noteMainFrameCommitted?.(wc.id, url); },
   noteWebPageLoaded: (url) => dayOneSignals.notePageLoaded(url),
@@ -8203,6 +8207,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     diagnostics.recordRendererCrash('chrome', details);
   }));
   attachChromeMenu(rt().window.webContents, {
+    t: mainI18n.t,
     getWindow: bindWindowRuntime(runtime, () => rt().window),
     resolveActiveTab: bindWindowRuntime(runtime, () =>
       tabContextData(tabs.get(rt().activeTabId), runtime)),
@@ -9255,6 +9260,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   }
   dockMenuHandle = installDockMenu({
     app, Menu, nativeImage,
+    t: mainI18n.t,
     actions: {
       newWindow: () => openNewWindow(),
       newPrivateWindow: () => openNewWindow({ private: true }),
@@ -9913,6 +9919,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   if (acceptanceTestMode) {
     require('./test-hook').install({
       i18nState: () => mainI18n.state(),
+      t: mainI18n.t,
       continueUnsafeForSender,
       forgetActiveCertificateException,
       certificateExceptions,
