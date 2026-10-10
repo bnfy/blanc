@@ -853,6 +853,214 @@
     "message": "Dieses Fenster speichern als…",
     "source": "sha256:b7a8789726f4f74036880d7ca03e49305bb52931787ee318f748d90d45da69cc"
   },
+  "ws.error.duplicateName": {
+    "message": "Dieser Name wird schon verwendet. Wähle einen anderen Namen.",
+    "source": "sha256:2f5af6289f7c82de9f459b2d4b1f868ef55c5ecde0afb3b91580098c8fa35c5b"
+  },
+  "ws.error.invalidName": {
+    "message": "Gib einen Namen für den Arbeitsbereich ein.",
+    "source": "sha256:6829cf76e96c704c33ccc5f9a94455b8abef999e27c517eb285cbf46adaea15f"
+  },
+  "ws.error.limit": {
+    "message": "Du hast {limit} Arbeitsbereiche. Lösche einen, bevor du einen weiteren hinzufügst.",
+    "source": "sha256:6183cea23c5654fc6c898290cdeb24a01dfc438ac48d05d05e17d5d5a71ee49b"
+  },
+  "ws.error.notPatron": {
+    "message": "Zum Anlegen von Arbeitsbereichen brauchst du Blanc Patron.",
+    "source": "sha256:f8b55b7970c4a3acf8529d71d416ea0d62c97a2f3c774845bf4045d894a0f236"
+  },
+  "ws.error.notFound": {
+    "message": "Dieser Arbeitsbereich ist nicht mehr verfügbar.",
+    "source": "sha256:011c2f8afff20a3a5de883cf1ad88932eccee971e1c96d7b03240a39ac1d5ba2"
+  },
+  "ws.error.readFailed": {
+    "message": "Deine Arbeitsbereich-Datei konnte nicht gelesen werden. Prüfe, ob die Datei zugänglich ist, und starte Blanc dann neu.",
+    "source": "sha256:9f6d17c6781e2b891bd659c6e9d48caa12f32ac5a56265bb593264cea779928e"
+  },
+  "ws.error.storageFailed": {
+    "message": "Änderungen konnten nicht gespeichert werden. Prüfe den freien Speicherplatz und versuche es erneut.",
+    "source": "sha256:1128da7ba16880110efea77ff05c74fcdc06b37e0b4cd5a916198bc96a04866f"
+  },
+  "ws.error.futureFormat": {
+    "message": "Diese Arbeitsbereiche brauchen eine neuere Version von Blanc. Deine gespeicherte Datei wurde nicht verändert.",
+    "source": "sha256:c6343cc579e1bd89da780da5a06a0f8e06bdd00c1368ca7bf8b2fd3e49316162"
+  },
+  "ws.error.repairFailed": {
+    "message": "Es konnte keine Wiederherstellungskopie angelegt werden. Deine Arbeitsbereich-Datei wurde nicht verändert.",
+    "source": "sha256:233caeccf147456d1dbbaadc4d637ea54ba148d3d12f02973b5b36f0025463e4"
+  },
+  "ws.error.busy": {
+    "message": "Eine andere Aktion für Arbeitsbereiche läuft noch. Versuche es erneut.",
+    "source": "sha256:6dad1fb32637622bcd6694a5ae5fd2b23c2bfd93f944752617dfc406cd6412f0"
+  },
+  "ws.error.activationFailed": {
+    "message": "Der Arbeitsbereich konnte nicht geöffnet werden. Deine aktuellen Seiten sind weiterhin verfügbar.",
+    "source": "sha256:17d59988449bdca53fd7086f172bf2c81f2466cf68f2506e3691f1dde9b96bc0"
+  },
+  "ws.error.savedNotOpened": {
+    "message": "Der Arbeitsbereich wurde gespeichert, aber Blanc konnte ihn nicht öffnen. Er bleibt in deiner Liste der Arbeitsbereiche.",
+    "source": "sha256:724cd31661cd0412cb9bc397aa2c916e07f6799f20d0749787df326a0a575ed7"
+  },
+  "ws.error.recoveryDuplicate": {
+    "message": "Ein vorhandener Arbeitsbereich verwendet diesen Namen. Benenne ihn um, bevor du diesen Arbeitsbereich wiederherstellst.",
+    "source": "sha256:0fee9057c25eabf05c1f5d81444b120e130f5053daba6a0afb320f9ebd1d5d6f"
+  },
+  "ws.error.generic": {
+    "message": "Diese Aktion konnte nicht abgeschlossen werden. Versuche es erneut.",
+    "source": "sha256:13658685ae5d3d5049da6c62c1df91e096673a76200a7505a5a33411d02acff3"
+  },
+  "ws.trigger.current": {
+    "message": "Arbeitsbereich · {name}",
+    "source": "sha256:46473302f5917acc544d87971fa02af29f7ac2e3ae4f6946400519fcfad09b6e"
+  },
+  "ws.editor.rename": {
+    "message": "Arbeitsbereich umbenennen",
+    "source": "sha256:14943a56857e645ab7f692a66fabd7f58df67d195f98df68d49a2ded2b555e97"
+  },
+  "ws.editor.create": {
+    "message": "Neuer leerer Arbeitsbereich",
+    "source": "sha256:80b2191d7f22abca63389f4c112dc28768abfadd906d1d352b26e6440e7684c6"
+  },
+  "ws.editor.saveAs": {
+    "message": "Dieses Fenster speichern als…",
+    "source": "sha256:b5e06c8e01e77a07525ead8360d46b4e461c8459e295e724f809766fddfff23a"
+  },
+  "ws.editor.help": {
+    "message": "Normale Tabs werden auf diesem Gerät in diesem Profil automatisch gespeichert. Private Seiten sind ausgenommen. Arbeitsbereiche teilen die Anmeldungen dieses Profils.",
+    "source": "sha256:906f206fe682dbe29bae313ac265e7209baf50b108b463ccca4a326052d78252"
+  },
+  "ws.editor.save": {
+    "message": "Speichern",
+    "source": "sha256:0eaf2c95b7f87cebdda7e0c5bbaa9aa1139ba6cc10e2afdf665a782cde8604a4"
+  },
+  "ws.editor.saving": {
+    "message": "Speichern…",
+    "source": "sha256:0177c3e41837d01f7653b68eefb99609c586d829fb141f6dd45b86d9e9bdf041"
+  },
+  "ws.decision.label": {
+    "message": "Entscheidung zum Wechsel des Arbeitsbereichs",
+    "source": "sha256:59b746d90b2f12b8b78a3e644402e462fcb1af89bd6def81c682a1f843f48929"
+  },
+  "ws.decision.capacity": {
+    "message": "Deine im Speicher gehaltenen Arbeitsbereiche sind voll. Öffne diesen Arbeitsbereich in einem anderen Fenster, damit deine Seiten verfügbar bleiben.",
+    "source": "sha256:f440ad8f6e515b031625f252cdf84f9468d01414b0f9e882ad28bdb20e989ca5"
+  },
+  "ws.decision.protected": {
+    "message": "In diesem Fenster sind Seiten, die geöffnet bleiben müssen. Öffne den Arbeitsbereich in einem anderen Fenster oder schließe den laufenden Vorgang auf der Seite ab und versuche es erneut.",
+    "source": "sha256:bc64426b2e0ea3a387c197735300bebd5b7edc65f9cd57c402cb35a026ed738a"
+  },
+  "ws.decision.closePrivate": {
+    "message": "{count, plural, one {# privater Tab wird geschlossen. Seitenentwürfe werden nicht auf dem Datenträger gespeichert.} other {# private Tabs werden geschlossen. Seitenentwürfe werden nicht auf dem Datenträger gespeichert.}}",
+    "source": "sha256:7419eb2d22495355f1e5c75d89ac8c5a96758466b7e6dfe4e4c0003af63a375d"
+  },
+  "ws.decision.closeUnsaved": {
+    "message": "{count, plural, one {# nicht gespeicherter Tab wird geschlossen. Seitenentwürfe werden nicht auf dem Datenträger gespeichert.} other {# nicht gespeicherte Tabs werden geschlossen. Seitenentwürfe werden nicht auf dem Datenträger gespeichert.}}",
+    "source": "sha256:5b6aeb39d71b4ffb94e83c7a503b590bd5ada0305375735bcf65ed447a70d011"
+  },
+  "ws.decision.newWindow": {
+    "message": "In neuem Fenster öffnen",
+    "source": "sha256:eb74fb92a3526dea4d6602b8db4e9cbd5cb0d957342ee31bdd9affc8799a2366"
+  },
+  "ws.decision.saveFirst": {
+    "message": "Erst dieses Fenster speichern…",
+    "source": "sha256:0155a3fe58bf472fe87b3e6041d10480636f8b78564ffe24004734cfb73096d9"
+  },
+  "ws.decision.closeAndSwitch": {
+    "message": "Tabs schließen und wechseln",
+    "source": "sha256:246363474e5b625a8f154e5e8b2a5f26634f09e4452766be83d8ffc2850cc909"
+  },
+  "ws.row.current": {
+    "message": "Aktueller Arbeitsbereich",
+    "source": "sha256:3891c2d3f29fe0b2849a1bf6e46cb83fe33e88f0cfae7814bee4e77f30db4389"
+  },
+  "ws.row.showWindow": {
+    "message": "Fenster zeigen",
+    "source": "sha256:a68108709f92df3e87c1ec9deeb7775ee65dc36deb780d5c13c3df74a5ca55eb"
+  },
+  "ws.row.retained": {
+    "message": "Im Speicher gehalten",
+    "source": "sha256:5efbf4865e2bbc3b16b7f307bfb6b562cb3c4efc698a9e40ef8730c12b605ab7"
+  },
+  "ws.row.open": {
+    "message": "Arbeitsbereich öffnen",
+    "source": "sha256:a259295dfa19ae5812491029f259b5ae6b75c65e699bc336be70345618fa7579"
+  },
+  "ws.row.title": {
+    "message": "{count, plural, one {{name} · {context} · # Tab} other {{name} · {context} · # Tabs}}",
+    "source": "sha256:a5fae9ff79add8d4ce70d6988dd74304de7ad9208f731c5d9aeed9338893d811"
+  },
+  "ws.manage.label": {
+    "message": "{name} verwalten",
+    "source": "sha256:ca9c677a2f513693f4d70bf14fee57d0ceb3cbbf44e263812a6e1c5c3ac31095"
+  },
+  "ws.manage.back": {
+    "message": "Zurück",
+    "source": "sha256:fe2d89f33bcd3ffcf1200417cdc510655a60ccd1809435cb2249ba58715cdf7d"
+  },
+  "ws.manage.rename": {
+    "message": "Umbenennen",
+    "source": "sha256:de80fe32ecc558f48ad393528193adc274a60a2bac3179da18396ce8ecedc0f7"
+  },
+  "ws.manage.delete": {
+    "message": "Löschen…",
+    "source": "sha256:c2faa569a28852e44d59a5c9d5651675024ee7482902d0dd75ba6fc4e75224f0"
+  },
+  "ws.manage.moveUp": {
+    "message": "Nach oben",
+    "source": "sha256:604e255aa8db0f25eac1a13d7adc0324b399faec9597e27e50b31a78dd8e26ad"
+  },
+  "ws.manage.moveDown": {
+    "message": "Nach unten",
+    "source": "sha256:5480693a9ebb3512980da662055c7c5b6972251ee367a3d6c37c025cd1ae1b1d"
+  },
+  "ws.delete.confirm": {
+    "message": "„{name}“ löschen? Offene Tabs bleiben verfügbar. Den gespeicherten Arbeitsbereich kannst du sieben Tage lang unter „Zuletzt gelöscht“ wiederherstellen.",
+    "source": "sha256:7ce30b62187dcf31d40ba280ee44ff788a49c0222e52cb01231415d47a121b30"
+  },
+  "ws.delete.button": {
+    "message": "Arbeitsbereich löschen",
+    "source": "sha256:1efaa22cf2e1c13d4afce310d82c4e1e420331b2c9038d1ca127504dd519f079"
+  },
+  "ws.recovery.back": {
+    "message": "Zu den Arbeitsbereichen",
+    "source": "sha256:aecffa2b50028d773ae2ac02384cf05f121ca5e41946a7e380a2c1297ca4571a"
+  },
+  "ws.recovery.help": {
+    "message": "Gespeicherte Arbeitsbereiche lassen sich sieben Tage lang wiederherstellen. Bis zu {limit} gelöschte Arbeitsbereiche werden aufbewahrt.",
+    "source": "sha256:25323a6c85ede94a0853c2f59a71d0f37b8a02d1b1f20546facb2d142e0f9e38"
+  },
+  "ws.recovery.restore": {
+    "message": "Wiederherstellen",
+    "source": "sha256:d5c0f711fb69c0ef9c65149a10224550cb4047c0da1353266cd997462f4fb5e0"
+  },
+  "ws.recovery.forget": {
+    "message": "Endgültig löschen…",
+    "source": "sha256:1f5956ca0a5996554678ec0709e2e7f6fc715783afec118091fd2679aafb3c10"
+  },
+  "ws.forget.confirm": {
+    "message": "„{name}“ endgültig löschen? Dieser gespeicherte Arbeitsbereich lässt sich nicht wiederherstellen.",
+    "source": "sha256:93e9851ebae0ea8a3a2a19b2a5bc9bc0fc2afffda5d16c56227aa635a3ebea3a"
+  },
+  "ws.forget.button": {
+    "message": "Endgültig löschen",
+    "source": "sha256:6da5a0155f1e405e52cfc3b2a51283001c519e86763bf605a70364b048473817"
+  },
+  "ws.list.empty": {
+    "message": "Noch keine gespeicherten Arbeitsbereiche.",
+    "source": "sha256:d536d95b1ce5e224ee480324fdd8dd5d13fae6baf5f874f74f80c8a4d8b8fb93"
+  },
+  "ws.list.undo": {
+    "message": "Arbeitsbereich gelöscht · Rückgängig",
+    "source": "sha256:f30d0a431628de396b8a62d33cbd1122ec94cc9c4e566a9452b1c1b5788f39e0"
+  },
+  "ws.list.recentlyDeleted": {
+    "message": "{count, plural, one {Zuletzt gelöscht (#)} other {Zuletzt gelöscht (#)}}",
+    "source": "sha256:41df0d5ccb75c68763754c435b8f9738f8facf203bf6bfc79125577e2dd09916"
+  },
+  "ws.list.patronSettings": {
+    "message": "Patron-Einstellungen",
+    "source": "sha256:bb766b6b7c0fdf9eb685ee867500b03f58dd2a97e4329f1aa69ee8040339d8fc"
+  },
   "glance.picker.title": {
     "message": "Einen Tab für Glance wählen",
     "source": "sha256:e9be5c52b5a920183450cc09ac5c8f4d7bf8d22e175c3ee05dbe26da5df3c871"

@@ -3,19 +3,31 @@
 // One action state owns editing, validation, decisions and pending requests.
 // Address/search rendering never owns this surface or its errors.
 (function (root) {
+  // The interface language's translator: the overlay's blancI18n in the app,
+  // the English catalog under Node (unit tests drive this module directly).
+  const i18n = root.blancI18n || (() => {
+    const { createTranslator } = require('./pages/i18n.js');
+    const t = createTranslator({ locale: 'en', messages: require('./pages/strings.en.js').messages });
+    return { t, formatLocale: () => 'en' };
+  })();
+  const t = i18n.t;
+  const number = new Intl.NumberFormat(i18n.formatLocale());
+  // The workspace and deleted-workspace cap: MAX_WORKSPACES in main's
+  // workspaces-model.js (a unit test keeps the two equal).
+  const WORKSPACE_LIMIT = 25;
   const errors = {
-    'duplicate-name': 'That name is already in use. Choose another name.',
-    'invalid-name': 'Enter a workspace name.',
-    'limit': 'You have 25 workspaces. Delete one before adding another.',
-    'not-patron': 'Creating workspaces needs Blanc Patron.',
-    'not-found': 'That workspace is no longer available.',
-    'read-failed': 'Couldn’t read your workspace file. Restart Blanc after checking that the file is accessible.',
-    'storage-failed': 'Couldn’t save changes. Check available disk space and try again.',
-    'future-format': 'These workspaces need a newer version of Blanc. Your saved file has not been changed.',
-    'repair-failed': 'Couldn’t preserve a recovery copy. Your workspace file has not been changed.',
-    'busy': 'Another workspace action is still finishing. Try again.',
-    'activation-failed': 'Couldn’t open the workspace. Your current pages are still available.',
-    'saved-not-opened': 'The workspace was saved, but Blanc couldn’t open it. It remains in your workspace list.',
+    'duplicate-name': t('ws.error.duplicateName'),
+    'invalid-name': t('ws.error.invalidName'),
+    'limit': t('ws.error.limit', { limit: number.format(WORKSPACE_LIMIT) }),
+    'not-patron': t('ws.error.notPatron'),
+    'not-found': t('ws.error.notFound'),
+    'read-failed': t('ws.error.readFailed'),
+    'storage-failed': t('ws.error.storageFailed'),
+    'future-format': t('ws.error.futureFormat'),
+    'repair-failed': t('ws.error.repairFailed'),
+    'busy': t('ws.error.busy'),
+    'activation-failed': t('ws.error.activationFailed'),
+    'saved-not-opened': t('ws.error.savedNotOpened'),
   };
   function create({ document: doc, window: win, api, popup, list, trigger, label, feedback, onOpenChange }) {
     let data = { items: [], deleted: [], patronActive: false, status: 'saved' };
@@ -28,7 +40,10 @@
       const node = doc.createElement(tag); if (className) node.className = className;
       if (text != null) node.textContent = text; return node;
     };
-    const button = (text, action, className = 'ws-switcher-mini', key = text) => {
+    // Workspace names are the user's own text, never translated.
+    const dataEl = (tag, className, text) => { const node = el(tag, className, text); node.dataset.i18nIgnore = ''; return node; };
+    // key names the button for focus restoration (and tests), whatever its text.
+    const button = (text, key, action, className = 'ws-switcher-mini') => {
       const node = el('button', className, text); node.type = 'button'; node.dataset.focusKey = key;
       node.disabled = !!state.pending; node.addEventListener('click', action); return node;
     };
@@ -43,7 +58,7 @@
     function syncIdentity() {
       const current = data.items.find((w) => w.active);
       label.hidden = !current; label.textContent = current?.name || '';
-      trigger.title = current ? `Workspace · ${current.name}` : 'Workspaces';
+      trigger.title = current ? t('ws.trigger.current', { name: current.name }) : t('footer.workspaces');
       trigger.setAttribute('aria-label', trigger.title);
       trigger.setAttribute('aria-expanded', String(opened));
       trigger.classList.toggle('ws', !!current);
@@ -97,7 +112,7 @@
         } else if (['unsaved-scratch', 'protected-pages'].includes(result?.error) && action) {
           state = { kind: 'decision', action, result, error: '' }; open();
         } else {
-          state.error = state.kind === 'recovery' && result?.error === 'duplicate-name' ? 'An existing workspace uses this name. Rename it before restoring this workspace.' : errors[result?.error] || 'Couldn’t complete that action. Try again.';
+          state.error = state.kind === 'recovery' && result?.error === 'duplicate-name' ? t('ws.error.recoveryDuplicate') : errors[result?.error] || t('ws.error.generic');
           render();
           const input = popup.querySelector('input');
           if (input) { input.focus(); if (state.editSelection) input.setSelectionRange(...state.editSelection); }
@@ -125,7 +140,7 @@
     }
     function renderEditor() {
       const form = el('form', 'ws-switcher-editor');
-      const title = el('label', 'ws-editor-label', state.kind === 'rename' ? 'Rename workspace' : state.kind === 'create' ? 'New empty workspace' : 'Save this window as…');
+      const title = el('label', 'ws-editor-label', state.kind === 'rename' ? t('ws.editor.rename') : state.kind === 'create' ? t('ws.editor.create') : t('ws.editor.saveAs'));
       title.htmlFor = 'workspaceName';
       const input = el('input', 'ws-switcher-input'); input.id = 'workspaceName'; input.type = 'text'; input.maxLength = 60;
       input.value = state.value || ''; input.readOnly = !!state.pending;
@@ -136,64 +151,64 @@
         if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); cancel(); }
       });
       form.addEventListener('submit', (event) => { event.preventDefault(); save(); });
-      const help = el('p', 'ws-help', 'Ordinary tabs save automatically on this device, in this profile. Private pages are excluded. Workspaces share this profile’s sign-ins.'); help.id = 'workspaceEditorHelp';
+      const help = el('p', 'ws-help', t('ws.editor.help')); help.id = 'workspaceEditorHelp';
       const error = el('p', 'ws-error', state.error || ''); error.id = 'workspaceEditorError'; error.setAttribute('role', 'alert');
       const actions = el('div', 'ws-switcher-confirm-acts');
-      const submit = button(state.pending ? 'Saving…' : 'Save', () => {}, 'ws-switcher-mini primary'); submit.type = 'submit';
-      actions.append(button('Cancel', cancel), submit);
+      const submit = button(state.pending ? t('ws.editor.saving') : t('ws.editor.save'), 'save', () => {}, 'ws-switcher-mini primary'); submit.type = 'submit';
+      actions.append(button(t('common.cancel'), 'cancel', cancel), submit);
       form.append(title, input, help, error, actions); return form;
     }
     function renderDecision() {
-      const box = el('section', 'ws-switcher-confirm'); box.setAttribute('aria-label', 'Workspace switch decision');
+      const box = el('section', 'ws-switcher-confirm'); box.setAttribute('aria-label', t('ws.decision.label'));
       const { result, action } = state;
       const protectedPages = result.error === 'protected-pages';
       const message = protectedPages
-        ? (result.reason === 'resident-capacity' ? 'Your retained workspaces are full. Open this workspace in another window to keep your pages available.' : 'This window has pages that need to stay open. Open the workspace in another window, or finish the active page operation and try again.')
-        : `${result.tabCount} ${result.privateCount === result.tabCount ? 'private ' : 'unsaved '}tab${result.tabCount === 1 ? '' : 's'} will close. Page drafts are not saved to disk.`;
+        ? t(result.reason === 'resident-capacity' ? 'ws.decision.capacity' : 'ws.decision.protected')
+        : t(result.privateCount === result.tabCount ? 'ws.decision.closePrivate' : 'ws.decision.closeUnsaved', { count: result.tabCount });
       box.append(el('p', 'ws-switcher-confirm-msg', message));
       const actions = el('div', 'ws-switcher-confirm-acts');
-      actions.append(button('Cancel', cancel), button('Open in another window', () => openAction(action, { newWindow: true })));
+      actions.append(button(t('common.cancel'), 'cancel', cancel), button(t('ws.decision.newWindow'), 'new-window', () => openAction(action, { newWindow: true })));
       if (!protectedPages) {
-        if (result.tabCount > result.privateCount && data.patronActive) actions.append(button('Save this window first…', () => begin('save', null, state)));
-        actions.append(button('Close tabs and switch', () => openAction(action, { decision: result.decision }), 'ws-switcher-mini danger'));
+        if (result.tabCount > result.privateCount && data.patronActive) actions.append(button(t('ws.decision.saveFirst'), 'save-first', () => begin('save', null, state)));
+        actions.append(button(t('ws.decision.closeAndSwitch'), 'close-and-switch', () => openAction(action, { decision: result.decision }), 'ws-switcher-mini danger'));
       }
       box.append(actions); return box;
     }
     function workspaceRow(workspace, index) {
       const row = el('div', 'workspace-row ws-managed-row'); row.dataset.workspaceId = workspace.id;
-      const openButton = button('', () => openAction({ kind: 'open', id: workspace.id, name: workspace.name }), 'ws-switcher-row' + (workspace.active ? ' on' : ''), `open:${workspace.id}`);
+      const openButton = button('', `open:${workspace.id}`, () => openAction({ kind: 'open', id: workspace.id, name: workspace.name }), 'ws-switcher-row' + (workspace.active ? ' on' : ''));
       openButton.dataset.current = String(workspace.active);
-      const context = workspace.active ? 'Current workspace' : workspace.openElsewhere ? 'Show window' : workspace.resident ? 'Retained in memory' : 'Open workspace';
-      openButton.title = `${workspace.name} · ${context} · ${workspace.tabCount} ${workspace.tabCount === 1 ? 'tab' : 'tabs'}`;
+      const context = t(workspace.active ? 'ws.row.current' : workspace.openElsewhere ? 'ws.row.showWindow' : workspace.resident ? 'ws.row.retained' : 'ws.row.open');
+      openButton.title = t('ws.row.title', { name: workspace.name, context, count: workspace.tabCount });
       openButton.setAttribute('aria-label', openButton.title);
       if (workspace.active) openButton.setAttribute('aria-current', 'true');
-      openButton.append(el('span', 'ws-switcher-tick', workspace.active ? '✓' : ''), el('span', 'ws-switcher-name', workspace.name), el('span', 'ws-switcher-n', workspace.openElsewhere ? 'Show window' : `${workspace.tabCount}`));
-      const manage = button('•••', () => { begin('manage', workspace); }, 'ws-manage-button', `manage:${workspace.id}`); manage.setAttribute('aria-label', `Manage ${workspace.name}`);
+      openButton.append(el('span', 'ws-switcher-tick', workspace.active ? '✓' : ''), dataEl('span', 'ws-switcher-name', workspace.name), el('span', 'ws-switcher-n', workspace.openElsewhere ? t('ws.row.showWindow') : number.format(workspace.tabCount)));
+      const manage = button('•••', `manage:${workspace.id}`, () => { begin('manage', workspace); }, 'ws-manage-button'); manage.setAttribute('aria-label', t('ws.manage.label', { name: workspace.name }));
       row.append(openButton, manage); return row;
     }
     function renderManagement() {
-      const box = el('section', 'ws-switcher-editor'); box.append(el('p', 'ws-editor-label', state.name));
+      const box = el('section', 'ws-switcher-editor'); box.append(dataEl('p', 'ws-editor-label', state.name));
       const workspace = data.items.find((w) => w.id === state.id);
-      if (!workspace) return el('p', 'ws-help', 'That workspace is no longer available.');
+      if (!workspace) return el('p', 'ws-help', errors['not-found']);
       const index = data.items.indexOf(workspace);
-      box.append(button('Back', () => { state = { kind: 'list' }; render(); }), button('Rename', () => begin('rename', workspace)), button('Delete…', () => begin('delete', workspace)));
+      box.append(button(t('ws.manage.back'), 'back', () => { state = { kind: 'list' }; render(); }), button(t('ws.manage.rename'), 'rename', () => begin('rename', workspace)), button(t('ws.manage.delete'), 'delete', () => begin('delete', workspace)));
       for (const direction of ['up', 'down']) {
-        const move = button(`Move ${direction}`, () => run(() => api.moveWorkspace(workspace.id, direction), () => {}));
+        const move = button(t(direction === 'up' ? 'ws.manage.moveUp' : 'ws.manage.moveDown'), `move-${direction}`, () => run(() => api.moveWorkspace(workspace.id, direction), () => {}));
         move.disabled ||= direction === 'up' ? index === 0 : index === data.items.length - 1; box.append(move);
       }
       return box;
     }
     function renderDeletion() {
       const box = el('section', 'ws-switcher-confirm');
-      box.append(el('p', 'ws-switcher-confirm-msg', `Delete “${state.name}”? Open tabs stay available. You can restore the saved workspace from Recently Deleted for seven days.`));
+      box.append(el('p', 'ws-switcher-confirm-msg', t('ws.delete.confirm', { name: state.name })));
       const id = state.id;
-      box.append(button('Cancel', cancel), button('Delete workspace', () => run(() => api.removeWorkspace(id), () => { undoId = id; state = { kind: 'list' }; }), 'ws-switcher-mini danger'));
+      box.append(button(t('common.cancel'), 'cancel', cancel), button(t('ws.delete.button'), 'delete-workspace', () => run(() => api.removeWorkspace(id), () => { undoId = id; state = { kind: 'list' }; }), 'ws-switcher-mini danger'));
       return box;
     }
     function renderRecovery() {
-      const box = el('section', 'ws-recovery'); box.append(button('Back to workspaces', () => { state = { kind: 'list' }; render(); }), el('p', 'ws-help', 'Saved workspaces are recoverable for seven days. Up to 25 deleted workspaces are kept.'));
+      const box = el('section', 'ws-recovery'); box.append(button(t('ws.recovery.back'), 'recovery-back', () => { state = { kind: 'list' }; render(); }), el('p', 'ws-help', t('ws.recovery.help', { limit: number.format(WORKSPACE_LIMIT) })));
       for (const entry of data.deleted || []) {
-        const row = el('div', 'ws-recovery-row'); row.append(el('span', 'ws-switcher-name', entry.name), button('Restore', () => run(() => api.restoreWorkspace(entry.id), () => { undoId = null; })), button('Delete permanently…', () => { state = { kind: 'forget', id: entry.id, name: entry.name }; render(); })); box.append(row);
+        const row = el('div', 'ws-recovery-row'); row.append(dataEl('span', 'ws-switcher-name', entry.name), button(t('ws.recovery.restore'), `restore:${entry.id}`, () => run(() => api.restoreWorkspace(entry.id), () => { undoId = null; })), button(t('ws.recovery.forget'), `forget:${entry.id}`, () => { state = { kind: 'forget', id: entry.id, name: entry.name }; render(); })); box.append(row);
       }
       return box;
     }
@@ -215,13 +230,13 @@
       else if (state.kind === 'recovery') nodes.push(renderRecovery());
       else if (state.kind === 'forget') {
         const id = state.id;
-        const confirm = el('section', 'ws-switcher-confirm'); confirm.append(el('p', 'ws-switcher-confirm-msg', `Permanently delete “${state.name}”? This saved workspace cannot be restored.`), button('Cancel', () => { state = { kind: 'recovery' }; render(); }), button('Delete permanently', () => run(() => api.forgetWorkspace(id), () => { state = { kind: 'recovery' }; }), 'ws-switcher-mini danger')); nodes.push(confirm);
+        const confirm = el('section', 'ws-switcher-confirm'); confirm.append(el('p', 'ws-switcher-confirm-msg', t('ws.forget.confirm', { name: state.name })), button(t('common.cancel'), 'cancel', () => { state = { kind: 'recovery' }; render(); }), button(t('ws.forget.button'), 'forget', () => run(() => api.forgetWorkspace(id), () => { state = { kind: 'recovery' }; }), 'ws-switcher-mini danger')); nodes.push(confirm);
       } else {
         nodes.push(...data.items.map(workspaceRow));
-        if (!data.items.length) nodes.push(el('p', 'ws-help', 'No saved workspaces yet.'));
-        if (undoId && data.deleted?.some((d) => d.id === undoId)) nodes.push(button('Workspace deleted · Undo', () => run(() => api.restoreWorkspace(undoId), () => { undoId = null; })));
-        if (data.deleted?.length) nodes.push(button(`Recently Deleted (${data.deleted.length})`, () => { state = { kind: 'recovery' }; render(); }));
-        if (!data.patronActive) nodes.push(button('Patron settings', () => { close(); api.openPage('settings', 'patron'); }));
+        if (!data.items.length) nodes.push(el('p', 'ws-help', t('ws.list.empty')));
+        if (undoId && data.deleted?.some((d) => d.id === undoId)) nodes.push(button(t('ws.list.undo'), 'undo', () => run(() => api.restoreWorkspace(undoId), () => { undoId = null; })));
+        if (data.deleted?.length) nodes.push(button(t('ws.list.recentlyDeleted', { count: data.deleted.length }), 'recently-deleted', () => { state = { kind: 'recovery' }; render(); }));
+        if (!data.patronActive) nodes.push(button(t('ws.list.patronSettings'), 'patron-settings', () => { close(); api.openPage('settings', 'patron'); }));
       }
       if (state.error && !['save', 'create', 'rename'].includes(state.kind)) { const error = el('p', 'ws-error', state.error); error.setAttribute('role', 'alert'); nodes.push(error); }
       list.replaceChildren(...nodes); list.scrollTop = scroll;
@@ -252,7 +267,7 @@
       get state() { return state; },
     };
   }
-  const exports = { create, errors };
+  const exports = { create, errors, WORKSPACE_LIMIT };
   if (typeof module !== 'undefined') module.exports = exports;
   else root.WorkspaceUI = exports;
 })(typeof window !== 'undefined' ? window : globalThis);
