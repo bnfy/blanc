@@ -8,11 +8,16 @@ const UNSAFE_SANDBOX_SWITCHES = Object.freeze([
 ]);
 const UNSAFE_EXEC_SWITCH = new RegExp(`(?:^|[\\s"'])--?(?:${UNSAFE_SANDBOX_SWITCHES.join('|')})(?=$|[\\s"'=])`);
 const SETUP_GUIDE_URL = 'https://github.com/bnfy/blanc/blob/main/docs/linux-appimage-troubleshooting.md';
-const REFUSAL = 'Blanc refused to start because Chromium sandboxing was disabled. Use a Linux environment that permits Chromium sandboxing and launch Blanc without sandbox-disabling options.';
-const GUIDANCE = `${REFUSAL} Setup guidance: ${SETUP_GUIDE_URL}`;
-const OPEN_GUIDE = 'Open Setup Guide';
-const COPY_LINK = 'Copy Link';
-const QUIT = 'Quit';
+// This check runs first in main.js, before settings load and the profile path
+// is final, so the interface language cannot be known: the refusal is always
+// English, from the catalog.
+const { createTranslator } = require('../renderer/pages/i18n.js');
+const t = createTranslator({ locale: 'en', messages: require('../renderer/pages/strings.en.js').messages });
+const REFUSAL = t('linuxSandbox.refusal');
+const GUIDANCE = t('linuxSandbox.guidance', { refusal: REFUSAL, url: SETUP_GUIDE_URL });
+const OPEN_GUIDE = t('linuxSandbox.openGuide');
+const COPY_LINK = t('linuxSandbox.copyLink');
+const QUIT = t('linuxSandbox.quit');
 
 function unsafeSandboxSwitch(argv, commandLine) {
   return UNSAFE_SANDBOX_SWITCHES.find((name) => commandLine?.hasSwitch(name)
@@ -33,14 +38,13 @@ async function offerSetupGuide({ dialog, shell, clipboard, argv, env }) {
   // refused build with the guide's URL; that launch never offers to open it.
   const relaunchedForGuide = argv.includes(SETUP_GUIDE_URL);
   const buttons = [...(relaunchedForGuide ? [] : [OPEN_GUIDE]), ...(copyable ? [COPY_LINK] : []), QUIT];
-  const elsewhere = copyable ? 'Copy the link and open it in another browser.' : 'Open this address in another browser.';
+  const params = { refusal: REFUSAL, url: SETUP_GUIDE_URL };
   const { response } = await dialog.showMessageBox({
     type: 'error',
     title: 'Blanc',
-    message: 'Blanc requires Chromium sandboxing',
-    detail: relaunchedForGuide
-      ? `${REFUSAL}\n\nBlanc can't open the setup guide itself while it can't start. ${elsewhere}\n\n${SETUP_GUIDE_URL}`
-      : `${REFUSAL}\n\nSetup guide: ${SETUP_GUIDE_URL}`,
+    message: t('linuxSandbox.message'),
+    detail: !relaunchedForGuide ? t('linuxSandbox.detail', params)
+      : t(copyable ? 'linuxSandbox.detailCopy' : 'linuxSandbox.detailOpenElsewhere', params),
     buttons,
     defaultId: 0,
     cancelId: buttons.length - 1,
@@ -56,8 +60,8 @@ async function offerSetupGuide({ dialog, shell, clipboard, argv, env }) {
   await dialog.showMessageBox({
     type: 'info',
     title: 'Blanc',
-    message: 'Setup guide link copied',
-    detail: 'Paste it into another browser, then choose Quit.',
+    message: t('linuxSandbox.copied.message'),
+    detail: t('linuxSandbox.copied.detail'),
     buttons: [QUIT],
   });
 }

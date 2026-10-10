@@ -7,6 +7,7 @@ const {
   chooseWebAuthnAccount,
   setupWebAuthn,
 } = require('../../src/main/webauthn');
+const { englishT: t } = require('../support/english-t');
 
 const accounts = [
   { credentialId: 'first', name: 'alice@example.com' },
@@ -18,9 +19,9 @@ test('uses Blanc’s stable signing identity for the Secure Enclave access group
 });
 
 test('labels discoverable credentials for the native account chooser', () => {
-  assert.equal(accountLabel(accounts[0], 0), 'alice@example.com');
-  assert.equal(accountLabel(accounts[1], 1), 'Work account');
-  assert.equal(accountLabel({}, 2), 'Passkey 3');
+  assert.equal(accountLabel(accounts[0], 0, t), 'alice@example.com');
+  assert.equal(accountLabel(accounts[1], 1, t), 'Work account');
+  assert.equal(accountLabel({}, 2, t), 'Passkey 3');
 });
 
 test('returns the selected discoverable credential and parents its dialog', async () => {
@@ -39,6 +40,7 @@ test('returns the selected discoverable credential and parents its dialog', asyn
     dialog,
     getParentWindow: () => parent,
     details: { relyingPartyId: 'example.com', accounts },
+    t,
   });
 
   assert.equal(selected, 'second');
@@ -53,6 +55,7 @@ test('cancelling the picker leaves the credential request unresolved by a creden
     dialog,
     getParentWindow: () => null,
     details: { relyingPartyId: 'example.com', accounts },
+    t,
   });
 
   assert.equal(selected, undefined);
@@ -65,11 +68,11 @@ test('enables Touch ID WebAuthn only on macOS and returns the selected credentia
   const session = { on: (event, listener) => listeners.set(event, listener) };
   const dialog = { showMessageBox: async () => ({ response: 0 }) };
 
-  assert.equal(setupWebAuthn({ app, session, dialog, platform: 'linux' }), false);
+  assert.equal(setupWebAuthn({ app, session, dialog, t, platform: 'linux' }), false);
   assert.equal(configured.length, 0);
   assert.equal(listeners.size, 0);
 
-  assert.equal(setupWebAuthn({ app, session, dialog, platform: 'darwin' }), true);
+  assert.equal(setupWebAuthn({ app, session, dialog, t, platform: 'darwin' }), true);
   assert.deepEqual(configured, [{
     touchID: { keychainAccessGroup: WEBAUTHN_KEYCHAIN_ACCESS_GROUP },
   }]);

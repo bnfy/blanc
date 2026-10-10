@@ -1804,5 +1804,384 @@
   "dock.activeTab": {
     "message": "Active tab",
     "note": "Placeholder for the Dock menu’s active-tab line while it is hidden; never shown."
+  },
+  "siteSecurity.unavailable.title": {
+    "message": "Connection information unavailable",
+    "note": "Site information title when the page origin cannot be read."
+  },
+  "siteSecurity.unavailable.summary": {
+    "message": "Blanc could not identify this page origin.",
+    "note": "Site information summary when the page origin cannot be read."
+  },
+  "siteSecurity.certError.title": {
+    "message": "Certificate problem",
+    "note": "Site information title when the site’s certificate failed verification; the summary says why."
+  },
+  "siteSecurity.certException.title": {
+    "message": "Not secure",
+    "note": "Site information title after the person chose to continue past a certificate error."
+  },
+  "siteSecurity.certException.summary": {
+    "message": "You chose to continue even though this site’s certificate isn’t trusted. Blanc will warn you again after it restarts.",
+    "note": "Site information summary after continuing past a certificate error."
+  },
+  "siteSecurity.secure.title": {
+    "message": "Connection is secure",
+    "note": "Site information title for a verified HTTPS connection."
+  },
+  "siteSecurity.secure.summary": {
+    "message": "Encrypted and authenticated by Chromium’s certificate verifier.",
+    "note": "Site information summary for HTTPS with a public certificate authority."
+  },
+  "siteSecurity.secure.summaryPrivateRoot": {
+    "message": "Encrypted. The certificate is trusted by this device, but its issuer is not a standard public root.",
+    "note": "Site information summary for HTTPS whose certificate chains to a locally installed root (for example a company proxy)."
+  },
+  "siteSecurity.local.title": {
+    "message": "Local connection",
+    "note": "Site information title for an http:// page on this computer (localhost)."
+  },
+  "siteSecurity.local.summary": {
+    "message": "This loopback address stays on this device.",
+    "note": "Site information summary for an http:// page on this computer."
+  },
+  "siteSecurity.insecure.title": {
+    "message": "Connection is not secure",
+    "note": "Site information title for a plain http:// website."
+  },
+  "siteSecurity.insecure.summary": {
+    "message": "Information sent to this site can be read or changed in transit.",
+    "note": "Site information summary for a plain http:// website."
+  },
+  "siteSecurity.internal.title": {
+    "message": "Blanc page",
+    "note": "Site information title for Blanc’s own pages."
+  },
+  "siteSecurity.internal.summary": {
+    "message": "This page is part of Blanc.",
+    "note": "Site information summary for Blanc’s own pages."
+  },
+  "siteSecurity.neutral.title": {
+    "message": "Connection information",
+    "note": "Site information title for pages that are not http or https (for example a file)."
+  },
+  "siteSecurity.neutral.summary": {
+    "message": "This page does not use an HTTP connection.",
+    "note": "Site information summary for pages that are not http or https."
+  },
+  "certError.dateInvalid": {
+    "message": "The certificate is expired or not valid yet.",
+    "note": "Why a certificate failed; shown in site information and on the certificate error page."
+  },
+  "certError.commonNameInvalid": {
+    "message": "The certificate does not match this site.",
+    "note": "Why a certificate failed; shown in site information and on the certificate error page."
+  },
+  "certError.authorityInvalid": {
+    "message": "The certificate issuer is not trusted by this device.",
+    "note": "Why a certificate failed; shown in site information and on the certificate error page."
+  },
+  "certError.revoked": {
+    "message": "The certificate has been revoked.",
+    "note": "Why a certificate failed; shown in site information and on the certificate error page."
+  },
+  "certError.weakSignature": {
+    "message": "The certificate uses a weak signature.",
+    "note": "Why a certificate failed; shown in site information and on the certificate error page."
+  },
+  "certError.invalid": {
+    "message": "The certificate is invalid.",
+    "note": "Why a certificate failed; shown in site information and on the certificate error page."
+  },
+  "certError.generic": {
+    "message": "The site could not prove its identity with a valid certificate.",
+    "note": "Why a certificate failed, for any other certificate error."
+  },
+  "shield.uboRestarting": {
+    "message": "uBlock Origin is restarting. New requests are paused.",
+    "note": "Shield tooltip and status while uBlock Origin restarts."
+  },
+  "shield.chip.uboUnavailable": {
+    "message": "uBlock Origin unavailable — open Settings for recovery",
+    "note": "Shield chip tooltip when uBlock Origin cannot run."
+  },
+  "shield.chip.uboOff": {
+    "message": "uBlock Origin is off — click for controls",
+    "note": "Shield chip tooltip when blocking is turned off and uBlock Origin is the blocker."
+  },
+  "shield.chip.uboCount": {
+    "message": "{count, plural, one {uBlock Origin — # request blocked — click for controls} other {uBlock Origin — # requests blocked — click for controls}}",
+    "note": "Shield chip tooltip with uBlock Origin’s blocked request count on this page."
+  },
+  "shield.chip.siteOff": {
+    "message": "Blanc Blocker off for this site — click for site controls",
+    "note": "Shield chip tooltip when ads are allowed on this site."
+  },
+  "shield.chip.globalOff": {
+    "message": "Blanc Blocker is off everywhere — click for details",
+    "note": "Shield chip tooltip when ad blocking is turned off in Settings."
+  },
+  "shield.chip.count": {
+    "message": "{count, plural, one {Blanc Blocker — # ad or tracker blocked here — click for site controls} other {Blanc Blocker — # ads & trackers blocked here — click for site controls}}",
+    "note": "Shield chip tooltip with the number of ads and trackers blocked on this page."
+  },
+  "shield.chip.quiet": {
+    "message": "Blanc Blocker — protected, nothing blocked yet — click for site controls",
+    "note": "Shield chip tooltip when nothing has been blocked on this page yet."
+  },
+  "shield.count.globalOff": {
+    "message": "Ad blocking is off everywhere",
+    "note": "Shield popover status when ad blocking is turned off in Settings."
+  },
+  "shield.count.needsAttention": {
+    "message": "Blocking needs attention. Open blocking settings to recover.",
+    "note": "Shield popover status when the blocker failed to start."
+  },
+  "shield.count.uboRequests": {
+    "message": "{count, plural, one {# request blocked on this page} other {# requests blocked on this page}}",
+    "note": "Shield popover status with uBlock Origin’s blocked request count."
+  },
+  "shield.count.siteOff": {
+    "message": "Ads allowed on this site",
+    "note": "Shield popover status when ads are allowed on this site."
+  },
+  "shield.count.none": {
+    "message": "Nothing blocked on this page yet",
+    "note": "Shield popover status when nothing has been blocked yet."
+  },
+  "shield.count.blocked": {
+    "message": "{count, plural, one {# ad or tracker blocked on this page} other {# ads & trackers blocked on this page}}",
+    "note": "Shield popover status with the number of ads and trackers blocked."
+  },
+  "shield.badge.off": {
+    "message": "Off",
+    "note": "Badge beside the blocker’s name when blocking is off.",
+    "maxLength": 12
+  },
+  "shield.badge.starting": {
+    "message": "Starting",
+    "note": "Badge beside the blocker’s name while it starts.",
+    "maxLength": 12
+  },
+  "shield.badge.unavailable": {
+    "message": "Unavailable",
+    "note": "Badge beside the blocker’s name when it cannot run.",
+    "maxLength": 16
+  },
+  "shield.provider.active": {
+    "message": "Active",
+    "note": "Shield popover blocker status when the blocker is running normally."
+  },
+  "shield.provider.privateProtects": {
+    "message": "Blanc Blocker protects this private tab.",
+    "note": "Shield popover blocker status in a private tab."
+  },
+  "shield.provider.privateNoUbo": {
+    "message": "Blanc’s browser engine can’t load uBO in temporary private sessions. Blanc Blocker protects this tab.",
+    "note": "Shield popover blocker status in a private tab when uBlock Origin is the regular blocker."
+  },
+  "shield.provider.unavailable": {
+    "message": "{provider} is unavailable. Open blocking settings to recover.",
+    "note": "Shield popover blocker status; {provider} is Blanc Blocker or uBlock Origin."
+  },
+  "shield.provider.unavailableOff": {
+    "message": "{provider} is unavailable. Blocking is off. Open blocking settings to recover.",
+    "note": "Shield popover blocker status when the blocker cannot run and blocking is off; {provider} is Blanc Blocker or uBlock Origin."
+  },
+  "shield.provider.off": {
+    "message": "Blocking is off.",
+    "note": "Shield popover blocker status when blocking is turned off."
+  },
+  "shield.provider.starting": {
+    "message": "{provider} is starting…",
+    "note": "Shield popover blocker status while it starts; {provider} is Blanc Blocker or uBlock Origin."
+  },
+  "shield.provider.protecting": {
+    "message": "Blanc Blocker is protecting this tab.",
+    "note": "Shield popover sentence when Blanc Blocker stands in for uBlock Origin."
+  },
+  "shield.provider.engineNoUbo": {
+    "message": "This browser engine can’t run uBlock Origin.",
+    "note": "Shield popover sentence when this Blanc build’s engine cannot load uBlock Origin."
+  },
+  "shield.provider.buildNoUbo": {
+    "message": "uBlock Origin isn’t available in this build.",
+    "note": "Shield popover sentence when this Blanc build does not include uBlock Origin."
+  },
+  "shield.provider.fallback": {
+    "message": "{reason} {current} Your uBO settings are saved.",
+    "note": "Shield popover status when Blanc Blocker stands in for uBlock Origin. {reason} is why uBlock Origin is not running and {current} the current blocker status; both are full sentences."
+  },
+  "shield.provider.stillActive": {
+    "message": "{provider} is still active.",
+    "note": "Sentence used in {current} of the restart status; {provider} is Blanc Blocker or uBlock Origin."
+  },
+  "shield.provider.restartPending": {
+    "message": "{selected} selected. Restart Blanc to apply; {current}",
+    "note": "Shield popover status after choosing another blocker. {selected} is Blanc Blocker or uBlock Origin; {current} is a full sentence about the blocker running now."
+  },
+  "shield.provider.availability": {
+    "message": "uBlock Origin is unavailable on this build.",
+    "note": "Shield popover note when this build cannot offer uBlock Origin."
+  },
+  "shield.provider.ownSettings": {
+    "message": "Each blocker keeps its own site settings.",
+    "note": "Shield popover note under the private-tab note."
+  },
+  "tabView.leave.message": {
+    "message": "Leave this page?",
+    "note": "Dialog when a page asks to confirm leaving (unsaved changes)."
+  },
+  "tabView.leave.detail": {
+    "message": "Changes you made may not be saved.",
+    "note": "Dialog detail when a page asks to confirm leaving."
+  },
+  "tabView.leave.leave": {
+    "message": "Leave",
+    "note": "Button that leaves the page."
+  },
+  "tabView.leave.stay": {
+    "message": "Stay",
+    "note": "Button that stays on the page."
+  },
+  "error.crashed": {
+    "message": "The page crashed",
+    "note": "Description on the error page when a tab’s renderer crashed."
+  },
+  "externalApp.none.title": {
+    "message": "No application found",
+    "note": "Dialog title when no app on the computer handles a link’s scheme."
+  },
+  "externalApp.none.message": {
+    "message": "No installed application can open {protocol} links.",
+    "note": "Dialog message; {protocol} is the link scheme, for example zoommtg:."
+  },
+  "externalApp.none.detail": {
+    "message": "Install the application, then restart its sign-in flow.",
+    "note": "Dialog detail when no app handles a link."
+  },
+  "externalApp.confirm.title": {
+    "message": "Open external application?",
+    "note": "Dialog title asking to open another app for a link."
+  },
+  "externalApp.confirm.message": {
+    "message": "Open {app}?",
+    "note": "Dialog message; {app} is the app’s name, for example Zoom."
+  },
+  "externalApp.confirm.detail": {
+    "message": "{origin} wants to open an application on your computer ({protocol}).",
+    "note": "Dialog detail; {origin} is the website (https://example.com) and {protocol} the link scheme."
+  },
+  "externalApp.confirm.detailNoOrigin": {
+    "message": "This link wants to open an application on your computer ({protocol}).",
+    "note": "Dialog detail when the link has no website origin; {protocol} is the link scheme."
+  },
+  "externalApp.confirm.open": {
+    "message": "Open Application",
+    "note": "Button that opens the other app."
+  },
+  "externalApp.failed.title": {
+    "message": "Could not open application",
+    "note": "Dialog title when opening the other app failed."
+  },
+  "externalApp.failed.message": {
+    "message": "The application could not be opened.",
+    "note": "Dialog message when opening the other app failed."
+  },
+  "externalApp.failed.detail": {
+    "message": "Try opening the application yourself, then restart its sign-in flow.",
+    "note": "Dialog detail when opening the other app failed."
+  },
+  "passkey.title": {
+    "message": "Choose a passkey",
+    "note": "Title of the macOS passkey picker dialog."
+  },
+  "passkey.message": {
+    "message": "Choose a passkey for {site}",
+    "note": "Passkey picker message; {site} is the website’s domain."
+  },
+  "passkey.messageNoSite": {
+    "message": "Choose a passkey for this website",
+    "note": "Passkey picker message when the website’s domain is unknown."
+  },
+  "passkey.detail": {
+    "message": "This website has more than one passkey available in Blanc on this Mac.",
+    "note": "Passkey picker detail."
+  },
+  "passkey.fallbackLabel": {
+    "message": "Passkey {number}",
+    "note": "Passkey picker button for a passkey without a name; {number} is its position, starting at 1."
+  },
+  "favorites.import.title": {
+    "message": "Import favorites",
+    "note": "Title of the file dialog for importing a bookmarks HTML file into Favorites."
+  },
+  "favorites.import.filter": {
+    "message": "Bookmarks",
+    "note": "File type name in the import dialog for bookmarks HTML files exported from other browsers."
+  },
+  "diagnostics.export.title": {
+    "message": "Export Blanc diagnostics",
+    "note": "Title of the save dialog for the diagnostics report."
+  },
+  "settings.trust.release": {
+    "message": "Matching release",
+    "note": "Settings link to the GitHub release that matches this build."
+  },
+  "settings.trust.verification": {
+    "message": "Verification guide",
+    "note": "Settings link to the guide for verifying a Blanc download."
+  },
+  "settings.trust.sbom": {
+    "message": "Release SBOM",
+    "note": "Settings link to the release’s software bill of materials."
+  },
+  "settings.trust.provenance": {
+    "message": "Provenance attestations",
+    "note": "Settings link to the release’s build provenance attestations."
+  },
+  "linuxSandbox.refusal": {
+    "message": "Blanc refused to start because Chromium sandboxing was disabled. Use a Linux environment that permits Chromium sandboxing and launch Blanc without sandbox-disabling options.",
+    "note": "Linux dialog when Blanc is launched with sandboxing disabled. Shown before Blanc can read the interface language, so it is always English."
+  },
+  "linuxSandbox.guidance": {
+    "message": "{refusal} Setup guidance: {url}",
+    "note": "Terminal output when Blanc refuses a Linux launch with sandboxing disabled; {refusal} is linuxSandbox.refusal and {url} the setup guide’s address (always English)."
+  },
+  "linuxSandbox.message": {
+    "message": "Blanc requires Chromium sandboxing",
+    "note": "Linux dialog message when Blanc is launched with sandboxing disabled (always English)."
+  },
+  "linuxSandbox.detail": {
+    "message": "{refusal}\n\nSetup guide: {url}",
+    "note": "Linux dialog detail; {refusal} is linuxSandbox.refusal and {url} the setup guide’s address (always English)."
+  },
+  "linuxSandbox.detailCopy": {
+    "message": "{refusal}\n\nBlanc can’t open the setup guide itself while it can’t start. Copy the link and open it in another browser.\n\n{url}",
+    "note": "Linux dialog detail when the guide cannot open (always English)."
+  },
+  "linuxSandbox.detailOpenElsewhere": {
+    "message": "{refusal}\n\nBlanc can’t open the setup guide itself while it can’t start. Open this address in another browser.\n\n{url}",
+    "note": "Linux dialog detail when the guide cannot open and the link cannot be copied (always English)."
+  },
+  "linuxSandbox.openGuide": {
+    "message": "Open Setup Guide",
+    "note": "Linux dialog button (always English)."
+  },
+  "linuxSandbox.copyLink": {
+    "message": "Copy Link",
+    "note": "Linux dialog button (always English)."
+  },
+  "linuxSandbox.quit": {
+    "message": "Quit",
+    "note": "Linux dialog button (always English)."
+  },
+  "linuxSandbox.copied.message": {
+    "message": "Setup guide link copied",
+    "note": "Linux dialog after copying the guide’s link (always English)."
+  },
+  "linuxSandbox.copied.detail": {
+    "message": "Paste it into another browser, then choose Quit.",
+    "note": "Linux dialog detail after copying the guide’s link (always English)."
   }
 }

@@ -474,4 +474,120 @@
     <string name="workspace_menu_rename">Umbenennen…</string>
     <string name="workspace_menu_delete">Löschen…</string>
     <string name="dock_active_tab">Aktiver Tab</string>
+    <string name="site_security_unavailable_title">Verbindungsinformationen nicht verfügbar</string>
+    <string name="site_security_unavailable_summary">Blanc konnte die Herkunft dieser Seite nicht erkennen.</string>
+    <string name="site_security_cert_error_title">Zertifikatsproblem</string>
+    <string name="site_security_cert_exception_title">Nicht sicher</string>
+    <string name="site_security_cert_exception_summary">Du hast trotz eines nicht vertrauenswürdigen Zertifikats fortgefahren. Blanc warnt dich nach einem Neustart erneut.</string>
+    <string name="site_security_secure_title">Verbindung ist sicher</string>
+    <string name="site_security_secure_summary">Verschlüsselt und vom Zertifikatsprüfer von Chromium bestätigt.</string>
+    <string name="site_security_secure_summary_private_root">Verschlüsselt. Dieses Gerät vertraut dem Zertifikat, sein Aussteller ist aber keine öffentliche Standard-Stammzertifizierungsstelle.</string>
+    <string name="site_security_local_title">Lokale Verbindung</string>
+    <string name="site_security_local_summary">Diese Loopback-Adresse bleibt auf diesem Gerät.</string>
+    <string name="site_security_insecure_title">Verbindung ist nicht sicher</string>
+    <string name="site_security_insecure_summary">An diese Website gesendete Informationen können unterwegs gelesen oder verändert werden.</string>
+    <string name="site_security_internal_title">Blanc-Seite</string>
+    <string name="site_security_internal_summary">Diese Seite gehört zu Blanc.</string>
+    <string name="site_security_neutral_title">Verbindungsinformationen</string>
+    <string name="site_security_neutral_summary">Diese Seite nutzt keine HTTP-Verbindung.</string>
+    <string name="cert_error_date_invalid">Das Zertifikat ist abgelaufen oder noch nicht gültig.</string>
+    <string name="cert_error_common_name_invalid">Das Zertifikat passt nicht zu dieser Website.</string>
+    <string name="cert_error_authority_invalid">Dieses Gerät vertraut dem Aussteller des Zertifikats nicht.</string>
+    <string name="cert_error_revoked">Das Zertifikat wurde widerrufen.</string>
+    <string name="cert_error_weak_signature">Das Zertifikat verwendet eine schwache Signatur.</string>
+    <string name="cert_error_invalid">Das Zertifikat ist ungültig.</string>
+    <string name="cert_error_generic">Die Website konnte ihre Identität nicht mit einem gültigen Zertifikat nachweisen.</string>
+    <string name="shield_ubo_restarting">uBlock Origin wird neu gestartet. Neue Anfragen werden angehalten.</string>
+    <string name="shield_chip_ubo_unavailable">uBlock Origin nicht verfügbar – Einstellungen zur Wiederherstellung öffnen</string>
+    <string name="shield_chip_ubo_off">uBlock Origin ist aus – klicken für Steuerelemente</string>
+    <plurals name="shield_chip_ubo_count">
+        <item quantity="one">uBlock Origin – %1$d Anfrage blockiert – klicken für Steuerelemente</item>
+        <item quantity="other">uBlock Origin – %1$d Anfragen blockiert – klicken für Steuerelemente</item>
+    </plurals>
+    <string name="shield_chip_site_off">Blanc Blocker für diese Website aus – klicken für Website-Einstellungen</string>
+    <string name="shield_chip_global_off">Blanc Blocker ist überall aus – klicken für Details</string>
+    <plurals name="shield_chip_count">
+        <item quantity="one">Blanc Blocker – %1$d Anzeige oder Tracker hier blockiert – klicken für Website-Einstellungen</item>
+        <item quantity="other">Blanc Blocker – %1$d Anzeigen und Tracker hier blockiert – klicken für Website-Einstellungen</item>
+    </plurals>
+    <string name="shield_chip_quiet">Blanc Blocker – geschützt, noch nichts blockiert – klicken für Website-Einstellungen</string>
+    <string name="shield_count_global_off">Werbe- und Tracker-Blockierung ist überall aus</string>
+    <string name="shield_count_needs_attention">Der Blocker braucht Aufmerksamkeit. Öffne die Blocker-Einstellungen zur Wiederherstellung.</string>
+    <plurals name="shield_count_ubo_requests">
+        <item quantity="one">%1$d Anfrage auf dieser Seite blockiert</item>
+        <item quantity="other">%1$d Anfragen auf dieser Seite blockiert</item>
+    </plurals>
+    <string name="shield_count_site_off">Werbung auf dieser Website erlaubt</string>
+    <string name="shield_count_none">Auf dieser Seite noch nichts blockiert</string>
+    <plurals name="shield_count_blocked">
+        <item quantity="one">%1$d Anzeige oder Tracker auf dieser Seite blockiert</item>
+        <item quantity="other">%1$d Anzeigen und Tracker auf dieser Seite blockiert</item>
+    </plurals>
+    <string name="shield_badge_off">Aus</string>
+    <string name="shield_badge_starting">Startet</string>
+    <string name="shield_badge_unavailable">Nicht verfügbar</string>
+    <string name="shield_provider_active">Aktiv</string>
+    <string name="shield_provider_private_protects">Blanc Blocker schützt diesen privaten Tab.</string>
+    <string name="shield_provider_private_no_ubo">Blancs Browser-Engine kann uBO in temporären privaten Sitzungen nicht laden. Blanc Blocker schützt diesen Tab.</string>
+    <string name="shield_provider_unavailable">%1$s ist nicht verfügbar. Öffne die Blocker-Einstellungen zur Wiederherstellung.</string>
+    <string name="shield_provider_unavailable_off">%1$s ist nicht verfügbar. Der Blocker ist aus. Öffne die Blocker-Einstellungen zur Wiederherstellung.</string>
+    <string name="shield_provider_off">Der Blocker ist aus.</string>
+    <string name="shield_provider_starting">%1$s startet …</string>
+    <string name="shield_provider_protecting">Blanc Blocker schützt diesen Tab.</string>
+    <string name="shield_provider_engine_no_ubo">Diese Browser-Engine kann uBlock Origin nicht ausführen.</string>
+    <string name="shield_provider_build_no_ubo">uBlock Origin ist in diesem Build nicht enthalten.</string>
+    <string name="shield_provider_fallback">%1$s %2$s Deine uBO-Einstellungen bleiben gespeichert.</string>
+    <string name="shield_provider_still_active">%1$s ist weiterhin aktiv.</string>
+    <string name="shield_provider_restart_pending">%1$s ausgewählt. Starte Blanc neu, um es anzuwenden; %2$s</string>
+    <string name="shield_provider_availability">uBlock Origin ist in diesem Build nicht verfügbar.</string>
+    <string name="shield_provider_own_settings">Jeder Blocker behält seine eigenen Website-Einstellungen.</string>
+    <string name="tab_view_leave_message">Diese Seite verlassen?</string>
+    <string name="tab_view_leave_detail">Deine Änderungen werden möglicherweise nicht gespeichert.</string>
+    <string name="tab_view_leave_leave">Verlassen</string>
+    <string name="tab_view_leave_stay">Bleiben</string>
+    <string name="error_crashed">Die Seite ist abgestürzt</string>
+    <string name="external_app_none_title">Keine App gefunden</string>
+    <string name="external_app_none_message">Keine installierte App kann %1$s-Links öffnen.</string>
+    <string name="external_app_none_detail">Installiere die App und starte dann die Anmeldung erneut.</string>
+    <string name="external_app_confirm_title">Externe App öffnen?</string>
+    <string name="external_app_confirm_message">%1$s öffnen?</string>
+    <string name="external_app_confirm_detail">%1$s möchte eine App auf deinem Computer öffnen (%2$s).</string>
+    <string name="external_app_confirm_detail_no_origin">Dieser Link möchte eine App auf deinem Computer öffnen (%1$s).</string>
+    <string name="external_app_confirm_open">App öffnen</string>
+    <string name="external_app_failed_title">App konnte nicht geöffnet werden</string>
+    <string name="external_app_failed_message">Die App konnte nicht geöffnet werden.</string>
+    <string name="external_app_failed_detail">Öffne die App selbst und starte dann die Anmeldung erneut.</string>
+    <string name="passkey_title">Passkey auswählen</string>
+    <string name="passkey_message">Passkey für %1$s auswählen</string>
+    <string name="passkey_message_no_site">Passkey für diese Website auswählen</string>
+    <string name="passkey_detail">Für diese Website sind in Blanc auf diesem Mac mehrere Passkeys verfügbar.</string>
+    <string name="passkey_fallback_label">Passkey %1$s</string>
+    <string name="favorites_import_title">Favoriten importieren</string>
+    <string name="favorites_import_filter">Lesezeichen</string>
+    <string name="diagnostics_export_title">Blanc-Diagnose exportieren</string>
+    <string name="settings_trust_release">Passendes Release</string>
+    <string name="settings_trust_verification">Prüfanleitung</string>
+    <string name="settings_trust_sbom">Release-SBOM</string>
+    <string name="settings_trust_provenance">Herkunftsnachweise</string>
+    <string name="linux_sandbox_refusal">Blanc wurde nicht gestartet, weil die Chromium-Sandbox deaktiviert war. Nutze eine Linux-Umgebung, die die Chromium-Sandbox erlaubt, und starte Blanc ohne Optionen, die die Sandbox deaktivieren.</string>
+    <string name="linux_sandbox_guidance">%1$s Einrichtungsanleitung: %2$s</string>
+    <string name="linux_sandbox_message">Blanc benötigt die Chromium-Sandbox</string>
+    <string name="linux_sandbox_detail">%1$s
+
+Einrichtungsanleitung: %2$s</string>
+    <string name="linux_sandbox_detail_copy">%1$s
+
+Blanc kann die Einrichtungsanleitung nicht selbst öffnen, solange es nicht starten kann. Kopiere den Link und öffne ihn in einem anderen Browser.
+
+%2$s</string>
+    <string name="linux_sandbox_detail_open_elsewhere">%1$s
+
+Blanc kann die Einrichtungsanleitung nicht selbst öffnen, solange es nicht starten kann. Öffne diese Adresse in einem anderen Browser.
+
+%2$s</string>
+    <string name="linux_sandbox_open_guide">Einrichtungsanleitung öffnen</string>
+    <string name="linux_sandbox_copy_link">Link kopieren</string>
+    <string name="linux_sandbox_quit">Beenden</string>
+    <string name="linux_sandbox_copied_message">Link zur Einrichtungsanleitung kopiert</string>
+    <string name="linux_sandbox_copied_detail">Füge ihn in einem anderen Browser ein und wähle dann „Beenden“.</string>
 </resources>

@@ -1303,6 +1303,9 @@ export function checkSearchEngines(contract, schema = JSON.parse(fs.readFileSync
 export function payloadFixtures() {
   const { shieldChipState, connectionFor, shieldPopoverModel, shieldProviderModel } = requireMain('./shield-model');
   const { buildSiteInfo, sanitizeCertificate } = requireMain('./site-security');
+  // Main's text builders take the interface translator; fixtures use English.
+  const { createTranslator } = requireMain('../renderer/pages/i18n.js');
+  const t = createTranslator({ locale: 'en', messages: requireMain('../renderer/pages/strings.en.js').messages });
   const { projectEntries } = requireMain('./closed-tabs');
   const { projectDisplayShares } = requireMain('./display-capture-indicator');
   const captureState = requireMain('./capture-state');
@@ -1340,13 +1343,13 @@ export function payloadFixtures() {
     for (const provider of ['blanc', 'ublock-origin']) {
       for (const readiness of ['ready', 'failed']) {
         for (const [excepted, adblockEnabled, blockedCount] of [[false, true, 0], [false, true, 3], [true, true, 1], [false, false, 2]]) {
-          add(`shieldChipState(${url}, ${provider}, ${readiness})`, 'ShieldChip', shieldChipState({ url, blockedCount, excepted, adblockEnabled, provider, readiness }));
+          add(`shieldChipState(${url}, ${provider}, ${readiness})`, 'ShieldChip', shieldChipState({ url, blockedCount, excepted, adblockEnabled, provider, readiness, t }));
           for (const status of statuses) {
             for (const privateTab of [false, true]) {
-              const model = shieldPopoverModel({ url, blockedCount, excepted, adblockEnabled, provider, readiness, connection: connectionFor({ url, isLoading: false }) });
+              const model = shieldPopoverModel({ url, blockedCount, excepted, adblockEnabled, provider, readiness, connection: connectionFor({ url, isLoading: false }), t });
               if (model) {
                 for (const darkSite of darkSites) {
-                  add(`shieldPopover(${url}, ${provider}, ${readiness})`, 'ShieldPopover', { ...model, controls: shieldProviderModel(status, privateTab), darkSite: darkSite(url, privateTab) });
+                  add(`shieldPopover(${url}, ${provider}, ${readiness})`, 'ShieldPopover', { ...model, controls: shieldProviderModel(status, privateTab, t), darkSite: darkSite(url, privateTab) });
                 }
               }
             }
@@ -1355,11 +1358,12 @@ export function payloadFixtures() {
       }
     }
     for (const isLoading of [false, true]) add(`connectionFor(${url})`, 'ConnectionState | null', connectionFor({ url, isLoading }));
-    add(`buildSiteInfo(${url})`, 'SiteInfo', buildSiteInfo(url, { blockedCount: 2 }));
-    add(`buildSiteInfo(${url}, certificate)`, 'SiteInfo', buildSiteInfo(url, { certificateRecord: { certificate: cert, isIssuedByKnownRoot: false } }));
+    add(`buildSiteInfo(${url})`, 'SiteInfo', buildSiteInfo(url, { blockedCount: 2, t }));
+    add(`buildSiteInfo(${url}, certificate)`, 'SiteInfo', buildSiteInfo(url, { certificateRecord: { certificate: cert, isIssuedByKnownRoot: false }, t }));
   }
   add('buildSiteInfo(certificate error)', 'SiteInfo', buildSiteInfo('https://expired.example/', {
     certificateError: { url: 'https://expired.example/', error: 'net::ERR_CERT_DATE_INVALID', certificate: cert },
+    t,
   }));
   add('sanitizeCertificate', 'CertificateSummary | null', cert);
   add('sanitizeCertificate(empty)', 'CertificateSummary | null', sanitizeCertificate({}));

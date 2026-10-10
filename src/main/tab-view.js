@@ -466,7 +466,7 @@ function wireTabView(tab, view, { owner, adopted }) {
           url: validatedURL,
           code: errorCode,
           desc: errorDescription,
-        }, { canContinue })
+        }, { canContinue, t: deps.t })
       : new URLSearchParams({ url: validatedURL, code: String(errorCode), desc: errorDescription });
     // A load uBO's automatic recovery cancelled gets a one-time token, so
     // that page (and only that page) reloads once uBO is back.
@@ -511,7 +511,7 @@ function wireTabView(tab, view, { owner, adopted }) {
     clearTabCaptureState(tab);
     if (details.reason === 'clean-exit') return;
     recordRendererCrash('tab', details);
-    const q = new URLSearchParams({ url: tab.url, code: details.reason, desc: 'The page crashed' });
+    const q = new URLSearchParams({ url: tab.url, code: details.reason, desc: deps.t('error.crashed') });
     queueTabNavigation(wc, {
       isCurrent: () => !tab.sleeping && liveContents(tab) === wc && windowRuntimes.runtimeForTab(id) === getOwner(),
       run: contents => contents.loadURL(`blanc://error/?${q}`),
@@ -523,11 +523,11 @@ function wireTabView(tab, view, { owner, adopted }) {
     if (tab.sleeping || tab.view?.webContents !== wc || getOwner().resident) return;
     const choice = dialog.showMessageBoxSync(hasLiveWindow() ? getOwner().window : undefined, {
       type: 'question',
-      buttons: ['Leave', 'Stay'],
+      buttons: [deps.t('tabView.leave.leave'), deps.t('tabView.leave.stay')],
       defaultId: 0,
       cancelId: 1,
-      message: 'Leave this page?',
-      detail: 'Changes you made may not be saved.',
+      message: deps.t('tabView.leave.message'),
+      detail: deps.t('tabView.leave.detail'),
     });
     if (choice === 0) event.preventDefault();
   }));

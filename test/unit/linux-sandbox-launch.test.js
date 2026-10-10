@@ -49,8 +49,8 @@ test('unsafe Linux launches initialize no browser code and open the setup guide 
   const { allowed, calls, kinds, dialogs } = await refusedLaunch();
   assert.equal(allowed, false);
   assert.deepEqual(kinds, ['terminal', 'dialog', 'open', 'exit']);
-  assert.match(calls[0][1], /refused to start/);
-  assert.ok(calls[0][1].includes(SETUP_GUIDE_URL));
+  assert.equal(calls[0][1], 'Blanc refused to start because Chromium sandboxing was disabled. Use a Linux environment that permits '
+    + `Chromium sandboxing and launch Blanc without sandbox-disabling options. Setup guidance: ${SETUP_GUIDE_URL}`);
   assert.equal(dialogs[0].type, 'error');
   assert.equal(dialogs[0].message, 'Blanc requires Chromium sandboxing');
   assert.deepEqual(dialogs[0].buttons, ['Open Setup Guide', 'Copy Link', 'Quit']);

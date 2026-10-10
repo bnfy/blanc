@@ -1595,6 +1595,7 @@ const handOffToOs = createExternalHandoff({
   getApplicationName: (url) => app.getApplicationNameForProtocol(url),
   showMessageBox: (parent, options) => dialog.showMessageBox(parent, options),
   openExternal: (url) => shell.openExternal(url),
+  t: mainI18n.t,
 });
 
 // Electron navigation events do not expose a user-gesture bit. Native input
@@ -4170,6 +4171,7 @@ function serializeTabs() {
         adblockEnabled,
         provider: !tab.private && blockingProviders?.active === 'ublock-origin' ? 'ublock-origin' : 'blanc',
         readiness: !tab.private ? blockingProviders?.status(tab.profileId).phase : 'ready',
+        t: mainI18n.t,
       });
       // Derived exactly once, here. A quiet tab has no view, but it reached
       // quiet only after committing, so its stored URL is honest in that one
@@ -4191,6 +4193,7 @@ function serializeTabs() {
         certificateError: tab.certificateError,
         certificateException: tab.documentCertificateException,
         blockedCount: rest.blockedCount,
+        t: mainI18n.t,
       });
       if (rest.private && rest.favicon) {
         // A page-favicon URL belongs to the tab's browsing session. Sending a
@@ -4535,8 +4538,9 @@ function activeShieldPopover(serialized = serializeTabs()) {
   const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
   if (!tab) return null;
   const status = blockingProviders?.status(tab.profileId);
-  const controls = shieldProviderModel(status, tab.private);
+  const controls = shieldProviderModel(status, tab.private, mainI18n.t);
   const model = shieldPopoverModel({
+    t: mainI18n.t,
     provider: controls.active, readiness: tab.private ? 'ready' : status?.phase,
     url: tab.url,
     blockedCount: tab.blockedCount,
@@ -9147,6 +9151,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     app,
     session: browsingSessions,
     dialog,
+    t: mainI18n.t,
     getParentWindow: () => {
       const runtime = focusedRuntime ?? primaryRuntime;
       return runtime.window && !runtime.window.isDestroyed() ? runtime.window : null;
@@ -9897,6 +9902,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       app,
       session: targetSessions,
       dialog,
+      t: mainI18n.t,
       getParentWindow: () => {
         const runtime = windowRuntimes.all().find((candidate) =>
           candidate.profileId === owned.profileId &&
