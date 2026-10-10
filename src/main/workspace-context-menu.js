@@ -45,7 +45,7 @@ async function readRowWorkspaceId(wc) {
 // target: editable input vs. tab row vs. workspace row; the renderer only
 // ever records one of the two row ids per right-click).
 // deps: { isOverlayLive(), resolveWorkspace(rawId): workspace|null, getWindow(),
-//         getOverlayBounds(), acquireMenuGuard(), releaseMenuGuard(ticket), actions }
+//         getOverlayBounds(), acquireMenuGuard(), releaseMenuGuard(ticket), actions, t }
 function attachWorkspaceRowMenu(wc, deps) {
   wc.on('context-menu', async (_event, params) => {
     if (params.isEditable) return; // the address menu owns editable targets
@@ -55,7 +55,7 @@ function attachWorkspaceRowMenu(wc, deps) {
     if (!deps.isOverlayLive()) return;
     const workspace = deps.resolveWorkspace(rawId);
     if (!workspace) return;
-    const template = buildWorkspaceContextMenu(workspace);
+    const template = buildWorkspaceContextMenu(workspace, deps.t);
     const menu = Menu.buildFromTemplate(toElectronTemplate(template, { workspace, actions: deps.actions }));
     const bounds = deps.getOverlayBounds();
     const ticket = deps.acquireMenuGuard();

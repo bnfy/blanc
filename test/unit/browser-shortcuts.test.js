@@ -2,8 +2,17 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { EventEmitter } = require('node:events');
-const { browserCommandDefinition, matchBrowserShortcut, installBrowserShortcuts, createBrowserCommandExecutor } = require('../../src/main/browser-shortcuts');
+const { BROWSER_COMMAND_IDS, browserCommandDefinition, matchBrowserShortcut, installBrowserShortcuts, createBrowserCommandExecutor } = require('../../src/main/browser-shortcuts');
 const input = (key, modifiers = {}) => ({ type: 'keyDown', key, ...modifiers });
+
+test('every command names its menu label in the interface catalog', () => {
+  const en = require('../../copy/messages/en.json');
+  assert.ok(BROWSER_COMMAND_IDS.length >= 14);
+  for (const id of BROWSER_COMMAND_IDS) {
+    const { labelKey } = browserCommandDefinition(id, 'darwin');
+    assert.ok(Object.hasOwn(en, labelKey), `${id}: ${labelKey} is in en.json`);
+  }
+});
 
 test('Windows and Linux essentials and retained aliases dispatch to the same commands', () => {
   for (const platform of ['win32', 'linux']) {

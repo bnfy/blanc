@@ -1,28 +1,29 @@
 'use strict';
 
 // One definition for menu accelerators, input dispatch, and the shortcut sheet.
+// labelKey names each command's menu label in the interface catalog.
 const COMMANDS = Object.freeze({
-  'new-window': { label: 'New Window', primary: 'CmdOrCtrl+N' },
-  'new-tab': { label: 'New Tab', primary: 'CmdOrCtrl+T' },
-  'new-private-tab': { label: 'New Private Tab', primary: 'CmdOrCtrl+Shift+N' },
-  'close-tab': { label: 'Close Tab', primary: 'CmdOrCtrl+W' },
-  'reopen-tab': { label: 'Reopen Closed Tab', primary: 'CmdOrCtrl+Shift+T' },
-  address: { label: 'Search & Commands', primary: 'CmdOrCtrl+L', aliases: ['Alt+D'] },
-  find: { label: 'Find…', primary: 'CmdOrCtrl+F' },
-  reload: { label: 'Reload Tab', primary: 'CmdOrCtrl+R', aliases: ['F5'] },
-  'hard-reload': { label: 'Hard Reload Tab (Bypass Cache)', primary: 'CmdOrCtrl+Shift+R' },
-  history: { label: 'Show History', primary: 'CmdOrCtrl+Y', desktopPrimary: 'Ctrl+H', aliases: ['Ctrl+Y'] },
-  downloads: { label: 'Downloads', primary: 'CmdOrCtrl+Shift+J', desktopPrimary: 'Ctrl+J', aliases: ['Ctrl+Shift+J'] },
-  settings: { label: 'Settings', primary: 'CmdOrCtrl+,' },
-  'next-tab': { label: 'Next Tab', primary: 'Ctrl+Tab', aliases: ['Ctrl+PageDown'] },
-  'previous-tab': { label: 'Previous Tab', primary: 'Ctrl+Shift+Tab', aliases: ['Ctrl+PageUp'] },
+  'new-window': { labelKey: 'menu.newWindow', primary: 'CmdOrCtrl+N' },
+  'new-tab': { labelKey: 'menu.newTab', primary: 'CmdOrCtrl+T' },
+  'new-private-tab': { labelKey: 'menu.newPrivateTab', primary: 'CmdOrCtrl+Shift+N' },
+  'close-tab': { labelKey: 'menu.closeTab', primary: 'CmdOrCtrl+W' },
+  'reopen-tab': { labelKey: 'menu.reopenClosedTab', primary: 'CmdOrCtrl+Shift+T' },
+  address: { labelKey: 'menu.searchCommands', primary: 'CmdOrCtrl+L', aliases: ['Alt+D'] },
+  find: { labelKey: 'menu.find', primary: 'CmdOrCtrl+F' },
+  reload: { labelKey: 'menu.reloadTab', primary: 'CmdOrCtrl+R', aliases: ['F5'] },
+  'hard-reload': { labelKey: 'menu.hardReloadTab', primary: 'CmdOrCtrl+Shift+R' },
+  history: { labelKey: 'menu.showHistory', primary: 'CmdOrCtrl+Y', desktopPrimary: 'Ctrl+H', aliases: ['Ctrl+Y'] },
+  downloads: { labelKey: 'menu.downloads', primary: 'CmdOrCtrl+Shift+J', desktopPrimary: 'Ctrl+J', aliases: ['Ctrl+Shift+J'] },
+  settings: { labelKey: 'menu.settings', primary: 'CmdOrCtrl+,' },
+  'next-tab': { labelKey: 'menu.nextTab', primary: 'Ctrl+Tab', aliases: ['Ctrl+PageDown'] },
+  'previous-tab': { labelKey: 'menu.previousTab', primary: 'Ctrl+Shift+Tab', aliases: ['Ctrl+PageUp'] },
 });
 
 function browserCommandDefinition(id, platform = process.platform) {
   const command = COMMANDS[id];
   if (!command) return null;
   return {
-    label: command.label,
+    labelKey: command.labelKey,
     primary: platform === 'darwin' ? command.primary : command.desktopPrimary ?? command.primary,
     aliases: platform === 'darwin' ? [] : [...(command.aliases ?? [])],
   };
@@ -79,4 +80,4 @@ function installBrowserShortcuts({ webContents, getRuntime, ownsSurface, execute
   });
 }
 
-module.exports = { browserCommandDefinition, matchBrowserShortcut, createBrowserCommandExecutor, installBrowserShortcuts };
+module.exports = { BROWSER_COMMAND_IDS: Object.keys(COMMANDS), browserCommandDefinition, matchBrowserShortcut, createBrowserCommandExecutor, installBrowserShortcuts };

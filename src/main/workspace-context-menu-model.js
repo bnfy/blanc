@@ -11,10 +11,10 @@
 // resolved to a real, existing workspace (workspace-context-menu.js's
 // resolveWorkspace gate), so Rename/Delete are always valid.
 
-function buildWorkspaceContextMenu(_workspace) {
+function buildWorkspaceContextMenu(_workspace, t) {
   return [
-    { id: 'rename', label: 'Rename…' },
-    { id: 'delete', label: 'Delete…' },
+    { id: 'rename', label: t('workspaceMenu.rename') },
+    { id: 'delete', label: t('workspaceMenu.delete') },
   ];
 }
 

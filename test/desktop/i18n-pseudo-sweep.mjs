@@ -60,11 +60,89 @@ const typeInPanel = (text, settle) => async (ctx) => {
   return overlay;
 };
 
+// Native menus are drawn by the OS, not a page. In the test app, popup() is
+// replaced so each menu Blanc pops is recorded as label entries (radio items
+// are tab-group names, which are data); a right-click is a real context-menu
+// event sent to the webContents (an id, or a URL prefix).
+const recordMenus = (app) => app.evaluate(({ Menu }) => {
+  if (globalThis.__sweepMenus) return;
+  globalThis.__sweepMenus = [];
+  const entries = (menu) => menu.items.flatMap((item) => (item.type === 'separator' || !item.visible ? [] : [
+    { text: item.label, ignored: item.type === 'radio' }, ...(item.submenu ? entries(item.submenu) : []),
+  ]));
+  Menu.prototype.popup = function popup(options) { globalThis.__sweepMenus.push(entries(this)); options?.callback?.(); };
+});
+const rightClick = async (app, target, params) => {
+  await recordMenus(app);
+  await app.evaluate(({ webContents }, { target, params }) => {
+    const wc = typeof target === 'number' ? webContents.fromId(target)
+      : webContents.getAllWebContents().find((w) => w.getURL().startsWith(target));
+    wc.emit('context-menu', { preventDefault() {} }, {
+      x: 0, y: 0, linkURL: '', srcURL: '', pageURL: wc.getURL(), mediaType: 'none', isEditable: false, selectionText: '',
+      misspelledWord: '', dictionarySuggestions: [], editFlags: {}, menuSourceType: 'mouse', ...params,
+    });
+  }, { target, params });
+  return waitForValue(() => app.evaluate(() => globalThis.__sweepMenus.shift() ?? null), Boolean, `context menu on ${target}`);
+};
+const NATIVE_MENU_SURFACES = [
+  {
+    name: 'page context menus',
+    files: ['src/main/context-menu.js'],
+    native: async ({ app }) => {
+      const { activeTabId, tabs } = await callTestHook(app, 'state');
+      const id = tabs.find((t) => t.id === activeTabId).webContentsId;
+      return [
+        ...await rightClick(app, id, {}),
+        ...await rightClick(app, id, { linkURL: 'https://example.com/', srcURL: 'https://example.com/a.png', mediaType: 'image', isEditable: true, misspelledWord: 'teh' }),
+        ...await rightClick(app, id, { selectionText: 'blanc' }),
+      ];
+    },
+  },
+  {
+    name: 'tab context menu',
+    files: ['src/main/tab-context-menu-model.js'],
+    // A background tab in a group, so the Glance, quiet and group items show.
+    native: async ({ app, chrome }) => {
+      const { activeTabId, tabs } = await callTestHook(app, 'state');
+      const other = tabs.find((t) => t.id !== activeTabId && t.groupId) ?? tabs.find((t) => t.id !== activeTabId);
+      await chrome.evaluate((id) => { window.__blancCtxRowTabId = id; }, other.id);
+      return rightClick(app, 'blanc-chrome://index/', {});
+    },
+  },
+  {
+    name: 'address bar context menu',
+    files: ['src/main/address-menu-model.js'],
+    native: async (ctx) => {
+      const overlay = await openIslandPanel(ctx);
+      // The menu only pops for a click that lands on the input, so wait out
+      // the panel's opening animation until its centre does.
+      const at = await (await overlay.waitForFunction(() => {
+        const el = document.getElementById('addressInput');
+        const r = el.getBoundingClientRect();
+        const point = { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+        return document.elementFromPoint(point.x, point.y) === el && point;
+      })).jsonValue();
+      const editFlags = { canUndo: true, canRedo: true, canCut: true, canCopy: true, canPaste: true, canDelete: true, canSelectAll: true };
+      const labels = await rightClick(ctx.app, 'blanc-chrome://overlay/', { isEditable: true, editFlags, ...at });
+      await overlay.evaluate(() => window.browserAPI.closeOverlay());
+      return labels;
+    },
+  },
+  {
+    name: 'Dock menu',
+    files: ['src/main/dock-menu.js'],
+    // macOS only. Its top line is the active tab's title, which is data.
+    native: ({ app }) => app.evaluate(({ app: electronApp }) => electronApp.dock?.getMenu?.()?.items
+      .filter((item) => item.visible && item.type !== 'separator')
+      .map((item) => ({ text: item.label, ignored: item.id === 'active-tab' })) ?? null),
+  },
+];
+
 // The workspace switcher, driven by its buttons' language-independent focus
 // keys. Surfaces run in order and share state: Patron and two workspaces are
 // set up once, and later surfaces delete one.
 const WORKSPACE_FILES = [...OVERLAY_FILES, 'src/renderer/workspace-ui.js'];
-const openSwitcher = async (ctx) => {
+const openIslandPanel = async (ctx) => {
   // Reopen only once the previous surface's close has landed; otherwise the
   // late hide closes the freshly opened panel.
   const overlay = await overlayPage(ctx.app);
@@ -73,6 +151,10 @@ const openSwitcher = async (ctx) => {
   // leave-private chip, which closes the tab.
   await ctx.chrome.evaluate(() => window.browserAPI.openIsland());
   await overlay.locator('#islandPanel').waitFor({ state: 'visible' });
+  return overlay;
+};
+const openSwitcher = async (ctx) => {
+  const overlay = await openIslandPanel(ctx);
   await overlay.locator('#footerWorkspace').click();
   await overlay.locator('#workspaceSwitcher').waitFor({ state: 'visible' });
   return overlay;
@@ -132,6 +214,18 @@ const WORKSPACE_SURFACES = [
     open: switcherStep(['[data-focus-key="recently-deleted"]', '.ws-recovery'], ['[data-focus-key^="forget:"]', '.ws-switcher-confirm']),
   },
 ].map((surface) => ({ ...surface, files: WORKSPACE_FILES, pendingText: [SITE_INFO_TEXT], close: closeSwitcher }));
+WORKSPACE_SURFACES.push({
+  name: 'workspace row context menu',
+  files: ['src/main/workspace-context-menu-model.js'],
+  native: async (ctx) => {
+    const { items } = await callTestHook(ctx.app, 'workspaceAction', ['list']);
+    const overlay = await openIslandPanel(ctx);
+    await overlay.evaluate((id) => { window.__blancCtxWorkspaceId = id; }, items[0].id);
+    const labels = await rightClick(ctx.app, 'blanc-chrome://overlay/', {});
+    await overlay.evaluate(() => window.browserAPI.closeOverlay());
+    return labels;
+  },
+});
 
 const SURFACES = [
   {
@@ -216,6 +310,7 @@ const SURFACES = [
       return chrome;
     },
   },
+  ...NATIVE_MENU_SURFACES,
   ...WORKSPACE_SURFACES,
   {
     name: 'start page',
@@ -251,6 +346,15 @@ try {
   for (const surface of SURFACES) {
     const pending = surface.files.filter((f) => scope[f]?.state !== 'guarded');
     if (pending.length && !includePending) { console.log(`skip ${surface.name} (pending: ${pending.join(', ')})`); continue; }
+    if (surface.native) {
+      const entries = await surface.native({ app, chrome });
+      if (!entries) { console.log(`skip ${surface.name} (not available on this platform)`); continue; }
+      assert.ok(entries.length, `${surface.name}: recorded no menu items`);
+      const offending = classifyTextEntries(entries, { allow, allowPatterns });
+      if (offending.length) failures.push(`${surface.name}:\n    ${offending.join('\n    ')}`);
+      else console.log(`ok   ${surface.name}`);
+      continue;
+    }
     const page = await surface.open({ app, chrome });
     if (!page) { console.log(`skip ${surface.name} (not available on this platform)`); continue; }
     for (const { selector, files } of surface.pendingText ?? []) {

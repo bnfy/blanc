@@ -116,7 +116,7 @@ function initTabView(injected) {
     'registerPopupCaptureSurface', 'clearTabCaptureState', 'recordRendererCrash',
     'dispatchMouseGesture',
     'sanitizeCertificate', 'certificateErrorQuery',
-    'certificateExceptions', 'certificateObserver',
+    'certificateExceptions', 'certificateObserver', 't',
   ];
   for (const name of required) {
     if (injected?.[name] === undefined) throw new Error(`initTabView missing dependency: ${name}`);
@@ -615,6 +615,7 @@ function wireTabView(tab, view, { owner, adopted }) {
   };
   applyWindowOpenPolicy(wc);
   attachContextMenu(wc, {
+    t: deps.t,
     extensionItems: (params) => deps.extensionContextItems?.(tab, params) ?? [],
     openBackgroundTab: boundToTab((targetUrl) => {
       if (handOffToOs(targetUrl)) return;
