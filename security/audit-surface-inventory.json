@@ -382,7 +382,7 @@
     },
     {
       "file": "src/main/onepassword-broker.js",
-      "sha256": "066e80738097b22848cd6fb337fe0e5d79bc18d72a15f1b3c7702e540270e17e",
+      "sha256": "d9522191043955adebf6580cec4c35752bcf2d2398e339f67150ad6c521c2879",
       "literalChannels": [
         "message"
       ],
