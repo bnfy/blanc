@@ -8,8 +8,10 @@
 
 .roadmap-hero { max-width: 640px; margin-bottom: 40px; text-align: center; }
 .roadmap-hero h1 { margin: 0; font-family: var(--site-font-display); font-size: clamp(38px, 5vw, 64px); font-weight: 400; letter-spacing: -0.02em; line-height: 1.04; text-wrap: balance; }
-.roadmap-hero > p:not(.section-kicker) { max-width: 46ch; margin: 22px auto 0; color: var(--site-text-dim); font-size: 16px; line-height: 1.65; text-wrap: balance; }
-.roadmap-hero .roadmap-updated { margin-top: 12px; font-size: 13px; }
+.roadmap-hero > p:not(.section-kicker, .roadmap-updated) { max-width: 46ch; margin: 22px auto 0; color: var(--site-text-dim); font-size: 16px; line-height: 1.65; text-wrap: balance; }
+.roadmap-hero .roadmap-updated { display: inline-flex; align-items: center; gap: 8px; margin-top: 26px; padding: 7px 13px 7px 11px; color: var(--site-text-dim); background: var(--site-surface-raised); border: 1px solid var(--site-border); border-radius: 999px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; line-height: 1; text-transform: uppercase; }
+.roadmap-updated time { color: var(--site-text); }
+.roadmap-updated-dot { width: 6px; height: 6px; background: var(--site-gold-on-dark); border: 1px solid var(--site-gold); border-radius: 50%; }
 
 .roadmap-page :is(.roadmap-hero, .roadmap-ask) a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--site-border); padding-bottom: 1px; transition: color 0.15s, border-color 0.15s; }
 .roadmap-page :is(.roadmap-hero, .roadmap-ask) a:is(:hover, :focus-visible) { color: var(--site-gold); border-color: var(--site-gold); }
