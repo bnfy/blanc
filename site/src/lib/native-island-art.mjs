@@ -42,7 +42,9 @@ export function nativeIslandArt({ styles, document, renderer, extraSelectors = [
     `<div id="pillNav" class="pill-btns">${button('back')}${button('forward', 'disabled')}</div>`);
   html = html.replace('<div id="pillDots"></div>', `<div id="pillDots">${[0, 1, 2, 3, 4].map(i => `<button class="island-dot${i === 2 ? ' active' : ''}"></button>`).join('')}</div>`);
   html = html.replace('id="pillFavicon" class="favicon"', 'id="pillFavicon" class="favicon has-icon" style="background-image:url(/favicon.svg)"');
-  html = html.replace('<span id="pillDomain">new tab</span>', '<span id="pillDomain">blancbrowser.com</span>');
+  const domain = /<span id="pillDomain"[^>]*>new tab<\/span>/;
+  if (!domain.test(html)) throw new Error('Missing native Island markup: #pillDomain');
+  html = html.replace(domain, '<span id="pillDomain">blancbrowser.com</span>');
   html = html.replace(/(<button id="pillSlash"[\s\S]*?<\/button>)/, `$1<button id="pillNewTab" class="pill-btn pill-shortcut">${icon('plus')}</button>`);
   // Match the owner's October 3 reference: original ink shield with a one-count badge.
   // This is a fixed illustration state, not a measurement of this website.

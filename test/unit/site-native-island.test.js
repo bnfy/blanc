@@ -23,6 +23,7 @@ test('hero extraction retains native dimensions, material and actual action SVGs
     const svg = source.renderer.match(new RegExp(`\\b${name}: '(<svg[^']+)'`))[1];
     assert.ok(art.html.includes(svg), name);
   }
+  assert.match(art.html, /<span id="pillDomain">blancbrowser\.com<\/span>/, 'the hero names the site, not a new tab');
   assert.match(art.html, /id="pillShieldCount">1<\/span>/, 'fixed illustration matches the supplied one-count reference');
   assert.match(art.html, /id="pillShield" class="shield"/, 'use the native ink state from the reference');
   assert.ok(art.css.includes('#pillShieldCount {'), 'include the original badge styling');
@@ -40,6 +41,7 @@ test('native geometry edits flow into the artwork and missing source fails close
   assert.match(changed.css, /--island-resting-height: 48px/);
   assert.throws(() => nativeIslandArt({...source, renderer:''}), /Missing native Island icon/);
   assert.throws(() => nativeIslandArt({...source, document:''}), /Missing native resting Island markup/);
+  assert.throws(() => nativeIslandArt({...source, document:source.document.replace(/(id="pillDomain"[^>]*>)new tab/, '$1')}), /Missing native Island markup: #pillDomain/);
 });
 
 test('the shield popover replica renders the native overlay in the states the app shows', async () => {
