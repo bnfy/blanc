@@ -30,7 +30,10 @@ function fixedErrorCode(error) {
       || /desktop session expired|auth(?:entication|orization)? expired|invalid client id/i.test(message)) {
     return 'session-expired';
   }
-  if (/desktop application not found|native library is not available/i.test(message)) {
+  // `IPC operation failed: -2` means 1Password's library loaded but found no
+  // SDK integration endpoint: the app is not running, or Settings → Developer
+  // → Integrate with 1Password SDKs is off. Observed on Linux, 1Password 8.12.40.
+  if (/desktop application not found|native library is not available|IPC operation failed: -2\b/i.test(message)) {
     return 'desktop-unavailable';
   }
   if (/account.*not found|unknown account|no account/i.test(message)) return 'account-not-found';

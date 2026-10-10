@@ -40,8 +40,10 @@ this device and are excluded from Profile Sync.
   `src/main/onepassword-broker.js`, an Electron utility process named **Blanc
   Credential Broker**. The SDK finds 1Password's IPC library at fixed install
   locations (`libop_sdk_ipc_client.dylib` on macOS, `op_sdk_ipc_client.dll` on
-  Windows, `libop_sdk_ipc_client.so` on Linux) and fails with
-  `desktop-unavailable` when the app is absent.
+  Windows, `libop_sdk_ipc_client.so` on Linux). Blanc reports
+  `desktop-unavailable` when the app is absent, and also when the library loads
+  but finds no SDK endpoint (`IPC operation failed: -2`: the app is not running
+  or **Integrate with 1Password SDKs** is off).
 - Settings' "installed" hint and **Open 1Password** button use
   `src/main/onepassword-app.js`, which checks only fixed install locations. On
   Linux it starts the detected binary directly, detached and without

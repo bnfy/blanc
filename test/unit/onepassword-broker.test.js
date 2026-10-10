@@ -146,6 +146,10 @@ test('the broker exposes no separate username or bulk credential read method', a
 
 test('raw SDK errors collapse to fixed non-secret codes', () => {
   assert.equal(fixedErrorCode(new Error('1Password desktop application not found')), 'desktop-unavailable');
+  // The app is installed but not running, or its SDK integration is off.
+  assert.equal(fixedErrorCode(new Error('IPC operation failed: -2')), 'desktop-unavailable');
+  // Other IPC failures stay generic rather than claiming the app is missing.
+  assert.equal(fixedErrorCode(new Error('IPC operation failed: -22')), 'sdk-error');
   assert.equal(fixedErrorCode(new Error('user denied authorization')), 'not-authorized');
   class DesktopSessionExpiredError extends Error {}
   const expired = new DesktopSessionExpiredError('opaque detail');
