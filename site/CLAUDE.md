@@ -131,7 +131,20 @@ build; that's the point). Served at `/sitemap.xml` (URL unchanged for Search
 Console).
 
 Releases don't deploy the site. After a release: `npm run site:changelog`,
-commit `releases.json`, then `npm run site:deploy`. The Windows download page
+commit `releases.json`, update the Feature Roadmap, then `npm run site:deploy`.
+
+**Feature Roadmap (`/roadmap`):** `src/pages/roadmap.astro` renders the
+hand-edited `src/data/roadmap.json` (Now / Next / Later, no dates) plus a
+Recently shipped list built from `releases.json` and
+`release-feature-names.json`. After every release, in the same follow-up as
+the changelog: add concise feature names (40 characters max) for the new
+version if it shipped features, move anything that shipped off the roadmap,
+re-check every remaining item against the release, and bump `updated`. The
+page must never list as planned something the changelog shows as shipped.
+Roadmap copy describes plans, so keep each item's qualifier (testing, paused,
+depends on…) and follow `docs/marketing-claims.md`.
+
+The Windows download page
 notes the installer is not yet code-signed; update that copy only when Azure
 Trusted Signing actually ships a signed build. The JSON-LD deliberately has
 **no `aggregateRating`** — no real user ratings exist yet; fabricating one

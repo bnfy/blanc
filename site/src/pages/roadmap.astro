@@ -1,0 +1,79 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import roadmap from '../data/roadmap.json';
+import featureNamesByVersion from '../data/release-feature-names.json';
+import releases from '../data/releases.json';
+import { featureNamesForRelease } from '../lib/release-features.mjs';
+import '../styles/roadmap.css';
+
+const stages = roadmap.stages.map((stage) => ({
+  ...stage,
+  items: roadmap.items.filter((item) => item.stage === stage.id),
+}));
+
+// The three newest releases that added features, named the way the changelog
+// names them.
+const recentlyShipped = releases
+  .map((release) => ({ ...release, featureNames: featureNamesForRelease(release, featureNamesByVersion) }))
+  .filter((release) => release.featureNames.length > 0)
+  .slice(0, 3);
+
+const updatedLabel = new Date(`${roadmap.updated}T12:00:00Z`)
+  .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+---
+<BaseLayout
+  title="Blanc Feature Roadmap — What we’re building next"
+  description="See what’s in the works for Blanc Browser, Blanc Mail and Blanc on mobile, and what comes after."
+  path="/roadmap"
+  page="roadmap"
+>
+<main id="main-content" class="roadmap-page">
+  <header class="roadmap-hero">
+    <p class="section-kicker">Feature Roadmap</p>
+    <h1>What we’re building next.</h1>
+    <p>Plans change, so there are no dates or promises here. When something ships, it moves to <a href="/changelog">What’s new</a>.</p>
+    <p class="roadmap-updated"><span class="roadmap-updated-dot" aria-hidden="true"></span>Updated <time datetime={roadmap.updated}>{updatedLabel}</time></p>
+  </header>
+
+  {stages.map((stage) => (
+    <section class={`roadmap-stage roadmap-stage--${stage.id}`} id={stage.id} aria-labelledby={`stage-${stage.id}`}>
+      <header class="roadmap-stage-label">
+        <span class="roadmap-marker" aria-hidden="true"></span>
+        <h2 id={`stage-${stage.id}`}>{stage.label}</h2>
+        <p>{stage.summary}</p>
+      </header>
+      <ul class="roadmap-items">
+        {stage.items.map((item) => (
+          <li id={item.id}>
+            <p class="roadmap-product">{item.product}</p>
+            <h3>{item.title}</h3>
+            <p class="roadmap-line">{item.line}</p>
+            {item.link && <a class="roadmap-more" href={item.link.href}>{item.link.label} <span aria-hidden="true">›</span></a>}
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
+
+  {recentlyShipped.length > 0 && (
+    <section class="roadmap-after" aria-labelledby="roadmap-shipped-title">
+      <h2 id="roadmap-shipped-title">Recently shipped</h2>
+      <ul class="roadmap-shipped">
+        {recentlyShipped.map((release) => (
+          <li>
+            <a href={`/changelog#${release.anchor}`}>
+              <span class="roadmap-shipped-names">{release.featureNames.join(' · ')}</span>
+              <span class="roadmap-shipped-version">Blanc {release.version} · {release.humanDate}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  <section class="roadmap-after roadmap-ask" aria-labelledby="roadmap-ask-title">
+    <h2 id="roadmap-ask-title">Want something built?</h2>
+    <p><a href="https://github.com/bnfy/blanc/issues/new?template=feature_request.yml">Open a feature request on GitHub</a>, or <!--email_off--><a href="mailto:support@blancbrowser.com">email us</a><!--/email_off-->.</p>
+  </section>
+</main>
+</BaseLayout>
