@@ -30,9 +30,15 @@ function credentialMenuLabels(row, platform = process.platform) {
   };
 }
 
+/** The picker closed without a choice because Blanc's window lost focus
+ * (a native menu closes with its window's focus), not because the user
+ * dismissed it. */
+const PICKER_FOCUS_LOST = 'focus-lost';
+
 /** Native, renderer-free item picker. The callback closes over the chosen
  * index; usernames, vault/item ids, and candidate metadata never cross a
- * renderer. */
+ * renderer. Resolves the chosen index, null for a cancel, or
+ * PICKER_FOCUS_LOST. */
 function pickCredential({ Menu, window, rows, point = {} }) {
   if (!Array.isArray(rows) || rows.length < 2) return Promise.resolve(rows.length ? 0 : null);
   return new Promise((resolve, reject) => {
@@ -41,7 +47,11 @@ function pickCredential({ Menu, window, rows, point = {} }) {
     const settle = () => {
       if (settled) return;
       settled = true;
-      resolve(chosen);
+      // Esc or a click inside Blanc closes the menu with the window still
+      // focused; on Linux, another app taking focus (1Password's approval
+      // dialog closing, #693) closes it too, and that is not an answer.
+      if (chosen === null && window?.isFocused?.() === false) resolve(PICKER_FOCUS_LOST);
+      else resolve(chosen);
     };
     try {
       const template = rows.map((row, index) => ({
@@ -62,4 +72,4 @@ function pickCredential({ Menu, window, rows, point = {} }) {
   });
 }
 
-module.exports = { menuText, credentialMenuLabels, pickCredential };
+module.exports = { menuText, credentialMenuLabels, pickCredential, PICKER_FOCUS_LOST };

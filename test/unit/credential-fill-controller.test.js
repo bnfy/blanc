@@ -13,8 +13,22 @@ function harness({ inspect = {
 ], revealError = null, settings = { onePasswordEnabled: true, onePasswordAccount: 'Account' },
 duringFind = null, startGeneration = 0,
 geometryResult = { ok: false }, duringGeometry = null,
-pickerPoint = { x: 10, y: 20 } } = {}) {
+pickerPoint = { x: 10, y: 20 }, pickerBehaviors = [], refocusWaitMs = 1000 } = {}) {
   const calls = [];
+  // A BrowserWindow stand-in: focus state plus the 'focus' event.
+  const focusListeners = new Set();
+  const window = {
+    focused: true,
+    isDestroyed: () => false,
+    isFocused() { return this.focused; },
+    once(event, listener) { if (event === 'focus') focusListeners.add(listener); },
+    removeListener(event, listener) { if (event === 'focus') focusListeners.delete(listener); },
+    focus() {
+      this.focused = true;
+      for (const listener of [...focusListeners]) { focusListeners.delete(listener); listener(); }
+    },
+    focusListenerCount: () => focusListeners.size,
+  };
   const state = { generation: startGeneration, urlCurrent: true };
   let scriptCall = 0;
   const webContents = {
@@ -38,7 +52,7 @@ pickerPoint = { x: 10, y: 20 } } = {}) {
   const target = {
     runtimeId: 1, tabId: 'tab', navEpoch: 3,
     url: 'https://example.com/login', webContents,
-    window: { isDestroyed: () => false }, pickerPoint,
+    window, pickerPoint,
   };
   const broker = {
     findLogins: async () => {
@@ -58,7 +72,9 @@ pickerPoint = { x: 10, y: 20 } } = {}) {
       popup: ({ callback, x, y }) => {
         calls.push({ pickerLabels: template.map(({ label, sublabel }) => ({ label, sublabel })) });
         calls.push({ pickerPoint: { x, y } });
-        template[1].click();
+        // Each popup consumes the next scripted behavior; the default picks row 2.
+        const behave = pickerBehaviors.shift() ?? ((rows) => rows[1].click());
+        behave(template, window, state);
         callback();
       },
     }),
@@ -67,7 +83,7 @@ pickerPoint = { x: 10, y: 20 } } = {}) {
     broker,
     Menu,
     getSettings: () => settings,
-    captureTarget: () => target,
+    captureTarget: (runtime) => runtime?.target ?? target,
     // Mirrors main.js: generation mismatch (or a flipped URL predicate)
     // makes the target stale; only the generation half counts as a
     // surface change.
@@ -83,11 +99,24 @@ pickerPoint = { x: 10, y: 20 } } = {}) {
       return confirmResponses.length ? confirmResponses.shift() : 'primary';
     },
     toWindowPoint: (_t, rect) => ({ x: 1000 + rect.x, y: 2000 + rect.y }),
+    refocusWaitMs,
   });
   const notified = () => calls.filter((c) => typeof c === 'string' && c.startsWith('notify:'))
     .map((c) => c.slice('notify:'.length));
-  return { controller, calls, broker, state, notified };
+  return { controller, calls, broker, state, notified, window, target };
 }
+
+const TWO_ROWS = [
+  { vaultId: 'v1', itemId: 'i1', title: 'Example', vaultName: 'Personal', username: 'alice' },
+  { vaultId: 'v2', itemId: 'i2', title: 'Example', vaultName: 'Work', username: 'bob' },
+];
+const pickerPopups = (calls) => calls.filter((call) => call?.pickerLabels).length;
+// The picker closing because Blanc lost focus (1Password's dialog closing).
+const loseFocus = (_rows, window) => { window.focused = false; };
+const waitUntil = async (predicate) => {
+  for (let i = 0; i < 200 && !predicate(); i += 1) await new Promise((r) => setTimeout(r, 1));
+  assert.ok(predicate(), 'condition never became true');
+};
 
 test('flow inspects without credentials before contacting 1Password and reveals one item', async () => {
   const { controller, calls, notified } = harness();
@@ -337,4 +366,94 @@ test('invalidation during the geometry await never pops the picker', async () =>
     assert.equal(calls.some((c) => c?.pickerLabels), false, 'no picker over changed content');
     assert.deepEqual(notified(), ['page-changed']);
   }
+});
+
+// #693: on Linux, approving a fresh 1Password authorization closed the picker
+// ~200 ms after it opened, because the approval dialog moved focus away from
+// Blanc. That close was treated as the user's cancel, so the fill silently
+// ended. A picker lost to focus now reopens once Blanc has focus again.
+test('a picker closed by focus loss reopens when Blanc regains focus and fills the choice', async () => {
+  const { controller, calls, notified, window } = harness({
+    candidates: TWO_ROWS, pickerBehaviors: [loseFocus],
+  });
+  const result = controller.fill({});
+  await waitUntil(() => window.focusListenerCount() === 1);
+  assert.equal(pickerPopups(calls), 1);
+  assert.equal(calls.includes('reveal'), false, 'nothing is revealed while waiting');
+  window.focus();
+  assert.deepEqual(await result, { ok: true, filledUser: true, filledPass: true });
+  assert.equal(pickerPopups(calls), 2);
+  assert.equal(calls.filter((call) => call === 'geometry').length, 2, 'the field is re-measured before reopening');
+  assert.deepEqual(calls.find((call) => call?.ref)?.ref, { vaultId: 'v2', itemId: 'i2', itemVersion: undefined });
+  assert.deepEqual(notified(), ['filled']);
+});
+
+test('a focus-lost picker reopens at once when focus has already come back', async () => {
+  const bounce = (_rows, window) => { window.focused = false; queueMicrotask(() => { window.focused = true; }); };
+  const { controller, calls } = harness({ candidates: TWO_ROWS, pickerBehaviors: [bounce] });
+  assert.deepEqual(await controller.fill({}), { ok: true, filledUser: true, filledPass: true });
+  assert.equal(pickerPopups(calls), 2);
+});
+
+test('if Blanc never regains focus the fill ends quietly with nothing revealed', async () => {
+  const { controller, calls, notified, window } = harness({
+    candidates: TWO_ROWS, pickerBehaviors: [loseFocus], refocusWaitMs: 5,
+  });
+  assert.deepEqual(await controller.fill({}), { ok: false, reason: 'cancelled' });
+  assert.equal(calls.includes('reveal'), false);
+  assert.deepEqual(notified(), []);
+  assert.equal(window.focusListenerCount(), 0, 'the focus listener is removed on timeout');
+});
+
+test('a fill whose surface changed while waiting for focus is not reopened', async () => {
+  const { controller, calls, notified, state, window } = harness({
+    candidates: TWO_ROWS, pickerBehaviors: [loseFocus],
+  });
+  const result = controller.fill({});
+  await waitUntil(() => window.focusListenerCount() === 1);
+  state.generation += 1; // e.g. the user opened ⌘L or switched tabs meanwhile
+  window.focus();
+  assert.deepEqual(await result, { ok: false, reason: 'page-changed' });
+  assert.equal(pickerPopups(calls), 1);
+  assert.equal(calls.includes('reveal'), false);
+  assert.deepEqual(notified(), [], 'a surface change aborts silently');
+});
+
+test('pressing the shortcut again while waiting resumes that fill instead of reporting busy', async () => {
+  const { controller, calls, notified, window } = harness({
+    candidates: TWO_ROWS, pickerBehaviors: [loseFocus],
+  });
+  const first = controller.fill({});
+  await waitUntil(() => window.focusListenerCount() === 1);
+  assert.deepEqual(await controller.fill({}), { ok: false, reason: 'resumed' });
+  assert.deepEqual(await first, { ok: true, filledUser: true, filledPass: true });
+  assert.equal(pickerPopups(calls), 2);
+  assert.equal(window.focusListenerCount(), 0);
+  assert.deepEqual(notified(), ['filled'], 'no busy notice');
+});
+
+test('a fill started on another page while one waits for focus is busy, not a resume', async () => {
+  const { controller, calls, notified, window, target } = harness({
+    candidates: TWO_ROWS, pickerBehaviors: [loseFocus],
+  });
+  const first = controller.fill({});
+  await waitUntil(() => window.focusListenerCount() === 1);
+  const otherPage = { ...target, webContents: { focus() {} } };
+  assert.deepEqual(await controller.fill({ target: otherPage }), { ok: false, reason: 'busy' });
+  assert.equal(pickerPopups(calls), 1, 'the waiting picker is not reopened over another page');
+  assert.equal(window.focusListenerCount(), 1, 'the first fill is still waiting');
+  window.focus();
+  assert.deepEqual(await first, { ok: true, filledUser: true, filledPass: true });
+  assert.deepEqual(notified(), ['busy', 'filled']);
+});
+
+test('a picker that keeps losing focus gives up after three reopens', async () => {
+  const bounce = (_rows, window) => { window.focused = false; queueMicrotask(() => { window.focused = true; }); };
+  const { controller, calls, notified } = harness({
+    candidates: TWO_ROWS, pickerBehaviors: [bounce, bounce, bounce, bounce, bounce],
+  });
+  assert.deepEqual(await controller.fill({}), { ok: false, reason: 'cancelled' });
+  assert.equal(pickerPopups(calls), 4);
+  assert.equal(calls.includes('reveal'), false);
+  assert.deepEqual(notified(), []);
 });
