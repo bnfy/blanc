@@ -30,7 +30,7 @@ async function openPage(width = 1440, path = '/', scale = 1) {
 // with the Bananify credit, legal links, privacy choices (only where the page
 // runs measurement) and social links.
 const groups = {
-  'Explore Blanc': [['Feature guides', '/features'], ['Download', '/download'], ['What’s new', '/changelog'], ['Blanc Patron', '/#patron'], ['Switching from Arc', '/arc-alternative'], ['Blanc Mail', '/mail']],
+  'Explore Blanc': [['Feature guides', '/features'], ['Download', '/download'], ['What’s new', '/changelog'], ['Feature roadmap', '/roadmap'], ['Blanc Patron', '/#patron'], ['Switching from Arc', '/arc-alternative'], ['Blanc Mail', '/mail']],
   'Blanc resources': [['Support', '/support'], ['Security guide', '/features/security'], ['Privacy & Security', '/trust'], ['Source code', 'https://github.com/bnfy/blanc'], ['Contact', 'mailto:support@blancbrowser.com']],
   'About Blanc': [['About', '/about'], ['Media', '/media'], ['Ambassadors', '/ambassadors']],
 };

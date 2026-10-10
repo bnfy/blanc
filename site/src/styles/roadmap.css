@@ -1,0 +1,83 @@
+/* ---------- roadmap ----------
+   The page reads as a sunrise: what is in the works has risen into a soft
+   gold glow, a horizon hairline separates it from what comes next, and the
+   later ideas sit further below. The markers are plain discs, not the
+   Sunrise mark, which is never redrawn. */
+.roadmap-page { overflow-x: clip; padding: 112px 24px 112px; }
+.roadmap-page > * { max-width: 920px; margin-inline: auto; }
+
+.roadmap-hero { max-width: 640px; margin-bottom: 40px; text-align: center; }
+.roadmap-hero h1 { margin: 0; font-family: var(--site-font-display); font-size: clamp(38px, 5vw, 64px); font-weight: 400; letter-spacing: -0.02em; line-height: 1.04; text-wrap: balance; }
+.roadmap-hero > p:not(.section-kicker, .roadmap-updated) { max-width: 46ch; margin: 22px auto 0; color: var(--site-text-dim); font-size: 16px; line-height: 1.65; text-wrap: balance; }
+.roadmap-hero .roadmap-updated { display: inline-flex; align-items: center; gap: 8px; margin-top: 26px; padding: 7px 13px 7px 11px; color: var(--site-text-dim); background: var(--site-surface-raised); border: 1px solid var(--site-border); border-radius: 999px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; line-height: 1; text-transform: uppercase; }
+.roadmap-updated time { color: var(--site-text); }
+.roadmap-updated-dot { width: 6px; height: 6px; background: var(--site-gold-on-dark); border: 1px solid var(--site-gold); border-radius: 50%; }
+
+.roadmap-page :is(.roadmap-hero, .roadmap-ask) a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--site-border); padding-bottom: 1px; transition: color 0.15s, border-color 0.15s; }
+.roadmap-page :is(.roadmap-hero, .roadmap-ask) a:is(:hover, :focus-visible) { color: var(--site-gold); border-color: var(--site-gold); }
+
+.roadmap-stage { position: relative; isolation: isolate; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 40px; padding: 72px 0; scroll-margin-top: 82px; }
+
+/* Now: the risen part of the sky. */
+.roadmap-stage--now { padding-top: 96px; }
+.roadmap-stage--now::before {
+  content: "";
+  position: absolute;
+  inset: 0 -50vw;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(680px 85% at 50% 100%, rgba(212, 173, 102, 0.34), rgba(212, 173, 102, 0.1) 55%, transparent 100%);
+}
+
+/* The horizon between what is in the works and what comes next. */
+.roadmap-stage--next::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -14%;
+  right: -14%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--site-gold-on-dark) 18%, var(--site-gold-on-dark) 82%, transparent);
+}
+.roadmap-stage--later { border-top: 1px solid var(--site-border); }
+
+.roadmap-stage-label { align-self: start; position: sticky; top: 96px; }
+.roadmap-stage-label h2 { margin: 14px 0 0; font-family: var(--site-font-display); font-size: 44px; font-weight: 400; letter-spacing: -0.02em; line-height: 1; }
+.roadmap-stage-label p { margin: 8px 0 0; color: var(--site-text-dim); font-size: 14px; }
+
+.roadmap-marker { display: block; width: 18px; height: 18px; border: 1px solid var(--site-gold); border-radius: 50%; }
+.roadmap-stage--now .roadmap-marker { background: var(--site-gold-on-dark); border-color: var(--site-gold); }
+.roadmap-stage--next .roadmap-marker { background: linear-gradient(to bottom, transparent 50%, var(--site-gold-on-dark) 50%); }
+.roadmap-stage--later .roadmap-marker { border-style: dashed; }
+
+.roadmap-items { display: grid; gap: 40px; margin: 0; padding: 0; list-style: none; }
+.roadmap-items li { scroll-margin-top: 82px; }
+.roadmap-product { margin: 0; color: var(--site-gold); font-size: 13px; font-weight: 500; }
+.roadmap-items h3 { margin: 6px 0 0; font-family: var(--site-font-display); font-size: clamp(26px, 3vw, 32px); font-weight: 400; letter-spacing: -0.02em; line-height: 1.1; text-wrap: balance; }
+.roadmap-line { max-width: 48ch; margin: 10px 0 0; color: var(--site-text-dim); font-size: 16px; line-height: 1.6; }
+.roadmap-stage--later :is(.roadmap-product, h3, .roadmap-line) { opacity: 0.82; }
+
+.roadmap-more { display: inline-block; margin-top: 12px; color: var(--site-text); font-size: 14px; font-weight: 500; text-decoration: none; border-bottom: 1px solid var(--site-border); padding-bottom: 1px; transition: color 0.15s, border-color 0.15s; }
+.roadmap-more:is(:hover, :focus-visible) { color: var(--site-gold); border-color: var(--site-gold); }
+
+.roadmap-after { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 40px; padding: 56px 0; border-top: 1px solid var(--site-border); }
+.roadmap-after h2 { margin: 0; font-family: var(--site-font-display); font-size: 28px; font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; }
+.roadmap-shipped { margin: 0; padding: 0; list-style: none; }
+.roadmap-shipped li + li { margin-top: 18px; }
+.roadmap-shipped a { display: block; color: inherit; text-decoration: none; }
+.roadmap-shipped-names { display: block; font-size: 17px; font-weight: 500; line-height: 1.4; transition: color 0.15s; }
+.roadmap-shipped-version { display: block; margin-top: 3px; color: var(--site-text-dim); font-size: 13px; }
+.roadmap-shipped a:is(:hover, :focus-visible) .roadmap-shipped-names { color: var(--site-gold); }
+.roadmap-ask p { margin: 0; color: var(--site-text-dim); font-size: 16px; line-height: 1.65; }
+
+@media (max-width: 760px) {
+  .roadmap-page { padding: 78px 20px 72px; }
+  .roadmap-stage, .roadmap-after { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .roadmap-stage { padding: 56px 0; }
+  .roadmap-stage--now { padding-top: 64px; }
+  .roadmap-stage-label { position: static; display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 12px; }
+  .roadmap-stage-label h2 { margin: 0; font-size: 34px; }
+  .roadmap-stage-label p { grid-column: 2; margin-top: 4px; }
+  .roadmap-items { gap: 32px; }
+  .roadmap-after { gap: 18px; padding: 44px 0; }
+}
