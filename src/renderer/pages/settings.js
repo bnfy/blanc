@@ -11,7 +11,7 @@
     await window.bowserPages.settings.get();
 
   // Electron desktop sends no `capabilities` field; its main process separately
-  // reports whether the macOS-only 1Password bridge is available. A platform
+  // reports whether the 1Password bridge is available. A platform
   // that DOES send the capabilities list (iOS)
   // gets each unsupported feature skipped ENTIRELY — no child getElementById, no
   // bridge call to an unimplemented method, no listener — then its control is
@@ -645,9 +645,12 @@
     });
     // App presence is a soft hint — Verify above is the authoritative check.
     window.bowserPages.settings.onePasswordStatus().then(({ appDetected }) => {
+      const onMac = navigator.platform.startsWith('Mac');
       appHint.textContent = appDetected
-        ? 'Installed on this Mac.'
-        : 'Blanc couldn’t find the 1Password app in Applications — if it’s installed elsewhere, Verify below still works.';
+        ? (onMac ? 'Installed on this Mac.' : 'Installed on this computer.')
+        : onMac
+          ? 'Blanc couldn’t find the 1Password app in Applications — if it’s installed elsewhere, Verify below still works.'
+          : 'Blanc couldn’t find the 1Password app in its usual install location — if it’s installed elsewhere, Verify below still works.';
       openAppButton.hidden = !appDetected;
     }).catch(() => { appHint.textContent = ''; });
     openAppButton.addEventListener('click', () => {

@@ -114,7 +114,7 @@ jobs:
       - name: Verify dependency compliance inputs
         run: npm run compliance:check
 
-      - name: Verify 1Password macOS-only boundary
+      - name: Verify 1Password broker loads the pinned SDK
         run: npm run test:onepassword:utility
 
       - name: Verify tag matches package version
@@ -416,7 +416,7 @@ jobs:
       - name: Verify dependency compliance inputs
         run: npm run compliance:check
 
-      - name: Verify 1Password macOS-only boundary
+      - name: Verify 1Password broker loads the pinned SDK
         run: xvfb-run -a npm run test:onepassword:utility
 
       - name: Verify managed uBlock inputs and adaptation

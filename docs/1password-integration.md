@@ -1,17 +1,19 @@
 # 1Password login fill
 
-Status: macOS-only production candidate for the build after v1.8.2. The
+Status: shipped on macOS since v1.9.0. Windows and Linux are wired up on main
+from October 10, 2026 (see *Windows and Linux enablement* below) but have not
+shipped in a public release and still need their live-account gate. The
 product-owner risk decision is recorded in
 [`1password-legal-inquiry.md`](1password-legal-inquiry.md). This integration is
 independent, is not affiliated with or endorsed by 1Password, and remains
-subject to 1Password's SDK terms. Windows and Linux do not expose its setting,
-menu item, keyboard shortcut, slash command, preload method, or IPC handler,
-and cannot create the credential broker.
+subject to 1Password's SDK terms. Any other platform exposes no setting, menu
+item, keyboard shortcut, slash command, preload method, or IPC handler, and
+cannot create the credential broker.
 
 ## User setup
 
-1. On macOS, install the current 1Password desktop app and sign into the account
-   to use.
+1. Install the current 1Password desktop app for macOS, Windows, or Linux and
+   sign into the account to use.
 2. In 1Password, open **Settings → Developer** and turn on **Integrate with
    1Password SDKs**.
 3. In Blanc, open **Settings → Privacy & Security → 1Password**, turn on
@@ -19,7 +21,8 @@ and cannot create the credential broker.
    1Password with (an account ID also works). Use **Verify** to confirm it on
    the spot.
 4. On a website login form, choose **View → Fill Login from 1Password**, press
-   **⌥⌘P** on macOS, or run **/1password** from the Island.
+   **⌥⌘P** on macOS or **Ctrl+Shift+P** on Windows and Linux, or run
+   **/1password** from the Island.
 5. Approve Blanc Browser in the 1Password desktop prompt. If several Login
    items match, choose one from the native menu.
 
@@ -29,12 +32,20 @@ this device and are excluded from Profile Sync.
 ## Security boundary
 
 - The page is inspected without credentials before the SDK is contacted.
-- The platform capability gate runs before any client or UI construction.
-  Windows and Linux fail closed without creating a 1Password client or utility
-  process.
-- `@1password/sdk` is pinned exactly and loads only on macOS in
+- The platform capability gate (`src/main/onepassword-availability.js`) runs
+  before any client or UI construction. It allows macOS, Windows, and Linux;
+  any other platform fails closed without creating a 1Password client or
+  utility process. The sandboxed chrome preload mirrors the same list.
+- `@1password/sdk` is pinned exactly and loads only in
   `src/main/onepassword-broker.js`, an Electron utility process named **Blanc
-  Credential Broker**.
+  Credential Broker**. The SDK finds 1Password's IPC library at fixed install
+  locations (`libop_sdk_ipc_client.dylib` on macOS, `op_sdk_ipc_client.dll` on
+  Windows, `libop_sdk_ipc_client.so` on Linux) and fails with
+  `desktop-unavailable` when the app is absent.
+- Settings' "installed" hint and **Open 1Password** button use
+  `src/main/onepassword-app.js`, which checks only fixed install locations. On
+  Linux it starts the detected binary directly, detached and without
+  arguments, because `xdg-open` would open an executable as a file.
 - On macOS that process alone uses `Blanc Helper (Plugin).app`. It retains
   Electron's required `allow-jit` and `allow-unsigned-executable-memory`, and
   only that helper adds `disable-library-validation` so it can load 1Password's
@@ -124,9 +135,13 @@ this device and are excluded from Profile Sync.
   (`username` and `password`); confirm those exact fields in a live DesktopAuth
   response during the real-account macOS gate before calling the contract proven.
 - Windows and Linux artifacts must still pass their existing fuse/signature/
-  packaged-payload gates, and their native smoke test must prove the 1Password
-  broker is unavailable. A release requires the ordinary explicit owner
-  go-ahead; preparing this feature does not itself authorize tagging/publishing.
+  packaged-payload gates, and their native smoke test must prove the
+  1Password broker starts and loads the pinned SDK in exactly one utility
+  process. A release requires the ordinary explicit owner go-ahead; preparing
+  this feature does not itself authorize tagging/publishing.
+- Before Windows or Linux 1Password fill is announced or listed as shipped,
+  repeat the real-account matrix above on a physical Windows PC and a physical
+  Linux machine (not a virtual machine), using the enablement harness below.
 
 ### macOS signed-candidate evidence — 2026-08-23
 
@@ -215,7 +230,7 @@ release and its tiers, including Never, remain covered by the 2026-08-23
 evidence above. Private-tab fill likewise unchanged and not re-run. Future
 gates should use fixture hosts that are not `localhost` descendants.
 
-### macOS-only release decision — 2026-08-24
+### macOS-only release decision — 2026-08-24 (superseded 2026-10-10)
 
 The product owner selected a macOS-only first release after Parallels repeatedly
 hung during attempted Windows validation. This is a platform boundary, not a
@@ -224,10 +239,36 @@ broker. Their ordinary artifact checks remain required, with an automated native
 assertion that this feature is unavailable. Expanding support later requires an
 explicit code, test, security, documentation, and live-account review.
 
-### Future Windows/Linux enablement harness
+### Windows and Linux enablement — 2026-10-10
 
-If cross-platform support is reconsidered, run the candidate and this
-loopback-only fixture server on the same test machine:
+On October 10, 2026 the owner asked for 1Password login fill on Windows and
+Linux after user feedback that missing password-manager support blocked daily
+use. Pinned SDK 0.5.0 already supports DesktopAuth on both platforms, and the
+broker, picker, capsule, and page revalidation were platform-neutral, so the
+change widens the capability gate and adds per-platform app detection and the
+**Ctrl+Shift+P** shortcut (Ctrl+Alt is AltGr on international layouts). No
+Electron fuse, signing, or entitlement changes are needed: only macOS's
+library validation required the Plugin-helper exception.
+
+Verified in the Linux container that day: the sandboxed native smoke test
+(`npm run test:onepassword:utility`) loads the SDK in exactly one broker;
+without the 1Password app, Verify fails closed with `desktop-unavailable`;
+and acceptance scenarios F38-2 to F38-7 pass on Linux (they used to be skipped
+there). The hosted Windows and Linux native workflows run the same smoke test.
+
+Still open before release: the real-account matrix on physical Windows and
+Linux machines. Confirm on each that 1Password's **Integrate with 1Password
+SDKs** setting is present and sufficient. 1Password's CLI documentation asks
+for Windows Hello on Windows and a PolKit agent with system-authentication
+unlock on Linux; whether the SDK needs the same is unverified, and Settings
+copy should name any such prerequisite once confirmed. Also confirm the
+Settings install hint and **Open 1Password** button on per-user and
+machine-wide Windows installs and on deb/rpm and Snap Linux installs.
+
+### Windows/Linux live-account harness
+
+Run the candidate and this loopback-only fixture server on the same test
+machine:
 
 ```sh
 npm run test:onepassword:live-server

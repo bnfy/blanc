@@ -1,10 +1,13 @@
 'use strict';
 
-// The first production release is macOS-only. Keep platform expansion behind
-// this one pure boundary so a future Windows/Linux rollout requires an
-// explicit code and test change instead of accidentally surfacing dormant UI.
+// 1Password login fill runs on every desktop platform the pinned SDK can reach
+// through the installed 1Password app: macOS, Windows and Linux. Anything else
+// fails closed, so a new platform needs an explicit code and test change
+// instead of accidentally surfacing dormant UI.
+const SUPPORTED_PLATFORMS = new Set(['darwin', 'win32', 'linux']);
+
 function isOnePasswordAvailable(platform = process.platform) {
-  return platform === 'darwin';
+  return SUPPORTED_PLATFORMS.has(platform);
 }
 
 module.exports = { isOnePasswordAvailable };

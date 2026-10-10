@@ -31,6 +31,11 @@
   const pillDomain = document.getElementById('pillDomain');
   const pillSlash = document.getElementById('pillSlash');
   const pillFillHint = document.getElementById('pillFillHint');
+  const fillHintLabel = blancI18n.t('pill.fillHint', {
+    shortcut: isMac ? '⌥⌘P' : `${blancI18n.t('key.ctrl')}+${blancI18n.t('key.shift')}+P`,
+  });
+  pillFillHint.title = fillHintLabel;
+  pillFillHint.setAttribute('aria-label', fillHintLabel);
   const pillShield = document.getElementById('pillShield');
   const pillShieldCount = document.getElementById('pillShieldCount');
   const pillCapture = document.getElementById('pillCapture');

@@ -4,7 +4,8 @@ const { contextBridge, ipcRenderer } = require('electron');
 // a local helper here would abort this entire preload before browserAPI exists.
 // Main owns the authoritative capability gate. This renderer-side projection
 // uses the platform value already provided by Electron's sandboxed `process`.
-const ONE_PASSWORD_AVAILABLE = process.platform === 'darwin';
+// Keep this list in step with src/main/onepassword-availability.js.
+const ONE_PASSWORD_AVAILABLE = ['darwin', 'win32', 'linux'].includes(process.platform);
 
 // This preload is intentionally attached only to Blanc's three privileged
 // chrome surfaces. Re-check the committed document before exposing anything:

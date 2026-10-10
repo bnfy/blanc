@@ -3,14 +3,14 @@
 // F38-2..F38-7 — the 1Password fill UX surfaces (ambient hint + fill-status
 // capsule), drivable offline: the hint probe never contacts the broker, and
 // the capsule scenarios force kinds through the test hook against the REAL
-// surface (view creation, replay, reply IPC). macOS-only like the feature
-// itself; other platforms skip.
+// surface (view creation, replay, reply IPC). Available on macOS, Windows and
+// Linux like the feature itself; any other platform skips.
 
 const assert = require('node:assert/strict');
 const { Given, When, Then } = require('@cucumber/cucumber');
 const ctx = require('../support/context');
 
-const DARWIN = process.platform === 'darwin';
+const AVAILABLE = ['darwin', 'win32', 'linux'].includes(process.platform);
 const SUCCESS_DISMISS_MS = 4000; // fill-status.js's timer; waits use +25%
 
 const readCapsule = (world, script) => world.call('readFillStatusDom', script);
@@ -52,7 +52,7 @@ async function waitForHint(world, expected) {
 }
 
 Given('filling logins from 1Password is configured on this device', async function () {
-  if (!DARWIN) return 'skipped';
+  if (!AVAILABLE) return 'skipped';
   await this.call('setOnePasswordConfig', true, 'Acceptance Team');
   return undefined;
 });

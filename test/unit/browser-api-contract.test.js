@@ -56,8 +56,11 @@ test('an extra trusted document is reported', () => {
 });
 
 test('a platform-gated member leaking to other platforms is reported', () => {
-  const problems = api.checkPreload(api.loadContract(),
-    mutate("const ONE_PASSWORD_AVAILABLE = process.platform === 'darwin';", 'const ONE_PASSWORD_AVAILABLE = true;'));
+  // The real preload exposes 1Password fill on every desktop platform, so
+  // narrow the contract instead to prove the per-platform check still bites.
+  const contract = api.loadContract();
+  contract.members.find((m) => m.name === 'fillLoginFromOnePassword').platforms = ['darwin'];
+  const problems = api.checkPreload(contract);
   assert.ok(problems.some((p) => p.startsWith('linux:') && p.includes('fillLoginFromOnePassword')), problems.join('\n'));
   assert.ok(problems.some((p) => p.startsWith('win32:') && p.includes('fillLoginFromOnePassword')), problems.join('\n'));
 });

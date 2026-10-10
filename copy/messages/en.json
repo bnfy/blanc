@@ -140,6 +140,11 @@
     "note": "Name of the Control key in shortcut hints on Windows and Linux (German keyboards print Strg).",
     "maxLength": 5
   },
+  "key.shift": {
+    "message": "Shift",
+    "note": "Name of the Shift key in shortcut hints on Windows and Linux (German keyboards print Umschalt).",
+    "maxLength": 8
+  },
   "app.title": {
     "message": "Blanc",
     "note": "Window title of the browser chrome."
@@ -205,8 +210,8 @@
     "note": "Tooltip of the source chip."
   },
   "pill.fillHint": {
-    "message": "Fill login from 1Password (⌥⌘P)",
-    "note": "Tooltip and accessible name of the macOS-only 1Password fill chip."
+    "message": "Fill login from 1Password ({shortcut})",
+    "note": "Tooltip and accessible name of the 1Password fill chip; {shortcut} is ⌥⌘P on macOS or Ctrl+Shift+P on Windows and Linux."
   },
   "pill.back": {
     "message": "Back",

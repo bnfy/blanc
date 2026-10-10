@@ -136,7 +136,7 @@ const {
 } = require('./telemetry');
 const { createDayOneSignals } = require('./day-one-signals');
 const { createDefaultBrowserStatus } = require('./default-browser-status');
-const { execFileSync } = require('node:child_process');
+const { execFileSync, spawn } = require('node:child_process');
 const diagnostics = require('./diagnostics');
 const sync = require('./sync');
 const tabsync = require('./tabsync');
@@ -291,6 +291,7 @@ const {
 } = require('./tab-import-batch');
 const { createOnePasswordClient } = require('./onepassword-client');
 const { isOnePasswordAvailable } = require('./onepassword-availability');
+const { findOnePasswordApp, openOnePasswordApp } = require('./onepassword-app');
 const { createCredentialFillController } = require('./credential-fill-controller');
 const { createFillStatusSurface } = require('./fill-status-surface');
 const { pickerAnchorPoint, parseWebUrl: parseOnePasswordWebUrl, FILL_WORLD_ID } = require('./onepassword-policy');
@@ -1395,7 +1396,7 @@ if (!(acceptanceTestMode || app.requestSingleInstanceLock())) {
   // Migrate state left by the retired general extension/store integration.
   // Preserve website Service Workers and all managed uBO state; the narrowly
   // gated uBO provider is independent of the retired extension-store runtime.
-  // The opt-in 1Password SDK runs separately in its Plugin utility process.
+  // The opt-in 1Password SDK runs separately in its own utility process.
   const staleExtensionState = [
     'Extensions', 'Extension State', 'Extension Scripts', 'Extension Rules', '.running',
   ];
@@ -7788,9 +7789,10 @@ const SLASH_COMMANDS = [
 const LAST_ACTIVE_TAB_ACCELERATOR = process.platform === 'darwin'
   ? 'Cmd+Alt+Z'
   : null;
-const ONE_PASSWORD_ACCELERATOR = ONE_PASSWORD_AVAILABLE
-  ? 'Cmd+Alt+P'
-  : null;
+// Windows and Linux use Ctrl+Shift+P rather than Ctrl+Alt+P for the same
+// AltGr reason as above.
+const ONE_PASSWORD_ACCELERATOR = !ONE_PASSWORD_AVAILABLE ? null
+  : process.platform === 'darwin' ? 'Cmd+Alt+P' : 'Ctrl+Shift+P';
 const COMMON_KEYSTROKES = [
   ['New Window', 'CmdOrCtrl+N'],
   ['New Tab', 'CmdOrCtrl+T'],
@@ -9832,11 +9834,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     },
     onePasswordAvailable: () => ONE_PASSWORD_AVAILABLE,
     // Settings status card (Task 9): presence is a hint, Verify is truth.
-    onePasswordAppDetected: () => {
-      try { return fs.existsSync('/Applications/1Password.app'); } catch { return false; }
-    },
+    onePasswordAppDetected: () => findOnePasswordApp({ exists: fs.existsSync }) !== null,
     onePasswordVerify: (probed) => onePasswordBroker.verifyAccount(probed),
-    openOnePasswordApp: () => { shell.openPath('/Applications/1Password.app').catch(() => {}); },
+    openOnePasswordApp: () => {
+      openOnePasswordApp({ appPath: findOnePasswordApp({ exists: fs.existsSync }), shell, spawn });
+    },
   });
 
   const configuredProfileSessions = new Set([DEFAULT_PROFILE_ID]);

@@ -141,6 +141,10 @@
     "message": "Strg",
     "source": "sha256:1432a2fb2c17866c175da8e2374b4365b5b0bf4bb5b4229f5023b335f4b251cb"
   },
+  "key.shift": {
+    "message": "Umschalt",
+    "source": "sha256:f0fafde8484f628acb04d7e55a6042b68665da567279268444d577fc92a3d12a"
+  },
   "app.title": {
     "message": "Blanc",
     "source": "sha256:bc91344e663160b4f12b8af2a84cb46a480e13a33a4b9a539c712b07f2c9effc"
@@ -202,8 +206,8 @@
     "source": "sha256:72fb1be2fcd039fbdb37fdbc153bf7487a1d9e91acc11dcbb61b537f5ea2e736"
   },
   "pill.fillHint": {
-    "message": "Anmeldedaten aus 1Password ausfüllen (⌥⌘P)",
-    "source": "sha256:faf22161d701e6b108cd4de8e2115bd82b820e06559be09c93ea277ac579ac54"
+    "message": "Anmeldedaten aus 1Password ausfüllen ({shortcut})",
+    "source": "sha256:06bc5b03c2f14e1115682d6fa48de71f6b687ac5c05a8151aef44d5dc6f48ce4"
   },
   "pill.back": {
     "message": "Zurück",
