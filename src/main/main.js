@@ -3148,6 +3148,14 @@ function ensureFillStatusView() {
       rt().fillStatusViewLoaded = false;
     }
     fillStatusSurface?.viewGone(owner.id, wcId);
+    // On Linux a hidden capsule stays window-owned (hideOverlayView); drop
+    // the dead view once its native destruction has returned.
+    setImmediate(() => {
+      const window = owner.window;
+      if (window && !window.isDestroyed() && window.contentView.children.includes(view)) {
+        window.contentView.removeChildView(view);
+      }
+    });
   }));
   view.webContents.on('render-process-gone', bindWindowRuntime(owner, () => {
     rt().fillStatusViewLoaded = false;
@@ -3181,7 +3189,10 @@ function attachFillStatusView() {
   if (!hasLiveWindow()) return;
   const view = ensureFillStatusView();
   view.setBounds(fillStatusViewBounds());
-  rt().window.contentView.addChildView(view);
+  // Never detached between messages on Linux: Electron 44 stops a
+  // re-attached renderer drawing, so every capsule after the first was
+  // invisible while the fill kept running (#692, same bug as #594).
+  showOverlayView(rt().window, view);
   rt().fillStatusViewAttached = true;
   restackPermissionView();
 }
@@ -3190,7 +3201,7 @@ function detachFillStatusView() {
   if (!rt().fillStatusViewAttached) return;
   rt().fillStatusViewAttached = false;
   if (hasLiveWindow() && rt().fillStatusView) {
-    rt().window.contentView.removeChildView(rt().fillStatusView);
+    hideOverlayView(rt().window, rt().fillStatusView);
   }
 }
 
