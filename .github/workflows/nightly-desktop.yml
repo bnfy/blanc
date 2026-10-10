@@ -11,12 +11,17 @@ on:
   schedule:
     - cron: "17 8 * * *"
   workflow_dispatch:
+  # Changes to this workflow or its display script prove themselves on the PR.
+  pull_request:
+    paths:
+      - .github/workflows/nightly-desktop.yml
+      - scripts/ci-macos-tall-display.swift
 
 permissions:
   contents: read
 
 concurrency:
-  group: nightly-desktop
+  group: nightly-desktop-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -32,5 +37,9 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --no-audit --no-fund
+      # Window-size scenarios need more than the runner's default screen
+      # height; see the script for why.
+      - name: Use the tallest display mode
+        run: swift scripts/ci-macos-tall-display.swift
       - name: Full runnable desktop acceptance suite
         run: npm run test:acceptance:desktop
