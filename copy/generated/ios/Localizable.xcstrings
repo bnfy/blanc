@@ -3937,6 +3937,1038 @@
         }
       }
     },
+    "ws.error.duplicateName": {
+      "comment": "Workspace switcher error when a workspace name is already taken.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That name is already in use. Choose another name."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Name wird schon verwendet. Wähle einen anderen Namen."
+          }
+        }
+      }
+    },
+    "ws.error.invalidName": {
+      "comment": "Workspace switcher error when the name field is empty.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a workspace name."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib einen Namen für den Arbeitsbereich ein."
+          }
+        }
+      }
+    },
+    "ws.error.limit": {
+      "comment": "Workspace switcher error at the workspace limit; {limit} is the maximum number of workspaces (always more than one).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You have %1$@ workspaces. Delete one before adding another."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du hast %1$@ Arbeitsbereiche. Lösche einen, bevor du einen weiteren hinzufügst."
+          }
+        }
+      }
+    },
+    "ws.error.notPatron": {
+      "comment": "Workspace switcher error when someone without Blanc Patron tries to create a workspace.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creating workspaces needs Blanc Patron."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zum Anlegen von Arbeitsbereichen brauchst du Blanc Patron."
+          }
+        }
+      }
+    },
+    "ws.error.notFound": {
+      "comment": "Workspace switcher error when the chosen workspace was removed meanwhile.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That workspace is no longer available."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Arbeitsbereich ist nicht mehr verfügbar."
+          }
+        }
+      }
+    },
+    "ws.error.readFailed": {
+      "comment": "Workspace switcher error when the saved workspace file cannot be read.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t read your workspace file. Restart Blanc after checking that the file is accessible."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Arbeitsbereich-Datei konnte nicht gelesen werden. Prüfe, ob die Datei zugänglich ist, und starte Blanc dann neu."
+          }
+        }
+      }
+    },
+    "ws.error.storageFailed": {
+      "comment": "Workspace switcher error when saving workspaces to disk fails.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t save changes. Check available disk space and try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Änderungen konnten nicht gespeichert werden. Prüfe den freien Speicherplatz und versuche es erneut."
+          }
+        }
+      }
+    },
+    "ws.error.futureFormat": {
+      "comment": "Workspace switcher error when the workspace file was written by a newer Blanc.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These workspaces need a newer version of Blanc. Your saved file has not been changed."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Arbeitsbereiche brauchen eine neuere Version von Blanc. Deine gespeicherte Datei wurde nicht verändert."
+          }
+        }
+      }
+    },
+    "ws.error.repairFailed": {
+      "comment": "Workspace switcher error when Blanc cannot back up a damaged workspace file before repairing it.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t preserve a recovery copy. Your workspace file has not been changed."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Es konnte keine Wiederherstellungskopie angelegt werden. Deine Arbeitsbereich-Datei wurde nicht verändert."
+          }
+        }
+      }
+    },
+    "ws.error.busy": {
+      "comment": "Workspace switcher error while another workspace action is in progress.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Another workspace action is still finishing. Try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine andere Aktion für Arbeitsbereiche läuft noch. Versuche es erneut."
+          }
+        }
+      }
+    },
+    "ws.error.activationFailed": {
+      "comment": "Workspace switcher error when switching to a workspace fails.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t open the workspace. Your current pages are still available."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Arbeitsbereich konnte nicht geöffnet werden. Deine aktuellen Seiten sind weiterhin verfügbar."
+          }
+        }
+      }
+    },
+    "ws.error.savedNotOpened": {
+      "comment": "Workspace switcher error when a new workspace was saved but switching to it failed.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The workspace was saved, but Blanc couldn’t open it. It remains in your workspace list."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Arbeitsbereich wurde gespeichert, aber Blanc konnte ihn nicht öffnen. Er bleibt in deiner Liste der Arbeitsbereiche."
+          }
+        }
+      }
+    },
+    "ws.error.recoveryDuplicate": {
+      "comment": "Workspace switcher error when restoring a deleted workspace whose name is now taken.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An existing workspace uses this name. Rename it before restoring this workspace."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein vorhandener Arbeitsbereich verwendet diesen Namen. Benenne ihn um, bevor du diesen Arbeitsbereich wiederherstellst."
+          }
+        }
+      }
+    },
+    "ws.error.generic": {
+      "comment": "Workspace switcher error for any other failure.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t complete that action. Try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Aktion konnte nicht abgeschlossen werden. Versuche es erneut."
+          }
+        }
+      }
+    },
+    "ws.trigger.current": {
+      "comment": "Tooltip and accessible name of the Island footer workspace button; {name} is the current workspace’s name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Workspace · %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeitsbereich · %1$@"
+          }
+        }
+      }
+    },
+    "ws.editor.rename": {
+      "comment": "Label of the workspace name field when renaming a workspace.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rename workspace"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeitsbereich umbenennen"
+          }
+        }
+      }
+    },
+    "ws.editor.create": {
+      "comment": "Label of the workspace name field when creating an empty workspace.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New empty workspace"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer leerer Arbeitsbereich"
+          }
+        }
+      }
+    },
+    "ws.editor.saveAs": {
+      "comment": "Label of the workspace name field when saving this window as a workspace.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save this window as…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Fenster speichern als…"
+          }
+        }
+      }
+    },
+    "ws.editor.help": {
+      "comment": "Help text under the workspace name field.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ordinary tabs save automatically on this device, in this profile. Private pages are excluded. Workspaces share this profile’s sign-ins."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Normale Tabs werden auf diesem Gerät in diesem Profil automatisch gespeichert. Private Seiten sind ausgenommen. Arbeitsbereiche teilen die Anmeldungen dieses Profils."
+          }
+        }
+      }
+    },
+    "ws.editor.save": {
+      "comment": "Button that saves the workspace name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speichern"
+          }
+        }
+      }
+    },
+    "ws.editor.saving": {
+      "comment": "The save button’s text while the workspace is being saved.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saving…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speichern…"
+          }
+        }
+      }
+    },
+    "ws.decision.label": {
+      "comment": "Accessible name of the box asking what to do with this window’s tabs before switching workspace.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Workspace switch decision"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entscheidung zum Wechsel des Arbeitsbereichs"
+          }
+        }
+      }
+    },
+    "ws.decision.capacity": {
+      "comment": "Shown before switching workspace when no more workspaces can be kept in memory.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your retained workspaces are full. Open this workspace in another window to keep your pages available."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine im Speicher gehaltenen Arbeitsbereiche sind voll. Öffne diesen Arbeitsbereich in einem anderen Fenster, damit deine Seiten verfügbar bleiben."
+          }
+        }
+      }
+    },
+    "ws.decision.protected": {
+      "comment": "Shown before switching workspace when a page in this window is busy (for example uploading or capturing).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This window has pages that need to stay open. Open the workspace in another window, or finish the active page operation and try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In diesem Fenster sind Seiten, die geöffnet bleiben müssen. Öffne den Arbeitsbereich in einem anderen Fenster oder schließe den laufenden Vorgang auf der Seite ab und versuche es erneut."
+          }
+        }
+      }
+    },
+    "ws.decision.closePrivate": {
+      "comment": "Shown before switching workspace when every tab that would close is private.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld private tab will close. Page drafts are not saved to disk."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld private tabs will close. Page drafts are not saved to disk."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld privater Tab wird geschlossen. Seitenentwürfe werden nicht auf dem Datenträger gespeichert."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld private Tabs werden geschlossen. Seitenentwürfe werden nicht auf dem Datenträger gespeichert."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ws.decision.closeUnsaved": {
+      "comment": "Shown before switching workspace when tabs that are not saved in any workspace would close.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld unsaved tab will close. Page drafts are not saved to disk."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld unsaved tabs will close. Page drafts are not saved to disk."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld nicht gespeicherter Tab wird geschlossen. Seitenentwürfe werden nicht auf dem Datenträger gespeichert."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld nicht gespeicherte Tabs werden geschlossen. Seitenentwürfe werden nicht auf dem Datenträger gespeichert."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ws.decision.newWindow": {
+      "comment": "Button that opens the workspace in a new window instead of this one.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open in another window"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In neuem Fenster öffnen"
+          }
+        }
+      }
+    },
+    "ws.decision.saveFirst": {
+      "comment": "Button that saves this window as a workspace before switching.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save this window first…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erst dieses Fenster speichern…"
+          }
+        }
+      }
+    },
+    "ws.decision.closeAndSwitch": {
+      "comment": "Button that closes this window’s unsaved tabs and switches workspace.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close tabs and switch"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs schließen und wechseln"
+          }
+        }
+      }
+    },
+    "ws.row.current": {
+      "comment": "Part of a workspace row’s tooltip: this is the workspace shown in this window.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current workspace"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktueller Arbeitsbereich"
+          }
+        }
+      }
+    },
+    "ws.row.showWindow": {
+      "comment": "Workspace row: the workspace is open in another window; choosing it brings that window forward. Also part of the row tooltip.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show window"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fenster zeigen"
+          }
+        }
+      }
+    },
+    "ws.row.retained": {
+      "comment": "Part of a workspace row’s tooltip: the workspace is kept loaded in the background.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retained in memory"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Im Speicher gehalten"
+          }
+        }
+      }
+    },
+    "ws.row.open": {
+      "comment": "Part of a workspace row’s tooltip: choosing it opens the workspace.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open workspace"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeitsbereich öffnen"
+          }
+        }
+      }
+    },
+    "ws.row.title": {
+      "comment": "Tooltip and accessible name of a workspace row; {name} is the workspace name, {context} one of the ws.row.current/showWindow/retained/open phrases.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%2$@ · %3$@ · %1$lld tab"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%2$@ · %3$@ · %1$lld tabs"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%2$@ · %3$@ · %1$lld Tab"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%2$@ · %3$@ · %1$lld Tabs"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ws.manage.label": {
+      "comment": "Accessible name of a workspace row’s ••• button; {name} is the workspace name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ verwalten"
+          }
+        }
+      }
+    },
+    "ws.manage.back": {
+      "comment": "Button that leaves a workspace’s management view.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurück"
+          }
+        }
+      }
+    },
+    "ws.manage.rename": {
+      "comment": "Button that renames a workspace.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rename"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Umbenennen"
+          }
+        }
+      }
+    },
+    "ws.manage.delete": {
+      "comment": "Button that asks to delete a workspace.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Löschen…"
+          }
+        }
+      }
+    },
+    "ws.manage.moveUp": {
+      "comment": "Button that moves a workspace up the list.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move up"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach oben"
+          }
+        }
+      }
+    },
+    "ws.manage.moveDown": {
+      "comment": "Button that moves a workspace down the list.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move down"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach unten"
+          }
+        }
+      }
+    },
+    "ws.delete.confirm": {
+      "comment": "Confirmation before deleting a workspace; {name} is its name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete “%1$@”? Open tabs stay available. You can restore the saved workspace from Recently Deleted for seven days."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%1$@“ löschen? Offene Tabs bleiben verfügbar. Den gespeicherten Arbeitsbereich kannst du sieben Tage lang unter „Zuletzt gelöscht“ wiederherstellen."
+          }
+        }
+      }
+    },
+    "ws.delete.button": {
+      "comment": "Button that confirms deleting a workspace.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete workspace"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeitsbereich löschen"
+          }
+        }
+      }
+    },
+    "ws.recovery.back": {
+      "comment": "Button that leaves Recently Deleted.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to workspaces"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zu den Arbeitsbereichen"
+          }
+        }
+      }
+    },
+    "ws.recovery.help": {
+      "comment": "Help text in Recently Deleted; {limit} is how many deleted workspaces are kept (always more than one).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved workspaces are recoverable for seven days. Up to %1$@ deleted workspaces are kept."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gespeicherte Arbeitsbereiche lassen sich sieben Tage lang wiederherstellen. Bis zu %1$@ gelöschte Arbeitsbereiche werden aufbewahrt."
+          }
+        }
+      }
+    },
+    "ws.recovery.restore": {
+      "comment": "Button that restores a deleted workspace.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiederherstellen"
+          }
+        }
+      }
+    },
+    "ws.recovery.forget": {
+      "comment": "Button that asks to permanently delete a deleted workspace.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete permanently…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Endgültig löschen…"
+          }
+        }
+      }
+    },
+    "ws.forget.confirm": {
+      "comment": "Confirmation before permanently deleting a workspace; {name} is its name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permanently delete “%1$@”? This saved workspace cannot be restored."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%1$@“ endgültig löschen? Dieser gespeicherte Arbeitsbereich lässt sich nicht wiederherstellen."
+          }
+        }
+      }
+    },
+    "ws.forget.button": {
+      "comment": "Button that confirms permanent deletion.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete permanently"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Endgültig löschen"
+          }
+        }
+      }
+    },
+    "ws.list.empty": {
+      "comment": "Shown in the workspace switcher when there are no workspaces.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No saved workspaces yet."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch keine gespeicherten Arbeitsbereiche."
+          }
+        }
+      }
+    },
+    "ws.list.undo": {
+      "comment": "Button shown after deleting a workspace that restores it.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Workspace deleted · Undo"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeitsbereich gelöscht · Rückgängig"
+          }
+        }
+      }
+    },
+    "ws.list.recentlyDeleted": {
+      "comment": "Button that opens deleted workspaces; # is how many there are.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Recently Deleted (%1$lld)"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Recently Deleted (%1$lld)"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Zuletzt gelöscht (%1$lld)"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Zuletzt gelöscht (%1$lld)"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ws.list.patronSettings": {
+      "comment": "Button that opens the Blanc Patron section of Settings.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Patron settings"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Patron-Einstellungen"
+          }
+        }
+      }
+    },
     "glance.picker.title": {
       "comment": "Heading of the Glance tab picker.",
       "extractionState": "manual",

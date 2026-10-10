@@ -14,7 +14,7 @@
       "allow": []
     },
     "src/renderer/workspace-ui.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/renderer/tab-drag.js": {
