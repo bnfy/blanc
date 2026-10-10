@@ -30,7 +30,7 @@ await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
 const permissionPageUrl = `http://127.0.0.1:${server.address().port}/permission`;
 
 const fillSurface = (kind) => async ({ app }) => {
-  // The 1Password fill capsule exists on macOS only; elsewhere the hook returns null.
+  // The hook returns null where the fill capsule surface is unavailable.
   if (!(await callTestHook(app, 'showFillStatus', [kind]))) return null;
   const page = await findPage(app, 'blanc-chrome://fill-status/', 'fill capsule');
   await page.waitForFunction(() => [...document.querySelectorAll('.fill-capsule')].some((el) => !el.hidden));
