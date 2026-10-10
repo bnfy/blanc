@@ -14,12 +14,13 @@ test('every chrome and internal document exists in the expected count', () => {
   assert.equal(documents.length, 15, documents.join('\n'));
 });
 
-// The display-capture helper is pinned by src/main/capture-runtime-lock.json
-// and validated per platform; it joins in phase 2 together with its strings
-// and the broker's locale. Until then it must stay untouched.
+// The display-capture helper loads in a never-shown BrowserWindow and has no
+// user-visible text (its strings are internal signals and DOMException
+// messages returned to web pages). It is out of localization scope, and it is
+// pinned by src/main/capture-runtime-lock.json, so it must stay untouched.
 const DEFERRED = new Set(['display-capture-helper.html']);
 
-test('the capture helper stays deferred until phase 2', () => {
+test('the never-shown capture helper does not load the interface catalog', () => {
   const html = fs.readFileSync(path.join(renderer, 'display-capture-helper.html'), 'utf8');
   assert.doesNotMatch(html, /strings\.js|i18n\.js/);
 });

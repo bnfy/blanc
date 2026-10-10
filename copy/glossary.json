@@ -50,6 +50,12 @@
         "form": "Schnellwechsler",
         "stem": "Schnellwechsl"
       }
+    },
+    "Fill logins from 1Password": {
+      "de": {
+        "form": "Logins aus 1Password ausfüllen",
+        "stem": "Logins aus 1Password ausfüllen"
+      }
     }
   },
   "sameAsSource": {
@@ -57,7 +63,8 @@
       "settings.language.system",
       "glance.eyebrow",
       "pill.downloads",
-      "rail.section.tabs"
+      "rail.section.tabs",
+      "dialog.ok"
     ]
   }
 }

@@ -295,7 +295,8 @@ const { createCredentialFillController } = require('./credential-fill-controller
 const { createFillStatusSurface } = require('./fill-status-surface');
 const { pickerAnchorPoint, parseWebUrl: parseOnePasswordWebUrl, FILL_WORLD_ID } = require('./onepassword-policy');
 const { buildHintProbeScript, configTransition, createFillHintScheduler } = require('./fill-hint');
-const { FILL_KINDS, MODES: FILL_MODES, FILL_COPY } = require('./fill-status-kinds');
+const { FILL_KINDS, MODES: FILL_MODES } = require('./fill-status-kinds');
+const { fillCopy } = require('../renderer/fill-status-copy');
 const {
   holdEligibility, mayParkTabView, sanitizeSnapshot, buildTabEntry, buildGroupEntry, buildBatchEntry,
   expireHolds, expireEntries, projectEntries, CLOSED_GRACE_MS, CLOSED_ENTRY_TTL_MS,
@@ -3940,11 +3941,12 @@ function prepareOnePasswordTarget(target) {
 }
 
 /** Native-dialog fallback for the capsule surface: the only main-side
- * consumer of FILL_COPY. Decision kinds keep Cancel as default/cancel id
- * (today's `defaultId: 1` safety); notices are a single OK. */
+ * consumer of the fill copy table, built in the active interface language.
+ * Decision kinds keep Cancel as default/cancel id (today's `defaultId: 1`
+ * safety); notices are a single OK. */
 async function showFillFallbackDialog(target, kind) {
   if (!target?.window || target.window.isDestroyed?.()) return 'cancel';
-  const entry = FILL_COPY[kind];
+  const entry = fillCopy(mainI18n.t)[kind];
   const def = FILL_KINDS[kind];
   if (!entry || !def) return 'cancel';
   const decision = def.mode === FILL_MODES.DECISION;
@@ -3953,7 +3955,7 @@ async function showFillFallbackDialog(target, kind) {
     title: entry.title,
     message: entry.title,
     detail: entry.body,
-    buttons: decision ? [entry.primaryLabel, entry.cancelLabel] : ['OK'],
+    buttons: decision ? [entry.primaryLabel, entry.cancelLabel] : [mainI18n.t('dialog.ok')],
     defaultId: decision ? 1 : 0,
     cancelId: decision ? 1 : 0,
     noLink: true,

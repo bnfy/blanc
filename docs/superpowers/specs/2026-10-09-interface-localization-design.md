@@ -315,8 +315,8 @@ and numbers render exactly as they do now.
 
 ### Delivering strings to documents
 
-Every `blanc-chrome://` document (`index`, `overlay`, `permission`,
-`fill-status`, `display-capture-helper`) and every `blanc://` page loads, in
+Every visible `blanc-chrome://` document (`index`, `overlay`, `permission`,
+`fill-status`) and every `blanc://` page loads, in
 `<head>`, before any other script:
 
 ```html
@@ -559,11 +559,13 @@ strings and moves its files from `pending` to `guarded`.
    - `slash-commands.json` folded in
    - the `en-XA` sweep script
 2. **Chrome:** `index.html`, `renderer.js`, `vertical-tabs.js`,
-   `workspace-ui.js`, `tab-drag.js`, `permission.html`/`.js`, the fill capsule
-   (`FILL_COPY` moves into the catalog; `fill-status-copy.js` becomes a thin
-   adapter over `t()` or is removed), the display-capture helper.
+   `tab-drag.js`, `permission.html`/`.js`, the fill capsule (`FILL_COPY` moves
+   into the catalog; `fill-status-copy.js` becomes a thin adapter over `t()`).
+   The display-capture helper is out of scope: it loads in a never-shown
+   window and has no user-visible text.
 3. **Overlay:** `overlay.html`, `overlay.js` (including the slash table and the
-   tab-switcher, Quick Switcher, panel and find copy).
+   tab-switcher, Quick Switcher, panel and find copy), and `workspace-ui.js`,
+   which renders inside the overlay.
 4. **Main process:** menus, dialogs, shield and site-security copy, the About
    panel, the "New Tab" fallback.
 5. **Settings page:** `settings.html`, `settings.js`, `settings-*-model.js`.

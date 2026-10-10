@@ -3354,7 +3354,7 @@ Run the desktop smokes that cover the touched surface (listed per phase below). 
 
 ### Phase 2 — Chrome
 
-Files: `src/renderer/index.html`, `renderer.js`, `vertical-tabs.js`, `tab-drag.js`, `permission.html`, `permission.js`, `fill-status.html`, `fill-status.js`, `fill-status-copy.js`, `display-capture-helper.html`, `display-capture-helper.js`. Split into two PRs: 2a (strip, rail, drag) and 2b (permission prompts, fill capsule, capture helper). `workspace-ui.js` renders inside the overlay, so it moved to Phase 3.
+Files: `src/renderer/index.html`, `renderer.js`, `vertical-tabs.js`, `tab-drag.js`, `permission.html`, `permission.js`, `fill-status.html`, `fill-status.js`, `fill-status-copy.js`, `display-capture-helper.html`, `display-capture-helper.js`. Split into two PRs: 2a (strip, rail, drag) and 2b (permission prompts, fill capsule). `workspace-ui.js` renders inside the overlay, so it moved to Phase 3. The display-capture helper turned out to load in a never-shown `BrowserWindow` with no user-visible text, so it left the localization scope and `capture-runtime-lock.json` stays untouched.
 Specifics:
 - `FILL_COPY` moves into `en.json` as `fill.<kind>.title|body|primaryLabel|cancelLabel`; `fill-status-copy.js` becomes a thin adapter returning the same object shape built from `t()` (main's native fallback at `main.js:3893` uses `mainI18n.t`), keeping its "fixed strings only" rule.
 - Permission prompts: one message per permission type; re-measure `permissionViewBounds()` (`main.js:2963`) with the longest German prompt and a 60-character host; truncate the host with an ellipsis and full host in `title`, or derive the height from the rendered prompt.

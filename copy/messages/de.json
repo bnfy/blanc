@@ -512,5 +512,237 @@
   "rail.section.tabs": {
     "message": "tabs",
     "source": "sha256:704f23bf7936e2c4b698a4a7b81bf9f6055cc96b9c8fdf0c5730c3c053590139"
+  },
+  "permission.surfaceTitle": {
+    "message": "Berechtigung",
+    "source": "sha256:31f0d2a8c6b98cedef4e2f57e7c5877c4641dbb5d2deac0f83fcdfb96b4047fa"
+  },
+  "permission.label": {
+    "message": "Berechtigungsanfrage einer Website",
+    "source": "sha256:0d3d31847a048a1ddd7ed0fbedfb1c607d65e2996592d4521fddce2751cfb97a"
+  },
+  "permission.allow": {
+    "message": "Erlauben",
+    "source": "sha256:fd90e7626338430e2a63f1c2f37d70f31db3751b7a12652538a8059c9a7bf1e9"
+  },
+  "permission.block": {
+    "message": "Blockieren",
+    "source": "sha256:82e3fae6b14d47bf87199cec82ddb4790715e360a3295405961e2c63a76beb14"
+  },
+  "permission.prompt.cameraMicrophone": {
+    "message": "<0>{host}</0> möchte deine Kamera und dein Mikrofon verwenden",
+    "source": "sha256:27665578c4b2bacffb3820a1e899f138a82d50d4dd52471d39bec91be3138eb2"
+  },
+  "permission.prompt.camera": {
+    "message": "<0>{host}</0> möchte deine Kamera verwenden",
+    "source": "sha256:9bf5365a6ee7607bd8ef7351c0ced6491c777068373b4420877424677145a61a"
+  },
+  "permission.prompt.microphone": {
+    "message": "<0>{host}</0> möchte dein Mikrofon verwenden",
+    "source": "sha256:1a3d371b8ea5233e6216f17a12757016dab282f7f6be7df78cbe95b328ad4b45"
+  },
+  "permission.prompt.geolocation": {
+    "message": "<0>{host}</0> möchte deinen Standort abfragen",
+    "source": "sha256:c2c9827a82e10e71d73f8ec105fea8b2063a0de6ddd055478c18630563428176"
+  },
+  "permission.prompt.notifications": {
+    "message": "<0>{host}</0> möchte Benachrichtigungen anzeigen",
+    "source": "sha256:719bfda7b224a17a04561ea30b797f4a7751efe9023e82ec9a24aea1880222e7"
+  },
+  "permission.prompt.other": {
+    "message": "<0>{host}</0> möchte „{permission}“ verwenden",
+    "source": "sha256:d312f8081e0faac7ef3db09f5ac65f8dbcb4d51f3dabb365c3af39093b9d2d9a"
+  },
+  "fill.surfaceTitle": {
+    "message": "Ausfüllstatus",
+    "source": "sha256:cb15b014979a71ca4787c0f4f935deb6d2160c18cfff14392c63447fd49e3bed"
+  },
+  "fill.dismiss": {
+    "message": "Schließen",
+    "source": "sha256:f3e0efef6fb0cdfea1a39aa809e3b8d03fcae831457b9f89dcf1d98d2bbfd945"
+  },
+  "dialog.ok": {
+    "message": "OK",
+    "source": "sha256:b1a3b3dd5f319182d36007c1a2ecd2497c9a99577155a3cf0700456338e2bc8f"
+  },
+  "fill.setupEnable.title": {
+    "message": "1Password einrichten",
+    "source": "sha256:75c6f5733bc9fa69bbad65b8b961247889275d3c9fca22f13e12c17ba6ce9df7"
+  },
+  "fill.setupEnable.body": {
+    "message": "Aktiviere „Logins aus 1Password ausfüllen“ in den Einstellungen. Blanc liest Logins nur auf Anfrage.",
+    "source": "sha256:edb6a5b9a3f0a37de62a678ac069b14e4a4faa70aa5da5acea58ef9387b4e31d"
+  },
+  "fill.setupEnable.primaryLabel": {
+    "message": "Einstellungen",
+    "source": "sha256:ffd1467852932efc76f116a09bfa91eaecbc2da35bc93b28b77ce745b7b2e8d5"
+  },
+  "fill.setupEnable.cancelLabel": {
+    "message": "Abbrechen",
+    "source": "sha256:abc6de7d216805927351d8fd3d9982092be2ffdfe5f0413caf3af9491b6ef9da"
+  },
+  "fill.setupAccount.title": {
+    "message": "Dein 1Password-Konto hinzufügen",
+    "source": "sha256:afd4672eb3558c02640e7282161f2963aa308e4719a2e171b357e2ea1ff2b9c5"
+  },
+  "fill.setupAccount.body": {
+    "message": "Trage in den Einstellungen die E-Mail-Adresse deines 1Password-Kontos ein.",
+    "source": "sha256:564bc0f8f3caba24d38489a3dab6f8feaac07cb8fac2a793d5cd8db20c82dd29"
+  },
+  "fill.setupAccount.primaryLabel": {
+    "message": "Einstellungen",
+    "source": "sha256:ffd1467852932efc76f116a09bfa91eaecbc2da35bc93b28b77ce745b7b2e8d5"
+  },
+  "fill.setupAccount.cancelLabel": {
+    "message": "Abbrechen",
+    "source": "sha256:abc6de7d216805927351d8fd3d9982092be2ffdfe5f0413caf3af9491b6ef9da"
+  },
+  "fill.confirmHeuristic.title": {
+    "message": "Dieses Anmeldeformular ausfüllen?",
+    "source": "sha256:cba48ae7be8b3358ac148b09cbe01a16c2aaff38f3a56a556b518d19d1420a00"
+  },
+  "fill.confirmHeuristic.body": {
+    "message": "Das Passwortfeld ist nicht eindeutig markiert. Blanc prüft die Felder vor dem Ausfüllen erneut.",
+    "source": "sha256:ffb672ed5e3428aaca2d8e6902bd066ae692fffa8a8eae17f450caa7f0adbe65"
+  },
+  "fill.confirmHeuristic.primaryLabel": {
+    "message": "Login ausfüllen",
+    "source": "sha256:308f9ae3b30699a73d8b484e13e68c87565f2b6cb29be45fbf1702a42a32c418"
+  },
+  "fill.confirmHeuristic.cancelLabel": {
+    "message": "Abbrechen",
+    "source": "sha256:abc6de7d216805927351d8fd3d9982092be2ffdfe5f0413caf3af9491b6ef9da"
+  },
+  "fill.busy.title": {
+    "message": "1Password ist bereits geöffnet",
+    "source": "sha256:472671f8e6174096134a91c5190a2a7dd45880c6a16e773fa97b7bf988b25818"
+  },
+  "fill.busy.body": {
+    "message": "Schließe zuerst die aktuelle Anfrage ab oder brich sie ab.",
+    "source": "sha256:1e8198b973abc04b0f1f7380fa5f866a17484367ba3a3fbb0437487c3cc90e07"
+  },
+  "fill.unsupportedPage.title": {
+    "message": "Öffne zuerst eine Website",
+    "source": "sha256:94d35039062e5d24e2caf22ce3f223af562262b7c2358aaf3d3a0aced62cd568"
+  },
+  "fill.unsupportedPage.body": {
+    "message": "Das Ausfüllen mit 1Password funktioniert auf HTTP- und HTTPS-Seiten.",
+    "source": "sha256:e97de918158150ae33be50417506d59f74ca9536cbfdf53260f8716395b1705c"
+  },
+  "fill.pageChanged.title": {
+    "message": "Die Seite hat sich geändert",
+    "source": "sha256:087f0717cf46a90f975accc364fadead6af3ad8e496425208ce27db75f7928a4"
+  },
+  "fill.pageChanged.body": {
+    "message": "Es wurde nichts ausgefüllt. Kehre zum Anmeldeformular zurück und versuche es erneut.",
+    "source": "sha256:9c29530bc6b0dfb5a7259e74df0d726dbd535663b6d5b8e315689f14be0f0209"
+  },
+  "fill.noForm.title": {
+    "message": "Kein Anmeldeformular gefunden",
+    "source": "sha256:36c2b6b541a8067eab41df88562ef255ada9ceaa137d3b8fd07f32f462086995"
+  },
+  "fill.noForm.body": {
+    "message": "Blanc hat hier kein sicheres Benutzernamen- oder Passwortfeld gefunden.",
+    "source": "sha256:46f1411dce6aafd83482dcd1a6c980439319aaa65ac6f5bc076e23e146f996e7"
+  },
+  "fill.noMatch.title": {
+    "message": "Kein passendes Login",
+    "source": "sha256:cc278805d49887f4621f629980b28efee3dc259eed95221d8e93ba595d806852"
+  },
+  "fill.noMatch.body": {
+    "message": "In 1Password ist für diese Website kein Login gespeichert.",
+    "source": "sha256:e63348d59d0a2022d1364f3771659ab14243f40f22161952961043d9b81121e9"
+  },
+  "fill.emptyLogin.title": {
+    "message": "Das Login hat keine ausfüllbaren Felder",
+    "source": "sha256:a2e6a2c406a2203f69977c28fafc183a8511a2aff98e88b58336338a7c3509de"
+  },
+  "fill.emptyLogin.body": {
+    "message": "Das ausgewählte Objekt hat keinen Benutzernamen und kein Passwort.",
+    "source": "sha256:103c498b02233be409e4ea84b387b26d2fe78383e1f56c93e6670db425fa5679"
+  },
+  "fill.nothingFilled.title": {
+    "message": "Es wurde nichts ausgefüllt",
+    "source": "sha256:ad5d7f3f28c43e39c81ed8f95ca59eda3e6f52ade8db87950cb66407b62cf72d"
+  },
+  "fill.nothingFilled.body": {
+    "message": "Das ausgewählte Login hatte keine Werte für die Felder, die Blanc gefunden hat.",
+    "source": "sha256:badb0c5c415143943fa6e2c030b2ec0c095d7224445c9abb8284daa86ed7b4c3"
+  },
+  "fill.unexpected.title": {
+    "message": "Ausfüllen mit 1Password abgebrochen",
+    "source": "sha256:4241e778452acd99e1e7b7904f01da2e0eb039f8217c385488fc7c56f01663d0"
+  },
+  "fill.unexpected.body": {
+    "message": "Es wurde nichts ausgefüllt. Versuche es im Anmeldeformular erneut.",
+    "source": "sha256:a55666f3069b60c78d2e872b09b7cc45aba269f5c2f24d53d80fb2a1a05123db"
+  },
+  "fill.desktopUnavailable.title": {
+    "message": "1Password ist nicht verfügbar",
+    "source": "sha256:b11027d78ac4b5ac7909ab4a6f2120be42645f5f21dc325d9f04d0dc2aa859f6"
+  },
+  "fill.desktopUnavailable.body": {
+    "message": "Öffne die 1Password-App und aktiviere Einstellungen → Entwickler → Mit 1Password-SDKs integrieren.",
+    "source": "sha256:72f5e62dad7be1f7ba01efaea1d58c98df54fba0e772ac1a158f6c4ffcbfcd7a"
+  },
+  "fill.accountNotFound.title": {
+    "message": "Konto nicht gefunden",
+    "source": "sha256:fda4b18672edc6195f0682ed4b6613428bedb1c867a1eb73613e504016ef1d58"
+  },
+  "fill.accountNotFound.body": {
+    "message": "Prüfe deine 1Password-E-Mail-Adresse in den Blanc-Einstellungen und versuche es dann erneut.",
+    "source": "sha256:1d1af3f313222446e35f386ca99f8425ed5eadb1222c112dc14ab064a4868325"
+  },
+  "fill.notAuthorized.title": {
+    "message": "1Password hat Blanc nicht autorisiert",
+    "source": "sha256:4e2153255e18533409c8bc301abc47448cc1cc5e68926fe5c9e4fc8cd0066eca"
+  },
+  "fill.notAuthorized.body": {
+    "message": "Entsperre 1Password, erlaube Blanc Browser und versuche es dann erneut.",
+    "source": "sha256:668b938cf7559307fc3277e6e8819163ff428539398a3ee33c4804cf6914a962"
+  },
+  "fill.sessionExpired.title": {
+    "message": "Autorisierung abgelaufen",
+    "source": "sha256:5e58df22db279abafcec3a7fa0714c80bf010576d2635ab28b0c2a6249c18d67"
+  },
+  "fill.sessionExpired.body": {
+    "message": "Versuche es erneut, um eine neue Sitzung zu autorisieren.",
+    "source": "sha256:36e25348f650007f301b720f9a17104719a939baf80f36702cd46919146c79f1"
+  },
+  "fill.timedOut.title": {
+    "message": "1Password hat nicht rechtzeitig geantwortet",
+    "source": "sha256:1380e31d180d2cde35401bb4b70834cf1382c86bc58d05c434b046a6034bf6d4"
+  },
+  "fill.timedOut.body": {
+    "message": "Es wurde nichts ausgefüllt. Versuche es erneut, wenn 1Password bereit ist.",
+    "source": "sha256:633b939ea00443c9da5dbc0e47d6b91d97ce096e78edfc8057a4ff8f4e2d5610"
+  },
+  "fill.brokerStopped.title": {
+    "message": "1Password-Hilfsprogramm beendet",
+    "source": "sha256:9e3b0f1e0080e97c9c96017fea0c2b35e0b3aa336ed1e277658fae94f43a7326"
+  },
+  "fill.brokerStopped.body": {
+    "message": "Es wurde nichts ausgefüllt. Versuche es erneut.",
+    "source": "sha256:dcc84adb0a172fe65cbae1f529f9fd877f4c520bf5db9fc6fc75e1740d295468"
+  },
+  "fill.sdkError.title": {
+    "message": "1Password konnte den Vorgang nicht abschließen",
+    "source": "sha256:c8a7762899fa476c9e04a3c4254481050a9f15169808cf7a0762710d87b35fcc"
+  },
+  "fill.sdkError.body": {
+    "message": "Es wurde nichts ausgefüllt. Prüfe 1Password und versuche es erneut.",
+    "source": "sha256:c17403209c911d5fe78ecf0c93c8f3404f726c9ed208cca1fbb95bd628738d9e"
+  },
+  "fill.selectionChanged.title": {
+    "message": "Login geändert",
+    "source": "sha256:490dd906374f3b8fd605491a620ee7bd127f06c81b30cebab1ff4d741f8051fe"
+  },
+  "fill.selectionChanged.body": {
+    "message": "Das Objekt hat sich geändert, während die Liste geöffnet war. Es wurde nichts ausgefüllt.",
+    "source": "sha256:d30e77199a163a8b4f25803c3735ff22c24671dc997655ce87e15492d98d877a"
+  },
+  "fill.filled.title": {
+    "message": "Aus 1Password ausgefüllt",
+    "source": "sha256:2b7329ca89d78a1d05bda0b4e614593c54a812db58d730f034be32f27a232da7"
   }
 }

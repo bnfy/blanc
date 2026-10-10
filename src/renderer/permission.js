@@ -17,25 +17,48 @@
   const permissionQueue = [];
   let activePermissionPrompt = null;
 
-  function describePermission({ permission, mediaTypes }) {
+  // A long host is shortened from the START so its registrable domain stays
+  // visible: cutting the end could turn accounts.google.com.evil.example into
+  // a reassuring "accounts.google.com.ev…". The full host is the tooltip.
+  // Capping the host also keeps the whole request within the bar's two lines.
+  function elideHost(host) {
+    const max = 32;
+    return host.length <= max ? host : `…${host.slice(host.length - (max - 1))}`;
+  }
+
+  // One complete message per request (F44: no sentence assembly); tag 0 is
+  // the host.
+  function promptParts({ permission, mediaTypes }, host) {
     if (permission === 'media') {
       const wantsAudio = mediaTypes.includes('audio');
       const wantsVideo = mediaTypes.includes('video');
-      if (wantsAudio && wantsVideo) return 'use your camera and microphone';
-      if (wantsVideo) return 'use your camera';
-      return 'use your microphone';
+      if (wantsAudio && wantsVideo) return blancI18n.parts('permission.prompt.cameraMicrophone', { host });
+      if (wantsVideo) return blancI18n.parts('permission.prompt.camera', { host });
+      return blancI18n.parts('permission.prompt.microphone', { host });
     }
-    if (permission === 'geolocation') return 'know your location';
-    if (permission === 'notifications') return 'show notifications';
-    return `use “${permission}”`;
+    if (permission === 'geolocation') return blancI18n.parts('permission.prompt.geolocation', { host });
+    if (permission === 'notifications') return blancI18n.parts('permission.prompt.notifications', { host });
+    return blancI18n.parts('permission.prompt.other', { host, permission });
+  }
+
+  function renderPrompt(prompt) {
+    const host = new URL(prompt.origin).host;
+    permissionText.replaceChildren(...promptParts(prompt, elideHost(host)).map((part) => {
+      if (part.tag === undefined) return document.createTextNode(part.text);
+      const hostEl = document.createElement('span');
+      hostEl.className = 'permission-host';
+      hostEl.textContent = part.text;
+      hostEl.title = host;
+      hostEl.dataset.i18nIgnore = 'title'; // the full host is page data
+      return hostEl;
+    }));
   }
 
   function showNextPermissionPrompt() {
     activePermissionPrompt = permissionQueue.shift() ?? null;
     permissionBar.hidden = !activePermissionPrompt;
     if (activePermissionPrompt) {
-      const host = new URL(activePermissionPrompt.origin).host;
-      permissionText.textContent = `${host} wants to ${describePermission(activePermissionPrompt)}`;
+      renderPrompt(activePermissionPrompt);
       const isMedia = activePermissionPrompt.permission === 'media';
       permissionGlyphs.hidden = !isMedia;
       // toggleAttribute — SVGElement has no hidden IDL property.

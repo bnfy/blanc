@@ -5,7 +5,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self'; img-src 'self' data:;" />
   <script src="strings.js"></script>
   <script src="i18n.js"></script>
-  <title>Fill status</title>
+  <title data-i18n="fill.surfaceTitle">Fill status</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body class="fill-status-surface">
@@ -22,7 +22,7 @@
       <span id="fillNoticeTitle" class="fill-title"></span>
       <span id="fillNoticeBody" class="fill-body"></span>
     </div>
-    <button id="fillNoticeDismiss" type="button" aria-label="Dismiss">
+    <button id="fillNoticeDismiss" type="button" aria-label="Dismiss" data-i18n-aria-label="fill.dismiss">
       <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>
     </button>
   </div>
