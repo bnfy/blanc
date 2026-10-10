@@ -21,7 +21,7 @@ TAG="v$VERSION"
 MODE="${BLANC_RELEASE_MODE:-}"
 PLATFORM_CSV="${BLANC_RELEASE_PLATFORMS:-}"
 MAC_ARCH_CSV="${BLANC_MAC_ARCHES:-}"
-MIGRATION_BASE_VERSION="${BLANC_MIGRATION_BASE_VERSION:-1.30.1}"
+MIGRATION_BASE_VERSION="${BLANC_MIGRATION_BASE_VERSION:-1.31.0}"
 COSIGN_REDIRECT_PORT="${BLANC_COSIGN_REDIRECT_PORT:-49197}"
 RELEASE_OPERATOR="${BLANC_RELEASE_OPERATOR:-terminal}"
 NOTES_FILE="docs/press/release-notes/$TAG.md"
@@ -259,46 +259,107 @@ if [ "$LOCAL_HEAD" != "$(git rev-parse origin/main)" ]; then
   exit 1
 fi
 
-echo "==> Installing locked dependencies and running the press verification gate"
-npm run ublock:distribution
-npm ci
-npm ci --prefix site
-npm run release:verify:press
+# Resume after a flake. A packaged check that fails, then passes when rerun
+# alone against the same build, is not a reason to rebuild and re-notarize.
+# BLANC_RELEASE_RESUME_FROM=<step> (with BLANC_RELEASE_RESUME_REASON) skips the
+# press gate, signing preflight and build, and every packaged check before
+# <step>, reusing dist/. Only checks between the build and the tag push can be
+# resumed; every preflight above still runs. The build stamp written after a
+# successful build must match this commit, version and Mac architectures, and
+# every stamped file in dist/ must still match its recorded SHA-256.
+RESUME_STEPS=(fuses blocker-payloads compliance first-run regressions workspaces favicons-primary favicons-additional migration)
+RESUME_FROM="${BLANC_RELEASE_RESUME_FROM:-}"
+BUILD_STAMP="dist/.release-build-stamp"
+BUILD_STAMP_HEADER="commit=$LOCAL_HEAD version=$VERSION mac=$MAC_ARCH_CSV"
+step_index() {
+  local i
+  for i in "${!RESUME_STEPS[@]}"; do
+    [ "${RESUME_STEPS[$i]}" = "$1" ] && { echo "$i"; return 0; }
+  done
+  return 1
+}
+# should_run <step>: false only while resuming and <step> precedes the resume point.
+should_run() {
+  [ -z "$RESUME_FROM" ] && return 0
+  [ "$(step_index "$1")" -ge "$(step_index "$RESUME_FROM")" ]
+}
+if [ -n "$RESUME_FROM" ]; then
+  step_index "$RESUME_FROM" >/dev/null || {
+    echo "BLANC_RELEASE_RESUME_FROM must be one of: ${RESUME_STEPS[*]}" >&2
+    exit 1
+  }
+  [ -n "${BLANC_RELEASE_RESUME_REASON:-}" ] || {
+    echo "Set BLANC_RELEASE_RESUME_REASON to the flake and its passing rerun; it belongs in the release incident." >&2
+    exit 1
+  }
+  [ -s "$BUILD_STAMP" ] || { echo "No build stamp in dist/. Resume needs a completed build of this commit." >&2; exit 1; }
+  [ "$(head -n 1 "$BUILD_STAMP")" = "$BUILD_STAMP_HEADER" ] || {
+    echo "The build in dist/ is not this commit, version and architecture set. Run the full release." >&2
+    exit 1
+  }
+  tail -n +2 "$BUILD_STAMP" | shasum -a 256 -c --quiet - || {
+    echo "dist/ changed after the build. Run the full release." >&2
+    exit 1
+  }
+  echo "==> Resuming at '$RESUME_FROM' on the verified build of $LOCAL_HEAD"
+  echo "    Reason: $BLANC_RELEASE_RESUME_REASON"
+else
+  echo "==> Installing locked dependencies and running the press verification gate"
+  npm run ublock:distribution
+  npm ci
+  npm ci --prefix site
+  npm run release:verify:press
 
-echo "==> Preflighting the macOS identity and provisioning profile"
-node scripts/preflight-mac-signing.mjs
+  echo "==> Preflighting the macOS identity and provisioning profile"
+  node scripts/preflight-mac-signing.mjs
 
-echo "==> Cleaning and building notarized macOS artifacts"
-echo "    1Password desktop-app integration is forced for this command."
-echo "    Cancel any manual-account prompt; the desktop authorization is the only valid path."
-rm -rf dist
-MAC_BUILD_ARGS=()
-$HAS_MAC_ARM64 && MAC_BUILD_ARGS+=(--arm64)
-$HAS_MAC_X64 && MAC_BUILD_ARGS+=(--x64)
-if ! OP_BIOMETRIC_UNLOCK_ENABLED=true \
-  op run --env-file=.env.1password --no-masking -- \
-  npx electron-builder --mac "${MAC_BUILD_ARGS[@]}" --publish never; then
-  echo "Signed/notarized macOS build failed. Nothing has been published." >&2
-  exit 1
+  echo "==> Cleaning and building notarized macOS artifacts"
+  echo "    1Password desktop-app integration is forced for this command."
+  echo "    Cancel any manual-account prompt; the desktop authorization is the only valid path."
+  rm -rf dist
+  MAC_BUILD_ARGS=()
+  $HAS_MAC_ARM64 && MAC_BUILD_ARGS+=(--arm64)
+  $HAS_MAC_X64 && MAC_BUILD_ARGS+=(--x64)
+  if ! OP_BIOMETRIC_UNLOCK_ENABLED=true \
+    op run --env-file=.env.1password --no-masking -- \
+    npx electron-builder --mac "${MAC_BUILD_ARGS[@]}" --publish never; then
+    echo "Signed/notarized macOS build failed. Nothing has been published." >&2
+    exit 1
+  fi
+  # Stamp the build so a later resume can prove it reuses exactly these bytes:
+  # every top-level artifact plus each packaged app's executable and app.asar.
+  {
+    echo "$BUILD_STAMP_HEADER"
+    find dist -maxdepth 1 -type f ! -name .release-build-stamp -print0 | sort -z | xargs -0 shasum -a 256
+    for app in dist/mac-arm64/Blanc.app dist/mac/Blanc.app; do
+      if [ -d "$app" ]; then shasum -a 256 "$app/Contents/MacOS/Blanc" "$app/Contents/Resources/app.asar"; fi
+    done
+  } > "$BUILD_STAMP"
 fi
 
-echo "==> Verifying hardened Electron fuses in packaged binaries"
-$HAS_MAC_ARM64 && node scripts/verify-electron-fuses.mjs \
-  "dist/mac-arm64/Blanc.app/Contents/MacOS/Blanc"
-$HAS_MAC_X64 && node scripts/verify-electron-fuses.mjs \
-  "dist/mac/Blanc.app/Contents/MacOS/Blanc"
+if should_run fuses; then
+  echo "==> Verifying hardened Electron fuses in packaged binaries"
+  $HAS_MAC_ARM64 && node scripts/verify-electron-fuses.mjs \
+    "dist/mac-arm64/Blanc.app/Contents/MacOS/Blanc"
+  $HAS_MAC_X64 && node scripts/verify-electron-fuses.mjs \
+    "dist/mac/Blanc.app/Contents/MacOS/Blanc"
+fi
 
-echo "==> Verifying byte-identical blocker payloads in packaged apps"
-$HAS_MAC_ARM64 && node scripts/verify-packaged-adblock.js \
-  "dist/mac-arm64/Blanc.app/Contents/Resources/app.asar"
-$HAS_MAC_X64 && node scripts/verify-packaged-adblock.js \
-  "dist/mac/Blanc.app/Contents/Resources/app.asar"
+if should_run blocker-payloads; then
+  echo "==> Verifying byte-identical blocker payloads in packaged apps"
+  $HAS_MAC_ARM64 && node scripts/verify-packaged-adblock.js \
+    "dist/mac-arm64/Blanc.app/Contents/Resources/app.asar"
+  $HAS_MAC_X64 && node scripts/verify-packaged-adblock.js \
+    "dist/mac/Blanc.app/Contents/Resources/app.asar"
+fi
 
-echo "==> Verifying packaged compliance payloads"
-$HAS_MAC_ARM64 && node scripts/verify-packaged-compliance.js \
-  "dist/mac-arm64/Blanc.app/Contents/Resources"
-$HAS_MAC_X64 && node scripts/verify-packaged-compliance.js \
-  "dist/mac/Blanc.app/Contents/Resources"
+if should_run compliance; then
+  echo "==> Verifying packaged compliance payloads"
+  $HAS_MAC_ARM64 && node scripts/verify-packaged-compliance.js \
+    "dist/mac-arm64/Blanc.app/Contents/Resources"
+  $HAS_MAC_X64 && node scripts/verify-packaged-compliance.js \
+    "dist/mac/Blanc.app/Contents/Resources"
+fi
 
 MAC_ASSETS=("dist/latest-mac.yml")
 if $HAS_MAC_ARM64; then
@@ -321,41 +382,53 @@ for asset in "${MAC_ASSETS[@]}"; do
   [ -s "$asset" ] || { echo "Expected macOS artifact missing: $asset" >&2; exit 1; }
 done
 
-echo "==> Smoke-testing the signed packaged first-run experience"
-BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$NATIVE_MAC_DIR/Blanc.app/Contents/MacOS/Blanc" \
-  npm run test:packaged:first-run
-
-echo "==> Smoke-testing packaged release regressions"
-BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$NATIVE_MAC_DIR/Blanc.app/Contents/MacOS/Blanc" \
-  npm run test:packaged:regressions
-
-echo "==> Verifying packaged Workspace quit/restart recovery"
-BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$NATIVE_MAC_DIR/Blanc.app/Contents/MacOS/Blanc" \
-  npm run test:packaged:workspaces
-
-echo "==> Checking live favicon compatibility — primary 26-site matrix"
-BLANC_FAVICON_MATRIX=primary \
+if should_run first-run; then
+  echo "==> Smoke-testing the signed packaged first-run experience"
   BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$NATIVE_MAC_DIR/Blanc.app/Contents/MacOS/Blanc" \
-  npm run test:packaged:favicons-live
+    npm run test:packaged:first-run
+fi
 
-echo "==> Checking live favicon compatibility — additional 25-site matrix"
-BLANC_FAVICON_MATRIX=additional \
+if should_run regressions; then
+  echo "==> Smoke-testing packaged release regressions"
   BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$NATIVE_MAC_DIR/Blanc.app/Contents/MacOS/Blanc" \
-  npm run test:packaged:favicons-live
+    npm run test:packaged:regressions
+fi
 
-echo "==> Verifying migration from public Stable v$MIGRATION_BASE_VERSION"
-MIGRATION_DIR="$(mktemp -d)"
-cleanup_migration() { rm -rf "$MIGRATION_DIR"; }
-trap cleanup_migration EXIT
-curl --fail --silent --show-error --location \
-  "https://github.com/$REPO/releases/download/v$MIGRATION_BASE_VERSION/Blanc-$MIGRATION_BASE_VERSION$MIGRATION_MAC_SUFFIX.zip" \
-  --output "$MIGRATION_DIR/stable.zip"
-ditto -x -k "$MIGRATION_DIR/stable.zip" "$MIGRATION_DIR/stable"
-BLANC_STABLE_EXECUTABLE="$MIGRATION_DIR/stable/Blanc.app/Contents/MacOS/Blanc" \
-  BLANC_CANDIDATE_EXECUTABLE="$PWD/dist/$NATIVE_MAC_DIR/Blanc.app/Contents/MacOS/Blanc" \
-  npm run test:packaged:migration
-rm -rf "$MIGRATION_DIR"
-trap - EXIT
+if should_run workspaces; then
+  echo "==> Verifying packaged Workspace quit/restart recovery"
+  BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$NATIVE_MAC_DIR/Blanc.app/Contents/MacOS/Blanc" \
+    npm run test:packaged:workspaces
+fi
+
+if should_run favicons-primary; then
+  echo "==> Checking live favicon compatibility — primary 26-site matrix"
+  BLANC_FAVICON_MATRIX=primary \
+    BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$NATIVE_MAC_DIR/Blanc.app/Contents/MacOS/Blanc" \
+    npm run test:packaged:favicons-live
+fi
+
+if should_run favicons-additional; then
+  echo "==> Checking live favicon compatibility — additional 25-site matrix"
+  BLANC_FAVICON_MATRIX=additional \
+    BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$NATIVE_MAC_DIR/Blanc.app/Contents/MacOS/Blanc" \
+    npm run test:packaged:favicons-live
+fi
+
+if should_run migration; then
+  echo "==> Verifying migration from public Stable v$MIGRATION_BASE_VERSION"
+  MIGRATION_DIR="$(mktemp -d)"
+  cleanup_migration() { rm -rf "$MIGRATION_DIR"; }
+  trap cleanup_migration EXIT
+  curl --fail --silent --show-error --location \
+    "https://github.com/$REPO/releases/download/v$MIGRATION_BASE_VERSION/Blanc-$MIGRATION_BASE_VERSION$MIGRATION_MAC_SUFFIX.zip" \
+    --output "$MIGRATION_DIR/stable.zip"
+  ditto -x -k "$MIGRATION_DIR/stable.zip" "$MIGRATION_DIR/stable"
+  BLANC_STABLE_EXECUTABLE="$MIGRATION_DIR/stable/Blanc.app/Contents/MacOS/Blanc" \
+    BLANC_CANDIDATE_EXECUTABLE="$PWD/dist/$NATIVE_MAC_DIR/Blanc.app/Contents/MacOS/Blanc" \
+    npm run test:packaged:migration
+  rm -rf "$MIGRATION_DIR"
+  trap - EXIT
+fi
 
 # A draft release's requested tag is not exposed as a Git ref. Publish the
 # immutable source tag first so native workflow runners can check out the

@@ -61,7 +61,7 @@ export function initWallpaperPreview(daylight, { document = window.document, vie
       .getElementById("hero-daylight-screen")
       .setAttribute(
         "aria-label",
-        "Blanc v1.25.0 Billboard Start Page with " +
+        "Blanc v1.31.0 Billboard Start Page with " +
           phase +
           " wallpaper in " +
           (daylightDark ? "dark" : "light") +

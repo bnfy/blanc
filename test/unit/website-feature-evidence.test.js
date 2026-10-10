@@ -178,6 +178,7 @@ test('public product captures match their reviewed dimensions, hashes, and sourc
     ['docs/website-captures-v1.15.json', historicalLedger.publicRelease, historicalLedger.sourceSha, 10],
     ['docs/website-captures-v1.21.json', previousLedger.publicRelease, previousLedger.sourceSha, 5],
     ['docs/website-captures-v1.30.1.json', 'v1.30.1', '9e337ac583e81bae509cfc970b9d97a81f3287ba', 4],
+    ['docs/website-captures-v1.31.0.json', 'v1.31.0', '5bb0e0da01e05d612382fa99a434524ed2c5b108', 4],
   ];
   for (const [file, release, sourceSha, expectedCount] of manifests) {
     const manifest = JSON.parse(read(file));
@@ -207,23 +208,23 @@ test('the new homepage capture is tied to public v1.25.0 and its faithful export
     assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), item.sha256);
   }
   const homepage = read('site/src/pages/index.astro');
-  const wallpaper = JSON.parse(read('docs/website-wallpaper-captures-v1.25.json'));
+  const wallpaper = JSON.parse(read('docs/website-wallpaper-captures-v1.31.0.json'));
   assert.ok(homepage.includes(wallpaper.captures[0].displayAsset.file.replace('site/public', '')));
-  assert.match(homepage, /aria-label="Blanc v1\.25\.0 Billboard Start Page/);
+  assert.match(homepage, /aria-label="Blanc v1\.31\.0 Billboard Start Page/);
 });
 
 
 test('hero wallpaper scenes retain actual public captures and phase provenance', async () => {
-  const manifest = JSON.parse(read('docs/website-wallpaper-captures-v1.25.json'));
-  assert.equal(manifest.release, captureLedger.publicRelease);
-  assert.equal(manifest.sourceSha, captureLedger.sourceSha);
+  const manifest = JSON.parse(read('docs/website-wallpaper-captures-v1.31.0.json'));
+  assert.equal(manifest.release, 'v1.31.0');
+  assert.equal(execFileSync('git', ['rev-parse', manifest.release], { cwd: root, encoding: 'utf8' }).trim(), manifest.sourceSha);
   assert.equal(manifest.settings.newtabDynamicWallpaper, true);
   assert.equal(manifest.settings.layout, 'billboard');
   assert.equal(manifest.settings.usagePing, false);
   assert.equal(manifest.settings.searchSuggestions, false);
   assert.deepEqual(manifest.captures.map(item => [item.phase, item.theme]), ['dawn', 'day', 'dusk', 'night'].flatMap(phase => [[phase, 'light'], [phase, 'dark']]));
   const releasedModule = { exports: {} };
-  runInNewContext(execFileSync('git', ['show', `${captureLedger.publicRelease}:src/renderer/pages/newtab-wallpaper.js`], { cwd: root, encoding: 'utf8' }), { module: releasedModule });
+  runInNewContext(execFileSync('git', ['show', `${manifest.release}:src/renderer/pages/newtab-wallpaper.js`], { cwd: root, encoding: 'utf8' }), { module: releasedModule });
   const policy = releasedModule.exports;
   for (const capture of manifest.captures) {
     const fixture = new Date(2026, 9, 2, capture.localHourFixture);

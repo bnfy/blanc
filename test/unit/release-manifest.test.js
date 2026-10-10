@@ -315,7 +315,7 @@ test('release authentication uses an explicit interactive operator, 1Password de
     assert.match(instructions, /gh auth status/);
     assert.match(instructions, /before asking the user to reauthenticate|Do not ask the user to run `gh auth login`/);
   }
-  assert.ok(releaseScript.includes('${BLANC_MIGRATION_BASE_VERSION:-1.30.1}'));
+  assert.ok(releaseScript.includes('${BLANC_MIGRATION_BASE_VERSION:-1.31.0}'));
   assert.ok(releaseScript.includes('${BLANC_COSIGN_REDIRECT_PORT:-49197}'));
   assert.ok(releaseScript.includes('http://127.0.0.1:$COSIGN_REDIRECT_PORT/auth/callback'));
   assert.match(releaseScript, /Sigstore callback port \$COSIGN_REDIRECT_PORT is already in use/);
@@ -344,4 +344,37 @@ test('Windows manifest requires a valid signed-artifact attestation', () => {
     '--platforms', 'mac,windows',
   ]).status, 0);
   fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test('release resume reuses only a stamped, unchanged build and never skips preflight or publication', () => {
+  const releaseScript = fs.readFileSync(path.join(root, 'scripts/release.sh'), 'utf8');
+  const at = (text) => {
+    const index = releaseScript.indexOf(text);
+    assert.ok(index >= 0, `release.sh must contain: ${text}`);
+    return index;
+  };
+  const headCheck = at('HEAD is not origin/main');
+  const resumeBranch = at('if [ -n "$RESUME_FROM" ]; then');
+  const fullBranch = at('npm run release:verify:press');
+  const tagPush = at('git push origin "refs/tags/$TAG"');
+  // Preflight (clean sources, HEAD == origin/main, no existing tag) precedes the
+  // resume decision, so a resume can never skip it.
+  assert.ok(headCheck < resumeBranch && resumeBranch < fullBranch);
+  // A resume needs a reason, a stamp for this exact commit/version/arch set,
+  // and unchanged stamped bytes.
+  assert.match(releaseScript, /BLANC_RELEASE_RESUME_REASON/);
+  assert.match(releaseScript, /BUILD_STAMP_HEADER="commit=\$LOCAL_HEAD version=\$VERSION mac=\$MAC_ARCH_CSV"/);
+  assert.match(releaseScript, /shasum -a 256 -c --quiet -/);
+  assert.match(releaseScript, /Contents\/MacOS\/Blanc" "\$app\/Contents\/Resources\/app\.asar"/);
+  // Only the packaged checks between the build and the tag push are resumable,
+  // each behind should_run, and nothing from the tag push onward is gated.
+  const steps = releaseScript.match(/^RESUME_STEPS=\(([^)]*)\)/m)[1].split(/\s+/);
+  assert.deepEqual(steps, ['fuses', 'blocker-payloads', 'compliance', 'first-run', 'regressions', 'workspaces', 'favicons-primary', 'favicons-additional', 'migration']);
+  let previous = fullBranch;
+  for (const step of steps) {
+    const gate = at(`if should_run ${step}; then`);
+    assert.ok(gate > previous && gate < tagPush, `${step} must sit, in order, between the build and the tag push`);
+    previous = gate;
+  }
+  assert.doesNotMatch(releaseScript.slice(tagPush), /should_run|RESUME_FROM/);
 });

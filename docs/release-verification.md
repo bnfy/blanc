@@ -57,6 +57,30 @@ must not be asked to copy, paste, or reconstruct the command. The release must
 remain visible and interactive; this is not permission for a background
 wrapper.
 
+### Resuming after a flaky packaged check
+
+A packaged check between the macOS build and the tag push can fail for a
+reason that is not a Blanc bug, such as a live website missing its favicon
+once. Rerun just that check against the same `dist/` build first. If it passes
+and shows no bug, do not rebuild and re-notarize: rerun the release with
+
+```sh
+BLANC_RELEASE_RESUME_FROM=<step> \
+BLANC_RELEASE_RESUME_REASON='<the failure and its passing rerun>' \
+<the same release command>
+```
+
+`<step>` is one of `fuses`, `blocker-payloads`, `compliance`, `first-run`,
+`regressions`, `workspaces`, `favicons-primary`, `favicons-additional` or
+`migration`. Every preflight still runs. The press gate, signing preflight and
+build are skipped, as are the packaged checks before `<step>`. The script
+refuses unless `dist/.release-build-stamp`, written after a successful build,
+names this commit, version and Mac architecture set, and every file it lists
+(each top-level artifact, plus each app's executable and `app.asar`) still has
+its recorded SHA-256. Record the reason in the release incident. A failure in
+the press gate, the build or anything after the tag push is not resumable this
+way. A real bug always means a fix and a full release.
+
 ### Private Windows and Linux validation before release
 
 When a platform feature needs affected-machine confirmation, build private

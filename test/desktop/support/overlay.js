@@ -42,4 +42,24 @@ async function runSlashCommand(world, command) {
   await page.press('#addressInput', 'Enter');
 }
 
-module.exports = { overlayPage, runSlashCommand };
+/**
+ * Wait until the island panel has finished growing out of the pill. Since #673
+ * the panel's contents start at opacity 0 and fade in over its first frames,
+ * so a read of row styles right after main reports 'panel' can see a
+ * transparent ancestor. Waits for the renderer's own panel mode, the morph
+ * classes to clear and the tab list to be fully opaque. (Not every child: the
+ * hint line rests at 0.7 by design.)
+ */
+async function waitForPanelSettled() {
+  const page = await overlayPage();
+  await page.waitForFunction(() => {
+    const panel = document.getElementById('islandPanel');
+    const list = document.getElementById('islandList');
+    return document.body.dataset.mode === 'panel' && panel && list
+      && !panel.matches('.morph-start, .morph-run, .retracting')
+      && getComputedStyle(list).opacity === '1';
+  });
+  return page;
+}
+
+module.exports = { overlayPage, runSlashCommand, waitForPanelSettled };

@@ -6,7 +6,7 @@
 const assert = require('node:assert/strict');
 const ctx = require('./context');
 const { waitForValue, openOverlaySurface } = require('./poll');
-const { overlayPage } = require('./overlay');
+const { overlayPage, waitForPanelSettled } = require('./overlay');
 
 async function chromePage() {
   const deadline = Date.now() + 7000;
@@ -41,7 +41,10 @@ async function surfaceFor(world, surface) {
   assert.equal(surface, 'island', `unknown surface ${surface}`);
   await world.call('setTabLayout', 'island');
   await openOverlaySurface(world, 'openPanel', 'panel');
-  const page = await overlayPage();
+  // Steps measure the list next. Until the panel has finished growing out of
+  // the pill (#673) the list reads 0 px tall, so "below the list" would land
+  // inside the grown list and a release there is a real drop.
+  const page = await waitForPanelSettled();
   await page.locator('#islandList [data-drag-tab]').first().waitFor();
   return { page, list: page.locator('#islandList') };
 }

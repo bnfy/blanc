@@ -79,17 +79,17 @@ its qualifications remain subject to the release-backed claim gate above.
 
 ## Current Blanc capability boundaries
 
-These boundaries describe public v1.30.1; its scope, publication evidence and
+These boundaries describe public v1.31.0; its scope, publication evidence and
 owner-confirmed adjacent public-feed updater handoffs are recorded in
-[the release report](release-incidents/2026-10-08-v1.30.1.md). Installed
+[the release report](release-incidents/2026-10-09-v1.31.0.md). Installed
 candidates keep their original source/artifact bindings; hosted verification
 does not establish physical-machine outcomes. The v1.27.0 uBO acceptance, the
-v1.28.0 duplicate macOS build number, the v1.29.0 and v1.30.0 updater
-confirmations, the v1.30.0 drag-to-reorder hands-on coverage, historical
+v1.28.0 duplicate macOS build number, the v1.29.0, v1.30.0 and v1.30.1
+updater confirmations, the v1.30.0 drag-to-reorder hands-on coverage, historical
 wallpaper/Linux waivers and earlier updater confirmations remain in their
 original reports:
 
-- **Optional uBlock Origin:** Public v1.30.1 offers full uBO 1.75.0 on
+- **Optional uBlock Origin:** Public v1.31.0 offers full uBO 1.75.0 on
   Apple Silicon, native Intel Mac, Windows x64 and Linux x64, on official
   Electron 44.5.1. Click the Island shield to choose a blocker and restart
   Blanc to apply it. Blanc Blocker stays the default and protects private
@@ -135,6 +135,11 @@ original reports:
   the user saves their choices; either can be turned off before continuing
   or later in Settings. Saved choices are retained on upgrades. Do not imply
   these features default off or that optional means no network connections.
+- **First-day signals:** Since v1.31.0, with usage measurement on, Blanc
+  sends at most two events in an install's first 24 hours: whether Blanc is
+  the default browser, and that three web pages were opened in regular tabs.
+  No URL, title or page content is sent, and private tabs never count. Do not
+  describe these as tracking browsing, or claim they apply to older builds.
 - **Mouse gestures:** Mouse gestures are disabled by default and configured in
   Settings → General. A physical mouse uses right-button drag; a trackpad uses
   Alt/Option plus a one-finger click-and-drag. Four default directions map to
