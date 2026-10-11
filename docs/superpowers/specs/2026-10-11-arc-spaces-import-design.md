@@ -166,7 +166,7 @@ file rather than Chromium profiles..
 - Before any public claim, import a **real** Arc sidebar on a Mac and on a
   Windows PC with Arc installed, plus the Linux Choose file… path, and
   record the evidence. The format is reverse-engineered; fixtures alone do
-  not prove it.
+  not prove it. Mac plan: `docs/testing/arc-import-mac.md`.
 - Marketing copy follows `docs/marketing-claims.md`: say what moves (tabs,
   pinned tabs, folders as groups, Favorites) and what does not (sign-ins,
   Notes, Easels, archived tabs). Arc's status is quoted only from first-party
