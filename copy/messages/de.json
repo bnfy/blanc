@@ -4916,5 +4916,269 @@
   "error.certificate.continue": {
     "message": "Weiter zu {host} (unsicher)",
     "source": "sha256:cf5007346102d81cc6568e9c1ce48e2e4305757f3a445a1fac6fa64a003718eb"
+  },
+  "favorites.bringTabs": {
+    "message": "Offene Tabs mitbringen…",
+    "source": "sha256:c56551fb47b0df3255fb70338bce53269a351bf7b0e839876611a3734cd99711"
+  },
+  "favorites.import.look": {
+    "message": "Andere Browser suchen",
+    "source": "sha256:db76db65958b0e573407e14543fc6f1bf62640899dd51710ab6e4bd7c4f27c82"
+  },
+  "favorites.import.source": {
+    "message": "Browserprofil",
+    "source": "sha256:466b5f5e7d56af11623c2061632d0abfa67bf7e0b5345c16a43501138335d287"
+  },
+  "favorites.import.fromBrowser": {
+    "message": "Aus Browser importieren",
+    "source": "sha256:d9b55b484e2d6c8241be227abb8b82ed867f047b666c951d6ef38300cd000920"
+  },
+  "favorites.import.html": {
+    "message": "HTML importieren…",
+    "source": "sha256:c93c4e942699316b68c441d29be349e2064969e9527ca066b451977b3b9efb13"
+  },
+  "favorites.import.choosing": {
+    "message": "Wähle eine Lesezeichendatei…",
+    "source": "sha256:a55582dfa754b373e10db7d99f36274c2f569bc5d64d20bf12976fc81374c71d"
+  },
+  "favorites.import.fileEmpty": {
+    "message": "In dieser Datei wurden keine Lesezeichen gefunden.",
+    "source": "sha256:6f117c7f75cf2538d4ce7e6854c53d0ca60db17caece63f8548288508409b677"
+  },
+  "favorites.import.fileUnreadable": {
+    "message": "Diese Datei konnte nicht gelesen werden.",
+    "source": "sha256:52de1bd29117779579193e7934bd9827b4d78f34e4444ddb708b2ece8e6a49c7"
+  },
+  "favorites.import.fileTooLarge": {
+    "message": "Diese Datei ist zu groß für den Import.",
+    "source": "sha256:0a7877f080e9e4d6f6aae6b7e28d7b85b4818e7d5586a92fa5d4fb67e0dbaab9"
+  },
+  "favorites.import.permissionNeeded": {
+    "message": "{source} – Berechtigung erforderlich",
+    "source": "sha256:bd8ff9f58b85e951260ddcfa80cdc7482e6d91665c73f9c849b22fc7fcd38f58"
+  },
+  "favorites.import.looking": {
+    "message": "Andere Browser werden gesucht…",
+    "source": "sha256:1c942587904891fe6fa45f384fb1c4ae9f5f0b18a57e510dbb73798936a168d3"
+  },
+  "favorites.import.noneFound": {
+    "message": "Keine anderen Browserprofile gefunden.",
+    "source": "sha256:14502d084f224a76d6579ae764240feac9bf7a62b60a1ceedc216ed93cb1706c"
+  },
+  "favorites.import.checkFailed": {
+    "message": "Andere Browser konnten nicht gesucht werden.",
+    "source": "sha256:bb993d93a07f3fe1a53611b5ebb23b6fed61201a94b073ff3d0943df2f09bfae"
+  },
+  "favorites.import.importing": {
+    "message": "Favoriten werden importiert…",
+    "source": "sha256:6ab3568006109b2320d7a72ed5fea2d6afffff737bb5e6b2d16feed7ba884ef6"
+  },
+  "favorites.import.sourceGone": {
+    "message": "Dieses Browserprofil ist nicht mehr verfügbar.",
+    "source": "sha256:156421e43e48e0297ee4058e19fb8086b39ebf9bf9b1537a7de62ac9d8c4d13c"
+  },
+  "favorites.import.sourceEmpty": {
+    "message": "In diesem Browserprofil wurden keine Favoriten gefunden.",
+    "source": "sha256:cd7519ff4974ba8ec279d30d43d724d2381638cbb5abe958297d01f2816badf1"
+  },
+  "favorites.import.sourceTooLarge": {
+    "message": "Dieses Browserprofil ist zu groß, um es sicher zu importieren.",
+    "source": "sha256:3b5dc7d2b82c0a67b52bd74efd73db39a34dc3576b1d632be31e62bed3053b09"
+  },
+  "favorites.import.sourceUnreadable": {
+    "message": "Dieses Browserprofil konnte nicht gelesen werden.",
+    "source": "sha256:670c0d0bb026e388e216cf815a2b59809155606cd740cc40deb1845d3b7199e6"
+  },
+  "favorites.import.imported": {
+    "message": "{count, plural, one {# Favorit importiert.} other {# Favoriten importiert.}}",
+    "source": "sha256:31f9a199f0b66ae524c53f14365708dcbd3c67a9b87066c9c7a1f7898bb25526"
+  },
+  "favorites.import.skipped": {
+    "message": "{count, plural, one {# bereits gespeicherter Favorit übersprungen.} other {# bereits gespeicherte Favoriten übersprungen.}}",
+    "source": "sha256:b0687b46dbc51a7fc5d6cd797109c1d69572b402bc153f104d23383d79ad5d42"
+  },
+  "favorites.import.allSaved": {
+    "message": "{count, plural, one {Dieser Favorit war bereits gespeichert.} other {Alle # Favoriten waren bereits gespeichert.}}",
+    "source": "sha256:8b6c880284a40001a5d6c372521715124ac2ef12827463bb86ca15e93dd28c32"
+  },
+  "favorites.import.fromSource": {
+    "message": "{source}: {result}",
+    "source": "sha256:592eb05a3075eb27d6404f3ceee22bf2fcc6a0241339eb8478a0f30f7294072b"
+  },
+  "favorites.empty": {
+    "message": "Noch keine Favoriten. Drücke auf einer Seite Strg/Cmd+D, um einen hinzuzufügen, oder nutze den Import.",
+    "source": "sha256:0ea5746dae687ab1b640603b6a1f591e573957c01c8edcc3b9aef4a5da3a9137"
+  },
+  "favorites.folder.rename": {
+    "message": "umbenennen",
+    "source": "sha256:4bacb87068321874b2362677ad8d8f5a9c2b4c55b7e93535fa618b0991fac861"
+  },
+  "favorites.folder.renameTitle": {
+    "message": "{folder} umbenennen",
+    "source": "sha256:c8cafef80adc5b45cf34696535458a90d22a60a753dc8b5ad0c8359fed374473"
+  },
+  "favorites.folder.remove": {
+    "message": "ordner entfernen",
+    "source": "sha256:6230fe04557a597af97f01f6d719d584773d577a05d42339880f2835d7ffc8a9"
+  },
+  "favorites.folder.removeTitle": {
+    "message": "{folder} entfernen (die Favoriten darin werden ungruppiert)",
+    "source": "sha256:8f5d992867e1140ece10bb3f412b265c11a64f5ec5c173029a2d2d303ec35103"
+  },
+  "favorites.ungrouped": {
+    "message": "Ohne Ordner",
+    "source": "sha256:dd160eba9aeba279c932b642913665daafb41e9f68d963ff311ef8dae4ce7a6a"
+  },
+  "favorites.row.move": {
+    "message": "verschieben ▸",
+    "source": "sha256:939394e54c9339116fb5f2a6345e44f387d651de5f71722498edf47902a1daf1"
+  },
+  "favorites.row.moveFromFolder": {
+    "message": "In {folder} – in einen anderen Ordner verschieben",
+    "source": "sha256:0e177ec2281ed7b44979cf1ab6e55784175d12e8b00bfd8aa6ee3f33643bdc94"
+  },
+  "favorites.row.moveToFolder": {
+    "message": "In einen Ordner verschieben",
+    "source": "sha256:42d2f770438dc24948f2ba42f8b57b819bb1fab0a2c7fe05a03b9a5948d3c087"
+  },
+  "favorites.row.remove": {
+    "message": "entfernen",
+    "source": "sha256:a0f45d951528f5ddbd68c605c99c1619cce2d2b2ea854726091a128cafafa2b1"
+  },
+  "favorites.row.removeLabel": {
+    "message": "{title} aus den Favoriten entfernen",
+    "source": "sha256:69ac136739dbc47415bc5925a9c1f827f40485cb41149d56bf7ef157e23066bf"
+  },
+  "favorites.picker.label": {
+    "message": "{title} in einen Ordner verschieben",
+    "source": "sha256:4567623c67819297697fdbd71ed5219148412c3217b5185aa633a765be5cd62c"
+  },
+  "favorites.picker.none": {
+    "message": "→ keiner",
+    "source": "sha256:d6b35714a30b9caca479c162636831ce0c643677a66f9652047a8fc39182138d"
+  },
+  "favorites.picker.newFolder": {
+    "message": "neuer Ordner…",
+    "source": "sha256:18c88da2fcde58ea8a1cb4d56eab7a0fdef6bcaeeb059917735662bdfe55ac97"
+  },
+  "history.search": {
+    "message": "Verlauf durchsuchen",
+    "source": "sha256:ca1ba9f5737dec2b9c71b0040be0425324aeaa516c85a327c7e6973fa5a7c50a"
+  },
+  "history.clearAll": {
+    "message": "Alles löschen",
+    "source": "sha256:e934de00939117362074f3b3dc8bd713d133841d7fd7575b39b0364f1cc5363e"
+  },
+  "history.remove": {
+    "message": "Entfernen",
+    "source": "sha256:def5e2f4b4aff692bd16b82d62ca744a700cb3acda2026ebaebf9f6b0ae2dd8a"
+  },
+  "history.removeLabel": {
+    "message": "{title} aus dem Verlauf entfernen",
+    "source": "sha256:51f2adc9ce8b064fad964b9ddf43d320b13631f672d8f5e6c491b65b0a14feeb"
+  },
+  "history.noMatches": {
+    "message": "Nichts passt zu dieser Suche.",
+    "source": "sha256:cb34941ae009436a140d7320f004664234c00439aada52c29cdf846c53e59b51"
+  },
+  "history.empty": {
+    "message": "Noch kein Verlauf.",
+    "source": "sha256:883512e2bcfd0228ba7af9fa941ac79ac6c6cc44c7d867dc6d1795d2703de58e"
+  },
+  "history.day.today": {
+    "message": "Heute",
+    "source": "sha256:6c2d1efd94075e8108decefebe66afe7c011e132839963feb8b374c2bc2c9ca2"
+  },
+  "history.day.yesterday": {
+    "message": "Gestern",
+    "source": "sha256:4c37eb8ebb1064b6385538987b970e5cd23f2f45706460dedf4d4ccd25a3fa74"
+  },
+  "downloads.clearFinished": {
+    "message": "Fertige entfernen",
+    "source": "sha256:2cf79890ab6b5d7dfad8b2773b823813bb68abdec4d68514a19714f88d3992ee"
+  },
+  "downloads.empty": {
+    "message": "Noch nichts heruntergeladen.",
+    "source": "sha256:c58766a55aa32b2c024027fe2d3a2b23910386ac211b58bd5b8a10d0df3f3253"
+  },
+  "downloads.state.progressing": {
+    "message": "Wird heruntergeladen…",
+    "source": "sha256:4ad7b7552b0740d9c10410a0a01b53c0717518ab083424ff4bbd2a183b775761"
+  },
+  "downloads.state.interrupted": {
+    "message": "Unterbrochen",
+    "source": "sha256:129b04662934fcf8c0ccf3c0e1144661862be11c6194ea00d31d512ea4ba715f"
+  },
+  "downloads.state.completed": {
+    "message": "Abgeschlossen",
+    "source": "sha256:2fddc20511bc563693d5103943bf09fbcbe1e40ea2123d0439a8e0697b7eaa29"
+  },
+  "downloads.state.cancelled": {
+    "message": "Abgebrochen",
+    "source": "sha256:7c8c12145fb05b8734ba4a4a313070a3dad677a6adffc01e553555f70d86829f"
+  },
+  "downloads.meta": {
+    "message": "{state} · {size}",
+    "source": "sha256:cd29f019061d6f8573b5c0c2dc2219a379cd60f72e93523b38383e6b6937a5ce"
+  },
+  "downloads.metaPrivate": {
+    "message": "Privat · {state} · {size}",
+    "source": "sha256:f8224d19ff701d022ce8002d0e99c107e9d5ba8e7a593b66e9d4ba12c07e697f"
+  },
+  "downloads.progressLabel": {
+    "message": "{file} wird heruntergeladen",
+    "source": "sha256:2545a76fbb7c609adb88ac63d3b7997dcd48cc139457d4124b7efea00b5120de"
+  },
+  "downloads.cancel": {
+    "message": "Abbrechen",
+    "source": "sha256:1ee77d8b54893724a96a0213dcaecd097987fb3119db255a5b17277b0774489b"
+  },
+  "downloads.resume": {
+    "message": "Fortsetzen",
+    "source": "sha256:7e13f182851748bd08e8875819f27c92c941c49688197b0e91c47854b4de3d8a"
+  },
+  "downloads.retry": {
+    "message": "Wiederholen",
+    "source": "sha256:0b247904fcdf947caec3d524232d1c5e02a336ad23af847f67fa5bed109a86fa"
+  },
+  "downloads.open": {
+    "message": "Öffnen",
+    "source": "sha256:3c8e89aba99568be73acb87e304321b6663c1be87c5ce110eebaef605c856e0a"
+  },
+  "downloads.show": {
+    "message": "Im Ordner zeigen",
+    "source": "sha256:2e6d61df51f9e2ee4b3961da6886f090efcb6fa240585de931fe36d07d125eb9"
+  },
+  "downloads.cancelLabel": {
+    "message": "Abbrechen: {file}",
+    "source": "sha256:084e6d224578a1c5b480186aa8633c83e02feb8552fe9526b39808e152f8806d"
+  },
+  "downloads.resumeLabel": {
+    "message": "Fortsetzen: {file}",
+    "source": "sha256:549da4fa0d36a21afa04adae19e7f5579c2faf2be1bee3229f8816be18198466"
+  },
+  "downloads.retryLabel": {
+    "message": "Wiederholen: {file}",
+    "source": "sha256:26bfd3a8d673d950d70d876ec28b9dc6bf50f2ed49926f280b03baed7df02808"
+  },
+  "downloads.openLabel": {
+    "message": "Öffnen: {file}",
+    "source": "sha256:04b7c5c8397129c7c65d36469cb2dc070195228752572494ea95c1976a389ac6"
+  },
+  "downloads.showLabel": {
+    "message": "Im Ordner zeigen: {file}",
+    "source": "sha256:fd9126cea81c047f99e40fbaf880f6715c064180cf1f8d332e50457a7f0d63ea"
+  },
+  "shortcuts.title": {
+    "message": "Tastenkürzel",
+    "source": "sha256:a7549dbc03a607f721c945055db2c46a68481555db9740ccfa913f6214893d8c"
+  },
+  "shortcuts.slashCommands": {
+    "message": "Slash-Befehle",
+    "source": "sha256:c0d8774ec8ed706bdb744ee37bfd9b4a8db9f2ef28bdce2bc1a019a2494a9601"
+  },
+  "sheet.close": {
+    "message": "Schließen",
+    "source": "sha256:edbb96b55189c4c04f4f19c36cca89d6e6f5d9cd48ce389a3af1a5b8769917b4"
   }
 }

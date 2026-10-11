@@ -86,7 +86,9 @@
       "newtab.layout.tally",
       "newtab.mahjong",
       "newtab.version",
-      "newtab.customize.layout"
+      "newtab.customize.layout",
+      "favorites.import.fromSource",
+      "downloads.meta"
     ]
   }
 }

@@ -23136,6 +23136,1266 @@
           }
         }
       }
+    },
+    "favorites.bringTabs": {
+      "comment": "Favorites page: button that opens the open-tab import.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bring open tabs…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offene Tabs mitbringen…"
+          }
+        }
+      }
+    },
+    "favorites.import.look": {
+      "comment": "Favorites page → import: button that searches this device for other browsers’ profiles.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Look for other browsers"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Andere Browser suchen"
+          }
+        }
+      }
+    },
+    "favorites.import.source": {
+      "comment": "Favorites page → import: accessible name of the browser-profile menu.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browser profile"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browserprofil"
+          }
+        }
+      }
+    },
+    "favorites.import.fromBrowser": {
+      "comment": "Favorites page → import: button that imports from the chosen profile.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import from browser"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aus Browser importieren"
+          }
+        }
+      }
+    },
+    "favorites.import.html": {
+      "comment": "Favorites page → import: button that imports an exported bookmarks file.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import HTML…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HTML importieren…"
+          }
+        }
+      }
+    },
+    "favorites.import.choosing": {
+      "comment": "Favorites page → import: status while the file dialog is open.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a bookmarks file…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle eine Lesezeichendatei…"
+          }
+        }
+      }
+    },
+    "favorites.import.fileEmpty": {
+      "comment": "Favorites page → import: result.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No bookmarks found in that file."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In dieser Datei wurden keine Lesezeichen gefunden."
+          }
+        }
+      }
+    },
+    "favorites.import.fileUnreadable": {
+      "comment": "Favorites page → import: error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t read that file."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Datei konnte nicht gelesen werden."
+          }
+        }
+      }
+    },
+    "favorites.import.fileTooLarge": {
+      "comment": "Favorites page → import: error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That file is too large to import."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Datei ist zu groß für den Import."
+          }
+        }
+      }
+    },
+    "favorites.import.permissionNeeded": {
+      "comment": "Favorites page → import: a browser profile Blanc may not read yet; {source} is its name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ — permission needed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ – Berechtigung erforderlich"
+          }
+        }
+      }
+    },
+    "favorites.import.looking": {
+      "comment": "Favorites page → import: status.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Looking for other browsers…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Andere Browser werden gesucht…"
+          }
+        }
+      }
+    },
+    "favorites.import.noneFound": {
+      "comment": "Favorites page → import: result.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No other browser profiles found."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine anderen Browserprofile gefunden."
+          }
+        }
+      }
+    },
+    "favorites.import.checkFailed": {
+      "comment": "Favorites page → import: error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t check for other browsers."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Andere Browser konnten nicht gesucht werden."
+          }
+        }
+      }
+    },
+    "favorites.import.importing": {
+      "comment": "Favorites page → import: status.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importing favorites…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favoriten werden importiert…"
+          }
+        }
+      }
+    },
+    "favorites.import.sourceGone": {
+      "comment": "Favorites page → import: error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That browser profile is no longer available."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Browserprofil ist nicht mehr verfügbar."
+          }
+        }
+      }
+    },
+    "favorites.import.sourceEmpty": {
+      "comment": "Favorites page → import: result.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No favorites found in that browser profile."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In diesem Browserprofil wurden keine Favoriten gefunden."
+          }
+        }
+      }
+    },
+    "favorites.import.sourceTooLarge": {
+      "comment": "Favorites page → import: error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That browser profile is too large to import safely."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Browserprofil ist zu groß, um es sicher zu importieren."
+          }
+        }
+      }
+    },
+    "favorites.import.sourceUnreadable": {
+      "comment": "Favorites page → import: error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t read that browser profile."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Browserprofil konnte nicht gelesen werden."
+          }
+        }
+      }
+    },
+    "favorites.import.imported": {
+      "comment": "Favorites page → import: result.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Imported %1$lld favorite."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Imported %1$lld favorites."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Favorit importiert."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Favoriten importiert."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "favorites.import.skipped": {
+      "comment": "Favorites page → import: second sentence of the result; # favorites were already saved.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Skipped %1$lld already saved."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Skipped %1$lld already saved."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld bereits gespeicherter Favorit übersprungen."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld bereits gespeicherte Favoriten übersprungen."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "favorites.import.allSaved": {
+      "comment": "Favorites page → import: result when every one was already saved.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "That favorite was already saved."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "All %1$lld favorites were already saved."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Dieser Favorit war bereits gespeichert."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Alle %1$lld Favoriten waren bereits gespeichert."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "favorites.import.fromSource": {
+      "comment": "Favorites page → import: result of a browser import; {source} is the browser profile’s name, {result} the sentences above.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: %2$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: %2$@"
+          }
+        }
+      }
+    },
+    "favorites.empty": {
+      "comment": "Favorites page: shown when there are none. Ctrl/Cmd+D is the keyboard shortcut.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No favorites yet. Press Ctrl/Cmd+D on a page to add one, or use Import."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch keine Favoriten. Drücke auf einer Seite Strg/Cmd+D, um einen hinzuzufügen, oder nutze den Import."
+          }
+        }
+      }
+    },
+    "favorites.folder.rename": {
+      "comment": "Favorites page: button on a folder heading, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "rename"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "umbenennen"
+          }
+        }
+      }
+    },
+    "favorites.folder.renameTitle": {
+      "comment": "Favorites page: tooltip of the rename button; {folder} is the folder’s name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rename %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ umbenennen"
+          }
+        }
+      }
+    },
+    "favorites.folder.remove": {
+      "comment": "Favorites page: button on a folder heading, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "remove folder"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ordner entfernen"
+          }
+        }
+      }
+    },
+    "favorites.folder.removeTitle": {
+      "comment": "Favorites page: tooltip of the remove-folder button; {folder} is the folder’s name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove %1$@ (its favorites become ungrouped)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ entfernen (die Favoriten darin werden ungruppiert)"
+          }
+        }
+      }
+    },
+    "favorites.ungrouped": {
+      "comment": "Favorites page: heading above favorites in no folder.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ungrouped"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ohne Ordner"
+          }
+        }
+      }
+    },
+    "favorites.row.move": {
+      "comment": "Favorites page: button on a favorite that opens the folder picker, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "move ▸"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "verschieben ▸"
+          }
+        }
+      }
+    },
+    "favorites.row.moveFromFolder": {
+      "comment": "Favorites page: tooltip of the move button; {folder} is the current folder.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In %1$@ — move to another folder"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In %1$@ – in einen anderen Ordner verschieben"
+          }
+        }
+      }
+    },
+    "favorites.row.moveToFolder": {
+      "comment": "Favorites page: tooltip of the move button on a favorite in no folder.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move to a folder"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In einen Ordner verschieben"
+          }
+        }
+      }
+    },
+    "favorites.row.remove": {
+      "comment": "Favorites page: button on a favorite, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "remove"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "entfernen"
+          }
+        }
+      }
+    },
+    "favorites.row.removeLabel": {
+      "comment": "Favorites page: accessible name of the remove button; {title} is the page’s title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove %1$@ from Favorites"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ aus den Favoriten entfernen"
+          }
+        }
+      }
+    },
+    "favorites.picker.label": {
+      "comment": "Favorites page → folder picker: accessible name; {title} is the page’s title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move %1$@ to a folder"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ in einen Ordner verschieben"
+          }
+        }
+      }
+    },
+    "favorites.picker.none": {
+      "comment": "Favorites page → folder picker: choice that takes the favorite out of its folder, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "→ none"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "→ keiner"
+          }
+        }
+      }
+    },
+    "favorites.picker.newFolder": {
+      "comment": "Favorites page → folder picker: placeholder of the new-folder field, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "new folder…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neuer Ordner…"
+          }
+        }
+      }
+    },
+    "history.search": {
+      "comment": "History page: placeholder and accessible name of the search field.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search history"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verlauf durchsuchen"
+          }
+        }
+      }
+    },
+    "history.clearAll": {
+      "comment": "History page: button that clears all history.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear all"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alles löschen"
+          }
+        }
+      }
+    },
+    "history.remove": {
+      "comment": "History page: button on an entry.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entfernen"
+          }
+        }
+      }
+    },
+    "history.removeLabel": {
+      "comment": "History page: accessible name of the remove button; {title} is the page’s title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove %1$@ from history"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ aus dem Verlauf entfernen"
+          }
+        }
+      }
+    },
+    "history.noMatches": {
+      "comment": "History page: shown when a search finds nothing.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing matches that search."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nichts passt zu dieser Suche."
+          }
+        }
+      }
+    },
+    "history.empty": {
+      "comment": "History page: shown when there is no history.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No history yet."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch kein Verlauf."
+          }
+        }
+      }
+    },
+    "history.day.today": {
+      "comment": "History page: heading above today’s entries.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heute"
+          }
+        }
+      }
+    },
+    "history.day.yesterday": {
+      "comment": "History page: heading above yesterday’s entries.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yesterday"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gestern"
+          }
+        }
+      }
+    },
+    "downloads.clearFinished": {
+      "comment": "Downloads page: button that removes finished downloads from the list.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear finished"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fertige entfernen"
+          }
+        }
+      }
+    },
+    "downloads.empty": {
+      "comment": "Downloads page: shown when the list is empty.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing downloaded yet."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch nichts heruntergeladen."
+          }
+        }
+      }
+    },
+    "downloads.state.progressing": {
+      "comment": "Downloads page: state of a download.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downloading…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird heruntergeladen…"
+          }
+        }
+      }
+    },
+    "downloads.state.interrupted": {
+      "comment": "Downloads page: state of a download.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interrupted"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unterbrochen"
+          }
+        }
+      }
+    },
+    "downloads.state.completed": {
+      "comment": "Downloads page: state of a download.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abgeschlossen"
+          }
+        }
+      }
+    },
+    "downloads.state.cancelled": {
+      "comment": "Downloads page: state of a download.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelled"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abgebrochen"
+          }
+        }
+      }
+    },
+    "downloads.meta": {
+      "comment": "Downloads page: line beside a download; {state} is its state, {size} e.g. “1.5 MB”.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "downloads.metaPrivate": {
+      "comment": "Downloads page: line beside a download from a private tab; {state} is its state, {size} e.g. “1.5 MB”.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Private · %1$@ · %2$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privat · %1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "downloads.progressLabel": {
+      "comment": "Downloads page: accessible name of a progress bar; {file} is the file name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downloading %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ wird heruntergeladen"
+          }
+        }
+      }
+    },
+    "downloads.cancel": {
+      "comment": "Downloads page: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abbrechen"
+          }
+        }
+      }
+    },
+    "downloads.resume": {
+      "comment": "Downloads page: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fortsetzen"
+          }
+        }
+      }
+    },
+    "downloads.retry": {
+      "comment": "Downloads page: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiederholen"
+          }
+        }
+      }
+    },
+    "downloads.open": {
+      "comment": "Downloads page: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffnen"
+          }
+        }
+      }
+    },
+    "downloads.show": {
+      "comment": "Downloads page: button that reveals the file in Finder or Explorer.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show in folder"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Im Ordner zeigen"
+          }
+        }
+      }
+    },
+    "downloads.cancelLabel": {
+      "comment": "Downloads page: accessible name of Cancel; keep the button’s own text first; {file} is the file name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abbrechen: %1$@"
+          }
+        }
+      }
+    },
+    "downloads.resumeLabel": {
+      "comment": "Downloads page: accessible name of Resume; keep the button’s own text first; {file} is the file name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fortsetzen: %1$@"
+          }
+        }
+      }
+    },
+    "downloads.retryLabel": {
+      "comment": "Downloads page: accessible name of Retry; keep the button’s own text first; {file} is the file name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiederholen: %1$@"
+          }
+        }
+      }
+    },
+    "downloads.openLabel": {
+      "comment": "Downloads page: accessible name of Open; keep the button’s own text first; {file} is the file name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffnen: %1$@"
+          }
+        }
+      }
+    },
+    "downloads.showLabel": {
+      "comment": "Downloads page: accessible name of Show in folder; keep the button’s own text first; {file} is the file name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show in folder %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Im Ordner zeigen: %1$@"
+          }
+        }
+      }
+    },
+    "shortcuts.title": {
+      "comment": "Keyboard shortcuts page: title and heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keyboard Shortcuts"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tastenkürzel"
+          }
+        }
+      }
+    },
+    "shortcuts.slashCommands": {
+      "comment": "Keyboard shortcuts page: heading above the slash commands typed in the Island.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slash Commands"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slash-Befehle"
+          }
+        }
+      }
+    },
+    "sheet.close": {
+      "comment": "Settings, Favorites, History, Downloads and Shortcuts pages: accessible name of the ✕ that closes the page.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schließen"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

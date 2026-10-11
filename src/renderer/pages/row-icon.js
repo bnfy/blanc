@@ -32,6 +32,7 @@
     } else {
       el.classList.add('fallback');
       el.textContent = fallbackLetter(url);
+      el.setAttribute('data-i18n-ignore', ''); // the site's initial
     }
     return el;
   }

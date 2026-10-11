@@ -5,28 +5,28 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; font-src 'self'; img-src 'self' data:;" />
   <script src="strings.js"></script>
   <script src="i18n.js"></script>
-  <title>Favorites</title>
+  <title data-i18n="pagesNav.bookmarks">Favorites</title>
   <link rel="icon" type="image/png" href="icon-sunrise.png" />
   <link rel="stylesheet" href="pages.css" />
 </head>
 <body class="sheet">
   <div class="page">
     <nav class="page-nav">
-      <a href="blanc://settings/">Settings</a>
-      <a href="blanc://bookmarks/" class="current">Favorites</a>
-      <a href="blanc://history/">History</a>
-      <a href="blanc://downloads/">Downloads</a>
+      <a href="blanc://settings/" data-i18n="pagesNav.settings">Settings</a>
+      <a href="blanc://bookmarks/" class="current" data-i18n="pagesNav.bookmarks">Favorites</a>
+      <a href="blanc://history/" data-i18n="pagesNav.history">History</a>
+      <a href="blanc://downloads/" data-i18n="pagesNav.downloads">Downloads</a>
     </nav>
     <div class="page-head">
-      <h1>Favorites</h1>
+      <h1 data-i18n="pagesNav.bookmarks">Favorites</h1>
       <div class="import-actions">
-        <button id="bringTabsBtn" type="button">Bring open tabs…</button>
-        <button id="browserFindBtn" type="button">Look for other browsers</button>
+        <button id="bringTabsBtn" type="button" data-i18n="favorites.bringTabs">Bring open tabs…</button>
+        <button id="browserFindBtn" type="button" data-i18n="favorites.import.look">Look for other browsers</button>
         <span id="browserSourceWrap" hidden>
-          <select id="browserSource" aria-label="Browser profile"></select>
+          <select id="browserSource" aria-label="Browser profile" data-i18n-aria-label="favorites.import.source"></select>
         </span>
-        <button id="browserImportBtn" type="button" hidden>Import from browser</button>
-        <button id="importBtn" type="button">Import HTML…</button>
+        <button id="browserImportBtn" type="button" hidden data-i18n="favorites.import.fromBrowser">Import from browser</button>
+        <button id="importBtn" type="button" data-i18n="favorites.import.html">Import HTML…</button>
       </div>
     </div>
     <p id="browserImportGuidance" class="section-hint import-guidance" hidden></p>
