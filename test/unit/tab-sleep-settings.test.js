@@ -1,4 +1,5 @@
 const assert = require('node:assert/strict');
+const { withoutInterfaceKeys } = require('../support/without-interface-keys');
 const test = require('node:test');
 const fs = require('fs');
 const os = require('os');
@@ -90,8 +91,8 @@ test('the delay enum reaches the schema and both generated mobile artifacts', ()
 });
 
 test('the Settings row exposes exactly the delay enum and removes itself when unsupported', () => {
-  const html = fs.readFileSync(
-    path.join(__dirname, '../../src/renderer/pages/settings.html'), 'utf8');
+  const html = withoutInterfaceKeys(fs.readFileSync(
+    path.join(__dirname, '../../src/renderer/pages/settings.html'), 'utf8'));
   const page = fs.readFileSync(
     path.join(__dirname, '../../src/renderer/pages/settings.js'), 'utf8');
 

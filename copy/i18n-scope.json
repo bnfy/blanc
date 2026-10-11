@@ -62,8 +62,17 @@
       ]
     },
     "src/renderer/pages/settings.html": {
-      "state": "pending",
-      "allow": []
+      "state": "guarded",
+      "allow": [
+        "Blanc",
+        "Electron",
+        "Chromium",
+        "Cloudflare",
+        "Mullvad",
+        "uBlock Origin",
+        "Blanc Blocker",
+        "1Password"
+      ]
     },
     "src/renderer/pages/settings.js": {
       "state": "pending",
@@ -78,7 +87,7 @@
       "allow": []
     },
     "src/renderer/pages/settings-nav-model.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/renderer/pages/newtab.html": {
@@ -274,7 +283,7 @@
       "allow": []
     },
     "src/renderer/pages/settings-language-model.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     }
   }

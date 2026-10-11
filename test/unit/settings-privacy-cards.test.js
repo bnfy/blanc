@@ -3,11 +3,12 @@
 // Privacy & Security reads as five titled cards instead of one card with five
 // sub-sections (spec 2026-09-26 §5.5). Every id settings.js reads survives.
 const assert = require('node:assert/strict');
+const { withoutInterfaceKeys } = require('../support/without-interface-keys');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 
-const html = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/settings.html'), 'utf8');
+const html = withoutInterfaceKeys(fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/settings.html'), 'utf8'));
 const privacy = html.match(/<section class="settings-group" id="group-privacy">([\s\S]*?)<\/section>/)[1];
 
 test('Privacy & Security is five titled cards, in order', () => {

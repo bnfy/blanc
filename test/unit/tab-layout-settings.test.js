@@ -1,4 +1,5 @@
 const assert = require('node:assert/strict');
+const { withoutInterfaceKeys } = require('../support/without-interface-keys');
 const test = require('node:test');
 const fs = require('fs');
 const os = require('os');
@@ -99,10 +100,10 @@ test('tab layout and rail width default, validate, persist, and stay out of Prof
 });
 
 test('settings page presents the two tab layouts as an Appearance choice', () => {
-  const html = fs.readFileSync(
+  const html = withoutInterfaceKeys(fs.readFileSync(
     path.join(__dirname, '../../src/renderer/pages/settings.html'),
     'utf8'
-  );
+  ));
   const renderer = fs.readFileSync(
     path.join(__dirname, '../../src/renderer/pages/settings.js'),
     'utf8'
