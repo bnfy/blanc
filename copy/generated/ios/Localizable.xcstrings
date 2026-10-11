@@ -12162,6 +12162,1140 @@
           }
         }
       }
+    },
+    "arcImport.entry.title": {
+      "comment": "Heading of the Arc row on Bring Your Tabs. Arc is a browser name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arc"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arc"
+          }
+        }
+      }
+    },
+    "arcImport.entry.found": {
+      "comment": "Arc row hint when Arc's sidebar file was found. Spaces is Arc's own feature name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bring your Spaces, pinned tabs and folders from Arc."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Übernimm deine Spaces, angehefteten Tabs und Ordner aus Arc."
+          }
+        }
+      }
+    },
+    "arcImport.entry.missing": {
+      "comment": "Arc row hint on macOS or Windows when Arc's file was not found. StorableSidebar.json is a file name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arc isn’t installed here. If you copied its StorableSidebar.json file from another computer, choose it."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arc ist hier nicht installiert. Wenn du die Datei StorableSidebar.json von einem anderen Computer kopiert hast, wähle sie aus."
+          }
+        }
+      }
+    },
+    "arcImport.entry.unsupported": {
+      "comment": "Arc row hint on Linux. StorableSidebar.json is a file name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arc never came to Linux. Copy StorableSidebar.json from your Mac or PC, then choose it here."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arc gab es nie für Linux. Kopiere StorableSidebar.json von deinem Mac oder PC und wähle die Datei dann hier aus."
+          }
+        }
+      }
+    },
+    "arcImport.entry.permission": {
+      "comment": "Arc row hint when the operating system denied access to Arc's folder.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc can’t open Arc’s folder. Choose its StorableSidebar.json file instead."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc kann den Ordner von Arc nicht öffnen. Wähle stattdessen die Datei StorableSidebar.json aus."
+          }
+        }
+      }
+    },
+    "arcImport.entry.read": {
+      "comment": "Button that reads Arc's sidebar file from its usual place.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bring Spaces from Arc"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spaces aus Arc übernehmen"
+          }
+        }
+      }
+    },
+    "arcImport.entry.chooseFile": {
+      "comment": "Button that opens a file picker for Arc's StorableSidebar.json.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose file…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datei auswählen…"
+          }
+        }
+      }
+    },
+    "arcImport.chooseFile.title": {
+      "comment": "Title of the native file picker.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose Arc’s StorableSidebar.json"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "StorableSidebar.json von Arc auswählen"
+          }
+        }
+      }
+    },
+    "arcImport.chooseFile.filter": {
+      "comment": "File type name in the native file picker.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arc sidebar file"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arc-Seitenleistendatei"
+          }
+        }
+      }
+    },
+    "arcImport.untitledSpace": {
+      "comment": "Name for an Arc Space that has no name; {n} counts untitled Spaces in Arc's order.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Space %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Space %1$@"
+          }
+        }
+      }
+    },
+    "arcImport.reading": {
+      "comment": "Status while Blanc reads Arc's file.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading Arc’s Spaces…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spaces aus Arc werden gelesen…"
+          }
+        }
+      }
+    },
+    "arcImport.progress": {
+      "comment": "Step indicator while the Arc import is shown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arc Spaces"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spaces aus Arc"
+          }
+        }
+      }
+    },
+    "arcImport.title": {
+      "comment": "Heading of the Arc Spaces preview.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose Spaces to bring"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spaces zum Übernehmen auswählen"
+          }
+        }
+      }
+    },
+    "arcImport.mode.spaces": {
+      "comment": "Shown to Blanc Patrons. Blanc Spaces is the Patron feature; a space is one saved set.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each Arc Space becomes a space in Blanc Spaces. Folders become groups, and tabs load only when you open them."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeder Space aus Arc wird zu einem Space in Blanc Spaces. Ordner werden zu Gruppen, und Tabs laden erst, wenn du sie öffnest."
+          }
+        }
+      }
+    },
+    "arcImport.mode.windows": {
+      "comment": "Shown when Blanc Patron is not active.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each Arc Space opens in its own window. Folders become groups, and tabs load only when you open them. With Blanc Patron, you can save them as spaces."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeder Space aus Arc öffnet sich in einem eigenen Fenster. Ordner werden zu Gruppen, und Tabs laden erst, wenn du sie öffnest. Mit Blanc Patron kannst du sie als Spaces speichern."
+          }
+        }
+      }
+    },
+    "arcImport.room": {
+      "comment": "How many more Blanc spaces fit in this profile.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "You can add %1$lld more space."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "You can add %1$lld more spaces."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Du kannst noch %1$lld Space hinzufügen."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Du kannst noch %1$lld Spaces hinzufügen."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "arcImport.space.separateProfile": {
+      "comment": "Shown under a Space that used a separate Arc profile.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Used its own Arc profile, so you may need to sign in again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hat ein eigenes Arc-Profil verwendet, daher musst du dich eventuell erneut anmelden."
+          }
+        }
+      }
+    },
+    "arcImport.favorites": {
+      "comment": "Checkbox for Arc's top-row Favorites.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Add Arc’s %1$lld Favorite to a Favorites folder named Arc"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Add Arc’s %1$lld Favorites to a Favorites folder named Arc"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Favorit aus Arc einem Favoritenordner namens Arc hinzufügen"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Favoriten aus Arc einem Favoritenordner namens Arc hinzufügen"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "arcImport.skipped": {
+      "comment": "Easels is an Arc feature name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld item can’t come across: notes, Easels and non-web pages stay in Arc."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld items can’t come across: notes, Easels and non-web pages stay in Arc."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Element kann nicht übernommen werden: Notizen, Easels und Seiten, die keine Webseiten sind, bleiben in Arc."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Elemente können nicht übernommen werden: Notizen, Easels und Seiten, die keine Webseiten sind, bleiben in Arc."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "arcImport.stays": {
+      "comment": "What the Arc import does not bring.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign-ins, passwords, history and archived tabs stay in Arc. Blanc only reads Arc’s file and changes nothing there."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anmeldungen, Passwörter, Verlauf und archivierte Tabs bleiben in Arc. Blanc liest nur die Datei von Arc und ändert dort nichts."
+          }
+        }
+      }
+    },
+    "arcImport.back": {
+      "comment": "Returns to choosing a browser.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurück"
+          }
+        }
+      }
+    },
+    "arcImport.apply.spaces": {
+      "comment": "Primary button for Blanc Patrons.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Create %1$lld space"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Create %1$lld spaces"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Space erstellen"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Spaces erstellen"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "arcImport.apply.windows": {
+      "comment": "Primary button without Blanc Patron.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Open %1$lld window"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Open %1$lld windows"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Fenster öffnen"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Fenster öffnen"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "arcImport.apply.favorites": {
+      "comment": "Primary button when only the Favorites are selected.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Favorites"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favoriten hinzufügen"
+          }
+        }
+      }
+    },
+    "arcImport.applying": {
+      "comment": "Status while the import runs.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bringing your Spaces…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Spaces werden übernommen…"
+          }
+        }
+      }
+    },
+    "arcImport.done.title": {
+      "comment": "Heading after the import.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arc import finished"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import aus Arc abgeschlossen"
+          }
+        }
+      }
+    },
+    "arcImport.done.spaces": {
+      "comment": "{names} is a list of space names.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Created %1$lld space: %2$@. Find it in the command panel’s list of saved spaces."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Created %1$lld spaces: %2$@. Find them in the command panel’s list of saved spaces."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Space erstellt: %2$@. Du findest ihn in der Liste gespeicherter Spaces im Befehlsfeld."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Spaces erstellt: %2$@. Du findest sie in der Liste gespeicherter Spaces im Befehlsfeld."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "arcImport.done.windows": {
+      "comment": "Result without Blanc Patron.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Opened %1$lld window."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Opened %1$lld windows."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Fenster geöffnet."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Fenster geöffnet."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "arcImport.done.favorites": {
+      "comment": "Result for Arc's Favorites.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Added %1$lld Favorite to the Arc folder."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Added %1$lld Favorites to the Arc folder."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Favorit zum Ordner Arc hinzugefügt."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Favoriten zum Ordner Arc hinzugefügt."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "arcImport.done.dropped": {
+      "comment": "Shown when a Space had more than 500 tabs.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld tab over the 500-tab limit for a Space stayed behind."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld tabs over the 500-tab limit for a Space stayed behind."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Tab über dem Limit von 500 Tabs pro Space wurde nicht übernommen."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Tabs über dem Limit von 500 Tabs pro Space wurden nicht übernommen."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "arcImport.done.close": {
+      "comment": "Closes Bring Your Tabs after the Arc import.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fertig"
+          }
+        }
+      }
+    },
+    "arcImport.error.missing": {
+      "comment": "Read error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arc’s sidebar file wasn’t found."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Seitenleistendatei von Arc wurde nicht gefunden."
+          }
+        }
+      }
+    },
+    "arcImport.error.permission": {
+      "comment": "Read error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc couldn’t open that file. Check its permissions and try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc konnte diese Datei nicht öffnen. Prüfe die Berechtigungen und versuche es erneut."
+          }
+        }
+      }
+    },
+    "arcImport.error.notArc": {
+      "comment": "Read error. StorableSidebar.json is a file name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That file isn’t an Arc sidebar. Look for StorableSidebar.json."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Datei ist keine Arc-Seitenleiste. Suche nach StorableSidebar.json."
+          }
+        }
+      }
+    },
+    "arcImport.error.tooLarge": {
+      "comment": "Read error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That file is too large to import."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Datei ist zu groß für den Import."
+          }
+        }
+      }
+    },
+    "arcImport.error.tooComplex": {
+      "comment": "Read error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That sidebar is too large or too deeply nested to import."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Seitenleiste ist zu groß oder zu tief verschachtelt für den Import."
+          }
+        }
+      }
+    },
+    "arcImport.error.saving": {
+      "comment": "Read error when the file changed during reading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arc was saving its sidebar. Try again in a moment."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arc hat gerade seine Seitenleiste gespeichert. Versuche es gleich noch einmal."
+          }
+        }
+      }
+    },
+    "arcImport.error.empty": {
+      "comment": "Read error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Spaces with tabs and no Favorites were found."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Es wurden keine Spaces mit Tabs und keine Favoriten gefunden."
+          }
+        }
+      }
+    },
+    "arcImport.error.unreadable": {
+      "comment": "Read error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t read Arc’s sidebar."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Seitenleiste von Arc konnte nicht gelesen werden."
+          }
+        }
+      }
+    },
+    "arcImport.error.notPatron": {
+      "comment": "Shown when Patron lapsed between preview and import.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc Patron is no longer active, so these Spaces will open as windows instead. Review your choice and try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc Patron ist nicht mehr aktiv, daher öffnen sich diese Spaces stattdessen als Fenster. Prüfe deine Auswahl und versuche es erneut."
+          }
+        }
+      }
+    },
+    "arcImport.error.noRoom": {
+      "comment": "Nothing was created.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Only %1$lld more space fits. Deselect some Spaces or delete a space first."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Only %1$lld more spaces fit. Deselect some Spaces or delete a space first."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Es passt nur noch %1$lld Space. Wähle einige Spaces ab oder lösche zuerst einen Space."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Es passen nur noch %1$lld Spaces. Wähle einige Spaces ab oder lösche zuerst einen Space."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "arcImport.error.nothingSelected": {
+      "comment": "Shown when nothing is selected.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose at least one Space or the Favorites."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle mindestens einen Space oder die Favoriten aus."
+          }
+        }
+      }
+    },
+    "arcImport.error.storage": {
+      "comment": "Write error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t save the new spaces. Check available disk space and try again. Nothing was created."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die neuen Spaces konnten nicht gespeichert werden. Prüfe den verfügbaren Speicherplatz und versuche es erneut. Es wurde nichts erstellt."
+          }
+        }
+      }
+    },
+    "arcImport.error.session": {
+      "comment": "Shown when the import session is gone.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This import expired. Read Arc’s Spaces again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Import ist abgelaufen. Lies die Spaces aus Arc erneut ein."
+          }
+        }
+      }
+    },
+    "arcImport.error.generic": {
+      "comment": "Fallback error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t bring your Spaces. Try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Spaces konnten nicht übernommen werden. Versuche es erneut."
+          }
+        }
+      }
+    },
+    "arcImport.space.tabs": {
+      "comment": "Tab count under an Arc Space name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld tab"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld tabs"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Tab"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Tabs"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "arcImport.space.folders": {
+      "comment": "Folder count under an Arc Space name; Arc folders become groups.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld folder"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld folders"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Ordner"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Ordner"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "version": "1.0"

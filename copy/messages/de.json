@@ -2616,5 +2616,193 @@
   "error.reloadFailed": {
     "message": "Die Seite konnte nicht neu geladen werden",
     "source": "sha256:a1c9370bbc2edc0eb1c3cfac36b5918b02332af7b38c1b7bc5c6564ba0c8c962"
+  },
+  "arcImport.entry.title": {
+    "message": "Arc",
+    "source": "sha256:87b9cd8a27cfa5f5a99c32969088f476d66d10113a8f148016466c00a02192b9"
+  },
+  "arcImport.entry.found": {
+    "message": "Übernimm deine Spaces, angehefteten Tabs und Ordner aus Arc.",
+    "source": "sha256:5f20449c403231284692efdd355a21941f222c09cdd78470168cea470c18b01b"
+  },
+  "arcImport.entry.missing": {
+    "message": "Arc ist hier nicht installiert. Wenn du die Datei StorableSidebar.json von einem anderen Computer kopiert hast, wähle sie aus.",
+    "source": "sha256:a15231a3dbc817ce0a41b814da67bbced48017d9a3bfe2b410a57e35d349df43"
+  },
+  "arcImport.entry.unsupported": {
+    "message": "Arc gab es nie für Linux. Kopiere StorableSidebar.json von deinem Mac oder PC und wähle die Datei dann hier aus.",
+    "source": "sha256:c4acbd9253164128067624b708baf67f50d5f3d485b0841884e03fa204bf9538"
+  },
+  "arcImport.entry.permission": {
+    "message": "Blanc kann den Ordner von Arc nicht öffnen. Wähle stattdessen die Datei StorableSidebar.json aus.",
+    "source": "sha256:c61aab8f4105aca9e78fb4bc0cf97da955471b5cb455999580c9cb93bcc157f0"
+  },
+  "arcImport.entry.read": {
+    "message": "Spaces aus Arc übernehmen",
+    "source": "sha256:1434ac3df48f53b65b7efe8bd2db7840f2653e106d0a7f96559552ca8d4195be"
+  },
+  "arcImport.entry.chooseFile": {
+    "message": "Datei auswählen…",
+    "source": "sha256:2504e45dbc08afaf67c01eb5402df7cf4b18aef3ccb48de97a30979d56b7cc3c"
+  },
+  "arcImport.chooseFile.title": {
+    "message": "StorableSidebar.json von Arc auswählen",
+    "source": "sha256:eab2cf096978c0288c391c91443e3c5d31d1a0be269701c972f912730628b50a"
+  },
+  "arcImport.chooseFile.filter": {
+    "message": "Arc-Seitenleistendatei",
+    "source": "sha256:89a78c32e2ab8935f4309e0bce337cd977bec56a4e56f8b9df36c725855b90a4"
+  },
+  "arcImport.untitledSpace": {
+    "message": "Space {n}",
+    "source": "sha256:a5733aa098ffc95d68781da041148422bd35d6d8b98b337f784adeb6318a1d75"
+  },
+  "arcImport.reading": {
+    "message": "Spaces aus Arc werden gelesen…",
+    "source": "sha256:50dcc43ab8aff453786f57c4515b3517060bff61f3e40f1f68257d519f88767f"
+  },
+  "arcImport.progress": {
+    "message": "Spaces aus Arc",
+    "source": "sha256:6f7b9e04001c2d038d9231b25f721241d85b4d9ef81fa52415ba7047d81f5969"
+  },
+  "arcImport.title": {
+    "message": "Spaces zum Übernehmen auswählen",
+    "source": "sha256:029ce11ee5a187bb59f706a8eafd5741e6c7e1d6e37b2d018944da31929749ca"
+  },
+  "arcImport.mode.spaces": {
+    "message": "Jeder Space aus Arc wird zu einem Space in Blanc Spaces. Ordner werden zu Gruppen, und Tabs laden erst, wenn du sie öffnest.",
+    "source": "sha256:c09bff3937677ead1da6993328054fb512057195d2e54970d5f7df23ac5ed486"
+  },
+  "arcImport.mode.windows": {
+    "message": "Jeder Space aus Arc öffnet sich in einem eigenen Fenster. Ordner werden zu Gruppen, und Tabs laden erst, wenn du sie öffnest. Mit Blanc Patron kannst du sie als Spaces speichern.",
+    "source": "sha256:db2e86ba39ef46d8ce19c98552b7d4a91c647b86cea80af11a61581690515fbd"
+  },
+  "arcImport.room": {
+    "message": "{count, plural, one {Du kannst noch # Space hinzufügen.} other {Du kannst noch # Spaces hinzufügen.}}",
+    "source": "sha256:2b9b97973928bf5df66a3cc6b8bfb87b88f224928bd3770c3ffb55da9901c0db"
+  },
+  "arcImport.space.separateProfile": {
+    "message": "Hat ein eigenes Arc-Profil verwendet, daher musst du dich eventuell erneut anmelden.",
+    "source": "sha256:2efe28a04e80ec9d6686eb4f1d1800a8ffecdcd7e07db8c2888187984cf57a81"
+  },
+  "arcImport.favorites": {
+    "message": "{count, plural, one {# Favorit aus Arc einem Favoritenordner namens Arc hinzufügen} other {# Favoriten aus Arc einem Favoritenordner namens Arc hinzufügen}}",
+    "source": "sha256:e9e34390e524b15341a9f8b5fbafb4dfb1bcb6cc39ba3ac1d173b2f6edfdd6e6"
+  },
+  "arcImport.skipped": {
+    "message": "{count, plural, one {# Element kann nicht übernommen werden: Notizen, Easels und Seiten, die keine Webseiten sind, bleiben in Arc.} other {# Elemente können nicht übernommen werden: Notizen, Easels und Seiten, die keine Webseiten sind, bleiben in Arc.}}",
+    "source": "sha256:6c1f95c6a18fe18058d56fba1870d1d37d11ffdcc815a471471f140435305f0e"
+  },
+  "arcImport.stays": {
+    "message": "Anmeldungen, Passwörter, Verlauf und archivierte Tabs bleiben in Arc. Blanc liest nur die Datei von Arc und ändert dort nichts.",
+    "source": "sha256:1f7688ec5ae8c79916025bed88ef560874c3a822664fcd2528d1ac2b742239ef"
+  },
+  "arcImport.back": {
+    "message": "Zurück",
+    "source": "sha256:a806a701b98fe940d366c3f6b83c61630fbcb5e0c640bba61fcaab2adb9f5b6e"
+  },
+  "arcImport.apply.spaces": {
+    "message": "{count, plural, one {# Space erstellen} other {# Spaces erstellen}}",
+    "source": "sha256:cec65c5bf1b41f6770fcb63ad99c294d83a2660803f005df0edf283e902aec26"
+  },
+  "arcImport.apply.windows": {
+    "message": "{count, plural, one {# Fenster öffnen} other {# Fenster öffnen}}",
+    "source": "sha256:3be252873ac906c5d4492c659afd373545ea19f090288ecf1cee34a5f4d76394"
+  },
+  "arcImport.apply.favorites": {
+    "message": "Favoriten hinzufügen",
+    "source": "sha256:bf2734267bec51d00adbcb646645164d0f4b76360f3890f236fd7526a68400fa"
+  },
+  "arcImport.applying": {
+    "message": "Deine Spaces werden übernommen…",
+    "source": "sha256:447a80bee0554660d028fe34919712736486b61f10b2672afc045d59f0a9b1fb"
+  },
+  "arcImport.done.title": {
+    "message": "Import aus Arc abgeschlossen",
+    "source": "sha256:2fc1693b003e4dd017282157f67b24739891fbc3f4acb56571eccdb3ab78e870"
+  },
+  "arcImport.done.spaces": {
+    "message": "{count, plural, one {# Space erstellt: {names}. Du findest ihn in der Liste gespeicherter Spaces im Befehlsfeld.} other {# Spaces erstellt: {names}. Du findest sie in der Liste gespeicherter Spaces im Befehlsfeld.}}",
+    "source": "sha256:4afc5658a596435902ab0c9c72e0d951aab40b8b5a3265aa9e02d5eb08d724c3"
+  },
+  "arcImport.done.windows": {
+    "message": "{count, plural, one {# Fenster geöffnet.} other {# Fenster geöffnet.}}",
+    "source": "sha256:0453d24b87835526c4638fd399e496823ccd590a8abd821deb60b1f83762f813"
+  },
+  "arcImport.done.favorites": {
+    "message": "{count, plural, one {# Favorit zum Ordner Arc hinzugefügt.} other {# Favoriten zum Ordner Arc hinzugefügt.}}",
+    "source": "sha256:11658a58657d55510459c88ddf52901aad7ca580bd74c8ba9df93519fe61ffbb"
+  },
+  "arcImport.done.dropped": {
+    "message": "{count, plural, one {# Tab über dem Limit von 500 Tabs pro Space wurde nicht übernommen.} other {# Tabs über dem Limit von 500 Tabs pro Space wurden nicht übernommen.}}",
+    "source": "sha256:58d09a794fddcc3db96cf5f38b624ee38d806b28c986384fa99f1d0a457e8e88"
+  },
+  "arcImport.done.close": {
+    "message": "Fertig",
+    "source": "sha256:548d9602799377b6c94745b966cac328f67da45545a2757fb51ec563f0391687"
+  },
+  "arcImport.error.missing": {
+    "message": "Die Seitenleistendatei von Arc wurde nicht gefunden.",
+    "source": "sha256:181c4375bce2523086101893347a57d57224952e77a0fac34f44a066d6bd854f"
+  },
+  "arcImport.error.permission": {
+    "message": "Blanc konnte diese Datei nicht öffnen. Prüfe die Berechtigungen und versuche es erneut.",
+    "source": "sha256:6b8a066d8b6dfbceca4aaacf758b01b5d5cc210e150624e869f61ed560fc472d"
+  },
+  "arcImport.error.notArc": {
+    "message": "Diese Datei ist keine Arc-Seitenleiste. Suche nach StorableSidebar.json.",
+    "source": "sha256:082bf1ff0ac870c25b8923faf3fc3cbaf48a943843161e8fa58d182c23adef28"
+  },
+  "arcImport.error.tooLarge": {
+    "message": "Diese Datei ist zu groß für den Import.",
+    "source": "sha256:46b35bb324dcdc9ac92f12a9b61148b63b3093399661b85ef0f3eab475d3a4bd"
+  },
+  "arcImport.error.tooComplex": {
+    "message": "Diese Seitenleiste ist zu groß oder zu tief verschachtelt für den Import.",
+    "source": "sha256:319b9f0bebeb889c73d69cc1c073a5f089319f0eba7ee74c000178ad173b98b6"
+  },
+  "arcImport.error.saving": {
+    "message": "Arc hat gerade seine Seitenleiste gespeichert. Versuche es gleich noch einmal.",
+    "source": "sha256:8ac76a68d91adf11087ae1ba16f8b8133dc9f77314922fa6f5ece016333675e8"
+  },
+  "arcImport.error.empty": {
+    "message": "Es wurden keine Spaces mit Tabs und keine Favoriten gefunden.",
+    "source": "sha256:eec30e71a0e67cb9e0ba39ababc11e550880309ce76c29ce48b013b7de03dfee"
+  },
+  "arcImport.error.unreadable": {
+    "message": "Die Seitenleiste von Arc konnte nicht gelesen werden.",
+    "source": "sha256:ad62bdae90945352226cd0b05f584c2ed72ae8dd20d8c8169c6511feb1e624c9"
+  },
+  "arcImport.error.notPatron": {
+    "message": "Blanc Patron ist nicht mehr aktiv, daher öffnen sich diese Spaces stattdessen als Fenster. Prüfe deine Auswahl und versuche es erneut.",
+    "source": "sha256:e7e6a3b17f3a026e2d234fb4b6b302312b0ad3122aa4bf6899c121bfdbcb9658"
+  },
+  "arcImport.error.noRoom": {
+    "message": "{count, plural, one {Es passt nur noch # Space. Wähle einige Spaces ab oder lösche zuerst einen Space.} other {Es passen nur noch # Spaces. Wähle einige Spaces ab oder lösche zuerst einen Space.}}",
+    "source": "sha256:c1123205517afbcac6e0f9a5af7d8c21def01d7c359336d0333bb6b2d6daf6a6"
+  },
+  "arcImport.error.nothingSelected": {
+    "message": "Wähle mindestens einen Space oder die Favoriten aus.",
+    "source": "sha256:7871fde1395d4b87a1930b98f5875c874f60fdd50741c86160c4852caddc5dd5"
+  },
+  "arcImport.error.storage": {
+    "message": "Die neuen Spaces konnten nicht gespeichert werden. Prüfe den verfügbaren Speicherplatz und versuche es erneut. Es wurde nichts erstellt.",
+    "source": "sha256:2b80eb4b1a15786b8b6080edfe7540cab38ab225370b5fb093028d59a467811d"
+  },
+  "arcImport.error.session": {
+    "message": "Dieser Import ist abgelaufen. Lies die Spaces aus Arc erneut ein.",
+    "source": "sha256:805e372f63dbbc7f1870fa57caef3d4510276d49fae336443d4251f09446ba70"
+  },
+  "arcImport.error.generic": {
+    "message": "Deine Spaces konnten nicht übernommen werden. Versuche es erneut.",
+    "source": "sha256:7ecc390c7004df59f5020e1c639d88e37fe1bdb245698246f124fc46b9a9d43e"
+  },
+  "arcImport.space.tabs": {
+    "message": "{count, plural, one {# Tab} other {# Tabs}}",
+    "source": "sha256:ba30d95e069ffa213e593ed8c23a8e73c1505188906d0905b7b924ca696efca4"
+  },
+  "arcImport.space.folders": {
+    "message": "{count, plural, one {# Ordner} other {# Ordner}}",
+    "source": "sha256:f390e7f38283a60d2578e66ada482ff85e311903f288f818c424af5e08eb50d9"
   }
 }

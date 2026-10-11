@@ -2683,5 +2683,193 @@
   "error.reloadFailed": {
     "message": "The page could not be reloaded",
     "note": "Description on the error page when reloading a page failed."
+  },
+  "arcImport.entry.title": {
+    "message": "Arc",
+    "note": "Heading of the Arc row on Bring Your Tabs. Arc is a browser name."
+  },
+  "arcImport.entry.found": {
+    "message": "Bring your Spaces, pinned tabs and folders from Arc.",
+    "note": "Arc row hint when Arc's sidebar file was found. Spaces is Arc's own feature name."
+  },
+  "arcImport.entry.missing": {
+    "message": "Arc isn’t installed here. If you copied its StorableSidebar.json file from another computer, choose it.",
+    "note": "Arc row hint on macOS or Windows when Arc's file was not found. StorableSidebar.json is a file name."
+  },
+  "arcImport.entry.unsupported": {
+    "message": "Arc never came to Linux. Copy StorableSidebar.json from your Mac or PC, then choose it here.",
+    "note": "Arc row hint on Linux. StorableSidebar.json is a file name."
+  },
+  "arcImport.entry.permission": {
+    "message": "Blanc can’t open Arc’s folder. Choose its StorableSidebar.json file instead.",
+    "note": "Arc row hint when the operating system denied access to Arc's folder."
+  },
+  "arcImport.entry.read": {
+    "message": "Bring Spaces from Arc",
+    "note": "Button that reads Arc's sidebar file from its usual place."
+  },
+  "arcImport.entry.chooseFile": {
+    "message": "Choose file…",
+    "note": "Button that opens a file picker for Arc's StorableSidebar.json."
+  },
+  "arcImport.chooseFile.title": {
+    "message": "Choose Arc’s StorableSidebar.json",
+    "note": "Title of the native file picker."
+  },
+  "arcImport.chooseFile.filter": {
+    "message": "Arc sidebar file",
+    "note": "File type name in the native file picker."
+  },
+  "arcImport.untitledSpace": {
+    "message": "Space {n}",
+    "note": "Name for an Arc Space that has no name; {n} counts untitled Spaces in Arc's order."
+  },
+  "arcImport.reading": {
+    "message": "Reading Arc’s Spaces…",
+    "note": "Status while Blanc reads Arc's file."
+  },
+  "arcImport.progress": {
+    "message": "Arc Spaces",
+    "note": "Step indicator while the Arc import is shown."
+  },
+  "arcImport.title": {
+    "message": "Choose Spaces to bring",
+    "note": "Heading of the Arc Spaces preview."
+  },
+  "arcImport.mode.spaces": {
+    "message": "Each Arc Space becomes a space in Blanc Spaces. Folders become groups, and tabs load only when you open them.",
+    "note": "Shown to Blanc Patrons. Blanc Spaces is the Patron feature; a space is one saved set."
+  },
+  "arcImport.mode.windows": {
+    "message": "Each Arc Space opens in its own window. Folders become groups, and tabs load only when you open them. With Blanc Patron, you can save them as spaces.",
+    "note": "Shown when Blanc Patron is not active."
+  },
+  "arcImport.room": {
+    "message": "{count, plural, one {You can add # more space.} other {You can add # more spaces.}}",
+    "note": "How many more Blanc spaces fit in this profile."
+  },
+  "arcImport.space.separateProfile": {
+    "message": "Used its own Arc profile, so you may need to sign in again.",
+    "note": "Shown under a Space that used a separate Arc profile."
+  },
+  "arcImport.favorites": {
+    "message": "{count, plural, one {Add Arc’s # Favorite to a Favorites folder named Arc} other {Add Arc’s # Favorites to a Favorites folder named Arc}}",
+    "note": "Checkbox for Arc's top-row Favorites."
+  },
+  "arcImport.skipped": {
+    "message": "{count, plural, one {# item can’t come across: notes, Easels and non-web pages stay in Arc.} other {# items can’t come across: notes, Easels and non-web pages stay in Arc.}}",
+    "note": "Easels is an Arc feature name."
+  },
+  "arcImport.stays": {
+    "message": "Sign-ins, passwords, history and archived tabs stay in Arc. Blanc only reads Arc’s file and changes nothing there.",
+    "note": "What the Arc import does not bring."
+  },
+  "arcImport.back": {
+    "message": "Back",
+    "note": "Returns to choosing a browser."
+  },
+  "arcImport.apply.spaces": {
+    "message": "{count, plural, one {Create # space} other {Create # spaces}}",
+    "note": "Primary button for Blanc Patrons."
+  },
+  "arcImport.apply.windows": {
+    "message": "{count, plural, one {Open # window} other {Open # windows}}",
+    "note": "Primary button without Blanc Patron."
+  },
+  "arcImport.apply.favorites": {
+    "message": "Add Favorites",
+    "note": "Primary button when only the Favorites are selected."
+  },
+  "arcImport.applying": {
+    "message": "Bringing your Spaces…",
+    "note": "Status while the import runs."
+  },
+  "arcImport.done.title": {
+    "message": "Arc import finished",
+    "note": "Heading after the import."
+  },
+  "arcImport.done.spaces": {
+    "message": "{count, plural, one {Created # space: {names}. Find it in the command panel’s list of saved spaces.} other {Created # spaces: {names}. Find them in the command panel’s list of saved spaces.}}",
+    "note": "{names} is a list of space names."
+  },
+  "arcImport.done.windows": {
+    "message": "{count, plural, one {Opened # window.} other {Opened # windows.}}",
+    "note": "Result without Blanc Patron."
+  },
+  "arcImport.done.favorites": {
+    "message": "{count, plural, one {Added # Favorite to the Arc folder.} other {Added # Favorites to the Arc folder.}}",
+    "note": "Result for Arc's Favorites."
+  },
+  "arcImport.done.dropped": {
+    "message": "{count, plural, one {# tab over the 500-tab limit for a Space stayed behind.} other {# tabs over the 500-tab limit for a Space stayed behind.}}",
+    "note": "Shown when a Space had more than 500 tabs."
+  },
+  "arcImport.done.close": {
+    "message": "Done",
+    "note": "Closes Bring Your Tabs after the Arc import."
+  },
+  "arcImport.error.missing": {
+    "message": "Arc’s sidebar file wasn’t found.",
+    "note": "Read error."
+  },
+  "arcImport.error.permission": {
+    "message": "Blanc couldn’t open that file. Check its permissions and try again.",
+    "note": "Read error."
+  },
+  "arcImport.error.notArc": {
+    "message": "That file isn’t an Arc sidebar. Look for StorableSidebar.json.",
+    "note": "Read error. StorableSidebar.json is a file name."
+  },
+  "arcImport.error.tooLarge": {
+    "message": "That file is too large to import.",
+    "note": "Read error."
+  },
+  "arcImport.error.tooComplex": {
+    "message": "That sidebar is too large or too deeply nested to import.",
+    "note": "Read error."
+  },
+  "arcImport.error.saving": {
+    "message": "Arc was saving its sidebar. Try again in a moment.",
+    "note": "Read error when the file changed during reading."
+  },
+  "arcImport.error.empty": {
+    "message": "No Spaces with tabs and no Favorites were found.",
+    "note": "Read error."
+  },
+  "arcImport.error.unreadable": {
+    "message": "Couldn’t read Arc’s sidebar.",
+    "note": "Read error."
+  },
+  "arcImport.error.notPatron": {
+    "message": "Blanc Patron is no longer active, so these Spaces will open as windows instead. Review your choice and try again.",
+    "note": "Shown when Patron lapsed between preview and import."
+  },
+  "arcImport.error.noRoom": {
+    "message": "{count, plural, one {Only # more space fits. Deselect some Spaces or delete a space first.} other {Only # more spaces fit. Deselect some Spaces or delete a space first.}}",
+    "note": "Nothing was created."
+  },
+  "arcImport.error.nothingSelected": {
+    "message": "Choose at least one Space or the Favorites.",
+    "note": "Shown when nothing is selected."
+  },
+  "arcImport.error.storage": {
+    "message": "Couldn’t save the new spaces. Check available disk space and try again. Nothing was created.",
+    "note": "Write error."
+  },
+  "arcImport.error.session": {
+    "message": "This import expired. Read Arc’s Spaces again.",
+    "note": "Shown when the import session is gone."
+  },
+  "arcImport.error.generic": {
+    "message": "Couldn’t bring your Spaces. Try again.",
+    "note": "Fallback error."
+  },
+  "arcImport.space.tabs": {
+    "message": "{count, plural, one {# tab} other {# tabs}}",
+    "note": "Tab count under an Arc Space name."
+  },
+  "arcImport.space.folders": {
+    "message": "{count, plural, one {# folder} other {# folders}}",
+    "note": "Folder count under an Arc Space name; Arc folders become groups."
   }
 }

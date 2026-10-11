@@ -717,4 +717,87 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blancbrowser.co
     <string name="glance_status_tab_closed">Glance geschlossen, weil sein Tab geschlossen wurde</string>
     <string name="tab_untitled_short">Tab</string>
     <string name="error_reload_failed">Die Seite konnte nicht neu geladen werden</string>
+    <string name="arc_import_entry_title">Arc</string>
+    <string name="arc_import_entry_found">Übernimm deine Spaces, angehefteten Tabs und Ordner aus Arc.</string>
+    <string name="arc_import_entry_missing">Arc ist hier nicht installiert. Wenn du die Datei StorableSidebar.json von einem anderen Computer kopiert hast, wähle sie aus.</string>
+    <string name="arc_import_entry_unsupported">Arc gab es nie für Linux. Kopiere StorableSidebar.json von deinem Mac oder PC und wähle die Datei dann hier aus.</string>
+    <string name="arc_import_entry_permission">Blanc kann den Ordner von Arc nicht öffnen. Wähle stattdessen die Datei StorableSidebar.json aus.</string>
+    <string name="arc_import_entry_read">Spaces aus Arc übernehmen</string>
+    <string name="arc_import_entry_choose_file">Datei auswählen…</string>
+    <string name="arc_import_choose_file_title">StorableSidebar.json von Arc auswählen</string>
+    <string name="arc_import_choose_file_filter">Arc-Seitenleistendatei</string>
+    <string name="arc_import_untitled_space">Space %1$s</string>
+    <string name="arc_import_reading">Spaces aus Arc werden gelesen…</string>
+    <string name="arc_import_progress">Spaces aus Arc</string>
+    <string name="arc_import_title">Spaces zum Übernehmen auswählen</string>
+    <string name="arc_import_mode_spaces">Jeder Space aus Arc wird zu einem Space in Blanc Spaces. Ordner werden zu Gruppen, und Tabs laden erst, wenn du sie öffnest.</string>
+    <string name="arc_import_mode_windows">Jeder Space aus Arc öffnet sich in einem eigenen Fenster. Ordner werden zu Gruppen, und Tabs laden erst, wenn du sie öffnest. Mit Blanc Patron kannst du sie als Spaces speichern.</string>
+    <plurals name="arc_import_room">
+        <item quantity="one">Du kannst noch %1$d Space hinzufügen.</item>
+        <item quantity="other">Du kannst noch %1$d Spaces hinzufügen.</item>
+    </plurals>
+    <string name="arc_import_space_separate_profile">Hat ein eigenes Arc-Profil verwendet, daher musst du dich eventuell erneut anmelden.</string>
+    <plurals name="arc_import_favorites">
+        <item quantity="one">%1$d Favorit aus Arc einem Favoritenordner namens Arc hinzufügen</item>
+        <item quantity="other">%1$d Favoriten aus Arc einem Favoritenordner namens Arc hinzufügen</item>
+    </plurals>
+    <plurals name="arc_import_skipped">
+        <item quantity="one">%1$d Element kann nicht übernommen werden: Notizen, Easels und Seiten, die keine Webseiten sind, bleiben in Arc.</item>
+        <item quantity="other">%1$d Elemente können nicht übernommen werden: Notizen, Easels und Seiten, die keine Webseiten sind, bleiben in Arc.</item>
+    </plurals>
+    <string name="arc_import_stays">Anmeldungen, Passwörter, Verlauf und archivierte Tabs bleiben in Arc. Blanc liest nur die Datei von Arc und ändert dort nichts.</string>
+    <string name="arc_import_back">Zurück</string>
+    <plurals name="arc_import_apply_spaces">
+        <item quantity="one">%1$d Space erstellen</item>
+        <item quantity="other">%1$d Spaces erstellen</item>
+    </plurals>
+    <plurals name="arc_import_apply_windows">
+        <item quantity="one">%1$d Fenster öffnen</item>
+        <item quantity="other">%1$d Fenster öffnen</item>
+    </plurals>
+    <string name="arc_import_apply_favorites">Favoriten hinzufügen</string>
+    <string name="arc_import_applying">Deine Spaces werden übernommen…</string>
+    <string name="arc_import_done_title">Import aus Arc abgeschlossen</string>
+    <plurals name="arc_import_done_spaces">
+        <item quantity="one">%1$d Space erstellt: %2$s. Du findest ihn in der Liste gespeicherter Spaces im Befehlsfeld.</item>
+        <item quantity="other">%1$d Spaces erstellt: %2$s. Du findest sie in der Liste gespeicherter Spaces im Befehlsfeld.</item>
+    </plurals>
+    <plurals name="arc_import_done_windows">
+        <item quantity="one">%1$d Fenster geöffnet.</item>
+        <item quantity="other">%1$d Fenster geöffnet.</item>
+    </plurals>
+    <plurals name="arc_import_done_favorites">
+        <item quantity="one">%1$d Favorit zum Ordner Arc hinzugefügt.</item>
+        <item quantity="other">%1$d Favoriten zum Ordner Arc hinzugefügt.</item>
+    </plurals>
+    <plurals name="arc_import_done_dropped">
+        <item quantity="one">%1$d Tab über dem Limit von 500 Tabs pro Space wurde nicht übernommen.</item>
+        <item quantity="other">%1$d Tabs über dem Limit von 500 Tabs pro Space wurden nicht übernommen.</item>
+    </plurals>
+    <string name="arc_import_done_close">Fertig</string>
+    <string name="arc_import_error_missing">Die Seitenleistendatei von Arc wurde nicht gefunden.</string>
+    <string name="arc_import_error_permission">Blanc konnte diese Datei nicht öffnen. Prüfe die Berechtigungen und versuche es erneut.</string>
+    <string name="arc_import_error_not_arc">Diese Datei ist keine Arc-Seitenleiste. Suche nach StorableSidebar.json.</string>
+    <string name="arc_import_error_too_large">Diese Datei ist zu groß für den Import.</string>
+    <string name="arc_import_error_too_complex">Diese Seitenleiste ist zu groß oder zu tief verschachtelt für den Import.</string>
+    <string name="arc_import_error_saving">Arc hat gerade seine Seitenleiste gespeichert. Versuche es gleich noch einmal.</string>
+    <string name="arc_import_error_empty">Es wurden keine Spaces mit Tabs und keine Favoriten gefunden.</string>
+    <string name="arc_import_error_unreadable">Die Seitenleiste von Arc konnte nicht gelesen werden.</string>
+    <string name="arc_import_error_not_patron">Blanc Patron ist nicht mehr aktiv, daher öffnen sich diese Spaces stattdessen als Fenster. Prüfe deine Auswahl und versuche es erneut.</string>
+    <plurals name="arc_import_error_no_room">
+        <item quantity="one">Es passt nur noch %1$d Space. Wähle einige Spaces ab oder lösche zuerst einen Space.</item>
+        <item quantity="other">Es passen nur noch %1$d Spaces. Wähle einige Spaces ab oder lösche zuerst einen Space.</item>
+    </plurals>
+    <string name="arc_import_error_nothing_selected">Wähle mindestens einen Space oder die Favoriten aus.</string>
+    <string name="arc_import_error_storage">Die neuen Spaces konnten nicht gespeichert werden. Prüfe den verfügbaren Speicherplatz und versuche es erneut. Es wurde nichts erstellt.</string>
+    <string name="arc_import_error_session">Dieser Import ist abgelaufen. Lies die Spaces aus Arc erneut ein.</string>
+    <string name="arc_import_error_generic">Deine Spaces konnten nicht übernommen werden. Versuche es erneut.</string>
+    <plurals name="arc_import_space_tabs">
+        <item quantity="one">%1$d Tab</item>
+        <item quantity="other">%1$d Tabs</item>
+    </plurals>
+    <plurals name="arc_import_space_folders">
+        <item quantity="one">%1$d Ordner</item>
+        <item quantity="other">%1$d Ordner</item>
+    </plurals>
 </resources>

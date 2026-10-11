@@ -969,7 +969,8 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
   Favorites. Imported tabs are quiet and viewless; only the first selected tab
   wakes. Only after that successful apply does Blanc mark the device-local
   moving-in checklist task complete. A Named Workspace remains a separate
-  optional Patron gesture.
+  optional Patron gesture. (F45 Arc Spaces import is the one exception: it
+  creates spaces directly for Patrons.)
 - **Acceptance:**
   [`acceptance/tab-migration.feature`](./acceptance/tab-migration.feature)
   covers explicit session reads, quit safety, duplicate/order/group fidelity,
@@ -1020,3 +1021,38 @@ A pinned language that is no longer available renders English and stays stored.
 catalog, same fixed terms, same fallback, same selectable set.
 
 **Acceptance.** `spec/acceptance/interface-language.feature` (F44-1 … F44-5).
+
+## F45 — Arc Spaces import (desktop)
+
+People leaving Arc can bring their Spaces into Blanc in one explicit step from
+Bring Your Tabs.
+
+- **Source.** Arc keeps every Space, its pinned and Today sections, folders,
+  split views and top-row Favorites in `StorableSidebar.json`. Blanc reads it
+  only after the person asks: Arc's own file on macOS and Windows, or a file
+  they choose (the only path on Linux, where Arc never shipped). The read is
+  bounded (32 MiB, 100,000 items, depth 32, 100 Spaces), read-only, refused
+  if the file changes mid-read, and never asks Arc to quit.
+- **Mapping.** Loose pinned tabs become pinned tabs; each top-level folder
+  becomes a lowercase group (nested folders and split views fold into it);
+  Today tabs follow ungrouped. Only http(s) tabs come across; notes, Easels
+  and other kinds are counted and skipped. At most 500 tabs and 50 groups per
+  Space; extra tabs are counted, never silently dropped.
+- **Patrons** get one Blanc space per selected Space, all in one durable
+  write: every space or none. Names avoid this profile's existing spaces
+  (`Name (Arc)`, `Name (Arc 2)`…); untitled Spaces become `Space N`. A
+  selection that does not fit the free space slots is refused before
+  anything is written. Unlike F40, no window is switched: the new spaces wait
+  in the list. A Patron lapse between preview and apply creates nothing.
+- **Everyone else** gets each selected Space in its own new window (at most
+  25), tabs quiet with only the selected one woken, folders as groups.
+- **Favorites.** Arc's top-row Favorites can be added, add-only and
+  deduplicated, to a Favorites folder named Arc.
+- **Projection.** The page receives only Space names, counts, a
+  separate-profile flag and opaque ids, never URLs, paths, Arc ids or Arc
+  profile names. Sign-ins, passwords, history and archived tabs stay in Arc.
+- Every Space lands in the current Blanc profile; a Space that used its own
+  Arc profile is marked because its sign-ins will differ.
+- **Acceptance:**
+  [`acceptance/arc-spaces-import.feature`](./acceptance/arc-spaces-import.feature)
+  (`@F45`); `test/unit/arc-*.test.js` and `test/unit/tab-import-arc.test.js`.

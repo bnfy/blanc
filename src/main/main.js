@@ -311,9 +311,11 @@ const {
 // (single-window binding, resolveOpen). See the "Named Workspaces" section
 // below (near closeGroup) for the capture/apply/switch seams that use them.
 const namedWorkspaces = require('./workspaces');
+const { readArcSidebarFile, readDetectedArcSidebar, detectArcSidebar } = require('./arc-import-source');
+const { createArcImportService } = require('./arc-import');
 const { createWorkspaceController } = require('./workspace-controller');
 const { transferSession, residencyCapacity } = require('./workspace-residency');
-const { scratchSwitchGuardResult } = require('./workspaces-model');
+const { scratchSwitchGuardResult, MAX_WORKSPACES } = require('./workspaces-model');
 
 // The SDK never loads in main. Only macOS, Windows and Linux create the lazy
 // client; any other platform cannot fork a credential broker. The broker
@@ -5342,6 +5344,58 @@ const workspaceController = createWorkspaceController({
   },
 });
 
+// F45 Arc Spaces import. Patrons get one Blanc space per Arc Space in a
+// single durable write; everyone else gets each Space in its own new window,
+// tabs quiet with only the selected one woken. Runs in the Bring Your Tabs
+// sheet's window runtime, so the active profile is the sheet's profile.
+function openArcSpaceWindows(captures) {
+  const profileId = rt().profileId;
+  for (const capture of captures) {
+    const target = windowRuntimes.createRuntime({ id: createWindowRuntimeId(), profileId });
+    createMainWindow(target);
+    withWindowRuntime(target, () => applyWorkspaceToWindow(target, capture));
+  }
+  persistSession();
+  return { ok: true, windowCount: captures.length };
+}
+
+const arcImport = createArcImportService({
+  readDetected: () => readDetectedArcSidebar(),
+  async chooseAndRead() {
+    const picked = await dialog.showOpenDialog(hasLiveWindow() ? rt().window : undefined, {
+      title: mainI18n.t('arcImport.chooseFile.title'),
+      filters: [{ name: mainI18n.t('arcImport.chooseFile.filter'), extensions: ['json'] }],
+      properties: ['openFile'],
+    });
+    if (picked.canceled || !picked.filePaths.length) return { cancelled: true };
+    return readArcSidebarFile(picked.filePaths[0]);
+  },
+  patronActive: () => settings.isPatronActive(),
+  spaceRoom() {
+    const saved = namedWorkspaces.list();
+    return { remainingSlots: Math.max(0, MAX_WORKSPACES - saved.length), existingNames: saved.map((w) => w.name) };
+  },
+  createSpaces(entries) {
+    const result = namedWorkspaces.createMany(entries);
+    if (result.ok) broadcastWorkspacesUpdated();
+    return result;
+  },
+  openSpaceWindows: (captures) => openArcSpaceWindows(captures),
+  importFavorites(entries) {
+    const result = bookmarks.importBookmarks(entries);
+    refreshBookmarkFlags();
+    return result;
+  },
+  untitledName: (n) => mainI18n.t('arcImport.untitledSpace', { n }),
+});
+
+function applyArcImport(sessionId, request) {
+  return arcImport.apply(sessionId, request).then((result) => {
+    if (result.ok) settings.setSettings({ tabImportCompleted: true });
+    return result;
+  });
+}
+
 /** Count the private/scratch pages that activation would explicitly close.
  * Named ordinary pages remain resident. Use the live list: persisted columns
  * exclude private pages and therefore cannot describe this decision. */
@@ -9777,6 +9831,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       get: () => pendingTabHandoffProjection(),
       accept: (destination) => acceptPendingTabHandoff(destination),
       cancel: () => cancelPendingTabHandoff(),
+    },
+    arcImport: {
+      detect: () => detectArcSidebar(),
+      read: (source) => arcImport.read(source),
+      apply: applyArcImport,
+      cancel: (sessionId) => arcImport.cancel(sessionId),
     },
     tabImport: {
       beginSourceRead: beginTabImportSourceRead,

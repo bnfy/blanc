@@ -1,8 +1,8 @@
 # Arc Spaces import — design
 
 Date: 2026-10-11
-Status: decisions approved in conversation; parser landed, flow awaiting implementation
-Feature id: F45 (proposed)
+Status: implemented on this branch; awaiting real-Arc evidence on macOS, Windows and Linux
+Feature id: F45
 
 ## Why
 
@@ -104,8 +104,9 @@ kept. Empty Spaces are skipped and listed.
 
 ## Flow
 
-1. **Entry.** Arc appears as a source in Bring Your Tabs, and a Patron with
-   no spaces sees **Import Spaces from Arc** in the Spaces panel.
+1. **Entry.** An Arc row on Bring Your Tabs' first step offers **Bring Spaces
+   from Arc** when Arc's file exists, and **Choose file…** everywhere. (A
+   Spaces panel entry for Patrons with no spaces is a possible follow-up.)
 2. **Preview.** One row per Space: name, tab and group counts, a note when
    it used a separate Arc profile, and a checkbox (all selected). A separate
    checkbox covers Favorites. Renderers get only counts, titles, hostnames
@@ -140,23 +141,23 @@ kept. Empty Spaces are skipped and listed.
 - Imported URLs are validated again in main before any tab or space is
   created.
 
-## Implementation phases
+## Implementation
 
-1. **Parser and planner** (`src/main/arc-sidebar.js`, 15 unit tests). Done
-   in this change.
-2. **Discovery and read** in `browser-data-import.js` (an `arc` source with
-   the per-platform locations above), plus Choose file… via a main-owned
-   dialog. Unit tests with a fake fs, mirroring
-   `browser-data-import.test.js`.
-3. **Apply** in main: Patron path through the workspace store (one durable
-   write), everyone-else path through the existing F40 apply seam, and
-   Favorites through F30.
-4. **Preview UI** in the Bring Your Tabs page and the Spaces panel entry,
-   with strings in `copy/messages/en.json` and every shipped language in
-   the same PR (F44).
-5. **Spec and acceptance:** add F45 to `spec/features.md` and
-   `spec/acceptance/arc-spaces-import.feature` with drivable fixtures
-   (a `StorableSidebar.json` fixture, Patron and non-Patron runs).
+| Part | Where | Tests |
+|---|---|---|
+| Parser and planner | `src/main/arc-sidebar.js` | `test/unit/arc-sidebar.test.js` |
+| Discovery and bounded read (macOS, Windows, chosen file) | `src/main/arc-import-source.js` | `test/unit/arc-import-source.test.js` |
+| Session, projection, apply rules (Patron re-check, room, lapse) | `src/main/arc-import.js` | `test/unit/arc-import.test.js` |
+| All-or-nothing space creation | `createMany` in `src/main/workspaces.js` | `test/unit/workspaces-store.test.js` |
+| Main wiring: native file dialog, one window per Space via `applyWorkspaceToWindow`, Favorites via `bookmarks.importBookmarks` | `src/main/main.js` | — |
+| IPC on the `tab-import` host and the page bridge | `pages:arc-import:*` in `src/main/pages.js`, `tabImport.arc*` in `src/main/tab-preload.js`, `browser-api/bridges.json` | `browser-api:check` |
+| Page: Arc row, Spaces preview, result | `src/renderer/pages/tab-import-arc.js` (guarded, `arcImport.*` strings in English and German) | `test/unit/tab-import-arc.test.js` |
+| Spec and acceptance | F45 in `spec/features.md`, `spec/acceptance/arc-spaces-import.feature` | Desktop step definitions are still to be written |
+
+Two small departures from the first draft of this spec: discovery lives in its
+own module rather than in `browser-data-import.js`, because Arc is a single
+file rather than Chromium profiles; and the Spaces panel entry point is left
+for a follow-up, since the Arc row on Bring Your Tabs already covers it.
 
 ## Release and claims gates
 

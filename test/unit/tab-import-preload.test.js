@@ -43,7 +43,7 @@ test('tab-import preload exposes only the dedicated capability set', async () =>
   assert.deepEqual(
     Object.keys(loaded.exposed.api.tabImport).sort(),
     [
-      'apply', 'cancel', 'openSource',
+      'apply', 'arcApply', 'arcCancel', 'arcDetect', 'arcRead', 'cancel', 'openSource',
       'setSelection', 'sources', 'submitEmbeddings', 'suggestEmbed',
       'suggestSourceGroups',
     ],
@@ -52,9 +52,14 @@ test('tab-import preload exposes only the dedicated capability set', async () =>
   assert.equal('settings' in loaded.exposed.api, false);
 
   await loaded.exposed.api.tabImport.openSource('source', { afterQuit: true });
-  assert.deepEqual(loaded.invocations, [[
-    'pages:tab-import:open-source', 'source', { afterQuit: true },
-  ]]);
+  // F45: the Arc members reach only their own pages:arc-import channels.
+  await loaded.exposed.api.tabImport.arcRead('file');
+  await loaded.exposed.api.tabImport.arcApply('session', { spaceIds: ['space-1'] });
+  assert.deepEqual(loaded.invocations, [
+    ['pages:tab-import:open-source', 'source', { afterQuit: true }],
+    ['pages:arc-import:read', 'file'],
+    ['pages:arc-import:apply', 'session', { spaceIds: ['space-1'] }],
+  ]);
 });
 
 test('other internal hosts never receive tab-import capabilities', () => {

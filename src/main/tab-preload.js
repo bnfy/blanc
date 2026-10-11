@@ -193,6 +193,10 @@ if (window.location.protocol === 'blanc:') {
         apply: (sessionId, request) =>
           invoke('pages:tab-import:apply', sessionId, request),
         cancel: (sessionId) => invoke('pages:tab-import:cancel', sessionId),
+        arcDetect: () => invoke('pages:arc-import:detect'),
+        arcRead: (source) => invoke('pages:arc-import:read', source),
+        arcApply: (sessionId, request) => invoke('pages:arc-import:apply', sessionId, request),
+        arcCancel: (sessionId) => invoke('pages:arc-import:cancel', sessionId),
       },
     };
   } else if (host === 'settings') {
