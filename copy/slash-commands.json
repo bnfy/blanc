@@ -96,7 +96,7 @@
       "command": "/patron"
     },
     {
-      "command": "/workspace"
+      "command": "/space"
     }
   ]
 }

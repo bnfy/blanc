@@ -12,6 +12,9 @@
     "1Password",
     "Island",
     "Glance",
+    "Blanc Spaces",
+    "Spaces",
+    "Space",
     "Arc",
     "StorableSidebar.json"
   ],
@@ -39,12 +42,6 @@
       "de": {
         "form": "Profil-Synchronisierung",
         "stem": "Synchronisier"
-      }
-    },
-    "Named Workspaces": {
-      "de": {
-        "form": "Benannte Arbeitsbereiche",
-        "stem": "Arbeitsbereich"
       }
     },
     "Quick Switcher": {
