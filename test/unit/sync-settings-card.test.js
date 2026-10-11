@@ -59,7 +59,7 @@ test('the on state lists categories and keeps the error in one conditional row',
   // The wording itself is covered behaviourally by relativeSyncTime's tests;
   // this only pins the wiring, including that no absolute timestamp is used.
   assert.match(js, /const lastSynced = relativeSyncTime\(status\.lastSyncedAt\);/);
-  assert.match(js, /syncStatusData\.textContent = lastSynced \? `Last synced \$\{lastSynced\}` : 'Not synced yet';/);
+  assert.match(js, /syncStatusData\.textContent = lastSynced \? t\('settings\.sync\.lastSynced', \{ when: lastSynced \}\) : t\('settings\.sync\.notSynced'\);/);
   assert.doesNotMatch(js, /toLocaleString\(\)[\s\S]{0,80}syncStatusData/);
   assert.match(js, /syncStatusErrorRow\.hidden = !status\.lastError/);
 });
@@ -93,7 +93,7 @@ test('settings.js drives the flow through the reducer and performs effects once'
   assert.match(js, /type: 'enable-reply', token: effect\.token/);
   // A failed enable never becomes a transient note: the error belongs to the
   // Last error row (persisted credentials) or the reducer's notice (not).
-  assert.match(js, /: 'Sync is on\. Your favorites and settings will sync as you change them\.'\)\s*: null;/);
+  assert.match(js, /: t\('settings\.sync\.on'\)\)\s*: null;/);
   assert.doesNotMatch(js, /: res\.message;/);
   // enable is only ever reached through a dispatched effect.
   assert.equal((js.match(/settings\.syncEnable\(/g) ?? []).length, 1);

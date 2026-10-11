@@ -3861,5 +3861,680 @@
   "settings.sync.syncTabsShare": {
     "message": "share this device’s open tabs with your other devices",
     "note": "Settings → Sync: checkbox that publishes this device’s open tabs to your other devices (lowercase in the original)."
+  },
+  "settings.general.newtabDynamicWallpaper.syncedHint": {
+    "message": "Wallpaper follows this machine’s local time. The on/off choice syncs across devices.",
+    "note": "Settings → General → Time-of-day wallpaper: explanation under the setting."
+  },
+  "settings.general.appIconSetting.macHint": {
+    "message": "Follows macOS Icon & Widget Style; Finder uses Sunrise",
+    "note": "Settings → General → App icon: explanation under the setting on macOS. “Icon & Widget Style” is the macOS appearance setting; Sunrise is the name of the default icon."
+  },
+  "settings.general.defaultBrowserBtn.installedOnly": {
+    "message": "Available in the installed app",
+    "note": "Settings → General → Default browser: shown under the setting in a development build, which cannot become the default browser."
+  },
+  "settings.general.darkExceptionList.empty": {
+    "message": "No sites added.",
+    "note": "Settings → General → Dark websites: shown when the list of sites kept as drawn is empty."
+  },
+  "settings.remove": {
+    "message": "Remove",
+    "note": "Settings: button that removes one entry from a list (a site exception or a saved site permission).",
+    "maxLength": 12
+  },
+  "settings.gesture.action.back": {
+    "message": "Back",
+    "note": "Settings → General → Mouse gestures: action a gesture can run (go back a page).",
+    "maxLength": 12
+  },
+  "settings.gesture.action.forward": {
+    "message": "Forward",
+    "note": "Settings → General → Mouse gestures: action a gesture can run (go forward a page).",
+    "maxLength": 12
+  },
+  "settings.gesture.action.reload": {
+    "message": "Reload",
+    "note": "Settings → General → Mouse gestures: action a gesture can run (reload the page).",
+    "maxLength": 12
+  },
+  "settings.gesture.action.newTab": {
+    "message": "New tab",
+    "note": "Settings → General → Mouse gestures: action a gesture can run.",
+    "maxLength": 12
+  },
+  "settings.gesture.action.closeTab": {
+    "message": "Close tab",
+    "note": "Settings → General → Mouse gestures: action a gesture can run.",
+    "maxLength": 13
+  },
+  "settings.gesture.action.reopenTab": {
+    "message": "Reopen closed tab",
+    "note": "Settings → General → Mouse gestures: action a gesture can run (bring back the last closed tab).",
+    "maxLength": 24
+  },
+  "settings.gesture.action.previousTab": {
+    "message": "Previous tab",
+    "note": "Settings → General → Mouse gestures: action a gesture can run (switch to the tab on the left).",
+    "maxLength": 17
+  },
+  "settings.gesture.action.nextTab": {
+    "message": "Next tab",
+    "note": "Settings → General → Mouse gestures: action a gesture can run (switch to the tab on the right).",
+    "maxLength": 12
+  },
+  "settings.gesture.action.island": {
+    "message": "Open Island",
+    "note": "Settings → General → Mouse gestures: action a gesture can run (open the Island command bar).",
+    "maxLength": 16
+  },
+  "settings.gesture.empty": {
+    "message": "No gestures assigned.",
+    "note": "Settings → General → Mouse gestures: shown when no gesture is assigned."
+  },
+  "settings.gesture.actionLabel": {
+    "message": "Action for {gesture} gesture",
+    "note": "Settings → General → Mouse gestures: accessible name of the action menu in a gesture row; {gesture} is the movement drawn as arrows, e.g. ↑→."
+  },
+  "settings.gesture.changed": {
+    "message": "{gesture} now runs {action}.",
+    "note": "Settings → General → Mouse gestures: confirmation after changing a gesture’s action; {gesture} is the movement drawn as arrows, e.g. ↑→; {action} is an action name such as “New tab”."
+  },
+  "settings.gesture.removeLabel": {
+    "message": "Remove {gesture} gesture",
+    "note": "Settings → General → Mouse gestures: accessible name of the × button in a gesture row; {gesture} is the movement drawn as arrows, e.g. ↑→."
+  },
+  "settings.gesture.removed": {
+    "message": "{gesture} gesture removed.",
+    "note": "Settings → General → Mouse gestures: confirmation after removing a gesture; {gesture} is the movement drawn as arrows, e.g. ↑→."
+  },
+  "settings.gesture.saveFailed": {
+    "message": "Could not save that gesture. Try again.",
+    "note": "Settings → General → Mouse gestures: error when saving a gesture fails."
+  },
+  "settings.gesture.reset": {
+    "message": "Default gestures restored.",
+    "note": "Settings → General → Mouse gestures: confirmation after Restore defaults."
+  },
+  "settings.gesture.limit": {
+    "message": "Remove a gesture before adding another.",
+    "note": "Settings → General → Mouse gestures: shown when the maximum of 16 gestures is reached."
+  },
+  "settings.gesture.drawing": {
+    "message": "Drawing…",
+    "note": "Settings → General → Mouse gestures: shown in the drawing pad while the button is held down."
+  },
+  "settings.gesture.tooLong": {
+    "message": "Use at most three directions. Try again.",
+    "note": "Settings → General → Mouse gestures: error after drawing a movement with more than three directions."
+  },
+  "settings.gesture.tooShort": {
+    "message": "Gesture too short. Try again.",
+    "note": "Settings → General → Mouse gestures: error after a movement too short to count."
+  },
+  "settings.gesture.duplicate": {
+    "message": "That movement is already assigned. Draw a different one.",
+    "note": "Settings → General → Mouse gestures: error after drawing a movement that already has an action."
+  },
+  "settings.gesture.ready": {
+    "message": "{gesture} is ready. Choose an action and save.",
+    "note": "Settings → General → Mouse gestures: shown after drawing a new gesture; {gesture} is the movement drawn as arrows, e.g. ↑→."
+  },
+  "settings.gesture.saved": {
+    "message": "{gesture} runs {action}.",
+    "note": "Settings → General → Mouse gestures: confirmation after saving a new gesture; {gesture} is the movement drawn as arrows, e.g. ↑→; {action} is an action name such as “New tab”."
+  },
+  "settings.gesture.cancelled": {
+    "message": "Drawing cancelled.",
+    "note": "Settings → General → Mouse gestures: shown when the system interrupts drawing."
+  },
+  "settings.help.unavailable": {
+    "message": "Unavailable",
+    "note": "Settings → Help → About Blanc: shown in place of a version or platform value that could not be read."
+  },
+  "settings.help.updateCheckFailed": {
+    "message": "Could not start an update check. Try again from the app menu.",
+    "note": "Settings → Help: error under Check for updates."
+  },
+  "settings.blockingStatus.unavailable": {
+    "message": "uBlock Origin isn’t available in this build.",
+    "note": "Settings → Privacy → Blocking: status line under the blocker choice."
+  },
+  "settings.blockingStatus.ready": {
+    "message": "{provider} ready.",
+    "note": "Settings → Privacy → Blocking: status line under the blocker choice; {provider} is the blocker name, “Blanc Blocker” or “uBlock Origin”."
+  },
+  "settings.blockingStatus.initializing": {
+    "message": "{provider} initializing.",
+    "note": "Settings → Privacy → Blocking: status line under the blocker choice, while the blocker starts; {provider} is the blocker name, “Blanc Blocker” or “uBlock Origin”."
+  },
+  "settings.blockingStatus.disabled": {
+    "message": "{provider} disabled.",
+    "note": "Settings → Privacy → Blocking: status line under the blocker choice, when blocking is turned off; {provider} is the blocker name, “Blanc Blocker” or “uBlock Origin”."
+  },
+  "settings.blockingStatus.phase": {
+    "message": "{provider}: {phase}.",
+    "note": "Settings → Privacy → Blocking: status line under the blocker choice, for an unusual state; {provider} is the blocker name, “Blanc Blocker” or “uBlock Origin”; {phase} is an internal state name shown as is."
+  },
+  "settings.blockingStatus.restartPending": {
+    "message": "{selected} selected. Restart Blanc to apply; {active} is active.",
+    "note": "Settings → Privacy → Blocking: status line under the blocker choice, after choosing another blocker; {selected} and {active} are blocker names (“Blanc Blocker” or “uBlock Origin”)."
+  },
+  "settings.blockingStatus.recovering": {
+    "message": "{provider} is restarting. New requests are paused.",
+    "note": "Settings → Privacy → Blocking: status line under the blocker choice; {provider} is the blocker name, “Blanc Blocker” or “uBlock Origin”."
+  },
+  "settings.blockingStatus.failed": {
+    "message": "{provider} could not continue ({error}). Affected requests remain blocked.",
+    "note": "Settings → Privacy → Blocking: status line under the blocker choice, after the blocker failed while blocking is on; {provider} is the blocker name, “Blanc Blocker” or “uBlock Origin”; {error} is an internal error code shown as is."
+  },
+  "settings.blockingStatus.failedOff": {
+    "message": "{provider} could not continue ({error}). Blocking is disabled.",
+    "note": "Settings → Privacy → Blocking: status line under the blocker choice, after the blocker failed while blocking is off; {provider} is the blocker name, “Blanc Blocker” or “uBlock Origin”; {error} is an internal error code shown as is."
+  },
+  "settings.blockingStatus.fallbackActive": {
+    "message": "Blanc Blocker is active.",
+    "note": "Settings → Privacy → Blocking: status line under the blocker choice, when uBlock Origin was chosen but cannot run."
+  },
+  "settings.blockingStatus.off": {
+    "message": "Blocking is off.",
+    "note": "Settings → Privacy → Blocking: status line under the blocker choice, when uBlock Origin was chosen but cannot run and blocking is off."
+  },
+  "settings.blockingStatus.retired": {
+    "message": "This browser engine can’t run uBlock Origin.",
+    "note": "Settings → Privacy → Blocking: status line under the blocker choice, when the engine no longer supports uBlock Origin."
+  },
+  "settings.blockingStatus.saved": {
+    "message": "Your uBO settings are saved.",
+    "note": "Settings → Privacy → Blocking: status line under the blocker choice, when uBlock Origin cannot run; uBO is the short name of uBlock Origin."
+  },
+  "settings.blockingStatus.internalCandidate": {
+    "message": "Internal validation candidate; platform support is not certified.",
+    "note": "Settings → Privacy → Blocking: status line under the blocker choice, in internal test builds only."
+  },
+  "settings.blockingStatus.retry": {
+    "message": "Retry {provider}",
+    "note": "Settings → Privacy → Blocking: button that restarts a failed blocker; {provider} is the blocker name, “Blanc Blocker” or “uBlock Origin”.",
+    "maxLength": 24
+  },
+  "settings.onePassword.error.accountNotFound": {
+    "message": "Account not found — check your 1Password email address and try again.",
+    "note": "Settings → Privacy → 1Password: Verify result."
+  },
+  "settings.onePassword.error.notAuthorized": {
+    "message": "1Password didn’t authorize Blanc. Unlock 1Password, approve Blanc Browser, and try again.",
+    "note": "Settings → Privacy → 1Password: Verify result. “Blanc Browser” is the name 1Password shows in its approval prompt."
+  },
+  "settings.onePassword.error.sessionExpired": {
+    "message": "Authorization expired — try again.",
+    "note": "Settings → Privacy → 1Password: Verify result."
+  },
+  "settings.onePassword.error.desktopUnavailable": {
+    "message": "1Password isn’t available. Open the app and turn on Settings → Developer → Integrate with 1Password SDKs.",
+    "note": "Settings → Privacy → 1Password: Verify result. The path names the 1Password app’s own settings; use the labels the 1Password app shows in this language."
+  },
+  "settings.onePassword.error.timedOut": {
+    "message": "1Password timed out — try again when the app is ready.",
+    "note": "Settings → Privacy → 1Password: Verify result."
+  },
+  "settings.onePassword.error.brokerStopped": {
+    "message": "The 1Password helper stopped — try again.",
+    "note": "Settings → Privacy → 1Password: Verify result when Blanc’s helper process for 1Password stopped."
+  },
+  "settings.onePassword.error.sdkError": {
+    "message": "1Password couldn’t complete the check — try again.",
+    "note": "Settings → Privacy → 1Password: Verify result."
+  },
+  "settings.onePassword.checking": {
+    "message": "Checking with 1Password…",
+    "note": "Settings → Privacy → 1Password: shown while Verify runs."
+  },
+  "settings.onePassword.connected": {
+    "message": "Connected.",
+    "note": "Settings → Privacy → 1Password: Verify succeeded."
+  },
+  "settings.onePassword.installedMac": {
+    "message": "Installed on this Mac.",
+    "note": "Settings → Privacy → 1Password: hint when the 1Password app was found on a Mac."
+  },
+  "settings.onePassword.installed": {
+    "message": "Installed on this computer.",
+    "note": "Settings → Privacy → 1Password: hint when the 1Password app was found on Windows or Linux."
+  },
+  "settings.onePassword.notFoundMac": {
+    "message": "Blanc couldn’t find the 1Password app in Applications — if it’s installed elsewhere, Verify below still works.",
+    "note": "Settings → Privacy → 1Password: hint on a Mac when the app is not in the Applications folder. “Verify” is the button below."
+  },
+  "settings.onePassword.notFound": {
+    "message": "Blanc couldn’t find the 1Password app in its usual install location — if it’s installed elsewhere, Verify below still works.",
+    "note": "Settings → Privacy → 1Password: hint on Windows or Linux when the app is not in its usual place. “Verify” is the button below."
+  },
+  "settings.privacy.resetInstallId.done": {
+    "message": "Reset — this install now counts as brand new.",
+    "note": "Settings → Privacy → Usage and data: confirmation after Reset install ID."
+  },
+  "settings.privacy.resetInstallId.failed": {
+    "message": "Couldn’t save the reset — check disk space and try again.",
+    "note": "Settings → Privacy → Usage and data: error after Reset install ID."
+  },
+  "settings.privacy.exceptionList.empty": {
+    "message": "No exceptions added.",
+    "note": "Settings → Privacy → Blocking: shown when no site is excepted from blocking."
+  },
+  "settings.privacy.clearBrowsingData.confirm": {
+    "message": "Clear all cookies, cache, and site data? You will be logged out of everything.",
+    "note": "Settings → Privacy: confirmation dialog before clearing browsing data."
+  },
+  "settings.privacy.clearBrowsingData.done": {
+    "message": "Cleared.",
+    "note": "Settings → Privacy: confirmation after clearing browsing data."
+  },
+  "settings.permissions.empty": {
+    "message": "No saved decisions. Sites ask the first time they need something.",
+    "note": "Settings → Privacy → Site permissions: shown when nothing is saved."
+  },
+  "settings.permissions.media": {
+    "message": "Camera/microphone",
+    "note": "Settings → Privacy → Site permissions: permission name."
+  },
+  "settings.permissions.geolocation": {
+    "message": "Location",
+    "note": "Settings → Privacy → Site permissions: permission name."
+  },
+  "settings.permissions.notifications": {
+    "message": "Notifications",
+    "note": "Settings → Privacy → Site permissions: permission name."
+  },
+  "settings.permissions.audio": {
+    "message": "Microphone",
+    "note": "Settings → Privacy → Site permissions: permission name."
+  },
+  "settings.permissions.video": {
+    "message": "Camera",
+    "note": "Settings → Privacy → Site permissions: permission name."
+  },
+  "settings.permissions.allowed": {
+    "message": "{permission} — Allowed",
+    "note": "Settings → Privacy → Site permissions: a saved decision under the site name; {permission} is a permission name such as “Location”."
+  },
+  "settings.permissions.blocked": {
+    "message": "{permission} — Blocked",
+    "note": "Settings → Privacy → Site permissions: a saved decision under the site name; {permission} is a permission name such as “Location”."
+  },
+  "settings.patron.thanks": {
+    "message": "You’re a Patron — thank you.",
+    "note": "Settings → Blanc Patron: status once Patron is active."
+  },
+  "settings.patron.thanksSince": {
+    "message": "You’re a Patron — thank you. Activated {date}.",
+    "note": "Settings → Blanc Patron: status once Patron is active; {date} is the activation date, already formatted."
+  },
+  "settings.patron.activating": {
+    "message": "Activating…",
+    "note": "Settings → Blanc Patron: shown while a license key is checked."
+  },
+  "settings.patron.failed": {
+    "message": "Something went wrong. Please try again.",
+    "note": "Settings → Blanc Patron: error when activation could not run."
+  },
+  "settings.profiles.personalMeta": {
+    "message": "Your original Blanc data · permanent",
+    "note": "Settings → Profiles: line under the built-in Personal profile."
+  },
+  "settings.profiles.currentWindow": {
+    "message": "Current window",
+    "note": "Settings → Profiles: line under the profile of this window."
+  },
+  "settings.profiles.separateData": {
+    "message": "Separate local browser data",
+    "note": "Settings → Profiles: line under another named profile."
+  },
+  "settings.profiles.open": {
+    "message": "Open",
+    "note": "Settings → Profiles: button that opens a window with this profile.",
+    "maxLength": 12
+  },
+  "settings.profiles.rename": {
+    "message": "Rename",
+    "note": "Settings → Profiles: button.",
+    "maxLength": 12
+  },
+  "settings.profiles.save": {
+    "message": "Save",
+    "note": "Settings → Profiles: button that saves a new profile name.",
+    "maxLength": 12
+  },
+  "settings.profiles.delete": {
+    "message": "Delete",
+    "note": "Settings → Profiles: button that starts deleting a profile.",
+    "maxLength": 12
+  },
+  "settings.profiles.deletePermanently": {
+    "message": "Delete permanently",
+    "note": "Settings → Profiles: button that confirms deleting a profile.",
+    "maxLength": 26
+  },
+  "settings.profiles.openFailed": {
+    "message": "Couldn’t open that profile.",
+    "note": "Settings → Profiles: error."
+  },
+  "settings.profiles.renameLabel": {
+    "message": "New name for {name}",
+    "note": "Settings → Profiles: accessible name of the rename field; {name} is the profile’s current name."
+  },
+  "settings.profiles.renamed": {
+    "message": "Profile renamed.",
+    "note": "Settings → Profiles: confirmation."
+  },
+  "settings.profiles.renameFailed": {
+    "message": "Couldn’t rename that profile.",
+    "note": "Settings → Profiles: error."
+  },
+  "settings.profiles.deleteWarning": {
+    "message": "Permanently deletes this profile’s local browser data. Downloaded files stay where you saved them. Type “{name}” to continue.",
+    "note": "Settings → Profiles: warning above the field that confirms deletion; {name} is the profile’s name, which must be typed exactly."
+  },
+  "settings.profiles.deleteLabel": {
+    "message": "Type {name} to confirm deletion",
+    "note": "Settings → Profiles: accessible name of the field that confirms deletion; {name} is the profile’s name."
+  },
+  "settings.profiles.deleted": {
+    "message": "Profile deleted.",
+    "note": "Settings → Profiles: confirmation."
+  },
+  "settings.profiles.deleteFailed": {
+    "message": "Couldn’t delete that profile.",
+    "note": "Settings → Profiles: error."
+  },
+  "settings.profiles.createFailed": {
+    "message": "Couldn’t create that profile.",
+    "note": "Settings → Profiles: error."
+  },
+  "settings.profiles.created": {
+    "message": "Created {name}.",
+    "note": "Settings → Profiles: confirmation after creating a profile; {name} is its name."
+  },
+  "settings.profiles.loadFailed": {
+    "message": "Couldn’t load profiles.",
+    "note": "Settings → Profiles: error."
+  },
+  "settings.sync.lastSynced": {
+    "message": "Last synced {when}",
+    "note": "Settings → Sync: status row; {when} is a relative time such as “5 minutes ago” or “yesterday”, or a date."
+  },
+  "settings.sync.notSynced": {
+    "message": "Not synced yet",
+    "note": "Settings → Sync: status row before the first sync."
+  },
+  "settings.sync.sharing": {
+    "message": "Sharing",
+    "note": "Settings → Sync: status of this device’s open tabs when they are shared."
+  },
+  "settings.sync.notShared": {
+    "message": "Not shared",
+    "note": "Settings → Sync: status of this device’s open tabs when they are not shared."
+  },
+  "settings.sync.turningOn": {
+    "message": "Turning on sync…",
+    "note": "Settings → Sync setup: shown while sync is turned on."
+  },
+  "settings.sync.connectedTo": {
+    "message": "Connected to “{name}”. Pulling your favorites and settings now.",
+    "note": "Settings → Sync: confirmation after joining a sync from another device; {name} is the sync name."
+  },
+  "settings.sync.joinedAs": {
+    "message": "Joined your existing sync as “{name}”.",
+    "note": "Settings → Sync: confirmation when starting sync found existing data under that name; {name} is the sync name."
+  },
+  "settings.sync.on": {
+    "message": "Sync is on. Your favorites and settings will sync as you change them.",
+    "note": "Settings → Sync: confirmation after turning sync on."
+  },
+  "settings.sync.checking": {
+    "message": "Checking…",
+    "note": "Settings → Sync setup: shown while Blanc looks for an existing sync."
+  },
+  "settings.sync.checkFailed": {
+    "message": "Could not check sync. Try again.",
+    "note": "Settings → Sync setup: error."
+  },
+  "settings.sync.syncing": {
+    "message": "Syncing…",
+    "note": "Settings → Sync: shown after Sync now."
+  },
+  "settings.sync.notice.offline": {
+    "message": "Couldn’t reach the sync server. Check your connection and try again.",
+    "note": "Settings → Sync setup: error."
+  },
+  "settings.sync.notice.rateLimited": {
+    "message": "Too many attempts. Wait a minute and try again.",
+    "note": "Settings → Sync setup: error."
+  },
+  "settings.sync.setup.intro": {
+    "message": "Sync your favorites and settings across your devices, and, if you choose, open tabs. Everything is end-to-end encrypted.",
+    "note": "Settings → Sync setup: introduction before a path is chosen."
+  },
+  "settings.sync.setup.joinTitle": {
+    "message": "Connect this device",
+    "note": "Settings → Sync setup: heading when joining a sync from another device."
+  },
+  "settings.sync.setup.joinIntro": {
+    "message": "Use the same sync name and passphrase as your other device. Blanc checks them before saving anything here.",
+    "note": "Settings → Sync setup: introduction when joining a sync from another device."
+  },
+  "settings.sync.setup.handleHint": {
+    "message": "A label for your sync, like a username. You’ll type it again on your other devices.",
+    "note": "Settings → Sync setup: hint under the sync name field when starting a new sync."
+  },
+  "settings.sync.setup.joinHandleHint": {
+    "message": "Enter the exact sync name you used on your other device.",
+    "note": "Settings → Sync setup: hint under the sync name field when joining."
+  },
+  "settings.sync.setup.passphraseHint": {
+    "message": "16+ characters, or 10+ mixing letters, numbers and symbols. Blanc can’t recover it if you forget it.",
+    "note": "Settings → Sync setup: hint under the passphrase field when starting a new sync."
+  },
+  "settings.sync.setup.joinPassphraseHint": {
+    "message": "Enter the exact passphrase. Case matters.",
+    "note": "Settings → Sync setup: hint under the passphrase field when joining."
+  },
+  "settings.sync.setup.connect": {
+    "message": "Connect",
+    "note": "Settings → Sync setup: submit button when joining a sync from another device.",
+    "maxLength": 12
+  },
+  "settings.sync.setup.joinFinishHint": {
+    "message": "Blanc will look for your encrypted sync before saving these credentials on this device.",
+    "note": "Settings → Sync setup: hint above the submit button when joining."
+  },
+  "settings.sync.ago.justNow": {
+    "message": "just now",
+    "note": "Settings → Sync: completes “Last synced {when}” for a sync less than a minute ago."
+  },
+  "settings.sync.ago.minutes": {
+    "message": "{count, plural, one {# minute ago} other {# minutes ago}}",
+    "note": "Settings → Sync: completes “Last synced {when}”; # is a number of minutes."
+  },
+  "settings.sync.ago.hours": {
+    "message": "{count, plural, one {# hour ago} other {# hours ago}}",
+    "note": "Settings → Sync: completes “Last synced {when}”; # is a number of hours."
+  },
+  "settings.sync.ago.yesterday": {
+    "message": "yesterday",
+    "note": "Settings → Sync: completes “Last synced {when}”."
+  },
+  "settings.sync.ago.days": {
+    "message": "{count, plural, one {# day ago} other {# days ago}}",
+    "note": "Settings → Sync: completes “Last synced {when}”; # is a number of days (2 to 29)."
+  },
+  "settings.trust.on": {
+    "message": "On",
+    "note": "Settings → About & Trust: local trust receipt: value of an on/off fact."
+  },
+  "settings.trust.off": {
+    "message": "Off",
+    "note": "Settings → About & Trust: local trust receipt: value of an on/off fact."
+  },
+  "settings.trust.dnsAuto": {
+    "message": "Automatic",
+    "note": "Settings → About & Trust: local trust receipt: Encrypted DNS value when set to Automatic."
+  },
+  "settings.trust.dnsCustom": {
+    "message": "Custom provider",
+    "note": "Settings → About & Trust: local trust receipt: Encrypted DNS value when a custom provider is set."
+  },
+  "settings.trust.signature.verified": {
+    "message": "Verified locally — {publisher}",
+    "note": "Settings → About & Trust: local trust receipt: publisher fact; {publisher} is the code-signing identity."
+  },
+  "settings.trust.signature.mismatch": {
+    "message": "Expected {expected} · observed {observed}",
+    "note": "Settings → About & Trust: local trust receipt: publisher fact when the signature does not match; {expected} and {observed} are code-signing identities."
+  },
+  "settings.trust.signature.unknownPublisher": {
+    "message": "unknown publisher",
+    "note": "Settings → About & Trust: local trust receipt: fills {observed} in “Expected {expected} · observed {observed}” when no publisher was found."
+  },
+  "settings.trust.signature.unavailable": {
+    "message": "Expected {expected} · local inspection unavailable",
+    "note": "Settings → About & Trust: local trust receipt: publisher fact when the signature could not be inspected; {expected} is a code-signing identity."
+  },
+  "settings.trust.signature.development": {
+    "message": "Development build — not a signed release build",
+    "note": "Settings → About & Trust: local trust receipt: publisher fact in a development build."
+  },
+  "settings.trust.signature.manifestBacked": {
+    "message": "Linux publisher verification relies on the signed manifest for the matching release",
+    "note": "Settings → About & Trust: local trust receipt: publisher fact on Linux."
+  },
+  "settings.trust.signature.unknown": {
+    "message": "Unknown",
+    "note": "Settings → About & Trust: local trust receipt: publisher fact when the result is not recognized."
+  },
+  "settings.trust.fact.build": {
+    "message": "Build",
+    "note": "Settings → About & Trust: local trust receipt: fact name (app version and build number)."
+  },
+  "settings.trust.fact.runtime": {
+    "message": "Runtime",
+    "note": "Settings → About & Trust: local trust receipt: fact name (Electron, Chromium and Node versions)."
+  },
+  "settings.trust.fact.platform": {
+    "message": "Platform",
+    "note": "Settings → About & Trust: local trust receipt: fact name (operating system and architecture)."
+  },
+  "settings.trust.fact.publisher": {
+    "message": "Publisher",
+    "note": "Settings → About & Trust: local trust receipt: fact name (who signed the app)."
+  },
+  "settings.trust.fact.blockerSnapshot": {
+    "message": "Blocker snapshot",
+    "note": "Settings → About & Trust: local trust receipt: fact name (date and names of the bundled filter lists)."
+  },
+  "settings.trust.fact.blockerList": {
+    "message": "Blocker · {name}",
+    "note": "Settings → About & Trust: local trust receipt: fact name for one filter list’s checksum; {name} is the list name, e.g. easylist."
+  },
+  "settings.trust.fact.blockerDigest": {
+    "message": "Combined blocker digest",
+    "note": "Settings → About & Trust: local trust receipt: fact name (one checksum over all filter lists)."
+  },
+  "settings.trust.fact.sync": {
+    "message": "Sync",
+    "note": "Settings → About & Trust: local trust receipt: fact name."
+  },
+  "settings.trust.fact.openTabs": {
+    "message": "Open-tab sharing",
+    "note": "Settings → About & Trust: local trust receipt: fact name."
+  },
+  "settings.trust.fact.usage": {
+    "message": "Usage measurement",
+    "note": "Settings → About & Trust: local trust receipt: fact name."
+  },
+  "settings.trust.fact.suggestions": {
+    "message": "Search suggestions",
+    "note": "Settings → About & Trust: local trust receipt: fact name."
+  },
+  "settings.trust.fact.secureDns": {
+    "message": "Secure DNS",
+    "note": "Settings → About & Trust: local trust receipt: fact name (the Encrypted DNS setting)."
+  },
+  "settings.trust.fact.crashLedger": {
+    "message": "Crash ledger",
+    "note": "Settings → About & Trust: local trust receipt: fact name (the local crash history)."
+  },
+  "settings.trust.buildPackaged": {
+    "message": "{version} ({build}) · packaged",
+    "note": "Settings → About & Trust: local trust receipt: build fact for an installed app; {version} is the app version, {build} the build number."
+  },
+  "settings.trust.buildDevelopment": {
+    "message": "{version} ({build}) · development",
+    "note": "Settings → About & Trust: local trust receipt: build fact for a development run; {version} is the app version, {build} the build number."
+  },
+  "settings.trust.syncScope": {
+    "message": "Favorites, selected settings · Personal only",
+    "note": "Settings → About & Trust: local trust receipt: what Sync covers when it is on. “Personal” is the name of the built-in profile."
+  },
+  "settings.trust.crashLedger": {
+    "message": "Device only · automatic upload off · {count}/{limit} events",
+    "note": "Settings → About & Trust: local trust receipt: crash ledger fact; {count} is the number of recorded events, {limit} the maximum kept (50)."
+  },
+  "settings.trust.checked": {
+    "message": "Receipt checked locally.",
+    "note": "Settings → About & Trust: local trust receipt: status once the receipt is shown."
+  },
+  "settings.trust.failed": {
+    "message": "Couldn’t build the local trust receipt.",
+    "note": "Settings → About & Trust: local trust receipt: error."
+  },
+  "settings.diagnostics.none": {
+    "message": "No crashes have been recorded on this device.",
+    "note": "Settings → Diagnostics: summary when the crash history is empty."
+  },
+  "settings.diagnostics.count": {
+    "message": "{count, plural, one {# crash event recorded on this device.} other {# crash events recorded on this device.}}",
+    "note": "Settings → Diagnostics: summary; # is the number of recorded crash events (1 or more)."
+  },
+  "settings.diagnostics.preparing": {
+    "message": "Preparing report…",
+    "note": "Settings → Diagnostics: shown while the export is prepared."
+  },
+  "settings.diagnostics.saved": {
+    "message": "Saved.",
+    "note": "Settings → Diagnostics: confirmation after exporting diagnostics."
+  },
+  "settings.diagnostics.cancelled": {
+    "message": "Export canceled.",
+    "note": "Settings → Diagnostics: shown when the save dialog was cancelled."
+  },
+  "settings.diagnostics.saveFailed": {
+    "message": "Couldn’t save diagnostics.",
+    "note": "Settings → Diagnostics: error."
+  },
+  "settings.diagnostics.clearConfirm": {
+    "message": "Clear Blanc’s local crash history?",
+    "note": "Settings → Diagnostics: confirmation dialog before clearing the crash history."
+  },
+  "settings.diagnostics.cleared": {
+    "message": "Crash history cleared.",
+    "note": "Settings → Diagnostics: confirmation."
+  },
+  "settings.diagnostics.clearFailed": {
+    "message": "Couldn’t clear crash history.",
+    "note": "Settings → Diagnostics: error."
+  },
+  "settings.diagnostics.readFailed": {
+    "message": "Couldn’t read local crash history.",
+    "note": "Settings → Diagnostics: error."
+  },
+  "settings.hint.more": {
+    "message": "More",
+    "note": "Settings: button under a long explanation that shows the rest of it.",
+    "maxLength": 12
+  },
+  "settings.hint.less": {
+    "message": "Less",
+    "note": "Settings: button under an expanded explanation that folds it back to two lines.",
+    "maxLength": 12
   }
 }

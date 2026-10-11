@@ -19,6 +19,7 @@
   // `await` a bridge method on load; an unimplemented one rejects and would
   // abort this whole IIFE, and removing a container first makes its children
   // un-findable by id (getElementById → null → `.addEventListener` throws).
+  const { t } = blancI18n;
   const cap = capabilities ? new Set(capabilities) : null;
   const supports = (feature) => !cap || cap.has(feature);
   function renderWallpaperSetting() {
@@ -26,7 +27,7 @@
     const control = document.getElementById('newtabDynamicWallpaper');
     control.checked = settings.newtabDynamicWallpaper === true;
     document.getElementById('dynamicWallpaperHint').textContent =
-      'Wallpaper follows this machine’s local time. The on/off choice syncs across devices.';
+      t('settings.general.newtabDynamicWallpaper.syncedHint');
   }
   if (supports('newtabDynamicWallpaper')) {
     renderWallpaperSetting();
@@ -53,7 +54,12 @@
       aboutChromium: appInfo.chromiumVersion,
       aboutPlatform: platforms[appInfo.platform] || appInfo.platform,
       aboutArchitecture: appInfo.architecture,
-    })) document.getElementById(id).textContent = value || 'Unavailable';
+    })) {
+      const element = document.getElementById(id);
+      element.textContent = value || t('settings.help.unavailable');
+      // Versions and platform names are the same in every language.
+      if (value) element.dataset.i18nIgnore = '';
+    }
     document.getElementById('appAboutCard').hidden = false;
     const check = document.getElementById('checkForUpdates');
     if (typeof window.bowserPages.settings.checkForUpdates === 'function') {
@@ -65,7 +71,7 @@
         try {
           await window.bowserPages.settings.checkForUpdates();
         } catch {
-          status.textContent = 'Could not start an update check. Try again from the app menu.';
+          status.textContent = t('settings.help.updateCheckFailed');
         } finally {
           check.disabled = false;
         }
@@ -89,31 +95,38 @@
       selector.value = state.fallback ? state.active : state.selected;
       selector.querySelector('[value="ublock-origin"]').disabled = !state.supported;
       const status = document.getElementById('blockingProviderStatus');
-      const unavailable = 'uBlock Origin isn’t available in this build.';
+      const unavailable = t('settings.blockingStatus.unavailable');
+      const provider = label(state.active);
+      const shown = state.enabled ? state.phase : 'disabled';
+      const phase = shown === 'ready' ? t('settings.blockingStatus.ready', { provider })
+        : shown === 'initializing' ? t('settings.blockingStatus.initializing', { provider })
+          : shown === 'disabled' ? t('settings.blockingStatus.disabled', { provider })
+            : t('settings.blockingStatus.phase', { provider, phase: shown });
       status.textContent = state.restartPending
-        ? `${label(state.selected)} selected. Restart Blanc to apply; ${label(state.active)} is active.`
+        ? t('settings.blockingStatus.restartPending', { selected: label(state.selected), active: provider })
         : state.phase === 'recovering'
-          ? `${label(state.active)} is restarting. New requests are paused.`
+          ? t('settings.blockingStatus.recovering', { provider })
         : state.phase === 'failed'
-          ? `${label(state.active)} could not continue (${state.error}). ${state.enabled ? 'Affected requests remain blocked.' : 'Blocking is disabled.'}`
+          ? (state.enabled
+            ? t('settings.blockingStatus.failed', { provider, error: state.error })
+            : t('settings.blockingStatus.failedOff', { provider, error: state.error }))
           : state.phase === 'unsupported'
             ? unavailable
-            : `${label(state.active)} ${state.enabled ? state.phase : 'disabled'}.${state.supported || state.exposed === false || state.fallback ? '' : ' ' + unavailable}`;
+            : state.supported || state.exposed === false || state.fallback ? phase : `${phase} ${unavailable}`;
       if (state.fallback) {
-        const protection = state.enabled && state.phase === 'ready' ? 'Blanc Blocker is active.'
-          : state.enabled ? status.textContent : 'Blocking is off.';
-        const reason = state.fallback === 'manifest-v2-retired'
-          ? 'This browser engine can’t run uBlock Origin.' : 'uBlock Origin isn’t available in this build.';
-        status.textContent = `${reason} ${protection} Your uBO settings are saved.`;
+        const protection = state.enabled && state.phase === 'ready' ? t('settings.blockingStatus.fallbackActive')
+          : state.enabled ? status.textContent : t('settings.blockingStatus.off');
+        const reason = state.fallback === 'manifest-v2-retired' ? t('settings.blockingStatus.retired') : unavailable;
+        status.textContent = `${reason} ${protection} ${t('settings.blockingStatus.saved')}`;
       }
-      if (state.internalCandidate) status.textContent += ' Internal validation candidate; platform support is not certified.';
+      if (state.internalCandidate) status.textContent += ` ${t('settings.blockingStatus.internalCandidate')}`;
       const ubo = state.active === 'ublock-origin';
       document.getElementById('ublockTools').hidden = !ubo;
       document.getElementById('ublockLimits').hidden = !ubo;
       const failed = ['failed', 'unsupported'].includes(state.phase);
       document.getElementById('blockingRecovery').hidden = !failed;
       document.getElementById('ublockRetry').hidden = !failed;
-      document.getElementById('ublockRetry').textContent = `Retry ${label(state.active)}`;
+      document.getElementById('ublockRetry').textContent = t('settings.blockingStatus.retry', { provider });
       document.getElementById('ublockUseBlanc').hidden = !failed || !ubo;
       document.getElementById('ublockContinue').hidden = !failed;
     };
@@ -147,6 +160,7 @@
     const opt = document.createElement('option');
     opt.value = key;
     opt.textContent = label;
+    opt.dataset.i18nIgnore = ''; // engine names are proper names
     searchEngine.append(opt);
   }
   theme.value = settings.theme ?? 'system';
@@ -210,7 +224,7 @@
       if (exceptions.length === 0) {
         const empty = document.createElement('div');
         empty.className = 'empty';
-        empty.textContent = 'No sites added.';
+        empty.textContent = t('settings.general.darkExceptionList.empty');
         darkExceptionList.append(empty);
         return;
       }
@@ -222,12 +236,13 @@
         const title = document.createElement('div');
         title.className = 'title';
         title.textContent = hostname;
+        title.dataset.i18nIgnore = '';
         main.append(title);
         const actions = document.createElement('div');
         actions.className = 'actions';
         const remove = document.createElement('button');
         remove.className = 'danger';
-        remove.textContent = 'Remove';
+        remove.textContent = t('settings.remove');
         remove.addEventListener('click', async () => {
           renderDarkExceptions(await window.bowserPages.settings.set({
             darkWebsitesExceptions: exceptions.filter((h) => h !== hostname),
@@ -276,6 +291,8 @@
         const el = document.createElement('option');
         el.value = option.value;
         el.textContent = option.label;
+        // Each language is named in its own language, whatever the interface's.
+        if (option.value !== 'system') el.dataset.i18nIgnore = '';
         return el;
       }));
       select.value = row.selected;
@@ -305,9 +322,15 @@
   // Settings so normal settings interactions never activate a page gesture.
   if (supports('mouseGesturesEnabled')) {
     const actions = {
-      back: 'Back', forward: 'Forward', reload: 'Reload', newTab: 'New tab',
-      closeTab: 'Close tab', reopenTab: 'Reopen closed tab',
-      previousTab: 'Previous tab', nextTab: 'Next tab', island: 'Open Island',
+      back: t('settings.gesture.action.back'),
+      forward: t('settings.gesture.action.forward'),
+      reload: t('settings.gesture.action.reload'),
+      newTab: t('settings.gesture.action.newTab'),
+      closeTab: t('settings.gesture.action.closeTab'),
+      reopenTab: t('settings.gesture.action.reopenTab'),
+      previousTab: t('settings.gesture.action.previousTab'),
+      nextTab: t('settings.gesture.action.nextTab'),
+      island: t('settings.gesture.action.island'),
     };
     const defaults = { L: 'back', R: 'forward', U: 'newTab', D: 'closeTab' };
     const enabled = document.getElementById('mouseGesturesEnabled');
@@ -327,6 +350,7 @@
     enabled.checked = settings.mouseGesturesEnabled === true;
     editor.hidden = !enabled.checked;
     const labels = { U: '↑', D: '↓', L: '←', R: '→' };
+    const padIdle = t('settings.general.mouseGesturePadPrompt');
     const glyphFor = (pattern) => [...pattern].map((letter) => labels[letter]).join('');
     const fillActions = (select, selected) => {
       for (const [id, label] of Object.entries(actions)) {
@@ -337,24 +361,24 @@
     };
     const closeComposer = () => {
       composer.hidden = true; add.hidden = false; drawing = null; drawnPattern = '';
-      padPrompt.textContent = 'Press and drag here'; save.disabled = true;
+      padPrompt.textContent = padIdle; save.disabled = true;
     };
     const showEmpty = () => {
       const empty = document.createElement('p'); empty.className = 'gesture-empty';
-      empty.textContent = 'No gestures assigned.'; rows.append(empty);
+      empty.textContent = t('settings.gesture.empty'); rows.append(empty);
     };
     const makeRow = (pattern, command) => {
       const row = document.createElement('div'); row.className = 'gesture-row';
       const glyph = document.createElement('code');
       glyph.textContent = glyphFor(pattern);
       const select = document.createElement('select');
-      select.setAttribute('aria-label', `Action for ${glyph.textContent} gesture`);
+      select.setAttribute('aria-label', t('settings.gesture.actionLabel', { gesture: glyph.textContent }));
       fillActions(select, command);
       select.addEventListener('change', async () => {
         const selectedAction = select.value;
         await persistMapping(
           (current) => ({ ...current, [pattern]: selectedAction }),
-          `${glyph.textContent} now runs ${actions[selectedAction]}.`,
+          t('settings.gesture.changed', { gesture: glyph.textContent, action: actions[selectedAction] }),
           {
             redraw: false,
             onFailure: () => {
@@ -365,11 +389,11 @@
       });
       const remove = document.createElement('button'); remove.type = 'button';
       remove.className = 'gesture-remove'; remove.textContent = '×';
-      remove.setAttribute('aria-label', `Remove ${glyph.textContent} gesture`);
+      remove.setAttribute('aria-label', t('settings.gesture.removeLabel', { gesture: glyph.textContent }));
       remove.addEventListener('click', async () => {
         await persistMapping((current) => {
           const next = { ...current }; delete next[pattern]; return next;
-        }, `${glyph.textContent} gesture removed.`, {
+        }, t('settings.gesture.removed', { gesture: glyph.textContent }), {
           redraw: false,
           onSuccess: () => {
             const restoreFocus = row.contains(document.activeElement);
@@ -397,7 +421,7 @@
           saved = (await window.bowserPages.settings.set({ mouseGestureMapping: next })).mouseGestureMapping;
           if (JSON.stringify(saved) !== JSON.stringify(next)) throw new Error('Mapping rejected');
         } catch {
-          onFailure?.(); message.textContent = 'Could not save that gesture. Try again.';
+          onFailure?.(); message.textContent = t('settings.gesture.saveFailed');
           return false;
         }
         mapping = { ...saved };
@@ -417,14 +441,14 @@
     });
     document.getElementById('mouseGestureReset').addEventListener('click', async () => {
       closeComposer();
-      await persistMapping(defaults, 'Default gestures restored.');
+      await persistMapping(defaults, t('settings.gesture.reset'));
     });
     add.addEventListener('click', () => {
       if (Object.keys(mapping).length >= 16) {
-        message.textContent = 'Remove a gesture before adding another.'; return;
+        message.textContent = t('settings.gesture.limit'); return;
       }
       add.hidden = true; composer.hidden = false; drawnPattern = '';
-      padPrompt.textContent = 'Press and drag here'; save.disabled = true;
+      padPrompt.textContent = padIdle; save.disabled = true;
       message.textContent = '';
     });
     document.getElementById('mouseGestureCancel').addEventListener('click', () => {
@@ -435,7 +459,7 @@
       drawnPattern = ''; save.disabled = true;
       drawing = { x: event.clientX, y: event.clientY, pattern: '', overflow: false };
       pad.setPointerCapture(event.pointerId);
-      padPrompt.textContent = 'Drawing…'; message.textContent = '';
+      padPrompt.textContent = t('settings.gesture.drawing'); message.textContent = '';
     });
     pad.addEventListener('pointermove', (event) => {
       if (!drawing) return;
@@ -452,11 +476,11 @@
     pad.addEventListener('pointerup', () => {
       if (!drawing) return;
       const { pattern, overflow } = drawing; drawing = null;
-      if (overflow) { padPrompt.textContent = 'Press and drag here'; message.textContent = 'Use at most three directions. Try again.'; return; }
-      if (!pattern) { padPrompt.textContent = 'Press and drag here'; message.textContent = 'Gesture too short. Try again.'; return; }
-      if (Object.hasOwn(mapping, pattern)) { padPrompt.textContent = 'Press and drag here'; message.textContent = 'That movement is already assigned. Draw a different one.'; return; }
+      if (overflow) { padPrompt.textContent = padIdle; message.textContent = t('settings.gesture.tooLong'); return; }
+      if (!pattern) { padPrompt.textContent = padIdle; message.textContent = t('settings.gesture.tooShort'); return; }
+      if (Object.hasOwn(mapping, pattern)) { padPrompt.textContent = padIdle; message.textContent = t('settings.gesture.duplicate'); return; }
       drawnPattern = pattern; save.disabled = false;
-      message.textContent = `${glyphFor(pattern)} is ready. Choose an action and save.`;
+      message.textContent = t('settings.gesture.ready', { gesture: glyphFor(pattern) });
     });
     save.addEventListener('click', async () => {
       if (!drawnPattern || Object.hasOwn(mapping, drawnPattern)) return;
@@ -465,7 +489,7 @@
       save.disabled = true;
       const saved = await persistMapping(
         (current) => ({ ...current, [pattern]: selectedAction }),
-        `${glyphFor(pattern)} runs ${actions[selectedAction]}.`,
+        t('settings.gesture.saved', { gesture: glyphFor(pattern), action: actions[selectedAction] }),
         { redraw: false, onSuccess: () => {
           rows.querySelector('.gesture-empty')?.remove();
           rows.append(makeRow(pattern, selectedAction));
@@ -480,7 +504,7 @@
     });
     pad.addEventListener('pointercancel', () => {
       drawing = null; drawnPattern = ''; save.disabled = true;
-      padPrompt.textContent = 'Press and drag here'; message.textContent = 'Drawing cancelled.';
+      padPrompt.textContent = padIdle; message.textContent = t('settings.gesture.cancelled');
     });
   } else {
     document.getElementById('mouseGesturesSetting')?.remove();
@@ -560,8 +584,8 @@
       if (secureDns.value === 'custom') {
         secureDnsRow.hidden = false; // reveal the field so they can type
         secureDnsError.hidden = true; // don't error before they've entered anything
-        const t = secureDnsTemplate.value.trim();
-        if (t) commit({ secureDns: 'custom', secureDnsTemplate: t }, 'custom');
+        const template = secureDnsTemplate.value.trim();
+        if (template) commit({ secureDns: 'custom', secureDnsTemplate: template }, 'custom');
         // else: wait for the template's own change event to commit + validate
       } else {
         commit({ secureDns: secureDns.value }, secureDns.value);
@@ -587,13 +611,13 @@
     // Settings-local status strings — not capsule copy (that lives in
     // fill-status-copy.js); these describe the Verify action itself.
     const VERIFY_ERRORS = {
-      'account-not-found': 'Account not found — check your 1Password email address and try again.',
-      'not-authorized': '1Password didn’t authorize Blanc. Unlock 1Password, approve Blanc Browser, and try again.',
-      'session-expired': 'Authorization expired — try again.',
-      'desktop-unavailable': '1Password isn’t available. Open the app and turn on Settings → Developer → Integrate with 1Password SDKs.',
-      'timed-out': '1Password timed out — try again when the app is ready.',
-      'broker-stopped': 'The 1Password helper stopped — try again.',
-      'sdk-error': '1Password couldn’t complete the check — try again.',
+      'account-not-found': t('settings.onePassword.error.accountNotFound'),
+      'not-authorized': t('settings.onePassword.error.notAuthorized'),
+      'session-expired': t('settings.onePassword.error.sessionExpired'),
+      'desktop-unavailable': t('settings.onePassword.error.desktopUnavailable'),
+      'timed-out': t('settings.onePassword.error.timedOut'),
+      'broker-stopped': t('settings.onePassword.error.brokerStopped'),
+      'sdk-error': t('settings.onePassword.error.sdkError'),
     };
     let verify = model.onFieldInput(model.createVerifyModel(), settings.onePasswordAccount ?? '');
     verify = { ...verify, token: 0 }; // the seed edit is not a user supersession
@@ -601,8 +625,8 @@
       const projection = model.view(verify);
       verifyButton.disabled = projection.buttonDisabled;
       if (projection.normalizeFieldTo !== null) onePasswordAccount.value = projection.normalizeFieldTo;
-      verifyState.textContent = projection.phase === 'pending' ? 'Checking with 1Password…'
-        : projection.phase === 'connected' ? 'Connected.'
+      verifyState.textContent = projection.phase === 'pending' ? t('settings.onePassword.checking')
+        : projection.phase === 'connected' ? t('settings.onePassword.connected')
           : projection.phase === 'error' ? (VERIFY_ERRORS[projection.kind] ?? VERIFY_ERRORS['sdk-error'])
             : '';
     };
@@ -647,10 +671,8 @@
     window.bowserPages.settings.onePasswordStatus().then(({ appDetected }) => {
       const onMac = appInfo ? appInfo.platform === 'darwin' : navigator.platform.startsWith('Mac');
       appHint.textContent = appDetected
-        ? (onMac ? 'Installed on this Mac.' : 'Installed on this computer.')
-        : onMac
-          ? 'Blanc couldn’t find the 1Password app in Applications — if it’s installed elsewhere, Verify below still works.'
-          : 'Blanc couldn’t find the 1Password app in its usual install location — if it’s installed elsewhere, Verify below still works.';
+        ? (onMac ? t('settings.onePassword.installedMac') : t('settings.onePassword.installed'))
+        : (onMac ? t('settings.onePassword.notFoundMac') : t('settings.onePassword.notFound'));
       openAppButton.hidden = !appDetected;
     }).catch(() => { appHint.textContent = ''; });
     openAppButton.addEventListener('click', () => {
@@ -672,8 +694,8 @@
     resetInstallId.addEventListener('click', async () => {
       const ok = await window.bowserPages.resetInstallId();
       resetInstallIdStatus.textContent = ok
-        ? 'Reset — this install now counts as brand new.'
-        : 'Couldn’t save the reset — check disk space and try again.';
+        ? t('settings.privacy.resetInstallId.done')
+        : t('settings.privacy.resetInstallId.failed');
       setTimeout(() => { resetInstallIdStatus.textContent = ''; }, 3000);
     });
   } else {
@@ -693,7 +715,7 @@
       defaultBrowserBtn.hidden = isDefault;
       defaultBrowserState.hidden = !isDefault;
       defaultBrowserBtn.disabled = !canSet;
-      if (!canSet && !isDefault) defaultBrowserHint.textContent = 'Available in the installed app';
+      if (!canSet && !isDefault) defaultBrowserHint.textContent = t('settings.general.defaultBrowserBtn.installedOnly');
     };
     defaultBrowserBtn.addEventListener('click', async () => {
       applyDefaultBrowser(await window.bowserPages.defaultBrowser.set());
@@ -740,6 +762,7 @@
       img.alt = '';
       const name = document.createElement('span');
       name.textContent = label;
+      name.dataset.i18nIgnore = ''; // colorway names are proper names
       btn.append(img, name);
       btn.addEventListener('click', async () => {
         await window.bowserPages.settings.set({ appIcon: id });
@@ -756,7 +779,7 @@
     appIconSetting.remove();
   } else {
     document.getElementById('appIconHint').textContent =
-      'Follows macOS Icon & Widget Style; Finder uses Sunrise';
+      t('settings.general.appIconSetting.macHint');
     renderAppIconGrid();
   }
 
@@ -785,8 +808,8 @@
         ? new Date(settings.supporterActivatedAt).toLocaleDateString(blancI18n.formatLocale())
         : null;
       patronStatus.textContent = when
-        ? `You’re a Patron — thank you. Activated ${when}.`
-        : 'You’re a Patron — thank you.';
+        ? t('settings.patron.thanksSince', { date: when })
+        : t('settings.patron.thanks');
     }
     renderPatronState();
 
@@ -795,7 +818,7 @@
       // key-repeat while holding Enter fires concurrent activation requests.
       if (patronActivateBtn.disabled) return;
       patronActivateBtn.disabled = true;
-      patronStatus.textContent = 'Activating…';
+      patronStatus.textContent = t('settings.patron.activating');
       let result;
       try {
         result = await window.bowserPages.settings.activateSupporter(patronKey.value);
@@ -803,7 +826,7 @@
         // A rejected IPC (an unexpected main-process throw) must still
         // re-enable the button — never leave it stuck on "Activating…".
         patronActivateBtn.disabled = false;
-        patronStatus.textContent = 'Something went wrong. Please try again.';
+        patronStatus.textContent = t('settings.patron.failed');
         return;
       }
       patronActivateBtn.disabled = false;
@@ -860,33 +883,34 @@
           const title = document.createElement('div');
           title.className = 'title';
           title.textContent = profile.name;
+          title.dataset.i18nIgnore = '';
           const meta = document.createElement('div');
           meta.className = 'meta';
           meta.textContent = profile.id === 'default'
-            ? 'Your original Blanc data · permanent'
-            : (profile.id === currentId ? 'Current window' : 'Separate local browser data');
+            ? t('settings.profiles.personalMeta')
+            : (profile.id === currentId ? t('settings.profiles.currentWindow') : t('settings.profiles.separateData'));
           main.append(title, meta);
 
           if (profile.id !== currentId) {
-            actions.append(button('Open', async () => {
+            actions.append(button(t('settings.profiles.open'), async () => {
               const result = await window.bowserPages.profiles.open(profile.id);
-              if (!result?.ok) profileStatus.textContent = result?.message ?? 'Couldn’t open that profile.';
+              if (!result?.ok) profileStatus.textContent = result?.message ?? t('settings.profiles.openFailed');
             }));
           }
           if (profile.id === 'default') return;
 
-          actions.append(button('Rename', () => {
+          actions.append(button(t('settings.profiles.rename'), () => {
             row.classList.add('editing');
             const input = document.createElement('input');
             input.type = 'text';
             input.maxLength = 40;
             input.value = profile.name;
-            input.setAttribute('aria-label', `New name for ${profile.name}`);
+            input.setAttribute('aria-label', t('settings.profiles.renameLabel', { name: profile.name }));
             const save = async () => {
               const result = await window.bowserPages.profiles.rename(profile.id, input.value);
               profileStatus.textContent = result.ok
-                ? 'Profile renamed.'
-                : (result.message ?? 'Couldn’t rename that profile.');
+                ? t('settings.profiles.renamed')
+                : (result.message ?? t('settings.profiles.renameFailed'));
               if (result.ok) await refreshProfiles();
             };
             input.addEventListener('keydown', (event) => {
@@ -895,27 +919,27 @@
             });
             main.replaceChildren(input);
             actions.replaceChildren(
-              button('Save', save),
-              button('Cancel', renderReadOnly),
+              button(t('settings.profiles.save'), save),
+              button(t('common.cancel'), renderReadOnly),
             );
             input.focus();
             input.select();
           }));
 
-          actions.append(button('Delete', () => {
+          actions.append(button(t('settings.profiles.delete'), () => {
             row.classList.add('editing');
             const warning = document.createElement('div');
             warning.className = 'meta confirmation';
-            warning.textContent = `Permanently deletes this profile’s local browser data. Downloaded files stay where you saved them. Type “${profile.name}” to continue.`;
+            warning.textContent = t('settings.profiles.deleteWarning', { name: profile.name });
             const input = document.createElement('input');
             input.type = 'text';
             input.autocomplete = 'off';
-            input.setAttribute('aria-label', `Type ${profile.name} to confirm deletion`);
+            input.setAttribute('aria-label', t('settings.profiles.deleteLabel', { name: profile.name }));
             const remove = async () => {
               const result = await window.bowserPages.profiles.remove(profile.id, input.value);
               profileStatus.textContent = result.ok
-                ? (result.pending ? result.message : 'Profile deleted.')
-                : (result.message ?? 'Couldn’t delete that profile.');
+                ? (result.pending ? result.message : t('settings.profiles.deleted'))
+                : (result.message ?? t('settings.profiles.deleteFailed'));
               if (result.ok) await refreshProfiles();
             };
             input.addEventListener('keydown', (event) => {
@@ -924,8 +948,8 @@
             });
             main.replaceChildren(warning, input);
             actions.replaceChildren(
-              button('Delete permanently', remove, 'danger'),
-              button('Cancel', renderReadOnly),
+              button(t('settings.profiles.deletePermanently'), remove, 'danger'),
+              button(t('common.cancel'), renderReadOnly),
             );
             input.focus();
           }, 'danger'));
@@ -943,11 +967,11 @@
       const result = await window.bowserPages.profiles.create(profileName.value);
       profileCreate.disabled = false;
       if (!result?.ok || !result.profile) {
-        profileStatus.textContent = result?.message ?? 'Couldn’t create that profile.';
+        profileStatus.textContent = result?.message ?? t('settings.profiles.createFailed');
         return;
       }
       profileName.value = '';
-      profileStatus.textContent = `Created ${result.profile.name}.`;
+      profileStatus.textContent = t('settings.profiles.created', { name: result.profile.name });
       await refreshProfiles();
     }
 
@@ -956,7 +980,7 @@
       if (event.key === 'Enter') createProfile();
     });
     refreshProfiles().catch(() => {
-      profileStatus.textContent = 'Couldn’t load profiles.';
+      profileStatus.textContent = t('settings.profiles.loadFailed');
     });
   } else {
     document.getElementById('group-profiles')?.remove();
@@ -965,7 +989,12 @@
   // --- Site permissions ---
   if (supports('permissions')) {
     const permissionList = document.getElementById('permissionList');
-    const PERMISSION_LABELS = { media: 'Camera/microphone', geolocation: 'Location', notifications: 'Notifications' };
+    const PERMISSION_LABELS = {
+      media: t('settings.permissions.media'),
+      geolocation: t('settings.permissions.geolocation'),
+      notifications: t('settings.permissions.notifications'),
+    };
+    const MEDIA_LABELS = { audio: t('settings.permissions.audio'), video: t('settings.permissions.video') };
 
     async function refreshPermissions() {
       const decisions = await window.bowserPages.permissions.list();
@@ -975,7 +1004,7 @@
       if (entries.length === 0) {
         const empty = document.createElement('div');
         empty.className = 'empty';
-        empty.textContent = 'No saved decisions. Sites ask the first time they need something.';
+        empty.textContent = t('settings.permissions.empty');
         permissionList.append(empty);
         return;
       }
@@ -990,20 +1019,23 @@
         const title = document.createElement('div');
         title.className = 'title';
         title.textContent = new URL(origin).host;
+        title.dataset.i18nIgnore = '';
         main.append(title);
 
         const meta = document.createElement('div');
         meta.className = 'meta';
         const permissionLabel = permission === 'media' && mediaType
-          ? ({ audio: 'Microphone', video: 'Camera' }[mediaType] ?? PERMISSION_LABELS.media)
+          ? (MEDIA_LABELS[mediaType] ?? PERMISSION_LABELS.media)
           : (PERMISSION_LABELS[permission] ?? permission);
-        meta.textContent = `${permissionLabel} — ${decision === 'allow' ? 'Allowed' : 'Blocked'}`;
+        meta.textContent = decision === 'allow'
+          ? t('settings.permissions.allowed', { permission: permissionLabel })
+          : t('settings.permissions.blocked', { permission: permissionLabel });
 
         const actions = document.createElement('div');
         actions.className = 'actions';
         const remove = document.createElement('button');
         remove.className = 'danger';
-        remove.textContent = 'Remove';
+        remove.textContent = t('settings.remove');
         remove.addEventListener('click', async () => {
           await window.bowserPages.permissions.remove(key);
           refreshPermissions();
@@ -1044,7 +1076,7 @@
       if (exceptions.length === 0) {
         const empty = document.createElement('div');
         empty.className = 'empty';
-        empty.textContent = 'No exceptions added.';
+        empty.textContent = t('settings.privacy.exceptionList.empty');
         exceptionList.append(empty);
         return;
       }
@@ -1058,13 +1090,14 @@
         const title = document.createElement('div');
         title.className = 'title';
         title.textContent = hostname;
+        title.dataset.i18nIgnore = '';
         main.append(title);
 
         const actions = document.createElement('div');
         actions.className = 'actions';
         const remove = document.createElement('button');
         remove.className = 'danger';
-        remove.textContent = 'Remove';
+        remove.textContent = t('settings.remove');
         remove.addEventListener('click', async () => {
           await window.bowserPages.settings.set({
             adblockExceptions: exceptions.filter((h) => h !== hostname),
@@ -1105,9 +1138,9 @@
     const clearBrowsingDataStatus = document.getElementById('clearBrowsingDataStatus');
 
     clearBrowsingData.addEventListener('click', async () => {
-      if (!confirm('Clear all cookies, cache, and site data? You will be logged out of everything.')) return;
+      if (!confirm(t('settings.privacy.clearBrowsingData.confirm'))) return;
       await window.bowserPages.clearBrowsingData();
-      clearBrowsingDataStatus.textContent = 'Cleared.';
+      clearBrowsingDataStatus.textContent = t('settings.privacy.clearBrowsingData.done');
       setTimeout(() => { clearBrowsingDataStatus.textContent = ''; }, 2000);
     });
   } else {
@@ -1171,8 +1204,8 @@
         if (on) {
           syncStatusHandle.textContent = status.handle;
           const lastSynced = relativeSyncTime(status.lastSyncedAt);
-          syncStatusData.textContent = lastSynced ? `Last synced ${lastSynced}` : 'Not synced yet';
-          syncStatusTabs.textContent = status.syncTabs ? 'Sharing' : 'Not shared';
+          syncStatusData.textContent = lastSynced ? t('settings.sync.lastSynced', { when: lastSynced }) : t('settings.sync.notSynced');
+          syncStatusTabs.textContent = status.syncTabs ? t('settings.sync.sharing') : t('settings.sync.notShared');
           syncStatusErrorRow.hidden = !status.lastError;
           syncStatusError.textContent = status.lastError || '';
           activeStatus.textContent = note || '';
@@ -1202,7 +1235,7 @@
       }
 
       async function performEnable(effect) {
-        setupStatus.textContent = 'Turning on sync…';
+        setupStatus.textContent = t('settings.sync.turningOn');
         const res = await window.bowserPages.settings.syncEnable({ handle: effect.handle, passphrase: effect.passphrase });
         const name = effect.handle;
         // Copy comes from the EFFECT's path, never from live model state: the
@@ -1216,8 +1249,8 @@
         // keeps the setup panel up, where the reducer's notice speaks.
         const note = res.ok
           ? (res.created === false
-            ? (effect.path === 'join' ? `Connected to “${name}”. Pulling your favorites and settings now.` : `Joined your existing sync as “${name}”.`)
-            : 'Sync is on. Your favorites and settings will sync as you change them.')
+            ? (effect.path === 'join' ? t('settings.sync.connectedTo', { name }) : t('settings.sync.joinedAs', { name }))
+            : t('settings.sync.on'))
           : null;
         // Only a reply for the attempt still in flight may speak; the status
         // itself is always real (sync may be on now) and is always rendered.
@@ -1227,12 +1260,12 @@
       }
 
       async function performPreflight(effect) {
-        setupStatus.textContent = 'Checking…';
+        setupStatus.textContent = t('settings.sync.checking');
         let reply;
         try {
           reply = await window.bowserPages.settings.syncPreflight({ handle: effect.handle, passphrase: effect.passphrase });
         } catch {
-          reply = { ok: false, outcome: 'error', message: 'Could not check sync. Try again.' };
+          reply = { ok: false, outcome: 'error', message: t('settings.sync.checkFailed') };
         }
         dispatch({ type: 'preflight-reply', token: effect.token, outcome: reply.outcome, message: reply.message });
       }
@@ -1259,7 +1292,7 @@
 
       nowBtn.addEventListener('click', async () => {
         nowBtn.disabled = true;
-        activeStatus.textContent = 'Syncing…';
+        activeStatus.textContent = t('settings.sync.syncing');
         renderStatus(await window.bowserPages.settings.syncNow());
         nowBtn.disabled = false;
       });
@@ -1287,36 +1320,49 @@
     const trustStatus = document.getElementById('trustReceiptStatus');
     const trustList = document.getElementById('trustReceiptList');
     const trustLinks = document.getElementById('trustReceiptLinks');
-    const yesNo = (value) => value ? 'On' : 'Off';
-    const addFact = (label, value) => {
+    const yesNo = (value) => (value ? t('settings.trust.on') : t('settings.trust.off'));
+    const dnsProviders = { cloudflare: 'Cloudflare', quad9: 'Quad9', mullvad: 'Mullvad' };
+    // A data fact (versions, digests, list and provider names) reads the same
+    // in every language.
+    const addFact = (label, value, { data = false } = {}) => {
       const term = document.createElement('dt');
       const detail = document.createElement('dd');
       term.textContent = label;
       detail.textContent = value;
+      if (data) detail.dataset.i18nIgnore = '';
       trustList.append(term, detail);
     };
 
     window.bowserPages.settings.trustReceipt().then((receipt) => {
+      const { expectedPublisher: expected, observedPublisher: observed } = receipt.signature;
       const signature = {
-        verified: `Verified locally — ${receipt.signature.observedPublisher}`,
-        mismatch: `Expected ${receipt.signature.expectedPublisher} · observed ${receipt.signature.observedPublisher || 'unknown publisher'}`,
-        unavailable: `Expected ${receipt.signature.expectedPublisher} · local inspection unavailable`,
-        development: 'Development build — not a signed release build',
-        'manifest-backed': 'Linux publisher verification relies on the signed manifest for the matching release',
-      }[receipt.signature.status] ?? 'Unknown';
-      addFact('Build', `${receipt.app.version} (${receipt.app.bundleBuild}) · ${receipt.app.packaged ? 'packaged' : 'development'}`);
-      addFact('Runtime', `Electron ${receipt.app.electron} · Chromium ${receipt.app.chromium} · Node ${receipt.app.node}`);
-      addFact('Platform', `${receipt.app.platform} · ${receipt.app.architecture}`);
-      addFact('Publisher', signature);
-      addFact('Blocker snapshot', `${receipt.blocker.snapshotDate} · ${receipt.blocker.lists.map((list) => list.name).join(' + ')}`);
-      for (const list of receipt.blocker.lists) addFact(`Blocker · ${list.name}`, list.sha256);
-      addFact('Combined blocker digest', receipt.blocker.combinedSha256);
-      addFact('Sync', receipt.sync.enabled ? `${receipt.sync.categories.join(', ')} · ${receipt.sync.profileScope}` : 'Off');
-      addFact('Open-tab sharing', yesNo(receipt.sync.openTabsEnabled));
-      addFact('Usage measurement', yesNo(receipt.choices.usageMeasurement));
-      addFact('Search suggestions', yesNo(receipt.choices.searchSuggestions));
-      addFact('Secure DNS', receipt.choices.secureDns);
-      addFact('Crash ledger', `Device only · automatic upload off · ${receipt.choices.crashLedger.eventCount}/${receipt.choices.crashLedger.eventLimit} events`);
+        verified: () => t('settings.trust.signature.verified', { publisher: observed }),
+        mismatch: () => t('settings.trust.signature.mismatch', { expected, observed: observed || t('settings.trust.signature.unknownPublisher') }),
+        unavailable: () => t('settings.trust.signature.unavailable', { expected }),
+        development: () => t('settings.trust.signature.development'),
+        'manifest-backed': () => t('settings.trust.signature.manifestBacked'),
+      }[receipt.signature.status]?.() ?? t('settings.trust.signature.unknown');
+      const { app, blocker, choices } = receipt;
+      const build = { version: app.version, build: app.bundleBuild };
+      addFact(t('settings.trust.fact.build'),
+        app.packaged ? t('settings.trust.buildPackaged', build) : t('settings.trust.buildDevelopment', build));
+      const data = { data: true };
+      addFact(t('settings.trust.fact.runtime'), `Electron ${app.electron} · Chromium ${app.chromium} · Node ${app.node}`, data);
+      addFact(t('settings.trust.fact.platform'), `${app.platform} · ${app.architecture}`, data);
+      addFact(t('settings.trust.fact.publisher'), signature);
+      addFact(t('settings.trust.fact.blockerSnapshot'), `${blocker.snapshotDate} · ${blocker.lists.map((list) => list.name).join(' + ')}`, data);
+      for (const list of blocker.lists) addFact(t('settings.trust.fact.blockerList', { name: list.name }), list.sha256, data);
+      addFact(t('settings.trust.fact.blockerDigest'), blocker.combinedSha256, data);
+      // The receipt's sync categories and scope are fixed (trust-receipt.js).
+      addFact(t('settings.trust.fact.sync'), receipt.sync.enabled ? t('settings.trust.syncScope') : t('settings.trust.off'));
+      addFact(t('settings.trust.fact.openTabs'), yesNo(receipt.sync.openTabsEnabled));
+      addFact(t('settings.trust.fact.usage'), yesNo(choices.usageMeasurement));
+      addFact(t('settings.trust.fact.suggestions'), yesNo(choices.searchSuggestions));
+      const dns = choices.secureDns;
+      const dnsSetting = { auto: t('settings.trust.dnsAuto'), off: t('settings.trust.off'), custom: t('settings.trust.dnsCustom') }[dns];
+      addFact(t('settings.trust.fact.secureDns'), dnsSetting ?? dnsProviders[dns] ?? dns, { data: !dnsSetting });
+      addFact(t('settings.trust.fact.crashLedger'), t('settings.trust.crashLedger',
+        { count: choices.crashLedger.eventCount, limit: choices.crashLedger.eventLimit }));
       for (const link of receipt.links) {
         const button = document.createElement('button');
         button.type = 'button';
@@ -1325,11 +1371,11 @@
         button.addEventListener('click', () => window.bowserPages.settings.openTrustLink(link.id));
         trustLinks.append(button);
       }
-      trustStatus.textContent = 'Receipt checked locally.';
+      trustStatus.textContent = t('settings.trust.checked');
       trustList.hidden = false;
       trustLinks.hidden = false;
     }).catch(() => {
-      trustStatus.textContent = 'Couldn’t build the local trust receipt.';
+      trustStatus.textContent = t('settings.trust.failed');
     });
   } else {
     document.getElementById('group-trust')?.remove();
@@ -1344,31 +1390,29 @@
 
     function renderDiagnostics(value) {
       const count = Number.isInteger(value?.count) ? value.count : 0;
-      summary.textContent = count === 0
-        ? 'No crashes have been recorded on this device.'
-        : `${count} crash ${count === 1 ? 'event' : 'events'} recorded on this device.`;
+      summary.textContent = count === 0 ? t('settings.diagnostics.none') : t('settings.diagnostics.count', { count });
       clearButton.disabled = count === 0;
     }
 
     exportButton.addEventListener('click', async () => {
       exportButton.disabled = true;
-      status.textContent = 'Preparing report…';
+      status.textContent = t('settings.diagnostics.preparing');
       const result = await window.bowserPages.diagnostics.export();
       exportButton.disabled = false;
       status.textContent = result.ok
-        ? 'Saved.'
-        : (result.cancelled ? 'Export canceled.' : 'Couldn’t save diagnostics.');
+        ? t('settings.diagnostics.saved')
+        : (result.cancelled ? t('settings.diagnostics.cancelled') : t('settings.diagnostics.saveFailed'));
     });
 
     clearButton.addEventListener('click', async () => {
-      if (!confirm('Clear Blanc’s local crash history?')) return;
+      if (!confirm(t('settings.diagnostics.clearConfirm'))) return;
       const result = await window.bowserPages.diagnostics.clear();
-      status.textContent = result.ok ? 'Crash history cleared.' : 'Couldn’t clear crash history.';
+      status.textContent = result.ok ? t('settings.diagnostics.cleared') : t('settings.diagnostics.clearFailed');
       renderDiagnostics(result);
     });
 
     window.bowserPages.diagnostics.status().then(renderDiagnostics).catch(() => {
-      summary.textContent = 'Couldn’t read local crash history.';
+      summary.textContent = t('settings.diagnostics.readFailed');
     });
   } else {
     document.getElementById('group-diagnostics')?.remove();
@@ -1472,12 +1516,12 @@
           toggle = document.createElement('button');
           toggle.type = 'button';
           toggle.className = 'hint-toggle';
-          toggle.textContent = 'More';
+          toggle.textContent = t('settings.hint.more');
           toggle.setAttribute('aria-expanded', 'false');
           toggle.addEventListener('click', () => {
             const open = hint.classList.toggle('folded') === false;
             hint.dataset.userExpanded = String(open);
-            toggle.textContent = open ? 'Less' : 'More';
+            toggle.textContent = open ? t('settings.hint.less') : t('settings.hint.more');
             toggle.setAttribute('aria-expanded', String(open));
           });
           hint.after(toggle);
@@ -1593,9 +1637,11 @@ function enhanceSettingsSelects(selects) {
     // isn't a descendant of the trigger for hit-testing while open.
     document.body.append(menu);
 
+    // The face and menu rows carry an option's data-i18n-ignore (proper names).
     const syncFace = () => {
       const opt = select.selectedOptions[0];
       face.textContent = opt ? opt.textContent : '';
+      face.toggleAttribute('data-i18n-ignore', opt?.hasAttribute('data-i18n-ignore') === true);
     };
 
     const rebuildMenu = () => {
@@ -1606,6 +1652,7 @@ function enhanceSettingsSelects(selects) {
         li.setAttribute('role', 'option');
         li.dataset.value = opt.value;
         li.textContent = opt.textContent;
+        li.toggleAttribute('data-i18n-ignore', opt.hasAttribute('data-i18n-ignore'));
         li.tabIndex = -1;
         if (opt.selected) {
           li.classList.add('is-selected');

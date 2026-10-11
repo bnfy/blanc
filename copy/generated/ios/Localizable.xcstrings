@@ -16676,7 +16676,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Websites, denen du den Zugriff auf Kamera, Mikrofon, Standort oder Mitteilungen erlaubt oder verweigert hast."
+            "value": "Websites, denen du den Zugriff auf Kamera, Mikrofon, Standort oder Benachrichtigungen erlaubt oder verweigert hast."
           }
         }
       }
@@ -17433,6 +17433,3054 @@
           "stringUnit": {
             "state": "translated",
             "value": "offene Tabs dieses Geräts mit deinen anderen Geräten teilen"
+          }
+        }
+      }
+    },
+    "settings.general.newtabDynamicWallpaper.syncedHint": {
+      "comment": "Settings → General → Time-of-day wallpaper: explanation under the setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wallpaper follows this machine’s local time. The on/off choice syncs across devices."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Hintergrund folgt der Ortszeit dieses Geräts. Ob er an oder aus ist, wird zwischen deinen Geräten synchronisiert."
+          }
+        }
+      }
+    },
+    "settings.general.appIconSetting.macHint": {
+      "comment": "Settings → General → App icon: explanation under the setting on macOS. “Icon & Widget Style” is the macOS appearance setting; Sunrise is the name of the default icon.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follows macOS Icon & Widget Style; Finder uses Sunrise"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Folgt dem macOS-Stil für Symbole & Widgets; der Finder zeigt Sunrise"
+          }
+        }
+      }
+    },
+    "settings.general.defaultBrowserBtn.installedOnly": {
+      "comment": "Settings → General → Default browser: shown under the setting in a development build, which cannot become the default browser.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available in the installed app"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In der installierten App verfügbar"
+          }
+        }
+      }
+    },
+    "settings.general.darkExceptionList.empty": {
+      "comment": "Settings → General → Dark websites: shown when the list of sites kept as drawn is empty.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No sites added."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Websites hinzugefügt."
+          }
+        }
+      }
+    },
+    "settings.remove": {
+      "comment": "Settings: button that removes one entry from a list (a site exception or a saved site permission).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entfernen"
+          }
+        }
+      }
+    },
+    "settings.gesture.action.back": {
+      "comment": "Settings → General → Mouse gestures: action a gesture can run (go back a page).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurück"
+          }
+        }
+      }
+    },
+    "settings.gesture.action.forward": {
+      "comment": "Settings → General → Mouse gestures: action a gesture can run (go forward a page).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forward"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorwärts"
+          }
+        }
+      }
+    },
+    "settings.gesture.action.reload": {
+      "comment": "Settings → General → Mouse gestures: action a gesture can run (reload the page).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neu laden"
+          }
+        }
+      }
+    },
+    "settings.gesture.action.newTab": {
+      "comment": "Settings → General → Mouse gestures: action a gesture can run.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer Tab"
+          }
+        }
+      }
+    },
+    "settings.gesture.action.closeTab": {
+      "comment": "Settings → General → Mouse gestures: action a gesture can run.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tab schließen"
+          }
+        }
+      }
+    },
+    "settings.gesture.action.reopenTab": {
+      "comment": "Settings → General → Mouse gestures: action a gesture can run (bring back the last closed tab).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reopen closed tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tab wiederherstellen"
+          }
+        }
+      }
+    },
+    "settings.gesture.action.previousTab": {
+      "comment": "Settings → General → Mouse gestures: action a gesture can run (switch to the tab on the left).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previous tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorheriger Tab"
+          }
+        }
+      }
+    },
+    "settings.gesture.action.nextTab": {
+      "comment": "Settings → General → Mouse gestures: action a gesture can run (switch to the tab on the right).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nächster Tab"
+          }
+        }
+      }
+    },
+    "settings.gesture.action.island": {
+      "comment": "Settings → General → Mouse gestures: action a gesture can run (open the Island command bar).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Island"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Island öffnen"
+          }
+        }
+      }
+    },
+    "settings.gesture.empty": {
+      "comment": "Settings → General → Mouse gestures: shown when no gesture is assigned.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No gestures assigned."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Gesten zugewiesen."
+          }
+        }
+      }
+    },
+    "settings.gesture.actionLabel": {
+      "comment": "Settings → General → Mouse gestures: accessible name of the action menu in a gesture row; {gesture} is the movement drawn as arrows, e.g. ↑→.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Action for %1$@ gesture"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktion für die Geste %1$@"
+          }
+        }
+      }
+    },
+    "settings.gesture.changed": {
+      "comment": "Settings → General → Mouse gestures: confirmation after changing a gesture’s action; {gesture} is the movement drawn as arrows, e.g. ↑→; {action} is an action name such as “New tab”.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ now runs %2$@."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ führt jetzt „%2$@“ aus."
+          }
+        }
+      }
+    },
+    "settings.gesture.removeLabel": {
+      "comment": "Settings → General → Mouse gestures: accessible name of the × button in a gesture row; {gesture} is the movement drawn as arrows, e.g. ↑→.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove %1$@ gesture"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geste %1$@ entfernen"
+          }
+        }
+      }
+    },
+    "settings.gesture.removed": {
+      "comment": "Settings → General → Mouse gestures: confirmation after removing a gesture; {gesture} is the movement drawn as arrows, e.g. ↑→.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ gesture removed."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geste %1$@ entfernt."
+          }
+        }
+      }
+    },
+    "settings.gesture.saveFailed": {
+      "comment": "Settings → General → Mouse gestures: error when saving a gesture fails.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not save that gesture. Try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Geste konnte nicht gespeichert werden. Versuch es noch einmal."
+          }
+        }
+      }
+    },
+    "settings.gesture.reset": {
+      "comment": "Settings → General → Mouse gestures: confirmation after Restore defaults.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Default gestures restored."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standardgesten wiederhergestellt."
+          }
+        }
+      }
+    },
+    "settings.gesture.limit": {
+      "comment": "Settings → General → Mouse gestures: shown when the maximum of 16 gestures is reached.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove a gesture before adding another."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entferne eine Geste, bevor du eine weitere hinzufügst."
+          }
+        }
+      }
+    },
+    "settings.gesture.drawing": {
+      "comment": "Settings → General → Mouse gestures: shown in the drawing pad while the button is held down.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drawing…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird gezeichnet…"
+          }
+        }
+      }
+    },
+    "settings.gesture.tooLong": {
+      "comment": "Settings → General → Mouse gestures: error after drawing a movement with more than three directions.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use at most three directions. Try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwende höchstens drei Richtungen. Versuch es noch einmal."
+          }
+        }
+      }
+    },
+    "settings.gesture.tooShort": {
+      "comment": "Settings → General → Mouse gestures: error after a movement too short to count.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gesture too short. Try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geste zu kurz. Versuch es noch einmal."
+          }
+        }
+      }
+    },
+    "settings.gesture.duplicate": {
+      "comment": "Settings → General → Mouse gestures: error after drawing a movement that already has an action.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That movement is already assigned. Draw a different one."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Bewegung ist schon zugewiesen. Zeichne eine andere."
+          }
+        }
+      }
+    },
+    "settings.gesture.ready": {
+      "comment": "Settings → General → Mouse gestures: shown after drawing a new gesture; {gesture} is the movement drawn as arrows, e.g. ↑→.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ is ready. Choose an action and save."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ ist bereit. Wähle eine Aktion und speichere sie."
+          }
+        }
+      }
+    },
+    "settings.gesture.saved": {
+      "comment": "Settings → General → Mouse gestures: confirmation after saving a new gesture; {gesture} is the movement drawn as arrows, e.g. ↑→; {action} is an action name such as “New tab”.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ runs %2$@."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ führt „%2$@“ aus."
+          }
+        }
+      }
+    },
+    "settings.gesture.cancelled": {
+      "comment": "Settings → General → Mouse gestures: shown when the system interrupts drawing.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drawing cancelled."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeichnen abgebrochen."
+          }
+        }
+      }
+    },
+    "settings.help.unavailable": {
+      "comment": "Settings → Help → About Blanc: shown in place of a version or platform value that could not be read.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unavailable"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht verfügbar"
+          }
+        }
+      }
+    },
+    "settings.help.updateCheckFailed": {
+      "comment": "Settings → Help: error under Check for updates.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not start an update check. Try again from the app menu."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Suche nach Updates konnte nicht gestartet werden. Versuch es noch einmal über das App-Menü."
+          }
+        }
+      }
+    },
+    "settings.blockingStatus.unavailable": {
+      "comment": "Settings → Privacy → Blocking: status line under the blocker choice.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "uBlock Origin isn’t available in this build."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "uBlock Origin ist in diesem Build nicht verfügbar."
+          }
+        }
+      }
+    },
+    "settings.blockingStatus.ready": {
+      "comment": "Settings → Privacy → Blocking: status line under the blocker choice; {provider} is the blocker name, “Blanc Blocker” or “uBlock Origin”.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ ready."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ ist bereit."
+          }
+        }
+      }
+    },
+    "settings.blockingStatus.initializing": {
+      "comment": "Settings → Privacy → Blocking: status line under the blocker choice, while the blocker starts; {provider} is the blocker name, “Blanc Blocker” or “uBlock Origin”.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ initializing."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ wird gestartet."
+          }
+        }
+      }
+    },
+    "settings.blockingStatus.disabled": {
+      "comment": "Settings → Privacy → Blocking: status line under the blocker choice, when blocking is turned off; {provider} is the blocker name, “Blanc Blocker” or “uBlock Origin”.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ disabled."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ ist deaktiviert."
+          }
+        }
+      }
+    },
+    "settings.blockingStatus.phase": {
+      "comment": "Settings → Privacy → Blocking: status line under the blocker choice, for an unusual state; {provider} is the blocker name, “Blanc Blocker” or “uBlock Origin”; {phase} is an internal state name shown as is.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: %2$@."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: %2$@."
+          }
+        }
+      }
+    },
+    "settings.blockingStatus.restartPending": {
+      "comment": "Settings → Privacy → Blocking: status line under the blocker choice, after choosing another blocker; {selected} and {active} are blocker names (“Blanc Blocker” or “uBlock Origin”).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ selected. Restart Blanc to apply; %2$@ is active."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ ausgewählt. Starte Blanc neu, um die Änderung anzuwenden; %2$@ ist aktiv."
+          }
+        }
+      }
+    },
+    "settings.blockingStatus.recovering": {
+      "comment": "Settings → Privacy → Blocking: status line under the blocker choice; {provider} is the blocker name, “Blanc Blocker” or “uBlock Origin”.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ is restarting. New requests are paused."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ wird neu gestartet. Neue Anfragen werden angehalten."
+          }
+        }
+      }
+    },
+    "settings.blockingStatus.failed": {
+      "comment": "Settings → Privacy → Blocking: status line under the blocker choice, after the blocker failed while blocking is on; {provider} is the blocker name, “Blanc Blocker” or “uBlock Origin”; {error} is an internal error code shown as is.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ could not continue (%2$@). Affected requests remain blocked."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ konnte nicht weiterarbeiten (%2$@). Betroffene Anfragen bleiben blockiert."
+          }
+        }
+      }
+    },
+    "settings.blockingStatus.failedOff": {
+      "comment": "Settings → Privacy → Blocking: status line under the blocker choice, after the blocker failed while blocking is off; {provider} is the blocker name, “Blanc Blocker” or “uBlock Origin”; {error} is an internal error code shown as is.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ could not continue (%2$@). Blocking is disabled."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ konnte nicht weiterarbeiten (%2$@). Das Blockieren ist deaktiviert."
+          }
+        }
+      }
+    },
+    "settings.blockingStatus.fallbackActive": {
+      "comment": "Settings → Privacy → Blocking: status line under the blocker choice, when uBlock Origin was chosen but cannot run.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc Blocker is active."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc Blocker ist aktiv."
+          }
+        }
+      }
+    },
+    "settings.blockingStatus.off": {
+      "comment": "Settings → Privacy → Blocking: status line under the blocker choice, when uBlock Origin was chosen but cannot run and blocking is off.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blocking is off."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Blockieren ist aus."
+          }
+        }
+      }
+    },
+    "settings.blockingStatus.retired": {
+      "comment": "Settings → Privacy → Blocking: status line under the blocker choice, when the engine no longer supports uBlock Origin.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This browser engine can’t run uBlock Origin."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Browser-Engine kann uBlock Origin nicht ausführen."
+          }
+        }
+      }
+    },
+    "settings.blockingStatus.saved": {
+      "comment": "Settings → Privacy → Blocking: status line under the blocker choice, when uBlock Origin cannot run; uBO is the short name of uBlock Origin.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your uBO settings are saved."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine uBO-Einstellungen bleiben gespeichert."
+          }
+        }
+      }
+    },
+    "settings.blockingStatus.internalCandidate": {
+      "comment": "Settings → Privacy → Blocking: status line under the blocker choice, in internal test builds only.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Internal validation candidate; platform support is not certified."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interner Validierungs-Build; die Plattformunterstützung ist nicht zertifiziert."
+          }
+        }
+      }
+    },
+    "settings.blockingStatus.retry": {
+      "comment": "Settings → Privacy → Blocking: button that restarts a failed blocker; {provider} is the blocker name, “Blanc Blocker” or “uBlock Origin”.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ neu starten"
+          }
+        }
+      }
+    },
+    "settings.onePassword.error.accountNotFound": {
+      "comment": "Settings → Privacy → 1Password: Verify result.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account not found — check your 1Password email address and try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konto nicht gefunden – prüfe deine 1Password-E-Mail-Adresse und versuch es noch einmal."
+          }
+        }
+      }
+    },
+    "settings.onePassword.error.notAuthorized": {
+      "comment": "Settings → Privacy → 1Password: Verify result. “Blanc Browser” is the name 1Password shows in its approval prompt.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1Password didn’t authorize Blanc. Unlock 1Password, approve Blanc Browser, and try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1Password hat Blanc nicht autorisiert. Entsperre 1Password, erlaube Blanc Browser und versuch es noch einmal."
+          }
+        }
+      }
+    },
+    "settings.onePassword.error.sessionExpired": {
+      "comment": "Settings → Privacy → 1Password: Verify result.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authorization expired — try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Autorisierung ist abgelaufen – versuch es noch einmal."
+          }
+        }
+      }
+    },
+    "settings.onePassword.error.desktopUnavailable": {
+      "comment": "Settings → Privacy → 1Password: Verify result. The path names the 1Password app’s own settings; use the labels the 1Password app shows in this language.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1Password isn’t available. Open the app and turn on Settings → Developer → Integrate with 1Password SDKs."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1Password ist nicht verfügbar. Öffne die App und aktiviere Einstellungen → Entwickler → Mit 1Password SDKs integrieren."
+          }
+        }
+      }
+    },
+    "settings.onePassword.error.timedOut": {
+      "comment": "Settings → Privacy → 1Password: Verify result.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1Password timed out — try again when the app is ready."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1Password hat nicht rechtzeitig geantwortet – versuch es noch einmal, wenn die App bereit ist."
+          }
+        }
+      }
+    },
+    "settings.onePassword.error.brokerStopped": {
+      "comment": "Settings → Privacy → 1Password: Verify result when Blanc’s helper process for 1Password stopped.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The 1Password helper stopped — try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Hilfsprozess für 1Password wurde beendet – versuch es noch einmal."
+          }
+        }
+      }
+    },
+    "settings.onePassword.error.sdkError": {
+      "comment": "Settings → Privacy → 1Password: Verify result.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1Password couldn’t complete the check — try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1Password konnte die Prüfung nicht abschließen – versuch es noch einmal."
+          }
+        }
+      }
+    },
+    "settings.onePassword.checking": {
+      "comment": "Settings → Privacy → 1Password: shown while Verify runs.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking with 1Password…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird mit 1Password geprüft…"
+          }
+        }
+      }
+    },
+    "settings.onePassword.connected": {
+      "comment": "Settings → Privacy → 1Password: Verify succeeded.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connected."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbunden."
+          }
+        }
+      }
+    },
+    "settings.onePassword.installedMac": {
+      "comment": "Settings → Privacy → 1Password: hint when the 1Password app was found on a Mac.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installed on this Mac."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf diesem Mac installiert."
+          }
+        }
+      }
+    },
+    "settings.onePassword.installed": {
+      "comment": "Settings → Privacy → 1Password: hint when the 1Password app was found on Windows or Linux.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installed on this computer."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf diesem Computer installiert."
+          }
+        }
+      }
+    },
+    "settings.onePassword.notFoundMac": {
+      "comment": "Settings → Privacy → 1Password: hint on a Mac when the app is not in the Applications folder. “Verify” is the button below.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc couldn’t find the 1Password app in Applications — if it’s installed elsewhere, Verify below still works."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc hat die 1Password-App nicht im Ordner „Programme“ gefunden – wenn sie woanders installiert ist, funktioniert „Prüfen“ unten trotzdem."
+          }
+        }
+      }
+    },
+    "settings.onePassword.notFound": {
+      "comment": "Settings → Privacy → 1Password: hint on Windows or Linux when the app is not in its usual place. “Verify” is the button below.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc couldn’t find the 1Password app in its usual install location — if it’s installed elsewhere, Verify below still works."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc hat die 1Password-App nicht am üblichen Installationsort gefunden – wenn sie woanders installiert ist, funktioniert „Prüfen“ unten trotzdem."
+          }
+        }
+      }
+    },
+    "settings.privacy.resetInstallId.done": {
+      "comment": "Settings → Privacy → Usage and data: confirmation after Reset install ID.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset — this install now counts as brand new."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurückgesetzt – diese Installation zählt jetzt als ganz neu."
+          }
+        }
+      }
+    },
+    "settings.privacy.resetInstallId.failed": {
+      "comment": "Settings → Privacy → Usage and data: error after Reset install ID.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t save the reset — check disk space and try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Zurücksetzen konnte nicht gespeichert werden – prüfe den freien Speicherplatz und versuch es noch einmal."
+          }
+        }
+      }
+    },
+    "settings.privacy.exceptionList.empty": {
+      "comment": "Settings → Privacy → Blocking: shown when no site is excepted from blocking.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No exceptions added."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Ausnahmen hinzugefügt."
+          }
+        }
+      }
+    },
+    "settings.privacy.clearBrowsingData.confirm": {
+      "comment": "Settings → Privacy: confirmation dialog before clearing browsing data.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear all cookies, cache, and site data? You will be logged out of everything."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Cookies, den Cache und alle Websitedaten löschen? Du wirst überall abgemeldet."
+          }
+        }
+      }
+    },
+    "settings.privacy.clearBrowsingData.done": {
+      "comment": "Settings → Privacy: confirmation after clearing browsing data.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cleared."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gelöscht."
+          }
+        }
+      }
+    },
+    "settings.permissions.empty": {
+      "comment": "Settings → Privacy → Site permissions: shown when nothing is saved.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No saved decisions. Sites ask the first time they need something."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine gespeicherten Entscheidungen. Websites fragen, wenn sie zum ersten Mal etwas brauchen."
+          }
+        }
+      }
+    },
+    "settings.permissions.media": {
+      "comment": "Settings → Privacy → Site permissions: permission name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera/microphone"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kamera/Mikrofon"
+          }
+        }
+      }
+    },
+    "settings.permissions.geolocation": {
+      "comment": "Settings → Privacy → Site permissions: permission name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standort"
+          }
+        }
+      }
+    },
+    "settings.permissions.notifications": {
+      "comment": "Settings → Privacy → Site permissions: permission name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notifications"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Benachrichtigungen"
+          }
+        }
+      }
+    },
+    "settings.permissions.audio": {
+      "comment": "Settings → Privacy → Site permissions: permission name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikrofon"
+          }
+        }
+      }
+    },
+    "settings.permissions.video": {
+      "comment": "Settings → Privacy → Site permissions: permission name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kamera"
+          }
+        }
+      }
+    },
+    "settings.permissions.allowed": {
+      "comment": "Settings → Privacy → Site permissions: a saved decision under the site name; {permission} is a permission name such as “Location”.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ — Allowed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ – erlaubt"
+          }
+        }
+      }
+    },
+    "settings.permissions.blocked": {
+      "comment": "Settings → Privacy → Site permissions: a saved decision under the site name; {permission} is a permission name such as “Location”.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ — Blocked"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ – blockiert"
+          }
+        }
+      }
+    },
+    "settings.patron.thanks": {
+      "comment": "Settings → Blanc Patron: status once Patron is active.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You’re a Patron — thank you."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du bist Patron – vielen Dank."
+          }
+        }
+      }
+    },
+    "settings.patron.thanksSince": {
+      "comment": "Settings → Blanc Patron: status once Patron is active; {date} is the activation date, already formatted.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You’re a Patron — thank you. Activated %1$@."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du bist Patron – vielen Dank. Aktiviert am %1$@."
+          }
+        }
+      }
+    },
+    "settings.patron.activating": {
+      "comment": "Settings → Blanc Patron: shown while a license key is checked.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activating…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird aktiviert…"
+          }
+        }
+      }
+    },
+    "settings.patron.failed": {
+      "comment": "Settings → Blanc Patron: error when activation could not run.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Something went wrong. Please try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Etwas ist schiefgelaufen. Bitte versuch es noch einmal."
+          }
+        }
+      }
+    },
+    "settings.profiles.personalMeta": {
+      "comment": "Settings → Profiles: line under the built-in Personal profile.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your original Blanc data · permanent"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine ursprünglichen Blanc-Daten · dauerhaft"
+          }
+        }
+      }
+    },
+    "settings.profiles.currentWindow": {
+      "comment": "Settings → Profiles: line under the profile of this window.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current window"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktuelles Fenster"
+          }
+        }
+      }
+    },
+    "settings.profiles.separateData": {
+      "comment": "Settings → Profiles: line under another named profile.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Separate local browser data"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eigene lokale Browserdaten"
+          }
+        }
+      }
+    },
+    "settings.profiles.open": {
+      "comment": "Settings → Profiles: button that opens a window with this profile.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffnen"
+          }
+        }
+      }
+    },
+    "settings.profiles.rename": {
+      "comment": "Settings → Profiles: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rename"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Umbenennen"
+          }
+        }
+      }
+    },
+    "settings.profiles.save": {
+      "comment": "Settings → Profiles: button that saves a new profile name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speichern"
+          }
+        }
+      }
+    },
+    "settings.profiles.delete": {
+      "comment": "Settings → Profiles: button that starts deleting a profile.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Löschen"
+          }
+        }
+      }
+    },
+    "settings.profiles.deletePermanently": {
+      "comment": "Settings → Profiles: button that confirms deleting a profile.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete permanently"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Endgültig löschen"
+          }
+        }
+      }
+    },
+    "settings.profiles.openFailed": {
+      "comment": "Settings → Profiles: error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t open that profile."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Profil konnte nicht geöffnet werden."
+          }
+        }
+      }
+    },
+    "settings.profiles.renameLabel": {
+      "comment": "Settings → Profiles: accessible name of the rename field; {name} is the profile’s current name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New name for %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer Name für %1$@"
+          }
+        }
+      }
+    },
+    "settings.profiles.renamed": {
+      "comment": "Settings → Profiles: confirmation.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile renamed."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profil umbenannt."
+          }
+        }
+      }
+    },
+    "settings.profiles.renameFailed": {
+      "comment": "Settings → Profiles: error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t rename that profile."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Profil konnte nicht umbenannt werden."
+          }
+        }
+      }
+    },
+    "settings.profiles.deleteWarning": {
+      "comment": "Settings → Profiles: warning above the field that confirms deletion; {name} is the profile’s name, which must be typed exactly.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permanently deletes this profile’s local browser data. Downloaded files stay where you saved them. Type “%1$@” to continue."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Löscht die lokalen Browserdaten dieses Profils endgültig. Heruntergeladene Dateien bleiben, wo du sie gespeichert hast. Gib „%1$@“ ein, um fortzufahren."
+          }
+        }
+      }
+    },
+    "settings.profiles.deleteLabel": {
+      "comment": "Settings → Profiles: accessible name of the field that confirms deletion; {name} is the profile’s name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type %1$@ to confirm deletion"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib %1$@ ein, um das Löschen zu bestätigen"
+          }
+        }
+      }
+    },
+    "settings.profiles.deleted": {
+      "comment": "Settings → Profiles: confirmation.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile deleted."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profil gelöscht."
+          }
+        }
+      }
+    },
+    "settings.profiles.deleteFailed": {
+      "comment": "Settings → Profiles: error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t delete that profile."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Profil konnte nicht gelöscht werden."
+          }
+        }
+      }
+    },
+    "settings.profiles.createFailed": {
+      "comment": "Settings → Profiles: error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t create that profile."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Profil konnte nicht erstellt werden."
+          }
+        }
+      }
+    },
+    "settings.profiles.created": {
+      "comment": "Settings → Profiles: confirmation after creating a profile; {name} is its name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Created %1$@."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ erstellt."
+          }
+        }
+      }
+    },
+    "settings.profiles.loadFailed": {
+      "comment": "Settings → Profiles: error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load profiles."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile konnten nicht geladen werden."
+          }
+        }
+      }
+    },
+    "settings.sync.lastSynced": {
+      "comment": "Settings → Sync: status row; {when} is a relative time such as “5 minutes ago” or “yesterday”, or a date.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last synced %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zuletzt synchronisiert: %1$@"
+          }
+        }
+      }
+    },
+    "settings.sync.notSynced": {
+      "comment": "Settings → Sync: status row before the first sync.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not synced yet"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch nicht synchronisiert"
+          }
+        }
+      }
+    },
+    "settings.sync.sharing": {
+      "comment": "Settings → Sync: status of this device’s open tabs when they are shared.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sharing"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Werden geteilt"
+          }
+        }
+      }
+    },
+    "settings.sync.notShared": {
+      "comment": "Settings → Sync: status of this device’s open tabs when they are not shared.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not shared"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht geteilt"
+          }
+        }
+      }
+    },
+    "settings.sync.turningOn": {
+      "comment": "Settings → Sync setup: shown while sync is turned on.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turning on sync…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisierung wird eingeschaltet…"
+          }
+        }
+      }
+    },
+    "settings.sync.connectedTo": {
+      "comment": "Settings → Sync: confirmation after joining a sync from another device; {name} is the sync name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connected to “%1$@”. Pulling your favorites and settings now."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit „%1$@“ verbunden. Deine Favoriten und Einstellungen werden jetzt geladen."
+          }
+        }
+      }
+    },
+    "settings.sync.joinedAs": {
+      "comment": "Settings → Sync: confirmation when starting sync found existing data under that name; {name} is the sync name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Joined your existing sync as “%1$@”."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deiner bestehenden Synchronisierung als „%1$@“ beigetreten."
+          }
+        }
+      }
+    },
+    "settings.sync.on": {
+      "comment": "Settings → Sync: confirmation after turning sync on.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync is on. Your favorites and settings will sync as you change them."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Synchronisierung ist an. Deine Favoriten und Einstellungen werden synchronisiert, sobald du sie änderst."
+          }
+        }
+      }
+    },
+    "settings.sync.checking": {
+      "comment": "Settings → Sync setup: shown while Blanc looks for an existing sync.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird geprüft…"
+          }
+        }
+      }
+    },
+    "settings.sync.checkFailed": {
+      "comment": "Settings → Sync setup: error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not check sync. Try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Synchronisierung konnte nicht geprüft werden. Versuch es noch einmal."
+          }
+        }
+      }
+    },
+    "settings.sync.syncing": {
+      "comment": "Settings → Sync: shown after Sync now.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Syncing…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird synchronisiert…"
+          }
+        }
+      }
+    },
+    "settings.sync.notice.offline": {
+      "comment": "Settings → Sync setup: error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t reach the sync server. Check your connection and try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Sync-Server ist nicht erreichbar. Prüfe deine Verbindung und versuch es noch einmal."
+          }
+        }
+      }
+    },
+    "settings.sync.notice.rateLimited": {
+      "comment": "Settings → Sync setup: error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Too many attempts. Wait a minute and try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zu viele Versuche. Warte eine Minute und versuch es dann noch einmal."
+          }
+        }
+      }
+    },
+    "settings.sync.setup.intro": {
+      "comment": "Settings → Sync setup: introduction before a path is chosen.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync your favorites and settings across your devices, and, if you choose, open tabs. Everything is end-to-end encrypted."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisiere deine Favoriten und Einstellungen und auf Wunsch auch offene Tabs zwischen deinen Geräten. Alles ist Ende-zu-Ende-verschlüsselt."
+          }
+        }
+      }
+    },
+    "settings.sync.setup.joinTitle": {
+      "comment": "Settings → Sync setup: heading when joining a sync from another device.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect this device"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Gerät verbinden"
+          }
+        }
+      }
+    },
+    "settings.sync.setup.joinIntro": {
+      "comment": "Settings → Sync setup: introduction when joining a sync from another device.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use the same sync name and passphrase as your other device. Blanc checks them before saving anything here."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwende denselben Synchronisierungsnamen und dieselbe Passphrase wie auf deinem anderen Gerät. Blanc prüft sie, bevor hier etwas gespeichert wird."
+          }
+        }
+      }
+    },
+    "settings.sync.setup.handleHint": {
+      "comment": "Settings → Sync setup: hint under the sync name field when starting a new sync.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A label for your sync, like a username. You’ll type it again on your other devices."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Bezeichnung für deine Synchronisierung, ähnlich einem Benutzernamen. Du gibst sie auf deinen anderen Geräten erneut ein."
+          }
+        }
+      }
+    },
+    "settings.sync.setup.joinHandleHint": {
+      "comment": "Settings → Sync setup: hint under the sync name field when joining.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the exact sync name you used on your other device."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib genau den Synchronisierungsnamen ein, den du auf deinem anderen Gerät verwendet hast."
+          }
+        }
+      }
+    },
+    "settings.sync.setup.passphraseHint": {
+      "comment": "Settings → Sync setup: hint under the passphrase field when starting a new sync.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "16+ characters, or 10+ mixing letters, numbers and symbols. Blanc can’t recover it if you forget it."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mindestens 16 Zeichen oder mindestens 10 mit Buchstaben, Zahlen und Symbolen gemischt. Blanc kann sie nicht wiederherstellen, wenn du sie vergisst."
+          }
+        }
+      }
+    },
+    "settings.sync.setup.joinPassphraseHint": {
+      "comment": "Settings → Sync setup: hint under the passphrase field when joining.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the exact passphrase. Case matters."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib die Passphrase genau ein. Groß- und Kleinschreibung zählt."
+          }
+        }
+      }
+    },
+    "settings.sync.setup.connect": {
+      "comment": "Settings → Sync setup: submit button when joining a sync from another device.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbinden"
+          }
+        }
+      }
+    },
+    "settings.sync.setup.joinFinishHint": {
+      "comment": "Settings → Sync setup: hint above the submit button when joining.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc will look for your encrypted sync before saving these credentials on this device."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc sucht nach deiner verschlüsselten Synchronisierung, bevor diese Zugangsdaten auf diesem Gerät gespeichert werden."
+          }
+        }
+      }
+    },
+    "settings.sync.ago.justNow": {
+      "comment": "Settings → Sync: completes “Last synced {when}” for a sync less than a minute ago.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "just now"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "gerade eben"
+          }
+        }
+      }
+    },
+    "settings.sync.ago.minutes": {
+      "comment": "Settings → Sync: completes “Last synced {when}”; # is a number of minutes.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld minute ago"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld minutes ago"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "vor %1$lld Minute"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "vor %1$lld Minuten"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "settings.sync.ago.hours": {
+      "comment": "Settings → Sync: completes “Last synced {when}”; # is a number of hours.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld hour ago"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld hours ago"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "vor %1$lld Stunde"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "vor %1$lld Stunden"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "settings.sync.ago.yesterday": {
+      "comment": "Settings → Sync: completes “Last synced {when}”.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "yesterday"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "gestern"
+          }
+        }
+      }
+    },
+    "settings.sync.ago.days": {
+      "comment": "Settings → Sync: completes “Last synced {when}”; # is a number of days (2 to 29).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld day ago"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld days ago"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "vor %1$lld Tag"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "vor %1$lld Tagen"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "settings.trust.on": {
+      "comment": "Settings → About & Trust: local trust receipt: value of an on/off fact.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An"
+          }
+        }
+      }
+    },
+    "settings.trust.off": {
+      "comment": "Settings → About & Trust: local trust receipt: value of an on/off fact.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aus"
+          }
+        }
+      }
+    },
+    "settings.trust.dnsAuto": {
+      "comment": "Settings → About & Trust: local trust receipt: Encrypted DNS value when set to Automatic.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatic"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatisch"
+          }
+        }
+      }
+    },
+    "settings.trust.dnsCustom": {
+      "comment": "Settings → About & Trust: local trust receipt: Encrypted DNS value when a custom provider is set.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom provider"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eigener Anbieter"
+          }
+        }
+      }
+    },
+    "settings.trust.signature.verified": {
+      "comment": "Settings → About & Trust: local trust receipt: publisher fact; {publisher} is the code-signing identity.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verified locally — %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lokal geprüft – %1$@"
+          }
+        }
+      }
+    },
+    "settings.trust.signature.mismatch": {
+      "comment": "Settings → About & Trust: local trust receipt: publisher fact when the signature does not match; {expected} and {observed} are code-signing identities.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expected %1$@ · observed %2$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erwartet: %1$@ · gefunden: %2$@"
+          }
+        }
+      }
+    },
+    "settings.trust.signature.unknownPublisher": {
+      "comment": "Settings → About & Trust: local trust receipt: fills {observed} in “Expected {expected} · observed {observed}” when no publisher was found.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "unknown publisher"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "unbekannter Herausgeber"
+          }
+        }
+      }
+    },
+    "settings.trust.signature.unavailable": {
+      "comment": "Settings → About & Trust: local trust receipt: publisher fact when the signature could not be inspected; {expected} is a code-signing identity.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expected %1$@ · local inspection unavailable"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erwartet: %1$@ · lokale Prüfung nicht verfügbar"
+          }
+        }
+      }
+    },
+    "settings.trust.signature.development": {
+      "comment": "Settings → About & Trust: local trust receipt: publisher fact in a development build.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Development build — not a signed release build"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entwicklungs-Build – kein signierter Release-Build"
+          }
+        }
+      }
+    },
+    "settings.trust.signature.manifestBacked": {
+      "comment": "Settings → About & Trust: local trust receipt: publisher fact on Linux.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Linux publisher verification relies on the signed manifest for the matching release"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unter Linux beruht die Prüfung des Herausgebers auf dem signierten Manifest des passenden Releases"
+          }
+        }
+      }
+    },
+    "settings.trust.signature.unknown": {
+      "comment": "Settings → About & Trust: local trust receipt: publisher fact when the result is not recognized.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unbekannt"
+          }
+        }
+      }
+    },
+    "settings.trust.fact.build": {
+      "comment": "Settings → About & Trust: local trust receipt: fact name (app version and build number).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Build"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Build"
+          }
+        }
+      }
+    },
+    "settings.trust.fact.runtime": {
+      "comment": "Settings → About & Trust: local trust receipt: fact name (Electron, Chromium and Node versions).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Runtime"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laufzeit"
+          }
+        }
+      }
+    },
+    "settings.trust.fact.platform": {
+      "comment": "Settings → About & Trust: local trust receipt: fact name (operating system and architecture).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Platform"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plattform"
+          }
+        }
+      }
+    },
+    "settings.trust.fact.publisher": {
+      "comment": "Settings → About & Trust: local trust receipt: fact name (who signed the app).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publisher"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Herausgeber"
+          }
+        }
+      }
+    },
+    "settings.trust.fact.blockerSnapshot": {
+      "comment": "Settings → About & Trust: local trust receipt: fact name (date and names of the bundled filter lists).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blocker snapshot"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stand der Filterlisten"
+          }
+        }
+      }
+    },
+    "settings.trust.fact.blockerList": {
+      "comment": "Settings → About & Trust: local trust receipt: fact name for one filter list’s checksum; {name} is the list name, e.g. easylist.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blocker · %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filterliste · %1$@"
+          }
+        }
+      }
+    },
+    "settings.trust.fact.blockerDigest": {
+      "comment": "Settings → About & Trust: local trust receipt: fact name (one checksum over all filter lists).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combined blocker digest"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gesamtprüfsumme der Filterlisten"
+          }
+        }
+      }
+    },
+    "settings.trust.fact.sync": {
+      "comment": "Settings → About & Trust: local trust receipt: fact name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisierung"
+          }
+        }
+      }
+    },
+    "settings.trust.fact.openTabs": {
+      "comment": "Settings → About & Trust: local trust receipt: fact name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open-tab sharing"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offene Tabs teilen"
+          }
+        }
+      }
+    },
+    "settings.trust.fact.usage": {
+      "comment": "Settings → About & Trust: local trust receipt: fact name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usage measurement"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nutzungsmessung"
+          }
+        }
+      }
+    },
+    "settings.trust.fact.suggestions": {
+      "comment": "Settings → About & Trust: local trust receipt: fact name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search suggestions"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suchvorschläge"
+          }
+        }
+      }
+    },
+    "settings.trust.fact.secureDns": {
+      "comment": "Settings → About & Trust: local trust receipt: fact name (the Encrypted DNS setting).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Secure DNS"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verschlüsseltes DNS"
+          }
+        }
+      }
+    },
+    "settings.trust.fact.crashLedger": {
+      "comment": "Settings → About & Trust: local trust receipt: fact name (the local crash history).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crash ledger"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Absturzprotokoll"
+          }
+        }
+      }
+    },
+    "settings.trust.buildPackaged": {
+      "comment": "Settings → About & Trust: local trust receipt: build fact for an installed app; {version} is the app version, {build} the build number.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ (%2$@) · packaged"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ (%2$@) · paketiert"
+          }
+        }
+      }
+    },
+    "settings.trust.buildDevelopment": {
+      "comment": "Settings → About & Trust: local trust receipt: build fact for a development run; {version} is the app version, {build} the build number.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ (%2$@) · development"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ (%2$@) · Entwicklung"
+          }
+        }
+      }
+    },
+    "settings.trust.syncScope": {
+      "comment": "Settings → About & Trust: local trust receipt: what Sync covers when it is on. “Personal” is the name of the built-in profile.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favorites, selected settings · Personal only"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favoriten, ausgewählte Einstellungen · nur Personal"
+          }
+        }
+      }
+    },
+    "settings.trust.crashLedger": {
+      "comment": "Settings → About & Trust: local trust receipt: crash ledger fact; {count} is the number of recorded events, {limit} the maximum kept (50).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Device only · automatic upload off · %1$@/%2$@ events"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur auf dem Gerät · automatischer Upload aus · %1$@/%2$@ Ereignisse"
+          }
+        }
+      }
+    },
+    "settings.trust.checked": {
+      "comment": "Settings → About & Trust: local trust receipt: status once the receipt is shown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Receipt checked locally."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beleg lokal geprüft."
+          }
+        }
+      }
+    },
+    "settings.trust.failed": {
+      "comment": "Settings → About & Trust: local trust receipt: error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t build the local trust receipt."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der lokale Vertrauensbeleg konnte nicht erstellt werden."
+          }
+        }
+      }
+    },
+    "settings.diagnostics.none": {
+      "comment": "Settings → Diagnostics: summary when the crash history is empty.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No crashes have been recorded on this device."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf diesem Gerät wurden keine Abstürze aufgezeichnet."
+          }
+        }
+      }
+    },
+    "settings.diagnostics.count": {
+      "comment": "Settings → Diagnostics: summary; # is the number of recorded crash events (1 or more).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld crash event recorded on this device."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld crash events recorded on this device."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Absturzereignis auf diesem Gerät aufgezeichnet."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Absturzereignisse auf diesem Gerät aufgezeichnet."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "settings.diagnostics.preparing": {
+      "comment": "Settings → Diagnostics: shown while the export is prepared.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing report…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bericht wird vorbereitet…"
+          }
+        }
+      }
+    },
+    "settings.diagnostics.saved": {
+      "comment": "Settings → Diagnostics: confirmation after exporting diagnostics.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gespeichert."
+          }
+        }
+      }
+    },
+    "settings.diagnostics.cancelled": {
+      "comment": "Settings → Diagnostics: shown when the save dialog was cancelled.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export canceled."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export abgebrochen."
+          }
+        }
+      }
+    },
+    "settings.diagnostics.saveFailed": {
+      "comment": "Settings → Diagnostics: error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t save diagnostics."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Diagnosedaten konnten nicht gespeichert werden."
+          }
+        }
+      }
+    },
+    "settings.diagnostics.clearConfirm": {
+      "comment": "Settings → Diagnostics: confirmation dialog before clearing the crash history.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear Blanc’s local crash history?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Den lokalen Absturzverlauf von Blanc löschen?"
+          }
+        }
+      }
+    },
+    "settings.diagnostics.cleared": {
+      "comment": "Settings → Diagnostics: confirmation.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crash history cleared."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Absturzverlauf gelöscht."
+          }
+        }
+      }
+    },
+    "settings.diagnostics.clearFailed": {
+      "comment": "Settings → Diagnostics: error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t clear crash history."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Absturzverlauf konnte nicht gelöscht werden."
+          }
+        }
+      }
+    },
+    "settings.diagnostics.readFailed": {
+      "comment": "Settings → Diagnostics: error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t read local crash history."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der lokale Absturzverlauf konnte nicht gelesen werden."
+          }
+        }
+      }
+    },
+    "settings.hint.more": {
+      "comment": "Settings: button under a long explanation that shows the rest of it.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mehr"
+          }
+        }
+      }
+    },
+    "settings.hint.less": {
+      "comment": "Settings: button under an expanded explanation that folds it back to two lines.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Less"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weniger"
           }
         }
       }

@@ -78,7 +78,8 @@
       "settings.general.newtabLayout.ledger",
       "settings.general.newtabLayout.billboard",
       "settings.general.newtabLayout.shelf",
-      "settings.general.newtabLayout.tally"
+      "settings.general.newtabLayout.tally",
+      "settings.trust.fact.build"
     ]
   }
 }
