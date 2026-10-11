@@ -5,7 +5,12 @@ name: Unit tests
 # runs it on all four desktop targets, but only for the paths it filters on, so
 # a test-only change otherwise never ran on Windows or macOS (#608). No path
 # filter here on purpose: a platform-specific failure can come from any file.
+# It also runs on every push to main: main doesn't require a pull request to be
+# up to date before merging, so two pull requests that each passed are only
+# tested together here. A newer push cancels a run still in progress.
 on:
+  push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
