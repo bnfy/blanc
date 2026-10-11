@@ -2696,11 +2696,10 @@ function install(refs) {
         return { ...result, applied: result?.ok === true, projection, broadcastCount };
       }
       if (stage === 'cancel') {
-        // Use the renderer's real close control. tab-import-open-tabs.js wraps the
-        // shared sheet close so it cancels the opaque session before main
-        // dismisses the surface; calling hideUtilitySheet directly would
-        // skip that renderer-owned cancellation path when a sheet was
-        // already visually detached.
+        // Use the renderer's real close control: the ✕ calls
+        // bowserPages.surface.close, and main's hideUtilitySheet destroys
+        // the session (discardUtilityImportState). Clicking it proves the
+        // path a person takes, rather than calling hideUtilitySheet here.
         await clickTabImportSelector('.sheet-close');
         const closeDeadline = Date.now() + 8_000;
         while (getUtilitySheetState()?.visible) {

@@ -28,7 +28,6 @@ const BROWSER_NAME_KEYS = new Map(Object.entries({
 }));
 
 const api = window.bowserPages?.tabImport;
-const surface = window.bowserPages?.surface;
 const el = (id) => document.getElementById(id);
 const pageEl = document.querySelector('.tab-import-page');
 const statusEl = el('tabImportStatus');
@@ -252,16 +251,6 @@ async function returnToSource() {
   clearRecovery();
   setStatus();
   setStep('source');
-}
-
-function wrapSurfaceClose() {
-  if (!surface?.close) return;
-  const close = surface.close.bind(surface);
-  surface.close = async () => {
-    await cancelSession();
-    clearImport();
-    return close();
-  };
 }
 
 function browserKey(entry) {
@@ -936,6 +925,9 @@ el('tabImportBackToOrganize').addEventListener('click', () => {
 });
 applyBtn.addEventListener('click', () => applyImport());
 
-wrapSurfaceClose();
+// Closing the sheet needs no page-side cleanup. Every close path (✕, scrim,
+// Escape, tab switch) runs main's hideUtilitySheet, which destroys this
+// window's import session, and reopening reloads this page from scratch.
+// The bridge objects are frozen by contextBridge, so they cannot be wrapped.
 setStep('source');
 loadSources();
