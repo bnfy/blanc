@@ -35,11 +35,15 @@ function sendHtml(res, body, headers = {}) {
   res.end(`<!doctype html><html><head><meta charset="utf-8"></head><body>${body}</body></html>`);
 }
 
-async function waitForWebContents(app, matcher, timeout = 20_000) {
-  return app.evaluate(async (electron, { matcher, timeout }) => {
+// `exclude` skips pages that existed before the action being awaited, and any
+// loaded match counts: a stale or still-loading earlier page with the same
+// path can never hide the new one.
+async function waitForWebContents(app, matcher, timeout = 20_000, { exclude = [] } = {}) {
+  return app.evaluate(async (electron, { matcher, timeout, exclude }) => {
     const deadline = Date.now() + timeout;
     while (Date.now() < deadline) {
       const found = electron.webContents.getAllWebContents().find((wc) => {
+        if (exclude.includes(wc.id) || wc.isLoading()) return false;
         try {
           const url = new URL(wc.getURL());
           return (!matcher.hostname || url.hostname === matcher.hostname) &&
@@ -50,11 +54,24 @@ async function waitForWebContents(app, matcher, timeout = 20_000) {
           return false;
         }
       });
-      if (found && !found.isLoading()) return { id: found.id, url: found.getURL() };
+      if (found) return { id: found.id, url: found.getURL() };
       await new Promise((resolve) => setTimeout(resolve, 50));
     }
     return null;
-  }, { matcher, timeout });
+  }, { matcher, timeout, exclude });
+}
+
+function webContentsIds(app) {
+  return app.evaluate((electron) => electron.webContents.getAllWebContents().map((wc) => wc.id));
+}
+
+/** Every page's path and state, for an assertion message when a wait times out. */
+function describeWebContents(app) {
+  return app.evaluate((electron) => electron.webContents.getAllWebContents().map((wc) => {
+    let path = '';
+    try { path = new URL(wc.getURL()).pathname; } catch { path = wc.getURL(); }
+    return { id: wc.id, path, loading: wc.isLoading(), destroyed: wc.isDestroyed() };
+  }));
 }
 
 function evaluateWebContents(app, id, source) {
@@ -280,7 +297,7 @@ test('external app login callbacks from tabs, redirects, frames and OAuth popups
       <a id="canva" href="canva://callback?code=test-only&state=opaque">Return to Canva</a>
       <a id="canva-redirect" href="/redirect-canva">Redirect to Canva</a>
       <a id="other-app" href="another-installed-app://callback?code=test-only&state=opaque">Return to another app</a>
-      <button id="popup" onclick="window.open('/callback', 'oauth', 'popup,width=520,height=680')">Popup</button>
+      <button id="popup" onclick="window.popupClicks = (window.popupClicks || 0) + 1; window.open('/callback', 'oauth', 'popup,width=520,height=680')">Popup</button>
       <button id="tab" onclick="window.open('/callback', '_blank')">New tab</button>
       <button id="frame" onclick="document.querySelector('iframe').src='/redirect'">Frame callback</button>
       <button id="newwindow" onclick="window.open('claude://callback?code=test-only&state=opaque')">App window</button>
@@ -359,9 +376,17 @@ test('external app login callbacks from tabs, redirects, frames and OAuth popups
   // OAuth completion pages often close their popup after attempting the app
   // callback. Delay the native confirmation long enough to prove that the
   // captured callback no longer depends on that WebContents staying alive.
+  const pagesBefore = await webContentsIds(app);
+  const clicksBefore = await evaluateWebContents(app, root.id, 'window.popupClicks || 0');
   await clickWebContents(app, root.id, '#popup');
-  const closingChild = await waitForWebContents(app, { pathname: '/callback' });
-  assert.ok(closingChild, 'self-closing popup should open');
+  const closingChild = await waitForWebContents(app, { pathname: '/callback' }, undefined, { exclude: pagesBefore });
+  if (!closingChild) {
+    // Say whether the click reached the page (a lost click) or the page asked
+    // for a popup that never appeared, so a CI failure explains itself.
+    const clicksAfter = await evaluateWebContents(app, root.id, 'window.popupClicks || 0');
+    const click = clicksAfter > clicksBefore ? 'reached the page' : 'never reached the page';
+    assert.fail(`self-closing popup should open; the #popup click ${click}; pages: ${JSON.stringify(await describeWebContents(app))}`);
+  }
   await app.evaluate(() => { globalThis.appHandoffTest.promptDelay = 150; });
   await clickWebContents(app, closingChild.id, '#close-after-callback');
   const afterClose = await waitForLaunch(++count);
