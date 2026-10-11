@@ -172,8 +172,8 @@ original reports:
   `src/renderer/pages/bookmarks.js`, `src/renderer/pages/pages.css`, and
   `test/desktop/favorites-folder-picker-smoke.mjs`, the published release notes,
   and the 12-layout macOS/Linux regression evidence in the release report.
-- **Workspaces:** Active Patrons can explicitly save a window or create a
-  blank workspace. A bound workspace saves its tabs and groups as the
+- **Blanc Spaces:** Active Patrons can explicitly save a window or create a
+  blank space. A bound space saves its tabs and groups as the
   user browses and can later replace the current window's set. This is not
   automatic task detection, an AI workspace, or an agent session.
 - **Quiet Tabs:** Eligible inactive background tabs may give back their

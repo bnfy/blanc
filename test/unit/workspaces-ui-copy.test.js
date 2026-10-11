@@ -6,7 +6,7 @@ const { harness, settle } = require('../support/workspace-ui-dom');
 
 test('the switcher states the same workspace limit main enforces', () => {
   assert.equal(WORKSPACE_LIMIT, MAX_WORKSPACES);
-  assert.equal(errors.limit, `You have ${MAX_WORKSPACES} workspaces. Delete one before adding another.`);
+  assert.equal(errors.limit, `You have ${MAX_WORKSPACES} spaces. Delete one before adding another.`);
 });
 
 test('switch decisions pluralize private and unsaved tabs from the catalog', async () => {
@@ -26,5 +26,5 @@ test('workspace rows name the workspace, its state and its tab count', () => {
   const h = harness({}, { items: [{ id: 'a', name: 'First', active: true, tabCount: 1 }, { id: 'b', name: 'Second', active: false, tabCount: 4 }] });
   h.ui.open();
   const titles = h.list.children.map((row) => row.children[0].title);
-  assert.deepEqual(titles, ['First · Current workspace · 1 tab', 'Second · Open workspace · 4 tabs']);
+  assert.deepEqual(titles, ['First · Current space · 1 tab', 'Second · Open space · 4 tabs']);
 });

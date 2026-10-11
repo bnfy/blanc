@@ -41,9 +41,10 @@ can free renderer memory. Choose Off, 30 minutes, 1 hour, or 6 hours. A quiet
 tab reloads when revisited; exact live page state is not guaranteed. Tabs with
 protected activity or uncertain eligibility remain awake.
 
-Workspaces are an optional Patron feature, available through
-`/workspace`. Creating one requires an active subscription. Existing
-workspaces can still be renamed or removed after a subscription lapses.
+Blanc Spaces are an optional Patron feature, available through
+`/space` (the older `/workspace` still works). Creating one requires an active
+subscription. Existing spaces can still be renamed or removed after a
+subscription lapses.
 
 ## Favorites, imports, history, and downloads
 

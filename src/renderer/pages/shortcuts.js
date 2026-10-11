@@ -28,7 +28,7 @@ const SLASH_COMMANDS = [
   ['/1password', 'Fill a login from 1Password'],
   ['/theme [system|light|dark]', 'Cycle appearance, or switch directly to system, light, or dark'],
   ['/patron', 'Support Blanc with a Patron subscription'],
-  ['/workspace', 'Switch to a workspace, or type a new name to save this window'],
+  ['/space', 'Switch to a space, or type a new name to save this window'],
 ];
 
 /** One titled section of label/keys rows. */

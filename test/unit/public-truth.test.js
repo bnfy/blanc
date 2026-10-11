@@ -18,7 +18,7 @@ test('expanded feature guides retain release limitations beside their benefits',
   for (const limit of [/At most one eligible closed page per window/, /about 30 seconds/, /may reload/, /25 entries per window/, /one hour/, /Private tabs never enter Recently Closed/]) assert.match(reopen, limit);
   const workspaces = guide('workspaces');
   assert.match(workspaces, /requires an active Patron subscription/);
-  assert.match(workspaces, /membership lapses, existing workspaces remain openable, switchable, and automatically updated/);
+  assert.match(workspaces, /membership lapses, existing spaces remain openable, switchable, and automatically updated/);
   assert.match(workspaces, /device-local and profile-scoped/);
   assert.match(workspaces, /do not sync across devices/);
   assert.match(guide('profiles'), /Sync is available only to Personal/);
@@ -30,7 +30,7 @@ test('expanded feature guides retain release limitations beside their benefits',
   assert.match(guide('security'), /trades conversational responsiveness/);
   for (const source of [start, reopen, workspaces, guide('profiles'), guide('glance')]) {
     assert.doesNotMatch(source, /Blanc automatically (?:organizes|groups) (?:your )?tabs/i);
-    assert.doesNotMatch(source, /(?:Mahjong|Billboard|Named Workspaces) (?:is|are) cloud-synced/i);
+    assert.doesNotMatch(source, /(?:Mahjong|Billboard|Named Workspaces|Blanc Spaces) (?:is|are) cloud-synced/i);
     assert.doesNotMatch(source, /(?:exactly restores|perfectly recovers) every (?:closed )?tab/i);
   }
 });
@@ -194,7 +194,7 @@ test('public Patron copy states the named-workspace boundary consistently', () =
   for (const relativePath of publicCopyFiles) {
     const source = read(relativePath);
     assert.doesNotMatch(source, staleClaims, `${relativePath} must not overstate the free feature boundary`);
-    assert.match(source, /\bworkspaces?\b/i, `${relativePath} must name the Patron workspace benefit`);
+    assert.match(source, /\b(?:Blanc Spaces|named workspaces?)\b/i, `${relativePath} must name the Patron Blanc Spaces benefit`);
     assert.doesNotMatch(source, retiredColorwayClaim, `${relativePath} must not advertise retired Patron colorways`);
   }
 
@@ -202,12 +202,12 @@ test('public Patron copy states the named-workspace boundary consistently', () =
     const source = read(relativePath);
     assert.match(
       source,
-      /Creating\s+a\s+workspace\s+requires\s+an\s+active\s+Patron\s+subscription/i,
+      /Creating\s+a\s+space\s+requires\s+an\s+active\s+Patron\s+subscription/i,
       `${relativePath} must state the creation gate`
     );
     assert.match(
       source,
-      /Renaming\s+and\s+removing\s+existing\s+workspaces\s+continue\s+to\s+work\s+if\s+it\s+lapses/i,
+      /Renaming\s+and\s+removing\s+existing\s+spaces\s+continue\s+to\s+work\s+if\s+it\s+lapses/i,
       `${relativePath} must state the lapsed-subscription behavior`
     );
   }

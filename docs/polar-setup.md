@@ -64,7 +64,7 @@ The checkout link appears in Settings (`#patronCheckout` in
   successful validation (`GRACE_MS` in `src/main/patron-model.js`).
 - Founding Supporter keys are never revalidated.
 - Renderers see only `patronActive`. Patron currently unlocks creating
-  Workspaces.
+  Blanc Spaces.
 
 If the data Blanc sends to Polar changes, update the `patron-license` flow
 in `security/network-data-inventory.json` and the Patron paragraph in
@@ -80,7 +80,7 @@ in `security/network-data-inventory.json` and the Patron paragraph in
 3. If the checkout link changed, replace every `buy.polar.sh` link (see
    above).
 4. Test in a development run: buy with Polar's sandbox test card, enter the
-   key in Settings → Patron, and confirm that a workspace can be
+   key in Settings → Patron, and confirm that a space can be
    created. Run `npm run test:unit`.
 5. Test production in a packaged build with a real key.
 6. Ship a release (packaged builds carry the ids) and deploy the website

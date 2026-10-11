@@ -114,7 +114,7 @@ policy).
 - **iOS:** **StoreKit / In-App Purchase** (Apple's cut applies).
 - **Android:** **Google Play Billing.**
 
-**Parity contract:** Patron unlocks creation of Workspaces on every
+**Parity contract:** Patron unlocks creation of Blanc Spaces on every
 platform. Existing workspaces remain available after a subscription lapses;
 founding licenses retain permanent access. App-icon colorways are not a Patron
 benefit. Renderers only ever see the derived boolean, never a key.

@@ -23,4 +23,4 @@
 "slash_dark_site" = "Darken this site, or leave it as drawn";
 "slash_theme" = "Cycle appearance, or choose system / light / dark";
 "slash_patron" = "Support Blanc with a Patron subscription";
-"slash_workspace" = "Switch to a workspace, or type a new name to save this window";
+"slash_space" = "Switch to a space, or type a new name to save this window";
