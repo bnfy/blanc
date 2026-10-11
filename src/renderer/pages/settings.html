@@ -315,7 +315,7 @@
             </div>
             <div id="syncActive" hidden>
               <dl class="sync-status-list">
-                <div><dt data-i18n="settings.sync.syncName">Sync name</dt><dd id="syncStatusHandle"></dd></div>
+                <div><dt data-i18n="settings.sync.syncName">Sync name</dt><dd id="syncStatusHandle" data-i18n-ignore=""></dd></div>
                 <div><dt data-i18n="settings.sync.favoritesAndSettings">Favorites and settings</dt><dd id="syncStatusData"></dd></div>
                 <div><dt data-i18n="settings.sync.thisDevicesOpenTabs">This device’s open tabs</dt><dd id="syncStatusTabs"></dd></div>
                 <div id="syncStatusErrorRow" hidden><dt data-i18n="settings.sync.lastError">Last error</dt><dd id="syncStatusError"></dd></div>
@@ -430,9 +430,9 @@
               <select id="secureDns">
                 <option value="auto" data-i18n="settings.privacy.secureDns.auto">Automatic (recommended)</option>
                 <option value="off" data-i18n="settings.privacy.secureDns.off">Off — use your system setting (best with a VPN)</option>
-                <option value="cloudflare">Cloudflare</option>
+                <option value="cloudflare" data-i18n-ignore="">Cloudflare</option>
                 <option value="quad9" data-i18n="settings.privacy.secureDns.quad9">Quad9 — also blocks known malware sites</option>
-                <option value="mullvad">Mullvad</option>
+                <option value="mullvad" data-i18n-ignore="">Mullvad</option>
                 <option value="custom" data-i18n="settings.privacy.secureDns.custom">Custom provider…</option>
               </select>
             </div>

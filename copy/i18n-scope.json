@@ -75,15 +75,24 @@
       ]
     },
     "src/renderer/pages/settings.js": {
-      "state": "pending",
-      "allow": []
+      "state": "guarded",
+      "allow": [
+        "macOS",
+        "Windows",
+        "Linux",
+        "uBlock Origin",
+        "Blanc Blocker",
+        "Cloudflare",
+        "Quad9",
+        "Mullvad"
+      ]
     },
     "src/renderer/pages/settings-sync-setup-model.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/renderer/pages/settings-verify-model.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/renderer/pages/settings-nav-model.js": {

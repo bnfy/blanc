@@ -15,10 +15,17 @@
 // move the token on, so a reply from an abandoned attempt is dropped and the
 // enable effect's own `path` (never live state) decides the result copy.
 (function (root, factory) {
-  const api = factory();
+  // The interface language's translator: the page's blancI18n in the app,
+  // the English catalog under Node (unit tests require this module directly).
+  const i18n = root.blancI18n || (() => {
+    const { createTranslator } = require('./i18n.js');
+    const t = createTranslator({ locale: 'en', messages: require('./strings.en.js').messages });
+    return { t, formatLocale: () => 'en' };
+  })();
+  const api = factory(i18n);
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.blancSyncSetupModel = api;
-})(typeof self !== 'undefined' ? self : this, function () {
+})(typeof self !== 'undefined' ? self : this, function ({ t, formatLocale }) {
   const trimmed = (value) => String(value ?? '').trim();
 
   // Mirror of main's rule so the button can disable before submit. Main
@@ -89,8 +96,8 @@
   }
 
   const NOTICES = {
-    offline: 'Couldn’t reach the sync server. Check your connection and try again.',
-    rateLimited: 'Too many attempts. Wait a minute and try again.',
+    offline: t('settings.sync.notice.offline'),
+    rateLimited: t('settings.sync.notice.rateLimited'),
   };
 
   function view(state) {
@@ -100,23 +107,15 @@
       pathChosen: !!state.path,
       path: state.path,
       fieldsVisible: !!state.path,
-      setupTitle: join ? 'Connect this device' : (start ? 'Start syncing from this device' : 'Set up Sync'),
-      setupIntro: join
-        ? 'Use the same sync name and passphrase as your other device. Blanc checks them before saving anything here.'
-        : (start
-          ? 'Sync your favorites and settings across your devices, and, if you choose, open tabs. Everything is end-to-end encrypted — Blanc can’t read it, and can’t recover it if you forget your passphrase.'
-          : 'Sync your favorites and settings across your devices, and, if you choose, open tabs. Everything is end-to-end encrypted.'),
-      handleHint: join
-        ? 'Enter the exact sync name you used on your other device.'
-        : 'A label for your sync, like a username. You’ll type it again on your other devices.',
-      passphraseHint: join
-        ? 'Enter the exact passphrase. Case matters.'
-        : '16+ characters, or 10+ mixing letters, numbers and symbols. Blanc can’t recover it if you forget it.',
-      submitLabel: join ? 'Connect' : 'Turn on sync',
-      finishTitle: join ? 'Connect this device' : 'Turn on Sync',
-      finishHint: join
-        ? 'Blanc will look for your encrypted sync before saving these credentials on this device.'
-        : 'You’re ready — your favorites and settings will sync securely across your devices.',
+      setupTitle: join ? t('settings.sync.setup.joinTitle')
+        : (start ? t('settings.sync.startSyncingFromThis') : t('settings.sync.syncSetupTitle')),
+      setupIntro: join ? t('settings.sync.setup.joinIntro')
+        : (start ? t('settings.sync.syncSetupIntro') : t('settings.sync.setup.intro')),
+      handleHint: join ? t('settings.sync.setup.joinHandleHint') : t('settings.sync.setup.handleHint'),
+      passphraseHint: join ? t('settings.sync.setup.joinPassphraseHint') : t('settings.sync.setup.passphraseHint'),
+      submitLabel: join ? t('settings.sync.setup.connect') : t('settings.sync.syncSubmit'),
+      finishTitle: join ? t('settings.sync.setup.joinTitle') : t('settings.sync.syncFinishTitle'),
+      finishHint: join ? t('settings.sync.setup.joinFinishHint') : t('settings.sync.syncFinishHint'),
       submitDisabled: busy(state) || !valid(state),
       showNotFound: state.phase === 'notFound',
       noticeText: state.notice ? (NOTICES[state.notice.kind] ?? state.notice.message) : '',
@@ -132,16 +131,15 @@
     if (!timestamp) return null;
     const seconds = Math.floor((now - timestamp) / 1000);
     // A device whose clock runs ahead must not read as a negative age.
-    if (seconds < 60) return 'just now';
-    const plural = (value, unit) => `${value} ${unit}${value === 1 ? '' : 's'} ago`;
+    if (seconds < 60) return t('settings.sync.ago.justNow');
     const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return plural(minutes, 'minute');
+    if (minutes < 60) return t('settings.sync.ago.minutes', { count: minutes });
     const hours = Math.floor(minutes / 60);
-    if (hours < 24) return plural(hours, 'hour');
+    if (hours < 24) return t('settings.sync.ago.hours', { count: hours });
     const days = Math.floor(hours / 24);
-    if (days === 1) return 'yesterday';
-    if (days < 30) return plural(days, 'day');
-    return new Date(timestamp).toLocaleDateString(typeof self !== 'undefined' ? self.blancI18n?.formatLocale?.() : undefined);
+    if (days === 1) return t('settings.sync.ago.yesterday');
+    if (days < 30) return t('settings.sync.ago.days', { count: days });
+    return new Date(timestamp).toLocaleDateString(formatLocale());
   }
 
   return { createSyncSetupModel, transition, view, passphraseStrong, relativeSyncTime };

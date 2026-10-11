@@ -15,7 +15,7 @@ const { callTestHook } = testHookCall;
 const includePending = process.argv.includes('--include-pending');
 const scope = JSON.parse(fs.readFileSync('copy/i18n-scope.json', 'utf8')).files;
 // Fixed terms, plus file format names, which are the same in every language.
-const allow = ['Blanc', 'Blanc Blocker', 'Blanc Patron', 'Patron', 'uBlock Origin', '1Password', 'JSON'];
+const allow = ['Blanc', 'Blanc Blocker', 'Blanc Patron', 'Patron', 'uBlock Origin', '1Password', 'JSON', 'Electron', 'Chromium'];
 // Fixed terms by pattern: slash command names are never translated.
 const allowPatterns = [/^\/[a-z0-9][a-z0-9-]*$/];
 
@@ -294,6 +294,48 @@ WORKSPACE_SURFACES.push({
   },
 });
 
+// The Settings sheet, once its asynchronous sections (trust receipt, profiles,
+// permissions) have rendered, then in states whose text only script writes.
+const SETTINGS_FILES = ['src/renderer/pages/settings.html', 'src/renderer/pages/settings.js',
+  'src/renderer/pages/settings-language-model.js', 'src/renderer/pages/settings-sync-setup-model.js',
+  'src/renderer/pages/settings-verify-model.js'];
+const openSettings = async ({ app, chrome }) => {
+  await chrome.evaluate(() => window.browserAPI.createTab('blanc://settings/'));
+  const page = await findPage(app, 'blanc://settings', 'settings sheet');
+  await page.waitForFunction(() => {
+    const ready = (id) => { const el = document.getElementById(id); return !el || el.children.length > 0; };
+    return document.getElementById('trustReceiptList')?.hidden !== true && ready('profilesList') && ready('permissionList');
+  });
+  return page;
+};
+const settingsStep = (step) => async (ctx) => {
+  const page = await openSettings(ctx);
+  await step(page);
+  return page;
+};
+const SETTINGS_SURFACES = [
+  { name: 'settings', open: openSettings },
+  {
+    name: 'settings (sync setup, joining)',
+    open: settingsStep(async (page) => {
+      await page.locator('#syncPathJoin').click();
+      await page.locator('#syncForm').waitFor({ state: 'visible' });
+    }),
+  },
+  {
+    name: 'settings (mouse gestures)',
+    open: settingsStep(async (page) => {
+      await page.evaluate(() => { const box = document.getElementById('mouseGesturesEnabled'); if (!box.checked) box.click(); });
+      await page.locator('#mouseGestureAdd').click();
+      await page.locator('#mouseGestureComposer').waitFor({ state: 'visible' });
+    }),
+  },
+].map((surface) => ({
+  ...surface,
+  files: SETTINGS_FILES,
+  pendingText: [{ selector: '.sheet-close', files: ['src/renderer/pages/sheet.js'] }],
+}));
+
 const SURFACES = [
   {
     name: 'island panel (tab list)',
@@ -393,14 +435,7 @@ const SURFACES = [
     files: ['src/renderer/pages/newtab.html', 'src/renderer/pages/newtab.js', 'src/renderer/pages/onboarding.js'],
     open: ({ app }) => findPage(app, 'blanc://newtab/', 'new tab'),
   },
-  {
-    name: 'settings',
-    files: ['src/renderer/pages/settings.html', 'src/renderer/pages/settings.js', 'src/renderer/pages/settings-language-model.js'],
-    open: async ({ app, chrome }) => {
-      await chrome.evaluate(() => window.browserAPI.createTab('blanc://settings/'));
-      return findPage(app, 'blanc://settings', 'settings sheet');
-    },
-  },
+  ...SETTINGS_SURFACES,
 ];
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-pseudo-sweep-'));

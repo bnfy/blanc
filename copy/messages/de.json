@@ -3554,7 +3554,7 @@
     "source": "sha256:3945a9c0872d978f6234ee3cf9d9e46791d65aaddeee3f222599faa001fc1576"
   },
   "settings.privacy.sitesYouveAllowedOr": {
-    "message": "Websites, denen du den Zugriff auf Kamera, Mikrofon, Standort oder Mitteilungen erlaubt oder verweigert hast.",
+    "message": "Websites, denen du den Zugriff auf Kamera, Mikrofon, Standort oder Benachrichtigungen erlaubt oder verweigert hast.",
     "source": "sha256:b112317ffcc697c1a490c092f3b95a11f24d19282b48a8923eccfb93d4330f4b"
   },
   "settings.privacy.usageAndData.title": {
@@ -3724,5 +3724,661 @@
   "settings.sync.syncTabsShare": {
     "message": "offene Tabs dieses Geräts mit deinen anderen Geräten teilen",
     "source": "sha256:62ce644bbbfcb4d4fa361f75f4eea3a9b8e9aaec8e82b7dc490ab4e9637f8916"
+  },
+  "settings.general.newtabDynamicWallpaper.syncedHint": {
+    "message": "Der Hintergrund folgt der Ortszeit dieses Geräts. Ob er an oder aus ist, wird zwischen deinen Geräten synchronisiert.",
+    "source": "sha256:4842c399c1ded25a44601e14109572df4977ad6336bd7f0b94e10e23ea8f610c"
+  },
+  "settings.general.appIconSetting.macHint": {
+    "message": "Folgt dem macOS-Stil für Symbole & Widgets; der Finder zeigt Sunrise",
+    "source": "sha256:d7ff141ffa4beca112f26a5506ada1594eaa1072e43dbdb6bb77d7975d580a2c"
+  },
+  "settings.general.defaultBrowserBtn.installedOnly": {
+    "message": "In der installierten App verfügbar",
+    "source": "sha256:a58eb2908c96984934f860a121bf012ccf7631d07a3d4c8ed9c3507a29eb1b0f"
+  },
+  "settings.general.darkExceptionList.empty": {
+    "message": "Keine Websites hinzugefügt.",
+    "source": "sha256:2eb6cfd766ac9857ed432b05dcbdf99139cce3f40efedd7a602ea4116e198f5c"
+  },
+  "settings.remove": {
+    "message": "Entfernen",
+    "source": "sha256:ed16771d5b4301db37eba80b0dab8ef6c02673e1406b6a5fc5e9d61eafee234f"
+  },
+  "settings.gesture.action.back": {
+    "message": "Zurück",
+    "source": "sha256:b8b9322b5d0e3418dd7d9d441f140662696dac47a272b032c511d4bbfa1c1de5"
+  },
+  "settings.gesture.action.forward": {
+    "message": "Vorwärts",
+    "source": "sha256:47a0260883c31c51ac7b5f5853423df532dfc2d5e3fa0b702a67ea0954979e1c"
+  },
+  "settings.gesture.action.reload": {
+    "message": "Neu laden",
+    "source": "sha256:324e076d5f33e082fd7bcff3e739be4cf3961a46be4bf9a5bcd1c5c3e4e27c8f"
+  },
+  "settings.gesture.action.newTab": {
+    "message": "Neuer Tab",
+    "source": "sha256:42829ee388b6e2967fbfe11be9cfbd7f38c0d76243211314ae84b02e5056bedb"
+  },
+  "settings.gesture.action.closeTab": {
+    "message": "Tab schließen",
+    "source": "sha256:1a5781f2220fa071d10ad433b90676ed110ece15dcaff324acd2a4e624afd5ec"
+  },
+  "settings.gesture.action.reopenTab": {
+    "message": "Tab wiederherstellen",
+    "source": "sha256:6830bd5216cbb671379d31c4fe4c58e7fd1d36f086277d45da1337cd1f47c360"
+  },
+  "settings.gesture.action.previousTab": {
+    "message": "Vorheriger Tab",
+    "source": "sha256:5a0b10b67006c9d310ac9ebfea2d6ced16cf172a73e7b1e820e27c94e1121e8f"
+  },
+  "settings.gesture.action.nextTab": {
+    "message": "Nächster Tab",
+    "source": "sha256:8b3a1b63087b73cdde7b03784ba41464bdeacc11c55a05a318039895cdc426b0"
+  },
+  "settings.gesture.action.island": {
+    "message": "Island öffnen",
+    "source": "sha256:bc3511f1b937fd8e1aeb917509fe65ae7fa8ae2d3fa1ac9bcb58194c3415659e"
+  },
+  "settings.gesture.empty": {
+    "message": "Keine Gesten zugewiesen.",
+    "source": "sha256:f53ec6bbf3a3cea82daaae95c7991541b8ce0a79cd140301585a4aa506554a68"
+  },
+  "settings.gesture.actionLabel": {
+    "message": "Aktion für die Geste {gesture}",
+    "source": "sha256:d44256ef1616e8a2f5a122c9d9cc5287e4085bc8ca1dedded072c5dd7592eeac"
+  },
+  "settings.gesture.changed": {
+    "message": "{gesture} führt jetzt „{action}“ aus.",
+    "source": "sha256:ac88d1e90210ed86ad075be5f13a10ed3a123756c6ef069c82450b27dedcc426"
+  },
+  "settings.gesture.removeLabel": {
+    "message": "Geste {gesture} entfernen",
+    "source": "sha256:8a10a84a53ae8aabb83c3059526432de8eaa0f489a06505c7925df7338a29f0a"
+  },
+  "settings.gesture.removed": {
+    "message": "Geste {gesture} entfernt.",
+    "source": "sha256:871f1306a5142c1be10c505d9ed69c5317e7ee80dd6cbc54d4998bbb773b1e0f"
+  },
+  "settings.gesture.saveFailed": {
+    "message": "Die Geste konnte nicht gespeichert werden. Versuch es noch einmal.",
+    "source": "sha256:8a286967cdd41960769cd2ba7b0a28b00030a9d564077994dc63a0c295c3333d"
+  },
+  "settings.gesture.reset": {
+    "message": "Standardgesten wiederhergestellt.",
+    "source": "sha256:be7573bc33270b554c633f1175522f160bfa59c0c61f26a82b3956d3e53959b4"
+  },
+  "settings.gesture.limit": {
+    "message": "Entferne eine Geste, bevor du eine weitere hinzufügst.",
+    "source": "sha256:c6c0389b5aec6ba117526ddf758d841afcd31b30d79dd1714e49351115600d13"
+  },
+  "settings.gesture.drawing": {
+    "message": "Wird gezeichnet…",
+    "source": "sha256:9970620b1f730dfd63e2e867a883605f901b59b2b37df12a993dd85041a7e139"
+  },
+  "settings.gesture.tooLong": {
+    "message": "Verwende höchstens drei Richtungen. Versuch es noch einmal.",
+    "source": "sha256:7680181b487cbc93425636e451cfc9dbd088a726520321ff4f5c99f8871801db"
+  },
+  "settings.gesture.tooShort": {
+    "message": "Geste zu kurz. Versuch es noch einmal.",
+    "source": "sha256:bd649055c423e33555d17f99c3ed7aa534b7c00117756a7f2573595ef110bf1d"
+  },
+  "settings.gesture.duplicate": {
+    "message": "Diese Bewegung ist schon zugewiesen. Zeichne eine andere.",
+    "source": "sha256:ceb3a0e64091a9f34266b2584d05a533f7ceca2208690d101b9926394daec5d6"
+  },
+  "settings.gesture.ready": {
+    "message": "{gesture} ist bereit. Wähle eine Aktion und speichere sie.",
+    "source": "sha256:dccaa55293597a43f29acfbed8e65c260bfbc45dc3e5e49a40a91cfedb7b8d8b"
+  },
+  "settings.gesture.saved": {
+    "message": "{gesture} führt „{action}“ aus.",
+    "source": "sha256:2885b7463717a4e58195c7a8ef3558a0e8f77d31cd6e31d2d59c5aab049f9abb"
+  },
+  "settings.gesture.cancelled": {
+    "message": "Zeichnen abgebrochen.",
+    "source": "sha256:8a05324ceadfdf9073102c24bd7e5973abf51bc7f137b0e881c3afc8cd851135"
+  },
+  "settings.help.unavailable": {
+    "message": "Nicht verfügbar",
+    "source": "sha256:3c6a38d770b6987c111058cb0e0d1cad924a7cd3cad3890debcdc751e2ae4628"
+  },
+  "settings.help.updateCheckFailed": {
+    "message": "Die Suche nach Updates konnte nicht gestartet werden. Versuch es noch einmal über das App-Menü.",
+    "source": "sha256:5e92cd856aac142c15dbc94310e10fc1e50bc506ed816863fad66804e32b9c6c"
+  },
+  "settings.blockingStatus.unavailable": {
+    "message": "uBlock Origin ist in diesem Build nicht verfügbar.",
+    "source": "sha256:5806a51b3850b3de6f4a760ce94a0febee0e20882b06a5b4b23928995725b476"
+  },
+  "settings.blockingStatus.ready": {
+    "message": "{provider} ist bereit.",
+    "source": "sha256:d760b2bd4b6f47b0a0fa2d8b02e806671332d715fe73b4a9038eb02a22df76d3"
+  },
+  "settings.blockingStatus.initializing": {
+    "message": "{provider} wird gestartet.",
+    "source": "sha256:453b59fa6eab318695bf9e72c41e54015865a477df4ac59d07f89b87c4bff626"
+  },
+  "settings.blockingStatus.disabled": {
+    "message": "{provider} ist deaktiviert.",
+    "source": "sha256:b658c000953b54982b6750e9d10db4c629e01f41ec2668c210bf4b85d995f967"
+  },
+  "settings.blockingStatus.phase": {
+    "message": "{provider}: {phase}.",
+    "source": "sha256:9605381a0b3292b041f16b15d34d88534987f968e92b18835d9cb39583282c4c"
+  },
+  "settings.blockingStatus.restartPending": {
+    "message": "{selected} ausgewählt. Starte Blanc neu, um die Änderung anzuwenden; {active} ist aktiv.",
+    "source": "sha256:c979fede7c4f6d1ceac5b3d379b8257e2e3f8030319914c4f48b533d01c91fe8"
+  },
+  "settings.blockingStatus.recovering": {
+    "message": "{provider} wird neu gestartet. Neue Anfragen werden angehalten.",
+    "source": "sha256:7a452bd06d16585cdb82264bdd69753b89727d2605771be7c6137d5f0a06fb16"
+  },
+  "settings.blockingStatus.failed": {
+    "message": "{provider} konnte nicht weiterarbeiten ({error}). Betroffene Anfragen bleiben blockiert.",
+    "source": "sha256:fecac96d3a2c63716e4be7966815aac03c22a02eb1b0e59466219e1237bc6638"
+  },
+  "settings.blockingStatus.failedOff": {
+    "message": "{provider} konnte nicht weiterarbeiten ({error}). Das Blockieren ist deaktiviert.",
+    "source": "sha256:a727949ad9c56b98901f9b7e8a0e0672f30bd6ada7a461114fb4c89722cb233a"
+  },
+  "settings.blockingStatus.fallbackActive": {
+    "message": "Blanc Blocker ist aktiv.",
+    "source": "sha256:daa6916ace262e9843c933229382bb39276f04b1361b38aebea97d4191c73c4f"
+  },
+  "settings.blockingStatus.off": {
+    "message": "Das Blockieren ist aus.",
+    "source": "sha256:5ee88a9342d4cf9d055ffb7f0366b65336a0d8f2dbcc2eda0db348591637355d"
+  },
+  "settings.blockingStatus.retired": {
+    "message": "Diese Browser-Engine kann uBlock Origin nicht ausführen.",
+    "source": "sha256:972bd1be480bcf3577e45ff06182efc74160fad926c888fe017b4d2d7dc64f19"
+  },
+  "settings.blockingStatus.saved": {
+    "message": "Deine uBO-Einstellungen bleiben gespeichert.",
+    "source": "sha256:e98e525bff9c5b47aa5cdff767f48c0031fa44a0f1cca7527cf19d5426f9a7ac"
+  },
+  "settings.blockingStatus.internalCandidate": {
+    "message": "Interner Validierungs-Build; die Plattformunterstützung ist nicht zertifiziert.",
+    "source": "sha256:2697ffd7933516aa5e3cdaef296ebf69408a7dba8fac13e2af1b4803605067b8"
+  },
+  "settings.blockingStatus.retry": {
+    "message": "{provider} neu starten",
+    "source": "sha256:907e9a88759ccc5feebf4627ed6b7684fdc7cb59aaca048a2e5cd92284ecfba7"
+  },
+  "settings.onePassword.error.accountNotFound": {
+    "message": "Konto nicht gefunden – prüfe deine 1Password-E-Mail-Adresse und versuch es noch einmal.",
+    "source": "sha256:aace494f7a80c1be0c4532e954c435f37c98c56f5fc1b6727f1b235513d60e49"
+  },
+  "settings.onePassword.error.notAuthorized": {
+    "message": "1Password hat Blanc nicht autorisiert. Entsperre 1Password, erlaube Blanc Browser und versuch es noch einmal.",
+    "source": "sha256:1e2caed1f09e99ce1c1555fe5698c63267105e7604d29219eb968471330af362"
+  },
+  "settings.onePassword.error.sessionExpired": {
+    "message": "Die Autorisierung ist abgelaufen – versuch es noch einmal.",
+    "source": "sha256:c6416081799c8455e502110eac0192de670c98b7be62d7b7b11d7a7b01fb160a"
+  },
+  "settings.onePassword.error.desktopUnavailable": {
+    "message": "1Password ist nicht verfügbar. Öffne die App und aktiviere Einstellungen → Entwickler → Mit 1Password SDKs integrieren.",
+    "source": "sha256:9419635e4161d467c25cf0ba2a118285aea835effc02a7fe416524211c9421e7"
+  },
+  "settings.onePassword.error.timedOut": {
+    "message": "1Password hat nicht rechtzeitig geantwortet – versuch es noch einmal, wenn die App bereit ist.",
+    "source": "sha256:ab4f1c71bc9513a6994d8818702b16b4dc08d81219418148f81fa0bf7d51a723"
+  },
+  "settings.onePassword.error.brokerStopped": {
+    "message": "Der Hilfsprozess für 1Password wurde beendet – versuch es noch einmal.",
+    "source": "sha256:bfb4764fc640cd9407219f635e7470e8b1878c54ddf56cd4ce813f5b2dca8476"
+  },
+  "settings.onePassword.error.sdkError": {
+    "message": "1Password konnte die Prüfung nicht abschließen – versuch es noch einmal.",
+    "source": "sha256:03b4dd2a54001cfc45d37d1f8b25312d9c2553b0a2f4dd2352d54a5c98fd2a3c"
+  },
+  "settings.onePassword.checking": {
+    "message": "Wird mit 1Password geprüft…",
+    "source": "sha256:eb58e04b2ba531c5cbc9b957fee7035905ffaf6eec66ac0585d6cde2ae5e8d4e"
+  },
+  "settings.onePassword.connected": {
+    "message": "Verbunden.",
+    "source": "sha256:9aa3d7cff8bf723a8618058c6f665e1f7e34be664ee33320cfe44a458edc7f9b"
+  },
+  "settings.onePassword.installedMac": {
+    "message": "Auf diesem Mac installiert.",
+    "source": "sha256:a3c50ff0c25edf0a1d09eef5644e38215fa8537e4689d69d22edf58af4b1d702"
+  },
+  "settings.onePassword.installed": {
+    "message": "Auf diesem Computer installiert.",
+    "source": "sha256:1ec7214dd14b767edae912e5904d56c65efaf673f901da1889c9e14ef8b1b62f"
+  },
+  "settings.onePassword.notFoundMac": {
+    "message": "Blanc hat die 1Password-App nicht im Ordner „Programme“ gefunden – wenn sie woanders installiert ist, funktioniert „Prüfen“ unten trotzdem.",
+    "source": "sha256:b185548bb28e7666c11cceb0d69372f8970db5ffc6cc5c07e379ce3e99f13580"
+  },
+  "settings.onePassword.notFound": {
+    "message": "Blanc hat die 1Password-App nicht am üblichen Installationsort gefunden – wenn sie woanders installiert ist, funktioniert „Prüfen“ unten trotzdem.",
+    "source": "sha256:b36748cc38f64fb1a80ed0e91b29493079625f0d810a601c66325344ef051e60"
+  },
+  "settings.privacy.resetInstallId.done": {
+    "message": "Zurückgesetzt – diese Installation zählt jetzt als ganz neu.",
+    "source": "sha256:610675f3ae97f4f10b9eb02b670393e01671b131e8872c37d370314cf748fe96"
+  },
+  "settings.privacy.resetInstallId.failed": {
+    "message": "Das Zurücksetzen konnte nicht gespeichert werden – prüfe den freien Speicherplatz und versuch es noch einmal.",
+    "source": "sha256:5f47c14acf38e6f171d0edf92d3abbb5285cb61541c5ba28a46195891e5cf38c"
+  },
+  "settings.privacy.exceptionList.empty": {
+    "message": "Keine Ausnahmen hinzugefügt.",
+    "source": "sha256:bf50368c1e07b62fa9b74481974159d3fac4faee752db6189fff828e8138f4aa"
+  },
+  "settings.privacy.clearBrowsingData.confirm": {
+    "message": "Alle Cookies, den Cache und alle Websitedaten löschen? Du wirst überall abgemeldet.",
+    "source": "sha256:021b5052fcf6578c05c7115959723a5039aa01b55bd73cbf0dfe0874e06b9d35"
+  },
+  "settings.privacy.clearBrowsingData.done": {
+    "message": "Gelöscht.",
+    "source": "sha256:f2ca5b9e50cda0ecc2ae336f8cf3636d700560ef9c8125d0d03899d3f2f0da3e"
+  },
+  "settings.permissions.empty": {
+    "message": "Keine gespeicherten Entscheidungen. Websites fragen, wenn sie zum ersten Mal etwas brauchen.",
+    "source": "sha256:87fc1e26fe8405caa5accc6eb1565ceec7078379da3b1ce37ac17adeb1574536"
+  },
+  "settings.permissions.media": {
+    "message": "Kamera/Mikrofon",
+    "source": "sha256:cfe2db5f6bbbd80d5c7ee4d25db1bd6f4d766892921a7012c8804ba32bac6bde"
+  },
+  "settings.permissions.geolocation": {
+    "message": "Standort",
+    "source": "sha256:ca35b6b3e1670cf71a35d6362db8eee5f133ebcc95789545ddac16a9f42f5de3"
+  },
+  "settings.permissions.notifications": {
+    "message": "Benachrichtigungen",
+    "source": "sha256:c4680e6dc26649d98acb935fb59000027e2f1b5015b5ba503b916599166eed57"
+  },
+  "settings.permissions.audio": {
+    "message": "Mikrofon",
+    "source": "sha256:d1298ec779fd64aad3684a098249e7f3501a1aac2ba323bdcba2754c8c3d96f3"
+  },
+  "settings.permissions.video": {
+    "message": "Kamera",
+    "source": "sha256:4899d83e8a3cae8f6c5ac14374d0aaf9e649a067efcf3d17a19075ff8b67f871"
+  },
+  "settings.permissions.allowed": {
+    "message": "{permission} – erlaubt",
+    "source": "sha256:e791cfb7427358ff3c9852e3ce5975140fe34d626f0fcfb0f72edb16b92d2ed3"
+  },
+  "settings.permissions.blocked": {
+    "message": "{permission} – blockiert",
+    "source": "sha256:91134d65c9b754c66a7f5a6dacf52c72a847a66b1019cbffbbe2e7d98a7ddef2"
+  },
+  "settings.patron.thanks": {
+    "message": "Du bist Patron – vielen Dank.",
+    "source": "sha256:a3516677c7a1564bdcae819085ca83544fbd385fbb3e22a243dd0975c7418d0b"
+  },
+  "settings.patron.thanksSince": {
+    "message": "Du bist Patron – vielen Dank. Aktiviert am {date}.",
+    "source": "sha256:551e86106a8ba4d95a63c4a8f1ae3a5bf72794242cb4bb9b309e624bc06b8504"
+  },
+  "settings.patron.activating": {
+    "message": "Wird aktiviert…",
+    "source": "sha256:bbcfb06f78b79003b332b83c1abd6f00cb7387390b4d2557a1f8b96ae084d4db"
+  },
+  "settings.patron.failed": {
+    "message": "Etwas ist schiefgelaufen. Bitte versuch es noch einmal.",
+    "source": "sha256:c8f97346b8596aadb1e69037ffdb1fa41706576a96c2152453c56ca29d28e1fd"
+  },
+  "settings.profiles.personalMeta": {
+    "message": "Deine ursprünglichen Blanc-Daten · dauerhaft",
+    "source": "sha256:de83c4cdd8df0fe3f51d38620e1d0a3e810adc92e9fb7a2ab69279953bdacdc0"
+  },
+  "settings.profiles.currentWindow": {
+    "message": "Aktuelles Fenster",
+    "source": "sha256:c8c1f67058ebd1177b7bf5c599305b1a8cef814feb57b4934077504e54f76e35"
+  },
+  "settings.profiles.separateData": {
+    "message": "Eigene lokale Browserdaten",
+    "source": "sha256:8246561a442ca32613878500bb58f5bb3052970b89a5ca58e4bdc40dc7a2c5e9"
+  },
+  "settings.profiles.open": {
+    "message": "Öffnen",
+    "source": "sha256:5cbb386faeb34250aaa5aea5d686ccaeb96414fbc9cbe800fe643e0dc455a04b"
+  },
+  "settings.profiles.rename": {
+    "message": "Umbenennen",
+    "source": "sha256:10cacc92a41fe5f37c9fcd226b6cc1a72c3b57f0f3ff16fb6cfae16e66d1997e"
+  },
+  "settings.profiles.save": {
+    "message": "Speichern",
+    "source": "sha256:147f0393f7ac95c412d30695bfb57c07ba65fbadd5c4167d8066d39fcee87194"
+  },
+  "settings.profiles.delete": {
+    "message": "Löschen",
+    "source": "sha256:ded3f4ad78fe6266a8a3456a45681d9132930718ff514d1da0b513fe3ab5a53b"
+  },
+  "settings.profiles.deletePermanently": {
+    "message": "Endgültig löschen",
+    "source": "sha256:99c337c2db35565facea64bad9bf2963a09d1688e250bbef56981510dd408ac3"
+  },
+  "settings.profiles.openFailed": {
+    "message": "Dieses Profil konnte nicht geöffnet werden.",
+    "source": "sha256:cd6e4e3f6244ed49b4bf2fc00580106d64decb8f5fa3ef9e5c494a7e3ef1fa83"
+  },
+  "settings.profiles.renameLabel": {
+    "message": "Neuer Name für {name}",
+    "source": "sha256:91ed0c82c6f3a0a4f43ecc2d53fc0ccb993d7c0a188126642c950f32459f4b9d"
+  },
+  "settings.profiles.renamed": {
+    "message": "Profil umbenannt.",
+    "source": "sha256:c9188a6bc4cf6e4a6a487a272f94166136fd6e395703a1e8eb25b29875c1e4f8"
+  },
+  "settings.profiles.renameFailed": {
+    "message": "Dieses Profil konnte nicht umbenannt werden.",
+    "source": "sha256:38dc291b921887b874aa11b4c40c3c78332fadff87259e0bc22e76a4c5666dff"
+  },
+  "settings.profiles.deleteWarning": {
+    "message": "Löscht die lokalen Browserdaten dieses Profils endgültig. Heruntergeladene Dateien bleiben, wo du sie gespeichert hast. Gib „{name}“ ein, um fortzufahren.",
+    "source": "sha256:5a4f90f4ad7882a480f01f8628b649a48cea2bc658583ea368cd4695ef59cede"
+  },
+  "settings.profiles.deleteLabel": {
+    "message": "Gib {name} ein, um das Löschen zu bestätigen",
+    "source": "sha256:294ebcf6780f55dbee4109127aac0e733afe5ca3bc2f998aad042a8805dbdb4c"
+  },
+  "settings.profiles.deleted": {
+    "message": "Profil gelöscht.",
+    "source": "sha256:9d685dcc4cb376b175cf5e6df31a8e466a491da3c8ef85127000bb53f3ee85e1"
+  },
+  "settings.profiles.deleteFailed": {
+    "message": "Dieses Profil konnte nicht gelöscht werden.",
+    "source": "sha256:0f843c4a1734b0946843df9363016260797a9e0720254f08d2d298aab50798e1"
+  },
+  "settings.profiles.createFailed": {
+    "message": "Dieses Profil konnte nicht erstellt werden.",
+    "source": "sha256:fe8a7e61beadaf295c92fa702212a37ddc2b4d922d440bdfa4ac9a1653e08115"
+  },
+  "settings.profiles.created": {
+    "message": "{name} erstellt.",
+    "source": "sha256:427e74b7aa378ad27a42686d9c2b89076347018a0df0ed01b14808f62ddbe627"
+  },
+  "settings.profiles.loadFailed": {
+    "message": "Profile konnten nicht geladen werden.",
+    "source": "sha256:607124b2d0c4000a2cae3418f97d95c5ab84d81ecdc5b8d627e675d02b995bfe"
+  },
+  "settings.sync.lastSynced": {
+    "message": "Zuletzt synchronisiert: {when}",
+    "source": "sha256:ec9e505c180944c07460c8a8bc41c2e563cf16ca347d5a4aafaa8c9197fedff2"
+  },
+  "settings.sync.notSynced": {
+    "message": "Noch nicht synchronisiert",
+    "source": "sha256:736f6a6e724597553e912c9e79aec3e6feced37159a8e440a5dfb1235e8d31e2"
+  },
+  "settings.sync.sharing": {
+    "message": "Werden geteilt",
+    "source": "sha256:d4989b13c2beb7bc7435d7ce6c1b5f795f5fc61d303b889fc2322bc02e53693e"
+  },
+  "settings.sync.notShared": {
+    "message": "Nicht geteilt",
+    "source": "sha256:8d7e1eec1472e29da80a2bcc66aa02648eb1302d5552e27013b07b4341d2f789"
+  },
+  "settings.sync.turningOn": {
+    "message": "Synchronisierung wird eingeschaltet…",
+    "source": "sha256:259deec9a6d166fa409be3a88b58ce9e19084dcd3e741038f6e8162b0536d464"
+  },
+  "settings.sync.connectedTo": {
+    "message": "Mit „{name}“ verbunden. Deine Favoriten und Einstellungen werden jetzt geladen.",
+    "source": "sha256:005f14eeab3e2d41de6c0f09786cd9e92f6523a76973b33e3a5433165d72162a"
+  },
+  "settings.sync.joinedAs": {
+    "message": "Deiner bestehenden Synchronisierung als „{name}“ beigetreten.",
+    "source": "sha256:896763a6465a2e0244557c548d089378fed1283b434ccc383fcab8969e081b9e"
+  },
+  "settings.sync.on": {
+    "message": "Die Synchronisierung ist an. Deine Favoriten und Einstellungen werden synchronisiert, sobald du sie änderst.",
+    "source": "sha256:836859840bdb7bafe33153c76196171f34c63b4b9c17d3351d3a93d79e5fd32a"
+  },
+  "settings.sync.checking": {
+    "message": "Wird geprüft…",
+    "source": "sha256:f7ecf69502dc639302db5bebbada913241a58a91fd251c28a894dd2c3761ec09"
+  },
+  "settings.sync.checkFailed": {
+    "message": "Die Synchronisierung konnte nicht geprüft werden. Versuch es noch einmal.",
+    "source": "sha256:1e4852fd47ad7a130ad6c2d0abff8e306523f6f3aa2518c1c0e1c829627d2678"
+  },
+  "settings.sync.syncing": {
+    "message": "Wird synchronisiert…",
+    "source": "sha256:b212ca52c37d36bab1de95fff8bf201f111298c47dc3a86910248defeb259e1d"
+  },
+  "settings.sync.notice.offline": {
+    "message": "Der Sync-Server ist nicht erreichbar. Prüfe deine Verbindung und versuch es noch einmal.",
+    "source": "sha256:ed1f8f400668bb0fb6ee336ca644d22f19a409928af85af15fc2f1cf5f5e25cf"
+  },
+  "settings.sync.notice.rateLimited": {
+    "message": "Zu viele Versuche. Warte eine Minute und versuch es dann noch einmal.",
+    "source": "sha256:9548a27590036ec76dd6499c31e2941df5cb4635cdbc0816df43ecac7004a312"
+  },
+  "settings.sync.setup.intro": {
+    "message": "Synchronisiere deine Favoriten und Einstellungen und auf Wunsch auch offene Tabs zwischen deinen Geräten. Alles ist Ende-zu-Ende-verschlüsselt.",
+    "source": "sha256:1b3bb5e6a29c0d154ded7c5232b9430ae6e4660d34d4745f40322a7ac9419b02"
+  },
+  "settings.sync.setup.joinTitle": {
+    "message": "Dieses Gerät verbinden",
+    "source": "sha256:782060865f951ede9f2708d8fde0f3d66a444c06a9f7d1c14590a45c2533a9aa"
+  },
+  "settings.sync.setup.joinIntro": {
+    "message": "Verwende denselben Synchronisierungsnamen und dieselbe Passphrase wie auf deinem anderen Gerät. Blanc prüft sie, bevor hier etwas gespeichert wird.",
+    "source": "sha256:ffe71bb697f7fe85b84b841af2e62e6e7b7d3b0149a938452940494f444427c4"
+  },
+  "settings.sync.setup.handleHint": {
+    "message": "Eine Bezeichnung für deine Synchronisierung, ähnlich einem Benutzernamen. Du gibst sie auf deinen anderen Geräten erneut ein.",
+    "source": "sha256:e7c6b908c24b8948cc32dd1574795ef32cec6033bf04363cb4827b3ee8e1cbd5"
+  },
+  "settings.sync.setup.joinHandleHint": {
+    "message": "Gib genau den Synchronisierungsnamen ein, den du auf deinem anderen Gerät verwendet hast.",
+    "source": "sha256:e6c6e6ee01b90bf363cad5831cfad1c36cb68b7c8ab1a29b28faa38c56c84053"
+  },
+  "settings.sync.setup.passphraseHint": {
+    "message": "Mindestens 16 Zeichen oder mindestens 10 mit Buchstaben, Zahlen und Symbolen gemischt. Blanc kann sie nicht wiederherstellen, wenn du sie vergisst.",
+    "source": "sha256:fa06188ac474287ba9ba66784a713bc2c7136ee62fed61138d6fddc8a0112308"
+  },
+  "settings.sync.setup.joinPassphraseHint": {
+    "message": "Gib die Passphrase genau ein. Groß- und Kleinschreibung zählt.",
+    "source": "sha256:7f0624f8e3a134c00f68b81bbe90c723e2fccfc3eb9e72b91bac841eed2a3065"
+  },
+  "settings.sync.setup.connect": {
+    "message": "Verbinden",
+    "source": "sha256:7b7b76cba33b71b4402ecbbf40a2f9f81cdb897245b5a0426f520468eeb60454"
+  },
+  "settings.sync.setup.joinFinishHint": {
+    "message": "Blanc sucht nach deiner verschlüsselten Synchronisierung, bevor diese Zugangsdaten auf diesem Gerät gespeichert werden.",
+    "source": "sha256:a376dff77100fbd4195b9876d50eb0aa576939101c2d06dbf39abf88f615c7e4"
+  },
+  "settings.sync.ago.justNow": {
+    "message": "gerade eben",
+    "source": "sha256:c42caa2965b331e97bbc4b9729baebec61446ce89656d777723331cf0503b476"
+  },
+  "settings.sync.ago.minutes": {
+    "message": "{count, plural, one {vor # Minute} other {vor # Minuten}}",
+    "source": "sha256:bcd03258abf75202799d5b5e6074defc450630c36806564a4269806b3b9730d2"
+  },
+  "settings.sync.ago.hours": {
+    "message": "{count, plural, one {vor # Stunde} other {vor # Stunden}}",
+    "source": "sha256:30aa00b741a66a12c74eaccc62fa4b370fcdcafe07e656f9c2a8dfe616ec17fb"
+  },
+  "settings.sync.ago.yesterday": {
+    "message": "gestern",
+    "source": "sha256:2aa77712920f0a6e60e5a3a621f7285336044e5a706497f8b0d85730e2526e65"
+  },
+  "settings.sync.ago.days": {
+    "message": "{count, plural, one {vor # Tag} other {vor # Tagen}}",
+    "source": "sha256:0b189745c6e4229edd16e0ffcc8b0702bbd448841422e241e3fe861ecd8a7151"
+  },
+  "settings.trust.on": {
+    "message": "An",
+    "source": "sha256:0cee4adedf758659922c3d0ef01274dfa2283499eec60daf41b92b73a3e2c871"
+  },
+  "settings.trust.off": {
+    "message": "Aus",
+    "source": "sha256:12f9e2974c57fa6db34032a398afd26e0a0c037e9a29ffc9025303299cb7c8b1"
+  },
+  "settings.trust.dnsAuto": {
+    "message": "Automatisch",
+    "source": "sha256:06b5c9a5e46ad2818436d2c4543bd0ca8bcd7189724535d485477229cb81f286"
+  },
+  "settings.trust.dnsCustom": {
+    "message": "Eigener Anbieter",
+    "source": "sha256:459024365e039cb90ff68de8c62928152624a06cf916662bb920f31003c3ae45"
+  },
+  "settings.trust.signature.verified": {
+    "message": "Lokal geprüft – {publisher}",
+    "source": "sha256:17b038addab73463b493e4918953d1e6ce1a3e25f6f2ad1d0872dfd102b31671"
+  },
+  "settings.trust.signature.mismatch": {
+    "message": "Erwartet: {expected} · gefunden: {observed}",
+    "source": "sha256:41aa380bed36b446b902a0211df58b0ddbae2cf202efd8c852b7d5e574cf39bc"
+  },
+  "settings.trust.signature.unknownPublisher": {
+    "message": "unbekannter Herausgeber",
+    "source": "sha256:5396cec40205ceacc8959b2a19489a18d4ddd8bb0dece9382859a10485c8eb6b"
+  },
+  "settings.trust.signature.unavailable": {
+    "message": "Erwartet: {expected} · lokale Prüfung nicht verfügbar",
+    "source": "sha256:5f149fda10d8669dc3073306f1d5bbb1fb6083deef82f9ff6a86e5ddbf89c558"
+  },
+  "settings.trust.signature.development": {
+    "message": "Entwicklungs-Build – kein signierter Release-Build",
+    "source": "sha256:4fdf9433f6556d521966b6a8ae9266f2b21d310a4ad137454837abefc6695db5"
+  },
+  "settings.trust.signature.manifestBacked": {
+    "message": "Unter Linux beruht die Prüfung des Herausgebers auf dem signierten Manifest des passenden Releases",
+    "source": "sha256:acca3de83d1593ca146d9777f7b2661d833a227da7c27630c323ebc9a81b59e8"
+  },
+  "settings.trust.signature.unknown": {
+    "message": "Unbekannt",
+    "source": "sha256:6988bb9e9d79aa708d90dcfc962f7ada5f29aa4ecfb3737d5534a81fade8de6b"
+  },
+  "settings.trust.fact.build": {
+    "message": "Build",
+    "source": "sha256:f05826c99677651f358101a252c1086c2fc57b23dff8578073609ea74f759379"
+  },
+  "settings.trust.fact.runtime": {
+    "message": "Laufzeit",
+    "source": "sha256:7927b0a6726b0396cc5f7b3a66cbdb660089f476dc3174ee598eb343f55a4f4b"
+  },
+  "settings.trust.fact.platform": {
+    "message": "Plattform",
+    "source": "sha256:98297ed5a4b7386400d3a48ef49efa83ecea8bb8118c218777941de92271a416"
+  },
+  "settings.trust.fact.publisher": {
+    "message": "Herausgeber",
+    "source": "sha256:fd94d5c72ca0aed8b390a786c20261b9e29ccd6468e7c07fb75944d265e39936"
+  },
+  "settings.trust.fact.blockerSnapshot": {
+    "message": "Stand der Filterlisten",
+    "source": "sha256:71c23b16d7424f26b52cdd1884714a575f1c777e9256d1ff796c5c686b0e21f3"
+  },
+  "settings.trust.fact.blockerList": {
+    "message": "Filterliste · {name}",
+    "source": "sha256:7af07fbdae7520e25f609a3dae4ff70eb9b09323ebe6aba2b2c7e877ab0ee376"
+  },
+  "settings.trust.fact.blockerDigest": {
+    "message": "Gesamtprüfsumme der Filterlisten",
+    "source": "sha256:e20823f7a278d8267a0d267e85d06f33538d381bc41c83ce5a3f49de9e8304f0"
+  },
+  "settings.trust.fact.sync": {
+    "message": "Synchronisierung",
+    "source": "sha256:6ad1c5a12c007f90a49dce4cfb33429b5c3cb9a1937cc198dcb5a839d9bae1cf"
+  },
+  "settings.trust.fact.openTabs": {
+    "message": "Offene Tabs teilen",
+    "source": "sha256:03254c85b67f2a62dfed5dadc72699c56d362cb46bfb6b5c67cc6805f9e3e942"
+  },
+  "settings.trust.fact.usage": {
+    "message": "Nutzungsmessung",
+    "source": "sha256:819007373101c02d7147fa884099ed5c45c5e69aa7d991c3bed746e5a7377fda"
+  },
+  "settings.trust.fact.suggestions": {
+    "message": "Suchvorschläge",
+    "source": "sha256:770bf97303d1f778c5a514644bd1d65953d15d24de2362b939b3ccdfdaadd038"
+  },
+  "settings.trust.fact.secureDns": {
+    "message": "Verschlüsseltes DNS",
+    "source": "sha256:df7378344664c6b736be4f6e619c1fef4c1cd600eebd1835f0e102246f9a1eb4"
+  },
+  "settings.trust.fact.crashLedger": {
+    "message": "Absturzprotokoll",
+    "source": "sha256:2f17aab65c5b37493dee274c313c14a72dd12d7d141f47d95b9e3909950ab1dd"
+  },
+  "settings.trust.buildPackaged": {
+    "message": "{version} ({build}) · paketiert",
+    "source": "sha256:9dafa634dadac5484d469423f81d28acebccb0f42b5895875f048df2722326e7"
+  },
+  "settings.trust.buildDevelopment": {
+    "message": "{version} ({build}) · Entwicklung",
+    "source": "sha256:5f48d473b4e4c94dc83230f7ce0108e0f20f22ac8410f23fd60f05db372e3f71"
+  },
+  "settings.trust.syncScope": {
+    "message": "Favoriten, ausgewählte Einstellungen · nur Personal",
+    "source": "sha256:65ce3d502b10a2b660dad5554cef0d0d2b14027288117873ec782d98ef10de60"
+  },
+  "settings.trust.crashLedger": {
+    "message": "Nur auf dem Gerät · automatischer Upload aus · {count}/{limit} Ereignisse",
+    "source": "sha256:1572f551c8adcdb9ae0bd1d2b3771b5a83f5e30bfecd9c7bd6053270a81185db"
+  },
+  "settings.trust.checked": {
+    "message": "Beleg lokal geprüft.",
+    "source": "sha256:52661ddfec72c0f558b0796a87632167099ea4fdc33f5f8ba0dcadcf4cf14df6"
+  },
+  "settings.trust.failed": {
+    "message": "Der lokale Vertrauensbeleg konnte nicht erstellt werden.",
+    "source": "sha256:5ce8be52db297ffa2b22ee72f12759ed7bc68bb0049edb2201629ab93d732897"
+  },
+  "settings.diagnostics.none": {
+    "message": "Auf diesem Gerät wurden keine Abstürze aufgezeichnet.",
+    "source": "sha256:b467fe2958353e548ecf26711fc00fb47b36af087c9fc4cf29f90fc3fa16d855"
+  },
+  "settings.diagnostics.count": {
+    "message": "{count, plural, one {# Absturzereignis auf diesem Gerät aufgezeichnet.} other {# Absturzereignisse auf diesem Gerät aufgezeichnet.}}",
+    "source": "sha256:5f325bbce612c6a72418367c8a555f1131aac3a563cd55efe9a3dfa7ad7b9566"
+  },
+  "settings.diagnostics.preparing": {
+    "message": "Bericht wird vorbereitet…",
+    "source": "sha256:c1645b8cb14dc51286af480cd27ebe5599fec6154f39815d431fb5e99390e712"
+  },
+  "settings.diagnostics.saved": {
+    "message": "Gespeichert.",
+    "source": "sha256:1459f456247c96ef6f48b1383dc9f222f87e9d72af190840ec76db99d76f83a6"
+  },
+  "settings.diagnostics.cancelled": {
+    "message": "Export abgebrochen.",
+    "source": "sha256:fd092f645460ea4aeb4efe8bac29e5a5c152728242ec893de282c5624402b9cf"
+  },
+  "settings.diagnostics.saveFailed": {
+    "message": "Die Diagnosedaten konnten nicht gespeichert werden.",
+    "source": "sha256:de1619b9d6b3633c51f594f648b82033f1cc24323147c89ac46edbd5005af883"
+  },
+  "settings.diagnostics.clearConfirm": {
+    "message": "Den lokalen Absturzverlauf von Blanc löschen?",
+    "source": "sha256:08094ea0d03962d08f153350430437653e5dfcff4ef6a715d636317afa742491"
+  },
+  "settings.diagnostics.cleared": {
+    "message": "Absturzverlauf gelöscht.",
+    "source": "sha256:c4172ce02c6c59177d449a62bb270e2e4fa2f81e4c4443eb8140349cdc25d159"
+  },
+  "settings.diagnostics.clearFailed": {
+    "message": "Der Absturzverlauf konnte nicht gelöscht werden.",
+    "source": "sha256:53ad901fad43a18040ee7b785f65198c506c11d04eda4c4c38392a734ffafe1a"
+  },
+  "settings.diagnostics.readFailed": {
+    "message": "Der lokale Absturzverlauf konnte nicht gelesen werden.",
+    "source": "sha256:d43c2ae190c4361580143410415ade41dc3ee18fd0e8b3dd407910fd749685d8"
+  },
+  "settings.hint.more": {
+    "message": "Mehr",
+    "source": "sha256:9db2151dc88e4f40d007f4ed12c05512751212af7f92c6c0703e8172cbf90342"
+  },
+  "settings.hint.less": {
+    "message": "Weniger",
+    "source": "sha256:cfc3694043b3e35c64ba5ef4c047670752dc4b5056f9a0028083adb6c3688270"
   }
 }
