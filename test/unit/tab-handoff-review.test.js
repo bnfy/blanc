@@ -5,12 +5,13 @@ const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 const vm = require('node:vm');
+const { englishT } = require('../support/english-t');
 
 const source = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/tab-handoff.js'), 'utf8');
 
 async function review() {
   function element() {
-    return { checked: false, disabled: true, hidden: true, textContent: '', children: [], events: {},
+    return { checked: false, disabled: true, hidden: true, textContent: '', children: [], events: {}, dataset: {},
       append(...children) { this.children.push(...children); },
       replaceChildren() { this.children = []; },
       addEventListener(name, fn) { this.events[name] = fn; } };
@@ -20,6 +21,7 @@ async function review() {
   const calls = [];
   const control = { result: { ok: true } };
   vm.runInNewContext(source, {
+    blancI18n: { t: englishT },
     document: { getElementById: (id) => elements[id], createElement: element },
     window: { bowserPages: { tabHandoff: {
       get: async () => ({ state: 'ready', sourceBrowser: 'brave', profileName: 'Personal', tabs: [{ title: '<script>untrusted</script>', domain: 'example.test' }] }),

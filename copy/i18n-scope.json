@@ -158,11 +158,11 @@
       "allow": []
     },
     "src/renderer/pages/tab-import.html": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/renderer/pages/tab-import-open-tabs.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/renderer/pages/tab-import-arc.js": {
@@ -170,11 +170,11 @@
       "allow": []
     },
     "src/renderer/pages/tab-handoff.html": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/renderer/pages/tab-handoff.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/renderer/pages/sheet.js": {

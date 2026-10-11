@@ -1,5 +1,6 @@
 'use strict';
 
+const { t } = blancI18n;
 const api = window.bowserPages?.tabHandoff;
 const summary = document.getElementById('summary');
 const error = document.getElementById('error');
@@ -11,14 +12,14 @@ const newWindow = document.getElementById('newWindow');
 let readyData = null;
 
 function updateDestination() {
-  accept.textContent = newWindow.checked ? 'Open in new window' : 'Open in this window';
+  accept.textContent = newWindow.checked ? t('tabHandoff.openNew') : t('tabHandoff.openHere');
   if (!readyData) return;
-  const source = SOURCE_LABELS[readyData.sourceBrowser] || 'your other browser';
-  const count = readyData.tabs.length;
-  const destination = newWindow.checked
-    ? `a new ${readyData.profileName || 'Personal'} window`
-    : `this ${readyData.profileName || 'Personal'} window`;
-  summary.textContent = `${count} ${count === 1 ? 'tab' : 'tabs'} from ${source} will open in ${destination}. Only the selected imported tab loads now; the rest start quiet.`;
+  const params = {
+    count: readyData.tabs.length,
+    source: SOURCE_LABELS[readyData.sourceBrowser] || t('tabHandoff.otherBrowser'),
+    profile: readyData.profileName || t('tabHandoff.personalProfile'),
+  };
+  summary.textContent = newWindow.checked ? t('tabHandoff.summaryNew', params) : t('tabHandoff.summaryHere', params);
 }
 
 const SOURCE_LABELS = {
@@ -32,8 +33,8 @@ const SOURCE_LABELS = {
 };
 
 function showError(message) {
-  summary.textContent = 'The tab handoff is unavailable.';
-  error.textContent = message || 'Return to the source browser and create a new handoff.';
+  summary.textContent = t('tabHandoff.unavailable');
+  error.textContent = message || t('tabHandoff.createNew');
   error.hidden = false;
   list.hidden = true;
   skipped.hidden = true;
@@ -43,11 +44,11 @@ function showError(message) {
 
 function render(data) {
   if (data?.state === 'waiting') {
-    summary.textContent = 'Waiting for the canceled retrieval to finish before opening this handoff…';
+    summary.textContent = t('tabHandoff.waiting');
     return;
   }
   if (data?.state === 'loading') {
-    summary.textContent = 'Retrieving and verifying the one-time handoff…';
+    summary.textContent = t('tabHandoff.loading');
     return;
   }
   if (!data || data.state !== 'ready' || !Array.isArray(data.tabs) || !data.tabs.length) {
@@ -65,7 +66,9 @@ function render(data) {
     main.className = 'main';
     const title = document.createElement('span');
     title.className = 'title';
-    title.textContent = tab.title || tab.domain || 'Imported tab';
+    title.textContent = tab.title || tab.domain || t('tabHandoff.untitled');
+    // The tab's own title and domain.
+    if (tab.title || tab.domain) main.dataset.i18nIgnore = '';
     const domain = document.createElement('span');
     domain.className = 'url';
     domain.textContent = tab.domain || '';
@@ -75,14 +78,14 @@ function render(data) {
     if (tab.active) {
       const badge = document.createElement('span');
       badge.className = 'meta tab-handoff-active';
-      badge.textContent = 'opens first';
+      badge.textContent = t('tabHandoff.opensFirst');
       row.append(badge);
     }
     list.append(row);
   }
   list.hidden = false;
   if (data.skippedCount > 0) {
-    skipped.textContent = `${data.skippedCount} unsupported or unsafe ${data.skippedCount === 1 ? 'tab was' : 'tabs were'} left behind.`;
+    skipped.textContent = t('tabHandoff.skipped', { count: data.skippedCount });
     skipped.hidden = false;
   }
   accept.disabled = false;
@@ -96,19 +99,19 @@ accept.addEventListener('click', async () => {
   cancel.disabled = true;
   newWindow.disabled = true;
   error.hidden = true;
-  accept.textContent = 'Opening…';
+  accept.textContent = t('tabHandoff.opening');
   try {
     const result = await api.accept(newWindow.checked ? 'new-window' : 'current-window');
     if (!result?.ok) {
       if (result?.retryable) {
-        error.textContent = 'Blanc could not open these tabs. Your existing tabs are unchanged. Try again.';
+        error.textContent = t('tabHandoff.openFailed');
         error.hidden = false;
         accept.disabled = false;
         newWindow.disabled = false;
-      } else showError('This handoff is no longer available.');
+      } else showError(t('tabHandoff.gone'));
     }
   } catch {
-    showError('Blanc could not open this tab set. Try the handoff again.');
+    showError(t('tabHandoff.openThrew'));
   } finally {
     cancel.disabled = false;
     updateDestination();
@@ -117,5 +120,8 @@ accept.addEventListener('click', async () => {
 
 cancel.addEventListener('click', () => api?.cancel());
 
-if (!api) showError('Tab import is not available in this build of Blanc.');
-else api.get().then(render).catch(() => showError('Blanc could not read this handoff.'));
+// The summary is this script's alone (the page's static text is applied after
+// it runs), so it starts here.
+summary.textContent = t('tabHandoff.checking');
+if (!api) showError(t('tabHandoff.unsupported'));
+else api.get().then(render).catch(() => showError(t('tabHandoff.readFailed')));

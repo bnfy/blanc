@@ -2374,7 +2374,6 @@ body.sheet .tab-import-review-group .tab-import-review-row { padding: 10px 14px;
   font-size: var(--type-card-title-size);
   font-weight: 600;
   letter-spacing: 0;
-  text-transform: lowercase;
 }
 .tab-import-lane-count {
   color: var(--text-dim);

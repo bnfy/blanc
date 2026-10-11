@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 const vm = require('node:vm');
+const { englishT } = require('../support/english-t');
 
 const source = fs.readFileSync(
   path.join(__dirname, '../../src/renderer/pages/tab-import-open-tabs.js'),
@@ -30,6 +31,7 @@ function loadReviewModel() {
     ]),
     UNGROUPED_LANE: '__ungrouped__',
     EXCLUDED_LANE: '__excluded__',
+    t: englishT,
   };
   const names = [
     'normalizeReviewGroupName',

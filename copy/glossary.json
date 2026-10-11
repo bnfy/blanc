@@ -55,6 +55,12 @@
         "form": "Logins aus 1Password ausfüllen",
         "stem": "Logins aus 1Password ausfüllen"
       }
+    },
+    "Named Group": {
+      "de": {
+        "form": "benannte Gruppe",
+        "stem": "benannte"
+      }
     }
   },
   "sameAsSource": {
@@ -88,7 +94,8 @@
       "newtab.version",
       "newtab.customize.layout",
       "favorites.import.fromSource",
-      "downloads.meta"
+      "downloads.meta",
+      "tabHandoff.personalProfile"
     ]
   }
 }

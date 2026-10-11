@@ -23672,7 +23672,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "ordner entfernen"
+            "value": "Ordner entfernen"
           }
         }
       }
@@ -24393,6 +24393,2472 @@
           "stringUnit": {
             "state": "translated",
             "value": "Schließen"
+          }
+        }
+      }
+    },
+    "tabImport.title": {
+      "comment": "Bring Your Tabs page: browser tab title; the feature’s name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bring Your Tabs"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs mitbringen"
+          }
+        }
+      }
+    },
+    "tabImport.heading": {
+      "comment": "Bring Your Tabs page: page heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bring your tabs"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs mitbringen"
+          }
+        }
+      }
+    },
+    "tabImport.step": {
+      "comment": "Bring Your Tabs page: progress under the heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Step %1$@ of %2$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schritt %1$@ von %2$@"
+          }
+        }
+      }
+    },
+    "tabImport.source.title": {
+      "comment": "Bring Your Tabs page → step 1 (choose a browser and profile): heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a browser"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle einen Browser"
+          }
+        }
+      }
+    },
+    "tabImport.source.browsers": {
+      "comment": "Bring Your Tabs page → step 1 (choose a browser and profile): accessible name of the browser choices.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browsers"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browser"
+          }
+        }
+      }
+    },
+    "tabImport.source.profileTitle": {
+      "comment": "Bring Your Tabs page → step 1 (choose a browser and profile): heading above the profiles.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a profile"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle ein Profil"
+          }
+        }
+      }
+    },
+    "tabImport.source.chooseProfile": {
+      "comment": "Bring Your Tabs page → step 1 (choose a browser and profile): heading above one browser’s profiles; {browser} is its name, e.g. Google Chrome.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a %1$@ profile"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle ein Profil aus %1$@"
+          }
+        }
+      }
+    },
+    "tabImport.source.needsAccess": {
+      "comment": "Bring Your Tabs page → step 1 (choose a browser and profile): heading when Blanc may not read that browser yet; {browser} is its name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ needs access"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ braucht Zugriff"
+          }
+        }
+      }
+    },
+    "tabImport.source.permissionNeeded": {
+      "comment": "Bring Your Tabs page → step 1 (choose a browser and profile): state of a browser Blanc may not read yet.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permission needed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Berechtigung erforderlich"
+          }
+        }
+      }
+    },
+    "tabImport.source.profiles": {
+      "comment": "Bring Your Tabs page → step 1 (choose a browser and profile): number of profiles under a browser’s name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld profile"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld profiles"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Profil"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Profile"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "tabImport.source.read": {
+      "comment": "Bring Your Tabs page → step 1 (choose a browser and profile): accessible name of a profile button; {source} names the browser and profile.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read open tabs from %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offene Tabs aus %1$@ lesen"
+          }
+        }
+      }
+    },
+    "tabImport.source.waiting": {
+      "comment": "Bring Your Tabs page → step 1 (choose a browser and profile): shown on a profile while Blanc waits for the browser to quit.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Warten…"
+          }
+        }
+      }
+    },
+    "tabImport.source.loading": {
+      "comment": "Bring Your Tabs page → step 1 (choose a browser and profile): status.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading browser profiles…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browserprofile werden geladen…"
+          }
+        }
+      }
+    },
+    "tabImport.source.loadFailed": {
+      "comment": "Bring Your Tabs page → step 1 (choose a browser and profile): error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load browser profiles."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browserprofile konnten nicht geladen werden."
+          }
+        }
+      }
+    },
+    "tabImport.source.none": {
+      "comment": "Bring Your Tabs page → step 1 (choose a browser and profile): shown when no supported browser is found; {browsers} is a list such as “Google Chrome, Brave and Chromium”. “Import HTML…” is the Favorites page button (favorites.import.html); use its translation.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc can bring open tabs from %1$@, but none of them has a profile on this device. To bring bookmarks from another browser, export them to an HTML file, then use “Import HTML…” in Favorites."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc kann offene Tabs aus %1$@ mitbringen, aber keiner davon hat ein Profil auf diesem Gerät. Um Lesezeichen aus einem anderen Browser mitzubringen, exportiere sie in eine HTML-Datei und nutze dann „HTML importieren…“ in den Favoriten."
+          }
+        }
+      }
+    },
+    "tabImport.quit.title": {
+      "comment": "Bring Your Tabs page → step 1, when the other browser is still open: heading; {browser} is its name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finish saving tabs in %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speichern der Tabs in %1$@ abschließen"
+          }
+        }
+      }
+    },
+    "tabImport.quit.body": {
+      "comment": "Bring Your Tabs page → step 1, when the other browser is still open: explanation; {browser} is its name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Blanc found a saved, restorable session with %1$lld tab. Quit %2$@ normally so it can finish saving the latest session. Blanc only reads it and never removes tabs from %2$@."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Blanc found a saved, restorable session with %1$lld tabs. Quit %2$@ normally so it can finish saving the latest session. Blanc only reads it and never removes tabs from %2$@."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Blanc hat eine gespeicherte, wiederherstellbare Sitzung mit %1$lld Tab gefunden. Beende %2$@ normal, damit die neueste Sitzung fertig gespeichert wird. Blanc liest sie nur und entfernt nie Tabs aus %2$@."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Blanc hat eine gespeicherte, wiederherstellbare Sitzung mit %1$lld Tabs gefunden. Beende %2$@ normal, damit die neueste Sitzung fertig gespeichert wird. Blanc liest sie nur und entfernt nie Tabs aus %2$@."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "tabImport.quit.bodyNoCount": {
+      "comment": "Bring Your Tabs page → step 1, when the other browser is still open: explanation when the tab count is unknown; {browser} is its name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc found a saved, restorable session. Quit %1$@ normally so it can finish saving the latest session. Blanc only reads it and never removes tabs from %1$@."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc hat eine gespeicherte, wiederherstellbare Sitzung gefunden. Beende %1$@ normal, damit die neueste Sitzung fertig gespeichert wird. Blanc liest sie nur und entfernt nie Tabs aus %1$@."
+          }
+        }
+      }
+    },
+    "tabImport.quit.note": {
+      "comment": "Bring Your Tabs page → step 1, when the other browser is still open: note; {browser} is its name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whether those tabs reopen automatically in %1$@ depends on its startup setting."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ob diese Tabs in %1$@ automatisch wieder geöffnet werden, hängt von dessen Starteinstellung ab."
+          }
+        }
+      }
+    },
+    "tabImport.quit.retry": {
+      "comment": "Bring Your Tabs page → step 1, when the other browser is still open: button; {browser} is its name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I’ve quit %1$@ — check again"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ich habe %1$@ beendet – erneut prüfen"
+          }
+        }
+      }
+    },
+    "tabImport.status.checking": {
+      "comment": "Bring Your Tabs page → step 1 (choose a browser and profile): status after the browser quit; {source} names the browser and profile.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking the saved %1$@ session…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die gespeicherte Sitzung von %1$@ wird geprüft…"
+          }
+        }
+      }
+    },
+    "tabImport.status.reading": {
+      "comment": "Bring Your Tabs page → step 1 (choose a browser and profile): status; {source} names the browser and profile.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading open tabs from %1$@…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offene Tabs aus %1$@ werden gelesen…"
+          }
+        }
+      }
+    },
+    "tabImport.error.notReadable": {
+      "comment": "Bring Your Tabs page → step 1, when the other browser is still open: error after the browser quit; {source} names the browser and profile, {browser} the browser.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The latest %1$@ session is not safely readable. Reopen %2$@; Blanc will not use an older snapshot."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die neueste Sitzung von %1$@ lässt sich nicht sicher lesen. Öffne %2$@ erneut; Blanc verwendet keinen älteren Stand."
+          }
+        }
+      }
+    },
+    "tabImport.error.sourceGone": {
+      "comment": "Bring Your Tabs page → step 1 (choose a browser and profile): error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That browser profile is no longer available."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Browserprofil ist nicht mehr verfügbar."
+          }
+        }
+      }
+    },
+    "tabImport.error.permission": {
+      "comment": "Bring Your Tabs page → step 1 (choose a browser and profile): error on macOS; “Full Disk Access” is the macOS privacy setting, use its name in this language.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS blocked this profile. Grant Blanc Full Disk Access, then try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS hat dieses Profil blockiert. Gib Blanc den Festplattenvollzugriff und versuch es dann noch einmal."
+          }
+        }
+      }
+    },
+    "tabImport.error.sessionTooLarge": {
+      "comment": "Bring Your Tabs page → step 1 (choose a browser and profile): error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That saved session is too large to import safely."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese gespeicherte Sitzung ist zu groß, um sie sicher zu importieren."
+          }
+        }
+      }
+    },
+    "tabImport.error.tooManyTabs": {
+      "comment": "Bring Your Tabs page → step 1 (choose a browser and profile): error; {limit} is the maximum (500).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This profile has more than %1$@ open tabs. Nothing was changed."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Profil hat mehr als %1$@ offene Tabs. Nichts wurde geändert."
+          }
+        }
+      }
+    },
+    "tabImport.error.encrypted": {
+      "comment": "Bring Your Tabs page → step 1 (choose a browser and profile): error; {source} names the browser and profile.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ uses an encrypted session format Blanc does not access."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ verwendet ein verschlüsseltes Sitzungsformat, auf das Blanc nicht zugreift."
+          }
+        }
+      }
+    },
+    "tabImport.error.empty": {
+      "comment": "Bring Your Tabs page → step 1 (choose a browser and profile): error; {source} names the browser and profile.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No restorable open tabs were found in %1$@."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In %1$@ wurden keine wiederherstellbaren offenen Tabs gefunden."
+          }
+        }
+      }
+    },
+    "tabImport.error.unreadable": {
+      "comment": "Bring Your Tabs page → step 1 (choose a browser and profile): error; {source} names the browser and profile.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc couldn’t read the saved %1$@ session."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc konnte die gespeicherte Sitzung von %1$@ nicht lesen."
+          }
+        }
+      }
+    },
+    "tabImport.error.readFailed": {
+      "comment": "Bring Your Tabs page → step 1 (choose a browser and profile): error; {source} names the browser and profile.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc couldn’t read open tabs from %1$@."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc konnte die offenen Tabs aus %1$@ nicht lesen."
+          }
+        }
+      }
+    },
+    "tabImport.status.expired": {
+      "comment": "Bring Your Tabs page → step 2 (choose tabs): error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This import expired. Choose the source again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Import ist abgelaufen. Wähle die Quelle erneut."
+          }
+        }
+      }
+    },
+    "tabImport.status.selectionFailed": {
+      "comment": "Bring Your Tabs page → step 2 (choose tabs): error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t update that selection."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Auswahl konnte nicht aktualisiert werden."
+          }
+        }
+      }
+    },
+    "tabImport.tabs.title": {
+      "comment": "Bring Your Tabs page → step 2 (choose tabs): heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose tabs"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle Tabs"
+          }
+        }
+      }
+    },
+    "tabImport.tabs.selectAll": {
+      "comment": "Bring Your Tabs page → step 2 (choose tabs): button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select all"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle auswählen"
+          }
+        }
+      }
+    },
+    "tabImport.tabs.selectNone": {
+      "comment": "Bring Your Tabs page → step 2 (choose tabs): button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select none"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine auswählen"
+          }
+        }
+      }
+    },
+    "tabImport.tabs.back": {
+      "comment": "Bring Your Tabs page → step 2 (choose tabs): button back to step 1.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to source"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurück zur Quelle"
+          }
+        }
+      }
+    },
+    "tabImport.tabs.continue": {
+      "comment": "Bring Your Tabs page → step 2 (choose tabs): button to step 3.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Organize selected tabs"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ausgewählte Tabs ordnen"
+          }
+        }
+      }
+    },
+    "tabImport.tabs.window": {
+      "comment": "Bring Your Tabs page → step 2 (choose tabs): heading above one source window’s tabs.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Window %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fenster %1$@"
+          }
+        }
+      }
+    },
+    "tabImport.tabs.openTabs": {
+      "comment": "Bring Your Tabs page → step 2 (choose tabs): heading above the tabs when the source had one window.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open tabs"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offene Tabs"
+          }
+        }
+      }
+    },
+    "tabImport.tabs.count": {
+      "comment": "Bring Your Tabs page: number of tabs beside a heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld tab"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld tabs"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Tab"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Tabs"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "tabImport.tabs.unsupported": {
+      "comment": "Bring Your Tabs page → step 2 (choose tabs): note.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld unsupported tab was left out."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld unsupported tabs were left out."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld nicht unterstützter Tab wurde ausgelassen."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld nicht unterstützte Tabs wurden ausgelassen."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "tabImport.tabs.selected": {
+      "comment": "Bring Your Tabs page → step 2 (choose tabs): count beside the selection buttons.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ of %2$@ selected"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ von %2$@ ausgewählt"
+          }
+        }
+      }
+    },
+    "tabImport.tab.site": {
+      "comment": "Bring Your Tabs page: shown in place of a tab’s host when it has none.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "site"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Website"
+          }
+        }
+      }
+    },
+    "tabImport.tab.sourceGroup": {
+      "comment": "Bring Your Tabs page: the tab group a tab had in the other browser; {group} is its name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "group: %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gruppe: %1$@"
+          }
+        }
+      }
+    },
+    "tabImport.tab.pinned": {
+      "comment": "Bring Your Tabs page: marks a tab that was pinned in the other browser.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pinned"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "angeheftet"
+          }
+        }
+      }
+    },
+    "tabImport.tab.untitled": {
+      "comment": "Bring Your Tabs page: name of a tab with no title or host.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Untitled"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ohne Titel"
+          }
+        }
+      }
+    },
+    "tabImport.tab.bring": {
+      "comment": "Bring Your Tabs page → step 2 (choose tabs): accessible name of a tab’s checkbox; {title} is the tab’s title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bring %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ mitbringen"
+          }
+        }
+      }
+    },
+    "tabImport.status.preparing": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): status.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing your Named Groups…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine benannten Gruppen werden vorbereitet…"
+          }
+        }
+      }
+    },
+    "tabImport.status.prepareFailed": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t prepare these tabs for organization."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Tabs konnten nicht zum Ordnen vorbereitet werden."
+          }
+        }
+      }
+    },
+    "tabImport.organize.title": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Organize tabs"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs ordnen"
+          }
+        }
+      }
+    },
+    "tabImport.organize.newGroupForm": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): accessible name of the new-group form.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create a Named Group"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Benannte Gruppe erstellen"
+          }
+        }
+      }
+    },
+    "tabImport.organize.newGroupName": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): accessible name of the new-group field.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New group name"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name der neuen Gruppe"
+          }
+        }
+      }
+    },
+    "tabImport.organize.newGroupPlaceholder": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): placeholder of the new-group field, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "new group name"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name der neuen Gruppe"
+          }
+        }
+      }
+    },
+    "tabImport.organize.create": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): button that creates the group.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erstellen"
+          }
+        }
+      }
+    },
+    "tabImport.organize.back": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): button back to step 2.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to tabs"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurück zu Tabs"
+          }
+        }
+      }
+    },
+    "tabImport.organize.continue": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): button to step 4.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review import"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import prüfen"
+          }
+        }
+      }
+    },
+    "tabImport.organize.move": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): accessible name of a tab’s group menu; {title} is the tab’s title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ verschieben"
+          }
+        }
+      }
+    },
+    "tabImport.organize.ungroupedOption": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): menu choice that keeps a tab out of any group, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ungrouped"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ohne Gruppe"
+          }
+        }
+      }
+    },
+    "tabImport.organize.leaveOut": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): menu choice that leaves a tab behind, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "leave out"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "auslassen"
+          }
+        }
+      }
+    },
+    "tabImport.organize.restore": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): button that puts a moved tab back, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "restore"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "zurücksetzen"
+          }
+        }
+      }
+    },
+    "tabImport.organize.restored": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): announced to screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restored the original placement."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ursprüngliche Zuordnung wiederhergestellt."
+          }
+        }
+      }
+    },
+    "tabImport.organize.moved": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): announced to screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tab placement updated."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zuordnung des Tabs aktualisiert."
+          }
+        }
+      }
+    },
+    "tabImport.organize.removed": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): announced to screen readers; {group} is the group’s name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Removed %1$@; its tabs are now ungrouped."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ entfernt; die Tabs darin sind jetzt ohne Gruppe."
+          }
+        }
+      }
+    },
+    "tabImport.organize.rename": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): accessible name of a group’s name field; {group} is its name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rename %1$@ group"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gruppe %1$@ umbenennen"
+          }
+        }
+      }
+    },
+    "tabImport.organize.fromSource": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): badge on a group kept from the other browser, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "from source"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "aus der Quelle"
+          }
+        }
+      }
+    },
+    "tabImport.organize.new": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): badge on a group created here, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "new"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neu"
+          }
+        }
+      }
+    },
+    "tabImport.organize.removeGroup": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): button, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "remove group"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gruppe entfernen"
+          }
+        }
+      }
+    },
+    "tabImport.organize.tooSmall": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): warning under a group with fewer than two tabs.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Named Group needs at least two tabs."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine benannte Gruppe braucht mindestens zwei Tabs."
+          }
+        }
+      }
+    },
+    "tabImport.organize.ungrouped": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): heading above tabs in no group, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ungrouped"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ohne Gruppe"
+          }
+        }
+      }
+    },
+    "tabImport.organize.leftOut": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): heading above tabs that stay behind, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "left out"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ausgelassen"
+          }
+        }
+      }
+    },
+    "tabImport.organize.empty": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): shown in an empty lane.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No tabs here."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hier sind keine Tabs."
+          }
+        }
+      }
+    },
+    "tabImport.organize.created": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): announced to screen readers; {group} is the new group’s name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Created %1$@. Move at least two tabs into it."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ erstellt. Verschiebe mindestens zwei Tabs hinein."
+          }
+        }
+      }
+    },
+    "tabImport.groupName.empty": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): error for a group name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type a group name."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib einen Gruppennamen ein."
+          }
+        }
+      }
+    },
+    "tabImport.groupName.tooLong": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): error for a group name; {max} is the limit (40).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep group names to %1$@ characters."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gruppennamen dürfen höchstens %1$@ Zeichen haben."
+          }
+        }
+      }
+    },
+    "tabImport.groupName.generic": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): error for a name like “misc” or “stuff”.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a more specific group name."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle einen genaueren Gruppennamen."
+          }
+        }
+      }
+    },
+    "tabImport.groupName.taken": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): error for a group name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That group name is already in use."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Gruppenname wird schon verwendet."
+          }
+        }
+      }
+    },
+    "tabImport.issue.unavailable": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Groups are unavailable."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gruppen sind nicht verfügbar."
+          }
+        }
+      }
+    },
+    "tabImport.issue.noTabs": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select at least one tab."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle mindestens einen Tab aus."
+          }
+        }
+      }
+    },
+    "tabImport.issue.duplicateName": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each group needs a different name."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jede Gruppe braucht einen anderen Namen."
+          }
+        }
+      }
+    },
+    "tabImport.issue.groupTooSmall": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): error; {group} is the group’s name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%1$@” needs at least two tabs."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%1$@“ braucht mindestens zwei Tabs."
+          }
+        }
+      }
+    },
+    "tabImport.issue.placement": {
+      "comment": "Bring Your Tabs page → step 3 (organize into Named Groups): error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review each tab placement before opening."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prüfe vor dem Öffnen, wo jeder Tab landet."
+          }
+        }
+      }
+    },
+    "tabImport.review.title": {
+      "comment": "Bring Your Tabs page → step 4 (review): heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review import"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import prüfen"
+          }
+        }
+      }
+    },
+    "tabImport.review.note": {
+      "comment": "Bring Your Tabs page → step 4 (review): note; the other tabs open quiet (Quiet Tabs).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only the first tab wakes. Your source browser and Favorites stay unchanged."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur der erste Tab wird geladen. Dein Quellbrowser und deine Favoriten bleiben unverändert."
+          }
+        }
+      }
+    },
+    "tabImport.review.back": {
+      "comment": "Bring Your Tabs page → step 4 (review): button back to step 3.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to organize"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurück zum Ordnen"
+          }
+        }
+      }
+    },
+    "tabImport.review.apply": {
+      "comment": "Bring Your Tabs page → step 4 (review): button before the count is known.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open tabs in Blanc"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs in Blanc öffnen"
+          }
+        }
+      }
+    },
+    "tabImport.review.applyCount": {
+      "comment": "Bring Your Tabs page → step 4 (review): button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Open %1$lld tab in Blanc"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Open %1$lld tabs in Blanc"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Tab in Blanc öffnen"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Tabs in Blanc öffnen"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "tabImport.review.quietTabs": {
+      "comment": "Bring Your Tabs page → step 4 (review): caption under a large number (shown separately); quiet tabs are Quiet Tabs, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "quiet tab"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "quiet tabs"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "ruhender Tab"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "ruhende Tabs"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "tabImport.review.groups": {
+      "comment": "Bring Your Tabs page → step 4 (review): caption under a large number (shown separately).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Named Group"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Named Groups"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "benannte Gruppe"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "benannte Gruppen"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "tabImport.review.ungrouped": {
+      "comment": "Bring Your Tabs page → step 4 (review): caption under a large number (shown separately): tabs in no group, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "ungrouped"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "ungrouped"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "ohne Gruppe"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "ohne Gruppe"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "tabImport.review.group": {
+      "comment": "Bring Your Tabs page → step 4 (review): a group in the summary; {group} is its name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%2$@ · %1$lld tab"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%2$@ · %1$lld tabs"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%2$@ · %1$lld Tab"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%2$@ · %1$lld Tabs"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "tabImport.review.focusFirst": {
+      "comment": "Bring Your Tabs page → step 4 (review): button shown when Blanc could not switch to the first tab.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Focus the first imported tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ersten importierten Tab anzeigen"
+          }
+        }
+      }
+    },
+    "tabImport.status.opening": {
+      "comment": "Bring Your Tabs page → step 4 (review): status.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opening your tabs…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Tabs werden geöffnet…"
+          }
+        }
+      }
+    },
+    "tabImport.status.focusFailed": {
+      "comment": "Bring Your Tabs page → step 4 (review): status.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your tabs are ready, but Blanc could not focus the first one."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Tabs sind bereit, aber Blanc konnte nicht zum ersten wechseln."
+          }
+        }
+      }
+    },
+    "tabImport.status.openFailed": {
+      "comment": "Bring Your Tabs page → step 4 (review): error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc couldn’t open these tabs. Nothing was partially imported."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc konnte diese Tabs nicht öffnen. Es wurde nichts teilweise importiert."
+          }
+        }
+      }
+    },
+    "tabHandoff.title": {
+      "comment": "Tab handoff page (tabs sent to Blanc from another browser): browser tab title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import tabs"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs importieren"
+          }
+        }
+      }
+    },
+    "tabHandoff.nav": {
+      "comment": "Tab handoff page (tabs sent to Blanc from another browser): accessible name of the top bar.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tab handoff"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tab-Übergabe"
+          }
+        }
+      }
+    },
+    "tabHandoff.kicker": {
+      "comment": "Tab handoff page (tabs sent to Blanc from another browser): small label in the top bar, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "one-time handoff"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "einmalige Übergabe"
+          }
+        }
+      }
+    },
+    "tabHandoff.heading": {
+      "comment": "Tab handoff page (tabs sent to Blanc from another browser): heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bring these tabs to Blanc?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Tabs zu Blanc mitbringen?"
+          }
+        }
+      }
+    },
+    "tabHandoff.checking": {
+      "comment": "Tab handoff page (tabs sent to Blanc from another browser): status while it loads.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking the handoff…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Übergabe wird geprüft…"
+          }
+        }
+      }
+    },
+    "tabHandoff.loading": {
+      "comment": "Tab handoff page (tabs sent to Blanc from another browser): status.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retrieving and verifying the one-time handoff…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die einmalige Übergabe wird abgerufen und überprüft…"
+          }
+        }
+      }
+    },
+    "tabHandoff.waiting": {
+      "comment": "Tab handoff page (tabs sent to Blanc from another browser): status.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for the canceled retrieval to finish before opening this handoff…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Warten, bis der abgebrochene Abruf beendet ist, bevor diese Übergabe geöffnet wird…"
+          }
+        }
+      }
+    },
+    "tabHandoff.list": {
+      "comment": "Tab handoff page (tabs sent to Blanc from another browser): accessible name of the tab list.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs to import"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zu importierende Tabs"
+          }
+        }
+      }
+    },
+    "tabHandoff.newWindow": {
+      "comment": "Tab handoff page (tabs sent to Blanc from another browser): checkbox label.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open in a new window"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In einem neuen Fenster öffnen"
+          }
+        }
+      }
+    },
+    "tabHandoff.openHere": {
+      "comment": "Tab handoff page (tabs sent to Blanc from another browser): main button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open in this window"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In diesem Fenster öffnen"
+          }
+        }
+      }
+    },
+    "tabHandoff.openNew": {
+      "comment": "Tab handoff page (tabs sent to Blanc from another browser): main button when the checkbox is on.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open in new window"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In neuem Fenster öffnen"
+          }
+        }
+      }
+    },
+    "tabHandoff.opening": {
+      "comment": "Tab handoff page (tabs sent to Blanc from another browser): main button while the tabs open.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opening…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird geöffnet…"
+          }
+        }
+      }
+    },
+    "tabHandoff.summaryHere": {
+      "comment": "Tab handoff page (tabs sent to Blanc from another browser): summary; {source} is a browser name or “your other browser”, {profile} a Blanc profile name such as “Personal”. Quiet tabs are Quiet Tabs.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld tab from %2$@ will open in this %3$@ window. Only the selected imported tab loads now; the rest start quiet."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld tabs from %2$@ will open in this %3$@ window. Only the selected imported tab loads now; the rest start quiet."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Tab aus %2$@ wird in diesem %3$@-Fenster geöffnet. Nur der ausgewählte importierte Tab wird jetzt geladen; der Rest startet ruhend."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Tabs aus %2$@ werden in diesem %3$@-Fenster geöffnet. Nur der ausgewählte importierte Tab wird jetzt geladen; der Rest startet ruhend."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "tabHandoff.summaryNew": {
+      "comment": "Tab handoff page (tabs sent to Blanc from another browser): summary when the new-window checkbox is on; {source} is a browser name or “your other browser”, {profile} a Blanc profile name such as “Personal”.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld tab from %2$@ will open in a new %3$@ window. Only the selected imported tab loads now; the rest start quiet."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld tabs from %2$@ will open in a new %3$@ window. Only the selected imported tab loads now; the rest start quiet."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Tab aus %2$@ wird in einem neuen %3$@-Fenster geöffnet. Nur der ausgewählte importierte Tab wird jetzt geladen; der Rest startet ruhend."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Tabs aus %2$@ werden in einem neuen %3$@-Fenster geöffnet. Nur der ausgewählte importierte Tab wird jetzt geladen; der Rest startet ruhend."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "tabHandoff.otherBrowser": {
+      "comment": "Tab handoff page (tabs sent to Blanc from another browser): fills {source} in the summary when the browser is unknown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "your other browser"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "deinem anderen Browser"
+          }
+        }
+      }
+    },
+    "tabHandoff.personalProfile": {
+      "comment": "Tab handoff page (tabs sent to Blanc from another browser): fills {profile} in the summary when no profile name is known; the name of the built-in profile.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personal"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personal"
+          }
+        }
+      }
+    },
+    "tabHandoff.untitled": {
+      "comment": "Tab handoff page (tabs sent to Blanc from another browser): name of a tab with no title or domain.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imported tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importierter Tab"
+          }
+        }
+      }
+    },
+    "tabHandoff.opensFirst": {
+      "comment": "Tab handoff page (tabs sent to Blanc from another browser): badge on the tab that loads first, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "opens first"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "öffnet zuerst"
+          }
+        }
+      }
+    },
+    "tabHandoff.skipped": {
+      "comment": "Tab handoff page (tabs sent to Blanc from another browser): note.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld unsupported or unsafe tab was left behind."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld unsupported or unsafe tabs were left behind."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld nicht unterstützter oder unsicherer Tab wurde zurückgelassen."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld nicht unterstützte oder unsichere Tabs wurden zurückgelassen."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "tabHandoff.unavailable": {
+      "comment": "Tab handoff page (tabs sent to Blanc from another browser): summary when it cannot be shown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The tab handoff is unavailable."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Tab-Übergabe ist nicht verfügbar."
+          }
+        }
+      }
+    },
+    "tabHandoff.createNew": {
+      "comment": "Tab handoff page (tabs sent to Blanc from another browser): error when no reason is known.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Return to the source browser and create a new handoff."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kehre zum Quellbrowser zurück und erstelle eine neue Übergabe."
+          }
+        }
+      }
+    },
+    "tabHandoff.openFailed": {
+      "comment": "Tab handoff page (tabs sent to Blanc from another browser): error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc could not open these tabs. Your existing tabs are unchanged. Try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc konnte diese Tabs nicht öffnen. Deine vorhandenen Tabs sind unverändert. Versuch es noch einmal."
+          }
+        }
+      }
+    },
+    "tabHandoff.gone": {
+      "comment": "Tab handoff page (tabs sent to Blanc from another browser): error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This handoff is no longer available."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Übergabe ist nicht mehr verfügbar."
+          }
+        }
+      }
+    },
+    "tabHandoff.openThrew": {
+      "comment": "Tab handoff page (tabs sent to Blanc from another browser): error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc could not open this tab set. Try the handoff again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc konnte diese Tabs nicht öffnen. Versuch die Übergabe noch einmal."
+          }
+        }
+      }
+    },
+    "tabHandoff.unsupported": {
+      "comment": "Tab handoff page (tabs sent to Blanc from another browser): error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tab import is not available in this build of Blanc."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Tab-Import ist in diesem Build von Blanc nicht verfügbar."
+          }
+        }
+      }
+    },
+    "tabHandoff.readFailed": {
+      "comment": "Tab handoff page (tabs sent to Blanc from another browser): error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc could not read this handoff."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc konnte diese Übergabe nicht lesen."
           }
         }
       }

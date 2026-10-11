@@ -5,25 +5,25 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; font-src 'self';" />
   <script src="strings.js"></script>
   <script src="i18n.js"></script>
-  <title>Import tabs</title>
+  <title data-i18n="tabHandoff.title">Import tabs</title>
   <link rel="icon" type="image/png" href="icon-sunrise.png" />
   <link rel="stylesheet" href="pages.css" />
   <link rel="stylesheet" href="tab-handoff.css" />
 </head>
 <body class="sheet">
   <div class="page tab-handoff-page">
-    <nav class="page-nav" aria-label="Tab handoff"><span>one-time handoff</span></nav>
-    <h1>Bring these tabs to Blanc?</h1>
-    <p id="summary" class="tab-handoff-summary" role="status">Checking the handoff…</p>
+    <nav class="page-nav" aria-label="Tab handoff" data-i18n-aria-label="tabHandoff.nav"><span data-i18n="tabHandoff.kicker">one-time handoff</span></nav>
+    <h1 data-i18n="tabHandoff.heading">Bring these tabs to Blanc?</h1>
+    <p id="summary" class="tab-handoff-summary" role="status"></p>
     <div id="error" class="tab-handoff-error" role="alert" hidden></div>
-    <div id="list" class="row-list tab-handoff-list" aria-label="Tabs to import" hidden></div>
+    <div id="list" class="row-list tab-handoff-list" aria-label="Tabs to import" hidden data-i18n-aria-label="tabHandoff.list"></div>
     <p id="skipped" class="hint" hidden></p>
     <label class="tab-handoff-destination">
-      <input id="newWindow" type="checkbox" disabled /> Open in a new window
+      <input id="newWindow" type="checkbox" disabled /> <span data-i18n="tabHandoff.newWindow">Open in a new window</span>
     </label>
     <div class="tab-handoff-actions">
-      <button id="cancel" type="button">Cancel</button>
-      <button id="accept" type="button" class="tab-handoff-primary" disabled>Open in this window</button>
+      <button id="cancel" type="button" data-i18n="common.cancel">Cancel</button>
+      <button id="accept" type="button" class="tab-handoff-primary" disabled data-i18n="tabHandoff.openHere">Open in this window</button>
     </div>
   </div>
   <script src="sheet.js"></script>
