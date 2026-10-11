@@ -1,12 +1,13 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const { withoutInterfaceKeys } = require('../support/without-interface-keys');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 
 const root = path.resolve(__dirname, '../..');
-const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
+const read = (p) => withoutInterfaceKeys(fs.readFileSync(path.join(root, p), 'utf8'));
 
 test('Sync is the second Settings group in nav and content order', () => {
   const html = read('src/renderer/pages/settings.html');
@@ -69,8 +70,8 @@ test('the visual redesign preserves every established on-state control and handl
 
   assert.match(html, /<button id="syncNow">Sync now<\/button>/);
   assert.match(html, /<button id="syncDisable" class="danger">Turn off sync<\/button>/);
-  assert.match(html, /<input id="syncWipe" type="checkbox" \/> also delete synced data/);
-  assert.match(html, /<input id="syncTabsShare" type="checkbox" \/> share this device’s open tabs with your other devices/);
+  assert.match(html, /<input id="syncWipe" type="checkbox" \/> <span>also delete synced data<\/span>/);
+  assert.match(html, /<input id="syncTabsShare" type="checkbox" \/> <span>share this device’s open tabs with your other devices<\/span>/);
 
   assert.match(js, /nowBtn\.addEventListener\('click',[\s\S]*?settings\.syncNow\(\)/);
   assert.match(js, /disableBtn\.addEventListener\('click',[\s\S]*?settings\.syncDisable\(\{ wipeRemote: wipeEl\.checked \}\)/);

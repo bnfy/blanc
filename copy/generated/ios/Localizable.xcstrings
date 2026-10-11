@@ -14088,6 +14088,3354 @@
           }
         }
       }
+    },
+    "settings.page.title": {
+      "comment": "Settings → Settings page: browser tab title of the Settings page.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einstellungen"
+          }
+        }
+      }
+    },
+    "pagesNav.settings": {
+      "comment": "Navigation link to Settings at the top of Blanc’s utility pages.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einstellungen"
+          }
+        }
+      }
+    },
+    "pagesNav.bookmarks": {
+      "comment": "Navigation link to Favorites at the top of Blanc’s utility pages.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favorites"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favoriten"
+          }
+        }
+      }
+    },
+    "pagesNav.history": {
+      "comment": "Navigation link to History at the top of Blanc’s utility pages.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "History"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verlauf"
+          }
+        }
+      }
+    },
+    "pagesNav.downloads": {
+      "comment": "Navigation link to Downloads at the top of Blanc’s utility pages.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downloads"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downloads"
+          }
+        }
+      }
+    },
+    "settings.page.heading": {
+      "comment": "Settings → Settings page: page heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einstellungen"
+          }
+        }
+      }
+    },
+    "settings.nav.general": {
+      "comment": "Settings → Settings page: section link in the Settings sidebar.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "General"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allgemein"
+          }
+        }
+      }
+    },
+    "settings.nav.sync": {
+      "comment": "Settings → Settings page: section link in the Settings sidebar.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisierung"
+          }
+        }
+      }
+    },
+    "settings.nav.profiles": {
+      "comment": "Settings → Settings page: section link in the Settings sidebar.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profiles"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile"
+          }
+        }
+      }
+    },
+    "settings.nav.privacy": {
+      "comment": "Settings → Settings page: section link in the Settings sidebar.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy & Security"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datenschutz & Sicherheit"
+          }
+        }
+      }
+    },
+    "settings.nav.trust": {
+      "comment": "Settings → Settings page: section link in the Settings sidebar.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About & Trust"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Info & Vertrauen"
+          }
+        }
+      }
+    },
+    "settings.nav.diagnostics": {
+      "comment": "Settings → Settings page: section link in the Settings sidebar.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnostics"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnose"
+          }
+        }
+      }
+    },
+    "settings.nav.patron": {
+      "comment": "Settings → Settings page: section link in the Settings sidebar.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Patron"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Patron"
+          }
+        }
+      }
+    },
+    "settings.nav.help": {
+      "comment": "Settings → Settings page: section link in the Settings sidebar.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Help"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hilfe"
+          }
+        }
+      }
+    },
+    "settings.general.title": {
+      "comment": "Settings → General: section heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "General"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allgemein"
+          }
+        }
+      }
+    },
+    "settings.general.theme.label": {
+      "comment": "Settings → General: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appearance"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erscheinungsbild"
+          }
+        }
+      }
+    },
+    "settings.general.theme.hint": {
+      "comment": "Settings → General: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System follows your macOS/Windows theme"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System folgt dem Design von macOS/Windows"
+          }
+        }
+      }
+    },
+    "settings.general.theme.system": {
+      "comment": "Settings → General: choice in a dropdown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System"
+          }
+        }
+      }
+    },
+    "settings.general.theme.light": {
+      "comment": "Settings → General: choice in a dropdown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Light"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hell"
+          }
+        }
+      }
+    },
+    "settings.general.theme.dark": {
+      "comment": "Settings → General: choice in a dropdown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dark"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dunkel"
+          }
+        }
+      }
+    },
+    "settings.general.islandSiteColors.label": {
+      "comment": "Settings → General: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Match site colors"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Website-Farben übernehmen"
+          }
+        }
+      }
+    },
+    "settings.general.islandSiteColors.hint": {
+      "comment": "Settings → General: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tint the Island bar with the color of the page you’re on. Off keeps it on your theme’s background."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Färbt die Island-Leiste in der Farbe der aktuellen Seite. Aus behält den Hintergrund deines Designs."
+          }
+        }
+      }
+    },
+    "settings.general.darkWebsites.label": {
+      "comment": "Settings → General: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dark websites"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dunkle Websites"
+          }
+        }
+      }
+    },
+    "settings.general.darkWebsites.hint": {
+      "comment": "Settings → General: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "While Blanc is dark, darken websites that have no dark mode of their own. Uses the open-source Dark Reader engine."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solange Blanc dunkel ist, werden Websites ohne eigenen Dunkelmodus abgedunkelt. Nutzt die Open-Source-Engine Dark Reader."
+          }
+        }
+      }
+    },
+    "settings.general.sitesListedHereKeep": {
+      "comment": "Settings → General: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sites listed here keep their own colors. Type /dark-site on a site to add or remove it."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hier aufgeführte Websites behalten ihre eigenen Farben. Gib auf einer Website /dark-site ein, um sie hinzuzufügen oder zu entfernen."
+          }
+        }
+      }
+    },
+    "settings.general.darkExceptionInput.ariaLabel": {
+      "comment": "Settings → General: accessible name of a input.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Site to keep in its own colors"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Website, die ihre eigenen Farben behält"
+          }
+        }
+      }
+    },
+    "settings.general.darkExceptionAdd": {
+      "comment": "Settings → General: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hinzufügen"
+          }
+        }
+      }
+    },
+    "settings.general.newtabLayout.label": {
+      "comment": "Settings → General: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New tab layout"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Layout der Startseite"
+          }
+        }
+      }
+    },
+    "settings.general.newtabLayout.hint": {
+      "comment": "Settings → General: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How the new tab page arranges itself; switchable from its footer too"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wie sich die Startseite anordnet; auch über ihre Fußleiste umschaltbar"
+          }
+        }
+      }
+    },
+    "settings.general.newtabLayout.ledger": {
+      "comment": "Settings → General: start-page layout name (also shown on the start page).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ledger"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ledger"
+          }
+        }
+      }
+    },
+    "settings.general.newtabLayout.billboard": {
+      "comment": "Settings → General: start-page layout name (also shown on the start page).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "billboard"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "billboard"
+          }
+        }
+      }
+    },
+    "settings.general.newtabLayout.shelf": {
+      "comment": "Settings → General: start-page layout name (also shown on the start page).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "shelf"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "shelf"
+          }
+        }
+      }
+    },
+    "settings.general.newtabLayout.tally": {
+      "comment": "Settings → General: start-page layout name (also shown on the start page).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "tally"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "tally"
+          }
+        }
+      }
+    },
+    "settings.general.newtabDynamicWallpaper.label": {
+      "comment": "Settings → General: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time-of-day wallpaper"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hintergrund nach Tageszeit"
+          }
+        }
+      }
+    },
+    "settings.general.newtabDynamicWallpaper.hint": {
+      "comment": "Settings → General: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wallpaper follows this machine’s local time."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Hintergrund folgt der Ortszeit dieses Geräts."
+          }
+        }
+      }
+    },
+    "settings.general.tabLayout.label": {
+      "comment": "Settings → General: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tab layout"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tab-Layout"
+          }
+        }
+      }
+    },
+    "settings.general.tabLayout.hint": {
+      "comment": "Settings → General: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep tabs in the Island or show them in a left rail; search and commands always stay in the Island"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs in der Island behalten oder in einer linken Leiste zeigen; Suche und Befehle bleiben immer in der Island"
+          }
+        }
+      }
+    },
+    "settings.general.tabLayout.island": {
+      "comment": "Settings → General: choice in a dropdown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Island"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Island"
+          }
+        }
+      }
+    },
+    "settings.general.tabLayout.vertical": {
+      "comment": "Settings → General: choice in a dropdown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vertical tabs"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vertikale Tabs"
+          }
+        }
+      }
+    },
+    "settings.general.tabSleep.label": {
+      "comment": "Settings → General: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet inactive tabs"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inaktive Tabs ruhen lassen"
+          }
+        }
+      }
+    },
+    "settings.general.tabSleep.hint": {
+      "comment": "Settings → General: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc frees the memory of tabs you have not opened in a while, and reloads them when you come back to them."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc gibt den Speicher von Tabs frei, die du länger nicht geöffnet hast, und lädt sie neu, wenn du zu ihnen zurückkehrst. Solche Tabs werden zu ruhenden Tabs."
+          }
+        }
+      }
+    },
+    "settings.general.tabSleep.off": {
+      "comment": "Settings → General: choice in a dropdown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aus"
+          }
+        }
+      }
+    },
+    "settings.general.tabSleep.30m": {
+      "comment": "Settings → General: choice in a dropdown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After 30 minutes"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach 30 Minuten"
+          }
+        }
+      }
+    },
+    "settings.general.tabSleep.1h": {
+      "comment": "Settings → General: choice in a dropdown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After 1 hour"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach 1 Stunde"
+          }
+        }
+      }
+    },
+    "settings.general.tabSleep.6h": {
+      "comment": "Settings → General: choice in a dropdown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After 6 hours"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach 6 Stunden"
+          }
+        }
+      }
+    },
+    "settings.general.mouseGesturesEnabled.label": {
+      "comment": "Settings → General: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mouse gestures"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mausgesten"
+          }
+        }
+      }
+    },
+    "settings.general.mouseGesturesEnabled.hint": {
+      "comment": "Settings → General: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "With a mouse, hold the right button and drag, then release. On a trackpad, hold Alt/Option (⌥), click and hold with one finger, then drag."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit einer Maus: rechte Taste gedrückt halten, ziehen und loslassen. Auf einem Trackpad: Alt/Wahltaste (⌥) halten, mit einem Finger klicken und halten, dann ziehen."
+          }
+        }
+      }
+    },
+    "settings.general.mouseGesturesEnabled.ariaLabel": {
+      "comment": "Settings → General: accessible name of a input.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable mouse gestures"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mausgesten aktivieren"
+          }
+        }
+      }
+    },
+    "settings.general.assignedGestures": {
+      "comment": "Settings → General: text (span).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Assigned gestures"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zugewiesene Gesten"
+          }
+        }
+      }
+    },
+    "settings.general.mouseGestureAdd": {
+      "comment": "Settings → General: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add gesture"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geste hinzufügen"
+          }
+        }
+      }
+    },
+    "settings.general.mouseGestureReset": {
+      "comment": "Settings → General: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore defaults"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standard wiederherstellen"
+          }
+        }
+      }
+    },
+    "settings.general.drawUpToThree": {
+      "comment": "Settings → General: text (p).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draw up to three directions, then choose an action."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeichne bis zu drei Richtungen und wähle dann eine Aktion."
+          }
+        }
+      }
+    },
+    "settings.general.mouseGesturePad.ariaLabel": {
+      "comment": "Settings → General: accessible name of a div.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draw a new gesture with the primary button"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue Geste mit der Haupttaste zeichnen"
+          }
+        }
+      }
+    },
+    "settings.general.mouseGesturePadPrompt": {
+      "comment": "Settings → General: text (span).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Press and drag here"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hier drücken und ziehen"
+          }
+        }
+      }
+    },
+    "settings.general.action": {
+      "comment": "Settings → General: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Action"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktion"
+          }
+        }
+      }
+    },
+    "settings.general.mouseGestureSave": {
+      "comment": "Settings → General: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save gesture"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geste speichern"
+          }
+        }
+      }
+    },
+    "settings.general.mouseGestureCancel": {
+      "comment": "Settings → General: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abbrechen"
+          }
+        }
+      }
+    },
+    "settings.general.appIconSetting.label": {
+      "comment": "Settings → General: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App icon"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App-Symbol"
+          }
+        }
+      }
+    },
+    "settings.general.appIconSetting.hint": {
+      "comment": "Settings → General: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose the Blanc icon shown by your system"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle das Blanc-Symbol, das dein System anzeigt"
+          }
+        }
+      }
+    },
+    "settings.general.defaultBrowserBtn.label": {
+      "comment": "Settings → General: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Default browser"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standardbrowser"
+          }
+        }
+      }
+    },
+    "settings.general.defaultBrowserBtn.hint": {
+      "comment": "Settings → General: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open web links from other apps in Blanc"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weblinks aus anderen Apps in Blanc öffnen"
+          }
+        }
+      }
+    },
+    "settings.general.defaultBrowserBtn": {
+      "comment": "Settings → General: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Make default…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als Standard…"
+          }
+        }
+      }
+    },
+    "settings.general.defaultBrowserState": {
+      "comment": "Settings → General: text (span).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc is your default browser"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc ist dein Standardbrowser"
+          }
+        }
+      }
+    },
+    "settings.general.showWelcomeTour.label": {
+      "comment": "Settings → General: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welcome tour"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Willkommenstour"
+          }
+        }
+      }
+    },
+    "settings.general.showWelcomeTour.hint": {
+      "comment": "Settings → General: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replay the first-run walkthrough; saved choices stay put"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Einführung beim ersten Start erneut abspielen; gespeicherte Einstellungen bleiben erhalten"
+          }
+        }
+      }
+    },
+    "settings.general.showWelcomeTour": {
+      "comment": "Settings → General: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show welcome tour"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Willkommenstour zeigen"
+          }
+        }
+      }
+    },
+    "settings.general.searchEngine.label": {
+      "comment": "Settings → General: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search engine"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suchmaschine"
+          }
+        }
+      }
+    },
+    "settings.general.searchEngine.hint": {
+      "comment": "Settings → General: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Used when the address bar input isn't a URL"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird verwendet, wenn die Eingabe in der Adressleiste keine URL ist"
+          }
+        }
+      }
+    },
+    "settings.general.searchSuggestions.label": {
+      "comment": "Settings → General: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search suggestions"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suchvorschläge"
+          }
+        }
+      }
+    },
+    "settings.general.searchSuggestions.hint": {
+      "comment": "Settings → General: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send eligible typed prefixes to your selected search provider, including Google if selected. Private tabs and recognized sensitive-looking input are excluded. Submitting a search sends the completed query even when suggestions are off."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sendet geeignete eingetippte Anfänge an deinen gewählten Suchanbieter, auch an Google, wenn ausgewählt. Private Tabs und erkennbar sensibel wirkende Eingaben sind ausgenommen. Eine abgeschickte Suche sendet die vollständige Anfrage, auch wenn Vorschläge aus sind."
+          }
+        }
+      }
+    },
+    "settings.general.homePage.label": {
+      "comment": "Settings → General: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New tab page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue-Tab-Seite"
+          }
+        }
+      }
+    },
+    "settings.general.homePage.hint": {
+      "comment": "Settings → General: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave empty for the built-in new tab page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leer lassen für die eingebaute Neue-Tab-Seite"
+          }
+        }
+      }
+    },
+    "settings.sync.title": {
+      "comment": "Settings → Sync: section heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisierung"
+          }
+        }
+      }
+    },
+    "settings.sync.syncSetupTitle": {
+      "comment": "Settings → Sync → Set up Sync: card heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set up Sync"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisierung einrichten"
+          }
+        }
+      }
+    },
+    "settings.sync.syncSetupIntro": {
+      "comment": "Settings → Sync → Set up Sync: text (p).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync your favorites and settings across your devices, and, if you choose, open tabs. Everything is end-to-end encrypted — Blanc can’t read it, and can’t recover it if you forget your passphrase."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisiere deine Favoriten und Einstellungen und auf Wunsch auch offene Tabs zwischen deinen Geräten. Alles ist Ende-zu-Ende-verschlüsselt – Blanc kann es weder lesen noch wiederherstellen, wenn du deine Passphrase vergisst."
+          }
+        }
+      }
+    },
+    "settings.sync.syncPaths.ariaLabel": {
+      "comment": "Settings → Sync → Set up Sync: accessible name of a div.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose how to set up Sync"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle, wie du die Synchronisierung einrichtest"
+          }
+        }
+      }
+    },
+    "settings.sync.startSyncingFromThis": {
+      "comment": "Settings → Sync → Set up Sync: text (strong).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start syncing from this device"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisierung auf diesem Gerät beginnen"
+          }
+        }
+      }
+    },
+    "settings.sync.createTheNameAnd": {
+      "comment": "Settings → Sync → Set up Sync: text (span).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create the name and passphrase you’ll use on your other devices."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lege den Namen und die Passphrase fest, die du auf deinen anderen Geräten verwendest."
+          }
+        }
+      }
+    },
+    "settings.sync.iAlreadySyncOn": {
+      "comment": "Settings → Sync → Set up Sync: text (strong).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I already sync on another device"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ich synchronisiere bereits auf einem anderen Gerät"
+          }
+        }
+      }
+    },
+    "settings.sync.connectWithTheExact": {
+      "comment": "Settings → Sync → Set up Sync: text (span).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect with the exact same name and passphrase."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbinde dich mit genau demselben Namen und derselben Passphrase."
+          }
+        }
+      }
+    },
+    "settings.sync.giveYourSyncA": {
+      "comment": "Settings → Sync → Set up Sync: text (strong).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Give your sync a name"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib deiner Synchronisierung einen Namen"
+          }
+        }
+      }
+    },
+    "settings.sync.chooseAPassphrase": {
+      "comment": "Settings → Sync → Set up Sync: text (strong).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a passphrase"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle eine Passphrase"
+          }
+        }
+      }
+    },
+    "settings.sync.iYourPassphraseStays": {
+      "comment": "Settings → Sync: privacy note in the setup form; <0>i</0> is an information icon, keep it as “i”.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<0>i</0> Your passphrase stays on your devices. It’s never sent to Blanc."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<0>i</0> Deine Passphrase bleibt auf deinen Geräten. Sie wird nie an Blanc gesendet."
+          }
+        }
+      }
+    },
+    "settings.sync.syncFinishTitle": {
+      "comment": "Settings → Sync → Set up Sync: text (strong).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn on Sync"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisierung einschalten"
+          }
+        }
+      }
+    },
+    "settings.sync.syncFinishHint": {
+      "comment": "Settings → Sync → Set up Sync: text (p).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You’re ready — your favorites and settings will sync securely across your devices."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alles bereit – deine Favoriten und Einstellungen werden sicher zwischen deinen Geräten synchronisiert."
+          }
+        }
+      }
+    },
+    "settings.sync.syncSubmit": {
+      "comment": "Settings → Sync → Set up Sync: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn on sync"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einschalten"
+          }
+        }
+      }
+    },
+    "settings.sync.syncBack": {
+      "comment": "Settings → Sync → Set up Sync: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurück"
+          }
+        }
+      }
+    },
+    "settings.sync.nothingWasFoundUnder": {
+      "comment": "Settings → Sync → Set up Sync: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing was found under that name and passphrase. Check for typos, including capital letters, then try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unter diesem Namen und dieser Passphrase wurde nichts gefunden. Prüfe auf Tippfehler, auch bei Groß- und Kleinschreibung, und versuche es erneut."
+          }
+        }
+      }
+    },
+    "settings.sync.syncTryAgain": {
+      "comment": "Settings → Sync → Set up Sync: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try again"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erneut versuchen"
+          }
+        }
+      }
+    },
+    "settings.sync.syncStartNew": {
+      "comment": "Settings → Sync → Set up Sync: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start a new sync with these"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Damit neu beginnen"
+          }
+        }
+      }
+    },
+    "settings.sync.syncName": {
+      "comment": "Settings → Sync → Set up Sync: text (dt).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync name"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisierungsname"
+          }
+        }
+      }
+    },
+    "settings.sync.favoritesAndSettings": {
+      "comment": "Settings → Sync → Set up Sync: text (dt).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favorites and settings"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favoriten und Einstellungen"
+          }
+        }
+      }
+    },
+    "settings.sync.thisDevicesOpenTabs": {
+      "comment": "Settings → Sync → Set up Sync: text (dt).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This device’s open tabs"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offene Tabs dieses Geräts"
+          }
+        }
+      }
+    },
+    "settings.sync.lastError": {
+      "comment": "Settings → Sync → Set up Sync: text (dt).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last error"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letzter Fehler"
+          }
+        }
+      }
+    },
+    "settings.sync.syncNow": {
+      "comment": "Settings → Sync → Set up Sync: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync now"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jetzt synchronisieren"
+          }
+        }
+      }
+    },
+    "settings.sync.syncDisable": {
+      "comment": "Settings → Sync → Set up Sync: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn off sync"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ausschalten"
+          }
+        }
+      }
+    },
+    "settings.profiles.title": {
+      "comment": "Settings → Profiles: section heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profiles"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile"
+          }
+        }
+      }
+    },
+    "settings.profiles.namedProfilesKeepSeparate": {
+      "comment": "Settings → Profiles: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Named profiles keep separate cookies, site data, Favorites, history, downloads, and remembered permissions. Device settings and Patron status stay shared; Sync belongs to Personal only."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Benannte Profile haben getrennte Cookies, Websitedaten, Favoriten, Verlauf, Downloads und gespeicherte Berechtigungen. Geräteeinstellungen und der Patron-Status bleiben gemeinsam; die Synchronisierung gehört nur zu Personal."
+          }
+        }
+      }
+    },
+    "settings.profiles.newProfileName.placeholder": {
+      "comment": "Settings → Profiles: placeholder of a input.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New profile name"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name des neuen Profils"
+          }
+        }
+      }
+    },
+    "settings.profiles.newProfileCreate": {
+      "comment": "Settings → Profiles: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create profile window"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profilfenster erstellen"
+          }
+        }
+      }
+    },
+    "settings.privacy.title": {
+      "comment": "Settings → Privacy & Security: section heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy & Security"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datenschutz & Sicherheit"
+          }
+        }
+      }
+    },
+    "settings.privacy.blocking.title": {
+      "comment": "Settings → Privacy & Security → Blocking: card heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blocking"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blockieren"
+          }
+        }
+      }
+    },
+    "settings.privacy.adblockProvider.label": {
+      "comment": "Settings → Privacy & Security → Blocking: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blocking provider"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blocker"
+          }
+        }
+      }
+    },
+    "settings.privacy.adblockProvider.hint": {
+      "comment": "Settings → Privacy & Security → Blocking: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changes take effect after restarting Blanc. uBlock Origin protects regular tabs. Blanc’s browser engine can load uBO only in saved sessions, so private sessions stay in memory and use Blanc Blocker. Each provider keeps separate site settings."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Änderungen werden nach einem Neustart von Blanc wirksam. uBlock Origin schützt normale Tabs. Blancs Browser-Engine kann uBO nur in gespeicherten Sitzungen laden, deshalb bleiben private Sitzungen im Speicher und nutzen Blanc Blocker. Jeder Blocker hat eigene Website-Einstellungen."
+          }
+        }
+      }
+    },
+    "settings.privacy.ublockDashboard": {
+      "comment": "Settings → Privacy & Security → Blocking: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "uBlock Origin settings"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einstellungen von uBlock Origin"
+          }
+        }
+      }
+    },
+    "settings.privacy.ublockLogger": {
+      "comment": "Settings → Privacy & Security → Blocking: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Logger"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protokoll"
+          }
+        }
+      }
+    },
+    "settings.privacy.ublockRetry": {
+      "comment": "Settings → Privacy & Security → Blocking: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiederholen"
+          }
+        }
+      }
+    },
+    "settings.privacy.ublockUseBlanc": {
+      "comment": "Settings → Privacy & Security → Blocking: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use Blanc Blocker after restart"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach Neustart Blanc Blocker"
+          }
+        }
+      }
+    },
+    "settings.privacy.ublockContinue": {
+      "comment": "Settings → Privacy & Security → Blocking: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue without blocking"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ohne Blocker weiter"
+          }
+        }
+      }
+    },
+    "settings.privacy.ublockLimits": {
+      "comment": "Settings → Privacy & Security → Blocking: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filter lists update automatically. Executable resources update with Blanc releases; custom resource URLs and cloud storage are unavailable. Turning blocking off removes cosmetic CSS; reload a page to undo changes already made by scriptlets."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filterlisten werden automatisch aktualisiert. Ausführbare Ressourcen werden mit Blanc-Releases aktualisiert; eigene Ressourcen-URLs und Cloud-Speicher sind nicht verfügbar. Das Ausschalten des Blockers entfernt kosmetisches CSS; lade eine Seite neu, um bereits von Scriptlets vorgenommene Änderungen rückgängig zu machen."
+          }
+        }
+      }
+    },
+    "settings.privacy.adblockEnabled.label": {
+      "comment": "Settings → Privacy & Security → Blocking: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Block ads & trackers"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Werbung & Tracker blockieren"
+          }
+        }
+      }
+    },
+    "settings.privacy.adblockEnabled.hint": {
+      "comment": "Settings → Privacy & Security → Blocking: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stops ads and the hidden trackers that follow you from site to site. On by default."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stoppt Werbung und die versteckten Tracker, die dir von Website zu Website folgen. Standardmäßig an."
+          }
+        }
+      }
+    },
+    "settings.privacy.sitesListedHereLoad": {
+      "comment": "Settings → Privacy & Security → Blocking: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sites listed here load with ad-blocking turned off, e.g. for sites that break under it."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hier aufgeführte Websites laden ohne Werbeblocker, z. B. für Websites, die damit nicht funktionieren."
+          }
+        }
+      }
+    },
+    "settings.privacy.exceptionAdd": {
+      "comment": "Settings → Privacy & Security → Blocking: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hinzufügen"
+          }
+        }
+      }
+    },
+    "settings.privacy.callsAndConnections.title": {
+      "comment": "Settings → Privacy & Security → Calls and connections: card heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Calls and connections"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anrufe und Verbindungen"
+          }
+        }
+      }
+    },
+    "settings.privacy.webrtcPolicy.label": {
+      "comment": "Settings → Privacy & Security → Calls and connections: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IP address in video calls"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IP-Adresse in Videoanrufen"
+          }
+        }
+      }
+    },
+    "settings.privacy.webrtcPolicy.hint": {
+      "comment": "Settings → Privacy & Security → Calls and connections: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standard limits calls to your default network route. If a call stutters or won't connect, try Compatibility; it can reveal local network addresses to the site. Strict is for application-proxy users."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standard beschränkt Anrufe auf deine Standard-Netzwerkroute. Wenn ein Anruf ruckelt oder keine Verbindung zustande kommt, versuche Kompatibilität; dabei kann die Website lokale Netzwerkadressen sehen. Streng ist für Nutzer von Anwendungs-Proxys."
+          }
+        }
+      }
+    },
+    "settings.privacy.webrtcPolicy.standard": {
+      "comment": "Settings → Privacy & Security → Calls and connections: choice in a dropdown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standard (recommended)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standard (empfohlen)"
+          }
+        }
+      }
+    },
+    "settings.privacy.webrtcPolicy.compatibility": {
+      "comment": "Settings → Privacy & Security → Calls and connections: choice in a dropdown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compatibility — widest call support, less IP privacy"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kompatibilität – beste Anrufunterstützung, weniger IP-Schutz"
+          }
+        }
+      }
+    },
+    "settings.privacy.webrtcPolicy.strict": {
+      "comment": "Settings → Privacy & Security → Calls and connections: choice in a dropdown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Strict — stronger for proxy users, but can break some video calls"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Streng – besser für Proxy-Nutzer, kann manche Videoanrufe stören"
+          }
+        }
+      }
+    },
+    "settings.privacy.webrtcAudioBuffer.label": {
+      "comment": "Settings → Privacy & Security → Calls and connections: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Call audio"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anruf-Audio"
+          }
+        }
+      }
+    },
+    "settings.privacy.webrtcAudioBuffer.hint": {
+      "comment": "Settings → Privacy & Security → Calls and connections: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatic keeps conversation delay as low as possible. Stable targets about 400 ms of receive buffering. Resilient targets about 1 second for severe crackling or chopped speech, making back-and-forth conversation slower. Start a new call after changing it."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatisch hält die Gesprächsverzögerung so gering wie möglich. Stabil puffert beim Empfang etwa 400 ms. Belastbar puffert etwa 1 Sekunde gegen starkes Knistern oder abgehackte Sprache, was Gespräche träger macht. Starte nach einer Änderung einen neuen Anruf."
+          }
+        }
+      }
+    },
+    "settings.privacy.webrtcAudioBuffer.automatic": {
+      "comment": "Settings → Privacy & Security → Calls and connections: choice in a dropdown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatic (lowest latency)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatisch (geringste Verzögerung)"
+          }
+        }
+      }
+    },
+    "settings.privacy.webrtcAudioBuffer.stable": {
+      "comment": "Settings → Privacy & Security → Calls and connections: choice in a dropdown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stable — smoother playback, about 400 ms buffer"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stabil – flüssigere Wiedergabe, etwa 400 ms Puffer"
+          }
+        }
+      }
+    },
+    "settings.privacy.webrtcAudioBuffer.resilient": {
+      "comment": "Settings → Privacy & Security → Calls and connections: choice in a dropdown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resilient — high stability, about 1 second buffer"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Belastbar – sehr stabil, etwa 1 Sekunde Puffer"
+          }
+        }
+      }
+    },
+    "settings.privacy.secureDns.label": {
+      "comment": "Settings → Privacy & Security → Calls and connections: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encrypted DNS"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verschlüsseltes DNS"
+          }
+        }
+      }
+    },
+    "settings.privacy.secureDns.hint": {
+      "comment": "Settings → Privacy & Security → Calls and connections: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encrypts the behind-the-scenes lookups that turn a web address into a connection, so someone sniffing those lookups can't read the names. It does not hide the sites you visit from your network, and it makes the DNS provider someone you trust. Automatic uses encryption when it can and may fall back to ordinary DNS — safe to leave on. If a Wi-Fi login page won't load, switch to Automatic or Off temporarily."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verschlüsselt die Hintergrundabfragen, die eine Webadresse in eine Verbindung übersetzen, sodass jemand, der diese Abfragen mitliest, die Namen nicht lesen kann. Es verbirgt die besuchten Websites nicht vor deinem Netzwerk und macht den DNS-Anbieter zu jemandem, dem du vertraust. Automatisch verschlüsselt, wenn möglich, und kann auf normales DNS zurückfallen – du kannst es bedenkenlos anlassen. Wenn eine WLAN-Anmeldeseite nicht lädt, wechsle vorübergehend zu Automatisch oder Aus."
+          }
+        }
+      }
+    },
+    "settings.privacy.secureDns.auto": {
+      "comment": "Settings → Privacy & Security → Calls and connections: choice in a dropdown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatic (recommended)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatisch (empfohlen)"
+          }
+        }
+      }
+    },
+    "settings.privacy.secureDns.off": {
+      "comment": "Settings → Privacy & Security → Calls and connections: choice in a dropdown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off — use your system setting (best with a VPN)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aus – Systemeinstellung verwenden (am besten mit VPN)"
+          }
+        }
+      }
+    },
+    "settings.privacy.secureDns.quad9": {
+      "comment": "Settings → Privacy & Security → Calls and connections: choice in a dropdown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quad9 — also blocks known malware sites"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quad9 – blockiert auch bekannte Malware-Websites"
+          }
+        }
+      }
+    },
+    "settings.privacy.secureDns.custom": {
+      "comment": "Settings → Privacy & Security → Calls and connections: choice in a dropdown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom provider…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eigener Anbieter…"
+          }
+        }
+      }
+    },
+    "settings.privacy.secureDnsTemplate.label": {
+      "comment": "Settings → Privacy & Security → Calls and connections: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom provider address"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adresse des eigenen Anbieters"
+          }
+        }
+      }
+    },
+    "settings.privacy.secureDnsTemplate.hint": {
+      "comment": "Settings → Privacy & Security → Calls and connections: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The secure DNS address your provider gave you (an https:// link), e.g. https://dns.nextdns.io/<profile>."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die sichere DNS-Adresse deines Anbieters (ein https://-Link), z. B. https://dns.nextdns.io/<profile>."
+          }
+        }
+      }
+    },
+    "settings.privacy.fillAMatchingLogin": {
+      "comment": "Settings → Privacy & Security → 1Password: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fill a matching Login item from your installed 1Password app when you ask. While this is on, Blanc checks pages for a login form so the island can offer Fill — it never reads what you type and never contacts 1Password until you ask."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Füllt auf deinen Wunsch ein passendes Login-Objekt aus deiner installierten 1Password-App aus. Solange dies an ist, prüft Blanc Seiten auf ein Anmeldeformular, damit die Island Ausfüllen anbieten kann – es liest nie, was du tippst, und kontaktiert 1Password erst, wenn du es verlangst."
+          }
+        }
+      }
+    },
+    "settings.privacy.onePasswordOpenApp.label": {
+      "comment": "Settings → Privacy & Security → 1Password: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1Password app"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1Password-App"
+          }
+        }
+      }
+    },
+    "settings.privacy.onePasswordOpenApp": {
+      "comment": "Settings → Privacy & Security → 1Password: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open 1Password"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1Password öffnen"
+          }
+        }
+      }
+    },
+    "settings.privacy.onePasswordEnabled.label": {
+      "comment": "Settings → Privacy & Security → 1Password: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fill logins from 1Password"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Logins aus 1Password ausfüllen"
+          }
+        }
+      }
+    },
+    "settings.privacy.onePasswordEnabled.hint": {
+      "comment": "Settings → Privacy & Security → 1Password: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In 1Password, open Settings → Developer and turn on Integrate with 1Password SDKs"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffne in 1Password Einstellungen → Entwickler und aktiviere „Mit 1Password SDKs integrieren“"
+          }
+        }
+      }
+    },
+    "settings.privacy.onePasswordAccount.label": {
+      "comment": "Settings → Privacy & Security → 1Password: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1Password account"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1Password-Konto"
+          }
+        }
+      }
+    },
+    "settings.privacy.onePasswordAccount.hint": {
+      "comment": "Settings → Privacy & Security → 1Password: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The email address you sign in to 1Password with. An account ID also works. Stored only on this device."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die E-Mail-Adresse, mit der du dich bei 1Password anmeldest. Eine Konto-ID funktioniert auch. Wird nur auf diesem Gerät gespeichert."
+          }
+        }
+      }
+    },
+    "settings.privacy.onePasswordVerify": {
+      "comment": "Settings → Privacy & Security → 1Password: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verify"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prüfen"
+          }
+        }
+      }
+    },
+    "settings.privacy.useViewFill": {
+      "comment": "Settings → Privacy & Security → 1Password: how to fill a login; <0>/1password</0> is a slash command (keep it), the menu path and shortcuts are the app’s own.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use View → Fill Login from 1Password or <0>/1password</0>. On Mac: ⌥⌘P. On Windows and Linux: Ctrl+Shift+P."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nutze Darstellung → Login aus 1Password ausfüllen oder <0>/1password</0>. Auf dem Mac: ⌥⌘P. Unter Windows und Linux: Strg+Umschalt+P."
+          }
+        }
+      }
+    },
+    "settings.privacy.sitePermissions.title": {
+      "comment": "Settings → Privacy & Security → Site permissions: card heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Site permissions"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Website-Berechtigungen"
+          }
+        }
+      }
+    },
+    "settings.privacy.sitesYouveAllowedOr": {
+      "comment": "Settings → Privacy & Security → Site permissions: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sites you've allowed or blocked from using your camera, microphone, location, or notifications."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Websites, denen du den Zugriff auf Kamera, Mikrofon, Standort oder Mitteilungen erlaubt oder verweigert hast."
+          }
+        }
+      }
+    },
+    "settings.privacy.usageAndData.title": {
+      "comment": "Settings → Privacy & Security → Usage and data: card heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usage and data"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nutzung und Daten"
+          }
+        }
+      }
+    },
+    "settings.privacy.usagePing.label": {
+      "comment": "Settings → Privacy & Security → Usage and data: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Help improve Blanc"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc verbessern helfen"
+          }
+        }
+      }
+    },
+    "settings.privacy.usagePing.hint": {
+      "comment": "Settings → Privacy & Security → Usage and data: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Counts active users and which start-page layouts and local features get used. Sends a random install and session id, app version, platform, architecture, coarse OS major, and fixed feature names; never URLs, searches, page content, or private-tab activity. This is pseudonymous measurement sent to a Blanc-owned Cloudflare collector. It stores a keyed hash of the install id; an optional Google Analytics mirror receives that hash and the same limited fields. Turn this off to stop future events."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zählt aktive Nutzer und welche Startseiten-Layouts und lokalen Funktionen genutzt werden. Sendet eine zufällige Installations- und Sitzungs-ID, App-Version, Plattform, Architektur, grobe Hauptversion des Betriebssystems und feste Funktionsnamen; nie URLs, Suchen, Seiteninhalte oder Aktivitäten in privaten Tabs. Das ist eine pseudonyme Messung an einen Cloudflare-Sammler von Blanc. Er speichert einen verschlüsselten Hash der Installations-ID; ein optionaler Google-Analytics-Spiegel erhält diesen Hash und dieselben eingeschränkten Felder. Schalte dies aus, um künftige Ereignisse zu stoppen."
+          }
+        }
+      }
+    },
+    "settings.privacy.resetInstallId": {
+      "comment": "Settings → Privacy & Security → Usage and data: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset install ID"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installations-ID zurücksetzen"
+          }
+        }
+      }
+    },
+    "settings.privacy.removesCookiesCacheAnd": {
+      "comment": "Settings → Privacy & Security → Usage and data: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Removes cookies, cache, and site data for every site. You'll be logged out of everything."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entfernt Cookies, Cache und Websitedaten aller Websites. Du wirst überall abgemeldet."
+          }
+        }
+      }
+    },
+    "settings.privacy.clearBrowsingData": {
+      "comment": "Settings → Privacy & Security → Usage and data: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear cookies, cache & site data"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cookies, Cache & Websitedaten löschen"
+          }
+        }
+      }
+    },
+    "settings.trust.title": {
+      "comment": "Settings → About & Trust: section heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About & Trust"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Info & Vertrauen"
+          }
+        }
+      }
+    },
+    "settings.trust.factsCheckedOnThis": {
+      "comment": "Settings → About & Trust: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Facts checked on this device. Opening this section makes no network request."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf diesem Gerät geprüfte Fakten. Das Öffnen dieses Bereichs löst keine Netzwerkanfrage aus."
+          }
+        }
+      }
+    },
+    "settings.trust.trustReceiptStatus": {
+      "comment": "Settings → About & Trust: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking the installed build…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installierter Build wird geprüft…"
+          }
+        }
+      }
+    },
+    "settings.diagnostics.title": {
+      "comment": "Settings → Diagnostics: section heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnostics"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnose"
+          }
+        }
+      }
+    },
+    "settings.diagnostics.blancKeepsALocal": {
+      "comment": "Settings → Diagnostics: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc keeps a local, 50-event crash ledger with timestamps, process type, and failure reason. It never includes URLs, page titles, history, profile names, account data, identifiers, quiet-tab state, or closed-tab state, and nothing is sent automatically."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc führt ein lokales Absturzprotokoll mit 50 Einträgen samt Zeitstempel, Prozesstyp und Fehlergrund. Es enthält nie URLs, Seitentitel, Verlauf, Profilnamen, Kontodaten, Kennungen, den Zustand ruhender Tabs oder geschlossener Tabs, und nichts wird automatisch gesendet."
+          }
+        }
+      }
+    },
+    "settings.diagnostics.diagnosticsSummary": {
+      "comment": "Settings → Diagnostics: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking local crash history…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lokaler Absturzverlauf wird geprüft…"
+          }
+        }
+      }
+    },
+    "settings.diagnostics.diagnosticsExport": {
+      "comment": "Settings → Diagnostics: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export diagnostics…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnose exportieren…"
+          }
+        }
+      }
+    },
+    "settings.diagnostics.diagnosticsClear": {
+      "comment": "Settings → Diagnostics: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear crash history"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Absturzverlauf löschen"
+          }
+        }
+      }
+    },
+    "settings.patron.title": {
+      "comment": "Settings → Blanc Patron: section heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc Patron"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc Patron"
+          }
+        }
+      }
+    },
+    "settings.patron.blancPatronUnlocksBlanc": {
+      "comment": "Settings → Blanc Patron: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc Patron unlocks Blanc Spaces on every platform. A one-time founding license activates once, with no further contact. A monthly or annual subscription checks in with Polar about once a day — your license key and activation id only, never browsing data — to confirm it’s still active. On a lapse, existing spaces stay available while creating new ones pauses."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc Patron schaltet Blanc Spaces auf allen Plattformen frei. Eine einmalige Gründerlizenz wird einmal aktiviert, ohne weiteren Kontakt. Ein Monats- oder Jahresabo meldet sich etwa einmal am Tag bei Polar – nur mit Lizenzschlüssel und Aktivierungs-ID, nie mit Browserdaten –, um zu bestätigen, dass es noch aktiv ist. Läuft es aus, bleiben bestehende Spaces verfügbar, neue können aber nicht mehr erstellt werden."
+          }
+        }
+      }
+    },
+    "settings.patron.patronCheckout": {
+      "comment": "Settings → Blanc Patron: button that opens checkout; keep the prices and currency as written.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Become a Patron — $4/month or $30/year"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Patron werden – $4/Monat oder $30/Jahr"
+          }
+        }
+      }
+    },
+    "settings.patron.patronActivateHint": {
+      "comment": "Settings → Blanc Patron: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Already a Patron? Enter the license key available under Purchases in Polar to activate this device."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schon Patron? Gib den Lizenzschlüssel ein, den du bei Polar unter Käufe findest, um dieses Gerät zu aktivieren."
+          }
+        }
+      }
+    },
+    "settings.patron.patronKey.placeholder": {
+      "comment": "Settings → Blanc Patron: placeholder of a input.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "License key"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lizenzschlüssel"
+          }
+        }
+      }
+    },
+    "settings.patron.patronActivate": {
+      "comment": "Settings → Blanc Patron: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activate"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktivieren"
+          }
+        }
+      }
+    },
+    "settings.help.title": {
+      "comment": "Settings → Help: section heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Help"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hilfe"
+          }
+        }
+      }
+    },
+    "settings.help.aboutBlanc.title": {
+      "comment": "Settings → Help → About Blanc: card heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About Blanc"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Über Blanc"
+          }
+        }
+      }
+    },
+    "settings.help.platform": {
+      "comment": "Settings → Help → About Blanc: text (dt).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Platform"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plattform"
+          }
+        }
+      }
+    },
+    "settings.help.architecture": {
+      "comment": "Settings → Help → About Blanc: text (dt).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Architecture"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Architektur"
+          }
+        }
+      }
+    },
+    "settings.help.blancUsesChromiumThrough": {
+      "comment": "Settings → Help → About Blanc: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc uses Chromium through Electron to render websites. Updates to Electron and Chromium arrive with new Blanc releases and replace the whole app. Applying an update requires restarting Blanc."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc nutzt Chromium über Electron, um Websites darzustellen. Updates von Electron und Chromium kommen mit neuen Blanc-Releases und ersetzen die ganze App. Zum Anwenden eines Updates muss Blanc neu gestartet werden."
+          }
+        }
+      }
+    },
+    "settings.help.checkForUpdates": {
+      "comment": "Settings → Help → About Blanc: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check for updates…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach Updates suchen…"
+          }
+        }
+      }
+    },
+    "settings.help.howBlancWorks": {
+      "comment": "Settings → Help → About Blanc: link.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How Blanc works ↗"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "So funktioniert Blanc ↗"
+          }
+        }
+      }
+    },
+    "settings.help.sourceCode": {
+      "comment": "Settings → Help → About Blanc: link.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source code ↗"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quellcode ↗"
+          }
+        }
+      }
+    },
+    "settings.help.privacyPolicy": {
+      "comment": "Settings → Help → About Blanc: link.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy policy ↗"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datenschutz ↗"
+          }
+        }
+      }
+    },
+    "settings.help.releaseNotes": {
+      "comment": "Settings → Help → About Blanc: link.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Release notes ↗"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versionshinweise ↗"
+          }
+        }
+      }
+    },
+    "settings.help.extensionsAndPasswordManagers.title": {
+      "comment": "Settings → Help → Extensions and password managers: card heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extensions and password managers"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erweiterungen und Passwortmanager"
+          }
+        }
+      }
+    },
+    "settings.help.youCanBrowseChrome": {
+      "comment": "Settings → Help → Extensions and password managers: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can browse Chrome Web Store pages, but Blanc cannot install Chrome extensions."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du kannst Seiten des Chrome Web Store ansehen, aber Blanc kann keine Chrome-Erweiterungen installieren."
+          }
+        }
+      }
+    },
+    "settings.help.onMacOSWindowsAnd": {
+      "comment": "Settings → Help → Extensions and password managers: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On macOS, Windows and Linux, Blanc offers explicit login fill from the installed 1Password app. This integration does not save passwords or fill automatically."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unter macOS, Windows und Linux bietet Blanc ausdrückliches Ausfüllen von Logins aus der installierten 1Password-App. Diese Integration speichert keine Passwörter und füllt nichts automatisch aus."
+          }
+        }
+      }
+    },
+    "settings.help.connectionsBlancCanMake.title": {
+      "comment": "Settings → Help → Connections Blanc can make: card heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connections Blanc can make"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbindungen, die Blanc herstellen kann"
+          }
+        }
+      }
+    },
+    "settings.help.blancConnectsToWebsites": {
+      "comment": "Settings → Help → Connections Blanc can make: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc connects to websites you open and GitHub for app updates. Searches and enabled suggestions go to your selected search provider; DNS lookups use your system or selected DNS provider. Selecting Google sends searches and eligible suggestion prefixes to Google."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc verbindet sich mit Websites, die du öffnest, und mit GitHub für App-Updates. Suchen und aktivierte Vorschläge gehen an deinen gewählten Suchanbieter; DNS-Abfragen nutzen dein System oder den gewählten DNS-Anbieter. Wenn du Google wählst, gehen Suchen und geeignete Vorschlagsanfänge an Google."
+          }
+        }
+      }
+    },
+    "settings.help.enabledUsageMeasurementGoes": {
+      "comment": "Settings → Help → Connections Blanc can make: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enabled usage measurement goes to a Blanc-owned Cloudflare collector and, when configured, its Google Analytics mirror. Sync, Patron, 1Password and tab handoff make separate connections when configured or requested. This describes behavior; it is not a live network monitor."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die aktivierte Nutzungsmessung geht an einen Cloudflare-Sammler von Blanc und, falls eingerichtet, an dessen Google-Analytics-Spiegel. Synchronisierung, Patron, 1Password und Tab-Übergabe stellen eigene Verbindungen her, wenn sie eingerichtet oder angefordert sind. Dies beschreibt das Verhalten; es ist keine Live-Netzwerküberwachung."
+          }
+        }
+      }
+    },
+    "settings.help.dataRecipientsAndControls": {
+      "comment": "Settings → Help → Connections Blanc can make: link.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data, recipients and controls ↗"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daten, Empfänger und Kontrolle ↗"
+          }
+        }
+      }
+    },
+    "settings.help.somethingBrokenOrWorking": {
+      "comment": "Settings → Help: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Something broken, or working in a way it shouldn’t? Reports go to Blanc’s public issue tracker on GitHub. Saying which version you’re on, which operating system, and what page you were looking at makes a report much faster to act on."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Funktioniert etwas nicht oder anders, als es sollte? Meldungen gehen an Blancs öffentlichen Issue-Tracker auf GitHub. Wenn du angibst, welche Version und welches Betriebssystem du nutzt und welche Seite du angesehen hast, lässt sich eine Meldung viel schneller bearbeiten."
+          }
+        }
+      }
+    },
+    "settings.help.reportAnIssue": {
+      "comment": "Settings → Help: link to the public issue tracker; <0>↗</0> is the external-link arrow, keep it.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Report an issue <0>↗</0>"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Problem melden <0>↗</0>"
+          }
+        }
+      }
+    },
+    "settings.privacy.secureDnsError": {
+      "comment": "Settings → Privacy & Security → Calls and connections: error shown when the custom DNS address is invalid.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That address isn't valid — the previous provider is still in use."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Adresse ist ungültig – der bisherige Anbieter wird weiter verwendet."
+          }
+        }
+      }
+    },
+    "settings.sync.syncWipe": {
+      "comment": "Settings → Sync: checkbox beside Turn off sync that also erases the server copy (lowercase, continues the button).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "also delete synced data"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "auch synchronisierte Daten löschen"
+          }
+        }
+      }
+    },
+    "settings.sync.syncTabsShare": {
+      "comment": "Settings → Sync: checkbox that publishes this device’s open tabs to your other devices (lowercase in the original).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "share this device’s open tabs with your other devices"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "offene Tabs dieses Geräts mit deinen anderen Geräten teilen"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

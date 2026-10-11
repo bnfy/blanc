@@ -72,7 +72,13 @@
       "key.escape",
       "menu.tabs",
       "tab.untitledShort",
-      "arcImport.untitledSpace"
+      "arcImport.untitledSpace",
+      "pagesNav.downloads",
+      "settings.general.theme.system",
+      "settings.general.newtabLayout.ledger",
+      "settings.general.newtabLayout.billboard",
+      "settings.general.newtabLayout.shelf",
+      "settings.general.newtabLayout.tally"
     ]
   }
 }

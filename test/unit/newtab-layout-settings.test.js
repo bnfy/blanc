@@ -1,4 +1,5 @@
 const assert = require('node:assert/strict');
+const { withoutInterfaceKeys } = require('../support/without-interface-keys');
 const test = require('node:test');
 const fs = require('fs');
 const os = require('os');
@@ -205,10 +206,10 @@ test('the layout enum reaches the schema and both generated mobile artifacts', (
 });
 
 test('Settings offers every supported start-page layout', () => {
-  const html = fs.readFileSync(
+  const html = withoutInterfaceKeys(fs.readFileSync(
     path.join(__dirname, '../../src/renderer/pages/settings.html'),
     'utf8'
-  );
+  ));
 
   for (const layout of settingsSchema.newtabLayouts) {
     assert.match(

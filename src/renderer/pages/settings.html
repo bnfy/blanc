@@ -5,116 +5,116 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; font-src 'self';" />
   <script src="strings.js"></script>
   <script src="i18n.js"></script>
-  <title>Settings</title>
+  <title data-i18n="settings.page.title">Settings</title>
   <link rel="icon" type="image/png" href="icon-sunrise.png" />
   <link rel="stylesheet" href="pages.css" />
 </head>
 <body class="sheet">
   <div class="page">
     <nav class="page-nav">
-      <a href="blanc://settings/" class="current">Settings</a>
-      <a href="blanc://bookmarks/">Favorites</a>
-      <a href="blanc://history/">History</a>
-      <a href="blanc://downloads/">Downloads</a>
+      <a href="blanc://settings/" class="current" data-i18n="pagesNav.settings">Settings</a>
+      <a href="blanc://bookmarks/" data-i18n="pagesNav.bookmarks">Favorites</a>
+      <a href="blanc://history/" data-i18n="pagesNav.history">History</a>
+      <a href="blanc://downloads/" data-i18n="pagesNav.downloads">Downloads</a>
     </nav>
-    <h1>Settings</h1>
+    <h1 data-i18n="settings.page.heading">Settings</h1>
 
     <div class="settings-shell">
       <nav class="settings-nav">
-        <a href="#group-general" data-group="general">General</a>
-        <a href="#group-sync" data-group="sync">Sync</a>
-        <a href="#group-profiles" data-group="profiles">Profiles</a>
-        <a href="#group-privacy" data-group="privacy">Privacy &amp; Security</a>
-        <a href="#group-trust" data-group="trust">About &amp; Trust</a>
-        <a href="#group-diagnostics" data-group="diagnostics">Diagnostics</a>
-        <a href="#group-patron" data-group="patron">Patron</a>
-        <a href="#group-help" data-group="help">Help</a>
+        <a href="#group-general" data-group="general" data-i18n="settings.nav.general">General</a>
+        <a href="#group-sync" data-group="sync" data-i18n="settings.nav.sync">Sync</a>
+        <a href="#group-profiles" data-group="profiles" data-i18n="settings.nav.profiles">Profiles</a>
+        <a href="#group-privacy" data-group="privacy" data-i18n="settings.nav.privacy">Privacy &amp; Security</a>
+        <a href="#group-trust" data-group="trust" data-i18n="settings.nav.trust">About &amp; Trust</a>
+        <a href="#group-diagnostics" data-group="diagnostics" data-i18n="settings.nav.diagnostics">Diagnostics</a>
+        <a href="#group-patron" data-group="patron" data-i18n="settings.nav.patron">Patron</a>
+        <a href="#group-help" data-group="help" data-i18n="settings.nav.help">Help</a>
       </nav>
 
       <div class="settings-content">
         <section class="settings-group" id="group-general">
-          <h2 class="group-title">General</h2>
+          <h2 class="group-title" data-i18n="settings.general.title">General</h2>
           <div class="settings-card">
             <div class="setting">
               <div class="label">
-                <span>Appearance</span>
-                <span class="hint">System follows your macOS/Windows theme</span>
+                <span data-i18n="settings.general.theme.label">Appearance</span>
+                <span class="hint" data-i18n="settings.general.theme.hint">System follows your macOS/Windows theme</span>
               </div>
               <select id="theme">
-                <option value="system">System</option>
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
+                <option value="system" data-i18n="settings.general.theme.system">System</option>
+                <option value="light" data-i18n="settings.general.theme.light">Light</option>
+                <option value="dark" data-i18n="settings.general.theme.dark">Dark</option>
               </select>
             </div>
 
             <div class="setting" id="islandSiteColorsSetting">
               <div class="label">
-                <span>Match site colors</span>
-                <span class="hint" id="islandSiteColorsHint">Tint the Island bar with the color of the page you’re on. Off keeps it on your theme’s background.</span>
+                <span data-i18n="settings.general.islandSiteColors.label">Match site colors</span>
+                <span class="hint" id="islandSiteColorsHint" data-i18n="settings.general.islandSiteColors.hint">Tint the Island bar with the color of the page you’re on. Off keeps it on your theme’s background.</span>
               </div>
-              <label class="toggle"><input id="islandSiteColors" type="checkbox" aria-label="Match site colors" aria-describedby="islandSiteColorsHint" /><span class="track"></span></label>
+              <label class="toggle"><input id="islandSiteColors" type="checkbox" aria-label="Match site colors" aria-describedby="islandSiteColorsHint"  data-i18n-aria-label="settings.general.islandSiteColors.label"/><span class="track"></span></label>
             </div>
 
             <div class="setting" id="darkWebsitesSetting">
               <div class="label">
-                <span>Dark websites</span>
-                <span class="hint" id="darkWebsitesHint">While Blanc is dark, darken websites that have no dark mode of their own. Uses the open-source Dark Reader engine.</span>
+                <span data-i18n="settings.general.darkWebsites.label">Dark websites</span>
+                <span class="hint" id="darkWebsitesHint" data-i18n="settings.general.darkWebsites.hint">While Blanc is dark, darken websites that have no dark mode of their own. Uses the open-source Dark Reader engine.</span>
               </div>
-              <label class="toggle"><input id="darkWebsites" type="checkbox" aria-label="Dark websites" aria-describedby="darkWebsitesHint" /><span class="track"></span></label>
+              <label class="toggle"><input id="darkWebsites" type="checkbox" aria-label="Dark websites" aria-describedby="darkWebsitesHint"  data-i18n-aria-label="settings.general.darkWebsites.label"/><span class="track"></span></label>
             </div>
             <div id="darkWebsitesExceptionsBlock">
-              <p class="section-hint">
+              <p class="section-hint" data-i18n="settings.general.sitesListedHereKeep">
                 Sites listed here keep their own colors. Type /dark-site on a site to add or remove it.
               </p>
               <div class="toolbar-row">
-                <input id="darkExceptionInput" type="text" placeholder="example.com" aria-label="Site to keep in its own colors" />
-                <button id="darkExceptionAdd">Add</button>
+                <input id="darkExceptionInput" type="text" placeholder="example.com" aria-label="Site to keep in its own colors"  data-i18n-ignore="placeholder" data-i18n-aria-label="settings.general.darkExceptionInput.ariaLabel"/>
+                <button id="darkExceptionAdd" data-i18n="settings.general.darkExceptionAdd">Add</button>
               </div>
               <div id="darkExceptionList" class="row-list"></div>
             </div>
 
             <div class="setting">
               <div class="label">
-                <span>New tab layout</span>
-                <span class="hint">How the new tab page arranges itself; switchable from its footer too</span>
+                <span data-i18n="settings.general.newtabLayout.label">New tab layout</span>
+                <span class="hint" data-i18n="settings.general.newtabLayout.hint">How the new tab page arranges itself; switchable from its footer too</span>
               </div>
-              <select id="newtabLayout" aria-label="New tab layout">
-                <option value="ledger">ledger</option>
-                <option value="billboard">billboard</option>
-                <option value="shelf">shelf</option>
-                <option value="tally">tally</option>
+              <select id="newtabLayout" aria-label="New tab layout" data-i18n-aria-label="settings.general.newtabLayout.label">
+                <option value="ledger" data-i18n="settings.general.newtabLayout.ledger">ledger</option>
+                <option value="billboard" data-i18n="settings.general.newtabLayout.billboard">billboard</option>
+                <option value="shelf" data-i18n="settings.general.newtabLayout.shelf">shelf</option>
+                <option value="tally" data-i18n="settings.general.newtabLayout.tally">tally</option>
               </select>
             </div>
 
             <div class="setting" id="dynamicWallpaperSetting">
               <div class="label">
-                <span>Time-of-day wallpaper</span>
-                <span class="hint" id="dynamicWallpaperHint">Wallpaper follows this machine’s local time.</span>
+                <span data-i18n="settings.general.newtabDynamicWallpaper.label">Time-of-day wallpaper</span>
+                <span class="hint" id="dynamicWallpaperHint" data-i18n="settings.general.newtabDynamicWallpaper.hint">Wallpaper follows this machine’s local time.</span>
               </div>
-              <label class="toggle"><input id="newtabDynamicWallpaper" type="checkbox" aria-label="Time-of-day wallpaper" aria-describedby="dynamicWallpaperHint" /><span class="track"></span></label>
+              <label class="toggle"><input id="newtabDynamicWallpaper" type="checkbox" aria-label="Time-of-day wallpaper" aria-describedby="dynamicWallpaperHint"  data-i18n-aria-label="settings.general.newtabDynamicWallpaper.label"/><span class="track"></span></label>
             </div>
 
             <div class="setting" id="tabLayoutSetting">
               <div class="label">
-                <span>Tab layout</span>
-                <span class="hint">Keep tabs in the Island or show them in a left rail; search and commands always stay in the Island</span>
+                <span data-i18n="settings.general.tabLayout.label">Tab layout</span>
+                <span class="hint" data-i18n="settings.general.tabLayout.hint">Keep tabs in the Island or show them in a left rail; search and commands always stay in the Island</span>
               </div>
-              <select id="tabLayout" aria-label="Tab layout">
-                <option value="island">Island</option>
-                <option value="vertical">Vertical tabs</option>
+              <select id="tabLayout" aria-label="Tab layout" data-i18n-aria-label="settings.general.tabLayout.label">
+                <option value="island" data-i18n="settings.general.tabLayout.island">Island</option>
+                <option value="vertical" data-i18n="settings.general.tabLayout.vertical">Vertical tabs</option>
               </select>
             </div>
 
             <div class="setting" id="tabSleepSetting">
               <div class="label">
-                <span>Quiet inactive tabs</span>
-                <span class="hint">Blanc frees the memory of tabs you have not opened in a while, and reloads them when you come back to them.</span>
+                <span data-i18n="settings.general.tabSleep.label">Quiet inactive tabs</span>
+                <span class="hint" data-i18n="settings.general.tabSleep.hint">Blanc frees the memory of tabs you have not opened in a while, and reloads them when you come back to them.</span>
               </div>
-              <select id="tabSleep" aria-label="Quiet inactive tabs">
-                <option value="off">Off</option>
-                <option value="30m">After 30 minutes</option>
-                <option value="1h">After 1 hour</option>
-                <option value="6h">After 6 hours</option>
+              <select id="tabSleep" aria-label="Quiet inactive tabs" data-i18n-aria-label="settings.general.tabSleep.label">
+                <option value="off" data-i18n="settings.general.tabSleep.off">Off</option>
+                <option value="30m" data-i18n="settings.general.tabSleep.30m">After 30 minutes</option>
+                <option value="1h" data-i18n="settings.general.tabSleep.1h">After 1 hour</option>
+                <option value="6h" data-i18n="settings.general.tabSleep.6h">After 6 hours</option>
               </select>
             </div>
 
@@ -129,30 +129,30 @@
 
             <div class="setting" id="mouseGesturesSetting">
               <div class="label">
-                <span>Mouse gestures</span>
-                <span class="hint">With a mouse, hold the right button and drag, then release. On a trackpad, hold Alt/Option (⌥), click and hold with one finger, then drag.</span>
+                <span data-i18n="settings.general.mouseGesturesEnabled.label">Mouse gestures</span>
+                <span class="hint" data-i18n="settings.general.mouseGesturesEnabled.hint">With a mouse, hold the right button and drag, then release. On a trackpad, hold Alt/Option (⌥), click and hold with one finger, then drag.</span>
               </div>
-              <label class="toggle"><input id="mouseGesturesEnabled" type="checkbox" aria-label="Enable mouse gestures" /><span class="track"></span></label>
+              <label class="toggle"><input id="mouseGesturesEnabled" type="checkbox" aria-label="Enable mouse gestures"  data-i18n-aria-label="settings.general.mouseGesturesEnabled.ariaLabel"/><span class="track"></span></label>
             </div>
             <div id="mouseGestureEditor" class="gesture-editor" hidden>
               <div class="gesture-editor-heading">
-                <span>Assigned gestures</span>
+                <span data-i18n="settings.general.assignedGestures">Assigned gestures</span>
               </div>
               <div id="mouseGestureRows" class="gesture-rows"></div>
               <div class="gesture-editor-actions">
-                <button id="mouseGestureAdd" class="gesture-add" type="button">Add gesture</button>
-                <button id="mouseGestureReset" class="gesture-reset" type="button">Restore defaults</button>
+                <button id="mouseGestureAdd" class="gesture-add" type="button" data-i18n="settings.general.mouseGestureAdd">Add gesture</button>
+                <button id="mouseGestureReset" class="gesture-reset" type="button" data-i18n="settings.general.mouseGestureReset">Restore defaults</button>
               </div>
               <div id="mouseGestureComposer" class="gesture-composer" hidden>
-                <p>Draw up to three directions, then choose an action.</p>
-                <div id="mouseGesturePad" class="gesture-pad" role="group" aria-label="Draw a new gesture with the primary button">
-                  <span id="mouseGesturePadPrompt">Press and drag here</span>
+                <p data-i18n="settings.general.drawUpToThree">Draw up to three directions, then choose an action.</p>
+                <div id="mouseGesturePad" class="gesture-pad" role="group" aria-label="Draw a new gesture with the primary button" data-i18n-aria-label="settings.general.mouseGesturePad.ariaLabel">
+                  <span id="mouseGesturePadPrompt" data-i18n="settings.general.mouseGesturePadPrompt">Press and drag here</span>
                 </div>
                 <div class="gesture-composer-actions">
-                  <label for="mouseGestureAction">Action</label>
+                  <label for="mouseGestureAction" data-i18n="settings.general.action">Action</label>
                   <select id="mouseGestureAction"></select>
-                  <button id="mouseGestureSave" type="button" disabled>Save gesture</button>
-                  <button id="mouseGestureCancel" type="button">Cancel</button>
+                  <button id="mouseGestureSave" type="button" disabled data-i18n="settings.general.mouseGestureSave">Save gesture</button>
+                  <button id="mouseGestureCancel" type="button" data-i18n="settings.general.mouseGestureCancel">Cancel</button>
                 </div>
               </div>
               <p id="mouseGestureMessage" class="gesture-message" role="status" aria-live="polite"></p>
@@ -161,43 +161,43 @@
 
             <div class="setting" id="appIconSetting">
               <div class="label">
-                <span>App icon</span>
-                <span class="hint" id="appIconHint">Choose the Blanc icon shown by your system</span>
+                <span data-i18n="settings.general.appIconSetting.label">App icon</span>
+                <span class="hint" id="appIconHint" data-i18n="settings.general.appIconSetting.hint">Choose the Blanc icon shown by your system</span>
               </div>
               <div class="icon-scroller">
-                <div id="appIconGrid" class="icon-grid" role="radiogroup" aria-label="App icon"></div>
+                <div id="appIconGrid" class="icon-grid" role="radiogroup" aria-label="App icon" data-i18n-aria-label="settings.general.appIconSetting.label"></div>
               </div>
             </div>
 
             <div class="setting" id="defaultBrowserSetting">
               <div class="label">
-                <span>Default browser</span>
-                <span class="hint" id="defaultBrowserHint">Open web links from other apps in Blanc</span>
+                <span data-i18n="settings.general.defaultBrowserBtn.label">Default browser</span>
+                <span class="hint" id="defaultBrowserHint" data-i18n="settings.general.defaultBrowserBtn.hint">Open web links from other apps in Blanc</span>
               </div>
-              <button id="defaultBrowserBtn">Make default…</button>
-              <span id="defaultBrowserState" hidden>Blanc is your default browser</span>
+              <button id="defaultBrowserBtn" data-i18n="settings.general.defaultBrowserBtn">Make default…</button>
+              <span id="defaultBrowserState" hidden data-i18n="settings.general.defaultBrowserState">Blanc is your default browser</span>
             </div>
 
             <div class="setting">
               <div class="label">
-                <span>Welcome tour</span>
-                <span class="hint">Replay the first-run walkthrough; saved choices stay put</span>
+                <span data-i18n="settings.general.showWelcomeTour.label">Welcome tour</span>
+                <span class="hint" data-i18n="settings.general.showWelcomeTour.hint">Replay the first-run walkthrough; saved choices stay put</span>
               </div>
-              <button id="showWelcomeTour" type="button">Show welcome tour</button>
+              <button id="showWelcomeTour" type="button" data-i18n="settings.general.showWelcomeTour">Show welcome tour</button>
             </div>
 
             <div class="setting">
               <div class="label">
-                <span>Search engine</span>
-                <span class="hint">Used when the address bar input isn't a URL</span>
+                <span data-i18n="settings.general.searchEngine.label">Search engine</span>
+                <span class="hint" data-i18n="settings.general.searchEngine.hint">Used when the address bar input isn't a URL</span>
               </div>
               <select id="searchEngine"></select>
             </div>
 
             <div class="setting">
               <div class="label">
-                <span>Search suggestions</span>
-                <span class="hint">Send eligible typed prefixes to your selected search provider, including Google if selected. Private tabs and recognized sensitive-looking input are excluded. Submitting a search sends the completed query even when suggestions are off.</span>
+                <span data-i18n="settings.general.searchSuggestions.label">Search suggestions</span>
+                <span class="hint" data-i18n="settings.general.searchSuggestions.hint">Send eligible typed prefixes to your selected search provider, including Google if selected. Private tabs and recognized sensitive-looking input are excluded. Submitting a search sends the completed query even when suggestions are off.</span>
               </div>
               <label class="toggle">
                 <input id="searchSuggestions" type="checkbox" />
@@ -207,26 +207,26 @@
 
             <div class="setting">
               <div class="label">
-                <span>New tab page</span>
-                <span class="hint">Leave empty for the built-in new tab page</span>
+                <span data-i18n="settings.general.homePage.label">New tab page</span>
+                <span class="hint" data-i18n="settings.general.homePage.hint">Leave empty for the built-in new tab page</span>
               </div>
-              <input id="homePage" type="url" placeholder="blanc://newtab/" />
+              <input id="homePage" type="url" placeholder="blanc://newtab/"  data-i18n-ignore="placeholder"/>
             </div>
           </div>
         </section>
 
         <section class="settings-group" id="group-sync">
-          <h2 class="group-title">Sync</h2>
+          <h2 class="group-title" data-i18n="settings.sync.title">Sync</h2>
           <div class="settings-card sync-settings-card">
             <div id="syncSetup">
               <header class="sync-setup-header">
-                <h3 id="syncSetupTitle">Set up Sync</h3>
-                <p id="syncSetupIntro">
+                <h3 id="syncSetupTitle" data-i18n="settings.sync.syncSetupTitle">Set up Sync</h3>
+                <p id="syncSetupIntro" data-i18n="settings.sync.syncSetupIntro">
                   Sync your favorites and settings across your devices, and, if you choose, open tabs.
                   Everything is end-to-end encrypted — Blanc can’t read it, and can’t recover it if you forget your passphrase.
                 </p>
               </header>
-              <div id="syncPaths" class="sync-paths" aria-label="Choose how to set up Sync">
+              <div id="syncPaths" class="sync-paths" aria-label="Choose how to set up Sync" data-i18n-aria-label="settings.sync.syncPaths.ariaLabel">
                 <button id="syncPathStart" class="sync-path" type="button">
                   <svg class="sync-path-icon" viewBox="0 0 48 48" aria-hidden="true">
                     <rect x="7" y="11" width="34" height="23" rx="2"></rect>
@@ -234,8 +234,8 @@
                     <path d="M20 22h8M25 17l5 5-5 5"></path>
                   </svg>
                   <span class="sync-path-copy">
-                    <strong>Start syncing from this device</strong>
-                    <span>Create the name and passphrase you’ll use on your other devices.</span>
+                    <strong data-i18n="settings.sync.startSyncingFromThis">Start syncing from this device</strong>
+                    <span data-i18n="settings.sync.createTheNameAnd">Create the name and passphrase you’ll use on your other devices.</span>
                   </span>
                   <span class="sync-path-arrow" aria-hidden="true">→</span>
                 </button>
@@ -247,8 +247,8 @@
                     <path d="M25 40c6 3 13 1 16-3M40 9c-6-3-13-1-16 3"></path>
                   </svg>
                   <span class="sync-path-copy">
-                    <strong>I already sync on another device</strong>
-                    <span>Connect with the exact same name and passphrase.</span>
+                    <strong data-i18n="settings.sync.iAlreadySyncOn">I already sync on another device</strong>
+                    <span data-i18n="settings.sync.connectWithTheExact">Connect with the exact same name and passphrase.</span>
                   </span>
                   <span class="sync-path-arrow" aria-hidden="true">→</span>
                 </button>
@@ -263,7 +263,7 @@
                       <text class="sync-icon-word" x="26" y="30" text-anchor="middle">you</text>
                     </svg>
                     <label class="sync-field">
-                      <strong>Give your sync a name</strong>
+                      <strong data-i18n="settings.sync.giveYourSyncA">Give your sync a name</strong>
                       <input id="syncHandle" type="text" autocomplete="off" spellcheck="false" maxlength="64" />
                       <span class="hint" id="syncHandleHint"></span>
                     </label>
@@ -277,10 +277,10 @@
                       <path d="M24 31v4"></path>
                     </svg>
                     <label class="sync-field">
-                      <strong>Choose a passphrase</strong>
+                      <strong data-i18n="settings.sync.chooseAPassphrase">Choose a passphrase</strong>
                       <input id="syncPassphrase" type="password" autocomplete="off" />
                       <span class="hint" id="syncPassphraseHint"></span>
-                      <span class="sync-trust-note">
+                      <span class="sync-trust-note" data-i18n="settings.sync.iYourPassphraseStays">
                         <span class="sync-info-mark" aria-hidden="true">i</span>
                         Your passphrase stays on your devices. It’s never sent to Blanc.
                       </span>
@@ -294,17 +294,17 @@
                       <path d="M26 10c5-3 10-2 13 0M39 10l-3-3M22 39c5 3 10 2 13 0M22 39l3 3"></path>
                     </svg>
                     <div class="sync-guide-content">
-                      <strong id="syncFinishTitle">Turn on Sync</strong>
-                      <p id="syncFinishHint">You’re ready — your favorites and settings will sync securely across your devices.</p>
+                      <strong id="syncFinishTitle" data-i18n="settings.sync.syncFinishTitle">Turn on Sync</strong>
+                      <p id="syncFinishHint" data-i18n="settings.sync.syncFinishHint">You’re ready — your favorites and settings will sync securely across your devices.</p>
                       <div class="toolbar-row" id="syncSubmitRow">
-                        <button id="syncSubmit" type="submit">Turn on sync</button>
-                        <button id="syncBack" type="button" class="quiet">Back</button>
+                        <button id="syncSubmit" type="submit" data-i18n="settings.sync.syncSubmit">Turn on sync</button>
+                        <button id="syncBack" type="button" class="quiet" data-i18n="settings.sync.syncBack">Back</button>
                       </div>
                       <div id="syncNotFound" hidden>
-                        <p class="section-hint">Nothing was found under that name and passphrase. Check for typos, including capital letters, then try again.</p>
+                        <p class="section-hint" data-i18n="settings.sync.nothingWasFoundUnder">Nothing was found under that name and passphrase. Check for typos, including capital letters, then try again.</p>
                         <div class="toolbar-row">
-                          <button id="syncTryAgain" type="button">Try again</button>
-                          <button id="syncStartNew" type="button" class="quiet">Start a new sync with these</button>
+                          <button id="syncTryAgain" type="button" data-i18n="settings.sync.syncTryAgain">Try again</button>
+                          <button id="syncStartNew" type="button" class="quiet" data-i18n="settings.sync.syncStartNew">Start a new sync with these</button>
                         </div>
                       </div>
                       <p class="section-hint" id="syncSetupStatus" role="status"></p>
@@ -315,33 +315,33 @@
             </div>
             <div id="syncActive" hidden>
               <dl class="sync-status-list">
-                <div><dt>Sync name</dt><dd id="syncStatusHandle"></dd></div>
-                <div><dt>Favorites and settings</dt><dd id="syncStatusData"></dd></div>
-                <div><dt>This device’s open tabs</dt><dd id="syncStatusTabs"></dd></div>
-                <div id="syncStatusErrorRow" hidden><dt>Last error</dt><dd id="syncStatusError"></dd></div>
+                <div><dt data-i18n="settings.sync.syncName">Sync name</dt><dd id="syncStatusHandle"></dd></div>
+                <div><dt data-i18n="settings.sync.favoritesAndSettings">Favorites and settings</dt><dd id="syncStatusData"></dd></div>
+                <div><dt data-i18n="settings.sync.thisDevicesOpenTabs">This device’s open tabs</dt><dd id="syncStatusTabs"></dd></div>
+                <div id="syncStatusErrorRow" hidden><dt data-i18n="settings.sync.lastError">Last error</dt><dd id="syncStatusError"></dd></div>
               </dl>
               <p class="section-hint" id="syncActiveStatus" role="status"></p>
               <div class="toolbar-row">
-                <button id="syncNow">Sync now</button>
-                <button id="syncDisable" class="danger">Turn off sync</button>
-                <label class="inline-check"><input id="syncWipe" type="checkbox" /> also delete synced data</label>
+                <button id="syncNow" data-i18n="settings.sync.syncNow">Sync now</button>
+                <button id="syncDisable" class="danger" data-i18n="settings.sync.syncDisable">Turn off sync</button>
+                <label class="inline-check"><input id="syncWipe" type="checkbox" /> <span data-i18n="settings.sync.syncWipe">also delete synced data</span></label>
               </div>
               <div class="toolbar-row">
-                <label class="inline-check"><input id="syncTabsShare" type="checkbox" /> share this device’s open tabs with your other devices</label>
+                <label class="inline-check"><input id="syncTabsShare" type="checkbox" /> <span data-i18n="settings.sync.syncTabsShare">share this device’s open tabs with your other devices</span></label>
               </div>
             </div>
           </div>
         </section>
 
         <section class="settings-group" id="group-profiles">
-          <h2 class="group-title">Profiles</h2>
+          <h2 class="group-title" data-i18n="settings.profiles.title">Profiles</h2>
           <div class="settings-card settings-card--content">
-            <p class="section-hint">
+            <p class="section-hint" data-i18n="settings.profiles.namedProfilesKeepSeparate">
               Named profiles keep separate cookies, site data, Favorites, history, downloads, and remembered permissions. Device settings and Patron status stay shared; Sync belongs to Personal only.
             </p>
             <div class="toolbar-row">
-              <input id="newProfileName" type="text" placeholder="New profile name" maxlength="40" autocomplete="off" />
-              <button id="newProfileCreate">Create profile window</button>
+              <input id="newProfileName" type="text" placeholder="New profile name" maxlength="40" autocomplete="off"  data-i18n-placeholder="settings.profiles.newProfileName.placeholder"/>
+              <button id="newProfileCreate" data-i18n="settings.profiles.newProfileCreate">Create profile window</button>
             </div>
             <p class="section-hint" id="profilesStatus" role="status" aria-live="polite"></p>
             <div id="profilesList" class="row-list"></div>
@@ -349,13 +349,13 @@
         </section>
 
         <section class="settings-group" id="group-privacy">
-          <h2 class="group-title">Privacy &amp; Security</h2>
+          <h2 class="group-title" data-i18n="settings.privacy.title">Privacy &amp; Security</h2>
           <div class="settings-card settings-card--mixed">
-            <h3 class="card-title">Blocking</h3>
+            <h3 class="card-title" data-i18n="settings.privacy.blocking.title">Blocking</h3>
             <div class="setting" id="blockingProviderSetting">
               <div class="label">
-                <span>Blocking provider</span>
-                <span class="hint">Changes take effect after restarting Blanc. uBlock Origin protects regular tabs. Blanc’s browser engine can load uBO only in saved sessions, so private sessions stay in memory and use Blanc Blocker. Each provider keeps separate site settings.</span>
+                <span data-i18n="settings.privacy.adblockProvider.label">Blocking provider</span>
+                <span class="hint" data-i18n="settings.privacy.adblockProvider.hint">Changes take effect after restarting Blanc. uBlock Origin protects regular tabs. Blanc’s browser engine can load uBO only in saved sessions, so private sessions stay in memory and use Blanc Blocker. Each provider keeps separate site settings.</span>
               </div>
               <select id="adblockProvider">
                 <option value="blanc">Blanc Blocker</option>
@@ -364,19 +364,19 @@
             </div>
             <p class="section-hint" id="blockingProviderStatus" role="status" aria-live="polite"></p>
             <div class="toolbar-row" id="ublockTools" hidden>
-              <button id="ublockDashboard">uBlock Origin settings</button>
-              <button id="ublockLogger">Logger</button>
+              <button id="ublockDashboard" data-i18n="settings.privacy.ublockDashboard">uBlock Origin settings</button>
+              <button id="ublockLogger" data-i18n="settings.privacy.ublockLogger">Logger</button>
             </div>
             <div class="toolbar-row" id="blockingRecovery" hidden>
-              <button id="ublockRetry" hidden>Retry</button>
-              <button id="ublockUseBlanc" hidden>Use Blanc Blocker after restart</button>
-              <button id="ublockContinue" hidden>Continue without blocking</button>
+              <button id="ublockRetry" hidden data-i18n="settings.privacy.ublockRetry">Retry</button>
+              <button id="ublockUseBlanc" hidden data-i18n="settings.privacy.ublockUseBlanc">Use Blanc Blocker after restart</button>
+              <button id="ublockContinue" hidden data-i18n="settings.privacy.ublockContinue">Continue without blocking</button>
             </div>
-            <p class="section-hint" id="ublockLimits" hidden>Filter lists update automatically. Executable resources update with Blanc releases; custom resource URLs and cloud storage are unavailable. Turning blocking off removes cosmetic CSS; reload a page to undo changes already made by scriptlets.</p>
+            <p class="section-hint" id="ublockLimits" hidden data-i18n="settings.privacy.ublockLimits">Filter lists update automatically. Executable resources update with Blanc releases; custom resource URLs and cloud storage are unavailable. Turning blocking off removes cosmetic CSS; reload a page to undo changes already made by scriptlets.</p>
             <div class="setting">
               <div class="label">
-                <span>Block ads &amp; trackers</span>
-                <span class="hint">Stops ads and the hidden trackers that follow you from site to site. On by default.</span>
+                <span data-i18n="settings.privacy.adblockEnabled.label">Block ads &amp; trackers</span>
+                <span class="hint" data-i18n="settings.privacy.adblockEnabled.hint">Stops ads and the hidden trackers that follow you from site to site. On by default.</span>
               </div>
               <label class="toggle">
                 <input id="adblockEnabled" type="checkbox" />
@@ -385,84 +385,84 @@
             </div>
 
             <div id="adblockExceptionsBlock">
-              <p class="section-hint">
+              <p class="section-hint" data-i18n="settings.privacy.sitesListedHereLoad">
                 Sites listed here load with ad-blocking turned off, e.g. for sites that break under it.
               </p>
               <div class="toolbar-row">
-                <input id="exceptionInput" type="text" placeholder="example.com" />
-                <button id="exceptionAdd">Add</button>
+                <input id="exceptionInput" type="text" placeholder="example.com"  data-i18n-ignore="placeholder"/>
+                <button id="exceptionAdd" data-i18n="settings.privacy.exceptionAdd">Add</button>
               </div>
               <div id="exceptionList" class="row-list"></div>
             </div>
           </div>
 
           <div class="settings-card">
-            <h3 class="card-title">Calls and connections</h3>
+            <h3 class="card-title" data-i18n="settings.privacy.callsAndConnections.title">Calls and connections</h3>
             <div class="setting">
               <div class="label">
-                <span>IP address in video calls</span>
-                <span class="hint">Standard limits calls to your default network route. If a call stutters or won't connect, try Compatibility; it can reveal local network addresses to the site. Strict is for application-proxy users.</span>
+                <span data-i18n="settings.privacy.webrtcPolicy.label">IP address in video calls</span>
+                <span class="hint" data-i18n="settings.privacy.webrtcPolicy.hint">Standard limits calls to your default network route. If a call stutters or won't connect, try Compatibility; it can reveal local network addresses to the site. Strict is for application-proxy users.</span>
               </div>
               <select id="webrtcPolicy">
-                <option value="standard">Standard (recommended)</option>
-                <option value="compatibility">Compatibility — widest call support, less IP privacy</option>
-                <option value="strict">Strict — stronger for proxy users, but can break some video calls</option>
+                <option value="standard" data-i18n="settings.privacy.webrtcPolicy.standard">Standard (recommended)</option>
+                <option value="compatibility" data-i18n="settings.privacy.webrtcPolicy.compatibility">Compatibility — widest call support, less IP privacy</option>
+                <option value="strict" data-i18n="settings.privacy.webrtcPolicy.strict">Strict — stronger for proxy users, but can break some video calls</option>
               </select>
             </div>
 
             <div class="setting">
               <div class="label">
-                <span>Call audio</span>
-                <span class="hint">Automatic keeps conversation delay as low as possible. Stable targets about 400 ms of receive buffering. Resilient targets about 1 second for severe crackling or chopped speech, making back-and-forth conversation slower. Start a new call after changing it.</span>
+                <span data-i18n="settings.privacy.webrtcAudioBuffer.label">Call audio</span>
+                <span class="hint" data-i18n="settings.privacy.webrtcAudioBuffer.hint">Automatic keeps conversation delay as low as possible. Stable targets about 400 ms of receive buffering. Resilient targets about 1 second for severe crackling or chopped speech, making back-and-forth conversation slower. Start a new call after changing it.</span>
               </div>
               <select id="webrtcAudioBuffer">
-                <option value="automatic">Automatic (lowest latency)</option>
-                <option value="stable">Stable — smoother playback, about 400 ms buffer</option>
-                <option value="resilient">Resilient — high stability, about 1 second buffer</option>
+                <option value="automatic" data-i18n="settings.privacy.webrtcAudioBuffer.automatic">Automatic (lowest latency)</option>
+                <option value="stable" data-i18n="settings.privacy.webrtcAudioBuffer.stable">Stable — smoother playback, about 400 ms buffer</option>
+                <option value="resilient" data-i18n="settings.privacy.webrtcAudioBuffer.resilient">Resilient — high stability, about 1 second buffer</option>
               </select>
             </div>
 
             <div class="setting">
               <div class="label">
-                <span>Encrypted DNS</span>
-                <span class="hint">Encrypts the behind-the-scenes lookups that turn a web address into a connection, so someone sniffing those lookups can't read the names. It does not hide the sites you visit from your network, and it makes the DNS provider someone you trust. Automatic uses encryption when it can and may fall back to ordinary DNS — safe to leave on. If a Wi-Fi login page won't load, switch to Automatic or Off temporarily.</span>
+                <span data-i18n="settings.privacy.secureDns.label">Encrypted DNS</span>
+                <span class="hint" data-i18n="settings.privacy.secureDns.hint">Encrypts the behind-the-scenes lookups that turn a web address into a connection, so someone sniffing those lookups can't read the names. It does not hide the sites you visit from your network, and it makes the DNS provider someone you trust. Automatic uses encryption when it can and may fall back to ordinary DNS — safe to leave on. If a Wi-Fi login page won't load, switch to Automatic or Off temporarily.</span>
               </div>
               <select id="secureDns">
-                <option value="auto">Automatic (recommended)</option>
-                <option value="off">Off — use your system setting (best with a VPN)</option>
+                <option value="auto" data-i18n="settings.privacy.secureDns.auto">Automatic (recommended)</option>
+                <option value="off" data-i18n="settings.privacy.secureDns.off">Off — use your system setting (best with a VPN)</option>
                 <option value="cloudflare">Cloudflare</option>
-                <option value="quad9">Quad9 — also blocks known malware sites</option>
+                <option value="quad9" data-i18n="settings.privacy.secureDns.quad9">Quad9 — also blocks known malware sites</option>
                 <option value="mullvad">Mullvad</option>
-                <option value="custom">Custom provider…</option>
+                <option value="custom" data-i18n="settings.privacy.secureDns.custom">Custom provider…</option>
               </select>
             </div>
 
             <div class="setting" id="secureDnsCustomRow" hidden>
               <div class="label">
-                <span>Custom provider address</span>
-                <span class="hint">The secure DNS address your provider gave you (an https:// link), e.g. https://dns.nextdns.io/&lt;profile&gt;.</span>
-                <span class="hint field-error" id="secureDnsError" hidden>That address isn't valid — the previous provider is still in use.</span>
+                <span data-i18n="settings.privacy.secureDnsTemplate.label">Custom provider address</span>
+                <span class="hint" data-i18n="settings.privacy.secureDnsTemplate.hint">The secure DNS address your provider gave you (an https:// link), e.g. https://dns.nextdns.io/&lt;profile&gt;.</span>
+                <span class="hint field-error" id="secureDnsError" hidden data-i18n="settings.privacy.secureDnsError">That address isn't valid — the previous provider is still in use.</span>
               </div>
-              <input id="secureDnsTemplate" type="url" placeholder="https://your-provider.example/dns-query" />
+              <input id="secureDnsTemplate" type="url" placeholder="https://your-provider.example/dns-query"  data-i18n-ignore="placeholder"/>
             </div>
           </div>
 
           <div class="settings-card settings-card--mixed" id="onePasswordSettings" hidden>
             <h3 class="card-title">1Password</h3>
-            <p class="section-hint">
+            <p class="section-hint" data-i18n="settings.privacy.fillAMatchingLogin">
               Fill a matching Login item from your installed 1Password app when you ask. While this is on, Blanc checks pages for a login form so the island can offer Fill — it never reads what you type and never contacts 1Password until you ask.
             </p>
             <div class="setting">
               <div class="label">
-                <span id="onePasswordAppLabel">1Password app</span>
+                <span id="onePasswordAppLabel" data-i18n="settings.privacy.onePasswordOpenApp.label">1Password app</span>
                 <span class="hint" id="onePasswordAppHint"></span>
               </div>
-              <button id="onePasswordOpenApp" type="button" hidden>Open 1Password</button>
+              <button id="onePasswordOpenApp" type="button" hidden data-i18n="settings.privacy.onePasswordOpenApp">Open 1Password</button>
             </div>
             <div class="setting">
               <div class="label">
-                <span id="onePasswordEnabledLabel">Fill logins from 1Password</span>
-                <span class="hint" id="onePasswordEnabledHint">In 1Password, open Settings → Developer and turn on Integrate with 1Password SDKs</span>
+                <span id="onePasswordEnabledLabel" data-i18n="settings.privacy.onePasswordEnabled.label">Fill logins from 1Password</span>
+                <span class="hint" id="onePasswordEnabledHint" data-i18n="settings.privacy.onePasswordEnabled.hint">In 1Password, open Settings → Developer and turn on Integrate with 1Password SDKs</span>
               </div>
               <label class="toggle">
                 <input id="onePasswordEnabled" type="checkbox" aria-labelledby="onePasswordEnabledLabel" aria-describedby="onePasswordEnabledHint" />
@@ -471,32 +471,32 @@
             </div>
             <div class="setting">
               <div class="label">
-                <span id="onePasswordAccountLabel">1Password account</span>
-                <span class="hint" id="onePasswordAccountHint">The email address you sign in to 1Password with. An account ID also works. Stored only on this device.</span>
+                <span id="onePasswordAccountLabel" data-i18n="settings.privacy.onePasswordAccount.label">1Password account</span>
+                <span class="hint" id="onePasswordAccountHint" data-i18n="settings.privacy.onePasswordAccount.hint">The email address you sign in to 1Password with. An account ID also works. Stored only on this device.</span>
               </div>
               <div class="toolbar-row">
-                <input id="onePasswordAccount" type="text" maxlength="200" autocomplete="off" spellcheck="false" placeholder="you@example.com" aria-labelledby="onePasswordAccountLabel" aria-describedby="onePasswordAccountHint" />
-                <button id="onePasswordVerify" type="button">Verify</button>
+                <input id="onePasswordAccount" type="text" maxlength="200" autocomplete="off" spellcheck="false" placeholder="you@example.com" aria-labelledby="onePasswordAccountLabel" aria-describedby="onePasswordAccountHint"  data-i18n-ignore="placeholder"/>
+                <button id="onePasswordVerify" type="button" data-i18n="settings.privacy.onePasswordVerify">Verify</button>
               </div>
             </div>
             <p class="section-hint"><span id="onePasswordVerifyState" role="status"></span></p>
-            <p class="section-hint">Use View → Fill Login from 1Password or <code>/1password</code>. On Mac: ⌥⌘P. On Windows and Linux: Ctrl+Shift+P.</p>
+            <p class="section-hint" data-i18n="settings.privacy.useViewFill">Use View → Fill Login from 1Password or <code>/1password</code>. On Mac: ⌥⌘P. On Windows and Linux: Ctrl+Shift+P.</p>
           </div>
 
           <div class="settings-card settings-card--content" id="sitePermissionsCard">
-            <h3 class="card-title">Site permissions</h3>
-            <p class="section-hint">
+            <h3 class="card-title" data-i18n="settings.privacy.sitePermissions.title">Site permissions</h3>
+            <p class="section-hint" data-i18n="settings.privacy.sitesYouveAllowedOr">
               Sites you've allowed or blocked from using your camera, microphone, location, or notifications.
             </p>
             <div id="permissionList" class="row-list"></div>
           </div>
 
           <div class="settings-card settings-card--mixed">
-            <h3 class="card-title">Usage and data</h3>
+            <h3 class="card-title" data-i18n="settings.privacy.usageAndData.title">Usage and data</h3>
             <div class="setting">
               <div class="label">
-                <span>Help improve Blanc</span>
-                <span class="hint">Counts active users and which start-page layouts and local features get used. Sends a random install and session id, app version, platform, architecture, coarse OS major, and fixed feature names; never URLs, searches, page content, or private-tab activity. This is pseudonymous measurement sent to a Blanc-owned Cloudflare collector. It stores a keyed hash of the install id; an optional Google Analytics mirror receives that hash and the same limited fields. Turn this off to stop future events.</span>
+                <span data-i18n="settings.privacy.usagePing.label">Help improve Blanc</span>
+                <span class="hint" data-i18n="settings.privacy.usagePing.hint">Counts active users and which start-page layouts and local features get used. Sends a random install and session id, app version, platform, architecture, coarse OS major, and fixed feature names; never URLs, searches, page content, or private-tab activity. This is pseudonymous measurement sent to a Blanc-owned Cloudflare collector. It stores a keyed hash of the install id; an optional Google Analytics mirror receives that hash and the same limited fields. Turn this off to stop future events.</span>
               </div>
               <label class="toggle">
                 <input id="usagePing" type="checkbox" />
@@ -505,49 +505,49 @@
             </div>
 
             <div class="toolbar-row settings-action-row settings-action-row--reset">
-              <button id="resetInstallId">Reset install ID</button>
+              <button id="resetInstallId" data-i18n="settings.privacy.resetInstallId">Reset install ID</button>
               <span id="resetInstallIdStatus" class="section-hint"></span>
             </div>
 
-            <p class="section-hint settings-action-note">
+            <p class="section-hint settings-action-note" data-i18n="settings.privacy.removesCookiesCacheAnd">
               Removes cookies, cache, and site data for every site. You'll be logged out of everything.
             </p>
             <div class="toolbar-row settings-action-row settings-action-row--clear">
-              <button id="clearBrowsingData" class="danger">Clear cookies, cache &amp; site data</button>
+              <button id="clearBrowsingData" class="danger" data-i18n="settings.privacy.clearBrowsingData">Clear cookies, cache &amp; site data</button>
               <span id="clearBrowsingDataStatus" class="section-hint"></span>
             </div>
           </div>
         </section>
 
         <section class="settings-group" id="group-trust">
-          <h2 class="group-title">About &amp; Trust</h2>
+          <h2 class="group-title" data-i18n="settings.trust.title">About &amp; Trust</h2>
           <div class="settings-card settings-card--content trust-receipt" aria-live="polite">
-            <p class="section-hint">Facts checked on this device. Opening this section makes no network request.</p>
-            <p class="section-hint" id="trustReceiptStatus">Checking the installed build…</p>
+            <p class="section-hint" data-i18n="settings.trust.factsCheckedOnThis">Facts checked on this device. Opening this section makes no network request.</p>
+            <p class="section-hint" id="trustReceiptStatus" data-i18n="settings.trust.trustReceiptStatus">Checking the installed build…</p>
             <dl class="trust-receipt-list" id="trustReceiptList" hidden></dl>
             <div class="toolbar-row trust-receipt-links" id="trustReceiptLinks" hidden></div>
           </div>
         </section>
 
         <section class="settings-group" id="group-diagnostics">
-          <h2 class="group-title">Diagnostics</h2>
+          <h2 class="group-title" data-i18n="settings.diagnostics.title">Diagnostics</h2>
           <div class="settings-card settings-card--content">
-            <p class="section-hint">
+            <p class="section-hint" data-i18n="settings.diagnostics.blancKeepsALocal">
               Blanc keeps a local, 50-event crash ledger with timestamps, process type, and failure reason. It never includes URLs, page titles, history, profile names, account data, identifiers, quiet-tab state, or closed-tab state, and nothing is sent automatically.
             </p>
-            <p class="section-hint" id="diagnosticsSummary" role="status">Checking local crash history…</p>
+            <p class="section-hint" id="diagnosticsSummary" role="status" data-i18n="settings.diagnostics.diagnosticsSummary">Checking local crash history…</p>
             <div class="toolbar-row">
-              <button id="diagnosticsExport">Export diagnostics…</button>
-              <button id="diagnosticsClear" class="danger">Clear crash history</button>
+              <button id="diagnosticsExport" data-i18n="settings.diagnostics.diagnosticsExport">Export diagnostics…</button>
+              <button id="diagnosticsClear" class="danger" data-i18n="settings.diagnostics.diagnosticsClear">Clear crash history</button>
               <span id="diagnosticsStatus" class="section-hint" role="status"></span>
             </div>
           </div>
         </section>
 
         <section class="settings-group" id="group-patron">
-          <h2 class="group-title" id="patronTitle">Blanc Patron</h2>
+          <h2 class="group-title" id="patronTitle" data-i18n="settings.patron.title">Blanc Patron</h2>
           <div class="settings-card settings-card--content">
-            <p class="section-hint">
+            <p class="section-hint" data-i18n="settings.patron.blancPatronUnlocksBlanc">
               Blanc Patron unlocks Blanc Spaces on every platform. A one-time founding
               license activates once, with no further contact. A monthly or annual subscription
               checks in with Polar about once a day — your license key and activation id only,
@@ -555,58 +555,58 @@
               spaces stay available while creating new ones pauses.
             </p>
             <div class="toolbar-row" id="patronCheckoutRow">
-              <a id="patronCheckout" class="patron-checkout" href="https://buy.polar.sh/polar_cl_auwRq39Q2hIVLJwANEqFWgWuZ8DGjdJmEI4mE0JaNDf">Become a Patron — $4/month or $30/year</a>
+              <a id="patronCheckout" class="patron-checkout" href="https://buy.polar.sh/polar_cl_auwRq39Q2hIVLJwANEqFWgWuZ8DGjdJmEI4mE0JaNDf" data-i18n="settings.patron.patronCheckout">Become a Patron — $4/month or $30/year</a>
             </div>
-            <p class="section-hint" id="patronActivateHint">
+            <p class="section-hint" id="patronActivateHint" data-i18n="settings.patron.patronActivateHint">
               Already a Patron? Enter the license key available under Purchases in Polar to activate this device.
             </p>
             <div class="toolbar-row" id="patronActivateRow">
-              <input id="patronKey" type="text" placeholder="License key" autocomplete="off" spellcheck="false" maxlength="200" />
-              <button id="patronActivate">Activate</button>
+              <input id="patronKey" type="text" placeholder="License key" autocomplete="off" spellcheck="false" maxlength="200"  data-i18n-placeholder="settings.patron.patronKey.placeholder"/>
+              <button id="patronActivate" data-i18n="settings.patron.patronActivate">Activate</button>
             </div>
             <p class="section-hint" id="patronStatus" role="status"></p>
           </div>
         </section>
 
         <section class="settings-group" id="group-help">
-          <h2 class="group-title">Help</h2>
+          <h2 class="group-title" data-i18n="settings.help.title">Help</h2>
           <div class="settings-card settings-card--content" id="appAboutCard" hidden>
-            <h3 class="card-title">About Blanc</h3>
+            <h3 class="card-title" data-i18n="settings.help.aboutBlanc.title">About Blanc</h3>
             <dl class="about-build-details">
               <div><dt>Blanc</dt><dd id="aboutBlanc"></dd></div>
               <div><dt>Electron</dt><dd id="aboutElectron"></dd></div>
               <div><dt>Chromium</dt><dd id="aboutChromium"></dd></div>
-              <div><dt>Platform</dt><dd id="aboutPlatform"></dd></div>
-              <div><dt>Architecture</dt><dd id="aboutArchitecture"></dd></div>
+              <div><dt data-i18n="settings.help.platform">Platform</dt><dd id="aboutPlatform"></dd></div>
+              <div><dt data-i18n="settings.help.architecture">Architecture</dt><dd id="aboutArchitecture"></dd></div>
             </dl>
-            <p class="section-hint">Blanc uses Chromium through Electron to render websites. Updates to Electron and Chromium arrive with new Blanc releases and replace the whole app. Applying an update requires restarting Blanc.</p>
-            <div class="toolbar-row"><button id="checkForUpdates" hidden>Check for updates…</button><span id="updateCheckStatus" class="section-hint" role="status"></span></div>
+            <p class="section-hint" data-i18n="settings.help.blancUsesChromiumThrough">Blanc uses Chromium through Electron to render websites. Updates to Electron and Chromium arrive with new Blanc releases and replace the whole app. Applying an update requires restarting Blanc.</p>
+            <div class="toolbar-row"><button id="checkForUpdates" hidden data-i18n="settings.help.checkForUpdates">Check for updates…</button><span id="updateCheckStatus" class="section-hint" role="status"></span></div>
             <div class="about-links">
-              <a href="https://blancbrowser.com/how-it-works" rel="noreferrer">How Blanc works ↗</a>
-              <a href="https://github.com/bnfy/blanc" rel="noreferrer">Source code ↗</a>
-              <a href="https://blancbrowser.com/privacy" rel="noreferrer">Privacy policy ↗</a>
-              <a href="https://blancbrowser.com/changelog" rel="noreferrer">Release notes ↗</a>
+              <a href="https://blancbrowser.com/how-it-works" rel="noreferrer" data-i18n="settings.help.howBlancWorks">How Blanc works ↗</a>
+              <a href="https://github.com/bnfy/blanc" rel="noreferrer" data-i18n="settings.help.sourceCode">Source code ↗</a>
+              <a href="https://blancbrowser.com/privacy" rel="noreferrer" data-i18n="settings.help.privacyPolicy">Privacy policy ↗</a>
+              <a href="https://blancbrowser.com/changelog" rel="noreferrer" data-i18n="settings.help.releaseNotes">Release notes ↗</a>
             </div>
           </div>
           <div class="settings-card settings-card--content" id="browserCompatibilityCard">
-            <h3 class="card-title">Extensions and password managers</h3>
-            <p class="section-hint">You can browse Chrome Web Store pages, but Blanc cannot install Chrome extensions.</p>
-            <p class="section-hint">On macOS, Windows and Linux, Blanc offers explicit login fill from the installed 1Password app. This integration does not save passwords or fill automatically.</p>
+            <h3 class="card-title" data-i18n="settings.help.extensionsAndPasswordManagers.title">Extensions and password managers</h3>
+            <p class="section-hint" data-i18n="settings.help.youCanBrowseChrome">You can browse Chrome Web Store pages, but Blanc cannot install Chrome extensions.</p>
+            <p class="section-hint" data-i18n="settings.help.onMacOSWindowsAnd">On macOS, Windows and Linux, Blanc offers explicit login fill from the installed 1Password app. This integration does not save passwords or fill automatically.</p>
           </div>
           <div class="settings-card settings-card--content">
-            <h3 class="card-title">Connections Blanc can make</h3>
-            <p class="section-hint">Blanc connects to websites you open and GitHub for app updates. Searches and enabled suggestions go to your selected search provider; DNS lookups use your system or selected DNS provider. Selecting Google sends searches and eligible suggestion prefixes to Google.</p>
-            <p class="section-hint">Enabled usage measurement goes to a Blanc-owned Cloudflare collector and, when configured, its Google Analytics mirror. Sync, Patron, 1Password and tab handoff make separate connections when configured or requested. This describes behavior; it is not a live network monitor.</p>
-            <a class="link-button" href="https://blancbrowser.com/how-it-works#connections" rel="noreferrer">Data, recipients and controls ↗</a>
+            <h3 class="card-title" data-i18n="settings.help.connectionsBlancCanMake.title">Connections Blanc can make</h3>
+            <p class="section-hint" data-i18n="settings.help.blancConnectsToWebsites">Blanc connects to websites you open and GitHub for app updates. Searches and enabled suggestions go to your selected search provider; DNS lookups use your system or selected DNS provider. Selecting Google sends searches and eligible suggestion prefixes to Google.</p>
+            <p class="section-hint" data-i18n="settings.help.enabledUsageMeasurementGoes">Enabled usage measurement goes to a Blanc-owned Cloudflare collector and, when configured, its Google Analytics mirror. Sync, Patron, 1Password and tab handoff make separate connections when configured or requested. This describes behavior; it is not a live network monitor.</p>
+            <a class="link-button" href="https://blancbrowser.com/how-it-works#connections" rel="noreferrer" data-i18n="settings.help.dataRecipientsAndControls">Data, recipients and controls ↗</a>
           </div>
           <div class="settings-card settings-card--content">
-            <p class="section-hint">
-              Something broken, or working in a way it shouldn&rsquo;t? Reports go to Blanc&rsquo;s
-              public issue tracker on GitHub. Saying which version you&rsquo;re on, which operating
+            <p class="section-hint" data-i18n="settings.help.somethingBrokenOrWorking">
+              Something broken, or working in a way it shouldn’t? Reports go to Blanc’s
+              public issue tracker on GitHub. Saying which version you’re on, which operating
               system, and what page you were looking at makes a report much faster to act on.
             </p>
             <div class="toolbar-row">
-              <a class="link-button" href="https://github.com/bnfy/blanc/issues/new/choose" rel="noreferrer">Report an issue <span aria-hidden="true">↗</span></a>
+              <a class="link-button" href="https://github.com/bnfy/blanc/issues/new/choose" rel="noreferrer" data-i18n="settings.help.reportAnIssue">Report an issue <span aria-hidden="true">↗</span></a>
             </div>
           </div>
         </section>

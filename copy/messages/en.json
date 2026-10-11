@@ -3047,5 +3047,819 @@
   "about.credits": {
     "message": "Independent browser by Bananify.",
     "note": "macOS About panel credits line; Bananify is the company name."
+  },
+  "settings.page.title": {
+    "message": "Settings",
+    "note": "Settings → Settings page: browser tab title of the Settings page."
+  },
+  "pagesNav.settings": {
+    "message": "Settings",
+    "note": "Navigation link to Settings at the top of Blanc’s utility pages.",
+    "maxLength": 16
+  },
+  "pagesNav.bookmarks": {
+    "message": "Favorites",
+    "note": "Navigation link to Favorites at the top of Blanc’s utility pages.",
+    "maxLength": 13
+  },
+  "pagesNav.history": {
+    "message": "History",
+    "note": "Navigation link to History at the top of Blanc’s utility pages.",
+    "maxLength": 12
+  },
+  "pagesNav.downloads": {
+    "message": "Downloads",
+    "note": "Navigation link to Downloads at the top of Blanc’s utility pages.",
+    "maxLength": 13
+  },
+  "settings.page.heading": {
+    "message": "Settings",
+    "note": "Settings → Settings page: page heading."
+  },
+  "settings.nav.general": {
+    "message": "General",
+    "note": "Settings → Settings page: section link in the Settings sidebar.",
+    "maxLength": 12
+  },
+  "settings.nav.sync": {
+    "message": "Sync",
+    "note": "Settings → Settings page: section link in the Settings sidebar.",
+    "maxLength": 18
+  },
+  "settings.nav.profiles": {
+    "message": "Profiles",
+    "note": "Settings → Settings page: section link in the Settings sidebar.",
+    "maxLength": 12
+  },
+  "settings.nav.privacy": {
+    "message": "Privacy & Security",
+    "note": "Settings → Settings page: section link in the Settings sidebar.",
+    "maxLength": 26
+  },
+  "settings.nav.trust": {
+    "message": "About & Trust",
+    "note": "Settings → Settings page: section link in the Settings sidebar.",
+    "maxLength": 19
+  },
+  "settings.nav.diagnostics": {
+    "message": "Diagnostics",
+    "note": "Settings → Settings page: section link in the Settings sidebar.",
+    "maxLength": 16
+  },
+  "settings.nav.patron": {
+    "message": "Patron",
+    "note": "Settings → Settings page: section link in the Settings sidebar.",
+    "maxLength": 12
+  },
+  "settings.nav.help": {
+    "message": "Help",
+    "note": "Settings → Settings page: section link in the Settings sidebar.",
+    "maxLength": 12
+  },
+  "settings.general.title": {
+    "message": "General",
+    "note": "Settings → General: section heading."
+  },
+  "settings.general.theme.label": {
+    "message": "Appearance",
+    "note": "Settings → General: setting name."
+  },
+  "settings.general.theme.hint": {
+    "message": "System follows your macOS/Windows theme",
+    "note": "Settings → General: explanation under a setting."
+  },
+  "settings.general.theme.system": {
+    "message": "System",
+    "note": "Settings → General: choice in a dropdown.",
+    "maxLength": 12
+  },
+  "settings.general.theme.light": {
+    "message": "Light",
+    "note": "Settings → General: choice in a dropdown.",
+    "maxLength": 12
+  },
+  "settings.general.theme.dark": {
+    "message": "Dark",
+    "note": "Settings → General: choice in a dropdown.",
+    "maxLength": 12
+  },
+  "settings.general.islandSiteColors.label": {
+    "message": "Match site colors",
+    "note": "Settings → General: setting name."
+  },
+  "settings.general.islandSiteColors.hint": {
+    "message": "Tint the Island bar with the color of the page you’re on. Off keeps it on your theme’s background.",
+    "note": "Settings → General: explanation under a setting."
+  },
+  "settings.general.darkWebsites.label": {
+    "message": "Dark websites",
+    "note": "Settings → General: setting name."
+  },
+  "settings.general.darkWebsites.hint": {
+    "message": "While Blanc is dark, darken websites that have no dark mode of their own. Uses the open-source Dark Reader engine.",
+    "note": "Settings → General: explanation under a setting."
+  },
+  "settings.general.sitesListedHereKeep": {
+    "message": "Sites listed here keep their own colors. Type /dark-site on a site to add or remove it.",
+    "note": "Settings → General: explanation under a setting."
+  },
+  "settings.general.darkExceptionInput.ariaLabel": {
+    "message": "Site to keep in its own colors",
+    "note": "Settings → General: accessible name of a input."
+  },
+  "settings.general.darkExceptionAdd": {
+    "message": "Add",
+    "note": "Settings → General: button.",
+    "maxLength": 12
+  },
+  "settings.general.newtabLayout.label": {
+    "message": "New tab layout",
+    "note": "Settings → General: setting name."
+  },
+  "settings.general.newtabLayout.hint": {
+    "message": "How the new tab page arranges itself; switchable from its footer too",
+    "note": "Settings → General: explanation under a setting."
+  },
+  "settings.general.newtabLayout.ledger": {
+    "message": "ledger",
+    "note": "Settings → General: start-page layout name (also shown on the start page).",
+    "maxLength": 12
+  },
+  "settings.general.newtabLayout.billboard": {
+    "message": "billboard",
+    "note": "Settings → General: start-page layout name (also shown on the start page).",
+    "maxLength": 13
+  },
+  "settings.general.newtabLayout.shelf": {
+    "message": "shelf",
+    "note": "Settings → General: start-page layout name (also shown on the start page).",
+    "maxLength": 12
+  },
+  "settings.general.newtabLayout.tally": {
+    "message": "tally",
+    "note": "Settings → General: start-page layout name (also shown on the start page).",
+    "maxLength": 12
+  },
+  "settings.general.newtabDynamicWallpaper.label": {
+    "message": "Time-of-day wallpaper",
+    "note": "Settings → General: setting name."
+  },
+  "settings.general.newtabDynamicWallpaper.hint": {
+    "message": "Wallpaper follows this machine’s local time.",
+    "note": "Settings → General: explanation under a setting."
+  },
+  "settings.general.tabLayout.label": {
+    "message": "Tab layout",
+    "note": "Settings → General: setting name."
+  },
+  "settings.general.tabLayout.hint": {
+    "message": "Keep tabs in the Island or show them in a left rail; search and commands always stay in the Island",
+    "note": "Settings → General: explanation under a setting."
+  },
+  "settings.general.tabLayout.island": {
+    "message": "Island",
+    "note": "Settings → General: choice in a dropdown.",
+    "maxLength": 12
+  },
+  "settings.general.tabLayout.vertical": {
+    "message": "Vertical tabs",
+    "note": "Settings → General: choice in a dropdown.",
+    "maxLength": 19
+  },
+  "settings.general.tabSleep.label": {
+    "message": "Quiet inactive tabs",
+    "note": "Settings → General: setting name."
+  },
+  "settings.general.tabSleep.hint": {
+    "message": "Blanc frees the memory of tabs you have not opened in a while, and reloads them when you come back to them.",
+    "note": "Settings → General: explanation under a setting."
+  },
+  "settings.general.tabSleep.off": {
+    "message": "Off",
+    "note": "Settings → General: choice in a dropdown.",
+    "maxLength": 12
+  },
+  "settings.general.tabSleep.30m": {
+    "message": "After 30 minutes",
+    "note": "Settings → General: choice in a dropdown.",
+    "maxLength": 23
+  },
+  "settings.general.tabSleep.1h": {
+    "message": "After 1 hour",
+    "note": "Settings → General: choice in a dropdown.",
+    "maxLength": 17
+  },
+  "settings.general.tabSleep.6h": {
+    "message": "After 6 hours",
+    "note": "Settings → General: choice in a dropdown.",
+    "maxLength": 19
+  },
+  "settings.general.mouseGesturesEnabled.label": {
+    "message": "Mouse gestures",
+    "note": "Settings → General: setting name."
+  },
+  "settings.general.mouseGesturesEnabled.hint": {
+    "message": "With a mouse, hold the right button and drag, then release. On a trackpad, hold Alt/Option (⌥), click and hold with one finger, then drag.",
+    "note": "Settings → General: explanation under a setting."
+  },
+  "settings.general.mouseGesturesEnabled.ariaLabel": {
+    "message": "Enable mouse gestures",
+    "note": "Settings → General: accessible name of a input."
+  },
+  "settings.general.assignedGestures": {
+    "message": "Assigned gestures",
+    "note": "Settings → General: text (span)."
+  },
+  "settings.general.mouseGestureAdd": {
+    "message": "Add gesture",
+    "note": "Settings → General: button.",
+    "maxLength": 16
+  },
+  "settings.general.mouseGestureReset": {
+    "message": "Restore defaults",
+    "note": "Settings → General: button.",
+    "maxLength": 28
+  },
+  "settings.general.drawUpToThree": {
+    "message": "Draw up to three directions, then choose an action.",
+    "note": "Settings → General: text (p)."
+  },
+  "settings.general.mouseGesturePad.ariaLabel": {
+    "message": "Draw a new gesture with the primary button",
+    "note": "Settings → General: accessible name of a div."
+  },
+  "settings.general.mouseGesturePadPrompt": {
+    "message": "Press and drag here",
+    "note": "Settings → General: text (span)."
+  },
+  "settings.general.action": {
+    "message": "Action",
+    "note": "Settings → General: setting name."
+  },
+  "settings.general.mouseGestureSave": {
+    "message": "Save gesture",
+    "note": "Settings → General: button.",
+    "maxLength": 17
+  },
+  "settings.general.mouseGestureCancel": {
+    "message": "Cancel",
+    "note": "Settings → General: button.",
+    "maxLength": 12
+  },
+  "settings.general.appIconSetting.label": {
+    "message": "App icon",
+    "note": "Settings → General: setting name."
+  },
+  "settings.general.appIconSetting.hint": {
+    "message": "Choose the Blanc icon shown by your system",
+    "note": "Settings → General: explanation under a setting."
+  },
+  "settings.general.defaultBrowserBtn.label": {
+    "message": "Default browser",
+    "note": "Settings → General: setting name."
+  },
+  "settings.general.defaultBrowserBtn.hint": {
+    "message": "Open web links from other apps in Blanc",
+    "note": "Settings → General: explanation under a setting."
+  },
+  "settings.general.defaultBrowserBtn": {
+    "message": "Make default…",
+    "note": "Settings → General: button.",
+    "maxLength": 19
+  },
+  "settings.general.defaultBrowserState": {
+    "message": "Blanc is your default browser",
+    "note": "Settings → General: text (span)."
+  },
+  "settings.general.showWelcomeTour.label": {
+    "message": "Welcome tour",
+    "note": "Settings → General: setting name."
+  },
+  "settings.general.showWelcomeTour.hint": {
+    "message": "Replay the first-run walkthrough; saved choices stay put",
+    "note": "Settings → General: explanation under a setting."
+  },
+  "settings.general.showWelcomeTour": {
+    "message": "Show welcome tour",
+    "note": "Settings → General: button.",
+    "maxLength": 24
+  },
+  "settings.general.searchEngine.label": {
+    "message": "Search engine",
+    "note": "Settings → General: setting name."
+  },
+  "settings.general.searchEngine.hint": {
+    "message": "Used when the address bar input isn't a URL",
+    "note": "Settings → General: explanation under a setting."
+  },
+  "settings.general.searchSuggestions.label": {
+    "message": "Search suggestions",
+    "note": "Settings → General: setting name."
+  },
+  "settings.general.searchSuggestions.hint": {
+    "message": "Send eligible typed prefixes to your selected search provider, including Google if selected. Private tabs and recognized sensitive-looking input are excluded. Submitting a search sends the completed query even when suggestions are off.",
+    "note": "Settings → General: explanation under a setting."
+  },
+  "settings.general.homePage.label": {
+    "message": "New tab page",
+    "note": "Settings → General: setting name."
+  },
+  "settings.general.homePage.hint": {
+    "message": "Leave empty for the built-in new tab page",
+    "note": "Settings → General: explanation under a setting."
+  },
+  "settings.sync.title": {
+    "message": "Sync",
+    "note": "Settings → Sync: section heading."
+  },
+  "settings.sync.syncSetupTitle": {
+    "message": "Set up Sync",
+    "note": "Settings → Sync → Set up Sync: card heading."
+  },
+  "settings.sync.syncSetupIntro": {
+    "message": "Sync your favorites and settings across your devices, and, if you choose, open tabs. Everything is end-to-end encrypted — Blanc can’t read it, and can’t recover it if you forget your passphrase.",
+    "note": "Settings → Sync → Set up Sync: text (p)."
+  },
+  "settings.sync.syncPaths.ariaLabel": {
+    "message": "Choose how to set up Sync",
+    "note": "Settings → Sync → Set up Sync: accessible name of a div."
+  },
+  "settings.sync.startSyncingFromThis": {
+    "message": "Start syncing from this device",
+    "note": "Settings → Sync → Set up Sync: text (strong)."
+  },
+  "settings.sync.createTheNameAnd": {
+    "message": "Create the name and passphrase you’ll use on your other devices.",
+    "note": "Settings → Sync → Set up Sync: text (span)."
+  },
+  "settings.sync.iAlreadySyncOn": {
+    "message": "I already sync on another device",
+    "note": "Settings → Sync → Set up Sync: text (strong)."
+  },
+  "settings.sync.connectWithTheExact": {
+    "message": "Connect with the exact same name and passphrase.",
+    "note": "Settings → Sync → Set up Sync: text (span)."
+  },
+  "settings.sync.giveYourSyncA": {
+    "message": "Give your sync a name",
+    "note": "Settings → Sync → Set up Sync: text (strong)."
+  },
+  "settings.sync.chooseAPassphrase": {
+    "message": "Choose a passphrase",
+    "note": "Settings → Sync → Set up Sync: text (strong)."
+  },
+  "settings.sync.iYourPassphraseStays": {
+    "message": "<0>i</0> Your passphrase stays on your devices. It’s never sent to Blanc.",
+    "note": "Settings → Sync: privacy note in the setup form; <0>i</0> is an information icon, keep it as “i”."
+  },
+  "settings.sync.syncFinishTitle": {
+    "message": "Turn on Sync",
+    "note": "Settings → Sync → Set up Sync: text (strong)."
+  },
+  "settings.sync.syncFinishHint": {
+    "message": "You’re ready — your favorites and settings will sync securely across your devices.",
+    "note": "Settings → Sync → Set up Sync: text (p)."
+  },
+  "settings.sync.syncSubmit": {
+    "message": "Turn on sync",
+    "note": "Settings → Sync → Set up Sync: button.",
+    "maxLength": 17
+  },
+  "settings.sync.syncBack": {
+    "message": "Back",
+    "note": "Settings → Sync → Set up Sync: button.",
+    "maxLength": 12
+  },
+  "settings.sync.nothingWasFoundUnder": {
+    "message": "Nothing was found under that name and passphrase. Check for typos, including capital letters, then try again.",
+    "note": "Settings → Sync → Set up Sync: explanation under a setting."
+  },
+  "settings.sync.syncTryAgain": {
+    "message": "Try again",
+    "note": "Settings → Sync → Set up Sync: button.",
+    "maxLength": 18
+  },
+  "settings.sync.syncStartNew": {
+    "message": "Start a new sync with these",
+    "note": "Settings → Sync → Set up Sync: button.",
+    "maxLength": 38
+  },
+  "settings.sync.syncName": {
+    "message": "Sync name",
+    "note": "Settings → Sync → Set up Sync: text (dt)."
+  },
+  "settings.sync.favoritesAndSettings": {
+    "message": "Favorites and settings",
+    "note": "Settings → Sync → Set up Sync: text (dt)."
+  },
+  "settings.sync.thisDevicesOpenTabs": {
+    "message": "This device’s open tabs",
+    "note": "Settings → Sync → Set up Sync: text (dt)."
+  },
+  "settings.sync.lastError": {
+    "message": "Last error",
+    "note": "Settings → Sync → Set up Sync: text (dt)."
+  },
+  "settings.sync.syncNow": {
+    "message": "Sync now",
+    "note": "Settings → Sync → Set up Sync: button.",
+    "maxLength": 24
+  },
+  "settings.sync.syncDisable": {
+    "message": "Turn off sync",
+    "note": "Settings → Sync → Set up Sync: button.",
+    "maxLength": 19
+  },
+  "settings.profiles.title": {
+    "message": "Profiles",
+    "note": "Settings → Profiles: section heading."
+  },
+  "settings.profiles.namedProfilesKeepSeparate": {
+    "message": "Named profiles keep separate cookies, site data, Favorites, history, downloads, and remembered permissions. Device settings and Patron status stay shared; Sync belongs to Personal only.",
+    "note": "Settings → Profiles: explanation under a setting."
+  },
+  "settings.profiles.newProfileName.placeholder": {
+    "message": "New profile name",
+    "note": "Settings → Profiles: placeholder of a input."
+  },
+  "settings.profiles.newProfileCreate": {
+    "message": "Create profile window",
+    "note": "Settings → Profiles: button.",
+    "maxLength": 30
+  },
+  "settings.privacy.title": {
+    "message": "Privacy & Security",
+    "note": "Settings → Privacy & Security: section heading."
+  },
+  "settings.privacy.blocking.title": {
+    "message": "Blocking",
+    "note": "Settings → Privacy & Security → Blocking: card heading."
+  },
+  "settings.privacy.adblockProvider.label": {
+    "message": "Blocking provider",
+    "note": "Settings → Privacy & Security → Blocking: setting name."
+  },
+  "settings.privacy.adblockProvider.hint": {
+    "message": "Changes take effect after restarting Blanc. uBlock Origin protects regular tabs. Blanc’s browser engine can load uBO only in saved sessions, so private sessions stay in memory and use Blanc Blocker. Each provider keeps separate site settings.",
+    "note": "Settings → Privacy & Security → Blocking: explanation under a setting."
+  },
+  "settings.privacy.ublockDashboard": {
+    "message": "uBlock Origin settings",
+    "note": "Settings → Privacy & Security → Blocking: button.",
+    "maxLength": 31
+  },
+  "settings.privacy.ublockLogger": {
+    "message": "Logger",
+    "note": "Settings → Privacy & Security → Blocking: button.",
+    "maxLength": 12
+  },
+  "settings.privacy.ublockRetry": {
+    "message": "Retry",
+    "note": "Settings → Privacy & Security → Blocking: button.",
+    "maxLength": 12
+  },
+  "settings.privacy.ublockUseBlanc": {
+    "message": "Use Blanc Blocker after restart",
+    "note": "Settings → Privacy & Security → Blocking: button.",
+    "maxLength": 44
+  },
+  "settings.privacy.ublockContinue": {
+    "message": "Continue without blocking",
+    "note": "Settings → Privacy & Security → Blocking: button.",
+    "maxLength": 35
+  },
+  "settings.privacy.ublockLimits": {
+    "message": "Filter lists update automatically. Executable resources update with Blanc releases; custom resource URLs and cloud storage are unavailable. Turning blocking off removes cosmetic CSS; reload a page to undo changes already made by scriptlets.",
+    "note": "Settings → Privacy & Security → Blocking: explanation under a setting."
+  },
+  "settings.privacy.adblockEnabled.label": {
+    "message": "Block ads & trackers",
+    "note": "Settings → Privacy & Security → Blocking: setting name."
+  },
+  "settings.privacy.adblockEnabled.hint": {
+    "message": "Stops ads and the hidden trackers that follow you from site to site. On by default.",
+    "note": "Settings → Privacy & Security → Blocking: explanation under a setting."
+  },
+  "settings.privacy.sitesListedHereLoad": {
+    "message": "Sites listed here load with ad-blocking turned off, e.g. for sites that break under it.",
+    "note": "Settings → Privacy & Security → Blocking: explanation under a setting."
+  },
+  "settings.privacy.exceptionAdd": {
+    "message": "Add",
+    "note": "Settings → Privacy & Security → Blocking: button.",
+    "maxLength": 12
+  },
+  "settings.privacy.callsAndConnections.title": {
+    "message": "Calls and connections",
+    "note": "Settings → Privacy & Security → Calls and connections: card heading."
+  },
+  "settings.privacy.webrtcPolicy.label": {
+    "message": "IP address in video calls",
+    "note": "Settings → Privacy & Security → Calls and connections: setting name."
+  },
+  "settings.privacy.webrtcPolicy.hint": {
+    "message": "Standard limits calls to your default network route. If a call stutters or won't connect, try Compatibility; it can reveal local network addresses to the site. Strict is for application-proxy users.",
+    "note": "Settings → Privacy & Security → Calls and connections: explanation under a setting."
+  },
+  "settings.privacy.webrtcPolicy.standard": {
+    "message": "Standard (recommended)",
+    "note": "Settings → Privacy & Security → Calls and connections: choice in a dropdown.",
+    "maxLength": 31
+  },
+  "settings.privacy.webrtcPolicy.compatibility": {
+    "message": "Compatibility — widest call support, less IP privacy",
+    "note": "Settings → Privacy & Security → Calls and connections: choice in a dropdown.",
+    "maxLength": 73
+  },
+  "settings.privacy.webrtcPolicy.strict": {
+    "message": "Strict — stronger for proxy users, but can break some video calls",
+    "note": "Settings → Privacy & Security → Calls and connections: choice in a dropdown.",
+    "maxLength": 91
+  },
+  "settings.privacy.webrtcAudioBuffer.label": {
+    "message": "Call audio",
+    "note": "Settings → Privacy & Security → Calls and connections: setting name."
+  },
+  "settings.privacy.webrtcAudioBuffer.hint": {
+    "message": "Automatic keeps conversation delay as low as possible. Stable targets about 400 ms of receive buffering. Resilient targets about 1 second for severe crackling or chopped speech, making back-and-forth conversation slower. Start a new call after changing it.",
+    "note": "Settings → Privacy & Security → Calls and connections: explanation under a setting."
+  },
+  "settings.privacy.webrtcAudioBuffer.automatic": {
+    "message": "Automatic (lowest latency)",
+    "note": "Settings → Privacy & Security → Calls and connections: choice in a dropdown.",
+    "maxLength": 37
+  },
+  "settings.privacy.webrtcAudioBuffer.stable": {
+    "message": "Stable — smoother playback, about 400 ms buffer",
+    "note": "Settings → Privacy & Security → Calls and connections: choice in a dropdown.",
+    "maxLength": 66
+  },
+  "settings.privacy.webrtcAudioBuffer.resilient": {
+    "message": "Resilient — high stability, about 1 second buffer",
+    "note": "Settings → Privacy & Security → Calls and connections: choice in a dropdown.",
+    "maxLength": 69
+  },
+  "settings.privacy.secureDns.label": {
+    "message": "Encrypted DNS",
+    "note": "Settings → Privacy & Security → Calls and connections: setting name."
+  },
+  "settings.privacy.secureDns.hint": {
+    "message": "Encrypts the behind-the-scenes lookups that turn a web address into a connection, so someone sniffing those lookups can't read the names. It does not hide the sites you visit from your network, and it makes the DNS provider someone you trust. Automatic uses encryption when it can and may fall back to ordinary DNS — safe to leave on. If a Wi-Fi login page won't load, switch to Automatic or Off temporarily.",
+    "note": "Settings → Privacy & Security → Calls and connections: explanation under a setting."
+  },
+  "settings.privacy.secureDns.auto": {
+    "message": "Automatic (recommended)",
+    "note": "Settings → Privacy & Security → Calls and connections: choice in a dropdown.",
+    "maxLength": 33
+  },
+  "settings.privacy.secureDns.off": {
+    "message": "Off — use your system setting (best with a VPN)",
+    "note": "Settings → Privacy & Security → Calls and connections: choice in a dropdown.",
+    "maxLength": 66
+  },
+  "settings.privacy.secureDns.quad9": {
+    "message": "Quad9 — also blocks known malware sites",
+    "note": "Settings → Privacy & Security → Calls and connections: choice in a dropdown.",
+    "maxLength": 55
+  },
+  "settings.privacy.secureDns.custom": {
+    "message": "Custom provider…",
+    "note": "Settings → Privacy & Security → Calls and connections: choice in a dropdown.",
+    "maxLength": 23
+  },
+  "settings.privacy.secureDnsTemplate.label": {
+    "message": "Custom provider address",
+    "note": "Settings → Privacy & Security → Calls and connections: setting name."
+  },
+  "settings.privacy.secureDnsTemplate.hint": {
+    "message": "The secure DNS address your provider gave you (an https:// link), e.g. https://dns.nextdns.io/<profile>.",
+    "note": "Settings → Privacy & Security → Calls and connections: explanation under a setting."
+  },
+  "settings.privacy.fillAMatchingLogin": {
+    "message": "Fill a matching Login item from your installed 1Password app when you ask. While this is on, Blanc checks pages for a login form so the island can offer Fill — it never reads what you type and never contacts 1Password until you ask.",
+    "note": "Settings → Privacy & Security → 1Password: explanation under a setting."
+  },
+  "settings.privacy.onePasswordOpenApp.label": {
+    "message": "1Password app",
+    "note": "Settings → Privacy & Security → 1Password: setting name."
+  },
+  "settings.privacy.onePasswordOpenApp": {
+    "message": "Open 1Password",
+    "note": "Settings → Privacy & Security → 1Password: button.",
+    "maxLength": 20
+  },
+  "settings.privacy.onePasswordEnabled.label": {
+    "message": "Fill logins from 1Password",
+    "note": "Settings → Privacy & Security → 1Password: setting name."
+  },
+  "settings.privacy.onePasswordEnabled.hint": {
+    "message": "In 1Password, open Settings → Developer and turn on Integrate with 1Password SDKs",
+    "note": "Settings → Privacy & Security → 1Password: explanation under a setting."
+  },
+  "settings.privacy.onePasswordAccount.label": {
+    "message": "1Password account",
+    "note": "Settings → Privacy & Security → 1Password: setting name."
+  },
+  "settings.privacy.onePasswordAccount.hint": {
+    "message": "The email address you sign in to 1Password with. An account ID also works. Stored only on this device.",
+    "note": "Settings → Privacy & Security → 1Password: explanation under a setting."
+  },
+  "settings.privacy.onePasswordVerify": {
+    "message": "Verify",
+    "note": "Settings → Privacy & Security → 1Password: button.",
+    "maxLength": 12
+  },
+  "settings.privacy.useViewFill": {
+    "message": "Use View → Fill Login from 1Password or <0>/1password</0>. On Mac: ⌥⌘P. On Windows and Linux: Ctrl+Shift+P.",
+    "note": "Settings → Privacy & Security → 1Password: how to fill a login; <0>/1password</0> is a slash command (keep it), the menu path and shortcuts are the app’s own."
+  },
+  "settings.privacy.sitePermissions.title": {
+    "message": "Site permissions",
+    "note": "Settings → Privacy & Security → Site permissions: card heading."
+  },
+  "settings.privacy.sitesYouveAllowedOr": {
+    "message": "Sites you've allowed or blocked from using your camera, microphone, location, or notifications.",
+    "note": "Settings → Privacy & Security → Site permissions: explanation under a setting."
+  },
+  "settings.privacy.usageAndData.title": {
+    "message": "Usage and data",
+    "note": "Settings → Privacy & Security → Usage and data: card heading."
+  },
+  "settings.privacy.usagePing.label": {
+    "message": "Help improve Blanc",
+    "note": "Settings → Privacy & Security → Usage and data: setting name."
+  },
+  "settings.privacy.usagePing.hint": {
+    "message": "Counts active users and which start-page layouts and local features get used. Sends a random install and session id, app version, platform, architecture, coarse OS major, and fixed feature names; never URLs, searches, page content, or private-tab activity. This is pseudonymous measurement sent to a Blanc-owned Cloudflare collector. It stores a keyed hash of the install id; an optional Google Analytics mirror receives that hash and the same limited fields. Turn this off to stop future events.",
+    "note": "Settings → Privacy & Security → Usage and data: explanation under a setting."
+  },
+  "settings.privacy.resetInstallId": {
+    "message": "Reset install ID",
+    "note": "Settings → Privacy & Security → Usage and data: button.",
+    "maxLength": 32
+  },
+  "settings.privacy.removesCookiesCacheAnd": {
+    "message": "Removes cookies, cache, and site data for every site. You'll be logged out of everything.",
+    "note": "Settings → Privacy & Security → Usage and data: explanation under a setting."
+  },
+  "settings.privacy.clearBrowsingData": {
+    "message": "Clear cookies, cache & site data",
+    "note": "Settings → Privacy & Security → Usage and data: button.",
+    "maxLength": 45
+  },
+  "settings.trust.title": {
+    "message": "About & Trust",
+    "note": "Settings → About & Trust: section heading."
+  },
+  "settings.trust.factsCheckedOnThis": {
+    "message": "Facts checked on this device. Opening this section makes no network request.",
+    "note": "Settings → About & Trust: explanation under a setting."
+  },
+  "settings.trust.trustReceiptStatus": {
+    "message": "Checking the installed build…",
+    "note": "Settings → About & Trust: explanation under a setting."
+  },
+  "settings.diagnostics.title": {
+    "message": "Diagnostics",
+    "note": "Settings → Diagnostics: section heading."
+  },
+  "settings.diagnostics.blancKeepsALocal": {
+    "message": "Blanc keeps a local, 50-event crash ledger with timestamps, process type, and failure reason. It never includes URLs, page titles, history, profile names, account data, identifiers, quiet-tab state, or closed-tab state, and nothing is sent automatically.",
+    "note": "Settings → Diagnostics: explanation under a setting."
+  },
+  "settings.diagnostics.diagnosticsSummary": {
+    "message": "Checking local crash history…",
+    "note": "Settings → Diagnostics: explanation under a setting."
+  },
+  "settings.diagnostics.diagnosticsExport": {
+    "message": "Export diagnostics…",
+    "note": "Settings → Diagnostics: button.",
+    "maxLength": 27
+  },
+  "settings.diagnostics.diagnosticsClear": {
+    "message": "Clear crash history",
+    "note": "Settings → Diagnostics: button.",
+    "maxLength": 27
+  },
+  "settings.patron.title": {
+    "message": "Blanc Patron",
+    "note": "Settings → Blanc Patron: section heading."
+  },
+  "settings.patron.blancPatronUnlocksBlanc": {
+    "message": "Blanc Patron unlocks Blanc Spaces on every platform. A one-time founding license activates once, with no further contact. A monthly or annual subscription checks in with Polar about once a day — your license key and activation id only, never browsing data — to confirm it’s still active. On a lapse, existing spaces stay available while creating new ones pauses.",
+    "note": "Settings → Blanc Patron: explanation under a setting."
+  },
+  "settings.patron.patronCheckout": {
+    "message": "Become a Patron — $4/month or $30/year",
+    "note": "Settings → Blanc Patron: button that opens checkout; keep the prices and currency as written.",
+    "maxLength": 54
+  },
+  "settings.patron.patronActivateHint": {
+    "message": "Already a Patron? Enter the license key available under Purchases in Polar to activate this device.",
+    "note": "Settings → Blanc Patron: explanation under a setting."
+  },
+  "settings.patron.patronKey.placeholder": {
+    "message": "License key",
+    "note": "Settings → Blanc Patron: placeholder of a input."
+  },
+  "settings.patron.patronActivate": {
+    "message": "Activate",
+    "note": "Settings → Blanc Patron: button.",
+    "maxLength": 12
+  },
+  "settings.help.title": {
+    "message": "Help",
+    "note": "Settings → Help: section heading."
+  },
+  "settings.help.aboutBlanc.title": {
+    "message": "About Blanc",
+    "note": "Settings → Help → About Blanc: card heading."
+  },
+  "settings.help.platform": {
+    "message": "Platform",
+    "note": "Settings → Help → About Blanc: text (dt)."
+  },
+  "settings.help.architecture": {
+    "message": "Architecture",
+    "note": "Settings → Help → About Blanc: text (dt)."
+  },
+  "settings.help.blancUsesChromiumThrough": {
+    "message": "Blanc uses Chromium through Electron to render websites. Updates to Electron and Chromium arrive with new Blanc releases and replace the whole app. Applying an update requires restarting Blanc.",
+    "note": "Settings → Help → About Blanc: explanation under a setting."
+  },
+  "settings.help.checkForUpdates": {
+    "message": "Check for updates…",
+    "note": "Settings → Help → About Blanc: button.",
+    "maxLength": 26
+  },
+  "settings.help.howBlancWorks": {
+    "message": "How Blanc works ↗",
+    "note": "Settings → Help → About Blanc: link.",
+    "maxLength": 24
+  },
+  "settings.help.sourceCode": {
+    "message": "Source code ↗",
+    "note": "Settings → Help → About Blanc: link.",
+    "maxLength": 19
+  },
+  "settings.help.privacyPolicy": {
+    "message": "Privacy policy ↗",
+    "note": "Settings → Help → About Blanc: link.",
+    "maxLength": 23
+  },
+  "settings.help.releaseNotes": {
+    "message": "Release notes ↗",
+    "note": "Settings → Help → About Blanc: link.",
+    "maxLength": 21
+  },
+  "settings.help.extensionsAndPasswordManagers.title": {
+    "message": "Extensions and password managers",
+    "note": "Settings → Help → Extensions and password managers: card heading."
+  },
+  "settings.help.youCanBrowseChrome": {
+    "message": "You can browse Chrome Web Store pages, but Blanc cannot install Chrome extensions.",
+    "note": "Settings → Help → Extensions and password managers: explanation under a setting."
+  },
+  "settings.help.onMacOSWindowsAnd": {
+    "message": "On macOS, Windows and Linux, Blanc offers explicit login fill from the installed 1Password app. This integration does not save passwords or fill automatically.",
+    "note": "Settings → Help → Extensions and password managers: explanation under a setting."
+  },
+  "settings.help.connectionsBlancCanMake.title": {
+    "message": "Connections Blanc can make",
+    "note": "Settings → Help → Connections Blanc can make: card heading."
+  },
+  "settings.help.blancConnectsToWebsites": {
+    "message": "Blanc connects to websites you open and GitHub for app updates. Searches and enabled suggestions go to your selected search provider; DNS lookups use your system or selected DNS provider. Selecting Google sends searches and eligible suggestion prefixes to Google.",
+    "note": "Settings → Help → Connections Blanc can make: explanation under a setting."
+  },
+  "settings.help.enabledUsageMeasurementGoes": {
+    "message": "Enabled usage measurement goes to a Blanc-owned Cloudflare collector and, when configured, its Google Analytics mirror. Sync, Patron, 1Password and tab handoff make separate connections when configured or requested. This describes behavior; it is not a live network monitor.",
+    "note": "Settings → Help → Connections Blanc can make: explanation under a setting."
+  },
+  "settings.help.dataRecipientsAndControls": {
+    "message": "Data, recipients and controls ↗",
+    "note": "Settings → Help → Connections Blanc can make: link.",
+    "maxLength": 44
+  },
+  "settings.help.somethingBrokenOrWorking": {
+    "message": "Something broken, or working in a way it shouldn’t? Reports go to Blanc’s public issue tracker on GitHub. Saying which version you’re on, which operating system, and what page you were looking at makes a report much faster to act on.",
+    "note": "Settings → Help: explanation under a setting."
+  },
+  "settings.help.reportAnIssue": {
+    "message": "Report an issue <0>↗</0>",
+    "note": "Settings → Help: link to the public issue tracker; <0>↗</0> is the external-link arrow, keep it.",
+    "maxLength": 24
+  },
+  "settings.privacy.secureDnsError": {
+    "message": "That address isn't valid — the previous provider is still in use.",
+    "note": "Settings → Privacy & Security → Calls and connections: error shown when the custom DNS address is invalid."
+  },
+  "settings.sync.syncWipe": {
+    "message": "also delete synced data",
+    "note": "Settings → Sync: checkbox beside Turn off sync that also erases the server copy (lowercase, continues the button)."
+  },
+  "settings.sync.syncTabsShare": {
+    "message": "share this device’s open tabs with your other devices",
+    "note": "Settings → Sync: checkbox that publishes this device’s open tabs to your other devices (lowercase in the original)."
   }
 }

@@ -2980,5 +2980,749 @@
   "about.credits": {
     "message": "Unabhängiger Browser von Bananify.",
     "source": "sha256:eb9ba521f2c478e41ca65b7fdbb352973124439ffa8287c57abf5102a5931698"
+  },
+  "settings.page.title": {
+    "message": "Einstellungen",
+    "source": "sha256:fbc1015b4abf95a24c5cbf98acf589822c00106700a22fbc5aff412bb6bc9cc4"
+  },
+  "pagesNav.settings": {
+    "message": "Einstellungen",
+    "source": "sha256:bd84bc151f48b2a2a8d8935d43af6e9f9a6a9b044d1b849295f6a6af1c378e1b"
+  },
+  "pagesNav.bookmarks": {
+    "message": "Favoriten",
+    "source": "sha256:f0c71005536d946fb6ecc394c5f601998eeac9a440c2c54e95bea61c993dd8e9"
+  },
+  "pagesNav.history": {
+    "message": "Verlauf",
+    "source": "sha256:95acde6ccf4bf13eb1c52a6fb69bf57d4c5ffcb8f0c6b4d2d032c7704ae36c12"
+  },
+  "pagesNav.downloads": {
+    "message": "Downloads",
+    "source": "sha256:b15350d4e4e46af17d5d5eaf24b5a7bee61842b58a57d33106d8d976297b79bd"
+  },
+  "settings.page.heading": {
+    "message": "Einstellungen",
+    "source": "sha256:739d4daa1a15660f26d283581c4c8c028855325e3eddb72a46a0d989b472b79b"
+  },
+  "settings.nav.general": {
+    "message": "Allgemein",
+    "source": "sha256:ae58564fd66ead7c1f3bf001e966102c8c8795f7287d3ae1641de1bfe9337cc6"
+  },
+  "settings.nav.sync": {
+    "message": "Synchronisierung",
+    "source": "sha256:d58f6508c80a644ee883f1b09431acd2b3ab8560c3290d60912c3a489b21945e"
+  },
+  "settings.nav.profiles": {
+    "message": "Profile",
+    "source": "sha256:ff8ae0af94b7dadc00eaa4f1a4a3ffb60fcc2d3d4780a5de296f7fddcf270cc0"
+  },
+  "settings.nav.privacy": {
+    "message": "Datenschutz & Sicherheit",
+    "source": "sha256:5076d6543fb67a90f8df46206e3ad347c8e16d07d8bf65b9a0a23513eee0dc03"
+  },
+  "settings.nav.trust": {
+    "message": "Info & Vertrauen",
+    "source": "sha256:946baeabfe1598955844b337c9cf5482cfaa39b7754ca8ae1e0f4cbffbb0410b"
+  },
+  "settings.nav.diagnostics": {
+    "message": "Diagnose",
+    "source": "sha256:bb865af145bcc7a6999739d31d49e3a1538f3c4958517ae2153841387e4026be"
+  },
+  "settings.nav.patron": {
+    "message": "Patron",
+    "source": "sha256:9e75f2a58eea912cc5e76f51f1e42a1773d1b256c19c7334af5c29f42d436846"
+  },
+  "settings.nav.help": {
+    "message": "Hilfe",
+    "source": "sha256:cdad42e6dee53939d2ea1c34c324635775e536b5daf551942d310d8cec6d7ade"
+  },
+  "settings.general.title": {
+    "message": "Allgemein",
+    "source": "sha256:c0d54a06a31ec270fe6ae5b7115ab3e55b78fb91351f7246577d221f26748fef"
+  },
+  "settings.general.theme.label": {
+    "message": "Erscheinungsbild",
+    "source": "sha256:52b09162f68b5ad1cb1c27c30b0ad203225aca30b36893fecc34b6dba05da47d"
+  },
+  "settings.general.theme.hint": {
+    "message": "System folgt dem Design von macOS/Windows",
+    "source": "sha256:22516f21a7afeda313df03ff52f5d1ed0e885e281c78a19aa66a846495033f9f"
+  },
+  "settings.general.theme.system": {
+    "message": "System",
+    "source": "sha256:d3835bfcc2c71ee76976292aa49111c1d3092791aa30295375faa44b179e2e5d"
+  },
+  "settings.general.theme.light": {
+    "message": "Hell",
+    "source": "sha256:61ba1127ca72cad546fcceefd63bd2fcde7e1cbc6bb8361edff34237ca96f528"
+  },
+  "settings.general.theme.dark": {
+    "message": "Dunkel",
+    "source": "sha256:b41d9e243478bf2d60d3d59b40422deee5a9e90cd02e1020c4f289dd2678f98a"
+  },
+  "settings.general.islandSiteColors.label": {
+    "message": "Website-Farben übernehmen",
+    "source": "sha256:4daf5a519324f703abc255a2684264f95f5be92d8a295a3893ec71fca7038c2a"
+  },
+  "settings.general.islandSiteColors.hint": {
+    "message": "Färbt die Island-Leiste in der Farbe der aktuellen Seite. Aus behält den Hintergrund deines Designs.",
+    "source": "sha256:78d7d211d0d40ad09c99bc03626c7ba30ce3b94cd37749872d38aaf2b2bc0bc4"
+  },
+  "settings.general.darkWebsites.label": {
+    "message": "Dunkle Websites",
+    "source": "sha256:5ba3e96a469e569d1c139dcb0fdd7044a0a933c3f99cb9e87b59724cdd0c7763"
+  },
+  "settings.general.darkWebsites.hint": {
+    "message": "Solange Blanc dunkel ist, werden Websites ohne eigenen Dunkelmodus abgedunkelt. Nutzt die Open-Source-Engine Dark Reader.",
+    "source": "sha256:cf0db9383b000830030f23ccf05e198e838bcbc746460b229e98a83162f6e192"
+  },
+  "settings.general.sitesListedHereKeep": {
+    "message": "Hier aufgeführte Websites behalten ihre eigenen Farben. Gib auf einer Website /dark-site ein, um sie hinzuzufügen oder zu entfernen.",
+    "source": "sha256:4c579934d2bfcdb1c2cc7e898cafab429dca5fff8c3c8f4e5fe7321dd68a8d8b"
+  },
+  "settings.general.darkExceptionInput.ariaLabel": {
+    "message": "Website, die ihre eigenen Farben behält",
+    "source": "sha256:f601c4d962fa9909883dd449e27cd1c7340f35df27aa994333972281e856318d"
+  },
+  "settings.general.darkExceptionAdd": {
+    "message": "Hinzufügen",
+    "source": "sha256:adfa7a1af55089f299c6607bcc321fddb1f827b9a31d76665d54f16ad353be6e"
+  },
+  "settings.general.newtabLayout.label": {
+    "message": "Layout der Startseite",
+    "source": "sha256:1a03f23d5cee8ae0de6cd0f3a135a6d3545db11eb1b6f76ac531f4cce9bc858e"
+  },
+  "settings.general.newtabLayout.hint": {
+    "message": "Wie sich die Startseite anordnet; auch über ihre Fußleiste umschaltbar",
+    "source": "sha256:2e3a7cffee8f1cd31157491641927314e451ab4a5216be878aedb28d21907193"
+  },
+  "settings.general.newtabLayout.ledger": {
+    "message": "ledger",
+    "source": "sha256:01e1e0e4958435810576fabcd0e5fe2fefae91f9e6814314ffff00517721ba5e"
+  },
+  "settings.general.newtabLayout.billboard": {
+    "message": "billboard",
+    "source": "sha256:a60d80ad209ff595be8db8d3227c15093e119b20fa926b7c9e8ea2342d1b5b17"
+  },
+  "settings.general.newtabLayout.shelf": {
+    "message": "shelf",
+    "source": "sha256:14799e36d74c91de53ef4776b3eef701a32630225b4d3cb52c785c4141cd82a5"
+  },
+  "settings.general.newtabLayout.tally": {
+    "message": "tally",
+    "source": "sha256:ee74ccc5d66531c210ec1bda1a2bf346c3a22eab88886294dae47e032295c77d"
+  },
+  "settings.general.newtabDynamicWallpaper.label": {
+    "message": "Hintergrund nach Tageszeit",
+    "source": "sha256:5ec7c5fcba1fb8ed21b10fe2f0724abd35140a9c35d325f053e76f87f1ff2c51"
+  },
+  "settings.general.newtabDynamicWallpaper.hint": {
+    "message": "Der Hintergrund folgt der Ortszeit dieses Geräts.",
+    "source": "sha256:20ef44cd8d6d8f1fa026aa4a8f1f35e96dd0491c388fc5b72a8502acd1df076f"
+  },
+  "settings.general.tabLayout.label": {
+    "message": "Tab-Layout",
+    "source": "sha256:02ebe82f380afb4c6e8de87a29ed911b7df6dc56a1ba7d679ffa691d4358e166"
+  },
+  "settings.general.tabLayout.hint": {
+    "message": "Tabs in der Island behalten oder in einer linken Leiste zeigen; Suche und Befehle bleiben immer in der Island",
+    "source": "sha256:5c6221297d6c305d28ec300cb967c444c7df5cd5c5cf8aab775ed47354039237"
+  },
+  "settings.general.tabLayout.island": {
+    "message": "Island",
+    "source": "sha256:60109c851aa73146208ed891376c6185ebfec38538f4a00c1969cfec89da42ba"
+  },
+  "settings.general.tabLayout.vertical": {
+    "message": "Vertikale Tabs",
+    "source": "sha256:0b1e0ccf994248d3b48459ef3f43d41bcf238f95989b7f44ac4f2038a40b8fe1"
+  },
+  "settings.general.tabSleep.label": {
+    "message": "Inaktive Tabs ruhen lassen",
+    "source": "sha256:c4c533fb4d07b605bbb54923c22a89a3d2de1d8478a2448b815c3b5cde6f2b44"
+  },
+  "settings.general.tabSleep.hint": {
+    "message": "Blanc gibt den Speicher von Tabs frei, die du länger nicht geöffnet hast, und lädt sie neu, wenn du zu ihnen zurückkehrst. Solche Tabs werden zu ruhenden Tabs.",
+    "source": "sha256:dc45612bc58a42aa3e38f8038b936edcc4b9bf409c3a447ca8fcbba3e10f03fd"
+  },
+  "settings.general.tabSleep.off": {
+    "message": "Aus",
+    "source": "sha256:268eec39631f74a4e72f184b4356bc48f4a3f2b6ea56a345d6f109216db6b2a0"
+  },
+  "settings.general.tabSleep.30m": {
+    "message": "Nach 30 Minuten",
+    "source": "sha256:e3d82c613f32e6b0d48cc4c3989f857357ca9a9979b0666fc6f22dec60412c6d"
+  },
+  "settings.general.tabSleep.1h": {
+    "message": "Nach 1 Stunde",
+    "source": "sha256:db23494c867106f801b2f228318e5114a17564e053b00b32561444e9d6d581b2"
+  },
+  "settings.general.tabSleep.6h": {
+    "message": "Nach 6 Stunden",
+    "source": "sha256:e369a2475ed758f1ff998ad2cdb0344051f06ffe8e4b10fd39688cfc3b564edb"
+  },
+  "settings.general.mouseGesturesEnabled.label": {
+    "message": "Mausgesten",
+    "source": "sha256:be936b9fd7b983d51a134f41f21f59fc5a03546633a963d85e7076d9b78a99f2"
+  },
+  "settings.general.mouseGesturesEnabled.hint": {
+    "message": "Mit einer Maus: rechte Taste gedrückt halten, ziehen und loslassen. Auf einem Trackpad: Alt/Wahltaste (⌥) halten, mit einem Finger klicken und halten, dann ziehen.",
+    "source": "sha256:7a3f813806b714fe657aefb746245e5354c93ce98cacb17d29cd82b8614ac956"
+  },
+  "settings.general.mouseGesturesEnabled.ariaLabel": {
+    "message": "Mausgesten aktivieren",
+    "source": "sha256:fc7f3c5ee54d8a67333a1024b48073371fd028e4264c2fff1db06e1533836ba0"
+  },
+  "settings.general.assignedGestures": {
+    "message": "Zugewiesene Gesten",
+    "source": "sha256:cc1cb94b10b17dfd6d3e42f26aedcef4317d61209c4ec1660c3640d6b474fd56"
+  },
+  "settings.general.mouseGestureAdd": {
+    "message": "Geste hinzufügen",
+    "source": "sha256:a892d7dbbccb7f92df035f149a0e91241e5d8ebdd3608b8b29c5e9f88d0cd201"
+  },
+  "settings.general.mouseGestureReset": {
+    "message": "Standard wiederherstellen",
+    "source": "sha256:70e42b2f46fdd2134cd6b0e58b1477e593d806aaf5dd8a08a6d5b3f7b420c196"
+  },
+  "settings.general.drawUpToThree": {
+    "message": "Zeichne bis zu drei Richtungen und wähle dann eine Aktion.",
+    "source": "sha256:51aed9d04b053ab17aa2d112f47509872c6b91b7cdfd6959831dc368bad2c3e4"
+  },
+  "settings.general.mouseGesturePad.ariaLabel": {
+    "message": "Neue Geste mit der Haupttaste zeichnen",
+    "source": "sha256:7634d6286da3c24b575c36b7aab2ac8e662207d524803b2377d0f0446307b84d"
+  },
+  "settings.general.mouseGesturePadPrompt": {
+    "message": "Hier drücken und ziehen",
+    "source": "sha256:d44232315dae6d7a8e23f5c10cb4cfee4297fd1b3980db8672df4baeee620d5a"
+  },
+  "settings.general.action": {
+    "message": "Aktion",
+    "source": "sha256:897a028c0b9c98e3e8baadbdd97f8286fef2a6f4cc65ad2e34865726533f85ce"
+  },
+  "settings.general.mouseGestureSave": {
+    "message": "Geste speichern",
+    "source": "sha256:595832bc404c61a0c57520d703297f562799da2aa020c4112e2db83d93553778"
+  },
+  "settings.general.mouseGestureCancel": {
+    "message": "Abbrechen",
+    "source": "sha256:2f337e657c39c4af541023449be4987fd9ae608e6df008515e77da591261dc36"
+  },
+  "settings.general.appIconSetting.label": {
+    "message": "App-Symbol",
+    "source": "sha256:1730f27fb2fb4c6c5a9e4fc3303f5be6345282fd4976f85457bbe1bd71fc7fbc"
+  },
+  "settings.general.appIconSetting.hint": {
+    "message": "Wähle das Blanc-Symbol, das dein System anzeigt",
+    "source": "sha256:46864ca68096bbd3a4d4369d583c24cda1c153d66d76b77fd75e14214ddd57e3"
+  },
+  "settings.general.defaultBrowserBtn.label": {
+    "message": "Standardbrowser",
+    "source": "sha256:7099d6c951ac8d0a1cdab76a1b3e041d85dc127951779aa0db7d479fbe26ad54"
+  },
+  "settings.general.defaultBrowserBtn.hint": {
+    "message": "Weblinks aus anderen Apps in Blanc öffnen",
+    "source": "sha256:dacb9952d0c600bf224354b3642484cb9bd2aec0c9d1eb63b98e72c90eaf0fe1"
+  },
+  "settings.general.defaultBrowserBtn": {
+    "message": "Als Standard…",
+    "source": "sha256:ada3cf233004f3af9d86930597893d1dcd122af26de37838d24e3759133d5842"
+  },
+  "settings.general.defaultBrowserState": {
+    "message": "Blanc ist dein Standardbrowser",
+    "source": "sha256:c9df5ad24c072332e3ad4064294dbcb5fd399bb8bc71ecc6a94cbbc8c76c883f"
+  },
+  "settings.general.showWelcomeTour.label": {
+    "message": "Willkommenstour",
+    "source": "sha256:5a114fa2c9962ebd7abe2739d8d2728496fa3f7d3d76a5b077c120c3bc686a7c"
+  },
+  "settings.general.showWelcomeTour.hint": {
+    "message": "Die Einführung beim ersten Start erneut abspielen; gespeicherte Einstellungen bleiben erhalten",
+    "source": "sha256:93335962b4d1faa3d2660c581de45e8a2f7487d13fd119a979d3a299b4af2c59"
+  },
+  "settings.general.showWelcomeTour": {
+    "message": "Willkommenstour zeigen",
+    "source": "sha256:5f63d8666e59334146388cf48f3ca3bdd8b88775c26df47681a93fec1c5a3fac"
+  },
+  "settings.general.searchEngine.label": {
+    "message": "Suchmaschine",
+    "source": "sha256:f27a094d70e26082d062afc011529eb27e43cbae1828444c503a1401a9488572"
+  },
+  "settings.general.searchEngine.hint": {
+    "message": "Wird verwendet, wenn die Eingabe in der Adressleiste keine URL ist",
+    "source": "sha256:bc95506715db39a1212fead94d578a849e98aa2ff66f08ce72e6f41c31cf2ce2"
+  },
+  "settings.general.searchSuggestions.label": {
+    "message": "Suchvorschläge",
+    "source": "sha256:9f5c888b7338bc8852c581dd81c305db21efb959882f6900f4b020db8374ba65"
+  },
+  "settings.general.searchSuggestions.hint": {
+    "message": "Sendet geeignete eingetippte Anfänge an deinen gewählten Suchanbieter, auch an Google, wenn ausgewählt. Private Tabs und erkennbar sensibel wirkende Eingaben sind ausgenommen. Eine abgeschickte Suche sendet die vollständige Anfrage, auch wenn Vorschläge aus sind.",
+    "source": "sha256:e6f02de36973e8ec7dd259e90a89caa247828753dbc3a0ffe55c4f76a1ecf5a4"
+  },
+  "settings.general.homePage.label": {
+    "message": "Neue-Tab-Seite",
+    "source": "sha256:850202fc937b81e1c296d2ce4ab43ad7c8ef4891592a9cf17aca5181a1987330"
+  },
+  "settings.general.homePage.hint": {
+    "message": "Leer lassen für die eingebaute Neue-Tab-Seite",
+    "source": "sha256:d746c488990672ed8db7dfc9c1f69e50afc1265ce39b97d3a8a7a97094d761ab"
+  },
+  "settings.sync.title": {
+    "message": "Synchronisierung",
+    "source": "sha256:bfd51d3b977ed3de650918579befc15c09e321964f2de0926f3730f082c2d0b4"
+  },
+  "settings.sync.syncSetupTitle": {
+    "message": "Synchronisierung einrichten",
+    "source": "sha256:67f95923387928a3c9f5eecc13dcf0ee651624107f1f9f00e4abb0c8513bc7f8"
+  },
+  "settings.sync.syncSetupIntro": {
+    "message": "Synchronisiere deine Favoriten und Einstellungen und auf Wunsch auch offene Tabs zwischen deinen Geräten. Alles ist Ende-zu-Ende-verschlüsselt – Blanc kann es weder lesen noch wiederherstellen, wenn du deine Passphrase vergisst.",
+    "source": "sha256:5029f3a12c9b9570cf8c9d1d21b7d9e6a2533837f4e81c7e050fa9565fb21c77"
+  },
+  "settings.sync.syncPaths.ariaLabel": {
+    "message": "Wähle, wie du die Synchronisierung einrichtest",
+    "source": "sha256:d020045d8b53b97209a906d8a54dc6b9faaa6d260581c13d42087df42e2e43f6"
+  },
+  "settings.sync.startSyncingFromThis": {
+    "message": "Synchronisierung auf diesem Gerät beginnen",
+    "source": "sha256:97c4476dc19884518a7a2cd0fe70f6cfe64e0ec697aca7b751ec15ec30337acc"
+  },
+  "settings.sync.createTheNameAnd": {
+    "message": "Lege den Namen und die Passphrase fest, die du auf deinen anderen Geräten verwendest.",
+    "source": "sha256:fd479a0132c19bfb8c478754a35e97f72e74201ac890e86860af8690a9c4a2af"
+  },
+  "settings.sync.iAlreadySyncOn": {
+    "message": "Ich synchronisiere bereits auf einem anderen Gerät",
+    "source": "sha256:f57274643241b7989fdd929c26f5d32703b141d79a1c58103427be784af29bc7"
+  },
+  "settings.sync.connectWithTheExact": {
+    "message": "Verbinde dich mit genau demselben Namen und derselben Passphrase.",
+    "source": "sha256:ba138647a36e011f8562835a0f43b934a60c084944606a53215f2380e5f0b709"
+  },
+  "settings.sync.giveYourSyncA": {
+    "message": "Gib deiner Synchronisierung einen Namen",
+    "source": "sha256:472f429483c26d00e5d30bfedc9c193444fed789e0fe5beb244419fff3afe37b"
+  },
+  "settings.sync.chooseAPassphrase": {
+    "message": "Wähle eine Passphrase",
+    "source": "sha256:c074f64ecf4305ca3814d4acb48d1b997013bfa0698a00ae6afa0c9776553058"
+  },
+  "settings.sync.iYourPassphraseStays": {
+    "message": "<0>i</0> Deine Passphrase bleibt auf deinen Geräten. Sie wird nie an Blanc gesendet.",
+    "source": "sha256:1d14f9bff18c1cd19b13268a0f1dd5254fba48edf67390b7da912e39c21687f9"
+  },
+  "settings.sync.syncFinishTitle": {
+    "message": "Synchronisierung einschalten",
+    "source": "sha256:f205f8a732a4a71d341db4fd9dca739ebeec5db7810062a07aff06d7ff1f49f8"
+  },
+  "settings.sync.syncFinishHint": {
+    "message": "Alles bereit – deine Favoriten und Einstellungen werden sicher zwischen deinen Geräten synchronisiert.",
+    "source": "sha256:2aef52804540372c6c251868c591a41bba1edcb4de0e82bd5d0557fc08054467"
+  },
+  "settings.sync.syncSubmit": {
+    "message": "Einschalten",
+    "source": "sha256:6d0e7d6cf5243e231830ba3d3c4dccef93837e608b0af6f0ba1d8a9b820faddd"
+  },
+  "settings.sync.syncBack": {
+    "message": "Zurück",
+    "source": "sha256:abcb0fb78ca29a75f2a36067f17ad6ef8dda54d4bae6cd94cc5f73a6a79fe303"
+  },
+  "settings.sync.nothingWasFoundUnder": {
+    "message": "Unter diesem Namen und dieser Passphrase wurde nichts gefunden. Prüfe auf Tippfehler, auch bei Groß- und Kleinschreibung, und versuche es erneut.",
+    "source": "sha256:8afaa3483cca6a475c81a95f77a094c12718224f551eb4bf1eecaf0330ada6f6"
+  },
+  "settings.sync.syncTryAgain": {
+    "message": "Erneut versuchen",
+    "source": "sha256:c66b54f56b1997c2c4e28533b181dd361d45ac5d32b32c5b3f3a999e10c1ec0c"
+  },
+  "settings.sync.syncStartNew": {
+    "message": "Damit neu beginnen",
+    "source": "sha256:3ba81ca89244073a3176a979270411c7ce56a986164b46ec92214c166f554735"
+  },
+  "settings.sync.syncName": {
+    "message": "Synchronisierungsname",
+    "source": "sha256:102c09945d3514a97bd684db0a5b1298689a14b06ce77ff37569249ea2ce9591"
+  },
+  "settings.sync.favoritesAndSettings": {
+    "message": "Favoriten und Einstellungen",
+    "source": "sha256:cd7adad03202d4fa5699465da81449321058a17adab36510e30e5171aef46e04"
+  },
+  "settings.sync.thisDevicesOpenTabs": {
+    "message": "Offene Tabs dieses Geräts",
+    "source": "sha256:7e47afadaae890115a563bfbfbea6bd20c871ed1c94493ff627dd306b1f35e43"
+  },
+  "settings.sync.lastError": {
+    "message": "Letzter Fehler",
+    "source": "sha256:1dbf1c3b2146d465a62f9b90f9dea08e65a1bb3f4e0ff06124c188a9f2dc7cbc"
+  },
+  "settings.sync.syncNow": {
+    "message": "Jetzt synchronisieren",
+    "source": "sha256:f83a0963f9f266f948b7749a9da2946b99e5f6fb0e6a32bb1aa020bd602c803f"
+  },
+  "settings.sync.syncDisable": {
+    "message": "Ausschalten",
+    "source": "sha256:7f787675426fdd484c9ade065403e43964fc813937041fa0a9640fad46dbb490"
+  },
+  "settings.profiles.title": {
+    "message": "Profile",
+    "source": "sha256:961e809a506c660e4d8aebc1ff521a9fac91f10d413be6500dc718a3259a1b36"
+  },
+  "settings.profiles.namedProfilesKeepSeparate": {
+    "message": "Benannte Profile haben getrennte Cookies, Websitedaten, Favoriten, Verlauf, Downloads und gespeicherte Berechtigungen. Geräteeinstellungen und der Patron-Status bleiben gemeinsam; die Synchronisierung gehört nur zu Personal.",
+    "source": "sha256:a21e4fda77f64ed0ab980dc586fd4051af8cc37ab471e142e3dbd6427fd65f27"
+  },
+  "settings.profiles.newProfileName.placeholder": {
+    "message": "Name des neuen Profils",
+    "source": "sha256:f564d26dc58c4f14df482c0d13326aaa83a0cc250160aafde1b8ae8513805787"
+  },
+  "settings.profiles.newProfileCreate": {
+    "message": "Profilfenster erstellen",
+    "source": "sha256:a33a82f35ff4b8a0aca9a22e65a894d54cc63897338d683cd358b496ada8aa16"
+  },
+  "settings.privacy.title": {
+    "message": "Datenschutz & Sicherheit",
+    "source": "sha256:b3ff5e2731ce645dbfa35e35b56343bd3a3f8b0844aecc16fe7bf4dbcbbf7dcf"
+  },
+  "settings.privacy.blocking.title": {
+    "message": "Blockieren",
+    "source": "sha256:731bc3626d04d3be7de737acef8838ef24bd0dc3104349bec31e3dcf9c2ddd44"
+  },
+  "settings.privacy.adblockProvider.label": {
+    "message": "Blocker",
+    "source": "sha256:21e2799b10debdf51af865f2e3e572c1a1edcf3fa240aeabfb537fa8f056bc13"
+  },
+  "settings.privacy.adblockProvider.hint": {
+    "message": "Änderungen werden nach einem Neustart von Blanc wirksam. uBlock Origin schützt normale Tabs. Blancs Browser-Engine kann uBO nur in gespeicherten Sitzungen laden, deshalb bleiben private Sitzungen im Speicher und nutzen Blanc Blocker. Jeder Blocker hat eigene Website-Einstellungen.",
+    "source": "sha256:4b29eb2a090cede40140ff986187cace39ee121a73f28a42c216c960216df533"
+  },
+  "settings.privacy.ublockDashboard": {
+    "message": "Einstellungen von uBlock Origin",
+    "source": "sha256:cbb2773ff3460c84024c0364d647d9ad9e6ff9626bddd2eb1fc5b82107ea9daa"
+  },
+  "settings.privacy.ublockLogger": {
+    "message": "Protokoll",
+    "source": "sha256:049995582d4d85e2ece9a4b84bd2c3277b115374f1a067133b02ce1e0ed82396"
+  },
+  "settings.privacy.ublockRetry": {
+    "message": "Wiederholen",
+    "source": "sha256:bc881f32a58a66dd168a3944b90eb81d100750574165a109a22f1f38e031ec7b"
+  },
+  "settings.privacy.ublockUseBlanc": {
+    "message": "Nach Neustart Blanc Blocker",
+    "source": "sha256:12410c4d62cf6df7123fb9680cd10b6c9487a886e3ddcd7de57dd7b96e06c9fc"
+  },
+  "settings.privacy.ublockContinue": {
+    "message": "Ohne Blocker weiter",
+    "source": "sha256:4d4510b7e86c6185990312fea708b0d97ef011a6b5d12abfee51141b33dca655"
+  },
+  "settings.privacy.ublockLimits": {
+    "message": "Filterlisten werden automatisch aktualisiert. Ausführbare Ressourcen werden mit Blanc-Releases aktualisiert; eigene Ressourcen-URLs und Cloud-Speicher sind nicht verfügbar. Das Ausschalten des Blockers entfernt kosmetisches CSS; lade eine Seite neu, um bereits von Scriptlets vorgenommene Änderungen rückgängig zu machen.",
+    "source": "sha256:00ea33757f80bc10f3163ed60ec4eb0036f373e44b59c398045469fc0ea6b208"
+  },
+  "settings.privacy.adblockEnabled.label": {
+    "message": "Werbung & Tracker blockieren",
+    "source": "sha256:8a16a5202203b3541964b596a33d01e99ac3d08fa8d9aeda6fcf47fc7bab7b4f"
+  },
+  "settings.privacy.adblockEnabled.hint": {
+    "message": "Stoppt Werbung und die versteckten Tracker, die dir von Website zu Website folgen. Standardmäßig an.",
+    "source": "sha256:f98564265320037969dac958ea0b626507b41357a9844cfb28fe92e88bb7624c"
+  },
+  "settings.privacy.sitesListedHereLoad": {
+    "message": "Hier aufgeführte Websites laden ohne Werbeblocker, z. B. für Websites, die damit nicht funktionieren.",
+    "source": "sha256:7104b19760aa961daf8a3c7e76f8cbf6360d38397b499e90455a7f978b2e9913"
+  },
+  "settings.privacy.exceptionAdd": {
+    "message": "Hinzufügen",
+    "source": "sha256:0d8a96bcae4d7b51f04766619be1820fc2ef793ce6d9d3961590cf9179268d67"
+  },
+  "settings.privacy.callsAndConnections.title": {
+    "message": "Anrufe und Verbindungen",
+    "source": "sha256:a77705402deda9678073b0155a1b2c3ef77f38ef7ef6fe1c2eaa53012011758c"
+  },
+  "settings.privacy.webrtcPolicy.label": {
+    "message": "IP-Adresse in Videoanrufen",
+    "source": "sha256:ce5779f1fc326cc2953925a8b9255022d20f1ddabf37882028d79f5d8ebc8e60"
+  },
+  "settings.privacy.webrtcPolicy.hint": {
+    "message": "Standard beschränkt Anrufe auf deine Standard-Netzwerkroute. Wenn ein Anruf ruckelt oder keine Verbindung zustande kommt, versuche Kompatibilität; dabei kann die Website lokale Netzwerkadressen sehen. Streng ist für Nutzer von Anwendungs-Proxys.",
+    "source": "sha256:18a28e0e40efae42f95d1ec1292e0675eb4cc4792141c3557dc64aa3f4335eda"
+  },
+  "settings.privacy.webrtcPolicy.standard": {
+    "message": "Standard (empfohlen)",
+    "source": "sha256:b3a601f0d1a53adfc49f6a2614520bc8755b55940970bbcfd88a9f5b3ec18cf5"
+  },
+  "settings.privacy.webrtcPolicy.compatibility": {
+    "message": "Kompatibilität – beste Anrufunterstützung, weniger IP-Schutz",
+    "source": "sha256:a139e2ef822f7a602b3958abc300a986ce0577d490a6675207678a9268c2c792"
+  },
+  "settings.privacy.webrtcPolicy.strict": {
+    "message": "Streng – besser für Proxy-Nutzer, kann manche Videoanrufe stören",
+    "source": "sha256:c8a89f47275e624924f7a3df710e01215280a95589d3337e0121ceb61960ff0c"
+  },
+  "settings.privacy.webrtcAudioBuffer.label": {
+    "message": "Anruf-Audio",
+    "source": "sha256:8059f445eec2b7bc67bd52f2e14e5eb8f887de36ffc3adc86596abc84d40816c"
+  },
+  "settings.privacy.webrtcAudioBuffer.hint": {
+    "message": "Automatisch hält die Gesprächsverzögerung so gering wie möglich. Stabil puffert beim Empfang etwa 400 ms. Belastbar puffert etwa 1 Sekunde gegen starkes Knistern oder abgehackte Sprache, was Gespräche träger macht. Starte nach einer Änderung einen neuen Anruf.",
+    "source": "sha256:8e393cb664292789a9ca1068b3a207be886bbf9ba5945078e7197d9e92cd9694"
+  },
+  "settings.privacy.webrtcAudioBuffer.automatic": {
+    "message": "Automatisch (geringste Verzögerung)",
+    "source": "sha256:1fef52c46f9f25b622c29900d5e7b6511618da9cef209b6c1673b987b905cad6"
+  },
+  "settings.privacy.webrtcAudioBuffer.stable": {
+    "message": "Stabil – flüssigere Wiedergabe, etwa 400 ms Puffer",
+    "source": "sha256:4037a6e3692797b3409476e93ced3668a0e9893bd99333741cc59a7e35ce1500"
+  },
+  "settings.privacy.webrtcAudioBuffer.resilient": {
+    "message": "Belastbar – sehr stabil, etwa 1 Sekunde Puffer",
+    "source": "sha256:c9a701187b60be06f2a1fe9bf7202c4f191a7ccdc57b84b07b7a4de1d496a10c"
+  },
+  "settings.privacy.secureDns.label": {
+    "message": "Verschlüsseltes DNS",
+    "source": "sha256:a226f6e35fe77cd65d0fd4306b809948cf2c4801c889f8a608a631f8b7546051"
+  },
+  "settings.privacy.secureDns.hint": {
+    "message": "Verschlüsselt die Hintergrundabfragen, die eine Webadresse in eine Verbindung übersetzen, sodass jemand, der diese Abfragen mitliest, die Namen nicht lesen kann. Es verbirgt die besuchten Websites nicht vor deinem Netzwerk und macht den DNS-Anbieter zu jemandem, dem du vertraust. Automatisch verschlüsselt, wenn möglich, und kann auf normales DNS zurückfallen – du kannst es bedenkenlos anlassen. Wenn eine WLAN-Anmeldeseite nicht lädt, wechsle vorübergehend zu Automatisch oder Aus.",
+    "source": "sha256:af156764109096bfb4c02db85a70ca45f869c93adbf3dbb470474bbe94081c71"
+  },
+  "settings.privacy.secureDns.auto": {
+    "message": "Automatisch (empfohlen)",
+    "source": "sha256:f4f52b66a6e5cc4fcc9bd09b77b9cb93002d066b9060eb24d080124fc29ca275"
+  },
+  "settings.privacy.secureDns.off": {
+    "message": "Aus – Systemeinstellung verwenden (am besten mit VPN)",
+    "source": "sha256:3cfd5b6af16e0e06283370e89740f86a3344083e2c83a5d762055f1512b87dc6"
+  },
+  "settings.privacy.secureDns.quad9": {
+    "message": "Quad9 – blockiert auch bekannte Malware-Websites",
+    "source": "sha256:40941c6e79368d86531be6c7b600c95675d1cacd7557aa9420606cd5a5141855"
+  },
+  "settings.privacy.secureDns.custom": {
+    "message": "Eigener Anbieter…",
+    "source": "sha256:ca16ac00d1d7fe9ec158ec31c708efab376adad77ec49f9221028c76e1b14b13"
+  },
+  "settings.privacy.secureDnsTemplate.label": {
+    "message": "Adresse des eigenen Anbieters",
+    "source": "sha256:dcfcb34ac930905ee93be8216e84824d1efd73cf1f51f975e10b060700761238"
+  },
+  "settings.privacy.secureDnsTemplate.hint": {
+    "message": "Die sichere DNS-Adresse deines Anbieters (ein https://-Link), z. B. https://dns.nextdns.io/<profile>.",
+    "source": "sha256:00fab0b1a3322e13f67d6b8104f6db0c717cf9087bd077870374b52439a493b0"
+  },
+  "settings.privacy.fillAMatchingLogin": {
+    "message": "Füllt auf deinen Wunsch ein passendes Login-Objekt aus deiner installierten 1Password-App aus. Solange dies an ist, prüft Blanc Seiten auf ein Anmeldeformular, damit die Island Ausfüllen anbieten kann – es liest nie, was du tippst, und kontaktiert 1Password erst, wenn du es verlangst.",
+    "source": "sha256:bc6326437ea5c076c519532868264cc289d52612e65afe28fbfcb4a3088f4585"
+  },
+  "settings.privacy.onePasswordOpenApp.label": {
+    "message": "1Password-App",
+    "source": "sha256:bcdd97e312570a766c991379e01b496f4a0807ceca88b4618c55a64c60457281"
+  },
+  "settings.privacy.onePasswordOpenApp": {
+    "message": "1Password öffnen",
+    "source": "sha256:3bad8cf15317e388a6181386adbc05b13c7a359f59e2bbedf7f53e8e9484bf32"
+  },
+  "settings.privacy.onePasswordEnabled.label": {
+    "message": "Logins aus 1Password ausfüllen",
+    "source": "sha256:44f882ebc9230ea9df0af86d6c8d248c4448d2215a04ea154514699eb53da296"
+  },
+  "settings.privacy.onePasswordEnabled.hint": {
+    "message": "Öffne in 1Password Einstellungen → Entwickler und aktiviere „Mit 1Password SDKs integrieren“",
+    "source": "sha256:cfd483ff5b69d356a76a4a436ded206af816c83cd6de2da5d8ee7f006b385b8e"
+  },
+  "settings.privacy.onePasswordAccount.label": {
+    "message": "1Password-Konto",
+    "source": "sha256:c8de7d092524de23b62f8f762c6d11596e614118f3539cd21a245b7f07ed0a6c"
+  },
+  "settings.privacy.onePasswordAccount.hint": {
+    "message": "Die E-Mail-Adresse, mit der du dich bei 1Password anmeldest. Eine Konto-ID funktioniert auch. Wird nur auf diesem Gerät gespeichert.",
+    "source": "sha256:119590c7f5d7a60496e1a1855260c46f6b8c813505dd4733b52548e92be471e9"
+  },
+  "settings.privacy.onePasswordVerify": {
+    "message": "Prüfen",
+    "source": "sha256:fb1483f8a2f89772c6d29de3fbb2b89e0cf35d3fae1c9332bb0f5a79b53be1c7"
+  },
+  "settings.privacy.useViewFill": {
+    "message": "Nutze Darstellung → Login aus 1Password ausfüllen oder <0>/1password</0>. Auf dem Mac: ⌥⌘P. Unter Windows und Linux: Strg+Umschalt+P.",
+    "source": "sha256:20179e7b862308af9d79e4782590b8a602cb258786a76514cb022cbfc2d0c338"
+  },
+  "settings.privacy.sitePermissions.title": {
+    "message": "Website-Berechtigungen",
+    "source": "sha256:3945a9c0872d978f6234ee3cf9d9e46791d65aaddeee3f222599faa001fc1576"
+  },
+  "settings.privacy.sitesYouveAllowedOr": {
+    "message": "Websites, denen du den Zugriff auf Kamera, Mikrofon, Standort oder Mitteilungen erlaubt oder verweigert hast.",
+    "source": "sha256:b112317ffcc697c1a490c092f3b95a11f24d19282b48a8923eccfb93d4330f4b"
+  },
+  "settings.privacy.usageAndData.title": {
+    "message": "Nutzung und Daten",
+    "source": "sha256:d5533680740e2b702ca79c48cdefc6613fa4ac3817409d6ab0e31d9ac4f40734"
+  },
+  "settings.privacy.usagePing.label": {
+    "message": "Blanc verbessern helfen",
+    "source": "sha256:81b40a86cffdea4174788cdd176bd45aa65eb3ced82131c4e67c0c5ee29fc3a7"
+  },
+  "settings.privacy.usagePing.hint": {
+    "message": "Zählt aktive Nutzer und welche Startseiten-Layouts und lokalen Funktionen genutzt werden. Sendet eine zufällige Installations- und Sitzungs-ID, App-Version, Plattform, Architektur, grobe Hauptversion des Betriebssystems und feste Funktionsnamen; nie URLs, Suchen, Seiteninhalte oder Aktivitäten in privaten Tabs. Das ist eine pseudonyme Messung an einen Cloudflare-Sammler von Blanc. Er speichert einen verschlüsselten Hash der Installations-ID; ein optionaler Google-Analytics-Spiegel erhält diesen Hash und dieselben eingeschränkten Felder. Schalte dies aus, um künftige Ereignisse zu stoppen.",
+    "source": "sha256:99cae5a260e24119483383f40239f227c0ef2f5b82300d450f628627f83a42c4"
+  },
+  "settings.privacy.resetInstallId": {
+    "message": "Installations-ID zurücksetzen",
+    "source": "sha256:a50e209742676bf4b0f483e96ea3ff954cf998eb7f17925e8c202fb5c8fcb3df"
+  },
+  "settings.privacy.removesCookiesCacheAnd": {
+    "message": "Entfernt Cookies, Cache und Websitedaten aller Websites. Du wirst überall abgemeldet.",
+    "source": "sha256:994a20d231e9647dee9323edba7d74328891397fccd66fa0a04f3c4c1f31fc2c"
+  },
+  "settings.privacy.clearBrowsingData": {
+    "message": "Cookies, Cache & Websitedaten löschen",
+    "source": "sha256:377e2d590cb54e446ab3cb2468e193f073f308d119cd92f47bf49fd3af12f592"
+  },
+  "settings.trust.title": {
+    "message": "Info & Vertrauen",
+    "source": "sha256:7b2086e4051e06e5573ea36e9ea4d46da5a886601c09a8d4c3c99ce252ce03ed"
+  },
+  "settings.trust.factsCheckedOnThis": {
+    "message": "Auf diesem Gerät geprüfte Fakten. Das Öffnen dieses Bereichs löst keine Netzwerkanfrage aus.",
+    "source": "sha256:d64678af7700ff46eb55b9d8d816b896082eecce65708b9ff43a3c7f1547c67c"
+  },
+  "settings.trust.trustReceiptStatus": {
+    "message": "Installierter Build wird geprüft…",
+    "source": "sha256:846286536973ce10499773900d9e44ca4138d56917d6b2224c0a50d443f668a1"
+  },
+  "settings.diagnostics.title": {
+    "message": "Diagnose",
+    "source": "sha256:68cfcd0a0c29d43908053a2649c0e147e54825d72ce43f9b9edb267d600c6649"
+  },
+  "settings.diagnostics.blancKeepsALocal": {
+    "message": "Blanc führt ein lokales Absturzprotokoll mit 50 Einträgen samt Zeitstempel, Prozesstyp und Fehlergrund. Es enthält nie URLs, Seitentitel, Verlauf, Profilnamen, Kontodaten, Kennungen, den Zustand ruhender Tabs oder geschlossener Tabs, und nichts wird automatisch gesendet.",
+    "source": "sha256:4ff098cac932f4e85d10ba3e177b126a3d45fcaa278f4a628e92414b2ebe5d0c"
+  },
+  "settings.diagnostics.diagnosticsSummary": {
+    "message": "Lokaler Absturzverlauf wird geprüft…",
+    "source": "sha256:df040155bd7dda3a3a10b776bec7be0b9846cd4941b05bad562166cb212df221"
+  },
+  "settings.diagnostics.diagnosticsExport": {
+    "message": "Diagnose exportieren…",
+    "source": "sha256:53a7edfdc8066a3499e05977f14bedac8c3efe7736347e702060e7598fab1fb1"
+  },
+  "settings.diagnostics.diagnosticsClear": {
+    "message": "Absturzverlauf löschen",
+    "source": "sha256:ee60ef9d4f8bebb0cc5611d9e1ed4697cab9c977a560aefb426b238c104f300e"
+  },
+  "settings.patron.title": {
+    "message": "Blanc Patron",
+    "source": "sha256:19e097972083774279bdee2b2d1cba4e33c832605fb19c4fed78fe0e1ac7ac4e"
+  },
+  "settings.patron.blancPatronUnlocksBlanc": {
+    "message": "Blanc Patron schaltet Blanc Spaces auf allen Plattformen frei. Eine einmalige Gründerlizenz wird einmal aktiviert, ohne weiteren Kontakt. Ein Monats- oder Jahresabo meldet sich etwa einmal am Tag bei Polar – nur mit Lizenzschlüssel und Aktivierungs-ID, nie mit Browserdaten –, um zu bestätigen, dass es noch aktiv ist. Läuft es aus, bleiben bestehende Spaces verfügbar, neue können aber nicht mehr erstellt werden.",
+    "source": "sha256:db27e85a4632633da3a8acaa277d5e7a27e578f3ee4b8c11971a4307302c44ab"
+  },
+  "settings.patron.patronCheckout": {
+    "message": "Patron werden – $4/Monat oder $30/Jahr",
+    "source": "sha256:1c931bcc391535d63e5c025100ee1149a39d8832f87a6e6239057d26538cc342"
+  },
+  "settings.patron.patronActivateHint": {
+    "message": "Schon Patron? Gib den Lizenzschlüssel ein, den du bei Polar unter Käufe findest, um dieses Gerät zu aktivieren.",
+    "source": "sha256:814891374a9c6a214e3f803e3d75550a3e054f18eac912cd3c5e25a108626691"
+  },
+  "settings.patron.patronKey.placeholder": {
+    "message": "Lizenzschlüssel",
+    "source": "sha256:fe3a538a7ba93183bc6e483dfe2585eb3b66f7c943b11c760a7c6aa545019c0e"
+  },
+  "settings.patron.patronActivate": {
+    "message": "Aktivieren",
+    "source": "sha256:df054ea539e0482a32e54f5fcc9968f1025a9673aa0b8ef4ebaac42d448b6468"
+  },
+  "settings.help.title": {
+    "message": "Hilfe",
+    "source": "sha256:de09c1700c7ed8017e95215a9bb7865292f6342cc85bae9b8ad7f7588a536cdc"
+  },
+  "settings.help.aboutBlanc.title": {
+    "message": "Über Blanc",
+    "source": "sha256:3d608b9907f8811328d7cbe01373ac685bbe10ce86472759876bc076117ec7b4"
+  },
+  "settings.help.platform": {
+    "message": "Plattform",
+    "source": "sha256:02dbca79b6900129c2591bf56c2c470503f9a7afd4ef4e61e37d411c7c22eb2e"
+  },
+  "settings.help.architecture": {
+    "message": "Architektur",
+    "source": "sha256:8f08f36c7d8232d7198b9bea6f46a83b515991275a953038c184a3174d69db8d"
+  },
+  "settings.help.blancUsesChromiumThrough": {
+    "message": "Blanc nutzt Chromium über Electron, um Websites darzustellen. Updates von Electron und Chromium kommen mit neuen Blanc-Releases und ersetzen die ganze App. Zum Anwenden eines Updates muss Blanc neu gestartet werden.",
+    "source": "sha256:092ff7d0fef4539db6734caee5ba131836fcf5ffc45974378cf2710268cfbef4"
+  },
+  "settings.help.checkForUpdates": {
+    "message": "Nach Updates suchen…",
+    "source": "sha256:4d3d07a5998d1aefaa769b79ffbdbc4dd5ab7ffb6d179bbe8336921bfae834f8"
+  },
+  "settings.help.howBlancWorks": {
+    "message": "So funktioniert Blanc ↗",
+    "source": "sha256:5247bb81c0dc53bd273812df814f176361eed81f43505ce2d80aa991ee55afb4"
+  },
+  "settings.help.sourceCode": {
+    "message": "Quellcode ↗",
+    "source": "sha256:d5f5ff4ddd3d678897ac6038000a52d41c6471e6646c34c8477350143e8d8e31"
+  },
+  "settings.help.privacyPolicy": {
+    "message": "Datenschutz ↗",
+    "source": "sha256:957690a78794fa604fa678b6941887aad35be15f4626d5b0c9724e3ac339dad7"
+  },
+  "settings.help.releaseNotes": {
+    "message": "Versionshinweise ↗",
+    "source": "sha256:54d23b653cd92bf90cd30d11863993279c5b4728ce0054c85333c7363c1d816d"
+  },
+  "settings.help.extensionsAndPasswordManagers.title": {
+    "message": "Erweiterungen und Passwortmanager",
+    "source": "sha256:9b5fee1cfeb9bbce2b80e251f83adea73414b68e4e1b7f4aebec208cb4f945b6"
+  },
+  "settings.help.youCanBrowseChrome": {
+    "message": "Du kannst Seiten des Chrome Web Store ansehen, aber Blanc kann keine Chrome-Erweiterungen installieren.",
+    "source": "sha256:bfa57f07153a29e78d6f66001d1d4d248c0c7572199183082d0c79b629e6e18d"
+  },
+  "settings.help.onMacOSWindowsAnd": {
+    "message": "Unter macOS, Windows und Linux bietet Blanc ausdrückliches Ausfüllen von Logins aus der installierten 1Password-App. Diese Integration speichert keine Passwörter und füllt nichts automatisch aus.",
+    "source": "sha256:1e2045c31ac2f611bb4219db34760a9df80480a906133202687fa7fb9385915b"
+  },
+  "settings.help.connectionsBlancCanMake.title": {
+    "message": "Verbindungen, die Blanc herstellen kann",
+    "source": "sha256:59e3737387e9f89af587322f024968bef731f8f98e10ac86a87c8227fe1d862e"
+  },
+  "settings.help.blancConnectsToWebsites": {
+    "message": "Blanc verbindet sich mit Websites, die du öffnest, und mit GitHub für App-Updates. Suchen und aktivierte Vorschläge gehen an deinen gewählten Suchanbieter; DNS-Abfragen nutzen dein System oder den gewählten DNS-Anbieter. Wenn du Google wählst, gehen Suchen und geeignete Vorschlagsanfänge an Google.",
+    "source": "sha256:95664b26717f6704fbcdaafbe2c9e17f89639b8a5f25a89d53bf92ba3731447e"
+  },
+  "settings.help.enabledUsageMeasurementGoes": {
+    "message": "Die aktivierte Nutzungsmessung geht an einen Cloudflare-Sammler von Blanc und, falls eingerichtet, an dessen Google-Analytics-Spiegel. Synchronisierung, Patron, 1Password und Tab-Übergabe stellen eigene Verbindungen her, wenn sie eingerichtet oder angefordert sind. Dies beschreibt das Verhalten; es ist keine Live-Netzwerküberwachung.",
+    "source": "sha256:e7f10e93c7d0a8002caf8da737f3df8df8177090292ac4b6e7971cebc84c1e27"
+  },
+  "settings.help.dataRecipientsAndControls": {
+    "message": "Daten, Empfänger und Kontrolle ↗",
+    "source": "sha256:89f8abf35c4604e18460c5d13a170430920f805bca62a05d0ade5f8feeb554c2"
+  },
+  "settings.help.somethingBrokenOrWorking": {
+    "message": "Funktioniert etwas nicht oder anders, als es sollte? Meldungen gehen an Blancs öffentlichen Issue-Tracker auf GitHub. Wenn du angibst, welche Version und welches Betriebssystem du nutzt und welche Seite du angesehen hast, lässt sich eine Meldung viel schneller bearbeiten.",
+    "source": "sha256:8f0d482c2265b6ce00a6d1a27083487e14774c4505a5cc819b241c8ec2d44c6e"
+  },
+  "settings.help.reportAnIssue": {
+    "message": "Problem melden <0>↗</0>",
+    "source": "sha256:92e1552cd5171d977893b527e76128cf8cae2b2f2f600d389d7b87d328a99141"
+  },
+  "settings.privacy.secureDnsError": {
+    "message": "Diese Adresse ist ungültig – der bisherige Anbieter wird weiter verwendet.",
+    "source": "sha256:185ccffbd3d1b0b7ac8fe703bb2a5af825fc03e4214b122ebf164d3fae5803b9"
+  },
+  "settings.sync.syncWipe": {
+    "message": "auch synchronisierte Daten löschen",
+    "source": "sha256:ae66751de4940f5f0e7feaf06c03d815fbadf1984bb7f08b98ca88180d4d0e2c"
+  },
+  "settings.sync.syncTabsShare": {
+    "message": "offene Tabs dieses Geräts mit deinen anderen Geräten teilen",
+    "source": "sha256:62ce644bbbfcb4d4fa361f75f4eea3a9b8e9aaec8e82b7dc490ab4e9637f8916"
   }
 }
