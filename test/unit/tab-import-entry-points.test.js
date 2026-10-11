@@ -21,14 +21,19 @@ test('Favorites exposes an exact in-sheet Bring tabs entry point', () => {
 });
 
 test('Bring Your Tabs groups profiles under bundled browser artwork', () => {
-  const html = read('src/renderer/pages/tab-import.html');
+  const html = withoutInterfaceKeys(read('src/renderer/pages/tab-import.html'));
   const renderer = read('src/renderer/pages/tab-import-open-tabs.js');
   const css = read('src/renderer/pages/pages.css');
+  // The page's English lives in the interface catalog (F44).
+  const copy = Object.entries(JSON.parse(read('copy/messages/en.json')))
+    .filter(([key]) => key.startsWith('tabImport.')).map(([, entry]) => entry.message).join('\n');
 
   assert.match(html, /id="tabImportBrowserList"[^>]+role="radiogroup"/);
   assert.match(html, /id="tabImportProfileSection"/);
-  assert.match(html, /id="tabImportStepProgress"[^>]+aria-live="polite"[^>]*>Step 1 of 4/);
-  assert.match(renderer, /stepProgressEl\.textContent = `Step \$\{STEPS\.indexOf\(step\) \+ 1\} of \$\{STEPS\.length\}`/);
+  // The script writes the step while the page loads, so it is the only writer.
+  assert.match(html, /id="tabImportStepProgress"[^>]+aria-live="polite"><\/p>/);
+  assert.match(renderer, /stepProgressEl\.textContent = t\('tabImport\.step', \{ step: STEPS\.indexOf\(step\) \+ 1, total: STEPS\.length \}\)/);
+  assert.match(copy, /Step \{step\} of \{total\}/);
   assert.doesNotMatch(html, /tab-import-kicker|tab-import-assurances|data-step-marker/);
   assert.match(html, /Only the first tab wakes\. Your source browser and Favorites stay unchanged\./);
   assert.doesNotMatch(html, /Profiles keep separate windows|Changing the browser updates the profiles/);
@@ -43,13 +48,13 @@ test('Bring Your Tabs groups profiles under bundled browser artwork', () => {
 
   assert.match(renderer, /dataset\.sourceLabel = source\.label/);
   assert.match(renderer, /openSource\(source\.id, source\.label, \{[\s\S]*?browserName: source\.browser/);
-  assert.match(renderer, /Permission needed/);
+  assert.match(copy, /Permission needed/);
   assert.match(renderer, /suggestSourceGroups/);
-  assert.match(renderer, /saved, restorable session/);
-  assert.match(renderer, /depends on its startup setting/);
-  assert.match(renderer, /Blanc only reads it and never removes tabs/);
-  assert.match(renderer, /will not use an older snapshot/);
-  assert.match(renderer, /waiting\.textContent = 'Waiting…'/);
+  assert.match(copy, /saved, restorable session/);
+  assert.match(copy, /depends on its startup setting/);
+  assert.match(copy, /Blanc only reads it and never removes tabs/);
+  assert.match(copy, /will not use an older snapshot/);
+  assert.match(renderer, /waiting\.textContent = t\('tabImport\.source\.waiting'\)/);
   assert.match(renderer, /button\.disabled = true/);
   assert.match(renderer, /button\.classList\.toggle\('waiting', waiting\)/);
   assert.match(css, /\.tab-import-source-btn\.waiting \.tab-import-source-arrow \{ display: none; \}/);
@@ -62,7 +67,7 @@ test('Bring Your Tabs groups profiles under bundled browser artwork', () => {
     'wizard transitions must reset the sheet scrollport so the next heading stays visible');
   assert.match(renderer, /requestAnimationFrame\(resetScroll\)/,
     'the scroll reset must win over Chromium focus reveal after the clicked CTA is hidden');
-  assert.match(renderer, /group\.confidence === 'high' \? 'from source' : 'new'/,
+  assert.match(renderer, /group\.confidence === 'high' \? t\('tabImport\.organize\.fromSource'\) : t\('tabImport\.organize\.new'\)/,
     'source-browser groups must be distinguished from groups created during review');
   assert.doesNotMatch(css, /\.tab-import-review-row,\s*\n\s*\.tab-import-review-heading/,
     'the narrow layout must not turn the group-name flex basis into vertical blank space');

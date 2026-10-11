@@ -5018,7 +5018,7 @@
     "source": "sha256:c8cafef80adc5b45cf34696535458a90d22a60a753dc8b5ad0c8359fed374473"
   },
   "favorites.folder.remove": {
-    "message": "ordner entfernen",
+    "message": "Ordner entfernen",
     "source": "sha256:6230fe04557a597af97f01f6d719d584773d577a05d42339880f2835d7ffc8a9"
   },
   "favorites.folder.removeTitle": {
@@ -5180,5 +5180,489 @@
   "sheet.close": {
     "message": "Schließen",
     "source": "sha256:edbb96b55189c4c04f4f19c36cca89d6e6f5d9cd48ce389a3af1a5b8769917b4"
+  },
+  "tabImport.title": {
+    "message": "Tabs mitbringen",
+    "source": "sha256:262e44dde4bbbab7cbbe563d7f9e5cf0649683aabb03437d1166d3404e83c988"
+  },
+  "tabImport.heading": {
+    "message": "Tabs mitbringen",
+    "source": "sha256:e2033289dae0f3b64f1b730af97a4fabb699bc7b21e9c3c1aee8710043109d5d"
+  },
+  "tabImport.step": {
+    "message": "Schritt {step} von {total}",
+    "source": "sha256:86920a48520f51e6899b25b4435f89c6fb8fb291b01df718fadfcf4152b5d448"
+  },
+  "tabImport.source.title": {
+    "message": "Wähle einen Browser",
+    "source": "sha256:7c61a901ff45e6f8a5a1f6d58bfaa1750e7442a7b7d2e531e8b5f4274bc2a63f"
+  },
+  "tabImport.source.browsers": {
+    "message": "Browser",
+    "source": "sha256:1ead4cda961c58557b74c3cf951c317d0097fbc6d2e786420e1ea3e69cfa1c21"
+  },
+  "tabImport.source.profileTitle": {
+    "message": "Wähle ein Profil",
+    "source": "sha256:2882c5b302a41c738dc0ecfce2d130206b477056e507cd5c433d41e8f9003cf7"
+  },
+  "tabImport.source.chooseProfile": {
+    "message": "Wähle ein Profil aus {browser}",
+    "source": "sha256:c662dcda1f508c1f47103451555d95ebc4a68e8cd3da6b88e42e57cbb4134b14"
+  },
+  "tabImport.source.needsAccess": {
+    "message": "{browser} braucht Zugriff",
+    "source": "sha256:4b2cb456e3c9a7b33d1e16959cd78753a435559b753a03030f7f1beb3ab56923"
+  },
+  "tabImport.source.permissionNeeded": {
+    "message": "Berechtigung erforderlich",
+    "source": "sha256:ec2fefc3a925012b6b49d563d74000fef60393488aa998711645d274f2a18ea0"
+  },
+  "tabImport.source.profiles": {
+    "message": "{count, plural, one {# Profil} other {# Profile}}",
+    "source": "sha256:7261bc8f541c1478960c84a2c46ecd6bca7d5ed752d6427a33ca1debb40404a6"
+  },
+  "tabImport.source.read": {
+    "message": "Offene Tabs aus {source} lesen",
+    "source": "sha256:39f0ca85540383b076d6ec2ff8ec192a59a98ece8c6946089d3df832d6e5f781"
+  },
+  "tabImport.source.waiting": {
+    "message": "Warten…",
+    "source": "sha256:9e6ef034a4883c2bccd3f354a7334a7e8edfb51d6ab192a6eb28a51684b72bc0"
+  },
+  "tabImport.source.loading": {
+    "message": "Browserprofile werden geladen…",
+    "source": "sha256:da988a4d8f98d2094edd0fbe1f3084b06411fcd715cc24bdefd548b9ac74cb80"
+  },
+  "tabImport.source.loadFailed": {
+    "message": "Browserprofile konnten nicht geladen werden.",
+    "source": "sha256:1a3432cb6d70a2efaf86c6705921d50e6f634d2ef753372d7372e5cb7edcbc6e"
+  },
+  "tabImport.source.none": {
+    "message": "Blanc kann offene Tabs aus {browsers} mitbringen, aber keiner davon hat ein Profil auf diesem Gerät. Um Lesezeichen aus einem anderen Browser mitzubringen, exportiere sie in eine HTML-Datei und nutze dann „HTML importieren…“ in den Favoriten.",
+    "source": "sha256:aea52c5d47ea7d0fdc555d611ac991f9566171941b2cea3de4ad212c46749095"
+  },
+  "tabImport.quit.title": {
+    "message": "Speichern der Tabs in {browser} abschließen",
+    "source": "sha256:365f8bd3acdd124a3efaa4c6efa10fd7be2bca17798e561891827bdd4f4290e6"
+  },
+  "tabImport.quit.body": {
+    "message": "{count, plural, one {Blanc hat eine gespeicherte, wiederherstellbare Sitzung mit # Tab gefunden. Beende {browser} normal, damit die neueste Sitzung fertig gespeichert wird. Blanc liest sie nur und entfernt nie Tabs aus {browser}.} other {Blanc hat eine gespeicherte, wiederherstellbare Sitzung mit # Tabs gefunden. Beende {browser} normal, damit die neueste Sitzung fertig gespeichert wird. Blanc liest sie nur und entfernt nie Tabs aus {browser}.}}",
+    "source": "sha256:7c42ede7b0619ea00095d508eea952bd1246a6d8402e89950556eb978ef9ccd2"
+  },
+  "tabImport.quit.bodyNoCount": {
+    "message": "Blanc hat eine gespeicherte, wiederherstellbare Sitzung gefunden. Beende {browser} normal, damit die neueste Sitzung fertig gespeichert wird. Blanc liest sie nur und entfernt nie Tabs aus {browser}.",
+    "source": "sha256:1dfa95a66b34926bfcb80a0ab356aef7f12c8b0a869db8a830ce6c143e4b7bd5"
+  },
+  "tabImport.quit.note": {
+    "message": "Ob diese Tabs in {browser} automatisch wieder geöffnet werden, hängt von dessen Starteinstellung ab.",
+    "source": "sha256:a28bfe360a6e4aaf0d36bb9a61a98fb063a8ab625725570ba5094269ddfa8819"
+  },
+  "tabImport.quit.retry": {
+    "message": "Ich habe {browser} beendet – erneut prüfen",
+    "source": "sha256:17c0aa5f2ebc067f8b5bc557adf6ced475b7aed41879be4aa14b70444e66dcfa"
+  },
+  "tabImport.status.checking": {
+    "message": "Die gespeicherte Sitzung von {source} wird geprüft…",
+    "source": "sha256:30f9ee91c640b7baf818b94a12af38f5e6d548dc7705327bd5c383ae626ea2e4"
+  },
+  "tabImport.status.reading": {
+    "message": "Offene Tabs aus {source} werden gelesen…",
+    "source": "sha256:46b68daf1b8f0839fc4231ef27ee7ac8f3b34bd57a70a629dafa7d7d5a0e29f6"
+  },
+  "tabImport.error.notReadable": {
+    "message": "Die neueste Sitzung von {source} lässt sich nicht sicher lesen. Öffne {browser} erneut; Blanc verwendet keinen älteren Stand.",
+    "source": "sha256:92eb8ac57b0e31ac602f3dfd00473c1a17740295b521eab55f4539bf5c9b0d29"
+  },
+  "tabImport.error.sourceGone": {
+    "message": "Dieses Browserprofil ist nicht mehr verfügbar.",
+    "source": "sha256:a0a631ecbe15ba50c467faf2ceecf7daa4a5c2df0a94a17baa0d325b3c533c16"
+  },
+  "tabImport.error.permission": {
+    "message": "macOS hat dieses Profil blockiert. Gib Blanc den Festplattenvollzugriff und versuch es dann noch einmal.",
+    "source": "sha256:37b01499d0be2647dd15d52f0aad30ab639b318815a84f5d5ecf455199c74618"
+  },
+  "tabImport.error.sessionTooLarge": {
+    "message": "Diese gespeicherte Sitzung ist zu groß, um sie sicher zu importieren.",
+    "source": "sha256:494ab1e9cff4ad1abe7b035442021495596bb4f285f4410f00cba15c5a2cf6f7"
+  },
+  "tabImport.error.tooManyTabs": {
+    "message": "Dieses Profil hat mehr als {limit} offene Tabs. Nichts wurde geändert.",
+    "source": "sha256:34896403896a697a6ded65cd965a713863fb601d0f500a3bfe82572530ad0f0d"
+  },
+  "tabImport.error.encrypted": {
+    "message": "{source} verwendet ein verschlüsseltes Sitzungsformat, auf das Blanc nicht zugreift.",
+    "source": "sha256:0b3f0ebb1ea121052216714ae5a9e93123ce0878e437970d3eba0863365c82ab"
+  },
+  "tabImport.error.empty": {
+    "message": "In {source} wurden keine wiederherstellbaren offenen Tabs gefunden.",
+    "source": "sha256:1cd5bb091765e65428f30afc7ba857fdc53fd1cba129214a9c4e4565a057c6a8"
+  },
+  "tabImport.error.unreadable": {
+    "message": "Blanc konnte die gespeicherte Sitzung von {source} nicht lesen.",
+    "source": "sha256:b61192175a85245a0cbb0bab4a757d6cb72b43a25f469f99a67faea705929227"
+  },
+  "tabImport.error.readFailed": {
+    "message": "Blanc konnte die offenen Tabs aus {source} nicht lesen.",
+    "source": "sha256:ea2b060204d055f148661decb2934d5c82819f2e362853eb4b6012faf7374b83"
+  },
+  "tabImport.status.expired": {
+    "message": "Dieser Import ist abgelaufen. Wähle die Quelle erneut.",
+    "source": "sha256:3fdbdcdddc8e8b138172621fec6d50c1c56220ef3c7b1f38e6822a47aa499a63"
+  },
+  "tabImport.status.selectionFailed": {
+    "message": "Die Auswahl konnte nicht aktualisiert werden.",
+    "source": "sha256:5a2c932d3d4be7195c805829f968fec5788a780d4869b545fbf565bff3342541"
+  },
+  "tabImport.tabs.title": {
+    "message": "Wähle Tabs",
+    "source": "sha256:a14e659e0d37c3b2e4b56821e0c045f01450ac6c107530a373d90421392864db"
+  },
+  "tabImport.tabs.selectAll": {
+    "message": "Alle auswählen",
+    "source": "sha256:97b2ba66cf503bd2bd50d20fa4fd1a1beccb8a794257ef6ea84216340697dddc"
+  },
+  "tabImport.tabs.selectNone": {
+    "message": "Keine auswählen",
+    "source": "sha256:84b31d6a351d36852842a9e719bd435346e52710f6a4031cc96517a158c426d9"
+  },
+  "tabImport.tabs.back": {
+    "message": "Zurück zur Quelle",
+    "source": "sha256:1bf18d0b00498c3a13d2b443e0c83c407a354fa1513871b32f192b12bf9368a2"
+  },
+  "tabImport.tabs.continue": {
+    "message": "Ausgewählte Tabs ordnen",
+    "source": "sha256:38072eaf43066752ab134dd78b5c1d5776e4d4cb6c4f7caf259e30c068081df8"
+  },
+  "tabImport.tabs.window": {
+    "message": "Fenster {number}",
+    "source": "sha256:c1a88c69775bb3f9b7132fdfaa22701d5c72b3c75bdb69ce99c2258ee128e240"
+  },
+  "tabImport.tabs.openTabs": {
+    "message": "Offene Tabs",
+    "source": "sha256:3070bc0c45cee52ca414241d5b938c9dceabc771ab60023aba9f8a5f2161b3d4"
+  },
+  "tabImport.tabs.count": {
+    "message": "{count, plural, one {# Tab} other {# Tabs}}",
+    "source": "sha256:609615a4ae84b4598fbee02d951ca37ca05a6124925c270e9c8347c913f02fb9"
+  },
+  "tabImport.tabs.unsupported": {
+    "message": "{count, plural, one {# nicht unterstützter Tab wurde ausgelassen.} other {# nicht unterstützte Tabs wurden ausgelassen.}}",
+    "source": "sha256:c8caaf5a4631aa3ea6c8224a14d04528a438cc61c5090fb06caa0668002557e0"
+  },
+  "tabImport.tabs.selected": {
+    "message": "{selected} von {total} ausgewählt",
+    "source": "sha256:bde90062e967ee676429e9c69a2761d27463ee14e9b7f36e0080799547d9d7b5"
+  },
+  "tabImport.tab.site": {
+    "message": "Website",
+    "source": "sha256:203e7b62fc8687153b3f5702e9be69079e7e949cc227aafcf2b64eaab3005538"
+  },
+  "tabImport.tab.sourceGroup": {
+    "message": "Gruppe: {group}",
+    "source": "sha256:4f583dc37ba59b4d455ea051a29e98846470e3a2d749a7561fc1d5c962fa396d"
+  },
+  "tabImport.tab.pinned": {
+    "message": "angeheftet",
+    "source": "sha256:e49a47b2e4d297275ce4895e388dd202e4d2d83f23010530b7d8f9d2507d97d7"
+  },
+  "tabImport.tab.untitled": {
+    "message": "Ohne Titel",
+    "source": "sha256:5f3a59b7c842545a5712997ce484194d4bc48790263f44588107d93c6ca32d47"
+  },
+  "tabImport.tab.bring": {
+    "message": "{title} mitbringen",
+    "source": "sha256:8e7668e8755d93d5b06363bf05ac6441c252e4f8bd92b9e98e3fed160d9eadab"
+  },
+  "tabImport.status.preparing": {
+    "message": "Deine benannten Gruppen werden vorbereitet…",
+    "source": "sha256:7df7af59ffe8120be9a74376ebbd30c06ae454fc78a339413116737c5137636b"
+  },
+  "tabImport.status.prepareFailed": {
+    "message": "Diese Tabs konnten nicht zum Ordnen vorbereitet werden.",
+    "source": "sha256:3815c9546ae45f696b5566097dd99686dbb9f9425093b8d0743de525b0be938c"
+  },
+  "tabImport.organize.title": {
+    "message": "Tabs ordnen",
+    "source": "sha256:f9b0d43bb9916e33f0ad6b2759cd6248928ff991e0a8b0941277a54b94414556"
+  },
+  "tabImport.organize.newGroupForm": {
+    "message": "Benannte Gruppe erstellen",
+    "source": "sha256:99d67eb42f15f0deed5cb53ba04f0994f28ba7216fcc7c219b0ff5dff3edd0c7"
+  },
+  "tabImport.organize.newGroupName": {
+    "message": "Name der neuen Gruppe",
+    "source": "sha256:bb200fde7921940d07e5a5c1bdcfef77ee2f1f93f1bce5b28663b7dfe93eee44"
+  },
+  "tabImport.organize.newGroupPlaceholder": {
+    "message": "Name der neuen Gruppe",
+    "source": "sha256:a4d72a6352c9588969ca25e772cf294e0fe929536e9be111a672d91d34c8c720"
+  },
+  "tabImport.organize.create": {
+    "message": "Erstellen",
+    "source": "sha256:6dcf27b9a090f6fffeb6cd89deebb7b81432a4e90d29c6b97b7ca2905c5a1afa"
+  },
+  "tabImport.organize.back": {
+    "message": "Zurück zu Tabs",
+    "source": "sha256:ebe319ee30155ad21af6acc8c8ae44f9888f3fe18232dee54c6f53a543738e8d"
+  },
+  "tabImport.organize.continue": {
+    "message": "Import prüfen",
+    "source": "sha256:e93c8172999a106afad80ae8f10134c7c40f9c0bf73c1a69e2bad114c0402c03"
+  },
+  "tabImport.organize.move": {
+    "message": "{title} verschieben",
+    "source": "sha256:ea8988661c18843cdc955a13edcb1e4542a9de95e36ffbfe84e4ea8368e0d26d"
+  },
+  "tabImport.organize.ungroupedOption": {
+    "message": "ohne Gruppe",
+    "source": "sha256:f1d02a45e735c9545f3e214d89d31dad8f67ae65caf67b153c02b17bf1627759"
+  },
+  "tabImport.organize.leaveOut": {
+    "message": "auslassen",
+    "source": "sha256:96e6f324631fa3238dc67c0e2d5e4f63d309b62cd31a6cf51e0f3e9ae91ad791"
+  },
+  "tabImport.organize.restore": {
+    "message": "zurücksetzen",
+    "source": "sha256:c58dc2e9625ace1ee3ea2fa09c13f1076ff4d8789408995584dbf796ac8b87e7"
+  },
+  "tabImport.organize.restored": {
+    "message": "Ursprüngliche Zuordnung wiederhergestellt.",
+    "source": "sha256:2bb2d0d1c30b5c046ecb8b910c310c827d5f7f3ea913b851acb4eeeb8937736d"
+  },
+  "tabImport.organize.moved": {
+    "message": "Zuordnung des Tabs aktualisiert.",
+    "source": "sha256:1019f291f526a565b8d10ddfadef7c61ccf47376755697c68408c9960277cf59"
+  },
+  "tabImport.organize.removed": {
+    "message": "{group} entfernt; die Tabs darin sind jetzt ohne Gruppe.",
+    "source": "sha256:646d1429fcfdabe5f920320c15d7e414bc1ea2f806b538fbb2a3d87dbdb50b36"
+  },
+  "tabImport.organize.rename": {
+    "message": "Gruppe {group} umbenennen",
+    "source": "sha256:da79b3e90f0fb08bd33504de1e10ca621baec98b6244bf28cfc021d49966bd77"
+  },
+  "tabImport.organize.fromSource": {
+    "message": "aus der Quelle",
+    "source": "sha256:27af2227d75b814589bc36da76d4f571d9359d899bd1b76983f7bac01f18b01e"
+  },
+  "tabImport.organize.new": {
+    "message": "neu",
+    "source": "sha256:af87bf98c668e7f3c21bca1a48cc41903786f50c42bf99ea120d247ea70de981"
+  },
+  "tabImport.organize.removeGroup": {
+    "message": "Gruppe entfernen",
+    "source": "sha256:1d5ce084abf1c4be60a3a8c00960ebb216a3b01d99c778738881f123feb6e195"
+  },
+  "tabImport.organize.tooSmall": {
+    "message": "Eine benannte Gruppe braucht mindestens zwei Tabs.",
+    "source": "sha256:a1b6e2b0ce1da923f97788e2d302534b2197de9f07d10f317b29d999ba5b0c56"
+  },
+  "tabImport.organize.ungrouped": {
+    "message": "ohne Gruppe",
+    "source": "sha256:2592ed51fff8973ba8d91f95bee1bd12f4a8afa8f8c6278fc02e0977c8784cfb"
+  },
+  "tabImport.organize.leftOut": {
+    "message": "ausgelassen",
+    "source": "sha256:93363cffd57e24de420fd16e5f123acf4c3e045b6357ac9de4a7fb747ab14f1d"
+  },
+  "tabImport.organize.empty": {
+    "message": "Hier sind keine Tabs.",
+    "source": "sha256:f7679d3b7c6a3aa06fab59d5b2475091d03fa32858e549defe35d5fbf23e7578"
+  },
+  "tabImport.organize.created": {
+    "message": "{group} erstellt. Verschiebe mindestens zwei Tabs hinein.",
+    "source": "sha256:b9528b386228a667d4e533ccdb16c1143031b8b8657bec0c63c80274b25a5722"
+  },
+  "tabImport.groupName.empty": {
+    "message": "Gib einen Gruppennamen ein.",
+    "source": "sha256:435757e5c455e2c691eca76fb79e757c9aabee3ab4940a910ec6cab03a8f76c3"
+  },
+  "tabImport.groupName.tooLong": {
+    "message": "Gruppennamen dürfen höchstens {max} Zeichen haben.",
+    "source": "sha256:a010f7d71fd3629c2ecc4b896a814d7acbfd2f12a8721ba98f1ee211678afa27"
+  },
+  "tabImport.groupName.generic": {
+    "message": "Wähle einen genaueren Gruppennamen.",
+    "source": "sha256:423a397944479258dbe0899a49aaa1e66d5e1349cc023a7aaf60c3190132a2e3"
+  },
+  "tabImport.groupName.taken": {
+    "message": "Dieser Gruppenname wird schon verwendet.",
+    "source": "sha256:51d0e189a21b2b0607ca7ade0f262cc58e71b8af1725e76d23e8e58327b83fba"
+  },
+  "tabImport.issue.unavailable": {
+    "message": "Gruppen sind nicht verfügbar.",
+    "source": "sha256:81dcf51506cf2386ee7cc551453d4d4dc6692496641a2e58eeeb1d84c6505562"
+  },
+  "tabImport.issue.noTabs": {
+    "message": "Wähle mindestens einen Tab aus.",
+    "source": "sha256:5f817f702ff2cfce441742847be5b32dbb55bb4c9f19614a0409b3d60d4992c4"
+  },
+  "tabImport.issue.duplicateName": {
+    "message": "Jede Gruppe braucht einen anderen Namen.",
+    "source": "sha256:0a83cf03db85ef0016d82623a03928029f2da5eae8dd339825eeb6dda3ca5e7a"
+  },
+  "tabImport.issue.groupTooSmall": {
+    "message": "„{group}“ braucht mindestens zwei Tabs.",
+    "source": "sha256:fd794f070eed9d15d62e9b15de6a4af9fcdb38fb11f3ab0781887a3a17a69c22"
+  },
+  "tabImport.issue.placement": {
+    "message": "Prüfe vor dem Öffnen, wo jeder Tab landet.",
+    "source": "sha256:2685a92ced463df14673a67b99a09efbfd489015d5a552e2d276a7fc2dfafd35"
+  },
+  "tabImport.review.title": {
+    "message": "Import prüfen",
+    "source": "sha256:6e6e8945c0bd57619013ea45f26e261c8fbae3a842c23a9852dace4c9c19495b"
+  },
+  "tabImport.review.note": {
+    "message": "Nur der erste Tab wird geladen. Dein Quellbrowser und deine Favoriten bleiben unverändert.",
+    "source": "sha256:5aa7b79f6b2082a2e696d94cb4dbb9f7d27840cffefee48e64e892477b8cf256"
+  },
+  "tabImport.review.back": {
+    "message": "Zurück zum Ordnen",
+    "source": "sha256:02cf21af17bb7ea352189a4c7c26ec643950abe21558293c413835aededdfd8b"
+  },
+  "tabImport.review.apply": {
+    "message": "Tabs in Blanc öffnen",
+    "source": "sha256:9d3b8b0dfc07610b16a83e0be0346ac33328bd976718f5bce372118e33f06ba9"
+  },
+  "tabImport.review.applyCount": {
+    "message": "{count, plural, one {# Tab in Blanc öffnen} other {# Tabs in Blanc öffnen}}",
+    "source": "sha256:701b437072363892be2d7d38229fdc86427f61c2657b32a48a4a8d62333f6fe1"
+  },
+  "tabImport.review.quietTabs": {
+    "message": "{count, plural, one {ruhender Tab} other {ruhende Tabs}}",
+    "source": "sha256:11188505a181cc49d9687215179b658fbeb7ca528c893233b627ef7ee7fd82ed"
+  },
+  "tabImport.review.groups": {
+    "message": "{count, plural, one {benannte Gruppe} other {benannte Gruppen}}",
+    "source": "sha256:886707f6310c4f430d472860d23d9991bdedaa546e2824892f0cd1dd35959a7b"
+  },
+  "tabImport.review.ungrouped": {
+    "message": "{count, plural, one {ohne Gruppe} other {ohne Gruppe}}",
+    "source": "sha256:466df6ce06586d705658fff97b38da2e847be970406e2012a27421b93e794f9f"
+  },
+  "tabImport.review.group": {
+    "message": "{count, plural, one {{group} · # Tab} other {{group} · # Tabs}}",
+    "source": "sha256:3d2493fddb2e4e1a029599f7628b54267e672a59f59f1a60d5a1f9d7a344e7d6"
+  },
+  "tabImport.review.focusFirst": {
+    "message": "Ersten importierten Tab anzeigen",
+    "source": "sha256:786ef7559a8e00f2834f46697fb6ee649b03eb56152a13e107ac5b1deeea58d2"
+  },
+  "tabImport.status.opening": {
+    "message": "Deine Tabs werden geöffnet…",
+    "source": "sha256:f1f0c5bd7591abfae5f3bffb118f639391650e8b52809c31b36d0e50f5657b0a"
+  },
+  "tabImport.status.focusFailed": {
+    "message": "Deine Tabs sind bereit, aber Blanc konnte nicht zum ersten wechseln.",
+    "source": "sha256:9eb834243383382ac99e05e91e8a7e67cdfc51bcdaface320adf6feb3dac9d0e"
+  },
+  "tabImport.status.openFailed": {
+    "message": "Blanc konnte diese Tabs nicht öffnen. Es wurde nichts teilweise importiert.",
+    "source": "sha256:f5d245c16a02fa8f1869c845346ec11834f72be3d0398dc715a0336ac6f1f677"
+  },
+  "tabHandoff.title": {
+    "message": "Tabs importieren",
+    "source": "sha256:e6d48a34dc5e8f4c60f8ee1009c2bdd4b6833881ca655cfbb47c2112c13a8021"
+  },
+  "tabHandoff.nav": {
+    "message": "Tab-Übergabe",
+    "source": "sha256:66ad1ccde1d9ab93cc308185d87dd2033d7d2e53dacd6429dd64ca1aaac59da3"
+  },
+  "tabHandoff.kicker": {
+    "message": "einmalige Übergabe",
+    "source": "sha256:a2bb3bed0f4621187b8260d4e39601f7c8fb271cc9c0c0f89e96af6def9c017e"
+  },
+  "tabHandoff.heading": {
+    "message": "Diese Tabs zu Blanc mitbringen?",
+    "source": "sha256:03e4755cb99a970b95715c35a105737e766671e8130b6753887afa772a8919de"
+  },
+  "tabHandoff.checking": {
+    "message": "Übergabe wird geprüft…",
+    "source": "sha256:7b656b352a4a4aef7b238c0bdc17359ff3ce8d3c0cd61cc33a48568be8526465"
+  },
+  "tabHandoff.loading": {
+    "message": "Die einmalige Übergabe wird abgerufen und überprüft…",
+    "source": "sha256:89e962b0a7cdec544f269e46b2adad3d4178368a4b75bf830c47c49770994673"
+  },
+  "tabHandoff.waiting": {
+    "message": "Warten, bis der abgebrochene Abruf beendet ist, bevor diese Übergabe geöffnet wird…",
+    "source": "sha256:cdfade3b5f2044b19ed1e6467e4129793c3405c00194ff10139b39c54bce0a1b"
+  },
+  "tabHandoff.list": {
+    "message": "Zu importierende Tabs",
+    "source": "sha256:cbde2b7d6720435ec722ac4f060211375f3abdb031a941109300db5a1328495b"
+  },
+  "tabHandoff.newWindow": {
+    "message": "In einem neuen Fenster öffnen",
+    "source": "sha256:356973121284c044abe1c4b0f7ad7cec45ddaf2270cb14c926880ed4c27cb35a"
+  },
+  "tabHandoff.openHere": {
+    "message": "In diesem Fenster öffnen",
+    "source": "sha256:6413dd2d97a6b7bca5faf32d54a727446b77870c8c1a9d7caa37ea3ae4ba1942"
+  },
+  "tabHandoff.openNew": {
+    "message": "In neuem Fenster öffnen",
+    "source": "sha256:c6a18385e568095d69b414353f3c07dbb847c3e48f36b317beb31b21c32ba409"
+  },
+  "tabHandoff.opening": {
+    "message": "Wird geöffnet…",
+    "source": "sha256:612148eec6bf61826bcdec7887a248d979b36bd98255a4412c58f810a0e3c0d7"
+  },
+  "tabHandoff.summaryHere": {
+    "message": "{count, plural, one {# Tab aus {source} wird in diesem {profile}-Fenster geöffnet. Nur der ausgewählte importierte Tab wird jetzt geladen; der Rest startet ruhend.} other {# Tabs aus {source} werden in diesem {profile}-Fenster geöffnet. Nur der ausgewählte importierte Tab wird jetzt geladen; der Rest startet ruhend.}}",
+    "source": "sha256:21abb9fa9a1d0ed1d6c67d4df6a0e9b618d1fc2eee03f79a947c3084969cbdaf"
+  },
+  "tabHandoff.summaryNew": {
+    "message": "{count, plural, one {# Tab aus {source} wird in einem neuen {profile}-Fenster geöffnet. Nur der ausgewählte importierte Tab wird jetzt geladen; der Rest startet ruhend.} other {# Tabs aus {source} werden in einem neuen {profile}-Fenster geöffnet. Nur der ausgewählte importierte Tab wird jetzt geladen; der Rest startet ruhend.}}",
+    "source": "sha256:eb39c0faa69e47eff58aea5284ba10cfcba7674a66d8c276c38647481e956a56"
+  },
+  "tabHandoff.otherBrowser": {
+    "message": "deinem anderen Browser",
+    "source": "sha256:8aebce69022d889bed38d7ef05abaf2a34d422336e9858dd4b72057c3372c599"
+  },
+  "tabHandoff.personalProfile": {
+    "message": "Personal",
+    "source": "sha256:8edc2c42454e94f8a472a80bfaea15202e667b9263a31b531d42d57b4ca03b3e"
+  },
+  "tabHandoff.untitled": {
+    "message": "Importierter Tab",
+    "source": "sha256:b4257b48c398df585d4878734a58d37214e64ae3a5768673730d5a199dd7338f"
+  },
+  "tabHandoff.opensFirst": {
+    "message": "öffnet zuerst",
+    "source": "sha256:5a1b271c2949aefdad1b6fc77fc7f963eb7abd5f7dbd0e812c22dd4d6e2b1541"
+  },
+  "tabHandoff.skipped": {
+    "message": "{count, plural, one {# nicht unterstützter oder unsicherer Tab wurde zurückgelassen.} other {# nicht unterstützte oder unsichere Tabs wurden zurückgelassen.}}",
+    "source": "sha256:5bc02ad75f91f6fa5f218a2871be2338844c0216b7246a753bdda6ab1ff24515"
+  },
+  "tabHandoff.unavailable": {
+    "message": "Die Tab-Übergabe ist nicht verfügbar.",
+    "source": "sha256:60ac4fd7fc0c10286cc353768fff5401fc6fb744eaabd67f6639c9c792a397c6"
+  },
+  "tabHandoff.createNew": {
+    "message": "Kehre zum Quellbrowser zurück und erstelle eine neue Übergabe.",
+    "source": "sha256:f006e0b290a2b36050b53a70e7348e776f07465d0426fac55bb397cc15f42955"
+  },
+  "tabHandoff.openFailed": {
+    "message": "Blanc konnte diese Tabs nicht öffnen. Deine vorhandenen Tabs sind unverändert. Versuch es noch einmal.",
+    "source": "sha256:d95d69826a376462d5619bd48be7a39d09ed2baead0438cbf271813c5a7d800d"
+  },
+  "tabHandoff.gone": {
+    "message": "Diese Übergabe ist nicht mehr verfügbar.",
+    "source": "sha256:4163bb10588f71c94e4b19d4a0e882c84810b3c429ee631175c7d18ffc322aa7"
+  },
+  "tabHandoff.openThrew": {
+    "message": "Blanc konnte diese Tabs nicht öffnen. Versuch die Übergabe noch einmal.",
+    "source": "sha256:62d5e9bfe58454a454adcebf7812bde17b12e457a2fc99ec978ed4e302e65fdb"
+  },
+  "tabHandoff.unsupported": {
+    "message": "Der Tab-Import ist in diesem Build von Blanc nicht verfügbar.",
+    "source": "sha256:0760260b6a8b59e378d1ef05a3442b8a74bccf2fc00a0a5a246415b3181943e2"
+  },
+  "tabHandoff.readFailed": {
+    "message": "Blanc konnte diese Übergabe nicht lesen.",
+    "source": "sha256:9175d119ecd99912e07b467985ccf9913f61c1e763be131d4f25891b49296162"
   }
 }

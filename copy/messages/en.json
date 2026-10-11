@@ -5375,5 +5375,505 @@
   "sheet.close": {
     "message": "Close",
     "note": "Settings, Favorites, History, Downloads and Shortcuts pages: accessible name of the ✕ that closes the page."
+  },
+  "tabImport.title": {
+    "message": "Bring Your Tabs",
+    "note": "Bring Your Tabs page: browser tab title; the feature’s name."
+  },
+  "tabImport.heading": {
+    "message": "Bring your tabs",
+    "note": "Bring Your Tabs page: page heading."
+  },
+  "tabImport.step": {
+    "message": "Step {step} of {total}",
+    "note": "Bring Your Tabs page: progress under the heading."
+  },
+  "tabImport.source.title": {
+    "message": "Choose a browser",
+    "note": "Bring Your Tabs page → step 1 (choose a browser and profile): heading."
+  },
+  "tabImport.source.browsers": {
+    "message": "Browsers",
+    "note": "Bring Your Tabs page → step 1 (choose a browser and profile): accessible name of the browser choices."
+  },
+  "tabImport.source.profileTitle": {
+    "message": "Choose a profile",
+    "note": "Bring Your Tabs page → step 1 (choose a browser and profile): heading above the profiles."
+  },
+  "tabImport.source.chooseProfile": {
+    "message": "Choose a {browser} profile",
+    "note": "Bring Your Tabs page → step 1 (choose a browser and profile): heading above one browser’s profiles; {browser} is its name, e.g. Google Chrome."
+  },
+  "tabImport.source.needsAccess": {
+    "message": "{browser} needs access",
+    "note": "Bring Your Tabs page → step 1 (choose a browser and profile): heading when Blanc may not read that browser yet; {browser} is its name."
+  },
+  "tabImport.source.permissionNeeded": {
+    "message": "Permission needed",
+    "note": "Bring Your Tabs page → step 1 (choose a browser and profile): state of a browser Blanc may not read yet."
+  },
+  "tabImport.source.profiles": {
+    "message": "{count, plural, one {# profile} other {# profiles}}",
+    "note": "Bring Your Tabs page → step 1 (choose a browser and profile): number of profiles under a browser’s name."
+  },
+  "tabImport.source.read": {
+    "message": "Read open tabs from {source}",
+    "note": "Bring Your Tabs page → step 1 (choose a browser and profile): accessible name of a profile button; {source} names the browser and profile."
+  },
+  "tabImport.source.waiting": {
+    "message": "Waiting…",
+    "note": "Bring Your Tabs page → step 1 (choose a browser and profile): shown on a profile while Blanc waits for the browser to quit."
+  },
+  "tabImport.source.loading": {
+    "message": "Loading browser profiles…",
+    "note": "Bring Your Tabs page → step 1 (choose a browser and profile): status."
+  },
+  "tabImport.source.loadFailed": {
+    "message": "Couldn’t load browser profiles.",
+    "note": "Bring Your Tabs page → step 1 (choose a browser and profile): error."
+  },
+  "tabImport.source.none": {
+    "message": "Blanc can bring open tabs from {browsers}, but none of them has a profile on this device. To bring bookmarks from another browser, export them to an HTML file, then use “Import HTML…” in Favorites.",
+    "note": "Bring Your Tabs page → step 1 (choose a browser and profile): shown when no supported browser is found; {browsers} is a list such as “Google Chrome, Brave and Chromium”. “Import HTML…” is the Favorites page button (favorites.import.html); use its translation."
+  },
+  "tabImport.quit.title": {
+    "message": "Finish saving tabs in {browser}",
+    "note": "Bring Your Tabs page → step 1, when the other browser is still open: heading; {browser} is its name."
+  },
+  "tabImport.quit.body": {
+    "message": "{count, plural, one {Blanc found a saved, restorable session with # tab. Quit {browser} normally so it can finish saving the latest session. Blanc only reads it and never removes tabs from {browser}.} other {Blanc found a saved, restorable session with # tabs. Quit {browser} normally so it can finish saving the latest session. Blanc only reads it and never removes tabs from {browser}.}}",
+    "note": "Bring Your Tabs page → step 1, when the other browser is still open: explanation; {browser} is its name."
+  },
+  "tabImport.quit.bodyNoCount": {
+    "message": "Blanc found a saved, restorable session. Quit {browser} normally so it can finish saving the latest session. Blanc only reads it and never removes tabs from {browser}.",
+    "note": "Bring Your Tabs page → step 1, when the other browser is still open: explanation when the tab count is unknown; {browser} is its name."
+  },
+  "tabImport.quit.note": {
+    "message": "Whether those tabs reopen automatically in {browser} depends on its startup setting.",
+    "note": "Bring Your Tabs page → step 1, when the other browser is still open: note; {browser} is its name."
+  },
+  "tabImport.quit.retry": {
+    "message": "I’ve quit {browser} — check again",
+    "note": "Bring Your Tabs page → step 1, when the other browser is still open: button; {browser} is its name."
+  },
+  "tabImport.status.checking": {
+    "message": "Checking the saved {source} session…",
+    "note": "Bring Your Tabs page → step 1 (choose a browser and profile): status after the browser quit; {source} names the browser and profile."
+  },
+  "tabImport.status.reading": {
+    "message": "Reading open tabs from {source}…",
+    "note": "Bring Your Tabs page → step 1 (choose a browser and profile): status; {source} names the browser and profile."
+  },
+  "tabImport.error.notReadable": {
+    "message": "The latest {source} session is not safely readable. Reopen {browser}; Blanc will not use an older snapshot.",
+    "note": "Bring Your Tabs page → step 1, when the other browser is still open: error after the browser quit; {source} names the browser and profile, {browser} the browser."
+  },
+  "tabImport.error.sourceGone": {
+    "message": "That browser profile is no longer available.",
+    "note": "Bring Your Tabs page → step 1 (choose a browser and profile): error."
+  },
+  "tabImport.error.permission": {
+    "message": "macOS blocked this profile. Grant Blanc Full Disk Access, then try again.",
+    "note": "Bring Your Tabs page → step 1 (choose a browser and profile): error on macOS; “Full Disk Access” is the macOS privacy setting, use its name in this language."
+  },
+  "tabImport.error.sessionTooLarge": {
+    "message": "That saved session is too large to import safely.",
+    "note": "Bring Your Tabs page → step 1 (choose a browser and profile): error."
+  },
+  "tabImport.error.tooManyTabs": {
+    "message": "This profile has more than {limit} open tabs. Nothing was changed.",
+    "note": "Bring Your Tabs page → step 1 (choose a browser and profile): error; {limit} is the maximum (500)."
+  },
+  "tabImport.error.encrypted": {
+    "message": "{source} uses an encrypted session format Blanc does not access.",
+    "note": "Bring Your Tabs page → step 1 (choose a browser and profile): error; {source} names the browser and profile."
+  },
+  "tabImport.error.empty": {
+    "message": "No restorable open tabs were found in {source}.",
+    "note": "Bring Your Tabs page → step 1 (choose a browser and profile): error; {source} names the browser and profile."
+  },
+  "tabImport.error.unreadable": {
+    "message": "Blanc couldn’t read the saved {source} session.",
+    "note": "Bring Your Tabs page → step 1 (choose a browser and profile): error; {source} names the browser and profile."
+  },
+  "tabImport.error.readFailed": {
+    "message": "Blanc couldn’t read open tabs from {source}.",
+    "note": "Bring Your Tabs page → step 1 (choose a browser and profile): error; {source} names the browser and profile."
+  },
+  "tabImport.status.expired": {
+    "message": "This import expired. Choose the source again.",
+    "note": "Bring Your Tabs page → step 2 (choose tabs): error."
+  },
+  "tabImport.status.selectionFailed": {
+    "message": "Couldn’t update that selection.",
+    "note": "Bring Your Tabs page → step 2 (choose tabs): error."
+  },
+  "tabImport.tabs.title": {
+    "message": "Choose tabs",
+    "note": "Bring Your Tabs page → step 2 (choose tabs): heading."
+  },
+  "tabImport.tabs.selectAll": {
+    "message": "Select all",
+    "note": "Bring Your Tabs page → step 2 (choose tabs): button.",
+    "maxLength": 14
+  },
+  "tabImport.tabs.selectNone": {
+    "message": "Select none",
+    "note": "Bring Your Tabs page → step 2 (choose tabs): button.",
+    "maxLength": 16
+  },
+  "tabImport.tabs.back": {
+    "message": "Back to source",
+    "note": "Bring Your Tabs page → step 2 (choose tabs): button back to step 1.",
+    "maxLength": 20
+  },
+  "tabImport.tabs.continue": {
+    "message": "Organize selected tabs",
+    "note": "Bring Your Tabs page → step 2 (choose tabs): button to step 3.",
+    "maxLength": 31
+  },
+  "tabImport.tabs.window": {
+    "message": "Window {number}",
+    "note": "Bring Your Tabs page → step 2 (choose tabs): heading above one source window’s tabs."
+  },
+  "tabImport.tabs.openTabs": {
+    "message": "Open tabs",
+    "note": "Bring Your Tabs page → step 2 (choose tabs): heading above the tabs when the source had one window."
+  },
+  "tabImport.tabs.count": {
+    "message": "{count, plural, one {# tab} other {# tabs}}",
+    "note": "Bring Your Tabs page: number of tabs beside a heading."
+  },
+  "tabImport.tabs.unsupported": {
+    "message": "{count, plural, one {# unsupported tab was left out.} other {# unsupported tabs were left out.}}",
+    "note": "Bring Your Tabs page → step 2 (choose tabs): note."
+  },
+  "tabImport.tabs.selected": {
+    "message": "{selected} of {total} selected",
+    "note": "Bring Your Tabs page → step 2 (choose tabs): count beside the selection buttons."
+  },
+  "tabImport.tab.site": {
+    "message": "site",
+    "note": "Bring Your Tabs page: shown in place of a tab’s host when it has none."
+  },
+  "tabImport.tab.sourceGroup": {
+    "message": "group: {group}",
+    "note": "Bring Your Tabs page: the tab group a tab had in the other browser; {group} is its name."
+  },
+  "tabImport.tab.pinned": {
+    "message": "pinned",
+    "note": "Bring Your Tabs page: marks a tab that was pinned in the other browser."
+  },
+  "tabImport.tab.untitled": {
+    "message": "Untitled",
+    "note": "Bring Your Tabs page: name of a tab with no title or host."
+  },
+  "tabImport.tab.bring": {
+    "message": "Bring {title}",
+    "note": "Bring Your Tabs page → step 2 (choose tabs): accessible name of a tab’s checkbox; {title} is the tab’s title."
+  },
+  "tabImport.status.preparing": {
+    "message": "Preparing your Named Groups…",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): status."
+  },
+  "tabImport.status.prepareFailed": {
+    "message": "Couldn’t prepare these tabs for organization.",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): error."
+  },
+  "tabImport.organize.title": {
+    "message": "Organize tabs",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): heading."
+  },
+  "tabImport.organize.newGroupForm": {
+    "message": "Create a Named Group",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): accessible name of the new-group form."
+  },
+  "tabImport.organize.newGroupName": {
+    "message": "New group name",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): accessible name of the new-group field."
+  },
+  "tabImport.organize.newGroupPlaceholder": {
+    "message": "new group name",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): placeholder of the new-group field, lowercase by design."
+  },
+  "tabImport.organize.create": {
+    "message": "Create",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): button that creates the group.",
+    "maxLength": 12
+  },
+  "tabImport.organize.back": {
+    "message": "Back to tabs",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): button back to step 2.",
+    "maxLength": 17
+  },
+  "tabImport.organize.continue": {
+    "message": "Review import",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): button to step 4.",
+    "maxLength": 18
+  },
+  "tabImport.organize.move": {
+    "message": "Move {title}",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): accessible name of a tab’s group menu; {title} is the tab’s title."
+  },
+  "tabImport.organize.ungroupedOption": {
+    "message": "ungrouped",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): menu choice that keeps a tab out of any group, lowercase by design."
+  },
+  "tabImport.organize.leaveOut": {
+    "message": "leave out",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): menu choice that leaves a tab behind, lowercase by design."
+  },
+  "tabImport.organize.restore": {
+    "message": "restore",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): button that puts a moved tab back, lowercase by design.",
+    "maxLength": 12
+  },
+  "tabImport.organize.restored": {
+    "message": "Restored the original placement.",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): announced to screen readers."
+  },
+  "tabImport.organize.moved": {
+    "message": "Tab placement updated.",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): announced to screen readers."
+  },
+  "tabImport.organize.removed": {
+    "message": "Removed {group}; its tabs are now ungrouped.",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): announced to screen readers; {group} is the group’s name."
+  },
+  "tabImport.organize.rename": {
+    "message": "Rename {group} group",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): accessible name of a group’s name field; {group} is its name."
+  },
+  "tabImport.organize.fromSource": {
+    "message": "from source",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): badge on a group kept from the other browser, lowercase by design."
+  },
+  "tabImport.organize.new": {
+    "message": "new",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): badge on a group created here, lowercase by design."
+  },
+  "tabImport.organize.removeGroup": {
+    "message": "remove group",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): button, lowercase by design.",
+    "maxLength": 18
+  },
+  "tabImport.organize.tooSmall": {
+    "message": "A Named Group needs at least two tabs.",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): warning under a group with fewer than two tabs."
+  },
+  "tabImport.organize.ungrouped": {
+    "message": "ungrouped",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): heading above tabs in no group, lowercase by design."
+  },
+  "tabImport.organize.leftOut": {
+    "message": "left out",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): heading above tabs that stay behind, lowercase by design."
+  },
+  "tabImport.organize.empty": {
+    "message": "No tabs here.",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): shown in an empty lane."
+  },
+  "tabImport.organize.created": {
+    "message": "Created {group}. Move at least two tabs into it.",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): announced to screen readers; {group} is the new group’s name."
+  },
+  "tabImport.groupName.empty": {
+    "message": "Type a group name.",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): error for a group name."
+  },
+  "tabImport.groupName.tooLong": {
+    "message": "Keep group names to {max} characters.",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): error for a group name; {max} is the limit (40)."
+  },
+  "tabImport.groupName.generic": {
+    "message": "Choose a more specific group name.",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): error for a name like “misc” or “stuff”."
+  },
+  "tabImport.groupName.taken": {
+    "message": "That group name is already in use.",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): error for a group name."
+  },
+  "tabImport.issue.unavailable": {
+    "message": "Groups are unavailable.",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): error."
+  },
+  "tabImport.issue.noTabs": {
+    "message": "Select at least one tab.",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): error."
+  },
+  "tabImport.issue.duplicateName": {
+    "message": "Each group needs a different name.",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): error."
+  },
+  "tabImport.issue.groupTooSmall": {
+    "message": "“{group}” needs at least two tabs.",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): error; {group} is the group’s name."
+  },
+  "tabImport.issue.placement": {
+    "message": "Review each tab placement before opening.",
+    "note": "Bring Your Tabs page → step 3 (organize into Named Groups): error."
+  },
+  "tabImport.review.title": {
+    "message": "Review import",
+    "note": "Bring Your Tabs page → step 4 (review): heading."
+  },
+  "tabImport.review.note": {
+    "message": "Only the first tab wakes. Your source browser and Favorites stay unchanged.",
+    "note": "Bring Your Tabs page → step 4 (review): note; the other tabs open quiet (Quiet Tabs)."
+  },
+  "tabImport.review.back": {
+    "message": "Back to organize",
+    "note": "Bring Your Tabs page → step 4 (review): button back to step 3.",
+    "maxLength": 22
+  },
+  "tabImport.review.apply": {
+    "message": "Open tabs in Blanc",
+    "note": "Bring Your Tabs page → step 4 (review): button before the count is known.",
+    "maxLength": 25
+  },
+  "tabImport.review.applyCount": {
+    "message": "{count, plural, one {Open # tab in Blanc} other {Open # tabs in Blanc}}",
+    "note": "Bring Your Tabs page → step 4 (review): button.",
+    "maxLength": 30
+  },
+  "tabImport.review.quietTabs": {
+    "message": "{count, plural, one {quiet tab} other {quiet tabs}}",
+    "note": "Bring Your Tabs page → step 4 (review): caption under a large number (shown separately); quiet tabs are Quiet Tabs, lowercase by design."
+  },
+  "tabImport.review.groups": {
+    "message": "{count, plural, one {Named Group} other {Named Groups}}",
+    "note": "Bring Your Tabs page → step 4 (review): caption under a large number (shown separately)."
+  },
+  "tabImport.review.ungrouped": {
+    "message": "{count, plural, one {ungrouped} other {ungrouped}}",
+    "note": "Bring Your Tabs page → step 4 (review): caption under a large number (shown separately): tabs in no group, lowercase by design."
+  },
+  "tabImport.review.group": {
+    "message": "{count, plural, one {{group} · # tab} other {{group} · # tabs}}",
+    "note": "Bring Your Tabs page → step 4 (review): a group in the summary; {group} is its name."
+  },
+  "tabImport.review.focusFirst": {
+    "message": "Focus the first imported tab",
+    "note": "Bring Your Tabs page → step 4 (review): button shown when Blanc could not switch to the first tab.",
+    "maxLength": 38
+  },
+  "tabImport.status.opening": {
+    "message": "Opening your tabs…",
+    "note": "Bring Your Tabs page → step 4 (review): status."
+  },
+  "tabImport.status.focusFailed": {
+    "message": "Your tabs are ready, but Blanc could not focus the first one.",
+    "note": "Bring Your Tabs page → step 4 (review): status."
+  },
+  "tabImport.status.openFailed": {
+    "message": "Blanc couldn’t open these tabs. Nothing was partially imported.",
+    "note": "Bring Your Tabs page → step 4 (review): error."
+  },
+  "tabHandoff.title": {
+    "message": "Import tabs",
+    "note": "Tab handoff page (tabs sent to Blanc from another browser): browser tab title."
+  },
+  "tabHandoff.nav": {
+    "message": "Tab handoff",
+    "note": "Tab handoff page (tabs sent to Blanc from another browser): accessible name of the top bar."
+  },
+  "tabHandoff.kicker": {
+    "message": "one-time handoff",
+    "note": "Tab handoff page (tabs sent to Blanc from another browser): small label in the top bar, lowercase by design."
+  },
+  "tabHandoff.heading": {
+    "message": "Bring these tabs to Blanc?",
+    "note": "Tab handoff page (tabs sent to Blanc from another browser): heading."
+  },
+  "tabHandoff.checking": {
+    "message": "Checking the handoff…",
+    "note": "Tab handoff page (tabs sent to Blanc from another browser): status while it loads."
+  },
+  "tabHandoff.loading": {
+    "message": "Retrieving and verifying the one-time handoff…",
+    "note": "Tab handoff page (tabs sent to Blanc from another browser): status."
+  },
+  "tabHandoff.waiting": {
+    "message": "Waiting for the canceled retrieval to finish before opening this handoff…",
+    "note": "Tab handoff page (tabs sent to Blanc from another browser): status."
+  },
+  "tabHandoff.list": {
+    "message": "Tabs to import",
+    "note": "Tab handoff page (tabs sent to Blanc from another browser): accessible name of the tab list."
+  },
+  "tabHandoff.newWindow": {
+    "message": "Open in a new window",
+    "note": "Tab handoff page (tabs sent to Blanc from another browser): checkbox label."
+  },
+  "tabHandoff.openHere": {
+    "message": "Open in this window",
+    "note": "Tab handoff page (tabs sent to Blanc from another browser): main button.",
+    "maxLength": 26
+  },
+  "tabHandoff.openNew": {
+    "message": "Open in new window",
+    "note": "Tab handoff page (tabs sent to Blanc from another browser): main button when the checkbox is on.",
+    "maxLength": 26
+  },
+  "tabHandoff.opening": {
+    "message": "Opening…",
+    "note": "Tab handoff page (tabs sent to Blanc from another browser): main button while the tabs open.",
+    "maxLength": 26
+  },
+  "tabHandoff.summaryHere": {
+    "message": "{count, plural, one {# tab from {source} will open in this {profile} window. Only the selected imported tab loads now; the rest start quiet.} other {# tabs from {source} will open in this {profile} window. Only the selected imported tab loads now; the rest start quiet.}}",
+    "note": "Tab handoff page (tabs sent to Blanc from another browser): summary; {source} is a browser name or “your other browser”, {profile} a Blanc profile name such as “Personal”. Quiet tabs are Quiet Tabs."
+  },
+  "tabHandoff.summaryNew": {
+    "message": "{count, plural, one {# tab from {source} will open in a new {profile} window. Only the selected imported tab loads now; the rest start quiet.} other {# tabs from {source} will open in a new {profile} window. Only the selected imported tab loads now; the rest start quiet.}}",
+    "note": "Tab handoff page (tabs sent to Blanc from another browser): summary when the new-window checkbox is on; {source} is a browser name or “your other browser”, {profile} a Blanc profile name such as “Personal”."
+  },
+  "tabHandoff.otherBrowser": {
+    "message": "your other browser",
+    "note": "Tab handoff page (tabs sent to Blanc from another browser): fills {source} in the summary when the browser is unknown."
+  },
+  "tabHandoff.personalProfile": {
+    "message": "Personal",
+    "note": "Tab handoff page (tabs sent to Blanc from another browser): fills {profile} in the summary when no profile name is known; the name of the built-in profile."
+  },
+  "tabHandoff.untitled": {
+    "message": "Imported tab",
+    "note": "Tab handoff page (tabs sent to Blanc from another browser): name of a tab with no title or domain."
+  },
+  "tabHandoff.opensFirst": {
+    "message": "opens first",
+    "note": "Tab handoff page (tabs sent to Blanc from another browser): badge on the tab that loads first, lowercase by design."
+  },
+  "tabHandoff.skipped": {
+    "message": "{count, plural, one {# unsupported or unsafe tab was left behind.} other {# unsupported or unsafe tabs were left behind.}}",
+    "note": "Tab handoff page (tabs sent to Blanc from another browser): note."
+  },
+  "tabHandoff.unavailable": {
+    "message": "The tab handoff is unavailable.",
+    "note": "Tab handoff page (tabs sent to Blanc from another browser): summary when it cannot be shown."
+  },
+  "tabHandoff.createNew": {
+    "message": "Return to the source browser and create a new handoff.",
+    "note": "Tab handoff page (tabs sent to Blanc from another browser): error when no reason is known."
+  },
+  "tabHandoff.openFailed": {
+    "message": "Blanc could not open these tabs. Your existing tabs are unchanged. Try again.",
+    "note": "Tab handoff page (tabs sent to Blanc from another browser): error."
+  },
+  "tabHandoff.gone": {
+    "message": "This handoff is no longer available.",
+    "note": "Tab handoff page (tabs sent to Blanc from another browser): error."
+  },
+  "tabHandoff.openThrew": {
+    "message": "Blanc could not open this tab set. Try the handoff again.",
+    "note": "Tab handoff page (tabs sent to Blanc from another browser): error."
+  },
+  "tabHandoff.unsupported": {
+    "message": "Tab import is not available in this build of Blanc.",
+    "note": "Tab handoff page (tabs sent to Blanc from another browser): error."
+  },
+  "tabHandoff.readFailed": {
+    "message": "Blanc could not read this handoff.",
+    "note": "Tab handoff page (tabs sent to Blanc from another browser): error."
   }
 }

@@ -8,6 +8,8 @@ import { _electron } from 'playwright';
 import testHookCall from './support/test-hook-call.js';
 import poll from './support/poll.js';
 import sweep from './support/pseudo-sweep.js';
+import sessionFixture from '../support/chromium-session-fixture.js';
+import browserImport from '../../src/main/browser-data-import.js';
 
 const { waitForValue } = poll;
 const { classifyTextEntries, COLLECT } = sweep;
@@ -469,6 +471,40 @@ const UTILITY_SURFACES = [
   },
 ];
 
+// Bring Your Tabs through its four steps, reading a fixture Chrome profile
+// (BLANC_TEST_BROWSER_HOME below), and the tab handoff page with no handoff.
+const TAB_IMPORT_FILES = ['src/renderer/pages/tab-import.html', 'src/renderer/pages/tab-import-open-tabs.js', 'src/renderer/pages/sheet.js'];
+const importStep = (name, ...clicks) => ({
+  name,
+  files: TAB_IMPORT_FILES,
+  open: async (ctx) => {
+    let page = (await ctx.app.windows()).find((p) => p.url().startsWith('blanc://tab-import/'));
+    if (!page) {
+      // The page's own route (as /bring-tabs opens it), so main treats it as
+      // the window's current sheet when a profile is read.
+      await callTestHook(ctx.app, 'openTabImport');
+      page = await findPage(ctx.app, 'blanc://tab-import/', 'Bring Your Tabs');
+      await page.waitForFunction(() => document.querySelector('.tab-import-source-btn'));
+    }
+    for (const [click, panel] of clicks) {
+      await page.locator(click).first().click();
+      await page.locator(`[data-step-panel="${panel}"]`).waitFor({ state: 'visible' });
+    }
+    return page;
+  },
+});
+const TAB_IMPORT_SURFACES = [
+  importStep('bring your tabs (browser)'),
+  importStep('bring your tabs (tabs)', ['.tab-import-source-btn', 'tabs']),
+  importStep('bring your tabs (organize)', ['#tabImportContinueToOrganize', 'organize']),
+  importStep('bring your tabs (review)', ['#tabImportContinueToReview', 'review']),
+  {
+    name: 'tab handoff (unavailable)',
+    files: ['src/renderer/pages/tab-handoff.html', 'src/renderer/pages/tab-handoff.js', 'src/renderer/pages/sheet.js'],
+    open: (ctx) => openSheet(ctx, 'tab-handoff', () => !document.getElementById('error').hidden),
+  },
+];
+
 const SURFACES = [
   {
     name: 'island panel (tab list)',
@@ -567,6 +603,7 @@ const SURFACES = [
   ...ERROR_SURFACES,
   ...SETTINGS_SURFACES,
   ...UTILITY_SURFACES,
+  ...TAB_IMPORT_SURFACES,
 ];
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-pseudo-sweep-'));
@@ -576,13 +613,34 @@ fs.writeFileSync(path.join(`${profile}-Dev`, 'settings.json'), JSON.stringify({
   onboardingVersion: 1, presentationDefaultsResetVersion: 1, adblockEnabled: false, usagePing: false,
   searchSuggestions: false, uiLanguage: 'en-XA',
 }));
+// A throwaway Chrome profile with one saved window for Bring Your Tabs.
+const browserHome = path.join(root, 'browser-home');
+const chromeRoot = browserImport.browserDataRoot('chrome', {
+  platform: process.platform, homeDir: browserHome, env: { ...process.env, LOCALAPPDATA: browserHome },
+});
+fs.mkdirSync(path.join(chromeRoot, 'Default', 'Sessions'), { recursive: true });
+fs.writeFileSync(path.join(chromeRoot, 'Local State'), JSON.stringify({ profile: { info_cache: { Default: { name: 'zzz-profile' } } } }));
+fs.writeFileSync(path.join(chromeRoot, 'Default', 'Sessions', 'Session_100'), sessionFixture.createChromiumSession({
+  activeWindowId: 10,
+  windows: [{
+    id: 10,
+    tabs: [
+      { id: 101, url: 'https://hotels.example/stay', title: 'zzz-hotels', groupName: 'zzz-travel' },
+      { id: 102, url: 'https://flights.example/search', title: 'zzz-flights', groupName: 'zzz-travel', pinned: true },
+      { id: 103, url: 'https://reading.example/', title: 'zzz-reading' },
+      { id: 104, url: 'chrome://settings/', title: 'zzz-settings' },
+    ],
+  }],
+}));
 const { ELECTRON_RUN_AS_NODE: _ignored, ...env } = process.env;
 let app;
 const failures = [];
 try {
   app = await _electron.launch({ chromiumSandbox: true, args: [path.resolve('.'), `--user-data-dir=${profile}`],
-    env: { ...env, BLANC_TEST: '1', BLANC_TEST_LOCALE_STATUS: 'en-XA=selectable', BLANC_TEST_UNCAUGHT_LOG: path.join(root, 'uncaught.log') } });
+    env: { ...env, BLANC_TEST: '1', BLANC_TEST_LOCALE_STATUS: 'en-XA=selectable', BLANC_TEST_BROWSER_HOME: browserHome, BLANC_TEST_UNCAUGHT_LOG: path.join(root, 'uncaught.log') } });
   const chrome = await findPage(app, 'blanc-chrome://index/', 'chrome strip');
+  // Startup opens the first tab, which would close a sheet opened before it.
+  await waitForValue(() => app.evaluate(() => globalThis.__blanc?.startupReady?.() === true), Boolean, 'startup');
   const state = await app.evaluate(() => globalThis.__blanc.i18nState());
   assert.equal(state.locale, 'en-XA', 'the sweep runs in the pseudo-locale');
   for (const surface of SURFACES) {

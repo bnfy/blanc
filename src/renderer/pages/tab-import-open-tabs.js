@@ -27,6 +27,7 @@ const BROWSER_NAME_KEYS = new Map(Object.entries({
   Chromium: 'chromium',
 }));
 
+const { t } = blancI18n;
 const api = window.bowserPages?.tabImport;
 const el = (id) => document.getElementById(id);
 const pageEl = document.querySelector('.tab-import-page');
@@ -90,12 +91,12 @@ function normalizeReviewGroupName(value) {
 
 function reviewGroupNameError(value, reviewProposal, currentId = '') {
   const name = normalizeReviewGroupName(value);
-  if (!name) return 'Type a group name.';
-  if ([...name].length > MAX_GROUP_NAME_LENGTH) return `Keep group names to ${MAX_GROUP_NAME_LENGTH} characters.`;
-  if (GENERIC_GROUP_NAMES.has(name)) return 'Choose a more specific group name.';
+  if (!name) return t('tabImport.groupName.empty');
+  if ([...name].length > MAX_GROUP_NAME_LENGTH) return t('tabImport.groupName.tooLong', { max: MAX_GROUP_NAME_LENGTH });
+  if (GENERIC_GROUP_NAMES.has(name)) return t('tabImport.groupName.generic');
   if ((reviewProposal?.groups ?? []).some((group) =>
     group.suggestionId !== currentId && normalizeReviewGroupName(group.name) === name)) {
-    return 'That group name is already in use.';
+    return t('tabImport.groupName.taken');
   }
   return '';
 }
@@ -129,10 +130,10 @@ function moveCandidateInProposal(reviewProposal, candidateId, lane) {
 }
 
 function reviewProposalIssue(reviewProposal, reviewCandidates) {
-  if (!reviewProposal || reviewProposal.version !== 1) return 'Groups are unavailable.';
+  if (!reviewProposal || reviewProposal.version !== 1) return t('tabImport.issue.unavailable');
   const expected = reviewCandidates.filter((candidate) => candidate.selected && !candidate.excluded)
     .map((candidate) => candidate.candidateId);
-  if (!expected.length) return 'Select at least one tab.';
+  if (!expected.length) return t('tabImport.issue.noTabs');
   const expectedSet = new Set(expected);
   const seen = new Set();
   const names = new Set();
@@ -140,21 +141,21 @@ function reviewProposalIssue(reviewProposal, reviewCandidates) {
     const issue = reviewGroupNameError(group.name, reviewProposal, group.suggestionId);
     if (issue) return issue;
     const name = normalizeReviewGroupName(group.name);
-    if (names.has(name)) return 'Each group needs a different name.';
+    if (names.has(name)) return t('tabImport.issue.duplicateName');
     names.add(name);
     if (!Array.isArray(group.candidateIds) || group.candidateIds.length < 2) {
-      return `“${group.name}” needs at least two tabs.`;
+      return t('tabImport.issue.groupTooSmall', { group: group.name });
     }
     for (const id of group.candidateIds) {
-      if (!expectedSet.has(id) || seen.has(id)) return 'Review each tab placement before opening.';
+      if (!expectedSet.has(id) || seen.has(id)) return t('tabImport.issue.placement');
       seen.add(id);
     }
   }
   for (const id of reviewProposal.ungroupedCandidateIds ?? []) {
-    if (!expectedSet.has(id) || seen.has(id)) return 'Review each tab placement before opening.';
+    if (!expectedSet.has(id) || seen.has(id)) return t('tabImport.issue.placement');
     seen.add(id);
   }
-  return seen.size === expectedSet.size ? '' : 'Review each tab placement before opening.';
+  return seen.size === expectedSet.size ? '' : t('tabImport.issue.placement');
 }
 
 function reviewCounts(reviewProposal) {
@@ -164,7 +165,7 @@ function reviewCounts(reviewProposal) {
 }
 
 function tabImportApplyLabel({ tabs }) {
-  return `Open ${tabs} ${tabs === 1 ? 'tab' : 'tabs'} in Blanc`;
+  return t('tabImport.review.applyCount', { count: tabs });
 }
 
 function tabImportApplyRequest(reviewProposal = proposal, currentGeneration = generation) {
@@ -190,7 +191,7 @@ function setStep(next) {
   if (!STEPS.includes(next)) return;
   const changed = step !== next;
   step = next;
-  if (stepProgressEl) stepProgressEl.textContent = `Step ${STEPS.indexOf(step) + 1} of ${STEPS.length}`;
+  if (stepProgressEl) stepProgressEl.textContent = t('tabImport.step', { step: STEPS.indexOf(step) + 1, total: STEPS.length });
   for (const panel of document.querySelectorAll('[data-step-panel]')) {
     panel.hidden = panel.dataset.stepPanel !== step;
   }
@@ -284,14 +285,14 @@ function renderProfiles() {
   const name = BROWSER_META[group.key].name;
   const unavailable = !group.sources.length && group.unavailable;
   profileTitleEl.textContent = unavailable
-    ? `${name} needs access`
-    : `Choose ${/^[aeiou]/i.test(name) ? 'an' : 'a'} ${name} profile`;
+    ? t('tabImport.source.needsAccess', { browser: name })
+    : t('tabImport.source.chooseProfile', { browser: name });
   if (unavailable) {
     const row = document.createElement('div');
     row.className = 'tab-import-source-unavailable';
     const title = document.createElement('span');
     title.className = 'tab-import-source-unavailable-name';
-    title.textContent = 'Permission needed';
+    title.textContent = t('tabImport.source.permissionNeeded');
     const hint = document.createElement('p');
     hint.className = 'tab-import-source-unavailable-hint';
     hint.textContent = group.unavailable.guidance ?? '';
@@ -304,12 +305,13 @@ function renderProfiles() {
     button.type = 'button';
     button.className = 'tab-import-source-btn';
     button.dataset.sourceLabel = source.label;
-    button.setAttribute('aria-label', `Read open tabs from ${source.label}`);
+    button.setAttribute('aria-label', t('tabImport.source.read', { source: source.label }));
     const copy = document.createElement('span');
     copy.className = 'tab-import-source-copy';
     const profile = document.createElement('span');
     profile.className = 'tab-import-source-name';
     profile.textContent = source.profile;
+    profile.dataset.i18nIgnore = ''; // the profile's own name
     copy.append(profile);
     const arrow = document.createElement('img');
     arrow.className = 'tab-import-source-arrow';
@@ -317,7 +319,7 @@ function renderProfiles() {
     arrow.alt = '';
     const waiting = document.createElement('span');
     waiting.className = 'tab-import-source-waiting';
-    waiting.textContent = 'Waiting…';
+    waiting.textContent = t('tabImport.source.waiting');
     button.dataset.sourceId = source.id;
     button.append(copy, arrow, waiting);
     button.addEventListener('click', () => openSource(source.id, source.label, {
@@ -345,11 +347,12 @@ function renderBrowserCards() {
     const name = document.createElement('span');
     name.className = 'tab-import-browser-name';
     name.textContent = meta.name;
+    name.dataset.i18nIgnore = ''; // a browser's name
     const count = document.createElement('span');
     count.className = 'tab-import-browser-count';
     count.textContent = group.sources.length
-      ? `${group.sources.length} ${group.sources.length === 1 ? 'profile' : 'profiles'}`
-      : 'Permission needed';
+      ? t('tabImport.source.profiles', { count: group.sources.length })
+      : t('tabImport.source.permissionNeeded');
     card.append(logo, name, count);
     card.addEventListener('click', () => {
       clearRecovery();
@@ -367,14 +370,14 @@ async function loadSources() {
   profileSectionEl.hidden = true;
   const loading = document.createElement('p');
   loading.className = 'section-hint';
-  loading.textContent = 'Loading browser profiles…';
+  loading.textContent = t('tabImport.source.loading');
   browserListEl.append(loading);
   try {
     sourceBrowserGroups = groupedSources(await api.sources());
     if (!sourceBrowserGroups.length) {
-      const names = new Intl.ListFormat('en', { style: 'long', type: 'conjunction' }).format(SUPPORTED_BROWSER_NAMES);
-      loading.textContent = `Blanc can bring open tabs from ${names}, but none of them has a profile on this device. `
-        + 'To bring bookmarks from another browser, export them to an HTML file, then use “Import HTML…” in Favorites.';
+      const browsers = new Intl.ListFormat(blancI18n.formatLocale(), { style: 'long', type: 'conjunction' })
+        .format(SUPPORTED_BROWSER_NAMES);
+      loading.textContent = t('tabImport.source.none', { browsers });
       return;
     }
     selectedSourceBrowserKey = (sourceBrowserGroups.find((group) => group.sources.length)
@@ -382,7 +385,7 @@ async function loadSources() {
     renderBrowserCards();
     renderProfiles();
   } catch {
-    loading.textContent = "Couldn't load browser profiles.";
+    loading.textContent = t('tabImport.source.loadFailed');
   }
 }
 
@@ -396,17 +399,19 @@ function showQuitGate(id, label, result, browserName = label) {
     if (waiting) button.setAttribute('aria-busy', 'true');
   }
   const title = document.createElement('strong');
-  title.textContent = `Finish saving tabs in ${browserName}`;
+  title.textContent = t('tabImport.quit.title', { browser: browserName });
   const count = Number(result.recoverableTabCount) || 0;
   const copy = document.createElement('p');
-  copy.textContent = `Blanc found a saved, restorable session${count ? ` with ${count} ${count === 1 ? 'tab' : 'tabs'}` : ''}. Quit ${browserName} normally so it can finish saving the latest session. Blanc only reads it and never removes tabs from ${browserName}.`;
+  copy.textContent = count
+    ? t('tabImport.quit.body', { count, browser: browserName })
+    : t('tabImport.quit.bodyNoCount', { browser: browserName });
   const note = document.createElement('p');
   note.className = 'section-hint';
-  note.textContent = `Whether those tabs reopen automatically in ${browserName} depends on its startup setting.`;
+  note.textContent = t('tabImport.quit.note', { browser: browserName });
   const retry = document.createElement('button');
   retry.type = 'button';
   retry.className = 'tab-import-primary';
-  retry.textContent = `I’ve quit ${browserName} — check again`;
+  retry.textContent = t('tabImport.quit.retry', { browser: browserName });
   retry.addEventListener('click', () => openSource(id, label, {
     afterQuit: true,
     browserName,
@@ -417,23 +422,24 @@ function showQuitGate(id, label, result, browserName = label) {
 
 function sourceError(result, label, afterQuit, browserName = label) {
   if (afterQuit && ['source-locked', 'source-saving', 'incomplete-session', 'missing-session-marker'].includes(result.error)) {
-    return `The latest ${label} session is not safely readable. Reopen ${browserName}; Blanc will not use an older snapshot.`;
+    return t('tabImport.error.notReadable', { source: label, browser: browserName });
   }
+  const source = { source: label };
   return ({
-    'source-unavailable': 'That browser profile is no longer available.',
-    permission: 'macOS blocked this profile. Grant Blanc Full Disk Access, then try again.',
-    'session-too-large': 'That saved session is too large to import safely.',
-    'too-many-candidates': 'This profile has more than 500 open tabs. Nothing was changed.',
-    'encrypted-session': `${label} uses an encrypted session format Blanc does not access.`,
-    empty: `No restorable open tabs were found in ${label}.`,
-    unreadable: `Blanc couldn’t read the saved ${label} session.`,
-  })[result.error] ?? `Blanc couldn’t read open tabs from ${label}.`;
+    'source-unavailable': t('tabImport.error.sourceGone'),
+    permission: t('tabImport.error.permission'),
+    'session-too-large': t('tabImport.error.sessionTooLarge'),
+    'too-many-candidates': t('tabImport.error.tooManyTabs', { limit: 500 }),
+    'encrypted-session': t('tabImport.error.encrypted', source),
+    empty: t('tabImport.error.empty', source),
+    unreadable: t('tabImport.error.unreadable', source),
+  })[result.error] ?? t('tabImport.error.readFailed', source);
 }
 
 async function openSource(id, label, { afterQuit = false, browserName = label } = {}) {
   if (!api) return;
   clearRecovery();
-  setStatus(afterQuit ? `Checking the saved ${label} session…` : `Reading open tabs from ${label}…`);
+  setStatus(afterQuit ? t('tabImport.status.checking', { source: label }) : t('tabImport.status.reading', { source: label }));
   for (const button of sourceListEl.querySelectorAll('button')) button.disabled = true;
   try {
     const result = await api.openSource(id, { afterQuit });
@@ -456,7 +462,7 @@ async function openSource(id, label, { afterQuit = false, browserName = label } 
     setStep('tabs');
     setStatus();
   } catch {
-    setStatus(`Blanc couldn’t read open tabs from ${label}.`);
+    setStatus(t('tabImport.error.readFailed', { source: label }));
   } finally {
     const waitingForQuit = !sourceRecoveryEl.hidden;
     for (const button of sourceListEl.querySelectorAll('button')) {
@@ -482,8 +488,8 @@ async function syncSelection({ keepProposal = false } = {}) {
     if (ticket !== selectionSync) return null;
     if (result.error) {
       setStatus(result.error === 'session-unavailable'
-        ? 'This import expired. Choose the source again.'
-        : "Couldn't update that selection.");
+        ? t('tabImport.status.expired')
+        : t('tabImport.status.selectionFailed'));
       return null;
     }
     generation = result.generation ?? generation;
@@ -494,7 +500,7 @@ async function syncSelection({ keepProposal = false } = {}) {
     }
     return result;
   } catch {
-    if (ticket === selectionSync) setStatus("Couldn't update that selection.");
+    if (ticket === selectionSync) setStatus(t('tabImport.status.selectionFailed'));
     return null;
   }
 }
@@ -503,11 +509,13 @@ function selectedCount() {
   return candidates.filter((candidate) => candidate.selected && !candidate.excluded).length;
 }
 
-function candidateMeta(candidate, { sourceGroup = true } = {}) {
-  const parts = [candidate.hostname || 'site'];
-  if (sourceGroup && candidate.sourceGroupName) parts.push(`group: ${candidate.sourceGroupName}`);
-  if (candidate.pinned) parts.push('pinned');
-  return parts.join(' · ');
+function setCandidateMeta(el, candidate, { sourceGroup = true } = {}) {
+  const parts = [candidate.hostname || t('tabImport.tab.site')];
+  if (sourceGroup && candidate.sourceGroupName) parts.push(t('tabImport.tab.sourceGroup', { group: candidate.sourceGroupName }));
+  if (candidate.pinned) parts.push(t('tabImport.tab.pinned'));
+  el.textContent = parts.join(' · ');
+  // A line that is only the tab's host is data.
+  el.toggleAttribute('data-i18n-ignore', parts.length === 1 && !!candidate.hostname);
 }
 
 function candidateRow(candidate, selectable = true) {
@@ -518,7 +526,7 @@ function candidateRow(candidate, selectable = true) {
     checkbox.type = 'checkbox';
     checkbox.className = 'tab-import-row-check';
     checkbox.checked = candidate.selected && !candidate.excluded;
-    checkbox.setAttribute('aria-label', `Bring ${candidate.title || candidate.hostname || 'untitled tab'}`);
+    checkbox.setAttribute('aria-label', t('tabImport.tab.bring', { title: candidate.title || candidate.hostname || t('tabImport.tab.untitled') }));
     checkbox.addEventListener('change', async () => {
       candidate.selected = checkbox.checked;
       if (checkbox.checked) candidate.excluded = false;
@@ -531,11 +539,13 @@ function candidateRow(candidate, selectable = true) {
   main.className = 'main';
   const title = document.createElement('span');
   title.className = 'title';
-  title.textContent = candidate.title || candidate.hostname || 'Untitled';
+  title.textContent = candidate.title || candidate.hostname || t('tabImport.tab.untitled');
+  // The tab's own title or host.
+  if (candidate.title || candidate.hostname) title.dataset.i18nIgnore = '';
   const meta = document.createElement('span');
   meta.className = 'meta';
   // Organize rows already show their group in the heading and the move menu.
-  meta.textContent = candidateMeta(candidate, { sourceGroup: selectable });
+  setCandidateMeta(meta, candidate, { sourceGroup: selectable });
   main.append(title, meta);
   row.append(main);
   return row;
@@ -556,9 +566,9 @@ function renderTabs() {
     const heading = document.createElement('div');
     heading.className = 'tab-import-window-heading';
     const title = document.createElement('h3');
-    title.textContent = sourceWindowCount > 1 ? `Window ${windowNumber}` : 'Open tabs';
+    title.textContent = sourceWindowCount > 1 ? t('tabImport.tabs.window', { number: windowNumber }) : t('tabImport.tabs.openTabs');
     const count = document.createElement('span');
-    count.textContent = `${tabs.length} ${tabs.length === 1 ? 'tab' : 'tabs'}`;
+    count.textContent = t('tabImport.tabs.count', { count: tabs.length });
     heading.append(title, count);
     const list = document.createElement('div');
     list.className = 'row-list';
@@ -569,11 +579,11 @@ function renderTabs() {
   if (unsupportedCount) {
     const note = document.createElement('p');
     note.className = 'section-hint tab-import-unsupported-note';
-    note.textContent = `${unsupportedCount} unsupported ${unsupportedCount === 1 ? 'tab was' : 'tabs were'} left out.`;
+    note.textContent = t('tabImport.tabs.unsupported', { count: unsupportedCount });
     tabsListEl.append(note);
   }
   const count = selectedCount();
-  selectedCountEl.textContent = `${count} of ${candidates.length} selected`;
+  selectedCountEl.textContent = t('tabImport.tabs.selected', { selected: count, total: candidates.length });
   const focused = document.activeElement;
   selectAllBtn.disabled = count === candidates.length;
   selectNoneBtn.disabled = count === 0;
@@ -595,11 +605,11 @@ async function selectAll(value) {
 async function beginOrganize() {
   if (!sessionId || selectedCount() < 1) return;
   continueToOrganizeBtn.disabled = true;
-  setStatus('Preparing your Named Groups…');
+  setStatus(t('tabImport.status.preparing'));
   try {
     const result = await api.suggestSourceGroups(sessionId);
     if (result.error) {
-      setStatus("Couldn't prepare these tabs for organization.");
+      setStatus(t('tabImport.status.prepareFailed'));
       return;
     }
     proposal = cloneProposal(result.proposal);
@@ -642,7 +652,7 @@ async function moveCandidate(candidateId, lane, restoring = false) {
     const current = candidates.find((item) => item.candidateId === candidateId);
     if (current) Object.assign(current, oldSelection);
   } else {
-    announce(restoring ? 'Restored the original placement.' : 'Tab placement updated.');
+    announce(restoring ? t('tabImport.organize.restored') : t('tabImport.organize.moved'));
   }
   renderOrganize();
 }
@@ -660,14 +670,15 @@ async function restoreCandidate(candidateId) {
 function moveSelect(candidate) {
   const select = document.createElement('select');
   select.className = 'tab-import-move-select';
-  select.setAttribute('aria-label', `Move ${candidate.title || candidate.hostname || 'tab'}`);
+  select.setAttribute('aria-label', t('tabImport.organize.move', { title: candidate.title || candidate.hostname || t('tabImport.tab.untitled') }));
   for (const group of proposal.groups) {
     const option = document.createElement('option');
     option.value = group.suggestionId;
     option.textContent = group.name;
+    option.dataset.i18nIgnore = ''; // a group's name
     select.append(option);
   }
-  for (const [value, label] of [[UNGROUPED_LANE, 'ungrouped'], [EXCLUDED_LANE, 'leave out']]) {
+  for (const [value, label] of [[UNGROUPED_LANE, t('tabImport.organize.ungroupedOption')], [EXCLUDED_LANE, t('tabImport.organize.leaveOut')]]) {
     const option = document.createElement('option');
     option.value = value;
     option.textContent = label;
@@ -686,11 +697,11 @@ function organizeRow(candidate) {
   const current = candidate.excluded ? EXCLUDED_LANE : proposalLaneFor(proposal, candidate.candidateId);
   const original = proposalLaneFor(originalProposal, candidate.candidateId) ?? UNGROUPED_LANE;
   if (current !== original) {
-    if (candidate.sourceGroupName) row.querySelector('.meta').textContent = candidateMeta(candidate);
+    if (candidate.sourceGroupName) setCandidateMeta(row.querySelector('.meta'), candidate);
     const restore = document.createElement('button');
     restore.type = 'button';
     restore.className = 'tab-import-restore-btn';
-    restore.textContent = 'restore';
+    restore.textContent = t('tabImport.organize.restore');
     restore.addEventListener('click', () => restoreCandidate(candidate.candidateId));
     actions.append(restore);
   }
@@ -703,7 +714,7 @@ function removeGroup(group) {
   for (const id of group.candidateIds) {
     if (!proposal.ungroupedCandidateIds.includes(id)) proposal.ungroupedCandidateIds.push(id);
   }
-  announce(`Removed ${group.name}; its tabs are now ungrouped.`);
+  announce(t('tabImport.organize.removed', { group: group.name }));
   renderOrganize();
 }
 
@@ -717,14 +728,14 @@ function groupSection(group, byId) {
   input.className = 'tab-import-group-name';
   input.value = group.name;
   input.maxLength = MAX_GROUP_NAME_LENGTH;
-  input.setAttribute('aria-label', `Rename ${group.name} group`);
+  input.setAttribute('aria-label', t('tabImport.organize.rename', { group: group.name }));
   const badge = document.createElement('span');
   badge.className = 'tab-import-confidence';
-  badge.textContent = group.confidence === 'high' ? 'from source' : 'new';
+  badge.textContent = group.confidence === 'high' ? t('tabImport.organize.fromSource') : t('tabImport.organize.new');
   const remove = document.createElement('button');
   remove.type = 'button';
   remove.className = 'tab-import-restore-btn';
-  remove.textContent = 'remove group';
+  remove.textContent = t('tabImport.organize.removeGroup');
   remove.addEventListener('click', () => removeGroup(group));
   heading.append(input, badge, remove);
   const error = document.createElement('p');
@@ -745,7 +756,7 @@ function groupSection(group, byId) {
   if (group.candidateIds.length < 2) {
     const warning = document.createElement('p');
     warning.className = 'tab-import-group-warning';
-    warning.textContent = 'A Named Group needs at least two tabs.';
+    warning.textContent = t('tabImport.organize.tooSmall');
     section.append(warning);
   }
   const list = document.createElement('div');
@@ -768,7 +779,7 @@ function laneSection(title, ids, byId, className = '') {
   heading.textContent = title;
   const count = document.createElement('span');
   count.className = 'tab-import-lane-count';
-  count.textContent = `${ids.length} ${ids.length === 1 ? 'tab' : 'tabs'}`;
+  count.textContent = t('tabImport.tabs.count', { count: ids.length });
   headingRow.append(heading, count);
   section.append(headingRow);
   const list = document.createElement('div');
@@ -776,7 +787,7 @@ function laneSection(title, ids, byId, className = '') {
   if (!ids.length) {
     const empty = document.createElement('p');
     empty.className = 'section-hint';
-    empty.textContent = 'No tabs here.';
+    empty.textContent = t('tabImport.organize.empty');
     list.append(empty);
   } else {
     for (const id of ids) {
@@ -801,10 +812,10 @@ function renderOrganize() {
   }
   const byId = new Map(candidates.map((candidate) => [candidate.candidateId, candidate]));
   for (const group of proposal.groups) organizeBoardEl.append(groupSection(group, byId));
-  organizeBoardEl.append(laneSection('ungrouped', proposal.ungroupedCandidateIds, byId));
+  organizeBoardEl.append(laneSection(t('tabImport.organize.ungrouped'), proposal.ungroupedCandidateIds, byId));
   const excluded = candidates.filter((candidate) => candidate.excluded)
     .map((candidate) => candidate.candidateId);
-  if (excluded.length) organizeBoardEl.append(laneSection('left out', excluded, byId, 'excluded'));
+  if (excluded.length) organizeBoardEl.append(laneSection(t('tabImport.organize.leftOut'), excluded, byId, 'excluded'));
 }
 
 function createGroup(name) {
@@ -822,7 +833,7 @@ function createGroup(name) {
     confidence: 'review',
   });
   newGroupNameEl.value = '';
-  announce(`Created ${normalized}. Move at least two tabs into it.`);
+  announce(t('tabImport.organize.created', { group: normalized }));
   renderOrganize();
 }
 
@@ -831,10 +842,11 @@ function renderReview() {
   const counts = reviewCounts(proposal);
   const metrics = document.createElement('div');
   metrics.className = 'tab-import-summary-metrics';
+  // Each number is drawn large on its own; its caption still agrees with it.
   for (const [value, label] of [
-    [counts.tabs, counts.tabs === 1 ? 'quiet tab' : 'quiet tabs'],
-    [counts.groups, counts.groups === 1 ? 'Named Group' : 'Named Groups'],
-    [counts.ungrouped, 'ungrouped'],
+    [counts.tabs, t('tabImport.review.quietTabs', { count: counts.tabs })],
+    [counts.groups, t('tabImport.review.groups', { count: counts.groups })],
+    [counts.ungrouped, t('tabImport.review.ungrouped', { count: counts.ungrouped })],
   ]) {
     const metric = document.createElement('div');
     const number = document.createElement('strong');
@@ -850,7 +862,7 @@ function renderReview() {
     list.className = 'tab-import-summary-groups';
     for (const group of proposal.groups) {
       const item = document.createElement('li');
-      item.textContent = `${group.name} · ${group.candidateIds.length} tabs`;
+      item.textContent = t('tabImport.review.group', { group: group.name, count: group.candidateIds.length });
       list.append(item);
     }
     reviewSummaryEl.append(list);
@@ -874,7 +886,7 @@ function continueToReview() {
 async function applyImport() {
   if (!sessionId || !proposal || dispositionIssue()) return;
   applyBtn.disabled = true;
-  setStatus('Opening your tabs…');
+  setStatus(t('tabImport.status.opening'));
   try {
     const request = tabImportApplyRequest();
     if (pendingApplyPhase === 'activation') request.retryActivation = true;
@@ -882,8 +894,8 @@ async function applyImport() {
     if (result.retryable && result.phase === 'activation') {
       pendingApplyPhase = 'activation';
       generation = result.generation ?? generation;
-      setStatus('Your tabs are ready, but Blanc could not focus the first one.');
-      applyBtn.textContent = 'Focus the first imported tab';
+      setStatus(t('tabImport.status.focusFailed'));
+      applyBtn.textContent = t('tabImport.review.focusFirst');
       applyBtn.disabled = false;
       return;
     }
@@ -894,10 +906,10 @@ async function applyImport() {
       setStatus();
       return;
     }
-    setStatus("Blanc couldn't open these tabs. Nothing was partially imported.");
+    setStatus(t('tabImport.status.openFailed'));
     applyBtn.disabled = false;
   } catch {
-    setStatus("Blanc couldn't open these tabs. Nothing was partially imported.");
+    setStatus(t('tabImport.status.openFailed'));
     applyBtn.disabled = false;
   }
 }
