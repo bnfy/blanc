@@ -26862,6 +26862,3948 @@
           }
         }
       }
+    },
+    "mahjong.title": {
+      "comment": "Mahjong: browser tab title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mahjong"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mahjong"
+          }
+        }
+      }
+    },
+    "mahjong.skip": {
+      "comment": "Mahjong: link.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "skip to tiles"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "zu den Steinen"
+          }
+        }
+      }
+    },
+    "mahjong.head.back": {
+      "comment": "Mahjong → header: accessible name of a a.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to Blanc new tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurück zur neuen Blanc-Startseite"
+          }
+        }
+      }
+    },
+    "mahjong.head.brand": {
+      "comment": "Mahjong → header: text (span).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mahjong"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mahjong"
+          }
+        }
+      }
+    },
+    "mahjong.head.private": {
+      "comment": "Mahjong → header: text (span).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "private"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "privat"
+          }
+        }
+      }
+    },
+    "mahjong.head.currentGame": {
+      "comment": "Mahjong → header: accessible name of a div.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current game"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktuelles Spiel"
+          }
+        }
+      }
+    },
+    "mahjong.head.daily": {
+      "comment": "Mahjong → header: text (span).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "daily"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "täglich"
+          }
+        }
+      }
+    },
+    "mahjong.layout.turtle": {
+      "comment": "Mahjong: name of a board layout (shaped like a turtle); also the header and Records.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turtle"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schildkröte"
+          }
+        }
+      }
+    },
+    "mahjong.mode.classic": {
+      "comment": "Mahjong: name of the classic game mode (match two free tiles); a button in Boards and the header.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Classic"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klassisch"
+          }
+        }
+      }
+    },
+    "mahjong.head.status": {
+      "comment": "Mahjong → header: accessible name of a div.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Game status"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spielstand"
+          }
+        }
+      }
+    },
+    "mahjong.head.pairs": {
+      "comment": "Mahjong → header: text (span).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pairs"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paare"
+          }
+        }
+      }
+    },
+    "mahjong.head.time": {
+      "comment": "Mahjong → header: text (span).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "time"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeit"
+          }
+        }
+      }
+    },
+    "mahjong.head.score": {
+      "comment": "Mahjong → header: text (span).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "score"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Punkte"
+          }
+        }
+      }
+    },
+    "mahjong.head.combo": {
+      "comment": "Mahjong → header: text (span).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "combo"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combo"
+          }
+        }
+      }
+    },
+    "mahjong.head.comboTimer": {
+      "comment": "Mahjong → header: accessible name of a span.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combo time remaining"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbleibende Combo-Zeit"
+          }
+        }
+      }
+    },
+    "mahjong.surface": {
+      "comment": "Mahjong: accessible name of a section.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mahjong game surface"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mahjong-Spielfläche"
+          }
+        }
+      }
+    },
+    "mahjong.board": {
+      "comment": "Mahjong: accessible name of a div.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mahjong tiles. Use arrow keys to move and Enter or Spacebar to select."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mahjong-Steine. Bewege dich mit den Pfeiltasten und wähle mit Eingabe oder Leertaste."
+          }
+        }
+      }
+    },
+    "mahjong.autoClearChip": {
+      "comment": "Mahjong: text (span).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "auto clear"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto-Abräumen"
+          }
+        }
+      }
+    },
+    "mahjong.rack.label": {
+      "comment": "Mahjong → Burst rack beside the board: accessible name of a aside.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Four-slot Burst rack"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Burst-Ablage mit vier Plätzen"
+          }
+        }
+      }
+    },
+    "mahjong.rack.kicker": {
+      "comment": "Mahjong → Burst rack beside the board: text (span).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "burst rack"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Burst-Ablage"
+          }
+        }
+      }
+    },
+    "mahjong.rack.prompt": {
+      "comment": "Mahjong → Burst rack beside the board: text (strong).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pair tiles before all four slots fill."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bilde Paare, bevor alle vier Plätze voll sind."
+          }
+        }
+      }
+    },
+    "mahjong.rack.slotsLabel": {
+      "comment": "Mahjong → Burst rack beside the board: accessible name of a div.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Burst rack, four selected-tile slots"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Burst-Ablage, vier Plätze für gewählte Steine"
+          }
+        }
+      }
+    },
+    "mahjong.rack.best": {
+      "comment": "Mahjong → Burst rack beside the board: text (span).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "best"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bestwert"
+          }
+        }
+      }
+    },
+    "mahjong.win.kicker": {
+      "comment": "Mahjong → board-cleared card: text (p).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "board cleared"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spielfeld abgeräumt"
+          }
+        }
+      }
+    },
+    "mahjong.win.title": {
+      "comment": "Mahjong → board-cleared card: page heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A beautiful finish."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein schönes Finale."
+          }
+        }
+      }
+    },
+    "mahjong.win.points": {
+      "comment": "Mahjong → board-cleared card: text (span).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "points"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Punkte"
+          }
+        }
+      }
+    },
+    "mahjong.win.zen": {
+      "comment": "Mahjong → board-cleared card: text (p).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This Zen game was not added to Records."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Zen-Spiel wurde nicht in die Rekorde aufgenommen."
+          }
+        }
+      }
+    },
+    "mahjong.win.time": {
+      "comment": "Mahjong → board-cleared card: text (small).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "time"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeit"
+          }
+        }
+      }
+    },
+    "mahjong.win.bestCombo": {
+      "comment": "Mahjong → board-cleared card: text (small).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "best combo"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "beste Combo"
+          }
+        }
+      }
+    },
+    "mahjong.win.autoClears": {
+      "comment": "Mahjong → board-cleared card: text (small).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "auto clears"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto-Abräumen"
+          }
+        }
+      }
+    },
+    "mahjong.win.playAnother": {
+      "comment": "Mahjong → board-cleared card: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "play another"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "noch eine Runde"
+          }
+        }
+      }
+    },
+    "mahjong.win.chooseBoard": {
+      "comment": "Mahjong → board-cleared card: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "choose board"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spielfeld wählen"
+          }
+        }
+      }
+    },
+    "mahjong.notice.noMoves": {
+      "comment": "Mahjong → notice under the board: text (span).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No moves remain."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Züge mehr möglich."
+          }
+        }
+      }
+    },
+    "mahjong.notice.undo": {
+      "comment": "Mahjong → notice under the board: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "undo"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "rückgängig"
+          }
+        }
+      }
+    },
+    "mahjong.notice.shuffle": {
+      "comment": "Mahjong → notice under the board: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "shuffle"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mischen"
+          }
+        }
+      }
+    },
+    "mahjong.notice.or": {
+      "comment": "Mahjong → notice under the board: “or” between two buttons.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "or"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "oder"
+          }
+        }
+      }
+    },
+    "mahjong.notice.newDeal": {
+      "comment": "Mahjong → notice under the board: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "new deal"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neue Partie"
+          }
+        }
+      }
+    },
+    "mahjong.notice.resume": {
+      "comment": "Mahjong → notice under the board: text (span).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You left a board unfinished."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du hast ein Spielfeld nicht beendet."
+          }
+        }
+      }
+    },
+    "mahjong.notice.continue": {
+      "comment": "Mahjong → notice under the board: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "continue it"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "fortsetzen"
+          }
+        }
+      }
+    },
+    "mahjong.notice.keepDeal": {
+      "comment": "Mahjong → notice under the board: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "keep this deal"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partie behalten"
+          }
+        }
+      }
+    },
+    "mahjong.notice.dealFailed": {
+      "comment": "Mahjong → notice under the board: text (span).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That deal could not be built."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Partie konnte nicht erstellt werden."
+          }
+        }
+      }
+    },
+    "mahjong.notice.tryAgain": {
+      "comment": "Mahjong → notice under the board: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "try again"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neu versuchen"
+          }
+        }
+      }
+    },
+    "mahjong.notice.recovered": {
+      "comment": "Mahjong → notice under the board: text (div).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your saved game could not be restored, so a fresh deal was prepared."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein gespeichertes Spiel konnte nicht wiederhergestellt werden, daher wurde eine neue Partie vorbereitet."
+          }
+        }
+      }
+    },
+    "mahjong.notice.shareInvalid": {
+      "comment": "Mahjong → notice under the board: text (div).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That shared deal link was invalid, so your remembered game was started instead."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser geteilte Partie-Link war ungültig, daher wurde dein gemerktes Spiel gestartet."
+          }
+        }
+      }
+    },
+    "mahjong.dock.label": {
+      "comment": "Mahjong → control dock: accessible name of a nav.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Game controls"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spielsteuerung"
+          }
+        }
+      }
+    },
+    "mahjong.dock.boardsLabel": {
+      "comment": "Mahjong → control dock: accessible name of a button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boards"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spielfelder"
+          }
+        }
+      }
+    },
+    "mahjong.dock.boards": {
+      "comment": "Mahjong → control dock: text (span).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "boards"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spielfelder"
+          }
+        }
+      }
+    },
+    "mahjong.dock.recordsLabel": {
+      "comment": "Mahjong → control dock: accessible name of a button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Records"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rekorde"
+          }
+        }
+      }
+    },
+    "mahjong.dock.records": {
+      "comment": "Mahjong → control dock: text (span).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "records"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rekorde"
+          }
+        }
+      }
+    },
+    "mahjong.dock.undoLabel": {
+      "comment": "Mahjong → control dock: accessible name of a button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undo"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rückgängig"
+          }
+        }
+      }
+    },
+    "mahjong.dock.undo": {
+      "comment": "Mahjong → control dock: text (span).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "undo"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "rückgängig"
+          }
+        }
+      }
+    },
+    "mahjong.dock.hintLabel": {
+      "comment": "Mahjong → control dock: accessible name of a button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hint"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tipp"
+          }
+        }
+      }
+    },
+    "mahjong.dock.hint": {
+      "comment": "Mahjong → control dock: text (span).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hint"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tipp"
+          }
+        }
+      }
+    },
+    "mahjong.dock.shuffleLabel": {
+      "comment": "Mahjong → control dock: accessible name of a button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shuffle"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mischen"
+          }
+        }
+      }
+    },
+    "mahjong.dock.shuffle": {
+      "comment": "Mahjong → control dock: text (span).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "shuffle"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mischen"
+          }
+        }
+      }
+    },
+    "mahjong.sound.onLabel": {
+      "comment": "Mahjong → control dock: accessible name of the sound button when sound is on.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sound effects on"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soundeffekte an"
+          }
+        }
+      }
+    },
+    "mahjong.sound.on": {
+      "comment": "Mahjong → control dock: tooltip of the sound button when sound is on.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sound on"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ton an"
+          }
+        }
+      }
+    },
+    "mahjong.dock.soundOn": {
+      "comment": "Mahjong → control dock: text (span).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "sound on"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ton an"
+          }
+        }
+      }
+    },
+    "mahjong.setup.kicker": {
+      "comment": "Mahjong → Boards (choose your game): text (p).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "new table"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neuer Tisch"
+          }
+        }
+      }
+    },
+    "mahjong.setup.title": {
+      "comment": "Mahjong → Boards (choose your game): page heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose your game"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle dein Spiel"
+          }
+        }
+      }
+    },
+    "mahjong.setup.close": {
+      "comment": "Mahjong → Boards (choose your game): accessible name of a button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close board setup"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spielfeldauswahl schließen"
+          }
+        }
+      }
+    },
+    "mahjong.setup.layoutLegend": {
+      "comment": "Mahjong → Boards (choose your game): text (legend).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "layout"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufbau"
+          }
+        }
+      }
+    },
+    "mahjong.layout.turtleDetail": {
+      "comment": "Mahjong → Boards (choose your game): tile count and pace under a board name on a narrow card; keep it short.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "144 tiles · unhurried"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "144 Steine · gemächlich"
+          }
+        }
+      }
+    },
+    "mahjong.layout.arch": {
+      "comment": "Mahjong → Boards: name of a board layout (an arch).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arch"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bogen"
+          }
+        }
+      }
+    },
+    "mahjong.layout.archDetail": {
+      "comment": "Mahjong → Boards (choose your game): tile count and pace under a board name on a narrow card; keep it short.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "96 tiles · balanced"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "96 Steine · mittel"
+          }
+        }
+      }
+    },
+    "mahjong.layout.peaks": {
+      "comment": "Mahjong → Boards: name of a board layout (mountain peaks).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Peaks"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gipfel"
+          }
+        }
+      }
+    },
+    "mahjong.layout.peaksDetail": {
+      "comment": "Mahjong → Boards (choose your game): tile count and pace under a board name on a narrow card; keep it short.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "72 tiles · quick"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "72 Steine · schnell"
+          }
+        }
+      }
+    },
+    "mahjong.layout.pyramid": {
+      "comment": "Mahjong → Boards: name of a board layout.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pyramid"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pyramide"
+          }
+        }
+      }
+    },
+    "mahjong.layout.pyramidDetail": {
+      "comment": "Mahjong → Boards (choose your game): tile count and pace under a board name on a narrow card; keep it short.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "108 tiles · steep"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "108 Steine · steil"
+          }
+        }
+      }
+    },
+    "mahjong.layout.fortress": {
+      "comment": "Mahjong → Boards: name of a board layout.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fortress"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Festung"
+          }
+        }
+      }
+    },
+    "mahjong.layout.fortressDetail": {
+      "comment": "Mahjong → Boards (choose your game): tile count and pace under a board name on a narrow card; keep it short.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "96 tiles · walled"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "96 Steine · ummauert"
+          }
+        }
+      }
+    },
+    "mahjong.layout.butterfly": {
+      "comment": "Mahjong → Boards: name of a board layout.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Butterfly"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schmetterling"
+          }
+        }
+      }
+    },
+    "mahjong.layout.butterflyDetail": {
+      "comment": "Mahjong → Boards (choose your game): tile count and pace under a board name on a narrow card; keep it short.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "94 tiles · open"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "94 Steine · offen"
+          }
+        }
+      }
+    },
+    "mahjong.layout.bridge": {
+      "comment": "Mahjong → Boards: name of a board layout.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bridge"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brücke"
+          }
+        }
+      }
+    },
+    "mahjong.layout.bridgeDetail": {
+      "comment": "Mahjong → Boards (choose your game): tile count and pace under a board name on a narrow card; keep it short.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "100 tiles · narrow"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "100 Steine · schmal"
+          }
+        }
+      }
+    },
+    "mahjong.layout.cross": {
+      "comment": "Mahjong → Boards: name of a board layout.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cross"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kreuz"
+          }
+        }
+      }
+    },
+    "mahjong.layout.crossDetail": {
+      "comment": "Mahjong → Boards (choose your game): tile count and pace under a board name on a narrow card; keep it short.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "86 tiles · layered"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "86 Steine · geschichtet"
+          }
+        }
+      }
+    },
+    "mahjong.setup.modeLegend": {
+      "comment": "Mahjong → Boards (choose your game): text (legend).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mode"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modus"
+          }
+        }
+      }
+    },
+    "mahjong.mode.burst": {
+      "comment": "Mahjong: name of the Burst game mode (tiles go to a four-slot rack); a button in Boards.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Burst"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Burst"
+          }
+        }
+      }
+    },
+    "mahjong.setup.classicDescription": {
+      "comment": "Mahjong → Boards (choose your game): text (p).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Match two free tiles directly."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbinde zwei freie Steine direkt."
+          }
+        }
+      }
+    },
+    "mahjong.setup.dealLegend": {
+      "comment": "Mahjong → Boards (choose your game): text (legend).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "deal"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partie"
+          }
+        }
+      }
+    },
+    "mahjong.source.random": {
+      "comment": "Mahjong → Boards (choose your game): button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Random"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zufällig"
+          }
+        }
+      }
+    },
+    "mahjong.source.daily": {
+      "comment": "Mahjong → Boards (choose your game): button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daily"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Täglich"
+          }
+        }
+      }
+    },
+    "mahjong.setup.randomDescription": {
+      "comment": "Mahjong → Boards (choose your game): text (p).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A fresh, guaranteed-solvable board."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein neues, garantiert lösbares Spielfeld."
+          }
+        }
+      }
+    },
+    "mahjong.setup.autoClears": {
+      "comment": "Mahjong → Boards (choose your game): text (span).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<0>Auto clears</0> Every fifth combo clears another available pair automatically."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<0>Auto-Abräumen</0> Jede fünfte Combo räumt automatisch ein weiteres verfügbares Paar ab."
+          }
+        }
+      }
+    },
+    "mahjong.setup.zen": {
+      "comment": "Mahjong → Boards (choose your game): text (span).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<0>Zen game</0> Hide time and score, and keep this game out of Records."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<0>Zen-Spiel</0> Zeit und Punkte ausblenden und dieses Spiel nicht in die Rekorde aufnehmen."
+          }
+        }
+      }
+    },
+    "mahjong.setup.freeHighlight": {
+      "comment": "Mahjong → Boards (choose your game): text (span).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<0>Stronger free-tile highlight</0> Adds a persistent high-contrast ring to every tile available to play."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<0>Stärkere Hervorhebung freier Steine</0> Fügt jedem spielbaren Stein einen dauerhaften, kontrastreichen Ring hinzu."
+          }
+        }
+      }
+    },
+    "mahjong.setup.replaces": {
+      "comment": "Mahjong → Boards (choose your game): text (p).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starting replaces the board currently on this table."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Starten ersetzt das Spielfeld, das gerade auf diesem Tisch liegt."
+          }
+        }
+      }
+    },
+    "mahjong.setup.copyDeal": {
+      "comment": "Mahjong → Boards (choose your game): button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "copy current deal"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partie kopieren"
+          }
+        }
+      }
+    },
+    "mahjong.setup.start": {
+      "comment": "Mahjong → Boards (choose your game): button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "start game"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spiel starten"
+          }
+        }
+      }
+    },
+    "mahjong.records.kicker": {
+      "comment": "Mahjong → Records: text (p).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "your table"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dein Tisch"
+          }
+        }
+      }
+    },
+    "mahjong.records.title": {
+      "comment": "Mahjong → Records: page heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Records"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rekorde"
+          }
+        }
+      }
+    },
+    "mahjong.records.close": {
+      "comment": "Mahjong → Records: accessible name of a button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close records"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rekorde schließen"
+          }
+        }
+      }
+    },
+    "mahjong.records.overview": {
+      "comment": "Mahjong → Records: accessible name of a div.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Overview"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Übersicht"
+          }
+        }
+      }
+    },
+    "mahjong.records.boardsCleared": {
+      "comment": "Mahjong → Records: label on one of four stat tiles above the records table; must fit one line.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "boards cleared"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Siege"
+          }
+        }
+      }
+    },
+    "mahjong.records.dailyStreak": {
+      "comment": "Mahjong → Records: label on one of four stat tiles above the records table; must fit one line.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "daily streak"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tagesserie"
+          }
+        }
+      }
+    },
+    "mahjong.records.longestStreak": {
+      "comment": "Mahjong → Records: label on one of four stat tiles above the records table; must fit one line.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "longest streak"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "längste Serie"
+          }
+        }
+      }
+    },
+    "mahjong.records.dailiesCleared": {
+      "comment": "Mahjong → Records: label on one of four stat tiles above the records table; must fit one line.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dailies cleared"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tagessiege"
+          }
+        }
+      }
+    },
+    "mahjong.records.caption": {
+      "comment": "Mahjong → Records: text (caption).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "best results by board"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bestwerte je Spielfeld"
+          }
+        }
+      }
+    },
+    "mahjong.records.board": {
+      "comment": "Mahjong → Records: text (th).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "board"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spielfeld"
+          }
+        }
+      }
+    },
+    "mahjong.records.classicBest": {
+      "comment": "Mahjong → Records: text (th).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "classic best"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bestwert Klassisch"
+          }
+        }
+      }
+    },
+    "mahjong.records.burstBest": {
+      "comment": "Mahjong → Records: text (th).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "burst best"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bestwert Burst"
+          }
+        }
+      }
+    },
+    "mahjong.records.cleared": {
+      "comment": "Mahjong → Records: text (th).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "cleared"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "abgeräumt"
+          }
+        }
+      }
+    },
+    "mahjong.records.noDailiesLabel": {
+      "comment": "Mahjong → Records: accessible name of a div.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No dailies cleared in the last 28 days."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In den letzten 28 Tagen wurde kein Tagesspiel abgeräumt."
+          }
+        }
+      }
+    },
+    "mahjong.records.noDailies": {
+      "comment": "Mahjong → Records: text (p).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "no dailies cleared yet"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "noch kein Tagesspiel abgeräumt"
+          }
+        }
+      }
+    },
+    "mahjong.rescue.kicker": {
+      "comment": "Mahjong → Burst rack full: text (p).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "burst rack full"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Burst-Ablage voll"
+          }
+        }
+      }
+    },
+    "mahjong.rescue.title": {
+      "comment": "Mahjong → Burst rack full: page heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Make some room."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schaff etwas Platz."
+          }
+        }
+      }
+    },
+    "mahjong.rescue.body": {
+      "comment": "Mahjong → Burst rack full: text (p).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Four unmatched tiles are waiting. Choose how you want to continue."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vier unpassende Steine warten. Wähle, wie du weiterspielen willst."
+          }
+        }
+      }
+    },
+    "mahjong.rescue.undo": {
+      "comment": "Mahjong → Burst rack full: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "undo last pick"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "letzten Zug zurück"
+          }
+        }
+      }
+    },
+    "mahjong.rescue.shuffle": {
+      "comment": "Mahjong → Burst rack full: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "shuffle & continue"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mischen & weiterspielen"
+          }
+        }
+      }
+    },
+    "mahjong.rescue.restart": {
+      "comment": "Mahjong → Burst rack full: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "restart this board"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spielfeld neu starten"
+          }
+        }
+      }
+    },
+    "mahjong.number.1": {
+      "comment": "Mahjong: accessible tile name: the number 1 as a word, used as {number} in tile names.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "one"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "eins"
+          }
+        }
+      }
+    },
+    "mahjong.number.2": {
+      "comment": "Mahjong: accessible tile name: the number 2 as a word, used as {number} in tile names.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "two"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "zwei"
+          }
+        }
+      }
+    },
+    "mahjong.number.3": {
+      "comment": "Mahjong: accessible tile name: the number 3 as a word, used as {number} in tile names.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "three"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "drei"
+          }
+        }
+      }
+    },
+    "mahjong.number.4": {
+      "comment": "Mahjong: accessible tile name: the number 4 as a word, used as {number} in tile names.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "four"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "vier"
+          }
+        }
+      }
+    },
+    "mahjong.number.5": {
+      "comment": "Mahjong: accessible tile name: the number 5 as a word, used as {number} in tile names.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "five"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "fünf"
+          }
+        }
+      }
+    },
+    "mahjong.number.6": {
+      "comment": "Mahjong: accessible tile name: the number 6 as a word, used as {number} in tile names.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "six"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "sechs"
+          }
+        }
+      }
+    },
+    "mahjong.number.7": {
+      "comment": "Mahjong: accessible tile name: the number 7 as a word, used as {number} in tile names.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "seven"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "sieben"
+          }
+        }
+      }
+    },
+    "mahjong.number.8": {
+      "comment": "Mahjong: accessible tile name: the number 8 as a word, used as {number} in tile names.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "eight"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "acht"
+          }
+        }
+      }
+    },
+    "mahjong.number.9": {
+      "comment": "Mahjong: accessible tile name: the number 9 as a word, used as {number} in tile names.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "nine"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neun"
+          }
+        }
+      }
+    },
+    "mahjong.tile.dot": {
+      "comment": "Mahjong: accessible tile name of a dots (circles) tile; {number} is a word such as “three”.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ dot"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kreis %1$@"
+          }
+        }
+      }
+    },
+    "mahjong.tile.bamboo": {
+      "comment": "Mahjong: accessible tile name of a bamboo tile; {number} is a word such as “three”.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ bamboo"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bambus %1$@"
+          }
+        }
+      }
+    },
+    "mahjong.tile.character": {
+      "comment": "Mahjong: accessible tile name of a characters tile; {number} is a word such as “three”.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ character"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeichen %1$@"
+          }
+        }
+      }
+    },
+    "mahjong.tile.windEast": {
+      "comment": "Mahjong: accessible tile name; {motif} is the picture on it.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "east wind, %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ostwind, %1$@"
+          }
+        }
+      }
+    },
+    "mahjong.tile.windSouth": {
+      "comment": "Mahjong: accessible tile name; {motif} is the picture on it.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "south wind, %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Südwind, %1$@"
+          }
+        }
+      }
+    },
+    "mahjong.tile.windWest": {
+      "comment": "Mahjong: accessible tile name; {motif} is the picture on it.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "west wind, %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Westwind, %1$@"
+          }
+        }
+      }
+    },
+    "mahjong.tile.windNorth": {
+      "comment": "Mahjong: accessible tile name; {motif} is the picture on it.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "north wind, %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nordwind, %1$@"
+          }
+        }
+      }
+    },
+    "mahjong.tile.dragonRed": {
+      "comment": "Mahjong: accessible tile name; {motif} is the picture on it.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "red dragon, %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Roter Drache, %1$@"
+          }
+        }
+      }
+    },
+    "mahjong.tile.dragonGreen": {
+      "comment": "Mahjong: accessible tile name; {motif} is the picture on it.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "green dragon, %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grüner Drache, %1$@"
+          }
+        }
+      }
+    },
+    "mahjong.tile.dragonWhite": {
+      "comment": "Mahjong: accessible tile name; {motif} is the picture on it.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "white dragon, %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weißer Drache, %1$@"
+          }
+        }
+      }
+    },
+    "mahjong.tile.motif.sunrise": {
+      "comment": "Mahjong: accessible tile name: picture on the east wind tile.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "sunrise"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sonnenaufgang"
+          }
+        }
+      }
+    },
+    "mahjong.tile.motif.sun": {
+      "comment": "Mahjong: accessible tile name: picture on the south wind tile.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "sun"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sonne"
+          }
+        }
+      }
+    },
+    "mahjong.tile.motif.moonAndWave": {
+      "comment": "Mahjong: accessible tile name: picture on the west wind tile.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "moon and wave"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mond und Welle"
+          }
+        }
+      }
+    },
+    "mahjong.tile.motif.mountain": {
+      "comment": "Mahjong: accessible tile name: picture on the north wind tile.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mountain"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Berg"
+          }
+        }
+      }
+    },
+    "mahjong.tile.motif.compass": {
+      "comment": "Mahjong: accessible tile name: picture on the alternative wind tiles.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "compass"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kompass"
+          }
+        }
+      }
+    },
+    "mahjong.tile.motif.flame": {
+      "comment": "Mahjong: accessible tile name: picture on the red dragon tile.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "flame"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flamme"
+          }
+        }
+      }
+    },
+    "mahjong.tile.motif.flourish": {
+      "comment": "Mahjong: accessible tile name: picture on the green dragon tile (an ornamental swirl).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "flourish"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ornament"
+          }
+        }
+      }
+    },
+    "mahjong.tile.motif.blancMark": {
+      "comment": "Mahjong: accessible tile name: picture on the white dragon tile (the Blanc logo).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc mark"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc-Zeichen"
+          }
+        }
+      }
+    },
+    "mahjong.tile.motif.seal": {
+      "comment": "Mahjong: accessible tile name: picture on the alternative dragon tiles (a stamp).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "seal"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Siegel"
+          }
+        }
+      }
+    },
+    "mahjong.tile.flower": {
+      "comment": "Mahjong: accessible tile name of a flower bonus tile.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "flower bonus"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blumen-Bonus"
+          }
+        }
+      }
+    },
+    "mahjong.tile.season": {
+      "comment": "Mahjong: accessible tile name of a season bonus tile.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "season bonus"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jahreszeiten-Bonus"
+          }
+        }
+      }
+    },
+    "mahjong.tile.free": {
+      "comment": "Mahjong: accessible tile name of a tile that can be played; {tile} is its name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, free"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, frei"
+          }
+        }
+      }
+    },
+    "mahjong.tile.blocked": {
+      "comment": "Mahjong: accessible tile name of a tile that is covered; {tile} is its name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, blocked"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, blockiert"
+          }
+        }
+      }
+    },
+    "mahjong.rack.slot": {
+      "comment": "Mahjong → Burst rack: accessible name of a filled slot; {tile} is the tile’s name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Burst slot %1$@: %2$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Burst-Platz %1$@: %2$@"
+          }
+        }
+      }
+    },
+    "mahjong.rack.slotEmpty": {
+      "comment": "Mahjong → Burst rack: accessible name of an empty slot.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Burst slot %1$@: empty"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Burst-Platz %1$@: leer"
+          }
+        }
+      }
+    },
+    "mahjong.pairsLeft": {
+      "comment": "Mahjong → header and resume notice: pairs still on the board.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld pair left"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld pairs left"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Paar übrig"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Paare übrig"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "mahjong.rulesName.manual": {
+      "comment": "Mahjong: Burst rules without automatic clears, in the header badge (shown uppercase), sentences, the win card and Records.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manual"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manuell"
+          }
+        }
+      }
+    },
+    "mahjong.rulesName.auto": {
+      "comment": "Mahjong: Burst rules with automatic clears, in the header badge (shown uppercase), sentences, the win card and Records.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto"
+          }
+        }
+      }
+    },
+    "mahjong.rulesName.zen": {
+      "comment": "Mahjong: a Zen game (no time or score), in the header badge (shown uppercase), sentences and the win card.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zen"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zen"
+          }
+        }
+      }
+    },
+    "mahjong.rulesName.ranked": {
+      "comment": "Mahjong: a Classic game that counts toward Records, in the header badge (shown uppercase), sentences and the win card.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ranked"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gewertet"
+          }
+        }
+      }
+    },
+    "mahjong.live.rackFull": {
+      "comment": "Mahjong: announced to screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Burst rack is full. Undo, shuffle and continue, or restart."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Burst-Ablage ist voll. Mach einen Zug rückgängig, misch und spiel weiter oder starte neu."
+          }
+        }
+      }
+    },
+    "mahjong.live.rackStillFull": {
+      "comment": "Mahjong: announced to screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Burst rack is still full. Use Undo, Shuffle, or restart."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Burst-Ablage ist noch voll. Nutze Rückgängig, Mischen oder starte neu."
+          }
+        }
+      }
+    },
+    "mahjong.live.rackNeedsMatch": {
+      "comment": "Mahjong: announced to screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Burst rack needs a match. Use Undo or Shuffle instead of filling the last slot."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Burst-Ablage braucht ein Paar. Nutze Rückgängig oder Mischen, statt den letzten Platz zu füllen."
+          }
+        }
+      }
+    },
+    "mahjong.live.combo": {
+      "comment": "Mahjong: announced to screen readers: first sentence after a Burst match.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combo %1$@."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combo %1$@."
+          }
+        }
+      }
+    },
+    "mahjong.live.points": {
+      "comment": "Mahjong: announced to screen readers: points from a Burst match.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld point."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld points."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Punkt."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Punkte."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "mahjong.live.autoClear": {
+      "comment": "Mahjong: announced to screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Automatic pair cleared for %1$lld bonus point."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Automatic pair cleared for %1$lld bonus points."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Automatisch abgeräumtes Paar für %1$lld Bonuspunkt."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Automatisch abgeräumtes Paar für %1$lld Bonuspunkte."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "mahjong.live.milestone": {
+      "comment": "Mahjong: announced to screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld milestone bonus point."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld milestone bonus points."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Meilenstein-Bonuspunkt."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Meilenstein-Bonuspunkte."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "mahjong.live.total": {
+      "comment": "Mahjong: announced to screen readers: the game’s total score.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld total."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld total."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld insgesamt."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld insgesamt."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "mahjong.live.parked": {
+      "comment": "Mahjong: announced to screen readers; {tile} is a tile’s name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ moved to the Burst rack."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ in die Burst-Ablage gelegt."
+          }
+        }
+      }
+    },
+    "mahjong.live.slotsFilled": {
+      "comment": "Mahjong: announced to screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ of %2$@ slots filled."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ von %2$@ Plätzen belegt."
+          }
+        }
+      }
+    },
+    "mahjong.live.pairCleared": {
+      "comment": "Mahjong: announced to screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pair cleared."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paar abgeräumt."
+          }
+        }
+      }
+    },
+    "mahjong.live.pairsLeft": {
+      "comment": "Mahjong: announced to screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld pair left."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld pairs left."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Paar übrig."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Paare übrig."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "mahjong.live.shuffleUndone": {
+      "comment": "Mahjong: announced to screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shuffle undone. The previous board is back."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mischen rückgängig gemacht. Das vorherige Spielfeld ist zurück."
+          }
+        }
+      }
+    },
+    "mahjong.live.moveUndone": {
+      "comment": "Mahjong: announced to screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last move undone."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letzter Zug rückgängig gemacht."
+          }
+        }
+      }
+    },
+    "mahjong.live.hintRack": {
+      "comment": "Mahjong: announced to screen readers; {tile} is a tile’s name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hint: a %1$@ in the Burst rack has a free match."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tipp: Für %1$@ in der Burst-Ablage gibt es einen freien Partner."
+          }
+        }
+      }
+    },
+    "mahjong.live.hintPair": {
+      "comment": "Mahjong: announced to screen readers; {tile} is a tile’s name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hint: two %1$@ tiles are available."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tipp: Zwei Steine %1$@ sind verfügbar."
+          }
+        }
+      }
+    },
+    "mahjong.live.hintPark": {
+      "comment": "Mahjong: announced to screen readers; {tile} is a tile’s name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hint: %1$@ is free to move into the Burst rack."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tipp: %1$@ kann in die Burst-Ablage."
+          }
+        }
+      }
+    },
+    "mahjong.live.shuffled": {
+      "comment": "Mahjong: announced to screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remaining tiles shuffled into a new solvable deal. Undo restores the previous board."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die übrigen Steine wurden zu einer neuen lösbaren Partie gemischt. Rückgängig stellt das vorherige Spielfeld wieder her."
+          }
+        }
+      }
+    },
+    "mahjong.live.wonZen": {
+      "comment": "Mahjong: announced to screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Board cleared. Zen game complete. This game was not added to Records."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spielfeld abgeräumt. Zen-Spiel beendet. Dieses Spiel wurde nicht in die Rekorde aufgenommen."
+          }
+        }
+      }
+    },
+    "mahjong.live.wonBurst": {
+      "comment": "Mahjong: announced to screen readers; {time} is the clear time, e.g. 4:12.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Board cleared. %1$lld point. %2$@."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Board cleared. %1$lld points. %2$@."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Spielfeld abgeräumt. %1$lld Punkt. %2$@."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Spielfeld abgeräumt. %1$lld Punkte. %2$@."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "mahjong.live.wonClassic": {
+      "comment": "Mahjong: announced to screen readers; {time} is the clear time, e.g. 4:12.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Board cleared. %1$@."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spielfeld abgeräumt. %1$@."
+          }
+        }
+      }
+    },
+    "mahjong.live.ready": {
+      "comment": "Mahjong: announced to screen readers; {layout} is a board name, {mode} Classic or Burst, {rules} Ranked, Zen, Auto or Manual.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@ %3$@ game ready."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spiel %1$@ (%2$@, %3$@) bereit."
+          }
+        }
+      }
+    },
+    "mahjong.live.copyFailed": {
+      "comment": "Mahjong: announced to screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This deal could not be copied."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Partie konnte nicht kopiert werden."
+          }
+        }
+      }
+    },
+    "mahjong.live.copied": {
+      "comment": "Mahjong: announced to screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deal link copied."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partie-Link kopiert."
+          }
+        }
+      }
+    },
+    "mahjong.live.linkCopyFailed": {
+      "comment": "Mahjong: announced to screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deal link could not be copied."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Partie-Link konnte nicht kopiert werden."
+          }
+        }
+      }
+    },
+    "mahjong.live.continuing": {
+      "comment": "Mahjong: announced to screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuing your unfinished board."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein unbeendetes Spielfeld wird fortgesetzt."
+          }
+        }
+      }
+    },
+    "mahjong.live.duplicated": {
+      "comment": "Mahjong: announced to screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This duplicated tab now has its own independent game."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser duplizierte Tab hat jetzt ein eigenes, unabhängiges Spiel."
+          }
+        }
+      }
+    },
+    "mahjong.live.restored": {
+      "comment": "Mahjong: announced to screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved game restored."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gespeichertes Spiel wiederhergestellt."
+          }
+        }
+      }
+    },
+    "mahjong.live.sharedReady": {
+      "comment": "Mahjong: announced to screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shared deal ready."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geteilte Partie bereit."
+          }
+        }
+      }
+    },
+    "mahjong.live.shareInvalid": {
+      "comment": "Mahjong: announced to screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That shared deal link was invalid. Your remembered game was started instead."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser geteilte Partie-Link war ungültig. Stattdessen wurde dein gemerktes Spiel gestartet."
+          }
+        }
+      }
+    },
+    "mahjong.combo.combo": {
+      "comment": "Mahjong: word beside the combo multiplier in the burst of light after a match.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "combo"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combo"
+          }
+        }
+      }
+    },
+    "mahjong.combo.flowing": {
+      "comment": "Mahjong: combo tier shown at a milestone (5+ matches in a row).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "flowing"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "im Fluss"
+          }
+        }
+      }
+    },
+    "mahjong.combo.brilliant": {
+      "comment": "Mahjong: combo tier shown at 10+ matches in a row.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "brilliant"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "brillant"
+          }
+        }
+      }
+    },
+    "mahjong.combo.masterful": {
+      "comment": "Mahjong: combo tier shown at 15+ matches in a row.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "masterful"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "meisterhaft"
+          }
+        }
+      }
+    },
+    "mahjong.sound.off": {
+      "comment": "Mahjong → control dock: tooltip of the sound button when sound is off.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sound off"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ton aus"
+          }
+        }
+      }
+    },
+    "mahjong.sound.offLabel": {
+      "comment": "Mahjong → control dock: accessible name of the sound button when sound is off.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sound effects off"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soundeffekte aus"
+          }
+        }
+      }
+    },
+    "mahjong.best.zen": {
+      "comment": "Mahjong → Burst rack: best result line during a Zen game.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zen game"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zen-Spiel"
+          }
+        }
+      }
+    },
+    "mahjong.best.none": {
+      "comment": "Mahjong → Burst rack: best result line when there is none.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No record"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein Rekord"
+          }
+        }
+      }
+    },
+    "mahjong.best.time": {
+      "comment": "Mahjong → Burst rack: best clear time; {time} is e.g. 4:12.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Best %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bestzeit %1$@"
+          }
+        }
+      }
+    },
+    "mahjong.best.score": {
+      "comment": "Mahjong → Burst rack: best score and its time.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Best %1$@ · %2$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bestwert %1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "mahjong.win.quietTitle": {
+      "comment": "Mahjong → board-cleared card: heading after a Zen game.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A quiet finish."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein ruhiges Finale."
+          }
+        }
+      }
+    },
+    "mahjong.win.rules": {
+      "comment": "Mahjong → board-cleared card: mode and rules, e.g. “Burst · Auto”.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "mahjong.win.clearTime": {
+      "comment": "Mahjong → board-cleared card: unit under a Classic clear time.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "clear time"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abräumzeit"
+          }
+        }
+      }
+    },
+    "mahjong.win.newRecord": {
+      "comment": "Mahjong → board-cleared card: result line.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "new record"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neuer Rekord"
+          }
+        }
+      }
+    },
+    "mahjong.win.firstClear": {
+      "comment": "Mahjong → board-cleared card: result line for the first clear of this board.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "first clear"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "erstes Abräumen"
+          }
+        }
+      }
+    },
+    "mahjong.win.bestTime": {
+      "comment": "Mahjong → board-cleared card: the previous best time.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "best %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bestzeit %1$@"
+          }
+        }
+      }
+    },
+    "mahjong.win.bestScore": {
+      "comment": "Mahjong → board-cleared card: the previous best score and its time.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "best %1$@ · %2$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bestwert %1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "mahjong.win.noRecord": {
+      "comment": "Mahjong → board-cleared card: result line when there is no record.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "no record"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "kein Rekord"
+          }
+        }
+      }
+    },
+    "mahjong.win.daily": {
+      "comment": "Mahjong → board-cleared card: today’s daily; {date} is YYYY-MM-DD, {result} the daily’s result.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "daily %1$@ · %2$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tagesspiel %1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "mahjong.notice.resumeDetail": {
+      "comment": "Mahjong → notice under the board; {layout} is a board name, {mode} Classic or Burst, {pairs} e.g. “12 pairs left”.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your unfinished %1$@ %2$@ board is waiting · %3$@."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein unbeendetes Spielfeld %1$@ (%2$@) wartet · %3$@."
+          }
+        }
+      }
+    },
+    "mahjong.setup.burstDescription": {
+      "comment": "Mahjong → Boards: description of Burst mode.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Build rapid matches in a four-slot Burst rack."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bilde schnelle Paare in einer Burst-Ablage mit vier Plätzen."
+          }
+        }
+      }
+    },
+    "mahjong.setup.dailyDescription": {
+      "comment": "Mahjong → Boards: today’s daily; {date} is YYYY-MM-DD, {layout} a board name, {result} its result or “layout rotates daily”.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@ · %3$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@ · %3$@"
+          }
+        }
+      }
+    },
+    "mahjong.setup.dailyRotates": {
+      "comment": "Mahjong → Boards: shown when today’s daily is not cleared yet.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "layout rotates daily"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufbau wechselt täglich"
+          }
+        }
+      }
+    },
+    "mahjong.records.clearedOn": {
+      "comment": "Mahjong → Records: accessible name of the 28-day strip; {dates} is a list of YYYY-MM-DD dates.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daily cleared on %1$@."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tagesspiel abgeräumt am %1$@."
+          }
+        }
+      }
+    },
+    "mahjong.records.clearedCount": {
+      "comment": "Mahjong → Records: caption under the 28-day strip, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "cleared %1$lld of the last 28 dailies"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "cleared %1$lld of the last 28 dailies"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld der letzten 28 Tagesspiele abgeräumt"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld der letzten 28 Tagesspiele abgeräumt"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "mahjong.daily.cleared": {
+      "comment": "Mahjong: a cleared Classic daily; {time} is the clear time.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "cleared · %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "abgeräumt · %1$@"
+          }
+        }
+      }
+    },
+    "mahjong.daily.clearedScore": {
+      "comment": "Mahjong: a cleared Burst daily; # is its score (pts = points), {time} the clear time.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "cleared · %1$lld pt · %2$@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "cleared · %1$lld pts · %2$@"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "abgeräumt · %1$lld Pkt. · %2$@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "abgeräumt · %1$lld Pkt. · %2$@"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "version": "1.0"

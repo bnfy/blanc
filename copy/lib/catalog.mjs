@@ -84,8 +84,11 @@ export function checkTranslation({ key, enEntry, trEntry, glossary, locale }) {
   }
   problems.push(...pluralProblems(key, b.plurals, locale));
   if (a.tags.join() !== b.tags.join()) problems.push(`${key}: tags differ (${a.tags} vs ${b.tags})`);
+  // A term counts in the English only as a whole word (the layout "Arch" is
+  // not the product "Arc"); the translation may inflect it ("Blancs").
   for (const term of glossary.fixed ?? []) {
-    if (enEntry.message.includes(term) && !trEntry.message.includes(term)) problems.push(`${key}: fixed term "${term}" missing`);
+    const word = new RegExp(`(?<![\\p{L}\\p{N}])${escapeRegExp(term)}(?![\\p{L}\\p{N}])`, 'u');
+    if (word.test(enEntry.message) && !trEntry.message.includes(term)) problems.push(`${key}: fixed term "${term}" missing`);
   }
   for (const pattern of patternsOf(glossary)) {
     for (const match of enEntry.message.matchAll(pattern)) {

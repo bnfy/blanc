@@ -5,6 +5,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
+const { withoutInterfaceKeys } = require('../support/without-interface-keys');
 
 const styles = ['pages.css', 'mahjong.css'].map((name) => fs.readFileSync(
   path.join(__dirname, `../../src/renderer/pages/${name}`),
@@ -14,10 +15,15 @@ const mahjongStyles = fs.readFileSync(
   path.join(__dirname, '../../src/renderer/pages/mahjong.css'),
   'utf8'
 );
-const html = fs.readFileSync(
+// Markup is read without its interface keys (F44), so its structure and
+// English stay checkable as before.
+const html = withoutInterfaceKeys(fs.readFileSync(
   path.join(__dirname, '../../src/renderer/pages/mahjong.html'),
   'utf8'
-);
+));
+// The page's English lives in the interface catalog.
+const catalog = JSON.parse(fs.readFileSync(path.join(__dirname, '../../copy/messages/en.json'), 'utf8'));
+const english = (key) => catalog[key].message;
 const controller = fs.readFileSync(
   path.join(__dirname, '../../src/renderer/pages/mahjong.js'),
   'utf8'
@@ -52,6 +58,14 @@ function mediaBlocks(query) {
   }
 }
 
+test('every board the engine deals has a translated name on the page', () => {
+  const { LAYOUTS } = require('../../src/renderer/pages/mahjong-engine');
+  for (const id of Object.keys(LAYOUTS)) {
+    assert.match(controller, new RegExp(`\\b${id}: t\\('mahjong\\.layout\\.${id}'\\)`), id);
+    assert.equal(english(`mahjong.layout.${id}`), LAYOUTS[id].name);
+  }
+});
+
 test('the Mahjong stylesheet has balanced blocks', () => {
   let depth = 0;
   let line = 1;
@@ -83,7 +97,8 @@ test('bonus families keep their full-scale artwork and hints clear stale emphasi
   assert.match(controller, /season:\s*'mahjong-season\.png'/);
   assert.match(controller, /class: `mj-bonus-art mj-bonus-\$\{family\}`/);
   assert.match(controller, /faceImage\(BONUS_ART\[family\], 22, 30, 42, 48, 'mj-bonus-source'\)/);
-  assert.match(controller, /if \(family === 'flower'\) return 'flower bonus';/);
+  assert.match(controller, /if \(family === 'flower'\) return t\('mahjong\.tile\.flower'\);/);
+  assert.equal(english('mahjong.tile.flower'), 'flower bonus');
   assert.doesNotMatch(controller, /FLOWER_PETAL_PATH/);
   assert.doesNotMatch(controller, /textEl\(36,\s*54,\s*10,\s*id\)/);
   assert.match(styles, /\.mj-tile\[data-suit="flower"\]\s*\{[^}]*var\(--mj-flower\)/);
@@ -156,10 +171,14 @@ test('winds and dragons unite all motif and compass-seal designs at their intend
   for (const direction of ['n', 'e', 's', 'w']) {
     assert.match(styles, new RegExp(`\\.mj-wind-direction-${direction} rect\\s*\\{[^}]*fill:`));
   }
-  assert.match(controller, /const motif = \{ e: 'sunrise', s: 'sun', w: 'moon and wave', n: 'mountain' \}\[id\];/);
-  assert.match(controller, /return `\$\{direction\} wind, \$\{variant === 'seal' \? 'compass' : motif\}`;/);
-  assert.match(controller, /const motif = \{ c: 'flame', f: 'flourish', p: 'Blanc mark' \}\[id\];/);
-  assert.match(controller, /return `\$\{dragon\}, \$\{variant === 'seal' \? 'seal' : motif\}`;/);
+  assert.match(controller, /const WIND_MOTIFS = \{\s*e: t\('mahjong\.tile\.motif\.sunrise'\), s: t\('mahjong\.tile\.motif\.sun'\),\s*w: t\('mahjong\.tile\.motif\.moonAndWave'\), n: t\('mahjong\.tile\.motif\.mountain'\),/);
+  assert.deepEqual(['sunrise', 'sun', 'moonAndWave', 'mountain'].map((motif) => english(`mahjong.tile.motif.${motif}`)),
+    ['sunrise', 'sun', 'moon and wave', 'mountain']);
+  assert.match(controller, /const motif = variant === 'seal' \? t\('mahjong\.tile\.motif\.compass'\) : WIND_MOTIFS\[id\];/);
+  assert.equal(english('mahjong.tile.windEast'), 'east wind, {motif}');
+  assert.match(controller, /const DRAGON_MOTIFS = \{\s*c: t\('mahjong\.tile\.motif\.flame'\), f: t\('mahjong\.tile\.motif\.flourish'\), p: t\('mahjong\.tile\.motif\.blancMark'\),/);
+  assert.equal(english('mahjong.tile.motif.blancMark'), 'Blanc mark');
+  assert.match(controller, /const motif = variant === 'seal' \? t\('mahjong\.tile\.motif\.seal'\) : DRAGON_MOTIFS\[id\];/);
 
   const expected = new Map([
     ['mahjong-wind-north.png', '5a2be0fdd57bcc7cc6ad6b1faac6b04a52b16417004474cd3368c406ff49a743'],
@@ -281,7 +300,8 @@ test('every game interaction is wired to its sound cue and bootstrap stays silen
   assert.match(controller, /function startPreferredGame\(\{ soundCue = false \} = \{\}\)/);
   assert.match(controller, /startGame\(\{ \.\.\.S\.dailyDeal\(new Date\(\)\), mode: prefs\.mode, burstRules: prefs\.burstRules \}, \{ soundCue \}\)/);
   assert.match(controller, /document\.getElementById\('mjNew'\)\.addEventListener\('click', newGameFromControl\);/);
-  assert.match(controller, /\nbootstrap\(\);\s*$/);
+  // The game starts once the page's static text is applied (F44).
+  assert.match(controller, /function start\(\) \{\s*paintSoundButton\(\);\s*bootstrap\(\);\s*\}\s*if \(document\.readyState === 'loading'\) document\.addEventListener\('DOMContentLoaded', start, \{ once: true \}\);\s*else start\(\);\s*$/);
 });
 
 test('a fresh table deals the remembered table (Daily Burst by default) while the tray id preserves saved-game compatibility', () => {
@@ -293,8 +313,8 @@ test('a fresh table deals the remembered table (Daily Burst by default) while th
   assert.match(html, /id="mjModeTray"[^>]*data-mode="tray"[^>]*>Burst<\/button>/);
   assert.match(html, /burst rack/i);
   assert.match(html, /id="mjBurstScoreWrap"[^>]*>[\s\n]*<strong id="mjBurstScore">0<\/strong>/);
-  assert.match(controller, /game\.mode === 'tray' \? 'Burst' : 'Classic'/);
-  assert.match(controller, /Build rapid matches in a four-slot Burst rack\./);
+  assert.match(controller, /mode === 'tray' \? t\('mahjong\.mode\.burst'\) : t\('mahjong\.mode\.classic'\)/);
+  assert.equal(english('mahjong.setup.burstDescription'), 'Build rapid matches in a four-slot Burst rack.');
 });
 
 test('v3 exposes setup, Tray rescue, local restoration, and keyboard affordances', () => {
@@ -375,7 +395,7 @@ test('combo feedback restores animated tiles and removes immediately for reduced
   assert.match(styles, /\.mj-tray-slot\.filled\s*\{[^}]*color:\s*var\(--mj-ink\)/);
   assert.match(styles, /\.mj-tray-slot\.is-receiving/);
   assert.match(styles, /\.mj-tile\.shake::before/);
-  assert.match(controller, /callout\.replaceChildren\(\)[\s\S]*label\.textContent = result\.milestone \? tier\.name : 'combo'[\s\S]*multiplier\.textContent = `×\$\{result\.comboCount\}`/);
+  assert.match(controller, /callout\.replaceChildren\(\)[\s\S]*label\.textContent = result\.milestone \? tier\.label : t\('mahjong\.combo\.combo'\)[\s\S]*multiplier\.textContent = `×\$\{result\.comboCount\}`/);
   assert.match(controller, /document\.querySelectorAll\('\.mj-tray-slot\.filled'\)/);
   assert.doesNotMatch(controller, /for \(const slot of rippleSlots\)[^{]*\{[^}]*offsetWidth/);
   assert.match(controller, /result\.comboCount >= 15 \? 860[\s\S]*result\.milestone \? 760[\s\S]*result\.comboCount > 1 \? 660[\s\S]*: 560/);
@@ -409,7 +429,8 @@ test('desktop game header promotes session identity and status hierarchy', () =>
 test('hints use safe selection, cycle Classic pairs, and include a parked Burst tile', () => {
   assert.match(controller, /const moves = E\.hintMoves\(game\)/);
   assert.match(controller, /game\.mode === 'tray' && game\.tray\.length === 3 && E\.availableMoves\(game\)\.length/);
-  assert.match(controller, /The Burst rack needs a match\. Use Undo or Shuffle/);
+  assert.match(controller, /announce\(t\('mahjong\.live\.rackNeedsMatch'\)\)/);
+  assert.match(english('mahjong.live.rackNeedsMatch'), /The Burst rack needs a match\. Use Undo or Shuffle/);
   assert.match(controller, /moves\[game\.mode === 'classic' \? hintCycleIndex % moves\.length : 0\]/);
   assert.match(controller, /hintCycleIndex = \(hintCycleIndex \+ 1\) % moves\.length/);
   assert.match(controller, /function resetHintCycle\(\) \{[\s\S]*?hintCycleIndex = 0/);
@@ -564,7 +585,8 @@ test('mahjong reports play only after a real free-tile move', () => {
 test('undo re-renders the board after reversing a shuffle and never forces a status', () => {
   assert.match(controller, /const undone = game\?\.history\.at\(-1\)\?\.type;[\s\S]*?if \(!game \|\| !E\.undo\(game\)\) return;[\s\S]*?if \(undone === 'shuffle'\) \{[\s\S]*?renderBoard\(\);[\s\S]*?fitBoard\(\);/);
   assert.doesNotMatch(controller, /function resumeTimerAfterUndo\(\) \{[\s\S]{0,120}game\.status = 'playing'/);
-  assert.match(controller, /announce\('Remaining tiles shuffled into a new solvable deal\. Undo restores the previous board\.'\)/);
+  assert.match(controller, /announce\(t\('mahjong\.live\.shuffled'\)\)/);
+  assert.equal(english('mahjong.live.shuffled'), 'Remaining tiles shuffled into a new solvable deal. Undo restores the previous board.');
 });
 
 test('arrow-key navigation keeps an active hint visible', () => {
@@ -579,12 +601,13 @@ test('the dead-end notice offers shuffle alongside undo and a new deal', () => {
 
 test('daily layout choices read as disabled and the sheet explains the rotation', () => {
   assert.match(mahjongStyles, /\.mj-layout-choice:disabled\s*\{[^}]*opacity/);
-  assert.match(controller, /layout rotates daily/);
+  assert.match(controller, /t\('mahjong\.setup\.dailyRotates'\)/);
+  assert.equal(english('mahjong.setup.dailyRotates'), 'layout rotates daily');
 });
 
 test('completion copy distinguishes first clear from a new record using the stored outcome', () => {
   assert.match(controller, /S\.completionOutcome\(\{ mode: game\.mode, before, after \}\)/);
-  assert.match(controller, /game\._outcome === 'record'[\s\S]*?'new record'[\s\S]*?game\._outcome === 'first'[\s\S]*?'first clear'/);
+  assert.match(controller, /game\._outcome === 'record'[\s\S]*?t\('mahjong\.win\.newRecord'\)[\s\S]*?game\._outcome === 'first'[\s\S]*?t\('mahjong\.win\.firstClear'\)/);
   assert.doesNotMatch(controller, /game\._newRecord/);
 });
 
@@ -611,12 +634,13 @@ test('Zen suppresses timing and records while completion explains the exclusion'
   assert.match(controller, /if \(game\?\.zen \|\| runningSince !== null/);
   assert.match(controller, /if \(game\.zen\) \{[\s\S]*?game\.completionRecorded = true;[\s\S]*?game\._outcome = 'zen';[\s\S]*?return true;/);
   assert.match(html, /id="mjWinZen"[^>]*>This Zen game was not added to Records\./);
-  assert.match(controller, /Zen game complete\. This game was not added to Records/);
+  assert.match(controller, /t\('mahjong\.live\.wonZen'\)/);
+  assert.match(english('mahjong.live.wonZen'), /Zen game complete\. This game was not added to Records/);
 });
 
 test('Records stacks separately labeled Auto and Manual Burst results', () => {
-  assert.match(controller, /\['Auto', row\.trayAutoBestScore, row\.trayAutoBestMs\]/);
-  assert.match(controller, /\['Manual', row\.trayManualBestScore, row\.trayManualBestMs\]/);
+  assert.match(controller, /\[t\('mahjong\.rulesName\.auto'\), row\.trayAutoBestScore, row\.trayAutoBestMs\]/);
+  assert.match(controller, /\[t\('mahjong\.rulesName\.manual'\), row\.trayManualBestScore, row\.trayManualBestMs\]/);
   assert.match(styles, /\.mj-record-variants > span\s*\{/);
   assert.match(controller, /records\.trayManual\[game\.layoutId\]/);
 });
@@ -626,8 +650,8 @@ test('Boards share action uses the sanitized Clipboard API without adding finish
   assert.doesNotMatch(html, /id="mjWinCopyDeal"/);
   assert.match(controller, /S\.buildShareDealUrl\(game\)/);
   assert.match(controller, /await navigator\.clipboard\.writeText\(link\)/);
-  assert.match(controller, /announce\('Deal link copied\.'\)/);
-  assert.match(controller, /announce\('Deal link could not be copied\.'\)/);
+  assert.match(controller, /announce\(t\('mahjong\.live\.copied'\)\)/);
+  assert.match(controller, /announce\(t\('mahjong\.live\.linkCopyFailed'\)\)/);
   assert.equal((html.match(/class="mj-dock-action"/g) || []).length, 5);
   assert.equal((html.match(/class="mj-dock-icon/g) || []).length, 7, 'five actions plus two sound-state icons');
 });
@@ -717,8 +741,10 @@ test('the Records sheet opens from the dock and R, paints from the pure summary,
   // rows are real table semantics built per layout, with the current board marked
   assert.match(controller, /name\.scope = 'row'/);
   assert.match(controller, /tr\.setAttribute\('aria-current', 'true'\)/);
-  assert.match(controller, /'No dailies cleared in the last 28 days\.'/);
-  assert.match(controller, /`cleared \$\{clearedDays\.length\} of the last 28 dailies`/);
+  assert.match(controller, /t\('mahjong\.records\.noDailiesLabel'\)/);
+  assert.equal(english('mahjong.records.noDailiesLabel'), 'No dailies cleared in the last 28 days.');
+  assert.match(controller, /t\('mahjong\.records\.clearedCount', \{ count: clearedDays\.length \}\)/);
+  assert.match(english('mahjong.records.clearedCount'), /other \{cleared # of the last 28 dailies\}/);
 });
 
 test('tile-face type stays JetBrains Mono while the game chrome uses Inter', () => {

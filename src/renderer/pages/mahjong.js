@@ -2,6 +2,7 @@
 // MahjongEngine; this file owns DOM, timer, best time, and the sound toggle.
 'use strict';
 
+const { t } = blancI18n;
 const E = window.MahjongEngine;
 const S = window.MahjongState;
 const sound = window.MahjongSound;
@@ -241,26 +242,55 @@ function bonusFace(family) {
   return group;
 }
 
-const NUM_WORDS = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+// Accessible tile names. Numbers are words ("three dot"), so each language
+// can order a tile's suit and number its own way.
+const NUM_WORDS = [
+  t('mahjong.number.1'), t('mahjong.number.2'), t('mahjong.number.3'),
+  t('mahjong.number.4'), t('mahjong.number.5'), t('mahjong.number.6'),
+  t('mahjong.number.7'), t('mahjong.number.8'), t('mahjong.number.9'),
+];
+const WIND_MOTIFS = {
+  e: t('mahjong.tile.motif.sunrise'), s: t('mahjong.tile.motif.sun'),
+  w: t('mahjong.tile.motif.moonAndWave'), n: t('mahjong.tile.motif.mountain'),
+};
+const DRAGON_MOTIFS = {
+  c: t('mahjong.tile.motif.flame'), f: t('mahjong.tile.motif.flourish'), p: t('mahjong.tile.motif.blancMark'),
+};
 function tileName(kind) {
   const [family, id, rawVariant] = kind.split('-');
   const variant = rawVariant || 'motif';
-  if (family === 'dot') return `${NUM_WORDS[id - 1]} dot`;
-  if (family === 'bam') return `${NUM_WORDS[id - 1]} bamboo`;
-  if (family === 'chr') return `${NUM_WORDS[id - 1]} character`;
+  if (family === 'dot') return t('mahjong.tile.dot', { number: NUM_WORDS[id - 1] });
+  if (family === 'bam') return t('mahjong.tile.bamboo', { number: NUM_WORDS[id - 1] });
+  if (family === 'chr') return t('mahjong.tile.character', { number: NUM_WORDS[id - 1] });
   if (family === 'wind') {
-    const direction = { e: 'east', s: 'south', w: 'west', n: 'north' }[id];
-    const motif = { e: 'sunrise', s: 'sun', w: 'moon and wave', n: 'mountain' }[id];
-    return `${direction} wind, ${variant === 'seal' ? 'compass' : motif}`;
+    const motif = variant === 'seal' ? t('mahjong.tile.motif.compass') : WIND_MOTIFS[id];
+    if (id === 'e') return t('mahjong.tile.windEast', { motif });
+    if (id === 's') return t('mahjong.tile.windSouth', { motif });
+    if (id === 'w') return t('mahjong.tile.windWest', { motif });
+    return t('mahjong.tile.windNorth', { motif });
   }
   if (family === 'drg') {
-    const dragon = { c: 'red dragon', f: 'green dragon', p: 'white dragon' }[id];
-    const motif = { c: 'flame', f: 'flourish', p: 'Blanc mark' }[id];
-    return `${dragon}, ${variant === 'seal' ? 'seal' : motif}`;
+    const motif = variant === 'seal' ? t('mahjong.tile.motif.seal') : DRAGON_MOTIFS[id];
+    if (id === 'c') return t('mahjong.tile.dragonRed', { motif });
+    if (id === 'f') return t('mahjong.tile.dragonGreen', { motif });
+    return t('mahjong.tile.dragonWhite', { motif });
   }
-  if (family === 'flower') return 'flower bonus';
-  return 'season bonus';
+  if (family === 'flower') return t('mahjong.tile.flower');
+  return t('mahjong.tile.season');
 }
+
+const LAYOUT_NAMES = {
+  turtle: t('mahjong.layout.turtle'), arch: t('mahjong.layout.arch'), peaks: t('mahjong.layout.peaks'),
+  pyramid: t('mahjong.layout.pyramid'), fortress: t('mahjong.layout.fortress'), butterfly: t('mahjong.layout.butterfly'),
+  bridge: t('mahjong.layout.bridge'), cross: t('mahjong.layout.cross'),
+};
+const layoutName = (id) => LAYOUT_NAMES[id] ?? id;
+const modeName = (mode) => (mode === 'tray' ? t('mahjong.mode.burst') : t('mahjong.mode.classic'));
+// Rule names for the header badge, sentences and Records ("Auto", "Zen").
+const rulesName = (mode, burstRules, zen) => (mode === 'tray'
+  ? (burstRules === E.BURST_RULES.MANUAL ? t('mahjong.rulesName.manual') : t('mahjong.rulesName.auto'))
+  : (zen ? t('mahjong.rulesName.zen') : t('mahjong.rulesName.ranked')));
+const numberFormat = new Intl.NumberFormat(blancI18n.formatLocale());
 
 function faceSVG(kind) {
   const svg = el('svg', { viewBox: '0 0 44 60', 'aria-hidden': 'true' });
@@ -399,8 +429,8 @@ function renderTray() {
     else delete target.dataset.tileIndex;
     target.classList.toggle('filled', Number.isInteger(index));
     target.setAttribute('aria-label', Number.isInteger(index)
-      ? `Burst slot ${slot + 1}: ${tileName(game.kinds[index])}`
-      : `Burst slot ${slot + 1}: empty`);
+      ? t('mahjong.rack.slot', { number: slot + 1, tile: tileName(game.kinds[index]) })
+      : t('mahjong.rack.slotEmpty', { number: slot + 1 }));
     if (!Number.isInteger(index)) continue;
     const face = faceSVG(game.kinds[index]);
     face.classList.add('mj-tray-face');
@@ -428,7 +458,9 @@ function refreshTiles({ recoverFocus = false, keepHint = false } = {}) {
     }
     b.classList.toggle('selected', game.selected === i);
     b.setAttribute('aria-pressed', String(game.selected === i));
-    b.setAttribute('aria-label', `${tileName(game.kinds[i])}, ${free ? 'free' : 'blocked'}`);
+    b.setAttribute('aria-label', free
+      ? t('mahjong.tile.free', { tile: tileName(game.kinds[i]) })
+      : t('mahjong.tile.blocked', { tile: tileName(game.kinds[i]) }));
   });
 
   if (!tileButtons[nextFocus] || tileButtons[nextFocus].hidden) {
@@ -438,8 +470,7 @@ function refreshTiles({ recoverFocus = false, keepHint = false } = {}) {
   tileButtons.forEach((button, index) => { button.tabIndex = index === focusIndex ? 0 : -1; });
 
   const left = Math.max(0, positions.length / 2 - clearedPairs());
-  document.getElementById('mjPairs').textContent =
-    `${left} ${left === 1 ? 'pair' : 'pairs'} left`;
+  document.getElementById('mjPairs').textContent = t('mahjong.pairsLeft', { count: left });
   if (game.mode === 'tray') setDisplayedScore(game.score);
   else document.getElementById('mjScore').textContent = '—';
   paintCombo();
@@ -452,14 +483,12 @@ function refreshTiles({ recoverFocus = false, keepHint = false } = {}) {
     shell.dataset.zen = String(game.zen === true);
     shell.dataset.burstRules = game.burstRules;
   }
-  const layoutName = document.getElementById('mjLayoutName');
-  if (layoutName) layoutName.textContent = E.LAYOUTS[game.layoutId].name;
-  const modeName = document.getElementById('mjModeName');
-  if (modeName) modeName.textContent = game.mode === 'tray' ? 'Burst' : 'Classic';
+  const layoutLabel = document.getElementById('mjLayoutName');
+  if (layoutLabel) layoutLabel.textContent = layoutName(game.layoutId);
+  const modeLabel = document.getElementById('mjModeName');
+  if (modeLabel) modeLabel.textContent = modeName(game.mode);
   const rulesBadge = document.getElementById('mjRulesBadge');
-  if (rulesBadge) rulesBadge.textContent = game.mode === 'tray'
-    ? (game.burstRules === E.BURST_RULES.MANUAL ? 'manual' : 'auto')
-    : (game.zen ? 'zen' : 'ranked');
+  if (rulesBadge) rulesBadge.textContent = rulesName(game.mode, game.burstRules, game.zen);
   const dailyBadge = document.getElementById('mjDailyBadge');
   if (dailyBadge) dailyBadge.hidden = !game.dailyKey;
   renderTray();
@@ -635,7 +664,7 @@ function checkEndStates() {
   setDialogVisible(document.getElementById('mjRescue'), rescuing);
   if (rescuing) {
     pauseTimer();
-    announce('The Burst rack is full. Undo, shuffle and continue, or restart.');
+    announce(t('mahjong.live.rackFull'));
   }
   if (notice) notice.hidden = rescuing || E.availableMoves(game).length > 0;
 }
@@ -659,22 +688,26 @@ function finishTileResult(result, index, { unlockInput = false, endAnimationPaus
   if (endAnimationPause) endComboAnimationPause();
   refreshTiles({ recoverFocus: ['pair', 'tray-pair', 'tray-park', 'rescue'].includes(result.type) });
   checkEndStates();
+  // Several counts, so several sentences: a message holds at most one plural.
   if (result.type === 'tray-pair') {
-    const automatic = result.autoClear
-      ? ` Automatic pair cleared for ${result.bonusPoints} bonus points.`
-      : result.milestone ? ` ${result.bonusPoints} milestone bonus points.` : '';
-    announce(`Combo ${result.comboCount}. ${result.userPoints} points.${automatic} ${game.score} total.`);
+    announce([
+      t('mahjong.live.combo', { count: result.comboCount }),
+      t('mahjong.live.points', { count: result.userPoints }),
+      result.autoClear ? t('mahjong.live.autoClear', { count: result.bonusPoints })
+        : result.milestone ? t('mahjong.live.milestone', { count: result.bonusPoints }) : '',
+      t('mahjong.live.total', { count: game.score }),
+    ].filter(Boolean).join(' '));
   } else if (result.type === 'tray-park') {
-    announce(`${tileName(game.kinds[index])} moved to the Burst rack. ${trayIndices().length} of 4 slots filled.`);
+    announce(`${t('mahjong.live.parked', { tile: tileName(game.kinds[index]) })} ${t('mahjong.live.slotsFilled', { filled: trayIndices().length, total: 4 })}`);
   } else if (result.type === 'pair') {
-    announce(`Pair cleared. ${Math.max(0, positions.length / 2 - clearedPairs())} pairs left.`);
+    announce(`${t('mahjong.live.pairCleared')} ${t('mahjong.live.pairsLeft', { count: Math.max(0, positions.length / 2 - clearedPairs()) })}`);
   }
 }
 
 function comboTier(count) {
-  if (count >= 15) return { name: 'masterful', label: `MASTERFUL ×${count}` };
-  if (count >= 10) return { name: 'brilliant', label: `BRILLIANT ×${count}` };
-  return { name: 'flowing', label: `FLOWING ×${count}` };
+  if (count >= 15) return { name: 'masterful', label: t('mahjong.combo.masterful') };
+  if (count >= 10) return { name: 'brilliant', label: t('mahjong.combo.brilliant') };
+  return { name: 'flowing', label: t('mahjong.combo.flowing') };
 }
 
 function trackTransient(element, duration) {
@@ -789,7 +822,7 @@ function startComboFeedback(result, index) {
   callout.replaceChildren();
   if (result.comboCount > 1) {
     const label = document.createElement('span');
-    label.textContent = result.milestone ? tier.name : 'combo';
+    label.textContent = result.milestone ? tier.label : t('mahjong.combo.combo');
     const multiplier = document.createElement('strong');
     multiplier.textContent = `×${result.comboCount}`;
     callout.append(label, multiplier);
@@ -947,7 +980,7 @@ document.addEventListener('keydown', (event) => {
       event.preventDefault();
       setDialogVisible(modal, false);
       document.getElementById('mjUndo')?.focus();
-      announce('The Burst rack is still full. Use Undo, Shuffle, or restart.');
+      announce(t('mahjong.live.rackStillFull'));
       return;
     }
     if (event.key === 'Tab') {
@@ -1019,7 +1052,7 @@ document.getElementById('mjUndo').addEventListener('click', () => {
   }
   refreshTiles({ recoverFocus: true });
   checkEndStates();
-  announce(undone === 'shuffle' ? 'Shuffle undone. The previous board is back.' : 'Last move undone.');
+  announce(undone === 'shuffle' ? t('mahjong.live.shuffleUndone') : t('mahjong.live.moveUndone'));
 });
 document.getElementById('mjNoticeUndo').addEventListener('click', () =>
   document.getElementById('mjUndo').click());
@@ -1030,7 +1063,7 @@ document.getElementById('mjHint').addEventListener('click', () => {
   if (!moves.length) {
     if (game.mode === 'tray' && game.tray.length === 3 && E.availableMoves(game).length) {
       clearHint();
-      announce('The Burst rack needs a match. Use Undo or Shuffle instead of filling the last slot.');
+      announce(t('mahjong.live.rackNeedsMatch'));
     }
     return;
   }
@@ -1051,11 +1084,11 @@ document.getElementById('mjHint').addEventListener('click', () => {
   }
   hintTimer = window.setTimeout(clearHint, 2200);
   if (move.length === 2 && move.some((index) => game.tray.includes(index))) {
-    announce(`Hint: a ${tileName(game.kinds[trayIndex])} in the Burst rack has a free match.`);
+    announce(t('mahjong.live.hintRack', { tile: tileName(game.kinds[trayIndex]) }));
   } else if (visible.length === 2) {
-    announce(`Hint: two ${tileName(game.kinds[visible[0]])} tiles are available.`);
+    announce(t('mahjong.live.hintPair', { tile: tileName(game.kinds[visible[0]]) }));
   } else {
-    announce(`Hint: ${tileName(game.kinds[visible[0]])} is free to move into the Burst rack.`);
+    announce(t('mahjong.live.hintPark', { tile: tileName(game.kinds[visible[0]]) }));
   }
 });
 
@@ -1082,7 +1115,7 @@ function shuffleGame() {
   fitBoard();
   checkEndStates();
   if (wasRescue) resumeTimerAfterUndo();
-  announce('Remaining tiles shuffled into a new solvable deal. Undo restores the previous board.');
+  announce(t('mahjong.live.shuffled'));
   return true;
 }
 document.getElementById('mjShuffle').addEventListener('click', shuffleGame);
@@ -1100,16 +1133,15 @@ function setDockLabel(button, label) {
 }
 function paintSoundButton() {
   const enabled = sound.isEnabled();
-  setDockLabel(soundButton, enabled ? 'Sound on' : 'Sound off');
+  setDockLabel(soundButton, enabled ? t('mahjong.sound.on') : t('mahjong.sound.off'));
   soundButton.setAttribute('aria-pressed', String(enabled));
-  soundButton.setAttribute('aria-label', `Sound effects ${enabled ? 'on' : 'off'}`);
+  soundButton.setAttribute('aria-label', enabled ? t('mahjong.sound.onLabel') : t('mahjong.sound.offLabel'));
 }
 soundButton.addEventListener('click', () => {
   const enabled = sound.setEnabled(!sound.isEnabled());
   paintSoundButton();
   if (enabled) sound.play('toggle');
 });
-paintSoundButton();
 
 // --- timer + best ---------------------------------------------------------
 // Elapsed time is checkpointed into the serializable state. Hidden pages,
@@ -1237,16 +1269,16 @@ function paintBest() {
   const target = document.getElementById('mjBest');
   if (!target || !game) return;
   if (game.zen) {
-    target.textContent = 'Zen game';
+    target.textContent = t('mahjong.best.zen');
     return;
   }
   const best = bestForGame();
   if (!best) {
-    target.textContent = 'No record';
+    target.textContent = t('mahjong.best.none');
   } else if (game.mode === 'classic') {
-    target.textContent = `Best ${formatMs(best.bestTimeMs)}`;
+    target.textContent = t('mahjong.best.time', { time: formatMs(best.bestTimeMs) });
   } else {
-    target.textContent = `Best ${best.bestScore.toLocaleString()} · ${formatMs(best.bestTimeMs)}`;
+    target.textContent = t('mahjong.best.score', { score: numberFormat.format(best.bestScore), time: formatMs(best.bestTimeMs) });
   }
 }
 
@@ -1309,30 +1341,30 @@ function showWin() {
   const isZen = game.zen === true;
   const isManual = isBurst && game.burstRules === E.BURST_RULES.MANUAL;
   const time = formatMs(game.elapsedMs);
-  const label = isZen
-    ? 'Zen game complete. This game was not added to Records'
-    : isBurst ? `${game.score.toLocaleString()} points. ${time}` : time;
+  const announcement = isZen
+    ? t('mahjong.live.wonZen')
+    : isBurst ? t('mahjong.live.wonBurst', { count: game.score, time }) : t('mahjong.live.wonClassic', { time });
   win.dataset.mode = isBurst ? 'burst' : 'classic';
   win.dataset.zen = String(isZen);
-  document.getElementById('mjWinTitle').textContent = isZen ? 'A quiet finish.' : 'A beautiful finish.';
-  document.getElementById('mjWinRules').textContent = isBurst
-    ? `Burst · ${isManual ? 'Manual' : 'Auto'}`
-    : `Classic · ${isZen ? 'Zen' : 'Ranked'}`;
+  document.getElementById('mjWinTitle').textContent = isZen ? t('mahjong.win.quietTitle') : t('mahjong.win.title');
+  document.getElementById('mjWinRules').textContent = t('mahjong.win.rules', {
+    mode: modeName(game.mode), rules: rulesName(game.mode, game.burstRules, isZen),
+  });
   document.getElementById('mjWinResult').hidden = isZen;
   document.getElementById('mjWinZen').hidden = !isZen;
   renderWinScore(document.getElementById('mjWinScore'), { isBurst, score: game.score, time });
-  document.getElementById('mjWinUnit').textContent = isBurst ? 'points' : 'clear time';
+  document.getElementById('mjWinUnit').textContent = isBurst ? t('mahjong.win.points') : t('mahjong.win.clearTime');
   document.getElementById('mjWinTime').textContent = time;
   const record = document.getElementById('mjWinBest');
   record.textContent = game._outcome === 'record'
-    ? 'new record'
+    ? t('mahjong.win.newRecord')
     : game._outcome === 'first'
-      ? 'first clear'
+      ? t('mahjong.win.firstClear')
       : best
         ? (game.mode === 'classic'
-            ? `best ${formatMs(best.bestTimeMs)}`
-            : `best ${best.bestScore.toLocaleString()} · ${formatMs(best.bestTimeMs)}`)
-        : 'no record';
+            ? t('mahjong.win.bestTime', { time: formatMs(best.bestTimeMs) })
+            : t('mahjong.win.bestScore', { score: numberFormat.format(best.bestScore), time: formatMs(best.bestTimeMs) }))
+        : t('mahjong.win.noRecord');
   record.classList.toggle('is-record', game._outcome === 'record' || game._outcome === 'first');
   const dailyLine = document.getElementById('mjWinDaily');
   if (dailyLine) {
@@ -1340,7 +1372,7 @@ function showWin() {
       ? S.describeDailyResult(recordStore.read(), game.dailyKey, game.mode, formatMs, game.burstRules)
       : null;
     dailyLine.hidden = !dailyResult;
-    dailyLine.textContent = dailyResult ? `daily ${game.dailyKey} · ${dailyResult}` : '';
+    dailyLine.textContent = dailyResult ? t('mahjong.win.daily', { date: game.dailyKey, result: dailyResult }) : '';
   }
   const stats = document.getElementById('mjWinStats');
   if (stats) {
@@ -1351,7 +1383,7 @@ function showWin() {
   document.getElementById('mjWinCombo').textContent = `×${game.maxCombo || 0}`;
   document.getElementById('mjWinAutoClears').textContent = String(game.autoClears || 0);
   setDialogVisible(win, true);
-  announce(`Board cleared. ${label}.`);
+  announce(announcement);
 }
 
 // --- lifecycle ------------------------------------------------------------
@@ -1430,8 +1462,7 @@ function startGame({
     configureGame(next);
     saveAfterMutation();
     if (soundCue) sound.play('deal');
-    const rules = mode === 'tray' ? (burstRules === E.BURST_RULES.MANUAL ? 'Manual' : 'Auto') : (zen ? 'Zen' : 'Ranked');
-    announce(`${E.LAYOUTS[layoutId].name} ${mode === 'tray' ? 'Burst' : 'Classic'} ${rules} game ready.`);
+    announce(t('mahjong.live.ready', { layout: layoutName(layoutId), mode: modeName(mode), rules: rulesName(mode, burstRules, zen) }));
   } catch {
     // Never expected (defensive cap in generateDeal); leave no stale board.
     game = null;
@@ -1463,15 +1494,15 @@ async function copyCurrentDeal() {
   if (!game) return false;
   let link;
   try { link = S.buildShareDealUrl(game); } catch {
-    announce('This deal could not be copied.');
+    announce(t('mahjong.live.copyFailed'));
     return false;
   }
   try {
     await navigator.clipboard.writeText(link);
-    announce('Deal link copied.');
+    announce(t('mahjong.live.copied'));
     return true;
   } catch {
-    announce('Deal link could not be copied.');
+    announce(t('mahjong.live.linkCopyFailed'));
     return false;
   }
 }
@@ -1493,10 +1524,11 @@ function offerResume() {
   const copy = document.getElementById('mjResumeCopy');
   if (!candidate || !notice || !copy) return;
   resumeTarget = candidate.gameId;
-  const layoutName = E.LAYOUTS[candidate.layoutId]?.name || 'Mahjong';
-  const modeName = candidate.mode === 'tray' ? 'Burst' : 'Classic';
-  const pairs = `${candidate.pairsLeft} ${candidate.pairsLeft === 1 ? 'pair' : 'pairs'} left`;
-  copy.textContent = `Your unfinished ${layoutName} ${modeName} board is waiting · ${pairs}.`;
+  copy.textContent = t('mahjong.notice.resumeDetail', {
+    layout: LAYOUT_NAMES[candidate.layoutId] ?? t('mahjong.title'),
+    mode: modeName(candidate.mode),
+    pairs: t('mahjong.pairsLeft', { count: candidate.pairsLeft }),
+  });
   notice.hidden = false;
 }
 
@@ -1523,7 +1555,7 @@ function adoptGame(targetId) {
   saveAfterMutation();
   disposeDuplicateGuard();
   installDuplicateGuard();
-  announce('Continuing your unfinished board.');
+  announce(t('mahjong.live.continuing'));
   return true;
 }
 
@@ -1578,8 +1610,8 @@ function paintSetupChoices() {
   if (zenToggle) zenToggle.checked = setupChoice.zen === true;
   const modeDescription = document.getElementById('mjModeDescription');
   if (modeDescription) modeDescription.textContent = setupChoice.mode === 'tray'
-    ? 'Build rapid matches in a four-slot Burst rack.'
-    : 'Match two free tiles directly.';
+    ? t('mahjong.setup.burstDescription')
+    : t('mahjong.setup.classicDescription');
   const sourceDescription = document.getElementById('mjSourceDescription');
   if (sourceDescription) {
     if (setupChoice.source === 'daily') {
@@ -1593,9 +1625,11 @@ function paintSetupChoices() {
             setupChoice.burstRules
           )
         : null;
-      sourceDescription.textContent = `${daily.dailyKey} · ${E.LAYOUTS[setupChoice.layoutId].name} · ${done || 'layout rotates daily'}`;
+      sourceDescription.textContent = t('mahjong.setup.dailyDescription', {
+        date: daily.dailyKey, layout: layoutName(setupChoice.layoutId), result: done || t('mahjong.setup.dailyRotates'),
+      });
     } else {
-      sourceDescription.textContent = 'A fresh, guaranteed-solvable board.';
+      sourceDescription.textContent = t('mahjong.setup.randomDescription');
     }
   }
 }
@@ -1671,20 +1705,20 @@ function paintRecords() {
     if (row.current) tr.setAttribute('aria-current', 'true');
     const name = document.createElement('th');
     name.scope = 'row';
-    name.textContent = E.LAYOUTS[row.layoutId]?.name || row.layoutId;
+    name.textContent = layoutName(row.layoutId);
     const classic = document.createElement('td');
     classic.textContent = row.classicBestMs == null ? '—' : formatMs(row.classicBestMs);
     const burst = document.createElement('td');
     burst.className = 'mj-record-variants';
     for (const [label, score, elapsed] of [
-      ['Auto', row.trayAutoBestScore, row.trayAutoBestMs],
-      ['Manual', row.trayManualBestScore, row.trayManualBestMs],
+      [t('mahjong.rulesName.auto'), row.trayAutoBestScore, row.trayAutoBestMs],
+      [t('mahjong.rulesName.manual'), row.trayManualBestScore, row.trayManualBestMs],
     ]) {
       const line = document.createElement('span');
       const name = document.createElement('small');
       name.textContent = label;
       const value = document.createElement('strong');
-      value.textContent = score == null ? '—' : `${score.toLocaleString()} · ${formatMs(elapsed)}`;
+      value.textContent = score == null ? '—' : `${numberFormat.format(score)} · ${formatMs(elapsed)}`;
       line.append(name, value);
       burst.append(line);
     }
@@ -1703,11 +1737,13 @@ function paintRecords() {
   }));
   const clearedDays = summary.days.filter((day) => day.cleared);
   strip.setAttribute('aria-label', clearedDays.length
-    ? `Daily cleared on ${clearedDays.map((day) => day.key).join(', ')}.`
-    : 'No dailies cleared in the last 28 days.');
+    ? t('mahjong.records.clearedOn', {
+      dates: new Intl.ListFormat(blancI18n.formatLocale(), { type: 'conjunction' }).format(clearedDays.map((day) => day.key)),
+    })
+    : t('mahjong.records.noDailiesLabel'));
   document.getElementById('mjRecordsDaysCaption').textContent = clearedDays.length
-    ? `cleared ${clearedDays.length} of the last 28 dailies`
-    : 'no dailies cleared yet';
+    ? t('mahjong.records.clearedCount', { count: clearedDays.length })
+    : t('mahjong.records.noDailies');
 }
 
 function openRecords() {
@@ -1827,7 +1863,7 @@ function installDuplicateGuard() {
       saveAfterMutation();
       renderBoard();
       fitBoard();
-      announce('This duplicated tab now has its own independent game.');
+      announce(t('mahjong.live.duplicated'));
       if (hasStarted && game.status === 'playing') startTimer();
     },
   });
@@ -1872,15 +1908,15 @@ function bootstrap() {
       && restored.burstRules === restoredShare.deal.burstRules
       && restored.zen === restoredShare.deal.zen;
     configureGame(restored);
-    announce('Saved game restored.');
+    announce(t('mahjong.live.restored'));
   } else if (shared.status === 'valid') {
     startGame(shared.deal, { soundCue: false, rememberPreferences: false, shared: true });
-    announce('Shared deal ready.');
+    announce(t('mahjong.live.sharedReady'));
   } else {
     startPreferredGame();
     if (shared.status === 'invalid') {
       document.getElementById('mjShareNotice').hidden = false;
-      announce('That shared deal link was invalid. Your remembered game was started instead.');
+      announce(t('mahjong.live.shareInvalid'));
     } else if (hadSave) {
       document.getElementById('mjRecoveryNotice').hidden = false;
     } else {
@@ -1911,4 +1947,12 @@ window.addEventListener('pageshow', (event) => {
   if (!document.hidden && hasStarted && game?.status === 'playing') startTimer();
 });
 
-bootstrap();
+// The page's static text is applied on DOMContentLoaded, after this script
+// runs. Start then, so the game's own writes (names, counts, the sound
+// toggle) land after it rather than being reset by it.
+function start() {
+  paintSoundButton();
+  bootstrap();
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
+else start();

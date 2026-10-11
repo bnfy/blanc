@@ -182,15 +182,15 @@
       "allow": []
     },
     "src/renderer/pages/mahjong.html": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/renderer/pages/mahjong.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/renderer/pages/mahjong-state.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/main/main.js": {
@@ -310,6 +310,14 @@
       "allow": []
     },
     "src/renderer/pages/row-icon.js": {
+      "state": "guarded",
+      "allow": []
+    },
+    "src/renderer/pages/mahjong-sound.js": {
+      "state": "guarded",
+      "allow": []
+    },
+    "src/renderer/pages/mahjong-engine.js": {
       "state": "guarded",
       "allow": []
     }
