@@ -10,7 +10,7 @@ const root = path.resolve(__dirname, '../..');
 const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), 'utf8');
 
 test('Favorites exposes an exact in-sheet Bring tabs entry point', () => {
-  const html = read('src/renderer/pages/bookmarks.html');
+  const html = withoutInterfaceKeys(read('src/renderer/pages/bookmarks.html'));
   const renderer = read('src/renderer/pages/bookmarks.js');
 
   assert.match(html, /<button id="bringTabsBtn" type="button">Bring open tabs…<\/button>/);

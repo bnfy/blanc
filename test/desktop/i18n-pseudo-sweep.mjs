@@ -402,11 +402,72 @@ const SETTINGS_SURFACES = [
       await page.locator('#mouseGestureComposer').waitFor({ state: 'visible' });
     }),
   },
-].map((surface) => ({
-  ...surface,
-  files: SETTINGS_FILES,
-  pendingText: [{ selector: '.sheet-close', files: ['src/renderer/pages/sheet.js'] }],
-}));
+].map((surface) => ({ ...surface, files: SETTINGS_FILES }));
+
+// The Favorites, History, Downloads and Shortcuts sheets. Favorites shows its
+// empty state, then a favorite filed in a folder with the folder picker open.
+const UTILITY_FILES = ['src/renderer/pages/sheet.js', 'src/renderer/pages/row-icon.js'];
+const openSheet = async ({ app, chrome }, name, ready) => {
+  await chrome.evaluate((url) => window.browserAPI.createTab(url), `blanc://${name}/`);
+  const page = await findPage(app, `blanc://${name}/`, `${name} sheet`);
+  await page.waitForFunction(ready);
+  return page;
+};
+const UTILITY_SURFACES = [
+  {
+    name: 'favorites (empty)',
+    files: ['src/renderer/pages/bookmarks.html', 'src/renderer/pages/bookmarks.js', ...UTILITY_FILES],
+    open: (ctx) => openSheet(ctx, 'bookmarks', () => document.querySelector('#list .empty')),
+  },
+  {
+    name: 'favorites (folder picker)',
+    files: ['src/renderer/pages/bookmarks.html', 'src/renderer/pages/bookmarks.js', ...UTILITY_FILES],
+    open: async (ctx) => {
+      const id = await callTestHook(ctx.app, 'openTab', [permissionPageUrl]);
+      await waitForValue(async () => (await callTestHook(ctx.app, 'state')).tabs.find((t) => t.id === id && !t.isLoading), Boolean, 'page to favorite');
+      await callTestHook(ctx.app, 'favoriteActive');
+      const page = await openSheet(ctx, 'bookmarks', () => document.querySelector('#list .row'));
+      await page.evaluate(async () => {
+        const [first] = await window.bowserPages.bookmarks.list();
+        await window.bowserPages.bookmarks.setFolder(first.id, 'zzz-folder');
+      });
+      await page.reload();
+      await page.waitForFunction(() => document.querySelector('.folder-section .folder-actions'));
+      await page.locator('.folder-chip').first().click();
+      await page.locator('.folder-picker').waitFor({ state: 'visible' });
+      return page;
+    },
+    close: (page) => page.keyboard.press('Escape'),
+  },
+  {
+    name: 'history',
+    files: ['src/renderer/pages/history.html', 'src/renderer/pages/history.js', 'src/renderer/pages/history-groups.js', ...UTILITY_FILES],
+    open: async (ctx) => {
+      await callTestHook(ctx.app, 'seedHistory');
+      return openSheet(ctx, 'history', () => document.querySelector('#list .day-heading'));
+    },
+  },
+  {
+    name: 'history (no matches)',
+    files: ['src/renderer/pages/history.html', 'src/renderer/pages/history.js', ...UTILITY_FILES],
+    open: async (ctx) => {
+      const page = await openSheet(ctx, 'history', () => document.querySelector('#list .day-heading'));
+      await page.locator('#search').fill('zzz-no-such-page');
+      await page.waitForFunction(() => document.querySelector('#list .empty'));
+      return page;
+    },
+  },
+  {
+    name: 'downloads',
+    files: ['src/renderer/pages/downloads.html', 'src/renderer/pages/downloads.js', 'src/renderer/pages/downloads-row-model.js', ...UTILITY_FILES],
+    open: (ctx) => openSheet(ctx, 'downloads', () => document.querySelector('#list .empty, #list .row')),
+  },
+  {
+    name: 'shortcuts',
+    files: ['src/renderer/pages/shortcuts.html', 'src/renderer/pages/shortcuts.js', ...UTILITY_FILES],
+    open: (ctx) => openSheet(ctx, 'shortcuts', () => document.querySelectorAll('.shortcut-section').length > 1),
+  },
+];
 
 const SURFACES = [
   {
@@ -505,6 +566,7 @@ const SURFACES = [
   ...START_SURFACES,
   ...ERROR_SURFACES,
   ...SETTINGS_SURFACES,
+  ...UTILITY_SURFACES,
 ];
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-pseudo-sweep-'));

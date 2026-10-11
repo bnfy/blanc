@@ -29,7 +29,7 @@
   const close = document.createElement('button');
   close.type = 'button';
   close.className = 'sheet-close';
-  close.setAttribute('aria-label', 'Close');
+  close.setAttribute('aria-label', blancI18n.t('sheet.close'));
   close.textContent = '✕';
   close.addEventListener('click', () => window.bowserPages.surface.close());
   // Utility sheet pages have a sticky .page-nav — the ✕ rides it so it

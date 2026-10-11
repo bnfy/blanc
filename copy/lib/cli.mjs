@@ -77,7 +77,8 @@ export function runBuild(root) {
 }
 
 function slashDrift(root, { en, registry }) {
-  // Desktop copies stay hand-synced until phase 3 replaces them with t() calls.
+  // Every desktop copy names catalog keys, never English; this holds each
+  // copy to the registry's order and to the key each command uses.
   const problems = [];
   const parseTuples = (rel) => {
     if (!rel || !fs.existsSync(path.join(root, rel))) return null;
@@ -85,12 +86,6 @@ function slashDrift(root, { en, registry }) {
     const block = js.match(/const SLASH_COMMANDS = \[([\s\S]*?)\];/)?.[1];
     return block ? [...block.matchAll(/^\s*\['([^']+)',\s*'([^']*)'\]/gm)].map((m) => ({ command: m[1], hint: m[2] })) : null;
   };
-  const overlayRel = registry.sources?.overlay;
-  const expectedOverlay = registry.commands.map((c) => ({ command: c.command, hint: en[slashKey(c.command, 'hint')]?.message }));
-  const expectedDoc = registry.commands.map((c) => ({
-    command: c.doc?.command ?? c.command,
-    hint: en[slashKey(c.command, en[slashKey(c.command, 'doc')] ? 'doc' : 'hint')]?.message,
-  }));
   const compare = (name, actual, expected) => {
     if (!actual) return;
     const n = Math.max(actual.length, expected.length);
@@ -101,12 +96,8 @@ function slashDrift(root, { en, registry }) {
       }
     }
   };
-  if (overlayRel && fs.existsSync(path.join(root, overlayRel))) {
-    const js = fs.readFileSync(path.join(root, overlayRel), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
-    compare('overlay.js', [...js.matchAll(/^\s*\{\s*cmd:\s*'([^']+)',\s*hint:\s*'([^']*)'/gm)].map((m) => ({ command: m[1], hint: m[2] })), expectedOverlay);
-  }
-  // A copy that reads its hints from the catalog keeps the registry's order
-  // and uses each command's own slash.<name>.hint key.
+  // overlay.js reads each command's own slash.<name>.hint key, in the
+  // registry's order.
   const keysRel = registry.sources?.overlayKeys;
   if (keysRel && fs.existsSync(path.join(root, keysRel))) {
     const js = fs.readFileSync(path.join(root, keysRel), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
@@ -114,14 +105,15 @@ function slashDrift(root, { en, registry }) {
       .map((m) => ({ command: m[1], hint: m[2] }));
     compare(keysRel.split('/').pop(), actual, registry.commands.map((c) => ({ command: c.command, hint: slashKey(c.command, 'hint') })));
   }
-  compare('shortcuts.js', parseTuples(registry.sources?.shortcuts), expectedDoc);
-  // main.js lists each command's reference spelling with the catalog key of
-  // its reference text (the doc key where one exists, else the hint key).
+  // main.js and pages/shortcuts.js list each command's reference spelling with
+  // the catalog key of its reference text (the doc key where one exists, else
+  // the hint key).
   const expectedDocKeys = registry.commands.map((c) => ({
     command: c.doc?.command ?? c.command,
     hint: slashKey(c.command, en[slashKey(c.command, 'doc')] ? 'doc' : 'hint'),
   }));
   compare('main.js', parseTuples(registry.sources?.mainKeys), expectedDocKeys);
+  compare('shortcuts.js', parseTuples(registry.sources?.shortcutsKeys), expectedDocKeys);
   for (const c of registry.commands) if (!en[slashKey(c.command, 'hint')]) problems.push(`${slashKey(c.command, 'hint')} missing from en.json`);
   return problems;
 }

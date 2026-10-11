@@ -122,39 +122,39 @@
       "allow": []
     },
     "src/renderer/pages/bookmarks.html": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/renderer/pages/bookmarks.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/renderer/pages/history.html": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/renderer/pages/history.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/renderer/pages/history-groups.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/renderer/pages/downloads.html": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/renderer/pages/downloads.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/renderer/pages/shortcuts.html": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/renderer/pages/shortcuts.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/renderer/pages/tab-import.html": {
@@ -178,7 +178,7 @@
       "allow": []
     },
     "src/renderer/pages/sheet.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/renderer/pages/mahjong.html": {
@@ -303,6 +303,14 @@
     },
     "src/main/blocking-providers.js": {
       "state": "pending",
+      "allow": []
+    },
+    "src/renderer/pages/downloads-row-model.js": {
+      "state": "guarded",
+      "allow": []
+    },
+    "src/renderer/pages/row-icon.js": {
+      "state": "guarded",
       "allow": []
     }
   }

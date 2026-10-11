@@ -21,6 +21,8 @@ test('visits group under Today, Yesterday, then the weekday and date, newest fir
     ['Yesterday', ['c']],
     ['Wednesday, September 23', ['d']],
   ]);
+  // Today and Yesterday come from the interface catalog; other days are dates.
+  assert.deepEqual(groups.map((group) => group.relative), [true, true, false]);
 });
 
 test('a visit from another year names the year', () => {

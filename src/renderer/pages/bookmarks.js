@@ -1,4 +1,5 @@
 (async () => {
+  const { t } = blancI18n;
   const list = document.getElementById('list');
   const bringTabsBtn = document.getElementById('bringTabsBtn');
   const importBtn = document.getElementById('importBtn');
@@ -15,22 +16,22 @@
     window.location.href = 'blanc://tab-import/';
   });
 
-  const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+  // Two counts, so up to two sentences: a message holds at most one plural.
   function importSummary(added, skipped) {
-    if (added === 0 && skipped > 0) return `All ${plural(skipped, 'favorite')} were already saved.`;
-    const tail = skipped > 0 ? ` (skipped ${skipped} already saved)` : '';
-    return `Imported ${plural(added, 'favorite')}${tail}.`;
+    if (added === 0 && skipped > 0) return t('favorites.import.allSaved', { count: skipped });
+    const imported = t('favorites.import.imported', { count: added });
+    return skipped > 0 ? `${imported} ${t('favorites.import.skipped', { count: skipped })}` : imported;
   }
 
   importBtn.addEventListener('click', async () => {
     importBtn.disabled = true;
-    importStatus.textContent = 'Choose a bookmarks file…';
+    importStatus.textContent = t('favorites.import.choosing');
     const res = await window.bowserPages.bookmarks.import();
     importBtn.disabled = false;
     if (res.cancelled) { importStatus.textContent = ''; return; }
-    if (res.error === 'empty') { importStatus.textContent = 'No bookmarks found in that file.'; return; }
-    if (res.error === 'unreadable') { importStatus.textContent = "Couldn't read that file."; return; }
-    if (res.error === 'too-large') { importStatus.textContent = 'That file is too large to import.'; return; }
+    if (res.error === 'empty') { importStatus.textContent = t('favorites.import.fileEmpty'); return; }
+    if (res.error === 'unreadable') { importStatus.textContent = t('favorites.import.fileUnreadable'); return; }
+    if (res.error === 'too-large') { importStatus.textContent = t('favorites.import.fileTooLarge'); return; }
     importStatus.textContent = importSummary(res.added, res.skipped);
     refresh();
   });
@@ -46,12 +47,13 @@
       const option = document.createElement('option');
       option.value = source.id;
       option.textContent = source.label;
+      option.dataset.i18nIgnore = ''; // a browser profile's name
       browserSource.append(option);
     }
     for (const entry of unavailable) {
       const option = document.createElement('option');
       option.disabled = true;
-      option.textContent = `${entry.label} — permission needed`;
+      option.textContent = t('favorites.import.permissionNeeded', { source: entry.label });
       browserSource.append(option);
     }
     const browserGuidance = document.getElementById('browserImportGuidance');
@@ -74,14 +76,14 @@
 
   browserFindBtn.addEventListener('click', async () => {
     browserFindBtn.disabled = true;
-    importStatus.textContent = 'Looking for other browsers…';
+    importStatus.textContent = t('favorites.import.looking');
     try {
       const found = await loadBrowserSources();
-      importStatus.textContent = found ? '' : 'No other browser profiles found.';
+      importStatus.textContent = found ? '' : t('favorites.import.noneFound');
     } catch {
       // A failed lookup must say so rather than leaving a button that
       // silently does nothing.
-      importStatus.textContent = "Couldn't check for other browsers.";
+      importStatus.textContent = t('favorites.import.checkFailed');
     } finally {
       browserFindBtn.disabled = false;
     }
@@ -91,27 +93,27 @@
     if (!browserSource.value) return;
     browserImportBtn.disabled = true;
     browserSource.disabled = true;
-    importStatus.textContent = 'Importing favorites…';
+    importStatus.textContent = t('favorites.import.importing');
     try {
       const res = await window.bowserPages.bookmarks.importBrowser(browserSource.value);
       if (res.error === 'source-unavailable') {
-        importStatus.textContent = 'That browser profile is no longer available.';
+        importStatus.textContent = t('favorites.import.sourceGone');
         await loadBrowserSources();
         return;
       }
       if (res.error === 'empty') {
-        importStatus.textContent = 'No favorites found in that browser profile.';
+        importStatus.textContent = t('favorites.import.sourceEmpty');
         return;
       }
       if (res.error === 'too-large') {
-        importStatus.textContent = 'That browser profile is too large to import safely.';
+        importStatus.textContent = t('favorites.import.sourceTooLarge');
         return;
       }
       if (res.error) {
-        importStatus.textContent = "Couldn't read that browser profile.";
+        importStatus.textContent = t('favorites.import.sourceUnreadable');
         return;
       }
-      importStatus.textContent = `${res.source.label}: ${importSummary(res.added, res.skipped)}`;
+      importStatus.textContent = t('favorites.import.fromSource', { source: res.source.label, result: importSummary(res.added, res.skipped) });
       refresh();
     } finally {
       browserImportBtn.disabled = false;
@@ -149,7 +151,7 @@
       const empty = document.createElement('div');
       empty.className = 'empty';
       empty.setAttribute('role', 'status');
-      empty.textContent = 'No favorites yet. Press Ctrl/Cmd+D on a page to add one, or use Import.';
+      empty.textContent = t('favorites.empty');
       list.append(empty);
       return;
     }
@@ -167,6 +169,7 @@
     const name = document.createElement('span');
     name.className = 'folder-name';
     name.textContent = folder.name;
+    name.dataset.i18nIgnore = '';
     const count = document.createElement('span');
     count.className = 'folder-count';
     count.textContent = String(folder.items.length);
@@ -175,17 +178,17 @@
     acts.className = 'folder-actions';
     const renameBtn = document.createElement('button');
     renameBtn.type = 'button';
-    renameBtn.textContent = 'rename';
+    renameBtn.textContent = t('favorites.folder.rename');
     // `title` only (no aria-label): the visible text is the accessible name,
     // so voice control's "click rename" resolves; title adds the detail. An
     // aria-label would replace the name with text the label doesn't contain
     // (WCAG 2.5.3 Label in Name).
-    renameBtn.title = `Rename ${folder.name}`;
+    renameBtn.title = t('favorites.folder.renameTitle', { folder: folder.name });
     renameBtn.addEventListener('click', () => startRename(head, folder.name));
     const removeBtn = document.createElement('button');
     removeBtn.type = 'button';
-    removeBtn.textContent = 'remove folder';
-    removeBtn.title = `Remove ${folder.name} (its favorites become ungrouped)`;
+    removeBtn.textContent = t('favorites.folder.remove');
+    removeBtn.title = t('favorites.folder.removeTitle', { folder: folder.name });
     removeBtn.addEventListener('click', async () => {
       await window.bowserPages.bookmarks.removeFolder(folder.name);
       refresh();
@@ -205,7 +208,7 @@
       head.className = 'folder-header';
       const name = document.createElement('span');
       name.className = 'folder-name folder-name-dim';
-      name.textContent = 'Ungrouped';
+      name.textContent = t('favorites.ungrouped');
       head.append(name);
       section.append(head);
     }
@@ -251,6 +254,7 @@
 
     const main = document.createElement('div');
     main.className = 'main';
+    main.dataset.i18nIgnore = ''; // the page's title and address
     const title = document.createElement('a');
     title.className = 'title';
     title.href = b.url;
@@ -263,6 +267,7 @@
     const meta = document.createElement('div');
     meta.className = 'meta';
     meta.textContent = new Date(b.addedAt).toLocaleDateString(blancI18n.formatLocale());
+    meta.dataset.i18nIgnore = ''; // the locale's own date format
 
     const actions = document.createElement('div');
     actions.className = 'actions bookmark-actions';
@@ -272,16 +277,16 @@
     const folderBtn = document.createElement('button');
     folderBtn.type = 'button';
     folderBtn.className = 'folder-chip';
-    folderBtn.textContent = 'move ▸';
+    folderBtn.textContent = t('favorites.row.move');
     folderBtn.setAttribute('aria-haspopup', 'dialog');
     folderBtn.setAttribute('aria-expanded', 'false');
     // `title` only — see the folder-header buttons above (WCAG 2.5.3).
-    folderBtn.title = b.folder ? `In ${b.folder} — move to another folder` : 'Move to a folder';
+    folderBtn.title = b.folder ? t('favorites.row.moveFromFolder', { folder: b.folder }) : t('favorites.row.moveToFolder');
     folderBtn.addEventListener('click', () => openPicker(folderBtn, b, allNames));
     const remove = document.createElement('button');
     remove.className = 'danger';
-    remove.textContent = 'remove';
-    remove.setAttribute('aria-label', `Remove ${b.title} from Favorites`);
+    remove.textContent = t('favorites.row.remove');
+    remove.setAttribute('aria-label', t('favorites.row.removeLabel', { title: b.title }));
     remove.addEventListener('click', async () => {
       await window.bowserPages.bookmarks.remove(b.id);
       refresh();
@@ -335,7 +340,7 @@
     // policies keep working, including switching rows in a single click.
     menu.popover = 'manual';
     menu.setAttribute('role', 'dialog');
-    menu.setAttribute('aria-label', `Move ${b.title} to a folder`);
+    menu.setAttribute('aria-label', t('favorites.picker.label', { title: b.title }));
     const options = document.createElement('div');
     options.className = 'picker-options';
     menu.append(options);
@@ -347,6 +352,7 @@
       item.type = 'button';
       item.className = 'picker-item';
       item.textContent = `→ ${nm}`;
+      item.dataset.i18nIgnore = ''; // a folder's name
       item.addEventListener('click', () => pick(() => window.bowserPages.bookmarks.setFolder(b.id, nm)));
       options.append(item);
     }
@@ -354,14 +360,14 @@
       const none = document.createElement('button');
       none.type = 'button';
       none.className = 'picker-item';
-      none.textContent = '→ none';
+      none.textContent = t('favorites.picker.none');
       none.addEventListener('click', () => pick(() => window.bowserPages.bookmarks.setFolder(b.id, null)));
       options.append(none);
     }
     const nameInput = document.createElement('input');
     nameInput.type = 'text';
     nameInput.maxLength = 100;
-    nameInput.placeholder = 'new folder…';
+    nameInput.placeholder = t('favorites.picker.newFolder');
     nameInput.className = 'picker-new';
     nameInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {

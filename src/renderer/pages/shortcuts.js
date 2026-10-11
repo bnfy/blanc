@@ -1,34 +1,35 @@
 // The shortcut sections are rendered from the live application menu
 // (pages:shortcuts:list), so they can never drift from the real bindings.
-// Only SLASH_COMMANDS below is maintained by hand — keep it in sync with
-// the command table in overlay.js.
+// SLASH_COMMANDS pairs each command's reference spelling with the catalog key
+// of its description; copy:check holds it to copy/slash-commands.json.
+const { t } = blancI18n;
 const SLASH_COMMANDS = [
-  ['/favorites', 'Open favorites'],
-  ['/bring-tabs', 'Bring open tabs from another browser'],
-  ['/save [folder]', 'Save this page to favorites, into a folder if you name one'],
-  ['/history', 'Open browsing history'],
-  ['/downloads', 'Open downloads'],
-  ['/settings', 'Open settings'],
-  ['/sync', 'Set up or manage sync'],
-  ['/clear', 'Clear browsing history'],
-  ['/new', 'Open a new tab'],
-  ['/private', 'Open a private tab (history stays untouched)'],
-  ['/close', 'Close this tab'],
-  ['/reopen', 'Reopen the tab you just closed'],
-  ['/pin', 'Pin or unpin this tab'],
-  ['/mute', 'Mute or unmute this tab'],
-  ['/sleep', 'Quiet background tabs and free their memory'],
-  ['/group <name>', 'Move this tab into a group, creating it on first use'],
-  ['/ungroup', 'Take this tab out of its group'],
-  ['/close-group', 'Close every tab in this group'],
-  ['/find', 'Find in page'],
-  ['/block-ads', 'Block ads here, or toggle blocking everywhere'],
-  ['/allow-ads', 'Allow ads on this site'],
-  ['/dark-site', 'Darken this site, or leave it as drawn'],
-  ['/1password', 'Fill a login from 1Password'],
-  ['/theme [system|light|dark]', 'Cycle appearance, or switch directly to system, light, or dark'],
-  ['/patron', 'Support Blanc with a Patron subscription'],
-  ['/space', 'Switch to a space, or type a new name to save this window'],
+  ['/favorites', 'slash.favorites.hint'],
+  ['/bring-tabs', 'slash.bringTabs.hint'],
+  ['/save [folder]', 'slash.save.doc'],
+  ['/history', 'slash.history.hint'],
+  ['/downloads', 'slash.downloads.hint'],
+  ['/settings', 'slash.settings.hint'],
+  ['/sync', 'slash.sync.hint'],
+  ['/clear', 'slash.clear.hint'],
+  ['/new', 'slash.new.hint'],
+  ['/private', 'slash.private.hint'],
+  ['/close', 'slash.close.hint'],
+  ['/reopen', 'slash.reopen.hint'],
+  ['/pin', 'slash.pin.hint'],
+  ['/mute', 'slash.mute.hint'],
+  ['/sleep', 'slash.sleep.hint'],
+  ['/group <name>', 'slash.group.doc'],
+  ['/ungroup', 'slash.ungroup.hint'],
+  ['/close-group', 'slash.closeGroup.hint'],
+  ['/find', 'slash.find.hint'],
+  ['/block-ads', 'slash.blockAds.hint'],
+  ['/allow-ads', 'slash.allowAds.hint'],
+  ['/dark-site', 'slash.darkSite.hint'],
+  ['/1password', 'slash.1password.hint'],
+  ['/theme [system|light|dark]', 'slash.theme.doc'],
+  ['/patron', 'slash.patron.hint'],
+  ['/space', 'slash.space.hint'],
 ];
 
 /** One titled section of label/keys rows. */
@@ -48,6 +49,7 @@ function section(title, pairs) {
     name.textContent = label;
     const kbd = document.createElement('kbd');
     kbd.textContent = keys;
+    kbd.dataset.i18nIgnore = ''; // key combinations and command syntax
     row.append(name, kbd);
     list.appendChild(row);
   }
@@ -69,5 +71,5 @@ function section(title, pairs) {
   for (const [title, pairs] of byCategory) root.appendChild(section(title, pairs));
   const slashCommands = SLASH_COMMANDS
     .filter(([cmd]) => onePasswordAvailable || cmd !== '/1password');
-  root.appendChild(section('Slash Commands', slashCommands.map(([cmd, hint]) => [hint, cmd])));
+  root.appendChild(section(t('shortcuts.slashCommands'), slashCommands.map(([cmd, key]) => [t(key), cmd])));
 })();

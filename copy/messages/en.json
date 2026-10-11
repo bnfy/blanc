@@ -5094,5 +5094,286 @@
   "error.certificate.continue": {
     "message": "Continue to {host} (unsafe)",
     "note": "Error page for an untrusted certificate: button; {host} is the site’s address."
+  },
+  "favorites.bringTabs": {
+    "message": "Bring open tabs…",
+    "note": "Favorites page: button that opens the open-tab import.",
+    "maxLength": 23
+  },
+  "favorites.import.look": {
+    "message": "Look for other browsers",
+    "note": "Favorites page → import: button that searches this device for other browsers’ profiles.",
+    "maxLength": 33
+  },
+  "favorites.import.source": {
+    "message": "Browser profile",
+    "note": "Favorites page → import: accessible name of the browser-profile menu."
+  },
+  "favorites.import.fromBrowser": {
+    "message": "Import from browser",
+    "note": "Favorites page → import: button that imports from the chosen profile.",
+    "maxLength": 27
+  },
+  "favorites.import.html": {
+    "message": "Import HTML…",
+    "note": "Favorites page → import: button that imports an exported bookmarks file.",
+    "maxLength": 17
+  },
+  "favorites.import.choosing": {
+    "message": "Choose a bookmarks file…",
+    "note": "Favorites page → import: status while the file dialog is open."
+  },
+  "favorites.import.fileEmpty": {
+    "message": "No bookmarks found in that file.",
+    "note": "Favorites page → import: result."
+  },
+  "favorites.import.fileUnreadable": {
+    "message": "Couldn’t read that file.",
+    "note": "Favorites page → import: error."
+  },
+  "favorites.import.fileTooLarge": {
+    "message": "That file is too large to import.",
+    "note": "Favorites page → import: error."
+  },
+  "favorites.import.permissionNeeded": {
+    "message": "{source} — permission needed",
+    "note": "Favorites page → import: a browser profile Blanc may not read yet; {source} is its name."
+  },
+  "favorites.import.looking": {
+    "message": "Looking for other browsers…",
+    "note": "Favorites page → import: status."
+  },
+  "favorites.import.noneFound": {
+    "message": "No other browser profiles found.",
+    "note": "Favorites page → import: result."
+  },
+  "favorites.import.checkFailed": {
+    "message": "Couldn’t check for other browsers.",
+    "note": "Favorites page → import: error."
+  },
+  "favorites.import.importing": {
+    "message": "Importing favorites…",
+    "note": "Favorites page → import: status."
+  },
+  "favorites.import.sourceGone": {
+    "message": "That browser profile is no longer available.",
+    "note": "Favorites page → import: error."
+  },
+  "favorites.import.sourceEmpty": {
+    "message": "No favorites found in that browser profile.",
+    "note": "Favorites page → import: result."
+  },
+  "favorites.import.sourceTooLarge": {
+    "message": "That browser profile is too large to import safely.",
+    "note": "Favorites page → import: error."
+  },
+  "favorites.import.sourceUnreadable": {
+    "message": "Couldn’t read that browser profile.",
+    "note": "Favorites page → import: error."
+  },
+  "favorites.import.imported": {
+    "message": "{count, plural, one {Imported # favorite.} other {Imported # favorites.}}",
+    "note": "Favorites page → import: result."
+  },
+  "favorites.import.skipped": {
+    "message": "{count, plural, one {Skipped # already saved.} other {Skipped # already saved.}}",
+    "note": "Favorites page → import: second sentence of the result; # favorites were already saved."
+  },
+  "favorites.import.allSaved": {
+    "message": "{count, plural, one {That favorite was already saved.} other {All # favorites were already saved.}}",
+    "note": "Favorites page → import: result when every one was already saved."
+  },
+  "favorites.import.fromSource": {
+    "message": "{source}: {result}",
+    "note": "Favorites page → import: result of a browser import; {source} is the browser profile’s name, {result} the sentences above."
+  },
+  "favorites.empty": {
+    "message": "No favorites yet. Press Ctrl/Cmd+D on a page to add one, or use Import.",
+    "note": "Favorites page: shown when there are none. Ctrl/Cmd+D is the keyboard shortcut."
+  },
+  "favorites.folder.rename": {
+    "message": "rename",
+    "note": "Favorites page: button on a folder heading, lowercase by design.",
+    "maxLength": 12
+  },
+  "favorites.folder.renameTitle": {
+    "message": "Rename {folder}",
+    "note": "Favorites page: tooltip of the rename button; {folder} is the folder’s name."
+  },
+  "favorites.folder.remove": {
+    "message": "remove folder",
+    "note": "Favorites page: button on a folder heading, lowercase by design.",
+    "maxLength": 19
+  },
+  "favorites.folder.removeTitle": {
+    "message": "Remove {folder} (its favorites become ungrouped)",
+    "note": "Favorites page: tooltip of the remove-folder button; {folder} is the folder’s name."
+  },
+  "favorites.ungrouped": {
+    "message": "Ungrouped",
+    "note": "Favorites page: heading above favorites in no folder."
+  },
+  "favorites.row.move": {
+    "message": "move ▸",
+    "note": "Favorites page: button on a favorite that opens the folder picker, lowercase by design.",
+    "maxLength": 14
+  },
+  "favorites.row.moveFromFolder": {
+    "message": "In {folder} — move to another folder",
+    "note": "Favorites page: tooltip of the move button; {folder} is the current folder."
+  },
+  "favorites.row.moveToFolder": {
+    "message": "Move to a folder",
+    "note": "Favorites page: tooltip of the move button on a favorite in no folder."
+  },
+  "favorites.row.remove": {
+    "message": "remove",
+    "note": "Favorites page: button on a favorite, lowercase by design.",
+    "maxLength": 12
+  },
+  "favorites.row.removeLabel": {
+    "message": "Remove {title} from Favorites",
+    "note": "Favorites page: accessible name of the remove button; {title} is the page’s title."
+  },
+  "favorites.picker.label": {
+    "message": "Move {title} to a folder",
+    "note": "Favorites page → folder picker: accessible name; {title} is the page’s title."
+  },
+  "favorites.picker.none": {
+    "message": "→ none",
+    "note": "Favorites page → folder picker: choice that takes the favorite out of its folder, lowercase by design.",
+    "maxLength": 12
+  },
+  "favorites.picker.newFolder": {
+    "message": "new folder…",
+    "note": "Favorites page → folder picker: placeholder of the new-folder field, lowercase by design."
+  },
+  "history.search": {
+    "message": "Search history",
+    "note": "History page: placeholder and accessible name of the search field."
+  },
+  "history.clearAll": {
+    "message": "Clear all",
+    "note": "History page: button that clears all history.",
+    "maxLength": 13
+  },
+  "history.remove": {
+    "message": "Remove",
+    "note": "History page: button on an entry.",
+    "maxLength": 12
+  },
+  "history.removeLabel": {
+    "message": "Remove {title} from history",
+    "note": "History page: accessible name of the remove button; {title} is the page’s title."
+  },
+  "history.noMatches": {
+    "message": "Nothing matches that search.",
+    "note": "History page: shown when a search finds nothing."
+  },
+  "history.empty": {
+    "message": "No history yet.",
+    "note": "History page: shown when there is no history."
+  },
+  "history.day.today": {
+    "message": "Today",
+    "note": "History page: heading above today’s entries."
+  },
+  "history.day.yesterday": {
+    "message": "Yesterday",
+    "note": "History page: heading above yesterday’s entries."
+  },
+  "downloads.clearFinished": {
+    "message": "Clear finished",
+    "note": "Downloads page: button that removes finished downloads from the list.",
+    "maxLength": 20
+  },
+  "downloads.empty": {
+    "message": "Nothing downloaded yet.",
+    "note": "Downloads page: shown when the list is empty."
+  },
+  "downloads.state.progressing": {
+    "message": "Downloading…",
+    "note": "Downloads page: state of a download."
+  },
+  "downloads.state.interrupted": {
+    "message": "Interrupted",
+    "note": "Downloads page: state of a download."
+  },
+  "downloads.state.completed": {
+    "message": "Completed",
+    "note": "Downloads page: state of a download."
+  },
+  "downloads.state.cancelled": {
+    "message": "Cancelled",
+    "note": "Downloads page: state of a download."
+  },
+  "downloads.meta": {
+    "message": "{state} · {size}",
+    "note": "Downloads page: line beside a download; {state} is its state, {size} e.g. “1.5 MB”."
+  },
+  "downloads.metaPrivate": {
+    "message": "Private · {state} · {size}",
+    "note": "Downloads page: line beside a download from a private tab; {state} is its state, {size} e.g. “1.5 MB”."
+  },
+  "downloads.progressLabel": {
+    "message": "Downloading {file}",
+    "note": "Downloads page: accessible name of a progress bar; {file} is the file name."
+  },
+  "downloads.cancel": {
+    "message": "Cancel",
+    "note": "Downloads page: button.",
+    "maxLength": 12
+  },
+  "downloads.resume": {
+    "message": "Resume",
+    "note": "Downloads page: button.",
+    "maxLength": 12
+  },
+  "downloads.retry": {
+    "message": "Retry",
+    "note": "Downloads page: button.",
+    "maxLength": 12
+  },
+  "downloads.open": {
+    "message": "Open",
+    "note": "Downloads page: button.",
+    "maxLength": 12
+  },
+  "downloads.show": {
+    "message": "Show in folder",
+    "note": "Downloads page: button that reveals the file in Finder or Explorer.",
+    "maxLength": 20
+  },
+  "downloads.cancelLabel": {
+    "message": "Cancel {file}",
+    "note": "Downloads page: accessible name of Cancel; keep the button’s own text first; {file} is the file name."
+  },
+  "downloads.resumeLabel": {
+    "message": "Resume {file}",
+    "note": "Downloads page: accessible name of Resume; keep the button’s own text first; {file} is the file name."
+  },
+  "downloads.retryLabel": {
+    "message": "Retry {file}",
+    "note": "Downloads page: accessible name of Retry; keep the button’s own text first; {file} is the file name."
+  },
+  "downloads.openLabel": {
+    "message": "Open {file}",
+    "note": "Downloads page: accessible name of Open; keep the button’s own text first; {file} is the file name."
+  },
+  "downloads.showLabel": {
+    "message": "Show in folder {file}",
+    "note": "Downloads page: accessible name of Show in folder; keep the button’s own text first; {file} is the file name."
+  },
+  "shortcuts.title": {
+    "message": "Keyboard Shortcuts",
+    "note": "Keyboard shortcuts page: title and heading."
+  },
+  "shortcuts.slashCommands": {
+    "message": "Slash Commands",
+    "note": "Keyboard shortcuts page: heading above the slash commands typed in the Island."
+  },
+  "sheet.close": {
+    "message": "Close",
+    "note": "Settings, Favorites, History, Downloads and Shortcuts pages: accessible name of the ✕ that closes the page."
   }
 }
