@@ -2038,6 +2038,37 @@ body.sheet .tab-import-panel h2:focus { outline: none; }
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+.arc-import-entry {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+.arc-import-entry-hint { margin: 6px 0 12px; }
+.arc-import-entry-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.arc-import-space-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 16px 0;
+}
+.arc-import-space {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 15px;
+  background: var(--surface-raised);
+  color: var(--text);
+  cursor: pointer;
+}
+.arc-import-space:has(input:disabled) { cursor: default; color: var(--text-dim); }
+.arc-import-space input { margin-top: 2px; }
+.arc-import-space-copy { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.arc-import-space-name { font-size: 13px; overflow-wrap: anywhere; }
+.arc-import-space-meta,
+.arc-import-space-note { font-size: 12px; color: var(--text-dim); }
+.arc-import-message { margin: 0 0 12px; font-size: 13px; color: var(--text); }
 @media (prefers-color-scheme: dark) {
   .tab-import-source-arrow,
   .tab-import-file-option > img { filter: invert(1); }

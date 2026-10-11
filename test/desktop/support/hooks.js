@@ -179,6 +179,7 @@ BeforeAll({ timeout: 120_000 }, async () => {
   userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-acceptance-'));
   uncaughtLogPath = path.join(userDataDir, 'main-process-uncaught.log');
   browserHomeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-browser-home-'));
+  ctx.browserHomeDir = browserHomeDir;
   const chromeRoot = browserDataRoot('chrome', {
     platform: process.platform,
     homeDir: browserHomeDir,

@@ -145,6 +145,10 @@
       "state": "pending",
       "allow": []
     },
+    "src/renderer/pages/tab-import-arc.js": {
+      "state": "guarded",
+      "allow": []
+    },
     "src/renderer/pages/tab-handoff.html": {
       "state": "pending",
       "allow": []

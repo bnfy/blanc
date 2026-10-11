@@ -77,7 +77,11 @@ function createRepository({ store = new JsonStore('workspaces', model.EMPTY_FILE
     // computed: a drain it superseded no longer reports `saved` afterwards.
     if (capturedId != null) s.pending.delete(capturedId);
     s.status = s.pending.size ? 'pending' : 'saved'; s.attempts = 0; onStatus();
-    return { ok: true, ...(result.workspace ? { workspace: result.workspace } : {}) };
+    return {
+      ok: true,
+      ...(result.workspace ? { workspace: result.workspace } : {}),
+      ...(result.workspaces ? { workspaces: result.workspaces } : {}),
+    };
   }
   function mutate(operation, capturedId) {
     const s = state();
@@ -167,6 +171,20 @@ function createRepository({ store = new JsonStore('workspaces', model.EMPTY_FILE
       return result.error ? { ok: false, error: result.error } : { ok: true };
     },
     create({ name, capture }) { return mutate((data) => model.createWorkspace(data, { name, capture, now: clock(), id: makeId(), profileId: activeLocalProfileId() })); },
+    /** F45: several spaces in one durable write — every one or none. */
+    createMany(entries) {
+      return mutate((data) => {
+        let file = data;
+        const workspaces = [];
+        for (const { name, capture } of Array.isArray(entries) ? entries : []) {
+          const result = model.createWorkspace(file, { name, capture, now: clock(), id: makeId(), profileId: activeLocalProfileId() });
+          if (result.error) return { error: result.error };
+          file = result.file;
+          workspaces.push(result.workspace);
+        }
+        return workspaces.length ? { file, workspaces } : { error: 'invalid-name' };
+      });
+    },
     rename(id, name) { return mutate((data) => model.renameWorkspace(data, id, name, clock())); },
     remove(id) {
       const s = state();

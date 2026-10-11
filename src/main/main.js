@@ -311,9 +311,11 @@ const {
 // (single-window binding, resolveOpen). See the "Named Workspaces" section
 // below (near closeGroup) for the capture/apply/switch seams that use them.
 const namedWorkspaces = require('./workspaces');
+const { readArcSidebarFile, readDetectedArcSidebar, detectArcSidebar } = require('./arc-import-source');
+const { createArcImportService } = require('./arc-import');
 const { createWorkspaceController } = require('./workspace-controller');
 const { transferSession, residencyCapacity } = require('./workspace-residency');
-const { scratchSwitchGuardResult } = require('./workspaces-model');
+const { scratchSwitchGuardResult, MAX_WORKSPACES } = require('./workspaces-model');
 
 // The SDK never loads in main. Only macOS, Windows and Linux create the lazy
 // client; any other platform cannot fork a credential broker. The broker
@@ -3800,6 +3802,8 @@ function focusUtilitySheet(runtime, sheet) {
 function discardUtilityImportState(runtime, { discardTabHandoff = true } = {}) {
   if (sameUtilityPage(runtime.utilitySheetUrl, 'blanc://tab-import/')) {
     forgetTabImportForRuntime(runtime.id, 'cancel');
+    // F45: closing Bring Your Tabs also drops a parsed Arc sidebar.
+    arcImport.discard();
   }
   if (
     discardTabHandoff &&
@@ -5342,6 +5346,78 @@ const workspaceController = createWorkspaceController({
     });
   },
 });
+
+// F45 Arc Spaces import. Patrons get one Blanc space per Arc Space in a
+// single durable write; everyone else gets each Space in its own new window,
+// tabs quiet with only the selected one woken. Runs in the Bring Your Tabs
+// sheet's window runtime, so the active profile is the sheet's profile.
+function openArcSpaceWindows(captures) {
+  const profileId = rt().profileId;
+  for (const capture of captures) {
+    const target = windowRuntimes.createRuntime({ id: createWindowRuntimeId(), profileId });
+    createMainWindow(target);
+    withWindowRuntime(target, () => applyWorkspaceToWindow(target, capture));
+  }
+  persistSession();
+  return { ok: true, windowCount: captures.length };
+}
+
+// Acceptance runs (unpackaged, BLANC_TEST=1) point Arc discovery at the
+// synthetic browser home with a chosen platform layout, stand in for the
+// native file dialog, and count reads. Production uses the real OS home and
+// platform, the real dialog, and never consults these.
+let arcTestPlatform = 'darwin';
+let arcTestChosenFile = null;
+let arcSidebarReadCount = 0;
+function arcDiscoveryOptions() {
+  const home = acceptanceTestMode ? process.env.BLANC_TEST_BROWSER_HOME : undefined;
+  return home ? { platform: arcTestPlatform, homeDir: home, env: { LOCALAPPDATA: home } } : {};
+}
+
+const arcImport = createArcImportService({
+  readDetected() {
+    arcSidebarReadCount += 1;
+    return readDetectedArcSidebar(arcDiscoveryOptions());
+  },
+  async chooseAndRead() {
+    if (acceptanceTestMode && arcTestChosenFile) {
+      arcSidebarReadCount += 1;
+      return readArcSidebarFile(arcTestChosenFile);
+    }
+    const picked = await dialog.showOpenDialog(hasLiveWindow() ? rt().window : undefined, {
+      title: mainI18n.t('arcImport.chooseFile.title'),
+      filters: [{ name: mainI18n.t('arcImport.chooseFile.filter'), extensions: ['json'] }],
+      properties: ['openFile'],
+    });
+    if (picked.canceled || !picked.filePaths.length) return { cancelled: true };
+    arcSidebarReadCount += 1;
+    return readArcSidebarFile(picked.filePaths[0]);
+  },
+  patronActive: () => settings.isPatronActive(),
+  spaceRoom() {
+    const saved = namedWorkspaces.list();
+    return { remainingSlots: Math.max(0, MAX_WORKSPACES - saved.length), existingNames: saved.map((w) => w.name) };
+  },
+  createSpaces(entries) {
+    const result = namedWorkspaces.createMany(entries);
+    if (result.ok) broadcastWorkspacesUpdated();
+    return result;
+  },
+  openSpaceWindows: (captures) => openArcSpaceWindows(captures),
+  importFavorites(entries) {
+    const result = bookmarks.importBookmarks(entries);
+    refreshBookmarkFlags();
+    return result;
+  },
+  untitledName: (n) => mainI18n.t('arcImport.untitledSpace', { n }),
+});
+
+function applyArcImport(sessionId, request) {
+  return arcImport.apply(sessionId, request).then((result) => {
+    if (result.ok) settings.setSettings({ tabImportCompleted: true });
+    return result;
+  });
+}
 
 /** Count the private/scratch pages that activation would explicitly close.
  * Named ordinary pages remain resident. Use the live list: persisted columns
@@ -9815,6 +9891,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       accept: (destination) => acceptPendingTabHandoff(destination),
       cancel: () => cancelPendingTabHandoff(),
     },
+    arcImport: {
+      detect: () => detectArcSidebar(arcDiscoveryOptions()),
+      read: (source) => arcImport.read(source),
+      apply: applyArcImport,
+      cancel: (sessionId) => arcImport.cancel(sessionId),
+    },
     tabImport: {
       beginSourceRead: beginTabImportSourceRead,
       openSource: openTabImportSource,
@@ -10057,6 +10139,23 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       selectTabAtIndex,
       setTabLayout, setVerticalTabsWidth, broadcastTabs,
       runInWindowRuntime,
+      arcImportTest(action, args = []) {
+        if (action === 'platform') { arcTestPlatform = String(args[0]); return true; }
+        if (action === 'choose-file') { arcTestChosenFile = args[0] ? String(args[0]) : null; return true; }
+        if (action === 'reads') return arcSidebarReadCount;
+        if (action === 'has-session') return arcImport.hasSession();
+        if (action === 'records') {
+          return namedWorkspaces.list().map((w) => ({
+            name: w.name,
+            urls: [...w.urls],
+            pinned: [...w.pinned],
+            groupIds: [...w.groupIds],
+            groups: w.groups.map((g) => ({ id: g.id, name: g.name })),
+            meta: w.meta.map((m) => ({ title: m.title })),
+          }));
+        }
+        return { error: 'unknown-action' };
+      },
       workspaceTestAction(action, args = []) {
         if (action === 'list') return workspacesProjection();
         if (action === 'save') return saveCurrentWindowAsWorkspace(rt(), args[0]);

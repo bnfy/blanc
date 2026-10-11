@@ -10,6 +10,8 @@ module.exports = {
   localFixturesBase: null,
   localFixturesPort: null,
   localFixtures: null,
+  // F45: the synthetic browser home Arc discovery reads in test runs.
+  browserHomeDir: null,
   tabByName: {},
   activeExpectedUrl: null,
   lastNewTabId: null,
