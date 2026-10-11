@@ -1,5 +1,6 @@
 const isPrivate = new URLSearchParams(location.search).has('private');
 const isMac = navigator.platform.startsWith('Mac');
+const { t } = blancI18n;
 const TOP_SITES_HIDDEN_KEY = 'blanc.billboard.hidden-top-sites.v1';
 const MAX_HIDDEN_TOP_SITES = 200;
 const TOP_SITES_PAGE_SIZE = 48;
@@ -47,23 +48,34 @@ if (isPrivate) document.documentElement.dataset.theme = 'private';
 
 // Shared by every layout through the single Sunrise header.
 const dateText = isPrivate
-  ? 'Private tab'
+  ? t('newtab.privateTab')
   : new Date().toLocaleDateString(blancI18n.formatLocale(), { weekday: 'long', month: 'long', day: 'numeric' });
 
 document.getElementById('startDate').textContent = dateText;
+// The date comes from the locale's own formats, not the catalog.
+if (!isPrivate) document.getElementById('startDate').dataset.i18nIgnore = '';
 // The same dashed capsule that marks private mode in the island.
 document.getElementById('startDate').classList.toggle('private', isPrivate);
 
-document.getElementById('goAnywhere').textContent = `${isMac ? '⌘' : 'Ctrl+'}L to go anywhere`;
-document.getElementById('obIslandShortcut').textContent = isMac ? '⌘L' : 'Ctrl+L';
-document.getElementById('obIslandShortcut').setAttribute('aria-label', isMac ? 'Command L' : 'Control L');
+const islandShortcut = isMac ? '⌘L' : `${t('key.ctrl')}+L`;
+document.getElementById('goAnywhere').textContent = t('newtab.goAnywhere', { shortcut: islandShortcut });
+// Onboarding's hint; tag 0 is the shortcut, drawn as a key.
+document.getElementById('obIslandHint').replaceChildren(
+  ...blancI18n.parts('onboarding.island.hint', { shortcut: islandShortcut }).map((part) => {
+    if (part.tag === undefined) return document.createTextNode(part.text);
+    const key = document.createElement('span');
+    key.className = 'ob-kbd';
+    key.id = 'obIslandShortcut';
+    key.textContent = part.text;
+    key.setAttribute('aria-label', isMac ? t('onboarding.island.shortcutMac') : t('onboarding.island.shortcut'));
+    return key;
+  }));
 
 // Short enough for one line beside the version at a 1200px window. Passkeys
 // made here aren't deleted at quit, they stop working (webauthn.js), hence
 // "ends" rather than "cleared".
 if (isPrivate) {
-  document.getElementById('footerLeft').textContent =
-    'no history · separate from regular tabs · ends at quit, passkeys made here too';
+  document.getElementById('footerLeft').textContent = t('newtab.private.footer');
 }
 
 const startupCard = document.getElementById('startupCard');
@@ -93,8 +105,11 @@ function renderLaunchStatus({ startup, recovery, privacy } = {}) {
   if (showRecovery) {
     const tabs = Number.isInteger(recovery.tabCount) ? recovery.tabCount : 0;
     const windows = Number.isInteger(recovery.windowCount) ? recovery.windowCount : 0;
-    startupTitle.textContent = 'Pick up where you left off?';
-    startupMessage.textContent = `Blanc did not close normally. Restore ${tabs} ${tabs === 1 ? 'tab' : 'tabs'} across ${windows} ${windows === 1 ? 'window' : 'windows'}, or start with a clean Personal window. No saved website will open until you choose.`;
+    startupTitle.textContent = t('newtab.recovery.title');
+    startupMessage.textContent = t('newtab.recovery.message', {
+      tabs: t('newtab.recovery.tabs', { count: tabs }),
+      windows: t('newtab.recovery.windows', { count: windows }),
+    });
     recoveryActions.hidden = false;
     if (recovery.error) {
       recoveryError.textContent = recovery.error;
@@ -104,13 +119,13 @@ function renderLaunchStatus({ startup, recovery, privacy } = {}) {
   } else if (showStartup) {
     const failed = startup.phase === 'failed';
     startupTitle.textContent = failed
-      ? 'Blocking could not start.'
+      ? t('newtab.startup.failed')
       : startup.attempt > 1
-        ? 'Retrying blocking…'
-        : 'Preparing blocking…';
+        ? t('newtab.startup.retrying')
+        : t('newtab.startup.preparing');
     startupMessage.textContent = failed
-      ? `Blanc has not opened queued web pages because its ad and tracker filters are unavailable. Retry, or explicitly continue with blocking turned off. Diagnostic: ${startup.error || 'unknown blocker initialization error'}`
-      : 'Blanc is preparing its local ad and tracker filters before opening web pages.';
+      ? t('newtab.startup.failedMessage', { error: startup.error || t('newtab.startup.unknownError') })
+      : t('newtab.startup.preparingMessage');
     startupActions.hidden = !failed;
     if (failed && startupWasHidden) startupRetry.focus();
   }
@@ -173,18 +188,22 @@ let migrationChecklistUtilitySheetVisible = false;
 
 function setMigrationTask(task, action, complete, label) {
   task.classList.toggle('is-complete', complete);
-  task.querySelector('.migration-task-status').textContent = complete ? 'Completed' : 'Not completed';
-  action.setAttribute('aria-label', `${label} — ${complete ? 'completed' : 'not completed'}`);
+  task.querySelector('.migration-task-status').textContent = complete
+    ? t('newtab.checklist.completed')
+    : t('newtab.checklist.notCompleted');
+  action.setAttribute('aria-label', complete
+    ? t('newtab.checklist.taskCompleted', { task: label })
+    : t('newtab.checklist.taskNotCompleted', { task: label }));
 }
 
 function paintMigrationChecklist(checklist, { completing = false } = {}) {
   for (const el of document.querySelectorAll('.js-migration-progress')) {
     el.textContent = `${checklist.completedCount}/2`;
   }
-  migrationChecklistTitle.textContent = completing ? 'all moved in' : 'ready to move in?';
-  migrationChecklistLabel.textContent = completing ? 'All moved in' : 'Finish setup';
-  setMigrationTask(migrationSyncTask, migrationSyncAction, checklist.syncComplete, 'Set up Sync');
-  setMigrationTask(migrationTabsTask, migrationTabsAction, checklist.tabsComplete, 'Bring your tabs');
+  migrationChecklistTitle.textContent = completing ? t('newtab.checklist.doneTitle') : t('newtab.checklist.title');
+  migrationChecklistLabel.textContent = completing ? t('newtab.checklist.doneLabel') : t('newtab.checklist.label');
+  setMigrationTask(migrationSyncTask, migrationSyncAction, checklist.syncComplete, t('newtab.checklist.sync'));
+  setMigrationTask(migrationTabsTask, migrationTabsAction, checklist.tabsComplete, t('newtab.checklist.tabs'));
 }
 
 function hideMigrationChecklist() {
@@ -320,7 +339,7 @@ recoveryRestore.addEventListener('click', () => chooseRecovery('restore'));
 recoveryFresh.addEventListener('click', () => chooseRecovery('fresh'));
 
 window.bowserPages?.appVersion().then((version) => {
-  document.getElementById('version').textContent = `v${version}`;
+  document.getElementById('version').textContent = t('newtab.version', { version });
 });
 
 const hostOf = (url) => {
@@ -350,6 +369,7 @@ const SYNCED_ICON_PREFIX = 'data:image/png;base64,';
 function decorateTile(tile, item, { mode = 'local' } = {}) {
   const host = hostOf(item.url);
   tile.textContent = (host || item.title || '').trim().charAt(0).toLowerCase() || '·';
+  tile.dataset.i18nIgnore = ''; // a site's initial
   if (isPrivate || !item.favicon) return;
   const synced = mode === 'synced';
   if (synced && !item.favicon.toLowerCase().startsWith(SYNCED_ICON_PREFIX)) return;
@@ -381,6 +401,7 @@ function favRow(b) {
   const hostEl = document.createElement('span');
   hostEl.className = 'host';
   hostEl.textContent = hostOf(b.url);
+  row.dataset.i18nIgnore = ''; // page titles and hosts
   row.append(tile, name, hostEl);
   return row;
 }
@@ -397,6 +418,7 @@ function groupChip(group, { withCount = false } = {}) {
   const name = document.createElement('span');
   name.className = 'chip-name';
   name.textContent = group.name;
+  name.dataset.i18nIgnore = '';
   chip.append(dots, name);
   if (withCount) {
     const count = document.createElement('span');
@@ -410,11 +432,10 @@ function groupChip(group, { withCount = false } = {}) {
 
 // One empty state for every layout that draws the Favorites feed. Billboard
 // draws recent sites instead, so this copy would be untrue there.
-const EMPTY_FAVORITES_HINT = 'Favorite a page with ♥ to pin it here';
 function emptyFavoritesHint() {
   const hint = document.createElement('p');
   hint.className = 'start-empty-hint';
-  hint.textContent = EMPTY_FAVORITES_HINT;
+  hint.textContent = t('newtab.favorites.empty');
   return hint;
 }
 
@@ -455,6 +476,7 @@ function renderRemote(remoteDevices) {
       const hostEl = document.createElement('span');
       hostEl.className = 'host';
       hostEl.textContent = `${host} · ${device.name}`;
+      row.dataset.i18nIgnore = ''; // page titles, hosts and device names
       row.append(tile, name, hostEl);
       list.appendChild(row);
     }
@@ -477,8 +499,15 @@ const state = {
 const rendered = new Set();
 const invalidate = () => rendered.clear();
 
-const DAY_INITIALS = ['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su'];
-const DAY_NAMES = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+// Monday-first weekday names in the interface's locale, lowercase like the
+// rest of Tally: a two-letter initial under each bar and the full name.
+const weekdays = (style) => {
+  const format = new Intl.DateTimeFormat(blancI18n.formatLocale(), { weekday: style });
+  // 1 January 2024 was a Monday.
+  return [0, 1, 2, 3, 4, 5, 6].map((i) => format.format(new Date(2024, 0, 1 + i)).toLocaleLowerCase(blancI18n.formatLocale()));
+};
+const DAY_INITIALS = weekdays('short').map((day) => day.replace(/\.$/, '').slice(0, 2));
+const DAY_NAMES = weekdays('long');
 const todayIndex = () => (new Date().getDay() + 6) % 7;
 
 function renderLedgerGroups(groups) {
@@ -495,9 +524,10 @@ function renderLedgerGroups(groups) {
     const name = document.createElement('span');
     name.className = 'gname';
     name.textContent = g.name;
+    name.dataset.i18nIgnore = '';
     const count = document.createElement('span');
     count.className = 'gcount';
-    count.textContent = g.count === 1 ? '1 tab' : `${g.count} tabs`;
+    count.textContent = t('newtab.groups.count', { count: g.count });
     row.append(cluster, name, count);
     row.addEventListener('click', () => window.bowserPages.start.focusGroup(g.id));
     list.appendChild(row);
@@ -507,8 +537,8 @@ function renderLedgerGroups(groups) {
 function renderBillboard() {
   updateClock();
   document.getElementById('bbBlocked').textContent = isPrivate
-    ? 'nothing here is saved · nothing followed you home'
-    : `${state.blockedThisWeek.toLocaleString()} ads blocked this week · nothing followed you home`;
+    ? t('newtab.billboard.private')
+    : t('newtab.billboard.blocked', { count: state.blockedThisWeek });
 
   // Empty sections disappear entirely — an empty flex row would still hold
   // its margin, leaving a silent gap where a section pretends to be.
@@ -530,19 +560,20 @@ function renderBillboard() {
     decorateTile(tile, site);
     // A short name reads at a glance; the full title stays one hover or one
     // screen-reader announcement away.
-    const fullTitle = (site.title || hostOf(site.url) || 'Untitled site').trim();
+    const fullTitle = (site.title || hostOf(site.url) || t('newtab.billboard.untitled')).trim();
     const label = document.createElement('span');
     label.className = 'label';
     label.textContent = globalThis.blancStartSiteName.shortSiteName(fullTitle, site.url);
     label.title = fullTitle;
-    link.setAttribute('aria-label', `Open ${fullTitle}`);
+    label.dataset.i18nIgnore = ''; // the site's own name
+    link.setAttribute('aria-label', t('newtab.billboard.open', { title: fullTitle }));
     link.append(tile, label);
 
     const dismiss = document.createElement('button');
     dismiss.type = 'button';
     dismiss.className = 'bb-site-dismiss';
-    dismiss.title = `Hide ${fullTitle}`;
-    dismiss.setAttribute('aria-label', `Hide ${fullTitle} from Billboard`);
+    dismiss.title = t('newtab.billboard.hideTitle', { title: fullTitle });
+    dismiss.setAttribute('aria-label', t('newtab.billboard.hide', { title: fullTitle }));
     const closeIcon = document.createElement('img');
     closeIcon.src = 'close.svg';
     closeIcon.alt = '';
@@ -553,7 +584,7 @@ function renderBillboard() {
       rememberHiddenTopSite(site.key);
       renderBillboard();
       document.getElementById('bbTopSitesStatus').textContent =
-        `${fullTitle} hidden from Billboard.`;
+        t('newtab.billboard.hidden', { title: fullTitle });
       const next = favs.children[Math.min(index, favs.children.length - 1)]
         ?.querySelector('.bb-fav, .bb-site-dismiss');
       next?.focus();
@@ -614,6 +645,8 @@ function shelfColumns(count) {
 
 function renderShelf() {
   document.getElementById('shBlocked').textContent = state.blockedThisWeek.toLocaleString(blancI18n.formatLocale());
+  // The count is drawn large on its own; the words after it still agree with it.
+  document.getElementById('shBlockedUnit').textContent = t('newtab.shelf.unit', { count: state.blockedThisWeek });
   // Private tabs show no blocked counts on any layout.
   document.getElementById('shBlocked').closest('.shelf-card').hidden = isPrivate;
 
@@ -635,6 +668,7 @@ function renderShelf() {
     const host = document.createElement('span');
     host.className = 'host';
     host.textContent = hostOf(b.url);
+    text.dataset.i18nIgnore = ''; // the page's title and host
     text.append(name, host);
     tileLink.append(tile, text);
     grid.appendChild(tileLink);
@@ -680,6 +714,7 @@ function renderTally() {
     chart.appendChild(bar);
     const label = document.createElement('span');
     label.textContent = DAY_INITIALS[i];
+    label.dataset.i18nIgnore = ''; // from the locale's own weekday names
     days.appendChild(label);
   }
 
@@ -688,11 +723,11 @@ function renderTally() {
   caption.replaceChildren();
   if (peak > 0) {
     caption.append(
-      `busiest day ${DAY_NAMES[state.blockedByDay.indexOf(peak)]}.`,
+      t('newtab.tally.busiest', { day: DAY_NAMES[state.blockedByDay.indexOf(peak)] }),
       document.createElement('br'),
     );
   }
-  caption.append('nothing followed you home.');
+  caption.append(t('newtab.tally.nothingFollowed'));
 }
 
 // The billboard clock ticks on the minute, and only while it is on screen.
@@ -827,8 +862,7 @@ const dataReady = window.bowserPages?.start.data().then((data) => {
   applyPatronStatus(data);
   renderMigrationChecklist(data.migrationChecklist ?? null);
   if (!isPrivate) {
-    document.getElementById('footerLeft').textContent =
-      `${state.blockedThisWeek.toLocaleString()} ads blocked this week`;
+    document.getElementById('footerLeft').textContent = t('newtab.footer.blocked', { count: state.blockedThisWeek });
   }
   renderLedgerGroups(state.groups);
   renderRemote(data.remoteDevices);

@@ -4536,5 +4536,563 @@
     "message": "Less",
     "note": "Settings: button under an expanded explanation that folds it back to two lines.",
     "maxLength": 12
+  },
+  "newtab.startup.kicker": {
+    "message": "browser protection",
+    "note": "Start page → blocker startup card: small heading above the status."
+  },
+  "newtab.startup.preparing": {
+    "message": "Preparing blocking…",
+    "note": "Start page → blocker startup card: heading while the filters are prepared."
+  },
+  "newtab.startup.preparingMessage": {
+    "message": "Blanc is preparing its local ad and tracker filters before opening web pages.",
+    "note": "Start page → blocker startup card: explanation while the filters are prepared."
+  },
+  "newtab.startup.retrying": {
+    "message": "Retrying blocking…",
+    "note": "Start page → blocker startup card: heading while a retry runs."
+  },
+  "newtab.startup.failed": {
+    "message": "Blocking could not start.",
+    "note": "Start page → blocker startup card: heading when the filters failed to start."
+  },
+  "newtab.startup.failedMessage": {
+    "message": "Blanc has not opened queued web pages because its ad and tracker filters are unavailable. Retry, or explicitly continue with blocking turned off. Diagnostic: {error}",
+    "note": "Start page → blocker startup card: explanation when the filters failed; {error} is a technical error message."
+  },
+  "newtab.startup.unknownError": {
+    "message": "unknown blocker initialization error",
+    "note": "Start page → blocker startup card: fills {error} when no error message is known."
+  },
+  "newtab.startup.retry": {
+    "message": "Retry",
+    "note": "Start page → blocker startup card: button.",
+    "maxLength": 12
+  },
+  "newtab.startup.continue": {
+    "message": "Continue without blocking",
+    "note": "Start page → blocker startup card: button that opens pages with blocking turned off.",
+    "maxLength": 35
+  },
+  "newtab.recovery.title": {
+    "message": "Pick up where you left off?",
+    "note": "Start page → card shown after Blanc quit unexpectedly: heading."
+  },
+  "newtab.recovery.message": {
+    "message": "Blanc did not close normally. Restore {tabs} {windows}, or start with a clean Personal window. No saved website will open until you choose.",
+    "note": "Start page → card shown after Blanc quit unexpectedly: explanation; {tabs} is “3 tabs” (newtab.recovery.tabs), {windows} is “across 2 windows” (newtab.recovery.windows). “Personal” is the name of the built-in profile."
+  },
+  "newtab.recovery.tabs": {
+    "message": "{count, plural, one {# tab} other {# tabs}}",
+    "note": "Start page → card shown after Blanc quit unexpectedly: fills {tabs} in “Restore {tabs} {windows}”."
+  },
+  "newtab.recovery.windows": {
+    "message": "{count, plural, one {across # window} other {across # windows}}",
+    "note": "Start page → card shown after Blanc quit unexpectedly: fills {windows} in “Restore {tabs} {windows}”; include the preposition your sentence needs."
+  },
+  "newtab.recovery.restore": {
+    "message": "Restore tabs",
+    "note": "Start page → card shown after Blanc quit unexpectedly: button.",
+    "maxLength": 22
+  },
+  "newtab.recovery.fresh": {
+    "message": "Start fresh",
+    "note": "Start page → card shown after Blanc quit unexpectedly: button.",
+    "maxLength": 16
+  },
+  "newtab.header": {
+    "message": "Blanc start page",
+    "note": "Start page: accessible name of the page header."
+  },
+  "newtab.ledger.heading": {
+    "message": "Ledger start page",
+    "note": "Start page: heading for screen readers on the Ledger layout. Ledger is a layout name."
+  },
+  "newtab.billboard.heading": {
+    "message": "Billboard start page",
+    "note": "Start page: heading for screen readers on the Billboard layout. Billboard is a layout name."
+  },
+  "newtab.shelf.heading": {
+    "message": "Shelf start page",
+    "note": "Start page: heading for screen readers on the Shelf layout. Shelf is a layout name."
+  },
+  "newtab.tally.heading": {
+    "message": "Tally start page",
+    "note": "Start page: heading for screen readers on the Tally layout. Tally is a layout name."
+  },
+  "newtab.ledger.whereTo": {
+    "message": "Where to?",
+    "note": "Start page → Ledger layout: large heading."
+  },
+  "newtab.groups": {
+    "message": "Pick up where you left off",
+    "note": "Start page: label above the tab groups; clicking one opens it."
+  },
+  "newtab.remote": {
+    "message": "On your other devices",
+    "note": "Start page → Ledger layout: label above tabs open on your other devices."
+  },
+  "newtab.groups.count": {
+    "message": "{count, plural, one {# tab} other {# tabs}}",
+    "note": "Start page: number of tabs in a group."
+  },
+  "newtab.shelf.blocked": {
+    "message": "Blocked",
+    "note": "Start page → Shelf layout: label of the blocked-ads card."
+  },
+  "newtab.shelf.unit": {
+    "message": "{count, plural, one {ad this week} other {ads this week}}",
+    "note": "Start page → Shelf layout: words after the large blocked count, which is shown separately; the count only chooses the form."
+  },
+  "newtab.tally.blocked": {
+    "message": "Blocked this week",
+    "note": "Start page → Tally layout: label above the blocked count."
+  },
+  "newtab.tally.busiest": {
+    "message": "busiest day {day}.",
+    "note": "Start page → Tally layout: caption under the chart; {day} is a weekday name, lowercase like the rest of this caption."
+  },
+  "newtab.tally.nothingFollowed": {
+    "message": "nothing followed you home.",
+    "note": "Start page → Tally layout: caption under the chart, lowercase by design."
+  },
+  "newtab.footer.blocked": {
+    "message": "{count, plural, one {# ad blocked this week} other {# ads blocked this week}}",
+    "note": "Start page: footer count."
+  },
+  "newtab.billboard.blocked": {
+    "message": "{count, plural, one {# ad blocked this week · nothing followed you home} other {# ads blocked this week · nothing followed you home}}",
+    "note": "Start page → Billboard layout: line under the clock, lowercase by design."
+  },
+  "newtab.billboard.private": {
+    "message": "nothing here is saved · nothing followed you home",
+    "note": "Start page → Billboard layout: line under the clock in a private tab, lowercase by design."
+  },
+  "newtab.billboard.untitled": {
+    "message": "Untitled site",
+    "note": "Start page → Billboard layout: name of a frequent site that has no title or host."
+  },
+  "newtab.billboard.open": {
+    "message": "Open {title}",
+    "note": "Start page → Billboard layout: accessible name of a frequent site; {title} is its title."
+  },
+  "newtab.billboard.hideTitle": {
+    "message": "Hide {title}",
+    "note": "Start page → Billboard layout: tooltip of the × on a frequent site; {title} is its title."
+  },
+  "newtab.billboard.hide": {
+    "message": "Hide {title} from Billboard",
+    "note": "Start page → Billboard layout: accessible name of the × on a frequent site; {title} is its title. Billboard is a layout name."
+  },
+  "newtab.billboard.hidden": {
+    "message": "{title} hidden from Billboard.",
+    "note": "Start page → Billboard layout: announced after hiding a site; {title} is its title."
+  },
+  "newtab.checklist.label": {
+    "message": "Finish setup",
+    "note": "Start page footer → “Finish setup” checklist: footer pill that opens the checklist.",
+    "maxLength": 17
+  },
+  "newtab.checklist.doneLabel": {
+    "message": "All moved in",
+    "note": "Start page footer → “Finish setup” checklist: footer pill once both tasks are done, shown briefly.",
+    "maxLength": 17
+  },
+  "newtab.checklist.hide": {
+    "message": "Hide moving-in checklist",
+    "note": "Start page footer → “Finish setup” checklist: accessible name of the × that hides it for good."
+  },
+  "newtab.checklist.title": {
+    "message": "ready to move in?",
+    "note": "Start page footer → “Finish setup” checklist: heading, lowercase by design."
+  },
+  "newtab.checklist.doneTitle": {
+    "message": "all moved in",
+    "note": "Start page footer → “Finish setup” checklist: heading once both tasks are done, lowercase by design."
+  },
+  "newtab.checklist.sync": {
+    "message": "Set up Sync",
+    "note": "Start page footer → “Finish setup” checklist: task that opens Sync setup."
+  },
+  "newtab.checklist.tabs": {
+    "message": "Bring your tabs",
+    "note": "Start page footer → “Finish setup” checklist: task that brings open tabs from another browser."
+  },
+  "newtab.checklist.notCompleted": {
+    "message": "Not completed",
+    "note": "Start page footer → “Finish setup” checklist: task state for screen readers."
+  },
+  "newtab.checklist.completed": {
+    "message": "Completed",
+    "note": "Start page footer → “Finish setup” checklist: task state for screen readers."
+  },
+  "newtab.checklist.taskCompleted": {
+    "message": "{task} — completed",
+    "note": "Start page footer → “Finish setup” checklist: accessible name of a done task; {task} is the task name."
+  },
+  "newtab.checklist.taskNotCompleted": {
+    "message": "{task} — not completed",
+    "note": "Start page footer → “Finish setup” checklist: accessible name of an open task; {task} is the task name."
+  },
+  "newtab.patron.upgrade": {
+    "message": "Upgrade to Blanc Patron",
+    "note": "Start page footer: pill linking to Blanc Patron in Settings.",
+    "maxLength": 33
+  },
+  "newtab.patron.hide": {
+    "message": "Hide the Blanc Patron upgrade for 90 days",
+    "note": "Start page footer: accessible name of the × on the Patron pill."
+  },
+  "newtab.customize.button": {
+    "message": "Customize",
+    "note": "Start page footer: button that opens the layout and wallpaper popover.",
+    "maxLength": 13
+  },
+  "newtab.customize.label": {
+    "message": "Customize start page",
+    "note": "Start page → Customize popover: accessible name."
+  },
+  "newtab.customize.layout": {
+    "message": "Layout",
+    "note": "Start page → Customize popover: label above the layout choices."
+  },
+  "newtab.layout.ledger": {
+    "message": "Ledger",
+    "note": "Start page → Customize popover: layout name (kept in every language, like the Settings choice)."
+  },
+  "newtab.layout.billboard": {
+    "message": "Billboard",
+    "note": "Start page → Customize popover: layout name (kept in every language, like the Settings choice)."
+  },
+  "newtab.layout.shelf": {
+    "message": "Shelf",
+    "note": "Start page → Customize popover: layout name (kept in every language, like the Settings choice)."
+  },
+  "newtab.layout.tally": {
+    "message": "Tally",
+    "note": "Start page → Customize popover: layout name (kept in every language, like the Settings choice)."
+  },
+  "newtab.customize.wallpaper": {
+    "message": "Dynamic wallpaper",
+    "note": "Start page → Customize popover: switch for the time-of-day wallpaper."
+  },
+  "newtab.mahjong": {
+    "message": "Mahjong",
+    "note": "Start page footer: link that opens the Mahjong solitaire game.",
+    "maxLength": 12
+  },
+  "newtab.privateTab": {
+    "message": "Private tab",
+    "note": "Start page: shown in place of the date in a private tab."
+  },
+  "newtab.goAnywhere": {
+    "message": "{shortcut} to go anywhere",
+    "note": "Start page footer: hint; {shortcut} is the keyboard shortcut, e.g. ⌘L."
+  },
+  "newtab.private.footer": {
+    "message": "no history · separate from regular tabs · ends at quit, passkeys made here too",
+    "note": "Start page footer in a private tab, lowercase by design: nothing is recorded, private tabs are kept apart, and everything (including passkeys created here) stops working when Blanc quits."
+  },
+  "newtab.version": {
+    "message": "v{version}",
+    "note": "Start page footer: app version, e.g. v1.31.0."
+  },
+  "newtab.favorites.empty": {
+    "message": "Favorite a page with ♥ to pin it here",
+    "note": "Start page: shown when there are no Favorites; ♥ is the Favorite button."
+  },
+  "onboarding.skip": {
+    "message": "skip setup",
+    "note": "Onboarding dialog: button that skips the remaining steps, lowercase by design.",
+    "maxLength": 16
+  },
+  "onboarding.stepLabel": {
+    "message": "{step} / {total} — {name}",
+    "note": "Onboarding dialog: progress above the step, e.g. “2 / 6 — import”; {name} is the step name."
+  },
+  "onboarding.step.default": {
+    "message": "default browser",
+    "note": "Onboarding dialog: name of step 1, lowercase by design."
+  },
+  "onboarding.step.import": {
+    "message": "import",
+    "note": "Onboarding dialog: name of step 2, lowercase by design."
+  },
+  "onboarding.step.island": {
+    "message": "the island",
+    "note": "Onboarding dialog: name of step 3 (the Island), lowercase by design."
+  },
+  "onboarding.step.blocking": {
+    "message": "ad blocking",
+    "note": "Onboarding dialog: name of step 4, lowercase by design."
+  },
+  "onboarding.step.privacy": {
+    "message": "privacy",
+    "note": "Onboarding dialog: name of step 5, lowercase by design."
+  },
+  "onboarding.step.theme": {
+    "message": "theme",
+    "note": "Onboarding dialog: name of step 6, lowercase by design."
+  },
+  "onboarding.default.title": {
+    "message": "Make Blanc your default",
+    "note": "Onboarding dialog → step 1: heading."
+  },
+  "onboarding.default.body": {
+    "message": "Links from other apps open here. You can change this anytime in Settings.",
+    "note": "Onboarding dialog → step 1: explanation."
+  },
+  "onboarding.default.set": {
+    "message": "Set as default",
+    "note": "Onboarding dialog → step 1: button.",
+    "maxLength": 20
+  },
+  "onboarding.default.done": {
+    "message": "Blanc is your default",
+    "note": "Onboarding dialog → step 1: the button once Blanc is the default browser.",
+    "maxLength": 30
+  },
+  "onboarding.import.title": {
+    "message": "Bring your bookmarks",
+    "note": "Onboarding → step 2 (import): heading; “bookmarks” are the other browser’s, which become Favorites in Blanc."
+  },
+  "onboarding.import.body": {
+    "message": "Imports happen on this device — nothing is uploaded.",
+    "note": "Onboarding → step 2 (import): explanation."
+  },
+  "onboarding.import.look": {
+    "message": "Look for installed browsers",
+    "note": "Onboarding → step 2 (import): button.",
+    "maxLength": 38
+  },
+  "onboarding.import.bringTabs": {
+    "message": "Bring your open tabs…",
+    "note": "Onboarding → step 2 (import): button that opens the open-tab import.",
+    "maxLength": 30
+  },
+  "onboarding.import.fromFile": {
+    "message": "From a bookmarks file (HTML)…",
+    "note": "Onboarding → step 2 (import): choice that imports an exported bookmarks file."
+  },
+  "onboarding.import.looking": {
+    "message": "Looking for installed browsers…",
+    "note": "Onboarding → step 2 (import): status."
+  },
+  "onboarding.import.noneFound": {
+    "message": "No other browser profiles found.",
+    "note": "Onboarding → step 2 (import): status."
+  },
+  "onboarding.import.checkFailed": {
+    "message": "Couldn’t check for other browsers.",
+    "note": "Onboarding → step 2 (import): error."
+  },
+  "onboarding.import.importing": {
+    "message": "Importing favorites…",
+    "note": "Onboarding → step 2 (import): status."
+  },
+  "onboarding.import.empty": {
+    "message": "No favorites found there.",
+    "note": "Onboarding → step 2 (import): result when the source has none."
+  },
+  "onboarding.import.tooLarge": {
+    "message": "That profile is too large to import safely.",
+    "note": "Onboarding → step 2 (import): error."
+  },
+  "onboarding.import.readFailed": {
+    "message": "Couldn’t read that browser profile.",
+    "note": "Onboarding → step 2 (import): error."
+  },
+  "onboarding.import.failed": {
+    "message": "Couldn’t import from there.",
+    "note": "Onboarding → step 2 (import): error."
+  },
+  "onboarding.import.imported": {
+    "message": "{count, plural, one {Imported # favorite.} other {Imported # favorites.}}",
+    "note": "Onboarding → step 2 (import): result."
+  },
+  "onboarding.import.importedFrom": {
+    "message": "{count, plural, one {Imported # favorite from {source}.} other {Imported # favorites from {source}.}}",
+    "note": "Onboarding → step 2 (import): result; {source} is a browser name."
+  },
+  "onboarding.import.skipped": {
+    "message": "{count, plural, one {Skipped # favorite already saved.} other {Skipped # favorites already saved.}}",
+    "note": "Onboarding → step 2 (import): second sentence of the result when some were already saved."
+  },
+  "onboarding.import.allSaved": {
+    "message": "{count, plural, one {That favorite was already saved.} other {All # favorites were already saved.}}",
+    "note": "Onboarding → step 2 (import): result when every one was already saved."
+  },
+  "onboarding.island.title": {
+    "message": "Meet the island",
+    "note": "Onboarding dialog → step 3: heading; the island is the Island command bar."
+  },
+  "onboarding.island.body": {
+    "message": "Tabs, search and navigation, all in one place.",
+    "note": "Onboarding dialog → step 3: explanation."
+  },
+  "onboarding.island.caption": {
+    "message": "Quiet Island with Back and Forward, three tab dots, the site's favicon and address, New Tab, blocker shield, Reload, Favorite and Close.",
+    "note": "Onboarding dialog → step 3: screen-reader description of the Island picture."
+  },
+  "onboarding.island.hint": {
+    "message": "<0>{shortcut}</0> to open it.",
+    "note": "Onboarding dialog → step 3: hint; tag 0 is the keyboard shortcut, drawn as a key."
+  },
+  "onboarding.island.shortcutMac": {
+    "message": "Command L",
+    "note": "Onboarding dialog → step 3: how a screen reader reads the ⌘L key."
+  },
+  "onboarding.island.shortcut": {
+    "message": "Control L",
+    "note": "Onboarding dialog → step 3: how a screen reader reads the Ctrl+L key."
+  },
+  "onboarding.blocking.title": {
+    "message": "Block ads & trackers",
+    "note": "Onboarding dialog → step 4: heading."
+  },
+  "onboarding.blocking.body": {
+    "message": "Blocks known ads and trackers using bundled rules. It cannot stop every tracker. Turn it off per-site with /off-leash.",
+    "note": "Onboarding dialog → step 4: explanation; /off-leash is a command."
+  },
+  "onboarding.blocking.toggle": {
+    "message": "Block ads & trackers",
+    "note": "Onboarding dialog → step 4: switch label."
+  },
+  "onboarding.blocking.toggleLabel": {
+    "message": "Block ads and trackers",
+    "note": "Onboarding dialog → step 4: accessible name of the switch."
+  },
+  "onboarding.privacy.title": {
+    "message": "Choose what Blanc may send",
+    "note": "Onboarding → step 5 (privacy choices): heading."
+  },
+  "onboarding.privacy.body": {
+    "message": "Blanc checks for app updates and ships its blocking lists with each release. These optional choices start sending only after you save them by continuing. You can turn either off now or later in Settings:",
+    "note": "Onboarding → step 5 (privacy choices): explanation; it ends with a colon before the two choices."
+  },
+  "onboarding.privacy.suggestions": {
+    "message": "Search suggestions<0>Eligible typed prefixes go to your selected search provider, including Google if selected. Private tabs and recognized sensitive-looking text are excluded.</0>",
+    "note": "Onboarding → step 5 (privacy choices): switch name, then (tag 0) its explanation in smaller type."
+  },
+  "onboarding.privacy.suggestionsLabel": {
+    "message": "Search suggestions",
+    "note": "Onboarding → step 5 (privacy choices): accessible name of the switch."
+  },
+  "onboarding.privacy.ping": {
+    "message": "Help improve Blanc<0>Pseudonymous launch and feature counts go to Blanc’s Cloudflare collector and its optional Google Analytics mirror: random install/session IDs (install ID hashed by the collector), version, platform, architecture, coarse OS and fixed feature names. No browsing data; private-tab feature activity is excluded.</0>",
+    "note": "Onboarding → step 5 (privacy choices): switch name, then (tag 0) its explanation in smaller type."
+  },
+  "onboarding.privacy.pingLabel": {
+    "message": "Help improve Blanc",
+    "note": "Onboarding → step 5 (privacy choices): accessible name of the switch."
+  },
+  "onboarding.privacy.details": {
+    "message": "Connections and privacy controls ↗",
+    "note": "Onboarding → step 5 (privacy choices): link to the website; ↗ marks an external link."
+  },
+  "onboarding.privacy.saveFailed": {
+    "message": "Could not save these choices. Check disk access and try again.",
+    "note": "Onboarding → step 5 (privacy choices): error."
+  },
+  "onboarding.theme.title": {
+    "message": "Pick your ink",
+    "note": "Onboarding dialog → step 6: heading; “ink” is the dark look, “paper” the light one."
+  },
+  "onboarding.theme.body": {
+    "message": "Paper by day, ink by night. Change anytime with /theme.",
+    "note": "Onboarding dialog → step 6: explanation; /theme is a command."
+  },
+  "onboarding.theme.light": {
+    "message": "light",
+    "note": "Onboarding dialog → step 6: theme choice, lowercase by design."
+  },
+  "onboarding.theme.dark": {
+    "message": "dark",
+    "note": "Onboarding dialog → step 6: theme choice, lowercase by design."
+  },
+  "onboarding.back": {
+    "message": "Back",
+    "note": "Onboarding dialog: button.",
+    "maxLength": 12
+  },
+  "onboarding.continue": {
+    "message": "Continue",
+    "note": "Onboarding dialog: button.",
+    "maxLength": 12
+  },
+  "onboarding.finish": {
+    "message": "Start browsing",
+    "note": "Onboarding dialog: button on the last step.",
+    "maxLength": 20
+  },
+  "error.page.title": {
+    "message": "Page failed to load",
+    "note": "Error page: browser tab title."
+  },
+  "error.title": {
+    "message": "This page didn’t load",
+    "note": "Error page: heading."
+  },
+  "error.newTab": {
+    "message": "New tab",
+    "note": "Error page: link to a new tab.",
+    "maxLength": 12
+  },
+  "error.retry": {
+    "message": "Try again",
+    "note": "Error page: link that reloads the page.",
+    "maxLength": 16
+  },
+  "error.blockingSettings": {
+    "message": "Blocking settings",
+    "note": "Error page: link to Settings when the blocker stopped the page.",
+    "maxLength": 24
+  },
+  "error.code": {
+    "message": "Error {code}",
+    "note": "Error page: detail when only an error number is known."
+  },
+  "error.crashDetail": {
+    "message": "{description} (reason: {reason})",
+    "note": "Error page: detail after a crash; {description} is a sentence such as “The page crashed”, {reason} a technical code."
+  },
+  "error.certificate.title": {
+    "message": "Your connection isn’t private",
+    "note": "Error page for an untrusted certificate: heading."
+  },
+  "error.certificate.unproven": {
+    "message": "The site could not prove its identity.",
+    "note": "Error page for an untrusted certificate: explanation when no detail is known."
+  },
+  "error.certificate.back": {
+    "message": "Back to safety",
+    "note": "Error page for an untrusted certificate: link to a new tab.",
+    "maxLength": 21
+  },
+  "error.certificate.subject": {
+    "message": "Certificate for",
+    "note": "Error page for an untrusted certificate: label of the certificate’s owner."
+  },
+  "error.certificate.issuer": {
+    "message": "Issued by",
+    "note": "Error page for an untrusted certificate: label of the certificate’s issuer."
+  },
+  "error.certificate.expiry": {
+    "message": "Valid until",
+    "note": "Error page for an untrusted certificate: label of the certificate’s end date."
+  },
+  "error.certificate.advanced": {
+    "message": "Advanced",
+    "note": "Error page for an untrusted certificate: button that reveals the option to continue anyway.",
+    "maxLength": 12
+  },
+  "error.certificate.warning": {
+    "message": "This site’s certificate isn’t trusted, so Blanc can’t confirm who you’re talking to. Someone on your network could be impersonating it. Only continue if you know this device — for example, a router, NAS or server on your own network.",
+    "note": "Error page for an untrusted certificate: warning above the continue button."
+  },
+  "error.certificate.continue": {
+    "message": "Continue to {host} (unsafe)",
+    "note": "Error page for an untrusted certificate: button; {host} is the site’s address."
   }
 }

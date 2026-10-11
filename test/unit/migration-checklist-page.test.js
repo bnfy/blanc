@@ -4,12 +4,13 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
+const { withoutInterfaceKeys } = require('../support/without-interface-keys');
 
 const root = path.resolve(__dirname, '../..');
 const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), 'utf8');
 
 test('start page carries one shared accessible migration checklist', () => {
-  const html = read('src/renderer/pages/newtab.html');
+  const html = withoutInterfaceKeys(read('src/renderer/pages/newtab.html'));
 
   assert.equal((html.match(/id="migrationChecklistShell"/g) ?? []).length, 1);
   assert.match(html, /id="migrationChecklistTitle">ready to move in\?<\/h2>/);
@@ -27,7 +28,7 @@ test('start page carries one shared accessible migration checklist', () => {
 });
 
 test('one footer Patron pill names the upgrade and can be closed', () => {
-  const html = read('src/renderer/pages/newtab.html');
+  const html = withoutInterfaceKeys(read('src/renderer/pages/newtab.html'));
   const css = read('src/renderer/pages/pages.css');
   const tokens = JSON.parse(read('tokens/tokens.json'));
   const ctas = html.match(/<a href="blanc:\/\/settings\/#group-patron"><img class="patron-cta-mark" src="sunrise-mark\.png" alt="" \/><span>Upgrade to Blanc Patron<\/span><\/a>/g) ?? [];
@@ -59,7 +60,7 @@ test('one footer Patron pill names the upgrade and can be closed', () => {
 
 test('checklist is a footer pill beside Customize whose popover opens upward, and avoids private tabs', () => {
   const css = read('src/renderer/pages/pages.css');
-  const html = read('src/renderer/pages/newtab.html');
+  const html = withoutInterfaceKeys(read('src/renderer/pages/newtab.html'));
 
   assert.doesNotMatch(html.match(/<header class="start-header"[\s\S]*?<\/header>/)[0], /migrationChecklist/,
     'the header no longer carries the checklist');
@@ -111,7 +112,7 @@ test('renderer reflects progress, keeps completed rows actionable, and retires a
     'completion waits until main reports that the utility sheet is gone');
   assert.match(js, /onUtilitySheetVisibility\(\(visible\) =>/);
   assert.match(js, /migrationChecklistShell\.classList\.add\('is-completing'\)/);
-  assert.match(js, /migrationChecklistLabel\.textContent = completing \? 'All moved in' : 'Finish setup'/,
+  assert.match(js, /migrationChecklistLabel\.textContent = completing \? t\('newtab\.checklist\.doneLabel'\) : t\('newtab\.checklist\.label'\)/,
     'the footer pill itself confirms completion');
   assert.doesNotMatch(js, /showPopover\(/, 'completion never opens the popover on its own');
   assert.doesNotMatch(js, /is-expanded/);

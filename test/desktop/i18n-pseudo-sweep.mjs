@@ -294,6 +294,78 @@ WORKSPACE_SURFACES.push({
   },
 });
 
+// The start page in each layout (with the Customize popover open last), a
+// private start page, and each step of the welcome tour.
+const START_FILES = ['src/renderer/pages/newtab.html', 'src/renderer/pages/newtab.js', 'src/renderer/pages/onboarding.js'];
+const startPage = async (app, url = 'blanc://newtab/') => {
+  const page = await waitForValue(async () => (await app.windows()).find((p) => p.url() === url), Boolean, url);
+  // A page can be found by URL before its body exists.
+  await page.waitForFunction(() => document.body?.classList.contains('layout-ready'));
+  return page;
+};
+const startLayout = (layout, { customize = false } = {}) => async ({ app }) => {
+  const page = await startPage(app);
+  await page.evaluate((name) => document.querySelector(`[data-layout-pick="${name}"]`).click(), layout);
+  await page.waitForFunction((name) => document.body.dataset.layout === name, layout);
+  if (customize) await page.evaluate(() => document.getElementById('customizePopover').showPopover());
+  return page;
+};
+const tourStep = (step) => async ({ app, chrome }) => {
+  let page = (await app.windows()).find((p) => p.url().startsWith('blanc://newtab/?tour'));
+  if (!page) {
+    await chrome.evaluate(() => window.browserAPI.createTab('blanc://newtab/?tour=1'));
+    page = await findPage(app, 'blanc://newtab/?tour', 'welcome tour');
+  }
+  await page.locator('#onboardDialog').waitFor({ state: 'visible' });
+  // Continue advances without importing or saving; the last step is never finished.
+  for (let at = Number(await page.locator('#onboardDialog').getAttribute('data-step')); at < step; at++) {
+    await page.locator('#obNext').click();
+    await page.waitForFunction((next) => document.getElementById('onboardDialog').dataset.step === String(next), at + 1);
+  }
+  return page;
+};
+const START_SURFACES = [
+  { name: 'start page (billboard)', open: startLayout('billboard') },
+  { name: 'start page (ledger)', open: startLayout('ledger') },
+  { name: 'start page (shelf)', open: startLayout('shelf') },
+  { name: 'start page (tally, customize)', open: startLayout('tally', { customize: true }),
+    close: (page) => page.evaluate(() => document.getElementById('customizePopover').hidePopover()) },
+  {
+    name: 'start page (private)',
+    open: async ({ app }) => {
+      await callTestHook(app, 'openTab', ['blanc://newtab/?private=1', { private: true }]);
+      return startPage(app, 'blanc://newtab/?private=1');
+    },
+  },
+  ...[0, 1, 2, 3, 4, 5].map((step) => ({ name: `welcome tour (step ${step + 1})`, open: tourStep(step) })),
+].map((surface) => ({ ...surface, files: START_FILES }));
+
+// The error page for a failed lookup (a real navigation), then the same tab
+// as a certificate interstitial with its Advanced panel open.
+const ERROR_FILES = ['src/renderer/pages/error.html', 'src/renderer/pages/error.js'];
+const ERROR_SURFACES = [
+  {
+    name: 'error page',
+    open: async ({ app, chrome }) => {
+      await chrome.evaluate(() => window.browserAPI.createTab('https://blanc-sweep.invalid/'));
+      return findPage(app, 'blanc://error/', 'error page');
+    },
+  },
+  {
+    name: 'error page (certificate)',
+    open: async ({ app }) => {
+      const query = new URLSearchParams({ kind: 'certificate', url: 'https://blanc-sweep.invalid/', continue: '1',
+        subject: 'blanc-sweep.invalid', issuer: 'Sweep Fixture CA', validTo: String(Date.UTC(2030, 0, 1)) });
+      await app.evaluate(({ webContents }, url) => webContents.getAllWebContents()
+        .find((wc) => wc.getURL().startsWith('blanc://error/')).loadURL(url), `blanc://error/?${query}`);
+      const page = await findPage(app, 'blanc://error/?kind=certificate', 'certificate page');
+      await page.locator('.advanced-toggle').click();
+      await page.locator('#continueUnsafe').waitFor({ state: 'visible' });
+      return page;
+    },
+  },
+].map((surface) => ({ ...surface, files: ERROR_FILES }));
+
 // The Settings sheet, once its asynchronous sections (trust receipt, profiles,
 // permissions) have rendered, then in states whose text only script writes.
 const SETTINGS_FILES = ['src/renderer/pages/settings.html', 'src/renderer/pages/settings.js',
@@ -430,11 +502,8 @@ const SURFACES = [
   ...NATIVE_MENU_SURFACES,
   ...NATIVE_DIALOG_SURFACES,
   ...WORKSPACE_SURFACES,
-  {
-    name: 'start page',
-    files: ['src/renderer/pages/newtab.html', 'src/renderer/pages/newtab.js', 'src/renderer/pages/onboarding.js'],
-    open: ({ app }) => findPage(app, 'blanc://newtab/', 'new tab'),
-  },
+  ...START_SURFACES,
+  ...ERROR_SURFACES,
   ...SETTINGS_SURFACES,
 ];
 

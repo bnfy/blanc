@@ -1,4 +1,5 @@
 (() => {
+  const { t } = blancI18n;
   const params = new URL(location.href).searchParams;
   const url = params.get('url') || '';
   const code = params.get('code') || '';
@@ -7,11 +8,17 @@
   if (code === '-20') document.getElementById('blockingSettingsLink').hidden = false;
 
   document.getElementById('errorUrl').textContent = url;
+  // The title and the safe way out depend on the failure, so this script is
+  // their only writer (the page's static text is applied after it runs).
+  document.getElementById('errorTitle').textContent = certificateFailure
+    ? t('error.certificate.title')
+    : t('error.title');
+  document.getElementById('safetyLink').textContent = certificateFailure
+    ? t('error.certificate.back')
+    : t('error.newTab');
   if (certificateFailure) {
-    document.getElementById('errorTitle').textContent = 'Your connection isn’t private';
     document.getElementById('errorDetail').textContent =
-      params.get('certMessage') || 'The site could not prove its identity.';
-    document.getElementById('safetyLink').textContent = 'Back to safety';
+      params.get('certMessage') || t('error.certificate.unproven');
     const details = document.getElementById('certificateDetails');
     const fields = [
       ['text', 'certificateSubject', 'certificateSubjectRow', 'subject'],
@@ -36,7 +43,7 @@
       const toggle = document.createElement('button');
       toggle.type = 'button';
       toggle.className = 'advanced-toggle';
-      toggle.textContent = 'Advanced';
+      toggle.textContent = t('error.certificate.advanced');
       toggle.setAttribute('aria-expanded', 'false');
       toggle.setAttribute('aria-controls', 'advancedPanel');
       nav.append(toggle);
@@ -47,14 +54,12 @@
       panel.hidden = true;
       const warning = document.createElement('p');
       warning.className = 'section-hint';
-      warning.textContent = 'This site’s certificate isn’t trusted, so Blanc can’t confirm who you’re talking to. ' +
-        'Someone on your network could be impersonating it. Only continue if you know this device — ' +
-        'for example, a router, NAS or server on your own network.';
+      warning.textContent = t('error.certificate.warning');
       const proceed = document.createElement('button');
       proceed.type = 'button';
       proceed.id = 'continueUnsafe';
       proceed.className = 'continue-unsafe';
-      proceed.textContent = `Continue to ${label} (unsafe)`;
+      proceed.textContent = t('error.certificate.continue', { host: label });
       proceed.addEventListener('click', async () => {
         proceed.disabled = true;
         const result = await window.bowserPages?.errorPage?.continueUnsafe?.().catch(() => null);
@@ -76,9 +81,13 @@
   } else {
     // Network failures carry a numeric code; crashes carry a reason string.
     const NON_NUMERIC = /[^-\d]/;
-    document.getElementById('errorDetail').textContent = NON_NUMERIC.test(code)
-      ? `${desc || 'The page crashed'} (reason: ${code})`
-      : desc ? `${desc} (${code})` : `Error ${code}`;
+    const crashed = NON_NUMERIC.test(code);
+    const detail = document.getElementById('errorDetail');
+    // Chromium's own description (e.g. ERR_NAME_NOT_RESOLVED) is a code name.
+    if (desc && !crashed) detail.dataset.i18nIgnore = '';
+    detail.textContent = crashed
+      ? t('error.crashDetail', { description: desc || t('error.crashed'), reason: code })
+      : desc ? `${desc} (${code})` : t('error.code', { code });
   }
 
   // Only re-link to schemes a failed navigation can legitimately have —

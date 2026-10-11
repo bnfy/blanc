@@ -4380,5 +4380,541 @@
   "settings.hint.less": {
     "message": "Weniger",
     "source": "sha256:cfc3694043b3e35c64ba5ef4c047670752dc4b5056f9a0028083adb6c3688270"
+  },
+  "newtab.startup.kicker": {
+    "message": "Browserschutz",
+    "source": "sha256:a9d78ad22eb6cb11753a2c3691570d2cbc71003b541123409fa199562b7a645d"
+  },
+  "newtab.startup.preparing": {
+    "message": "Blockieren wird vorbereitet…",
+    "source": "sha256:2503c39754234ccfe73a3b1659e6dc5164f31c7964a0026de2b3be7d27f636fe"
+  },
+  "newtab.startup.preparingMessage": {
+    "message": "Blanc bereitet seine lokalen Werbe- und Trackerfilter vor, bevor Webseiten geöffnet werden.",
+    "source": "sha256:22c4302efce3946c657207b9eed51944fba04c8feab537902c423b17fdeeb0e4"
+  },
+  "newtab.startup.retrying": {
+    "message": "Blockieren wird erneut versucht…",
+    "source": "sha256:d7acc7545ccfc94f98de2774a01eb84ad965be629d395b91ded151023ddd5b44"
+  },
+  "newtab.startup.failed": {
+    "message": "Das Blockieren konnte nicht starten.",
+    "source": "sha256:01e764a25d41ae51067f5cb395df3f631d6a56af7b10b7253a009d8497411ad4"
+  },
+  "newtab.startup.failedMessage": {
+    "message": "Blanc hat wartende Webseiten nicht geöffnet, weil seine Werbe- und Trackerfilter nicht verfügbar sind. Versuch es erneut oder fahre ausdrücklich ohne Blockieren fort. Diagnose: {error}",
+    "source": "sha256:70afd7716420e407b0df4f8e78d3ba8c647cb193a243b983ce6ce13c0ca74b17"
+  },
+  "newtab.startup.unknownError": {
+    "message": "unbekannter Fehler beim Starten des Blockers",
+    "source": "sha256:357c49025241b637199825b27c77bd1c0f9d07b5cbf2f0bd4d11f171ffe02db2"
+  },
+  "newtab.startup.retry": {
+    "message": "Wiederholen",
+    "source": "sha256:7f7de87baebeb286fb43bec620ba731566df18ed4a3e33dffb7597a0b82490c8"
+  },
+  "newtab.startup.continue": {
+    "message": "Ohne Blockieren fortfahren",
+    "source": "sha256:1ffa37f5b6019114e481dad2874996cc62806e76632f3c3b30d87614ff60ef4b"
+  },
+  "newtab.recovery.title": {
+    "message": "Weitermachen, wo du aufgehört hast?",
+    "source": "sha256:6adb937d3345fa301db281add8d718f06cbcb51571badba419de077e13172570"
+  },
+  "newtab.recovery.message": {
+    "message": "Blanc wurde nicht normal beendet. Stelle {tabs} {windows} wieder her oder beginne mit einem leeren Personal-Fenster. Bis du wählst, wird keine gespeicherte Website geöffnet.",
+    "source": "sha256:6c40260447056036d883511c2daa7349a118e17a54f3bfa516a2a7ead9c141f6"
+  },
+  "newtab.recovery.tabs": {
+    "message": "{count, plural, one {# Tab} other {# Tabs}}",
+    "source": "sha256:2bd01621fa7f873cae54a12005adda237b561f631c3bb5b84c9897c834cd426d"
+  },
+  "newtab.recovery.windows": {
+    "message": "{count, plural, one {aus # Fenster} other {aus # Fenstern}}",
+    "source": "sha256:46f51a7a706ea8644c9513e7248bf22c1b1628b30407543aca26e8929bc97caf"
+  },
+  "newtab.recovery.restore": {
+    "message": "Tabs wiederherstellen",
+    "source": "sha256:c805335ae1c96bc315ab960704fe1a6820e71f2339c2139be93a57697af57a6b"
+  },
+  "newtab.recovery.fresh": {
+    "message": "Neu beginnen",
+    "source": "sha256:b0c6f7bac6baf3fbf1dd18d090c7d0a6791d5d0cad44be860337071b41dea99e"
+  },
+  "newtab.header": {
+    "message": "Blanc-Startseite",
+    "source": "sha256:5951d0aeeb0ec0ddc699f18483d46d2978e50dda70221328f03f7234f8abf7c2"
+  },
+  "newtab.ledger.heading": {
+    "message": "Startseite Ledger",
+    "source": "sha256:cdbe27398f493e1aef6cc9413a3fd118bc807220feee8e2420f115ab08efd356"
+  },
+  "newtab.billboard.heading": {
+    "message": "Startseite Billboard",
+    "source": "sha256:04ec0ecc6e26d46ee743ddd646fb25c608b355e99c215324294e3ce08aae1567"
+  },
+  "newtab.shelf.heading": {
+    "message": "Startseite Shelf",
+    "source": "sha256:f1924f1eccf5218aadf5dba68a03d0595aeadcaad67609a545c49721b2c8bc39"
+  },
+  "newtab.tally.heading": {
+    "message": "Startseite Tally",
+    "source": "sha256:66ab9ff3d46db73e6cd83fda11af546622e48819b721fc3ccf9cc3e37e0da060"
+  },
+  "newtab.ledger.whereTo": {
+    "message": "Wohin?",
+    "source": "sha256:1a8d62138c786ce729ee3e85bf3a607cd5b258a454546751962cfb7ebcd1a3d7"
+  },
+  "newtab.groups": {
+    "message": "Da weitermachen, wo du aufgehört hast",
+    "source": "sha256:d5002ffb418dfd67e4b3ba015a2fdf877bb7925f40667c403d9da9ec0babe38c"
+  },
+  "newtab.remote": {
+    "message": "Auf deinen anderen Geräten",
+    "source": "sha256:8cd16203550a2b6c0d54687d05e4c1e2217a47175033f5bec3f4a01d731296c6"
+  },
+  "newtab.groups.count": {
+    "message": "{count, plural, one {# Tab} other {# Tabs}}",
+    "source": "sha256:f037fc25836961af27172f417e31877025e6640fbe3563a2a7da2cbf84a13551"
+  },
+  "newtab.shelf.blocked": {
+    "message": "Blockiert",
+    "source": "sha256:1805bc3ab4268057f9e23ade9e926d6af4b4a1bbe037b957235e742ad4bad9df"
+  },
+  "newtab.shelf.unit": {
+    "message": "{count, plural, one {Anzeige diese Woche} other {Anzeigen diese Woche}}",
+    "source": "sha256:125a7664586de107e9d81632163740dc6bb0cecb55e26d9cea773ab348238476"
+  },
+  "newtab.tally.blocked": {
+    "message": "Diese Woche blockiert",
+    "source": "sha256:d756954026c33ca4f0c0e0c6b0c6d0191ccafcf801aa38144ec7e5ae37cb550b"
+  },
+  "newtab.tally.busiest": {
+    "message": "meiste Blockierungen am {day}.",
+    "source": "sha256:d9d448b34951af75eea921e51293e1abd714d2f5bddd84f7aa18d15ba0391edf"
+  },
+  "newtab.tally.nothingFollowed": {
+    "message": "nichts ist dir gefolgt.",
+    "source": "sha256:67dc2665212fef2abb4b882d75c858f9b8818bb1e8c2761c4b73f55097935057"
+  },
+  "newtab.footer.blocked": {
+    "message": "{count, plural, one {# Anzeige diese Woche blockiert} other {# Anzeigen diese Woche blockiert}}",
+    "source": "sha256:ae28c356463e852810774a487c43bc4877a22fd7f4c143d10119756493a714c9"
+  },
+  "newtab.billboard.blocked": {
+    "message": "{count, plural, one {# Anzeige diese Woche blockiert · nichts ist dir gefolgt} other {# Anzeigen diese Woche blockiert · nichts ist dir gefolgt}}",
+    "source": "sha256:820947a4ac1a28d6a350c8093f82116258b34ebdc756f0fb77f84afe6f07f4ce"
+  },
+  "newtab.billboard.private": {
+    "message": "hier wird nichts gespeichert · nichts ist dir gefolgt",
+    "source": "sha256:b6e38de5a52a85dd162cb80a2e7e8aec2c519e062f44125f73553aa077b58c8a"
+  },
+  "newtab.billboard.untitled": {
+    "message": "Website ohne Titel",
+    "source": "sha256:e37e586f1a09e6d0c878f8e818fc4d6fcc61085a55faf8d6853e73ac51b5ed7c"
+  },
+  "newtab.billboard.open": {
+    "message": "{title} öffnen",
+    "source": "sha256:fd8f1b6c169380bd26a5030658e2950d7173b3a4cf80866a2d44a8fb3281fd54"
+  },
+  "newtab.billboard.hideTitle": {
+    "message": "{title} ausblenden",
+    "source": "sha256:76b0de326eb4263316c48ec97f5ef8f3547b0bf46cf8d02f94a3cde3be8561ef"
+  },
+  "newtab.billboard.hide": {
+    "message": "{title} in Billboard ausblenden",
+    "source": "sha256:e4ee5f21c3482855502dd676094f4161017d3c3c897587e7f13de0e2b0432c99"
+  },
+  "newtab.billboard.hidden": {
+    "message": "{title} in Billboard ausgeblendet.",
+    "source": "sha256:33aa9d1c17e809017336617c6bfadbfc7792b624ba24936a86702bf0df84073e"
+  },
+  "newtab.checklist.label": {
+    "message": "Fertig einrichten",
+    "source": "sha256:81dd62c5821fb06654ae53de8b302a78a501f43c1cc0c56b8d059192a530a36d"
+  },
+  "newtab.checklist.doneLabel": {
+    "message": "Alles fertig",
+    "source": "sha256:9fc41f9402294426b3420bf337811422180c36bfc1921537552b5d1a512e0808"
+  },
+  "newtab.checklist.hide": {
+    "message": "Checkliste zum Umzug ausblenden",
+    "source": "sha256:68f56438b3cbbb25d86c8d8c873f92fb155beeb10afdeb53eee11667c4d72f7d"
+  },
+  "newtab.checklist.title": {
+    "message": "bereit für den Umzug?",
+    "source": "sha256:83b6dfcdc42a1ec48574a093cbe371da48296fd446f00bda5d81a6edb75b8f82"
+  },
+  "newtab.checklist.doneTitle": {
+    "message": "alles eingerichtet",
+    "source": "sha256:ab331eedf9186eaa291214649a55a8023363d6d0d8d600a7976bbbd6426b8003"
+  },
+  "newtab.checklist.sync": {
+    "message": "Synchronisierung einrichten",
+    "source": "sha256:8d1a9026412142cea09277c1e944933ba157f35e0219072d6b29eb88c6cd62fd"
+  },
+  "newtab.checklist.tabs": {
+    "message": "Tabs mitbringen",
+    "source": "sha256:eba6f940d501a2d87c26b7947722bb1899dfabcc133c63fdfe52a572357a14bb"
+  },
+  "newtab.checklist.notCompleted": {
+    "message": "Nicht erledigt",
+    "source": "sha256:def7169e5430a7dc9f8e74187b75e32029c02e377d28a42cad1092dd995d1705"
+  },
+  "newtab.checklist.completed": {
+    "message": "Erledigt",
+    "source": "sha256:57ea9782461749d22b075888664e6bba946f1756d81706141b43b21e0d774084"
+  },
+  "newtab.checklist.taskCompleted": {
+    "message": "{task} – erledigt",
+    "source": "sha256:aa42fa2c2b97b4438fb30c8b07dfb130fc3926bed1803d37c7ffab99c424a6d7"
+  },
+  "newtab.checklist.taskNotCompleted": {
+    "message": "{task} – nicht erledigt",
+    "source": "sha256:e9f1117f8475af5675067bbec38be830bbdd2a845105142729c1954d8a6b26ad"
+  },
+  "newtab.patron.upgrade": {
+    "message": "Upgrade auf Blanc Patron",
+    "source": "sha256:71bdae7af7d9fca8c671e992cc5547577b2eef82b8adbe6af5769098bab78e92"
+  },
+  "newtab.patron.hide": {
+    "message": "Upgrade auf Blanc Patron für 90 Tage ausblenden",
+    "source": "sha256:3d4f7f278996eaf9e08bf3663c7278d34e6f1e0e4494cd86a81190d3468ad684"
+  },
+  "newtab.customize.button": {
+    "message": "Anpassen",
+    "source": "sha256:93e2ccadcc22cca7535c80684f0ca1391bf0ea7a1d06c91b7dbb193ad6ae71f9"
+  },
+  "newtab.customize.label": {
+    "message": "Startseite anpassen",
+    "source": "sha256:1eebc3a6667b835693890e79635ba6fac614d26a60db1748e3e3bdbb7311ab11"
+  },
+  "newtab.customize.layout": {
+    "message": "Layout",
+    "source": "sha256:4ef13ebe9f4450cd3bb26a58b7f2d4509f288dd9603bb6c469bb25da5eb2cd39"
+  },
+  "newtab.layout.ledger": {
+    "message": "Ledger",
+    "source": "sha256:bd98612d0c02b3cf0420b27c069e75518c00a5b53f0a2d3a686a1b0219fad26f"
+  },
+  "newtab.layout.billboard": {
+    "message": "Billboard",
+    "source": "sha256:5b59a4e7a93f17e18901890785fde6ef8885fcdf9489a61672f6c6805007e483"
+  },
+  "newtab.layout.shelf": {
+    "message": "Shelf",
+    "source": "sha256:36bda356643aa3afc653ddefcb151afa54a8a8c89e914a637485c562f9416cf4"
+  },
+  "newtab.layout.tally": {
+    "message": "Tally",
+    "source": "sha256:27629f8cb7e1225a81698aaefcfeab60835a095f10b22adbd67fa25ce1dc1825"
+  },
+  "newtab.customize.wallpaper": {
+    "message": "Dynamischer Hintergrund",
+    "source": "sha256:f801de03f27cd3937f16577b563fae6c36be5120fdb6bc914757b243061de042"
+  },
+  "newtab.mahjong": {
+    "message": "Mahjong",
+    "source": "sha256:dd4f136ecd04f5d18653e40e1ea981f4226f76e84dcef419af0e57e1faefc500"
+  },
+  "newtab.privateTab": {
+    "message": "Privater Tab",
+    "source": "sha256:d99627331a63a4ae7d5208f45697810f37853ed64da69ce15402a634a0f8a29b"
+  },
+  "newtab.goAnywhere": {
+    "message": "{shortcut}, um überallhin zu gelangen",
+    "source": "sha256:a2e053e67ded0995a2a6a62797fa2b71568d1886162718096b5461f2a0ac7ace"
+  },
+  "newtab.private.footer": {
+    "message": "kein Verlauf · getrennt von normalen Tabs · endet beim Beenden, auch hier erstellte Passkeys",
+    "source": "sha256:4c8bc55f5c83107fb3c00cab0bd0407208e42e21a589e218fc1243186c7fbc8c"
+  },
+  "newtab.version": {
+    "message": "v{version}",
+    "source": "sha256:1719a64c96fe45b5e025ce50baf5bbff572c8c3296ca104e0a7ef9a4d7b725da"
+  },
+  "newtab.favorites.empty": {
+    "message": "Markiere eine Seite mit ♥ als Favorit, um sie hier anzuheften",
+    "source": "sha256:a8c5bc39f2ff768a828feb602b5653e437c279ff00061ada1b503b684a4f4e32"
+  },
+  "onboarding.skip": {
+    "message": "überspringen",
+    "source": "sha256:6e1c80852caf2d033bb547c34317f5719323e92b269f54dda06349ee4edd0f58"
+  },
+  "onboarding.stepLabel": {
+    "message": "{step} / {total} – {name}",
+    "source": "sha256:fead11ed329fd4b943fa90de31831464f8aded66b883610f84a4cfce7bb44b5e"
+  },
+  "onboarding.step.default": {
+    "message": "Standardbrowser",
+    "source": "sha256:b12f95e3b29f367167b6de5b6eb3d760315fadb71d605995486189817b9c7d86"
+  },
+  "onboarding.step.import": {
+    "message": "Import",
+    "source": "sha256:1ae14f5234258298f7652dfb70e5e5895d5f9f1744747f142f8c21bdb20f806a"
+  },
+  "onboarding.step.island": {
+    "message": "die Island",
+    "source": "sha256:bd1508d85ba7499264101441a98f854a999ffc1a9d2d4ffd5afaa1ef1ca5fd4a"
+  },
+  "onboarding.step.blocking": {
+    "message": "Werbeblocker",
+    "source": "sha256:8d785c80fe32b74d2ada949e8f62d6ab982c10f8b6abc527dd2c395845edc5c4"
+  },
+  "onboarding.step.privacy": {
+    "message": "Datenschutz",
+    "source": "sha256:f755476b92046d0cc6631140f0c8d3478aa8fe790d7cb49eb52658f3188b81c3"
+  },
+  "onboarding.step.theme": {
+    "message": "Design",
+    "source": "sha256:daa960766d97dc095fd5752fb630cf5b37f9c0d3aa4333b7f3ccb87308ec0ee7"
+  },
+  "onboarding.default.title": {
+    "message": "Mach Blanc zu deinem Standardbrowser",
+    "source": "sha256:fd744a4545dbdeb1a77b950acb7dc5ab364384c48d1f93fadb72c97f5607b51d"
+  },
+  "onboarding.default.body": {
+    "message": "Links aus anderen Apps öffnen sich hier. Du kannst das jederzeit in den Einstellungen ändern.",
+    "source": "sha256:389ca6ffc9856f16063a24e277316d41f8c7de77b47782ac8837b77a63831c23"
+  },
+  "onboarding.default.set": {
+    "message": "Als Standard setzen",
+    "source": "sha256:41d9248a26c8b7f5666ff6f0dfe31a33bce5525b234b1d816769782c529bcd09"
+  },
+  "onboarding.default.done": {
+    "message": "Blanc ist dein Standard",
+    "source": "sha256:6d94665967ef4e198d880ce42c8b61ccad05a0099a50e56db912865aabcfb3c6"
+  },
+  "onboarding.import.title": {
+    "message": "Bring deine Lesezeichen mit",
+    "source": "sha256:9268b244092c768e26691cf7f2ccfe4f580c03e07575b85af60eac8412bb3052"
+  },
+  "onboarding.import.body": {
+    "message": "Importe geschehen auf diesem Gerät – nichts wird hochgeladen.",
+    "source": "sha256:3594d899281ba2d469a9b4b729ec626576d6a6c881efcba36359adedb56c2612"
+  },
+  "onboarding.import.look": {
+    "message": "Installierte Browser suchen",
+    "source": "sha256:cdb843d1432f9810385544055a88133b01a1db9caf963d34f2dab387643ae92c"
+  },
+  "onboarding.import.bringTabs": {
+    "message": "Offene Tabs mitbringen…",
+    "source": "sha256:04b13bbf3f4ee2cdf6c27e9d23a5baa12469086b07d9a152f32829a3c7740061"
+  },
+  "onboarding.import.fromFile": {
+    "message": "Aus einer Lesezeichendatei (HTML)…",
+    "source": "sha256:e38efea27aa42130cafccb3a8afa73e272b6cd413f6aac3eb399c22128fe8592"
+  },
+  "onboarding.import.looking": {
+    "message": "Installierte Browser werden gesucht…",
+    "source": "sha256:ec71a2b73c07e52821c10dfcc4137e099b4b29f5cbb790751dffbadd942c34ac"
+  },
+  "onboarding.import.noneFound": {
+    "message": "Keine anderen Browserprofile gefunden.",
+    "source": "sha256:8902df62a555b6b5420538b67b611356fdb0c889b1b21ab4e60918293fdef091"
+  },
+  "onboarding.import.checkFailed": {
+    "message": "Andere Browser konnten nicht gesucht werden.",
+    "source": "sha256:671534de8df0e25f4f60dcb81f63c65faca320129505e39ec80026b9e8905525"
+  },
+  "onboarding.import.importing": {
+    "message": "Favoriten werden importiert…",
+    "source": "sha256:0cda10055421c2607a70ecf1476eef48e53167c46454026dd0cc5008a8dfb6c3"
+  },
+  "onboarding.import.empty": {
+    "message": "Dort wurden keine Favoriten gefunden.",
+    "source": "sha256:f57abf9a3c634e59e5107a3159478397da8b22e736fb331d3137f1736197146e"
+  },
+  "onboarding.import.tooLarge": {
+    "message": "Dieses Profil ist zu groß, um es sicher zu importieren.",
+    "source": "sha256:f7bc4edb13d6f71744829d8d7575831a8f899aa412fb123a34d212c6a1964c4a"
+  },
+  "onboarding.import.readFailed": {
+    "message": "Dieses Browserprofil konnte nicht gelesen werden.",
+    "source": "sha256:709002bd0eb88bbd95ff64b559f9f3d1243d3e4de4fa9c24a9ec4fed37b6fc32"
+  },
+  "onboarding.import.failed": {
+    "message": "Von dort konnte nicht importiert werden.",
+    "source": "sha256:dfd7928ac8cf43cdf03b832e6db99436d7e35943cc9b2e1acf65b4fd4086a0bf"
+  },
+  "onboarding.import.imported": {
+    "message": "{count, plural, one {# Favorit importiert.} other {# Favoriten importiert.}}",
+    "source": "sha256:cadefd71e89493419f2a89f165d5af8472f919c1d794912151bc84be005c94ed"
+  },
+  "onboarding.import.importedFrom": {
+    "message": "{count, plural, one {# Favorit aus {source} importiert.} other {# Favoriten aus {source} importiert.}}",
+    "source": "sha256:84d2f86f7ec28fda3eb4ef30cfb7fdfc5d91b52f31fd5658a0a2b33c217a7b1e"
+  },
+  "onboarding.import.skipped": {
+    "message": "{count, plural, one {# bereits gespeicherter Favorit übersprungen.} other {# bereits gespeicherte Favoriten übersprungen.}}",
+    "source": "sha256:a7435cab0444ef2f94abf7aabb37c435354b5005f73a2b20702704800750ef02"
+  },
+  "onboarding.import.allSaved": {
+    "message": "{count, plural, one {Dieser Favorit war bereits gespeichert.} other {Alle # Favoriten waren bereits gespeichert.}}",
+    "source": "sha256:39141329a03dab30a78354c71cb982d77235daefcd807c80f5c69587b36664cc"
+  },
+  "onboarding.island.title": {
+    "message": "Lerne die Island kennen",
+    "source": "sha256:df6d360cdfec87221db857b3d7cfcf7995b28a914e797a4824293b4829fa341b"
+  },
+  "onboarding.island.body": {
+    "message": "Tabs, Suche und Navigation an einem Ort.",
+    "source": "sha256:94d09fed94b5bf9d1c960fa1f6d5fe43ba20cbc5bb4b4786b5cfbc782d2dad0c"
+  },
+  "onboarding.island.caption": {
+    "message": "Ruhige Island mit Zurück und Vorwärts, drei Tab-Punkten, dem Favicon und der Adresse der Website, Neuer Tab, Blocker-Schild, Neu laden, Favorit und Schließen.",
+    "source": "sha256:92abaa88c1816ee1b56e49c504cb81e83266dd3a514d5eccecba02ce73d1f0eb"
+  },
+  "onboarding.island.hint": {
+    "message": "Öffne sie mit <0>{shortcut}</0>.",
+    "source": "sha256:4b38cd11d3d9f5da86446c169a5ff1b113423edaf83cda1087b1c7430501146a"
+  },
+  "onboarding.island.shortcutMac": {
+    "message": "Befehl L",
+    "source": "sha256:bf9386274ef3f809c374be3fad8eb1b087df8a5fce01b6d2586653e02a2147c0"
+  },
+  "onboarding.island.shortcut": {
+    "message": "Steuerung L",
+    "source": "sha256:ffbdc2079d2653a6c938eddff05942027e2793a9b7a1c24e29201600a4e60324"
+  },
+  "onboarding.blocking.title": {
+    "message": "Werbung & Tracker blockieren",
+    "source": "sha256:d7e6c436294d0ff743f61d8a370ef9e2da8ad9f33885cb9fd2cc7cb0868f709e"
+  },
+  "onboarding.blocking.body": {
+    "message": "Blockiert bekannte Werbung und Tracker mit mitgelieferten Regeln. Nicht jeder Tracker lässt sich stoppen. Schalte es pro Website mit /off-leash aus.",
+    "source": "sha256:5c464be0e6cdfdda2e8f28d6ecb015f9e0fb6116b704f2c51e6f86edafa0c95d"
+  },
+  "onboarding.blocking.toggle": {
+    "message": "Werbung & Tracker blockieren",
+    "source": "sha256:7ba798010d759f0fb28728a8faf545f83fd798b159225b80430667e0fa6696d0"
+  },
+  "onboarding.blocking.toggleLabel": {
+    "message": "Werbung und Tracker blockieren",
+    "source": "sha256:2166396d9dc4a076566a812f61ce88a1ba816b7a96efd2f5631b00736ba28496"
+  },
+  "onboarding.privacy.title": {
+    "message": "Wähle, was Blanc senden darf",
+    "source": "sha256:d17bfc907c5ede0c083e7558b6791eb6f3a15b2a6dd7748abc8e1a21942c6f56"
+  },
+  "onboarding.privacy.body": {
+    "message": "Blanc sucht nach App-Updates und liefert seine Blockierlisten mit jedem Release aus. Diese optionalen Daten werden erst gesendet, nachdem du sie durch Fortfahren speicherst. Du kannst beide jetzt oder später in den Einstellungen ausschalten:",
+    "source": "sha256:29827288183ceac91226fef38d16764096db9b762cd502b6746cfab8b417b930"
+  },
+  "onboarding.privacy.suggestions": {
+    "message": "Suchvorschläge<0>Geeignete eingetippte Anfänge gehen an deinen gewählten Suchanbieter, auch an Google, falls ausgewählt. Private Tabs und erkennbar sensibel wirkender Text sind ausgenommen.</0>",
+    "source": "sha256:f0cef88af9d574b08757daf0887704d9e7e2db433b3084ec3dd1abe0eace94c2"
+  },
+  "onboarding.privacy.suggestionsLabel": {
+    "message": "Suchvorschläge",
+    "source": "sha256:6af9df174f3afc1f298b664ed1555b1940d36379bbd3d0e0abd2fe5606a84f11"
+  },
+  "onboarding.privacy.ping": {
+    "message": "Blanc verbessern helfen<0>Pseudonyme Start- und Funktionszählungen gehen an den Cloudflare-Sammler von Blanc und seinen optionalen Google-Analytics-Spiegel: zufällige Installations- und Sitzungs-IDs (die Installations-ID wird vom Sammler gehasht), Version, Plattform, Architektur, grobes Betriebssystem und feste Funktionsnamen. Keine Browserdaten; Funktionsaktivität in privaten Tabs ist ausgenommen.</0>",
+    "source": "sha256:0f26713ec6204113c41c56660a94ebc76dc22ed4c9fbfdbb39c22c6344d01a34"
+  },
+  "onboarding.privacy.pingLabel": {
+    "message": "Blanc verbessern helfen",
+    "source": "sha256:050c073aa061dc4ab419f826d0bda0a4e2c7a0fa8d1b0aeb22bfa9107bc5eada"
+  },
+  "onboarding.privacy.details": {
+    "message": "Verbindungen und Datenschutzeinstellungen ↗",
+    "source": "sha256:e41b35af4773b33e8d18b33c5cf0c438fd90eddb1b0c5c9077adc93d9ea8f680"
+  },
+  "onboarding.privacy.saveFailed": {
+    "message": "Diese Auswahl konnte nicht gespeichert werden. Prüfe den Zugriff auf den Speicher und versuch es noch einmal.",
+    "source": "sha256:1914000f21d96fb2bf7b5e63b31865f8f4827b79363801628681a7d04bd0da02"
+  },
+  "onboarding.theme.title": {
+    "message": "Wähle deine Tinte",
+    "source": "sha256:b26d2ab5badeb6e3558001af230a84f49e2f12e07c667dd7d60e6b27db80c92a"
+  },
+  "onboarding.theme.body": {
+    "message": "Papier am Tag, Tinte in der Nacht. Jederzeit mit /theme änderbar.",
+    "source": "sha256:76dcf11f28d68d2500525416c3b85dd56cf95922db013e57c6a0d8faaea39ac0"
+  },
+  "onboarding.theme.light": {
+    "message": "hell",
+    "source": "sha256:53bf1cb352ca64b4904b95c97b0868337d56a789d5204a748eb75b55ad76f2f8"
+  },
+  "onboarding.theme.dark": {
+    "message": "dunkel",
+    "source": "sha256:6cad2abfb84589b727106430bf84884b8d32445713b170a059084331e43f9f5f"
+  },
+  "onboarding.back": {
+    "message": "Zurück",
+    "source": "sha256:ce8582c74d31edafad567fa71b95f7a9e74767961df84f6dc6d31468b68dbc30"
+  },
+  "onboarding.continue": {
+    "message": "Weiter",
+    "source": "sha256:cef0769d58ddbd1c3e0a90c76f6cacfa036e4dabb5f7e81b8343ee25eda3f0ad"
+  },
+  "onboarding.finish": {
+    "message": "Los geht’s",
+    "source": "sha256:2ac27df08a6d176577a42967eaf9d09416c6828a157d6018eaeecdc7a1e687a8"
+  },
+  "error.page.title": {
+    "message": "Seite konnte nicht geladen werden",
+    "source": "sha256:4b60a201af2e3a025805c863b3b49a4717e7d841161c9dd1a19f02b81591df97"
+  },
+  "error.title": {
+    "message": "Diese Seite wurde nicht geladen",
+    "source": "sha256:0bd93847c66ed088cda1e6e168c210fbc10b953afd0138c37b893bbfcedf97d3"
+  },
+  "error.newTab": {
+    "message": "Neuer Tab",
+    "source": "sha256:bf08ebed2ae1a0356964843eed11a72f8485f2ca1f61fc30b4dcec93ed2677c1"
+  },
+  "error.retry": {
+    "message": "Erneut versuchen",
+    "source": "sha256:3b4dffaf18ede7076b97184704dad6499344e99186f6f265b6ec8bfa0e82c062"
+  },
+  "error.blockingSettings": {
+    "message": "Blockier-Einstellungen",
+    "source": "sha256:f80ea79615732b55da3de18b246d27a2597439a24e1e01d4497a8dfe5e14cc15"
+  },
+  "error.code": {
+    "message": "Fehler {code}",
+    "source": "sha256:b19697535eb73332a29528eb705ad2b9965a78e73a88e7b2bce4a34e27bdf887"
+  },
+  "error.crashDetail": {
+    "message": "{description} (Grund: {reason})",
+    "source": "sha256:1205d9aeeb520587957ac3155fad5b79cb696cae07ccb6a567c1e8db6c2979e9"
+  },
+  "error.certificate.title": {
+    "message": "Deine Verbindung ist nicht privat",
+    "source": "sha256:f6e11d3e83e737e83ea17af11e6c78976acafb214ae92b7e80807a699db1bdef"
+  },
+  "error.certificate.unproven": {
+    "message": "Die Website konnte ihre Identität nicht nachweisen.",
+    "source": "sha256:7e095c8327d94519f6c38c2a8a88c2a89975fd3fc4e8a85751ae9534d599c371"
+  },
+  "error.certificate.back": {
+    "message": "Zurück in Sicherheit",
+    "source": "sha256:417e40c5cc92b8c9dea85c80ed9c7b7645d479f9659a7a596009ace57800d093"
+  },
+  "error.certificate.subject": {
+    "message": "Zertifikat für",
+    "source": "sha256:e75bbc2c42e603f425400aa4ba490f9ed40af1a5cb7f5be52ff5e6a0c83e108a"
+  },
+  "error.certificate.issuer": {
+    "message": "Ausgestellt von",
+    "source": "sha256:d41c8c12cc07beca49fd9144d05f423db6067aba01e9d451e90b8e44260040c4"
+  },
+  "error.certificate.expiry": {
+    "message": "Gültig bis",
+    "source": "sha256:40176b84fbc936b8c5f96b4b1052c2f6f7eb950a9e14124a19a772f3b6371b45"
+  },
+  "error.certificate.advanced": {
+    "message": "Erweitert",
+    "source": "sha256:7a0525a381d35ebd3ffb7545f649c9af0a7e5268a8a296a8ac1fe0ce9f280d8a"
+  },
+  "error.certificate.warning": {
+    "message": "Das Zertifikat dieser Website ist nicht vertrauenswürdig, daher kann Blanc nicht bestätigen, mit wem du kommunizierst. Jemand in deinem Netzwerk könnte sich als sie ausgeben. Fahre nur fort, wenn du dieses Gerät kennst – zum Beispiel einen Router, ein NAS oder einen Server in deinem eigenen Netzwerk.",
+    "source": "sha256:bd2f71db588bd14f9029590d78de5931a3f52eaa2e47e9956bd1c0af6a801fb3"
+  },
+  "error.certificate.continue": {
+    "message": "Weiter zu {host} (unsicher)",
+    "source": "sha256:cf5007346102d81cc6568e9c1ce48e2e4305757f3a445a1fac6fa64a003718eb"
   }
 }
