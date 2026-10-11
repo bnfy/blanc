@@ -9,7 +9,7 @@ Feature id: F45 (proposed)
 Arc stopped getting new features in May 2025. The Browser Company now builds
 Dia, and Arc only receives Chromium and security updates. Its Spaces still
 work, but nothing new is coming to them, and Arc users who rely on Spaces
-have no obvious next home. Blanc's Workspaces are the closest
+have no obvious next home. Blanc Spaces are the closest
 equivalent, and `/arc-alternative` already speaks to these people.
 
 Today Blanc cannot read Arc at all. Favorites import (F30) and Bring Your
@@ -20,12 +20,18 @@ on switching.
 This project lets someone bring their Arc Spaces across in one explicit
 step.
 
+## Naming
+
+In this spec **Space** (capitalised) is Arc's Space, and a **Blanc space** is
+one saved set in Blanc Spaces, Blanc's Patron feature (renamed from Named
+Workspaces on 2026-10-11). Code keeps its internal `workspace` identifiers.
+
 ## Decisions (owner, 2026-10-11)
 
-1. **Patrons get one workspace per Space.** Everyone else gets each
-   Space as tab groups, with an offer to save it as a workspace. This
-   deliberately relaxes F40's rule that a workspace is always a separate
-   gesture after migration, for this source only. Creating workspaces stays
+1. **Patrons get one Blanc space per Arc Space.** Everyone else gets each
+   Space as tab groups, with an offer to save it as a Blanc space. This
+   deliberately relaxes F40's rule that a Blanc space is always a separate
+   gesture after migration, for this source only. Creating Blanc spaces stays
    Patron-gated in main.
 2. **Pinned tabs open as quiet tabs.** Loose pinned tabs become pinned
    tabs; each top-level folder becomes a group; tabs load only when chosen.
@@ -41,7 +47,7 @@ step.
 - Arc's archived tabs, Notes, Easels, Boosts, Little Arc, Peek and Space
   colors or icons.
 - Mapping Arc profiles onto Blanc profiles. Every Space lands in the
-  current Blanc profile (workspaces are profile-scoped); Spaces that used a
+  current Blanc profile (Blanc Spaces are profile-scoped); Spaces that used a
   separate Arc profile are labelled so the person knows sign-ins will differ.
 - Any automatic grouping or "understanding" of tabs. Groups come only from
   folders the person made in Arc (see `docs/marketing-claims.md`).
@@ -83,8 +89,8 @@ Implemented and unit-tested in `planSpaceCapture` / `planArcSpacesImport`:
 
 | Arc | Blanc |
 |---|---|
-| Space | Workspace (Patron) or window of groups (everyone else) |
-| Space name | Workspace name; collisions in this profile become `Name (Arc)`, `Name (Arc 2)`…; untitled Spaces become `Space N` by Arc order |
+| Space | Blanc space (Patron) or window of groups (everyone else) |
+| Space name | Blanc space name; collisions in this profile become `Name (Arc)`, `Name (Arc 2)`…; untitled Spaces become `Space N` by Arc order |
 | Loose pinned tab | Pinned, ungrouped tab, first in order |
 | Top-level folder | Group with the folder's name, lowercased (Blanc's mono labels); same-named folders share one group |
 | Nested folder or split view | Folded into its top-level folder's group (or its section if none) |
@@ -99,25 +105,25 @@ kept. Empty Spaces are skipped and listed.
 ## Flow
 
 1. **Entry.** Arc appears as a source in Bring Your Tabs, and a Patron with
-   no workspaces sees **Import Spaces from Arc** in the workspace panel.
+   no spaces sees **Import Spaces from Arc** in the Spaces panel.
 2. **Preview.** One row per Space: name, tab and group counts, a note when
    it used a separate Arc profile, and a checkbox (all selected). A separate
    checkbox covers Favorites. Renderers get only counts, titles, hostnames
    and opaque ids (F40's projection), never full URLs.
-3. **Room check (Patrons).** If the selection exceeds the free workspace
+3. **Room check (Patrons).** If the selection exceeds the free space
    slots (25 per profile), the preview says how many fit and which do not,
    before anything is written. Nothing is partially created.
 4. **Apply.**
    - **Patron:** main re-checks `isPatronActive()`, then creates every
-     planned workspace in **one durable write** (`updateAndFlush`): all
+     planned Blanc space in **one durable write** (`updateAndFlush`): all
      Spaces or none. No window is bound or switched; the person opens a
-     workspace from the list when they want it. If Patron lapsed between
+     space from the list when they want it. If Patron lapsed between
      preview and apply, the result is `not-patron` and the preview offers
      the everyone-else path.
    - **Everyone else:** each selected Space opens in its own new window,
      tabs quiet and viewless with only the first selected tab woken (F40's
      apply rules), folders as groups. Each window shows a quiet
-     **Save this window as a workspace** offer that leads to Patron.
+     **Save this window as a space** offer that leads to Patron.
    - Favorites are added after the tab step succeeds.
 5. **Result.** A summary of what was created, what was skipped (non-web
    tabs, Notes and Easels, tabs over the cap) and why, and marks the
@@ -131,7 +137,7 @@ kept. Empty Spaces are skipped and listed.
 - No path, raw JSON, Space id or full URL crosses IPC. The browser-api
   contract (`browser-api/bridges.json`) gains the new `pages:*` channels
   with their host lists, changed together with the preload and handler.
-- Imported URLs are validated again in main before any tab or workspace is
+- Imported URLs are validated again in main before any tab or space is
   created.
 
 ## Implementation phases
@@ -145,7 +151,7 @@ kept. Empty Spaces are skipped and listed.
 3. **Apply** in main: Patron path through the workspace store (one durable
    write), everyone-else path through the existing F40 apply seam, and
    Favorites through F30.
-4. **Preview UI** in the Bring Your Tabs page and the workspace panel entry,
+4. **Preview UI** in the Bring Your Tabs page and the Spaces panel entry,
    with strings in `copy/messages/en.json` and every shipped language in
    the same PR (F44).
 5. **Spec and acceptance:** add F45 to `spec/features.md` and
