@@ -65,6 +65,10 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `tabImport.submitEmbeddings` | invoke | `pages:tab-import:submit-embeddings` | tab-import | Return embeddings computed in the page for a suggestion generation. |
 | `tabImport.apply` | invoke | `pages:tab-import:apply` | tab-import | Open the selected tabs. |
 | `tabImport.cancel` | invoke | `pages:tab-import:cancel` | tab-import | Discard the import session. |
+| `tabImport.arcDetect` | invoke | `pages:arc-import:detect` | tab-import | Whether Arc's sidebar file appears to exist on this device (F45), without reading it. |
+| `tabImport.arcRead` | invoke | `pages:arc-import:read` | tab-import | Read Arc's Spaces from Arc's own file or a chosen file into an import session. |
+| `tabImport.arcApply` | invoke | `pages:arc-import:apply` | tab-import | Create Blanc spaces (Patron) or open windows for the selected Arc Spaces, and optionally import Arc Favorites. |
+| `tabImport.arcCancel` | invoke | `pages:arc-import:cancel` | tab-import | Discard the Arc import session. |
 | `settings.get` | invoke | `pages:settings:get` | settings | Current settings plus derived status for the Settings page. |
 | `settings.set` | invoke | `pages:settings:set` | settings | Write a partial settings update. |
 | `settings.language` | invoke | `pages:settings:language` | settings | Choose the interface language; optionally relaunch to apply it. |

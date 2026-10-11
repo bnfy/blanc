@@ -14,12 +14,14 @@ function harness() {
   const reads = [];
   const opened = [];
   const forgotten = [];
+  const arcDiscards = [];
   const requests = new Map();
   const context = {
     rt: () => runtime, tabImportSourceRequests: requests,
     sameUtilityPage: (a, b) => a === b,
     pendingTabHandoff: null,
     forgetTabImportForRuntime: (id) => { requests.delete(id); forgotten.push(id); },
+    arcImport: { discard: () => { arcDiscards.push(runtime.utilitySheetUrl); } },
   };
   vm.createContext(context);
   vm.runInContext(lift('function beginTabImportSourceRead()', '\nfunction tabImportOwner()'), context);
@@ -37,7 +39,7 @@ function harness() {
   const end = pages.indexOf("  handle('pages:tab-import:set-selection'", start);
   vm.runInContext(pages.slice(start, end), context);
   const finish = (index) => reads[index].resolve({ source: { label: reads[index].id }, candidates: [] });
-  return { context, runtime, opened, forgotten, finish };
+  return { context, runtime, opened, forgotten, arcDiscards, finish };
 }
 
 test('a source read settling after replacement cannot recreate the canceled local session', async () => {
@@ -90,10 +92,12 @@ test('closing a native window or changing its surface generation invalidates a s
 });
 
 test('sheet cleanup is owner-specific and preserves an explicitly refreshed handoff', () => {
-  const { context: c, runtime, forgotten } = harness();
+  const { context: c, runtime, forgotten, arcDiscards } = harness();
   c.pendingTabHandoff = { runtimeId: runtime.id };
   c.discardUtilityImportState(runtime);
   assert.deepEqual(forgotten, ['window']);
+  // F45: closing Bring Your Tabs also drops a parsed Arc sidebar.
+  assert.deepEqual(arcDiscards, ['blanc://tab-import/']);
   assert.ok(c.pendingTabHandoff, 'replacing a local sheet must not discard the incoming handoff');
   runtime.utilitySheetUrl = 'blanc://tab-handoff/';
   c.discardUtilityImportState(runtime, { discardTabHandoff: false });
@@ -104,4 +108,5 @@ test('sheet cleanup is owner-specific and preserves an explicitly refreshed hand
   c.pendingTabHandoff = { runtimeId: runtime.id };
   c.discardUtilityImportState(runtime);
   assert.equal(c.pendingTabHandoff, null);
+  assert.deepEqual(arcDiscards, ['blanc://tab-import/'], 'other sheets leave the Arc import alone');
 });

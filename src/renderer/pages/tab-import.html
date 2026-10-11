@@ -33,7 +33,10 @@
         </div>
         <div id="tabImportSourceList" class="tab-import-source-list"></div>
       </div>
+      <div id="arcImportEntry" class="arc-import-entry" hidden></div>
     </section>
+    <section class="tab-import-panel" data-arc-panel="preview" hidden aria-labelledby="arcImportTitle"></section>
+    <section class="tab-import-panel" data-arc-panel="result" hidden></section>
     <section class="tab-import-panel" data-step-panel="tabs" hidden aria-labelledby="tabImportTabsTitle">
       <h2 id="tabImportTabsTitle" class="section-title tab-import-panel-title">Choose tabs</h2>
       <div class="tab-import-preview-toolbar">
@@ -73,5 +76,6 @@
   </div>
   <script src="sheet.js"></script>
   <script src="tab-import-open-tabs.js"></script>
+  <script src="tab-import-arc.js"></script>
 </body>
 </html>

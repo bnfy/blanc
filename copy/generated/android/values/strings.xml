@@ -717,4 +717,88 @@ You can retry with “%2$s”, or reinstall from blancbrowser.com.</string>
     <string name="glance_status_tab_closed">Glance closed because its tab was closed</string>
     <string name="tab_untitled_short">Tab</string>
     <string name="error_reload_failed">The page could not be reloaded</string>
+    <string name="arc_import_entry_title">Arc</string>
+    <string name="arc_import_entry_found">Bring your Spaces, pinned tabs and folders from Arc.</string>
+    <string name="arc_import_entry_missing">Arc isn’t installed here. If you copied its StorableSidebar.json file from another computer, choose it.</string>
+    <string name="arc_import_entry_unsupported">Arc never came to Linux. Copy StorableSidebar.json from your Mac or PC, then choose it here.</string>
+    <string name="arc_import_entry_permission">Blanc can’t open Arc’s folder. Choose its StorableSidebar.json file instead.</string>
+    <string name="arc_import_entry_read">Bring Spaces from Arc</string>
+    <string name="arc_import_entry_choose_file">Choose file…</string>
+    <string name="arc_import_choose_file_title">Choose Arc’s StorableSidebar.json</string>
+    <string name="arc_import_choose_file_filter">Arc sidebar file</string>
+    <string name="arc_import_untitled_space">Space %1$s</string>
+    <string name="arc_import_reading">Reading Arc’s Spaces…</string>
+    <string name="arc_import_progress">Arc Spaces</string>
+    <string name="arc_import_title">Choose Spaces to bring</string>
+    <string name="arc_import_mode_spaces">Each Arc Space becomes a space in Blanc Spaces. Folders become groups, and tabs load only when you open them.</string>
+    <string name="arc_import_mode_windows">Each Arc Space opens in its own window. Folders become groups, and tabs load only when you open them. With Blanc Patron, you can save them as spaces.</string>
+    <plurals name="arc_import_room">
+        <item quantity="one">You can add %1$d more space.</item>
+        <item quantity="other">You can add %1$d more spaces.</item>
+    </plurals>
+    <string name="arc_import_space_separate_profile">Used its own Arc profile, so you may need to sign in again.</string>
+    <plurals name="arc_import_favorites">
+        <item quantity="one">Add Arc’s %1$d Favorite to a Favorites folder named Arc</item>
+        <item quantity="other">Add Arc’s %1$d Favorites to a Favorites folder named Arc</item>
+    </plurals>
+    <plurals name="arc_import_skipped">
+        <item quantity="one">%1$d item can’t come across: notes, Easels and non-web pages stay in Arc.</item>
+        <item quantity="other">%1$d items can’t come across: notes, Easels and non-web pages stay in Arc.</item>
+    </plurals>
+    <string name="arc_import_stays">Sign-ins, passwords, history and archived tabs stay in Arc. Blanc only reads Arc’s file and changes nothing there.</string>
+    <string name="arc_import_back">Back</string>
+    <plurals name="arc_import_apply_spaces">
+        <item quantity="one">Create %1$d space</item>
+        <item quantity="other">Create %1$d spaces</item>
+    </plurals>
+    <plurals name="arc_import_apply_windows">
+        <item quantity="one">Open %1$d window</item>
+        <item quantity="other">Open %1$d windows</item>
+    </plurals>
+    <string name="arc_import_apply_favorites">Add Favorites</string>
+    <string name="arc_import_applying">Bringing your Spaces…</string>
+    <string name="arc_import_done_title">Arc import finished</string>
+    <plurals name="arc_import_done_spaces">
+        <item quantity="one">Created %1$d space: %2$s. Find it in the command panel’s list of saved spaces.</item>
+        <item quantity="other">Created %1$d spaces: %2$s. Find them in the command panel’s list of saved spaces.</item>
+    </plurals>
+    <plurals name="arc_import_done_windows">
+        <item quantity="one">Opened %1$d window.</item>
+        <item quantity="other">Opened %1$d windows.</item>
+    </plurals>
+    <plurals name="arc_import_done_favorites">
+        <item quantity="one">Added %1$d Favorite to the Arc folder.</item>
+        <item quantity="other">Added %1$d Favorites to the Arc folder.</item>
+    </plurals>
+    <plurals name="arc_import_done_dropped">
+        <item quantity="one">%1$d tab over the 500-tab limit for a Space stayed behind.</item>
+        <item quantity="other">%1$d tabs over the 500-tab limit for a Space stayed behind.</item>
+    </plurals>
+    <string name="arc_import_done_close">Done</string>
+    <string name="arc_import_error_missing">Arc’s sidebar file wasn’t found.</string>
+    <string name="arc_import_error_permission">Blanc couldn’t open that file. Check its permissions and try again.</string>
+    <string name="arc_import_error_not_arc">That file isn’t an Arc sidebar. Look for StorableSidebar.json.</string>
+    <string name="arc_import_error_too_large">That file is too large to import.</string>
+    <string name="arc_import_error_too_complex">That sidebar is too large or too deeply nested to import.</string>
+    <string name="arc_import_error_saving">Arc was saving its sidebar. Try again in a moment.</string>
+    <string name="arc_import_error_empty">No Spaces with tabs and no Favorites were found.</string>
+    <string name="arc_import_error_unreadable">Couldn’t read Arc’s sidebar.</string>
+    <string name="arc_import_error_not_patron">Blanc Patron is no longer active, so these Spaces will open as windows instead. Review your choice and try again.</string>
+    <plurals name="arc_import_error_no_room">
+        <item quantity="one">Only %1$d more space fits. Deselect some Spaces or delete a space first.</item>
+        <item quantity="other">Only %1$d more spaces fit. Deselect some Spaces or delete a space first.</item>
+    </plurals>
+    <string name="arc_import_error_nothing_selected">Choose at least one Space or the Favorites.</string>
+    <string name="arc_import_error_storage">Couldn’t save the new spaces. Check available disk space and try again. Nothing was created.</string>
+    <string name="arc_import_error_session">This import expired. Read Arc’s Spaces again.</string>
+    <string name="arc_import_error_generic">Couldn’t bring your Spaces. Try again.</string>
+    <plurals name="arc_import_space_tabs">
+        <item quantity="one">%1$d tab</item>
+        <item quantity="other">%1$d tabs</item>
+    </plurals>
+    <plurals name="arc_import_space_folders">
+        <item quantity="one">%1$d folder</item>
+        <item quantity="other">%1$d folders</item>
+    </plurals>
+    <string name="ws_list_import_arc">Import Spaces from Arc</string>
 </resources>

@@ -293,6 +293,18 @@ function setupPages(hooks = {}) {
   handle('pages:tab-import:cancel', 'tab-import', (sessionId) =>
     hooks.tabImport?.cancel?.(String(sessionId ?? '')) ?? { ok: false });
 
+  // F45 Arc Spaces import, on the same exact host. Main reads Arc's file (or
+  // one the person picks in a native dialog) and keeps it; the page receives
+  // only Space names, counts and opaque ids.
+  handle('pages:arc-import:detect', 'tab-import', () =>
+    hooks.arcImport?.detect?.() ?? { state: 'unsupported' });
+  handle('pages:arc-import:read', 'tab-import', (source) =>
+    hooks.arcImport?.read?.(source === 'file' ? 'file' : 'arc') ?? { error: 'unavailable' });
+  handle('pages:arc-import:apply', 'tab-import', (sessionId, request) =>
+    hooks.arcImport?.apply?.(String(sessionId ?? ''), request ?? {}) ?? { error: 'unavailable' });
+  handle('pages:arc-import:cancel', 'tab-import', (sessionId) =>
+    hooks.arcImport?.cancel?.(String(sessionId ?? '')) ?? { ok: false });
+
   handle('pages:bookmarks:set-folder', 'bookmarks', (id, folder) => {
     bookmarks.setBookmarkFolder(id, folder);
     hooks.onDataChanged?.();

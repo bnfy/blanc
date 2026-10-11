@@ -423,6 +423,18 @@ function install(refs) {
     blockingDecisionDeadline() { return refs.blockingDecisionDeadline(); },
     blockingPopup() { return refs.blockingPopup({ right: 20 }); },
     workspaceAction(action, ...args) { return refs.workspaceTestAction(action, args); },
+    // F45 Arc import: discovery platform, the stand-in for the file dialog,
+    // the read count and saved space records.
+    arcImport(action, ...args) { return refs.arcImportTest(action, args); },
+    /** Run a script in the Bring Your Tabs sheet; refuses any other page. */
+    arcImportPage(script) {
+      const wc = getUtilitySheetWebContents();
+      if (!wc || wc.isDestroyed()) return Promise.reject(new Error('tab-import sheet is not open'));
+      return wc.executeJavaScript(`(() => {
+        if (location.host !== 'tab-import') throw new Error('not the tab-import sheet');
+        return (${String(script)})();
+      })()`);
+    },
     i18nState() { return refs.i18nState(); },
     workspaceActionInWindow(id, action, ...args) { return refs.runInWindowRuntime(id, () => refs.workspaceTestAction(action, args)); },
     workspacePatron() { settings.setPatron({ kind: 'founding', status: 'active' }); },
