@@ -1055,4 +1055,5 @@ Bring Your Tabs.
   Arc profile is marked because its sign-ins will differ.
 - **Acceptance:**
   [`acceptance/arc-spaces-import.feature`](./acceptance/arc-spaces-import.feature)
-  (`@F45`); `test/unit/arc-*.test.js` and `test/unit/tab-import-arc.test.js`.
+  (`@F45`, bound in `test/desktop/steps/arc-import.steps.js`);
+  `test/unit/arc-*.test.js` and `test/unit/tab-import-arc.test.js`.

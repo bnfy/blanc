@@ -5359,15 +5359,35 @@ function openArcSpaceWindows(captures) {
   return { ok: true, windowCount: captures.length };
 }
 
+// Acceptance runs (unpackaged, BLANC_TEST=1) point Arc discovery at the
+// synthetic browser home with a chosen platform layout, stand in for the
+// native file dialog, and count reads. Production uses the real OS home and
+// platform, the real dialog, and never consults these.
+let arcTestPlatform = 'darwin';
+let arcTestChosenFile = null;
+let arcSidebarReadCount = 0;
+function arcDiscoveryOptions() {
+  const home = acceptanceTestMode ? process.env.BLANC_TEST_BROWSER_HOME : undefined;
+  return home ? { platform: arcTestPlatform, homeDir: home, env: { LOCALAPPDATA: home } } : {};
+}
+
 const arcImport = createArcImportService({
-  readDetected: () => readDetectedArcSidebar(),
+  readDetected() {
+    arcSidebarReadCount += 1;
+    return readDetectedArcSidebar(arcDiscoveryOptions());
+  },
   async chooseAndRead() {
+    if (acceptanceTestMode && arcTestChosenFile) {
+      arcSidebarReadCount += 1;
+      return readArcSidebarFile(arcTestChosenFile);
+    }
     const picked = await dialog.showOpenDialog(hasLiveWindow() ? rt().window : undefined, {
       title: mainI18n.t('arcImport.chooseFile.title'),
       filters: [{ name: mainI18n.t('arcImport.chooseFile.filter'), extensions: ['json'] }],
       properties: ['openFile'],
     });
     if (picked.canceled || !picked.filePaths.length) return { cancelled: true };
+    arcSidebarReadCount += 1;
     return readArcSidebarFile(picked.filePaths[0]);
   },
   patronActive: () => settings.isPatronActive(),
@@ -9833,7 +9853,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       cancel: () => cancelPendingTabHandoff(),
     },
     arcImport: {
-      detect: () => detectArcSidebar(),
+      detect: () => detectArcSidebar(arcDiscoveryOptions()),
       read: (source) => arcImport.read(source),
       apply: applyArcImport,
       cancel: (sessionId) => arcImport.cancel(sessionId),
@@ -10080,6 +10100,22 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       selectTabAtIndex,
       setTabLayout, setVerticalTabsWidth, broadcastTabs,
       runInWindowRuntime,
+      arcImportTest(action, args = []) {
+        if (action === 'platform') { arcTestPlatform = String(args[0]); return true; }
+        if (action === 'choose-file') { arcTestChosenFile = args[0] ? String(args[0]) : null; return true; }
+        if (action === 'reads') return arcSidebarReadCount;
+        if (action === 'records') {
+          return namedWorkspaces.list().map((w) => ({
+            name: w.name,
+            urls: [...w.urls],
+            pinned: [...w.pinned],
+            groupIds: [...w.groupIds],
+            groups: w.groups.map((g) => ({ id: g.id, name: g.name })),
+            meta: w.meta.map((m) => ({ title: m.title })),
+          }));
+        }
+        return { error: 'unknown-action' };
+      },
       workspaceTestAction(action, args = []) {
         if (action === 'list') return workspacesProjection();
         if (action === 'save') return saveCurrentWindowAsWorkspace(rt(), args[0]);

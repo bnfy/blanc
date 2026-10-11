@@ -153,12 +153,13 @@ kept. Empty Spaces are skipped and listed.
 | Main wiring: native file dialog, one window per Space via `applyWorkspaceToWindow`, Favorites via `bookmarks.importBookmarks` | `src/main/main.js` | — |
 | IPC on the `tab-import` host and the page bridge | `pages:arc-import:*` in `src/main/pages.js`, `tabImport.arc*` in `src/main/tab-preload.js`, `browser-api/bridges.json` | `browser-api:check` |
 | Page: Arc row, Spaces preview, result | `src/renderer/pages/tab-import-arc.js` (guarded, `arcImport.*` strings in English and German) | `test/unit/tab-import-arc.test.js` |
-| Spec and acceptance | F45 in `spec/features.md`, `spec/acceptance/arc-spaces-import.feature` | Desktop step definitions are still to be written |
+| Spec and acceptance | F45 in `spec/features.md`, `spec/acceptance/arc-spaces-import.feature` | `test/desktop/steps/arc-import.steps.js` (F45-1 … F45-7, in the runnable profile) |
+| Test-only seams (unpackaged `BLANC_TEST=1` only) | Arc discovery under `BLANC_TEST_BROWSER_HOME` with a chosen platform layout, a stand-in for the native file dialog, a read counter; `arcImport`/`arcImportPage` in `src/main/test-hook.js` | — |
+| Empty space switcher entry | `src/renderer/workspace-ui.js` | `test/unit/workspaces-patron-entry.test.js` |
 
 Two small departures from the first draft of this spec: discovery lives in its
 own module rather than in `browser-data-import.js`, because Arc is a single
-file rather than Chromium profiles. The empty-switcher entry is in `src/renderer/workspace-ui.js`
-(`test/unit/workspaces-patron-entry.test.js`).
+file rather than Chromium profiles..
 
 ## Release and claims gates
 

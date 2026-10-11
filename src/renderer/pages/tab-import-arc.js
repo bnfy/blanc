@@ -246,14 +246,8 @@
     showArc('result');
   }
 
-  // Closing the sheet drops a parsed sidebar main is still holding.
-  if (surface?.close) {
-    const close = surface.close.bind(surface);
-    surface.close = async () => {
-      await cancel();
-      return close();
-    };
-  }
-
   renderEntry();
+  // Leaving the page drops a parsed sidebar main is still holding. The bridge
+  // objects are frozen by contextBridge, so close() is not wrapped.
+  window.addEventListener('pagehide', () => { cancel(); });
 })();
