@@ -41,7 +41,7 @@ can free renderer memory. Choose Off, 30 minutes, 1 hour, or 6 hours. A quiet
 tab reloads when revisited; exact live page state is not guaranteed. Tabs with
 protected activity or uncertain eligibility remain awake.
 
-Named Workspaces are an optional Patron feature, available through
+Workspaces are an optional Patron feature, available through
 `/workspace`. Creating one requires an active subscription. Existing
 workspaces can still be renamed or removed after a subscription lapses.
 

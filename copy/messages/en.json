@@ -113,7 +113,7 @@
     "note": "Slash command hint shown in the ⌘L palette for /patron."
   },
   "slash.workspace.hint": {
-    "message": "Switch to a named workspace, or type a new name to save this window",
+    "message": "Switch to a workspace, or type a new name to save this window",
     "note": "Slash command hint shown in the ⌘L palette for /workspace."
   },
   "settings.language.label": {
@@ -854,7 +854,7 @@
   },
   "footer.workspaces": {
     "message": "Workspaces",
-    "note": "Island footer button and dialog name for Named Workspaces."
+    "note": "Island footer button and dialog name for Workspaces."
   },
   "footer.favorites": {
     "message": "Favorites",
@@ -878,7 +878,7 @@
   },
   "ws.saveAs": {
     "message": "Save this window as…",
-    "note": "Workspace switcher command that saves this window as a named workspace."
+    "note": "Workspace switcher command that saves this window as a workspace."
   },
   "ws.error.duplicateName": {
     "message": "That name is already in use. Choose another name.",

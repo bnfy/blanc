@@ -350,7 +350,7 @@ From the desktop `DEFAULTS`:
 - macOS Settings offers four Dock colorways: `sunrise` (default),
   `sunrise-dark`, `paper`, and `ink`. Older ids are retired; any stale or
   hand-set retired id falls back to `sunrise`.
-- Patron unlocks Named Workspaces, not icon variants. Renderers only ever see a
+- Patron unlocks Workspaces, not icon variants. Renderers only ever see a
   derived `patronActive` boolean; the entitlement record stays in main.
 - **Diverges:** purchase rails (D5 — Apple IAP / Play Billing, not Polar, on mobile)
   and icon-switching mechanism (D6 — clean on iOS, limited on Android).
@@ -716,7 +716,7 @@ From the desktop `DEFAULTS`:
   exercise Settings creation, per-profile Favorites, normal/private partition
   isolation, inline rename, exact confirmation, and deletion of windows,
   registry identity, and saved workspaces, plus a real relaunch that restores a
-  named workspace into the same isolated profile session.
+  workspace into the same isolated profile session.
 
 ## F34 — Glance reference pane
 
@@ -968,7 +968,7 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
 - Apply creates tabs/groups transactionally in preview order and never writes
   Favorites. Imported tabs are quiet and viewless; only the first selected tab
   wakes. Only after that successful apply does Blanc mark the device-local
-  moving-in checklist task complete. A Named Workspace remains a separate
+  moving-in checklist task complete. A workspace remains a separate
   optional Patron gesture.
 - **Acceptance:**
   [`acceptance/tab-migration.feature`](./acceptance/tab-migration.feature)

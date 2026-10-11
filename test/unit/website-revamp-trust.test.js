@@ -31,6 +31,21 @@ test("the October 2 transparency answers survive consolidation verbatim", () => 
       /const QUESTIONS = (\[[\s\S]*?\]);/,
     )[1],
   );
+  // The only reviewed wording changes since: the recorded Workspaces rename.
+  // Each must still find its exact original text, so no stale exception lingers.
+  const { supportAnswers } = JSON.parse(
+    read("docs/website-workspaces-rename-2026-10-11.json"),
+  );
+  for (const { id, before, after } of supportAnswers) {
+    const entry = original.find((candidate) => candidate.id === id);
+    const field = ["q", "a"].find((key) =>
+      [entry?.[key]].flat().includes(before),
+    );
+    assert.ok(field, `obsolete rename exception for ${id}`);
+    entry[field] = Array.isArray(entry[field])
+      ? entry[field].map((value) => (value === before ? after : value))
+      : after;
+  }
   const current = JSON.parse(read("site/src/data/support-questions.json"));
   // New answers may be added; every original must survive verbatim, in order.
   const survivors = current.filter((entry) =>

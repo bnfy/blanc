@@ -512,13 +512,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Switch to a named workspace, or type a new name to save this window"
+            "value": "Switch to a workspace, or type a new name to save this window"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zu einem benannten Arbeitsbereich wechseln oder einen neuen Namen eingeben, um dieses Fenster zu speichern"
+            "value": "Zu einem Arbeitsbereich wechseln oder einen neuen Namen eingeben, um dieses Fenster zu speichern"
           }
         }
       }
@@ -3812,7 +3812,7 @@
       }
     },
     "footer.workspaces": {
-      "comment": "Island footer button and dialog name for Named Workspaces.",
+      "comment": "Island footer button and dialog name for Workspaces.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -3920,7 +3920,7 @@
       }
     },
     "ws.saveAs": {
-      "comment": "Workspace switcher command that saves this window as a named workspace.",
+      "comment": "Workspace switcher command that saves this window as a workspace.",
       "extractionState": "manual",
       "localizations": {
         "en": {

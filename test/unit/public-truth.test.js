@@ -194,7 +194,7 @@ test('public Patron copy states the named-workspace boundary consistently', () =
   for (const relativePath of publicCopyFiles) {
     const source = read(relativePath);
     assert.doesNotMatch(source, staleClaims, `${relativePath} must not overstate the free feature boundary`);
-    assert.match(source, /named workspace/i, `${relativePath} must name the Patron workspace benefit`);
+    assert.match(source, /\bworkspaces?\b/i, `${relativePath} must name the Patron workspace benefit`);
     assert.doesNotMatch(source, retiredColorwayClaim, `${relativePath} must not advertise retired Patron colorways`);
   }
 
@@ -202,7 +202,7 @@ test('public Patron copy states the named-workspace boundary consistently', () =
     const source = read(relativePath);
     assert.match(
       source,
-      /Creating\s+a\s+named\s+workspace\s+requires\s+an\s+active\s+Patron\s+subscription/i,
+      /Creating\s+a\s+workspace\s+requires\s+an\s+active\s+Patron\s+subscription/i,
       `${relativePath} must state the creation gate`
     );
     assert.match(

@@ -111,7 +111,7 @@ clearest example: ad blocking is programmatic on desktop/Android but declarative
 - **Shipped:** desktop on all three platforms — macOS (signed + notarized),
   Windows (NSIS), Linux (AppImage), all auto-updating via GitHub Releases.
 - **Monetization:** Blanc Patron is an optional $4/month or $30/year Polar
-  subscription that funds development and unlocks Named Workspace creation on
+  subscription that funds development and unlocks workspace creation on
   every platform. Earlier one-time Supporters retain founding Patron access.
 - **Privacy infra:** opt-in, server-blind end-to-end-encrypted Profile Sync v1
   (Favorites, eligible settings, and optional open-tab snapshots) via a

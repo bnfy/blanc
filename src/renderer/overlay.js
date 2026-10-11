@@ -174,7 +174,7 @@
   // -1 means no explicit ArrowUp/ArrowDown choice; renderList still highlights
   // the result that bare Enter would choose.
   let selectedResultIndex = -1;
-  // Named Workspaces (Blanc Patron). Populated from listWorkspaces() when the
+  // Workspaces (Blanc Patron). Populated from listWorkspaces() when the
   // panel opens (refreshSwitcherData) and kept fresh via onWorkspacesUpdated —
   // a pull-once list would keep showing a stale "active" row after a switch
   // that happened elsewhere (another window, or this window's own command).
@@ -788,7 +788,7 @@
     return row;
   }
 
-  // --- Named Workspaces (Blanc Patron) ---
+  // --- Workspaces (Blanc Patron) ---
   //
   // Identity, switching, and every name/confirm editor live in the island
   // footer popover. The tab list never hosts workspace chrome — only the

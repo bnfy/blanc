@@ -118,8 +118,8 @@
     "source": "sha256:7f9b7b6c077870e1426a398ba65b49edc90473beed799ed6fce9a3dc14abf650"
   },
   "slash.workspace.hint": {
-    "message": "Zu einem benannten Arbeitsbereich wechseln oder einen neuen Namen eingeben, um dieses Fenster zu speichern",
-    "source": "sha256:481040f4c8794c8345b64a857750a1090a6239bee6169b5f031bfd59f9915d4e"
+    "message": "Zu einem Arbeitsbereich wechseln oder einen neuen Namen eingeben, um dieses Fenster zu speichern",
+    "source": "sha256:f05caf9d829e91a8ba86f186327040ddaaffbed61d858068ad80ae664fcba37c"
   },
   "settings.language.label": {
     "message": "Sprache",
@@ -827,7 +827,7 @@
   },
   "footer.workspaces": {
     "message": "Arbeitsbereiche",
-    "source": "sha256:3f6af490ab99b47b52519e4eb084dbce8ae5151bd0d4a646b31b79c848e3e9cc"
+    "source": "sha256:a55f4635c078c8028d69e41c8511221cd0c77dddaceb681d9f19fd80abac98c7"
   },
   "footer.favorites": {
     "message": "Favoriten",
@@ -851,7 +851,7 @@
   },
   "ws.saveAs": {
     "message": "Dieses Fenster speichern als…",
-    "source": "sha256:b7a8789726f4f74036880d7ca03e49305bb52931787ee318f748d90d45da69cc"
+    "source": "sha256:47be2d695201f9fcf503ba5a9eb84059b88ca73be4097fef47897da1628b15d1"
   },
   "ws.error.duplicateName": {
     "message": "Dieser Name wird schon verwendet. Wähle einen anderen Namen.",

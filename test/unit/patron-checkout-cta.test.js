@@ -34,7 +34,7 @@ test('Settings Patron CTA is a same-frame link to the production Polar checkout'
   assert.doesNotMatch(cta, /\btarget\s*=/);
   assert.match(cta, /Become a Patron — \$4\/month or \$30\/year/);
 
-  assert.match(block, /Named Workspaces on every platform/);
+  assert.match(block, /unlocks Workspaces on every platform/);
   assert.match(block, /existing\s+workspaces stay available while creating new ones pauses/);
   assert.doesNotMatch(block, /Dock colorways|ember, plum, and gold|revert to Sunrise/);
 
