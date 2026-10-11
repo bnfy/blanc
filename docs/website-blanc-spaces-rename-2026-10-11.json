@@ -1,0 +1,16 @@
+{
+  "date": "2026-10-11",
+  "decision": "The owner renamed the Patron feature from Named Workspaces to Blanc Spaces; one saved set is a space. Capability, pricing and boundaries are unchanged. The /space command is new and /workspace keeps working. Internal identifiers, URLs and analytics ids keep their workspace names, UI mock-ups and capture descriptions keep showing the released UI until they are re-captured, and frozen release notes and earlier claim ledgers keep the wording they shipped with.",
+  "supportAnswers": [
+    {
+      "id": "patron",
+      "before": "Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Named Workspaces. Creating a named workspace requires an active Patron subscription. If membership lapses, existing workspaces remain openable, switchable, and automatically updated. Renaming and removing existing workspaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.",
+      "after": "Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Blanc Spaces. Creating a space requires an active Patron subscription. If membership lapses, existing spaces remain openable, switchable, and automatically updated. Renaming and removing existing spaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access."
+    },
+    {
+      "id": "ai",
+      "before": "Blanc has no built-in AI assistant or page summarizer. Named Groups and Named Workspaces are user-directed; Blanc does not infer tasks or organize tabs by meaning. You can visit AI websites as you can other websites.",
+      "after": "Blanc has no built-in AI assistant or page summarizer. Named Groups and Blanc Spaces are user-directed; Blanc does not infer tasks or organize tabs by meaning. You can visit AI websites as you can other websites."
+    }
+  ]
+}

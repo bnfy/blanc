@@ -661,7 +661,7 @@
     {
       "id": "website-115-132",
       "source": "site/src/components/guides/workspaces.astro",
-      "exactWording": "Open the workspace control in the command panel or type /workspace. Active Patrons can save the current window or create a blank named workspace.",
+      "exactWording": "Open the space control in the command panel or type /workspace. Active Patrons can save the current window or create a blank space.",
       "subject": "Blanc",
       "evidenceGroups": [
         "workspaces"
@@ -681,7 +681,7 @@
     {
       "id": "website-115-134",
       "source": "site/src/components/guides/workspaces.astro",
-      "exactWording": "A bound workspace automatically saves its tabs and groups as you browse and returns after relaunch. Switching replaces the current window’s set; a workspace already open elsewhere brings that window forward.",
+      "exactWording": "A bound space automatically saves its tabs and groups as you browse and returns after relaunch. Switching replaces the current window’s set; a space already open elsewhere brings that window forward.",
       "subject": "Blanc",
       "evidenceGroups": [
         "workspaces"
@@ -711,7 +711,7 @@
     {
       "id": "website-115-137",
       "source": "site/src/components/guides/workspaces.astro",
-      "exactWording": "Support Blanc and keep your saved workspaces.",
+      "exactWording": "Support Blanc and keep your saved spaces.",
       "subject": "Blanc",
       "evidenceGroups": [
         "workspaces"
@@ -731,7 +731,7 @@
     {
       "id": "website-115-140",
       "source": "site/src/components/guides/workspaces.astro",
-      "exactWording": "Existing workspaces remain yours",
+      "exactWording": "Existing spaces remain yours",
       "subject": "Blanc",
       "evidenceGroups": [
         "workspaces"
@@ -751,7 +751,7 @@
     {
       "id": "website-115-143",
       "source": "site/src/components/guides/workspaces.astro",
-      "exactWording": "Private tabs are excluded from saved workspaces. When a switch would discard private tabs or an unsaved window, Blanc asks you to make an explicit choice.",
+      "exactWording": "Private tabs are excluded from saved spaces. When a switch would discard private tabs or an unsaved window, Blanc asks you to make an explicit choice.",
       "subject": "Blanc",
       "evidenceGroups": [
         "workspaces"
@@ -772,7 +772,7 @@
     {
       "id": "website-115-145",
       "source": "site/src/components/guides/workspaces.astro",
-      "exactWording": "Named Workspaces are device-local and profile-scoped. They do not sync across devices or move tabs between local profiles. Saving a workspace preserves its tab setup, not every page’s running state.",
+      "exactWording": "Blanc Spaces are device-local and profile-scoped. They do not sync across devices or move tabs between local profiles. Saving a space preserves its tab setup, not every page’s running state.",
       "subject": "Blanc",
       "evidenceGroups": [
         "workspaces",
@@ -908,7 +908,7 @@
     {
       "id": "website-115-165",
       "source": "site/src/components/guides/profiles.astro",
-      "exactWording": "Deleting a named profile requires its exact name. It closes that profile’s windows and removes its browsing data and saved workspaces. Files you downloaded remain on disk; Personal cannot be deleted.",
+      "exactWording": "Deleting a named profile requires its exact name. It closes that profile’s windows and removes its browsing data and saved spaces. Files you downloaded remain on disk; Personal cannot be deleted.",
       "subject": "Blanc",
       "evidenceGroups": [
         "workspaces",
@@ -1362,7 +1362,7 @@
     {
       "id": "website-115-227",
       "source": "site/src/components/guides/command-palette.astro",
-      "exactWording": "Use Recently Closed to pick a tab or group, or Named Workspaces to switch saved sets.",
+      "exactWording": "Use Recently Closed to pick a tab or group, or Blanc Spaces to switch saved sets.",
       "subject": "Blanc",
       "evidenceGroups": [
         "workspaces",
@@ -1740,7 +1740,7 @@
     {
       "id": "trust-125-287",
       "source": "site/src/data/support-questions.json",
-      "exactWording": "Blanc has no built-in AI assistant or page summarizer. Named Groups and Named Workspaces are user-directed; Blanc does not infer tasks or organize tabs by meaning. You can visit AI websites as you can other websites.",
+      "exactWording": "Blanc has no built-in AI assistant or page summarizer. Named Groups and Blanc Spaces are user-directed; Blanc does not infer tasks or organize tabs by meaning. You can visit AI websites as you can other websites.",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "trust"
@@ -2801,7 +2801,7 @@
     {
       "id": "reddit-411",
       "source": "site/src/pages/download.astro",
-      "exactWording": "Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Named Workspaces. Creating a named workspace requires an active Patron subscription.",
+      "exactWording": "Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Blanc Spaces. Creating a space requires an active Patron subscription.",
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
         "workspaces",
@@ -2912,7 +2912,7 @@
     {
       "id": "reddit-439",
       "source": "site/src/pages/about.astro",
-      "exactWording": "Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Named Workspaces. Creating a named workspace requires an active Patron subscription. If membership lapses, existing workspaces remain openable, switchable, and automatically updated. Renaming and removing existing workspaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.",
+      "exactWording": "Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Blanc Spaces. Creating a space requires an active Patron subscription. If membership lapses, existing spaces remain openable, switchable, and automatically updated. Renaming and removing existing spaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.",
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
         "workspaces",
@@ -2943,7 +2943,7 @@
     {
       "id": "reddit-443",
       "source": "site/src/data/support-questions.json",
-      "exactWording": "Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Named Workspaces. Creating a named workspace requires an active Patron subscription. If membership lapses, existing workspaces remain openable, switchable, and automatically updated. Renaming and removing existing workspaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.",
+      "exactWording": "Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Blanc Spaces. Creating a space requires an active Patron subscription. If membership lapses, existing spaces remain openable, switchable, and automatically updated. Renaming and removing existing spaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.",
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
         "workspaces",
@@ -2994,7 +2994,7 @@
     {
       "id": "reddit-448",
       "source": "site/src/components/guides/workspaces.astro",
-      "exactWording": "Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Named Workspaces. Creating a named workspace requires an active Patron subscription. Named Workspaces are available on macOS, Windows and Linux.",
+      "exactWording": "Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Blanc Spaces. Creating a space requires an active Patron subscription. Blanc Spaces are available on macOS, Windows and Linux.",
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
         "workspaces",
@@ -3005,7 +3005,7 @@
     {
       "id": "reddit-449",
       "source": "site/src/components/guides/workspaces.astro",
-      "exactWording": "If membership lapses, existing workspaces remain openable, switchable, and automatically updated. Renaming and removing existing workspaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.",
+      "exactWording": "If membership lapses, existing spaces remain openable, switchable, and automatically updated. Renaming and removing existing spaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.",
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
         "workspaces",
@@ -4285,7 +4285,7 @@
     {
       "id": "revamp-copy-061",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Support Blanc and save named window sets with Named Workspaces. The browser remains free; Patron is an optional subscription.",
+      "exactWording": "Support Blanc and save named window sets with Blanc Spaces. The browser remains free; Patron is an optional subscription.",
       "subject": "Blanc",
       "evidenceGroups": [
         "process",
@@ -4298,7 +4298,7 @@
     {
       "id": "e5-patron-boundary",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Creating a named workspace requires an active Patron subscription. Renaming and removing existing workspaces continue to work if it lapses, and they stay openable, switchable and automatically updated.",
+      "exactWording": "Creating a space requires an active Patron subscription. Renaming and removing existing spaces continue to work if it lapses, and they stay openable, switchable and automatically updated.",
       "subject": "Blanc",
       "evidenceGroups": [
         "process",
@@ -4324,7 +4324,7 @@
     {
       "id": "revamp-copy-064",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Explore Named Workspaces →",
+      "exactWording": "Explore Blanc Spaces →",
       "subject": "Blanc",
       "evidenceGroups": [
         "process",
@@ -5277,7 +5277,7 @@
     {
       "id": "website-115-128",
       "source": "site/src/pages/features/workspaces.astro",
-      "exactWording": "When a project takes more than one tab, keep its setup ready to return to. Named Workspaces save a window’s tabs and groups under a name you choose.",
+      "exactWording": "When a project takes more than one tab, keep its setup ready to return to. Blanc Spaces save a window’s tabs and groups under a name you choose.",
       "subject": "Blanc",
       "evidenceGroups": [
         "workspaces"
@@ -5287,7 +5287,7 @@
     {
       "id": "website-115-129",
       "source": "site/src/pages/features/workspaces.astro",
-      "exactWording": "Switch between saved sets from the Island’s workspace control. Named Workspaces is a Patron feature.",
+      "exactWording": "Switch between saved sets from the Island’s space control. Blanc Spaces is a Patron feature.",
       "subject": "Blanc",
       "evidenceGroups": [
         "workspaces"
@@ -5914,7 +5914,7 @@
     {
       "id": "feature-retained-website-115-132",
       "source": "site/src/pages/features/workspaces.astro",
-      "exactWording": "Open the workspace control in the command panel or type /workspace. Active Patrons can save the current window or create a blank named workspace.",
+      "exactWording": "Open the space control in the command panel or type /workspace. Active Patrons can save the current window or create a blank space.",
       "subject": "Blanc",
       "evidenceGroups": [
         "workspaces"
@@ -5934,7 +5934,7 @@
     {
       "id": "feature-retained-website-115-134",
       "source": "site/src/pages/features/workspaces.astro",
-      "exactWording": "A bound workspace automatically saves its tabs and groups as you browse and returns after relaunch. Switching replaces the current window’s set; a workspace already open elsewhere brings that window forward.",
+      "exactWording": "A bound space automatically saves its tabs and groups as you browse and returns after relaunch. Switching replaces the current window’s set; a space already open elsewhere brings that window forward.",
       "subject": "Blanc",
       "evidenceGroups": [
         "workspaces"
@@ -5964,7 +5964,7 @@
     {
       "id": "feature-retained-website-115-137",
       "source": "site/src/pages/features/workspaces.astro",
-      "exactWording": "Support Blanc and keep your saved workspaces.",
+      "exactWording": "Support Blanc and keep your saved spaces.",
       "subject": "Blanc",
       "evidenceGroups": [
         "workspaces"
@@ -5984,7 +5984,7 @@
     {
       "id": "feature-retained-website-115-140",
       "source": "site/src/pages/features/workspaces.astro",
-      "exactWording": "Existing workspaces remain yours",
+      "exactWording": "Existing spaces remain yours",
       "subject": "Blanc",
       "evidenceGroups": [
         "workspaces"
@@ -6004,7 +6004,7 @@
     {
       "id": "feature-retained-website-115-143",
       "source": "site/src/pages/features/workspaces.astro",
-      "exactWording": "Private tabs are excluded from saved workspaces. When a switch would discard private tabs or an unsaved window, Blanc asks you to make an explicit choice.",
+      "exactWording": "Private tabs are excluded from saved spaces. When a switch would discard private tabs or an unsaved window, Blanc asks you to make an explicit choice.",
       "subject": "Blanc",
       "evidenceGroups": [
         "workspaces"
@@ -6025,7 +6025,7 @@
     {
       "id": "feature-retained-website-115-145",
       "source": "site/src/pages/features/workspaces.astro",
-      "exactWording": "Named Workspaces are device-local and profile-scoped. They do not sync across devices or move tabs between local profiles. Saving a workspace preserves its tab setup, not every page’s running state.",
+      "exactWording": "Blanc Spaces are device-local and profile-scoped. They do not sync across devices or move tabs between local profiles. Saving a space preserves its tab setup, not every page’s running state.",
       "subject": "Blanc",
       "evidenceGroups": [
         "workspaces",
@@ -6161,7 +6161,7 @@
     {
       "id": "feature-retained-website-115-165",
       "source": "site/src/pages/features/profiles.astro",
-      "exactWording": "Deleting a named profile requires its exact name. It closes that profile’s windows and removes its browsing data and saved workspaces. Files you downloaded remain on disk; Personal cannot be deleted.",
+      "exactWording": "Deleting a named profile requires its exact name. It closes that profile’s windows and removes its browsing data and saved spaces. Files you downloaded remain on disk; Personal cannot be deleted.",
       "subject": "Blanc",
       "evidenceGroups": [
         "workspaces",
@@ -6605,7 +6605,7 @@
     {
       "id": "feature-retained-website-115-227",
       "source": "site/src/pages/features/command-palette.astro",
-      "exactWording": "Use Recently Closed to pick a tab or group, or Named Workspaces to switch saved sets.",
+      "exactWording": "Use Recently Closed to pick a tab or group, or Blanc Spaces to switch saved sets.",
       "subject": "Blanc",
       "evidenceGroups": [
         "workspaces",
@@ -6722,7 +6722,7 @@
     {
       "id": "feature-retained-reddit-448",
       "source": "site/src/pages/features/workspaces.astro",
-      "exactWording": "Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Named Workspaces. Creating a named workspace requires an active Patron subscription. Named Workspaces are available on macOS, Windows and Linux.",
+      "exactWording": "Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Blanc Spaces. Creating a space requires an active Patron subscription. Blanc Spaces are available on macOS, Windows and Linux.",
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
         "workspaces",
@@ -6733,7 +6733,7 @@
     {
       "id": "feature-retained-reddit-449",
       "source": "site/src/pages/features/workspaces.astro",
-      "exactWording": "If membership lapses, existing workspaces remain openable, switchable, and automatically updated. Renaming and removing existing workspaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.",
+      "exactWording": "If membership lapses, existing spaces remain openable, switchable, and automatically updated. Renaming and removing existing spaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.",
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
         "workspaces",
@@ -8165,7 +8165,7 @@
     {
       "id": "tabs-native-patron",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Tab groups are free. Patron adds saved Named Workspaces.",
+      "exactWording": "Tab groups are free. Patron adds saved Blanc Spaces.",
       "subject": "Blanc",
       "evidenceGroups": [
         "foundations",
@@ -9099,7 +9099,7 @@
     {
       "id": "seo-2026-10-05-arc-alternative-09",
       "source": "site/src/pages/arc-alternative.astro",
-      "exactWording": "Named tab groups keep related tabs together and fold away when you want a quieter view. With Blanc Patron, Named Workspaces save a window’s tabs and groups so you can switch between sets in place.",
+      "exactWording": "Named tab groups keep related tabs together and fold away when you want a quieter view. With Blanc Patron, Blanc Spaces save a window’s tabs and groups so you can switch between sets in place.",
       "subject": "Blanc",
       "evidenceGroups": [
         "foundations",
@@ -12504,6 +12504,110 @@
           {
             "before": "<p class=\"section-kicker\">ready when you need it</p>",
             "after": ""
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features.astro",
+        "reason": "October 11 owner rename: the Patron feature is called Blanc Spaces (a space) instead of Named Workspaces. Capability, pricing and boundaries are unchanged; /workspace still works.",
+        "replacements": [
+          {
+            "before": "description={\"Explore Blanc’s mouse gestures, Start Page and Mahjong, Glance, tab recovery, local profiles, Named Workspaces, built-in blocking, encrypted sync, and more.\"}",
+            "after": "description={\"Explore Blanc’s mouse gestures, Start Page and Mahjong, Glance, tab recovery, local profiles, Blanc Spaces, built-in blocking, encrypted sync, and more.\"}"
+          },
+          {
+            "before": "<h3>Named Workspaces save whole windows</h3>",
+            "after": "<h3>Blanc Spaces save whole windows</h3>"
+          },
+          {
+            "before": "<h2 id=\"pop-workspaces-title\">Named Workspaces save a whole window to return to by name.</h2>",
+            "after": "<h2 id=\"pop-workspaces-title\">Blanc Spaces save a whole window to return to by name.</h2>"
+          },
+          {
+            "before": "<p>Save a window’s tabs and groups as a Named Workspace and switch back to it later by name. A saved workspace keeps itself up to date as you browse.</p>",
+            "after": "<p>Save a window’s tabs and groups as a space and switch back to it later by name. A saved space keeps itself up to date as you browse.</p>"
+          },
+          {
+            "before": "<p class=\"pop-note\">Creating and saving workspaces needs an active Patron membership. Saved workspaces stay usable if it ends.</p>",
+            "after": "<p class=\"pop-note\">Creating and saving spaces needs an active Patron membership. Saved spaces stay usable if it ends.</p>"
+          },
+          {
+            "before": "<p>Blanc’s core stays free. Patron adds cross-platform Named Workspaces while helping fund an independent browser.</p>",
+            "after": "<p>Blanc’s core stays free. Patron adds cross-platform Blanc Spaces while helping fund an independent browser.</p>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/command-palette.astro",
+        "reason": "October 11 owner rename: the Patron feature is called Blanc Spaces (a space) instead of Named Workspaces. Capability, pricing and boundaries are unchanged; /workspace still works.",
+        "replacements": [
+          {
+            "before": "<article><h3>Reach the tab you just closed or the set you saved.</h3><p>Use <a href=\"/features/reopen-closed-tabs\" data-track=\"feature_cta_click\" data-feature=\"reopen-closed-tabs\" data-cta-position=\"related-feature\">Recently Closed</a> to pick a tab or group, or <a href=\"/features/workspaces\" data-track=\"feature_cta_click\" data-feature=\"named-workspaces\" data-cta-position=\"related-feature\">Named Workspaces</a> to switch saved sets.</p></article>",
+            "after": "<article><h3>Reach the tab you just closed or the set you saved.</h3><p>Use <a href=\"/features/reopen-closed-tabs\" data-track=\"feature_cta_click\" data-feature=\"reopen-closed-tabs\" data-cta-position=\"related-feature\">Recently Closed</a> to pick a tab or group, or <a href=\"/features/workspaces\" data-track=\"feature_cta_click\" data-feature=\"named-workspaces\" data-cta-position=\"related-feature\">Blanc Spaces</a> to switch saved sets.</p></article>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/profiles.astro",
+        "reason": "October 11 owner rename: the Patron feature is called Blanc Spaces (a space) instead of Named Workspaces. Capability, pricing and boundaries are unchanged; /workspace still works.",
+        "replacements": [
+          {
+            "before": "<article><h3>Delete deliberately</h3><p>Deleting a named profile requires its exact name. It closes that profile’s windows and removes its browsing data and saved workspaces. Files you downloaded remain on disk; Personal cannot be deleted.</p></article>",
+            "after": "<article><h3>Delete deliberately</h3><p>Deleting a named profile requires its exact name. It closes that profile’s windows and removes its browsing data and saved spaces. Files you downloaded remain on disk; Personal cannot be deleted.</p></article>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/workspaces.astro",
+        "reason": "October 11 owner rename: the Patron feature is called Blanc Spaces (a space) instead of Named Workspaces. Capability, pricing and boundaries are unchanged; /workspace still works.",
+        "replacements": [
+          {
+            "before": "title=\"Named Workspaces with Blanc Patron | Blanc Browser\"",
+            "after": "title=\"Blanc Spaces with Blanc Patron | Blanc Browser\""
+          },
+          {
+            "before": "description=\"Save a window’s tabs and groups as a Named Workspace with Blanc Patron. Switch sets in place and return after relaunch, with everything stored locally.\"",
+            "after": "description=\"Save a window’s tabs and groups as a space with Blanc Patron. Switch sets in place and return after relaunch, with everything stored locally.\""
+          },
+          {
+            "before": "{\"@context\":\"https://schema.org\",\"@type\":\"BreadcrumbList\",\"itemListElement\":[{\"@type\":\"ListItem\",\"position\":1,\"name\":\"Home\",\"item\":\"https://blancbrowser.com/\"},{\"@type\":\"ListItem\",\"position\":2,\"name\":\"Features\",\"item\":\"https://blancbrowser.com/features\"},{\"@type\":\"ListItem\",\"position\":3,\"name\":\"Named Workspaces\",\"item\":\"https://blancbrowser.com/features/workspaces\"}]}",
+            "after": "{\"@context\":\"https://schema.org\",\"@type\":\"BreadcrumbList\",\"itemListElement\":[{\"@type\":\"ListItem\",\"position\":1,\"name\":\"Home\",\"item\":\"https://blancbrowser.com/\"},{\"@type\":\"ListItem\",\"position\":2,\"name\":\"Features\",\"item\":\"https://blancbrowser.com/features\"},{\"@type\":\"ListItem\",\"position\":3,\"name\":\"Blanc Spaces\",\"item\":\"https://blancbrowser.com/features/workspaces\"}]}"
+          },
+          {
+            "before": "<p>When a project takes more than one tab, keep its setup ready to return to. Named Workspaces save a window’s tabs and groups under a name you choose.</p>",
+            "after": "<p>When a project takes more than one tab, keep its setup ready to return to. Blanc Spaces save a window’s tabs and groups under a name you choose.</p>"
+          },
+          {
+            "before": "<figcaption>Switch between saved sets from the Island’s workspace control. Named Workspaces is a Patron feature.</figcaption>",
+            "after": "<figcaption>Switch between saved sets from the Island’s space control. Blanc Spaces is a Patron feature.</figcaption>"
+          },
+          {
+            "before": "<article><h3>Save this window or start a new set</h3><p>Open the workspace control in the command panel or type /workspace. Active Patrons can save the current window or create a blank named workspace.</p></article>",
+            "after": "<article><h3>Save this window or start a new set</h3><p>Open the space control in the command panel or type /workspace. Active Patrons can save the current window or create a blank space.</p></article>"
+          },
+          {
+            "before": "<article><h3>Return without rebuilding the set</h3><p>A bound workspace automatically saves its tabs and groups as you browse and returns after relaunch. Switching replaces the current window’s set; a workspace already open elsewhere brings that window forward.</p></article>",
+            "after": "<article><h3>Return without rebuilding the set</h3><p>A bound space automatically saves its tabs and groups as you browse and returns after relaunch. Switching replaces the current window’s set; a space already open elsewhere brings that window forward.</p></article>"
+          },
+          {
+            "before": "<div><h2 id=\"workspaces-section-1\">Support Blanc and keep your saved workspaces.</h2></div>",
+            "after": "<div><h2 id=\"workspaces-section-1\">Support Blanc and keep your saved spaces.</h2></div>"
+          },
+          {
+            "before": "<article><h3>Available on every desktop platform</h3><p>Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Named Workspaces. Creating a named workspace requires an active Patron subscription. Named Workspaces are available on macOS, Windows and Linux.</p></article>",
+            "after": "<article><h3>Available on every desktop platform</h3><p>Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Blanc Spaces. Creating a space requires an active Patron subscription. Blanc Spaces are available on macOS, Windows and Linux.</p></article>"
+          },
+          {
+            "before": "<article><h3>Existing workspaces remain yours</h3><p>If membership lapses, existing workspaces remain openable, switchable, and automatically updated. Renaming and removing existing workspaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.</p></article>",
+            "after": "<article><h3>Existing spaces remain yours</h3><p>If membership lapses, existing spaces remain openable, switchable, and automatically updated. Renaming and removing existing spaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.</p></article>"
+          },
+          {
+            "before": "<article><h3>Keep private browsing separate</h3><p>Private tabs are excluded from saved workspaces. When a switch would discard private tabs or an unsaved window, Blanc asks you to make an explicit choice.</p></article>",
+            "after": "<article><h3>Keep private browsing separate</h3><p>Private tabs are excluded from saved spaces. When a switch would discard private tabs or an unsaved window, Blanc asks you to make an explicit choice.</p></article>"
+          },
+          {
+            "before": "<p>Named Workspaces are device-local and profile-scoped. They do not sync across devices or move tabs between local profiles. Saving a workspace preserves its tab setup, not every page’s running state.</p>",
+            "after": "<p>Blanc Spaces are device-local and profile-scoped. They do not sync across devices or move tabs between local profiles. Saving a space preserves its tab setup, not every page’s running state.</p>"
           }
         ]
       }

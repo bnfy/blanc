@@ -14,7 +14,7 @@ private tabs, Favorites, history, downloads, a command palette, named tab
 groups you can reorder by dragging, independent windows, isolated local
 profiles, a focused two-page Glance view, optional vertical tabs, Quiet Tabs,
 Recently Closed, four Start Page layouts with built-in Mahjong, mouse gestures,
-optional dark websites, Named Workspaces for Patrons, end-to-end-encrypted
+optional dark websites, Blanc Spaces for Patrons, end-to-end-encrypted
 Sync, trusted screen and system-audio sharing, and a private one-time handoff
 for bringing open tabs over from another browser. It does not ship an AI
 assistant or a general extension runtime.
@@ -27,7 +27,7 @@ assistant or a general extension runtime.
 | Current public release | [1.31.0](https://github.com/bnfy/blanc/releases/tag/v1.31.0), released October 9, 2026 |
 | Platforms | macOS (Apple Silicon and Intel), Windows x64, and Linux x64 (AppImage) |
 | Price | Free |
-| Optional support | Blanc Patron subscription, US$30/year or $4/month, plus applicable taxes; unlocks Named Workspaces on every platform. Founding supporters from the earlier one-time purchase keep their benefits permanently |
+| Optional support | Blanc Patron subscription, US$30/year or $4/month, plus applicable taxes; unlocks Blanc Spaces on every platform. Founding supporters from the earlier one-time purchase keep their benefits permanently |
 | Browser engine | Chromium through Electron |
 | Default search | DuckDuckGo; Google, Bing, and Brave Search are also available |
 | Blocking | Blanc Blocker by default: reviewed, hash-pinned EasyList + EasyPrivacy snapshots bundled into each release, with browser-level request blocking, cosmetic CSS, and isolated blocker scriptlets. It always protects private tabs. Regular profiles can switch to the bundled full uBlock Origin 1.75.0 on Apple Silicon and native Intel Macs, Windows x64, and Linux x64 |

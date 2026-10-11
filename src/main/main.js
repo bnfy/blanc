@@ -7822,7 +7822,7 @@ const SLASH_COMMANDS = [
   ['/1password', 'slash.1password.hint'],
   ['/theme [system|light|dark]', 'slash.theme.doc'],
   ['/patron', 'slash.patron.hint'],
-  ['/workspace', 'slash.workspace.hint'],
+  ['/space', 'slash.space.hint'],
 ];
 
 // A hand-picked subset of the full inventory (blanc://shortcuts/, via
@@ -8885,7 +8885,7 @@ async function completeNamedProfileDeletion(profileId, {
   }
 
   if (!removePersistedProfileWorkspaces(profileId)) {
-    errors.push(Object.assign(new Error('Couldn’t remove this profile’s saved workspaces.'), { code: 'workspaces-remove' }));
+    errors.push(Object.assign(new Error('Couldn’t remove this profile’s saved spaces.'), { code: 'workspaces-remove' }));
   }
   try {
     if (profile) localProfiles.removeLocalProfile(profileId, { flush: true });

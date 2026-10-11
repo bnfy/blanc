@@ -89,7 +89,7 @@ When('I try switching with a private page and type a slash query', async functio
   await this.call('openTab', this.fixtureUrl('workspace-private'), { private: true });
   await this.waitForState((s) => s.tabs.some((t) => t.private && t.title === 'workspace-private' && !t.isLoading));
   await openOverlaySurface(this, 'openPanel', 'panel'); const page = await overlayPage(); await page.click('#footerWorkspace');
-  await page.getByRole('button', { name: /Draft workspace · Open workspace/ }).click();
+  await page.getByRole('button', { name: /Draft workspace · Open space/ }).click();
   await page.waitForSelector('.ws-switcher-confirm'); await page.fill('#addressInput', '/settings');
 });
 Then('the private switch decision remains visible', async function () {

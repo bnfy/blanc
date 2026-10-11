@@ -11,7 +11,10 @@
     "uBlock Origin",
     "1Password",
     "Island",
-    "Glance"
+    "Glance",
+    "Blanc Spaces",
+    "Spaces",
+    "Space"
   ],
   "fixedPatterns": [
     "(?<![\\w/:])/[a-z][a-z0-9-]*",
@@ -37,12 +40,6 @@
       "de": {
         "form": "Profil-Synchronisierung",
         "stem": "Synchronisier"
-      }
-    },
-    "Named Workspaces": {
-      "de": {
-        "form": "Benannte Arbeitsbereiche",
-        "stem": "Arbeitsbereich"
       }
     },
     "Quick Switcher": {

@@ -117,9 +117,9 @@
     "message": "Blanc mit einem Patron-Abo unterstützen",
     "source": "sha256:7f9b7b6c077870e1426a398ba65b49edc90473beed799ed6fce9a3dc14abf650"
   },
-  "slash.workspace.hint": {
-    "message": "Zu einem benannten Arbeitsbereich wechseln oder einen neuen Namen eingeben, um dieses Fenster zu speichern",
-    "source": "sha256:481040f4c8794c8345b64a857750a1090a6239bee6169b5f031bfd59f9915d4e"
+  "slash.space.hint": {
+    "message": "Zu einem Space wechseln oder einen neuen Namen eingeben, um dieses Fenster zu speichern",
+    "source": "sha256:2c357c354eb837202c27e466c8eae03f656733b0c84b8b8b955d31044fbca4c6"
   },
   "settings.language.label": {
     "message": "Sprache",
@@ -826,8 +826,8 @@
     "source": "sha256:f4a5361c85abec2519697e079fe31da39f4d234ff7923ac11b92a399766f73fc"
   },
   "footer.workspaces": {
-    "message": "Arbeitsbereiche",
-    "source": "sha256:3f6af490ab99b47b52519e4eb084dbce8ae5151bd0d4a646b31b79c848e3e9cc"
+    "message": "Spaces",
+    "source": "sha256:e4898d308b13b13ea6322910b5fa874d756e1cd25c9f4adc26c2983dc1871232"
   },
   "footer.favorites": {
     "message": "Favoriten",
@@ -846,216 +846,216 @@
     "source": "sha256:e7fbf60bb96fb20c47e0384d5d691af8c4306ceaca2a1581aca93965046ec1cb"
   },
   "ws.newEmpty": {
-    "message": "Neuer leerer Arbeitsbereich",
-    "source": "sha256:b580d16b3a3fab710fcf4680c7e1c0e240c9853ccbab73d43cdfa6c6d7064be0"
+    "message": "Neuer leerer Space",
+    "source": "sha256:a1f976d5564c68f3c6eed38c8398f5c3afa29dbc5151c00f523205478410f0d2"
   },
   "ws.saveAs": {
     "message": "Dieses Fenster speichern als…",
-    "source": "sha256:b7a8789726f4f74036880d7ca03e49305bb52931787ee318f748d90d45da69cc"
+    "source": "sha256:ec70f2ee3c08e1104a7f662945c752a62d48d9385a9e4e94324be4f371469aaf"
   },
   "ws.error.duplicateName": {
     "message": "Dieser Name wird schon verwendet. Wähle einen anderen Namen.",
-    "source": "sha256:2f5af6289f7c82de9f459b2d4b1f868ef55c5ecde0afb3b91580098c8fa35c5b"
+    "source": "sha256:d6f0844363ab27cf87daee09080ef9eced0a4ba965e4c3955897fa06fd4c862e"
   },
   "ws.error.invalidName": {
-    "message": "Gib einen Namen für den Arbeitsbereich ein.",
-    "source": "sha256:6829cf76e96c704c33ccc5f9a94455b8abef999e27c517eb285cbf46adaea15f"
+    "message": "Gib einen Namen für den Space ein.",
+    "source": "sha256:d98c5e6be78b115480c5fdf4f789f063db5e0b4287e11ac8aa060276e076105f"
   },
   "ws.error.limit": {
-    "message": "Du hast {limit} Arbeitsbereiche. Lösche einen, bevor du einen weiteren hinzufügst.",
-    "source": "sha256:6183cea23c5654fc6c898290cdeb24a01dfc438ac48d05d05e17d5d5a71ee49b"
+    "message": "Du hast {limit} Spaces. Lösche einen, bevor du einen weiteren hinzufügst.",
+    "source": "sha256:3b0428849b2653f15d9f2890ce80c6ea7deea8b7cd135e8877c4f3f40613a3a8"
   },
   "ws.error.notPatron": {
-    "message": "Zum Anlegen von Arbeitsbereichen brauchst du Blanc Patron.",
-    "source": "sha256:f8b55b7970c4a3acf8529d71d416ea0d62c97a2f3c774845bf4045d894a0f236"
+    "message": "Zum Anlegen von Spaces brauchst du Blanc Patron.",
+    "source": "sha256:948817841dd22ff28e5faa4b6fe1e58812572187723b0b0db35b924e5eedc7fe"
   },
   "ws.error.notFound": {
-    "message": "Dieser Arbeitsbereich ist nicht mehr verfügbar.",
-    "source": "sha256:011c2f8afff20a3a5de883cf1ad88932eccee971e1c96d7b03240a39ac1d5ba2"
+    "message": "Dieser Space ist nicht mehr verfügbar.",
+    "source": "sha256:5ad8d54c5adff9f4394eff6d7c2c987d9881dc58cf42d6288f9c11bd305c0d78"
   },
   "ws.error.readFailed": {
-    "message": "Deine Arbeitsbereich-Datei konnte nicht gelesen werden. Prüfe, ob die Datei zugänglich ist, und starte Blanc dann neu.",
-    "source": "sha256:9f6d17c6781e2b891bd659c6e9d48caa12f32ac5a56265bb593264cea779928e"
+    "message": "Deine Spaces-Datei konnte nicht gelesen werden. Prüfe, ob die Datei zugänglich ist, und starte Blanc dann neu.",
+    "source": "sha256:a93452c83cbcdeaf82885cf6a19d9f287276f84df9a6bd722347aa4eeaeaeb15"
   },
   "ws.error.storageFailed": {
     "message": "Änderungen konnten nicht gespeichert werden. Prüfe den freien Speicherplatz und versuche es erneut.",
-    "source": "sha256:1128da7ba16880110efea77ff05c74fcdc06b37e0b4cd5a916198bc96a04866f"
+    "source": "sha256:e7a67dc5f89a1c81b1f33ae4e5a25130f5f002cf96036fced6136dfd4115ef61"
   },
   "ws.error.futureFormat": {
-    "message": "Diese Arbeitsbereiche brauchen eine neuere Version von Blanc. Deine gespeicherte Datei wurde nicht verändert.",
-    "source": "sha256:c6343cc579e1bd89da780da5a06a0f8e06bdd00c1368ca7bf8b2fd3e49316162"
+    "message": "Diese Spaces brauchen eine neuere Version von Blanc. Deine gespeicherte Datei wurde nicht verändert.",
+    "source": "sha256:9a4a35e6fea69c3616fcd31a3b99528aa70925814b8d869cd2507fbc990bf583"
   },
   "ws.error.repairFailed": {
-    "message": "Es konnte keine Wiederherstellungskopie angelegt werden. Deine Arbeitsbereich-Datei wurde nicht verändert.",
-    "source": "sha256:233caeccf147456d1dbbaadc4d637ea54ba148d3d12f02973b5b36f0025463e4"
+    "message": "Es konnte keine Wiederherstellungskopie angelegt werden. Deine Spaces-Datei wurde nicht verändert.",
+    "source": "sha256:3b9a89fa5cb68f5d283c4dda4ec745cdad37725a1de35f86fee54de6db6d2afd"
   },
   "ws.error.busy": {
-    "message": "Eine andere Aktion für Arbeitsbereiche läuft noch. Versuche es erneut.",
-    "source": "sha256:6dad1fb32637622bcd6694a5ae5fd2b23c2bfd93f944752617dfc406cd6412f0"
+    "message": "Eine andere Aktion für Spaces läuft noch. Versuche es erneut.",
+    "source": "sha256:fac5ced90fa6a20231eee6859a313311df96cda4735a06bddc4cb7baac6306fa"
   },
   "ws.error.activationFailed": {
-    "message": "Der Arbeitsbereich konnte nicht geöffnet werden. Deine aktuellen Seiten sind weiterhin verfügbar.",
-    "source": "sha256:17d59988449bdca53fd7086f172bf2c81f2466cf68f2506e3691f1dde9b96bc0"
+    "message": "Der Space konnte nicht geöffnet werden. Deine aktuellen Seiten sind weiterhin verfügbar.",
+    "source": "sha256:00f8a3dc2e3c188b7d8e6a587dc685fea892ea59c5a17a7b880821cd7154fb72"
   },
   "ws.error.savedNotOpened": {
-    "message": "Der Arbeitsbereich wurde gespeichert, aber Blanc konnte ihn nicht öffnen. Er bleibt in deiner Liste der Arbeitsbereiche.",
-    "source": "sha256:724cd31661cd0412cb9bc397aa2c916e07f6799f20d0749787df326a0a575ed7"
+    "message": "Der Space wurde gespeichert, aber Blanc konnte ihn nicht öffnen. Er bleibt in deiner Liste der Spaces.",
+    "source": "sha256:ae8d786c4f052a59efac2278c77b0b89ff0b4e4826d31d3173ed7d4116705c8e"
   },
   "ws.error.recoveryDuplicate": {
-    "message": "Ein vorhandener Arbeitsbereich verwendet diesen Namen. Benenne ihn um, bevor du diesen Arbeitsbereich wiederherstellst.",
-    "source": "sha256:0fee9057c25eabf05c1f5d81444b120e130f5053daba6a0afb320f9ebd1d5d6f"
+    "message": "Ein vorhandener Space verwendet diesen Namen. Benenne ihn um, bevor du diesen Space wiederherstellst.",
+    "source": "sha256:9591ad8849135a2b39336e784697bef94b026605d9080c94e6cef536c2b940dd"
   },
   "ws.error.generic": {
     "message": "Diese Aktion konnte nicht abgeschlossen werden. Versuche es erneut.",
-    "source": "sha256:13658685ae5d3d5049da6c62c1df91e096673a76200a7505a5a33411d02acff3"
+    "source": "sha256:98ab7b3a06c14f2d1f5bf064707f38c7cc140bbcab8869f3c913994d273f25bd"
   },
   "ws.trigger.current": {
-    "message": "Arbeitsbereich · {name}",
-    "source": "sha256:46473302f5917acc544d87971fa02af29f7ac2e3ae4f6946400519fcfad09b6e"
+    "message": "Space · {name}",
+    "source": "sha256:f118d15158d10955e79ec63251eb9a36d4e939bc9edf7f907688cffdb1333df2"
   },
   "ws.editor.rename": {
-    "message": "Arbeitsbereich umbenennen",
-    "source": "sha256:14943a56857e645ab7f692a66fabd7f58df67d195f98df68d49a2ded2b555e97"
+    "message": "Space umbenennen",
+    "source": "sha256:e9e93744b560b62a9c18e584161fc62d6bdf19e08c15c6a2878a09b0ea9afaf1"
   },
   "ws.editor.create": {
-    "message": "Neuer leerer Arbeitsbereich",
-    "source": "sha256:80b2191d7f22abca63389f4c112dc28768abfadd906d1d352b26e6440e7684c6"
+    "message": "Neuer leerer Space",
+    "source": "sha256:60e48d2ab4b76b55d4bb67bd8b1b320786f82330167b538646f94cb089851498"
   },
   "ws.editor.saveAs": {
     "message": "Dieses Fenster speichern als…",
-    "source": "sha256:b5e06c8e01e77a07525ead8360d46b4e461c8459e295e724f809766fddfff23a"
+    "source": "sha256:806717c79a63356294065830b6707a964e779e097596ac326b7c9f517e0ee7d5"
   },
   "ws.editor.help": {
-    "message": "Normale Tabs werden auf diesem Gerät in diesem Profil automatisch gespeichert. Private Seiten sind ausgenommen. Arbeitsbereiche teilen die Anmeldungen dieses Profils.",
-    "source": "sha256:906f206fe682dbe29bae313ac265e7209baf50b108b463ccca4a326052d78252"
+    "message": "Normale Tabs werden auf diesem Gerät in diesem Profil automatisch gespeichert. Private Seiten sind ausgenommen. Spaces teilen die Anmeldungen dieses Profils.",
+    "source": "sha256:551a0661aec9d50a2067448a29258536584e60cc8f1333023e5a700ad4c132fe"
   },
   "ws.editor.save": {
     "message": "Speichern",
-    "source": "sha256:0eaf2c95b7f87cebdda7e0c5bbaa9aa1139ba6cc10e2afdf665a782cde8604a4"
+    "source": "sha256:ea34c763c629fdf0b27fde3ec1093fdc308d56932fe5cda75934cc166f181e1f"
   },
   "ws.editor.saving": {
     "message": "Speichern…",
-    "source": "sha256:0177c3e41837d01f7653b68eefb99609c586d829fb141f6dd45b86d9e9bdf041"
+    "source": "sha256:28e5b5813d25144d9f395be5e1ce71cd1f8fbc2e521c3eca78904c7c8e82e414"
   },
   "ws.decision.label": {
-    "message": "Entscheidung zum Wechsel des Arbeitsbereichs",
-    "source": "sha256:59b746d90b2f12b8b78a3e644402e462fcb1af89bd6def81c682a1f843f48929"
+    "message": "Entscheidung zum Space-Wechsel",
+    "source": "sha256:3d964ba5532144ce8b083a14b823838f1f212fe861e641fa1ade07ba4966d2b9"
   },
   "ws.decision.capacity": {
-    "message": "Deine im Speicher gehaltenen Arbeitsbereiche sind voll. Öffne diesen Arbeitsbereich in einem anderen Fenster, damit deine Seiten verfügbar bleiben.",
-    "source": "sha256:f440ad8f6e515b031625f252cdf84f9468d01414b0f9e882ad28bdb20e989ca5"
+    "message": "Deine im Speicher gehaltenen Spaces sind voll. Öffne diesen Space in einem anderen Fenster, damit deine Seiten verfügbar bleiben.",
+    "source": "sha256:5062173063caf6585a070ec51ee5380e681536eb4c21a166e159da7b8895eb3f"
   },
   "ws.decision.protected": {
-    "message": "In diesem Fenster sind Seiten, die geöffnet bleiben müssen. Öffne den Arbeitsbereich in einem anderen Fenster oder schließe den laufenden Vorgang auf der Seite ab und versuche es erneut.",
-    "source": "sha256:bc64426b2e0ea3a387c197735300bebd5b7edc65f9cd57c402cb35a026ed738a"
+    "message": "In diesem Fenster sind Seiten, die geöffnet bleiben müssen. Öffne den Space in einem anderen Fenster oder schließe den laufenden Vorgang auf der Seite ab und versuche es erneut.",
+    "source": "sha256:1cf3c1878235dc614fa0bc52fde05df78c3aa3aa9a5103872758a6339907f81f"
   },
   "ws.decision.closePrivate": {
     "message": "{count, plural, one {# privater Tab wird geschlossen. Seitenentwürfe werden nicht auf dem Datenträger gespeichert.} other {# private Tabs werden geschlossen. Seitenentwürfe werden nicht auf dem Datenträger gespeichert.}}",
-    "source": "sha256:7419eb2d22495355f1e5c75d89ac8c5a96758466b7e6dfe4e4c0003af63a375d"
+    "source": "sha256:685e4c4d3c2abe14a4d58f9333744d51d4e7cb0f2ede5a327d197d08e7627031"
   },
   "ws.decision.closeUnsaved": {
     "message": "{count, plural, one {# nicht gespeicherter Tab wird geschlossen. Seitenentwürfe werden nicht auf dem Datenträger gespeichert.} other {# nicht gespeicherte Tabs werden geschlossen. Seitenentwürfe werden nicht auf dem Datenträger gespeichert.}}",
-    "source": "sha256:5b6aeb39d71b4ffb94e83c7a503b590bd5ada0305375735bcf65ed447a70d011"
+    "source": "sha256:12b720c50b493cb33250dc6de70cb6c46d4bf80233f68ab27df844fb057f46fd"
   },
   "ws.decision.newWindow": {
     "message": "In neuem Fenster öffnen",
-    "source": "sha256:eb74fb92a3526dea4d6602b8db4e9cbd5cb0d957342ee31bdd9affc8799a2366"
+    "source": "sha256:91d0bc148bcca6a6a4f4f645ac64555854d5f3e7cb5c59a423b100a6a57313fa"
   },
   "ws.decision.saveFirst": {
     "message": "Erst dieses Fenster speichern…",
-    "source": "sha256:0155a3fe58bf472fe87b3e6041d10480636f8b78564ffe24004734cfb73096d9"
+    "source": "sha256:e62031db703832d56c32cc16bbcd04df757f92d363496101b9e0ee27f44ed82d"
   },
   "ws.decision.closeAndSwitch": {
     "message": "Tabs schließen und wechseln",
-    "source": "sha256:246363474e5b625a8f154e5e8b2a5f26634f09e4452766be83d8ffc2850cc909"
+    "source": "sha256:429e5427871a6e6bf9bb25050143fb04b33bf18188c720040d480944f7b5df35"
   },
   "ws.row.current": {
-    "message": "Aktueller Arbeitsbereich",
-    "source": "sha256:3891c2d3f29fe0b2849a1bf6e46cb83fe33e88f0cfae7814bee4e77f30db4389"
+    "message": "Aktueller Space",
+    "source": "sha256:978da49788673d03aeb3a7eef5d7f79242192341e8dbc3e3f3e17eb1e1e39638"
   },
   "ws.row.showWindow": {
     "message": "Fenster zeigen",
-    "source": "sha256:a68108709f92df3e87c1ec9deeb7775ee65dc36deb780d5c13c3df74a5ca55eb"
+    "source": "sha256:208c2f0a5d1d6eb31e30e1c31757da4026fe58b6be33579bfab3fc64b1982173"
   },
   "ws.row.retained": {
     "message": "Im Speicher gehalten",
-    "source": "sha256:5efbf4865e2bbc3b16b7f307bfb6b562cb3c4efc698a9e40ef8730c12b605ab7"
+    "source": "sha256:603b3590ff078631bbbf2448a3d11ba9b1633f690f68364e91f9f374e4e8e0da"
   },
   "ws.row.open": {
-    "message": "Arbeitsbereich öffnen",
-    "source": "sha256:a259295dfa19ae5812491029f259b5ae6b75c65e699bc336be70345618fa7579"
+    "message": "Space öffnen",
+    "source": "sha256:9ac1241a87bbc94faba9858937ce4529e6900b6d0f20ce9e5033d7150ca77d13"
   },
   "ws.row.title": {
     "message": "{count, plural, one {{name} · {context} · # Tab} other {{name} · {context} · # Tabs}}",
-    "source": "sha256:a5fae9ff79add8d4ce70d6988dd74304de7ad9208f731c5d9aeed9338893d811"
+    "source": "sha256:4ca7a63b65ca18dfbc16db796c6f41b1983e5e9cac99c4562eae7da9e4febe67"
   },
   "ws.manage.label": {
     "message": "{name} verwalten",
-    "source": "sha256:ca9c677a2f513693f4d70bf14fee57d0ceb3cbbf44e263812a6e1c5c3ac31095"
+    "source": "sha256:ebb8cda5a9d669f218dfe8bd9b7de0160dc86101949facaad7e9ab4455e2030a"
   },
   "ws.manage.back": {
     "message": "Zurück",
-    "source": "sha256:fe2d89f33bcd3ffcf1200417cdc510655a60ccd1809435cb2249ba58715cdf7d"
+    "source": "sha256:8be48ddbdda80db8e35c7d1c55b979ea6458fd9904a5ec490b01b1ee1027a60f"
   },
   "ws.manage.rename": {
     "message": "Umbenennen",
-    "source": "sha256:de80fe32ecc558f48ad393528193adc274a60a2bac3179da18396ce8ecedc0f7"
+    "source": "sha256:d2c931be549d1507111776ea6b967baa996216fb0ae111b51dd09f4b5592f4ac"
   },
   "ws.manage.delete": {
     "message": "Löschen…",
-    "source": "sha256:c2faa569a28852e44d59a5c9d5651675024ee7482902d0dd75ba6fc4e75224f0"
+    "source": "sha256:3569a2ed29acd9d63f844f052e126e342d23d79c110e9246a4daba6f5e5c634e"
   },
   "ws.manage.moveUp": {
     "message": "Nach oben",
-    "source": "sha256:604e255aa8db0f25eac1a13d7adc0324b399faec9597e27e50b31a78dd8e26ad"
+    "source": "sha256:17f844665e5438483ba28e91551a78686dc5d92416f207b4052bd8deed3650d4"
   },
   "ws.manage.moveDown": {
     "message": "Nach unten",
-    "source": "sha256:5480693a9ebb3512980da662055c7c5b6972251ee367a3d6c37c025cd1ae1b1d"
+    "source": "sha256:891980b0a4bbab8bf1d8ee91594e8c808b97f4dcff7aca9b769719f75bbaf1c6"
   },
   "ws.delete.confirm": {
-    "message": "„{name}“ löschen? Offene Tabs bleiben verfügbar. Den gespeicherten Arbeitsbereich kannst du sieben Tage lang unter „Zuletzt gelöscht“ wiederherstellen.",
-    "source": "sha256:7ce30b62187dcf31d40ba280ee44ff788a49c0222e52cb01231415d47a121b30"
+    "message": "„{name}“ löschen? Offene Tabs bleiben verfügbar. Den gespeicherten Space kannst du sieben Tage lang unter „Zuletzt gelöscht“ wiederherstellen.",
+    "source": "sha256:0d3fb68b665a924cbd8370a48ae1212ce172e29a6e20844fed09b2587c033cbb"
   },
   "ws.delete.button": {
-    "message": "Arbeitsbereich löschen",
-    "source": "sha256:1efaa22cf2e1c13d4afce310d82c4e1e420331b2c9038d1ca127504dd519f079"
+    "message": "Space löschen",
+    "source": "sha256:98b2760c53d309406801549e4be73f0e9756d3094a561f6d8a4d5ee1ee111a8b"
   },
   "ws.recovery.back": {
-    "message": "Zu den Arbeitsbereichen",
-    "source": "sha256:aecffa2b50028d773ae2ac02384cf05f121ca5e41946a7e380a2c1297ca4571a"
+    "message": "Zu den Spaces",
+    "source": "sha256:93def69b8ae5adc078c649e7e464bfde5c95a59c39fcd35261574e3420ac6a98"
   },
   "ws.recovery.help": {
-    "message": "Gespeicherte Arbeitsbereiche lassen sich sieben Tage lang wiederherstellen. Bis zu {limit} gelöschte Arbeitsbereiche werden aufbewahrt.",
-    "source": "sha256:25323a6c85ede94a0853c2f59a71d0f37b8a02d1b1f20546facb2d142e0f9e38"
+    "message": "Gespeicherte Spaces lassen sich sieben Tage lang wiederherstellen. Bis zu {limit} gelöschte Spaces werden aufbewahrt.",
+    "source": "sha256:1001971ac9cc3d5f8c4c8d4db77e37ec8ed1a24abf450cf5ddb90e0351c6bd69"
   },
   "ws.recovery.restore": {
     "message": "Wiederherstellen",
-    "source": "sha256:d5c0f711fb69c0ef9c65149a10224550cb4047c0da1353266cd997462f4fb5e0"
+    "source": "sha256:990ae176645bbb9a709c48d385948592a30d77188de680f4b4fe16419362398f"
   },
   "ws.recovery.forget": {
     "message": "Endgültig löschen…",
-    "source": "sha256:1f5956ca0a5996554678ec0709e2e7f6fc715783afec118091fd2679aafb3c10"
+    "source": "sha256:c0fa87f11bdaa0f5ff2b658b96f75bd408d7c5bcb4faa127f252a0a1c5c54e53"
   },
   "ws.forget.confirm": {
-    "message": "„{name}“ endgültig löschen? Dieser gespeicherte Arbeitsbereich lässt sich nicht wiederherstellen.",
-    "source": "sha256:93e9851ebae0ea8a3a2a19b2a5bc9bc0fc2afffda5d16c56227aa635a3ebea3a"
+    "message": "„{name}“ endgültig löschen? Dieser gespeicherte Space lässt sich nicht wiederherstellen.",
+    "source": "sha256:602fbf522f69ee0d1e4feaf3f927257d82672aeef250dbaa3f4c13fbfa780477"
   },
   "ws.forget.button": {
     "message": "Endgültig löschen",
     "source": "sha256:6da5a0155f1e405e52cfc3b2a51283001c519e86763bf605a70364b048473817"
   },
   "ws.list.empty": {
-    "message": "Noch keine gespeicherten Arbeitsbereiche.",
-    "source": "sha256:d536d95b1ce5e224ee480324fdd8dd5d13fae6baf5f874f74f80c8a4d8b8fb93"
+    "message": "Noch keine gespeicherten Spaces.",
+    "source": "sha256:7c1a3d9a0c23c89c9ab36fdee06f280654c69a3ee308fc8ef1ee385983ec63a7"
   },
   "ws.list.undo": {
-    "message": "Arbeitsbereich gelöscht · Rückgängig",
-    "source": "sha256:f30d0a431628de396b8a62d33cbd1122ec94cc9c4e566a9452b1c1b5788f39e0"
+    "message": "Space gelöscht · Rückgängig",
+    "source": "sha256:5d7400a23ded7618893106e9e68f135882e1d6bfffeea420a90f25b886187a9f"
   },
   "ws.list.recentlyDeleted": {
     "message": "{count, plural, one {Zuletzt gelöscht (#)} other {Zuletzt gelöscht (#)}}",
-    "source": "sha256:41df0d5ccb75c68763754c435b8f9738f8facf203bf6bfc79125577e2dd09916"
+    "source": "sha256:914e803ee3d8a9e95fb0cbd9f26a5cdadbbb3e8007e2151881199a6cdece1ef9"
   },
   "ws.list.patronSettings": {
     "message": "Patron-Einstellungen",
@@ -1731,11 +1731,11 @@
   },
   "workspaceMenu.rename": {
     "message": "Umbenennen…",
-    "source": "sha256:ce9a0b098f5bf6fb0da605608fac2ee7402d634301fa97a2bb7c7be8c476e263"
+    "source": "sha256:f948e149b757e744f6e74a038d7ec9b77e8a305e5226aebacfeb86b05384c0c1"
   },
   "workspaceMenu.delete": {
     "message": "Löschen…",
-    "source": "sha256:1c8656813fabfb592f520e0a37cfc6b41652154a8f7328f5c0fc30d29d33b3eb"
+    "source": "sha256:a71dd0f8e537a9779240269b910f8abfe78023ded9ab46fa7d8757bb443449dd"
   },
   "dock.activeTab": {
     "message": "Aktiver Tab",
@@ -2694,8 +2694,8 @@
     "source": "sha256:1bf73eadf19f53ce60764ceee6b4517f26a2a00c1e3f47e00c2423b55a7d22f9"
   },
   "profile.error.workspacesRemove": {
-    "message": "Die gespeicherten Arbeitsbereiche dieses Profils konnten nicht entfernt werden.",
-    "source": "sha256:64e16fd8af4392baa59194ae29a61ed66623767c88cb15ec3be4cad59bde218f"
+    "message": "Die gespeicherten Spaces dieses Profils konnten nicht entfernt werden.",
+    "source": "sha256:8b3e588615833b9eca6c89e2ed02d631b380432e9a20e832cc246f62272486ee"
   },
   "profile.delete.alreadyDeleting": {
     "message": "Dieses Profil wird bereits gelöscht.",

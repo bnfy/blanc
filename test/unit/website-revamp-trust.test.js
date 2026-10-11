@@ -31,6 +31,21 @@ test("the October 2 transparency answers survive consolidation verbatim", () => 
       /const QUESTIONS = (\[[\s\S]*?\]);/,
     )[1],
   );
+  // The only reviewed wording changes since: the recorded Blanc Spaces rename.
+  // Each must still find its exact original text, so no stale exception lingers.
+  const { supportAnswers } = JSON.parse(
+    read("docs/website-blanc-spaces-rename-2026-10-11.json"),
+  );
+  for (const { id, before, after } of supportAnswers) {
+    const entry = original.find((candidate) => candidate.id === id);
+    const field = ["q", "a"].find((key) =>
+      [entry?.[key]].flat().includes(before),
+    );
+    assert.ok(field, `obsolete rename exception for ${id}`);
+    entry[field] = Array.isArray(entry[field])
+      ? entry[field].map((value) => (value === before ? after : value))
+      : after;
+  }
   const current = JSON.parse(read("site/src/data/support-questions.json"));
   // New answers may be added; every original must survive verbatim, in order.
   const survivors = current.filter((entry) =>
@@ -85,7 +100,7 @@ test("home keeps product limits and links to detailed ownership, licensing and a
     "optional Google Analytics mirror",
     "Built by Bananify, an independent software studio.",
     "MIT for Blanc’s own code",
-    "Renaming and removing existing workspaces",
+    "Renaming and removing existing spaces",
     "Off by default. Needs the 1Password app and account on macOS.",
   ])
     assert.ok(home.includes(phrase), phrase);
