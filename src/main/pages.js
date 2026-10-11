@@ -78,6 +78,7 @@ function setupPages(hooks = {}) {
       ? process.env.BLANC_TEST_BROWSER_HOME
       : undefined;
   const browserImport = hooks.browserImport ?? createBrowserDataImportService({
+    t,
     homeDir: testBrowserHome,
     env: testBrowserHome && process.platform === 'win32'
       ? { ...process.env, LOCALAPPDATA: testBrowserHome }

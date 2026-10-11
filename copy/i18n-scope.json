@@ -170,7 +170,7 @@
       "allow": []
     },
     "src/main/main.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/main/context-menu.js": {
@@ -210,7 +210,7 @@
       "allow": []
     },
     "src/main/about-panel.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/main/external-protocols.js": {
@@ -232,7 +232,7 @@
       "allow": []
     },
     "src/main/browser-data-import.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/main/ublock-popup-mainworld.js": {

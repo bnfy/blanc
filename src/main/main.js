@@ -837,17 +837,18 @@ function focusPendingTabHandoff() {
 }
 
 function tabHandoffErrorMessage(code) {
-  if (code === 'invalid-expiry') return 'This handoff has expired or your device clock is incorrect. Check the clock and create a new handoff.';
-  if (code === 'too-many-tabs') return 'This handoff has more than 100 tabs. Select a smaller set and try again.';
-  if (code === 'empty') return 'This handoff has no eligible web tabs.';
-  if (code === 'multiple-active-tabs') return 'The source browser reported more than one active tab.';
+  const t = mainI18n.t;
+  if (code === 'invalid-expiry') return t('handoff.error.invalidExpiry');
+  if (code === 'too-many-tabs') return t('handoff.error.tooManyTabs', { limit: MAX_TAB_IMPORT_TABS });
+  if (code === 'empty') return t('handoff.error.empty');
+  if (code === 'multiple-active-tabs') return t('handoff.error.multipleActive');
   if (code === 'decryption-failed' || code === 'invalid-envelope' || code === 'invalid-payload') {
-    return 'Blanc could not verify this handoff. It may have been changed or opened with the wrong link.';
+    return t('handoff.error.unverified');
   }
-  if (code === 'unavailable') return 'This handoff has expired, was already used, or is unavailable.';
-  if (code === 'offline') return 'Blanc could not reach the tab handoff service. Check your connection and try again.';
-  if (code === 'service-unavailable') return 'Tab handoff is available only in official Blanc builds.';
-  return 'Blanc could not import these tabs.';
+  if (code === 'unavailable') return t('handoff.error.unavailable');
+  if (code === 'offline') return t('handoff.error.offline');
+  if (code === 'service-unavailable') return t('handoff.error.serviceUnavailable');
+  return t('handoff.error.generic');
 }
 
 async function claimTabHandoff(parsed) {
@@ -8149,7 +8150,7 @@ function buildMenuForRuntime(runtime) {
         },
         ...(isMac ? [] : [
           { type: 'separator' },
-          { label: t('menu.app.about', { app: app.name }), click: bound(() => showAboutPanel({ app })) },
+          { label: t('menu.app.about', { app: app.name }), click: bound(() => showAboutPanel({ app, t })) },
         ]),
       ],
     },
@@ -8216,7 +8217,7 @@ function createMainWindow(runtime = primaryRuntime, options = {}) {
 function profileWindowTitle(profile) {
   return profile?.id === DEFAULT_PROFILE_ID
     ? 'Blanc'
-    : `${profile?.name ?? 'Profile'} — Blanc`;
+    : `${profile?.name ?? mainI18n.t('profile.unnamed')} — Blanc`;
 }
 
 function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
@@ -8330,9 +8331,9 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
       broadcastWorkspacesUpdated();
       dialog.showMessageBoxSync(runtime.window, {
         type: 'error',
-        buttons: ['OK'],
-        message: 'Couldn’t close this window safely',
-        detail: 'Blanc couldn’t save its latest workspace state. Check available disk space and try again.',
+        buttons: [mainI18n.t('dialog.ok')],
+        message: mainI18n.t('window.closeFailed.message'),
+        detail: mainI18n.t('window.closeFailed.detail'),
       });
     },
   });
@@ -8670,26 +8671,62 @@ function moveTabToNewWindow(id) {
 }
 
 function openNewProfileWindow(name) {
-  const profile = localProfiles.createLocalProfile(name);
+  const profile = localProfiles.createLocalProfile(name, {
+    defaultName: (number) => mainI18n.t('profile.defaultName', { number }),
+  });
   const runtimeId = openNewWindow({ profileId: profile.id });
   scheduleMenuRebuild();
   return { profile, runtimeId };
+}
+
+// Profile errors carry a `code` (local-profiles.js, local-profile-model.js,
+// profile-deletions.js); Settings shows its interface text. An error without a
+// known code keeps its own message, a technical detail as before, or the
+// fallback when it has none.
+const PROFILE_ERROR_KEYS = {
+  'registry-newer': 'profile.error.registryNewer',
+  'profile-limit': 'profile.error.limit',
+  'name-required': 'profile.error.nameRequired',
+  'not-renamable': 'profile.error.notRenamable',
+  'unknown-profile': 'profile.error.unknown',
+  'default-protected': 'profile.error.defaultProtected',
+  'not-deletable': 'profile.error.onlyNamedDeletable',
+  'delete-start-disk': 'profile.error.deleteStartDisk',
+  'deletion-persist': 'profile.error.deletionPersist',
+  bookkeeping: 'profile.error.bookkeeping',
+  'workspaces-remove': 'profile.error.workspacesRemove',
+};
+
+function profileErrorText(error, fallbackKey) {
+  if (Object.hasOwn(PROFILE_ERROR_KEYS, error?.code ?? '')) {
+    return mainI18n.t(PROFILE_ERROR_KEYS[error.code], {
+      limit: error.limit,
+      name: localProfiles.getLocalProfile(DEFAULT_PROFILE_ID)?.name,
+    });
+  }
+  return error?.message || mainI18n.t(fallbackKey);
+}
+
+function profileDeletionFinishing(error) {
+  return Object.hasOwn(PROFILE_ERROR_KEYS, error?.code ?? '') || error?.message
+    ? mainI18n.t('profile.delete.finishing', { detail: profileErrorText(error) })
+    : mainI18n.t('profile.delete.finishingRetry');
 }
 
 function createNamedLocalProfileWindow(name) {
   try {
     return { ok: true, ...openNewProfileWindow(name) };
   } catch (error) {
-    return { ok: false, message: error.message || 'Couldn’t create that profile.' };
+    return { ok: false, message: profileErrorText(error, 'profile.error.createFailed') };
   }
 }
 
 function openExistingProfileWindow(profileId) {
   if (profileDeletions.hasPendingProfileDeletion(profileId)) {
-    return { ok: false, message: 'That profile is being deleted.' };
+    return { ok: false, message: mainI18n.t('profile.error.beingDeleted') };
   }
   const profile = localProfiles.getLocalProfile(profileId);
-  if (!profile) return { ok: false, message: 'That profile no longer exists.' };
+  if (!profile) return { ok: false, message: mainI18n.t('profile.error.missing') };
   return { ok: true, runtimeId: openNewWindow({ profileId: profile.id }) };
 }
 
@@ -8704,19 +8741,19 @@ function refreshProfilePresentation(profile) {
 function renameNamedLocalProfile(profileId, name) {
   try {
     if (profileDeletions.hasPendingProfileDeletion(profileId)) {
-      return { ok: false, message: 'That profile is being deleted.' };
+      return { ok: false, message: mainI18n.t('profile.error.beingDeleted') };
     }
     const profile = localProfiles.renameLocalProfile(profileId, name);
-    if (!profile) return { ok: false, message: 'That profile no longer exists.' };
+    if (!profile) return { ok: false, message: mainI18n.t('profile.error.missing') };
     refreshProfilePresentation(profile);
     return { ok: true, profile };
   } catch (error) {
-    return { ok: false, message: error.message || 'Couldn’t rename that profile.' };
+    return { ok: false, message: profileErrorText(error, 'profile.error.renameFailed') };
   }
 }
 
 function namedProfileDataDirectory(profileId) {
-  if (profileId === DEFAULT_PROFILE_ID) throw new Error('Personal cannot be deleted');
+  if (profileId === DEFAULT_PROFILE_ID) throw Object.assign(new Error('Personal cannot be deleted'), { code: 'default-protected' });
   const root = path.resolve(app.getPath('userData'), 'profiles');
   const target = path.resolve(root, profileId);
   if (path.dirname(target) !== root) throw new Error('Invalid local profile data path');
@@ -8826,7 +8863,7 @@ async function completeNamedProfileDeletion(profileId, {
       runtime.profileId === profileId && runtime.window && !runtime.window.isDestroyed())) {
       return {
         complete: false,
-        message: 'Waiting for the profile windows to close before erasing local data.',
+        message: mainI18n.t('profile.delete.waitingWindows'),
       };
     }
   }
@@ -8848,7 +8885,7 @@ async function completeNamedProfileDeletion(profileId, {
   }
 
   if (!removePersistedProfileWorkspaces(profileId)) {
-    errors.push(new Error('Couldn’t remove this profile’s saved workspaces.'));
+    errors.push(Object.assign(new Error('Couldn’t remove this profile’s saved workspaces.'), { code: 'workspaces-remove' }));
   }
   try {
     if (profile) localProfiles.removeLocalProfile(profileId, { flush: true });
@@ -8860,7 +8897,7 @@ async function completeNamedProfileDeletion(profileId, {
   if (errors.length) {
     return {
       complete: false,
-      message: `Profile deletion is still finishing: ${errors[0].message || 'cleanup will retry automatically.'}`,
+      message: profileDeletionFinishing(errors[0]),
     };
   }
   try {
@@ -8868,7 +8905,7 @@ async function completeNamedProfileDeletion(profileId, {
   } catch {
     return {
       complete: false,
-      message: 'Profile data was removed, but final cleanup bookkeeping will retry automatically.',
+      message: mainI18n.t('profile.delete.bookkeeping'),
     };
   }
   return { complete: true };
@@ -8891,22 +8928,22 @@ async function resumePendingProfileDeletions() {
 async function deleteNamedLocalProfile(profileId, confirmation) {
   const profile = localProfiles.getLocalProfile(profileId);
   if (!profile || profile.id === DEFAULT_PROFILE_ID) {
-    return { ok: false, message: 'Only a named profile can be deleted.' };
+    return { ok: false, message: mainI18n.t('profile.error.onlyNamedDeletable') };
   }
   if (confirmation !== profile.name) {
-    return { ok: false, message: `Type “${profile.name}” exactly to delete this profile.` };
+    return { ok: false, message: mainI18n.t('profile.error.confirmName', { name: profile.name }) };
   }
   if (sessionReadOnly) {
-    return { ok: false, message: 'This Blanc build cannot safely remove a newer saved workspace.' };
+    return { ok: false, message: mainI18n.t('profile.error.newerWorkspace') };
   }
   if (profileDeletions.hasPendingProfileDeletion(profile.id) || deletingProfileIds.has(profile.id)) {
-    return { ok: true, pending: true, message: 'That profile is already being deleted.' };
+    return { ok: true, pending: true, message: mainI18n.t('profile.delete.alreadyDeleting') };
   }
 
   try {
     profileDeletions.markProfileDeletion(profile.id);
   } catch (error) {
-    return { ok: false, message: error.message || 'Couldn’t safely start profile deletion.' };
+    return { ok: false, message: profileErrorText(error, 'profile.error.deleteStartFailed') };
   }
 
   deletingProfileIds.add(profile.id);
@@ -8924,7 +8961,7 @@ async function deleteNamedLocalProfile(profileId, confirmation) {
     return {
       ok: true,
       pending: true,
-      message: `Profile deletion is still finishing: ${error.message || 'cleanup will retry automatically.'}`,
+      message: profileDeletionFinishing(error),
     };
   } finally {
     deletingProfileIds.delete(profile.id);
@@ -10557,7 +10594,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       if (!written) {
         sessionRecoveryState = {
           ...sessionRecoveryState,
-          error: 'Couldn’t replace the saved session. Check disk access and try again.',
+          error: mainI18n.t('session.error.replaceFailed'),
         };
         broadcastStartPageStatus();
         return { ok: false, error: 'write-failed', recovery: sessionRecoveryState };
@@ -10569,7 +10606,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     if (!diagnostics.resolveSessionRecovery()) {
       sessionRecoveryState = {
         ...sessionRecoveryState,
-        error: 'Couldn’t save the recovery choice. Check disk access and try again.',
+        error: mainI18n.t('session.error.choiceFailed'),
       };
       broadcastStartPageStatus();
       return { ok: false, error: 'write-failed', recovery: sessionRecoveryState };

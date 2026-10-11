@@ -2683,5 +2683,177 @@
   "error.reloadFailed": {
     "message": "The page could not be reloaded",
     "note": "Description on the error page when reloading a page failed."
+  },
+  "profile.defaultName": {
+    "message": "Profile {number}",
+    "note": "Name given to a new profile created without one (for example from File → New Profile Window); {number} counts profiles. Saved as the profile’s name."
+  },
+  "profile.unnamed": {
+    "message": "Profile",
+    "note": "Fallback window-title name for a profile without a name."
+  },
+  "profile.error.beingDeleted": {
+    "message": "That profile is being deleted.",
+    "note": "Settings → Profiles message."
+  },
+  "profile.error.missing": {
+    "message": "That profile no longer exists.",
+    "note": "Settings → Profiles message."
+  },
+  "profile.error.createFailed": {
+    "message": "Couldn’t create that profile.",
+    "note": "Settings → Profiles message."
+  },
+  "profile.error.renameFailed": {
+    "message": "Couldn’t rename that profile.",
+    "note": "Settings → Profiles message."
+  },
+  "profile.error.onlyNamedDeletable": {
+    "message": "Only a named profile can be deleted.",
+    "note": "Settings → Profiles message."
+  },
+  "profile.error.confirmName": {
+    "message": "Type “{name}” exactly to delete this profile.",
+    "note": "Settings → Profiles message; {name} is the profile’s name, which must be typed to confirm deletion."
+  },
+  "profile.error.newerWorkspace": {
+    "message": "This Blanc build cannot safely remove a newer saved workspace.",
+    "note": "Settings → Profiles message when a newer Blanc saved the workspace file."
+  },
+  "profile.error.deleteStartFailed": {
+    "message": "Couldn’t safely start profile deletion.",
+    "note": "Settings → Profiles message."
+  },
+  "profile.error.deleteStartDisk": {
+    "message": "Couldn’t safely start profile deletion. Check disk space and try again.",
+    "note": "Settings → Profiles message."
+  },
+  "profile.error.registryNewer": {
+    "message": "This Blanc build cannot modify a newer local-profile registry",
+    "note": "Settings → Profiles message when a newer Blanc saved the profile list (no final period)."
+  },
+  "profile.error.limit": {
+    "message": "Blanc supports up to {limit} local profiles",
+    "note": "Settings → Profiles message; {limit} is the maximum number of profiles (no final period)."
+  },
+  "profile.error.nameRequired": {
+    "message": "A profile name is required",
+    "note": "Settings → Profiles message when renaming to an empty name (no final period)."
+  },
+  "profile.error.notRenamable": {
+    "message": "Only a named local profile can be renamed",
+    "note": "Settings → Profiles message (no final period)."
+  },
+  "profile.error.unknown": {
+    "message": "Unknown local profile",
+    "note": "Settings → Profiles message (no final period)."
+  },
+  "profile.error.defaultProtected": {
+    "message": "{name} cannot be deleted",
+    "note": "Settings → Profiles message; {name} is the built-in profile’s name (no final period)."
+  },
+  "profile.error.deletionPersist": {
+    "message": "Couldn’t persist the profile deletion.",
+    "note": "Settings → Profiles message."
+  },
+  "profile.error.bookkeeping": {
+    "message": "Couldn’t finish profile deletion bookkeeping.",
+    "note": "Settings → Profiles message."
+  },
+  "profile.error.workspacesRemove": {
+    "message": "Couldn’t remove this profile’s saved workspaces.",
+    "note": "Settings → Profiles message."
+  },
+  "profile.delete.alreadyDeleting": {
+    "message": "That profile is already being deleted.",
+    "note": "Settings → Profiles message."
+  },
+  "profile.delete.waitingWindows": {
+    "message": "Waiting for the profile windows to close before erasing local data.",
+    "note": "Settings → Profiles message while a deleted profile’s windows close."
+  },
+  "profile.delete.finishing": {
+    "message": "Profile deletion is still finishing: {detail}",
+    "note": "Settings → Profiles message; {detail} says what is still pending (a sentence, sometimes a technical error)."
+  },
+  "profile.delete.finishingRetry": {
+    "message": "Profile deletion is still finishing: cleanup will retry automatically.",
+    "note": "Settings → Profiles message when no detail is known."
+  },
+  "profile.delete.bookkeeping": {
+    "message": "Profile data was removed, but final cleanup bookkeeping will retry automatically.",
+    "note": "Settings → Profiles message."
+  },
+  "window.closeFailed.message": {
+    "message": "Couldn’t close this window safely",
+    "note": "Dialog when a window’s workspace could not be saved before closing."
+  },
+  "window.closeFailed.detail": {
+    "message": "Blanc couldn’t save its latest workspace state. Check available disk space and try again.",
+    "note": "Dialog detail when a window could not close safely."
+  },
+  "session.error.replaceFailed": {
+    "message": "Couldn’t replace the saved session. Check disk access and try again.",
+    "note": "Start page session-recovery error after choosing to start fresh."
+  },
+  "session.error.choiceFailed": {
+    "message": "Couldn’t save the recovery choice. Check disk access and try again.",
+    "note": "Start page session-recovery error."
+  },
+  "handoff.error.invalidExpiry": {
+    "message": "This handoff has expired or your device clock is incorrect. Check the clock and create a new handoff.",
+    "note": "Tab handoff error (tabs sent from another browser)."
+  },
+  "handoff.error.tooManyTabs": {
+    "message": "This handoff has more than {limit} tabs. Select a smaller set and try again.",
+    "note": "Tab handoff error; {limit} is the maximum number of tabs (always more than one)."
+  },
+  "handoff.error.empty": {
+    "message": "This handoff has no eligible web tabs.",
+    "note": "Tab handoff error."
+  },
+  "handoff.error.multipleActive": {
+    "message": "The source browser reported more than one active tab.",
+    "note": "Tab handoff error."
+  },
+  "handoff.error.unverified": {
+    "message": "Blanc could not verify this handoff. It may have been changed or opened with the wrong link.",
+    "note": "Tab handoff error."
+  },
+  "handoff.error.unavailable": {
+    "message": "This handoff has expired, was already used, or is unavailable.",
+    "note": "Tab handoff error."
+  },
+  "handoff.error.offline": {
+    "message": "Blanc could not reach the tab handoff service. Check your connection and try again.",
+    "note": "Tab handoff error."
+  },
+  "handoff.error.serviceUnavailable": {
+    "message": "Tab handoff is available only in official Blanc builds.",
+    "note": "Tab handoff error in builds that cannot reach Blanc’s handoff service."
+  },
+  "handoff.error.generic": {
+    "message": "Blanc could not import these tabs.",
+    "note": "Tab handoff error for any other failure."
+  },
+  "import.permissionGuidance": {
+    "message": "macOS blocked access to this browser’s profile folder. Grant Blanc Full Disk Access in System Settings → Privacy & Security, then try again.",
+    "note": "Shown when importing from another browser on macOS needs Full Disk Access; System Settings → Privacy & Security is macOS’s own menu path, use its localized names."
+  },
+  "import.folder.bookmarksBar": {
+    "message": "Bookmarks bar",
+    "note": "Folder name given to favorites imported from another browser’s bookmarks bar; saved as the folder’s name."
+  },
+  "import.folder.other": {
+    "message": "Other bookmarks",
+    "note": "Folder name for favorites imported from another browser’s Other bookmarks; saved as the folder’s name."
+  },
+  "import.folder.mobile": {
+    "message": "Mobile bookmarks",
+    "note": "Folder name for favorites imported from another browser’s mobile bookmarks; saved as the folder’s name."
+  },
+  "about.credits": {
+    "message": "Independent browser by Bananify.",
+    "note": "macOS About panel credits line; Bananify is the company name."
   }
 }
