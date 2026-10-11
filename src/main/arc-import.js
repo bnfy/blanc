@@ -135,6 +135,8 @@ function createArcImportService({
       if (session && session.sessionId === String(sessionId ?? '')) session = null;
       return { ok: true };
     },
+    /** The sheet closed: drop whatever was read, whichever session it was. */
+    discard() { session = null; },
     /** Test support: whether a parsed sidebar is still held. */
     hasSession: () => !!session,
   };

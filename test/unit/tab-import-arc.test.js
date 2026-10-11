@@ -70,7 +70,6 @@ function page({ detect = { state: 'found' }, read, apply } = {}) {
     })[selector] ?? null,
     querySelectorAll: (selector) => (selector === '[data-step-panel]' ? [sourcePanel, tabsPanel] : []),
   };
-  const listeners = {};
   const window = {
     blancI18n: { t, formatLocale: () => 'en' },
     // contextBridge hands the page frozen objects; so does this stub.
@@ -83,14 +82,12 @@ function page({ detect = { state: 'found' }, read, apply } = {}) {
         arcCancel: async (sessionId) => { calls.cancel.push(sessionId); return { ok: true }; },
       }),
     }),
-    addEventListener: (name, fn) => { (listeners[name] ||= []).push(fn); },
   };
   vm.runInNewContext(SCRIPT, { window, document, Intl, Set, Number, Promise });
   const buttons = (node) => node.all().filter((n) => n.tagName === 'BUTTON');
   const find = (node, text) => buttons(node).find((b) => b.textContent === text);
   const boxes = () => preview.all().filter((n) => n.tagName === 'INPUT');
-  const fire = (name) => { for (const fn of listeners[name] || []) fn({}); };
-  return { entry, status, progress, sourcePanel, preview, result, calls, find, boxes, window, fire };
+  return { entry, status, progress, sourcePanel, preview, result, calls, find, boxes, window };
 }
 
 const settle = () => new Promise((resolve) => setImmediate(resolve));
@@ -209,12 +206,3 @@ test('Linux offers Choose file… only, with the reason', async () => {
   assert.ok(p.find(p.entry, 'Choose file…'));
 });
 
-test('leaving the page drops the parsed sidebar held in main', async () => {
-  const p = page({ read: () => PREVIEW, apply: () => ({ ok: true }) });
-  await settle();
-  p.find(p.entry, 'Bring Spaces from Arc').click();
-  await settle();
-  p.fire('pagehide');
-  await settle();
-  assert.deepEqual(p.calls.cancel, ['session-1']);
-});

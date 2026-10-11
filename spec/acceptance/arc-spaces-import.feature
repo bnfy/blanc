@@ -55,3 +55,10 @@ Feature: Arc Spaces import
     When I open Bring Your Tabs
     Then Blanc explains that Arc never came to Linux
     And offers to choose a copied StorableSidebar.json file
+
+  @F45-8 @desktop
+  Scenario: Closing the sheet drops what Blanc read from Arc
+    Given an Arc sidebar with Spaces named "Work" and "Reading"
+    And I am previewing the Spaces from Arc
+    When I close Bring Your Tabs
+    Then Blanc no longer holds Arc's Spaces

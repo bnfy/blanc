@@ -139,3 +139,12 @@ test('read errors and cancelled file choices pass through', async () => {
   });
   assert.deepEqual(await empty.read('arc'), { error: 'empty' });
 });
+
+test('closing the sheet discards the parsed sidebar whatever its session', async () => {
+  const { service } = harness();
+  const { sessionId } = await service.read('arc');
+  assert.equal(service.hasSession(), true);
+  service.discard();
+  assert.equal(service.hasSession(), false);
+  assert.deepEqual(await service.apply(sessionId, { mode: 'spaces', spaceIds: ['space-1'] }), { error: 'session-unavailable' });
+});

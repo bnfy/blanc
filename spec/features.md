@@ -1050,7 +1050,8 @@ Bring Your Tabs.
   deduplicated, to a Favorites folder named Arc.
 - **Projection.** The page receives only Space names, counts, a
   separate-profile flag and opaque ids, never URLs, paths, Arc ids or Arc
-  profile names. Sign-ins, passwords, history and archived tabs stay in Arc.
+  profile names, and closing the sheet drops what was read. Sign-ins,
+  passwords, history and archived tabs stay in Arc.
 - Every Space lands in the current Blanc profile; a Space that used its own
   Arc profile is marked because its sign-ins will differ.
 - **Acceptance:**

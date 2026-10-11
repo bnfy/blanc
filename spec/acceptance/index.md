@@ -208,6 +208,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F45-5 | Arc's Favorites join a Favorites folder named Arc | — | ✅ | ➖ | ➖ |
 | F45-6 | The page sees names and counts, never URLs or paths | — | ✅ | ➖ | ➖ |
 | F45-7 | Linux imports a chosen file | — | ✅ | ➖ | ➖ |
+| F45-8 | Closing the sheet drops what Blanc read from Arc | — | ✅ | ➖ | ➖ |
 
 > **M0–M1 note (2026-07-08):** F5 (address/search + OS hand-off) and F1 (minimal
 > address surface) are implemented and unit-tested on iOS, but the iOS acceptance

@@ -3801,6 +3801,8 @@ function focusUtilitySheet(runtime, sheet) {
 function discardUtilityImportState(runtime, { discardTabHandoff = true } = {}) {
   if (sameUtilityPage(runtime.utilitySheetUrl, 'blanc://tab-import/')) {
     forgetTabImportForRuntime(runtime.id, 'cancel');
+    // F45: closing Bring Your Tabs also drops a parsed Arc sidebar.
+    arcImport.discard();
   }
   if (
     discardTabHandoff &&
@@ -10104,6 +10106,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         if (action === 'platform') { arcTestPlatform = String(args[0]); return true; }
         if (action === 'choose-file') { arcTestChosenFile = args[0] ? String(args[0]) : null; return true; }
         if (action === 'reads') return arcSidebarReadCount;
+        if (action === 'has-session') return arcImport.hasSession();
         if (action === 'records') {
           return namedWorkspaces.list().map((w) => ({
             name: w.name,

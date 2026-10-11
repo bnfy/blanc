@@ -337,3 +337,28 @@ Then('offers to choose a copied StorableSidebar.json file', async function () {
   assert.match(dom.previewText, /Work/);
   assert.match(dom.previewText, /Reading/);
 });
+
+Given('I am previewing the Spaces from Arc', async function () {
+  await openSheet(this);
+  await waitFor(() => sheetDom(this), (d) => !d.entryHidden, 'Arc row');
+  await clickSheetButton(this, 'Bring Spaces from Arc');
+  await waitFor(() => sheetDom(this), (d) => !d.previewHidden, 'Arc preview');
+  assert.equal(await this.call('arcImport', 'has-session'), true);
+});
+
+When('I close Bring Your Tabs', async function () {
+  // The sheet's own ✕, the way a person closes it.
+  const clicked = await this.call('arcImportPage', `() => {
+    const close = document.querySelector('.sheet-close');
+    if (!close) return false;
+    close.click();
+    return true;
+  }`);
+  assert.equal(clicked, true);
+  await waitFor(() => this.call('utilitySurface'), (s) => !s?.visible, 'the sheet to close');
+});
+
+Then("Blanc no longer holds Arc's Spaces", async function () {
+  assert.equal(await this.call('arcImport', 'has-session'), false);
+});
+

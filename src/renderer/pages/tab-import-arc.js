@@ -246,8 +246,7 @@
     showArc('result');
   }
 
+  // Closing the sheet needs no cleanup here: main's hideUtilitySheet drops the
+  // parsed sidebar, and reopening reloads this page.
   renderEntry();
-  // Leaving the page drops a parsed sidebar main is still holding. The bridge
-  // objects are frozen by contextBridge, so close() is not wrapped.
-  window.addEventListener('pagehide', () => { cancel(); });
 })();
