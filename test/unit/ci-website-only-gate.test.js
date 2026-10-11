@@ -58,6 +58,7 @@ test('the cross-platform unit job keeps running for every pull request', () => {
   const text = workflow('unit-tests.yml');
   const on = text.slice(text.indexOf('\non:\n'), text.indexOf('\npermissions:'));
   assert.match(on, /\n  pull_request:\n/);
+  assert.match(on, /\n  push:\n    branches: \[main\]\n/, 'merged combinations are tested on main');
   assert.doesNotMatch(on, /paths/, 'no path filter');
   assert.doesNotMatch(text, /needs: changes/);
 });
