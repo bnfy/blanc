@@ -908,6 +908,69 @@
         "doc": "Discard the import session."
       },
       {
+        "name": "tabImport.arcDetect",
+        "kind": "invoke",
+        "channel": "pages:arc-import:detect",
+        "hosts": [
+          "tab-import"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Whether Arc's sidebar file appears to exist on this device (F45), without reading it."
+      },
+      {
+        "name": "tabImport.arcRead",
+        "kind": "invoke",
+        "channel": "pages:arc-import:read",
+        "hosts": [
+          "tab-import"
+        ],
+        "params": [
+          {
+            "name": "source",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Read Arc's Spaces from Arc's own file or a chosen file into an import session."
+      },
+      {
+        "name": "tabImport.arcApply",
+        "kind": "invoke",
+        "channel": "pages:arc-import:apply",
+        "hosts": [
+          "tab-import"
+        ],
+        "params": [
+          {
+            "name": "sessionId",
+            "type": "unknown"
+          },
+          {
+            "name": "request",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Create Blanc spaces (Patron) or open windows for the selected Arc Spaces, and optionally import Arc Favorites."
+      },
+      {
+        "name": "tabImport.arcCancel",
+        "kind": "invoke",
+        "channel": "pages:arc-import:cancel",
+        "hosts": [
+          "tab-import"
+        ],
+        "params": [
+          {
+            "name": "sessionId",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Discard the Arc import session."
+      },
+      {
         "name": "settings.get",
         "kind": "invoke",
         "channel": "pages:settings:get",

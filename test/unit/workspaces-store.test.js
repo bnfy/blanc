@@ -407,3 +407,27 @@ test('one drain per profile, and a capture queued during it is written by that d
     assert.equal(maxOpen, 1);
   });
 });
+
+test('createMany writes every space in one durable step, or none of them', () => {
+  setFocusedLocalProfile('default');
+  for (const w of workspaces.list()) workspaces.remove(w.id);
+  const before = workspaces.list().length;
+  const created = workspaces.createMany([
+    { name: 'Arc One', capture: CAPTURE(['https://one.test/']) },
+    { name: 'Arc Two', capture: CAPTURE(['https://two.test/']) },
+  ]);
+  assert.equal(created.ok, true);
+  assert.deepEqual(created.workspaces.map((w) => w.name), ['Arc One', 'Arc Two']);
+  assert.equal(workspaces.list().length, before + 2);
+  const onDisk = JSON.parse(fs.readFileSync(path.join(userData, 'workspaces.json'), 'utf8'));
+  assert.ok(['Arc One', 'Arc Two'].every((name) => onDisk.workspaces.some((w) => w.name === name)));
+
+  // A duplicate anywhere in the batch writes nothing at all.
+  const failed = workspaces.createMany([
+    { name: 'Arc Three', capture: CAPTURE() },
+    { name: 'arc one', capture: CAPTURE() },
+  ]);
+  assert.deepEqual(failed, { ok: false, error: 'duplicate-name' });
+  assert.equal(workspaces.list().some((w) => w.name === 'Arc Three'), false);
+  assert.deepEqual(workspaces.createMany([]), { ok: false, error: 'invalid-name' });
+});

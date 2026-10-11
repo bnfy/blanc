@@ -299,6 +299,14 @@ export interface TabImportPagesAPI {
     apply: (sessionId: unknown, request: unknown) => Promise<unknown>;
     /** Discard the import session. IPC: invoke `pages:tab-import:cancel`. */
     cancel: (sessionId: unknown) => Promise<unknown>;
+    /** Whether Arc's sidebar file appears to exist on this device (F45), without reading it. IPC: invoke `pages:arc-import:detect`. */
+    arcDetect: () => Promise<unknown>;
+    /** Read Arc's Spaces from Arc's own file or a chosen file into an import session. IPC: invoke `pages:arc-import:read`. */
+    arcRead: (source: unknown) => Promise<unknown>;
+    /** Create Blanc spaces (Patron) or open windows for the selected Arc Spaces, and optionally import Arc Favorites. IPC: invoke `pages:arc-import:apply`. */
+    arcApply: (sessionId: unknown, request: unknown) => Promise<unknown>;
+    /** Discard the Arc import session. IPC: invoke `pages:arc-import:cancel`. */
+    arcCancel: (sessionId: unknown) => Promise<unknown>;
   };
 }
 

@@ -220,7 +220,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "518a4d8f3f7599feab84b4ffe5da6b04fdfda7c118fbef88addd15d82f11db88",
+      "sha256": "2ad8663a7fa84cf950101759c84167c32930c8e94972bf924ec36da8709d8eb4",
       "literalChannels": [
         "activate",
         "before-input-event",
@@ -416,10 +416,14 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "1300201f9bd6203d8e869e19460b6e8fdb67adcdc2c34fe0b688ef9b7affcb48",
+      "sha256": "569290c240c9c3045144a3504b5265c8d1547c72eb436e591392f21d4c5f476d",
       "literalChannels": [
         "blanc",
         "pages:app-version",
+        "pages:arc-import:apply",
+        "pages:arc-import:cancel",
+        "pages:arc-import:detect",
+        "pages:arc-import:read",
         "pages:blocking:open",
         "pages:blocking:retry",
         "pages:blocking:status",
@@ -723,10 +727,14 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "e5665b54d4158567db4e5b2663821081994018b3d72102f882b1678eb31ae6c8",
+      "sha256": "c7800fbfee764d92c7cfdbd5cff5e6d93109eda388f676bcf15891c85b9ef3a9",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
+        "pages:arc-import:apply",
+        "pages:arc-import:cancel",
+        "pages:arc-import:detect",
+        "pages:arc-import:read",
         "pages:blocking:open",
         "pages:blocking:retry",
         "pages:blocking:status",
