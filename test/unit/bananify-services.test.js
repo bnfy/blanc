@@ -100,6 +100,9 @@ function claimHarness({ origin, appName }) {
     tabImportRelayOrigin: () => origin,
     bananifyServiceAllowed: (url) => bananifyServiceAllowed(url, appName),
     net: { fetch: async (url) => { fetched.push(url); return { ok: false }; } },
+    // Error text comes from the interface catalog (F44); English here.
+    mainI18n: { t: require('../support/english-t').englishT },
+    MAX_TAB_IMPORT_TABS: 100,
   };
   vm.createContext(context);
   vm.runInContext(mainSource.slice(claimStart, claimEnd), context);

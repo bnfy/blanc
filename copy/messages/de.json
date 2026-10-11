@@ -2808,5 +2808,177 @@
   "ws.list.importArc": {
     "message": "Spaces aus Arc importieren",
     "source": "sha256:0416f4e07b657d7695b22350963ae048338e0630136231cc8fe6e23f6c0bac41"
+  },
+  "profile.defaultName": {
+    "message": "Profil {number}",
+    "source": "sha256:65743e2234c91c508f430012d12f5afba687d1fa6b4a96bbb801e10c40ba56a1"
+  },
+  "profile.unnamed": {
+    "message": "Profil",
+    "source": "sha256:3f55fba2fe7e5901b6394103c5e1a9d613fd34b7130ac37fc758fed26ce0868d"
+  },
+  "profile.error.beingDeleted": {
+    "message": "Dieses Profil wird gerade gelöscht.",
+    "source": "sha256:aea080e77607ba3519a093f14411ccff430103376fef889e11bb73315bdb7e63"
+  },
+  "profile.error.missing": {
+    "message": "Dieses Profil gibt es nicht mehr.",
+    "source": "sha256:07ae463677a6cd83765e97c6d57cce70d4882e9cf368486871225bc2f9cf234c"
+  },
+  "profile.error.createFailed": {
+    "message": "Das Profil konnte nicht erstellt werden.",
+    "source": "sha256:968df9f7a694eb98b4d1fa88a7d7f6663e7c4696a0d34d44d288b012732a630d"
+  },
+  "profile.error.renameFailed": {
+    "message": "Das Profil konnte nicht umbenannt werden.",
+    "source": "sha256:520d35d28d7cc0784b2fd5cfa7f21ec46a885e5c401019902553924b5cfff533"
+  },
+  "profile.error.onlyNamedDeletable": {
+    "message": "Nur ein benanntes Profil kann gelöscht werden.",
+    "source": "sha256:438c09e2e369888b919680f60fd3fa9e440b8358f69e846915582332aa4e7d60"
+  },
+  "profile.error.confirmName": {
+    "message": "Gib „{name}“ genau so ein, um dieses Profil zu löschen.",
+    "source": "sha256:599d69f19909ec6b921877a33db0b2d8049adb091dd1abafd619d777e38ea4d0"
+  },
+  "profile.error.newerWorkspace": {
+    "message": "Dieser Blanc-Build kann einen neueren gespeicherten Arbeitsbereich nicht sicher entfernen.",
+    "source": "sha256:879024dd0262e48226f1955eefe2faa275b6f54606fc2703f087010c02b8446d"
+  },
+  "profile.error.deleteStartFailed": {
+    "message": "Das Löschen des Profils konnte nicht sicher gestartet werden.",
+    "source": "sha256:f69c2f0a74eb1a4db472963df22a51e516bbb282d540ee8d37be4bfa2b549fbf"
+  },
+  "profile.error.deleteStartDisk": {
+    "message": "Das Löschen des Profils konnte nicht sicher gestartet werden. Prüfe den freien Speicherplatz und versuche es erneut.",
+    "source": "sha256:847a62c68f39920c3c293c901ff37cc4dc82937b611a0af9fd568c3d502a250b"
+  },
+  "profile.error.registryNewer": {
+    "message": "Dieser Blanc-Build kann eine neuere lokale Profilliste nicht ändern",
+    "source": "sha256:10471f961b6d4d6886555fcbb3ff2502394b15f31f7bf3980e3043ae5bc98549"
+  },
+  "profile.error.limit": {
+    "message": "Blanc unterstützt bis zu {limit} lokale Profile",
+    "source": "sha256:358ec277718e8ce84480e278d79ba5aae5b633f1785eac297ae7a119b6c02b2a"
+  },
+  "profile.error.nameRequired": {
+    "message": "Ein Profilname ist erforderlich",
+    "source": "sha256:5075b0f787c33239b541af0763b5571ed0225f11874dc7efd103b6f49a9ba2d1"
+  },
+  "profile.error.notRenamable": {
+    "message": "Nur ein benanntes lokales Profil kann umbenannt werden",
+    "source": "sha256:9f2f192fa8d8e8da5473224061af82712540e67978ca3c50e49e8f6a78c08b1d"
+  },
+  "profile.error.unknown": {
+    "message": "Unbekanntes lokales Profil",
+    "source": "sha256:676a9c3b64cc80446e23637fd3cd58a90ff4d0faf59c2df0939bd814172ce0a9"
+  },
+  "profile.error.defaultProtected": {
+    "message": "{name} kann nicht gelöscht werden",
+    "source": "sha256:8666bd63d629d03fe25c92f897a2a681481da36fbd67f1fe20e7b561fc3763aa"
+  },
+  "profile.error.deletionPersist": {
+    "message": "Das Löschen des Profils konnte nicht gespeichert werden.",
+    "source": "sha256:70ac95d541b24c5526d656ff81a18ec83e8cf927e6cfa88818e8a511fdfaea63"
+  },
+  "profile.error.bookkeeping": {
+    "message": "Die abschließende Verwaltung beim Löschen des Profils konnte nicht abgeschlossen werden.",
+    "source": "sha256:1bf73eadf19f53ce60764ceee6b4517f26a2a00c1e3f47e00c2423b55a7d22f9"
+  },
+  "profile.error.workspacesRemove": {
+    "message": "Die gespeicherten Spaces dieses Profils konnten nicht entfernt werden.",
+    "source": "sha256:8b3e588615833b9eca6c89e2ed02d631b380432e9a20e832cc246f62272486ee"
+  },
+  "profile.delete.alreadyDeleting": {
+    "message": "Dieses Profil wird bereits gelöscht.",
+    "source": "sha256:81f58807ba25a098f2f9078a3e0acd400cc324be7bdd92bbcbdb1860500cd7f7"
+  },
+  "profile.delete.waitingWindows": {
+    "message": "Warte, bis die Fenster des Profils geschlossen sind, bevor lokale Daten gelöscht werden.",
+    "source": "sha256:ddecd622ea7516f72390b26b07fa1d6adbebb433af2f44828964b40b90536ba3"
+  },
+  "profile.delete.finishing": {
+    "message": "Das Löschen des Profils wird noch abgeschlossen: {detail}",
+    "source": "sha256:bde2d0a5dacefb3447f49e43ca59bb8c5c9300f9e3b5b5ae709fb86f0fb9cd3e"
+  },
+  "profile.delete.finishingRetry": {
+    "message": "Das Löschen des Profils wird noch abgeschlossen: Die Bereinigung wird automatisch wiederholt.",
+    "source": "sha256:12850516f6d7755b9d6dce0c5c2279e2ff5e13f96f3ffad85d2ac4ec7d418068"
+  },
+  "profile.delete.bookkeeping": {
+    "message": "Die Profildaten wurden entfernt, die abschließende Bereinigung wird aber automatisch wiederholt.",
+    "source": "sha256:ace622fd3ea0a4aa92ec7135b9006b7d92b94e2015a509fe17c076365026a2e8"
+  },
+  "window.closeFailed.message": {
+    "message": "Dieses Fenster konnte nicht sicher geschlossen werden",
+    "source": "sha256:9f118b2d0d1f32edbd9f5e1fba23bae22ad9d0018a894ba457cc51aa7b1a8a2d"
+  },
+  "window.closeFailed.detail": {
+    "message": "Blanc konnte den letzten Stand des Arbeitsbereichs nicht speichern. Prüfe den freien Speicherplatz und versuche es erneut.",
+    "source": "sha256:978f6b5c250a0623c70f422c2f122b66ca033a24366c79a6cc132d1538619b91"
+  },
+  "session.error.replaceFailed": {
+    "message": "Die gespeicherte Sitzung konnte nicht ersetzt werden. Prüfe den Zugriff auf den Datenträger und versuche es erneut.",
+    "source": "sha256:4368ec17e1d0685ab22208d210f7993d79b401a27598352c1806b14bbd10ecf2"
+  },
+  "session.error.choiceFailed": {
+    "message": "Die Wiederherstellungsauswahl konnte nicht gespeichert werden. Prüfe den Zugriff auf den Datenträger und versuche es erneut.",
+    "source": "sha256:691017475d29119e7df35b69d31f53de9edab486a26f8c2bd2483be0f0f9db38"
+  },
+  "handoff.error.invalidExpiry": {
+    "message": "Diese Übergabe ist abgelaufen oder die Uhr deines Geräts geht falsch. Prüfe die Uhr und erstelle eine neue Übergabe.",
+    "source": "sha256:7874a2283d2a8d49f9881bcbca72d5cfae7fb9c0f61480bd66a70cfc7a9dca96"
+  },
+  "handoff.error.tooManyTabs": {
+    "message": "Diese Übergabe enthält mehr als {limit} Tabs. Wähle weniger aus und versuche es erneut.",
+    "source": "sha256:48cfb41b2a1c8fd540f36645fb6d1b6f71199f04c19fbd06e547fd59366ad63a"
+  },
+  "handoff.error.empty": {
+    "message": "Diese Übergabe enthält keine geeigneten Web-Tabs.",
+    "source": "sha256:0ddd708e1a1911d5d99de2c6e87df60a943ea64cb236b0ff90d2d1f352d75e2d"
+  },
+  "handoff.error.multipleActive": {
+    "message": "Der Quellbrowser hat mehr als einen aktiven Tab gemeldet.",
+    "source": "sha256:7ae7b573d896e8dc2fa3c269b0ff4e17be70666e12d758340a9d791905cad52d"
+  },
+  "handoff.error.unverified": {
+    "message": "Blanc konnte diese Übergabe nicht überprüfen. Sie wurde möglicherweise verändert oder über den falschen Link geöffnet.",
+    "source": "sha256:209f41ddd64ed0232787071500f4c6700ab69988765695e1d49cbd7dfa02c804"
+  },
+  "handoff.error.unavailable": {
+    "message": "Diese Übergabe ist abgelaufen, wurde bereits verwendet oder ist nicht verfügbar.",
+    "source": "sha256:cee7cd5a589767bd4c7c701564990128ab5db33a34a4d4b4e2484c713e60d5f1"
+  },
+  "handoff.error.offline": {
+    "message": "Blanc konnte den Dienst für die Tab-Übergabe nicht erreichen. Prüfe deine Verbindung und versuche es erneut.",
+    "source": "sha256:ce8e98c7292110cecb22a1541f60b160ce3838ae97d9f1d83741f42da2a262a8"
+  },
+  "handoff.error.serviceUnavailable": {
+    "message": "Die Tab-Übergabe gibt es nur in offiziellen Blanc-Builds.",
+    "source": "sha256:91641041a3cd8254a6ea1f14fd04c2e7394c84acb68fea5249718e2d26e1fa7b"
+  },
+  "handoff.error.generic": {
+    "message": "Blanc konnte diese Tabs nicht importieren.",
+    "source": "sha256:d4fb659f7025ebde370aed6e0fdf9e2965cb88e73c41a7b5ff351970a6ddef07"
+  },
+  "import.permissionGuidance": {
+    "message": "macOS hat den Zugriff auf den Profilordner dieses Browsers blockiert. Gib Blanc in den Systemeinstellungen unter Datenschutz & Sicherheit den Festplattenvollzugriff und versuche es dann erneut.",
+    "source": "sha256:589dda1ecd7c378c75a5149365c9e6b44cd50f11e9782027ea4c6bf809a8d957"
+  },
+  "import.folder.bookmarksBar": {
+    "message": "Lesezeichenleiste",
+    "source": "sha256:4aa6b2c3350b928e408867f75dd6a860f8c72a24759d93c6cfbfbe1e1cad2f20"
+  },
+  "import.folder.other": {
+    "message": "Weitere Lesezeichen",
+    "source": "sha256:c2f597a99a59a9d18815d0552383640fe5151e0285dc5ee43eb6a74e8b56441e"
+  },
+  "import.folder.mobile": {
+    "message": "Mobile Lesezeichen",
+    "source": "sha256:6cf50e27d54a296ea9937e4fc7588eddd2ab710fb8a7da239fc3ff3a3eed18db"
+  },
+  "about.credits": {
+    "message": "Unabhängiger Browser von Bananify.",
+    "source": "sha256:eb9ba521f2c478e41ca65b7fdbb352973124439ffa8287c57abf5102a5931698"
   }
 }

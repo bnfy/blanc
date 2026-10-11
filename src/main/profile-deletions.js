@@ -24,7 +24,7 @@ function createProfileDeletionManager({ store }) {
 
   function mark(profileId) {
     if (!validProfileId(profileId) || profileId === DEFAULT_PROFILE_ID) {
-      throw new Error('Only a named local profile can be deleted');
+      throw Object.assign(new Error('Only a named local profile can be deleted'), { code: 'not-deletable' });
     }
     if (has(profileId)) return true;
     const saved = store.updateAndFlush((data) => {
@@ -32,7 +32,7 @@ function createProfileDeletionManager({ store }) {
       data.profileIds = [...pending(), profileId];
     });
     if (!saved) {
-      throw new Error('Couldn’t safely start profile deletion. Check disk space and try again.');
+      throw Object.assign(new Error('Couldn’t safely start profile deletion. Check disk space and try again.'), { code: 'delete-start-disk' });
     }
     return true;
   }
@@ -43,7 +43,7 @@ function createProfileDeletionManager({ store }) {
       data.version = DELETE_MARKER_VERSION;
       data.profileIds = pending().filter((id) => id !== profileId);
     });
-    if (!saved) throw new Error('Couldn’t finish profile deletion bookkeeping.');
+    if (!saved) throw Object.assign(new Error('Couldn’t finish profile deletion bookkeeping.'), { code: 'bookkeeping' });
     return true;
   }
 
