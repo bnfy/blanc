@@ -214,13 +214,13 @@
     },
     {
       "file": "src/main/local-profiles.js",
-      "sha256": "dc0d8e05073eb862fca1e96b8e3ff67cf94658464727454edcec5b38ce2a684a",
+      "sha256": "d8baba8cbfb484cbc5a696c430af5ad512d37200eb2b9a8823fef0f164cbc41b",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
     {
       "file": "src/main/main.js",
-      "sha256": "2ad8663a7fa84cf950101759c84167c32930c8e94972bf924ec36da8709d8eb4",
+      "sha256": "503b4fdc3503b98a91133bc266f78244240ab901a131d4b9cc25584f09933790",
       "literalChannels": [
         "activate",
         "before-input-event",
@@ -416,7 +416,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "569290c240c9c3045144a3504b5265c8d1547c72eb436e591392f21d4c5f476d",
+      "sha256": "6fdff849ef576e4db7a87e0c49cf77f7939ed1df714c277c5792fe6d28d79053",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -631,7 +631,7 @@
     },
     {
       "file": "src/main/profile-deletions.js",
-      "sha256": "caf5646f3bebbfbf1f2e5b70b2d718aa6b2771818eb973648ea75a4fa307a36c",
+      "sha256": "f7152966418905972da6295e3bec9da5cdedd0adb41a6ca7b85bf2a248dd66fe",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },

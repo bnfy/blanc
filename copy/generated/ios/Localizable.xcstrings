@@ -13314,6 +13314,780 @@
           }
         }
       }
+    },
+    "profile.defaultName": {
+      "comment": "Name given to a new profile created without one (for example from File → New Profile Window); {number} counts profiles. Saved as the profile’s name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profil %1$@"
+          }
+        }
+      }
+    },
+    "profile.unnamed": {
+      "comment": "Fallback window-title name for a profile without a name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profil"
+          }
+        }
+      }
+    },
+    "profile.error.beingDeleted": {
+      "comment": "Settings → Profiles message.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That profile is being deleted."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Profil wird gerade gelöscht."
+          }
+        }
+      }
+    },
+    "profile.error.missing": {
+      "comment": "Settings → Profiles message.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That profile no longer exists."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Profil gibt es nicht mehr."
+          }
+        }
+      }
+    },
+    "profile.error.createFailed": {
+      "comment": "Settings → Profiles message.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t create that profile."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Profil konnte nicht erstellt werden."
+          }
+        }
+      }
+    },
+    "profile.error.renameFailed": {
+      "comment": "Settings → Profiles message.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t rename that profile."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Profil konnte nicht umbenannt werden."
+          }
+        }
+      }
+    },
+    "profile.error.onlyNamedDeletable": {
+      "comment": "Settings → Profiles message.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only a named profile can be deleted."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur ein benanntes Profil kann gelöscht werden."
+          }
+        }
+      }
+    },
+    "profile.error.confirmName": {
+      "comment": "Settings → Profiles message; {name} is the profile’s name, which must be typed to confirm deletion.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type “%1$@” exactly to delete this profile."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib „%1$@“ genau so ein, um dieses Profil zu löschen."
+          }
+        }
+      }
+    },
+    "profile.error.newerWorkspace": {
+      "comment": "Settings → Profiles message when a newer Blanc saved the workspace file.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This Blanc build cannot safely remove a newer saved workspace."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Blanc-Build kann einen neueren gespeicherten Arbeitsbereich nicht sicher entfernen."
+          }
+        }
+      }
+    },
+    "profile.error.deleteStartFailed": {
+      "comment": "Settings → Profiles message.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t safely start profile deletion."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Löschen des Profils konnte nicht sicher gestartet werden."
+          }
+        }
+      }
+    },
+    "profile.error.deleteStartDisk": {
+      "comment": "Settings → Profiles message.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t safely start profile deletion. Check disk space and try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Löschen des Profils konnte nicht sicher gestartet werden. Prüfe den freien Speicherplatz und versuche es erneut."
+          }
+        }
+      }
+    },
+    "profile.error.registryNewer": {
+      "comment": "Settings → Profiles message when a newer Blanc saved the profile list (no final period).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This Blanc build cannot modify a newer local-profile registry"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Blanc-Build kann eine neuere lokale Profilliste nicht ändern"
+          }
+        }
+      }
+    },
+    "profile.error.limit": {
+      "comment": "Settings → Profiles message; {limit} is the maximum number of profiles (no final period).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc supports up to %1$@ local profiles"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc unterstützt bis zu %1$@ lokale Profile"
+          }
+        }
+      }
+    },
+    "profile.error.nameRequired": {
+      "comment": "Settings → Profiles message when renaming to an empty name (no final period).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A profile name is required"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Profilname ist erforderlich"
+          }
+        }
+      }
+    },
+    "profile.error.notRenamable": {
+      "comment": "Settings → Profiles message (no final period).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only a named local profile can be renamed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur ein benanntes lokales Profil kann umbenannt werden"
+          }
+        }
+      }
+    },
+    "profile.error.unknown": {
+      "comment": "Settings → Profiles message (no final period).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown local profile"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unbekanntes lokales Profil"
+          }
+        }
+      }
+    },
+    "profile.error.defaultProtected": {
+      "comment": "Settings → Profiles message; {name} is the built-in profile’s name (no final period).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ cannot be deleted"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ kann nicht gelöscht werden"
+          }
+        }
+      }
+    },
+    "profile.error.deletionPersist": {
+      "comment": "Settings → Profiles message.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t persist the profile deletion."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Löschen des Profils konnte nicht gespeichert werden."
+          }
+        }
+      }
+    },
+    "profile.error.bookkeeping": {
+      "comment": "Settings → Profiles message.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t finish profile deletion bookkeeping."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die abschließende Verwaltung beim Löschen des Profils konnte nicht abgeschlossen werden."
+          }
+        }
+      }
+    },
+    "profile.error.workspacesRemove": {
+      "comment": "Settings → Profiles message (Spaces is a fixed product name).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t remove this profile’s saved spaces."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die gespeicherten Spaces dieses Profils konnten nicht entfernt werden."
+          }
+        }
+      }
+    },
+    "profile.delete.alreadyDeleting": {
+      "comment": "Settings → Profiles message.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That profile is already being deleted."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Profil wird bereits gelöscht."
+          }
+        }
+      }
+    },
+    "profile.delete.waitingWindows": {
+      "comment": "Settings → Profiles message while a deleted profile’s windows close.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for the profile windows to close before erasing local data."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Warte, bis die Fenster des Profils geschlossen sind, bevor lokale Daten gelöscht werden."
+          }
+        }
+      }
+    },
+    "profile.delete.finishing": {
+      "comment": "Settings → Profiles message; {detail} says what is still pending (a sentence, sometimes a technical error).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile deletion is still finishing: %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Löschen des Profils wird noch abgeschlossen: %1$@"
+          }
+        }
+      }
+    },
+    "profile.delete.finishingRetry": {
+      "comment": "Settings → Profiles message when no detail is known.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile deletion is still finishing: cleanup will retry automatically."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Löschen des Profils wird noch abgeschlossen: Die Bereinigung wird automatisch wiederholt."
+          }
+        }
+      }
+    },
+    "profile.delete.bookkeeping": {
+      "comment": "Settings → Profiles message.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile data was removed, but final cleanup bookkeeping will retry automatically."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Profildaten wurden entfernt, die abschließende Bereinigung wird aber automatisch wiederholt."
+          }
+        }
+      }
+    },
+    "window.closeFailed.message": {
+      "comment": "Dialog when a window’s workspace could not be saved before closing.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t close this window safely"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Fenster konnte nicht sicher geschlossen werden"
+          }
+        }
+      }
+    },
+    "window.closeFailed.detail": {
+      "comment": "Dialog detail when a window could not close safely.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc couldn’t save its latest workspace state. Check available disk space and try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc konnte den letzten Stand des Arbeitsbereichs nicht speichern. Prüfe den freien Speicherplatz und versuche es erneut."
+          }
+        }
+      }
+    },
+    "session.error.replaceFailed": {
+      "comment": "Start page session-recovery error after choosing to start fresh.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t replace the saved session. Check disk access and try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die gespeicherte Sitzung konnte nicht ersetzt werden. Prüfe den Zugriff auf den Datenträger und versuche es erneut."
+          }
+        }
+      }
+    },
+    "session.error.choiceFailed": {
+      "comment": "Start page session-recovery error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t save the recovery choice. Check disk access and try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Wiederherstellungsauswahl konnte nicht gespeichert werden. Prüfe den Zugriff auf den Datenträger und versuche es erneut."
+          }
+        }
+      }
+    },
+    "handoff.error.invalidExpiry": {
+      "comment": "Tab handoff error (tabs sent from another browser).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This handoff has expired or your device clock is incorrect. Check the clock and create a new handoff."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Übergabe ist abgelaufen oder die Uhr deines Geräts geht falsch. Prüfe die Uhr und erstelle eine neue Übergabe."
+          }
+        }
+      }
+    },
+    "handoff.error.tooManyTabs": {
+      "comment": "Tab handoff error; {limit} is the maximum number of tabs (always more than one).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This handoff has more than %1$@ tabs. Select a smaller set and try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Übergabe enthält mehr als %1$@ Tabs. Wähle weniger aus und versuche es erneut."
+          }
+        }
+      }
+    },
+    "handoff.error.empty": {
+      "comment": "Tab handoff error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This handoff has no eligible web tabs."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Übergabe enthält keine geeigneten Web-Tabs."
+          }
+        }
+      }
+    },
+    "handoff.error.multipleActive": {
+      "comment": "Tab handoff error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The source browser reported more than one active tab."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Quellbrowser hat mehr als einen aktiven Tab gemeldet."
+          }
+        }
+      }
+    },
+    "handoff.error.unverified": {
+      "comment": "Tab handoff error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc could not verify this handoff. It may have been changed or opened with the wrong link."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc konnte diese Übergabe nicht überprüfen. Sie wurde möglicherweise verändert oder über den falschen Link geöffnet."
+          }
+        }
+      }
+    },
+    "handoff.error.unavailable": {
+      "comment": "Tab handoff error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This handoff has expired, was already used, or is unavailable."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Übergabe ist abgelaufen, wurde bereits verwendet oder ist nicht verfügbar."
+          }
+        }
+      }
+    },
+    "handoff.error.offline": {
+      "comment": "Tab handoff error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc could not reach the tab handoff service. Check your connection and try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc konnte den Dienst für die Tab-Übergabe nicht erreichen. Prüfe deine Verbindung und versuche es erneut."
+          }
+        }
+      }
+    },
+    "handoff.error.serviceUnavailable": {
+      "comment": "Tab handoff error in builds that cannot reach Blanc’s handoff service.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tab handoff is available only in official Blanc builds."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Tab-Übergabe gibt es nur in offiziellen Blanc-Builds."
+          }
+        }
+      }
+    },
+    "handoff.error.generic": {
+      "comment": "Tab handoff error for any other failure.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc could not import these tabs."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc konnte diese Tabs nicht importieren."
+          }
+        }
+      }
+    },
+    "import.permissionGuidance": {
+      "comment": "Shown when importing from another browser on macOS needs Full Disk Access; System Settings → Privacy & Security is macOS’s own menu path, use its localized names.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS blocked access to this browser’s profile folder. Grant Blanc Full Disk Access in System Settings → Privacy & Security, then try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS hat den Zugriff auf den Profilordner dieses Browsers blockiert. Gib Blanc in den Systemeinstellungen unter Datenschutz & Sicherheit den Festplattenvollzugriff und versuche es dann erneut."
+          }
+        }
+      }
+    },
+    "import.folder.bookmarksBar": {
+      "comment": "Folder name given to favorites imported from another browser’s bookmarks bar; saved as the folder’s name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bookmarks bar"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lesezeichenleiste"
+          }
+        }
+      }
+    },
+    "import.folder.other": {
+      "comment": "Folder name for favorites imported from another browser’s Other bookmarks; saved as the folder’s name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other bookmarks"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weitere Lesezeichen"
+          }
+        }
+      }
+    },
+    "import.folder.mobile": {
+      "comment": "Folder name for favorites imported from another browser’s mobile bookmarks; saved as the folder’s name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mobile bookmarks"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mobile Lesezeichen"
+          }
+        }
+      }
+    },
+    "about.credits": {
+      "comment": "macOS About panel credits line; Bananify is the company name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Independent browser by Bananify."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unabhängiger Browser von Bananify."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

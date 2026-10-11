@@ -20,7 +20,7 @@ function createLocalProfileManager({ store, makeId = crypto.randomUUID, now = Da
   function supportedRegistry() {
     const parsed = read();
     if (!parsed.supported) {
-      throw new Error('This Blanc build cannot modify a newer local-profile registry');
+      throw Object.assign(new Error('This Blanc build cannot modify a newer local-profile registry'), { code: 'registry-newer' });
     }
     return parsed.registry;
   }
@@ -36,16 +36,18 @@ function createLocalProfileManager({ store, makeId = crypto.randomUUID, now = Da
     return list().find((profile) => profile.id === id) ?? null;
   }
 
-  function create(name) {
+  // `defaultName(ordinal)` names a profile created without one (main.js
+  // supplies it in the interface language); the name is saved as data.
+  function create(name, { defaultName = (ordinal) => `Profile ${ordinal}` } = {}) {
     const registry = supportedRegistry();
     if (registry.profiles.length >= MAX_LOCAL_PROFILES) {
-      throw new Error(`Blanc supports up to ${MAX_LOCAL_PROFILES} local profiles`);
+      throw Object.assign(new Error(`Blanc supports up to ${MAX_LOCAL_PROFILES} local profiles`), { code: 'profile-limit', limit: MAX_LOCAL_PROFILES });
     }
     const ordinal = registry.profiles.length + 1;
     const opaque = String(makeId()).replace(/[^a-zA-Z0-9_-]/g, '');
     const profile = {
       id: `profile_${opaque}`.slice(0, 64),
-      name: normalizeProfileName(name, `Profile ${ordinal}`),
+      name: normalizeProfileName(name, defaultName(ordinal)),
       createdAt: now(),
     };
     const next = addLocalProfile(registry, profile);
@@ -66,7 +68,7 @@ function createLocalProfileManager({ store, makeId = crypto.randomUUID, now = Da
     const apply = (data) => Object.assign(data, next);
     if (flush) {
       if (typeof store.updateAndFlush !== 'function' || !store.updateAndFlush(apply)) {
-        throw new Error('Couldn’t persist the profile deletion.');
+        throw Object.assign(new Error('Couldn’t persist the profile deletion.'), { code: 'deletion-persist' });
       }
     } else {
       store.update(apply);
@@ -87,7 +89,7 @@ function ensureManager() {
 
 const listLocalProfiles = () => ensureManager().list();
 const getLocalProfile = (id = DEFAULT_PROFILE_ID) => ensureManager().get(id);
-const createLocalProfile = (name) => ensureManager().create(name);
+const createLocalProfile = (name, options) => ensureManager().create(name, options);
 const renameLocalProfile = (id, name) => ensureManager().rename(id, name);
 const removeLocalProfile = (id, options) => ensureManager().remove(id, options);
 

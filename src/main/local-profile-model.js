@@ -94,17 +94,17 @@ function renameLocalProfile(registry, id, name) {
   const parsed = readLocalProfiles(registry);
   if (!parsed.supported) return parsed.registry;
   if (!validProfileId(id) || id === DEFAULT_PROFILE_ID) {
-    throw new Error('Only a named local profile can be renamed');
+    throw Object.assign(new Error('Only a named local profile can be renamed'), { code: 'not-renamable' });
   }
   const nextName = normalizeProfileName(name, '');
-  if (!nextName) throw new Error('A profile name is required');
+  if (!nextName) throw Object.assign(new Error('A profile name is required'), { code: 'name-required' });
   let found = false;
   const profiles = parsed.registry.profiles.map((profile) => {
     if (profile.id !== id) return profile;
     found = true;
     return { ...profile, name: nextName };
   });
-  if (!found) throw new Error('Unknown local profile');
+  if (!found) throw Object.assign(new Error('Unknown local profile'), { code: 'unknown-profile' });
   return { version: LOCAL_PROFILE_VERSION, profiles };
 }
 
@@ -112,10 +112,10 @@ function removeLocalProfile(registry, id) {
   const parsed = readLocalProfiles(registry);
   if (!parsed.supported) return parsed.registry;
   if (!validProfileId(id) || id === DEFAULT_PROFILE_ID) {
-    throw new Error('Personal cannot be deleted');
+    throw Object.assign(new Error('Personal cannot be deleted'), { code: 'default-protected' });
   }
   if (!parsed.registry.profiles.some((profile) => profile.id === id)) {
-    throw new Error('Unknown local profile');
+    throw Object.assign(new Error('Unknown local profile'), { code: 'unknown-profile' });
   }
   return {
     version: LOCAL_PROFILE_VERSION,

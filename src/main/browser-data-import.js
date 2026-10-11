@@ -18,8 +18,6 @@ const MAX_BROWSER_BOOKMARK_BYTES = 20 * 1024 * 1024;
 const MAX_BROWSER_BOOKMARK_NODES = 100_000;
 const CHROMIUM_EPOCH_OFFSET_MS = 11_644_473_600_000;
 
-const BROWSER_PERMISSION_GUIDANCE =
-  'macOS blocked access to this browser\'s profile folder. Grant Blanc Full Disk Access in System Settings → Privacy & Security, then try again.';
 
 function isBrowserAccessError(err) {
   return err?.code === 'EPERM' || err?.code === 'EACCES';
@@ -114,9 +112,12 @@ function chromiumTimestampMs(value, now) {
   }
 }
 
+// `t` is the interface translator: imported root folders are named in the
+// interface language, and those names are saved with the favorites.
 function parseChromiumBookmarks(input, {
   now = Date.now(),
   maxNodes = MAX_BROWSER_BOOKMARK_NODES,
+  t,
 } = {}) {
   const data = typeof input === 'string' ? JSON.parse(input) : input;
   if (!data || typeof data !== 'object' || !data.roots || typeof data.roots !== 'object') {
@@ -126,9 +127,9 @@ function parseChromiumBookmarks(input, {
   const entries = [];
   let visited = 0;
   const roots = [
-    ['bookmark_bar', 'Bookmarks bar'],
-    ['other', 'Other bookmarks'],
-    ['synced', 'Mobile bookmarks'],
+    ['bookmark_bar', t('import.folder.bookmarksBar')],
+    ['other', t('import.folder.other')],
+    ['synced', t('import.folder.mobile')],
   ];
 
   const visit = (node, folder, depth) => {
@@ -187,13 +188,13 @@ function safeProfileName(infoCache, directory) {
   return directory === 'Default' ? 'Default' : directory.slice(0, 120);
 }
 
-function publicUnavailable(browser) {
+function publicUnavailable(browser, t) {
   return {
     browserId: browser.id,
     browser: browser.name,
     label: browser.name,
     reason: 'permission',
-    guidance: BROWSER_PERMISSION_GUIDANCE,
+    guidance: t('import.permissionGuidance'),
   };
 }
 
@@ -213,6 +214,7 @@ function createBrowserDataImportService({
   homeDir = os.homedir(),
   env = process.env,
   fsPromises = fs.promises,
+  t,
 } = {}) {
   async function discover({ requireBookmarks = true } = {}) {
     const sources = [];
@@ -381,6 +383,7 @@ function createBrowserDataImportService({
               id: entry.browserId,
               name: entry.browser,
             },
+            t,
           )),
       };
     },
@@ -395,6 +398,7 @@ function createBrowserDataImportService({
               id: entry.browserId,
               name: entry.browser,
             },
+            t,
           )),
       };
     },
@@ -424,7 +428,7 @@ function createBrowserDataImportService({
         if (!stat.isFile()) return { error: 'source-unavailable' };
         if (stat.size > MAX_BROWSER_BOOKMARK_BYTES) return { error: 'too-large' };
         const raw = await file.readFile('utf8');
-        const entries = parseChromiumBookmarks(raw);
+        const entries = parseChromiumBookmarks(raw, { t });
         if (!entries.length) return { error: 'empty' };
         return { source: publicSource(source), entries };
       } catch {
@@ -468,7 +472,6 @@ function createBrowserDataImportService({
 
 module.exports = {
   BROWSERS,
-  BROWSER_PERMISSION_GUIDANCE,
   MAX_BROWSER_BOOKMARK_BYTES,
   MAX_SESSION_BYTES,
   browserDataRoot,

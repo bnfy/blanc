@@ -57,6 +57,29 @@ test('manager refuses unsupported registries, Personal deletion, and profile ove
   assert.throws(() => full.remove('default'), /cannot be deleted/);
 });
 
+test('errors the interface shows carry a code, and an unnamed profile takes the supplied default name', () => {
+  const codeOf = (fn) => { try { fn(); } catch (error) { return error.code; } return null; };
+  const future = createLocalProfileManager({ store: fakeStore({ version: 99, profiles: [] }) });
+  assert.equal(codeOf(() => future.create('Work')), 'registry-newer');
+
+  const profiles = Array.from({ length: MAX_LOCAL_PROFILES }, (_, index) => ({
+    id: index === 0 ? 'default' : `profile_${index}`, name: index === 0 ? 'Personal' : `Profile ${index}`, createdAt: index,
+  }));
+  const full = createLocalProfileManager({ store: fakeStore({ version: 1, profiles }) });
+  let limit = null;
+  try { full.create('Overflow'); } catch (error) { limit = error; }
+  assert.equal(limit.code, 'profile-limit');
+  assert.equal(limit.limit, MAX_LOCAL_PROFILES);
+  assert.equal(codeOf(() => full.remove('default')), 'default-protected');
+
+  let next = 0;
+  const manager = createLocalProfileManager({ store: fakeStore(), makeId: () => `id${++next}` });
+  const named = manager.create('', { defaultName: (ordinal) => `Profil ${ordinal}` });
+  assert.equal(named.name, 'Profil 2');
+  assert.equal(manager.create('').name, 'Profile 3', 'English stays the default');
+  assert.equal(codeOf(() => manager.rename(named.id, '   ')), 'name-required');
+});
+
 test('profile deletion settles native visibility before force-destroying its window', async () => {
   assert.ok(destroyProfileWindowSource,
     'destroyProfileWindow not found in main.js — update this test with it');

@@ -10,9 +10,10 @@ const {
   aboutPanelOptions,
   showAboutPanel,
 } = require('../../src/main/about-panel');
+const { englishT: t } = require('../support/english-t');
 
 test('about panel metadata comes from the running Blanc build', () => {
-  const options = aboutPanelOptions({ app: { getVersion: () => '1.0.2-dev.3' } });
+  const options = aboutPanelOptions({ app: { getVersion: () => '1.0.2-dev.3' }, t });
 
   assert.deepEqual(options, {
     applicationName: ABOUT_APPLICATION_NAME,
@@ -33,7 +34,7 @@ test('showAboutPanel configures metadata before opening the native dialog', () =
     showAboutPanel: () => calls.push(['show']),
   };
 
-  showAboutPanel({ app, iconPath: '/tmp/blanc-about.png' });
+  showAboutPanel({ app, iconPath: '/tmp/blanc-about.png', t });
 
   assert.equal(calls[0][0], 'options');
   assert.equal(calls[0][1].applicationVersion, '1.0.2');

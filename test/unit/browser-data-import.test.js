@@ -3,14 +3,14 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
-const {
-  MAX_BROWSER_BOOKMARK_BYTES,
-  BROWSER_PERMISSION_GUIDANCE,
-  browserDataRoot,
-  chromiumTimestampMs,
-  parseChromiumBookmarks,
-  createBrowserDataImportService,
-} = require('../../src/main/browser-data-import');
+const importModule = require('../../src/main/browser-data-import');
+const { englishT: t } = require('../support/english-t');
+const { MAX_BROWSER_BOOKMARK_BYTES, browserDataRoot, chromiumTimestampMs } = importModule;
+// Imported folder names and the macOS guidance come from the interface
+// catalog (F44); these tests read English.
+const parseChromiumBookmarks = (input, options = {}) => importModule.parseChromiumBookmarks(input, { ...options, t });
+const createBrowserDataImportService = (options = {}) => importModule.createBrowserDataImportService({ ...options, t });
+const BROWSER_PERMISSION_GUIDANCE = t('import.permissionGuidance');
 const { folderIdFromPath } = require('../../src/main/bookmark-tree');
 const { COMMAND, INITIAL_STATE_MARKER } = require('../../src/main/chromium-session');
 
