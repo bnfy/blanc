@@ -5,6 +5,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
+const { withoutInterfaceKeys } = require('../support/without-interface-keys');
 
 const root = path.join(__dirname, '../..');
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
@@ -14,7 +15,7 @@ test('product UI uses Inter while Mahjong tile faces retain their separate font'
   const chrome = read('src/renderer/styles.css');
   const handoff = read('src/renderer/pages/tab-handoff.css');
   const mahjong = read('src/renderer/pages/mahjong.css');
-  const newtab = read('src/renderer/pages/newtab.html');
+  const newtab = withoutInterfaceKeys(read('src/renderer/pages/newtab.html'));
   const game = read('src/renderer/pages/mahjong.html');
 
   for (const css of [pages, chrome, handoff, mahjong]) {
@@ -28,7 +29,7 @@ test('product UI uses Inter while Mahjong tile faces retain their separate font'
 test('Newsreader is bundled for the Billboard clock, invitations, and sheet headings', () => {
   const pages = read('src/renderer/pages/pages.css');
   const chrome = read('src/renderer/styles.css');
-  const newtab = read('src/renderer/pages/newtab.html');
+  const newtab = withoutInterfaceKeys(read('src/renderer/pages/newtab.html'));
   const font = fs.readFileSync(path.join(root, 'src/renderer/pages/newsreader-condensed-latin-opsz-normal.woff2'));
 
   assert.deepEqual([...font.subarray(0, 4)], [119, 79, 70, 50], 'font is WOFF2');

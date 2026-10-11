@@ -20484,6 +20484,2658 @@
           }
         }
       }
+    },
+    "newtab.startup.kicker": {
+      "comment": "Start page → blocker startup card: small heading above the status.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "browser protection"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browserschutz"
+          }
+        }
+      }
+    },
+    "newtab.startup.preparing": {
+      "comment": "Start page → blocker startup card: heading while the filters are prepared.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing blocking…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blockieren wird vorbereitet…"
+          }
+        }
+      }
+    },
+    "newtab.startup.preparingMessage": {
+      "comment": "Start page → blocker startup card: explanation while the filters are prepared.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc is preparing its local ad and tracker filters before opening web pages."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc bereitet seine lokalen Werbe- und Trackerfilter vor, bevor Webseiten geöffnet werden."
+          }
+        }
+      }
+    },
+    "newtab.startup.retrying": {
+      "comment": "Start page → blocker startup card: heading while a retry runs.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retrying blocking…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blockieren wird erneut versucht…"
+          }
+        }
+      }
+    },
+    "newtab.startup.failed": {
+      "comment": "Start page → blocker startup card: heading when the filters failed to start.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blocking could not start."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Blockieren konnte nicht starten."
+          }
+        }
+      }
+    },
+    "newtab.startup.failedMessage": {
+      "comment": "Start page → blocker startup card: explanation when the filters failed; {error} is a technical error message.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc has not opened queued web pages because its ad and tracker filters are unavailable. Retry, or explicitly continue with blocking turned off. Diagnostic: %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc hat wartende Webseiten nicht geöffnet, weil seine Werbe- und Trackerfilter nicht verfügbar sind. Versuch es erneut oder fahre ausdrücklich ohne Blockieren fort. Diagnose: %1$@"
+          }
+        }
+      }
+    },
+    "newtab.startup.unknownError": {
+      "comment": "Start page → blocker startup card: fills {error} when no error message is known.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "unknown blocker initialization error"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "unbekannter Fehler beim Starten des Blockers"
+          }
+        }
+      }
+    },
+    "newtab.startup.retry": {
+      "comment": "Start page → blocker startup card: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiederholen"
+          }
+        }
+      }
+    },
+    "newtab.startup.continue": {
+      "comment": "Start page → blocker startup card: button that opens pages with blocking turned off.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue without blocking"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ohne Blockieren fortfahren"
+          }
+        }
+      }
+    },
+    "newtab.recovery.title": {
+      "comment": "Start page → card shown after Blanc quit unexpectedly: heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pick up where you left off?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weitermachen, wo du aufgehört hast?"
+          }
+        }
+      }
+    },
+    "newtab.recovery.message": {
+      "comment": "Start page → card shown after Blanc quit unexpectedly: explanation; {tabs} is “3 tabs” (newtab.recovery.tabs), {windows} is “across 2 windows” (newtab.recovery.windows). “Personal” is the name of the built-in profile.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc did not close normally. Restore %1$@ %2$@, or start with a clean Personal window. No saved website will open until you choose."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc wurde nicht normal beendet. Stelle %1$@ %2$@ wieder her oder beginne mit einem leeren Personal-Fenster. Bis du wählst, wird keine gespeicherte Website geöffnet."
+          }
+        }
+      }
+    },
+    "newtab.recovery.tabs": {
+      "comment": "Start page → card shown after Blanc quit unexpectedly: fills {tabs} in “Restore {tabs} {windows}”.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld tab"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld tabs"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Tab"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Tabs"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "newtab.recovery.windows": {
+      "comment": "Start page → card shown after Blanc quit unexpectedly: fills {windows} in “Restore {tabs} {windows}”; include the preposition your sentence needs.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "across %1$lld window"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "across %1$lld windows"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "aus %1$lld Fenster"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "aus %1$lld Fenstern"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "newtab.recovery.restore": {
+      "comment": "Start page → card shown after Blanc quit unexpectedly: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore tabs"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs wiederherstellen"
+          }
+        }
+      }
+    },
+    "newtab.recovery.fresh": {
+      "comment": "Start page → card shown after Blanc quit unexpectedly: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start fresh"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neu beginnen"
+          }
+        }
+      }
+    },
+    "newtab.header": {
+      "comment": "Start page: accessible name of the page header.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc start page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc-Startseite"
+          }
+        }
+      }
+    },
+    "newtab.ledger.heading": {
+      "comment": "Start page: heading for screen readers on the Ledger layout. Ledger is a layout name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ledger start page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Startseite Ledger"
+          }
+        }
+      }
+    },
+    "newtab.billboard.heading": {
+      "comment": "Start page: heading for screen readers on the Billboard layout. Billboard is a layout name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Billboard start page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Startseite Billboard"
+          }
+        }
+      }
+    },
+    "newtab.shelf.heading": {
+      "comment": "Start page: heading for screen readers on the Shelf layout. Shelf is a layout name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shelf start page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Startseite Shelf"
+          }
+        }
+      }
+    },
+    "newtab.tally.heading": {
+      "comment": "Start page: heading for screen readers on the Tally layout. Tally is a layout name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tally start page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Startseite Tally"
+          }
+        }
+      }
+    },
+    "newtab.ledger.whereTo": {
+      "comment": "Start page → Ledger layout: large heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Where to?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wohin?"
+          }
+        }
+      }
+    },
+    "newtab.groups": {
+      "comment": "Start page: label above the tab groups; clicking one opens it.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pick up where you left off"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Da weitermachen, wo du aufgehört hast"
+          }
+        }
+      }
+    },
+    "newtab.remote": {
+      "comment": "Start page → Ledger layout: label above tabs open on your other devices.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On your other devices"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf deinen anderen Geräten"
+          }
+        }
+      }
+    },
+    "newtab.groups.count": {
+      "comment": "Start page: number of tabs in a group.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld tab"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld tabs"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Tab"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Tabs"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "newtab.shelf.blocked": {
+      "comment": "Start page → Shelf layout: label of the blocked-ads card.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blocked"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blockiert"
+          }
+        }
+      }
+    },
+    "newtab.shelf.unit": {
+      "comment": "Start page → Shelf layout: words after the large blocked count, which is shown separately; the count only chooses the form.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "ad this week"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "ads this week"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Anzeige diese Woche"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Anzeigen diese Woche"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "newtab.tally.blocked": {
+      "comment": "Start page → Tally layout: label above the blocked count.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blocked this week"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Woche blockiert"
+          }
+        }
+      }
+    },
+    "newtab.tally.busiest": {
+      "comment": "Start page → Tally layout: caption under the chart; {day} is a weekday name, lowercase like the rest of this caption.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "busiest day %1$@."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "meiste Blockierungen am %1$@."
+          }
+        }
+      }
+    },
+    "newtab.tally.nothingFollowed": {
+      "comment": "Start page → Tally layout: caption under the chart, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "nothing followed you home."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "nichts ist dir gefolgt."
+          }
+        }
+      }
+    },
+    "newtab.footer.blocked": {
+      "comment": "Start page: footer count.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld ad blocked this week"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld ads blocked this week"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Anzeige diese Woche blockiert"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Anzeigen diese Woche blockiert"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "newtab.billboard.blocked": {
+      "comment": "Start page → Billboard layout: line under the clock, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld ad blocked this week · nothing followed you home"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld ads blocked this week · nothing followed you home"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Anzeige diese Woche blockiert · nichts ist dir gefolgt"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Anzeigen diese Woche blockiert · nichts ist dir gefolgt"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "newtab.billboard.private": {
+      "comment": "Start page → Billboard layout: line under the clock in a private tab, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "nothing here is saved · nothing followed you home"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hier wird nichts gespeichert · nichts ist dir gefolgt"
+          }
+        }
+      }
+    },
+    "newtab.billboard.untitled": {
+      "comment": "Start page → Billboard layout: name of a frequent site that has no title or host.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Untitled site"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Website ohne Titel"
+          }
+        }
+      }
+    },
+    "newtab.billboard.open": {
+      "comment": "Start page → Billboard layout: accessible name of a frequent site; {title} is its title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ öffnen"
+          }
+        }
+      }
+    },
+    "newtab.billboard.hideTitle": {
+      "comment": "Start page → Billboard layout: tooltip of the × on a frequent site; {title} is its title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ ausblenden"
+          }
+        }
+      }
+    },
+    "newtab.billboard.hide": {
+      "comment": "Start page → Billboard layout: accessible name of the × on a frequent site; {title} is its title. Billboard is a layout name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide %1$@ from Billboard"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ in Billboard ausblenden"
+          }
+        }
+      }
+    },
+    "newtab.billboard.hidden": {
+      "comment": "Start page → Billboard layout: announced after hiding a site; {title} is its title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ hidden from Billboard."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ in Billboard ausgeblendet."
+          }
+        }
+      }
+    },
+    "newtab.checklist.label": {
+      "comment": "Start page footer → “Finish setup” checklist: footer pill that opens the checklist.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finish setup"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fertig einrichten"
+          }
+        }
+      }
+    },
+    "newtab.checklist.doneLabel": {
+      "comment": "Start page footer → “Finish setup” checklist: footer pill once both tasks are done, shown briefly.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All moved in"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alles fertig"
+          }
+        }
+      }
+    },
+    "newtab.checklist.hide": {
+      "comment": "Start page footer → “Finish setup” checklist: accessible name of the × that hides it for good.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide moving-in checklist"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checkliste zum Umzug ausblenden"
+          }
+        }
+      }
+    },
+    "newtab.checklist.title": {
+      "comment": "Start page footer → “Finish setup” checklist: heading, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ready to move in?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "bereit für den Umzug?"
+          }
+        }
+      }
+    },
+    "newtab.checklist.doneTitle": {
+      "comment": "Start page footer → “Finish setup” checklist: heading once both tasks are done, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "all moved in"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "alles eingerichtet"
+          }
+        }
+      }
+    },
+    "newtab.checklist.sync": {
+      "comment": "Start page footer → “Finish setup” checklist: task that opens Sync setup.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set up Sync"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisierung einrichten"
+          }
+        }
+      }
+    },
+    "newtab.checklist.tabs": {
+      "comment": "Start page footer → “Finish setup” checklist: task that brings open tabs from another browser.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bring your tabs"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs mitbringen"
+          }
+        }
+      }
+    },
+    "newtab.checklist.notCompleted": {
+      "comment": "Start page footer → “Finish setup” checklist: task state for screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not completed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht erledigt"
+          }
+        }
+      }
+    },
+    "newtab.checklist.completed": {
+      "comment": "Start page footer → “Finish setup” checklist: task state for screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erledigt"
+          }
+        }
+      }
+    },
+    "newtab.checklist.taskCompleted": {
+      "comment": "Start page footer → “Finish setup” checklist: accessible name of a done task; {task} is the task name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ — completed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ – erledigt"
+          }
+        }
+      }
+    },
+    "newtab.checklist.taskNotCompleted": {
+      "comment": "Start page footer → “Finish setup” checklist: accessible name of an open task; {task} is the task name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ — not completed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ – nicht erledigt"
+          }
+        }
+      }
+    },
+    "newtab.patron.upgrade": {
+      "comment": "Start page footer: pill linking to Blanc Patron in Settings.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upgrade to Blanc Patron"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upgrade auf Blanc Patron"
+          }
+        }
+      }
+    },
+    "newtab.patron.hide": {
+      "comment": "Start page footer: accessible name of the × on the Patron pill.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide the Blanc Patron upgrade for 90 days"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upgrade auf Blanc Patron für 90 Tage ausblenden"
+          }
+        }
+      }
+    },
+    "newtab.customize.button": {
+      "comment": "Start page footer: button that opens the layout and wallpaper popover.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Customize"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anpassen"
+          }
+        }
+      }
+    },
+    "newtab.customize.label": {
+      "comment": "Start page → Customize popover: accessible name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Customize start page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Startseite anpassen"
+          }
+        }
+      }
+    },
+    "newtab.customize.layout": {
+      "comment": "Start page → Customize popover: label above the layout choices.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Layout"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Layout"
+          }
+        }
+      }
+    },
+    "newtab.layout.ledger": {
+      "comment": "Start page → Customize popover: layout name (kept in every language, like the Settings choice).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ledger"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ledger"
+          }
+        }
+      }
+    },
+    "newtab.layout.billboard": {
+      "comment": "Start page → Customize popover: layout name (kept in every language, like the Settings choice).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Billboard"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Billboard"
+          }
+        }
+      }
+    },
+    "newtab.layout.shelf": {
+      "comment": "Start page → Customize popover: layout name (kept in every language, like the Settings choice).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shelf"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shelf"
+          }
+        }
+      }
+    },
+    "newtab.layout.tally": {
+      "comment": "Start page → Customize popover: layout name (kept in every language, like the Settings choice).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tally"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tally"
+          }
+        }
+      }
+    },
+    "newtab.customize.wallpaper": {
+      "comment": "Start page → Customize popover: switch for the time-of-day wallpaper.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dynamic wallpaper"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dynamischer Hintergrund"
+          }
+        }
+      }
+    },
+    "newtab.mahjong": {
+      "comment": "Start page footer: link that opens the Mahjong solitaire game.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mahjong"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mahjong"
+          }
+        }
+      }
+    },
+    "newtab.privateTab": {
+      "comment": "Start page: shown in place of the date in a private tab.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Private tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privater Tab"
+          }
+        }
+      }
+    },
+    "newtab.goAnywhere": {
+      "comment": "Start page footer: hint; {shortcut} is the keyboard shortcut, e.g. ⌘L.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ to go anywhere"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, um überallhin zu gelangen"
+          }
+        }
+      }
+    },
+    "newtab.private.footer": {
+      "comment": "Start page footer in a private tab, lowercase by design: nothing is recorded, private tabs are kept apart, and everything (including passkeys created here) stops working when Blanc quits.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "no history · separate from regular tabs · ends at quit, passkeys made here too"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "kein Verlauf · getrennt von normalen Tabs · endet beim Beenden, auch hier erstellte Passkeys"
+          }
+        }
+      }
+    },
+    "newtab.version": {
+      "comment": "Start page footer: app version, e.g. v1.31.0.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "v%1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "v%1$@"
+          }
+        }
+      }
+    },
+    "newtab.favorites.empty": {
+      "comment": "Start page: shown when there are no Favorites; ♥ is the Favorite button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favorite a page with ♥ to pin it here"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Markiere eine Seite mit ♥ als Favorit, um sie hier anzuheften"
+          }
+        }
+      }
+    },
+    "onboarding.skip": {
+      "comment": "Onboarding dialog: button that skips the remaining steps, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "skip setup"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "überspringen"
+          }
+        }
+      }
+    },
+    "onboarding.stepLabel": {
+      "comment": "Onboarding dialog: progress above the step, e.g. “2 / 6 — import”; {name} is the step name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ / %2$@ — %3$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ / %2$@ – %3$@"
+          }
+        }
+      }
+    },
+    "onboarding.step.default": {
+      "comment": "Onboarding dialog: name of step 1, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "default browser"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standardbrowser"
+          }
+        }
+      }
+    },
+    "onboarding.step.import": {
+      "comment": "Onboarding dialog: name of step 2, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "import"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import"
+          }
+        }
+      }
+    },
+    "onboarding.step.island": {
+      "comment": "Onboarding dialog: name of step 3 (the Island), lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "the island"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "die Island"
+          }
+        }
+      }
+    },
+    "onboarding.step.blocking": {
+      "comment": "Onboarding dialog: name of step 4, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ad blocking"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Werbeblocker"
+          }
+        }
+      }
+    },
+    "onboarding.step.privacy": {
+      "comment": "Onboarding dialog: name of step 5, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "privacy"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datenschutz"
+          }
+        }
+      }
+    },
+    "onboarding.step.theme": {
+      "comment": "Onboarding dialog: name of step 6, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "theme"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Design"
+          }
+        }
+      }
+    },
+    "onboarding.default.title": {
+      "comment": "Onboarding dialog → step 1: heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Make Blanc your default"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mach Blanc zu deinem Standardbrowser"
+          }
+        }
+      }
+    },
+    "onboarding.default.body": {
+      "comment": "Onboarding dialog → step 1: explanation.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Links from other apps open here. You can change this anytime in Settings."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Links aus anderen Apps öffnen sich hier. Du kannst das jederzeit in den Einstellungen ändern."
+          }
+        }
+      }
+    },
+    "onboarding.default.set": {
+      "comment": "Onboarding dialog → step 1: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set as default"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als Standard setzen"
+          }
+        }
+      }
+    },
+    "onboarding.default.done": {
+      "comment": "Onboarding dialog → step 1: the button once Blanc is the default browser.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc is your default"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc ist dein Standard"
+          }
+        }
+      }
+    },
+    "onboarding.import.title": {
+      "comment": "Onboarding → step 2 (import): heading; “bookmarks” are the other browser’s, which become Favorites in Blanc.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bring your bookmarks"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bring deine Lesezeichen mit"
+          }
+        }
+      }
+    },
+    "onboarding.import.body": {
+      "comment": "Onboarding → step 2 (import): explanation.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imports happen on this device — nothing is uploaded."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importe geschehen auf diesem Gerät – nichts wird hochgeladen."
+          }
+        }
+      }
+    },
+    "onboarding.import.look": {
+      "comment": "Onboarding → step 2 (import): button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Look for installed browsers"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installierte Browser suchen"
+          }
+        }
+      }
+    },
+    "onboarding.import.bringTabs": {
+      "comment": "Onboarding → step 2 (import): button that opens the open-tab import.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bring your open tabs…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offene Tabs mitbringen…"
+          }
+        }
+      }
+    },
+    "onboarding.import.fromFile": {
+      "comment": "Onboarding → step 2 (import): choice that imports an exported bookmarks file.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From a bookmarks file (HTML)…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aus einer Lesezeichendatei (HTML)…"
+          }
+        }
+      }
+    },
+    "onboarding.import.looking": {
+      "comment": "Onboarding → step 2 (import): status.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Looking for installed browsers…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installierte Browser werden gesucht…"
+          }
+        }
+      }
+    },
+    "onboarding.import.noneFound": {
+      "comment": "Onboarding → step 2 (import): status.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No other browser profiles found."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine anderen Browserprofile gefunden."
+          }
+        }
+      }
+    },
+    "onboarding.import.checkFailed": {
+      "comment": "Onboarding → step 2 (import): error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t check for other browsers."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Andere Browser konnten nicht gesucht werden."
+          }
+        }
+      }
+    },
+    "onboarding.import.importing": {
+      "comment": "Onboarding → step 2 (import): status.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importing favorites…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favoriten werden importiert…"
+          }
+        }
+      }
+    },
+    "onboarding.import.empty": {
+      "comment": "Onboarding → step 2 (import): result when the source has none.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No favorites found there."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dort wurden keine Favoriten gefunden."
+          }
+        }
+      }
+    },
+    "onboarding.import.tooLarge": {
+      "comment": "Onboarding → step 2 (import): error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That profile is too large to import safely."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Profil ist zu groß, um es sicher zu importieren."
+          }
+        }
+      }
+    },
+    "onboarding.import.readFailed": {
+      "comment": "Onboarding → step 2 (import): error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t read that browser profile."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Browserprofil konnte nicht gelesen werden."
+          }
+        }
+      }
+    },
+    "onboarding.import.failed": {
+      "comment": "Onboarding → step 2 (import): error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t import from there."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Von dort konnte nicht importiert werden."
+          }
+        }
+      }
+    },
+    "onboarding.import.imported": {
+      "comment": "Onboarding → step 2 (import): result.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Imported %1$lld favorite."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Imported %1$lld favorites."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Favorit importiert."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Favoriten importiert."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "onboarding.import.importedFrom": {
+      "comment": "Onboarding → step 2 (import): result; {source} is a browser name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Imported %1$lld favorite from %2$@."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Imported %1$lld favorites from %2$@."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Favorit aus %2$@ importiert."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Favoriten aus %2$@ importiert."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "onboarding.import.skipped": {
+      "comment": "Onboarding → step 2 (import): second sentence of the result when some were already saved.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Skipped %1$lld favorite already saved."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Skipped %1$lld favorites already saved."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld bereits gespeicherter Favorit übersprungen."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld bereits gespeicherte Favoriten übersprungen."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "onboarding.import.allSaved": {
+      "comment": "Onboarding → step 2 (import): result when every one was already saved.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "That favorite was already saved."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "All %1$lld favorites were already saved."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Dieser Favorit war bereits gespeichert."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Alle %1$lld Favoriten waren bereits gespeichert."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "onboarding.island.title": {
+      "comment": "Onboarding dialog → step 3: heading; the island is the Island command bar.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meet the island"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lerne die Island kennen"
+          }
+        }
+      }
+    },
+    "onboarding.island.body": {
+      "comment": "Onboarding dialog → step 3: explanation.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs, search and navigation, all in one place."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs, Suche und Navigation an einem Ort."
+          }
+        }
+      }
+    },
+    "onboarding.island.caption": {
+      "comment": "Onboarding dialog → step 3: screen-reader description of the Island picture.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet Island with Back and Forward, three tab dots, the site's favicon and address, New Tab, blocker shield, Reload, Favorite and Close."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ruhige Island mit Zurück und Vorwärts, drei Tab-Punkten, dem Favicon und der Adresse der Website, Neuer Tab, Blocker-Schild, Neu laden, Favorit und Schließen."
+          }
+        }
+      }
+    },
+    "onboarding.island.hint": {
+      "comment": "Onboarding dialog → step 3: hint; tag 0 is the keyboard shortcut, drawn as a key.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<0>%1$@</0> to open it."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffne sie mit <0>%1$@</0>."
+          }
+        }
+      }
+    },
+    "onboarding.island.shortcutMac": {
+      "comment": "Onboarding dialog → step 3: how a screen reader reads the ⌘L key.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Command L"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Befehl L"
+          }
+        }
+      }
+    },
+    "onboarding.island.shortcut": {
+      "comment": "Onboarding dialog → step 3: how a screen reader reads the Ctrl+L key.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Control L"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Steuerung L"
+          }
+        }
+      }
+    },
+    "onboarding.blocking.title": {
+      "comment": "Onboarding dialog → step 4: heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Block ads & trackers"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Werbung & Tracker blockieren"
+          }
+        }
+      }
+    },
+    "onboarding.blocking.body": {
+      "comment": "Onboarding dialog → step 4: explanation; /off-leash is a command.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blocks known ads and trackers using bundled rules. It cannot stop every tracker. Turn it off per-site with /off-leash."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blockiert bekannte Werbung und Tracker mit mitgelieferten Regeln. Nicht jeder Tracker lässt sich stoppen. Schalte es pro Website mit /off-leash aus."
+          }
+        }
+      }
+    },
+    "onboarding.blocking.toggle": {
+      "comment": "Onboarding dialog → step 4: switch label.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Block ads & trackers"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Werbung & Tracker blockieren"
+          }
+        }
+      }
+    },
+    "onboarding.blocking.toggleLabel": {
+      "comment": "Onboarding dialog → step 4: accessible name of the switch.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Block ads and trackers"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Werbung und Tracker blockieren"
+          }
+        }
+      }
+    },
+    "onboarding.privacy.title": {
+      "comment": "Onboarding → step 5 (privacy choices): heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose what Blanc may send"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle, was Blanc senden darf"
+          }
+        }
+      }
+    },
+    "onboarding.privacy.body": {
+      "comment": "Onboarding → step 5 (privacy choices): explanation; it ends with a colon before the two choices.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc checks for app updates and ships its blocking lists with each release. These optional choices start sending only after you save them by continuing. You can turn either off now or later in Settings:"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc sucht nach App-Updates und liefert seine Blockierlisten mit jedem Release aus. Diese optionalen Daten werden erst gesendet, nachdem du sie durch Fortfahren speicherst. Du kannst beide jetzt oder später in den Einstellungen ausschalten:"
+          }
+        }
+      }
+    },
+    "onboarding.privacy.suggestions": {
+      "comment": "Onboarding → step 5 (privacy choices): switch name, then (tag 0) its explanation in smaller type.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search suggestions<0>Eligible typed prefixes go to your selected search provider, including Google if selected. Private tabs and recognized sensitive-looking text are excluded.</0>"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suchvorschläge<0>Geeignete eingetippte Anfänge gehen an deinen gewählten Suchanbieter, auch an Google, falls ausgewählt. Private Tabs und erkennbar sensibel wirkender Text sind ausgenommen.</0>"
+          }
+        }
+      }
+    },
+    "onboarding.privacy.suggestionsLabel": {
+      "comment": "Onboarding → step 5 (privacy choices): accessible name of the switch.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search suggestions"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suchvorschläge"
+          }
+        }
+      }
+    },
+    "onboarding.privacy.ping": {
+      "comment": "Onboarding → step 5 (privacy choices): switch name, then (tag 0) its explanation in smaller type.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Help improve Blanc<0>Pseudonymous launch and feature counts go to Blanc’s Cloudflare collector and its optional Google Analytics mirror: random install/session IDs (install ID hashed by the collector), version, platform, architecture, coarse OS and fixed feature names. No browsing data; private-tab feature activity is excluded.</0>"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc verbessern helfen<0>Pseudonyme Start- und Funktionszählungen gehen an den Cloudflare-Sammler von Blanc und seinen optionalen Google-Analytics-Spiegel: zufällige Installations- und Sitzungs-IDs (die Installations-ID wird vom Sammler gehasht), Version, Plattform, Architektur, grobes Betriebssystem und feste Funktionsnamen. Keine Browserdaten; Funktionsaktivität in privaten Tabs ist ausgenommen.</0>"
+          }
+        }
+      }
+    },
+    "onboarding.privacy.pingLabel": {
+      "comment": "Onboarding → step 5 (privacy choices): accessible name of the switch.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Help improve Blanc"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc verbessern helfen"
+          }
+        }
+      }
+    },
+    "onboarding.privacy.details": {
+      "comment": "Onboarding → step 5 (privacy choices): link to the website; ↗ marks an external link.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connections and privacy controls ↗"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbindungen und Datenschutzeinstellungen ↗"
+          }
+        }
+      }
+    },
+    "onboarding.privacy.saveFailed": {
+      "comment": "Onboarding → step 5 (privacy choices): error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not save these choices. Check disk access and try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Auswahl konnte nicht gespeichert werden. Prüfe den Zugriff auf den Speicher und versuch es noch einmal."
+          }
+        }
+      }
+    },
+    "onboarding.theme.title": {
+      "comment": "Onboarding dialog → step 6: heading; “ink” is the dark look, “paper” the light one.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pick your ink"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle deine Tinte"
+          }
+        }
+      }
+    },
+    "onboarding.theme.body": {
+      "comment": "Onboarding dialog → step 6: explanation; /theme is a command.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paper by day, ink by night. Change anytime with /theme."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Papier am Tag, Tinte in der Nacht. Jederzeit mit /theme änderbar."
+          }
+        }
+      }
+    },
+    "onboarding.theme.light": {
+      "comment": "Onboarding dialog → step 6: theme choice, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "light"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hell"
+          }
+        }
+      }
+    },
+    "onboarding.theme.dark": {
+      "comment": "Onboarding dialog → step 6: theme choice, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dark"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dunkel"
+          }
+        }
+      }
+    },
+    "onboarding.back": {
+      "comment": "Onboarding dialog: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurück"
+          }
+        }
+      }
+    },
+    "onboarding.continue": {
+      "comment": "Onboarding dialog: button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weiter"
+          }
+        }
+      }
+    },
+    "onboarding.finish": {
+      "comment": "Onboarding dialog: button on the last step.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start browsing"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los geht’s"
+          }
+        }
+      }
+    },
+    "error.page.title": {
+      "comment": "Error page: browser tab title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Page failed to load"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seite konnte nicht geladen werden"
+          }
+        }
+      }
+    },
+    "error.title": {
+      "comment": "Error page: heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This page didn’t load"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Seite wurde nicht geladen"
+          }
+        }
+      }
+    },
+    "error.newTab": {
+      "comment": "Error page: link to a new tab.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer Tab"
+          }
+        }
+      }
+    },
+    "error.retry": {
+      "comment": "Error page: link that reloads the page.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try again"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erneut versuchen"
+          }
+        }
+      }
+    },
+    "error.blockingSettings": {
+      "comment": "Error page: link to Settings when the blocker stopped the page.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blocking settings"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blockier-Einstellungen"
+          }
+        }
+      }
+    },
+    "error.code": {
+      "comment": "Error page: detail when only an error number is known.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fehler %1$@"
+          }
+        }
+      }
+    },
+    "error.crashDetail": {
+      "comment": "Error page: detail after a crash; {description} is a sentence such as “The page crashed”, {reason} a technical code.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ (reason: %2$@)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ (Grund: %2$@)"
+          }
+        }
+      }
+    },
+    "error.certificate.title": {
+      "comment": "Error page for an untrusted certificate: heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your connection isn’t private"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Verbindung ist nicht privat"
+          }
+        }
+      }
+    },
+    "error.certificate.unproven": {
+      "comment": "Error page for an untrusted certificate: explanation when no detail is known.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The site could not prove its identity."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Website konnte ihre Identität nicht nachweisen."
+          }
+        }
+      }
+    },
+    "error.certificate.back": {
+      "comment": "Error page for an untrusted certificate: link to a new tab.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to safety"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurück in Sicherheit"
+          }
+        }
+      }
+    },
+    "error.certificate.subject": {
+      "comment": "Error page for an untrusted certificate: label of the certificate’s owner.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Certificate for"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zertifikat für"
+          }
+        }
+      }
+    },
+    "error.certificate.issuer": {
+      "comment": "Error page for an untrusted certificate: label of the certificate’s issuer.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Issued by"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ausgestellt von"
+          }
+        }
+      }
+    },
+    "error.certificate.expiry": {
+      "comment": "Error page for an untrusted certificate: label of the certificate’s end date.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valid until"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gültig bis"
+          }
+        }
+      }
+    },
+    "error.certificate.advanced": {
+      "comment": "Error page for an untrusted certificate: button that reveals the option to continue anyway.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Advanced"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erweitert"
+          }
+        }
+      }
+    },
+    "error.certificate.warning": {
+      "comment": "Error page for an untrusted certificate: warning above the continue button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This site’s certificate isn’t trusted, so Blanc can’t confirm who you’re talking to. Someone on your network could be impersonating it. Only continue if you know this device — for example, a router, NAS or server on your own network."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Zertifikat dieser Website ist nicht vertrauenswürdig, daher kann Blanc nicht bestätigen, mit wem du kommunizierst. Jemand in deinem Netzwerk könnte sich als sie ausgeben. Fahre nur fort, wenn du dieses Gerät kennst – zum Beispiel einen Router, ein NAS oder einen Server in deinem eigenen Netzwerk."
+          }
+        }
+      }
+    },
+    "error.certificate.continue": {
+      "comment": "Error page for an untrusted certificate: button; {host} is the site’s address.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue to %1$@ (unsafe)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weiter zu %1$@ (unsicher)"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

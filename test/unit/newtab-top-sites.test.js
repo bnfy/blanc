@@ -24,14 +24,14 @@ test('Billboard top sites stay local, private-safe, and independently dismissibl
   assert.match(renderer, /start\.topSites\(\{[\s\S]*?offset,[\s\S]*?limit: TOP_SITES_PAGE_SIZE/);
   assert.match(renderer, /localStorage\.setItem\(TOP_SITES_HIDDEN_KEY/);
   assert.match(renderer, /key\.length > 0 && key\.length <= 255/);
-  assert.match(renderer, /const fullTitle = \(site\.title \|\| hostOf\(site\.url\) \|\| 'Untitled site'\)\.trim\(\);/);
+  assert.match(renderer, /const fullTitle = \(site\.title \|\| hostOf\(site\.url\) \|\| t\('newtab\.billboard\.untitled'\)\)\.trim\(\);/);
   assert.match(renderer, /label\.textContent = globalThis\.blancStartSiteName\.shortSiteName\(fullTitle, site\.url\);/);
   assert.match(renderer, /label\.title = fullTitle;/);
-  assert.match(renderer, /link\.setAttribute\('aria-label', `Open \$\{fullTitle\}`\);/);
+  assert.match(renderer, /link\.setAttribute\('aria-label', t\('newtab\.billboard\.open', \{ title: fullTitle \}\)\);/);
   assert.match(css, /\.bb-fav \.label \{[^}]*white-space: nowrap;[^}]*text-overflow: ellipsis;/s);
   assert.doesNotMatch((css.match(/\.bb-fav \.label \{[^}]*\}/g) ?? []).join(''), /line-clamp/,
     'Billboard labels stay on one line');
-  assert.match(renderer, /Hide \$\{fullTitle\} from Billboard/);
+  assert.match(renderer, /t\('newtab\.billboard\.hide', \{ title: fullTitle \}\)/);
   assert.match(preload, /topSites: \(options\) => invoke\('pages:start:top-sites', options\)/);
   assert.doesNotMatch(preload, /hideTopSite|dismissTopSite/);
   assert.doesNotMatch(pages, /pages:start:(?:hide|dismiss)-top-site/);

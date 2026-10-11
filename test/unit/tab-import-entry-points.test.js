@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
+const { withoutInterfaceKeys } = require('../support/without-interface-keys');
 
 const root = path.resolve(__dirname, '../..');
 const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), 'utf8');
@@ -71,7 +72,7 @@ test('Bring Your Tabs groups profiles under bundled browser artwork', () => {
 });
 
 test('the shared start-page checklist promotes the local Bring Your Tabs flow', () => {
-  const html = read('src/renderer/pages/newtab.html');
+  const html = withoutInterfaceKeys(read('src/renderer/pages/newtab.html'));
   const css = read('src/renderer/pages/pages.css');
   assert.equal((html.match(/href="blanc:\/\/tab-import\/"/g) ?? []).length, 1);
   assert.match(html, /id="migrationTabsAction" class="migration-task" href="blanc:\/\/tab-import\/"/);
@@ -104,11 +105,11 @@ test('/bring-tabs is catalogued and dispatches through the privileged page allow
 });
 
 test('onboarding import step exposes the open-tab handoff on both paths', () => {
-  const html = read('src/renderer/pages/newtab.html');
+  const html = withoutInterfaceKeys(read('src/renderer/pages/newtab.html'));
   const renderer = read('src/renderer/pages/onboarding.js');
 
   assert.match(html, /id="obBringTabs"/);
-  assert.match(renderer, /Bring your open tabs…/);
+  assert.match(html, /id="obBringTabs"[^>]*>Bring your open tabs…</);
   assert.doesNotMatch(renderer, /folder in as tabs|without importing everything/);
   assert.match(renderer, /bringTabsBtn\.addEventListener\('click'/);
   assert.match(renderer, /window\.location\.href = 'blanc:\/\/tab-import\/'/);

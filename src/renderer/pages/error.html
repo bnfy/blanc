@@ -5,25 +5,25 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; font-src 'self';" />
   <script src="strings.js"></script>
   <script src="i18n.js"></script>
-  <title>Page failed to load</title>
+  <title data-i18n="error.page.title">Page failed to load</title>
   <link rel="icon" type="image/png" href="icon-sunrise.png" />
   <link rel="stylesheet" href="pages.css" />
 </head>
 <body class="newtab-body">
   <div class="mark">
     <div class="dot"></div>
-    <h1 id="errorTitle" class="section-title">This page didn't load</h1>
-    <p id="errorUrl" class="section-hint"></p>
+    <h1 id="errorTitle" class="section-title"></h1>
+    <p id="errorUrl" class="section-hint" data-i18n-ignore=""></p>
     <p id="errorDetail" class="section-hint"></p>
     <dl id="certificateDetails" class="certificate-details" hidden>
-      <div id="certificateSubjectRow" hidden><dt>Certificate for</dt><dd id="certificateSubject"></dd></div>
-      <div id="certificateIssuerRow" hidden><dt>Issued by</dt><dd id="certificateIssuer"></dd></div>
-      <div id="certificateExpiryRow" hidden><dt>Valid until</dt><dd id="certificateExpiry"></dd></div>
+      <div id="certificateSubjectRow" hidden><dt data-i18n="error.certificate.subject">Certificate for</dt><dd id="certificateSubject" data-i18n-ignore=""></dd></div>
+      <div id="certificateIssuerRow" hidden><dt data-i18n="error.certificate.issuer">Issued by</dt><dd id="certificateIssuer" data-i18n-ignore=""></dd></div>
+      <div id="certificateExpiryRow" hidden><dt data-i18n="error.certificate.expiry">Valid until</dt><dd id="certificateExpiry" data-i18n-ignore=""></dd></div>
     </dl>
     <nav class="newtab-links">
-      <a id="retryLink" href="blanc://newtab/">Try again</a>
-      <a id="blockingSettingsLink" href="blanc://settings/" hidden>Blocking settings</a>
-      <a id="safetyLink" href="blanc://newtab/">New tab</a>
+      <a id="retryLink" href="blanc://newtab/" data-i18n="error.retry">Try again</a>
+      <a id="blockingSettingsLink" href="blanc://settings/" hidden data-i18n="error.blockingSettings">Blocking settings</a>
+      <a id="safetyLink" href="blanc://newtab/"></a>
     </nav>
   </div>
   <script src="error.js"></script>

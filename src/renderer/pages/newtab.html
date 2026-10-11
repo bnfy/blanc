@@ -5,28 +5,28 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:;" />
   <script src="strings.js"></script>
   <script src="i18n.js"></script>
-  <title>New Tab</title>
+  <title data-i18n="tab.untitled">New Tab</title>
   <link rel="icon" type="image/png" href="icon-sunrise.png" />
   <link rel="stylesheet" href="pages.css" />
 </head>
 <body class="ledger-body" data-layout="billboard">
   <!-- Startup decisions must remain visible in every new-tab layout. -->
   <section id="startupCard" class="launch-card" aria-labelledby="startupTitle" hidden>
-    <div class="launch-card-kicker">browser protection</div>
-    <h2 id="startupTitle">Preparing blocking…</h2>
-    <p id="startupMessage">Blanc is preparing its local ad and tracker filters before opening web pages.</p>
+    <div class="launch-card-kicker" data-i18n="newtab.startup.kicker">browser protection</div>
+    <h2 id="startupTitle" data-i18n="newtab.startup.preparing">Preparing blocking…</h2>
+    <p id="startupMessage" data-i18n="newtab.startup.preparingMessage">Blanc is preparing its local ad and tracker filters before opening web pages.</p>
     <div id="startupActions" class="launch-card-actions" hidden>
-      <button id="startupRetry" type="button">Retry</button>
-      <button id="startupContinue" type="button" class="quiet">Continue without blocking</button>
+      <button id="startupRetry" type="button" data-i18n="newtab.startup.retry">Retry</button>
+      <button id="startupContinue" type="button" class="quiet" data-i18n="newtab.startup.continue">Continue without blocking</button>
     </div>
     <div id="recoveryActions" class="launch-card-actions" hidden>
-      <button id="recoveryRestore" type="button">Restore tabs</button>
-      <button id="recoveryFresh" type="button" class="quiet">Start fresh</button>
+      <button id="recoveryRestore" type="button" data-i18n="newtab.recovery.restore">Restore tabs</button>
+      <button id="recoveryFresh" type="button" class="quiet" data-i18n="newtab.recovery.fresh">Start fresh</button>
     </div>
     <p id="recoveryError" class="section-hint" role="status" hidden></p>
   </section>
 
-  <header class="start-header" aria-label="Blanc start page">
+  <header class="start-header" aria-label="Blanc start page" data-i18n-aria-label="newtab.header">
     <div class="start-brand">
       <img class="start-brand-mark" src="sunrise-mark.png" alt="" />
       <span id="startDate" class="start-brand-date"></span>
@@ -35,25 +35,25 @@
 
   <div class="start-content" id="startContent">
     <main class="ledger" id="layoutLedger">
-      <h1 class="page-sr-only">Ledger start page</h1>
+      <h1 class="page-sr-only" data-i18n="newtab.ledger.heading">Ledger start page</h1>
 
-      <h2 class="ledger-where">Where to?</h2>
+      <h2 class="ledger-where" data-i18n="newtab.ledger.whereTo">Where to?</h2>
 
       <div class="ledger-spread">
         <div class="ledger-col ledger-col-primary">
           <section class="ledger-section">
-            <a class="ledger-label" href="blanc://bookmarks/">Favorites</a>
+            <a class="ledger-label" href="blanc://bookmarks/" data-i18n="pagesNav.bookmarks">Favorites</a>
             <div id="favoritesList" class="ledger-list"></div>
           </section>
         </div>
         <div class="ledger-col ledger-col-secondary">
           <section id="groupsSection" class="ledger-section" hidden>
-            <div class="ledger-label">Pick up where you left off</div>
+            <div class="ledger-label" data-i18n="newtab.groups">Pick up where you left off</div>
             <div id="groupsList" class="ledger-list ledger-groups"></div>
           </section>
 
           <section id="remoteSection" class="ledger-section" hidden>
-            <div class="ledger-label">On your other devices</div>
+            <div class="ledger-label" data-i18n="newtab.remote">On your other devices</div>
             <div id="remoteList" class="ledger-list"></div>
           </section>
         </div>
@@ -64,7 +64,7 @@
          No `hidden` attributes: pages.css's [hidden] rule is !important and
          would outrank the data-layout selectors that show the active one. -->
     <main class="billboard" id="layoutBillboard">
-      <h1 class="page-sr-only">Billboard start page</h1>
+      <h1 class="page-sr-only" data-i18n="newtab.billboard.heading">Billboard start page</h1>
       <div class="bb-clock-row">
         <span id="bbClock" class="bb-clock"></span>
       </div>
@@ -75,18 +75,18 @@
     </main>
 
     <main class="shelf" id="layoutShelf">
-      <h1 class="page-sr-only">Shelf start page</h1>
+      <h1 class="page-sr-only" data-i18n="newtab.shelf.heading">Shelf start page</h1>
       <div id="shFavorites" class="shelf-grid"></div>
       <div class="shelf-cards">
         <div class="shelf-card shelf-card-groups">
-          <div class="shelf-label">Pick up where you left off</div>
+          <div class="shelf-label" data-i18n="newtab.groups">Pick up where you left off</div>
           <div id="shGroups" class="shelf-chiprow"></div>
         </div>
         <div class="shelf-card shelf-card-blocked">
-          <div class="shelf-label">Blocked</div>
+          <div class="shelf-label" data-i18n="newtab.shelf.blocked">Blocked</div>
           <div class="shelf-stat">
             <span id="shBlocked" class="shelf-count"></span>
-            <span class="shelf-unit">ads this week</span>
+            <span id="shBlockedUnit" class="shelf-unit"></span>
           </div>
         </div>
       </div>
@@ -94,14 +94,14 @@
 
     <main class="tally" id="layoutTally">
       <div class="tally-left">
-        <h1 class="page-sr-only">Tally start page</h1>
-        <div class="ledger-label tally-label">Favorites</div>
+        <h1 class="page-sr-only" data-i18n="newtab.tally.heading">Tally start page</h1>
+        <div class="ledger-label tally-label" data-i18n="pagesNav.bookmarks">Favorites</div>
         <div id="tlFavorites" class="ledger-list"></div>
-        <div class="ledger-label tally-label tally-label-groups">Pick up where you left off</div>
+        <div class="ledger-label tally-label tally-label-groups" data-i18n="newtab.groups">Pick up where you left off</div>
         <div id="tlGroups" class="tally-chiprow"></div>
       </div>
       <div class="tally-right">
-        <div class="ledger-label">Blocked this week</div>
+        <div class="ledger-label" data-i18n="newtab.tally.blocked">Blocked this week</div>
         <div id="tlCount" class="tally-count"></div>
         <div id="tlChart" class="tally-chart"></div>
         <div id="tlDays" class="tally-days"></div>
@@ -117,72 +117,72 @@
       <span id="version" class="ledger-version"></span>
       <span id="migrationChecklistShell" class="migration-checklist-shell" hidden>
         <button id="migrationChecklistCompact" class="migration-checklist-compact" type="button" popovertarget="migrationChecklist" aria-expanded="false">
-          <span id="migrationChecklistLabel" class="migration-compact-label">Finish setup</span>
+          <span id="migrationChecklistLabel" class="migration-compact-label" data-i18n="newtab.checklist.label">Finish setup</span>
         </button>
-        <button id="migrationChecklistHide" class="start-pill-close" type="button" aria-label="Hide moving-in checklist">
+        <button id="migrationChecklistHide" class="start-pill-close" type="button" aria-label="Hide moving-in checklist" data-i18n-aria-label="newtab.checklist.hide">
           <svg viewBox="0 0 10 10" width="10" height="10" aria-hidden="true"><path d="M2 2l6 6M8 2l-6 6"></path></svg>
         </button>
         <aside id="migrationChecklist" class="migration-checklist" popover role="dialog" aria-labelledby="migrationChecklistTitle" aria-live="polite">
           <div class="migration-checklist-heading">
             <span class="migration-progress-ring" aria-hidden="true"><span class="js-migration-progress">0/2</span></span>
-            <h2 id="migrationChecklistTitle">ready to move in?</h2>
+            <h2 id="migrationChecklistTitle" data-i18n="newtab.checklist.title">ready to move in?</h2>
           </div>
           <ul class="migration-checklist-tasks">
             <li id="migrationSyncTask">
               <button id="migrationSyncAction" class="migration-task" type="button">
                 <span class="migration-task-check" aria-hidden="true"></span>
-                <span class="migration-task-label">Set up Sync</span>
-                <span class="page-sr-only migration-task-status">Not completed</span>
+                <span class="migration-task-label" data-i18n="newtab.checklist.sync">Set up Sync</span>
+                <span class="page-sr-only migration-task-status" data-i18n="newtab.checklist.notCompleted">Not completed</span>
               </button>
             </li>
             <li id="migrationTabsTask">
               <a id="migrationTabsAction" class="migration-task" href="blanc://tab-import/">
                 <span class="migration-task-check" aria-hidden="true"></span>
-                <span class="migration-task-label">Bring your tabs</span>
-                <span class="page-sr-only migration-task-status">Not completed</span>
+                <span class="migration-task-label" data-i18n="newtab.checklist.tabs">Bring your tabs</span>
+                <span class="page-sr-only migration-task-status" data-i18n="newtab.checklist.notCompleted">Not completed</span>
               </a>
             </li>
           </ul>
         </aside>
       </span>
       <span id="patronCallout" class="patron-pill js-patron-callout" hidden>
-        <a href="blanc://settings/#group-patron"><img class="patron-cta-mark" src="sunrise-mark.png" alt="" /><span>Upgrade to Blanc Patron</span></a>
-        <button id="patronCalloutHide" class="start-pill-close" type="button" aria-label="Hide the Blanc Patron upgrade for 90 days">
+        <a href="blanc://settings/#group-patron"><img class="patron-cta-mark" src="sunrise-mark.png" alt="" /><span data-i18n="newtab.patron.upgrade">Upgrade to Blanc Patron</span></a>
+        <button id="patronCalloutHide" class="start-pill-close" type="button" aria-label="Hide the Blanc Patron upgrade for 90 days" data-i18n-aria-label="newtab.patron.hide">
           <svg viewBox="0 0 10 10" width="10" height="10" aria-hidden="true"><path d="M2 2l6 6M8 2l-6 6"></path></svg>
         </button>
       </span>
     </span>
     <span class="footer-appearance">
-      <button id="customizeButton" class="start-customize" type="button" popovertarget="customizePopover" aria-expanded="false">Customize</button>
-      <div id="customizePopover" class="start-customize-popover" popover role="dialog" aria-label="Customize start page">
-        <div id="customizeLayoutLabel" class="customize-label">Layout</div>
+      <button id="customizeButton" class="start-customize" type="button" popovertarget="customizePopover" aria-expanded="false" data-i18n="newtab.customize.button">Customize</button>
+      <div id="customizePopover" class="start-customize-popover" popover role="dialog" aria-label="Customize start page" data-i18n-aria-label="newtab.customize.label">
+        <div id="customizeLayoutLabel" class="customize-label" data-i18n="newtab.customize.layout">Layout</div>
         <div id="layoutSwitcher" class="layout-switcher" role="group" aria-labelledby="customizeLayoutLabel">
           <button type="button" class="layout-preview" data-layout-pick="ledger" aria-pressed="false">
             <span class="layout-thumb" data-thumb="ledger" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-            <span class="layout-name">Ledger</span>
+            <span class="layout-name" data-i18n="newtab.layout.ledger">Ledger</span>
           </button>
           <button type="button" class="layout-preview" data-layout-pick="billboard" aria-pressed="false">
             <span class="layout-thumb" data-thumb="billboard" aria-hidden="true"><i></i><i></i><i></i></span>
-            <span class="layout-name">Billboard</span>
+            <span class="layout-name" data-i18n="newtab.layout.billboard">Billboard</span>
           </button>
           <button type="button" class="layout-preview" data-layout-pick="shelf" aria-pressed="false">
             <span class="layout-thumb" data-thumb="shelf" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
-            <span class="layout-name">Shelf</span>
+            <span class="layout-name" data-i18n="newtab.layout.shelf">Shelf</span>
           </button>
           <button type="button" class="layout-preview" data-layout-pick="tally" aria-pressed="false">
             <span class="layout-thumb" data-thumb="tally" aria-hidden="true"><i></i><i></i><i></i></span>
-            <span class="layout-name">Tally</span>
+            <span class="layout-name" data-i18n="newtab.layout.tally">Tally</span>
           </button>
         </div>
         <hr class="customize-divider" />
-        <button id="dynamicWallpaperToggle" class="wallpaper-toggle" type="button" aria-label="Time-of-day wallpaper" aria-pressed="false" title="Time-of-day wallpaper" disabled>
+        <button id="dynamicWallpaperToggle" class="wallpaper-toggle" type="button" aria-label="Time-of-day wallpaper" aria-pressed="false" title="Time-of-day wallpaper" disabled data-i18n-aria-label="settings.general.newtabDynamicWallpaper.label" data-i18n-title="settings.general.newtabDynamicWallpaper.label">
           <span class="wallpaper-toggle-track" aria-hidden="true"></span>
-          <span>Dynamic wallpaper</span>
+          <span data-i18n="newtab.customize.wallpaper">Dynamic wallpaper</span>
         </button>
       </div>
     </span>
     <span class="footer-right">
-      <a id="mahjongLink" href="blanc://mahjong/" target="_blank">Mahjong</a>
+      <a id="mahjongLink" href="blanc://mahjong/" target="_blank" data-i18n="newtab.mahjong">Mahjong</a>
       <span id="goAnywhere"></span>
     </span>
   </footer>
@@ -195,7 +195,7 @@
   <div id="onboardDialog" class="ob-dialog" role="dialog" aria-modal="true" aria-labelledby="obActiveTitle" aria-describedby="obStepLabel" hidden>
     <div class="ob-head">
       <span id="obStepLabel" class="ob-step-label" aria-live="polite"></span>
-      <button id="obSkip" class="ob-skip" type="button">skip setup</button>
+      <button id="obSkip" class="ob-skip" type="button" data-i18n="onboarding.skip">skip setup</button>
     </div>
     <div id="obContent" class="ob-content">
       <section data-step="0">
@@ -209,9 +209,9 @@
           <span class="ob-tile"><svg viewBox="0 0 16 16" width="20" height="20"><rect x="2.75" y="3.25" width="10.5" height="9.5" rx="1.5"></rect><path d="M2.75 6h10.5M5 4.6h.01M6.8 4.6h.01"></path></svg></span>
           <span class="ob-tile"><svg viewBox="0 0 16 16" width="20" height="20"><path d="M3.5 11.5c-.6-1-1-2.2-1-3.5a5.5 5.5 0 1 1 11 0c0 1.3-.4 2.5-1 3.5"></path><circle cx="8" cy="8" r="1.75"></circle><path d="M8 9.75V13"></path></svg></span>
         </div>
-        <h1>Make Blanc your default</h1>
-        <p>Links from other apps open here. You can change this anytime in Settings.</p>
-        <div class="ob-cta-row"><button id="obSetDefault" class="ob-btn-default" type="button">Set as default</button></div>
+        <h1 data-i18n="onboarding.default.title">Make Blanc your default</h1>
+        <p data-i18n="onboarding.default.body">Links from other apps open here. You can change this anytime in Settings.</p>
+        <div class="ob-cta-row"><button id="obSetDefault" class="ob-btn-default" type="button" data-i18n="onboarding.default.set">Set as default</button></div>
       </section>
       <section data-step="1" hidden>
         <div class="ob-vignette ob-vignette-import">
@@ -222,24 +222,24 @@
             <img src="icon-sunrise.png" width="60" height="60" alt="Blanc" />
           </picture>
         </div>
-        <h1>Bring your bookmarks</h1>
-        <p>Imports happen on this device — nothing is uploaded.</p>
-        <div class="ob-cta-row"><button id="obLook" class="ob-btn-secondary" type="button">Look for installed browsers</button></div>
+        <h1 data-i18n="onboarding.import.title">Bring your bookmarks</h1>
+        <p data-i18n="onboarding.import.body">Imports happen on this device — nothing is uploaded.</p>
+        <div class="ob-cta-row"><button id="obLook" class="ob-btn-secondary" type="button" data-i18n="onboarding.import.look">Look for installed browsers</button></div>
         <div id="obSources" class="ob-srclist"></div>
         <span id="obImportStatus" class="ob-status" role="status"></span>
-        <button id="obBringTabs" class="ob-btn-secondary ob-handoff" type="button" hidden>Bring your open tabs…</button>
+        <button id="obBringTabs" class="ob-btn-secondary ob-handoff" type="button" hidden data-i18n="onboarding.import.bringTabs">Bring your open tabs…</button>
       </section>
       <section data-step="2" hidden>
-        <h1>Meet the island</h1>
-        <p>Tabs, search and navigation, all in one place.</p>
+        <h1 data-i18n="onboarding.island.title">Meet the island</h1>
+        <p data-i18n="onboarding.island.body">Tabs, search and navigation, all in one place.</p>
         <figure class="ob-tab-discovery" aria-labelledby="obTabDiscoveryCaption">
           <picture class="ob-island-example" aria-hidden="true">
             <source media="(prefers-color-scheme: dark)" srcset="onboarding-island-dark.png" />
             <img class="ob-quiet-island" src="onboarding-island-light.png" width="984" height="136" alt="" />
           </picture>
-          <figcaption id="obTabDiscoveryCaption" class="page-sr-only">Quiet Island with Back and Forward, three tab dots, the site's favicon and address, New Tab, blocker shield, Reload, Favorite and Close.</figcaption>
+          <figcaption id="obTabDiscoveryCaption" class="page-sr-only" data-i18n="onboarding.island.caption">Quiet Island with Back and Forward, three tab dots, the site's favicon and address, New Tab, blocker shield, Reload, Favorite and Close.</figcaption>
         </figure>
-        <p class="ob-island-hint"><span class="ob-kbd" id="obIslandShortcut">Ctrl+L</span> to open it.</p>
+        <p class="ob-island-hint" id="obIslandHint"></p>
       </section>
       <section data-step="3" hidden>
         <div class="ob-vignette ob-vignette-shield">
@@ -247,46 +247,46 @@
           <span class="ob-shield"><svg viewBox="0 0 16 16" width="44" height="44"><path d="M8 1.8l5 1.9v3.8c0 3.1-2.1 5.3-5 6.7-2.9-1.4-5-3.6-5-6.7V3.7z"></path><path d="M4.4 11.47 12.61 3.55"></path></svg></span>
           <span class="ob-dots-out"><span></span><span></span><span></span></span>
         </div>
-        <h1>Block ads &amp; trackers</h1>
-        <p>Blocks known ads and trackers using bundled rules. It cannot stop every tracker. Turn it off per-site with /off-leash.</p>
+        <h1 data-i18n="onboarding.blocking.title">Block ads &amp; trackers</h1>
+        <p data-i18n="onboarding.blocking.body">Blocks known ads and trackers using bundled rules. It cannot stop every tracker. Turn it off per-site with /off-leash.</p>
         <div class="ob-control-row">
-          <span>Block ads &amp; trackers</span>
-          <button id="obAdblock" class="ob-toggle" type="button" role="switch" aria-checked="true" aria-label="Block ads and trackers"><span class="ob-knob"></span></button>
+          <span data-i18n="onboarding.blocking.toggle">Block ads &amp; trackers</span>
+          <button id="obAdblock" class="ob-toggle" type="button" role="switch" aria-checked="true" aria-label="Block ads and trackers" data-i18n-aria-label="onboarding.blocking.toggleLabel"><span class="ob-knob"></span></button>
         </div>
       </section>
       <section data-step="4" hidden>
-        <h1>Choose what Blanc may send</h1>
-        <p>Blanc checks for app updates and ships its blocking lists with each release. These optional choices start sending only after you save them by continuing. You can turn either off now or later in Settings:</p>
+        <h1 data-i18n="onboarding.privacy.title">Choose what Blanc may send</h1>
+        <p data-i18n="onboarding.privacy.body">Blanc checks for app updates and ships its blocking lists with each release. These optional choices start sending only after you save them by continuing. You can turn either off now or later in Settings:</p>
         <div class="ob-control-row ob-control-row-tall">
-          <span>Search suggestions<small>Eligible typed prefixes go to your selected search provider, including Google if selected. Private tabs and recognized sensitive-looking text are excluded.</small></span>
-          <button id="obSuggestions" class="ob-toggle" type="button" role="switch" aria-checked="true" aria-label="Search suggestions"><span class="ob-knob"></span></button>
+          <span data-i18n="onboarding.privacy.suggestions">Search suggestions<small>Eligible typed prefixes go to your selected search provider, including Google if selected. Private tabs and recognized sensitive-looking text are excluded.</small></span>
+          <button id="obSuggestions" class="ob-toggle" type="button" role="switch" aria-checked="true" aria-label="Search suggestions" data-i18n-aria-label="onboarding.privacy.suggestionsLabel"><span class="ob-knob"></span></button>
         </div>
         <div class="ob-control-row ob-control-row-tall">
-          <span>Help improve Blanc<small>Pseudonymous launch and feature counts go to Blanc’s Cloudflare collector and its optional Google Analytics mirror: random install/session IDs (install ID hashed by the collector), version, platform, architecture, coarse OS and fixed feature names. No browsing data; private-tab feature activity is excluded.</small></span>
-          <button id="obPing" class="ob-toggle" type="button" role="switch" aria-checked="true" aria-label="Help improve Blanc"><span class="ob-knob"></span></button>
+          <span data-i18n="onboarding.privacy.ping">Help improve Blanc<small>Pseudonymous launch and feature counts go to Blanc’s Cloudflare collector and its optional Google Analytics mirror: random install/session IDs (install ID hashed by the collector), version, platform, architecture, coarse OS and fixed feature names. No browsing data; private-tab feature activity is excluded.</small></span>
+          <button id="obPing" class="ob-toggle" type="button" role="switch" aria-checked="true" aria-label="Help improve Blanc" data-i18n-aria-label="onboarding.privacy.pingLabel"><span class="ob-knob"></span></button>
         </div>
-        <p class="ob-privacy-details"><a href="https://blancbrowser.com/how-it-works#connections" target="_blank" rel="noopener noreferrer">Connections and privacy controls ↗</a></p>
+        <p class="ob-privacy-details"><a data-i18n="onboarding.privacy.details" href="https://blancbrowser.com/how-it-works#connections" target="_blank" rel="noopener noreferrer">Connections and privacy controls ↗</a></p>
         <span id="obPrivacyError" class="ob-error" role="status"></span>
       </section>
       <section data-step="5" hidden>
-        <h1>Pick your ink</h1>
-        <p>Paper by day, ink by night. Change anytime with /theme.</p>
+        <h1 data-i18n="onboarding.theme.title">Pick your ink</h1>
+        <p data-i18n="onboarding.theme.body">Paper by day, ink by night. Change anytime with /theme.</p>
         <div class="ob-theme-row">
           <button id="obThemeLight" class="ob-theme-card" type="button" aria-pressed="false">
             <span class="ob-theme-preview ob-theme-preview-light"><span></span></span>
-            <span class="ob-theme-caption"><span>light</span><span class="ob-theme-mark"></span></span>
+            <span class="ob-theme-caption"><span data-i18n="onboarding.theme.light">light</span><span class="ob-theme-mark"></span></span>
           </button>
           <button id="obThemeDark" class="ob-theme-card" type="button" aria-pressed="false">
             <span class="ob-theme-preview ob-theme-preview-dark"><span></span></span>
-            <span class="ob-theme-caption"><span>dark</span><span class="ob-theme-mark"></span></span>
+            <span class="ob-theme-caption"><span data-i18n="onboarding.theme.dark">dark</span><span class="ob-theme-mark"></span></span>
           </button>
         </div>
       </section>
     </div>
     <div class="ob-foot">
-      <button id="obBack" class="ob-btn-secondary" type="button">Back</button>
+      <button id="obBack" class="ob-btn-secondary" type="button" data-i18n="onboarding.back">Back</button>
       <span class="ob-dots" id="obDots"><span></span><span></span><span></span><span></span><span></span><span></span></span>
-      <button id="obNext" class="ob-btn-primary" type="button">Continue</button>
+      <button id="obNext" class="ob-btn-primary" type="button" data-i18n="onboarding.continue">Continue</button>
     </div>
   </div>
 

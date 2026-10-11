@@ -79,7 +79,14 @@
       "settings.general.newtabLayout.billboard",
       "settings.general.newtabLayout.shelf",
       "settings.general.newtabLayout.tally",
-      "settings.trust.fact.build"
+      "settings.trust.fact.build",
+      "newtab.layout.ledger",
+      "newtab.layout.billboard",
+      "newtab.layout.shelf",
+      "newtab.layout.tally",
+      "newtab.mahjong",
+      "newtab.version",
+      "newtab.customize.layout"
     ]
   }
 }

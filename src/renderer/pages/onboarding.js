@@ -9,7 +9,15 @@
   const TOUR = params.has('tour');
   const isPrivate = params.has('private');
 
-  const LABELS = ['default browser', 'import', 'the island', 'ad blocking', 'privacy', 'theme'];
+  const { t } = blancI18n;
+  const LABELS = [
+    t('onboarding.step.default'),
+    t('onboarding.step.import'),
+    t('onboarding.step.island'),
+    t('onboarding.step.blocking'),
+    t('onboarding.step.privacy'),
+    t('onboarding.step.theme'),
+  ];
   const IMPORT_STEP = 1;
   const PRIVACY_STEP = 4;
   const LAST_STEP = 5;
@@ -44,7 +52,7 @@
     looked: false,
     // The bookmarks-file row is available from the start — Safari/Firefox
     // users need no discovery to use it. Look prepends detected browsers.
-    sources: [{ id: FILE_SOURCE, label: 'From a bookmarks file (HTML)…' }],
+    sources: [{ id: FILE_SOURCE, label: t('onboarding.import.fromFile') }],
     importSource: null,    // selected source id, or null = "no thanks"
     // Both paths hand off to the separate open-tab migration flow.
     importHandoff: 'skip',
@@ -58,8 +66,6 @@
     theme: null,           // 'system' | 'light' | 'dark' — system marks no card
   };
 
-  const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
-
   function setToggle(el, on) {
     el.setAttribute('aria-checked', String(!!on));
   }
@@ -69,8 +75,8 @@
     nextBtn.disabled = state.busy;
     backBtn.disabled = state.busy;
     skipBtn.disabled = state.busy;
-    stepLabel.textContent = `${state.step + 1} / 6 — ${LABELS[state.step]}`;
-    nextBtn.textContent = state.step === LAST_STEP ? 'Start browsing' : 'Continue';
+    stepLabel.textContent = t('onboarding.stepLabel', { step: state.step + 1, total: LABELS.length, name: LABELS[state.step] });
+    nextBtn.textContent = state.step === LAST_STEP ? t('onboarding.finish') : t('onboarding.continue');
     dots.forEach((dot, i) => dot.classList.toggle('on', i === state.step));
     sections.forEach((section) => {
       section.hidden = Number(section.dataset.step) !== state.step;
@@ -82,7 +88,7 @@
     // disabled where the OS registration is unavailable (dev runs, Linux).
     const confirmed = state.defaultSet;
     setDefaultBtn.disabled = confirmed || !state.canSetDefault;
-    setDefaultBtn.textContent = confirmed ? 'Blanc is your default' : 'Set as default';
+    setDefaultBtn.textContent = confirmed ? t('onboarding.default.done') : t('onboarding.default.set');
     dialog.style.setProperty('--ob-default-bg', confirmed || !state.canSetDefault ? 'var(--surface-raised)' : 'var(--accent)');
     dialog.style.setProperty('--ob-default-text', confirmed || !state.canSetDefault ? 'var(--text-dim)' : 'var(--surface-raised)');
     dialog.style.setProperty('--ob-default-border', confirmed || !state.canSetDefault ? 'var(--border)' : 'var(--accent)');
@@ -91,7 +97,6 @@
     lookBtn.disabled = state.busy;
     bringTabsBtn.hidden = state.step !== IMPORT_STEP || !state.importHandoff;
     bringTabsBtn.disabled = state.busy;
-    bringTabsBtn.textContent = 'Bring your open tabs…';
     renderSources();
 
     setToggle(adblockToggle, state.adblock);
@@ -115,6 +120,7 @@
         const label = document.createElement('span');
         label.className = 'ob-src-unavailable-name';
         label.textContent = source.label;
+        label.dataset.i18nIgnore = ''; // a browser's name
         const hint = document.createElement('span');
         hint.className = 'ob-src-unavailable-hint';
         hint.textContent = source.guidance ?? '';
@@ -132,6 +138,8 @@
       radio.appendChild(document.createElement('span'));
       const label = document.createElement('span');
       label.textContent = source.label;
+      // Detected browsers are named by main; the file row is interface text.
+      if (source.id !== FILE_SOURCE) label.dataset.i18nIgnore = '';
       row.append(radio, label);
       // Re-clicking the selected row deselects — advancing with nothing
       // selected is the "no thanks" path.
@@ -185,7 +193,7 @@
   // F30/D22: no browser profile directory is read until this explicit ask.
   async function lookForBrowsers() {
     lookBtn.disabled = true;
-    importStatus.textContent = 'Looking for installed browsers…';
+    importStatus.textContent = t('onboarding.import.looking');
     try {
       const result = await window.bowserPages.bookmarks.browserSources();
       const sources = result?.sources ?? [];
@@ -203,9 +211,9 @@
       ];
       importStatus.textContent = (sources.length || unavailable.length)
         ? ''
-        : 'No other browser profiles found.';
+        : t('onboarding.import.noneFound');
     } catch {
-      importStatus.textContent = "Couldn't check for other browsers.";
+      importStatus.textContent = t('onboarding.import.checkFailed');
     } finally {
       lookBtn.disabled = false;
       sync();
@@ -217,7 +225,7 @@
   async function runImportIfSelected() {
     const source = state.importSource;
     if (!source) return false;
-    importStatus.textContent = 'Importing favorites…';
+    importStatus.textContent = t('onboarding.import.importing');
     try {
       const result = source === FILE_SOURCE
         ? await window.bowserPages.bookmarks.import()
@@ -225,26 +233,28 @@
       if (result?.cancelled) {
         importStatus.textContent = '';
       } else if (result?.error === 'empty') {
-        importStatus.textContent = 'No favorites found there.';
+        importStatus.textContent = t('onboarding.import.empty');
       } else if (result?.error === 'too-large') {
-        importStatus.textContent = 'That profile is too large to import safely.';
+        importStatus.textContent = t('onboarding.import.tooLarge');
       } else if (result?.error) {
-        importStatus.textContent = "Couldn't read that browser profile.";
+        importStatus.textContent = t('onboarding.import.readFailed');
       } else if (result.added > 0) {
-        const from = result.source?.label ? ` from ${result.source.label}` : '';
-        const skipped = result.skipped
-          ? `; skipped ${plural(result.skipped, 'favorite')} already saved`
-          : '';
-        importStatus.textContent = `Imported ${plural(result.added, 'favorite')}${from}${skipped}.`;
+        // Two counts, so two sentences: a message holds at most one plural.
+        const imported = result.source?.label
+          ? t('onboarding.import.importedFrom', { count: result.added, source: result.source.label })
+          : t('onboarding.import.imported', { count: result.added });
+        importStatus.textContent = result.skipped
+          ? `${imported} ${t('onboarding.import.skipped', { count: result.skipped })}`
+          : imported;
         state.importHandoff = 'post-import';
       } else {
         importStatus.textContent = result.skipped
-          ? `All ${plural(result.skipped, 'favorite')} were already saved.`
-          : 'No favorites found there.';
+          ? t('onboarding.import.allSaved', { count: result.skipped })
+          : t('onboarding.import.empty');
         state.importHandoff = 'skip';
       }
     } catch {
-      importStatus.textContent = "Couldn't import from there.";
+      importStatus.textContent = t('onboarding.import.failed');
     } finally {
       state.importSource = null; // the next Continue advances
       sync();
@@ -281,7 +291,7 @@
     if (!(await persistPrivacy())) {
       state.step = PRIVACY_STEP;
       sync();
-      privacyError.textContent = 'Could not save these choices. Check disk access and try again.';
+      privacyError.textContent = t('onboarding.privacy.saveFailed');
       return;
     }
     state.done = true;

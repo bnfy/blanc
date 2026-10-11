@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
+const { withoutInterfaceKeys } = require('../support/without-interface-keys');
 
 const root = path.join(__dirname, '../..');
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
@@ -33,7 +34,7 @@ test('the Billboard clock drops the day period in every locale', () => {
 });
 
 test('the header row holds the brand, in flow', () => {
-  const html = read('src/renderer/pages/newtab.html');
+  const html = withoutInterfaceKeys(read('src/renderer/pages/newtab.html'));
   assert.match(
     html,
     /<header class="start-header" aria-label="Blanc start page">\s*<div class="start-brand">[\s\S]*?id="startDate" class="start-brand-date"><\/span>\s*<\/div>\s*<\/header>/,
@@ -45,7 +46,7 @@ test('the header row holds the brand, in flow', () => {
 });
 
 test('every layout renders inside one centered content area', () => {
-  const html = read('src/renderer/pages/newtab.html');
+  const html = withoutInterfaceKeys(read('src/renderer/pages/newtab.html'));
   const content = html.match(/<div class="start-content" id="startContent">([\s\S]*?)<div id="startContentEnd" class="start-content-end" aria-hidden="true"><\/div>\s*<\/div>/);
   assert.ok(content, 'start-content wraps the layouts and ends with its sentinel');
   for (const id of ['layoutLedger', 'layoutBillboard', 'layoutShelf', 'layoutTally']) {
@@ -72,7 +73,7 @@ test('the checklist is a footer pill with an anchored popover', () => {
 });
 
 test('layouts no longer carry their own Patron chip', () => {
-  const html = read('src/renderer/pages/newtab.html');
+  const html = withoutInterfaceKeys(read('src/renderer/pages/newtab.html'));
   for (const main of html.match(/<main [\s\S]*?<\/main>/g)) {
     assert.doesNotMatch(main, /js-patron-callout/, `${main.slice(0, 60)}… leaves the upgrade to the footer`);
   }
@@ -91,7 +92,8 @@ test('private tabs never show the Patron chip or blocked counts', () => {
 
 test('Ledger, Shelf and Tally explain an empty Favorites list; Billboard does not', () => {
   const js = read('src/renderer/pages/newtab.js');
-  assert.match(js, /const EMPTY_FAVORITES_HINT = 'Favorite a page with ♥ to pin it here';/);
+  assert.match(js, /hint\.textContent = t\('newtab\.favorites\.empty'\);/);
+  assert.equal(JSON.parse(read('copy/messages/en.json'))['newtab.favorites.empty'].message, 'Favorite a page with ♥ to pin it here');
   for (const fn of ['renderLedgerFavorites', 'renderShelf', 'renderTally']) {
     const body = js.match(new RegExp(`function ${fn}\\([^)]*\\) \\{([\\s\\S]*?)\\n\\}`))?.[1] ?? '';
     assert.match(body, /emptyFavoritesHint\(\)/, `${fn} renders the hint`);
@@ -103,7 +105,7 @@ test('Ledger, Shelf and Tally explain an empty Favorites list; Billboard does no
 });
 
 test('the footer offers one Customize popover with four layout previews and the wallpaper switch', () => {
-  const html = read('src/renderer/pages/newtab.html');
+  const html = withoutInterfaceKeys(read('src/renderer/pages/newtab.html'));
   const js = read('src/renderer/pages/newtab.js');
   assert.match(html, /<button id="customizeButton" class="start-customize" type="button" popovertarget="customizePopover" aria-expanded="false">Customize<\/button>/);
   const popover = html.match(/<div id="customizePopover" class="start-customize-popover" popover role="dialog" aria-label="Customize start page">([\s\S]*?)<\/div>\s*<\/span>/)?.[1] ?? '';
@@ -122,13 +124,14 @@ test('the footer offers one Customize popover with four layout previews and the 
 });
 
 test('labels are sentence case without tracking, and the date keeps locale case', () => {
-  const html = read('src/renderer/pages/newtab.html');
+  const html = withoutInterfaceKeys(read('src/renderer/pages/newtab.html'));
   const js = read('src/renderer/pages/newtab.js');
   for (const label of ['Favorites', 'Pick up where you left off', 'On your other devices', 'Blocked this week', 'Blocked']) {
     assert.match(html, new RegExp(`>${label}<`), `label "${label}"`);
   }
   assert.doesNotMatch(html, />(favorites|pick up where you left off|on your other devices|blocked this week|blocked)</);
-  assert.match(js, /const dateText = isPrivate\s*\? 'Private tab'/);
+  assert.match(js, /const dateText = isPrivate\s*\? t\('newtab\.privateTab'\)/);
+  assert.equal(JSON.parse(read('copy/messages/en.json'))['newtab.privateTab'].message, 'Private tab');
   assert.doesNotMatch(js.match(/const dateText[\s\S]*?;\n/)[0], /toLowerCase/);
   const css = frameCss();
   assert.match(css, /\.ledger-label,\s*\.shelf-label \{[^}]*font: 600 12px\/1\.3 var\(--font-ui\);[^}]*letter-spacing: 0\.005em;[^}]*text-transform: none;/s);
@@ -169,7 +172,7 @@ test('motion grows surfaces from their source and respects reduced motion', () =
 });
 
 test('Ledger is a centered spread: Favorites left, groups and devices right', () => {
-  const html = read('src/renderer/pages/newtab.html');
+  const html = withoutInterfaceKeys(read('src/renderer/pages/newtab.html'));
   const ledger = html.match(/<main class="ledger" id="layoutLedger">([\s\S]*?)<\/main>/)[1];
   assert.match(ledger, /<div class="ledger-spread">\s*<div class="ledger-col ledger-col-primary">[\s\S]*?id="favoritesList"[\s\S]*?<\/div>\s*<div class="ledger-col ledger-col-secondary">[\s\S]*?id="groupsSection"[\s\S]*?id="remoteSection"[\s\S]*?<\/div>\s*<\/div>/);
   const css = frameCss();
@@ -195,7 +198,7 @@ test('Shelf columns follow the favorites count', () => {
 });
 
 test('Shelf tiles and cards share one grid with full rows', () => {
-  const html = read('src/renderer/pages/newtab.html');
+  const html = withoutInterfaceKeys(read('src/renderer/pages/newtab.html'));
   assert.match(html, /<div class="shelf-card shelf-card-groups">/);
   assert.match(html, /<div class="shelf-card shelf-card-blocked">/);
   const css = frameCss();
