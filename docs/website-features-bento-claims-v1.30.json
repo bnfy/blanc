@@ -449,7 +449,7 @@
     {
       "id": "bento-130-019",
       "source": "site/src/pages/features.astro",
-      "exactWording": "Named Workspaces save whole windows",
+      "exactWording": "Blanc Spaces save whole windows",
       "subject": "Blanc",
       "evidenceGroups": [
         "workspaces"
@@ -1159,7 +1159,7 @@
     {
       "id": "bento-130-095",
       "source": "site/src/pages/features.astro",
-      "exactWording": "Named Workspaces save a whole window to return to by name.",
+      "exactWording": "Blanc Spaces save a whole window to return to by name.",
       "subject": "Blanc",
       "evidenceGroups": [
         "workspaces"
@@ -1169,7 +1169,7 @@
     {
       "id": "bento-130-096",
       "source": "site/src/pages/features.astro",
-      "exactWording": "Save a window’s tabs and groups as a Named Workspace and switch back to it later by name. A saved workspace keeps itself up to date as you browse.",
+      "exactWording": "Save a window’s tabs and groups as a space and switch back to it later by name. A saved space keeps itself up to date as you browse.",
       "subject": "Blanc",
       "evidenceGroups": [
         "workspaces"
@@ -1179,7 +1179,7 @@
     {
       "id": "bento-130-097",
       "source": "site/src/pages/features.astro",
-      "exactWording": "Creating and saving workspaces needs an active Patron membership. Saved workspaces stay usable if it ends.",
+      "exactWording": "Creating and saving spaces needs an active Patron membership. Saved spaces stay usable if it ends.",
       "subject": "Blanc",
       "evidenceGroups": [
         "workspaces"

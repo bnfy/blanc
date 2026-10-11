@@ -174,7 +174,7 @@
   // -1 means no explicit ArrowUp/ArrowDown choice; renderList still highlights
   // the result that bare Enter would choose.
   let selectedResultIndex = -1;
-  // Named Workspaces (Blanc Patron). Populated from listWorkspaces() when the
+  // Workspaces (Blanc Patron). Populated from listWorkspaces() when the
   // panel opens (refreshSwitcherData) and kept fresh via onWorkspacesUpdated —
   // a pull-once list would keep showing a stale "active" row after a switch
   // that happened elsewhere (another window, or this window's own command).
@@ -788,7 +788,7 @@
     return row;
   }
 
-  // --- Named Workspaces (Blanc Patron) ---
+  // --- Workspaces (Blanc Patron) ---
   //
   // Identity, switching, and every name/confirm editor live in the island
   // footer popover. The tab list never hosts workspace chrome — only the
@@ -911,7 +911,7 @@
   // --- Slash commands ---
 
   function runWorkspaceCommand(input) {
-    const name = (input ?? '').replace(/^\/workspace\s*/, '').trim();
+    const name = (input ?? '').replace(/^\/(?:space|workspace)\s*/, '').trim();
     if (!name) openWorkspaceSwitcher();
     else workspaceUI.command(name);
   }
@@ -962,7 +962,8 @@
       window.browserAPI.cycleTheme(requested || null);
     } },
     { cmd: '/patron', hint: blancI18n.t('slash.patron.hint'), run: () => window.browserAPI.openPage('settings', 'patron') },
-    { cmd: '/workspace', hint: blancI18n.t('slash.workspace.hint'), keepOverlay: true, clearInput: true, run: runWorkspaceCommand },
+    // /workspace was the command before the Blanc Spaces rename; it still works.
+    { cmd: '/space', hint: blancI18n.t('slash.space.hint'), aliases: ['/workspace'], keepOverlay: true, clearInput: true, run: runWorkspaceCommand },
   ];
 
   function runCommand(command) {
@@ -1502,7 +1503,8 @@
       selectedResultIndex = -1;
       const slashWord = value.trim().split(/\s+/)[0];
       visibleCommands = COMMANDS.filter((c) =>
-        c.available !== false && (c.cmd.startsWith(slashWord) || slashWord === '/'));
+        c.available !== false && (slashWord === '/'
+          || [c.cmd, ...(c.aliases ?? [])].some((name) => name.startsWith(slashWord))));
       islandList.replaceChildren(
         ...(visibleCommands.length
           ? visibleCommands.map((c, i) => commandRow(c, i === 0))
