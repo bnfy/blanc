@@ -2804,5 +2804,9 @@
   "arcImport.space.folders": {
     "message": "{count, plural, one {# Ordner} other {# Ordner}}",
     "source": "sha256:f390e7f38283a60d2578e66ada482ff85e311903f288f818c424af5e08eb50d9"
+  },
+  "ws.list.importArc": {
+    "message": "Spaces aus Arc importieren",
+    "source": "sha256:0416f4e07b657d7695b22350963ae048338e0630136231cc8fe6e23f6c0bac41"
   }
 }

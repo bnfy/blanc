@@ -800,4 +800,5 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blancbrowser.co
         <item quantity="one">%1$d Ordner</item>
         <item quantity="other">%1$d Ordner</item>
     </plurals>
+    <string name="ws_list_import_arc">Spaces aus Arc importieren</string>
 </resources>

@@ -234,6 +234,8 @@
       } else {
         nodes.push(...data.items.map(workspaceRow));
         if (!data.items.length) nodes.push(el('p', 'ws-help', t('ws.list.empty')));
+        // F45: a Patron starting from nothing can bring Spaces over from Arc.
+        if (!data.items.length && data.patronActive) nodes.push(button(t('ws.list.importArc'), 'import-arc', () => { close(); api.openPage('tab-import'); }));
         if (undoId && data.deleted?.some((d) => d.id === undoId)) nodes.push(button(t('ws.list.undo'), 'undo', () => run(() => api.restoreWorkspace(undoId), () => { undoId = null; })));
         if (data.deleted?.length) nodes.push(button(t('ws.list.recentlyDeleted', { count: data.deleted.length }), 'recently-deleted', () => { state = { kind: 'recovery' }; render(); }));
         if (!data.patronActive) nodes.push(button(t('ws.list.patronSettings'), 'patron-settings', () => { close(); api.openPage('settings', 'patron'); }));

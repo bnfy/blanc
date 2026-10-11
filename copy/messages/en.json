@@ -2871,5 +2871,9 @@
   "arcImport.space.folders": {
     "message": "{count, plural, one {# folder} other {# folders}}",
     "note": "Folder count under an Arc Space name; Arc folders become groups."
+  },
+  "ws.list.importArc": {
+    "message": "Import Spaces from Arc",
+    "note": "Button in the empty space switcher for Blanc Patrons; opens Bring Your Tabs. Spaces is Arc’s feature name."
   }
 }

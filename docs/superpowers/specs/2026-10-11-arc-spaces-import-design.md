@@ -105,8 +105,9 @@ kept. Empty Spaces are skipped and listed.
 ## Flow
 
 1. **Entry.** An Arc row on Bring Your Tabs' first step offers **Bring Spaces
-   from Arc** when Arc's file exists, and **Choose file…** everywhere. (A
-   Spaces panel entry for Patrons with no spaces is a possible follow-up.)
+   from Arc** when Arc's file exists, and **Choose file…** everywhere. A Patron
+   with no spaces also sees **Import Spaces from Arc** in the empty space
+   switcher, which opens Bring Your Tabs.
 2. **Preview.** One row per Space: name, tab and group counts, a note when
    it used a separate Arc profile, and a checkbox (all selected). A separate
    checkbox covers Favorites. Renderers get only counts, titles, hostnames
@@ -156,8 +157,8 @@ kept. Empty Spaces are skipped and listed.
 
 Two small departures from the first draft of this spec: discovery lives in its
 own module rather than in `browser-data-import.js`, because Arc is a single
-file rather than Chromium profiles; and the Spaces panel entry point is left
-for a follow-up, since the Arc row on Bring Your Tabs already covers it.
+file rather than Chromium profiles. The empty-switcher entry is in `src/renderer/workspace-ui.js`
+(`test/unit/workspaces-patron-entry.test.js`).
 
 ## Release and claims gates
 

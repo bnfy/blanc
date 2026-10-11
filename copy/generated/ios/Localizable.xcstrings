@@ -13296,6 +13296,24 @@
           }
         }
       }
+    },
+    "ws.list.importArc": {
+      "comment": "Button in the empty space switcher for Blanc Patrons; opens Bring Your Tabs. Spaces is Arc’s feature name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import Spaces from Arc"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spaces aus Arc importieren"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

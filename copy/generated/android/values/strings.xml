@@ -800,4 +800,5 @@ You can retry with “%2$s”, or reinstall from blancbrowser.com.</string>
         <item quantity="one">%1$d folder</item>
         <item quantity="other">%1$d folders</item>
     </plurals>
+    <string name="ws_list_import_arc">Import Spaces from Arc</string>
 </resources>
