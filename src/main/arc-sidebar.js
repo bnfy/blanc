@@ -3,7 +3,7 @@
 // Pure reader and planner for F45 Arc Spaces import. Arc keeps every Space,
 // its pinned and Today tabs, its folders and the top-row Favorites in one
 // JSON file, StorableSidebar.json. This module turns that file into bounded
-// Space records and then into Named Workspace capture columns. No electron,
+// Space records and then into workspace capture columns. No electron,
 // no fs: discovery, the Patron check and every write stay in main.
 //
 // The format is undocumented. What this relies on (cross-checked against the
@@ -210,7 +210,7 @@ function uniqueWorkspaceName(base, taken) {
 }
 
 /**
- * Turns one parsed Space into Named Workspace capture columns: loose pinned
+ * Turns one parsed Space into workspace capture columns: loose pinned
  * tabs lead as pinned tabs, each top-level folder becomes a lowercase group
  * (same-named folders share one), Today tabs follow ungrouped. Tabs past the
  * per-Space cap are counted, not silently lost.

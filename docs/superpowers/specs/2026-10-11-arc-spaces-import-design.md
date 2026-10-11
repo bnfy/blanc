@@ -9,7 +9,7 @@ Feature id: F45 (proposed)
 Arc stopped getting new features in May 2025. The Browser Company now builds
 Dia, and Arc only receives Chromium and security updates. Its Spaces still
 work, but nothing new is coming to them, and Arc users who rely on Spaces
-have no obvious next home. Blanc's Named Workspaces are the closest
+have no obvious next home. Blanc's Workspaces are the closest
 equivalent, and `/arc-alternative` already speaks to these people.
 
 Today Blanc cannot read Arc at all. Favorites import (F30) and Bring Your
@@ -22,7 +22,7 @@ step.
 
 ## Decisions (owner, 2026-10-11)
 
-1. **Patrons get one Named Workspace per Space.** Everyone else gets each
+1. **Patrons get one workspace per Space.** Everyone else gets each
    Space as tab groups, with an offer to save it as a workspace. This
    deliberately relaxes F40's rule that a workspace is always a separate
    gesture after migration, for this source only. Creating workspaces stays
@@ -83,7 +83,7 @@ Implemented and unit-tested in `planSpaceCapture` / `planArcSpacesImport`:
 
 | Arc | Blanc |
 |---|---|
-| Space | Named Workspace (Patron) or window of groups (everyone else) |
+| Space | Workspace (Patron) or window of groups (everyone else) |
 | Space name | Workspace name; collisions in this profile become `Name (Arc)`, `Name (Arc 2)`…; untitled Spaces become `Space N` by Arc order |
 | Loose pinned tab | Pinned, ungrouped tab, first in order |
 | Top-level folder | Group with the folder's name, lowercased (Blanc's mono labels); same-named folders share one group |
