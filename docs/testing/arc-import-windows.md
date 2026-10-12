@@ -57,10 +57,18 @@ Windows adds two things the Mac run can't show:
     `CLAUDE.md`), or an unsigned `npm run dist:dir` build. A packaged build
     uses your everyday Blanc profile.
 
-**Do steps 3–9 and 11 by hand** in the running app. An automated run through
-the test hook is a useful extra check, but it replaces the native file picker
-and nobody sees the sheet, so it doesn't count as these steps. Record which
-steps, if any, were automated.
+**Do steps 3–9 and 11 through the real interface**, either by hand or with an
+agent that operates the real Arc and Blanc windows on screen (for example
+Codex with computer use). Both use the real Windows Open dialog and see the
+sheet. An automated run through the test hook or Playwright is a useful extra
+check, but it replaces the native file picker and nobody sees the sheet, so
+it doesn't count as these steps. Record how the steps were run.
+
+An agent follows the same rules as a person:
+- Its output, logs and files carry counts only (see **Privacy** below).
+- It opens and quits only Arc and the Blanc build under test.
+- It never enters payment details. Step 6 waits for a Patron key the owner
+  provides.
 
 **Write down:**
 
@@ -243,7 +251,7 @@ Windows: <version and edition>, <x64 | Arm>
 Arc: <version>
 Arc package folder suffix: <suffix>, folders matched: <n>
 Blanc: <commit or build>, <dev | packaged>
-Run: <by hand | steps automated through the test hook: …>
+Run: <by hand | real interface driven by <agent> | steps automated through the test hook: …>
 
 | Step | Result | Notes (counts only) |
 |------|--------|---------------------|
