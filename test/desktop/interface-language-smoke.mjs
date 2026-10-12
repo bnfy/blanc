@@ -24,10 +24,9 @@ function profileWith(name, settings) {
 }
 const storedSettings = (profile) => JSON.parse(fs.readFileSync(path.join(`${profile}-Dev`, 'settings.json'), 'utf8'));
 
-async function withApp(profile, { preferred, german = true }, run) {
+async function withApp(profile, preferred, run) {
   const app = await _electron.launch({ chromiumSandbox: true, args: [path.resolve('.'), `--user-data-dir=${profile}`], env: {
     ...baseEnv, BLANC_TEST: '1', BLANC_TEST_SYSTEM_LANGUAGES: preferred,
-    ...(german ? { BLANC_TEST_LOCALE_STATUS: 'de=selectable' } : {}),
     BLANC_TEST_UNCAUGHT_LOG: path.join(root, 'uncaught.log'),
   } });
   try {
@@ -52,14 +51,20 @@ const pageUrl = `http://127.0.0.1:${server.address().port}/`;
 
 try {
   // F44-1
-  await withApp(profileWith('f44-1', { uiLanguage: 'system' }), { preferred: 'de-DE' }, async (app) => {
+  await withApp(profileWith('f44-1', { uiLanguage: 'system' }), 'de-DE', async (app) => {
     assert.equal(await locale(app), 'de');
     assert.equal(await chromeLang(app), 'de');
   });
+  for (const [preferred, expected] of [['es-MX', 'es'], ['fr-CA', 'fr'], ['pt-PT', 'pt-BR']]) {
+    await withApp(profileWith(`f44-1-${expected}`, { uiLanguage: 'system' }), preferred, async (app) => {
+      assert.equal(await locale(app), expected);
+      assert.equal(await chromeLang(app), expected);
+    });
+  }
   console.log('ok F44-1');
 
   // F44-2
-  await withApp(profileWith('f44-2', { uiLanguage: 'en' }), { preferred: 'de-DE' }, async (app) => {
+  await withApp(profileWith('f44-2', { uiLanguage: 'en' }), 'de-DE', async (app) => {
     assert.equal(await locale(app), 'en');
     assert.equal(await chromeLang(app), 'en');
   });
@@ -67,7 +72,7 @@ try {
 
   // F44-3
   const p3 = profileWith('f44-3', { uiLanguage: 'system' });
-  await withApp(p3, { preferred: 'en-US' }, async (app) => {
+  await withApp(p3, 'en-US', async (app) => {
     assert.equal(await locale(app), 'en');
     const chrome = await findPage(app, 'blanc-chrome://index/', 'chrome');
     await chrome.evaluate(() => window.browserAPI.createTab('blanc://settings/'));
@@ -77,20 +82,20 @@ try {
     await sheet.waitForSelector('#uiLanguageRelaunch:not([hidden])');
   });
   assert.equal(storedSettings(p3).uiLanguage, 'de');
-  await withApp(p3, { preferred: 'en-US' }, async (app) => assert.equal(await locale(app), 'de'));
+  await withApp(p3, 'en-US', async (app) => assert.equal(await locale(app), 'de'));
   console.log('ok F44-3');
 
   // F44-4
-  const p4 = profileWith('f44-4', { uiLanguage: 'fr' });
-  await withApp(p4, { preferred: 'de-DE' }, async (app) => {
+  const p4 = profileWith('f44-4', { uiLanguage: 'it' });
+  await withApp(p4, 'de-DE', async (app) => {
     assert.deepEqual(await app.evaluate(() => globalThis.__blanc.i18nState()).then((s) => [s.locale, s.source]), ['en', 'unavailable']);
   });
-  assert.equal(storedSettings(p4).uiLanguage, 'fr');
+  assert.equal(storedSettings(p4).uiLanguage, 'it');
   console.log('ok F44-4');
 
   // F44-5
   for (const uiLanguage of ['en', 'de']) {
-    await withApp(profileWith(`f44-5-${uiLanguage}`, { uiLanguage }), { preferred: 'de-DE' }, async (app) => {
+    await withApp(profileWith(`f44-5-${uiLanguage}`, { uiLanguage }), 'de-DE', async (app) => {
       const chrome = await findPage(app, 'blanc-chrome://index/', 'chrome');
       await chrome.evaluate((url) => window.browserAPI.createTab(url), pageUrl);
       await waitForValue(async () => seen.length >= (uiLanguage === 'en' ? 1 : 2), Boolean, 'page request');

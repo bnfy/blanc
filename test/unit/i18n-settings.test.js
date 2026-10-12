@@ -59,8 +59,8 @@ test('setUiLanguage accepts system and selectable codes only, and persists immed
   assert.equal(settings.getSettings().uiLanguage, 'system');
 });
 
-test('a stored hidden language survives load; a malformed value reads as system', (t) => {
-  assert.equal(loadSettings(tempUserData(t, { uiLanguage: 'fr' })).getSettings().uiLanguage, 'fr');
+test('a stored unavailable language survives load; a malformed value reads as system', (t) => {
+  assert.equal(loadSettings(tempUserData(t, { uiLanguage: 'it' })).getSettings().uiLanguage, 'it');
   assert.equal(loadSettings(tempUserData(t, { uiLanguage: 'en-XA' })).getSettings().uiLanguage, 'en-XA');
   assert.equal(loadSettings(tempUserData(t, { uiLanguage: 'DE!!' })).getSettings().uiLanguage, 'system');
   assert.equal(loadSettings(tempUserData(t, { uiLanguage: 42 })).getSettings().uiLanguage, 'system');

@@ -15,19 +15,19 @@
     "code": "es",
     "endonym": "Español",
     "dir": "ltr",
-    "status": "hidden"
+    "status": "selectable"
   },
   {
     "code": "fr",
     "endonym": "Français",
     "dir": "ltr",
-    "status": "hidden"
+    "status": "selectable"
   },
   {
     "code": "pt-BR",
-    "endonym": "Português (Brasil)",
+    "endonym": "Português do Brasil",
     "dir": "ltr",
-    "status": "hidden"
+    "status": "selectable"
   },
   {
     "code": "en-XA",
