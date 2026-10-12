@@ -30804,6 +30804,864 @@
           }
         }
       }
+    },
+    "ublock.popup.label": {
+      "comment": "uBlock Origin popup (opened from the shield popover): accessible name of the whole popup card.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "uBlock Origin controls"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Steuerung von uBlock Origin"
+          }
+        }
+      }
+    },
+    "ublock.popup.back": {
+      "comment": "uBlock Origin popup (opened from the shield popover): accessible name of the back button that returns to Blanc’s site protection popover.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to site protection"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurück zum Website-Schutz"
+          }
+        }
+      }
+    },
+    "ublock.popup.close": {
+      "comment": "uBlock Origin popup (opened from the shield popover): accessible name of the close button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close uBlock Origin controls"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Steuerung von uBlock Origin schließen"
+          }
+        }
+      }
+    },
+    "ublock.popup.siteTitle": {
+      "comment": "uBlock Origin popup (opened from the shield popover): name of the switch that turns uBlock Origin on or off for the current site.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Block ads and trackers"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Werbung und Tracker blockieren"
+          }
+        }
+      }
+    },
+    "ublock.popup.siteDetail": {
+      "comment": "uBlock Origin popup (opened from the shield popover): line under “Block ads and trackers”.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For this site."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Für diese Website."
+          }
+        }
+      }
+    },
+    "ublock.popup.blocked": {
+      "comment": "uBlock Origin popup (opened from the shield popover): large count of requests blocked on the current page.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld request blocked"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld requests blocked"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Anfrage blockiert"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Anfragen blockiert"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ublock.popup.share": {
+      "comment": "uBlock Origin popup (opened from the shield popover): line under the blocked count; {percent} is a whole number from 0 to 100.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@%% of this page’s requests"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %% der Anfragen dieser Seite"
+          }
+        }
+      }
+    },
+    "ublock.popup.domains": {
+      "comment": "uBlock Origin popup (opened from the shield popover): how many of the page’s domains were allowed to connect; {connected} is that number, the count is all domains the page contacted.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%2$@ of %1$lld domain connected"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%2$@ of %1$lld domains connected"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%2$@ von %1$lld Domain verbunden"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%2$@ von %1$lld Domains verbunden"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ublock.popup.pick": {
+      "comment": "uBlock Origin popup (opened from the shield popover): tool that starts uBlock Origin’s element picker.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pick an element"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Element auswählen"
+          }
+        }
+      }
+    },
+    "ublock.popup.pickDetail": {
+      "comment": "uBlock Origin popup (opened from the shield popover): line under “Pick an element”.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create a filter that hides it"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filter zum Ausblenden erstellen"
+          }
+        }
+      }
+    },
+    "ublock.popup.zap": {
+      "comment": "uBlock Origin popup (opened from the shield popover): tool that starts uBlock Origin’s element zapper, which removes an element until reload.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zap an element"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Element entfernen"
+          }
+        }
+      }
+    },
+    "ublock.popup.zapDetail": {
+      "comment": "uBlock Origin popup (opened from the shield popover): line under “Zap an element”.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove it until the page reloads"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bis zum Neuladen der Seite entfernen"
+          }
+        }
+      }
+    },
+    "ublock.popup.logger": {
+      "comment": "uBlock Origin popup (opened from the shield popover): link that opens uBlock Origin’s request logger (same tool as Settings → “Logger”).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Logger"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protokoll"
+          }
+        }
+      }
+    },
+    "ublock.popup.dashboard": {
+      "comment": "uBlock Origin popup (opened from the shield popover): link that opens uBlock Origin’s settings dashboard.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dashboard"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dashboard"
+          }
+        }
+      }
+    },
+    "ublock.popup.more": {
+      "comment": "uBlock Origin popup (opened from the shield popover): button that expands the popup with site controls and the request table.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More controls"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mehr anzeigen"
+          }
+        }
+      }
+    },
+    "ublock.popup.fewer": {
+      "comment": "uBlock Origin popup (opened from the shield popover): the same button while expanded; collapses it again.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fewer controls"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weniger anzeigen"
+          }
+        }
+      }
+    },
+    "ublock.popup.overflow": {
+      "comment": "uBlock Origin popup (opened from the shield popover): accessible name of the “…” menu button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More uBlock Origin actions"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weitere Aktionen von uBlock Origin"
+          }
+        }
+      }
+    },
+    "ublock.popup.report": {
+      "comment": "uBlock Origin popup (opened from the shield popover): item in the “…” menu that opens uBlock Origin’s issue reporter.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Report an issue"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Problem melden"
+          }
+        }
+      }
+    },
+    "ublock.popup.since": {
+      "comment": "uBlock Origin popup (opened from the shield popover): label in the “…” menu beside the number of requests blocked since uBlock Origin was installed.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blocked since install"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seit Installation blockiert"
+          }
+        }
+      }
+    },
+    "ublock.popup.siteControls": {
+      "comment": "uBlock Origin popup (opened from the shield popover): heading of the expanded section with per-site switches.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Site controls"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Website-Steuerung"
+          }
+        }
+      }
+    },
+    "ublock.popup.saveRules": {
+      "comment": "uBlock Origin popup (opened from the shield popover): button that makes this session’s rule changes permanent.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save rules"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regeln sichern"
+          }
+        }
+      }
+    },
+    "ublock.popup.revert": {
+      "comment": "uBlock Origin popup (opened from the shield popover): button that discards this session’s rule changes.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revert"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurücksetzen"
+          }
+        }
+      }
+    },
+    "ublock.popup.reload": {
+      "comment": "uBlock Origin popup (opened from the shield popover): button that reloads the page so rule changes apply.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seite neu laden"
+          }
+        }
+      }
+    },
+    "ublock.popup.requestsAndDomains": {
+      "comment": "uBlock Origin popup (opened from the shield popover): heading of the table of requests by domain.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requests and domains"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anfragen und Domains"
+          }
+        }
+      }
+    },
+    "ublock.dashboard.frame": {
+      "comment": "uBlock Origin Dashboard: accessible title of the frame that shows the selected settings pane.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "uBlock Origin settings"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einstellungen von uBlock Origin"
+          }
+        }
+      }
+    },
+    "ublock.dashboard.panels": {
+      "comment": "uBlock Origin Dashboard: accessible name of the row of pane tabs.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "uBlock Origin settings panels"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bereiche der Einstellungen von uBlock Origin"
+          }
+        }
+      }
+    },
+    "ublock.dashboard.lists": {
+      "comment": "uBlock Origin Dashboard → Filter lists: description under the pane title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose which lists uBlock Origin uses."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle, welche Listen uBlock Origin nutzt."
+          }
+        }
+      }
+    },
+    "ublock.dashboard.settings": {
+      "comment": "uBlock Origin Dashboard → Settings: description under the pane title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Customize filtering, appearance, and your uBlock Origin preferences."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passe Filterung, Darstellung und deine Einstellungen für uBlock Origin an."
+          }
+        }
+      }
+    },
+    "ublock.dashboard.myFilters": {
+      "comment": "uBlock Origin Dashboard → My filters: description under the pane title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add your own network and cosmetic filters."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Füge eigene Netzwerk- und kosmetische Filter hinzu."
+          }
+        }
+      }
+    },
+    "ublock.dashboard.rules": {
+      "comment": "uBlock Origin Dashboard → My rules: description under the pane title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review permanent rules and changes for this session."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prüfe dauerhafte Regeln und die Änderungen dieser Sitzung."
+          }
+        }
+      }
+    },
+    "ublock.dashboard.trusted": {
+      "comment": "uBlock Origin Dashboard → Trusted sites: description under the pane title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose where uBlock Origin filtering is turned off."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle, wo die Filterung von uBlock Origin ausgeschaltet ist."
+          }
+        }
+      }
+    },
+    "ublock.dashboard.support": {
+      "comment": "uBlock Origin Dashboard → Support: description under the pane title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find help and troubleshoot uBlock Origin."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finde Hilfe und behebe Probleme mit uBlock Origin."
+          }
+        }
+      }
+    },
+    "ublock.dashboard.about": {
+      "comment": "uBlock Origin Dashboard → About: description under the pane title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version, licenses, and acknowledgments."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version, Lizenzen und Danksagungen."
+          }
+        }
+      }
+    },
+    "ublock.dashboard.advanced": {
+      "comment": "uBlock Origin Dashboard → Advanced settings: description under the pane title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Advanced configuration for experienced users."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erweiterte Konfiguration für Fortgeschrittene."
+          }
+        }
+      }
+    },
+    "ublock.dashboard.advancedTitle": {
+      "comment": "uBlock Origin Dashboard → Advanced settings: pane title (the other panes use uBlock Origin’s own titles).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Advanced settings"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erweiterte Einstellungen"
+          }
+        }
+      }
+    },
+    "ublock.dashboard.listOptions": {
+      "comment": "uBlock Origin Dashboard → Filter lists: heading of the options column.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "List options"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listenoptionen"
+          }
+        }
+      }
+    },
+    "ublock.dashboard.autoUpdate": {
+      "comment": "uBlock Origin Dashboard → Filter lists: description under uBlock Origin’s auto-update option.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Periodically check and update filter lists in the background."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filterlisten regelmäßig im Hintergrund prüfen und aktualisieren."
+          }
+        }
+      }
+    },
+    "ublock.dashboard.suspend": {
+      "comment": "uBlock Origin Dashboard → Filter lists: description under the option that holds requests while lists load.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prevent network requests until filtering rules are ready."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Netzwerkanfragen zurückhalten, bis die Filterregeln bereit sind."
+          }
+        }
+      }
+    },
+    "ublock.dashboard.cosmetic": {
+      "comment": "uBlock Origin Dashboard → Filter lists: description under the cosmetic filtering option.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable cosmetic filters to hide page elements."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kosmetische Filter aktivieren, um Seitenelemente auszublenden."
+          }
+        }
+      }
+    },
+    "ublock.dashboard.genericCosmetic": {
+      "comment": "uBlock Origin Dashboard → Filter lists: description under the option that ignores generic cosmetic filters.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skip generic cosmetic filters (e.g. those not specific to a site)."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generische kosmetische Filter überspringen (z. B. solche, die für keine bestimmte Website gelten)."
+          }
+        }
+      }
+    },
+    "ublock.dashboard.subscriptions": {
+      "comment": "uBlock Origin Dashboard → Filter lists: heading of the list of filter lists.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subscriptions"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abonnements"
+          }
+        }
+      }
+    },
+    "ublock.dashboard.importList": {
+      "comment": "uBlock Origin Dashboard → Filter lists: row that expands to import a list by URL.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import a filter list"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filterliste importieren"
+          }
+        }
+      }
+    },
+    "ublock.dashboard.search": {
+      "comment": "uBlock Origin Dashboard → Filter lists: placeholder of the list search field.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search filter lists…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filterlisten durchsuchen…"
+          }
+        }
+      }
+    },
+    "ublock.dashboard.searchLabel": {
+      "comment": "uBlock Origin Dashboard → Filter lists: accessible name of the list search field.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search filter lists"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filterlisten durchsuchen"
+          }
+        }
+      }
+    },
+    "ublock.dashboard.allLists": {
+      "comment": "uBlock Origin Dashboard → Filter lists: accessible name of a group expander that has no name of its own.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All filter lists"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Filterlisten"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

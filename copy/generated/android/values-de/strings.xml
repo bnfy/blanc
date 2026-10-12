@@ -1836,4 +1836,55 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blancbrowser.co
         <item quantity="one">abgeräumt · %1$d Pkt. · %2$s</item>
         <item quantity="other">abgeräumt · %1$d Pkt. · %2$s</item>
     </plurals>
+    <string name="ublock_popup_label">Steuerung von uBlock Origin</string>
+    <string name="ublock_popup_back">Zurück zum Website-Schutz</string>
+    <string name="ublock_popup_close">Steuerung von uBlock Origin schließen</string>
+    <string name="ublock_popup_site_title">Werbung und Tracker blockieren</string>
+    <string name="ublock_popup_site_detail">Für diese Website.</string>
+    <plurals name="ublock_popup_blocked">
+        <item quantity="one">%1$d Anfrage blockiert</item>
+        <item quantity="other">%1$d Anfragen blockiert</item>
+    </plurals>
+    <string name="ublock_popup_share">%1$s %% der Anfragen dieser Seite</string>
+    <plurals name="ublock_popup_domains">
+        <item quantity="one">%2$s von %1$d Domain verbunden</item>
+        <item quantity="other">%2$s von %1$d Domains verbunden</item>
+    </plurals>
+    <string name="ublock_popup_pick">Element auswählen</string>
+    <string name="ublock_popup_pick_detail">Filter zum Ausblenden erstellen</string>
+    <string name="ublock_popup_zap">Element entfernen</string>
+    <string name="ublock_popup_zap_detail">Bis zum Neuladen der Seite entfernen</string>
+    <string name="ublock_popup_logger">Protokoll</string>
+    <string name="ublock_popup_dashboard">Dashboard</string>
+    <string name="ublock_popup_more">Mehr anzeigen</string>
+    <string name="ublock_popup_fewer">Weniger anzeigen</string>
+    <string name="ublock_popup_overflow">Weitere Aktionen von uBlock Origin</string>
+    <string name="ublock_popup_report">Problem melden</string>
+    <string name="ublock_popup_since">Seit Installation blockiert</string>
+    <string name="ublock_popup_site_controls">Website-Steuerung</string>
+    <string name="ublock_popup_save_rules">Regeln sichern</string>
+    <string name="ublock_popup_revert">Zurücksetzen</string>
+    <string name="ublock_popup_reload">Seite neu laden</string>
+    <string name="ublock_popup_requests_and_domains">Anfragen und Domains</string>
+    <string name="ublock_dashboard_frame">Einstellungen von uBlock Origin</string>
+    <string name="ublock_dashboard_panels">Bereiche der Einstellungen von uBlock Origin</string>
+    <string name="ublock_dashboard_lists">Wähle, welche Listen uBlock Origin nutzt.</string>
+    <string name="ublock_dashboard_settings">Passe Filterung, Darstellung und deine Einstellungen für uBlock Origin an.</string>
+    <string name="ublock_dashboard_my_filters">Füge eigene Netzwerk- und kosmetische Filter hinzu.</string>
+    <string name="ublock_dashboard_rules">Prüfe dauerhafte Regeln und die Änderungen dieser Sitzung.</string>
+    <string name="ublock_dashboard_trusted">Wähle, wo die Filterung von uBlock Origin ausgeschaltet ist.</string>
+    <string name="ublock_dashboard_support">Finde Hilfe und behebe Probleme mit uBlock Origin.</string>
+    <string name="ublock_dashboard_about">Version, Lizenzen und Danksagungen.</string>
+    <string name="ublock_dashboard_advanced">Erweiterte Konfiguration für Fortgeschrittene.</string>
+    <string name="ublock_dashboard_advanced_title">Erweiterte Einstellungen</string>
+    <string name="ublock_dashboard_list_options">Listenoptionen</string>
+    <string name="ublock_dashboard_auto_update">Filterlisten regelmäßig im Hintergrund prüfen und aktualisieren.</string>
+    <string name="ublock_dashboard_suspend">Netzwerkanfragen zurückhalten, bis die Filterregeln bereit sind.</string>
+    <string name="ublock_dashboard_cosmetic">Kosmetische Filter aktivieren, um Seitenelemente auszublenden.</string>
+    <string name="ublock_dashboard_generic_cosmetic">Generische kosmetische Filter überspringen (z. B. solche, die für keine bestimmte Website gelten).</string>
+    <string name="ublock_dashboard_subscriptions">Abonnements</string>
+    <string name="ublock_dashboard_import_list">Filterliste importieren</string>
+    <string name="ublock_dashboard_search">Filterlisten durchsuchen…</string>
+    <string name="ublock_dashboard_search_label">Filterlisten durchsuchen</string>
+    <string name="ublock_dashboard_all_lists">Alle Filterlisten</string>
 </resources>

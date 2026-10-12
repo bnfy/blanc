@@ -66,12 +66,22 @@ const readVerifiedPackageAsync = root => runAsync(readVerifiedPackageSteps(root)
 const UI_ICONS = ['pipette', 'zap', 'list', 'settings', 'chevron-left', 'chevron-right', 'chevron-down', 'x', 'ellipsis', 'lock-keyhole', 'undo-2', 'rotate-cw', 'house', 'external-link', 'search', 'check', 'refresh-cw', 'download', 'upload', 'save', 'book-open', 'info', 'circle-help'];
 const HOST_INPUTS = [
   ...['ublock-host-mainworld.js', 'ublock-bridge-mainworld.js', 'ublock-css-mainworld.js', 'ublock-bridge-preload.js', 'ublock-package.js', 'ublock-host-policy.js', 'ublock-provider.js', 'ublock-registry.js', 'ublock-documents.js', 'ublock-popup-mainworld.js', 'ublock-popup-preload.js', 'ublock-popup-host.js', 'ublock-dashboard-mainworld.js'].map(name => 'src/main/' + name),
-  'ublock/identity.json', 'src/main/blocking-resources.js',
+  'ublock/identity.json', 'src/main/blocking-resources.js', 'src/renderer/pages/i18n.js',
   'src/renderer/ublock-popup.css', 'src/renderer/ublock-dashboard.css', 'src/renderer/pages/inter-latin.woff2',
   ...UI_ICONS.map(name => 'src/renderer/ublock-popup-icons/' + name + '.svg'),
   'src/renderer/ublock-popup-icons/README.md', 'src/renderer/ublock-popup-icons/lucide-LICENSE.txt',
 ];
-function* readHostSourcesSteps(root) {
+// Blanc's text for the popup and Dashboard presentation: only its own keys,
+// in the interface language, never the whole catalog. Without a language
+// (the adaptation record, the packaged check) it is English.
+function shimStrings({ locale = 'en', formatLocale = locale } = {}) {
+  // The locale names the strings file, so it must be a plain language tag.
+  if (!/^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/.test(locale)) throw new Error('ubo-strings-locale');
+  const data = require(`../renderer/pages/strings.${locale}.js`);
+  const own = (messages = {}) => Object.fromEntries(Object.entries(messages).filter(([key]) => key.startsWith('ublock.')));
+  return { locale, formatLocale, messages: own(data.messages), fallback: own(data.fallback) };
+}
+function* readHostSourcesSteps(root, language) {
   const read = name => ['readFile', path.join(root, name)];
   const sources = {
     identity: JSON.parse(yield read('ublock/identity.json')),
@@ -79,13 +89,14 @@ function* readHostSourcesSteps(root) {
     dashboardScript: yield read('src/main/ublock-dashboard-mainworld.js'), dashboardStyle: yield read('src/renderer/ublock-dashboard.css'),
     popupScript: yield read('src/main/ublock-popup-mainworld.js'), popupStyle: yield read('src/renderer/ublock-popup.css'),
     popupFont: yield read('src/renderer/pages/inter-latin.woff2'),
+    i18n: yield read('src/renderer/pages/i18n.js'), strings: shimStrings(language),
     popupIcons: new Map(),
   };
   for (const name of UI_ICONS) sources.popupIcons.set(name, yield read('src/renderer/ublock-popup-icons/' + name + '.svg'));
   return sources;
 }
-const readHostSources = root => runSync(readHostSourcesSteps(root));
-const readHostSourcesAsync = root => runAsync(readHostSourcesSteps(root));
+const readHostSources = (root, language) => runSync(readHostSourcesSteps(root, language));
+const readHostSourcesAsync = (root, language) => runAsync(readHostSourcesSteps(root, language));
 
 function adaptPackage(files, hostSources) {
   const result = new Map(files);
@@ -205,7 +216,7 @@ function adaptPackage(files, hostSources) {
   // Presentation only: retain every original popup handler and filtering rule.
   let popup = result.get('popup-fenix.html').toString('utf8');
   popup = replace(popup, '<link rel="stylesheet" href="css/popup-fenix.css">', '<link rel="stylesheet" href="css/popup-fenix.css">\n<link rel="stylesheet" href="blanc-popup.css">');
-  popup = replace(popup, '<script src="js/popup-fenix.js" type="module"></script>', '<script src="blanc-popup.js"></script>\n<script src="js/popup-fenix.js" type="module"></script>');
+  popup = replace(popup, '<script src="js/popup-fenix.js" type="module"></script>', '<script src="blanc-i18n.js"></script>\n<script src="blanc-strings.js"></script>\n<script src="blanc-popup.js"></script>\n<script src="js/popup-fenix.js" type="module"></script>');
   result.set('popup-fenix.html', Buffer.from(popup));
   let popupScript = result.get('js/popup-fenix.js').toString('utf8');
   popupScript = replace(popupScript, '    renderTooltips();\n};', '    renderTooltips();\n    self.BlancUboPopupUI?.update(popupData);\n};');
@@ -217,7 +228,7 @@ function adaptPackage(files, hostSources) {
   for (const name of ['dashboard.html', 'settings.html', '3p-filters.html', '1p-filters.html', 'dyna-rules.html', 'whitelist.html', 'support.html', 'about.html', 'advanced-settings.html']) {
     let html = result.get(name).toString('utf8');
     html = replace(html, '</head>', '<link rel="stylesheet" href="blanc-dashboard.css">\n</head>');
-    html = replace(html, '</body>', '<script src="blanc-dashboard.js"></script>\n</body>');
+    html = replace(html, '</body>', '<script src="blanc-i18n.js"></script>\n<script src="blanc-strings.js"></script>\n<script src="blanc-dashboard.js"></script>\n</body>');
     result.set(name, Buffer.from(html));
   }
   result.set('js/support.js', Buffer.from(replace(result.get('js/support.js').toString('utf8'),
@@ -226,6 +237,11 @@ function adaptPackage(files, hostSources) {
   result.set('blanc-dashboard.css', Buffer.from(hostSources.dashboardStyle));
   result.set('blanc-popup.js', Buffer.from(hostSources.popupScript));
   result.set('blanc-popup.css', Buffer.from(hostSources.popupStyle));
+  result.set('blanc-i18n.js', Buffer.from(hostSources.i18n));
+  result.set('blanc-strings.js', Buffer.from(`// Added by Blanc: interface text for blanc-popup.js and blanc-dashboard.js.
+'use strict';
+self.BlancUboStrings = ${JSON.stringify(hostSources.strings)};
+`));
   result.set('blanc-inter.woff2', Buffer.from(hostSources.popupFont));
   for (const name of UI_ICONS) result.set('blanc-icons/' + name + '.svg', Buffer.from(hostSources.popupIcons.get(name)));
   const manifest = JSON.parse(result.get('manifest.json'));

@@ -260,11 +260,11 @@
       "allow": []
     },
     "src/main/ublock-popup-mainworld.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/main/ublock-dashboard-mainworld.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/main/patron.js": {
@@ -298,11 +298,11 @@
       "allow": []
     },
     "src/main/ublock-provider.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/main/blocking-providers.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/renderer/pages/downloads-row-model.js": {

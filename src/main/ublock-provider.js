@@ -671,7 +671,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       const installed = await step(installVerifiedPackageAsync({
         root: path.join(app.getAppPath(), 'ublock'),
         destination: path.join(managedRoot, 'extension'),
-        hostSources: await step(readHostSourcesAsync(app.getAppPath())),
+        hostSources: await step(readHostSourcesAsync(app.getAppPath(), hooks.interfaceLanguage?.())),
       }));
       scripts = installed.scripts;
       let backgroundReadyResolve;

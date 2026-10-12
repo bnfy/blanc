@@ -1,19 +1,27 @@
-/* global vAPI */
+/* global vAPI, blancI18n */
 // Blanc's approved popup presentation. Original uBO handlers own every action.
 (() => {
   'use strict';
+  // Blanc's text arrives beside this script in the interface language
+  // (blanc-strings.js), with the catalog's formatter (blanc-i18n.js).
+  const t = blancI18n.createTranslator(self.BlancUboStrings);
+  const number = new Intl.NumberFormat(self.BlancUboStrings.formatLocale);
   const node = id => document.getElementById(id);
   const icon = name => `<span class="blanc-icon" style="--icon:url('blanc-icons/${name}.svg')" aria-hidden="true"></span>`;
   const card = document.createElement('section');
-  card.id = 'blancPopup'; card.setAttribute('aria-label', 'uBlock Origin controls');
-  card.innerHTML = `<header id="blancHeader"><button id="blancBack" aria-label="Back to site protection">${icon('chevron-left')}</button><img id="blancMark" src="blanc://ubo-brand/sunrise.png" alt=""><div><h1>uBlock Origin</h1><div id="blancHost"></div></div><button id="blancClose" aria-label="Close uBlock Origin controls">${icon('x')}</button></header>`;
+  card.id = 'blancPopup'; card.setAttribute('aria-label', t('ublock.popup.label'));
+  card.innerHTML = `<header id="blancHeader"><button id="blancBack">${icon('chevron-left')}</button><img id="blancMark" src="blanc://ubo-brand/sunrise.png" alt=""><div><h1>uBlock Origin</h1><div id="blancHost"></div></div><button id="blancClose">${icon('x')}</button></header>`;
   document.body.prepend(card);
+  node('blancBack').setAttribute('aria-label', t('ublock.popup.back'));
+  node('blancClose').setAttribute('aria-label', t('ublock.popup.close'));
   const pointer = document.createElement('div'); pointer.id = 'blancPointer'; pointer.hidden = true; document.body.prepend(pointer);
   node('blancHost').append(node('hostname'));
   card.append(node('panes'));
   const main = node('main');
   const site = document.createElement('section'); site.id = 'blancSite';
-  site.innerHTML = '<div><strong>Block ads and trackers</strong><small>For this site.</small></div>';
+  site.innerHTML = '<div><strong></strong><small></small></div>';
+  site.querySelector('strong').textContent = t('ublock.popup.siteTitle');
+  site.querySelector('small').textContent = t('ublock.popup.siteDetail');
   const siteSwitch = node('switch');
   siteSwitch.replaceChildren(); siteSwitch.setAttribute('role', 'switch');
   site.append(siteSwitch);
@@ -27,40 +35,44 @@
   const configureTool = (id, name, description, glyph) => {
     const tool = node(id); tool.className = 'blanc-page-tool needPick';
     tool.setAttribute('role', 'button'); tool.tabIndex = 0;
-    tool.innerHTML = `${icon(glyph)}<span><strong>${name}</strong><small>${description}</small></span>${icon('chevron-right')}`;
+    tool.innerHTML = `${icon(glyph)}<span><strong></strong><small></small></span>${icon('chevron-right')}`;
+    tool.querySelector('strong').textContent = name; tool.querySelector('small').textContent = description;
     tool.addEventListener('click', event => {
       if (!tool.classList.contains('canPick')) { event.preventDefault(); event.stopImmediatePropagation(); }
     }, { capture: true });
     actions.append(tool);
   };
-  configureTool('gotoPick', 'Pick an element', 'Create a filter that hides it', 'pipette');
-  configureTool('gotoZap', 'Zap an element', 'Remove it until the page reloads', 'zap');
+  configureTool('gotoPick', t('ublock.popup.pick'), t('ublock.popup.pickDetail'), 'pipette');
+  configureTool('gotoZap', t('ublock.popup.zap'), t('ublock.popup.zapDetail'), 'zap');
   main.append(actions);
   const links = document.createElement('section'); links.id = 'blancToolLinks';
-  for (const [href, label, glyph] of [['logger-ui.html#_', 'Logger', 'list'], ['dashboard.html', 'Dashboard', 'settings']]) {
+  for (const [href, label, glyph] of [['logger-ui.html#_', t('ublock.popup.logger'), 'list'], ['dashboard.html', t('ublock.popup.dashboard'), 'settings']]) {
     const link = tools.querySelector(`[href="${href}"]`);
-    link.className = 'blanc-tool-link'; link.innerHTML = `${icon(glyph)}<span>${label}</span>`; links.append(link);
+    link.className = 'blanc-tool-link'; link.innerHTML = `${icon(glyph)}<span></span>`; link.lastElementChild.textContent = label; links.append(link);
   }
   main.append(links);
   const footer = document.createElement('footer'); footer.id = 'blancFooter';
-  footer.innerHTML = `<button id="blancMore" aria-expanded="false" aria-controls="blancExtra"><span>More controls</span>${icon('chevron-down')}</button><details id="blancOverflow"><summary aria-label="More uBlock Origin actions">${icon('ellipsis')}</summary><div id="blancOverflowMenu"></div></details>`;
-  const report = node('gotoReport'); report.className = 'blanc-report'; report.setAttribute('role', 'button'); report.tabIndex = 0; report.textContent = 'Report an issue';
+  footer.innerHTML = `<button id="blancMore" aria-expanded="false" aria-controls="blancExtra"><span></span>${icon('chevron-down')}</button><details id="blancOverflow"><summary>${icon('ellipsis')}</summary><div id="blancOverflowMenu"></div></details>`;
+  footer.querySelector('#blancMore span').textContent = t('ublock.popup.more');
+  footer.querySelector('summary').setAttribute('aria-label', t('ublock.popup.overflow'));
+  const report = node('gotoReport'); report.className = 'blanc-report'; report.setAttribute('role', 'button'); report.tabIndex = 0; report.textContent = t('ublock.popup.report');
   report.addEventListener('click', event => { if (!report.classList.contains('canPick')) { event.preventDefault(); event.stopImmediatePropagation(); } }, { capture: true });
   node('basicStats').removeAttribute('data-more');
   // Footer must be attached before resolving its new menu id.
   main.append(footer); node('blancOverflowMenu').append(report);
   const since = document.createElement('div'); since.className = 'blanc-since';
-  since.innerHTML = '<span>Blocked since install</span><span id="blancSinceCount"></span>'; node('blancOverflowMenu').append(since);
+  since.innerHTML = '<span></span><span id="blancSinceCount"></span>'; since.firstElementChild.textContent = t('ublock.popup.since');
+  node('blancOverflowMenu').append(since);
   const extra = document.createElement('section'); extra.id = 'blancExtra';
-  const heading = document.createElement('h2'); heading.textContent = 'Site controls'; extra.append(heading);
+  const heading = document.createElement('h2'); heading.textContent = t('ublock.popup.siteControls'); extra.append(heading);
   extra.append(node('extraTools'));
   const ruleTools = document.createElement('div'); ruleTools.id = 'blancRuleTools';
-  for (const [id, label, glyph] of [['saveRules', 'Save rules', 'lock-keyhole'], ['revertRules', 'Revert', 'undo-2'], ['refresh', 'Reload page', 'rotate-cw']]) {
+  for (const [id, label, glyph] of [['saveRules', t('ublock.popup.saveRules'), 'lock-keyhole'], ['revertRules', t('ublock.popup.revert'), 'undo-2'], ['refresh', t('ublock.popup.reload'), 'rotate-cw']]) {
     const tool = node(id); tool.setAttribute('role', 'button'); tool.tabIndex = 0;
-    tool.innerHTML = `${icon(glyph)}<span>${label}</span>`; ruleTools.append(tool);
+    tool.innerHTML = `${icon(glyph)}<span></span>`; tool.lastElementChild.textContent = label; ruleTools.append(tool);
   }
   main.append(ruleTools);
-  const matrixHeading = document.createElement('h2'); matrixHeading.textContent = 'Requests and domains'; extra.append(matrixHeading);
+  const matrixHeading = document.createElement('h2'); matrixHeading.textContent = t('ublock.popup.requestsAndDomains'); extra.append(matrixHeading);
   extra.append(node('firewall')); extra.append(node('moreOrLess'));
   main.append(extra);
   tools.hidden = true;
@@ -73,15 +85,17 @@
       const counts = data.pageCounts;
       const blocked = counts?.blocked.any ?? 0;
       const total = blocked + (counts?.allowed.any ?? 0);
-      node('blancPageCount').textContent = `${blocked.toLocaleString()} ${blocked === 1 ? 'request' : 'requests'} blocked`;
-      node('blancPagePercent').textContent = `${total ? Math.floor(blocked * 100 / total) : 0}% of this page’s requests`;
-      node('blancSinceCount').textContent = (data.globalBlockedRequestCount ?? 0).toLocaleString();
+      node('blancPageCount').textContent = t('ublock.popup.blocked', { count: blocked });
+      node('blancPagePercent').textContent = t('ublock.popup.share', { percent: total ? Math.floor(blocked * 100 / total) : 0 });
+      node('blancSinceCount').textContent = number.format(data.globalBlockedRequestCount ?? 0);
       const domains = new Map();
       for (const [host, value] of Object.entries(data.hostnameDict || {})) {
         if (host === '*') continue;
         domains.set(value.domain, domains.get(value.domain) || value.counts.allowed.any > 0);
       }
-      node('blancDomains').textContent = `${[...domains.values()].filter(Boolean).length} of ${domains.size} domains connected`;
+      node('blancDomains').textContent = t('ublock.popup.domains', {
+        connected: number.format([...domains.values()].filter(Boolean).length), count: domains.size,
+      });
       if (data.pageURL === '') node('switch').setAttribute('aria-disabled', 'true');
       else node('switch').removeAttribute('aria-disabled');
       syncState();
@@ -102,7 +116,7 @@
     self.BlancUboPopupUI.expand?.(expanded);
     document.body.classList.toggle('blanc-expanded', expanded);
     node('blancMore').setAttribute('aria-expanded', String(expanded));
-    node('blancMore').querySelector('span').textContent = expanded ? 'Fewer controls' : 'More controls';
+    node('blancMore').querySelector('span').textContent = expanded ? t('ublock.popup.fewer') : t('ublock.popup.more');
     if (!expanded) node('blancMore').scrollIntoView({ block: 'nearest' });
   });
   node('blancClose').addEventListener('click', () => window.blancUboPopup?.close());

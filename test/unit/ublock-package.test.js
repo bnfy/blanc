@@ -18,6 +18,25 @@ test('adaptation preserves upstream filtering engine and rejects another source 
   assert(storage.includes('const success = false'));
   assert(result.get('js/messaging.js').toString().includes('delete hiddenSettings.userResourcesLocation'));
 });
+test('Blanc text reaches the popup and Dashboard in the interface language, beside the formatter only', () => {
+  const vm = require('node:vm');
+  const { files } = readVerifiedPackage(path.join(root, 'ublock'));
+  const german = adaptPackage(files, readHostSources(root, { locale: 'de', formatLocale: 'de-DE' }));
+  const scope = { Intl };
+  scope.self = scope;
+  vm.runInNewContext(german.get('blanc-i18n.js').toString() + german.get('blanc-strings.js').toString(), scope);
+  // The formatter alone: no catalog of Blanc's pages, so it never touches uBO's own data-i18n markup.
+  assert.equal(scope.blancStrings, undefined);
+  assert(Object.keys(scope.BlancUboStrings.messages).every(key => key.startsWith('ublock.')));
+  const t = scope.blancI18n.createTranslator(scope.BlancUboStrings);
+  assert.equal(t('ublock.popup.blocked', { count: 1234 }), '1.234 Anfragen blockiert');
+  // English by default, as recorded in ublock/adaptation.json.
+  assert.match(adaptPackage(files, hosts).get('blanc-strings.js').toString(), /"ublock\.popup\.report":"Report an issue"/);
+  const loads = (html, shim) => html.indexOf('blanc-i18n.js') < html.indexOf('blanc-strings.js') && html.indexOf('blanc-strings.js') < html.indexOf(shim);
+  assert(loads(german.get('popup-fenix.html').toString(), 'blanc-popup.js'));
+  assert(loads(german.get('3p-filters.html').toString(), 'blanc-dashboard.js'));
+  assert.throws(() => readHostSources(root, { locale: '../../x' }), /ubo-strings-locale/);
+});
 test('atomic managed install repairs corruption and interruption without changing identity', t => {
   const temporary = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'ubo-package-test-')));
   t.after(() => fs.rmSync(temporary, { recursive: true, force: true }));

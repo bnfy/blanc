@@ -6492,5 +6492,185 @@
   "mahjong.daily.clearedScore": {
     "message": "{count, plural, one {abgeräumt · # Pkt. · {time}} other {abgeräumt · # Pkt. · {time}}}",
     "source": "sha256:cd0d390a5c8273db9f045fcc655bd19a011845e1d2de22d029c7396eb480f741"
+  },
+  "ublock.popup.label": {
+    "message": "Steuerung von uBlock Origin",
+    "source": "sha256:3afa5833828472dd9ff9a229bf52a049508a50a357147d451be82fa6a3a43833"
+  },
+  "ublock.popup.back": {
+    "message": "Zurück zum Website-Schutz",
+    "source": "sha256:655df09a270fc7fa35264180cee2a087b237c4c23ddd33f8441dbbd3f33b6b8b"
+  },
+  "ublock.popup.close": {
+    "message": "Steuerung von uBlock Origin schließen",
+    "source": "sha256:ec0b5a71e0107c2893dde0afe623d31262eae7c239c6ead0e0ea6b2c82dc6532"
+  },
+  "ublock.popup.siteTitle": {
+    "message": "Werbung und Tracker blockieren",
+    "source": "sha256:bb1f0335631445e5b551efd22c99d67cc1b9f435dff8c664b7311d0e5105c7ae"
+  },
+  "ublock.popup.siteDetail": {
+    "message": "Für diese Website.",
+    "source": "sha256:618176b1cd53744b1e16587f3ddae42d8394ef46fb6978461284f479e591f830"
+  },
+  "ublock.popup.blocked": {
+    "message": "{count, plural, one {# Anfrage blockiert} other {# Anfragen blockiert}}",
+    "source": "sha256:1eaf54d0b7b14c7fe8ee24b50f669f1f11544f5e42fa32efa2cf2a7a9f4a7101"
+  },
+  "ublock.popup.share": {
+    "message": "{percent} % der Anfragen dieser Seite",
+    "source": "sha256:aef550373ddebca3dcf555d8e1fd5e3167f79d4cc77139ca698d6c0918df0af4"
+  },
+  "ublock.popup.domains": {
+    "message": "{count, plural, one {{connected} von # Domain verbunden} other {{connected} von # Domains verbunden}}",
+    "source": "sha256:bd5f7adcc514e45a57ad0c33ca810a8df1fc915fbc25facfba6064c0dcefbebf"
+  },
+  "ublock.popup.pick": {
+    "message": "Element auswählen",
+    "source": "sha256:da8cf0643062b2bd46937cd69591592d7c20ea261114a6aea6ec7b621e61df58"
+  },
+  "ublock.popup.pickDetail": {
+    "message": "Filter zum Ausblenden erstellen",
+    "source": "sha256:3a05a2edd7a0b98fc3ea3ba779311717cdb2f2a45ed32f55ecd718619d56c73a"
+  },
+  "ublock.popup.zap": {
+    "message": "Element entfernen",
+    "source": "sha256:e91b396e23ad6152a1b50eb3f2a27415c44d80a965ef2886649c0282c5b290e3"
+  },
+  "ublock.popup.zapDetail": {
+    "message": "Bis zum Neuladen der Seite entfernen",
+    "source": "sha256:e2dd9c36ac95034ba103de5f1a6fb2a54487c18d3410e1f78117eb59097289e0"
+  },
+  "ublock.popup.logger": {
+    "message": "Protokoll",
+    "source": "sha256:1ec0780bc853e20cdbfdd87ca233de9709b125d3abef93b12387d9d40ee9fb15"
+  },
+  "ublock.popup.dashboard": {
+    "message": "Dashboard",
+    "source": "sha256:4a4b42bc590d0b5c9be515abd08fbbe59a7673407b3f355cc21fdbc078db5dab"
+  },
+  "ublock.popup.more": {
+    "message": "Mehr anzeigen",
+    "source": "sha256:8bb70215b2dc941f4c899f7b4789be241a41d9c78184f6d30dba9133e2ae5b78"
+  },
+  "ublock.popup.fewer": {
+    "message": "Weniger anzeigen",
+    "source": "sha256:926069b32f5cff024b79d57a39e584dfe708c65c145cb215ed6b0ea7ef7b6a08"
+  },
+  "ublock.popup.overflow": {
+    "message": "Weitere Aktionen von uBlock Origin",
+    "source": "sha256:e2c39295240b7d7c106bacb2d347105573e26d48ed94e447c4fe4c0fb956ff3a"
+  },
+  "ublock.popup.report": {
+    "message": "Problem melden",
+    "source": "sha256:04f4dcf2de0a9fb8e623586ae540e7ba4b2a0b2e7a3cb1ca0c71a58eea11283c"
+  },
+  "ublock.popup.since": {
+    "message": "Seit Installation blockiert",
+    "source": "sha256:f147e72fe8bc48bd13fc998a86d19be8a9436f9f902f80773ee1632eab7c1610"
+  },
+  "ublock.popup.siteControls": {
+    "message": "Website-Steuerung",
+    "source": "sha256:24cc0ff527463989a6cb7873cc10d887ed709051741bb9ca2ffa0cbb0d07eac3"
+  },
+  "ublock.popup.saveRules": {
+    "message": "Regeln sichern",
+    "source": "sha256:44df34c7005fa109538cd3704e084d6fc62d205c22aa5e27566019baaa333356"
+  },
+  "ublock.popup.revert": {
+    "message": "Zurücksetzen",
+    "source": "sha256:f58ed98dc9ef4551efa039b47f0ee104830d30214bc8c52989e114f7ed23389a"
+  },
+  "ublock.popup.reload": {
+    "message": "Seite neu laden",
+    "source": "sha256:01a1c9efaee4f4297674d4f94878b9f2a6eee759700cf972f06520d4ff901018"
+  },
+  "ublock.popup.requestsAndDomains": {
+    "message": "Anfragen und Domains",
+    "source": "sha256:139c319805f37de9b316f28fe1a58f75e18b14df6bbc9fcd7248e06ae5b9acd3"
+  },
+  "ublock.dashboard.frame": {
+    "message": "Einstellungen von uBlock Origin",
+    "source": "sha256:195bdd05fe63736e7e8fb0c7f794a5d484554a3789bc17cfe569d693cc3c66a5"
+  },
+  "ublock.dashboard.panels": {
+    "message": "Bereiche der Einstellungen von uBlock Origin",
+    "source": "sha256:39b1e8cfb170625e3b0dce9fd3ce3ddf66d2762f90f2f1b6f06a7cfed5c83899"
+  },
+  "ublock.dashboard.lists": {
+    "message": "Wähle, welche Listen uBlock Origin nutzt.",
+    "source": "sha256:9368eb2123b984f43500efdd8ded109dd4a9ab2509919bc96bb9512258909073"
+  },
+  "ublock.dashboard.settings": {
+    "message": "Passe Filterung, Darstellung und deine Einstellungen für uBlock Origin an.",
+    "source": "sha256:6e090373f2d46228eb742db7cb6b18eb2fe8765bd757d40a3d6fbde721bcb3fa"
+  },
+  "ublock.dashboard.myFilters": {
+    "message": "Füge eigene Netzwerk- und kosmetische Filter hinzu.",
+    "source": "sha256:595c3694c659ba2c70596359785cf3fc1d25173952275c9ccf000063e63ad40a"
+  },
+  "ublock.dashboard.rules": {
+    "message": "Prüfe dauerhafte Regeln und die Änderungen dieser Sitzung.",
+    "source": "sha256:9a3810b1db4960ebcbc0b23e9ce78e551f1761f5de898403d3180dbc8617dba5"
+  },
+  "ublock.dashboard.trusted": {
+    "message": "Wähle, wo die Filterung von uBlock Origin ausgeschaltet ist.",
+    "source": "sha256:4854f0da5d46627999d07657ec3a65ca7b34edbcf73ae41f6803703e51bddbd2"
+  },
+  "ublock.dashboard.support": {
+    "message": "Finde Hilfe und behebe Probleme mit uBlock Origin.",
+    "source": "sha256:31f83b06e83cb7d815cf73a71fc000055897151b863cdfacdb429c8a269f5651"
+  },
+  "ublock.dashboard.about": {
+    "message": "Version, Lizenzen und Danksagungen.",
+    "source": "sha256:1e98b1149d0de83db0f99d752a0c5f949b0af1f3c3f788645424de6874b347bf"
+  },
+  "ublock.dashboard.advanced": {
+    "message": "Erweiterte Konfiguration für Fortgeschrittene.",
+    "source": "sha256:9bb37313d2cf00ee06f036494d1de7c622bfbf18cb26dc4e45cb91952f5da7f5"
+  },
+  "ublock.dashboard.advancedTitle": {
+    "message": "Erweiterte Einstellungen",
+    "source": "sha256:5d0a80d020132a5d3d932e6d49c953bc222faa057fbd6e79a55dbfb5826619b2"
+  },
+  "ublock.dashboard.listOptions": {
+    "message": "Listenoptionen",
+    "source": "sha256:1f7c5bf698d8e8f2f0357d1a1a296f1c680038b6e7a248f4bbd98a57448e8ab0"
+  },
+  "ublock.dashboard.autoUpdate": {
+    "message": "Filterlisten regelmäßig im Hintergrund prüfen und aktualisieren.",
+    "source": "sha256:3c96f43bb758ccf50e669275425aff87132c9eb232d48a3aec735a5b5dbc2933"
+  },
+  "ublock.dashboard.suspend": {
+    "message": "Netzwerkanfragen zurückhalten, bis die Filterregeln bereit sind.",
+    "source": "sha256:d42bb860a1923fdf3cb9ef886dd657a70efb6c2067615ded9df606f123f07404"
+  },
+  "ublock.dashboard.cosmetic": {
+    "message": "Kosmetische Filter aktivieren, um Seitenelemente auszublenden.",
+    "source": "sha256:baad0e5e2850950a2a0bd05eec3ea817adde301ba9d60fd4b144d8571f8c6054"
+  },
+  "ublock.dashboard.genericCosmetic": {
+    "message": "Generische kosmetische Filter überspringen (z. B. solche, die für keine bestimmte Website gelten).",
+    "source": "sha256:795df40fc77d21fbf2470bafbf166305aa23174ae99cbb711b42abbf3286f398"
+  },
+  "ublock.dashboard.subscriptions": {
+    "message": "Abonnements",
+    "source": "sha256:17d1e11db1648636d062e08b40463daf2d5b64ee04af90a4193cf20071e55890"
+  },
+  "ublock.dashboard.importList": {
+    "message": "Filterliste importieren",
+    "source": "sha256:c30cb9e21150359e46787499ac0b9c8862f7e3fcd12bcca3f4f6bbcf9ce8e421"
+  },
+  "ublock.dashboard.search": {
+    "message": "Filterlisten durchsuchen…",
+    "source": "sha256:19345a4932b2b511210cafa2c1d5218433e86591b7d2e4ccddf834c90eb2418d"
+  },
+  "ublock.dashboard.searchLabel": {
+    "message": "Filterlisten durchsuchen",
+    "source": "sha256:84117ace19ce315be69040da697e7ee5d388a615edee1403636e954930437df7"
+  },
+  "ublock.dashboard.allLists": {
+    "message": "Alle Filterlisten",
+    "source": "sha256:c8f2dcd81bcb8d12006fbe891296715180f941e59e18af941fe8599171d68fbd"
   }
 }
