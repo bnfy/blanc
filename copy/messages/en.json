@@ -3070,7 +3070,7 @@
   "pagesNav.downloads": {
     "message": "Downloads",
     "note": "Navigation link to Downloads at the top of Blanc’s utility pages.",
-    "maxLength": 13
+    "maxLength": 16
   },
   "settings.page.heading": {
     "message": "Settings",
@@ -3901,12 +3901,12 @@
   "settings.gesture.action.newTab": {
     "message": "New tab",
     "note": "Settings → General → Mouse gestures: action a gesture can run.",
-    "maxLength": 12
+    "maxLength": 14
   },
   "settings.gesture.action.closeTab": {
     "message": "Close tab",
     "note": "Settings → General → Mouse gestures: action a gesture can run.",
-    "maxLength": 13
+    "maxLength": 16
   },
   "settings.gesture.action.reopenTab": {
     "message": "Reopen closed tab",
@@ -3921,7 +3921,7 @@
   "settings.gesture.action.nextTab": {
     "message": "Next tab",
     "note": "Settings → General → Mouse gestures: action a gesture can run (switch to the tab on the right).",
-    "maxLength": 12
+    "maxLength": 18
   },
   "settings.gesture.action.island": {
     "message": "Open Island",
@@ -5037,7 +5037,7 @@
   "error.newTab": {
     "message": "New tab",
     "note": "Error page: link to a new tab.",
-    "maxLength": 12
+    "maxLength": 14
   },
   "error.retry": {
     "message": "Try again",

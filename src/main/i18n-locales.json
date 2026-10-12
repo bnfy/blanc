@@ -12,6 +12,24 @@
     "status": "selectable"
   },
   {
+    "code": "es",
+    "endonym": "Español",
+    "dir": "ltr",
+    "status": "hidden"
+  },
+  {
+    "code": "fr",
+    "endonym": "Français",
+    "dir": "ltr",
+    "status": "hidden"
+  },
+  {
+    "code": "pt-BR",
+    "endonym": "Português (Brasil)",
+    "dir": "ltr",
+    "status": "hidden"
+  },
+  {
     "code": "en-XA",
     "endonym": "Pseudo",
     "dir": "ltr",
