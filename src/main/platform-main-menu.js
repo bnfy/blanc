@@ -2,6 +2,13 @@ function supportsPlatformMainMenu(platform = process.platform) {
   return platform === 'win32' || platform === 'linux';
 }
 
+/** The text a native menu shows for a label, for showing live menu labels
+ * outside a menu. On Windows and Linux "&&" is a literal "&" and a lone "&"
+ * marks the Alt-mnemonic after it; macOS labels are never escaped. */
+function menuLabelText(label, platform = process.platform) {
+  return platform === 'darwin' ? label : String(label).replace(/&(&?)/g, '$1');
+}
+
 function clampCoordinate(value, maximum) {
   if (!Number.isFinite(value)) return 0;
   return Math.min(Math.max(Math.round(value), 0), Math.max(0, maximum - 1));
@@ -71,6 +78,7 @@ function installPlatformMainMenuShortcut({
 module.exports = {
   installPlatformMainMenuShortcut,
   isPlatformMainMenuShortcut,
+  menuLabelText,
   popupPlatformMainMenu,
   popupPoint,
   supportsPlatformMainMenu,

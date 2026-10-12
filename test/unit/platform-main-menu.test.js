@@ -6,6 +6,7 @@ const path = require('node:path');
 const {
   installPlatformMainMenuShortcut,
   isPlatformMainMenuShortcut,
+  menuLabelText,
   popupPlatformMainMenu,
   popupPoint,
   supportsPlatformMainMenu,
@@ -231,4 +232,26 @@ test('chrome markup and IPC keep one native menu definition', () => {
     fs.readFileSync(path.join(ROOT, 'src/main/platform-main-menu.js'), 'utf8'),
     /Menu\.getApplicationMenu\(\)/
   );
+});
+
+// The shortcuts sheet showed "Search && Commands" on Windows and Linux: it
+// copied the live menu's labels, where a literal "&" is escaped as "&&".
+test('a menu label reads as the native menu shows it', () => {
+  for (const platform of ['win32', 'linux']) {
+    assert.equal(menuLabelText('Search && Commands', platform), 'Search & Commands');
+    assert.equal(menuLabelText('&File', platform), 'File', 'a lone & only marks a mnemonic');
+    assert.equal(menuLabelText('Q&&A &&& more', platform), 'Q&A & more');
+    assert.equal(menuLabelText('Reload Tab', platform), 'Reload Tab');
+  }
+  // macOS has no mnemonics, so its labels are never escaped.
+  assert.equal(menuLabelText('Search & Commands', 'darwin'), 'Search & Commands');
+});
+
+test('the shortcuts sheet shows menu labels as the menu does', () => {
+  const main = fs.readFileSync(path.join(ROOT, 'src/main/main.js'), 'utf8');
+  const start = main.indexOf('function listShortcuts()');
+  assert.notEqual(start, -1, 'listShortcuts was found');
+  const body = main.slice(start, main.indexOf('\n}\n', start));
+  assert.match(body, /label: menuLabelText\(item\.label\)/);
+  assert.match(body, /collect\(top\.submenu\?\.items, menuLabelText\(top\.label\)\)/);
 });
