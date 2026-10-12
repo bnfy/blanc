@@ -1,7 +1,10 @@
 {
   "$note": "Fixed terms appear verbatim in every language. Translated terms pin one form per language, checked by stem. Changing this file changes every language: record why in the commit message. Island and Glance are fixed product names (owner decision 2026-10-09).",
   "style": {
-    "de": "Informal du throughout; sentence case; typographic quotes „…“ and – dashes."
+    "de": "Informal du throughout; sentence case; typographic quotes „…“ and – dashes.",
+    "es": "Informal tú throughout (neutral international Spanish, no vosotros or voseo); sentence case; typographic quotes «…» or “…”.",
+    "fr": "Formal vous throughout; sentence case; guillemets « … » with no-break spaces; a no-break space before : ; ? !.",
+    "pt-BR": "Brazilian Portuguese with você throughout; sentence case; typographic quotes “…”."
   },
   "fixed": [
     "Blanc",
@@ -30,11 +33,35 @@
       "de": {
         "form": "Ruhende Tabs",
         "stem": "uhend"
+      },
+      "es": {
+        "form": "pestañas en reposo",
+        "stem": "reposo"
+      },
+      "fr": {
+        "form": "onglets en veille",
+        "stem": "veille"
+      },
+      "pt-BR": {
+        "form": "abas em repouso",
+        "stem": "repouso"
       }
     },
     "Favorites": {
       "de": {
         "form": "Favoriten",
+        "stem": "Favorit"
+      },
+      "es": {
+        "form": "Favoritos",
+        "stem": "Favorit"
+      },
+      "fr": {
+        "form": "Favoris",
+        "stem": "Favori"
+      },
+      "pt-BR": {
+        "form": "Favoritos",
         "stem": "Favorit"
       }
     },
@@ -42,24 +69,72 @@
       "de": {
         "form": "Profil-Synchronisierung",
         "stem": "Synchronisier"
+      },
+      "es": {
+        "form": "Sincronización de perfil",
+        "stem": "Sincroniz"
+      },
+      "fr": {
+        "form": "Synchronisation du profil",
+        "stem": "Synchronis"
+      },
+      "pt-BR": {
+        "form": "Sincronização de perfil",
+        "stem": "Sincroniz"
       }
     },
     "Quick Switcher": {
       "de": {
         "form": "Schnellwechsler",
         "stem": "Schnellwechsl"
+      },
+      "es": {
+        "form": "Selector rápido",
+        "stem": "Selector rápido"
+      },
+      "fr": {
+        "form": "Sélecteur rapide",
+        "stem": "Sélecteur rapide"
+      },
+      "pt-BR": {
+        "form": "Seletor rápido",
+        "stem": "Seletor rápido"
       }
     },
     "Fill logins from 1Password": {
       "de": {
         "form": "Logins aus 1Password ausfüllen",
         "stem": "Logins aus 1Password ausfüllen"
+      },
+      "es": {
+        "form": "Rellenar inicios de sesión desde 1Password",
+        "stem": "Rellenar"
+      },
+      "fr": {
+        "form": "Remplir les identifiants depuis 1Password",
+        "stem": "Remplir"
+      },
+      "pt-BR": {
+        "form": "Preencher logins do 1Password",
+        "stem": "Preencher"
       }
     },
     "Named Group": {
       "de": {
         "form": "benannte Gruppe",
         "stem": "benannte"
+      },
+      "es": {
+        "form": "grupo con nombre",
+        "stem": "con nombre"
+      },
+      "fr": {
+        "form": "groupe nommé",
+        "stem": "nommé"
+      },
+      "pt-BR": {
+        "form": "grupo nomeado",
+        "stem": "nomead"
       }
     }
   },
@@ -107,6 +182,9 @@
       "mahjong.rulesName.zen",
       "mahjong.combo.combo",
       "ublock.popup.dashboard"
-    ]
+    ],
+    "es": [],
+    "fr": [],
+    "pt-BR": []
   }
 }
