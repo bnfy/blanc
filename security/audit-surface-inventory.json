@@ -147,7 +147,7 @@
     },
     {
       "file": "src/main/credential-fill-controller.js",
-      "sha256": "9de2d93f829cd112a8cd82dedc08b627ca73bed86e54325711ae8c1c1ebc1914",
+      "sha256": "3fab86f88647bb6be4a04fd725f71095a25f6b43510b4997a9a9126f82092999",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -220,7 +220,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "96ff7f772ede57b1612dd85c1657ab63675661fab15a6bb647e71d1a9b4b75d2",
+      "sha256": "cf0dce736c2c68d23207e10ade91a49e257eb3e10e4c405164f43cc90ce941d8",
       "literalChannels": [
         "activate",
         "before-input-event",
@@ -390,7 +390,7 @@
     },
     {
       "file": "src/main/onepassword-client.js",
-      "sha256": "cb81c973eda55b4a2e17ac5f28f668058ea63a79dee8d5e8632d969beda24851",
+      "sha256": "43d247cbe624fc957d1dfe96c6bf32333fb0a417f4cfe3e9104647c38b167dfa",
       "literalChannels": [
         "message"
       ],
@@ -416,7 +416,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "6fdff849ef576e4db7a87e0c49cf77f7939ed1df714c277c5792fe6d28d79053",
+      "sha256": "2d1cc73f475b6274e45dbb11153feb106a5f7996955a684277b79884ed6a305f",
       "literalChannels": [
         "blanc",
         "pages:app-version",

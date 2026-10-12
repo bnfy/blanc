@@ -6547,6 +6547,78 @@
         }
       }
     },
+    "fill.unsupportedDevice.title": {
+      "comment": "Fill notice title on a PC where 1Password fill can’t work (x64 Blanc on Windows on Arm).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1Password fill isn’t available on this PC"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ausfüllen mit 1Password ist auf diesem PC nicht verfügbar"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rellenar con 1Password no está disponible en este PC"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le remplissage avec 1Password n’est pas disponible sur ce PC"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O preenchimento com o 1Password não está disponível neste PC"
+          }
+        }
+      }
+    },
+    "fill.unsupportedDevice.body": {
+      "comment": "Fill notice body. “Windows on Arm” is Microsoft’s name for Windows on Arm-based PCs; keep “x64” and “Arm” as written.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On Windows on Arm, Blanc runs as an x64 app, and the Arm version of 1Password can’t connect to it."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unter Windows on Arm läuft Blanc als x64-App, und die Arm-Version von 1Password kann sich nicht damit verbinden."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En Windows on Arm, Blanc funciona como una app x64 y la versión Arm de 1Password no puede conectarse con ella."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sur Windows on Arm, Blanc fonctionne comme une app x64, et la version Arm de 1Password ne peut pas s’y connecter."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Windows on Arm, o Blanc roda como um app x64, e a versão Arm do 1Password não consegue se conectar a ele."
+          }
+        }
+      }
+    },
     "fill.accountNotFound.title": {
       "comment": "Fill notice title.",
       "extractionState": "manual",
@@ -37539,6 +37611,42 @@
           "stringUnit": {
             "state": "translated",
             "value": "O 1Password não está disponível. Abra o app e ative Settings → Developer → Integrate with 1Password SDKs."
+          }
+        }
+      }
+    },
+    "settings.onePassword.error.unsupportedDevice": {
+      "comment": "Settings → Privacy → 1Password: shown in place of the app hint and as the Verify result on a PC where fill can’t work. Keep “Windows on Arm”, “x64” and “Arm” as written.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1Password fill isn’t available on this PC. On Windows on Arm, Blanc runs as an x64 app, and the Arm version of 1Password can’t connect to it."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ausfüllen mit 1Password ist auf diesem PC nicht verfügbar. Unter Windows on Arm läuft Blanc als x64-App, und die Arm-Version von 1Password kann sich nicht damit verbinden."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rellenar con 1Password no está disponible en este PC. En Windows on Arm, Blanc funciona como una app x64 y la versión Arm de 1Password no puede conectarse con ella."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le remplissage avec 1Password n’est pas disponible sur ce PC. Sur Windows on Arm, Blanc fonctionne comme une app x64, et la version Arm de 1Password ne peut pas s’y connecter."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O preenchimento com o 1Password não está disponível neste PC. No Windows on Arm, o Blanc roda como um app x64, e a versão Arm do 1Password não consegue se conectar a ele."
           }
         }
       }

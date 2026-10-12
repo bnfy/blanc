@@ -86,3 +86,21 @@ test('credential reveal forwards the picker item-version binding', async () => {
   });
   client.stop();
 });
+
+test('an unsupported device refuses every request without starting the broker', async () => {
+  let forks = 0;
+  const client = createOnePasswordClient({
+    utilityProcess: { fork: () => { forks += 1; return new EventEmitter(); } },
+    platform: 'win32',
+    deviceSupported: false,
+  });
+  for (const call of [
+    () => client.verifyAccount('Account'),
+    () => client.findLogins('Account', 'https://example.com'),
+    () => client.revealCredential('Account', { vaultId: 'v', itemId: 'i' }, { password: true }),
+  ]) {
+    await assert.rejects(call(), (error) => error.name === 'OnePasswordError' && error.code === 'unsupported-device');
+  }
+  assert.equal(forks, 0);
+  client.stop();
+});

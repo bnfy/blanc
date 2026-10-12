@@ -438,6 +438,7 @@ function setupPages(hooks = {}) {
     // only exact shapes — see onepassword-verify-flow.js.
     handle('pages:settings:onepassword-status', 'settings', () => ({
       appDetected: hooks.onePasswordAppDetected?.() === true,
+      supported: hooks.onePasswordDeviceSupported?.() !== false,
     }));
     handle('pages:settings:onepassword-verify', 'settings', (account) => runOnePasswordVerify({
       account: typeof account === 'string' ? account : '',

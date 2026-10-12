@@ -10,6 +10,15 @@ function isOnePasswordAvailable(platform = process.platform) {
   return SUPPORTED_PLATFORMS.includes(platform);
 }
 
+// Blanc ships x64 only on Windows. On Windows on Arm it runs translated, and
+// the Arm version of 1Password installs an Arm64 SDK library that an x64
+// process can't load, so fill there says so instead of trying. macOS
+// translation (Rosetta) loads 1Password's universal library and stays
+// supported. Pass Electron's app.runningUnderARM64Translation.
+function isOnePasswordDeviceSupported({ platform = process.platform, runningUnderARM64Translation } = {}) {
+  return !(platform === 'win32' && runningUnderARM64Translation === true);
+}
+
 // ⌥⌘P on macOS. Windows and Linux use Ctrl+Shift+P rather than Ctrl+Alt+P
 // because Ctrl+Alt is AltGr on international layouts, where it types text.
 function onePasswordAccelerator(platform = process.platform) {
@@ -31,6 +40,7 @@ function matchesOnePasswordShortcut(input, platform = process.platform) {
 module.exports = {
   SUPPORTED_PLATFORMS,
   isOnePasswordAvailable,
+  isOnePasswordDeviceSupported,
   matchesOnePasswordShortcut,
   onePasswordAccelerator,
 };

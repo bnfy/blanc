@@ -1461,7 +1461,7 @@
     "document": "blanc-chrome://fill-status/",
     "types": {
       "FillKind": {
-        "ts": "'setup-enable' | 'setup-account' | 'confirm-heuristic' | 'busy' | 'unsupported-page' | 'page-changed' | 'no-form' | 'no-match' | 'empty-login' | 'nothing-filled' | 'unexpected' | 'desktop-unavailable' | 'account-not-found' | 'not-authorized' | 'session-expired' | 'timed-out' | 'broker-stopped' | 'sdk-error' | 'selection-changed' | 'filled'",
+        "ts": "'setup-enable' | 'setup-account' | 'confirm-heuristic' | 'busy' | 'unsupported-device' | 'unsupported-page' | 'page-changed' | 'no-form' | 'no-match' | 'empty-login' | 'nothing-filled' | 'unexpected' | 'desktop-unavailable' | 'account-not-found' | 'not-authorized' | 'session-expired' | 'timed-out' | 'broker-stopped' | 'sdk-error' | 'selection-changed' | 'filled'",
         "doc": "A fixed capsule message kind, keyed in FILL_KINDS (src/main/fill-status-kinds.js)."
       },
       "FillMode": {

@@ -293,6 +293,7 @@ const {
 const { createOnePasswordClient } = require('./onepassword-client');
 const {
   isOnePasswordAvailable,
+  isOnePasswordDeviceSupported,
   matchesOnePasswordShortcut,
   onePasswordAccelerator,
 } = require('./onepassword-availability');
@@ -323,8 +324,13 @@ const { scratchSwitchGuardResult, MAX_WORKSPACES } = require('./workspaces-model
 // utility process (macOS's Plugin helper) starts only after an explicit Fill
 // command reaches the controller below.
 const ONE_PASSWORD_AVAILABLE = isOnePasswordAvailable();
+// Windows on Arm runs x64 Blanc translated, where 1Password's Arm64 SDK
+// library can't load: fill, Verify and Settings say so instead of trying.
+const ONE_PASSWORD_DEVICE_SUPPORTED = isOnePasswordDeviceSupported({
+  runningUnderARM64Translation: app.runningUnderARM64Translation,
+});
 const onePasswordBroker = ONE_PASSWORD_AVAILABLE
-  ? createOnePasswordClient({ utilityProcess })
+  ? createOnePasswordClient({ utilityProcess, deviceSupported: ONE_PASSWORD_DEVICE_SUPPORTED })
   : null;
 
 const NEW_TAB_URL = 'blanc://newtab/';
@@ -4056,6 +4062,7 @@ function getOnePasswordFillController() {
       notify: (target, kind) => surface.notice(target, kind),
       confirm: (target, kind) => surface.decision(target, kind),
       toWindowPoint: onePasswordToWindowPoint,
+      deviceSupported: () => ONE_PASSWORD_DEVICE_SUPPORTED,
     });
   }
   return onePasswordFillController;
@@ -10050,6 +10057,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     onePasswordAvailable: () => ONE_PASSWORD_AVAILABLE,
     // Settings status card (Task 9): presence is a hint, Verify is truth.
     onePasswordAppDetected: () => findOnePasswordApp() !== null,
+    onePasswordDeviceSupported: () => ONE_PASSWORD_DEVICE_SUPPORTED,
     onePasswordVerify: (probed) => onePasswordBroker.verifyAccount(probed),
     openOnePasswordApp: () => {
       openOnePasswordApp({ appPath: findOnePasswordApp(), shell, spawn });

@@ -192,6 +192,8 @@
     <string name="fill_unexpected_body">Nada foi preenchido. Tente de novo pelo formulário de login.</string>
     <string name="fill_desktop_unavailable_title">O 1Password não está disponível</string>
     <string name="fill_desktop_unavailable_body">Abra o app do 1Password e ative Settings → Developer → Integrate with 1Password SDKs.</string>
+    <string name="fill_unsupported_device_title">O preenchimento com o 1Password não está disponível neste PC</string>
+    <string name="fill_unsupported_device_body">No Windows on Arm, o Blanc roda como um app x64, e a versão Arm do 1Password não consegue se conectar a ele.</string>
     <string name="fill_account_not_found_title">Conta não encontrada</string>
     <string name="fill_account_not_found_body">Confira seu e-mail do 1Password nas Configurações do Blanc e tente de novo.</string>
     <string name="fill_not_authorized_title">O 1Password não autorizou o Blanc</string>
@@ -1109,6 +1111,7 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blancbrowser.
     <string name="settings_one_password_error_not_authorized">O 1Password não autorizou o Blanc. Desbloqueie o 1Password, aprove o Blanc Browser e tente de novo.</string>
     <string name="settings_one_password_error_session_expired">A autorização expirou — tente de novo.</string>
     <string name="settings_one_password_error_desktop_unavailable">O 1Password não está disponível. Abra o app e ative Settings → Developer → Integrate with 1Password SDKs.</string>
+    <string name="settings_one_password_error_unsupported_device">O preenchimento com o 1Password não está disponível neste PC. No Windows on Arm, o Blanc roda como um app x64, e a versão Arm do 1Password não consegue se conectar a ele.</string>
     <string name="settings_one_password_error_timed_out">O 1Password não respondeu a tempo — tente de novo quando o app estiver pronto.</string>
     <string name="settings_one_password_error_broker_stopped">O assistente do 1Password parou — tente de novo.</string>
     <string name="settings_one_password_error_sdk_error">O 1Password não conseguiu concluir a verificação — tente de novo.</string>
