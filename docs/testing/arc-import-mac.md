@@ -184,8 +184,10 @@ the one from step 1.
 ## 11. Arc saving while Blanc reads
 
 This step comes last because it changes Arc's file on purpose. Open Arc and
-keep changing its sidebar (move tabs between folders) while clicking **Bring
-Spaces from Arc** a few times.
+keep changing its sidebar (move tabs between folders) for a couple of minutes
+while clicking **Bring Spaces from Arc** again and again. Arc only saves its
+sidebar every so often, so a few quick clicks can all finish before it saves
+at all.
 
 - Each attempt either shows a normal preview or "Arc was saving its sidebar.
   Try again in a moment." Never a partial or broken preview. The message may
