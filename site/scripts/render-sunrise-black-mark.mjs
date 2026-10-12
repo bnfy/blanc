@@ -4,8 +4,9 @@
 //   node site/scripts/render-sunrise-black-mark.mjs
 // With --check it renders in memory and fails if the committed file has
 // drifted from the master (test/unit/media-page.test.js runs this).
-// Only true ivory connected to the canvas edge stays white; the gold, its dark
-// insets, and its enclosed highlights all become ink, keeping soft outer edges.
+// Only true ivory connected to the canvas edge stays ivory, so both marks share
+// one ground; the gold, its dark insets, and its enclosed highlights all become
+// ink, keeping soft outer edges.
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -42,8 +43,9 @@ const INK = 14;
     if (ground[p]) t = 0;
     else if (near[p] <= 3) t = Math.min(1, Math.max(0, (dist[p] - lo) / (hi - lo)));
     else t = 1;
-    const v = Math.round(255 + (INK - 255) * t);
-    out[3 * p] = out[3 * p + 1] = out[3 * p + 2] = v;
+    out[3 * p] = Math.round(r0 + (INK - r0) * t);
+    out[3 * p + 1] = Math.round(g0 + (INK - g0) * t);
+    out[3 * p + 2] = Math.round(b0 + (INK - b0) * t);
   }
   if (process.argv.includes('--check')) {
     const committed = await sharp(OUTPUT).removeAlpha().raw().toBuffer();
