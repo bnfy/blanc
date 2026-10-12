@@ -2,7 +2,9 @@
 
 Status: shipped on macOS since v1.9.0. Windows and Linux are wired up on main
 from October 10, 2026 (see *Windows and Linux enablement* below) but have not
-shipped in a public release and still need their live-account gate. The
+shipped in a public release. Their live-account gate ran in virtual machines on
+October 10–12, 2026, with a written waiver for what those machines could not
+show (see *Windows and Linux real-account gate* below). The
 product-owner risk decision is recorded in
 [`1password-legal-inquiry.md`](1password-legal-inquiry.md). This integration is
 independent, is not affiliated with or endorsed by 1Password, and remains
@@ -276,6 +278,116 @@ On Windows and Linux, **Ctrl+Shift+P** is handled before page dispatch
 (`matchesOnePasswordShortcut` in `onepassword-availability.js`), like Blanc's
 other browser shortcuts there, so it works while a page has focus and a site's
 own Ctrl+Shift+P binding does not receive it.
+
+### Windows and Linux real-account gate — 2026-10-10 to 2026-10-12
+
+Both machines were virtual machines in Parallels Desktop on an Apple silicon
+Mac. The checklist, with a row-by-row result table, is the owner's
+*1Password on Windows and Linux: test checklist* document. Test items lived in a
+disposable vault, **Blanc 1Password test**, with generated passwords nobody
+displayed.
+
+**Linux:** Ubuntu 26.04 LTS ARM64, GNOME on Wayland and on X11 through XWayland.
+The machine ran an ARM64 development build (Electron 44.5.1, Chromium sandbox
+on) of `182c615`, re-run on `7d6f8f5d`. The x64 AppImage can't run on ARM64.
+1Password was the 8.12.40 ARM64 tarball from 1password.com, since ARM64 Linux
+has no deb or rpm.
+
+The whole fill matrix passed. Verify works with system unlock off: 1Password
+then asks for the account password in its own dialog, so Settings needs no
+extra prerequisite on Linux. Findings, all fixed:
+- the fill prompt stopped appearing (#692, fixed in #696);
+- a fresh approval dropped the waiting fill (#693, fixed in #700 and
+  re-verified October 12 with the page scrolled during the wait);
+- Open Settings in the setup prompt landed on General (#722);
+- a second launch ran past the single-instance lock (#724, fixed in #726);
+- "Search && Commands" on the shortcuts sheet (#727).
+
+Electron's own "&Print…" title is #725.
+
+**Windows on Arm:** Windows 11 Pro Insider 10.0.26220 ARM64. Blanc ships x64
+only, and the ARM64 1Password installs an ARM64 `op_sdk_ipc_client.dll` that an
+x64 process cannot load. On October 12 the owner chose an honest message over
+an ARM64 build: #728 makes fill, Verify, and Settings say "1Password fill isn't
+available on this PC" there. The Store (MSIX) 1Password wasn't detected
+(#701); #702 fixed that.
+
+**Windows x64, under emulation (October 12):** same VM, with 1Password's x64
+MSIX (8.12.40.31, AgileBits signature checked) in place of the ARM64 one and
+**Integrate with 1Password SDKs** on. Blanc was a private signed validation
+build (Bananify Creative, Valid) from a never-merged test branch. It was main
+at `a8e9fea3` with only the ARM64-translation check bypassed (run 38275899238),
+then with broker diagnostics added (run 38312684624). The diagnostics logged
+SDK call names, timings, and error text only. The VM has no Windows Hello, so
+every approval asked for the account password. Verify and fill work without
+Hello.
+
+- **PASS:**
+  - Settings install hint and **Open 1Password** for the Store MSIX.
+  - Verify **Connected**.
+  - A wrong account reports account not found.
+  - A cancelled approval gives the didn't-authorize message, and a retry
+    prompts again and connects.
+  - The single match on `[::1]:48767` fills, with Never excluded.
+  - Multiple matches show `username — title · vault` rows, and Exact and
+    Second match each fill only themselves.
+  - Escape on the picker fills nothing.
+  - The one-way subdomain fills Anywhere.
+  - A private tab fills.
+  - Ctrl+L, or a tab switch, during the approval wait means nothing fills
+    after approval.
+  - A fresh-authorization cancel leaves both fields empty, and the retry
+    prompts again.
+  - The picker opens after a fresh approval.
+  - No SmartScreen or antivirus warning appeared when the broker loaded
+    1Password's library.
+- **Fixed:**
+  - #733: with several matching logins, the picker's parallel item reads
+    failed with `IPC operation failed: -2`, shown as "1Password isn't
+    available". Five matches failed every time.
+- **Open:**
+  - #735: 1Password re-asks to approve Blanc several times during one fill.
+    After an approval, the next call can wait 6–20 s and fail with
+    `invalid client id`. The broker's stale-client retry usually recovers.
+    Plain x64 Node in the same VM was approved once and never re-prompted.
+    The owner decides whether it blocks a Windows release.
+- **Observed, not filed:**
+  - After another window took focus, the picker reopened on return once but
+    not in two other tries (#700's reopen check reads window focus as the menu
+    closes).
+  - An error notice from a failed attempt stayed visible under the next
+    attempt's picker until a success replaced it.
+  - The not-authorized copy says to approve "Blanc Browser", while 1Password
+    names the packaged Windows app "Blanc".
+
+**Waiver — 2026-10-12.** The owner has no other Windows hardware and asked to
+"waive any tests that I can't perform". After #735 made each remaining
+Windows row cost several password prompts, the owner chose to stop and record.
+
+Missing evidence:
+1. A real x64 Windows PC. All Windows fill evidence is x64 Blanc and x64
+   1Password under Arm emulation, on a test build.
+2. A packaged x64 Linux AppImage with an account. The Linux evidence is an
+   ARM64 development build.
+3. Windows rows not run:
+   - Navigate during Fill;
+   - Settings (Ctrl+,) during the wait;
+   - quitting 1Password before approving;
+   - 1Password not running;
+   - item changed while the picker is open;
+   - the user-data scan for test passwords;
+   - per-user and machine-wide installs;
+   - key repeat, AltGr, screen reader, and permission precedence.
+
+Risk:
+- #733 and #735 showed up only on Windows. Problems that emulation hides or
+  causes, including whether #735 affects real PCs, stay unknown until Windows
+  users report them.
+- AppImage-specific problems on x64 Linux, such as library paths or the
+  sandbox, are likewise unseen.
+
+Release notes and marketing claims for Windows or Linux 1Password fill must
+stay within this evidence (`docs/marketing-claims.md`).
 
 ### Windows/Linux live-account harness
 
