@@ -166,7 +166,8 @@ file rather than Chromium profiles..
 - Before any public claim, import a **real** Arc sidebar on a Mac and on a
   Windows PC with Arc installed, plus the Linux Choose file… path, and
   record the evidence. The format is reverse-engineered; fixtures alone do
-  not prove it. Mac plan: `docs/testing/arc-import-mac.md`.
+  not prove it. Plans: `docs/testing/arc-import-mac.md`,
+  `docs/testing/arc-import-windows.md` and `docs/testing/arc-import-linux.md`.
 - Marketing copy follows `docs/marketing-claims.md`: say what moves (tabs,
   pinned tabs, folders as groups, Favorites) and what does not (sign-ins,
   Notes, Easels, archived tabs). Arc's status is quoted only from first-party
@@ -175,7 +176,8 @@ file rather than Chromium profiles..
 ## Open questions
 
 - The Windows package suffix (`_ttt1ap7aakyb4` in community reports) is
-  matched by prefix; confirm on a real install.
+  matched by prefix; confirm on a real install (the Windows plan records
+  it).
 - Whether Arc's per-profile Favorites rows (`topApps` with a custom
   profile) should be offered separately. v1 imports all of them,
   deduplicated, into one **Arc** folder.
