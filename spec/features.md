@@ -890,7 +890,7 @@ From the desktop `DEFAULTS`:
 
 ## F38 — Fill a login from 1Password (desktop)
 
-- On macOS, Windows, and Linux, Blanc can ask the user's installed 1Password app for Login items that
+- On macOS and Linux (Windows waits on #735), Blanc can ask the user's installed 1Password app for Login items that
   match the active HTTP(S) page, then fill the selected item's built-in username
   and current-password fields. This is an explicit bridge to the user's existing
   1Password account, not a Blanc password store: Blanc cannot provide the

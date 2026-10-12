@@ -6,7 +6,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 // uses the platform value already provided by Electron's sandboxed `process`.
 // Keep this list in step with SUPPORTED_PLATFORMS in onepassword-availability.js
 // (test/unit/onepassword-availability.test.js compares them).
-const ONE_PASSWORD_AVAILABLE = ['darwin', 'win32', 'linux'].includes(process.platform);
+const ONE_PASSWORD_AVAILABLE = ['darwin', 'linux'].includes(process.platform);
 
 // This preload is intentionally attached only to Blanc's three privileged
 // chrome surfaces. Re-check the committed document before exposing anything:

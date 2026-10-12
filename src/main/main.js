@@ -319,13 +319,14 @@ const { createWorkspaceController } = require('./workspace-controller');
 const { transferSession, residencyCapacity } = require('./workspace-residency');
 const { scratchSwitchGuardResult, MAX_WORKSPACES } = require('./workspaces-model');
 
-// The SDK never loads in main. Only macOS, Windows and Linux create the lazy
-// client; any other platform cannot fork a credential broker. The broker
+// The SDK never loads in main. Only macOS and Linux create the lazy client
+// (Windows waits on #735); any other platform cannot fork a credential broker. The broker
 // utility process (macOS's Plugin helper) starts only after an explicit Fill
 // command reaches the controller below.
 const ONE_PASSWORD_AVAILABLE = isOnePasswordAvailable();
 // Windows on Arm runs x64 Blanc translated, where 1Password's Arm64 SDK
 // library can't load: fill, Verify and Settings say so instead of trying.
+// Dormant while Windows is off (#735).
 const ONE_PASSWORD_DEVICE_SUPPORTED = isOnePasswordDeviceSupported({
   runningUnderARM64Translation: app.runningUnderARM64Translation,
 });

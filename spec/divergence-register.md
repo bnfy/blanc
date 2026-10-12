@@ -588,13 +588,14 @@ Mobile web views already participate in the operating system's credential
 provider surface (F24), where adding a second Blanc-specific picker would be
 duplicative and less native.
 
-- **macOS, Windows, Linux:** an off-by-default, explicit Fill command uses the
+- **macOS, Linux:** an off-by-default, explicit Fill command uses the
   installed 1Password desktop app and the user's configured account. Blanc
   applies the item's saved-website policy, offers a bounded native chooser, and
   fills only the revalidated active login form. It never becomes a credential
-  store. The shortcut is ⌥⌘P on macOS and Ctrl+Shift+P on Windows and Linux.
-  Any other desktop platform exposes no setting, command, shortcut, preload
-  method, or IPC handler, and cannot start the credential broker.
+  store. The shortcut is ⌥⌘P on macOS and Ctrl+Shift+P on Linux. Any other
+  desktop platform, Windows included until #735 is fixed, exposes no setting,
+  command, shortcut, preload method, or IPC handler, and cannot start the
+  credential broker.
 - **iOS/Android:** F38 is N/A. Use F24's system AutoFill/Credential Manager
   surface, through which 1Password and other installed providers participate.
 

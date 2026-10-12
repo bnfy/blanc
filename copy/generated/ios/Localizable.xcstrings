@@ -34202,31 +34202,31 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use View → Fill Login from 1Password or <0>/1password</0>. On Mac: ⌥⌘P. On Windows and Linux: Ctrl+Shift+P."
+            "value": "Use View → Fill Login from 1Password or <0>/1password</0>. On Mac: ⌥⌘P. On Linux: Ctrl+Shift+P."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nutze Darstellung → Login aus 1Password ausfüllen oder <0>/1password</0>. Auf dem Mac: ⌥⌘P. Unter Windows und Linux: Strg+Umschalt+P."
+            "value": "Nutze Darstellung → Login aus 1Password ausfüllen oder <0>/1password</0>. Auf dem Mac: ⌥⌘P. Unter Linux: Strg+Umschalt+P."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Usa Visualización → Rellenar el inicio de sesión desde 1Password o <0>/1password</0>. En Mac: ⌥⌘P. En Windows y Linux: Ctrl+Mayús+P."
+            "value": "Usa Visualización → Rellenar el inicio de sesión desde 1Password o <0>/1password</0>. En Mac: ⌥⌘P. En Linux: Ctrl+Mayús+P."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Utilisez Présentation → Remplir l’identifiant depuis 1Password ou <0>/1password</0>. Sur Mac : ⌥⌘P. Sur Windows et Linux : Ctrl+Maj+P."
+            "value": "Utilisez Présentation → Remplir l’identifiant depuis 1Password ou <0>/1password</0>. Sur Mac : ⌥⌘P. Sur Linux : Ctrl+Maj+P."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use Visualizar → Preencher login do 1Password ou <0>/1password</0>. No Mac: ⌥⌘P. No Windows e no Linux: Ctrl+Shift+P."
+            "value": "Use Visualizar → Preencher login do 1Password ou <0>/1password</0>. No Mac: ⌥⌘P. No Linux: Ctrl+Shift+P."
           }
         }
       }
@@ -35462,31 +35462,31 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "On macOS, Windows and Linux, Blanc offers explicit login fill from the installed 1Password app. This integration does not save passwords or fill automatically."
+            "value": "On macOS and Linux, Blanc offers explicit login fill from the installed 1Password app. This integration does not save passwords or fill automatically."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unter macOS, Windows und Linux bietet Blanc ausdrückliches Ausfüllen von Logins aus der installierten 1Password-App. Diese Integration speichert keine Passwörter und füllt nichts automatisch aus."
+            "value": "Unter macOS und Linux bietet Blanc ausdrückliches Ausfüllen von Logins aus der installierten 1Password-App. Diese Integration speichert keine Passwörter und füllt nichts automatisch aus."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "En macOS, Windows y Linux, Blanc ofrece rellenar inicios de sesión a petición desde la app de 1Password instalada. Esta integración no guarda contraseñas ni rellena automáticamente."
+            "value": "En macOS y Linux, Blanc ofrece rellenar inicios de sesión a petición desde la app de 1Password instalada. Esta integración no guarda contraseñas ni rellena automáticamente."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sur macOS, Windows et Linux, Blanc propose de remplir les identifiants sur demande depuis l’app 1Password installée. Cette intégration n’enregistre pas de mots de passe et ne remplit rien automatiquement."
+            "value": "Sur macOS et Linux, Blanc propose de remplir les identifiants sur demande depuis l’app 1Password installée. Cette intégration n’enregistre pas de mots de passe et ne remplit rien automatiquement."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "No macOS, no Windows e no Linux, o Blanc oferece o preenchimento de login sob demanda pelo app do 1Password instalado. Essa integração não salva senhas nem preenche automaticamente."
+            "value": "No macOS e no Linux, o Blanc oferece o preenchimento de login sob demanda pelo app do 1Password instalado. Essa integração não salva senhas nem preenche automaticamente."
           }
         }
       }
