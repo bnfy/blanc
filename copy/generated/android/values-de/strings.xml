@@ -1272,7 +1272,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blancbrowser.co
     <string name="newtab_checklist_completed">Erledigt</string>
     <string name="newtab_checklist_task_completed">%1$s – erledigt</string>
     <string name="newtab_checklist_task_not_completed">%1$s – nicht erledigt</string>
-    <string name="newtab_patron_upgrade">Upgrade auf Blanc Patron</string>
+    <string name="newtab_patron_upgrade">Blanc Patron werden</string>
     <string name="newtab_patron_hide">Upgrade auf Blanc Patron für 90 Tage ausblenden</string>
     <string name="newtab_customize_button">Anpassen</string>
     <string name="newtab_customize_label">Startseite anpassen</string>

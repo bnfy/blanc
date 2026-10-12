@@ -3,7 +3,7 @@
     "locale": "de",
     "endonym": "Deutsch",
     "dir": "ltr",
-    "status": "hidden"
+    "status": "selectable"
   },
   "slash.favorites.hint": {
     "message": "Favoriten öffnen",
@@ -4574,7 +4574,7 @@
     "source": "sha256:e9f1117f8475af5675067bbec38be830bbdd2a845105142729c1954d8a6b26ad"
   },
   "newtab.patron.upgrade": {
-    "message": "Upgrade auf Blanc Patron",
+    "message": "Blanc Patron werden",
     "source": "sha256:71bdae7af7d9fca8c671e992cc5547577b2eef82b8adbe6af5769098bab78e92"
   },
   "newtab.patron.hide": {
