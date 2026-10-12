@@ -1384,7 +1384,8 @@ if (tabImportProtocolRegistration.attempted && !tabImportProtocolRegistration.re
 // The unpackaged acceptance harness already has a unique userData directory;
 // do not let a running installed Blanc make isolated test launches impossible.
 // acceptanceTestMode is airtight (`!app.isPackaged && BLANC_TEST === '1'`).
-if (!(acceptanceTestMode || app.requestSingleInstanceLock())) {
+const ownsInstanceLock = acceptanceTestMode || app.requestSingleInstanceLock();
+if (!ownsInstanceLock) {
   app.quit();
 } else {
   // Blanc holds the user-data lock now, so no other instance owns orphan temps.
@@ -9181,6 +9182,10 @@ let displayCapturePicker = null;
 let displayCaptureHelperWindow = null; // hidden BrowserWindow; released on the last visible close
 
 app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
+  // A launch that lost the single-instance lock has already handed its URLs
+  // to the running Blanc and is quitting. app.quit() doesn't stop this
+  // handler, and it must not start Blanc on that instance's profile (#724).
+  if (!ownsInstanceLock) return;
   mainI18n.init();
   // Remove a badge left by an older build and keep the app-global native badge
   // empty if a service worker writes it. Page scripts are neutralized before
