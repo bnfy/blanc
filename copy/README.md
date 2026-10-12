@@ -11,7 +11,7 @@ now the full message catalog behind interface localization (F44, see
 copy/
   messages/
     en.json            source: every string, keyed by slot, with a translator note
-    de.json            German (hidden until 100%), each entry with a source hash
+    de.json            German (selectable), each entry with a source hash
   glossary.json        fixed terms, translated terms, sameAsSource, per-language style
   i18n-scope.json      every string-bearing desktop file: "pending" | "guarded"
   slash-commands.json  slash-command registry: order, names, doc spellings, platforms
@@ -101,9 +101,11 @@ any visible text without those markers, on every surface whose files are all
 guarded. `-- --include-pending` also sweeps pending surfaces (expected to fail;
 it proves the sweep can see unextracted text).
 
-German stays `"status": "hidden"` until every file is guarded, German is 100%
-current, the sweep is green and German screenshots are checked for fit. A
-`selectable` language below 100% fails `copy:check`.
+A new language stays `"status": "hidden"` until every file is guarded, it is
+100% current, the sweep is green and its screenshots are checked for fit. A
+`selectable` language below 100% fails `copy:check`. German met that bar and
+became `selectable` in October 2026 (Phase 10); it reaches users only with the
+next public release.
 
 ## Mobile output
 
