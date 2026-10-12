@@ -4050,7 +4050,7 @@ function getOnePasswordFillController() {
       isTargetCurrent: isOnePasswordTargetCurrent,
       surfaceChanged: onePasswordSurfaceChanged,
       prepareTarget: prepareOnePasswordTarget,
-      openSettings: () => openInternalPage('blanc://settings/'),
+      openSettings: () => openSettingsSection('onepassword'),
       notify: (target, kind) => surface.notice(target, kind),
       confirm: (target, kind) => surface.decision(target, kind),
       toWindowPoint: onePasswordToWindowPoint,
@@ -6849,6 +6849,7 @@ const SETTINGS_SECTION_FRAGMENTS = Object.freeze({
   blocking: '#group-privacy',
   patron: '#group-patron',
   sync: '#group-sync',
+  onepassword: '#onePasswordSettings',
 });
 function openSettingsSection(section) {
   const fragment = Object.prototype.hasOwnProperty.call(SETTINGS_SECTION_FRAGMENTS, section)

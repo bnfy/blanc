@@ -1535,6 +1535,15 @@
       pending = requestAnimationFrame(measure);
     });
   })();
+
+  // A fragment naming a card rather than a group (#onePasswordSettings, from
+  // the 1Password setup prompt) points at content this script reveals after
+  // the browser's own fragment scroll has given up. Scroll to it last, once
+  // folding the hints above it can no longer move it.
+  const anchoredCard = location.hash && !location.hash.startsWith('#group-')
+    ? document.getElementById(decodeURIComponent(location.hash.slice(1)))
+    : null;
+  if (anchoredCard && !anchoredCard.hidden) anchoredCard.scrollIntoView({ block: 'start' });
 })();
 
 /** Opaque Settings picker over each remaining .settings-content <select>. */
