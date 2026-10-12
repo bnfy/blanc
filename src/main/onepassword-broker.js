@@ -138,7 +138,11 @@ function readBuiltIn(item, id) {
 
 async function addPickerUsernames(client, candidates) {
   if (!Array.isArray(candidates) || candidates.length < 2) return candidates;
-  return Promise.all(candidates.map(async (candidate) => {
+  // One read at a time: on Windows, 1Password's SDK pipe accepts only a few
+  // simultaneous connections, and the rest fail at once with
+  // `IPC operation failed: -2` (seen with five matches, 1Password 8.12.40).
+  const projected = [];
+  for (const candidate of candidates) {
     let item = null;
     try {
       item = await client.items.get(candidate.vaultId, candidate.itemId);
@@ -146,7 +150,7 @@ async function addPickerUsernames(client, candidates) {
       const itemVersion = Number.isSafeInteger(item?.version) && item.version >= 0
         ? item.version
         : null;
-      return {
+      projected.push({
         ...candidate,
         // Candidate selection is bounded to PICKER_MAX before these reads.
         // Project only the Login built-in needed to distinguish accounts;
@@ -156,11 +160,12 @@ async function addPickerUsernames(client, candidates) {
           ? username.slice(0, 320)
           : '',
         itemVersion,
-      };
+      });
     } finally {
       item = null;
     }
-  }));
+  }
+  return projected;
 }
 
 async function revealCredential({
