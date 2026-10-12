@@ -4,6 +4,13 @@
 (() => {
   'use strict';
 
+  // The interface language's translator: the page's blancI18n in the app,
+  // the English catalog under Node (unit tests require this module directly).
+  const { t } = typeof window !== 'undefined' && window.blancI18n ? window.blancI18n : (() => {
+    const { createTranslator } = require('./i18n.js');
+    return { t: createTranslator({ locale: 'en', messages: require('./strings.en.js').messages }) };
+  })();
+
   const STATE_VERSION = 3;
   const RECORDS_VERSION = 3;
   const GAME_ID_PARAM = 'game';
@@ -530,8 +537,8 @@
     if (!result || !result.completed) return null;
     const time = formatMs(result.elapsedMs);
     return mode === 'tray'
-      ? `cleared · ${result.score.toLocaleString()} pts · ${time}`
-      : `cleared · ${time}`;
+      ? t('mahjong.daily.clearedScore', { count: result.score, time })
+      : t('mahjong.daily.cleared', { time });
   }
 
   function shiftDailyKey(key, days) {

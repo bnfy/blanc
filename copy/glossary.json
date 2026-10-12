@@ -95,7 +95,17 @@
       "newtab.customize.layout",
       "favorites.import.fromSource",
       "downloads.meta",
-      "tabHandoff.personalProfile"
+      "tabHandoff.personalProfile",
+      "mahjong.title",
+      "mahjong.head.brand",
+      "mahjong.mode.burst",
+      "mahjong.head.combo",
+      "mahjong.live.combo",
+      "mahjong.win.rules",
+      "mahjong.setup.dailyDescription",
+      "mahjong.rulesName.auto",
+      "mahjong.rulesName.zen",
+      "mahjong.combo.combo"
     ]
   }
 }

@@ -389,7 +389,7 @@ Then('Mahjong correctness flows pass in the renderer', async function () {
     elapsedMs: 0,
     timerDisplay: 'none',
     scoreDisplay: 'none',
-    badge: 'zen',
+    badge: 'Zen',
   });
   assert.deepEqual(result.zenCompletion, {
     title: 'A quiet finish.',
@@ -402,7 +402,7 @@ Then('Mahjong correctness flows pass in the renderer', async function () {
   assert.deepEqual(result.manualGame, {
     burstRules: 'manual',
     scoringRevision: 3,
-    badge: 'manual',
+    badge: 'Manual',
   });
   assert.equal(result.manualRemembered, true, 'the device should remember Manual Burst');
   assert.deepEqual(

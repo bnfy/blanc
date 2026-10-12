@@ -505,6 +505,31 @@ const TAB_IMPORT_SURFACES = [
   },
 ];
 
+// Mahjong: the table as dealt (Daily Burst by default), then its Boards and
+// Records sheets.
+const MAHJONG_FILES = ['src/renderer/pages/mahjong.html', 'src/renderer/pages/mahjong.js',
+  'src/renderer/pages/mahjong-state.js', 'src/renderer/pages/mahjong-engine.js', 'src/renderer/pages/mahjong-sound.js'];
+const mahjongPage = async ({ app, chrome }) => {
+  let page = (await app.windows()).find((p) => p.url().startsWith('blanc://mahjong/'));
+  if (!page) {
+    await chrome.evaluate(() => window.browserAPI.createTab('blanc://mahjong/'));
+    page = await findPage(app, 'blanc://mahjong/', 'mahjong');
+  }
+  await page.waitForFunction(() => document.querySelectorAll('#mjBoard .mj-tile').length > 0);
+  return page;
+};
+const mahjongSheet = (button, sheet) => async (ctx) => {
+  const page = await mahjongPage(ctx);
+  await page.locator(button).click();
+  await page.locator(sheet).waitFor({ state: 'visible' });
+  return page;
+};
+const MAHJONG_SURFACES = [
+  { name: 'mahjong', open: mahjongPage },
+  { name: 'mahjong (boards)', open: mahjongSheet('#mjSetup', '#mjSetupSheet'), close: (page) => page.locator('#mjSetupClose').click() },
+  { name: 'mahjong (records)', open: mahjongSheet('#mjRecords', '#mjRecordsSheet'), close: (page) => page.locator('#mjRecordsClose').click() },
+].map((surface) => ({ ...surface, files: MAHJONG_FILES }));
+
 const SURFACES = [
   {
     name: 'island panel (tab list)',
@@ -604,6 +629,7 @@ const SURFACES = [
   ...SETTINGS_SURFACES,
   ...UTILITY_SURFACES,
   ...TAB_IMPORT_SURFACES,
+  ...MAHJONG_SURFACES,
 ];
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-pseudo-sweep-'));

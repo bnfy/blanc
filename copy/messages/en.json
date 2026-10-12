@@ -5875,5 +5875,855 @@
   "tabHandoff.readFailed": {
     "message": "Blanc could not read this handoff.",
     "note": "Tab handoff page (tabs sent to Blanc from another browser): error."
+  },
+  "mahjong.title": {
+    "message": "Mahjong",
+    "note": "Mahjong: browser tab title."
+  },
+  "mahjong.skip": {
+    "message": "skip to tiles",
+    "note": "Mahjong: link.",
+    "maxLength": 19
+  },
+  "mahjong.head.back": {
+    "message": "Back to Blanc new tab",
+    "note": "Mahjong → header: accessible name of a a."
+  },
+  "mahjong.head.brand": {
+    "message": "mahjong",
+    "note": "Mahjong → header: text (span)."
+  },
+  "mahjong.head.private": {
+    "message": "private",
+    "note": "Mahjong → header: text (span)."
+  },
+  "mahjong.head.currentGame": {
+    "message": "Current game",
+    "note": "Mahjong → header: accessible name of a div."
+  },
+  "mahjong.head.daily": {
+    "message": "daily",
+    "note": "Mahjong → header: text (span)."
+  },
+  "mahjong.layout.turtle": {
+    "message": "Turtle",
+    "note": "Mahjong: name of a board layout (shaped like a turtle); also the header and Records."
+  },
+  "mahjong.mode.classic": {
+    "message": "Classic",
+    "note": "Mahjong: name of the classic game mode (match two free tiles); a button in Boards and the header.",
+    "maxLength": 12
+  },
+  "mahjong.head.status": {
+    "message": "Game status",
+    "note": "Mahjong → header: accessible name of a div."
+  },
+  "mahjong.head.pairs": {
+    "message": "pairs",
+    "note": "Mahjong → header: text (span)."
+  },
+  "mahjong.head.time": {
+    "message": "time",
+    "note": "Mahjong → header: text (span)."
+  },
+  "mahjong.head.score": {
+    "message": "score",
+    "note": "Mahjong → header: text (span)."
+  },
+  "mahjong.head.combo": {
+    "message": "combo",
+    "note": "Mahjong → header: text (span)."
+  },
+  "mahjong.head.comboTimer": {
+    "message": "Combo time remaining",
+    "note": "Mahjong → header: accessible name of a span."
+  },
+  "mahjong.surface": {
+    "message": "Mahjong game surface",
+    "note": "Mahjong: accessible name of a section."
+  },
+  "mahjong.board": {
+    "message": "Mahjong tiles. Use arrow keys to move and Enter or Spacebar to select.",
+    "note": "Mahjong: accessible name of a div."
+  },
+  "mahjong.autoClearChip": {
+    "message": "auto clear",
+    "note": "Mahjong: text (span)."
+  },
+  "mahjong.rack.label": {
+    "message": "Four-slot Burst rack",
+    "note": "Mahjong → Burst rack beside the board: accessible name of a aside."
+  },
+  "mahjong.rack.kicker": {
+    "message": "burst rack",
+    "note": "Mahjong → Burst rack beside the board: text (span)."
+  },
+  "mahjong.rack.prompt": {
+    "message": "Pair tiles before all four slots fill.",
+    "note": "Mahjong → Burst rack beside the board: text (strong)."
+  },
+  "mahjong.rack.slotsLabel": {
+    "message": "Burst rack, four selected-tile slots",
+    "note": "Mahjong → Burst rack beside the board: accessible name of a div."
+  },
+  "mahjong.rack.best": {
+    "message": "best",
+    "note": "Mahjong → Burst rack beside the board: text (span)."
+  },
+  "mahjong.win.kicker": {
+    "message": "board cleared",
+    "note": "Mahjong → board-cleared card: text (p)."
+  },
+  "mahjong.win.title": {
+    "message": "A beautiful finish.",
+    "note": "Mahjong → board-cleared card: page heading."
+  },
+  "mahjong.win.points": {
+    "message": "points",
+    "note": "Mahjong → board-cleared card: text (span)."
+  },
+  "mahjong.win.zen": {
+    "message": "This Zen game was not added to Records.",
+    "note": "Mahjong → board-cleared card: text (p)."
+  },
+  "mahjong.win.time": {
+    "message": "time",
+    "note": "Mahjong → board-cleared card: text (small)."
+  },
+  "mahjong.win.bestCombo": {
+    "message": "best combo",
+    "note": "Mahjong → board-cleared card: text (small)."
+  },
+  "mahjong.win.autoClears": {
+    "message": "auto clears",
+    "note": "Mahjong → board-cleared card: text (small)."
+  },
+  "mahjong.win.playAnother": {
+    "message": "play another",
+    "note": "Mahjong → board-cleared card: button.",
+    "maxLength": 17
+  },
+  "mahjong.win.chooseBoard": {
+    "message": "choose board",
+    "note": "Mahjong → board-cleared card: button.",
+    "maxLength": 17
+  },
+  "mahjong.notice.noMoves": {
+    "message": "No moves remain.",
+    "note": "Mahjong → notice under the board: text (span)."
+  },
+  "mahjong.notice.undo": {
+    "message": "undo",
+    "note": "Mahjong → notice under the board: button.",
+    "maxLength": 12
+  },
+  "mahjong.notice.shuffle": {
+    "message": "shuffle",
+    "note": "Mahjong → notice under the board: button.",
+    "maxLength": 12
+  },
+  "mahjong.notice.or": {
+    "message": "or",
+    "note": "Mahjong → notice under the board: “or” between two buttons."
+  },
+  "mahjong.notice.newDeal": {
+    "message": "new deal",
+    "note": "Mahjong → notice under the board: button.",
+    "maxLength": 12
+  },
+  "mahjong.notice.resume": {
+    "message": "You left a board unfinished.",
+    "note": "Mahjong → notice under the board: text (span)."
+  },
+  "mahjong.notice.continue": {
+    "message": "continue it",
+    "note": "Mahjong → notice under the board: button.",
+    "maxLength": 16
+  },
+  "mahjong.notice.keepDeal": {
+    "message": "keep this deal",
+    "note": "Mahjong → notice under the board: button.",
+    "maxLength": 20
+  },
+  "mahjong.notice.dealFailed": {
+    "message": "That deal could not be built.",
+    "note": "Mahjong → notice under the board: text (span)."
+  },
+  "mahjong.notice.tryAgain": {
+    "message": "try again",
+    "note": "Mahjong → notice under the board: button.",
+    "maxLength": 13
+  },
+  "mahjong.notice.recovered": {
+    "message": "Your saved game could not be restored, so a fresh deal was prepared.",
+    "note": "Mahjong → notice under the board: text (div)."
+  },
+  "mahjong.notice.shareInvalid": {
+    "message": "That shared deal link was invalid, so your remembered game was started instead.",
+    "note": "Mahjong → notice under the board: text (div)."
+  },
+  "mahjong.dock.label": {
+    "message": "Game controls",
+    "note": "Mahjong → control dock: accessible name of a nav."
+  },
+  "mahjong.dock.boardsLabel": {
+    "message": "Boards",
+    "note": "Mahjong → control dock: accessible name of a button."
+  },
+  "mahjong.dock.boards": {
+    "message": "boards",
+    "note": "Mahjong → control dock: text (span)."
+  },
+  "mahjong.dock.recordsLabel": {
+    "message": "Records",
+    "note": "Mahjong → control dock: accessible name of a button."
+  },
+  "mahjong.dock.records": {
+    "message": "records",
+    "note": "Mahjong → control dock: text (span)."
+  },
+  "mahjong.dock.undoLabel": {
+    "message": "Undo",
+    "note": "Mahjong → control dock: accessible name of a button."
+  },
+  "mahjong.dock.undo": {
+    "message": "undo",
+    "note": "Mahjong → control dock: text (span)."
+  },
+  "mahjong.dock.hintLabel": {
+    "message": "Hint",
+    "note": "Mahjong → control dock: accessible name of a button."
+  },
+  "mahjong.dock.hint": {
+    "message": "hint",
+    "note": "Mahjong → control dock: text (span)."
+  },
+  "mahjong.dock.shuffleLabel": {
+    "message": "Shuffle",
+    "note": "Mahjong → control dock: accessible name of a button."
+  },
+  "mahjong.dock.shuffle": {
+    "message": "shuffle",
+    "note": "Mahjong → control dock: text (span)."
+  },
+  "mahjong.sound.onLabel": {
+    "message": "Sound effects on",
+    "note": "Mahjong → control dock: accessible name of the sound button when sound is on."
+  },
+  "mahjong.sound.on": {
+    "message": "Sound on",
+    "note": "Mahjong → control dock: tooltip of the sound button when sound is on."
+  },
+  "mahjong.dock.soundOn": {
+    "message": "sound on",
+    "note": "Mahjong → control dock: text (span)."
+  },
+  "mahjong.setup.kicker": {
+    "message": "new table",
+    "note": "Mahjong → Boards (choose your game): text (p)."
+  },
+  "mahjong.setup.title": {
+    "message": "Choose your game",
+    "note": "Mahjong → Boards (choose your game): page heading."
+  },
+  "mahjong.setup.close": {
+    "message": "Close board setup",
+    "note": "Mahjong → Boards (choose your game): accessible name of a button."
+  },
+  "mahjong.setup.layoutLegend": {
+    "message": "layout",
+    "note": "Mahjong → Boards (choose your game): text (legend)."
+  },
+  "mahjong.layout.turtleDetail": {
+    "message": "144 tiles · unhurried",
+    "note": "Mahjong → Boards (choose your game): tile count and pace under a board name on a narrow card; keep it short."
+  },
+  "mahjong.layout.arch": {
+    "message": "Arch",
+    "note": "Mahjong → Boards: name of a board layout (an arch)."
+  },
+  "mahjong.layout.archDetail": {
+    "message": "96 tiles · balanced",
+    "note": "Mahjong → Boards (choose your game): tile count and pace under a board name on a narrow card; keep it short."
+  },
+  "mahjong.layout.peaks": {
+    "message": "Peaks",
+    "note": "Mahjong → Boards: name of a board layout (mountain peaks)."
+  },
+  "mahjong.layout.peaksDetail": {
+    "message": "72 tiles · quick",
+    "note": "Mahjong → Boards (choose your game): tile count and pace under a board name on a narrow card; keep it short."
+  },
+  "mahjong.layout.pyramid": {
+    "message": "Pyramid",
+    "note": "Mahjong → Boards: name of a board layout."
+  },
+  "mahjong.layout.pyramidDetail": {
+    "message": "108 tiles · steep",
+    "note": "Mahjong → Boards (choose your game): tile count and pace under a board name on a narrow card; keep it short."
+  },
+  "mahjong.layout.fortress": {
+    "message": "Fortress",
+    "note": "Mahjong → Boards: name of a board layout."
+  },
+  "mahjong.layout.fortressDetail": {
+    "message": "96 tiles · walled",
+    "note": "Mahjong → Boards (choose your game): tile count and pace under a board name on a narrow card; keep it short."
+  },
+  "mahjong.layout.butterfly": {
+    "message": "Butterfly",
+    "note": "Mahjong → Boards: name of a board layout."
+  },
+  "mahjong.layout.butterflyDetail": {
+    "message": "94 tiles · open",
+    "note": "Mahjong → Boards (choose your game): tile count and pace under a board name on a narrow card; keep it short."
+  },
+  "mahjong.layout.bridge": {
+    "message": "Bridge",
+    "note": "Mahjong → Boards: name of a board layout."
+  },
+  "mahjong.layout.bridgeDetail": {
+    "message": "100 tiles · narrow",
+    "note": "Mahjong → Boards (choose your game): tile count and pace under a board name on a narrow card; keep it short."
+  },
+  "mahjong.layout.cross": {
+    "message": "Cross",
+    "note": "Mahjong → Boards: name of a board layout."
+  },
+  "mahjong.layout.crossDetail": {
+    "message": "86 tiles · layered",
+    "note": "Mahjong → Boards (choose your game): tile count and pace under a board name on a narrow card; keep it short."
+  },
+  "mahjong.setup.modeLegend": {
+    "message": "mode",
+    "note": "Mahjong → Boards (choose your game): text (legend)."
+  },
+  "mahjong.mode.burst": {
+    "message": "Burst",
+    "note": "Mahjong: name of the Burst game mode (tiles go to a four-slot rack); a button in Boards.",
+    "maxLength": 12
+  },
+  "mahjong.setup.classicDescription": {
+    "message": "Match two free tiles directly.",
+    "note": "Mahjong → Boards (choose your game): text (p)."
+  },
+  "mahjong.setup.dealLegend": {
+    "message": "deal",
+    "note": "Mahjong → Boards (choose your game): text (legend)."
+  },
+  "mahjong.source.random": {
+    "message": "Random",
+    "note": "Mahjong → Boards (choose your game): button.",
+    "maxLength": 12
+  },
+  "mahjong.source.daily": {
+    "message": "Daily",
+    "note": "Mahjong → Boards (choose your game): button.",
+    "maxLength": 12
+  },
+  "mahjong.setup.randomDescription": {
+    "message": "A fresh, guaranteed-solvable board.",
+    "note": "Mahjong → Boards (choose your game): text (p)."
+  },
+  "mahjong.setup.autoClears": {
+    "message": "<0>Auto clears</0> Every fifth combo clears another available pair automatically.",
+    "note": "Mahjong → Boards (choose your game): text (span)."
+  },
+  "mahjong.setup.zen": {
+    "message": "<0>Zen game</0> Hide time and score, and keep this game out of Records.",
+    "note": "Mahjong → Boards (choose your game): text (span)."
+  },
+  "mahjong.setup.freeHighlight": {
+    "message": "<0>Stronger free-tile highlight</0> Adds a persistent high-contrast ring to every tile available to play.",
+    "note": "Mahjong → Boards (choose your game): text (span)."
+  },
+  "mahjong.setup.replaces": {
+    "message": "Starting replaces the board currently on this table.",
+    "note": "Mahjong → Boards (choose your game): text (p)."
+  },
+  "mahjong.setup.copyDeal": {
+    "message": "copy current deal",
+    "note": "Mahjong → Boards (choose your game): button.",
+    "maxLength": 24
+  },
+  "mahjong.setup.start": {
+    "message": "start game",
+    "note": "Mahjong → Boards (choose your game): button.",
+    "maxLength": 14
+  },
+  "mahjong.records.kicker": {
+    "message": "your table",
+    "note": "Mahjong → Records: text (p)."
+  },
+  "mahjong.records.title": {
+    "message": "Records",
+    "note": "Mahjong → Records: page heading."
+  },
+  "mahjong.records.close": {
+    "message": "Close records",
+    "note": "Mahjong → Records: accessible name of a button."
+  },
+  "mahjong.records.overview": {
+    "message": "Overview",
+    "note": "Mahjong → Records: accessible name of a div."
+  },
+  "mahjong.records.boardsCleared": {
+    "message": "boards cleared",
+    "note": "Mahjong → Records: label on one of four stat tiles above the records table; must fit one line.",
+    "maxLength": 16
+  },
+  "mahjong.records.dailyStreak": {
+    "message": "daily streak",
+    "note": "Mahjong → Records: label on one of four stat tiles above the records table; must fit one line.",
+    "maxLength": 16
+  },
+  "mahjong.records.longestStreak": {
+    "message": "longest streak",
+    "note": "Mahjong → Records: label on one of four stat tiles above the records table; must fit one line.",
+    "maxLength": 16
+  },
+  "mahjong.records.dailiesCleared": {
+    "message": "dailies cleared",
+    "note": "Mahjong → Records: label on one of four stat tiles above the records table; must fit one line.",
+    "maxLength": 16
+  },
+  "mahjong.records.caption": {
+    "message": "best results by board",
+    "note": "Mahjong → Records: text (caption)."
+  },
+  "mahjong.records.board": {
+    "message": "board",
+    "note": "Mahjong → Records: text (th)."
+  },
+  "mahjong.records.classicBest": {
+    "message": "classic best",
+    "note": "Mahjong → Records: text (th)."
+  },
+  "mahjong.records.burstBest": {
+    "message": "burst best",
+    "note": "Mahjong → Records: text (th)."
+  },
+  "mahjong.records.cleared": {
+    "message": "cleared",
+    "note": "Mahjong → Records: text (th)."
+  },
+  "mahjong.records.noDailiesLabel": {
+    "message": "No dailies cleared in the last 28 days.",
+    "note": "Mahjong → Records: accessible name of a div."
+  },
+  "mahjong.records.noDailies": {
+    "message": "no dailies cleared yet",
+    "note": "Mahjong → Records: text (p)."
+  },
+  "mahjong.rescue.kicker": {
+    "message": "burst rack full",
+    "note": "Mahjong → Burst rack full: text (p)."
+  },
+  "mahjong.rescue.title": {
+    "message": "Make some room.",
+    "note": "Mahjong → Burst rack full: page heading."
+  },
+  "mahjong.rescue.body": {
+    "message": "Four unmatched tiles are waiting. Choose how you want to continue.",
+    "note": "Mahjong → Burst rack full: text (p)."
+  },
+  "mahjong.rescue.undo": {
+    "message": "undo last pick",
+    "note": "Mahjong → Burst rack full: button.",
+    "maxLength": 20
+  },
+  "mahjong.rescue.shuffle": {
+    "message": "shuffle & continue",
+    "note": "Mahjong → Burst rack full: button.",
+    "maxLength": 26
+  },
+  "mahjong.rescue.restart": {
+    "message": "restart this board",
+    "note": "Mahjong → Burst rack full: button.",
+    "maxLength": 26
+  },
+  "mahjong.number.1": {
+    "message": "one",
+    "note": "Mahjong: accessible tile name: the number 1 as a word, used as {number} in tile names."
+  },
+  "mahjong.number.2": {
+    "message": "two",
+    "note": "Mahjong: accessible tile name: the number 2 as a word, used as {number} in tile names."
+  },
+  "mahjong.number.3": {
+    "message": "three",
+    "note": "Mahjong: accessible tile name: the number 3 as a word, used as {number} in tile names."
+  },
+  "mahjong.number.4": {
+    "message": "four",
+    "note": "Mahjong: accessible tile name: the number 4 as a word, used as {number} in tile names."
+  },
+  "mahjong.number.5": {
+    "message": "five",
+    "note": "Mahjong: accessible tile name: the number 5 as a word, used as {number} in tile names."
+  },
+  "mahjong.number.6": {
+    "message": "six",
+    "note": "Mahjong: accessible tile name: the number 6 as a word, used as {number} in tile names."
+  },
+  "mahjong.number.7": {
+    "message": "seven",
+    "note": "Mahjong: accessible tile name: the number 7 as a word, used as {number} in tile names."
+  },
+  "mahjong.number.8": {
+    "message": "eight",
+    "note": "Mahjong: accessible tile name: the number 8 as a word, used as {number} in tile names."
+  },
+  "mahjong.number.9": {
+    "message": "nine",
+    "note": "Mahjong: accessible tile name: the number 9 as a word, used as {number} in tile names."
+  },
+  "mahjong.tile.dot": {
+    "message": "{number} dot",
+    "note": "Mahjong: accessible tile name of a dots (circles) tile; {number} is a word such as “three”."
+  },
+  "mahjong.tile.bamboo": {
+    "message": "{number} bamboo",
+    "note": "Mahjong: accessible tile name of a bamboo tile; {number} is a word such as “three”."
+  },
+  "mahjong.tile.character": {
+    "message": "{number} character",
+    "note": "Mahjong: accessible tile name of a characters tile; {number} is a word such as “three”."
+  },
+  "mahjong.tile.windEast": {
+    "message": "east wind, {motif}",
+    "note": "Mahjong: accessible tile name; {motif} is the picture on it."
+  },
+  "mahjong.tile.windSouth": {
+    "message": "south wind, {motif}",
+    "note": "Mahjong: accessible tile name; {motif} is the picture on it."
+  },
+  "mahjong.tile.windWest": {
+    "message": "west wind, {motif}",
+    "note": "Mahjong: accessible tile name; {motif} is the picture on it."
+  },
+  "mahjong.tile.windNorth": {
+    "message": "north wind, {motif}",
+    "note": "Mahjong: accessible tile name; {motif} is the picture on it."
+  },
+  "mahjong.tile.dragonRed": {
+    "message": "red dragon, {motif}",
+    "note": "Mahjong: accessible tile name; {motif} is the picture on it."
+  },
+  "mahjong.tile.dragonGreen": {
+    "message": "green dragon, {motif}",
+    "note": "Mahjong: accessible tile name; {motif} is the picture on it."
+  },
+  "mahjong.tile.dragonWhite": {
+    "message": "white dragon, {motif}",
+    "note": "Mahjong: accessible tile name; {motif} is the picture on it."
+  },
+  "mahjong.tile.motif.sunrise": {
+    "message": "sunrise",
+    "note": "Mahjong: accessible tile name: picture on the east wind tile."
+  },
+  "mahjong.tile.motif.sun": {
+    "message": "sun",
+    "note": "Mahjong: accessible tile name: picture on the south wind tile."
+  },
+  "mahjong.tile.motif.moonAndWave": {
+    "message": "moon and wave",
+    "note": "Mahjong: accessible tile name: picture on the west wind tile."
+  },
+  "mahjong.tile.motif.mountain": {
+    "message": "mountain",
+    "note": "Mahjong: accessible tile name: picture on the north wind tile."
+  },
+  "mahjong.tile.motif.compass": {
+    "message": "compass",
+    "note": "Mahjong: accessible tile name: picture on the alternative wind tiles."
+  },
+  "mahjong.tile.motif.flame": {
+    "message": "flame",
+    "note": "Mahjong: accessible tile name: picture on the red dragon tile."
+  },
+  "mahjong.tile.motif.flourish": {
+    "message": "flourish",
+    "note": "Mahjong: accessible tile name: picture on the green dragon tile (an ornamental swirl)."
+  },
+  "mahjong.tile.motif.blancMark": {
+    "message": "Blanc mark",
+    "note": "Mahjong: accessible tile name: picture on the white dragon tile (the Blanc logo)."
+  },
+  "mahjong.tile.motif.seal": {
+    "message": "seal",
+    "note": "Mahjong: accessible tile name: picture on the alternative dragon tiles (a stamp)."
+  },
+  "mahjong.tile.flower": {
+    "message": "flower bonus",
+    "note": "Mahjong: accessible tile name of a flower bonus tile."
+  },
+  "mahjong.tile.season": {
+    "message": "season bonus",
+    "note": "Mahjong: accessible tile name of a season bonus tile."
+  },
+  "mahjong.tile.free": {
+    "message": "{tile}, free",
+    "note": "Mahjong: accessible tile name of a tile that can be played; {tile} is its name."
+  },
+  "mahjong.tile.blocked": {
+    "message": "{tile}, blocked",
+    "note": "Mahjong: accessible tile name of a tile that is covered; {tile} is its name."
+  },
+  "mahjong.rack.slot": {
+    "message": "Burst slot {number}: {tile}",
+    "note": "Mahjong → Burst rack: accessible name of a filled slot; {tile} is the tile’s name."
+  },
+  "mahjong.rack.slotEmpty": {
+    "message": "Burst slot {number}: empty",
+    "note": "Mahjong → Burst rack: accessible name of an empty slot."
+  },
+  "mahjong.pairsLeft": {
+    "message": "{count, plural, one {# pair left} other {# pairs left}}",
+    "note": "Mahjong → header and resume notice: pairs still on the board."
+  },
+  "mahjong.rulesName.manual": {
+    "message": "Manual",
+    "note": "Mahjong: Burst rules without automatic clears, in the header badge (shown uppercase), sentences, the win card and Records."
+  },
+  "mahjong.rulesName.auto": {
+    "message": "Auto",
+    "note": "Mahjong: Burst rules with automatic clears, in the header badge (shown uppercase), sentences, the win card and Records."
+  },
+  "mahjong.rulesName.zen": {
+    "message": "Zen",
+    "note": "Mahjong: a Zen game (no time or score), in the header badge (shown uppercase), sentences and the win card."
+  },
+  "mahjong.rulesName.ranked": {
+    "message": "Ranked",
+    "note": "Mahjong: a Classic game that counts toward Records, in the header badge (shown uppercase), sentences and the win card."
+  },
+  "mahjong.live.rackFull": {
+    "message": "The Burst rack is full. Undo, shuffle and continue, or restart.",
+    "note": "Mahjong: announced to screen readers."
+  },
+  "mahjong.live.rackStillFull": {
+    "message": "The Burst rack is still full. Use Undo, Shuffle, or restart.",
+    "note": "Mahjong: announced to screen readers."
+  },
+  "mahjong.live.rackNeedsMatch": {
+    "message": "The Burst rack needs a match. Use Undo or Shuffle instead of filling the last slot.",
+    "note": "Mahjong: announced to screen readers."
+  },
+  "mahjong.live.combo": {
+    "message": "Combo {count}.",
+    "note": "Mahjong: announced to screen readers: first sentence after a Burst match."
+  },
+  "mahjong.live.points": {
+    "message": "{count, plural, one {# point.} other {# points.}}",
+    "note": "Mahjong: announced to screen readers: points from a Burst match."
+  },
+  "mahjong.live.autoClear": {
+    "message": "{count, plural, one {Automatic pair cleared for # bonus point.} other {Automatic pair cleared for # bonus points.}}",
+    "note": "Mahjong: announced to screen readers."
+  },
+  "mahjong.live.milestone": {
+    "message": "{count, plural, one {# milestone bonus point.} other {# milestone bonus points.}}",
+    "note": "Mahjong: announced to screen readers."
+  },
+  "mahjong.live.total": {
+    "message": "{count, plural, one {# total.} other {# total.}}",
+    "note": "Mahjong: announced to screen readers: the game’s total score."
+  },
+  "mahjong.live.parked": {
+    "message": "{tile} moved to the Burst rack.",
+    "note": "Mahjong: announced to screen readers; {tile} is a tile’s name."
+  },
+  "mahjong.live.slotsFilled": {
+    "message": "{filled} of {total} slots filled.",
+    "note": "Mahjong: announced to screen readers."
+  },
+  "mahjong.live.pairCleared": {
+    "message": "Pair cleared.",
+    "note": "Mahjong: announced to screen readers."
+  },
+  "mahjong.live.pairsLeft": {
+    "message": "{count, plural, one {# pair left.} other {# pairs left.}}",
+    "note": "Mahjong: announced to screen readers."
+  },
+  "mahjong.live.shuffleUndone": {
+    "message": "Shuffle undone. The previous board is back.",
+    "note": "Mahjong: announced to screen readers."
+  },
+  "mahjong.live.moveUndone": {
+    "message": "Last move undone.",
+    "note": "Mahjong: announced to screen readers."
+  },
+  "mahjong.live.hintRack": {
+    "message": "Hint: a {tile} in the Burst rack has a free match.",
+    "note": "Mahjong: announced to screen readers; {tile} is a tile’s name."
+  },
+  "mahjong.live.hintPair": {
+    "message": "Hint: two {tile} tiles are available.",
+    "note": "Mahjong: announced to screen readers; {tile} is a tile’s name."
+  },
+  "mahjong.live.hintPark": {
+    "message": "Hint: {tile} is free to move into the Burst rack.",
+    "note": "Mahjong: announced to screen readers; {tile} is a tile’s name."
+  },
+  "mahjong.live.shuffled": {
+    "message": "Remaining tiles shuffled into a new solvable deal. Undo restores the previous board.",
+    "note": "Mahjong: announced to screen readers."
+  },
+  "mahjong.live.wonZen": {
+    "message": "Board cleared. Zen game complete. This game was not added to Records.",
+    "note": "Mahjong: announced to screen readers."
+  },
+  "mahjong.live.wonBurst": {
+    "message": "{count, plural, one {Board cleared. # point. {time}.} other {Board cleared. # points. {time}.}}",
+    "note": "Mahjong: announced to screen readers; {time} is the clear time, e.g. 4:12."
+  },
+  "mahjong.live.wonClassic": {
+    "message": "Board cleared. {time}.",
+    "note": "Mahjong: announced to screen readers; {time} is the clear time, e.g. 4:12."
+  },
+  "mahjong.live.ready": {
+    "message": "{layout} {mode} {rules} game ready.",
+    "note": "Mahjong: announced to screen readers; {layout} is a board name, {mode} Classic or Burst, {rules} Ranked, Zen, Auto or Manual."
+  },
+  "mahjong.live.copyFailed": {
+    "message": "This deal could not be copied.",
+    "note": "Mahjong: announced to screen readers."
+  },
+  "mahjong.live.copied": {
+    "message": "Deal link copied.",
+    "note": "Mahjong: announced to screen readers."
+  },
+  "mahjong.live.linkCopyFailed": {
+    "message": "Deal link could not be copied.",
+    "note": "Mahjong: announced to screen readers."
+  },
+  "mahjong.live.continuing": {
+    "message": "Continuing your unfinished board.",
+    "note": "Mahjong: announced to screen readers."
+  },
+  "mahjong.live.duplicated": {
+    "message": "This duplicated tab now has its own independent game.",
+    "note": "Mahjong: announced to screen readers."
+  },
+  "mahjong.live.restored": {
+    "message": "Saved game restored.",
+    "note": "Mahjong: announced to screen readers."
+  },
+  "mahjong.live.sharedReady": {
+    "message": "Shared deal ready.",
+    "note": "Mahjong: announced to screen readers."
+  },
+  "mahjong.live.shareInvalid": {
+    "message": "That shared deal link was invalid. Your remembered game was started instead.",
+    "note": "Mahjong: announced to screen readers."
+  },
+  "mahjong.combo.combo": {
+    "message": "combo",
+    "note": "Mahjong: word beside the combo multiplier in the burst of light after a match."
+  },
+  "mahjong.combo.flowing": {
+    "message": "flowing",
+    "note": "Mahjong: combo tier shown at a milestone (5+ matches in a row)."
+  },
+  "mahjong.combo.brilliant": {
+    "message": "brilliant",
+    "note": "Mahjong: combo tier shown at 10+ matches in a row."
+  },
+  "mahjong.combo.masterful": {
+    "message": "masterful",
+    "note": "Mahjong: combo tier shown at 15+ matches in a row."
+  },
+  "mahjong.sound.off": {
+    "message": "Sound off",
+    "note": "Mahjong → control dock: tooltip of the sound button when sound is off."
+  },
+  "mahjong.sound.offLabel": {
+    "message": "Sound effects off",
+    "note": "Mahjong → control dock: accessible name of the sound button when sound is off."
+  },
+  "mahjong.best.zen": {
+    "message": "Zen game",
+    "note": "Mahjong → Burst rack: best result line during a Zen game."
+  },
+  "mahjong.best.none": {
+    "message": "No record",
+    "note": "Mahjong → Burst rack: best result line when there is none."
+  },
+  "mahjong.best.time": {
+    "message": "Best {time}",
+    "note": "Mahjong → Burst rack: best clear time; {time} is e.g. 4:12."
+  },
+  "mahjong.best.score": {
+    "message": "Best {score} · {time}",
+    "note": "Mahjong → Burst rack: best score and its time."
+  },
+  "mahjong.win.quietTitle": {
+    "message": "A quiet finish.",
+    "note": "Mahjong → board-cleared card: heading after a Zen game."
+  },
+  "mahjong.win.rules": {
+    "message": "{mode} · {rules}",
+    "note": "Mahjong → board-cleared card: mode and rules, e.g. “Burst · Auto”."
+  },
+  "mahjong.win.clearTime": {
+    "message": "clear time",
+    "note": "Mahjong → board-cleared card: unit under a Classic clear time."
+  },
+  "mahjong.win.newRecord": {
+    "message": "new record",
+    "note": "Mahjong → board-cleared card: result line."
+  },
+  "mahjong.win.firstClear": {
+    "message": "first clear",
+    "note": "Mahjong → board-cleared card: result line for the first clear of this board."
+  },
+  "mahjong.win.bestTime": {
+    "message": "best {time}",
+    "note": "Mahjong → board-cleared card: the previous best time."
+  },
+  "mahjong.win.bestScore": {
+    "message": "best {score} · {time}",
+    "note": "Mahjong → board-cleared card: the previous best score and its time."
+  },
+  "mahjong.win.noRecord": {
+    "message": "no record",
+    "note": "Mahjong → board-cleared card: result line when there is no record."
+  },
+  "mahjong.win.daily": {
+    "message": "daily {date} · {result}",
+    "note": "Mahjong → board-cleared card: today’s daily; {date} is YYYY-MM-DD, {result} the daily’s result."
+  },
+  "mahjong.notice.resumeDetail": {
+    "message": "Your unfinished {layout} {mode} board is waiting · {pairs}.",
+    "note": "Mahjong → notice under the board; {layout} is a board name, {mode} Classic or Burst, {pairs} e.g. “12 pairs left”."
+  },
+  "mahjong.setup.burstDescription": {
+    "message": "Build rapid matches in a four-slot Burst rack.",
+    "note": "Mahjong → Boards: description of Burst mode."
+  },
+  "mahjong.setup.dailyDescription": {
+    "message": "{date} · {layout} · {result}",
+    "note": "Mahjong → Boards: today’s daily; {date} is YYYY-MM-DD, {layout} a board name, {result} its result or “layout rotates daily”."
+  },
+  "mahjong.setup.dailyRotates": {
+    "message": "layout rotates daily",
+    "note": "Mahjong → Boards: shown when today’s daily is not cleared yet."
+  },
+  "mahjong.records.clearedOn": {
+    "message": "Daily cleared on {dates}.",
+    "note": "Mahjong → Records: accessible name of the 28-day strip; {dates} is a list of YYYY-MM-DD dates."
+  },
+  "mahjong.records.clearedCount": {
+    "message": "{count, plural, one {cleared # of the last 28 dailies} other {cleared # of the last 28 dailies}}",
+    "note": "Mahjong → Records: caption under the 28-day strip, lowercase by design."
+  },
+  "mahjong.daily.cleared": {
+    "message": "cleared · {time}",
+    "note": "Mahjong: a cleared Classic daily; {time} is the clear time."
+  },
+  "mahjong.daily.clearedScore": {
+    "message": "{count, plural, one {cleared · # pt · {time}} other {cleared · # pts · {time}}}",
+    "note": "Mahjong: a cleared Burst daily; # is its score (pts = points), {time} the clear time."
   }
 }

@@ -93,6 +93,14 @@ test('missing fixed term fails', () => {
   assert.match(problemsFor(en('Fill from 1Password'), 'Aus dem Passwortmanager ausfüllen').join(), /1Password/);
 });
 
+test('a fixed term counts only as a whole word', () => {
+  // "Arch" (a Mahjong layout) is not "Arc"; "Blanc’s" still names Blanc, and
+  // a translation may inflect it.
+  assert.deepEqual(problemsFor(en('Arch board'), 'Spielfeld Bogen'), []);
+  assert.match(problemsFor(en('Blanc’s settings'), 'Die Einstellungen').join(), /Blanc/);
+  assert.deepEqual(problemsFor(en('Blanc’s settings'), 'Blancs Einstellungen'), []);
+});
+
 test('missing fixed pattern (slash command) fails, but a URL path does not count', () => {
   assert.match(problemsFor(en('Type /sleep'), 'Tippe /ruhe').join(), /\/sleep/);
   assert.deepEqual(problemsFor(en('Open blanc://settings'), 'blanc://settings öffnen'), []);

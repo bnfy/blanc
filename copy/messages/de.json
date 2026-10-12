@@ -5664,5 +5664,833 @@
   "tabHandoff.readFailed": {
     "message": "Blanc konnte diese Übergabe nicht lesen.",
     "source": "sha256:9175d119ecd99912e07b467985ccf9913f61c1e763be131d4f25891b49296162"
+  },
+  "mahjong.title": {
+    "message": "Mahjong",
+    "source": "sha256:58cdf6c0c60422f662086f997beb2548b03faaec5c4619f1486390f05a0ce636"
+  },
+  "mahjong.skip": {
+    "message": "zu den Steinen",
+    "source": "sha256:48eec51acb9a9cee46dd8828bc1c95d51ffabf96d81247fb7fbd2c7f1f62a2f1"
+  },
+  "mahjong.head.back": {
+    "message": "Zurück zur neuen Blanc-Startseite",
+    "source": "sha256:dcfd9994fbe914f10000e85eb9bb87f9ef392831cb92dcf671bf812a92744ab7"
+  },
+  "mahjong.head.brand": {
+    "message": "mahjong",
+    "source": "sha256:5b0be3aad9d7845ff56dfb2b463877caadaadf12368c73cb3707a28daf15d2b7"
+  },
+  "mahjong.head.private": {
+    "message": "privat",
+    "source": "sha256:6dd17a1408aeffdf9cd122e91e70280947f49426afc0d788f3783e764c106072"
+  },
+  "mahjong.head.currentGame": {
+    "message": "Aktuelles Spiel",
+    "source": "sha256:b8957813ffba321d8106cf037c376eb73275156cf9d6f2d2934bd0cfa6325b3f"
+  },
+  "mahjong.head.daily": {
+    "message": "täglich",
+    "source": "sha256:19a07b8fb9b5722ddd807168e3465de0bc665ae633a5918bc86556815fd4aee8"
+  },
+  "mahjong.layout.turtle": {
+    "message": "Schildkröte",
+    "source": "sha256:2c670c5a784c24a46f5a3f0a3fe27b1072ae6589801d0a5c704d0c11e2574288"
+  },
+  "mahjong.mode.classic": {
+    "message": "Klassisch",
+    "source": "sha256:2c015908d01ea677b30fba661ed5eba4e5d36509dd762c66bd1a9e6d4f6b4ae4"
+  },
+  "mahjong.head.status": {
+    "message": "Spielstand",
+    "source": "sha256:95dbf38556dd1357677bf23d813bf227d395b57eaf1f2de1c69302b9798d175c"
+  },
+  "mahjong.head.pairs": {
+    "message": "Paare",
+    "source": "sha256:ec76cb989e8a05e9a01ed354c057998e6845f74562a94c6759d25c51c9a1487a"
+  },
+  "mahjong.head.time": {
+    "message": "Zeit",
+    "source": "sha256:29ab328853b015223b8cf5a6da5f9af0e13e1c6333a4c4a3d3e3d381f331f6ef"
+  },
+  "mahjong.head.score": {
+    "message": "Punkte",
+    "source": "sha256:03c308ef1de4a08b6839b7f62ab9404a41d780900f64649a9a7e07bcd4b4b759"
+  },
+  "mahjong.head.combo": {
+    "message": "Combo",
+    "source": "sha256:bfab03ddd1ea1c6444eff05bb47da9cca420cc16be4906f4e5395ee0250747ff"
+  },
+  "mahjong.head.comboTimer": {
+    "message": "Verbleibende Combo-Zeit",
+    "source": "sha256:0d3ece4508906135c3af771d3778f9f0e257d52b09b5d8465756e43573b0fa96"
+  },
+  "mahjong.surface": {
+    "message": "Mahjong-Spielfläche",
+    "source": "sha256:7ec21205db4d9cdec2cf3a34b983b811f7f3ad8fe20e0d35e5812c1994c459e6"
+  },
+  "mahjong.board": {
+    "message": "Mahjong-Steine. Bewege dich mit den Pfeiltasten und wähle mit Eingabe oder Leertaste.",
+    "source": "sha256:cd1f440ecbd3352db003901affab4f68bee69ad96800de9e2eb50a91bb63e0b4"
+  },
+  "mahjong.autoClearChip": {
+    "message": "Auto-Abräumen",
+    "source": "sha256:c44c1061d2b6619ba1bedd6a9b8c8ffba17dbd8b00f67956dddf1ad7e0e3ee44"
+  },
+  "mahjong.rack.label": {
+    "message": "Burst-Ablage mit vier Plätzen",
+    "source": "sha256:adcbfdb30973b5248d58ede377b6da91599979b376c6f1e54292cc305ba84a21"
+  },
+  "mahjong.rack.kicker": {
+    "message": "Burst-Ablage",
+    "source": "sha256:426f608cedc8dc5160661e858c8f7c7560396cf03c218fcaa9e293daf5621d09"
+  },
+  "mahjong.rack.prompt": {
+    "message": "Bilde Paare, bevor alle vier Plätze voll sind.",
+    "source": "sha256:9ee686661486d960d8bc07c7dbf2218f2276ab136fc59e411f634a55db269607"
+  },
+  "mahjong.rack.slotsLabel": {
+    "message": "Burst-Ablage, vier Plätze für gewählte Steine",
+    "source": "sha256:aaea5b92c5e7b82d6a143a1c989164ffaf31980dd77e24861f6fb3f74865311e"
+  },
+  "mahjong.rack.best": {
+    "message": "Bestwert",
+    "source": "sha256:68713dddc33988bea25d88318a2dca078b9780859bbb876ec75bed784027e931"
+  },
+  "mahjong.win.kicker": {
+    "message": "Spielfeld abgeräumt",
+    "source": "sha256:8c7762b8d41ce2a92442b6659ea954e784273ec003af45402dd7bcf98d67a091"
+  },
+  "mahjong.win.title": {
+    "message": "Ein schönes Finale.",
+    "source": "sha256:ffa6e99a331bb2627891103ece37d80c4a09fdec666fa39b598d898d346a7f28"
+  },
+  "mahjong.win.points": {
+    "message": "Punkte",
+    "source": "sha256:5dca2e06c6e53f55cd2d100e86b15cba46e98c775ef58d45aa041ee7d8f4fdbc"
+  },
+  "mahjong.win.zen": {
+    "message": "Dieses Zen-Spiel wurde nicht in die Rekorde aufgenommen.",
+    "source": "sha256:f3ab1a9b1db547d5c50214af58dcc160c652951c6c57b4e66a9da56828665122"
+  },
+  "mahjong.win.time": {
+    "message": "Zeit",
+    "source": "sha256:6757349d50cf8feb0b1d07282625beb66ca09ca6b30120b55a3b6d24d6f71108"
+  },
+  "mahjong.win.bestCombo": {
+    "message": "beste Combo",
+    "source": "sha256:22daadd652ede9acb77f7ccd72b8c888a8c602a6f758703937741ec59e45c928"
+  },
+  "mahjong.win.autoClears": {
+    "message": "Auto-Abräumen",
+    "source": "sha256:3d0484a3ce02c84eca0a13cbf2c444b65423f581d795aa39e2ec0b245720e3f1"
+  },
+  "mahjong.win.playAnother": {
+    "message": "noch eine Runde",
+    "source": "sha256:da5f1e1da2a1539f394e5ef6d563e39f92a4ab1cfd20f43705a81d84a3c7b246"
+  },
+  "mahjong.win.chooseBoard": {
+    "message": "Spielfeld wählen",
+    "source": "sha256:ee71a96e595dac437a923604198166283c31691cf18879588a8ff6459f72f1a3"
+  },
+  "mahjong.notice.noMoves": {
+    "message": "Keine Züge mehr möglich.",
+    "source": "sha256:33f0b4f9acc9ed9aa665ed51a505a5abc3c0fd4a81fd22e3dbf64c30172ce685"
+  },
+  "mahjong.notice.undo": {
+    "message": "rückgängig",
+    "source": "sha256:9c77f5b969d98821286956b4fb1f1f5857936bbc2e9701c62a671f7c57ad17a2"
+  },
+  "mahjong.notice.shuffle": {
+    "message": "mischen",
+    "source": "sha256:918eaf7b55dae847bba177860c41f2981cac088d57f58d2e944e3d39c8758acc"
+  },
+  "mahjong.notice.or": {
+    "message": "oder",
+    "source": "sha256:854e3565d459d0c4f48c28346a2b976a941e46dacd116846b85e1955cc641583"
+  },
+  "mahjong.notice.newDeal": {
+    "message": "neue Partie",
+    "source": "sha256:a36f91f89091c9683a215791103e54eac4a17eec97e58ba076e696c690b814cb"
+  },
+  "mahjong.notice.resume": {
+    "message": "Du hast ein Spielfeld nicht beendet.",
+    "source": "sha256:a173cd0d9c0dd642bff3b9919dec426a624259fd39022b8fa89c7c4e1332662d"
+  },
+  "mahjong.notice.continue": {
+    "message": "fortsetzen",
+    "source": "sha256:25b5f4d943ed148349405fe69d05dfca868ff585ba991c1a5c3d4110cf3d67a2"
+  },
+  "mahjong.notice.keepDeal": {
+    "message": "Partie behalten",
+    "source": "sha256:33c2ec9b78beb231b759f78b983b104840196a34929c038a9c1a4241a2001d5e"
+  },
+  "mahjong.notice.dealFailed": {
+    "message": "Diese Partie konnte nicht erstellt werden.",
+    "source": "sha256:51a472a76735ec0e3db8c550ccbac7a78db49e7138ab76ce5dfd7e7551e0545d"
+  },
+  "mahjong.notice.tryAgain": {
+    "message": "neu versuchen",
+    "source": "sha256:7f4e336de8c4ecd16ba7bdd385116ecbca096321da080bb9ccf66cd62e6f8f2a"
+  },
+  "mahjong.notice.recovered": {
+    "message": "Dein gespeichertes Spiel konnte nicht wiederhergestellt werden, daher wurde eine neue Partie vorbereitet.",
+    "source": "sha256:cdf9ded00105a7e3869911073373e1a4745276f5f7c32c21d16267cbe6704277"
+  },
+  "mahjong.notice.shareInvalid": {
+    "message": "Dieser geteilte Partie-Link war ungültig, daher wurde dein gemerktes Spiel gestartet.",
+    "source": "sha256:034781be18a11e7f4bf6d045685baecca615528a30c84246799ba6d7b783b155"
+  },
+  "mahjong.dock.label": {
+    "message": "Spielsteuerung",
+    "source": "sha256:a3e45ef7336f42a51222d6a74a5aa236e8c480ecd03d8cbd43db27a515a7fb06"
+  },
+  "mahjong.dock.boardsLabel": {
+    "message": "Spielfelder",
+    "source": "sha256:8929c271216688bb7c62acb1ec94eb693f47e6197623e6052ee59953649ae72a"
+  },
+  "mahjong.dock.boards": {
+    "message": "Spielfelder",
+    "source": "sha256:312030ebdbe94fb4ba0478711eaf1bfd325b8ec99ebc7560d79ceaffe471bfa1"
+  },
+  "mahjong.dock.recordsLabel": {
+    "message": "Rekorde",
+    "source": "sha256:62c8e97ca183901af1cd96e8ccdc72c6e29d4bd1d66705db5ad63548d4c963dd"
+  },
+  "mahjong.dock.records": {
+    "message": "Rekorde",
+    "source": "sha256:de28dc2862311abd1d226cc7b4db2c880f267f61b2a0b3395aa7ecff286f2f22"
+  },
+  "mahjong.dock.undoLabel": {
+    "message": "Rückgängig",
+    "source": "sha256:78fc65ef69f5658917d48ee1834ea7e7c081a622b55856b83975f673e6ee8489"
+  },
+  "mahjong.dock.undo": {
+    "message": "rückgängig",
+    "source": "sha256:55b74209e35cedd9b00f664190d7cdab427d61dbf6e3b12328633aa88384d164"
+  },
+  "mahjong.dock.hintLabel": {
+    "message": "Tipp",
+    "source": "sha256:54065b8c420c496b638a9f5d49209f7d06258cfc13828402b61c8a0cb4a18a1a"
+  },
+  "mahjong.dock.hint": {
+    "message": "Tipp",
+    "source": "sha256:7801d6edcb69b0aa0d3f7f9191e5a546bc5162b939bea6f20df30fab8c27e9ab"
+  },
+  "mahjong.dock.shuffleLabel": {
+    "message": "Mischen",
+    "source": "sha256:891a2648932f9a581f6da72436bb5c388612f200b309380e6a146edcb34252d6"
+  },
+  "mahjong.dock.shuffle": {
+    "message": "mischen",
+    "source": "sha256:9ae03e29fc289af78f04c496165f1c585bde62027d0bfdc11450fc3cc35aedcc"
+  },
+  "mahjong.sound.onLabel": {
+    "message": "Soundeffekte an",
+    "source": "sha256:33f39924f2b3ae289c7a80a42bab59b910afee79086590540d3aeba1d5bcd153"
+  },
+  "mahjong.sound.on": {
+    "message": "Ton an",
+    "source": "sha256:98382215425c20e2a1fa30b123c217e7fe3036b7ae29031909f26e2dc357fe2d"
+  },
+  "mahjong.dock.soundOn": {
+    "message": "Ton an",
+    "source": "sha256:5940e34fdd0961962c82036406ebd875181ddf4f2216c8cc23ffdb78036c5ee7"
+  },
+  "mahjong.setup.kicker": {
+    "message": "neuer Tisch",
+    "source": "sha256:84967b38a4d56e34178f7b828a9332baf80d482b80dd7117e0fce73fc8517deb"
+  },
+  "mahjong.setup.title": {
+    "message": "Wähle dein Spiel",
+    "source": "sha256:005690c1afe49b317fa1d9c0146ddfb22ab00adcb4af972dec593be218f8e166"
+  },
+  "mahjong.setup.close": {
+    "message": "Spielfeldauswahl schließen",
+    "source": "sha256:953390a74b3b06143e6ebeb3312fcf9b13624c19da1e86db998d1d271fc7396e"
+  },
+  "mahjong.setup.layoutLegend": {
+    "message": "Aufbau",
+    "source": "sha256:3427faa722440de430c983369e0e58b06701bc2990a647d782ad0a1d8df17d67"
+  },
+  "mahjong.layout.turtleDetail": {
+    "message": "144 Steine · gemächlich",
+    "source": "sha256:64841fe57365e0fe1eb676f73cf291e3841e56b119084ecade3e5b655713add4"
+  },
+  "mahjong.layout.arch": {
+    "message": "Bogen",
+    "source": "sha256:07d0722d82f47a9726a1b90a462b74476b7c894f16039c5dcc2c0f0200167e0c"
+  },
+  "mahjong.layout.archDetail": {
+    "message": "96 Steine · mittel",
+    "source": "sha256:2cde39826e34ff14217586a583bed191ae6156467616ad13817c719d03c94275"
+  },
+  "mahjong.layout.peaks": {
+    "message": "Gipfel",
+    "source": "sha256:8174e747a131cda6114b1d70eb69706d6677c839ac6dac0e808ca38ace404a83"
+  },
+  "mahjong.layout.peaksDetail": {
+    "message": "72 Steine · schnell",
+    "source": "sha256:1e25f766800b7653fcd49f620c7c5b0154ac725fcfdd3910e67399b0a617a347"
+  },
+  "mahjong.layout.pyramid": {
+    "message": "Pyramide",
+    "source": "sha256:6bb97446df71827e040d367a06c5118743dee1f4524c11cf9d80439a2037ec52"
+  },
+  "mahjong.layout.pyramidDetail": {
+    "message": "108 Steine · steil",
+    "source": "sha256:eff25450cc7d3f4bca33c76ec2699c9592423f943988af11317e9444deaa3a5b"
+  },
+  "mahjong.layout.fortress": {
+    "message": "Festung",
+    "source": "sha256:5eae485f89a1000b7150804b34265390f0548116a0a2d41f7f05bf8dc0cf754c"
+  },
+  "mahjong.layout.fortressDetail": {
+    "message": "96 Steine · ummauert",
+    "source": "sha256:78d63498db7a8ed230b70fbecfa4e38568218d437d4a477010224751b2489aa8"
+  },
+  "mahjong.layout.butterfly": {
+    "message": "Schmetterling",
+    "source": "sha256:727713553af42e0b6c9f689adcc6612a86af02045d45c8909a2d2d8e80a90dd9"
+  },
+  "mahjong.layout.butterflyDetail": {
+    "message": "94 Steine · offen",
+    "source": "sha256:a7f107edd6dfa37e3ceb60247a9533eeab06273be30ff31850e5e76c88ddb734"
+  },
+  "mahjong.layout.bridge": {
+    "message": "Brücke",
+    "source": "sha256:b02373fdb8e3a87473833e3dcc688658a9ca605a857c989ef5095e123ad680e7"
+  },
+  "mahjong.layout.bridgeDetail": {
+    "message": "100 Steine · schmal",
+    "source": "sha256:8a534ee4e0fec92478f1200595d6b73aa418e5593e7e45844209e0ff3b5eccf2"
+  },
+  "mahjong.layout.cross": {
+    "message": "Kreuz",
+    "source": "sha256:79a4b78a8ec481a91b1b3333537a60379107b2358e90c7ae27d817beb499f3a9"
+  },
+  "mahjong.layout.crossDetail": {
+    "message": "86 Steine · geschichtet",
+    "source": "sha256:46ce44cc6a713fd8b2a5838e0eedc4ce374ab749c413b510d338bf3834e655a4"
+  },
+  "mahjong.setup.modeLegend": {
+    "message": "Modus",
+    "source": "sha256:e259f2db27c207fe72a843a396fc06effc07290c19b03b7e4ae3dd6674bba2ef"
+  },
+  "mahjong.mode.burst": {
+    "message": "Burst",
+    "source": "sha256:a7fb5775922859fb38ee1996e6392985994c37a6348b9d2af69a5c0756630964"
+  },
+  "mahjong.setup.classicDescription": {
+    "message": "Verbinde zwei freie Steine direkt.",
+    "source": "sha256:f43bbeb756b492078a38426c7d4ae8159a77fa0f43535c19a538af33a601889a"
+  },
+  "mahjong.setup.dealLegend": {
+    "message": "Partie",
+    "source": "sha256:bcb46d13fc2ad6e9d267c3138cdb7fda92c917d2a644632c15080c1b51d16b37"
+  },
+  "mahjong.source.random": {
+    "message": "Zufällig",
+    "source": "sha256:ed4ca031b26e4021a317e9ce74fafc99de924e05896a7d5b638922482413ddd6"
+  },
+  "mahjong.source.daily": {
+    "message": "Täglich",
+    "source": "sha256:da400ac44bd77bb3afda6660d55fc276c1f7cb02822aedc50366bb32df90448d"
+  },
+  "mahjong.setup.randomDescription": {
+    "message": "Ein neues, garantiert lösbares Spielfeld.",
+    "source": "sha256:9e1c91b415b50b43b08a1bdc9e1b3c73ba1e65057862bd79ba4aebae254aed2a"
+  },
+  "mahjong.setup.autoClears": {
+    "message": "<0>Auto-Abräumen</0> Jede fünfte Combo räumt automatisch ein weiteres verfügbares Paar ab.",
+    "source": "sha256:995e2d52156c90885d2d220edbf4aa8d8f6264144a2ba2df62f313e78238283b"
+  },
+  "mahjong.setup.zen": {
+    "message": "<0>Zen-Spiel</0> Zeit und Punkte ausblenden und dieses Spiel nicht in die Rekorde aufnehmen.",
+    "source": "sha256:e8fdf7aee42c0d71edd6664a8ab56c4d058ce69c39845175dd18db5af5c0741e"
+  },
+  "mahjong.setup.freeHighlight": {
+    "message": "<0>Stärkere Hervorhebung freier Steine</0> Fügt jedem spielbaren Stein einen dauerhaften, kontrastreichen Ring hinzu.",
+    "source": "sha256:650c89c61e8a6a0d5510c12d722e090728f1a1e6de5fa1721488b217fc687810"
+  },
+  "mahjong.setup.replaces": {
+    "message": "Das Starten ersetzt das Spielfeld, das gerade auf diesem Tisch liegt.",
+    "source": "sha256:9aed92ef1a9909b68f6232fec4819c25a5b95b6775c1f6fdb98b9644760bb5d8"
+  },
+  "mahjong.setup.copyDeal": {
+    "message": "Partie kopieren",
+    "source": "sha256:5eb79d2bca875e7438c52b53e1c3c598bc6f59db0360798c907f722367071ef9"
+  },
+  "mahjong.setup.start": {
+    "message": "Spiel starten",
+    "source": "sha256:458ae08c897f1752921dd6f748c2896b02d77085152341264e6882595614d2e9"
+  },
+  "mahjong.records.kicker": {
+    "message": "dein Tisch",
+    "source": "sha256:4259fc1d730bcfe5f7772c0a28e42220d7751fe5112a41ea580f1f9e692a0f87"
+  },
+  "mahjong.records.title": {
+    "message": "Rekorde",
+    "source": "sha256:fe76f207a55f020cb92109ed91b4b7f323c9d3245fbe1692bd0554794718e70d"
+  },
+  "mahjong.records.close": {
+    "message": "Rekorde schließen",
+    "source": "sha256:b42d7fb61c0b8ea60d96c100f66f50661345340ba69df416fc11715b4cb48d00"
+  },
+  "mahjong.records.overview": {
+    "message": "Übersicht",
+    "source": "sha256:4a8794fbfb42264b1602909f16d46253a1e165c8c2f97afa7d3a4bf5469a9f50"
+  },
+  "mahjong.records.boardsCleared": {
+    "message": "Siege",
+    "source": "sha256:9ef2e247533540caccd2f8c1991d3fdcc559b76977c2268aa657eaa6813f5070"
+  },
+  "mahjong.records.dailyStreak": {
+    "message": "Tagesserie",
+    "source": "sha256:6f89920b8ab4074af8af54c8d92575f3cb187fe49e2c82ed7a2101741e7353da"
+  },
+  "mahjong.records.longestStreak": {
+    "message": "längste Serie",
+    "source": "sha256:cd31b7d81925f1033df0ab8f70bf255d9cd238c875df9463a175c00cf4daddef"
+  },
+  "mahjong.records.dailiesCleared": {
+    "message": "Tagessiege",
+    "source": "sha256:e630ce111fbe8d38de5f75a74f844af36f26c0eebf5ce0e09a9c1d804fcdd398"
+  },
+  "mahjong.records.caption": {
+    "message": "Bestwerte je Spielfeld",
+    "source": "sha256:28a444822aa9f8ad9b40518460b82975302c1cb3d8615ec542b3a5238615daf3"
+  },
+  "mahjong.records.board": {
+    "message": "Spielfeld",
+    "source": "sha256:0d3bd825fe2c2adcd287dc81b5f683e674b371aa10b8b0af0b266a452d22bada"
+  },
+  "mahjong.records.classicBest": {
+    "message": "Bestwert Klassisch",
+    "source": "sha256:9c8d57bb82b59fd755e2b6e9a63c3b6d874d25dcb5bd8a7e2c15a22243ae8b7d"
+  },
+  "mahjong.records.burstBest": {
+    "message": "Bestwert Burst",
+    "source": "sha256:477fe00fc396b6555880b25287658e4640b6c8dc340a8ccda355950170240195"
+  },
+  "mahjong.records.cleared": {
+    "message": "abgeräumt",
+    "source": "sha256:1970c07d05e2f5363768ccbc00a91030a5341772bd9083d9bb6e672c812ffbb7"
+  },
+  "mahjong.records.noDailiesLabel": {
+    "message": "In den letzten 28 Tagen wurde kein Tagesspiel abgeräumt.",
+    "source": "sha256:280ad5ef54882d44a8f57d69dc44d1df70265df7e64acdcb7cfd9e0a6e63839c"
+  },
+  "mahjong.records.noDailies": {
+    "message": "noch kein Tagesspiel abgeräumt",
+    "source": "sha256:f121b5ca2586c0c70e4430d3d585707443bd00d398faf4a7e40c8ecb456cbab6"
+  },
+  "mahjong.rescue.kicker": {
+    "message": "Burst-Ablage voll",
+    "source": "sha256:3e2a8127eb5843a8d180f6c25c5595e190dcc3e937caed04b87788e874c9ce9e"
+  },
+  "mahjong.rescue.title": {
+    "message": "Schaff etwas Platz.",
+    "source": "sha256:fb21beec62da5d0399bc5ac46a3c72ede2e92119711b769746b2eee35cf71b16"
+  },
+  "mahjong.rescue.body": {
+    "message": "Vier unpassende Steine warten. Wähle, wie du weiterspielen willst.",
+    "source": "sha256:7ced07b07ed01887e95ba9366b2a38cfad010199fd8337bbf6fc3a831d1531fc"
+  },
+  "mahjong.rescue.undo": {
+    "message": "letzten Zug zurück",
+    "source": "sha256:2b3df73f31a15f015caa2f69cebef7d33ddc94429134378ba250cb3df1da439d"
+  },
+  "mahjong.rescue.shuffle": {
+    "message": "mischen & weiterspielen",
+    "source": "sha256:c6d098258a3333041ed324625b24ad73ae38ff945442b8c206fdfb1a1bbf662c"
+  },
+  "mahjong.rescue.restart": {
+    "message": "Spielfeld neu starten",
+    "source": "sha256:c43fd7f94fa9ece2e240546f89056489527f9df9cca9645b537663a7b85e17fe"
+  },
+  "mahjong.number.1": {
+    "message": "eins",
+    "source": "sha256:120ba7cb5e9eb46303ac07a3cf78380b9f43eff7e9e447f1d59b1245d8c84319"
+  },
+  "mahjong.number.2": {
+    "message": "zwei",
+    "source": "sha256:04beaa7dd5644b9e8740b204f650e1a62da7b1e0f95cf63648ce778f685d4827"
+  },
+  "mahjong.number.3": {
+    "message": "drei",
+    "source": "sha256:aa21449561f6d4ce52243445cc611b82d4a658644f5f8893b58dc303411c7b86"
+  },
+  "mahjong.number.4": {
+    "message": "vier",
+    "source": "sha256:49a215f9e8fd0686a59f6a893dd2a9935ddbcb3b2370d91d1e67fe6d49e839a9"
+  },
+  "mahjong.number.5": {
+    "message": "fünf",
+    "source": "sha256:d3e59e99174433a7c651ec403d3c2588a6db7912c45e980d1c25fbc2ad8caada"
+  },
+  "mahjong.number.6": {
+    "message": "sechs",
+    "source": "sha256:6eaa05fef04f14c9676a315fa4b3fc87081b6da02d098aff2f3bc02ddf0cf415"
+  },
+  "mahjong.number.7": {
+    "message": "sieben",
+    "source": "sha256:5cc82302b14338586fae9dceaa7ff7b41523859c78b7e112be9fe7aa68150c29"
+  },
+  "mahjong.number.8": {
+    "message": "acht",
+    "source": "sha256:3ba7255f3a3ec5c364b5fe7924c658446e11e3ad2da1c668c143c087c8beff03"
+  },
+  "mahjong.number.9": {
+    "message": "neun",
+    "source": "sha256:8312297320bc7a78e8cb973beb6b2fe4407e0a2f706cc0112961a226a645bd2b"
+  },
+  "mahjong.tile.dot": {
+    "message": "Kreis {number}",
+    "source": "sha256:346f1514674cacb7e2fca402d44b6c97a06d9e1bf448109fb84781ff149e6268"
+  },
+  "mahjong.tile.bamboo": {
+    "message": "Bambus {number}",
+    "source": "sha256:f968454ef87147c56c71d4bd7472013c88827a2f4d62744889b2a50b179f56ff"
+  },
+  "mahjong.tile.character": {
+    "message": "Zeichen {number}",
+    "source": "sha256:7740c0a78a5371d3293af2e727ece1cb93e9480e1269e462746629703e65a70c"
+  },
+  "mahjong.tile.windEast": {
+    "message": "Ostwind, {motif}",
+    "source": "sha256:8e1389cec8eb159cfc9d7b5b5448a32c017eccba647e830eff8f0c6b4dfe198e"
+  },
+  "mahjong.tile.windSouth": {
+    "message": "Südwind, {motif}",
+    "source": "sha256:0538e3a9592d1a0ea0aa27212f0ff1e8e99bb0c6801852c2e6a7bb2160c92dd7"
+  },
+  "mahjong.tile.windWest": {
+    "message": "Westwind, {motif}",
+    "source": "sha256:982d21d9d35f749f7787ebdfe1cf2a31091d6aa1df05ce8200bc9466d81184e3"
+  },
+  "mahjong.tile.windNorth": {
+    "message": "Nordwind, {motif}",
+    "source": "sha256:a288c6c16d497f3e38f4b7893821ab101b2e9c8c3150d617ec73864425029cd3"
+  },
+  "mahjong.tile.dragonRed": {
+    "message": "Roter Drache, {motif}",
+    "source": "sha256:f5b3e010aed621e8f8aa04575c31166114ec28ad25099471f87964df694ca40a"
+  },
+  "mahjong.tile.dragonGreen": {
+    "message": "Grüner Drache, {motif}",
+    "source": "sha256:379a95338a3251cf8837f339a6e727f6051604100bae6a05955b6ca4f8563808"
+  },
+  "mahjong.tile.dragonWhite": {
+    "message": "Weißer Drache, {motif}",
+    "source": "sha256:a6bf943e9af21299811463503ef949a13e36ab8d058bd3bd174add09e0456639"
+  },
+  "mahjong.tile.motif.sunrise": {
+    "message": "Sonnenaufgang",
+    "source": "sha256:fd26826556dbf0a583900e526636c4d75e3d4aa0df5ad9be34b4dccddc0ff0b2"
+  },
+  "mahjong.tile.motif.sun": {
+    "message": "Sonne",
+    "source": "sha256:cb8156bf23b6e637692cf64e1eaa490ed46dea42e0bb19b1cbf7979cb45cac19"
+  },
+  "mahjong.tile.motif.moonAndWave": {
+    "message": "Mond und Welle",
+    "source": "sha256:4dcf189c43f12523227b974b4810938b34d029aeed4d865eab5fa838e849f651"
+  },
+  "mahjong.tile.motif.mountain": {
+    "message": "Berg",
+    "source": "sha256:f72104660aba44adcb1053a54c857f6fd83179df9f701a81a61f860b4b2c701a"
+  },
+  "mahjong.tile.motif.compass": {
+    "message": "Kompass",
+    "source": "sha256:2df6fdfece5cf4d3e8071d49fe04f6efc39d99bc9564c55cc25972cd9b8f06b9"
+  },
+  "mahjong.tile.motif.flame": {
+    "message": "Flamme",
+    "source": "sha256:72af75562afdb2f2ea0ad6d1edfa2ae4acdc5dcf4aa508cdf7f65f347512cd7b"
+  },
+  "mahjong.tile.motif.flourish": {
+    "message": "Ornament",
+    "source": "sha256:b68da143e73e6d42eddc3dd177b6b995873fd78e304927ce8135f45049797f44"
+  },
+  "mahjong.tile.motif.blancMark": {
+    "message": "Blanc-Zeichen",
+    "source": "sha256:c0b1131a282a557e19788359f0c20d34f0aaf9298294a610bf5e29ca0fb57e09"
+  },
+  "mahjong.tile.motif.seal": {
+    "message": "Siegel",
+    "source": "sha256:cd44ccaedf2acb57af9eead18f1c78f9cf410a743f8abadc893c4d871875e1a2"
+  },
+  "mahjong.tile.flower": {
+    "message": "Blumen-Bonus",
+    "source": "sha256:f7947e29af67ba8b9fc54eff175017cb6c34516948a2098698d7a761d16b61a6"
+  },
+  "mahjong.tile.season": {
+    "message": "Jahreszeiten-Bonus",
+    "source": "sha256:a326b17d63be3302f293ad27b190f32450d4850f351ce88e5a4c72c989505188"
+  },
+  "mahjong.tile.free": {
+    "message": "{tile}, frei",
+    "source": "sha256:7db8e4ad00f8def0fe04d90ac8d42f8de4053db2f0595058c2d42882d1cd237e"
+  },
+  "mahjong.tile.blocked": {
+    "message": "{tile}, blockiert",
+    "source": "sha256:dbb69dc6d2c5f1272813166f783e06a1adfed0085df4537e76e82c79cca6f4fb"
+  },
+  "mahjong.rack.slot": {
+    "message": "Burst-Platz {number}: {tile}",
+    "source": "sha256:b6b94289e7fa75ee18fe4631a4b0eaeba51caee9b39df0182581f5c12b5bda7a"
+  },
+  "mahjong.rack.slotEmpty": {
+    "message": "Burst-Platz {number}: leer",
+    "source": "sha256:20f636a069c119fc2dbdba6ecf9cc704ee8e8752ac9e61a21f5f45521b8015ab"
+  },
+  "mahjong.pairsLeft": {
+    "message": "{count, plural, one {# Paar übrig} other {# Paare übrig}}",
+    "source": "sha256:5fe60fbfbce93272c4f5de2edaa5dde32237d80ad53e24f1befcc65886eb824b"
+  },
+  "mahjong.rulesName.manual": {
+    "message": "Manuell",
+    "source": "sha256:cb70ec417f7a74921ebbfc7e3d11a3605f84d0878cd97ba213fb7bdbfc49ba9a"
+  },
+  "mahjong.rulesName.auto": {
+    "message": "Auto",
+    "source": "sha256:0222b632b9516caaf5e033de3c7adb9c09971f6b76fc7239f88a4eadf91416e1"
+  },
+  "mahjong.rulesName.zen": {
+    "message": "Zen",
+    "source": "sha256:059e79a1d7e7127cc46192a70b76ed180e6e12b3a7c7085151cd8e0b4d3ad369"
+  },
+  "mahjong.rulesName.ranked": {
+    "message": "Gewertet",
+    "source": "sha256:aa694ec9b14443a6b62a95a6b1b3b31ffe168446892863a366f88c6c0bbde056"
+  },
+  "mahjong.live.rackFull": {
+    "message": "Die Burst-Ablage ist voll. Mach einen Zug rückgängig, misch und spiel weiter oder starte neu.",
+    "source": "sha256:e874a311da603ee7d35a48e6b57031817e7cf11a03432f1e0ecb4e388212c6a9"
+  },
+  "mahjong.live.rackStillFull": {
+    "message": "Die Burst-Ablage ist noch voll. Nutze Rückgängig, Mischen oder starte neu.",
+    "source": "sha256:786a6dc08c18ecc23971196437b9de477e23a6634d6eed0ac7ba11d2f1afc7f2"
+  },
+  "mahjong.live.rackNeedsMatch": {
+    "message": "Die Burst-Ablage braucht ein Paar. Nutze Rückgängig oder Mischen, statt den letzten Platz zu füllen.",
+    "source": "sha256:04e15404dd4ba1297ff614aa163323af026e8a1308259fc25f5d375b99164b5f"
+  },
+  "mahjong.live.combo": {
+    "message": "Combo {count}.",
+    "source": "sha256:883c451fc7f32051fd2b0ad7c4878a0078003078d720e93978adf0361a5dc488"
+  },
+  "mahjong.live.points": {
+    "message": "{count, plural, one {# Punkt.} other {# Punkte.}}",
+    "source": "sha256:381016cd5cbb3df8291443b35785ffebf2c88aa588c0c7faadc56179f9c048e5"
+  },
+  "mahjong.live.autoClear": {
+    "message": "{count, plural, one {Automatisch abgeräumtes Paar für # Bonuspunkt.} other {Automatisch abgeräumtes Paar für # Bonuspunkte.}}",
+    "source": "sha256:c72fc2c16a940886bccb6c042c6d334301b02a541ded1f66e634ad9249558de8"
+  },
+  "mahjong.live.milestone": {
+    "message": "{count, plural, one {# Meilenstein-Bonuspunkt.} other {# Meilenstein-Bonuspunkte.}}",
+    "source": "sha256:3f86385714ef9496164205591544068fa0f87d8bab88fb4d210fdcfaff523f54"
+  },
+  "mahjong.live.total": {
+    "message": "{count, plural, one {# insgesamt.} other {# insgesamt.}}",
+    "source": "sha256:fdd4bad125ce6bc99734c75cfc61dac61dcfadc5f6953e77384f587049805395"
+  },
+  "mahjong.live.parked": {
+    "message": "{tile} in die Burst-Ablage gelegt.",
+    "source": "sha256:56a30dbfe69357704e5f58bfda53399b85d8475f2838cf3127cf7f5a23992e87"
+  },
+  "mahjong.live.slotsFilled": {
+    "message": "{filled} von {total} Plätzen belegt.",
+    "source": "sha256:5ed3942d33bdc887062196eedcf53a81faf5f2d20d81b48848f2d7806dc5ded4"
+  },
+  "mahjong.live.pairCleared": {
+    "message": "Paar abgeräumt.",
+    "source": "sha256:33ed6130a589e2202507e6a22fb9091937ceb1ec2188c74e2444d2e35b51d415"
+  },
+  "mahjong.live.pairsLeft": {
+    "message": "{count, plural, one {# Paar übrig.} other {# Paare übrig.}}",
+    "source": "sha256:083657a93f11838df3d5dd64fcfc4e00b9899b0432c421eebbe113dfb18b4ab1"
+  },
+  "mahjong.live.shuffleUndone": {
+    "message": "Mischen rückgängig gemacht. Das vorherige Spielfeld ist zurück.",
+    "source": "sha256:f93cbac3557e0e76423e84b5dfb1b89bcfbc469d4e3b05fc94f4cfa1cb1cb3f5"
+  },
+  "mahjong.live.moveUndone": {
+    "message": "Letzter Zug rückgängig gemacht.",
+    "source": "sha256:86241893d5695765163b6431aa710a23e7a38b587b6b0950a6de5dc210a81377"
+  },
+  "mahjong.live.hintRack": {
+    "message": "Tipp: Für {tile} in der Burst-Ablage gibt es einen freien Partner.",
+    "source": "sha256:da87954e86567eee91d81a580515e8e398d005bb9d35fb9edecad5e5eb56f847"
+  },
+  "mahjong.live.hintPair": {
+    "message": "Tipp: Zwei Steine {tile} sind verfügbar.",
+    "source": "sha256:18534d68cf49f7260e7fe5842b184d7b46e4d46fe19d17a8ec9f65dd67c498a5"
+  },
+  "mahjong.live.hintPark": {
+    "message": "Tipp: {tile} kann in die Burst-Ablage.",
+    "source": "sha256:cc540c7eeeb7432b99618b388ebde568272d484429e1d6c7664b479b8268e712"
+  },
+  "mahjong.live.shuffled": {
+    "message": "Die übrigen Steine wurden zu einer neuen lösbaren Partie gemischt. Rückgängig stellt das vorherige Spielfeld wieder her.",
+    "source": "sha256:8242478caeafb70b51e2f9ed99be19b9c6b9b021385ab201c82ea07e371e3c1a"
+  },
+  "mahjong.live.wonZen": {
+    "message": "Spielfeld abgeräumt. Zen-Spiel beendet. Dieses Spiel wurde nicht in die Rekorde aufgenommen.",
+    "source": "sha256:f539af592d108c264527274bc2c31ac2f8cf21c06a8ed06a3c0915b043b1b2db"
+  },
+  "mahjong.live.wonBurst": {
+    "message": "{count, plural, one {Spielfeld abgeräumt. # Punkt. {time}.} other {Spielfeld abgeräumt. # Punkte. {time}.}}",
+    "source": "sha256:09900e82d8ea1396ed9aedf9808e82eb6dc1b7f4ee029153403404df33379f1b"
+  },
+  "mahjong.live.wonClassic": {
+    "message": "Spielfeld abgeräumt. {time}.",
+    "source": "sha256:e3f1e048e20aa52115a09846c5c516cbf1659adb01c4df8db4db70bf859604d3"
+  },
+  "mahjong.live.ready": {
+    "message": "Spiel {layout} ({mode}, {rules}) bereit.",
+    "source": "sha256:1e041331daefd5d7f0d7da3848a186bdee7d66ab05e4335cd6cee495e385d89f"
+  },
+  "mahjong.live.copyFailed": {
+    "message": "Diese Partie konnte nicht kopiert werden.",
+    "source": "sha256:c1d32bbd0fb192ac327d6680beb33b419c48d8983e5cb4c017f5f8e76bb60652"
+  },
+  "mahjong.live.copied": {
+    "message": "Partie-Link kopiert.",
+    "source": "sha256:5edade198371757ccb229606721260572e31bc3152ebf5de190fbb98c974c791"
+  },
+  "mahjong.live.linkCopyFailed": {
+    "message": "Der Partie-Link konnte nicht kopiert werden.",
+    "source": "sha256:f80f5e0ef7f7d4332faca5e6712acdd6ab2a0f47e779383f404990cc114d00ea"
+  },
+  "mahjong.live.continuing": {
+    "message": "Dein unbeendetes Spielfeld wird fortgesetzt.",
+    "source": "sha256:c68bf8c79eded1b6b7105d0c5379c169229a52592bcc012e540b289ec7cad9bd"
+  },
+  "mahjong.live.duplicated": {
+    "message": "Dieser duplizierte Tab hat jetzt ein eigenes, unabhängiges Spiel.",
+    "source": "sha256:69deb11d32e81662022885e3a5f7d1afdf68b94fc1ab947c9c2f7875480a74a1"
+  },
+  "mahjong.live.restored": {
+    "message": "Gespeichertes Spiel wiederhergestellt.",
+    "source": "sha256:3f2f2a3ab5c3bd37fa0c91601cfa15bba23c836b4d1a9e11b2ae0250bfeeaac6"
+  },
+  "mahjong.live.sharedReady": {
+    "message": "Geteilte Partie bereit.",
+    "source": "sha256:503cffd2f92969d2948cbd7e232678094b67f7a0cf63f59a7a7226cc1523d8fb"
+  },
+  "mahjong.live.shareInvalid": {
+    "message": "Dieser geteilte Partie-Link war ungültig. Stattdessen wurde dein gemerktes Spiel gestartet.",
+    "source": "sha256:d36e97c99b5c57b6214be7fe387e869f5dfb7e48aedbab2f369d1d589ff3a295"
+  },
+  "mahjong.combo.combo": {
+    "message": "Combo",
+    "source": "sha256:f3c4fd550bdb4c0b33958495e23e1c04237cef2f3f3214e401d9e1f1057bc360"
+  },
+  "mahjong.combo.flowing": {
+    "message": "im Fluss",
+    "source": "sha256:6b6d06b9f3ffb3306a47653745539271ce1a5d4dd8b090148cf554aac3a57ccb"
+  },
+  "mahjong.combo.brilliant": {
+    "message": "brillant",
+    "source": "sha256:d6e1b671d7477bc146e29265f52fc71ad2ca24b97ad3c9b61be6467f17521e3a"
+  },
+  "mahjong.combo.masterful": {
+    "message": "meisterhaft",
+    "source": "sha256:5e49e3e65307503e88000820c6bb4ce3c8c8ef78d1ea002e58e5e4c86316dbd7"
+  },
+  "mahjong.sound.off": {
+    "message": "Ton aus",
+    "source": "sha256:ded8848815691f48bc8b92a852353eaf03e61028a850b40edd18ca94dc2718d7"
+  },
+  "mahjong.sound.offLabel": {
+    "message": "Soundeffekte aus",
+    "source": "sha256:7f57a3029c06647070caf068bc27281f99f6b23b5e65763a43f3c1643d3fbfc7"
+  },
+  "mahjong.best.zen": {
+    "message": "Zen-Spiel",
+    "source": "sha256:583900bbe352c1a2dbfdd5b955e713549af4e85824543099802921a3d97efa60"
+  },
+  "mahjong.best.none": {
+    "message": "Kein Rekord",
+    "source": "sha256:367443cae22b09a64049817b9fe6c571ee664a41ccff107be4f3c4d7611e8888"
+  },
+  "mahjong.best.time": {
+    "message": "Bestzeit {time}",
+    "source": "sha256:efd135c8a11a14d37c8a4fd7b3af5e85e339cf01e7d8509446b992dd41a40df6"
+  },
+  "mahjong.best.score": {
+    "message": "Bestwert {score} · {time}",
+    "source": "sha256:6f8722618b949d68d83700bbc5d4fe4416a32a6d4f959ef88b46081a6b5cde57"
+  },
+  "mahjong.win.quietTitle": {
+    "message": "Ein ruhiges Finale.",
+    "source": "sha256:02044e13ec6e158bac2a971fc2e2f0ea9a63389de0f00fd67ced1158658b03fa"
+  },
+  "mahjong.win.rules": {
+    "message": "{mode} · {rules}",
+    "source": "sha256:8f9da2b7bf52bb805188c045ed74a41e034e90b038dd31ca928a4058e0de8e13"
+  },
+  "mahjong.win.clearTime": {
+    "message": "Abräumzeit",
+    "source": "sha256:b3713479c8a10b6e3dd3361391f98925b8a20c905ad5adf3d15f9e35752dae88"
+  },
+  "mahjong.win.newRecord": {
+    "message": "neuer Rekord",
+    "source": "sha256:61863e3566b85709bdc20027245ad3429c3364fde057f54963a0b5d820b957d8"
+  },
+  "mahjong.win.firstClear": {
+    "message": "erstes Abräumen",
+    "source": "sha256:46009d6cf303c21beb176c7f7c7641c52a60c707169000b341867c0bfd09215d"
+  },
+  "mahjong.win.bestTime": {
+    "message": "Bestzeit {time}",
+    "source": "sha256:239b438c1dc2f833a9665b8ea8b57a61364c1c42a0fa76b3b4d77448a9e9d83c"
+  },
+  "mahjong.win.bestScore": {
+    "message": "Bestwert {score} · {time}",
+    "source": "sha256:7b20f245782cfc364759e96b246162207f6d6ad4709ffb1fbf54f574de8511be"
+  },
+  "mahjong.win.noRecord": {
+    "message": "kein Rekord",
+    "source": "sha256:6eba705a2e5b33ed2afa8bb60469530b8987005003c48fd045e7c84f50dde285"
+  },
+  "mahjong.win.daily": {
+    "message": "Tagesspiel {date} · {result}",
+    "source": "sha256:8cdb61ed3809c245052c10ebc80dfd8cc8d74fa4a65aa58778a7aafad072a3f4"
+  },
+  "mahjong.notice.resumeDetail": {
+    "message": "Dein unbeendetes Spielfeld {layout} ({mode}) wartet · {pairs}.",
+    "source": "sha256:134c09c43797370be233d21b308a6ab25197d328296547edd00e6805e67b2453"
+  },
+  "mahjong.setup.burstDescription": {
+    "message": "Bilde schnelle Paare in einer Burst-Ablage mit vier Plätzen.",
+    "source": "sha256:986d6810ed11e2bf5a89665ba27ebb9cd442337b2b9cd018563deb985493fdc8"
+  },
+  "mahjong.setup.dailyDescription": {
+    "message": "{date} · {layout} · {result}",
+    "source": "sha256:606c39dad23c45da8384058f71bd601991346c7eb125a9454f22bc9ca206ac05"
+  },
+  "mahjong.setup.dailyRotates": {
+    "message": "Aufbau wechselt täglich",
+    "source": "sha256:c6133578e98a9d35049ecd88b1330514adf306ad550de6971698510f3c644e08"
+  },
+  "mahjong.records.clearedOn": {
+    "message": "Tagesspiel abgeräumt am {dates}.",
+    "source": "sha256:9bfce7d79e72f37ba7d77dc06ff9209ee1c6b27555b745e9f04a1561812995b2"
+  },
+  "mahjong.records.clearedCount": {
+    "message": "{count, plural, one {# der letzten 28 Tagesspiele abgeräumt} other {# der letzten 28 Tagesspiele abgeräumt}}",
+    "source": "sha256:2c8ab154bc0876e254e5d3d2f14a7e94b79f867b2b48ddeef6d05d097b7ea01e"
+  },
+  "mahjong.daily.cleared": {
+    "message": "abgeräumt · {time}",
+    "source": "sha256:18c76829da1e42d2b8525bb3ef5ed8c9996881e20e75d2214782de97b306c675"
+  },
+  "mahjong.daily.clearedScore": {
+    "message": "{count, plural, one {abgeräumt · # Pkt. · {time}} other {abgeräumt · # Pkt. · {time}}}",
+    "source": "sha256:cd0d390a5c8273db9f045fcc655bd19a011845e1d2de22d029c7396eb480f741"
   }
 }
