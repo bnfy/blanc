@@ -8,8 +8,8 @@
 .mail-page .mail-lead{font-size:clamp(19px,2.3vw,25px);max-width:720px;color:#4f473d;line-height:1.45}
 .mail-page .mail-muted{color:#6b6257}
 .mail-page a{color:#67471b;text-decoration-thickness:1px;text-underline-offset:3px}
-.mail-page .mail-icon{display:block;position:relative;width:min(100%,310px);aspect-ratio:1;margin:auto;background:#f7f0e5;border:1px solid #ddd2c2;border-radius:26%;box-shadow:0 25px 60px #35250e20}
-.mail-page .mail-icon img{display:block;width:100%;height:100%;object-fit:contain}
+.mail-page .mail-icon{display:block;position:relative;width:min(100%,310px);aspect-ratio:1;margin:auto}
+.mail-page .mail-icon img{display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 25px 30px #35250e20)}
 .mail-page .mail-actions{display:flex;align-items:center;flex-wrap:wrap;gap:14px;margin-top:28px}
 .mail-page .mail-actions a{white-space:nowrap}
 .mail-page .mail-plan{background:#fffcf7;border:1px solid #ddd2c2;border-radius:16px;padding:25px}
@@ -59,7 +59,8 @@
    material falls back to a solid fill under prefers-reduced-transparency. */
 .mail-page.mail-home{padding-top:clamp(48px,8vw,104px)}
 .mail-home .mail-home-hero{display:flex;flex-direction:column;align-items:center;text-align:center}
-.mail-home .mail-home-icon{width:clamp(120px,15vw,168px);margin:0 0 28px;border-radius:23%;border-color:#ddd2c2b3;background:linear-gradient(180deg,#fffcf7,#f2e9da);box-shadow:inset 0 1px 0 #fff,0 1px 2px #35250e14,0 28px 56px -22px #35250e59}
+.mail-home .mail-home-icon{width:clamp(120px,15vw,168px);margin:0 0 28px}
+.mail-home .mail-home-icon img{filter:drop-shadow(0 1px 1px #35250e14) drop-shadow(0 20px 18px #35250e40)}
 .mail-home .mail-home-badge{display:inline-flex;align-items:center;gap:8px;margin:0;padding:5px 12px 5px 10px;border:1px solid #ddd2c2;border-radius:999px;background:#fffcf7;color:#4f473d;font-size:13px;font-weight:600;letter-spacing:.01em;line-height:1.3}
 .mail-home .mail-home-badge-dot{width:7px;height:7px;border-radius:50%;background:#c08a3e;box-shadow:0 0 0 3px #c08a3e2e}
 .mail-home h1{font-size:clamp(44px,7.4vw,92px);line-height:1.02;letter-spacing:-.035em;font-optical-sizing:auto;text-wrap:balance;margin:22px 0 20px}
@@ -112,8 +113,9 @@
 .mail-home a.mail-home-app:hover{border-color:#c9bba6;box-shadow:0 1px 2px #35250e14,0 16px 32px -20px #35250e4d}
 .mail-home a.mail-home-app:active{transform:scale(.98)}
 .mail-home a.mail-home-app:focus-visible{outline:2px solid #805d28;outline-offset:3px}
-.mail-home .mail-home-app-icon{flex:none;width:56px;height:56px;margin:0;border-radius:23%;box-shadow:inset 0 1px 0 #fff,0 6px 14px -8px #35250e59}
-.mail-home .mail-home-app-icon.is-browser{display:grid;place-items:center;border:1px solid #ddd2c2;background:linear-gradient(180deg,#fffcf7,#f2e9da);color:#805d28}
+.mail-home .mail-home-app-icon{flex:none;width:56px;height:56px;margin:0}
+.mail-home .mail-home-app-icon img{filter:drop-shadow(0 4px 5px #35250e40)}
+.mail-home .mail-home-app-icon.is-browser{display:grid;place-items:center;border:1px solid #ddd2c2;border-radius:23%;background:linear-gradient(180deg,#fffcf7,#f2e9da);color:#805d28;box-shadow:inset 0 1px 0 #fff,0 6px 14px -8px #35250e59}
 .mail-home .mail-home-app-icon.is-browser .blanc-mark{width:62%;height:62%}
 .mail-home .mail-home-app-text{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
 .mail-home .mail-home-app-text strong{font-size:17px;letter-spacing:-.01em}
