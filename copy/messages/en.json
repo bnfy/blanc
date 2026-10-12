@@ -711,6 +711,14 @@
     "message": "Open the 1Password app and turn on Settings → Developer → Integrate with 1Password SDKs.",
     "note": "Fill notice body; the arrow path names 1Password's own settings, which the user sees in 1Password's language."
   },
+  "fill.unsupportedDevice.title": {
+    "message": "1Password fill isn’t available on this PC",
+    "note": "Fill notice title on a PC where 1Password fill can’t work (x64 Blanc on Windows on Arm)."
+  },
+  "fill.unsupportedDevice.body": {
+    "message": "On Windows on Arm, Blanc runs as an x64 app, and the Arm version of 1Password can’t connect to it.",
+    "note": "Fill notice body. “Windows on Arm” is Microsoft’s name for Windows on Arm-based PCs; keep “x64” and “Arm” as written."
+  },
   "fill.accountNotFound.title": {
     "message": "Account not found",
     "note": "Fill notice title."
@@ -4072,6 +4080,10 @@
   "settings.onePassword.error.desktopUnavailable": {
     "message": "1Password isn’t available. Open the app and turn on Settings → Developer → Integrate with 1Password SDKs.",
     "note": "Settings → Privacy → 1Password: Verify result. The path names the 1Password app’s own settings; use the labels the 1Password app shows in this language."
+  },
+  "settings.onePassword.error.unsupportedDevice": {
+    "message": "1Password fill isn’t available on this PC. On Windows on Arm, Blanc runs as an x64 app, and the Arm version of 1Password can’t connect to it.",
+    "note": "Settings → Privacy → 1Password: shown in place of the app hint and as the Verify result on a PC where fill can’t work. Keep “Windows on Arm”, “x64” and “Arm” as written."
   },
   "settings.onePassword.error.timedOut": {
     "message": "1Password timed out — try again when the app is ready.",

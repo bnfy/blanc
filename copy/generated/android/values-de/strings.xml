@@ -187,6 +187,8 @@
     <string name="fill_unexpected_body">Es wurde nichts ausgefüllt. Versuche es im Anmeldeformular erneut.</string>
     <string name="fill_desktop_unavailable_title">1Password ist nicht verfügbar</string>
     <string name="fill_desktop_unavailable_body">Öffne die 1Password-App und aktiviere Einstellungen → Entwickler → Mit 1Password-SDKs integrieren.</string>
+    <string name="fill_unsupported_device_title">Ausfüllen mit 1Password ist auf diesem PC nicht verfügbar</string>
+    <string name="fill_unsupported_device_body">Unter Windows on Arm läuft Blanc als x64-App, und die Arm-Version von 1Password kann sich nicht damit verbinden.</string>
     <string name="fill_account_not_found_title">Konto nicht gefunden</string>
     <string name="fill_account_not_found_body">Prüfe deine 1Password-E-Mail-Adresse in den Blanc-Einstellungen und versuche es dann erneut.</string>
     <string name="fill_not_authorized_title">1Password hat Blanc nicht autorisiert</string>
@@ -1080,6 +1082,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blancbrowser.co
     <string name="settings_one_password_error_not_authorized">1Password hat Blanc nicht autorisiert. Entsperre 1Password, erlaube Blanc Browser und versuch es noch einmal.</string>
     <string name="settings_one_password_error_session_expired">Die Autorisierung ist abgelaufen – versuch es noch einmal.</string>
     <string name="settings_one_password_error_desktop_unavailable">1Password ist nicht verfügbar. Öffne die App und aktiviere Einstellungen → Entwickler → Mit 1Password SDKs integrieren.</string>
+    <string name="settings_one_password_error_unsupported_device">Ausfüllen mit 1Password ist auf diesem PC nicht verfügbar. Unter Windows on Arm läuft Blanc als x64-App, und die Arm-Version von 1Password kann sich nicht damit verbinden.</string>
     <string name="settings_one_password_error_timed_out">1Password hat nicht rechtzeitig geantwortet – versuch es noch einmal, wenn die App bereit ist.</string>
     <string name="settings_one_password_error_broker_stopped">Der Hilfsprozess für 1Password wurde beendet – versuch es noch einmal.</string>
     <string name="settings_one_password_error_sdk_error">1Password konnte die Prüfung nicht abschließen – versuch es noch einmal.</string>

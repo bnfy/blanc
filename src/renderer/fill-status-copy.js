@@ -27,6 +27,7 @@
   };
   const NOTICES = {
     busy: 'busy',
+    'unsupported-device': 'unsupportedDevice',
     'unsupported-page': 'unsupportedPage',
     'page-changed': 'pageChanged',
     'no-form': 'noForm',

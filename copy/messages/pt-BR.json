@@ -689,6 +689,14 @@
     "message": "Abra o app do 1Password e ative Settings → Developer → Integrate with 1Password SDKs.",
     "source": "sha256:72f5e62dad7be1f7ba01efaea1d58c98df54fba0e772ac1a158f6c4ffcbfcd7a"
   },
+  "fill.unsupportedDevice.title": {
+    "message": "O preenchimento com o 1Password não está disponível neste PC",
+    "source": "sha256:a46b8ff643e8b2832a5faff3fed713aeb48a7ecd38af1e952f04c76f040f4034"
+  },
+  "fill.unsupportedDevice.body": {
+    "message": "No Windows on Arm, o Blanc roda como um app x64, e a versão Arm do 1Password não consegue se conectar a ele.",
+    "source": "sha256:4b2d5d81ae0c1778cc4bfddeb8def13fa71e2ba63971fd07c514e8e29fbfa226"
+  },
   "fill.accountNotFound.title": {
     "message": "Conta não encontrada",
     "source": "sha256:fda4b18672edc6195f0682ed4b6613428bedb1c867a1eb73613e504016ef1d58"
@@ -3924,6 +3932,10 @@
   "settings.onePassword.error.desktopUnavailable": {
     "message": "O 1Password não está disponível. Abra o app e ative Settings → Developer → Integrate with 1Password SDKs.",
     "source": "sha256:9419635e4161d467c25cf0ba2a118285aea835effc02a7fe416524211c9421e7"
+  },
+  "settings.onePassword.error.unsupportedDevice": {
+    "message": "O preenchimento com o 1Password não está disponível neste PC. No Windows on Arm, o Blanc roda como um app x64, e a versão Arm do 1Password não consegue se conectar a ele.",
+    "source": "sha256:cb899c2519e813dd48a579553382963563d4dc486e4f193f783cdbccb553808d"
   },
   "settings.onePassword.error.timedOut": {
     "message": "O 1Password não respondeu a tempo — tente de novo quando o app estiver pronto.",

@@ -331,7 +331,7 @@ export interface TabHandoffPagesAPI {
 }
 
 /** A fixed capsule message kind, keyed in FILL_KINDS (src/main/fill-status-kinds.js). */
-export type FillKind = 'setup-enable' | 'setup-account' | 'confirm-heuristic' | 'busy' | 'unsupported-page' | 'page-changed' | 'no-form' | 'no-match' | 'empty-login' | 'nothing-filled' | 'unexpected' | 'desktop-unavailable' | 'account-not-found' | 'not-authorized' | 'session-expired' | 'timed-out' | 'broker-stopped' | 'sdk-error' | 'selection-changed' | 'filled';
+export type FillKind = 'setup-enable' | 'setup-account' | 'confirm-heuristic' | 'busy' | 'unsupported-device' | 'unsupported-page' | 'page-changed' | 'no-form' | 'no-match' | 'empty-login' | 'nothing-filled' | 'unexpected' | 'desktop-unavailable' | 'account-not-found' | 'not-authorized' | 'session-expired' | 'timed-out' | 'broker-stopped' | 'sdk-error' | 'selection-changed' | 'filled';
 
 /** Capsule mode (MODES in fill-status-kinds.js). */
 export type FillMode = 'decision' | 'notice';

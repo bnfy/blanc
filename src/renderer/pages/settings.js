@@ -615,6 +615,7 @@
       'not-authorized': t('settings.onePassword.error.notAuthorized'),
       'session-expired': t('settings.onePassword.error.sessionExpired'),
       'desktop-unavailable': t('settings.onePassword.error.desktopUnavailable'),
+      'unsupported-device': t('settings.onePassword.error.unsupportedDevice'),
       'timed-out': t('settings.onePassword.error.timedOut'),
       'broker-stopped': t('settings.onePassword.error.brokerStopped'),
       'sdk-error': t('settings.onePassword.error.sdkError'),
@@ -668,7 +669,13 @@
       renderVerify();
     });
     // App presence is a soft hint — Verify above is the authoritative check.
-    window.bowserPages.settings.onePasswordStatus().then(({ appDetected }) => {
+    window.bowserPages.settings.onePasswordStatus().then(({ appDetected, supported }) => {
+      // Windows on Arm: say why fill can't work here instead of a presence hint.
+      if (supported === false) {
+        appHint.textContent = t('settings.onePassword.error.unsupportedDevice');
+        openAppButton.hidden = true;
+        return;
+      }
       const onMac = appInfo ? appInfo.platform === 'darwin' : navigator.platform.startsWith('Mac');
       appHint.textContent = appDetected
         ? (onMac ? t('settings.onePassword.installedMac') : t('settings.onePassword.installed'))

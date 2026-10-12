@@ -12,6 +12,7 @@ const FILL_KINDS = Object.freeze({
   'setup-account': decision('open-settings'),
   'confirm-heuristic': decision('fill'),
   busy: notice('error'),
+  'unsupported-device': notice('error'),
   'unsupported-page': notice('error'),
   'page-changed': notice('error'),
   'no-form': notice('error'),

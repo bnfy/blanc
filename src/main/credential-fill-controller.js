@@ -25,6 +25,7 @@ const MAX_PICKER_REOPENS = 3;
  * fails loudly instead of rendering an empty capsule. */
 const FILL_REASONS = Object.freeze([
   'busy',
+  'unsupported-device',
   'setup-enable',
   'setup-account',
   'unsupported-page',
@@ -60,6 +61,7 @@ function createCredentialFillController({
   confirm,
   toWindowPoint,
   refocusWaitMs = REFOCUS_WAIT_MS,
+  deviceSupported = () => true,
 } = {}) {
   let activeFlow = false;
   let waitingFill = null; // { webContents, resume } while a picker waits for focus
@@ -134,6 +136,11 @@ function createCredentialFillController({
     }
     activeFlow = true;
     try {
+      // Ahead of the setup prompts: setting fill up can't help on this PC.
+      if (!deviceSupported()) {
+        await notify(initial, 'unsupported-device');
+        return { ok: false, reason: 'unsupported-device' };
+      }
       const configured = getSettings();
       if (!configured.onePasswordEnabled) {
         await setupPrompt(initial, 'setup-enable');

@@ -13,7 +13,7 @@ function harness({ inspect = {
 ], revealError = null, settings = { onePasswordEnabled: true, onePasswordAccount: 'Account' },
 duringFind = null, startGeneration = 0,
 geometryResult = { ok: false }, duringGeometry = null,
-pickerPoint = { x: 10, y: 20 }, pickerBehaviors = [], refocusWaitMs = 1000 } = {}) {
+pickerPoint = { x: 10, y: 20 }, pickerBehaviors = [], refocusWaitMs = 1000, deviceSupported } = {}) {
   const calls = [];
   // A BrowserWindow stand-in: focus state plus the 'focus' event.
   const focusListeners = new Set();
@@ -100,6 +100,7 @@ pickerPoint = { x: 10, y: 20 }, pickerBehaviors = [], refocusWaitMs = 1000 } = {
     },
     toWindowPoint: (_t, rect) => ({ x: 1000 + rect.x, y: 2000 + rect.y }),
     refocusWaitMs,
+    deviceSupported,
   });
   const notified = () => calls.filter((c) => typeof c === 'string' && c.startsWith('notify:'))
     .map((c) => c.slice('notify:'.length));
@@ -456,4 +457,14 @@ test('a picker that keeps losing focus gives up after three reopens', async () =
   assert.equal(pickerPopups(calls), 4);
   assert.equal(calls.includes('reveal'), false);
   assert.deepEqual(notified(), []);
+});
+
+test('an unsupported device says so before any setup prompt or 1Password call', async () => {
+  const { controller, calls, notified } = harness({
+    settings: { onePasswordEnabled: false, onePasswordAccount: '' },
+    deviceSupported: () => false,
+  });
+  assert.deepEqual(await controller.fill({}), { ok: false, reason: 'unsupported-device' });
+  assert.deepEqual(notified(), ['unsupported-device']);
+  assert.equal(calls.some((c) => typeof c === 'string' && (c.startsWith('confirm:') || c === 'find')), false);
 });

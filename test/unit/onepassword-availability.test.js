@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 const {
   isOnePasswordAvailable,
+  isOnePasswordDeviceSupported,
   matchesOnePasswordShortcut,
   onePasswordAccelerator,
 } = require('../../src/main/onepassword-availability');
@@ -50,4 +51,16 @@ test('the sandboxed chrome preload mirrors the supported platform list', () => {
   assert.ok(match, 'preload.js must gate 1Password on an explicit platform list');
   assert.deepEqual(match[1].split(',').map((entry) => entry.trim().replace(/^'|'$/g, '')),
     [...SUPPORTED_PLATFORMS]);
+});
+
+// Blanc ships x64 only on Windows. On Windows on Arm it runs translated, and
+// the Arm version of 1Password installs an Arm64 SDK library that an x64
+// process can't load, so every fill and Verify would fail with a misleading
+// "turn on the SDK setting" message.
+test('1Password fill is unsupported only for Blanc translated to Arm64 on Windows', () => {
+  assert.equal(isOnePasswordDeviceSupported({ platform: 'win32', runningUnderARM64Translation: true }), false);
+  assert.equal(isOnePasswordDeviceSupported({ platform: 'win32', runningUnderARM64Translation: false }), true);
+  // Rosetta on macOS loads 1Password's universal library and stays supported.
+  assert.equal(isOnePasswordDeviceSupported({ platform: 'darwin', runningUnderARM64Translation: true }), true);
+  assert.equal(isOnePasswordDeviceSupported({ platform: 'linux', runningUnderARM64Translation: undefined }), true);
 });

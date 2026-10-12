@@ -36,6 +36,9 @@ function createOnePasswordClient({
   env = brokerEnvironment(),
   requestTimeoutMs = DEFAULT_TIMEOUT_MS,
   idleExitMs = IDLE_EXIT_MS,
+  // false on a PC where 1Password's SDK library can't load into Blanc
+  // (isOnePasswordDeviceSupported): every request fails at once, with no broker.
+  deviceSupported = true,
 } = {}) {
   if (!utilityProcess?.fork) throw new TypeError('utilityProcess.fork is required');
   let child = null;
@@ -108,6 +111,10 @@ function createOnePasswordClient({
   };
 
   const request = (method, payload) => new Promise((resolve, reject) => {
+    if (!deviceSupported) {
+      reject(new OnePasswordError('unsupported-device'));
+      return;
+    }
     clearIdle();
     const active = ensureChild();
     const id = ++sequence;
