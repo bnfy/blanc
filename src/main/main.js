@@ -9198,6 +9198,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     settings,
     hooks: {
       startupStatus: () => adblockStartupState,
+      // Blanc's text in uBO's popup and Dashboard follows the interface language.
+      interfaceLanguage: () => mainI18n.state(),
       closePopup: (profileId) => {
         for (const [runtimeId, popup] of ublockPopups) if (popup.runtime.profileId === profileId) closeUblockPopup(runtimeId);
       },

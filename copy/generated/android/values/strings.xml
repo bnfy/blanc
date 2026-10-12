@@ -1836,4 +1836,55 @@ You can retry with “%2$s”, or reinstall from blancbrowser.com.</string>
         <item quantity="one">cleared · %1$d pt · %2$s</item>
         <item quantity="other">cleared · %1$d pts · %2$s</item>
     </plurals>
+    <string name="ublock_popup_label">uBlock Origin controls</string>
+    <string name="ublock_popup_back">Back to site protection</string>
+    <string name="ublock_popup_close">Close uBlock Origin controls</string>
+    <string name="ublock_popup_site_title">Block ads and trackers</string>
+    <string name="ublock_popup_site_detail">For this site.</string>
+    <plurals name="ublock_popup_blocked">
+        <item quantity="one">%1$d request blocked</item>
+        <item quantity="other">%1$d requests blocked</item>
+    </plurals>
+    <string name="ublock_popup_share">%1$s%% of this page’s requests</string>
+    <plurals name="ublock_popup_domains">
+        <item quantity="one">%2$s of %1$d domain connected</item>
+        <item quantity="other">%2$s of %1$d domains connected</item>
+    </plurals>
+    <string name="ublock_popup_pick">Pick an element</string>
+    <string name="ublock_popup_pick_detail">Create a filter that hides it</string>
+    <string name="ublock_popup_zap">Zap an element</string>
+    <string name="ublock_popup_zap_detail">Remove it until the page reloads</string>
+    <string name="ublock_popup_logger">Logger</string>
+    <string name="ublock_popup_dashboard">Dashboard</string>
+    <string name="ublock_popup_more">More controls</string>
+    <string name="ublock_popup_fewer">Fewer controls</string>
+    <string name="ublock_popup_overflow">More uBlock Origin actions</string>
+    <string name="ublock_popup_report">Report an issue</string>
+    <string name="ublock_popup_since">Blocked since install</string>
+    <string name="ublock_popup_site_controls">Site controls</string>
+    <string name="ublock_popup_save_rules">Save rules</string>
+    <string name="ublock_popup_revert">Revert</string>
+    <string name="ublock_popup_reload">Reload page</string>
+    <string name="ublock_popup_requests_and_domains">Requests and domains</string>
+    <string name="ublock_dashboard_frame">uBlock Origin settings</string>
+    <string name="ublock_dashboard_panels">uBlock Origin settings panels</string>
+    <string name="ublock_dashboard_lists">Choose which lists uBlock Origin uses.</string>
+    <string name="ublock_dashboard_settings">Customize filtering, appearance, and your uBlock Origin preferences.</string>
+    <string name="ublock_dashboard_my_filters">Add your own network and cosmetic filters.</string>
+    <string name="ublock_dashboard_rules">Review permanent rules and changes for this session.</string>
+    <string name="ublock_dashboard_trusted">Choose where uBlock Origin filtering is turned off.</string>
+    <string name="ublock_dashboard_support">Find help and troubleshoot uBlock Origin.</string>
+    <string name="ublock_dashboard_about">Version, licenses, and acknowledgments.</string>
+    <string name="ublock_dashboard_advanced">Advanced configuration for experienced users.</string>
+    <string name="ublock_dashboard_advanced_title">Advanced settings</string>
+    <string name="ublock_dashboard_list_options">List options</string>
+    <string name="ublock_dashboard_auto_update">Periodically check and update filter lists in the background.</string>
+    <string name="ublock_dashboard_suspend">Prevent network requests until filtering rules are ready.</string>
+    <string name="ublock_dashboard_cosmetic">Enable cosmetic filters to hide page elements.</string>
+    <string name="ublock_dashboard_generic_cosmetic">Skip generic cosmetic filters (e.g. those not specific to a site).</string>
+    <string name="ublock_dashboard_subscriptions">Subscriptions</string>
+    <string name="ublock_dashboard_import_list">Import a filter list</string>
+    <string name="ublock_dashboard_search">Search filter lists…</string>
+    <string name="ublock_dashboard_search_label">Search filter lists</string>
+    <string name="ublock_dashboard_all_lists">All filter lists</string>
 </resources>

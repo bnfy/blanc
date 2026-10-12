@@ -1,16 +1,21 @@
 /* Blanc Dashboard presentation. Native uBO controls, state and handlers stay upstream. */
+/* global blancI18n */
 'use strict';
 (() => {
+  // Blanc's text arrives beside this script in the interface language
+  // (blanc-strings.js), with the catalog's formatter (blanc-i18n.js). Page
+  // titles keep uBlock Origin's own (data-i18n) names.
+  const t = blancI18n.createTranslator(self.BlancUboStrings);
   const page = location.pathname.split('/').pop();
   const pages = {
-    '3p-filters.html': ['3pPageName', 'Choose which lists uBlock Origin uses.'],
-    'settings.html': ['settingsPageName', 'Customize filtering, appearance, and your uBlock Origin preferences.'],
-    '1p-filters.html': ['1pPageName', 'Add your own network and cosmetic filters.'],
-    'dyna-rules.html': ['rulesPageName', 'Review permanent rules and changes for this session.'],
-    'whitelist.html': ['whitelistPageName', 'Choose where uBlock Origin filtering is turned off.'],
-    'support.html': ['supportPageName', 'Find help and troubleshoot uBlock Origin.'],
-    'about.html': ['aboutPageName', 'Version, licenses, and acknowledgments.'],
-    'advanced-settings.html': [null, 'Advanced configuration for experienced users.'],
+    '3p-filters.html': ['3pPageName', t('ublock.dashboard.lists')],
+    'settings.html': ['settingsPageName', t('ublock.dashboard.settings')],
+    '1p-filters.html': ['1pPageName', t('ublock.dashboard.myFilters')],
+    'dyna-rules.html': ['rulesPageName', t('ublock.dashboard.rules')],
+    'whitelist.html': ['whitelistPageName', t('ublock.dashboard.trusted')],
+    'support.html': ['supportPageName', t('ublock.dashboard.support')],
+    'about.html': ['aboutPageName', t('ublock.dashboard.about')],
+    'advanced-settings.html': [null, t('ublock.dashboard.advanced')],
   };
   if (page !== 'dashboard.html' && !pages[page]) return;
   document.documentElement.dataset.blancPage = page;
@@ -34,8 +39,8 @@
     mark.alt = '';
     mark.removeAttribute('data-i18n-title');
     logo.append(element('strong', null, 'uBlock Origin'));
-    document.getElementById('iframe').title = 'uBlock Origin settings';
-    document.getElementById('dashboard-nav').setAttribute('aria-label', 'uBlock Origin settings panels');
+    document.getElementById('iframe').title = t('ublock.dashboard.frame');
+    document.getElementById('dashboard-nav').setAttribute('aria-label', t('ublock.dashboard.panels'));
     // Native click handlers retain the unsaved-change guard for keyboard navigation.
     document.getElementById('dashboard-nav').addEventListener('keydown', event => {
       if (!event.target.matches('.tabButton') || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
@@ -53,7 +58,7 @@
   const heading = element('div');
   const title = element('h1');
   if (pages[page][0]) title.dataset.i18n = pages[page][0];
-  else title.textContent = 'Advanced settings';
+  else title.textContent = t('ublock.dashboard.advancedTitle');
   heading.append(title, element('p', null, pages[page][1]));
   header.append(heading);
   const body = document.querySelector('body > .body') || document.body;
@@ -64,16 +69,16 @@
   header.after(layout);
   const options = element('aside', 'blancListOptions');
   layout.append(options);
-  const optionsHeading = element('h2', 'blancOptionsHeading', 'List options');
+  const optionsHeading = element('h2', 'blancOptionsHeading', t('ublock.dashboard.listOptions'));
   options.setAttribute('aria-labelledby', optionsHeading.id);
   options.append(optionsHeading);
   const controls = document.getElementById('autoUpdate').closest('.li').parentElement;
   options.append(controls);
   const descriptions = {
-    autoUpdate: 'Periodically check and update filter lists in the background.',
-    suspendUntilListsAreLoaded: 'Prevent network requests until filtering rules are ready.',
-    parseCosmeticFilters: 'Enable cosmetic filters to hide page elements.',
-    ignoreGenericCosmeticFilters: 'Skip generic cosmetic filters (e.g. those not specific to a site).',
+    autoUpdate: t('ublock.dashboard.autoUpdate'),
+    suspendUntilListsAreLoaded: t('ublock.dashboard.suspend'),
+    parseCosmeticFilters: t('ublock.dashboard.cosmetic'),
+    ignoreGenericCosmeticFilters: t('ublock.dashboard.genericCosmetic'),
   };
   for (const [id, text] of Object.entries(descriptions)) {
     const input = document.getElementById(id);
@@ -82,15 +87,15 @@
     input.closest('.li').append(description);
   }
   const subscriptions = element('section', 'blancSubscriptions');
-  const subscriptionsHeading = element('h2', 'blancSubscriptionsHeading', 'Subscriptions');
+  const subscriptionsHeading = element('h2', 'blancSubscriptionsHeading', t('ublock.dashboard.subscriptions'));
   subscriptions.setAttribute('aria-labelledby', subscriptionsHeading.id);
   subscriptions.append(subscriptionsHeading, document.getElementById('lists'));
   const importName = subscriptions.querySelector('[data-role="import"] .listname');
   importName.removeAttribute('data-i18n');
-  importName.textContent = 'Import a filter list';
+  importName.textContent = t('ublock.dashboard.importList');
   const search = subscriptions.querySelector('input[type="search"]');
-  search.placeholder = 'Search filter lists…';
-  search.setAttribute('aria-label', 'Search filter lists');
+  search.placeholder = t('ublock.dashboard.search');
+  search.setAttribute('aria-label', t('ublock.dashboard.searchLabel'));
   layout.append(subscriptions);
   const lists = document.getElementById('lists');
   // The native delegated click path is also available to keyboard users.
@@ -100,7 +105,7 @@
       expander.setAttribute('role', 'button');
       expander.tabIndex = 0;
       expander.setAttribute('aria-expanded', String(row.classList.contains('expanded')));
-      expander.setAttribute('aria-label', row.querySelector('.listname')?.textContent || 'All filter lists');
+      expander.setAttribute('aria-label', row.querySelector('.listname')?.textContent || t('ublock.dashboard.allLists'));
     }
   };
   new MutationObserver(describeExpanders).observe(lists, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });

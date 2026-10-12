@@ -105,7 +105,8 @@
       "mahjong.setup.dailyDescription",
       "mahjong.rulesName.auto",
       "mahjong.rulesName.zen",
-      "mahjong.combo.combo"
+      "mahjong.combo.combo",
+      "ublock.popup.dashboard"
     ]
   }
 }
