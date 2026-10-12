@@ -12,7 +12,7 @@ repository.
 
 | Wording on the page | Evidence | Limits kept in the copy | Verdict |
 | --- | --- | --- | --- |
-| Up to five Gmail accounts in one unified inbox, each with its own colour. | `EverythingMailCore/Models/MailScope.swift` (`case unified`); `MailStore.maximumConnectedAccounts = 5`; account tint dot in `InboxView` (`MailAccountPalette`) | The five-account cap is stated | Verified |
+| Up to five Gmail accounts in one unified inbox, each with its own color. | `EverythingMailCore/Models/MailScope.swift` (`case unified`); `MailStore.maximumConnectedAccounts = 5`; account tint dot in `InboxView` (`MailAccountPalette`) | The five-account cap is stated | Verified |
 | One search covers all of them. | `AGENTS.md`, Island section: search covers all mail of the visible accounts | Covers the visible accounts, the same ones the unified inbox shows | Qualified |
 | Archiving takes effect at once, with five seconds to undo it. | `MailStore` undo window (5 s); `MailAccountSession` optimistic archive | Archive only, not every action | Verified |
 | Snooze a conversation until you need it, or write now and send later. Scheduled mail goes out the next time Blanc Mail is running and online on your Mac. | `MailScheduling.swift`; Scheduled mailbox and Send Now / Edit Schedule in `InboxView` | Scheduling is local: the running-and-online limit is in the copy | Qualified |
