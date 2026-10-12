@@ -267,6 +267,7 @@ const { moveTab: resolveTabMove, reorderGroup: resolveGroupReorder } = require('
 const { acceptOverlayDragState, resetOverlayDragState, overlayDragActive } = require('./overlay-drag-state');
 const {
   installPlatformMainMenuShortcut,
+  menuLabelText,
   popupPlatformMainMenu,
 } = require('./platform-main-menu');
 const { showAboutPanel } = require('./about-panel');
@@ -7855,11 +7856,11 @@ function listShortcuts() {
       const definition = item.id?.startsWith('browser-')
         ? browserCommandDefinition(item.id.slice('browser-'.length)) : null;
       const bindings = definition ? [definition.primary, ...definition.aliases] : [item.accelerator];
-      rows.push({ category, label: item.label, keys: bindings.map(formatAccelerator).join(' / ') });
+      rows.push({ category, label: menuLabelText(item.label), keys: bindings.map(formatAccelerator).join(' / ') });
     }
   };
   for (const top of Menu.getApplicationMenu()?.items ?? []) {
-    collect(top.submenu?.items, top.label);
+    collect(top.submenu?.items, menuLabelText(top.label));
   }
   const modifier = process.platform === 'darwin' ? '⌘' : `${mainI18n.t('key.ctrl')}+`;
   const island = mainI18n.t('shortcuts.island');
