@@ -32,21 +32,12 @@
 
 /* ---------- hero ---------- */
 .media-hero { padding: clamp(72px, 11vw, 144px) 0 clamp(48px, 6vw, 72px); text-align: center; }
-.media-hero .section-kicker { margin: 0 0 20px; color: var(--site-gold); }
 .media-hero h1 {
   max-width: 11ch;
   margin: 0 auto;
   font-size: clamp(54px, 9.4vw, 116px);
   line-height: 0.94;
   letter-spacing: -0.05em;
-}
-.media-hero-lead {
-  max-width: 46ch;
-  margin: 32px auto 0;
-  color: var(--site-text-dim);
-  font-size: clamp(17px, 1.6vw, 20px);
-  line-height: 1.55;
-  text-wrap: pretty;
 }
 
 .media-paths {
