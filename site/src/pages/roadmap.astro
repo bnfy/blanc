@@ -45,6 +45,7 @@ const updatedLabel = new Date(`${roadmap.updated}T12:00:00Z`)
       <ul class="roadmap-items">
         {stage.items.map((item) => (
           <li id={item.id}>
+            {item.icon && <img class="roadmap-icon" src={item.icon} alt="" width="52" height="52" loading="lazy" decoding="async" />}
             <p class="roadmap-product">{item.product}</p>
             <h3>{item.title}</h3>
             <p class="roadmap-line">{item.line}</p>

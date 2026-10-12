@@ -52,6 +52,7 @@
 
 .roadmap-items { display: grid; gap: 40px; margin: 0; padding: 0; list-style: none; }
 .roadmap-items li { scroll-margin-top: 82px; }
+.roadmap-icon { display: block; width: 52px; height: 52px; margin: 0 0 14px; filter: drop-shadow(0 4px 5px #35250e40); }
 .roadmap-product { margin: 0; color: var(--site-gold); font-size: 13px; font-weight: 500; }
 .roadmap-items h3 { margin: 6px 0 0; font-family: var(--site-font-display); font-size: clamp(26px, 3vw, 32px); font-weight: 400; letter-spacing: -0.02em; line-height: 1.1; text-wrap: balance; }
 .roadmap-line { max-width: 48ch; margin: 10px 0 0; color: var(--site-text-dim); font-size: 16px; line-height: 1.6; }

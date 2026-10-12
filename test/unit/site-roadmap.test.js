@@ -44,6 +44,14 @@ test('every roadmap item is complete, unique and in a known stage and product', 
   }
 });
 
+test('roadmap icons point at real public files', () => {
+  for (const item of roadmap.items.filter((entry) => entry.icon)) {
+    assert.match(item.icon, /^\/[a-z0-9.-]+(\?v=[0-9a-f]+)?$/, `${item.id} icon path`);
+    const file = path.join(ROOT, 'site/public', item.icon.split('?')[0]);
+    assert.ok(fs.existsSync(file), `${item.id} icon ${item.icon} is missing`);
+  }
+});
+
 test('roadmap links point at real site pages', () => {
   for (const item of roadmap.items.filter((entry) => entry.link)) {
     const { href, label } = item.link;
