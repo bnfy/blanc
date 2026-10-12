@@ -21,7 +21,7 @@
     },
     {
       "path": "src/main/ublock-package.js",
-      "sha256": "cea9002568b246dff10ed056c95937dd578477794cb2d57d1bf34534933253fc"
+      "sha256": "c116b2f10c69ba0dedf77a6cf9219df432b1c9c58316537f90170a6f38d77272"
     },
     {
       "path": "src/main/ublock-host-policy.js",
@@ -66,6 +66,10 @@
     {
       "path": "src/renderer/pages/i18n.js",
       "sha256": "d71eb043f21e52f5cccc387f870ad934ef2c9f993a2e16e451994854bc49a50f"
+    },
+    {
+      "path": "src/main/ublock-strings.json",
+      "sha256": "49f0bd4dbed2b5ad34113e596089df0d19a2e96c5dcb6014a4ff6faafca6a2b9"
     },
     {
       "path": "src/renderer/ublock-popup.css",

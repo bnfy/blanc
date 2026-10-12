@@ -41,6 +41,7 @@ ublock/adaptation.patch -whitespace
 /src/renderer/ublock-popup.css text eol=lf
 /src/renderer/ublock-popup-icons/* text eol=lf
 /src/renderer/pages/i18n.js text eol=lf
+/src/main/ublock-strings.json text eol=lf
 /ublock/adaptation.* text eol=lf
 
 /src/renderer/ublock-dashboard.css text eol=lf

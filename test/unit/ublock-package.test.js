@@ -37,6 +37,23 @@ test('Blanc text reaches the popup and Dashboard in the interface language, besi
   assert(loads(german.get('3p-filters.html').toString(), 'blanc-dashboard.js'));
   assert.throws(() => readHostSources(root, { locale: '../../x' }), /ubo-strings-locale/);
 });
+test('shim text is a recorded host input read from the package root, so the packaged check sees what ships', t => {
+  const { HOST_INPUTS } = require('../../src/main/ublock-package');
+  const record = JSON.parse(fs.readFileSync(path.join(root, 'ublock/adaptation.json'), 'utf8'));
+  assert(HOST_INPUTS.includes('src/main/ublock-strings.json'));
+  assert(record.host.some(entry => entry.path === 'src/main/ublock-strings.json'));
+  const copy = fs.mkdtempSync(path.join(os.tmpdir(), 'ubo-host-root-'));
+  t.after(() => fs.rmSync(copy, { recursive: true, force: true }));
+  for (const name of HOST_INPUTS) {
+    fs.mkdirSync(path.dirname(path.join(copy, name)), { recursive: true });
+    fs.copyFileSync(path.join(root, name), path.join(copy, name));
+  }
+  const strings = JSON.parse(fs.readFileSync(path.join(copy, 'src/main/ublock-strings.json'), 'utf8'));
+  strings.en.messages['ublock.popup.report'] = 'Altered in this root';
+  fs.writeFileSync(path.join(copy, 'src/main/ublock-strings.json'), JSON.stringify(strings));
+  const { files } = readVerifiedPackage(path.join(root, 'ublock'));
+  assert.match(adaptPackage(files, readHostSources(copy)).get('blanc-strings.js').toString(), /Altered in this root/);
+});
 test('atomic managed install repairs corruption and interruption without changing identity', t => {
   const temporary = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'ubo-package-test-')));
   t.after(() => fs.rmSync(temporary, { recursive: true, force: true }));

@@ -40,10 +40,15 @@ export function generate(root) {
     ...Object.entries(translations).map(([code, tr]) => ({ code, endonym: tr.$meta.endonym, dir: tr.$meta.dir, status: tr.$meta.status, tr })),
     { code: 'en-XA', endonym: 'Pseudo', dir: 'ltr', status: 'pseudo', tr: pseudoTr },
   ];
-  for (const l of locales) {
-    files[`src/renderer/pages/strings.${l.code}.js`] = runtimeFile(runtimeCatalog({ locale: l.code, dir: l.dir, en, tr: l.tr }));
-  }
+  const catalogs = Object.fromEntries(locales.map((l) => [l.code, runtimeCatalog({ locale: l.code, dir: l.dir, en, tr: l.tr })]));
+  for (const [code, catalog] of Object.entries(catalogs)) files[`src/renderer/pages/strings.${code}.js`] = runtimeFile(catalog);
   files['src/main/i18n-locales.json'] = JSON.stringify(locales.map(({ code, endonym, dir, status }) => ({ code, endonym, dir, status })), null, 2) + '\n';
+  // Blanc's text inside uBlock Origin's pages: only the ublock.* keys, every
+  // language in one file. The uBO adaptation hashes and verifies this input,
+  // so other interface text never changes its record.
+  const own = (messages) => Object.fromEntries(Object.entries(messages).filter(([key]) => key.startsWith('ublock.')));
+  files['src/main/ublock-strings.json'] = JSON.stringify(Object.fromEntries(Object.entries(catalogs)
+    .map(([code, { messages, fallback }]) => [code, { messages: own(messages), fallback: own(fallback) }])), null, 2) + '\n';
 
   const mobileLocales = { en: Object.fromEntries(entryKeys(en).map((k) => [k, en[k].message])) };
   for (const [code, tr] of Object.entries(translations)) {
