@@ -48,14 +48,18 @@ of your sidebar into evidence that will be shared.
 
 ## 1. Arc's file is left unchanged
 
-Quit Arc, then record the file's hash:
+Arc rewrites this file whenever it runs, even when you only expand a folder,
+so a hash only proves something across a stretch where Arc stayed quit. Quit
+Arc, then record the file's hash:
 
 ```
 shasum -a 256 ~/Library/Application\ Support/Arc/StorableSidebar.json
 ```
 
-Run the same command at the end of the plan, with Arc still quit. The two
-hashes must match: Blanc only reads the file.
+Record it again each time you are about to open Arc, and right after you quit
+it. Each hash taken before you open Arc must match the one taken after you
+last quit it: Blanc only reads the file. Arc stays quit for everything except
+the hand count in step 2 and step 9.
 
 ## 2. The real file parses
 
@@ -76,12 +80,15 @@ It prints counts only.
 - `favorites` matches the number of web pages in Arc's top row.
 - A Space that uses its own Arc profile shows `"profile": "custom"`.
 
+Record the hash before you open Arc to count (it must match step 1's), and
+again after you quit Arc.
+
 If this step errors or the counts are off, stop and record exactly what
 differs. That is a parser finding, and the rest of the plan depends on it.
 
 ## 3. Detection
 
-Open Arc, then start Blanc and open Bring Your Tabs (⌘L, then `/bring-tabs`).
+With Arc quit, start Blanc and open Bring Your Tabs (⌘L, then `/bring-tabs`).
 
 - **Pass:** an Arc row offers **Bring Spaces from Arc** and **Choose file…**.
 - **Pass:** opening the sheet alone does not read the file (nothing is
@@ -148,8 +155,10 @@ Copy `StorableSidebar.json` to the Desktop. In Bring Your Tabs, click
 
 ## 9. Arc saving while Blanc reads
 
-With Arc open, keep changing its sidebar (move tabs between folders) while
-clicking **Bring Spaces from Arc** a few times.
+Record the hash (it must match the one from after the count in step 2), then
+open Arc. Keep changing its sidebar (move tabs between folders) for a couple
+of minutes while clicking **Bring Spaces from Arc** again and again: Arc only
+saves its sidebar every so often. Then quit Arc and record the hash.
 
 - Each attempt either shows a normal preview or "Arc was saving its sidebar.
   Try again in a moment." Never a partial or broken preview.
@@ -163,8 +172,9 @@ Bring Your Tabs.
 
 ## 11. Finish
 
-Quit Arc and repeat step 1. The hash must match the one you recorded at the
-start.
+With Arc still quit, record the hash. It must match the one you recorded
+after quitting Arc in step 9. It will not match step 1's, because Arc
+rewrote its own file while it was open in steps 2 and 9.
 
 ## Recording the result
 
