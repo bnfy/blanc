@@ -16,9 +16,16 @@ function selectableCodes(locales, statusOverrides = {}) {
 function resolveLocale({ setting, preferred = [], selectable }) {
   if (selectable.includes(setting)) return { locale: setting, source: 'setting' };
   if (setting === 'system') {
+    // For each preferred language in order: its exact catalog (pt-BR), its
+    // language (de for de-AT), else the same language's regional catalog
+    // (pt-BR for pt-PT).
+    const primaryOf = (code) => code.toLowerCase().split('-')[0];
     for (const tag of preferred) {
-      const primary = String(tag).toLowerCase().split(/[-_]/)[0];
-      if (selectable.includes(primary)) return { locale: primary, source: 'system' };
+      const wanted = String(tag).replace(/_/g, '-').toLowerCase();
+      const match = selectable.find((code) => code.toLowerCase() === wanted)
+        ?? selectable.find((code) => code === primaryOf(wanted))
+        ?? selectable.find((code) => primaryOf(code) === primaryOf(wanted));
+      if (match) return { locale: match, source: 'system' };
     }
     return { locale: 'en', source: 'system' };
   }
@@ -29,7 +36,8 @@ function formattingLocale(locale, systemLocale) {
   if (locale === 'en-XA') return 'en';
   const region = /^[A-Za-z]{2,3}(?:[-_][A-Za-z]{4})?[-_]([A-Za-z]{2}|\d{3})(?![A-Za-z0-9])/
     .exec(String(systemLocale ?? ''))?.[1];
-  const candidate = region ? `${locale}-${region.toUpperCase()}` : locale;
+  // The interface language with the OS region: pt-BR in the US formats as pt-US.
+  const candidate = region ? `${locale.split('-')[0]}-${region.toUpperCase()}` : locale;
   try { return Intl.getCanonicalLocales(candidate)[0]; } catch { return locale; }
 }
 

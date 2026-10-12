@@ -23,6 +23,18 @@ test('system follows the first preferred language with a selectable primary subt
   assert.deepEqual(resolveLocale({ setting: 'system', preferred: [], selectable }), { locale: 'en', source: 'system' });
 });
 
+test('a regional catalog matches its own region first, then the same language from another region', () => {
+  const selectable = ['en', 'de', 'es', 'pt-BR'];
+  assert.equal(resolveLocale({ setting: 'system', preferred: ['pt-BR'], selectable }).locale, 'pt-BR');
+  assert.equal(resolveLocale({ setting: 'system', preferred: ['pt_br'], selectable }).locale, 'pt-BR');
+  assert.equal(resolveLocale({ setting: 'system', preferred: ['pt-PT'], selectable }).locale, 'pt-BR');
+  assert.equal(resolveLocale({ setting: 'system', preferred: ['pt'], selectable }).locale, 'pt-BR');
+  assert.equal(resolveLocale({ setting: 'system', preferred: ['es-MX'], selectable }).locale, 'es');
+  // The first preferred language decides, even when a later one matches exactly.
+  assert.equal(resolveLocale({ setting: 'system', preferred: ['pt-PT', 'es'], selectable }).locale, 'pt-BR');
+  assert.deepEqual(resolveLocale({ setting: 'pt-BR', preferred: ['en-US'], selectable }), { locale: 'pt-BR', source: 'setting' });
+});
+
 test('a stored unavailable language renders English, never the OS language', () => {
   assert.deepEqual(
     resolveLocale({ setting: 'fr', preferred: ['de-DE'], selectable: ['en', 'de'] }),
@@ -37,6 +49,10 @@ test('formatting locale combines UI language with the OS region', () => {
   assert.equal(formattingLocale('de', ''), 'de');
   assert.equal(formattingLocale('de', 'en_US.UTF-8'), 'de-US');
   assert.equal(formattingLocale('en-XA', 'de-DE'), 'en');
+  // A regional catalog formats with its language and the OS region.
+  assert.equal(formattingLocale('pt-BR', 'en-US'), 'pt-US');
+  assert.equal(formattingLocale('pt-BR', 'pt-BR'), 'pt-BR');
+  assert.equal(formattingLocale('pt-BR', ''), 'pt-BR');
 });
 
 test('selectable codes honour status overrides', () => {

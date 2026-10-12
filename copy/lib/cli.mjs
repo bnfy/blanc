@@ -56,7 +56,8 @@ export function generate(root) {
   }
   files['copy/generated/ios/Localizable.xcstrings'] = xcstrings({ en, locales: mobileLocales });
   for (const [code, messages] of Object.entries(mobileLocales)) {
-    files[`copy/generated/android/values${code === 'en' ? '' : `-${code}`}/strings.xml`] = androidStrings({ en, messages });
+    // Android writes a region as -r<REGION> (values-pt-rBR).
+    files[`copy/generated/android/values${code === 'en' ? '' : `-${code.replace(/-([A-Z]{2})$/, '-r$1')}`}/strings.xml`] = androidStrings({ en, messages });
   }
 
   // Legacy English slash resources read by ios/Blanc/Blanc/SlashCommand.swift.

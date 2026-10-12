@@ -32,6 +32,16 @@ function fixtureRoot(t, { de = {}, scope = {} } = {}) {
   return { root, en };
 }
 
+test('a regional catalog gets Android\'s r-prefixed region folder and its own runtime file', (t) => {
+  const { root } = fixtureRoot(t);
+  fs.writeFileSync(path.join(root, 'copy/messages/pt-BR.json'),
+    JSON.stringify({ $meta: { locale: 'pt-BR', endonym: 'Português (Brasil)', dir: 'ltr', status: 'hidden' } }));
+  const files = cli.generate(root);
+  assert('copy/generated/android/values-pt-rBR/strings.xml' in files);
+  assert(!Object.keys(files).some((rel) => rel.includes('values-pt-BR')));
+  assert('src/renderer/pages/strings.pt-BR.js' in files);
+});
+
 test('build never advances a translation hash, so stale stays stale', (t) => {
   const { root } = fixtureRoot(t, { de: { 'slash.new.hint': { message: 'Neuen Tab öffnen', source: 'sha256:old' } } });
   const before = fs.readFileSync(path.join(root, 'copy/messages/de.json'), 'utf8');
