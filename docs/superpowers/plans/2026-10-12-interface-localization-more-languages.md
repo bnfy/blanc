@@ -33,6 +33,12 @@ selectable, fixed names (Blanc, Island, Glance, Blanc Spaces, uBlock Origin,
 
 ## PRs 2–4: One language each, hidden
 
+**As built (2026-10-12):** the three languages landed in one PR instead of
+three. They share generated files (`copy/generated/ios/Localizable.xcstrings`,
+`src/main/ublock-strings.json`) and `copy/glossary.json`, so separate PRs
+would conflict, and translating them together kept terminology consistent.
+Each language still got every check below.
+
 For each of `es`, `fr`, `pt-BR`:
 
 1. Add `copy/messages/<code>.json` with `$meta` (`locale`, `endonym`

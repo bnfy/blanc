@@ -69,7 +69,7 @@
     },
     {
       "path": "src/main/ublock-strings.json",
-      "sha256": "49f0bd4dbed2b5ad34113e596089df0d19a2e96c5dcb6014a4ff6faafca6a2b9"
+      "sha256": "ed7370cdf9e5157a843ac19c6245baa97d7ff8258c3a41a426c6a2d706ab09d5"
     },
     {
       "path": "src/renderer/ublock-popup.css",
