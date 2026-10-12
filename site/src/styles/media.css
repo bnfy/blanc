@@ -32,21 +32,12 @@
 
 /* ---------- hero ---------- */
 .media-hero { padding: clamp(72px, 11vw, 144px) 0 clamp(48px, 6vw, 72px); text-align: center; }
-.media-hero .section-kicker { margin: 0 0 20px; color: var(--site-gold); }
 .media-hero h1 {
   max-width: 11ch;
   margin: 0 auto;
   font-size: clamp(54px, 9.4vw, 116px);
   line-height: 0.94;
   letter-spacing: -0.05em;
-}
-.media-hero-lead {
-  max-width: 46ch;
-  margin: 32px auto 0;
-  color: var(--site-text-dim);
-  font-size: clamp(17px, 1.6vw, 20px);
-  line-height: 1.55;
-  text-wrap: pretty;
 }
 
 .media-paths {
@@ -296,7 +287,7 @@ body:has(.site-header.is-scroll-hidden) .media-index { top: 14px; }
 .media-kit-row {
   display: grid;
   /* The expanded capture takes a full row like the lead; the two marks
-     share the next one. */
+     share the next one, and the two Blanc Mail icons the one after. */
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: start;
   gap: clamp(48px, 6vw, 72px) clamp(20px, 3vw, 32px);
@@ -304,7 +295,9 @@ body:has(.site-header.is-scroll-hidden) .media-index { top: 14px; }
 }
 .media-kit-row > :first-child { grid-column: 1 / -1; }
 .media-tile { margin: 0; }
-.media-tile > a { display: block; overflow: hidden; background: #fff; border: 1px solid var(--site-border); border-radius: 18px; }
+/* Cream to match the ivory baked into the full-color mark and light icon
+   previews, so the dark artwork sits on the same ground. */
+.media-tile > a { display: block; overflow: hidden; background: #f7f0e5; border: 1px solid var(--site-border); border-radius: 18px; }
 .media-tile img { display: block; width: 100%; height: auto; }
 .media-kit-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 36px; margin: clamp(48px, 6vw, 72px) 0 0; padding: 0; list-style: none; font-size: 15px; }
 .media-kit .media-tile--mark figcaption { flex-direction: column; gap: 4px; }

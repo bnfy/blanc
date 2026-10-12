@@ -33,7 +33,6 @@ const ALLOWED = [
   'pages/mail/privacy.astro → Blanc Mail · Pre-release policy',
   'pages/mail/support.astro → Blanc Mail',
   'pages/mail/terms.astro → Blanc Mail · Pre-release terms',
-  'pages/media.astro → Media',
   'pages/roadmap.astro → Feature Roadmap',
   'pages/support.astro → Blanc Support',
   'pages/trust.astro → Privacy & security',
