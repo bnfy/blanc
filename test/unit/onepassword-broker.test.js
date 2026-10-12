@@ -98,6 +98,31 @@ test('multiple matches project only bounded built-in usernames for the native pi
   assert.doesNotMatch(JSON.stringify(result), /secret-|note-/);
 });
 
+test('picker usernames are read one item at a time (Windows SDK pipe limit)', async () => {
+  let inFlight = 0;
+  let maxInFlight = 0;
+  const ids = ['a', 'b', 'c', 'd', 'e'];
+  const client = {
+    vaults: { list: async () => [{ id: 'vault', title: 'Personal' }] },
+    items: {
+      list: async () => ids.map((id) => ({
+        id, title: 'google.com', category: 'Login', updatedAt: new Date(),
+        websites: [{ url: 'google.com', autofillBehavior: 'AnywhereOnWebsite' }],
+      })),
+      get: async (_vaultId, itemId) => {
+        inFlight += 1;
+        maxInFlight = Math.max(maxInFlight, inFlight);
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        inFlight -= 1;
+        return { version: 1, fields: [{ id: 'username', value: `${itemId}@example.test` }] };
+      },
+    },
+  };
+  const result = await findLoginsWith(client, 'https://accounts.google.com/');
+  assert.equal(maxInFlight, 1);
+  assert.equal(result.candidates.length, ids.length);
+});
+
 test('candidate projection propagates authorization failures', async () => {
   const client = {
     vaults: { list: async () => [{ id: 'vault', title: 'Personal' }] },
