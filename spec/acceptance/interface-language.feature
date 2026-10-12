@@ -34,10 +34,10 @@ Feature: Interface language
   Scenario: A pinned language that is no longer available renders English
     Given the OS prefers "de-DE"
     And German is selectable
-    And the stored interface language is "fr"
+    And the stored interface language is "it"
     When Blanc starts
     Then the interface language is "en"
-    And the stored interface language is still "fr"
+    And the stored interface language is still "it"
 
   @F44-5
   Scenario: Websites are unaffected by the interface language

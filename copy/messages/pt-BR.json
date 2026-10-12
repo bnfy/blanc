@@ -1,9 +1,9 @@
 {
   "$meta": {
     "locale": "pt-BR",
-    "endonym": "Português (Brasil)",
+    "endonym": "Português do Brasil",
     "dir": "ltr",
-    "status": "hidden"
+    "status": "selectable"
   },
   "slash.favorites.hint": {
     "message": "Abrir favoritos",

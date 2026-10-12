@@ -3,7 +3,7 @@
     "locale": "es",
     "endonym": "Español",
     "dir": "ltr",
-    "status": "hidden"
+    "status": "selectable"
   },
   "slash.favorites.hint": {
     "message": "Abrir favoritos",

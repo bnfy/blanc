@@ -65,3 +65,10 @@ Set `es`, `fr` and `pt-BR` to `selectable`, extend the release-notes draft
 `copy/README.md`, `CLAUDE.md` and `AGENTS.md`, and run the full verification.
 F44 desktop stays PLANNED in `spec/parity-matrix.md` until the release that
 carries the languages is public.
+
+**As built:** the Portuguese endonym became *Português do Brasil*, because the
+Settings option that follows the OS would otherwise read *Sistema (Português
+(Brasil))*. The interface-language smoke now starts Blanc on Spanish (Mexico),
+French (Canada) and Portuguese (Portugal) systems with no test override and
+expects `es`, `fr` and `pt-BR`; F44-4's unavailable example moved from `fr` to
+`it`.

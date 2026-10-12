@@ -12,6 +12,9 @@ copy/
   messages/
     en.json            source: every string, keyed by slot, with a translator note
     de.json            German (selectable), each entry with a source hash
+    es.json            Spanish (selectable)
+    fr.json            French (selectable)
+    pt-BR.json         Brazilian Portuguese (selectable)
   glossary.json        fixed terms, translated terms, sameAsSource, per-language style
   i18n-scope.json      every string-bearing desktop file: "pending" | "guarded"
   slash-commands.json  slash-command registry: order, names, doc spellings, platforms
@@ -27,8 +30,8 @@ runtime catalog per language, including the `en-XA` pseudo-locale) and
 ## Commands
 
 ```bash
-npm run copy:status -- de          # missing / stale / invalid German keys, with English and note
-npm run copy:ack -- de <key> …     # mark exactly these German entries as current
+npm run copy:status -- de          # missing / stale / invalid keys for one language, with English and note
+npm run copy:ack -- de <key> …     # mark exactly these entries of one language as current
 npm run copy:build                 # regenerate runtime catalogs, registry, mobile resources
 npm run copy:check                 # fail on any catalog, translation, scope or freshness problem
 npm run test:i18n:desktop          # pseudo-locale sweep of every fully guarded surface
@@ -42,9 +45,12 @@ npm run test:i18n:desktop          # pseudo-locale sweep of every fully guarded 
    (`settings.language.label`, not the English text), the `message`, a `note`
    saying where it appears and what each placeholder holds, and `maxLength` for
    buttons, menu items, pill words and other static slots.
-2. Write the German in `messages/de.json` **in the same PR**, following
-   `glossary.json` (informal *du*, pinned terms, fixed terms verbatim).
-3. `npm run copy:ack -- de <exactly the keys you translated>`.
+2. Write every language (`de`, `es`, `fr`, `pt-BR`) **in the same PR**,
+   following `glossary.json`: each language's `style` (German *du*, Spanish
+   *tú*, French *vous*, Brazilian Portuguese *você*), pinned terms, fixed terms
+   verbatim.
+3. `npm run copy:ack -- <locale> <exactly the keys you translated>` for each
+   language.
 4. `npm run copy:build`, then `npm run copy:check`.
 
 Only `copy:ack` advances a translation's `source` hash (a hash of the English
@@ -60,8 +66,9 @@ A deliberate ICU MessageFormat subset:
 - `{name}` placeholder; the caller supplies the value.
 - `{count, plural, one {# tab} other {# tabs}}`, where `#` is the number
   formatted for the active language. Each plural carries exactly its
-  language's CLDR categories (English and German: `one`, `other`; Polish adds
-  `few`, `many`; Japanese has only `other`). At most one plural per message.
+  language's CLDR categories (English and German: `one`, `other`; Spanish,
+  French and Portuguese add `many`; Polish adds `few`, `many`; Japanese has
+  only `other`). At most one plural per message.
   Exact branches like `=0` are rejected because iOS and Android cannot
   represent them; give a "none" state its own key.
 - `<0>…</0>` numbered, non-nesting tags for rich text. The element's existing
@@ -104,12 +111,13 @@ it proves the sweep can see unextracted text).
 A new language stays `"status": "hidden"` until every file is guarded, it is
 100% current, the sweep is green and its screenshots are checked for fit. A
 `selectable` language below 100% fails `copy:check`. German met that bar and
-became `selectable` in October 2026 (Phase 10); it reaches users only with the
-next public release.
+became `selectable` in October 2026 (Phase 10); Spanish, French and Portuguese
+(Brazil) followed so that the four launch together. They reach users only with
+the next public release.
 
 ## Mobile output
 
-`generated/ios/Localizable.xcstrings` and `generated/android/values[-de]/strings.xml`
+`generated/ios/Localizable.xcstrings` and `generated/android/values[-xx]/strings.xml`
 are generated for every language. The legacy English `SlashCommands.strings` and
 `slash_commands.xml` stay generated because `ios/Blanc/Blanc/SlashCommand.swift`
 reads them. Commands with a `platforms` allowlist are omitted from the legacy
