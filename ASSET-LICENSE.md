@@ -63,6 +63,15 @@ Platform-packaged forms of the same mark:
   signature mark for resizing in an email editor
 - `export/app-icons-1024-square/contact-sheet.png`
 
+Blanc Mail app icon (the Sunrise in a gold envelope; its Icon Composer source
+lives with the Blanc Mail app, outside this repository):
+
+- `site/public/blanc-mail-icon.webp` — website rendering
+- `site/public/press/blanc-mail-icon{,-dark}-1024.png` — media-kit downloads,
+  light and dark appearances
+- `site/public/press/blanc-mail-icon{,-dark}-1024{,-600}.webp` — media-kit
+  previews
+
 A build that replaces these files with its own artwork is unencumbered by this
 statement. Rebuilding Blanc from source without modification reproduces them,
 which is expected and permitted; redistributing that build under the Blanc name

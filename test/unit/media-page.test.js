@@ -36,6 +36,22 @@ test('media-kit raster assets exist at their declared dimensions', () => {
     fs.readFileSync(path.join(ROOT, 'export/app-icons-1024-square/icon-sunrise-4096.png'))));
 });
 
+test('the media kit offers the Blanc Mail app icon in both appearances, reserved as identity artwork', () => {
+  const page = read('site/src/pages/media.astro');
+  const license = read('ASSET-LICENSE.md');
+  for (const name of ['blanc-mail-icon-1024', 'blanc-mail-icon-dark-1024']) {
+    // Icon Composer renders the app icon at 1024 × 1024; there is no larger master.
+    assert.deepEqual(pngSize(`site/public/press/${name}.png`), { width: 1024, height: 1024 }, name);
+    for (const display of ['.webp', '-600.webp']) {
+      assert.equal(fs.existsSync(path.join(ROOT, `site/public/press/${name}${display}`)), true, `${name} ${display} display copy`);
+    }
+    assert.match(page, new RegExp(`href="/press/${name}\\.png" download`), `${name} download link`);
+  }
+  assert.ok(license.includes('`site/public/blanc-mail-icon.webp`'), 'website rendering is reserved');
+  assert.ok(license.includes('`site/public/press/blanc-mail-icon{,-dark}-1024.png`'), 'media-kit downloads are reserved');
+  assert.ok(license.includes('`site/public/press/blanc-mail-icon{,-dark}-1024{,-600}.webp`'), 'media-kit previews are reserved');
+});
+
 test('the media page keeps its release links, indexability, and no-analytics boundary explicit', () => {
   const page = read('site/src/pages/media.astro');
   const sitemap = read('site/src/pages/sitemap.xml.js');
