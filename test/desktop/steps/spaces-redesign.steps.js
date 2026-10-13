@@ -57,7 +57,7 @@ Given('a page open in a window that is in no space, and a saved space named {str
 Given('Reduce Motion is on', async function () {
   assert.equal(await this.call('emulateReducedMotion', true), true);
 });
-After({ tags: '@F41-23' }, async function () {
+After({ tags: '@F41-23 or @F41-28' }, async function () {
   await this.call('emulateReducedMotion', false);
 });
 
@@ -93,6 +93,12 @@ When('I move {string} down with Option or Alt and the down arrow', async functio
 });
 When('I press Escape in the Spaces menu', async function () {
   assert.equal(await this.call('pressOverlayKey', 'Escape'), true);
+});
+When('I close the Spaces menu and click the mark again before it has faded', async function () {
+  await menu();
+  assert.equal(await this.call('pressOverlayKey', 'Escape'), true);
+  await waitForValue(() => this.call('spacesMenuExitState'), (f) => f.mode == null && f.showing, 'the menu to start fading');
+  await this.call('clickPillSpace');
 });
 When('I switch to {string} from the Spaces menu', async function (name) {
   await this.call('clickPillSpace');
@@ -149,6 +155,42 @@ Then('the Spaces menu is closed', async function () {
 Then('the Spaces menu is closed and the space mark has focus', async function () {
   await waitForValue(() => this.call('overlayRendererMode'), (m) => m == null, 'the overlay to close');
   await waitForValue(() => this.call('chromeFocusedId'), (id) => id === 'pillSpace', 'focus to return to the space mark');
+});
+// Sample the close every 10ms until the overlay view is gone, then look for
+// a frame where main had already closed the overlay but the menu was still
+// being drawn, fading, in the place it opened.
+async function closingFrames(world) {
+  const frames = []; const deadline = Date.now() + 3000;
+  for (;;) {
+    const frame = await world.call('spacesMenuExitState');
+    frames.push(frame);
+    if (frame.mode == null && !frame.showing) break;
+    if (Date.now() > deadline) throw new Error(`the overlay never closed: ${JSON.stringify(frames.slice(-3))}`);
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+  const fading = frames.filter((f) => f.mode == null && f.showing && f.hidden && f.display !== 'none');
+  assert.ok(fading.length > 0, `the menu is still drawn after the overlay closes: ${JSON.stringify(frames)}`);
+  // Opened from the mark it sits 16px into its view (styles.css); it must not
+  // jump back to the panel's placement as it goes.
+  for (const f of fading) assert.deepEqual([f.top, f.left], ['16px', '16px'], `the menu fades where it opened: ${JSON.stringify(f)}`);
+  await waitForValue(() => world.call('spacesMenuExitState'), (f) => f.display === 'none' && f.closing === '', 'the menu to finish closing');
+  return fading;
+}
+Then('the Spaces menu fades out below the mark before it is removed', async function () {
+  await closingFrames(this);
+});
+Then('the Spaces menu fades out without moving', async function () {
+  const fading = await closingFrames(this);
+  for (const f of fading) assert.equal(f.transform, 'none', `only opacity changes: ${JSON.stringify(f)}`);
+});
+Then('the Spaces menu stays open below the mark', async function () {
+  await waitForValue(() => this.call('spacesMenuExitState'), (f) => f.mode === 'spaces', 'the menu to reopen');
+  // Past the old fade's end: its timers must not take the reopened menu away.
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  const f = await this.call('spacesMenuExitState');
+  assert.deepEqual({ mode: f.mode, showing: f.showing, hidden: f.hidden, closing: f.closing, top: f.top, left: f.left },
+    { mode: 'spaces', showing: true, hidden: false, closing: '', top: '16px', left: '16px' });
+  assert.equal(f.opacity, 1);
 });
 Then('the space {string} is saved with the color {string}', async function (name, color) {
   await waitForValue(() => spaceByName(this, name), (w) => w?.color === color, `${name} saved as ${color}`);

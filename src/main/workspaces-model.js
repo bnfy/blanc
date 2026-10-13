@@ -397,13 +397,14 @@ function restoreWorkspace(file, id, now = Date.now()) {
   return { file: clean, workspace: entry.workspace };
 }
 
-/** Move one space to `index` in this profile's list, clamped; a non-integer
- * index leaves the list as it is. */
+/** Move one space to `index` in this profile's list; an index past the end
+ * means the end. A negative or non-integer index is refused, never guessed. */
 function moveWorkspaceTo(file, id, index) {
   const clean = normalizeFile(file);
   const from = clean.workspaces.findIndex((w) => w.id === id);
   if (from < 0) return { error: 'not-found' };
-  const target = Number.isInteger(index) ? Math.max(0, Math.min(clean.workspaces.length - 1, index)) : from;
+  if (!Number.isInteger(index) || index < 0) return { error: 'invalid-index' };
+  const target = Math.min(clean.workspaces.length - 1, index);
   const [workspace] = clean.workspaces.splice(from, 1);
   clean.workspaces.splice(target, 0, workspace);
   return { file: clean, workspace, unchanged: target === from };

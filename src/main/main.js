@@ -3485,7 +3485,8 @@ function openIslandTyping(char) {
   showOverlay('panel', { prefill: char });
 }
 
-/** How long the panel takes to retract. Keep in step with styles.css. */
+/** How long the panel takes to retract, and the Spaces menu to fade back
+ * into its mark. Keep in step with styles.css. */
 const OVERLAY_RETRACT_MS = 200;
 
 function hideOverlay({ refocusContent = true, reason = null } = {}) {
@@ -3525,7 +3526,7 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
       clearTimeout(rt().overlayExitTimer);
       rt().overlayExitTimer = null;
     }
-    if (retracts) {
+    if (retracts || closingMode === 'spaces') {
       rt().overlayExitTimer = setTimeout(bindWindowRuntime(rt(), () => {
         rt().overlayExitTimer = null;
         // Re-check: a new overlay may have opened while this was retracting,
@@ -7713,7 +7714,8 @@ function registerIpcHandlers() {
   for (const [channel, operation] of [
     ['chrome:workspaces-restore', (id) => namedWorkspaces.restore(id)],
     ['chrome:workspaces-forget', (id) => namedWorkspaces.forget(id)],
-    ['chrome:workspaces-move-to', (id, index) => namedWorkspaces.moveTo(id, Number.isInteger(index) ? index : -1)],
+    // The model refuses a negative or non-integer index (invalid-index).
+    ['chrome:workspaces-move-to', (id, index) => namedWorkspaces.moveTo(id, index)],
   ]) {
     chromeHandle(channel, (_event, ...args) => {
       const result = operation(...args);
@@ -10369,6 +10371,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         : Promise.resolve({ available: false, loaded: false, processCount: 0 }),
       runBlockAdsCommand, runAllowAdsCommand,
       getOverlayMode: () => rt().overlayMode, showOverlay, hideOverlay, getPrivateBrowsingSession,
+      isOverlayViewShowing: () => {
+        const view = rt().overlayView;
+        if (!view || !hasLiveWindow()) return false;
+        return process.platform === 'linux' ? view.getVisible() : rt().window.contentView.children.includes(view);
+      },
       showUtilityPage, hideUtilitySheet,
       getUtilitySheetState: () => {
         const runtime = rt();

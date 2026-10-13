@@ -167,3 +167,25 @@ Feature: Named workspace preservation and recovery
     And a private tab beside an ordinary tab, with the ordinary tab selected
     When I select the private tab
     Then the Island's space mark is drawn for the private theme
+
+  @F41-27
+  Scenario: Closing the Spaces menu fades it out where it was
+    Given a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
+    When I open the Spaces menu from the space mark
+    And I press Escape in the Spaces menu
+    Then the Spaces menu fades out below the mark before it is removed
+
+  @F41-28
+  Scenario: With Reduce Motion the closing Spaces menu only fades
+    Given a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
+    And Reduce Motion is on
+    When I open the Spaces menu from the space mark
+    And I press Escape in the Spaces menu
+    Then the Spaces menu fades out without moving
+
+  @F41-29
+  Scenario: Clicking the mark while the Spaces menu fades opens it again
+    Given a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
+    When I open the Spaces menu from the space mark
+    And I close the Spaces menu and click the mark again before it has faded
+    Then the Spaces menu stays open below the mark

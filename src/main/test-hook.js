@@ -115,6 +115,7 @@ function install(refs) {
     openInternalPage,
     openFindBar,
     getOverlayMode,
+    isOverlayViewShowing,
     showOverlay,
     hideOverlay,
     showUtilityPage,
@@ -2125,6 +2126,18 @@ function install(refs) {
       wc.sendInputEvent({ type: 'keyDown', keyCode, modifiers });
       wc.sendInputEvent({ type: 'keyUp', keyCode, modifiers });
       return true;
+    },
+    // The Spaces menu as it closes: main's mode, whether the overlay view is
+    // still on screen, and the menu as the overlay is drawing it.
+    async spacesMenuExitState() {
+      const wc = getOverlayWebContents();
+      const view = { mode: getOverlayMode() ?? null, showing: isOverlayViewShowing() };
+      if (!wc) return view;
+      const menu = await wc.executeJavaScript(`(() => {
+        const m = document.getElementById('workspaceSwitcher'); const s = getComputedStyle(m);
+        return { hidden: m.hidden, closing: document.body.dataset.closing ?? '', display: s.display, top: s.top, left: s.left, transform: s.transform, opacity: Number(s.opacity) };
+      })()`);
+      return { ...view, ...menu };
     },
     async emulateReducedMotion(on) {
       for (const wc of [getChromeWebContents(), getOverlayWebContents()].filter(Boolean)) {

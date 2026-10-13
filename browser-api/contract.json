@@ -874,7 +874,7 @@
       }
     },
     "WorkspaceErrorCode": {
-      "ts": "'activation-failed' | 'busy' | 'duplicate-name' | 'future-format' | 'invalid-name' | 'invalid-color' | 'invalid-symbol' | 'invalid-record' | 'limit' | 'not-found' | 'protected-pages' | 'read-failed' | 'repair-failed' | 'saved-not-opened' | 'storage-failed' | 'unsaved-scratch'",
+      "ts": "'activation-failed' | 'busy' | 'duplicate-name' | 'future-format' | 'invalid-name' | 'invalid-color' | 'invalid-symbol' | 'invalid-index' | 'invalid-record' | 'limit' | 'not-found' | 'protected-pages' | 'read-failed' | 'repair-failed' | 'saved-not-opened' | 'storage-failed' | 'unsaved-scratch'",
       "doc": "Every error code a Named Workspace action can report, from workspace-controller.js, workspaces.js, workspaces-model.js and the workspace functions in main.js."
     },
     "WorkspaceProtectionReason": {

@@ -680,7 +680,7 @@ Find-in-page counts for the active tab, sent from tab-view.js.
 
 Every error code a Named Workspace action can report, from workspace-controller.js, workspaces.js, workspaces-model.js and the workspace functions in main.js.
 
-`'activation-failed' \| 'busy' \| 'duplicate-name' \| 'future-format' \| 'invalid-name' \| 'invalid-color' \| 'invalid-symbol' \| 'invalid-record' \| 'limit' \| 'not-found' \| 'protected-pages' \| 'read-failed' \| 'repair-failed' \| 'saved-not-opened' \| 'storage-failed' \| 'unsaved-scratch'`
+`'activation-failed' \| 'busy' \| 'duplicate-name' \| 'future-format' \| 'invalid-name' \| 'invalid-color' \| 'invalid-symbol' \| 'invalid-index' \| 'invalid-record' \| 'limit' \| 'not-found' \| 'protected-pages' \| 'read-failed' \| 'repair-failed' \| 'saved-not-opened' \| 'storage-failed' \| 'unsaved-scratch'`
 
 ### `WorkspaceProtectionReason`
 

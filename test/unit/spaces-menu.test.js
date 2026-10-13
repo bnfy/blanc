@@ -383,3 +383,54 @@ test('the list fades in only when the view changes, not on every refresh', () =>
   h.ui.begin('edit', TWO.items[0]);
   assert.equal(h.list.classList.contains('ws-view-enter'), true, 'the editor fades in');
 });
+
+test('opening upward, the menu is held by its bottom edge above the button, whatever its height', () => {
+  // Growing (the editor) or shrinking then never moves it over the button.
+  for (const height of [120, 999]) {
+    const h = harness();
+    h.popup.offsetHeight = height;
+    h.ui.open();
+    assert.equal(h.popup.dataset.side, 'above');
+    assert.equal(h.popup.props['--ws-bottom'], '206px', 'window 600 - (button top 400 - 6)');
+  }
+});
+
+test('while dragging, the other rows part to show where the row will land', () => {
+  const h = harness({}, TWO); h.ui.open();
+  const main = h.byKey('open:a'); const row = main.parent; const other = h.byKey('open:b').parent;
+  main.emit('pointerdown', { clientY: 100, pointerId: 1 });
+  row.emit('pointermove', { clientY: 145, pointerId: 1 }); // past half a row: lands at index 1
+  assert.equal(other.props['--shift-y'], '-43px', 'the row below moves up into the gap');
+  row.emit('pointermove', { clientY: 104, pointerId: 1 }); // back where it started
+  assert.equal(other.props['--shift-y'], '0px');
+  row.emit('pointermove', { clientY: 145, pointerId: 1 });
+  row.emit('pointerup', { pointerId: 1 });
+  assert.equal(other.props['--shift-y'], '0px', 'rows settle when the drag ends');
+});
+
+test('dragging in the colour square writes as it goes, so the Island mark follows, and the release writes the final colour', async () => {
+  const h = harness({}, TWO); h.ui.begin('edit', TWO.items[0]);
+  h.byKey('color:custom').click();
+  const square = h.popup.querySelector('.space-picker-sv');
+  square.getBoundingClientRect = () => ({ left: 0, top: 0, width: 100, height: 100, right: 100, bottom: 100 });
+  const updates = () => h.calls.filter(([c]) => c === 'update');
+  square.emit('pointerdown', { clientX: 10, clientY: 10, pointerId: 1 });
+  for (let i = 1; i <= 6; i++) { await wait(50); square.emit('pointermove', { clientX: 10 + i * 12, clientY: 20, pointerId: 1 }); }
+  const during = updates().length;
+  assert.ok(during >= 1, 'the space is written while the drag is still going');
+  assert.ok(during <= 4, `throttled, not one write per move (${during})`);
+  square.emit('pointerup', { pointerId: 1 }); await wait(350);
+  const last = updates().at(-1).slice(1);
+  assert.equal(last[0], 'a');
+  assert.equal(last[1].color, h.ui.state.draft.color, 'the release writes the final colour');
+});
+
+test('closing while the menu is still reshaping ends the reshape, so the close can fade it out', () => {
+  const h = harness({}, TWO);
+  h.popup.scrollHeight = 480; // the editor is taller than the list
+  h.ui.begin('edit', TWO.items[0]);
+  assert.equal(h.popup.classList.contains('morphing'), true, 'opening the editor reshapes the menu');
+  assert.equal(h.ui.close(), true);
+  assert.equal(h.popup.hidden, true);
+  assert.equal(h.popup.classList.contains('morphing'), false, 'the height-only transition is gone before the menu hides');
+});

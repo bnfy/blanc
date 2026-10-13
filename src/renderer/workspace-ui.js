@@ -123,8 +123,11 @@
       const room = Math.max(100, side === 'below' ? below : above);
       popup.dataset.side = side;
       popup.style.setProperty('--ws-max-height', `${room}px`);
-      const h = Math.min(popup.offsetHeight, room);
-      popup.style.setProperty('--ws-top', `${side === 'below' ? edge + 6 : Math.max(8, anchor.top - 6 - h)}px`);
+      // Below, the top edge hangs from the Island; above, the bottom edge sits
+      // just over the button, so a menu that grows (the editor) grows upward
+      // and never over the button, whatever height it is mid-animation.
+      if (side === 'below') popup.style.setProperty('--ws-top', `${edge + 6}px`);
+      else popup.style.setProperty('--ws-bottom', `${win.innerHeight - (anchor.top - 6)}px`);
       popup.style.setProperty('--ws-right', `${Math.max(8, Math.min(win.innerWidth - anchor.right, win.innerWidth - popup.offsetWidth - 8))}px`);
     }
     function syncIdentity() {
@@ -159,6 +162,9 @@
       // An edit still saving: close once it has saved, or stay on its error.
       if (!force && state.kind === 'edit' && (pendingPatch || inflight)) { closeAfterSave(); return false; }
       flushUpdate();
+      // A reshape still running would leave only its height transition, and
+      // the menu would vanish instead of fading back into its trigger.
+      popup.classList.remove('morphing');
       opened = false; popup.hidden = true; onOpenChange(false); syncIdentity();
       if (state.kind !== 'decision' && !state.original) state = { kind: 'list' };
       undo = null;
@@ -196,6 +202,15 @@
       pendingPatch = { id: state.id, ...(pendingPatch?.id === state.id ? pendingPatch : {}), ...patch };
       clearTimeout(updateTimer);
       updateTimer = setTimeout(flushUpdate, delay);
+    }
+    // While a colour is being dragged the space is written every so often, not
+    // once at the end, so the Island's mark follows the drag; the release
+    // still writes the final colour through queueUpdate.
+    const DRAG_WRITE_MS = 120;
+    function throttleUpdate(patch) {
+      if (state.kind !== 'edit') return;
+      pendingPatch = { id: state.id, ...(pendingPatch?.id === state.id ? pendingPatch : {}), ...patch };
+      if (!updateTimer) updateTimer = setTimeout(flushUpdate, DRAG_WRITE_MS);
     }
     /** Send the waiting edit; resolves true when it saved. Writes run one at a
      * time, and a failed edit for the same space rides along with the next. */
@@ -359,10 +374,12 @@
         drag.target = Math.max(0, Math.min(data.items.length - 1, drag.index + Math.round(dy / drag.rowHeight)));
         row.classList.add('dragging');
         row.style.setProperty('--drag-y', `${dy}px`);
+        partRows(row, drag.index, drag.target, drag.rowHeight);
       };
       const end = () => {
         row.removeEventListener('pointermove', move);
         row.classList.remove('dragging'); row.style.setProperty('--drag-y', '0px');
+        partRows(row, 0, 0, 0);
         const finished = drag; drag = null;
         if (!finished?.moved) return;
         // The click that ends a drag is not a switch. A captured pointer sends
@@ -375,6 +392,17 @@
       row.addEventListener('pointermove', move);
       row.addEventListener('pointerup', end, { once: true });
       row.addEventListener('pointercancel', end, { once: true });
+    }
+    // The rows between where a dragged row started and where it would land
+    // slide over by one row to open its slot; everything else stays put.
+    function partRows(dragged, from, to, rowHeight) {
+      for (const other of list.querySelectorAll('.ws-row')) {
+        if (other === dragged) continue;
+        const i = Number(other.dataset.index);
+        const shift = to > from && i > from && i <= to ? -rowHeight
+          : to < from && i >= to && i < from ? rowHeight : 0;
+        other.style.setProperty('--shift-y', `${shift}px`);
+      }
     }
     function renderList() {
       const nodes = [];
@@ -423,7 +451,7 @@
       if (editor) paint(editor, color); // the selected symbol takes the space's ink
       for (const sw of popup.querySelectorAll('.ws-swatch')) sw.setAttribute('aria-checked', String(sw.dataset.color ? sw.dataset.color === color : !Identity.presetFor(color)));
       const note = popup.querySelector('.ws-guard'); if (note) note.textContent = guardNote(color);
-      if (commit) queueUpdate({ color });
+      if (commit) queueUpdate({ color }); else throttleUpdate({ color });
     }
     function renderEditor() {
       const isNew = state.kind === 'new';

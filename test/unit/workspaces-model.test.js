@@ -591,12 +591,15 @@ test('updateWorkspace recolours and changes the symbol, rejects unusable values,
   assert.equal(updateWorkspace(done.file, 'ws_1', { color: '#f5e663', name: 'Work' }, 99).unchanged, true);
 });
 
-test('moveWorkspaceTo moves a space to an index, clamped, and ignores a non-integer index', () => {
+test('moveWorkspaceTo moves a space to an index, clamping only past the end, and rejects a malformed index', () => {
   const { moveWorkspaceTo } = require('../../src/main/workspaces-model');
   let file = EMPTY_FILE();
   for (const id of ['a', 'b', 'c']) file = createWorkspace(file, { name: id, profileId: 'default', capture: CAPTURE(), now: 1, id }).file;
   assert.deepEqual(moveWorkspaceTo(file, 'a', 2).file.workspaces.map((w) => w.id), ['b', 'c', 'a']);
-  assert.deepEqual(moveWorkspaceTo(file, 'c', -5).file.workspaces.map((w) => w.id), ['c', 'a', 'b']);
-  assert.equal(moveWorkspaceTo(file, 'b', 1.5).unchanged, true);
+  assert.deepEqual(moveWorkspaceTo(file, 'c', 0).file.workspaces.map((w) => w.id), ['c', 'a', 'b']);
+  assert.deepEqual(moveWorkspaceTo(file, 'a', 99).file.workspaces.map((w) => w.id), ['b', 'c', 'a'], 'past the end means the end');
+  for (const index of [-1, -5, 1.5, NaN, Infinity, '1', null, undefined]) {
+    assert.equal(moveWorkspaceTo(file, 'b', index).error, 'invalid-index', String(index));
+  }
   assert.equal(moveWorkspaceTo(file, 'nope', 0).error, 'not-found');
 });

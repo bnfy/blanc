@@ -2146,6 +2146,10 @@
   const RETRACT_MS = 200; // keep in step with OVERLAY_RETRACT_MS in main.js
   let lastPillRect = null;
   let morphTimer = null;
+  // Closing, the Spaces menu fades back into the Island's mark from where it
+  // hung; body[data-closing] keeps that placement while main holds the view.
+  let spacesExitTimer = null;
+  function endSpacesExit() { clearTimeout(spacesExitTimer); spacesExitTimer = null; document.body.dataset.closing = ''; }
   let morphFrame = 0;
   let morphGeneration = 0;
   let drawnGeneration = 0;
@@ -2255,6 +2259,7 @@
   });
   window.browserAPI.onOverlayShow(({ mode: next, prefill, purpose, pillRect }) => {
     const wasOpen = mode === next;
+    endSpacesExit();
     // A quick close/reopen can arrive while the old retract timer is still
     // holding `pointer-events: none` on the panel. Cancel that stale exit
     // before constructing the new opening state, or the fresh panel renders
@@ -2325,6 +2330,11 @@
     const retracting = payload?.retract && (mode === 'panel' || mode === 'palette')
       && retractPanelIntoPill();
     if (mode === 'find') resetFind();
+    if (mode === 'spaces') {
+      endSpacesExit();
+      document.body.dataset.closing = 'spaces';
+      spacesExitTimer = setTimeout(endSpacesExit, RETRACT_MS);
+    }
     mode = null;
     glancePickerPurpose = null;
     glancePickerSelectedId = null;

@@ -3350,19 +3350,26 @@ body.fill-status-surface { background: transparent; }
   transform-origin: var(--ws-origin, 85% 100%);
   transition: opacity 140ms ease, transform 340ms cubic-bezier(.2, .9, .25, 1), display 340ms allow-discrete;
 }
-#workspaceSwitcher.ws-switcher[hidden] { display: none; opacity: 0; transform: scale(.92) translateY(6px); }
+#workspaceSwitcher.ws-switcher[hidden] { display: none; opacity: 0; transform: scale(.92) translateY(6px); pointer-events: none; }
 @starting-style {
   #workspaceSwitcher.ws-switcher:not([hidden]) { opacity: 0; transform: scale(.92) translateY(6px); }
 }
 /* Hanging below the footer button (workspace-ui.js layout), it grows down
    out of the button and collapses back up into it. */
 #workspaceSwitcher.ws-switcher[data-side="below"] { --ws-origin: 85% 0%; }
+#workspaceSwitcher.ws-switcher[data-side="above"] { top: auto; bottom: var(--ws-bottom, 16px); }
 #workspaceSwitcher.ws-switcher[data-side="below"][hidden] { transform: scale(.92) translateY(-6px); }
 @starting-style {
   #workspaceSwitcher.ws-switcher[data-side="below"]:not([hidden]) { opacity: 0; transform: scale(.92) translateY(-6px); }
 }
-body[data-mode="spaces"] #workspaceSwitcher.ws-switcher { top: 16px; left: 16px; right: auto; --ws-origin: 22px -6px; }
-body[data-mode="spaces"] #workspaceSwitcher.ws-switcher[hidden] { transform: scale(.92) translateY(-6px); }
+/* Alone in the 'spaces' view it hangs from the Island's mark, grows down out
+   of it and, closing (data-closing, while main still holds the view), fades
+   back up into it from the same place. */
+body:is([data-mode="spaces"], [data-closing="spaces"]) #workspaceSwitcher.ws-switcher { top: 16px; left: 16px; right: auto; bottom: auto; --ws-origin: 22px -6px; }
+body:is([data-mode="spaces"], [data-closing="spaces"]) #workspaceSwitcher.ws-switcher[hidden] { transform: scale(.92) translateY(-6px); }
+@starting-style {
+  body[data-mode="spaces"] #workspaceSwitcher.ws-switcher:not([hidden]) { opacity: 0; transform: scale(.92) translateY(-6px); }
+}
 #workspaceSwitcher.morphing { height: var(--ws-height); transition: height 320ms cubic-bezier(.2, .9, .25, 1); }
 #workspaceSwitcherList {
   min-height: 0;
@@ -3392,7 +3399,7 @@ body[data-mode="spaces"] #workspaceSwitcher.ws-switcher[hidden] { transform: sca
 }
 .ws-symbol, .ws-glyph { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 
-.ws-row { position: relative; display: flex; align-items: center; border-radius: 11px; }
+.ws-row { position: relative; display: flex; align-items: center; border-radius: 11px; transform: translateY(var(--shift-y, 0px)); transition: transform 200ms cubic-bezier(.2, .9, .25, 1); }
 .ws-row-main {
   flex: 1;
   min-width: 0;
@@ -3432,7 +3439,7 @@ body[data-mode="spaces"] #workspaceSwitcher.ws-switcher[hidden] { transform: sca
 .ws-row:hover .ws-row-count, .ws-row:focus-within .ws-row-count,
 .ws-row:hover .ws-row-main.on::after, .ws-row:focus-within .ws-row-main.on::after { visibility: hidden; }
 .ws-row-more:hover, .ws-row-more:focus-visible { background: color-mix(in srgb, var(--text) 8%, transparent); color: var(--text); outline: none; }
-.ws-row.dragging { z-index: 2; transform: translateY(var(--drag-y, 0)); background: var(--surface-raised); box-shadow: 0 8px 24px -10px color-mix(in srgb, var(--text) 35%, transparent); }
+.ws-row.dragging { z-index: 2; transform: translateY(var(--drag-y, 0)); transition: none; background: var(--surface-raised); box-shadow: 0 8px 24px -10px color-mix(in srgb, var(--text) 35%, transparent); }
 
 .ws-cmd {
   display: flex;
@@ -3523,14 +3530,17 @@ body[data-mode="spaces"] #workspaceSwitcher.ws-switcher[hidden] { transform: sca
 
 @media (prefers-reduced-motion: reduce) {
   #workspaceSwitcher.ws-switcher, #workspaceSwitcher.ws-switcher[hidden],
-  #workspaceSwitcher.ws-switcher[data-side="below"][hidden] { transform: none; transition: opacity 140ms ease, display 140ms allow-discrete; }
+  #workspaceSwitcher.ws-switcher[data-side="below"][hidden],
+  body:is([data-mode="spaces"], [data-closing="spaces"]) #workspaceSwitcher.ws-switcher[hidden] { transform: none; transition: opacity 140ms ease, display 140ms allow-discrete; }
   @starting-style {
     #workspaceSwitcher.ws-switcher:not([hidden]),
-    #workspaceSwitcher.ws-switcher[data-side="below"]:not([hidden]) { transform: none; }
+    #workspaceSwitcher.ws-switcher[data-side="below"]:not([hidden]),
+    body[data-mode="spaces"] #workspaceSwitcher.ws-switcher:not([hidden]) { transform: none; }
   }
   #workspaceSwitcher.morphing { transition: none; }
   .ws-row-main:active { transform: none; }
   .ws-tile { transition: none; }
+  .ws-row { transition: none; }
 }
 @media (prefers-contrast: more) {
   .ws-tile { box-shadow: inset 0 0 0 1px var(--space-ink); }
