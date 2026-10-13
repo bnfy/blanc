@@ -205,3 +205,9 @@ Feature: Named workspace preservation and recovery
     Then the editor shows no readability note
     When I type the custom color "#F5E663" into the picker
     Then the editor says the color is shown as "#6D6400" in light mode
+
+  @F41-32
+  Scenario: Space names are drawn whole, descenders included
+    Given spaces named "Typing gym" and "Reading", with this window in "Typing gym"
+    When I open the Spaces menu from the space mark
+    Then every space name in the menu and on the mark is drawn whole

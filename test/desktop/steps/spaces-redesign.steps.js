@@ -229,6 +229,34 @@ Then('the Spaces menu stays open below the mark', async function () {
 Then('the space {string} is saved with the color {string}', async function (name, color) {
   await waitForValue(() => spaceByName(this, name), (w) => w?.color === color, `${name} saved as ${color}`);
 });
+// A name clipped by its own box (overflow: hidden, for the ellipsis) loses
+// the bottoms of g, p and y when its line is shorter than the font. Measure
+// each name's ink with its own font and check it fits inside that box.
+function inkInsideBox(selector) {
+  return [...document.querySelectorAll(selector)].filter((el) => el.getClientRects().length).map((el) => {
+    const cs = getComputedStyle(el);
+    const ctx = document.createElement('canvas').getContext('2d');
+    ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+    const m = ctx.measureText(el.textContent);
+    const line = parseFloat(cs.lineHeight) || el.clientHeight;
+    const baseline = (line - (m.fontBoundingBoxAscent + m.fontBoundingBoxDescent)) / 2 + m.fontBoundingBoxAscent;
+    return { text: el.textContent, box: el.clientHeight, inkTop: +(baseline - m.actualBoundingBoxAscent).toFixed(2), inkBottom: +(baseline + m.actualBoundingBoxDescent).toFixed(2) };
+  });
+}
+Then('every space name in the menu and on the mark is drawn whole', async function () {
+  const page = await menu();
+  await page.waitForFunction(() => document.querySelectorAll('#workspaceSwitcher .ws-row-name').length >= 2);
+  await page.evaluate(() => document.fonts.ready);
+  const rows = await page.evaluate(inkInsideBox, '#workspaceSwitcher .ws-row-name');
+  const strip = await chromePage();
+  await strip.evaluate(() => document.fonts.ready);
+  const mark = await strip.evaluate(inkInsideBox, '#pillSpaceName');
+  assert.deepEqual(rows.map((r) => r.text).sort(), ['Reading', 'Typing gym']);
+  assert.equal(mark.length, 1, 'the mark shows its name');
+  for (const n of [...rows, ...mark]) {
+    assert.ok(n.inkTop >= -0.5 && n.inkBottom <= n.box + 0.5, `"${n.text}" fits its ${n.box}px box: ${JSON.stringify(n)}`);
+  }
+});
 Then('the editor shows no readability note', async function () {
   const page = await menu();
   // Clay is lightened for dark mode (#EA9B75), but a preset says nothing (D19).

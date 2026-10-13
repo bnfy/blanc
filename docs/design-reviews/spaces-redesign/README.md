@@ -34,3 +34,9 @@ The editor's colour row (`stack-swatches.png`, before over after): the nine
 circles were 22 px with 8 px gaps, leaving the selected ring 2.5 px from its
 neighbour. They are now 20 px, spread across the 266 px row with 10.75 px
 gaps, and the ring sits 3 px out, so it keeps 6.25 px of clear air.
+
+Space names (`stack-names.png`, before over after): the menu row's name and
+the Island mark's name are clipped for their ellipsis, and both sat on a line
+as tall as the font size (line-height 1), so the bottoms of g, p and y were
+cut: "Typing gym" reached 14.66 px in a 14 px box. Both names now have a
+1.3 line, and `@F41-32` measures every name's ink against its box.
