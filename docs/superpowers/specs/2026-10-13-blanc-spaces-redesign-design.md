@@ -95,7 +95,12 @@ copy says *space*.
   support language ("Blanc Patron supports Blanc's development…"); the Polar
   check-in sentence stays (still true); the lapse sentence about spaces goes.
 - Start page: `newtab.patron.upgrade` "Upgrade to Blanc Patron" becomes
-  "Support Blanc" (with matching hide copy); "upgrade" implies an unlock.
+  **"Become a Blanc Patron"** (key `newtab.patron.become`, hide copy "…the
+  Blanc Patron invitation…"); "upgrade" implies an unlock. Not "Support
+  Blanc": that wording was rejected as vague in `design-qa.md` and is barred by
+  `test/unit/migration-checklist-page.test.js`; "Become a Blanc Patron" names
+  the product and the action, matching the Settings button. (Amended during
+  planning.)
 - `/patron` hint ("Support Blanc with a Patron subscription") already fits and
   stays.
 
