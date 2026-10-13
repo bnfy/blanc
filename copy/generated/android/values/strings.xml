@@ -233,7 +233,6 @@
     <string name="ws_error_duplicate_name">That name is already in use. Choose another name.</string>
     <string name="ws_error_invalid_name">Enter a space name.</string>
     <string name="ws_error_limit">You have %1$s spaces. Delete one before adding another.</string>
-    <string name="ws_error_not_patron">Creating spaces needs Blanc Patron.</string>
     <string name="ws_error_not_found">That space is no longer available.</string>
     <string name="ws_error_read_failed">Couldn’t read your spaces file. Restart Blanc after checking that the file is accessible.</string>
     <string name="ws_error_storage_failed">Couldn’t save changes. Check available disk space and try again.</string>
@@ -293,7 +292,6 @@
         <item quantity="one">Recently Deleted (%1$d)</item>
         <item quantity="other">Recently Deleted (%1$d)</item>
     </plurals>
-    <string name="ws_list_patron_settings">Patron settings</string>
     <string name="glance_picker_title">Choose a tab for Glance</string>
     <string name="glance_picker_cancel_label">Cancel choosing a Glance tab</string>
     <string name="glance_picker_filter">Filter open tabs</string>
@@ -733,7 +731,6 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="arc_import_progress">Arc Spaces</string>
     <string name="arc_import_title">Choose Spaces to bring</string>
     <string name="arc_import_mode_spaces">Each Arc Space becomes a space in Blanc Spaces. Folders become groups, and tabs load only when you open them.</string>
-    <string name="arc_import_mode_windows">Each Arc Space opens in its own window. Folders become groups, and tabs load only when you open them. With Blanc Patron, you can save them as spaces.</string>
     <plurals name="arc_import_room">
         <item quantity="one">You can add %1$d more space.</item>
         <item quantity="other">You can add %1$d more spaces.</item>
@@ -753,20 +750,12 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
         <item quantity="one">Create %1$d space</item>
         <item quantity="other">Create %1$d spaces</item>
     </plurals>
-    <plurals name="arc_import_apply_windows">
-        <item quantity="one">Open %1$d window</item>
-        <item quantity="other">Open %1$d windows</item>
-    </plurals>
     <string name="arc_import_apply_favorites">Add Favorites</string>
     <string name="arc_import_applying">Bringing your Spaces…</string>
     <string name="arc_import_done_title">Arc import finished</string>
     <plurals name="arc_import_done_spaces">
         <item quantity="one">Created %1$d space: %2$s. Find it in the command panel’s list of saved spaces.</item>
         <item quantity="other">Created %1$d spaces: %2$s. Find them in the command panel’s list of saved spaces.</item>
-    </plurals>
-    <plurals name="arc_import_done_windows">
-        <item quantity="one">Opened %1$d window.</item>
-        <item quantity="other">Opened %1$d windows.</item>
     </plurals>
     <plurals name="arc_import_done_favorites">
         <item quantity="one">Added %1$d Favorite to the Arc folder.</item>
@@ -785,7 +774,6 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="arc_import_error_saving">Arc was saving its sidebar. Try again in a moment.</string>
     <string name="arc_import_error_empty">No Spaces with tabs and no Favorites were found.</string>
     <string name="arc_import_error_unreadable">Couldn’t read Arc’s sidebar.</string>
-    <string name="arc_import_error_not_patron">Blanc Patron is no longer active, so these Spaces will open as windows instead. Review your choice and try again.</string>
     <plurals name="arc_import_error_no_room">
         <item quantity="one">Only %1$d more space fits. Deselect some Spaces or delete a space first.</item>
         <item quantity="other">Only %1$d more spaces fit. Deselect some Spaces or delete a space first.</item>
@@ -1005,7 +993,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_diagnostics_diagnostics_export">Export diagnostics…</string>
     <string name="settings_diagnostics_diagnostics_clear">Clear crash history</string>
     <string name="settings_patron_title">Blanc Patron</string>
-    <string name="settings_patron_blanc_patron_unlocks_blanc">Blanc Patron unlocks Blanc Spaces on every platform. A one-time founding license activates once, with no further contact. A monthly or annual subscription checks in with Polar about once a day — your license key and activation id only, never browsing data — to confirm it’s still active. On a lapse, existing spaces stay available while creating new ones pauses.</string>
+    <string name="settings_patron_supports_blanc">Blanc Patron is how you support Blanc’s development. Every feature, including Blanc Spaces, is free for everyone. A one-time founding license activates once, with no further contact. A monthly or annual subscription checks in with Polar about once a day — your license key and activation id only, never browsing data — to confirm it’s still active.</string>
     <string name="settings_patron_patron_checkout">Become a Patron — $4/month or $30/year</string>
     <string name="settings_patron_patron_activate_hint">Already a Patron? Enter the license key available under Purchases in Polar to activate this device.</string>
     <string name="settings_patron_patron_key_placeholder">License key</string>
@@ -1275,8 +1263,8 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="newtab_checklist_completed">Completed</string>
     <string name="newtab_checklist_task_completed">%1$s — completed</string>
     <string name="newtab_checklist_task_not_completed">%1$s — not completed</string>
-    <string name="newtab_patron_upgrade">Upgrade to Blanc Patron</string>
-    <string name="newtab_patron_hide">Hide the Blanc Patron upgrade for 90 days</string>
+    <string name="newtab_patron_become">Become a Blanc Patron</string>
+    <string name="newtab_patron_hide">Hide the Blanc Patron invitation for 90 days</string>
     <string name="newtab_customize_button">Customize</string>
     <string name="newtab_customize_label">Customize start page</string>
     <string name="newtab_customize_layout">Layout</string>

@@ -111,13 +111,12 @@ async function bringAll(world) {
   await waitFor(() => sheetDom(world), (d) => !d.entryHidden, 'Arc row');
   await clickSheetButton(world, 'Bring Spaces from Arc');
   const dom = await waitFor(() => sheetDom(world), (d) => !d.previewHidden, 'Arc preview');
-  const apply = dom.buttons.find((b) => /^(Create|Open) \d/.test(b.text));
+  const apply = dom.buttons.find((b) => /^Create \d/.test(b.text));
   assert.ok(apply, `an apply button in ${JSON.stringify(dom.buttons)}`);
   await clickSheetButton(world, apply.text);
 }
 
 async function setRoom(world, free) {
-  await world.call('workspacePatron');
   for (let i = 0; i < 25 - free; i += 1) {
     assert.equal((await world.call('workspaceAction', 'save', `Existing ${i + 1}`)).ok, true);
   }
@@ -156,11 +155,11 @@ Then("Arc's sidebar file has not been read", async function () {
   assert.equal(await this.call('arcImport', 'reads'), this.arcReadsBefore);
 });
 
-Given('I am a Blanc Patron with room for three more spaces', async function () {
+Given('there is room for three more spaces', async function () {
   await setRoom(this, 3);
 });
 
-Given('I am a Blanc Patron with room for one more space', async function () {
+Given('there is room for one more space', async function () {
   await setRoom(this, 1);
 });
 
@@ -221,36 +220,6 @@ Then('Blanc explains that only one more space fits', function () {
 
 Then('no space is created', async function () {
   assert.deepEqual(await this.call('arcImport', 'records'), this.arcBefore.records);
-});
-
-Then("two new windows open with each Space's tabs and groups", async function () {
-  assert.match(this.arcDom.resultText, /Opened 2 windows\./);
-  const before = new Set(this.arcBefore.windows.map((w) => w.id));
-  const opened = await waitFor(() => this.call('windowRuntimes'),
-    (all) => all.filter((w) => !before.has(w.id) && w.attached).length === 2, 'two new windows');
-  const fresh = opened.filter((w) => !before.has(w.id));
-  const state = await this.call('state');
-  const byId = new Map(state.tabs.map((t) => [t.id, t]));
-  const u = this.arcUrls;
-  const source = (t) => (t.url.startsWith('blanc://error/') ? new URL(t.url).searchParams.get('url') : t.url);
-  const windowUrls = fresh.map((w) => w.tabOrder.map((id) => source(byId.get(id))));
-  assert.deepEqual(windowUrls, [[u.mail, u.ci, u.docs, u.news], [u.essay, u.paper]]);
-  assert.deepEqual(fresh.map((w) => w.groups.map((g) => g.name)), [['engineering'], ['long reads']]);
-  assert.equal(byId.get(fresh[0].tabOrder[0]).pinned, true);
-  this.arcFreshWindows = fresh;
-  this.arcState = state;
-});
-
-Then('only the selected tab in each window has loaded', async function () {
-  // Waking starts synchronously on selection but finishes asynchronously.
-  const awakeIn = (state) => {
-    const byId = new Map(state.tabs.map((t) => [t.id, t]));
-    return this.arcFreshWindows.map((runtime) => runtime.tabOrder.filter((id) => !byId.get(id)?.asleep));
-  };
-  const state = await waitFor(() => this.call('state'),
-    (s) => awakeIn(s).every((awake, i) => awake.includes(this.arcFreshWindows[i].activeTabId)),
-    'each window\'s selected tab to wake');
-  assert.deepEqual(awakeIn(state), this.arcFreshWindows.map((runtime) => [runtime.activeTabId]));
 });
 
 Given('an Arc sidebar with two top-row Favorites, one already in Blanc', async function () {

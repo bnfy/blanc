@@ -63,8 +63,8 @@ The checkout link appears in Settings (`#patronCheckout` in
   response is ambiguous, Patron continues for up to 30 days from the last
   successful validation (`GRACE_MS` in `src/main/patron-model.js`).
 - Founding Supporter keys are never revalidated.
-- Renderers see only `patronActive`. Patron currently unlocks creating
-  Blanc Spaces.
+- Renderers see only `patronActive`. Patron is support and unlocks nothing:
+  Blanc Spaces became free for everyone in October 2026.
 
 If the data Blanc sends to Polar changes, update the `patron-license` flow
 in `security/network-data-inventory.json` and the Patron paragraph in

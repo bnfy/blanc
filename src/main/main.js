@@ -5330,7 +5330,6 @@ const workspaceController = createWorkspaceController({
   })]),
   checkpoint: checkpointWorkspaceSession,
   stage: stageWorkspace,
-  canCreate: () => settings.isPatronActive(),
   validateCreate: (name) => namedWorkspaces.validateCreate(name),
   create: (_r, name) => namedWorkspaces.create({ name, capture: { urls: [], groups: [], groupIds: [], pinned: [], meta: [], activeIndex: 0 } }),
   focus(target) {
@@ -5359,20 +5358,9 @@ const workspaceController = createWorkspaceController({
   },
 });
 
-// F45 Arc Spaces import. Patrons get one Blanc space per Arc Space in a
-// single durable write; everyone else gets each Space in its own new window,
-// tabs quiet with only the selected one woken. Runs in the Bring Your Tabs
-// sheet's window runtime, so the active profile is the sheet's profile.
-function openArcSpaceWindows(captures) {
-  const profileId = rt().profileId;
-  for (const capture of captures) {
-    const target = windowRuntimes.createRuntime({ id: createWindowRuntimeId(), profileId });
-    createMainWindow(target);
-    withWindowRuntime(target, () => applyWorkspaceToWindow(target, capture));
-  }
-  persistSession();
-  return { ok: true, windowCount: captures.length };
-}
+// F45 Arc Spaces import: one Blanc space per selected Arc Space, in a single
+// durable write. Runs in the Bring Your Tabs sheet's window runtime, so the
+// active profile is the sheet's profile.
 
 // Acceptance runs (unpackaged, BLANC_TEST=1) point Arc discovery at the
 // synthetic browser home with a chosen platform layout, stand in for the
@@ -5405,7 +5393,6 @@ const arcImport = createArcImportService({
     arcSidebarReadCount += 1;
     return readArcSidebarFile(picked.filePaths[0]);
   },
-  patronActive: () => settings.isPatronActive(),
   spaceRoom() {
     const saved = namedWorkspaces.list();
     return { remainingSlots: Math.max(0, MAX_WORKSPACES - saved.length), existingNames: saved.map((w) => w.name) };
@@ -5415,7 +5402,6 @@ const arcImport = createArcImportService({
     if (result.ok) broadcastWorkspacesUpdated();
     return result;
   },
-  openSpaceWindows: (captures) => openArcSpaceWindows(captures),
   importFavorites(entries) {
     const result = bookmarks.importBookmarks(entries);
     refreshBookmarkFlags();
@@ -7108,7 +7094,6 @@ function chromeOn(channel, handler) {
 // within the requesting profile; page snapshots, URLs and views stay in main.
 function workspacesProjection() {
   return {
-    patronActive: settings.isPatronActive(),
     status: namedWorkspaces.status(),
     deleted: namedWorkspaces.deleted().map((d) => ({ id: d.workspace.id, name: d.workspace.name, deletedAt: d.deletedAt })),
     items: namedWorkspaces.list().map((workspace) => ({
@@ -7571,7 +7556,6 @@ function registerIpcHandlers() {
   chromeOn('chrome:workspaces-cancel', () => workspaceController.cancel(rt()));
   chromeHandle('chrome:workspaces-list', () => workspacesProjection());
   chromeHandle('chrome:workspaces-save-as', (_e, name) => {
-    if (!settings.isPatronActive()) return { ok: false, error: 'not-patron' };
     const result = saveCurrentWindowAsWorkspace(rt(), name);
     if (!result.ok) {
       // The workspace file and session file are separate atomic stores. If the

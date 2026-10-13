@@ -952,7 +952,7 @@
           }
         ],
         "returns": "unknown",
-        "doc": "Create Blanc spaces (Patron) or open windows for the selected Arc Spaces, and optionally import Arc Favorites."
+        "doc": "Create one Blanc space per selected Arc Space, and optionally import Arc Favorites."
       },
       {
         "name": "tabImport.arcCancel",

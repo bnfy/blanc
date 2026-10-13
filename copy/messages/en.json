@@ -900,10 +900,6 @@
     "message": "You have {limit} spaces. Delete one before adding another.",
     "note": "Space switcher error at the space limit; {limit} is the maximum number of spaces (always more than one)."
   },
-  "ws.error.notPatron": {
-    "message": "Creating spaces needs Blanc Patron.",
-    "note": "Space switcher error when someone without Blanc Patron tries to create a space."
-  },
   "ws.error.notFound": {
     "message": "That space is no longer available.",
     "note": "Space switcher error when the chosen space was removed meanwhile."
@@ -1109,11 +1105,6 @@
     "message": "{count, plural, one {Recently Deleted (#)} other {Recently Deleted (#)}}",
     "note": "Button that opens deleted spaces; # is how many there are.",
     "maxLength": 32
-  },
-  "ws.list.patronSettings": {
-    "message": "Patron settings",
-    "note": "Button that opens the Blanc Patron section of Settings.",
-    "maxLength": 21
   },
   "glance.picker.title": {
     "message": "Choose a tab for Glance",
@@ -2746,11 +2737,7 @@
   },
   "arcImport.mode.spaces": {
     "message": "Each Arc Space becomes a space in Blanc Spaces. Folders become groups, and tabs load only when you open them.",
-    "note": "Shown to Blanc Patrons. Blanc Spaces is the Patron feature; a space is one saved set."
-  },
-  "arcImport.mode.windows": {
-    "message": "Each Arc Space opens in its own window. Folders become groups, and tabs load only when you open them. With Blanc Patron, you can save them as spaces.",
-    "note": "Shown when Blanc Patron is not active."
+    "note": "Bring Your Tabs → Arc preview: what the import does. Blanc Spaces is the feature; a space is one saved set."
   },
   "arcImport.room": {
     "message": "{count, plural, one {You can add # more space.} other {You can add # more spaces.}}",
@@ -2778,11 +2765,7 @@
   },
   "arcImport.apply.spaces": {
     "message": "{count, plural, one {Create # space} other {Create # spaces}}",
-    "note": "Primary button for Blanc Patrons."
-  },
-  "arcImport.apply.windows": {
-    "message": "{count, plural, one {Open # window} other {Open # windows}}",
-    "note": "Primary button without Blanc Patron."
+    "note": "Primary button on the Arc preview."
   },
   "arcImport.apply.favorites": {
     "message": "Add Favorites",
@@ -2799,10 +2782,6 @@
   "arcImport.done.spaces": {
     "message": "{count, plural, one {Created # space: {names}. Find it in the command panel’s list of saved spaces.} other {Created # spaces: {names}. Find them in the command panel’s list of saved spaces.}}",
     "note": "{names} is a list of space names."
-  },
-  "arcImport.done.windows": {
-    "message": "{count, plural, one {Opened # window.} other {Opened # windows.}}",
-    "note": "Result without Blanc Patron."
   },
   "arcImport.done.favorites": {
     "message": "{count, plural, one {Added # Favorite to the Arc folder.} other {Added # Favorites to the Arc folder.}}",
@@ -2848,10 +2827,6 @@
     "message": "Couldn’t read Arc’s sidebar.",
     "note": "Read error."
   },
-  "arcImport.error.notPatron": {
-    "message": "Blanc Patron is no longer active, so these Spaces will open as windows instead. Review your choice and try again.",
-    "note": "Shown when Patron lapsed between preview and import."
-  },
   "arcImport.error.noRoom": {
     "message": "{count, plural, one {Only # more space fits. Deselect some Spaces or delete a space first.} other {Only # more spaces fit. Deselect some Spaces or delete a space first.}}",
     "note": "Nothing was created."
@@ -2882,7 +2857,7 @@
   },
   "ws.list.importArc": {
     "message": "Import Spaces from Arc",
-    "note": "Button in the empty space switcher for Blanc Patrons; opens Bring Your Tabs. Spaces is Arc’s feature name."
+    "note": "Button in the empty space switcher; opens Bring Your Tabs. Spaces is Arc’s feature name."
   },
   "profile.defaultName": {
     "message": "Profile {number}",
@@ -3753,9 +3728,9 @@
     "message": "Blanc Patron",
     "note": "Settings → Blanc Patron: section heading."
   },
-  "settings.patron.blancPatronUnlocksBlanc": {
-    "message": "Blanc Patron unlocks Blanc Spaces on every platform. A one-time founding license activates once, with no further contact. A monthly or annual subscription checks in with Polar about once a day — your license key and activation id only, never browsing data — to confirm it’s still active. On a lapse, existing spaces stay available while creating new ones pauses.",
-    "note": "Settings → Blanc Patron: explanation under a setting."
+  "settings.patron.supportsBlanc": {
+    "message": "Blanc Patron is how you support Blanc’s development. Every feature, including Blanc Spaces, is free for everyone. A one-time founding license activates once, with no further contact. A monthly or annual subscription checks in with Polar about once a day — your license key and activation id only, never browsing data — to confirm it’s still active.",
+    "note": "Settings → Blanc Patron: explanation under the heading. Patron is optional support; it unlocks nothing."
   },
   "settings.patron.patronCheckout": {
     "message": "Become a Patron — $4/month or $30/year",
@@ -4747,13 +4722,13 @@
     "message": "{task} — not completed",
     "note": "Start page footer → “Finish setup” checklist: accessible name of an open task; {task} is the task name."
   },
-  "newtab.patron.upgrade": {
-    "message": "Upgrade to Blanc Patron",
-    "note": "Start page footer: pill linking to Blanc Patron in Settings.",
+  "newtab.patron.become": {
+    "message": "Become a Blanc Patron",
+    "note": "Start page footer: pill linking to Blanc Patron in Settings. Patron is optional support for Blanc; it unlocks nothing.",
     "maxLength": 33
   },
   "newtab.patron.hide": {
-    "message": "Hide the Blanc Patron upgrade for 90 days",
+    "message": "Hide the Blanc Patron invitation for 90 days",
     "note": "Start page footer: accessible name of the × on the Patron pill."
   },
   "newtab.customize.button": {

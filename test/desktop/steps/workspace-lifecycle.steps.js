@@ -13,7 +13,6 @@ Before({ tags }, async function () { this.lifecycleFixture = await startWorkspac
 After({ tags }, async function () { await this.lifecycleFixture?.close(); });
 
 Given('a named workspace with a submitted POST response and unsaved edits', async function () {
-  await this.call('workspacePatron');
   this.postTab = await this.call('openTab', this.lifecycleFixture.base + '/form');
   const form = await pageAt(this.lifecycleFixture.base + '/form');
   await form.locator('#submit').click();
@@ -50,7 +49,6 @@ Then('the POST response stays live without reposting or leaking page state to di
 
 Given('a named workspace with an active sign-in {word} opener family', async function (mode) {
   assert.ok(['popup', 'tab'].includes(mode)); this.loginMode = mode;
-  await this.call('workspacePatron');
   this.loginTab = await this.call('openTab', this.lifecycleFixture.base + '/relying');
   const relying = await pageAt(this.lifecycleFixture.base + '/relying');
   await this.waitForState(state => state.tabs.every(tab => !tab.isLoading));

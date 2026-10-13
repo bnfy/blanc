@@ -303,7 +303,7 @@ export interface TabImportPagesAPI {
     arcDetect: () => Promise<unknown>;
     /** Read Arc's Spaces from Arc's own file or a chosen file into an import session. IPC: invoke `pages:arc-import:read`. */
     arcRead: (source: unknown) => Promise<unknown>;
-    /** Create Blanc spaces (Patron) or open windows for the selected Arc Spaces, and optionally import Arc Favorites. IPC: invoke `pages:arc-import:apply`. */
+    /** Create one Blanc space per selected Arc Space, and optionally import Arc Favorites. IPC: invoke `pages:arc-import:apply`. */
     arcApply: (sessionId: unknown, request: unknown) => Promise<unknown>;
     /** Discard the Arc import session. IPC: invoke `pages:arc-import:cancel`. */
     arcCancel: (sessionId: unknown) => Promise<unknown>;

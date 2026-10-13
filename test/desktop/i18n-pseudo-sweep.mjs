@@ -208,7 +208,7 @@ const NATIVE_DIALOG_SURFACES = [
 ];
 
 // The workspace switcher, driven by its buttons' language-independent focus
-// keys. Surfaces run in order and share state: Patron and two workspaces are
+// keys. Surfaces run in order and share state: two workspaces are
 // set up once, and later surfaces delete one.
 const WORKSPACE_FILES = [...OVERLAY_FILES, 'src/renderer/workspace-ui.js'];
 const openIslandPanel = async (ctx) => {
@@ -244,11 +244,10 @@ const closeSwitcher = async (page) => {
 };
 const manageFirst = ['#workspaceSwitcher .ws-manage-button', '#workspaceSwitcher [data-focus-key="rename"]'];
 const WORKSPACE_SURFACES = [
-  { name: 'workspace switcher (without Patron)', open: openSwitcher },
+  { name: 'workspace switcher (empty)', open: openSwitcher },
   {
     name: 'workspace switcher (list)',
     open: async (ctx) => {
-      await callTestHook(ctx.app, 'workspacePatron');
       for (const name of ['zzz-ws-a', 'zzz-ws-b']) assert.equal((await callTestHook(ctx.app, 'workspaceAction', ['save', name])).ok, true);
       const overlay = await openSwitcher(ctx);
       await overlay.locator('#workspaceSwitcher .ws-managed-row + .ws-managed-row').waitFor();

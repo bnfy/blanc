@@ -17,7 +17,7 @@ function harness(overrides = {}) {
     }; },
     focus: () => { calls.push('focus'); return { ok: true, action: 'focus' }; },
     openElsewhere: () => { calls.push('new-window'); return { ok: true }; },
-    canCreate: () => true, create: () => { calls.push('create'); return { ok: true, workspace: { id: 'new' } }; },
+    create: () => { calls.push('create'); return { ok: true, workspace: { id: 'new' } }; },
     ...overrides,
   };
   return { runtime, calls, adapter, controller: createWorkspaceController(adapter) };
@@ -61,11 +61,11 @@ test('a reentrant second window cannot acquire the same profile/workspace reserv
   h.adapter.checkpoint = () => { raced = h.controller.open({ id: 'other', profileId: 'default' }, 'a'); return { ok: true }; };
   assert.equal(h.controller.open(h.runtime, 'a').ok, true); assert.equal(raced.error, 'busy');
 });
-test('create guard occurs before writing; Patron is checked in main authority', () => {
-  const h = harness({ protection: () => ({ tabCount: 2, privateCount: 0 }) });
+test('create guard occurs before writing, and creation consults no entitlement', () => {
+  const h = harness({ protection: () => ({ tabCount: 2, privateCount: 0 }), canCreate: () => false });
   assert.equal(h.controller.create(h.runtime, 'New').error, 'unsaved-scratch'); assert.deepEqual(h.calls, []);
-  h.adapter.canCreate = () => false;
-  assert.equal(h.controller.create(h.runtime, 'New', { newWindow: true }).error, 'not-patron');
+  assert.equal(h.controller.create(h.runtime, 'New', { newWindow: true }).ok, true);
+  assert.deepEqual(h.calls, ['create', 'new-window']);
 });
 test('a created record is reported as saved when its activation commit fails', () => {
   const h = harness({

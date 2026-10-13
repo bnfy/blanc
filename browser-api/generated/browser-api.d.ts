@@ -328,7 +328,6 @@ export interface WorkspaceListItem {
 
 /** Named Workspaces projection, from workspacesProjection() in main.js. */
 export interface WorkspacesPayload {
-  patronActive: boolean;
   status: WorkspaceSaveStatus;
   deleted: DeletedWorkspace[];
   items: WorkspaceListItem[];
@@ -402,7 +401,7 @@ export interface FindResult {
 }
 
 /** Every error code a Named Workspace action can report, from workspace-controller.js, workspaces.js, workspaces-model.js and the workspace functions in main.js. */
-export type WorkspaceErrorCode = 'activation-failed' | 'busy' | 'duplicate-name' | 'future-format' | 'invalid-name' | 'invalid-record' | 'limit' | 'not-found' | 'not-patron' | 'protected-pages' | 'read-failed' | 'repair-failed' | 'saved-not-opened' | 'storage-failed' | 'unsaved-scratch';
+export type WorkspaceErrorCode = 'activation-failed' | 'busy' | 'duplicate-name' | 'future-format' | 'invalid-name' | 'invalid-record' | 'limit' | 'not-found' | 'protected-pages' | 'read-failed' | 'repair-failed' | 'saved-not-opened' | 'storage-failed' | 'unsaved-scratch';
 
 /** Why a window may not switch workspaces right now, from workspaceProtection() in main.js. */
 export type WorkspaceProtectionReason = 'permission-or-transition' | 'active-page' | 'resident-capacity';
@@ -429,7 +428,6 @@ export interface WorkspaceActionResult {
   windowId?: string;
   /** The new workspace, after a create or save, including a save that could not be opened. */
   workspaceId?: WorkspaceId;
-  patronActive?: boolean;
   status?: WorkspaceSaveStatus;
   deleted?: DeletedWorkspace[];
   items?: WorkspaceListItem[];

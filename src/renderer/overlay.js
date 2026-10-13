@@ -174,11 +174,10 @@
   // -1 means no explicit ArrowUp/ArrowDown choice; renderList still highlights
   // the result that bare Enter would choose.
   let selectedResultIndex = -1;
-  // Workspaces (Blanc Patron). Populated from listWorkspaces() when the
+  // Workspaces (Blanc Spaces). Populated from listWorkspaces() when the
   // panel opens (refreshSwitcherData) and kept fresh via onWorkspacesUpdated —
   // a pull-once list would keep showing a stale "active" row after a switch
   // that happened elsewhere (another window, or this window's own command).
-  let wsPatronActive = false;
   let wsWorkspaces = [];
   let workspaceSwitcherOpen = false;
   let pendingPostImportWorkspacePrompt = false;
@@ -788,16 +787,15 @@
     return row;
   }
 
-  // --- Workspaces (Blanc Patron) ---
+  // --- Workspaces (Blanc Spaces) ---
   //
   // Identity, switching, and every name/confirm editor live in the island
   // footer popover. The tab list never hosts workspace chrome — only the
   // scratch-guard confirm (about this window) still appears there.
 
   function commitWorkspacesPayload(payload) {
-    wsPatronActive = !!payload?.patronActive;
     wsWorkspaces = Array.isArray(payload?.items) ? payload.items : [];
-    workspaceUI.apply({ ...payload, patronActive: wsPatronActive, items: wsWorkspaces });
+    workspaceUI.apply({ ...payload, items: wsWorkspaces });
   }
   function applyWorkspacesPayload(payload) {
     // A workspace status/autosave push can land between pointerdown and click.

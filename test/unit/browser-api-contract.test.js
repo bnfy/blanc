@@ -213,7 +213,7 @@ test('a boolean handler that can resolve to undefined is reported', () => {
 
 test('a returned object that drifts from its type is reported', () => {
   const problems = api.checkInvokeResults(api.loadContract(),
-    sendSources('    patronActive: settings.isPatronActive(),\n', '    patronActive: settings.isPatronActive(),\n    plan: settings.plan,\n'));
+    sendSources('    status: namedWorkspaces.status(),\n', '    status: namedWorkspaces.status(),\n    plan: settings.plan,\n'));
   assert.ok(problems.some((p) => p.includes('listWorkspaces result') && p.includes('WorkspacesPayload')), problems.join('\n'));
 });
 
@@ -296,10 +296,10 @@ test('workspace error, reason and action literals are all in the contract', () =
   assert.deepEqual(api.checkWorkspaceCodes(api.loadContract(), sendSources()), []);
 });
 
-test('a new workspace error code in main.js is reported', () => {
+test('a new workspace error code is reported', () => {
   const problems = api.checkWorkspaceCodes(api.loadContract(),
-    sendSources("return { ok: false, error: 'not-patron' };", "return { ok: false, error: 'needs-patron' };"));
-  assert.ok(problems.some((p) => p.includes("error 'needs-patron'")), problems.join('\n'));
+    sendSources("return { ok: false, error: 'busy' };", "return { ok: false, error: 'not-ready' };", 'workspace-controller.js'));
+  assert.ok(problems.some((p) => p.includes("error 'not-ready'")), problems.join('\n'));
 });
 
 test('a new protection reason is reported', () => {
@@ -310,7 +310,7 @@ test('a new protection reason is reported', () => {
 
 test('a workspace result spread that drifts from its type is reported', () => {
   const problems = api.checkInvokeResults(api.loadContract(),
-    sendSources('    patronActive: settings.isPatronActive(),\n', '    patronActive: settings.isPatronActive(),\n    plan: settings.plan,\n'));
+    sendSources('    status: namedWorkspaces.status(),\n', '    status: namedWorkspaces.status(),\n    plan: settings.plan,\n'));
   assert.ok(problems.some((p) => p.includes('renameWorkspace result') && p.includes('plan')), problems.join('\n'));
 });
 

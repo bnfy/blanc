@@ -82,3 +82,9 @@ Feature: Named workspace preservation and recovery
     Given a named workspace with an active sign-in tab opener family
     When I try switching workspaces during fixture sign-in
     Then the switch is refused and the sign-in callback still reaches its opener
+
+  @F41-15
+  Scenario: Anyone can save a window as a space
+    Given there is no active supporter license
+    When I save this window as a space named "Free for all" from the switcher
+    Then a space named "Free for all" is saved and this window is in it

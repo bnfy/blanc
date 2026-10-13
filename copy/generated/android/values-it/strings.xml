@@ -238,7 +238,6 @@
     <string name="ws_error_duplicate_name">Questo nome è già in uso. Scegline un altro.</string>
     <string name="ws_error_invalid_name">Inserisci un nome per lo Space.</string>
     <string name="ws_error_limit">Hai %1$s Spaces. Eliminane uno prima di aggiungerne un altro.</string>
-    <string name="ws_error_not_patron">Per creare Spaces serve Blanc Patron.</string>
     <string name="ws_error_not_found">Questo Space non è più disponibile.</string>
     <string name="ws_error_read_failed">Impossibile leggere il file degli Spaces. Verifica che il file sia accessibile e riavvia Blanc.</string>
     <string name="ws_error_storage_failed">Impossibile salvare le modifiche. Controlla lo spazio libero su disco e riprova.</string>
@@ -302,7 +301,6 @@
         <item quantity="many">Eliminati di recente (%1$d)</item>
         <item quantity="other">Eliminati di recente (%1$d)</item>
     </plurals>
-    <string name="ws_list_patron_settings">Impostazioni Patron</string>
     <string name="glance_picker_title">Scegli una scheda per Glance</string>
     <string name="glance_picker_cancel_label">Annulla la scelta di una scheda per Glance</string>
     <string name="glance_picker_filter">Filtra le schede aperte</string>
@@ -750,7 +748,6 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="arc_import_progress">Spaces di Arc</string>
     <string name="arc_import_title">Scegli gli Spaces da portare</string>
     <string name="arc_import_mode_spaces">Ogni Space di Arc diventa uno Space in Blanc Spaces. Le cartelle diventano gruppi e le schede si caricano solo quando le apri.</string>
-    <string name="arc_import_mode_windows">Ogni Space di Arc si apre in una finestra a sé. Le cartelle diventano gruppi e le schede si caricano solo quando le apri. Con Blanc Patron puoi salvarli come Spaces.</string>
     <plurals name="arc_import_room">
         <item quantity="one">Puoi aggiungere ancora %1$d Space.</item>
         <item quantity="many">Puoi aggiungere ancora %1$d Spaces.</item>
@@ -774,11 +771,6 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
         <item quantity="many">Crea %1$d Spaces</item>
         <item quantity="other">Crea %1$d Spaces</item>
     </plurals>
-    <plurals name="arc_import_apply_windows">
-        <item quantity="one">Apri %1$d finestra</item>
-        <item quantity="many">Apri %1$d finestre</item>
-        <item quantity="other">Apri %1$d finestre</item>
-    </plurals>
     <string name="arc_import_apply_favorites">Aggiungi i Preferiti</string>
     <string name="arc_import_applying">Trasferimento dei tuoi Spaces…</string>
     <string name="arc_import_done_title">Importazione da Arc completata</string>
@@ -786,11 +778,6 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
         <item quantity="one">Creato %1$d Space: %2$s. Lo trovi nell’elenco degli Spaces salvati del pannello dei comandi.</item>
         <item quantity="many">Creati %1$d Spaces: %2$s. Li trovi nell’elenco degli Spaces salvati del pannello dei comandi.</item>
         <item quantity="other">Creati %1$d Spaces: %2$s. Li trovi nell’elenco degli Spaces salvati del pannello dei comandi.</item>
-    </plurals>
-    <plurals name="arc_import_done_windows">
-        <item quantity="one">Aperta %1$d finestra.</item>
-        <item quantity="many">Aperte %1$d finestre.</item>
-        <item quantity="other">Aperte %1$d finestre.</item>
     </plurals>
     <plurals name="arc_import_done_favorites">
         <item quantity="one">Aggiunto %1$d preferito alla cartella Arc.</item>
@@ -811,7 +798,6 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="arc_import_error_saving">Arc stava salvando la sua barra laterale. Riprova tra un momento.</string>
     <string name="arc_import_error_empty">Non sono stati trovati Spaces con schede né Preferiti.</string>
     <string name="arc_import_error_unreadable">Impossibile leggere la barra laterale di Arc.</string>
-    <string name="arc_import_error_not_patron">Blanc Patron non è più attivo, quindi questi Spaces si apriranno invece come finestre. Rivedi la tua scelta e riprova.</string>
     <plurals name="arc_import_error_no_room">
         <item quantity="one">C’è posto solo per %1$d Space in più. Deseleziona alcuni Spaces o prima elimina uno Space.</item>
         <item quantity="many">C’è posto solo per %1$d Spaces in più. Deseleziona alcuni Spaces o prima elimina uno Space.</item>
@@ -1034,7 +1020,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_diagnostics_diagnostics_export">Esporta diagnostica…</string>
     <string name="settings_diagnostics_diagnostics_clear">Cancella arresti anomali</string>
     <string name="settings_patron_title">Blanc Patron</string>
-    <string name="settings_patron_blanc_patron_unlocks_blanc">Blanc Patron sblocca Blanc Spaces su tutte le piattaforme. Una licenza fondatore una tantum si attiva una sola volta, senza ulteriori contatti. Un abbonamento mensile o annuale si collega a Polar circa una volta al giorno (solo la tua chiave di licenza e l’ID di attivazione, mai dati di navigazione) per confermare che sia ancora attivo. Se scade, gli Spaces esistenti restano disponibili, ma non puoi crearne di nuovi.</string>
+    <string name="settings_patron_supports_blanc">Con Blanc Patron sostieni lo sviluppo di Blanc. Ogni funzione, Blanc Spaces compreso, è gratuita per tutti. Una licenza fondatore una tantum si attiva una sola volta, senza ulteriori contatti. Un abbonamento mensile o annuale si collega a Polar circa una volta al giorno (solo la tua chiave di licenza e l’ID di attivazione, mai dati di navigazione) per confermare che sia ancora attivo.</string>
     <string name="settings_patron_patron_checkout">Diventa Patron — $4/mese o $30/anno</string>
     <string name="settings_patron_patron_activate_hint">Sei già Patron? Inserisci la chiave di licenza che trovi in Purchases su Polar per attivare questo dispositivo.</string>
     <string name="settings_patron_patron_key_placeholder">Chiave di licenza</string>
@@ -1314,7 +1300,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="newtab_checklist_completed">Completato</string>
     <string name="newtab_checklist_task_completed">%1$s — completato</string>
     <string name="newtab_checklist_task_not_completed">%1$s — non completato</string>
-    <string name="newtab_patron_upgrade">Passa a Blanc Patron</string>
+    <string name="newtab_patron_become">Diventa Blanc Patron</string>
     <string name="newtab_patron_hide">Nascondi l’invito a Blanc Patron per 90 giorni</string>
     <string name="newtab_customize_button">Personalizza</string>
     <string name="newtab_customize_label">Personalizza la pagina iniziale</string>

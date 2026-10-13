@@ -19,7 +19,6 @@
     'duplicate-name': t('ws.error.duplicateName'),
     'invalid-name': t('ws.error.invalidName'),
     'limit': t('ws.error.limit', { limit: number.format(WORKSPACE_LIMIT) }),
-    'not-patron': t('ws.error.notPatron'),
     'not-found': t('ws.error.notFound'),
     'read-failed': t('ws.error.readFailed'),
     'storage-failed': t('ws.error.storageFailed'),
@@ -30,7 +29,7 @@
     'saved-not-opened': t('ws.error.savedNotOpened'),
   };
   function create({ document: doc, window: win, api, popup, list, trigger, label, feedback, onOpenChange }) {
-    let data = { items: [], deleted: [], patronActive: false, status: 'saved' };
+    let data = { items: [], deleted: [], status: 'saved' };
     let state = { kind: 'list' };
     let opened = false;
     let generation = 0;
@@ -79,7 +78,6 @@
     function begin(kind, workspace = null, original = null) {
       if (state.pending) return;
       if (['rename', 'delete', 'manage'].includes(kind) && !workspace) { state = { kind: 'list', error: errors['not-found'] }; open(); return; }
-      if (['create', 'save'].includes(kind) && !data.patronActive) { state = { kind: 'list' }; open(); return; }
       generation += 1;
       state = { kind, id: workspace?.id, value: kind === 'rename' ? workspace.name : '', name: workspace?.name, original, error: '' };
       open();
@@ -169,7 +167,7 @@
       const actions = el('div', 'ws-switcher-confirm-acts');
       actions.append(button(t('common.cancel'), 'cancel', cancel), button(t('ws.decision.newWindow'), 'new-window', () => openAction(action, { newWindow: true })));
       if (!protectedPages) {
-        if (result.tabCount > result.privateCount && data.patronActive) actions.append(button(t('ws.decision.saveFirst'), 'save-first', () => begin('save', null, state)));
+        if (result.tabCount > result.privateCount) actions.append(button(t('ws.decision.saveFirst'), 'save-first', () => begin('save', null, state)));
         actions.append(button(t('ws.decision.closeAndSwitch'), 'close-and-switch', () => openAction(action, { decision: result.decision }), 'ws-switcher-mini danger'));
       }
       box.append(actions); return box;
@@ -234,16 +232,15 @@
       } else {
         nodes.push(...data.items.map(workspaceRow));
         if (!data.items.length) nodes.push(el('p', 'ws-help', t('ws.list.empty')));
-        // F45: a Patron starting from nothing can bring Spaces over from Arc.
-        if (!data.items.length && data.patronActive) nodes.push(button(t('ws.list.importArc'), 'import-arc', () => { close(); api.openPage('tab-import'); }));
+        // F45: anyone starting from nothing can bring Spaces over from Arc.
+        if (!data.items.length) nodes.push(button(t('ws.list.importArc'), 'import-arc', () => { close(); api.openPage('tab-import'); }));
         if (undoId && data.deleted?.some((d) => d.id === undoId)) nodes.push(button(t('ws.list.undo'), 'undo', () => run(() => api.restoreWorkspace(undoId), () => { undoId = null; })));
         if (data.deleted?.length) nodes.push(button(t('ws.list.recentlyDeleted', { count: data.deleted.length }), 'recently-deleted', () => { state = { kind: 'recovery' }; render(); }));
-        if (!data.patronActive) nodes.push(button(t('ws.list.patronSettings'), 'patron-settings', () => { close(); api.openPage('settings', 'patron'); }));
       }
       if (state.error && !['save', 'create', 'rename'].includes(state.kind)) { const error = el('p', 'ws-error', state.error); error.setAttribute('role', 'alert'); nodes.push(error); }
       list.replaceChildren(...nodes); list.scrollTop = scroll;
       const naming = state.kind !== 'list';
-      for (const id of ['wsSwitcherSep', 'wsSwitcherNew', 'wsSwitcherSaveAs']) doc.getElementById(id).hidden = naming || !data.patronActive || !!errors[data.status];
+      for (const id of ['wsSwitcherSep', 'wsSwitcherNew', 'wsSwitcherSaveAs']) doc.getElementById(id).hidden = naming || !!errors[data.status];
       if (selection) { const input = popup.querySelector('input'); input?.focus(); input?.setSelectionRange(...selection); }
       else if (focusKey) [...popup.querySelectorAll('button')].find((b) => b.dataset.focusKey === focusKey)?.focus();
       layout();

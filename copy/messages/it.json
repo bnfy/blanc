@@ -873,10 +873,6 @@
     "message": "Hai {limit} Spaces. Eliminane uno prima di aggiungerne un altro.",
     "source": "sha256:3b0428849b2653f15d9f2890ce80c6ea7deea8b7cd135e8877c4f3f40613a3a8"
   },
-  "ws.error.notPatron": {
-    "message": "Per creare Spaces serve Blanc Patron.",
-    "source": "sha256:948817841dd22ff28e5faa4b6fe1e58812572187723b0b0db35b924e5eedc7fe"
-  },
   "ws.error.notFound": {
     "message": "Questo Space non è più disponibile.",
     "source": "sha256:5ad8d54c5adff9f4394eff6d7c2c987d9881dc58cf42d6288f9c11bd305c0d78"
@@ -1064,10 +1060,6 @@
   "ws.list.recentlyDeleted": {
     "message": "{count, plural, one {Eliminati di recente (#)} many {Eliminati di recente (#)} other {Eliminati di recente (#)}}",
     "source": "sha256:914e803ee3d8a9e95fb0cbd9f26a5cdadbbb3e8007e2151881199a6cdece1ef9"
-  },
-  "ws.list.patronSettings": {
-    "message": "Impostazioni Patron",
-    "source": "sha256:bb766b6b7c0fdf9eb685ee867500b03f58dd2a97e4329f1aa69ee8040339d8fc"
   },
   "glance.picker.title": {
     "message": "Scegli una scheda per Glance",
@@ -2679,11 +2671,7 @@
   },
   "arcImport.mode.spaces": {
     "message": "Ogni Space di Arc diventa uno Space in Blanc Spaces. Le cartelle diventano gruppi e le schede si caricano solo quando le apri.",
-    "source": "sha256:c09bff3937677ead1da6993328054fb512057195d2e54970d5f7df23ac5ed486"
-  },
-  "arcImport.mode.windows": {
-    "message": "Ogni Space di Arc si apre in una finestra a sé. Le cartelle diventano gruppi e le schede si caricano solo quando le apri. Con Blanc Patron puoi salvarli come Spaces.",
-    "source": "sha256:db2e86ba39ef46d8ce19c98552b7d4a91c647b86cea80af11a61581690515fbd"
+    "source": "sha256:ffc8ee07b53d7e014d978398264b66bace171a287ee40fc0a9cf647cd3a99fc1"
   },
   "arcImport.room": {
     "message": "{count, plural, one {Puoi aggiungere ancora # Space.} many {Puoi aggiungere ancora # Spaces.} other {Puoi aggiungere ancora # Spaces.}}",
@@ -2711,11 +2699,7 @@
   },
   "arcImport.apply.spaces": {
     "message": "{count, plural, one {Crea # Space} many {Crea # Spaces} other {Crea # Spaces}}",
-    "source": "sha256:cec65c5bf1b41f6770fcb63ad99c294d83a2660803f005df0edf283e902aec26"
-  },
-  "arcImport.apply.windows": {
-    "message": "{count, plural, one {Apri # finestra} many {Apri # finestre} other {Apri # finestre}}",
-    "source": "sha256:3be252873ac906c5d4492c659afd373545ea19f090288ecf1cee34a5f4d76394"
+    "source": "sha256:4ee1d6b850a728222efd922dc7b892d9f7720bb118c74a6c1e83b2b01a4ce682"
   },
   "arcImport.apply.favorites": {
     "message": "Aggiungi i Preferiti",
@@ -2732,10 +2716,6 @@
   "arcImport.done.spaces": {
     "message": "{count, plural, one {Creato # Space: {names}. Lo trovi nell’elenco degli Spaces salvati del pannello dei comandi.} many {Creati # Spaces: {names}. Li trovi nell’elenco degli Spaces salvati del pannello dei comandi.} other {Creati # Spaces: {names}. Li trovi nell’elenco degli Spaces salvati del pannello dei comandi.}}",
     "source": "sha256:4afc5658a596435902ab0c9c72e0d951aab40b8b5a3265aa9e02d5eb08d724c3"
-  },
-  "arcImport.done.windows": {
-    "message": "{count, plural, one {Aperta # finestra.} many {Aperte # finestre.} other {Aperte # finestre.}}",
-    "source": "sha256:0453d24b87835526c4638fd399e496823ccd590a8abd821deb60b1f83762f813"
   },
   "arcImport.done.favorites": {
     "message": "{count, plural, one {Aggiunto # preferito alla cartella Arc.} many {Aggiunti # preferiti alla cartella Arc.} other {Aggiunti # preferiti alla cartella Arc.}}",
@@ -2781,10 +2761,6 @@
     "message": "Impossibile leggere la barra laterale di Arc.",
     "source": "sha256:ad62bdae90945352226cd0b05f584c2ed72ae8dd20d8c8169c6511feb1e624c9"
   },
-  "arcImport.error.notPatron": {
-    "message": "Blanc Patron non è più attivo, quindi questi Spaces si apriranno invece come finestre. Rivedi la tua scelta e riprova.",
-    "source": "sha256:e7e6a3b17f3a026e2d234fb4b6b302312b0ad3122aa4bf6899c121bfdbcb9658"
-  },
   "arcImport.error.noRoom": {
     "message": "{count, plural, one {C’è posto solo per # Space in più. Deseleziona alcuni Spaces o prima elimina uno Space.} many {C’è posto solo per # Spaces in più. Deseleziona alcuni Spaces o prima elimina uno Space.} other {C’è posto solo per # Spaces in più. Deseleziona alcuni Spaces o prima elimina uno Space.}}",
     "source": "sha256:c1123205517afbcac6e0f9a5af7d8c21def01d7c359336d0333bb6b2d6daf6a6"
@@ -2815,7 +2791,7 @@
   },
   "ws.list.importArc": {
     "message": "Importa gli Spaces da Arc",
-    "source": "sha256:0416f4e07b657d7695b22350963ae048338e0630136231cc8fe6e23f6c0bac41"
+    "source": "sha256:8912ae8b6c4d420deb5e8550140eba247731724979700e041f6a05e3163c1229"
   },
   "profile.defaultName": {
     "message": "Profilo {number}",
@@ -3625,9 +3601,9 @@
     "message": "Blanc Patron",
     "source": "sha256:19e097972083774279bdee2b2d1cba4e33c832605fb19c4fed78fe0e1ac7ac4e"
   },
-  "settings.patron.blancPatronUnlocksBlanc": {
-    "message": "Blanc Patron sblocca Blanc Spaces su tutte le piattaforme. Una licenza fondatore una tantum si attiva una sola volta, senza ulteriori contatti. Un abbonamento mensile o annuale si collega a Polar circa una volta al giorno (solo la tua chiave di licenza e l’ID di attivazione, mai dati di navigazione) per confermare che sia ancora attivo. Se scade, gli Spaces esistenti restano disponibili, ma non puoi crearne di nuovi.",
-    "source": "sha256:db27e85a4632633da3a8acaa277d5e7a27e578f3ee4b8c11971a4307302c44ab"
+  "settings.patron.supportsBlanc": {
+    "message": "Con Blanc Patron sostieni lo sviluppo di Blanc. Ogni funzione, Blanc Spaces compreso, è gratuita per tutti. Una licenza fondatore una tantum si attiva una sola volta, senza ulteriori contatti. Un abbonamento mensile o annuale si collega a Polar circa una volta al giorno (solo la tua chiave di licenza e l’ID di attivazione, mai dati di navigazione) per confermare che sia ancora attivo.",
+    "source": "sha256:5ba433cc54e4f9efb468eee1f109da827b79ad170cc6b3c100c5d84ea4392e8d"
   },
   "settings.patron.patronCheckout": {
     "message": "Diventa Patron — $4/mese o $30/anno",
@@ -4585,13 +4561,13 @@
     "message": "{task} — non completato",
     "source": "sha256:e9f1117f8475af5675067bbec38be830bbdd2a845105142729c1954d8a6b26ad"
   },
-  "newtab.patron.upgrade": {
-    "message": "Passa a Blanc Patron",
-    "source": "sha256:71bdae7af7d9fca8c671e992cc5547577b2eef82b8adbe6af5769098bab78e92"
+  "newtab.patron.become": {
+    "message": "Diventa Blanc Patron",
+    "source": "sha256:03b6fef220b6f9832c4c4a5dbc6805f421a736174b19f5a88ee1d7836484fa44"
   },
   "newtab.patron.hide": {
     "message": "Nascondi l’invito a Blanc Patron per 90 giorni",
-    "source": "sha256:3d4f7f278996eaf9e08bf3663c7278d34e6f1e0e4494cd86a81190d3468ad684"
+    "source": "sha256:04a0a1e02ff9336de15171f566dca19334d81e04c7d45d681cd0f761354eadd4"
   },
   "newtab.customize.button": {
     "message": "Personalizza",

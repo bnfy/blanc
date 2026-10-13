@@ -202,9 +202,9 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F44-4 | A pinned language that is no longer available renders English | D27 | ⬜ | ⬜ | ⬜ |
 | F44-5 | Websites are unaffected by the interface language | — | ⬜ | ⬜ | ⬜ |
 | F45-1 | Arc's file is read only after the person asks | — | ✅ | ➖ | ➖ |
-| F45-2 | A Patron gets one space per selected Arc Space | — | ✅ | ➖ | ➖ |
+| F45-2 | Each selected Arc Space becomes a space | — | ✅ | ➖ | ➖ |
 | F45-3 | A selection that does not fit creates nothing | — | ✅ | ➖ | ➖ |
-| F45-4 | Without Patron each Space opens in its own window | — | ✅ | ➖ | ➖ |
+| F45-4 | Arc Spaces become spaces without Blanc Patron | — | ✅ | ➖ | ➖ |
 | F45-5 | Arc's Favorites join a Favorites folder named Arc | — | ✅ | ➖ | ➖ |
 | F45-6 | The page sees names and counts, never URLs or paths | — | ✅ | ➖ | ➖ |
 | F45-7 | Linux imports a chosen file | — | ✅ | ➖ | ➖ |

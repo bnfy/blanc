@@ -9595,48 +9595,6 @@
         }
       }
     },
-    "ws.error.notPatron": {
-      "comment": "Space switcher error when someone without Blanc Patron tries to create a space.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Creating spaces needs Blanc Patron."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zum Anlegen von Spaces brauchst du Blanc Patron."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Para crear Spaces necesitas Blanc Patron."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La création de Spaces nécessite Blanc Patron."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Per creare Spaces serve Blanc Patron."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Para criar Spaces, você precisa do Blanc Patron."
-          }
-        }
-      }
-    },
     "ws.error.notFound": {
       "comment": "Space switcher error when the chosen space was removed meanwhile.",
       "extractionState": "manual",
@@ -11991,48 +11949,6 @@
                 }
               }
             }
-          }
-        }
-      }
-    },
-    "ws.list.patronSettings": {
-      "comment": "Button that opens the Blanc Patron section of Settings.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Patron settings"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Patron-Einstellungen"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Opciones de Patron"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Réglages Patron"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Impostazioni Patron"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Configurações Patron"
           }
         }
       }
@@ -29690,7 +29606,7 @@
       }
     },
     "arcImport.mode.spaces": {
-      "comment": "Shown to Blanc Patrons. Blanc Spaces is the Patron feature; a space is one saved set.",
+      "comment": "Bring Your Tabs → Arc preview: what the import does. Blanc Spaces is the feature; a space is one saved set.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -29727,48 +29643,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cada Space do Arc vira um Space no Blanc Spaces. As pastas viram grupos, e as abas só carregam quando você as abre."
-          }
-        }
-      }
-    },
-    "arcImport.mode.windows": {
-      "comment": "Shown when Blanc Patron is not active.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Each Arc Space opens in its own window. Folders become groups, and tabs load only when you open them. With Blanc Patron, you can save them as spaces."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jeder Space aus Arc öffnet sich in einem eigenen Fenster. Ordner werden zu Gruppen, und Tabs laden erst, wenn du sie öffnest. Mit Blanc Patron kannst du sie als Spaces speichern."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cada Space de Arc se abre en su propia ventana. Las carpetas pasan a ser grupos y las pestañas solo se cargan cuando las abres. Con Blanc Patron, puedes guardarlos como Spaces."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Chaque Space d’Arc s’ouvre dans sa propre fenêtre. Les dossiers deviennent des groupes, et les onglets ne se chargent que lorsque vous les ouvrez. Avec Blanc Patron, vous pouvez les enregistrer comme Spaces."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ogni Space di Arc si apre in una finestra a sé. Le cartelle diventano gruppi e le schede si caricano solo quando le apri. Con Blanc Patron puoi salvarli come Spaces."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cada Space do Arc abre na própria janela. As pastas viram grupos, e as abas só carregam quando você as abre. Com o Blanc Patron, você pode salvá-los como Spaces."
           }
         }
       }
@@ -30314,7 +30188,7 @@
       }
     },
     "arcImport.apply.spaces": {
-      "comment": "Primary button for Blanc Patrons.",
+      "comment": "Primary button on the Arc preview.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -30444,144 +30318,6 @@
                 "stringUnit": {
                   "state": "translated",
                   "value": "Criar %1$lld Spaces"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "arcImport.apply.windows": {
-      "comment": "Primary button without Blanc Patron.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Open %1$lld window"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Open %1$lld windows"
-                }
-              }
-            }
-          }
-        },
-        "de": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%1$lld Fenster öffnen"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%1$lld Fenster öffnen"
-                }
-              }
-            }
-          }
-        },
-        "es": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Abrir %1$lld ventana"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Abrir %1$lld ventanas"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Abrir %1$lld ventanas"
-                }
-              }
-            }
-          }
-        },
-        "fr": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Ouvrir %1$lld fenêtre"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Ouvrir %1$lld fenêtres"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Ouvrir %1$lld fenêtres"
-                }
-              }
-            }
-          }
-        },
-        "it": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Apri %1$lld finestra"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Apri %1$lld finestre"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Apri %1$lld finestre"
-                }
-              }
-            }
-          }
-        },
-        "pt-BR": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Abrir %1$lld janela"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Abrir %1$lld janelas"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Abrir %1$lld janelas"
                 }
               }
             }
@@ -30846,144 +30582,6 @@
                 "stringUnit": {
                   "state": "translated",
                   "value": "%1$lld Spaces criados: %2$@. Eles estão na lista de Spaces salvos do painel de comandos."
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "arcImport.done.windows": {
-      "comment": "Result without Blanc Patron.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Opened %1$lld window."
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Opened %1$lld windows."
-                }
-              }
-            }
-          }
-        },
-        "de": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%1$lld Fenster geöffnet."
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%1$lld Fenster geöffnet."
-                }
-              }
-            }
-          }
-        },
-        "es": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Se abrió %1$lld ventana."
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Se abrieron %1$lld ventanas."
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Se abrieron %1$lld ventanas."
-                }
-              }
-            }
-          }
-        },
-        "fr": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%1$lld fenêtre ouverte."
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%1$lld fenêtres ouvertes."
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%1$lld fenêtres ouvertes."
-                }
-              }
-            }
-          }
-        },
-        "it": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Aperta %1$lld finestra."
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Aperte %1$lld finestre."
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Aperte %1$lld finestre."
-                }
-              }
-            }
-          }
-        },
-        "pt-BR": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%1$lld janela aberta."
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%1$lld janelas abertas."
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%1$lld janelas abertas."
                 }
               }
             }
@@ -31645,48 +31243,6 @@
         }
       }
     },
-    "arcImport.error.notPatron": {
-      "comment": "Shown when Patron lapsed between preview and import.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Blanc Patron is no longer active, so these Spaces will open as windows instead. Review your choice and try again."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Blanc Patron ist nicht mehr aktiv, daher öffnen sich diese Spaces stattdessen als Fenster. Prüfe deine Auswahl und versuche es erneut."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Blanc Patron ya no está activo, así que estos Spaces se abrirán como ventanas. Revisa tu elección e inténtalo de nuevo."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Blanc Patron n’est plus actif, ces Spaces s’ouvriront donc dans des fenêtres. Vérifiez votre choix et réessayez."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Blanc Patron non è più attivo, quindi questi Spaces si apriranno invece come finestre. Rivedi la tua scelta e riprova."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O Blanc Patron não está mais ativo, então estes Spaces vão abrir como janelas. Revise sua escolha e tente de novo."
-          }
-        }
-      }
-    },
     "arcImport.error.noRoom": {
       "comment": "Nothing was created.",
       "extractionState": "manual",
@@ -32270,7 +31826,7 @@
       }
     },
     "ws.list.importArc": {
-      "comment": "Button in the empty space switcher for Blanc Patrons; opens Bring Your Tabs. Spaces is Arc’s feature name.",
+      "comment": "Button in the empty space switcher; opens Bring Your Tabs. Spaces is Arc’s feature name.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -40795,44 +40351,44 @@
         }
       }
     },
-    "settings.patron.blancPatronUnlocksBlanc": {
-      "comment": "Settings → Blanc Patron: explanation under a setting.",
+    "settings.patron.supportsBlanc": {
+      "comment": "Settings → Blanc Patron: explanation under the heading. Patron is optional support; it unlocks nothing.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Blanc Patron unlocks Blanc Spaces on every platform. A one-time founding license activates once, with no further contact. A monthly or annual subscription checks in with Polar about once a day — your license key and activation id only, never browsing data — to confirm it’s still active. On a lapse, existing spaces stay available while creating new ones pauses."
+            "value": "Blanc Patron is how you support Blanc’s development. Every feature, including Blanc Spaces, is free for everyone. A one-time founding license activates once, with no further contact. A monthly or annual subscription checks in with Polar about once a day — your license key and activation id only, never browsing data — to confirm it’s still active."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Blanc Patron schaltet Blanc Spaces auf allen Plattformen frei. Eine einmalige Gründerlizenz wird einmal aktiviert, ohne weiteren Kontakt. Ein Monats- oder Jahresabo meldet sich etwa einmal am Tag bei Polar – nur mit Lizenzschlüssel und Aktivierungs-ID, nie mit Browserdaten –, um zu bestätigen, dass es noch aktiv ist. Läuft es aus, bleiben bestehende Spaces verfügbar, neue können aber nicht mehr erstellt werden."
+            "value": "Mit Blanc Patron unterstützt du die Entwicklung von Blanc. Jede Funktion, auch Blanc Spaces, ist für alle kostenlos. Eine einmalige Gründerlizenz wird einmal aktiviert, ohne weiteren Kontakt. Ein Monats- oder Jahresabo meldet sich etwa einmal am Tag bei Polar – nur mit Lizenzschlüssel und Aktivierungs-ID, nie mit Browserdaten –, um zu bestätigen, dass es noch aktiv ist."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Blanc Patron desbloquea Blanc Spaces en todas las plataformas. Una licencia única de fundador se activa una vez, sin más contacto. Una suscripción mensual o anual consulta con Polar una vez al día aproximadamente (solo tu clave de licencia y el ID de activación, nunca datos de navegación) para confirmar que sigue activa. Si vence, los Spaces existentes siguen disponibles, pero no puedes crear nuevos."
+            "value": "Con Blanc Patron apoyas el desarrollo de Blanc. Todas las funciones, incluido Blanc Spaces, son gratis para todos. Una licencia única de fundador se activa una vez, sin más contacto. Una suscripción mensual o anual consulta con Polar una vez al día aproximadamente (solo tu clave de licencia y el ID de activación, nunca datos de navegación) para confirmar que sigue activa."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Blanc Patron débloque Blanc Spaces sur toutes les plateformes. Une licence fondatrice unique s’active une fois, sans autre contact. Un abonnement mensuel ou annuel contacte Polar environ une fois par jour — uniquement votre clé de licence et l’identifiant d’activation, jamais de données de navigation — pour confirmer qu’il est toujours actif. En cas d’interruption, les Spaces existants restent disponibles, mais vous ne pouvez plus en créer."
+            "value": "Blanc Patron vous permet de soutenir le développement de Blanc. Toutes les fonctionnalités, y compris Blanc Spaces, sont gratuites pour tous. Une licence fondatrice unique s’active une fois, sans autre contact. Un abonnement mensuel ou annuel contacte Polar environ une fois par jour — uniquement votre clé de licence et l’identifiant d’activation, jamais de données de navigation — pour confirmer qu’il est toujours actif."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Blanc Patron sblocca Blanc Spaces su tutte le piattaforme. Una licenza fondatore una tantum si attiva una sola volta, senza ulteriori contatti. Un abbonamento mensile o annuale si collega a Polar circa una volta al giorno (solo la tua chiave di licenza e l’ID di attivazione, mai dati di navigazione) per confermare che sia ancora attivo. Se scade, gli Spaces esistenti restano disponibili, ma non puoi crearne di nuovi."
+            "value": "Con Blanc Patron sostieni lo sviluppo di Blanc. Ogni funzione, Blanc Spaces compreso, è gratuita per tutti. Una licenza fondatore una tantum si attiva una sola volta, senza ulteriori contatti. Un abbonamento mensile o annuale si collega a Polar circa una volta al giorno (solo la tua chiave di licenza e l’ID di attivazione, mai dati di navigazione) per confermare che sia ancora attivo."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O Blanc Patron libera o Blanc Spaces em todas as plataformas. Uma licença única de fundador é ativada uma vez, sem outro contato. Uma assinatura mensal ou anual consulta o Polar cerca de uma vez por dia — só sua chave de licença e o ID de ativação, nunca dados de navegação — para confirmar que continua ativa. Se ela vencer, os Spaces existentes continuam disponíveis, mas não dá para criar novos."
+            "value": "Com o Blanc Patron, você apoia o desenvolvimento do Blanc. Todos os recursos, incluindo o Blanc Spaces, são gratuitos para todos. Uma licença única de fundador é ativada uma vez, sem outro contato. Uma assinatura mensal ou anual consulta o Polar cerca de uma vez por dia — só sua chave de licença e o ID de ativação, nunca dados de navegação — para confirmar que continua ativa."
           }
         }
       }
@@ -51835,14 +51391,14 @@
         }
       }
     },
-    "newtab.patron.upgrade": {
-      "comment": "Start page footer: pill linking to Blanc Patron in Settings.",
+    "newtab.patron.become": {
+      "comment": "Start page footer: pill linking to Blanc Patron in Settings. Patron is optional support for Blanc; it unlocks nothing.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Upgrade to Blanc Patron"
+            "value": "Become a Blanc Patron"
           }
         },
         "de": {
@@ -51866,7 +51422,7 @@
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Passa a Blanc Patron"
+            "value": "Diventa Blanc Patron"
           }
         },
         "pt-BR": {
@@ -51884,13 +51440,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hide the Blanc Patron upgrade for 90 days"
+            "value": "Hide the Blanc Patron invitation for 90 days"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Upgrade auf Blanc Patron für 90 Tage ausblenden"
+            "value": "Einladung zu Blanc Patron für 90 Tage ausblenden"
           }
         },
         "es": {
@@ -51902,7 +51458,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Masquer l’invitation Blanc Patron pendant 90 jours"
+            "value": "Masquer l’invitation Blanc Patron pendant 90 jours"
           }
         },
         "it": {

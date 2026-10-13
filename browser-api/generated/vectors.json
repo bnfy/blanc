@@ -2680,13 +2680,11 @@
       ],
       "replies": [
         {
-          "patronActive": true,
           "status": "saved",
           "deleted": [],
           "items": []
         },
         {
-          "patronActive": true,
           "status": "saved",
           "deleted": [
             {
@@ -2749,7 +2747,6 @@
           "action": "swap",
           "windowId": "workspace-action-result-1",
           "workspaceId": "workspace-id-1",
-          "patronActive": true,
           "status": "saved",
           "deleted": [
             {
@@ -2855,7 +2852,6 @@
           "action": "swap",
           "windowId": "workspace-action-result-1",
           "workspaceId": "workspace-id-1",
-          "patronActive": true,
           "status": "saved",
           "deleted": [
             {
@@ -2961,7 +2957,6 @@
           "action": "swap",
           "windowId": "workspace-action-result-1",
           "workspaceId": "workspace-id-1",
-          "patronActive": true,
           "status": "saved",
           "deleted": [
             {
@@ -3026,7 +3021,6 @@
           "action": "swap",
           "windowId": "workspace-action-result-1",
           "workspaceId": "workspace-id-1",
-          "patronActive": true,
           "status": "saved",
           "deleted": [
             {
@@ -3089,7 +3083,6 @@
           "action": "swap",
           "windowId": "workspace-action-result-1",
           "workspaceId": "workspace-id-1",
-          "patronActive": true,
           "status": "saved",
           "deleted": [
             {
@@ -3152,7 +3145,6 @@
           "action": "swap",
           "windowId": "workspace-action-result-1",
           "workspaceId": "workspace-id-1",
-          "patronActive": true,
           "status": "saved",
           "deleted": [
             {
@@ -3215,7 +3207,6 @@
           "action": "swap",
           "windowId": "workspace-action-result-1",
           "workspaceId": "workspace-id-1",
-          "patronActive": true,
           "status": "saved",
           "deleted": [
             {
@@ -3297,7 +3288,6 @@
           "action": "swap",
           "windowId": "workspace-action-result-1",
           "workspaceId": "workspace-id-1",
-          "patronActive": true,
           "status": "saved",
           "deleted": [
             {
@@ -3447,7 +3437,6 @@
         {
           "emit": [
             {
-              "patronActive": true,
               "status": "saved",
               "deleted": [],
               "items": []
@@ -3456,7 +3445,6 @@
           "callbacks": [
             [
               {
-                "patronActive": true,
                 "status": "saved",
                 "deleted": [],
                 "items": []
@@ -3467,7 +3455,6 @@
         {
           "emit": [
             {
-              "patronActive": true,
               "status": "saved",
               "deleted": [
                 {
@@ -3492,7 +3479,6 @@
           "callbacks": [
             [
               {
-                "patronActive": true,
                 "status": "saved",
                 "deleted": [
                   {
