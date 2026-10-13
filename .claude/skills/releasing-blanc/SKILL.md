@@ -1,103 +1,269 @@
 ---
 name: releasing-blanc
-description: Full runbook for cutting a Blanc desktop release — scripts/release.sh mechanics and its required BLANC_RELEASE_* env vars, macOS notarization via 1Password, the Touch ID provisioning profile and signing-certificate pinning, the Windows/Linux GitHub Actions build with Azure Trusted Signing, and the post-publication changelog + site-deploy steps. Use when running npm run release, debugging a signing/notarization failure, rotating the Developer ID certificate or provisioning profile, or changing the release workflow.
+description: Full runbook for cutting a Blanc desktop release — scripts/release.sh mechanics and its required BLANC_* env vars, macOS notarization via 1Password, the Touch ID provisioning profile and signing-certificate pinning, the Windows/Linux GitHub Actions build with Azure Trusted Signing, resuming past flakes, and the mandatory post-publication verification, records, site deploy and updater handoffs. Use when running npm run release, debugging a signing/notarization failure, rotating the Developer ID certificate or provisioning profile, or changing the release workflow.
 ---
 
 # Releasing Blanc
 
-**Released versions are immutable** — always bump to a new version, never overwrite
-assets. The pipeline is draft-first and fail-closed: nothing is tagged or published
-until every gate passes, and a failed attempt leaves no public artifacts.
+**Released versions are immutable**: always bump to a new version, and never
+overwrite assets. The pipeline is draft-first and fail-closed. Nothing is
+tagged or published until every gate passes, and a failure before the tag
+push leaves nothing public.
 
-## The release flow, end to end
+This skill summarises the process. The authoritative sources are the
+**Release-operator protocol** and the **Release completion and takeover
+protocol** in `CLAUDE.md` (both mandatory), `docs/release-verification.md`
+(read it immediately before every release), and `scripts/release.sh` itself.
+Where they disagree with this file, they win.
 
-1. **Release PR** (squash-merged to `main`, titled "Release Blanc X.Y.Z") containing,
-   in one commit:
-   - the `version` bump in `package.json` + `package-lock.json` (consider the
-     `electron` devDependency too — it tracks Chromium stable, and Chromium can't be
-     swapped out of a running app);
-   - the checked-in release notes **`docs/press/release-notes/vX.Y.Z.md`**
-     (required; ordinary wrapped markdown — mirror the previous release's file);
-   - the press-page version: `const VERSION = 'X.Y.Z'` in `site/src/pages/press.astro`
-     **and** the literal version pin in `test/unit/press-kit.test.js`
-     (`assert.equal(packageVersion, 'X.Y.Z')`). The verify gate fails the release if
-     either lags the package version.
-2. **Run the script from a checkout whose HEAD is exactly `origin/main`** (the script
-   verifies this and refuses otherwise):
+## 1. Prepare the release (its own PR, squash-merged to `main`)
 
-   ```bash
-   BLANC_RELEASE_MODE=stable BLANC_RELEASE_PLATFORMS=mac,windows,linux BLANC_MAC_ARCHES=arm64,x64 npm run release
-   ```
+Title it "Prepare Blanc X.Y.Z" and mirror the previous one (e.g. #767 for
+1.32.0). In one commit:
 
-   All three env vars are **required** — the script exits immediately without them.
-   `BLANC_RELEASE_MODE=candidate` requires a prerelease version (`X.Y.Z-rc.N`) and
-   publishes with `--prerelease`; `stable` refuses prerelease versions. Every
-   release ships **both** Mac architectures: Apple Silicon (arm64) is the default
-   Mac build and the native host the script smoke-tests, and Intel (x64) ships
-   alongside it so Intel installs keep updating. The script refuses a single
-   architecture unless `BLANC_MAC_ARCH_WAIVER` gives the reason, which must also be
-   recorded in the release incident. The post-release `prerelease-smoke.yml`
-   dispatch verifies and launches the published Intel DMG on a native
-   `macos-15-intel` runner.
-3. **After publication**, the script regenerates `site/src/data/releases.json` from
-   the GitHub release body (`npm run site:changelog`). Commit that as
-   "Record Blanc X.Y.Z in the public changelog" (its own PR), then deploy the site
-   (`npm run site:deploy`) — **only from a checkout at `origin/main`**: a production
-   Pages deploy ships whatever the local tree contains, and a deploy from a stale
-   checkout has silently rolled the live site back to older content before.
+- `npm version X.Y.Z --no-git-tag-version` (updates `package.json` and
+  `package-lock.json`). Consider the `electron` devDependency too: it tracks
+  Chromium stable, and Chromium can't be swapped out of a running app.
+- Bump `build.mac.bundleVersion` above the previous public build (1.31.0 =
+  1310, 1.32.0 = 1320). Nothing checks this, and releases are immutable.
+- Add `docs/press/release-notes/vX.Y.Z.md`: Added / Changed / Fixed,
+  user-facing only, ordinary wrapped markdown like the previous file. Include
+  only changes present in the release commit, and keep every claim within
+  `docs/marketing-claims.md`.
+- Repoint `docs/press/release-notes/unreleased.md` at the new notes.
+- Run `npm run compliance:build`, because the version bump makes both
+  compliance SBOMs stale.
 
-## What the script does (and refuses)
+There is no press-page version to bump: the website derives the version from
+`package.json`. Pre-check `npm audit --omit=dev --audit-level=high` and
+`npm run compliance:check`. Merge only when every check run on the PR's head
+commit has finished green.
 
-`scripts/release.sh` authenticates via the `gh` CLI's cached session (no `GH_TOKEN`
-needed locally). In order: it refuses existing tags/releases for the version
-(immutability), refuses dirty release sources (a broad list: `src`, `build`, `test`,
-`scripts`, `site`, spec/substrate dirs, workflows, `package.json`/lock, the notes
-file), refuses a HEAD that isn't `origin/main`, then runs `npm ci` and the
-**press verification gate** (`release:verify:press`: substrate checks, unit tests,
-acceptance dry-run + desktop run, cold-launch smoke, OAuth desktop test, DNS smoke,
-`npm audit --omit=dev --audit-level=high`, site build). Only then does it build:
-notarized mac artifacts, a packaged first-run smoke test, and a migration test that
-downloads the public Stable base version and upgrades its profile. The immutable
-source tag is pushed first so CI runners can check out the exact commit, the draft
-release is created with the complete mac asset set (using `gh release create`
-directly — electron-builder's own GitHub publisher races per-artifact uploads and
-can leave a first publish missing `latest-mac.yml` or a blockmap), Windows/Linux
-builds are dispatched and watched, the full draft asset set is re-downloaded and
-verified against the expected manifest, `SHA256SUMS` is generated and uploaded, and
-only then is the draft published and every download URL smoke-checked logged-out.
+## 2. Preflight
 
-## First-attempt failure modes (all observed on v1.0.3)
+- Use a clean throwaway worktree detached at `origin/main`:
+  `git fetch origin && git worktree add <dir> origin/main`. Inside it, run
+  `npm ci` **and** `npm --prefix site ci`; root `npm ci` alone leaves
+  `site:build` failing with `astro: command not found`.
+- Confirm that no `vX.Y.Z` tag, draft or release exists. A draft doesn't show
+  up under `releases/tags/<tag>`, so list releases instead.
+- Confirm `gh auth status`, `op` and `cosign` work, and that no other release
+  is running (`ps -eo pid,command | grep -E 'release\.sh|electron-builder'`).
+  A second run's `npm ci` deletes `node_modules` under the first.
+- A sandboxed `gh auth status` can falsely report a bad token because it
+  can't reach the keychain. Retry outside the sandbox, or use the working Git
+  credential, before asking anyone to run `gh auth login`.
 
-- **Press-kit pin:** `test/unit/press-kit.test.js` hard-codes the version and
-  requires `press.astro`'s `VERSION` to match — bump both in the release PR itself
-  (see step 1), not as an afterthought.
-- **npm audit:** the security gate is fail-closed on high-severity advisories in
-  production deps, including transitive ones (e.g. `undici` under electron's
-  `@electron/get`). Fix is usually a lockfile-only `npm audit fix --omit=dev`,
-  committed to main.
-- **Fresh worktree:** root `npm ci` does not install the site's dependencies — run
-  `npm --prefix site ci` too, or the site build dies with `astro: command not found`.
-- **Exit-code masking:** don't pipe the release run through `tee` in a shell without
-  `pipefail` — a failed release then reports exit 0 and reads as success.
+## 3. Run it
 
-Releasing from a **throwaway git worktree** works well when the primary checkout is
-dirty or shared with concurrent sessions: `git worktree add <dir> origin/main`, land
-the release PR, `git checkout --detach origin/main` in the worktree (detached HEAD
-passes the HEAD-equals-origin/main check), install both dependency trees, run the
-script, remove the worktree afterward.
+From the worktree, in a **visible, foreground native Terminal.app window**:
 
-## macOS notarization
+```bash
+BLANC_RELEASE_OPERATOR=terminal \
+BLANC_COSIGN_IDENTITY='anthony@bnfy.me' \
+BLANC_COSIGN_OIDC_ISSUER='https://github.com/login/oauth' \
+BLANC_RELEASE_MODE=stable \
+BLANC_RELEASE_PLATFORMS=mac,windows,linux \
+BLANC_MAC_ARCHES=arm64,x64 \
+npm run release
+```
 
-**Notarization:** the build step is wrapped in `op run --env-file=.env.1password --no-masking -- ...`, pulling `APPLE_ID`/`APPLE_APP_SPECIFIC_PASSWORD` from the 1Password item **"Apple Notarization"** (vault Dev, `username`/`password` fields) plus a literal `APPLE_TEAM_ID` — electron-builder's `@electron/notarize` integration auto-detects those three env vars with no extra config (hardened runtime + the JIT/unsigned-memory/disable-library-validation entitlements it needs are already electron-builder's defaults). If `op` isn't installed, the script falls back to an unnotarized build with a warning instead of failing outright; if `op` *is* installed but the item can't be resolved (locked vault, wrong item name), it fails loudly rather than silently shipping unnotarized — a signed-but-unnotarized build gets quarantined and blocked by Gatekeeper the moment it's downloaded (e.g. by `electron-updater` during an auto-update), which is exactly what broke a stale pre-rebrand install after the v0.3.0 release.
+- **Required:** `BLANC_RELEASE_MODE` (`stable`, or `candidate` for an
+  `X.Y.Z-rc.N` version, published with `--prerelease`), `BLANC_MAC_ARCHES`,
+  `BLANC_COSIGN_IDENTITY` and `BLANC_COSIGN_OIDC_ISSUER`. The script exits
+  immediately without any of them.
+- **Both Mac architectures ship in every release.** Apple Silicon is the
+  default build and the one smoke-tested locally; Intel ships alongside it.
+  A single architecture is refused unless `BLANC_MAC_ARCH_WAIVER` gives the
+  reason, which also goes in the release incident.
+- **Operator:** `terminal` is the default. `agent` needs an interactive,
+  unsandboxed PTY the user has approved. If the harness rejects agent mode
+  once, explain it once, then launch the complete terminal-mode command in
+  Terminal.app yourself, so the user doesn't have to type it.
+- **Never background it.** Without a TTY, cosign switches to a device code
+  that expires in 300 seconds (this killed v1.2.0). An agent can wrap the
+  command as `script -q <log> npm run release; echo $? > <exit-file>` inside
+  the Terminal window and tail the log. Strip carriage returns with
+  `sed -l`, not `tr`, which buffers. Never pipe through `tee` without
+  `pipefail`.
+- **Optional:** `BLANC_COSIGN_REDIRECT_PORT` (default 49197), and
+  `BLANC_MIGRATION_BASE_VERSION`, whose default is advanced to the new
+  version in each release's record PR.
 
-## Provisioning profile and signing certificate
+**The user is needed twice:**
 
-**Provisioning profile (Touch ID passkeys):** the mac build embeds `build/embedded.provisionprofile` (wired via `build.mac.provisioningProfile`) because the WebAuthn `keychain-access-groups` entitlement is *restricted* — even for the app's own `TeamID.BundleID` group, AMFI SIGKILLs an app carrying it without a profile that authorizes it, and helpers can't carry a profile at all (so the inherit entitlements must never list the group). The profile is only honored when it embeds the **exact certificate** the build is signed with; the Apple account has several identically-named Developer ID Application certs, so the signer is made deterministic and verified twice. `build.mac.identity` pins the signing certificate **by SHA-1 fingerprint** (electron-builder substring-matches the qualifier against `security find-identity` lines, so a fingerprint selects exactly one identity — update the pin when the cert rotates). `scripts/preflight-mac-signing.mjs` (npm `predist`/`predist:dir` + `release.sh`) then fails the build early unless *every* certificate electron-builder could select — the pinned identity, a `CSC_LINK` p12 (parsed and validated, never skipped), or unpinned Developer ID identities — is embedded in the profile, and unless the profile is an unexpired, all-devices (`ProvisionsAllDevices`, never `ProvisionedDevices`), `Platform: OSX` Developer ID profile — a device-listed development-type profile would launch only on registered Macs, bricking every other install through auto-update, while end-user devices need nothing installed for the correct profile type (it ships inside the bundle). Finally `scripts/after-sign-verify.js` (`build.afterSign`) checks ground truth on every packaged app: the certificate that *actually* signed `Blanc.app` must be in the bundle's embedded profile (itself byte-identical to the repo's) with the WebAuthn entitlement present, throwing before any dmg/zip exists. Regenerate the profile on the developer portal whenever the signing cert rotates — and note every current Developer ID cert expires 2027-02-01 (G1 CA cap), so cert *and* profile rotation land together before then. `test/unit/webauthn-packaging.test.js` guards the static wiring cross-platform.
+1. **1Password, at the start.** The script runs
+   `OP_BIOMETRIC_UNLOCK_ENABLED=true op signin` itself. Approve it only if the
+   prompt names the actual operator. Never run a separate sign-in, and cancel
+   if `op` offers to add an account by hand.
+2. **Sigstore, about 30 minutes in**, after the Windows/Linux build. A fresh
+   OIDC page opens in Safari with a callback on `127.0.0.1:49197`. Tell the
+   user the moment it opens. If it times out, cosign falls back to
+   `Enter verification code:` in the Terminal window and waits indefinitely.
+   Open that flow's `redirect_uri=urn%3Aietf…` link from the log in Safari;
+   the user signs in as `bnfy` and pastes the code into Terminal. Never
+   authorize it in Blanc.
 
-## Windows & Linux
+**During notarization, look at process names only**
+(`ps -axo pid=,ppid=,etime=,comm=`). The notarization library passes Apple's
+app-specific password in `notarytool`'s arguments. If it ever reaches a log or
+tool output, revoke it and replace the `Apple Notarization` item in 1Password
+before another release.
 
-**Windows & Linux:** `release.sh` only builds macOS locally (it's a macOS dev machine), then dispatches `.github/workflows/release-windows-linux.yml` against the already-pushed source tag and watches the run to completion; the draft stays unpublished if the native build fails. That workflow builds NSIS on `windows-latest` and AppImage on `ubuntu-latest` and uploads both onto the same draft; duplicate asset uploads fail rather than overwrite an existing version.
+## What the script does, in order
 
-**Windows code signing is live as of v1.0.3 (2026-08-04) via Azure Trusted Signing:** account `blanc-signing`, certificate profile `blanc-profile`, publisher CN **"Bananify Creative"** (org identity validation completed, expires 2028-10-28 — renewal reminders start 60 days out; certificate renewal stops if it lapses). The workflow's signing is tried in order: **Azure Trusted Signing** first (repo secrets `AZURE_TENANT_ID`/`AZURE_CLIENT_ID`/`AZURE_CLIENT_SECRET` for the `blanc-github-signing` service principal, which holds the "Artifact Signing Certificate Profile Signer" role on the account, plus repo *variables* `AZURE_TRUSTED_SIGNING_ENDPOINT`/`AZURE_CODE_SIGNING_ACCOUNT_NAME`/`AZURE_CERTIFICATE_PROFILE_NAME`/`AZURE_PUBLISHER_NAME`, passed via `--config.win.azureSignOptions.*` CLI overrides); then a traditional Authenticode cert via `CSC_LINK`/`CSC_KEY_PASSWORD` if Azure isn't configured; otherwise unsigned with a `::warning::` annotation. A healthy release logs `==> Signing via Azure Trusted Signing (blanc-signing/blanc-profile)` in the windows job — **if the unsigned warning ever reappears, a repo variable or secret has been lost.** The Azure branch requires **all three** of `AZURE_CLIENT_ID`, `AZURE_CODE_SIGNING_ACCOUNT_NAME`, and `AZURE_CERTIFICATE_PROFILE_NAME` non-empty before it's attempted — a partially-configured setup must fall through rather than call `Invoke-TrustedSigning` with an empty profile name, which fails hard instead of degrading; this exact failure shipped once before the gate was tightened. Linux AppImages aren't code-signed (no OS-level equivalent to Gatekeeper/SmartScreen to satisfy).
+1. **Refuses** an existing tag or release for the version, dirty release
+   sources, or a HEAD that isn't exactly `origin/main`.
+2. Runs `op signin`, then `npm ci` and the **press verification gate**
+   (`release:verify:press`): substrate and Windows-icon checks, unit tests,
+   the acceptance dry run and desktop run, the desktop smokes (Favorites
+   picker, wallpaper, cold launch, browser shortcuts, Web Store, OAuth,
+   modified links, DNS), the security audit, and the site build.
+3. Preflights the macOS identity and provisioning profile, then builds
+   notarized macOS artifacts for both architectures inside
+   `op run --env-file=.env.1password`. If `op` is missing it refuses; it
+   never publishes an unnotarized build.
+4. **Packaged checks** on the signed build: fuses, byte-identical blocker
+   payloads, compliance payloads, first run, release regressions, Workspace
+   quit/restart, two live-favicon matrices, and migration from the public
+   `MIGRATION_BASE_VERSION`.
+5. Pushes the immutable source tag and creates the draft release with the
+   complete macOS asset set. It uses `gh release create` directly, because
+   electron-builder's own publisher races its uploads and can leave
+   `latest-mac.yml` or a blockmap missing.
+6. Dispatches `.github/workflows/release-windows-linux.yml` against the tag
+   and watches it.
+7. Downloads the full draft, validates it against the expected manifest,
+   generates the SBOM and `SHA256SUMS`, signs them with Sigstore, and verifies
+   the bundle against the pinned identity and issuer.
+8. Publishes the verified draft, smoke-checks every download URL while logged
+   out, and refreshes `site/src/data/releases.json`.
 
-Two electron-builder artifact-naming quirks the workflow's verify/upload steps depend on, found by reading actual CI output rather than the docs: the AppImage gets **no** `-x86_64`/arch suffix when built for the runner's default arch (only a non-default or multi-arch build adds one), and AppImage's block map is embedded in the file itself rather than shipped as a separate `.blockmap` (unlike the mac zip/dmg and the NSIS `.exe`, which do get one) — re-check the real `dist/` output rather than assuming a pattern if this ever needs to change.
+## When something fails
+
+- **Before the tag push, flake:** rerun just the failed check against the
+  same `dist/`. If it passes and shows no bug, rerun the same command with
+  `BLANC_RELEASE_RESUME_FROM=<step>` and
+  `BLANC_RELEASE_RESUME_REASON='<failure and passing rerun>'`. Steps are
+  `fuses`, `blocker-payloads`, `compliance`, `first-run`, `regressions`,
+  `workspaces`, `favicons-primary`, `favicons-additional` and `migration`.
+  This reuses the stamped build instead of rebuilding and re-notarizing.
+  Press-gate and build failures can't be resumed this way.
+- **Before the tag push, real bug:** stop and ask the user. Fix it in its own
+  PR, then rerun the same version, which is allowed because no tag exists.
+  Before relaunching, list every commit that landed on main since the failed
+  attempt's source, and raise any new ones.
+- **After the tag or draft exists:** never rerun `npm run release`, delete the
+  tag, or overwrite assets; the tag and draft are evidence. Stop, report
+  exactly where it failed, and ask. `docs/release-verification.md` describes
+  finishing a failed Sigstore step by hand, in the script's order.
+- **Common first-attempt gates:** a new high-severity advisory in production
+  dependencies (usually fixed with a lockfile-only
+  `npm audit fix --omit=dev`, committed to main); a fresh worktree without
+  `npm --prefix site ci`.
+
+## 4. After publication (the release isn't finished yet)
+
+Follow the **Release completion and takeover protocol** in `CLAUDE.md`. In
+short:
+
+1. **Independent verification** from a fresh, empty download directory:
+   `gh release download vX.Y.Z`, then
+   `node scripts/verify-release-manifest.mjs --dir <dir> --version X.Y.Z --platforms mac,windows,linux --mac-arches arm64,x64`,
+   `shasum -a 256 -c SHA256SUMS`, and `cosign verify-blob` against the pinned
+   identity and issuer. The two-architecture norm is 18 assets and 17
+   manifest artifacts.
+2. **Both Mac DMGs** (`Blanc-X.Y.Z-arm64.dmg` is Apple Silicon,
+   `Blanc-X.Y.Z.dmg` is Intel): mount each read-only, then run
+   `spctl --assess --type execute` and
+   `codesign --verify --deep --strict --verbose=2` on `Blanc.app`, confirm
+   the Developer ID (team XYGUCY4498) and the pinned leaf certificate, run
+   `xcrun stapler validate`, and check the architecture and
+   CFBundleVersion. Check that `windows-signature.json` matches the
+   installer's SHA-256.
+3. **Hosted checks:**
+   `gh workflow run prerelease-smoke.yml --ref vX.Y.Z -f release_version=X.Y.Z`,
+   then wait for all five jobs. The Apple Silicon job's `stapler validate` can
+   fail on a runner network error (`NSURLErrorDomain -1005`); it's read-only,
+   so rerun just that job.
+4. **Records PR** from a separate clean worktree:
+   - a dated incident in `docs/release-incidents/`, linking any evidence the
+     release gate requires;
+   - the public baseline in `CLAUDE.md` and `AGENTS.md`, kept byte-identical;
+   - the capability boundaries in `docs/marketing-claims.md`;
+   - `site/src/data/releases.json` (`npm run site:changelog`), plus the
+     Feature Roadmap and `release-feature-names.json` (see `site/CLAUDE.md`);
+   - the next default `MIGRATION_BASE_VERSION` in `scripts/release.sh`, and
+     its assertion in `test/unit/release-manifest.test.js`.
+
+   Run `npm run site:changelog:check` and `npm run site:build`.
+5. **Site deploy:** `npm run site:deploy`, **only from a clean checkout at
+   `origin/main`**. A production Pages deploy ships whatever the local tree
+   contains, and a stale checkout has silently rolled the live site back
+   before. Confirm that
+   `wrangler pages deployment list --project-name=blancbrowser` shows that
+   commit as Production on branch `main`, and check the live homepage and
+   `/changelog`.
+6. **Updater handoffs (macOS and Windows):** each counts only when it starts
+   inside the previous public Blanc, which finds, downloads and installs the
+   update through **Restart Now**. Opening an installer directly never
+   counts. Record them as pending until the user reports each one.
+
+No posts or launch channels go out as part of a release.
+
+## macOS signing details
+
+- **Notarization:** credentials come from the 1Password item **"Apple
+  Notarization"** (vault Dev, `username`/`password`) plus a literal
+  `APPLE_TEAM_ID`, which electron-builder's `@electron/notarize`
+  integration detects. The log never mentions notarization, so verify the
+  artifacts instead (section 4).
+- **Hardened runtime:** only Electron's required JIT and unsigned-memory
+  allowances. Library validation stays on everywhere except
+  `Blanc Helper (Plugin).app`, whose single exception loads 1Password's
+  separately signed native bridge.
+- **Provisioning profile and certificate pin:** the build embeds
+  `build/embedded.provisionprofile` for the restricted WebAuthn
+  `keychain-access-groups` entitlement (Touch ID passkeys).
+  `build.mac.identity` pins the signing certificate by SHA-1 fingerprint.
+  `scripts/preflight-mac-signing.mjs` and `scripts/after-sign-verify.js`
+  fail the build unless the certificate that actually signed the app is in an
+  unexpired, all-devices Developer ID profile. Every current Developer ID
+  certificate expires **2027-02-01**, so rotate the certificate and the
+  profile together before then and update the pin. `CLAUDE.md` has the full
+  rationale; `test/unit/webauthn-packaging.test.js` guards the wiring.
+
+## Windows and Linux
+
+`release.sh` builds macOS locally, then dispatches
+`.github/workflows/release-windows-linux.yml`. Its NSIS build runs on
+`windows-latest` and its AppImage on `ubuntu-latest`. Both upload to the same
+draft, and duplicate uploads fail rather than overwrite.
+
+- **Windows signing is fail-closed.**
+  - The repo variable `WINDOWS_EXPECTED_PUBLISHER` must hold the exact
+    Authenticode subject
+    (`CN=Bananify Creative, O=Bananify Creative, L=North Chili, S=New York, C=US`).
+  - **Azure Trusted Signing** is used when its whole configuration is
+    present: account `blanc-signing`, profile `blanc-profile`, publisher
+    "Bananify Creative". That means the secrets `AZURE_TENANT_ID`,
+    `AZURE_CLIENT_ID` and `AZURE_CLIENT_SECRET`, plus the endpoint, account,
+    profile and publisher variables.
+  - A complete `CSC_LINK`/`CSC_KEY_PASSWORD` pair is the fallback.
+  - Missing or partial configuration fails the job. Public releases never
+    fall back to unsigned artifacts.
+  - A healthy run logs
+    `==> Signing via Azure Trusted Signing (blanc-signing/blanc-profile)`.
+    The signature must be valid and timestamped, with exactly that subject;
+    `windows-signature.json` records it against the installer's SHA-256.
+- **Private Windows/Linux candidates:**
+  `gh workflow run release-windows-linux.yml --ref <branch> -f mode=validation -f platform=windows`
+  builds and signs without a tag or public updater entry. Installing that
+  installer never proves the updater handoff.
+- **Linux:** AppImages have no OS-level publisher signature; the
+  authenticated manifest is their publisher check.
+- **Artifact naming quirks the workflow depends on:** an AppImage built for
+  the runner's default architecture has **no** `-x86_64` suffix, and its
+  block map is embedded rather than a separate `.blockmap` (unlike the Mac
+  zip/DMG and the NSIS `.exe`). Check the real `dist/` output before changing
+  either.
