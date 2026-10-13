@@ -314,8 +314,13 @@ The menu reshapes into the editor in place (no dialog, no scrim):
   and the final value is written on release. Done, back and Escape send any
   waiting edit and return to the list once it has saved; if a save fails, the
   editor stays open with the error and **Try again**, keeping the failed edit
-  (and any newer one), and the menu does not close over it. (Amended after plan
-  review.)
+  (and any newer one), and the menu does not close over it. Closing the menu
+  from the editor (a click outside, toggling the mark) waits the same way: it
+  closes once the edit has saved and otherwise stays open on the error. A
+  forced dismissal (a tab switch, the window losing focus) still closes at
+  once; a failed edit is kept until it saves or its space is deleted, and the
+  next time the menu opens it opens on that space's editor, showing what the
+  person chose, the error and **Try again**. (Amended after plan review.)
 
 ### 7. Deleting, undo and recovery
 

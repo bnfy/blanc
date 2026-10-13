@@ -82,6 +82,11 @@
     let pendingPatch = null;
     // Live edits write in order; each link resolves true when its write saved.
     let saving = Promise.resolve(true);
+    let inflight = 0;
+    // An edit that failed to save: kept, whether or not its editor is still
+    // open, until a later write for the same space saves it or the space is
+    // deleted. Every later write for that space carries it along (spec §6).
+    let failedEdit = null;
     const el = (tag, className, text) => {
       const node = doc.createElement(tag); if (className) node.className = className;
       if (text != null) node.textContent = text; return node;
@@ -115,13 +120,27 @@
       trigger.setAttribute('aria-expanded', String(opened));
       trigger.classList.toggle('bound', !!bound);
     }
+    const saveError = () => (state.kind === 'edit' && failedEdit?.id === state.id ? failedEdit.message : '');
     function open() {
       if (!opened) invoker = doc.activeElement || trigger;
-      opened = true; popup.hidden = false; onOpenChange(true); syncIdentity(); render();
+      opened = true; popup.hidden = false; onOpenChange(true);
+      recoverFailedEdit();
+      syncIdentity(); render();
       (popup.querySelector('input') || popup.querySelector('[data-current="true"]') || popup.querySelector('button'))?.focus();
     }
+    /** An edit that failed after the menu was dismissed reopens in its editor,
+     * showing what the person chose, the error and Try again. */
+    function recoverFailedEdit() {
+      if (!failedEdit || state.kind !== 'list') return;
+      const workspace = data.items.find((w) => w.id === failedEdit.id);
+      if (!workspace) { failedEdit = null; return; }
+      generation += 1;
+      state = { kind: 'edit', id: workspace.id, draft: { name: workspace.name, color: workspace.color, symbol: workspace.symbol, ...failedEdit.patch }, error: '', touched: true, picker: false };
+    }
     function close({ force = false } = {}) {
-      if (!force && (state.pending || state.kind === 'decision' || state.original || state.error || state.saveError)) return false;
+      if (!force && (state.pending || state.kind === 'decision' || state.original || state.error || saveError())) return false;
+      // An edit still saving: close once it has saved, or stay on its error.
+      if (!force && state.kind === 'edit' && (pendingPatch || inflight)) { closeAfterSave(); return false; }
       flushUpdate();
       opened = false; popup.hidden = true; onOpenChange(false); syncIdentity();
       if (state.kind !== 'decision' && !state.original) state = { kind: 'list' };
@@ -137,14 +156,15 @@
       if (state.pending) return;
       generation += 1;
       const identity = Identity.defaultsFor(data.items);
-      state = { kind: 'new', draft: { name, ...identity }, start: start ?? (current() ? 'empty' : 'window'), fixedStart: !!original, original, error: '', saveError: '', touched: false, picker: false };
+      state = { kind: 'new', draft: { name, ...identity }, start: start ?? (current() ? 'empty' : 'window'), fixedStart: !!original, original, error: '', touched: false, picker: false };
       open();
     }
     function beginEdit(workspace) {
       if (state.pending) return;
       if (!workspace) { state = { kind: 'list', error: errors['not-found'] }; open(); return; }
       generation += 1;
-      state = { kind: 'edit', id: workspace.id, draft: { name: workspace.name, color: workspace.color, symbol: workspace.symbol }, error: '', saveError: '', touched: false, picker: false };
+      const kept = failedEdit?.id === workspace.id ? failedEdit.patch : {};
+      state = { kind: 'edit', id: workspace.id, draft: { name: workspace.name, color: workspace.color, symbol: workspace.symbol, ...kept }, error: '', touched: false, picker: false };
       open();
     }
     function nameProblem(name, exceptId = null) {
@@ -160,37 +180,49 @@
       clearTimeout(updateTimer);
       updateTimer = setTimeout(flushUpdate, delay);
     }
-    /** Send the waiting edit. Resolves true when it saved. A failed edit is
-     * kept (under any newer one) and shown with Try again while its editor is
-     * open; once the editor is gone, a storage failure still reaches the
-     * menu's status line through the store's own status. */
+    /** Send the waiting edit; resolves true when it saved. Writes run one at a
+     * time, and a failed edit for the same space rides along with the next. */
     function flushUpdate() {
       clearTimeout(updateTimer); updateTimer = null;
       if (!pendingPatch) return saving;
-      const { id, ...patch } = pendingPatch; pendingPatch = null;
-      const editing = () => state.kind === 'edit' && state.id === id;
-      const failed = (message) => {
-        if (!editing()) return false;
-        pendingPatch = { id, ...patch, ...(pendingPatch?.id === id ? pendingPatch : {}) };
-        state.saveError = message; renderEditorError();
-        return false;
-      };
-      saving = saving.then(() => api.updateWorkspace(id, patch)).then((result) => {
-        if (result?.items) data = { ...data, ...result };
-        if (!result?.ok) return failed(errors[result?.error] || t('ws.error.generic'));
-        if (editing() && state.saveError) { state.saveError = ''; renderEditorError(); }
-        return true;
-      }, () => failed(errors['storage-failed']));
+      const { id, ...fresh } = pendingPatch; pendingPatch = null;
+      inflight += 1;
+      saving = saving.then(() => {
+        const patch = failedEdit?.id === id ? { ...failedEdit.patch, ...fresh } : fresh;
+        const done = (ok, message) => {
+          inflight -= 1;
+          if (ok) { if (failedEdit?.id === id) failedEdit = null; }
+          else failedEdit = { id, patch, message };
+          if (state.kind === 'edit' && state.id === id) renderEditorError();
+          // Reopened on the list before a dismissed edit failed: show it now.
+          else if (!ok && opened && state.kind === 'list') { recoverFailedEdit(); render(); popup.querySelector('input')?.focus(); }
+          return ok;
+        };
+        return Promise.resolve().then(() => api.updateWorkspace(id, patch)).then((result) => {
+          if (result?.items) data = { ...data, ...result };
+          return result?.ok ? done(true) : done(false, errors[result?.error] || t('ws.error.generic'));
+        }, () => done(false, errors['storage-failed']));
+      });
       return saving;
+    }
+    /** Send a failed edit again (Try again, Done, closing). */
+    function retryEdit() {
+      if (failedEdit && pendingPatch?.id !== failedEdit.id) pendingPatch = { ...(pendingPatch ?? {}), id: failedEdit.id };
+      return flushUpdate();
     }
     /** Done, back and Escape: leave the editor once every edit has saved. */
     async function finishEdit() {
       const id = state.id;
-      const saved = await flushUpdate();
+      const saved = await (failedEdit?.id === id ? retryEdit() : flushUpdate());
       if (state.kind !== 'edit' || state.id !== id) return; // already moved on
-      if (saved && !pendingPatch && !state.saveError) toList();
+      if (saved && !pendingPatch && !inflight && !saveError()) toList();
     }
-
+    /** Closing the menu from the editor waits the same way, then closes. */
+    async function closeAfterSave() {
+      const id = state.id;
+      const saved = await flushUpdate();
+      if (state.kind === 'edit' && state.id === id && saved && !pendingPatch && !inflight && !saveError()) close();
+    }
     function cancel() {
       if (state.pending) return true;
       if (state.kind === 'decision') api.cancelWorkspaceAction?.();
@@ -252,6 +284,9 @@
     }
     function removeNow(workspace) {
       if (!workspace) return;
+      // A deleted space's waiting or failed edits have nothing left to save.
+      if (pendingPatch?.id === workspace.id) { clearTimeout(updateTimer); pendingPatch = null; }
+      if (failedEdit?.id === workspace.id) failedEdit = null;
       run(() => api.removeWorkspace(workspace.id), () => { undo = { id: workspace.id, name: workspace.name }; state = { kind: 'list' }; });
     }
 
@@ -384,9 +419,9 @@
         if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); cancel(); }
       });
       ident.append(preview, input);
-      const error = el('p', 'ws-error', state.error || state.saveError || ''); error.id = 'workspaceEditorError'; error.setAttribute('role', 'alert');
-      const retry = button(t('ws.editor.retry'), 'retry', () => { state.saveError = ''; renderEditorError(); flushUpdate(); }, 'ws-pill');
-      retry.hidden = !state.saveError;
+      const error = el('p', 'ws-error', (state.touched ? state.error : '') || saveError()); error.id = 'workspaceEditorError'; error.setAttribute('role', 'alert');
+      const retry = button(t('ws.editor.retry'), 'retry', () => { retryEdit(); }, 'ws-pill');
+      retry.hidden = !saveError();
       const status = el('div', 'ws-editor-status'); status.append(error, retry);
 
       const colorLabel = el('p', 'ws-label', t('ws.editor.color'));
@@ -456,10 +491,10 @@
     }
     function renderEditorError() {
       const shown = state.touched ? state.error : '';
-      const error = popup.querySelector('#workspaceEditorError'); if (error) error.textContent = shown || state.saveError || '';
+      const error = popup.querySelector('#workspaceEditorError'); if (error) error.textContent = shown || saveError();
       popup.querySelector('#workspaceName')?.setAttribute('aria-invalid', String(!!shown));
       const retry = [...popup.querySelectorAll('button')].find((b) => b.dataset.focusKey === 'retry');
-      if (retry) retry.hidden = !state.saveError;
+      if (retry) retry.hidden = !saveError();
       syncPrimary();
     }
     function renderDecision() {

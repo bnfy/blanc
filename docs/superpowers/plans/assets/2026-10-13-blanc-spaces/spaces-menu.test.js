@@ -208,3 +208,71 @@ test('a newer edit made while a save is failing is kept with the failed one', as
   assert.deepEqual(h.calls.filter(([c]) => c === 'update').at(-1).slice(1), ['a', { color: '#376694', symbol: 'star' }]);
   assert.equal(h.ui.state.kind, 'list');
 });
+
+test('closing the menu straight after an edit waits for the save, and a failure keeps it open on the editor', async () => {
+  const h = harness({ updateWorkspace: async (id, patch) => { h.calls.push(['update', id, patch]); throw new Error('disk full'); } }, TWO);
+  h.ui.begin('edit', TWO.items[0]);
+  h.byKey('color:sky').click();
+  assert.equal(h.ui.close(), false, 'closing waits for the waiting edit');
+  await settle(); await settle();
+  assert.deepEqual(h.calls.filter(([c]) => c === 'update').at(-1).slice(1), ['a', { color: '#376694' }], 'the close sends the edit at once');
+  assert.equal(h.ui.opened, true, 'a failed save never closes the menu');
+  assert.equal(h.ui.state.kind, 'edit');
+  assert.match(h.doc.getElementById('workspaceEditorError').textContent, /Couldn’t save changes/);
+  assert.equal(h.byKey('retry').hidden, false);
+  assert.equal(h.ui.close(), false, 'and it still cannot close over the failed edit');
+});
+
+test('closing straight after an edit closes once the edit has saved', async () => {
+  const h = harness({}, TWO);
+  h.ui.begin('edit', TWO.items[0]);
+  h.byKey('symbol:star').click();
+  assert.equal(h.ui.close(), false);
+  assert.equal(h.ui.opened, true, 'still open while the save is in flight');
+  await settle(); await settle();
+  assert.deepEqual(h.calls.filter(([c]) => c === 'update').at(-1).slice(1), ['a', { symbol: 'star' }]);
+  assert.equal(h.ui.opened, false);
+  assert.equal(h.ui.state.kind, 'list');
+});
+
+test('a forced dismissal keeps a failed edit, and reopening shows it with Try again', async () => {
+  let fail = true;
+  const h = harness({ updateWorkspace: async (id, patch) => { h.calls.push(['update', id, patch]); return fail ? { ok: false, error: 'storage-failed' } : { ok: true }; } }, TWO);
+  h.ui.begin('edit', TWO.items[0]);
+  h.byKey('color:sky').click();
+  h.ui.reset(); // a tab switch or window blur dismisses at once
+  assert.equal(h.ui.opened, false);
+  await settle(); await settle();
+  h.ui.open();
+  assert.equal(h.ui.state.kind, 'edit', 'reopening goes straight to the failed edit');
+  assert.equal(h.ui.state.id, 'a');
+  assert.equal(h.ui.state.draft.color, '#376694', 'showing what was chosen, not the saved color');
+  assert.match(h.doc.getElementById('workspaceEditorError').textContent, /Couldn’t save changes/);
+  assert.equal(h.byKey('retry').hidden, false);
+  fail = false;
+  h.byKey('retry').click(); await settle(); await settle();
+  assert.deepEqual(h.calls.filter(([c]) => c === 'update').at(-1).slice(1), ['a', { color: '#376694' }]);
+  assert.equal(h.byKey('retry').hidden, true);
+  assert.equal(h.ui.close(), true);
+  h.ui.open();
+  assert.equal(h.ui.state.kind, 'list', 'once saved, the menu opens normally again');
+});
+
+test('a failed edit for a space deleted meanwhile is dropped, and a failure landing after reopening still shows', async () => {
+  let release;
+  const h = harness({ updateWorkspace: (id, patch) => { h.calls.push(['update', id, patch]); return new Promise((resolve) => { release = resolve; }); } }, TWO);
+  h.ui.begin('edit', TWO.items[0]);
+  h.byKey('color:sky').click();
+  h.ui.reset();
+  h.ui.open(); await settle();
+  assert.equal(h.ui.state.kind, 'list', 'nothing has failed yet');
+  release({ ok: false, error: 'storage-failed' }); await settle(); await settle();
+  assert.equal(h.ui.state.kind, 'edit', 'the failure surfaces in the open menu');
+  assert.equal(h.byKey('retry').hidden, false);
+  h.ui.reset();
+  h.ui.apply({ ...TWO, items: [TWO.items[1]] }); // deleted from another window
+  h.ui.open();
+  assert.equal(h.ui.state.kind, 'list');
+  h.ui.close(); h.ui.open();
+  assert.equal(h.ui.state.kind, 'list', 'and it stays dropped');
+});
