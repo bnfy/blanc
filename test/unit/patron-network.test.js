@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const model = require('../../src/main/patron-model');
-const patronID = '2f5e210c-7d63-4ba6-8818-45f3b7fc9b93';
+const patronID = '27ecc7d8-f31e-4951-8235-22dda51327c4';
 const mailID = '819e65da-12b8-4cb4-a32d-329446b40811';
 
 function response(status, payload) {
@@ -101,4 +101,41 @@ test('a Patron key keeps validating after its subscription moves to Suite', asyn
   await subject.api.validateIfDue();
   assert.equal(subject.record().lastStatus, 'granted');
   assert.equal(subject.record().key, 'sandbox-fixture');
+});
+
+test('Debug accepts the shared Browser benefit and revalidates the stored key; Release rejects sandbox benefits', async () => {
+  const benefitId = '27ecc7d8-f31e-4951-8235-22dda51327c4';
+  const payload = { benefit_id: benefitId, status: 'granted', expires_at: null };
+  const subject = loadPatron({ responses: [
+    response(200, { activation: { id: 'shared-activation' }, license_key: payload }),
+    response(200, payload),
+  ] });
+  assert.equal((await subject.api.activate('shared-browser-fixture', t)).ok, true);
+  subject.record().lastAttemptedAt = 0;
+  await subject.api.validateIfDue();
+  assert.equal(subject.record().key, 'shared-browser-fixture');
+  assert.equal(subject.record().activationId, 'shared-activation');
+  assert.equal(subject.record().lastStatus, 'granted');
+  assert.match(subject.requests[1].url, /^https:\/\/sandbox-api\.polar\.sh\//);
+  assert.equal(subject.requests[1].body.key, 'shared-browser-fixture');
+  const release = loadPatron({ packaged: true, responses: [response(200, { license_key: payload })] });
+  assert.equal((await release.api.activate('sandbox-fixture', t)).ok, false);
+  assert.equal(release.record(), null);
+});
+
+test('production accepts the shared Browser benefit; retired Monthly benefits cannot activate', async () => {
+  const active = loadPatron({ packaged: true, responses: [response(200, {
+    license_key: { benefit_id: 'ed1cce8c-d87e-4d27-b9d7-d30bda2de402', status: 'granted' },
+  })] });
+  assert.equal((await active.api.activate('production-shared-fixture', t)).ok, true);
+  for (const [packaged, benefitId] of [
+    [true, 'df98506e-a88a-4364-b4c9-cc424dda01f0'],
+    [false, '2f5e210c-7d63-4ba6-8818-45f3b7fc9b93'],
+  ]) {
+    const retired = loadPatron({ packaged, responses: [response(200, {
+      license_key: { benefit_id: benefitId, status: 'granted' },
+    })] });
+    assert.equal((await retired.api.activate('retired-fixture', t)).ok, false);
+    assert.equal(retired.record(), null);
+  }
 });
