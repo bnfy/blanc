@@ -60,30 +60,30 @@ body .revamp-nav a:hover,body .revamp-nav .site-nav-cta:hover{color:var(--mail-i
    moves up with it on the header's own curve, so the two read as one piece.
    Content shows through the material, and the edge shadow appears only once
    something has scrolled underneath. */
-.mail-bar{position:sticky;top:var(--mail-header-h);z-index:29;background:rgba(248,242,232,.74);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:0 .5px 0 #35250e1f;transition:transform 220ms var(--mail-follow)}
+.mail-bar{position:sticky;top:var(--mail-header-h);z-index:29;background:rgba(28,26,22,.92);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:0 .5px 0 #35250e1f;transition:transform 220ms var(--mail-follow)}
 @supports (animation-timeline:scroll()){
   .mail-bar{box-shadow:none;animation:mail-bar-edge linear both;animation-timeline:scroll(root);animation-range:0 40px}
 }
 @keyframes mail-bar-edge{from{box-shadow:0 .5px 0 #35250e00,0 10px 24px -18px #35250e00}to{box-shadow:0 .5px 0 #35250e26,0 10px 24px -18px #35250e4d}}
 body:has(.site-header.is-scroll-hidden) .mail-bar{transform:translateY(calc(-1 * var(--mail-header-h)))}
 .mail-bar-inner{display:flex;align-items:center;gap:16px;max-width:1120px;height:var(--mail-bar-h);margin:0 auto;padding:0 24px}
-.mail-bar-title{display:flex;align-items:center;gap:10px;flex:none;color:var(--mail-ink);font-size:16px;font-weight:600;letter-spacing:-.01em;text-decoration:none;white-space:nowrap}
+.mail-bar-title{display:flex;align-items:center;gap:10px;flex:none;color:var(--mail-band-text);font-size:16px;font-weight:600;letter-spacing:-.01em;text-decoration:none;white-space:nowrap}
 .mail-bar .mail-icon{display:block;width:26px;height:26px}
 .mail-bar .mail-icon img{display:block;width:100%;height:100%;filter:drop-shadow(0 1px 1.5px #35250e40)}
 .mail-bar-links{display:flex;align-items:center;gap:2px;margin:0 0 0 auto;padding:0;list-style:none}
-.mail-bar-links a{display:block;padding:6px 11px;border-radius:9px;color:var(--mail-muted);font-size:14px;font-weight:500;text-decoration:none;transition:color 160ms ease,background-color 160ms ease,transform 100ms ease-out}
-.mail-bar-links a[aria-current=page]{color:var(--mail-ink);font-weight:600}
-.mail-bar-pages{display:none;align-items:center;gap:5px;margin-left:auto;padding:7px 10px;border:0;border-radius:9px;background:transparent;color:var(--mail-ink);font:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:background-color 160ms ease,transform 100ms ease-out}
+.mail-bar-links a{display:block;padding:6px 11px;border-radius:9px;color:var(--mail-band-muted);font-size:14px;font-weight:500;text-decoration:none;transition:color 160ms ease,background-color 160ms ease,transform 100ms ease-out}
+.mail-bar-links a[aria-current=page]{color:var(--mail-band-text);font-weight:600}
+.mail-bar-pages{display:none;align-items:center;gap:5px;margin-left:auto;padding:7px 10px;border:0;border-radius:9px;background:transparent;color:var(--mail-band-text);font:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:background-color 160ms ease,transform 100ms ease-out}
 .mail-bar-chevron{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transition:transform 240ms var(--mail-arrive)}
 .mail-bar:has(#mail-bar-menu:popover-open) .mail-bar-chevron{transform:rotate(180deg)}
-.mail-bar-join{flex:none;margin-left:6px;padding:7px 15px;border:0;border-radius:999px;background:var(--mail-ink);color:#f7f0e5;font:inherit;font-size:13.5px;font-weight:600;white-space:nowrap;cursor:pointer;transition:background-color 160ms ease,transform 100ms ease-out}
+.mail-bar-join{flex:none;margin-left:6px;padding:7px 15px;border:0;border-radius:999px;background:var(--mail-band-text);color:var(--mail-band);font:inherit;font-size:13.5px;font-weight:600;white-space:nowrap;cursor:pointer;transition:background-color 160ms ease,transform 100ms ease-out}
 .mail-bar-links a:active,.mail-bar-pages:active{transform:scale(.97)}
 .mail-bar-join:active{transform:scale(.96)}
 @media(hover:hover){
-  .mail-bar-links a:hover,.mail-bar-pages:hover{color:var(--mail-ink);background:#35250e0d}
-  .mail-bar-join:hover{background:#44361e}
+  .mail-bar-links a:hover,.mail-bar-pages:hover{color:var(--mail-band-text);background:#fffaf014}
+  .mail-bar-join:hover{background:#fffaf0}
 }
-.mail-bar :is(a,button):focus-visible{outline:2px solid var(--mail-gold);outline-offset:1px}
+.mail-bar :is(a,button):focus-visible{outline:2px solid var(--mail-band-gold);outline-offset:1px}
 
 /* Popovers grow out of their button and leave along the same path. */
 .mail-bar-pop{position:fixed;inset:auto;top:var(--pop-top,64px);margin:0;padding:0;border:0;border-radius:18px;background:rgba(255,252,247,.88);-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);color:var(--mail-ink);box-shadow:0 0 0 .5px #35250e33,0 2px 6px #35250e14,0 28px 56px -24px #35250e66;opacity:0;transform:scale(.94);filter:blur(4px);transition:opacity 180ms ease,transform 280ms var(--mail-arrive),filter 220ms ease,overlay 280ms allow-discrete,display 280ms allow-discrete}
@@ -135,10 +135,14 @@ body:has(.site-header.is-scroll-hidden) .mail-bar{transform:translateY(calc(-1 *
 .mail-home .mail-home-hero{display:flex;flex-direction:column;align-items:center;text-align:center}
 .mail-home .mail-home-icon{width:clamp(96px,10vw,128px);margin:0 0 20px}
 .mail-home .mail-home-icon img{filter:drop-shadow(0 1px 1px #35250e14) drop-shadow(0 20px 18px #35250e40)}
-.mail-home .mail-home-badge{display:inline-flex;align-items:center;gap:8px;margin:0;padding:5px 12px 5px 10px;border:1px solid var(--mail-line);border-radius:999px;background:var(--mail-paper);color:var(--mail-text);font-size:13px;font-weight:600;letter-spacing:.01em;line-height:1.3}
-.mail-home .mail-home-badge-dot{width:7px;height:7px;border-radius:50%;background:var(--mail-gold-bright);box-shadow:0 0 0 3px #c08a3e2e}
+/* The hero's privacy note appears while an address is being typed. The field
+   is described by it either way (aria-describedby), so screen readers hear it. */
+.mail-home-hero .mail-waitlist:not(:focus-within) .mail-waitlist-note{display:none}
+@media(max-width:600px){.mail-home .mail-home-icon{width:76px}}
+/* On phones the hero keeps the field beside its button, unlike the other forms. */
+@media(max-width:480px){.mail-home-hero .mail-waitlist-controls{flex-direction:row;align-items:center;border-radius:999px;padding:5px}.mail-home-hero .mail-waitlist button{padding:10px 16px}}
 .mail-home h1{font-size:clamp(44px,7.4vw,92px);margin:18px 0 14px}
-.mail-home .mail-lead{max-width:620px}
+.mail-home .mail-lead{max-width:620px;text-wrap:balance}
 .mail-home .mail-home-hero .mail-waitlist{width:100%;margin:28px auto 0}
 
 
@@ -407,7 +411,6 @@ body:has(.site-header.is-scroll-hidden) .mail-contents{transform:translateY(calc
 @media(prefers-reduced-motion:no-preference){
   .mail-home .mail-home-icon{animation:mail-home-materialize 900ms var(--mail-arrive) both}
   .mail-home .mail-home-hero>:not(.mail-home-icon){animation:mail-home-rise 700ms var(--mail-arrive) both}
-  .mail-home .mail-home-hero>.mail-home-badge{animation-delay:80ms}
   .mail-home .mail-home-hero>h1{animation-delay:140ms}
   .mail-home .mail-home-hero>.mail-lead{animation-delay:200ms}
   .mail-home .mail-home-hero>.mail-waitlist{animation-delay:260ms}
@@ -427,13 +430,14 @@ body:has(.site-header.is-scroll-hidden) .mail-contents{transform:translateY(calc
   .mail-bar-chevron{transition:none}
 }
 @media(prefers-reduced-transparency:reduce){
-  .mail-bar{background:#f8f2e8;-webkit-backdrop-filter:none;backdrop-filter:none}
+  .mail-bar{background:var(--mail-band);-webkit-backdrop-filter:none;backdrop-filter:none}
   .mail-bar-pop{background:var(--mail-paper);-webkit-backdrop-filter:none;backdrop-filter:none}
 }
 @media(prefers-contrast:more){
   .mail-bar{box-shadow:0 1px 0 var(--mail-muted)}
-  .mail-bar-links a,.mail-contents a{color:#2b251d}
-  .mail-waitlist-controls,.mail-bento-tile,.mail-plan,.mail-card,.mail-callout,.mail-home a.mail-home-app,.mail-home .mail-home-badge{border-color:var(--mail-muted)}
+  .mail-contents a{color:#2b251d}
+  .mail-bar-links a{color:var(--mail-band-text)}
+  .mail-waitlist-controls,.mail-bento-tile,.mail-plan,.mail-card,.mail-callout,.mail-home a.mail-home-app{border-color:var(--mail-muted)}
   .mail-page .mail-lead,.mail-bento-copy p,.mail-strip p,.mail-plan-price,.mail-topics p{color:#2b251d}
   .mail-trust .mail-strip p{color:#e6dccb}
 }

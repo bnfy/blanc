@@ -64,6 +64,31 @@ test('every Mail page names the product, lists its six pages and marks the curre
   } finally { await context.close(); }
 });
 
+test('the bar is dark, with light text and a light Join button', async () => {
+  for (const width of [1440, 390]) {
+    const { page, context } = await openPage('/mail/pricing', width);
+    try {
+      const colors = await page.evaluate(() => {
+        const css = selector => getComputedStyle(document.querySelector(selector));
+        return {
+          bar: css('.mail-bar').backgroundColor,
+          title: css('.mail-bar-title').color,
+          join: [css('.mail-bar-join').backgroundColor, css('.mail-bar-join').color],
+          link: css('.mail-bar-links a:not([aria-current])').color,
+          current: css('.mail-bar-links a[aria-current="page"]').color,
+          pages: css('.mail-bar-pages').color,
+        };
+      });
+      assert.equal(colors.bar, 'rgba(28, 26, 22, 0.92)', `${width}px: bar`);
+      assert.equal(colors.title, 'rgb(242, 233, 218)', `${width}px: title`);
+      assert.deepEqual(colors.join, ['rgb(242, 233, 218)', 'rgb(28, 26, 22)'], `${width}px: Join`);
+      assert.equal(colors.link, 'rgb(191, 179, 161)', `${width}px: links`);
+      assert.equal(colors.current, 'rgb(242, 233, 218)', `${width}px: current page`);
+      assert.equal(colors.pages, 'rgb(242, 233, 218)', `${width}px: page menu button`);
+    } finally { await context.close(); }
+  }
+});
+
 test('nothing on a Mail page scrolls sideways, from phones to wide screens', async () => {
   for (const width of [320, 390, 800, 1440]) {
     const { page, context } = await openPage('/mail', width);
@@ -228,7 +253,7 @@ test('without script the page menu and the waitlist still open, and the waitlist
   } finally { await context.close(); }
 });
 
-test('reduced transparency makes the bar solid, and more contrast darkens its links',
+test('reduced transparency makes the bar solid, and more contrast brightens its links',
   { skip: isWebKit && 'needs Chromium media-feature emulation' }, async () => {
     const { page, context } = await openPage('/mail', 1440);
     try {
@@ -242,8 +267,8 @@ test('reduced transparency makes the bar solid, and more contrast darkens its li
         const link = getComputedStyle(document.querySelector('.mail-bar-links a:not([aria-current])'));
         return { background: bar.backgroundColor, blur: bar.backdropFilter, link: link.color };
       });
-      assert.equal(style.background, 'rgb(248, 242, 232)');
+      assert.equal(style.background, 'rgb(28, 26, 22)');
       assert.equal(style.blur, 'none');
-      assert.equal(style.link, 'rgb(43, 37, 29)');
+      assert.equal(style.link, 'rgb(242, 233, 218)');
     } finally { await context.close(); }
   });

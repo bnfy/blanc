@@ -69,6 +69,51 @@ test('every screenshot is a labelled preview with alt text, and it loads', async
   } finally { await context.close(); }
 });
 
+test('the hero is short: no status pill, one sentence, and the privacy note while typing', async () => {
+  const { page, context } = await openPage('/mail');
+  try {
+    const hero = await page.evaluate(() => {
+      const section = document.querySelector('.mail-home-hero');
+      const label = section.querySelector('.mail-waitlist-label');
+      return {
+        pill: section.querySelector('.mail-home-badge') !== null || /Coming soon/.test(section.textContent),
+        lead: section.querySelector('.mail-lead').textContent.trim(),
+        label: label.getBoundingClientRect().height > 1 ? label.textContent.trim() : null,
+      };
+    });
+    assert.equal(hero.pill, false);
+    assert.equal(hero.lead, 'Blanc Mail brings a careful, native Gmail experience to your Mac.');
+    // With the pill gone, the visible label is what says Mail is not out yet.
+    assert.equal(hero.label, 'Get an email when Blanc Mail is ready');
+    const note = page.locator('#waitlistNote');
+    assert.equal(await note.isVisible(), false, 'the note waits for the field');
+    await page.locator('#waitlistEmail').focus();
+    assert.equal(await note.isVisible(), true, 'and appears while the address is typed');
+    assert.equal(await page.locator('#waitlistEmail').getAttribute('aria-describedby'), 'waitlistNote');
+    assert.match(await note.textContent(), /We’ll ask you to confirm by email/);
+    assert.equal(await page.locator('#closing-waitlistNote').isVisible(), true, 'other forms keep their note');
+  } finally { await context.close(); }
+});
+
+test('on a phone the hero leaves room for the window: a smaller icon and the field beside its button', async () => {
+  const { page, context } = await openPage('/mail', 390, { viewport: { width: 390, height: 844 } });
+  try {
+    const m = await page.evaluate(() => {
+      const box = selector => document.querySelector(selector).getBoundingClientRect();
+      const field = box('#waitlistEmail');
+      const button = box('#waitlist button[type=submit]');
+      return {
+        icon: box('.mail-home-hero .mail-home-icon').width,
+        offset: Math.abs(field.top + field.height / 2 - (button.top + button.height / 2)),
+        shot: box('.mail-hero-shot').top,
+      };
+    });
+    assert.ok(m.icon <= 80, `icon is ${m.icon}px`);
+    assert.ok(m.offset <= 4, `field and button ${m.offset}px apart vertically`);
+    assert.ok(m.shot <= 620, `the window starts at ${m.shot}px`);
+  } finally { await context.close(); }
+});
+
 test('Dawn and Night switch the Inbox Zero picture, from the keyboard and without script', async () => {
   for (const javaScriptEnabled of [true, false]) {
     const { page, context } = await openPage('/mail', 1440, { javaScriptEnabled });

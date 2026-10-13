@@ -63,11 +63,25 @@ Their 1100px copies are display images built by
 | Rules image (scene `rules`) | Signed-in capture fixture | Match counts are Gmail's estimate, shown on request | Qualified, as above |
 | "At home in light and dark." with the light and dark main window (scenes `main`, `dark`) | Same build in each appearance | Captured a minute apart, so one timestamp differs | Verified |
 
-**Open before deploy.**
+**Deployed.** October 13, 2026: Cloudflare Pages deployment `6cc566ad`
+(Production, branch `main`) from `main` at `eca684d9` (#753), served at
+https://blanc.day/mail. Deployed on the owner's instruction ("merge 753 when
+green, then deploy main"), with the items below still open. They are recorded
+as open, not passed.
+
+**Still open after deploy.**
 
 - Recapture every image from the signed release candidate.
 - The Rules lines depend on EM-960's live checks (Mail `docs/RELEASE_ACCEPTANCE.md:76`).
 - The deploy follows Task 8 of `docs/superpowers/plans/2026-10-12-mail-pages-redesign.md`.
+
+**Shorter hero (owner, October 13, 2026).** The `/mail` hero drops the
+"Coming soon for macOS" pill and its lead's second sentence, "Your mail stays
+between your Mac and Google." No sentence is reworded. The waitlist's label,
+"Get an email when Blanc Mail is ready", stays visible as the hero's status
+line, so the page still says Blanc Mail is unreleased (`docs/marketing-claims.md`).
+The privacy note under the field appears while an address is typed and is the
+field's accessible description either way.
 
 **Tagline.** "A little less inbox." replaces "Email that minds its own business."
 in the `/mail` hero, the page title and `public/mail-og.png`. The owner chose
