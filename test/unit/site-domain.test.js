@@ -2,8 +2,9 @@
 
 // The website moved to blanc.day on October 13, 2026
 // (docs/superpowers/specs/2026-10-13-blanc-day-domain-design.md). Its pages,
-// public files, scripts and Workers, and the browser's own links and copy,
-// name the site's origin and contact address only through blanc.day.
+// public files, scripts and Workers, the browser's own links and copy, the
+// docs readers use today and the tab-import companions name the site's origin
+// and contact address only through blanc.day.
 // blancbrowser.com stays a permanent redirect, and its tab relay
 // (tabs.blancbrowser.com), newsletter sender (updates.blancbrowser.com) and
 // social handles keep their names.
@@ -31,6 +32,14 @@ const ALLOWED = {
   'cloudflare/blancbrowser-redirects/src/index.js': ["new Set(['blancbrowser.com', 'www.blancbrowser.com', 'www.blanc.day'])"],
   // Official builds still treat the former domain as Bananify's: the tab relay lives there.
   'src/main/bananify-services.js': ["host === 'blancbrowser.com'", 'blancbrowser.com keeps the tab relay'],
+  // Docs that explain the move, and the Firefox add-on ID, which never changes.
+  'CLAUDE.md': ['from `blancbrowser.com`', '`blancbrowser.com` and its `www.` host', '`tab-import@blancbrowser.com`'],
+  'AGENTS.md': ['from `blancbrowser.com`', '`blancbrowser.com` and its `www.` host', '`tab-import@blancbrowser.com`'],
+  'site/CLAUDE.md': ['`blancbrowser.com` redirects there path for path'],
+  'README.md': ['`blancbrowser.com` redirects there path for path'],
+  'SECURITY.md': ['(including the former blancbrowser.com)'],
+  'extensions/blanc-tab-import/README.md': ['`tab-import@blancbrowser.com`'],
+  'extensions/blanc-tab-import/web-extension/manifest.json': ['"id": "tab-import@blancbrowser.com"'],
 };
 
 // Records of past work and generated font metadata keep what they shipped with.
@@ -39,7 +48,7 @@ const SKIPPED = new Set([
   'site/scripts/build-condensed-newsreader.py',
 ]);
 
-const TEXT = /\.(?:astro|mjs|js|json|css|html|txt|xml|md|py|toml)$|(?:^|\/)_(?:headers|redirects)$/;
+const TEXT = /\.(?:astro|mjs|js|json|css|html|txt|xml|md|py|toml|ya?ml)$|(?:^|\/)_(?:headers|redirects)$/;
 
 function tracked(paths) {
   return execFileSync('git', ['ls-files', ...paths], { cwd: ROOT, encoding: 'utf8' })
@@ -73,6 +82,30 @@ test('the browser links to and names blanc.day, in every language', () => {
   const files = tracked(['src', 'copy/messages']);
   assert.ok(files.includes('src/renderer/pages/settings.html') && files.includes('copy/messages/de.json'));
   assert.deepEqual(offendersIn(files), []);
+});
+
+// Records of past work (release notes and incidents, dated specs and ledgers,
+// grant applications, posted marketing) keep the domain they were written on.
+const CURRENT_DOCS = [
+  'README.md', 'SUPPORT.md', 'SECURITY.md', 'TRADEMARKS.md', 'CONTRIBUTING.md',
+  'AGENTS.md', 'CLAUDE.md', 'site/CLAUDE.md', '.bestpractices.json', '.github/ISSUE_TEMPLATE',
+  'docs/user-guide.md', 'docs/release-verification.md',
+  'docs/press/fact-sheet.md', 'docs/press/release-ownership.md',
+  'extensions/blanc-tab-import', 'plugins/blanc-tab-import',
+];
+
+test('current docs and the tab-import companions name blanc.day', async () => {
+  const files = tracked(CURRENT_DOCS);
+  assert.ok(files.includes('.github/ISSUE_TEMPLATE/config.yml') && files.includes('plugins/blanc-tab-import/.codex-plugin/plugin.json'));
+  assert.deepEqual(offendersIn(files), []);
+  // The companions open the landing page on blanc.day; the relay they call stays put.
+  for (const file of ['extensions/blanc-tab-import/web-extension/handoff.mjs',
+    'extensions/blanc-tab-import/safari/Blanc Tab Importer/Blanc Tab Importer Extension/Resources/handoff.mjs']) {
+    const { LANDING_ORIGIN } = await import(pathToFileURL(path.join(ROOT, file)).href);
+    assert.equal(LANDING_ORIGIN, 'https://blanc.day', file);
+  }
+  const manifest = JSON.parse(read('extensions/blanc-tab-import/web-extension/manifest.json'));
+  assert.deepEqual(manifest.host_permissions, ['https://tabs.blancbrowser.com/*']);
 });
 
 test('every blanc.day link in the browser opens a page the site builds, not a legacy redirect', () => {

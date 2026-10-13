@@ -33,8 +33,8 @@ assistant or a general extension runtime.
 | Blocking | Blanc Blocker by default: reviewed, hash-pinned EasyList + EasyPrivacy snapshots bundled into each release, with browser-level request blocking, cosmetic CSS, and isolated blocker scriptlets. It always protects private tabs. Regular profiles can switch to the bundled full uBlock Origin 1.75.0 on Apple Silicon and native Intel Macs, Windows x64, and Linux x64 |
 | Sync | Optional, passphrase-derived end-to-end encryption for Favorites and eligible settings (search engine, blocking state and exceptions, home page, theme, Start Page layout, and dynamic wallpaper); open-tab sharing is a separate per-device opt-in |
 | Publisher | Bananify |
-| Website | [blancbrowser.com](https://blancbrowser.com) |
-| Press/support/security contact | [support@blancbrowser.com](mailto:support@blancbrowser.com) |
+| Website | [blanc.day](https://blanc.day) |
+| Press/support/security contact | [support@blanc.day](mailto:support@blanc.day) |
 
 ## What is distinct
 

@@ -1,7 +1,7 @@
 export const MAX_TABS = 100;
 export const MAX_CIPHERTEXT_BYTES = 256 * 1024;
 export const RELAY_ORIGIN = 'https://tabs.blancbrowser.com';
-export const LANDING_ORIGIN = 'https://blancbrowser.com';
+export const LANDING_ORIGIN = 'https://blanc.day';
 
 const encodeBase64Url = (bytes) => {
   let binary = '';

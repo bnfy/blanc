@@ -8,7 +8,7 @@ body:
         Thanks for taking the time to report this.
 
         **Please don't report security vulnerabilities here** — this tracker is
-        public. Email support@blancbrowser.com instead.
+        public. Email support@blanc.day instead.
 
   - type: textarea
     id: what-happened

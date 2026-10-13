@@ -30,7 +30,7 @@ credentials, browsing history, and other private data out of public reports.
 
 Report suspected vulnerabilities privately using [SECURITY.md](SECURITY.md),
 not the public issue tracker. Installation and account questions can go to
-support@blancbrowser.com.
+support@blanc.day.
 
 ## Development setup
 

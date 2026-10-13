@@ -56,10 +56,10 @@ Commands (root proxies): `npm run site:dev`, `npm run site:build`, and
 `npm run site:deploy` (build + `npx wrangler pages deploy site/dist
 --project-name=blancbrowser --branch=main` to the Cloudflare Pages project `blancbrowser`,
 BNFY account, canonical domain `blanc.day` since October 13, 2026, read from
-`src/lib/site-origin.mjs`; `blancbrowser.com` and `getbowser.com` redirect there
-once step 5 of `docs/superpowers/specs/2026-10-13-blanc-day-domain-design.md` is
-live, and `test/unit/site-domain.test.js` keeps the old origin out of the site and
-its Workers).
+`src/lib/site-origin.mjs`; `blancbrowser.com` redirects there path for path through
+`cloudflare/blancbrowser-redirects`, as does `getbowser.com`, per
+`docs/superpowers/specs/2026-10-13-blanc-day-domain-design.md`, and
+`test/unit/site-domain.test.js` keeps the old origin out of the site and its Workers).
 **Deploy `site/dist`, never `site/`.** CI (`.github/workflows/site.yml`) builds
 the site on any change to `site/**`, root `package.json` (a build input — the
 JSON-LD `softwareVersion` imports its `version`), or the changelog generator.
