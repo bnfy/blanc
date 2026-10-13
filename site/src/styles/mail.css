@@ -47,6 +47,10 @@ body .revamp-nav .revamp-nav-link[aria-current=page]{color:var(--mail-ink)}
 body .revamp-nav .site-nav-cta,body .revamp-nav .site-nav-cta:hover{padding:0;border-radius:0;background:none}
 body .revamp-nav a:hover,body .revamp-nav .site-nav-cta:hover{color:var(--mail-ink)}
 @media(max-width:760px){body .site-header .revamp-nav{height:44px;min-height:44px}body .revamp-nav .site-brand{height:44px}}
+/* Anchors land below both sticky bars. This replaces the site's own
+   scroll-padding (a heading scroll-margin would add to it instead), and
+   `:root` outranks revamp.css's `html` rule whatever order they load in. */
+:root{scroll-padding-top:calc(var(--mail-header-h) + var(--mail-bar-h) + 20px)}
 
 /* ---------- Product bar (MailBar.astro) ----------
    Sticky under the site header; when the header hides on scroll the bar
@@ -355,7 +359,6 @@ body:has(.site-header.is-scroll-hidden) .mail-contents{transform:translateY(calc
 @media(hover:hover){.mail-page .mail-contents a:hover{color:var(--mail-ink)}}
 .mail-page .mail-contents a[aria-current=location]{border-left-color:var(--mail-gold);color:var(--mail-ink);font-weight:600}
 .mail-contents-compact{display:none}
-.mail-doc-body h2{scroll-margin-top:calc(var(--mail-header-h) + var(--mail-bar-h) + 20px)}
 .mail-page .mail-doc-body h2{font-size:32px;margin:52px 0 12px}
 .mail-page .mail-doc-body h2:first-child{margin-top:0}
 .mail-page .mail-doc-body p{color:#2f2a22;font-size:17px;line-height:1.7}
