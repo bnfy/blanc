@@ -651,13 +651,9 @@
 
   // ---- Blanc Spaces mark (F41) ----
   // The strip reads the same projection as the Spaces menu and only draws the
-  // current space's mark: its symbol and name on its colour, a grey glyph when
-  // this window is in no space, nothing before the first space exists.
-  // The footer's stacked-windows mark on the 24px symbol grid.
-  const NEUTRAL_SPACE_GLYPH = [
-    ['rect', { x: 3.75, y: 7.125, width: 13.125, height: 12.75, rx: 2.25 }],
-    ['path', { d: 'M7.875 7.125V4.875a1.5 1.5 0 0 1 1.5-1.5h10.5a1.5 1.5 0 0 1 1.5 1.5v10.5a1.5 1.5 0 0 1-1.5 1.5h-2.25' }],
-  ];
+  // current space's mark: its symbol and name on its colour, the grey Spaces
+  // planet (SpaceIdentity.SPACES_GLYPH) when this window is in no space,
+  // nothing before the first space exists.
   let spaces = { items: [], tint: 'mark' };
   let markedSpace = { id: null, index: -1 };
   let spaceMarkPainted = false;
@@ -705,7 +701,7 @@
     pillSpace.setAttribute('aria-label', pillSpace.title);
     const symbol = bound ? (SpaceIdentity.isSymbol(bound.symbol) ? bound.symbol : SpaceIdentity.SYMBOL_IDS[0]) : 'neutral';
     if (pillSpaceSymbol.dataset.symbol !== symbol) {
-      pillSpaceSymbol.replaceChildren(symbolSvg(bound ? SpaceIdentity.SYMBOLS[symbol] : NEUTRAL_SPACE_GLYPH));
+      pillSpaceSymbol.replaceChildren(symbolSvg(bound ? SpaceIdentity.SYMBOLS[symbol] : SpaceIdentity.SPACES_GLYPH));
       pillSpaceSymbol.dataset.symbol = symbol;
     }
     pillSpaceName.textContent = bound?.name ?? '';

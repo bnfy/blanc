@@ -49,6 +49,7 @@ feedback.
 | D17 | The ⌘L footer's Spaces button (owner, during PR 2) | **Icon only, no name.** The footer has too little room before a name truncates; the bound space's name is in the button's tooltip and accessible name, and its fill still shows the window is in a space. This applies to the footer only: the Island's space mark keeps its symbol **and** name (truncated), so the active space shows at rest. |
 | D18 | Where the menu opens from ⌘L (owner, during PR 2) | **Below the Island, never over it.** The menu hangs from the panel's bottom edge, right-aligned to the button, and scrolls within the room there; only a window too short for a few rows below opens it upward. |
 | D19 | The "Kept readable" note (owner, during PR 2) | **Custom colours only.** Presets adapt to every theme without a note: their dark and private inks are the designed values in §1's table, and every preset is lightened in dark mode, so the note would show on all of them. The guard itself still runs for every colour on every theme, and the saved hex is never changed. |
+| D20 | The Spaces glyph (owner, after PR 2) | **A ringed planet, in outline,** so people coming from Arc recognise Spaces (the owner's Arc screenshot shows a planet beside a space's name). Our own drawing, not Arc's asset: a large planet and a flat ring tilted down to the right, in the footer's line weight. It replaces the stacked-windows glyph on the ⌘L footer button (17px) and on the Island's quiet mark (16px), a touch larger than their neighbours so it reads at a glance; defined once as `SpaceIdentity.SPACES_GLYPH`. A space's own symbol is unchanged. |
 
 Decided during design, not asked: once at least one space exists, a window that
 is not in a space shows a **neutral grey mark** (glyph, no name), keeping the
@@ -238,7 +239,7 @@ only. (Amended during planning: an earlier draft added a `spaceMark` field to
 - **space** — this window is in a space: a 28px chip, symbol plus name
   (the name ellipsizes beyond 140px), ink and wash from the guard.
 - **neutral** — the profile has spaces but this window is in none: the same
-  slot with the grey stacked-windows glyph and no name.
+  slot with the grey Spaces planet (D20) and no name.
 - **none** — the profile has no spaces: nothing renders; the pill is exactly
   today's.
 

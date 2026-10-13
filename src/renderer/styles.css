@@ -2693,6 +2693,9 @@ body[data-glance-purpose="change"] .glance-picker {
   color: var(--text);
 }
 .footer-act svg { width: 15px; height: 15px; }
+/* The Spaces planet is on a 24 grid and drawn a touch larger than its 16-grid
+   neighbours so it reads at a glance; 2 units there is their 1.5 line. */
+#footerWorkspace svg { width: 17px; height: 17px; stroke-width: 2; }
 /* No thick focus ring — keyboard focus uses the same surface cue as hover
    (island footer policy; global button:focus-visible outline is suppressed). */
 .footer-act:focus-visible,
@@ -3580,6 +3583,7 @@ body:is([data-mode="spaces"], [data-closing="spaces"]) #workspaceSwitcher.ws-swi
 .space-mark-name { min-width: 0; max-width: 122px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.3; } /* room for descenders, as .ws-row-name */
 .space-mark[data-state="neutral"] { --space-ink: var(--text-dim); --space-wash: color-mix(in srgb, var(--text) 6%, transparent); width: 24px; padding: 0; justify-content: center; }
 .space-mark[data-state="neutral"] .space-mark-name { display: none; }
+.space-mark[data-state="neutral"] .space-mark-symbol svg { width: 16px; height: 16px; stroke-width: 2; } /* the Spaces planet, as the ⌘L footer's */
 #islandPill:has(> .space-mark:not([hidden])) { padding-left: 7px; }
 .island-row .row-space-tile { width: 20px; height: 20px; border-radius: 6px; }
 .island-row .row-space-tile .ws-symbol { width: 12px; height: 12px; }

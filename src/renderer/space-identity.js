@@ -40,6 +40,15 @@
     sun: [['circle', { cx: 12, cy: 12, r: 4 }], ['path', { d: 'M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4' }]],
   });
   const SYMBOL_IDS = Object.freeze(Object.keys(SYMBOLS));
+  // The Spaces glyph itself, not a space's symbol: a ringed planet, so people
+  // coming from Arc recognise Spaces. The Island's quiet mark draws it from
+  // here; the ⌘L footer button's static copy in overlay.html is pinned to it
+  // (test/unit/spaces-glyph.test.js). A large planet and a flat ring tilted
+  // down to the right, open where it passes behind the planet.
+  const SPACES_GLYPH = Object.freeze([
+    Object.freeze(['circle', Object.freeze({ cx: 12, cy: 12, r: 7 })]),
+    Object.freeze(['path', Object.freeze({ d: 'M20.29 13.84A11.3 3.1 27 1 1 5.64 6.37' })]),
+  ]);
 
   // Every surface a space mark or tile can sit on, per theme (spec §2). A new
   // fill under a space tile must be added here.
@@ -142,7 +151,7 @@
   /** The preset whose stored hex equals `hex`, or null for a custom colour. */
   const presetFor = (hex) => PRESETS.find((p) => p.hex === normalizeHex(hex)) ?? null;
 
-  const api = { PRESETS, SYMBOLS, SYMBOL_IDS, SURFACES, MIN_CONTRAST, normalizeHex, isSymbol, inkFor, paint, defaultsFor, presetFor, worstContrast, contrast, composite };
+  const api = { PRESETS, SYMBOLS, SYMBOL_IDS, SPACES_GLYPH, SURFACES, MIN_CONTRAST, normalizeHex, isSymbol, inkFor, paint, defaultsFor, presetFor, worstContrast, contrast, composite };
   if (typeof module !== 'undefined') module.exports = api;
   else root.SpaceIdentity = api;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -40,3 +40,14 @@ the Island mark's name are clipped for their ellipsis, and both sat on a line
 as tall as the font size (line-height 1), so the bottoms of g, p and y were
 cut: "Typing gym" reached 14.66 px in a 14 px box. Both names now have a
 1.3 line, and `@F41-32` measures every name's ink against its box.
+
+The Spaces glyph (`stack-spaces-glyph.png`, before over after; decision D20):
+the stacked windows became a ringed planet in outline, so people coming from
+Arc recognise Spaces. It is our own drawing on the 24 grid (a 7-unit planet,
+a flat ring tilted 27° down to the right, 2-unit line), shown at 17 px on the
+⌘L footer button and 16 px on the Island's quiet mark, a touch larger than
+their neighbours. Candidates tried with the owner: a small planet in a wide
+ring (outline and solid; too small, read as a saucer), a solid planet with a
+cut-out ring (liked, but the footer is line icons), an orbit (busy at this
+size), a rocket (less clearly "Spaces"), and an outline with the planet cut
+back where the ring crosses (the cuts read as breaks).
