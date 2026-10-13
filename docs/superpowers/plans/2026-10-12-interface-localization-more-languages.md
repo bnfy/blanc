@@ -72,3 +72,25 @@ Settings option that follows the OS would otherwise read *Sistema (Português
 French (Canada) and Portuguese (Portugal) systems with no test override and
 expects `es`, `fr` and `pt-BR`; F44-4's unavailable example moved from `fr` to
 `it`.
+
+## Italian (added 2026-10-13)
+
+The owner asked for Italian as another language after v1.32.0 shipped the
+first four. It follows the same recipe in a single PR, hidden and switch-on
+together, since it was 100% current and fit-checked before the PR opened:
+
+- `copy/glossary.json` gains the Italian style (informal *tu*, the Apple,
+  Google and Mozilla convention) and pinned forms: *schede in riposo*,
+  *Preferiti*, *Sincronizzazione del profilo*, *Selettore rapido*,
+  *Compila gli accessi da 1Password*, *gruppo con nome*. Plurals carry the
+  CLDR `many` branch, like Spanish, French and Portuguese.
+- `copy/messages/it.json` translates all 1,670 keys and is `selectable`.
+- Fit check: the clipped-text scan over every sweep surface found only the
+  ⌘L slash-command hints ending in an ellipsis, as they do in German and
+  French; screenshots of the start page, shield popover, Settings, Bring
+  Your Tabs and Mahjong were checked by eye.
+- The interface-language smoke adds an Italian (Switzerland) system that
+  resolves to `it` (a control with Italian hidden fails it), and F44-4's
+  unavailable example moves from `it` to `ja`.
+- The next release's notes must name Italian; it reaches users only with
+  that release.

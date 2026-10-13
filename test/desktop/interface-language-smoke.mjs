@@ -55,7 +55,7 @@ try {
     assert.equal(await locale(app), 'de');
     assert.equal(await chromeLang(app), 'de');
   });
-  for (const [preferred, expected] of [['es-MX', 'es'], ['fr-CA', 'fr'], ['pt-PT', 'pt-BR']]) {
+  for (const [preferred, expected] of [['es-MX', 'es'], ['fr-CA', 'fr'], ['pt-PT', 'pt-BR'], ['it-CH', 'it']]) {
     await withApp(profileWith(`f44-1-${expected}`, { uiLanguage: 'system' }), preferred, async (app) => {
       assert.equal(await locale(app), expected);
       assert.equal(await chromeLang(app), expected);
@@ -86,11 +86,11 @@ try {
   console.log('ok F44-3');
 
   // F44-4
-  const p4 = profileWith('f44-4', { uiLanguage: 'it' });
+  const p4 = profileWith('f44-4', { uiLanguage: 'ja' });
   await withApp(p4, 'de-DE', async (app) => {
     assert.deepEqual(await app.evaluate(() => globalThis.__blanc.i18nState()).then((s) => [s.locale, s.source]), ['en', 'unavailable']);
   });
-  assert.equal(storedSettings(p4).uiLanguage, 'it');
+  assert.equal(storedSettings(p4).uiLanguage, 'ja');
   console.log('ok F44-4');
 
   // F44-5
