@@ -49,12 +49,21 @@ const HOST_ASSETS = new Map([
     // Pure drag-to-reorder controller shared by the rail and the island so the
     // two surfaces cannot disagree. No IPC of its own and no application data.
     ['/tab-drag.js', 'tab-drag.js'],
+    // Pure Blanc Spaces identity (presets, symbols, readability guard). No IPC
+    // and no application data; the strip mark and the Spaces menu share it.
+    ['/space-identity.js', 'space-identity.js'],
   ])],
   ['overlay', new Map([
     ['/', 'overlay.html'],
     ['/overlay.js', 'overlay.js'],
     ['/workspace-ui.js', 'workspace-ui.js'],
     ['/tab-drag.js', 'tab-drag.js'],
+    // Pure Blanc Spaces identity (presets, symbols, readability guard). No IPC
+    // and no application data; the strip mark and the Spaces menu share it.
+    ['/space-identity.js', 'space-identity.js'],
+    // The Spaces editor's colour picker, drawn inside the overlay (a native
+    // colour panel would take focus and blur-dismiss the menu).
+    ['/space-picker.js', 'space-picker.js'],
     ['/sunrise-hero-mark.png', 'sunrise-hero-mark.png'],
   ])],
   ['permission', new Map([

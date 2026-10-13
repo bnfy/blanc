@@ -2,7 +2,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { createWorkspaceController } = require('../../src/main/workspace-controller');
-const { transferSession, residencyCapacity } = require('../../src/main/workspace-residency');
+const { transferSession, residencyCapacity, undoRebindTarget } = require('../../src/main/workspace-residency');
 const registry = require('../../src/main/window-runtime-registry');
 function harness(overrides = {}) {
   const calls = [];
@@ -113,4 +113,22 @@ test('retention capacity cannot evict protected pages; incoming resident frees a
 test('cancel invalidates a previously issued private-close decision', () => {
   const h = harness({ protection: () => ({ tabCount: 1, privateCount: 1 }) }); const decision = h.controller.open(h.runtime, 'a');
   h.controller.cancel(h.runtime); assert.equal(h.controller.open(h.runtime, 'a', { decision: decision.decision }).error, 'unsaved-scratch'); assert.deepEqual(h.calls, []);
+});
+test('Undo rebinds only the window the delete unbound, and only while nothing else holds the space', () => {
+  const runtime = (id, extra = {}) => ({ id, workspaceId: null, closing: false, resident: false, workspaceTransition: false, ...extra });
+  const a = runtime('a'); const b = runtime('b');
+  assert.equal(undoRebindTarget(['a'], [a, b], 'ws'), a);
+  assert.equal(undoRebindTarget(['a'], [{ ...a, workspaceId: 'other' }, b], 'ws'), null, 'the window has joined another space');
+  assert.equal(undoRebindTarget(['a'], [a, { ...b, workspaceId: 'ws' }], 'ws'), null, 'another window holds the space');
+  assert.equal(undoRebindTarget(['a'], [{ ...a, closing: true }], 'ws'), null, 'the window is closing');
+  assert.equal(undoRebindTarget(['a'], [{ ...a, resident: true }], 'ws'), null, 'hidden resident sets are never rebound');
+  assert.equal(undoRebindTarget(['a'], [{ ...a, workspaceTransition: true }], 'ws'), null, 'mid-switch');
+  assert.equal(undoRebindTarget(['gone'], [a, b], 'ws'), null, 'the window no longer exists');
+  assert.equal(undoRebindTarget([], [a], 'ws'), null);
+});
+test('a created space is handed its chosen identity', () => {
+  let seen = null;
+  const h = harness({ create: (_r, name, options) => { seen = [name, options.color, options.symbol]; return { ok: true, workspace: { id: 'new' } }; } });
+  assert.equal(h.controller.create(h.runtime, 'Side', { newWindow: true, color: '#6757a3', symbol: 'code' }).ok, true);
+  assert.deepEqual(seen, ['Side', '#6757a3', 'code']);
 });

@@ -180,6 +180,8 @@ const migrationSyncTask = document.getElementById('migrationSyncTask');
 const migrationTabsTask = document.getElementById('migrationTabsTask');
 const migrationSyncAction = document.getElementById('migrationSyncAction');
 const migrationTabsAction = document.getElementById('migrationTabsAction');
+const migrationSpaceTask = document.getElementById('migrationSpaceTask');
+const migrationSpaceAction = document.getElementById('migrationSpaceAction');
 const migrationChecklistHide = document.getElementById('migrationChecklistHide');
 let migrationChecklistProjection = null;
 let migrationChecklistRetireTimer = null;
@@ -196,14 +198,16 @@ function setMigrationTask(task, action, complete, label) {
     : t('newtab.checklist.taskNotCompleted', { task: label }));
 }
 
+const MIGRATION_TASKS = 3; // keep in step with migration-checklist.js
 function paintMigrationChecklist(checklist, { completing = false } = {}) {
   for (const el of document.querySelectorAll('.js-migration-progress')) {
-    el.textContent = `${checklist.completedCount}/2`;
+    el.textContent = `${checklist.completedCount}/${MIGRATION_TASKS}`;
   }
   migrationChecklistTitle.textContent = completing ? t('newtab.checklist.doneTitle') : t('newtab.checklist.title');
   migrationChecklistLabel.textContent = completing ? t('newtab.checklist.doneLabel') : t('newtab.checklist.label');
   setMigrationTask(migrationSyncTask, migrationSyncAction, checklist.syncComplete, t('newtab.checklist.sync'));
   setMigrationTask(migrationTabsTask, migrationTabsAction, checklist.tabsComplete, t('newtab.checklist.tabs'));
+  setMigrationTask(migrationSpaceTask, migrationSpaceAction, checklist.spaceComplete, t('newtab.checklist.space'));
 }
 
 function hideMigrationChecklist() {
@@ -247,7 +251,7 @@ function renderMigrationChecklist(checklist) {
   }
 
   const justCompleted = previous?.visible === true &&
-    previous.completedCount < 2 && checklist.completedCount === 2;
+    previous.completedCount < MIGRATION_TASKS && checklist.completedCount === MIGRATION_TASKS;
   if (justCompleted) {
     migrationChecklistPendingCompletion = checklist;
     paintMigrationChecklist(checklist, { completing: true });
@@ -260,7 +264,7 @@ function renderMigrationChecklist(checklist) {
   // Their completion push reaches this page while it is covered. Preserve the
   // pending confirmation across later status pushes and start its dwell only
   // after the start page itself becomes presentable again.
-  if (migrationChecklistPendingCompletion && checklist.completedCount === 2) {
+  if (migrationChecklistPendingCompletion && checklist.completedCount === MIGRATION_TASKS) {
     presentPendingMigrationChecklistCompletion();
     return;
   }
@@ -287,6 +291,10 @@ migrationSyncAction.addEventListener('click', () => {
   window.bowserPages?.start.openSettings('sync').catch(() => {});
 });
 migrationTabsAction.addEventListener('click', closeMigrationChecklistPopover);
+migrationSpaceAction.addEventListener('click', () => {
+  closeMigrationChecklistPopover();
+  window.bowserPages?.start.openSpaces().catch(() => {});
+});
 migrationChecklistHide.addEventListener('click', () => {
   window.bowserPages?.start.dismissMigrationChecklist().catch(() => {});
 });

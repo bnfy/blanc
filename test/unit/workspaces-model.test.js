@@ -10,7 +10,7 @@ const {
   normalizeWorkspace,
   normalizeFile,
   createWorkspace,
-  renameWorkspace,
+  updateWorkspace,
   deleteWorkspace,
   updateCapture,
   listForProfile,
@@ -222,7 +222,7 @@ test('createWorkspace rejects invalid name, duplicate name in-profile, and the c
   }).error, 'limit');
 });
 
-test('renameWorkspace applies name rules and bumps updatedAt', () => {
+test('updateWorkspace applies name rules and bumps updatedAt', () => {
   const start = createWorkspace(EMPTY_FILE(), {
     name: 'Work', profileId: 'default', capture: CAPTURE(), now: 1, id: 'ws_1',
   }).file;
@@ -230,17 +230,17 @@ test('renameWorkspace applies name rules and bumps updatedAt', () => {
     name: 'Personal', profileId: 'default', capture: CAPTURE(), now: 2, id: 'ws_2',
   }).file;
 
-  const ok = renameWorkspace(withSecond, 'ws_1', '  Focus  ', 700);
+  const ok = updateWorkspace(withSecond, 'ws_1', { name: '  Focus  ' }, 700);
   assert.equal(ok.error, undefined);
   assert.equal(ok.file.workspaces.find((w) => w.id === 'ws_1').name, 'Focus');
   assert.equal(ok.file.workspaces.find((w) => w.id === 'ws_1').updatedAt, 700);
   assert.equal(ok.file.workspaces.find((w) => w.id === 'ws_1').createdAt, 1, 'createdAt is preserved');
 
-  assert.equal(renameWorkspace(withSecond, 'ws_1', '  ', 3).error, 'invalid-name');
-  assert.equal(renameWorkspace(withSecond, 'ws_1', 'personal', 3).error, 'duplicate-name');
+  assert.equal(updateWorkspace(withSecond, 'ws_1', { name: '  ' }, 3).error, 'invalid-name');
+  assert.equal(updateWorkspace(withSecond, 'ws_1', { name: 'personal' }, 3).error, 'duplicate-name');
   // Renaming a workspace to its own current name is not a duplicate.
-  assert.equal(renameWorkspace(withSecond, 'ws_1', 'Work', 3).error, undefined);
-  assert.equal(renameWorkspace(withSecond, 'nope', 'Anything', 3).error, 'not-found');
+  assert.equal(updateWorkspace(withSecond, 'ws_1', { name: 'Work' }, 3).error, undefined);
+  assert.equal(updateWorkspace(withSecond, 'nope', { name: 'Anything' }, 3).error, 'not-found');
 });
 
 test('deleteWorkspace removes only the target and reports whether it did', () => {
@@ -298,7 +298,7 @@ test('every mutation leaves its input file untouched', () => {
   const snapshot = JSON.parse(JSON.stringify(start));
 
   createWorkspace(start, { name: 'Two', profileId: 'default', capture: CAPTURE(), now: 2, id: 'ws_2' });
-  renameWorkspace(start, 'ws_1', 'Renamed', 3);
+  updateWorkspace(start, 'ws_1', { name: 'Renamed' }, 3);
   deleteWorkspace(start, 'ws_1');
   updateCapture(start, 'ws_1', CAPTURE(), 4);
   listForProfile(start, 'default');
@@ -537,8 +537,8 @@ test('ordering survives capture/rename and migration adopts the previous display
   const migrated = model.loadFile(old).file;
   assert.deepEqual(migrated.workspaces.map((w) => w.id), ['b', 'a']);
   const updated = model.updateCapture(migrated, 'a', CAPTURE(), 500).file;
-  assert.deepEqual(model.renameWorkspace(updated, 'a', 'Renamed', 1000).file.workspaces.map((w) => w.id), ['b', 'a']);
-  assert.deepEqual(model.moveWorkspace(updated, 'a', 'up').file.workspaces.map((w) => w.id), ['a', 'b']);
+  assert.deepEqual(model.updateWorkspace(updated, 'a', { name: 'Renamed' }, 1000).file.workspaces.map((w) => w.id), ['b', 'a']);
+  assert.deepEqual(model.moveWorkspaceTo(updated, 'a', 0).file.workspaces.map((w) => w.id), ['a', 'b']);
 });
 test('delete recovery preserves identity/order, refuses conflict/capacity and expires after seven days', () => {
   const model = require('../../src/main/workspaces-model');
@@ -550,4 +550,56 @@ test('delete recovery preserves identity/order, refuses conflict/capacity and ex
   assert.equal(model.restoreWorkspace(conflict, 'keep', 111).error, 'duplicate-name');
   let full = deleted; for (let i = 0; i < 25; i++) full = model.createWorkspace(full, { name: `new${i}`, profileId: 'default', capture: CAPTURE(), now: 120, id: `new${i}` }).file;
   assert.equal(model.restoreWorkspace(full, 'keep', 121).error, 'limit');
+});
+
+test('every record gets a stable colour and symbol: valid ones kept, missing ones defaulted in list order', () => {
+  const file = normalizeFile({ version: WORKSPACES_VERSION, workspaces: [
+    { ...VALID(), id: 'a' },
+    { ...VALID(), id: 'b', name: 'B', color: '#426C4C', symbol: 'house' },
+    { ...VALID(), id: 'c', name: 'C', color: 'not-a-colour', symbol: 'toString' },
+  ] });
+  assert.deepEqual(file.workspaces.map(({ id, color, symbol }) => [id, color, symbol]), [
+    ['a', '#376694', 'briefcase'], ['b', '#426c4c', 'house'], ['c', '#6757a3', 'code'],
+  ]);
+  assert.deepEqual(normalizeFile(file), file, 'assigned identities are stable on the next load');
+  const { deleteWorkspace: remove } = require('../../src/main/workspaces-model');
+  assert.equal(remove(file, 'a', 500).file.workspaces.find((w) => w.id === 'c').color, '#6757a3', 'deleting one space never recolours another');
+  assert.deepEqual(normalizeWorkspace({ ...VALID(), color: '#ABCDEF' }), { ...VALID(), color: '#abcdef' }, 'a record keeps only valid identity fields');
+});
+
+test('a deleted space keeps an identity too', () => {
+  const file = normalizeFile({ version: WORKSPACES_VERSION, workspaces: [{ ...VALID(), id: 'a', color: '#426c4c', symbol: 'briefcase' }],
+    deleted: [{ workspace: { ...VALID(), id: 'gone', name: 'Gone' }, deletedAt: 1, index: 1 }] });
+  assert.deepEqual([file.deleted[0].workspace.color, file.deleted[0].workspace.symbol], ['#376694', 'house']);
+});
+
+test('createWorkspace takes a chosen identity or the next unused one', () => {
+  const first = createWorkspace(EMPTY_FILE(), { name: 'One', profileId: 'default', capture: CAPTURE(), now: 1, id: 'one' });
+  assert.deepEqual([first.workspace.color, first.workspace.symbol], ['#426c4c', 'briefcase']);
+  const second = createWorkspace(first.file, { name: 'Two', profileId: 'default', capture: CAPTURE(), now: 2, id: 'two', color: '#F5E663', symbol: 'sun' });
+  assert.deepEqual([second.workspace.color, second.workspace.symbol], ['#f5e663', 'sun']);
+  const third = createWorkspace(second.file, { name: 'Three', profileId: 'default', capture: CAPTURE(), now: 3, id: 'three', color: 'red', symbol: 'nope' });
+  assert.deepEqual([third.workspace.color, third.workspace.symbol], ['#376694', 'house'], 'an unusable choice falls back to the next default');
+});
+
+test('updateWorkspace recolours and changes the symbol, rejects unusable values, and writes nothing for no change', () => {
+  const start = createWorkspace(EMPTY_FILE(), { name: 'Work', profileId: 'default', capture: CAPTURE(), now: 1, id: 'ws_1' }).file;
+  const done = updateWorkspace(start, 'ws_1', { color: '#F5E663', symbol: 'star' }, 50);
+  assert.deepEqual([done.workspace.color, done.workspace.symbol, done.workspace.updatedAt], ['#f5e663', 'star', 50]);
+  assert.equal(updateWorkspace(start, 'ws_1', { color: '#zzz' }, 5).error, 'invalid-color');
+  assert.equal(updateWorkspace(start, 'ws_1', { symbol: 'constructor' }, 5).error, 'invalid-symbol');
+  assert.equal(updateWorkspace(done.file, 'ws_1', { color: '#f5e663', name: 'Work' }, 99).unchanged, true);
+});
+
+test('moveWorkspaceTo moves a space to an index, clamping only past the end, and rejects a malformed index', () => {
+  const { moveWorkspaceTo } = require('../../src/main/workspaces-model');
+  let file = EMPTY_FILE();
+  for (const id of ['a', 'b', 'c']) file = createWorkspace(file, { name: id, profileId: 'default', capture: CAPTURE(), now: 1, id }).file;
+  assert.deepEqual(moveWorkspaceTo(file, 'a', 2).file.workspaces.map((w) => w.id), ['b', 'c', 'a']);
+  assert.deepEqual(moveWorkspaceTo(file, 'c', 0).file.workspaces.map((w) => w.id), ['c', 'a', 'b']);
+  assert.deepEqual(moveWorkspaceTo(file, 'a', 99).file.workspaces.map((w) => w.id), ['b', 'c', 'a'], 'past the end means the end');
+  for (const index of [-1, -5, 1.5, NaN, Infinity, '1', null, undefined]) {
+    assert.equal(moveWorkspaceTo(file, 'b', index).error, 'invalid-index', String(index));
+  }
+  assert.equal(moveWorkspaceTo(file, 'nope', 0).error, 'not-found');
 });

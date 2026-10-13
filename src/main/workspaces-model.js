@@ -11,6 +11,9 @@ const { validProfileId } = require('./local-profile-model');
 // there would be a cycle: Node would hand session-workspace a partial exports
 // object, leaving validWindowId undefined mid-load and failing every id.
 const { validWorkspaceId } = require('./session-workspace');
+// A space's colour and symbol: the shared pure module the chrome documents
+// also load, so main and the menu agree on presets, symbols and defaults.
+const Identity = require('../renderer/space-identity');
 
 const WORKSPACES_VERSION = 2;
 const RECOVERY_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -67,7 +70,25 @@ function normalizeWorkspace(raw) {
     meta: meta.length === urls.length ? meta : [],
     ...(Array.isArray(raw.localFiles) && raw.localFiles.length === urls.length
       ? { localFiles: raw.localFiles.map((value) => value === true) } : {}),
+    // Identity fields only when valid; normalizeFile assigns the defaults.
+    ...(Identity.normalizeHex(raw.color) ? { color: Identity.normalizeHex(raw.color) } : {}),
+    ...(Identity.isSymbol(raw.symbol) ? { symbol: raw.symbol } : {}),
   };
+}
+
+/** Records with a colour and symbol each: a missing or invalid one becomes the
+ * first preset/symbol no other record uses, in list order. Stable once
+ * written: the load path persists the result (spec D13). */
+function withIdentities(records, others = []) {
+  const result = records.map((record) => ({ ...record }));
+  for (const record of result) {
+    if (record.color && record.symbol) continue;
+    const taken = [...others, ...result.filter((other) => other !== record)];
+    const defaults = Identity.defaultsFor(taken.map(({ color, symbol }) => ({ color, symbol })));
+    if (!record.color) record.color = defaults.color;
+    if (!record.symbol) record.symbol = defaults.symbol;
+  }
+  return result;
 }
 
 /** The whole file, repaired: invalid records dropped, ids de-duplicated
@@ -91,7 +112,12 @@ function normalizeFile(raw) {
     return workspace && !seen.has(workspace.id) && Number.isFinite(entry.deletedAt)
       ? [{ workspace, deletedAt: entry.deletedAt, index: Number.isInteger(entry.index) ? entry.index : workspaces.length }] : [];
   }).slice(-MAX_WORKSPACES);
-  return { version: WORKSPACES_VERSION, workspaces, deleted };
+  const identified = withIdentities(workspaces);
+  return {
+    version: WORKSPACES_VERSION,
+    workspaces: identified,
+    deleted: deleted.map((entry) => ({ ...entry, workspace: withIdentities([entry.workspace], identified)[0] })),
+  };
 }
 
 function loadFile(raw) {
@@ -133,15 +159,18 @@ const nameTaken = (file, profileId, name, exceptId = null) => {
 
 const withWorkspaces = (file, workspaces) => ({ ...file, version: WORKSPACES_VERSION, workspaces });
 
-function createWorkspace(file, { name, profileId, capture, now, id } = {}) {
+function createWorkspace(file, { name, profileId, capture, now, id, color, symbol } = {}) {
   const clean = normalizeFile(file);
   const safeName = sanitizeName(name);
   if (safeName === null) return { file: clean, error: 'invalid-name' };
   if (clean.workspaces.length >= MAX_WORKSPACES) return { file: clean, error: 'limit' };
   if (nameTaken(clean, profileId, safeName)) return { file: clean, error: 'duplicate-name' };
 
+  const defaults = Identity.defaultsFor(clean.workspaces);
   const workspace = normalizeWorkspace({
     id, name: safeName, profileId, createdAt: now, updatedAt: now, ...captureColumns(capture),
+    color: Identity.normalizeHex(color) ?? defaults.color,
+    symbol: Identity.isSymbol(symbol) ? symbol : defaults.symbol,
   });
   // A caller-supplied id or profileId that cannot be stored is a programming
   // error, not a user error — surface it rather than writing a broken record.
@@ -149,18 +178,35 @@ function createWorkspace(file, { name, profileId, capture, now, id } = {}) {
   return { file: withWorkspaces(clean, [...clean.workspaces, workspace]), workspace };
 }
 
-function renameWorkspace(file, id, name, now) {
+/** Rename, recolour or change the symbol of one space: any subset of
+ * `{ name, color, symbol }`. Unchanged values write nothing. */
+function updateWorkspace(file, id, patch = {}, now) {
   const clean = normalizeFile(file);
   const existing = clean.workspaces.find((w) => w.id === id);
   if (!existing) return { file: clean, error: 'not-found' };
-  const safeName = sanitizeName(name);
-  if (safeName === null) return { file: clean, error: 'invalid-name' };
-  if (nameTaken(clean, existing.profileId, safeName, id)) return { file: clean, error: 'duplicate-name' };
-
-  const workspace = { ...existing, name: safeName, updatedAt: now };
+  const next = { ...existing };
+  if (patch.name !== undefined) {
+    const safeName = sanitizeName(patch.name);
+    if (safeName === null) return { file: clean, error: 'invalid-name' };
+    if (nameTaken(clean, existing.profileId, safeName, id)) return { file: clean, error: 'duplicate-name' };
+    next.name = safeName;
+  }
+  if (patch.color !== undefined) {
+    const color = Identity.normalizeHex(patch.color);
+    if (!color) return { file: clean, error: 'invalid-color' };
+    next.color = color;
+  }
+  if (patch.symbol !== undefined) {
+    if (!Identity.isSymbol(patch.symbol)) return { file: clean, error: 'invalid-symbol' };
+    next.symbol = patch.symbol;
+  }
+  if (next.name === existing.name && next.color === existing.color && next.symbol === existing.symbol) {
+    return { file: clean, workspace: existing, unchanged: true };
+  }
+  next.updatedAt = now;
   return {
-    file: withWorkspaces(clean, clean.workspaces.map((w) => (w.id === id ? workspace : w))),
-    workspace,
+    file: withWorkspaces(clean, clean.workspaces.map((w) => (w.id === id ? next : w))),
+    workspace: next,
   };
 }
 
@@ -351,18 +397,21 @@ function restoreWorkspace(file, id, now = Date.now()) {
   return { file: clean, workspace: entry.workspace };
 }
 
-function moveWorkspace(file, id, direction) {
+/** Move one space to `index` in this profile's list; an index past the end
+ * means the end. A negative or non-integer index is refused, never guessed. */
+function moveWorkspaceTo(file, id, index) {
   const clean = normalizeFile(file);
-  const index = clean.workspaces.findIndex((w) => w.id === id);
-  if (index < 0) return { error: 'not-found' };
-  const target = Math.max(0, Math.min(clean.workspaces.length - 1, index + (direction === 'up' ? -1 : 1)));
-  const [workspace] = clean.workspaces.splice(index, 1);
+  const from = clean.workspaces.findIndex((w) => w.id === id);
+  if (from < 0) return { error: 'not-found' };
+  if (!Number.isInteger(index) || index < 0) return { error: 'invalid-index' };
+  const target = Math.min(clean.workspaces.length - 1, index);
+  const [workspace] = clean.workspaces.splice(from, 1);
   clean.workspaces.splice(target, 0, workspace);
-  return { file: clean, workspace, unchanged: target === index };
+  return { file: clean, workspace, unchanged: target === from };
 }
 
 module.exports = {
-  loadFile, captureColumns, restoreWorkspace, moveWorkspace, RECOVERY_TTL_MS,
+  loadFile, captureColumns, restoreWorkspace, moveWorkspaceTo, RECOVERY_TTL_MS,
   WORKSPACES_VERSION,
   MAX_WORKSPACES,
   MAX_NAME_LENGTH,
@@ -371,7 +420,7 @@ module.exports = {
   normalizeWorkspace,
   normalizeFile,
   createWorkspace,
-  renameWorkspace,
+  updateWorkspace,
   deleteWorkspace,
   updateCapture,
   listForProfile,

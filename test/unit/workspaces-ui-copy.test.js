@@ -22,9 +22,9 @@ test('switch decisions pluralize private and unsaved tabs from the catalog', asy
   assert.equal(await message(2, 1), '2 unsaved tabs will close. Page drafts are not saved to disk.');
 });
 
-test('workspace rows name the workspace, its state and its tab count', () => {
-  const h = harness({}, { items: [{ id: 'a', name: 'First', active: true, tabCount: 1 }, { id: 'b', name: 'Second', active: false, tabCount: 4 }] });
+test('space rows name the space, its state and its tab count', () => {
+  const h = harness({}, { items: [{ id: 'a', name: 'First', active: true, tabCount: 1, color: '#426c4c', symbol: 'house' }, { id: 'b', name: 'Second', active: false, tabCount: 4, color: '#376694', symbol: 'book' }] });
   h.ui.open();
-  const titles = h.list.children.map((row) => row.children[0].title);
+  const titles = h.list.children.filter((row) => row.className.includes('ws-row')).map((row) => row.children[0].title);
   assert.deepEqual(titles, ['First · Current space · 1 tab', 'Second · Open space · 4 tabs']);
 });

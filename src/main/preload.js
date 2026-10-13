@@ -106,6 +106,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   selectBlockingProvider: (provider, restart = false) => ipcRenderer.invoke('chrome:blocking-provider', provider, restart),
   openBlockingPopup: () => ipcRenderer.invoke('chrome:blocking-popup'),
   openCapturePopover: (anchor) => ipcRenderer.send('chrome:open-capture', anchor),
+  openSpacesMenu: (anchor) => ipcRenderer.send('chrome:open-spaces', anchor),
   captureStop: (surfaceId) => ipcRenderer.send('chrome:capture-stop', surfaceId),
   captureFocus: (surfaceId) => ipcRenderer.send('chrome:capture-focus', surfaceId),
   stopDisplayShare: (shareId) => ipcRenderer.send('display-capture:stop', { shareId }),
@@ -128,17 +129,18 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   listRemoteTabs: () => ipcRenderer.invoke('chrome:remote-tabs-list'),
   cancelWorkspaceAction: () => ipcRenderer.send('chrome:workspaces-cancel'),
   listWorkspaces: () => ipcRenderer.invoke('chrome:workspaces-list'),
-  saveWorkspaceAs: (name) => ipcRenderer.invoke('chrome:workspaces-save-as', name),
+  saveWorkspaceAs: (name, identity) => ipcRenderer.invoke('chrome:workspaces-save-as', name, identity),
   // opts: { decision?: string, newWindow?: true } — `decision` echoes the token
   // from an unsaved-scratch result (a confirmed "discard and switch");
   // `newWindow` opens elsewhere. Omitted for a plain open/create attempt.
   openWorkspace: (id, opts) => ipcRenderer.invoke('chrome:workspaces-open', id, opts),
   createBlankWorkspace: (name, opts) => ipcRenderer.invoke('chrome:workspaces-create-blank', name, opts),
-  renameWorkspace: (id, name) => ipcRenderer.invoke('chrome:workspaces-rename', id, name),
   removeWorkspace: (id) => ipcRenderer.invoke('chrome:workspaces-remove', id),
   restoreWorkspace: (id) => ipcRenderer.invoke('chrome:workspaces-restore', id),
   forgetWorkspace: (id) => ipcRenderer.invoke('chrome:workspaces-forget', id),
-  moveWorkspace: (id, direction) => ipcRenderer.invoke('chrome:workspaces-move', id, direction),
+  updateWorkspace: (id, patch) => ipcRenderer.invoke('chrome:workspaces-update', id, patch),
+  moveWorkspaceTo: (id, index) => ipcRenderer.invoke('chrome:workspaces-move-to', id, index),
+  undoRemoveWorkspace: (id) => ipcRenderer.invoke('chrome:workspaces-undo-remove', id),
   searchSuggestions: (query) => ipcRenderer.invoke('chrome:search-suggestions', query),
   onRemoteTabsUpdated: (callback) => {
     const listener = (_event, devices) => callback(devices);
@@ -149,6 +151,11 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
     const listener = (_event, payload) => callback(payload);
     ipcRenderer.on('chrome:workspaces-updated', listener);
     return () => ipcRenderer.removeListener('chrome:workspaces-updated', listener);
+  },
+  onWorkspaceAction: (callback) => {
+    const listener = (_event, payload) => callback(payload);
+    ipcRenderer.on('overlay:workspace-action', listener);
+    return () => ipcRenderer.removeListener('overlay:workspace-action', listener);
   },
   clearHistory: () => ipcRenderer.invoke('chrome:history-clear'),
   toggleAdblock: () => ipcRenderer.invoke('chrome:adblock-toggle'),

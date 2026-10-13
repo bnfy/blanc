@@ -115,6 +115,7 @@ function install(refs) {
     openInternalPage,
     openFindBar,
     getOverlayMode,
+    isOverlayViewShowing,
     showOverlay,
     hideOverlay,
     showUtilityPage,
@@ -819,6 +820,7 @@ function install(refs) {
         const popover = document.getElementById('migrationChecklist');
         const sync = document.getElementById('migrationSyncTask');
         const tabs = document.getElementById('migrationTabsTask');
+        const space = document.getElementById('migrationSpaceTask');
         const bounds = (element) => {
           if (!element || getComputedStyle(element).display === 'none') return null;
           const rect = element.getBoundingClientRect();
@@ -834,6 +836,7 @@ function install(refs) {
           title: document.getElementById('migrationChecklistTitle')?.textContent ?? null,
           syncComplete: sync?.classList.contains('is-complete') ?? false,
           tabsComplete: tabs?.classList.contains('is-complete') ?? false,
+          spaceComplete: space?.classList.contains('is-complete') ?? false,
           expanded: document.getElementById('migrationChecklistCompact')?.getAttribute('aria-expanded') === 'true',
           focused: document.hasFocus(),
           focusedId: document.activeElement?.id ?? null,
@@ -1006,6 +1009,7 @@ function install(refs) {
       const ids = {
         sync: 'migrationSyncAction',
         tabs: 'migrationTabsAction',
+        space: 'migrationSpaceAction',
         hide: 'migrationChecklistHide',
         compact: 'migrationChecklistCompact',
       };
@@ -1014,7 +1018,7 @@ function install(refs) {
       // Tasks live in the pill's popover, so reach them the way a person
       // does: open the popover from the pill, then click a task that is
       // actually rendered. A popover that fails to open fails the step.
-      const inPopover = action === 'sync' || action === 'tabs';
+      const inPopover = action === 'sync' || action === 'tabs' || action === 'space';
       return wc.executeJavaScript(`(() => {
         const btn = document.getElementById('${id}');
         if (!btn) return false;
@@ -1036,12 +1040,14 @@ function install(refs) {
         migrationChecklistDismissed: false,
         syncMigrationCompleted: false,
         tabImportCompleted: false,
+        spaceMigrationCompleted: false,
       });
       const current = settings.getSettings();
       return {
         dismissed: current.migrationChecklistDismissed,
         syncComplete: current.syncMigrationCompleted,
         tabsComplete: current.tabImportCompleted,
+        spaceComplete: current.spaceMigrationCompleted,
       };
     },
     setPatronCalloutDismissedAt(ms) {
@@ -1060,8 +1066,8 @@ function install(refs) {
         return document.getElementById('patronCallout').hidden;
       })()`);
     },
-    setMigrationChecklistProgress(syncComplete, tabsComplete) {
-      settings.setSettings({ syncMigrationCompleted: !!syncComplete, tabImportCompleted: !!tabsComplete });
+    setMigrationChecklistProgress(syncComplete, tabsComplete, spaceComplete = false) {
+      settings.setSettings({ syncMigrationCompleted: !!syncComplete, tabImportCompleted: !!tabsComplete, spaceMigrationCompleted: !!spaceComplete });
       return true;
     },
     migrationChecklistSettings() {
@@ -1070,6 +1076,7 @@ function install(refs) {
         dismissed: current.migrationChecklistDismissed === true,
         syncComplete: current.syncMigrationCompleted === true,
         tabsComplete: current.tabImportCompleted === true,
+        spaceComplete: current.spaceMigrationCompleted === true,
       };
     },
     syncEnabled() { return sync.status().enabled === true; },
@@ -2078,6 +2085,65 @@ function install(refs) {
       if (!wc) throw new Error('overlay is not open');
       wc.sendInputEvent({ type: 'keyDown', keyCode: 'Escape' });
       wc.sendInputEvent({ type: 'keyUp', keyCode: 'Escape' });
+      return true;
+    },
+
+    // ---- Blanc Spaces mark and menu (F41) ----
+    spaceMarkState(windowId) {
+      const read = () => {
+        const wc = getChromeWebContents();
+        if (!wc) return null;
+        return wc.executeJavaScript(`(() => {
+          const mark = document.getElementById('pillSpace');
+          if (!mark) return null;
+          const rect = mark.getBoundingClientRect();
+          const parts = [document.getElementById('pillSpaceSymbol'), document.getElementById('pillSpaceName')];
+          return {
+            hidden: mark.hidden,
+            state: mark.dataset.state,
+            name: parts[1].textContent,
+            label: mark.getAttribute('aria-label'),
+            expanded: mark.getAttribute('aria-expanded'),
+            ink: mark.style.getPropertyValue('--space-ink'),
+            symbol: parts[0].dataset.symbol ?? null,
+            left: rect.left,
+            bottom: rect.bottom,
+            islandBottom: document.getElementById('islandPill').getBoundingClientRect().bottom,
+            animatedProperties: [...new Set(parts.flatMap((p) => p.getAnimations()).flatMap((a) => a.effect.getKeyframes().flatMap((k) => Object.keys(k))))],
+          };
+        })()`);
+      };
+      return windowId ? refs.runInWindowRuntime(String(windowId), read) : read();
+    },
+    clickPillSpace() {
+      const wc = getChromeWebContents();
+      if (!wc) throw new Error('chrome webContents unavailable');
+      return wc.executeJavaScript(`document.getElementById('pillSpace').click()`);
+    },
+    pressOverlayKey(keyCode, modifiers = []) {
+      const wc = getOverlayWebContents();
+      if (!wc) throw new Error('overlay is not open');
+      wc.sendInputEvent({ type: 'keyDown', keyCode, modifiers });
+      wc.sendInputEvent({ type: 'keyUp', keyCode, modifiers });
+      return true;
+    },
+    // The Spaces menu as it closes: main's mode, whether the overlay view is
+    // still on screen, and the menu as the overlay is drawing it.
+    async spacesMenuExitState() {
+      const wc = getOverlayWebContents();
+      const view = { mode: getOverlayMode() ?? null, showing: isOverlayViewShowing() };
+      if (!wc) return view;
+      const menu = await wc.executeJavaScript(`(() => {
+        const m = document.getElementById('workspaceSwitcher'); const s = getComputedStyle(m);
+        return { hidden: m.hidden, closing: document.body.dataset.closing ?? '', display: s.display, top: s.top, left: s.left, transform: s.transform, opacity: Number(s.opacity) };
+      })()`);
+      return { ...view, ...menu };
+    },
+    async emulateReducedMotion(on) {
+      for (const wc of [getChromeWebContents(), getOverlayWebContents()].filter(Boolean)) {
+        if (!wc.debugger.isAttached()) wc.debugger.attach('1.3');
+        await wc.debugger.sendCommand('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: on ? 'reduce' : '' }] });
+      }
       return true;
     },
 

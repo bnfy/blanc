@@ -193,6 +193,7 @@ const { DEFAULT_PROFILE_ID } = require('./local-profile-model');
 const {
   migrationChecklistState,
   migrationChecklistForTab,
+  spaceTaskIntroduction,
 } = require('./migration-checklist');
 const { patronCalloutSnoozedUntil } = require('./patron-callout');
 const localProfiles = require('./local-profiles');
@@ -256,6 +257,7 @@ const {
   normalizeVerticalTabsWidth,
   calculateChromeLayout,
   calculateShieldBounds,
+  calculateSpacesBounds,
   calculateCaptureBounds,
 } = require('./chrome-layout');
 const {
@@ -316,7 +318,7 @@ const namedWorkspaces = require('./workspaces');
 const { readArcSidebarFile, readDetectedArcSidebar, detectArcSidebar } = require('./arc-import-source');
 const { createArcImportService } = require('./arc-import');
 const { createWorkspaceController } = require('./workspace-controller');
-const { transferSession, residencyCapacity } = require('./workspace-residency');
+const { transferSession, residencyCapacity, undoRebindTarget } = require('./workspace-residency');
 const { scratchSwitchGuardResult, MAX_WORKSPACES } = require('./workspaces-model');
 
 // The SDK never loads in main. Only macOS, Windows and Linux create the lazy
@@ -2992,6 +2994,15 @@ function overlayBounds() {
       rowCount: captureRowCount(),
     });
   }
+  if (rt().overlayMode === 'spaces') {
+    return calculateSpacesBounds({
+      windowWidth: rt().window.getContentBounds().width,
+      windowHeight: rt().window.getContentBounds().height,
+      stripHeight: rt().chromeHeight,
+      anchorLeft: rt().spacesAnchorLeft,
+      anchorBottom: rt().spacesAnchorBottom,
+    });
+  }
   return layout.panelBounds;
 }
 
@@ -3002,6 +3013,14 @@ function setShieldAnchor(anchor) {
   rt().shieldAnchorRight = Number.isFinite(anchor?.right) ? anchor.right : null;
   rt().shieldAnchorCenter = valid ? anchor.center : null;
   rt().shieldAnchorBottom = valid ? anchor.bottom : null;
+}
+
+function setSpacesAnchor(anchor) {
+  const width = rt().window?.getContentBounds().width ?? 0;
+  const valid = Number.isFinite(anchor?.left) && anchor.left >= 0 && anchor.left <= width
+    && Number.isFinite(anchor?.bottom) && anchor.bottom >= 0 && anchor.bottom <= rt().chromeHeight;
+  rt().spacesAnchorLeft = valid ? anchor.left : null;
+  rt().spacesAnchorBottom = valid ? anchor.bottom : null;
 }
 
 function syncShieldAnchor() {
@@ -3466,7 +3485,8 @@ function openIslandTyping(char) {
   showOverlay('panel', { prefill: char });
 }
 
-/** How long the panel takes to retract. Keep in step with styles.css. */
+/** How long the panel takes to retract, and the Spaces menu to fade back
+ * into its mark. Keep in step with styles.css. */
 const OVERLAY_RETRACT_MS = 200;
 
 function hideOverlay({ refocusContent = true, reason = null } = {}) {
@@ -3488,6 +3508,8 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
   rt().shieldAnchorCenter = null;
   rt().shieldAnchorBottom = null;
   rt().captureAnchorRight = null;
+  rt().spacesAnchorLeft = null;
+  rt().spacesAnchorBottom = null;
   rt().shieldPopoverHost = null;
   rt().shieldTrigger = null;
   // A dismissed command bar means the user is done addressing — stop any
@@ -3504,7 +3526,7 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
       clearTimeout(rt().overlayExitTimer);
       rt().overlayExitTimer = null;
     }
-    if (retracts) {
+    if (retracts || closingMode === 'spaces') {
       rt().overlayExitTimer = setTimeout(bindWindowRuntime(rt(), () => {
         rt().overlayExitTimer = null;
         // Re-check: a new overlay may have opened while this was retracting,
@@ -3526,6 +3548,7 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
       ? (
           closingMode === 'shield' ? closingTrigger
             : closingMode === 'capture' ? 'capture'
+              : closingMode === 'spaces' ? 'spaces'
               // The Change control only exists while Glance is still open —
               // if the reference tab closed under the picker, fall through to
               // the ordinary content refocus instead of a hidden button.
@@ -5331,7 +5354,12 @@ const workspaceController = createWorkspaceController({
   checkpoint: checkpointWorkspaceSession,
   stage: stageWorkspace,
   validateCreate: (name) => namedWorkspaces.validateCreate(name),
-  create: (_r, name) => namedWorkspaces.create({ name, capture: { urls: [], groups: [], groupIds: [], pinned: [], meta: [], activeIndex: 0 } }),
+  create: (_r, name, options = {}) => namedWorkspaces.create({
+    name,
+    capture: { urls: [], groups: [], groupIds: [], pinned: [], meta: [], activeIndex: 0 },
+    color: options.color,
+    symbol: options.symbol,
+  }),
   focus(target) {
     if (!target.window || target.window.isDestroyed()) createMainWindow(target);
     if (target.window.isMinimized()) target.window.restore();
@@ -5399,7 +5427,7 @@ const arcImport = createArcImportService({
   },
   createSpaces(entries) {
     const result = namedWorkspaces.createMany(entries);
-    if (result.ok) broadcastWorkspacesUpdated();
+    if (result.ok) { broadcastWorkspacesUpdated(); noteSpaceCreated(); }
     return result;
   },
   importFavorites(entries) {
@@ -5433,13 +5461,13 @@ function scratchGuardResult(runtime) {
  * call applyWorkspaceToWindow — the window's tabs already ARE the set being
  * saved, so re-applying them would close and recreate every tab (destroying
  * any private tab in the window) just to arrive back where it started. */
-function saveCurrentWindowAsWorkspace(runtime, name) {
+function saveCurrentWindowAsWorkspace(runtime, name, identity = {}) {
   return withWindowRuntime(runtime, () => {
     // No prior NAMED selection exists yet for this window, so a private or
     // provisional active tab falls back to the first persistable tab — the
     // captureWindowEntry default (previousActiveIndex 0), exactly like
     // persistSession treats a window never yet written to session.json.
-    const result = namedWorkspaces.create({ name, capture: workspaceCapture(runtime) });
+    const result = namedWorkspaces.create({ name, capture: workspaceCapture(runtime), color: identity.color, symbol: identity.symbol });
     if (result.ok) {
       const previousWorkspaceId = runtime.workspaceId;
       runtime.workspaceId = result.workspace.id;
@@ -5540,6 +5568,10 @@ function applyWorkspaceToWindow(runtime, workspace) {
   });
 }
 
+// Which windows each delete unbound, so Undo can put them back (spec §7). Keyed
+// by profile and workspace; memory only, cleared by the Undo itself.
+const removedWorkspaceBindings = new Map();
+
 /** Remove the saved record durably before unbinding matching windows in this profile. Resident pages become a visible ordinary window so deletion cannot destroy hidden drafts. */
 function removeNamedWorkspace(id) {
   // Deleting the saved record must not destroy a hidden draft. Reveal its
@@ -5551,10 +5583,37 @@ function removeNamedWorkspace(id) {
   }
   const result = namedWorkspaces.remove(id);
   if (result.ok) {
+    const unbound = [];
     for (const runtime of windowRuntimes.all()) {
-      if (runtime.profileId === rt().profileId && runtime.workspaceId === id) runtime.workspaceId = null;
+      if (runtime.profileId === rt().profileId && runtime.workspaceId === id) {
+        runtime.workspaceId = null;
+        unbound.push(runtime.id);
+      }
     }
+    removedWorkspaceBindings.set(`${rt().profileId}:${id}`, unbound);
     flushWorkspaceSession();
+  }
+  return result;
+}
+
+/** Undo of a delete: restore the record, then rebind the window the delete
+ * unbound when it can still take it. Same commit path as save-as: bind,
+ * durably flush the session pointer (rolling back on failure), then persist so
+ * the window's live tabs autosave into the space again. */
+function undoRemoveNamedWorkspace(id) {
+  const key = `${rt().profileId}:${id}`;
+  const result = namedWorkspaces.restore(id);
+  if (!result.ok) return result;
+  const runtimeIds = removedWorkspaceBindings.get(key) ?? [];
+  removedWorkspaceBindings.delete(key);
+  const peers = windowRuntimes.all().filter((r) => r.profileId === rt().profileId);
+  const target = undoRebindTarget(runtimeIds, peers, id);
+  if (target) {
+    withWindowRuntime(target, () => {
+      target.workspaceId = id;
+      if (!flushWorkspaceSession().ok) { target.workspaceId = null; return; }
+      persistSession();
+    });
   }
   return result;
 }
@@ -6116,8 +6175,9 @@ function setActiveTab(id, {
   }
 
   // Find state is per-tab; a stale capsule over a different page misleads.
-  // The shield popover describes one tab's site — same rule.
-  if (rt().overlayMode === 'find' || rt().overlayMode === 'shield' || rt().overlayMode === 'capture') {
+  // The shield popover describes one tab's site — same rule. The Spaces menu
+  // describes this window, but a switch away from it is a fresh context too.
+  if (['find', 'shield', 'capture', 'spaces'].includes(rt().overlayMode)) {
     hideOverlay({ refocusContent: false });
   }
 
@@ -7090,6 +7150,17 @@ function chromeOn(channel, handler) {
   });
 }
 
+/** "Make your first space" is done once a space exists in Personal. */
+function noteSpaceCreated() {
+  if (rt().profileId === DEFAULT_PROFILE_ID && !settings.getSettings().spaceMigrationCompleted) {
+    settings.setSettings({ spaceMigrationCompleted: true });
+  }
+}
+
+// Dev-only comparison of how strongly a space tints the chrome (spec §11).
+// Packaged builds always draw the mark alone.
+const spaceTint = !app.isPackaged && ['island', 'frame'].includes(process.env.BLANC_SPACE_TINT) ? process.env.BLANC_SPACE_TINT : 'mark';
+
 // Workspace IPC contains presentation metadata only. Ownership is derived
 // within the requesting profile; page snapshots, URLs and views stay in main.
 function workspacesProjection() {
@@ -7104,7 +7175,12 @@ function workspacesProjection() {
       resident: workspaceOwner(rt(), workspace.id)?.resident === true,
       revision: workspace.revision,
       tabCount: workspace.urls.length,
+      color: workspace.color,
+      symbol: workspace.symbol,
     })),
+    // "This window · N tabs" in the new-space editor: what save-as would keep.
+    windowTabCount: rt().tabOrder.filter((tabId) => tabs.get(tabId) && !tabs.get(tabId).private).length,
+    tint: spaceTint,
   };
 }
 
@@ -7130,19 +7206,16 @@ function broadcastWorkspacesUpdated() {
   }, { liveOnly: true });
 }
 
-// Native context menus open the same workspace action state as the visible
-// row management buttons. A stale target is handled by the renderer.
-function beginRenameWorkspace(workspaceId) {
-  showOverlay('panel', { purpose: { renameWorkspaceId: workspaceId } });
-}
-function beginDeleteWorkspace(workspaceId) {
-  showOverlay('panel', { purpose: { deleteWorkspaceId: workspaceId } });
+/** A row's right-click choice runs in the Spaces menu that is already open. */
+function sendWorkspaceAction(kind, workspaceId) {
+  const wc = rt().overlayView?.webContents;
+  if (wc && !wc.isDestroyed()) wc.send('overlay:workspace-action', { kind, id: workspaceId });
 }
 function workspaceMenuContextActions(owner) {
   const b = (fn) => bindWindowRuntime(owner, fn);
   return {
-    rename: b((id) => beginRenameWorkspace(id)),
-    remove: b((id) => beginDeleteWorkspace(id)),
+    edit: b((id) => sendWorkspaceAction('edit', id)),
+    remove: b((id) => sendWorkspaceAction('delete', id)),
   };
 }
 
@@ -7425,6 +7498,10 @@ function registerIpcHandlers() {
       setShieldAnchor(rect.shieldAnchor);
       syncShieldAnchor();
     }
+    if (event.sender === rt().window?.webContents && rt().overlayMode === 'spaces' && rect?.spacesAnchor) {
+      setSpacesAnchor(rect.spacesAnchor);
+      rt().overlayView?.setBounds(overlayBounds());
+    }
   });
 
   chromeOn('chrome:layout', (_e, { height }) => {
@@ -7467,6 +7544,17 @@ function registerIpcHandlers() {
     rt().shieldTrigger = trigger;
     broadcastTabs(); // fresh state.shieldPopover before the overlay renders
     showOverlay('shield');
+  });
+  // The Island's space mark opens the Spaces menu on its own, tight around it.
+  // Escape, blur, a click outside, a tab switch or a space switch close it;
+  // focus returns to the mark.
+  chromeOn('chrome:open-spaces', (_e, anchor) => {
+    if (rt().overlayMode === 'spaces') return hideOverlay({ refocusContent: false }); // re-click toggles shut
+    // A press that began on the open menu has already closed it (the overlay's
+    // blur); its click must not open it again.
+    if (anchor?.closing === true) return;
+    setSpacesAnchor(anchor);
+    showOverlay('spaces');
   });
   chromeHandle('chrome:blocking-provider', async (_event, provider, restart = false) => {
     const tab = tabs.get(rt().activeTabId);
@@ -7555,8 +7643,11 @@ function registerIpcHandlers() {
   // workspaces.json.
   chromeOn('chrome:workspaces-cancel', () => workspaceController.cancel(rt()));
   chromeHandle('chrome:workspaces-list', () => workspacesProjection());
-  chromeHandle('chrome:workspaces-save-as', (_e, name) => {
-    const result = saveCurrentWindowAsWorkspace(rt(), name);
+  chromeHandle('chrome:workspaces-save-as', (_e, name, identity) => {
+    const result = saveCurrentWindowAsWorkspace(rt(), name, {
+      color: typeof identity?.color === 'string' ? identity.color : undefined,
+      symbol: typeof identity?.symbol === 'string' ? identity.symbol : undefined,
+    });
     if (!result.ok) {
       // The workspace file and session file are separate atomic stores. If the
       // first commit landed, return the saved row with an honest partial-success
@@ -7568,6 +7659,7 @@ function registerIpcHandlers() {
       return result;
     }
     broadcastWorkspacesUpdated();
+    noteSpaceCreated();
     // Only the new id crosses the wire, never result.workspace itself.
     return { ok: true, workspaceId: result.workspace.id, ...workspacesProjection() };
   });
@@ -7582,7 +7674,12 @@ function registerIpcHandlers() {
     return { ...result, ...workspacesProjection() };
   });
   chromeHandle('chrome:workspaces-create-blank', (_e, name, opts) => {
-    const result = createBlankWorkspaceAndSwitch(rt(), name, { decision: typeof opts?.decision === 'string' ? opts.decision : null, newWindow: opts?.newWindow === true });
+    const result = createBlankWorkspaceAndSwitch(rt(), name, {
+      decision: typeof opts?.decision === 'string' ? opts.decision : null,
+      newWindow: opts?.newWindow === true,
+      color: typeof opts?.color === 'string' ? opts.color : undefined,
+      symbol: typeof opts?.symbol === 'string' ? opts.symbol : undefined,
+    });
     if (!result.ok) {
       if (result.workspaceId) {
         broadcastWorkspacesUpdated();
@@ -7591,13 +7688,8 @@ function registerIpcHandlers() {
       return result;
     }
     broadcastWorkspacesUpdated();
+    noteSpaceCreated();
     return { ...result, ...workspacesProjection() };
-  });
-  chromeHandle('chrome:workspaces-rename', (_e, id, name) => {
-    const result = namedWorkspaces.rename(id, name);
-    if (!result.ok) return result; // {ok:false, error:'not-found'|'invalid-name'|'duplicate-name'}
-    broadcastWorkspacesUpdated();
-    return { ok: true, ...workspacesProjection() };
   });
   chromeHandle('chrome:workspaces-remove', (_e, id) => {
     const result = removeNamedWorkspace(id);
@@ -7605,11 +7697,28 @@ function registerIpcHandlers() {
     broadcastWorkspacesUpdated();
     return { ok: true, ...workspacesProjection() };
   });
+  chromeHandle('chrome:workspaces-update', (_e, id, patch) => {
+    const result = namedWorkspaces.update(id, {
+      ...(typeof patch?.name === 'string' ? { name: patch.name } : {}),
+      ...(typeof patch?.color === 'string' ? { color: patch.color } : {}),
+      ...(typeof patch?.symbol === 'string' ? { symbol: patch.symbol } : {}),
+    });
+    if (!result.ok) return result; // not-found | invalid-name | duplicate-name | invalid-color | invalid-symbol
+    broadcastWorkspacesUpdated();
+    return { ok: true, ...workspacesProjection() };
+  });
+  chromeHandle('chrome:workspaces-undo-remove', (_e, id) => {
+    const result = undoRemoveNamedWorkspace(id);
+    if (!result.ok) return result;
+    broadcastWorkspacesUpdated();
+    return { ok: true, ...workspacesProjection() };
+  });
 
   for (const [channel, operation] of [
     ['chrome:workspaces-restore', (id) => namedWorkspaces.restore(id)],
     ['chrome:workspaces-forget', (id) => namedWorkspaces.forget(id)],
-    ['chrome:workspaces-move', (id, direction) => namedWorkspaces.move(id, direction)],
+    // The model refuses a negative or non-integer index (invalid-index).
+    ['chrome:workspaces-move-to', (id, index) => namedWorkspaces.moveTo(id, index)],
   ]) {
     chromeHandle(channel, (_event, ...args) => {
       const result = operation(...args);
@@ -9303,6 +9412,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   if (sync.status().enabled && !settings.getSettings().syncMigrationCompleted) {
     settings.setSettings({ syncMigrationCompleted: true });
   }
+  // Introduce "Make your first space" once, before any window exists, without
+  // reopening a checklist that already retired (spec D16), and already done
+  // for someone whose Personal profile has a space.
+  const spaceTaskPatch = spaceTaskIntroduction(settings.getSettings(), {
+    hasSpaces: withLocalProfile(DEFAULT_PROFILE_ID, () => namedWorkspaces.list().length > 0),
+  });
+  if (spaceTaskPatch) settings.setSettings(spaceTaskPatch);
   // Baseline for the settings fan-out's Match site colors re-projection.
   lastIslandSiteColors = settings.getSettings().islandSiteColors;
   lastDarkWebsitesKey = JSON.stringify([
@@ -9805,6 +9921,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         dismissed: current.migrationChecklistDismissed,
         syncComplete: current.syncMigrationCompleted,
         tabsComplete: current.tabImportCompleted,
+        spaceComplete: current.spaceMigrationCompleted,
       }),
     };
   };
@@ -9977,6 +10094,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       },
       dismissMigrationChecklist: () => {
         settings.setSettings({ migrationChecklistDismissed: true });
+        return true;
+      },
+      openSpaces: () => {
+        showOverlay('panel', { purpose: { openSpaces: true } });
         return true;
       },
       dismissPatronCallout: () => {
@@ -10161,8 +10282,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         return { error: 'unknown-action' };
       },
       workspaceTestAction(action, args = []) {
+        // Like their IPC handlers, these tell every chrome surface (the
+        // Island's space mark included) once they succeed.
+        const announced = (result) => { if (result?.ok) broadcastWorkspacesUpdated(); return result; };
         if (action === 'list') return workspacesProjection();
-        if (action === 'save') return saveCurrentWindowAsWorkspace(rt(), args[0]);
+        if (action === 'save') return announced(saveCurrentWindowAsWorkspace(rt(), args[0]));
         if (action === 'open') return switchWindowToWorkspace(rt(), args[0], args[1]);
         if (action === 'create') return createBlankWorkspaceAndSwitch(rt(), args[0], args[1]);
         if (action === 'fail-session-commit') {
@@ -10178,6 +10302,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           workingSetKB: app.getAppMetrics().reduce((n, p) => n + (p.memory?.workingSetSize || 0), 0),
         };
         if (action === 'remove') return removeNamedWorkspace(args[0]);
+        if (action === 'undo-remove') return announced(undoRemoveNamedWorkspace(args[0]));
+        if (action === 'update') return announced(namedWorkspaces.update(args[0], args[1]));
         if (action === 'flush') { autosaveWorkspaceBindings(); return namedWorkspaces.flushPending(); }
         if (action === 'reset') {
           for (const r of windowRuntimes.all()) {
@@ -10248,6 +10374,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         : Promise.resolve({ available: false, loaded: false, processCount: 0 }),
       runBlockAdsCommand, runAllowAdsCommand,
       getOverlayMode: () => rt().overlayMode, showOverlay, hideOverlay, getPrivateBrowsingSession,
+      isOverlayViewShowing: () => {
+        const view = rt().overlayView;
+        if (!view || !hasLiveWindow()) return false;
+        return process.platform === 'linux' ? view.getVisible() : rt().window.contentView.children.includes(view);
+      },
       showUtilityPage, hideUtilitySheet,
       getUtilitySheetState: () => {
         const runtime = rt();

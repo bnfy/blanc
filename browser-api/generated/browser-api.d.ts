@@ -38,9 +38,6 @@ export type TabLayout = 'island' | 'vertical';
 /** Appearance preference. */
 export type ThemePreference = 'system' | 'light' | 'dark';
 
-/** Direction for reordering a workspace. */
-export type WorkspaceMoveDirection = 'up' | 'down';
-
 /** Options for a new tab. Only `private` is read by main today. */
 export type CreateTabOptions = { private?: boolean };
 
@@ -52,12 +49,14 @@ export interface TabMoveTarget {
   beforeId: TabId | null;
 }
 
-/** Options for opening or creating a workspace. */
+/** Options for opening or creating a workspace; creation also takes a colour and symbol. */
 export interface OpenWorkspaceOptions {
   /** The token from an unsaved-scratch result, confirming "discard and switch". */
   decision?: string;
   /** Open in a new window instead of this one. */
   newWindow?: boolean;
+  color?: string;
+  symbol?: string;
 }
 
 /** A point in window coordinates. */
@@ -313,6 +312,28 @@ export interface DeletedWorkspace {
   deletedAt: number;
 }
 
+/** How strongly a space tints the chrome; island and frame exist only in unpackaged builds (BLANC_SPACE_TINT). */
+export type SpaceTint = 'mark' | 'island' | 'frame';
+
+/** A chosen colour and symbol for a new space; main validates both. */
+export interface SpaceIdentityInput {
+  color?: string;
+  symbol?: string;
+}
+
+/** An edit to one space: any subset of name, colour and symbol. */
+export interface WorkspacePatch {
+  name?: string;
+  color?: string;
+  symbol?: string;
+}
+
+/** A space row's right-click choice, run by the open Spaces menu. */
+export interface WorkspaceActionEvent {
+  kind: 'edit' | 'delete';
+  id: WorkspaceId;
+}
+
 /** A Named Workspace row. */
 export interface WorkspaceListItem {
   id: WorkspaceId;
@@ -324,6 +345,10 @@ export interface WorkspaceListItem {
   resident: boolean;
   revision: number;
   tabCount: number;
+  /** Stored #rrggbb; the chrome derives the drawn ink. */
+  color: string;
+  /** A space-identity.js symbol id. */
+  symbol: string;
 }
 
 /** Named Workspaces projection, from workspacesProjection() in main.js. */
@@ -331,6 +356,9 @@ export interface WorkspacesPayload {
   status: WorkspaceSaveStatus;
   deleted: DeletedWorkspace[];
   items: WorkspaceListItem[];
+  /** This window's ordinary tabs, for the new-space editor. */
+  windowTabCount: number;
+  tint: SpaceTint;
 }
 
 /** The chrome's effective appearance; pending while a system theme is still resolving. */
@@ -361,13 +389,13 @@ export interface DownloadsActivity {
 }
 
 /** Overlay modes; every showOverlay() call in main.js passes one of these literals. */
-export type OverlayMode = 'panel' | 'palette' | 'find' | 'shield' | 'capture' | 'glance' | 'display-share';
+export type OverlayMode = 'panel' | 'palette' | 'find' | 'shield' | 'capture' | 'glance' | 'display-share' | 'spaces';
 
 /** Which strip control opened the shield popover. */
 export type ShieldTrigger = 'shield' | 'insecure';
 
 /** The strip control that should regain focus when the overlay closes. */
-export type RestoreTrigger = 'shield' | 'insecure' | 'capture' | 'glance-change';
+export type RestoreTrigger = 'shield' | 'insecure' | 'capture' | 'glance-change' | 'spaces';
 
 /** Sent when main shows the overlay. */
 export interface OverlayShowPayload {
@@ -401,7 +429,7 @@ export interface FindResult {
 }
 
 /** Every error code a Named Workspace action can report, from workspace-controller.js, workspaces.js, workspaces-model.js and the workspace functions in main.js. */
-export type WorkspaceErrorCode = 'activation-failed' | 'busy' | 'duplicate-name' | 'future-format' | 'invalid-name' | 'invalid-record' | 'limit' | 'not-found' | 'protected-pages' | 'read-failed' | 'repair-failed' | 'saved-not-opened' | 'storage-failed' | 'unsaved-scratch';
+export type WorkspaceErrorCode = 'activation-failed' | 'busy' | 'duplicate-name' | 'future-format' | 'invalid-name' | 'invalid-color' | 'invalid-symbol' | 'invalid-index' | 'invalid-record' | 'limit' | 'not-found' | 'protected-pages' | 'read-failed' | 'repair-failed' | 'saved-not-opened' | 'storage-failed' | 'unsaved-scratch';
 
 /** Why a window may not switch workspaces right now, from workspaceProtection() in main.js. */
 export type WorkspaceProtectionReason = 'permission-or-transition' | 'active-page' | 'resident-capacity';
@@ -431,6 +459,9 @@ export interface WorkspaceActionResult {
   status?: WorkspaceSaveStatus;
   deleted?: DeletedWorkspace[];
   items?: WorkspaceListItem[];
+  /** This window's ordinary tabs, for the new-space editor. */
+  windowTabCount?: number;
+  tint?: SpaceTint;
 }
 
 /** A search engine id. Must match the searchEngines ids in settings-schema/schema.json. */
@@ -544,6 +575,16 @@ export interface IslandRectReport {
   height: number;
   /** Present while the shield popover is open, so a uBlock Origin popup can follow the pill. */
   shieldAnchor?: ShieldAnchor;
+  /** Present while the Spaces menu is open from the mark, so it follows the pill. */
+  spacesAnchor?: SpacesAnchor;
+}
+
+/** Where the Spaces menu opens: the space mark's left and bottom edges in window coordinates. Main validates both. */
+export interface SpacesAnchor {
+  left: number;
+  bottom: number;
+  /** The click ends a press that began while the menu was open; that press already closed it, so main does not reopen it. */
+  closing?: boolean;
 }
 
 /** Where the shield popover opens, from the strip control that opened it. Main validates the coordinates against the window. */
@@ -881,6 +922,11 @@ export interface BlancBrowserAPI {
    */
   openCapturePopover(anchor: CaptureAnchor): void;
   /**
+   * Open the Spaces menu from the Island's space mark.
+   * IPC: send `chrome:open-spaces`.
+   */
+  openSpacesMenu(anchor: SpacesAnchor): void;
+  /**
    * Stop capture on a surface.
    * IPC: send `chrome:capture-stop`.
    */
@@ -959,7 +1005,7 @@ export interface BlancBrowserAPI {
    * Save the current window as a Named Workspace.
    * IPC: invoke `chrome:workspaces-save-as`.
    */
-  saveWorkspaceAs(name: string): Promise<WorkspaceActionResult>;
+  saveWorkspaceAs(name: string, identity?: SpaceIdentityInput): Promise<WorkspaceActionResult>;
   /**
    * Open a Named Workspace.
    * IPC: invoke `chrome:workspaces-open`.
@@ -970,11 +1016,6 @@ export interface BlancBrowserAPI {
    * IPC: invoke `chrome:workspaces-create-blank`.
    */
   createBlankWorkspace(name: string, opts?: OpenWorkspaceOptions): Promise<WorkspaceActionResult>;
-  /**
-   * Rename a Named Workspace.
-   * IPC: invoke `chrome:workspaces-rename`.
-   */
-  renameWorkspace(id: WorkspaceId, name: string): Promise<WorkspaceActionResult>;
   /**
    * Delete a Named Workspace (undoable).
    * IPC: invoke `chrome:workspaces-remove`.
@@ -991,10 +1032,20 @@ export interface BlancBrowserAPI {
    */
   forgetWorkspace(id: WorkspaceId): Promise<WorkspaceActionResult>;
   /**
-   * Move a workspace up or down in the list.
-   * IPC: invoke `chrome:workspaces-move`.
+   * Rename, recolour or change the symbol of a space.
+   * IPC: invoke `chrome:workspaces-update`.
    */
-  moveWorkspace(id: WorkspaceId, direction: WorkspaceMoveDirection): Promise<WorkspaceActionResult>;
+  updateWorkspace(id: WorkspaceId, patch: WorkspacePatch): Promise<WorkspaceActionResult>;
+  /**
+   * Move a space to a position in the list.
+   * IPC: invoke `chrome:workspaces-move-to`.
+   */
+  moveWorkspaceTo(id: WorkspaceId, index: number): Promise<WorkspaceActionResult>;
+  /**
+   * Undo the delete just made: restore the space and rebind the window it left.
+   * IPC: invoke `chrome:workspaces-undo-remove`.
+   */
+  undoRemoveWorkspace(id: WorkspaceId): Promise<WorkspaceActionResult>;
   /**
    * Fetch search suggestions when enabled in Settings.
    * IPC: invoke `chrome:search-suggestions`.
@@ -1010,6 +1061,11 @@ export interface BlancBrowserAPI {
    * IPC: event `chrome:workspaces-updated`.
    */
   onWorkspacesUpdated(callback: (payload: WorkspacesPayload) => void): () => void;
+  /**
+   * Run a space row's right-click choice in the open Spaces menu.
+   * IPC: event `overlay:workspace-action`.
+   */
+  onWorkspaceAction(callback: (payload: WorkspaceActionEvent) => void): () => void;
   /**
    * Clear browsing history.
    * IPC: invoke `chrome:history-clear`.

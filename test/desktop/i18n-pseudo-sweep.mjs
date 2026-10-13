@@ -238,11 +238,15 @@ const switcherStep = (...steps) => async (ctx) => {
 };
 // Escape steps back one view at a time (editor, confirmation, decision) and
 // finally closes the switcher, leaving no state for the next surface.
+// The menu animates out for a moment after it closes, so the loop reads its
+// hidden attribute rather than whether it is still painted.
 const closeSwitcher = async (page) => {
-  for (let i = 0; i < 5 && await page.locator('#workspaceSwitcher').isVisible(); i++) await page.keyboard.press('Escape');
-  assert.equal(await page.locator('#workspaceSwitcher').isVisible(), false, 'the workspace switcher closes');
+  const menu = page.locator('#workspaceSwitcher');
+  for (let i = 0; i < 5 && !(await menu.evaluate((el) => el.hidden)); i++) await page.keyboard.press('Escape');
+  assert.equal(await menu.evaluate((el) => el.hidden), true, 'the workspace switcher closes');
+  await menu.waitFor({ state: 'hidden' });
 };
-const manageFirst = ['#workspaceSwitcher .ws-manage-button', '#workspaceSwitcher [data-focus-key="rename"]'];
+const editFirst = ['#workspaceSwitcher .ws-row-more', '#workspaceName'];
 const WORKSPACE_SURFACES = [
   { name: 'workspace switcher (empty)', open: openSwitcher },
   {
@@ -250,12 +254,13 @@ const WORKSPACE_SURFACES = [
     open: async (ctx) => {
       for (const name of ['zzz-ws-a', 'zzz-ws-b']) assert.equal((await callTestHook(ctx.app, 'workspaceAction', ['save', name])).ok, true);
       const overlay = await openSwitcher(ctx);
-      await overlay.locator('#workspaceSwitcher .ws-managed-row + .ws-managed-row').waitFor();
+      await overlay.locator('#workspaceSwitcher .ws-row + .ws-row').waitFor();
       return overlay;
     },
   },
-  { name: 'workspace editor', open: switcherStep(['#wsSwitcherNew', '#workspaceName']) },
-  { name: 'workspace management', open: switcherStep(manageFirst) },
+  { name: 'workspace editor (new)', open: switcherStep(['[data-focus-key="new"]', '#workspaceName']) },
+  { name: 'workspace editor (edit)', open: switcherStep(editFirst) },
+  { name: 'workspace colour picker', open: switcherStep(editFirst, ['[data-focus-key="color:custom"]', '.space-picker']) },
   {
     name: 'workspace switch decision',
     // A private page (a blank private start page doesn't count) in the bound
@@ -264,22 +269,14 @@ const WORKSPACE_SURFACES = [
       await callTestHook(ctx.app, 'openTab', [`${permissionPageUrl}?private`, { private: true }]);
       // Opening a tab dismisses the overlay; reopen only once it has settled.
       await waitForValue(async () => (await callTestHook(ctx.app, 'state')).tabs.find((t) => t.private && !t.isLoading), Boolean, 'private page loaded');
-      return switcherStep(['#workspaceSwitcher .ws-switcher-row:not(.on)', '.ws-switcher-confirm'])(ctx);
+      return switcherStep(['#workspaceSwitcher .ws-row-main:not(.on)', '.ws-decision'])(ctx);
     },
   },
-  {
-    name: 'workspace delete confirmation',
-    open: switcherStep(manageFirst, ['[data-focus-key="delete"]', '[data-focus-key="delete-workspace"]']),
-  },
-  {
-    name: 'workspace switcher (after delete)',
-    open: switcherStep(manageFirst, ['[data-focus-key="delete"]', '[data-focus-key="delete-workspace"]'],
-      ['[data-focus-key="delete-workspace"]', '[data-focus-key="undo"]']),
-  },
+  { name: 'workspace switcher (after delete)', open: switcherStep(editFirst, ['[data-focus-key="delete"]', '[data-focus-key="undo"]']) },
   { name: 'workspace recently deleted', open: switcherStep(['[data-focus-key="recently-deleted"]', '.ws-recovery']) },
   {
     name: 'workspace permanent delete confirmation',
-    open: switcherStep(['[data-focus-key="recently-deleted"]', '.ws-recovery'], ['[data-focus-key^="forget:"]', '.ws-switcher-confirm']),
+    open: switcherStep(['[data-focus-key="recently-deleted"]', '.ws-recovery'], ['[data-focus-key^="forget:"]', '.ws-decision']),
   },
 ].map((surface) => ({ ...surface, files: WORKSPACE_FILES, close: closeSwitcher }));
 WORKSPACE_SURFACES.push({

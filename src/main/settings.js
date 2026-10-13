@@ -156,6 +156,10 @@ const DEFAULTS = {
   migrationChecklistDismissed: false,
   syncMigrationCompleted: false,
   tabImportCompleted: false,
+  // F41: "Make your first space" completed, and the one-time introduction of
+  // that task (so a checklist that already retired stays retired).
+  spaceMigrationCompleted: false,
+  spaceChecklistIntroduced: false,
   // When the start page's Patron upgrade pill was last closed (ms since the
   // epoch; 0 = never). It stays hidden for 90 days (patron-callout.js).
   // Device-local, never Profile Synced.
@@ -313,7 +317,7 @@ function getSettings() {
   if (!Number.isInteger(data.onboardingVersion) || data.onboardingVersion < 0) {
     data.onboardingVersion = DEFAULTS.onboardingVersion;
   }
-  for (const key of ['migrationChecklistDismissed', 'syncMigrationCompleted', 'tabImportCompleted']) {
+  for (const key of ['migrationChecklistDismissed', 'syncMigrationCompleted', 'tabImportCompleted', 'spaceMigrationCompleted', 'spaceChecklistIntroduced']) {
     if (typeof data[key] !== 'boolean') data[key] = DEFAULTS[key];
   }
   if (!Number.isFinite(data.patronCalloutDismissedAt) || data.patronCalloutDismissedAt < 0) {
@@ -370,7 +374,7 @@ function sanitize(partial) {
   if (typeof partial.adblockEnabled === 'boolean') clean.adblockEnabled = partial.adblockEnabled;
   if (['blanc', 'ublock-origin'].includes(partial.adblockProvider)) clean.adblockProvider = partial.adblockProvider;
   if (typeof partial.usagePing === 'boolean') clean.usagePing = partial.usagePing;
-  for (const key of ['migrationChecklistDismissed', 'syncMigrationCompleted', 'tabImportCompleted']) {
+  for (const key of ['migrationChecklistDismissed', 'syncMigrationCompleted', 'tabImportCompleted', 'spaceMigrationCompleted', 'spaceChecklistIntroduced']) {
     if (typeof partial[key] === 'boolean') clean[key] = partial[key];
   }
   if (Number.isFinite(partial.patronCalloutDismissedAt) && partial.patronCalloutDismissedAt >= 0) {

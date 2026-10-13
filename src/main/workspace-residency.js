@@ -29,4 +29,13 @@ function residencyCapacity(runtimes, incoming, outgoingTabs, liveContents, { max
     + outgoingTabs.filter((tab) => !tab.private && liveContents(tab.id)).length;
   return residents.length < maxSets && liveCount <= maxLiveTabs;
 }
-module.exports = { transferSession, residencyCapacity, SESSION_FIELDS };
+/** The window an Undo may rebind to a restored workspace: one the delete
+ * unbound that is still open, visible, in no workspace and not mid-switch —
+ * and only while no other window holds the workspace (single-window binding). */
+function undoRebindTarget(runtimeIds, runtimes, workspaceId) {
+  if (runtimes.some((r) => r.workspaceId === workspaceId)) return null;
+  const wanted = new Set(runtimeIds);
+  return runtimes.find((r) => wanted.has(r.id) && r.workspaceId == null && !r.closing && !r.resident && !r.workspaceTransition) ?? null;
+}
+
+module.exports = { transferSession, residencyCapacity, undoRebindTarget, SESSION_FIELDS };

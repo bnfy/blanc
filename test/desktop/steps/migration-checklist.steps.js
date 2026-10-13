@@ -9,6 +9,7 @@ Given('the moving-in checklist is incomplete and not hidden', async function () 
     dismissed: false,
     syncComplete: false,
     tabsComplete: false,
+    spaceComplete: false,
   });
 });
 
@@ -32,16 +33,21 @@ When('I choose Set up Sync from the moving-in checklist', async function () {
 
 When('I mark Sync complete in the moving-in checklist', async function () {
   const current = await this.call('migrationChecklistSettings');
-  assert.equal(await this.call('setMigrationChecklistProgress', true, current.tabsComplete), true);
+  assert.equal(await this.call('setMigrationChecklistProgress', true, current.tabsComplete, current.spaceComplete), true);
 });
 
 When('I mark tab migration complete in the moving-in checklist', async function () {
   const current = await this.call('migrationChecklistSettings');
-  assert.equal(await this.call('setMigrationChecklistProgress', current.syncComplete, true), true);
+  assert.equal(await this.call('setMigrationChecklistProgress', current.syncComplete, true, current.spaceComplete), true);
 });
 
-When('I complete both moving-in tasks', async function () {
-  assert.equal(await this.call('setMigrationChecklistProgress', true, true), true);
+When('I complete every moving-in task', async function () {
+  assert.equal(await this.call('setMigrationChecklistProgress', true, true, true), true);
+});
+
+When('I mark the first space complete in the moving-in checklist', async function () {
+  const current = await this.call('migrationChecklistSettings');
+  assert.equal(await this.call('setMigrationChecklistProgress', current.syncComplete, current.tabsComplete, true), true);
 });
 
 Then('the Sync task stays checked at {string}', async function (progress) {
@@ -55,8 +61,8 @@ Then('the Sync task stays checked at {string}', async function (progress) {
 Then('the moving-in checklist briefly confirms completion', async function () {
   await waitForValue(
     () => this.call('readMigrationChecklistDom'),
-    (dom) => dom?.visible === true && dom.progress === '2/2' && dom.label === 'All moved in',
-    'the moving-in checklist pill to confirm 2/2',
+    (dom) => dom?.visible === true && dom.progress === '3/3' && dom.label === 'All moved in',
+    'the moving-in checklist pill to confirm 3/3',
   );
   const dom = await this.call('readMigrationChecklistDom');
   assert.equal(dom.open, false, 'completion never opens the popover on its own');
@@ -68,7 +74,7 @@ Then('the moving-in completion waits behind Settings', async function () {
   assert.equal(surface?.visible, true, 'Settings should still cover the start page');
   const dom = await this.call('readMigrationChecklistDom');
   assert.equal(dom?.visible, true, 'the confirmation must not retire while covered');
-  assert.equal(dom?.progress, '2/2');
+  assert.equal(dom?.progress, '3/3');
   assert.equal(dom?.title, 'all moved in');
 });
 

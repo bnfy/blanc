@@ -61,7 +61,7 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     // showing.
     /** @type {WebContentsView | null} */
     overlayView: null,
-    /** @type {null | 'panel' | 'palette' | 'find' | 'shield' | 'capture'} */
+    /** @type {null | 'panel' | 'palette' | 'find' | 'shield' | 'capture' | 'spaces'} */
     overlayMode: null,
     /** Footer workspace popover is open in the overlay — Escape must cancel
      * editors / close the menu before dismissing the island. */
@@ -81,6 +81,9 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     shieldAnchorBottom: null,
     /** Same, for the capture popover's chip (its only trigger control). */
     captureAnchorRight: null,
+    /** The space mark's left/bottom edge while the 'spaces' menu is open. */
+    spacesAnchorLeft: null,
+    spacesAnchorBottom: null,
     /** The site the open shield popover describes, captured at open time —
      * the tab's live url may already read as the NEW site when
      * did-start-navigation fires, so a live recompute could never detect

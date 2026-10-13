@@ -88,3 +88,126 @@ Feature: Named workspace preservation and recovery
     Given there is no active supporter license
     When I save this window as a space named "Free for all" from the switcher
     Then a space named "Free for all" is saved and this window is in it
+
+  @F41-16
+  Scenario: The Island shows no space mark before the first space
+    Then the Island shows no space mark
+
+  @F41-17
+  Scenario: A window that is in no space shows the quiet Spaces mark
+    Given a space named "Elsewhere" saved from another window
+    Then the Island shows the quiet Spaces mark
+
+  @F41-18
+  Scenario: The space mark names the current space and opens its menu
+    Given a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
+    Then the Island's space mark reads "Work" in "#426c4c" with the symbol "briefcase"
+    When I open the Spaces menu from the space mark
+    Then the Spaces menu opens directly below the mark
+    When I open the Spaces menu from the space mark
+    Then the Spaces menu is closed
+
+  @F41-19
+  Scenario: Editing a space changes the mark as you edit
+    Given a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
+    When I open the Spaces menu from the space mark
+    And I edit "Work" to the color "sky" and the symbol "star"
+    Then the Island's space mark reads "Work" in "#376694" with the symbol "star"
+
+  @F41-20
+  Scenario: A custom color is kept and drawn readably
+    Given a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
+    When I open the Spaces menu from the space mark
+    And I give "Work" the custom color "#F5E663"
+    Then the space "Work" is saved with the color "#f5e663"
+    And the Island's space mark reads "Work" in "#6d6400" with the symbol "briefcase"
+    And the editor says the color is shown as "#6D6400" in light mode
+
+  @F41-21
+  Scenario: Undo after deleting this window's space puts the window back in it
+    Given a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
+    When I open the Spaces menu from the space mark
+    And I delete "Work" from its editor
+    Then the Island shows no space mark
+    When I undo the delete
+    Then this window is in the space "Work" again
+
+  @F41-22
+  Scenario: The Spaces menu works from the keyboard
+    Given spaces named "Work" and "Reading", with this window in "Work"
+    When I open the Spaces menu from the space mark
+    And I move "Work" down with Option or Alt and the down arrow
+    Then the spaces are listed as "Reading" then "Work"
+    When I press Escape in the Spaces menu
+    Then the Spaces menu is closed and the space mark has focus
+
+  @F41-23
+  Scenario: With Reduce Motion a switch only cross-fades
+    Given spaces named "Work" and "Reading", with this window in "Work"
+    And Reduce Motion is on
+    When I switch to "Reading" from the Spaces menu
+    Then the space mark changes to "Reading" without sliding
+
+  @F41-24
+  Scenario: Typing a space's name in the panel switches to it
+    Given spaces named "Work" and "Reading", with this window in "Work"
+    When I type "Read" into the panel and pick the space result
+    Then the Island's space mark reads "Reading"
+
+  @F41-25
+  Scenario: Switching from unsaved tabs leads with saving them
+    Given a page open in a window that is in no space, and a saved space named "Target"
+    When I open the Spaces menu from the space mark
+    And I pick "Target" in the Spaces menu
+    Then the switch prompt offers save, new window, close, then cancel
+
+  @F41-26
+  Scenario: Switching to a private tab redraws the space mark for the private theme
+    Given a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
+    And a private tab beside an ordinary tab, with the ordinary tab selected
+    When I select the private tab
+    Then the Island's space mark is drawn for the private theme
+
+  @F41-27
+  Scenario: Closing the Spaces menu fades it out where it was
+    Given a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
+    When I open the Spaces menu from the space mark
+    And I press Escape in the Spaces menu
+    Then the Spaces menu fades out below the mark before it is removed
+
+  @F41-28
+  Scenario: With Reduce Motion the closing Spaces menu only fades
+    Given a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
+    And Reduce Motion is on
+    When I open the Spaces menu from the space mark
+    And I press Escape in the Spaces menu
+    Then the Spaces menu fades out without moving
+
+  @F41-29
+  Scenario: Clicking the mark while the Spaces menu fades opens it again
+    Given a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
+    When I open the Spaces menu from the space mark
+    And I close the Spaces menu and click the mark again before it has faded
+    Then the Spaces menu stays open below the mark
+
+  @F41-30
+  Scenario: Clicking the mark while its menu is open closes it without reopening
+    Given a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
+    When I open the Spaces menu from the space mark
+    And I press the space mark with the pointer, which takes focus from the menu
+    Then the Spaces menu is closed and stays closed
+
+  @F41-31
+  Scenario: A preset colour adapts without the readability note
+    Given a space named "Work" in this window, colored "#974f2a" with the symbol "plane"
+    When I open the Spaces menu from the space mark
+    And I open the color picker for "Work"
+    Then the editor shows no readability note
+    When I type the custom color "#F5E663" into the picker
+    Then the editor says the color is shown as "#6D6400" in light mode
+
+  @F41-32
+  Scenario: Space names are drawn whole, descenders included
+    Given spaces named "Typing gym" and "Reading", with this window in "Typing gym"
+    When I open the Spaces menu from the space mark
+    Then every space name in the menu and on the mark is drawn whole

@@ -68,7 +68,7 @@ test('errors from the model surface as { ok:false, error } and write nothing', (
   const before = workspaces.list().length;
   assert.deepEqual(workspaces.create({ name: '   ', capture: CAPTURE() }), { ok: false, error: 'invalid-name' });
   assert.deepEqual(workspaces.create({ name: 'deep work', capture: CAPTURE() }), { ok: false, error: 'duplicate-name' });
-  assert.deepEqual(workspaces.rename('nope', 'X'), { ok: false, error: 'not-found' });
+  assert.deepEqual(workspaces.update('nope', { name: 'X' }), { ok: false, error: 'not-found' });
   assert.deepEqual(workspaces.remove('nope'), { ok: false, error: 'not-found' });
   assert.deepEqual(workspaces.saveCapture('nope', CAPTURE()), { ok: false, error: 'not-found' });
   assert.equal(workspaces.list().length, before, 'a rejected call leaves the file untouched');
@@ -84,10 +84,10 @@ test('saveCapture replaces tab columns without disturbing identity', () => {
   assert.equal(after.createdAt, workspace.createdAt);
 });
 
-test('rename and remove persist', () => {
+test('update and remove persist', () => {
   setFocusedLocalProfile('default');
   const { workspace } = workspaces.create({ name: 'Temp', capture: CAPTURE() });
-  assert.equal(workspaces.rename(workspace.id, 'Renamed').ok, true);
+  assert.equal(workspaces.update(workspace.id, { name: 'Renamed' }).ok, true);
   assert.equal(workspaces.get(workspace.id).name, 'Renamed');
   assert.equal(workspaces.remove(workspace.id).ok, true);
   assert.equal(workspaces.get(workspace.id), null);
@@ -164,7 +164,7 @@ test('future files are byte-preserved across reads and all mutation attempts', (
   fs.writeFileSync(file, bytes);
   withLocalProfile('profile_future', () => {
     assert.deepEqual(workspaces.list(), []);
-    for (const result of [workspaces.create({ name: 'x', capture: CAPTURE() }), workspaces.rename('future', 'y'), workspaces.remove('future'), workspaces.saveCapture('future', CAPTURE()), workspaces.restore('future'), workspaces.move('future', 'up'), workspaces.forget('future')]) assert.equal(result.error, 'future-format');
+    for (const result of [workspaces.create({ name: 'x', capture: CAPTURE() }), workspaces.update('future', { name: 'y' }), workspaces.remove('future'), workspaces.saveCapture('future', CAPTURE()), workspaces.restore('future'), workspaces.moveTo('future', 0), workspaces.forget('future')]) assert.equal(result.error, 'future-format');
   });
   assert.equal(fs.readFileSync(file, 'utf8'), bytes);
 });
@@ -177,7 +177,7 @@ test('critical fsync/rename failures roll back memory and disk; autosave retries
     for (const [method, code] of [['fsyncSync', 'ENOSPC'], ['renameSync', 'EACCES']]) {
       const original = fs[method]; fs[method] = () => { throw Object.assign(Error(code), { code }); };
       try {
-        for (const result of [workspaces.create({ name: 'Fail', capture: CAPTURE() }), workspaces.rename(id, 'Fail'), workspaces.remove(id), workspaces.saveCapture(id, CAPTURE([]))]) assert.equal(result.error, 'storage-failed');
+        for (const result of [workspaces.create({ name: 'Fail', capture: CAPTURE() }), workspaces.update(id, { name: 'Fail' }), workspaces.remove(id), workspaces.saveCapture(id, CAPTURE([]))]) assert.equal(result.error, 'storage-failed');
         workspaces.queueCapture(id, CAPTURE([])); assert.equal(workspaces.flushPending().ok, false);
         assert.equal(workspaces.get(id).name, 'Keep'); assert.equal(fs.readFileSync(file, 'utf8'), before);
       } finally { fs[method] = original; }
@@ -430,4 +430,26 @@ test('createMany writes every space in one durable step, or none of them', () =>
   assert.deepEqual(failed, { ok: false, error: 'duplicate-name' });
   assert.equal(workspaces.list().some((w) => w.name === 'Arc Three'), false);
   assert.deepEqual(workspaces.createMany([]), { ok: false, error: 'invalid-name' });
+});
+
+test('upgrading assigns each existing space an identity once, keeping the original as a backup', () => {
+  const dir = path.join(userData, 'profiles', 'profile_upgrade');
+  const file = path.join(dir, 'workspaces.json');
+  fs.mkdirSync(dir, { recursive: true });
+  const record = (id, name) => ({ id, name, profileId: 'profile_upgrade', createdAt: 1, updatedAt: 1, revision: 0, urls: ['https://a.test/'], activeIndex: 0, groups: [], groupIds: [null], pinned: [false], meta: [] });
+  const bytes = JSON.stringify({ version: 2, workspaces: [record('ws_a', 'Work'), record('ws_b', 'Home')], deleted: [] });
+  fs.writeFileSync(file, bytes);
+  const backups = () => fs.readdirSync(dir).filter((name) => name.startsWith('workspaces.json.before-repair-'));
+  withLocalProfile('profile_upgrade', () => {
+    const first = workspaces.createRepository();
+    assert.deepEqual(first.list().map(({ name, color, symbol }) => [name, color, symbol]), [['Work', '#426c4c', 'briefcase'], ['Home', '#376694', 'house']]);
+    assert.equal(backups().length, 1);
+    assert.equal(fs.readFileSync(path.join(dir, backups()[0]), 'utf8'), bytes, 'the backup is the exact original');
+    assert.equal(JSON.parse(fs.readFileSync(file, 'utf8')).workspaces[1].symbol, 'house', 'the identities are on disk');
+    const second = workspaces.createRepository();
+    second.list();
+    assert.equal(backups().length, 1, 'a second load writes nothing');
+    assert.equal(second.update('ws_a', { color: '#f5e663' }).ok, true);
+    assert.equal(workspaces.createRepository().list()[1].color, '#376694', 'changing one space never recolours another');
+  });
 });

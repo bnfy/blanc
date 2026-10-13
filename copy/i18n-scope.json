@@ -15,7 +15,10 @@
     },
     "src/renderer/workspace-ui.js": {
       "state": "guarded",
-      "allow": []
+      "allow": [
+        "spaces.color.${preset.id}",
+        "spaces.symbol.${id}"
+      ]
     },
     "src/renderer/tab-drag.js": {
       "state": "guarded",

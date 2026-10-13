@@ -170,14 +170,14 @@ function createRepository({ store = new JsonStore('workspaces', model.EMPTY_FILE
       const result = model.createWorkspace(store.data, { name, capture: {}, now: clock(), id: makeId(), profileId: activeLocalProfileId() });
       return result.error ? { ok: false, error: result.error } : { ok: true };
     },
-    create({ name, capture }) { return mutate((data) => model.createWorkspace(data, { name, capture, now: clock(), id: makeId(), profileId: activeLocalProfileId() })); },
+    create({ name, capture, color, symbol }) { return mutate((data) => model.createWorkspace(data, { name, capture, color, symbol, now: clock(), id: makeId(), profileId: activeLocalProfileId() })); },
     /** F45: several spaces in one durable write — every one or none. */
     createMany(entries) {
       return mutate((data) => {
         let file = data;
         const workspaces = [];
-        for (const { name, capture } of Array.isArray(entries) ? entries : []) {
-          const result = model.createWorkspace(file, { name, capture, now: clock(), id: makeId(), profileId: activeLocalProfileId() });
+        for (const { name, capture, color, symbol } of Array.isArray(entries) ? entries : []) {
+          const result = model.createWorkspace(file, { name, capture, color, symbol, now: clock(), id: makeId(), profileId: activeLocalProfileId() });
           if (result.error) return { error: result.error };
           file = result.file;
           workspaces.push(result.workspace);
@@ -185,7 +185,8 @@ function createRepository({ store = new JsonStore('workspaces', model.EMPTY_FILE
         return workspaces.length ? { file, workspaces } : { error: 'invalid-name' };
       });
     },
-    rename(id, name) { return mutate((data) => model.renameWorkspace(data, id, name, clock())); },
+    /** Any subset of { name, color, symbol }; see model.updateWorkspace. */
+    update(id, patch) { return mutate((data) => model.updateWorkspace(data, id, patch, clock())); },
     remove(id) {
       const s = state();
       const result = mutate((data) => { const r = model.deleteWorkspace(data, id, clock()); return r.removed ? r : { error: 'not-found' }; });
@@ -200,7 +201,7 @@ function createRepository({ store = new JsonStore('workspaces', model.EMPTY_FILE
       return remaining;
     },
     restore(id) { return mutate((data) => model.restoreWorkspace(data, id, clock())); },
-    move(id, direction) { return mutate((data) => model.moveWorkspace(data, id, direction)); },
+    moveTo(id, index) { return mutate((data) => model.moveWorkspaceTo(data, id, index)); },
     forget(id) { return mutate((data) => data.deleted.some((d) => d.workspace.id === id) ? { file: { ...data, deleted: data.deleted.filter((d) => d.workspace.id !== id) } } : { error: 'not-found' }); },
     disposeProfile(profileId) {
       const s = profiles.get(profileId);

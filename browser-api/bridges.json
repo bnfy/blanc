@@ -285,6 +285,17 @@
         "doc": "Focus a tab group picked on the Start Page."
       },
       {
+        "name": "start.openSpaces",
+        "kind": "invoke",
+        "channel": "pages:start:open-spaces",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Open the Spaces menu from the moving-in checklist."
+      },
+      {
         "name": "start.setLayout",
         "kind": "invoke",
         "channel": "pages:start:set-layout",

@@ -69,7 +69,7 @@ function createWorkspaceController(adapter) {
         const guard = authorize(runtime, `new:${name}`, options);
         if (guard) return guard;
       }
-      const made = adapter.create(runtime, name);
+      const made = adapter.create(runtime, name, options);
       if (!made.ok) return made;
       const result = options.newWindow ? adapter.openElsewhere(runtime, made.workspace) : activate(runtime, made.workspace, options);
       // Keep a successfully saved new record recoverable if activation fails;

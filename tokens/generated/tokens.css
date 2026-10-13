@@ -23,6 +23,14 @@
   --sunrise-accent-dim: rgba(128, 93, 40, 0.16);
   --danger: #ff3b30;
   --on-danger: #ffffff;
+  --space-sage: #426c4c;
+  --space-sky: #376694;
+  --space-iris: #6757a3;
+  --space-rose: #9b4761;
+  --space-clay: #974f2a;
+  --space-sand: #815c02;
+  --space-slate: #576471;
+  --space-graphite: #3a3a3a;
   --font-ui: "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
   --type-body-size: 13px;
   --type-page-title-size: 24px;

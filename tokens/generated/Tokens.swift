@@ -152,6 +152,14 @@ public enum BlancTokens {
         }
     }
     public static let patronGold = "#d4ad66"
+    public static let spaceSage = "#426c4c"
+    public static let spaceSky = "#376694"
+    public static let spaceIris = "#6757a3"
+    public static let spaceRose = "#9b4761"
+    public static let spaceClay = "#974f2a"
+    public static let spaceSand = "#815c02"
+    public static let spaceSlate = "#576471"
+    public static let spaceGraphite = "#3a3a3a"
     public static let fontUi = "\"Inter\", -apple-system, \"Segoe UI Variable\", \"Segoe UI\", system-ui, sans-serif"
     public static let fontDisplay = "\"Newsreader Condensed\", \"Newsreader\", \"Iowan Old Style\", \"Palatino Linotype\", Palatino, serif"
     public static let typeBodySize = "13px"

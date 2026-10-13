@@ -80,12 +80,9 @@
   const footerNewTab = document.getElementById('footerNewTab');
   const footerNewPrivate = document.getElementById('footerNewPrivate');
   const footerWorkspace = document.getElementById('footerWorkspace');
-  const footerWorkspaceLabel = document.getElementById('footerWorkspaceLabel');
   const workspaceSwitcher = document.getElementById('workspaceSwitcher');
   const workspaceSwitcherList = document.getElementById('workspaceSwitcherList');
   const wsSwitcherSep = document.getElementById('wsSwitcherSep');
-  const wsSwitcherNew = document.getElementById('wsSwitcherNew');
-  const wsSwitcherSaveAs = document.getElementById('wsSwitcherSaveAs');
   const footerFavorites = document.getElementById('footerFavorites');
   const footerHistory = document.getElementById('footerHistory');
   const footerDownloads = document.getElementById('footerDownloads');
@@ -99,7 +96,7 @@
   const glancePickerLive = document.getElementById('glancePickerLive');
 
   let state = { tabs: [], activeTabId: null, glanceTabId: null, groups: [], closed: [] };
-  /** @type {null | 'panel' | 'palette' | 'glance' | 'find' | 'shield' | 'capture'} */
+  /** @type {null | 'panel' | 'palette' | 'glance' | 'find' | 'shield' | 'capture' | 'spaces'} */
   let mode = null;
   let glancePickerPurpose = null;
   let glancePickerSelectedId = null;
@@ -181,12 +178,25 @@
   let wsWorkspaces = [];
   let workspaceSwitcherOpen = false;
   let pendingPostImportWorkspacePrompt = false;
+  // The theme space colours are drawn for: the private chrome is its own surface.
+  function spaceTheme() {
+    if (document.documentElement.dataset.theme === 'private') return 'private';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
   const workspaceUI = WorkspaceUI.create({
     document, window, api: window.browserAPI,
     popup: workspaceSwitcher, list: workspaceSwitcherList,
-    trigger: footerWorkspace, label: footerWorkspaceLabel,
+    commands: document.getElementById('workspaceSwitcherCommands'),
+    trigger: footerWorkspace,
     feedback: document.getElementById('workspaceFeedback'),
-    onOpenChange(open) { workspaceSwitcherOpen = open; window.browserAPI.setWorkspaceSwitcherOpen(open); },
+    theme: spaceTheme,
+    placement: () => (mode === 'spaces' ? 'view' : 'anchored'),
+    onOpenChange(open) {
+      workspaceSwitcherOpen = open; window.browserAPI.setWorkspaceSwitcherOpen(open);
+      // Opened from the Island's space mark the menu is the whole overlay, so
+      // closing it closes the overlay and focus returns to the mark.
+      if (!open && mode === 'spaces') window.browserAPI.closeOverlay('cancel');
+    },
   });
 
   // --- Drag to reorder (tab-drag.js; spec 2026-10-07) ---
@@ -713,6 +723,7 @@
     history: blancI18n.t('result.tag.history'),
     group: blancI18n.t('result.tag.group'),
     remote: blancI18n.t('result.tag.remote'),
+    space: blancI18n.t('result.tag.space'),
   };
 
   /** Named-group band: present --surface tint behind header + member tabs.
@@ -814,11 +825,12 @@
   function workspacePopoverEditing() { return workspaceUI.editing; }
   function closeWorkspaceSwitcher() { return workspaceUI.close(); }
   function layoutWorkspaceSwitcher() { workspaceUI.layout(); }
+  // From ⌘L the menu hangs from the panel's bottom edge (spec D18); keep it
+  // there as the panel reshapes under it (typing, results, a folded group).
+  new ResizeObserver(() => { if (workspaceSwitcherOpen) layoutWorkspaceSwitcher(); }).observe(islandPanel);
   function paintWorkspaceSwitcher() { workspaceUI.render(); }
   function openWorkspaceSwitcher() { workspaceUI.open(); }
   function toggleWorkspaceSwitcher() { workspaceUI.toggle(); }
-  function beginCreateWorkspace() { workspaceUI.begin('create'); }
-  function beginSaveWorkspace() { workspaceUI.begin('save'); }
   function switchToWorkspace(workspace) { workspaceUI.switchTo(workspace); }
 
   // --- Remote devices (tab sync) ---
@@ -1173,6 +1185,13 @@
 
   function switcherResults(query) {
     const results = [];
+    // Spaces rank with groups: typing a space's name switches to it. The
+    // current space is already here, so it never appears.
+    for (const w of wsWorkspaces) {
+      if (w.active) continue;
+      const s = matchScore(query, w.name);
+      if (s) results.push({ kind: 'space', title: w.name, sub: blancI18n.t('result.groupCount', { count: w.tabCount }), workspace: w, score: s + 0.3 });
+    }
     // Group names rank above their member tabs — "wor" jumps to the whole
     // work cluster, not one tab in it.
     for (const g of state.groups) {
@@ -1219,7 +1238,7 @@
     return results
       .sort((a, b) => b.score - a.score)
       .filter((r) => {
-        const key = r.kind === 'tab' ? `tab:${r.tab.id}` : r.kind === 'group' ? `group:${r.group.id}` : r.url;
+        const key = r.kind === 'tab' ? `tab:${r.tab.id}` : r.kind === 'group' ? `group:${r.group.id}` : r.kind === 'space' ? `space:${r.workspace.id}` : r.url;
         if (seen.has(key)) return false;
         seen.add(key);
         return true;
@@ -1286,12 +1305,16 @@
   function resultKey(result) {
     if (!result) return '';
     if (result.kind === 'group') return `group:${result.group.id}`;
+    if (result.kind === 'space') return `space:${result.workspace.id}`;
     if (result.kind === 'tab') return `tab:${result.tab.id}`;
     if (result.kind === 'search') return `search:${result.query.toLowerCase()}`;
     return `${result.kind}:${result.url}`;
   }
 
   function pickResult(result) {
+    // The Spaces menu closes the overlay itself after a switch, and keeps it
+    // open when switching must first ask about this window's tabs.
+    if (result.kind === 'space') { workspaceUI.switchTo(result.workspace); return; }
     if (result.kind === 'group') window.browserAPI.focusGroup(result.group.id);
     else if (result.kind === 'tab') window.browserAPI.switchTab(result.tab.id);
     else if (result.kind === 'remote') window.browserAPI.createTab(result.url, { focusAddress: false });
@@ -1312,7 +1335,9 @@
     // search completions use a magnifier; every page-like result keeps the
     // shared favicon treatment.
     let leading;
-    if (result.kind === 'group') {
+    if (result.kind === 'space') {
+      leading = WorkspaceUI.makeTile(document, result.workspace, spaceTheme(), 'ws-tile row-space-tile');
+    } else if (result.kind === 'group') {
       leading = document.createElement('span');
       leading.className = 'row-group-mark';
       leading.innerHTML = CARET;
@@ -1339,7 +1364,7 @@
     sub.className = 'row-sub';
     sub.textContent = result.sub || '';
     // Domains, URLs and device names are data; a group's tab count is not.
-    if (result.kind !== 'group') sub.dataset.i18nIgnore = '';
+    if (result.kind !== 'group' && result.kind !== 'space') sub.dataset.i18nIgnore = '';
 
     const tag = document.createElement('span');
     tag.className = 'row-tag';
@@ -1743,7 +1768,7 @@
     glancePickerPurpose = next === 'glance' ? purpose : null;
     document.body.dataset.mode = next ?? '';
     document.body.dataset.glancePurpose = glancePickerPurpose ?? '';
-    if (next !== 'panel' && next !== 'palette') closeWorkspaceSwitcher();
+    if (next !== 'panel' && next !== 'palette' && next !== 'spaces') closeWorkspaceSwitcher();
     backdrop.hidden = next !== 'panel' && next !== 'palette';
     panelAnchor.hidden = next !== 'panel' && next !== 'palette';
     findBar.hidden = next !== 'find';
@@ -1784,9 +1809,8 @@
       // confirm state, replacing whatever the last one was. Editors open
       // inside the footer popover.
       if (purpose && typeof purpose === 'object') {
-        if (purpose.renameWorkspaceId) workspaceUI.begin('rename', wsWorkspaces.find((w) => w.id === purpose.renameWorkspaceId));
-        if (purpose.deleteWorkspaceId) workspaceUI.begin('delete', wsWorkspaces.find((w) => w.id === purpose.deleteWorkspaceId));
-        if (purpose.postImportWorkspace) { pendingPostImportWorkspacePrompt = true; workspaceUI.begin('save'); }
+        if (purpose.postImportWorkspace) { pendingPostImportWorkspacePrompt = true; workspaceUI.begin('new', null, { start: 'window' }); }
+        if (purpose.openSpaces) openWorkspaceSwitcher();
       }
       if (prefill) {
         // A menu-triggered command (e.g. "New Group…") arrives pre-typed —
@@ -1823,6 +1847,10 @@
       }
       renderGlancePicker({ announce: !reshow });
       glancePickerInput.focus();
+    } else if (next === 'spaces') {
+      // The menu is the whole overlay here; data refreshes behind the first paint.
+      refreshSwitcherData();
+      if (!reshow) openWorkspaceSwitcher();
     } else if (next === 'shield') {
       renderShieldPop();
       (shieldChoosing ? shieldPopProvider.querySelector('input:checked:not(:disabled)') || shieldPopBack : shieldPopToggle.hidden ? shieldPopChangeProvider.disabled ? shieldPopSettings : shieldPopChangeProvider : shieldPopToggle).focus();
@@ -2118,6 +2146,10 @@
   const RETRACT_MS = 200; // keep in step with OVERLAY_RETRACT_MS in main.js
   let lastPillRect = null;
   let morphTimer = null;
+  // Closing, the Spaces menu fades back into the Island's mark from where it
+  // hung; body[data-closing] keeps that placement while main holds the view.
+  let spacesExitTimer = null;
+  function endSpacesExit() { clearTimeout(spacesExitTimer); spacesExitTimer = null; document.body.dataset.closing = ''; }
   let morphFrame = 0;
   let morphGeneration = 0;
   let drawnGeneration = 0;
@@ -2227,6 +2259,7 @@
   });
   window.browserAPI.onOverlayShow(({ mode: next, prefill, purpose, pillRect }) => {
     const wasOpen = mode === next;
+    endSpacesExit();
     // A quick close/reopen can arrive while the old retract timer is still
     // holding `pointer-events: none` on the panel. Cancel that stale exit
     // before constructing the new opening state, or the fresh panel renders
@@ -2297,6 +2330,11 @@
     const retracting = payload?.retract && (mode === 'panel' || mode === 'palette')
       && retractPanelIntoPill();
     if (mode === 'find') resetFind();
+    if (mode === 'spaces') {
+      endSpacesExit();
+      document.body.dataset.closing = 'spaces';
+      spacesExitTimer = setTimeout(endSpacesExit, RETRACT_MS);
+    }
     mode = null;
     glancePickerPurpose = null;
     glancePickerSelectedId = null;
@@ -2433,8 +2471,6 @@
     e.stopPropagation();
     toggleWorkspaceSwitcher();
   });
-  wsSwitcherNew.addEventListener('click', () => beginCreateWorkspace());
-  wsSwitcherSaveAs.addEventListener('click', () => beginSaveWorkspace());
   // Click outside the popover (and outside its trigger) dismisses it without
   // collapsing the island — backdrop/list clicks still reach their handlers.
   document.addEventListener('mousedown', (e) => {
@@ -2629,6 +2665,11 @@
   window.browserAPI.onWorkspacesUpdated((payload) => {
     applyWorkspacesPayload(payload);
     if (mode === 'panel' || mode === 'palette') renderList();
+  });
+  // A space row's right-click choice (main's native menu) runs in this menu.
+  window.browserAPI.onWorkspaceAction(({ kind, id }) => {
+    const workspace = wsWorkspaces.find((w) => w.id === id);
+    if (workspace && (kind === 'edit' || kind === 'delete')) workspaceUI.begin(kind, workspace);
   });
   window.browserAPI.getAllTabs().then((payload) => {
     state = payload;

@@ -7,7 +7,7 @@ const os = require('os');
 const path = require('path');
 
 const settingsSchema = require('../../settings-schema/schema.json');
-const KEYS = ['migrationChecklistDismissed', 'syncMigrationCompleted', 'tabImportCompleted'];
+const KEYS = ['migrationChecklistDismissed', 'syncMigrationCompleted', 'tabImportCompleted', 'spaceMigrationCompleted', 'spaceChecklistIntroduced'];
 
 const electronId = require.resolve('electron');
 const originalElectron = require.cache[electronId];

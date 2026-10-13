@@ -124,7 +124,7 @@
         </button>
         <aside id="migrationChecklist" class="migration-checklist" popover role="dialog" aria-labelledby="migrationChecklistTitle" aria-live="polite">
           <div class="migration-checklist-heading">
-            <span class="migration-progress-ring" aria-hidden="true"><span class="js-migration-progress">0/2</span></span>
+            <span class="migration-progress-ring" aria-hidden="true"><span class="js-migration-progress">0/3</span></span>
             <h2 id="migrationChecklistTitle" data-i18n="newtab.checklist.title">ready to move in?</h2>
           </div>
           <ul class="migration-checklist-tasks">
@@ -141,6 +141,13 @@
                 <span class="migration-task-label" data-i18n="newtab.checklist.tabs">Bring your tabs</span>
                 <span class="page-sr-only migration-task-status" data-i18n="newtab.checklist.notCompleted">Not completed</span>
               </a>
+            </li>
+            <li id="migrationSpaceTask">
+              <button id="migrationSpaceAction" class="migration-task" type="button">
+                <span class="migration-task-check" aria-hidden="true"></span>
+                <span class="migration-task-label" data-i18n="newtab.checklist.space">Make your first space</span>
+                <span class="page-sr-only migration-task-status" data-i18n="newtab.checklist.notCompleted">Not completed</span>
+              </button>
             </li>
           </ul>
         </aside>

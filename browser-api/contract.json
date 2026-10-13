@@ -55,10 +55,6 @@
       "ts": "'system' | 'light' | 'dark'",
       "doc": "Appearance preference."
     },
-    "WorkspaceMoveDirection": {
-      "ts": "'up' | 'down'",
-      "doc": "Direction for reordering a workspace."
-    },
     "CreateTabOptions": {
       "ts": "{ private?: boolean }",
       "doc": "Options for a new tab. Only `private` is read by main today."
@@ -77,7 +73,7 @@
       }
     },
     "OpenWorkspaceOptions": {
-      "doc": "Options for opening or creating a workspace.",
+      "doc": "Options for opening or creating a workspace; creation also takes a colour and symbol.",
       "fields": {
         "decision": {
           "type": "string",
@@ -87,6 +83,14 @@
         "newWindow": {
           "type": "boolean",
           "doc": "Open in a new window instead of this one.",
+          "optional": true
+        },
+        "color": {
+          "type": "string",
+          "optional": true
+        },
+        "symbol": {
+          "type": "string",
           "optional": true
         }
       }
@@ -649,6 +653,51 @@
         }
       }
     },
+    "SpaceTint": {
+      "ts": "'mark' | 'island' | 'frame'",
+      "doc": "How strongly a space tints the chrome; island and frame exist only in unpackaged builds (BLANC_SPACE_TINT)."
+    },
+    "SpaceIdentityInput": {
+      "doc": "A chosen colour and symbol for a new space; main validates both.",
+      "fields": {
+        "color": {
+          "type": "string",
+          "optional": true
+        },
+        "symbol": {
+          "type": "string",
+          "optional": true
+        }
+      }
+    },
+    "WorkspacePatch": {
+      "doc": "An edit to one space: any subset of name, colour and symbol.",
+      "fields": {
+        "name": {
+          "type": "string",
+          "optional": true
+        },
+        "color": {
+          "type": "string",
+          "optional": true
+        },
+        "symbol": {
+          "type": "string",
+          "optional": true
+        }
+      }
+    },
+    "WorkspaceActionEvent": {
+      "doc": "A space row's right-click choice, run by the open Spaces menu.",
+      "fields": {
+        "kind": {
+          "type": "'edit' | 'delete'"
+        },
+        "id": {
+          "type": "WorkspaceId"
+        }
+      }
+    },
     "WorkspaceListItem": {
       "doc": "A Named Workspace row.",
       "fields": {
@@ -674,6 +723,14 @@
         },
         "tabCount": {
           "type": "number"
+        },
+        "color": {
+          "type": "string",
+          "doc": "Stored #rrggbb; the chrome derives the drawn ink."
+        },
+        "symbol": {
+          "type": "string",
+          "doc": "A space-identity.js symbol id."
         }
       }
     },
@@ -688,6 +745,13 @@
         },
         "items": {
           "type": "WorkspaceListItem[]"
+        },
+        "windowTabCount": {
+          "type": "number",
+          "doc": "This window's ordinary tabs, for the new-space editor."
+        },
+        "tint": {
+          "type": "SpaceTint"
         }
       }
     },
@@ -741,7 +805,7 @@
       }
     },
     "OverlayMode": {
-      "ts": "'panel' | 'palette' | 'find' | 'shield' | 'capture' | 'glance' | 'display-share'",
+      "ts": "'panel' | 'palette' | 'find' | 'shield' | 'capture' | 'glance' | 'display-share' | 'spaces'",
       "doc": "Overlay modes; every showOverlay() call in main.js passes one of these literals."
     },
     "ShieldTrigger": {
@@ -749,7 +813,7 @@
       "doc": "Which strip control opened the shield popover."
     },
     "RestoreTrigger": {
-      "ts": "'shield' | 'insecure' | 'capture' | 'glance-change'",
+      "ts": "'shield' | 'insecure' | 'capture' | 'glance-change' | 'spaces'",
       "doc": "The strip control that should regain focus when the overlay closes."
     },
     "OverlayShowPayload": {
@@ -810,7 +874,7 @@
       }
     },
     "WorkspaceErrorCode": {
-      "ts": "'activation-failed' | 'busy' | 'duplicate-name' | 'future-format' | 'invalid-name' | 'invalid-record' | 'limit' | 'not-found' | 'protected-pages' | 'read-failed' | 'repair-failed' | 'saved-not-opened' | 'storage-failed' | 'unsaved-scratch'",
+      "ts": "'activation-failed' | 'busy' | 'duplicate-name' | 'future-format' | 'invalid-name' | 'invalid-color' | 'invalid-symbol' | 'invalid-index' | 'invalid-record' | 'limit' | 'not-found' | 'protected-pages' | 'read-failed' | 'repair-failed' | 'saved-not-opened' | 'storage-failed' | 'unsaved-scratch'",
       "doc": "Every error code a Named Workspace action can report, from workspace-controller.js, workspaces.js, workspaces-model.js and the workspace functions in main.js."
     },
     "WorkspaceProtectionReason": {
@@ -880,6 +944,15 @@
         },
         "items": {
           "type": "WorkspaceListItem[]",
+          "optional": true
+        },
+        "windowTabCount": {
+          "type": "number",
+          "doc": "This window's ordinary tabs, for the new-space editor.",
+          "optional": true
+        },
+        "tint": {
+          "type": "SpaceTint",
           "optional": true
         }
       }
@@ -1097,6 +1170,27 @@
           "type": "ShieldAnchor",
           "optional": true,
           "doc": "Present while the shield popover is open, so a uBlock Origin popup can follow the pill."
+        },
+        "spacesAnchor": {
+          "type": "SpacesAnchor",
+          "optional": true,
+          "doc": "Present while the Spaces menu is open from the mark, so it follows the pill."
+        }
+      }
+    },
+    "SpacesAnchor": {
+      "doc": "Where the Spaces menu opens: the space mark's left and bottom edges in window coordinates. Main validates both.",
+      "fields": {
+        "left": {
+          "type": "number"
+        },
+        "bottom": {
+          "type": "number"
+        },
+        "closing": {
+          "type": "boolean",
+          "optional": true,
+          "doc": "The click ends a press that began while the menu was open; that press already closed it, so main does not reopen it."
         }
       }
     },
@@ -1950,6 +2044,19 @@
       "doc": "Open the capture indicator popover."
     },
     {
+      "name": "openSpacesMenu",
+      "group": "workspaces",
+      "kind": "send",
+      "channel": "chrome:open-spaces",
+      "params": [
+        {
+          "name": "anchor",
+          "type": "SpacesAnchor"
+        }
+      ],
+      "doc": "Open the Spaces menu from the Island's space mark."
+    },
+    {
       "name": "captureStop",
       "group": "capture",
       "kind": "send",
@@ -2141,6 +2248,11 @@
         {
           "name": "name",
           "type": "string"
+        },
+        {
+          "name": "identity",
+          "type": "SpaceIdentityInput",
+          "optional": true
         }
       ],
       "returns": "WorkspaceActionResult",
@@ -2185,24 +2297,6 @@
       "doc": "Create and open an empty Named Workspace."
     },
     {
-      "name": "renameWorkspace",
-      "group": "workspaces",
-      "kind": "invoke",
-      "channel": "chrome:workspaces-rename",
-      "params": [
-        {
-          "name": "id",
-          "type": "WorkspaceId"
-        },
-        {
-          "name": "name",
-          "type": "string"
-        }
-      ],
-      "returns": "WorkspaceActionResult",
-      "doc": "Rename a Named Workspace."
-    },
-    {
       "name": "removeWorkspace",
       "group": "workspaces",
       "kind": "invoke",
@@ -2245,22 +2339,54 @@
       "doc": "Make a workspace deletion permanent."
     },
     {
-      "name": "moveWorkspace",
+      "name": "updateWorkspace",
       "group": "workspaces",
       "kind": "invoke",
-      "channel": "chrome:workspaces-move",
+      "channel": "chrome:workspaces-update",
       "params": [
         {
           "name": "id",
           "type": "WorkspaceId"
         },
         {
-          "name": "direction",
-          "type": "WorkspaceMoveDirection"
+          "name": "patch",
+          "type": "WorkspacePatch"
         }
       ],
       "returns": "WorkspaceActionResult",
-      "doc": "Move a workspace up or down in the list."
+      "doc": "Rename, recolour or change the symbol of a space."
+    },
+    {
+      "name": "moveWorkspaceTo",
+      "group": "workspaces",
+      "kind": "invoke",
+      "channel": "chrome:workspaces-move-to",
+      "params": [
+        {
+          "name": "id",
+          "type": "WorkspaceId"
+        },
+        {
+          "name": "index",
+          "type": "number"
+        }
+      ],
+      "returns": "WorkspaceActionResult",
+      "doc": "Move a space to a position in the list."
+    },
+    {
+      "name": "undoRemoveWorkspace",
+      "group": "workspaces",
+      "kind": "invoke",
+      "channel": "chrome:workspaces-undo-remove",
+      "params": [
+        {
+          "name": "id",
+          "type": "WorkspaceId"
+        }
+      ],
+      "returns": "WorkspaceActionResult",
+      "doc": "Undo the delete just made: restore the space and rebind the window it left."
     },
     {
       "name": "searchSuggestions",
@@ -2292,6 +2418,14 @@
       "channel": "chrome:workspaces-updated",
       "payload": "WorkspacesPayload",
       "doc": "Named Workspaces changed."
+    },
+    {
+      "name": "onWorkspaceAction",
+      "group": "workspaces",
+      "kind": "event",
+      "channel": "overlay:workspace-action",
+      "payload": "WorkspaceActionEvent",
+      "doc": "Run a space row's right-click choice in the open Spaces menu."
     },
     {
       "name": "clearHistory",

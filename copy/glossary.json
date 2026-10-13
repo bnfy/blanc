@@ -206,7 +206,14 @@
       "mahjong.rulesName.auto",
       "mahjong.rulesName.zen",
       "mahjong.combo.combo",
-      "ublock.popup.dashboard"
+      "ublock.popup.dashboard",
+      "ws.editor.name",
+      "ws.editor.symbol",
+      "spaces.color.iris",
+      "spaces.color.sand",
+      "spaces.symbol.code",
+      "spaces.picker.hex",
+      "result.tag.space"
     ],
     "es": [
       "key.ctrl",
@@ -239,7 +246,11 @@
       "mahjong.rulesName.auto",
       "mahjong.rulesName.zen",
       "mahjong.live.combo",
-      "mahjong.combo.combo"
+      "mahjong.combo.combo",
+      "ws.editor.color",
+      "spaces.color.iris",
+      "spaces.picker.hex",
+      "result.tag.space"
     ],
     "fr": [
       "key.ctrl",
@@ -276,7 +287,13 @@
       "mahjong.rulesName.auto",
       "mahjong.rulesName.zen",
       "mahjong.live.combo",
-      "mahjong.combo.combo"
+      "mahjong.combo.combo",
+      "spaces.color.iris",
+      "spaces.color.rose",
+      "spaces.color.graphite",
+      "spaces.symbol.code",
+      "spaces.picker.hex",
+      "result.tag.space"
     ],
     "pt-BR": [
       "key.ctrl",
@@ -313,7 +330,9 @@
       "mahjong.rulesName.auto",
       "mahjong.rulesName.zen",
       "mahjong.live.combo",
-      "mahjong.combo.combo"
+      "mahjong.combo.combo",
+      "spaces.picker.hex",
+      "result.tag.space"
     ],
     "it": [
       "key.ctrl",
@@ -361,7 +380,10 @@
       "mahjong.live.combo",
       "mahjong.combo.combo",
       "mahjong.win.rules",
-      "mahjong.setup.dailyDescription"
+      "mahjong.setup.dailyDescription",
+      "spaces.color.iris",
+      "spaces.picker.hex",
+      "result.tag.space"
     ]
   }
 }

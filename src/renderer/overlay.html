@@ -65,7 +65,7 @@
         <div class="footer-tools">
         <button
           id="footerWorkspace"
-          class="footer-act"
+          class="footer-act ws"
           type="button"
           title="Spaces"
           aria-label="Spaces"
@@ -80,7 +80,6 @@
             <rect x="2.5" y="4.75" width="8.75" height="8.5" rx="1.5"/>
             <path d="M5.25 4.75V3.25a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-1.5"/>
           </svg>
-          <span id="footerWorkspaceLabel" class="footer-ws-label" data-i18n-ignore hidden></span>
         </button>
         <button id="footerFavorites" class="footer-act" title="Favorites" data-i18n-title="footer.favorites">
           <svg viewBox="0 0 16 16"><path d="M4.25 2.75h7.5v10.5L8 10.5l-3.75 2.75z"/></svg>
@@ -111,13 +110,13 @@
       <div id="workspaceFeedback" hidden></div>
       <div id="islandHint"></div>
     </div>
-    <!-- Outside #islandPanel so fixed placement isn't clipped by the panel box. -->
-    <div id="workspaceSwitcher" class="ws-switcher" hidden role="dialog" aria-label="Spaces" data-i18n-aria-label="footer.workspaces">
-      <div id="workspaceSwitcherList"></div>
-      <div id="wsSwitcherSep" class="ws-switcher-sep" role="separator"></div>
-      <button type="button" class="ws-switcher-cmd" id="wsSwitcherNew" data-i18n="ws.newEmpty">New empty space</button>
-      <button type="button" class="ws-switcher-cmd" id="wsSwitcherSaveAs" data-i18n="ws.saveAs">Save this window as…</button>
-    </div>
+  </div>
+  <!-- The Spaces menu: below the Island from the ⌘L footer button, or alone in
+       the 'spaces' overlay mode opened from the Island's space mark. Outside
+       #panelAnchor so it can show without the panel. -->
+  <div id="workspaceSwitcher" class="ws-switcher" hidden role="dialog" aria-label="Spaces" data-i18n-aria-label="footer.workspaces">
+    <div id="workspaceSwitcherList"></div>
+    <div id="workspaceSwitcherCommands" class="ws-commands" hidden></div>
   </div>
   <section id="glancePicker" class="glance-picker" aria-labelledby="glancePickerTitle" hidden>
     <header class="glance-picker-head">
@@ -220,6 +219,8 @@
     <ul id="capturePopRows" class="capture-pop-rows"></ul>
   </section>
   <script src="tab-drag.js"></script>
+  <script src="space-identity.js"></script>
+  <script src="space-picker.js"></script>
   <script src="workspace-ui.js"></script>
   <script src="overlay.js"></script>
 </body>

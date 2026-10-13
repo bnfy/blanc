@@ -1501,6 +1501,11 @@
                 "center": 1,
                 "bottom": 1,
                 "trigger": "shield"
+              },
+              "spacesAnchor": {
+                "left": 1,
+                "bottom": 1,
+                "closing": true
               }
             }
           ],
@@ -1519,6 +1524,11 @@
                     "center": 1,
                     "bottom": 1,
                     "trigger": "shield"
+                  },
+                  "spacesAnchor": {
+                    "left": 1,
+                    "bottom": 1,
+                    "closing": true
                   }
                 }
               ]
@@ -2145,6 +2155,61 @@
         }
       ]
     },
+    "openSpacesMenu": {
+      "kind": "send",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:open-spaces",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            {
+              "left": 1,
+              "bottom": 1
+            }
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:open-spaces",
+              "args": [
+                {
+                  "left": 1,
+                  "bottom": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "anchor = {\"left\":1,\"bottom\":1,\"closing\":true}",
+          "args": [
+            {
+              "left": 1,
+              "bottom": 1,
+              "closing": true
+            }
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:open-spaces",
+              "args": [
+                {
+                  "left": 1,
+                  "bottom": 1,
+                  "closing": true
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
     "captureStop": {
       "kind": "send",
       "platforms": [
@@ -2682,7 +2747,9 @@
         {
           "status": "saved",
           "deleted": [],
-          "items": []
+          "items": [],
+          "windowTabCount": 1,
+          "tint": "mark"
         },
         {
           "status": "saved",
@@ -2701,9 +2768,13 @@
               "openElsewhere": true,
               "resident": true,
               "revision": 1,
-              "tabCount": 1
+              "tabCount": 1,
+              "color": "workspace-list-item-1",
+              "symbol": "workspace-list-item-1"
             }
-          ]
+          ],
+          "windowTabCount": 1,
+          "tint": "mark"
         }
       ]
     },
@@ -2719,6 +2790,46 @@
         {
           "label": "typical",
           "args": [
+            "example",
+            {}
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:workspaces-save-as",
+              "args": [
+                "example",
+                {}
+              ]
+            }
+          ]
+        },
+        {
+          "label": "identity = {\"color\":\"space-identity-input-1\",\"symbo",
+          "args": [
+            "example",
+            {
+              "color": "space-identity-input-1",
+              "symbol": "space-identity-input-1"
+            }
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:workspaces-save-as",
+              "args": [
+                "example",
+                {
+                  "color": "space-identity-input-1",
+                  "symbol": "space-identity-input-1"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "trailing optional arguments omitted",
+          "args": [
             "example"
           ],
           "sends": [
@@ -2726,7 +2837,10 @@
               "kind": "invoke",
               "channel": "chrome:workspaces-save-as",
               "args": [
-                "example"
+                "example",
+                {
+                  "$undefined": true
+                }
               ]
             }
           ]
@@ -2763,9 +2877,13 @@
               "openElsewhere": true,
               "resident": true,
               "revision": 1,
-              "tabCount": 1
+              "tabCount": 1,
+              "color": "workspace-list-item-1",
+              "symbol": "workspace-list-item-1"
             }
-          ]
+          ],
+          "windowTabCount": 1,
+          "tint": "mark"
         }
       ]
     },
@@ -2801,7 +2919,9 @@
             "workspace-id-1",
             {
               "decision": "open-workspace-options-1",
-              "newWindow": true
+              "newWindow": true,
+              "color": "open-workspace-options-1",
+              "symbol": "open-workspace-options-1"
             }
           ],
           "sends": [
@@ -2812,7 +2932,9 @@
                 "workspace-id-1",
                 {
                   "decision": "open-workspace-options-1",
-                  "newWindow": true
+                  "newWindow": true,
+                  "color": "open-workspace-options-1",
+                  "symbol": "open-workspace-options-1"
                 }
               ]
             }
@@ -2868,9 +2990,13 @@
               "openElsewhere": true,
               "resident": true,
               "revision": 1,
-              "tabCount": 1
+              "tabCount": 1,
+              "color": "workspace-list-item-1",
+              "symbol": "workspace-list-item-1"
             }
-          ]
+          ],
+          "windowTabCount": 1,
+          "tint": "mark"
         }
       ]
     },
@@ -2906,7 +3032,9 @@
             "example",
             {
               "decision": "open-workspace-options-1",
-              "newWindow": true
+              "newWindow": true,
+              "color": "open-workspace-options-1",
+              "symbol": "open-workspace-options-1"
             }
           ],
           "sends": [
@@ -2917,7 +3045,9 @@
                 "example",
                 {
                   "decision": "open-workspace-options-1",
-                  "newWindow": true
+                  "newWindow": true,
+                  "color": "open-workspace-options-1",
+                  "symbol": "open-workspace-options-1"
                 }
               ]
             }
@@ -2973,73 +3103,13 @@
               "openElsewhere": true,
               "resident": true,
               "revision": 1,
-              "tabCount": 1
-            }
-          ]
-        }
-      ]
-    },
-    "renameWorkspace": {
-      "kind": "invoke",
-      "platforms": [
-        "darwin",
-        "win32",
-        "linux"
-      ],
-      "channel": "chrome:workspaces-rename",
-      "calls": [
-        {
-          "label": "typical",
-          "args": [
-            "workspace-id-1",
-            "example"
-          ],
-          "sends": [
-            {
-              "kind": "invoke",
-              "channel": "chrome:workspaces-rename",
-              "args": [
-                "workspace-id-1",
-                "example"
-              ]
-            }
-          ]
-        }
-      ],
-      "replies": [
-        {
-          "ok": true
-        },
-        {
-          "ok": true,
-          "error": "activation-failed",
-          "cause": "activation-failed",
-          "reason": "permission-or-transition",
-          "tabCount": 1,
-          "privateCount": 1,
-          "decision": "workspace-action-result-1",
-          "action": "swap",
-          "windowId": "workspace-action-result-1",
-          "workspaceId": "workspace-id-1",
-          "status": "saved",
-          "deleted": [
-            {
-              "id": "workspace-id-1",
-              "name": "deleted-workspace-1",
-              "deletedAt": 1
+              "tabCount": 1,
+              "color": "workspace-list-item-1",
+              "symbol": "workspace-list-item-1"
             }
           ],
-          "items": [
-            {
-              "id": "workspace-id-1",
-              "name": "workspace-list-item-1",
-              "active": true,
-              "openElsewhere": true,
-              "resident": true,
-              "revision": 1,
-              "tabCount": 1
-            }
-          ]
+          "windowTabCount": 1,
+          "tint": "mark"
         }
       ]
     },
@@ -3099,9 +3169,13 @@
               "openElsewhere": true,
               "resident": true,
               "revision": 1,
-              "tabCount": 1
+              "tabCount": 1,
+              "color": "workspace-list-item-1",
+              "symbol": "workspace-list-item-1"
             }
-          ]
+          ],
+          "windowTabCount": 1,
+          "tint": "mark"
         }
       ]
     },
@@ -3161,9 +3235,13 @@
               "openElsewhere": true,
               "resident": true,
               "revision": 1,
-              "tabCount": 1
+              "tabCount": 1,
+              "color": "workspace-list-item-1",
+              "symbol": "workspace-list-item-1"
             }
-          ]
+          ],
+          "windowTabCount": 1,
+          "tint": "mark"
         }
       ]
     },
@@ -3223,51 +3301,63 @@
               "openElsewhere": true,
               "resident": true,
               "revision": 1,
-              "tabCount": 1
+              "tabCount": 1,
+              "color": "workspace-list-item-1",
+              "symbol": "workspace-list-item-1"
             }
-          ]
+          ],
+          "windowTabCount": 1,
+          "tint": "mark"
         }
       ]
     },
-    "moveWorkspace": {
+    "updateWorkspace": {
       "kind": "invoke",
       "platforms": [
         "darwin",
         "win32",
         "linux"
       ],
-      "channel": "chrome:workspaces-move",
+      "channel": "chrome:workspaces-update",
       "calls": [
         {
           "label": "typical",
           "args": [
             "workspace-id-1",
-            "up"
+            {}
           ],
           "sends": [
             {
               "kind": "invoke",
-              "channel": "chrome:workspaces-move",
+              "channel": "chrome:workspaces-update",
               "args": [
                 "workspace-id-1",
-                "up"
+                {}
               ]
             }
           ]
         },
         {
-          "label": "direction = \"down\"",
+          "label": "patch = {\"name\":\"workspace-patch-1\",\"color\":\"wor",
           "args": [
             "workspace-id-1",
-            "down"
+            {
+              "name": "workspace-patch-1",
+              "color": "workspace-patch-1",
+              "symbol": "workspace-patch-1"
+            }
           ],
           "sends": [
             {
               "kind": "invoke",
-              "channel": "chrome:workspaces-move",
+              "channel": "chrome:workspaces-update",
               "args": [
                 "workspace-id-1",
-                "down"
+                {
+                  "name": "workspace-patch-1",
+                  "color": "workspace-patch-1",
+                  "symbol": "workspace-patch-1"
+                }
               ]
             }
           ]
@@ -3304,9 +3394,147 @@
               "openElsewhere": true,
               "resident": true,
               "revision": 1,
-              "tabCount": 1
+              "tabCount": 1,
+              "color": "workspace-list-item-1",
+              "symbol": "workspace-list-item-1"
+            }
+          ],
+          "windowTabCount": 1,
+          "tint": "mark"
+        }
+      ]
+    },
+    "moveWorkspaceTo": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:workspaces-move-to",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "workspace-id-1",
+            1
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:workspaces-move-to",
+              "args": [
+                "workspace-id-1",
+                1
+              ]
             }
           ]
+        }
+      ],
+      "replies": [
+        {
+          "ok": true
+        },
+        {
+          "ok": true,
+          "error": "activation-failed",
+          "cause": "activation-failed",
+          "reason": "permission-or-transition",
+          "tabCount": 1,
+          "privateCount": 1,
+          "decision": "workspace-action-result-1",
+          "action": "swap",
+          "windowId": "workspace-action-result-1",
+          "workspaceId": "workspace-id-1",
+          "status": "saved",
+          "deleted": [
+            {
+              "id": "workspace-id-1",
+              "name": "deleted-workspace-1",
+              "deletedAt": 1
+            }
+          ],
+          "items": [
+            {
+              "id": "workspace-id-1",
+              "name": "workspace-list-item-1",
+              "active": true,
+              "openElsewhere": true,
+              "resident": true,
+              "revision": 1,
+              "tabCount": 1,
+              "color": "workspace-list-item-1",
+              "symbol": "workspace-list-item-1"
+            }
+          ],
+          "windowTabCount": 1,
+          "tint": "mark"
+        }
+      ]
+    },
+    "undoRemoveWorkspace": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:workspaces-undo-remove",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "workspace-id-1"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:workspaces-undo-remove",
+              "args": [
+                "workspace-id-1"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "ok": true
+        },
+        {
+          "ok": true,
+          "error": "activation-failed",
+          "cause": "activation-failed",
+          "reason": "permission-or-transition",
+          "tabCount": 1,
+          "privateCount": 1,
+          "decision": "workspace-action-result-1",
+          "action": "swap",
+          "windowId": "workspace-action-result-1",
+          "workspaceId": "workspace-id-1",
+          "status": "saved",
+          "deleted": [
+            {
+              "id": "workspace-id-1",
+              "name": "deleted-workspace-1",
+              "deletedAt": 1
+            }
+          ],
+          "items": [
+            {
+              "id": "workspace-id-1",
+              "name": "workspace-list-item-1",
+              "active": true,
+              "openElsewhere": true,
+              "resident": true,
+              "revision": 1,
+              "tabCount": 1,
+              "color": "workspace-list-item-1",
+              "symbol": "workspace-list-item-1"
+            }
+          ],
+          "windowTabCount": 1,
+          "tint": "mark"
         }
       ]
     },
@@ -3439,7 +3667,9 @@
             {
               "status": "saved",
               "deleted": [],
-              "items": []
+              "items": [],
+              "windowTabCount": 1,
+              "tint": "mark"
             }
           ],
           "callbacks": [
@@ -3447,7 +3677,9 @@
               {
                 "status": "saved",
                 "deleted": [],
-                "items": []
+                "items": [],
+                "windowTabCount": 1,
+                "tint": "mark"
               }
             ]
           ]
@@ -3471,9 +3703,13 @@
                   "openElsewhere": true,
                   "resident": true,
                   "revision": 1,
-                  "tabCount": 1
+                  "tabCount": 1,
+                  "color": "workspace-list-item-1",
+                  "symbol": "workspace-list-item-1"
                 }
-              ]
+              ],
+              "windowTabCount": 1,
+              "tint": "mark"
             }
           ],
           "callbacks": [
@@ -3495,9 +3731,40 @@
                     "openElsewhere": true,
                     "resident": true,
                     "revision": 1,
-                    "tabCount": 1
+                    "tabCount": 1,
+                    "color": "workspace-list-item-1",
+                    "symbol": "workspace-list-item-1"
                   }
-                ]
+                ],
+                "windowTabCount": 1,
+                "tint": "mark"
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    "onWorkspaceAction": {
+      "kind": "event",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "overlay:workspace-action",
+      "deliveries": [
+        {
+          "emit": [
+            {
+              "kind": "edit",
+              "id": "workspace-id-1"
+            }
+          ],
+          "callbacks": [
+            [
+              {
+                "kind": "edit",
+                "id": "workspace-id-1"
               }
             ]
           ]

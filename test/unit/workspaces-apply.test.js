@@ -145,7 +145,7 @@ test('staging dismisses floating chrome before creating the saved tabs', () => {
 });
 
 const saveAsSource = slice(
-  'function saveCurrentWindowAsWorkspace(runtime, name) {',
+  'function saveCurrentWindowAsWorkspace(runtime, name, identity = {}) {',
   '\nfunction switchWindowToWorkspace'
 );
 

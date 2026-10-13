@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-105 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
+108 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -63,6 +63,7 @@
 | `selectBlockingProvider` | blocking | invoke | `chrome:blocking-provider` | `(provider: string, restart?: boolean) => Promise<boolean>` | all |
 | `openBlockingPopup` | blocking | invoke | `chrome:blocking-popup` | `() => Promise<boolean>` | all |
 | `openCapturePopover` | capture | send | `chrome:open-capture` | `(anchor: CaptureAnchor)` | all |
+| `openSpacesMenu` | workspaces | send | `chrome:open-spaces` | `(anchor: SpacesAnchor)` | all |
 | `captureStop` | capture | send | `chrome:capture-stop` | `(surfaceId: CaptureSurfaceId)` | all |
 | `captureFocus` | capture | send | `chrome:capture-focus` | `(surfaceId: CaptureSurfaceId)` | all |
 | `stopDisplayShare` | capture | send | `display-capture:stop` | `(shareId: DisplayShareId)` | all |
@@ -78,17 +79,19 @@
 | `listRemoteTabs` | sync | invoke | `chrome:remote-tabs-list` | `() => Promise<RemoteDevice[]>` | all |
 | `cancelWorkspaceAction` | workspaces | send | `chrome:workspaces-cancel` | `()` | all |
 | `listWorkspaces` | workspaces | invoke | `chrome:workspaces-list` | `() => Promise<WorkspacesPayload>` | all |
-| `saveWorkspaceAs` | workspaces | invoke | `chrome:workspaces-save-as` | `(name: string) => Promise<WorkspaceActionResult>` | all |
+| `saveWorkspaceAs` | workspaces | invoke | `chrome:workspaces-save-as` | `(name: string, identity?: SpaceIdentityInput) => Promise<WorkspaceActionResult>` | all |
 | `openWorkspace` | workspaces | invoke | `chrome:workspaces-open` | `(id: WorkspaceId, opts?: OpenWorkspaceOptions) => Promise<WorkspaceActionResult>` | all |
 | `createBlankWorkspace` | workspaces | invoke | `chrome:workspaces-create-blank` | `(name: string, opts?: OpenWorkspaceOptions) => Promise<WorkspaceActionResult>` | all |
-| `renameWorkspace` | workspaces | invoke | `chrome:workspaces-rename` | `(id: WorkspaceId, name: string) => Promise<WorkspaceActionResult>` | all |
 | `removeWorkspace` | workspaces | invoke | `chrome:workspaces-remove` | `(id: WorkspaceId) => Promise<WorkspaceActionResult>` | all |
 | `restoreWorkspace` | workspaces | invoke | `chrome:workspaces-restore` | `(id: WorkspaceId) => Promise<WorkspaceActionResult>` | all |
 | `forgetWorkspace` | workspaces | invoke | `chrome:workspaces-forget` | `(id: WorkspaceId) => Promise<WorkspaceActionResult>` | all |
-| `moveWorkspace` | workspaces | invoke | `chrome:workspaces-move` | `(id: WorkspaceId, direction: WorkspaceMoveDirection) => Promise<WorkspaceActionResult>` | all |
+| `updateWorkspace` | workspaces | invoke | `chrome:workspaces-update` | `(id: WorkspaceId, patch: WorkspacePatch) => Promise<WorkspaceActionResult>` | all |
+| `moveWorkspaceTo` | workspaces | invoke | `chrome:workspaces-move-to` | `(id: WorkspaceId, index: number) => Promise<WorkspaceActionResult>` | all |
+| `undoRemoveWorkspace` | workspaces | invoke | `chrome:workspaces-undo-remove` | `(id: WorkspaceId) => Promise<WorkspaceActionResult>` | all |
 | `searchSuggestions` | search | invoke | `chrome:search-suggestions` | `(query: string) => Promise<SearchSuggestions>` | all |
 | `onRemoteTabsUpdated` | sync | event | `chrome:remote-tabs-updated` | `(payload: RemoteDevice[]) => void` | all |
 | `onWorkspacesUpdated` | workspaces | event | `chrome:workspaces-updated` | `(payload: WorkspacesPayload) => void` | all |
+| `onWorkspaceAction` | workspaces | event | `overlay:workspace-action` | `(payload: WorkspaceActionEvent) => void` | all |
 | `clearHistory` | history | invoke | `chrome:history-clear` | `() => Promise<void>` | all |
 | `toggleAdblock` | blocking | invoke | `chrome:adblock-toggle` | `() => Promise<ProviderBlockAdsResult \| BlockAdsResult>` | all |
 | `allowAdsOnActiveSite` | blocking | invoke | `chrome:adblock-exempt-active` | `() => Promise<string \| null \| AllowAdsError>` | all |
@@ -186,12 +189,6 @@ Appearance preference.
 
 `'system' \| 'light' \| 'dark'`
 
-### `WorkspaceMoveDirection`
-
-Direction for reordering a workspace.
-
-`'up' \| 'down'`
-
 ### `CreateTabOptions`
 
 Options for a new tab. Only `private` is read by main today.
@@ -209,12 +206,14 @@ Where a dragged or keyboard-moved tab should land. The pinned state never change
 
 ### `OpenWorkspaceOptions`
 
-Options for opening or creating a workspace.
+Options for opening or creating a workspace; creation also takes a colour and symbol.
 
 | Field | Type | Notes |
 | --- | --- | --- |
 | `decision?` | `string` | The token from an unsaved-scratch result, confirming "discard and switch". |
 | `newWindow?` | `boolean` | Open in a new window instead of this one. |
+| `color?` | `string` |  |
+| `symbol?` | `string` |  |
 
 ### `Point`
 
@@ -523,6 +522,40 @@ A recently deleted workspace that can still be restored.
 | `name` | `string` |  |
 | `deletedAt` | `number` | Milliseconds since the epoch. |
 
+### `SpaceTint`
+
+How strongly a space tints the chrome; island and frame exist only in unpackaged builds (BLANC_SPACE_TINT).
+
+`'mark' \| 'island' \| 'frame'`
+
+### `SpaceIdentityInput`
+
+A chosen colour and symbol for a new space; main validates both.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `color?` | `string` |  |
+| `symbol?` | `string` |  |
+
+### `WorkspacePatch`
+
+An edit to one space: any subset of name, colour and symbol.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `name?` | `string` |  |
+| `color?` | `string` |  |
+| `symbol?` | `string` |  |
+
+### `WorkspaceActionEvent`
+
+A space row's right-click choice, run by the open Spaces menu.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `kind` | `'edit' \| 'delete'` |  |
+| `id` | `WorkspaceId` |  |
+
 ### `WorkspaceListItem`
 
 A Named Workspace row.
@@ -536,6 +569,8 @@ A Named Workspace row.
 | `resident` | `boolean` |  |
 | `revision` | `number` |  |
 | `tabCount` | `number` |  |
+| `color` | `string` | Stored #rrggbb; the chrome derives the drawn ink. |
+| `symbol` | `string` | A space-identity.js symbol id. |
 
 ### `WorkspacesPayload`
 
@@ -546,6 +581,8 @@ Named Workspaces projection, from workspacesProjection() in main.js.
 | `status` | `WorkspaceSaveStatus` |  |
 | `deleted` | `DeletedWorkspace[]` |  |
 | `items` | `WorkspaceListItem[]` |  |
+| `windowTabCount` | `number` | This window's ordinary tabs, for the new-space editor. |
+| `tint` | `SpaceTint` |  |
 
 ### `ThemeAppearance`
 
@@ -587,7 +624,7 @@ Download activity for the strip, from downloadsActivity() in downloads.js.
 
 Overlay modes; every showOverlay() call in main.js passes one of these literals.
 
-`'panel' \| 'palette' \| 'find' \| 'shield' \| 'capture' \| 'glance' \| 'display-share'`
+`'panel' \| 'palette' \| 'find' \| 'shield' \| 'capture' \| 'glance' \| 'display-share' \| 'spaces'`
 
 ### `ShieldTrigger`
 
@@ -599,7 +636,7 @@ Which strip control opened the shield popover.
 
 The strip control that should regain focus when the overlay closes.
 
-`'shield' \| 'insecure' \| 'capture' \| 'glance-change'`
+`'shield' \| 'insecure' \| 'capture' \| 'glance-change' \| 'spaces'`
 
 ### `OverlayShowPayload`
 
@@ -643,7 +680,7 @@ Find-in-page counts for the active tab, sent from tab-view.js.
 
 Every error code a Named Workspace action can report, from workspace-controller.js, workspaces.js, workspaces-model.js and the workspace functions in main.js.
 
-`'activation-failed' \| 'busy' \| 'duplicate-name' \| 'future-format' \| 'invalid-name' \| 'invalid-record' \| 'limit' \| 'not-found' \| 'protected-pages' \| 'read-failed' \| 'repair-failed' \| 'saved-not-opened' \| 'storage-failed' \| 'unsaved-scratch'`
+`'activation-failed' \| 'busy' \| 'duplicate-name' \| 'future-format' \| 'invalid-name' \| 'invalid-color' \| 'invalid-symbol' \| 'invalid-index' \| 'invalid-record' \| 'limit' \| 'not-found' \| 'protected-pages' \| 'read-failed' \| 'repair-failed' \| 'saved-not-opened' \| 'storage-failed' \| 'unsaved-scratch'`
 
 ### `WorkspaceProtectionReason`
 
@@ -676,6 +713,8 @@ Result of every Named Workspace action. Successes carry the refreshed workspace 
 | `status?` | `WorkspaceSaveStatus` |  |
 | `deleted?` | `DeletedWorkspace[]` |  |
 | `items?` | `WorkspaceListItem[]` |  |
+| `windowTabCount?` | `number` | This window's ordinary tabs, for the new-space editor. |
+| `tint?` | `SpaceTint` |  |
 
 ### `SearchEngineId`
 
@@ -809,6 +848,17 @@ The resting pill's rectangle as the strip reports it, plus the open shield popov
 | `width` | `number` |  |
 | `height` | `number` |  |
 | `shieldAnchor?` | `ShieldAnchor` | Present while the shield popover is open, so a uBlock Origin popup can follow the pill. |
+| `spacesAnchor?` | `SpacesAnchor` | Present while the Spaces menu is open from the mark, so it follows the pill. |
+
+### `SpacesAnchor`
+
+Where the Spaces menu opens: the space mark's left and bottom edges in window coordinates. Main validates both.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `left` | `number` |  |
+| `bottom` | `number` |  |
+| `closing?` | `boolean` | The click ends a press that began while the menu was open; that press already closed it, so main does not reopen it. |
 
 ### `ShieldAnchor`
 

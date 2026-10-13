@@ -1,5 +1,5 @@
 // src/main/workspace-context-menu-model.js
-// Pure descriptor builder for a workspace row's right-click menu — Rename and
+// Pure descriptor builder for a workspace row's right-click menu — Edit and
 // Delete only. Deliberately a SEPARATE module from tab-context-menu-model.js:
 // that file models TAB actions (close, pin, mute, move-to-group), and
 // grafting workspace verbs onto it would muddle both vocabularies. Same
@@ -9,11 +9,11 @@
 //
 // No conditional items: a row is only ever right-clickable when it already
 // resolved to a real, existing workspace (workspace-context-menu.js's
-// resolveWorkspace gate), so Rename/Delete are always valid.
+// resolveWorkspace gate), so Edit/Delete are always valid.
 
 function buildWorkspaceContextMenu(_workspace, t) {
   return [
-    { id: 'rename', label: t('workspaceMenu.rename') },
+    { id: 'edit', label: t('workspaceMenu.edit') },
     { id: 'delete', label: t('workspaceMenu.delete') },
   ];
 }

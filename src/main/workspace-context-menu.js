@@ -1,5 +1,5 @@
 // src/main/workspace-context-menu.js
-// Electron glue for the workspace row's right-click menu (Rename/Delete).
+// Electron glue for the workspace row's right-click menu (Edit/Delete).
 // Deliberately a separate module from tab-context-menu.js — see
 // workspace-context-menu-model.js's header for why. Same shape as that file:
 // buildWorkspaceContextMenu is the pure template, attachWorkspaceRowMenu owns
@@ -10,7 +10,7 @@ const { buildWorkspaceContextMenu } = require('./workspace-context-menu-model');
 
 function runWorkspaceContextMenuItem(id, { workspace, actions }) {
   switch (id) {
-    case 'rename': return actions.rename(workspace.id);
+    case 'edit': return actions.edit(workspace.id);
     case 'delete': return actions.remove(workspace.id);
   }
 }
