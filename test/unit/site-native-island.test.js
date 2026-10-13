@@ -26,7 +26,7 @@ test('hero extraction retains native dimensions, material and actual action SVGs
   assert.match(art.html, /id="pillShieldCount">1<\/span>/, 'fixed illustration matches the supplied one-count reference');
   // The app's markup carries data-i18n* keys (F44); the replica must still
   // rewrite the domain and must not ship the keys.
-  assert.match(art.html, /<span id="pillDomain">blancbrowser\.com<\/span>/, 'the hero pill shows the site domain');
+  assert.match(art.html, /<span id="pillDomain">blanc\.day<\/span>/, 'the hero pill shows the site domain');
   assert.doesNotMatch(art.html, /data-i18n/, 'interface-string keys are stripped from the replica');
   assert.match(art.html, /id="pillShield" class="shield"/, 'use the native ink state from the reference');
   assert.ok(art.css.includes('#pillShieldCount {'), 'include the original badge styling');

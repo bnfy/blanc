@@ -49,7 +49,7 @@ async function download({ url, apiKey }) {
 
 test('a consent-forwarded oppref queues one privacy-bounded OpenAI conversion', async () => {
   const { response, calls } = await download({
-    url: 'https://blancbrowser.com/dl/win?oppref=opaque-click-reference',
+    url: 'https://blanc.day/dl/win?oppref=opaque-click-reference',
     apiKey: 'test-api-key',
   });
 
@@ -65,7 +65,7 @@ test('a consent-forwarded oppref queues one privacy-bounded OpenAI conversion', 
   const event = body.events[0];
   assert.equal(event.custom_event_name, 'blanc_download');
   assert.equal(event.oppref, 'opaque-click-reference');
-  assert.equal(event.source_url, 'https://blancbrowser.com/dl/win');
+  assert.equal(event.source_url, 'https://blanc.day/dl/win');
   assert.equal(event.opt_out, true);
   assert.deepEqual(event.data, { type: 'custom', platform: 'win' });
   assert.equal('user' in event, false);
@@ -73,11 +73,11 @@ test('a consent-forwarded oppref queues one privacy-bounded OpenAI conversion', 
 
 test('missing consent attribution or a missing credential sends no conversion', async () => {
   const noReference = await download({
-    url: 'https://blancbrowser.com/dl/win',
+    url: 'https://blanc.day/dl/win',
     apiKey: 'test-api-key',
   });
   const noCredential = await download({
-    url: 'https://blancbrowser.com/dl/win?oppref=opaque-click-reference',
+    url: 'https://blanc.day/dl/win?oppref=opaque-click-reference',
   });
   for (const result of [noReference, noCredential]) {
     assert.equal(

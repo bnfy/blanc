@@ -1,8 +1,9 @@
 import { defineConfig } from 'astro/config';
 import { fileURLToPath } from 'node:url';
+import { SITE_ORIGIN } from './src/lib/site-origin.mjs';
 
 export default defineConfig({
-  site: 'https://blancbrowser.com',
+  site: SITE_ORIGIN,
   output: 'static',
   devToolbar: { enabled: false },
   integrations: [{

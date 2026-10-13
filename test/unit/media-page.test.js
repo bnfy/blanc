@@ -108,7 +108,7 @@ test('the media page keeps its release links, indexability, and no-analytics bou
   // 2026-07-27, reconfirmed 2026-10-04).
   assert.match(page, /Bananify · Publisher of Blanc Browser/);
   assert.doesNotMatch(page, /Anthony/);
-  assert.match(page, /support@blancbrowser\.com/);
+  assert.match(page, /support@blanc\.day/);
 });
 
 test('the retired /press route moves permanently to /media while press images keep their URLs', () => {

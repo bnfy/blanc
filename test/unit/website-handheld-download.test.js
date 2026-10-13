@@ -10,7 +10,7 @@ function fixture({ userAgent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac
   const status = { textContent: '' };
   const note = { hidden: true };
   const link = {
-    href: 'https://blancbrowser.com/download', textContent: 'Download Blanc', events: {},
+    href: 'https://blanc.day/download', textContent: 'Download Blanc', events: {},
     dataset: { handheldShare: 'share-status', handheldLabel: 'Send to my computer', handheldText: 'Blanc is a desktop browser for macOS, Windows and Linux.', track: 'download_click' },
     addEventListener(type, handler) { this.events[type] = handler; },
   };
@@ -62,7 +62,7 @@ test('on a phone the link offers the share sheet and is not counted as a downloa
   assert.equal(f.note.hidden, false);
   await f.click();
   assert.equal(f.prevented(), 1);
-  assert.deepEqual(f.calls.share, [{ title: 'Blanc Browser', text: 'Blanc is a desktop browser for macOS, Windows and Linux.', url: 'https://blancbrowser.com/download' }]);
+  assert.deepEqual(f.calls.share, [{ title: 'Blanc Browser', text: 'Blanc is a desktop browser for macOS, Windows and Linux.', url: 'https://blanc.day/download' }]);
   assert.deepEqual(f.calls.copy, []);
   assert.deepEqual(f.calls.assign, []);
 });
@@ -83,7 +83,7 @@ test('a failed or missing share sheet copies the link and says so', async () => 
     const f = fixture({ share });
     initHandheldDownload(f);
     await f.click();
-    assert.deepEqual(f.calls.copy, ['https://blancbrowser.com/download']);
+    assert.deepEqual(f.calls.copy, ['https://blanc.day/download']);
     assert.equal(f.status.textContent, 'Link copied');
     assert.deepEqual(f.calls.assign, []);
   }
@@ -94,7 +94,7 @@ test('when copying also fails the visitor still reaches the download page', asyn
   const f = fixture({ clipboard: 'fail' });
   initHandheldDownload(f);
   await f.click();
-  assert.deepEqual(f.calls.assign, ['https://blancbrowser.com/download']);
+  assert.deepEqual(f.calls.assign, ['https://blanc.day/download']);
   assert.equal(f.status.textContent, '');
 });
 

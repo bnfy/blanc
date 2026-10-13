@@ -136,7 +136,7 @@ test("a reproducible missed-ad reporting path remains available", () => {
     "template=ad_blocking.yml",
     "page URL, Blanc version, operating system, blocker settings",
     "reproduction and verification evidence",
-    "support@blancbrowser.com",
+    "support@blanc.day",
   ])
     assert.ok(guide.includes(phrase));
 });

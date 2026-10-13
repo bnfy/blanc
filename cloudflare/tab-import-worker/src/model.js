@@ -5,7 +5,7 @@ export const MAX_TABS = 100;
 export const MAX_URL_LENGTH = 2048;
 export const MAX_TITLE_LENGTH = 200;
 export const MAX_CIPHERTEXT_BYTES = 256 * 1024;
-export const LANDING_ORIGIN = 'https://blancbrowser.com';
+export const LANDING_ORIGIN = 'https://blanc.day';
 
 export const SOURCE_BROWSERS = new Set([
   'chrome', 'edge', 'brave', 'opera', 'vivaldi', 'firefox', 'safari',

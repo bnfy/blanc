@@ -68,7 +68,7 @@ function subscribeRequest(body, headers = {}) {
   return new Request('https://newsletter.test/subscribe', {
     method: 'POST',
     headers: {
-      Origin: 'https://blancbrowser.com',
+      Origin: 'https://blanc.day',
       'CF-Connecting-IP': '203.0.113.9',
       'Content-Type': 'application/json',
       ...headers,
@@ -81,7 +81,7 @@ function ambassadorRequest(body, headers = {}) {
   return new Request('https://newsletter.test/ambassador-apply', {
     method: 'POST',
     headers: {
-      Origin: 'https://blancbrowser.com',
+      Origin: 'https://blanc.day',
       'CF-Connecting-IP': '203.0.113.10',
       'Content-Type': 'application/json',
       ...headers,
@@ -94,7 +94,7 @@ function nativeAmbassadorRequest(body, headers = {}) {
   return new Request('https://newsletter.test/ambassador-apply', {
     method: 'POST',
     headers: {
-      Origin: 'https://blancbrowser.com',
+      Origin: 'https://blanc.day',
       'CF-Connecting-IP': '203.0.113.12',
       'Content-Type': 'application/x-www-form-urlencoded',
       ...headers,
@@ -102,6 +102,17 @@ function nativeAmbassadorRequest(body, headers = {}) {
     body: new URLSearchParams(body),
   });
 }
+
+test('the site posts from blanc.day, and pages still open on the former origin keep working', async (t) => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response('{}');
+  t.after(() => { globalThis.fetch = originalFetch; });
+
+  for (const origin of ['https://blanc.day', 'https://blancbrowser.com']) {
+    const response = await worker.fetch(subscribeRequest({ email: 'person@example.com' }, { Origin: origin }), environment());
+    assert.equal(response.status, 202, origin);
+  }
+});
 
 test('subscribe rejects non-site origins and quarantines honeypot addresses', async (t) => {
   const env = environment();
@@ -324,7 +335,7 @@ function waitlistRequest(body, headers = {}) {
   return new Request('https://newsletter.test/mail-waitlist', {
     method: 'POST',
     headers: {
-      Origin: 'https://blancbrowser.com',
+      Origin: 'https://blanc.day',
       'CF-Connecting-IP': '203.0.113.20',
       'Content-Type': 'application/json',
       ...headers,

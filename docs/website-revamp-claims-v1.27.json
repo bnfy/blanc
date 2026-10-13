@@ -1830,7 +1830,7 @@
     {
       "id": "trust-125-296",
       "source": "site/src/pages/privacy.astro",
-      "exactWording": "Last updated October 8, 2026",
+      "exactWording": "Last updated October 13, 2026",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "trust"
@@ -1850,7 +1850,7 @@
     {
       "id": "trust-125-298",
       "source": "site/src/pages/privacy.astro",
-      "exactWording": "This policy covers the Blanc desktop browser for macOS, Windows, and Linux and blancbrowser.com. The data controller is Bananify, an independent software studio in Rochester, New York, United States. Contact support@blancbrowser.com for privacy questions or requests.",
+      "exactWording": "This policy covers the Blanc desktop browser for macOS, Windows, and Linux and its website, blanc.day (formerly blancbrowser.com). The data controller is Bananify, an independent software studio in Rochester, New York, United States. Contact support@blanc.day for privacy questions or requests.",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "trust"
@@ -2200,7 +2200,7 @@
     {
       "id": "trust-125-333",
       "source": "site/src/pages/privacy.astro",
-      "exactWording": "Only following the confirmation link creates a subscriber record containing the email address, confirmation time, and opaque unsubscribe token. Every message must include the generated one-click unsubscribe link; using it deletes the record. You can also request deletion at support@blancbrowser.com. A valid address caught by the hidden honeypot is held in a separate 30-day quarantine for manual review of possible browser-autofill false positives. It is never subscribed or sent to Resend unless someone submits it again without the honeypot and then follows the confirmation link.",
+      "exactWording": "Only following the confirmation link creates a subscriber record containing the email address, confirmation time, and opaque unsubscribe token. Every message must include the generated one-click unsubscribe link; using it deletes the record. You can also request deletion at support@blanc.day. A valid address caught by the hidden honeypot is held in a separate 30-day quarantine for manual review of possible browser-autofill false positives. It is never subscribed or sent to Resend unless someone submits it again without the honeypot and then follows the confirmation link.",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "trust"
@@ -2230,7 +2230,7 @@
     {
       "id": "trust-125-336",
       "source": "site/src/pages/privacy.astro",
-      "exactWording": "Bananify keeps an application in the receiving mailbox only as long as reasonably needed to evaluate it, respond, maintain necessary business records, or meet legal obligations. You can request deletion at support@blancbrowser.com.",
+      "exactWording": "Bananify keeps an application in the receiving mailbox only as long as reasonably needed to evaluate it, respond, maintain necessary business records, or meet legal obligations. You can request deletion at support@blanc.day.",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "trust"
@@ -2310,7 +2310,7 @@
     {
       "id": "trust-125-344",
       "source": "site/src/pages/privacy.astro",
-      "exactWording": "Email support@blancbrowser.com to exercise a right. We may need enough information to verify that a request concerns your record; for server-blind ciphertext or an unlinked pseudonymous event, we may be unable to identify a record from your identity alone.",
+      "exactWording": "Email support@blanc.day to exercise a right. We may need enough information to verify that a request concerns your record; for server-blind ciphertext or an unlinked pseudonymous event, we may be unable to identify a record from your identity alone.",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "trust"
@@ -2340,7 +2340,7 @@
     {
       "id": "trust-125-347",
       "source": "site/src/pages/privacy.astro",
-      "exactWording": "Bananify · Rochester, New York, United States · support@blancbrowser.com",
+      "exactWording": "Bananify · Rochester, New York, United States · support@blanc.day",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "trust"
@@ -2872,7 +2872,7 @@
     {
       "id": "reddit-429",
       "source": "site/src/pages/download.astro",
-      "exactWording": "Read how Blanc handles your data, verify a release, or email support@blancbrowser.com if you need a hand.",
+      "exactWording": "Read how Blanc handles your data, verify a release, or email support@blanc.day if you need a hand.",
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
         "trust"
@@ -2933,7 +2933,7 @@
     {
       "id": "reddit-441",
       "source": "site/src/pages/about.astro",
-      "exactWording": "Email support@blancbrowser.com, or see the public changelog for what shipped most recently.",
+      "exactWording": "Email support@blanc.day, or see the public changelog for what shipped most recently.",
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
         "trust"
@@ -3546,7 +3546,7 @@
     {
       "id": "reddit-514",
       "source": "site/src/components/guides/ad-blocking.astro",
-      "exactWording": "Report a missed ad with its page URL, Blanc version, operating system, blocker settings, expected result and the ad you observed. A screenshot is optional. For examples containing private information, email support@blancbrowser.com.",
+      "exactWording": "Report a missed ad with its page URL, Blanc version, operating system, blocker settings, expected result and the ad you observed. A screenshot is optional. For examples containing private information, email support@blanc.day.",
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
         "trust"
@@ -7144,7 +7144,7 @@
     {
       "id": "feature-retained-reddit-514",
       "source": "site/src/pages/features/ad-blocking.astro",
-      "exactWording": "Report a missed ad with its page URL, Blanc version, operating system, blocker settings, expected result and the ad you observed. A screenshot is optional. For examples containing private information, email support@blancbrowser.com.",
+      "exactWording": "Report a missed ad with its page URL, Blanc version, operating system, blocker settings, expected result and the ad you observed. A screenshot is optional. For examples containing private information, email support@blanc.day.",
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
         "trust"

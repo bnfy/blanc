@@ -25,13 +25,13 @@
   "boundaries": [
     {
       "file": "cloudflare/newsletter-worker/src/index.js",
-      "sha256": "df939f399b91993af065a91a689b75a98b839de495676b278ee0d114d182ba37",
+      "sha256": "ea33f8232ee67471213b667a606223fafaa57a888c0852a6ed4658e7a2c3b649",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
     {
       "file": "cloudflare/ping-worker/src/dl.js",
-      "sha256": "50a3e41e4d49cfd166eda5fb26a15094b1a2985e1a292efa2c907ea28d012c68",
+      "sha256": "aa05591a0dfac9e02109ae0ae7bd73a36eebf7cf399b7b8a68ed470c0c82e739",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -43,7 +43,7 @@
     },
     {
       "file": "cloudflare/ping-worker/src/index.js",
-      "sha256": "6f89ef4dec84a30f60d3f5d7a048d1c1e1e28033ee38f27e98027973ba59cd0d",
+      "sha256": "8bc10924aa118e7f4547df1d1b6b9802efd8d74a962bcb2b7fb6a83217685f14",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -61,7 +61,7 @@
     },
     {
       "file": "cloudflare/tab-import-worker/src/model.js",
-      "sha256": "1d087e4996201ea27a53f6ab0f7ad8f88d329e0ca278854e06ba4e3ca74449bd",
+      "sha256": "3f98f7f14e22497546232843d0d6ab873bee7c17df8507bacc77a55c9fef355a",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },

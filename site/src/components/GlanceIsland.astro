@@ -14,7 +14,7 @@ const example = examples[page];
 const art = nativeIslandArt({ styles, document, renderer });
 // Keep native chrome geometry and icons, with two illustrative tabs and no claimed block count.
 const sampleHtml = art.html
-  .replace('blancbrowser.com', example.domain)
+  .replace('blanc.day', example.domain)
   .replace('background-image:url(/favicon.svg)', `background-image:url(${example.icon})`)
   .replace(/<div id="pillDots">[\s\S]*?<\/div>/, '<div id="pillDots"><button class="island-dot active"></button><button class="island-dot"></button></div>')
   .replace('<span id="pillShieldCount">1</span>', '<span id="pillShieldCount"></span>')
