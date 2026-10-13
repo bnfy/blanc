@@ -2746,11 +2746,7 @@
   },
   "arcImport.mode.spaces": {
     "message": "Each Arc Space becomes a space in Blanc Spaces. Folders become groups, and tabs load only when you open them.",
-    "note": "Shown to Blanc Patrons. Blanc Spaces is the Patron feature; a space is one saved set."
-  },
-  "arcImport.mode.windows": {
-    "message": "Each Arc Space opens in its own window. Folders become groups, and tabs load only when you open them. With Blanc Patron, you can save them as spaces.",
-    "note": "Shown when Blanc Patron is not active."
+    "note": "Bring Your Tabs → Arc preview: what the import does. Blanc Spaces is the feature; a space is one saved set."
   },
   "arcImport.room": {
     "message": "{count, plural, one {You can add # more space.} other {You can add # more spaces.}}",
@@ -2778,11 +2774,7 @@
   },
   "arcImport.apply.spaces": {
     "message": "{count, plural, one {Create # space} other {Create # spaces}}",
-    "note": "Primary button for Blanc Patrons."
-  },
-  "arcImport.apply.windows": {
-    "message": "{count, plural, one {Open # window} other {Open # windows}}",
-    "note": "Primary button without Blanc Patron."
+    "note": "Primary button on the Arc preview."
   },
   "arcImport.apply.favorites": {
     "message": "Add Favorites",
@@ -2799,10 +2791,6 @@
   "arcImport.done.spaces": {
     "message": "{count, plural, one {Created # space: {names}. Find it in the command panel’s list of saved spaces.} other {Created # spaces: {names}. Find them in the command panel’s list of saved spaces.}}",
     "note": "{names} is a list of space names."
-  },
-  "arcImport.done.windows": {
-    "message": "{count, plural, one {Opened # window.} other {Opened # windows.}}",
-    "note": "Result without Blanc Patron."
   },
   "arcImport.done.favorites": {
     "message": "{count, plural, one {Added # Favorite to the Arc folder.} other {Added # Favorites to the Arc folder.}}",
@@ -2847,10 +2835,6 @@
   "arcImport.error.unreadable": {
     "message": "Couldn’t read Arc’s sidebar.",
     "note": "Read error."
-  },
-  "arcImport.error.notPatron": {
-    "message": "Blanc Patron is no longer active, so these Spaces will open as windows instead. Review your choice and try again.",
-    "note": "Shown when Patron lapsed between preview and import."
   },
   "arcImport.error.noRoom": {
     "message": "{count, plural, one {Only # more space fits. Deselect some Spaces or delete a space first.} other {Only # more spaces fit. Deselect some Spaces or delete a space first.}}",

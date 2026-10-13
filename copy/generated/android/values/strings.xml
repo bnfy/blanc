@@ -733,7 +733,6 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="arc_import_progress">Arc Spaces</string>
     <string name="arc_import_title">Choose Spaces to bring</string>
     <string name="arc_import_mode_spaces">Each Arc Space becomes a space in Blanc Spaces. Folders become groups, and tabs load only when you open them.</string>
-    <string name="arc_import_mode_windows">Each Arc Space opens in its own window. Folders become groups, and tabs load only when you open them. With Blanc Patron, you can save them as spaces.</string>
     <plurals name="arc_import_room">
         <item quantity="one">You can add %1$d more space.</item>
         <item quantity="other">You can add %1$d more spaces.</item>
@@ -753,20 +752,12 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
         <item quantity="one">Create %1$d space</item>
         <item quantity="other">Create %1$d spaces</item>
     </plurals>
-    <plurals name="arc_import_apply_windows">
-        <item quantity="one">Open %1$d window</item>
-        <item quantity="other">Open %1$d windows</item>
-    </plurals>
     <string name="arc_import_apply_favorites">Add Favorites</string>
     <string name="arc_import_applying">Bringing your Spaces…</string>
     <string name="arc_import_done_title">Arc import finished</string>
     <plurals name="arc_import_done_spaces">
         <item quantity="one">Created %1$d space: %2$s. Find it in the command panel’s list of saved spaces.</item>
         <item quantity="other">Created %1$d spaces: %2$s. Find them in the command panel’s list of saved spaces.</item>
-    </plurals>
-    <plurals name="arc_import_done_windows">
-        <item quantity="one">Opened %1$d window.</item>
-        <item quantity="other">Opened %1$d windows.</item>
     </plurals>
     <plurals name="arc_import_done_favorites">
         <item quantity="one">Added %1$d Favorite to the Arc folder.</item>
@@ -785,7 +776,6 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="arc_import_error_saving">Arc was saving its sidebar. Try again in a moment.</string>
     <string name="arc_import_error_empty">No Spaces with tabs and no Favorites were found.</string>
     <string name="arc_import_error_unreadable">Couldn’t read Arc’s sidebar.</string>
-    <string name="arc_import_error_not_patron">Blanc Patron is no longer active, so these Spaces will open as windows instead. Review your choice and try again.</string>
     <plurals name="arc_import_error_no_room">
         <item quantity="one">Only %1$d more space fits. Deselect some Spaces or delete a space first.</item>
         <item quantity="other">Only %1$d more spaces fit. Deselect some Spaces or delete a space first.</item>

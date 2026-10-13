@@ -750,7 +750,6 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="arc_import_progress">Arc Spaces</string>
     <string name="arc_import_title">Choisir les Spaces à récupérer</string>
     <string name="arc_import_mode_spaces">Chaque Space d’Arc devient un Space dans Blanc Spaces. Les dossiers deviennent des groupes, et les onglets ne se chargent que lorsque vous les ouvrez.</string>
-    <string name="arc_import_mode_windows">Chaque Space d’Arc s’ouvre dans sa propre fenêtre. Les dossiers deviennent des groupes, et les onglets ne se chargent que lorsque vous les ouvrez. Avec Blanc Patron, vous pouvez les enregistrer comme Spaces.</string>
     <plurals name="arc_import_room">
         <item quantity="one">Vous pouvez ajouter %1$d Space de plus.</item>
         <item quantity="many">Vous pouvez ajouter %1$d Spaces de plus.</item>
@@ -774,11 +773,6 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
         <item quantity="many">Créer %1$d Spaces</item>
         <item quantity="other">Créer %1$d Spaces</item>
     </plurals>
-    <plurals name="arc_import_apply_windows">
-        <item quantity="one">Ouvrir %1$d fenêtre</item>
-        <item quantity="many">Ouvrir %1$d fenêtres</item>
-        <item quantity="other">Ouvrir %1$d fenêtres</item>
-    </plurals>
     <string name="arc_import_apply_favorites">Ajouter les favoris</string>
     <string name="arc_import_applying">Récupération de vos Spaces…</string>
     <string name="arc_import_done_title">Importation d’Arc terminée</string>
@@ -786,11 +780,6 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
         <item quantity="one">%1$d Space créé : %2$s. Retrouvez-le dans la liste des Spaces enregistrés du panneau de commandes.</item>
         <item quantity="many">%1$d Spaces créés : %2$s. Retrouvez-les dans la liste des Spaces enregistrés du panneau de commandes.</item>
         <item quantity="other">%1$d Spaces créés : %2$s. Retrouvez-les dans la liste des Spaces enregistrés du panneau de commandes.</item>
-    </plurals>
-    <plurals name="arc_import_done_windows">
-        <item quantity="one">%1$d fenêtre ouverte.</item>
-        <item quantity="many">%1$d fenêtres ouvertes.</item>
-        <item quantity="other">%1$d fenêtres ouvertes.</item>
     </plurals>
     <plurals name="arc_import_done_favorites">
         <item quantity="one">%1$d favori ajouté au dossier Arc.</item>
@@ -811,7 +800,6 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="arc_import_error_saving">Arc enregistrait sa barre latérale. Réessayez dans un instant.</string>
     <string name="arc_import_error_empty">Aucun onglet dans les Spaces et aucun favori n’ont été trouvés.</string>
     <string name="arc_import_error_unreadable">Impossible de lire la barre latérale d’Arc.</string>
-    <string name="arc_import_error_not_patron">Blanc Patron n’est plus actif, ces Spaces s’ouvriront donc dans des fenêtres. Vérifiez votre choix et réessayez.</string>
     <plurals name="arc_import_error_no_room">
         <item quantity="one">Il ne reste de la place que pour %1$d Space. Désélectionnez des Spaces ou supprimez d’abord un Space.</item>
         <item quantity="many">Il ne reste de la place que pour %1$d Spaces. Désélectionnez des Spaces ou supprimez d’abord un Space.</item>

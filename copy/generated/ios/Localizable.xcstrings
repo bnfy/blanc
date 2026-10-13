@@ -29690,7 +29690,7 @@
       }
     },
     "arcImport.mode.spaces": {
-      "comment": "Shown to Blanc Patrons. Blanc Spaces is the Patron feature; a space is one saved set.",
+      "comment": "Bring Your Tabs → Arc preview: what the import does. Blanc Spaces is the feature; a space is one saved set.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -29727,48 +29727,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cada Space do Arc vira um Space no Blanc Spaces. As pastas viram grupos, e as abas só carregam quando você as abre."
-          }
-        }
-      }
-    },
-    "arcImport.mode.windows": {
-      "comment": "Shown when Blanc Patron is not active.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Each Arc Space opens in its own window. Folders become groups, and tabs load only when you open them. With Blanc Patron, you can save them as spaces."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jeder Space aus Arc öffnet sich in einem eigenen Fenster. Ordner werden zu Gruppen, und Tabs laden erst, wenn du sie öffnest. Mit Blanc Patron kannst du sie als Spaces speichern."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cada Space de Arc se abre en su propia ventana. Las carpetas pasan a ser grupos y las pestañas solo se cargan cuando las abres. Con Blanc Patron, puedes guardarlos como Spaces."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Chaque Space d’Arc s’ouvre dans sa propre fenêtre. Les dossiers deviennent des groupes, et les onglets ne se chargent que lorsque vous les ouvrez. Avec Blanc Patron, vous pouvez les enregistrer comme Spaces."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ogni Space di Arc si apre in una finestra a sé. Le cartelle diventano gruppi e le schede si caricano solo quando le apri. Con Blanc Patron puoi salvarli come Spaces."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cada Space do Arc abre na própria janela. As pastas viram grupos, e as abas só carregam quando você as abre. Com o Blanc Patron, você pode salvá-los como Spaces."
           }
         }
       }
@@ -30314,7 +30272,7 @@
       }
     },
     "arcImport.apply.spaces": {
-      "comment": "Primary button for Blanc Patrons.",
+      "comment": "Primary button on the Arc preview.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -30444,144 +30402,6 @@
                 "stringUnit": {
                   "state": "translated",
                   "value": "Criar %1$lld Spaces"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "arcImport.apply.windows": {
-      "comment": "Primary button without Blanc Patron.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Open %1$lld window"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Open %1$lld windows"
-                }
-              }
-            }
-          }
-        },
-        "de": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%1$lld Fenster öffnen"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%1$lld Fenster öffnen"
-                }
-              }
-            }
-          }
-        },
-        "es": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Abrir %1$lld ventana"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Abrir %1$lld ventanas"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Abrir %1$lld ventanas"
-                }
-              }
-            }
-          }
-        },
-        "fr": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Ouvrir %1$lld fenêtre"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Ouvrir %1$lld fenêtres"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Ouvrir %1$lld fenêtres"
-                }
-              }
-            }
-          }
-        },
-        "it": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Apri %1$lld finestra"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Apri %1$lld finestre"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Apri %1$lld finestre"
-                }
-              }
-            }
-          }
-        },
-        "pt-BR": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Abrir %1$lld janela"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Abrir %1$lld janelas"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Abrir %1$lld janelas"
                 }
               }
             }
@@ -30846,144 +30666,6 @@
                 "stringUnit": {
                   "state": "translated",
                   "value": "%1$lld Spaces criados: %2$@. Eles estão na lista de Spaces salvos do painel de comandos."
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "arcImport.done.windows": {
-      "comment": "Result without Blanc Patron.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Opened %1$lld window."
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Opened %1$lld windows."
-                }
-              }
-            }
-          }
-        },
-        "de": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%1$lld Fenster geöffnet."
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%1$lld Fenster geöffnet."
-                }
-              }
-            }
-          }
-        },
-        "es": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Se abrió %1$lld ventana."
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Se abrieron %1$lld ventanas."
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Se abrieron %1$lld ventanas."
-                }
-              }
-            }
-          }
-        },
-        "fr": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%1$lld fenêtre ouverte."
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%1$lld fenêtres ouvertes."
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%1$lld fenêtres ouvertes."
-                }
-              }
-            }
-          }
-        },
-        "it": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Aperta %1$lld finestra."
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Aperte %1$lld finestre."
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Aperte %1$lld finestre."
-                }
-              }
-            }
-          }
-        },
-        "pt-BR": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%1$lld janela aberta."
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%1$lld janelas abertas."
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%1$lld janelas abertas."
                 }
               }
             }
@@ -31641,48 +31323,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Não foi possível ler a barra lateral do Arc."
-          }
-        }
-      }
-    },
-    "arcImport.error.notPatron": {
-      "comment": "Shown when Patron lapsed between preview and import.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Blanc Patron is no longer active, so these Spaces will open as windows instead. Review your choice and try again."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Blanc Patron ist nicht mehr aktiv, daher öffnen sich diese Spaces stattdessen als Fenster. Prüfe deine Auswahl und versuche es erneut."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Blanc Patron ya no está activo, así que estos Spaces se abrirán como ventanas. Revisa tu elección e inténtalo de nuevo."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Blanc Patron n’est plus actif, ces Spaces s’ouvriront donc dans des fenêtres. Vérifiez votre choix et réessayez."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Blanc Patron non è più attivo, quindi questi Spaces si apriranno invece come finestre. Rivedi la tua scelta e riprova."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O Blanc Patron não está mais ativo, então estes Spaces vão abrir como janelas. Revise sua escolha e tente de novo."
           }
         }
       }

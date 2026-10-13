@@ -2,8 +2,8 @@
 
 // F45 Arc Spaces import on Bring Your Tabs. Main reads Arc's
 // StorableSidebar.json (or a file the person chooses) and keeps it; this page
-// only ever sees Space names, counts and opaque ids. Patrons get one Blanc
-// space per Arc Space; everyone else gets each Space in its own window.
+// only ever sees Space names, counts and opaque ids. Each Arc Space the person
+// selects becomes one Blanc space.
 (() => {
   const api = window.bowserPages?.tabImport;
   const surface = window.bowserPages?.surface;
@@ -146,9 +146,9 @@
     title.tabIndex = -1;
     const nodes = [
       title,
-      make('p', 'section-hint', preview.mode === 'spaces' ? t('arcImport.mode.spaces') : t('arcImport.mode.windows')),
+      make('p', 'section-hint', t('arcImport.mode.spaces')),
+      make('p', 'section-hint', t('arcImport.room', { count: preview.remainingSlots })),
     ];
-    if (preview.mode === 'spaces') nodes.push(make('p', 'section-hint', t('arcImport.room', { count: preview.remainingSlots })));
 
     const list = make('div', 'arc-import-space-list');
     list.setAttribute('role', 'group');
@@ -190,9 +190,7 @@
     if (!applyBtn || !preview) return;
     const count = selected.size;
     applyBtn.disabled = busy || (!count && !withFavorites);
-    applyBtn.textContent = !count ? t('arcImport.apply.favorites')
-      : preview.mode === 'spaces' ? t('arcImport.apply.spaces', { count })
-        : t('arcImport.apply.windows', { count });
+    applyBtn.textContent = !count ? t('arcImport.apply.favorites') : t('arcImport.apply.spaces', { count });
   }
 
   async function apply() {
@@ -202,22 +200,13 @@
     setStatus(t('arcImport.applying'));
     let result;
     try {
-      result = await api.arcApply(preview.sessionId, {
-        mode: preview.mode,
-        spaceIds: [...selected],
-        favorites: withFavorites,
-      });
+      result = await api.arcApply(preview.sessionId, { spaceIds: [...selected], favorites: withFavorites });
     } catch {
       result = { error: 'generic' };
     }
     busy = false;
     setStatus();
     if (result?.ok) { renderResult(result); return; }
-    if (result?.error === 'not-patron') {
-      preview = { ...preview, mode: 'windows' };
-      renderPreview(t('arcImport.error.notPatron'));
-      return;
-    }
     if (result?.error === 'session-unavailable') {
       leaveArc();
       setStatus(t('arcImport.error.session'));
@@ -234,9 +223,7 @@
     if (result.created.length) {
       const names = new Intl.ListFormat(window.blancI18n.formatLocale(), { style: 'long', type: 'conjunction' })
         .format(result.created);
-      lines.push(result.mode === 'spaces'
-        ? t('arcImport.done.spaces', { count: result.created.length, names })
-        : t('arcImport.done.windows', { count: result.created.length }));
+      lines.push(t('arcImport.done.spaces', { count: result.created.length, names }));
     }
     if (result.favoritesAdded) lines.push(t('arcImport.done.favorites', { count: result.favoritesAdded }));
     if (result.droppedCount) lines.push(t('arcImport.done.dropped', { count: result.droppedCount }));

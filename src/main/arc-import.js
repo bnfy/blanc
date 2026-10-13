@@ -2,21 +2,18 @@
 
 // F45 Arc Spaces import: one read-and-apply session at a time. The parsed
 // sidebar stays here in main; the Bring Your Tabs page sees only names,
-// counts and opaque ids. Electron-free: reading, the Patron check and every
-// window or store mutation arrive as injected functions from main.
+// counts and opaque ids. Electron-free: reading and every store mutation
+// arrive as injected functions from main. Each selected Space becomes one
+// Blanc space, for everyone.
 
 const crypto = require('node:crypto');
 const { planArcSpacesImport } = require('./arc-sidebar');
 
-const MAX_WINDOWS = 25;
-
 function createArcImportService({
   readDetected,
   chooseAndRead,
-  patronActive,
   spaceRoom,
   createSpaces,
-  openSpaceWindows,
   importFavorites,
   untitledName = (n) => `Space ${n}`,
   randomId = () => crypto.randomUUID(),
@@ -42,17 +39,14 @@ function createArcImportService({
         separateProfile: space.arcProfile === 'custom',
       };
     });
-    const patron = !!patronActive();
-    const room = spaceRoom();
-    session = { sessionId, parsed, ids, patron };
+    session = { sessionId, parsed, ids };
     return {
       sessionId,
       source,
       spaces,
       favoritesCount: parsed.favorites.length,
       skippedCount: parsed.skippedCount,
-      mode: patron ? 'spaces' : 'windows',
-      remainingSlots: patron ? room.remainingSlots : MAX_WINDOWS,
+      remainingSlots: spaceRoom().remainingSlots,
     };
   }
 
@@ -78,17 +72,11 @@ function createArcImportService({
     const withFavorites = request.favorites === true && session.parsed.favorites.length > 0;
     if (!selectedSpaceIds.length && !withFavorites) return { error: 'nothing-selected' };
 
-    // The page chose its wording from the preview; a lapse in between must
-    // not silently turn "create spaces" into "open windows".
-    const patron = !!patronActive();
-    if (request.mode === 'spaces' && !patron) return { error: 'not-patron' };
-    const mode = patron && request.mode !== 'windows' ? 'spaces' : 'windows';
-
     let created = [];
     let droppedCount = 0;
     let emptyCount = 0;
     if (selectedSpaceIds.length) {
-      const room = mode === 'spaces' ? spaceRoom() : { remainingSlots: MAX_WINDOWS, existingNames: [] };
+      const room = spaceRoom();
       const plan = planArcSpacesImport({
         spaces: session.parsed.spaces,
         selectedSpaceIds,
@@ -103,9 +91,7 @@ function createArcImportService({
       }
       emptyCount = plan.empty.length;
       if (plan.planned.length) {
-        const result = mode === 'spaces'
-          ? await createSpaces(plan.planned.map(({ name, capture }) => ({ name, capture })))
-          : await openSpaceWindows(plan.planned.map(({ capture }) => capture));
+        const result = await createSpaces(plan.planned.map(({ name, capture }) => ({ name, capture })));
         if (!result?.ok) return { error: result?.error ?? 'apply-failed' };
         created = plan.planned.map(({ name }) => name);
         droppedCount = plan.planned.reduce((sum, entry) => sum + entry.droppedCount, 0);
@@ -119,7 +105,6 @@ function createArcImportService({
     session = null;
     return {
       ok: true,
-      mode,
       created,
       droppedCount,
       emptyCount,
@@ -142,4 +127,4 @@ function createArcImportService({
   };
 }
 
-module.exports = { MAX_WINDOWS, createArcImportService };
+module.exports = { createArcImportService };

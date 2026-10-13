@@ -94,7 +94,6 @@ const settle = () => new Promise((resolve) => setImmediate(resolve));
 const PREVIEW = {
   sessionId: 'session-1',
   source: 'arc',
-  mode: 'spaces',
   remainingSlots: 3,
   favoritesCount: 2,
   skippedCount: 1,
@@ -108,7 +107,7 @@ const PREVIEW = {
 test('Arc found: read, choose Spaces and create spaces', async () => {
   const p = page({
     read: () => PREVIEW,
-    apply: () => ({ ok: true, mode: 'spaces', created: ['Work', 'Client'], droppedCount: 0, emptyCount: 0, favoritesAdded: 2 }),
+    apply: () => ({ ok: true, created: ['Work', 'Client'], droppedCount: 0, emptyCount: 0, favoritesAdded: 2 }),
   });
   await settle();
   assert.equal(p.entry.hidden, false);
@@ -120,6 +119,7 @@ test('Arc found: read, choose Spaces and create spaces', async () => {
   assert.equal(p.sourcePanel.hidden, true);
   assert.equal(p.progress.textContent, 'Arc Spaces');
   assert.match(p.preview.textContent, /You can add 3 more spaces\./);
+  assert.doesNotMatch(p.preview.textContent, /window/i, 'the preview never offers windows');
   assert.match(p.preview.textContent, /3 tabs · 1 folder/);
   assert.match(p.preview.textContent, /sign in again/);
   assert.match(p.preview.textContent, /1 item can’t come across/);
@@ -133,7 +133,7 @@ test('Arc found: read, choose Spaces and create spaces', async () => {
   p.find(p.preview, 'Create 2 spaces').click();
   await settle();
   // The request is built inside the page's own realm; compare its shape.
-  assert.deepEqual(JSON.parse(JSON.stringify(p.calls.apply)), [['session-1', { mode: 'spaces', spaceIds: ['space-1', 'space-2'], favorites: true }]]);
+  assert.deepEqual(JSON.parse(JSON.stringify(p.calls.apply)), [['session-1', { spaceIds: ['space-1', 'space-2'], favorites: true }]]);
   assert.equal(p.result.hidden, false);
   assert.match(p.result.textContent, /Created 2 spaces: Work and Client\./);
   assert.match(p.result.textContent, /Added 2 Favorites to the Arc folder\./);
@@ -153,18 +153,6 @@ test('only Favorites selected changes the button, and nothing selected disables 
   assert.equal(p.find(p.preview, 'Add Favorites').disabled, false);
   favorites.toggle();
   assert.equal(p.find(p.preview, 'Add Favorites').disabled, true);
-});
-
-test('a Patron lapse turns the preview into windows with an explanation', async () => {
-  const p = page({ read: () => PREVIEW, apply: () => ({ error: 'not-patron' }) });
-  await settle();
-  p.find(p.entry, 'Bring Spaces from Arc').click();
-  await settle();
-  p.find(p.preview, 'Create 2 spaces').click();
-  await settle();
-  assert.match(p.preview.textContent, /Blanc Patron is no longer active/);
-  assert.match(p.preview.textContent, /opens in its own window/);
-  assert.ok(p.find(p.preview, 'Open 2 windows'));
 });
 
 test('no room and read errors are explained in place', async () => {

@@ -2679,11 +2679,7 @@
   },
   "arcImport.mode.spaces": {
     "message": "Cada Space de Arc se convierte en un Space de Blanc Spaces. Las carpetas pasan a ser grupos y las pestañas solo se cargan cuando las abres.",
-    "source": "sha256:c09bff3937677ead1da6993328054fb512057195d2e54970d5f7df23ac5ed486"
-  },
-  "arcImport.mode.windows": {
-    "message": "Cada Space de Arc se abre en su propia ventana. Las carpetas pasan a ser grupos y las pestañas solo se cargan cuando las abres. Con Blanc Patron, puedes guardarlos como Spaces.",
-    "source": "sha256:db2e86ba39ef46d8ce19c98552b7d4a91c647b86cea80af11a61581690515fbd"
+    "source": "sha256:ffc8ee07b53d7e014d978398264b66bace171a287ee40fc0a9cf647cd3a99fc1"
   },
   "arcImport.room": {
     "message": "{count, plural, one {Puedes añadir # Space más.} many {Puedes añadir # Spaces más.} other {Puedes añadir # Spaces más.}}",
@@ -2711,11 +2707,7 @@
   },
   "arcImport.apply.spaces": {
     "message": "{count, plural, one {Crear # Space} many {Crear # Spaces} other {Crear # Spaces}}",
-    "source": "sha256:cec65c5bf1b41f6770fcb63ad99c294d83a2660803f005df0edf283e902aec26"
-  },
-  "arcImport.apply.windows": {
-    "message": "{count, plural, one {Abrir # ventana} many {Abrir # ventanas} other {Abrir # ventanas}}",
-    "source": "sha256:3be252873ac906c5d4492c659afd373545ea19f090288ecf1cee34a5f4d76394"
+    "source": "sha256:4ee1d6b850a728222efd922dc7b892d9f7720bb118c74a6c1e83b2b01a4ce682"
   },
   "arcImport.apply.favorites": {
     "message": "Añadir favoritos",
@@ -2732,10 +2724,6 @@
   "arcImport.done.spaces": {
     "message": "{count, plural, one {Se creó # Space: {names}. Lo encontrarás en la lista de Spaces guardados del panel de comandos.} many {Se crearon # Spaces: {names}. Los encontrarás en la lista de Spaces guardados del panel de comandos.} other {Se crearon # Spaces: {names}. Los encontrarás en la lista de Spaces guardados del panel de comandos.}}",
     "source": "sha256:4afc5658a596435902ab0c9c72e0d951aab40b8b5a3265aa9e02d5eb08d724c3"
-  },
-  "arcImport.done.windows": {
-    "message": "{count, plural, one {Se abrió # ventana.} many {Se abrieron # ventanas.} other {Se abrieron # ventanas.}}",
-    "source": "sha256:0453d24b87835526c4638fd399e496823ccd590a8abd821deb60b1f83762f813"
   },
   "arcImport.done.favorites": {
     "message": "{count, plural, one {Se añadió # favorito a la carpeta Arc.} many {Se añadieron # favoritos a la carpeta Arc.} other {Se añadieron # favoritos a la carpeta Arc.}}",
@@ -2780,10 +2768,6 @@
   "arcImport.error.unreadable": {
     "message": "No se pudo leer la barra lateral de Arc.",
     "source": "sha256:ad62bdae90945352226cd0b05f584c2ed72ae8dd20d8c8169c6511feb1e624c9"
-  },
-  "arcImport.error.notPatron": {
-    "message": "Blanc Patron ya no está activo, así que estos Spaces se abrirán como ventanas. Revisa tu elección e inténtalo de nuevo.",
-    "source": "sha256:e7e6a3b17f3a026e2d234fb4b6b302312b0ad3122aa4bf6899c121bfdbcb9658"
   },
   "arcImport.error.noRoom": {
     "message": "{count, plural, one {Solo cabe # Space más. Desmarca algunos Spaces o elimina primero un Space.} many {Solo caben # Spaces más. Desmarca algunos Spaces o elimina primero un Space.} other {Solo caben # Spaces más. Desmarca algunos Spaces o elimina primero un Space.}}",

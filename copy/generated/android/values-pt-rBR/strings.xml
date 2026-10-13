@@ -750,7 +750,6 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="arc_import_progress">Arc Spaces</string>
     <string name="arc_import_title">Escolha os Spaces que vai trazer</string>
     <string name="arc_import_mode_spaces">Cada Space do Arc vira um Space no Blanc Spaces. As pastas viram grupos, e as abas só carregam quando você as abre.</string>
-    <string name="arc_import_mode_windows">Cada Space do Arc abre na própria janela. As pastas viram grupos, e as abas só carregam quando você as abre. Com o Blanc Patron, você pode salvá-los como Spaces.</string>
     <plurals name="arc_import_room">
         <item quantity="one">Você pode adicionar mais %1$d Space.</item>
         <item quantity="many">Você pode adicionar mais %1$d Spaces.</item>
@@ -774,11 +773,6 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
         <item quantity="many">Criar %1$d Spaces</item>
         <item quantity="other">Criar %1$d Spaces</item>
     </plurals>
-    <plurals name="arc_import_apply_windows">
-        <item quantity="one">Abrir %1$d janela</item>
-        <item quantity="many">Abrir %1$d janelas</item>
-        <item quantity="other">Abrir %1$d janelas</item>
-    </plurals>
     <string name="arc_import_apply_favorites">Adicionar favoritos</string>
     <string name="arc_import_applying">Trazendo seus Spaces…</string>
     <string name="arc_import_done_title">Importação do Arc concluída</string>
@@ -786,11 +780,6 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
         <item quantity="one">%1$d Space criado: %2$s. Ele está na lista de Spaces salvos do painel de comandos.</item>
         <item quantity="many">%1$d Spaces criados: %2$s. Eles estão na lista de Spaces salvos do painel de comandos.</item>
         <item quantity="other">%1$d Spaces criados: %2$s. Eles estão na lista de Spaces salvos do painel de comandos.</item>
-    </plurals>
-    <plurals name="arc_import_done_windows">
-        <item quantity="one">%1$d janela aberta.</item>
-        <item quantity="many">%1$d janelas abertas.</item>
-        <item quantity="other">%1$d janelas abertas.</item>
     </plurals>
     <plurals name="arc_import_done_favorites">
         <item quantity="one">%1$d favorito adicionado à pasta Arc.</item>
@@ -811,7 +800,6 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="arc_import_error_saving">O Arc estava salvando a barra lateral. Tente de novo daqui a pouco.</string>
     <string name="arc_import_error_empty">Nenhum dos Spaces tem abas, e nenhum favorito foi encontrado.</string>
     <string name="arc_import_error_unreadable">Não foi possível ler a barra lateral do Arc.</string>
-    <string name="arc_import_error_not_patron">O Blanc Patron não está mais ativo, então estes Spaces vão abrir como janelas. Revise sua escolha e tente de novo.</string>
     <plurals name="arc_import_error_no_room">
         <item quantity="one">Só cabe mais %1$d Space. Desmarque alguns Spaces ou exclua um Space primeiro.</item>
         <item quantity="many">Só cabem mais %1$d Spaces. Desmarque alguns Spaces ou exclua um Space primeiro.</item>

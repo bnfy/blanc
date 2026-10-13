@@ -2679,11 +2679,7 @@
   },
   "arcImport.mode.spaces": {
     "message": "Ogni Space di Arc diventa uno Space in Blanc Spaces. Le cartelle diventano gruppi e le schede si caricano solo quando le apri.",
-    "source": "sha256:c09bff3937677ead1da6993328054fb512057195d2e54970d5f7df23ac5ed486"
-  },
-  "arcImport.mode.windows": {
-    "message": "Ogni Space di Arc si apre in una finestra a sé. Le cartelle diventano gruppi e le schede si caricano solo quando le apri. Con Blanc Patron puoi salvarli come Spaces.",
-    "source": "sha256:db2e86ba39ef46d8ce19c98552b7d4a91c647b86cea80af11a61581690515fbd"
+    "source": "sha256:ffc8ee07b53d7e014d978398264b66bace171a287ee40fc0a9cf647cd3a99fc1"
   },
   "arcImport.room": {
     "message": "{count, plural, one {Puoi aggiungere ancora # Space.} many {Puoi aggiungere ancora # Spaces.} other {Puoi aggiungere ancora # Spaces.}}",
@@ -2711,11 +2707,7 @@
   },
   "arcImport.apply.spaces": {
     "message": "{count, plural, one {Crea # Space} many {Crea # Spaces} other {Crea # Spaces}}",
-    "source": "sha256:cec65c5bf1b41f6770fcb63ad99c294d83a2660803f005df0edf283e902aec26"
-  },
-  "arcImport.apply.windows": {
-    "message": "{count, plural, one {Apri # finestra} many {Apri # finestre} other {Apri # finestre}}",
-    "source": "sha256:3be252873ac906c5d4492c659afd373545ea19f090288ecf1cee34a5f4d76394"
+    "source": "sha256:4ee1d6b850a728222efd922dc7b892d9f7720bb118c74a6c1e83b2b01a4ce682"
   },
   "arcImport.apply.favorites": {
     "message": "Aggiungi i Preferiti",
@@ -2732,10 +2724,6 @@
   "arcImport.done.spaces": {
     "message": "{count, plural, one {Creato # Space: {names}. Lo trovi nell’elenco degli Spaces salvati del pannello dei comandi.} many {Creati # Spaces: {names}. Li trovi nell’elenco degli Spaces salvati del pannello dei comandi.} other {Creati # Spaces: {names}. Li trovi nell’elenco degli Spaces salvati del pannello dei comandi.}}",
     "source": "sha256:4afc5658a596435902ab0c9c72e0d951aab40b8b5a3265aa9e02d5eb08d724c3"
-  },
-  "arcImport.done.windows": {
-    "message": "{count, plural, one {Aperta # finestra.} many {Aperte # finestre.} other {Aperte # finestre.}}",
-    "source": "sha256:0453d24b87835526c4638fd399e496823ccd590a8abd821deb60b1f83762f813"
   },
   "arcImport.done.favorites": {
     "message": "{count, plural, one {Aggiunto # preferito alla cartella Arc.} many {Aggiunti # preferiti alla cartella Arc.} other {Aggiunti # preferiti alla cartella Arc.}}",
@@ -2780,10 +2768,6 @@
   "arcImport.error.unreadable": {
     "message": "Impossibile leggere la barra laterale di Arc.",
     "source": "sha256:ad62bdae90945352226cd0b05f584c2ed72ae8dd20d8c8169c6511feb1e624c9"
-  },
-  "arcImport.error.notPatron": {
-    "message": "Blanc Patron non è più attivo, quindi questi Spaces si apriranno invece come finestre. Rivedi la tua scelta e riprova.",
-    "source": "sha256:e7e6a3b17f3a026e2d234fb4b6b302312b0ad3122aa4bf6899c121bfdbcb9658"
   },
   "arcImport.error.noRoom": {
     "message": "{count, plural, one {C’è posto solo per # Space in più. Deseleziona alcuni Spaces o prima elimina uno Space.} many {C’è posto solo per # Spaces in più. Deseleziona alcuni Spaces o prima elimina uno Space.} other {C’è posto solo per # Spaces in più. Deseleziona alcuni Spaces o prima elimina uno Space.}}",

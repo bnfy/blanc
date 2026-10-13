@@ -5359,20 +5359,9 @@ const workspaceController = createWorkspaceController({
   },
 });
 
-// F45 Arc Spaces import. Patrons get one Blanc space per Arc Space in a
-// single durable write; everyone else gets each Space in its own new window,
-// tabs quiet with only the selected one woken. Runs in the Bring Your Tabs
-// sheet's window runtime, so the active profile is the sheet's profile.
-function openArcSpaceWindows(captures) {
-  const profileId = rt().profileId;
-  for (const capture of captures) {
-    const target = windowRuntimes.createRuntime({ id: createWindowRuntimeId(), profileId });
-    createMainWindow(target);
-    withWindowRuntime(target, () => applyWorkspaceToWindow(target, capture));
-  }
-  persistSession();
-  return { ok: true, windowCount: captures.length };
-}
+// F45 Arc Spaces import: one Blanc space per selected Arc Space, in a single
+// durable write. Runs in the Bring Your Tabs sheet's window runtime, so the
+// active profile is the sheet's profile.
 
 // Acceptance runs (unpackaged, BLANC_TEST=1) point Arc discovery at the
 // synthetic browser home with a chosen platform layout, stand in for the
@@ -5405,7 +5394,6 @@ const arcImport = createArcImportService({
     arcSidebarReadCount += 1;
     return readArcSidebarFile(picked.filePaths[0]);
   },
-  patronActive: () => settings.isPatronActive(),
   spaceRoom() {
     const saved = namedWorkspaces.list();
     return { remainingSlots: Math.max(0, MAX_WORKSPACES - saved.length), existingNames: saved.map((w) => w.name) };
@@ -5415,7 +5403,6 @@ const arcImport = createArcImportService({
     if (result.ok) broadcastWorkspacesUpdated();
     return result;
   },
-  openSpaceWindows: (captures) => openArcSpaceWindows(captures),
   importFavorites(entries) {
     const result = bookmarks.importBookmarks(entries);
     refreshBookmarkFlags();
