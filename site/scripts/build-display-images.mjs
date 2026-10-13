@@ -35,6 +35,13 @@ const jobs = [
     output: `feature-captures/${name}-v1.31.0.webp`,
   })),
   { source: 'feature-captures/mahjong-v1.21.0.png', output: 'feature-captures/mahjong-v1.21.0.webp' },
+  // Blanc Mail screenshots (capture-public-shots.sh in bnfy/blanc-mail):
+  // 1100px copies for MailShot's srcset; the 2200px captures stay as taken.
+  ...['main', 'dark', 'island', 'zero', 'zero-night', 'rules'].map(name => ({
+    source: `mail/screens/${name}.webp`,
+    output: `mail/screens/${name}-1100.webp`,
+    width: 1100,
+  })),
 ];
 
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
