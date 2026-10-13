@@ -1,7 +1,7 @@
 {
   "name": "blanc-tab-import-companions",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "scripts": {
     "lint:firefox": "web-ext lint --source-dir web-extension",
     "build:firefox": "web-ext build --source-dir web-extension --artifacts-dir dist/firefox --overwrite-dest",

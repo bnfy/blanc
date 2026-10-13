@@ -11,7 +11,8 @@ const projectFile = path.join(
 const expectedAppId = 'me.bnfy.blanc.tab-importer';
 const expectedExtensionId = `${expectedAppId}.Extension`;
 const generatedAppId = 'me.bnfy.blanc.Blanc-Tab-Importer';
-const companionVersion = '0.1.0';
+const companionVersion = '0.1.1';
+const companionBuild = '2';
 
 let project;
 try {
@@ -31,7 +32,8 @@ project = project
     `PRODUCT_BUNDLE_IDENTIFIER = "${generatedAppId}";`,
     `PRODUCT_BUNDLE_IDENTIFIER = "${expectedAppId}";`
   )
-  .replaceAll('MARKETING_VERSION = 1.0;', `MARKETING_VERSION = ${companionVersion};`);
+  .replaceAll('MARKETING_VERSION = 1.0;', `MARKETING_VERSION = ${companionVersion};`)
+  .replaceAll('CURRENT_PROJECT_VERSION = 1;', `CURRENT_PROJECT_VERSION = ${companionBuild};`);
 
 fs.writeFileSync(projectFile, project);
-console.log(`Configured ${expectedAppId} ${companionVersion} with ${expectedExtensionId}.`);
+console.log(`Configured ${expectedAppId} ${companionVersion} (${companionBuild}) with ${expectedExtensionId}.`);

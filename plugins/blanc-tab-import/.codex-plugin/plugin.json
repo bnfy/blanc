@@ -1,6 +1,6 @@
 {
   "name": "blanc-tab-import",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Create a private, one-time handoff from one supported browser window to Blanc.",
   "author": {
     "name": "Bananify Creative",

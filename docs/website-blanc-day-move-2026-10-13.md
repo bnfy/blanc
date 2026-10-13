@@ -136,4 +136,5 @@ checkout of `main` at `34658f43` (its default origin is blanc.day), passed for
 
 - **Step 6** reaches users with the next browser release.
 - **Step 7** reaches users with the next store submission of the tab-import
-  companions and the Codex plugin, with their versions bumped from 0.1.0.
+  companions and the Codex plugin. Their versions were bumped from 0.1.0 to
+  0.1.1 (Safari build 2) for that submission.
