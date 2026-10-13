@@ -60,15 +60,25 @@ test('creating an empty space creates and switches with the chosen identity', as
   assert.ok(h.calls.some(([c]) => c === 'close-overlay'));
 });
 
-test('names are validated as you type and an invalid name never submits', async () => {
+test('names are validated as you type, announced, and an invalid name can never be created', async () => {
   let saves = 0; const h = harness({ saveWorkspaceAs: async () => { saves++; return { ok: true }; } }, TWO);
   h.ui.begin('new'); const field = h.doc.getElementById('workspaceName');
+  const error = () => h.doc.getElementById('workspaceEditorError');
+  assert.equal(h.byKey('create').disabled, true, 'an empty name cannot be created');
+  assert.equal(error().textContent, '', 'no error before the name is touched');
+  assert.equal(error().attrs.role, 'alert', 'errors are announced');
   field.value = 'second'; field.emit('input');
-  assert.match(h.doc.getElementById('workspaceEditorError').textContent, /already in use/);
+  assert.match(error().textContent, /already in use/);
   assert.equal(field.attrs['aria-invalid'], 'true');
+  assert.equal(h.byKey('create').disabled, true, 'a duplicate name cannot be created');
   h.doc.getElementById('workspaceEditor').emit('submit'); await settle(); assert.equal(saves, 0);
-  field.value = '   '; field.emit('input'); h.doc.getElementById('workspaceEditor').emit('submit'); await settle();
-  assert.equal(saves, 0); assert.match(h.text(), /Enter a space name\./);
+  field.value = '   '; field.emit('input');
+  assert.match(error().textContent, /Enter a space name\./, 'emptying the name is announced');
+  h.doc.getElementById('workspaceEditor').emit('submit'); await settle(); assert.equal(saves, 0);
+  field.value = 'Fresh'; field.emit('input');
+  assert.equal(h.byKey('create').disabled, false);
+  assert.equal(error().textContent, '');
+  assert.equal(field.attrs['aria-invalid'], 'false');
 });
 
 test('edits apply live: color and symbol write at once, the name after a pause', async () => {
@@ -81,7 +91,7 @@ test('edits apply live: color and symbol write at once, the name after a pause',
   assert.equal(h.calls.filter(([c]) => c === 'update').length, 1, 'the name waits for typing to settle');
   await wait(400);
   assert.deepEqual(h.calls.filter(([c]) => c === 'update').at(-1).slice(1), ['a', { name: 'Work' }]);
-  h.byKey('done').click(); assert.equal(h.ui.state.kind, 'list');
+  h.byKey('done').click(); await settle(); assert.equal(h.ui.state.kind, 'list');
 });
 
 test('a duplicate name in the editor is shown and not written', async () => {
@@ -159,9 +169,42 @@ test('Recently deleted keeps a confirmation only for permanent deletion', async 
   h.byKey('forget').click(); await settle(); assert.equal(forgets, 1);
 });
 
-test('Escape steps back one level at a time', () => {
+test('Escape steps back one level at a time', async () => {
   const h = harness({}, TWO); h.ui.begin('edit', TWO.items[0]);
-  assert.equal(h.ui.cancel(), true); assert.equal(h.ui.state.kind, 'list'); assert.equal(h.ui.opened, true);
+  assert.equal(h.ui.cancel(), true); await settle(); assert.equal(h.ui.state.kind, 'list'); assert.equal(h.ui.opened, true);
   assert.equal(h.ui.cancel(), true); assert.equal(h.ui.opened, false);
   assert.equal(h.ui.cancel(), false, 'nothing left to cancel');
+});
+
+test('Done straight after an edit waits for the save, and a failed save keeps the editor with Try again', async () => {
+  let attempts = 0; let fail = true;
+  const h = harness({ updateWorkspace: async (id, patch) => { attempts++; h.calls.push(['update', id, patch]); return fail ? { ok: false, error: 'storage-failed' } : { ok: true }; } }, TWO);
+  h.ui.begin('edit', TWO.items[0]);
+  h.byKey('color:sky').click();
+  h.byKey('done').click(); // before the 250ms live-save delay has passed
+  await settle(); await settle();
+  assert.equal(attempts, 1, 'Done sends the waiting edit at once');
+  assert.equal(h.ui.state.kind, 'edit', 'a failed save never leaves the editor');
+  assert.match(h.doc.getElementById('workspaceEditorError').textContent, /Couldn’t save changes/);
+  assert.equal(h.byKey('retry').hidden, false);
+  assert.equal(h.ui.close(), false, 'the menu cannot close over an unsaved edit');
+  fail = false;
+  h.byKey('retry').click(); await settle(); await settle();
+  assert.deepEqual(h.calls.filter(([c]) => c === 'update').at(-1).slice(1), ['a', { color: '#376694' }], 'Try again resends the kept edit');
+  assert.equal(h.byKey('retry').hidden, true);
+  assert.equal(h.doc.getElementById('workspaceEditorError').textContent, '');
+  h.byKey('done').click(); await settle(); await settle();
+  assert.equal(h.ui.state.kind, 'list');
+});
+
+test('a newer edit made while a save is failing is kept with the failed one', async () => {
+  let fail = true;
+  const h = harness({ updateWorkspace: async (id, patch) => { h.calls.push(['update', id, patch]); return fail ? { ok: false, error: 'storage-failed' } : { ok: true }; } }, TWO);
+  h.ui.begin('edit', TWO.items[0]);
+  h.byKey('color:sky').click(); h.byKey('done').click(); await settle(); await settle();
+  h.byKey('symbol:star').click(); await wait(20);
+  fail = false;
+  h.byKey('done').click(); await settle(); await settle();
+  assert.deepEqual(h.calls.filter(([c]) => c === 'update').at(-1).slice(1), ['a', { color: '#376694', symbol: 'star' }]);
+  assert.equal(h.ui.state.kind, 'list');
 });

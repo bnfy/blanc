@@ -289,9 +289,10 @@ The menu reshapes into the editor in place (no dialog, no scrim):
 
 - Header: back chevron + "New space" / "Edit space".
 - Identity: a 40px preview tile beside the name field (max 60 characters).
-  Validated as you type: empty ("Give the space a name.") and duplicate ("You
-  already have a space called {name}."), announced via `role="alert"`; the
-  primary button disables while invalid.
+  Validated as you type once the field is touched (or a create is attempted):
+  empty ("Enter a space name.") and duplicate ("That name is already in use.
+  Choose another name."), the existing translated messages, announced via
+  `role="alert"`; Create and Done stay disabled while the name is invalid.
 - **Colour:** 8 preset swatches (named, e.g. "Sage") and a custom swatch that
   expands a picker inside the menu — a saturation/brightness square, a hue
   slider and a hex field. A custom in-menu picker is required: the native macOS
@@ -310,7 +311,11 @@ The menu reshapes into the editor in place (no dialog, no scrim):
   red text) / **Done**.
 - **Edits apply live.** Name (when valid), colour and symbol persist as they
   change and the pill mark follows. During a colour drag, updates are throttled
-  and the final value is written on release. Escape or back returns to the list.
+  and the final value is written on release. Done, back and Escape send any
+  waiting edit and return to the list once it has saved; if a save fails, the
+  editor stays open with the error and **Try again**, keeping the failed edit
+  (and any newer one), and the menu does not close over it. (Amended after plan
+  review.)
 
 ### 7. Deleting, undo and recovery
 

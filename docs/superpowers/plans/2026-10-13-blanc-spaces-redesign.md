@@ -12,7 +12,7 @@
 
 **Prerequisite:** PR 1 ([`2026-10-13-blanc-spaces-free.md`](./2026-10-13-blanc-spaces-free.md)) is merged. This plan assumes its shapes: no `patronActive` in the Spaces projection, no `not-patron` error, no `workspacePatron` test hook.
 
-**Reviewed assets:** several files below were written and their tests run green before this plan was published (105 unit tests). They live in [`assets/2026-10-13-blanc-spaces/`](./assets/2026-10-13-blanc-spaces/) and [`assets/2026-10-13-blanc-spaces-copy.json`](./assets/2026-10-13-blanc-spaces-copy.json); tasks copy them into place verbatim. Read each asset before copying it — it is the implementation, not a sketch.
+**Reviewed assets:** several files below were written and their tests run green before this plan was published (112 unit tests). They live in [`assets/2026-10-13-blanc-spaces/`](./assets/2026-10-13-blanc-spaces/) and [`assets/2026-10-13-blanc-spaces-copy.json`](./assets/2026-10-13-blanc-spaces-copy.json); tasks copy them into place verbatim. Read each asset before copying it — it is the implementation, not a sketch.
 
 ## Global Constraints
 
@@ -38,7 +38,7 @@
 2. **A space file written by v1.32 and then by this build** (no identity fields; a downgrade that strips them; a re-upgrade): defaults assigned once, a single backup, and later edits never recolour other spaces. — Task 2 store test "upgrading assigns each existing space an identity once".
 3. **Undo after the window has moved on** (the person opened another space, closed the window, or another window took the space): Undo restores the record and must not steal or double-bind. — Task 3 `undoRebindTarget` tests.
 4. **The menu opened from the mark while the Island is mid-swell or the window is narrow** (≤ 640px): bounds stay inside the window and the menu stays anchored. — Task 7 `calculateSpacesBounds` tests.
-5. **Keyboard-only and Reduce Motion use**: open from the mark with Return, rove, Option/Alt+↑/↓ reorder, Escape back out level by level with focus returning to the mark; no slide/scale under Reduce Motion. — Task 6 tests plus Task 11 `@F41-22`, `@F41-23`.
+5. **A live edit whose save fails just as the person presses Done** (disk full, or a duplicate name that raced in from another window): the editor must stay open with the error and Try again, keep the edit, and never close over it; an empty or duplicate name must never be creatable. — Task 6 tests "Done straight after an edit waits for the save…", "a newer edit made while a save is failing…" and "names are validated as you type, announced…". (Keyboard-only and Reduce Motion use are pinned by `@F41-22` and `@F41-23`.)
 
 ---
 
@@ -829,10 +829,10 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 **Files:**
 - Modify: `copy/messages/{en,de,es,fr,it,pt-BR}.json`, `copy/glossary.json` (`sameAsSource`)
 - Regenerate: `src/renderer/pages/strings.*.js`, `src/main/i18n-locales.json`, `copy/generated/*`
-- Read: `docs/superpowers/plans/assets/2026-10-13-blanc-spaces-copy.json` (55 English entries with notes and `maxLength`, their five translations, and the 22 glossary `sameAsSource` additions; validated with `copy/lib/catalog.mjs` `checkTranslation` before this plan was written)
+- Read: `docs/superpowers/plans/assets/2026-10-13-blanc-spaces-copy.json` (56 English entries with notes and `maxLength`, their five translations, and the 22 glossary `sameAsSource` additions; validated with `copy/lib/catalog.mjs` `checkTranslation` before this plan was written)
 
 **Interfaces:**
-- Produces the message keys later tasks use: `ws.new`, `ws.list.emptyHint`, `ws.row.edit`, `ws.undo.deleted`, `ws.undo.button`, `ws.editor.{newTitle,editTitle,name,color,symbol,startWith,thisWindow,empty,createButton,done}`, `ws.error.{invalidColor,invalidSymbol}`, `ws.decision.{title,saveThenSwitch}`, `spaces.mark.current`, `spaces.color.{sage,sky,iris,rose,clay,sand,slate,graphite,custom}`, `spaces.symbol.<id>` for the 16 symbols, `spaces.picker.{square,squareValue,hue,hex}`, `spaces.guard.{light,dark,both}`, `result.tag.space`, `workspaceMenu.edit`, `newtab.checklist.space`. Existing keys the new menu reuses are untouched; Task 12 removes the retired ones.
+- Produces the message keys later tasks use: `ws.new`, `ws.list.emptyHint`, `ws.row.edit`, `ws.undo.deleted`, `ws.undo.button`, `ws.editor.{newTitle,editTitle,name,color,symbol,startWith,thisWindow,empty,createButton,done,retry}`, `ws.error.{invalidColor,invalidSymbol}`, `ws.decision.{title,saveThenSwitch}`, `spaces.mark.current`, `spaces.color.{sage,sky,iris,rose,clay,sand,slate,graphite,custom}`, `spaces.symbol.<id>` for the 16 symbols, `spaces.picker.{square,squareValue,hue,hex}`, `spaces.guard.{light,dark,both}`, `result.tag.space`, `workspaceMenu.edit`, `newtab.checklist.space`. Existing keys the new menu reuses are untouched; Task 12 removes the retired ones.
 
 - [ ] **Step 1: Apply the reviewed strings**
 
@@ -973,7 +973,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 **Interfaces:**
 - Consumes: Task 1 `SpaceIdentity`, Task 5 `SpacePicker`, Task 3 preload members, Task 4 strings.
-- Produces `WorkspaceUI.create({ document, window, api, popup, list, commands, trigger, label, feedback, onOpenChange, theme, placement })` → `{ apply, open, close, cancel, render, layout, begin(kind, workspace?, options?), toggle, switchTo, command, opened, editing, reset, state }` where `begin('new', null, { name?, start? })`, `begin('edit', workspace)`, `begin('delete', workspace)` (immediate, with Undo). Module also exports `makeTile(document, identity, theme, className?)` and `errors`, `WORKSPACE_LIMIT`. The menu calls `api.openWorkspace`, `api.createBlankWorkspace(name, { …options, color, symbol })`, `api.saveWorkspaceAs(name, { color, symbol })`, `api.updateWorkspace`, `api.removeWorkspace`, `api.undoRemoveWorkspace`, `api.restoreWorkspace`, `api.forgetWorkspace`, `api.moveWorkspaceTo`, `api.cancelWorkspaceAction`, `api.closeOverlay`, `api.openPage`. Row DOM: `div.workspace-row.ws-row[data-workspace-id]` > `button.ws-row-main[data-focus-key="open:<id>"]` + `button.ws-row-more[data-focus-key="edit:<id>"]`; commands carry `data-focus-key` `new`, `recently-deleted`, `import-arc`, `undo`; editor `form#workspaceEditor.ws-editor` with `input#workspaceName`, swatches `color:<preset>` / `color:custom`, symbols `symbol:<id>`, segments `start:window|empty`, actions `create`/`cancel` or `delete`/`done`; decision `section.ws-decision` with `save-first`, `new-window`, `close-and-switch`, `cancel`.
+- Produces `WorkspaceUI.create({ document, window, api, popup, list, commands, trigger, label, feedback, onOpenChange, theme, placement })` → `{ apply, open, close, cancel, render, layout, begin(kind, workspace?, options?), toggle, switchTo, command, opened, editing, reset, state }` where `begin('new', null, { name?, start? })`, `begin('edit', workspace)`, `begin('delete', workspace)` (immediate, with Undo). Module also exports `makeTile(document, identity, theme, className?)` and `errors`, `WORKSPACE_LIMIT`. The menu calls `api.openWorkspace`, `api.createBlankWorkspace(name, { …options, color, symbol })`, `api.saveWorkspaceAs(name, { color, symbol })`, `api.updateWorkspace`, `api.removeWorkspace`, `api.undoRemoveWorkspace`, `api.restoreWorkspace`, `api.forgetWorkspace`, `api.moveWorkspaceTo`, `api.cancelWorkspaceAction`, `api.closeOverlay`, `api.openPage`. Row DOM: `div.workspace-row.ws-row[data-workspace-id]` > `button.ws-row-main[data-focus-key="open:<id>"]` + `button.ws-row-more[data-focus-key="edit:<id>"]`; commands carry `data-focus-key` `new`, `recently-deleted`, `import-arc`, `undo`; editor `form#workspaceEditor.ws-editor` with `input#workspaceName` and a status row (`#workspaceEditorError`, role `alert`, plus a `retry` button shown only after a failed live save), swatches `color:<preset>` / `color:custom`, symbols `symbol:<id>`, segments `start:window|empty`, actions `create`/`cancel` or `delete`/`done` (Create and Done are disabled while the name is empty or already used; Done, back and Escape wait for pending live saves and stay in the editor if one failed); decision `section.ws-decision` with `save-first`, `new-window`, `close-and-switch`, `cancel`.
 - Preload after this task: `renameWorkspace` and `moveWorkspace` are gone; `onWorkspaceAction(cb)` is new.
 
 - [ ] **Step 1: Copy the tests and harness and watch them fail**
@@ -994,7 +994,7 @@ cp docs/superpowers/plans/assets/2026-10-13-blanc-spaces/workspace-ui.js src/ren
 node --test test/unit/spaces-menu.test.js test/unit/workspaces-editor-focus.test.js test/unit/workspaces-scratch-guard.test.js test/unit/workspaces-ui-copy.test.js test/unit/workspaces-free-entry.test.js
 ```
 
-Expected: PASS (31 tests).
+Expected: PASS (33 tests).
 
 - [ ] **Step 3: Overlay markup**
 
@@ -1347,7 +1347,10 @@ body[data-mode="spaces"] #workspaceSwitcher.ws-switcher[hidden] { transform: sca
 .ws-name::placeholder { color: var(--text-dim); }
 .ws-name:focus { outline: none; background: var(--surface-raised); border-color: var(--border); }
 .ws-name[aria-invalid="true"] { border-color: var(--danger); }
-.ws-editor .ws-error { min-height: 16px; margin: 4px 2px 0 50px; color: var(--danger); font: 12px/1.35 var(--font-ui); }
+.ws-editor-status { display: flex; align-items: center; gap: 8px; min-height: 16px; margin: 4px 2px 0 50px; }
+.ws-editor-status .ws-error { flex: 1; min-width: 0; margin: 0; color: var(--danger); font: 12px/1.35 var(--font-ui); }
+.ws-editor-status .ws-pill { height: 26px; padding: 0 10px; }
+.ws-editor-status .ws-pill[hidden] { display: none; }
 .ws-label { margin: 12px 2px 7px; color: var(--text-dim); font: 550 11.5px/1 var(--font-ui); }
 .ws-swatches { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 2px; }
 .ws-swatch { position: relative; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%; background: var(--swatch); cursor: pointer; }
@@ -1467,7 +1470,8 @@ git add src test browser-api security/audit-surface-inventory.json
 git commit -m "Rebuild the Spaces menu around identity, live edits and Undo
 
 Rows show each space's symbol on its colour; the editor reshapes the menu
-in place with live edits, preset and custom colours and a symbol grid;
+in place with live edits (kept and offered again if a save fails), validated
+names, preset and custom colours and a symbol grid;
 delete is immediate with Undo; rows reorder by drag or Option/Alt+arrows;
 the switch prompt leads with saving. Rename and up/down moves retire.
 

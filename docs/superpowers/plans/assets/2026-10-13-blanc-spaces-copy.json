@@ -236,6 +236,11 @@
     "newtab.checklist.space": {
       "message": "Make your first space",
       "note": "Start page moving-in checklist task: opens the Spaces menu."
+    },
+    "ws.editor.retry": {
+      "message": "Try again",
+      "note": "Space editor: button that sends an edit again after it failed to save.",
+      "maxLength": 16
     }
   },
   "translations": {
@@ -294,7 +299,8 @@
       "spaces.guard.both": "Gut lesbar gehalten: im hellen Modus als {light}, im dunklen Modus als {dark} dargestellt.",
       "result.tag.space": "space",
       "workspaceMenu.edit": "Bearbeiten…",
-      "newtab.checklist.space": "Ersten Space erstellen"
+      "newtab.checklist.space": "Ersten Space erstellen",
+      "ws.editor.retry": "Erneut versuchen"
     },
     "es": {
       "ws.new": "Nuevo Space…",
@@ -351,7 +357,8 @@
       "spaces.guard.both": "Legibilidad garantizada: se muestra como {light} en el modo claro y como {dark} en el modo oscuro.",
       "result.tag.space": "space",
       "workspaceMenu.edit": "Editar…",
-      "newtab.checklist.space": "Crea tu primer Space"
+      "newtab.checklist.space": "Crea tu primer Space",
+      "ws.editor.retry": "Reintentar"
     },
     "fr": {
       "ws.new": "Nouveau Space…",
@@ -408,7 +415,8 @@
       "spaces.guard.both": "Lisibilité préservée : affichée en {light} en mode clair et en {dark} en mode sombre.",
       "result.tag.space": "space",
       "workspaceMenu.edit": "Modifier…",
-      "newtab.checklist.space": "Créer votre premier Space"
+      "newtab.checklist.space": "Créer votre premier Space",
+      "ws.editor.retry": "Réessayer"
     },
     "pt-BR": {
       "ws.new": "Novo Space…",
@@ -465,7 +473,8 @@
       "spaces.guard.both": "Mantida legível: aparece como {light} no modo claro e {dark} no modo escuro.",
       "result.tag.space": "space",
       "workspaceMenu.edit": "Editar…",
-      "newtab.checklist.space": "Crie seu primeiro Space"
+      "newtab.checklist.space": "Crie seu primeiro Space",
+      "ws.editor.retry": "Tentar de novo"
     },
     "it": {
       "ws.new": "Nuovo Space…",
@@ -522,7 +531,8 @@
       "spaces.guard.both": "Mantenuto leggibile: mostrato come {light} in modalità chiara e {dark} in modalità scura.",
       "result.tag.space": "space",
       "workspaceMenu.edit": "Modifica…",
-      "newtab.checklist.space": "Crea il tuo primo Space"
+      "newtab.checklist.space": "Crea il tuo primo Space",
+      "ws.editor.retry": "Riprova"
     }
   },
   "sameAsSource": {

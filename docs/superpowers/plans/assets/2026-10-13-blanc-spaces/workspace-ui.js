@@ -80,6 +80,8 @@
     let suppressClick = false;
     let updateTimer = null;
     let pendingPatch = null;
+    // Live edits write in order; each link resolves true when its write saved.
+    let saving = Promise.resolve(true);
     const el = (tag, className, text) => {
       const node = doc.createElement(tag); if (className) node.className = className;
       if (text != null) node.textContent = text; return node;
@@ -119,7 +121,7 @@
       (popup.querySelector('input') || popup.querySelector('[data-current="true"]') || popup.querySelector('button'))?.focus();
     }
     function close({ force = false } = {}) {
-      if (!force && (state.pending || state.kind === 'decision' || state.original || state.error)) return false;
+      if (!force && (state.pending || state.kind === 'decision' || state.original || state.error || state.saveError)) return false;
       flushUpdate();
       opened = false; popup.hidden = true; onOpenChange(false); syncIdentity();
       if (state.kind !== 'decision' && !state.original) state = { kind: 'list' };
@@ -135,14 +137,14 @@
       if (state.pending) return;
       generation += 1;
       const identity = Identity.defaultsFor(data.items);
-      state = { kind: 'new', draft: { name, ...identity }, start: start ?? (current() ? 'empty' : 'window'), fixedStart: !!original, original, error: '', picker: false };
+      state = { kind: 'new', draft: { name, ...identity }, start: start ?? (current() ? 'empty' : 'window'), fixedStart: !!original, original, error: '', saveError: '', touched: false, picker: false };
       open();
     }
     function beginEdit(workspace) {
       if (state.pending) return;
       if (!workspace) { state = { kind: 'list', error: errors['not-found'] }; open(); return; }
       generation += 1;
-      state = { kind: 'edit', id: workspace.id, draft: { name: workspace.name, color: workspace.color, symbol: workspace.symbol }, error: '', picker: false };
+      state = { kind: 'edit', id: workspace.id, draft: { name: workspace.name, color: workspace.color, symbol: workspace.symbol }, error: '', saveError: '', touched: false, picker: false };
       open();
     }
     function nameProblem(name, exceptId = null) {
@@ -158,22 +160,42 @@
       clearTimeout(updateTimer);
       updateTimer = setTimeout(flushUpdate, delay);
     }
+    /** Send the waiting edit. Resolves true when it saved. A failed edit is
+     * kept (under any newer one) and shown with Try again while its editor is
+     * open; once the editor is gone, a storage failure still reaches the
+     * menu's status line through the store's own status. */
     function flushUpdate() {
       clearTimeout(updateTimer); updateTimer = null;
-      if (!pendingPatch) return;
+      if (!pendingPatch) return saving;
       const { id, ...patch } = pendingPatch; pendingPatch = null;
-      Promise.resolve().then(() => api.updateWorkspace(id, patch)).then((result) => {
+      const editing = () => state.kind === 'edit' && state.id === id;
+      const failed = (message) => {
+        if (!editing()) return false;
+        pendingPatch = { id, ...patch, ...(pendingPatch?.id === id ? pendingPatch : {}) };
+        state.saveError = message; renderEditorError();
+        return false;
+      };
+      saving = saving.then(() => api.updateWorkspace(id, patch)).then((result) => {
         if (result?.items) data = { ...data, ...result };
-        if (!result?.ok && state.kind === 'edit' && state.id === id) { state.error = errors[result?.error] || t('ws.error.generic'); renderEditorError(); }
-      }, () => {
-        if (state.kind === 'edit' && state.id === id) { state.error = errors['storage-failed']; renderEditorError(); }
-      });
+        if (!result?.ok) return failed(errors[result?.error] || t('ws.error.generic'));
+        if (editing() && state.saveError) { state.saveError = ''; renderEditorError(); }
+        return true;
+      }, () => failed(errors['storage-failed']));
+      return saving;
+    }
+    /** Done, back and Escape: leave the editor once every edit has saved. */
+    async function finishEdit() {
+      const id = state.id;
+      const saved = await flushUpdate();
+      if (state.kind !== 'edit' || state.id !== id) return; // already moved on
+      if (saved && !pendingPatch && !state.saveError) toList();
     }
 
     function cancel() {
       if (state.pending) return true;
       if (state.kind === 'decision') api.cancelWorkspaceAction?.();
       if (state.original) { state = state.original; render(); }
+      else if (state.kind === 'edit') { finishEdit(); }
       else if (state.kind !== 'list') { toList(); }
       else if (opened) { state.error = ''; close(); }
       else return false;
@@ -217,7 +239,8 @@
       const input = popup.querySelector('#workspaceName');
       if (input) state.editSelection = [input.selectionStart, input.selectionEnd];
       const problem = nameProblem(state.draft.name);
-      if (problem) { state.error = errors[problem]; render(); popup.querySelector('#workspaceName')?.focus(); return; }
+      state.touched = true;
+      if (problem) { state.error = errors[problem]; renderEditorError(); popup.querySelector('#workspaceName')?.focus(); return; }
       const name = state.draft.name.trim().replace(/\s+/g, ' ');
       const identity = { color: state.draft.color, symbol: state.draft.symbol };
       if (state.start === 'empty' && !state.fixedStart) { openAction({ kind: 'create', name, identity }); return; }
@@ -350,9 +373,9 @@
       input.setAttribute('aria-label', t('ws.editor.name'));
       input.setAttribute('aria-invalid', String(!!state.error)); input.setAttribute('aria-describedby', 'workspaceEditorError');
       input.addEventListener('input', () => {
-        state.draft.name = input.value;
+        state.draft.name = input.value; state.touched = true;
         const problem = nameProblem(input.value, isNew ? null : state.id);
-        state.error = problem && input.value.trim() ? errors[problem] : '';
+        state.error = problem ? errors[problem] : '';
         renderEditorError();
         if (!isNew && !problem) queueUpdate({ name: input.value.trim().replace(/\s+/g, ' ') }, 400);
       });
@@ -361,7 +384,10 @@
         if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); cancel(); }
       });
       ident.append(preview, input);
-      const error = el('p', 'ws-error', state.error || ''); error.id = 'workspaceEditorError'; error.setAttribute('role', 'alert');
+      const error = el('p', 'ws-error', state.error || state.saveError || ''); error.id = 'workspaceEditorError'; error.setAttribute('role', 'alert');
+      const retry = button(t('ws.editor.retry'), 'retry', () => { state.saveError = ''; renderEditorError(); flushUpdate(); }, 'ws-pill');
+      retry.hidden = !state.saveError;
+      const status = el('div', 'ws-editor-status'); status.append(error, retry);
 
       const colorLabel = el('p', 'ws-label', t('ws.editor.color'));
       const swatches = el('div', 'ws-swatches'); swatches.setAttribute('role', 'radiogroup'); swatches.setAttribute('aria-label', t('ws.editor.color'));
@@ -401,7 +427,7 @@
         sy.append(svgFrom(doc, Identity.SYMBOLS[id], 'ws-symbol'));
         symbols.append(sy);
       }
-      form.append(head, ident, error, colorLabel, swatches, pickerSlot, symbolLabel, symbols);
+      form.append(head, ident, status, colorLabel, swatches, pickerSlot, symbolLabel, symbols);
 
       if (isNew && !state.fixedStart) {
         const seg = el('div', 'ws-segmented'); seg.setAttribute('role', 'radiogroup'); seg.setAttribute('aria-label', t('ws.editor.startWith'));
@@ -417,15 +443,24 @@
         actions.append(button(t('common.cancel'), 'cancel', cancel, 'ws-pill'), submit);
       } else {
         const workspace = data.items.find((w) => w.id === state.id);
-        actions.append(button(t('ws.delete.button'), 'delete', () => removeNow(workspace), 'ws-pill danger-text'), button(t('ws.editor.done'), 'done', toList, 'ws-pill primary'));
+        actions.append(button(t('ws.delete.button'), 'delete', () => removeNow(workspace), 'ws-pill danger-text'), button(t('ws.editor.done'), 'done', finishEdit, 'ws-pill primary'));
       }
       form.append(actions);
-      form.addEventListener('submit', (event) => { event.preventDefault(); if (isNew) submitNew(); else toList(); });
+      form.addEventListener('submit', (event) => { event.preventDefault(); if (isNew) submitNew(); else finishEdit(); });
       return form;
     }
+    /** Create/Done stay disabled while the name is empty or already used. */
+    function syncPrimary() {
+      const primary = [...popup.querySelectorAll('button')].find((b) => b.dataset.focusKey === 'create' || b.dataset.focusKey === 'done');
+      if (primary) primary.disabled = !!state.pending || !!nameProblem(state.draft?.name, state.kind === 'edit' ? state.id : null);
+    }
     function renderEditorError() {
-      const error = popup.querySelector('#workspaceEditorError'); if (error) error.textContent = state.error || '';
-      popup.querySelector('#workspaceName')?.setAttribute('aria-invalid', String(!!state.error));
+      const shown = state.touched ? state.error : '';
+      const error = popup.querySelector('#workspaceEditorError'); if (error) error.textContent = shown || state.saveError || '';
+      popup.querySelector('#workspaceName')?.setAttribute('aria-invalid', String(!!shown));
+      const retry = [...popup.querySelectorAll('button')].find((b) => b.dataset.focusKey === 'retry');
+      if (retry) retry.hidden = !state.saveError;
+      syncPrimary();
     }
     function renderDecision() {
       const box = el('section', 'ws-decision'); box.setAttribute('aria-label', t('ws.decision.label'));
@@ -484,13 +519,15 @@
       const viewChanged = popup.dataset.view !== state.kind;
       const before = popup.offsetHeight;
       popup.dataset.view = state.kind;
-      if (state.kind === 'new' || state.kind === 'edit') nodes.push(renderEditor());
+      const editing = state.kind === 'new' || state.kind === 'edit';
+      if (editing) nodes.push(renderEditor());
       else if (state.kind === 'decision') nodes.push(renderDecision());
       else if (state.kind === 'recovery') nodes.push(renderRecovery());
       else if (state.kind === 'forget') nodes.push(renderForget());
       else nodes.push(...renderList());
       if (state.error && !['new', 'edit'].includes(state.kind)) { const error = el('p', 'ws-error', state.error); error.setAttribute('role', 'alert'); nodes.push(error); }
       list.replaceChildren(...nodes); list.scrollTop = scroll;
+      if (editing) renderEditorError();
       const pinned = state.kind === 'list' ? renderCommands() : [];
       commands.replaceChildren(...pinned); commands.hidden = !pinned.length;
       if (viewChanged) morph(before);
