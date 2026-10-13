@@ -1,5 +1,5 @@
 /* Neutral monochrome: pure paper/ink with graphite grays, no hue anywhere
-   (matches the blancbrowser.com redesign). Private mode is told apart by
+   (matches the website redesign). Private mode is told apart by
    dashed borders + a "private" chip, not by a color cast. The theme follows
    Electron's nativeTheme (Settings → Appearance), which drives
    prefers-color-scheme here. */

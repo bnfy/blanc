@@ -112,8 +112,8 @@ const server = http.createServer((request, response) => {
   if (request.url === '/favicon') {
     response.end(`<!doctype html>
       <title>Favicon probe</title>
-      <link rel="icon" type="image/png" href="https://blancbrowser.com/favicon-32x32.png">
-      <link rel="apple-touch-icon" sizes="192x192" href="https://blancbrowser.com/this-icon-does-not-exist-v1.2.3.png">
+      <link rel="icon" type="image/png" href="https://blanc.day/favicon-32x32.png">
+      <link rel="apple-touch-icon" sizes="192x192" href="https://blanc.day/this-icon-does-not-exist-v1.2.3.png">
       <main>favicon probe</main>`);
     return;
   }

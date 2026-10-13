@@ -20486,31 +20486,31 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The update download stopped making progress. You can retry with “%1$@”, or reinstall from blancbrowser.com."
+            "value": "The update download stopped making progress. You can retry with “%1$@”, or reinstall from blanc.day."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Der Download des Updates kommt nicht mehr voran. Versuche es erneut mit „%1$@“ oder installiere Blanc neu von blancbrowser.com."
+            "value": "Der Download des Updates kommt nicht mehr voran. Versuche es erneut mit „%1$@“ oder installiere Blanc neu von blanc.day."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La descarga de la actualización dejó de avanzar. Puedes reintentarlo con «%1$@» o reinstalar desde blancbrowser.com."
+            "value": "La descarga de la actualización dejó de avanzar. Puedes reintentarlo con «%1$@» o reinstalar desde blanc.day."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Le téléchargement de la mise à jour n’avance plus. Vous pouvez réessayer avec « %1$@ » ou réinstaller depuis blancbrowser.com."
+            "value": "Le téléchargement de la mise à jour n’avance plus. Vous pouvez réessayer avec « %1$@ » ou réinstaller depuis blanc.day."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O download da atualização parou de avançar. Você pode tentar de novo com “%1$@” ou reinstalar a partir de blancbrowser.com."
+            "value": "O download da atualização parou de avançar. Você pode tentar de novo com “%1$@” ou reinstalar a partir de blanc.day."
           }
         }
       }
@@ -20702,31 +20702,31 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@\n\nYou can retry with “%2$@”, or reinstall from blancbrowser.com."
+            "value": "%1$@\n\nYou can retry with “%2$@”, or reinstall from blanc.day."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@\n\nVersuche es erneut mit „%2$@“ oder installiere Blanc neu von blancbrowser.com."
+            "value": "%1$@\n\nVersuche es erneut mit „%2$@“ oder installiere Blanc neu von blanc.day."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@\n\nPuedes reintentarlo con «%2$@» o reinstalar desde blancbrowser.com."
+            "value": "%1$@\n\nPuedes reintentarlo con «%2$@» o reinstalar desde blanc.day."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@\n\nVous pouvez réessayer avec « %2$@ » ou réinstaller depuis blancbrowser.com."
+            "value": "%1$@\n\nVous pouvez réessayer avec « %2$@ » ou réinstaller depuis blanc.day."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@\n\nVocê pode tentar de novo com “%2$@” ou reinstalar a partir de blancbrowser.com."
+            "value": "%1$@\n\nVocê pode tentar de novo com “%2$@” ou reinstalar a partir de blanc.day."
           }
         }
       }

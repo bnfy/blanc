@@ -709,7 +709,7 @@ function install(refs) {
         ['https://youtube.com/watch?v=three', 'YouTube – videos worth watching'],
         ['https://developer.mozilla.org/docs', 'MDN Web Docs'],
         ['https://nintendo.com/', 'Nintendo – Official Site'],
-        ['https://blancbrowser.com/', 'Blanc Browser – browse without the baggage'],
+        ['https://blanc.day/', 'Blanc Browser – browse without the baggage'],
       ]) history.addVisit(url, title);
       for (const [url, file] of [
         ['https://youtube.com/', ['favicons', 'youtube.com.ico']],
@@ -717,7 +717,7 @@ function install(refs) {
         ['https://scrollapp.co/', ['favicons', 'scrollapp.co.ico']],
         ['https://developer.mozilla.org/', ['favicons', 'developer.mozilla.org.ico']],
         ['https://nintendo.com/', ['favicons', 'nintendo.com.ico']],
-        ['https://blancbrowser.com/', ['favicon-32x32.png']],
+        ['https://blanc.day/', ['favicon-32x32.png']],
       ]) {
         const source = path.join(app.getAppPath(), 'site', 'public', ...file);
         const png = nativeImage.createFromPath(source)

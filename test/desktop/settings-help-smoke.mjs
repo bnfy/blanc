@@ -100,8 +100,8 @@ try {
   await start.screenshot({path:path.join(output,'onboarding.png')});
   await start.locator('#obSuggestions').click(); await start.locator('#obPing').click();
   // Privacy details must not replace setup or reset its unsaved choices.
-  const explanationURL = 'https://blancbrowser.com/how-it-works#connections';
-  await app.context().route('https://blancbrowser.com/how-it-works', route => route.fulfill({
+  const explanationURL = 'https://blanc.day/trust#connections';
+  await app.context().route('https://blanc.day/trust', route => route.fulfill({
     status: 200, contentType: 'text/html', body: '<!doctype html><title>Privacy explanation fixture</title><p>Locally fulfilled review page</p>',
   }));
   await start.locator('.ob-privacy-details a').click();

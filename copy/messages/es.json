@@ -2134,8 +2134,8 @@
     "source": "sha256:fccab6c32a2e34636967513e8c3690a83d5eece75d630d69740d183d3f2fade5"
   },
   "update.stalled.detail": {
-    "message": "La descarga de la actualización dejó de avanzar. Puedes reintentarlo con «{command}» o reinstalar desde blancbrowser.com.",
-    "source": "sha256:7c354ceda8bcb469f50a2fd1fb2c6b28942e655f78d737dd50ba4e7bef8562ae"
+    "message": "La descarga de la actualización dejó de avanzar. Puedes reintentarlo con «{command}» o reinstalar desde blanc.day.",
+    "source": "sha256:774804801eaf404dcc7a1bd4974af374aa0e7cdc8a8ba2a0b0a217e38f9bb25a"
   },
   "update.ready.message": {
     "message": "Actualización {version} descargada",
@@ -2158,8 +2158,8 @@
     "source": "sha256:3c4cc96d0fc1d79ede6a4abdc316746ac203eefffe62dd35ab6385b2753f76a1"
   },
   "update.failed.detail": {
-    "message": "{error}\n\nPuedes reintentarlo con «{command}» o reinstalar desde blancbrowser.com.",
-    "source": "sha256:de76de7decd3768bb43eabde90a24b32a70b0d83925be2d133fc28d3856625ec"
+    "message": "{error}\n\nPuedes reintentarlo con «{command}» o reinstalar desde blanc.day.",
+    "source": "sha256:ecf56ee1fed0a4c4854bd105da80ad9afabd89791103d47736a4ce99063a2a52"
   },
   "update.devOnly": {
     "message": "Las actualizaciones solo están disponibles en las compilaciones empaquetadas.",

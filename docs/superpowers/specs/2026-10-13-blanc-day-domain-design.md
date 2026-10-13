@@ -183,7 +183,8 @@ Live steps are the owner's; each is listed with how to check it.
      reaches `blanc.day/import-tabs/` with its fragment and opens Blanc.
      Browsers carry a fragment across a redirect that has none.
 6. **The browser's next release** (this repository, desktop PR).
-   - In-app links point at blanc.day.
+   - In-app links point at blanc.day, straight at the page each one opens
+     (`/trust`, not the legacy `/how-it-works` redirect).
    - The two update-error messages change in every language in the same PR
      (`copy:ack`).
    - `bananify-services.js` also treats `blanc.day` and its subdomains as
