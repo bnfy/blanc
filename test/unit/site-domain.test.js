@@ -26,6 +26,8 @@ const ALLOWED = {
   'site/src/pages/privacy.astro': ['(formerly blancbrowser.com)'],
   'site/src/pages/terms.astro': ['(formerly blancbrowser.com)'],
   'cloudflare/newsletter-worker/src/index.js': ["'https://blancbrowser.com',", 'blancbrowser.com stays allowed'],
+  // The Worker that retires the former hosts has to name them.
+  'cloudflare/blancbrowser-redirects/src/index.js': ["new Set(['blancbrowser.com', 'www.blancbrowser.com', 'www.blanc.day'])"],
 };
 
 // Records of past work and generated font metadata keep what they shipped with.

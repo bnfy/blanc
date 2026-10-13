@@ -1,0 +1,8 @@
+{
+  "name": "blancbrowser-redirects",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy"
+  }
+}
