@@ -1084,7 +1084,7 @@ export function checkParamShapes(contract, { main = mainSources(), renderers: ra
 // in the contract's unions. Literals are read from the workspace modules and
 // from the workspace functions and controller adapter in main.js.
 const WORKSPACE_FILES = ['workspace-controller.js', 'workspaces.js', 'workspaces-model.js'];
-const WORKSPACE_FUNCTIONS = ['saveCurrentWindowAsWorkspace', 'removeNamedWorkspace', 'checkpointWorkspaceSession', 'flushWorkspaceSession', 'workspaceProtection', 'stageWorkspace'];
+const WORKSPACE_FUNCTIONS = ['saveCurrentWindowAsWorkspace', 'removeNamedWorkspace', 'undoRemoveNamedWorkspace', 'checkpointWorkspaceSession', 'flushWorkspaceSession', 'workspaceProtection', 'stageWorkspace'];
 
 export function checkWorkspaceCodes(contract, rawSources = mainSources()) {
   const sources = rawSources.map(({ file, text }) => ({ file, text: stripComments(text) }));
@@ -1093,7 +1093,7 @@ export function checkWorkspaceCodes(contract, rawSources = mainSources()) {
   for (const name of WORKSPACE_FUNCTIONS) texts.push([`main.js ${name}()`, functionBody(main, name)]);
   const adapterAt = main.indexOf('createWorkspaceController({');
   if (adapterAt >= 0) texts.push(['main.js controller adapter', balanced(main, main.indexOf('{', adapterAt))]);
-  for (const channel of ['chrome:workspaces-save-as', 'chrome:workspaces-open', 'chrome:workspaces-create-blank', 'chrome:workspaces-rename', 'chrome:workspaces-remove']) {
+  for (const channel of ['chrome:workspaces-save-as', 'chrome:workspaces-open', 'chrome:workspaces-create-blank', 'chrome:workspaces-rename', 'chrome:workspaces-remove', 'chrome:workspaces-update', 'chrome:workspaces-undo-remove']) {
     const h = handlerExpression(main, channel);
     if (h?.block) texts.push([`main.js ${channel} handler`, h.block]);
   }

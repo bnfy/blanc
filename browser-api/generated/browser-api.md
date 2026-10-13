@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-105 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
+108 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -78,7 +78,7 @@
 | `listRemoteTabs` | sync | invoke | `chrome:remote-tabs-list` | `() => Promise<RemoteDevice[]>` | all |
 | `cancelWorkspaceAction` | workspaces | send | `chrome:workspaces-cancel` | `()` | all |
 | `listWorkspaces` | workspaces | invoke | `chrome:workspaces-list` | `() => Promise<WorkspacesPayload>` | all |
-| `saveWorkspaceAs` | workspaces | invoke | `chrome:workspaces-save-as` | `(name: string) => Promise<WorkspaceActionResult>` | all |
+| `saveWorkspaceAs` | workspaces | invoke | `chrome:workspaces-save-as` | `(name: string, identity?: SpaceIdentityInput) => Promise<WorkspaceActionResult>` | all |
 | `openWorkspace` | workspaces | invoke | `chrome:workspaces-open` | `(id: WorkspaceId, opts?: OpenWorkspaceOptions) => Promise<WorkspaceActionResult>` | all |
 | `createBlankWorkspace` | workspaces | invoke | `chrome:workspaces-create-blank` | `(name: string, opts?: OpenWorkspaceOptions) => Promise<WorkspaceActionResult>` | all |
 | `renameWorkspace` | workspaces | invoke | `chrome:workspaces-rename` | `(id: WorkspaceId, name: string) => Promise<WorkspaceActionResult>` | all |
@@ -86,6 +86,9 @@
 | `restoreWorkspace` | workspaces | invoke | `chrome:workspaces-restore` | `(id: WorkspaceId) => Promise<WorkspaceActionResult>` | all |
 | `forgetWorkspace` | workspaces | invoke | `chrome:workspaces-forget` | `(id: WorkspaceId) => Promise<WorkspaceActionResult>` | all |
 | `moveWorkspace` | workspaces | invoke | `chrome:workspaces-move` | `(id: WorkspaceId, direction: WorkspaceMoveDirection) => Promise<WorkspaceActionResult>` | all |
+| `updateWorkspace` | workspaces | invoke | `chrome:workspaces-update` | `(id: WorkspaceId, patch: WorkspacePatch) => Promise<WorkspaceActionResult>` | all |
+| `moveWorkspaceTo` | workspaces | invoke | `chrome:workspaces-move-to` | `(id: WorkspaceId, index: number) => Promise<WorkspaceActionResult>` | all |
+| `undoRemoveWorkspace` | workspaces | invoke | `chrome:workspaces-undo-remove` | `(id: WorkspaceId) => Promise<WorkspaceActionResult>` | all |
 | `searchSuggestions` | search | invoke | `chrome:search-suggestions` | `(query: string) => Promise<SearchSuggestions>` | all |
 | `onRemoteTabsUpdated` | sync | event | `chrome:remote-tabs-updated` | `(payload: RemoteDevice[]) => void` | all |
 | `onWorkspacesUpdated` | workspaces | event | `chrome:workspaces-updated` | `(payload: WorkspacesPayload) => void` | all |
@@ -209,12 +212,14 @@ Where a dragged or keyboard-moved tab should land. The pinned state never change
 
 ### `OpenWorkspaceOptions`
 
-Options for opening or creating a workspace.
+Options for opening or creating a workspace; creation also takes a colour and symbol.
 
 | Field | Type | Notes |
 | --- | --- | --- |
 | `decision?` | `string` | The token from an unsaved-scratch result, confirming "discard and switch". |
 | `newWindow?` | `boolean` | Open in a new window instead of this one. |
+| `color?` | `string` |  |
+| `symbol?` | `string` |  |
 
 ### `Point`
 
@@ -523,6 +528,31 @@ A recently deleted workspace that can still be restored.
 | `name` | `string` |  |
 | `deletedAt` | `number` | Milliseconds since the epoch. |
 
+### `SpaceTint`
+
+How strongly a space tints the chrome; island and frame exist only in unpackaged builds (BLANC_SPACE_TINT).
+
+`'mark' \| 'island' \| 'frame'`
+
+### `SpaceIdentityInput`
+
+A chosen colour and symbol for a new space; main validates both.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `color?` | `string` |  |
+| `symbol?` | `string` |  |
+
+### `WorkspacePatch`
+
+An edit to one space: any subset of name, colour and symbol.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `name?` | `string` |  |
+| `color?` | `string` |  |
+| `symbol?` | `string` |  |
+
 ### `WorkspaceListItem`
 
 A Named Workspace row.
@@ -536,6 +566,8 @@ A Named Workspace row.
 | `resident` | `boolean` |  |
 | `revision` | `number` |  |
 | `tabCount` | `number` |  |
+| `color` | `string` | Stored #rrggbb; the chrome derives the drawn ink. |
+| `symbol` | `string` | A space-identity.js symbol id. |
 
 ### `WorkspacesPayload`
 
@@ -546,6 +578,8 @@ Named Workspaces projection, from workspacesProjection() in main.js.
 | `status` | `WorkspaceSaveStatus` |  |
 | `deleted` | `DeletedWorkspace[]` |  |
 | `items` | `WorkspaceListItem[]` |  |
+| `windowTabCount` | `number` | This window's ordinary tabs, for the new-space editor. |
+| `tint` | `SpaceTint` |  |
 
 ### `ThemeAppearance`
 
@@ -676,6 +710,8 @@ Result of every Named Workspace action. Successes carry the refreshed workspace 
 | `status?` | `WorkspaceSaveStatus` |  |
 | `deleted?` | `DeletedWorkspace[]` |  |
 | `items?` | `WorkspaceListItem[]` |  |
+| `windowTabCount?` | `number` | This window's ordinary tabs, for the new-space editor. |
+| `tint?` | `SpaceTint` |  |
 
 ### `SearchEngineId`
 

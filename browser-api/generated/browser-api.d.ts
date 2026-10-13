@@ -52,12 +52,14 @@ export interface TabMoveTarget {
   beforeId: TabId | null;
 }
 
-/** Options for opening or creating a workspace. */
+/** Options for opening or creating a workspace; creation also takes a colour and symbol. */
 export interface OpenWorkspaceOptions {
   /** The token from an unsaved-scratch result, confirming "discard and switch". */
   decision?: string;
   /** Open in a new window instead of this one. */
   newWindow?: boolean;
+  color?: string;
+  symbol?: string;
 }
 
 /** A point in window coordinates. */
@@ -313,6 +315,22 @@ export interface DeletedWorkspace {
   deletedAt: number;
 }
 
+/** How strongly a space tints the chrome; island and frame exist only in unpackaged builds (BLANC_SPACE_TINT). */
+export type SpaceTint = 'mark' | 'island' | 'frame';
+
+/** A chosen colour and symbol for a new space; main validates both. */
+export interface SpaceIdentityInput {
+  color?: string;
+  symbol?: string;
+}
+
+/** An edit to one space: any subset of name, colour and symbol. */
+export interface WorkspacePatch {
+  name?: string;
+  color?: string;
+  symbol?: string;
+}
+
 /** A Named Workspace row. */
 export interface WorkspaceListItem {
   id: WorkspaceId;
@@ -324,6 +342,10 @@ export interface WorkspaceListItem {
   resident: boolean;
   revision: number;
   tabCount: number;
+  /** Stored #rrggbb; the chrome derives the drawn ink. */
+  color: string;
+  /** A space-identity.js symbol id. */
+  symbol: string;
 }
 
 /** Named Workspaces projection, from workspacesProjection() in main.js. */
@@ -331,6 +353,9 @@ export interface WorkspacesPayload {
   status: WorkspaceSaveStatus;
   deleted: DeletedWorkspace[];
   items: WorkspaceListItem[];
+  /** This window's ordinary tabs, for the new-space editor. */
+  windowTabCount: number;
+  tint: SpaceTint;
 }
 
 /** The chrome's effective appearance; pending while a system theme is still resolving. */
@@ -431,6 +456,9 @@ export interface WorkspaceActionResult {
   status?: WorkspaceSaveStatus;
   deleted?: DeletedWorkspace[];
   items?: WorkspaceListItem[];
+  /** This window's ordinary tabs, for the new-space editor. */
+  windowTabCount?: number;
+  tint?: SpaceTint;
 }
 
 /** A search engine id. Must match the searchEngines ids in settings-schema/schema.json. */
@@ -959,7 +987,7 @@ export interface BlancBrowserAPI {
    * Save the current window as a Named Workspace.
    * IPC: invoke `chrome:workspaces-save-as`.
    */
-  saveWorkspaceAs(name: string): Promise<WorkspaceActionResult>;
+  saveWorkspaceAs(name: string, identity?: SpaceIdentityInput): Promise<WorkspaceActionResult>;
   /**
    * Open a Named Workspace.
    * IPC: invoke `chrome:workspaces-open`.
@@ -995,6 +1023,21 @@ export interface BlancBrowserAPI {
    * IPC: invoke `chrome:workspaces-move`.
    */
   moveWorkspace(id: WorkspaceId, direction: WorkspaceMoveDirection): Promise<WorkspaceActionResult>;
+  /**
+   * Rename, recolour or change the symbol of a space.
+   * IPC: invoke `chrome:workspaces-update`.
+   */
+  updateWorkspace(id: WorkspaceId, patch: WorkspacePatch): Promise<WorkspaceActionResult>;
+  /**
+   * Move a space to a position in the list.
+   * IPC: invoke `chrome:workspaces-move-to`.
+   */
+  moveWorkspaceTo(id: WorkspaceId, index: number): Promise<WorkspaceActionResult>;
+  /**
+   * Undo the delete just made: restore the space and rebind the window it left.
+   * IPC: invoke `chrome:workspaces-undo-remove`.
+   */
+  undoRemoveWorkspace(id: WorkspaceId): Promise<WorkspaceActionResult>;
   /**
    * Fetch search suggestions when enabled in Settings.
    * IPC: invoke `chrome:search-suggestions`.

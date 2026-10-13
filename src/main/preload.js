@@ -128,7 +128,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   listRemoteTabs: () => ipcRenderer.invoke('chrome:remote-tabs-list'),
   cancelWorkspaceAction: () => ipcRenderer.send('chrome:workspaces-cancel'),
   listWorkspaces: () => ipcRenderer.invoke('chrome:workspaces-list'),
-  saveWorkspaceAs: (name) => ipcRenderer.invoke('chrome:workspaces-save-as', name),
+  saveWorkspaceAs: (name, identity) => ipcRenderer.invoke('chrome:workspaces-save-as', name, identity),
   // opts: { decision?: string, newWindow?: true } — `decision` echoes the token
   // from an unsaved-scratch result (a confirmed "discard and switch");
   // `newWindow` opens elsewhere. Omitted for a plain open/create attempt.
@@ -139,6 +139,9 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   restoreWorkspace: (id) => ipcRenderer.invoke('chrome:workspaces-restore', id),
   forgetWorkspace: (id) => ipcRenderer.invoke('chrome:workspaces-forget', id),
   moveWorkspace: (id, direction) => ipcRenderer.invoke('chrome:workspaces-move', id, direction),
+  updateWorkspace: (id, patch) => ipcRenderer.invoke('chrome:workspaces-update', id, patch),
+  moveWorkspaceTo: (id, index) => ipcRenderer.invoke('chrome:workspaces-move-to', id, index),
+  undoRemoveWorkspace: (id) => ipcRenderer.invoke('chrome:workspaces-undo-remove', id),
   searchSuggestions: (query) => ipcRenderer.invoke('chrome:search-suggestions', query),
   onRemoteTabsUpdated: (callback) => {
     const listener = (_event, devices) => callback(devices);

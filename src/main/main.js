@@ -316,7 +316,7 @@ const namedWorkspaces = require('./workspaces');
 const { readArcSidebarFile, readDetectedArcSidebar, detectArcSidebar } = require('./arc-import-source');
 const { createArcImportService } = require('./arc-import');
 const { createWorkspaceController } = require('./workspace-controller');
-const { transferSession, residencyCapacity } = require('./workspace-residency');
+const { transferSession, residencyCapacity, undoRebindTarget } = require('./workspace-residency');
 const { scratchSwitchGuardResult, MAX_WORKSPACES } = require('./workspaces-model');
 
 // The SDK never loads in main. Only macOS, Windows and Linux create the lazy
@@ -5331,7 +5331,12 @@ const workspaceController = createWorkspaceController({
   checkpoint: checkpointWorkspaceSession,
   stage: stageWorkspace,
   validateCreate: (name) => namedWorkspaces.validateCreate(name),
-  create: (_r, name) => namedWorkspaces.create({ name, capture: { urls: [], groups: [], groupIds: [], pinned: [], meta: [], activeIndex: 0 } }),
+  create: (_r, name, options = {}) => namedWorkspaces.create({
+    name,
+    capture: { urls: [], groups: [], groupIds: [], pinned: [], meta: [], activeIndex: 0 },
+    color: options.color,
+    symbol: options.symbol,
+  }),
   focus(target) {
     if (!target.window || target.window.isDestroyed()) createMainWindow(target);
     if (target.window.isMinimized()) target.window.restore();
@@ -5433,13 +5438,13 @@ function scratchGuardResult(runtime) {
  * call applyWorkspaceToWindow — the window's tabs already ARE the set being
  * saved, so re-applying them would close and recreate every tab (destroying
  * any private tab in the window) just to arrive back where it started. */
-function saveCurrentWindowAsWorkspace(runtime, name) {
+function saveCurrentWindowAsWorkspace(runtime, name, identity = {}) {
   return withWindowRuntime(runtime, () => {
     // No prior NAMED selection exists yet for this window, so a private or
     // provisional active tab falls back to the first persistable tab — the
     // captureWindowEntry default (previousActiveIndex 0), exactly like
     // persistSession treats a window never yet written to session.json.
-    const result = namedWorkspaces.create({ name, capture: workspaceCapture(runtime) });
+    const result = namedWorkspaces.create({ name, capture: workspaceCapture(runtime), color: identity.color, symbol: identity.symbol });
     if (result.ok) {
       const previousWorkspaceId = runtime.workspaceId;
       runtime.workspaceId = result.workspace.id;
@@ -5540,6 +5545,10 @@ function applyWorkspaceToWindow(runtime, workspace) {
   });
 }
 
+// Which windows each delete unbound, so Undo can put them back (spec §7). Keyed
+// by profile and workspace; memory only, cleared by the Undo itself.
+const removedWorkspaceBindings = new Map();
+
 /** Remove the saved record durably before unbinding matching windows in this profile. Resident pages become a visible ordinary window so deletion cannot destroy hidden drafts. */
 function removeNamedWorkspace(id) {
   // Deleting the saved record must not destroy a hidden draft. Reveal its
@@ -5551,10 +5560,37 @@ function removeNamedWorkspace(id) {
   }
   const result = namedWorkspaces.remove(id);
   if (result.ok) {
+    const unbound = [];
     for (const runtime of windowRuntimes.all()) {
-      if (runtime.profileId === rt().profileId && runtime.workspaceId === id) runtime.workspaceId = null;
+      if (runtime.profileId === rt().profileId && runtime.workspaceId === id) {
+        runtime.workspaceId = null;
+        unbound.push(runtime.id);
+      }
     }
+    removedWorkspaceBindings.set(`${rt().profileId}:${id}`, unbound);
     flushWorkspaceSession();
+  }
+  return result;
+}
+
+/** Undo of a delete: restore the record, then rebind the window the delete
+ * unbound when it can still take it. Same commit path as save-as: bind,
+ * durably flush the session pointer (rolling back on failure), then persist so
+ * the window's live tabs autosave into the space again. */
+function undoRemoveNamedWorkspace(id) {
+  const key = `${rt().profileId}:${id}`;
+  const result = namedWorkspaces.restore(id);
+  if (!result.ok) return result;
+  const runtimeIds = removedWorkspaceBindings.get(key) ?? [];
+  removedWorkspaceBindings.delete(key);
+  const peers = windowRuntimes.all().filter((r) => r.profileId === rt().profileId);
+  const target = undoRebindTarget(runtimeIds, peers, id);
+  if (target) {
+    withWindowRuntime(target, () => {
+      target.workspaceId = id;
+      if (!flushWorkspaceSession().ok) { target.workspaceId = null; return; }
+      persistSession();
+    });
   }
   return result;
 }
@@ -7090,6 +7126,10 @@ function chromeOn(channel, handler) {
   });
 }
 
+// Dev-only comparison of how strongly a space tints the chrome (spec §11).
+// Packaged builds always draw the mark alone.
+const spaceTint = !app.isPackaged && ['island', 'frame'].includes(process.env.BLANC_SPACE_TINT) ? process.env.BLANC_SPACE_TINT : 'mark';
+
 // Workspace IPC contains presentation metadata only. Ownership is derived
 // within the requesting profile; page snapshots, URLs and views stay in main.
 function workspacesProjection() {
@@ -7104,7 +7144,12 @@ function workspacesProjection() {
       resident: workspaceOwner(rt(), workspace.id)?.resident === true,
       revision: workspace.revision,
       tabCount: workspace.urls.length,
+      color: workspace.color,
+      symbol: workspace.symbol,
     })),
+    // "This window · N tabs" in the new-space editor: what save-as would keep.
+    windowTabCount: rt().tabOrder.filter((tabId) => tabs.get(tabId) && !tabs.get(tabId).private).length,
+    tint: spaceTint,
   };
 }
 
@@ -7555,8 +7600,11 @@ function registerIpcHandlers() {
   // workspaces.json.
   chromeOn('chrome:workspaces-cancel', () => workspaceController.cancel(rt()));
   chromeHandle('chrome:workspaces-list', () => workspacesProjection());
-  chromeHandle('chrome:workspaces-save-as', (_e, name) => {
-    const result = saveCurrentWindowAsWorkspace(rt(), name);
+  chromeHandle('chrome:workspaces-save-as', (_e, name, identity) => {
+    const result = saveCurrentWindowAsWorkspace(rt(), name, {
+      color: typeof identity?.color === 'string' ? identity.color : undefined,
+      symbol: typeof identity?.symbol === 'string' ? identity.symbol : undefined,
+    });
     if (!result.ok) {
       // The workspace file and session file are separate atomic stores. If the
       // first commit landed, return the saved row with an honest partial-success
@@ -7582,7 +7630,12 @@ function registerIpcHandlers() {
     return { ...result, ...workspacesProjection() };
   });
   chromeHandle('chrome:workspaces-create-blank', (_e, name, opts) => {
-    const result = createBlankWorkspaceAndSwitch(rt(), name, { decision: typeof opts?.decision === 'string' ? opts.decision : null, newWindow: opts?.newWindow === true });
+    const result = createBlankWorkspaceAndSwitch(rt(), name, {
+      decision: typeof opts?.decision === 'string' ? opts.decision : null,
+      newWindow: opts?.newWindow === true,
+      color: typeof opts?.color === 'string' ? opts.color : undefined,
+      symbol: typeof opts?.symbol === 'string' ? opts.symbol : undefined,
+    });
     if (!result.ok) {
       if (result.workspaceId) {
         broadcastWorkspacesUpdated();
@@ -7605,6 +7658,22 @@ function registerIpcHandlers() {
     broadcastWorkspacesUpdated();
     return { ok: true, ...workspacesProjection() };
   });
+  chromeHandle('chrome:workspaces-update', (_e, id, patch) => {
+    const result = namedWorkspaces.update(id, {
+      ...(typeof patch?.name === 'string' ? { name: patch.name } : {}),
+      ...(typeof patch?.color === 'string' ? { color: patch.color } : {}),
+      ...(typeof patch?.symbol === 'string' ? { symbol: patch.symbol } : {}),
+    });
+    if (!result.ok) return result; // not-found | invalid-name | duplicate-name | invalid-color | invalid-symbol
+    broadcastWorkspacesUpdated();
+    return { ok: true, ...workspacesProjection() };
+  });
+  chromeHandle('chrome:workspaces-undo-remove', (_e, id) => {
+    const result = undoRemoveNamedWorkspace(id);
+    if (!result.ok) return result;
+    broadcastWorkspacesUpdated();
+    return { ok: true, ...workspacesProjection() };
+  });
 
   for (const [channel, operation] of [
     ['chrome:workspaces-restore', (id) => namedWorkspaces.restore(id)],
@@ -7613,6 +7682,7 @@ function registerIpcHandlers() {
       const index = namedWorkspaces.list().findIndex((w) => w.id === id);
       return namedWorkspaces.moveTo(id, index + (direction === 'up' ? -1 : 1));
     }],
+    ['chrome:workspaces-move-to', (id, index) => namedWorkspaces.moveTo(id, Number.isInteger(index) ? index : -1)],
   ]) {
     chromeHandle(channel, (_event, ...args) => {
       const result = operation(...args);
@@ -10181,6 +10251,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           workingSetKB: app.getAppMetrics().reduce((n, p) => n + (p.memory?.workingSetSize || 0), 0),
         };
         if (action === 'remove') return removeNamedWorkspace(args[0]);
+        if (action === 'undo-remove') return undoRemoveNamedWorkspace(args[0]);
+        if (action === 'update') return namedWorkspaces.update(args[0], args[1]);
         if (action === 'flush') { autosaveWorkspaceBindings(); return namedWorkspaces.flushPending(); }
         if (action === 'reset') {
           for (const r of windowRuntimes.all()) {

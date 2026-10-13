@@ -77,7 +77,7 @@
       }
     },
     "OpenWorkspaceOptions": {
-      "doc": "Options for opening or creating a workspace.",
+      "doc": "Options for opening or creating a workspace; creation also takes a colour and symbol.",
       "fields": {
         "decision": {
           "type": "string",
@@ -87,6 +87,14 @@
         "newWindow": {
           "type": "boolean",
           "doc": "Open in a new window instead of this one.",
+          "optional": true
+        },
+        "color": {
+          "type": "string",
+          "optional": true
+        },
+        "symbol": {
+          "type": "string",
           "optional": true
         }
       }
@@ -649,6 +657,40 @@
         }
       }
     },
+    "SpaceTint": {
+      "ts": "'mark' | 'island' | 'frame'",
+      "doc": "How strongly a space tints the chrome; island and frame exist only in unpackaged builds (BLANC_SPACE_TINT)."
+    },
+    "SpaceIdentityInput": {
+      "doc": "A chosen colour and symbol for a new space; main validates both.",
+      "fields": {
+        "color": {
+          "type": "string",
+          "optional": true
+        },
+        "symbol": {
+          "type": "string",
+          "optional": true
+        }
+      }
+    },
+    "WorkspacePatch": {
+      "doc": "An edit to one space: any subset of name, colour and symbol.",
+      "fields": {
+        "name": {
+          "type": "string",
+          "optional": true
+        },
+        "color": {
+          "type": "string",
+          "optional": true
+        },
+        "symbol": {
+          "type": "string",
+          "optional": true
+        }
+      }
+    },
     "WorkspaceListItem": {
       "doc": "A Named Workspace row.",
       "fields": {
@@ -674,6 +716,14 @@
         },
         "tabCount": {
           "type": "number"
+        },
+        "color": {
+          "type": "string",
+          "doc": "Stored #rrggbb; the chrome derives the drawn ink."
+        },
+        "symbol": {
+          "type": "string",
+          "doc": "A space-identity.js symbol id."
         }
       }
     },
@@ -688,6 +738,13 @@
         },
         "items": {
           "type": "WorkspaceListItem[]"
+        },
+        "windowTabCount": {
+          "type": "number",
+          "doc": "This window's ordinary tabs, for the new-space editor."
+        },
+        "tint": {
+          "type": "SpaceTint"
         }
       }
     },
@@ -880,6 +937,15 @@
         },
         "items": {
           "type": "WorkspaceListItem[]",
+          "optional": true
+        },
+        "windowTabCount": {
+          "type": "number",
+          "doc": "This window's ordinary tabs, for the new-space editor.",
+          "optional": true
+        },
+        "tint": {
+          "type": "SpaceTint",
           "optional": true
         }
       }
@@ -2141,6 +2207,11 @@
         {
           "name": "name",
           "type": "string"
+        },
+        {
+          "name": "identity",
+          "type": "SpaceIdentityInput",
+          "optional": true
         }
       ],
       "returns": "WorkspaceActionResult",
@@ -2261,6 +2332,56 @@
       ],
       "returns": "WorkspaceActionResult",
       "doc": "Move a workspace up or down in the list."
+    },
+    {
+      "name": "updateWorkspace",
+      "group": "workspaces",
+      "kind": "invoke",
+      "channel": "chrome:workspaces-update",
+      "params": [
+        {
+          "name": "id",
+          "type": "WorkspaceId"
+        },
+        {
+          "name": "patch",
+          "type": "WorkspacePatch"
+        }
+      ],
+      "returns": "WorkspaceActionResult",
+      "doc": "Rename, recolour or change the symbol of a space."
+    },
+    {
+      "name": "moveWorkspaceTo",
+      "group": "workspaces",
+      "kind": "invoke",
+      "channel": "chrome:workspaces-move-to",
+      "params": [
+        {
+          "name": "id",
+          "type": "WorkspaceId"
+        },
+        {
+          "name": "index",
+          "type": "number"
+        }
+      ],
+      "returns": "WorkspaceActionResult",
+      "doc": "Move a space to a position in the list."
+    },
+    {
+      "name": "undoRemoveWorkspace",
+      "group": "workspaces",
+      "kind": "invoke",
+      "channel": "chrome:workspaces-undo-remove",
+      "params": [
+        {
+          "name": "id",
+          "type": "WorkspaceId"
+        }
+      ],
+      "returns": "WorkspaceActionResult",
+      "doc": "Undo the delete just made: restore the space and rebind the window it left."
     },
     {
       "name": "searchSuggestions",
