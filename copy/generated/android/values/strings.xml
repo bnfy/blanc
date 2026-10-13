@@ -192,7 +192,7 @@
     <string name="fill_account_not_found_title">Account not found</string>
     <string name="fill_account_not_found_body">Check your 1Password email address in Blanc Settings, then try again.</string>
     <string name="fill_not_authorized_title">1Password didn’t authorize Blanc</string>
-    <string name="fill_not_authorized_body">Unlock 1Password and approve Blanc Browser, then try again.</string>
+    <string name="fill_not_authorized_body">Unlock 1Password and approve Blanc, then try again.</string>
     <string name="fill_session_expired_title">Authorization expired</string>
     <string name="fill_session_expired_body">Try again to authorize a fresh session.</string>
     <string name="fill_timed_out_title">1Password timed out</string>
@@ -1079,7 +1079,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_blocking_status_internal_candidate">Internal validation candidate; platform support is not certified.</string>
     <string name="settings_blocking_status_retry">Retry %1$s</string>
     <string name="settings_one_password_error_account_not_found">Account not found — check your 1Password email address and try again.</string>
-    <string name="settings_one_password_error_not_authorized">1Password didn’t authorize Blanc. Unlock 1Password, approve Blanc Browser, and try again.</string>
+    <string name="settings_one_password_error_not_authorized">1Password didn’t authorize Blanc. Unlock 1Password, approve Blanc, and try again.</string>
     <string name="settings_one_password_error_session_expired">Authorization expired — try again.</string>
     <string name="settings_one_password_error_desktop_unavailable">1Password isn’t available. Open the app and turn on Settings → Developer → Integrate with 1Password SDKs.</string>
     <string name="settings_one_password_error_unsupported_device">1Password fill isn’t available on this PC. On Windows on Arm, Blanc runs as an x64 app, and the Arm version of 1Password can’t connect to it.</string>

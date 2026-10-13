@@ -710,8 +710,8 @@
     "source": "sha256:4e2153255e18533409c8bc301abc47448cc1cc5e68926fe5c9e4fc8cd0066eca"
   },
   "fill.notAuthorized.body": {
-    "message": "Déverrouillez 1Password et approuvez Blanc Browser, puis réessayez.",
-    "source": "sha256:668b938cf7559307fc3277e6e8819163ff428539398a3ee33c4804cf6914a962"
+    "message": "Déverrouillez 1Password et approuvez Blanc, puis réessayez.",
+    "source": "sha256:e79a706a9cb681dae0e496b8f367988640f496f863ff793c5bda1f560b5feebb"
   },
   "fill.sessionExpired.title": {
     "message": "Autorisation expirée",
@@ -3922,8 +3922,8 @@
     "source": "sha256:aace494f7a80c1be0c4532e954c435f37c98c56f5fc1b6727f1b235513d60e49"
   },
   "settings.onePassword.error.notAuthorized": {
-    "message": "1Password n’a pas autorisé Blanc. Déverrouillez 1Password, approuvez Blanc Browser et réessayez.",
-    "source": "sha256:1e2caed1f09e99ce1c1555fe5698c63267105e7604d29219eb968471330af362"
+    "message": "1Password n’a pas autorisé Blanc. Déverrouillez 1Password, approuvez Blanc et réessayez.",
+    "source": "sha256:98c23af907540a5b36e1a6fc7899366e82dcab983c22299a04a4d557412708ce"
   },
   "settings.onePassword.error.sessionExpired": {
     "message": "Autorisation expirée — réessayez.",
