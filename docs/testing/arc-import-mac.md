@@ -74,8 +74,10 @@ folder. So count first, while Arc is open. In your smallest Space, note:
 - the number of web tabs: pinned tabs, tabs inside folders (including nested
   folders and split views) and Today tabs;
 - the number of top-level folders;
-- the number of web pages in the top row of Favorites (the same for every
-  Space).
+- the number of web pages in the top row of Favorites. Arc keeps a separate
+  row for each Arc profile, so a Space with its own profile shows a different
+  row. Count each profile's row, then the number of different pages across
+  all rows: Blanc imports every row into one folder without duplicates.
 
 Then quit Arc and record the file's hash:
 
