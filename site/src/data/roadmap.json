@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-12",
+  "updated": "2026-10-13",
   "stages": [
     { "id": "now", "label": "Now", "summary": "In the works" },
     { "id": "next", "label": "Next", "summary": "On the horizon" },
@@ -7,18 +7,11 @@
   ],
   "items": [
     {
-      "id": "interface-languages",
-      "stage": "now",
-      "product": "Blanc Browser",
-      "title": "Blanc in your language",
-      "line": "Choose the language of Blanc’s menus and settings. German comes first."
-    },
-    {
       "id": "1password-windows-linux",
       "stage": "now",
       "product": "Blanc Browser",
       "title": "1Password fill on Windows and Linux",
-      "line": "Built, and now being tested on real PCs before it ships."
+      "line": "Built, and being tested on real PCs before we call it ready."
     },
     {
       "id": "blanc-mail",

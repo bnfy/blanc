@@ -1,5 +1,191 @@
 [
   {
+    "tag": "v1.32.0",
+    "version": "1.32.0",
+    "name": "1.32.0",
+    "publishedAt": "2026-10-13T12:24:48.000Z",
+    "humanDate": "October 13, 2026",
+    "machineDate": "2026-10-13",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.32.0",
+    "anchor": "v1-32-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Bring your Spaces over from Arc. In "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Bring Your Tabs"
+                  },
+                  {
+                    "type": "text",
+                    "value": " (type "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/bring-tabs"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in the ⌘L or Ctrl+L panel), the new Arc option reads Arc's sidebar and brings each Space you pick, with its pinned tabs, its Today tabs and its folders, which become tab groups. With Blanc Patron, each Arc Space becomes a space in Blanc Spaces; without it, each Space opens in its own window. Tabs load only when you open them. You can also add Arc's top-row Favorites to a Favorites folder named "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Arc"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". Sign-ins, passwords, history, archived tabs, Notes and Easels stay in Arc, and Blanc only reads Arc's sidebar file without changing it. Arc never came to Linux: there, copy "
+                  },
+                  {
+                    "type": "code",
+                    "value": "StorableSidebar.json"
+                  },
+                  {
+                    "type": "text",
+                    "value": " from your Mac or PC and choose it with "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Choose file…"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc's interface is available in German, Spanish, French and Portuguese (Brazil), machine-translated. If your system uses one of these languages, Blanc now follows it (any Portuguese system gets Brazilian Portuguese); choose English or another language any time in Settings → General → Language."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Named Workspaces is now called "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Blanc Spaces"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", and each saved set of tabs is a space. Type "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/space"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in the ⌘L or Ctrl+L panel to switch to a space or save the current window as one; "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/workspace"
+                  },
+                  {
+                    "type": "text",
+                    "value": " still works. Creating spaces is still part of Blanc Patron."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "When 1Password login fill isn't set up yet, the prompt's "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Open Settings"
+                  },
+                  {
+                    "type": "text",
+                    "value": " button now opens Settings at the 1Password card instead of at the top."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc's website is now "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "blanc.day"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". Settings → Help, the About window, the welcome screen's privacy link and the update error messages point there. Older blancbrowser.com links still work."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On Windows and Linux, the keyboard shortcuts sheet showed \"Search && Commands\". It now reads \"Search & Commands\"."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Opening Blanc while it's already running, for example by opening a link from another app, now just passes the link to the open Blanc. The second launch used to keep starting up in the background on the same profile and then fail."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.31.0",
     "version": "1.31.0",
     "name": "1.31.0",

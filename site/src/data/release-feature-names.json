@@ -1,4 +1,5 @@
 {
+  "1.32.0": ["Import Spaces from Arc", "Four new interface languages"],
   "1.31.0": ["Tidier start page footer", "Centered Billboard clock", "Clearer private tab markers"],
   "1.30.0": ["Drag to reorder tabs and groups"],
   "1.29.0": ["Intel Mac builds", "uBO auto-restart"],
