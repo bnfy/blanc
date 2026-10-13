@@ -10274,8 +10274,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         return { error: 'unknown-action' };
       },
       workspaceTestAction(action, args = []) {
+        // Like their IPC handlers, these tell every chrome surface (the
+        // Island's space mark included) once they succeed.
+        const announced = (result) => { if (result?.ok) broadcastWorkspacesUpdated(); return result; };
         if (action === 'list') return workspacesProjection();
-        if (action === 'save') return saveCurrentWindowAsWorkspace(rt(), args[0]);
+        if (action === 'save') return announced(saveCurrentWindowAsWorkspace(rt(), args[0]));
         if (action === 'open') return switchWindowToWorkspace(rt(), args[0], args[1]);
         if (action === 'create') return createBlankWorkspaceAndSwitch(rt(), args[0], args[1]);
         if (action === 'fail-session-commit') {
@@ -10291,8 +10294,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           workingSetKB: app.getAppMetrics().reduce((n, p) => n + (p.memory?.workingSetSize || 0), 0),
         };
         if (action === 'remove') return removeNamedWorkspace(args[0]);
-        if (action === 'undo-remove') return undoRemoveNamedWorkspace(args[0]);
-        if (action === 'update') return namedWorkspaces.update(args[0], args[1]);
+        if (action === 'undo-remove') return announced(undoRemoveNamedWorkspace(args[0]));
+        if (action === 'update') return announced(namedWorkspaces.update(args[0], args[1]));
         if (action === 'flush') { autosaveWorkspaceBindings(); return namedWorkspaces.flushPending(); }
         if (action === 'reset') {
           for (const r of windowRuntimes.all()) {

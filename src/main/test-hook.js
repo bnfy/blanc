@@ -2087,6 +2087,53 @@ function install(refs) {
       return true;
     },
 
+    // ---- Blanc Spaces mark and menu (F41) ----
+    spaceMarkState(windowId) {
+      const read = () => {
+        const wc = getChromeWebContents();
+        if (!wc) return null;
+        return wc.executeJavaScript(`(() => {
+          const mark = document.getElementById('pillSpace');
+          if (!mark) return null;
+          const rect = mark.getBoundingClientRect();
+          const parts = [document.getElementById('pillSpaceSymbol'), document.getElementById('pillSpaceName')];
+          return {
+            hidden: mark.hidden,
+            state: mark.dataset.state,
+            name: parts[1].textContent,
+            label: mark.getAttribute('aria-label'),
+            expanded: mark.getAttribute('aria-expanded'),
+            ink: mark.style.getPropertyValue('--space-ink'),
+            symbol: parts[0].dataset.symbol ?? null,
+            left: rect.left,
+            bottom: rect.bottom,
+            islandBottom: document.getElementById('islandPill').getBoundingClientRect().bottom,
+            animatedProperties: [...new Set(parts.flatMap((p) => p.getAnimations()).flatMap((a) => a.effect.getKeyframes().flatMap((k) => Object.keys(k))))],
+          };
+        })()`);
+      };
+      return windowId ? refs.runInWindowRuntime(String(windowId), read) : read();
+    },
+    clickPillSpace() {
+      const wc = getChromeWebContents();
+      if (!wc) throw new Error('chrome webContents unavailable');
+      return wc.executeJavaScript(`document.getElementById('pillSpace').click()`);
+    },
+    pressOverlayKey(keyCode, modifiers = []) {
+      const wc = getOverlayWebContents();
+      if (!wc) throw new Error('overlay is not open');
+      wc.sendInputEvent({ type: 'keyDown', keyCode, modifiers });
+      wc.sendInputEvent({ type: 'keyUp', keyCode, modifiers });
+      return true;
+    },
+    async emulateReducedMotion(on) {
+      for (const wc of [getChromeWebContents(), getOverlayWebContents()].filter(Boolean)) {
+        if (!wc.debugger.isAttached()) wc.debugger.attach('1.3');
+        await wc.debugger.sendCommand('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: on ? 'reduce' : '' }] });
+      }
+      return true;
+    },
+
     setSupporterActive() { settings.setPatron({ kind: 'founding', key: 'test', activationId: 'test', benefitId: null, activatedAt: 0 }); },
 
     // ---- address-bar context menu (F19-2/F19-3) ----
