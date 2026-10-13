@@ -2,7 +2,7 @@
   "publicRelease": "v1.32.0",
   "sourceSha": "e68974129859d34dfca9fa0d3f2947a7abfd7499",
   "releaseEvidence": "docs/release-incidents/2026-10-13-v1.32.0.md",
-  "scope": "Website copy for the features public v1.32.0 shipped (October 13, 2026): the Arc Spaces import in Bring Your Tabs, the German, Spanish, French and Portuguese (Brazil) interfaces, and the /space command. Every evidence path is at the immutable publicRelease tag. Retired wording is recorded as supersededClaims in docs/website-revamp-claims-v1.27.json, and changes to retained feature pages as reviewedCopyUpdates there.",
+  "scope": "Website copy for the features public v1.32.0 shipped (October 13, 2026): the Arc Spaces import in Bring Your Tabs, the German, Spanish, French and Portuguese (Brazil) interfaces, and the /space command. Every evidence path is at the immutable publicRelease tag. Retired wording is recorded as supersededClaims in docs/website-revamp-claims-v1.27.json, and changes to retained feature pages as reviewedCopyUpdates there. Later the same day the Features board folded its Arc Spaces tile into the import tile; the claims that tile carried are in supersededClaims.",
   "prohibitedClaims": [
     "Arc import as account sync, a live Arc connection, or an import of sign-ins, passwords, cookies or history",
     "hands-on Arc import verification on Intel Macs or x64 Windows",
@@ -180,9 +180,31 @@
       "verdict": "qualified"
     },
     {
-      "id": "site-132-features-01",
+      "id": "site-132-features-10",
       "source": "site/src/pages/features.astro",
-      "exactWording": "Bring your Arc Spaces",
+      "exactWording": "Import bookmarks and Arc Spaces",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "importing",
+        "arcImport"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-132-features-11",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Bring your bookmarks and Arc Spaces with you.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "importing",
+        "arcImport"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-132-features-12",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Coming from Arc? Choose Arc in Bring Your Tabs to bring your Spaces over, with folders as tab groups. Sign-ins, passwords and history stay in Arc.",
       "subject": "Blanc",
       "evidenceGroups": [
         "arcImport"
@@ -196,36 +218,6 @@
       "subject": "Blanc",
       "evidenceGroups": [
         "interfaceLanguages"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "site-132-features-03",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "Bring your Spaces over from Arc.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "arcImport"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "site-132-features-04",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "In Bring Your Tabs, choose Arc and pick your Spaces. Their pinned tabs and Today tabs come across, and their folders become tab groups. With Blanc Patron, each Space becomes a space; without it, each opens in its own window.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "arcImport"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "site-132-features-05",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "Sign-ins, passwords and history stay in Arc.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "arcImport"
       ],
       "verdict": "qualified"
     },
@@ -402,6 +394,52 @@
         "arcImport"
       ],
       "verdict": "qualified"
+    }
+  ],
+  "supersededClaims": [
+    {
+      "id": "site-132-features-01",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Bring your Arc Spaces",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport"
+      ],
+      "verdict": "qualified",
+      "reason": "October 13, 2026: the Features board folds its separate Arc Spaces tile into the import tile, so one tile and popover cover bookmarks and Arc Spaces. The replacement wording is recorded in docs/website-v1.32-claims.json; the original remains in git history."
+    },
+    {
+      "id": "site-132-features-03",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Bring your Spaces over from Arc.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport"
+      ],
+      "verdict": "qualified",
+      "reason": "October 13, 2026: the Features board folds its separate Arc Spaces tile into the import tile, so one tile and popover cover bookmarks and Arc Spaces. The replacement wording is recorded in docs/website-v1.32-claims.json; the original remains in git history."
+    },
+    {
+      "id": "site-132-features-04",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "In Bring Your Tabs, choose Arc and pick your Spaces. Their pinned tabs and Today tabs come across, and their folders become tab groups. With Blanc Patron, each Space becomes a space; without it, each opens in its own window.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport"
+      ],
+      "verdict": "qualified",
+      "reason": "October 13, 2026: the Features board folds its separate Arc Spaces tile into the import tile, so one tile and popover cover bookmarks and Arc Spaces. The replacement wording is recorded in docs/website-v1.32-claims.json; the original remains in git history."
+    },
+    {
+      "id": "site-132-features-05",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Sign-ins, passwords and history stay in Arc.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport"
+      ],
+      "verdict": "qualified",
+      "reason": "October 13, 2026: the Features board folds its separate Arc Spaces tile into the import tile, so one tile and popover cover bookmarks and Arc Spaces. The replacement wording is recorded in docs/website-v1.32-claims.json; the original remains in git history."
     }
   ]
 }
