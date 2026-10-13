@@ -2,6 +2,18 @@
 
 This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
+**Mail/Suite licensing (October 13, 2026 owner correction):** Customers must
+keep the exact Browser key across monthly ↔ annual billing changes, including
+existing Patron customers. Keep one key per app. The current separate Monthly
+and Annual benefits do not satisfy this; do not replace a benefit in a way that
+revokes existing keys or open Mail/Suite checkout before continuity is tested.
+See `docs/polar-mail-suite-sandbox.md` for purchase evidence and migration gates. The owner subsequently confirmed both production Monthly subscriptions are
+theirs and approved replacing only those keys. Production now retains
+`ed1cce8c` as the shared Browser benefit; Kiren's complete key is unchanged.
+Future billing-period changes must keep that shared key. Do not delete retired
+benefits while public builds still reference them or open checkout before the
+remaining acceptance/release gates pass.
+
 ## What this is
 
 Blanc — a minimal Electron browser shell: custom-drawn "Island" chrome (a single floating command pill replacing the traditional tab strip + toolbar, per the Bowser Design System's Island Chrome handoff) with ad/tracker blocking wired in at the network layer, independent of Chrome's extension store and Manifest V3's `declarativeNetRequest` limits. Plus favorites, history, downloads, settings, slash commands, a Quick Switcher, private tabs, an explicit permission policy, and packaging config.
