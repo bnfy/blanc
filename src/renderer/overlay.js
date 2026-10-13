@@ -178,15 +178,18 @@
   let wsWorkspaces = [];
   let workspaceSwitcherOpen = false;
   let pendingPostImportWorkspacePrompt = false;
+  // The theme space colours are drawn for: the private chrome is its own surface.
+  function spaceTheme() {
+    if (document.documentElement.dataset.theme === 'private') return 'private';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
   const workspaceUI = WorkspaceUI.create({
     document, window, api: window.browserAPI,
     popup: workspaceSwitcher, list: workspaceSwitcherList,
     commands: document.getElementById('workspaceSwitcherCommands'),
     trigger: footerWorkspace,
     feedback: document.getElementById('workspaceFeedback'),
-    // Task 9 moves this into a shared spaceTheme() for the Quick Switcher too.
-    theme: () => (document.documentElement.dataset.theme === 'private' ? 'private'
-      : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'),
+    theme: spaceTheme,
     placement: () => (mode === 'spaces' ? 'view' : 'anchored'),
     onOpenChange(open) {
       workspaceSwitcherOpen = open; window.browserAPI.setWorkspaceSwitcherOpen(open);
@@ -720,6 +723,7 @@
     history: blancI18n.t('result.tag.history'),
     group: blancI18n.t('result.tag.group'),
     remote: blancI18n.t('result.tag.remote'),
+    space: blancI18n.t('result.tag.space'),
   };
 
   /** Named-group band: present --surface tint behind header + member tabs.
@@ -1178,6 +1182,13 @@
 
   function switcherResults(query) {
     const results = [];
+    // Spaces rank with groups: typing a space's name switches to it. The
+    // current space is already here, so it never appears.
+    for (const w of wsWorkspaces) {
+      if (w.active) continue;
+      const s = matchScore(query, w.name);
+      if (s) results.push({ kind: 'space', title: w.name, sub: blancI18n.t('result.groupCount', { count: w.tabCount }), workspace: w, score: s + 0.3 });
+    }
     // Group names rank above their member tabs — "wor" jumps to the whole
     // work cluster, not one tab in it.
     for (const g of state.groups) {
@@ -1224,7 +1235,7 @@
     return results
       .sort((a, b) => b.score - a.score)
       .filter((r) => {
-        const key = r.kind === 'tab' ? `tab:${r.tab.id}` : r.kind === 'group' ? `group:${r.group.id}` : r.url;
+        const key = r.kind === 'tab' ? `tab:${r.tab.id}` : r.kind === 'group' ? `group:${r.group.id}` : r.kind === 'space' ? `space:${r.workspace.id}` : r.url;
         if (seen.has(key)) return false;
         seen.add(key);
         return true;
@@ -1291,12 +1302,16 @@
   function resultKey(result) {
     if (!result) return '';
     if (result.kind === 'group') return `group:${result.group.id}`;
+    if (result.kind === 'space') return `space:${result.workspace.id}`;
     if (result.kind === 'tab') return `tab:${result.tab.id}`;
     if (result.kind === 'search') return `search:${result.query.toLowerCase()}`;
     return `${result.kind}:${result.url}`;
   }
 
   function pickResult(result) {
+    // The Spaces menu closes the overlay itself after a switch, and keeps it
+    // open when switching must first ask about this window's tabs.
+    if (result.kind === 'space') { workspaceUI.switchTo(result.workspace); return; }
     if (result.kind === 'group') window.browserAPI.focusGroup(result.group.id);
     else if (result.kind === 'tab') window.browserAPI.switchTab(result.tab.id);
     else if (result.kind === 'remote') window.browserAPI.createTab(result.url, { focusAddress: false });
@@ -1317,7 +1332,9 @@
     // search completions use a magnifier; every page-like result keeps the
     // shared favicon treatment.
     let leading;
-    if (result.kind === 'group') {
+    if (result.kind === 'space') {
+      leading = WorkspaceUI.makeTile(document, result.workspace, spaceTheme(), 'ws-tile row-space-tile');
+    } else if (result.kind === 'group') {
       leading = document.createElement('span');
       leading.className = 'row-group-mark';
       leading.innerHTML = CARET;
@@ -1344,7 +1361,7 @@
     sub.className = 'row-sub';
     sub.textContent = result.sub || '';
     // Domains, URLs and device names are data; a group's tab count is not.
-    if (result.kind !== 'group') sub.dataset.i18nIgnore = '';
+    if (result.kind !== 'group' && result.kind !== 'space') sub.dataset.i18nIgnore = '';
 
     const tag = document.createElement('span');
     tag.className = 'row-tag';
