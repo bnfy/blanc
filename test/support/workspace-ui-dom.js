@@ -1,6 +1,6 @@
 'use strict';
 const { create } = require('../../src/renderer/workspace-ui');
-function harness(apiOverrides = {}, payload = {}) {
+function harness(apiOverrides = {}, payload = {}, options = {}) {
   let active;
   const ids = new Map();
   class Element {
@@ -57,7 +57,7 @@ function harness(apiOverrides = {}, payload = {}) {
     moveWorkspaceTo: async (...args) => { calls.push(['move', ...args]); return { ok: true }; },
     ...apiOverrides,
   };
-  const ui = create({ document: doc, window: { innerHeight: 600, innerWidth: 800, addEventListener() {} }, api, popup, list, commands, trigger, feedback, onOpenChange() {} });
+  const ui = create({ document: doc, window: { innerHeight: 600, innerWidth: 800, addEventListener() {} }, api, popup, list, commands, trigger, feedback, onOpenChange() {}, ...options });
   ui.apply({ items: [{ id: 'a', name: 'First', active: true, tabCount: 1, color: '#426c4c', symbol: 'briefcase' }], deleted: [], status: 'saved', windowTabCount: 3, ...payload });
   const buttons = () => popup.querySelectorAll('button');
   const button = (text) => buttons().find((b) => b.textContent === text);

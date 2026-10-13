@@ -7550,6 +7550,9 @@ function registerIpcHandlers() {
   // focus returns to the mark.
   chromeOn('chrome:open-spaces', (_e, anchor) => {
     if (rt().overlayMode === 'spaces') return hideOverlay({ refocusContent: false }); // re-click toggles shut
+    // A press that began on the open menu has already closed it (the overlay's
+    // blur); its click must not open it again.
+    if (anchor?.closing === true) return;
     setSpacesAnchor(anchor);
     showOverlay('spaces');
   });

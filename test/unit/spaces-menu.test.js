@@ -434,3 +434,9 @@ test('closing while the menu is still reshaping ends the reshape, so the close c
   assert.equal(h.popup.hidden, true);
   assert.equal(h.popup.classList.contains('morphing'), false, 'the height-only transition is gone before the menu hides');
 });
+
+test('opened from the space mark, the menu stops short of the view bottom, so its shadow is never cut', () => {
+  const h = harness({}, TWO, { placement: () => 'view' }); h.ui.open();
+  // 600px view: 16px above the menu (SPACES_MENU_PAD), 44px below for the shadow.
+  assert.equal(h.popup.props['--ws-max-height'], '540px');
+});

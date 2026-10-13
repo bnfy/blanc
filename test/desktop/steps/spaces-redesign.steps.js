@@ -8,6 +8,8 @@ const { After, Given, When, Then } = require('@cucumber/cucumber');
 const { overlayPage } = require('../support/overlay');
 const { openOverlaySurface, waitForValue } = require('../support/poll');
 const SpaceIdentity = require('../../../src/renderer/space-identity');
+const { SPACES_MENU_PAD, SPACES_MENU_SIDE } = require('../../../src/main/chrome-layout');
+const { chromePage } = require('../support/tab-drag');
 
 async function saveSpace(world, name, identity) {
   const saved = await world.call('workspaceAction', 'save', name);
@@ -103,6 +105,19 @@ When('I close the Spaces menu and click the mark again before it has faded', asy
   await waitForValue(() => this.call('spacesMenuExitState'), (f) => f.mode == null && f.showing, 'the menu to start fading');
   await this.call('clickPillSpace');
 });
+// A real press on the mark moves OS focus to the strip, and the overlay's
+// blur closes the menu before the click arrives. Acceptance turns blur
+// dismissal off (main.js), so the step performs that close itself, in the
+// same order a mouse does: press, blur close, then the click.
+When('I press the space mark with the pointer, which takes focus from the menu', async function () {
+  await menu();
+  await waitForValue(() => this.call('spaceMarkState'), (m) => m?.expanded === 'true', 'the mark to show its menu open');
+  const strip = await chromePage();
+  await strip.evaluate(() => document.getElementById('pillSpace').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0, pointerType: 'mouse' })));
+  await this.call('closeOverlay');
+  await waitForValue(() => this.call('spaceMarkState'), (m) => m?.expanded === 'false', 'the blur close to reach the strip');
+  await strip.evaluate(() => document.getElementById('pillSpace').click());
+});
 When('I switch to {string} from the Spaces menu', async function (name) {
   await this.call('clickPillSpace');
   const page = await menu(); const space = await spaceByName(this, name);
@@ -142,7 +157,7 @@ Then('the Spaces menu opens directly below the mark', async function () {
   // the menu as the pill reports its new position.
   const { bounds, m } = await waitForValue(
     async () => ({ bounds: await this.call('overlayBounds'), m: await this.call('spaceMarkState') }),
-    ({ bounds: b, m: s }) => !!b && !!s && Math.abs(b.x - Math.max(0, Math.round(s.left - 16))) <= 1,
+    ({ bounds: b, m: s }) => !!b && !!s && Math.abs(b.x + SPACES_MENU_SIDE - Math.round(s.left)) <= 1,
     'the menu to line up under the mark',
   );
   assert.equal(m.expanded, 'true');
@@ -173,9 +188,10 @@ async function closingFrames(world) {
   }
   const fading = frames.filter((f) => f.mode == null && f.showing && f.hidden && f.display !== 'none');
   assert.ok(fading.length > 0, `the menu is still drawn after the overlay closes: ${JSON.stringify(frames)}`);
-  // Opened from the mark it sits 16px into its view (styles.css); it must not
-  // jump back to the panel's placement as it goes.
-  for (const f of fading) assert.deepEqual([f.top, f.left], ['16px', '16px'], `the menu fades where it opened: ${JSON.stringify(f)}`);
+  // Opened from the mark it sits SPACES_MENU_SIDE in from its view's left and
+  // SPACES_MENU_PAD down (styles.css); it must not jump back to the panel's
+  // placement as it goes.
+  for (const f of fading) assert.deepEqual([f.top, f.left], [`${SPACES_MENU_PAD}px`, `${SPACES_MENU_SIDE}px`], `the menu fades where it opened: ${JSON.stringify(f)}`);
   await waitForValue(() => world.call('spacesMenuExitState'), (f) => f.display === 'none' && f.closing === '', 'the menu to finish closing');
   return fading;
 }
@@ -186,13 +202,18 @@ Then('the Spaces menu fades out without moving', async function () {
   const fading = await closingFrames(this);
   for (const f of fading) assert.equal(f.transform, 'none', `only opacity changes: ${JSON.stringify(f)}`);
 });
+Then('the Spaces menu is closed and stays closed', async function () {
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  assert.equal(await this.call('overlayMode'), null, 'the click must not reopen the menu');
+  assert.equal((await this.call('spaceMarkState')).expanded, 'false');
+});
 Then('the Spaces menu stays open below the mark', async function () {
   await waitForValue(() => this.call('spacesMenuExitState'), (f) => f.mode === 'spaces', 'the menu to reopen');
   // Past the old fade's end: its timers must not take the reopened menu away.
   await new Promise((resolve) => setTimeout(resolve, 500));
   const f = await this.call('spacesMenuExitState');
   assert.deepEqual({ mode: f.mode, showing: f.showing, hidden: f.hidden, closing: f.closing, top: f.top, left: f.left },
-    { mode: 'spaces', showing: true, hidden: false, closing: '', top: '16px', left: '16px' });
+    { mode: 'spaces', showing: true, hidden: false, closing: '', top: `${SPACES_MENU_PAD}px`, left: `${SPACES_MENU_SIDE}px` });
   assert.equal(f.opacity, 1);
 });
 Then('the space {string} is saved with the color {string}', async function (name, color) {

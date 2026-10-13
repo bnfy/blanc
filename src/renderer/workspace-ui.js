@@ -111,7 +111,8 @@
       if (!opened) return;
       if (placement() !== 'anchored') { // the 'spaces' overlay view is sized to the menu; CSS places it
         delete popup.dataset.side;
-        popup.style.setProperty('--ws-max-height', `${Math.max(100, win.innerHeight - 16)}px`);
+        // 16px of the view above the menu, and 44px below it for its shadow.
+        popup.style.setProperty('--ws-max-height', `${Math.max(100, win.innerHeight - 16 - 44)}px`);
         return;
       }
       const anchor = trigger.getBoundingClientRect();

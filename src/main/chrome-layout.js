@@ -194,25 +194,30 @@ function calculateCaptureBounds({ windowWidth, stripHeight, anchorRight, rowCoun
 }
 
 // The 'spaces' overlay: the Spaces menu (300px) opened from the Island's
-// space mark. The view starts SPACES_MENU_PAD left of and above the menu so
-// its shadow and its opening scale (it grows out of the mark) are never
-// clipped by the view's edge; SPACES_MENU_GAP separates the menu from the mark.
+// space mark. The view reaches SPACES_MENU_SIDE past the menu's sides, where
+// its shadow (--shadow-popover, a 44px blur) has faded out, so the view's edge
+// never cuts it; above, only SPACES_MENU_PAD, so the view covers no more of
+// the Island. SPACES_MENU_GAP separates the menu from the mark. styles.css
+// places the menu at (SPACES_MENU_SIDE, SPACES_MENU_PAD) inside the view.
 const SPACES_MENU_WIDTH = 300;
 const SPACES_MENU_PAD = 16;
+const SPACES_MENU_SIDE = 44;
 const SPACES_MENU_GAP = 6;
 const SPACES_MENU_MAX_HEIGHT = 640;
 
 /**
  * Bounds for the 'spaces' overlay mode: the menu's left edge under the mark,
- * just below it, clamped inside the window.
+ * just below it. The menu is kept inside the window; its shadow room may run
+ * past the window's edge, so a mark near either edge still lines up.
  * @param {{windowWidth: number, windowHeight: number, stripHeight: number, anchorLeft?: number|null, anchorBottom?: number|null}} input
  */
 function calculateSpacesBounds({ windowWidth, windowHeight, stripHeight, anchorLeft, anchorBottom }) {
   const winWidth = dimension(windowWidth);
   const winHeight = dimension(windowHeight);
-  const width = Math.min(SPACES_MENU_WIDTH + SPACES_MENU_PAD * 2, winWidth);
-  const left = Number.isFinite(anchorLeft) ? anchorLeft - SPACES_MENU_PAD : (winWidth - width) / 2;
-  const x = Math.round(Math.max(0, Math.min(left, winWidth - width)));
+  if (!winWidth) return { x: 0, y: 0, width: 0, height: 0 };
+  const width = SPACES_MENU_WIDTH + SPACES_MENU_SIDE * 2;
+  const wanted = Number.isFinite(anchorLeft) ? anchorLeft : (winWidth - SPACES_MENU_WIDTH) / 2;
+  const x = Math.round(Math.max(0, Math.min(wanted, winWidth - SPACES_MENU_WIDTH))) - SPACES_MENU_SIDE;
   const below = Number.isFinite(anchorBottom) ? Math.min(anchorBottom, dimension(stripHeight)) : dimension(stripHeight);
   const y = Math.max(0, Math.round(below + SPACES_MENU_GAP - SPACES_MENU_PAD));
   const height = Math.max(0, Math.min(SPACES_MENU_MAX_HEIGHT, winHeight - y));
@@ -239,6 +244,7 @@ module.exports = {
   calculateCaptureBounds,
   SPACES_MENU_WIDTH,
   SPACES_MENU_PAD,
+  SPACES_MENU_SIDE,
   SPACES_MENU_GAP,
   SPACES_MENU_MAX_HEIGHT,
   calculateSpacesBounds,

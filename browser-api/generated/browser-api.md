@@ -858,6 +858,7 @@ Where the Spaces menu opens: the space mark's left and bottom edges in window co
 | --- | --- | --- |
 | `left` | `number` |  |
 | `bottom` | `number` |  |
+| `closing?` | `boolean` | The click ends a press that began while the menu was open; that press already closed it, so main does not reopen it. |
 
 ### `ShieldAnchor`
 

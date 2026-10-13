@@ -3365,7 +3365,8 @@ body.fill-status-surface { background: transparent; }
 /* Alone in the 'spaces' view it hangs from the Island's mark, grows down out
    of it and, closing (data-closing, while main still holds the view), fades
    back up into it from the same place. */
-body:is([data-mode="spaces"], [data-closing="spaces"]) #workspaceSwitcher.ws-switcher { top: 16px; left: 16px; right: auto; bottom: auto; --ws-origin: 22px -6px; }
+/* (SPACES_MENU_SIDE, SPACES_MENU_PAD) in chrome-layout.js: room for the shadow. */
+body:is([data-mode="spaces"], [data-closing="spaces"]) #workspaceSwitcher.ws-switcher { top: 16px; left: 44px; right: auto; bottom: auto; --ws-origin: 22px -6px; }
 body:is([data-mode="spaces"], [data-closing="spaces"]) #workspaceSwitcher.ws-switcher[hidden] { transform: scale(.92) translateY(-6px); }
 @starting-style {
   body[data-mode="spaces"] #workspaceSwitcher.ws-switcher:not([hidden]) { opacity: 0; transform: scale(.92) translateY(-6px); }

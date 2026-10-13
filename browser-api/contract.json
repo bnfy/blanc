@@ -1186,6 +1186,11 @@
         },
         "bottom": {
           "type": "number"
+        },
+        "closing": {
+          "type": "boolean",
+          "optional": true,
+          "doc": "The click ends a press that began while the menu was open; that press already closed it, so main does not reopen it."
         }
       }
     },

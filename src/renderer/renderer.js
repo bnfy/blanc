@@ -743,10 +743,16 @@
   window.browserAPI.listWorkspaces().then(applySpaces, () => {});
   window.browserAPI.onWorkspacesUpdated(applySpaces);
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', renderSpaceMark);
+  // Pressing the mark while its menu is open closes the menu: the press takes
+  // focus from the overlay, whose blur closes it before the click arrives. The
+  // click then says so, and main never reopens it (a blink).
+  let pressedWhileOpen = false;
+  pillSpace.addEventListener('pointerdown', () => { pressedWhileOpen = pillSpace.getAttribute('aria-expanded') === 'true'; });
   pillSpace.addEventListener('mousedown', (e) => e.preventDefault());
   pillSpace.addEventListener('click', (e) => {
     e.stopPropagation(); // the pill's own click opens the ⌘L panel
-    window.browserAPI.openSpacesMenu(spacesAnchor());
+    const closing = pressedWhileOpen; pressedWhileOpen = false;
+    window.browserAPI.openSpacesMenu({ ...spacesAnchor(), closing });
   });
 
   function render() {

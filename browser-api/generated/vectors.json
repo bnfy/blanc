@@ -1504,7 +1504,8 @@
               },
               "spacesAnchor": {
                 "left": 1,
-                "bottom": 1
+                "bottom": 1,
+                "closing": true
               }
             }
           ],
@@ -1526,7 +1527,8 @@
                   },
                   "spacesAnchor": {
                     "left": 1,
-                    "bottom": 1
+                    "bottom": 1,
+                    "closing": true
                   }
                 }
               ]
@@ -2178,6 +2180,29 @@
                 {
                   "left": 1,
                   "bottom": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "anchor = {\"left\":1,\"bottom\":1,\"closing\":true}",
+          "args": [
+            {
+              "left": 1,
+              "bottom": 1,
+              "closing": true
+            }
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:open-spaces",
+              "args": [
+                {
+                  "left": 1,
+                  "bottom": 1,
+                  "closing": true
                 }
               ]
             }

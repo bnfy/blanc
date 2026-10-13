@@ -583,6 +583,8 @@ export interface IslandRectReport {
 export interface SpacesAnchor {
   left: number;
   bottom: number;
+  /** The click ends a press that began while the menu was open; that press already closed it, so main does not reopen it. */
+  closing?: boolean;
 }
 
 /** Where the shield popover opens, from the strip control that opened it. Main validates the coordinates against the window. */

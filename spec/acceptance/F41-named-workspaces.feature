@@ -189,3 +189,10 @@ Feature: Named workspace preservation and recovery
     When I open the Spaces menu from the space mark
     And I close the Spaces menu and click the mark again before it has faded
     Then the Spaces menu stays open below the mark
+
+  @F41-30
+  Scenario: Clicking the mark while its menu is open closes it without reopening
+    Given a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
+    When I open the Spaces menu from the space mark
+    And I press the space mark with the pointer, which takes focus from the menu
+    Then the Spaces menu is closed and stays closed
