@@ -9,7 +9,7 @@ The full support scope and duration are in [SUPPORT.md](SUPPORT.md).
 
 ## Report a vulnerability
 
-Email `support@blancbrowser.com` with **Security** in the subject. Please
+Email `support@blanc.day` with **Security** in the subject. Please
 include the affected Blanc version and platform, reproduction steps, impact,
 and any proof-of-concept material that can be shared safely. If an attachment
 contains sensitive material, describe it first and wait for a protected
@@ -53,10 +53,10 @@ controls, and residual risks are maintained in the
 ## Scope and safe harbor
 
 Good-faith research against Blanc itself, Blanc-owned workers, and
-blancbrowser.com is welcome when it avoids privacy violations, service
-disruption, persistence, social engineering, and access to data that is not
-your own. Use test accounts and the minimum proof needed. Stop and report if
-you encounter third-party data.
+blanc.day (including the former blancbrowser.com) is welcome when it avoids
+privacy violations, service disruption, persistence, social engineering, and
+access to data that is not your own. Use test accounts and the minimum proof
+needed. Stop and report if you encounter third-party data.
 
 We will not pursue legal action or request law-enforcement investigation for
 research that follows this policy, and we consider accidental, good-faith

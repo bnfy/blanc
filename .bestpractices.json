@@ -34,7 +34,7 @@
   "osps_vm_01_01_status": "Met",
   "osps_vm_01_01_justification": "SECURITY.md defines coordinated private reporting, two-day acknowledgement and five-day assessment targets, severity-based remediation targets, disclosure coordination, and safe harbor: https://github.com/bnfy/blanc/blob/main/SECURITY.md",
   "osps_vm_03_01_status": "Met",
-  "osps_vm_03_01_justification": "Security researchers can report privately to support@blancbrowser.com with Security in the subject under https://github.com/bnfy/blanc/blob/main/SECURITY.md",
+  "osps_vm_03_01_justification": "Security researchers can report privately to support@blanc.day with Security in the subject under https://github.com/bnfy/blanc/blob/main/SECURITY.md",
   "osps_vm_04_01_status": "Met",
   "osps_vm_04_01_justification": "Confirmed vulnerabilities are published through GitHub Security Advisories and linked or summarized in release notes with affected/fixed versions, impact, and update guidance. Earlier findings are public in the assessment. Policy: https://github.com/bnfy/blanc/blob/main/SECURITY.md#public-vulnerability-record",
   "osps_ac_04_02_status": "Met",

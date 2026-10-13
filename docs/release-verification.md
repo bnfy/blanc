@@ -24,7 +24,7 @@ export BLANC_COSIGN_OIDC_ISSUER='https://github.com/login/oauth'
 These are the authorized values (chosen 2026-08-12): the release operator
 signs in with the `bnfy` GitHub account, whose primary verified email is
 `anthony@bnfy.me`. The same pair is published on the Blanc security page
-(https://blancbrowser.com/features/security) so verifiers can pin it
+(https://blanc.day/features/security) so verifiers can pin it
 independently of any release. If the pair ever changes, update the security
 page and this document in the same change, and note the rotation in the next
 release's notes. Verify the publication from a clean machine before the next

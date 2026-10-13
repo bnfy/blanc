@@ -46,7 +46,7 @@ EasyList, and 1Password, belong to their owners. See
   or support for Blanc, when that's true and doesn't suggest you're official.
 - **Sharing official releases unchanged.** You may mirror or deploy the exact
   files we publish on [GitHub](https://github.com/bnfy/blanc/releases) and
-  [blancbrowser.com](https://blancbrowser.com) under the Blanc name, free of
+  [blanc.day](https://blanc.day) under the Blanc name, free of
   charge.
 - **Building Blanc for yourself.** You can build and use it privately or
   inside your organization without renaming it, as long as you don't
@@ -159,7 +159,7 @@ Blanc. Don't use the name to endorse or identify your own product.
 
 ## Questions and reports
 
-Email [support@blancbrowser.com](mailto:support@blancbrowser.com) with
+Email [support@blanc.day](mailto:support@blanc.day) with
 "Trademark" in the subject line. That covers permission requests and
 packaging questions. To report a misuse, include a link to it and a short
 description.

@@ -6,7 +6,7 @@ body:
     attributes:
       value: |
         This report is public. For URLs or examples containing private information,
-        email support@blancbrowser.com instead. Please remove account tokens from
+        email support@blanc.day instead. Please remove account tokens from
         shared URLs and personal information from screenshots.
   - type: input
     id: page-url

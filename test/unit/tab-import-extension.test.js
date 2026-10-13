@@ -131,7 +131,7 @@ test('companion upload sends only the encrypted envelope and returns a fragment 
   });
   assert.equal(request.url, `https://tabs.blancbrowser.com/v1/handoffs/${encrypted.id}`);
   assert.deepEqual(JSON.parse(request.init.body), encrypted.envelope);
-  assert.equal(launch, `https://blancbrowser.com/import-tabs/#v=1&id=${encrypted.id}&key=${encrypted.key}`);
+  assert.equal(launch, `https://blanc.day/import-tabs/#v=1&id=${encrypted.id}&key=${encrypted.key}`);
 });
 
 test('companion upload exposes actionable clock/expiry failure', async () => {
