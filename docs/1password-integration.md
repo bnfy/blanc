@@ -345,12 +345,11 @@ Hello.
   - #733: with several matching logins, the picker's parallel item reads
     failed with `IPC operation failed: -2`, shown as "1Password isn't
     available". Five matches failed every time.
-- **Open:**
-  - #735: 1Password re-asks to approve Blanc several times during one fill.
-    After an approval, the next call can wait 6–20 s and fail with
-    `invalid client id`. The broker's stale-client retry usually recovers.
-    Plain x64 Node in the same VM was approved once and never re-prompted.
-    The owner decides whether it blocks a Windows release.
+- **Closed as a test artifact:**
+  - #735: in the diagnostic build, 1Password re-asked to approve Blanc several
+    times during one fill. After an approval, the next call could wait
+    6–20 s and fail with `invalid client id`. The cause was the diagnostic
+    tracing, not Blanc or 1Password (see *#735 resolved* below).
 - **Observed, not filed:**
   - After another window took focus, the picker reopened on return once but
     not in two other tries (#700's reopen check reads window focus as the menu
@@ -380,14 +379,42 @@ Missing evidence:
    - key repeat, AltGr, screen reader, and permission precedence.
 
 Risk:
-- #733 and #735 showed up only on Windows. Problems that emulation hides or
-  causes, including whether #735 affects real PCs, stay unknown until Windows
-  users report them.
+- #733 showed up only on Windows. Other problems that emulation hides or
+  causes stay unknown until Windows users report them. (#735 turned out to be
+  a test artifact; see below.)
 - AppImage-specific problems on x64 Linux, such as library paths or the
   sandbox, are likewise unseen.
 
 Release notes and marketing claims for Windows or Linux 1Password fill must
 stay within this evidence (`docs/marketing-claims.md`).
+
+### #735 resolved and Windows back on — 2026-10-13
+
+On October 12 the owner turned Windows fill off over #735 (PR #742), then
+asked for Windows to be fixed and shipped as soon as possible. Narrowing it in
+the Windows 11 on Arm VM, with Arm64 1Password and Arm64 Node so nothing was
+emulated, found the cause in the diagnostic tracing itself:
+
+- `@1password/sdk` 0.5.0 registers every `Client` with a
+  `FinalizationRegistry` that calls `releaseClient` once the object is
+  garbage-collected (`dist/client_builder.js`).
+- The tracer used in the diagnostic Blanc build and in the Node broker probes
+  returned `{ ...client, vaults, items }`. That dropped the only reference to
+  the `Client`.
+- After a few calls, garbage collection released the client, and 1Password
+  treated the next call as a new client: a new approval prompt, then
+  `invalid client id`.
+
+Every wrapped run re-prompted; every unwrapped run didn't. As shipped, the
+broker keeps the `Client` in `cachedClient` for its lifetime. Run under Arm64
+Node with garbage collection forced between rounds, it completed three
+5-match `find-logins` rounds after one approval: 25.5 s (including the
+approval), then 1.32 s and 1.39 s.
+
+So #735 is closed and this change reverts #742. The waiver above still stands
+for the Windows rows that weren't run and for the missing real x64 PC. Those
+rows had been stopped only because of the prompts, so they can now be run in
+the VM or on a real PC before release.
 
 ### Windows/Linux live-account harness
 
