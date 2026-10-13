@@ -334,3 +334,52 @@ test('inside the Island the menu hangs from the Island\'s bottom edge, not over 
   assert.equal(h.popup.props['--ws-top'], '178px', 'just under the Island');
   assert.equal(h.popup.props['--ws-max-height'], '414px', 'the room under the Island');
 });
+
+test('after a drag the next real click on a row still switches', async () => {
+  // A captured pointer sends the drag's own trailing click to the row, never
+  // to its button, so nothing must stay armed to swallow a later click.
+  let opens = 0; const h = harness({ openWorkspace: async () => { opens++; return { ok: true }; } }, TWO); h.ui.open();
+  const main = h.byKey('open:b'); const row = main.parent;
+  main.emit('pointerdown', { clientY: 100, pointerId: 1 }); row.emit('pointermove', { clientY: 60, pointerId: 1 }); row.emit('pointerup', { pointerId: 1 });
+  row.emit('click', {}); // where Chromium delivers the drag's click
+  await new Promise((r) => setTimeout(r, 5));
+  h.byKey('open:b').click(); await settle();
+  assert.equal(opens, 1, 'the later click switches');
+});
+
+test('keyboard focus stays on the row after Option/Alt+arrow moves it', async () => {
+  const h = harness({}, TWO); h.ui.open();
+  const row = h.byKey('open:a'); row.focus();
+  row.emit('keydown', { key: 'ArrowDown', altKey: true }); await settle();
+  assert.equal(h.doc.activeElement?.isConnected, true, 'focus is on a live element');
+  assert.equal(h.doc.activeElement.dataset.focusKey, 'open:a');
+});
+
+test('after Undo, focus lands on the restored row', async () => {
+  const h = harness({
+    removeWorkspace: async (id) => ({ ok: true, items: [TWO.items[1]], deleted: [{ id, name: 'First', deletedAt: 1 }], status: 'saved' }),
+    undoRemoveWorkspace: async () => ({ ok: true, items: TWO.items, deleted: [], status: 'saved' }),
+  }, TWO);
+  h.ui.begin('delete', TWO.items[0]); await settle();
+  h.byKey('undo').focus(); h.byKey('undo').click(); await settle();
+  assert.equal(h.doc.activeElement?.isConnected, true, 'focus is on a live element');
+  assert.equal(h.doc.activeElement.dataset.focusKey, 'open:a');
+});
+
+test('an as-you-type name error never stops the menu closing', () => {
+  // Nothing invalid is ever written, so a click outside may close the editor.
+  const h = harness({}, TWO); h.ui.begin('edit', TWO.items[0]);
+  const field = h.doc.getElementById('workspaceName'); field.value = ''; field.emit('input');
+  assert.match(h.doc.getElementById('workspaceEditorError').textContent, /Enter a space name/);
+  assert.equal(h.ui.close(), true);
+  assert.equal(h.ui.opened, false);
+});
+
+test('the list fades in only when the view changes, not on every refresh', () => {
+  const h = harness({}, TWO); h.ui.open();
+  assert.equal(h.list.classList.contains('ws-view-enter'), true, 'opening fades the list in');
+  h.ui.apply({ ...TWO, status: 'pending' });
+  assert.equal(h.list.classList.contains('ws-view-enter'), false, 'a background refresh does not');
+  h.ui.begin('edit', TWO.items[0]);
+  assert.equal(h.list.classList.contains('ws-view-enter'), true, 'the editor fades in');
+});

@@ -160,3 +160,10 @@ Feature: Named workspace preservation and recovery
     When I open the Spaces menu from the space mark
     And I pick "Target" in the Spaces menu
     Then the switch prompt offers save, new window, close, then cancel
+
+  @F41-26
+  Scenario: Switching to a private tab redraws the space mark for the private theme
+    Given a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
+    And a private tab beside an ordinary tab, with the ordinary tab selected
+    When I select the private tab
+    Then the Island's space mark is drawn for the private theme

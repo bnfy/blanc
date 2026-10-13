@@ -49,3 +49,9 @@ test('the third task never reopens a checklist that already retired', () => {
   assert.deepEqual(intro({ migrationChecklistDismissed: true }), { spaceChecklistIntroduced: true });
   assert.equal(intro({ spaceChecklistIntroduced: true }), null, 'it runs once');
 });
+
+test('someone who already has a space finds the new task already done', () => {
+  const intro = (s, ctx) => spaceTaskIntroduction({ spaceChecklistIntroduced: false, migrationChecklistDismissed: false, syncMigrationCompleted: false, tabImportCompleted: false, ...s }, ctx);
+  assert.deepEqual(intro({}, { hasSpaces: true }), { spaceChecklistIntroduced: true, spaceMigrationCompleted: true });
+  assert.deepEqual(intro({}, { hasSpaces: false }), { spaceChecklistIntroduced: true });
+});

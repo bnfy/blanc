@@ -825,6 +825,9 @@
   function workspacePopoverEditing() { return workspaceUI.editing; }
   function closeWorkspaceSwitcher() { return workspaceUI.close(); }
   function layoutWorkspaceSwitcher() { workspaceUI.layout(); }
+  // From ⌘L the menu hangs from the panel's bottom edge (spec D18); keep it
+  // there as the panel reshapes under it (typing, results, a folded group).
+  new ResizeObserver(() => { if (workspaceSwitcherOpen) layoutWorkspaceSwitcher(); }).observe(islandPanel);
   function paintWorkspaceSwitcher() { workspaceUI.render(); }
   function openWorkspaceSwitcher() { workspaceUI.open(); }
   function toggleWorkspaceSwitcher() { workspaceUI.toggle(); }

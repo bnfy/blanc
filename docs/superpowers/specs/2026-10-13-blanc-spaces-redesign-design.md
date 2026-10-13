@@ -46,7 +46,7 @@ feedback.
 | D14 | Undo after deleting this window's space | **Rebinds the window** to the restored space (conditions in §7). Restore from Recently deleted keeps today's record-only behaviour. |
 | D15 | File format version | **Stays 2.** Older builds keep working Spaces after a downgrade and strip only colour and symbol. |
 | D16 | Checklist task for people whose checklist already retired | **Stays retired.** Only a checklist still showing gains the task. |
-| D17 | The ⌘L footer's Spaces button (owner, during PR 2) | **Icon only, no name.** The footer has too little room before a name truncates; the bound space's name is in the button's tooltip and accessible name, and its fill still shows the window is in a space. |
+| D17 | The ⌘L footer's Spaces button (owner, during PR 2) | **Icon only, no name.** The footer has too little room before a name truncates; the bound space's name is in the button's tooltip and accessible name, and its fill still shows the window is in a space. This applies to the footer only: the Island's space mark keeps its symbol **and** name (truncated), so the active space shows at rest. |
 | D18 | Where the menu opens from ⌘L (owner, during PR 2) | **Below the Island, never over it.** The menu hangs from the panel's bottom edge, right-aligned to the button, and scrolls within the room there; only a window too short for a few rows below opens it upward. |
 
 Decided during design, not asked: once at least one space exists, a window that

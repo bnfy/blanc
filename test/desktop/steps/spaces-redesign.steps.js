@@ -7,6 +7,7 @@ const assert = require('node:assert/strict');
 const { After, Given, When, Then } = require('@cucumber/cucumber');
 const { overlayPage } = require('../support/overlay');
 const { openOverlaySurface, waitForValue } = require('../support/poll');
+const SpaceIdentity = require('../../../src/renderer/space-identity');
 
 async function saveSpace(world, name, identity) {
   const saved = await world.call('workspaceAction', 'save', name);
@@ -172,4 +173,22 @@ Then('the switch prompt offers save, new window, close, then cancel', async func
   await page.waitForSelector('.ws-decision');
   const order = await page.$$eval('.ws-decision-actions button', (buttons) => buttons.map((b) => b.dataset.focusKey));
   assert.deepEqual(order, ['save-first', 'new-window', 'close-and-switch', 'cancel']);
+});
+
+Given('a private tab beside an ordinary tab, with the ordinary tab selected', async function () {
+  const ordinary = (await this.state()).activeTabId;
+  this.privateTabId = await this.call('openTab', this.fixtureUrl('workspace-private'), { private: true });
+  await this.waitForState((st) => st.tabs.some((t) => t.id === this.privateTabId && !t.isLoading));
+  await this.call('activateTab', ordinary);
+  await this.waitForState((st) => st.activeTabId === ordinary && st.tabs.every((t) => !t.isLoading));
+  // Settle on the ordinary theme first, so the switch is the only change.
+  const light = SpaceIdentity.paint('#426c4c', 'light').ink;
+  await mark(this, (m) => m.ink === light, 'the mark in the ordinary theme');
+});
+When('I select the private tab', async function () {
+  await this.call('activateTab', this.privateTabId);
+});
+Then('the Island\'s space mark is drawn for the private theme', async function () {
+  const ink = SpaceIdentity.paint('#426c4c', 'private').ink;
+  await mark(this, (m) => m.ink === ink, `the mark redrawn with the private ink ${ink}`);
 });

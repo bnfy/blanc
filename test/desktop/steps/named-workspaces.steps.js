@@ -91,6 +91,16 @@ When('I try switching with a private page and type a slash query', async functio
 Then('the private switch decision remains visible', async function () {
   const page = await overlayPage(); assert.equal(await page.isVisible('.ws-decision'), true);
   assert.ok((await page.textContent('.ws-decision')).includes('private'));
+  // Typing reshaped the panel; the menu still hangs 6px below its bottom edge
+  // and never over it (spec D18).
+  await page.waitForFunction(() => {
+    const panel = document.getElementById('islandPanel').getBoundingClientRect();
+    const menu = document.getElementById('workspaceSwitcher').getBoundingClientRect();
+    return Math.abs(menu.top - (panel.bottom + 6)) <= 1;
+  }, null, { timeout: 3000 }).catch(async () => {
+    const geometry = await page.evaluate(() => ({ panel: document.getElementById('islandPanel').getBoundingClientRect().bottom, menu: document.getElementById('workspaceSwitcher').getBoundingClientRect().top }));
+    assert.fail(`the menu does not follow the panel: ${JSON.stringify(geometry)}`);
+  });
   await page.locator('#backdrop').click({ position: { x: 4, y: 4 } });
   assert.equal(await page.isVisible('.ws-decision'), true, 'outside clicks must not bypass the explicit workspace decision');
   await evidence(page, 'private-decision-search');

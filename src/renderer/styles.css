@@ -3372,7 +3372,7 @@ body[data-mode="spaces"] #workspaceSwitcher.ws-switcher[hidden] { transform: sca
   flex-direction: column;
   gap: 3px; /* filled rows never touch */
 }
-#workspaceSwitcherList > * { animation: ws-fade 160ms ease-out; }
+#workspaceSwitcherList.ws-view-enter > * { animation: ws-fade 160ms ease-out; }
 @keyframes ws-fade { from { opacity: 0; } }
 .ws-commands { display: flex; flex-direction: column; gap: 3px; flex-shrink: 0; margin-top: 3px; padding-top: 3px; border-top: 1px solid var(--border); }
 .ws-commands[hidden] { display: none; }

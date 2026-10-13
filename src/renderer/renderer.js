@@ -750,7 +750,6 @@
   });
 
   function render() {
-    renderSpaceMark(); // the private theme may have just changed
     requestAnimationFrame(() => reportIslandRect());
     // The rail is a presentation of this same trusted payload, not another
     // tab store. Its module also applies the layout attribute/width used to
@@ -852,6 +851,8 @@
     // The private theme scope follows the active tab.
     if (tab?.private) document.documentElement.dataset.theme = 'private';
     else delete document.documentElement.dataset.theme;
+    // The space mark's ink depends on that theme, so it is drawn after it.
+    renderSpaceMark();
 
     applyStripTint(tab);
     renderGlance();

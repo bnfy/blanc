@@ -9408,8 +9408,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     settings.setSettings({ syncMigrationCompleted: true });
   }
   // Introduce "Make your first space" once, before any window exists, without
-  // reopening a checklist that already retired (spec D16).
-  const spaceTaskPatch = spaceTaskIntroduction(settings.getSettings());
+  // reopening a checklist that already retired (spec D16), and already done
+  // for someone whose Personal profile has a space.
+  const spaceTaskPatch = spaceTaskIntroduction(settings.getSettings(), {
+    hasSpaces: withLocalProfile(DEFAULT_PROFILE_ID, () => namedWorkspaces.list().length > 0),
+  });
   if (spaceTaskPatch) settings.setSettings(spaceTaskPatch);
   // Baseline for the settings fan-out's Match site colors re-projection.
   lastIslandSiteColors = settings.getSettings().islandSiteColors;

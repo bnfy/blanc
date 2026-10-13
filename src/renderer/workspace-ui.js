@@ -152,7 +152,10 @@
       state = { kind: 'edit', id: workspace.id, draft: { name: workspace.name, color: workspace.color, symbol: workspace.symbol, ...failedEdit.patch }, error: '', touched: true, picker: false };
     }
     function close({ force = false } = {}) {
-      if (!force && (state.pending || state.kind === 'decision' || state.original || state.error || saveError())) return false;
+      // An editor's name error is only ever shown, never written, so it does
+      // not hold the menu open; a failed save, a decision or Save first does.
+      const blockingError = state.error && !['new', 'edit'].includes(state.kind);
+      if (!force && (state.pending || state.kind === 'decision' || state.original || blockingError || saveError())) return false;
       // An edit still saving: close once it has saved, or stay on its error.
       if (!force && state.kind === 'edit' && (pendingPatch || inflight)) { closeAfterSave(); return false; }
       flushUpdate();
@@ -248,9 +251,14 @@
       else return false;
       return true;
     }
+    // A success callback may name where focus goes next (Undo: the restored row).
+    let focusAfter = null;
     async function run(operation, success, action = null) {
       if (state.pending) return;
       const stamp = ++generation;
+      // The pending render disables every button, which drops keyboard focus;
+      // it is put back once the action settles.
+      const keep = popup.contains(doc.activeElement) ? doc.activeElement.dataset.focusKey : null;
       state.pending = true; state.error = ''; render();
       let result;
       try { result = await operation(); } catch { result = { ok: false, error: 'storage-failed' }; }
@@ -275,6 +283,8 @@
         return;
       }
       state.error = ''; success?.(result); syncIdentity(); render();
+      const key = focusAfter ?? keep; focusAfter = null;
+      if (key && opened) [...popup.querySelectorAll('button')].find((b) => b.dataset.focusKey === key && !b.disabled)?.focus();
     }
     function openAction(action, options = {}) {
       run(() => action.kind === 'open' ? api.openWorkspace(action.id, options) : api.createBlankWorkspace(action.name, { ...options, ...action.identity }), () => {
@@ -355,7 +365,11 @@
         row.classList.remove('dragging'); row.style.setProperty('--drag-y', '0px');
         const finished = drag; drag = null;
         if (!finished?.moved) return;
-        suppressClick = true; // the click that ends a drag is not a switch
+        // The click that ends a drag is not a switch. A captured pointer sends
+        // it to the row anyway, so the guard lasts only for this input task and
+        // can never swallow a later click.
+        suppressClick = true;
+        setTimeout(() => { suppressClick = false; }, 0);
         if (finished.target !== finished.index) run(() => api.moveWorkspaceTo(finished.id, finished.target), () => {});
       };
       row.addEventListener('pointermove', move);
@@ -369,7 +383,7 @@
       if (undo && data.deleted?.some((d) => d.id === undo.id)) {
         const row = el('div', 'ws-undo');
         row.append(dataEl('span', 'ws-undo-text', t('ws.undo.deleted', { name: undo.name })),
-          button(t('ws.undo.button'), 'undo', () => { const id = undo.id; run(() => api.undoRemoveWorkspace(id), () => { undo = null; }); }, 'ws-pill'));
+          button(t('ws.undo.button'), 'undo', () => { const id = undo.id; run(() => api.undoRemoveWorkspace(id), () => { undo = null; focusAfter = `open:${id}`; }); }, 'ws-pill'));
         nodes.push(row);
       }
       // F45: anyone starting from nothing can bring Spaces over from Arc.
@@ -579,6 +593,7 @@
       else nodes.push(...renderList());
       if (state.error && !['new', 'edit'].includes(state.kind)) { const error = el('p', 'ws-error', state.error); error.setAttribute('role', 'alert'); nodes.push(error); }
       list.replaceChildren(...nodes); list.scrollTop = scroll;
+      list.classList.toggle('ws-view-enter', viewChanged); // a refresh never re-fades the list
       if (editing) renderEditorError();
       const pinned = state.kind === 'list' ? renderCommands() : [];
       commands.replaceChildren(...pinned); commands.hidden = !pinned.length;
