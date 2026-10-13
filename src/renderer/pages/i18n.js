@@ -251,8 +251,31 @@
         scope.console?.warn?.(`missing interface string: ${key}`);
       },
     });
-    api.t = t;
-    api.parts = t.parts;
+    // Static text is applied at most once per element, and before page code
+    // reads a string: a page script or IPC reply that renders into a data-i18n
+    // element before DOMContentLoaded must not be overwritten by the static
+    // pass afterwards. Until then each lookup first translates newly parsed
+    // elements; DOMContentLoaded translates the rest.
+    const applied = new WeakSet();
+    const parsed = doc.getElementsByTagName?.('*');
+    let staticDone = false;
+    let parsedCount = -1;
+    const applyStatic = () => {
+      if (parsed && parsed.length === parsedCount) return;
+      parsedCount = parsed ? parsed.length : -1;
+      for (const el of doc.querySelectorAll(SELECTOR_ALL)) {
+        if (applied.has(el)) continue;
+        applied.add(el);
+        applyElement(el, t);
+      }
+    };
+    const lookup = (fn) => (...args) => {
+      if (!staticDone) applyStatic();
+      return fn(...args);
+    };
+    const pageT = Object.assign(lookup(t), t, { parts: lookup(t.parts) });
+    api.t = pageT;
+    api.parts = pageT.parts;
     api.formatLocale = () => data.formatLocale ?? data.locale;
     doc.documentElement.lang = data.locale;
     doc.documentElement.dir = data.dir ?? 'ltr';
@@ -262,10 +285,12 @@
     const reveal = () => { if (hide) doc.documentElement.style.visibility = ''; };
     if (hide) doc.documentElement.style.visibility = 'hidden';
     scope.setTimeout?.(reveal, 1000);
-    const run = () => { try { applyDocument(doc, t); } finally { reveal(); } };
+    const run = () => {
+      try { parsedCount = -1; applyStatic(); } finally { staticDone = true; reveal(); }
+    };
     if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', run, { once: true });
     else run();
-    return t;
+    return pageT;
   };
 
   return api;
