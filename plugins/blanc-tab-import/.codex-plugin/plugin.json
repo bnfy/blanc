@@ -1,13 +1,13 @@
 {
   "name": "blanc-tab-import",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Create a private, one-time handoff from one supported browser window to Blanc.",
   "author": {
     "name": "Bananify Creative",
-    "email": "support@blancbrowser.com",
-    "url": "https://blancbrowser.com"
+    "email": "support@blanc.day",
+    "url": "https://blanc.day"
   },
-  "homepage": "https://blancbrowser.com",
+  "homepage": "https://blanc.day",
   "repository": "https://github.com/bnfy/blanc",
   "license": "MIT",
   "keywords": ["blanc", "browser", "tabs", "handoff"],
@@ -20,9 +20,9 @@
     "developerName": "Bananify Creative",
     "category": "Productivity",
     "capabilities": ["Interactive", "Write"],
-    "websiteURL": "https://blancbrowser.com",
-    "privacyPolicyURL": "https://blancbrowser.com/privacy",
-    "termsOfServiceURL": "https://blancbrowser.com/terms",
+    "websiteURL": "https://blanc.day",
+    "privacyPolicyURL": "https://blanc.day/privacy",
+    "termsOfServiceURL": "https://blanc.day/terms",
     "defaultPrompt": [
       "Open this browser window in Blanc.",
       "Copy my selected tabs into Blanc.",

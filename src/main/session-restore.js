@@ -11,7 +11,7 @@
  */
 // Files written before the meta column (≤1.1.1), and rollbacks that dropped
 // it, carry no saved title — and restored tabs are born quiet, so nothing
-// repaints the label until first wake. A real site's host ("blancbrowser.com",
+// repaints the label until first wake. A real site's host ("blanc.day",
 // www-stripped like the panel's own url labels) keeps rows distinguishable;
 // non-web urls (blanc://newtab) stay blank and render as "New Tab". Favicons
 // are never fabricated here.

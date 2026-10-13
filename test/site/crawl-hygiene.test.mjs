@@ -21,7 +21,7 @@ test('unknown routes return the branded noindex page with a real 404 status', as
   assert.equal(capture(html, [
     /<link[^>]+rel="canonical"[^>]+href="([^"]*)"/i,
     /<link[^>]+href="([^"]*)"[^>]+rel="canonical"/i,
-  ]), 'https://blancbrowser.com/404');
+  ]), 'https://blanc.day/404');
   assert.match(capture(html, [
     /<meta[^>]+name="robots"[^>]+content="([^"]*)"/i,
     /<meta[^>]+content="([^"]*)"[^>]+name="robots"/i,

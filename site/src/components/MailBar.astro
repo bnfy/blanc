@@ -1,0 +1,65 @@
+---
+// The Blanc Mail product bar, on every Mail page: the product's name, its six
+// pages and the waitlist, sticky under the site header
+// (docs/superpowers/specs/2026-10-12-mail-pages-redesign-design.md §3).
+// Both popovers use the Popover API, so light dismiss, Escape and returning
+// focus to the button come from the browser.
+import MailIcon from './MailIcon.astro';
+import MailWaitlistForm from './MailWaitlistForm.astro';
+
+const links = [
+  ['/mail', 'Overview'],
+  ['/mail/pricing', 'Pricing'],
+  ['/mail/download', 'Download'],
+  ['/mail/support', 'Support'],
+  ['/mail/privacy', 'Privacy'],
+  ['/mail/terms', 'Terms'],
+];
+const path = Astro.url.pathname.replace(/\.html$/, '').replace(/\/$/, '') || '/';
+const currentLabel = links.find(([href]) => href === path)?.[1] ?? 'Overview';
+---
+<div class="mail-bar" data-mail-bar>
+  <nav class="mail-bar-inner" aria-label="Blanc Mail">
+    <a class="mail-bar-title" href="/mail"><MailIcon class="mail-bar-icon" decorative /><span>Blanc Mail</span></a>
+    <ul class="mail-bar-links">
+      {links.map(([href, label]) => <li><a href={href} aria-current={path === href ? 'page' : undefined}>{label}</a></li>)}
+    </ul>
+    <button class="mail-bar-pages" type="button" popovertarget="mail-bar-menu">
+      {currentLabel}<svg class="mail-bar-chevron" viewBox="0 0 12 12" aria-hidden="true"><path d="m3 4.5 3 3 3-3" /></svg>
+    </button>
+    <button class="mail-bar-join" type="button" popovertarget="mail-bar-waitlist">Join<span class="mail-bar-join-tail"> the waitlist</span></button>
+  </nav>
+  <div class="mail-bar-pop mail-bar-menu" id="mail-bar-menu" popover data-align="start">
+    <ul>
+      {links.map(([href, label]) => <li><a href={href} aria-current={path === href ? 'page' : undefined}>{label}</a></li>)}
+    </ul>
+  </div>
+  <div class="mail-bar-pop mail-bar-waitlist" id="mail-bar-waitlist" popover data-align="end">
+    <MailWaitlistForm id="bar-waitlist" />
+  </div>
+</div>
+<script>
+  // The bar sits under the site header, whose height changes with the
+  // viewport, so it reads the real height rather than assuming one.
+  const root = document.documentElement;
+  const header = document.querySelector<HTMLElement>('.site-header');
+  const syncHeader = () => root.style.setProperty('--mail-header-h', `${header?.offsetHeight ?? 0}px`);
+  syncHeader();
+  if (header) new ResizeObserver(syncHeader).observe(header);
+
+  // Each popover opens from its button: anchored below it, aligned to the
+  // button's start or end edge, and growing out of that corner.
+  document.querySelectorAll<HTMLElement>('.mail-bar-pop').forEach((pop) => {
+    const invoker = document.querySelector<HTMLElement>(`[popovertarget="${pop.id}"]`);
+    pop.addEventListener('beforetoggle', (event) => {
+      if ((event as ToggleEvent).newState !== 'open' || !invoker) return;
+      const rect = invoker.getBoundingClientRect();
+      pop.style.setProperty('--pop-top', `${rect.bottom + 8}px`);
+      pop.style.setProperty('--pop-start', `${Math.max(12, rect.left)}px`);
+      pop.style.setProperty('--pop-end', `${Math.max(12, root.clientWidth - rect.right)}px`);
+    });
+    pop.addEventListener('toggle', (event) => {
+      if ((event as ToggleEvent).newState === 'open') pop.querySelector<HTMLInputElement>('input[type=email]')?.focus();
+    });
+  });
+</script>

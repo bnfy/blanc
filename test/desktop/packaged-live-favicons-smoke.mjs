@@ -247,7 +247,7 @@ const runBrandQualityCanary = async () => {
   try {
     app = await launchPackagedOverCdp({
       executablePath,
-      args: [`--user-data-dir=${userDataDir}`, 'https://blancbrowser.com/changelog'],
+      args: [`--user-data-dir=${userDataDir}`, 'https://blanc.day/changelog'],
       env: { ...process.env, BLANC_TEST: '0' },
     });
     const deadline = Date.now() + 30_000;
@@ -255,7 +255,7 @@ const runBrandQualityCanary = async () => {
     let actual = null;
     let matched = false;
     while (Date.now() < deadline && !matched) {
-      const page = app.pages().find((candidate) => matchesHost(candidate.url(), 'blancbrowser.com'));
+      const page = app.pages().find((candidate) => matchesHost(candidate.url(), 'blanc.day'));
       const chrome = app.pages().find((candidate) => candidate.url() === 'blanc-chrome://index/');
       if (page && !expected) {
         expected = await page.evaluate(() => new Promise((resolve) => {
@@ -272,7 +272,7 @@ const runBrandQualityCanary = async () => {
         }));
       }
       const state = chrome ? await chrome.evaluate(() => window.browserAPI.getAllTabs()) : null;
-      actual = state?.tabs?.find((tab) => matchesHost(tab.url, 'blancbrowser.com'))?.favicon ?? null;
+      actual = state?.tabs?.find((tab) => matchesHost(tab.url, 'blanc.day'))?.favicon ?? null;
       matched = !!expected && actual === expected;
       if (!matched) await new Promise((resolve) => setTimeout(resolve, 100));
     }

@@ -3,7 +3,9 @@
 // test/unit/site-changelog.test.js. The template moved verbatim from
 // scripts/generate-site-changelog.mjs — keep it byte-identical to the
 // pre-Astro output.
-const CHANGELOG_URL = 'https://blancbrowser.com/changelog';
+import { SITE_ORIGIN } from './site-origin.mjs';
+
+const CHANGELOG_URL = `${SITE_ORIGIN}/changelog`;
 
 export function escapeXml(value) {
   return String(value)

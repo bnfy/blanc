@@ -175,9 +175,17 @@ file rather than Chromium profiles..
 
 ## Open questions
 
-- The Windows package suffix (`_ttt1ap7aakyb4` in community reports) is
-  matched by prefix; confirm on a real install (the Windows plan records
-  it).
 - Whether Arc's per-profile Favorites rows (`topApps` with a custom
   profile) should be offered separately. v1 imports all of them,
-  deduplicated, into one **Arc** folder.
+  deduplicated, into one **Arc** folder. The real-sidebar runs on 2026-10-12
+  confirmed that Arc keeps one row per Arc profile on both macOS and Windows:
+  a Space with its own profile shows only its profile's row.
+
+## Resolved questions
+
+- **The Windows package suffix (2026-10-12).** A real install of Arc for
+  Windows 1.127.0.297 (Arm64) keeps its sidebar under
+  `TheBrowserCompany.Arc_ttt1ap7aakyb4`, the suffix community reports gave,
+  and exactly one package folder matched. Blanc still matches by prefix, so a
+  different suffix would also work. This was recorded by the Windows test plan
+  run.

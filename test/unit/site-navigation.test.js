@@ -34,6 +34,12 @@ test('retained feature pages preserve their search metadata, prose and anchors f
    assert.ok(reviewedBefore.includes(oldCopy), `${file}: obsolete review exception`);
    reviewedBefore = reviewedBefore.replace(oldCopy, newCopy);
   }
+  // The October 13, 2026 move to blanc.day
+  // (docs/superpowers/specs/2026-10-13-blanc-day-domain-design.md) is one
+  // reviewed replacement of the site's own origin and contact address.
+  reviewedBefore = reviewedBefore
+   .replaceAll('https://blancbrowser.com', 'https://blanc.day')
+   .replaceAll('support@blancbrowser.com', 'support@blanc.day');
   const after = read(file);
   for (const property of ['title', 'description', 'path']) {
    // Search metadata changes only through a recorded, reviewed copy update.

@@ -1,5 +1,5 @@
 /* Token roles mirror styles.css: neutral monochrome — pure paper/ink with
-   graphite grays, no hue (matches the blancbrowser.com redesign). Theme
+   graphite grays, no hue (matches the website redesign). Theme
    follows nativeTheme via prefers-color-scheme. */
 @font-face {
   font-family: "Inter";

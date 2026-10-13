@@ -31,7 +31,7 @@ async function openPage(width = 1440, path = '/', scale = 1) {
 // runs measurement) and social links.
 const groups = {
   'Explore Blanc': [['Feature guides', '/features'], ['Download', '/download'], ['What’s new', '/changelog'], ['Feature roadmap', '/roadmap'], ['Blanc Patron', '/#patron'], ['Switching from Arc', '/arc-alternative'], ['Blanc Mail', '/mail']],
-  'Blanc resources': [['Support', '/support'], ['Security guide', '/features/security'], ['Privacy & Security', '/trust'], ['Source code', 'https://github.com/bnfy/blanc'], ['Contact', 'mailto:support@blancbrowser.com']],
+  'Blanc resources': [['Support', '/support'], ['Security guide', '/features/security'], ['Privacy & Security', '/trust'], ['Source code', 'https://github.com/bnfy/blanc'], ['Contact', 'mailto:support@blanc.day']],
   'About Blanc': [['About', '/about'], ['Media', '/media'], ['Ambassadors', '/ambassadors']],
 };
 const social = [

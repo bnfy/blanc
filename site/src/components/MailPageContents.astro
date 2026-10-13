@@ -1,0 +1,47 @@
+---
+// "On this page" for the long Mail documents (Privacy, Terms): a sticky list
+// beside the text on wide screens, a collapsed disclosure on narrow ones. The
+// link for the section being read is marked aria-current="location".
+interface Props { sections: [id: string, label: string][] }
+const { sections } = Astro.props;
+---
+<nav class="mail-contents" aria-label="On this page" data-mail-contents>
+  <p class="mail-contents-title">On this page</p>
+  <ol>{sections.map(([id, label]) => <li><a href={`#${id}`}>{label}</a></li>)}</ol>
+</nav>
+<details class="mail-contents-compact">
+  <summary>On this page</summary>
+  <ol>{sections.map(([id, label]) => <li><a href={`#${id}`}>{label}</a></li>)}</ol>
+</details>
+<script>
+  // Highlights the section whose heading most recently passed under the bar.
+  const nav = document.querySelector<HTMLElement>('[data-mail-contents]');
+  if (nav) {
+    const links = new Map(
+      [...nav.querySelectorAll<HTMLAnchorElement>('a[href^="#"]')].map((a) => [a.hash.slice(1), a]),
+    );
+    const headings = [...links.keys()]
+      .map((id) => document.getElementById(id))
+      .filter((h): h is HTMLElement => h !== null);
+    const mark = () => {
+      const line = 160;
+      let current = headings[0];
+      for (const heading of headings) if (heading.getBoundingClientRect().top <= line) current = heading;
+      // Short final sections can never scroll up to the line. At the bottom
+      // of the page, the section just linked to wins while its heading is in
+      // view; otherwise the last section that has started.
+      if (scrollY + innerHeight >= document.documentElement.scrollHeight - 1) {
+        const top = (h: HTMLElement) => h.getBoundingClientRect().top;
+        current = headings.find((h) => `#${h.id}` === location.hash && top(h) >= 0 && top(h) < innerHeight)
+          ?? headings.findLast((h) => top(h) < innerHeight) ?? current;
+      }
+      links.forEach((a, id) => (id === current?.id ? a.setAttribute('aria-current', 'location') : a.removeAttribute('aria-current')));
+    };
+    let frame = 0;
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(() => { frame = 0; mark(); }); };
+    addEventListener('scroll', schedule, { passive: true });
+    // A link to a section already in view changes the hash without scrolling.
+    addEventListener('hashchange', schedule);
+    mark();
+  }
+</script>

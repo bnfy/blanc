@@ -1,6 +1,6 @@
 # blanc-newsletter
 
-Consent-first newsletter enrollment for `blancbrowser.com`. An address is not
+Consent-first newsletter enrollment for `blanc.day`. An address is not
 a subscriber until its owner follows a one-time confirmation link delivered by
 Resend. The same flow runs a separate Blanc Mail waitlist, and the Worker
 also delivers short ambassador applications to Blanc's support inbox without
@@ -110,7 +110,7 @@ op run --env-file=../.env.1password -- npx wrangler secret put RESEND_API_KEY
 op run --env-file=.env.1password -- npm run deploy
 ```
 
-After deploy, test from `https://blancbrowser.com`, confirm delivery, follow the
+After deploy, test from `https://blanc.day`, confirm delivery, follow the
 link, export the record, and follow its unsubscribe URL. Also submit a test
 ambassador application and confirm it reaches `AMBASSADOR_TO`. A release must
 not publish the revised newsletter or application/privacy claims until these

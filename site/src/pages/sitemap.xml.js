@@ -3,12 +3,13 @@
 // sitemap deliberately publishes only canonical URLs rather than stamping
 // every page with the build date.
 import topics from '../data/guide-topics.json';
+import { SITE_ORIGIN } from '../lib/site-origin.mjs';
 
 const MANIFEST = ['/', '/download', '/mail', '/mail/pricing', '/mail/download', '/mail/support', '/mail/privacy', '/mail/terms', '/support', '/trust', '/changelog', '/roadmap', '/about', '/privacy', '/terms', '/media', '/ambassadors', '/arc-alternative', '/ublock-origin-after-chrome', '/features', ...topics.map(topic => `/features/${topic.id}`)];
 
 const UNLISTED = new Set(['/404', '/import-tabs', '/[...legacy]']);
 
-const SITE = 'https://blancbrowser.com';
+const SITE = SITE_ORIGIN;
 
 export function GET() {
   // Discover the real pages and assert the manifest matches them exactly —

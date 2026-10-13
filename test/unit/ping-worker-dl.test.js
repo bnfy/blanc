@@ -67,7 +67,7 @@ test('ping-worker dl pure logic', async (t) => {
       custom_event_name: OPENAI_CONVERSION_EVENT,
       timestamp_ms: 1787875200000,
       oppref: 'opaque-click-reference',
-      source_url: 'https://blancbrowser.com/dl/win',
+      source_url: 'https://blanc.day/dl/win',
       action_source: 'web',
       opt_out: true,
       data: { type: 'custom', platform: 'win' },

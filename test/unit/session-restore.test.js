@@ -116,10 +116,10 @@ test('missing metadata arrays and out-of-range activeIndex are tolerated', () =>
 // wake — reported after the 1.2.1 update as "my tabs are gone".
 test('missing meta on a real site derives the row title from the host', () => {
   const out = filterRestoredSession({
-    urls: ['https://www.blancbrowser.com/changelog/'],
+    urls: ['https://www.blanc.day/changelog/'],
     activeIndex: 0,
   }, drop);
-  assert.deepEqual(out.meta, [{ title: 'blancbrowser.com', favicon: null }]);
+  assert.deepEqual(out.meta, [{ title: 'blanc.day', favicon: null }]);
 });
 
 test('empty meta title on a real site also derives from the host', () => {

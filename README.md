@@ -1,10 +1,10 @@
 # Blanc Browser
 
-[![Blanc — The browser that gets out of your way](site/public/og-image.png)](https://blancbrowser.com)
+[![Blanc — The browser that gets out of your way](site/public/og-image.png)](https://blanc.day)
 
 <p align="center">
   <strong>A minimal, open-source desktop browser built around one small Island.</strong><br>
-  <a href="https://blancbrowser.com">Website</a> ·
+  <a href="https://blanc.day">Website</a> ·
   <a href="https://github.com/bnfy/blanc/releases/latest">Download</a> ·
   <a href="docs/user-guide.md">User guide</a> ·
   <a href="SECURITY.md">Security</a>
@@ -99,7 +99,7 @@ releases carry timestamped Authenticode signatures. The release process signs
 the complete checksum manifest with Sigstore, while Windows and Linux CI
 artifacts receive GitHub provenance attestations. These records authenticate
 the published artifacts; they do not make local builds reproducible. See the
-[Support page](https://blancbrowser.com/support) for the plain-English version and the
+[Support page](https://blanc.day/support) for the plain-English version and the
 [release repository](https://github.com/bnfy/blanc/releases) for the records.
 
 ## Free browser, optional Patron
@@ -375,7 +375,8 @@ entirely.
 The app was renamed from Bowser to Blanc in July 2026. It keeps the bundle
 identifier `me.bnfy.bowser` so existing macOS signing and Gatekeeper identity,
 installed user data, and the auto-update chain continue to work. The former
-`getbowser.com` domain redirects path-for-path to `blancbrowser.com`.
+`getbowser.com` domain redirects to the website, which moved to `blanc.day` in
+October 2026; `blancbrowser.com` redirects there path for path.
 
 ## Known rough edges
 

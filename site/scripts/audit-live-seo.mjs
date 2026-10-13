@@ -1,11 +1,12 @@
 import { readFile } from 'node:fs/promises';
+import { SITE_ORIGIN as CANONICAL_ORIGIN } from '../src/lib/site-origin.mjs';
 
-const SITE_ORIGIN = new URL(process.env.SITE_ORIGIN || 'https://blancbrowser.com').origin;
+const SITE_ORIGIN = new URL(process.env.SITE_ORIGIN || CANONICAL_ORIGIN).origin;
 const SITEMAP_URL = `${SITE_ORIGIN}/sitemap.xml`;
 const NOT_FOUND_PROBE = '/__blanc_not_found_audit__';
 const REQUEST_TIMEOUT_MS = 15_000;
 const MAX_REDIRECTS = 5;
-const USER_AGENT = 'BlancSEOAudit/1.0 (+https://blancbrowser.com/)';
+const USER_AGENT = `BlancSEOAudit/1.0 (+${CANONICAL_ORIGIN}/)`;
 
 const errors = [];
 const warnings = [];
@@ -31,8 +32,8 @@ const canonicalKey = (value) => {
 };
 
 const siteUrl = new URL(SITE_ORIGIN);
-const inferredWwwOrigin = siteUrl.hostname === 'blancbrowser.com'
-  ? `${siteUrl.protocol}//www.blancbrowser.com`
+const inferredWwwOrigin = siteUrl.hostname === new URL(CANONICAL_ORIGIN).hostname
+  ? `${siteUrl.protocol}//www.${siteUrl.hostname}`
   : null;
 const WWW_ORIGIN = process.env.WWW_ORIGIN || inferredWwwOrigin;
 

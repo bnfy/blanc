@@ -184,7 +184,8 @@ test('website identity, OpenGraph, press, and retained social outputs are all co
 
   const ogRenderer = source('site/scripts/render-og-cards.mjs');
   const pressRenderer = source('site/scripts/render-press-card.mjs');
-  assert.match(ogRenderer, /path\.join\(PUBLIC_ROOT, 'favicon\.svg'\)/);
+  // Full-colour social art uses the original gold Sunrise artwork (docs/brand-usage.md).
+  assert.match(ogRenderer, /path\.join\(PUBLIC_ROOT, 'sunrise-hero-mark\.png'\)/);
   assert.match(pressRenderer, /path\.join\(SITE_ROOT, 'public\/favicon\.svg'\)/);
   assert.match(source('marketing/article-assets/ai-clean-browser/compose.py'), /src\/renderer\/pages\/icon-ink\.png/);
   assert.match(source('marketing/social/quiet-tabs-carousel/render.js'), /site\/public\/logo\.png/);

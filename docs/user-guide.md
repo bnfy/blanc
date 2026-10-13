@@ -136,7 +136,7 @@ Installed builds check for updates. Use **Check for Updates…** in the app
 menu to check manually, and follow the offered restart action when an update
 is ready. Development runs do not auto-update.
 
-For help, contact support@blancbrowser.com with your version, operating
+For help, contact support@blanc.day with your version, operating
 system, and reproduction steps. Settings offers **Export diagnostics…**;
 review a diagnostic file before sharing it. Report suspected vulnerabilities
 through [SECURITY.md](../SECURITY.md), rather than a public bug report.

@@ -1,6 +1,8 @@
 // Blanc is desktop-only, so on a phone or tablet the download link sends the
 // download page onward (share sheet, then clipboard) instead of opening it.
-const DOWNLOAD_URL = 'https://blancbrowser.com/download';
+import { SITE_ORIGIN } from '../lib/site-origin.mjs';
+
+const DOWNLOAD_URL = `${SITE_ORIGIN}/download`;
 
 export function isHandheld(nav) {
   const ua = String(nav?.userAgent || '');

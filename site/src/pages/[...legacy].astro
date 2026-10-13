@@ -1,5 +1,6 @@
 ---
 import routes from "../data/legacy-routes.json";
+import { SITE_ORIGIN } from "../lib/site-origin.mjs";
 export function getStaticPaths() {
   return Object.entries(routes).map(([path, target]) => ({
     params: { legacy: path.slice(1) },
@@ -7,7 +8,7 @@ export function getStaticPaths() {
   }));
 }
 const { target } = Astro.props;
-const canonical = "https://blancbrowser.com" + target.split(/[?#]/)[0];
+const canonical = SITE_ORIGIN + target.split(/[?#]/)[0];
 ---
 
 <!doctype html>

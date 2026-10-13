@@ -3,7 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 <BaseLayout
   title="Privacy Policy — Blanc Browser"
-  description="How Blanc — the minimal desktop browser — and blancbrowser.com handle your information. Local-first by design: your browsing stays on your device."
+  description="How Blanc — the minimal desktop browser — and blanc.day handle your information. Local-first by design: your browsing stays on your device."
   path="/privacy"
   header="legal"
   analytics={false}
@@ -12,14 +12,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 >
 <main id="main-content" class="legal-doc">
   <h1>Privacy Policy</h1>
-  <p class="legal-updated">Last updated October 8, 2026</p>
+  <p class="legal-updated">Last updated October 13, 2026</p>
 
   <div class="legal-tldr">
     <p><strong>The short version.</strong> Blanc keeps browsing data on your device unless you enable end-to-end-encrypted Sync for eligible data or explicitly create a one-time tab handoff. A fresh install asks before search suggestions or pseudonymous usage measurement can send anything; both choices are presented on and can be turned off before continuing. Usage measurement counts launches and a small allowlist of local feature actions, never browsing activity, and excludes private tabs from feature-use events. The blocker ships with the app instead of downloading filter code at first launch. This website counts page views with Cloudflare's cookieless Web Analytics. Optional Google analytics and ad-conversion measurement stay off until you explicitly allow them through footer Privacy choices, or an existing saved grant applies.</p>
   </div>
 
   <h2>Who is responsible</h2>
-  <p>This policy covers the Blanc desktop browser for macOS, Windows, and Linux and blancbrowser.com. The data controller is <strong>Bananify</strong>, an independent software studio in Rochester, New York, United States. Contact <!--email_off--><a href="mailto:support@blancbrowser.com">support@blancbrowser.com</a><!--/email_off--> for privacy questions or requests.</p>
+  <p>This policy covers the Blanc desktop browser for macOS, Windows, and Linux and its website, blanc.day (formerly blancbrowser.com). The data controller is <strong>Bananify</strong>, an independent software studio in Rochester, New York, United States. Contact <!--email_off--><a href="mailto:support@blanc.day">support@blanc.day</a><!--/email_off--> for privacy questions or requests.</p>
   <p>A mobile version is in development and is not covered until it is released.</p>
 
   <h2 id="what-stays-on-your-device">What stays on your device</h2>
@@ -92,21 +92,21 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <li><strong>Page-view counting.</strong> Non-legal pages also load Cloudflare Web Analytics, a beacon that reports the page URL, referrer, and coarse browser and device information to Cloudflare. It sets no cookie and stores no persistent identifier, so it is not affected by the Allow choice; it is used only to understand aggregate traffic, and blockers that filter <code>cloudflareinsights.com</code> stop it entirely.</li>
     <li><strong>Downloads.</strong> Pages with download controls ask GitHub's public API which artifacts exist. Choosing an artifact then requests Blanc's Cloudflare download Worker, which increments one aggregate counter for that UTC day and platform target and redirects to the matching GitHub release file. Blanc stores no download cookie, IP address, user agent, or per-user identifier in that counter. When the consented ChatGPT-ad reference described above is present, the same Worker also sends the limited conversion event to OpenAI. Cloudflare and GitHub still receive ordinary request data such as IP address and user agent under their own policies.</li>
     <li><strong>Hosting.</strong> Cloudflare Pages serves the site and processes ordinary request and security logs, including IP addresses, to deliver and protect it.</li>
-    <li><strong>Fonts.</strong> Fonts are bundled and served by blancbrowser.com; no font provider is contacted.</li>
+    <li><strong>Fonts.</strong> Fonts are bundled and served by blanc.day; no font provider is contacted.</li>
     <li><strong>Tab-handoff landing page.</strong> The <code>/import-tabs</code> utility page is excluded from the sitemap and loads no Google Analytics, Cloudflare Web Analytics beacon, conversion measurement, or consent script. Cloudflare still processes ordinary hosting and security logs.</li>
   </ul>
 
   <h3>Newsletter (optional, double opt-in)</h3>
   <p>Submitting the footer form does not immediately subscribe an address. The newsletter Worker temporarily stores the address, request time, and opaque confirmation/unsubscribe material for up to 24 hours and asks Resend to deliver a confirmation email. Resend therefore processes the address for that delivery under <a href="https://resend.com/legal/privacy-policy" target="_blank" rel="noopener">its privacy policy</a>. The Worker uses short-lived per-IP rate-limit keys, expiring after about two minutes, but does not attach an IP address to the subscriber record.</p>
-  <p>Only following the confirmation link creates a subscriber record containing the email address, confirmation time, and opaque unsubscribe token. Every message must include the generated one-click unsubscribe link; using it deletes the record. You can also request deletion at <!--email_off--><a href="mailto:support@blancbrowser.com">support@blancbrowser.com</a><!--/email_off-->. A valid address caught by the hidden honeypot is held in a separate 30-day quarantine for manual review of possible browser-autofill false positives. It is never subscribed or sent to Resend unless someone submits it again without the honeypot and then follows the confirmation link.</p>
+  <p>Only following the confirmation link creates a subscriber record containing the email address, confirmation time, and opaque unsubscribe token. Every message must include the generated one-click unsubscribe link; using it deletes the record. You can also request deletion at <!--email_off--><a href="mailto:support@blanc.day">support@blanc.day</a><!--/email_off-->. A valid address caught by the hidden honeypot is held in a separate 30-day quarantine for manual review of possible browser-autofill false positives. It is never subscribed or sent to Resend unless someone submits it again without the honeypot and then follows the confirmation link.</p>
 
   <h3 id="mail-waitlist">Blanc Mail waitlist (optional, double opt-in)</h3>
   <p>The waitlist form on the Blanc Mail pages works like the newsletter signup but is a separate list. The same Worker temporarily stores the address, request time, and opaque confirmation and removal material for up to 24 hours and asks Resend to deliver a confirmation email. Only following the confirmation link adds the address, confirmation time, and an opaque removal token to the waitlist. Joining the waitlist does not subscribe you to the newsletter, and the waitlist record is never added to the newsletter list. Short-lived per-IP rate-limit keys expire after about two minutes and are not attached to the waitlist record. A valid address caught by the hidden honeypot is held in a separate 30-day quarantine and is never added to the waitlist or sent to Resend.</p>
-  <p>We use the waitlist only to tell you when Blanc Mail for macOS is ready, which may include an invitation to try it before release. Every waitlist email includes a removal link; using it deletes your record, and you can also request deletion at <!--email_off--><a href="mailto:support@blancbrowser.com">support@blancbrowser.com</a><!--/email_off-->. After the launch announcement is sent, we delete the whole waitlist.</p>
+  <p>We use the waitlist only to tell you when Blanc Mail for macOS is ready, which may include an invitation to try it before release. Every waitlist email includes a removal link; using it deletes your record, and you can also request deletion at <!--email_off--><a href="mailto:support@blanc.day">support@blanc.day</a><!--/email_off-->. After the launch announcement is sent, we delete the whole waitlist.</p>
 
   <h3>Ambassador applications</h3>
   <p>If you apply to the Blanc Ambassador Pilot, the form sends your name, email address, creator-profile link, and short introduction through a Blanc-owned Cloudflare Worker. Resend delivers that information to Bananify's support inbox so we can review and reply. An application does not subscribe you to the newsletter or another marketing list, and the Worker does not store it in its database. Short-lived per-IP keys limit abuse but are not attached to the application.</p>
-  <p>Bananify keeps an application in the receiving mailbox only as long as reasonably needed to evaluate it, respond, maintain necessary business records, or meet legal obligations. You can request deletion at <!--email_off--><a href="mailto:support@blancbrowser.com">support@blancbrowser.com</a><!--/email_off-->.</p>
+  <p>Bananify keeps an application in the receiving mailbox only as long as reasonably needed to evaluate it, respond, maintain necessary business records, or meet legal obligations. You can request deletion at <!--email_off--><a href="mailto:support@blanc.day">support@blanc.day</a><!--/email_off-->.</p>
 
   <h2>Why we process information</h2>
   <p>Where a legal basis is required, usage measurement follows the saved in-app choice; optional website Google analytics, ad-conversion measurement, and newsletter and Blanc Mail waitlist enrollment rely on consent; and Cloudflare’s cookieless site counts are used to understand aggregate traffic. A tab handoff and an ambassador application are processed only to perform and respond to the user's explicit request. Choices can be withdrawn for future processing. Patron and supporter purchases and activation are necessary to provide the requested transaction. Security logs, rate limits, signed-update delivery, and service reliability rely on our legitimate interests in operating and protecting Blanc without overriding user rights. Legal obligations may require limited processing or preservation in exceptional cases.</p>
@@ -129,7 +129,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
   <h2>Your choices and rights</h2>
   <p>You can turn search suggestions and usage measurement off before completing first run or later in Settings, leave 1Password login fill off or disable it to end Blanc's cached SDK session, reset the installation ID, leave Sync off or erase its server copy, avoid creating a tab handoff or cancel it at Blanc's review sheet, clear local browsing records, decline full site analytics and ad-conversion measurement, and unsubscribe from email or leave the Blanc Mail waitlist. Depending on where you live, you may also have rights to access, correct, delete, restrict, object to, or receive a portable copy of personal information, withdraw consent, and appeal or complain to a data-protection authority. Blanc does not sell personal information or share it for cross-context behavioral advertising.</p>
-  <p>Email <!--email_off--><a href="mailto:support@blancbrowser.com">support@blancbrowser.com</a><!--/email_off--> to exercise a right. We may need enough information to verify that a request concerns your record; for server-blind ciphertext or an unlinked pseudonymous event, we may be unable to identify a record from your identity alone.</p>
+  <p>Email <!--email_off--><a href="mailto:support@blanc.day">support@blanc.day</a><!--/email_off--> to exercise a right. We may need enough information to verify that a request concerns your record; for server-blind ciphertext or an unlinked pseudonymous event, we may be unable to identify a record from your identity alone.</p>
 
   <h2>Children</h2>
   <p>Blanc is not directed to children under 13, and Bananify does not knowingly collect their personal information. A parent or guardian can contact us to request deletion.</p>
@@ -138,6 +138,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   <p>Blanc uses sandboxing, least-privilege bridges, signed releases, protected local keys, encryption in transit, and end-to-end encryption where described. No product or service can promise perfect security. Please report vulnerabilities through the <a href="https://github.com/bnfy/blanc/security/policy" target="_blank" rel="noopener">security policy</a>. Material policy changes will update the date above and, when appropriate, be called out in the product or site.</p>
 
   <h2>Contact</h2>
-  <p>Bananify · Rochester, New York, United States · <!--email_off--><a href="mailto:support@blancbrowser.com">support@blancbrowser.com</a><!--/email_off--></p>
+  <p>Bananify · Rochester, New York, United States · <!--email_off--><a href="mailto:support@blanc.day">support@blanc.day</a><!--/email_off--></p>
 </main>
 </BaseLayout>

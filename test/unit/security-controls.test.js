@@ -65,7 +65,7 @@ test('public site ships baseline browser security headers and disclosure metadat
   ]) assert.match(headers, new RegExp(required.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 
   const securityTxt = read('site/public/.well-known/security.txt');
-  assert.match(securityTxt, /^Contact: mailto:support@blancbrowser\.com$/m);
+  assert.match(securityTxt, /^Contact: mailto:support@blanc\.day$/m);
   assert.match(securityTxt, /^Expires: 20\d\d-/m);
   assert.match(securityTxt, /^Policy: https:\/\/github\.com\/bnfy\/blanc\/security\/policy$/m);
 });

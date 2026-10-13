@@ -24,7 +24,7 @@ let pillHtml = pill.html;
 pillHtml = swap(pillHtml, 'id="islandPill" class="no-drag"', 'id="islandPill" class="no-drag shield-open"');
 pillHtml = swap(pillHtml, /<div id="pillDots">[\s\S]*?<\/div>/, '<div id="pillDots"><button class="island-dot"></button><button class="island-dot active"></button><button class="island-dot"></button></div>');
 pillHtml = swap(pillHtml, ' style="background-image:url(/favicon.svg)"', '');
-pillHtml = swap(pillHtml, '<span id="pillDomain">blancbrowser.com</span>', `<span id="pillDomain">${host}</span>`);
+pillHtml = swap(pillHtml, '<span id="pillDomain">blanc.day</span>', `<span id="pillDomain">${host}</span>`);
 pillHtml = swap(pillHtml, 'id="pillShield" class="shield" aria-expanded="false"', 'id="pillShield" class="shield" aria-expanded="true"');
 pillHtml = swap(pillHtml, '<span id="pillShieldCount">1</span>', `<span id="pillShieldCount">${count}</span>`);
 

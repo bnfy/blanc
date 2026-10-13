@@ -1,7 +1,7 @@
 const path = require('node:path');
 
 const ABOUT_APPLICATION_NAME = 'Blanc';
-const ABOUT_WEBSITE = 'https://blancbrowser.com';
+const ABOUT_WEBSITE = 'https://blanc.day';
 const ABOUT_COPYRIGHT = '© 2026 Bananify';
 
 // `t` is the interface translator; the name and copyright are fixed.

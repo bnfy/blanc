@@ -697,7 +697,7 @@ async function latestReleaseAssets(env, now) {
   }
 }
 
-// GET /dl/<target> — counted download redirect for blancbrowser.com. Bumps
+// GET /dl/<target> — counted download redirect for the website. Bumps
 // one KV counter per click (a bare count: no IP, no UA, nothing per-user)
 // and 302s to the latest release artifact. ANY failure degrades to the
 // releases page so a person always reaches the file; unknown targets

@@ -1,11 +1,12 @@
 # Release ownership and contacts
 
-Last verified: July 23, 2026
+Last verified: July 23, 2026. Contacts moved to `support@blanc.day` on October 13,
+2026.
 
 - Release owner: Anthony J. Loria
-- Press contact: `support@blancbrowser.com`
-- Product support: `support@blancbrowser.com`
-- Private security reports: `support@blancbrowser.com` with **Security** in
+- Press contact: `support@blanc.day`
+- Product support: `support@blanc.day`
+- Private security reports: `support@blanc.day` with **Security** in
   the subject; see [`SECURITY.md`](../../SECURITY.md)
 - Site deployment account: BNFY Cloudflare account; Pages write access
   confirmed locally on July 23, 2026

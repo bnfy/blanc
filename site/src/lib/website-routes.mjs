@@ -1,13 +1,16 @@
 import legacyRoutes from "../data/legacy-routes.json" with { type: "json" };
-// Resolve internal links in immutable release-note data at render time.
+import { FORMER_SITE_ORIGIN, SITE_ORIGIN } from "./site-origin.mjs";
+// Resolve internal links in immutable release-note data at render time. Notes
+// written before the move link to the former origin, which is still ours.
+const OWN_ORIGINS = new Set([SITE_ORIGIN, FORMER_SITE_ORIGIN]);
 export function currentWebsiteLink(href) {
   let url;
   try {
-    url = new URL(href, "https://blancbrowser.com");
+    url = new URL(href, SITE_ORIGIN);
   } catch {
     return href;
   }
-  if (url.origin !== "https://blancbrowser.com") return href;
+  if (!OWN_ORIGINS.has(url.origin)) return href;
   const destination = legacyRoutes[url.pathname.replace(/\/$/, "")];
   if (!destination) return href;
   const target = new URL(destination, url.origin);

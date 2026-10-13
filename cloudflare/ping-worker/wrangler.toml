@@ -12,9 +12,13 @@ kv_namespaces = [
   { binding = "PINGS", id = "2c71bddea5b842d49fee1c972b70e8d9" }
 ]
 
-# blancbrowser.com is a Pages project; these routes carve /dl/* out of it so
-# download clicks are counted at the edge (no JS, no ad-blocker exposure).
+# The website is a Pages project on blanc.day, and blancbrowser.com redirects
+# there (cloudflare/blancbrowser-redirects). These more specific routes carve
+# /dl/* out of both, so download clicks, old links included, are counted at the
+# edge (no JS, no ad-blocker exposure).
 routes = [
+  { pattern = "blanc.day/dl/*", zone_name = "blanc.day" },
+  { pattern = "www.blanc.day/dl/*", zone_name = "blanc.day" },
   { pattern = "blancbrowser.com/dl/*", zone_name = "blancbrowser.com" },
   { pattern = "www.blancbrowser.com/dl/*", zone_name = "blancbrowser.com" }
 ]

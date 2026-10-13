@@ -1,0 +1,13 @@
+name = "blancbrowser-redirects"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+workers_dev = false
+
+# Exact hosts only: tabs.blancbrowser.com is a custom domain of the tab-import
+# Worker and stays where it is. Routes on these hosts take precedence over the
+# Pages site; blanc-ping's more specific /dl/* routes still win over them.
+routes = [
+  { pattern = "blancbrowser.com/*", zone_name = "blancbrowser.com" },
+  { pattern = "www.blancbrowser.com/*", zone_name = "blancbrowser.com" },
+  { pattern = "www.blanc.day/*", zone_name = "blanc.day" },
+]

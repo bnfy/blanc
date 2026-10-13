@@ -42,10 +42,18 @@ and imports correctly.
     Mac signing certificate and provisioning profile), or use a signed
     candidate. A packaged build uses your everyday Blanc profile.
 
-**Do steps 3–9 and 11 by hand** in the running app. An automated run through
-the test hook is a useful extra check, but it replaces the native file picker
-and nobody sees the sheet, so it doesn't count as these steps. Record which
-steps, if any, were automated.
+**Do steps 3–9 and 11 through the real interface**, either by hand or with an
+agent that operates the real Arc and Blanc windows on screen (for example
+Codex with computer use). Both use the real Finder dialog and see the sheet.
+An automated run through the test hook or Playwright is a useful extra check,
+but it replaces the native file picker and nobody sees the sheet, so it
+doesn't count as these steps. Record how the steps were run.
+
+An agent follows the same rules as a person:
+- Its output, logs and files carry counts only (see **Privacy** below).
+- It opens and quits only Arc and the Blanc build under test.
+- It never enters payment details. Step 6 waits for a Patron key the owner
+  provides.
 
 **Write down:**
 
@@ -66,8 +74,10 @@ folder. So count first, while Arc is open. In your smallest Space, note:
 - the number of web tabs: pinned tabs, tabs inside folders (including nested
   folders and split views) and Today tabs;
 - the number of top-level folders;
-- the number of web pages in the top row of Favorites (the same for every
-  Space).
+- the number of web pages in the top row of Favorites. Arc keeps a separate
+  row for each Arc profile, so a Space with its own profile shows a different
+  row. Count each profile's row, then the number of different pages across
+  all rows: Blanc imports every row into one folder without duplicates.
 
 Then quit Arc and record the file's hash:
 
@@ -184,8 +194,10 @@ the one from step 1.
 ## 11. Arc saving while Blanc reads
 
 This step comes last because it changes Arc's file on purpose. Open Arc and
-keep changing its sidebar (move tabs between folders) while clicking **Bring
-Spaces from Arc** a few times.
+keep changing its sidebar (move tabs between folders) for a couple of minutes
+while clicking **Bring Spaces from Arc** again and again. Arc only saves its
+sidebar every so often, so a few quick clicks can all finish before it saves
+at all.
 
 - Each attempt either shows a normal preview or "Arc was saving its sidebar.
   Try again in a moment." Never a partial or broken preview. The message may
@@ -205,7 +217,7 @@ Arc Spaces import — Mac
 macOS: <version>, <Apple Silicon | Intel>
 Arc: <version>
 Blanc: <commit or build>, <dev | packaged>
-Run: <by hand | steps automated through the test hook: …>
+Run: <by hand | real interface driven by <agent> | steps automated through the test hook: …>
 
 | Step | Result | Notes (counts only) |
 |------|--------|---------------------|

@@ -611,7 +611,7 @@ Blanc no puede abrir la guía de configuración mientras no pueda iniciarse. Abr
     <string name="linux_sandbox_copied_detail">Pégalo en otro navegador y luego elige Salir.</string>
     <string name="menu_check_for_updates">Buscar actualizaciones…</string>
     <string name="update_stalled_message">La descarga de la actualización se detuvo</string>
-    <string name="update_stalled_detail">La descarga de la actualización dejó de avanzar. Puedes reintentarlo con «%1$s» o reinstalar desde blancbrowser.com.</string>
+    <string name="update_stalled_detail">La descarga de la actualización dejó de avanzar. Puedes reintentarlo con «%1$s» o reinstalar desde blanc.day.</string>
     <string name="update_ready_message">Actualización %1$s descargada</string>
     <string name="update_ready_detail">Reinicia para aplicarla. Blanc se volverá a abrir cuando termine la instalación.</string>
     <string name="update_ready_restart">Reiniciar ahora</string>
@@ -619,7 +619,7 @@ Blanc no puede abrir la guía de configuración mientras no pueda iniciarse. Abr
     <string name="update_failed_message">No se pudo descargar la actualización</string>
     <string name="update_failed_detail">%1$s
 
-Puedes reintentarlo con «%2$s» o reinstalar desde blancbrowser.com.</string>
+Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="update_dev_only">Las actualizaciones solo están disponibles en las compilaciones empaquetadas.</string>
     <string name="update_flatpak_message">Flatpak mantiene Blanc actualizado</string>
     <string name="update_flatpak_detail">Actualiza Blanc desde tu centro de software o ejecuta \"flatpak update\" en un terminal.</string>

@@ -13,7 +13,7 @@ body:
         please file a regular **Bug report** instead.
 
         **Please don't report security vulnerabilities here.** This tracker is
-        public. Email support@blancbrowser.com instead.
+        public. Email support@blanc.day instead.
 
   - type: textarea
     id: what-happened

@@ -7,9 +7,9 @@ public.
 - MCP endpoint: `https://tabs.blancbrowser.com/mcp`
 - Tool: `create_tab_handoff`
 - Authentication: none
-- Privacy: `https://blancbrowser.com/privacy`
-- Terms: `https://blancbrowser.com/terms`
-- Support: `https://blancbrowser.com/faq` and `support@blancbrowser.com`
+- Privacy: `https://blanc.day/privacy`
+- Terms: `https://blanc.day/terms`
+- Support: `https://blanc.day/support` and `support@blanc.day`
 - Domain challenge: `https://tabs.blancbrowser.com/.well-known/openai-apps-challenge`
 - Connector artwork: `assets/sunrise-mark.png`, the canonical full Sunrise
   logo mark used by the plugin manifest for its composer icon and light/dark

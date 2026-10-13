@@ -51,7 +51,19 @@ test('a renamed build may still call servers it runs itself', () => {
   assert.equal(bananifyServiceAllowed('http://127.0.0.1:8787', 'Foo Browser'), true);
 });
 
+test('blanc.day and its subdomains are Bananify services, and so is the former domain', () => {
+  for (const url of [
+    'https://blanc.day/',
+    'https://www.blanc.day/mail',
+    'https://downloads.blanc.day/mail/BlancMail-1.0.0.zip',
+    'https://blancbrowser.com/',
+    'https://tabs.blancbrowser.com/v1/handoffs/x',
+  ]) assert.equal(isBananifyServiceUrl(url), true, url);
+});
+
 test('lookalike hosts are not Bananify services, and unreadable URLs fail closed', () => {
+  assert.equal(isBananifyServiceUrl('https://blanc.day.example/'), false);
+  assert.equal(isBananifyServiceUrl('https://notblanc.day/'), false);
   assert.equal(isBananifyServiceUrl('https://blancbrowser.com.example/'), false);
   assert.equal(isBananifyServiceUrl('https://notblancbrowser.com/'), false);
   assert.equal(isBananifyServiceUrl('https://bnfy-441.workers.dev.example/'), false);

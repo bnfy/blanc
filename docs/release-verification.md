@@ -24,7 +24,7 @@ export BLANC_COSIGN_OIDC_ISSUER='https://github.com/login/oauth'
 These are the authorized values (chosen 2026-08-12): the release operator
 signs in with the `bnfy` GitHub account, whose primary verified email is
 `anthony@bnfy.me`. The same pair is published on the Blanc security page
-(https://blancbrowser.com/features/security) so verifiers can pin it
+(https://blanc.day/features/security) so verifiers can pin it
 independently of any release. If the pair ever changes, update the security
 page and this document in the same change, and note the rotation in the next
 release's notes. Verify the publication from a clean machine before the next
@@ -234,7 +234,7 @@ After publication, regenerate and commit `site/src/data/releases.json`, advance
 the public and migration baselines, run `npm run site:build`, push, then run
 `npm run site:deploy` from the clean checkout at `origin/main`. That script must
 keep its explicit `--branch=main`: a detached release worktree otherwise deploys
-to a `HEAD` preview without updating `blancbrowser.com`. Confirm `wrangler pages
+to a `HEAD` preview without updating the live site (`blanc.day`). Confirm `wrangler pages
 deployment list --project-name=blancbrowser` reports the expected source SHA as
 `Environment: Production` and `Branch: main`, then verify the canonical
 changelog and homepage version, not only a Cloudflare preview URL. The v1.4.0 incident and recovery are recorded
