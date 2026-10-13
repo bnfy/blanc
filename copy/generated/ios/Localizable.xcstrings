@@ -40351,44 +40351,44 @@
         }
       }
     },
-    "settings.patron.blancPatronUnlocksBlanc": {
-      "comment": "Settings → Blanc Patron: explanation under a setting.",
+    "settings.patron.supportsBlanc": {
+      "comment": "Settings → Blanc Patron: explanation under the heading. Patron is optional support; it unlocks nothing.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Blanc Patron unlocks Blanc Spaces on every platform. A one-time founding license activates once, with no further contact. A monthly or annual subscription checks in with Polar about once a day — your license key and activation id only, never browsing data — to confirm it’s still active. On a lapse, existing spaces stay available while creating new ones pauses."
+            "value": "Blanc Patron is how you support Blanc’s development. Every feature, including Blanc Spaces, is free for everyone. A one-time founding license activates once, with no further contact. A monthly or annual subscription checks in with Polar about once a day — your license key and activation id only, never browsing data — to confirm it’s still active."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Blanc Patron schaltet Blanc Spaces auf allen Plattformen frei. Eine einmalige Gründerlizenz wird einmal aktiviert, ohne weiteren Kontakt. Ein Monats- oder Jahresabo meldet sich etwa einmal am Tag bei Polar – nur mit Lizenzschlüssel und Aktivierungs-ID, nie mit Browserdaten –, um zu bestätigen, dass es noch aktiv ist. Läuft es aus, bleiben bestehende Spaces verfügbar, neue können aber nicht mehr erstellt werden."
+            "value": "Mit Blanc Patron unterstützt du die Entwicklung von Blanc. Jede Funktion, auch Blanc Spaces, ist für alle kostenlos. Eine einmalige Gründerlizenz wird einmal aktiviert, ohne weiteren Kontakt. Ein Monats- oder Jahresabo meldet sich etwa einmal am Tag bei Polar – nur mit Lizenzschlüssel und Aktivierungs-ID, nie mit Browserdaten –, um zu bestätigen, dass es noch aktiv ist."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Blanc Patron desbloquea Blanc Spaces en todas las plataformas. Una licencia única de fundador se activa una vez, sin más contacto. Una suscripción mensual o anual consulta con Polar una vez al día aproximadamente (solo tu clave de licencia y el ID de activación, nunca datos de navegación) para confirmar que sigue activa. Si vence, los Spaces existentes siguen disponibles, pero no puedes crear nuevos."
+            "value": "Con Blanc Patron apoyas el desarrollo de Blanc. Todas las funciones, incluido Blanc Spaces, son gratis para todos. Una licencia única de fundador se activa una vez, sin más contacto. Una suscripción mensual o anual consulta con Polar una vez al día aproximadamente (solo tu clave de licencia y el ID de activación, nunca datos de navegación) para confirmar que sigue activa."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Blanc Patron débloque Blanc Spaces sur toutes les plateformes. Une licence fondatrice unique s’active une fois, sans autre contact. Un abonnement mensuel ou annuel contacte Polar environ une fois par jour — uniquement votre clé de licence et l’identifiant d’activation, jamais de données de navigation — pour confirmer qu’il est toujours actif. En cas d’interruption, les Spaces existants restent disponibles, mais vous ne pouvez plus en créer."
+            "value": "Blanc Patron vous permet de soutenir le développement de Blanc. Toutes les fonctionnalités, y compris Blanc Spaces, sont gratuites pour tous. Une licence fondatrice unique s’active une fois, sans autre contact. Un abonnement mensuel ou annuel contacte Polar environ une fois par jour — uniquement votre clé de licence et l’identifiant d’activation, jamais de données de navigation — pour confirmer qu’il est toujours actif."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Blanc Patron sblocca Blanc Spaces su tutte le piattaforme. Una licenza fondatore una tantum si attiva una sola volta, senza ulteriori contatti. Un abbonamento mensile o annuale si collega a Polar circa una volta al giorno (solo la tua chiave di licenza e l’ID di attivazione, mai dati di navigazione) per confermare che sia ancora attivo. Se scade, gli Spaces esistenti restano disponibili, ma non puoi crearne di nuovi."
+            "value": "Con Blanc Patron sostieni lo sviluppo di Blanc. Ogni funzione, Blanc Spaces compreso, è gratuita per tutti. Una licenza fondatore una tantum si attiva una sola volta, senza ulteriori contatti. Un abbonamento mensile o annuale si collega a Polar circa una volta al giorno (solo la tua chiave di licenza e l’ID di attivazione, mai dati di navigazione) per confermare che sia ancora attivo."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O Blanc Patron libera o Blanc Spaces em todas as plataformas. Uma licença única de fundador é ativada uma vez, sem outro contato. Uma assinatura mensal ou anual consulta o Polar cerca de uma vez por dia — só sua chave de licença e o ID de ativação, nunca dados de navegação — para confirmar que continua ativa. Se ela vencer, os Spaces existentes continuam disponíveis, mas não dá para criar novos."
+            "value": "Com o Blanc Patron, você apoia o desenvolvimento do Blanc. Todos os recursos, incluindo o Blanc Spaces, são gratuitos para todos. Uma licença única de fundador é ativada uma vez, sem outro contato. Uma assinatura mensal ou anual consulta o Polar cerca de uma vez por dia — só sua chave de licença e o ID de ativação, nunca dados de navegação — para confirmar que continua ativa."
           }
         }
       }
@@ -51391,14 +51391,14 @@
         }
       }
     },
-    "newtab.patron.upgrade": {
-      "comment": "Start page footer: pill linking to Blanc Patron in Settings.",
+    "newtab.patron.become": {
+      "comment": "Start page footer: pill linking to Blanc Patron in Settings. Patron is optional support for Blanc; it unlocks nothing.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Upgrade to Blanc Patron"
+            "value": "Become a Blanc Patron"
           }
         },
         "de": {
@@ -51422,7 +51422,7 @@
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Passa a Blanc Patron"
+            "value": "Diventa Blanc Patron"
           }
         },
         "pt-BR": {
@@ -51440,13 +51440,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hide the Blanc Patron upgrade for 90 days"
+            "value": "Hide the Blanc Patron invitation for 90 days"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Upgrade auf Blanc Patron für 90 Tage ausblenden"
+            "value": "Einladung zu Blanc Patron für 90 Tage ausblenden"
           }
         },
         "es": {
@@ -51458,7 +51458,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Masquer l’invitation Blanc Patron pendant 90 jours"
+            "value": "Masquer l’invitation Blanc Patron pendant 90 jours"
           }
         },
         "it": {

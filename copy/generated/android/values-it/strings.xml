@@ -1020,7 +1020,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_diagnostics_diagnostics_export">Esporta diagnostica…</string>
     <string name="settings_diagnostics_diagnostics_clear">Cancella arresti anomali</string>
     <string name="settings_patron_title">Blanc Patron</string>
-    <string name="settings_patron_blanc_patron_unlocks_blanc">Blanc Patron sblocca Blanc Spaces su tutte le piattaforme. Una licenza fondatore una tantum si attiva una sola volta, senza ulteriori contatti. Un abbonamento mensile o annuale si collega a Polar circa una volta al giorno (solo la tua chiave di licenza e l’ID di attivazione, mai dati di navigazione) per confermare che sia ancora attivo. Se scade, gli Spaces esistenti restano disponibili, ma non puoi crearne di nuovi.</string>
+    <string name="settings_patron_supports_blanc">Con Blanc Patron sostieni lo sviluppo di Blanc. Ogni funzione, Blanc Spaces compreso, è gratuita per tutti. Una licenza fondatore una tantum si attiva una sola volta, senza ulteriori contatti. Un abbonamento mensile o annuale si collega a Polar circa una volta al giorno (solo la tua chiave di licenza e l’ID di attivazione, mai dati di navigazione) per confermare che sia ancora attivo.</string>
     <string name="settings_patron_patron_checkout">Diventa Patron — $4/mese o $30/anno</string>
     <string name="settings_patron_patron_activate_hint">Sei già Patron? Inserisci la chiave di licenza che trovi in Purchases su Polar per attivare questo dispositivo.</string>
     <string name="settings_patron_patron_key_placeholder">Chiave di licenza</string>
@@ -1300,7 +1300,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="newtab_checklist_completed">Completato</string>
     <string name="newtab_checklist_task_completed">%1$s — completato</string>
     <string name="newtab_checklist_task_not_completed">%1$s — non completato</string>
-    <string name="newtab_patron_upgrade">Passa a Blanc Patron</string>
+    <string name="newtab_patron_become">Diventa Blanc Patron</string>
     <string name="newtab_patron_hide">Nascondi l’invito a Blanc Patron per 90 giorni</string>
     <string name="newtab_customize_button">Personalizza</string>
     <string name="newtab_customize_label">Personalizza la pagina iniziale</string>

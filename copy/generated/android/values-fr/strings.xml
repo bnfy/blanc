@@ -1020,7 +1020,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_diagnostics_diagnostics_export">Exporter les diagnostics…</string>
     <string name="settings_diagnostics_diagnostics_clear">Effacer les plantages</string>
     <string name="settings_patron_title">Blanc Patron</string>
-    <string name="settings_patron_blanc_patron_unlocks_blanc">Blanc Patron débloque Blanc Spaces sur toutes les plateformes. Une licence fondatrice unique s’active une fois, sans autre contact. Un abonnement mensuel ou annuel contacte Polar environ une fois par jour — uniquement votre clé de licence et l’identifiant d’activation, jamais de données de navigation — pour confirmer qu’il est toujours actif. En cas d’interruption, les Spaces existants restent disponibles, mais vous ne pouvez plus en créer.</string>
+    <string name="settings_patron_supports_blanc">Blanc Patron vous permet de soutenir le développement de Blanc. Toutes les fonctionnalités, y compris Blanc Spaces, sont gratuites pour tous. Une licence fondatrice unique s’active une fois, sans autre contact. Un abonnement mensuel ou annuel contacte Polar environ une fois par jour — uniquement votre clé de licence et l’identifiant d’activation, jamais de données de navigation — pour confirmer qu’il est toujours actif.</string>
     <string name="settings_patron_patron_checkout">Devenir Patron — $4/mois ou $30/an</string>
     <string name="settings_patron_patron_activate_hint">Déjà Patron ? Saisissez la clé de licence disponible sous Purchases dans Polar pour activer cet appareil.</string>
     <string name="settings_patron_patron_key_placeholder">Clé de licence</string>
@@ -1300,8 +1300,8 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="newtab_checklist_completed">Terminé</string>
     <string name="newtab_checklist_task_completed">%1$s — terminé</string>
     <string name="newtab_checklist_task_not_completed">%1$s — non terminé</string>
-    <string name="newtab_patron_upgrade">Devenir Blanc Patron</string>
-    <string name="newtab_patron_hide">Masquer l’invitation Blanc Patron pendant 90 jours</string>
+    <string name="newtab_patron_become">Devenir Blanc Patron</string>
+    <string name="newtab_patron_hide">Masquer l’invitation Blanc Patron pendant 90 jours</string>
     <string name="newtab_customize_button">Personnaliser</string>
     <string name="newtab_customize_label">Personnaliser la page d’accueil</string>
     <string name="newtab_customize_layout">Disposition</string>

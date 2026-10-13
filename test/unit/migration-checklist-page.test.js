@@ -27,19 +27,20 @@ test('start page carries one shared accessible migration checklist', () => {
   assert.doesNotMatch(html, /style="/);
 });
 
-test('one footer Patron pill names the upgrade and can be closed', () => {
+test('one footer Patron pill invites without promising an unlock, and can be closed', () => {
   const html = withoutInterfaceKeys(read('src/renderer/pages/newtab.html'));
   const css = read('src/renderer/pages/pages.css');
   const tokens = JSON.parse(read('tokens/tokens.json'));
-  const ctas = html.match(/<a href="blanc:\/\/settings\/#group-patron"><img class="patron-cta-mark" src="sunrise-mark\.png" alt="" \/><span>Upgrade to Blanc Patron<\/span><\/a>/g) ?? [];
+  const ctas = html.match(/<a href="blanc:\/\/settings\/#group-patron"><img class="patron-cta-mark" src="sunrise-mark\.png" alt="" \/><span>Become a Blanc Patron<\/span><\/a>/g) ?? [];
 
-  assert.equal(ctas.length, 1, 'one Patron upgrade serves every layout');
+  assert.equal(ctas.length, 1, 'one Patron pill serves every layout');
   assert.doesNotMatch(html, /patron-cta-arrow|ledger-patron|bb-patron|shelf-patron|tally-patron/);
   assert.doesNotMatch(html, />Support Blanc</);
+  assert.doesNotMatch(html, /Upgrade to Blanc Patron/);
   const footer = html.match(/<footer id="layoutFooter"[\s\S]*?<\/footer>/)[0];
   assert.match(footer, /<span class="footer-left">\s*<span id="footerLeft"><\/span>\s*<span id="version" class="ledger-version"><\/span>\s*<span id="migrationChecklistShell"[\s\S]*?<\/aside>\s*<\/span>\s*<span id="patronCallout" class="patron-pill js-patron-callout" hidden>/,
     'the Patron pill ends the footer\'s left group');
-  assert.match(footer, /<\/a>\s*<button id="patronCalloutHide" class="start-pill-close" type="button" aria-label="Hide the Blanc Patron upgrade for 90 days">/);
+  assert.match(footer, /<\/a>\s*<button id="patronCalloutHide" class="start-pill-close" type="button" aria-label="Hide the Blanc Patron invitation for 90 days">/);
   const chip = css.match(/\.js-patron-callout \{([\s\S]*?)\n\}/)?.[1] ?? '';
   assert.match(chip, /border: 1px solid color-mix\(in srgb, var\(--patron-gold\) 60%, transparent\);/,
     'the upgrade is an outlined pill edged in Sunrise gold');

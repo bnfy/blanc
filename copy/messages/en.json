@@ -3728,9 +3728,9 @@
     "message": "Blanc Patron",
     "note": "Settings → Blanc Patron: section heading."
   },
-  "settings.patron.blancPatronUnlocksBlanc": {
-    "message": "Blanc Patron unlocks Blanc Spaces on every platform. A one-time founding license activates once, with no further contact. A monthly or annual subscription checks in with Polar about once a day — your license key and activation id only, never browsing data — to confirm it’s still active. On a lapse, existing spaces stay available while creating new ones pauses.",
-    "note": "Settings → Blanc Patron: explanation under a setting."
+  "settings.patron.supportsBlanc": {
+    "message": "Blanc Patron is how you support Blanc’s development. Every feature, including Blanc Spaces, is free for everyone. A one-time founding license activates once, with no further contact. A monthly or annual subscription checks in with Polar about once a day — your license key and activation id only, never browsing data — to confirm it’s still active.",
+    "note": "Settings → Blanc Patron: explanation under the heading. Patron is optional support; it unlocks nothing."
   },
   "settings.patron.patronCheckout": {
     "message": "Become a Patron — $4/month or $30/year",
@@ -4722,13 +4722,13 @@
     "message": "{task} — not completed",
     "note": "Start page footer → “Finish setup” checklist: accessible name of an open task; {task} is the task name."
   },
-  "newtab.patron.upgrade": {
-    "message": "Upgrade to Blanc Patron",
-    "note": "Start page footer: pill linking to Blanc Patron in Settings.",
+  "newtab.patron.become": {
+    "message": "Become a Blanc Patron",
+    "note": "Start page footer: pill linking to Blanc Patron in Settings. Patron is optional support for Blanc; it unlocks nothing.",
     "maxLength": 33
   },
   "newtab.patron.hide": {
-    "message": "Hide the Blanc Patron upgrade for 90 days",
+    "message": "Hide the Blanc Patron invitation for 90 days",
     "note": "Start page footer: accessible name of the × on the Patron pill."
   },
   "newtab.customize.button": {

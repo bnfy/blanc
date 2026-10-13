@@ -3601,9 +3601,9 @@
     "message": "Blanc Patron",
     "source": "sha256:19e097972083774279bdee2b2d1cba4e33c832605fb19c4fed78fe0e1ac7ac4e"
   },
-  "settings.patron.blancPatronUnlocksBlanc": {
-    "message": "O Blanc Patron libera o Blanc Spaces em todas as plataformas. Uma licença única de fundador é ativada uma vez, sem outro contato. Uma assinatura mensal ou anual consulta o Polar cerca de uma vez por dia — só sua chave de licença e o ID de ativação, nunca dados de navegação — para confirmar que continua ativa. Se ela vencer, os Spaces existentes continuam disponíveis, mas não dá para criar novos.",
-    "source": "sha256:db27e85a4632633da3a8acaa277d5e7a27e578f3ee4b8c11971a4307302c44ab"
+  "settings.patron.supportsBlanc": {
+    "message": "Com o Blanc Patron, você apoia o desenvolvimento do Blanc. Todos os recursos, incluindo o Blanc Spaces, são gratuitos para todos. Uma licença única de fundador é ativada uma vez, sem outro contato. Uma assinatura mensal ou anual consulta o Polar cerca de uma vez por dia — só sua chave de licença e o ID de ativação, nunca dados de navegação — para confirmar que continua ativa.",
+    "source": "sha256:5ba433cc54e4f9efb468eee1f109da827b79ad170cc6b3c100c5d84ea4392e8d"
   },
   "settings.patron.patronCheckout": {
     "message": "Torne-se Patron — $4/mês ou $30/ano",
@@ -4561,13 +4561,13 @@
     "message": "{task} — não concluído",
     "source": "sha256:e9f1117f8475af5675067bbec38be830bbdd2a845105142729c1954d8a6b26ad"
   },
-  "newtab.patron.upgrade": {
+  "newtab.patron.become": {
     "message": "Seja Blanc Patron",
-    "source": "sha256:71bdae7af7d9fca8c671e992cc5547577b2eef82b8adbe6af5769098bab78e92"
+    "source": "sha256:03b6fef220b6f9832c4c4a5dbc6805f421a736174b19f5a88ee1d7836484fa44"
   },
   "newtab.patron.hide": {
     "message": "Ocultar o convite do Blanc Patron por 90 dias",
-    "source": "sha256:3d4f7f278996eaf9e08bf3663c7278d34e6f1e0e4494cd86a81190d3468ad684"
+    "source": "sha256:04a0a1e02ff9336de15171f566dca19334d81e04c7d45d681cd0f761354eadd4"
   },
   "newtab.customize.button": {
     "message": "Personalizar",

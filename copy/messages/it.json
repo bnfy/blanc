@@ -3601,9 +3601,9 @@
     "message": "Blanc Patron",
     "source": "sha256:19e097972083774279bdee2b2d1cba4e33c832605fb19c4fed78fe0e1ac7ac4e"
   },
-  "settings.patron.blancPatronUnlocksBlanc": {
-    "message": "Blanc Patron sblocca Blanc Spaces su tutte le piattaforme. Una licenza fondatore una tantum si attiva una sola volta, senza ulteriori contatti. Un abbonamento mensile o annuale si collega a Polar circa una volta al giorno (solo la tua chiave di licenza e l’ID di attivazione, mai dati di navigazione) per confermare che sia ancora attivo. Se scade, gli Spaces esistenti restano disponibili, ma non puoi crearne di nuovi.",
-    "source": "sha256:db27e85a4632633da3a8acaa277d5e7a27e578f3ee4b8c11971a4307302c44ab"
+  "settings.patron.supportsBlanc": {
+    "message": "Con Blanc Patron sostieni lo sviluppo di Blanc. Ogni funzione, Blanc Spaces compreso, è gratuita per tutti. Una licenza fondatore una tantum si attiva una sola volta, senza ulteriori contatti. Un abbonamento mensile o annuale si collega a Polar circa una volta al giorno (solo la tua chiave di licenza e l’ID di attivazione, mai dati di navigazione) per confermare che sia ancora attivo.",
+    "source": "sha256:5ba433cc54e4f9efb468eee1f109da827b79ad170cc6b3c100c5d84ea4392e8d"
   },
   "settings.patron.patronCheckout": {
     "message": "Diventa Patron — $4/mese o $30/anno",
@@ -4561,13 +4561,13 @@
     "message": "{task} — non completato",
     "source": "sha256:e9f1117f8475af5675067bbec38be830bbdd2a845105142729c1954d8a6b26ad"
   },
-  "newtab.patron.upgrade": {
-    "message": "Passa a Blanc Patron",
-    "source": "sha256:71bdae7af7d9fca8c671e992cc5547577b2eef82b8adbe6af5769098bab78e92"
+  "newtab.patron.become": {
+    "message": "Diventa Blanc Patron",
+    "source": "sha256:03b6fef220b6f9832c4c4a5dbc6805f421a736174b19f5a88ee1d7836484fa44"
   },
   "newtab.patron.hide": {
     "message": "Nascondi l’invito a Blanc Patron per 90 giorni",
-    "source": "sha256:3d4f7f278996eaf9e08bf3663c7278d34e6f1e0e4494cd86a81190d3468ad684"
+    "source": "sha256:04a0a1e02ff9336de15171f566dca19334d81e04c7d45d681cd0f761354eadd4"
   },
   "newtab.customize.button": {
     "message": "Personalizza",

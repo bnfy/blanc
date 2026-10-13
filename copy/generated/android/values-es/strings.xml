@@ -1020,7 +1020,7 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="settings_diagnostics_diagnostics_export">Exportar diagnóstico…</string>
     <string name="settings_diagnostics_diagnostics_clear">Borrar historial de fallos</string>
     <string name="settings_patron_title">Blanc Patron</string>
-    <string name="settings_patron_blanc_patron_unlocks_blanc">Blanc Patron desbloquea Blanc Spaces en todas las plataformas. Una licencia única de fundador se activa una vez, sin más contacto. Una suscripción mensual o anual consulta con Polar una vez al día aproximadamente (solo tu clave de licencia y el ID de activación, nunca datos de navegación) para confirmar que sigue activa. Si vence, los Spaces existentes siguen disponibles, pero no puedes crear nuevos.</string>
+    <string name="settings_patron_supports_blanc">Con Blanc Patron apoyas el desarrollo de Blanc. Todas las funciones, incluido Blanc Spaces, son gratis para todos. Una licencia única de fundador se activa una vez, sin más contacto. Una suscripción mensual o anual consulta con Polar una vez al día aproximadamente (solo tu clave de licencia y el ID de activación, nunca datos de navegación) para confirmar que sigue activa.</string>
     <string name="settings_patron_patron_checkout">Hazte Patron — $4/mes o $30/año</string>
     <string name="settings_patron_patron_activate_hint">¿Ya eres Patron? Escribe la clave de licencia que aparece en Purchases en Polar para activar este dispositivo.</string>
     <string name="settings_patron_patron_key_placeholder">Clave de licencia</string>
@@ -1300,7 +1300,7 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="newtab_checklist_completed">Completado</string>
     <string name="newtab_checklist_task_completed">%1$s: completado</string>
     <string name="newtab_checklist_task_not_completed">%1$s: sin completar</string>
-    <string name="newtab_patron_upgrade">Hazte Blanc Patron</string>
+    <string name="newtab_patron_become">Hazte Blanc Patron</string>
     <string name="newtab_patron_hide">Ocultar la invitación a Blanc Patron durante 90 días</string>
     <string name="newtab_customize_button">Personalizar</string>
     <string name="newtab_customize_label">Personalizar la página de inicio</string>
