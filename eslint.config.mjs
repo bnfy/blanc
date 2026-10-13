@@ -61,6 +61,11 @@ export default [
     languageOptions: { globals: { WorkspaceUI: 'readonly' } },
   },
   {
+    // index.html loads space-identity.js first; it publishes window.SpaceIdentity.
+    files: ['src/renderer/renderer.js'],
+    languageOptions: { globals: { SpaceIdentity: 'readonly' } },
+  },
+  {
     files: ['cloudflare/**/src/**/*.js'],
     languageOptions: { sourceType: 'module', globals: globals.worker },
   },

@@ -96,7 +96,7 @@
   const glancePickerLive = document.getElementById('glancePickerLive');
 
   let state = { tabs: [], activeTabId: null, glanceTabId: null, groups: [], closed: [] };
-  /** @type {null | 'panel' | 'palette' | 'glance' | 'find' | 'shield' | 'capture'} */
+  /** @type {null | 'panel' | 'palette' | 'glance' | 'find' | 'shield' | 'capture' | 'spaces'} */
   let mode = null;
   let glancePickerPurpose = null;
   let glancePickerSelectedId = null;
@@ -1748,7 +1748,7 @@
     glancePickerPurpose = next === 'glance' ? purpose : null;
     document.body.dataset.mode = next ?? '';
     document.body.dataset.glancePurpose = glancePickerPurpose ?? '';
-    if (next !== 'panel' && next !== 'palette') closeWorkspaceSwitcher();
+    if (next !== 'panel' && next !== 'palette' && next !== 'spaces') closeWorkspaceSwitcher();
     backdrop.hidden = next !== 'panel' && next !== 'palette';
     panelAnchor.hidden = next !== 'panel' && next !== 'palette';
     findBar.hidden = next !== 'find';
@@ -1827,6 +1827,10 @@
       }
       renderGlancePicker({ announce: !reshow });
       glancePickerInput.focus();
+    } else if (next === 'spaces') {
+      // The menu is the whole overlay here; data refreshes behind the first paint.
+      refreshSwitcherData();
+      if (!reshow) openWorkspaceSwitcher();
     } else if (next === 'shield') {
       renderShieldPop();
       (shieldChoosing ? shieldPopProvider.querySelector('input:checked:not(:disabled)') || shieldPopBack : shieldPopToggle.hidden ? shieldPopChangeProvider.disabled ? shieldPopSettings : shieldPopChangeProvider : shieldPopToggle).focus();

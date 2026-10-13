@@ -389,13 +389,13 @@ export interface DownloadsActivity {
 }
 
 /** Overlay modes; every showOverlay() call in main.js passes one of these literals. */
-export type OverlayMode = 'panel' | 'palette' | 'find' | 'shield' | 'capture' | 'glance' | 'display-share';
+export type OverlayMode = 'panel' | 'palette' | 'find' | 'shield' | 'capture' | 'glance' | 'display-share' | 'spaces';
 
 /** Which strip control opened the shield popover. */
 export type ShieldTrigger = 'shield' | 'insecure';
 
 /** The strip control that should regain focus when the overlay closes. */
-export type RestoreTrigger = 'shield' | 'insecure' | 'capture' | 'glance-change';
+export type RestoreTrigger = 'shield' | 'insecure' | 'capture' | 'glance-change' | 'spaces';
 
 /** Sent when main shows the overlay. */
 export interface OverlayShowPayload {
@@ -575,6 +575,14 @@ export interface IslandRectReport {
   height: number;
   /** Present while the shield popover is open, so a uBlock Origin popup can follow the pill. */
   shieldAnchor?: ShieldAnchor;
+  /** Present while the Spaces menu is open from the mark, so it follows the pill. */
+  spacesAnchor?: SpacesAnchor;
+}
+
+/** Where the Spaces menu opens: the space mark's left and bottom edges in window coordinates. Main validates both. */
+export interface SpacesAnchor {
+  left: number;
+  bottom: number;
 }
 
 /** Where the shield popover opens, from the strip control that opened it. Main validates the coordinates against the window. */
@@ -911,6 +919,11 @@ export interface BlancBrowserAPI {
    * IPC: send `chrome:open-capture`.
    */
   openCapturePopover(anchor: CaptureAnchor): void;
+  /**
+   * Open the Spaces menu from the Island's space mark.
+   * IPC: send `chrome:open-spaces`.
+   */
+  openSpacesMenu(anchor: SpacesAnchor): void;
   /**
    * Stop capture on a surface.
    * IPC: send `chrome:capture-stop`.

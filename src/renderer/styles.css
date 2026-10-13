@@ -1013,7 +1013,7 @@ body > .tab-drag-ghost[aria-hidden="true"] {
    (onIslandCovered in renderer.js). */
 #islandPill.covered { visibility: hidden; }
 
-#islandPill.proximity-active:not(.shield-open) {
+#islandPill.proximity-active:not(.shield-open):not(.spaces-open) {
   transform:
     translateY(calc(-2px * var(--island-k, 0)))
     scale(calc(1 + 0.02 * var(--island-k, 0)));
@@ -1368,6 +1368,7 @@ body > .tab-drag-ghost[aria-hidden="true"] {
 .shield:hover, .shield[aria-expanded="true"] { background: var(--border); }
 /* Keep the measured attachment still while its popover is open. */
 #islandPill.shield-open { transform: none; transition: none; }
+#islandPill.spaces-open { transform: none; transition: none; }
 #islandPill.shield-open .shield[aria-expanded="true"]::after {
   content: "";
   position: absolute;
@@ -3534,3 +3535,36 @@ body[data-mode="spaces"] #workspaceSwitcher.ws-switcher[hidden] { transform: sca
 @media (prefers-contrast: more) {
   .ws-tile { box-shadow: inset 0 0 0 1px var(--space-ink); }
 }
+
+/* ---- Blanc Spaces mark (strip) -------------------------------------------
+   The current space at the Island's leading edge: its symbol and name on its
+   wash (space-identity.js guards the ink). Authored inside #islandPill's
+   zoom, so 24px renders at ~28px. Neutral = in no space yet. */
+.space-mark {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  max-width: 150px;
+  padding: 0 8px 0 6px;
+  border: 0;
+  border-radius: 8px;
+  color: var(--space-ink);
+  background: var(--space-wash);
+  font: 550 11px/1 var(--font-ui);
+  cursor: pointer;
+  transition: color 350ms ease, background-color 350ms ease, box-shadow 200ms ease;
+}
+.space-mark[hidden] { display: none; }
+.space-mark:active { transform: scale(.96); transition: transform 100ms ease-out; }
+.space-mark:hover, .space-mark[aria-expanded="true"] { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--space-ink) 28%, transparent); }
+.space-mark:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 2px; }
+.space-mark-symbol { display: grid; place-items: center; }
+.space-mark-symbol svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.space-mark-name { min-width: 0; max-width: 122px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.space-mark[data-state="neutral"] { --space-ink: var(--text-dim); --space-wash: color-mix(in srgb, var(--text) 6%, transparent); width: 24px; padding: 0; justify-content: center; }
+.space-mark[data-state="neutral"] .space-mark-name { display: none; }
+#islandPill:has(> .space-mark:not([hidden])) { padding-left: 7px; }
+.island-row .row-space-tile { width: 20px; height: 20px; border-radius: 6px; }
+.island-row .row-space-tile .ws-symbol { width: 12px; height: 12px; }

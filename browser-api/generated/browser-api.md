@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-107 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
+108 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -63,6 +63,7 @@
 | `selectBlockingProvider` | blocking | invoke | `chrome:blocking-provider` | `(provider: string, restart?: boolean) => Promise<boolean>` | all |
 | `openBlockingPopup` | blocking | invoke | `chrome:blocking-popup` | `() => Promise<boolean>` | all |
 | `openCapturePopover` | capture | send | `chrome:open-capture` | `(anchor: CaptureAnchor)` | all |
+| `openSpacesMenu` | workspaces | send | `chrome:open-spaces` | `(anchor: SpacesAnchor)` | all |
 | `captureStop` | capture | send | `chrome:capture-stop` | `(surfaceId: CaptureSurfaceId)` | all |
 | `captureFocus` | capture | send | `chrome:capture-focus` | `(surfaceId: CaptureSurfaceId)` | all |
 | `stopDisplayShare` | capture | send | `display-capture:stop` | `(shareId: DisplayShareId)` | all |
@@ -623,7 +624,7 @@ Download activity for the strip, from downloadsActivity() in downloads.js.
 
 Overlay modes; every showOverlay() call in main.js passes one of these literals.
 
-`'panel' \| 'palette' \| 'find' \| 'shield' \| 'capture' \| 'glance' \| 'display-share'`
+`'panel' \| 'palette' \| 'find' \| 'shield' \| 'capture' \| 'glance' \| 'display-share' \| 'spaces'`
 
 ### `ShieldTrigger`
 
@@ -635,7 +636,7 @@ Which strip control opened the shield popover.
 
 The strip control that should regain focus when the overlay closes.
 
-`'shield' \| 'insecure' \| 'capture' \| 'glance-change'`
+`'shield' \| 'insecure' \| 'capture' \| 'glance-change' \| 'spaces'`
 
 ### `OverlayShowPayload`
 
@@ -847,6 +848,16 @@ The resting pill's rectangle as the strip reports it, plus the open shield popov
 | `width` | `number` |  |
 | `height` | `number` |  |
 | `shieldAnchor?` | `ShieldAnchor` | Present while the shield popover is open, so a uBlock Origin popup can follow the pill. |
+| `spacesAnchor?` | `SpacesAnchor` | Present while the Spaces menu is open from the mark, so it follows the pill. |
+
+### `SpacesAnchor`
+
+Where the Spaces menu opens: the space mark's left and bottom edges in window coordinates. Main validates both.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `left` | `number` |  |
+| `bottom` | `number` |  |
 
 ### `ShieldAnchor`
 

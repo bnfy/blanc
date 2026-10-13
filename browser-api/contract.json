@@ -805,7 +805,7 @@
       }
     },
     "OverlayMode": {
-      "ts": "'panel' | 'palette' | 'find' | 'shield' | 'capture' | 'glance' | 'display-share'",
+      "ts": "'panel' | 'palette' | 'find' | 'shield' | 'capture' | 'glance' | 'display-share' | 'spaces'",
       "doc": "Overlay modes; every showOverlay() call in main.js passes one of these literals."
     },
     "ShieldTrigger": {
@@ -813,7 +813,7 @@
       "doc": "Which strip control opened the shield popover."
     },
     "RestoreTrigger": {
-      "ts": "'shield' | 'insecure' | 'capture' | 'glance-change'",
+      "ts": "'shield' | 'insecure' | 'capture' | 'glance-change' | 'spaces'",
       "doc": "The strip control that should regain focus when the overlay closes."
     },
     "OverlayShowPayload": {
@@ -1170,6 +1170,22 @@
           "type": "ShieldAnchor",
           "optional": true,
           "doc": "Present while the shield popover is open, so a uBlock Origin popup can follow the pill."
+        },
+        "spacesAnchor": {
+          "type": "SpacesAnchor",
+          "optional": true,
+          "doc": "Present while the Spaces menu is open from the mark, so it follows the pill."
+        }
+      }
+    },
+    "SpacesAnchor": {
+      "doc": "Where the Spaces menu opens: the space mark's left and bottom edges in window coordinates. Main validates both.",
+      "fields": {
+        "left": {
+          "type": "number"
+        },
+        "bottom": {
+          "type": "number"
         }
       }
     },
@@ -2021,6 +2037,19 @@
         }
       ],
       "doc": "Open the capture indicator popover."
+    },
+    {
+      "name": "openSpacesMenu",
+      "group": "workspaces",
+      "kind": "send",
+      "channel": "chrome:open-spaces",
+      "params": [
+        {
+          "name": "anchor",
+          "type": "SpacesAnchor"
+        }
+      ],
+      "doc": "Open the Spaces menu from the Island's space mark."
     },
     {
       "name": "captureStop",

@@ -220,7 +220,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "606ed6326e194ba44d51c569803f1fa62bef162e94818f4855760b2ac84f156b",
+      "sha256": "ba3d3d0464ff1885a9f57d50a9d98b717b39e804fe5df54421013f387fc386cf",
       "literalChannels": [
         "activate",
         "before-input-event",
@@ -260,6 +260,7 @@
         "chrome:open-island-typing",
         "chrome:open-main-menu",
         "chrome:open-shield",
+        "chrome:open-spaces",
         "chrome:page-tint",
         "chrome:preview-vertical-tabs-width",
         "chrome:remote-tabs-list",
@@ -522,7 +523,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "442bd943d77661df288cc9028ef78ac55415a667133fa2ad6a765b2fd0c4c9e8",
+      "sha256": "536dda9bcfb7510c6a0dace4e8deb07804f8671ac0ea8f9ec16957007b8530bf",
       "literalChannels": [
         "chrome:adblock-exempt-active",
         "chrome:adblock-toggle",
@@ -553,6 +554,7 @@
         "chrome:open-island-typing",
         "chrome:open-main-menu",
         "chrome:open-shield",
+        "chrome:open-spaces",
         "chrome:page-tint",
         "chrome:preview-vertical-tabs-width",
         "chrome:remote-tabs-list",

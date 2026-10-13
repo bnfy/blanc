@@ -28,6 +28,10 @@
         </svg>
       </button>
       <div id="islandPill" class="no-drag" role="button" tabindex="0" title="Search, tabs & commands (Ctrl/Cmd+L)" data-i18n-title="pill.title">
+        <button id="pillSpace" class="space-mark" type="button" aria-haspopup="dialog" aria-expanded="false" data-state="none" hidden>
+          <span id="pillSpaceSymbol" class="space-mark-symbol" aria-hidden="true"></span>
+          <span id="pillSpaceName" class="space-mark-name" data-i18n-ignore></span>
+        </button>
         <div id="pillNav" class="pill-btns"></div>
         <div id="pillDots"></div>
         <span id="pillFavicon" class="favicon"></span>
@@ -156,6 +160,7 @@
   <script src="pages/type-to-open.js"></script>
   <script src="tab-drag.js"></script>
   <script src="vertical-tabs.js"></script>
+  <script src="space-identity.js"></script>
   <script src="renderer.js"></script>
 </body>
 </html>

@@ -193,6 +193,32 @@ function calculateCaptureBounds({ windowWidth, stripHeight, anchorRight, rowCoun
   };
 }
 
+// The 'spaces' overlay: the Spaces menu (300px) opened from the Island's
+// space mark. The view starts SPACES_MENU_PAD left of and above the menu so
+// its shadow and its opening scale (it grows out of the mark) are never
+// clipped by the view's edge; SPACES_MENU_GAP separates the menu from the mark.
+const SPACES_MENU_WIDTH = 300;
+const SPACES_MENU_PAD = 16;
+const SPACES_MENU_GAP = 6;
+const SPACES_MENU_MAX_HEIGHT = 640;
+
+/**
+ * Bounds for the 'spaces' overlay mode: the menu's left edge under the mark,
+ * just below it, clamped inside the window.
+ * @param {{windowWidth: number, windowHeight: number, stripHeight: number, anchorLeft?: number|null, anchorBottom?: number|null}} input
+ */
+function calculateSpacesBounds({ windowWidth, windowHeight, stripHeight, anchorLeft, anchorBottom }) {
+  const winWidth = dimension(windowWidth);
+  const winHeight = dimension(windowHeight);
+  const width = Math.min(SPACES_MENU_WIDTH + SPACES_MENU_PAD * 2, winWidth);
+  const left = Number.isFinite(anchorLeft) ? anchorLeft - SPACES_MENU_PAD : (winWidth - width) / 2;
+  const x = Math.round(Math.max(0, Math.min(left, winWidth - width)));
+  const below = Number.isFinite(anchorBottom) ? Math.min(anchorBottom, dimension(stripHeight)) : dimension(stripHeight);
+  const y = Math.max(0, Math.round(below + SPACES_MENU_GAP - SPACES_MENU_PAD));
+  const height = Math.max(0, Math.min(SPACES_MENU_MAX_HEIGHT, winHeight - y));
+  return { x, y, width, height };
+}
+
 module.exports = {
   VERTICAL_TABS_DEFAULT_WIDTH,
   VERTICAL_TABS_MIN_WIDTH,
@@ -211,6 +237,11 @@ module.exports = {
   CAPTURE_POPOVER_MAX_ROWS,
   calculateShieldBounds,
   calculateCaptureBounds,
+  SPACES_MENU_WIDTH,
+  SPACES_MENU_PAD,
+  SPACES_MENU_GAP,
+  SPACES_MENU_MAX_HEIGHT,
+  calculateSpacesBounds,
   normalizeTabLayout,
   normalizeVerticalTabsWidth,
   calculateChromeLayout,

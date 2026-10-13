@@ -106,6 +106,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   selectBlockingProvider: (provider, restart = false) => ipcRenderer.invoke('chrome:blocking-provider', provider, restart),
   openBlockingPopup: () => ipcRenderer.invoke('chrome:blocking-popup'),
   openCapturePopover: (anchor) => ipcRenderer.send('chrome:open-capture', anchor),
+  openSpacesMenu: (anchor) => ipcRenderer.send('chrome:open-spaces', anchor),
   captureStop: (surfaceId) => ipcRenderer.send('chrome:capture-stop', surfaceId),
   captureFocus: (surfaceId) => ipcRenderer.send('chrome:capture-focus', surfaceId),
   stopDisplayShare: (shareId) => ipcRenderer.send('display-capture:stop', { shareId }),

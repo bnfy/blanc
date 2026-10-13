@@ -256,6 +256,7 @@ const {
   normalizeVerticalTabsWidth,
   calculateChromeLayout,
   calculateShieldBounds,
+  calculateSpacesBounds,
   calculateCaptureBounds,
 } = require('./chrome-layout');
 const {
@@ -2992,6 +2993,15 @@ function overlayBounds() {
       rowCount: captureRowCount(),
     });
   }
+  if (rt().overlayMode === 'spaces') {
+    return calculateSpacesBounds({
+      windowWidth: rt().window.getContentBounds().width,
+      windowHeight: rt().window.getContentBounds().height,
+      stripHeight: rt().chromeHeight,
+      anchorLeft: rt().spacesAnchorLeft,
+      anchorBottom: rt().spacesAnchorBottom,
+    });
+  }
   return layout.panelBounds;
 }
 
@@ -3002,6 +3012,14 @@ function setShieldAnchor(anchor) {
   rt().shieldAnchorRight = Number.isFinite(anchor?.right) ? anchor.right : null;
   rt().shieldAnchorCenter = valid ? anchor.center : null;
   rt().shieldAnchorBottom = valid ? anchor.bottom : null;
+}
+
+function setSpacesAnchor(anchor) {
+  const width = rt().window?.getContentBounds().width ?? 0;
+  const valid = Number.isFinite(anchor?.left) && anchor.left >= 0 && anchor.left <= width
+    && Number.isFinite(anchor?.bottom) && anchor.bottom >= 0 && anchor.bottom <= rt().chromeHeight;
+  rt().spacesAnchorLeft = valid ? anchor.left : null;
+  rt().spacesAnchorBottom = valid ? anchor.bottom : null;
 }
 
 function syncShieldAnchor() {
@@ -3488,6 +3506,8 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
   rt().shieldAnchorCenter = null;
   rt().shieldAnchorBottom = null;
   rt().captureAnchorRight = null;
+  rt().spacesAnchorLeft = null;
+  rt().spacesAnchorBottom = null;
   rt().shieldPopoverHost = null;
   rt().shieldTrigger = null;
   // A dismissed command bar means the user is done addressing — stop any
@@ -3526,6 +3546,7 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
       ? (
           closingMode === 'shield' ? closingTrigger
             : closingMode === 'capture' ? 'capture'
+              : closingMode === 'spaces' ? 'spaces'
               // The Change control only exists while Glance is still open —
               // if the reference tab closed under the picker, fall through to
               // the ordinary content refocus instead of a hidden button.
@@ -6152,8 +6173,9 @@ function setActiveTab(id, {
   }
 
   // Find state is per-tab; a stale capsule over a different page misleads.
-  // The shield popover describes one tab's site — same rule.
-  if (rt().overlayMode === 'find' || rt().overlayMode === 'shield' || rt().overlayMode === 'capture') {
+  // The shield popover describes one tab's site — same rule. The Spaces menu
+  // describes this window, but a switch away from it is a fresh context too.
+  if (['find', 'shield', 'capture', 'spaces'].includes(rt().overlayMode)) {
     hideOverlay({ refocusContent: false });
   }
 
@@ -7467,6 +7489,10 @@ function registerIpcHandlers() {
       setShieldAnchor(rect.shieldAnchor);
       syncShieldAnchor();
     }
+    if (event.sender === rt().window?.webContents && rt().overlayMode === 'spaces' && rect?.spacesAnchor) {
+      setSpacesAnchor(rect.spacesAnchor);
+      rt().overlayView?.setBounds(overlayBounds());
+    }
   });
 
   chromeOn('chrome:layout', (_e, { height }) => {
@@ -7509,6 +7535,14 @@ function registerIpcHandlers() {
     rt().shieldTrigger = trigger;
     broadcastTabs(); // fresh state.shieldPopover before the overlay renders
     showOverlay('shield');
+  });
+  // The Island's space mark opens the Spaces menu on its own, tight around it.
+  // Escape, blur, a click outside, a tab switch or a space switch close it;
+  // focus returns to the mark.
+  chromeOn('chrome:open-spaces', (_e, anchor) => {
+    if (rt().overlayMode === 'spaces') return hideOverlay({ refocusContent: false }); // re-click toggles shut
+    setSpacesAnchor(anchor);
+    showOverlay('spaces');
   });
   chromeHandle('chrome:blocking-provider', async (_event, provider, restart = false) => {
     const tab = tabs.get(rt().activeTabId);

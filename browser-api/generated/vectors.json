@@ -1501,6 +1501,10 @@
                 "center": 1,
                 "bottom": 1,
                 "trigger": "shield"
+              },
+              "spacesAnchor": {
+                "left": 1,
+                "bottom": 1
               }
             }
           ],
@@ -1519,6 +1523,10 @@
                     "center": 1,
                     "bottom": 1,
                     "trigger": "shield"
+                  },
+                  "spacesAnchor": {
+                    "left": 1,
+                    "bottom": 1
                   }
                 }
               ]
@@ -2138,6 +2146,38 @@
               "args": [
                 {
                   "right": 1
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "openSpacesMenu": {
+      "kind": "send",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:open-spaces",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            {
+              "left": 1,
+              "bottom": 1
+            }
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:open-spaces",
+              "args": [
+                {
+                  "left": 1,
+                  "bottom": 1
                 }
               ]
             }

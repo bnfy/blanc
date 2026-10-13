@@ -38,6 +38,9 @@
   pillFillHint.setAttribute('aria-label', fillHintLabel);
   const pillShield = document.getElementById('pillShield');
   const pillShieldCount = document.getElementById('pillShieldCount');
+  const pillSpace = document.getElementById('pillSpace');
+  const pillSpaceSymbol = document.getElementById('pillSpaceSymbol');
+  const pillSpaceName = document.getElementById('pillSpaceName');
   const pillCapture = document.getElementById('pillCapture');
   const pillCaptureMic = document.getElementById('pillCaptureMic');
   const pillCaptureCam = document.getElementById('pillCaptureCam');
@@ -646,7 +649,88 @@
     return dot;
   }
 
+  // ---- Blanc Spaces mark (F41) ----
+  // The strip reads the same projection as the Spaces menu and only draws the
+  // current space's mark: its symbol and name on its colour, a grey glyph when
+  // this window is in no space, nothing before the first space exists.
+  // The footer's stacked-windows mark on the 24px symbol grid.
+  const NEUTRAL_SPACE_GLYPH = [
+    ['rect', { x: 3.75, y: 7.125, width: 13.125, height: 12.75, rx: 2.25 }],
+    ['path', { d: 'M7.875 7.125V4.875a1.5 1.5 0 0 1 1.5-1.5h10.5a1.5 1.5 0 0 1 1.5 1.5v10.5a1.5 1.5 0 0 1-1.5 1.5h-2.25' }],
+  ];
+  let spaces = { items: [], tint: 'mark' };
+  let markedSpace = { id: null, index: -1 };
+  let spaceMarkPainted = false;
+  function symbolSvg(elements) {
+    const svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    for (const [tag, attrs] of elements) {
+      const node = document.createElementNS(SVG_NS, tag);
+      for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, String(value));
+      svg.append(node);
+    }
+    return svg;
+  }
+  function chromeTheme() {
+    if (document.documentElement.dataset.theme === 'private') return 'private';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  // The menu lines up with the mark but hangs from the Island's bottom edge,
+  // so it never covers the Island (spec D18).
+  function spacesAnchor() {
+    return { left: pillSpace.getBoundingClientRect().left, bottom: islandPill.getBoundingClientRect().bottom };
+  }
+  function renderSpaceMark() {
+    const items = Array.isArray(spaces.items) ? spaces.items : [];
+    const index = items.findIndex((w) => w.active);
+    const bound = index >= 0 ? items[index] : null;
+    const state = bound ? 'space' : items.length ? 'neutral' : 'none';
+    const widthBefore = pillSpace.hidden ? 0 : pillSpace.getBoundingClientRect().width;
+    pillSpace.hidden = state === 'none';
+    pillSpace.dataset.state = state;
+    islandPill.classList.toggle('has-space', state === 'space');
+    document.documentElement.dataset.spaceTint = spaces.tint || 'mark';
+    if (bound) {
+      const painted = SpaceIdentity.paint(bound.color, chromeTheme()) ?? SpaceIdentity.paint(SpaceIdentity.PRESETS[0].hex, chromeTheme());
+      pillSpace.style.setProperty('--space-ink', painted.ink);
+      pillSpace.style.setProperty('--space-wash', painted.wash);
+      document.documentElement.style.setProperty('--space-band-wash', painted.wash);
+      pillSpace.title = blancI18n.t('spaces.mark.current', { name: bound.name });
+    } else {
+      pillSpace.style.removeProperty('--space-ink');
+      pillSpace.style.removeProperty('--space-wash');
+      document.documentElement.style.removeProperty('--space-band-wash');
+      pillSpace.title = blancI18n.t('footer.workspaces');
+    }
+    pillSpace.setAttribute('aria-label', pillSpace.title);
+    const symbol = bound ? (SpaceIdentity.isSymbol(bound.symbol) ? bound.symbol : SpaceIdentity.SYMBOL_IDS[0]) : 'neutral';
+    if (pillSpaceSymbol.dataset.symbol !== symbol) {
+      pillSpaceSymbol.replaceChildren(symbolSvg(bound ? SpaceIdentity.SYMBOLS[symbol] : NEUTRAL_SPACE_GLYPH));
+      pillSpaceSymbol.dataset.symbol = symbol;
+    }
+    pillSpaceName.textContent = bound?.name ?? '';
+    const next = { id: bound?.id ?? null, index };
+    if (spaceMarkPainted && next.id !== markedSpace.id) animateSpaceSwitch(markedSpace.index, index, widthBefore);
+    markedSpace = next;
+    spaceMarkPainted = true;
+  }
+  // Task 8 replaces this with the switch motion.
+  function animateSpaceSwitch() {}
+  function applySpaces(payload) {
+    spaces = payload && Array.isArray(payload.items) ? payload : { items: [], tint: 'mark' };
+    renderSpaceMark();
+  }
+  window.browserAPI.listWorkspaces().then(applySpaces, () => {});
+  window.browserAPI.onWorkspacesUpdated(applySpaces);
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', renderSpaceMark);
+  pillSpace.addEventListener('mousedown', (e) => e.preventDefault());
+  pillSpace.addEventListener('click', (e) => {
+    e.stopPropagation(); // the pill's own click opens the ⌘L panel
+    window.browserAPI.openSpacesMenu(spacesAnchor());
+  });
+
   function render() {
+    renderSpaceMark(); // the private theme may have just changed
     requestAnimationFrame(() => reportIslandRect());
     // The rail is a presentation of this same trusted payload, not another
     // tab store. Its module also applies the layout attribute/width used to
@@ -957,6 +1041,8 @@
     const shieldOpen = mode === 'shield';
     islandPill.classList.toggle('shield-open', shieldOpen && !nativePopup);
     pillShield.setAttribute('aria-expanded', String(shieldOpen && trigger === 'shield'));
+    pillSpace.setAttribute('aria-expanded', String(mode === 'spaces'));
+    islandPill.classList.toggle('spaces-open', mode === 'spaces');
     pillInsecure.setAttribute('aria-expanded', String(shieldOpen && trigger === 'insecure'));
     pillCapture.setAttribute('aria-expanded', String(mode === 'capture'));
     pillDisplayShare.setAttribute('aria-expanded', String(mode === 'capture'));
@@ -970,6 +1056,7 @@
     // focus() here lands in a focused document and paints the ring.
     if (restoreTrigger === 'shield') pillShield.focus();
     else if (restoreTrigger === 'insecure') pillInsecure.focus();
+    if (restoreTrigger === 'spaces') pillSpace.focus();
     render();
   });
   window.browserAPI.onDownloadsActivity((payload) => {
@@ -1003,7 +1090,7 @@
   const reportIslandRect = () => {
     const r = islandPill.getBoundingClientRect();
     if (!r.width) return;
-    const k = islandPill.classList.contains('shield-open') ? 0 : Number(islandPill.style.getPropertyValue('--island-k')) || 0;
+    const k = islandPill.classList.contains('shield-open') || islandPill.classList.contains('spaces-open') ? 0 : Number(islandPill.style.getPropertyValue('--island-k')) || 0;
     const scale = 1 + ISLAND_SCALE * k;
     // transform-origin is the top centre, so the top edge only moves by the rise.
     const width = r.width / scale;
@@ -1016,6 +1103,7 @@
       width,
       height,
       ...(trigger ? { shieldAnchor: shieldAnchorFor(trigger) } : {}),
+      ...(pillSpace.getAttribute('aria-expanded') === 'true' ? { spacesAnchor: spacesAnchor() } : {}),
     };
     const serialized = JSON.stringify(rect);
     if (serialized === lastIslandReport) return;
