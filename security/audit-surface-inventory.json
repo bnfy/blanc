@@ -220,7 +220,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "ba3d3d0464ff1885a9f57d50a9d98b717b39e804fe5df54421013f387fc386cf",
+      "sha256": "35ea0d31d1eec977f83981fcc2f835841923cca61a729cd3776fa4d1c5382bf1",
       "literalChannels": [
         "activate",
         "before-input-event",
@@ -419,7 +419,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "2d1cc73f475b6274e45dbb11153feb106a5f7996955a684277b79884ed6a305f",
+      "sha256": "a04c87c39e21ce2027c5708249ab43d1028e0e9b93db419a8357f944ff9b588f",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -490,6 +490,7 @@
         "pages:start:open-island",
         "pages:start:open-mahjong",
         "pages:start:open-settings",
+        "pages:start:open-spaces",
         "pages:start:patron-callout-dismiss",
         "pages:start:privacy-complete",
         "pages:start:recover-session",
@@ -733,7 +734,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "c7800fbfee764d92c7cfdbd5cff5e6d93109eda388f676bcf15891c85b9ef3a9",
+      "sha256": "505cd31e49b7c71d762c4b596532e4aaec927a713bf3210d03d1faf99e62a775",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -805,6 +806,7 @@
         "pages:start:open-island",
         "pages:start:open-mahjong",
         "pages:start:open-settings",
+        "pages:start:open-spaces",
         "pages:start:patron-callout-dismiss",
         "pages:start:privacy-complete",
         "pages:start:recover-session",

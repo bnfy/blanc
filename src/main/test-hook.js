@@ -819,6 +819,7 @@ function install(refs) {
         const popover = document.getElementById('migrationChecklist');
         const sync = document.getElementById('migrationSyncTask');
         const tabs = document.getElementById('migrationTabsTask');
+        const space = document.getElementById('migrationSpaceTask');
         const bounds = (element) => {
           if (!element || getComputedStyle(element).display === 'none') return null;
           const rect = element.getBoundingClientRect();
@@ -834,6 +835,7 @@ function install(refs) {
           title: document.getElementById('migrationChecklistTitle')?.textContent ?? null,
           syncComplete: sync?.classList.contains('is-complete') ?? false,
           tabsComplete: tabs?.classList.contains('is-complete') ?? false,
+          spaceComplete: space?.classList.contains('is-complete') ?? false,
           expanded: document.getElementById('migrationChecklistCompact')?.getAttribute('aria-expanded') === 'true',
           focused: document.hasFocus(),
           focusedId: document.activeElement?.id ?? null,
@@ -1006,6 +1008,7 @@ function install(refs) {
       const ids = {
         sync: 'migrationSyncAction',
         tabs: 'migrationTabsAction',
+        space: 'migrationSpaceAction',
         hide: 'migrationChecklistHide',
         compact: 'migrationChecklistCompact',
       };
@@ -1014,7 +1017,7 @@ function install(refs) {
       // Tasks live in the pill's popover, so reach them the way a person
       // does: open the popover from the pill, then click a task that is
       // actually rendered. A popover that fails to open fails the step.
-      const inPopover = action === 'sync' || action === 'tabs';
+      const inPopover = action === 'sync' || action === 'tabs' || action === 'space';
       return wc.executeJavaScript(`(() => {
         const btn = document.getElementById('${id}');
         if (!btn) return false;
@@ -1036,12 +1039,14 @@ function install(refs) {
         migrationChecklistDismissed: false,
         syncMigrationCompleted: false,
         tabImportCompleted: false,
+        spaceMigrationCompleted: false,
       });
       const current = settings.getSettings();
       return {
         dismissed: current.migrationChecklistDismissed,
         syncComplete: current.syncMigrationCompleted,
         tabsComplete: current.tabImportCompleted,
+        spaceComplete: current.spaceMigrationCompleted,
       };
     },
     setPatronCalloutDismissedAt(ms) {
@@ -1060,8 +1065,8 @@ function install(refs) {
         return document.getElementById('patronCallout').hidden;
       })()`);
     },
-    setMigrationChecklistProgress(syncComplete, tabsComplete) {
-      settings.setSettings({ syncMigrationCompleted: !!syncComplete, tabImportCompleted: !!tabsComplete });
+    setMigrationChecklistProgress(syncComplete, tabsComplete, spaceComplete = false) {
+      settings.setSettings({ syncMigrationCompleted: !!syncComplete, tabImportCompleted: !!tabsComplete, spaceMigrationCompleted: !!spaceComplete });
       return true;
     },
     migrationChecklistSettings() {
@@ -1070,6 +1075,7 @@ function install(refs) {
         dismissed: current.migrationChecklistDismissed === true,
         syncComplete: current.syncMigrationCompleted === true,
         tabsComplete: current.tabImportCompleted === true,
+        spaceComplete: current.spaceMigrationCompleted === true,
       };
     },
     syncEnabled() { return sync.status().enabled === true; },

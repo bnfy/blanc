@@ -25,6 +25,8 @@ export interface NewtabPagesAPI {
     topSites: (options: unknown) => Promise<unknown>;
     /** Focus a tab group picked on the Start Page. IPC: invoke `pages:start:focus-group`. */
     focusGroup: (id: unknown) => Promise<unknown>;
+    /** Open the Spaces menu from the moving-in checklist. IPC: invoke `pages:start:open-spaces`. */
+    openSpaces: () => Promise<unknown>;
     /** Save the Start Page layout. IPC: invoke `pages:start:set-layout`. */
     setLayout: (name: unknown) => Promise<unknown>;
     /** Turn the dynamic Start Page wallpaper on or off. IPC: invoke `pages:start:set-dynamic-wallpaper`. */

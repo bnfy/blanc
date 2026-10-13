@@ -16,6 +16,7 @@ test('start page carries one shared accessible migration checklist', () => {
   assert.match(html, /id="migrationChecklistTitle">ready to move in\?<\/h2>/);
   assert.match(html, /id="migrationSyncAction"[^>]*>[\s\S]*?Set up Sync/);
   assert.match(html, /id="migrationTabsAction"[^>]*href="blanc:\/\/tab-import\/"[\s\S]*?Bring your tabs/);
+  assert.match(html, /id="migrationSpaceAction"[^>]*>[\s\S]*?Make your first space/);
   assert.match(html, /id="migrationChecklistCompact"[^>]*popovertarget="migrationChecklist"[^>]*aria-expanded="false">\s*<span id="migrationChecklistLabel" class="migration-compact-label">Finish setup<\/span>\s*<\/button>/,
     'the pill is plain sentence-case text, with no progress ring');
   assert.match(html, /<\/button>\s*<button id="migrationChecklistHide" class="start-pill-close" type="button" aria-label="Hide moving-in checklist">\s*<svg [^>]*aria-hidden="true"/,
@@ -106,7 +107,8 @@ test('renderer reflects progress, keeps completed rows actionable, and retires a
   const js = read('src/renderer/pages/newtab.js');
 
   assert.match(js, /function renderMigrationChecklist\(checklist\)/);
-  assert.match(js, /previous\.completedCount < 2 && checklist\.completedCount === 2/);
+  assert.match(js, /previous\.completedCount < MIGRATION_TASKS && checklist\.completedCount === MIGRATION_TASKS/);
+  assert.match(js, /start\.openSpaces\(\)/);
   assert.match(js, /document\.hasFocus\(\)/,
     'completion waits until the start-page WebContents regains focus');
   assert.match(js, /!migrationChecklistUtilitySheetVisible/,

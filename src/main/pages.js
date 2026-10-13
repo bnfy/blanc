@@ -550,6 +550,8 @@ function setupPages(hooks = {}) {
     'newtab',
     (id) => hooks.startPage?.focusGroup(String(id)),
   );
+  // The moving-in checklist's "Make your first space" opens the Spaces menu.
+  handle('pages:start:open-spaces', 'newtab', () => hooks.startPage?.openSpaces?.() === true);
   // Type-to-open from the start page. Main re-validates the character in
   // openIslandTyping — the renderer's own gate is not trusted alone.
   //

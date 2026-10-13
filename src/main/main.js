@@ -193,6 +193,7 @@ const { DEFAULT_PROFILE_ID } = require('./local-profile-model');
 const {
   migrationChecklistState,
   migrationChecklistForTab,
+  spaceTaskIntroduction,
 } = require('./migration-checklist');
 const { patronCalloutSnoozedUntil } = require('./patron-callout');
 const localProfiles = require('./local-profiles');
@@ -5425,7 +5426,7 @@ const arcImport = createArcImportService({
   },
   createSpaces(entries) {
     const result = namedWorkspaces.createMany(entries);
-    if (result.ok) broadcastWorkspacesUpdated();
+    if (result.ok) { broadcastWorkspacesUpdated(); noteSpaceCreated(); }
     return result;
   },
   importFavorites(entries) {
@@ -7148,6 +7149,13 @@ function chromeOn(channel, handler) {
   });
 }
 
+/** "Make your first space" is done once a space exists in Personal. */
+function noteSpaceCreated() {
+  if (rt().profileId === DEFAULT_PROFILE_ID && !settings.getSettings().spaceMigrationCompleted) {
+    settings.setSettings({ spaceMigrationCompleted: true });
+  }
+}
+
 // Dev-only comparison of how strongly a space tints the chrome (spec §11).
 // Packaged builds always draw the mark alone.
 const spaceTint = !app.isPackaged && ['island', 'frame'].includes(process.env.BLANC_SPACE_TINT) ? process.env.BLANC_SPACE_TINT : 'mark';
@@ -7647,6 +7655,7 @@ function registerIpcHandlers() {
       return result;
     }
     broadcastWorkspacesUpdated();
+    noteSpaceCreated();
     // Only the new id crosses the wire, never result.workspace itself.
     return { ok: true, workspaceId: result.workspace.id, ...workspacesProjection() };
   });
@@ -7675,6 +7684,7 @@ function registerIpcHandlers() {
       return result;
     }
     broadcastWorkspacesUpdated();
+    noteSpaceCreated();
     return { ...result, ...workspacesProjection() };
   });
   chromeHandle('chrome:workspaces-remove', (_e, id) => {
@@ -9397,6 +9407,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   if (sync.status().enabled && !settings.getSettings().syncMigrationCompleted) {
     settings.setSettings({ syncMigrationCompleted: true });
   }
+  // Introduce "Make your first space" once, before any window exists, without
+  // reopening a checklist that already retired (spec D16).
+  const spaceTaskPatch = spaceTaskIntroduction(settings.getSettings());
+  if (spaceTaskPatch) settings.setSettings(spaceTaskPatch);
   // Baseline for the settings fan-out's Match site colors re-projection.
   lastIslandSiteColors = settings.getSettings().islandSiteColors;
   lastDarkWebsitesKey = JSON.stringify([
@@ -9899,6 +9913,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         dismissed: current.migrationChecklistDismissed,
         syncComplete: current.syncMigrationCompleted,
         tabsComplete: current.tabImportCompleted,
+        spaceComplete: current.spaceMigrationCompleted,
       }),
     };
   };
@@ -10071,6 +10086,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       },
       dismissMigrationChecklist: () => {
         settings.setSettings({ migrationChecklistDismissed: true });
+        return true;
+      },
+      openSpaces: () => {
+        showOverlay('panel', { purpose: { openSpaces: true } });
         return true;
       },
       dismissPatronCallout: () => {

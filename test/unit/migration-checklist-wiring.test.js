@@ -11,7 +11,7 @@ const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), 'u
 test('main projects and guards the checklist at both start-page send sites', () => {
   const main = read('src/main/main.js');
 
-  assert.match(main, /migrationChecklist: migrationChecklistState\(\{\s*firstRunComplete: settings\.isFirstRunComplete\(\),\s*dismissed: current\.migrationChecklistDismissed,\s*syncComplete: current\.syncMigrationCompleted,\s*tabsComplete: current\.tabImportCompleted,/);
+  assert.match(main, /migrationChecklist: migrationChecklistState\(\{\s*firstRunComplete: settings\.isFirstRunComplete\(\),\s*dismissed: current\.migrationChecklistDismissed,\s*syncComplete: current\.syncMigrationCompleted,\s*tabsComplete: current\.tabImportCompleted,\s*spaceComplete: current\.spaceMigrationCompleted,/);
   assert.match(main, /migrationChecklist: migrationChecklistForTab\(\s*status\.migrationChecklist,\s*tab,\s*DEFAULT_PROFILE_ID,/);
   assert.match(main, /migrationChecklistFor: \(wc\) => migrationChecklistForTab\(\s*startPageStatus\(\)\.migrationChecklist,\s*tabs\.get\(tabIdByWebContentsId\.get\(wc\.id\)\),\s*DEFAULT_PROFILE_ID,/);
   assert.match(main, /dismissMigrationChecklist: \(\) => \{\s*settings\.setSettings\(\{ migrationChecklistDismissed: true \}\);\s*return true;/);
@@ -46,4 +46,12 @@ test('pages IPC and preload expose the checklist projection and dismissal only',
   assert.match(main, /pages:start:utility-sheet-visibility/);
   assert.doesNotMatch(pages, /syncNudge/);
   assert.doesNotMatch(preload, /syncNudge/);
+});
+
+test('the space task is introduced once at startup and completes on the first space', () => {
+  const main = read('src/main/main.js');
+  const intro = main.indexOf('const spaceTaskPatch = spaceTaskIntroduction(settings.getSettings());');
+  assert.ok(intro > 0 && intro < main.indexOf('settings.onSettingsChanged((s) => {'), 'before the settings fan-out');
+  assert.match(main, /function noteSpaceCreated\(\) \{[\s\S]{0,200}spaceMigrationCompleted: true/);
+  assert.ok((main.match(/noteSpaceCreated\(\);/g) ?? []).length >= 3, 'save-as, create-blank and the Arc import each complete it');
 });

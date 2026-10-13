@@ -22,6 +22,7 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `start.data` | invoke | `pages:start:data` | newtab | Everything the Start Page renders at load: groups, top sites, blocked counts, synced devices, onboarding and the shared start status. |
 | `start.topSites` | invoke | `pages:start:top-sites` | newtab | Frequently visited sites for the Start Page. |
 | `start.focusGroup` | invoke | `pages:start:focus-group` | newtab | Focus a tab group picked on the Start Page. |
+| `start.openSpaces` | invoke | `pages:start:open-spaces` | newtab | Open the Spaces menu from the moving-in checklist. |
 | `start.setLayout` | invoke | `pages:start:set-layout` | newtab | Save the Start Page layout. |
 | `start.setDynamicWallpaper` | invoke | `pages:start:set-dynamic-wallpaper` | newtab | Turn the dynamic Start Page wallpaper on or off. |
 | `start.openMahjong` | invoke | `pages:start:open-mahjong` | newtab | Open blanc://mahjong as an ordinary tab. |
