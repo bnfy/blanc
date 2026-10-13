@@ -22,7 +22,8 @@ function fakeMenu(behave) {
 }
 
 function fakeWindow(focused = true) {
-  return { focused, isFocused() { return this.focused; } };
+  const { EventEmitter } = require('node:events');
+  return Object.assign(new EventEmitter(), { focused, isFocused() { return this.focused; } });
 }
 
 test('the picker resolves the chosen row', async () => {
@@ -41,6 +42,24 @@ test('closing the picker while Blanc keeps focus is a cancel', async () => {
 test('a picker closed because Blanc lost focus reports focus lost, not a cancel', async () => {
   const Menu = fakeMenu((_template, window) => { window.focused = false; });
   assert.equal(await pickCredential({ Menu, window: fakeWindow(), rows: ROWS }), PICKER_FOCUS_LOST);
+});
+
+// #739: on Windows the menu can close before Blanc's window reports the
+// focus change, so the close callback still sees isFocused() === true and
+// the blur arrives a moment later. That is still a focus loss.
+test('a picker closed just before Blanc reports losing focus reports focus lost', async () => {
+  const Menu = fakeMenu((_template, window) => {
+    setTimeout(() => { window.focused = false; window.emit('blur'); }, 5);
+  });
+  assert.equal(await pickCredential({ Menu, window: fakeWindow(), rows: ROWS }), PICKER_FOCUS_LOST);
+});
+
+test('a window closed while the picker settles is a cancel, not an error', async () => {
+  const Menu = fakeMenu((_template, window) => {
+    window.isDestroyed = () => true;
+    window.isFocused = () => { throw new Error('Object has been destroyed'); };
+  });
+  assert.equal(await pickCredential({ Menu, window: fakeWindow(), rows: ROWS, focusSettleMs: 5 }), null);
 });
 
 test('a choice made just as Blanc loses focus still counts', async () => {
