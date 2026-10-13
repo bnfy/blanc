@@ -20,6 +20,8 @@ const PATHS = {
   box: '<path d="M12 3 4 7.5v9L12 21l8-4.5v-9z"/><path d="M4 7.5 12 12l8-4.5M12 12v9"/>',
   seal: '<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
   half: '<circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/>',
+  spaces: '<rect x="3.5" y="8" width="12.5" height="12.5" rx="2.5"/><path d="M8 8V6a2.5 2.5 0 0 1 2.5-2.5h7.5A2.5 2.5 0 0 1 20.5 6v7.5a2.5 2.5 0 0 1-2.5 2.5h-2"/>',
+  speech: '<path d="M4 4.5h9.5A1.5 1.5 0 0 1 15 6v6a1.5 1.5 0 0 1-1.5 1.5H8.5L5 16.5v-3H4A1.5 1.5 0 0 1 2.5 12V6A1.5 1.5 0 0 1 4 4.5z"/><path d="M15 9h5a1.5 1.5 0 0 1 1.5 1.5v6A1.5 1.5 0 0 1 20 18h-1v3l-3.5-3H11a1.5 1.5 0 0 1-1.5-1.5v-3"/>',
   people: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.8"/><path d="M16 14a5 5 0 0 1 5.5 5"/>',
 };
 interface Props { name: keyof typeof PATHS; size?: 'tile' | 'mark' | 'pop' }
