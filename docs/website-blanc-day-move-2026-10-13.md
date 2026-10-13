@@ -69,9 +69,10 @@ Analytics reported data collection active in the past 48 hours.
 "blancbrowser.com" Web Analytics site. That site's report for the last 24
 hours on October 13 lists `blanc.day/mail` among its top URLs, so blanc.day
 page views are counted there; the site's name is only a label. An extra
-"blanc.day" site with automatic setup was added during this check. It should
-be removed: automatic setup injects a second beacon into every page,
-including `/privacy` and `/terms`, which load no analytics by design.
+"blanc.day" site with automatic setup was added during this check, and the
+owner deleted it the same day, because automatic setup injects a second
+beacon into every page, including `/privacy` and `/terms`, which load no
+analytics by design.
 
 **Live SEO audit.** `npm --prefix site run audit:seo:live`, run from a
 checkout of `main` at `34658f43` (its default origin is blanc.day), passed for
@@ -133,8 +134,6 @@ checkout of `main` at `34658f43` (its default origin is blanc.day), passed for
 
 ## Still open
 
-- **Remove the automatic-setup "blanc.day" Web Analytics site** added during
-  the check above.
 - **Step 6** reaches users with the next browser release.
 - **Step 7** reaches users with the next store submission of the tab-import
   companions and the Codex plugin, with their versions bumped from 0.1.0.
