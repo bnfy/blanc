@@ -3554,8 +3554,8 @@
     "source": "sha256:fb1483f8a2f89772c6d29de3fbb2b89e0cf35d3fae1c9332bb0f5a79b53be1c7"
   },
   "settings.privacy.useViewFill": {
-    "message": "Use Visualizar → Preencher login do 1Password ou <0>/1password</0>. No Mac: ⌥⌘P. No Windows e no Linux: Ctrl+Shift+P.",
-    "source": "sha256:20179e7b862308af9d79e4782590b8a602cb258786a76514cb022cbfc2d0c338"
+    "message": "Use Visualizar → Preencher login do 1Password ou <0>/1password</0>. No Mac: ⌥⌘P. No Linux: Ctrl+Shift+P.",
+    "source": "sha256:270b77a5b0ae2ff401c94d72b4356b137532d7a938f267e4725183ebb81c79d4"
   },
   "settings.privacy.sitePermissions.title": {
     "message": "Permissões dos sites",
@@ -3694,8 +3694,8 @@
     "source": "sha256:bfa57f07153a29e78d6f66001d1d4d248c0c7572199183082d0c79b629e6e18d"
   },
   "settings.help.onMacOSWindowsAnd": {
-    "message": "No macOS, no Windows e no Linux, o Blanc oferece o preenchimento de login sob demanda pelo app do 1Password instalado. Essa integração não salva senhas nem preenche automaticamente.",
-    "source": "sha256:1e2045c31ac2f611bb4219db34760a9df80480a906133202687fa7fb9385915b"
+    "message": "No macOS e no Linux, o Blanc oferece o preenchimento de login sob demanda pelo app do 1Password instalado. Essa integração não salva senhas nem preenche automaticamente.",
+    "source": "sha256:259707f4e4d7543d5f4a057a1afb3af24ad1f65c9198223c3014a97d47fad3a0"
   },
   "settings.help.connectionsBlancCanMake.title": {
     "message": "Conexões que o Blanc pode fazer",

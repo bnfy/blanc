@@ -1,6 +1,6 @@
-// Proves the platform boundary in a real Electron process: macOS, Windows and
-// Linux load the pinned SDK in exactly one utility process, while any other
-// platform cannot start the broker at all.
+// Proves the platform boundary in a real Electron process: macOS and Linux
+// load the pinned SDK in exactly one utility process, while any other
+// platform, Windows included until #735, cannot start the broker at all.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';

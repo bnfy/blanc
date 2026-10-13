@@ -56,13 +56,20 @@ test('an extra trusted document is reported', () => {
 });
 
 test('a platform-gated member leaking to other platforms is reported', () => {
-  // The real preload exposes 1Password fill on every desktop platform, so
-  // narrow the contract instead to prove the per-platform check still bites.
+  // The real preload exposes 1Password fill on macOS and Linux, so narrow the
+  // contract to macOS to prove the per-platform check still bites.
   const contract = api.loadContract();
   contract.members.find((m) => m.name === 'fillLoginFromOnePassword').platforms = ['darwin'];
   const problems = api.checkPreload(contract);
   assert.ok(problems.some((p) => p.startsWith('linux:') && p.includes('fillLoginFromOnePassword')), problems.join('\n'));
-  assert.ok(problems.some((p) => p.startsWith('win32:') && p.includes('fillLoginFromOnePassword')), problems.join('\n'));
+});
+
+test('a platform-gated member missing on a listed platform is reported', () => {
+  // Windows 1Password fill is off (#735): listing win32 must fail the check.
+  const contract = api.loadContract();
+  contract.members.find((m) => m.name === 'fillLoginFromOnePassword').platforms = ['darwin', 'win32', 'linux'];
+  const problems = api.checkPreload(contract);
+  assert.ok(problems.some((p) => p.startsWith('win32') && p.includes('fillLoginFromOnePassword')), problems.join('\n'));
 });
 
 test('an event that leaks its listener is reported', () => {

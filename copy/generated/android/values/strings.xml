@@ -987,7 +987,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_privacy_one_password_account_label">1Password account</string>
     <string name="settings_privacy_one_password_account_hint">The email address you sign in to 1Password with. An account ID also works. Stored only on this device.</string>
     <string name="settings_privacy_one_password_verify">Verify</string>
-    <string name="settings_privacy_use_view_fill">Use View → Fill Login from 1Password or &lt;0&gt;/1password&lt;/0&gt;. On Mac: ⌥⌘P. On Windows and Linux: Ctrl+Shift+P.</string>
+    <string name="settings_privacy_use_view_fill">Use View → Fill Login from 1Password or &lt;0&gt;/1password&lt;/0&gt;. On Mac: ⌥⌘P. On Linux: Ctrl+Shift+P.</string>
     <string name="settings_privacy_site_permissions_title">Site permissions</string>
     <string name="settings_privacy_sites_youve_allowed_or">Sites you\'ve allowed or blocked from using your camera, microphone, location, or notifications.</string>
     <string name="settings_privacy_usage_and_data_title">Usage and data</string>
@@ -1022,7 +1022,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_help_release_notes">Release notes ↗</string>
     <string name="settings_help_extensions_and_password_managers_title">Extensions and password managers</string>
     <string name="settings_help_you_can_browse_chrome">You can browse Chrome Web Store pages, but Blanc cannot install Chrome extensions.</string>
-    <string name="settings_help_on_mac_o_s_windows_and">On macOS, Windows and Linux, Blanc offers explicit login fill from the installed 1Password app. This integration does not save passwords or fill automatically.</string>
+    <string name="settings_help_on_mac_o_s_windows_and">On macOS and Linux, Blanc offers explicit login fill from the installed 1Password app. This integration does not save passwords or fill automatically.</string>
     <string name="settings_help_connections_blanc_can_make_title">Connections Blanc can make</string>
     <string name="settings_help_blanc_connects_to_websites">Blanc connects to websites you open and GitHub for app updates. Searches and enabled suggestions go to your selected search provider; DNS lookups use your system or selected DNS provider. Selecting Google sends searches and eligible suggestion prefixes to Google.</string>
     <string name="settings_help_enabled_usage_measurement_goes">Enabled usage measurement goes to a Blanc-owned Cloudflare collector and, when configured, its Google Analytics mirror. Sync, Patron, 1Password and tab handoff make separate connections when configured or requested. This describes behavior; it is not a live network monitor.</string>
