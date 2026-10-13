@@ -1,7 +1,7 @@
 # Arc Spaces import — design
 
 Date: 2026-10-11
-Status: implemented on this branch; awaiting real-Arc evidence on macOS, Windows and Linux
+Status: implemented; real-Arc evidence recorded on macOS, Windows and Linux (2026-10-12/13, `docs/evidence/f45-arc-import-real-sidebars-2026-10-12.md`); not yet released
 Feature id: F45
 
 ## Why
@@ -168,6 +168,8 @@ file rather than Chromium profiles..
   record the evidence. The format is reverse-engineered; fixtures alone do
   not prove it. Plans: `docs/testing/arc-import-mac.md`,
   `docs/testing/arc-import-windows.md` and `docs/testing/arc-import-linux.md`.
+  Evidence: `docs/evidence/f45-arc-import-real-sidebars-2026-10-12.md`, which
+  the first release that ships F45 links from its release record.
 - Marketing copy follows `docs/marketing-claims.md`: say what moves (tabs,
   pinned tabs, folders as groups, Favorites) and what does not (sign-ins,
   Notes, Easels, archived tabs). Arc's status is quoted only from first-party
