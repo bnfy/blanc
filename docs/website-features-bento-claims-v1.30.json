@@ -537,16 +537,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-028",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "Import your bookmarks",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "importing"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "bento-130-029",
       "source": "site/src/pages/features.astro",
       "exactWording": "Camera and mic indicator",
@@ -1457,16 +1447,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-128",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "Bring your Favorites with you.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "importing"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "bento-130-129",
       "source": "site/src/pages/features.astro",
       "exactWording": "Import bookmarks from a browser profile Blanc detects, or from an HTML file, in Favorites.",
@@ -1941,6 +1921,30 @@
       ],
       "verdict": "qualified",
       "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded. Where the label named a feature, that name remains only as the popover's data-pop-label, shown on the neighbouring popovers' previous/next buttons; the popover's own recorded headline makes the same claim."
+    }
+  ],
+  "supersededClaims": [
+    {
+      "id": "bento-130-028",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Import your bookmarks",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "importing"
+      ],
+      "verdict": "qualified",
+      "reason": "October 13, 2026: the Features board folds its separate Arc Spaces tile into the import tile, so one tile and popover cover bookmarks and Arc Spaces. The replacement wording is recorded in docs/website-v1.32-claims.json; the original remains in git history."
+    },
+    {
+      "id": "bento-130-128",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Bring your Favorites with you.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "importing"
+      ],
+      "verdict": "qualified",
+      "reason": "October 13, 2026: the Features board folds its separate Arc Spaces tile into the import tile, so one tile and popover cover bookmarks and Arc Spaces. The replacement wording is recorded in docs/website-v1.32-claims.json; the original remains in git history."
     }
   ]
 }
