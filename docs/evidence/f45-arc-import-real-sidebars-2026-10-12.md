@@ -221,11 +221,11 @@ exactly one match. This closed the spec's open question (#746).
 - Favorites are deduplicated by exact address, so a site saved by hand after
   a redirect is not matched to Arc's pre-redirect address.
 
-## Still needed before this evidence is final
+## Owner confirmation
 
-- The owner confirms approving the native input methods the agents used
-  (AppleScript and CGEvent on the Mac; PowerShell input and the XTest input
-  inside the VMs).
+On October 13, 2026, the owner confirmed approving the native input methods
+the agents used: AppleScript and CGEvent on the Mac, and PowerShell input and
+XTest input inside the VMs. Nothing else is outstanding for this evidence.
 
 Original per-platform run records: kept by the owner outside the repository.
 They contain the same counts in more detail.
