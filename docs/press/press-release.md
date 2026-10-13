@@ -1,5 +1,14 @@
 # Press release — Blanc 1.0
 
+> **This is the Blanc 1.0 announcement from August 2, 2026, kept as it stood
+> at that release.** Some details below have since changed. The optional paid
+> tier is now Blanc Patron, a subscription, rather than a one-time Supporter
+> purchase; earlier Supporters keep lifetime Patron access. App icons are free
+> and are not part of any purchase. Intel Macs, Windows, and Linux now receive
+> the same releases as Apple Silicon Macs. For current facts, see the
+> [press fact sheet](fact-sheet.md), the [media page](https://blanc.day/media),
+> and the [changelog](https://blanc.day/changelog).
+
 ## Blanc 1.0 replaces the horizontal tab strip and toolbar with one small Island
 
 **The independent desktop browser combines an Island-based tab-and-command
