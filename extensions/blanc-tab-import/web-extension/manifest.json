@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Blanc Tab Importer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Copy selected tabs from the current window into a new Blanc window.",
   "icons": {
     "16": "icons/icon-16.png",
