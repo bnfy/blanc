@@ -120,6 +120,7 @@ checkout of `main` at `34658f43` (its default origin is blanc.day), passed for
   forwarding destination left from setup was deleted.
 - **DMARC.** A `_dmarc.blanc.day` TXT record, `v=DMARC1; p=none;`, was added.
   Check it with `dig +short TXT _dmarc.blanc.day`.
+- Blanc Mail's task list closed both items in `bnfy/blanc-mail` #130.
 
 ## Still open
 
@@ -127,5 +128,3 @@ checkout of `main` at `34658f43` (its default origin is blanc.day), passed for
 - **Step 6** reaches users with the next browser release.
 - **Step 7** reaches users with the next store submission of the tab-import
   companions and the Codex plugin, with their versions bumped from 0.1.0.
-- **In Blanc Mail's repository**, the `license@blanc.day` forwarding and DMARC
-  items in `docs/REMAINING_RELEASE_TASKS.md` can now be closed.
