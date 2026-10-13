@@ -15,7 +15,7 @@ Blanc Mail's steps 2 and 3 are recorded in its own repository
 | 4. Website and Workers | #748 | `7710f084` |
 | 5. Redirect the former hosts | #749 | `5178b746` |
 | 6. Browser links (ships with the next release) | #750 | `5f1885a9` |
-| 7. Docs and tab-import companions (ship with the next store submission) | #751 | `5dd17cc2` |
+| 7. Docs and tab-import companions; versions bumped to 0.1.1 | #751, #762 | `5dd17cc2`, `9cdf21c6` |
 | Share cards on blanc.day, then the Sunrise redesign | #752, #755 | `4c20be75`, `e68cb147` |
 
 Unless a line says otherwise, the owner ran each deploy and check from their
@@ -132,9 +132,16 @@ checkout of `main` at `34658f43` (its default origin is blanc.day), passed for
   Check it with `dig +short TXT _dmarc.blanc.day`.
 - Blanc Mail's task list closed both items in `bnfy/blanc-mail` #130.
 
+## Step 7: the tab-import companions
+
+#762 bumped the Firefox and Safari companions and the Codex plugin from 0.1.0
+to 0.1.1 (Safari build 2), so a new submission could carry #751's blanc.day
+landing links. On October 13 the owner submitted the Firefox companion to AMO
+and the Safari companion, both at 0.1.1. Neither review outcome is recorded
+here yet.
+
 ## Still open
 
 - **Step 6** reaches users with the next browser release.
-- **Step 7** reaches users with the next store submission of the tab-import
-  companions and the Codex plugin. Their versions were bumped from 0.1.0 to
-  0.1.1 (Safari build 2) for that submission.
+- **Step 7**: record the AMO and Safari review outcomes, and submit the Codex
+  plugin at 0.1.1.
