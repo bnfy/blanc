@@ -196,3 +196,12 @@ Feature: Named workspace preservation and recovery
     When I open the Spaces menu from the space mark
     And I press the space mark with the pointer, which takes focus from the menu
     Then the Spaces menu is closed and stays closed
+
+  @F41-31
+  Scenario: A preset colour adapts without the readability note
+    Given a space named "Work" in this window, colored "#974f2a" with the symbol "plane"
+    When I open the Spaces menu from the space mark
+    And I open the color picker for "Work"
+    Then the editor shows no readability note
+    When I type the custom color "#F5E663" into the picker
+    Then the editor says the color is shown as "#6D6400" in light mode

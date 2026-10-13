@@ -440,3 +440,25 @@ test('opened from the space mark, the menu stops short of the view bottom, so it
   // 600px view: 16px above the menu (SPACES_MENU_PAD), 44px below for the shadow.
   assert.equal(h.popup.props['--ws-max-height'], '540px');
 });
+
+test('a preset shows no readability note though the guard adapts it; a custom colour still does, and the exact hex is saved', async () => {
+  const Identity = require('../../src/renderer/space-identity');
+  const clay = { items: [{ id: 'a', name: 'First', active: true, tabCount: 1, color: '#974f2a', symbol: 'plane' }] };
+  assert.equal(Identity.inkFor('#974f2a', 'dark'), '#ea9b75', 'the guard lightens this preset for dark mode');
+  const h = harness({}, clay); h.ui.begin('edit', clay.items[0]);
+  h.byKey('color:custom').click();
+  const note = () => h.popup.querySelector('.ws-guard').textContent;
+  assert.equal(note(), '', 'the picker opened on a preset: no note');
+  const hex = h.popup.querySelectorAll('input').find((i) => i.className === 'space-picker-hex');
+  hex.value = '#974F2B'; hex.emit('input'); await wait(300);
+  assert.match(note(), /Kept readable/, 'one step off a preset is a custom colour');
+  hex.value = '#6757A3'; hex.emit('input'); await wait(300);
+  assert.equal(note(), '', "typing a preset's hex is that preset");
+  assert.deepEqual(h.calls.filter(([c]) => c === 'update').map((c) => c[2].color), ['#974f2b', '#6757a3'], 'each hex is saved exactly');
+});
+
+test('in dark mode a preset is drawn in its lightened ink', () => {
+  const h = harness({}, TWO, { theme: () => 'dark' }); h.ui.open();
+  const tile = h.list.children.find((n) => n.className.includes('ws-row')).children[0].children[0];
+  assert.equal(tile.props['--space-ink'], '#8db996');
+});

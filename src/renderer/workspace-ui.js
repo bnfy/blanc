@@ -435,8 +435,12 @@
       }
       return nodes;
     }
+    // Said only for a custom colour. Presets adapt to every theme too (the
+    // guard runs for every colour), but their dark and private inks are
+    // designed values, so the note would only be noise there (spec D19).
     function guardNote(color) {
       const value = Identity.normalizeHex(color);
+      if (!value || Identity.presetFor(value)) return '';
       const light = Identity.inkFor(value, 'light'), dark = Identity.inkFor(value, 'dark');
       const changedLight = light !== value, changedDark = dark !== value;
       if (changedLight && changedDark) return t('spaces.guard.both', { light: light.toUpperCase(), dark: dark.toUpperCase() });

@@ -15,6 +15,18 @@ test('every preset is a fixed point of the light guard and readable everywhere',
   }
 });
 
+test('presets adapt to dark and private mode as the spec\'s table says, and are stored unchanged', () => {
+  const spec = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md'), 'utf8');
+  for (const { id, hex } of identity.PRESETS) {
+    const name = id[0].toUpperCase() + id.slice(1);
+    const row = spec.match(new RegExp(`^\\| ${name} \\| \`(#[0-9a-f]{6})\` \\| \`(#[0-9a-f]{6})\` \\| \`(#[0-9a-f]{6})\` \\|$`, 'm'));
+    assert.ok(row, `${name} is in the spec's preset table`);
+    assert.deepEqual([hex, identity.inkFor(hex, 'dark'), identity.inkFor(hex, 'private')], row.slice(1), `${name}: stored, dark, private`);
+    assert.notEqual(identity.inkFor(hex, 'dark'), hex, `${name} is lightened for dark mode`);
+    assert.equal(identity.normalizeHex(hex), hex, `${name} is stored as its exact hex`);
+  }
+});
+
 test('contrast is measured against the painted wash, not only the bare surface', () => {
   // #767676 passes on white (4.54:1) but not on its own 15% wash (3.78:1).
   assert.ok(identity.contrast('#767676', '#ffffff') >= 4.5);

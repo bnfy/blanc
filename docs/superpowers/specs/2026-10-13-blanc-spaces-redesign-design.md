@@ -48,6 +48,7 @@ feedback.
 | D16 | Checklist task for people whose checklist already retired | **Stays retired.** Only a checklist still showing gains the task. |
 | D17 | The ⌘L footer's Spaces button (owner, during PR 2) | **Icon only, no name.** The footer has too little room before a name truncates; the bound space's name is in the button's tooltip and accessible name, and its fill still shows the window is in a space. This applies to the footer only: the Island's space mark keeps its symbol **and** name (truncated), so the active space shows at rest. |
 | D18 | Where the menu opens from ⌘L (owner, during PR 2) | **Below the Island, never over it.** The menu hangs from the panel's bottom edge, right-aligned to the button, and scrolls within the room there; only a window too short for a few rows below opens it upward. |
+| D19 | The "Kept readable" note (owner, during PR 2) | **Custom colours only.** Presets adapt to every theme without a note: their dark and private inks are the designed values in §1's table, and every preset is lightened in dark mode, so the note would show on all of them. The guard itself still runs for every colour on every theme, and the saved hex is never changed. |
 
 Decided during design, not asked: once at least one space exists, a window that
 is not in a space shows a **neutral grey mark** (glyph, no name), keeping the
@@ -217,9 +218,13 @@ by Node tests) derives the colour actually drawn:
 - Worked example (from review): `#767676` is 4.54:1 on white but 3.78:1 on its
   own 15% wash, so it is drawn as `#636363`.
 
-The editor states when the guard is acting, e.g. "Kept readable: shown as
-#6D6400 in light mode." for `#F5E663`. (The prototype predates the composited
-rule and shows a lighter value.)
+For a custom colour, the editor states when the guard is acting, e.g. "Kept
+readable: shown as #6D6400 in light mode." for `#F5E663`. A preset shows no
+note, though the guard adapts it the same way (D19); a hex typed or dragged to
+exactly a preset's value counts as that preset. The guard runs for every
+colour on every theme and only changes what is drawn: the stored hex is always
+exactly what was chosen. (The prototype predates the composited rule and shows
+a lighter value.)
 
 ### 3. The mark on the pill
 
@@ -304,7 +309,7 @@ The menu reshapes into the editor in place (no dialog, no scrim):
   - Keyboard: the square is focusable (←/→ saturation, ↑/↓ brightness); the hue
     control is a slider; the hex field accepts `#rrggbb` or `rrggbb` and applies
     when valid.
-  - The guard note sits under the hex field.
+  - The guard note sits under the hex field, for a custom colour only (D19).
 - **Symbol:** the 16 symbols in an 8×2 grid of labelled buttons.
 - **New space only — "Start with":** *This window · N tabs* / *Empty*.
   Defaults to *This window* when the window is in no space, *Empty* when it is.
@@ -425,8 +430,9 @@ translated (`data-i18n-ignore`).
 - Readability guard: for a sweep of hues × lightness × chroma, the rounded hex
   result meets 4.5:1 against every surface in its theme's set and against its
   wash composited over each; colours that already pass come back unchanged
-  (including every light preset, pinned as fixed points); `#767676` comes back
-  changed; output is a valid hex; invalid input is rejected.
+  (including every light preset, pinned as fixed points); every preset's dark
+  and private ink matches §1's table and is stored unchanged; `#767676` comes
+  back changed; output is a valid hex; invalid input is rejected.
 - Upgrade: a version-2 file without `color`/`symbol` is written once on first
   load with a `.before-repair` backup and assigned defaults in list order; a
   second load writes nothing; deleting or reordering a space leaves the others'
@@ -442,15 +448,17 @@ translated (`data-i18n-ignore`).
   path remains.
 - Menu state (`workspace-ui.js`): list → editor → list, live apply, delete →
   Undo restore, Recently deleted Forget confirmation, switch-prompt ordering
-  and the private-only rule, the zero-spaces list.
+  and the private-only rule, the zero-spaces list, the guard note for a custom
+  colour and none for a preset (D19), with the exact hex saved either way.
 - Checklist: third task appears only on a still-visible checklist.
 
 **Desktop acceptance (`spec/acceptance/F41-named-workspaces.feature`, plus
 `arc-spaces-import.feature`):** the three mark states; opening from the mark
 and from ⌘L; switching (mark and pill update); live edit of name, colour,
-symbol; a custom hex with the guard note; delete then Undo; drag and keyboard
-reorder; keyboard-only flow with focus return; Reduce Motion; Quick Switcher
-match; the switch prompt's order. Existing scenarios drop their Patron steps.
+symbol; a custom hex with the guard note, and none on a preset (D19); delete
+then Undo; drag and keyboard reorder; keyboard-only flow with focus return;
+Reduce Motion; Quick Switcher match; the switch prompt's order. Existing
+scenarios drop their Patron steps.
 Keys for main-process Escape handling are sent with `sendInputEvent`.
 
 **Repo checks:** `npm run test:unit`, `npm run lint`, `npm run substrate:check`

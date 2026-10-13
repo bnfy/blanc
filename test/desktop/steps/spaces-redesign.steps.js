@@ -81,6 +81,16 @@ When('I give {string} the custom color {string}', async function (name, hex) {
   await page.click('[data-focus-key="color:custom"]');
   await page.fill('.space-picker-hex', hex);
 });
+When('I open the color picker for {string}', async function (name) {
+  const page = await menu(); const space = await spaceByName(this, name);
+  await page.click(`[data-focus-key="edit:${space.id}"]`);
+  await page.click('[data-focus-key="color:custom"]');
+  await page.waitForSelector('.space-picker-hex');
+});
+When('I type the custom color {string} into the picker', async function (hex) {
+  const page = await menu();
+  await page.fill('.space-picker-hex', hex);
+});
 When('I delete {string} from its editor', async function (name) {
   const page = await menu(); const space = await spaceByName(this, name);
   await page.click(`[data-focus-key="edit:${space.id}"]`);
@@ -218,6 +228,11 @@ Then('the Spaces menu stays open below the mark', async function () {
 });
 Then('the space {string} is saved with the color {string}', async function (name, color) {
   await waitForValue(() => spaceByName(this, name), (w) => w?.color === color, `${name} saved as ${color}`);
+});
+Then('the editor shows no readability note', async function () {
+  const page = await menu();
+  // Clay is lightened for dark mode (#EA9B75), but a preset says nothing (D19).
+  assert.equal(await page.$eval('.ws-guard', (note) => note.textContent), '');
 });
 Then('the editor says the color is shown as {string} in light mode', async function (hex) {
   const page = await menu();
