@@ -29,3 +29,8 @@ the editor reads "Kept readable: shown as #6D6400 in light mode." for
 `#F5E663`. Acceptance pins the clearance: `@F41-18` asserts the mark's menu
 clears the Island and `@F41-4` that the ⌘L menu stays 6 px below the panel as
 it reshapes; reverting the anchor fails `@F41-18`.
+
+The editor's colour row (`stack-swatches.png`, before over after): the nine
+circles were 22 px with 8 px gaps, leaving the selected ring 2.5 px from its
+neighbour. They are now 20 px, spread across the 266 px row with 10.75 px
+gaps, and the ring sits 3 px out, so it keeps 6.25 px of clear air.

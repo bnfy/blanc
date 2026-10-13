@@ -3488,10 +3488,12 @@ body:is([data-mode="spaces"], [data-closing="spaces"]) #workspaceSwitcher.ws-swi
 .ws-editor-status .ws-pill { height: 26px; padding: 0 10px; }
 .ws-editor-status .ws-pill[hidden] { display: none; }
 .ws-label { margin: 12px 2px 7px; color: var(--text-dim); font: 550 11.5px/1 var(--font-ui); }
-.ws-swatches { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 2px; }
-.ws-swatch { position: relative; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%; background: var(--swatch); cursor: pointer; }
+/* Nine swatches spread across the row, so the selected ring keeps clear air
+   on both sides of it. */
+.ws-swatches { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding: 0 2px; }
+.ws-swatch { position: relative; width: 20px; height: 20px; padding: 0; border: 0; border-radius: 50%; background: var(--swatch); cursor: pointer; }
 .ws-swatch.custom { background: conic-gradient(#e5484d, #f5a524, #e2c932, #46a758, #0090ff, #8e4ec6, #e5484d); }
-.ws-swatch[aria-checked="true"]::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; box-shadow: 0 0 0 1.5px var(--swatch, var(--text-dim)); }
+.ws-swatch[aria-checked="true"]::after { content: ''; position: absolute; inset: -3px; border-radius: 50%; box-shadow: 0 0 0 1.5px var(--swatch, var(--text-dim)); }
 .ws-symbols { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; }
 .ws-symbol-button { aspect-ratio: 1; display: grid; place-items: center; padding: 0; border: 0; border-radius: var(--radius-sm); background: none; color: var(--text-dim); cursor: pointer; }
 .ws-symbol-button:hover, .ws-symbol-button:focus-visible { background: var(--surface); color: var(--text); outline: none; }
