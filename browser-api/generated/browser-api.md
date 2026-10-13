@@ -543,7 +543,6 @@ Named Workspaces projection, from workspacesProjection() in main.js.
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `patronActive` | `boolean` |  |
 | `status` | `WorkspaceSaveStatus` |  |
 | `deleted` | `DeletedWorkspace[]` |  |
 | `items` | `WorkspaceListItem[]` |  |
@@ -644,7 +643,7 @@ Find-in-page counts for the active tab, sent from tab-view.js.
 
 Every error code a Named Workspace action can report, from workspace-controller.js, workspaces.js, workspaces-model.js and the workspace functions in main.js.
 
-`'activation-failed' \| 'busy' \| 'duplicate-name' \| 'future-format' \| 'invalid-name' \| 'invalid-record' \| 'limit' \| 'not-found' \| 'not-patron' \| 'protected-pages' \| 'read-failed' \| 'repair-failed' \| 'saved-not-opened' \| 'storage-failed' \| 'unsaved-scratch'`
+`'activation-failed' \| 'busy' \| 'duplicate-name' \| 'future-format' \| 'invalid-name' \| 'invalid-record' \| 'limit' \| 'not-found' \| 'protected-pages' \| 'read-failed' \| 'repair-failed' \| 'saved-not-opened' \| 'storage-failed' \| 'unsaved-scratch'`
 
 ### `WorkspaceProtectionReason`
 
@@ -674,7 +673,6 @@ Result of every Named Workspace action. Successes carry the refreshed workspace 
 | `action?` | `WorkspaceAction` |  |
 | `windowId?` | `string` | The window that now shows the workspace (with action focus). |
 | `workspaceId?` | `WorkspaceId` | The new workspace, after a create or save, including a save that could not be opened. |
-| `patronActive?` | `boolean` |  |
 | `status?` | `WorkspaceSaveStatus` |  |
 | `deleted?` | `DeletedWorkspace[]` |  |
 | `items?` | `WorkspaceListItem[]` |  |

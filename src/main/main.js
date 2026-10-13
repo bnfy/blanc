@@ -5330,7 +5330,6 @@ const workspaceController = createWorkspaceController({
   })]),
   checkpoint: checkpointWorkspaceSession,
   stage: stageWorkspace,
-  canCreate: () => settings.isPatronActive(),
   validateCreate: (name) => namedWorkspaces.validateCreate(name),
   create: (_r, name) => namedWorkspaces.create({ name, capture: { urls: [], groups: [], groupIds: [], pinned: [], meta: [], activeIndex: 0 } }),
   focus(target) {
@@ -7095,7 +7094,6 @@ function chromeOn(channel, handler) {
 // within the requesting profile; page snapshots, URLs and views stay in main.
 function workspacesProjection() {
   return {
-    patronActive: settings.isPatronActive(),
     status: namedWorkspaces.status(),
     deleted: namedWorkspaces.deleted().map((d) => ({ id: d.workspace.id, name: d.workspace.name, deletedAt: d.deletedAt })),
     items: namedWorkspaces.list().map((workspace) => ({
@@ -7558,7 +7556,6 @@ function registerIpcHandlers() {
   chromeOn('chrome:workspaces-cancel', () => workspaceController.cancel(rt()));
   chromeHandle('chrome:workspaces-list', () => workspacesProjection());
   chromeHandle('chrome:workspaces-save-as', (_e, name) => {
-    if (!settings.isPatronActive()) return { ok: false, error: 'not-patron' };
     const result = saveCurrentWindowAsWorkspace(rt(), name);
     if (!result.ok) {
       // The workspace file and session file are separate atomic stores. If the

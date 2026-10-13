@@ -13,7 +13,7 @@ test('rename validation preserves value, selection and focus through a rejected 
 });
 test('broadcast preserves editor value and does not steal address focus', () => {
   const h = harness(); h.ui.begin('save'); const field = h.doc.getElementById('workspaceName'); field.value = 'In progress'; field.emit('input'); h.trigger.focus();
-  h.ui.apply({ items: [], deleted: [], patronActive: true, status: 'pending' }); assert.equal(h.doc.activeElement, h.trigger); assert.equal(h.doc.getElementById('workspaceName').value, 'In progress');
+  h.ui.apply({ items: [], deleted: [], status: 'pending' }); assert.equal(h.doc.activeElement, h.trigger); assert.equal(h.doc.getElementById('workspaceName').value, 'In progress');
 });
 test('IME Enter prevents native form submission and pending writes reject duplicate submissions', async () => {
   let resolve; let calls = 0; const h = harness({ saveWorkspaceAs: () => { calls++; return new Promise((r) => { resolve = r; }); } }); h.ui.begin('save'); let prevented = false;
@@ -40,7 +40,6 @@ test('a saved workspace with a failed binding returns to the list instead of inv
     ],
     deleted: [],
     status: 'saved',
-    patronActive: true,
   }) });
   h.ui.begin('save'); const field = h.doc.getElementById('workspaceName'); field.value = 'Saved copy'; field.emit('input'); field.parent.emit('submit'); await settle();
   assert.equal(h.ui.state.kind, 'list'); assert.equal(h.doc.getElementById('workspaceName').isConnected, false);

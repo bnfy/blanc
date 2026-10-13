@@ -873,10 +873,6 @@
     "message": "Vous avez {limit} Spaces. Supprimez-en un avant d’en ajouter un autre.",
     "source": "sha256:3b0428849b2653f15d9f2890ce80c6ea7deea8b7cd135e8877c4f3f40613a3a8"
   },
-  "ws.error.notPatron": {
-    "message": "La création de Spaces nécessite Blanc Patron.",
-    "source": "sha256:948817841dd22ff28e5faa4b6fe1e58812572187723b0b0db35b924e5eedc7fe"
-  },
   "ws.error.notFound": {
     "message": "Ce Space n’est plus disponible.",
     "source": "sha256:5ad8d54c5adff9f4394eff6d7c2c987d9881dc58cf42d6288f9c11bd305c0d78"
@@ -1064,10 +1060,6 @@
   "ws.list.recentlyDeleted": {
     "message": "{count, plural, one {Supprimés récemment (#)} many {Supprimés récemment (#)} other {Supprimés récemment (#)}}",
     "source": "sha256:914e803ee3d8a9e95fb0cbd9f26a5cdadbbb3e8007e2151881199a6cdece1ef9"
-  },
-  "ws.list.patronSettings": {
-    "message": "Réglages Patron",
-    "source": "sha256:bb766b6b7c0fdf9eb685ee867500b03f58dd2a97e4329f1aa69ee8040339d8fc"
   },
   "glance.picker.title": {
     "message": "Choisir un onglet pour Glance",
@@ -2799,7 +2791,7 @@
   },
   "ws.list.importArc": {
     "message": "Importer les Spaces d’Arc",
-    "source": "sha256:0416f4e07b657d7695b22350963ae048338e0630136231cc8fe6e23f6c0bac41"
+    "source": "sha256:8912ae8b6c4d420deb5e8550140eba247731724979700e041f6a05e3163c1229"
   },
   "profile.defaultName": {
     "message": "Profil {number}",

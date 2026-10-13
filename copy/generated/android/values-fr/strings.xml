@@ -238,7 +238,6 @@
     <string name="ws_error_duplicate_name">Ce nom est déjà utilisé. Choisissez-en un autre.</string>
     <string name="ws_error_invalid_name">Saisissez un nom de Space.</string>
     <string name="ws_error_limit">Vous avez %1$s Spaces. Supprimez-en un avant d’en ajouter un autre.</string>
-    <string name="ws_error_not_patron">La création de Spaces nécessite Blanc Patron.</string>
     <string name="ws_error_not_found">Ce Space n’est plus disponible.</string>
     <string name="ws_error_read_failed">Impossible de lire votre fichier de Spaces. Vérifiez que le fichier est accessible, puis redémarrez Blanc.</string>
     <string name="ws_error_storage_failed">Impossible d’enregistrer les modifications. Vérifiez l’espace disque disponible et réessayez.</string>
@@ -302,7 +301,6 @@
         <item quantity="many">Supprimés récemment (%1$d)</item>
         <item quantity="other">Supprimés récemment (%1$d)</item>
     </plurals>
-    <string name="ws_list_patron_settings">Réglages Patron</string>
     <string name="glance_picker_title">Choisir un onglet pour Glance</string>
     <string name="glance_picker_cancel_label">Annuler le choix d’un onglet pour Glance</string>
     <string name="glance_picker_filter">Filtrer les onglets ouverts</string>

@@ -1119,7 +1119,7 @@ export function workspaceControllerFixtures() {
   const other = { id: 'r2', resident: false };
   const record = { id: 'w1', name: 'Research' };
   const base = {
-    randomId: () => 'x', fingerprint: () => 'fp', canCreate: () => true,
+    randomId: () => 'x', fingerprint: () => 'fp',
     get: () => record, readError: () => null, owner: () => null,
     protection: () => ({ blocked: false, tabCount: 0 }),
     checkpoint: () => ({ ok: true }),
@@ -1140,7 +1140,6 @@ export function workspaceControllerFixtures() {
     'checkpoint failed': { checkpoint: () => ({ ok: false, error: 'storage-failed' }) },
     'commit failed': { stage: () => ({ commit: () => ({ ok: false, error: 'storage-failed' }), rollback() {}, finish() {} }) },
     'stage threw': { stage: () => { throw new Error('boom'); } },
-    'not patron': { canCreate: () => false },
     'invalid name': { validateCreate: () => ({ ok: false, error: 'invalid-name' }) },
     'create failed': { create: () => ({ ok: false, error: 'limit' }) },
   };

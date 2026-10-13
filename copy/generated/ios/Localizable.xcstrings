@@ -9595,48 +9595,6 @@
         }
       }
     },
-    "ws.error.notPatron": {
-      "comment": "Space switcher error when someone without Blanc Patron tries to create a space.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Creating spaces needs Blanc Patron."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zum Anlegen von Spaces brauchst du Blanc Patron."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Para crear Spaces necesitas Blanc Patron."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La création de Spaces nécessite Blanc Patron."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Per creare Spaces serve Blanc Patron."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Para criar Spaces, você precisa do Blanc Patron."
-          }
-        }
-      }
-    },
     "ws.error.notFound": {
       "comment": "Space switcher error when the chosen space was removed meanwhile.",
       "extractionState": "manual",
@@ -11991,48 +11949,6 @@
                 }
               }
             }
-          }
-        }
-      }
-    },
-    "ws.list.patronSettings": {
-      "comment": "Button that opens the Blanc Patron section of Settings.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Patron settings"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Patron-Einstellungen"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Opciones de Patron"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Réglages Patron"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Impostazioni Patron"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Configurações Patron"
           }
         }
       }
@@ -31910,7 +31826,7 @@
       }
     },
     "ws.list.importArc": {
-      "comment": "Button in the empty space switcher for Blanc Patrons; opens Bring Your Tabs. Spaces is Arc’s feature name.",
+      "comment": "Button in the empty space switcher; opens Bring Your Tabs. Spaces is Arc’s feature name.",
       "extractionState": "manual",
       "localizations": {
         "en": {

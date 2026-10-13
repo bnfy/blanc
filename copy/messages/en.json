@@ -900,10 +900,6 @@
     "message": "You have {limit} spaces. Delete one before adding another.",
     "note": "Space switcher error at the space limit; {limit} is the maximum number of spaces (always more than one)."
   },
-  "ws.error.notPatron": {
-    "message": "Creating spaces needs Blanc Patron.",
-    "note": "Space switcher error when someone without Blanc Patron tries to create a space."
-  },
   "ws.error.notFound": {
     "message": "That space is no longer available.",
     "note": "Space switcher error when the chosen space was removed meanwhile."
@@ -1109,11 +1105,6 @@
     "message": "{count, plural, one {Recently Deleted (#)} other {Recently Deleted (#)}}",
     "note": "Button that opens deleted spaces; # is how many there are.",
     "maxLength": 32
-  },
-  "ws.list.patronSettings": {
-    "message": "Patron settings",
-    "note": "Button that opens the Blanc Patron section of Settings.",
-    "maxLength": 21
   },
   "glance.picker.title": {
     "message": "Choose a tab for Glance",
@@ -2866,7 +2857,7 @@
   },
   "ws.list.importArc": {
     "message": "Import Spaces from Arc",
-    "note": "Button in the empty space switcher for Blanc Patrons; opens Bring Your Tabs. Spaces is Arc’s feature name."
+    "note": "Button in the empty space switcher; opens Bring Your Tabs. Spaces is Arc’s feature name."
   },
   "profile.defaultName": {
     "message": "Profile {number}",

@@ -63,7 +63,6 @@ function createWorkspaceController(adapter) {
   }
   function create(runtime, name, options = {}) {
     return operate(runtime, `new:${name}`, options, () => {
-      if (!adapter.canCreate()) return { ok: false, error: 'not-patron' };
       const validation = adapter.validateCreate?.(name);
       if (validation && !validation.ok) return validation;
       if (!options.newWindow) {

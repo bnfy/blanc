@@ -130,10 +130,10 @@ test('apply consequence copy pluralizes its exact tab and group counts', () => {
   );
 });
 
-test('post-import workspace handoff enters the shared, Patron-gated workspace UI', () => {
+test('post-import workspace handoff enters the shared workspace UI, with no Patron gate', () => {
   assert.match(overlaySource, /purpose\.postImportWorkspace/);
   assert.match(overlaySource, /workspaceUI\.begin\('save'\)/);
   const uiSource = fs.readFileSync(path.join(__dirname, '../../src/renderer/workspace-ui.js'), 'utf8');
-  assert.match(uiSource, /data\.patronActive/);
+  assert.doesNotMatch(uiSource, /patronActive/);
   assert.doesNotMatch(uiSource, /buy\.polar|checkout/i);
 });

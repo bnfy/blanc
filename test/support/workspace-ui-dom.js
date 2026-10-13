@@ -28,7 +28,7 @@ function harness(apiOverrides = {}, payload = {}) {
   root.append(trigger, label, popup, feedback); trigger.focus();
   const calls = []; const api = { closeOverlay() {}, openPage(...args) { calls.push(['page', ...args]); }, openWorkspace: async () => ({ ok: true }), saveWorkspaceAs: async () => ({ ok: true }), renameWorkspace: async () => ({ ok: true }), ...apiOverrides };
   const ui = create({ document: doc, window: { innerHeight: 600, innerWidth: 800, addEventListener() {} }, api, popup, list, trigger, label, feedback, onOpenChange() {} });
-  ui.apply({ items: [{ id: 'a', name: 'First', active: true, tabCount: 1 }], deleted: [], status: 'saved', patronActive: true, ...payload });
+  ui.apply({ items: [{ id: 'a', name: 'First', active: true, tabCount: 1 }], deleted: [], status: 'saved', ...payload });
   const button = (text) => popup.querySelectorAll('button').find((b) => b.textContent === text);
   const text = (node = popup) => [node.textContent, ...node.children.map((c) => text(c))].join(' ');
   return { ui, doc, popup, list, trigger, label, feedback, calls, button, text };
