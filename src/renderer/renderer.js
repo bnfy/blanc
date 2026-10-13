@@ -714,8 +714,28 @@
     markedSpace = next;
     spaceMarkPainted = true;
   }
-  // Task 8 replaces this with the switch motion.
-  function animateSpaceSwitch() {}
+  // A switch slides the new mark in from the side it comes from in the list
+  // (moving down the list, content moves up) while the page cluster follows
+  // and the mark settles to its new width — critically damped, no overshoot.
+  // Reduce Motion keeps only a cross-fade.
+  function animateSpaceSwitch(fromIndex, toIndex, widthBefore) {
+    const easing = 'cubic-bezier(.2, .9, .25, 1)';
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      for (const node of [pillSpaceSymbol, pillSpaceName]) node.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, easing: 'ease-out' });
+      return;
+    }
+    const dir = toIndex > fromIndex ? 1 : -1;
+    for (const node of [pillSpaceSymbol, pillSpaceName]) {
+      node.animate([{ transform: `translateY(${7 * dir}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 300, easing });
+    }
+    for (const node of [pillDots, pillFavicon, pillDomain]) {
+      node.animate([{ transform: `translateX(${10 * dir}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 300, easing });
+    }
+    const widthAfter = pillSpace.hidden ? 0 : pillSpace.getBoundingClientRect().width;
+    if (widthBefore && widthAfter && widthBefore !== widthAfter) {
+      pillSpace.animate([{ width: `${widthBefore}px` }, { width: `${widthAfter}px` }], { duration: 320, easing });
+    }
+  }
   function applySpaces(payload) {
     spaces = payload && Array.isArray(payload.items) ? payload : { items: [], tint: 'mark' };
     renderSpaceMark();

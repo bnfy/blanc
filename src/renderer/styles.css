@@ -3568,3 +3568,21 @@ body[data-mode="spaces"] #workspaceSwitcher.ws-switcher[hidden] { transform: sca
 #islandPill:has(> .space-mark:not([hidden])) { padding-left: 7px; }
 .island-row .row-space-tile { width: 20px; height: 20px; border-radius: 6px; }
 .island-row .row-space-tile .ws-symbol { width: 12px; height: 12px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .space-mark { transition: none; }
+  .space-mark:active { transform: none; }
+}
+@media (prefers-contrast: more) {
+  .space-mark[data-state="space"] { box-shadow: inset 0 0 0 1px var(--space-ink); }
+}
+
+/* Dev-only comparison of how strongly a space tints the chrome (spec §11,
+   BLANC_SPACE_TINT in an unpackaged build). 'mark' — the chip alone — ships. */
+:root[data-space-tint="island"] #islandPill.has-space::after {
+  background: linear-gradient(var(--space-band-wash), var(--space-band-wash)), var(--island-resting-surface);
+}
+:root[data-space-tint="island"] .space-mark[data-state="space"] { color: var(--surface-raised); background: var(--space-ink); padding: 0; width: 24px; justify-content: center; }
+:root[data-space-tint="island"] .space-mark[data-state="space"] .space-mark-name { display: none; }
+:root[data-space-tint="frame"] #strip { background-image: linear-gradient(180deg, var(--space-band-wash, transparent), transparent); }
+:root[data-space-tint="frame"] .vertical-tabs-rail { background-image: linear-gradient(180deg, var(--space-band-wash, transparent), transparent 70%); }
