@@ -3698,6 +3698,7 @@
       "kind": "invoke",
       "platforms": [
         "darwin",
+        "win32",
         "linux"
       ],
       "channel": "chrome:onepassword-fill",

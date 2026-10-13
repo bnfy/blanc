@@ -3,8 +3,8 @@
 // F38-2..F38-7 — the 1Password fill UX surfaces (ambient hint + fill-status
 // capsule), drivable offline: the hint probe never contacts the broker, and
 // the capsule scenarios force kinds through the test hook against the REAL
-// surface (view creation, replay, reply IPC). Available on macOS and Linux
-// like the feature itself; any other platform, Windows included, skips.
+// surface (view creation, replay, reply IPC). Available on macOS, Windows and
+// Linux like the feature itself; any other platform skips.
 
 const assert = require('node:assert/strict');
 const { Given, When, Then } = require('@cucumber/cucumber');

@@ -9,6 +9,9 @@ const { rankMatches, parseWebUrl } = require('./onepassword-policy');
 const { version } = require('../../package.json');
 
 let cachedAccount = null;
+// Hold the SDK's own Client object: the SDK releases a client once it is
+// garbage-collected, and 1Password then re-asks for approval (#735). Never
+// keep only a copy or a wrapper of it.
 let cachedClient = null;
 
 function validAccount(value) {

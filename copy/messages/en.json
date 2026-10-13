@@ -3678,7 +3678,7 @@
     "maxLength": 12
   },
   "settings.privacy.useViewFill": {
-    "message": "Use View → Fill Login from 1Password or <0>/1password</0>. On Mac: ⌥⌘P. On Linux: Ctrl+Shift+P.",
+    "message": "Use View → Fill Login from 1Password or <0>/1password</0>. On Mac: ⌥⌘P. On Windows and Linux: Ctrl+Shift+P.",
     "note": "Settings → Privacy & Security → 1Password: how to fill a login; <0>/1password</0> is a slash command (keep it), the menu path and shortcuts are the app’s own."
   },
   "settings.privacy.sitePermissions.title": {
@@ -3829,7 +3829,7 @@
     "note": "Settings → Help → Extensions and password managers: explanation under a setting."
   },
   "settings.help.onMacOSWindowsAnd": {
-    "message": "On macOS and Linux, Blanc offers explicit login fill from the installed 1Password app. This integration does not save passwords or fill automatically.",
+    "message": "On macOS, Windows and Linux, Blanc offers explicit login fill from the installed 1Password app. This integration does not save passwords or fill automatically.",
     "note": "Settings → Help → Extensions and password managers: explanation under a setting."
   },
   "settings.help.connectionsBlancCanMake.title": {

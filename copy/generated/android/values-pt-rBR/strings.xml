@@ -1016,7 +1016,7 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="settings_privacy_one_password_account_label">Conta do 1Password</string>
     <string name="settings_privacy_one_password_account_hint">O e-mail que você usa para entrar no 1Password. Um ID de conta também funciona. Guardado só neste dispositivo.</string>
     <string name="settings_privacy_one_password_verify">Verificar</string>
-    <string name="settings_privacy_use_view_fill">Use Visualizar → Preencher login do 1Password ou &lt;0&gt;/1password&lt;/0&gt;. No Mac: ⌥⌘P. No Linux: Ctrl+Shift+P.</string>
+    <string name="settings_privacy_use_view_fill">Use Visualizar → Preencher login do 1Password ou &lt;0&gt;/1password&lt;/0&gt;. No Mac: ⌥⌘P. No Windows e no Linux: Ctrl+Shift+P.</string>
     <string name="settings_privacy_site_permissions_title">Permissões dos sites</string>
     <string name="settings_privacy_sites_youve_allowed_or">Sites que você permitiu ou bloqueou de usar sua câmera, microfone, localização ou notificações.</string>
     <string name="settings_privacy_usage_and_data_title">Uso e dados</string>
@@ -1051,7 +1051,7 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="settings_help_release_notes">Notas da versão ↗</string>
     <string name="settings_help_extensions_and_password_managers_title">Extensões e gerenciadores de senhas</string>
     <string name="settings_help_you_can_browse_chrome">Você pode navegar pelas páginas da Chrome Web Store, mas o Blanc não instala extensões do Chrome.</string>
-    <string name="settings_help_on_mac_o_s_windows_and">No macOS e no Linux, o Blanc oferece o preenchimento de login sob demanda pelo app do 1Password instalado. Essa integração não salva senhas nem preenche automaticamente.</string>
+    <string name="settings_help_on_mac_o_s_windows_and">No macOS, no Windows e no Linux, o Blanc oferece o preenchimento de login sob demanda pelo app do 1Password instalado. Essa integração não salva senhas nem preenche automaticamente.</string>
     <string name="settings_help_connections_blanc_can_make_title">Conexões que o Blanc pode fazer</string>
     <string name="settings_help_blanc_connects_to_websites">O Blanc se conecta aos sites que você abre e ao GitHub para atualizações do app. As pesquisas e as sugestões ativadas vão para o provedor de pesquisa escolhido; as consultas de DNS usam o sistema ou o provedor de DNS escolhido. Escolher o Google envia ao Google as pesquisas e os começos de sugestões elegíveis.</string>
     <string name="settings_help_enabled_usage_measurement_goes">A medição de uso ativada vai para um coletor da Cloudflare do próprio Blanc e, quando configurado, para o espelho dele no Google Analytics. Sync, Patron, 1Password e a transferência de abas fazem conexões separadas quando configurados ou solicitados. Isto descreve o comportamento; não é um monitor de rede ao vivo.</string>

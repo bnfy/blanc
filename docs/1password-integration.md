@@ -1,12 +1,10 @@
 # 1Password login fill
 
-Status: shipped on macOS since v1.9.0. Linux is wired up on main from October
-10, 2026 (see *Windows and Linux enablement* below) but has not shipped in a
-public release. Its live-account gate ran in virtual machines on October 10–12,
-2026, with a written waiver for what those machines could not show (see
-*Windows and Linux real-account gate* below). Windows was enabled on the same
-day and turned off again on October 12 until #735 is fixed (see *Windows off
-pending #735* below). The
+Status: shipped on macOS since v1.9.0. Windows and Linux are wired up on main
+from October 10, 2026 (see *Windows and Linux enablement* below) but have not
+shipped in a public release. Their live-account gate ran in virtual machines on
+October 10–12, 2026, with a written waiver for what those machines could not
+show (see *Windows and Linux real-account gate* below). The
 product-owner risk decision is recorded in
 [`1password-legal-inquiry.md`](1password-legal-inquiry.md). This integration is
 independent, is not affiliated with or endorsed by 1Password, and remains
@@ -16,8 +14,8 @@ cannot create the credential broker.
 
 ## User setup
 
-1. Install the current 1Password desktop app for macOS or Linux and sign into
-   the account to use.
+1. Install the current 1Password desktop app for macOS, Windows, or Linux and
+   sign into the account to use.
 2. In 1Password, open **Settings → Developer** and turn on **Integrate with
    1Password SDKs**.
 3. In Blanc, open **Settings → Privacy & Security → 1Password**, turn on
@@ -25,7 +23,7 @@ cannot create the credential broker.
    1Password with (an account ID also works). Use **Verify** to confirm it on
    the spot.
 4. On a website login form, choose **View → Fill Login from 1Password**, press
-   **⌥⌘P** on macOS or **Ctrl+Shift+P** on Linux, or run
+   **⌥⌘P** on macOS or **Ctrl+Shift+P** on Windows and Linux, or run
    **/1password** from the Island.
 5. Approve Blanc Browser in the 1Password desktop prompt. If several Login
    items match, choose one from the native menu.
@@ -37,10 +35,9 @@ this device and are excluded from Profile Sync.
 
 - The page is inspected without credentials before the SDK is contacted.
 - The platform capability gate (`src/main/onepassword-availability.js`) runs
-  before any client or UI construction. It allows macOS and Linux; any other
-  platform, Windows included until #735 is fixed, fails closed without
-  creating a 1Password client or utility process. The sandboxed chrome preload
-  mirrors the same list.
+  before any client or UI construction. It allows macOS, Windows, and Linux;
+  any other platform fails closed without creating a 1Password client or
+  utility process. The sandboxed chrome preload mirrors the same list.
 - `@1password/sdk` is pinned exactly and loads only in
   `src/main/onepassword-broker.js`, an Electron utility process named **Blanc
   Credential Broker**. The SDK finds 1Password's IPC library at fixed install
@@ -348,12 +345,11 @@ Hello.
   - #733: with several matching logins, the picker's parallel item reads
     failed with `IPC operation failed: -2`, shown as "1Password isn't
     available". Five matches failed every time.
-- **Open:**
-  - #735: 1Password re-asks to approve Blanc several times during one fill.
-    After an approval, the next call can wait 6–20 s and fail with
-    `invalid client id`. The broker's stale-client retry usually recovers.
-    Plain x64 Node in the same VM was approved once and never re-prompted.
-    It blocks Windows fill; see *Windows off pending #735* below.
+- **Closed as a test artifact:**
+  - #735: in the diagnostic build, 1Password re-asked to approve Blanc several
+    times during one fill. After an approval, the next call could wait
+    6–20 s and fail with `invalid client id`. The cause was the diagnostic
+    tracing, not Blanc or 1Password (see *#735 resolved* below).
 - **Observed, not filed:**
   - After another window took focus, the picker reopened on return once but
     not in two other tries (#700's reopen check reads window focus as the menu
@@ -383,37 +379,42 @@ Missing evidence:
    - key repeat, AltGr, screen reader, and permission precedence.
 
 Risk:
-- #733 and #735 showed up only on Windows. Problems that emulation hides or
-  causes, including whether #735 affects real PCs, stay unknown until Windows
-  users report them.
+- #733 showed up only on Windows. Other problems that emulation hides or
+  causes stay unknown until Windows users report them. (#735 turned out to be
+  a test artifact; see below.)
 - AppImage-specific problems on x64 Linux, such as library paths or the
   sandbox, are likewise unseen.
 
 Release notes and marketing claims for Windows or Linux 1Password fill must
 stay within this evidence (`docs/marketing-claims.md`).
 
-### Windows off pending #735 — 2026-10-12
+### #735 resolved and Windows back on — 2026-10-13
 
-The owner decided that #735 blocks shipping Windows 1Password fill as it
-stands. Two or three password prompts and 20–40 s fills, sometimes ending in
-an error, defeat the feature's purpose. Emulation may contribute, but the
-clean Node control rules out writing it off as a VM artifact, and the waiver
-above covers missing tests, not this known defect. Windows is therefore off:
-`SUPPORTED_PLATFORMS` in `onepassword-availability.js` and its `preload.js`
-mirror list only macOS and Linux. Windows shows no 1Password setting, command,
-shortcut, or menu item, as before October 10, and its native smoke test
-(**Verify 1Password fill stays off on Windows (#735)**) proves the broker
-cannot start there.
+On October 12 the owner turned Windows fill off over #735 (PR #742), then
+asked for Windows to be fixed and shipped as soon as possible. Narrowing it in
+the Windows 11 on Arm VM, with Arm64 1Password and Arm64 Node so nothing was
+emulated, found the cause in the diagnostic tracing itself:
 
-The Windows code stays in place: Store detection (#702), the Windows on Arm
-message (#728), the serial picker reads (#733), and its unit tests. Adding
-`'win32'` back to both lists, with the contract, tests, and the Settings copy
-that names the platforms, turns it on again once #735 is fixed and verified.
-This doesn't block an otherwise ready Windows release of Blanc.
+- `@1password/sdk` 0.5.0 registers every `Client` with a
+  `FinalizationRegistry` that calls `releaseClient` once the object is
+  garbage-collected (`dist/client_builder.js`).
+- The tracer used in the diagnostic Blanc build and in the Node broker probes
+  returned `{ ...client, vaults, items }`. That dropped the only reference to
+  the `Client`.
+- After a few calls, garbage collection released the client, and 1Password
+  treated the next call as a new client: a new approval prompt, then
+  `invalid client id`.
 
-The follow-ups #739 (picker reopen, P2), #740 (stale error notice, P3), and
-#741 (the app name in approval copy, P3) are not release blockers on this
-evidence.
+Every wrapped run re-prompted; every unwrapped run didn't. As shipped, the
+broker keeps the `Client` in `cachedClient` for its lifetime. Run under Arm64
+Node with garbage collection forced between rounds, it completed three
+5-match `find-logins` rounds after one approval: 25.5 s (including the
+approval), then 1.32 s and 1.39 s.
+
+So #735 is closed and this change reverts #742. The waiver above still stands
+for the Windows rows that weren't run and for the missing real x64 PC. Those
+rows had been stopped only because of the prompts, so they can now be run in
+the VM or on a real PC before release.
 
 ### Windows/Linux live-account harness
 
