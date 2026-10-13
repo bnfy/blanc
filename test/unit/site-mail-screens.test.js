@@ -39,3 +39,17 @@ test('every screenshot the Mail pages name exists, with a built 1100px copy', ()
     assert.equal(copy.width, 1100);
   }
 });
+
+test('the light and dark compare has a thumb wide enough to grab on a touch screen', () => {
+  // iOS Safari moves a range input only by its thumb. The thumb is invisible
+  // (the handle is drawn separately), so on coarse pointers it is as wide as a
+  // fingertip; fine pointers keep a 2px thumb so the divider stays under them.
+  const css = read('src/styles/mail.css');
+  const coarse = css.match(/@media\(pointer:coarse\)\{((?:[^{}]*\{[^}]*\})*)\}/g)?.join('') ?? '';
+  for (const thumb of ['::-webkit-slider-thumb', '::-moz-range-thumb']) {
+    const rule = coarse.match(new RegExp(`\\.mail-compare-range${thumb}\\{([^}]*)\\}`));
+    assert.ok(rule, `a coarse-pointer ${thumb} rule`);
+    const width = Number(rule[1].match(/(?:^|;)width:(\d+)px/)?.[1]);
+    assert.ok(width >= 44, `${thumb} is ${width}px wide on touch screens`);
+  }
+});

@@ -39,18 +39,21 @@
    stays, with Mail marked current (test/site/header.test.mjs). `body` lifts
    these rules over revamp.css whatever order the bundles load in. */
 body .site-header.revamp-header{background:#f8f2e8}
-body .site-header .revamp-nav{height:36px;min-height:36px;gap:28px;background:transparent}
+body .site-header.revamp-header .revamp-nav{flex-wrap:nowrap;height:36px;min-height:36px;gap:28px;border-bottom-color:transparent;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none}
 body .revamp-nav .site-brand{height:36px}
 body .revamp-nav .site-brand-mark{width:18px;height:18px}
 body .revamp-nav .revamp-nav-link,body .revamp-nav .site-nav-cta{min-height:36px;color:var(--mail-muted);font-size:12px}
 body .revamp-nav .revamp-nav-link[aria-current=page]{color:var(--mail-ink)}
 body .revamp-nav .site-nav-cta,body .revamp-nav .site-nav-cta:hover{padding:0;border-radius:0;background:none}
 body .revamp-nav a:hover,body .revamp-nav .site-nav-cta:hover{color:var(--mail-ink)}
-@media(max-width:760px){body .site-header .revamp-nav{height:44px;min-height:44px}body .revamp-nav .site-brand{height:44px}}
+@media(max-width:760px){body .site-header.revamp-header .revamp-nav{height:44px;min-height:44px}body .revamp-nav .site-brand{height:44px}}
 /* Anchors land below both sticky bars. This replaces the site's own
    scroll-padding (a heading scroll-margin would add to it instead), and
    `:root` outranks revamp.css's `html` rule whatever order they load in. */
 :root{scroll-padding-top:calc(var(--mail-header-h) + var(--mail-bar-h) + 20px)}
+/* The bars never leave the view, so their own controls cancel that padding:
+   focusing one must not scroll the page (and bring the header back). */
+.site-header :is(a,button),.mail-bar :is(a,button){scroll-margin-top:calc(-1 * (var(--mail-header-h) + var(--mail-bar-h) + 20px))}
 
 /* ---------- Product bar (MailBar.astro) ----------
    Sticky under the site header; when the header hides on scroll the bar
@@ -278,6 +281,7 @@ body:has(.site-header.is-scroll-hidden) .mail-bar{transform:translateY(calc(-1 *
 .mail-compare-range{position:absolute;top:0;left:0;width:100%;height:calc(100% - 36px);margin:0;opacity:0;cursor:ew-resize;touch-action:pan-y;-webkit-appearance:none;appearance:none}
 .mail-compare-range::-webkit-slider-thumb{width:2px;height:40px;-webkit-appearance:none;appearance:none}
 .mail-compare-range::-moz-range-thumb{width:2px;height:40px;border:0}
+@media(pointer:coarse){.mail-compare-range::-webkit-slider-thumb{width:44px;height:44px}.mail-compare-range::-moz-range-thumb{width:44px;height:44px}}
 .mail-compare:has(.mail-compare-range:focus-visible) .mail-compare-handle::after{outline:2px solid var(--mail-gold);outline-offset:2px}
 .mail-compare:has(.mail-compare-range:active) .mail-compare-handle::after{transform:translate(-50%,-50%) scale(.94)}
 

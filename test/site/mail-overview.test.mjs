@@ -75,6 +75,7 @@ test('Dawn and Night switch the Inbox Zero picture, from the keyboard and withou
     try {
       const night = () => page.evaluate(() => getComputedStyle(document.querySelector('.mail-zero-night')).opacity);
       assert.equal(await page.getByRole('group', { name: 'Wallpaper' }).count(), 1, 'a named group');
+      await page.waitForTimeout(600); // let any first-paint cross-fade settle
       assert.equal(await night(), '0');
       const dawn = page.getByRole('radio', { name: 'Dawn' });
       assert.equal(await dawn.isChecked(), true);

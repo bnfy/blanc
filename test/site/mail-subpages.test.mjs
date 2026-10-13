@@ -66,6 +66,33 @@ test('a link to a section lands with its heading below the bars', async () => {
   } finally { await context.close(); }
 });
 
+test('the last sections are marked too, though they can never scroll up to the line', async () => {
+  for (const [path, size] of [['/mail/terms#contact', [1440, 900]], ['/mail/privacy#contact', [1440, 900]], ['/mail/terms#governing-law', [1920, 1080]]]) {
+    const { page, context } = await openPage(path, size[0], { viewport: { width: size[0], height: size[1] } });
+    try {
+      const hash = path.slice(path.indexOf('#'));
+      await page.waitForFunction(id => document.querySelector('.mail-contents a[aria-current="location"]')?.getAttribute('href') === id, hash, { timeout: 3000 })
+        .catch(() => {});
+      assert.equal(await current(page), hash, `${path} at ${size.join('×')}`);
+    } finally { await context.close(); }
+  }
+  const tall = await openPage('/mail/terms', 1920, { viewport: { width: 1920, height: 1400 } });
+  try {
+    for (const id of ['#warranty-and-liability', '#governing-law', '#contact']) {
+      await tall.page.locator(`.mail-contents a[href="${id}"]`).click();
+      await tall.page.waitForTimeout(300);
+      assert.equal(await current(tall.page), id, `clicking ${id} at 1920×1400`);
+    }
+  } finally { await tall.context.close(); }
+  // A section linked to earlier no longer counts once it has scrolled away.
+  const stale = await openPage('/mail/terms#subscriptions', 1440);
+  try {
+    await stale.page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
+    await stale.page.waitForTimeout(300);
+    assert.equal(await current(stale.page), '#contact', 'at the bottom after an earlier link');
+  } finally { await stale.context.close(); }
+});
+
 test('below 1024px the list folds into a closed "On this page" disclosure', async () => {
   const { page, context } = await openPage('/mail/privacy', 800);
   try {

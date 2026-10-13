@@ -27,10 +27,21 @@ const { sections } = Astro.props;
       const line = 160;
       let current = headings[0];
       for (const heading of headings) if (heading.getBoundingClientRect().top <= line) current = heading;
+      // Short final sections can never scroll up to the line. At the bottom
+      // of the page, the section just linked to wins while its heading is in
+      // view; otherwise the last section that has started.
+      if (scrollY + innerHeight >= document.documentElement.scrollHeight - 1) {
+        const top = (h: HTMLElement) => h.getBoundingClientRect().top;
+        current = headings.find((h) => `#${h.id}` === location.hash && top(h) >= 0 && top(h) < innerHeight)
+          ?? headings.findLast((h) => top(h) < innerHeight) ?? current;
+      }
       links.forEach((a, id) => (id === current?.id ? a.setAttribute('aria-current', 'location') : a.removeAttribute('aria-current')));
     };
     let frame = 0;
-    addEventListener('scroll', () => { if (!frame) frame = requestAnimationFrame(() => { frame = 0; mark(); }); }, { passive: true });
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(() => { frame = 0; mark(); }); };
+    addEventListener('scroll', schedule, { passive: true });
+    // A link to a section already in view changes the hash without scrolling.
+    addEventListener('hashchange', schedule);
     mark();
   }
 </script>
