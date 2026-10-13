@@ -260,3 +260,56 @@ Only these labels are new; none is a product claim:
 
 Launch-day changes to pricing and download; any change to product claims or
 the hero copy; Blanc Browser pages; a dark appearance for the Mail pages.
+
+## 11. Amendment: real screenshots (owner, October 12, 2026)
+
+The owner judged Blanc Mail's interface close to final and approved real
+screenshots, placed in four spots: the hero window, a light-and-dark
+moment, the unified-inbox tile, and a new Inbox Zero and Rules showcase.
+This replaces §2's "illustrations carry no claims" for those places only.
+The remaining vignettes (undo, send later, Ghost Mode) stay textless.
+
+**Where the images come from.** Only from the Mail repository's
+`native/scripts/capture-public-shots.sh`, which rebuilds the signed demo app,
+launches it through `run-dev.sh` and captures one window in demo mode, so no
+connected mailbox can appear. The scenes are `main`, `dark`, `island`, `zero`,
+`zero-night` and `rules`. Files are 2200 px WebP plus an 1100 px copy, served
+from `site/public/mail/screens/`. The Island tile uses a crop of `island`.
+
+**Labelled as a preview.** Blanc Mail has no public build, so
+`docs/marketing-claims.md` requires a clearly labelled preview. A new
+component, `MailShot.astro`, is the only way the Mail pages show a screenshot,
+and it always renders a "Preview build" caption.
+
+**Placement.**
+
+- Hero: the real main window replaces the wireframe, in the same sunrise
+  frame, still rising with scroll.
+- "Every account together": the Island searching ("trip") replaces the
+  account-colors vignette.
+- New section "An empty inbox, kept that way." It has an Inbox Zero row,
+  where a Dawn/Night segmented control (radio buttons, no script)
+  cross-fades the two captures, and a Rules row.
+- New section "At home in light and dark.": a compare control. A
+  full-width range input sets where the dark window begins, so the divider
+  sits under the pointer; arrow keys move it too.
+
+**New copy.** Written from the source-backed research and recorded in
+`docs/website-mail-claims-2026-10-12.md`; the owner approves it before deploy.
+New interface labels: "Preview build", "Wallpaper" (hidden legend), "Dawn",
+"Night", and "Compare the light and dark appearance" (the compare control's
+accessible name).
+
+**Before deploy.**
+
+- Recapture every image from the signed release candidate, and refresh it
+  whenever the interface changes (Mail `AGENTS.md`: a stale screenshot is
+  claim drift).
+- No screenshot names a real company. On October 12 the owner chose a
+  fictional photo newsletter for the hero and fictional `.example` senders
+  throughout the demo (bnfy/blanc-mail#128).
+- The Mail repository's `docs/ISLAND_SIGNED_CHECKLIST.md` says captures are
+  never published until launch. That line is updated to record the owner's
+  October 12 decision in the same change that publishes them.
+- The Rules copy depends on live Gmail behavior that EM-960 still lists as
+  partial. Its live checks must pass before the page deploys.

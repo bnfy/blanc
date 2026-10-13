@@ -1,0 +1,33 @@
+---
+// A real Blanc Mail screenshot, taken from the signed demo build by the Mail
+// repository's native/scripts/capture-public-shots.sh (demo mode only, never a
+// connected mailbox). Mail has no public release, so docs/marketing-claims.md
+// requires every one to be labelled as a preview; this component is the only
+// way the Mail pages show a screenshot, so the label can't be left off.
+// Files: /mail/screens/<name>.webp (2200px wide) and <name>-1100.webp; a crop
+// that is already small passes single and has only the first.
+interface Props {
+  name: string;
+  alt: string;
+  width: number;
+  height: number;
+  class?: string;
+  eager?: boolean;
+  single?: boolean;
+  sizes?: string;
+}
+const { name, alt, width, height, class: className = '', eager = false, single = false, sizes = '(max-width: 1120px) 100vw, 1072px' } = Astro.props;
+---
+<figure class={`mail-shot ${className}`}>
+  <img
+    src={`/mail/screens/${name}.webp`}
+    srcset={single ? undefined : `/mail/screens/${name}-1100.webp 1100w, /mail/screens/${name}.webp 2200w`}
+    sizes={single ? undefined : sizes}
+    alt={alt}
+    width={width}
+    height={height}
+    loading={eager ? 'eager' : 'lazy'}
+    decoding="async"
+  />
+  <figcaption>Preview build</figcaption>
+</figure>
