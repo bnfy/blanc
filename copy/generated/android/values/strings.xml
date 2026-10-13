@@ -594,7 +594,7 @@ Blanc can’t open the setup guide itself while it can’t start. Open this addr
     <string name="linux_sandbox_copied_detail">Paste it into another browser, then choose Quit.</string>
     <string name="menu_check_for_updates">Check for Updates…</string>
     <string name="update_stalled_message">Update download stalled</string>
-    <string name="update_stalled_detail">The update download stopped making progress. You can retry with “%1$s”, or reinstall from blancbrowser.com.</string>
+    <string name="update_stalled_detail">The update download stopped making progress. You can retry with “%1$s”, or reinstall from blanc.day.</string>
     <string name="update_ready_message">Update %1$s downloaded</string>
     <string name="update_ready_detail">Restart to apply it. Blanc will reopen when installation completes.</string>
     <string name="update_ready_restart">Restart Now</string>
@@ -602,7 +602,7 @@ Blanc can’t open the setup guide itself while it can’t start. Open this addr
     <string name="update_failed_message">Update download failed</string>
     <string name="update_failed_detail">%1$s
 
-You can retry with “%2$s”, or reinstall from blancbrowser.com.</string>
+You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="update_dev_only">Updates are only available in packaged builds.</string>
     <string name="update_flatpak_message">Flatpak keeps Blanc up to date</string>
     <string name="update_flatpak_detail">Update Blanc from your software center, or run \"flatpak update\" in a terminal.</string>

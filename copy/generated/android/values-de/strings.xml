@@ -594,7 +594,7 @@ Blanc kann die Einrichtungsanleitung nicht selbst öffnen, solange es nicht star
     <string name="linux_sandbox_copied_detail">Füge ihn in einem anderen Browser ein und wähle dann „Beenden“.</string>
     <string name="menu_check_for_updates">Nach Updates suchen…</string>
     <string name="update_stalled_message">Download des Updates hängt</string>
-    <string name="update_stalled_detail">Der Download des Updates kommt nicht mehr voran. Versuche es erneut mit „%1$s“ oder installiere Blanc neu von blancbrowser.com.</string>
+    <string name="update_stalled_detail">Der Download des Updates kommt nicht mehr voran. Versuche es erneut mit „%1$s“ oder installiere Blanc neu von blanc.day.</string>
     <string name="update_ready_message">Update %1$s heruntergeladen</string>
     <string name="update_ready_detail">Starte neu, um es anzuwenden. Blanc öffnet sich wieder, sobald die Installation abgeschlossen ist.</string>
     <string name="update_ready_restart">Jetzt neu starten</string>
@@ -602,7 +602,7 @@ Blanc kann die Einrichtungsanleitung nicht selbst öffnen, solange es nicht star
     <string name="update_failed_message">Download des Updates fehlgeschlagen</string>
     <string name="update_failed_detail">%1$s
 
-Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blancbrowser.com.</string>
+Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</string>
     <string name="update_dev_only">Updates gibt es nur in installierbaren Builds.</string>
     <string name="update_flatpak_message">Flatpak hält Blanc aktuell</string>
     <string name="update_flatpak_detail">Aktualisiere Blanc in deinem Software-Center oder führe \"flatpak update\" in einem Terminal aus.</string>

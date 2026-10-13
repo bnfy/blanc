@@ -611,7 +611,7 @@ Blanc ne peut pas ouvrir lui-même le guide de configuration tant qu’il ne peu
     <string name="linux_sandbox_copied_detail">Collez-le dans un autre navigateur, puis choisissez Quitter.</string>
     <string name="menu_check_for_updates">Rechercher des mises à jour…</string>
     <string name="update_stalled_message">Le téléchargement de la mise à jour est bloqué</string>
-    <string name="update_stalled_detail">Le téléchargement de la mise à jour n’avance plus. Vous pouvez réessayer avec « %1$s » ou réinstaller depuis blancbrowser.com.</string>
+    <string name="update_stalled_detail">Le téléchargement de la mise à jour n’avance plus. Vous pouvez réessayer avec « %1$s » ou réinstaller depuis blanc.day.</string>
     <string name="update_ready_message">Mise à jour %1$s téléchargée</string>
     <string name="update_ready_detail">Redémarrez pour l’appliquer. Blanc se rouvrira une fois l’installation terminée.</string>
     <string name="update_ready_restart">Redémarrer maintenant</string>
@@ -619,7 +619,7 @@ Blanc ne peut pas ouvrir lui-même le guide de configuration tant qu’il ne peu
     <string name="update_failed_message">Échec du téléchargement de la mise à jour</string>
     <string name="update_failed_detail">%1$s
 
-Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blancbrowser.com.</string>
+Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</string>
     <string name="update_dev_only">Les mises à jour ne sont disponibles que dans les versions empaquetées.</string>
     <string name="update_flatpak_message">Flatpak maintient Blanc à jour</string>
     <string name="update_flatpak_detail">Mettez à jour Blanc depuis votre logithèque, ou lancez \"flatpak update\" dans un terminal.</string>

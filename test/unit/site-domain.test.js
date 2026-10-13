@@ -2,10 +2,11 @@
 
 // The website moved to blanc.day on October 13, 2026
 // (docs/superpowers/specs/2026-10-13-blanc-day-domain-design.md). Its pages,
-// public files, scripts and Workers name the site's own origin and contact
-// address only through blanc.day. blancbrowser.com stays a permanent redirect,
-// and its tab relay (tabs.blancbrowser.com), newsletter sender
-// (updates.blancbrowser.com) and social handles keep their names.
+// public files, scripts and Workers, and the browser's own links and copy,
+// name the site's origin and contact address only through blanc.day.
+// blancbrowser.com stays a permanent redirect, and its tab relay
+// (tabs.blancbrowser.com), newsletter sender (updates.blancbrowser.com) and
+// social handles keep their names.
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -28,6 +29,8 @@ const ALLOWED = {
   'cloudflare/newsletter-worker/src/index.js': ["'https://blancbrowser.com',", 'blancbrowser.com stays allowed'],
   // The Worker that retires the former hosts has to name them.
   'cloudflare/blancbrowser-redirects/src/index.js': ["new Set(['blancbrowser.com', 'www.blancbrowser.com', 'www.blanc.day'])"],
+  // Official builds still treat the former domain as Bananify's: the tab relay lives there.
+  'src/main/bananify-services.js': ["host === 'blancbrowser.com'", 'blancbrowser.com keeps the tab relay'],
 };
 
 // Records of past work and generated font metadata keep what they shipped with.
@@ -38,16 +41,15 @@ const SKIPPED = new Set([
 
 const TEXT = /\.(?:astro|mjs|js|json|css|html|txt|xml|md|py|toml)$|(?:^|\/)_(?:headers|redirects)$/;
 
-function sources() {
-  return execFileSync('git', ['ls-files', 'site/src', 'site/public', 'site/scripts', 'site/astro.config.mjs', 'cloudflare'], { cwd: ROOT, encoding: 'utf8' })
+function tracked(paths) {
+  return execFileSync('git', ['ls-files', ...paths], { cwd: ROOT, encoding: 'utf8' })
     .split('\n')
-    .filter((file) => file && TEXT.test(file) && !SKIPPED.has(file))
-    .filter((file) => !file.startsWith('cloudflare/') || /^cloudflare\/[^/]+\/src\//.test(file));
+    .filter((file) => file && TEXT.test(file) && !SKIPPED.has(file));
 }
 
-test('the site and its Workers name blancbrowser.com only where the move needs it', () => {
+function offendersIn(files) {
   const offenders = [];
-  for (const file of sources()) {
+  for (const file of files) {
     let text = read(file);
     for (const allowed of ALLOWED[file] || []) {
       assert.ok(text.includes(allowed), `${file}: allowance no longer needed: ${allowed}`);
@@ -58,7 +60,34 @@ test('the site and its Workers name blancbrowser.com only where the move needs i
       offenders.push(`${file}:${line}`);
     }
   }
-  assert.deepEqual(offenders, []);
+  return offenders;
+}
+
+test('the site and its Workers name blancbrowser.com only where the move needs it', () => {
+  const files = tracked(['site/src', 'site/public', 'site/scripts', 'site/astro.config.mjs', 'cloudflare'])
+    .filter((file) => !file.startsWith('cloudflare/') || /^cloudflare\/[^/]+\/src\//.test(file));
+  assert.deepEqual(offendersIn(files), []);
+});
+
+test('the browser links to and names blanc.day, in every language', () => {
+  const files = tracked(['src', 'copy/messages']);
+  assert.ok(files.includes('src/renderer/pages/settings.html') && files.includes('copy/messages/de.json'));
+  assert.deepEqual(offendersIn(files), []);
+});
+
+test('every blanc.day link in the browser opens a page the site builds, not a legacy redirect', () => {
+  const legacy = JSON.parse(read('site/src/data/legacy-routes.json'));
+  const links = new Set();
+  for (const file of tracked(['src']).filter((name) => !/\/strings\.[\w-]+\.js$/.test(name))) {
+    for (const [, pathname = '/'] of read(file).matchAll(/https:\/\/blanc\.day(\/[^"'`#?\s)]*)?/g)) links.add(pathname);
+  }
+  assert.ok(links.has('/trust') && links.has('/privacy') && links.has('/changelog'), [...links].join(', '));
+  for (const pathname of links) {
+    const page = pathname === '/' ? 'index' : pathname.replace(/^\/|\/$/g, '');
+    const built = ['.astro', '/index.astro'].some((ext) => fs.existsSync(path.join(ROOT, 'site/src/pages', page + ext)));
+    assert.ok(built, `${pathname} is not a site page`);
+    assert.equal(legacy[pathname.replace(/\/$/, '')], undefined, `${pathname} is a legacy redirect`);
+  }
 });
 
 test('one constant holds the site origin, and the build reads it', async () => {

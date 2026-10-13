@@ -21,7 +21,7 @@ test('a short first title segment names the site', () => {
   assert.equal(shortSiteName('YouTube – videos worth watching', 'https://www.youtube.com/'), 'YouTube');
   assert.equal(shortSiteName('Nintendo – Official Site', 'https://www.nintendo.com/'), 'Nintendo');
   assert.equal(shortSiteName('Inbox | Fastmail', 'https://app.fastmail.com/'), 'Inbox');
-  assert.equal(shortSiteName('Docs · Blanc', 'https://blancbrowser.com/docs'), 'Docs');
+  assert.equal(shortSiteName('Docs · Blanc', 'https://blanc.day/docs'), 'Docs');
   assert.equal(shortSiteName('Scroll — creative work', 'https://scroll.example/'), 'Scroll');
   assert.equal(shortSiteName('Scroll - creative work', 'https://scroll.example/'), 'Scroll');
   assert.equal(shortSiteName('The New York Times - Breaking News, US News', 'https://www.nytimes.com/'), 'The New York Times');

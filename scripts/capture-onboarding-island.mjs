@@ -36,7 +36,7 @@ try {
     state => state.tabs.length === 1 && state.tabs[0].url === 'blanc://newtab/' && !state.tabs[0].isLoading,
     'initial tab restoration');
   const icon = fs.readFileSync('src/renderer/pages/sunrise-favicon-mark.png').toString('base64');
-  await app.context().route('https://blancbrowser.com/**', route => route.fulfill({
+  await app.context().route('https://blanc.day/**', route => route.fulfill({
     contentType: 'text/html', body: `<!doctype html><title>Blanc</title><link rel="icon" href="data:image/png;base64,${icon}"><p>Local capture fixture</p>`,
   }));
   await app.evaluate(({ BrowserWindow, webContents }) => {
@@ -45,11 +45,11 @@ try {
   });
   await chrome.evaluate(async () => {
     // The initial Start Page plus these two ordinary pages make three real dots.
-    await window.browserAPI.createTab('https://blancbrowser.com/about');
-    await window.browserAPI.createTab('https://blancbrowser.com/');
+    await window.browserAPI.createTab('https://blanc.day/about');
+    await window.browserAPI.createTab('https://blanc.day/');
   });
   await chrome.waitForFunction(() => document.querySelectorAll('#pillDots .island-dot').length === 3
-    && document.getElementById('pillDomain').textContent === 'blancbrowser.com'
+    && document.getElementById('pillDomain').textContent === 'blanc.day'
     && document.getElementById('pillFavicon').classList.contains('has-icon')
     && !document.getElementById('pillShield').hidden
     && document.querySelector('#pillActions button').dataset.mode === 'reload', null, { timeout: 30000 }).catch(async error => {

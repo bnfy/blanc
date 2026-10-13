@@ -19,7 +19,10 @@ function isBananifyServiceUrl(url) {
   } catch {
     return true; // unreadable: treat as ours, so the check below fails closed
   }
-  return host === 'blancbrowser.com'
+  // blanc.day is the umbrella domain; blancbrowser.com keeps the tab relay.
+  return host === 'blanc.day'
+    || host.endsWith('.blanc.day')
+    || host === 'blancbrowser.com'
     || host.endsWith('.blancbrowser.com')
     || host.endsWith('.bnfy-441.workers.dev');
 }
