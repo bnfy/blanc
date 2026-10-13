@@ -177,7 +177,9 @@ file rather than Chromium profiles..
 
 - Whether Arc's per-profile Favorites rows (`topApps` with a custom
   profile) should be offered separately. v1 imports all of them,
-  deduplicated, into one **Arc** folder.
+  deduplicated, into one **Arc** folder. The real-sidebar runs on 2026-10-12
+  confirmed that Arc keeps one row per Arc profile on both macOS and Windows:
+  a Space with its own profile shows only its profile's row.
 
 ## Resolved questions
 
