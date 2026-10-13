@@ -165,17 +165,20 @@ Live steps are the owner's; each is listed with how to check it.
    *Check:* `npm run site:build` (which runs `check:seo`), the site and
    Worker unit tests, and after deploy `npm --prefix site run audit:seo:live`
    with `SITE_ORIGIN=https://blanc.day`.
-5. **Redirect the old domain** (owner, live). Add a Cloudflare redirect rule on
-   the `blancbrowser.com` zone: hostname `blancbrowser.com` or
-   `www.blancbrowser.com` → `https://blanc.day` + path, query kept, 301. Point
-   `getbowser.com`'s rule at `blanc.day`. Then run Search Console's Change of
-   Address, update the Google Analytics stream URL, and confirm Cloudflare Web
-   Analytics records `blanc.day`.
+5. **Redirect the old domain** (owner, live). Deploy
+   `cloudflare/blancbrowser-redirects`, a Worker on the exact hosts
+   `blancbrowser.com`, `www.blancbrowser.com` and `www.blanc.day` that answers
+   every path with 301 to the same path and query on `https://blanc.day` (308
+   for methods other than GET and HEAD). A Worker was chosen over dashboard
+   redirect rules so the move stays in code, with tests, deployed the same way
+   as the others. Point `getbowser.com`'s existing redirect at `blanc.day`. Then
+   run Search Console's Change of Address, update the Google Analytics stream
+   URL, and confirm Cloudflare Web Analytics records `blanc.day`.
    *Check:*
-   - Redirect rules run before Workers on the same zone, so the old `/dl/*` and
-     `/mail/*` routes are bypassed: confirm `blancbrowser.com/dl/<target>` lands
-     on `blanc.day/dl/<target>` and counts once.
-   - `tabs.blancbrowser.com` still answers directly.
+   - `blanc-ping`'s `/dl/*` routes are more specific than the redirect's, so a
+     download link on either domain is still answered and counted directly.
+   - `tabs.blancbrowser.com` is a custom domain of the tab-import Worker and
+     still answers directly.
    - A link built by a store extension, `blancbrowser.com/import-tabs/#v=1&…`,
      reaches `blanc.day/import-tabs/` with its fragment and opens Blanc.
      Browsers carry a fragment across a redirect that has none.
@@ -216,7 +219,8 @@ and the browser's own pace, but the redirect (5) waits until 4 is deployed.
 - **D4: 301 or 308 for the old domain.** *Recommended:* 301. Nothing shipped
   POSTs to blancbrowser.com (Mail's beta builds POST to postelmail.com, which
   step 2 points straight at blanc.day), and search engines treat both as
-  permanent.
+  permanent. The redirect Worker answers 301 for GET and HEAD and 308 for
+  anything else, so a stray POST keeps its body.
 
 ## Out of scope
 
