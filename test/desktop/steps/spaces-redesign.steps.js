@@ -81,6 +81,15 @@ When('I give {string} the custom color {string}', async function (name, hex) {
   await page.click('[data-focus-key="color:custom"]');
   await page.fill('.space-picker-hex', hex);
 });
+When('I rename {string} to a 60-character name', async function (name) {
+  const before = await mark(this, (m) => m.state === 'space' && m.name === name, `the mark for ${name}`);
+  this.squareBefore = before.square;
+  const long = 'This is a really long title for a space that keeps going on.'.slice(0, 60);
+  assert.equal(long.length, 60);
+  const space = await spaceByName(this, name);
+  assert.equal((await this.call('workspaceAction', 'update', space.id, { name: long })).ok, true);
+  this.longName = long;
+});
 When('I open the color picker for {string}', async function (name) {
   const page = await menu(); const space = await spaceByName(this, name);
   await page.click(`[data-focus-key="edit:${space.id}"]`);
@@ -154,8 +163,21 @@ Then('the Island shows the quiet Spaces mark', async function () {
   assert.equal(m.name, '');
   assert.equal(m.label, 'Spaces');
 });
-Then('the Island\'s space mark reads {string} in {string} with the symbol {string}', async function (name, ink, symbol) {
-  await mark(this, (m) => m.state === 'space' && m.name === name && m.ink === ink && m.symbol === symbol, `the mark for ${name} in ${ink} with ${symbol}`);
+const rgb = (hex) => `rgb(${[1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(', ')})`;
+// The quiet mark: the space's exact colour fills the square behind its
+// symbol; the mark itself stays clear and the name is the Island's own text.
+Then('the Island\'s space mark reads {string} in {string} with the symbol {string}', async function (name, color, symbol) {
+  const m = await mark(this, (s) => s.state === 'space' && s.name === name && s.fill === color && s.symbol === symbol
+    && s.squareBackground === rgb(color), `the mark for ${name} in ${color} with ${symbol}`);
+  // At rest the mark has no fill of its own; open, it takes the Island's
+  // control highlight, never the space's colour.
+  if (m.expanded === 'false') assert.equal(m.markBackground, 'rgba(0, 0, 0, 0)', 'the mark has no fill of its own at rest');
+  else assert.notEqual(m.markBackground, rgb(color), 'open, the mark is highlighted, not filled');
+  assert.equal(m.nameColor, m.islandText, 'the name is the Island\'s ordinary text');
+});
+Then('the mark\'s symbol is {string} on its color', async function (on) {
+  const m = await mark(this, (s) => s.on === on && s.symbolColor === rgb(on), `the symbol in ${on}`);
+  assert.equal(m.on, on);
 });
 Then('the Island\'s space mark reads {string}', async function (name) {
   const m = await mark(this, (s) => s.state === 'space' && s.name === name, `the mark for ${name}`);
@@ -257,14 +279,21 @@ Then('every space name in the menu and on the mark is drawn whole', async functi
     assert.ok(n.inkTop >= -0.5 && n.inkBottom <= n.box + 0.5, `"${n.text}" fits its ${n.box}px box: ${JSON.stringify(n)}`);
   }
 });
+Then('the mark\'s colour square keeps its size and place, and the name is cut short', async function () {
+  const m = await mark(this, (s) => s.name === this.longName, 'the mark with the long name');
+  assert.ok(m.square.width > 0 && Math.abs(m.square.width - m.square.height) < 0.5, `still square: ${JSON.stringify(m.square)}`);
+  assert.deepEqual(
+    [m.square.width, m.square.height, m.square.inset].map((v) => Math.round(v * 10) / 10),
+    [this.squareBefore.width, this.squareBefore.height, this.squareBefore.inset].map((v) => Math.round(v * 10) / 10),
+    'the same size, at the same place in the mark',
+  );
+  assert.equal(m.nameTruncated, true, 'the name ellipsizes instead');
+});
 Then('the editor shows no readability note', async function () {
   const page = await menu();
-  // Clay is lightened for dark mode (#EA9B75), but a preset says nothing (D19).
-  assert.equal(await page.$eval('.ws-guard', (note) => note.textContent), '');
-});
-Then('the editor says the color is shown as {string} in light mode', async function (hex) {
-  const page = await menu();
-  await page.waitForFunction((value) => document.querySelector('.ws-guard')?.textContent.includes(`shown as ${value} in light mode`), hex);
+  // Every colour is drawn exactly as chosen, so nothing needs explaining.
+  assert.equal(await page.$('.ws-guard'), null);
+  assert.equal(await page.evaluate(() => document.getElementById('workspaceSwitcher').textContent.includes('Kept readable')), false);
 });
 Then('this window is in the space {string} again', async function (name) {
   await waitForValue(() => spaceByName(this, name), (w) => w?.active === true, `${name} bound again`);
@@ -291,13 +320,15 @@ Given('a private tab beside an ordinary tab, with the ordinary tab selected', as
   await this.call('activateTab', ordinary);
   await this.waitForState((st) => st.activeTabId === ordinary && st.tabs.every((t) => !t.isLoading));
   // Settle on the ordinary theme first, so the switch is the only change.
-  const light = SpaceIdentity.paint('#426c4c', 'light').ink;
-  await mark(this, (m) => m.ink === light, 'the mark in the ordinary theme');
+  assert.equal(SpaceIdentity.paint('#426c4c', 'light').edge, false);
+  await mark(this, (m) => m.fill === '#426c4c' && m.edge === 'false', 'the mark in the ordinary theme, no edge');
 });
 When('I select the private tab', async function () {
   await this.call('activateTab', this.privateTabId);
 });
 Then('the Island\'s space mark is drawn for the private theme', async function () {
-  const ink = SpaceIdentity.paint('#426c4c', 'private').ink;
-  await mark(this, (m) => m.ink === ink, `the mark redrawn with the private ink ${ink}`);
+  // The colour is the same on every theme; against the private Island's
+  // near-black surface Sage needs the edge.
+  assert.equal(SpaceIdentity.paint('#426c4c', 'private').edge, true);
+  await mark(this, (m) => m.fill === '#426c4c' && m.edge === 'true', 'the mark redrawn for the private surface, with its edge');
 });

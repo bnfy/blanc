@@ -1,14 +1,14 @@
 'use strict';
 
 // Blanc Spaces identity: the preset palette, the 16 symbols, default
-// assignment, and the readability guard that derives the colour actually
-// drawn. Pure and DOM-free — the strip and overlay documents load it as
-// window.SpaceIdentity; main and Node tests require it. The stored hex is
-// always the user's choice; only the drawn ink may differ (spec §2).
+// assignment, and how a space's colour is drawn. Pure and DOM-free — the strip
+// and overlay documents load it as window.SpaceIdentity; main and Node tests
+// require it. A space's tile is filled with exactly the colour chosen, in every
+// theme; the symbol and name on it are white or black, whichever reads (spec §2).
 // Symbol geometry is Lucide's (ISC; see THIRD-PARTY-NOTICES.md).
 (function (root) {
-  // Fixed points of the light-mode guard, so a preset swatch is exactly the
-  // colour drawn in light mode. tokens/tokens.json mirrors these (space-*).
+  // Drawn exactly as stored, in every theme. tokens/tokens.json mirrors these
+  // (space-*).
   const PRESETS = Object.freeze([
     Object.freeze({ id: 'sage', hex: '#426c4c' }),
     Object.freeze({ id: 'sky', hex: '#376694' }),
@@ -50,14 +50,18 @@
     Object.freeze(['path', Object.freeze({ d: 'M20.29 13.84A11.3 3.1 27 1 1 5.64 6.37' })]),
   ]);
 
-  // Every surface a space mark or tile can sit on, per theme (spec §2). A new
-  // fill under a space tile must be added here.
+  // Every surface a space's tile can sit on, per theme (spec §2). A tile whose
+  // colour is too close to one of them to stand out gets a hairline edge there.
+  // A new fill under a space tile must be added here.
   const SURFACES = Object.freeze({
-    light: Object.freeze({ bases: Object.freeze(['#ffffff', '#f7f7f7', '#f5f5f5']), wash: 0.15, lighten: false }),
-    dark: Object.freeze({ bases: Object.freeze(['#1f1f1f', '#171717', '#282828']), wash: 0.2, lighten: true }),
-    private: Object.freeze({ bases: Object.freeze(['#191919', '#131313', '#222222']), wash: 0.2, lighten: true }),
+    light: Object.freeze(['#ffffff', '#f7f7f7', '#f5f5f5']),
+    dark: Object.freeze(['#1f1f1f', '#171717', '#282828']),
+    private: Object.freeze(['#191919', '#131313', '#222222']),
   });
-  const MIN_CONTRAST = 4.5;
+  const MIN_CONTRAST = 4.5;  // the symbol and name on the colour
+  const EDGE_CONTRAST = 3;   // the colour against the surface behind it
+  const WHITE = '#ffffff', BLACK = '#000000';
+  const WASH = Object.freeze({ light: 0.15, dark: 0.2, private: 0.2 });
 
   /** `#rrggbb` in lower case, from `#RRGGBB`, `rrggbb` or padded input; else null. */
   function normalizeHex(value) {
@@ -68,74 +72,29 @@
   }
   const isSymbol = (value) => typeof value === 'string' && Object.prototype.hasOwnProperty.call(SYMBOLS, value);
 
-  // ---- colour maths: sRGB ↔ OKLCH, WCAG contrast, 8-bit compositing ----
+  // ---- WCAG contrast ----
   const toLinear = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
-  const toGamma = (c) => (c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055);
   const channels = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
-  const toHex = (rgb) => `#${rgb.map((v) => Math.round(Math.min(1, Math.max(0, v)) * 255).toString(16).padStart(2, '0')).join('')}`;
-  function toOklch(hex) {
-    const [r, g, b] = channels(hex).map(toLinear);
-    const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
-    const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
-    const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
-    const L = 0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s;
-    const A = 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s;
-    const B = 0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s;
-    return [L, Math.hypot(A, B), Math.atan2(B, A)];
-  }
-  function oklchToLinear(L, C, H) {
-    const A = C * Math.cos(H), B = C * Math.sin(H);
-    const l = (L + 0.3963377774 * A + 0.2158037573 * B) ** 3;
-    const m = (L - 0.1055613458 * A - 0.0638541728 * B) ** 3;
-    const s = (L - 0.0894841775 * A - 1.2914855480 * B) ** 3;
-    return [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s, -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s, -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s];
-  }
-  const inGamut = (lin) => lin.every((v) => v >= -1e-6 && v <= 1 + 1e-6);
-  /** The hex for (L, C, H), lowering chroma only as far as sRGB gamut needs. */
-  function oklchHex(L, C, H) {
-    let chroma = C;
-    if (!inGamut(oklchToLinear(L, chroma, H))) {
-      let lo = 0, hi = chroma;
-      for (let i = 0; i < 30; i++) { const mid = (lo + hi) / 2; if (inGamut(oklchToLinear(L, mid, H))) lo = mid; else hi = mid; }
-      chroma = lo;
-    }
-    return toHex(oklchToLinear(L, chroma, H).map(toGamma));
-  }
   const luminance = (hex) => { const [r, g, b] = channels(hex).map(toLinear); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
   function contrast(a, b) { const x = luminance(a), y = luminance(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); }
-  /** `ink` at `alpha` painted over `base`, rounded to 8-bit as the screen does. */
-  function composite(ink, alpha, base) { const f = channels(ink), b = channels(base); return toHex(f.map((v, i) => alpha * v + (1 - alpha) * b[i])); }
-  /** The lowest contrast `ink` has against any surface or its own wash over it. */
-  function worstContrast(ink, theme) {
-    const s = SURFACES[theme];
-    return Math.min(...s.bases.flatMap((base) => [contrast(ink, base), contrast(ink, composite(ink, s.wash, base))]));
-  }
 
-  /** The ink drawn for a stored colour on a theme: unchanged when readable,
-   * otherwise the smallest OKLCH-lightness change that reaches 4.5:1. */
-  function inkFor(hex, theme = 'light') {
-    const color = normalizeHex(hex);
-    if (!color || !SURFACES[theme]) return null;
-    if (worstContrast(color, theme) >= MIN_CONTRAST) return color;
-    const { lighten } = SURFACES[theme];
-    const [L, C, H] = toOklch(color);
-    const passes = (l) => worstContrast(oklchHex(l, C, H), theme) >= MIN_CONTRAST;
-    let lo = lighten ? L : 0, hi = lighten ? 1 : L;
-    for (let i = 0; i < 40; i++) {
-      const mid = (lo + hi) / 2;
-      if (lighten) { if (passes(mid)) hi = mid; else lo = mid; } else if (passes(mid)) lo = mid; else hi = mid;
-    }
-    let l = lighten ? hi : lo, out = oklchHex(l, C, H);
-    // Rounding to 8 bits can land just under the floor; keep stepping.
-    while (worstContrast(out, theme) < MIN_CONTRAST && l > 0 && l < 1) { l += lighten ? 0.001 : -0.001; out = oklchHex(l, C, H); }
-    return out;
-  }
-  /** `{ ink, wash }` CSS colours for a stored colour on a theme. */
+  /** How a stored colour is drawn on a theme: `fill` is the colour itself,
+   * never adjusted; `on` is the symbol and name on it, white or black,
+   * whichever contrasts more (always at least 4.5:1, about 4.58:1 at worst);
+   * `edge` is true where the fill is under 3:1 against a surface it sits on. */
   function paint(hex, theme = 'light') {
-    const ink = inkFor(hex, theme);
-    if (!ink) return null;
-    const [r, g, b] = channels(ink).map((v) => Math.round(v * 255));
-    return { ink, wash: `rgba(${r}, ${g}, ${b}, ${SURFACES[theme].wash})` };
+    const fill = normalizeHex(hex);
+    if (!fill || !SURFACES[theme]) return null;
+    const on = contrast(fill, WHITE) >= contrast(fill, BLACK) ? WHITE : BLACK;
+    const edge = SURFACES[theme].some((surface) => contrast(fill, surface) < EDGE_CONTRAST);
+    return { fill, on, edge };
+  }
+  /** The colour as a faint tint (the dev-only tint switch's band), or null. */
+  function wash(hex, theme = 'light') {
+    const color = normalizeHex(hex);
+    if (!color || !WASH[theme]) return null;
+    const [r, g, b] = channels(color).map((v) => Math.round(v * 255));
+    return `rgba(${r}, ${g}, ${b}, ${WASH[theme]})`;
   }
 
   /** The first preset colour and first symbol not used by `existing` records,
@@ -151,7 +110,7 @@
   /** The preset whose stored hex equals `hex`, or null for a custom colour. */
   const presetFor = (hex) => PRESETS.find((p) => p.hex === normalizeHex(hex)) ?? null;
 
-  const api = { PRESETS, SYMBOLS, SYMBOL_IDS, SPACES_GLYPH, SURFACES, MIN_CONTRAST, normalizeHex, isSymbol, inkFor, paint, defaultsFor, presetFor, worstContrast, contrast, composite };
+  const api = { PRESETS, SYMBOLS, SYMBOL_IDS, SPACES_GLYPH, SURFACES, MIN_CONTRAST, EDGE_CONTRAST, normalizeHex, isSymbol, paint, wash, defaultsFor, presetFor, contrast };
   if (typeof module !== 'undefined') module.exports = api;
   else root.SpaceIdentity = api;
 })(typeof window !== 'undefined' ? window : globalThis);

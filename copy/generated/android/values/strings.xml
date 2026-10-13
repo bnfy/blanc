@@ -1913,9 +1913,6 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="spaces_picker_square_value">Saturation %1$s%%, brightness %2$s%%</string>
     <string name="spaces_picker_hue">Hue</string>
     <string name="spaces_picker_hex">Hex</string>
-    <string name="spaces_guard_light">Kept readable: shown as %1$s in light mode.</string>
-    <string name="spaces_guard_dark">Kept readable: shown as %1$s in dark mode.</string>
-    <string name="spaces_guard_both">Kept readable: shown as %1$s in light mode and %2$s in dark mode.</string>
     <string name="result_tag_space">space</string>
     <string name="workspace_menu_edit">Edit…</string>
     <string name="newtab_checklist_space">Make your first space</string>

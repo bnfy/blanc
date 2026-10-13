@@ -7039,18 +7039,6 @@
     "note": "Label of the custom color picker's hex code field, as in #426C4C.",
     "maxLength": 6
   },
-  "spaces.guard.light": {
-    "message": "Kept readable: shown as {hex} in light mode.",
-    "note": "Custom color picker: Blanc draws a slightly darker color so the symbol stays readable; {hex} is a code like #6D6400."
-  },
-  "spaces.guard.dark": {
-    "message": "Kept readable: shown as {hex} in dark mode.",
-    "note": "Custom color picker: Blanc draws a slightly lighter color so the symbol stays readable; {hex} is a code like #6D6400."
-  },
-  "spaces.guard.both": {
-    "message": "Kept readable: shown as {light} in light mode and {dark} in dark mode.",
-    "note": "Custom color picker: Blanc adjusts the drawn color in both modes; {light} and {dark} are codes like #6D6400."
-  },
   "result.tag.space": {
     "message": "space",
     "note": "Lowercase tag on a Quick Switcher result that is a space.",

@@ -115,13 +115,14 @@ Feature: Named workspace preservation and recovery
     Then the Island's space mark reads "Work" in "#376694" with the symbol "star"
 
   @F41-20
-  Scenario: A custom color is kept and drawn readably
+  Scenario: A custom color is kept and drawn exactly
     Given a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
     When I open the Spaces menu from the space mark
     And I give "Work" the custom color "#F5E663"
     Then the space "Work" is saved with the color "#f5e663"
-    And the Island's space mark reads "Work" in "#6d6400" with the symbol "briefcase"
-    And the editor says the color is shown as "#6D6400" in light mode
+    And the Island's space mark reads "Work" in "#f5e663" with the symbol "briefcase"
+    And the mark's symbol is "#000000" on its color
+    And the editor shows no readability note
 
   @F41-21
   Scenario: Undo after deleting this window's space puts the window back in it
@@ -198,13 +199,20 @@ Feature: Named workspace preservation and recovery
     Then the Spaces menu is closed and stays closed
 
   @F41-31
-  Scenario: A preset colour adapts without the readability note
+  Scenario: No colour shows a readability note, preset or custom
     Given a space named "Work" in this window, colored "#974f2a" with the symbol "plane"
     When I open the Spaces menu from the space mark
     And I open the color picker for "Work"
     Then the editor shows no readability note
-    When I type the custom color "#F5E663" into the picker
-    Then the editor says the color is shown as "#6D6400" in light mode
+    When I type the custom color "#FFFFFF" into the picker
+    Then the editor shows no readability note
+    And the Island's space mark reads "Work" in "#ffffff" with the symbol "plane"
+
+  @F41-33
+  Scenario: A long space name never squeezes the mark's colour square
+    Given a space named "Work" in this window, colored "#f5c84c" with the symbol "music"
+    When I rename "Work" to a 60-character name
+    Then the mark's colour square keeps its size and place, and the name is cut short
 
   @F41-32
   Scenario: Space names are drawn whole, descenders included

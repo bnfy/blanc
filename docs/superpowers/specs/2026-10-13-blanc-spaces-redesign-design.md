@@ -48,8 +48,9 @@ feedback.
 | D16 | Checklist task for people whose checklist already retired | **Stays retired.** Only a checklist still showing gains the task. |
 | D17 | The ⌘L footer's Spaces button (owner, during PR 2) | **Icon only, no name.** The footer has too little room before a name truncates; the bound space's name is in the button's tooltip and accessible name, and its fill still shows the window is in a space. This applies to the footer only: the Island's space mark keeps its symbol **and** name (truncated), so the active space shows at rest. |
 | D18 | Where the menu opens from ⌘L (owner, during PR 2) | **Below the Island, never over it.** The menu hangs from the panel's bottom edge, right-aligned to the button, and scrolls within the room there; only a window too short for a few rows below opens it upward. |
-| D19 | The "Kept readable" note (owner, during PR 2) | **Custom colours only.** Presets adapt to every theme without a note: their dark and private inks are the designed values in §1's table, and every preset is lightened in dark mode, so the note would show on all of them. The guard itself still runs for every colour on every theme, and the saved hex is never changed. |
+| D19 | The "Kept readable" note (owner, during PR 2) | *(Superseded by D21: no colour is adjusted, so there is no note.)* **Custom colours only.** Presets adapt to every theme without a note: their dark and private inks are the designed values in §1's table, and every preset is lightened in dark mode, so the note would show on all of them. The guard itself still runs for every colour on every theme, and the saved hex is never changed. |
 | D20 | The Spaces glyph (owner, after PR 2) | **A ringed planet, in outline,** so people coming from Arc recognise Spaces (the owner's Arc screenshot shows a planet beside a space's name). Our own drawing, not Arc's asset: a large planet and a flat ring tilted down to the right, in the footer's line weight. It replaces the stacked-windows glyph on the ⌘L footer button (17px) and on the Island's quiet mark (16px), a touch larger than their neighbours so it reads at a glance; defined once as `SpaceIdentity.SPACES_GLYPH`. A space's own symbol is unchanged. |
+| D21 | How a space's colour is drawn (owner, after PR 2; supersedes D19) | **Exactly, as a fill, with white or black on it.** A space's tile is filled with exactly the colour chosen, in every theme, so the full colour picker is honest; its symbol is white or black, whichever contrasts more, which always reaches 4.5:1. On the Island the mark is quiet: the colour fills a small square behind the symbol and the name is the Island's ordinary text. A colour under 3:1 against the surface behind it gets a hairline edge. This replaces the readability guard, its theme-adjusted colours and the "Kept readable" note. Chosen from side-by-side mock-ups in the real app over a fully filled mark (louder than the Island should be) and over keeping the tint with a fixed palette (no free choice). |
 
 Decided during design, not asked: once at least one space exists, a window that
 is not in a space shows a **neutral grey mark** (glyph, no name), keeping the
@@ -159,25 +160,21 @@ working. On re-upgrade the defaults are assigned again; custom choices made
 before the downgrade are lost. Accepted over a version bump, which would make
 older builds refuse the file (`future-format`) and leave Spaces unavailable.
 
-**Presets.** Stored and shown as these values, which are fixed points of the
-light-mode readability guard (§2), so a preset swatch is exactly the colour
-drawn in light mode. Dark and private are derived by the guard:
+**Presets.** Stored and drawn as these values, in every theme (§2, D21):
 
-| Name | Hex (stored, light) | Dark | Private |
-|---|---|---|---|
-| Sage | `#426c4c` | `#8db996` | `#85b18e` |
-| Sky | `#376694` | `#82b3e5` | `#78aadc` |
-| Iris | `#6757a3` | `#b2a4f7` | `#a99bed` |
-| Rose | `#9b4761` | `#ef93ac` | `#e68aa3` |
-| Clay | `#974f2a` | `#ea9b75` | `#e0926c` |
-| Sand | `#815c02` | `#d1a960` | `#c7a057` |
-| Slate | `#576471` | `#a2b0bf` | `#9aa8b6` |
-| Graphite | `#3a3a3a` | `#afafae` | `#a6a6a5` |
+| Name | Hex | Symbol on it |
+|---|---|---|
+| Sage | `#426c4c` | white |
+| Sky | `#376694` | white |
+| Iris | `#6757a3` | white |
+| Rose | `#9b4761` | white |
+| Clay | `#974f2a` | white |
+| Sand | `#815c02` | white |
+| Slate | `#576471` | white |
+| Graphite | `#3a3a3a` | white |
 
-(The brainstorming mock-ups used lighter design inputs, e.g. Sage `#5f8a68`;
-those fail 4.5:1 on their own wash and are not shipped. The dark and private
-columns are what the §2 algorithm produces today; tests pin the light column as
-fixed points and the other two as meeting the floor, not as exact values.)
+(The first build derived separate dark and private colours for each preset;
+under D21 a preset is its hex everywhere.)
 
 No preset is a pure red, so a preset space never reads as an error; a custom
 colour may be anything. The palette is defined once in `tokens/tokens.json`
@@ -188,15 +185,20 @@ mobile port inherits it.
 house, code, flask, book, music, camera, plane, heart, star, leaf, coffee,
 graduation cap, gamepad, wallet, sun. Each has a translated accessible name.
 
-### 2. The readability guard
+### 2. Readable on any colour
 
 A pure module (no `require('electron')`, loadable by both chrome documents and
-by Node tests) derives the colour actually drawn:
+by Node tests) decides how a stored colour is drawn (D21):
 
-- Keep the stored hex as the user's choice; display may differ.
-- The ink (symbol and name) is drawn over its own wash, so contrast is measured
-  against the **final composited background**, not the bare surface. For each
-  theme the guard takes the set of surfaces a space mark or tile can sit on:
+- The **fill** is the stored hex itself, in every theme: what was picked is
+  what is shown, and nothing is ever adjusted.
+- The symbol on it is **white or black**, whichever contrasts more with the
+  fill. One of the two always reaches 4.5:1 (the worst case, a mid-tone, is
+  about 4.58:1), so the theme never changes it.
+- An **edge**: a 1px hairline (18% `--text`; 45% under Increased Contrast)
+  where the fill is under **3:1** against a surface it sits on in that theme,
+  so a white square on the light Island or a black one on the dark Island
+  still reads. The surfaces, per theme:
 
   | Surface | Light | Dark | Private |
   |---|---|---|---|
@@ -205,27 +207,13 @@ by Node tests) derives the colour actually drawn:
   | ⌘L row hover (4% `--text` wash, a Quick Switcher result) | `#f5f5f5` | `#282828` | `#222222` |
 
   Every space-tile surface must use one of these fills; adding a new one means
-  adding it to the guard's set, which is defined once.
-- The requirement: the ink has at least **4.5:1** against each surface in the
-  set *and* against its wash composited over each surface — wash alpha 15%
-  (light) / 20% (dark, private), composited and compared in 8-bit sRGB, the way
-  it is painted.
-- If the colour already meets that, it is returned unchanged. Otherwise only its
-  OKLCH lightness changes (darker in light, lighter in dark and private),
-  reducing chroma only as far as needed to stay in sRGB gamut, to the smallest
-  change that meets the requirement.
-- The check is repeated **after rounding to hex**; if rounding drops it below
-  4.5:1, lightness keeps stepping until the rounded value passes.
-- Worked example (from review): `#767676` is 4.54:1 on white but 3.78:1 on its
-  own 15% wash, so it is drawn as `#636363`.
+  adding it to the set, which is defined once.
+- Worked examples: `#F5E663` is drawn as itself with a black symbol on every
+  theme; white gets a black symbol and, in light mode, an edge; `#ff3b30` gets
+  black, because white on it is only about 3.6:1.
 
-For a custom colour, the editor states when the guard is acting, e.g. "Kept
-readable: shown as #6D6400 in light mode." for `#F5E663`. A preset shows no
-note, though the guard adapts it the same way (D19); a hex typed or dragged to
-exactly a preset's value counts as that preset. The guard runs for every
-colour on every theme and only changes what is drawn: the stored hex is always
-exactly what was chosen. (The prototype predates the composited rule and shows
-a lighter value.)
+There is no readability note: nothing is adjusted, so there is nothing to
+explain (D21 supersedes D19).
 
 ### 3. The mark on the pill
 
@@ -236,8 +224,11 @@ sent to the strip), whose rows gain `color` and `symbol` — presentation data
 only. (Amended during planning: an earlier draft added a `spaceMark` field to
 `tabs:updated`; the Spaces projection already carries what the mark needs.)
 
-- **space** — this window is in a space: a 28px chip, symbol plus name
-  (the name ellipsizes beyond 140px), ink and wash from the guard.
+- **space** — this window is in a space: a quiet 28px mark. The space's
+  colour fills a small square behind its symbol (white or black on it, §2), and
+  the name follows in the Island's ordinary text (it ellipsizes beyond 140px).
+  At rest the mark has no fill of its own; hovered or open it takes the
+  Island's control highlight (`--accent-dim`), like the pill's other buttons.
 - **neutral** — the profile has spaces but this window is in none: the same
   slot with the grey Spaces planet (D20) and no name.
 - **none** — the profile has no spaces: nothing renders; the pill is exactly
@@ -245,7 +236,8 @@ only. (Amended during planning: an earlier draft added a `spaceMark` field to
 
 The mark is a real button in the pill's focus order, labelled "Space: {name}"
 (neutral: "Spaces"), `aria-haspopup`, `aria-expanded` mirroring the menu. A
-private active tab re-derives the ink for the private surface; the mark still
+private active tab re-derives the edge for the private surface (the colour
+itself never changes); the mark still
 shows the window's space. In the vertical-tabs layout the mark stays on the
 pill; nothing is added to the rail.
 
@@ -276,7 +268,7 @@ needed).
 - Rows: 28px symbol tile, name, tab count, ✓ on the current space
   (`aria-current`). 40px rows, 11px radius, **3px gap between rows** so a
   selected and a hovered row never merge (D12). Hovered, focused and selected
-  rows all fill with `--surface`, one of the guard's surfaces (§2). Rows of a
+  rows all fill with `--surface`, one of §2's surfaces. Rows of a
   window shown elsewhere keep their "Show window" context.
 - Hovering or focusing a row reveals `•••` in place of the count, opening the
   editor. Right-click opens the native menu with **Edit…** and **Delete**
@@ -310,7 +302,6 @@ The menu reshapes into the editor in place (no dialog, no scrim):
   - Keyboard: the square is focusable (←/→ saturation, ↑/↓ brightness); the hue
     control is a slider; the hex field accepts `#rrggbb` or `rrggbb` and applies
     when valid.
-  - The guard note sits under the hex field, for a custom colour only (D19).
 - **Symbol:** the 16 symbols in an 8×2 grid of labelled buttons.
 - **New space only — "Start with":** *This window · N tabs* / *Empty*.
   Defaults to *This window* when the window is in no space, *Empty* when it is.
@@ -400,7 +391,8 @@ consistency, interruptibility, critically damped curves):
   custom properties (350ms).
 - **Reduce Motion:** opacity cross-fades only; no scale, slide, width or height
   animation.
-- **Increased Contrast:** the mark gains a 1px border in its ink.
+- **Increased Contrast:** every colour square and tile draws a stronger
+  hairline edge (45% `--text`).
 
 ### 11. Dev-only tint switch (for D2)
 
@@ -410,7 +402,8 @@ attribute. Variants are CSS only, over the same two colour tokens:
 
 - `mark` (default, ships): the chip alone carries colour.
 - `island`: the resting island glass takes a faint wash; the chip becomes a
-  solid tile with a white symbol and the name moves into the menu.
+  solid tile in the space's colour with its white or black symbol, and the name
+  moves into the menu.
 - `frame`: the strip band behind the island (and the rail in vertical tabs)
   takes a vertical wash; the island stays neutral.
 
@@ -428,12 +421,11 @@ translated (`data-i18n-ignore`).
 
 **Unit (`node --test`):**
 
-- Readability guard: for a sweep of hues × lightness × chroma, the rounded hex
-  result meets 4.5:1 against every surface in its theme's set and against its
-  wash composited over each; colours that already pass come back unchanged
-  (including every light preset, pinned as fixed points); every preset's dark
-  and private ink matches §1's table and is stored unchanged; `#767676` comes
-  back changed; output is a valid hex; invalid input is rejected.
+- Colour (D21): for a sweep of hues × saturation × brightness and every grey,
+  the fill is the stored hex on every theme and the symbol colour is white or
+  black, whichever contrasts more, at 4.5:1 or better; the edge follows the
+  3:1 rule on each theme; the presets match §1's table; invalid input is
+  rejected.
 - Upgrade: a version-2 file without `color`/`symbol` is written once on first
   load with a `.before-repair` backup and assigned defaults in list order; a
   second load writes nothing; deleting or reordering a space leaves the others'
@@ -449,15 +441,15 @@ translated (`data-i18n-ignore`).
   path remains.
 - Menu state (`workspace-ui.js`): list → editor → list, live apply, delete →
   Undo restore, Recently deleted Forget confirmation, switch-prompt ordering
-  and the private-only rule, the zero-spaces list, the guard note for a custom
-  colour and none for a preset (D19), with the exact hex saved either way.
+  and the private-only rule, the zero-spaces list, every colour drawn and
+  saved exactly with no readability note (D21).
 - Checklist: third task appears only on a still-visible checklist.
 
 **Desktop acceptance (`spec/acceptance/F41-named-workspaces.feature`, plus
 `arc-spaces-import.feature`):** the three mark states; opening from the mark
 and from ⌘L; switching (mark and pill update); live edit of name, colour,
-symbol; a custom hex with the guard note, and none on a preset (D19); delete
-then Undo; drag and keyboard reorder; keyboard-only flow with focus return;
+symbol; a custom hex drawn exactly on the quiet mark, and no readability note
+for any colour (D21); delete then Undo; drag and keyboard reorder; keyboard-only flow with focus return;
 Reduce Motion; Quick Switcher match; the switch prompt's order. Existing
 scenarios drop their Patron steps.
 Keys for main-process Escape handling are sent with `sendInputEvent`.
@@ -486,7 +478,8 @@ crops, before over after.
 ## Risks
 
 - **Colour in a colourless chrome.** Mitigated by the mark-only default, the
-  readability guard, and the dev switch for judging B/C in practice.
+  quiet mark (colour only in a small square, D21), and the dev switch for
+  judging B/C in practice.
 - **Downgrade drops identity.** An older build strips `color`/`symbol` when it
   first loads `workspaces.json` (keeping a backup); defaults reappear on
   upgrade, custom choices do not (D15).

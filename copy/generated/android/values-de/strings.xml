@@ -1913,9 +1913,6 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="spaces_picker_square_value">Sättigung %1$s %%, Helligkeit %2$s %%</string>
     <string name="spaces_picker_hue">Farbton</string>
     <string name="spaces_picker_hex">Hex</string>
-    <string name="spaces_guard_light">Gut lesbar gehalten: im hellen Modus als %1$s dargestellt.</string>
-    <string name="spaces_guard_dark">Gut lesbar gehalten: im dunklen Modus als %1$s dargestellt.</string>
-    <string name="spaces_guard_both">Gut lesbar gehalten: im hellen Modus als %1$s, im dunklen Modus als %2$s dargestellt.</string>
     <string name="result_tag_space">space</string>
     <string name="workspace_menu_edit">Bearbeiten…</string>
     <string name="newtab_checklist_space">Ersten Space erstellen</string>

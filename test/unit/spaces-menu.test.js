@@ -16,8 +16,9 @@ test('rows show a painted symbol tile, the name, the count and the current space
   assert.equal(main.dataset.current, 'true');
   assert.equal(main.attrs['aria-current'], 'true');
   const tile = main.children[0];
-  assert.equal(tile.props['--space-ink'], '#426c4c');
-  assert.equal(tile.props['--space-wash'], 'rgba(66, 108, 76, 0.15)');
+  assert.equal(tile.props['--space-fill'], '#426c4c', 'filled with exactly the space\'s colour');
+  assert.equal(tile.props['--space-on'], '#ffffff', 'the symbol is white on it');
+  assert.equal(tile.dataset.edge, 'false');
   assert.equal(main.children[1].textContent, 'First');
   assert.equal('data-i18n-ignore' in main.children[1].attrs, true, 'space names are never translated');
   assert.equal(first.children[1].attrs['aria-label'], 'Edit First');
@@ -101,13 +102,16 @@ test('a duplicate name in the editor is shown and not written', async () => {
   assert.match(h.doc.getElementById('workspaceEditorError').textContent, /already in use/);
 });
 
-test('the custom swatch opens the picker and a typed hex shows the readability note', async () => {
+test('the custom swatch opens the picker and a typed hex is drawn exactly as typed', async () => {
   const h = harness({}, TWO); h.ui.begin('edit', TWO.items[0]);
   h.byKey('color:custom').click();
   const hex = h.popup.querySelectorAll('input').find((i) => i.className === 'space-picker-hex');
   assert.ok(hex, 'the picker is drawn inside the menu');
   hex.value = '#F5E663'; hex.emit('input'); await wait(300);
-  assert.match(h.text(), /Kept readable: shown as #6D6400 in light mode\./);
+  const preview = h.popup.querySelector('.ws-editor-tile');
+  assert.deepEqual([preview.props['--space-fill'], preview.props['--space-on']], ['#f5e663', '#000000'], 'yellow, with a black symbol on it');
+  assert.equal(h.popup.querySelector('.ws-guard'), null, 'no readability note: nothing is adjusted');
+  assert.doesNotMatch(h.text(), /Kept readable/);
   assert.deepEqual(h.calls.filter(([c]) => c === 'update').map((c) => c.slice(1)), [['a', { color: '#f5e663' }]]);
   assert.equal(h.byKey('color:custom').attrs['aria-checked'], 'true');
 });
@@ -441,24 +445,23 @@ test('opened from the space mark, the menu stops short of the view bottom, so it
   assert.equal(h.popup.props['--ws-max-height'], '540px');
 });
 
-test('a preset shows no readability note though the guard adapts it; a custom colour still does, and the exact hex is saved', async () => {
-  const Identity = require('../../src/renderer/space-identity');
+test('every colour, preset or custom, is saved and drawn exactly, with no note', async () => {
   const clay = { items: [{ id: 'a', name: 'First', active: true, tabCount: 1, color: '#974f2a', symbol: 'plane' }] };
-  assert.equal(Identity.inkFor('#974f2a', 'dark'), '#ea9b75', 'the guard lightens this preset for dark mode');
-  const h = harness({}, clay); h.ui.begin('edit', clay.items[0]);
+  const h = harness({}, clay, { theme: () => 'dark' }); h.ui.begin('edit', clay.items[0]);
   h.byKey('color:custom').click();
-  const note = () => h.popup.querySelector('.ws-guard').textContent;
-  assert.equal(note(), '', 'the picker opened on a preset: no note');
   const hex = h.popup.querySelectorAll('input').find((i) => i.className === 'space-picker-hex');
-  hex.value = '#974F2B'; hex.emit('input'); await wait(300);
-  assert.match(note(), /Kept readable/, 'one step off a preset is a custom colour');
-  hex.value = '#6757A3'; hex.emit('input'); await wait(300);
-  assert.equal(note(), '', "typing a preset's hex is that preset");
-  assert.deepEqual(h.calls.filter(([c]) => c === 'update').map((c) => c[2].color), ['#974f2b', '#6757a3'], 'each hex is saved exactly');
+  const preview = () => h.popup.querySelector('.ws-editor-tile');
+  for (const [typed, saved, on] of [['#FFFFFF', '#ffffff', '#000000'], ['#974F2B', '#974f2b', '#ffffff'], ['#6757A3', '#6757a3', '#ffffff']]) {
+    hex.value = typed; hex.emit('input'); await wait(300);
+    assert.deepEqual([preview().props['--space-fill'], preview().props['--space-on']], [saved, on], typed);
+    assert.equal(h.popup.querySelector('.ws-guard'), null, `${typed}: no note`);
+  }
+  assert.deepEqual(h.calls.filter(([c]) => c === 'update').map((c) => c[2].color), ['#ffffff', '#974f2b', '#6757a3'], 'each hex is saved exactly');
 });
 
-test('in dark mode a preset is drawn in its lightened ink', () => {
+test('in dark mode a preset keeps its exact colour and gains an edge against the dark menu', () => {
   const h = harness({}, TWO, { theme: () => 'dark' }); h.ui.open();
   const tile = h.list.children.find((n) => n.className.includes('ws-row')).children[0].children[0];
-  assert.equal(tile.props['--space-ink'], '#8db996');
+  assert.equal(tile.props['--space-fill'], '#426c4c');
+  assert.equal(tile.dataset.edge, 'true', 'Sage is under 3:1 against #1f1f1f');
 });

@@ -687,14 +687,20 @@
     islandPill.classList.toggle('has-space', state === 'space');
     document.documentElement.dataset.spaceTint = spaces.tint || 'mark';
     if (bound) {
-      const painted = SpaceIdentity.paint(bound.color, chromeTheme()) ?? SpaceIdentity.paint(SpaceIdentity.PRESETS[0].hex, chromeTheme());
-      pillSpace.style.setProperty('--space-ink', painted.ink);
-      pillSpace.style.setProperty('--space-wash', painted.wash);
-      document.documentElement.style.setProperty('--space-band-wash', painted.wash);
+      // The quiet mark: the space's exact colour fills the square behind its
+      // symbol (white or black on it); data-edge outlines a colour that would
+      // vanish into the Island. The band wash is only for the dev tint switch.
+      const theme = chromeTheme();
+      const painted = SpaceIdentity.paint(bound.color, theme) ?? SpaceIdentity.paint(SpaceIdentity.PRESETS[0].hex, theme);
+      pillSpace.style.setProperty('--space-fill', painted.fill);
+      pillSpace.style.setProperty('--space-on', painted.on);
+      pillSpace.dataset.edge = String(painted.edge);
+      document.documentElement.style.setProperty('--space-band-wash', SpaceIdentity.wash(painted.fill, theme));
       pillSpace.title = blancI18n.t('spaces.mark.current', { name: bound.name });
     } else {
-      pillSpace.style.removeProperty('--space-ink');
-      pillSpace.style.removeProperty('--space-wash');
+      pillSpace.style.removeProperty('--space-fill');
+      pillSpace.style.removeProperty('--space-on');
+      delete pillSpace.dataset.edge;
       document.documentElement.style.removeProperty('--space-band-wash');
       pillSpace.title = blancI18n.t('footer.workspaces');
     }
