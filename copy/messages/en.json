@@ -6903,5 +6903,246 @@
   "ublock.dashboard.allLists": {
     "message": "All filter lists",
     "note": "uBlock Origin Dashboard → Filter lists: accessible name of a group expander that has no name of its own."
+  },
+  "ws.new": {
+    "message": "New space…",
+    "note": "Spaces menu: the command that opens the editor for a new space.",
+    "maxLength": 24
+  },
+  "ws.list.emptyHint": {
+    "message": "Save a set of tabs and switch back to it any time.",
+    "note": "Spaces menu, shown when there are no spaces yet."
+  },
+  "ws.row.edit": {
+    "message": "Edit {name}",
+    "note": "Accessible name of the ••• button on a space row; {name} is the space's own name."
+  },
+  "ws.undo.deleted": {
+    "message": "{name} deleted",
+    "note": "Spaces menu row after a space is deleted; {name} is the space's own name. An Undo button follows."
+  },
+  "ws.undo.button": {
+    "message": "Undo",
+    "note": "Button that brings back the space just deleted.",
+    "maxLength": 12
+  },
+  "ws.editor.newTitle": {
+    "message": "New space",
+    "note": "Spaces menu: heading of the editor for a new space.",
+    "maxLength": 24
+  },
+  "ws.editor.editTitle": {
+    "message": "Edit space",
+    "note": "Spaces menu: heading of the editor for an existing space.",
+    "maxLength": 24
+  },
+  "ws.editor.name": {
+    "message": "Name",
+    "note": "Space editor: accessible name and placeholder of the space name field.",
+    "maxLength": 16
+  },
+  "ws.editor.color": {
+    "message": "Color",
+    "note": "Space editor: label above the color swatches.",
+    "maxLength": 16
+  },
+  "ws.editor.symbol": {
+    "message": "Symbol",
+    "note": "Space editor: label above the grid of symbols.",
+    "maxLength": 16
+  },
+  "ws.editor.startWith": {
+    "message": "Start with",
+    "note": "New space editor: label of the choice between this window's tabs and an empty space.",
+    "maxLength": 24
+  },
+  "ws.editor.thisWindow": {
+    "message": "{count, plural, one {This window · # tab} other {This window · # tabs}}",
+    "note": "New space editor: segment that saves this window's ordinary tabs into the new space.",
+    "maxLength": 28
+  },
+  "ws.editor.empty": {
+    "message": "Empty",
+    "note": "New space editor: segment that starts the new space with no tabs.",
+    "maxLength": 14
+  },
+  "ws.editor.createButton": {
+    "message": "Create space",
+    "note": "New space editor: primary button.",
+    "maxLength": 20
+  },
+  "ws.editor.done": {
+    "message": "Done",
+    "note": "Space editor: primary button; changes are already saved.",
+    "maxLength": 12
+  },
+  "ws.error.invalidColor": {
+    "message": "That isn’t a color Blanc can use. Pick a swatch, or enter a hex color like #426C4C.",
+    "note": "Space editor error for an unusable color value."
+  },
+  "ws.error.invalidSymbol": {
+    "message": "That symbol isn’t available. Pick one from the list.",
+    "note": "Space editor error for an unknown symbol."
+  },
+  "ws.decision.title": {
+    "message": "Switch to {name}?",
+    "note": "Heading of the prompt shown before switching would close tabs; {name} is the space's own name."
+  },
+  "ws.decision.saveThenSwitch": {
+    "message": "Save them as a space, then switch",
+    "note": "Switch prompt: primary button that saves this window's tabs as a new space before switching.",
+    "maxLength": 40
+  },
+  "spaces.mark.current": {
+    "message": "Space: {name}",
+    "note": "Accessible name of the space mark at the start of the Island; {name} is the space's own name."
+  },
+  "spaces.color.sage": {
+    "message": "Sage",
+    "note": "Name of a preset space color (a soft green), read by screen readers."
+  },
+  "spaces.color.sky": {
+    "message": "Sky",
+    "note": "Name of a preset space color (a soft blue), read by screen readers."
+  },
+  "spaces.color.iris": {
+    "message": "Iris",
+    "note": "Name of a preset space color (a soft violet), read by screen readers."
+  },
+  "spaces.color.rose": {
+    "message": "Rose",
+    "note": "Name of a preset space color (a soft pink), read by screen readers."
+  },
+  "spaces.color.clay": {
+    "message": "Clay",
+    "note": "Name of a preset space color (a soft orange-brown), read by screen readers."
+  },
+  "spaces.color.sand": {
+    "message": "Sand",
+    "note": "Name of a preset space color (a soft gold), read by screen readers."
+  },
+  "spaces.color.slate": {
+    "message": "Slate",
+    "note": "Name of a preset space color (a blue-grey), read by screen readers."
+  },
+  "spaces.color.graphite": {
+    "message": "Graphite",
+    "note": "Name of a preset space color (a dark grey), read by screen readers."
+  },
+  "spaces.color.custom": {
+    "message": "Custom color",
+    "note": "Space editor: swatch that opens the custom color picker."
+  },
+  "spaces.symbol.briefcase": {
+    "message": "Briefcase",
+    "note": "Name of a space symbol, read by screen readers."
+  },
+  "spaces.symbol.house": {
+    "message": "House",
+    "note": "Name of a space symbol, read by screen readers."
+  },
+  "spaces.symbol.code": {
+    "message": "Code",
+    "note": "Name of a space symbol (angle brackets), read by screen readers."
+  },
+  "spaces.symbol.flask": {
+    "message": "Flask",
+    "note": "Name of a space symbol (a lab flask), read by screen readers."
+  },
+  "spaces.symbol.book": {
+    "message": "Book",
+    "note": "Name of a space symbol, read by screen readers."
+  },
+  "spaces.symbol.music": {
+    "message": "Music",
+    "note": "Name of a space symbol (a music note), read by screen readers."
+  },
+  "spaces.symbol.camera": {
+    "message": "Camera",
+    "note": "Name of a space symbol, read by screen readers."
+  },
+  "spaces.symbol.plane": {
+    "message": "Plane",
+    "note": "Name of a space symbol (an airplane), read by screen readers."
+  },
+  "spaces.symbol.heart": {
+    "message": "Heart",
+    "note": "Name of a space symbol, read by screen readers."
+  },
+  "spaces.symbol.star": {
+    "message": "Star",
+    "note": "Name of a space symbol, read by screen readers."
+  },
+  "spaces.symbol.leaf": {
+    "message": "Leaf",
+    "note": "Name of a space symbol, read by screen readers."
+  },
+  "spaces.symbol.coffee": {
+    "message": "Coffee",
+    "note": "Name of a space symbol (a coffee cup), read by screen readers."
+  },
+  "spaces.symbol.cap": {
+    "message": "Graduation cap",
+    "note": "Name of a space symbol, read by screen readers."
+  },
+  "spaces.symbol.gamepad": {
+    "message": "Game controller",
+    "note": "Name of a space symbol, read by screen readers."
+  },
+  "spaces.symbol.wallet": {
+    "message": "Wallet",
+    "note": "Name of a space symbol, read by screen readers."
+  },
+  "spaces.symbol.sun": {
+    "message": "Sun",
+    "note": "Name of a space symbol, read by screen readers."
+  },
+  "spaces.picker.square": {
+    "message": "Saturation and brightness",
+    "note": "Accessible name of the custom color picker's square; arrow keys change it."
+  },
+  "spaces.picker.squareValue": {
+    "message": "Saturation {saturation}%, brightness {brightness}%",
+    "note": "Spoken value of the custom color picker's square; both are whole numbers from 0 to 100."
+  },
+  "spaces.picker.hue": {
+    "message": "Hue",
+    "note": "Accessible name of the custom color picker's hue slider.",
+    "maxLength": 16
+  },
+  "spaces.picker.hex": {
+    "message": "Hex",
+    "note": "Label of the custom color picker's hex code field, as in #426C4C.",
+    "maxLength": 6
+  },
+  "spaces.guard.light": {
+    "message": "Kept readable: shown as {hex} in light mode.",
+    "note": "Custom color picker: Blanc draws a slightly darker color so the symbol stays readable; {hex} is a code like #6D6400."
+  },
+  "spaces.guard.dark": {
+    "message": "Kept readable: shown as {hex} in dark mode.",
+    "note": "Custom color picker: Blanc draws a slightly lighter color so the symbol stays readable; {hex} is a code like #6D6400."
+  },
+  "spaces.guard.both": {
+    "message": "Kept readable: shown as {light} in light mode and {dark} in dark mode.",
+    "note": "Custom color picker: Blanc adjusts the drawn color in both modes; {light} and {dark} are codes like #6D6400."
+  },
+  "result.tag.space": {
+    "message": "space",
+    "note": "Lowercase tag on a Quick Switcher result that is a space.",
+    "maxLength": 10
+  },
+  "workspaceMenu.edit": {
+    "message": "Edit…",
+    "note": "Right-click menu on a space row: opens the space editor."
+  },
+  "newtab.checklist.space": {
+    "message": "Make your first space",
+    "note": "Start page moving-in checklist task: opens the Spaces menu."
+  },
+  "ws.editor.retry": {
+    "message": "Try again",
+    "note": "Space editor: button that sends an edit again after it failed to save.",
+    "maxLength": 16
   }
 }

@@ -6660,5 +6660,229 @@
   "ublock.dashboard.allLists": {
     "message": "Tutte le liste di filtri",
     "source": "sha256:c8f2dcd81bcb8d12006fbe891296715180f941e59e18af941fe8599171d68fbd"
+  },
+  "ws.new": {
+    "message": "Nuovo Space…",
+    "source": "sha256:e61192c405424ec5f37eb015fc92fed959f39f9226acd868b70da4d3871be804"
+  },
+  "ws.list.emptyHint": {
+    "message": "Salva un insieme di schede e torna lì quando vuoi.",
+    "source": "sha256:c9b89717fbd39de7645081aa9ae1ad15e8d0f289e708d07e1ec1c3204a403fd3"
+  },
+  "ws.row.edit": {
+    "message": "Modifica {name}",
+    "source": "sha256:a269b22682936d494826a7b49693d58e87aa9a35a3fdf50b4b3705ea04b35d1c"
+  },
+  "ws.undo.deleted": {
+    "message": "{name} eliminato",
+    "source": "sha256:9c3c953d52b5e5498dac0f6555f4441356f1af95ff9998d44af05f24333e8bb5"
+  },
+  "ws.undo.button": {
+    "message": "Annulla",
+    "source": "sha256:184339967c1d7abfebcf298087c546c47bfea89ea196b28d8d5f42bdd26a85b0"
+  },
+  "ws.editor.newTitle": {
+    "message": "Nuovo Space",
+    "source": "sha256:01699aee5dc88cb1530901e5f3c05d04f4c29bb02a94b4786f45146595066699"
+  },
+  "ws.editor.editTitle": {
+    "message": "Modifica Space",
+    "source": "sha256:2457ca4b2d5cec97b8631fc466ac249b33b1700c3247cbb224b0eedeed6d1de0"
+  },
+  "ws.editor.name": {
+    "message": "Nome",
+    "source": "sha256:c2d9eead2bbd1086c326b9cbc892c80e661076f7fc076509fc6d7928912700ea"
+  },
+  "ws.editor.color": {
+    "message": "Colore",
+    "source": "sha256:34abd4557a86c4fdf30c816d1bda4a82c35edb6034061e556652e7e96c82e5ac"
+  },
+  "ws.editor.symbol": {
+    "message": "Simbolo",
+    "source": "sha256:4fefc558a71ba3322c89805a63439d8853178a953cfa204496a0992c82299bae"
+  },
+  "ws.editor.startWith": {
+    "message": "Inizia con",
+    "source": "sha256:c88f0f85aa8f13ce7a298c6869e988c5123a8f3170633fcd2a7f4a8103c704c6"
+  },
+  "ws.editor.thisWindow": {
+    "message": "{count, plural, one {Questa finestra · # scheda} many {Questa finestra · # schede} other {Questa finestra · # schede}}",
+    "source": "sha256:4a59fce38b0c8fed18c5b8ba0c805feced75c1aedd6b84ff3e79184e3c7e8ec5"
+  },
+  "ws.editor.empty": {
+    "message": "Vuoto",
+    "source": "sha256:72e2c38fd46b314c178a92e33da6edf5d76e848f3170e87cf2accc9bb72bf25a"
+  },
+  "ws.editor.createButton": {
+    "message": "Crea Space",
+    "source": "sha256:551a8578afe7191f00d74f4f0eb88129400d43cf500a1eaa1fbee5e6612c2444"
+  },
+  "ws.editor.done": {
+    "message": "Fine",
+    "source": "sha256:bbc63886a77398708c2b192fcf113d30bcef37ff10bc431a0a94ea86db0468da"
+  },
+  "ws.error.invalidColor": {
+    "message": "Blanc non può usare questo colore. Scegli un campione o inserisci un colore esadecimale come #426C4C.",
+    "source": "sha256:945742290b6905be4946023ea93b5eaeacd89a530cc395fa5ff393aabbda4f3a"
+  },
+  "ws.error.invalidSymbol": {
+    "message": "Questo simbolo non è disponibile. Scegline uno dall’elenco.",
+    "source": "sha256:1d7b152a9ea8fcc593e6c5c0dc7a535c4e399b8827bc636d66da2f273bb04c6e"
+  },
+  "ws.decision.title": {
+    "message": "Passare a {name}?",
+    "source": "sha256:0b304f70e1af4279b6b94b553c3a5d4d6c0db44ce870f08d4a5c22f2867a635f"
+  },
+  "ws.decision.saveThenSwitch": {
+    "message": "Salvale come Space, poi cambia",
+    "source": "sha256:d72cbbc4c9bef98f4c23d6ac2c872029d996add9833547dca3c1e9700d53d01f"
+  },
+  "spaces.mark.current": {
+    "message": "Space: {name}",
+    "source": "sha256:31a07c10466339e5a03a823689e1cfcd2877d7eb94d801de3d21a7ed27e524dc"
+  },
+  "spaces.color.sage": {
+    "message": "Salvia",
+    "source": "sha256:e3e9cfbd7302ac77cbe87dae4bc03509a80779c0740a5d9a1b8fe3f8ba0b1947"
+  },
+  "spaces.color.sky": {
+    "message": "Cielo",
+    "source": "sha256:93482aafda09dd7d9d380603bb9c772c8e22ba7593f327bde5b248c793b15fe6"
+  },
+  "spaces.color.iris": {
+    "message": "Iris",
+    "source": "sha256:5510490db9a4b32272e75991b20dc9e3d057d16debb0f6e0054e15901757b924"
+  },
+  "spaces.color.rose": {
+    "message": "Rosa",
+    "source": "sha256:5080243395082815071f1f20be53e2a4c8e3b6db72b5d6bf09bde643a2def016"
+  },
+  "spaces.color.clay": {
+    "message": "Argilla",
+    "source": "sha256:9a97b45f973d6f5f6a243efc5972e51d2cdd20e8ca3a40a08e6b2d304af330eb"
+  },
+  "spaces.color.sand": {
+    "message": "Sabbia",
+    "source": "sha256:9181f0a7886caf392edd4e03af0a68fd5334890ab5e248b933d86e9ddae06308"
+  },
+  "spaces.color.slate": {
+    "message": "Ardesia",
+    "source": "sha256:1abf0829e093b749676593ffae71b814e60018b1b0c443b84641bea2d6ebdfaf"
+  },
+  "spaces.color.graphite": {
+    "message": "Grafite",
+    "source": "sha256:91e34e689f0c5d8178d7a01c188029baef2e0a68b6f6672a7abf3ac80082bd86"
+  },
+  "spaces.color.custom": {
+    "message": "Colore personalizzato",
+    "source": "sha256:a849c8d94802eb3d53c38f2ca1a34069ab5b8b72319ac54be9e1b449990ef880"
+  },
+  "spaces.symbol.briefcase": {
+    "message": "Valigetta",
+    "source": "sha256:63c1ae9e66b40987dde4df09c99397e6f3beced12d52ca84433bf5aa7b69286e"
+  },
+  "spaces.symbol.house": {
+    "message": "Casa",
+    "source": "sha256:9d74da72edaecf39b7698f04e0b1e32e1d66c4b7cc8012d0ea1cb3d5f176b78f"
+  },
+  "spaces.symbol.code": {
+    "message": "Codice",
+    "source": "sha256:85784c3bef450f5dd3b4092490b9e996944b5c251cc97e4d60ab40d54c003bfe"
+  },
+  "spaces.symbol.flask": {
+    "message": "Beuta",
+    "source": "sha256:93d64cd714ebd6adf91f7e5b1ad8a86e3aa9e49bc90359b9a24c6830af37f99c"
+  },
+  "spaces.symbol.book": {
+    "message": "Libro",
+    "source": "sha256:c150ed660143b318adbe2114c4a9054487ce0203f452bde8b6344fa7ed092dfb"
+  },
+  "spaces.symbol.music": {
+    "message": "Musica",
+    "source": "sha256:f1334c58af5109d7c267947a54c834c584bac5c3b46885fa3f350e4e70b9ffe0"
+  },
+  "spaces.symbol.camera": {
+    "message": "Fotocamera",
+    "source": "sha256:40161e7e8c92e28f1bd347afa74a8c1e68b67a6834a5bd15aedd4cd2e5e27fe7"
+  },
+  "spaces.symbol.plane": {
+    "message": "Aereo",
+    "source": "sha256:5f05e43f37c3f31414936ee0600879341c148ef0d6559604dc7d8c1a05db6704"
+  },
+  "spaces.symbol.heart": {
+    "message": "Cuore",
+    "source": "sha256:2b4442dc1065d71e14b2b8f95dc8474cead3a796d80fa9656ad1f203db14986b"
+  },
+  "spaces.symbol.star": {
+    "message": "Stella",
+    "source": "sha256:40f9b445fe18904886d264e9c5660c775eb5f4d7cb7817b931b08c91a439d398"
+  },
+  "spaces.symbol.leaf": {
+    "message": "Foglia",
+    "source": "sha256:145d95f2a880f5a4266e6e1debdd157c3d82c55b1844ac943809ef03254d783b"
+  },
+  "spaces.symbol.coffee": {
+    "message": "Caffè",
+    "source": "sha256:2ca5a52497e225df3c64f361fcfc1b88be98ed540cda18bb6e56ea327ab2271c"
+  },
+  "spaces.symbol.cap": {
+    "message": "Tocco di laurea",
+    "source": "sha256:3b8c1fda7271c198173e792375301c1e3d6c28040d19ae09b843d4affdd43c64"
+  },
+  "spaces.symbol.gamepad": {
+    "message": "Controller",
+    "source": "sha256:f5c0963c5764d941d50cc8c64ca5e375463ba6eca01bd778ff8119960bc707c7"
+  },
+  "spaces.symbol.wallet": {
+    "message": "Portafoglio",
+    "source": "sha256:4c7f2a447c91c30e40c1d760cb1aa003bba58c48e29556f183a25ae0f3654978"
+  },
+  "spaces.symbol.sun": {
+    "message": "Sole",
+    "source": "sha256:83fb91d14cd3d4efc49c257085e00bfc84301e5b9bddea327d3cda517c666fd8"
+  },
+  "spaces.picker.square": {
+    "message": "Saturazione e luminosità",
+    "source": "sha256:c8670a78cb0b85d9cecd19da5628db9ed1fccb309247102126b4848440ced120"
+  },
+  "spaces.picker.squareValue": {
+    "message": "Saturazione {saturation}%, luminosità {brightness}%",
+    "source": "sha256:8bcd5aea87acb56e34be42d488546ce8431089e8b9de7c4913e412caca2a364d"
+  },
+  "spaces.picker.hue": {
+    "message": "Tonalità",
+    "source": "sha256:fada0af2295fa970626daee005fa98a3c7b40ca66ef655175517f3b68e1c74e9"
+  },
+  "spaces.picker.hex": {
+    "message": "Hex",
+    "source": "sha256:222ceef2812aacb46d9bb7443eb378cd3f5e074452baf9e30ef0b7d4a16689d6"
+  },
+  "spaces.guard.light": {
+    "message": "Mantenuto leggibile: mostrato come {hex} in modalità chiara.",
+    "source": "sha256:73e6cad79b67589f4bb5bb16fb8e5169fcc68c055c600003330d152cef6cc2d4"
+  },
+  "spaces.guard.dark": {
+    "message": "Mantenuto leggibile: mostrato come {hex} in modalità scura.",
+    "source": "sha256:fbccdac25573d993579619aa4993ca869b10218bdac4506453e19cc1b505bc4c"
+  },
+  "spaces.guard.both": {
+    "message": "Mantenuto leggibile: mostrato come {light} in modalità chiara e {dark} in modalità scura.",
+    "source": "sha256:c066772c6941af2f0fdd9535532d1b77d0729b86f903181f826a8f11abbaa286"
+  },
+  "result.tag.space": {
+    "message": "space",
+    "source": "sha256:9aeaba183f6637f947feb34d9944c4351a9d82f5cb01e4f709ed6065af99afc0"
+  },
+  "workspaceMenu.edit": {
+    "message": "Modifica…",
+    "source": "sha256:93b77afc7c40aacc564d2e4bbcc0c509d702a976b5a9accafa9e83b3c09211d5"
+  },
+  "newtab.checklist.space": {
+    "message": "Crea il tuo primo Space",
+    "source": "sha256:583985cb0e68a2239263fe8514fdcb31951707ada14a96ca9bc48b5ba5e47940"
+  },
+  "ws.editor.retry": {
+    "message": "Riprova",
+    "source": "sha256:ab2341248d6702836c2e7982bf70f75cdfb57d31f69323e993225bdc89d0ba31"
   }
 }
