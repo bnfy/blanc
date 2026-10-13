@@ -64,6 +64,15 @@ returns 404, because `blanc-ping` answers GET only, so check these with GET.
 `site/src/scripts/site.js` and `cloudflare/ping-worker/src/index.js`, and
 Analytics reported data collection active in the past 48 hours.
 
+**Cloudflare Web Analytics.** The site loads its own beacon
+(`site/src/scripts/site.js`), whose token belongs to the account's
+"blancbrowser.com" Web Analytics site. That site's report for the last 24
+hours on October 13 lists `blanc.day/mail` among its top URLs, so blanc.day
+page views are counted there; the site's name is only a label. An extra
+"blanc.day" site with automatic setup was added during this check. It should
+be removed: automatic setup injects a second beacon into every page,
+including `/privacy` and `/terms`, which load no analytics by design.
+
 **Live SEO audit.** `npm --prefix site run audit:seo:live`, run from a
 checkout of `main` at `34658f43` (its default origin is blanc.day), passed for
 36 sitemap pages and 36 internal HTML destinations at `https://blanc.day`.
@@ -124,7 +133,8 @@ checkout of `main` at `34658f43` (its default origin is blanc.day), passed for
 
 ## Still open
 
-- **Confirm Cloudflare Web Analytics** records `blanc.day`.
+- **Remove the automatic-setup "blanc.day" Web Analytics site** added during
+  the check above.
 - **Step 6** reaches users with the next browser release.
 - **Step 7** reaches users with the next store submission of the tab-import
   companions and the Codex plugin, with their versions bumped from 0.1.0.
