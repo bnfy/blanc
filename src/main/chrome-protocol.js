@@ -61,6 +61,9 @@ const HOST_ASSETS = new Map([
     // Pure Blanc Spaces identity (presets, symbols, readability guard). No IPC
     // and no application data; the strip mark and the Spaces menu share it.
     ['/space-identity.js', 'space-identity.js'],
+    // The Spaces editor's colour picker, drawn inside the overlay (a native
+    // colour panel would take focus and blur-dismiss the menu).
+    ['/space-picker.js', 'space-picker.js'],
     ['/sunrise-hero-mark.png', 'sunrise-hero-mark.png'],
   ])],
   ['permission', new Map([

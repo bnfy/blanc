@@ -63,6 +63,16 @@ test('only the strip and overlay documents can load the space identity module', 
   ]) assert.equal(chromeResourcePath(url), null, url);
 });
 
+test('only the overlay can load the Spaces colour picker', () => {
+  assert.equal(chromeResourcePath('blanc-chrome://overlay/space-picker.js'), path.join(renderer, 'space-picker.js'));
+  for (const url of [
+    'blanc-chrome://index/space-picker.js',
+    'blanc-chrome://permission/space-picker.js',
+    'blanc-chrome://fill-status/space-picker.js',
+    'blanc-chrome://overlay/space-picker.js#x',
+  ]) assert.equal(chromeResourcePath(url), null, url);
+});
+
 test('the blocker Sunrise is the canonical gold artwork and only the overlay can load it', () => {
   const asset = path.join(renderer, 'sunrise-hero-mark.png');
   assert.equal(chromeResourcePath('blanc-chrome://overlay/sunrise-hero-mark.png'), asset);
