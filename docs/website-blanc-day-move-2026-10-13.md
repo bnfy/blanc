@@ -51,15 +51,22 @@ returns 404, because `blanc-ping` answers GET only, so check these with GET.
 - The `blanc.day` Domain property is verified.
 - `https://blanc.day/sitemap.xml` returns 200 `application/xml` and lists
   `https://blanc.day/…` addresses.
-- The sitemap entry submitted on October 12, before this deploy, showed
-  "Couldn't fetch". It needs resubmitting.
+- The sitemap was first submitted on October 12, before this deploy, and
+  showed "Couldn't fetch". It was resubmitted on October 13 and now reads
+  Success, with 36 discovered pages, which matches the 36 sitemap URLs.
 - URL Inspection of `https://blanc.day/` reported "URL is unknown to Google"
-  on October 13, as expected for a new property.
+  on October 13, as expected for a new property. Google now finds the pages
+  through the sitemap and the Change of Address below, so no separate
+  indexing request was made.
 
 **Google Analytics.** The "Blanc Website" web stream's URL is
 `https://blanc.day`. Its measurement ID, `G-MN8BLY6GE9`, is the one in
 `site/src/scripts/site.js` and `cloudflare/ping-worker/src/index.js`, and
 Analytics reported data collection active in the past 48 hours.
+
+**Live SEO audit.** `npm --prefix site run audit:seo:live`, run from a
+checkout of `main` at `34658f43` (its default origin is blanc.day), passed for
+36 sitemap pages and 36 internal HTML destinations at `https://blanc.day`.
 
 ## Step 5: the former hosts redirect
 
@@ -113,16 +120,11 @@ Analytics reported data collection active in the past 48 hours.
   forwarding destination left from setup was deleted.
 - **DMARC.** A `_dmarc.blanc.day` TXT record, `v=DMARC1; p=none;`, was added.
   Check it with `dig +short TXT _dmarc.blanc.day`.
+- Blanc Mail's task list closed both items in `bnfy/blanc-mail` #130.
 
 ## Still open
 
-- **Run the step 4 live SEO audit:**
-  `SITE_ORIGIN=https://blanc.day npm --prefix site run audit:seo:live`.
-- **In Search Console:** resubmit `sitemap.xml` on the `blanc.day` property, and
-  run a live test and indexing request for `https://blanc.day/`.
 - **Confirm Cloudflare Web Analytics** records `blanc.day`.
 - **Step 6** reaches users with the next browser release.
 - **Step 7** reaches users with the next store submission of the tab-import
   companions and the Codex plugin, with their versions bumped from 0.1.0.
-- **In Blanc Mail's repository**, the `license@blanc.day` forwarding and DMARC
-  items in `docs/REMAINING_RELEASE_TASKS.md` can now be closed.
