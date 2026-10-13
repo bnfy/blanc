@@ -6728,37 +6728,37 @@
       }
     },
     "fill.notAuthorized.body": {
-      "comment": "Fill notice body; \"Blanc Browser\" is the app name 1Password shows in its approval prompt.",
+      "comment": "Fill notice body; \"Blanc\" is the name 1Password shows in its approval prompt (macOS: \"Blanc Browser\").",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unlock 1Password and approve Blanc Browser, then try again."
+            "value": "Unlock 1Password and approve Blanc, then try again."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Entsperre 1Password, erlaube Blanc Browser und versuche es dann erneut."
+            "value": "Entsperre 1Password, erlaube Blanc und versuche es dann erneut."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Desbloquea 1Password y aprueba Blanc Browser; luego inténtalo de nuevo."
+            "value": "Desbloquea 1Password y aprueba Blanc; luego inténtalo de nuevo."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Déverrouillez 1Password et approuvez Blanc Browser, puis réessayez."
+            "value": "Déverrouillez 1Password et approuvez Blanc, puis réessayez."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Desbloqueie o 1Password e aprove o Blanc Browser; depois tente de novo."
+            "value": "Desbloqueie o 1Password e aprove o Blanc; depois tente de novo."
           }
         }
       }
@@ -37508,37 +37508,37 @@
       }
     },
     "settings.onePassword.error.notAuthorized": {
-      "comment": "Settings → Privacy → 1Password: Verify result. “Blanc Browser” is the name 1Password shows in its approval prompt.",
+      "comment": "Settings → Privacy → 1Password: Verify result. “Blanc” is the name 1Password shows in its approval prompt (macOS: “Blanc Browser”).",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "1Password didn’t authorize Blanc. Unlock 1Password, approve Blanc Browser, and try again."
+            "value": "1Password didn’t authorize Blanc. Unlock 1Password, approve Blanc, and try again."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "1Password hat Blanc nicht autorisiert. Entsperre 1Password, erlaube Blanc Browser und versuch es noch einmal."
+            "value": "1Password hat Blanc nicht autorisiert. Entsperre 1Password, erlaube Blanc und versuch es noch einmal."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "1Password no autorizó a Blanc. Desbloquea 1Password, aprueba Blanc Browser e inténtalo de nuevo."
+            "value": "1Password no autorizó a Blanc. Desbloquea 1Password, aprueba Blanc e inténtalo de nuevo."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "1Password n’a pas autorisé Blanc. Déverrouillez 1Password, approuvez Blanc Browser et réessayez."
+            "value": "1Password n’a pas autorisé Blanc. Déverrouillez 1Password, approuvez Blanc et réessayez."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O 1Password não autorizou o Blanc. Desbloqueie o 1Password, aprove o Blanc Browser e tente de novo."
+            "value": "O 1Password não autorizou o Blanc. Desbloqueie o 1Password, aprove o Blanc e tente de novo."
           }
         }
       }

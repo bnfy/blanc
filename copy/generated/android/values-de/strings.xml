@@ -192,7 +192,7 @@
     <string name="fill_account_not_found_title">Konto nicht gefunden</string>
     <string name="fill_account_not_found_body">Prüfe deine 1Password-E-Mail-Adresse in den Blanc-Einstellungen und versuche es dann erneut.</string>
     <string name="fill_not_authorized_title">1Password hat Blanc nicht autorisiert</string>
-    <string name="fill_not_authorized_body">Entsperre 1Password, erlaube Blanc Browser und versuche es dann erneut.</string>
+    <string name="fill_not_authorized_body">Entsperre 1Password, erlaube Blanc und versuche es dann erneut.</string>
     <string name="fill_session_expired_title">Autorisierung abgelaufen</string>
     <string name="fill_session_expired_body">Versuche es erneut, um eine neue Sitzung zu autorisieren.</string>
     <string name="fill_timed_out_title">1Password hat nicht rechtzeitig geantwortet</string>
@@ -1079,7 +1079,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_blocking_status_internal_candidate">Interner Validierungs-Build; die Plattformunterstützung ist nicht zertifiziert.</string>
     <string name="settings_blocking_status_retry">%1$s neu starten</string>
     <string name="settings_one_password_error_account_not_found">Konto nicht gefunden – prüfe deine 1Password-E-Mail-Adresse und versuch es noch einmal.</string>
-    <string name="settings_one_password_error_not_authorized">1Password hat Blanc nicht autorisiert. Entsperre 1Password, erlaube Blanc Browser und versuch es noch einmal.</string>
+    <string name="settings_one_password_error_not_authorized">1Password hat Blanc nicht autorisiert. Entsperre 1Password, erlaube Blanc und versuch es noch einmal.</string>
     <string name="settings_one_password_error_session_expired">Die Autorisierung ist abgelaufen – versuch es noch einmal.</string>
     <string name="settings_one_password_error_desktop_unavailable">1Password ist nicht verfügbar. Öffne die App und aktiviere Einstellungen → Entwickler → Mit 1Password SDKs integrieren.</string>
     <string name="settings_one_password_error_unsupported_device">Ausfüllen mit 1Password ist auf diesem PC nicht verfügbar. Unter Windows on Arm läuft Blanc als x64-App, und die Arm-Version von 1Password kann sich nicht damit verbinden.</string>

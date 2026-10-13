@@ -25,8 +25,8 @@ cannot create the credential broker.
 4. On a website login form, choose **View → Fill Login from 1Password**, press
    **⌥⌘P** on macOS or **Ctrl+Shift+P** on Windows and Linux, or run
    **/1password** from the Island.
-5. Approve Blanc Browser in the 1Password desktop prompt. If several Login
-   items match, choose one from the native menu.
+5. Approve Blanc in the 1Password desktop prompt (on macOS it's named Blanc
+   Browser). If several Login items match, choose one from the native menu.
 
 Blanc never fills automatically. The setting and account identifier stay on
 this device and are excluded from Profile Sync.
@@ -356,8 +356,9 @@ Hello.
     closes).
   - An error notice from a failed attempt stayed visible under the next
     attempt's picker until a success replaced it.
-  - The not-authorized copy says to approve "Blanc Browser", while 1Password
-    names the packaged Windows app "Blanc".
+  - The not-authorized copy said to approve "Blanc Browser", while 1Password
+    names the packaged Windows app "Blanc" (#741, since fixed: the copy now
+    says "Blanc").
 
 **Waiver — 2026-10-12.** The owner has no other Windows hardware and asked to
 "waive any tests that I can't perform". After #735 made each remaining

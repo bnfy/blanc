@@ -197,7 +197,7 @@
     <string name="fill_account_not_found_title">No se encontró la cuenta</string>
     <string name="fill_account_not_found_body">Comprueba tu correo de 1Password en la configuración de Blanc e inténtalo de nuevo.</string>
     <string name="fill_not_authorized_title">1Password no autorizó a Blanc</string>
-    <string name="fill_not_authorized_body">Desbloquea 1Password y aprueba Blanc Browser; luego inténtalo de nuevo.</string>
+    <string name="fill_not_authorized_body">Desbloquea 1Password y aprueba Blanc; luego inténtalo de nuevo.</string>
     <string name="fill_session_expired_title">La autorización caducó</string>
     <string name="fill_session_expired_body">Inténtalo de nuevo para autorizar una sesión nueva.</string>
     <string name="fill_timed_out_title">1Password no respondió a tiempo</string>
@@ -1108,7 +1108,7 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="settings_blocking_status_internal_candidate">Candidata de validación interna; la compatibilidad con la plataforma no está certificada.</string>
     <string name="settings_blocking_status_retry">Reintentar %1$s</string>
     <string name="settings_one_password_error_account_not_found">No se encontró la cuenta: comprueba tu correo de 1Password e inténtalo de nuevo.</string>
-    <string name="settings_one_password_error_not_authorized">1Password no autorizó a Blanc. Desbloquea 1Password, aprueba Blanc Browser e inténtalo de nuevo.</string>
+    <string name="settings_one_password_error_not_authorized">1Password no autorizó a Blanc. Desbloquea 1Password, aprueba Blanc e inténtalo de nuevo.</string>
     <string name="settings_one_password_error_session_expired">La autorización caducó: inténtalo de nuevo.</string>
     <string name="settings_one_password_error_desktop_unavailable">1Password no está disponible. Abre la app y activa Settings → Developer → Integrate with 1Password SDKs.</string>
     <string name="settings_one_password_error_unsupported_device">Rellenar con 1Password no está disponible en este PC. En Windows on Arm, Blanc funciona como una app x64 y la versión Arm de 1Password no puede conectarse con ella.</string>

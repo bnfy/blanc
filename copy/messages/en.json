@@ -732,8 +732,8 @@
     "note": "Fill notice title."
   },
   "fill.notAuthorized.body": {
-    "message": "Unlock 1Password and approve Blanc Browser, then try again.",
-    "note": "Fill notice body; \"Blanc Browser\" is the app name 1Password shows in its approval prompt."
+    "message": "Unlock 1Password and approve Blanc, then try again.",
+    "note": "Fill notice body; \"Blanc\" is the name 1Password shows in its approval prompt (macOS: \"Blanc Browser\")."
   },
   "fill.sessionExpired.title": {
     "message": "Authorization expired",
@@ -4070,8 +4070,8 @@
     "note": "Settings → Privacy → 1Password: Verify result."
   },
   "settings.onePassword.error.notAuthorized": {
-    "message": "1Password didn’t authorize Blanc. Unlock 1Password, approve Blanc Browser, and try again.",
-    "note": "Settings → Privacy → 1Password: Verify result. “Blanc Browser” is the name 1Password shows in its approval prompt."
+    "message": "1Password didn’t authorize Blanc. Unlock 1Password, approve Blanc, and try again.",
+    "note": "Settings → Privacy → 1Password: Verify result. “Blanc” is the name 1Password shows in its approval prompt (macOS: “Blanc Browser”)."
   },
   "settings.onePassword.error.sessionExpired": {
     "message": "Authorization expired — try again.",
