@@ -987,7 +987,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_privacy_one_password_account_label">1Password-Konto</string>
     <string name="settings_privacy_one_password_account_hint">Die E-Mail-Adresse, mit der du dich bei 1Password anmeldest. Eine Konto-ID funktioniert auch. Wird nur auf diesem Gerät gespeichert.</string>
     <string name="settings_privacy_one_password_verify">Prüfen</string>
-    <string name="settings_privacy_use_view_fill">Nutze Darstellung → Login aus 1Password ausfüllen oder &lt;0&gt;/1password&lt;/0&gt;. Auf dem Mac: ⌥⌘P. Unter Linux: Strg+Umschalt+P.</string>
+    <string name="settings_privacy_use_view_fill">Nutze Darstellung → Login aus 1Password ausfüllen oder &lt;0&gt;/1password&lt;/0&gt;. Auf dem Mac: ⌥⌘P. Unter Windows und Linux: Strg+Umschalt+P.</string>
     <string name="settings_privacy_site_permissions_title">Website-Berechtigungen</string>
     <string name="settings_privacy_sites_youve_allowed_or">Websites, denen du den Zugriff auf Kamera, Mikrofon, Standort oder Benachrichtigungen erlaubt oder verweigert hast.</string>
     <string name="settings_privacy_usage_and_data_title">Nutzung und Daten</string>
@@ -1022,7 +1022,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_help_release_notes">Versionshinweise ↗</string>
     <string name="settings_help_extensions_and_password_managers_title">Erweiterungen und Passwortmanager</string>
     <string name="settings_help_you_can_browse_chrome">Du kannst Seiten des Chrome Web Store ansehen, aber Blanc kann keine Chrome-Erweiterungen installieren.</string>
-    <string name="settings_help_on_mac_o_s_windows_and">Unter macOS und Linux bietet Blanc ausdrückliches Ausfüllen von Logins aus der installierten 1Password-App. Diese Integration speichert keine Passwörter und füllt nichts automatisch aus.</string>
+    <string name="settings_help_on_mac_o_s_windows_and">Unter macOS, Windows und Linux bietet Blanc ausdrückliches Ausfüllen von Logins aus der installierten 1Password-App. Diese Integration speichert keine Passwörter und füllt nichts automatisch aus.</string>
     <string name="settings_help_connections_blanc_can_make_title">Verbindungen, die Blanc herstellen kann</string>
     <string name="settings_help_blanc_connects_to_websites">Blanc verbindet sich mit Websites, die du öffnest, und mit GitHub für App-Updates. Suchen und aktivierte Vorschläge gehen an deinen gewählten Suchanbieter; DNS-Abfragen nutzen dein System oder den gewählten DNS-Anbieter. Wenn du Google wählst, gehen Suchen und geeignete Vorschlagsanfänge an Google.</string>
     <string name="settings_help_enabled_usage_measurement_goes">Die aktivierte Nutzungsmessung geht an einen Cloudflare-Sammler von Blanc und, falls eingerichtet, an dessen Google-Analytics-Spiegel. Synchronisierung, Patron, 1Password und Tab-Übergabe stellen eigene Verbindungen her, wenn sie eingerichtet oder angefordert sind. Dies beschreibt das Verhalten; es ist keine Live-Netzwerküberwachung.</string>

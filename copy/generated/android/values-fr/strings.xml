@@ -1016,7 +1016,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_privacy_one_password_account_label">Compte 1Password</string>
     <string name="settings_privacy_one_password_account_hint">L’adresse e-mail de connexion à 1Password. Un identifiant de compte fonctionne aussi. Stockée uniquement sur cet appareil.</string>
     <string name="settings_privacy_one_password_verify">Vérifier</string>
-    <string name="settings_privacy_use_view_fill">Utilisez Présentation → Remplir l’identifiant depuis 1Password ou &lt;0&gt;/1password&lt;/0&gt;. Sur Mac : ⌥⌘P. Sur Linux : Ctrl+Maj+P.</string>
+    <string name="settings_privacy_use_view_fill">Utilisez Présentation → Remplir l’identifiant depuis 1Password ou &lt;0&gt;/1password&lt;/0&gt;. Sur Mac : ⌥⌘P. Sur Windows et Linux : Ctrl+Maj+P.</string>
     <string name="settings_privacy_site_permissions_title">Autorisations des sites</string>
     <string name="settings_privacy_sites_youve_allowed_or">Sites que vous avez autorisés ou bloqués pour l’utilisation de votre caméra, micro, position ou notifications.</string>
     <string name="settings_privacy_usage_and_data_title">Utilisation et données</string>
@@ -1051,7 +1051,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_help_release_notes">Notes de version ↗</string>
     <string name="settings_help_extensions_and_password_managers_title">Extensions et gestionnaires de mots de passe</string>
     <string name="settings_help_you_can_browse_chrome">Vous pouvez parcourir les pages du Chrome Web Store, mais Blanc ne peut pas installer d’extensions Chrome.</string>
-    <string name="settings_help_on_mac_o_s_windows_and">Sur macOS et Linux, Blanc propose de remplir les identifiants sur demande depuis l’app 1Password installée. Cette intégration n’enregistre pas de mots de passe et ne remplit rien automatiquement.</string>
+    <string name="settings_help_on_mac_o_s_windows_and">Sur macOS, Windows et Linux, Blanc propose de remplir les identifiants sur demande depuis l’app 1Password installée. Cette intégration n’enregistre pas de mots de passe et ne remplit rien automatiquement.</string>
     <string name="settings_help_connections_blanc_can_make_title">Connexions que Blanc peut établir</string>
     <string name="settings_help_blanc_connects_to_websites">Blanc se connecte aux sites web que vous ouvrez et à GitHub pour les mises à jour de l’app. Les recherches et les suggestions activées vont au moteur de recherche choisi ; les requêtes DNS utilisent votre système ou le fournisseur DNS choisi. Choisir Google envoie à Google les recherches et les débuts de suggestions éligibles.</string>
     <string name="settings_help_enabled_usage_measurement_goes">La mesure d’utilisation activée est envoyée à un collecteur Cloudflare appartenant à Blanc et, si configuré, à son miroir Google Analytics. Sync, Patron, 1Password et le transfert d’onglets établissent des connexions distinctes quand ils sont configurés ou sollicités. Ceci décrit le comportement ; ce n’est pas un moniteur réseau en direct.</string>
