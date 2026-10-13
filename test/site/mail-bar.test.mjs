@@ -100,7 +100,10 @@ test('Join keeps its name, opens the waitlist under the button, and Escape hands
     try {
       const join = page.getByRole('navigation', { name: 'Blanc Mail' }).getByRole('button', { name: 'Join the waitlist', exact: true });
       assert.equal(await join.count(), 1, `${width}px: Join keeps its full accessible name`);
-      await join.click();
+      // From the keyboard: focus returns to the button that had it, and Safari
+      // never focuses a button on click, so a click would test nothing there.
+      await join.focus();
+      await page.keyboard.press('Enter');
       await waitOpen(page, 'mail-bar-waitlist');
       // The popover's toggle event, which moves focus, is dispatched as a
       // task after it opens, so wait for focus rather than read it at once.
@@ -128,7 +131,8 @@ test('at 880px and narrower the six links fold into a page menu', async () => {
       assert.equal(await page.locator('.mail-bar-links').isVisible(), false, `${width}px: links folded away`);
       const button = page.locator('.mail-bar-pages');
       assert.equal((await button.textContent()).trim(), 'Download', `${width}px: the button names the page`);
-      await button.click();
+      await button.focus();
+      await page.keyboard.press('Enter');
       await waitOpen(page, 'mail-bar-menu');
       const menu = await page.evaluate(() => {
         const pop = document.getElementById('mail-bar-menu');
