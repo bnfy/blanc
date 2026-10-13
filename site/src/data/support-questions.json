@@ -128,6 +128,22 @@
     ]
   },
   {
+    "id": "arc-import",
+    "q": "Can I bring my Spaces from Arc?",
+    "a": [
+      "Yes. Type /bring-tabs in the ⌘L or Ctrl+L panel, choose Arc, and pick the Spaces you want. Each Space comes across with its pinned tabs, its Today tabs, and its folders as tab groups. With Blanc Patron, each Space becomes a space in Blanc Spaces; without it, each Space opens in its own window. Tabs load only when you open them. You can also add Arc’s top-row Favorites to a Favorites folder named Arc.",
+      "Blanc reads Arc’s sidebar file on this device and never changes it. Sign-ins, passwords, history, archived tabs, Notes and Easels stay in Arc. Arc never came to Linux, so on Linux you copy StorableSidebar.json from a Mac or PC and choose it with the Choose file… button."
+    ]
+  },
+  {
+    "id": "languages",
+    "q": "Which languages does Blanc come in?",
+    "a": [
+      "Blanc’s own interface is available in English, German, Spanish, French and Portuguese (Brazil). The translations are machine-made. If your computer uses one of these languages, Blanc follows it, and any Portuguese system gets Brazilian Portuguese. To choose a different one, open Settings → General → Language; the change applies after you relaunch Blanc.",
+      "Blanc does not translate web pages. Websites still see your computer’s language settings, not the language you chose for Blanc."
+    ]
+  },
+  {
     "id": "maker",
     "q": "Who makes Blanc?",
     "a": [

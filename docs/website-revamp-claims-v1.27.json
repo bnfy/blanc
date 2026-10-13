@@ -659,16 +659,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "website-115-132",
-      "source": "site/src/components/guides/workspaces.astro",
-      "exactWording": "Open the space control in the command panel or type /workspace. Active Patrons can save the current window or create a blank space.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "workspaces"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "website-115-133",
       "source": "site/src/components/guides/workspaces.astro",
       "exactWording": "Return without rebuilding the set",
@@ -5912,16 +5902,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "feature-retained-website-115-132",
-      "source": "site/src/pages/features/workspaces.astro",
-      "exactWording": "Open the space control in the command panel or type /workspace. Active Patrons can save the current window or create a blank space.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "workspaces"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "feature-retained-website-115-133",
       "source": "site/src/pages/features/workspaces.astro",
       "exactWording": "Return without rebuilding the set",
@@ -9189,32 +9169,12 @@
       "verdict": "qualified"
     },
     {
-      "id": "seo-2026-10-05-arc-alternative-19",
-      "source": "site/src/pages/arc-alternative.astro",
-      "exactWording": "Bring what you can, then start fresh.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "seo-2026-10-05-arc-alternative-20",
       "source": "site/src/pages/arc-alternative.astro",
       "exactWording": "Bookmarks from other browsers.",
       "subject": "Blanc",
       "evidenceGroups": [
         "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "seo-2026-10-05-arc-alternative-21",
-      "source": "site/src/pages/arc-alternative.astro",
-      "exactWording": "Blanc can import bookmarks into Favorites from Chromium-based browsers installed on your computer, such as Chrome, Edge and Brave. It does not import directly from Arc.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "importing"
       ],
       "verdict": "qualified"
     },
@@ -9244,17 +9204,6 @@
       "exactWording": "Blanc is not a copy of Arc.",
       "subject": "Blanc",
       "evidenceGroups": [
-        "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "seo-2026-10-05-arc-alternative-26",
-      "source": "site/src/pages/arc-alternative.astro",
-      "exactWording": "Blanc does not install extensions from the Chrome Web Store, import your Arc data, or include an AI assistant. If you rely on any of those, Blanc may not be the right fit today.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "trust",
         "foundations"
       ],
       "verdict": "qualified"
@@ -10294,6 +10243,31 @@
       "id": "onepassword-126-023",
       "historicalLedger": "docs/website-revamp-claims-v1.27.json",
       "reason": "October 8, 2026 Features page bento redesign replaced this wording; see docs/website-features-bento-claims-v1.30.json. The original wording remains in git history."
+    },
+    {
+      "id": "seo-2026-10-05-arc-alternative-19",
+      "historicalLedger": "docs/website-revamp-claims-v1.27.json",
+      "reason": "October 13, 2026 update for public v1.32.0: the section now leads with the Arc Spaces import v1.32.0 added, so its heading reads \"Bring your Arc Spaces with you.\", recorded in docs/website-v1.32-claims.json. The original wording remains in git history."
+    },
+    {
+      "id": "seo-2026-10-05-arc-alternative-21",
+      "historicalLedger": "docs/website-revamp-claims-v1.27.json",
+      "reason": "October 13, 2026 update for public v1.32.0: v1.32.0 added the Arc Spaces import, so \"It does not import directly from Arc.\" is no longer true. The bookmark sentence is re-recorded in docs/website-v1.32-claims.json. The original wording remains in git history."
+    },
+    {
+      "id": "seo-2026-10-05-arc-alternative-26",
+      "historicalLedger": "docs/website-revamp-claims-v1.27.json",
+      "reason": "October 13, 2026 update for public v1.32.0: v1.32.0 brings Arc Spaces, tabs and Favorites over, so \"import your Arc data\" is no longer accurate. The narrower wording (sign-ins, passwords or history) is recorded in docs/website-v1.32-claims.json. The original wording remains in git history."
+    },
+    {
+      "id": "website-115-132",
+      "historicalLedger": "docs/website-revamp-claims-v1.27.json",
+      "reason": "October 13, 2026 update for public v1.32.0: v1.32.0 ships /space, with /workspace as an alias; the guide now names /space. See docs/website-v1.32-claims.json. The original wording remains in git history."
+    },
+    {
+      "id": "feature-retained-website-115-132",
+      "historicalLedger": "docs/website-revamp-claims-v1.27.json",
+      "reason": "October 13, 2026 update for public v1.32.0: v1.32.0 ships /space, with /workspace as an alias; the page now names /space. See docs/website-v1.32-claims.json. The original wording remains in git history."
     }
   ],
   "supersededCandidateClaims": [
@@ -12608,6 +12582,30 @@
           {
             "before": "<p>Named Workspaces are device-local and profile-scoped. They do not sync across devices or move tabs between local profiles. Saving a workspace preserves its tab setup, not every page’s running state.</p>",
             "after": "<p>Blanc Spaces are device-local and profile-scoped. They do not sync across devices or move tabs between local profiles. Saving a space preserves its tab setup, not every page’s running state.</p>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features.astro",
+        "reason": "October 13, 2026 update for public v1.32.0: names /space, which v1.32.0 shipped, and adds the Arc Spaces import and the four interface languages, verified at public v1.32.0 and recorded in docs/website-v1.32-claims.json.",
+        "replacements": [
+          {
+            "before": "<h3>Import your bookmarks</h3>",
+            "after": "<h3>Import your bookmarks</h3>\n<h3>Bring your Arc Spaces</h3>\n<h3>Five interface languages</h3>"
+          },
+          {
+            "before": "<p class=\"pop-note\">Importing happens on your device.</p>",
+            "after": "<p class=\"pop-note\">Importing happens on your device.</p>\n<h2 id=\"pop-arc-import-title\">Bring your Spaces over from Arc.</h2>\n<p>In Bring Your Tabs, choose Arc and pick your Spaces. Their pinned tabs and Today tabs come across, and their folders become tab groups. With Blanc Patron, each Space becomes a space; without it, each opens in its own window.</p>\n<p class=\"pop-note\">Sign-ins, passwords and history stay in Arc.</p>\n<h2 id=\"pop-languages-title\">Use Blanc in German, Spanish, French or Portuguese.</h2>\n<p>Blanc’s own interface is available in English, German, Spanish, French and Portuguese (Brazil). It follows your computer’s language when it matches one of them, or you can choose one in Settings → General → Language.</p>\n<p class=\"pop-note\">The translations are machine-made, and a change applies after you relaunch Blanc. Blanc does not translate web pages.</p>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/workspaces.astro",
+        "reason": "October 13, 2026 update for public v1.32.0: names /space, which v1.32.0 shipped, and adds the Arc Spaces import and the four interface languages, verified at public v1.32.0 and recorded in docs/website-v1.32-claims.json.",
+        "replacements": [
+          {
+            "before": "<article><h3>Save this window or start a new set</h3><p>Open the space control in the command panel or type /workspace. Active Patrons can save the current window or create a blank space.</p></article>",
+            "after": "<article><h3>Save this window or start a new set</h3><p>Open the space control in the command panel or type /space. Active Patrons can save the current window or create a blank space.</p></article>\n<article><h3>Bring your Spaces from Arc</h3><p>In Bring Your Tabs (type /bring-tabs), choose Arc, and each Space you pick becomes a space here, with its pinned tabs, its Today tabs and its folders as tab groups. Without an active Patron membership, each Arc Space opens in its own window instead. <a href=\"/arc-alternative\">Switching from Arc</a></p></article>"
           }
         ]
       }

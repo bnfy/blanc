@@ -137,6 +137,8 @@ import '../styles/features-bento.css';
         <BentoSmall id="passkeys" href="/features/security" feature="passkeys" icon="finger"><h3>Touch ID passkeys on Mac</h3></BentoSmall>
         <BentoSmall id="drag-to-reorder" href="/features/tab-groups" feature="drag-to-reorder" icon="grip"><h3>Drag tabs into order</h3></BentoSmall>
         <BentoSmall id="import" href="/support#bookmark-import" feature="import" icon="import"><h3>Import your bookmarks</h3></BentoSmall>
+        <BentoSmall id="arc-import" href="/arc-alternative" feature="arc-import" icon="spaces"><h3>Bring your Arc Spaces</h3></BentoSmall>
+        <BentoSmall id="languages" href="/support#languages" feature="languages" icon="speech"><h3>Five interface languages</h3></BentoSmall>
         <BentoSmall id="capture" href="/features/security" feature="capture-indicator" icon="mic"><h3>Camera and mic indicator</h3></BentoSmall>
         <BentoSmall id="recovery" href="/features/security" feature="recovery" icon="restore"><h3>Restore after a crash</h3></BentoSmall>
         <BentoSmall id="downloads" href="/support" feature="downloads" icon="down"><h3>Resume downloads</h3></BentoSmall>
@@ -251,9 +253,9 @@ import '../styles/features-bento.css';
         </FeaturePop>
         <FeaturePop id="workspaces" label="Blanc Spaces" feature="named-workspaces" href="/features/workspaces" linkText="Read more about Blanc Spaces">
           <div slot="visual" class="ui demo-panel pop-replica">
-            <div class="demo-in">/workspace<span class="demo-caret"></span></div>
-            <div class="ui-row is-on"><span class="demo-cmd">/workspace</span><span class="ui-t ui-m">Switch to a named workspace, or type a new name to save this window</span></div>
-            <div class="ui-sec">workspaces</div>
+            <div class="demo-in">/space<span class="demo-caret"></span></div>
+            <div class="ui-row is-on"><span class="demo-cmd">/space</span><span class="ui-t ui-m">Switch to a space, or type a new name to save this window</span></div>
+            <div class="ui-sec">spaces</div>
             <div class="ui-row"><span class="ui-t">Thesis</span><span class="ui-m">6 tabs</span></div>
             <div class="ui-row"><span class="ui-t">Weekend reading</span><span class="ui-m">2 tabs</span></div>
           </div>
@@ -315,6 +317,18 @@ import '../styles/features-bento.css';
           <h2 id="pop-import-title">Bring your Favorites with you.</h2>
           <p>Import bookmarks from a browser profile Blanc detects, or from an HTML file, in Favorites.</p>
           <p class="pop-note">Importing happens on your device.</p>
+        </FeaturePop>
+        <FeaturePop id="arc-import" label="Arc Spaces" feature="arc-import" href="/arc-alternative" linkText="Read about switching from Arc">
+          <BentoIcon slot="visual" name="spaces" size="pop" />
+          <h2 id="pop-arc-import-title">Bring your Spaces over from Arc.</h2>
+          <p>In Bring Your Tabs, choose Arc and pick your Spaces. Their pinned tabs and Today tabs come across, and their folders become tab groups. With Blanc Patron, each Space becomes a space; without it, each opens in its own window.</p>
+          <p class="pop-note">Sign-ins, passwords and history stay in Arc.</p>
+        </FeaturePop>
+        <FeaturePop id="languages" label="Languages" feature="languages" href="/support#languages" linkText="Read more about languages">
+          <BentoIcon slot="visual" name="speech" size="pop" />
+          <h2 id="pop-languages-title">Use Blanc in German, Spanish, French or Portuguese.</h2>
+          <p>Blanc’s own interface is available in English, German, Spanish, French and Portuguese (Brazil). It follows your computer’s language when it matches one of them, or you can choose one in Settings → General → Language.</p>
+          <p class="pop-note">The translations are machine-made, and a change applies after you relaunch Blanc. Blanc does not translate web pages.</p>
         </FeaturePop>
         <FeaturePop id="capture" label="Camera and microphone" feature="capture-indicator" href="/features/security" linkText="Read more about call controls">
           <BentoIcon slot="visual" name="mic" size="pop" />

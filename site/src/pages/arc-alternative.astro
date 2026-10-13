@@ -3,7 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 <BaseLayout
   title={"An Arc Browser Alternative for Mac, Windows and Linux | Blanc"}
-  description={"Moving on from Arc? Blanc is a free, minimal Chromium browser with named tab groups, optional vertical tabs, side-by-side pages and built-in ad blocking."}
+  description={"Moving on from Arc? Blanc is a free, minimal Chromium browser that can bring your Arc Spaces over, with tab groups, vertical tabs and built-in ad blocking."}
   path="/arc-alternative"
   page="arc-alternative"
   current="features"
@@ -34,14 +34,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   </section>
 
   <section class="feature-copy-grid" aria-labelledby="arc-move-title">
-    <div><h2 id="arc-move-title">Bring what you can, then start fresh.</h2></div>
+    <div><h2 id="arc-move-title">Bring your Arc Spaces with you.</h2></div>
     <div class="feature-copy-list">
-      <article><h3>Bookmarks from other browsers.</h3><p>Blanc can import bookmarks into Favorites from Chromium-based browsers installed on your computer, such as Chrome, Edge and Brave. It does not import directly from Arc.</p></article>
+      <article><h3>Your Spaces, pinned tabs and folders.</h3><p>Open Bring Your Tabs (type <code>/bring-tabs</code> in the ⌘L or Ctrl+L panel), choose Arc and pick the Spaces you want. Each one comes across with its pinned tabs, its Today tabs, and its folders as tab groups. With Blanc Patron, each Space becomes a space in <a href="/features/workspaces">Blanc Spaces</a>; without it, each Space opens in its own window. Tabs load only when you open them.</p></article>
+      <article><h3>What stays in Arc.</h3><p>Blanc reads Arc’s sidebar file on your computer and never changes it. Arc’s top-row Favorites can go into a Favorites folder named Arc. Sign-ins, passwords, history, archived tabs, Notes and Easels stay in Arc. Arc never came to Linux, so there you choose a <code>StorableSidebar.json</code> copied from a Mac or PC.</p></article>
+      <article><h3>Bookmarks from other browsers.</h3><p>Blanc can import bookmarks into Favorites from Chromium-based browsers installed on your computer, such as Chrome, Edge and Brave.</p></article>
       <article><h3>Free, and open source.</h3><p>Blanc is free for macOS, Windows and Linux. Blanc’s own code is MIT-licensed and public on GitHub; its name, logos and third-party components keep their own terms.</p></article>
     </div>
   </section>
 
-  <aside class="truth-note" aria-labelledby="arc-note-title"><h2 id="arc-note-title">Blanc is not a copy of Arc.</h2><p>Blanc does not install extensions from the Chrome Web Store, import your Arc data, or include an AI assistant. If you rely on any of those, Blanc may not be the right fit today.</p></aside>
+  <aside class="truth-note" aria-labelledby="arc-note-title"><h2 id="arc-note-title">Blanc is not a copy of Arc.</h2><p>Blanc does not install extensions from the Chrome Web Store, bring over your Arc sign-ins, passwords or history, or include an AI assistant. If you rely on any of those, Blanc may not be the right fit today.</p></aside>
 
   <section class="feature-close" aria-labelledby="arc-close-title"><h2 id="arc-close-title">See if one small island suits you.</h2><a class="cta" href="/download" data-track="feature_cta_click" data-feature="arc-alternative" data-cta-position="feature-close">download blanc</a></section>
 </main>

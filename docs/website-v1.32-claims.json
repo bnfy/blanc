@@ -1,0 +1,407 @@
+{
+  "publicRelease": "v1.32.0",
+  "sourceSha": "e68974129859d34dfca9fa0d3f2947a7abfd7499",
+  "releaseEvidence": "docs/release-incidents/2026-10-13-v1.32.0.md",
+  "scope": "Website copy for the features public v1.32.0 shipped (October 13, 2026): the Arc Spaces import in Bring Your Tabs, the German, Spanish, French and Portuguese (Brazil) interfaces, and the /space command. Every evidence path is at the immutable publicRelease tag. Retired wording is recorded as supersededClaims in docs/website-revamp-claims-v1.27.json, and changes to retained feature pages as reviewedCopyUpdates there.",
+  "prohibitedClaims": [
+    "Arc import as account sync, a live Arc connection, or an import of sign-ins, passwords, cookies or history",
+    "hands-on Arc import verification on Intel Macs or x64 Windows",
+    "human, professional or native-speaker translations, or any interface language beyond English, German, Spanish, French and Portuguese (Brazil)",
+    "translation of web pages",
+    "1Password fill on Windows or Linux (enabled but deliberately unannounced in v1.32.0)"
+  ],
+  "evidenceGroups": {
+    "arcImport": {
+      "evidence": [
+        "docs/press/release-notes/v1.32.0.md",
+        "spec/acceptance/arc-spaces-import.feature",
+        "src/main/arc-sidebar.js",
+        "src/main/arc-import.js",
+        "src/main/arc-import-source.js",
+        "src/renderer/pages/tab-import-arc.js",
+        "test/unit/arc-sidebar.test.js",
+        "test/unit/arc-import.test.js",
+        "test/unit/arc-import-source.test.js",
+        "test/unit/tab-import-arc.test.js",
+        "test/desktop/steps/arc-import.steps.js",
+        "docs/evidence/f45-arc-import-real-sidebars-2026-10-12.md"
+      ],
+      "qualification": "Public desktop v1.32.0. User-initiated in Bring Your Tabs (/bring-tabs); Blanc reads Arc’s StorableSidebar.json on the device only after the person chooses Arc, and never changes it. Each selected Space brings its pinned tabs, Today tabs, and folders as tab groups. With an active Patron membership each becomes a Blanc space (created, not opened); without it each opens in its own window and only the selected tab loads. Arc’s top-row Favorites can be added to a Favorites folder named Arc. Sign-ins, passwords, history, archived tabs, Notes and Easels are not imported. Arc never shipped on Linux, where the person chooses a copied StorableSidebar.json. Real-sidebar evidence covers Apple Silicon, Windows on Arm64 and GNOME on Wayland, not Intel Macs or x64 Windows, so do not claim hands-on verification there. Not account sync, a live Arc connection, or an import of logins or history."
+    },
+    "interfaceLanguages": {
+      "evidence": [
+        "docs/press/release-notes/v1.32.0.md",
+        "src/main/i18n-locales.json",
+        "src/main/i18n.js",
+        "src/renderer/pages/i18n.js",
+        "src/renderer/pages/settings-language-model.js",
+        "copy/messages/de.json",
+        "copy/messages/es.json",
+        "copy/messages/fr.json",
+        "copy/messages/pt-BR.json",
+        "spec/acceptance/interface-language.feature",
+        "test/unit/i18n-main.test.js",
+        "test/unit/settings-language-model.test.js",
+        "test/desktop/interface-language-smoke.mjs"
+      ],
+      "qualification": "Public desktop v1.32.0. Blanc’s own interface is selectable in English, German, Spanish, French and Portuguese (Brazil); the translations are machine-made, so never call them human, professional or native-speaker translations, and name no other language. Blanc follows a matching system language (any Portuguese system gets pt-BR); Settings → General → Language chooses English or another language, applied after a relaunch. Web pages are not translated, and websites keep receiving the operating system’s Accept-Language (@F44-5)."
+    },
+    "spaceCommand": {
+      "evidence": [
+        "docs/press/release-notes/v1.32.0.md",
+        "copy/slash-commands.json",
+        "copy/messages/en.json",
+        "src/renderer/overlay.js",
+        "src/renderer/workspace-ui.js"
+      ],
+      "qualification": "Public desktop v1.32.0 ships /space with the hint “Switch to a space, or type a new name to save this window”; /workspace remains a working alias. Creating and saving spaces still needs an active Patron membership, and spaces stay device-local and profile-scoped."
+    },
+    "workspaces": {
+      "evidence": [
+        "src/main/main.js",
+        "src/main/workspaces.js",
+        "src/main/workspaces-model.js",
+        "src/main/session-workspace.js",
+        "test/unit/workspaces-patron-entry.test.js",
+        "test/unit/workspaces-scratch-guard.test.js"
+      ],
+      "qualification": "Active Patrons can save the current window or create a blank space; a bound space saves its tabs and groups as the person browses. Device-local and profile-scoped; not automatic task detection."
+    },
+    "importing": {
+      "evidence": [
+        "src/main/browser-data-import.js",
+        "src/main/bookmark-import.js",
+        "test/unit/browser-data-import.test.js",
+        "test/unit/bookmark-import.test.js"
+      ],
+      "qualification": "Imports bookmarks into Favorites on-device, not passwords, cookies or whole sessions. Browser detection depends on available installed profiles. Arc’s top-row Favorites come through the Arc import instead."
+    },
+    "foundations": {
+      "evidence": [
+        "src/main/main.js",
+        "src/main/settings.js",
+        "src/renderer/overlay.js",
+        "test/unit/public-truth.test.js"
+      ],
+      "qualification": "Public desktop v1.32.0. Blanc is a free Chromium-based browser for macOS, Windows and Linux. It installs no Chrome Web Store extensions (optional uBlock Origin is a managed blocker, not an extension runtime), ships no AI assistant, and never organizes tabs by meaning; Named Groups and Blanc Spaces are user-directed."
+    }
+  },
+  "claims": [
+    {
+      "id": "site-132-arc-alternative-01",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Moving on from Arc? Blanc is a free, minimal Chromium browser that can bring your Arc Spaces over, with tab groups, vertical tabs and built-in ad blocking.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-132-arc-alternative-02",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Bring your Arc Spaces with you.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-132-arc-alternative-03",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Your Spaces, pinned tabs and folders.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-132-arc-alternative-04",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Open Bring Your Tabs (type /bring-tabs in the ⌘L or Ctrl+L panel), choose Arc and pick the Spaces you want. Each one comes across with its pinned tabs, its Today tabs, and its folders as tab groups. With Blanc Patron, each Space becomes a space in Blanc Spaces; without it, each Space opens in its own window. Tabs load only when you open them.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-132-arc-alternative-05",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "What stays in Arc.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-132-arc-alternative-06",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Blanc reads Arc’s sidebar file on your computer and never changes it. Arc’s top-row Favorites can go into a Favorites folder named Arc. Sign-ins, passwords, history, archived tabs, Notes and Easels stay in Arc. Arc never came to Linux, so there you choose a StorableSidebar.json copied from a Mac or PC.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-132-arc-alternative-07",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Blanc can import bookmarks into Favorites from Chromium-based browsers installed on your computer, such as Chrome, Edge and Brave.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "importing"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-132-arc-alternative-08",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Blanc does not install extensions from the Chrome Web Store, bring over your Arc sign-ins, passwords or history, or include an AI assistant. If you rely on any of those, Blanc may not be the right fit today.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-132-home-01",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "It can also bring your Spaces over from Arc.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-132-features-01",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Bring your Arc Spaces",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-132-features-02",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Five interface languages",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "interfaceLanguages"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-132-features-03",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Bring your Spaces over from Arc.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-132-features-04",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "In Bring Your Tabs, choose Arc and pick your Spaces. Their pinned tabs and Today tabs come across, and their folders become tab groups. With Blanc Patron, each Space becomes a space; without it, each opens in its own window.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-132-features-05",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Sign-ins, passwords and history stay in Arc.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-132-features-06",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Use Blanc in German, Spanish, French or Portuguese.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "interfaceLanguages"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-132-features-07",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Blanc’s own interface is available in English, German, Spanish, French and Portuguese (Brazil). It follows your computer’s language when it matches one of them, or you can choose one in Settings → General → Language.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "interfaceLanguages"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-132-features-08",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "The translations are machine-made, and a change applies after you relaunch Blanc. Blanc does not translate web pages.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "interfaceLanguages"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-132-features-09",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Switch to a space, or type a new name to save this window",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "spaceCommand"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-132-workspaces-01",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Open the space control in the command panel or type /space. Active Patrons can save the current window or create a blank space.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "spaceCommand",
+        "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-132-workspaces-02",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Bring your Spaces from Arc",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-132-workspaces-03",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "In Bring Your Tabs (type /bring-tabs), choose Arc, and each Space you pick becomes a space here, with its pinned tabs, its Today tabs and its folders as tab groups. Without an active Patron membership, each Arc Space opens in its own window instead. Switching from Arc",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-132-guide-workspaces-01",
+      "source": "site/src/components/guides/workspaces.astro",
+      "exactWording": "Open the space control in the command panel or type /space. Active Patrons can save the current window or create a blank space.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "spaceCommand",
+        "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-132-guide-workspaces-02",
+      "source": "site/src/components/guides/workspaces.astro",
+      "exactWording": "Bring your Spaces from Arc",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-132-guide-workspaces-03",
+      "source": "site/src/components/guides/workspaces.astro",
+      "exactWording": "In Bring Your Tabs (type /bring-tabs), choose Arc, and each Space you pick becomes a space here, with its pinned tabs, its Today tabs and its folders as tab groups. Without an active Patron membership, each Arc Space opens in its own window instead.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-132-support-01",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Can I bring my Spaces from Arc?",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-132-support-02",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Yes. Type /bring-tabs in the ⌘L or Ctrl+L panel, choose Arc, and pick the Spaces you want. Each Space comes across with its pinned tabs, its Today tabs, and its folders as tab groups. With Blanc Patron, each Space becomes a space in Blanc Spaces; without it, each Space opens in its own window. Tabs load only when you open them. You can also add Arc’s top-row Favorites to a Favorites folder named Arc.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-132-support-03",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Blanc reads Arc’s sidebar file on this device and never changes it. Sign-ins, passwords, history, archived tabs, Notes and Easels stay in Arc. Arc never came to Linux, so on Linux you copy StorableSidebar.json from a Mac or PC and choose it with the Choose file… button.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-132-support-04",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Which languages does Blanc come in?",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "interfaceLanguages"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-132-support-05",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Blanc’s own interface is available in English, German, Spanish, French and Portuguese (Brazil). The translations are machine-made. If your computer uses one of these languages, Blanc follows it, and any Portuguese system gets Brazilian Portuguese. To choose a different one, open Settings → General → Language; the change applies after you relaunch Blanc.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "interfaceLanguages"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-132-support-06",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Blanc does not translate web pages. Websites still see your computer’s language settings, not the language you chose for Blanc.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "interfaceLanguages"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-132-privacy-01",
+      "source": "site/src/pages/privacy.astro",
+      "exactWording": "It can also read Arc's sidebar file on the device to bring over Arc Spaces; it does not change that file or send it to the handoff relay.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport"
+      ],
+      "verdict": "qualified"
+    }
+  ]
+}
