@@ -47,6 +47,17 @@ allow an agent to drive the real interface (#744, #745). Read-only,
 counts-only checks of the dev profile's saved state supplemented some
 on-screen checks; none read the Patron key.
 
+An earlier Mac run on October 12, at `e8d648b0`, drove steps 3–10 through
+the `BLANC_TEST` hook with Playwright and a stand-in file dialog. It is
+superseded by the Mac runs above and not counted here.
+
+The F45 code is unchanged from every tested commit through `77b2e275`, so
+this evidence covers a release cut from that commit. That includes
+`src/main/arc-sidebar.js`, `arc-import-source.js`, `arc-import.js` and
+`workspaces.js`; the import's wiring in `main.js`, `pages.js` and
+`tab-preload.js`; `tab-import-arc.js`, `tab-import.html` and the spaces
+panel's entry in `workspace-ui.js`; and every `arcImport.*` message.
+
 **Arc package folder on Windows:** `TheBrowserCompany.Arc_ttt1ap7aakyb4`,
 exactly one match. This closed the spec's open question (#746).
 
@@ -173,6 +184,10 @@ exactly one match. This closed the spec's open question (#746).
   - the start-to-end hash check couldn't pass while Arc was open (#734,
     #736);
   - step 11 now asks for about 2 minutes of edits (#734).
+- **Linux file transfer:** the plan says not to move the sidebar through a
+  shared folder. The Mac copy for steps 1–10 went through Parallels' local
+  share between the Mac and the VM, which nothing syncs or shares with anyone
+  else, and was deleted from it straight away.
 - **Linux setup:** `npm ci` reset Electron's `chrome-sandbox` helper. It was
   restored to root:root 4755, and the sandbox was never disabled.
 - **Input problems:**
@@ -189,6 +204,9 @@ exactly one match. This closed the spec's open question (#746).
 
 - Intel Macs and Windows on x64 (the Windows run was Arm64), and Linux
   desktops other than GNOME on Wayland.
+- A long-used Windows sidebar. The Windows file was built in Arc for this
+  test, in a VM: a real Arc file in the current format, but without anything
+  older Windows sidebars may still carry.
 - An Arc Space with no tabs (the "can't be selected" state), and the 25-space
   room limit.
 - Notes and Easels on Windows: Arc for Windows offered no way to create one.
