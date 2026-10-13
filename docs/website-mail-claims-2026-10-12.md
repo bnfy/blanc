@@ -75,6 +75,14 @@ as open, not passed.
 - The Rules lines depend on EM-960's live checks (Mail `docs/RELEASE_ACCEPTANCE.md:76`).
 - The deploy follows Task 8 of `docs/superpowers/plans/2026-10-12-mail-pages-redesign.md`.
 
+**Shorter hero (owner, October 13, 2026).** The `/mail` hero drops the
+"Coming soon for macOS" pill and its lead's second sentence, "Your mail stays
+between your Mac and Google." No sentence is reworded. The waitlist's label,
+"Get an email when Blanc Mail is ready", stays visible as the hero's status
+line, so the page still says Blanc Mail is unreleased (`docs/marketing-claims.md`).
+The privacy note under the field appears while an address is typed and is the
+field's accessible description either way.
+
 **Tagline.** "A little less inbox." replaces "Email that minds its own business."
 in the `/mail` hero, the page title and `public/mail-og.png`. The owner chose
 it on October 12, 2026; it pairs with Blanc Browser's "A little less browser."

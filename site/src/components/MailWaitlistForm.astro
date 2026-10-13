@@ -15,11 +15,11 @@ const { id = 'waitlist' } = Astro.props;
 <form class="mail-waitlist" id={id} method="post" data-mail-waitlist>
   <label class="mail-waitlist-label" for={`${id}Email`}>Get an email when Blanc Mail is ready</label>
   <span class="mail-waitlist-controls">
-    <input id={`${id}Email`} name="email" type="email" required maxlength="254" placeholder="you@example.com" autocomplete="email">
+    <input id={`${id}Email`} name="email" type="email" required maxlength="254" placeholder="you@example.com" autocomplete="email" aria-describedby={`${id}Note`}>
     <input class="mail-waitlist-hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
     <button type="submit" data-track="mail_waitlist_join" disabled>Join the waitlist</button>
   </span>
-  <p class="mail-waitlist-note">We’ll ask you to confirm by email. The waitlist is separate from the Blanc newsletter, and we delete it after the launch announcement. <a href="/privacy#mail-waitlist">How we handle it</a></p>
+  <p class="mail-waitlist-note" id={`${id}Note`}>We’ll ask you to confirm by email. The waitlist is separate from the Blanc newsletter, and we delete it after the launch announcement. <a href="/privacy#mail-waitlist">How we handle it</a></p>
   <p class="mail-waitlist-status" role="status" aria-live="polite"></p>
   <noscript><p class="mail-waitlist-note">Turn on JavaScript to join the waitlist, or email <!--email_off--><a href="mailto:support@blanc.day">support@blanc.day</a><!--/email_off-->.</p></noscript>
 </form>

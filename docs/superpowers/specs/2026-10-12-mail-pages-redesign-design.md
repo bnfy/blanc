@@ -349,3 +349,12 @@ These supersede the earlier sections where they differ.
   copy behind.
 - **Deploy.** §2's and §9's deploy notes are replaced by Task 8 of
   `docs/superpowers/plans/2026-10-12-mail-pages-redesign.md`.
+- **A dark Mail bar** (owner, October 13, 2026, after the first deploy): the
+  bar is the Sunrise ink band (`--mail-band`) with light text, and Join is a
+  light capsule. The site strip above it stays ivory.
+- **A shorter hero** (owner, October 13, 2026): no "Coming soon for macOS"
+  pill and a one-sentence lead. The waitlist's privacy note appears while an
+  address is typed (the field is described by it either way), the field sits
+  beside its button on phones, and the icon is 76px there. The form's label,
+  "Get an email when Blanc Mail is ready", stays visible: with the pill gone,
+  it is what tells a visitor Blanc Mail is not out yet.
