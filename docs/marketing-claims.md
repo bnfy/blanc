@@ -79,17 +79,17 @@ its qualifications remain subject to the release-backed claim gate above.
 
 ## Current Blanc capability boundaries
 
-These boundaries describe public v1.31.0; its scope, publication evidence and
-owner-confirmed adjacent public-feed updater handoffs are recorded in
-[the release report](release-incidents/2026-10-09-v1.31.0.md). Installed
+These boundaries describe public v1.32.0; its scope, publication evidence and
+pending adjacent public-feed updater handoffs are recorded in
+[the release report](release-incidents/2026-10-13-v1.32.0.md). Installed
 candidates keep their original source/artifact bindings; hosted verification
 does not establish physical-machine outcomes. The v1.27.0 uBO acceptance, the
-v1.28.0 duplicate macOS build number, the v1.29.0, v1.30.0 and v1.30.1
+v1.28.0 duplicate macOS build number, the v1.29.0, v1.30.0, v1.30.1 and v1.31.0
 updater confirmations, the v1.30.0 drag-to-reorder hands-on coverage, historical
 wallpaper/Linux waivers and earlier updater confirmations remain in their
 original reports:
 
-- **Optional uBlock Origin:** Public v1.31.0 offers full uBO 1.75.0 on
+- **Optional uBlock Origin:** Public v1.32.0 offers full uBO 1.75.0 on
   Apple Silicon, native Intel Mac, Windows x64 and Linux x64, on official
   Electron 44.5.1. Click the Island shield to choose a blocker and restart
   Blanc to apply it. Blanc Blocker stays the default and protects private
@@ -195,6 +195,20 @@ original reports:
   metadata, never field values or page text, and does not contact 1Password.
   Credential lookup and fill remain explicit user actions. This is not
   automatic fill, a general extension runtime, or a Blanc password manager.
+- **1Password on Windows and Linux:** Public v1.32.0 enables the same fill on
+  Windows and Linux, but it is deliberately unannounced. Its evidence comes
+  from x64 Windows Blanc and 1Password under Arm emulation in a VM, and an
+  ARM64 Linux development build, under the waiver in
+  [the 1Password integration doc](1password-integration.md). Do not announce
+  or list it as shipped until the real-account matrix passes on a real x64
+  Windows PC and a packaged x64 Linux AppImage.
+- **Interface languages:** Since v1.32.0 Blanc's own interface is available in
+  German, Spanish, French and Portuguese (Brazil), machine-translated. Blanc
+  follows a matching system language (any Portuguese system gets Brazilian
+  Portuguese), and Settings → General → Language chooses any of them or
+  English; a change applies after a relaunch. Blanc does not translate web
+  pages. Do not call the translations human or professional, or name other
+  languages as available.
 - **Mahjong:** Mahjong opens from every start-page footer into its own managed
   tab and offers eight solvable-by-construction boards. Daily rotates across the
   eight layouts. Device-local state remembers the last layout, mode, and deal,
@@ -251,6 +265,18 @@ original reports:
   metadata on the ChatGPT path while Firefox/Safari encrypt locally. Do not call
   either path account sync, migration of sessions or logins, an automatic
   import, or an AI browser feature.
+- **Arc Spaces import:** Since v1.32.0 Bring Your Tabs can read Arc's
+  sidebar file on the device, without changing it, and bring each Space the
+  user picks: pinned tabs, Today tabs, and folders as tab groups. With Blanc
+  Patron each Space becomes a space in Blanc Spaces; without it, each opens in
+  its own window. Tabs load only when opened. Arc's top-row Favorites can be
+  added to one Favorites folder named Arc. Sign-ins, passwords, history,
+  archived tabs, Notes and Easels stay in Arc. On Linux the user chooses a
+  `StorableSidebar.json` copied from a Mac or PC. Real-sidebar evidence
+  ([F45](evidence/f45-arc-import-real-sidebars-2026-10-12.md)) covers Apple
+  Silicon, Windows on Arm64 and GNOME on Wayland, not Intel Macs or x64
+  Windows. Do not call it account sync, a live Arc connection, or an import
+  of logins or history.
 
 Canonical evidence locations include `src/main/main.js`,
 `src/renderer/overlay.js`, `src/main/tab-sleep.js`, the matching public release
