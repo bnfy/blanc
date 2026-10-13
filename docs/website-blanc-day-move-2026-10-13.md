@@ -61,6 +61,10 @@ returns 404, because `blanc-ping` answers GET only, so check these with GET.
 `site/src/scripts/site.js` and `cloudflare/ping-worker/src/index.js`, and
 Analytics reported data collection active in the past 48 hours.
 
+**Live SEO audit.** `npm --prefix site run audit:seo:live`, run from a
+checkout of `main` at `34658f43` (its default origin is blanc.day), passed for
+36 sitemap pages and 36 internal HTML destinations at `https://blanc.day`.
+
 ## Step 5: the former hosts redirect
 
 **Deploy.** `blancbrowser-redirects` deployed with wrangler 4.149.0, version
@@ -116,8 +120,6 @@ Analytics reported data collection active in the past 48 hours.
 
 ## Still open
 
-- **Run the step 4 live SEO audit:**
-  `SITE_ORIGIN=https://blanc.day npm --prefix site run audit:seo:live`.
 - **In Search Console:** resubmit `sitemap.xml` on the `blanc.day` property, and
   run a live test and indexing request for `https://blanc.day/`.
 - **Confirm Cloudflare Web Analytics** records `blanc.day`.
