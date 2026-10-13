@@ -350,8 +350,10 @@ From the desktop `DEFAULTS`:
 - macOS Settings offers four Dock colorways: `sunrise` (default),
   `sunrise-dark`, `paper`, and `ink`. Older ids are retired; any stale or
   hand-set retired id falls back to `sunrise`.
-- Patron unlocks Blanc Spaces, not icon variants. Renderers only ever see a
-  derived `patronActive` boolean; the entitlement record stays in main.
+- Patron is optional support and unlocks nothing: Blanc Spaces (F41) is free
+  for everyone, and icon variants were never a Patron benefit. Renderers only
+  ever see a derived `patronActive` boolean; the entitlement record stays in
+  main.
 - **Diverges:** purchase rails (D5 — Apple IAP / Play Billing, not Polar, on mobile)
   and icon-switching mechanism (D6 — clean on iOS, limited on Android).
 - **Acceptance:** A current colorway can be selected; a retired id is rejected
@@ -810,11 +812,11 @@ From the desktop `DEFAULTS`:
   Empty feeds remove their section — row, label, and card — except
   Favorites: ledger, shelf, and tally show "Favorite a page with ♥ to pin it
   here" when there are none. Billboard, which shows recent sites, shows no
-  hint. Private start pages show no Patron upgrade and no blocked counts.
+  hint. Private start pages show no Patron pill and no blocked counts.
 - Billboard centres whatever it shows (clock, blocked line, groups, recent
   sites) vertically between the window top and the footer; on a short window
   it stops just below the brand row rather than sliding under it.
-- Non-Patron, non-private start pages show one "Upgrade to Blanc Patron" pill
+- Non-Patron, non-private start pages show one "Become a Blanc Patron" pill
   at the end of the footer's left group, on every layout. The × at its end
   hides it on that device for 90 days, after which it returns.
 - After first run, Personal non-private start pages show one moving-in
@@ -968,14 +970,38 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
 - Apply creates tabs/groups transactionally in preview order and never writes
   Favorites. Imported tabs are quiet and viewless; only the first selected tab
   wakes. Only after that successful apply does Blanc mark the device-local
-  moving-in checklist task complete. A space remains a separate
-  optional Patron gesture. (F45 Arc Spaces import is the one exception: it
-  creates spaces directly for Patrons.)
+  moving-in checklist task complete. Saving the result as a space (F41)
+  remains a separate gesture. (F45 Arc Spaces import is the one exception: it
+  creates spaces directly.)
 - **Acceptance:**
   [`acceptance/tab-migration.feature`](./acceptance/tab-migration.feature)
   covers explicit session reads, quit safety, duplicate/order/group fidelity,
   opaque renderer projection, transactional apply, ownership/cancellation,
   onboarding, and the separate workspace handoff.
+
+## F41 — Blanc Spaces (desktop)
+
+- A **space** is a named, saved set of one window's tabs and groups in the
+  current profile; a profile holds at most 25. Creating, saving, importing,
+  switching, renaming, reordering and deleting spaces is free for everyone.
+- Opening a space swaps it into the current window in place. While a window
+  is in a space, its tab set autosaves into it; private tabs are never saved.
+  A space is in at most one window at a time: opening one held by another
+  window focuses that window.
+- Switching away from a window whose ordinary tabs are in no space asks first:
+  save them as a space, open the target in a new window, or close them and
+  switch. Up to two recently left sets (16 live tabs) stay resident so
+  switching back keeps their pages as they were.
+- Deleted spaces stay in Recently deleted for 7 days, where they can be
+  restored or forgotten.
+- Entry points: the ⌘L panel footer's Spaces button, `/space` (alias
+  `/workspace`), Bring Your Tabs (F40) and the Arc Spaces import (F45).
+- Spaces are device-local and profile-scoped; they never sync.
+- **Acceptance:**
+  [`acceptance/F41-named-workspaces.feature`](./acceptance/F41-named-workspaces.feature)
+  (`@workspace`, bound in `test/desktop/steps/named-workspaces.steps.js` and
+  `test/desktop/steps/workspace-lifecycle.steps.js`);
+  `test/unit/workspace*.test.js`.
 
 ## F42 — Dark websites
 
@@ -1038,14 +1064,12 @@ Bring Your Tabs.
   Today tabs follow ungrouped. Only http(s) tabs come across; notes, Easels
   and other kinds are counted and skipped. At most 500 tabs and 50 groups per
   Space; extra tabs are counted, never silently dropped.
-- **Patrons** get one Blanc space per selected Space, all in one durable
-  write: every space or none. Names avoid this profile's existing spaces
-  (`Name (Arc)`, `Name (Arc 2)`…); untitled Spaces become `Space N`. A
-  selection that does not fit the free space slots is refused before
-  anything is written. Unlike F40, no window is switched: the new spaces wait
-  in the list. A Patron lapse between preview and apply creates nothing.
-- **Everyone else** gets each selected Space in its own new window (at most
-  25), tabs quiet with only the selected one woken, folders as groups.
+- **Spaces.** Each selected Space becomes one Blanc space, for everyone, all
+  in one durable write: every space or none. Names avoid this profile's
+  existing spaces (`Name (Arc)`, `Name (Arc 2)`…); untitled Spaces become
+  `Space N`. A selection that does not fit the free space slots (25 per
+  profile) is refused before anything is written. Unlike F40, no window is
+  switched: the new spaces wait in the list.
 - **Favorites.** Arc's top-row Favorites can be added, add-only and
   deduplicated, to a Favorites folder named Arc.
 - **Projection.** The page receives only Space names, counts, a
