@@ -1,6 +1,6 @@
 # Blanc Mail pages redesign — design
 
-Status: draft for owner review, October 12, 2026.
+Status: approved by the owner, October 12, 2026 (spec, then the prototype commit "Prototype the Blanc Mail pages redesign").
 Scope: the six Blanc Mail pages on blancbrowser.com — `/mail`, `/mail/pricing`,
 `/mail/download`, `/mail/support`, `/mail/privacy`, `/mail/terms`.
 Method: Apple's design guidance as captured in the `apple-design` skill
@@ -313,3 +313,39 @@ accessible name).
   October 12 decision in the same change that publishes them.
 - The Rules copy depends on live Gmail behavior that EM-960 still lists as
   partial. Its live checks must pass before the page deploys.
+
+## 12. Amendment: decisions after the prototype (owner, October 12, 2026)
+
+These supersede the earlier sections where they differ.
+
+- **Tagline.** "A little less inbox." replaces "Email that minds its own
+  business." in the `/mail` hero, the page title and `public/mail-og.png`
+  (pairs with Blanc Browser's "A little less browser."). It is branding, not
+  a product claim. This overrides §10's "no change to the hero copy" for the
+  headline only. `site/scripts/render-mail-og-card.mjs` re-renders the card.
+- **A quiet site strip.** On Mail pages the site header is a 36px strip
+  (44px at 760px and narrower) in the page's ivory, with muted 12px links and
+  no Download pill styling, so the Mail bar reads as the page's navigation.
+- **Bar breakpoints.** The six links fold into the page menu at 880px and
+  narrower (not 640px). At 480px and narrower Join reads "Join" on screen
+  and keeps the accessible name "Join the waitlist".
+- **Screenshots large and unframed.** The hero, the Island, Inbox Zero and
+  the light/dark compare are wider than the text column (up to 1360px, never
+  wider than the viewport minus 32px) with no frame. On phones they crop to
+  the window's centre. The hero rises into place with a scroll-driven
+  animation where `animation-timeline: view()` is supported.
+- **The Island uses the whole `island` capture**, not a crop.
+- **Vignettes** play once when their tile first comes into view (touch has
+  no hover) and again when a pointer enters the tile. They never loop and
+  never play under reduced motion.
+- **Demo content.** The captures show only fictional senders on reserved
+  `.example` domains. The hero conversation is *Northlight Journal*, a
+  fictional photo newsletter whose photos are crops of the app's own Inbox
+  Zero art (bnfy/blanc-mail#128).
+- **blanc.day.** The site moved to blanc.day (#747–#749). The Mail pages
+  name `support@blanc.day`, and the share card reads "blanc.day/mail".
+- **1100px copies** of the screenshots are built by
+  `site/scripts/build-display-images.mjs`, so a recapture cannot leave a stale
+  copy behind.
+- **Deploy.** §2's and §9's deploy notes are replaced by Task 8 of
+  `docs/superpowers/plans/2026-10-12-mail-pages-redesign.md`.

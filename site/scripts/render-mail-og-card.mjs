@@ -14,10 +14,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { SITE_ORIGIN } from '../src/lib/site-origin.mjs';
 
 const SITE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(SITE_ROOT, 'public', 'mail-og.png');
 const TAGLINE = 'A little less inbox.';
+const ADDRESS = `${new URL(SITE_ORIGIN).host}/mail`;
 
 const dataUrl = (file, type) => `data:${type};base64,${fs.readFileSync(file).toString('base64')}`;
 const serif = dataUrl(path.join(SITE_ROOT, 'src/fonts/newsreader-condensed-latin-opsz-normal.woff2'), 'font/woff2');
@@ -36,7 +38,7 @@ img{position:absolute;right:56px;top:118px;width:360px;height:360px}
 </style></head><body>
 <p class="eyebrow">Blanc Mail · Coming soon for macOS</p>
 <h1>${TAGLINE}</h1>
-<p class="address">blancbrowser.com/mail</p>
+<p class="address">${ADDRESS}</p>
 <img src="${mark}" alt="">
 </body></html>`;
 
