@@ -7594,7 +7594,7 @@ function registerIpcHandlers() {
     return { ...result, ...workspacesProjection() };
   });
   chromeHandle('chrome:workspaces-rename', (_e, id, name) => {
-    const result = namedWorkspaces.rename(id, name);
+    const result = namedWorkspaces.update(id, { name });
     if (!result.ok) return result; // {ok:false, error:'not-found'|'invalid-name'|'duplicate-name'}
     broadcastWorkspacesUpdated();
     return { ok: true, ...workspacesProjection() };
@@ -7609,7 +7609,10 @@ function registerIpcHandlers() {
   for (const [channel, operation] of [
     ['chrome:workspaces-restore', (id) => namedWorkspaces.restore(id)],
     ['chrome:workspaces-forget', (id) => namedWorkspaces.forget(id)],
-    ['chrome:workspaces-move', (id, direction) => namedWorkspaces.move(id, direction)],
+    ['chrome:workspaces-move', (id, direction) => {
+      const index = namedWorkspaces.list().findIndex((w) => w.id === id);
+      return namedWorkspaces.moveTo(id, index + (direction === 'up' ? -1 : 1));
+    }],
   ]) {
     chromeHandle(channel, (_event, ...args) => {
       const result = operation(...args);
