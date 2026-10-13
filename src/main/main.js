@@ -3966,6 +3966,9 @@ function prepareOnePasswordTarget(target) {
   return withWindowRuntime(target.runtime, () => {
     hideOverlay({ refocusContent: false });
     hideUtilitySheet({ refocusContent: false });
+    // A notice left by an earlier attempt is stale now (#740). This
+    // dismisses without bumping the surface generation.
+    fillStatusSurface?.invalidatePending(target.runtime.id);
     // Capture AFTER the controller-owned cleanup above: a palette-started
     // fill closes the overlay as part of starting, which must not
     // self-invalidate (spec: Flow-level invalidation).
