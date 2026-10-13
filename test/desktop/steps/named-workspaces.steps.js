@@ -23,7 +23,6 @@ const ctx = require('../support/context');
 const { openOverlaySurface, waitForValue } = require('../support/poll');
 
 Given('a named workspace with a live unsaved draft', async function () {
-  await this.call('workspacePatron');
   this.draftId = await this.call('openTab', this.fixtureUrl('workspace-draft'));
   await this.waitForState((s) => s.tabs.some((t) => t.id === this.draftId && t.title === 'workspace-draft' && !t.isLoading));
   await this.call('workspacePageScript', this.draftId, `(() => {
@@ -64,7 +63,6 @@ Then('the workspace action is a no-op and both pages remain open', async functio
   assert.ok(state.tabs.some((t) => t.id === this.draftId)); assert.ok(state.tabs.some((t) => t.private));
 });
 Given('two named workspaces for editing', async function () {
-  await this.call('workspacePatron');
   this.workspaceA = (await this.call('workspaceAction', 'save', 'First workspace')).workspace.id;
   this.workspaceB = (await this.call('workspaceAction', 'save', 'Second workspace')).workspace.id;
 });
@@ -152,7 +150,6 @@ Then('the deleted workspace draft remains in a visible unsaved window', async fu
   const data = await this.call('workspaceActionInWindow', owner.id, 'list'); assert.equal(data.items.some((w) => w.active), false); assert.ok(data.deleted.some((w) => w.id === this.workspaceA));
 });
 Given('twenty five named workspaces with long names', async function () {
-  await this.call('workspacePatron');
   for (let i = 0; i < 25; i++) assert.equal((await this.call('workspaceAction', 'save', `${String(i + 1).padStart(2, '0')} A long research workspace name with expanded descriptions`)).ok, true);
 });
 Then('the workspace list scrolls while creation controls remain visible', async function () {
@@ -244,7 +241,7 @@ Then('the workspace list scrolls while creation controls remain visible', async 
   await this.call('setTabLayout', 'island');
 });
 Given('a private-only secondary window bound to a named workspace', async function () {
-  await this.call('workspacePatron'); this.secondary = await this.call('openNewWindow');
+  this.secondary = await this.call('openNewWindow');
   const ordinary = await this.call('openTabInWindow', this.secondary, this.fixtureUrl('workspace-close'));
   this.closedWorkspace = (await this.call('workspaceActionInWindow', this.secondary, 'save', 'Close empty')).workspace.id;
   await this.call('openTabInWindow', this.secondary, this.fixtureUrl('workspace-private'), { private: true });
@@ -279,4 +276,15 @@ When('I explicitly close a private page while switching and return', async funct
   await this.waitForState((s) => s.tabs.every((t) => !t.isLoading));
   assert.equal((await this.call('workspaceAction', 'open', this.workspaceA)).ok, true);
   const state = await this.state(); assert.equal(state.tabs.some((t) => t.private), false); assert.equal(state.activeTabId, this.draftId);
+});
+When('I save this window as a space named {string} from the switcher', async function (name) {
+  await openOverlaySurface(this, 'openPanel', 'panel'); const page = await overlayPage();
+  await page.click('#footerWorkspace');
+  await page.click('#wsSwitcherSaveAs');
+  await page.fill('#workspaceName', name);
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+});
+Then('a space named {string} is saved and this window is in it', async function (name) {
+  const data = await waitForValue(() => this.call('workspaceAction', 'list'), (d) => d.items.some((w) => w.name === name), `space ${name}`);
+  assert.equal(data.items.find((w) => w.name === name).active, true);
 });

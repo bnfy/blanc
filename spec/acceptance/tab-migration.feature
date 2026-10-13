@@ -103,7 +103,7 @@ Feature: Bring Your Tabs
     Given I successfully imported reviewed tabs and groups
     Then the imported state is available without Patron
     When I choose to save that setup as a Named Workspace
-    Then Blanc uses the existing Patron-gated workspace flow as a separate gesture
+    Then Blanc uses the existing space flow as a separate gesture
 
   @F40-14 @desktop
   Scenario: Cancel destroys the ephemeral migration session

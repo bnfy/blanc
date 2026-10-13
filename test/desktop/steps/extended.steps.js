@@ -7,7 +7,7 @@ const { waitForValue, openOverlaySurface } = require('./../support/poll');
 // or observable main-process state (so they are reliable without a live GUI run):
 //   F5  address normalization / search routing / OS hand-off
 //   F7-2 slash-command effects (/new, /downloads, /find)
-//   F17-1 Patron activation -> Named Workspaces
+//   F17-1 current app icon applies
 //
 // The F5 steps assert the app's *routing decision* (what it would navigate to /
 // hand off) via the real normalizeAddressInput + handoff predicate, rather than

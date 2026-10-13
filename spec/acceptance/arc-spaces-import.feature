@@ -11,8 +11,8 @@ Feature: Arc Spaces import
     And Arc's sidebar file has not been read
 
   @F45-2 @desktop
-  Scenario: A Patron gets one space per selected Arc Space
-    Given I am a Blanc Patron with room for three more spaces
+  Scenario: Each selected Arc Space becomes a space
+    Given there is room for three more spaces
     And an Arc sidebar with Spaces named "Work" and "Reading"
     When I bring both Spaces from Arc
     Then Blanc creates spaces named "Work" and "Reading" in one write
@@ -21,19 +21,19 @@ Feature: Arc Spaces import
 
   @F45-3 @desktop
   Scenario: A selection that does not fit creates nothing
-    Given I am a Blanc Patron with room for one more space
+    Given there is room for one more space
     And an Arc sidebar with Spaces named "Work" and "Reading"
     When I bring both Spaces from Arc
     Then Blanc explains that only one more space fits
     And no space is created
 
   @F45-4 @desktop
-  Scenario: Without Patron each Space opens in its own window
+  Scenario: Arc Spaces become spaces without Blanc Patron
     Given Blanc Patron is not active
     And an Arc sidebar with Spaces named "Work" and "Reading"
     When I bring both Spaces from Arc
-    Then two new windows open with each Space's tabs and groups
-    And only the selected tab in each window has loaded
+    Then Blanc creates spaces named "Work" and "Reading" in one write
+    And no window is switched to either space
 
   @F45-5 @desktop
   Scenario: Arc's Favorites join a Favorites folder named Arc

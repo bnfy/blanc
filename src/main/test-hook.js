@@ -437,7 +437,6 @@ function install(refs) {
     },
     i18nState() { return refs.i18nState(); },
     workspaceActionInWindow(id, action, ...args) { return refs.runInWindowRuntime(id, () => refs.workspaceTestAction(action, args)); },
-    workspacePatron() { settings.setPatron({ kind: 'founding', status: 'active' }); },
     workspacePageScript(id, script) { return tabs.get(id)?.view?.webContents?.executeJavaScript(script); },
     workspacePageIdentity(id) { return tabs.get(id)?.view?.webContents?.id ?? null; },
     // ---- state ----
