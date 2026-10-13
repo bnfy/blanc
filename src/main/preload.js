@@ -134,11 +134,9 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   // `newWindow` opens elsewhere. Omitted for a plain open/create attempt.
   openWorkspace: (id, opts) => ipcRenderer.invoke('chrome:workspaces-open', id, opts),
   createBlankWorkspace: (name, opts) => ipcRenderer.invoke('chrome:workspaces-create-blank', name, opts),
-  renameWorkspace: (id, name) => ipcRenderer.invoke('chrome:workspaces-rename', id, name),
   removeWorkspace: (id) => ipcRenderer.invoke('chrome:workspaces-remove', id),
   restoreWorkspace: (id) => ipcRenderer.invoke('chrome:workspaces-restore', id),
   forgetWorkspace: (id) => ipcRenderer.invoke('chrome:workspaces-forget', id),
-  moveWorkspace: (id, direction) => ipcRenderer.invoke('chrome:workspaces-move', id, direction),
   updateWorkspace: (id, patch) => ipcRenderer.invoke('chrome:workspaces-update', id, patch),
   moveWorkspaceTo: (id, index) => ipcRenderer.invoke('chrome:workspaces-move-to', id, index),
   undoRemoveWorkspace: (id) => ipcRenderer.invoke('chrome:workspaces-undo-remove', id),
@@ -152,6 +150,11 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
     const listener = (_event, payload) => callback(payload);
     ipcRenderer.on('chrome:workspaces-updated', listener);
     return () => ipcRenderer.removeListener('chrome:workspaces-updated', listener);
+  },
+  onWorkspaceAction: (callback) => {
+    const listener = (_event, payload) => callback(payload);
+    ipcRenderer.on('overlay:workspace-action', listener);
+    return () => ipcRenderer.removeListener('overlay:workspace-action', listener);
   },
   clearHistory: () => ipcRenderer.invoke('chrome:history-clear'),
   toggleAdblock: () => ipcRenderer.invoke('chrome:adblock-toggle'),

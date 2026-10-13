@@ -55,10 +55,6 @@
       "ts": "'system' | 'light' | 'dark'",
       "doc": "Appearance preference."
     },
-    "WorkspaceMoveDirection": {
-      "ts": "'up' | 'down'",
-      "doc": "Direction for reordering a workspace."
-    },
     "CreateTabOptions": {
       "ts": "{ private?: boolean }",
       "doc": "Options for a new tab. Only `private` is read by main today."
@@ -688,6 +684,17 @@
         "symbol": {
           "type": "string",
           "optional": true
+        }
+      }
+    },
+    "WorkspaceActionEvent": {
+      "doc": "A space row's right-click choice, run by the open Spaces menu.",
+      "fields": {
+        "kind": {
+          "type": "'edit' | 'delete'"
+        },
+        "id": {
+          "type": "WorkspaceId"
         }
       }
     },
@@ -2256,24 +2263,6 @@
       "doc": "Create and open an empty Named Workspace."
     },
     {
-      "name": "renameWorkspace",
-      "group": "workspaces",
-      "kind": "invoke",
-      "channel": "chrome:workspaces-rename",
-      "params": [
-        {
-          "name": "id",
-          "type": "WorkspaceId"
-        },
-        {
-          "name": "name",
-          "type": "string"
-        }
-      ],
-      "returns": "WorkspaceActionResult",
-      "doc": "Rename a Named Workspace."
-    },
-    {
       "name": "removeWorkspace",
       "group": "workspaces",
       "kind": "invoke",
@@ -2314,24 +2303,6 @@
       ],
       "returns": "WorkspaceActionResult",
       "doc": "Make a workspace deletion permanent."
-    },
-    {
-      "name": "moveWorkspace",
-      "group": "workspaces",
-      "kind": "invoke",
-      "channel": "chrome:workspaces-move",
-      "params": [
-        {
-          "name": "id",
-          "type": "WorkspaceId"
-        },
-        {
-          "name": "direction",
-          "type": "WorkspaceMoveDirection"
-        }
-      ],
-      "returns": "WorkspaceActionResult",
-      "doc": "Move a workspace up or down in the list."
     },
     {
       "name": "updateWorkspace",
@@ -2413,6 +2384,14 @@
       "channel": "chrome:workspaces-updated",
       "payload": "WorkspacesPayload",
       "doc": "Named Workspaces changed."
+    },
+    {
+      "name": "onWorkspaceAction",
+      "group": "workspaces",
+      "kind": "event",
+      "channel": "overlay:workspace-action",
+      "payload": "WorkspaceActionEvent",
+      "doc": "Run a space row's right-click choice in the open Spaces menu."
     },
     {
       "name": "clearHistory",

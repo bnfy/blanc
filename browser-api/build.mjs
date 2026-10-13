@@ -1093,7 +1093,7 @@ export function checkWorkspaceCodes(contract, rawSources = mainSources()) {
   for (const name of WORKSPACE_FUNCTIONS) texts.push([`main.js ${name}()`, functionBody(main, name)]);
   const adapterAt = main.indexOf('createWorkspaceController({');
   if (adapterAt >= 0) texts.push(['main.js controller adapter', balanced(main, main.indexOf('{', adapterAt))]);
-  for (const channel of ['chrome:workspaces-save-as', 'chrome:workspaces-open', 'chrome:workspaces-create-blank', 'chrome:workspaces-rename', 'chrome:workspaces-remove', 'chrome:workspaces-update', 'chrome:workspaces-undo-remove']) {
+  for (const channel of ['chrome:workspaces-save-as', 'chrome:workspaces-open', 'chrome:workspaces-create-blank', 'chrome:workspaces-remove', 'chrome:workspaces-update', 'chrome:workspaces-undo-remove']) {
     const h = handlerExpression(main, channel);
     if (h?.block) texts.push([`main.js ${channel} handler`, h.block]);
   }

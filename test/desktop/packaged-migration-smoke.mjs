@@ -266,7 +266,7 @@ try {
   chrome = app.pages().find(isChromePage);
   const refused = await chrome.evaluate(async () => ({
     list: await window.browserAPI.listWorkspaces(),
-    rename: await window.browserAPI.renameWorkspace('migration_workspace', 'Do not rewrite'),
+    rename: await window.browserAPI.updateWorkspace('migration_workspace', { name: 'Do not rewrite' }),
     remove: await window.browserAPI.removeWorkspace('migration_workspace'),
   }));
   assert.equal(refused.list.status, 'future-format');

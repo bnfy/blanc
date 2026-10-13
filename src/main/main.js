@@ -7175,19 +7175,16 @@ function broadcastWorkspacesUpdated() {
   }, { liveOnly: true });
 }
 
-// Native context menus open the same workspace action state as the visible
-// row management buttons. A stale target is handled by the renderer.
-function beginRenameWorkspace(workspaceId) {
-  showOverlay('panel', { purpose: { renameWorkspaceId: workspaceId } });
-}
-function beginDeleteWorkspace(workspaceId) {
-  showOverlay('panel', { purpose: { deleteWorkspaceId: workspaceId } });
+/** A row's right-click choice runs in the Spaces menu that is already open. */
+function sendWorkspaceAction(kind, workspaceId) {
+  const wc = rt().overlayView?.webContents;
+  if (wc && !wc.isDestroyed()) wc.send('overlay:workspace-action', { kind, id: workspaceId });
 }
 function workspaceMenuContextActions(owner) {
   const b = (fn) => bindWindowRuntime(owner, fn);
   return {
-    rename: b((id) => beginRenameWorkspace(id)),
-    remove: b((id) => beginDeleteWorkspace(id)),
+    edit: b((id) => sendWorkspaceAction('edit', id)),
+    remove: b((id) => sendWorkspaceAction('delete', id)),
   };
 }
 
@@ -7646,12 +7643,6 @@ function registerIpcHandlers() {
     broadcastWorkspacesUpdated();
     return { ...result, ...workspacesProjection() };
   });
-  chromeHandle('chrome:workspaces-rename', (_e, id, name) => {
-    const result = namedWorkspaces.update(id, { name });
-    if (!result.ok) return result; // {ok:false, error:'not-found'|'invalid-name'|'duplicate-name'}
-    broadcastWorkspacesUpdated();
-    return { ok: true, ...workspacesProjection() };
-  });
   chromeHandle('chrome:workspaces-remove', (_e, id) => {
     const result = removeNamedWorkspace(id);
     if (!result.ok) return result; // {ok:false, error:'not-found'}
@@ -7678,10 +7669,6 @@ function registerIpcHandlers() {
   for (const [channel, operation] of [
     ['chrome:workspaces-restore', (id) => namedWorkspaces.restore(id)],
     ['chrome:workspaces-forget', (id) => namedWorkspaces.forget(id)],
-    ['chrome:workspaces-move', (id, direction) => {
-      const index = namedWorkspaces.list().findIndex((w) => w.id === id);
-      return namedWorkspaces.moveTo(id, index + (direction === 'up' ? -1 : 1));
-    }],
     ['chrome:workspaces-move-to', (id, index) => namedWorkspaces.moveTo(id, Number.isInteger(index) ? index : -1)],
   ]) {
     chromeHandle(channel, (_event, ...args) => {

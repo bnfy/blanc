@@ -3048,74 +3048,6 @@
         }
       ]
     },
-    "renameWorkspace": {
-      "kind": "invoke",
-      "platforms": [
-        "darwin",
-        "win32",
-        "linux"
-      ],
-      "channel": "chrome:workspaces-rename",
-      "calls": [
-        {
-          "label": "typical",
-          "args": [
-            "workspace-id-1",
-            "example"
-          ],
-          "sends": [
-            {
-              "kind": "invoke",
-              "channel": "chrome:workspaces-rename",
-              "args": [
-                "workspace-id-1",
-                "example"
-              ]
-            }
-          ]
-        }
-      ],
-      "replies": [
-        {
-          "ok": true
-        },
-        {
-          "ok": true,
-          "error": "activation-failed",
-          "cause": "activation-failed",
-          "reason": "permission-or-transition",
-          "tabCount": 1,
-          "privateCount": 1,
-          "decision": "workspace-action-result-1",
-          "action": "swap",
-          "windowId": "workspace-action-result-1",
-          "workspaceId": "workspace-id-1",
-          "status": "saved",
-          "deleted": [
-            {
-              "id": "workspace-id-1",
-              "name": "deleted-workspace-1",
-              "deletedAt": 1
-            }
-          ],
-          "items": [
-            {
-              "id": "workspace-id-1",
-              "name": "workspace-list-item-1",
-              "active": true,
-              "openElsewhere": true,
-              "resident": true,
-              "revision": 1,
-              "tabCount": 1,
-              "color": "workspace-list-item-1",
-              "symbol": "workspace-list-item-1"
-            }
-          ],
-          "windowTabCount": 1,
-          "tint": "mark"
-        }
-      ]
-    },
     "removeWorkspace": {
       "kind": "invoke",
       "platforms": [
@@ -3268,91 +3200,6 @@
               "channel": "chrome:workspaces-forget",
               "args": [
                 "workspace-id-1"
-              ]
-            }
-          ]
-        }
-      ],
-      "replies": [
-        {
-          "ok": true
-        },
-        {
-          "ok": true,
-          "error": "activation-failed",
-          "cause": "activation-failed",
-          "reason": "permission-or-transition",
-          "tabCount": 1,
-          "privateCount": 1,
-          "decision": "workspace-action-result-1",
-          "action": "swap",
-          "windowId": "workspace-action-result-1",
-          "workspaceId": "workspace-id-1",
-          "status": "saved",
-          "deleted": [
-            {
-              "id": "workspace-id-1",
-              "name": "deleted-workspace-1",
-              "deletedAt": 1
-            }
-          ],
-          "items": [
-            {
-              "id": "workspace-id-1",
-              "name": "workspace-list-item-1",
-              "active": true,
-              "openElsewhere": true,
-              "resident": true,
-              "revision": 1,
-              "tabCount": 1,
-              "color": "workspace-list-item-1",
-              "symbol": "workspace-list-item-1"
-            }
-          ],
-          "windowTabCount": 1,
-          "tint": "mark"
-        }
-      ]
-    },
-    "moveWorkspace": {
-      "kind": "invoke",
-      "platforms": [
-        "darwin",
-        "win32",
-        "linux"
-      ],
-      "channel": "chrome:workspaces-move",
-      "calls": [
-        {
-          "label": "typical",
-          "args": [
-            "workspace-id-1",
-            "up"
-          ],
-          "sends": [
-            {
-              "kind": "invoke",
-              "channel": "chrome:workspaces-move",
-              "args": [
-                "workspace-id-1",
-                "up"
-              ]
-            }
-          ]
-        },
-        {
-          "label": "direction = \"down\"",
-          "args": [
-            "workspace-id-1",
-            "down"
-          ],
-          "sends": [
-            {
-              "kind": "invoke",
-              "channel": "chrome:workspaces-move",
-              "args": [
-                "workspace-id-1",
-                "down"
               ]
             }
           ]
@@ -3826,6 +3673,33 @@
                 ],
                 "windowTabCount": 1,
                 "tint": "mark"
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    "onWorkspaceAction": {
+      "kind": "event",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "overlay:workspace-action",
+      "deliveries": [
+        {
+          "emit": [
+            {
+              "kind": "edit",
+              "id": "workspace-id-1"
+            }
+          ],
+          "callbacks": [
+            [
+              {
+                "kind": "edit",
+                "id": "workspace-id-1"
               }
             ]
           ]

@@ -38,9 +38,6 @@ export type TabLayout = 'island' | 'vertical';
 /** Appearance preference. */
 export type ThemePreference = 'system' | 'light' | 'dark';
 
-/** Direction for reordering a workspace. */
-export type WorkspaceMoveDirection = 'up' | 'down';
-
 /** Options for a new tab. Only `private` is read by main today. */
 export type CreateTabOptions = { private?: boolean };
 
@@ -329,6 +326,12 @@ export interface WorkspacePatch {
   name?: string;
   color?: string;
   symbol?: string;
+}
+
+/** A space row's right-click choice, run by the open Spaces menu. */
+export interface WorkspaceActionEvent {
+  kind: 'edit' | 'delete';
+  id: WorkspaceId;
 }
 
 /** A Named Workspace row. */
@@ -999,11 +1002,6 @@ export interface BlancBrowserAPI {
    */
   createBlankWorkspace(name: string, opts?: OpenWorkspaceOptions): Promise<WorkspaceActionResult>;
   /**
-   * Rename a Named Workspace.
-   * IPC: invoke `chrome:workspaces-rename`.
-   */
-  renameWorkspace(id: WorkspaceId, name: string): Promise<WorkspaceActionResult>;
-  /**
    * Delete a Named Workspace (undoable).
    * IPC: invoke `chrome:workspaces-remove`.
    */
@@ -1018,11 +1016,6 @@ export interface BlancBrowserAPI {
    * IPC: invoke `chrome:workspaces-forget`.
    */
   forgetWorkspace(id: WorkspaceId): Promise<WorkspaceActionResult>;
-  /**
-   * Move a workspace up or down in the list.
-   * IPC: invoke `chrome:workspaces-move`.
-   */
-  moveWorkspace(id: WorkspaceId, direction: WorkspaceMoveDirection): Promise<WorkspaceActionResult>;
   /**
    * Rename, recolour or change the symbol of a space.
    * IPC: invoke `chrome:workspaces-update`.
@@ -1053,6 +1046,11 @@ export interface BlancBrowserAPI {
    * IPC: event `chrome:workspaces-updated`.
    */
   onWorkspacesUpdated(callback: (payload: WorkspacesPayload) => void): () => void;
+  /**
+   * Run a space row's right-click choice in the open Spaces menu.
+   * IPC: event `overlay:workspace-action`.
+   */
+  onWorkspaceAction(callback: (payload: WorkspaceActionEvent) => void): () => void;
   /**
    * Clear browsing history.
    * IPC: invoke `chrome:history-clear`.

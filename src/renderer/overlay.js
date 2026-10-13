@@ -80,12 +80,9 @@
   const footerNewTab = document.getElementById('footerNewTab');
   const footerNewPrivate = document.getElementById('footerNewPrivate');
   const footerWorkspace = document.getElementById('footerWorkspace');
-  const footerWorkspaceLabel = document.getElementById('footerWorkspaceLabel');
   const workspaceSwitcher = document.getElementById('workspaceSwitcher');
   const workspaceSwitcherList = document.getElementById('workspaceSwitcherList');
   const wsSwitcherSep = document.getElementById('wsSwitcherSep');
-  const wsSwitcherNew = document.getElementById('wsSwitcherNew');
-  const wsSwitcherSaveAs = document.getElementById('wsSwitcherSaveAs');
   const footerFavorites = document.getElementById('footerFavorites');
   const footerHistory = document.getElementById('footerHistory');
   const footerDownloads = document.getElementById('footerDownloads');
@@ -184,9 +181,19 @@
   const workspaceUI = WorkspaceUI.create({
     document, window, api: window.browserAPI,
     popup: workspaceSwitcher, list: workspaceSwitcherList,
-    trigger: footerWorkspace, label: footerWorkspaceLabel,
+    commands: document.getElementById('workspaceSwitcherCommands'),
+    trigger: footerWorkspace,
     feedback: document.getElementById('workspaceFeedback'),
-    onOpenChange(open) { workspaceSwitcherOpen = open; window.browserAPI.setWorkspaceSwitcherOpen(open); },
+    // Task 9 moves this into a shared spaceTheme() for the Quick Switcher too.
+    theme: () => (document.documentElement.dataset.theme === 'private' ? 'private'
+      : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'),
+    placement: () => (mode === 'spaces' ? 'view' : 'anchored'),
+    onOpenChange(open) {
+      workspaceSwitcherOpen = open; window.browserAPI.setWorkspaceSwitcherOpen(open);
+      // Opened from the Island's space mark the menu is the whole overlay, so
+      // closing it closes the overlay and focus returns to the mark.
+      if (!open && mode === 'spaces') window.browserAPI.closeOverlay('cancel');
+    },
   });
 
   // --- Drag to reorder (tab-drag.js; spec 2026-10-07) ---
@@ -817,8 +824,6 @@
   function paintWorkspaceSwitcher() { workspaceUI.render(); }
   function openWorkspaceSwitcher() { workspaceUI.open(); }
   function toggleWorkspaceSwitcher() { workspaceUI.toggle(); }
-  function beginCreateWorkspace() { workspaceUI.begin('create'); }
-  function beginSaveWorkspace() { workspaceUI.begin('save'); }
   function switchToWorkspace(workspace) { workspaceUI.switchTo(workspace); }
 
   // --- Remote devices (tab sync) ---
@@ -1784,9 +1789,8 @@
       // confirm state, replacing whatever the last one was. Editors open
       // inside the footer popover.
       if (purpose && typeof purpose === 'object') {
-        if (purpose.renameWorkspaceId) workspaceUI.begin('rename', wsWorkspaces.find((w) => w.id === purpose.renameWorkspaceId));
-        if (purpose.deleteWorkspaceId) workspaceUI.begin('delete', wsWorkspaces.find((w) => w.id === purpose.deleteWorkspaceId));
-        if (purpose.postImportWorkspace) { pendingPostImportWorkspacePrompt = true; workspaceUI.begin('save'); }
+        if (purpose.postImportWorkspace) { pendingPostImportWorkspacePrompt = true; workspaceUI.begin('new', null, { start: 'window' }); }
+        if (purpose.openSpaces) openWorkspaceSwitcher();
       }
       if (prefill) {
         // A menu-triggered command (e.g. "New Group…") arrives pre-typed —
@@ -2433,8 +2437,6 @@
     e.stopPropagation();
     toggleWorkspaceSwitcher();
   });
-  wsSwitcherNew.addEventListener('click', () => beginCreateWorkspace());
-  wsSwitcherSaveAs.addEventListener('click', () => beginSaveWorkspace());
   // Click outside the popover (and outside its trigger) dismisses it without
   // collapsing the island — backdrop/list clicks still reach their handlers.
   document.addEventListener('mousedown', (e) => {
@@ -2629,6 +2631,11 @@
   window.browserAPI.onWorkspacesUpdated((payload) => {
     applyWorkspacesPayload(payload);
     if (mode === 'panel' || mode === 'palette') renderList();
+  });
+  // A space row's right-click choice (main's native menu) runs in this menu.
+  window.browserAPI.onWorkspaceAction(({ kind, id }) => {
+    const workspace = wsWorkspaces.find((w) => w.id === id);
+    if (workspace && (kind === 'edit' || kind === 'delete')) workspaceUI.begin(kind, workspace);
   });
   window.browserAPI.getAllTabs().then((payload) => {
     state = payload;

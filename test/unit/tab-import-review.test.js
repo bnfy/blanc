@@ -132,7 +132,7 @@ test('apply consequence copy pluralizes its exact tab and group counts', () => {
 
 test('post-import workspace handoff enters the shared workspace UI, with no Patron gate', () => {
   assert.match(overlaySource, /purpose\.postImportWorkspace/);
-  assert.match(overlaySource, /workspaceUI\.begin\('save'\)/);
+  assert.match(overlaySource, /workspaceUI\.begin\('new', null, \{ start: 'window' \}\)/);
   const uiSource = fs.readFileSync(path.join(__dirname, '../../src/renderer/workspace-ui.js'), 'utf8');
   assert.doesNotMatch(uiSource, /patronActive/);
   assert.doesNotMatch(uiSource, /buy\.polar|checkout/i);

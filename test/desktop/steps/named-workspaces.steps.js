@@ -69,17 +69,15 @@ Given('two named workspaces for editing', async function () {
 When('I rename one workspace to the other workspace name', async function () {
   await openOverlaySurface(this, 'openPanel', 'panel'); const page = await overlayPage();
   await page.click('#footerWorkspace');
-  await page.getByRole('button', { name: 'Manage First workspace', exact: true }).click();
-  await page.getByRole('button', { name: 'Rename', exact: true }).click();
+  await page.getByRole('button', { name: 'Edit First workspace', exact: true }).click();
   await page.fill('#workspaceName', 'Second workspace');
   await page.locator('#workspaceName').evaluate((input) => input.setSelectionRange(2, 6));
-  await page.getByRole('button', { name: 'Save', exact: true }).click();
 });
 Then('the name and validation error stay visible in the workspace editor', async function () {
   const page = await overlayPage(); await page.waitForFunction(() => document.getElementById('workspaceEditorError')?.textContent.includes('already in use'));
   assert.equal(await page.inputValue('#workspaceName'), 'Second workspace'); assert.equal(await page.getAttribute('#workspaceName', 'aria-invalid'), 'true');
   assert.deepEqual(await page.locator('#workspaceName').evaluate((input) => ({ focused: input === document.activeElement, start: input.selectionStart, end: input.selectionEnd })), { focused: true, start: 2, end: 6 });
-  assert.equal(await page.isVisible('#wsSwitcherNew'), false);
+  assert.equal(await page.isVisible('[data-focus-key="new"]'), false);
   await evidence(page, 'rename-validation');
 });
 When('I try switching with a private page and type a slash query', async function () {
@@ -88,13 +86,13 @@ When('I try switching with a private page and type a slash query', async functio
   await this.waitForState((s) => s.tabs.some((t) => t.private && t.title === 'workspace-private' && !t.isLoading));
   await openOverlaySurface(this, 'openPanel', 'panel'); const page = await overlayPage(); await page.click('#footerWorkspace');
   await page.getByRole('button', { name: /Draft workspace · Open space/ }).click();
-  await page.waitForSelector('.ws-switcher-confirm'); await page.fill('#addressInput', '/settings');
+  await page.waitForSelector('.ws-decision'); await page.fill('#addressInput', '/settings');
 });
 Then('the private switch decision remains visible', async function () {
-  const page = await overlayPage(); assert.equal(await page.isVisible('.ws-switcher-confirm'), true);
-  assert.ok((await page.textContent('.ws-switcher-confirm')).includes('private'));
+  const page = await overlayPage(); assert.equal(await page.isVisible('.ws-decision'), true);
+  assert.ok((await page.textContent('.ws-decision')).includes('private'));
   await page.locator('#backdrop').click({ position: { x: 4, y: 4 } });
-  assert.equal(await page.isVisible('.ws-switcher-confirm'), true, 'outside clicks must not bypass the explicit workspace decision');
+  assert.equal(await page.isVisible('.ws-decision'), true, 'outside clicks must not bypass the explicit workspace decision');
   await evidence(page, 'private-decision-search');
 });
 When('I close its ordinary pages leaving only a private page', async function () {
@@ -159,16 +157,17 @@ Then('the workspace list scrolls while creation controls remain visible', async 
     const geometry = await page.evaluate(() => {
       const footer = document.getElementById('islandFooter').getBoundingClientRect();
       const rects = [...document.querySelectorAll('#islandFooter button')].map((button) => ({ id: button.id, rect: button.getBoundingClientRect().toJSON() }));
-      const label = document.getElementById('footerWorkspaceLabel');
-      return { viewport: { width: innerWidth, height: innerHeight }, footer: footer.toJSON(), rects, labelRect: label.getBoundingClientRect().toJSON(), labelWidth: label.getBoundingClientRect().width, truncated: label.scrollWidth > label.clientWidth };
+      const spaces = document.getElementById('footerWorkspace');
+      return { viewport: { width: innerWidth, height: innerHeight }, footer: footer.toJSON(), rects, spacesText: spaces.textContent.trim(), spacesTitle: spaces.title };
     });
-    assert.ok(geometry.truncated, 'long footer name should truncate instead of consuming the toolbar');
+    // The Spaces button is icon-only: a long name lives in its tooltip.
+    assert.equal(geometry.spacesText, '', 'the footer shows no space name');
+    assert.match(geometry.spacesTitle, /A long research workspace name/);
     assert.ok(geometry.footer.left >= -1 && geometry.footer.right <= geometry.viewport.width + 1, 'footer must stay inside the viewport');
     assert.ok(geometry.footer.top >= -1 && geometry.footer.bottom <= geometry.viewport.height + 1, 'footer controls must remain visible vertically');
-    assert.ok(geometry.labelWidth < 100, 'footer title must keep its compact width');
     const workspace = geometry.rects.find((entry) => entry.id === 'footerWorkspace').rect;
-    assert.ok(workspace.width > 28, 'named workspace must use the existing name-bearing button geometry');
-    assert.ok(geometry.labelRect.left >= workspace.left && geometry.labelRect.right <= workspace.right, 'workspace title must stay inside its button');
+    const favorites = geometry.rects.find((entry) => entry.id === 'footerFavorites').rect;
+    assert.ok(Math.abs(workspace.width - favorites.width) <= 1, 'the Spaces button is the size of the other footer buttons');
     for (const { id, rect } of geometry.rects) {
       assert.ok(rect.left >= geometry.footer.left - 1 && rect.right <= geometry.footer.right + 1, `${id} must fit inside the footer: ${JSON.stringify(geometry)}`);
       assert.ok(rect.top >= geometry.footer.top - 1 && rect.bottom <= geometry.footer.bottom + 1, `${id} must fit vertically`);
@@ -184,9 +183,9 @@ Then('the workspace list scrolls while creation controls remain visible', async 
   await page.click('#footerWorkspace');
   const geometry = await page.evaluate(() => {
     const list = document.getElementById('workspaceSwitcherList'); const popup = document.getElementById('workspaceSwitcher').getBoundingClientRect();
-    const create = document.getElementById('wsSwitcherNew').getBoundingClientRect();
+    const create = document.querySelector('[data-focus-key="new"]').getBoundingClientRect();
     list.scrollTop = list.scrollHeight;
-    return { scroll: list.scrollHeight > list.clientHeight, popupTop: popup.top, popupBottom: popup.bottom, createBottom: create.bottom, height: innerHeight, rows: list.querySelectorAll('.ws-managed-row').length };
+    return { scroll: list.scrollHeight > list.clientHeight, popupTop: popup.top, popupBottom: popup.bottom, createBottom: create.bottom, height: innerHeight, rows: list.querySelectorAll('.ws-row').length };
   });
   assert.equal(geometry.rows, 25); assert.equal(geometry.scroll, true); assert.ok(geometry.popupTop >= 0 && geometry.popupBottom <= geometry.height); assert.ok(geometry.createBottom <= geometry.height);
   await evidence(page, 'long-workspace-list');
@@ -203,7 +202,7 @@ Then('the workspace list scrolls while creation controls remain visible', async 
     const bounds = await this.call('overlayBounds');
     const value = await page.evaluate(() => {
       const popup = document.getElementById('workspaceSwitcher').getBoundingClientRect();
-      const button = document.getElementById('wsSwitcherNew').getBoundingClientRect();
+      const button = document.querySelector('[data-focus-key="new"]').getBoundingClientRect();
       return { top: popup.top, bottom: popup.bottom, left: popup.left, right: popup.right, width: innerWidth, height: innerHeight, buttonBottom: button.bottom, buttonHeight: button.height };
     });
     return { ...value, nativeWidth: bounds.width, nativeHeight: bounds.height };
@@ -280,9 +279,10 @@ When('I explicitly close a private page while switching and return', async funct
 When('I save this window as a space named {string} from the switcher', async function (name) {
   await openOverlaySurface(this, 'openPanel', 'panel'); const page = await overlayPage();
   await page.click('#footerWorkspace');
-  await page.click('#wsSwitcherSaveAs');
+  await page.click('[data-focus-key="new"]');
+  await page.click('[data-focus-key="start:window"]');
   await page.fill('#workspaceName', name);
-  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await page.getByRole('button', { name: 'Create space', exact: true }).click();
 });
 Then('a space named {string} is saved and this window is in it', async function (name) {
   const data = await waitForValue(() => this.call('workspaceAction', 'list'), (d) => d.items.some((w) => w.name === name), `space ${name}`);

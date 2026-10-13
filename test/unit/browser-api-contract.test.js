@@ -311,13 +311,13 @@ test('a new protection reason is reported', () => {
 test('a workspace result spread that drifts from its type is reported', () => {
   const problems = api.checkInvokeResults(api.loadContract(),
     sendSources('    status: namedWorkspaces.status(),\n', '    status: namedWorkspaces.status(),\n    plan: settings.plan,\n'));
-  assert.ok(problems.some((p) => p.includes('renameWorkspace result') && p.includes('plan')), problems.join('\n'));
+  assert.ok(problems.some((p) => p.includes('updateWorkspace result') && p.includes('plan')), problems.join('\n'));
 });
 
 test('a handler-table workspace action is resolved and checked', () => {
   const problems = api.checkInvokeResults(api.loadContract(),
     sendSources("      return { ok: true, ...workspacesProjection() };\n    });\n  }", "      return { ok: true, moved: true, ...workspacesProjection() };\n    });\n  }"));
-  assert.ok(problems.some((p) => p.includes('moveWorkspace result') && p.includes('moved')), problems.join('\n'));
+  assert.ok(problems.some((p) => p.includes('restoreWorkspace result') && p.includes('moved')), problems.join('\n'));
 });
 
 test('controller fixtures reject an error code the contract does not list', () => {

@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-108 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
+107 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -81,17 +81,16 @@
 | `saveWorkspaceAs` | workspaces | invoke | `chrome:workspaces-save-as` | `(name: string, identity?: SpaceIdentityInput) => Promise<WorkspaceActionResult>` | all |
 | `openWorkspace` | workspaces | invoke | `chrome:workspaces-open` | `(id: WorkspaceId, opts?: OpenWorkspaceOptions) => Promise<WorkspaceActionResult>` | all |
 | `createBlankWorkspace` | workspaces | invoke | `chrome:workspaces-create-blank` | `(name: string, opts?: OpenWorkspaceOptions) => Promise<WorkspaceActionResult>` | all |
-| `renameWorkspace` | workspaces | invoke | `chrome:workspaces-rename` | `(id: WorkspaceId, name: string) => Promise<WorkspaceActionResult>` | all |
 | `removeWorkspace` | workspaces | invoke | `chrome:workspaces-remove` | `(id: WorkspaceId) => Promise<WorkspaceActionResult>` | all |
 | `restoreWorkspace` | workspaces | invoke | `chrome:workspaces-restore` | `(id: WorkspaceId) => Promise<WorkspaceActionResult>` | all |
 | `forgetWorkspace` | workspaces | invoke | `chrome:workspaces-forget` | `(id: WorkspaceId) => Promise<WorkspaceActionResult>` | all |
-| `moveWorkspace` | workspaces | invoke | `chrome:workspaces-move` | `(id: WorkspaceId, direction: WorkspaceMoveDirection) => Promise<WorkspaceActionResult>` | all |
 | `updateWorkspace` | workspaces | invoke | `chrome:workspaces-update` | `(id: WorkspaceId, patch: WorkspacePatch) => Promise<WorkspaceActionResult>` | all |
 | `moveWorkspaceTo` | workspaces | invoke | `chrome:workspaces-move-to` | `(id: WorkspaceId, index: number) => Promise<WorkspaceActionResult>` | all |
 | `undoRemoveWorkspace` | workspaces | invoke | `chrome:workspaces-undo-remove` | `(id: WorkspaceId) => Promise<WorkspaceActionResult>` | all |
 | `searchSuggestions` | search | invoke | `chrome:search-suggestions` | `(query: string) => Promise<SearchSuggestions>` | all |
 | `onRemoteTabsUpdated` | sync | event | `chrome:remote-tabs-updated` | `(payload: RemoteDevice[]) => void` | all |
 | `onWorkspacesUpdated` | workspaces | event | `chrome:workspaces-updated` | `(payload: WorkspacesPayload) => void` | all |
+| `onWorkspaceAction` | workspaces | event | `overlay:workspace-action` | `(payload: WorkspaceActionEvent) => void` | all |
 | `clearHistory` | history | invoke | `chrome:history-clear` | `() => Promise<void>` | all |
 | `toggleAdblock` | blocking | invoke | `chrome:adblock-toggle` | `() => Promise<ProviderBlockAdsResult \| BlockAdsResult>` | all |
 | `allowAdsOnActiveSite` | blocking | invoke | `chrome:adblock-exempt-active` | `() => Promise<string \| null \| AllowAdsError>` | all |
@@ -188,12 +187,6 @@ Tab presentation; main ignores other values.
 Appearance preference.
 
 `'system' \| 'light' \| 'dark'`
-
-### `WorkspaceMoveDirection`
-
-Direction for reordering a workspace.
-
-`'up' \| 'down'`
 
 ### `CreateTabOptions`
 
@@ -552,6 +545,15 @@ An edit to one space: any subset of name, colour and symbol.
 | `name?` | `string` |  |
 | `color?` | `string` |  |
 | `symbol?` | `string` |  |
+
+### `WorkspaceActionEvent`
+
+A space row's right-click choice, run by the open Spaces menu.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `kind` | `'edit' \| 'delete'` |  |
+| `id` | `WorkspaceId` |  |
 
 ### `WorkspaceListItem`
 

@@ -38,7 +38,7 @@ feedback.
 | D6 | Deleting | **Immediate, with Undo** — no confirmation dialog. |
 | D7 | Creating | **One "New space…" command** with a "Start with: This window / Empty" choice, replacing "New empty space" and "Save this window as…". |
 | D8 | Colour choice | **Any colour**: 8 presets plus a custom picker with a hex field. |
-| D9 | Before the first space | **Nothing on the pill.** Entry is the labelled ⌘L footer button, ⌘L search, `/space`, and the start-page checklist. |
+| D9 | Before the first space | **Nothing on the pill.** Entry is the ⌘L footer's Spaces button, ⌘L search, `/space`, and the start-page checklist. |
 | D10 | Approach | **A new `spaces` overlay mode anchored to the mark**, sharing one menu component with the ⌘L footer entry (like the shield and capture popovers). |
 | D11 | Delivery | **PR 1:** free Spaces. **PR 2:** the redesign. **Site PR after release** (claims must be release-backed). |
 | D12 | Row highlights | Adjacent filled rows (selected + hovered) **never touch**; rows carry a 3px gap. |
@@ -46,6 +46,8 @@ feedback.
 | D14 | Undo after deleting this window's space | **Rebinds the window** to the restored space (conditions in §7). Restore from Recently deleted keeps today's record-only behaviour. |
 | D15 | File format version | **Stays 2.** Older builds keep working Spaces after a downgrade and strip only colour and symbol. |
 | D16 | Checklist task for people whose checklist already retired | **Stays retired.** Only a checklist still showing gains the task. |
+| D17 | The ⌘L footer's Spaces button (owner, during PR 2) | **Icon only, no name.** The footer has too little room before a name truncates; the bound space's name is in the button's tooltip and accessible name, and its fill still shows the window is in a space. |
+| D18 | Where the menu opens from ⌘L (owner, during PR 2) | **Below the Island, never over it.** The menu hangs from the panel's bottom edge, right-aligned to the button, and scrolls within the room there; only a window too short for a few rows below opens it upward. |
 
 Decided during design, not asked: once at least one space exists, a window that
 is not in a space shows a **neutral grey mark** (glyph, no name), keeping the
@@ -252,9 +254,10 @@ The Spaces menu is one component in the overlay document (the evolved
   shadow and the opening scale (shadows are otherwise clipped by view bounds),
   and attaches it. It dismisses like the panel: Escape, a click outside, overlay
   blur, tab switch, a space switch, or summoning ⌘L.
-- **From the ⌘L panel:** the footer button now shows a visible **Spaces** label
-  (plus the bound space's identity when there is one) and opens the same menu
-  above the button inside the panel, as today.
+- **From the ⌘L panel:** the footer's Spaces button stays icon-only (D17) and
+  opens the same menu below the Island, hanging from the panel's bottom edge
+  (D18). (Amended during PR 2: the first build put a name on the button and
+  opened the menu above it, over the Island.)
 
 `/space` (and `/workspace`) open the menu; `/space <name>` keeps its
 switch-or-create behaviour. The Quick Switcher matches space names, ranked with
