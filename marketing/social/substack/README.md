@@ -96,7 +96,7 @@ subscribers, single posts prove little; look for a trend over the month.
 
 | # | Piece | Type | Target | File | Status |
 | --- | --- | --- | --- | --- | --- |
-| 0 | Profile and publication refresh | Profile | This week | [`profile-2026-10-13.md`](profile-2026-10-13.md) | Draft for review |
+| 0 | Profile and publication refresh | Profile | This week | [`profile-2026-10-13.md`](profile-2026-10-13.md) | Live October 13 |
 | 1 | Leaving Arc? Bring your Spaces with you. (v1.32) | Release | This week | [`v1.32-release-post.md`](v1.32-release-post.md) | Draft for review |
 | 2 | Week-one Notes | Notes | This week | [`notes-week-1.md`](notes-week-1.md) | Draft for review |
 | 3 | Your software's business model is part of the software | Essay | Week of Oct 19 | Refresh of [`../substack-article-business-model-draft-2026-08-30.md`](../substack-article-business-model-draft-2026-08-30.md) | To write |
