@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blanc Spaces prototype</title>
+<!-- Reference prototype for docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md.
+     Throwaway brainstorming code, not product code: it demonstrates the mark, the
+     menu, switch motion, the editor, the custom colour picker and the readability
+     guard. The real implementation follows the spec, not this file. -->
+<style>
+  body { margin: 0; padding: 32px; background: #f5f5f7; color: #1d1d1f; font-family: Inter, -apple-system, system-ui, sans-serif; }
+  .doc { max-width: 900px; margin: 0 auto; }
+  h2 { font-size: 1.5rem; font-weight: 600; margin: 0 0 .5rem; }
+  .subtitle { color: #6e6e73; margin: 0 0 1.5rem; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="doc">
+<style>
+  @property --ink  { syntax: '<color>'; inherits: true; initial-value: #5f8a68; }
+  @property --wash { syntax: '<color>'; inherits: true; initial-value: rgba(95,138,104,.15); }
+  .pt { --paper:#fff; --surf:#f5f5f5; --ink0:#0e0e0e; --dim:#6b6b6b; --faint:#9a9a9a; --line:#e6e6e6;
+        font-family: Inter, -apple-system, system-ui, sans-serif; color: var(--ink0); }
+  .pt * { box-sizing: border-box; }
+  .pt button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+  .pt .ico { width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; flex:none; display:block; }
+  .pt .stage { position:relative; height:640px; border:1px solid var(--line); border-radius:12px; overflow:hidden;
+               background: linear-gradient(#fbfbfb, #f0f0f0); padding-top:14px; }
+  .pt .pill { position:relative; z-index:2; height:44px; width:max-content; margin:0 auto; border-radius:17px; display:flex; align-items:center; gap:10px; padding:0 12px 0 8px;
+              background:rgba(255,255,255,.96); border:1px solid rgba(14,14,14,.06); font-size:13px;
+              box-shadow: inset 0 1px 0 rgba(255,255,255,.72), 0 5px 18px -12px rgba(14,14,14,.24); }
+  .pt .mark { height:28px; border-radius:9px; display:flex; align-items:center; gap:6px; padding:0 9px 0 7px; overflow:hidden; white-space:nowrap;
+              color:var(--ink); background:var(--wash); font-weight:550; font-size:12.5px;
+              transition: --ink .35s ease, --wash .35s ease, box-shadow .2s ease; }
+  .pt .mark:active { transform: scale(.96); transition: transform .1s ease-out, --ink .35s, --wash .35s; }
+  .pt .mark.open { box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 40%, transparent); }
+  .pt .mark.none { --ink:#6b6b6b; --wash:rgba(14,14,14,.06); }
+  .pt .mark .sym, .pt .mark .nm { display:block; }
+  .pt .cluster { display:flex; align-items:center; gap:10px; }
+  .pt .muted { color:var(--faint); display:flex; gap:6px; }
+  .pt .dots { display:flex; gap:5px; } .pt .dots b { width:6px; height:6px; border-radius:50%; background:#c9c9c9; } .pt .dots b.on { background:var(--ink0); }
+  .pt .fav { width:16px; height:16px; border-radius:4px; background:#24292f; }
+  .pt .dom { min-width:110px; }
+  .pt .acts { color:#4a4a4a; display:flex; gap:12px; padding-left:10px; border-left:1px solid var(--line); }
+
+  .pt .menu { position:absolute; z-index:3; top:66px; width:300px; height:var(--h, auto); overflow:hidden;
+              background:var(--paper); border-radius:18px; border:1px solid rgba(14,14,14,.06);
+              box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 10px 44px -4px rgba(14,14,14,.16);
+              transform-origin: 22px -8px; opacity:0; transform: scale(.9) translateY(-6px); visibility:hidden; pointer-events:none;
+              transition: opacity .18s ease, transform .3s cubic-bezier(.2,.9,.25,1), visibility 0s linear .3s, height .32s cubic-bezier(.2,.9,.25,1); }
+  .pt .menu.open { opacity:1; transform:none; visibility:visible; pointer-events:auto;
+                   transition: opacity .14s ease, transform .34s cubic-bezier(.2,.9,.25,1), visibility 0s, height .32s cubic-bezier(.2,.9,.25,1); }
+  .pt .inner { padding:6px; }
+  .pt .row { display:flex; align-items:center; gap:10px; height:40px; padding:0 6px 0 6px; border-radius:11px; font-size:13.5px; width:100%; text-align:left; }
+  .pt .row + .row { margin-top:3px; }
+  .pt .row:hover, .pt .row:focus-visible { background:#f6f6f6; outline:none; }
+  .pt .row.on { background:var(--surf); }
+  .pt .row .nm { flex:1; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .pt .tile { width:28px; height:28px; border-radius:9px; display:grid; place-items:center; color:var(--ink); background:var(--wash); flex:none; }
+  .pt .count { font-size:12px; color:var(--dim); font-variant-numeric: tabular-nums; min-width:16px; text-align:right; }
+  .pt .check { width:14px; font-size:12px; }
+  .pt .more { width:26px; height:26px; border-radius:8px; display:grid; place-items:center; color:var(--dim); opacity:0; }
+  .pt .row:hover .more, .pt .more:focus-visible { opacity:1; }
+  .pt .row:hover .count { display:none; }
+  .pt .more:hover { background:#ebebeb; }
+  .pt .hr { height:1px; background:var(--line); margin:6px 8px; }
+  .pt .cmd { display:flex; align-items:center; gap:10px; height:36px; padding:0 8px 0 12px; border-radius:11px; font-size:13px; width:100%; text-align:left; }
+  .pt .cmd + .cmd { margin-top:3px; }
+  .pt .cmd:hover { background:#f6f6f6; }
+  .pt .cmd .ico { color:var(--dim); }
+  .pt .cmd .grow { flex:1; }
+  .pt .toast { display:flex; align-items:center; gap:10px; background:var(--surf); border-radius:11px; padding:6px 6px 6px 12px; margin:4px 2px 2px; font-size:12.5px; }
+  .pt .toast .grow { flex:1; color:var(--dim); } .pt .toast b { color:var(--ink0); font-weight:550; }
+
+  .pt .ed { padding:14px; }
+  .pt .ttl { display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600; margin-bottom:12px; }
+  .pt .back { color:var(--dim); width:22px; height:22px; display:grid; place-items:center; border-radius:7px; margin-left:-4px; }
+  .pt .back:hover { background:#f0f0f0; }
+  .pt .ident { display:flex; gap:10px; align-items:center; margin-bottom:6px; }
+  .pt .big { width:40px; height:40px; border-radius:12px; display:grid; place-items:center; color:var(--ink); background:var(--wash); flex:none; transition: --ink .25s, --wash .25s; }
+  .pt .big .ico { width:20px; height:20px; stroke-width:1.7; }
+  .pt .name { flex:1; height:36px; border-radius:10px; background:var(--surf); border:1px solid transparent; padding:0 11px; font:inherit; font-size:14px; color:var(--ink0); outline:none; }
+  .pt .name:focus { background:#fff; border-color:#cfcfcf; box-shadow:0 0 0 3px rgba(14,14,14,.05); }
+  .pt .name[aria-invalid="true"] { border-color:#c4372d; }
+  .pt .err { font-size:12px; color:#c4372d; margin:2px 2px 0 50px; min-height:16px; }
+  .pt .lbl { font-size:11.5px; font-weight:550; color:var(--dim); margin:8px 2px 7px; }
+  .pt .swatches { display:flex; gap:8px; margin:0 2px; align-items:center; }
+  .pt .sw { width:20px; height:20px; border-radius:50%; background:var(--sw); position:relative; flex:none; }
+  .pt .sw.on::after { content:''; position:absolute; inset:-4px; border-radius:50%; box-shadow:0 0 0 1.5px var(--sw); }
+  .pt .sw.custom { background: conic-gradient(#e5484d, #f5a524, #e2c932, #46a758, #0090ff, #8e4ec6, #e5484d); }
+  .pt .sw.custom.on::after { box-shadow:0 0 0 1.5px #888; }
+  .pt .picker { margin:12px 2px 0; }
+  .pt .sv { position:relative; height:118px; border-radius:10px; touch-action:none; cursor:crosshair;
+            background: linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, hsl(var(--hue), 100%, 50%)); }
+  .pt .knob { position:absolute; width:14px; height:14px; margin:-7px 0 0 -7px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px rgba(0,0,0,.25), 0 1px 3px rgba(0,0,0,.3);
+              left:var(--x); top:var(--y); background:var(--pick); pointer-events:none; }
+  .pt .hue { position:relative; height:12px; border-radius:999px; margin-top:10px; touch-action:none; cursor:pointer;
+             background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00); }
+  .pt .hue .knob { top:50%; left:var(--hx); background:hsl(var(--hue),100%,50%); }
+  .pt .hexrow { display:flex; align-items:center; gap:8px; margin-top:10px; }
+  .pt .hexrow span { font-size:11.5px; color:var(--dim); font-weight:550; }
+  .pt .hex { width:96px; height:28px; border-radius:8px; background:var(--surf); border:1px solid transparent; padding:0 8px; font:inherit; font-size:12.5px; font-variant-numeric: tabular-nums; outline:none; text-transform:uppercase; }
+  .pt .hex:focus { background:#fff; border-color:#cfcfcf; }
+  .pt .hex[aria-invalid="true"] { border-color:#c4372d; }
+  .pt .shown { font-size:11.5px; color:var(--dim); margin-top:7px; line-height:1.4; min-height:16px; }
+  .pt .shown i { display:inline-block; width:9px; height:9px; border-radius:50%; background:var(--shown); vertical-align:-1px; margin-right:3px; }
+  .pt .syms { display:grid; grid-template-columns: repeat(8, 1fr); gap:3px; }
+  .pt .sy { aspect-ratio:1; border-radius:8px; display:grid; place-items:center; color:#4a4a4a; }
+  .pt .sy:hover { background:#f2f2f2; }
+  .pt .sy.on { color:var(--ink); background:var(--wash); }
+  .pt .seg { display:grid; grid-template-columns:1fr 1fr; background:var(--surf); border-radius:10px; padding:2px; font-size:12.5px; }
+  .pt .seg button { text-align:center; padding:6px 4px; border-radius:8px; color:var(--dim); }
+  .pt .seg button.on { background:#fff; color:var(--ink0); font-weight:550; box-shadow:0 1px 2px rgba(14,14,14,.08); }
+  .pt .acts2 { display:flex; justify-content:flex-end; gap:8px; align-items:center; margin-top:14px; }
+  .pt .btn { height:30px; border-radius:999px; padding:0 14px; display:inline-flex; align-items:center; font-size:12.5px; font-weight:550; background:var(--surf); }
+  .pt .btn:hover { background:#ececec; }
+  .pt .btn.pri { background:var(--ink0); color:#fff; }
+  .pt .btn.pri:disabled { opacity:.35; cursor:default; }
+  .pt .btn.del { background:transparent; color:#c4372d; padding:0 6px; font-weight:500; margin-right:auto; }
+
+  .pt .dark { margin-top:12px; padding:16px; border-radius:12px; background:#0e0e0e; display:flex; justify-content:center; }
+  .pt .dark .pill { background:rgba(31,31,31,.94); border-color:rgba(255,255,255,.07); color:#f5f5f5; box-shadow:none; }
+  .pt .dark .mark { color:var(--inkD); background:var(--washD); }
+  .pt .dark .muted, .pt .dark .acts { color:#8a8a8a; border-color:#2e2e2e; }
+  .pt .dark .dots b { background:#4a4a4a; } .pt .dark .dots b.on { background:#f5f5f5; }
+  .pt .ctrl { display:flex; gap:18px; align-items:center; margin:10px 2px 0; font-size:12.5px; color:var(--text-secondary,#666); }
+  .pt .ctrl label { display:flex; gap:6px; align-items:center; cursor:pointer; }
+  .pt.rm .menu, .pt.rm .menu.open { transform:none; transition: opacity .2s ease, visibility 0s linear .2s, height 0s; }
+  .pt.rm .menu.open { transition: opacity .2s ease, visibility 0s, height 0s; }
+</style>
+
+<h2>Feel it: open, switch, edit, pick any colour</h2>
+<p class="subtitle">This prototype is interactive. Click the <b>Work</b> mark, switch spaces, then hover a row and click <b>•••</b> to edit it. In the editor, the rainbow swatch opens the custom picker, which takes any hex. Try a pale yellow like <b>#F5E663</b> to see the readability guard work, and watch the dark-mode pill below it. Tick <b>Reduce Motion</b> to compare the motion fallback.</p>
+
+<div class="pt" id="pt">
+  <div class="stage" id="stage">
+    <div class="pill">
+      <button class="mark" id="mark" aria-haspopup="menu" aria-expanded="false"><span class="sym" id="markSym"></span><span class="nm" id="markName"></span></button>
+      <span class="cluster" id="cluster"><span class="muted"><svg class="ico" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg><svg class="ico" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></span><span class="dots" id="dots"></span><span class="fav"></span><span class="dom" id="dom"></span></span>
+      <span class="acts"><svg class="ico" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg><svg class="ico" viewBox="0 0 24 24"><path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7Z"/></svg><svg class="ico" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></span>
+    </div>
+    <div class="menu" id="menu" role="menu"><div class="inner" id="inner"></div></div>
+  </div>
+  <div class="dark"><div class="pill"><span class="mark" id="markD"><span class="sym" id="markSymD"></span><span class="nm" id="markNameD"></span></span><span class="muted"><svg class="ico" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg><svg class="ico" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></span><span class="dots"><b class="on"></b><b></b><b></b></span><span>dark mode</span><span class="acts">⟳ ♡ ✕</span></div></div>
+  <div class="ctrl"><label><input type="checkbox" id="rmToggle"> Reduce Motion</label><span>Esc or a click outside closes the menu</span></div>
+</div>
+
+<script>
+(function () {
+  const SYM = {
+    briefcase:'<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
+    house:'<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1Z"/>',
+    code:'<path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/>',
+    flask:'<path d="M9 3h6M10 3v6L4.5 19a1.5 1.5 0 0 0 1.3 2h12.4a1.5 1.5 0 0 0 1.3-2L14 9V3"/>',
+    book:'<path d="M4 19.5V5a2 2 0 0 1 2-2h14v16H6a2 2 0 0 0-2 2Zm0 0A2 2 0 0 0 6 22h14"/>',
+    music:'<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+    camera:'<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3"/>',
+    plane:'<path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>',
+    heart:'<path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7Z"/>',
+    star:'<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/>',
+    leaf:'<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/>',
+    coffee:'<path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/>',
+    cap:'<path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>',
+    game:'<path d="M6 12h4M8 10v4M15 13h.01M18 11h.01"/><rect x="2" y="6" width="20" height="12" rx="2"/>',
+    wallet:'<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
+    sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/>',
+  };
+  const NONE_GLYPH = '<svg class="ico" viewBox="0 0 16 16"><rect x="2.5" y="4.75" width="8.75" height="8.5" rx="1.5"/><path d="M5.25 4.75V3.25a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-1.5"/></svg>';
+  const PRESETS = [['Sage','#5f8a68'],['Sky','#4f7fae'],['Iris','#7a6bb8'],['Rose','#b8607a'],['Clay','#b46a45'],['Sand','#9a7428'],['Slate','#5d6b78'],['Graphite','#3a3a3a']];
+  const svg = (k, cls = 'ico') => `<svg class="${cls}" viewBox="0 0 24 24">${SYM[k]}</svg>`;
+
+  // ---- colour: keep the user's hex, derive a readable ink per surface (OKLCH lightness only) ----
+  const toLin = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+  const toGam = (c) => (c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055);
+  const hexToRgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);
+  const rgbToHex = (rgb) => '#' + rgb.map((v) => Math.round(Math.min(1, Math.max(0, v)) * 255).toString(16).padStart(2, '0')).join('');
+  function rgbToOklch([r, g, b]) {
+    [r, g, b] = [r, g, b].map(toLin);
+    const l = Math.cbrt(0.4122214708*r + 0.5363325363*g + 0.0514459929*b), m = Math.cbrt(0.2119034982*r + 0.6806995451*g + 0.1073969566*b), s = Math.cbrt(0.0883024619*r + 0.2817188376*g + 0.6299787005*b);
+    const L = 0.2104542553*l + 0.7936177850*m - 0.0040720468*s, A = 1.9779984951*l - 2.4285922050*m + 0.4505937099*s, B = 0.0259040371*l + 0.7827717662*m - 0.8086757660*s;
+    return [L, Math.hypot(A, B), Math.atan2(B, A)];
+  }
+  function oklchToLinRgb(L, C, H) {
+    const A = C * Math.cos(H), B = C * Math.sin(H);
+    const l = (L + 0.3963377774*A + 0.2158037573*B) ** 3, m = (L - 0.1055613458*A - 0.0638541728*B) ** 3, s = (L - 0.0894841775*A - 1.2914855480*B) ** 3;
+    return [4.0767416621*l - 3.3077115913*m + 0.2309699292*s, -1.2684380046*l + 2.6097574011*m - 0.3413193965*s, -0.0041960863*l - 0.7034186147*m + 1.7076147010*s];
+  }
+  const inGamut = (lin) => lin.every((v) => v >= -1e-4 && v <= 1 + 1e-4);
+  function fit(L, C, H) { let lo = 0, hi = C; if (inGamut(oklchToLinRgb(L, C, H))) return C; for (let i = 0; i < 20; i++) { const mid = (lo + hi) / 2; inGamut(oklchToLinRgb(L, mid, H)) ? lo = mid : hi = mid; } return lo; }
+  const lum = (lin) => 0.2126*lin[0] + 0.7152*lin[1] + 0.0722*lin[2];
+  const contrast = (a, b) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+  function inkFor(hex, bgHex, min = 4.5) {
+    const [L, C, H] = rgbToOklch(hexToRgb(hex)); const bg = lum(hexToRgb(bgHex).map(toLin));
+    const at = (l) => { const c = fit(l, C, H); const lin = oklchToLinRgb(l, c, H); return { lin, ok: contrast(lum(lin.map((v) => Math.max(0, v))), bg) >= min }; };
+    if (at(L).ok) return hex.toLowerCase();
+    const dark = bg < 0.18; let lo = dark ? L : 0, hi = dark ? 1 : L;
+    for (let i = 0; i < 24; i++) { const mid = (lo + hi) / 2; const ok = at(mid).ok; if (dark) { ok ? hi = mid : lo = mid; } else { ok ? lo = mid : hi = mid; } }
+    return rgbToHex(at(dark ? hi : lo).lin.map(toGam));
+  }
+  const wash = (ink, a) => { const [r, g, b] = hexToRgb(ink).map((v) => Math.round(v * 255)); return `rgba(${r},${g},${b},${a})`; };
+  function paint(el, hex) { const i = inkFor(hex, '#ffffff'); el.style.setProperty('--ink', i); el.style.setProperty('--wash', wash(i, .15)); return i; }
+  function paintDark(el, hex) { const i = inkFor(hex, '#1f1f1f'); el.style.setProperty('--inkD', i); el.style.setProperty('--washD', wash(i, .2)); return i; }
+  // HSV helpers for the picker
+  function hsvToHex(h, s, v) { const f = (n) => { const k = (n + h / 60) % 6; return v - v * s * Math.max(0, Math.min(k, 4 - k, 1)); }; return rgbToHex([f(5), f(3), f(1)]); }
+  function hexToHsv(hex) { const [r, g, b] = hexToRgb(hex); const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn; let h = 0;
+    if (d) h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; return [(h * 60 + 360) % 360, mx ? d / mx : 0, mx]; }
+
+  // ---- state ----
+  let spaces = [
+    { name:'Work', color:'#5f8a68', sym:'briefcase', tabs:8, dom:'github.com', dots:3 },
+    { name:'Home', color:'#b46a45', sym:'house', tabs:4, dom:'youtube.com', dots:2 },
+    { name:'Research', color:'#4f7fae', sym:'flask', tabs:12, dom:'arxiv.org', dots:5 },
+    { name:'Reading', color:'#7a6bb8', sym:'book', tabs:3, dom:'longreads.com', dots:3 },
+  ];
+  let active = 0, open = false, view = 'list', editIndex = -1, draft = null, picker = false, undo = null;
+  const $ = (id) => document.getElementById(id);
+  const pt = $('pt'), mark = $('mark'), menu = $('menu'), inner = $('inner');
+  const reduced = () => pt.classList.contains('rm') || matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function placeMenu() { const s = $('stage').getBoundingClientRect(), m = mark.getBoundingClientRect(); menu.style.setProperty('left', (m.left - s.left - 6) + 'px'); }
+  function setMark(sp, el = mark, symEl = $('markSym'), nameEl = $('markName')) {
+    if (!sp) { el.classList.add('none'); symEl.innerHTML = NONE_GLYPH; nameEl.textContent = ''; nameEl.hidden = true; return; }
+    el.classList.remove('none'); symEl.innerHTML = svg(sp.sym); nameEl.hidden = false; nameEl.textContent = sp.name;
+  }
+  function paintMark() { const sp = spaces[active]; setMark(sp); setMark(sp, $('markD'), $('markSymD'), $('markNameD')); if (sp) { paint(mark, sp.color); paintDark($('markD'), sp.color); }
+    $('dom').textContent = sp ? sp.dom : 'github.com'; $('dots').innerHTML = Array.from({ length: sp ? sp.dots : 3 }, (_, i) => `<b class="${i === 0 ? 'on' : ''}"></b>`).join(''); }
+
+  function morphHeight(renderFn) {
+    const from = menu.offsetHeight; renderFn(); const to = inner.scrollHeight;
+    if (!open || reduced()) { menu.style.setProperty('--h', to + 'px'); return; }
+    menu.style.setProperty('--h', from + 'px'); menu.offsetHeight; menu.style.setProperty('--h', to + 'px');
+    inner.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 160, easing: 'ease-out' });
+  }
+  function openMenu() { if (open) return; view = 'list'; picker = false; placeMenu(); renderList(); menu.style.setProperty('--h', inner.scrollHeight + 'px'); open = true; menu.classList.add('open'); mark.classList.add('open'); mark.setAttribute('aria-expanded', 'true'); setTimeout(() => inner.querySelector('.row.on, .row, button')?.focus({ preventScroll: true }), 30); }
+  function closeMenu() { if (!open) return; open = false; menu.classList.remove('open'); mark.classList.remove('open'); mark.setAttribute('aria-expanded', 'false'); }
+
+  function renderList() {
+    view = 'list';
+    const rows = spaces.map((sp, i) => `<button class="row ${i === active ? 'on' : ''}" data-i="${i}" role="menuitemradio" aria-checked="${i === active}"><span class="tile" data-c="${sp.color}">${svg(sp.sym)}</span><span class="nm"></span><span class="count">${sp.tabs}</span><span class="check">${i === active ? '✓' : ''}</span><span class="more" data-edit="${i}">•••</span></button>`).join('');
+    inner.innerHTML = rows + (undo ? `<div class="toast"><span class="grow"><b></b> deleted</span><button class="btn" id="undoBtn">Undo</button></div>` : '') +
+      `<div class="hr"></div><button class="cmd" id="newBtn">${'<svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>'}<span class="grow">New space…</span></button>`;
+    inner.querySelectorAll('.row').forEach((r, i) => { r.querySelector('.nm').textContent = spaces[i].name; r.querySelector('.more').setAttribute('aria-label', 'Edit ' + spaces[i].name); paint(r.querySelector('.tile'), spaces[i].color); });
+    if (undo) inner.querySelector('.toast b').textContent = undo.sp.name;
+  }
+  function renderEditor() {
+    view = 'edit';
+    const isNew = editIndex < 0, sp = isNew ? draft : spaces[editIndex];
+    const preset = PRESETS.find(([, h]) => h.toLowerCase() === sp.color.toLowerCase());
+    inner.innerHTML = `<div class="ed">
+      <div class="ttl"><button class="back" id="backBtn" aria-label="Back to spaces"><svg class="ico" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>${isNew ? 'New space' : 'Edit space'}</div>
+      <div class="ident"><span class="big" id="big">${svg(sp.sym)}</span><input class="name" id="nameIn" maxlength="60" placeholder="Name" aria-describedby="err"></div>
+      <div class="err" id="err" role="alert"></div>
+      <div class="lbl">Colour</div>
+      <div class="swatches">${PRESETS.map(([n, h]) => `<button class="sw ${preset && preset[1] === h ? 'on' : ''}" data-hex="${h}" aria-label="${n}" title="${n}"></button>`).join('')}<button class="sw custom ${!preset ? 'on' : ''}" id="customSw" aria-label="Custom colour" aria-expanded="${picker}" title="Custom colour"></button></div>
+      ${picker ? `<div class="picker"><div class="sv" id="sv"><span class="knob" id="svKnob"></span></div><div class="hue" id="hue"><span class="knob"></span></div>
+        <div class="hexrow"><span>Hex</span><input class="hex" id="hexIn" maxlength="7" spellcheck="false" aria-label="Hex colour"></div><div class="shown" id="shown"></div></div>` : ''}
+      <div class="lbl">Symbol</div>
+      <div class="syms">${Object.keys(SYM).map((k) => `<button class="sy ${k === sp.sym ? 'on' : ''}" data-sym="${k}" aria-label="${k}">${svg(k)}</button>`).join('')}</div>
+      ${isNew ? `<div class="lbl">Start with</div><div class="seg"><button class="${draft.start === 'window' ? 'on' : ''}" data-start="window">This window · 5 tabs</button><button class="${draft.start === 'empty' ? 'on' : ''}" data-start="empty">Empty</button></div>` : ''}
+      <div class="acts2">${isNew ? '<button class="btn" id="cancelBtn">Cancel</button><button class="btn pri" id="createBtn">Create space</button>' : '<button class="btn del" id="delBtn">Delete space</button><button class="btn pri" id="doneBtn">Done</button>'}</div></div>`;
+    $('nameIn').value = sp.name;
+    inner.querySelectorAll('.sw[data-hex]').forEach((b) => b.style.setProperty('--sw', b.dataset.hex));
+    applyEditorColour(sp);
+    validate();
+  }
+  function applyEditorColour(sp) {
+    paint(inner.querySelector('.ed'), sp.color);
+    if (!picker) return;
+    const [h, s, v] = hexToHsv(sp.color); const sv = $('sv'), hue = $('hue');
+    sv.style.setProperty('--hue', h); sv.style.setProperty('--x', (s * 100) + '%'); sv.style.setProperty('--y', ((1 - v) * 100) + '%'); sv.style.setProperty('--pick', sp.color);
+    hue.style.setProperty('--hue', h); hue.style.setProperty('--hx', (h / 360 * 100) + '%');
+    const hexIn = $('hexIn'); if (document.activeElement !== hexIn) hexIn.value = sp.color.toUpperCase();
+    const shownL = inkFor(sp.color, '#ffffff'), shownD = inkFor(sp.color, '#1f1f1f'); const sh = $('shown');
+    const notes = [[shownL, 'light'], [shownD, 'dark']].filter(([c]) => c !== sp.color.toLowerCase());
+    sh.replaceChildren(document.createTextNode(notes.length ? 'Kept readable: shown as ' : 'Readable as is in light and dark mode.'));
+    notes.forEach(([c, mode], k) => { const dot = document.createElement('i'); dot.style.setProperty('--shown', c); sh.append(...(k ? [' and '] : []), dot, `${c.toUpperCase()} in ${mode} mode`); });
+    if (notes.length) sh.append('.');
+  }
+  function current() { return editIndex < 0 ? draft : spaces[editIndex]; }
+  function setColour(hex) { const sp = current(); sp.color = hex; inner.querySelectorAll('.sw').forEach((b) => b.classList.toggle('on', b.dataset.hex ? b.dataset.hex === hex : !PRESETS.some(([, h]) => h === hex)));
+    applyEditorColour(sp); if (editIndex === active) { paint(mark, hex); paintDark($('markD'), hex); } }
+  function validate() {
+    const name = $('nameIn').value.trim().replace(/\s+/g, ' '); const dup = spaces.some((s, i) => i !== editIndex && s.name.toLowerCase() === name.toLowerCase());
+    const msg = !name ? 'Give the space a name.' : dup ? `You already have a space called ${name}.` : '';
+    $('err').textContent = msg; $('nameIn').setAttribute('aria-invalid', String(!!msg));
+    const b = $('createBtn') || $('doneBtn'); if (b) b.disabled = !!msg;
+    if (!msg) { current().name = name; if (editIndex === active) { $('markName').textContent = name; $('markNameD').textContent = name; } }
+    return !msg;
+  }
+
+  // ---- switching, with motion that follows list order ----
+  function switchTo(i) {
+    closeMenu(); if (i === active) return;
+    const dir = i > active ? 1 : -1, from = mark.offsetWidth, rm = reduced();
+    const out = rm ? [{ opacity: 1 }, { opacity: 0 }] : [{ transform: 'none', opacity: 1 }, { transform: `translateY(${-7 * dir}px)`, opacity: 0 }];
+    const inn = rm ? [{ opacity: 0 }, { opacity: 1 }] : [{ transform: `translateY(${7 * dir}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }];
+    const slideOut = rm ? [{ opacity: 1 }, { opacity: 0 }] : [{ transform: 'none', opacity: 1 }, { transform: `translateX(${-10 * dir}px)`, opacity: 0 }];
+    const slideIn = rm ? [{ opacity: 0 }, { opacity: 1 }] : [{ transform: `translateX(${10 * dir}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }];
+    const parts = [$('markSym'), $('markName')], cl = $('cluster');
+    Promise.all([...parts.map((p) => p.animate(out, { duration: 120, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' }).finished), cl.animate(slideOut, { duration: 120, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' }).finished]).then(() => {
+      active = i; paintMark(); const to = mark.scrollWidth;
+      if (!rm) mark.animate([{ width: from + 'px' }, { width: to + 'px' }], { duration: 320, easing: 'cubic-bezier(.2,.9,.25,1)' });
+      parts.forEach((p) => p.animate(inn, { duration: 300, easing: 'cubic-bezier(.2,.9,.25,1)', fill: 'forwards' }));
+      cl.animate(slideIn, { duration: 300, easing: 'cubic-bezier(.2,.9,.25,1)', fill: 'forwards' });
+    });
+  }
+
+  // ---- events ----
+  mark.addEventListener('click', (e) => { e.stopPropagation(); open ? closeMenu() : openMenu(); });
+  document.addEventListener('pointerdown', (e) => { if (open && !menu.contains(e.target) && !mark.contains(e.target)) closeMenu(); });
+  document.addEventListener('keydown', (e) => {
+    if (!open) return;
+    if (e.key === 'Escape') { e.preventDefault(); if (view === 'edit') { morphHeight(renderList); } else { closeMenu(); mark.focus(); } return; }
+    if (view === 'list' && ['ArrowDown', 'ArrowUp'].includes(e.key)) { const items = [...inner.querySelectorAll('.row, .cmd, #undoBtn')]; const k = items.indexOf(document.activeElement); e.preventDefault(); items[(k + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length]?.focus(); }
+  });
+  inner.addEventListener('click', (e) => {
+    const t = e.target.closest('button, .more'); if (!t) return; e.stopPropagation();
+    if (t.dataset.edit) { editIndex = +t.dataset.edit; picker = false; morphHeight(renderEditor); return; }
+    if (t.classList.contains('row')) return switchTo(+t.dataset.i);
+    if (t.id === 'newBtn') { const used = new Set(spaces.map((s) => s.color)), usedS = new Set(spaces.map((s) => s.sym));
+      draft = { name:'', color:(PRESETS.find(([, h]) => !used.has(h)) || PRESETS[0])[1], sym:Object.keys(SYM).find((k) => !usedS.has(k)), tabs:5, dom:'news.ycombinator.com', dots:5, start: spaces[active] ? 'empty' : 'window' };
+      editIndex = -1; picker = false; morphHeight(renderEditor); setTimeout(() => $('nameIn')?.focus(), 40); return; }
+    if (t.id === 'undoBtn') { spaces.splice(undo.i, 0, undo.sp); if (undo.wasActive) { active = undo.i; paintMark(); } else if (active >= undo.i && spaces[active + 1]) active++; undo = null; morphHeight(renderList); return; }
+    if (t.id === 'backBtn' || t.id === 'cancelBtn' || t.id === 'doneBtn') { if (t.id === 'doneBtn' && !validate()) return; morphHeight(renderList); return; }
+    if (t.id === 'createBtn') { if (!validate()) return; const sp = { ...draft }; if (sp.start === 'empty') { sp.tabs = 0; sp.dom = 'new tab'; sp.dots = 1; } spaces.push(sp); closeMenu(); switchTo(spaces.length - 1); return; }
+    if (t.id === 'delBtn') { const wasActive = editIndex === active; undo = { i: editIndex, sp: spaces[editIndex], wasActive }; spaces.splice(editIndex, 1);
+      if (wasActive) { active = -1; paintMark(); } else if (active > editIndex) active--; morphHeight(renderList); return; }
+    if (t.id === 'customSw') { picker = !picker; const keep = current(); morphHeight(renderEditor); current().color = keep.color; return; }
+    if (t.dataset.hex) { picker = false; const hex = t.dataset.hex; current().color = hex; morphHeight(renderEditor); if (editIndex === active) { paint(mark, hex); paintDark($('markD'), hex); } return; }
+    if (t.dataset.sym) { current().sym = t.dataset.sym; inner.querySelectorAll('.sy').forEach((b) => b.classList.toggle('on', b === t)); $('big').innerHTML = svg(t.dataset.sym); if (editIndex === active) { $('markSym').innerHTML = svg(t.dataset.sym); $('markSymD').innerHTML = svg(t.dataset.sym); } return; }
+    if (t.dataset.start) { draft.start = t.dataset.start; inner.querySelectorAll('.seg button').forEach((b) => b.classList.toggle('on', b === t)); }
+  });
+  inner.addEventListener('input', (e) => {
+    if (e.target.id === 'nameIn') validate();
+    if (e.target.id === 'hexIn') { let v = e.target.value.trim(); if (v && v[0] !== '#') v = '#' + v; const ok = /^#[0-9a-f]{6}$/i.test(v); e.target.setAttribute('aria-invalid', String(!ok && v.length >= 7)); if (ok) setColour(v.toLowerCase()); }
+  });
+  // direct manipulation: the knob follows the pointer 1:1, captured so it keeps tracking outside the square
+  function drag(el, onMove) {
+    inner.addEventListener('pointerdown', (e) => { const target = e.target.closest('#' + el); if (!target) return; target.setPointerCapture(e.pointerId); const move = (ev) => { const r = target.getBoundingClientRect(); onMove(Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width)), Math.min(1, Math.max(0, (ev.clientY - r.top) / r.height))); }; move(e);
+      target.addEventListener('pointermove', move); target.addEventListener('pointerup', () => target.removeEventListener('pointermove', move), { once: true }); });
+  }
+  drag('sv', (x, y) => { const [h] = hexToHsv(current().color); const hh = +$('sv').style.getPropertyValue('--hue') || h; setColour(hsvToHex(hh, x, 1 - y)); $('sv').style.setProperty('--hue', hh); $('hue').style.setProperty('--hue', hh); $('hue').style.setProperty('--hx', (hh / 360 * 100) + '%'); });
+  drag('hue', (x) => { const [, s, v] = hexToHsv(current().color); const h = x * 359.9; setColour(hsvToHex(h, s || 0.6, v || 0.7)); $('sv').style.setProperty('--hue', h); $('hue').style.setProperty('--hue', h); $('hue').style.setProperty('--hx', (x * 100) + '%'); });
+  $('rmToggle').addEventListener('change', (e) => pt.classList.toggle('rm', e.target.checked));
+  addEventListener('resize', placeMenu);
+  paintMark();
+})();
+</script>
+
+</div>
+</body>
+</html>
