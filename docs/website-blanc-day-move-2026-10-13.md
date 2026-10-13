@@ -30,9 +30,12 @@ Mac. This environment's network proxy cannot reach either domain.
   `www.blancbrowser.com/dl/*`, plus its `workers.dev` address.
 - `blanc-newsletter`: deployed with `https://blanc.day` added to
   `ALLOWED_ORIGINS`. Its version ID was not recorded.
-- `blanc-tab-import`: **not confirmed.** Until it is deployed, new handoff
-  links still name `blancbrowser.com/import-tabs/`. They keep working through
-  step 5's redirect.
+- `blanc-tab-import`, version `cf81a2b6-22ee-4572-8b50-3f50c43dbdb4`, on its
+  custom domain `tabs.blancbrowser.com`, deployed after step 5. A
+  `create_tab_handoff` call to `https://tabs.blancbrowser.com/mcp` for one
+  example tab returned a `launchUrl` starting
+  `https://blanc.day/import-tabs/`. The call created a throwaway one-tab
+  handoff, which expires unclaimed after 10 minutes.
 
 **Site.** Deployed after the Workers, with canonical tags on
 `https://blanc.day/`, which the owner checked after the deploy. After #755 the
@@ -113,8 +116,6 @@ Analytics reported data collection active in the past 48 hours.
 
 ## Still open
 
-- **Deploy `blanc-tab-import`** and confirm new handoff links name
-  `https://blanc.day/import-tabs/`.
 - **Run the step 4 live SEO audit:**
   `SITE_ORIGIN=https://blanc.day npm --prefix site run audit:seo:live`.
 - **In Search Console:** resubmit `sitemap.xml` on the `blanc.day` property, and
