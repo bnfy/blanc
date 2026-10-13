@@ -222,9 +222,11 @@ rule and shows a lighter value.)
 ### 3. The mark on the pill
 
 The strip document renders a mark at the pill's leading edge, before
-back/forward. Three states, carried in the `tabs:updated` projection as
-`spaceMark` (`{ state: 'none' }`, `{ state: 'neutral' }`, or
-`{ state: 'space', name, color, symbol }` — presentation data only):
+back/forward. It derives one of three states from the existing Spaces
+projection (`chrome:workspaces-list` / `chrome:workspaces-updated`, already
+sent to the strip), whose rows gain `color` and `symbol` — presentation data
+only. (Amended during planning: an earlier draft added a `spaceMark` field to
+`tabs:updated`; the Spaces projection already carries what the mark needs.)
 
 - **space** — this window is in a space: a 28px chip, symbol plus name
   (the name ellipsizes beyond 140px), ink and wash from the guard.
@@ -276,7 +278,7 @@ needed).
 - Below a divider: **New space…**, and **Recently deleted (n)** only when
   non-empty.
 - **No spaces yet:** one line ("Save a set of tabs and switch back to it any
-  time."), **New space…**, and **Bring your Spaces from Arc** (opens Bring Your
+  time."), **New space…**, and **Import Spaces from Arc** (the existing string; opens Bring Your
   Tabs, as today's Patron-only row did).
 - Keyboard: ↑/↓ and Home/End rove, Return switches, Escape closes and returns
   focus to the invoker.
@@ -336,11 +338,14 @@ The menu reshapes into the editor in place (no dialog, no scrim):
 When switching from a window whose tabs are not in a space (today's
 `unsaved-scratch` decision), the menu shows:
 
-- Tile + "Switch to {name}?" and "This window's N tabs aren't in a space yet.
-  Switching here would close them."
+- Tile + "Switch to {name}?" over today's explanation of what would close
+  (the existing translated messages: "N unsaved tabs will close…" or "N
+  private tabs will close…").
 - Stacked, in order: **Save them as a space, then switch** (primary; hidden when
-  every at-risk tab is private, as today) · **Open {name} in a new window** ·
-  **Close the N tabs and switch** (red) · **Cancel** (quiet).
+  every at-risk tab is private, as today) · **Open in another window** ·
+  **Close tabs and switch** (red) · **Cancel** (quiet). The second and third
+  reuse today's translated buttons. (Amended during planning to keep those
+  reviewed translations.)
 - "Save them as a space" opens the editor in New mode with *This window* fixed,
   then continues the switch, preserving today's resume-after-save flow.
 - Protected-pages and resident-capacity variants keep only **Open in a new
@@ -437,7 +442,7 @@ Keys for main-process Escape handling are sent with `sendInputEvent`.
 
 **Repo checks:** `npm run test:unit`, `npm run lint`, `npm run substrate:check`
 (tokens), `npm run browser-api:check` after `browser-api:build` (the
-`spaceMark` projection, `color`/`symbol` fields, update and move-to-index
+projection's `color`/`symbol`/`windowTabCount`/`tint` fields, update and move-to-index
 calls, the strip → main open-Spaces request), `npm run copy:check`,
 `npm run test:i18n:desktop`.
 
