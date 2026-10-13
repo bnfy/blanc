@@ -158,10 +158,14 @@ height), `apple-touch-icon.png` (180², mark at 66%), the favicon family,
 root `scripts/build-brand-assets.js` (`npm run brand:build`; `brand:check`
 guards drift) from the Sunrise motifs — the mark is raster, painted as an ink
 silhouette through its alpha; the ≤16px favicons use the rays-only crop, the
-app's own small-size rule. Never hand-edit those outputs. `og-image.png`,
-`feature-*.png`, and `press/blanc-press-card.png` read `favicon.svg` when
-re-rendered via `site/scripts/render-og-cards.mjs` (after a build) and
-`render-press-card.mjs` (from the media kit's native expanded-island capture). The demo island shows no
+app's own small-size rule. Never hand-edit those outputs. `og-image.png` and
+`feature-*.png` are Sunrise share cards rendered by
+`site/scripts/render-og-cards.mjs` (after a build) from the gold
+`sunrise-hero-mark.png`, each page's own headline and eyebrow, and real
+product: a public native capture or the page's own Island figure (see
+*Share cards* in `docs/brand-usage.md`); `press/blanc-press-card.png` reads
+`favicon.svg` via `render-press-card.mjs` (from the media kit's native
+expanded-island capture). The demo island shows no
 favicon on its blank tab because the app hides that slot on internal pages. Utility scripts in `site/scripts/`: `verify-parity.mjs` +
 `shoot-pages.mjs` (conversion-era comparators against the `site-pre-astro` git
 tag) and `compress-images.mjs` (re-runnable lossless image optimization —

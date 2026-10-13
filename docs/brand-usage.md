@@ -340,6 +340,24 @@ Apart from the desktop navigation hover above, footer, press-kit, legal-header,
 and other logo treatments stay monochrome. These exceptions do not authorize
 recoloring other marks.
 
+### Share cards
+
+The website's Open Graph cards (`og-image.png` and `feature-*.png`, 1200×630)
+are Sunrise compositions rendered by `site/scripts/render-og-cards.mjs`; never
+hand-edit them. Each carries the original gold Sunrise artwork with clear space
+and nothing behind it, a gold mono label taken from the page's own eyebrow, the
+page's own Newsreader headline (the homepage card adds the hero's description),
+and `blanc.day` in gold, with no typeset wordmark. The product is always real:
+a public native capture framed as its window, or the feature page's own Island
+figure. A soft gold horizon glow sits at the bottom edge, away from the mark.
+
+Three compositions keep the set varied: the homepage centres its copy over the
+dawn Start Page, whose sun sits on the card's gold horizon line; window cards
+put the copy left and the capture right; Island cards stand a resting pill on
+the horizon below the copy, or put an open panel beside it. Most cards use the
+ivory surface. Quiet Tabs, Security and Sync use the dark Sunrise surface, which
+suits a white Island and avoids glaring white windows.
+
 ## Titles and subtitles
 
 Marketing titles and subtitles should carry the same hierarchy as the Blanc
