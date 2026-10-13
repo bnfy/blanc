@@ -133,7 +133,7 @@
     },
     {
       "file": "src/main/chrome-protocol.js",
-      "sha256": "74cce319f3ed2c0561065442804e949c216dff2b7c9451c71bdd46702f040df7",
+      "sha256": "a0dc9921e2b1df8b6948dfbb2f84ffefe1d3758959f3dd822587b304d74631d2",
       "literalChannels": [
         "blanc-chrome"
       ],

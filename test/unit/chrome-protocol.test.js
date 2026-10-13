@@ -51,6 +51,18 @@ test('only the rail and island documents can load the shared tab-drag controller
   ]) assert.equal(chromeResourcePath(url), null, url);
 });
 
+test('only the strip and overlay documents can load the space identity module', () => {
+  const asset = path.join(renderer, 'space-identity.js');
+  assert.equal(chromeResourcePath('blanc-chrome://index/space-identity.js'), asset);
+  assert.equal(chromeResourcePath('blanc-chrome://overlay/space-identity.js'), asset);
+  for (const url of [
+    'blanc-chrome://permission/space-identity.js',
+    'blanc-chrome://fill-status/space-identity.js',
+    'blanc-chrome://display-capture-helper/space-identity.js',
+    'blanc-chrome://overlay/space-identity.js?v=1',
+  ]) assert.equal(chromeResourcePath(url), null, url);
+});
+
 test('the blocker Sunrise is the canonical gold artwork and only the overlay can load it', () => {
   const asset = path.join(renderer, 'sunrise-hero-mark.png');
   assert.equal(chromeResourcePath('blanc-chrome://overlay/sunrise-hero-mark.png'), asset);
