@@ -15,6 +15,7 @@ copy/
     es.json            Spanish (selectable)
     fr.json            French (selectable)
     pt-BR.json         Brazilian Portuguese (selectable)
+    it.json            Italian (selectable)
   glossary.json        fixed terms, translated terms, sameAsSource, per-language style
   i18n-scope.json      every string-bearing desktop file: "pending" | "guarded"
   slash-commands.json  slash-command registry: order, names, doc spellings, platforms
@@ -45,9 +46,9 @@ npm run test:i18n:desktop          # pseudo-locale sweep of every fully guarded 
    (`settings.language.label`, not the English text), the `message`, a `note`
    saying where it appears and what each placeholder holds, and `maxLength` for
    buttons, menu items, pill words and other static slots.
-2. Write every language (`de`, `es`, `fr`, `pt-BR`) **in the same PR**,
+2. Write every language (`de`, `es`, `fr`, `pt-BR`, `it`) **in the same PR**,
    following `glossary.json`: each language's `style` (German *du*, Spanish
-   *tú*, French *vous*, Brazilian Portuguese *você*), pinned terms, fixed terms
+   *tú*, French *vous*, Brazilian Portuguese *você*, Italian *tu*), pinned terms, fixed terms
    verbatim.
 3. `npm run copy:ack -- <locale> <exactly the keys you translated>` for each
    language.
@@ -67,7 +68,7 @@ A deliberate ICU MessageFormat subset:
 - `{count, plural, one {# tab} other {# tabs}}`, where `#` is the number
   formatted for the active language. Each plural carries exactly its
   language's CLDR categories (English and German: `one`, `other`; Spanish,
-  French and Portuguese add `many`; Polish adds `few`, `many`; Japanese has
+  French, Portuguese and Italian add `many`; Polish adds `few`, `many`; Japanese has
   only `other`). At most one plural per message.
   Exact branches like `=0` are rejected because iOS and Android cannot
   represent them; give a "none" state its own key.
@@ -112,8 +113,8 @@ A new language stays `"status": "hidden"` until every file is guarded, it is
 100% current, the sweep is green and its screenshots are checked for fit. A
 `selectable` language below 100% fails `copy:check`. German met that bar and
 became `selectable` in October 2026 (Phase 10); Spanish, French and Portuguese
-(Brazil) followed so that the four launch together. They reach users only with
-the next public release.
+(Brazil) followed so that the four launch together, and shipped in v1.32.0.
+Italian followed in October 2026; it reaches users with the next public release.
 
 ## Mobile output
 

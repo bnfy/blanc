@@ -4,7 +4,8 @@
     "de": "Informal du throughout; sentence case; typographic quotes „…“ and – dashes.",
     "es": "Informal tú throughout (neutral international Spanish, no vosotros or voseo); sentence case; typographic quotes «…» or “…”.",
     "fr": "Formal vous throughout; sentence case; guillemets « … » with no-break spaces; a no-break space before : ; ? !.",
-    "pt-BR": "Brazilian Portuguese with você throughout; sentence case; typographic quotes “…”."
+    "pt-BR": "Brazilian Portuguese with você throughout; sentence case; typographic quotes “…”.",
+    "it": "Informal tu throughout (standard Italian software convention); sentence case; typographic quotes «…» or “…”; elide articles and prepositions before vowels (l’, dell’)."
   },
   "fixed": [
     "Blanc",
@@ -45,6 +46,10 @@
       "pt-BR": {
         "form": "abas em repouso",
         "stem": "repouso"
+      },
+      "it": {
+        "form": "schede in riposo",
+        "stem": "riposo"
       }
     },
     "Favorites": {
@@ -63,6 +68,10 @@
       "pt-BR": {
         "form": "Favoritos",
         "stem": "Favorit"
+      },
+      "it": {
+        "form": "Preferiti",
+        "stem": "Preferit"
       }
     },
     "Profile Sync": {
@@ -81,6 +90,10 @@
       "pt-BR": {
         "form": "Sincronização de perfil",
         "stem": "Sincroniz"
+      },
+      "it": {
+        "form": "Sincronizzazione del profilo",
+        "stem": "Sincronizz"
       }
     },
     "Quick Switcher": {
@@ -99,6 +112,10 @@
       "pt-BR": {
         "form": "Seletor rápido",
         "stem": "Seletor rápido"
+      },
+      "it": {
+        "form": "Selettore rapido",
+        "stem": "Selettore rapido"
       }
     },
     "Fill logins from 1Password": {
@@ -117,6 +134,10 @@
       "pt-BR": {
         "form": "Preencher logins do 1Password",
         "stem": "Preencher"
+      },
+      "it": {
+        "form": "Compila gli accessi da 1Password",
+        "stem": "Compila"
       }
     },
     "Named Group": {
@@ -135,6 +156,10 @@
       "pt-BR": {
         "form": "grupo nomeado",
         "stem": "nomead"
+      },
+      "it": {
+        "form": "gruppo con nome",
+        "stem": "con nome"
       }
     }
   },
@@ -289,6 +314,54 @@
       "mahjong.rulesName.zen",
       "mahjong.live.combo",
       "mahjong.combo.combo"
+    ],
+    "it": [
+      "key.ctrl",
+      "glance.eyebrow",
+      "dialog.ok",
+      "ws.trigger.current",
+      "glance.picker.optionLabel",
+      "row.glance",
+      "row.actionLabel",
+      "menu.downloads",
+      "passkey.fallbackLabel",
+      "key.alt",
+      "key.escape",
+      "menu.file",
+      "menu.layoutIsland",
+      "shortcuts.island",
+      "arcImport.entry.title",
+      "arcImport.untitledSpace",
+      "settings.nav.patron",
+      "settings.general.tabLayout.island",
+      "settings.general.newtabLayout.ledger",
+      "settings.general.newtabLayout.billboard",
+      "settings.general.newtabLayout.shelf",
+      "settings.general.newtabLayout.tally",
+      "settings.patron.title",
+      "settings.blockingStatus.phase",
+      "settings.trust.fact.build",
+      "newtab.customize.layout",
+      "newtab.layout.ledger",
+      "newtab.layout.billboard",
+      "newtab.layout.shelf",
+      "newtab.layout.tally",
+      "newtab.mahjong",
+      "newtab.version",
+      "onboarding.step.privacy",
+      "onboarding.island.shortcut",
+      "downloads.meta",
+      "tabHandoff.personalProfile",
+      "mahjong.title",
+      "mahjong.head.brand",
+      "mahjong.head.combo",
+      "mahjong.mode.burst",
+      "mahjong.rulesName.auto",
+      "mahjong.rulesName.zen",
+      "mahjong.live.combo",
+      "mahjong.combo.combo",
+      "mahjong.win.rules",
+      "mahjong.setup.dailyDescription"
     ]
   }
 }

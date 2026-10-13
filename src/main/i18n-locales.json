@@ -24,6 +24,12 @@
     "status": "selectable"
   },
   {
+    "code": "it",
+    "endonym": "Italiano",
+    "dir": "ltr",
+    "status": "selectable"
+  },
+  {
     "code": "pt-BR",
     "endonym": "Português do Brasil",
     "dir": "ltr",

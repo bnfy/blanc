@@ -24,7 +24,7 @@ test('options: System naming what it resolves to, then endonyms', () => {
 
 test('a stored unavailable language shows English selected with no relaunch prompt', () => {
   const languages = { active: 'en', system: 'de', options: two.options };
-  const row = languageRow({ uiLanguage: 'it', languages, t });
+  const row = languageRow({ uiLanguage: 'ja', languages, t });
   assert.equal(row.selected, 'en');
   assert.equal(needsRelaunch('en', languages), false);
 });

@@ -102,11 +102,11 @@
   },
   "slash.theme.hint": {
     "message": "Cycle appearance, or choose system / light / dark",
-    "note": "Slash command hint shown in the ⌘L palette for /theme."
+    "note": "Slash command hint shown in the ⌘L palette for /theme. system, light and dark are the command’s literal arguments: keep them in English."
   },
   "slash.theme.doc": {
     "message": "Cycle appearance, or switch directly to system, light, or dark",
-    "note": "Reference description of /theme [system|light|dark] on blanc://shortcuts and in Help → Slash Commands."
+    "note": "Reference description of /theme [system|light|dark] on blanc://shortcuts and in Help → Slash Commands. system, light and dark are the command’s literal arguments: keep them in English."
   },
   "slash.patron.hint": {
     "message": "Support Blanc with a Patron subscription",
