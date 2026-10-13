@@ -55,8 +55,12 @@ executions are in
 [`reopen-closed-tab-campaign-brief-2026-08-29.md`](reopen-closed-tab-campaign-brief-2026-08-29.md).
 Its read-only public-build and recovery-policy verifier is
 [`reopen-closed-tab-campaign-preflight.mjs`](reopen-closed-tab-campaign-preflight.mjs).
-The Substack-specific privacy, power, consent, and business-model editorial
-lane is in
+The current Substack plan (October 13, 2026), covering all of Blanc rather
+than only the browser, is in [`substack/README.md`](substack/README.md), with
+its profile refresh and first drafts beside it. Nothing in it has been entered
+into Substack or published.
+The earlier, superseded Substack privacy, power, consent, and business-model
+editorial lane is in
 [`substack-privacy-editorial-lane-2026-08-30.md`](substack-privacy-editorial-lane-2026-08-30.md).
 It is a strategy and draft queue, not authorization to publish, reply, like,
 restack, or subscribe.
