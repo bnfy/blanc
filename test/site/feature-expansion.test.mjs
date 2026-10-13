@@ -65,7 +65,7 @@ test('new guides have unique metadata, keyboard-reachable captures, and the exis
       await page.goto(`${baseURL}/features/${route}`);
       titles.add(await page.title());
       descriptions.add(await page.locator('meta[name="description"]').getAttribute('content'));
-      assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'), `https://blancbrowser.com/features/${route}`);
+      assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'), `https://blanc.day/features/${route}`);
       const feature = route === 'workspaces' ? 'named-workspaces' : route;
       assert.equal(await page.locator('.feature-close [data-track="feature_cta_click"]').getAttribute('data-feature'), feature);
       await page.locator('.breadcrumb a').last().focus();

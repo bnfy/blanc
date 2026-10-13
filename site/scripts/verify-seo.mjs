@@ -2,13 +2,13 @@ import { readdir, readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
+import { SITE_ORIGIN } from '../src/lib/site-origin.mjs';
 
 const LEGACY_ROUTES = JSON.parse(await readFile(new URL('../src/data/legacy-routes.json', import.meta.url), 'utf8'));
 const FEATURE_TOPICS = JSON.parse(await readFile(new URL('../src/data/guide-topics.json', import.meta.url), 'utf8'));
 const RETAINED_FEATURE_ROUTES = ['/features', ...FEATURE_TOPICS.map(topic => `/features/${topic.id}`)];
 const DIST = fileURLToPath(new URL('../dist/', import.meta.url));
 const DIST_ROOT = path.resolve(DIST);
-const SITE_ORIGIN = 'https://blancbrowser.com';
 const NO_SOCIAL_ROUTES = new Set(['/404', '/privacy', '/terms', '/mail/privacy', '/mail/terms', '/import-tabs']);
 const NOINDEX_ROUTES = new Set(['/404', '/import-tabs', ...Object.keys(LEGACY_ROUTES)]);
 const OG_ASPECT_RATIO = 1200 / 630;
@@ -341,7 +341,7 @@ if (
 }
 
 const robots = await readFile(new URL('../dist/robots.txt', import.meta.url), 'utf8');
-if (!robots.includes('Sitemap: https://blancbrowser.com/sitemap.xml')) {
+if (!robots.includes(`Sitemap: ${SITE_ORIGIN}/sitemap.xml`)) {
   errors.push('robots.txt does not reference the canonical sitemap URL');
 }
 

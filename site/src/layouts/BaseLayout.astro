@@ -8,8 +8,9 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import Consent from '../components/Consent.astro';
 import { restoreHomeAppearance } from '../scripts/home-appearance.js';
+import { SITE_ORIGIN } from '../lib/site-origin.mjs';
 
-const SITE = 'https://blancbrowser.com';
+const SITE = SITE_ORIGIN;
 const {
   title,
   description,

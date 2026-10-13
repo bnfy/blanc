@@ -234,7 +234,7 @@ After publication, regenerate and commit `site/src/data/releases.json`, advance
 the public and migration baselines, run `npm run site:build`, push, then run
 `npm run site:deploy` from the clean checkout at `origin/main`. That script must
 keep its explicit `--branch=main`: a detached release worktree otherwise deploys
-to a `HEAD` preview without updating `blancbrowser.com`. Confirm `wrangler pages
+to a `HEAD` preview without updating the live site (`blanc.day`). Confirm `wrangler pages
 deployment list --project-name=blancbrowser` reports the expected source SHA as
 `Environment: Production` and `Branch: main`, then verify the canonical
 changelog and homepage version, not only a Cloudflare preview URL. The v1.4.0 incident and recovery are recorded

@@ -1,4 +1,4 @@
-// Pure logic for the blancbrowser.com/dl/* counted download redirect.
+// Pure logic for the website's /dl/* counted download redirect.
 // No Workers APIs here — unit-tested by test/unit/ping-worker-dl.test.js.
 
 // The four site download targets. Mirrors site/src/scripts/site.js pickAsset:
@@ -27,7 +27,7 @@ export function buildDownloadConversionEvent({ target, oppref, timestampMs, even
     custom_event_name: OPENAI_CONVERSION_EVENT,
     timestamp_ms: timestampMs,
     oppref,
-    source_url: `https://blancbrowser.com/dl/${target}`,
+    source_url: `https://blanc.day/dl/${target}`,
     action_source: 'web',
     opt_out: true,
     data: { type: 'custom', platform: target },

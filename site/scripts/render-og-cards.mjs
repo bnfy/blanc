@@ -63,14 +63,14 @@ const CARDS = [
     page: '/features/island.html',
     figure: '.island-figure',
     headline: 'The browser that gets out of your way.',
-    identity: { domain: 'blancbrowser.com', favicon: '/favicon.svg' },
+    identity: { domain: 'blanc.day', favicon: '/favicon.svg' },
   },
   {
     out: 'feature-island.png',
     page: '/features/island.html',
     figure: '.island-figure',
     headline: 'One small island. The whole browser.',
-    identity: { domain: 'blancbrowser.com', favicon: '/favicon.svg' },
+    identity: { domain: 'blanc.day', favicon: '/favicon.svg' },
   },
   {
     out: 'feature-ad-blocking.png',

@@ -10,7 +10,10 @@ const MAX_PROFILE_URL_LENGTH = 500;
 const MAX_INTRODUCTION_LENGTH = 1200;
 const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]+\.[^\s@]{2,}$/;
 const TOKEN_RE = /^[A-Za-z0-9_-]{43}$/;
+// blanc.day is the site's origin; blancbrowser.com stays allowed while pages
+// served from it before the move are still open in someone's browser.
 const ALLOWED_ORIGINS = new Set([
+  'https://blanc.day',
   'https://blancbrowser.com',
   'http://localhost:4321',
   'http://localhost:4322',
@@ -234,7 +237,7 @@ async function applicationBody(request) {
 function applicationResult(request, cors, status, message, payload) {
   if (!isNativeFormRequest(request)) return json(payload, status, cors);
   return new Response(
-    `<!doctype html><meta charset="utf-8"><title>${status < 400 ? 'Application received' : 'Application not sent'}</title><h1>${status < 400 ? 'Application received' : 'Application not sent'}</h1><p>${message}</p><p><a href="https://blancbrowser.com/ambassadors#apply">Return to the ambassador page</a></p>`,
+    `<!doctype html><meta charset="utf-8"><title>${status < 400 ? 'Application received' : 'Application not sent'}</title><h1>${status < 400 ? 'Application received' : 'Application not sent'}</h1><p>${message}</p><p><a href="https://blanc.day/ambassadors#apply">Return to the ambassador page</a></p>`,
     {
       status,
       headers: {
@@ -350,7 +353,7 @@ async function handleAmbassadorApplication(request, env, cors) {
 }
 
 const htmlResult = (title, message) => new Response(
-  `<!doctype html><meta charset="utf-8"><title>${title}</title><h1>${title}</h1><p>${message}</p><p><a href="https://blancbrowser.com/">Return to Blanc</a></p>`,
+  `<!doctype html><meta charset="utf-8"><title>${title}</title><h1>${title}</h1><p>${message}</p><p><a href="https://blanc.day/">Return to Blanc</a></p>`,
   {
     headers: {
       'Content-Type': 'text/html; charset=utf-8',

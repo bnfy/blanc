@@ -51,7 +51,7 @@ npm run release                 # scripts/release.sh: clean, build, sign, publis
 After a release, `npm run site:deploy` is the production Cloudflare Pages
 command. It deliberately includes `--branch=main` because the required clean
 release checkout is detached at `origin/main`; without that flag Wrangler
-creates a `HEAD` preview and leaves `blancbrowser.com` unchanged. A successful
+creates a `HEAD` preview and leaves the live site (`blanc.day`) unchanged. A successful
 post-release deployment is not complete until `wrangler pages deployment list
 --project-name=blancbrowser` shows the expected source SHA as `Production` on
 branch `main` and the canonical changelog shows the new version.
