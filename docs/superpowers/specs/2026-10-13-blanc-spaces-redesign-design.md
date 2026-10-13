@@ -1,6 +1,6 @@
 # Blanc Spaces redesign — design
 
-Date: 2026-10-13. Status: approved in brainstorming, awaiting written-spec review.
+Date: 2026-10-13. Status: approved in brainstorming; revised after written-spec review (contrast, upgrade write, Undo binding).
 Prototype: [`2026-10-13-blanc-spaces-redesign-prototype.html`](./2026-10-13-blanc-spaces-redesign-prototype.html)
 (open it in a browser: the mark, menu, switch motion, editor and custom colour
 picker are interactive).
@@ -42,6 +42,10 @@ feedback.
 | D10 | Approach | **A new `spaces` overlay mode anchored to the mark**, sharing one menu component with the ⌘L footer entry (like the shield and capture popovers). |
 | D11 | Delivery | **PR 1:** free Spaces. **PR 2:** the redesign. **Site PR after release** (claims must be release-backed). |
 | D12 | Row highlights | Adjacent filled rows (selected + hovered) **never touch**; rows carry a 3px gap. |
+| D13 | Existing spaces on upgrade | **Assigned an identity once, on first load,** through the loader's existing repair-and-backup path, so an unedited space never changes colour when the list changes. |
+| D14 | Undo after deleting this window's space | **Rebinds the window** to the restored space (conditions in §7). Restore from Recently deleted keeps today's record-only behaviour. |
+| D15 | File format version | **Stays 2.** Older builds keep working Spaces after a downgrade and strip only colour and symbol. |
+| D16 | Checklist task for people whose checklist already retired | **Stays retired.** Only a checklist still showing gains the task. |
 
 Decided during design, not asked: once at least one space exists, a window that
 is not in a space shows a **neutral grey mark** (glyph, no name), keeping the
@@ -126,31 +130,45 @@ time.)
 - `symbol`: one id from a fixed set of 16 (below). Unknown ids are repaired to
   a default.
 
-`WORKSPACES_VERSION` stays **2**. `normalizeWorkspace` already rebuilds records
-from known fields, so an older Blanc that rewrites the file drops `color` and
-`symbol` (a cosmetic loss) instead of refusing the file, which a version bump
-would cause (`future-format`). Fields are profile-scoped like the rest of the
-record and never synced.
+`WORKSPACES_VERSION` stays **2** (D15). Fields are profile-scoped like the rest
+of the record and never synced.
 
-**Defaults.** A record without valid fields gets the first preset colour and
-the first symbol not already used, in list order (cycling when all are used).
-Existing spaces therefore gain an identity on upgrade with no migration write
-until the next save. New spaces get the same rule at creation, so a space never
-starts blank.
+**Defaults and upgrade (D13).** A record without a valid `color` or `symbol`
+gets the first preset colour and the first symbol not already used, in list
+order (cycling when all are used). `normalizeWorkspace` assigns them, so the
+repository's existing load path (`workspaces.js`: when the repaired file differs
+from disk it writes an exact `.before-repair-<id>.bak` copy, then persists the
+repaired file) makes the assignment **durable on the first load of the new
+version**, once; later loads match disk and write nothing. Identities are
+therefore stable: deleting or reordering one space never recolours another.
+New spaces get the same rule at creation, so a space never starts blank.
 
-**Presets** (light-mode values; each is a starting point for the readability
-guard, not a fixed per-theme pair):
+**Downgrade.** Shipped builds (v1.32 and earlier) rebuild records from the
+fields they know, so the first time an older Blanc **loads** the file it strips
+`color` and `symbol` (keeping its own `.before-repair` backup) and Spaces keeps
+working. On re-upgrade the defaults are assigned again; custom choices made
+before the downgrade are lost. Accepted over a version bump, which would make
+older builds refuse the file (`future-format`) and leave Spaces unavailable.
 
-| Name | Hex |
-|---|---|
-| Sage | `#5f8a68` |
-| Sky | `#4f7fae` |
-| Iris | `#7a6bb8` |
-| Rose | `#b8607a` |
-| Clay | `#b46a45` |
-| Sand | `#9a7428` |
-| Slate | `#5d6b78` |
-| Graphite | `#3a3a3a` |
+**Presets.** Stored and shown as these values, which are fixed points of the
+light-mode readability guard (§2), so a preset swatch is exactly the colour
+drawn in light mode. Dark and private are derived by the guard:
+
+| Name | Hex (stored, light) | Dark | Private |
+|---|---|---|---|
+| Sage | `#426c4c` | `#8db996` | `#85b18e` |
+| Sky | `#376694` | `#82b3e5` | `#78aadc` |
+| Iris | `#6757a3` | `#b2a4f7` | `#a99bed` |
+| Rose | `#9b4761` | `#ef93ac` | `#e68aa3` |
+| Clay | `#974f2a` | `#ea9b75` | `#e0926c` |
+| Sand | `#815c02` | `#d1a960` | `#c7a057` |
+| Slate | `#576471` | `#a2b0bf` | `#9aa8b6` |
+| Graphite | `#3a3a3a` | `#afafae` | `#a6a6a5` |
+
+(The brainstorming mock-ups used lighter design inputs, e.g. Sage `#5f8a68`;
+those fail 4.5:1 on their own wash and are not shipped. The dark and private
+columns are what the §2 algorithm produces today; tests pin the light column as
+fixed points and the other two as meeting the floor, not as exact values.)
 
 No preset is a pure red, so a preset space never reads as an error; a custom
 colour may be anything. The palette is defined once in `tokens/tokens.json`
@@ -167,15 +185,34 @@ A pure module (no `require('electron')`, loadable by both chrome documents and
 by Node tests) derives the colour actually drawn:
 
 - Keep the stored hex as the user's choice; display may differ.
-- For each surface (light `#ffffff`, dark `#1f1f1f`, private `#191919`), if
-  the colour's contrast against it is below **4.5:1**, change only its OKLCH
-  lightness (darker on light, lighter on dark), reducing chroma only as far as
-  needed to stay in sRGB gamut, until it reaches 4.5:1.
-- The mark's background wash is that ink at 15% (light) / 20% (dark, private).
-- A colour that already passes is returned unchanged.
+- The ink (symbol and name) is drawn over its own wash, so contrast is measured
+  against the **final composited background**, not the bare surface. For each
+  theme the guard takes the set of surfaces a space mark or tile can sit on:
+
+  | Surface | Light | Dark | Private |
+  |---|---|---|---|
+  | Island and menu (`--surface-raised`) | `#ffffff` | `#1f1f1f` | `#191919` |
+  | Spaces-menu row, hovered or selected (`--surface`) | `#f7f7f7` | `#171717` | `#131313` |
+  | ⌘L row hover (4% `--text` wash, a Quick Switcher result) | `#f5f5f5` | `#282828` | `#222222` |
+
+  Every space-tile surface must use one of these fills; adding a new one means
+  adding it to the guard's set, which is defined once.
+- The requirement: the ink has at least **4.5:1** against each surface in the
+  set *and* against its wash composited over each surface — wash alpha 15%
+  (light) / 20% (dark, private), composited and compared in 8-bit sRGB, the way
+  it is painted.
+- If the colour already meets that, it is returned unchanged. Otherwise only its
+  OKLCH lightness changes (darker in light, lighter in dark and private),
+  reducing chroma only as far as needed to stay in sRGB gamut, to the smallest
+  change that meets the requirement.
+- The check is repeated **after rounding to hex**; if rounding drops it below
+  4.5:1, lightness keeps stepping until the rounded value passes.
+- Worked example (from review): `#767676` is 4.54:1 on white but 3.78:1 on its
+  own 15% wash, so it is drawn as `#636363`.
 
 The editor states when the guard is acting, e.g. "Kept readable: shown as
-#847800 in light mode." (prototype behaviour for `#F5E663`).
+#6D6400 in light mode." for `#F5E663`. (The prototype predates the composited
+rule and shows a lighter value.)
 
 ### 3. The mark on the pill
 
@@ -222,8 +259,9 @@ needed).
 
 - Rows: 28px symbol tile, name, tab count, ✓ on the current space
   (`aria-current`). 40px rows, 11px radius, **3px gap between rows** so a
-  selected and a hovered row never merge (D12). Rows of a window shown
-  elsewhere keep their "Show window" context.
+  selected and a hovered row never merge (D12). Hovered, focused and selected
+  rows all fill with `--surface`, one of the guard's surfaces (§2). Rows of a
+  window shown elsewhere keep their "Show window" context.
 - Hovering or focusing a row reveals `•••` in place of the count, opening the
   editor. Right-click opens the native menu with **Edit…** and **Delete**
   (`workspace-context-menu-model.js`).
@@ -274,6 +312,17 @@ The menu reshapes into the editor in place (no dialog, no scrim):
   for 7 days (unchanged `RECOVERY_TTL_MS`). Deleting the current space leaves
   its tabs open; the window is simply no longer in a space (the mark turns
   neutral).
+- **Undo restores the binding too (D14).** The delete records which window
+  runtimes it unbound (today `removeNamedWorkspace` clears `workspaceId` on
+  every runtime of the profile holding it, after revealing a resident set in its
+  own window). Undo restores the record and rebinds each recorded runtime that
+  still exists, is still in no space, and is not blocked by the space now being
+  held by another window. Rebinding is the same commit as a bind after a
+  switch: the window's live tabs autosave into the restored space from then on,
+  so changes made in the seconds since the delete are kept, not reverted. A
+  runtime that fails a condition stays unbound and the record is restored alone.
+- **Restore from Recently deleted** keeps today's behaviour: it brings back the
+  saved record and binds no window.
 - **Recently deleted** lists entries with **Restore** and **Forget**. Forget is
   permanent, so it keeps an inline confirmation — the one confirmation left.
 
@@ -350,9 +399,19 @@ translated (`data-i18n-ignore`).
 
 **Unit (`node --test`):**
 
-- Readability guard: for a sweep of hues × lightness × chroma, the result meets
-  4.5:1 against each surface; passing colours come back unchanged; output is a
-  valid hex; invalid input is rejected.
+- Readability guard: for a sweep of hues × lightness × chroma, the rounded hex
+  result meets 4.5:1 against every surface in its theme's set and against its
+  wash composited over each; colours that already pass come back unchanged
+  (including every light preset, pinned as fixed points); `#767676` comes back
+  changed; output is a valid hex; invalid input is rejected.
+- Upgrade: a version-2 file without `color`/`symbol` is written once on first
+  load with a `.before-repair` backup and assigned defaults in list order; a
+  second load writes nothing; deleting or reordering a space leaves the others'
+  identities unchanged.
+- Undo: deleting this window's space then Undo rebinds the window and resumes
+  autosave; when the window has since joined another space, or the space is held
+  elsewhere, Undo restores the record only; Restore from Recently deleted binds
+  nothing.
 - Model: `color`/`symbol` normalization and repair, defaults in list order,
   version unchanged, files written without the fields still load, move to
   index.
@@ -396,8 +455,11 @@ crops, before over after.
 
 - **Colour in a colourless chrome.** Mitigated by the mark-only default, the
   readability guard, and the dev switch for judging B/C in practice.
-- **Downgrade drops identity.** An older build that saves `workspaces.json`
-  strips `color`/`symbol`; defaults reappear on upgrade. Accepted over a
-  version bump that would lock older builds out of Spaces.
+- **Downgrade drops identity.** An older build strips `color`/`symbol` when it
+  first loads `workspaces.json` (keeping a backup); defaults reappear on
+  upgrade, custom choices do not (D15).
+- **Upgrade writes once.** The first load of the new version persists the
+  assigned identities and leaves a `.before-repair` backup beside
+  `workspaces.json` (D13). That is the existing repair path working as designed.
 - **Patron's value.** With nothing locked, Patron relies on goodwill; this is
   the owner's choice (D5), recorded rather than mitigated.
