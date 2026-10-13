@@ -368,7 +368,8 @@ Missing evidence:
    1Password under Arm emulation, on a test build.
 2. A packaged x64 Linux AppImage with an account. The Linux evidence is an
    ARM64 development build.
-3. Windows rows not run:
+3. Windows rows not run on 2026-10-12. All but the last two items ran and
+   passed on 2026-10-13 (see *#735 resolved* below):
    - Navigate during Fill;
    - Settings (Ctrl+,) during the wait;
    - quitting 1Password before approving;
@@ -411,10 +412,33 @@ Node with garbage collection forced between rounds, it completed three
 5-match `find-logins` rounds after one approval: 25.5 s (including the
 approval), then 1.32 s and 1.39 s.
 
-So #735 is closed and this change reverts #742. The waiver above still stands
-for the Windows rows that weren't run and for the missing real x64 PC. Those
-rows had been stopped only because of the prompts, so they can now be run in
-the VM or on a real PC before release.
+So #735 is closed and #768 reverts #742. The waiver above still stands for
+the missing real x64 PC and the rows listed below as still not run.
+
+**Remaining Windows rows, run 2026-10-13.** Same VM with x64 1Password 8.12.40
+under emulation. The Blanc build was a private signed validation build of
+#768's head (Windows on) with only the Arm-translation check bypassed, no
+diagnostics (run 38360342477, never merged, branch deleted). A small Node
+helper held one approved SDK client to edit a test item and scan the profile.
+
+- **PASS:** Navigate during Fill while 1Password's prompt waited. After
+  approval, Blanc showed no picker and filled nothing.
+- **PASS:** Settings (Ctrl+,) during the wait. Same result.
+- **PASS:** item changed. The helper changed Second match (version 1 → 2)
+  while the picker was open; choosing it gave "Login changed… Nothing was
+  filled."
+- **PASS:** quitting 1Password during the wait ended the fill with an error
+  notice and nothing filled.
+- **PASS:** with 1Password not running, fill said "1Password isn't available"
+  within about 2 s and Blanc stayed responsive.
+- **PASS:** no test passwords in user data. 108 files (about 10 MB) were
+  searched in UTF-8 and UTF-16 after Blanc quit; a planted canary was found,
+  and none of the five test passwords were.
+- **PASS:** a normal 5-match fill after approval read every picker item with
+  no further prompt.
+- **Still not run** (covered by the waiver): per-user and machine-wide
+  installs (only the Store package exists in the VM), key repeat, AltGr, a
+  screen reader, and permission precedence.
 
 ### Windows/Linux live-account harness
 
