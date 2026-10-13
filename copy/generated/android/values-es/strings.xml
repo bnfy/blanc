@@ -233,8 +233,6 @@
     <string name="footer_history">Historial</string>
     <string name="footer_tab_layout_on">Activar las pestañas verticales</string>
     <string name="footer_settings">Configuración</string>
-    <string name="ws_new_empty">Nuevo Space vacío</string>
-    <string name="ws_save_as">Guardar esta ventana como…</string>
     <string name="ws_error_duplicate_name">Ese nombre ya está en uso. Elige otro.</string>
     <string name="ws_error_invalid_name">Escribe un nombre para el Space.</string>
     <string name="ws_error_limit">Tienes %1$s Spaces. Elimina uno antes de añadir otro.</string>
@@ -249,11 +247,7 @@
     <string name="ws_error_recovery_duplicate">Ya hay un Space con este nombre. Cámbiale el nombre antes de restaurar este Space.</string>
     <string name="ws_error_generic">No se pudo completar esa acción. Inténtalo de nuevo.</string>
     <string name="ws_trigger_current">Space · %1$s</string>
-    <string name="ws_editor_rename">Cambiar el nombre del Space</string>
-    <string name="ws_editor_create">Nuevo Space vacío</string>
-    <string name="ws_editor_save_as">Guardar esta ventana como…</string>
     <string name="ws_editor_help">Las pestañas normales se guardan automáticamente en este dispositivo, en este perfil. Las páginas privadas no se incluyen. Los Spaces comparten las sesiones iniciadas de este perfil.</string>
-    <string name="ws_editor_save">Guardar</string>
     <string name="ws_editor_saving">Guardando…</string>
     <string name="ws_decision_label">Decisión al cambiar de Space</string>
     <string name="ws_decision_capacity">Tus Spaces retenidos están llenos. Abre este Space en otra ventana para mantener tus páginas disponibles.</string>
@@ -269,7 +263,6 @@
         <item quantity="other">Se cerrarán %1$d pestañas sin guardar. Los borradores de las páginas no se guardan en el disco.</item>
     </plurals>
     <string name="ws_decision_new_window">Abrir en otra ventana</string>
-    <string name="ws_decision_save_first">Guardar antes esta ventana…</string>
     <string name="ws_decision_close_and_switch">Cerrar pestañas y cambiar</string>
     <string name="ws_row_current">Space actual</string>
     <string name="ws_row_show_window">Mostrar ventana</string>
@@ -280,13 +273,6 @@
         <item quantity="many">%2$s · %3$s · %1$d pestañas</item>
         <item quantity="other">%2$s · %3$s · %1$d pestañas</item>
     </plurals>
-    <string name="ws_manage_label">Gestionar %1$s</string>
-    <string name="ws_manage_back">Atrás</string>
-    <string name="ws_manage_rename">Renombrar</string>
-    <string name="ws_manage_delete">Eliminar…</string>
-    <string name="ws_manage_move_up">Subir</string>
-    <string name="ws_manage_move_down">Bajar</string>
-    <string name="ws_delete_confirm">¿Eliminar «%1$s»? Las pestañas abiertas siguen disponibles. Puedes restaurar el Space guardado desde Eliminados recientemente durante siete días.</string>
     <string name="ws_delete_button">Eliminar Space</string>
     <string name="ws_recovery_back">Volver a los Spaces</string>
     <string name="ws_recovery_help">Los Spaces guardados se pueden recuperar durante siete días. Se conservan hasta %1$s Spaces eliminados.</string>
@@ -294,8 +280,6 @@
     <string name="ws_recovery_forget">Eliminar para siempre…</string>
     <string name="ws_forget_confirm">¿Eliminar «%1$s» para siempre? Este Space guardado no se podrá restaurar.</string>
     <string name="ws_forget_button">Eliminar para siempre</string>
-    <string name="ws_list_empty">Aún no hay Spaces guardados.</string>
-    <string name="ws_list_undo">Space eliminado · Deshacer</string>
     <plurals name="ws_list_recently_deleted">
         <item quantity="one">Eliminados recientemente (%1$d)</item>
         <item quantity="many">Eliminados recientemente (%1$d)</item>
@@ -484,7 +468,6 @@
     <string name="tab_menu_quiet">Poner esta pestaña en reposo ahora</string>
     <string name="tab_menu_close_others">Cerrar las demás pestañas</string>
     <string name="tab_menu_move_to_new_window">Mover la pestaña a una ventana nueva</string>
-    <string name="workspace_menu_rename">Renombrar…</string>
     <string name="workspace_menu_delete">Eliminar…</string>
     <string name="dock_active_tab">Pestaña activa</string>
     <string name="site_security_unavailable_title">Información de conexión no disponible</string>

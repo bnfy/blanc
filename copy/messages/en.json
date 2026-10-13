@@ -880,14 +880,6 @@
     "message": "Settings",
     "note": "Island footer button that opens Settings."
   },
-  "ws.newEmpty": {
-    "message": "New empty space",
-    "note": "Space switcher command."
-  },
-  "ws.saveAs": {
-    "message": "Save this window as…",
-    "note": "Space switcher command that saves this window as a space."
-  },
   "ws.error.duplicateName": {
     "message": "That name is already in use. Choose another name.",
     "note": "Space switcher error when a space name is already taken."
@@ -944,26 +936,9 @@
     "message": "Space · {name}",
     "note": "Tooltip and accessible name of the Island footer space button; {name} is the current space’s name."
   },
-  "ws.editor.rename": {
-    "message": "Rename space",
-    "note": "Label of the space name field when renaming a space."
-  },
-  "ws.editor.create": {
-    "message": "New empty space",
-    "note": "Label of the space name field when creating an empty space."
-  },
-  "ws.editor.saveAs": {
-    "message": "Save this window as…",
-    "note": "Label of the space name field when saving this window as a space."
-  },
   "ws.editor.help": {
     "message": "Ordinary tabs save automatically on this device, in this profile. Private pages are excluded. Spaces share this profile’s sign-ins.",
     "note": "Help text under the space name field."
-  },
-  "ws.editor.save": {
-    "message": "Save",
-    "note": "Button that saves the space name.",
-    "maxLength": 12
   },
   "ws.editor.saving": {
     "message": "Saving…",
@@ -995,11 +970,6 @@
     "note": "Button that opens the space in a new window instead of this one.",
     "maxLength": 31
   },
-  "ws.decision.saveFirst": {
-    "message": "Save this window first…",
-    "note": "Button that saves this window as a space before switching.",
-    "maxLength": 33
-  },
   "ws.decision.closeAndSwitch": {
     "message": "Close tabs and switch",
     "note": "Button that closes this window’s unsaved tabs and switches space.",
@@ -1025,39 +995,6 @@
   "ws.row.title": {
     "message": "{count, plural, one {{name} · {context} · # tab} other {{name} · {context} · # tabs}}",
     "note": "Tooltip and accessible name of a space row; {name} is the space name, {context} one of the ws.row.current/showWindow/retained/open phrases."
-  },
-  "ws.manage.label": {
-    "message": "Manage {name}",
-    "note": "Accessible name of a space row’s ••• button; {name} is the space name."
-  },
-  "ws.manage.back": {
-    "message": "Back",
-    "note": "Button that leaves a space’s management view.",
-    "maxLength": 12
-  },
-  "ws.manage.rename": {
-    "message": "Rename",
-    "note": "Button that renames a space.",
-    "maxLength": 12
-  },
-  "ws.manage.delete": {
-    "message": "Delete…",
-    "note": "Button that asks to delete a space.",
-    "maxLength": 12
-  },
-  "ws.manage.moveUp": {
-    "message": "Move up",
-    "note": "Button that moves a space up the list.",
-    "maxLength": 12
-  },
-  "ws.manage.moveDown": {
-    "message": "Move down",
-    "note": "Button that moves a space down the list.",
-    "maxLength": 13
-  },
-  "ws.delete.confirm": {
-    "message": "Delete “{name}”? Open tabs stay available. You can restore the saved space from Recently Deleted for seven days.",
-    "note": "Confirmation before deleting a space; {name} is its name."
   },
   "ws.delete.button": {
     "message": "Delete space",
@@ -1091,15 +1028,6 @@
     "message": "Delete permanently",
     "note": "Button that confirms permanent deletion.",
     "maxLength": 26
-  },
-  "ws.list.empty": {
-    "message": "No saved spaces yet.",
-    "note": "Shown in the space switcher when there are no spaces."
-  },
-  "ws.list.undo": {
-    "message": "Space deleted · Undo",
-    "note": "Button shown after deleting a space that restores it.",
-    "maxLength": 40
   },
   "ws.list.recentlyDeleted": {
     "message": "{count, plural, one {Recently Deleted (#)} other {Recently Deleted (#)}}",
@@ -1791,10 +1719,6 @@
   "tabMenu.moveToNewWindow": {
     "message": "Move Tab to New Window",
     "note": "Tab context menu command."
-  },
-  "workspaceMenu.rename": {
-    "message": "Rename…",
-    "note": "Context menu command on a space row."
   },
   "workspaceMenu.delete": {
     "message": "Delete…",

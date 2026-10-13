@@ -984,6 +984,23 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
 - A **space** is a named, saved set of one window's tabs and groups in the
   current profile; a profile holds at most 25. Creating, saving, importing,
   switching, renaming, reordering and deleting spaces is free for everyone.
+- Each space has a **colour** (any `#rrggbb`; eight presets) and one of
+  sixteen **symbols**. Missing or invalid values get the first unused preset
+  and symbol in list order, written once on load. The drawn ink is derived so
+  the symbol and name reach 4.5:1 against every surface they sit on and their
+  own wash, in light, dark and private; the stored hex is never changed.
+- The Island shows the current space as a **mark** at its leading edge
+  (symbol and name on its colour); a window in no space shows a quiet grey
+  mark once any space exists; before the first space nothing is shown. The
+  mark opens the **Spaces menu**, lined up under it and hanging just below the
+  Island; the ⌘L footer's icon-only Spaces button opens the same menu below
+  the Island (neither ever covers it), and the Quick Switcher matches space
+  names.
+- The menu edits in place (name validated as you type, preset and custom
+  colours, symbols; changes apply live), deletes immediately with **Undo**
+  (which also puts the window back in the space), reorders by drag or
+  Option/Alt+↑/↓, and asks before a switch would close unsaved tabs, leading
+  with saving them. Motion follows Reduce Motion (cross-fade only).
 - Opening a space swaps it into the current window in place. While a window
   is in a space, its tab set autosaves into it; private tabs are never saved.
   A space is in at most one window at a time: opening one held by another
@@ -999,9 +1016,10 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
 - Spaces are device-local and profile-scoped; they never sync.
 - **Acceptance:**
   [`acceptance/F41-named-workspaces.feature`](./acceptance/F41-named-workspaces.feature)
-  (`@workspace`, bound in `test/desktop/steps/named-workspaces.steps.js` and
-  `test/desktop/steps/workspace-lifecycle.steps.js`);
-  `test/unit/workspace*.test.js`.
+  (`@workspace`, bound in `test/desktop/steps/named-workspaces.steps.js`,
+  `test/desktop/steps/workspace-lifecycle.steps.js` and
+  `test/desktop/steps/spaces-redesign.steps.js`);
+  `test/unit/workspace*.test.js`, `test/unit/space*.test.js`.
 
 ## F42 — Dark websites
 

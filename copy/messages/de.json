@@ -853,14 +853,6 @@
     "message": "Einstellungen",
     "source": "sha256:e7fbf60bb96fb20c47e0384d5d691af8c4306ceaca2a1581aca93965046ec1cb"
   },
-  "ws.newEmpty": {
-    "message": "Neuer leerer Space",
-    "source": "sha256:a1f976d5564c68f3c6eed38c8398f5c3afa29dbc5151c00f523205478410f0d2"
-  },
-  "ws.saveAs": {
-    "message": "Dieses Fenster speichern als…",
-    "source": "sha256:ec70f2ee3c08e1104a7f662945c752a62d48d9385a9e4e94324be4f371469aaf"
-  },
   "ws.error.duplicateName": {
     "message": "Dieser Name wird schon verwendet. Wähle einen anderen Namen.",
     "source": "sha256:d6f0844363ab27cf87daee09080ef9eced0a4ba965e4c3955897fa06fd4c862e"
@@ -917,25 +909,9 @@
     "message": "Space · {name}",
     "source": "sha256:f118d15158d10955e79ec63251eb9a36d4e939bc9edf7f907688cffdb1333df2"
   },
-  "ws.editor.rename": {
-    "message": "Space umbenennen",
-    "source": "sha256:e9e93744b560b62a9c18e584161fc62d6bdf19e08c15c6a2878a09b0ea9afaf1"
-  },
-  "ws.editor.create": {
-    "message": "Neuer leerer Space",
-    "source": "sha256:60e48d2ab4b76b55d4bb67bd8b1b320786f82330167b538646f94cb089851498"
-  },
-  "ws.editor.saveAs": {
-    "message": "Dieses Fenster speichern als…",
-    "source": "sha256:806717c79a63356294065830b6707a964e779e097596ac326b7c9f517e0ee7d5"
-  },
   "ws.editor.help": {
     "message": "Normale Tabs werden auf diesem Gerät in diesem Profil automatisch gespeichert. Private Seiten sind ausgenommen. Spaces teilen die Anmeldungen dieses Profils.",
     "source": "sha256:551a0661aec9d50a2067448a29258536584e60cc8f1333023e5a700ad4c132fe"
-  },
-  "ws.editor.save": {
-    "message": "Speichern",
-    "source": "sha256:ea34c763c629fdf0b27fde3ec1093fdc308d56932fe5cda75934cc166f181e1f"
   },
   "ws.editor.saving": {
     "message": "Speichern…",
@@ -965,10 +941,6 @@
     "message": "In neuem Fenster öffnen",
     "source": "sha256:91d0bc148bcca6a6a4f4f645ac64555854d5f3e7cb5c59a423b100a6a57313fa"
   },
-  "ws.decision.saveFirst": {
-    "message": "Erst dieses Fenster speichern…",
-    "source": "sha256:e62031db703832d56c32cc16bbcd04df757f92d363496101b9e0ee27f44ed82d"
-  },
   "ws.decision.closeAndSwitch": {
     "message": "Tabs schließen und wechseln",
     "source": "sha256:429e5427871a6e6bf9bb25050143fb04b33bf18188c720040d480944f7b5df35"
@@ -992,34 +964,6 @@
   "ws.row.title": {
     "message": "{count, plural, one {{name} · {context} · # Tab} other {{name} · {context} · # Tabs}}",
     "source": "sha256:4ca7a63b65ca18dfbc16db796c6f41b1983e5e9cac99c4562eae7da9e4febe67"
-  },
-  "ws.manage.label": {
-    "message": "{name} verwalten",
-    "source": "sha256:ebb8cda5a9d669f218dfe8bd9b7de0160dc86101949facaad7e9ab4455e2030a"
-  },
-  "ws.manage.back": {
-    "message": "Zurück",
-    "source": "sha256:8be48ddbdda80db8e35c7d1c55b979ea6458fd9904a5ec490b01b1ee1027a60f"
-  },
-  "ws.manage.rename": {
-    "message": "Umbenennen",
-    "source": "sha256:d2c931be549d1507111776ea6b967baa996216fb0ae111b51dd09f4b5592f4ac"
-  },
-  "ws.manage.delete": {
-    "message": "Löschen…",
-    "source": "sha256:3569a2ed29acd9d63f844f052e126e342d23d79c110e9246a4daba6f5e5c634e"
-  },
-  "ws.manage.moveUp": {
-    "message": "Nach oben",
-    "source": "sha256:17f844665e5438483ba28e91551a78686dc5d92416f207b4052bd8deed3650d4"
-  },
-  "ws.manage.moveDown": {
-    "message": "Nach unten",
-    "source": "sha256:891980b0a4bbab8bf1d8ee91594e8c808b97f4dcff7aca9b769719f75bbaf1c6"
-  },
-  "ws.delete.confirm": {
-    "message": "„{name}“ löschen? Offene Tabs bleiben verfügbar. Den gespeicherten Space kannst du sieben Tage lang unter „Zuletzt gelöscht“ wiederherstellen.",
-    "source": "sha256:0d3fb68b665a924cbd8370a48ae1212ce172e29a6e20844fed09b2587c033cbb"
   },
   "ws.delete.button": {
     "message": "Space löschen",
@@ -1048,14 +992,6 @@
   "ws.forget.button": {
     "message": "Endgültig löschen",
     "source": "sha256:6da5a0155f1e405e52cfc3b2a51283001c519e86763bf605a70364b048473817"
-  },
-  "ws.list.empty": {
-    "message": "Noch keine gespeicherten Spaces.",
-    "source": "sha256:7c1a3d9a0c23c89c9ab36fdee06f280654c69a3ee308fc8ef1ee385983ec63a7"
-  },
-  "ws.list.undo": {
-    "message": "Space gelöscht · Rückgängig",
-    "source": "sha256:5d7400a23ded7618893106e9e68f135882e1d6bfffeea420a90f25b886187a9f"
   },
   "ws.list.recentlyDeleted": {
     "message": "{count, plural, one {Zuletzt gelöscht (#)} other {Zuletzt gelöscht (#)}}",
@@ -1728,10 +1664,6 @@
   "tabMenu.moveToNewWindow": {
     "message": "Tab in neues Fenster verschieben",
     "source": "sha256:4afc1d856579c6cc12d392bfca7d0d8256afb75495e3a21c6cf804ac3204c1e6"
-  },
-  "workspaceMenu.rename": {
-    "message": "Umbenennen…",
-    "source": "sha256:f948e149b757e744f6e74a038d7ec9b77e8a305e5226aebacfeb86b05384c0c1"
   },
   "workspaceMenu.delete": {
     "message": "Löschen…",

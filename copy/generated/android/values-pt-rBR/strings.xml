@@ -233,8 +233,6 @@
     <string name="footer_history">Histórico</string>
     <string name="footer_tab_layout_on">Ativar as abas verticais</string>
     <string name="footer_settings">Configurações</string>
-    <string name="ws_new_empty">Novo Space vazio</string>
-    <string name="ws_save_as">Salvar esta janela como…</string>
     <string name="ws_error_duplicate_name">Esse nome já está em uso. Escolha outro.</string>
     <string name="ws_error_invalid_name">Digite um nome para o Space.</string>
     <string name="ws_error_limit">Você tem %1$s Spaces. Exclua um antes de adicionar outro.</string>
@@ -249,11 +247,7 @@
     <string name="ws_error_recovery_duplicate">Já existe um Space com este nome. Renomeie-o antes de restaurar este Space.</string>
     <string name="ws_error_generic">Não foi possível concluir essa ação. Tente de novo.</string>
     <string name="ws_trigger_current">Space · %1$s</string>
-    <string name="ws_editor_rename">Renomear Space</string>
-    <string name="ws_editor_create">Novo Space vazio</string>
-    <string name="ws_editor_save_as">Salvar esta janela como…</string>
     <string name="ws_editor_help">As abas comuns são salvas automaticamente neste dispositivo, neste perfil. Páginas privadas ficam de fora. Os Spaces compartilham os logins deste perfil.</string>
-    <string name="ws_editor_save">Salvar</string>
     <string name="ws_editor_saving">Salvando…</string>
     <string name="ws_decision_label">Decisão ao trocar de Space</string>
     <string name="ws_decision_capacity">Seus Spaces mantidos estão cheios. Abra este Space em outra janela para manter suas páginas disponíveis.</string>
@@ -269,7 +263,6 @@
         <item quantity="other">%1$d abas não salvas serão fechadas. Rascunhos das páginas não são salvos no disco.</item>
     </plurals>
     <string name="ws_decision_new_window">Abrir em outra janela</string>
-    <string name="ws_decision_save_first">Salvar esta janela antes…</string>
     <string name="ws_decision_close_and_switch">Fechar abas e trocar</string>
     <string name="ws_row_current">Space atual</string>
     <string name="ws_row_show_window">Mostrar janela</string>
@@ -280,13 +273,6 @@
         <item quantity="many">%2$s · %3$s · %1$d abas</item>
         <item quantity="other">%2$s · %3$s · %1$d abas</item>
     </plurals>
-    <string name="ws_manage_label">Gerenciar %1$s</string>
-    <string name="ws_manage_back">Voltar</string>
-    <string name="ws_manage_rename">Renomear</string>
-    <string name="ws_manage_delete">Excluir…</string>
-    <string name="ws_manage_move_up">Subir</string>
-    <string name="ws_manage_move_down">Descer</string>
-    <string name="ws_delete_confirm">Excluir “%1$s”? As abas abertas continuam disponíveis. Você pode restaurar o Space salvo em Excluídos recentemente por sete dias.</string>
     <string name="ws_delete_button">Excluir Space</string>
     <string name="ws_recovery_back">Voltar aos Spaces</string>
     <string name="ws_recovery_help">Spaces salvos podem ser recuperados por sete dias. Até %1$s Spaces excluídos são mantidos.</string>
@@ -294,8 +280,6 @@
     <string name="ws_recovery_forget">Excluir permanentemente…</string>
     <string name="ws_forget_confirm">Excluir “%1$s” permanentemente? Este Space salvo não poderá ser restaurado.</string>
     <string name="ws_forget_button">Excluir permanentemente</string>
-    <string name="ws_list_empty">Nenhum Space salvo ainda.</string>
-    <string name="ws_list_undo">Space excluído · Desfazer</string>
     <plurals name="ws_list_recently_deleted">
         <item quantity="one">Excluídos recentemente (%1$d)</item>
         <item quantity="many">Excluídos recentemente (%1$d)</item>
@@ -484,7 +468,6 @@
     <string name="tab_menu_quiet">Colocar esta aba em repouso agora</string>
     <string name="tab_menu_close_others">Fechar as outras abas</string>
     <string name="tab_menu_move_to_new_window">Mover a aba para uma nova janela</string>
-    <string name="workspace_menu_rename">Renomear…</string>
     <string name="workspace_menu_delete">Excluir…</string>
     <string name="dock_active_tab">Aba ativa</string>
     <string name="site_security_unavailable_title">Informações de conexão indisponíveis</string>
