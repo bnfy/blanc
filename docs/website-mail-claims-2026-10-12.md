@@ -34,3 +34,43 @@ repository.
 - **"If it isn't the best mail app on your Mac, delete it":** unqualified superiority, which `docs/marketing-claims.md` bans.
 - **Needs checking before it can appear:** "No content scanning, no 'smart' features trained on your correspondence" (true by inspection, but absolute); licence covers "every Mac you use" (production Polar settings pending); Google Workspace support; "your first account syncs in about a minute"; a published SHA-256 for each download; support reply times; the Outlook, Spark and Shortwave storage comparison (needs current first-party sources).
 - **Postel-only:** the Postel name and Jon Postel story, Paddle pricing and trial, newsletter and launch-email signup, and postelmail.com links.
+
+## Redesign: screenshots and new copy (October 12, 2026; owner approval pending)
+
+**Layout only.** The redesign (spec
+`docs/superpowers/specs/2026-10-12-mail-pages-redesign-design.md`) moved every
+sentence above without rewording it. The rows below are new.
+
+**Where the screenshots come from.** Every screenshot was captured in demo
+mode with the Mail repository's `native/scripts/capture-public-shots.sh`, from
+a signed Debug build of Mail at `e9e01780`, merged to `main` as `edb50879`
+(bnfy/blanc-mail#128; `main` differs from it only in two docs files). Each
+carries a "Preview build" caption. Text inside a screenshot is a claim, so each is listed too.
+Their 1100px copies are display images built by
+`site/scripts/build-display-images.mjs` (`test/unit/site-mail-screens.test.js`).
+
+| Wording or image | Evidence | Limits kept | Verdict |
+| --- | --- | --- | --- |
+| Hero: the main window (scene `main`), with *Northlight Journal*, a fictional photo newsletter, open in the reader | Signed demo build at `e9e01780`; demo corpus only; every sender, link and rule uses a reserved `.example` domain (`InMemoryMailProviderTests`) | Labelled "Preview build". The photos are inline images bundled with the demo, cropped from the app's Inbox Zero art. A real newsletter's remote images load by default and can be turned off in Settings › Privacy | Verified as captured |
+| "Every account together": the Island searching "trip" (scene `island`) | Same build; the Island search lists mailboxes, conversations and "Search all mail" | Shows one demo account. It does not depict the five-account claim, which still rests on the copy row above | Qualified |
+| "An empty inbox, kept that way." | Section heading over Inbox Zero and Rules | Framing, not a separate claim | Verified |
+| When your inbox is empty, Blanc Mail clears the list and reader for a quiet Sunrise view and one line: "Nothing here needs you right now." | `MailInboxZero.swift:32-39`, `MailRootView.swift:799-810`, `MailInboxZeroView.swift:47-51`; `MailInboxZeroTests` | Inbox only: not categories, searches or other mailboxes. The sidebar stays | Verified |
+| Small chips show when your next snoozed conversation returns and when a set you put aside is due, and one click opens it. | `MailInboxZeroView.swift:78-107`, `MailInboxZero.swift:58-74`, `MailStore.swift:4460-4464` | At most one of each; no chips when nothing is scheduled | Verified |
+| Turn on "Change wallpapers with the time of day" in Settings › Appearance and the art follows your Mac's clock, from dawn to night. | `SunriseWallpaper.swift:11-23`, `MailPreferences.swift:157-159`, `AppearanceSettingsPane.swift` | Off by default (still Sunrise art); four phases; the clock, not Dark Mode | Verified |
+| Inbox Zero images, dawn and night (scenes `zero`, `zero-night`) | Signed-in capture fixture; checklist 6.3–6.6 passed | The night image shows the time-of-day art, which the note explains | Verified as captured |
+| Rules that read like sentences: Your Gmail filters, written out in plain words. | `MailRules.swift:3`, `MailRuleSentenceText.swift` | Gmail filters only, no local rules; needs a connected Gmail account | Verified |
+| Rules run in Gmail, so new mail keeps getting sorted even while Blanc Mail is closed, and rules you made in Gmail on the web appear too. | `RulesSettingsPane.swift:7-8, 33, 41`; `GmailFilterService.swift` | New mail only; existing mail only by opt-in. EM-960 live checks are still partial (`RELEASE_ACCEPTANCE.md:76`) | Qualified: recheck live before deploy |
+| Rules image (scene `rules`) | Signed-in capture fixture | Match counts are Gmail's estimate, shown on request | Qualified, as above |
+| "At home in light and dark." with the light and dark main window (scenes `main`, `dark`) | Same build in each appearance | Captured a minute apart, so one timestamp differs | Verified |
+
+**Open before deploy.**
+
+- Recapture every image from the signed release candidate.
+- The Rules lines depend on EM-960's live checks (Mail `docs/RELEASE_ACCEPTANCE.md:76`).
+- The deploy follows Task 8 of `docs/superpowers/plans/2026-10-12-mail-pages-redesign.md`.
+
+**Tagline.** "A little less inbox." replaces "Email that minds its own business."
+in the `/mail` hero, the page title and `public/mail-og.png`. The owner chose
+it on October 12, 2026; it pairs with Blanc Browser's "A little less browser."
+It is branding, not a product claim. `site/scripts/render-mail-og-card.mjs`
+regenerates the share card, which reads “A little less inbox.” over “blanc.day/mail”.

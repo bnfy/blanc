@@ -96,5 +96,47 @@
     "output": "feature-captures/mahjong-v1.21.0.webp",
     "width": 1440,
     "height": 900
+  },
+  {
+    "source": "mail/screens/main.webp",
+    "sourceSha256": "12c2cb9b8bb151151c6c81536b420c146896fea2fea8fc787e452ae32c57499f",
+    "output": "mail/screens/main-1100.webp",
+    "width": 1100,
+    "height": 671
+  },
+  {
+    "source": "mail/screens/dark.webp",
+    "sourceSha256": "b0f98676697ab32f7cb72a04d456b8dac301c86b9a65c4c7892cd640e0ebf859",
+    "output": "mail/screens/dark-1100.webp",
+    "width": 1100,
+    "height": 671
+  },
+  {
+    "source": "mail/screens/island.webp",
+    "sourceSha256": "7f05afc44c73c6a14cc5d0a8aaf26a9724b5730e977bcbcbd379812eb431fa3d",
+    "output": "mail/screens/island-1100.webp",
+    "width": 1100,
+    "height": 671
+  },
+  {
+    "source": "mail/screens/zero.webp",
+    "sourceSha256": "cccc587f530582d70b77629e813859091d5761b275cca766c2297f516f95dbe4",
+    "output": "mail/screens/zero-1100.webp",
+    "width": 1100,
+    "height": 671
+  },
+  {
+    "source": "mail/screens/zero-night.webp",
+    "sourceSha256": "131b4bc40c0cc5c16e0ea7be5d0b4a54020e1c1c449bb1ce4fcf0cd03a84fee5",
+    "output": "mail/screens/zero-night-1100.webp",
+    "width": 1100,
+    "height": 671
+  },
+  {
+    "source": "mail/screens/rules.webp",
+    "sourceSha256": "24a22112599864c2fadaad4028608ef3ede950c86cac08ba1cb413e33f7b291b",
+    "output": "mail/screens/rules-1100.webp",
+    "width": 1100,
+    "height": 982
   }
 ]
