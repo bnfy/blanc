@@ -6,6 +6,12 @@ everything Blanc makes. This spec covers both repositories, this one (the
 website, the browser and its Workers) and `bnfy/Postel` (Blanc Mail and its
 services), because the order across them matters.
 
+**Status, October 13, 2026:** steps 1 to 5 are live. The code for steps 6
+and 7 is merged: step 6 reaches users with the next browser release, and step
+7 with the next store submission of the tab-import companions. The live evidence for steps 4
+and 5, and the checks still open, are in
+[`docs/website-blanc-day-move-2026-10-13.md`](../../website-blanc-day-move-2026-10-13.md).
+
 ## Why now
 
 Two one-way doors close soon, and both are on the Mail side:
