@@ -52,7 +52,10 @@ Given('a page open in a window that is in no space, and a saved space named {str
   assert.equal((await this.call('workspaceActionInWindow', other, 'save', name)).ok, true);
   await this.call('closeWindowRuntime', other);
   const tab = await this.call('openTab', this.fixtureUrl('workspace-draft'));
-  await this.waitForState((s) => s.tabs.some((t) => t.id === tab && !t.isLoading));
+  // Any tab still loading makes the switch refuse to close pages (an existing
+  // protection, 'active-page'), so wait for every tab here, not just this one.
+  await this.waitForState((st) => st.tabs.some((t) => t.id === tab && t.title === 'workspace-draft')
+    && st.tabs.every((t) => !t.isLoading && !t.asleep));
 });
 Given('Reduce Motion is on', async function () {
   assert.equal(await this.call('emulateReducedMotion', true), true);
