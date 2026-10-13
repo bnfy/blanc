@@ -46,6 +46,8 @@ mode with the Mail repository's `native/scripts/capture-public-shots.sh`, from
 a signed Debug build of Mail at `e9e01780`, merged to `main` as `edb50879`
 (bnfy/blanc-mail#128; `main` differs from it only in two docs files). Each
 carries a "Preview build" caption. Text inside a screenshot is a claim, so each is listed too.
+Their 1100px copies are display images built by
+`site/scripts/build-display-images.mjs` (`test/unit/site-mail-screens.test.js`).
 
 | Wording or image | Evidence | Limits kept | Verdict |
 | --- | --- | --- | --- |
@@ -64,9 +66,11 @@ carries a "Preview build" caption. Text inside a screenshot is a claim, so each 
 **Open before deploy.**
 
 - Recapture every image from the signed release candidate.
+- The Rules lines depend on EM-960's live checks (Mail `docs/RELEASE_ACCEPTANCE.md:76`).
+- The deploy follows Task 8 of `docs/superpowers/plans/2026-10-12-mail-pages-redesign.md`.
 
 **Tagline.** "A little less inbox." replaces "Email that minds its own business."
 in the `/mail` hero, the page title and `public/mail-og.png`. The owner chose
 it on October 12, 2026; it pairs with Blanc Browser's "A little less browser."
 It is branding, not a product claim. `site/scripts/render-mail-og-card.mjs`
-regenerates the share card.
+regenerates the share card, which reads “A little less inbox.” over “blanc.day/mail”.
