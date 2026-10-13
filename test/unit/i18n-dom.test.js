@@ -78,6 +78,60 @@ test('bootstrap sets lang and dir, hides non-English documents until applied, th
   assert.equal(api.t('k'), 'Sprache');
 });
 
+test('text a page renders before DOMContentLoaded survives the static pass', () => {
+  // The 1.32.0 packaged first-run smoke: the start page rendered "Blocking
+  // could not start." from an IPC reply, then DOMContentLoaded put the static
+  // "Preparing blocking…" back while the Retry buttons stayed visible.
+  const title = element('h2', { dataset: { i18n: 'preparing' }, text: 'Preparing blocking…' });
+  const later = element('p', { dataset: { i18n: 'later' }, text: 'Later' });
+  const elements = [title];
+  const doc = documentWith(elements, { readyState: 'loading' });
+  const api = require('../../src/renderer/pages/i18n');
+  api.bootstrap({
+    document: doc, setTimeout: () => {},
+    blancStrings: { locale: 'de', dir: 'ltr', messages: {
+      preparing: 'Blockierung wird vorbereitet…', failed: 'Blockierung konnte nicht starten.', later: 'Später',
+    }, fallback: {} },
+  });
+  title.textContent = api.t('failed');
+  elements.push(later);
+  later.ownerDocument = doc;
+  doc.fire('DOMContentLoaded');
+  assert.equal(title.textContent, 'Blockierung konnte nicht starten.', 'the rendered text is kept');
+  assert.equal(later.textContent, 'Später', 'elements parsed after the first lookup are still translated');
+  assert.equal(api.t.has('failed'), true);
+  assert.equal(api.t.locale, 'de');
+});
+
+test('lookups before DOMContentLoaded rescan only after the document grows', () => {
+  const first = element('span', { dataset: { i18n: 'a' }, text: 'A' });
+  const second = element('span', { dataset: { i18n: 'b' }, text: 'B' });
+  const elements = [first];
+  const all = { length: 1 };
+  let scans = 0;
+  const doc = documentWith(elements, { readyState: 'loading' });
+  doc.querySelectorAll = () => { scans += 1; return elements; };
+  doc.getElementsByTagName = () => all;
+  const api = require('../../src/renderer/pages/i18n');
+  api.bootstrap({
+    document: doc, setTimeout: () => {},
+    blancStrings: { locale: 'de', dir: 'ltr', messages: { a: 'Ä', b: 'Ö' }, fallback: {} },
+  });
+  api.t('a');
+  api.parts('a');
+  assert.equal(scans, 1);
+  assert.equal(first.textContent, 'Ä');
+  elements.push(second);
+  second.ownerDocument = doc;
+  all.length = 2;
+  api.t('a');
+  assert.equal(scans, 2);
+  assert.equal(second.textContent, 'Ö');
+  doc.fire('DOMContentLoaded');
+  api.t('a');
+  assert.equal(scans, 3, 'DOMContentLoaded scans once more, later lookups never');
+});
+
 test('bootstrap never hides an English document', () => {
   const doc = documentWith([]);
   require('../../src/renderer/pages/i18n').bootstrap({

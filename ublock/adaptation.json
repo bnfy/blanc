@@ -65,7 +65,7 @@
     },
     {
       "path": "src/renderer/pages/i18n.js",
-      "sha256": "d71eb043f21e52f5cccc387f870ad934ef2c9f993a2e16e451994854bc49a50f"
+      "sha256": "5749b9e67f1876fdd535f6f47908d8a3982ee7c5868b2e23dc50085a1ab27793"
     },
     {
       "path": "src/main/ublock-strings.json",
@@ -433,7 +433,7 @@
     {
       "path": "blanc-i18n.js",
       "upstreamSha256": null,
-      "adaptedSha256": "d71eb043f21e52f5cccc387f870ad934ef2c9f993a2e16e451994854bc49a50f"
+      "adaptedSha256": "5749b9e67f1876fdd535f6f47908d8a3982ee7c5868b2e23dc50085a1ab27793"
     },
     {
       "path": "blanc-strings.js",
@@ -581,5 +581,5 @@
       "adaptedSha256": "8b215d90d69f4ec0dd1d0e9f8d7f8d51e1be5111762d1db2f1b0496d19e2a128"
     }
   ],
-  "patchSha256": "fef1e3b5f73b8aca9bcdf02368dce85d06877642171d8fd776d07b93077e2fbe"
+  "patchSha256": "ef87340bf6f00578dbc0819441d1d7199446c8263d64e6e9e355227cb36b4a2f"
 }
