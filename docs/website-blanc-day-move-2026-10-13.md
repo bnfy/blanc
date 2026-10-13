@@ -51,10 +51,13 @@ returns 404, because `blanc-ping` answers GET only, so check these with GET.
 - The `blanc.day` Domain property is verified.
 - `https://blanc.day/sitemap.xml` returns 200 `application/xml` and lists
   `https://blanc.day/…` addresses.
-- The sitemap entry submitted on October 12, before this deploy, showed
-  "Couldn't fetch". It needs resubmitting.
+- The sitemap was first submitted on October 12, before this deploy, and
+  showed "Couldn't fetch". It was resubmitted on October 13 and now reads
+  Success, with 36 discovered pages, which matches the 36 sitemap URLs.
 - URL Inspection of `https://blanc.day/` reported "URL is unknown to Google"
-  on October 13, as expected for a new property.
+  on October 13, as expected for a new property. Google now finds the pages
+  through the sitemap and the Change of Address below, so no separate
+  indexing request was made.
 
 **Google Analytics.** The "Blanc Website" web stream's URL is
 `https://blanc.day`. Its measurement ID, `G-MN8BLY6GE9`, is the one in
@@ -120,8 +123,6 @@ checkout of `main` at `34658f43` (its default origin is blanc.day), passed for
 
 ## Still open
 
-- **In Search Console:** resubmit `sitemap.xml` on the `blanc.day` property, and
-  run a live test and indexing request for `https://blanc.day/`.
 - **Confirm Cloudflare Web Analytics** records `blanc.day`.
 - **Step 6** reaches users with the next browser release.
 - **Step 7** reaches users with the next store submission of the tab-import
