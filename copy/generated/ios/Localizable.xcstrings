@@ -1052,7 +1052,7 @@
       }
     },
     "slash.theme.hint": {
-      "comment": "Slash command hint shown in the ⌘L palette for /theme.",
+      "comment": "Slash command hint shown in the ⌘L palette for /theme. system, light and dark are the command’s literal arguments: keep them in English.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -1070,31 +1070,31 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cambiar la apariencia o elegir sistema / claro / oscuro"
+            "value": "Cambiar la apariencia o elegir system / light / dark"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Changer d’apparence, ou choisir système / clair / sombre"
+            "value": "Changer d’apparence, ou choisir system / light / dark"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cambia aspetto, o scegli sistema / chiaro / scuro"
+            "value": "Cambia aspetto, o scegli system / light / dark"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Alternar a aparência, ou escolher sistema / claro / escuro"
+            "value": "Alternar a aparência, ou escolher system / light / dark"
           }
         }
       }
     },
     "slash.theme.doc": {
-      "comment": "Reference description of /theme [system|light|dark] on blanc://shortcuts and in Help → Slash Commands.",
+      "comment": "Reference description of /theme [system|light|dark] on blanc://shortcuts and in Help → Slash Commands. system, light and dark are the command’s literal arguments: keep them in English.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -1112,25 +1112,25 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cambia la apariencia o pasa directamente a sistema, claro u oscuro"
+            "value": "Cambia la apariencia o pasa directamente a system, light o dark"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Change d’apparence, ou passe directement en système, clair ou sombre"
+            "value": "Change d’apparence, ou passe directement en system, light ou dark"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cambia aspetto, o passa direttamente a sistema, chiaro o scuro"
+            "value": "Cambia aspetto, o passa direttamente a system, light o dark"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Alterna a aparência, ou muda direto para sistema, claro ou escuro"
+            "value": "Alterna a aparência, ou muda direto para system, light ou dark"
           }
         }
       }

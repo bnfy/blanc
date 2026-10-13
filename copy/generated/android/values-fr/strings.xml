@@ -26,8 +26,8 @@
     <string name="slash_allow_ads_hint">Autoriser les publicités sur ce site</string>
     <string name="slash_dark_site_hint">Assombrir ce site, ou le laisser tel quel</string>
     <string name="slash_1password_hint">Remplir un identifiant depuis 1Password</string>
-    <string name="slash_theme_hint">Changer d’apparence, ou choisir système / clair / sombre</string>
-    <string name="slash_theme_doc">Change d’apparence, ou passe directement en système, clair ou sombre</string>
+    <string name="slash_theme_hint">Changer d’apparence, ou choisir system / light / dark</string>
+    <string name="slash_theme_doc">Change d’apparence, ou passe directement en system, light ou dark</string>
     <string name="slash_patron_hint">Soutenir Blanc avec un abonnement Patron</string>
     <string name="slash_space_hint">Passer à un Space, ou saisir un nouveau nom pour enregistrer cette fenêtre</string>
     <string name="settings_language_label">Langue</string>

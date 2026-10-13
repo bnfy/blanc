@@ -26,8 +26,8 @@
     <string name="slash_allow_ads_hint">Consenti gli annunci su questo sito</string>
     <string name="slash_dark_site_hint">Scurisci questo sito, o lascialo com’è</string>
     <string name="slash_1password_hint">Compila un accesso da 1Password</string>
-    <string name="slash_theme_hint">Cambia aspetto, o scegli sistema / chiaro / scuro</string>
-    <string name="slash_theme_doc">Cambia aspetto, o passa direttamente a sistema, chiaro o scuro</string>
+    <string name="slash_theme_hint">Cambia aspetto, o scegli system / light / dark</string>
+    <string name="slash_theme_doc">Cambia aspetto, o passa direttamente a system, light o dark</string>
     <string name="slash_patron_hint">Sostieni Blanc con un abbonamento Patron</string>
     <string name="slash_space_hint">Passa a uno Space, o digita un nuovo nome per salvare questa finestra</string>
     <string name="settings_language_label">Lingua</string>

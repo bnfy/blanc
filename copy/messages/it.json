@@ -106,12 +106,12 @@
     "source": "sha256:91e7b778054c9d197be7303b3d3a465541d01d31c472ba9e75e7513fc3c5c91a"
   },
   "slash.theme.hint": {
-    "message": "Cambia aspetto, o scegli sistema / chiaro / scuro",
-    "source": "sha256:d1c446e6b147cf3cb5389447ae35eca9d4121b10703b432c095b52a925bbb23e"
+    "message": "Cambia aspetto, o scegli system / light / dark",
+    "source": "sha256:3e4705da6f2768aae097eff4eb77610ccadfe64fb64edd6762bf14b64099b7f8"
   },
   "slash.theme.doc": {
-    "message": "Cambia aspetto, o passa direttamente a sistema, chiaro o scuro",
-    "source": "sha256:c8318aa17693e36601fc55e6d4b471bbefe57311c3a28d2ebf7bec9b22f77756"
+    "message": "Cambia aspetto, o passa direttamente a system, light o dark",
+    "source": "sha256:b59d82b2e71a81b8bf6bcd4135cfbcaac342e889b2f662cb9ed72bb5af3af77a"
   },
   "slash.patron.hint": {
     "message": "Sostieni Blanc con un abbonamento Patron",
