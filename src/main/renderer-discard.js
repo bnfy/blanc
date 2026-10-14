@@ -113,7 +113,9 @@ function terminateRenderer(contents, {
     if (Number.isInteger(pid) && pid > 0 && isOwnRenderer(pid, { execPath, readFile })) {
       try { kill(pid, 'SIGKILL'); return 'killed'; } catch (error) { console.debug(`[quiet-tabs] kill(${pid}) failed: ${error?.code ?? error}`); }
     } else {
-      console.debug(`[quiet-tabs] pid ${pid} not verified as our renderer (execPath ${execPath})`);
+      let raw = null;
+      try { raw = JSON.stringify(readFile(`/proc/${pid}/cmdline`, 'utf8').split('\0').slice(0, 4)); } catch (e) { raw = `read failed: ${e?.code ?? e}`; }
+      console.debug(`[quiet-tabs] pid ${pid} not verified as our renderer (execPath ${execPath}); cmdline ${raw}`);
     }
   }
   contents.forcefullyCrashRenderer();
