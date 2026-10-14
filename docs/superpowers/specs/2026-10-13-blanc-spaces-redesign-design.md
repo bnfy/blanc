@@ -342,6 +342,11 @@ The menu reshapes into the editor in place (no dialog, no scrim):
   saved record and binds no window.
 - **Recently deleted** lists entries with **Restore** and **Forget**. Forget is
   permanent, so it keeps an inline confirmation — the one confirmation left.
+  (Amended after PR 2, owner: each row shows the space as it was, its tile in
+  its own colour and symbol and its name, with "Deleted today / yesterday / N
+  days ago" under the name, then **Restore** and a trash button labelled
+  "Delete permanently…" for Forget. Rows are roomy, so a name has space; a
+  name cut short is in full in its tooltip, as in the main list.)
 
 ### 8. The switch prompt
 

@@ -650,6 +650,14 @@
         "deletedAt": {
           "type": "number",
           "doc": "Milliseconds since the epoch."
+        },
+        "color": {
+          "type": "string",
+          "doc": "Stored #rrggbb, kept from the space as it was."
+        },
+        "symbol": {
+          "type": "string",
+          "doc": "A space-identity.js symbol id, kept from the space as it was."
         }
       }
     },
@@ -726,7 +734,7 @@
         },
         "color": {
           "type": "string",
-          "doc": "Stored #rrggbb; the chrome derives the drawn ink."
+          "doc": "Stored #rrggbb, drawn exactly as its tile's fill (D21)."
         },
         "symbol": {
           "type": "string",

@@ -65,3 +65,12 @@ and graphite on dark). Chosen from mock-ups in the real app over a fully
 filled mark (the boldest thing on the Island) and over keeping the tint with a
 fixed palette. A long name ellipsizes and never squeezes the square
 (`@F41-33`; before the fix it measured 12.6 × 20.7 px).
+
+Recently Deleted (`stack-recently-deleted.png`, before and after): two wide
+pills, "Restore" and "Delete permanently…", left a name two letters. Each row
+now shows the space as it was (its tile in its own colour and symbol, and its
+name), "Deleted today / yesterday / N days ago" under the name, then Restore
+and a trash button for the permanent delete, which still asks first. Rows are
+roomy (9 px padding, 3 px apart, 12 px between tile and text). Chosen from
+mock-ups over a single-line row. A name cut short, here or in the main list,
+is in full in its tooltip (`@F41-34`).

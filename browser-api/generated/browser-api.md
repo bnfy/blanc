@@ -521,6 +521,8 @@ A recently deleted workspace that can still be restored.
 | `id` | `WorkspaceId` |  |
 | `name` | `string` |  |
 | `deletedAt` | `number` | Milliseconds since the epoch. |
+| `color` | `string` | Stored #rrggbb, kept from the space as it was. |
+| `symbol` | `string` | A space-identity.js symbol id, kept from the space as it was. |
 
 ### `SpaceTint`
 
@@ -569,7 +571,7 @@ A Named Workspace row.
 | `resident` | `boolean` |  |
 | `revision` | `number` |  |
 | `tabCount` | `number` |  |
-| `color` | `string` | Stored #rrggbb; the chrome derives the drawn ink. |
+| `color` | `string` | Stored #rrggbb, drawn exactly as its tile's fill (D21). |
 | `symbol` | `string` | A space-identity.js symbol id. |
 
 ### `WorkspacesPayload`

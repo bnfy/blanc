@@ -3532,8 +3532,19 @@ body:is([data-mode="spaces"], [data-closing="spaces"]) #workspaceSwitcher.ws-swi
 .ws-decision .ws-switcher-confirm-msg { margin: 0; color: var(--text-dim); font: 12.5px/1.45 var(--font-ui); overflow-wrap: anywhere; }
 .ws-decision-actions { display: flex; flex-direction: column; gap: 6px; }
 .ws-decision-actions .ws-pill { width: 100%; height: 34px; border-radius: 11px; }
-.ws-recovery-row { display: flex; align-items: center; gap: 6px; padding: 6px 2px; }
-.ws-recovery-row .ws-row-name { font: 500 13px/1.3 var(--font-ui); color: var(--text); }
+/* Recently Deleted: each space as it was (its tile and name, in full in the
+   name's tooltip), when it went, Restore, and a trash button for the
+   permanent delete. Roomy rows, so a name has space and the date fits. */
+.ws-recovery .ws-help { margin-bottom: 8px; }
+.ws-recovery-row { display: flex; align-items: center; gap: 12px; padding: 9px 8px 9px 6px; }
+.ws-recovery-row + .ws-recovery-row { margin-top: 3px; }
+.ws-recovery-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.ws-recovery-row .ws-row-name { font: 500 13.5px/1.3 var(--font-ui); color: var(--text); }
+.ws-recovery-when { overflow: hidden; color: var(--text-dim); font: 11.5px/1.3 var(--font-ui); text-overflow: ellipsis; white-space: nowrap; }
+.ws-recovery-actions { flex: none; display: flex; align-items: center; gap: 4px; }
+.ws-icon-button.ws-recovery-forget { width: 30px; height: 30px; margin-left: 0; border-radius: 9px; }
+.ws-icon-button.ws-recovery-forget .ws-glyph { width: 16px; height: 16px; }
+.ws-icon-button.ws-recovery-forget:hover, .ws-icon-button.ws-recovery-forget:focus-visible { color: var(--danger); background: color-mix(in srgb, var(--danger) 10%, transparent); }
 #workspaceSwitcherList > .ws-error { margin: 6px 8px; color: var(--danger); font: 12.5px/1.45 var(--font-ui); }
 #workspaceFeedback { flex-shrink: 0; padding: 0 12px; }
 #workspaceFeedback .ws-error { margin: 6px 0; color: var(--danger); font: 12.5px/1.45 var(--font-ui); }

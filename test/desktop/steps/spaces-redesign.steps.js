@@ -44,6 +44,14 @@ Given('spaces named {string} and {string}, with this window in {string}', async 
   // protection), so wait for this window's page to settle.
   await this.waitForState((st) => { const tab = st.tabs.find((t) => t.id === st.activeTabId); return !!tab && !tab.isLoading && !tab.asleep; });
 });
+Given('a space named {string}, colored {string} with the symbol {string}, deleted today', async function (name, color, symbol) {
+  const other = await this.call('openNewWindow');
+  const saved = await this.call('workspaceActionInWindow', other, 'save', name);
+  assert.equal(saved.ok, true);
+  await this.call('closeWindowRuntime', other);
+  assert.equal((await this.call('workspaceAction', 'update', saved.workspace.id, { color, symbol })).ok, true);
+  assert.equal((await this.call('workspaceAction', 'remove', saved.workspace.id)).ok, true);
+});
 Given('a space named {string} saved from another window', async function (name) {
   const other = await this.call('openNewWindow');
   assert.equal((await this.call('workspaceActionInWindow', other, 'save', name)).ok, true);
@@ -89,6 +97,11 @@ When('I rename {string} to a 60-character name', async function (name) {
   const space = await spaceByName(this, name);
   assert.equal((await this.call('workspaceAction', 'update', space.id, { name: long })).ok, true);
   this.longName = long;
+});
+When('I open Recently Deleted', async function () {
+  const page = await menu();
+  await page.click('[data-focus-key="recently-deleted"]');
+  await page.waitForSelector('.ws-recovery-row');
 });
 When('I open the color picker for {string}', async function (name) {
   const page = await menu(); const space = await spaceByName(this, name);
@@ -288,6 +301,30 @@ Then('the mark\'s colour square keeps its size and place, and the name is cut sh
     'the same size, at the same place in the mark',
   );
   assert.equal(m.nameTruncated, true, 'the name ellipsizes instead');
+});
+const recoveryRow = (page, name) => page.evaluate((wanted) => {
+  const row = [...document.querySelectorAll('.ws-recovery-row')].find((r) => r.querySelector('.ws-row-name')?.textContent === wanted);
+  if (!row) return null;
+  const nameEl = row.querySelector('.ws-row-name'); const bin = row.querySelector('.ws-recovery-forget');
+  return {
+    tile: getComputedStyle(row.querySelector('.ws-tile')).backgroundColor,
+    title: nameEl.title, truncated: nameEl.scrollWidth > nameEl.clientWidth,
+    when: row.querySelector('.ws-recovery-when')?.textContent ?? null,
+    bin: bin && { label: bin.getAttribute('aria-label'), title: bin.title, text: bin.textContent.trim() },
+  };
+}, name);
+Then('{string} is listed in {string}, deleted today, with its full name as a tooltip', async function (name, color) {
+  const page = await menu();
+  const row = await waitForValue(() => recoveryRow(page, name), Boolean, `the row for ${name}`);
+  assert.equal(row.tile, rgb(color), 'its own colour');
+  assert.equal(row.when, 'Deleted today');
+  assert.equal(row.truncated, true, 'a name this long is cut short in the row');
+  assert.equal(row.title, name, 'and is there in full as its tooltip');
+  this.recoveryName = name;
+});
+Then('it has a trash button labelled {string}', async function (label) {
+  const row = await recoveryRow(await menu(), this.recoveryName);
+  assert.deepEqual(row.bin, { label: `Delete ${this.recoveryName} permanently…`, title: label, text: '' }, 'named for screen readers; the tooltip is the plain label');
 });
 Then('the editor shows no readability note', async function () {
   const page = await menu();

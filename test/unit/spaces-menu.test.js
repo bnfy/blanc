@@ -20,6 +20,8 @@ test('rows show a painted symbol tile, the name, the count and the current space
   assert.equal(tile.props['--space-on'], '#ffffff', 'the symbol is white on it');
   assert.equal(tile.dataset.edge, 'false');
   assert.equal(main.children[1].textContent, 'First');
+  assert.match(main.title, /First/, "the row's tooltip carries the full name, for when it is cut short");
+  assert.equal(main.children[1].title, undefined, "the name adds no tooltip of its own over the row's richer one");
   assert.equal('data-i18n-ignore' in main.children[1].attrs, true, 'space names are never translated');
   assert.equal(first.children[1].attrs['aria-label'], 'Edit First');
   assert.ok(h.byKey('new'), 'New space… is always offered');
@@ -171,6 +173,47 @@ test('Recently deleted keeps a confirmation only for permanent deletion', async 
   assert.equal(h.ui.state.kind, 'recovery');
   h.byKey('forget:z').click(); assert.equal(h.ui.state.kind, 'forget'); assert.equal(forgets, 0);
   h.byKey('forget').click(); await settle(); assert.equal(forgets, 1);
+});
+
+test('Recently Deleted shows each space as it was, with when it went, Restore and a trash button', () => {
+  // Local calendar days, so the test means the same thing at any hour.
+  const today = new Date(); const daysAgo = (n) => new Date(today.getFullYear(), today.getMonth(), today.getDate() - n, 12).getTime();
+  const deleted = [
+    { id: 'r', name: 'Reading list for the weekend', deletedAt: Date.now(), color: '#9b4761', symbol: 'book' },
+    { id: 'w', name: 'Work', deletedAt: daysAgo(1), color: '#376694', symbol: 'briefcase' },
+    { id: 't', name: 'Travel plans for 2027', deletedAt: daysAgo(3), color: '#974f2a', symbol: 'plane' },
+  ];
+  const h = harness({}, { ...TWO, deleted }); h.ui.open(); h.byKey('recently-deleted').click();
+  const rows = h.popup.querySelectorAll('.ws-recovery-row');
+  assert.equal(rows.length, 3);
+  const tile = rows[0].querySelector('.ws-tile');
+  assert.deepEqual([tile.props['--space-fill'], tile.props['--space-on']], ['#9b4761', '#ffffff'], 'its own colour');
+  assert.ok(tile.querySelector('.ws-symbol'), 'and its symbol');
+  const name = rows[0].querySelector('.ws-row-name');
+  assert.equal(name.textContent, 'Reading list for the weekend');
+  assert.equal(name.title, 'Reading list for the weekend', 'a cut-short name is in full in its tooltip');
+  assert.deepEqual(rows.map((r) => r.querySelector('.ws-recovery-when').textContent), ['Deleted today', 'Deleted yesterday', 'Deleted 3 days ago']);
+  assert.equal(h.byKey('restore:r').textContent, 'Restore');
+  const bin = h.byKey('forget:r');
+  assert.equal(bin.textContent, '', 'a trash button, not the long label');
+  assert.equal(bin.attrs['aria-label'], 'Delete Reading list for the weekend permanently…', 'named, so each row\'s button is distinct to a screen reader');
+  assert.equal(bin.title, 'Delete permanently…');
+  assert.equal(h.byKey('restore:r').attrs['aria-label'], 'Restore Reading list for the weekend');
+  assert.ok(bin.querySelector('.ws-glyph'), 'drawn as a trash can');
+  bin.click();
+  assert.equal(h.ui.state.kind, 'forget', 'it still asks first');
+});
+
+test('a deleted space with no usable date still lists, without the date line', () => {
+  // NaN, and a finite number past the largest Date (1e20 survives the store's
+  // normalization and expiry filter, then makes an invalid Date).
+  for (const deletedAt of [Number.NaN, 1e20, -1e20]) {
+    const deleted = [{ id: 'x', name: 'Odd', deletedAt, color: '#426c4c', symbol: 'book' }];
+    const h = harness({}, { ...TWO, deleted }); h.ui.open(); h.byKey('recently-deleted').click();
+    const [row] = h.popup.querySelectorAll('.ws-recovery-row');
+    assert.ok(row, `the view still renders for ${deletedAt}`);
+    assert.equal(row.querySelector('.ws-recovery-when'), null, `no date line for ${deletedAt}`);
+  }
 });
 
 test('Escape steps back one level at a time', async () => {

@@ -7166,7 +7166,8 @@ const spaceTint = !app.isPackaged && ['island', 'frame'].includes(process.env.BL
 function workspacesProjection() {
   return {
     status: namedWorkspaces.status(),
-    deleted: namedWorkspaces.deleted().map((d) => ({ id: d.workspace.id, name: d.workspace.name, deletedAt: d.deletedAt })),
+    // Recently Deleted shows each space as it was, so its tile keeps its colour and symbol.
+    deleted: namedWorkspaces.deleted().map((d) => ({ id: d.workspace.id, name: d.workspace.name, deletedAt: d.deletedAt, color: d.workspace.color, symbol: d.workspace.symbol })),
     items: namedWorkspaces.list().map((workspace) => ({
       id: workspace.id,
       name: workspace.name,
