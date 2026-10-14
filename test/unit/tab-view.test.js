@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 const vm = require('node:vm');
+const { releaseTabView } = require('../../src/main/tab-view-lifecycle');
 
 // tab-view.js requires Electron and cannot be required here. Lift the real
 // function sources and run them in a sandbox, so these assert the shipped
@@ -226,7 +227,7 @@ test('main.js initialises tab-view exactly once, at module scope', () => {
 
 const detachSource = mainSource.match(/function detachTabView\(tab, \{ retainManagedRoot = false \} = \{\}\) \{[\s\S]*?\n\}/)?.[0];
 
-function loadDetachTabView({ focused = true, dead = false, owned = true, current = true, windowLive = true, rooted = false } = {}) {
+function loadDetachTabView({ focused = true, dead = false, owned = true, current = true, windowLive = true, rooted = false, platform = 'win32' } = {}) {
   const calls = [];
   const wc = {
     isDestroyed: () => dead,
@@ -245,6 +246,7 @@ function loadDetachTabView({ focused = true, dead = false, owned = true, current
     rt: () => runtime,
     hasLiveWindow: () => windowLive,
     rootManagedExtensionView: () => rooted,
+    releaseTabView: (window, view) => releaseTabView(window, view, platform),
     setTabViewVisible: (target, visible) => {
       assert.equal(target, tab);
       assert.equal(visible, false);
@@ -260,6 +262,12 @@ test('tab detachment releases native focus and hides the live guest before remov
   const { detach, calls } = loadDetachTabView();
   assert.equal(detach(), true);
   assert.deepEqual(calls, ['focus-chrome', 'hide', 'detach']);
+});
+
+test('Linux hides a switched-away guest but keeps it window-owned (tab-view-lifecycle.js)', () => {
+  const { detach, calls } = loadDetachTabView({ platform: 'linux' });
+  assert.equal(detach(), true);
+  assert.deepEqual(calls, ['focus-chrome', 'hide']);
 });
 
 test('detaching an unfocused guest preserves focus on the permission or overlay surface', () => {

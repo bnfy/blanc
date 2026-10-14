@@ -36,8 +36,10 @@ If you understand one thing about the architecture, make it this:
 - The window's own `webContents` renders the **chrome strip** — the slim (68px)
   band the resting pill floats in.
 - **Each tab is a separate `WebContentsView`**, added as a child of the window's
-  content view. Only the active tab's view is attached, so switching tabs is
-  remove-one/add-another, not destroy-and-rebuild.
+  content view. Inactive tab views are hidden (and, on macOS and Windows,
+  detached), so switching tabs never destroys and rebuilds anything. On Linux
+  they stay hidden children of their window, because Electron stops drawing a
+  view that is removed and added back.
 - The island's **expanded states** (command bar, `Cmd/Ctrl+L` palette, find
   capsule) live in *one more* transparent `WebContentsView`, attached on top only
   while open — which is how they float *over* the page instead of pushing content

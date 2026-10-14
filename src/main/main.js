@@ -1,4 +1,4 @@
-const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell, net, powerMonitor, webContents, clipboard, utilityProcess, systemPreferences, desktopCapturer, screen } = require('electron');
+const { app, BrowserWindow, View, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell, net, powerMonitor, webContents, clipboard, utilityProcess, systemPreferences, desktopCapturer, screen } = require('electron');
 const { enforceLinuxSandbox } = require('./linux-sandbox-launch');
 if (!enforceLinuxSandbox({ app, dialog, shell, clipboard })) return;
 const path = require('path');
@@ -106,6 +106,7 @@ const { createBrokerRegistry } = require('./display-capture-state');
 const { projectDisplayShares } = require('./display-capture-indicator');
 const { createDisplayCapturePicker } = require('./display-capture-picker');
 const { showOverlayView, hideOverlayView } = require('./overlay-view-lifecycle');
+const { attachTabView, releaseTabView } = require('./tab-view-lifecycle');
 const { filterSignaling, collectLocalAddresses } = require('./display-capture-ice');
 const { captureRuntimeForPlatform } = require('./capture-platform');
 const CAPTURE_RUNTIME = captureRuntimeForPlatform();
@@ -6178,6 +6179,11 @@ function setTabViewVisible(tab, visible) {
   }
 }
 
+// Attach or re-raise a tab view in the current window (tab-view-lifecycle.js).
+function attachTabViewToWindow(tab) {
+  attachTabView(rt().window, tab.view, { createView: () => new View() });
+}
+
 // Native Aura focus restoration can run after a tool navigation, including a
 // uBO restore that reloads its background and dashboard. Keep those hidden
 // guests rooted on Windows/Linux for their whole lifetime, not just close().
@@ -6218,7 +6224,8 @@ function detachTabView(tab, { retainManagedRoot = false } = {}) {
   if (wc.isFocused()) rt().window.webContents.focus();
   setTabViewVisible(tab, false);
   if (retainManagedRoot && rootManagedExtensionView(tab)) return true;
-  rt().window.contentView.removeChildView(tab.view);
+  // Linux keeps the hidden view window-owned (tab-view-lifecycle.js).
+  releaseTabView(rt().window, tab.view);
   return true;
 }
 
@@ -6341,12 +6348,12 @@ function setActiveTab(id, {
     setTabViewVisible(next, true);
   }
   if (shouldFocusAddress) setTabViewVisible(next, false);
-  rt().window.contentView.addChildView(next.view);
+  attachTabViewToWindow(next);
   rootManagedExtensionView(next);
   const glanceTab = activeGlanceTab();
   if (glanceTab?.view) {
     setTabViewVisible(glanceTab, true);
-    rt().window.contentView.addChildView(glanceTab.view);
+    attachTabViewToWindow(glanceTab);
   }
   // The freshly attached tab view must not stack above an open overlay —
   // nor above the sheet (defensive: §5 means they shouldn't coexist here,
@@ -6411,7 +6418,7 @@ async function setGlanceTab(id) {
   bumpSurfaceGeneration();
   rt().glanceTabId = id;
   setTabViewVisible(tab, true);
-  rt().window.contentView.addChildView(tab.view);
+  attachTabViewToWindow(tab);
   // Floating trusted surfaces must stay above both page panes.
   const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
   if (sheet) rt().window.contentView.addChildView(sheet.view);
@@ -8951,8 +8958,9 @@ function moveTabToNewWindow(id) {
   //    same as closeTab; the page re-requests in the new window. If the tab
   //    is the Glance pane, close that; if active, hand focus to the MRU
   //    survivor (closeTab's rule) with the right-neighbour as fallback. The
-  //    view is already detached at that point (active → survivor selection,
-  //    Glance → closeGlance, background → never attached).
+  //    view is hidden at that point (active → survivor selection, Glance →
+  //    closeGlance). On Linux a view shown here before stays a child of this
+  //    window until the new one attaches it (tab-view-lifecycle.js).
   withWindowRuntime(source, () => {
     cancelPermissionPromptsForTab(id);
     if (rt().glanceTabId === id) closeGlance({ focusContent: false });
@@ -10443,6 +10451,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       },
       openNewWindow, windowRuntimeSnapshots, closeWindowRuntime, openTabInWindow,
       setGlanceTabInWindow, closeGlanceInWindow, closeTabInWindow, reopenClosedTabInWindow,
+      moveTabToNewWindow,
       createNamedLocalProfileWindow, renameNamedLocalProfile, deleteNamedLocalProfile,
       localProfileSnapshots, profileBookmarkUrls, saveProfileFavorite,
       profileTabSessionSnapshot,

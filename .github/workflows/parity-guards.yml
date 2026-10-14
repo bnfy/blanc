@@ -243,6 +243,8 @@ jobs:
     # Runs unless `changes` proved a website/docs-only PR (also runs if it failed).
     # Linux and Windows: the nightly job already covers macOS, and the Linux
     # renderer-discard path only differs there (see renderer-discard.js).
+    # The tab-view drawing smoke runs without Playwright, whose focus emulation
+    # makes a stuck page draw (see tab-view-drawing-smoke.mjs).
     if: ${{ !cancelled() && needs.changes.outputs.app != 'false' }}
     strategy:
       fail-fast: false
@@ -265,6 +267,12 @@ jobs:
       - name: Quiet Tabs (Windows)
         if: runner.os != 'Linux'
         run: npm run test:quiet-tabs:desktop
+      - name: Tab views keep drawing (Linux)
+        if: ${{ !cancelled() && runner.os == 'Linux' }}
+        run: xvfb-run -a npm run test:tab-view-drawing:desktop
+      - name: Tab views keep drawing (Windows)
+        if: ${{ !cancelled() && runner.os != 'Linux' }}
+        run: npm run test:tab-view-drawing:desktop
 
   browser-shortcuts:
     needs: changes
