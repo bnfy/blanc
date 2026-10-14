@@ -5,6 +5,7 @@ import HorizonShield from "../components/HorizonShield.astro";
 import PlatformLogo from "../components/PlatformLogo.astro";
 import BrandMark from "../components/BrandMark.astro";
 import NativeIslandHero from "../components/NativeIslandHero.astro";
+import SpacesDemo from "../components/SpacesDemo.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import "../styles/home.css";
 import "../styles/home-appearance.css";
@@ -101,6 +102,27 @@ const structuredData = {
           </p>
         </div>
         <NativeIslandHero />
+      </div>
+    </section>
+    <section class="beat" id="spaces" aria-labelledby="spaces-title">
+      <div class="frame">
+        <div class="frame-inner">
+          <div class="spaces-card">
+            <div class="spaces-copy">
+              <h2 id="spaces-title">Blanc Spaces is now free for everyone.</h2>
+              <p class="lead">Save a window’s tabs and groups as a space. Give each one a colour and a symbol, then switch between them from the Island.</p>
+              <p class="spaces-note">Free on macOS, Windows and Linux. Coming from Arc? <a href="/arc-alternative">Bring your Spaces with you.</a></p>
+              <div class="actions">
+                <a class="planned-action" href="/download" data-track="download_click" data-cta-position="home-spaces">Download Blanc</a><a
+                  class="planned-link" href="/features/workspaces" data-track="feature_cta_click" data-feature="named-workspaces" data-cta-position="home-spaces-detail">Explore Blanc Spaces</a>
+              </div>
+            </div>
+            <figure class="spaces-demo">
+              <div class="spaces-demo-canvas"><SpacesDemo /></div>
+              <figcaption>Choose a space.</figcaption>
+            </figure>
+          </div>
+        </div>
       </div>
     </section>
     <section class="beat" id="wallpaper" aria-labelledby="wallpaper-title">

@@ -25,7 +25,7 @@ async function fixture({ stored = null, blocked = false, reduced = false, system
   const screen = element();
   const meta = element();
   const hero = element({ localName: 'blanc-native-island', dataset: { appearance: 'light' } });
-  const models = [element({ localName: 'blanc-glance-island' }), element({ localName: 'blanc-glance-island' })];
+  const models = [element({ localName: 'blanc-glance-island' }), element({ localName: 'blanc-glance-island' }), element({ localName: 'blanc-spaces-demo' })];
   const phases = ['dawn', 'day', 'dusk', 'night'];
   const scenes = Object.fromEntries(phases.flatMap(phase => [phase, `${phase}-dark`]).map(key => {
     const img = { decode: () => Promise.resolve() };

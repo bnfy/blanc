@@ -1,4 +1,5 @@
-// Build-time extraction only. Native renderer code is never executed on the site.
+// Build-time extraction only. Native renderer code is never executed on the site
+// (space-identity.js's pure colour and symbol tables are evaluated at build time).
 // Fail if the native anatomy changes instead of silently shipping a hand-drawn substitute.
 function nativeRules(styles) {
   const clean = styles.replace(/\/\*[\s\S]*?\*\//g, '');
@@ -127,4 +128,96 @@ export function namespaceNativeArt({ html, css }, prefix) {
       .replace(/\b(aria-labelledby|aria-describedby)="([^"]+)"/g, (_, name, list) => `${name}="${list.split(' ').map(prefixed).join(' ')}"`),
     css: css.replace(/#([A-Za-z][\w-]*)/g, (selector, id) => ids.has(id) ? `#${prefix}${id}` : selector),
   };
+}
+
+// Rules the resting Island adds once its window is in a space: the space mark
+// at the pill's leading edge (renderer.js renderSpaceMark), open while its
+// Spaces menu shows.
+export const SPACE_MARK_SELECTORS = [
+  '.space-mark', '.space-mark:hover, .space-mark[aria-expanded="true"]',
+  '.space-mark-symbol', '.space-mark-symbol svg', '.space-mark-name',
+  '.space-mark[data-state="space"]', '.space-mark[data-state="space"] .space-mark-symbol',
+  '.space-mark[data-state="space"] .space-mark-symbol svg', '.space-mark[data-edge="true"] .space-mark-symbol',
+  '#islandPill:has(> .space-mark:not([hidden]))',
+];
+
+// The Spaces menu's list and its New space… command (workspace-ui.js). The
+// rows' ••• editor button is left out: it only appears on hover, and the demo
+// has no editor to open.
+const SPACES_MENU_SELECTORS = [
+  '#workspaceSwitcher.ws-switcher', '#workspaceSwitcherList', '.ws-commands',
+  '.ws-tile', '.ws-tile[data-edge="true"], .ws-editor[data-edge="true"] .ws-symbol-button[aria-checked="true"]',
+  '.ws-symbol, .ws-glyph', '.ws-row', '.ws-row-main',
+  '.ws-row:hover .ws-row-main, .ws-row-main:focus-visible, .ws-row-main.on', '.ws-row-main:active',
+  '.ws-row-name', '.ws-row-count', '.ws-row-main.on::after', '.ws-cmd', '.ws-cmd .ws-glyph',
+];
+
+/** The app's pure Spaces identity module (presets, symbols, paint), from its source. */
+export function loadSpaceIdentity(source) {
+  const module = { exports: {} };
+  new Function('module', source)(module);
+  const identity = module.exports;
+  if (!identity?.SYMBOLS || typeof identity.paint !== 'function') throw new Error('Missing native Spaces identity');
+  return identity;
+}
+
+const escapeHtml = text => String(text).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+// An inline SVG from a [tag, attributes] list on a 24×24 grid, as
+// workspace-ui.js svgFrom (with a class) and renderer.js symbolSvg (without).
+const svgMarkup = (elements, className) => `<svg viewBox="0 0 24 24" aria-hidden="true"${className ? ` class="${className}"` : ''}>${
+  elements.map(([tag, attrs]) => `<${tag} ${Object.entries(attrs).map(([key, value]) => `${key}="${value}"`).join(' ')}/>`).join('')}</svg>`;
+
+// The resting Island in a space, with the Spaces menu open below its mark.
+// `spaces` are sample records {name, color, symbol, tabs, domain, favicon};
+// the first is current. Each row is a real button carrying what the demo
+// script needs to repaint the mark (fill, symbol ink, edge per appearance)
+// and the pill (dots, favicon, domain) when it is chosen.
+export function nativeSpacesArt({ styles, document, renderer, overlay, workspaceUi, identity, spaces, newSpaceLabel }) {
+  const pill = nativeIslandArt({ styles, document, renderer, extraSelectors: SPACE_MARK_SELECTORS });
+  const { take } = nativeRules(styles);
+  const css = `${pill.css}\n${SPACES_MENU_SELECTORS.map(take).join('\n')}`;
+  const painted = spaces.map(space => {
+    const light = identity.paint(space.color, 'light'), dark = identity.paint(space.color, 'dark');
+    if (!light || !dark) throw new Error(`Spaces demo: invalid colour ${space.color}`);
+    if (!identity.isSymbol(space.symbol)) throw new Error(`Spaces demo: unknown symbol ${space.symbol}`);
+    return { ...space, fill: light.fill, on: light.on, edge: { light: light.edge, dark: dark.edge } };
+  });
+  const current = painted[0];
+
+  let html = pill.html;
+  const set = (from, to) => {
+    if (!html.includes(from)) throw new Error(`Missing native Spaces markup: ${from}`);
+    html = html.replace(from, to);
+  };
+  set('<button id="pillSpace" class="space-mark" type="button" aria-haspopup="dialog" aria-expanded="false" data-state="none" hidden>',
+    `<button id="pillSpace" class="space-mark" type="button" aria-haspopup="dialog" aria-expanded="true" data-state="space" data-edge="${current.edge.light}" style="--space-fill:${current.fill};--space-on:${current.on}">`);
+  set('<span id="pillSpaceSymbol" class="space-mark-symbol" aria-hidden="true"></span>',
+    `<span id="pillSpaceSymbol" class="space-mark-symbol" aria-hidden="true">${svgMarkup(identity.SYMBOLS[current.symbol])}</span>`);
+  set('<span id="pillSpaceName" class="space-mark-name"></span>', `<span id="pillSpaceName" class="space-mark-name">${escapeHtml(current.name)}</span>`);
+  html = html.replace(/<div id="pillDots">[\s\S]*?<\/div>/, `<div id="pillDots">${Array.from({ length: current.tabs }, (_, i) => `<button class="island-dot${i === 0 ? ' active' : ''}"></button>`).join('')}</div>`);
+  set('background-image:url(/favicon.svg)', `background-image:url(${current.favicon})`);
+  set('<span id="pillDomain">blanc.day</span>', `<span id="pillDomain">${escapeHtml(current.domain)}</span>`);
+  // No blocked count is claimed for sample pages.
+  set('<span id="pillShieldCount">1</span>', '<span id="pillShieldCount"></span>');
+  set('id="pillShield" class="shield"', 'id="pillShield" class="shield shield-quiet"');
+
+  // overlay.html's menu: a list, then the commands pinned below it.
+  if (!/<div id="workspaceSwitcher" class="ws-switcher"[^>]*>\s*<div id="workspaceSwitcherList"><\/div>\s*<div id="workspaceSwitcherCommands" class="ws-commands" hidden><\/div>\s*<\/div>/.test(overlay)) {
+    throw new Error('Missing native Spaces menu markup');
+  }
+  const plus = workspaceUi.match(/\bplus: \[\['path', \{ d: '([^']+)' \}\]\]/)?.[1];
+  if (!plus) throw new Error('Missing native Spaces glyph: plus');
+  const rows = painted.map((space, index) => {
+    const on = index === 0;
+    return `<div class="workspace-row ws-row"><button type="button" class="ws-row-main${on ? ' on' : ''}" aria-pressed="${on}" aria-label="${escapeHtml(`${space.name}, ${space.tabs} tabs`)}"`
+      + ` data-fill="${space.fill}" data-on="${space.on}" data-edge-light="${space.edge.light}" data-edge-dark="${space.edge.dark}"`
+      + ` data-tabs="${space.tabs}" data-domain="${escapeHtml(space.domain)}" data-favicon="${escapeHtml(space.favicon)}">`
+      + `<span class="ws-tile" style="--space-fill:${space.fill};--space-on:${space.on}" data-edge="${space.edge.light}">${svgMarkup(identity.SYMBOLS[space.symbol], 'ws-symbol')}</span>`
+      + `<span class="ws-row-name">${escapeHtml(space.name)}</span><span class="ws-row-count">${space.tabs}</span></button></div>`;
+  }).join('');
+  // New space… is shown, not offered: the demo has no editor behind it.
+  const command = `<div class="ws-cmd" aria-hidden="true">${svgMarkup([['path', { d: plus }]], 'ws-glyph')}${escapeHtml(newSpaceLabel)}</div>`;
+  const menu = `<div id="workspaceSwitcher" class="ws-switcher" role="group" aria-label="Sample spaces"><div id="workspaceSwitcherList">${rows}</div>`
+    + `<div id="workspaceSwitcherCommands" class="ws-commands">${command}</div></div>`;
+  return { css, pill: html, menu };
 }

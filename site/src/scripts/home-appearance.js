@@ -39,7 +39,7 @@ export function initHomeAppearance({ document = window.document, view = window, 
     button.setAttribute('aria-pressed', String(dark));
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#1b1a18' : '#ffffff');
     // The hero keeps its light product surface for contrast against both canvases.
-    document.querySelectorAll('blanc-glance-island').forEach(model => {
+    document.querySelectorAll('blanc-glance-island, blanc-spaces-demo').forEach(model => {
       model.dataset.appearance = appearance;
     });
     if (manual) {

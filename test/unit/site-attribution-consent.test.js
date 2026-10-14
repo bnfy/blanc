@@ -220,6 +220,8 @@ test('homepage CTA hooks dispatch the original events only with consent', () => 
   for (const [position, event, feature] of [
     ['hero', 'download_click', undefined],
     ['home-close', 'download_click', undefined],
+    ['home-spaces', 'download_click', undefined],
+    ['home-spaces-detail', 'feature_cta_click', 'named-workspaces'],
     ['home-patron', 'feature_cta_click', 'named-workspaces'],
     ['home-patron-close', 'supporter_click', 'patron'],
   ]) {
