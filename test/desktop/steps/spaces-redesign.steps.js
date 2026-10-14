@@ -80,10 +80,41 @@ Given('spaces named {string}, {string}, {string} and {string}, with this window 
   await waitForValue(async () => (await this.call('workspaceAction', 'list')).items.length, (n) => n === 4, 'all four spaces listed');
   await this.waitForState((st) => st.tabs.every((t) => !t.isLoading && !t.asleep));
 });
+async function showWebPage(world, { pinned = false } = {}) {
+  const id = await world.call('openTab', world.fixtureUrl('workspace-draft'));
+  await world.waitForState((st) => st.tabs.some((t) => t.id === id && !t.isLoading && t.title === 'workspace-draft'));
+  if (pinned) await world.call('pinTab', id);
+  return id;
+}
+Given('this window is showing a web page that keeps session storage', async function () {
+  this.pageId = await showWebPage(this);
+  await this.call('workspacePageScript', this.pageId, "sessionStorage.setItem('kept', 'yes'); true");
+});
+Given('this window is showing a web page', async function () {
+  this.pageId = await showWebPage(this);
+});
+Given('this window is showing a web page, beside a pinned web page', async function () {
+  this.pinnedId = await showWebPage(this, { pinned: true });
+  this.pageId = await showWebPage(this);
+  await this.call('activateTab', this.pageId);
+  await this.waitForState((st) => st.activeTabId === this.pageId && st.tabs.every((t) => !t.isLoading));
+});
+Given('eight spaces, with this window in the first', async function () {
+  this.spaceNames = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8'];
+  this.spaceIds = { S1: await saveSpace(this, 'S1') };
+  for (const name of this.spaceNames.slice(1)) {
+    const other = await this.call('openNewWindow');
+    const saved = await this.call('workspaceActionInWindow', other, 'save', name);
+    assert.equal(saved.ok, true, `save ${name}`);
+    this.spaceIds[name] = saved.workspace.id;
+    await this.call('closeWindowRuntime', other);
+  }
+  this.pageId = await showWebPage(this);
+});
 Given('Quiet Tabs is off', async function () {
   assert.equal(await this.call('setQuietTabs', 'off'), 'off');
 });
-After({ tags: '@F41-36' }, async function () {
+After({ tags: '@F41-36 or @F41-39' }, async function () {
   await this.call('setQuietTabs', '1h');
 });
 Given('Reduce Motion is on', async function () {
@@ -122,6 +153,10 @@ When('I open Recently Deleted', async function () {
   await page.click('[data-focus-key="recently-deleted"]');
   await page.waitForSelector('.ws-recovery-row');
 });
+// A page still loading or waking makes a switch ask first (the existing
+// 'active-page' protection), so let the space's page settle, as a person would.
+const settled = (world) => world.waitForState((st) => st.tabs.every((t) => !t.isLoading)
+  && st.tabs.some((t) => t.id === st.activeTabId && !t.asleep));
 When('I switch this window to {string}, then {string}, then {string}', async function (first, second, third) {
   const names = [first, second, third];
   this.switchResults = [];
@@ -130,9 +165,30 @@ When('I switch this window to {string}, then {string}, then {string}', async fun
     this.switchResults.push({ name, ok: result?.ok === true, result });
     if (!result?.ok) break;
     await mark(this, (m) => m.state === 'space' && m.name === name, `the window in ${name}`);
-    // Let the new space's page settle, as a person would before switching on.
-    await this.waitForState((st) => st.tabs.every((t) => !t.isLoading));
+    await settled(this);
   }
+});
+When('I switch this window through the other seven', async function () {
+  this.switchResults = [];
+  for (const name of this.spaceNames.slice(1)) {
+    const result = await this.call('workspaceAction', 'open', this.spaceIds[name]);
+    this.switchResults.push({ name, ok: result?.ok === true, result });
+    assert.equal(result?.ok, true, `switch to ${name}: ${JSON.stringify(result)}`);
+    await mark(this, (m) => m.state === 'space' && m.name === name, `the window in ${name}`);
+    await settled(this);
+  }
+});
+When('I switch this window to {string}', async function (name) {
+  const result = await this.call('workspaceAction', 'open', this.spaceIds[name]);
+  assert.equal(result?.ok, true, JSON.stringify(result));
+  await mark(this, (m) => m.state === 'space' && m.name === name, `the window in ${name}`);
+  await settled(this);
+});
+When('I switch back to {string} while its page is being quieted', async function (name) {
+  this.race = await this.call('raceSwitchBackDuringQuiet', this.spaceIds[name]);
+  assert.equal(this.race.result?.ok, true, JSON.stringify(this.race));
+  // Positive control: the switch really landed mid-teardown.
+  assert.equal(this.race.sleepingAtSwitch, true, `the quiet was under way at the switch: ${JSON.stringify(this.race)}`);
 });
 When('I open the color picker for {string}', async function (name) {
   const page = await menu(); const space = await spaceByName(this, name);
@@ -361,10 +417,32 @@ Then('every switch went through', async function () {
   assert.deepEqual(this.switchResults.map((r) => [r.name, r.ok]), this.switchResults.map((r) => [r.name, true]), JSON.stringify(this.switchResults));
   assert.equal(this.switchResults.length, 3);
 });
-Then('the space set aside first, {string}, has been quieted', async function (name) {
-  const spaces = await waitForValue(() => this.call('residentSpaces'),
-    (all) => all.find((s) => s.name === name)?.tabs.every((t) => t.asleep && !t.live), `${name} to be quieted`, 10000);
+Then('the space set aside first, {string}, has had its web page quieted', async function (name) {
+  const page = (all) => all.find((s) => s.name === name)?.tabs.find((t) => t.id === this.pageId);
+  const spaces = await waitForValue(() => this.call('residentSpaces'), (all) => page(all)?.asleep && !page(all).live, `${name}'s web page to be quieted`, 10000);
   assert.equal(spaces.length, 3, `three spaces set aside: ${JSON.stringify(spaces)}`);
+  this.firstSetAside = name;
+});
+Then('its pinned page is still loaded', async function () {
+  const spaces = await this.call('residentSpaces');
+  const pinned = spaces.find((s) => s.name === this.firstSetAside)?.tabs.find((t) => t.id === this.pinnedId);
+  assert.deepEqual({ pinned: pinned?.pinned, live: pinned?.live, asleep: pinned?.asleep }, { pinned: true, live: true, asleep: false });
+});
+Then('the window shows that page, awake', async function () {
+  await mark(this, (m) => m.state === 'space' && m.name === 'One', 'the window back in One');
+  await this.waitForState((st) => st.activeTabId === this.race.tabId && st.tabs.some((t) => t.id === this.race.tabId && !t.asleep), 10000);
+});
+Then('at most six spaces are set aside', async function () {
+  const spaces = await waitForValue(() => this.call('residentSpaces'), (all) => all.length <= 6, 'at most six set aside', 10000);
+  assert.equal(spaces.length, 6, `the cap, exactly: ${JSON.stringify(spaces.map((s) => s.name))}`);
+  this.setAside = spaces.map((s) => s.name);
+});
+Then('the first space was released, and switching back to it brings its page back', async function () {
+  assert.equal(this.setAside.includes('S1'), false, `S1 was released: ${this.setAside}`);
+  const pageUrl = this.fixtureUrl('workspace-draft');
+  const result = await this.call('workspaceAction', 'open', this.spaceIds.S1);
+  assert.equal(result?.ok, true, JSON.stringify(result));
+  await this.waitForState((st) => st.tabs.some((t) => t.url === pageUrl), 10000);
 });
 Then('{string} and {string} are still loaded in the background', async function (first, second) {
   const names = [first, second];
@@ -373,9 +451,9 @@ Then('{string} and {string} are still loaded in the background', async function 
     assert.ok(spaces.find((s) => s.name === name)?.tabs.some((t) => t.live), `${name} is loaded: ${JSON.stringify(spaces)}`);
   }
 });
-Then('no set-aside space has been quieted', async function () {
-  // Give a make-room pass the time it would take, then look.
-  await new Promise((resolve) => setTimeout(resolve, 1500));
+Then('Blanc made no room because Quiet Tabs is off', async function () {
+  // The pass ran after the last switch, and declined: not merely not run.
+  await waitForValue(() => this.call('roomPass'), (pass) => pass?.outcome === 'quiet-tabs-off', 'the make-room pass to decline');
   const spaces = await this.call('residentSpaces');
   assert.equal(spaces.length, 3);
   assert.ok(spaces.every((s) => s.tabs.every((t) => t.live && !t.asleep)), JSON.stringify(spaces));

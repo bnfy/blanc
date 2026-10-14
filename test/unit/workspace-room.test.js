@@ -6,14 +6,16 @@
 // refuse one (unsaved work), which then stays loaded.
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { roomPlan } = require('../../src/main/workspace-residency');
+const { roomPlan, releasePlan } = require('../../src/main/workspace-residency');
 
-// A set-aside space: `since` is when it was set aside; each tab is
-// [id, lastActiveAt, live].
+// A set-aside space: `since` is when it was set aside.
 const space = (since, ...tabs) => ({ residentSince: since, tabOrder: tabs.map(([id]) => id), tabs });
+// A tab is [id, lastActiveAt, live = true, quietable = true].
 function plan(residents, options) {
-  const all = new Map(residents.flatMap((r) => r.tabs.map(([id, at, live = true]) => [id, { at, live }])));
-  return roomPlan(residents, { isLive: (id) => all.get(id).live, lastActiveAt: (id) => all.get(id).at, ...options });
+  const all = new Map(residents.flatMap((r) => r.tabs.map(([id, at, live = true, quietable = true]) => [id, { at, live, quietable }])));
+  return roomPlan(residents, {
+    isLive: (id) => all.get(id).live, canQuiet: (id) => all.get(id).quietable, lastActiveAt: (id) => all.get(id).at, ...options,
+  });
 }
 const tabsOf = (prefix, n, base = 0) => Array.from({ length: n }, (_, i) => [`${prefix}${i}`, base + i]);
 
@@ -44,4 +46,25 @@ test('tabs that are already quiet neither count nor appear in the plan', () => {
 test('the budget can be set, and a space with no loaded tabs is not a space to quiet', () => {
   assert.deepEqual(plan([space(1, ...tabsOf('a', 2)), space(2, ...tabsOf('b', 2))], { maxSets: 1 }), ['a0', 'a1']);
   assert.deepEqual(plan([space(1, ...tabsOf('a', 4))], { maxLiveTabs: 2 }), ['a0', 'a1']);
+});
+
+test("a tab Quiet Tabs would never quiet still counts, but is never in the plan", () => {
+  // The oldest space plays music in a0 (not quietable): only a1 goes.
+  const residents = [space(1, ['a0', 1, true, false], ['a1', 2]), space(2, ...tabsOf('b', 1)), space(3, ...tabsOf('c', 1))];
+  assert.deepEqual(plan(residents), ['a1']);
+  // 17 loaded, one over, and the oldest loaded tab is pinned: the next one goes instead.
+  const kept = [space(1, ['b0', 0, true, false], ...tabsOf('b', 8, 10).map(([id, at]) => [`x${id}`, at])), space(2, ...tabsOf('c', 8, 100))];
+  assert.deepEqual(plan(kept), ['xb0']);
+});
+
+// The hard cap on set-aside spaces holds whatever Quiet Tabs is doing (off,
+// or out of snapshots): beyond it the oldest unprotected spaces are released.
+test('beyond the cap, the oldest set-aside spaces are released, skipping any with protected work', () => {
+  const r = (id, since, isProtected = false) => ({ id, residentSince: since, isProtected });
+  const release = (residents, max) => releasePlan(residents, { maxSetAside: max, isProtected: (x) => x.isProtected }).map((x) => x.id);
+  assert.deepEqual(release([r('a', 1), r('b', 2)], 6), [], 'within the cap');
+  assert.deepEqual(release([r('c', 3), r('a', 1), r('b', 2), r('d', 4)], 2), ['a', 'b'], 'oldest first, not list order');
+  assert.deepEqual(release([r('a', 1, true), r('b', 2), r('c', 3), r('d', 4)], 2), ['b', 'c'], 'a protected space stays and still counts');
+  assert.deepEqual(release([r('a', 1, true), r('b', 2, true), r('c', 3)], 1), ['c'], 'only what can go goes');
+  assert.deepEqual(release([r('a', 1, true), r('b', 2, true)], 1), [], 'nothing unprotected to release');
 });

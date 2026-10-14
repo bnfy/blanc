@@ -27,22 +27,38 @@ function transferSession(source, target, { tabs, registry }) {
  * never has to stop for a limit (spec D22): at most `maxSets` set-aside
  * spaces keep loaded tabs, and at most `maxLiveTabs` stay loaded across them.
  * The space set aside longest ago gives way first, the one just left last;
- * within a space, its least recently used tabs go first. This is only the
- * plan: Quiet Tabs may still refuse a tab (unsaved work), which stays loaded. */
-function roomPlan(residents, { isLive, lastActiveAt, maxSets = 2, maxLiveTabs = 16 }) {
+ * within a space, its least recently used tabs go first. Every loaded tab
+ * counts (`isLive`), but only tabs Quiet Tabs would quiet (`canQuiet`: its
+ * sleepCandidates policy) are planned; the rest stay loaded, over budget. */
+function roomPlan(residents, { isLive, canQuiet = () => true, lastActiveAt, maxSets = 2, maxLiveTabs = 16 }) {
   const loaded = residents
     .map((r) => ({ since: r.residentSince ?? 0, live: r.tabOrder.filter(isLive).sort((a, b) => lastActiveAt(a) - lastActiveAt(b)) }))
     .filter((r) => r.live.length)
     .sort((a, b) => b.since - a.since); // newest first
   const kept = loaded.slice(0, maxSets);
-  const plan = loaded.slice(maxSets).reverse().flatMap((r) => r.live); // oldest space first
+  const plan = loaded.slice(maxSets).reverse().flatMap((r) => r.live.filter(canQuiet)); // oldest space first
   let over = kept.reduce((n, r) => n + r.live.length, 0) - maxLiveTabs;
   for (const r of [...kept].reverse()) { // the older of the kept spaces first
     if (over <= 0) break;
-    const take = r.live.slice(0, over);
+    const take = r.live.filter(canQuiet).slice(0, over);
     plan.push(...take); over -= take.length;
   }
   return plan;
+}
+/** The set-aside spaces to release (save, then close) so that at most
+ * `maxSetAside` remain, whatever Quiet Tabs is doing (off, or out of
+ * snapshots): the oldest first, never one with protected work, which stays
+ * and still counts. A released space reopens from its saved tabs. */
+function releasePlan(residents, { maxSetAside = 6, isProtected }) {
+  let over = residents.length - maxSetAside;
+  if (over <= 0) return [];
+  const release = [];
+  for (const r of [...residents].sort((a, b) => (a.residentSince ?? 0) - (b.residentSince ?? 0))) {
+    if (over <= 0) break;
+    if (isProtected(r)) continue;
+    release.push(r); over -= 1;
+  }
+  return release;
 }
 /** The window an Undo may rebind to a restored workspace: one the delete
  * unbound that is still open, visible, in no workspace and not mid-switch —
@@ -53,4 +69,4 @@ function undoRebindTarget(runtimeIds, runtimes, workspaceId) {
   return runtimes.find((r) => wanted.has(r.id) && r.workspaceId == null && !r.closing && !r.resident && !r.workspaceTransition) ?? null;
 }
 
-module.exports = { transferSession, roomPlan, undoRebindTarget, SESSION_FIELDS };
+module.exports = { transferSession, roomPlan, releasePlan, undoRebindTarget, SESSION_FIELDS };

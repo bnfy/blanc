@@ -211,10 +211,36 @@ Feature: Named workspace preservation and recovery
   @F41-35
   Scenario: Switching between spaces never stops for a limit
     Given spaces named "One", "Two", "Three" and "Four", with this window in "One"
+    And this window is showing a web page that keeps session storage
     When I switch this window to "Two", then "Three", then "Four"
     Then every switch went through
-    And the space set aside first, "One", has been quieted
+    And the space set aside first, "One", has had its web page quieted
     And "Two" and "Three" are still loaded in the background
+
+  @F41-37
+  Scenario: A set-aside space's pinned page is never quieted
+    Given spaces named "One", "Two", "Three" and "Four", with this window in "One"
+    And this window is showing a web page, beside a pinned web page
+    When I switch this window to "Two", then "Three", then "Four"
+    Then every switch went through
+    And the space set aside first, "One", has had its web page quieted
+    And its pinned page is still loaded
+
+  @F41-38
+  Scenario: Switching back to a space while its page is being quieted shows the page
+    Given spaces named "One" and "Reading", with this window in "One"
+    And this window is showing a web page
+    When I switch this window to "Reading"
+    And I switch back to "One" while its page is being quieted
+    Then the window shows that page, awake
+
+  @F41-39
+  Scenario: Blanc never keeps more than six spaces set aside
+    Given Quiet Tabs is off
+    And eight spaces, with this window in the first
+    When I switch this window through the other seven
+    Then at most six spaces are set aside
+    And the first space was released, and switching back to it brings its page back
 
   @F41-36
   Scenario: With Quiet Tabs off, set-aside spaces stay loaded
@@ -222,7 +248,7 @@ Feature: Named workspace preservation and recovery
     And spaces named "One", "Two", "Three" and "Four", with this window in "One"
     When I switch this window to "Two", then "Three", then "Four"
     Then every switch went through
-    And no set-aside space has been quieted
+    And Blanc made no room because Quiet Tabs is off
 
   @F41-34
   Scenario: Recently deleted spaces keep their colour, their full name and when they went
