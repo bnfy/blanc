@@ -2,7 +2,7 @@
   "publicRelease": "v1.33.0",
   "sourceSha": "3e761786666174bab6600b645f9cb34491f5f247",
   "releaseEvidence": "docs/release-incidents/2026-10-14-v1.33.0.md",
-  "scope": "Website copy for what public v1.33.0 shipped (October 14, 2026): Blanc Spaces free for everyone, with Blanc Patron as optional support that unlocks nothing; the Arc import always creating spaces; and each space’s colour and symbol shown as the Island’s space mark. Every evidence path is at the immutable publicRelease tag. Retired wording is recorded as supersededClaims in docs/website-revamp-claims-v1.27.json, docs/website-features-bento-claims-v1.30.json and docs/website-v1.32-claims.json, changes to retained feature pages as reviewedCopyUpdates in the v1.27 ledger, and the reworded support answers in docs/website-blanc-spaces-free-2026-10-14.json.",
+  "scope": "Website copy for what public v1.33.0 shipped (October 14, 2026): Blanc Spaces free for everyone, with Blanc Patron as optional support that unlocks nothing; the Arc import always creating spaces; and each space’s colour and symbol shown as the Island’s space mark, including the homepage’s Blanc Spaces section and its demo drawn from the app’s own interface code. Every evidence path is at the immutable publicRelease tag. Retired wording is recorded as supersededClaims in docs/website-revamp-claims-v1.27.json, docs/website-features-bento-claims-v1.30.json and docs/website-v1.32-claims.json, changes to retained feature pages as reviewedCopyUpdates in the v1.27 ledger, and the reworded support answers in docs/website-blanc-spaces-free-2026-10-14.json.",
   "prohibitedClaims": [
     "Blanc Patron unlocking, adding or gating any feature, including Blanc Spaces",
     "Blanc Spaces as synced, account-based, automatic task detection, or an AI workspace",
@@ -316,6 +316,38 @@
       "subject": "Blanc",
       "evidenceGroups": [
         "patron"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-index-04",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Blanc Spaces is now free for everyone.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "freeSpaces"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-index-05",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Save a window’s tabs and groups as a space. Give each one a colour and a symbol, then switch between them from the Island.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "freeSpaces",
+        "spacesRedesign"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-index-06",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Free on macOS, Windows and Linux. Coming from Arc? Bring your Spaces with you.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "freeSpaces",
+        "arcImport"
       ],
       "verdict": "verified"
     },
