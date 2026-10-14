@@ -11,7 +11,7 @@ import { _electron } from 'playwright';
 import poll from './support/poll.js';
 import popupFocusTrace from './support/popup-focus-trace.js';
 import testCalls from './support/test-hook-call.js';
-const { waitForValue } = poll;
+const { waitForValue, expectPageClose } = poll;
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-ubo-desktop-'));
 fs.mkdirSync(dir + '-Dev', { recursive: true });
 fs.writeFileSync(path.join(dir + '-Dev', 'settings.json'), JSON.stringify({
@@ -124,12 +124,7 @@ try {
   // Upstream closes its popup synchronously after opening a tool, which can
   // precede CDP's dispatch acknowledgement. Accept only that closure; each
   // caller then requires the tool's own result.
-  const clickClosingPopup = (popup, selector) => Promise.all([
-    popup.waitForEvent('close'),
-    popup.locator(selector).dispatchEvent('click').catch(error => {
-      if (!popup.isClosed() || !error.message.includes('Target page, context or browser has been closed')) throw error;
-    }),
-  ]);
+  const clickClosingPopup = (popup, selector) => expectPageClose(popup, () => popup.locator(selector).dispatchEvent('click'));
   await waitForValue(() => call('blockingStatus'), state => state.phase === 'ready', 'real uBO ready', COLD_START_MS);
   timing.startupReadyMs = Date.now() - started;
   assert.equal((await call('blockingStatus')).active, 'ublock-origin');

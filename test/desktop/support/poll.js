@@ -51,8 +51,10 @@ async function openOverlaySurface(world, openMethod, mode) {
  * producing them: the click then waits forever on an element that is visible,
  * focused and not moving. The forced click skips that frame wait, so the hit
  * test keeps the guarantee Playwright's "receives events" check would give.
+ * With `closesPage`, the click is expected to close its own page: see
+ * expectPageClose.
  */
-async function clickWhenSettled(locator, label, timeout = 8000) {
+async function clickWhenSettled(locator, label, { timeout = 8000, closesPage = false } = {}) {
   let previous = null;
   await waitForValue(async () => {
     const box = await locator.boundingBox();
@@ -66,7 +68,31 @@ async function clickWhenSettled(locator, label, timeout = 8000) {
     });
     return { box, ready, settled, hit };
   }, (value) => value.settled && value.hit, `${label} to settle as the hit target`, timeout);
-  await locator.click({ force: true });
+  const click = () => locator.click({ force: true });
+  if (closesPage) await expectPageClose(locator.page(), click);
+  else await click();
 }
 
-module.exports = { waitForValue, openOverlaySurface, clickWhenSettled };
+/**
+ * Run `action`, whose expected effect is closing `page`, and resolve once the
+ * page has closed. When the page goes away before the action's last input is
+ * acknowledged, Playwright rejects the action with "Target page, context or
+ * browser has been closed" (a plain Error: the TargetClosedError name does not
+ * survive to the client), and that rejection is not ordered against the page's
+ * own close event, so isClosed() at catch time proves nothing. Accept exactly
+ * that error, and only once the page really closes; every other error stays
+ * fatal.
+ */
+async function expectPageClose(page, action) {
+  const closed = () => (page.isClosed() ? Promise.resolve() : page.waitForEvent('close'));
+  try {
+    await action();
+  } catch (error) {
+    if (!String(error?.message).includes('Target page, context or browser has been closed')) throw error;
+    await closed().catch(() => { throw error; });
+    return;
+  }
+  await closed();
+}
+
+module.exports = { waitForValue, openOverlaySurface, clickWhenSettled, expectPageClose };
