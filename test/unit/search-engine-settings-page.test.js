@@ -18,8 +18,21 @@ test('the custom search address row follows the search engine select, hidden', (
   const row = html.indexOf('<div class="setting" id="searchEngineCustomRow" hidden>');
   assert.ok(select > 0 && row > select, 'row comes right after the engine select');
   assert.ok(row < html.indexOf('id="searchSuggestions"'), 'and before Search suggestions');
-  assert.match(html, /<span class="hint field-error" id="searchEngineTemplateError" hidden>/);
-  assert.match(html, /<input id="searchEngineTemplate" type="url" placeholder="https:\/\/search\.example\.com\/search\?q=%s"/);
+  assert.match(html, /<span class="hint field-error" id="searchEngineTemplateError" role="alert" hidden>/);
+  assert.match(html, /<input id="searchEngineTemplate" type="url"[^>]* placeholder="https:\/\/search\.example\.com\/search\?q=%s"/);
+});
+
+test('the address field is named by its label and announces its error', () => {
+  // A screen reader would otherwise name the field by its placeholder and
+  // never hear that an address was refused. The field can hold a Kagi
+  // token, so the browser's own form history stays off.
+  const input = html.match(/<input id="searchEngineTemplate"[^>]*>/)[0];
+  assert.match(html, /<span id="searchEngineTemplateLabel">Custom search address<\/span>/);
+  assert.match(html, /<span class="hint" id="searchEngineTemplateHint">/);
+  assert.match(input, /aria-labelledby="searchEngineTemplateLabel"/);
+  assert.match(input, /aria-describedby="searchEngineTemplateHint searchEngineTemplateError"/);
+  assert.match(input, /autocomplete="off"/);
+  assert.match(input, /spellcheck="false"/);
 });
 
 test('the page script reads every new id and gates Custom on its capability', () => {
