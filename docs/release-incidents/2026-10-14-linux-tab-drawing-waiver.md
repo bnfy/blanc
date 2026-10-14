@@ -52,8 +52,8 @@ The owner then asked for the close-the-last-window check from `docs/release-veri
 6. Close that window the same way.
 
 **Result at `72fd2446`.**
-- **Close and exit: pass.** All 12 Blanc processes exited on their own 114 ms after the click, with exit status 0 and no window left. The crash ledger was clean: no current run, no pending recovery and no events. No forced kill was used. On the relaunch a window appeared, and closing it exited in 124 ms with status 0.
-- **Saved tabs: fail.** Closing the window rewrote `session.json` with no tabs, so the relaunch opened only a New Tab.
+- **Close, exit and relaunch: pass.** All 12 Blanc processes exited on their own 114 ms after the click, with exit status 0 and no window left. The crash ledger was clean: no current run, no pending recovery and no events. No forced kill was used. On the relaunch a window appeared, and closing it exited in 124 ms with status 0.
+- **Saved-tab restoration after ✕: fail.** Closing the window rewrote `session.json` with no tabs, so the relaunch opened only a New Tab.
 
 **Control: v1.33.0, same steps.** Commit `3e761786666174bab6600b645f9cb34491f5f247`, `Blanc-1.33.0-arm64.AppImage`, SHA-256 `fcbf4d1183774ba540bb52de76e9994290b9383f3ed2558a274132d8ba9b8ee2`, built the same way. The result was identical: a clean exit 115 ms after the click with status 0, and the tabs lost the same way. 1.33.1 did not cause the tab loss.
 
@@ -61,4 +61,11 @@ The owner then asked for the close-the-last-window check from `docs/release-veri
 
 **Cause, from the code.** Since [#340](https://github.com/bnfy/blanc/pull/340) (`d60c8bb6`, September 13, 2026), closing a window on Windows or Linux first writes `session.json` without that window, even when it is the last one. The quit that follows deliberately does not save. macOS skips that write for its primary window. The same code runs on Windows, but this was not tested there.
 
-**Status.** Closing and exiting pass. Tab recovery after closing the last window fails on Linux in both 1.33.0 and 1.33.1. Whether that blocks 1.33.1 is the owner's decision, still pending.
+**Results, recorded separately.**
+1. **Close, exit and relaunch: passed** on 1.33.1, and on the v1.33.0 control.
+2. **Saved-tab restoration after ✕: failed** on 1.33.1 and on v1.33.0. This check remains failed. Its fix is tracked separately and is not part of 1.33.1.
+3. **Ctrl+Q (File → Quit): preserved the tabs** on 1.33.1.
+
+**Owner decision.** On October 14, 2026 the owner decided not to block 1.33.1 on the tab-loss defect, because it predates 1.33.1 and the v1.33.0 control behaves identically. This decision does not approve the release.
+
+**After the check.** The owner restored `kernel.apparmor_restrict_unprivileged_userns` to `1` in the VM and verified it. `main` then advanced to `936741d2` through #812 and #813. Compared with `72fd2446`, those commits change docs, website files, a capture script and one npm script entry in `package.json`. Nothing under `src/` changed. The packaged app therefore matches the tested candidate apart from that one `package.json` line.
