@@ -39,15 +39,26 @@ function windowCloseSessionEffect({ platform, isPrimaryWindow, otherOpenWindows 
 
 /** Persist live windows across a real app quit (and the primary macOS window
  * across Dock close, and the last Windows/Linux window, whose close quits),
- * but forget a secondary window that the user explicitly removed from Blanc's
- * saved session. Kept pure so the lifecycle policy is covered without loading
- * Electron or matching main.js source text. */
-function shouldClearPersistedWindowState({ isQuitting, isPrimaryWindow, closeEffect = null }) {
-  return !isQuitting && !isPrimaryWindow && closeEffect !== 'quit';
+ * but forget a window that the user explicitly removed from Blanc's saved
+ * session. On Windows and Linux that includes the primary: there is no Dock
+ * reopen to keep it for. Kept pure so the lifecycle policy is covered without
+ * loading Electron or matching main.js source text. */
+function shouldClearPersistedWindowState({ platform, isQuitting, isPrimaryWindow, closeEffect = null }) {
+  if (isQuitting || closeEffect === 'quit') return false;
+  return !(isPrimaryWindow && platform === 'darwin');
+}
+
+/** Whether a window runtime belongs in session.json: while its window is open,
+ * or while it still holds tabs (the macOS primary after Dock close). A
+ * windowless runtime with no tabs, such as a primary the launch never used,
+ * would only come back as an extra, empty window. */
+function savesSessionEntry(runtime) {
+  return !runtime.resident && (Boolean(runtime.window) || runtime.tabOrder.length > 0);
 }
 
 module.exports = {
   WINDOW_STATE_NAME_PREFIX,
+  savesSessionEntry,
   shouldClearPersistedWindowState,
   windowCloseSessionEffect,
   windowStateName,

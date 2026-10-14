@@ -6,6 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const {
+  savesSessionEntry,
   shouldClearPersistedWindowState,
   windowCloseSessionEffect,
   windowStateName,
@@ -36,23 +37,52 @@ test('unsafe or unusable runtime ids cannot become native persistence keys', () 
   }
 });
 
-test('only an explicitly closed secondary forgets its persisted native state', () => {
+test('a closed secondary forgets its native state; quit and macOS Dock close keep it', () => {
   assert.equal(shouldClearPersistedWindowState({
+    platform: 'darwin',
     isQuitting: false,
     isPrimaryWindow: false,
   }), true);
   assert.equal(shouldClearPersistedWindowState({
+    platform: 'darwin',
     isQuitting: true,
     isPrimaryWindow: false,
   }), false, 'secondary state survives a whole-app quit');
   assert.equal(shouldClearPersistedWindowState({
+    platform: 'darwin',
     isQuitting: false,
     isPrimaryWindow: true,
   }), false, 'primary state survives macOS Dock close');
   assert.equal(shouldClearPersistedWindowState({
+    platform: 'linux',
     isQuitting: true,
     isPrimaryWindow: true,
   }), false);
+});
+
+test('on Windows and Linux a primary closed with another window open is removed like any other', () => {
+  for (const platform of ['win32', 'linux']) {
+    assert.equal(shouldClearPersistedWindowState({
+      platform, isQuitting: false, isPrimaryWindow: true, closeEffect: 'remove',
+    }), true, `${platform}: there is no Dock reopen, so the closed primary leaves (F32-1)`);
+    assert.equal(shouldClearPersistedWindowState({
+      platform, isQuitting: false, isPrimaryWindow: true, closeEffect: 'quit',
+    }), false, `${platform}: the last window still keeps its tabs, as Quit does`);
+    assert.equal(shouldClearPersistedWindowState({
+      platform, isQuitting: false, isPrimaryWindow: true, closeEffect: null,
+    }), true, `${platform}: a forced close (profile deletion) clears the primary too`);
+  }
+});
+
+test('a window is saved while it is open or still holds tabs', () => {
+  assert.equal(savesSessionEntry({ resident: false, window: {}, tabOrder: [] }), true,
+    'an open window with no tabs yet');
+  assert.equal(savesSessionEntry({ resident: false, window: null, tabOrder: ['tab'] }), true,
+    'the macOS primary after Dock close keeps its tabs for the next launch');
+  assert.equal(savesSessionEntry({ resident: false, window: null, tabOrder: [] }), false,
+    'a windowless runtime with no tabs would only come back as an empty window');
+  assert.equal(savesSessionEntry({ resident: true, window: null, tabOrder: ['tab'] }), false,
+    'a Blanc Spaces resident is never a saved window');
 });
 
 test('a secondary closed as the last Windows/Linux window keeps its native state', () => {

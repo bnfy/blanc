@@ -9,6 +9,7 @@ const vm = require('node:vm');
 // Lift the real source and run it in a sandbox, so this asserts shipped code.
 const { persistableEntries, sessionTabMeta } = require('../../src/main/session-snapshot');
 const { PRIMARY_WINDOW_ID, loadWorkspace, buildSaveShape } = require('../../src/main/session-workspace');
+const { savesSessionEntry } = require('../../src/main/window-state-persistence');
 const SAFE_ICON = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGElEQVR42mNgGAWjYBSMglEwCkbBqAABBgAE/wABeV0FzgAAAABJRU5ErkJggg==';
 
 const mainSource = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'), 'utf8');
@@ -23,11 +24,14 @@ test('persistSession is still liftable out of main.js', () => {
   assert.ok(captureSource, 'captureWindowEntry not found — update this test with it');
 });
 
-function run(tabList, activeTabId, { sessionHeldForQuit = false } = {}) {
+function run(tabList, activeTabId, {
+  sessionHeldForQuit = false, primaryWindow = {}, primaryTabs = null, others = [],
+} = {}) {
   const data = {};
   const runtime = {
     id: PRIMARY_WINDOW_ID,
-    tabOrder: tabList.map((t) => t.id),
+    window: primaryWindow,
+    tabOrder: primaryTabs ?? tabList.map((t) => t.id),
     groups: [],
     activeTabId,
   };
@@ -38,11 +42,12 @@ function run(tabList, activeTabId, { sessionHeldForQuit = false } = {}) {
     sessionReadOnly: false,
     tabs: new Map(tabList.map((t) => [t.id, t])),
     rt: () => runtime,
-    windowRuntimes: { all: () => [runtime] },
+    windowRuntimes: { all: () => [runtime, ...others] },
     focusedRuntime: runtime,
     PRIMARY_WINDOW_ID,
     ensureSessionStore: () => ({ update: (fn) => fn(data) }),
     persistableEntries,
+    savesSessionEntry,
     sessionTabMeta,
     loadWorkspace,
     buildSaveShape,
@@ -83,6 +88,18 @@ test('nothing rewrites the session while the last window\'s close waits for the 
   // A write in between would save the window without the pages it lost.
   const data = run([tab({ id: 'a', url: 'https://a/' })], 'a', { sessionHeldForQuit: true });
   assert.deepEqual(data, {});
+});
+
+test('an unused primary with no window and no tabs is not saved as an empty window', () => {
+  // A launch that restores only a secondary window leaves the primary runtime
+  // registered but unused; saving it would reopen an extra, empty window.
+  const data = run([tab({ id: 'c', url: 'https://c/' })], 'c', {
+    primaryWindow: null,
+    primaryTabs: [],
+    others: [{ id: 'window_c', window: {}, tabOrder: ['c'], groups: [], activeTabId: 'c' }],
+  });
+  assert.deepEqual(data.windows.map((entry) => entry.id), ['window_c']);
+  assert.deepEqual(data.windows[0].urls, ['https://c/']);
 });
 
 test('the local HTML grant survives only in the v2 window, not the rollback mirror', () => {
