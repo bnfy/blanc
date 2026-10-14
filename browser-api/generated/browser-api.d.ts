@@ -310,6 +310,10 @@ export interface DeletedWorkspace {
   name: string;
   /** Milliseconds since the epoch. */
   deletedAt: number;
+  /** Stored #rrggbb, kept from the space as it was. */
+  color: string;
+  /** A space-identity.js symbol id, kept from the space as it was. */
+  symbol: string;
 }
 
 /** How strongly a space tints the chrome; island and frame exist only in unpackaged builds (BLANC_SPACE_TINT). */
@@ -345,7 +349,7 @@ export interface WorkspaceListItem {
   resident: boolean;
   revision: number;
   tabCount: number;
-  /** Stored #rrggbb; the chrome derives the drawn ink. */
+  /** Stored #rrggbb, drawn exactly as its tile's fill (D21). */
   color: string;
   /** A space-identity.js symbol id. */
   symbol: string;

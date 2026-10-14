@@ -2757,7 +2757,9 @@
             {
               "id": "workspace-id-1",
               "name": "deleted-workspace-1",
-              "deletedAt": 1
+              "deletedAt": 1,
+              "color": "deleted-workspace-1",
+              "symbol": "deleted-workspace-1"
             }
           ],
           "items": [
@@ -2866,7 +2868,9 @@
             {
               "id": "workspace-id-1",
               "name": "deleted-workspace-1",
-              "deletedAt": 1
+              "deletedAt": 1,
+              "color": "deleted-workspace-1",
+              "symbol": "deleted-workspace-1"
             }
           ],
           "items": [
@@ -2979,7 +2983,9 @@
             {
               "id": "workspace-id-1",
               "name": "deleted-workspace-1",
-              "deletedAt": 1
+              "deletedAt": 1,
+              "color": "deleted-workspace-1",
+              "symbol": "deleted-workspace-1"
             }
           ],
           "items": [
@@ -3092,7 +3098,9 @@
             {
               "id": "workspace-id-1",
               "name": "deleted-workspace-1",
-              "deletedAt": 1
+              "deletedAt": 1,
+              "color": "deleted-workspace-1",
+              "symbol": "deleted-workspace-1"
             }
           ],
           "items": [
@@ -3158,7 +3166,9 @@
             {
               "id": "workspace-id-1",
               "name": "deleted-workspace-1",
-              "deletedAt": 1
+              "deletedAt": 1,
+              "color": "deleted-workspace-1",
+              "symbol": "deleted-workspace-1"
             }
           ],
           "items": [
@@ -3224,7 +3234,9 @@
             {
               "id": "workspace-id-1",
               "name": "deleted-workspace-1",
-              "deletedAt": 1
+              "deletedAt": 1,
+              "color": "deleted-workspace-1",
+              "symbol": "deleted-workspace-1"
             }
           ],
           "items": [
@@ -3290,7 +3302,9 @@
             {
               "id": "workspace-id-1",
               "name": "deleted-workspace-1",
-              "deletedAt": 1
+              "deletedAt": 1,
+              "color": "deleted-workspace-1",
+              "symbol": "deleted-workspace-1"
             }
           ],
           "items": [
@@ -3383,7 +3397,9 @@
             {
               "id": "workspace-id-1",
               "name": "deleted-workspace-1",
-              "deletedAt": 1
+              "deletedAt": 1,
+              "color": "deleted-workspace-1",
+              "symbol": "deleted-workspace-1"
             }
           ],
           "items": [
@@ -3451,7 +3467,9 @@
             {
               "id": "workspace-id-1",
               "name": "deleted-workspace-1",
-              "deletedAt": 1
+              "deletedAt": 1,
+              "color": "deleted-workspace-1",
+              "symbol": "deleted-workspace-1"
             }
           ],
           "items": [
@@ -3517,7 +3535,9 @@
             {
               "id": "workspace-id-1",
               "name": "deleted-workspace-1",
-              "deletedAt": 1
+              "deletedAt": 1,
+              "color": "deleted-workspace-1",
+              "symbol": "deleted-workspace-1"
             }
           ],
           "items": [
@@ -3692,7 +3712,9 @@
                 {
                   "id": "workspace-id-1",
                   "name": "deleted-workspace-1",
-                  "deletedAt": 1
+                  "deletedAt": 1,
+                  "color": "deleted-workspace-1",
+                  "symbol": "deleted-workspace-1"
                 }
               ],
               "items": [
@@ -3720,7 +3742,9 @@
                   {
                     "id": "workspace-id-1",
                     "name": "deleted-workspace-1",
-                    "deletedAt": 1
+                    "deletedAt": 1,
+                    "color": "deleted-workspace-1",
+                    "symbol": "deleted-workspace-1"
                   }
                 ],
                 "items": [

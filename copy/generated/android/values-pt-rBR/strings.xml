@@ -278,6 +278,7 @@
     <string name="ws_recovery_help">Spaces salvos podem ser recuperados por sete dias. Até %1$s Spaces excluídos são mantidos.</string>
     <string name="ws_recovery_restore">Restaurar</string>
     <string name="ws_recovery_forget">Excluir permanentemente…</string>
+    <string name="ws_recovery_deleted_when">Excluído %1$s</string>
     <string name="ws_forget_confirm">Excluir “%1$s” permanentemente? Este Space salvo não poderá ser restaurado.</string>
     <string name="ws_forget_button">Excluir permanentemente</string>
     <plurals name="ws_list_recently_deleted">

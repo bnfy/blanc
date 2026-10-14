@@ -16,6 +16,12 @@
   const Picker = root.SpacePicker || require('./space-picker.js');
   const t = i18n.t;
   const number = new Intl.NumberFormat(i18n.formatLocale());
+  const relativeDay = new Intl.RelativeTimeFormat(i18n.formatLocale(), { numeric: 'auto' });
+  /** Whole local calendar days from `ms` to now ("today" is 0), never negative. */
+  function daysAgo(ms, now = Date.now()) {
+    const day = (value) => { const d = new Date(value); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); };
+    return Math.max(0, Math.round((day(now) - day(ms)) / 86400000)); // round: a DST day is 23 or 25 hours
+  }
   // The workspace and deleted-workspace cap: MAX_WORKSPACES in main's
   // workspaces-model.js (a unit test keeps the two equal).
   const WORKSPACE_LIMIT = 25;
@@ -42,6 +48,7 @@
     plus: [['path', { d: 'M12 5v14M5 12h14' }]],
     recover: [['path', { d: 'M3 12a9 9 0 1 0 3-6.7L3 8' }], ['path', { d: 'M3 3v5h5' }]],
     import: [['path', { d: 'M12 3v12m-4-4 4 4 4-4' }], ['path', { d: 'M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2' }]],
+    trash: [['path', { d: 'M4 7h16' }], ['path', { d: 'M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2' }], ['path', { d: 'M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12' }], ['path', { d: 'M10 11v6M14 11v6' }]],
   };
   const SPACE_NAME_DATA = 'data-i18n-ignore';
   /** An inline SVG from a [tag, attributes] list on a 24×24 grid. */
@@ -346,7 +353,8 @@
       main.title = t('ws.row.title', { name: workspace.name, context, count: workspace.tabCount });
       main.setAttribute('aria-label', main.title);
       if (workspace.active) main.setAttribute('aria-current', 'true');
-      main.append(tile(workspace), dataEl('span', 'ws-row-name', workspace.name), el('span', 'ws-row-count', workspace.openElsewhere ? t('ws.row.showWindow') : number.format(workspace.tabCount)));
+      const name = dataEl('span', 'ws-row-name', workspace.name); name.title = workspace.name;
+      main.append(tile(workspace), name, el('span', 'ws-row-count', workspace.openElsewhere ? t('ws.row.showWindow') : number.format(workspace.tabCount)));
       main.addEventListener('keydown', (event) => {
         if (!event.altKey || !['ArrowUp', 'ArrowDown'].includes(event.key)) return;
         event.preventDefault(); event.stopPropagation();
@@ -576,10 +584,17 @@
       head.append(back, el('h2', 'ws-editor-title', t('ws.list.recentlyDeleted', { count: data.deleted.length })));
       box.append(head, el('p', 'ws-help', t('ws.recovery.help', { limit: number.format(WORKSPACE_LIMIT) })));
       for (const entry of data.deleted || []) {
+        // As the space was (its tile and name), when it went, Restore, and a
+        // trash button for the permanent delete, which still asks first.
         const row = el('div', 'ws-recovery-row');
-        row.append(dataEl('span', 'ws-row-name', entry.name),
-          button(t('ws.recovery.restore'), `restore:${entry.id}`, () => run(() => api.restoreWorkspace(entry.id), () => { if (undo?.id === entry.id) undo = null; }), 'ws-pill'),
-          button(t('ws.recovery.forget'), `forget:${entry.id}`, () => { state = { kind: 'forget', id: entry.id, name: entry.name }; render(); }, 'ws-pill danger-text'));
+        const text = el('div', 'ws-recovery-text');
+        const name = dataEl('span', 'ws-row-name', entry.name); name.title = entry.name;
+        text.append(name, el('span', 'ws-recovery-when', t('ws.recovery.deletedWhen', { when: relativeDay.format(-daysAgo(entry.deletedAt), 'day') })));
+        const forget = button('', `forget:${entry.id}`, () => { state = { kind: 'forget', id: entry.id, name: entry.name }; render(); }, 'ws-icon-button ws-recovery-forget');
+        forget.setAttribute('aria-label', t('ws.recovery.forget')); forget.title = t('ws.recovery.forget'); forget.append(glyph('trash'));
+        const actions = el('div', 'ws-recovery-actions');
+        actions.append(button(t('ws.recovery.restore'), `restore:${entry.id}`, () => run(() => api.restoreWorkspace(entry.id), () => { if (undo?.id === entry.id) undo = null; }), 'ws-pill'), forget);
+        row.append(tile({ color: entry.color, symbol: entry.symbol }), text, actions);
         box.append(row);
       }
       return box;

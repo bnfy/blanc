@@ -985,6 +985,10 @@
     "message": "Supprimer définitivement…",
     "source": "sha256:c0fa87f11bdaa0f5ff2b658b96f75bd408d7c5bcb4faa127f252a0a1c5c54e53"
   },
+  "ws.recovery.deletedWhen": {
+    "message": "Supprimé {when}",
+    "source": "sha256:0c36a7ec315da61e9288fff02398ffbcd97a1d3952ba38ec7e6e2be6a2ab6014"
+  },
   "ws.forget.confirm": {
     "message": "Supprimer définitivement « {name} » ? Ce Space enregistré ne pourra pas être restauré.",
     "source": "sha256:602fbf522f69ee0d1e4feaf3f927257d82672aeef250dbaa3f4c13fbfa780477"

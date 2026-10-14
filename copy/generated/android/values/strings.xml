@@ -270,6 +270,7 @@
     <string name="ws_recovery_help">Saved spaces are recoverable for seven days. Up to %1$s deleted spaces are kept.</string>
     <string name="ws_recovery_restore">Restore</string>
     <string name="ws_recovery_forget">Delete permanently…</string>
+    <string name="ws_recovery_deleted_when">Deleted %1$s</string>
     <string name="ws_forget_confirm">Permanently delete “%1$s”? This saved space cannot be restored.</string>
     <string name="ws_forget_button">Delete permanently</string>
     <plurals name="ws_list_recently_deleted">

@@ -1020,6 +1020,11 @@
     "note": "Button that asks to permanently delete a deleted space.",
     "maxLength": 27
   },
+  "ws.recovery.deletedWhen": {
+    "message": "Deleted {when}",
+    "note": "Recently deleted spaces: when a space was deleted. {when} is a relative day from the system, such as \"today\", \"yesterday\" or \"3 days ago\".",
+    "maxLength": 40
+  },
   "ws.forget.confirm": {
     "message": "Permanently delete “{name}”? This saved space cannot be restored.",
     "note": "Confirmation before permanently deleting a space; {name} is its name."

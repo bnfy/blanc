@@ -11059,6 +11059,48 @@
         }
       }
     },
+    "ws.recovery.deletedWhen": {
+      "comment": "Recently deleted spaces: when a space was deleted. {when} is a relative day from the system, such as \"today\", \"yesterday\" or \"3 days ago\".",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleted %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gelöscht %1$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminado %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimé %1$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminato %1$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Excluído %1$@"
+          }
+        }
+      }
+    },
     "ws.forget.confirm": {
       "comment": "Confirmation before permanently deleting a space; {name} is its name.",
       "extractionState": "manual",

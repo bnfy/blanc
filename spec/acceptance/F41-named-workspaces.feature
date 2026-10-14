@@ -208,6 +208,15 @@ Feature: Named workspace preservation and recovery
     Then the editor shows no readability note
     And the Island's space mark reads "Work" in "#ffffff" with the symbol "plane"
 
+  @F41-34
+  Scenario: Recently deleted spaces keep their colour, their full name and when they went
+    Given a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"
+    And a space named "Reading list for the weekend", colored "#9b4761" with the symbol "book", deleted today
+    When I open the Spaces menu from the space mark
+    And I open Recently Deleted
+    Then "Reading list for the weekend" is listed in "#9b4761", deleted today, with its full name as a tooltip
+    And it has a trash button labelled "Delete permanently…"
+
   @F41-33
   Scenario: A long space name never squeezes the mark's colour square
     Given a space named "Work" in this window, colored "#f5c84c" with the symbol "music"
