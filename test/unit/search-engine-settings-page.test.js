@@ -30,6 +30,13 @@ test('the page script reads every new id and gates Custom on its capability', ()
   assert.match(js, /t\('settings\.general\.searchEngine\.custom'\)/);
 });
 
+test('a field error inside a setting label is drawn in the danger colour', () => {
+  // `.setting .label .hint` (three classes) sets the dim hint colour, so the
+  // generic `.hint.field-error` (two) loses; the error needs its own rule.
+  const css = fs.readFileSync(path.join(pages, 'pages.css'), 'utf8');
+  assert.match(css, /\.setting \.label \.hint\.field-error\s*\{\s*color:\s*var\(--danger\);\s*\}/);
+});
+
 test('the new strings exist in English with notes', () => {
   for (const key of [
     'settings.general.searchEngine.custom',

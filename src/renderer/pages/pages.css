@@ -574,6 +574,8 @@ body.sheet .page > .row-list > .empty {
   min-width: 160px;
 }
 .setting .label .hint { color: var(--text-dim); font-size: 12px; }
+/* Outranks the dim hint colour above; the generic .hint.field-error can't. */
+.setting .label .hint.field-error { color: var(--danger); }
 .setting .label .hint.folded {
   display: -webkit-box;
   -webkit-box-orient: vertical;
