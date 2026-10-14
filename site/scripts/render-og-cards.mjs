@@ -67,9 +67,9 @@ const CARDS = [
   },
   {
     out: 'feature-workspaces.png',
-    capture: 'workspaces.png',
+    capture: 'workspaces-v1.33.0.png',
     kicker: 'blanc spaces',
-    headline: 'Save a whole window. Return to it by name.',
+    headline: 'Work, home and side projects, each in its own space.',
   },
   {
     out: 'feature-profiles.png',

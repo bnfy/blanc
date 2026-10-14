@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "release": "v1.33.0",
+  "sourceSha": "3e761786666174bab6600b645f9cb34491f5f247",
+  "captureDate": "2026-10-14",
+  "timezone": "America/New_York",
+  "source": {
+    "artifact": "/Applications/Blanc.app",
+    "version": "1.33.0",
+    "bundleBuild": "1330",
+    "architecture": "arm64",
+    "executableSha256": "0c8283beb0ff0c6f76cc7a63d97ece76c754ab7f6ec3e864c8bd2a4d9183dafb",
+    "publisher": "Developer ID Application: Anthony Loria (XYGUCY4498)",
+    "teamId": "XYGUCY4498",
+    "verification": "Strict deep codesign verification passed and stapler validated the notarization ticket stapled to the installed app.",
+    "releaseEvidence": "docs/release-incidents/2026-10-14-v1.33.0.md"
+  },
+  "settings": {
+    "usagePing": false,
+    "searchSuggestions": false,
+    "adblockEnabled": true,
+    "theme": "light",
+    "tabSleep": "off",
+    "profile": "Isolated disposable user-data directory",
+    "sync": "not configured",
+    "sampleData": "Four synthetic spaces (Work, Home, Painting class and Lisbon trip, each with a preset colour and symbol and a short list of public pages) and a window bound to Painting class; no account, Patron entitlement, participant data, or real browsing content. The active page is The Met’s public-domain Wheat Field with Cypresses, live at capture time; its blocked-request count is the one Blanc Blocker measured on that page."
+  },
+  "method": "npm run capture:spaces:installed launches the installed app in a disposable profile seeded only with the declared synthetic fixtures and writes to a temporary directory unless BLANC_CAPTURE_OUTPUT_DIR is set. Over Chromium’s debugging surface it waits for the restored window’s space mark and for The Met to load, clicks the Island’s space mark to open the Spaces menu and the menu’s padding to move focus off its current row, then hovers the Painting class row, clicks its ••• button and the editor’s title so no control is focused; it brings the window forward so its title bar renders active, and nothing is patched. Each state is captured natively with screencapture -o -x -l for that window (2560×1600), uniformly resized to 1440×900 and converted from Display P3 to sRGB with sharp. Native transparent corners are kept; no controls, text or states are retouched. Each PNG has a WebP companion (quality 85) encoded from it for inline display; the PNG stays the linked full-size file. The menu capture reproduced byte for byte on a second run. The owner approved both images on October 14, 2026.",
+  "captures": [
+    {
+      "file": "site/public/feature-captures/workspaces-v1.33.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "09bf60ca20ad2c43ba8c01d73660cf96e00ce7a4911d55963d95eb27f671688d",
+      "capturedAt": "2026-10-14T21:02:05Z",
+      "state": "The window in the Painting class space on The Met’s Wheat Field with Cypresses page, with the Spaces menu opened from the Island’s space mark: Work (4 tabs), Home (3), Painting class (3, current, checked) and Lisbon trip (2), each with its colour and symbol, and New space….",
+      "evidence": [
+        "v1.33.0:src/renderer/renderer.js",
+        "v1.33.0:src/renderer/workspace-ui.js",
+        "v1.33.0:src/renderer/space-identity.js",
+        "v1.33.0:src/renderer/overlay.html",
+        "docs/release-incidents/2026-10-14-v1.33.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/workspaces-v1.33.0.webp",
+        "sha256": "dfe51c976e889dd6c3ba21424fc8417b252b822f4ccad932c3b41218a21ad623"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/workspaces-edit-v1.33.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "b675ca4cf1c0f4b5044268c7d3d85ea3266b410be3f682d51a7af0cbc96a93c7",
+      "capturedAt": "2026-10-14T21:06:22Z",
+      "state": "The same window with the menu reshaped into Painting class’s editor (Edit space): the name field, the eight preset colour swatches and the custom colour swatch with purple selected, the sixteen symbols with the graduation cap selected, and Delete space and Done.",
+      "evidence": [
+        "v1.33.0:src/renderer/renderer.js",
+        "v1.33.0:src/renderer/workspace-ui.js",
+        "v1.33.0:src/renderer/space-identity.js",
+        "v1.33.0:src/renderer/overlay.html",
+        "docs/release-incidents/2026-10-14-v1.33.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/workspaces-edit-v1.33.0.webp",
+        "sha256": "04cfa6b9265735e41289cc9b61d3c372203c9e4583b99d7abed3b3778128f260"
+      }
+    }
+  ]
+}

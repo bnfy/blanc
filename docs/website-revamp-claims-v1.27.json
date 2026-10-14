@@ -5144,26 +5144,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "website-115-127",
-      "source": "site/src/pages/features/workspaces.astro",
-      "exactWording": "Save a whole window. Return to it by name.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "workspaces"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-128",
-      "source": "site/src/pages/features/workspaces.astro",
-      "exactWording": "When a project takes more than one tab, keep its setup ready to return to. Blanc Spaces save a window’s tabs and groups under a name you choose.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "workspaces"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "website-115-146",
       "source": "site/src/pages/features/workspaces.astro",
       "exactWording": "Make room for the way you browse.",
@@ -10284,6 +10264,28 @@
       ],
       "verdict": "qualified",
       "reason": "October 14, 2026: public v1.33.0 made Blanc Spaces free for everyone; Blanc Patron is optional support and unlocks nothing (owner decision, docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md). The replacement wording is recorded in docs/website-v1.33-claims.json; the original remains in git history."
+    },
+    {
+      "id": "website-115-127",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Save a whole window. Return to it by name.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified",
+      "reason": "October 14, 2026 Spaces page refresh (owner request): the hero now says why people would use Blanc Spaces, and v1.33.0 captures of the Spaces menu and a space’s editor replace the v1.30.1 capture, which still showed Patron settings. The capability claims are unchanged and recorded in docs/website-v1.33-claims.json."
+    },
+    {
+      "id": "website-115-128",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "When a project takes more than one tab, keep its setup ready to return to. Blanc Spaces save a window’s tabs and groups under a name you choose.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified",
+      "reason": "October 14, 2026 Spaces page refresh (owner request): the hero now says why people would use Blanc Spaces, and v1.33.0 captures of the Spaces menu and a space’s editor replace the v1.30.1 capture, which still showed Patron settings. The capability claims are unchanged and recorded in docs/website-v1.33-claims.json."
     }
   ],
   "supersededCandidateClaims": [
@@ -12716,6 +12718,28 @@
           {
             "before": "<p>Blanc’s core stays free. Patron adds cross-platform Blanc Spaces while helping fund an independent browser.</p>",
             "after": "<p>Every Blanc feature is free, including Blanc Spaces. Patron is how you help fund an independent browser.</p>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/workspaces.astro",
+        "reason": "October 14, 2026 Spaces page refresh (owner request): the hero now says why people would use Blanc Spaces, and v1.33.0 captures of the Spaces menu and a space’s editor replace the v1.30.1 capture, which still showed Patron settings. The capability claims are unchanged and recorded in docs/website-v1.33-claims.json.",
+        "replacements": [
+          {
+            "before": "<h1 id=\"workspaces-title\">Save a whole window. Return to it by name.</h1>",
+            "after": "<h1 id=\"workspaces-title\">Work, home and side projects, each in its own space.</h1>"
+          },
+          {
+            "before": "<p>When a project takes more than one tab, keep its setup ready to return to. Blanc Spaces save a window’s tabs and groups under a name you choose.</p>",
+            "after": "<p>When one window holds everything, tabs pile up and get in each other’s way. Give each part of your day its own space, then switch from the Island. Its tabs and groups come back, even after you restart.</p>"
+          },
+          {
+            "before": "<figcaption>Switch between saved sets from the Island’s space control.</figcaption>",
+            "after": "<figcaption>Switch spaces from the Island.</figcaption>"
+          },
+          {
+            "before": "<div><h2 id=\"workspaces-section-1\">Free, on every desktop platform.</h2></div>",
+            "after": "<figcaption>Give each space a colour and a symbol.</figcaption>\n<div><h2 id=\"workspaces-section-1\">Free, on every desktop platform.</h2></div>"
           }
         ]
       }

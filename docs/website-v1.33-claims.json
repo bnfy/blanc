@@ -60,16 +60,6 @@
   },
   "claims": [
     {
-      "id": "site-133-workspaces-01",
-      "source": "site/src/pages/features/workspaces.astro",
-      "exactWording": "Switch between saved sets from the Island’s space control.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "freeSpaces"
-      ],
-      "verdict": "verified"
-    },
-    {
       "id": "site-133-workspaces-02",
       "source": "site/src/pages/features/workspaces.astro",
       "exactWording": "Open the space control in the command panel or type /space. Anyone can save the current window or create a blank space.",
@@ -138,6 +128,47 @@
       "subject": "Blanc",
       "evidenceGroups": [
         "freeSpaces"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-workspaces-09",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Work, home and side projects, each in its own space.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "freeSpaces"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-workspaces-10",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "When one window holds everything, tabs pile up and get in each other’s way. Give each part of your day its own space, then switch from the Island. Its tabs and groups come back, even after you restart.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "freeSpaces",
+        "spacesRedesign"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-workspaces-11",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Switch spaces from the Island.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "spacesRedesign"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-workspaces-12",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Give each space a colour and a symbol.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "spacesRedesign"
       ],
       "verdict": "verified"
     },
@@ -433,6 +464,19 @@
         "patron"
       ],
       "verdict": "verified"
+    }
+  ],
+  "supersededClaims": [
+    {
+      "id": "site-133-workspaces-01",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Switch between saved sets from the Island’s space control.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "freeSpaces"
+      ],
+      "verdict": "verified",
+      "reason": "October 14, 2026 Spaces page refresh (owner request): the hero now says why people would use Blanc Spaces, and v1.33.0 captures of the Spaces menu and a space’s editor replace the v1.30.1 capture, which still showed Patron settings. The capability claims are unchanged and recorded in docs/website-v1.33-claims.json."
     }
   ]
 }
