@@ -29,3 +29,36 @@ A healthy page draws about 42 animation frames in 700 ms.
 ## Owner approval
 
 On October 14, 2026, after the missing evidence and risk were stated in this chat, the owner replied that the VM "is a valid affected environment" and approved the wording above. They added that the record must state the hosted x64 check ran with ad blocking off. This waives physical-hardware confirmation of the Linux drawing fix for Blanc 1.33.1 only. It does not approve the release, and it does not waive signing, notarization, the press gate, updater handoffs or any other release verification.
+
+## Close and relaunch check
+
+The owner then asked for the close-the-last-window check from `docs/release-verification.md` on the VM before this record merges. They asked for an ARM64 AppImage built from the exact candidate commit, closed normally with no forced kill, then relaunched with the same profile, with the saved tabs expected to come back.
+
+**Candidate.** Commit `72fd24467ff2e12c1185450f8c7c80e36b0749a2`, built in the VM from a clean checkout with `npm ci` and `npx electron-builder --linux AppImage --arm64 --publish never`. The tree was clean before and after the build. The artifact is `Blanc-1.33.1-arm64.AppImage`, SHA-256 `308925b33122230d76c9b7eccd1af6fd8bb967bf92e41f369ebc57a82bba5cce`.
+
+**Environment.**
+- The same Ubuntu 26.04 ARM64 VM, running X11 on Xvfb at 1600×1000 with no window manager.
+- Ubuntu's default `kernel.apparmor_restrict_unprivileged_userns=1` makes this AppImage refuse to start. That is the behaviour documented since v1.26.0 in `docs/linux-appimage-troubleshooting.md`. For this check the owner set it to `0` until the VM reboots.
+- No Blanc process ran with `--no-sandbox`.
+- Ad blocking was on.
+- The fresh profile was seeded only with onboarding complete and search suggestions and the usage ping off.
+
+**Method.**
+1. Launch the AppImage with two local pages, one on `127.0.0.1` and one on `localhost`, and wait until `session.json` lists both.
+2. Click Blanc's own close button with an X pointer (`xdotool`). No DevTools connection is open during this step. A screenshot taken just before the click shows the button in its hover state.
+3. Poll the launch's process session for up to 60 seconds after the click.
+4. Read `crash-ledger.json` and `session.json`.
+5. Relaunch with the same profile, this time with a DevTools port so the restored tabs can be read from the Island's tab dots. That port is used for observation only.
+6. Close that window the same way.
+
+**Result at `72fd2446`.**
+- **Close and exit: pass.** All 12 Blanc processes exited on their own 114 ms after the click, with exit status 0 and no window left. The crash ledger was clean: no current run, no pending recovery and no events. No forced kill was used. On the relaunch a window appeared, and closing it exited in 124 ms with status 0.
+- **Saved tabs: fail.** Closing the window rewrote `session.json` with no tabs, so the relaunch opened only a New Tab.
+
+**Control: v1.33.0, same steps.** Commit `3e761786666174bab6600b645f9cb34491f5f247`, `Blanc-1.33.0-arm64.AppImage`, SHA-256 `fcbf4d1183774ba540bb52de76e9994290b9383f3ed2558a274132d8ba9b8ee2`, built the same way. The result was identical: a clean exit 115 ms after the click with status 0, and the tabs lost the same way. 1.33.1 did not cause the tab loss.
+
+**Quitting instead of closing.** 1.33.1 was also quit with Ctrl+Q (File → Quit) instead of the close button. It exited with status 0 in under a second, and the relaunch restored all three tabs (New Tab, Quit check A and Quit check B), loading the active one.
+
+**Cause, from the code.** Since [#340](https://github.com/bnfy/blanc/pull/340) (`d60c8bb6`, September 13, 2026), closing a window on Windows or Linux first writes `session.json` without that window, even when it is the last one. The quit that follows deliberately does not save. macOS skips that write for its primary window. The same code runs on Windows, but this was not tested there.
+
+**Status.** Closing and exiting pass. Tab recovery after closing the last window fails on Linux in both 1.33.0 and 1.33.1. Whether that blocks 1.33.1 is the owner's decision, still pending.
