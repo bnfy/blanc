@@ -1,5 +1,154 @@
 [
   {
+    "tag": "v1.33.0",
+    "version": "1.33.0",
+    "name": "1.33.0",
+    "publishedAt": "2026-10-14T05:30:33.000Z",
+    "humanDate": "October 14, 2026",
+    "machineDate": "2026-10-14",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.33.0",
+    "anchor": "v1-33-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc's interface is available in Italian, machine-translated, alongside German, Spanish, French and Portuguese (Brazil). If your system uses Italian, Blanc now follows it; choose English or another language any time in Settings → General → Language."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Blanc Spaces, redesigned."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Each space now has a colour and a symbol, shown at the start of the Island; click it to switch, edit, reorder or delete (with Undo). Pick any colour — Blanc keeps the symbol readable in light and dark mode."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc Spaces is free for everyone. Anyone can save, switch between and import spaces, including bringing Spaces over from Arc. Blanc Patron is now simply a way to support Blanc — thank you to every Patron whose support made Spaces possible."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Switching between spaces no longer stops with \"Your retained spaces are full.\" Every switch now goes through. To keep memory in check, Blanc may free up memory used by tabs in spaces you left a while ago; those tabs reload when you go back to them."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On Linux, with Settings → General → Quiet inactive tabs turned on, a background tab that keeps data for the current session could stay loaded instead of freeing up its memory. It now frees it, and reloads when you go back to it."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "In Spanish, French and Portuguese, the "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/theme"
+                  },
+                  {
+                    "type": "text",
+                    "value": " hint and its entry in the slash command reference showed translated appearance names (for example \"oscuro\" or \"sombre\"), and typing them after "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/theme"
+                  },
+                  {
+                    "type": "text",
+                    "value": " did nothing. They now show "
+                  },
+                  {
+                    "type": "code",
+                    "value": "system"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", "
+                  },
+                  {
+                    "type": "code",
+                    "value": "light"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and "
+                  },
+                  {
+                    "type": "code",
+                    "value": "dark"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", the words "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/theme"
+                  },
+                  {
+                    "type": "text",
+                    "value": " accepts in every language."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.32.0",
     "version": "1.32.0",
     "name": "1.32.0",
