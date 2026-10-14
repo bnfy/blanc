@@ -99,6 +99,7 @@ function install(refs) {
     closeGlanceInWindow,
     closeTabInWindow: closeTabInWindowAction,
     reopenClosedTabInWindow,
+    moveTabToNewWindow,
     createNamedLocalProfileWindow,
     renameNamedLocalProfile,
     deleteNamedLocalProfile,
@@ -449,6 +450,14 @@ function install(refs) {
     closeWindowRuntime(id) { return closeWindowRuntimeAction(String(id)); },
     openTabInWindow(id, url, options) {
       return openTabInWindowAction(String(id), String(url), options ?? {});
+    },
+    activateTabInWindow(runtimeId, tabId, focusContent = false) {
+      return refs.runInWindowRuntime(String(runtimeId), () => setActiveTab(String(tabId), { focusContent: !!focusContent }));
+    },
+    /** The Move Tab to New Window action; returns the tab's new window id. */
+    moveTabToNewWindow(id) {
+      moveTabToNewWindow(String(id));
+      return windowRuntimeSnapshots().find((runtime) => runtime.tabOrder.includes(String(id)))?.id ?? null;
     },
     createProfileWindow(name) { return createNamedLocalProfileWindow(String(name ?? '')); },
     profiles() { return localProfileSnapshots(); },

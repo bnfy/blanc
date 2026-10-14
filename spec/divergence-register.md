@@ -197,7 +197,9 @@ touch affordances should match **each other**.
 **Why:** Mobile OSes aggressively evict backgrounded web views; desktop can make
 the same renderer-discard tradeoff deliberately while keeping tab identity.
 
-- **Desktop:** switching a tab is attach/detach and destroys nothing, but an
+- **Desktop:** switching a tab hides one view and shows another (detaching and
+  re-attaching it on macOS/Windows; Linux keeps hidden views attached) and
+  destroys nothing, but an
   *idle* background tab is a separate matter: its renderer is deliberately
   discarded and rebuilt on return (F31). That is a **convergence** toward the
   mobile behaviour below rather than a split from it — the difference left is who

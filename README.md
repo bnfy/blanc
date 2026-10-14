@@ -257,9 +257,10 @@ src/renderer/pages/      Internal pages: newtab, favorites, history, downloads, 
 window owns an independent runtime for its tabs, groups, chrome surfaces, and
 local-profile identity. The window's own `webContents` renders the chrome strip
 — the slim band the resting pill floats in. Each tab is a separate
-`WebContentsView` added to its owning window's `contentView`; only the active
-tab's view is attached, so switching
-tabs is just remove-one/add-another rather than destroying anything. The
+`WebContentsView` added to its owning window's `contentView`; inactive tab
+views are hidden (and, on macOS and Windows, detached), so switching tabs never
+destroys anything. On Linux they stay hidden children of their window, because
+Electron stops drawing a view that is removed and added back. The
 island's expanded states live in one more `WebContentsView` — transparent,
 attached on top only while open — which is how the command bar, palette,
 and find capsule float over the page instead of reserving space. Tab

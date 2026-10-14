@@ -13,10 +13,10 @@ const path = require('node:path');
 const main = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'), 'utf8');
 
 function functionBody(name) {
-  const start = main.indexOf(`\nfunction ${name}(`);
+  const start = main.search(new RegExp(`\\n(?:async )?function ${name}\\(`));
   assert.notEqual(start, -1, `${name} not found in main.js`);
-  const next = main.indexOf('\nfunction ', start + 1);
-  return main.slice(start, next === -1 ? undefined : next);
+  const next = main.slice(start + 1).search(/\n(?:async )?function /);
+  return main.slice(start, next === -1 ? undefined : start + 1 + next);
 }
 
 test('opening a utility sheet attaches it through the shared overlay lifecycle', () => {
@@ -65,4 +65,24 @@ test('the 1Password fill capsule shares the overlay lifecycle and never detaches
   assert.doesNotMatch(detach, /removeChildView/);
   const ensure = functionBody('ensureFillStatusView');
   assert.match(ensure.slice(ensure.indexOf("once('destroyed'")), /removeChildView\(view\)/);
+});
+
+// Tab views had the same failure on Linux (Wayland, X11 and xvfb): after
+// switching back, Glance, Reopen Closed Tab or returning to a space the page
+// drew few or no frames and barely scrolled, a storage-bearing quiet tab woke
+// dead, and a tab moved to a new window stayed stuck. Tab views must go through
+// tab-view-lifecycle.js: hidden but window-owned, and nudged on arrival.
+test('switching away hides a tab view through the tab lifecycle and never removes it directly', () => {
+  const body = functionBody('detachTabView');
+  assert.match(body, /releaseTabView\(rt\(\)\.window, tab\.view\)/);
+  assert.doesNotMatch(body, /removeChildView/);
+});
+
+test('showing a tab view goes through the tab lifecycle so an arriving view is nudged', () => {
+  assert.match(functionBody('attachTabViewToWindow'), /attachTabView\(rt\(\)\.window, tab\.view, \{ createView: \(\) => new View\(\) \}\)/);
+  for (const name of ['setActiveTab', 'setGlanceTab']) {
+    const body = functionBody(name);
+    assert.match(body, /attachTabViewToWindow\(/, `${name} must attach through the tab lifecycle`);
+    assert.doesNotMatch(body, /addChildView\((?:next|tab|glanceTab)\.view\)/, `${name} must not attach a tab view directly`);
+  }
 });
