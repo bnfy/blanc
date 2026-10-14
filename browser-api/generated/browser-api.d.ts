@@ -469,7 +469,7 @@ export interface WorkspaceActionResult {
 }
 
 /** A search engine id. Must match the searchEngines ids in settings-schema/schema.json. */
-export type SearchEngineId = 'duckduckgo' | 'google' | 'bing' | 'brave';
+export type SearchEngineId = 'duckduckgo' | 'google' | 'bing' | 'brave' | 'kagi' | 'custom';
 
 /** A history entry, from listHistory() in history.js: the stored visit plus the site's cached favicon. */
 export interface HistoryEntry {
@@ -529,7 +529,7 @@ export interface RemoteDevice {
 /** Search suggestions for the address bar, labelled with the engine that produced them. */
 export interface SearchSuggestions {
   engine: SearchEngineId;
-  /** The engine's display name. */
+  /** The engine's display name; for a custom engine, its server's name. */
   label: string;
   /** Empty when suggestions are off, the tab is private, or the query is ineligible. */
   suggestions: string[];

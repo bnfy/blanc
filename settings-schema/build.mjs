@@ -67,6 +67,7 @@ function genSwift() {
   out += '        default: return false\n        }\n    }\n}\n\n';
   out += 'public struct BlancSettingsDefaults {\n';
   out += `    public static let searchEngine: BlancSearchEngine = .${swiftCase(spec.defaults.searchEngine)}\n`;
+  out += `    public static let searchEngineTemplate: String = ${JSON.stringify(spec.defaults.searchEngineTemplate)}\n`;
   out += `    public static let searchSuggestions: Bool = ${spec.defaults.searchSuggestions}\n`;
   out += `    public static let adblockEnabled: Bool = ${spec.defaults.adblockEnabled}\n`;
   out += `    public static let homePage: String = ${JSON.stringify(spec.defaults.homePage)}\n`;
@@ -105,6 +106,7 @@ function genKotlin() {
   out += icons.map((i) => `    ${iconUpper(i.id)}("${i.id}", ${JSON.stringify(i.label)}, ${i.sup})`).join(',\n') + ';\n}\n\n';
   out += 'object BlancSettingsDefaults {\n';
   out += `    val searchEngine = BlancSearchEngine.${upper(spec.defaults.searchEngine)}\n`;
+  out += `    const val searchEngineTemplate = ${JSON.stringify(spec.defaults.searchEngineTemplate)}\n`;
   out += `    const val searchSuggestions = ${spec.defaults.searchSuggestions}\n`;
   out += `    const val adblockEnabled = ${spec.defaults.adblockEnabled}\n`;
   out += `    const val homePage = ${JSON.stringify(spec.defaults.homePage)}\n`;
@@ -157,6 +159,7 @@ function parseSettingsJs() {
   const s = (re) => D.match(re)?.[1];
   const defaults = {
     searchEngine: s(/^\s*searchEngine:\s*'([^']*)'/m),
+    searchEngineTemplate: s(/^\s*searchEngineTemplate:\s*'([^']*)'/m),
     searchSuggestions: s(/^\s*searchSuggestions:\s*(true|false)/m),
     adblockEnabled: s(/^\s*adblockEnabled:\s*(true|false)/m),
     homePage: s(/^\s*homePage:\s*'([^']*)'/m),
@@ -210,6 +213,7 @@ function check() {
   const d = spec.defaults, jd = js.defaults;
   const eq = (k, got, want) => { if (got !== want) problems.push(`defaults.${k}: settings.js=${JSON.stringify(got)} schema.json=${JSON.stringify(want)}`); };
   eq('searchEngine', jd.searchEngine, d.searchEngine);
+  eq('searchEngineTemplate', jd.searchEngineTemplate, d.searchEngineTemplate);
   eq('searchSuggestions', jd.searchSuggestions, String(d.searchSuggestions));
   eq('adblockEnabled', jd.adblockEnabled, String(d.adblockEnabled));
   eq('homePage', jd.homePage, d.homePage);

@@ -8,12 +8,16 @@ public enum BlancSearchEngine: String, CaseIterable {
     case google
     case bing
     case brave
+    case kagi
+    case custom
     public var label: String {
         switch self {
         case .duckduckgo: return "DuckDuckGo"
         case .google: return "Google"
         case .bing: return "Bing"
         case .brave: return "Brave Search"
+        case .kagi: return "Kagi"
+        case .custom: return "Custom"
         }
     }
 }
@@ -67,6 +71,7 @@ public enum BlancAppIcon: String, CaseIterable {
 
 public struct BlancSettingsDefaults {
     public static let searchEngine: BlancSearchEngine = .duckduckgo
+    public static let searchEngineTemplate: String = ""
     public static let searchSuggestions: Bool = true
     public static let adblockEnabled: Bool = true
     public static let homePage: String = ""

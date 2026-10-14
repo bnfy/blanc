@@ -5,7 +5,9 @@
     { "id": "duckduckgo", "label": "DuckDuckGo" },
     { "id": "google", "label": "Google" },
     { "id": "bing", "label": "Bing" },
-    { "id": "brave", "label": "Brave Search" }
+    { "id": "brave", "label": "Brave Search" },
+    { "id": "kagi", "label": "Kagi" },
+    { "id": "custom", "label": "Custom" }
   ],
   "themes": ["system", "light", "dark"],
   "$newtabLayouts": "Start-page layouts (Bowser Design System, 'New tab v2' handoff). Synced, like the theme — it describes the browser you want, not the device you are on.",
@@ -25,6 +27,7 @@
   "supporterIcons": [],
   "defaults": {
     "searchEngine": "duckduckgo",
+    "searchEngineTemplate": "",
     "searchSuggestions": true,
     "adblockEnabled": true,
     "homePage": "",
@@ -46,7 +49,8 @@
   "$internalDefaults": "Keys present in settings.js DEFAULTS that are intentionally desktop-only (not mobile-parity settings); settings:check allowlists these instead of requiring them in the schema. uiLanguage is desktop-only: mobile uses the OS per-app language setting (D27).",
   "internalDefaults": ["adblockProvider", "tabLayout", "islandSiteColors", "darkWebsites", "darkWebsitesExceptions", "verticalTabsWidth", "onePasswordEnabled", "onePasswordAccount", "mouseGesturesEnabled", "mouseGestureMapping", "onboardingVersion", "presentationDefaultsResetVersion", "migrationChecklistDismissed", "syncMigrationCompleted", "tabImportCompleted", "spaceMigrationCompleted", "spaceChecklistIntroduced", "patronCalloutDismissedAt", "uiLanguage", "_syncMeta", "_syncTieBreakers"],
   "settings": [
-    { "key": "searchEngine", "type": "enum", "enum": "searchEngines", "default": "duckduckgo" },
+    { "key": "searchEngine", "type": "enum", "enum": "searchEngines", "default": "duckduckgo", "note": "'custom' uses searchEngineTemplate; custom without a valid template, or an unknown id, reads as duckduckgo" },
+    { "key": "searchEngineTemplate", "type": "string", "default": "", "note": "custom search address with exactly one lowercase %s after the host and port; https://, or http:// to a local-network host; at most 2048 characters; synced with searchEngine; stored trimmed, not URL-normalized" },
     { "key": "searchSuggestions", "type": "boolean", "default": true, "note": "device-local; not synced; private tabs override off" },
     { "key": "adblockEnabled", "type": "boolean", "default": true },
     { "key": "homePage", "type": "string", "default": "", "note": "normalized on read/write; only HTTP(S) or blanc://newtab; empty = blanc://newtab" },

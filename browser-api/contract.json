@@ -966,7 +966,7 @@
       }
     },
     "SearchEngineId": {
-      "ts": "'duckduckgo' | 'google' | 'bing' | 'brave'",
+      "ts": "'duckduckgo' | 'google' | 'bing' | 'brave' | 'kagi' | 'custom'",
       "doc": "A search engine id. Must match the searchEngines ids in settings-schema/schema.json."
     },
     "HistoryEntry": {
@@ -1088,7 +1088,7 @@
         },
         "label": {
           "type": "string",
-          "doc": "The engine's display name."
+          "doc": "The engine's display name; for a custom engine, its server's name."
         },
         "suggestions": {
           "type": "string[]",
