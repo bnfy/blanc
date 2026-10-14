@@ -30,9 +30,20 @@ test('the address field is named by its label and announces its error', () => {
   assert.match(html, /<span id="searchEngineTemplateLabel">Custom search address<\/span>/);
   assert.match(html, /<span class="hint" id="searchEngineTemplateHint">/);
   assert.match(input, /aria-labelledby="searchEngineTemplateLabel"/);
-  assert.match(input, /aria-describedby="searchEngineTemplateHint searchEngineTemplateError"/);
+  assert.match(input, /aria-describedby="searchEngineTemplateHint"/);
   assert.match(input, /autocomplete="off"/);
   assert.match(input, /spellcheck="false"/);
+});
+
+test('the error joins the field description only while it shows', () => {
+  // Chromium reads a hidden element named by aria-describedby, so a static
+  // link would read "That address isn't valid" on a perfectly good field.
+  const block = js.match(/\/\/ --- Search engine, with the Custom address[\s\S]*?\/\/ --- Tab presentation/)[0];
+  assert.match(block, /searchTemplate\.setAttribute\('aria-describedby', shown \? 'searchEngineTemplateHint searchEngineTemplateError' : 'searchEngineTemplateHint'\)/);
+  assert.match(block, /searchTemplateError\.hidden = !shown;/);
+  // Every place the error is shown or hidden goes through that one helper.
+  assert.doesNotMatch(block, /searchTemplateError\.hidden = (true|false)/);
+  assert.doesNotMatch(block, /setAttribute\('aria-invalid', '(true|false)'\)/);
 });
 
 test('the page script reads every new id and gates Custom on its capability', () => {

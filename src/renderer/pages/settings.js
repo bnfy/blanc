@@ -233,13 +233,20 @@
   const searchTemplate = document.getElementById('searchEngineTemplate');
   const searchTemplateError = document.getElementById('searchEngineTemplateError');
   if (supports('searchEngineTemplate')) {
+    // The error joins the field's description only while it shows: Chromium
+    // reads a hidden element named by aria-describedby, which would call a
+    // good address invalid.
+    const setSearchError = (shown) => {
+      searchTemplateError.hidden = !shown;
+      searchTemplate.setAttribute('aria-invalid', String(shown));
+      searchTemplate.setAttribute('aria-describedby', shown ? 'searchEngineTemplateHint searchEngineTemplateError' : 'searchEngineTemplateHint');
+    };
     // Reflect an ACCEPTED stored snapshot into the controls (clears any error).
     const showAcceptedSearch = (s) => {
       searchEngine.value = s.searchEngine;
       searchTemplate.value = s.searchEngineTemplate ?? '';
       searchCustomRow.hidden = searchEngine.value !== 'custom';
-      searchTemplateError.hidden = true;
-      searchTemplate.setAttribute('aria-invalid', 'false');
+      setSearchError(false);
     };
     // Main is the sole validator: send the change, then render from what was
     // actually stored. A Custom write was refused when Custom isn't selected
@@ -253,8 +260,7 @@
       if (refused) {
         searchEngine.value = 'custom';
         searchCustomRow.hidden = false;
-        searchTemplateError.hidden = false;
-        searchTemplate.setAttribute('aria-invalid', 'true');
+        setSearchError(true);
         return; // leaves the rejected text in the field to correct
       }
       showAcceptedSearch(next);
@@ -265,7 +271,7 @@
     searchEngine.addEventListener('change', () => {
       if (searchEngine.value === 'custom') {
         searchCustomRow.hidden = false;
-        searchTemplateError.hidden = true; // no error before anything is typed
+        setSearchError(false); // no error before anything is typed
         const template = searchTemplate.value.trim();
         if (template) commitSearch({ searchEngine: 'custom', searchEngineTemplate: template });
         // else: the address field's own change event commits and validates
