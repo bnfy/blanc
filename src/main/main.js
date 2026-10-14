@@ -2054,8 +2054,8 @@ async function discardRendererKeepingStorage(tab, wc, owner, { broadcast, navEpo
     try { return hasExclusiveRenderer(wc, webContents.getAllWebContents()); }
     catch { return false; }
   };
-  if (!rendererIsExclusive()) return false;
-  if (await hasBeforeUnloadListener(wc)) return false;
+  if (!rendererIsExclusive()) return 'shared-renderer';
+  if (await hasBeforeUnloadListener(wc)) return 'beforeunload';
 
   // The CDP inspection above is asynchronous. Repeat every mutable eligibility
   // check immediately before the irreversible renderer kill — including
@@ -2068,7 +2068,7 @@ async function discardRendererKeepingStorage(tab, wc, owner, { broadcast, navEpo
       // checks above read the runtime that STARTED this sleep, so they would
       // miss a tab that is now the destination window's visible page.
       || windowRuntimes.runtimeForTab(tab.id) !== rt()
-      || !rendererIsExclusive()) return false;
+      || !rendererIsExclusive()) return 'changed-during-check';
 
   const wcId = wc.id;
   const quieted = await new Promise((resolve) => {
@@ -2087,7 +2087,8 @@ async function discardRendererKeepingStorage(tab, wc, owner, { broadcast, navEpo
     try { wc.forcefullyCrashRenderer(); } catch { finish(false); }
   });
 
-  if (!quieted || !tabs.has(tab.id)) return false;
+  if (!quieted) return 'renderer-survived';
+  if (!tabs.has(tab.id)) return 'tab-gone';
   tab.view = null;
   tab.asleep = true;
   tab.sleeping = false;
@@ -2119,10 +2120,12 @@ const sleepsInFlight = new Map();
 function sleepTab(id, options) {
   return singleFlight(sleepsInFlight, id, () => quietTab(id, options));
 }
+const quietRefusals = new Map();
 async function quietTab(id, { broadcast = true } = {}) {
+  const refuse = (reason) => { quietRefusals.set(id, reason); return false; };
   const tab = tabs.get(id);
   const wc = liveContents(tab);
-  if (!tab || !wc || tab.asleep || tab.sleeping || tab.waking) return false;
+  if (!tab || !wc || tab.asleep || tab.sleeping || tab.waking) return refuse('not-live');
   // Quieting discards the renderer the hint was probed in.
   fillHintScheduler?.clearTab(tab);
 
@@ -2132,13 +2135,13 @@ async function quietTab(id, { broadcast = true } = {}) {
     const nav = wc.navigationHistory;
     snapshot = trimSnapshot(nav.getAllEntries(), nav.getActiveIndex(), { private: !!tab.private });
   } catch {
-    return false;
+    return refuse('no-history');
   }
-  if (!snapshot) return false;
+  if (!snapshot) return refuse('no-snapshot');
 
   let probe = { dirty: true, hasSessionStorage: false };
   try { probe = await probeTabDirty(tab, wc); } catch {}
-  if (probe.dirty) return false;
+  if (probe.dirty) return refuse('dirty');
 
   // The probe has an async frame budget; validate synchronously immediately
   // before teardown so it can never discard a tab the user just activated —
@@ -2149,14 +2152,14 @@ async function quietTab(id, { broadcast = true } = {}) {
       || tab.isLoading || tab.sleeping || !mayDiscardRenderer(tab) || !liveContents(tab)
       // Same moved-tab blind spot as the sessionStorage path: the runtime
       // that started this sleep no longer owns a tab moved mid-probe.
-      || windowRuntimes.runtimeForTab(id) !== rt()) return false;
+      || windowRuntimes.runtimeForTab(id) !== rt()) return refuse('changed-during-probe');
 
   if (snapshot.droppedPageState) {
     console.debug(`[quiet-tabs] ${id}: page state dropped (oversized or private)`);
   }
   if (sleepSnapshots.size >= MAX_SLEEP_SNAPSHOTS) {
     console.debug('[quiet-tabs] snapshot ceiling reached; refusing to quiet further tabs');
-    return false;
+    return refuse('snapshot-ceiling');
   }
 
   // Keep the old view only until Chromium confirms destruction. Merely dropping
@@ -2179,10 +2182,10 @@ async function quietTab(id, { broadcast = true } = {}) {
       broadcast,
       navEpoch: epochAtProbe,
     });
-    if (quieted) return true;
+    if (quieted === true) { quietRefusals.delete(id); return true; }
     tab.sleeping = false;
     sleepSnapshots.delete(id);
-    return false;
+    return refuse(`storage:${quieted}`);
   }
 
   sleepTeardownInProgress = true;
@@ -2243,6 +2246,7 @@ async function quietTab(id, { broadcast = true } = {}) {
 
   if (outcome === 'quiet') {
     sleepTeardownInProgress = false;
+    quietRefusals.delete(id);
     if (broadcast) broadcastTabs();
     return true;
   }
@@ -2267,7 +2271,7 @@ async function quietTab(id, { broadcast = true } = {}) {
     });
   }
   console.debug(`[quiet-tabs] ${id}: teardown ${outcome} — left awake${aborted ? ' (beforeunload)' : ''}`);
-  return false;
+  return refuse(`teardown:${outcome}`);
 }
 
 /** Downgrade a held entry to its snapshot: destroy the view (unless the
@@ -5447,13 +5451,15 @@ async function makeRoomForSpaces(profileId) {
     lastActiveAt: (id) => tabs.get(id)?.lastActiveAt ?? 0,
   });
   let quieted = 0;
+  const refused = [];
   for (const id of plan) {
     if (isQuitting) return done('quitting', { released, quieted });
     const owner = windowRuntimes.runtimeForTab(id);
-    if (!owner?.resident || owner.closing) continue; // switched back to meanwhile
+    if (!owner?.resident || owner.closing) { refused.push({ id, reason: 'not-set-aside' }); continue; } // switched back to meanwhile
     if (await withWindowRuntime(owner, () => sleepTab(id, { broadcast: false }))) quieted += 1;
+    else refused.push({ id, reason: quietRefusals.get(id) ?? 'joined-in-flight' });
   }
-  return done('done', { released, quieted });
+  return done('done', { released, quieted, planned: plan.length, candidates: quietable.size, loaded: list.map((r) => r.tabOrder.filter((id) => liveContents(tabs.get(id))).length), refused });
 }
 
 const workspaceController = createWorkspaceController({
