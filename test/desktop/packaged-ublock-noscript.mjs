@@ -9,7 +9,7 @@ import { createHash } from 'node:crypto';
 import { extractFile } from '@electron/asar';
 import { launchPackagedOverCdp } from './support/packaged-cdp.mjs';
 import poll from './support/poll.js';
-const { waitForValue, clickWhenSettled } = poll;
+const { waitForValue, clickWhenSettled, expectPageClose } = poll;
 const executable = process.env.BLANC_PACKAGED_EXECUTABLE;
 const asar = process.env.BLANC_PACKAGED_ASAR;
 const output = process.env.BLANC_UBLOCK_EVIDENCE;
@@ -128,8 +128,7 @@ try {
     await toggle.click();
     await popup.waitForFunction(value => document.querySelector('#no-scripting').classList.contains('on') === value, on);
     await popup.locator('body.needReload').waitFor();
-    await popup.locator('#blancClose').click();
-    await waitForValue(() => popup.isClosed(), Boolean, 'popup closed');
+    await expectPageClose(popup, () => popup.locator('#blancClose').click());
   };
   stage = 'positive controls';
   const control = await open(origin + '/active-control');

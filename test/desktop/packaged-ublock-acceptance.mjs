@@ -184,7 +184,7 @@ try {
   assert(quieted.includes(background.id)); await waitForValue(() => background.page.isClosed(), Boolean, 'quiet renderer closed');
   await chrome.evaluate(id => window.browserAPI.switchTab(id), background.id);
   const awake = await at(origin + '/quiet'); await awake.waitForFunction(() => window.allowed === true);
-  p = await popup(background.id); await p.locator('#blancClose').click(); report.checks.quietWakeControls = true;
+  p = await popup(background.id); await expectPageClose(p, () => p.locator('#blancClose').click()); report.checks.quietWakeControls = true;
   stage = 'provider round trip and filter persistence';
   await restartChoice('blanc'); await restartChoice('ublock-origin');
   dash = await dashboard(); assert((await dash.frame.evaluate(() => document.querySelector('.CodeMirror').CodeMirror.getValue())).includes('/blocked-installed.js$script'));
