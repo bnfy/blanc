@@ -199,15 +199,19 @@
   }
 
   for (const [key, label] of Object.entries(searchEngines)) {
+    if (key === 'custom' && !supports('searchEngineTemplate')) continue;
     const opt = document.createElement('option');
     opt.value = key;
-    opt.textContent = label;
-    opt.dataset.i18nIgnore = ''; // engine names are proper names
+    if (key === 'custom') {
+      opt.textContent = t('settings.general.searchEngine.custom');
+    } else {
+      opt.textContent = label;
+      opt.dataset.i18nIgnore = ''; // engine names are proper names
+    }
     searchEngine.append(opt);
   }
   theme.value = settings.theme ?? 'system';
   newtabLayout.value = settings.newtabLayout ?? 'billboard';
-  searchEngine.value = settings.searchEngine;
   searchSuggestions.checked = settings.searchSuggestions ?? false;
   adblockEnabled.checked = settings.adblockEnabled;
 
@@ -219,12 +223,70 @@
   // activates it (the sheet's own navigation is default-deny for blanc://).
   showWelcomeTour.addEventListener('click', () =>
     window.bowserPages.settings.welcomeTour());
-  searchEngine.addEventListener('change', () =>
-    window.bowserPages.settings.set({ searchEngine: searchEngine.value }));
   searchSuggestions.addEventListener('change', () =>
     window.bowserPages.settings.set({ searchSuggestions: searchSuggestions.checked }));
   adblockEnabled.addEventListener('change', () =>
     window.bowserPages.settings.set({ adblockEnabled: adblockEnabled.checked }));
+
+  // --- Search engine, with the Custom address (Encrypted DNS pattern) ---
+  const searchCustomRow = document.getElementById('searchEngineCustomRow');
+  const searchTemplate = document.getElementById('searchEngineTemplate');
+  const searchTemplateError = document.getElementById('searchEngineTemplateError');
+  if (supports('searchEngineTemplate')) {
+    // The error joins the field's description only while it shows: Chromium
+    // reads a hidden element named by aria-describedby, which would call a
+    // good address invalid.
+    const setSearchError = (shown) => {
+      searchTemplateError.hidden = !shown;
+      searchTemplate.setAttribute('aria-invalid', String(shown));
+      searchTemplate.setAttribute('aria-describedby', shown ? 'searchEngineTemplateHint searchEngineTemplateError' : 'searchEngineTemplateHint');
+    };
+    // Reflect an ACCEPTED stored snapshot into the controls (clears any error).
+    const showAcceptedSearch = (s) => {
+      searchEngine.value = s.searchEngine;
+      searchTemplate.value = s.searchEngineTemplate ?? '';
+      searchCustomRow.hidden = searchEngine.value !== 'custom';
+      setSearchError(false);
+    };
+    // Main is the sole validator: send the change, then render from what was
+    // actually stored. A Custom write was refused when Custom isn't selected
+    // afterwards, or when the stored address isn't the one just sent (an
+    // invalid edit keeps the previous address). Keep the draft visible with
+    // the error rather than snapping back.
+    const commitSearch = async (partial) => {
+      const next = await window.bowserPages.settings.set(partial);
+      const refused = partial.searchEngine === 'custom' &&
+        (next.searchEngine !== 'custom' || next.searchEngineTemplate !== partial.searchEngineTemplate);
+      if (refused) {
+        searchEngine.value = 'custom';
+        searchCustomRow.hidden = false;
+        setSearchError(true);
+        return; // leaves the rejected text in the field to correct
+      }
+      showAcceptedSearch(next);
+    };
+
+    showAcceptedSearch(settings);
+
+    searchEngine.addEventListener('change', () => {
+      if (searchEngine.value === 'custom') {
+        searchCustomRow.hidden = false;
+        setSearchError(false); // no error before anything is typed
+        const template = searchTemplate.value.trim();
+        if (template) commitSearch({ searchEngine: 'custom', searchEngineTemplate: template });
+        // else: the address field's own change event commits and validates
+      } else {
+        commitSearch({ searchEngine: searchEngine.value });
+      }
+    });
+    searchTemplate.addEventListener('change', () =>
+      commitSearch({ searchEngine: 'custom', searchEngineTemplate: searchTemplate.value.trim() }));
+  } else {
+    searchCustomRow?.remove();
+    searchEngine.value = settings.searchEngine;
+    searchEngine.addEventListener('change', () =>
+      window.bowserPages.settings.set({ searchEngine: searchEngine.value }));
+  }
 
   // --- Tab presentation (desktop-only, device-local) ---
   if (supports('tabLayout')) {
@@ -570,13 +632,21 @@
     const secureDnsTemplate = document.getElementById('secureDnsTemplate');
     const secureDnsError = document.getElementById('secureDnsError');
 
+    // The error joins the field's description only while it shows: Chromium
+    // reads a hidden element named by aria-describedby, which would call a
+    // good address invalid.
+    const setError = (shown) => {
+      secureDnsError.hidden = !shown;
+      secureDnsTemplate.setAttribute('aria-invalid', String(shown));
+      secureDnsTemplate.setAttribute('aria-describedby', shown ? 'secureDnsTemplateHint secureDnsError' : 'secureDnsTemplateHint');
+    };
+
     // Reflect an ACCEPTED persisted snapshot into the controls (clears any error).
     const showAccepted = (s) => {
       secureDns.value = s.secureDns ?? 'auto';
       secureDnsTemplate.value = s.secureDnsTemplate ?? '';
       secureDnsRow.hidden = secureDns.value !== 'custom';
-      secureDnsError.hidden = true;
-      secureDnsTemplate.setAttribute('aria-invalid', 'false');
+      setError(false);
     };
 
     // The main process is the sole validator. Send the change, then render from the
@@ -593,8 +663,7 @@
       if (rejected) {
         secureDns.value = 'custom';
         secureDnsRow.hidden = false;
-        secureDnsError.hidden = false;
-        secureDnsTemplate.setAttribute('aria-invalid', 'true');
+        setError(true);
         return; // leaves secureDnsTemplate.value (the rejected text) untouched
       }
       showAccepted(next);
@@ -605,7 +674,7 @@
     secureDns.addEventListener('change', () => {
       if (secureDns.value === 'custom') {
         secureDnsRow.hidden = false; // reveal the field so they can type
-        secureDnsError.hidden = true; // don't error before they've entered anything
+        setError(false); // don't error before they've entered anything
         const template = secureDnsTemplate.value.trim();
         if (template) commit({ secureDns: 'custom', secureDnsTemplate: template }, 'custom');
         // else: wait for the template's own change event to commit + validate

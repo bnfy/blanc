@@ -8,6 +8,7 @@ const MAX_SUGGESTION_LENGTH = 200;
 const MAX_SUGGESTIONS = 8;
 const MAX_RESPONSE_BYTES = 64 * 1024;
 
+// Custom engines have no provider: nothing typed is sent before Enter.
 const PROVIDERS = {
   duckduckgo(query) {
     const url = new URL('https://duckduckgo.com/ac/');
@@ -33,6 +34,13 @@ const PROVIDERS = {
   },
   brave(query) {
     const url = new URL('https://search.brave.com/api/suggest');
+    url.searchParams.set('q', query);
+    return url.toString();
+  },
+  kagi(query) {
+    // Kagi's documented suggestion address. It answers without signing in,
+    // and these requests never carry cookies (credentials: 'omit' below).
+    const url = new URL('https://kagi.com/api/autosuggest');
     url.searchParams.set('q', query);
     return url.toString();
   },
@@ -79,7 +87,7 @@ function isSuggestionEligible(input) {
 }
 
 function requestUrlFor(engine, query, locale = '') {
-  const build = PROVIDERS[engine];
+  const build = typeof engine === 'string' && Object.hasOwn(PROVIDERS, engine) ? PROVIDERS[engine] : null;
   if (!build) return null;
   const normalized = normalizeQuery(query);
   if (!normalized) return null;

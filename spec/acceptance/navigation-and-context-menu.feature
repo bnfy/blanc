@@ -20,6 +20,7 @@ Feature: Address input, search, and link handling
       | google     |
       | bing       |
       | brave      |
+      | kagi       |
 
   @F5-3 @F5 @all @D4
   Scenario: A mailto URI is handed to the OS
@@ -71,6 +72,29 @@ Feature: Address input, search, and link handling
     Given the search engine is "duckduckgo"
     When I enter "site:example.com" in the command bar
     Then the active tab navigates to a "duckduckgo" search for "site:example.com"
+
+  @F5-9 @F5 @all
+  Scenario: A custom search address is used for searches
+    Given the custom search address is "https://searx.example.org/search?q=%s"
+    When I enter "how tall is everest" in the command bar
+    Then the active tab navigates to "https://searx.example.org/search?q=how%20tall%20is%20everest"
+
+  @F5-10 @F5 @all
+  Scenario: A custom address can't send searches over the internet unencrypted
+    Given the search engine is "google"
+    When I set the custom search address to "http://searx.example.org/search?q=%s"
+    Then the selected search engine is "google"
+    When I set the custom search address to "http://localhost:8888/search?q=%s"
+    Then the selected search engine is "custom"
+
+  @F5-11 @F5 @all
+  Scenario: A custom search engine gets no live suggestions and searches its own address
+    Given the autocomplete provider returns "should never appear"
+    And the custom search address is "https://searx.example.org/search?q=%s"
+    When I type "custom engine probe" in the autocomplete palette
+    Then the autocomplete provider has not received a request
+    When I submit the command-bar text
+    Then the search submission goes to "https://searx.example.org/search?q=custom%20engine%20probe"
 
   @F19-1 @F19 @all @D4 @D7
   Scenario: Open link in a background tab inherits the opener's group

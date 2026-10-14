@@ -7,7 +7,9 @@ enum class BlancSearchEngine(val id: String, val label: String) {
     DUCKDUCKGO("duckduckgo", "DuckDuckGo"),
     GOOGLE("google", "Google"),
     BING("bing", "Bing"),
-    BRAVE("brave", "Brave Search");
+    BRAVE("brave", "Brave Search"),
+    KAGI("kagi", "Kagi"),
+    CUSTOM("custom", "Custom");
 }
 
 enum class BlancThemePreference(val id: String) {
@@ -48,6 +50,7 @@ enum class BlancAppIcon(val id: String, val label: String, val isSupporterOnly: 
 
 object BlancSettingsDefaults {
     val searchEngine = BlancSearchEngine.DUCKDUCKGO
+    const val searchEngineTemplate = ""
     const val searchSuggestions = true
     const val adblockEnabled = true
     const val homePage = ""

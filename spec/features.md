@@ -119,8 +119,11 @@ toolbar (Bowser Design System "Island Chrome").
 - One input normalizes typed text (`normalizeAddressInput` heuristic): has-a-scheme
   → navigate; looks-like-localhost/domain → navigate; else → search query against
   the selected engine.
-- **Search engines:** `duckduckgo` (default), `google`, `bing`, `brave`. → substrate
-  (engine table).
+- **Search engines:** `duckduckgo` (default), `google`, `bing`, `brave`, `kagi`,
+  and `custom`: the user's own search address with one `%s` where the query goes
+  (`searchEngineTemplate`). A custom address uses `https://`, or `http://` only
+  to a local-network host, and `%s` must follow the host and port. Custom
+  engines get no live suggestions. → substrate (engine table).
 - Search-like input blends the local Quick Switcher with best-effort autocomplete
   from the selected engine. Engine completions never claim bare Enter: the existing
   confident-local-match rule still applies, otherwise the exact typed query remains
@@ -282,7 +285,8 @@ From the desktop `DEFAULTS`:
 
 | Key | Default | Values / rule |
 |-----|---------|---------------|
-| `searchEngine` | `duckduckgo` | one of duckduckgo/google/bing/brave |
+| `searchEngine` | `duckduckgo` | one of duckduckgo/google/bing/brave/kagi/custom; `custom` without a valid `searchEngineTemplate`, or an unknown id, reads as `duckduckgo` |
+| `searchEngineTemplate` | `""` | the custom address, exactly one `%s` after the host and port, `https://` or local-network `http://`, ≤ 2048 characters; synced with `searchEngine` |
 | `searchSuggestions` | `true` | boolean; device-local, never synced, private tabs override off |
 | `adblockEnabled` | `true` | boolean |
 | `homePage` | `""` | empty = `blanc://newtab`; else a URL |

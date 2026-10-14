@@ -20,6 +20,7 @@ const SEARCH_PREFIX = {
   google: 'https://www.google.com/search?q=',
   bing: 'https://www.bing.com/search?q=',
   brave: 'https://search.brave.com/search?q=',
+  kagi: 'https://kagi.com/search?q=',
 };
 
 async function openAutocompletePalette(world) {
@@ -30,6 +31,26 @@ async function openAutocompletePalette(world) {
 
 Given('the search engine is {string}', async function (engine) {
   await this.call('setSearchEngine', engine);
+});
+
+Given('the custom search address is {string}', async function (template) {
+  assert.strictEqual(await this.call('setCustomSearchEngine', template), 'custom');
+});
+
+When('I set the custom search address to {string}', async function (template) {
+  await this.call('setCustomSearchEngine', template);
+});
+
+Then('the selected search engine is {string}', async function (engine) {
+  assert.strictEqual(await this.call('searchEngine'), engine);
+});
+
+Then('the search submission goes to {string}', async function (url) {
+  await waitForValue(
+    () => this.call('capturedSearchSubmission'),
+    (value) => value?.url === url,
+    `search submission to ${url}`
+  );
 });
 
 When('I enter {string} in the command bar', function (input) {

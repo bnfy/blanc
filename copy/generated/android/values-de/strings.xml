@@ -887,6 +887,10 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_general_show_welcome_tour">Willkommenstour zeigen</string>
     <string name="settings_general_search_engine_label">Suchmaschine</string>
     <string name="settings_general_search_engine_hint">Wird verwendet, wenn die Eingabe in der Adressleiste keine URL ist</string>
+    <string name="settings_general_search_engine_custom">Eigene Suchmaschine…</string>
+    <string name="settings_general_search_engine_template_label">Adresse der eigenen Suchmaschine</string>
+    <string name="settings_general_search_engine_template_hint">Füge die Suchadresse ein, mit %%s an der Stelle deiner Suchbegriffe, z. B. https://searx.example.org/search?q=%%s. Sie wird mit deinen anderen Einstellungen synchronisiert.</string>
+    <string name="settings_general_search_engine_template_error">Diese Adresse ist ungültig – deine bisherige Suchmaschine wird weiter verwendet.</string>
     <string name="settings_general_search_suggestions_label">Suchvorschläge</string>
     <string name="settings_general_search_suggestions_hint">Sendet geeignete eingetippte Anfänge an deinen gewählten Suchanbieter, auch an Google, wenn ausgewählt. Private Tabs und erkennbar sensibel wirkende Eingaben sind ausgenommen. Eine abgeschickte Suche sendet die vollständige Anfrage, auch wenn Vorschläge aus sind.</string>
     <string name="settings_general_home_page_label">Neue-Tab-Seite</string>

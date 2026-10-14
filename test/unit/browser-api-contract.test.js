@@ -243,7 +243,7 @@ test('a returned literal outside its field\'s union is reported', () => {
 
 test('a returned local is read through its object literal', () => {
   const problems = api.checkInvokeResults(api.loadContract(),
-    sendSources('const response = { engine: engineId, label: engine.label, suggestions: [] };', 'const response = { engine: engineId, label: engine.label, suggestions: [], cached: false };'));
+    sendSources('const response = { engine: engine.id, label: engine.label, suggestions: [] };', 'const response = { engine: engine.id, label: engine.label, suggestions: [], cached: false };'));
   assert.ok(problems.some((p) => p.includes('searchSuggestions result') && p.includes('cached')), problems.join('\n'));
 });
 

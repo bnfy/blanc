@@ -196,6 +196,15 @@
               <select id="searchEngine"></select>
             </div>
 
+            <div class="setting" id="searchEngineCustomRow" hidden>
+              <div class="label">
+                <span id="searchEngineTemplateLabel" data-i18n="settings.general.searchEngineTemplate.label">Custom search address</span>
+                <span class="hint" id="searchEngineTemplateHint" data-i18n="settings.general.searchEngineTemplate.hint">Paste the search address with %s where your search words go, for example https://searx.example.org/search?q=%s. It syncs with your other settings.</span>
+                <span class="hint field-error" id="searchEngineTemplateError" role="alert" hidden data-i18n="settings.general.searchEngineTemplateError">That address isn't valid — your previous search engine is still in use.</span>
+              </div>
+              <input id="searchEngineTemplate" type="url" autocomplete="off" spellcheck="false" placeholder="https://search.example.com/search?q=%s" aria-labelledby="searchEngineTemplateLabel" aria-describedby="searchEngineTemplateHint"  data-i18n-ignore="placeholder"/>
+            </div>
+
             <div class="setting">
               <div class="label">
                 <span data-i18n="settings.general.searchSuggestions.label">Search suggestions</span>
@@ -443,11 +452,11 @@
 
             <div class="setting" id="secureDnsCustomRow" hidden>
               <div class="label">
-                <span data-i18n="settings.privacy.secureDnsTemplate.label">Custom provider address</span>
-                <span class="hint" data-i18n="settings.privacy.secureDnsTemplate.hint">The secure DNS address your provider gave you (an https:// link), e.g. https://dns.nextdns.io/&lt;profile&gt;.</span>
-                <span class="hint field-error" id="secureDnsError" hidden data-i18n="settings.privacy.secureDnsError">That address isn't valid — the previous provider is still in use.</span>
+                <span id="secureDnsTemplateLabel" data-i18n="settings.privacy.secureDnsTemplate.label">Custom provider address</span>
+                <span class="hint" id="secureDnsTemplateHint" data-i18n="settings.privacy.secureDnsTemplate.hint">The secure DNS address your provider gave you (an https:// link), e.g. https://dns.nextdns.io/&lt;profile&gt;.</span>
+                <span class="hint field-error" id="secureDnsError" role="alert" hidden data-i18n="settings.privacy.secureDnsError">That address isn't valid — the previous provider is still in use.</span>
               </div>
-              <input id="secureDnsTemplate" type="url" placeholder="https://your-provider.example/dns-query"  data-i18n-ignore="placeholder"/>
+              <input id="secureDnsTemplate" type="url" autocomplete="off" spellcheck="false" placeholder="https://your-provider.example/dns-query" aria-labelledby="secureDnsTemplateLabel" aria-describedby="secureDnsTemplateHint"  data-i18n-ignore="placeholder"/>
             </div>
           </div>
 

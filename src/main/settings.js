@@ -12,13 +12,25 @@ const APP_ICON_ASSETS = require('./app-icon-assets');
 const { normalizeHomepage } = require('./top-level-url-policy');
 const { migrateSupporter, downgradeMirror, isRecordActive } = require('./patron-model');
 const { DEFAULT_MAPPING, mappingOrDefault, validMapping } = require('./mouse-gestures');
+const {
+  isValidSearchTemplate,
+  searchUrlFromTemplate,
+  searchTemplateLabel,
+  reconcileSearchEngineWrite,
+} = require('./search-engine-template');
 
 const SEARCH_ENGINES = {
   duckduckgo: { label: 'DuckDuckGo', url: (q) => `https://duckduckgo.com/?q=${encodeURIComponent(q)}` },
   google: { label: 'Google', url: (q) => `https://www.google.com/search?q=${encodeURIComponent(q)}` },
   bing: { label: 'Bing', url: (q) => `https://www.bing.com/search?q=${encodeURIComponent(q)}` },
   brave: { label: 'Brave Search', url: (q) => `https://search.brave.com/search?q=${encodeURIComponent(q)}` },
+  kagi: { label: 'Kagi', url: (q) => `https://kagi.com/search?q=${encodeURIComponent(q)}` },
+  // The user's own address (searchEngineTemplate). No url here: every search
+  // goes through currentSearchEngine(), which builds it from the template.
+  custom: { label: 'Custom' },
 };
+// Own keys only: SEARCH_ENGINES.constructor is truthy, but not an engine.
+const isSearchEngineId = (id) => typeof id === 'string' && Object.hasOwn(SEARCH_ENGINES, id);
 
 const THEMES = ['system', 'light', 'dark'];
 const TAB_LAYOUTS = ['island', 'vertical'];
@@ -54,7 +66,7 @@ const PRESENTATION_DEFAULTS_RESET_VERSION = 1;
 // device's 1Password integration configuration
 // (device-local), usagePing (per-install consent), and supporter (never —
 // that would be license sharing).
-const SYNCED_KEYS = ['searchEngine', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions', 'newtabLayout', 'newtabDynamicWallpaper'];
+const SYNCED_KEYS = ['searchEngine', 'searchEngineTemplate', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions', 'newtabLayout', 'newtabDynamicWallpaper'];
 
 // App icon variants — id maps to src/renderer/pages/icon-<id>.png; order here
 // is also the tile order Settings renders.
@@ -92,6 +104,9 @@ function normalizeHostnameList(value) {
 
 const DEFAULTS = {
   searchEngine: 'duckduckgo',
+  // The Custom engine's address, with %s where the query goes. Synced with
+  // searchEngine; search-engine-template.js validates it on write and read.
+  searchEngineTemplate: '',
   // Live address-bar prefixes are sent to the selected search provider.
   // Device-local and user-disableable; private tabs override it off.
   searchSuggestions: true,
@@ -351,6 +366,15 @@ function getSettings() {
   // without a valid template reads back as the default, never as plaintext-capable
   // custom. The setSettings guard prevents a valid user action from producing this.
   data.secureDns = coerceSecureDnsRead(data.secureDns, data.secureDnsTemplate, DEFAULTS.secureDns);
+  // Read rule, like secureDns: an unknown id, or Custom without a valid
+  // address (a hand-edited file, or a sync that delivered the engine before
+  // an address this device accepts), reads as the default. A search never
+  // goes to a broken address.
+  if (typeof data.searchEngineTemplate !== 'string') data.searchEngineTemplate = DEFAULTS.searchEngineTemplate;
+  if (!isSearchEngineId(data.searchEngine) ||
+      (data.searchEngine === 'custom' && !isValidSearchTemplate(data.searchEngineTemplate))) {
+    data.searchEngine = DEFAULTS.searchEngine;
+  }
   return data;
 }
 
@@ -365,8 +389,13 @@ function isAppIconAllowed(id) {
  * written solely by setSupporter()/setPatron(), never through this whitelist. */
 function sanitize(partial) {
   const clean = {};
-  if (typeof partial.searchEngine === 'string' && SEARCH_ENGINES[partial.searchEngine]) {
-    clean.searchEngine = partial.searchEngine;
+  if (isSearchEngineId(partial.searchEngine)) clean.searchEngine = partial.searchEngine;
+  if (typeof partial.searchEngineTemplate === 'string') {
+    // Like secureDnsTemplate: empty or valid, else DROPPED so a bad value can
+    // never overwrite a good stored address. setSettings then decides whether
+    // Custom may be selected.
+    const t = partial.searchEngineTemplate.trim();
+    if (t === '' || isValidSearchTemplate(t)) clean.searchEngineTemplate = t;
   }
   if (typeof partial.searchSuggestions === 'boolean') {
     clean.searchSuggestions = partial.searchSuggestions;
@@ -434,7 +463,13 @@ function setSettings(partial) {
   const clean = sanitize(partial);
   // Strict-custom invariant (F25): an invalid custom transition must not degrade to
   // plaintext-capable Automatic. reconcileSecureDnsWrite (unit-tested) rejects such a
-  // change, preserving the last valid configuration.
+  // change, preserving the last valid configuration. sanitize() already dropped
+  // a refused address, so drop the provider sent with it too: otherwise Custom
+  // could switch on with an older stored address while Settings says the
+  // previous provider is still in use.
+  if (typeof partial.secureDnsTemplate === 'string' && !('secureDnsTemplate' in clean)) {
+    delete clean.secureDns;
+  }
   if ('secureDns' in clean || 'secureDnsTemplate' in clean) {
     const dns = reconcileSecureDnsWrite(
       { secureDns: s.data.secureDns, secureDnsTemplate: s.data.secureDnsTemplate },
@@ -442,6 +477,24 @@ function setSettings(partial) {
     );
     clean.secureDns = dns.secureDns;
     clean.secureDnsTemplate = dns.secureDnsTemplate;
+  }
+  // Custom needs a valid address. A change that would leave Custom selected
+  // without one is refused, keeping the previous engine and address; keys
+  // the write didn't touch are never re-stamped for sync. sanitize() already
+  // dropped a refused address, so drop the engine sent with it too: otherwise
+  // Custom could switch on with an older stored address, and the engine
+  // would be re-stamped for sync on every refused edit.
+  if (typeof partial.searchEngineTemplate === 'string' && !('searchEngineTemplate' in clean)) {
+    delete clean.searchEngine;
+  }
+  if ('searchEngine' in clean || 'searchEngineTemplate' in clean) {
+    const search = reconcileSearchEngineWrite(
+      { searchEngine: s.data.searchEngine, searchEngineTemplate: s.data.searchEngineTemplate },
+      clean,
+    );
+    delete clean.searchEngine;
+    delete clean.searchEngineTemplate;
+    Object.assign(clean, search);
   }
   const now = Date.now();
   s.update((data) => {
@@ -625,10 +678,24 @@ function mergeFromSync(remote) {
   if (Object.keys(clean).length) for (const fn of listeners) fn(getSettings());
 }
 
+/** The engine searches use now, after the read rule: { id, label, url(query) }.
+ * The address bar, the ⌘L search row, Search for "…" and suggestions all go
+ * through this, so a new engine type can't be missed in one of them. */
+function currentSearchEngine() {
+  const { searchEngine, searchEngineTemplate } = getSettings();
+  if (searchEngine === 'custom') {
+    return {
+      id: 'custom',
+      label: searchTemplateLabel(searchEngineTemplate),
+      url: (query) => searchUrlFromTemplate(searchEngineTemplate, query),
+    };
+  }
+  const { label, url } = SEARCH_ENGINES[searchEngine];
+  return { id: searchEngine, label, url };
+}
+
 function searchUrlFor(query) {
-  const { searchEngine } = getSettings();
-  const engine = SEARCH_ENGINES[searchEngine] ?? SEARCH_ENGINES.duckduckgo;
-  return engine.url(query);
+  return currentSearchEngine().url(query);
 }
 
 module.exports = {
@@ -646,6 +713,7 @@ module.exports = {
   onSettingsChanged,
   isFirstRunComplete,
   completeFirstRunPrivacyChoices,
+  currentSearchEngine,
   searchUrlFor,
   isSupporterActive,
   isAppIconAllowed,

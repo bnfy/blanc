@@ -722,7 +722,7 @@ Result of every Named Workspace action. Successes carry the refreshed workspace 
 
 A search engine id. Must match the searchEngines ids in settings-schema/schema.json.
 
-`'duckduckgo' \| 'google' \| 'bing' \| 'brave'`
+`'duckduckgo' \| 'google' \| 'bing' \| 'brave' \| 'kagi' \| 'custom'`
 
 ### `HistoryEntry`
 
@@ -790,7 +790,7 @@ Search suggestions for the address bar, labelled with the engine that produced t
 | Field | Type | Notes |
 | --- | --- | --- |
 | `engine` | `SearchEngineId` |  |
-| `label` | `string` | The engine's display name. |
+| `label` | `string` | The engine's display name; for a custom engine, its server's name. |
 | `suggestions` | `string[]` | Empty when suggestions are off, the tab is private, or the query is ineligible. |
 
 ### `ProviderBlockAdsResult`

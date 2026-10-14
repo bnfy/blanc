@@ -914,6 +914,10 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="settings_general_show_welcome_tour">Ver la visita guiada</string>
     <string name="settings_general_search_engine_label">Motor de búsqueda</string>
     <string name="settings_general_search_engine_hint">Se usa cuando lo escrito en la barra de direcciones no es una URL</string>
+    <string name="settings_general_search_engine_custom">Personalizado…</string>
+    <string name="settings_general_search_engine_template_label">Dirección de búsqueda personalizada</string>
+    <string name="settings_general_search_engine_template_hint">Pega la dirección de búsqueda con %%s donde van tus palabras, p. ej., https://searx.example.org/search?q=%%s. Se sincroniza con el resto de tus ajustes.</string>
+    <string name="settings_general_search_engine_template_error">Esa dirección no es válida; se sigue usando el motor de búsqueda anterior.</string>
     <string name="settings_general_search_suggestions_label">Sugerencias de búsqueda</string>
     <string name="settings_general_search_suggestions_hint">Envía los comienzos aptos de lo que escribes al buscador elegido, incluido Google si lo eliges. Se excluyen las pestañas privadas y lo que parece información sensible. Al enviar una búsqueda se manda la consulta completa aunque las sugerencias estén desactivadas.</string>
     <string name="settings_general_home_page_label">Página de pestaña nueva</string>

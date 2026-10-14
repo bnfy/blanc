@@ -26,8 +26,13 @@ function response(body, { ok = true, contentLength } = {}) {
   };
 }
 
-test('every configured search engine has a fixed HTTPS suggestion provider', () => {
-  assert.deepEqual(Object.keys(PROVIDERS), settingsSchema.searchEngines.map(({ id }) => id));
+test('every built-in search engine has a fixed HTTPS suggestion provider', () => {
+  // A custom engine is the user's own server: it gets no provider, so nothing
+  // typed is sent anywhere before Enter.
+  assert.deepEqual(
+    Object.keys(PROVIDERS),
+    settingsSchema.searchEngines.map(({ id }) => id).filter((id) => id !== 'custom'),
+  );
 
   const query = 'blanc browser & tabs';
   const cases = {
@@ -35,6 +40,7 @@ test('every configured search engine has a fixed HTTPS suggestion provider', () 
     google: ['www.google.com', '/complete/search', 'q'],
     bing: ['api.bing.com', '/osjson.aspx', 'query'],
     brave: ['search.brave.com', '/api/suggest', 'q'],
+    kagi: ['kagi.com', '/api/autosuggest', 'q'],
   };
   for (const [engine, [host, path, queryParam]] of Object.entries(cases)) {
     const url = new URL(requestUrlFor(engine, query, 'en-US'));
@@ -52,6 +58,8 @@ test('every configured search engine has a fixed HTTPS suggestion provider', () 
 
 test('unknown engines and invalid query values cannot choose a request URL', () => {
   assert.equal(requestUrlFor('made-up', 'hello'), null);
+  assert.equal(requestUrlFor('custom', 'hello'), null);
+  assert.equal(requestUrlFor('constructor', 'hello'), null);
   assert.equal(requestUrlFor('google', ''), null);
   assert.equal(requestUrlFor('google', 'x'.repeat(MAX_QUERY_LENGTH + 1)), null);
   assert.equal(requestUrlFor('google', 42), null);
