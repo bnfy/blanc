@@ -31,11 +31,13 @@ test("the October 2 transparency answers survive consolidation verbatim", () => 
       /const QUESTIONS = (\[[\s\S]*?\]);/,
     )[1],
   );
-  // The only reviewed wording changes since: the recorded Blanc Spaces rename.
-  // Each must still find its exact original text, so no stale exception lingers.
-  const { supportAnswers } = JSON.parse(
-    read("docs/website-blanc-spaces-rename-2026-10-11.json"),
-  );
+  // The only reviewed wording changes since, applied in order: the Blanc
+  // Spaces rename, then free Blanc Spaces. Each must still find its exact
+  // prior text, so no stale exception lingers.
+  const supportAnswers = [
+    "docs/website-blanc-spaces-rename-2026-10-11.json",
+    "docs/website-blanc-spaces-free-2026-10-14.json",
+  ].flatMap((file) => JSON.parse(read(file)).supportAnswers);
   for (const { id, before, after } of supportAnswers) {
     const entry = original.find((candidate) => candidate.id === id);
     const field = ["q", "a"].find((key) =>
@@ -100,7 +102,7 @@ test("home keeps product limits and links to detailed ownership, licensing and a
     "optional Google Analytics mirror",
     "Built by Bananify, an independent software studio.",
     "MIT for Blanc’s own code",
-    "Renaming and removing existing spaces",
+    "Patron unlocks nothing.",
     "Off by default. Needs the 1Password app and account on macOS.",
   ])
     assert.ok(home.includes(phrase), phrase);

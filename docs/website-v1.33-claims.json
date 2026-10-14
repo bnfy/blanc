@@ -1,0 +1,406 @@
+{
+  "publicRelease": "v1.33.0",
+  "sourceSha": "3e761786666174bab6600b645f9cb34491f5f247",
+  "releaseEvidence": "docs/release-incidents/2026-10-14-v1.33.0.md",
+  "scope": "Website copy for what public v1.33.0 shipped (October 14, 2026): Blanc Spaces free for everyone, with Blanc Patron as optional support that unlocks nothing; the Arc import always creating spaces; and each space’s colour and symbol shown as the Island’s space mark. Every evidence path is at the immutable publicRelease tag. Retired wording is recorded as supersededClaims in docs/website-revamp-claims-v1.27.json, docs/website-features-bento-claims-v1.30.json and docs/website-v1.32-claims.json, changes to retained feature pages as reviewedCopyUpdates in the v1.27 ledger, and the reworded support answers in docs/website-blanc-spaces-free-2026-10-14.json.",
+  "prohibitedClaims": [
+    "Blanc Patron unlocking, adding or gating any feature, including Blanc Spaces",
+    "Blanc Spaces as synced, account-based, automatic task detection, or an AI workspace",
+    "Arc import as account sync, a live Arc connection, or an import of sign-ins, passwords, cookies or history",
+    "hands-on Arc import verification on Intel Macs or x64 Windows",
+    "1Password fill on Windows or Linux (enabled but deliberately unannounced since v1.32.0)"
+  ],
+  "evidenceGroups": {
+    "freeSpaces": {
+      "evidence": [
+        "docs/press/release-notes/v1.33.0.md",
+        "src/main/workspace-controller.js",
+        "src/main/main.js",
+        "src/main/workspaces.js",
+        "src/main/arc-import.js",
+        "spec/features.md",
+        "spec/acceptance/F41-named-workspaces.feature",
+        "test/unit/spaces-free-records.test.js"
+      ],
+      "qualification": "Public desktop v1.33.0. Anyone can save the current window or create a blank space, switch between spaces and import Arc Spaces as spaces; no Patron check remains. A bound space saves its tabs and groups as the person browses. Spaces are device-local and profile-scoped, never synced, and not automatic task detection."
+    },
+    "spacesRedesign": {
+      "evidence": [
+        "docs/press/release-notes/v1.33.0.md",
+        "src/renderer/space-identity.js",
+        "src/renderer/workspace-ui.js",
+        "src/renderer/renderer.js",
+        "spec/acceptance/F41-named-workspaces.feature",
+        "test/unit/space-identity.test.js",
+        "test/unit/spaces-menu.test.js"
+      ],
+      "qualification": "Public desktop v1.33.0. Each space has a colour (eight presets or any custom colour) and a symbol, shown as the space mark at the start of the Island once a space exists; clicking it opens the Spaces menu to switch, edit in place, reorder or delete, with Undo."
+    },
+    "arcImport": {
+      "evidence": [
+        "docs/press/release-notes/v1.33.0.md",
+        "src/main/arc-import.js",
+        "src/renderer/pages/tab-import-arc.js",
+        "spec/acceptance/arc-spaces-import.feature",
+        "test/unit/arc-import.test.js",
+        "docs/evidence/f45-arc-import-real-sidebars-2026-10-12.md"
+      ],
+      "qualification": "Public desktop v1.33.0. User-initiated in Bring Your Tabs (/bring-tabs); every selected Arc Space becomes a space for everyone (in v1.32.0, without Patron, each opened in its own window). Blanc reads Arc’s StorableSidebar.json without changing it; real-sidebar evidence covers Apple Silicon, Windows on Arm64 and GNOME on Wayland, not Intel Macs or x64 Windows."
+    },
+    "patron": {
+      "evidence": [
+        "docs/press/release-notes/v1.33.0.md",
+        "copy/messages/en.json",
+        "src/renderer/pages/settings.html",
+        "docs/polar-setup.md",
+        "test/unit/spaces-free-records.test.js"
+      ],
+      "qualification": "Public desktop v1.33.0. Blanc Patron is optional support through Polar at US$30 per year or US$4 per month plus applicable tax, and earlier one-time founding licenses still activate; Settings says every feature, including Blanc Spaces, is free for everyone. Patron unlocks nothing."
+    }
+  },
+  "claims": [
+    {
+      "id": "site-133-workspaces-01",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Switch between saved sets from the Island’s space control.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "freeSpaces"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-workspaces-02",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Open the space control in the command panel or type /space. Anyone can save the current window or create a blank space.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "freeSpaces"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-workspaces-03",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "In Bring Your Tabs (type /bring-tabs), choose Arc, and each Space you pick becomes a space here, with its pinned tabs, its Today tabs and its folders as tab groups. Switching from Arc",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "freeSpaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-133-workspaces-04",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Tell spaces apart at a glance",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "spacesRedesign"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-workspaces-05",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Give each space a colour and a symbol. The current space shows at the start of the Island; click it to switch, edit, reorder or delete a space, with Undo.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "spacesRedesign"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-workspaces-06",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Free, on every desktop platform.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "freeSpaces"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-workspaces-07",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Blanc Spaces is free for everyone on macOS, Windows and Linux. Blanc Patron is an optional subscription that supports Blanc’s development; it doesn’t unlock any feature.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "freeSpaces",
+        "patron"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-workspaces-08",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Your spaces stay on this device, in this profile, and keep updating as you browse. Nothing about them depends on a subscription.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "freeSpaces"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-guide-workspaces-01",
+      "source": "site/src/components/guides/workspaces.astro",
+      "exactWording": "Open the space control in the command panel or type /space. Anyone can save the current window or create a blank space.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "freeSpaces"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-guide-workspaces-02",
+      "source": "site/src/components/guides/workspaces.astro",
+      "exactWording": "In Bring Your Tabs (type /bring-tabs), choose Arc, and each Space you pick becomes a space here, with its pinned tabs, its Today tabs and its folders as tab groups.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "freeSpaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-133-guide-workspaces-03",
+      "source": "site/src/components/guides/workspaces.astro",
+      "exactWording": "Give each space a colour and a symbol. The current space shows at the start of the Island; click it to switch, edit, reorder or delete a space, with Undo.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "spacesRedesign"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-guide-workspaces-04",
+      "source": "site/src/components/guides/workspaces.astro",
+      "exactWording": "Tell spaces apart at a glance",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "spacesRedesign"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-guide-workspaces-05",
+      "source": "site/src/components/guides/workspaces.astro",
+      "exactWording": "Blanc Spaces is free for everyone on macOS, Windows and Linux. Blanc Patron is an optional subscription that supports Blanc’s development; it doesn’t unlock any feature.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "freeSpaces",
+        "patron"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-guide-workspaces-06",
+      "source": "site/src/components/guides/workspaces.astro",
+      "exactWording": "Your spaces stay on this device, in this profile, and keep updating as you browse. Nothing about them depends on a subscription.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "freeSpaces"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-support-01",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "What is optional Patron?",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "patron"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-support-02",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It is how you support Blanc’s development, and it unlocks nothing: every feature, including Blanc Spaces, is free for everyone. Earlier one-time supporters keep their lifetime Patron access.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "patron",
+        "freeSpaces"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-support-03",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Blocking, private tabs, favorites, tab groups, Blanc Spaces, Quiet Tabs and optional encrypted Sync are free. Patron does not restrict access to the open-source code.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "patron",
+        "freeSpaces"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-support-04",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Blanc Spaces are something different: named sets of tabs you save and switch between on purpose.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "freeSpaces"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-support-05",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Yes. Type /bring-tabs in the ⌘L or Ctrl+L panel, choose Arc, and pick the Spaces you want. Each Space comes across with its pinned tabs, its Today tabs, and its folders as tab groups. Each Space becomes a space in Blanc Spaces. Tabs load only when you open them. You can also add Arc’s top-row Favorites to a Favorites folder named Arc.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "freeSpaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-133-download-01",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Free, including Blanc Spaces",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "freeSpaces"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-download-02",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Every feature is free, including tab groups and saved Blanc Spaces. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It supports Blanc’s development and unlocks nothing.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "freeSpaces",
+        "patron"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-about-01",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "Every feature is free, including tab groups and saved Blanc Spaces. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It funds Blanc’s development and unlocks nothing. Earlier one-time supporters keep their lifetime Patron access.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "freeSpaces",
+        "patron"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-index-01",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Tab groups and Blanc Spaces are free.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "freeSpaces"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-index-02",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Blanc Patron is how you support Blanc’s development. Every feature, including Blanc Spaces, is free for everyone; Patron is an optional subscription.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "patron",
+        "freeSpaces"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-index-03",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Patron unlocks nothing. Ending a subscription changes nothing in the browser.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "patron"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-arc-alternative-01",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Named tab groups keep related tabs together and fold away when you want a quieter view. Blanc Spaces, free for everyone, save a window’s tabs and groups so you can switch between sets in place.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "freeSpaces"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-arc-alternative-02",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Open Bring Your Tabs (type /bring-tabs in the ⌘L or Ctrl+L panel), choose Arc and pick the Spaces you want. Each one comes across with its pinned tabs, its Today tabs, and its folders as tab groups. Each Space becomes a space in Blanc Spaces. Tabs load only when you open them.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "freeSpaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "site-133-features-01",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Now free",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "freeSpaces"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-features-02",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Blanc Spaces is free for everyone.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "freeSpaces"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-features-03",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Keep the browser free and independent.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "patron"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-features-04",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Every Blanc feature is free, including Blanc Spaces. Patron is how you help fund an independent browser.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "patron",
+        "freeSpaces"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-media-01",
+      "source": "site/src/pages/media.astro",
+      "exactWording": "An optional Blanc Patron subscription supports development; every feature, including device-local Blanc Spaces, is free.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "patron",
+        "freeSpaces"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "site-133-media-02",
+      "source": "site/src/pages/media.astro",
+      "exactWording": "Optional Blanc Patron: US$30/year or $4/month, plus tax; supports development and unlocks nothing",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "patron"
+      ],
+      "verdict": "verified"
+    }
+  ]
+}

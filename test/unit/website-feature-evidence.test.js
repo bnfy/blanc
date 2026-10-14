@@ -13,6 +13,7 @@ const captureLedger = JSON.parse(read('docs/website-trust-claims-v1.25.json'));
 const previousLedger = JSON.parse(read('docs/website-v1.21-claims.json'));
 const historicalLedger = JSON.parse(read('docs/website-v1.15-claims.json'));
 const v132Ledger = JSON.parse(read('docs/website-v1.32-claims.json'));
+const v133Ledger = JSON.parse(read('docs/website-v1.33-claims.json'));
 const entities = { rsquo: '’', lsquo: '‘', amp: '&', ldquo: '“', rdquo: '”' };
 // Compare source text only; consume incomplete tags and decode entities once.
 const normalize = text => text.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*(?:>|$)/g, '').replace(/&(rsquo|lsquo|amp|ldquo|rdquo);/g, (_, name) => entities[name]).replace(/\s+/g, ' ').trim();
@@ -54,7 +55,7 @@ test('the v1.15 claim ledger remains paired with its immutable release evidence'
 test('new guide benefit and qualification paragraphs remain covered by the exact-wording ledger', () => {
   for (const slug of ['start-page', 'glance', 'workspaces', 'profiles', 'reopen-closed-tabs', '1password']) {
     const file = `site/src/components/guides/${slug}.astro`;
-    const claims = new Set([...ledger.claims, ...v132Ledger.claims].filter(claim => claim.source === file).map(claim => claim.exactWording));
+    const claims = new Set([...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims].filter(claim => claim.source === file).map(claim => claim.exactWording));
     for (const match of read(file).matchAll(/<(h[123]|p|figcaption)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
       const wording = normalize(match[2]);
       if (wording.length > 20) assert.ok(claims.has(wording), `${slug}: unrecorded wording: ${wording}`);
@@ -66,7 +67,7 @@ test('search landing pages are fully covered by the exact-wording ledger and lin
   const sources = new Set((ledger.externalSources || []).map(source => source.url));
   for (const file of ['site/src/pages/arc-alternative.astro', 'site/src/pages/ublock-origin-after-chrome.astro']) {
     const page = read(file);
-    const claims = [...ledger.claims, ...v132Ledger.claims].filter(claim => claim.source === file);
+    const claims = [...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims].filter(claim => claim.source === file);
     const wording = new Set(claims.map(claim => claim.exactWording));
     for (const match of page.matchAll(/<(h[123]|p|figcaption)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
       assert.ok(wording.has(normalize(match[2])), `${file}: unrecorded wording: ${normalize(match[2])}`);
@@ -125,7 +126,7 @@ test('v1.32.0 Arc import, interface-language and /space copy resolves to verifie
   }
   // Any sentence on these pages about importing from Arc or about Blanc's
   // interface languages must be a recorded claim in this ledger or the v1.27 one.
-  const recorded = [...v132Ledger.claims, ...ledger.claims].map(claim => claim.exactWording);
+  const recorded = [...v132Ledger.claims, ...v133Ledger.claims, ...ledger.claims].map(claim => claim.exactWording);
   const topic = /\bArc\b.*\b(Spaces?|import|sidebar|Favorites|StorableSidebar)\b|\b(German|Spanish|French|Portuguese|Italian|Dutch|Polish|Russian|Ukrainian|Turkish|Arabic|Hebrew|Hindi|Chinese|Japanese|Korean|Swedish|Danish|Norwegian|Finnish)\b|\binterface languages?\b|\btranslat(e|ed|ion|ions)\b/i;
   for (const file of new Set(v132Ledger.claims.map(claim => claim.source))) {
     const text = read(file);
@@ -139,6 +140,29 @@ test('v1.32.0 Arc import, interface-language and /space copy resolves to verifie
   }
   // v1.32.0 made the Arc page's old "cannot import" wording false.
   assert.doesNotMatch(read('site/src/pages/arc-alternative.astro'), /does not import directly from Arc|import your Arc data/);
+});
+
+test('v1.33.0 free Blanc Spaces copy resolves to verified public v1.33.0 evidence', () => {
+  assert.equal(v133Ledger.publicRelease, 'v1.33.0');
+  assert.equal(execFileSync('git', ['rev-parse', `${v133Ledger.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), v133Ledger.sourceSha);
+  assert.ok(read(v133Ledger.releaseEvidence).includes(v133Ledger.sourceSha));
+  for (const claim of v133Ledger.claims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    const source = read(claim.source);
+    assert.ok(normalize(source).includes(claim.exactWording) || source.replace(/\s+/g, ' ').includes(claim.exactWording), `${claim.id}: exact wording drifted`);
+    assert.ok(claim.evidenceGroups.length, `${claim.id}: no release evidence`);
+    for (const key of claim.evidenceGroups) {
+      const group = v133Ledger.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, `${claim.id}: release evidence and qualifications`);
+      for (const file of group.evidence) execFileSync('git', ['cat-file', '-e', `${v133Ledger.publicRelease}:${file}`], { cwd: root });
+    }
+  }
+  // Since v1.33.0 Patron unlocks nothing: no page this ledger covers may tie
+  // Patron to Blanc Spaces, its creation gate or its lapse rules again.
+  for (const file of new Set(v133Ledger.claims.map(claim => claim.source))) {
+    const text = file.endsWith('.json') ? JSON.parse(read(file)).flatMap(entry => [entry.q, ...entry.a]).join(' ') : normalize(read(file));
+    assert.doesNotMatch(text, /Patron adds|with Blanc Patron,|Active Patrons can|requires an active Patron|active Patron membership|Blanc Spaces is a Patron feature|If membership lapses/i, `${file}: retired Patron gate`);
+  }
 });
 
 test('feature guide pages show only ledger-recorded captures or same-size WebP companions of them', async () => {
@@ -198,7 +222,7 @@ test('Features bento copy resolves to verified public v1.30.1 evidence, and ever
   }
   // Every text element above the unchanged Patron and download sections is a
   // recorded claim in this ledger, the reorder ledger, or the v1.27 ledger.
-  const recorded = [...bento.claims, ...reorder.claims, ...ledger.claims, ...v132Ledger.claims].filter(claim => claim.source === file).map(claim => claim.exactWording);
+  const recorded = [...bento.claims, ...reorder.claims, ...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims].filter(claim => claim.source === file).map(claim => claim.exactWording);
   const scope = page.slice(page.indexOf('<main'), page.indexOf('class="bento-patron"'));
   for (const [, , text] of scope.matchAll(/<(h[1-6]|p|figcaption|li|button)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
     const wording = normalize(text);

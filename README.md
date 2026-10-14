@@ -104,11 +104,10 @@ the published artifacts; they do not make local builds reproducible. See the
 
 ## Free browser, optional Patron
 
-Everything that makes Blanc a browser is free: ad and tracker blocking,
-encrypted sync, private tabs, tab groups, quiet tabs, and passkeys. Blanc
-Patron costs $30 a year or $4 a month and adds Blanc Spaces on every
-platform. Creating a space requires an active Patron subscription.
-Renaming and removing existing spaces continue to work if it lapses.
+Everything in Blanc is free: ad and tracker blocking, encrypted sync,
+private tabs, tab groups, quiet tabs, passkeys, and Blanc Spaces. Blanc
+Patron costs $30 a year or $4 a month and is how you support Blanc's
+development. It unlocks nothing; every feature is free for everyone.
 
 The memory benchmark, method, and raw runs are in
 [`bench/memory/`](bench/memory/).

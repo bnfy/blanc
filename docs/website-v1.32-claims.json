@@ -119,16 +119,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "site-132-arc-alternative-04",
-      "source": "site/src/pages/arc-alternative.astro",
-      "exactWording": "Open Bring Your Tabs (type /bring-tabs in the ⌘L or Ctrl+L panel), choose Arc and pick the Spaces you want. Each one comes across with its pinned tabs, its Today tabs, and its folders as tab groups. With Blanc Patron, each Space becomes a space in Blanc Spaces; without it, each Space opens in its own window. Tabs load only when you open them.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "arcImport"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "site-132-arc-alternative-05",
       "source": "site/src/pages/arc-alternative.astro",
       "exactWording": "What stays in Arc.",
@@ -262,45 +252,12 @@
       "verdict": "verified"
     },
     {
-      "id": "site-132-workspaces-01",
-      "source": "site/src/pages/features/workspaces.astro",
-      "exactWording": "Open the space control in the command panel or type /space. Active Patrons can save the current window or create a blank space.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "spaceCommand",
-        "workspaces"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "site-132-workspaces-02",
       "source": "site/src/pages/features/workspaces.astro",
       "exactWording": "Bring your Spaces from Arc",
       "subject": "Blanc",
       "evidenceGroups": [
         "arcImport"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "site-132-workspaces-03",
-      "source": "site/src/pages/features/workspaces.astro",
-      "exactWording": "In Bring Your Tabs (type /bring-tabs), choose Arc, and each Space you pick becomes a space here, with its pinned tabs, its Today tabs and its folders as tab groups. Without an active Patron membership, each Arc Space opens in its own window instead. Switching from Arc",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "arcImport",
-        "workspaces"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "site-132-guide-workspaces-01",
-      "source": "site/src/components/guides/workspaces.astro",
-      "exactWording": "Open the space control in the command panel or type /space. Active Patrons can save the current window or create a blank space.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "spaceCommand",
-        "workspaces"
       ],
       "verdict": "qualified"
     },
@@ -315,30 +272,9 @@
       "verdict": "qualified"
     },
     {
-      "id": "site-132-guide-workspaces-03",
-      "source": "site/src/components/guides/workspaces.astro",
-      "exactWording": "In Bring Your Tabs (type /bring-tabs), choose Arc, and each Space you pick becomes a space here, with its pinned tabs, its Today tabs and its folders as tab groups. Without an active Patron membership, each Arc Space opens in its own window instead.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "arcImport",
-        "workspaces"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "site-132-support-01",
       "source": "site/src/data/support-questions.json",
       "exactWording": "Can I bring my Spaces from Arc?",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "arcImport"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "site-132-support-02",
-      "source": "site/src/data/support-questions.json",
-      "exactWording": "Yes. Type /bring-tabs in the ⌘L or Ctrl+L panel, choose Arc, and pick the Spaces you want. Each Space comes across with its pinned tabs, its Today tabs, and its folders as tab groups. With Blanc Patron, each Space becomes a space in Blanc Spaces; without it, each Space opens in its own window. Tabs load only when you open them. You can also add Arc’s top-row Favorites to a Favorites folder named Arc.",
       "subject": "Blanc",
       "evidenceGroups": [
         "arcImport"
@@ -440,6 +376,76 @@
       ],
       "verdict": "qualified",
       "reason": "October 13, 2026: the Features board folds its separate Arc Spaces tile into the import tile, so one tile and popover cover bookmarks and Arc Spaces. The replacement wording is recorded in docs/website-v1.32-claims.json; the original remains in git history."
+    },
+    {
+      "id": "site-132-arc-alternative-04",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Open Bring Your Tabs (type /bring-tabs in the ⌘L or Ctrl+L panel), choose Arc and pick the Spaces you want. Each one comes across with its pinned tabs, its Today tabs, and its folders as tab groups. With Blanc Patron, each Space becomes a space in Blanc Spaces; without it, each Space opens in its own window. Tabs load only when you open them.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport"
+      ],
+      "verdict": "qualified",
+      "reason": "October 14, 2026: public v1.33.0 made Blanc Spaces free for everyone; Blanc Patron is optional support and unlocks nothing (owner decision, docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md). The replacement wording is recorded in docs/website-v1.33-claims.json; the original remains in git history."
+    },
+    {
+      "id": "site-132-workspaces-01",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Open the space control in the command panel or type /space. Active Patrons can save the current window or create a blank space.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "spaceCommand",
+        "workspaces"
+      ],
+      "verdict": "qualified",
+      "reason": "October 14, 2026: public v1.33.0 made Blanc Spaces free for everyone; Blanc Patron is optional support and unlocks nothing (owner decision, docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md). The replacement wording is recorded in docs/website-v1.33-claims.json; the original remains in git history."
+    },
+    {
+      "id": "site-132-workspaces-03",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "In Bring Your Tabs (type /bring-tabs), choose Arc, and each Space you pick becomes a space here, with its pinned tabs, its Today tabs and its folders as tab groups. Without an active Patron membership, each Arc Space opens in its own window instead. Switching from Arc",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "workspaces"
+      ],
+      "verdict": "qualified",
+      "reason": "October 14, 2026: public v1.33.0 made Blanc Spaces free for everyone; Blanc Patron is optional support and unlocks nothing (owner decision, docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md). The replacement wording is recorded in docs/website-v1.33-claims.json; the original remains in git history."
+    },
+    {
+      "id": "site-132-guide-workspaces-01",
+      "source": "site/src/components/guides/workspaces.astro",
+      "exactWording": "Open the space control in the command panel or type /space. Active Patrons can save the current window or create a blank space.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "spaceCommand",
+        "workspaces"
+      ],
+      "verdict": "qualified",
+      "reason": "October 14, 2026: public v1.33.0 made Blanc Spaces free for everyone; Blanc Patron is optional support and unlocks nothing (owner decision, docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md). The replacement wording is recorded in docs/website-v1.33-claims.json; the original remains in git history."
+    },
+    {
+      "id": "site-132-guide-workspaces-03",
+      "source": "site/src/components/guides/workspaces.astro",
+      "exactWording": "In Bring Your Tabs (type /bring-tabs), choose Arc, and each Space you pick becomes a space here, with its pinned tabs, its Today tabs and its folders as tab groups. Without an active Patron membership, each Arc Space opens in its own window instead.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "workspaces"
+      ],
+      "verdict": "qualified",
+      "reason": "October 14, 2026: public v1.33.0 made Blanc Spaces free for everyone; Blanc Patron is optional support and unlocks nothing (owner decision, docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md). The replacement wording is recorded in docs/website-v1.33-claims.json; the original remains in git history."
+    },
+    {
+      "id": "site-132-support-02",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Yes. Type /bring-tabs in the ⌘L or Ctrl+L panel, choose Arc, and pick the Spaces you want. Each Space comes across with its pinned tabs, its Today tabs, and its folders as tab groups. With Blanc Patron, each Space becomes a space in Blanc Spaces; without it, each Space opens in its own window. Tabs load only when you open them. You can also add Arc’s top-row Favorites to a Favorites folder named Arc.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport"
+      ],
+      "verdict": "qualified",
+      "reason": "October 14, 2026: public v1.33.0 made Blanc Spaces free for everyone; Blanc Patron is optional support and unlocks nothing (owner decision, docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md). The replacement wording is recorded in docs/website-v1.33-claims.json; the original remains in git history."
     }
   ]
 }
