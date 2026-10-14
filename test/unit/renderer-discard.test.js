@@ -89,6 +89,17 @@ test('on Linux a verified renderer is ended with SIGKILL, not asked to crash', (
   assert.deepEqual(t.calls, ['kill:4242:SIGKILL']);
 });
 
+test('on Linux the rewritten process title (one space-joined cmdline) is read too', () => {
+  // Chromium rewrites a child's title, so /proc shows a single argument.
+  const t = rendererTarget(4242);
+  const how = terminateRenderer(t.contents, {
+    platform: 'linux', execPath: '/opt/Blanc/blanc', kill: t.kill,
+    readFile: () => '/opt/Blanc/blanc --type=renderer --enable-crash-reporter=x --user-data-dir=/p\0',
+  });
+  assert.equal(how, 'killed');
+  assert.deepEqual(t.calls, ['kill:4242:SIGKILL']);
+});
+
 test('on Linux a pid that is not one of our renderers only gets the crash request', () => {
   for (const argv of [
     ['/usr/bin/other', '--type=renderer'], // another program

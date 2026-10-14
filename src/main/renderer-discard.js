@@ -118,10 +118,12 @@ function terminateRenderer(contents, {
   return 'crash-requested';
 }
 
-/** True when /proc says `pid` runs this executable as a renderer. */
+/** True when /proc says `pid` runs this executable as a renderer. Chromium
+ * rewrites a Linux child's process title, so its cmdline may be one
+ * space-joined string rather than NUL-separated arguments; both are read. */
 function isOwnRenderer(pid, { execPath, readFile }) {
   try {
-    const argv = readFile(`/proc/${pid}/cmdline`, 'utf8').split('\0');
+    const argv = readFile(`/proc/${pid}/cmdline`, 'utf8').split(/[\0 ]+/).filter(Boolean);
     const { basename } = require('node:path');
     return basename(argv[0]) === basename(execPath) && argv.includes('--type=renderer');
   } catch {
