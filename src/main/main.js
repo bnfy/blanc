@@ -219,6 +219,7 @@ const { bananifyServiceAllowed } = require('./bananify-services');
 const { registerWindowsTabImportProtocol } = require('./tab-import-protocol');
 const {
   sleepCandidates,
+  singleFlight,
   mayDiscardRenderer,
   trimSnapshot,
   TAB_SLEEP_DELAY_MS,
@@ -318,7 +319,7 @@ const namedWorkspaces = require('./workspaces');
 const { readArcSidebarFile, readDetectedArcSidebar, detectArcSidebar } = require('./arc-import-source');
 const { createArcImportService } = require('./arc-import');
 const { createWorkspaceController } = require('./workspace-controller');
-const { transferSession, roomPlan, releasePlan, undoRebindTarget } = require('./workspace-residency');
+const { transferSession, roomPlan, releaseOverCap, undoRebindTarget } = require('./workspace-residency');
 const { scratchSwitchGuardResult, MAX_WORKSPACES } = require('./workspaces-model');
 
 // The SDK never loads in main. Only macOS, Windows and Linux create the lazy
@@ -2116,11 +2117,7 @@ async function discardRendererKeepingStorage(tab, wc, owner, { broadcast, navEpo
  * tab mid-teardown. */
 const sleepsInFlight = new Map();
 function sleepTab(id, options) {
-  const run = quietTab(id, options);
-  sleepsInFlight.set(id, run);
-  const clear = () => { if (sleepsInFlight.get(id) === run) sleepsInFlight.delete(id); };
-  run.then(clear, clear);
-  return run;
+  return singleFlight(sleepsInFlight, id, () => quietTab(id, options));
 }
 async function quietTab(id, { broadcast = true } = {}) {
   const tab = tabs.get(id);
@@ -5376,12 +5373,17 @@ let lastRoomPass = null;
 /** Work in a set-aside space that releasing it would lose: a live camera or
  * microphone, sound or media, a shared screen, a pending prompt or popup, or a
  * page with unsaved typing or an unload warning. */
-async function residentHasProtectedWork(resident) {
+function residentHasLiveProtection(resident) {
   const pending = permissionPendingTabIds();
+  return resident.tabOrder.some((id) => {
+    const tab = tabs.get(id);
+    return !!tab && (tab.capturing || tab.audible || tab.usedMedia || tab.displayShareBlocking || pending.has(id) || popupChildCounts.get(id));
+  });
+}
+async function residentHasProtectedWork(resident) {
+  if (residentHasLiveProtection(resident)) return true;
   for (const id of resident.tabOrder) {
     const tab = tabs.get(id);
-    if (!tab) continue;
-    if (tab.capturing || tab.audible || tab.usedMedia || tab.displayShareBlocking || pending.has(id) || popupChildCounts.get(id)) return true;
     const wc = liveContents(tab);
     if (!wc) continue;
     try { if ((await probeTabDirty(tab, wc)).dirty || await hasBeforeUnloadListener(wc)) return true; } catch { return true; }
@@ -5414,15 +5416,17 @@ async function makeRoomForSpaces(profileId) {
   if (!net.isOnline()) return done('offline');
   const residents = () => windowRuntimes.all().filter((r) => r.profileId === profileId && r.resident && !r.closing);
 
-  let released = 0;
-  if (residents().length > MAX_SET_ASIDE) {
-    const protectedIds = new Set();
-    for (const r of residents()) if (await residentHasProtectedWork(r)) protectedIds.add(r.id);
-    for (const r of releasePlan(residents(), { maxSetAside: MAX_SET_ASIDE, isProtected: (x) => protectedIds.has(x.id) })) {
-      if (isQuitting) return done('quitting', { released });
-      if (r.resident && !r.closing && releaseResident(r)) released += 1;
-    }
-  }
+  // Each space beyond the cap is probed and rechecked right before it goes
+  // (releaseOverCap), never cleared on answers gathered earlier.
+  const stillSetAside = (r) => r.resident && !r.closing && r.profileId === profileId && windowRuntimes.all().includes(r);
+  const released = await releaseOverCap(residents, {
+    maxSetAside: MAX_SET_ASIDE,
+    probe: residentHasProtectedWork,
+    recheck: (r) => stillSetAside(r) && !residentHasLiveProtection(r),
+    release: releaseResident,
+    stop: () => isQuitting,
+  });
+  if (isQuitting) return done('quitting', { released });
   if (currentSleepThresholdMs() === null) return done('quiet-tabs-off', { released });
 
   const list = residents();

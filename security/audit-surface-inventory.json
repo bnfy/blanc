@@ -220,7 +220,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "a5b729ca2a6d138df37689241da3231287b60e236a234935725af5471536a029",
+      "sha256": "124930758e54608defa4b3b8b640b453239d08109b81b300955ec39df3150eb7",
       "literalChannels": [
         "activate",
         "before-input-event",
@@ -839,7 +839,7 @@
     },
     {
       "file": "src/main/tab-sleep.js",
-      "sha256": "5b70197f9841119fa95e3ecd9975be8a522cef9c37b407aba85f212ad7a4f49a",
+      "sha256": "60237a5c96c10d6c2f8de9b8096a8a491fd09bff6c71d67b6492c3b915017bad",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },

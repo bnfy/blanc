@@ -226,3 +226,20 @@ test('the snapshot ceiling stops quieting instead of evicting', () => {
   assert.deepEqual(run(list, { snapshotCount: CEILING - 1 }), ['x']);
   assert.deepEqual(run(list, { snapshotCount: 0, maxSnapshots: 1 }), ['x']);
 });
+
+test('only one quiet runs per tab: a second request joins the one in flight', async () => {
+  const { singleFlight } = require('../../src/main/tab-sleep');
+  const inFlight = new Map();
+  let finish; let starts = 0;
+  const start = () => { starts += 1; return new Promise((resolve) => { finish = resolve; }); };
+  const first = singleFlight(inFlight, 't', start);
+  const second = singleFlight(inFlight, 't', start);
+  assert.equal(second, first, 'the same promise, not a second request');
+  assert.equal(starts, 1);
+  assert.equal(inFlight.get('t'), first, 'still registered while it runs');
+  finish(true); assert.equal(await second, true);
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(inFlight.has('t'), false, 'cleared once it settles');
+  singleFlight(inFlight, 't', start);
+  assert.equal(starts, 2, 'a later request starts afresh');
+});

@@ -36,8 +36,11 @@ function roomPlan(residents, { isLive, canQuiet = () => true, lastActiveAt, maxS
     .filter((r) => r.live.length)
     .sort((a, b) => b.since - a.since); // newest first
   const kept = loaded.slice(0, maxSets);
-  const plan = loaded.slice(maxSets).reverse().flatMap((r) => r.live.filter(canQuiet)); // oldest space first
-  let over = kept.reduce((n, r) => n + r.live.length, 0) - maxLiveTabs;
+  const older = loaded.slice(maxSets).reverse(); // oldest space first
+  const plan = older.flatMap((r) => r.live.filter(canQuiet));
+  // Older spaces' tabs that cannot be quieted stay loaded, so they count too.
+  const staying = older.reduce((n, r) => n + r.live.filter((id) => !canQuiet(id)).length, 0);
+  let over = kept.reduce((n, r) => n + r.live.length, 0) + staying - maxLiveTabs;
   for (const r of [...kept].reverse()) { // the older of the kept spaces first
     if (over <= 0) break;
     const take = r.live.filter(canQuiet).slice(0, over);
@@ -60,6 +63,26 @@ function releasePlan(residents, { maxSetAside = 6, isProtected }) {
   }
   return release;
 }
+/** Release set-aside spaces beyond the cap, oldest first, one at a time.
+ * Each candidate is probed (async: unsaved typing, an unload warning) and then
+ * rechecked synchronously (still set aside, no sound, camera or prompt) with
+ * no await before `release`, so protection that starts while another space
+ * is being probed, or during its own probe, is never missed. A candidate that
+ * fails either check is skipped and still counts. Returns how many went. */
+async function releaseOverCap(getResidents, { maxSetAside = 6, probe, recheck, release, stop = () => false }) {
+  const skipped = new Set();
+  let released = 0;
+  for (;;) {
+    if (stop()) break;
+    const [next] = releasePlan(getResidents(), { maxSetAside, isProtected: (r) => skipped.has(r) });
+    if (!next) break;
+    const unsafe = await probe(next);
+    if (stop()) break;
+    if (unsafe || !recheck(next) || !release(next)) { skipped.add(next); continue; }
+    released += 1;
+  }
+  return released;
+}
 /** The window an Undo may rebind to a restored workspace: one the delete
  * unbound that is still open, visible, in no workspace and not mid-switch —
  * and only while no other window holds the workspace (single-window binding). */
@@ -69,4 +92,4 @@ function undoRebindTarget(runtimeIds, runtimes, workspaceId) {
   return runtimes.find((r) => wanted.has(r.id) && r.workspaceId == null && !r.closing && !r.resident && !r.workspaceTransition) ?? null;
 }
 
-module.exports = { transferSession, roomPlan, releasePlan, undoRebindTarget, SESSION_FIELDS };
+module.exports = { transferSession, roomPlan, releasePlan, releaseOverCap, undoRebindTarget, SESSION_FIELDS };

@@ -6,7 +6,7 @@
 // refuse one (unsaved work), which then stays loaded.
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { roomPlan, releasePlan } = require('../../src/main/workspace-residency');
+const { roomPlan, releasePlan, releaseOverCap } = require('../../src/main/workspace-residency');
 
 // A set-aside space: `since` is when it was set aside.
 const space = (since, ...tabs) => ({ residentSince: since, tabOrder: tabs.map(([id]) => id), tabs });
@@ -67,4 +67,42 @@ test('beyond the cap, the oldest set-aside spaces are released, skipping any wit
   assert.deepEqual(release([r('a', 1, true), r('b', 2), r('c', 3), r('d', 4)], 2), ['b', 'c'], 'a protected space stays and still counts');
   assert.deepEqual(release([r('a', 1, true), r('b', 2, true), r('c', 3)], 1), ['c'], 'only what can go goes');
   assert.deepEqual(release([r('a', 1, true), r('b', 2, true)], 1), [], 'nothing unprotected to release');
+});
+
+test('loaded tabs that stay in older spaces still count toward the 16', () => {
+  // One pinned tab in the oldest space (it stays) plus 8 in each newer space
+  // is 17 loaded: one more must go, from the older of the newer two.
+  const residents = [space(1, ['p', 0, true, false]), space(2, ...tabsOf('b', 8, 10)), space(3, ...tabsOf('c', 8, 100))];
+  assert.deepEqual(plan(residents), ['b0']);
+});
+
+test('releasing beyond the cap checks each space again right before it goes', async () => {
+  // a is the oldest. While a's own probe runs, it starts playing audio; the
+  // synchronous recheck just before release must catch that, so b goes.
+  const a = { id: 'a', residentSince: 1, audible: false }, b = { id: 'b', residentSince: 2, audible: false }, c = { id: 'c', residentSince: 3, audible: false };
+  let residents = [a, b, c];
+  const released = [];
+  const count = await releaseOverCap(() => residents, {
+    maxSetAside: 2,
+    probe: async (r) => { if (r === a) a.audible = true; return false; },
+    recheck: (r) => residents.includes(r) && !r.audible,
+    release: (r) => { released.push(r.id); residents = residents.filter((x) => x !== r); return true; },
+  });
+  assert.deepEqual(released, ['b']);
+  assert.equal(count, 1);
+});
+
+test('a space that turns protected during a later probe was not cleared on an earlier answer', async () => {
+  // Each candidate is probed right before it is released, never from a batch
+  // of answers gathered first.
+  const order = [];
+  const a = { id: 'a', residentSince: 1 }, b = { id: 'b', residentSince: 2 }, c = { id: 'c', residentSince: 3 };
+  let residents = [a, b, c];
+  await releaseOverCap(() => residents, {
+    maxSetAside: 2,
+    probe: async (r) => { order.push(`probe:${r.id}`); return false; },
+    recheck: () => true,
+    release: (r) => { order.push(`release:${r.id}`); residents = residents.filter((x) => x !== r); return true; },
+  });
+  assert.deepEqual(order, ['probe:a', 'release:a'], 'only the space to release is probed, then released at once');
 });
