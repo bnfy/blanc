@@ -688,7 +688,7 @@ Every error code a Named Workspace action can report, from workspace-controller.
 
 Why a window may not switch workspaces right now, from workspaceProtection() in main.js.
 
-`'permission-or-transition' \| 'active-page' \| 'resident-capacity'`
+`'permission-or-transition' \| 'active-page'`
 
 ### `WorkspaceAction`
 

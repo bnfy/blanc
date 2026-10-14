@@ -921,10 +921,6 @@
     "message": "Entscheidung zum Space-Wechsel",
     "source": "sha256:3d964ba5532144ce8b083a14b823838f1f212fe861e641fa1ade07ba4966d2b9"
   },
-  "ws.decision.capacity": {
-    "message": "Deine im Speicher gehaltenen Spaces sind voll. Öffne diesen Space in einem anderen Fenster, damit deine Seiten verfügbar bleiben.",
-    "source": "sha256:5062173063caf6585a070ec51ee5380e681536eb4c21a166e159da7b8895eb3f"
-  },
   "ws.decision.protected": {
     "message": "In diesem Fenster sind Seiten, die geöffnet bleiben müssen. Öffne den Space in einem anderen Fenster oder schließe den laufenden Vorgang auf der Seite ab und versuche es erneut.",
     "source": "sha256:1cf3c1878235dc614fa0bc52fde05df78c3aa3aa9a5103872758a6339907f81f"

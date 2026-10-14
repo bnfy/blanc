@@ -886,7 +886,7 @@
       "doc": "Every error code a Named Workspace action can report, from workspace-controller.js, workspaces.js, workspaces-model.js and the workspace functions in main.js."
     },
     "WorkspaceProtectionReason": {
-      "ts": "'permission-or-transition' | 'active-page' | 'resident-capacity'",
+      "ts": "'permission-or-transition' | 'active-page'",
       "doc": "Why a window may not switch workspaces right now, from workspaceProtection() in main.js."
     },
     "WorkspaceAction": {

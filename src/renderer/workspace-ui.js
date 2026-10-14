@@ -569,7 +569,7 @@
       const text = el('div', 'ws-decision-text');
       text.append(dataEl('h2', 'ws-decision-title', t('ws.decision.title', { name: action.name })),
         el('p', 'ws-switcher-confirm-msg', protectedPages
-          ? t(result.reason === 'resident-capacity' ? 'ws.decision.capacity' : 'ws.decision.protected')
+          ? t('ws.decision.protected')
           : t(result.privateCount === result.tabCount ? 'ws.decision.closePrivate' : 'ws.decision.closeUnsaved', { count: result.tabCount })));
       head.append(tile(target), text);
       const actions = el('div', 'ws-decision-actions');

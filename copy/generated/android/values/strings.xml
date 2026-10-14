@@ -245,7 +245,6 @@
     <string name="ws_editor_help">Ordinary tabs save automatically on this device, in this profile. Private pages are excluded. Spaces share this profile’s sign-ins.</string>
     <string name="ws_editor_saving">Saving…</string>
     <string name="ws_decision_label">Space switch decision</string>
-    <string name="ws_decision_capacity">Your retained spaces are full. Open this space in another window to keep your pages available.</string>
     <string name="ws_decision_protected">This window has pages that need to stay open. Open the space in another window, or finish the active page operation and try again.</string>
     <plurals name="ws_decision_close_private">
         <item quantity="one">%1$d private tab will close. Page drafts are not saved to disk.</item>

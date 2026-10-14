@@ -51,6 +51,7 @@ feedback.
 | D19 | The "Kept readable" note (owner, during PR 2) | *(Superseded by D21: no colour is adjusted, so there is no note.)* **Custom colours only.** Presets adapt to every theme without a note: their dark and private inks are the designed values in §1's table, and every preset is lightened in dark mode, so the note would show on all of them. The guard itself still runs for every colour on every theme, and the saved hex is never changed. |
 | D20 | The Spaces glyph (owner, after PR 2) | **A ringed planet, in outline,** so people coming from Arc recognise Spaces (the owner's Arc screenshot shows a planet beside a space's name). Our own drawing, not Arc's asset: a large planet and a flat ring tilted down to the right, in the footer's line weight. It replaces the stacked-windows glyph on the ⌘L footer button (17px) and on the Island's quiet mark (16px), a touch larger than their neighbours so it reads at a glance; defined once as `SpaceIdentity.SPACES_GLYPH`. A space's own symbol is unchanged. |
 | D21 | How a space's colour is drawn (owner, after PR 2; supersedes D19) | **Exactly, as a fill, with white or black on it.** A space's tile is filled with exactly the colour chosen, in every theme, so the full colour picker is honest; its symbol is white or black, whichever contrasts more, which always reaches 4.5:1. On the Island the mark is quiet: the colour fills a small square behind the symbol and the name is the Island's ordinary text. A colour under 3:1 against the surface behind it gets a hairline edge. This replaces the readability guard, its theme-adjusted colours and the "Kept readable" note. Chosen from side-by-side mock-ups in the real app over a fully filled mark (louder than the Island should be) and over keeping the tint with a fixed palette (no free choice). |
+| D22 | Switching when spaces are set aside (owner, after PR 2) | **Switching never stops for a limit.** A window that switches away from a space keeps that space's tabs loaded out of sight so switching back is instant. The first build refused a switch once two spaces were set aside ("Your retained spaces are full"), which people could not understand or get out of. Now every switch goes through, and afterwards, invisibly, Blanc keeps the spaces set aside within budget. At most six stay set aside, whatever Quiet Tabs is doing: the oldest beyond that are saved and released one at a time, each checked again right before it goes, and reopen from their saved tabs (never one with a live camera or microphone, sound, a shared screen, a pending prompt or popup, or unsaved typing). Then, unless Quiet Tabs is off, Blanc quiets tabs (they keep their place, back history and scroll, and reload on return) so that at most two set-aside spaces keep loaded tabs and at most 16 stay loaded across them; the space set aside longest ago gives way first, the one just left last, and within a space its least recently used tabs. Only tabs Quiet Tabs' own policy would quiet are chosen (not audible, pinned, capturing, mid-prompt, an opener family or not safely restorable), so the budget may be exceeded rather than ask. Switching back to a space whose tab is being quieted shows the tab once that settles. Nothing is released or quieted offline. The refusal and its message are gone. |
 
 Decided during design, not asked: once at least one space exists, a window that
 is not in a space shows a **neutral grey mark** (glyph, no name), keeping the
@@ -363,8 +364,9 @@ When switching from a window whose tabs are not in a space (today's
   reviewed translations.)
 - "Save them as a space" opens the editor in New mode with *This window* fixed,
   then continues the switch, preserving today's resume-after-save flow.
-- Protected-pages and resident-capacity variants keep only **Open in a new
-  window** and **Cancel**, with their existing explanations.
+- The protected-pages variant keeps only **Open in a new window** and
+  **Cancel**, with its existing explanation. There is no longer a variant for
+  the spaces set aside being full: switching never stops for that (D22).
 
 ### 9. The checklist task
 
@@ -444,6 +446,21 @@ translated (`data-i18n-ignore`).
   index.
 - De-gating: creation and Arc import succeed without Patron; no `not-patron`
   path remains.
+- Room for set-aside spaces (D22): `roomPlan` quiets nothing within budget,
+  the space set aside longest ago first and its least recently used tabs
+  first, the older of the kept spaces before the one just left, skips tabs
+  already quiet, and never plans a tab Quiet Tabs would not quiet;
+  `releasePlan` releases the oldest beyond the cap and never a protected one,
+  and `releaseOverCap` probes and rechecks each space right before it goes
+  (protection that starts mid-probe is caught); older spaces' tabs that stay
+  loaded count toward the 16; a second quiet request for a tab joins the one
+  in flight (`singleFlight`).
+  Desktop: `@F41-35` switches one window through four spaces (the third
+  switch used to be refused) and the first set aside has its web page
+  quieted; `@F41-36` checks the pass declines with Quiet Tabs off; `@F41-37`
+  keeps a pinned page loaded; `@F41-38` switches back mid-quiet and sees the
+  page; `@F41-39` keeps at most six set aside with Quiet Tabs off. Each fails
+  with its fix undone.
 - Menu state (`workspace-ui.js`): list → editor → list, live apply, delete →
   Undo restore, Recently deleted Forget confirmation, switch-prompt ordering
   and the private-only rule, the zero-spaces list, every colour drawn and

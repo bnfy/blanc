@@ -250,7 +250,6 @@
     <string name="ws_editor_help">As abas comuns são salvas automaticamente neste dispositivo, neste perfil. Páginas privadas ficam de fora. Os Spaces compartilham os logins deste perfil.</string>
     <string name="ws_editor_saving">Salvando…</string>
     <string name="ws_decision_label">Decisão ao trocar de Space</string>
-    <string name="ws_decision_capacity">Seus Spaces mantidos estão cheios. Abra este Space em outra janela para manter suas páginas disponíveis.</string>
     <string name="ws_decision_protected">Esta janela tem páginas que precisam continuar abertas. Abra o Space em outra janela, ou conclua a operação em andamento na página e tente de novo.</string>
     <plurals name="ws_decision_close_private">
         <item quantity="one">%1$d aba privada será fechada. Rascunhos da página não são salvos no disco.</item>

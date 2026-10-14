@@ -219,6 +219,7 @@ const { bananifyServiceAllowed } = require('./bananify-services');
 const { registerWindowsTabImportProtocol } = require('./tab-import-protocol');
 const {
   sleepCandidates,
+  singleFlight,
   mayDiscardRenderer,
   trimSnapshot,
   TAB_SLEEP_DELAY_MS,
@@ -229,7 +230,7 @@ const {
   createCaptureRecord, applyGrant, applySettlement, applyFrameReport,
   projection: captureProjection, clearRecord: clearCaptureRecord,
 } = require('./capture-state');
-const { hasExclusiveRenderer, hasBeforeUnloadListener } = require('./renderer-discard');
+const { hasExclusiveRenderer, hasBeforeUnloadListener, terminateRenderer } = require('./renderer-discard');
 const {
   createTabView,
   wireTabView,
@@ -318,7 +319,7 @@ const namedWorkspaces = require('./workspaces');
 const { readArcSidebarFile, readDetectedArcSidebar, detectArcSidebar } = require('./arc-import-source');
 const { createArcImportService } = require('./arc-import');
 const { createWorkspaceController } = require('./workspace-controller');
-const { transferSession, residencyCapacity, undoRebindTarget } = require('./workspace-residency');
+const { transferSession, roomPlan, releaseOverCap, undoRebindTarget } = require('./workspace-residency');
 const { scratchSwitchGuardResult, MAX_WORKSPACES } = require('./workspaces-model');
 
 // The SDK never loads in main. Only macOS, Windows and Linux create the lazy
@@ -2053,21 +2054,21 @@ async function discardRendererKeepingStorage(tab, wc, owner, { broadcast, navEpo
     try { return hasExclusiveRenderer(wc, webContents.getAllWebContents()); }
     catch { return false; }
   };
-  if (!rendererIsExclusive()) return false;
-  if (await hasBeforeUnloadListener(wc)) return false;
+  if (!rendererIsExclusive()) return 'shared-renderer';
+  if (await hasBeforeUnloadListener(wc)) return 'beforeunload';
 
   // The CDP inspection above is asynchronous. Repeat every mutable eligibility
   // check immediately before the irreversible renderer kill — including
   // capture, which a background tab can legitimately begin during the await,
   // and Glance, which can make the tab visible during it.
-  if (!tabs.has(tab.id) || tab.id === rt().activeTabId || tab.id === rt().glanceTabId
+  if (!tabs.has(tab.id) || (tab.id === rt().activeTabId && !rt().resident) || tab.id === rt().glanceTabId
       || tab.navEpoch !== navEpoch || tab.isLoading
       || !tab.sleeping || !mayDiscardRenderer(tab) || liveContents(tab) !== wc
       // A mid-probe Move-Tab-to-New-Window re-homes the tab; the active/glance
       // checks above read the runtime that STARTED this sleep, so they would
       // miss a tab that is now the destination window's visible page.
       || windowRuntimes.runtimeForTab(tab.id) !== rt()
-      || !rendererIsExclusive()) return false;
+      || !rendererIsExclusive()) return 'changed-during-check';
 
   const wcId = wc.id;
   const quieted = await new Promise((resolve) => {
@@ -2083,10 +2084,14 @@ async function discardRendererKeepingStorage(tab, wc, owner, { broadcast, navEpo
     const onGone = bindWindowRuntime(owner, () => finish(true));
     wc.once('render-process-gone', onGone);
     timer = setTimeout(() => finish(false), 5000);
-    try { wc.forcefullyCrashRenderer(); } catch { finish(false); }
+    // On Linux this is a SIGKILL from the main process; the crash request
+    // Electron sends there can leave a sandboxed renderer running (see
+    // terminateRenderer).
+    try { terminateRenderer(wc); } catch { finish(false); }
   });
 
-  if (!quieted || !tabs.has(tab.id)) return false;
+  if (!quieted) return 'renderer-survived';
+  if (!tabs.has(tab.id)) return 'tab-gone';
   tab.view = null;
   tab.asleep = true;
   tab.sleeping = false;
@@ -2111,10 +2116,19 @@ async function discardRendererKeepingStorage(tab, wc, owner, { broadcast, navEpo
  *
  * @returns {Promise<boolean>} true exactly when destruction was observed
  */
-async function sleepTab(id, { broadcast = true } = {}) {
+/** Quiets in flight, by tab id: a switch back to a set-aside space waits for
+ * one to settle before showing the tab (D22), since setActiveTab refuses a
+ * tab mid-teardown. */
+const sleepsInFlight = new Map();
+function sleepTab(id, options) {
+  return singleFlight(sleepsInFlight, id, () => quietTab(id, options));
+}
+const quietRefusals = new Map();
+async function quietTab(id, { broadcast = true } = {}) {
+  const refuse = (reason) => { quietRefusals.set(id, reason); return false; };
   const tab = tabs.get(id);
   const wc = liveContents(tab);
-  if (!tab || !wc || tab.asleep || tab.sleeping || tab.waking) return false;
+  if (!tab || !wc || tab.asleep || tab.sleeping || tab.waking) return refuse('not-live');
   // Quieting discards the renderer the hint was probed in.
   fillHintScheduler?.clearTab(tab);
 
@@ -2124,31 +2138,31 @@ async function sleepTab(id, { broadcast = true } = {}) {
     const nav = wc.navigationHistory;
     snapshot = trimSnapshot(nav.getAllEntries(), nav.getActiveIndex(), { private: !!tab.private });
   } catch {
-    return false;
+    return refuse('no-history');
   }
-  if (!snapshot) return false;
+  if (!snapshot) return refuse('no-snapshot');
 
   let probe = { dirty: true, hasSessionStorage: false };
   try { probe = await probeTabDirty(tab, wc); } catch {}
-  if (probe.dirty) return false;
+  if (probe.dirty) return refuse('dirty');
 
   // The probe has an async frame budget; validate synchronously immediately
   // before teardown so it can never discard a tab the user just activated —
   // one that began CAPTURING after candidate selection, or one that became
   // the visible Glance reference while an earlier candidate's probe awaited.
-  if (!tabs.has(id) || id === rt().activeTabId || id === rt().glanceTabId
+  if (!tabs.has(id) || (id === rt().activeTabId && !rt().resident) || id === rt().glanceTabId
       || tab.navEpoch !== epochAtProbe
       || tab.isLoading || tab.sleeping || !mayDiscardRenderer(tab) || !liveContents(tab)
       // Same moved-tab blind spot as the sessionStorage path: the runtime
       // that started this sleep no longer owns a tab moved mid-probe.
-      || windowRuntimes.runtimeForTab(id) !== rt()) return false;
+      || windowRuntimes.runtimeForTab(id) !== rt()) return refuse('changed-during-probe');
 
   if (snapshot.droppedPageState) {
     console.debug(`[quiet-tabs] ${id}: page state dropped (oversized or private)`);
   }
   if (sleepSnapshots.size >= MAX_SLEEP_SNAPSHOTS) {
     console.debug('[quiet-tabs] snapshot ceiling reached; refusing to quiet further tabs');
-    return false;
+    return refuse('snapshot-ceiling');
   }
 
   // Keep the old view only until Chromium confirms destruction. Merely dropping
@@ -2171,10 +2185,10 @@ async function sleepTab(id, { broadcast = true } = {}) {
       broadcast,
       navEpoch: epochAtProbe,
     });
-    if (quieted) return true;
+    if (quieted === true) { quietRefusals.delete(id); return true; }
     tab.sleeping = false;
     sleepSnapshots.delete(id);
-    return false;
+    return refuse(`storage:${quieted}`);
   }
 
   sleepTeardownInProgress = true;
@@ -2235,6 +2249,7 @@ async function sleepTab(id, { broadcast = true } = {}) {
 
   if (outcome === 'quiet') {
     sleepTeardownInProgress = false;
+    quietRefusals.delete(id);
     if (broadcast) broadcastTabs();
     return true;
   }
@@ -2259,7 +2274,7 @@ async function sleepTab(id, { broadcast = true } = {}) {
     });
   }
   console.debug(`[quiet-tabs] ${id}: teardown ${outcome} — left awake${aborted ? ' (beforeunload)' : ''}`);
-  return false;
+  return refuse(`teardown:${outcome}`);
 }
 
 /** Downgrade a held entry to its snapshot: destroy the view (unless the
@@ -5236,11 +5251,6 @@ function workspaceProtection(runtime) {
   if (members.some((t) => t.capturing || t.sleeping || t.waking || t.isLoading || t.openerTabId || popupChildCounts.get(t.id))) {
     return { blocked: true, reason: 'active-page' };
   }
-  if (runtime.workspaceId && !residencyCapacity(
-    windowRuntimes.all().filter((r) => r.profileId === runtime.profileId),
-    runtime.workspaceIncoming, members, (id) => liveContents(tabs.get(id)))) {
-    return { blocked: true, reason: 'resident-capacity' };
-  }
   return scratchGuardResult(runtime) ?? { tabCount: 0, privateCount: 0 };
 }
 
@@ -5251,6 +5261,7 @@ function stageWorkspace(runtime, workspace) {
   const makeResident = () => {
     const resident = windowRuntimes.createRuntime({ id: createWindowRuntimeId(), profileId: runtime.profileId });
     resident.resident = true;
+    resident.residentSince = Date.now(); // makeRoomForSpaces quiets the oldest first
     return resident;
   };
   let incoming = workspaceOwner(runtime, workspace.id);
@@ -5263,16 +5274,18 @@ function stageWorkspace(runtime, workspace) {
   const activate = () => {
     const id = runtime.activeTabId;
     runtime.activeTabId = null;
-    if (id) setActiveTab(id, { focusContent: true });
+    const pending = id && tabs.get(id)?.sleeping ? sleepsInFlight.get(id) : null;
+    if (pending) {
+      // Coming back to a set-aside space whose tab make-room is quieting:
+      // show it once that settles (setActiveTab wakes a quiet tab).
+      const show = bindWindowRuntime(runtime, () => {
+        if (!runtime.activeTabId && windowRuntimes.runtimeForTab(id) === runtime) setActiveTab(id, { focusContent: true });
+      });
+      pending.then(show, show);
+    } else if (id) setActiveTab(id, { focusContent: true });
     broadcastTabs();
   };
-  const dispose = (resident) => {
-    withWindowRuntime(resident, () => {
-      resident.closing = true;
-      for (const id of [...resident.tabOrder]) closeTab(id, { record: false, selectReplacement: false });
-    });
-    windowRuntimes.discardRuntime(resident);
-  };
+  const dispose = disposeResident;
   try {
     if (!incoming) {
       incoming = makeResident();
@@ -5294,7 +5307,7 @@ function stageWorkspace(runtime, workspace) {
       if (tab?.view) {
         detachTabView(tab);
       }
-      if (tab) tab.lastActiveAt = Date.now();
+      if (tab && id === runtime.activeTabId) tab.lastActiveAt = Date.now();
     }
     move(runtime, outgoing);
     move(incoming, runtime);
@@ -5338,8 +5351,118 @@ function stageWorkspace(runtime, workspace) {
       }
       if (!outgoing.workspaceId) windowRuntimes.discardRuntime(outgoing);
       finishScope(); activate();
+      // The switch is done; now, out of sight, keep the spaces set aside
+      // within budget (D22). It never delays or blocks a switch.
+      setImmediate(() => {
+        makeRoomForSpaces(runtime.profileId).catch((error) => {
+          lastRoomPass = { outcome: 'failed', at: Date.now() };
+          console.debug('[spaces] making room after a switch failed', error);
+        });
+      });
     },
   };
+}
+
+/** Close a set-aside space's tabs and drop its runtime. */
+function disposeResident(resident) {
+  withWindowRuntime(resident, () => {
+    resident.closing = true;
+    for (const id of [...resident.tabOrder]) closeTab(id, { record: false, selectReplacement: false });
+  });
+  windowRuntimes.discardRuntime(resident);
+}
+
+/** At most this many spaces stay set aside, whatever Quiet Tabs is doing. */
+const MAX_SET_ASIDE = 6;
+/** How the last make-room pass ended (the test hook reads it). */
+let lastRoomPass = null;
+
+/** Work in a set-aside space that releasing it would lose: a live camera or
+ * microphone, sound or media, a shared screen, a pending prompt or popup, or a
+ * page with unsaved typing or an unload warning. */
+function residentHasLiveProtection(resident) {
+  const pending = permissionPendingTabIds();
+  return resident.tabOrder.some((id) => {
+    const tab = tabs.get(id);
+    return !!tab && (tab.capturing || tab.audible || tab.usedMedia || tab.displayShareBlocking || pending.has(id) || popupChildCounts.get(id));
+  });
+}
+async function residentHasProtectedWork(resident) {
+  if (residentHasLiveProtection(resident)) return true;
+  for (const id of resident.tabOrder) {
+    const tab = tabs.get(id);
+    const wc = liveContents(tab);
+    if (!wc) continue;
+    try { if ((await probeTabDirty(tab, wc)).dirty || await hasBeforeUnloadListener(wc)) return true; } catch { return true; }
+  }
+  return false;
+}
+
+/** Save a set-aside space's tabs, then close it; it reopens from them. */
+function releaseResident(resident) {
+  const workspace = namedWorkspaces.get(resident.workspaceId);
+  if (workspace) {
+    const saved = namedWorkspaces.saveCapture(workspace.id, workspaceCapture(resident, { previousActiveIndex: workspace.activeIndex }));
+    if (!saved?.ok) return false;
+  }
+  disposeResident(resident);
+  return true;
+}
+
+/** After a switch, keep the spaces set aside within budget, out of sight
+ * (spec D22). First the hard cap: at most MAX_SET_ASIDE stay set aside; the
+ * oldest beyond it are saved and released (never one with protected work).
+ * Then, unless Quiet Tabs is off, Quiet Tabs quiets tabs (roomPlan) so that at
+ * most two set-aside spaces keep loaded tabs and at most 16 stay loaded,
+ * choosing only tabs its own policy would quiet (sleepCandidates: not
+ * audible, pinned, capturing, mid-prompt, an opener family, or not safely
+ * restorable). Nothing is released or quieted offline or while quitting. */
+async function makeRoomForSpaces(profileId) {
+  const done = (outcome, counts = {}) => { lastRoomPass = { outcome, ...counts, at: Date.now() }; };
+  if (isQuitting) return done('quitting');
+  if (!net.isOnline()) return done('offline');
+  const residents = () => windowRuntimes.all().filter((r) => r.profileId === profileId && r.resident && !r.closing);
+
+  // Each space beyond the cap is probed and rechecked right before it goes
+  // (releaseOverCap), never cleared on answers gathered earlier.
+  const stillSetAside = (r) => r.resident && !r.closing && r.profileId === profileId && windowRuntimes.all().includes(r);
+  const released = await releaseOverCap(residents, {
+    maxSetAside: MAX_SET_ASIDE,
+    probe: residentHasProtectedWork,
+    recheck: (r) => stillSetAside(r) && !residentHasLiveProtection(r),
+    release: releaseResident,
+    stop: () => isQuitting,
+  });
+  if (isQuitting) return done('quitting', { released });
+  if (currentSleepThresholdMs() === null) return done('quiet-tabs-off', { released });
+
+  const list = residents();
+  const pending = permissionPendingTabIds();
+  const quietable = new Set(list.flatMap((r) => sleepCandidates(r.tabOrder.map((id) => tabs.get(id)).filter(Boolean), {
+    now: Date.now(),
+    thresholdMs: currentSleepThresholdMs(),
+    activeTabId: null, // a set-aside space's active tab is not on screen
+    ignoreThreshold: true,
+    snapshotCount: sleepSnapshots.size,
+    maxSnapshots: MAX_SLEEP_SNAPSHOTS,
+    permissionPendingTabIds: pending,
+    popupChildCounts,
+  })));
+  const plan = roomPlan(list, {
+    isLive: (id) => !!liveContents(tabs.get(id)) && !tabs.get(id)?.private,
+    canQuiet: (id) => quietable.has(id),
+    lastActiveAt: (id) => tabs.get(id)?.lastActiveAt ?? 0,
+  });
+  let quieted = 0;
+  const refused = [];
+  for (const id of plan) {
+    if (isQuitting) return done('quitting', { released, quieted });
+    const owner = windowRuntimes.runtimeForTab(id);
+    if (!owner?.resident || owner.closing) { refused.push({ id, reason: 'not-set-aside' }); continue; } // switched back to meanwhile
+    if (await withWindowRuntime(owner, () => sleepTab(id, { broadcast: false }))) quieted += 1;
+    else refused.push({ id, reason: quietRefusals.get(id) ?? 'joined-in-flight' });
+  }
+  return done('done', { released, quieted, planned: plan.length, candidates: quietable.size, loaded: list.map((r) => r.tabOrder.filter((id) => liveContents(tabs.get(id))).length), refused });
 }
 
 const workspaceController = createWorkspaceController({
@@ -10288,7 +10411,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         const announced = (result) => { if (result?.ok) broadcastWorkspacesUpdated(); return result; };
         if (action === 'list') return workspacesProjection();
         if (action === 'save') return announced(saveCurrentWindowAsWorkspace(rt(), args[0]));
-        if (action === 'open') return switchWindowToWorkspace(rt(), args[0], args[1]);
+        if (action === 'open') return announced(switchWindowToWorkspace(rt(), args[0], args[1]));
         if (action === 'create') return createBlankWorkspaceAndSwitch(rt(), args[0], args[1]);
         if (action === 'fail-session-commit') {
           const original = fs.renameSync; let writes = 0;
@@ -10375,6 +10498,30 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         : Promise.resolve({ available: false, loaded: false, processCount: 0 }),
       runBlockAdsCommand, runAllowAdsCommand,
       getOverlayMode: () => rt().overlayMode, showOverlay, hideOverlay, getPrivateBrowsingSession,
+      // The spaces set aside after a switch (D22), oldest first, and whether
+      // each of their tabs is loaded or quiet.
+      getResidentSpaces: () => windowRuntimes.all().filter((r) => r.resident && !r.closing)
+        .sort((a, b) => (a.residentSince ?? 0) - (b.residentSince ?? 0))
+        .map((r) => ({
+          name: namedWorkspaces.get(r.workspaceId)?.name ?? null,
+          tabs: r.tabOrder.map((id) => { const tab = tabs.get(id); return { id, url: tab?.url ?? '', pinned: !!tab?.pinned, live: !!liveContents(tab), asleep: !!tab?.asleep }; }),
+        })),
+      getRoomPass: () => lastRoomPass,
+      // Starts quieting a set-aside space's active tab, waits until its
+      // teardown is under way, then switches this window back to that space.
+      raceSwitchBackDuringQuiet: async (workspaceId) => {
+        const resident = windowRuntimes.all().find((r) => r.resident && r.workspaceId === workspaceId);
+        const id = resident?.activeTabId;
+        if (!id) return { error: 'no-resident' };
+        const quiet = withWindowRuntime(resident, () => sleepTab(id, { broadcast: false }));
+        const deadline = Date.now() + 3000;
+        while (!tabs.get(id)?.sleeping && sleepsInFlight.has(id) && Date.now() < deadline) await new Promise((resolve) => setImmediate(resolve));
+        const sleepingAtSwitch = !!tabs.get(id)?.sleeping;
+        const result = switchWindowToWorkspace(rt(), workspaceId);
+        if (result?.ok) broadcastWorkspacesUpdated();
+        await quiet;
+        return { result, tabId: id, sleepingAtSwitch };
+      },
       isOverlayViewShowing: () => {
         const view = rt().overlayView;
         if (!view || !hasLiveWindow()) return false;

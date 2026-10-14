@@ -139,7 +139,22 @@ function mayDiscardRenderer(tab) {
   return tab?.displayShareBlocking !== true && tab?.capturing !== true;
 }
 
+/** At most one `start()` per key at a time: a call while one is in flight
+ * returns that same promise; the entry clears once it settles. Quiet Tabs
+ * uses it so overlapping requests never replace a teardown that a switch
+ * back is waiting on. */
+function singleFlight(inFlight, key, start) {
+  const existing = inFlight.get(key);
+  if (existing) return existing;
+  const run = start();
+  inFlight.set(key, run);
+  const clear = () => { if (inFlight.get(key) === run) inFlight.delete(key); };
+  run.then(clear, clear);
+  return run;
+}
+
 module.exports = {
+  singleFlight,
   sleepCandidates,
   mayDiscardRenderer,
   trimSnapshot,

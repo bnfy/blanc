@@ -921,10 +921,6 @@
     "message": "Choix avant de changer de Space",
     "source": "sha256:3d964ba5532144ce8b083a14b823838f1f212fe861e641fa1ade07ba4966d2b9"
   },
-  "ws.decision.capacity": {
-    "message": "Vos Spaces conservés sont pleins. Ouvrez ce Space dans une autre fenêtre pour garder vos pages disponibles.",
-    "source": "sha256:5062173063caf6585a070ec51ee5380e681536eb4c21a166e159da7b8895eb3f"
-  },
   "ws.decision.protected": {
     "message": "Cette fenêtre contient des pages qui doivent rester ouvertes. Ouvrez le Space dans une autre fenêtre, ou terminez l’opération en cours sur la page et réessayez.",
     "source": "sha256:1cf3c1878235dc614fa0bc52fde05df78c3aa3aa9a5103872758a6339907f81f"

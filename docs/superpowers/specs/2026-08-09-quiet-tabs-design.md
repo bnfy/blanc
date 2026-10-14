@@ -372,8 +372,15 @@ Electron 43: a close/new-WebContents wake changed `sessionStorage` from
 the same WebContents preserved it.
 
 When any frame reports non-empty `sessionStorage`, keep its WebContentsView in
-the main-process snapshot record, call `forcefullyCrashRenderer()`, and reload
-that same WebContents on wake. This still releases the measured renderer
+the main-process snapshot record, end its renderer process, and reload
+that same WebContents on wake. On macOS and Windows that is
+`forcefullyCrashRenderer()`, which kills the process. On Linux that call only
+asks the renderer to crash itself, and a sandboxed renderer can ignore it (on
+GitHub's Ubuntu runners the process was still alive five seconds later, so no
+storage-bearing tab ever became quiet there), so Blanc sends the process
+SIGKILL from the main process after checking in `/proc` that the pid is one of
+its own renderers (`terminateRenderer` in `renderer-discard.js`); any doubt
+falls back to the crash request. This still releases the measured renderer
 process. It does not serialize, inspect, or copy site storage into Blanc's heap.
 
 Two fail-closed guards are mandatory because a renderer kill bypasses unload:

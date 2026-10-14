@@ -949,10 +949,6 @@
     "message": "Space switch decision",
     "note": "Accessible name of the box asking what to do with this window’s tabs before switching space."
   },
-  "ws.decision.capacity": {
-    "message": "Your retained spaces are full. Open this space in another window to keep your pages available.",
-    "note": "Shown before switching space when no more spaces can be kept in memory."
-  },
   "ws.decision.protected": {
     "message": "This window has pages that need to stay open. Open the space in another window, or finish the active page operation and try again.",
     "note": "Shown before switching space when a page in this window is busy (for example uploading or capturing)."
