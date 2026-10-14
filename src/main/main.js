@@ -7,6 +7,7 @@ const crypto = require('crypto');
 const { installMacOSQuitVisibilityGate } = require('./macos-quit');
 const {
   shouldClearPersistedWindowState,
+  windowCloseSessionEffect,
   windowStateName,
   windowStatePersistenceOptions,
 } = require('./window-state-persistence');
@@ -4313,6 +4314,11 @@ function adblockWeekStats() {
 }
 
 let isQuitting = false;
+// Set once the last Windows/Linux window's close has saved the session with
+// that window's tabs. Its pages are torn down before window-all-closed starts
+// the quit, and a session write in between would save the window without the
+// pages it lost. A new main window clears it: Blanc did not quit after all.
+let sessionHeldForQuit = false;
 let sessionPersistenceSuspended = false;
 const restartApp = createAppRestarter({ app, webContents, onCancelled: () => {
   isQuitting = false;
@@ -4391,7 +4397,7 @@ function captureWindowEntry(runtime, { previousActiveIndex = 0 } = {}) {
 function persistSession() {
   // Teardown closes tabs one by one; saving then would erode the session
   // file down to whatever closed last before the process exits.
-  if (isQuitting || sessionPersistenceSuspended || tabs.size === 0) return;
+  if (isQuitting || sessionHeldForQuit || sessionPersistenceSuspended || tabs.size === 0) return;
   if (sessionReadOnly) return; // a newer format owns this file — never rewrite it
   ensureSessionStore().update((d) => {
     const previous = loadWorkspace(d);
@@ -8532,6 +8538,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
   if (runtime.window && !runtime.window.isDestroyed()) return runtime;
   runtime.closing = false;
   runtime.chromeReady = false;
+  sessionHeldForQuit = false;
   installProfileSessionPolicies(runtime.profileId);
   const localProfile = localProfiles.getLocalProfile(runtime.profileId);
   // Packaged Windows builds inherit the multi-resolution icon embedded in
@@ -8625,16 +8632,32 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     // reattachment, not a user switch, so it must not dismiss that sheet.
     activateTab: (id) => setActiveTab(id, { dismissUtilitySheet: false }),
     flushExternalUrls,
-    // A normal secondary close destroys its pages. Commit both the final named
-    // capture and session removal before Electron can tear those views down.
-    // Primary macOS close retains its runtime for Dock reopen; forced closes
-    // mark runtime.closing before reaching this hook.
+    // Read at close time, like the rest of this hook. A window that is
+    // already committed to closing does not keep Blanc open.
+    sessionCloseEffect: () => windowCloseSessionEffect({
+      platform: process.platform,
+      isPrimaryWindow: runtime === primaryRuntime,
+      otherOpenWindows: windowRuntimes.all().filter((candidate) => candidate !== runtime
+        && candidate.window && !candidate.window.isDestroyed() && !candidate.closing).length,
+    }),
+    // A normal close destroys its pages. Commit the final named capture and
+    // the session before Electron can tear those views down: a window that is
+    // not the last leaves the session, while the last Windows/Linux window,
+    // whose close quits Blanc, is saved with its tabs and then held for the
+    // quit. Primary macOS close retains its runtime for Dock reopen; forced
+    // closes mark runtime.closing before reaching this hook.
     // A future session file is intentionally read-only and cannot be made
     // writable by retrying. Preserve that file, but do not trap every scratch
     // window from a newer Blanc version on screen.
-    beforeWindowClose: () => sessionReadOnly || (runtime === primaryRuntime && process.platform === 'darwin')
-      ? { ok: true }
-      : checkpointWorkspaceSession(runtime, { excludeRuntime: runtime }),
+    beforeWindowClose: (effect) => {
+      if (sessionReadOnly || effect === 'dock') return { ok: true };
+      if (effect === 'quit') {
+        const result = checkpointWorkspaceSession(runtime);
+        if (result.ok) sessionHeldForQuit = true;
+        return result;
+      }
+      return checkpointWorkspaceSession(runtime, { excludeRuntime: runtime });
+    },
     onCloseBlocked: () => {
       broadcastWorkspacesUpdated();
       dialog.showMessageBoxSync(runtime.window, {
@@ -8671,6 +8694,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     const clearPersistedWindowState = shouldClearPersistedWindowState({
       isQuitting,
       isPrimaryWindow: runtime === primaryRuntime,
+      closeEffect: dockReopenLifecycle.closeSessionEffect(),
     });
     if (clearPersistedWindowState) {
       runtime.closing = true;
@@ -8689,6 +8713,8 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
       // The primary window's workspaceId deliberately survives detachWindow,
       // same as its tabs/groups below: dock-reopen recreates the window over
       // the SAME workspace, not a scratch one. See window-runtime-registry.js.
+      // The last Windows/Linux window also lands here: its close quits Blanc,
+      // and like Quit it keeps its saved tabs and native placement.
       for (const entry of runtime.closedEntries ?? []) {
         if (entry.view) downgradeHeldEntry(entry);
       }
