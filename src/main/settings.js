@@ -463,7 +463,13 @@ function setSettings(partial) {
   const clean = sanitize(partial);
   // Strict-custom invariant (F25): an invalid custom transition must not degrade to
   // plaintext-capable Automatic. reconcileSecureDnsWrite (unit-tested) rejects such a
-  // change, preserving the last valid configuration.
+  // change, preserving the last valid configuration. sanitize() already dropped
+  // a refused address, so drop the provider sent with it too: otherwise Custom
+  // could switch on with an older stored address while Settings says the
+  // previous provider is still in use.
+  if (typeof partial.secureDnsTemplate === 'string' && !('secureDnsTemplate' in clean)) {
+    delete clean.secureDns;
+  }
   if ('secureDns' in clean || 'secureDnsTemplate' in clean) {
     const dns = reconcileSecureDnsWrite(
       { secureDns: s.data.secureDns, secureDnsTemplate: s.data.secureDnsTemplate },

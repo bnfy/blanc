@@ -96,7 +96,7 @@ test('reconcileSecureDnsWrite: valid atomic custom write is accepted', () => {
 });
 
 test('reconcileSecureDnsWrite: selecting custom without a valid template is rejected (keeps previous)', () => {
-  // sanitize drops an invalid template, so the partial reaching here is often just {secureDns:'custom'}.
+  // A bare {secureDns:'custom'} relies on the stored template; with none, it is refused.
   assert.deepEqual(
     reconcileSecureDnsWrite({ secureDns: 'auto', secureDnsTemplate: '' }, { secureDns: 'custom' }),
     { secureDns: 'auto', secureDnsTemplate: '' },
@@ -114,10 +114,9 @@ test('reconcileSecureDnsWrite: clearing the template while custom is active is r
   );
 });
 
-test('reconcileSecureDnsWrite: resubmitting custom with a dropped invalid template keeps the old valid one', () => {
-  // sanitize drops an invalid replacement template, so reconcile sees {secureDns:'custom'}
-  // with no template key while custom is already active — it must retain the prior valid
-  // template (the renderer detects this "template unchanged" case and shows the error).
+test('reconcileSecureDnsWrite: re-selecting custom while it is active keeps the valid template', () => {
+  // setSettings drops the provider sent with a refused address before this runs
+  // (secure-dns-settings.test.js), so a bare {secureDns:'custom'} is a re-selection.
   assert.deepEqual(
     reconcileSecureDnsWrite({ secureDns: 'custom', secureDnsTemplate: VALID }, { secureDns: 'custom' }),
     { secureDns: 'custom', secureDnsTemplate: VALID },
