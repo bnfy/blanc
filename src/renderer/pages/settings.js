@@ -22,6 +22,48 @@
   const { t } = blancI18n;
   const cap = capabilities ? new Set(capabilities) : null;
   const supports = (feature) => !cap || cap.has(feature);
+
+  // The Dark websites and blocker exception lists share one shape: a row per
+  // site with an always-visible × named for that site. After a removal, focus
+  // moves to the × now in the same place, or to the add field once the list
+  // is empty, so a keyboard user is never dropped back at the top of the page.
+  // Removals run one at a time and each reads the saved list afresh, so two
+  // quick clicks can never write back a site the first one removed.
+  let siteRemovals = Promise.resolve();
+  function renderSiteList({ list, input, hostnames, emptyKey, onRemove }) {
+    list.replaceChildren();
+    if (hostnames.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'site-list-empty';
+      empty.textContent = t(emptyKey);
+      list.append(empty);
+      return;
+    }
+    [...hostnames].sort().forEach((hostname, index) => {
+      const row = document.createElement('div');
+      row.className = 'site-row';
+      const name = document.createElement('span');
+      name.className = 'site-row-name';
+      name.textContent = hostname;
+      name.dataset.i18nIgnore = '';
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'site-row-remove';
+      remove.textContent = '×';
+      remove.setAttribute('aria-label', t('settings.siteList.remove', { site: hostname }));
+      remove.addEventListener('click', async () => {
+        const hadFocus = document.activeElement === remove;
+        siteRemovals = siteRemovals.then(() => onRemove(hostname)).catch((error) => console.error(error));
+        await siteRemovals;
+        if (!hadFocus) return;
+        const buttons = list.querySelectorAll('.site-row-remove');
+        (buttons[Math.min(index, buttons.length - 1)] ?? input).focus();
+      });
+      row.append(name, remove);
+      list.append(row);
+    });
+  }
+
   function renderWallpaperSetting() {
     if (!supports('newtabDynamicWallpaper')) return;
     const control = document.getElementById('newtabDynamicWallpaper');
@@ -220,38 +262,18 @@
       darkWebsites.checked = current.darkWebsites === true;
       darkExceptionsBlock.hidden = !darkWebsites.checked;
       const exceptions = current.darkWebsitesExceptions ?? [];
-      darkExceptionList.replaceChildren();
-      if (exceptions.length === 0) {
-        const empty = document.createElement('div');
-        empty.className = 'empty';
-        empty.textContent = t('settings.general.darkExceptionList.empty');
-        darkExceptionList.append(empty);
-        return;
-      }
-      for (const hostname of [...exceptions].sort()) {
-        const row = document.createElement('div');
-        row.className = 'row';
-        const main = document.createElement('div');
-        main.className = 'main';
-        const title = document.createElement('div');
-        title.className = 'title';
-        title.textContent = hostname;
-        title.dataset.i18nIgnore = '';
-        main.append(title);
-        const actions = document.createElement('div');
-        actions.className = 'actions';
-        const remove = document.createElement('button');
-        remove.className = 'danger';
-        remove.textContent = t('settings.remove');
-        remove.addEventListener('click', async () => {
+      renderSiteList({
+        list: darkExceptionList,
+        input: darkExceptionInput,
+        hostnames: exceptions,
+        emptyKey: 'settings.general.darkExceptionList.empty',
+        onRemove: async (hostname) => {
+          const { settings: saved } = await window.bowserPages.settings.get();
           renderDarkExceptions(await window.bowserPages.settings.set({
-            darkWebsitesExceptions: exceptions.filter((h) => h !== hostname),
+            darkWebsitesExceptions: (saved.darkWebsitesExceptions ?? []).filter((h) => h !== hostname),
           }));
-        });
-        actions.append(remove);
-        row.append(main, actions);
-        darkExceptionList.append(row);
-      }
+        },
+      });
     }
 
     async function addDarkException() {
@@ -1078,44 +1100,19 @@
     async function refreshExceptions() {
       const { settings: current } = await window.bowserPages.settings.get();
       const exceptions = current.adblockExceptions ?? [];
-      exceptionList.replaceChildren();
-
-      if (exceptions.length === 0) {
-        const empty = document.createElement('div');
-        empty.className = 'empty';
-        empty.textContent = t('settings.privacy.exceptionList.empty');
-        exceptionList.append(empty);
-        return;
-      }
-
-      for (const hostname of [...exceptions].sort()) {
-        const row = document.createElement('div');
-        row.className = 'row';
-
-        const main = document.createElement('div');
-        main.className = 'main';
-        const title = document.createElement('div');
-        title.className = 'title';
-        title.textContent = hostname;
-        title.dataset.i18nIgnore = '';
-        main.append(title);
-
-        const actions = document.createElement('div');
-        actions.className = 'actions';
-        const remove = document.createElement('button');
-        remove.className = 'danger';
-        remove.textContent = t('settings.remove');
-        remove.addEventListener('click', async () => {
+      renderSiteList({
+        list: exceptionList,
+        input: exceptionInput,
+        hostnames: exceptions,
+        emptyKey: 'settings.privacy.exceptionList.empty',
+        onRemove: async (hostname) => {
+          const { settings: saved } = await window.bowserPages.settings.get();
           await window.bowserPages.settings.set({
-            adblockExceptions: exceptions.filter((h) => h !== hostname),
+            adblockExceptions: (saved.adblockExceptions ?? []).filter((h) => h !== hostname),
           });
-          refreshExceptions();
-        });
-        actions.append(remove);
-
-        row.append(main, actions);
-        exceptionList.append(row);
-      }
+          await refreshExceptions();
+        },
+      });
     }
 
     async function addException() {

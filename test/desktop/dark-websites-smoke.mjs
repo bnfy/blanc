@@ -125,6 +125,16 @@ try {
   await sheet.fill('#darkExceptionInput', 'https://www.Example.com/path');
   await sheet.click('#darkExceptionAdd');
   await waitForValue(async () => (await settingsNow()).darkWebsitesExceptions, (v) => JSON.stringify(v) === '["example.com"]', 'site added from Settings, normalized', 4000);
+  // Each listed site has its own remove control, shown without hover and
+  // named for the site it removes.
+  await sheet.fill('#darkExceptionInput', 'other.example.net');
+  await sheet.press('#darkExceptionInput', 'Enter');
+  await waitForValue(async () => (await settingsNow()).darkWebsitesExceptions, (v) => JSON.stringify(v) === '["example.com","other.example.net"]', 'site added with Enter', 4000);
+  const removeOther = sheet.locator('#darkExceptionList button[aria-label="Remove other.example.net"]');
+  await removeOther.waitFor({ state: 'visible' });
+  assert.equal(await removeOther.evaluate((el) => getComputedStyle(el).opacity), '1', 'remove control shown without hover');
+  await removeOther.click();
+  await waitForValue(async () => (await settingsNow()).darkWebsitesExceptions, (v) => JSON.stringify(v) === '["example.com"]', 'site removed from Settings', 4000);
   await sheet.keyboard.press('Escape');
 
   // 8. The shield popover's Dark website switch is /dark-site for this site.

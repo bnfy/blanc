@@ -1037,6 +1037,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_general_default_browser_btn_installed_only">Disponible dans l’app installée</string>
     <string name="settings_general_dark_exception_list_empty">Aucun site ajouté.</string>
     <string name="settings_remove">Retirer</string>
+    <string name="settings_site_list_remove">Retirer %1$s</string>
     <string name="settings_gesture_action_back">Précédent</string>
     <string name="settings_gesture_action_forward">Suivant</string>
     <string name="settings_gesture_action_reload">Actualiser</string>

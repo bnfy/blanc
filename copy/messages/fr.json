@@ -3667,7 +3667,11 @@
   },
   "settings.remove": {
     "message": "Retirer",
-    "source": "sha256:ed16771d5b4301db37eba80b0dab8ef6c02673e1406b6a5fc5e9d61eafee234f"
+    "source": "sha256:c0eaeb8d1f5fbe49fb9c9f62afcc0ba720fea8588b00b922bd633e55fa173d51"
+  },
+  "settings.siteList.remove": {
+    "message": "Retirer {site}",
+    "source": "sha256:728a4609a6fa0546db182e07687ab6a73a57c871a6af1f1153f6d6414febe1ef"
   },
   "settings.gesture.action.back": {
     "message": "Précédent",
