@@ -8,7 +8,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   page="feature-workspaces"
   current="features"
   ogImage="/feature-workspaces.png"
-  ogImageAlt="Blanc’s workspace switcher listing saved named workspaces."
+  ogImageAlt="Blanc’s Spaces menu open below the Island, listing Work, Home, Painting class and Lisbon trip."
 >
   <script type="application/ld+json" is:inline slot="head">
 {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://blanc.day/"},{"@type":"ListItem","position":2,"name":"Features","item":"https://blanc.day/features"},{"@type":"ListItem","position":3,"name":"Blanc Spaces","item":"https://blanc.day/features/workspaces"}]}
@@ -17,12 +17,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">home</a><span aria-hidden="true">/</span><a href="/features">features</a><span aria-hidden="true">/</span><span aria-current="page">blanc spaces</span></nav>
   <section class="feature-hero feature-hero--detail feature-hero--text" aria-labelledby="workspaces-title">
     <p class="section-kicker">Blanc Spaces</p>
-    <h1 id="workspaces-title">Save a whole window. Return to it by name.</h1>
-    <p>When a project takes more than one tab, keep its setup ready to return to. Blanc Spaces save a window’s tabs and groups under a name you choose.</p>
+    <h1 id="workspaces-title">Work, home and side projects, each in its own space.</h1>
+    <p>When one window holds everything, tabs pile up and get in each other’s way. Give each part of your day its own space, then switch from the Island. Its tabs and groups come back, even after you restart.</p>
   </section>
   <figure class="product-capture feature-capture released-capture">
-    <a href="/feature-captures/workspaces-v1.30.1.png" aria-label="View full Blanc Spaces capture"><img src="/feature-captures/workspaces-v1.30.1.webp" width="1440" height="900" loading="lazy" decoding="async" alt="Blanc’s workspace switcher listing saved named workspaces." /></a>
-    <figcaption>Switch between saved sets from the Island’s space control.</figcaption>
+    <a href="/feature-captures/workspaces-v1.33.0.png" aria-label="View full Blanc Spaces capture"><img src="/feature-captures/workspaces-v1.33.0.webp" width="1440" height="900" loading="lazy" decoding="async" alt="Blanc in the Painting class space on The Met’s Wheat Field with Cypresses page, with the Spaces menu open below the Island listing Work, Home, Painting class and Lisbon trip, each with its colour and symbol." /></a>
+    <figcaption>Switch spaces from the Island.</figcaption>
   </figure>
   <section class="feature-copy-grid feature-copy-grid--top" aria-labelledby="workspaces-section-0">
     <div><h2 id="workspaces-section-0">Name it once. Keep it up to date as you browse.</h2></div>
@@ -34,6 +34,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       <article><h3>You decide what belongs together</h3><p>Create groups and assign tabs yourself. Blanc saves those choices; it does not detect tasks or organize tabs by meaning.</p></article>
     </div>
   </section>
+  <figure class="product-capture feature-capture released-capture">
+    <a href="/feature-captures/workspaces-edit-v1.33.0.png" aria-label="View full Blanc Spaces editor capture"><img src="/feature-captures/workspaces-edit-v1.33.0.webp" width="1440" height="900" loading="lazy" decoding="async" alt="The Painting class space’s editor below the Island: its name, eight colour swatches with purple selected, and sixteen symbols with the graduation cap selected." /></a>
+    <figcaption>Give each space a colour and a symbol.</figcaption>
+  </figure>
   <section class="feature-copy-grid" aria-labelledby="workspaces-section-1">
     <div><h2 id="workspaces-section-1">Free, on every desktop platform.</h2></div>
     <div class="feature-copy-list">
