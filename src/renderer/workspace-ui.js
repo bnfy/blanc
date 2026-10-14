@@ -17,10 +17,13 @@
   const t = i18n.t;
   const number = new Intl.NumberFormat(i18n.formatLocale());
   const relativeDay = new Intl.RelativeTimeFormat(i18n.formatLocale(), { numeric: 'auto' });
-  /** Whole local calendar days from `ms` to now ("today" is 0), never negative. */
+  /** Whole local calendar days from `ms` to now ("today" is 0), never
+   * negative; null when `ms` is not a usable time (NaN, or a finite number
+   * outside the Date range such as 1e20, which makes an invalid Date). */
   function daysAgo(ms, now = Date.now()) {
     const day = (value) => { const d = new Date(value); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); };
-    return Math.max(0, Math.round((day(now) - day(ms)) / 86400000)); // round: a DST day is 23 or 25 hours
+    const days = Math.round((day(now) - day(ms)) / 86400000); // round: a DST day is 23 or 25 hours
+    return Number.isFinite(days) ? Math.max(0, days) : null;
   }
   // The workspace and deleted-workspace cap: MAX_WORKSPACES in main's
   // workspaces-model.js (a unit test keeps the two equal).
@@ -590,7 +593,8 @@
         const name = dataEl('span', 'ws-row-name', entry.name); name.title = entry.name;
         text.append(name);
         // A date that cannot be read is left out rather than breaking the view.
-        if (Number.isFinite(entry.deletedAt)) text.append(el('span', 'ws-recovery-when', t('ws.recovery.deletedWhen', { when: relativeDay.format(-daysAgo(entry.deletedAt), 'day') })));
+        const days = daysAgo(entry.deletedAt);
+        if (days !== null) text.append(el('span', 'ws-recovery-when', t('ws.recovery.deletedWhen', { when: relativeDay.format(-days, 'day') })));
         // Named for screen readers, so each row's buttons are distinct.
         const restore = button(t('ws.recovery.restore'), `restore:${entry.id}`, () => run(() => api.restoreWorkspace(entry.id), () => { if (undo?.id === entry.id) undo = null; }), 'ws-pill');
         restore.setAttribute('aria-label', t('ws.recovery.restoreNamed', { name: entry.name }));

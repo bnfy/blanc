@@ -205,11 +205,15 @@ test('Recently Deleted shows each space as it was, with when it went, Restore an
 });
 
 test('a deleted space with no usable date still lists, without the date line', () => {
-  const deleted = [{ id: 'x', name: 'Odd', deletedAt: Number.NaN, color: '#426c4c', symbol: 'book' }];
-  const h = harness({}, { ...TWO, deleted }); h.ui.open(); h.byKey('recently-deleted').click();
-  const [row] = h.popup.querySelectorAll('.ws-recovery-row');
-  assert.ok(row, 'the view still renders');
-  assert.equal(row.querySelector('.ws-recovery-when'), null);
+  // NaN, and a finite number past the largest Date (1e20 survives the store's
+  // normalization and expiry filter, then makes an invalid Date).
+  for (const deletedAt of [Number.NaN, 1e20, -1e20]) {
+    const deleted = [{ id: 'x', name: 'Odd', deletedAt, color: '#426c4c', symbol: 'book' }];
+    const h = harness({}, { ...TWO, deleted }); h.ui.open(); h.byKey('recently-deleted').click();
+    const [row] = h.popup.querySelectorAll('.ws-recovery-row');
+    assert.ok(row, `the view still renders for ${deletedAt}`);
+    assert.equal(row.querySelector('.ws-recovery-when'), null, `no date line for ${deletedAt}`);
+  }
 });
 
 test('Escape steps back one level at a time', async () => {
