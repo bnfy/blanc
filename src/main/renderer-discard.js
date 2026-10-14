@@ -111,7 +111,9 @@ function terminateRenderer(contents, {
     let pid = null;
     try { pid = contents.getOSProcessId(); } catch {}
     if (Number.isInteger(pid) && pid > 0 && isOwnRenderer(pid, { execPath, readFile })) {
-      try { kill(pid, 'SIGKILL'); return 'killed'; } catch {}
+      try { kill(pid, 'SIGKILL'); return 'killed'; } catch (error) { console.debug(`[quiet-tabs] kill(${pid}) failed: ${error?.code ?? error}`); }
+    } else {
+      console.debug(`[quiet-tabs] pid ${pid} not verified as our renderer (execPath ${execPath})`);
     }
   }
   contents.forcefullyCrashRenderer();

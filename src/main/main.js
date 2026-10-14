@@ -2071,6 +2071,18 @@ async function discardRendererKeepingStorage(tab, wc, owner, { broadcast, navEpo
       || !rendererIsExclusive()) return 'changed-during-check';
 
   const wcId = wc.id;
+  const pid = (() => { try { return wc.getOSProcessId(); } catch { return null; } })();
+  const startedAt = Date.now();
+  const fs = require('node:fs');
+  const read = (file) => { try { return fs.readFileSync(file, 'utf8').trim(); } catch (e) { return `gone:${e.code}`; } };
+  const procReport = () => {
+    const st = read(`/proc/${pid}/status`);
+    const field = (name) => st.match(new RegExp(`^${name}:\\s*(.*)$`, 'm'))?.[1];
+    let threads = [];
+    try { threads = fs.readdirSync(`/proc/${pid}/task`).map((t) => `${t}:${read(`/proc/${pid}/task/${t}/stat`).split(') ')[1]?.[0]}@${read(`/proc/${pid}/task/${t}/wchan`)}`); } catch {}
+    return `state=${field('State')} threads=${field('Threads')} sigpnd=${field('SigPnd')} shdpnd=${field('ShdPnd')} wchan=${read(`/proc/${pid}/wchan`)} tasks=[${threads.join(' ')}]`;
+  };
+  console.debug(`[quiet-tabs] ${tab.id}: renderer ${pid} before: ${procReport()}`);
   const quieted = await new Promise((resolve) => {
     let settled = false;
     let timer;
@@ -2087,10 +2099,15 @@ async function discardRendererKeepingStorage(tab, wc, owner, { broadcast, navEpo
     // On Linux this is a SIGKILL from the main process; the crash request
     // Electron sends there can leave a sandboxed renderer running (see
     // terminateRenderer).
-    try { terminateRenderer(wc); } catch { finish(false); }
+    try { console.debug(`[quiet-tabs] ${tab.id}: terminateRenderer -> ${terminateRenderer(wc)}`); } catch (e) { console.debug(`[quiet-tabs] terminateRenderer threw ${e}`); finish(false); }
+    setTimeout(() => console.debug(`[quiet-tabs] ${tab.id}: +1s ${procReport()}`), 1000);
   });
 
-  if (!quieted) return 'renderer-survived';
+  if (!quieted) {
+    console.debug(`[quiet-tabs] ${tab.id}: survived ${Date.now() - startedAt} ms: ${procReport()}`);
+    wc.once('render-process-gone', (_e, d) => console.debug(`[quiet-tabs] ${tab.id}: late render-process-gone after ${Date.now() - startedAt} ms: ${d?.reason} (${d?.exitCode})`));
+    return 'renderer-survived';
+  }
   if (!tabs.has(tab.id)) return 'tab-gone';
   tab.view = null;
   tab.asleep = true;
