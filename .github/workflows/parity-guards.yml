@@ -238,6 +238,34 @@ jobs:
         if: runner.os != 'Linux'
         run: npm run test:workspaces:desktop
 
+  quiet-tabs:
+    needs: changes
+    # Runs unless `changes` proved a website/docs-only PR (also runs if it failed).
+    # Linux and Windows: the nightly job already covers macOS, and the Linux
+    # renderer-discard path only differs there (see renderer-discard.js).
+    if: ${{ !cancelled() && needs.changes.outputs.app != 'false' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Quiet Tabs (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          bash scripts/ci-enable-linux-sandbox.sh
+          xvfb-run -a npm run test:quiet-tabs:desktop
+      - name: Quiet Tabs (Windows)
+        if: runner.os != 'Linux'
+        run: npm run test:quiet-tabs:desktop
+
   browser-shortcuts:
     needs: changes
     # Runs unless `changes` proved a website/docs-only PR (also runs if it failed).
