@@ -154,7 +154,7 @@
   "license": "MIT",
   "private": true,
   "devDependencies": {
-    "@cucumber/cucumber": "^13.2.1",
+    "@cucumber/cucumber": "^13.3.0",
     "@electron/asar": "4.3.1",
     "@eslint/js": "10.0.1",
     "@ghostery/adblocker": "^2.18.2",
