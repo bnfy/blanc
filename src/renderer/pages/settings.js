@@ -626,13 +626,21 @@
     const secureDnsTemplate = document.getElementById('secureDnsTemplate');
     const secureDnsError = document.getElementById('secureDnsError');
 
+    // The error joins the field's description only while it shows: Chromium
+    // reads a hidden element named by aria-describedby, which would call a
+    // good address invalid.
+    const setError = (shown) => {
+      secureDnsError.hidden = !shown;
+      secureDnsTemplate.setAttribute('aria-invalid', String(shown));
+      secureDnsTemplate.setAttribute('aria-describedby', shown ? 'secureDnsTemplateHint secureDnsError' : 'secureDnsTemplateHint');
+    };
+
     // Reflect an ACCEPTED persisted snapshot into the controls (clears any error).
     const showAccepted = (s) => {
       secureDns.value = s.secureDns ?? 'auto';
       secureDnsTemplate.value = s.secureDnsTemplate ?? '';
       secureDnsRow.hidden = secureDns.value !== 'custom';
-      secureDnsError.hidden = true;
-      secureDnsTemplate.setAttribute('aria-invalid', 'false');
+      setError(false);
     };
 
     // The main process is the sole validator. Send the change, then render from the
@@ -649,8 +657,7 @@
       if (rejected) {
         secureDns.value = 'custom';
         secureDnsRow.hidden = false;
-        secureDnsError.hidden = false;
-        secureDnsTemplate.setAttribute('aria-invalid', 'true');
+        setError(true);
         return; // leaves secureDnsTemplate.value (the rejected text) untouched
       }
       showAccepted(next);
@@ -661,7 +668,7 @@
     secureDns.addEventListener('change', () => {
       if (secureDns.value === 'custom') {
         secureDnsRow.hidden = false; // reveal the field so they can type
-        secureDnsError.hidden = true; // don't error before they've entered anything
+        setError(false); // don't error before they've entered anything
         const template = secureDnsTemplate.value.trim();
         if (template) commit({ secureDns: 'custom', secureDnsTemplate: template }, 'custom');
         // else: wait for the template's own change event to commit + validate
