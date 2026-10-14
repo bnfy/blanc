@@ -67,13 +67,16 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F4-3 | Child tabs inherit privacy | — | ✅ | ⬜ | ⬜ |
 | F4-4 | Private session isolated from ordinary tabs | — | ✅ | ⬜ | ⬜ |
 | F5-1 | Domain navigates | — | ✅ | ⬜ | ⬜ |
-| F5-2 | Query searches (4 engines) | — | ✅ | ⬜ | ⬜ |
+| F5-2 | Query searches (5 engines) | — | ✅ | ⬜ | ⬜ |
 | F5-3 | `mailto:` hands off to OS | D4 | ✅ | ⬜ | ⬜ |
 | F5-4 | Autocomplete follows the current default engine | — | ✅ | ⬜ | ⬜ |
 | F5-5 | Autocomplete privacy gates keep text local | — | ✅ | ⬜ | ⬜ |
 | F5-6 | Command-bar submit commits a real navigation | — | ✅ | ⬜ | ⬜ |
 | F5-7 | Reviewed desktop app callback requires confirmation | D4 | ✅ | ➖ | ➖ |
 | F5-8 | Colon-prefixed search operator remains a search | — | ✅ | ⬜ | ⬜ |
+| F5-9 | Custom search address is used for searches | — | ✅ | ⬜ | ⬜ |
+| F5-10 | Custom address refuses internet `http://` | — | ✅ | ⬜ | ⬜ |
+| F5-11 | Custom engine gets no live suggestions and searches its own address | — | ✅ | ⬜ | ⬜ |
 | F6-1 | Quick Switcher matches tabs + favorites | — | ✅ | ⬜ | ⬜ |
 | F6-2 | Quick Switcher matches + focuses group | — | ✅ | ⬜ | ⬜ |
 | F7-1 | Slash prefix filters commands | — | ✅ | ⬜ | ⬜ |

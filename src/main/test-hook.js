@@ -786,6 +786,9 @@ function install(refs) {
     raceSwitchBackDuringQuiet(workspaceId) { return raceSwitchBackDuringQuiet(workspaceId); },
     setSearchEngine(x) { settings.setSettings({ searchEngine: x }); },
     searchEngine() { return settings.getSettings().searchEngine; },
+    setCustomSearchEngine(template) {
+      return settings.setSettings({ searchEngine: 'custom', searchEngineTemplate: template }).searchEngine;
+    },
     setSearchSuggestions(on) { settings.setSettings({ searchSuggestions: !!on }); },
     setUsagePing(on) { settings.setSettings({ usagePing: !!on }); },
     searchSuggestions() { return settings.getSettings().searchSuggestions; },
@@ -3130,6 +3133,7 @@ function install(refs) {
       for (const b of bookmarks.listBookmarks()) bookmarks.removeBookmark(b.id);
       settings.setSettings({
         searchEngine: 'duckduckgo',
+        searchEngineTemplate: '',
         searchSuggestions: true,
         adblockEnabled: true,
         homePage: '',

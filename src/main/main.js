@@ -7536,14 +7536,12 @@ function registerIpcHandlers() {
     // The renderer may still be showing completions returned by the previous
     // default after Settings or Profile Sync changes it. Treat its provider id
     // as display metadata only: submission always honors the current default.
-    const currentEngine = settings.getSettings().searchEngine;
-    const engine = settings.SEARCH_ENGINES[currentEngine]
-      ?? settings.SEARCH_ENGINES.duckduckgo;
+    const engine = settings.currentSearchEngine();
     const target = engine.url(query.trim());
     rt().tabsWantingAddressBarFocus.delete(id);
     if (testSearchNavigationCapture) {
       testSearchSubmission = {
-        engine: settings.SEARCH_ENGINES[currentEngine] ? currentEngine : 'duckduckgo',
+        engine: engine.id,
         query: query.trim(),
         url: target,
       };
@@ -7862,10 +7860,8 @@ function registerIpcHandlers() {
 
   chromeHandle('chrome:search-suggestions', async (event, query) => {
     const currentSettings = settings.getSettings();
-    const configuredEngine = currentSettings.searchEngine;
-    const engineId = settings.SEARCH_ENGINES[configuredEngine] ? configuredEngine : 'duckduckgo';
-    const engine = settings.SEARCH_ENGINES[engineId];
-    const response = { engine: engineId, label: engine.label, suggestions: [] };
+    const engine = settings.currentSearchEngine();
+    const response = { engine: engine.id, label: engine.label, suggestions: [] };
 
     searchSuggestionRequests.get(event.sender)?.abort();
 
@@ -7886,13 +7882,13 @@ function registerIpcHandlers() {
 
     try {
       response.suggestions = await searchSuggestionService.get({
-        engine: engineId,
+        engine: engine.id,
         query,
         locale: app.getLocale(),
         fetchImpl: testSearchSuggestionFixture
           ? async (url, options) => {
             testSearchSuggestionRequests.push({
-              engine: engineId,
+              engine: engine.id,
               query: typeof query === 'string' ? query.trim() : '',
               url,
               credentials: options?.credentials ?? null,
@@ -7910,20 +7906,13 @@ function registerIpcHandlers() {
       // flight. Never label old-provider completions as if they belong to the
       // newly selected engine; the next keystroke will fetch the fresh set.
       const latestSettings = settings.getSettings();
-      const latestConfiguredEngine = latestSettings.searchEngine;
-      const latestEngineId = settings.SEARCH_ENGINES[latestConfiguredEngine]
-        ? latestConfiguredEngine
-        : 'duckduckgo';
+      const latestEngine = settings.currentSearchEngine();
       if (
         !settings.isFirstRunComplete() ||
         !latestSettings.searchSuggestions ||
-        latestEngineId !== engineId
+        latestEngine.id !== engine.id
       ) {
-        return {
-          engine: latestEngineId,
-          label: settings.SEARCH_ENGINES[latestEngineId].label,
-          suggestions: [],
-        };
+        return { engine: latestEngine.id, label: latestEngine.label, suggestions: [] };
       }
       return response;
     } finally {
