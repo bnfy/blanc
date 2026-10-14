@@ -196,6 +196,15 @@
               <select id="searchEngine"></select>
             </div>
 
+            <div class="setting" id="searchEngineCustomRow" hidden>
+              <div class="label">
+                <span data-i18n="settings.general.searchEngineTemplate.label">Custom search address</span>
+                <span class="hint" data-i18n="settings.general.searchEngineTemplate.hint">Paste the search address with %s where your search words go, for example https://searx.example.org/search?q=%s. It syncs with your other settings.</span>
+                <span class="hint field-error" id="searchEngineTemplateError" hidden data-i18n="settings.general.searchEngineTemplateError">That address isn't valid — your previous search engine is still in use.</span>
+              </div>
+              <input id="searchEngineTemplate" type="url" placeholder="https://search.example.com/search?q=%s"  data-i18n-ignore="placeholder"/>
+            </div>
+
             <div class="setting">
               <div class="label">
                 <span data-i18n="settings.general.searchSuggestions.label">Search suggestions</span>

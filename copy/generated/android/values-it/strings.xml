@@ -914,6 +914,10 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_general_show_welcome_tour">Mostra il tour</string>
     <string name="settings_general_search_engine_label">Motore di ricerca</string>
     <string name="settings_general_search_engine_hint">Usato quando il testo nella barra degli indirizzi non è un URL</string>
+    <string name="settings_general_search_engine_custom">Personalizzato…</string>
+    <string name="settings_general_search_engine_template_label">Indirizzo di ricerca personalizzato</string>
+    <string name="settings_general_search_engine_template_hint">Incolla l’indirizzo di ricerca con %%s al posto delle parole che cerchi, ad esempio https://searx.example.org/search?q=%%s. Viene sincronizzato con le altre impostazioni.</string>
+    <string name="settings_general_search_engine_template_error">Questo indirizzo non è valido: resta in uso il motore di ricerca precedente.</string>
     <string name="settings_general_search_suggestions_label">Suggerimenti di ricerca</string>
     <string name="settings_general_search_suggestions_hint">Invia i prefissi idonei che digiti al motore di ricerca selezionato, incluso Google se lo hai scelto. Le schede private e il testo riconosciuto come potenzialmente sensibile sono esclusi. Avviare una ricerca invia la query completa anche quando i suggerimenti sono disattivati.</string>
     <string name="settings_general_home_page_label">Pagina nuova scheda</string>

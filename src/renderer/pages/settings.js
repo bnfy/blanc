@@ -199,15 +199,19 @@
   }
 
   for (const [key, label] of Object.entries(searchEngines)) {
+    if (key === 'custom' && !supports('searchEngineTemplate')) continue;
     const opt = document.createElement('option');
     opt.value = key;
-    opt.textContent = label;
-    opt.dataset.i18nIgnore = ''; // engine names are proper names
+    if (key === 'custom') {
+      opt.textContent = t('settings.general.searchEngine.custom');
+    } else {
+      opt.textContent = label;
+      opt.dataset.i18nIgnore = ''; // engine names are proper names
+    }
     searchEngine.append(opt);
   }
   theme.value = settings.theme ?? 'system';
   newtabLayout.value = settings.newtabLayout ?? 'billboard';
-  searchEngine.value = settings.searchEngine;
   searchSuggestions.checked = settings.searchSuggestions ?? false;
   adblockEnabled.checked = settings.adblockEnabled;
 
@@ -219,12 +223,64 @@
   // activates it (the sheet's own navigation is default-deny for blanc://).
   showWelcomeTour.addEventListener('click', () =>
     window.bowserPages.settings.welcomeTour());
-  searchEngine.addEventListener('change', () =>
-    window.bowserPages.settings.set({ searchEngine: searchEngine.value }));
   searchSuggestions.addEventListener('change', () =>
     window.bowserPages.settings.set({ searchSuggestions: searchSuggestions.checked }));
   adblockEnabled.addEventListener('change', () =>
     window.bowserPages.settings.set({ adblockEnabled: adblockEnabled.checked }));
+
+  // --- Search engine, with the Custom address (Encrypted DNS pattern) ---
+  const searchCustomRow = document.getElementById('searchEngineCustomRow');
+  const searchTemplate = document.getElementById('searchEngineTemplate');
+  const searchTemplateError = document.getElementById('searchEngineTemplateError');
+  if (supports('searchEngineTemplate')) {
+    // Reflect an ACCEPTED stored snapshot into the controls (clears any error).
+    const showAcceptedSearch = (s) => {
+      searchEngine.value = s.searchEngine;
+      searchTemplate.value = s.searchEngineTemplate ?? '';
+      searchCustomRow.hidden = searchEngine.value !== 'custom';
+      searchTemplateError.hidden = true;
+      searchTemplate.setAttribute('aria-invalid', 'false');
+    };
+    // Main is the sole validator: send the change, then render from what was
+    // actually stored. A Custom write was refused when Custom isn't selected
+    // afterwards, or when the stored address isn't the one just sent (an
+    // invalid edit keeps the previous address). Keep the draft visible with
+    // the error rather than snapping back.
+    const commitSearch = async (partial) => {
+      const next = await window.bowserPages.settings.set(partial);
+      const refused = partial.searchEngine === 'custom' &&
+        (next.searchEngine !== 'custom' || next.searchEngineTemplate !== partial.searchEngineTemplate);
+      if (refused) {
+        searchEngine.value = 'custom';
+        searchCustomRow.hidden = false;
+        searchTemplateError.hidden = false;
+        searchTemplate.setAttribute('aria-invalid', 'true');
+        return; // leaves the rejected text in the field to correct
+      }
+      showAcceptedSearch(next);
+    };
+
+    showAcceptedSearch(settings);
+
+    searchEngine.addEventListener('change', () => {
+      if (searchEngine.value === 'custom') {
+        searchCustomRow.hidden = false;
+        searchTemplateError.hidden = true; // no error before anything is typed
+        const template = searchTemplate.value.trim();
+        if (template) commitSearch({ searchEngine: 'custom', searchEngineTemplate: template });
+        // else: the address field's own change event commits and validates
+      } else {
+        commitSearch({ searchEngine: searchEngine.value });
+      }
+    });
+    searchTemplate.addEventListener('change', () =>
+      commitSearch({ searchEngine: 'custom', searchEngineTemplate: searchTemplate.value.trim() }));
+  } else {
+    searchCustomRow?.remove();
+    searchEngine.value = settings.searchEngine;
+    searchEngine.addEventListener('change', () =>
+      window.bowserPages.settings.set({ searchEngine: searchEngine.value }));
+  }
 
   // --- Tab presentation (desktop-only, device-local) ---
   if (supports('tabLayout')) {

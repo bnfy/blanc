@@ -35899,6 +35899,174 @@
         }
       }
     },
+    "settings.general.searchEngine.custom": {
+      "comment": "Settings → General: last choice in the search engine dropdown; choosing it reveals a field for the user's own search address.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eigene Suchmaschine…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personalizado…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personnalisé…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personalizzato…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personalizado…"
+          }
+        }
+      }
+    },
+    "settings.general.searchEngineTemplate.label": {
+      "comment": "Settings → General: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom search address"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adresse der eigenen Suchmaschine"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dirección de búsqueda personalizada"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adresse de recherche personnalisée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Indirizzo di ricerca personalizzato"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Endereço de pesquisa personalizado"
+          }
+        }
+      }
+    },
+    "settings.general.searchEngineTemplate.hint": {
+      "comment": "Settings → General: explanation under a setting. Keep %s and the example address exactly as written.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paste the search address with %%s where your search words go, for example https://searx.example.org/search?q=%%s. It syncs with your other settings."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Füge die Suchadresse ein, mit %%s an der Stelle deiner Suchbegriffe, z. B. https://searx.example.org/search?q=%%s. Sie wird mit deinen anderen Einstellungen synchronisiert."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pega la dirección de búsqueda con %%s donde van tus palabras, p. ej., https://searx.example.org/search?q=%%s. Se sincroniza con el resto de tus ajustes."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collez l’adresse de recherche en mettant %%s à la place de vos mots-clés, p. ex. https://searx.example.org/search?q=%%s. Elle est synchronisée avec vos autres réglages."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incolla l’indirizzo di ricerca con %%s al posto delle parole che cerchi, ad esempio https://searx.example.org/search?q=%%s. Viene sincronizzato con le altre impostazioni."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cole o endereço de pesquisa com %%s no lugar das suas palavras, por exemplo https://searx.example.org/search?q=%%s. Ele é sincronizado com suas outras configurações."
+          }
+        }
+      }
+    },
+    "settings.general.searchEngineTemplateError": {
+      "comment": "Settings → General: error shown when the custom search address is invalid.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That address isn't valid — your previous search engine is still in use."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Adresse ist ungültig – deine bisherige Suchmaschine wird weiter verwendet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esa dirección no es válida; se sigue usando el motor de búsqueda anterior."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette adresse n’est pas valide — le moteur de recherche précédent reste utilisé."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo indirizzo non è valido: resta in uso il motore di ricerca precedente."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esse endereço não é válido — o mecanismo de pesquisa anterior continua em uso."
+          }
+        }
+      }
+    },
     "settings.general.searchSuggestions.label": {
       "comment": "Settings → General: setting name.",
       "extractionState": "manual",

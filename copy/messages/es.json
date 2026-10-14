@@ -3177,6 +3177,22 @@
     "message": "Se usa cuando lo escrito en la barra de direcciones no es una URL",
     "source": "sha256:bc95506715db39a1212fead94d578a849e98aa2ff66f08ce72e6f41c31cf2ce2"
   },
+  "settings.general.searchEngine.custom": {
+    "message": "Personalizado…",
+    "source": "sha256:65293c0b93189988350917e0180c6231336ee1b4902260b4c635448e8995f5bd"
+  },
+  "settings.general.searchEngineTemplate.label": {
+    "message": "Dirección de búsqueda personalizada",
+    "source": "sha256:bc10eedf24a8b254c754404b0ec5f90f6afbaf0cb70ee211efaea9c2aab4ad43"
+  },
+  "settings.general.searchEngineTemplate.hint": {
+    "message": "Pega la dirección de búsqueda con %s donde van tus palabras, p. ej., https://searx.example.org/search?q=%s. Se sincroniza con el resto de tus ajustes.",
+    "source": "sha256:21edf7a97bbfa74ecec956cb231ae4569b501266714a227d132516501b1dc7d5"
+  },
+  "settings.general.searchEngineTemplateError": {
+    "message": "Esa dirección no es válida; se sigue usando el motor de búsqueda anterior.",
+    "source": "sha256:4756bfe08b31915156fd3309a82bd26f41194ca659b63d470e59631461aa2692"
+  },
   "settings.general.searchSuggestions.label": {
     "message": "Sugerencias de búsqueda",
     "source": "sha256:9f5c888b7338bc8852c581dd81c305db21efb959882f6900f4b020db8374ba65"

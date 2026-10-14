@@ -914,6 +914,10 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="settings_general_show_welcome_tour">Ver tour de boas-vindas</string>
     <string name="settings_general_search_engine_label">Mecanismo de pesquisa</string>
     <string name="settings_general_search_engine_hint">Usado quando o que você digita na barra de endereço não é uma URL</string>
+    <string name="settings_general_search_engine_custom">Personalizado…</string>
+    <string name="settings_general_search_engine_template_label">Endereço de pesquisa personalizado</string>
+    <string name="settings_general_search_engine_template_hint">Cole o endereço de pesquisa com %%s no lugar das suas palavras, por exemplo https://searx.example.org/search?q=%%s. Ele é sincronizado com suas outras configurações.</string>
+    <string name="settings_general_search_engine_template_error">Esse endereço não é válido — o mecanismo de pesquisa anterior continua em uso.</string>
     <string name="settings_general_search_suggestions_label">Sugestões de pesquisa</string>
     <string name="settings_general_search_suggestions_hint">Envia os começos elegíveis do que você digita ao provedor de pesquisa escolhido, inclusive o Google, se escolhido. Abas privadas e textos que parecem sensíveis ficam de fora. Fazer uma pesquisa envia a consulta completa mesmo com as sugestões desativadas.</string>
     <string name="settings_general_home_page_label">Página da nova aba</string>

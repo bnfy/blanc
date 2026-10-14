@@ -914,6 +914,10 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_general_show_welcome_tour">Voir la visite guidée</string>
     <string name="settings_general_search_engine_label">Moteur de recherche</string>
     <string name="settings_general_search_engine_hint">Utilisé quand la saisie dans la barre d’adresse n’est pas une URL</string>
+    <string name="settings_general_search_engine_custom">Personnalisé…</string>
+    <string name="settings_general_search_engine_template_label">Adresse de recherche personnalisée</string>
+    <string name="settings_general_search_engine_template_hint">Collez l’adresse de recherche en mettant %%s à la place de vos mots-clés, p. ex. https://searx.example.org/search?q=%%s. Elle est synchronisée avec vos autres réglages.</string>
+    <string name="settings_general_search_engine_template_error">Cette adresse n’est pas valide — le moteur de recherche précédent reste utilisé.</string>
     <string name="settings_general_search_suggestions_label">Suggestions de recherche</string>
     <string name="settings_general_search_suggestions_hint">Envoie les débuts de saisie éligibles au moteur de recherche choisi, y compris Google si vous l’avez choisi. Les onglets privés et les saisies qui semblent sensibles sont exclus. Lancer une recherche envoie la requête complète même si les suggestions sont désactivées.</string>
     <string name="settings_general_home_page_label">Page du nouvel onglet</string>

@@ -3268,6 +3268,23 @@
     "message": "Used when the address bar input isn't a URL",
     "note": "Settings → General: explanation under a setting."
   },
+  "settings.general.searchEngine.custom": {
+    "message": "Custom…",
+    "note": "Settings → General: last choice in the search engine dropdown; choosing it reveals a field for the user's own search address.",
+    "maxLength": 23
+  },
+  "settings.general.searchEngineTemplate.label": {
+    "message": "Custom search address",
+    "note": "Settings → General: setting name."
+  },
+  "settings.general.searchEngineTemplate.hint": {
+    "message": "Paste the search address with %s where your search words go, for example https://searx.example.org/search?q=%s. It syncs with your other settings.",
+    "note": "Settings → General: explanation under a setting. Keep %s and the example address exactly as written."
+  },
+  "settings.general.searchEngineTemplateError": {
+    "message": "That address isn't valid — your previous search engine is still in use.",
+    "note": "Settings → General: error shown when the custom search address is invalid."
+  },
   "settings.general.searchSuggestions.label": {
     "message": "Search suggestions",
     "note": "Settings → General: setting name."
