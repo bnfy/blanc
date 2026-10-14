@@ -57,22 +57,30 @@ function createDockReopenLifecycle({
   createStartTab,
   activateTab,
   flushExternalUrls,
+  sessionCloseEffect,
   beforeWindowClose,
   onCloseBlocked,
 }) {
+  // What this window's user close does to the saved session (see
+  // windowCloseSessionEffect). Decided once, when the close begins, and read
+  // again by main's 'closed' handler. Null for quit and forced closes.
+  let closeEffect = null;
   return {
     onWindowClose(event) {
+      closeEffect = null;
       // Secondary windows are destroyed on close, so main can install a
       // synchronous durable checkpoint here. A failed checkpoint must stop
       // native teardown while the live page views still exist. Forced
       // teardown (quit/profile deletion) marks the runtime closing first.
       if (!runtime.closing && !getIsQuitting?.() && typeof beforeWindowClose === 'function') {
-        const result = beforeWindowClose();
+        const effect = sessionCloseEffect?.() ?? null;
+        const result = beforeWindowClose(effect);
         if (result?.ok === false) {
           event?.preventDefault?.();
           onCloseBlocked?.(result);
           return [];
         }
+        closeEffect = effect;
       }
       runtime.closing = true;
       return preservePrimaryTabViews({
@@ -85,6 +93,8 @@ function createDockReopenLifecycle({
         isQuitting: getIsQuitting(),
       });
     },
+
+    closeSessionEffect: () => closeEffect,
 
     onChromeReady() {
       let id = reusableDockTabId({

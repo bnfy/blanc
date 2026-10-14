@@ -23,7 +23,7 @@ test('persistSession is still liftable out of main.js', () => {
   assert.ok(captureSource, 'captureWindowEntry not found — update this test with it');
 });
 
-function run(tabList, activeTabId) {
+function run(tabList, activeTabId, { sessionHeldForQuit = false } = {}) {
   const data = {};
   const runtime = {
     id: PRIMARY_WINDOW_ID,
@@ -33,6 +33,7 @@ function run(tabList, activeTabId) {
   };
   const sandbox = {
     isQuitting: false,
+    sessionHeldForQuit,
     sessionPersistenceSuspended: false,
     sessionReadOnly: false,
     tabs: new Map(tabList.map((t) => [t.id, t])),
@@ -74,6 +75,14 @@ test('persistSession writes a meta entry per persisted url, in the same order', 
     { title: 'Beta', favicon: null },
   ]);
   assert.equal('meta' in data, false, 'the v0 mirror never carries meta');
+});
+
+test('nothing rewrites the session while the last window\'s close waits for the quit', () => {
+  // Closing the last Windows/Linux window saves it with its tabs, then the
+  // window's pages are torn down before window-all-closed starts the quit.
+  // A write in between would save the window without the pages it lost.
+  const data = run([tab({ id: 'a', url: 'https://a/' })], 'a', { sessionHeldForQuit: true });
+  assert.deepEqual(data, {});
 });
 
 test('the local HTML grant survives only in the v2 window, not the rollback mirror', () => {

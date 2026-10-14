@@ -225,14 +225,75 @@ test('a successful pre-close checkpoint runs before the runtime enters teardown'
   assert.deepEqual(observations, [false]); assert.equal(runtime.closing, true);
 });
 
+test('a user close decides its session effect once and the closed handler can read it', () => {
+  const runtime = { activeTabId: null, glanceTabId: null, closing: false };
+  const checkpoints = [];
+  let decisions = 0;
+  const lifecycle = createDockReopenLifecycle({
+    platform: 'linux', runtime, primaryRuntime: runtime,
+    window: { isDestroyed: () => false, contentView: { removeChildView() {} } },
+    tabs: new Map(), liveContents: () => null, getIsQuitting: () => false,
+    sessionCloseEffect: () => { decisions += 1; return 'quit'; },
+    beforeWindowClose: (effect) => { checkpoints.push(effect); return { ok: true }; },
+    flushExternalUrls() {},
+  });
+  assert.equal(lifecycle.closeSessionEffect(), null, 'nothing is decided before a close begins');
+  lifecycle.onWindowClose({ preventDefault() { assert.fail('successful close must continue'); } });
+  assert.deepEqual(checkpoints, ['quit']);
+  assert.equal(decisions, 1);
+  assert.equal(lifecycle.closeSessionEffect(), 'quit');
+});
+
+test('a blocked close records no session effect', () => {
+  const runtime = { activeTabId: null, glanceTabId: null, closing: false };
+  let result = { ok: false, error: 'storage-failed' };
+  const lifecycle = createDockReopenLifecycle({
+    platform: 'linux', runtime, primaryRuntime: {},
+    window: { isDestroyed: () => false, contentView: { removeChildView() {} } },
+    tabs: new Map(), liveContents: () => null, getIsQuitting: () => false,
+    sessionCloseEffect: () => 'quit',
+    beforeWindowClose: () => result,
+    onCloseBlocked() {},
+    flushExternalUrls() {},
+  });
+  lifecycle.onWindowClose({ preventDefault() {} });
+  assert.equal(lifecycle.closeSessionEffect(), null,
+    'a later forced close (profile deletion) must not inherit a blocked decision');
+  result = { ok: true };
+  lifecycle.onWindowClose({ preventDefault() { assert.fail('successful close must continue'); } });
+  assert.equal(lifecycle.closeSessionEffect(), 'quit');
+});
+
+test('forced closes skip the session effect and the checkpoint', () => {
+  for (const forced of ['closing', 'quitting']) {
+    const runtime = { activeTabId: null, glanceTabId: null, closing: forced === 'closing' };
+    const lifecycle = createDockReopenLifecycle({
+      platform: 'win32', runtime, primaryRuntime: {},
+      window: { isDestroyed: () => false, contentView: { removeChildView() {} } },
+      tabs: new Map(), liveContents: () => null, getIsQuitting: () => forced === 'quitting',
+      sessionCloseEffect: () => assert.fail(`${forced}: no effect is decided for a forced close`),
+      beforeWindowClose: () => assert.fail(`${forced}: no checkpoint for a forced close`),
+      flushExternalUrls() {},
+    });
+    lifecycle.onWindowClose({ preventDefault() { assert.fail('forced close must continue'); } });
+    assert.equal(lifecycle.closeSessionEffect(), null, forced);
+    assert.equal(runtime.closing, true, forced);
+  }
+});
+
 test('main installs both handlers from the tested Dock-reopen lifecycle', () => {
   const fs = require('node:fs');
   const path = require('node:path');
   const main = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'), 'utf8');
 
   assert.match(main, /const dockReopenLifecycle = createDockReopenLifecycle\(\{/);
-  assert.match(main, /beforeWindowClose: \(\) => sessionReadOnly \|\|/);
-  assert.match(main, /beforeWindowClose:[\s\S]*?checkpointWorkspaceSession\(runtime, \{ excludeRuntime: runtime \}\)/);
+  assert.match(main, /sessionCloseEffect: \(\) => windowCloseSessionEffect\(\{/);
+  assert.match(main, /beforeWindowClose: \(effect\) => \{/);
+  // Only a window that is not the last leaves the saved session; the last
+  // Windows/Linux window is saved with its tabs and then held for the quit.
+  assert.match(main, /checkpointWorkspaceSession\(runtime, \{ excludeRuntime: runtime \}\)/);
+  assert.match(main, /if \(effect === 'quit'\) \{[\s\S]*?checkpointWorkspaceSession\(runtime\);[\s\S]*?sessionHeldForQuit = true;/);
+  assert.match(main, /closeEffect: dockReopenLifecycle\.closeSessionEffect\(\)/);
   assert.match(main, /\.on\('close', bindWindowRuntime\(runtime, dockReopenLifecycle\.onWindowClose\)\)/);
   assert.match(main, /dockReopenLifecycle\.onChromeReady/);
 });

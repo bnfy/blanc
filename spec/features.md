@@ -680,7 +680,9 @@ From the desktop `DEFAULTS`:
 - **New Window** (`Cmd/Ctrl+N`) creates an ungrouped newtab in a fresh native
   window. Closing a secondary window destroys that workspace and its live web
   contents; it does not close or select tabs in another window. The primary
-  macOS workspace retains the existing dock-reopen behavior.
+  macOS workspace retains the existing dock-reopen behavior. On Windows and
+  Linux, closing the last open window quits Blanc, so that window keeps its
+  saved tabs for the next launch exactly as Quit keeps them (F18).
 - `session.json` persists all non-private window workspaces in its v2 `windows`
   array plus `activeWindowId`. The exact five-key flat mirror remains the
   rollback view of the focused window, so a 1.0.x writer can still take
