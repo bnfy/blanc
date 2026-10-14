@@ -2073,7 +2073,9 @@ async function discardRendererKeepingStorage(tab, wc, owner, { broadcast, navEpo
   const wcId = wc.id;
   const pid = (() => { try { return wc.getOSProcessId(); } catch { return null; } })();
   const crashedAt = Date.now();
-  const procState = () => { try { return require('node:fs').readFileSync(`/proc/${pid}/status`, 'utf8').match(/^State:\s*(.*)$/m)?.[1] ?? 'no-state'; } catch (e) { return `gone:${e.code}`; } };
+  const procState = () => { try { const st = require('node:fs').readFileSync(`/proc/${pid}/status`, 'utf8'); return `${st.match(/^State:\s*(.*)$/m)?.[1]} name=${st.match(/^Name:\s*(.*)$/m)?.[1]} ppid=${st.match(/^PPid:\s*(.*)$/m)?.[1]}`; } catch (e) { return `gone:${e.code}`; } };
+  const cmdline = () => { try { return require('node:fs').readFileSync(`/proc/${pid}/cmdline`, 'utf8').split('\0').filter((a) => a.startsWith('--type') || a.includes('zygote') || a.includes('electron')).join(' ').slice(0, 160); } catch (e) { return `gone:${e.code}`; } };
+  console.debug(`[quiet-tabs] ${tab.id}: discarding renderer pid=${pid} frame.osProcessId=${wc.mainFrame?.osProcessId} main=${process.pid} before: ${procState()} [${cmdline()}]`);
   const quieted = await new Promise((resolve) => {
     let settled = false;
     let timer;

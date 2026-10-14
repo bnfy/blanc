@@ -235,6 +235,7 @@ jobs:
           bash scripts/ci-enable-linux-sandbox.sh
           cat /proc/sys/kernel/core_pattern; ulimit -c; nproc; free -m | sed -n 2p; uname -r
           BLANC_TEST_APP_OUTPUT=1 xvfb-run -a npm run test:workspaces:desktop -- --tags "@F41-35 or @F41-37 or @F41-38"
+          BLANC_TEST_APP_OUTPUT=1 xvfb-run -a npx cucumber-js -c test/desktop/cucumber.mjs -p runnable --tags "@quiet-tabs" --tags "@F31-1"
       - name: Workspace preservation and opener families (Windows/macOS)
         if: runner.os != 'Linux'
         run: npm run test:workspaces:desktop
