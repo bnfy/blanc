@@ -419,7 +419,13 @@ Then('every switch went through', async function () {
 });
 Then('the space set aside first, {string}, has had its web page quieted', async function (name) {
   const page = (all) => all.find((s) => s.name === name)?.tabs.find((t) => t.id === this.pageId);
-  const spaces = await waitForValue(() => this.call('residentSpaces'), (all) => page(all)?.asleep && !page(all).live, `${name}'s web page to be quieted`, 10000);
+  let spaces;
+  try {
+    spaces = await waitForValue(() => this.call('residentSpaces'), (all) => page(all)?.asleep && !page(all).live, `${name}'s web page to be quieted`, 10000);
+  } catch (error) {
+    error.message += `; room pass: ${JSON.stringify(await this.call('roomPass'))}`;
+    throw error;
+  }
   assert.equal(spaces.length, 3, `three spaces set aside: ${JSON.stringify(spaces)}`);
   this.firstSetAside = name;
 });

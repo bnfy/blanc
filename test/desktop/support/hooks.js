@@ -82,6 +82,11 @@ async function launchApp() {
       BLANC_TEST_UNCAUGHT_LOG: uncaughtLogPath,
     },
   });
+  if (process.env.BLANC_TEST_APP_OUTPUT === '1') {
+    for (const stream of ['stdout', 'stderr']) {
+      electronApp.process()[stream]?.on('data', (chunk) => process.stderr.write(`[app ${stream}] ${chunk}`));
+    }
+  }
   electronApp.__blancUncaughtOffset = fs.existsSync(uncaughtLogPath)
     ? fs.statSync(uncaughtLogPath).size
     : 0;

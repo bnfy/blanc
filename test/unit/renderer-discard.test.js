@@ -6,6 +6,7 @@ const test = require('node:test');
 const {
   hasExclusiveRenderer,
   hasBeforeUnloadListener,
+  terminateRenderer,
 } = require('../../src/main/renderer-discard');
 
 const contents = (pid, { destroyed = false } = {}) => ({
@@ -61,4 +62,63 @@ test('beforeunload detection fails closed when CDP cannot prove safety', async (
   assert.equal(await hasBeforeUnloadListener(debuggerContents(), { contextWaitMs: 0 }), true,
     'no reported main-world context is uncertain');
   assert.equal(await hasBeforeUnloadListener(debuggerContents({ fail: true }), { contextWaitMs: 0 }), true);
+});
+
+// terminateRenderer: Linux ends the renderer itself; elsewhere Electron's
+// crash request already kills the process.
+function rendererTarget(pid) {
+  const calls = [];
+  return {
+    calls,
+    contents: {
+      getOSProcessId: () => pid,
+      forcefullyCrashRenderer: () => calls.push('crash'),
+    },
+    kill: (target, signal) => calls.push(`kill:${target}:${signal}`),
+  };
+}
+const procWith = (lines) => () => lines.join('\0');
+
+test('on Linux a verified renderer is ended with SIGKILL, not asked to crash', () => {
+  const t = rendererTarget(4242);
+  const how = terminateRenderer(t.contents, {
+    platform: 'linux', execPath: '/opt/Blanc/blanc', kill: t.kill,
+    readFile: procWith(['/opt/Blanc/blanc', '--type=renderer', '--enable-crash-reporter=x']),
+  });
+  assert.equal(how, 'killed');
+  assert.deepEqual(t.calls, ['kill:4242:SIGKILL']);
+});
+
+test('on Linux a pid that is not one of our renderers only gets the crash request', () => {
+  for (const argv of [
+    ['/usr/bin/other', '--type=renderer'], // another program
+    ['/opt/Blanc/blanc', '--type=zygote'], // ours, but not a renderer
+  ]) {
+    const t = rendererTarget(4242);
+    const how = terminateRenderer(t.contents, { platform: 'linux', execPath: '/opt/Blanc/blanc', kill: t.kill, readFile: procWith(argv) });
+    assert.equal(how, 'crash-requested');
+    assert.deepEqual(t.calls, ['crash'], argv.join(' '));
+  }
+  const unreadable = rendererTarget(4242);
+  terminateRenderer(unreadable.contents, { platform: 'linux', execPath: '/opt/Blanc/blanc', kill: unreadable.kill, readFile: () => { throw new Error('ENOENT'); } });
+  assert.deepEqual(unreadable.calls, ['crash'], 'no /proc entry: never killed blind');
+});
+
+test('on Linux a refused kill falls back to the crash request', () => {
+  const t = rendererTarget(4242);
+  const how = terminateRenderer(t.contents, {
+    platform: 'linux', execPath: '/opt/Blanc/blanc', readFile: procWith(['/opt/Blanc/blanc', '--type=renderer']),
+    kill: () => { throw Object.assign(new Error('EPERM'), { code: 'EPERM' }); },
+  });
+  assert.equal(how, 'crash-requested');
+  assert.deepEqual(t.calls, ['crash']);
+});
+
+test('off Linux the crash request is used and /proc is never consulted', () => {
+  for (const platform of ['darwin', 'win32']) {
+    const t = rendererTarget(4242);
+    const how = terminateRenderer(t.contents, { platform, kill: t.kill, readFile: () => { throw new Error('must not read'); } });
+    assert.equal(how, 'crash-requested');
+    assert.deepEqual(t.calls, ['crash'], platform);
+  }
 });

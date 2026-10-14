@@ -88,4 +88,45 @@ async function hasBeforeUnloadListener(contents, { contextWaitMs = 50 } = {}) {
   }
 }
 
-module.exports = { hasExclusiveRenderer, hasBeforeUnloadListener };
+/**
+ * End the renderer that hasExclusiveRenderer() proved is this tab's alone.
+ * Electron's forcefullyCrashRenderer() kills the process outright on macOS and
+ * Windows, but on Linux it only sends the renderer an IPC asking it to crash
+ * itself, and a sandboxed renderer may never act on it: on GitHub's Ubuntu
+ * runners the process was still there five seconds later, so no
+ * storage-bearing tab ever became quiet. On Linux, Blanc instead sends SIGKILL
+ * to the process itself, once /proc shows that pid is one of Blanc's own
+ * renderer processes (the pid Chromium reports, never one it could have
+ * recycled). SIGKILL cannot be caught, writes no core dump, and reports as
+ * render-process-gone with reason "killed", which the quiet path accepts like
+ * a crash. Any doubt falls back to the crash request. Returns how it ended.
+ */
+function terminateRenderer(contents, {
+  platform = process.platform,
+  execPath = process.execPath,
+  readFile = require('node:fs').readFileSync,
+  kill = process.kill,
+} = {}) {
+  if (platform === 'linux') {
+    let pid = null;
+    try { pid = contents.getOSProcessId(); } catch {}
+    if (Number.isInteger(pid) && pid > 0 && isOwnRenderer(pid, { execPath, readFile })) {
+      try { kill(pid, 'SIGKILL'); return 'killed'; } catch {}
+    }
+  }
+  contents.forcefullyCrashRenderer();
+  return 'crash-requested';
+}
+
+/** True when /proc says `pid` runs this executable as a renderer. */
+function isOwnRenderer(pid, { execPath, readFile }) {
+  try {
+    const argv = readFile(`/proc/${pid}/cmdline`, 'utf8').split('\0');
+    const { basename } = require('node:path');
+    return basename(argv[0]) === basename(execPath) && argv.includes('--type=renderer');
+  } catch {
+    return false;
+  }
+}
+
+module.exports = { hasExclusiveRenderer, hasBeforeUnloadListener, terminateRenderer };
