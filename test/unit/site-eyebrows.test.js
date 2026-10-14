@@ -25,7 +25,7 @@ const ALLOWED = [
   'pages/ambassadors.astro → Blanc ambassador pilot',
   'pages/features.astro → Patron',
   'pages/features/security.astro → public v1.27.0 · October 3, 2026',
-  'pages/features/workspaces.astro → Blanc Patron',
+  'pages/features/workspaces.astro → Blanc Spaces',
   'pages/index.astro → Blanc Browser',
   'pages/index.astro → The Island',
   'pages/mail/download.astro → macOS only · Coming soon',

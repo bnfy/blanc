@@ -1658,26 +1658,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "trust-125-279",
-      "source": "site/src/data/support-questions.json",
-      "exactWording": "What does optional Patron add?",
-      "subject": "Blanc or website",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "trust-125-281",
-      "source": "site/src/data/support-questions.json",
-      "exactWording": "Blocking, private tabs, favorites, ordinary tab groups, Quiet Tabs and optional encrypted Sync remain free. Patron does not restrict access to the open-source code.",
-      "subject": "Blanc or website",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "trust-125-282",
       "source": "site/src/data/support-questions.json",
       "exactWording": "Can I install browser extensions?",
@@ -2779,27 +2759,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "reddit-410",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Free essentials; optional saved sets",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-411",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Blanc Spaces. Creating a space requires an active Patron subscription.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "workspaces",
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "reddit-413",
       "source": "site/src/pages/download.astro",
       "exactWording": "See what changed in the latest release",
@@ -2900,17 +2859,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "reddit-439",
-      "source": "site/src/pages/about.astro",
-      "exactWording": "Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Blanc Spaces. Creating a space requires an active Patron subscription. If membership lapses, existing spaces remain openable, switchable, and automatically updated. Renaming and removing existing spaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "workspaces",
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "reddit-440",
       "source": "site/src/pages/about.astro",
       "exactWording": "Questions reach a human.",
@@ -2926,17 +2874,6 @@
       "exactWording": "Email support@blanc.day, or see the public changelog for what shipped most recently.",
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-443",
-      "source": "site/src/data/support-questions.json",
-      "exactWording": "Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Blanc Spaces. Creating a space requires an active Patron subscription. If membership lapses, existing spaces remain openable, switchable, and automatically updated. Renaming and removing existing spaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "workspaces",
         "trust"
       ],
       "verdict": "qualified"
@@ -2978,28 +2915,6 @@
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
         "process"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-448",
-      "source": "site/src/components/guides/workspaces.astro",
-      "exactWording": "Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Blanc Spaces. Creating a space requires an active Patron subscription. Blanc Spaces are available on macOS, Windows and Linux.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "workspaces",
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-449",
-      "source": "site/src/components/guides/workspaces.astro",
-      "exactWording": "If membership lapses, existing spaces remain openable, switchable, and automatically updated. Renaming and removing existing spaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "workspaces",
-        "trust"
       ],
       "verdict": "qualified"
     },
@@ -4273,32 +4188,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "revamp-copy-061",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Support Blanc and save named window sets with Blanc Spaces. The browser remains free; Patron is an optional subscription.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "process",
-        "trust",
-        "workspaces",
-        "releaseAuthentication"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "e5-patron-boundary",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Creating a space requires an active Patron subscription. Renaming and removing existing spaces continue to work if it lapses, and they stay openable, switchable and automatically updated.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "process",
-        "trust",
-        "workspaces",
-        "releaseAuthentication"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "revamp-copy-063",
       "source": "site/src/pages/index.astro",
       "exactWording": "US$30 / year or US$4 / month, plus applicable tax.",
@@ -5275,16 +5164,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "website-115-129",
-      "source": "site/src/pages/features/workspaces.astro",
-      "exactWording": "Switch between saved sets from the Island’s space control. Blanc Spaces is a Patron feature.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "workspaces"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "website-115-146",
       "source": "site/src/pages/features/workspaces.astro",
       "exactWording": "Make room for the way you browse.",
@@ -5935,16 +5814,6 @@
       "id": "feature-retained-website-115-136",
       "source": "site/src/pages/features/workspaces.astro",
       "exactWording": "Create groups and assign tabs yourself. Blanc saves those choices; it does not detect tasks or organize tabs by meaning.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "workspaces"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "feature-retained-website-115-137",
-      "source": "site/src/pages/features/workspaces.astro",
-      "exactWording": "Support Blanc and keep your saved spaces.",
       "subject": "Blanc",
       "evidenceGroups": [
         "workspaces"
@@ -6696,28 +6565,6 @@
       "subject": "Blanc",
       "evidenceGroups": [
         "navigation"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "feature-retained-reddit-448",
-      "source": "site/src/pages/features/workspaces.astro",
-      "exactWording": "Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Blanc Spaces. Creating a space requires an active Patron subscription. Blanc Spaces are available on macOS, Windows and Linux.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "workspaces",
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "feature-retained-reddit-449",
-      "source": "site/src/pages/features/workspaces.astro",
-      "exactWording": "If membership lapses, existing spaces remain openable, switchable, and automatically updated. Renaming and removing existing spaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "workspaces",
-        "trust"
       ],
       "verdict": "qualified"
     },
@@ -8143,17 +7990,6 @@
       "verdict": "verified"
     },
     {
-      "id": "tabs-native-patron",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Tab groups are free. Patron adds saved Blanc Spaces.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations",
-        "workspaces"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "revamp-gesture-outcome-1",
       "source": "site/src/scripts/gesture-demo.js",
       "exactWording": "Return to the previous page.",
@@ -9073,17 +8909,6 @@
       "subject": "Blanc",
       "evidenceGroups": [
         "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "seo-2026-10-05-arc-alternative-09",
-      "source": "site/src/pages/arc-alternative.astro",
-      "exactWording": "Named tab groups keep related tabs together and fold away when you want a quieter view. With Blanc Patron, Blanc Spaces save a window’s tabs and groups so you can switch between sets in place.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations",
-        "workspaces"
       ],
       "verdict": "qualified"
     },
@@ -10268,6 +10093,197 @@
       "id": "feature-retained-website-115-132",
       "historicalLedger": "docs/website-revamp-claims-v1.27.json",
       "reason": "October 13, 2026 update for public v1.32.0: v1.32.0 ships /space, with /workspace as an alias; the page now names /space. See docs/website-v1.32-claims.json. The original wording remains in git history."
+    },
+    {
+      "id": "trust-125-279",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "What does optional Patron add?",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "October 14, 2026: public v1.33.0 made Blanc Spaces free for everyone; Blanc Patron is optional support and unlocks nothing (owner decision, docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md). The replacement wording is recorded in docs/website-v1.33-claims.json; the original remains in git history."
+    },
+    {
+      "id": "trust-125-281",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Blocking, private tabs, favorites, ordinary tab groups, Quiet Tabs and optional encrypted Sync remain free. Patron does not restrict access to the open-source code.",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "October 14, 2026: public v1.33.0 made Blanc Spaces free for everyone; Blanc Patron is optional support and unlocks nothing (owner decision, docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md). The replacement wording is recorded in docs/website-v1.33-claims.json; the original remains in git history."
+    },
+    {
+      "id": "reddit-410",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Free essentials; optional saved sets",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "October 14, 2026: public v1.33.0 made Blanc Spaces free for everyone; Blanc Patron is optional support and unlocks nothing (owner decision, docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md). The replacement wording is recorded in docs/website-v1.33-claims.json; the original remains in git history."
+    },
+    {
+      "id": "reddit-411",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Blanc Spaces. Creating a space requires an active Patron subscription.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "workspaces",
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "October 14, 2026: public v1.33.0 made Blanc Spaces free for everyone; Blanc Patron is optional support and unlocks nothing (owner decision, docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md). The replacement wording is recorded in docs/website-v1.33-claims.json; the original remains in git history."
+    },
+    {
+      "id": "reddit-439",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Blanc Spaces. Creating a space requires an active Patron subscription. If membership lapses, existing spaces remain openable, switchable, and automatically updated. Renaming and removing existing spaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "workspaces",
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "October 14, 2026: public v1.33.0 made Blanc Spaces free for everyone; Blanc Patron is optional support and unlocks nothing (owner decision, docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md). The replacement wording is recorded in docs/website-v1.33-claims.json; the original remains in git history."
+    },
+    {
+      "id": "reddit-443",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Blanc Spaces. Creating a space requires an active Patron subscription. If membership lapses, existing spaces remain openable, switchable, and automatically updated. Renaming and removing existing spaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "workspaces",
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "October 14, 2026: public v1.33.0 made Blanc Spaces free for everyone; Blanc Patron is optional support and unlocks nothing (owner decision, docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md). The replacement wording is recorded in docs/website-v1.33-claims.json; the original remains in git history."
+    },
+    {
+      "id": "reddit-448",
+      "source": "site/src/components/guides/workspaces.astro",
+      "exactWording": "Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Blanc Spaces. Creating a space requires an active Patron subscription. Blanc Spaces are available on macOS, Windows and Linux.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "workspaces",
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "October 14, 2026: public v1.33.0 made Blanc Spaces free for everyone; Blanc Patron is optional support and unlocks nothing (owner decision, docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md). The replacement wording is recorded in docs/website-v1.33-claims.json; the original remains in git history."
+    },
+    {
+      "id": "reddit-449",
+      "source": "site/src/components/guides/workspaces.astro",
+      "exactWording": "If membership lapses, existing spaces remain openable, switchable, and automatically updated. Renaming and removing existing spaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "workspaces",
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "October 14, 2026: public v1.33.0 made Blanc Spaces free for everyone; Blanc Patron is optional support and unlocks nothing (owner decision, docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md). The replacement wording is recorded in docs/website-v1.33-claims.json; the original remains in git history."
+    },
+    {
+      "id": "revamp-copy-061",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Support Blanc and save named window sets with Blanc Spaces. The browser remains free; Patron is an optional subscription.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "process",
+        "trust",
+        "workspaces",
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified",
+      "reason": "October 14, 2026: public v1.33.0 made Blanc Spaces free for everyone; Blanc Patron is optional support and unlocks nothing (owner decision, docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md). The replacement wording is recorded in docs/website-v1.33-claims.json; the original remains in git history."
+    },
+    {
+      "id": "e5-patron-boundary",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Creating a space requires an active Patron subscription. Renaming and removing existing spaces continue to work if it lapses, and they stay openable, switchable and automatically updated.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "process",
+        "trust",
+        "workspaces",
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified",
+      "reason": "October 14, 2026: public v1.33.0 made Blanc Spaces free for everyone; Blanc Patron is optional support and unlocks nothing (owner decision, docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md). The replacement wording is recorded in docs/website-v1.33-claims.json; the original remains in git history."
+    },
+    {
+      "id": "website-115-129",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Switch between saved sets from the Island’s space control. Blanc Spaces is a Patron feature.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified",
+      "reason": "October 14, 2026: public v1.33.0 made Blanc Spaces free for everyone; Blanc Patron is optional support and unlocks nothing (owner decision, docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md). The replacement wording is recorded in docs/website-v1.33-claims.json; the original remains in git history."
+    },
+    {
+      "id": "feature-retained-website-115-137",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Support Blanc and keep your saved spaces.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified",
+      "reason": "October 14, 2026: public v1.33.0 made Blanc Spaces free for everyone; Blanc Patron is optional support and unlocks nothing (owner decision, docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md). The replacement wording is recorded in docs/website-v1.33-claims.json; the original remains in git history."
+    },
+    {
+      "id": "feature-retained-reddit-448",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Blanc Spaces. Creating a space requires an active Patron subscription. Blanc Spaces are available on macOS, Windows and Linux.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "workspaces",
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "October 14, 2026: public v1.33.0 made Blanc Spaces free for everyone; Blanc Patron is optional support and unlocks nothing (owner decision, docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md). The replacement wording is recorded in docs/website-v1.33-claims.json; the original remains in git history."
+    },
+    {
+      "id": "feature-retained-reddit-449",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "If membership lapses, existing spaces remain openable, switchable, and automatically updated. Renaming and removing existing spaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "workspaces",
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "October 14, 2026: public v1.33.0 made Blanc Spaces free for everyone; Blanc Patron is optional support and unlocks nothing (owner decision, docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md). The replacement wording is recorded in docs/website-v1.33-claims.json; the original remains in git history."
+    },
+    {
+      "id": "tabs-native-patron",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Tab groups are free. Patron adds saved Blanc Spaces.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations",
+        "workspaces"
+      ],
+      "verdict": "qualified",
+      "reason": "October 14, 2026: public v1.33.0 made Blanc Spaces free for everyone; Blanc Patron is optional support and unlocks nothing (owner decision, docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md). The replacement wording is recorded in docs/website-v1.33-claims.json; the original remains in git history."
+    },
+    {
+      "id": "seo-2026-10-05-arc-alternative-09",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Named tab groups keep related tabs together and fold away when you want a quieter view. With Blanc Patron, Blanc Spaces save a window’s tabs and groups so you can switch between sets in place.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations",
+        "workspaces"
+      ],
+      "verdict": "qualified",
+      "reason": "October 14, 2026: public v1.33.0 made Blanc Spaces free for everyone; Blanc Patron is optional support and unlocks nothing (owner decision, docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md). The replacement wording is recorded in docs/website-v1.33-claims.json; the original remains in git history."
     }
   ],
   "supersededCandidateClaims": [
@@ -12628,6 +12644,78 @@
           {
             "before": "\n<h2 id=\"pop-arc-import-title\">Bring your Spaces over from Arc.</h2>\n<p>In Bring Your Tabs, choose Arc and pick your Spaces. Their pinned tabs and Today tabs come across, and their folders become tab groups. With Blanc Patron, each Space becomes a space; without it, each opens in its own window.</p>\n<p class=\"pop-note\">Sign-ins, passwords and history stay in Arc.</p>",
             "after": ""
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/workspaces.astro",
+        "reason": "October 14, 2026 update for public v1.33.0: Blanc Spaces became free for everyone and Blanc Patron unlocks nothing, so the Patron gate, the lapse rules and the Patron badge are replaced, and the page gains the space colour and symbol that v1.33.0 shipped. Verified at public v1.33.0 and recorded in docs/website-v1.33-claims.json.",
+        "replacements": [
+          {
+            "before": "<p class=\"section-kicker\">Blanc Patron</p>",
+            "after": "<p class=\"section-kicker\">Blanc Spaces</p>"
+          },
+          {
+            "before": "title=\"Blanc Spaces with Blanc Patron | Blanc Browser\"",
+            "after": "title=\"Blanc Spaces | Blanc Browser\""
+          },
+          {
+            "before": "description=\"Save a window’s tabs and groups as a space with Blanc Patron. Switch sets in place and return after relaunch, with everything stored locally.\"",
+            "after": "description=\"Save a window’s tabs and groups as a space, free. Switch sets in place and return after relaunch, with everything stored locally.\""
+          },
+          {
+            "before": "<figcaption>Switch between saved sets from the Island’s space control. Blanc Spaces is a Patron feature.</figcaption>",
+            "after": "<figcaption>Switch between saved sets from the Island’s space control.</figcaption>"
+          },
+          {
+            "before": "<article><h3>Save this window or start a new set</h3><p>Open the space control in the command panel or type /space. Active Patrons can save the current window or create a blank space.</p></article>",
+            "after": "<article><h3>Save this window or start a new set</h3><p>Open the space control in the command panel or type /space. Anyone can save the current window or create a blank space.</p></article>"
+          },
+          {
+            "before": "<article><h3>Bring your Spaces from Arc</h3><p>In Bring Your Tabs (type /bring-tabs), choose Arc, and each Space you pick becomes a space here, with its pinned tabs, its Today tabs and its folders as tab groups. Without an active Patron membership, each Arc Space opens in its own window instead. <a href=\"/arc-alternative\">Switching from Arc</a></p></article>",
+            "after": "<article><h3>Bring your Spaces from Arc</h3><p>In Bring Your Tabs (type /bring-tabs), choose Arc, and each Space you pick becomes a space here, with its pinned tabs, its Today tabs and its folders as tab groups. <a href=\"/arc-alternative\">Switching from Arc</a></p></article>"
+          },
+          {
+            "before": "<article><h3>You decide what belongs together</h3><p>Create groups and assign tabs yourself. Blanc saves those choices; it does not detect tasks or organize tabs by meaning.</p></article>",
+            "after": "<article><h3>Tell spaces apart at a glance</h3><p>Give each space a colour and a symbol. The current space shows at the start of the Island; click it to switch, edit, reorder or delete a space, with Undo.</p></article>\n<article><h3>You decide what belongs together</h3><p>Create groups and assign tabs yourself. Blanc saves those choices; it does not detect tasks or organize tabs by meaning.</p></article>"
+          },
+          {
+            "before": "<div><h2 id=\"workspaces-section-1\">Support Blanc and keep your saved spaces.</h2></div>",
+            "after": "<div><h2 id=\"workspaces-section-1\">Free, on every desktop platform.</h2></div>"
+          },
+          {
+            "before": "<article><h3>Available on every desktop platform</h3><p>Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Blanc Spaces. Creating a space requires an active Patron subscription. Blanc Spaces are available on macOS, Windows and Linux.</p></article>",
+            "after": "<article><h3>Available on every desktop platform</h3><p>Blanc Spaces is free for everyone on macOS, Windows and Linux. Blanc Patron is an optional subscription that supports Blanc’s development; it doesn’t unlock any feature.</p></article>"
+          },
+          {
+            "before": "<article><h3>Existing spaces remain yours</h3><p>If membership lapses, existing spaces remain openable, switchable, and automatically updated. Renaming and removing existing spaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.</p></article>",
+            "after": "<article><h3>Existing spaces remain yours</h3><p>Your spaces stay on this device, in this profile, and keep updating as you browse. Nothing about them depends on a subscription.</p></article>"
+          },
+          {
+            "before": "<a class=\"text-link\" href=\"/#home-patron-title\" data-track=\"feature_cta_click\" data-feature=\"named-workspaces\" data-cta-position=\"related-feature\">Explore Blanc Patron <span aria-hidden=\"true\">↗</span></a>",
+            "after": "<a class=\"text-link\" href=\"/support#workspaces\" data-track=\"feature_cta_click\" data-feature=\"named-workspaces\" data-cta-position=\"related-feature\">How Blanc Spaces work <span aria-hidden=\"true\">↗</span></a>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features.astro",
+        "reason": "October 14, 2026 update for public v1.33.0: Blanc Spaces became free for everyone and Blanc Patron unlocks nothing, so the Patron gate, the lapse rules and the Patron badge are replaced. Verified at public v1.33.0 and recorded in docs/website-v1.33-claims.json.",
+        "replacements": [
+          {
+            "before": "<p class=\"bento-badge\">Patron</p>",
+            "after": "<p class=\"bento-badge\">Now free</p>"
+          },
+          {
+            "before": "<p class=\"pop-note\">Creating and saving spaces needs an active Patron membership. Saved spaces stay usable if it ends.</p>",
+            "after": "<p class=\"pop-note\">Blanc Spaces is free for everyone.</p>"
+          },
+          {
+            "before": "<h2 id=\"feature-patron-title\">Keep the browser free. Get more room to move.</h2>",
+            "after": "<h2 id=\"feature-patron-title\">Keep the browser free and independent.</h2>"
+          },
+          {
+            "before": "<p>Blanc’s core stays free. Patron adds cross-platform Blanc Spaces while helping fund an independent browser.</p>",
+            "after": "<p>Every Blanc feature is free, including Blanc Spaces. Patron is how you help fund an independent browser.</p>"
           }
         ]
       }

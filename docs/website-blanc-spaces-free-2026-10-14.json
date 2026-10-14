@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-14",
+  "decision": "Public v1.33.0 made Blanc Spaces free for everyone, and Blanc Patron became optional support that unlocks nothing (docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md). The support answers that described Patron as adding Blanc Spaces, its creation gate and its lapse rules are reworded to that decision; pricing, Polar and the founding licenses are unchanged. Applied after docs/website-blanc-spaces-rename-2026-10-11.json.",
+  "supportAnswers": [
+    {
+      "id": "patron",
+      "before": "What does optional Patron add?",
+      "after": "What is optional Patron?"
+    },
+    {
+      "id": "patron",
+      "before": "Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Blanc Spaces. Creating a space requires an active Patron subscription. If membership lapses, existing spaces remain openable, switchable, and automatically updated. Renaming and removing existing spaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.",
+      "after": "Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It is how you support Blanc’s development, and it unlocks nothing: every feature, including Blanc Spaces, is free for everyone. Earlier one-time supporters keep their lifetime Patron access."
+    },
+    {
+      "id": "patron",
+      "before": "Blocking, private tabs, favorites, ordinary tab groups, Quiet Tabs and optional encrypted Sync remain free. Patron does not restrict access to the open-source code.",
+      "after": "Blocking, private tabs, favorites, tab groups, Blanc Spaces, Quiet Tabs and optional encrypted Sync are free. Patron does not restrict access to the open-source code."
+    }
+  ]
+}

@@ -1167,16 +1167,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-097",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "Creating and saving spaces needs an active Patron membership. Saved spaces stay usable if it ends.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "workspaces"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "bento-130-098",
       "source": "site/src/pages/features.astro",
       "exactWording": "Sync",
@@ -1945,6 +1935,17 @@
       ],
       "verdict": "qualified",
       "reason": "October 13, 2026: the Features board folds its separate Arc Spaces tile into the import tile, so one tile and popover cover bookmarks and Arc Spaces. The replacement wording is recorded in docs/website-v1.32-claims.json; the original remains in git history."
+    },
+    {
+      "id": "bento-130-097",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Creating and saving spaces needs an active Patron membership. Saved spaces stay usable if it ends.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified",
+      "reason": "October 14, 2026: public v1.33.0 made Blanc Spaces free for everyone; Blanc Patron is optional support and unlocks nothing (owner decision, docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md). The replacement wording is recorded in docs/website-v1.33-claims.json; the original remains in git history."
     }
   ]
 }

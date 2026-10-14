@@ -17,8 +17,9 @@ test('expanded feature guides retain release limitations beside their benefits',
   const reopen = guide('reopen-closed-tabs');
   for (const limit of [/At most one eligible closed page per window/, /about 30 seconds/, /may reload/, /25 entries per window/, /one hour/, /Private tabs never enter Recently Closed/]) assert.match(reopen, limit);
   const workspaces = guide('workspaces');
-  assert.match(workspaces, /requires an active Patron subscription/);
-  assert.match(workspaces, /membership lapses, existing spaces remain openable, switchable, and automatically updated/);
+  assert.match(workspaces, /free for everyone/);
+  assert.match(workspaces, /doesn’t unlock any feature/);
+  assert.doesNotMatch(workspaces, /requires an active Patron|Active Patrons can/);
   assert.match(workspaces, /device-local and profile-scoped/);
   assert.match(workspaces, /do not sync across devices/);
   assert.match(guide('profiles'), /Sync is available only to Personal/);
@@ -171,7 +172,7 @@ test('grant drafts and metrics labels do not overclaim licensing or installs', (
   assert.doesNotMatch(readme, /else\s+builds unsigned/i);
 });
 
-test('public Patron copy states the named-workspace boundary consistently', () => {
+test('public Patron copy states the free Blanc Spaces boundary consistently', () => {
   const publicCopyFiles = [
     'README.md',
     'docs/superpowers/plans/assets/launch-copy.md',
@@ -194,21 +195,23 @@ test('public Patron copy states the named-workspace boundary consistently', () =
   for (const relativePath of publicCopyFiles) {
     const source = read(relativePath);
     assert.doesNotMatch(source, staleClaims, `${relativePath} must not overstate the free feature boundary`);
-    assert.match(source, /\b(?:Blanc Spaces|named workspaces?)\b/i, `${relativePath} must name the Patron Blanc Spaces benefit`);
+    assert.match(source, /\b(?:Blanc Spaces|named workspaces?)\b/i, `${relativePath} must name Blanc Spaces`);
     assert.doesNotMatch(source, retiredColorwayClaim, `${relativePath} must not advertise retired Patron colorways`);
   }
 
   for (const relativePath of detailedBoundaryFiles) {
     const source = read(relativePath);
+    // Since v1.33.0 Blanc Spaces is free and Patron unlocks nothing
+    // (docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md).
     assert.match(
       source,
-      /Creating\s+a\s+space\s+requires\s+an\s+active\s+Patron\s+subscription/i,
-      `${relativePath} must state the creation gate`
+      /unlocks\s+nothing|(?:does\s+not|doesn’t)\s+unlock\s+any\s+feature/i,
+      `${relativePath} must say Patron unlocks nothing`
     );
-    assert.match(
+    assert.doesNotMatch(
       source,
-      /Renaming\s+and\s+removing\s+existing\s+spaces\s+continue\s+to\s+work\s+if\s+it\s+lapses/i,
-      `${relativePath} must state the lapsed-subscription behavior`
+      /Creating\s+a\s+space\s+requires|Renaming\s+and\s+removing\s+existing\s+spaces\s+continue/i,
+      `${relativePath} must not describe the retired Patron gate`
     );
   }
 
