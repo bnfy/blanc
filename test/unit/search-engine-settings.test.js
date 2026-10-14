@@ -97,6 +97,29 @@ test('a bad edit keeps the previous address, and switching away keeps it for lat
   assert.equal(settings.setSettings({ searchEngine: 'custom' }).searchEngine, 'custom');
 });
 
+test('a refused address refuses the engine change with it, and stamps nothing', (t) => {
+  const settings = freshProfile(t, 'refused-pair');
+  settings.setSettings({ searchEngine: 'custom', searchEngineTemplate: SEARX });
+  settings.setSettings({ searchEngine: 'google' });
+  const googleClock = settings.exportForSync().meta.searchEngine;
+
+  // Google is selected and an older valid address is still stored: Custom
+  // with a refused address must keep Google, not switch to the old address.
+  const refused = settings.setSettings({ searchEngine: 'custom', searchEngineTemplate: 'https://x.example/?q={searchTerms}' });
+  assert.equal(refused.searchEngine, 'google');
+  assert.equal(refused.searchEngineTemplate, SEARX);
+  assert.equal(settings.exportForSync().meta.searchEngine, googleClock);
+
+  // A refused edit while Custom is selected doesn't re-stamp the engine either.
+  settings.setSettings({ searchEngine: 'custom', searchEngineTemplate: SEARX });
+  const customClock = settings.exportForSync().meta.searchEngine;
+  settings.setSettings({ searchEngine: 'custom', searchEngineTemplate: 'https://%s.example/' });
+  assert.equal(settings.exportForSync().meta.searchEngine, customClock);
+
+  // Other keys in a refused search write still apply.
+  assert.equal(settings.setSettings({ searchEngine: 'custom', searchEngineTemplate: 'nope', theme: 'dark' }).theme, 'dark');
+});
+
 test('a stored Custom without a valid address, or an unknown id, reads as DuckDuckGo', (t) => {
   const handEdited = freshProfile(t, 'read-custom', {
     searchEngine: 'custom',

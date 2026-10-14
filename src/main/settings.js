@@ -474,7 +474,13 @@ function setSettings(partial) {
   }
   // Custom needs a valid address. A change that would leave Custom selected
   // without one is refused, keeping the previous engine and address; keys
-  // the write didn't touch are never re-stamped for sync.
+  // the write didn't touch are never re-stamped for sync. sanitize() already
+  // dropped a refused address, so drop the engine sent with it too: otherwise
+  // Custom could switch on with an older stored address, and the engine
+  // would be re-stamped for sync on every refused edit.
+  if (typeof partial.searchEngineTemplate === 'string' && !('searchEngineTemplate' in clean)) {
+    delete clean.searchEngine;
+  }
   if ('searchEngine' in clean || 'searchEngineTemplate' in clean) {
     const search = reconcileSearchEngineWrite(
       { searchEngine: s.data.searchEngine, searchEngineTemplate: s.data.searchEngineTemplate },
