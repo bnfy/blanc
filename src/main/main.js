@@ -4125,6 +4125,12 @@ function normalizeAddressInput(input) {
   }
   if (/^localhost(:\d+)?(\/|$)/.test(trimmed)) return `http://${trimmed}`;
   if (/^(\d{1,3}\.){3}\d{1,3}(:\d+)?(\/|$)/.test(trimmed)) return `http://${trimmed}`; // bare IPv4
+  // A search operator such as site:example.com puts a colon where the host
+  // would be; only a numeric port may follow one there, as the ⌘L panel's
+  // looksLikeAddress() already assumes. Text with user:pass@ keeps its old
+  // path rather than being sent to the search engine.
+  const host = trimmed.split(/[/?#]/, 1)[0];
+  if (!host.includes('@') && /:(?!\d+$)/.test(host)) return settings.searchUrlFor(trimmed);
   const looksLikeDomain = /^[^\s]+\.[a-zA-Z]{2,}(\/[^\s]*)?$/.test(trimmed);
   if (looksLikeDomain) return `https://${trimmed}`;
   return settings.searchUrlFor(trimmed);
