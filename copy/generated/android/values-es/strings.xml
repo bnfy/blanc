@@ -278,6 +278,8 @@
     <string name="ws_recovery_help">Los Spaces guardados se pueden recuperar durante siete días. Se conservan hasta %1$s Spaces eliminados.</string>
     <string name="ws_recovery_restore">Restaurar</string>
     <string name="ws_recovery_forget">Eliminar para siempre…</string>
+    <string name="ws_recovery_restore_named">Restaurar %1$s</string>
+    <string name="ws_recovery_forget_named">Eliminar %1$s definitivamente…</string>
     <string name="ws_recovery_deleted_when">Eliminado %1$s</string>
     <string name="ws_forget_confirm">¿Eliminar «%1$s» para siempre? Este Space guardado no se podrá restaurar.</string>
     <string name="ws_forget_button">Eliminar para siempre</string>

@@ -985,6 +985,14 @@
     "message": "Excluir permanentemente…",
     "source": "sha256:c0fa87f11bdaa0f5ff2b658b96f75bd408d7c5bcb4faa127f252a0a1c5c54e53"
   },
+  "ws.recovery.restoreNamed": {
+    "message": "Restaurar {name}",
+    "source": "sha256:44d9b5dfc9d41c9329dc7954fb307f67be77f270eb37d46db43f0e4172b5d7d3"
+  },
+  "ws.recovery.forgetNamed": {
+    "message": "Excluir {name} permanentemente…",
+    "source": "sha256:a22aed10c71520c11bb819eadda7f6df8392e31c4d774bc07bbc6e5fe7660309"
+  },
   "ws.recovery.deletedWhen": {
     "message": "Excluído {when}",
     "source": "sha256:0c36a7ec315da61e9288fff02398ffbcd97a1d3952ba38ec7e6e2be6a2ab6014"

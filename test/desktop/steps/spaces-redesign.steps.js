@@ -324,7 +324,7 @@ Then('{string} is listed in {string}, deleted today, with its full name as a too
 });
 Then('it has a trash button labelled {string}', async function (label) {
   const row = await recoveryRow(await menu(), this.recoveryName);
-  assert.deepEqual(row.bin, { label, title: label, text: '' });
+  assert.deepEqual(row.bin, { label: `Delete ${this.recoveryName} permanently…`, title: label, text: '' }, 'named for screen readers; the tooltip is the plain label');
 });
 Then('the editor shows no readability note', async function () {
   const page = await menu();

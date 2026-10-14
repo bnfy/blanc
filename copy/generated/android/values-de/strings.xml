@@ -270,6 +270,8 @@
     <string name="ws_recovery_help">Gespeicherte Spaces lassen sich sieben Tage lang wiederherstellen. Bis zu %1$s gelöschte Spaces werden aufbewahrt.</string>
     <string name="ws_recovery_restore">Wiederherstellen</string>
     <string name="ws_recovery_forget">Endgültig löschen…</string>
+    <string name="ws_recovery_restore_named">%1$s wiederherstellen</string>
+    <string name="ws_recovery_forget_named">%1$s endgültig löschen…</string>
     <string name="ws_recovery_deleted_when">Gelöscht %1$s</string>
     <string name="ws_forget_confirm">„%1$s“ endgültig löschen? Dieser gespeicherte Space lässt sich nicht wiederherstellen.</string>
     <string name="ws_forget_button">Endgültig löschen</string>

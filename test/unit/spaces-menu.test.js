@@ -20,7 +20,8 @@ test('rows show a painted symbol tile, the name, the count and the current space
   assert.equal(tile.props['--space-on'], '#ffffff', 'the symbol is white on it');
   assert.equal(tile.dataset.edge, 'false');
   assert.equal(main.children[1].textContent, 'First');
-  assert.equal(main.children[1].title, 'First', 'the full name is a tooltip, for when it is cut short');
+  assert.match(main.title, /First/, "the row's tooltip carries the full name, for when it is cut short");
+  assert.equal(main.children[1].title, undefined, "the name adds no tooltip of its own over the row's richer one");
   assert.equal('data-i18n-ignore' in main.children[1].attrs, true, 'space names are never translated');
   assert.equal(first.children[1].attrs['aria-label'], 'Edit First');
   assert.ok(h.byKey('new'), 'New space… is always offered');
@@ -195,11 +196,20 @@ test('Recently Deleted shows each space as it was, with when it went, Restore an
   assert.equal(h.byKey('restore:r').textContent, 'Restore');
   const bin = h.byKey('forget:r');
   assert.equal(bin.textContent, '', 'a trash button, not the long label');
-  assert.equal(bin.attrs['aria-label'], 'Delete permanently…');
+  assert.equal(bin.attrs['aria-label'], 'Delete Reading list for the weekend permanently…', 'named, so each row\'s button is distinct to a screen reader');
   assert.equal(bin.title, 'Delete permanently…');
+  assert.equal(h.byKey('restore:r').attrs['aria-label'], 'Restore Reading list for the weekend');
   assert.ok(bin.querySelector('.ws-glyph'), 'drawn as a trash can');
   bin.click();
   assert.equal(h.ui.state.kind, 'forget', 'it still asks first');
+});
+
+test('a deleted space with no usable date still lists, without the date line', () => {
+  const deleted = [{ id: 'x', name: 'Odd', deletedAt: Number.NaN, color: '#426c4c', symbol: 'book' }];
+  const h = harness({}, { ...TWO, deleted }); h.ui.open(); h.byKey('recently-deleted').click();
+  const [row] = h.popup.querySelectorAll('.ws-recovery-row');
+  assert.ok(row, 'the view still renders');
+  assert.equal(row.querySelector('.ws-recovery-when'), null);
 });
 
 test('Escape steps back one level at a time', async () => {

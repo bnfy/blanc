@@ -11059,6 +11059,90 @@
         }
       }
     },
+    "ws.recovery.restoreNamed": {
+      "comment": "Recently deleted spaces: the accessible name of a Restore button; {name} is the space name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ wiederherstellen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurar %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurer %1$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ripristina %1$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurar %1$@"
+          }
+        }
+      }
+    },
+    "ws.recovery.forgetNamed": {
+      "comment": "Recently deleted spaces: the accessible name of the trash button that asks to permanently delete a space; {name} is the space name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete %1$@ permanently…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ endgültig löschen…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminar %1$@ definitivamente…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer définitivement %1$@…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elimina %1$@ definitivamente…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Excluir %1$@ permanentemente…"
+          }
+        }
+      }
+    },
     "ws.recovery.deletedWhen": {
       "comment": "Recently deleted spaces: when a space was deleted. {when} is a relative day from the system, such as \"today\", \"yesterday\" or \"3 days ago\".",
       "extractionState": "manual",

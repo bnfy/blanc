@@ -278,6 +278,8 @@
     <string name="ws_recovery_help">Gli Spaces salvati sono recuperabili per sette giorni. Vengono conservati fino a %1$s Spaces eliminati.</string>
     <string name="ws_recovery_restore">Ripristina</string>
     <string name="ws_recovery_forget">Elimina definitivamente…</string>
+    <string name="ws_recovery_restore_named">Ripristina %1$s</string>
+    <string name="ws_recovery_forget_named">Elimina %1$s definitivamente…</string>
     <string name="ws_recovery_deleted_when">Eliminato %1$s</string>
     <string name="ws_forget_confirm">Eliminare definitivamente «%1$s»? Questo Space salvato non potrà essere ripristinato.</string>
     <string name="ws_forget_button">Elimina definitivamente</string>

@@ -278,6 +278,8 @@
     <string name="ws_recovery_help">Les Spaces enregistrés sont récupérables pendant sept jours. Jusqu’à %1$s Spaces supprimés sont conservés.</string>
     <string name="ws_recovery_restore">Restaurer</string>
     <string name="ws_recovery_forget">Supprimer définitivement…</string>
+    <string name="ws_recovery_restore_named">Restaurer %1$s</string>
+    <string name="ws_recovery_forget_named">Supprimer définitivement %1$s…</string>
     <string name="ws_recovery_deleted_when">Supprimé %1$s</string>
     <string name="ws_forget_confirm">Supprimer définitivement « %1$s » ? Ce Space enregistré ne pourra pas être restauré.</string>
     <string name="ws_forget_button">Supprimer définitivement</string>

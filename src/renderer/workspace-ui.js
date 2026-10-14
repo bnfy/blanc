@@ -353,8 +353,7 @@
       main.title = t('ws.row.title', { name: workspace.name, context, count: workspace.tabCount });
       main.setAttribute('aria-label', main.title);
       if (workspace.active) main.setAttribute('aria-current', 'true');
-      const name = dataEl('span', 'ws-row-name', workspace.name); name.title = workspace.name;
-      main.append(tile(workspace), name, el('span', 'ws-row-count', workspace.openElsewhere ? t('ws.row.showWindow') : number.format(workspace.tabCount)));
+      main.append(tile(workspace), dataEl('span', 'ws-row-name', workspace.name), el('span', 'ws-row-count', workspace.openElsewhere ? t('ws.row.showWindow') : number.format(workspace.tabCount)));
       main.addEventListener('keydown', (event) => {
         if (!event.altKey || !['ArrowUp', 'ArrowDown'].includes(event.key)) return;
         event.preventDefault(); event.stopPropagation();
@@ -589,11 +588,16 @@
         const row = el('div', 'ws-recovery-row');
         const text = el('div', 'ws-recovery-text');
         const name = dataEl('span', 'ws-row-name', entry.name); name.title = entry.name;
-        text.append(name, el('span', 'ws-recovery-when', t('ws.recovery.deletedWhen', { when: relativeDay.format(-daysAgo(entry.deletedAt), 'day') })));
+        text.append(name);
+        // A date that cannot be read is left out rather than breaking the view.
+        if (Number.isFinite(entry.deletedAt)) text.append(el('span', 'ws-recovery-when', t('ws.recovery.deletedWhen', { when: relativeDay.format(-daysAgo(entry.deletedAt), 'day') })));
+        // Named for screen readers, so each row's buttons are distinct.
+        const restore = button(t('ws.recovery.restore'), `restore:${entry.id}`, () => run(() => api.restoreWorkspace(entry.id), () => { if (undo?.id === entry.id) undo = null; }), 'ws-pill');
+        restore.setAttribute('aria-label', t('ws.recovery.restoreNamed', { name: entry.name }));
         const forget = button('', `forget:${entry.id}`, () => { state = { kind: 'forget', id: entry.id, name: entry.name }; render(); }, 'ws-icon-button ws-recovery-forget');
-        forget.setAttribute('aria-label', t('ws.recovery.forget')); forget.title = t('ws.recovery.forget'); forget.append(glyph('trash'));
+        forget.setAttribute('aria-label', t('ws.recovery.forgetNamed', { name: entry.name })); forget.title = t('ws.recovery.forget'); forget.append(glyph('trash'));
         const actions = el('div', 'ws-recovery-actions');
-        actions.append(button(t('ws.recovery.restore'), `restore:${entry.id}`, () => run(() => api.restoreWorkspace(entry.id), () => { if (undo?.id === entry.id) undo = null; }), 'ws-pill'), forget);
+        actions.append(restore, forget);
         row.append(tile({ color: entry.color, symbol: entry.symbol }), text, actions);
         box.append(row);
       }
