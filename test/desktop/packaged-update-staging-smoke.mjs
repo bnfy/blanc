@@ -7,6 +7,8 @@ import path from 'node:path';
 import process from 'node:process';
 import { inspectUpdateMetadata } from '../../scripts/prepare-staging-update-feed.mjs';
 import { launchPackagedOverCdp } from './support/packaged-cdp.mjs';
+import poll from './support/poll.js';
+const { isTargetClosedError } = poll;
 
 if (process.platform !== 'darwin') {
   throw new Error('the initial N-1 staging update smoke targets signed Squirrel.Mac packages');
@@ -61,7 +63,7 @@ const runningVersion = async (app) => {
   try {
     return await page.evaluate(() => window.bowserPages?.appVersion?.() ?? null);
   } catch (error) {
-    if (/Target page, context or browser has been closed/.test(error?.message ?? '')) return null;
+    if (isTargetClosedError(error)) return null;
     throw error;
   }
 };

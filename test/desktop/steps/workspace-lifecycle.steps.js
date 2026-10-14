@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { Before, After, Given, When, Then } = require('@cucumber/cucumber');
 const ctx = require('../support/context');
-const { waitForValue } = require('../support/poll');
+const { waitForValue, expectPageClose } = require('../support/poll');
 const { startWorkspaceFixtures } = require('../support/workspace-fixtures');
 
 const tags = '@F41-12 or @F41-13 or @F41-14';
@@ -74,13 +74,8 @@ Then('the switch is refused and the sign-in callback still reaches its opener', 
   await this.loginChild.locator('#complete').click();
   await waitForValue(() => this.call('workspacePageScript', this.loginTab, 'window.loginResults'), values => values.length === 1, 'sign-in callback reaches the original opener');
   assert.deepEqual(await this.call('workspacePageScript', this.loginTab, 'window.loginResults'), [{ kind: 'workspace-login', mode: this.loginMode, opener: true }]);
-  // #close calls window.close(). If the popup closes before Playwright's click
-  // finishes its post-action wait, the click rejects even though it succeeded;
-  // that is the outcome this step wants, so tolerate it only when the page did close.
-  await this.loginChild.locator('#close').click().catch((error) => {
-    if (!this.loginChild.isClosed()) throw error;
-  });
-  await waitForValue(() => Promise.resolve(this.loginChild.isClosed()), Boolean, 'sign-in child closes');
+  // #close calls window.close(); the click can lose the race with that close.
+  await expectPageClose(this.loginChild, () => this.loginChild.locator('#close').click());
   await this.waitForState(state => state.tabs.every(tab => !tab.isLoading));
   assert.equal((await this.call('workspaceAction', 'open', this.loginTarget)).ok, true, 'the guard must clear when the opener family ends');
   await this.waitForState(state => state.tabs.every(tab => !tab.isLoading));

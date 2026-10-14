@@ -11,7 +11,7 @@ import { createHash } from 'node:crypto';
 import { chromium } from 'playwright';
 import { launchPackagedOverCdp } from './support/packaged-cdp.mjs';
 import poll from './support/poll.js';
-const { waitForValue, clickWhenSettled } = poll;
+const { waitForValue, clickWhenSettled, expectPageClose } = poll;
 const executable = process.env.BLANC_PACKAGED_EXECUTABLE;
 const evidence = process.env.BLANC_UBLOCK_EVIDENCE;
 assert(executable && evidence);
@@ -165,7 +165,7 @@ try {
   report.checks.networkAndCosmetics = true;
   stage = 'original popup and logger';
   let p = await popup(fixture.id); await p.locator('#blancMore').click(); assert.equal(await p.locator('#blancMore').getAttribute('aria-expanded'), 'true');
-  await Promise.all([p.waitForEvent('close'), p.locator('a[href="logger-ui.html#_"]').click().catch(error => { if (!p.isClosed() || !error.message.includes('Target page, context or browser has been closed')) throw error; })]);
+  await expectPageClose(p, () => p.locator('a[href="logger-ui.html#_"]').click());
   const logger = await waitForValue(() => pages().find(p => p.url().includes('/logger-ui.html')), Boolean, 'original logger');
   await logger.locator('#netInspector').waitFor(); report.checks.popupMarkAndMoreAndLogger = true;
   stage = 'private isolation';
@@ -184,7 +184,7 @@ try {
   assert(quieted.includes(background.id)); await waitForValue(() => background.page.isClosed(), Boolean, 'quiet renderer closed');
   await chrome.evaluate(id => window.browserAPI.switchTab(id), background.id);
   const awake = await at(origin + '/quiet'); await awake.waitForFunction(() => window.allowed === true);
-  p = await popup(background.id); await p.locator('#blancClose').click(); report.checks.quietWakeControls = true;
+  p = await popup(background.id); await expectPageClose(p, () => p.locator('#blancClose').click()); report.checks.quietWakeControls = true;
   stage = 'provider round trip and filter persistence';
   await restartChoice('blanc'); await restartChoice('ublock-origin');
   dash = await dashboard(); assert((await dash.frame.evaluate(() => document.querySelector('.CodeMirror').CodeMirror.getValue())).includes('/blocked-installed.js$script'));
