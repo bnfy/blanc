@@ -1037,6 +1037,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_general_default_browser_btn_installed_only">Disponibile nell’app installata</string>
     <string name="settings_general_dark_exception_list_empty">Nessun sito aggiunto.</string>
     <string name="settings_remove">Rimuovi</string>
+    <string name="settings_site_list_remove">Rimuovi %1$s</string>
     <string name="settings_gesture_action_back">Indietro</string>
     <string name="settings_gesture_action_forward">Avanti</string>
     <string name="settings_gesture_action_reload">Ricarica</string>

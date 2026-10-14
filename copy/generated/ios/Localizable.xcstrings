@@ -41024,7 +41024,7 @@
       }
     },
     "settings.remove": {
-      "comment": "Settings: button that removes one entry from a list (a site exception or a saved site permission).",
+      "comment": "Settings: button that removes one saved site permission from the list.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -41061,6 +41061,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "Remover"
+          }
+        }
+      }
+    },
+    "settings.siteList.remove": {
+      "comment": "Settings: accessible name of the × button beside one site in the Dark websites or ad-blocking exception list; {site} is that site's hostname, e.g. example.com.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ entfernen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quitar %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retirer %1$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rimuovi %1$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remover %1$@"
           }
         }
       }

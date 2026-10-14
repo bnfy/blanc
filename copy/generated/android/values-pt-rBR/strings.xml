@@ -1037,6 +1037,7 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="settings_general_default_browser_btn_installed_only">Disponível no app instalado</string>
     <string name="settings_general_dark_exception_list_empty">Nenhum site adicionado.</string>
     <string name="settings_remove">Remover</string>
+    <string name="settings_site_list_remove">Remover %1$s</string>
     <string name="settings_gesture_action_back">Voltar</string>
     <string name="settings_gesture_action_forward">Avançar</string>
     <string name="settings_gesture_action_reload">Recarregar</string>

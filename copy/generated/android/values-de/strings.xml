@@ -1010,6 +1010,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_general_default_browser_btn_installed_only">In der installierten App verfügbar</string>
     <string name="settings_general_dark_exception_list_empty">Keine Websites hinzugefügt.</string>
     <string name="settings_remove">Entfernen</string>
+    <string name="settings_site_list_remove">%1$s entfernen</string>
     <string name="settings_gesture_action_back">Zurück</string>
     <string name="settings_gesture_action_forward">Vorwärts</string>
     <string name="settings_gesture_action_reload">Neu laden</string>

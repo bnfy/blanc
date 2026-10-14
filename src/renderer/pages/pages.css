@@ -621,6 +621,64 @@ body.sheet .page > .row-list > .empty {
 .gesture-message:empty { display: none; }
 .gesture-editor[hidden], .gesture-composer[hidden], .gesture-add[hidden] { display: none; }
 
+/* Site exception lists (Dark websites, ad blocking). A list belongs to the
+   switch above it, so that row gives up its divider while the list shows;
+   the list closes with its own divider unless it ends the card. The sites
+   and the add field share one bordered box, with each × always in view. */
+.setting:has(+ .site-list-block:not([hidden])) { padding-bottom: 10px; border-bottom: 0; }
+.site-list-block:not(:last-child) { padding-bottom: 18px; border-bottom: 1px solid var(--border); }
+.site-list-block > .section-hint { margin-bottom: 10px; }
+.site-list {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.site-list:has(.site-list-add > input:focus-visible) { border-color: var(--text-dim); }
+.site-row,
+.site-list-empty {
+  min-height: 36px;
+  box-sizing: border-box;
+  padding: 0 4px 0 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: var(--type-body-size);
+}
+.site-row { display: flex; align-items: center; gap: 12px; }
+.site-row-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.site-list-empty { display: flex; align-items: center; color: var(--text-dim); }
+.site-row-remove {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-dim);
+  font-size: 18px;
+  line-height: 1;
+}
+.site-row-remove:hover { background: var(--surface); color: var(--danger); }
+.site-row-remove:focus-visible { color: var(--danger); }
+.site-list-add { display: flex; align-items: center; gap: 8px; padding: 4px 4px 4px 12px; }
+.site-list .site-list-add > input[type="text"] {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+.site-list .site-list-add > input:focus-visible { outline: none; }
+.site-list .site-list-add > button:not([class]) { min-height: 28px; padding: 0 12px; border-radius: var(--radius-sm); }
+
 /* Default-browser row: quiet confirmation once Blanc holds the role. */
 #defaultBrowserState {
   color: var(--accent);
@@ -1003,13 +1061,6 @@ body.sheet .settings-card--mixed:has(#adblockExceptionsBlock) > .setting,
 body.sheet .settings-card--mixed:has(#usagePing) > .setting {
   border-bottom: 0;
 }
-body.sheet #adblockExceptionsBlock { padding-top: 4px; }
-body.sheet #adblockExceptionsBlock > .section-hint {
-  margin-bottom: 14px;
-  font-size: var(--type-body-size);
-  line-height: 1.5;
-}
-body.sheet #adblockExceptionsBlock > .toolbar-row { margin-bottom: 12px; }
 body.sheet .settings-card--mixed .settings-action-row--reset {
   margin: 0;
   padding: 8px 0 0;

@@ -1010,6 +1010,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_general_default_browser_btn_installed_only">Available in the installed app</string>
     <string name="settings_general_dark_exception_list_empty">No sites added.</string>
     <string name="settings_remove">Remove</string>
+    <string name="settings_site_list_remove">Remove %1$s</string>
     <string name="settings_gesture_action_back">Back</string>
     <string name="settings_gesture_action_forward">Forward</string>
     <string name="settings_gesture_action_reload">Reload</string>

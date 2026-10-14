@@ -62,15 +62,17 @@
               </div>
               <label class="toggle"><input id="darkWebsites" type="checkbox" aria-label="Dark websites" aria-describedby="darkWebsitesHint"  data-i18n-aria-label="settings.general.darkWebsites.label"/><span class="track"></span></label>
             </div>
-            <div id="darkWebsitesExceptionsBlock">
+            <div id="darkWebsitesExceptionsBlock" class="site-list-block">
               <p class="section-hint" data-i18n="settings.general.sitesListedHereKeep">
                 Sites listed here keep their own colors. Type /dark-site on a site to add or remove it.
               </p>
-              <div class="toolbar-row">
-                <input id="darkExceptionInput" type="text" placeholder="example.com" aria-label="Site to keep in its own colors"  data-i18n-ignore="placeholder" data-i18n-aria-label="settings.general.darkExceptionInput.ariaLabel"/>
-                <button id="darkExceptionAdd" data-i18n="settings.general.darkExceptionAdd">Add</button>
+              <div class="site-list">
+                <div id="darkExceptionList" class="site-list-rows"></div>
+                <div class="site-list-add">
+                  <input id="darkExceptionInput" type="text" placeholder="example.com" aria-label="Site to keep in its own colors"  data-i18n-ignore="placeholder" data-i18n-aria-label="settings.general.darkExceptionInput.ariaLabel"/>
+                  <button id="darkExceptionAdd" data-i18n="settings.general.darkExceptionAdd">Add</button>
+                </div>
               </div>
-              <div id="darkExceptionList" class="row-list"></div>
             </div>
 
             <div class="setting">
@@ -384,15 +386,17 @@
               </label>
             </div>
 
-            <div id="adblockExceptionsBlock">
+            <div id="adblockExceptionsBlock" class="site-list-block">
               <p class="section-hint" data-i18n="settings.privacy.sitesListedHereLoad">
                 Sites listed here load with ad-blocking turned off, e.g. for sites that break under it.
               </p>
-              <div class="toolbar-row">
-                <input id="exceptionInput" type="text" placeholder="example.com"  data-i18n-ignore="placeholder"/>
-                <button id="exceptionAdd" data-i18n="settings.privacy.exceptionAdd">Add</button>
+              <div class="site-list">
+                <div id="exceptionList" class="site-list-rows"></div>
+                <div class="site-list-add">
+                  <input id="exceptionInput" type="text" placeholder="example.com"  data-i18n-ignore="placeholder"/>
+                  <button id="exceptionAdd" data-i18n="settings.privacy.exceptionAdd">Add</button>
+                </div>
               </div>
-              <div id="exceptionList" class="row-list"></div>
             </div>
           </div>
 

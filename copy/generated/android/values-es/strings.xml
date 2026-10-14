@@ -1037,6 +1037,7 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="settings_general_default_browser_btn_installed_only">Disponible en la app instalada</string>
     <string name="settings_general_dark_exception_list_empty">No se ha añadido ningún sitio.</string>
     <string name="settings_remove">Quitar</string>
+    <string name="settings_site_list_remove">Quitar %1$s</string>
     <string name="settings_gesture_action_back">Atrás</string>
     <string name="settings_gesture_action_forward">Adelante</string>
     <string name="settings_gesture_action_reload">Recargar</string>
