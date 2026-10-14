@@ -27,6 +27,9 @@
   // site with an always-visible × named for that site. After a removal, focus
   // moves to the × now in the same place, or to the add field once the list
   // is empty, so a keyboard user is never dropped back at the top of the page.
+  // Removals run one at a time and each reads the saved list afresh, so two
+  // quick clicks can never write back a site the first one removed.
+  let siteRemovals = Promise.resolve();
   function renderSiteList({ list, input, hostnames, emptyKey, onRemove }) {
     list.replaceChildren();
     if (hostnames.length === 0) {
@@ -50,7 +53,8 @@
       remove.setAttribute('aria-label', t('settings.siteList.remove', { site: hostname }));
       remove.addEventListener('click', async () => {
         const hadFocus = document.activeElement === remove;
-        await onRemove(hostname);
+        siteRemovals = siteRemovals.then(() => onRemove(hostname)).catch((error) => console.error(error));
+        await siteRemovals;
         if (!hadFocus) return;
         const buttons = list.querySelectorAll('.site-row-remove');
         (buttons[Math.min(index, buttons.length - 1)] ?? input).focus();
@@ -263,9 +267,12 @@
         input: darkExceptionInput,
         hostnames: exceptions,
         emptyKey: 'settings.general.darkExceptionList.empty',
-        onRemove: async (hostname) => renderDarkExceptions(await window.bowserPages.settings.set({
-          darkWebsitesExceptions: exceptions.filter((h) => h !== hostname),
-        })),
+        onRemove: async (hostname) => {
+          const { settings: saved } = await window.bowserPages.settings.get();
+          renderDarkExceptions(await window.bowserPages.settings.set({
+            darkWebsitesExceptions: (saved.darkWebsitesExceptions ?? []).filter((h) => h !== hostname),
+          }));
+        },
       });
     }
 
@@ -1099,8 +1106,9 @@
         hostnames: exceptions,
         emptyKey: 'settings.privacy.exceptionList.empty',
         onRemove: async (hostname) => {
+          const { settings: saved } = await window.bowserPages.settings.get();
           await window.bowserPages.settings.set({
-            adblockExceptions: exceptions.filter((h) => h !== hostname),
+            adblockExceptions: (saved.adblockExceptions ?? []).filter((h) => h !== hostname),
           });
           await refreshExceptions();
         },

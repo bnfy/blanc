@@ -1061,6 +1061,7 @@ body.sheet .settings-card--mixed:has(#adblockExceptionsBlock) > .setting,
 body.sheet .settings-card--mixed:has(#usagePing) > .setting {
   border-bottom: 0;
 }
+body.sheet .settings-card--mixed > .setting:has(+ .site-list-block:not([hidden])) { padding-bottom: 10px; }
 body.sheet .settings-card--mixed .settings-action-row--reset {
   margin: 0;
   padding: 8px 0 0;
