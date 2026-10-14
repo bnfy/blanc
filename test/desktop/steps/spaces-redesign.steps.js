@@ -84,6 +84,9 @@ async function showWebPage(world, { pinned = false } = {}) {
   const id = await world.call('openTab', world.fixtureUrl('workspace-draft'));
   await world.waitForState((st) => st.tabs.some((t) => t.id === id && !t.isLoading && t.title === 'workspace-draft'));
   if (pinned) await world.call('pinTab', id);
+  // A switch is refused while any tab in the window still loads (active-page),
+  // and on a slow runner the start page can outlast the new page's load.
+  await settled(world);
   return id;
 }
 Given('this window is showing a web page that keeps session storage', async function () {
