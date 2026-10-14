@@ -172,6 +172,15 @@ jobs:
       - name: Modified link clicks (Windows)
         if: runner.os == 'Windows'
         run: npm run test:modified-links:desktop
+      # Windows Electron refuses several URLs unless `--` comes first.
+      - name: Several command-line URLs after -- (Linux)
+        if: ${{ !cancelled() && runner.os == 'Linux' }}
+        run: |
+          bash scripts/ci-enable-linux-sandbox.sh
+          xvfb-run -a npm run test:command-line-urls
+      - name: Several command-line URLs after -- (Windows)
+        if: ${{ !cancelled() && runner.os == 'Windows' }}
+        run: npm run test:command-line-urls
 
   tab-handoff:
     needs: changes

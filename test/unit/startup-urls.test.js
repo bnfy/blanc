@@ -26,6 +26,18 @@ test('startup handoff accepts only explicit HTTP(S) URLs', () => {
   ]);
 });
 
+test('several URLs after the -- separator all reach the handoff', () => {
+  // Windows Electron exits with -1 if anything follows a URL before a `--`
+  // (its CVE-2018-1000006 guard), and Chromium moves switches ahead of plain
+  // arguments first. So several URLs arrive as `-- URL1 URL2`.
+  assert.deepEqual(webUrlsFromArgv([
+    '--user-data-dir=C:\\Users\\me\\scratch',
+    '--',
+    'https://a.test/',
+    'https://b.test/',
+  ]), ['https://a.test/', 'https://b.test/']);
+});
+
 test('startup handoff rejects malformed input without throwing', () => {
   assert.deepEqual(webUrlsFromArgv(null), []);
   assert.deepEqual(webUrlsFromArgv([null, 4, {}, '']), []);
