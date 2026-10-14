@@ -233,6 +233,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           bash scripts/ci-enable-linux-sandbox.sh
+          cat /proc/sys/kernel/core_pattern; ulimit -c; nproc; free -m | sed -n 2p; uname -r
           BLANC_TEST_APP_OUTPUT=1 xvfb-run -a npm run test:workspaces:desktop -- --tags "@F41-35 or @F41-37 or @F41-38"
       - name: Workspace preservation and opener families (Windows/macOS)
         if: runner.os != 'Linux'

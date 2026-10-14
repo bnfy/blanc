@@ -2071,6 +2071,9 @@ async function discardRendererKeepingStorage(tab, wc, owner, { broadcast, navEpo
       || !rendererIsExclusive()) return 'changed-during-check';
 
   const wcId = wc.id;
+  const pid = (() => { try { return wc.getOSProcessId(); } catch { return null; } })();
+  const crashedAt = Date.now();
+  const procState = () => { try { return require('node:fs').readFileSync(`/proc/${pid}/status`, 'utf8').match(/^State:\s*(.*)$/m)?.[1] ?? 'no-state'; } catch (e) { return `gone:${e.code}`; } };
   const quieted = await new Promise((resolve) => {
     let settled = false;
     let timer;
@@ -2087,7 +2090,11 @@ async function discardRendererKeepingStorage(tab, wc, owner, { broadcast, navEpo
     try { wc.forcefullyCrashRenderer(); } catch { finish(false); }
   });
 
-  if (!quieted) return 'renderer-survived';
+  if (!quieted) {
+    console.debug(`[quiet-tabs] ${tab.id}: renderer ${pid} survived ${Date.now() - crashedAt} ms after forcefullyCrashRenderer; state ${procState()}`);
+    wc.once('render-process-gone', (_e, d) => console.debug(`[quiet-tabs] ${tab.id}: late render-process-gone after ${Date.now() - crashedAt} ms: ${d?.reason} (${d?.exitCode}); state ${procState()}`));
+    return 'renderer-survived';
+  }
   if (!tabs.has(tab.id)) return 'tab-gone';
   tab.view = null;
   tab.asleep = true;
