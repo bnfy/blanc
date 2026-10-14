@@ -86,3 +86,19 @@ test('showing a tab view goes through the tab lifecycle so an arriving view is n
     assert.doesNotMatch(body, /addChildView\((?:next|tab|glanceTab)\.view\)/, `${name} must not attach a tab view directly`);
   }
 });
+
+// The same check on the real AppImage, in the native Linux job, for validation
+// and release runs alike. It must not go through Playwright (or
+// support/packaged-cdp.mjs, which connects with it): Playwright's focus
+// emulation keeps a stuck page drawing.
+test('the packaged AppImage is checked for drawing, without Playwright, in every Linux run', () => {
+  const native = fs.readFileSync(path.join(__dirname, '../../.github/workflows/release-windows-linux.yml'), 'utf8');
+  const linux = native.slice(native.indexOf('\n  linux:\n'));
+  assert.equal((linux.match(/xvfb-run -a node test\/desktop\/packaged-tab-view-drawing-smoke\.mjs/g) || []).length, 1);
+  assert.match(linux, /for smoke in [^\n]*packaged-tab-view-drawing-smoke\.mjs support\/fixtures-server\.js /);
+  const step = linux.slice(linux.indexOf('- name: Verify packaged tab views keep drawing'));
+  assert.doesNotMatch(step.slice(0, step.indexOf('\n      - name:')), /\n {8}if:/, 'the check must run in release mode too');
+  const smoke = fs.readFileSync(path.join(__dirname, '../desktop/packaged-tab-view-drawing-smoke.mjs'), 'utf8');
+  assert.doesNotMatch(smoke, /from 'playwright'|require\('playwright'\)|from '\.\/support\/packaged-cdp\.mjs'/);
+  assert.match(smoke, /process\.exit\(1\)/);
+});

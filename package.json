@@ -39,6 +39,7 @@
     "test:workspaces:desktop": "cucumber-js -c test/desktop/cucumber.mjs -p runnable --tags @workspace",
     "test:quiet-tabs:desktop": "cucumber-js -c test/desktop/cucumber.mjs -p runnable --tags @quiet-tabs",
     "test:tab-view-drawing:desktop": "node test/desktop/tab-view-drawing-smoke.mjs",
+    "test:packaged:tab-view-drawing": "node test/desktop/packaged-tab-view-drawing-smoke.mjs",
     "test:onepassword:utility": "node test/desktop/onepassword-utility-smoke.mjs",
     "test:onepassword:live-server": "node scripts/onepassword-live-gate-server.mjs",
     "test:dns-smoke": "node test/desktop/dns-smoke.mjs",

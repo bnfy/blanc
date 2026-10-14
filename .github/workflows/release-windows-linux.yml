@@ -559,7 +559,7 @@ jobs:
           VERIFICATION_SHA: ${{ github.sha }}
         run: |
           git fetch --no-tags origin "$VERIFICATION_SHA"
-          for smoke in packaged-media-smoke.mjs packaged-tab-handoff-protocol-smoke.mjs packaged-workspace-recovery-smoke.mjs support/workspace-fixtures.js; do
+          for smoke in packaged-media-smoke.mjs packaged-tab-handoff-protocol-smoke.mjs packaged-tab-view-drawing-smoke.mjs support/fixtures-server.js packaged-workspace-recovery-smoke.mjs support/workspace-fixtures.js; do
             git show "$VERIFICATION_SHA:test/desktop/$smoke" > "test/desktop/$smoke"
           done
 
@@ -576,6 +576,15 @@ jobs:
           PRODUCT_NAME=$(node -p "require('./package.json').productName")
           BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$PRODUCT_NAME-$VERSION.AppImage" \
             xvfb-run -a node test/desktop/packaged-workspace-recovery-smoke.mjs
+
+      # Raw DevTools protocol, not Playwright: Playwright's focus emulation
+      # keeps a stuck page drawing (see the smoke's header).
+      - name: Verify packaged tab views keep drawing after switching back and waking
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          PRODUCT_NAME=$(node -p "require('./package.json').productName")
+          BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$PRODUCT_NAME-$VERSION.AppImage" \
+            xvfb-run -a node test/desktop/packaged-tab-view-drawing-smoke.mjs
 
       - name: Verify installed blanc-import protocol
         run: |
