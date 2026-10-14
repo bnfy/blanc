@@ -2,7 +2,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { createWorkspaceController } = require('../../src/main/workspace-controller');
-const { transferSession, residencyCapacity, undoRebindTarget } = require('../../src/main/workspace-residency');
+const { transferSession, undoRebindTarget } = require('../../src/main/workspace-residency');
 const registry = require('../../src/main/window-runtime-registry');
 function harness(overrides = {}) {
   const calls = [];
@@ -104,12 +104,7 @@ test('invalid membership is rejected before either runtime or valid ownership ch
   assert.deepEqual(source.groups, [{ id: 'g' }]); assert.deepEqual(target.tabOrder, []); assert.equal(target.workspaceId, null);
   assert.equal(tab.runtimeId, 'source'); assert.equal(registry.runtimeForTab('good'), source);
 });
-test('retention capacity cannot evict protected pages; incoming resident frees a slot', () => {
-  const residents = [{ resident: true, tabOrder: ['a'] }, { resident: true, tabOrder: ['b'] }];
-  assert.equal(residencyCapacity(residents, null, [], () => true), false);
-  assert.equal(residencyCapacity(residents, residents[0], [{ id: 'c' }], () => true), true);
-  assert.equal(residencyCapacity([], null, Array.from({ length: 17 }, (_, id) => ({ id })), () => true), false);
-});
+// Retention never blocks a switch any more: see workspace-room.test.js (D22).
 test('cancel invalidates a previously issued private-close decision', () => {
   const h = harness({ protection: () => ({ tabCount: 1, privateCount: 1 }) }); const decision = h.controller.open(h.runtime, 'a');
   h.controller.cancel(h.runtime); assert.equal(h.controller.open(h.runtime, 'a', { decision: decision.decision }).error, 'unsaved-scratch'); assert.deepEqual(h.calls, []);

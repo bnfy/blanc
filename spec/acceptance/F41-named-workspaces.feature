@@ -208,6 +208,22 @@ Feature: Named workspace preservation and recovery
     Then the editor shows no readability note
     And the Island's space mark reads "Work" in "#ffffff" with the symbol "plane"
 
+  @F41-35
+  Scenario: Switching between spaces never stops for a limit
+    Given spaces named "One", "Two", "Three" and "Four", with this window in "One"
+    When I switch this window to "Two", then "Three", then "Four"
+    Then every switch went through
+    And the space set aside first, "One", has been quieted
+    And "Two" and "Three" are still loaded in the background
+
+  @F41-36
+  Scenario: With Quiet Tabs off, set-aside spaces stay loaded
+    Given Quiet Tabs is off
+    And spaces named "One", "Two", "Three" and "Four", with this window in "One"
+    When I switch this window to "Two", then "Three", then "Four"
+    Then every switch went through
+    And no set-aside space has been quieted
+
   @F41-34
   Scenario: Recently deleted spaces keep their colour, their full name and when they went
     Given a space named "Work" in this window, colored "#426c4c" with the symbol "briefcase"

@@ -250,7 +250,6 @@
     <string name="ws_editor_help">Le schede normali vengono salvate automaticamente su questo dispositivo, in questo profilo. Le pagine private sono escluse. Gli Spaces condividono gli accessi di questo profilo.</string>
     <string name="ws_editor_saving">Salvataggio…</string>
     <string name="ws_decision_label">Scelta al cambio di Space</string>
-    <string name="ws_decision_capacity">Gli Spaces mantenuti in memoria sono al completo. Apri questo Space in un’altra finestra per mantenere disponibili le tue pagine.</string>
     <string name="ws_decision_protected">Questa finestra ha pagine che devono restare aperte. Apri lo Space in un’altra finestra oppure termina l’operazione in corso nella pagina e riprova.</string>
     <plurals name="ws_decision_close_private">
         <item quantity="one">Verrà chiusa %1$d scheda privata. Le bozze della pagina non vengono salvate su disco.</item>

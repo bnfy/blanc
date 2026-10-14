@@ -10099,48 +10099,6 @@
         }
       }
     },
-    "ws.decision.capacity": {
-      "comment": "Shown before switching space when no more spaces can be kept in memory.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your retained spaces are full. Open this space in another window to keep your pages available."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Deine im Speicher gehaltenen Spaces sind voll. Öffne diesen Space in einem anderen Fenster, damit deine Seiten verfügbar bleiben."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tus Spaces retenidos están llenos. Abre este Space en otra ventana para mantener tus páginas disponibles."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vos Spaces conservés sont pleins. Ouvrez ce Space dans une autre fenêtre pour garder vos pages disponibles."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gli Spaces mantenuti in memoria sono al completo. Apri questo Space in un’altra finestra per mantenere disponibili le tue pagine."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Seus Spaces mantidos estão cheios. Abra este Space em outra janela para manter suas páginas disponíveis."
-          }
-        }
-      }
-    },
     "ws.decision.protected": {
       "comment": "Shown before switching space when a page in this window is busy (for example uploading or capturing).",
       "extractionState": "manual",

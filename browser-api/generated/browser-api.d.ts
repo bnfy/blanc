@@ -436,7 +436,7 @@ export interface FindResult {
 export type WorkspaceErrorCode = 'activation-failed' | 'busy' | 'duplicate-name' | 'future-format' | 'invalid-name' | 'invalid-color' | 'invalid-symbol' | 'invalid-index' | 'invalid-record' | 'limit' | 'not-found' | 'protected-pages' | 'read-failed' | 'repair-failed' | 'saved-not-opened' | 'storage-failed' | 'unsaved-scratch';
 
 /** Why a window may not switch workspaces right now, from workspaceProtection() in main.js. */
-export type WorkspaceProtectionReason = 'permission-or-transition' | 'active-page' | 'resident-capacity';
+export type WorkspaceProtectionReason = 'permission-or-transition' | 'active-page';
 
 /** What a successful open or create did: swapped this window, found it already here, or focused another window. */
 export type WorkspaceAction = 'swap' | 'noop' | 'focus';

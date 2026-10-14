@@ -250,7 +250,6 @@
     <string name="ws_editor_help">Las pestañas normales se guardan automáticamente en este dispositivo, en este perfil. Las páginas privadas no se incluyen. Los Spaces comparten las sesiones iniciadas de este perfil.</string>
     <string name="ws_editor_saving">Guardando…</string>
     <string name="ws_decision_label">Decisión al cambiar de Space</string>
-    <string name="ws_decision_capacity">Tus Spaces retenidos están llenos. Abre este Space en otra ventana para mantener tus páginas disponibles.</string>
     <string name="ws_decision_protected">Esta ventana tiene páginas que deben seguir abiertas. Abre el Space en otra ventana o termina la operación en curso de la página e inténtalo de nuevo.</string>
     <plurals name="ws_decision_close_private">
         <item quantity="one">Se cerrará %1$d pestaña privada. Los borradores de la página no se guardan en el disco.</item>

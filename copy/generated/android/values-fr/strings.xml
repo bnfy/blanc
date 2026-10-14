@@ -250,7 +250,6 @@
     <string name="ws_editor_help">Les onglets ordinaires sont enregistrés automatiquement sur cet appareil, dans ce profil. Les pages privées sont exclues. Les Spaces partagent les connexions de ce profil.</string>
     <string name="ws_editor_saving">En cours…</string>
     <string name="ws_decision_label">Choix avant de changer de Space</string>
-    <string name="ws_decision_capacity">Vos Spaces conservés sont pleins. Ouvrez ce Space dans une autre fenêtre pour garder vos pages disponibles.</string>
     <string name="ws_decision_protected">Cette fenêtre contient des pages qui doivent rester ouvertes. Ouvrez le Space dans une autre fenêtre, ou terminez l’opération en cours sur la page et réessayez.</string>
     <plurals name="ws_decision_close_private">
         <item quantity="one">%1$d onglet privé va se fermer. Les brouillons de page ne sont pas enregistrés sur le disque.</item>

@@ -318,7 +318,7 @@ const namedWorkspaces = require('./workspaces');
 const { readArcSidebarFile, readDetectedArcSidebar, detectArcSidebar } = require('./arc-import-source');
 const { createArcImportService } = require('./arc-import');
 const { createWorkspaceController } = require('./workspace-controller');
-const { transferSession, residencyCapacity, undoRebindTarget } = require('./workspace-residency');
+const { transferSession, roomPlan, undoRebindTarget } = require('./workspace-residency');
 const { scratchSwitchGuardResult, MAX_WORKSPACES } = require('./workspaces-model');
 
 // The SDK never loads in main. Only macOS, Windows and Linux create the lazy
@@ -2136,7 +2136,7 @@ async function sleepTab(id, { broadcast = true } = {}) {
   // before teardown so it can never discard a tab the user just activated —
   // one that began CAPTURING after candidate selection, or one that became
   // the visible Glance reference while an earlier candidate's probe awaited.
-  if (!tabs.has(id) || id === rt().activeTabId || id === rt().glanceTabId
+  if (!tabs.has(id) || (id === rt().activeTabId && !rt().resident) || id === rt().glanceTabId
       || tab.navEpoch !== epochAtProbe
       || tab.isLoading || tab.sleeping || !mayDiscardRenderer(tab) || !liveContents(tab)
       // Same moved-tab blind spot as the sessionStorage path: the runtime
@@ -5236,11 +5236,6 @@ function workspaceProtection(runtime) {
   if (members.some((t) => t.capturing || t.sleeping || t.waking || t.isLoading || t.openerTabId || popupChildCounts.get(t.id))) {
     return { blocked: true, reason: 'active-page' };
   }
-  if (runtime.workspaceId && !residencyCapacity(
-    windowRuntimes.all().filter((r) => r.profileId === runtime.profileId),
-    runtime.workspaceIncoming, members, (id) => liveContents(tabs.get(id)))) {
-    return { blocked: true, reason: 'resident-capacity' };
-  }
   return scratchGuardResult(runtime) ?? { tabCount: 0, privateCount: 0 };
 }
 
@@ -5251,6 +5246,7 @@ function stageWorkspace(runtime, workspace) {
   const makeResident = () => {
     const resident = windowRuntimes.createRuntime({ id: createWindowRuntimeId(), profileId: runtime.profileId });
     resident.resident = true;
+    resident.residentSince = Date.now(); // makeRoomForSpaces quiets the oldest first
     return resident;
   };
   let incoming = workspaceOwner(runtime, workspace.id);
@@ -5338,8 +5334,32 @@ function stageWorkspace(runtime, workspace) {
       }
       if (!outgoing.workspaceId) windowRuntimes.discardRuntime(outgoing);
       finishScope(); activate();
+      // The switch is done; now, out of sight, keep the spaces set aside
+      // within budget (D22). It never delays or blocks a switch.
+      setImmediate(() => { makeRoomForSpaces(runtime.profileId).catch(() => {}); });
     },
   };
+}
+
+/** After a switch, quiet tabs in the spaces set aside so that at most two of
+ * them keep loaded tabs and at most 16 stay loaded across them (roomPlan;
+ * spec D22). Quiet Tabs does the work, so a tab with unsaved typing, an
+ * unload warning, a live camera or microphone, or a page still loading is
+ * left as it is. Nothing is quieted while Quiet Tabs is off, offline (a page
+ * that cannot reload is not thrown away) or while quitting. */
+async function makeRoomForSpaces(profileId) {
+  if (isQuitting || currentSleepThresholdMs() === null || !net.isOnline()) return;
+  const residents = windowRuntimes.all().filter((r) => r.profileId === profileId && r.resident && !r.closing);
+  const plan = roomPlan(residents, {
+    isLive: (id) => !!liveContents(tabs.get(id)) && !tabs.get(id)?.private,
+    lastActiveAt: (id) => tabs.get(id)?.lastActiveAt ?? 0,
+  });
+  for (const id of plan) {
+    if (isQuitting) return;
+    const owner = windowRuntimes.runtimeForTab(id);
+    if (!owner?.resident || owner.closing) continue; // switched back to meanwhile
+    await withWindowRuntime(owner, () => sleepTab(id, { broadcast: false }));
+  }
 }
 
 const workspaceController = createWorkspaceController({
@@ -10288,7 +10308,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         const announced = (result) => { if (result?.ok) broadcastWorkspacesUpdated(); return result; };
         if (action === 'list') return workspacesProjection();
         if (action === 'save') return announced(saveCurrentWindowAsWorkspace(rt(), args[0]));
-        if (action === 'open') return switchWindowToWorkspace(rt(), args[0], args[1]);
+        if (action === 'open') return announced(switchWindowToWorkspace(rt(), args[0], args[1]));
         if (action === 'create') return createBlankWorkspaceAndSwitch(rt(), args[0], args[1]);
         if (action === 'fail-session-commit') {
           const original = fs.renameSync; let writes = 0;
@@ -10375,6 +10395,14 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         : Promise.resolve({ available: false, loaded: false, processCount: 0 }),
       runBlockAdsCommand, runAllowAdsCommand,
       getOverlayMode: () => rt().overlayMode, showOverlay, hideOverlay, getPrivateBrowsingSession,
+      // The spaces set aside after a switch (D22), oldest first, and whether
+      // each of their tabs is loaded or quiet.
+      getResidentSpaces: () => windowRuntimes.all().filter((r) => r.resident && !r.closing)
+        .sort((a, b) => (a.residentSince ?? 0) - (b.residentSince ?? 0))
+        .map((r) => ({
+          name: namedWorkspaces.get(r.workspaceId)?.name ?? null,
+          tabs: r.tabOrder.map((id) => { const tab = tabs.get(id); return { live: !!liveContents(tab), asleep: !!tab?.asleep }; }),
+        })),
       isOverlayViewShowing: () => {
         const view = rt().overlayView;
         if (!view || !hasLiveWindow()) return false;

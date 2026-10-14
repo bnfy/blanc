@@ -67,6 +67,25 @@ Given('a page open in a window that is in no space, and a saved space named {str
   await this.waitForState((st) => st.tabs.some((t) => t.id === tab && t.title === 'workspace-draft')
     && st.tabs.every((t) => !t.isLoading && !t.asleep));
 });
+Given('spaces named {string}, {string}, {string} and {string}, with this window in {string}', async function (a, b, c, d, current) {
+  assert.equal(current, a, 'the scenario saves the current window first');
+  this.spaceIds = { [a]: await saveSpace(this, a) };
+  for (const name of [b, c, d]) {
+    const other = await this.call('openNewWindow');
+    const saved = await this.call('workspaceActionInWindow', other, 'save', name);
+    assert.equal(saved.ok, true, `save ${name}`);
+    this.spaceIds[name] = saved.workspace.id;
+    await this.call('closeWindowRuntime', other); // saved, open nowhere
+  }
+  await waitForValue(async () => (await this.call('workspaceAction', 'list')).items.length, (n) => n === 4, 'all four spaces listed');
+  await this.waitForState((st) => st.tabs.every((t) => !t.isLoading && !t.asleep));
+});
+Given('Quiet Tabs is off', async function () {
+  assert.equal(await this.call('setQuietTabs', 'off'), 'off');
+});
+After({ tags: '@F41-36' }, async function () {
+  await this.call('setQuietTabs', '1h');
+});
 Given('Reduce Motion is on', async function () {
   assert.equal(await this.call('emulateReducedMotion', true), true);
 });
@@ -102,6 +121,18 @@ When('I open Recently Deleted', async function () {
   const page = await menu();
   await page.click('[data-focus-key="recently-deleted"]');
   await page.waitForSelector('.ws-recovery-row');
+});
+When('I switch this window to {string}, then {string}, then {string}', async function (first, second, third) {
+  const names = [first, second, third];
+  this.switchResults = [];
+  for (const name of names) {
+    const result = await this.call('workspaceAction', 'open', this.spaceIds[name]);
+    this.switchResults.push({ name, ok: result?.ok === true, result });
+    if (!result?.ok) break;
+    await mark(this, (m) => m.state === 'space' && m.name === name, `the window in ${name}`);
+    // Let the new space's page settle, as a person would before switching on.
+    await this.waitForState((st) => st.tabs.every((t) => !t.isLoading));
+  }
 });
 When('I open the color picker for {string}', async function (name) {
   const page = await menu(); const space = await spaceByName(this, name);
@@ -325,6 +356,29 @@ Then('{string} is listed in {string}, deleted today, with its full name as a too
 Then('it has a trash button labelled {string}', async function (label) {
   const row = await recoveryRow(await menu(), this.recoveryName);
   assert.deepEqual(row.bin, { label: `Delete ${this.recoveryName} permanently…`, title: label, text: '' }, 'named for screen readers; the tooltip is the plain label');
+});
+Then('every switch went through', async function () {
+  assert.deepEqual(this.switchResults.map((r) => [r.name, r.ok]), this.switchResults.map((r) => [r.name, true]), JSON.stringify(this.switchResults));
+  assert.equal(this.switchResults.length, 3);
+});
+Then('the space set aside first, {string}, has been quieted', async function (name) {
+  const spaces = await waitForValue(() => this.call('residentSpaces'),
+    (all) => all.find((s) => s.name === name)?.tabs.every((t) => t.asleep && !t.live), `${name} to be quieted`, 10000);
+  assert.equal(spaces.length, 3, `three spaces set aside: ${JSON.stringify(spaces)}`);
+});
+Then('{string} and {string} are still loaded in the background', async function (first, second) {
+  const names = [first, second];
+  const spaces = await this.call('residentSpaces');
+  for (const name of names) {
+    assert.ok(spaces.find((s) => s.name === name)?.tabs.some((t) => t.live), `${name} is loaded: ${JSON.stringify(spaces)}`);
+  }
+});
+Then('no set-aside space has been quieted', async function () {
+  // Give a make-room pass the time it would take, then look.
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+  const spaces = await this.call('residentSpaces');
+  assert.equal(spaces.length, 3);
+  assert.ok(spaces.every((s) => s.tabs.every((t) => t.live && !t.asleep)), JSON.stringify(spaces));
 });
 Then('the editor shows no readability note', async function () {
   const page = await menu();

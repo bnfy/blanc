@@ -245,7 +245,6 @@
     <string name="ws_editor_help">Normale Tabs werden auf diesem Gerät in diesem Profil automatisch gespeichert. Private Seiten sind ausgenommen. Spaces teilen die Anmeldungen dieses Profils.</string>
     <string name="ws_editor_saving">Speichern…</string>
     <string name="ws_decision_label">Entscheidung zum Space-Wechsel</string>
-    <string name="ws_decision_capacity">Deine im Speicher gehaltenen Spaces sind voll. Öffne diesen Space in einem anderen Fenster, damit deine Seiten verfügbar bleiben.</string>
     <string name="ws_decision_protected">In diesem Fenster sind Seiten, die geöffnet bleiben müssen. Öffne den Space in einem anderen Fenster oder schließe den laufenden Vorgang auf der Seite ab und versuche es erneut.</string>
     <plurals name="ws_decision_close_private">
         <item quantity="one">%1$d privater Tab wird geschlossen. Seitenentwürfe werden nicht auf dem Datenträger gespeichert.</item>
