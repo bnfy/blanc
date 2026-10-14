@@ -1981,9 +1981,6 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="spaces_picker_square_value">Saturazione %1$s%%, luminosità %2$s%%</string>
     <string name="spaces_picker_hue">Tonalità</string>
     <string name="spaces_picker_hex">Hex</string>
-    <string name="spaces_guard_light">Mantenuto leggibile: mostrato come %1$s in modalità chiara.</string>
-    <string name="spaces_guard_dark">Mantenuto leggibile: mostrato come %1$s in modalità scura.</string>
-    <string name="spaces_guard_both">Mantenuto leggibile: mostrato come %1$s in modalità chiara e %2$s in modalità scura.</string>
     <string name="result_tag_space">space</string>
     <string name="workspace_menu_edit">Modifica…</string>
     <string name="newtab_checklist_space">Crea il tuo primo Space</string>

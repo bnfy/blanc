@@ -55,13 +55,16 @@
     }
     return svg;
   }
-  /** Set a space's drawn ink and wash on `node` for the current theme. */
+  // A space's colour fills its tile exactly; the symbol on it is white or
+  // black (--space-on); data-edge adds a hairline where the fill would vanish
+  // into the surface behind it (styles.css).
   function paintIdentity(node, color, theme) {
     const painted = Identity.paint(color, theme) ?? Identity.paint(Identity.PRESETS[0].hex, theme);
-    node.style.setProperty('--space-ink', painted.ink);
-    node.style.setProperty('--space-wash', painted.wash);
+    node.style.setProperty('--space-fill', painted.fill);
+    node.style.setProperty('--space-on', painted.on);
+    node.dataset.edge = String(painted.edge);
   }
-  /** A space's symbol on its wash: rows, the editor, Quick Switcher results. */
+  /** A space's symbol on its colour: rows, the editor, Quick Switcher results. */
   function makeTile(doc, identity, theme, className = 'ws-tile') {
     const node = doc.createElement('span'); node.className = className;
     paintIdentity(node, identity.color, theme);
@@ -435,27 +438,13 @@
       }
       return nodes;
     }
-    // Said only for a custom colour. Presets adapt to every theme too (the
-    // guard runs for every colour), but their dark and private inks are
-    // designed values, so the note would only be noise there (spec D19).
-    function guardNote(color) {
-      const value = Identity.normalizeHex(color);
-      if (!value || Identity.presetFor(value)) return '';
-      const light = Identity.inkFor(value, 'light'), dark = Identity.inkFor(value, 'dark');
-      const changedLight = light !== value, changedDark = dark !== value;
-      if (changedLight && changedDark) return t('spaces.guard.both', { light: light.toUpperCase(), dark: dark.toUpperCase() });
-      if (changedLight) return t('spaces.guard.light', { hex: light.toUpperCase() });
-      if (changedDark) return t('spaces.guard.dark', { hex: dark.toUpperCase() });
-      return '';
-    }
     function setColor(color, { commit = true } = {}) {
       state.draft.color = color;
       const preview = popup.querySelector('.ws-editor-tile');
       if (preview) paint(preview, color);
       const editor = popup.querySelector('.ws-editor');
-      if (editor) paint(editor, color); // the selected symbol takes the space's ink
+      if (editor) paint(editor, color); // the selected symbol takes the space's colour
       for (const sw of popup.querySelectorAll('.ws-swatch')) sw.setAttribute('aria-checked', String(sw.dataset.color ? sw.dataset.color === color : !Identity.presetFor(color)));
-      const note = popup.querySelector('.ws-guard'); if (note) note.textContent = guardNote(color);
       if (commit) queueUpdate({ color }); else throttleUpdate({ color });
     }
     function renderEditor() {
@@ -509,7 +498,7 @@
         picker = Picker.create({ document: doc, hex: state.draft.color, t,
           onInput: (hex) => setColor(hex, { commit: false }),
           onCommit: (hex) => setColor(hex) });
-        pickerSlot.append(picker.element, el('p', 'ws-guard', guardNote(state.draft.color)));
+        pickerSlot.append(picker.element);
       }
       renderPicker();
 

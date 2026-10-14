@@ -2693,6 +2693,9 @@ body[data-glance-purpose="change"] .glance-picker {
   color: var(--text);
 }
 .footer-act svg { width: 15px; height: 15px; }
+/* The Spaces planet is on a 24 grid and drawn a touch larger than its 16-grid
+   neighbours so it reads at a glance; 2 units there is their 1.5 line. */
+#footerWorkspace svg { width: 17px; height: 17px; stroke-width: 2; }
 /* No thick focus ring — keyboard focus uses the same surface cue as hover
    (island footer policy; global button:focus-visible outline is suppressed). */
 .footer-act:focus-visible,
@@ -3385,8 +3388,9 @@ body:is([data-mode="spaces"], [data-closing="spaces"]) #workspaceSwitcher.ws-swi
 .ws-commands { display: flex; flex-direction: column; gap: 3px; flex-shrink: 0; margin-top: 3px; padding-top: 3px; border-top: 1px solid var(--border); }
 .ws-commands[hidden] { display: none; }
 
-/* A space's symbol on its wash. --space-ink/--space-wash come from
-   space-identity.js (readability-guarded per theme); colour changes fade. */
+/* A space's symbol on its colour: --space-fill is the colour exactly,
+   --space-on the white or black symbol on it (space-identity.js); data-edge
+   outlines a colour too close to the surface behind it. Colour changes fade. */
 .ws-tile {
   flex: none;
   width: 28px;
@@ -3394,10 +3398,12 @@ body:is([data-mode="spaces"], [data-closing="spaces"]) #workspaceSwitcher.ws-swi
   border-radius: 9px;
   display: grid;
   place-items: center;
-  color: var(--space-ink);
-  background: var(--space-wash);
+  color: var(--space-on);
+  background: var(--space-fill);
   transition: color 350ms ease, background-color 350ms ease;
 }
+.ws-tile[data-edge="true"],
+.ws-editor[data-edge="true"] .ws-symbol-button[aria-checked="true"] { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 18%, transparent); }
 .ws-symbol, .ws-glyph { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 
 .ws-row { position: relative; display: flex; align-items: center; border-radius: 11px; transform: translateY(var(--shift-y, 0px)); transition: transform 200ms cubic-bezier(.2, .9, .25, 1); }
@@ -3500,7 +3506,7 @@ body:is([data-mode="spaces"], [data-closing="spaces"]) #workspaceSwitcher.ws-swi
 .ws-symbols { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; }
 .ws-symbol-button { aspect-ratio: 1; display: grid; place-items: center; padding: 0; border: 0; border-radius: var(--radius-sm); background: none; color: var(--text-dim); cursor: pointer; }
 .ws-symbol-button:hover, .ws-symbol-button:focus-visible { background: var(--surface); color: var(--text); outline: none; }
-.ws-symbol-button[aria-checked="true"] { color: var(--space-ink); background: var(--space-wash); }
+.ws-symbol-button[aria-checked="true"] { color: var(--space-on); background: var(--space-fill); }
 .ws-segmented { display: grid; grid-template-columns: 1fr 1fr; padding: 2px; border-radius: var(--radius-md); background: var(--surface); }
 .ws-segment { height: 28px; border: 0; border-radius: var(--radius-sm); background: none; color: var(--text-dim); font: 12.5px/1 var(--font-ui); cursor: pointer; }
 .ws-segment[aria-checked="true"] { background: var(--surface-raised); color: var(--text); font-weight: 550; box-shadow: 0 1px 2px color-mix(in srgb, var(--text) 10%, transparent); }
@@ -3519,7 +3525,6 @@ body:is([data-mode="spaces"], [data-closing="spaces"]) #workspaceSwitcher.ws-swi
 .space-picker-hex { width: 96px; height: 28px; padding: 0 8px; border: 1px solid transparent; border-radius: var(--radius-sm); background: var(--surface); color: var(--text); font: 12.5px/1 var(--font-ui); font-variant-numeric: tabular-nums; text-transform: uppercase; }
 .space-picker-hex:focus { outline: none; border-color: var(--border); background: var(--surface-raised); }
 .space-picker-hex[aria-invalid="true"] { border-color: var(--danger); }
-.ws-guard { min-height: 16px; margin: 7px 2px 0; color: var(--text-dim); font: 11.5px/1.4 var(--font-ui); }
 
 .ws-decision-head { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 12px; }
 .ws-decision-head .ws-tile { width: 34px; height: 34px; border-radius: 10px; }
@@ -3548,13 +3553,15 @@ body:is([data-mode="spaces"], [data-closing="spaces"]) #workspaceSwitcher.ws-swi
   .ws-row { transition: none; }
 }
 @media (prefers-contrast: more) {
-  .ws-tile { box-shadow: inset 0 0 0 1px var(--space-ink); }
+  .ws-tile { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 45%, transparent); }
 }
 
 /* ---- Blanc Spaces mark (strip) -------------------------------------------
-   The current space at the Island's leading edge: its symbol and name on its
-   wash (space-identity.js guards the ink). Authored inside #islandPill's
-   zoom, so 24px renders at ~28px. Neutral = in no space yet. */
+   The current space at the Island's leading edge, quietly: its exact colour
+   fills a small square behind its symbol (white or black on it, from
+   space-identity.js), and its name is the Island's ordinary text. Authored
+   inside #islandPill's zoom, so 24px renders at ~28px. Neutral = in no space
+   yet: the grey Spaces planet. */
 .space-mark {
   flex: none;
   display: inline-flex;
@@ -3565,31 +3572,47 @@ body:is([data-mode="spaces"], [data-closing="spaces"]) #workspaceSwitcher.ws-swi
   padding: 0 8px 0 6px;
   border: 0;
   border-radius: 8px;
-  color: var(--space-ink);
-  background: var(--space-wash);
+  color: var(--text);
+  background: transparent;
   font: 550 11px/1 var(--font-ui);
   cursor: pointer;
   transition: color 350ms ease, background-color 350ms ease, box-shadow 200ms ease;
 }
 .space-mark[hidden] { display: none; }
 .space-mark:active { transform: scale(.96); transition: transform 100ms ease-out; }
-.space-mark:hover, .space-mark[aria-expanded="true"] { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--space-ink) 28%, transparent); }
+/* Hover and open, like the Island's other controls (.pill-btn). */
+.space-mark:hover, .space-mark[aria-expanded="true"] { background: var(--accent-dim); }
 .space-mark:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 2px; }
 .space-mark-symbol { display: grid; place-items: center; }
 .space-mark-symbol svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .space-mark-name { min-width: 0; max-width: 122px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.3; } /* room for descenders, as .ws-row-name */
-.space-mark[data-state="neutral"] { --space-ink: var(--text-dim); --space-wash: color-mix(in srgb, var(--text) 6%, transparent); width: 24px; padding: 0; justify-content: center; }
+.space-mark[data-state="space"] { gap: 6px; padding-left: 3px; }
+.space-mark[data-state="space"] .space-mark-symbol {
+  flex: none; /* a long name ellipsizes; the square never shrinks */
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  color: var(--space-on);
+  background: var(--space-fill);
+  transition: color 350ms ease, background-color 350ms ease;
+}
+.space-mark[data-state="space"] .space-mark-symbol svg { width: 11px; height: 11px; }
+/* A colour this close to the Island (white on light, black on dark) gets a
+   hairline so the square still reads; space-identity.js decides (data-edge). */
+.space-mark[data-edge="true"] .space-mark-symbol { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 18%, transparent); }
+.space-mark[data-state="neutral"] { width: 24px; padding: 0; justify-content: center; color: var(--text-dim); background: color-mix(in srgb, var(--text) 6%, transparent); }
 .space-mark[data-state="neutral"] .space-mark-name { display: none; }
+.space-mark[data-state="neutral"] .space-mark-symbol svg { width: 16px; height: 16px; stroke-width: 2; } /* the Spaces planet, as the ⌘L footer's */
 #islandPill:has(> .space-mark:not([hidden])) { padding-left: 7px; }
 .island-row .row-space-tile { width: 20px; height: 20px; border-radius: 6px; }
 .island-row .row-space-tile .ws-symbol { width: 12px; height: 12px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .space-mark { transition: none; }
+  .space-mark, .space-mark-symbol { transition: none; }
   .space-mark:active { transform: none; }
 }
 @media (prefers-contrast: more) {
-  .space-mark[data-state="space"] { box-shadow: inset 0 0 0 1px var(--space-ink); }
+  .space-mark[data-state="space"] .space-mark-symbol { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 45%, transparent); }
 }
 
 /* Dev-only comparison of how strongly a space tints the chrome (spec §11,
@@ -3597,7 +3620,8 @@ body:is([data-mode="spaces"], [data-closing="spaces"]) #workspaceSwitcher.ws-swi
 :root[data-space-tint="island"] #islandPill.has-space::after {
   background: linear-gradient(var(--space-band-wash), var(--space-band-wash)), var(--island-resting-surface);
 }
-:root[data-space-tint="island"] .space-mark[data-state="space"] { color: var(--surface-raised); background: var(--space-ink); padding: 0; width: 24px; justify-content: center; }
+:root[data-space-tint="island"] .space-mark[data-state="space"] { color: var(--space-on); background: var(--space-fill); padding: 0; width: 24px; justify-content: center; }
+:root[data-space-tint="island"] .space-mark[data-state="space"] .space-mark-symbol { background: none; box-shadow: none; }
 :root[data-space-tint="island"] .space-mark[data-state="space"] .space-mark-name { display: none; }
 :root[data-space-tint="frame"] #strip { background-image: linear-gradient(180deg, var(--space-band-wash, transparent), transparent); }
 :root[data-space-tint="frame"] .vertical-tabs-rail { background-image: linear-gradient(180deg, var(--space-band-wash, transparent), transparent 70%); }

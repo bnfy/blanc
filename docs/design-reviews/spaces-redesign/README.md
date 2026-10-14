@@ -40,3 +40,28 @@ the Island mark's name are clipped for their ellipsis, and both sat on a line
 as tall as the font size (line-height 1), so the bottoms of g, p and y were
 cut: "Typing gym" reached 14.66 px in a 14 px box. Both names now have a
 1.3 line, and `@F41-32` measures every name's ink against its box.
+
+The Spaces glyph (`stack-spaces-glyph.png`, before over after; decision D20):
+the stacked windows became a ringed planet in outline, so people coming from
+Arc recognise Spaces. It is our own drawing on the 24 grid (a 7-unit planet,
+a flat ring tilted 27° down to the right, 2-unit line), shown at 17 px on the
+⌘L footer button and 16 px on the Island's quiet mark, a touch larger than
+their neighbours. Candidates tried with the owner: a small planet in a wide
+ring (outline and solid; too small, read as a saucer), a solid planet with a
+cut-out ring (liked, but the footer is line icons), an orbit (busy at this
+size), a rocket (less clearly "Spaces"), and an outline with the planet cut
+back where the ring crosses (the cuts read as breaks).
+
+Space colours (`stack-colour-island.png` and `stack-colour-menu.png`, before
+and after; decision D21): the readability guard adjusted a colour's lightness
+per theme, so a custom colour was often not what was picked (white became
+grey `#636363`), and no colour could be exact on both light and dark. Now a
+space's tile is filled with exactly its colour in every theme, with a white or
+black symbol on it, whichever contrasts more (at least 4.5:1; about 4.58:1 at
+worst). On the Island the mark is quiet: the colour fills an 18 px square
+behind the symbol and the name is the Island's ordinary text. A colour under
+3:1 against the surface behind it gets a hairline edge (white on light; black
+and graphite on dark). Chosen from mock-ups in the real app over a fully
+filled mark (the boldest thing on the Island) and over keeping the tint with a
+fixed palette. A long name ellipsizes and never squeezes the square
+(`@F41-33`; before the fix it measured 12.6 × 20.7 px).

@@ -1981,9 +1981,6 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="spaces_picker_square_value">Saturación %1$s %%, brillo %2$s %%</string>
     <string name="spaces_picker_hue">Tono</string>
     <string name="spaces_picker_hex">Hex</string>
-    <string name="spaces_guard_light">Legibilidad garantizada: se muestra como %1$s en el modo claro.</string>
-    <string name="spaces_guard_dark">Legibilidad garantizada: se muestra como %1$s en el modo oscuro.</string>
-    <string name="spaces_guard_both">Legibilidad garantizada: se muestra como %1$s en el modo claro y como %2$s en el modo oscuro.</string>
     <string name="result_tag_space">space</string>
     <string name="workspace_menu_edit">Editar…</string>
     <string name="newtab_checklist_space">Crea tu primer Space</string>

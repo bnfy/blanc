@@ -1981,9 +1981,6 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="spaces_picker_square_value">Saturation %1$s %%, luminosité %2$s %%</string>
     <string name="spaces_picker_hue">Teinte</string>
     <string name="spaces_picker_hex">Hex</string>
-    <string name="spaces_guard_light">Lisibilité préservée : affichée en %1$s en mode clair.</string>
-    <string name="spaces_guard_dark">Lisibilité préservée : affichée en %1$s en mode sombre.</string>
-    <string name="spaces_guard_both">Lisibilité préservée : affichée en %1$s en mode clair et en %2$s en mode sombre.</string>
     <string name="result_tag_space">space</string>
     <string name="workspace_menu_edit">Modifier…</string>
     <string name="newtab_checklist_space">Créer votre premier Space</string>

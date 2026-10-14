@@ -651,13 +651,9 @@
 
   // ---- Blanc Spaces mark (F41) ----
   // The strip reads the same projection as the Spaces menu and only draws the
-  // current space's mark: its symbol and name on its colour, a grey glyph when
-  // this window is in no space, nothing before the first space exists.
-  // The footer's stacked-windows mark on the 24px symbol grid.
-  const NEUTRAL_SPACE_GLYPH = [
-    ['rect', { x: 3.75, y: 7.125, width: 13.125, height: 12.75, rx: 2.25 }],
-    ['path', { d: 'M7.875 7.125V4.875a1.5 1.5 0 0 1 1.5-1.5h10.5a1.5 1.5 0 0 1 1.5 1.5v10.5a1.5 1.5 0 0 1-1.5 1.5h-2.25' }],
-  ];
+  // current space's mark: its symbol and name on its colour, the grey Spaces
+  // planet (SpaceIdentity.SPACES_GLYPH) when this window is in no space,
+  // nothing before the first space exists.
   let spaces = { items: [], tint: 'mark' };
   let markedSpace = { id: null, index: -1 };
   let spaceMarkPainted = false;
@@ -691,21 +687,27 @@
     islandPill.classList.toggle('has-space', state === 'space');
     document.documentElement.dataset.spaceTint = spaces.tint || 'mark';
     if (bound) {
-      const painted = SpaceIdentity.paint(bound.color, chromeTheme()) ?? SpaceIdentity.paint(SpaceIdentity.PRESETS[0].hex, chromeTheme());
-      pillSpace.style.setProperty('--space-ink', painted.ink);
-      pillSpace.style.setProperty('--space-wash', painted.wash);
-      document.documentElement.style.setProperty('--space-band-wash', painted.wash);
+      // The quiet mark: the space's exact colour fills the square behind its
+      // symbol (white or black on it); data-edge outlines a colour that would
+      // vanish into the Island. The band wash is only for the dev tint switch.
+      const theme = chromeTheme();
+      const painted = SpaceIdentity.paint(bound.color, theme) ?? SpaceIdentity.paint(SpaceIdentity.PRESETS[0].hex, theme);
+      pillSpace.style.setProperty('--space-fill', painted.fill);
+      pillSpace.style.setProperty('--space-on', painted.on);
+      pillSpace.dataset.edge = String(painted.edge);
+      document.documentElement.style.setProperty('--space-band-wash', SpaceIdentity.wash(painted.fill, theme));
       pillSpace.title = blancI18n.t('spaces.mark.current', { name: bound.name });
     } else {
-      pillSpace.style.removeProperty('--space-ink');
-      pillSpace.style.removeProperty('--space-wash');
+      pillSpace.style.removeProperty('--space-fill');
+      pillSpace.style.removeProperty('--space-on');
+      delete pillSpace.dataset.edge;
       document.documentElement.style.removeProperty('--space-band-wash');
       pillSpace.title = blancI18n.t('footer.workspaces');
     }
     pillSpace.setAttribute('aria-label', pillSpace.title);
     const symbol = bound ? (SpaceIdentity.isSymbol(bound.symbol) ? bound.symbol : SpaceIdentity.SYMBOL_IDS[0]) : 'neutral';
     if (pillSpaceSymbol.dataset.symbol !== symbol) {
-      pillSpaceSymbol.replaceChildren(symbolSvg(bound ? SpaceIdentity.SYMBOLS[symbol] : NEUTRAL_SPACE_GLYPH));
+      pillSpaceSymbol.replaceChildren(symbolSvg(bound ? SpaceIdentity.SYMBOLS[symbol] : SpaceIdentity.SPACES_GLYPH));
       pillSpaceSymbol.dataset.symbol = symbol;
     }
     pillSpaceName.textContent = bound?.name ?? '';

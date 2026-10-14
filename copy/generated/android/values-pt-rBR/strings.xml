@@ -1981,9 +1981,6 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="spaces_picker_square_value">Saturação %1$s%%, brilho %2$s%%</string>
     <string name="spaces_picker_hue">Matiz</string>
     <string name="spaces_picker_hex">Hex</string>
-    <string name="spaces_guard_light">Mantida legível: aparece como %1$s no modo claro.</string>
-    <string name="spaces_guard_dark">Mantida legível: aparece como %1$s no modo escuro.</string>
-    <string name="spaces_guard_both">Mantida legível: aparece como %1$s no modo claro e %2$s no modo escuro.</string>
     <string name="result_tag_space">space</string>
     <string name="workspace_menu_edit">Editar…</string>
     <string name="newtab_checklist_space">Crie seu primeiro Space</string>

@@ -6789,18 +6789,6 @@
     "message": "Hex",
     "source": "sha256:222ceef2812aacb46d9bb7443eb378cd3f5e074452baf9e30ef0b7d4a16689d6"
   },
-  "spaces.guard.light": {
-    "message": "Mantida legível: aparece como {hex} no modo claro.",
-    "source": "sha256:73e6cad79b67589f4bb5bb16fb8e5169fcc68c055c600003330d152cef6cc2d4"
-  },
-  "spaces.guard.dark": {
-    "message": "Mantida legível: aparece como {hex} no modo escuro.",
-    "source": "sha256:fbccdac25573d993579619aa4993ca869b10218bdac4506453e19cc1b505bc4c"
-  },
-  "spaces.guard.both": {
-    "message": "Mantida legível: aparece como {light} no modo claro e {dark} no modo escuro.",
-    "source": "sha256:c066772c6941af2f0fdd9535532d1b77d0729b86f903181f826a8f11abbaa286"
-  },
   "result.tag.space": {
     "message": "space",
     "source": "sha256:9aeaba183f6637f947feb34d9944c4351a9d82f5cb01e4f709ed6065af99afc0"

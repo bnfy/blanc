@@ -5,58 +5,85 @@ const identity = require('../../src/renderer/space-identity');
 
 const THEMES = ['light', 'dark', 'private'];
 
-test('every preset is a fixed point of the light guard and readable everywhere', () => {
-  assert.equal(identity.PRESETS.length, 8);
-  for (const { id, hex } of identity.PRESETS) {
-    assert.equal(identity.inkFor(hex, 'light'), hex, `${id} is drawn as stored in light mode`);
-    for (const theme of THEMES) {
-      assert.ok(identity.worstContrast(identity.inkFor(hex, theme), theme) >= 4.5, `${id} on ${theme}`);
-    }
-  }
-});
-
-test('presets adapt to dark and private mode as the spec\'s table says, and are stored unchanged', () => {
-  const spec = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md'), 'utf8');
-  for (const { id, hex } of identity.PRESETS) {
-    const name = id[0].toUpperCase() + id.slice(1);
-    const row = spec.match(new RegExp(`^\\| ${name} \\| \`(#[0-9a-f]{6})\` \\| \`(#[0-9a-f]{6})\` \\| \`(#[0-9a-f]{6})\` \\|$`, 'm'));
-    assert.ok(row, `${name} is in the spec's preset table`);
-    assert.deepEqual([hex, identity.inkFor(hex, 'dark'), identity.inkFor(hex, 'private')], row.slice(1), `${name}: stored, dark, private`);
-    assert.notEqual(identity.inkFor(hex, 'dark'), hex, `${name} is lightened for dark mode`);
-    assert.equal(identity.normalizeHex(hex), hex, `${name} is stored as its exact hex`);
-  }
-});
-
-test('contrast is measured against the painted wash, not only the bare surface', () => {
-  // #767676 passes on white (4.54:1) but not on its own 15% wash (3.78:1).
-  assert.ok(identity.contrast('#767676', '#ffffff') >= 4.5);
-  assert.ok(identity.contrast('#767676', identity.composite('#767676', 0.15, '#ffffff')) < 4.5);
-  assert.equal(identity.inkFor('#767676', 'light'), '#636363');
-  assert.equal(identity.inkFor('#F5E663', 'light'), '#6d6400');
-  assert.equal(identity.inkFor('#f5e663', 'dark'), '#f5e663', 'a colour that already passes is unchanged');
-});
-
-test('any colour comes back as a valid hex that clears 4.5:1 in every theme', () => {
+const WHITE = '#ffffff', BLACK = '#000000';
+// A sweep of hues × saturation × brightness, as hex.
+function sweep() {
+  const out = [];
   for (let h = 0; h < 360; h += 15) {
     for (const s of [0, 0.35, 0.7, 1]) {
-      for (const v of [0.05, 0.35, 0.65, 0.95, 1]) {
+      for (const v of [0.05, 0.35, 0.5, 0.65, 0.95, 1]) {
         const f = (n) => { const k = (n + h / 60) % 6; return v - v * s * Math.max(0, Math.min(k, 4 - k, 1)); };
-        const hex = `#${[f(5), f(3), f(1)].map((c) => Math.round(c * 255).toString(16).padStart(2, '0')).join('')}`;
-        for (const theme of THEMES) {
-          const ink = identity.inkFor(hex, theme);
-          assert.match(ink, /^#[0-9a-f]{6}$/, `${hex} ${theme}`);
-          assert.ok(identity.worstContrast(ink, theme) >= 4.5, `${hex} on ${theme} -> ${ink}`);
-        }
+        out.push(`#${[f(5), f(3), f(1)].map((c) => Math.round(c * 255).toString(16).padStart(2, '0')).join('')}`);
       }
     }
   }
+  return out;
+}
+
+test('a space is drawn in exactly its colour, in every theme', () => {
+  for (const hex of [...sweep(), ...identity.PRESETS.map((p) => p.hex)]) {
+    for (const theme of THEMES) assert.equal(identity.paint(hex, theme).fill, hex, `${hex} on ${theme}`);
+  }
+  assert.equal(identity.paint('#F5E663', 'light').fill, '#f5e663', 'normalized, never adjusted');
 });
 
-test('paint returns the ink and a theme-weighted wash', () => {
-  assert.deepEqual(identity.paint('#426c4c', 'light'), { ink: '#426c4c', wash: 'rgba(66, 108, 76, 0.15)' });
-  assert.equal(identity.paint('#426c4c', 'dark').wash.endsWith(', 0.2)'), true);
+test('the symbol and name on a colour are white or black, whichever contrasts more, and always readable', () => {
+  let worst = Infinity;
+  for (const hex of sweep()) {
+    const { on } = identity.paint(hex, 'light');
+    assert.ok(on === WHITE || on === BLACK, `${hex} -> ${on}`);
+    const other = on === WHITE ? BLACK : WHITE;
+    assert.ok(identity.contrast(hex, on) >= identity.contrast(hex, other), `${hex}: ${on} is the stronger choice`);
+    assert.ok(identity.contrast(hex, on) >= identity.MIN_CONTRAST, `${hex} -> ${on}: ${identity.contrast(hex, on).toFixed(2)}:1`);
+    for (const theme of THEMES) assert.equal(identity.paint(hex, theme).on, on, 'the theme does not change it');
+    worst = Math.min(worst, identity.contrast(hex, on));
+  }
+  // Every grey, too: the worst case is a mid-tone, at about 4.58:1.
+  for (let v = 0; v < 256; v++) {
+    const grey = `#${v.toString(16).padStart(2, '0').repeat(3)}`;
+    worst = Math.min(worst, identity.contrast(grey, identity.paint(grey, 'dark').on));
+  }
+  assert.ok(worst >= 4.5, `worst ${worst.toFixed(2)}:1`);
+  assert.equal(identity.paint('#ff3b30', 'light').on, BLACK, 'white on this red is only about 3.6:1');
+  assert.equal(identity.paint('#0a1f44', 'light').on, WHITE);
+});
+
+test('a colour too close to the surface behind it gets an edge, on that theme only', () => {
+  const edge = (hex, theme) => identity.paint(hex, theme).edge;
+  assert.equal(edge('#ffffff', 'light'), true);
+  assert.equal(edge('#ffffff', 'dark'), false);
+  assert.equal(edge('#000000', 'light'), false);
+  assert.equal(edge('#000000', 'dark'), true);
+  assert.equal(edge('#000000', 'private'), true);
+  for (const { id, hex } of identity.PRESETS) assert.equal(edge(hex, 'light'), false, `${id} stands out on light`);
+  for (const hex of sweep()) {
+    for (const theme of THEMES) {
+      const close = identity.SURFACES[theme].some((surface) => identity.contrast(hex, surface) < identity.EDGE_CONTRAST);
+      assert.equal(edge(hex, theme), close, `${hex} on ${theme}`);
+    }
+  }
+});
+
+test("presets are the spec's table: stored and drawn as these hexes, with this colour on them", () => {
+  const spec = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md'), 'utf8');
+  assert.equal(identity.PRESETS.length, 8);
+  for (const { id, hex } of identity.PRESETS) {
+    const name = id[0].toUpperCase() + id.slice(1);
+    const row = spec.match(new RegExp(`^\\| ${name} \\| \`(#[0-9a-f]{6})\` \\| (white|black) \\|$`, 'm'));
+    assert.ok(row, `${name} is in the spec's preset table`);
+    assert.equal(row[1], hex, `${name}'s hex`);
+    assert.equal(identity.paint(hex, 'light').on, row[2] === 'white' ? WHITE : BLACK, `${name}'s symbol colour`);
+  }
+});
+
+test('paint rejects junk; wash is the faint band tint for the dev-only tint switch', () => {
+  assert.deepEqual(identity.paint('#426c4c', 'light'), { fill: '#426c4c', on: WHITE, edge: false });
   assert.equal(identity.paint('nope', 'light'), null);
   assert.equal(identity.paint('#426c4c', 'sepia'), null);
+  assert.equal(identity.wash('#426c4c', 'light'), 'rgba(66, 108, 76, 0.15)');
+  assert.equal(identity.wash('#426c4c', 'dark'), 'rgba(66, 108, 76, 0.2)');
+  assert.equal(identity.wash('nope', 'dark'), null);
+  assert.equal(identity.inkFor, undefined, 'no colour is adjusted any more');
 });
 
 test('hex input is normalized and anything else is rejected', () => {
