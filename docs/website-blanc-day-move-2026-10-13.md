@@ -35,7 +35,11 @@ Mac. This environment's network proxy cannot reach either domain.
   so the live Worker still predates #748. Every newsletter, Mail waitlist and
   ambassador form submission from blanc.day failed from the move until the
   Worker was redeployed. The last confirmation mail Resend sent for it was at
-  00:33 UTC on October 13.
+  00:33 UTC on October 13. The owner redeployed `main` (`cd7a0100`) on
+  October 15; at 09:01:30 UTC the same request returned
+  `400 {"error":"invalid email"}` with
+  `access-control-allow-origin: https://blanc.day`. That deploy's version ID
+  was not recorded.
 - `blanc-tab-import`, version `cf81a2b6-22ee-4572-8b50-3f50c43dbdb4`, on its
   custom domain `tabs.blancbrowser.com`, deployed after step 5. A
   `create_tab_handoff` call to `https://tabs.blancbrowser.com/mcp` for one
