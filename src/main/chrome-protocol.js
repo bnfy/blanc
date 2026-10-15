@@ -36,6 +36,8 @@ const SHARED_ASSETS = new Set([
   '/panel-left.svg',
   '/pages/sunrise-favicon-mark.png',
   '/pages/inter-latin.woff2',
+  // Licensed and git-ignored; absent in source builds, where Inter takes over.
+  '/pages/Blubird-VF.ttf',
   '/pages/jetbrains-mono-latin.woff2',
   // Pure keyboard-gate logic, no IPC and no application data — the chrome
   // strip and the start page share one copy so they cannot disagree.

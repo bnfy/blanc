@@ -39,7 +39,7 @@ const KEEP_INTER = [
   'body.sheet .row .meta, body.sheet .row .url, body.sheet kbd', '.shortcut-row kbd', '.ob-kbd',
 ];
 
-test('Blubird sets headings and page copy; Inter keeps figures, keys, the chrome and Mahjong', () => {
+test('Blubird sets headings and page copy; Inter keeps figures, keys and Mahjong', () => {
   const pages = read('src/renderer/pages/pages.css');
   const handoff = read('src/renderer/pages/tab-handoff.css');
   const chrome = read('src/renderer/styles.css');
@@ -139,7 +139,9 @@ test('Blubird sets headings and page copy; Inter keeps figures, keys, the chrome
   assert.match(mahjong, /\.mahjong-body \{[^}]*--text-word-spacing: normal;[^}]*--text-tracking: normal;/,
     'Mahjong keeps Inter spacing');
 
-  assert.doesNotMatch(chrome, /Blubird|--font-text|--font-display|Newsreader/);
+  // The chrome now sets copy in Blubird Text too (test/unit/chrome-fonts.test.js); it
+  // never uses the Display cut or Newsreader.
+  assert.doesNotMatch(chrome, /--font-display|Newsreader/);
   assert.doesNotMatch(mahjong, /Blubird|--font-display/);
   assert.match(mahjong, /\.mahjong-body \{[^}]*--font-text: var\(--font-ui\);/,
     'Mahjong maps shared --font-text rules back to Inter');

@@ -12,7 +12,7 @@
 
 ## Merge gate (read first)
 
-Work on branch `claude/blanc-browser-font-replacement-485da8`. **Do not merge, and do not run Task 7's secret and 1Password steps, until Rajesh Rajput's written app licence has arrived and the owner confirms its scope.** Until then the branch can be built and reviewed on the owner's Mac with the Blubird files the owner already holds (`~/Downloads/Blubird.zip`). That is local use with nothing redistributed. Task 6's `docs/brand-usage.md` edits build on #836's Blubird section, so rebase onto `main` after #836 merges and before Task 6.
+Work on branch `claude/blanc-browser-font-replacement-485da8`. **Do not merge, and do not run Task 7's secret and 1Password steps, until Rajesh Rajput's written app license has arrived and the owner confirms its scope.** Until then the branch can be built and reviewed on the owner's Mac with the Blubird files the owner already holds (`~/Downloads/Blubird.zip`). That is local use with nothing redistributed. Task 6's `docs/brand-usage.md` edits build on #836's Blubird section, so rebase onto `main` after #836 merges and before Task 6.
 
 ## Global Constraints
 
@@ -792,11 +792,11 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 ---
 
-### Task 4: Licence notices and the runtime SBOM
+### Task 4: License notices and the runtime SBOM
 
 **Files:**
 - Create: `compliance/evidence/blubird-NOTICE.txt`
-- Modify: `compliance/policy.json` (add the asset and the licence exception)
+- Modify: `compliance/policy.json` (add the asset and the license exception)
 - Modify: `scripts/compliance-model.js:38-42` (`licenseChoice`) and `:355-361` (root dependencies)
 - Modify: `THIRD-PARTY-NOTICES.md` (new section after the OFL fonts section)
 - Regenerate: `compliance/THIRD_PARTY_NOTICES.txt`, `compliance/runtime-sbom.cdx.json` via `npm run compliance:build`
@@ -822,13 +822,13 @@ In `test/unit/compliance-model.test.js`, set both runtime component counts (line
 Add a test:
 
 ```js
-test('Blubird is notice-listed as a commercial licence outside MIT', () => {
+test('Blubird is notice-listed as a commercial license outside MIT', () => {
   const generated = createComplianceArtifacts();
   const notice = generated.files['compliance/THIRD_PARTY_NOTICES.txt'];
   assert.match(notice, /Blubird webfonts 1\.000 — LicenseRef-Blubird-Commercial/);
   assert.match(notice, /Full text: ThirdPartyLicenses\/blubird-NOTICE\.txt/);
   const markdown = fs.readFileSync(path.join(ROOT, 'THIRD-PARTY-NOTICES.md'), 'utf8');
-  assert.match(markdown, /## Blubird fonts — commercial licence/);
+  assert.match(markdown, /## Blubird fonts — commercial license/);
 });
 ```
 
@@ -848,9 +848,9 @@ Blubird typeface
 Copyright (c) 2026 Rajesh Rajput. All rights reserved.
 
 Official Blanc builds embed four Blubird webfont files (Regular Display;
-Regular, Medium and SemiBold Text) under a commercial licence granted to
+Regular, Medium and SemiBold Text) under a commercial license granted to
 Bananify Creative by Rajesh Rajput. Blubird is not covered by Blanc's MIT
-licence or by any open-source licence. The font files are not part of Blanc's
+license or by any open-source license. The font files are not part of Blanc's
 public source code, and they may not be extracted from Blanc, modified, or
 redistributed separately.
 
@@ -895,13 +895,13 @@ and add `'asset:blubird-font',` to `rootDeps` after `'asset:caveat-font',`.
 In `THIRD-PARTY-NOTICES.md`, after the "Inter, JetBrains Mono, and Caveat fonts" section, insert:
 
 ```markdown
-## Blubird fonts — commercial licence
+## Blubird fonts — commercial license
 
 Official builds embed `Blubird-RegularDisplay.woff2`, `Blubird-RegularText.woff2`,
 `Blubird-MediumText.woff2` and `Blubird-SemiBoldText.woff2` — Copyright (c) 2026
-Rajesh Rajput, all rights reserved — under a commercial licence granted to
+Rajesh Rajput, all rights reserved — under a commercial license granted to
 Bananify Creative. Blubird is not covered by Blanc's MIT grant or any open-source
-licence, and the files are not in this repository; their SHA-256 digests are
+license, and the files are not in this repository; their SHA-256 digests are
 pinned in [fonts/blubird/pinned.json](fonts/blubird/pinned.json). Builds made
 from this repository fall back to Inter. Notice text:
 [compliance/evidence/blubird-NOTICE.txt](compliance/evidence/blubird-NOTICE.txt).
@@ -916,7 +916,7 @@ Expected: PASS
 
 ```bash
 git add compliance scripts/compliance-model.js THIRD-PARTY-NOTICES.md test/unit/compliance-model.test.js
-git commit -m "List Blubird in the notices and runtime SBOM as a commercial licence
+git commit -m "List Blubird in the notices and runtime SBOM as a commercial license
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
@@ -1061,7 +1061,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 **Files:**
 - Modify: `docs/brand-usage.md`:
   - *System v2* paragraph (about lines 240–253 on `main`): Blubird roles in the app, Inter for the chrome, figures and keys, and the 32px Display/Text rule
-  - #836's **Licence** paragraph: add the app licence's scope and date, and say the signed permission is kept privately
+  - #836's **License** paragraph: add the app license's scope and date, and say the signed permission is kept privately
 - Modify: `CLAUDE.md` and `AGENTS.md` (*Commands*): one paragraph on `npm run fonts:install` and the release requirement
 - Modify: `docs/repository-inventory.md` via `npm run audit-inventory:write`
 
@@ -1086,7 +1086,7 @@ tabular figures and no ⌘ ⌥ ⇧ ⌃ or arrow glyphs. Mahjong keeps Inter and 
 JetBrains Mono tile faces. Builds without the licensed files fall back to Inter.
 ```
 
-Append the app licence's scope, as the owner confirms it, to the Licence paragraph.
+Append the app license's scope, as the owner confirms it, to the License paragraph.
 
 - [ ] **Step 3: Add the developer note to CLAUDE.md and AGENTS.md**
 
@@ -1112,11 +1112,11 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 ---
 
-### Task 7: Owner setup (only after the written licence)
+### Task 7: Owner setup (only after the written license)
 
 These steps write to 1Password and GitHub, so each needs the owner's explicit yes in chat.
 
-- [ ] **Step 1: Record the licence.** The owner confirms the permission covers the spec's checklist items 1–4. Note its date and scope for Task 6 Step 2.
+- [ ] **Step 1: Record the license.** The owner confirms the permission covers the spec's checklist items 1–4. Note its date and scope for Task 6 Step 2.
 - [ ] **Step 2: Store the zip in 1Password.**
 
 ```bash
@@ -1152,7 +1152,7 @@ Expected: four names.
   - Install each artifact in its VM.
   - Compare 13px Blubird Text against a Web-TT build of the same page. To make the Web-TT build, install the four `Blubird/Web-TT/` WOFF2 files locally with `pinned.json` temporarily repointed; never commit that.
   - Keep Web-PS unless Web-TT is clearly sharper. If Web-TT wins, update `pinned.json` (`sourceFolder`, sizes, digests), the four secrets and the 1Password zip together.
-- [ ] **Step 7: Merge readiness.** The licence is on record (Task 7 Step 1), every check run on the head SHA passes, and the owner merges. After the next release, follow up separately: website Start Page and sheet captures, the Design System `typography.css` sync (approval before push), and the FAQ/Terms sentence (spec review point 4, website-only PR).
+- [ ] **Step 7: Merge readiness.** The license is on record (Task 7 Step 1), every check run on the head SHA passes, and the owner merges. After the next release, follow up separately: website Start Page and sheet captures, the Design System `typography.css` sync (approval before push), and the FAQ/Terms sentence (spec review point 4, website-only PR).
 
 ---
 

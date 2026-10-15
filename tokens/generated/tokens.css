@@ -32,6 +32,10 @@
   --space-slate: #576471;
   --space-graphite: #3a3a3a;
   --font-ui: "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --font-text: "Blubird Text", "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --text-word-spacing: 0.07em;
+  --text-tracking: 0.025em;
+  --text-optical-size: 28;
   --type-body-size: 13px;
   --type-page-title-size: 24px;
   --type-page-title-weight: 650;

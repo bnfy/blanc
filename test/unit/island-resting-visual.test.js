@@ -64,7 +64,7 @@ test('expanded input and morph use the selected compact geometry', () => {
   const input = cssBlock('#addressInput');
   assert.match(input, /height:\s*36px/);
   assert.match(input, /border-radius:\s*14px/);
-  assert.match(input, /font-family:\s*var\(--font-ui\)/);
+  assert.match(input, /font-family:\s*var\(--font-text\)/);
   assert.doesNotMatch(overlay, /pill(?:Rect)?\.height \/ 2/);
   // Retract ends on the resting corner; the stepped expand starts on it and
   // interpolates to the panel's own corner.

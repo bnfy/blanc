@@ -14,8 +14,8 @@ its product replicas in Inter.
 
 ## Decisions already made (owner, October 15)
 
-1. **The licence gates everything.** Blubird ships in the app only after Rajesh
-   Rajput grants an app licence and written permission. Until then nothing
+1. **The license gates everything.** Blubird ships in the app only after Rajesh
+   Rajput grants an app license and written permission. Until then nothing
    merges. The font files never enter git; builds install them from private
    storage, as #836 does for the website.
 2. **Scope is headings plus page copy.** Blubird replaces Newsreader in
@@ -38,10 +38,10 @@ its product replicas in Inter.
 
 ## Facts this design rests on
 
-**Licence.** The EULA in `Blubird.zip` is a Regular Licence: web and print use,
+**License.** The EULA in `Blubird.zip` is a Regular License: web and print use,
 for an individual. It says the files "must not be modified or redistributed,
 Online or Offline" without the author's written permission, and directs app
-licences to the author. #836's `docs/brand-usage.md` (Licence paragraph,
+licenses to the author. #836's `docs/brand-usage.md` (License paragraph,
 lines 300–306 on that branch) already records that app use needs written
 permission first. Every Blanc installer contains its fonts inside `app.asar`,
 which is redistribution.
@@ -61,7 +61,7 @@ which is redistribution.
   sups`; there is no `tnum`. `font-variant-numeric: tabular-nums` has no effect,
   so changing numbers shift width as they update.
 - The embedding flag (`fsType`) is `0x0008`, editable embedding. That is the
-  font's technical flag; the licence still decides.
+  font's technical flag; the license still decides.
 - The website uses four Web-PS WOFF2 files, about 21 KB each:
   `Blubird-RegularDisplay`, `Blubird-RegularText`, `Blubird-MediumText`,
   `Blubird-SemiBoldText` (`site/scripts/blubird-fonts.mjs` on #836).
@@ -92,7 +92,7 @@ which is redistribution.
 **Owner decision, October 15:** the Billboard clock read too plain in Regular
 Display. Of the heavier cuts rendered with and without tighter tracking, the
 owner chose Medium Display at 0 letter-spacing. That adds a fifth file,
-`Blubird-MediumDisplay.woff2`, to the pinned set, the secrets and the licence
+`Blubird-MediumDisplay.woff2`, to the pinned set, the secrets and the license
 request.
 
 **Owner decision, October 15 (page copy width):** the Text cut read wider
@@ -109,11 +109,20 @@ limit. "Where to?" now uses the variable file at optical size 32, so Regular
 Display is no longer used and leaves the pinned set: Medium Display (the
 Billboard clock) and the variable file remain.
 
+**Owner decisions, October 15 (Island and small text):** after a mock, the
+Island, ⌘L panel, Quick Switcher, permission prompt and 1Password capsule
+(everything `styles.css` styles) move to Blubird Text too, at the pages'
+optical size and spacing. Counts and key caps keep Inter. Small text was too
+tight at UI sizes: letter spacing is now +0.025em everywhere. Chromium resets
+spacing on buttons and form fields, so they inherit it explicitly. The chrome
+scheme allowlists exactly `/pages/Blubird-VF.ttf`. The website's live Island
+figures (kept in Inter to match the app) need a website follow-up.
+
 ## Approaches considered
 
 **A. The website's four static files (recommended).** Same files, family names
 and `@font-face` rules as #836, so the app and blanc.day render identically. The
-files are used exactly as supplied, about 85 KB in total, and the licence
+files are used exactly as supplied, about 85 KB in total, and the license
 request can name four files. Weights map onto 400, 500 and 600–700, as on the
 site. The cost is that in-between weights snap to the nearest file
 (550 → 600, 650 → 600).
@@ -126,7 +135,7 @@ size. The costs:
 - It is a 207 KB TTF; converting it to WOFF2 would modify the file.
 - Its default instance is Black Display, so any axis mistake renders the
   heaviest cut.
-- The licence request would cover a second set of files.
+- The license request would cover a second set of files.
 
 **C. Commit the files to the repository.** Ruled out by decision 1.
 
@@ -212,14 +221,14 @@ Public releases must never fall back silently.
   update cannot slip in. Updating Blubird becomes a reviewed release input, like
   the blocker lists: change `pinned.json` and the secrets together.
 
-### Licence record and notices
+### License record and notices
 
 - Record the permission's scope and date in `docs/brand-usage.md` next to #836's
-  licence paragraph. Keep the signed permission itself private, not in the repo.
+  license paragraph. Keep the signed permission itself private, not in the repo.
 - `THIRD-PARTY-NOTICES.md` and `compliance/policy.json` gain a Blubird entry: a
-  commercial licence held by the licensee, not MIT, not redistributable apart
+  commercial license held by the licensee, not MIT, not redistributable apart
   from Blanc. Regenerate the packaged notices and runtime SBOM. The compliance
-  model's licence allowlist (`compliance/policy.json:10`) needs an explicit
+  model's license allowlist (`compliance/policy.json:10`) needs an explicit
   commercial category for this one asset.
 - Remove Newsreader from the app: `newsreader-condensed-latin-opsz-normal.woff2`,
   `newsreader-OFL.txt` and its compliance entry. The website keeps its own copy.
@@ -274,7 +283,7 @@ Gate checks:
 
 ## Risks
 
-- **Licence terms.** The checklist below covers what the permission has to say.
+- **License terms.** The checklist below covers what the permission has to say.
   If the author declines app use, this design stops. The website is not
   affected.
 - **Open-source posture.** Official builds would carry one commercially
@@ -296,7 +305,7 @@ Gate checks:
 3. The Billboard clock in Blubird Display, or kept in Inter.
 4. A sentence in the FAQ/Terms about the commercially licensed typeface.
 
-## Licence request checklist
+## License request checklist
 
 The written permission should cover:
 
@@ -313,5 +322,5 @@ The written permission should cover:
    (community Snap and Flatpak).
 6. Duration (ideally perpetual) and future updates of the font.
 7. The licensee: Bananify Creative rather than an individual. It is worth also
-   moving the website's licence to the company at the same time.
+   moving the website's license to the company at the same time.
 8. Optional: future iOS and Android apps.

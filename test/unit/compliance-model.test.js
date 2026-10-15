@@ -250,11 +250,11 @@ test('ordinary packaging records only distributed components when uBO is exclude
   assert.doesNotThrow(() => verifyPackagedCompliance(resources));
 });
 
-test('Blubird is notice-listed as a commercial licence outside MIT', () => {
+test('Blubird is notice-listed as a commercial license outside MIT', () => {
   const generated = createComplianceArtifacts();
   const notice = generated.files['compliance/THIRD_PARTY_NOTICES.txt'];
   assert.match(notice, /Blubird webfonts 1\.000 — LicenseRef-Blubird-Commercial/);
   assert.match(notice, /Full text: ThirdPartyLicenses\/blubird-NOTICE\.txt/);
   const markdown = fs.readFileSync(path.join(ROOT, 'THIRD-PARTY-NOTICES.md'), 'utf8');
-  assert.match(markdown, /## Blubird fonts — commercial licence/);
+  assert.match(markdown, /## Blubird fonts — commercial license/);
 });
