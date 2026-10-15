@@ -12742,6 +12742,20 @@
             "after": "<figcaption>Give each space a colour and a symbol.</figcaption>\n<div><h2 id=\"workspaces-section-1\">Free, on every desktop platform.</h2></div>"
           }
         ]
+      },
+      {
+        "source": "site/src/pages/features.astro",
+        "reason": "October 14, 2026 update for public v1.34.0: the search popover names Kagi and a custom search address, such as a SearXNG server, which v1.34.0 added to Settings → General → Search engine, with Kagi's account requirement. Verified at public v1.34.0 and recorded in docs/website-v1.34-claims.json; the retired four-engine wording moves to supersededClaims in docs/website-features-bento-claims-v1.30.json.",
+        "replacements": [
+          {
+            "before": "<h2 id=\"pop-search-engine-title\">Search with DuckDuckGo, Google, Bing or Brave.</h2>",
+            "after": "<h2 id=\"pop-search-engine-title\">Search with DuckDuckGo, Google, Bing, Brave, Kagi or your own engine.</h2>"
+          },
+          {
+            "before": "<p>Pick your search engine in Settings. Search suggestions can be turned off at any time.</p>",
+            "after": "<p>Pick your search engine in Settings, or paste your own search address, such as a SearXNG server. Kagi needs a Kagi account. Search suggestions can be turned off at any time.</p>"
+          }
+        ]
       }
     ]
   },
