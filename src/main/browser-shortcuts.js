@@ -12,8 +12,10 @@ const COMMANDS = Object.freeze({
   find: { labelKey: 'menu.find', primary: 'CmdOrCtrl+F' },
   reload: { labelKey: 'menu.reloadTab', primary: 'CmdOrCtrl+R', aliases: ['F5'] },
   'hard-reload': { labelKey: 'menu.hardReloadTab', primary: 'CmdOrCtrl+Shift+R' },
-  back: { labelKey: 'pill.back', primary: 'CmdOrCtrl+[' },
-  forward: { labelKey: 'pill.forward', primary: 'CmdOrCtrl+]' },
+  // Windows/Linux leave Ctrl+[ / Ctrl+] to pages (Gmail, Docs, editors), as
+  // Chrome does, and go back and forward with Alt+Left/Right.
+  back: { labelKey: 'pill.back', primary: 'CmdOrCtrl+[', desktopPrimary: 'Alt+Left' },
+  forward: { labelKey: 'pill.forward', primary: 'CmdOrCtrl+]', desktopPrimary: 'Alt+Right' },
   history: { labelKey: 'menu.showHistory', primary: 'CmdOrCtrl+Y', desktopPrimary: 'Ctrl+H', aliases: ['Ctrl+Y'] },
   downloads: { labelKey: 'menu.downloads', primary: 'CmdOrCtrl+Shift+J', desktopPrimary: 'Ctrl+J', aliases: ['Ctrl+Shift+J'] },
   settings: { labelKey: 'menu.settings', primary: 'CmdOrCtrl+,' },
@@ -33,7 +35,9 @@ function browserCommandDefinition(id, platform = process.platform) {
 
 function acceleratorMatches(input, accelerator, platform) {
   const parts = accelerator.toLowerCase().split('+');
-  const key = parts.pop();
+  // Accelerators name arrow keys Left/Right; input events say ArrowLeft/Right.
+  const key = { left: 'arrowleft', right: 'arrowright' }[parts.at(-1)] ?? parts.at(-1);
+  parts.pop();
   const modifiers = new Set(parts.map(modifier => modifier === 'cmdorctrl'
     ? platform === 'darwin' ? 'meta' : 'ctrl'
     : modifier));

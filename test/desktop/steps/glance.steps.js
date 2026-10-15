@@ -1178,3 +1178,19 @@ Then('a right-click on a Glance header button addresses no tab', async function 
     assert.equal(result.prevented, true, `${selector} let a default menu through`);
   }
 });
+
+When('I search the page for {string}', async function (query) {
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'find', 'find capsule');
+  const page = await overlayPage();
+  await page.locator('#findInput').fill(query);
+  await waitForValue(() => page.locator('#findCount').textContent(), (text) => text === '1/3', 'matches on the first page');
+});
+
+Then('the find capsule is fresh and bound to the reference', async function () {
+  await waitForValue(() => this.call('findTabId'), (id) => id === this.glanceReferenceId, 'capsule rebound to the reference');
+  const page = await overlayPage();
+  // A new pane is a new search: the previous query and its count do not
+  // carry over, which also means the first page's highlights were cleared.
+  await waitForValue(() => page.locator('#findInput').inputValue(), (value) => value === '', 'query cleared');
+  assert.equal(await page.locator('#findCount').textContent(), '');
+});

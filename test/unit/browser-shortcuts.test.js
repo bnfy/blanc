@@ -99,9 +99,22 @@ test('the action receives the webContents the key came from, or null from a menu
 
 test('Back and Forward are browser commands labelled from the pill', () => {
   assert.equal(browserCommandDefinition('back', 'darwin').primary, 'CmdOrCtrl+[');
-  assert.equal(browserCommandDefinition('forward', 'linux').primary, 'CmdOrCtrl+]');
+  assert.equal(browserCommandDefinition('forward', 'darwin').primary, 'CmdOrCtrl+]');
   assert.equal(browserCommandDefinition('back', 'darwin').labelKey, 'pill.back');
-  assert.equal(matchBrowserShortcut(input('[', { control: true }), 'win32'), 'back');
-  assert.equal(matchBrowserShortcut(input(']', { control: true }), 'linux'), 'forward');
-  assert.equal(matchBrowserShortcut(input('[', { control: true, shift: true }), 'linux'), null);
+  assert.equal(matchBrowserShortcut(input('[', { meta: true }), 'darwin'), 'back');
+  assert.equal(matchBrowserShortcut(input(']', { meta: true }), 'darwin'), 'forward');
+});
+
+test('Windows and Linux go Back and Forward with Alt+Left/Right and leave Ctrl+[ / ] to pages', () => {
+  // Gmail, Google Docs and code editors use Ctrl+[ / Ctrl+]; Chrome leaves
+  // them to the page on these platforms.
+  for (const platform of ['win32', 'linux']) {
+    assert.equal(browserCommandDefinition('back', platform).primary, 'Alt+Left');
+    assert.equal(browserCommandDefinition('forward', platform).primary, 'Alt+Right');
+    assert.equal(matchBrowserShortcut(input('ArrowLeft', { alt: true }), platform), 'back');
+    assert.equal(matchBrowserShortcut(input('ArrowRight', { alt: true }), platform), 'forward');
+    assert.equal(matchBrowserShortcut(input('[', { control: true }), platform), null);
+    assert.equal(matchBrowserShortcut(input(']', { control: true }), platform), null);
+    assert.equal(matchBrowserShortcut(input('ArrowLeft', { alt: true, control: true }), platform), null);
+  }
 });

@@ -7322,6 +7322,10 @@ function findTargetTabId(runtime) {
 function openFindBar(tabId = rt().activeTabId) {
   if (!rt().window || rt().window.isDestroyed()) return;
   const findTabId = isVisiblePaneId(rt(), tabId) ? tabId : rt().activeTabId;
+  // Open on the other pane: close it first, so the overlay clears the first
+  // page's highlights and the new pane starts a fresh search.
+  const open = findTargetTabId(rt());
+  if (open != null && open !== findTabId) hideOverlay({ refocusContent: false });
   showOverlay('find', { purpose: { findTabId } });
 }
 

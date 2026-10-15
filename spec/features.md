@@ -751,7 +751,8 @@ From the desktop `DEFAULTS`:
   roles; promotion is explicit and swaps the two visible tabs.
 - Browser commands follow the focused pane. With keyboard focus in the
   reference, Reload and Hard Reload, Close Tab, Find, zoom, Print, Back and
-  Forward (`Cmd/Ctrl+[` / `]`), the 1Password fill and its hint, and mouse
+  Forward (`Cmd+[` / `]` on macOS, `Alt+Left` / `Right` on Windows and
+  Linux), the 1Password fill and its hint, and mouse
   gestures act on the reference; Close Tab there closes the reference tab and
   Glance collapses. ⌘L and the Island, New Tab, ⌘1–9, the shield popover, the
   blocked count and the tab-scoped slash commands stay on the main page. The

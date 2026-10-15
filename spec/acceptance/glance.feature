@@ -286,3 +286,14 @@ Feature: Glance reference pane
     When I open the reference tab in Glance
     Then a right-click on the Glance title addresses the reference tab
     And a right-click on a Glance header button addresses no tab
+
+  @F34-1 @F34 @D11
+  Scenario: Find pressed in the other pane starts a fresh search there
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And the main page is the focused pane
+    And I press the find command
+    And I search the page for "widget"
+    And the reference pane is the focused pane
+    And I press the find command
+    Then the find capsule is fresh and bound to the reference
