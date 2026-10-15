@@ -1125,7 +1125,9 @@ function install(refs) {
       const tab = tabs.get(getActiveTabId());
       if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
       const page = await tab.view.webContents.executeJavaScript(`(async () => {
-        await document.fonts.load('22px "Newsreader Condensed"');
+        await Promise.all([
+          document.fonts.load('22px "Instrument Sans"'),
+        ]).catch(() => []);
         const selectors = [
           '.start-brand-date', '.ledger-label', '.bb-clock',
           '.bb-blocked', '.shelf-label', '.shelf-count', '.tally-count',
@@ -1133,28 +1135,25 @@ function install(refs) {
           '.ob-step-label', '.ob-content p'
         ];
         if (selectors.some((selector) => !document.querySelector(selector))) return null;
-        const newsreaderSelector = '.bb-clock, .ledger-where, .migration-checklist-heading h2, .ob-content h1';
-        const newsreader = [...document.querySelectorAll(newsreaderSelector)];
-        const newsreaderElements = [...document.querySelectorAll('body, body *')]
-          .filter((element) => getComputedStyle(element).fontFamily.includes('Newsreader'));
+        const headingSelector = '.bb-clock, .ledger-where, .migration-checklist-heading h2, .ob-content h1';
+        const everything = [...document.querySelectorAll('body, body *')];
+        const label = (element) => element.id || element.className || element.tagName;
         return {
           samples: selectors.map((selector) => ({
             selector,
             family: getComputedStyle(document.querySelector(selector)).fontFamily,
           })),
-          newsreader: newsreader.map((element) => ({
+          headings: [...document.querySelectorAll(headingSelector)].map((element) => ({
             selector: element.className || 'onboarding h1',
             family: getComputedStyle(element).fontFamily,
           })),
-          newsreaderLoaded: document.fonts.check('22px "Newsreader Condensed"'),
-          newsreaderOutsideApproved: newsreaderElements
-            .filter((element) => !element.matches(newsreaderSelector))
-            .slice(0, 20)
-            .map((element) => element.id || element.className || element.tagName),
-          jetbrains: [...document.querySelectorAll('body, body *')]
+          textFaceLoaded: document.fonts.check('22px "Instrument Sans"'),
+          newsreader: everything
+            .filter((element) => getComputedStyle(element).fontFamily.includes('Newsreader'))
+            .slice(0, 20).map(label),
+          jetbrains: everything
             .filter((element) => getComputedStyle(element).fontFamily.includes('JetBrains Mono'))
-            .slice(0, 20)
-            .map((element) => element.id || element.className || element.tagName),
+            .slice(0, 20).map(label),
         };
       })()`);
       return { page };
@@ -1334,8 +1333,8 @@ function install(refs) {
               selector,
               family: getComputedStyle(document.querySelector(selector)).fontFamily,
             })),
-            newsreader: [...document.querySelectorAll('body, body *')]
-              .filter((element) => getComputedStyle(element).fontFamily.includes('Newsreader'))
+            instrument: [...document.querySelectorAll('body, body *')]
+              .filter((element) => getComputedStyle(element).fontFamily.includes('Instrument Sans'))
               .slice(0, 20)
               .map((element) => element.id || element.className || element.tagName),
             tileFaceFamily: getComputedStyle(document.querySelector('.mj-face text')).fontFamily,
@@ -1884,7 +1883,7 @@ function install(refs) {
           }
           return {
             theme: dark ? 'dark' : 'light',
-            fontLoaded: document.fonts.check('22px "Newsreader Condensed"'),
+            fontLoaded: document.fonts.check('22px "Instrument Sans"'),
             dialogOverflow: dialog.scrollWidth > dialog.clientWidth + 1,
             pageOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
             steps,

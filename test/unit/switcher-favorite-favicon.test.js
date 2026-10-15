@@ -44,13 +44,13 @@ test('resultRow supplies a URL-shaped fallback for history and other page-like r
   );
 });
 
-test('switcher metadata and source labels use the Inter UI face', () => {
+test('switcher metadata and source labels use the UI copy face', () => {
   assert.match(
     styles,
-    /\.island-row \.row-sub\s*\{[^}]*font-family: var\(--font-ui\)/s,
+    /\.island-row \.row-sub\s*\{[^}]*font-family: var\(--font-text\)/s,
   );
   assert.match(
     styles,
-    /\.island-row \.row-tag\s*\{[^}]*font-family: var\(--font-ui\)/s,
+    /\.island-row \.row-tag\s*\{[^}]*font-family: var\(--font-text\)/s,
   );
 });

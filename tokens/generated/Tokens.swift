@@ -76,28 +76,28 @@ public enum BlancTokens {
     }
     public static func sunriseBg(_ theme: BlancTheme) -> String {
         switch theme {
-        case .light: return "#f7f0e5"
+        case .light: return "#f8f2e8"
         case .dark: return "#17130f"
         case .privateBrowsing: return "#100d0b"
         }
     }
     public static func sunriseSurface(_ theme: BlancTheme) -> String {
         switch theme {
-        case .light: return "#efe6d8"
+        case .light: return "#f2eade"
         case .dark: return "#2d251d"
         case .privateBrowsing: return "#251d17"
         }
     }
     public static func sunriseSurfaceRaised(_ theme: BlancTheme) -> String {
         switch theme {
-        case .light: return "#fffcf7"
+        case .light: return "#ffffff"
         case .dark: return "#221d17"
         case .privateBrowsing: return "#1a1511"
         }
     }
     public static func sunriseBorder(_ theme: BlancTheme) -> String {
         switch theme {
-        case .light: return "#ddd2c2"
+        case .light: return "#e1d7c9"
         case .dark: return "#4a3e31"
         case .privateBrowsing: return "#594a39"
         }
@@ -161,7 +161,10 @@ public enum BlancTokens {
     public static let spaceSlate = "#576471"
     public static let spaceGraphite = "#3a3a3a"
     public static let fontUi = "\"Inter\", -apple-system, \"Segoe UI Variable\", \"Segoe UI\", system-ui, sans-serif"
-    public static let fontDisplay = "\"Newsreader Condensed\", \"Newsreader\", \"Iowan Old Style\", \"Palatino Linotype\", Palatino, serif"
+    public static let fontText = "\"Instrument Sans\", \"Inter\", -apple-system, \"Segoe UI Variable\", \"Segoe UI\", system-ui, sans-serif"
+    public static let textWordSpacing = "normal"
+    public static let textTracking = "0.01em"
+    public static let textWidth = "98"
     public static let typeBodySize = "13px"
     public static let typePageTitleSize = "24px"
     public static let typePageTitleWeight = "650"

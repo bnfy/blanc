@@ -26,3 +26,8 @@ bench/tab-import/results/
 site/.parity/
 site/.parity-shots/
 .fontenv/
+
+# Blubird is commercially licensed (website/wordmark only); never commit its files.
+/src/renderer/pages/Blubird*
+# The licensed zip, or anything unpacked from it, anywhere in the tree.
+Blubird*.zip

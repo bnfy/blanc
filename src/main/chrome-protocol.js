@@ -36,6 +36,7 @@ const SHARED_ASSETS = new Set([
   '/panel-left.svg',
   '/pages/sunrise-favicon-mark.png',
   '/pages/inter-latin.woff2',
+  '/pages/instrument-sans-latin-wdth-normal.woff2',
   '/pages/jetbrains-mono-latin.woff2',
   // Pure keyboard-gate logic, no IPC and no application data — the chrome
   // strip and the start page share one copy so they cannot disagree.
