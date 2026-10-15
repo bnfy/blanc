@@ -59,6 +59,8 @@ const RUNNABLE = [
   '@F40-7', '@F40-8', '@F40-9', '@F40-10', '@F40-11', '@F40-14', '@F40-15',
   // F45 Arc Spaces import, through the real Bring Your Tabs sheet.
   '@F45-1', '@F45-2', '@F45-3', '@F45-4', '@F45-5', '@F45-6', '@F45-7', '@F45-8',
+  // F46 custom tab names.
+  '@F46-1', '@F46-2', '@F46-3', '@F46-4', '@F46-5', '@F46-6',
 ].join(' or ');
 
 export default { ...common, tags: 'not @mobile' };

@@ -18,7 +18,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | Domain | File | Features |
 |--------|------|----------|
 | Island / palette / slash | `island-and-commands.feature` | F1, F6, F7 |
-| Tabs & groups | `tabs-and-groups.feature` | F2, F3 |
+| Tabs & groups | `tabs-and-groups.feature` | F2, F3, F46 |
 | Drag to reorder | `tab-drag.feature` | F3, F28 |
 | Private tabs | `private-tabs.feature` | F4 |
 | Navigation & context menu | `navigation-and-context-menu.feature` | F5, F19 |
@@ -212,6 +212,12 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F45-6 | The page sees names and counts, never URLs or paths | — | ✅ | ➖ | ➖ |
 | F45-7 | Linux imports a chosen file | — | ✅ | ➖ | ➖ |
 | F45-8 | Closing the sheet drops what Blanc read from Arc | — | ✅ | ➖ | ➖ |
+| F46-1 | Rename Tab… names the right-clicked tab | — | ✅ | ➖ | ➖ |
+| F46-2 | A name stays through navigation to another site | — | ✅ | ➖ | ➖ |
+| F46-3 | `/rename` with no name restores the page title | — | ✅ | ➖ | ➖ |
+| F46-4 | Use Page Title restores the page title | — | ✅ | ➖ | ➖ |
+| F46-5 | A name survives relaunch | — | ✅ | ➖ | ➖ |
+| F46-6 | A private tab's name never reaches session.json | — | ✅ | ➖ | ➖ |
 
 > **M0–M1 note (2026-07-08):** F5 (address/search + OS hand-off) and F1 (minimal
 > address surface) are implemented and unit-tested on iOS, but the iOS acceptance
