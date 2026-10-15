@@ -9,7 +9,7 @@ pinned by `test/unit/public-truth.test.js` and `docs/marketing-claims.md`.
 ## Short answer
 
 Nothing here points to a leak (every idle process settles), and the ad blocker
-is not the cause. The growth is the sum of five changes, and on macOS the
+is not the cause. The growth is the sum of six changes, and on macOS the
 largest is GPU compositing, not JavaScript.
 
 | What | Arrived | macOS cost (2× scale) | Status |
@@ -19,6 +19,7 @@ largest is GPU compositing, not JavaScript.
 | Start Page wallpaper: decoded image plus its GPU texture | 1.21.0 | 17 MiB | Product decision |
 | Larger chrome, overlay and Start Page documents (CSS, scripts, fonts, strings) | gradual | ≈ 10 MiB | Not worth chasing one by one |
 | Main-process startup garbage measured before the first full GC | gradual | Linux 15 MiB; not seen on macOS | Ad-block part fixed in this PR |
+| Dock icon re-applied as a bitmap at every launch | — | 9–11 MiB at 1×; likely more on Retina | Proposed, not changed |
 
 Not causes: the Electron 43 → 44 upgrade (1.8.2 → 1.9.0 is flat), the ad-block
 engine (blocking off grew just as much, and the engine sits on the same two
@@ -44,8 +45,8 @@ that order to WebContents (`getOSProcessId()`), and it was stable across runs.
 - **Hosted Mac:** GitHub Actions `macos-15` (Apple Silicon, macOS 15.7.9,
   7 GiB), public arm64 DMGs verified against each release's `SHA256SUMS`, run
   by a temporary workflow on the investigation branch (runs 38697657384,
-  38701457707, 38705401765, 38707740222, 38707858332, 38710103078 and
-  38710271108 in `bnfy/blanc` Actions). Its display
+  38701457707, 38705401765, 38707740222, 38707858332, 38710103078,
+  38710271108 and, on macOS 26 and 15, 38714177305 in `bnfy/blanc` Actions). Its display
   is not Retina, so most runs add `--force-device-scale-factor=2` to render the
   way an 8 GiB MacBook Air does. Absolute totals are lower than on the owner's
   Mac (macOS 27.2, real Retina panel): 1.1.0 → 1.34.0 grows 171 → 233 MiB at
@@ -180,6 +181,34 @@ both Blanc rows have one repetition that settled at 41 s, 405–408 MiB against
 settling step after the harness's 20 s minimum, and worth a longer `minMs`
 before the next published run.
 
+### 6. The Dock icon applied at startup
+
+`applyAppIcon()` runs once at every launch. On packaged builds for macOS 26 and
+later it calls `nativeImage.createFromNamedImage('Icon')` and passes the result
+to `app.dock.setIcon()`; older macOS gets the flat 1024 px PNG instead
+(`src/main/app-icon.js`). With the default Sunrise colorway, `Icon` is the
+bundle's own app icon (`after-pack-app-icons.js` compiles `Assets.car` with
+`--app-icon Icon`), so the call re-applies, as a bitmap, the icon macOS is
+already showing.
+
+A variant with `applyDockAppIcon` returning early, idle, four repetitions, on
+hosted runners whose displays are not Retina:
+
+| | Control | No Dock icon call | Δ |
+| --- | ---: | ---: | ---: |
+| macOS 26.6, browser process | 95 | 85 | −10 |
+| macOS 26.6, total | 246 | 235 | **−11** |
+| macOS 15.7, browser process | 94 | 86 | −8 |
+| macOS 15.7, total | 249 | 240 | **−9** |
+
+On both, the browser process's 4 MiB `CG Image` region (one 1024 × 1024
+bitmap) disappears along with 4–6 MiB of allocator memory. The owner's Mac
+(macOS 27.2, Retina) shows 16 MiB of `CG Image` there, so the saving is likely
+larger on a Retina Mac. That has not been measured, and neither has how the
+Dock looks without the call: the `nodock` variant of `make-variant.js` shows
+both on a real Mac. Before macOS 26 the bundle may have no other icon for the
+Dock to fall back on, so a fix would skip only the macOS 26+ default case.
+
 ## What this PR changes
 
 1. **Verifies the bundled blocker lists without building their text**
@@ -206,6 +235,7 @@ measurements above stand as the record of what it costs.
 | Find and remove what keeps the idle Start Page on full-window compositing | ≈ 40 MiB idle | Unknown until isolated; footer blur, drop shadow, wallpaper and proximity are ruled out |
 | Create the display-capture helper on the first `getDisplayMedia` request | 18 MiB, every platform | Medium: the broker captures `helperWc` at install and `display-capture-broker*.js` are hash-pinned in `capture-runtime-lock.json`, so it needs fresh capture evidence on all three platforms |
 | Lighter Start Page wallpaper (smaller asset, or only when the window is large) | up to 17 MiB | Product decision |
+| Skip the startup Dock icon call when the default icon is selected on macOS 26+ | 9–11 MiB at 1×, likely more on Retina | Low in code; the Dock's appearance (Default, Dark, Clear, Tinted) must be checked by eye first |
 | Raise the harness's minimum settle time, or wait for the first full GC | 15–35 MiB of measured transient | Changes methodology; re-run every browser, never just Blanc |
 
 ## Reproducing
