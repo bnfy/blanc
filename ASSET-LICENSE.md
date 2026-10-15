@@ -62,6 +62,11 @@ Platform-packaged forms of the same mark:
 - `site/public/blanc-signature-hires.png` — transparent 1024×1024 ink Sunrise
   signature mark for resizing in an email editor
 - `export/app-icons-1024-square/contact-sheet.png`
+- `assets/wordmark/blanc-word-{display,small}-{ink,white}.svg` — the outlined
+  “Blanc” word of the Blanc lockup, drawn from Blubird by Rajesh Rajput (the
+  font files themselves are not in this repository)
+- `site/public/lockup/` — the lockup's word outlines and the Sunrise exports
+  (`sunrise-mark-{256,1024}.webp`) the website pairs them with
 
 Blanc Mail app icon (the Sunrise in a gold envelope; its Icon Composer source
 lives with the Blanc Mail app, outside this repository):

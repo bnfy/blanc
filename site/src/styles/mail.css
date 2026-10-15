@@ -6,8 +6,8 @@
   --mail-gold:#805d28;--mail-gold-bright:#c08a3e;--mail-gold-soft:#efe6d8;
   --mail-paper:#fffcf7;--mail-line:#ddd2c2;--mail-line-soft:#ddd2c2b3;--mail-line-strong:#c9bba6;
   --mail-band:#1c1a16;--mail-band-text:#f2e9da;--mail-band-muted:#bfb3a1;--mail-band-gold:#e0b166;
-  --mail-arrive:cubic-bezier(.16,1,.3,1);--mail-follow:cubic-bezier(.22,.61,.36,1);
-  --mail-header-h:48px;--mail-bar-h:52px;
+  --mail-arrive:cubic-bezier(.16,1,.3,1);
+  --mail-header-h:52px;--mail-bar-h:52px;
   --acc-1:#c08a3e;--acc-2:#c46a4a;--acc-3:#6f9468;--acc-4:#5b7fa6;--acc-5:#8e6aa0;
 }
 .acc-1{--acc:var(--acc-1)}.acc-2{--acc:var(--acc-2)}.acc-3{--acc:var(--acc-3)}.acc-4{--acc:var(--acc-4)}.acc-5{--acc:var(--acc-5)}
@@ -34,38 +34,29 @@
 
 /* ---------- The site header on Mail pages ----------
    The Mail bar carries these pages' navigation and their one call to action,
-   so the site header steps back to a slim strip of small gray links, and its
-   Browser download becomes a plain link (owner, October 12, 2026). Every link
-   stays, with Mail marked current (test/site/header.test.mjs). `body` lifts
-   these rules over revamp.css whatever order the bundles load in. */
-body .site-header.revamp-header{background:#f8f2e8}
-body .site-header.revamp-header .revamp-nav{flex-wrap:nowrap;height:36px;min-height:36px;gap:28px;border-bottom-color:transparent;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none}
-body .revamp-nav .site-brand{height:36px}
-body .revamp-nav .site-brand-mark{width:18px;height:18px}
-body .revamp-nav .revamp-nav-link,body .revamp-nav .site-nav-cta{min-height:36px;color:var(--mail-muted);font-size:12px}
-body .revamp-nav .revamp-nav-link[aria-current=page]{color:var(--mail-ink)}
-body .revamp-nav .site-nav-cta,body .revamp-nav .site-nav-cta:hover{padding:0;border-radius:0;background:none}
-body .revamp-nav a:hover,body .revamp-nav .site-nav-cta:hover{color:var(--mail-ink)}
-@media(max-width:760px){body .site-header.revamp-header .revamp-nav{height:44px;min-height:44px}body .revamp-nav .site-brand{height:44px}}
+   so the site header's Browser download becomes a plain link here (owner,
+   October 12, 2026). Every link stays, with Mail marked current
+   (test/site/header.test.mjs). `body` lifts these rules over revamp.css
+   whatever order the bundles load in. */
+body .revamp-nav .site-nav-cta{min-height:44px;padding:0;border-radius:0;background:none;color:#c0bcb5;font-weight:400}
+body .revamp-nav .site-nav-cta:hover{background:none;color:#f2f2f0}
 /* Anchors land below both sticky bars. This replaces the site's own
    scroll-padding (a heading scroll-margin would add to it instead), and
    `:root` outranks revamp.css's `html` rule whatever order they load in. */
 :root{scroll-padding-top:calc(var(--mail-header-h) + var(--mail-bar-h) + 20px)}
 /* The bars never leave the view, so their own controls cancel that padding:
-   focusing one must not scroll the page (and bring the header back). */
+   focusing one must not scroll the page. */
 .site-header :is(a,button),.mail-bar :is(a,button){scroll-margin-top:calc(-1 * (var(--mail-header-h) + var(--mail-bar-h) + 20px))}
 
 /* ---------- Product bar (MailBar.astro) ----------
-   Sticky under the site header; when the header hides on scroll the bar
-   moves up with it on the header's own curve, so the two read as one piece.
+   Sticky under the site header, so the two read as one piece.
    Content shows through the material, and the edge shadow appears only once
    something has scrolled underneath. */
-.mail-bar{position:sticky;top:var(--mail-header-h);z-index:29;background:rgba(28,26,22,.92);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:0 .5px 0 #35250e1f;transition:transform 220ms var(--mail-follow)}
+.mail-bar{position:sticky;top:var(--mail-header-h);z-index:29;background:rgba(28,26,22,.92);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:0 .5px 0 #35250e1f}
 @supports (animation-timeline:scroll()){
   .mail-bar{box-shadow:none;animation:mail-bar-edge linear both;animation-timeline:scroll(root);animation-range:0 40px}
 }
 @keyframes mail-bar-edge{from{box-shadow:0 .5px 0 #35250e00,0 10px 24px -18px #35250e00}to{box-shadow:0 .5px 0 #35250e26,0 10px 24px -18px #35250e4d}}
-body:has(.site-header.is-scroll-hidden) .mail-bar{transform:translateY(calc(-1 * var(--mail-header-h)))}
 .mail-bar-inner{display:flex;align-items:center;gap:16px;max-width:1120px;height:var(--mail-bar-h);margin:0 auto;padding:0 24px}
 .mail-bar-title{display:flex;align-items:center;gap:10px;flex:none;color:var(--mail-band-text);font-size:16px;font-weight:600;letter-spacing:-.01em;text-decoration:none;white-space:nowrap}
 .mail-bar .mail-icon{display:block;width:26px;height:26px}
@@ -357,8 +348,7 @@ body:has(.site-header.is-scroll-hidden) .mail-bar{transform:translateY(calc(-1 *
 
 /* ---------- Privacy and Terms: the document layout ---------- */
 .mail-doc-grid{display:grid;grid-template-columns:200px minmax(0,68ch);gap:clamp(40px,6vw,88px);align-items:start;margin-top:52px}
-.mail-contents{position:sticky;top:calc(var(--mail-header-h) + var(--mail-bar-h) + 28px);transition:transform 220ms var(--mail-follow)}
-body:has(.site-header.is-scroll-hidden) .mail-contents{transform:translateY(calc(-1 * var(--mail-header-h)))}
+.mail-contents{position:sticky;top:calc(var(--mail-header-h) + var(--mail-bar-h) + 28px)}
 .mail-page .mail-contents-title{margin:0 0 10px;color:var(--mail-muted);font-size:13px;font-weight:600;letter-spacing:.005em}
 .mail-contents ol,.mail-contents-compact ol{margin:0;padding:0;list-style:none}
 .mail-contents ol{border-left:1px solid var(--mail-line)}

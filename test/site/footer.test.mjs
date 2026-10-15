@@ -101,9 +101,8 @@ test('a gold horizon rule marks the footer seam on every page profile without ov
   try {
     for (const width of [390, 1440]) {
       await page.setViewportSize({ width, height: 900 });
-      for (const [path, appearance] of [['/'], ['/', 'dark'], ['/features/island'], ['/privacy'], ['/mail']]) {
+      for (const path of ['/', '/features/island', '/privacy', '/mail']) {
         await page.goto(`${baseURL}${path}`);
-        if (appearance) await page.evaluate(value => { document.documentElement.dataset.homeAppearance = value; }, appearance);
         const seam = await page.locator('#site-footer').evaluate(footer => {
           const glow = getComputedStyle(footer, '::before');
           const line = getComputedStyle(footer, '::after');
@@ -119,13 +118,13 @@ test('a gold horizon rule marks the footer seam on every page profile without ov
             overflow: document.documentElement.scrollWidth > innerWidth,
           };
         });
-        const message = `${width}px ${path}${appearance ? ` ${appearance}` : ''}`;
+        const message = `${width}px ${path}`;
         assert.equal(seam.position, 'relative', `${message}: the footer anchors its seam`);
         assert.equal(seam.border, '0px', `${message}: the rule replaces the neutral top border`);
         assert.match(seam.glow, /radial-gradient/, `${message}: glow`);
         assert.equal(seam.glowEndsAtSeam, true, `${message}: the glow rises above the seam`);
         assert.ok(seam.glowHeight >= 96, `${message}: glow height ${seam.glowHeight}`);
-        assert.match(seam.line, /linear-gradient\(90deg, .*rgb\(212, 173, 102\) 18%/, `${message}: gold line`);
+        assert.match(seam.line, /linear-gradient\(90deg, .*rgb\(212, 173, 102\) 30%/, `${message}: gold line`);
         assert.equal(seam.lineHeight, '1px', `${message}: the line is a hairline`);
         assert.equal(seam.overflow, false, `${message}: no sideways scroll`);
       }

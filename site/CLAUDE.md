@@ -5,16 +5,21 @@ dependency tree is untouched). Pages live in `src/pages/` (`index`, `download`,
 `features`, `about`, `privacy`, `terms`, `changelog`, `arc-alternative`, `ublock-origin-after-chrome`, and
 `features/{island,ad-blocking,private-tabs,command-palette,tab-groups,sync,security}`),
 sharing `src/layouts/BaseLayout.astro` with three explicit page profiles —
-island (index: the masthead is solid from the start, hides while scrolling down and returns on scroll up, rich OG), standard (masthead raised from the start), legal
+island (index: rich OG), standard, legal
 (privacy/terms: **no** analytics/consent, **no**
 OG/Twitter meta). Don't flatten these differences — they're deliberate. The
-footer is one unified component on every page (`components/Footer.astro`,
-`.website-footer`: Sunrise mark, tagline and newsletter, three link columns,
-then a legal and social row). Its top edge is the horizon rule — a gold
-hairline with a soft glow rising into the page above (`revamp.css`; see
-`docs/brand-usage.md`). The masthead is `components/Header.astro`, a single bar
-of direct links fed by `src/data/navigation.mjs` and kept in step by
-`test/unit/site-navigation.test.js`. Site-wide styles are `src/styles/site.css`
+footer is one unified dark component on every page (`components/Footer.astro`,
+`.website-footer`: the Display Blanc lockup, tagline and newsletter, three link
+columns, then a legal and social row; a page can put numbered notes above the
+columns through BaseLayout's `footnotes` slot, as the homepage does). Its top
+edge is the horizon rule — a gold hairline with a soft glow rising into the page
+above (`revamp.css`; see `docs/brand-usage.md`). The masthead is
+`components/Header.astro`: one dark, sticky 52px bar (`--site-header-h`) with
+the small lockup and the direct links fed by `src/data/navigation.mjs` and kept
+in step by `test/unit/site-navigation.test.js`. At 920px and narrower the links
+fold behind a Menu button (an inline script, so phones never flash the full
+row; without scripting they wrap onto a second row). It never hides on scroll:
+the homepage's sticky scenes sit just below it. Site-wide styles are `src/styles/site.css`
 plus `revamp.css`, both imported by `BaseLayout.astro`; pages add their own
 (`home.css`, `features-bento.css`, `mail.css` …)
 (bundled + hashed; fonts self-hosted via fontsource — the UI family is `"Inter
@@ -38,12 +43,33 @@ except legal) is Astro-processed. Anything needing a **stable URL** — favicons
 `shots/**` (the Island figures' page captures) — lives in `public/`; never hash or
 rename these.
 
-**Homepage appearance:** only the homepage gets the header Dark mode toggle
-(`#home-appearance` in `Header.astro`, driven by `src/scripts/home-appearance.js`
-and BaseLayout's prepaint bootstrap). Without a saved choice the page follows the
-OS theme, including live changes; a manual toggle is saved as
-`blanc-home-appearance` and wins from then on. The button keeps a stable
-"Dark mode" label and reports state through `aria-pressed`.
+**Blubird and the lockup:** the homepage, header and footer use Blubird by
+Rajesh Rajput (`src/styles/blubird.css`: `--font-brand-display` for headlines,
+set at 0 letter-spacing, and `--font-brand-text` for copy), falling back to
+Inter. Its licence forbids redistributing the font files and this repository
+is public, so they are never committed: they live in the git-ignored
+`public/fonts/blubird/` on the deploying machine (`npm run site:fonts --
+/path/to/Blubird.zip`), CI and contributors see Inter, and `npm run site:deploy`
+refuses to deploy a build without them (`scripts/blubird-fonts.mjs check
+--dist`). The lockup's word is committed as outlines (`assets/wordmark/`), and
+`scripts/build-lockup-assets.mjs` copies it beside WebP exports of the Sunrise
+into `public/lockup/`; `site:build` runs its `--check`. Construction and
+licence: *Blanc lockup* in `docs/brand-usage.md`.
+
+**Homepage:** the cinematic redesign of October 15, 2026 (`pages/index.astro`,
+`styles/home.css`, `scripts/home.js`). Its motion is scroll-driven CSS only,
+behind `@supports (animation-timeline: view())` and
+`prefers-reduced-motion: no-preference`; every keyframe ends on the static
+layout, so other browsers and reduced motion get the finished page. The
+sunrise and the Island are sticky stages under the 52px header. The switching
+steps, the Chrome comparison and the questions are data in the frontmatter;
+without the script every path shows, and with it `home.js` shows one at a time
+and preselects the visitor's system from the page itself, sending nothing.
+Every sentence on the page must be recorded in a claims ledger
+(`docs/website-cinematic-homepage-claims-v1.34.json`, or an earlier one) or
+listed there as a label; `test/unit/website-feature-evidence.test.js` fails
+otherwise. The memory card joins the `public-truth` figures. There is no dark
+mode toggle: it was removed with the redesign.
 
 **Build contract:** `astro.config.mjs` pins `build.format: 'file'` (dist emits
 `about.html`, `features/island.html` … — the exact pre-Astro URL layout; never
@@ -52,7 +78,8 @@ switch to directory format) and disables asset inlining
 external hashed files. Internal links are root-relative extensionless
 (`/features/island`) matching the canonicals Cloudflare Pages serves.
 
-Commands (root proxies): `npm run site:dev`, `npm run site:build`, and
+Commands (root proxies): `npm run site:dev`, `npm run site:build`,
+`npm run site:fonts -- /path/to/Blubird.zip` (installs the licensed fonts), and
 `npm run site:deploy` (build + `npx wrangler pages deploy site/dist
 --project-name=blancbrowser --branch=main` to the Cloudflare Pages project `blancbrowser`,
 BNFY account, canonical domain `blanc.day` since October 13, 2026, read from

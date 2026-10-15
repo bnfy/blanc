@@ -7,7 +7,7 @@
 .media-page {
   --media-spring: linear(0, 0.090 6%, 0.263 11%, 0.441 17%, 0.593 22%, 0.711 28%, 0.800 33%, 0.863 39%, 0.908 44%, 0.938 50%, 0.959 56%, 0.973 61%, 0.982 67%, 0.989 72%, 0.993 78%, 0.995 83%, 0.997 89%, 0.998 94%, 1);
   --media-spring-ms: 500ms;
-  --media-header-h: 48px;
+  --media-header-h: var(--site-header-h, 52px);
   --media-dot: #c6b9a6;
   --media-hairline: rgba(18, 16, 11, 0.08);
   max-width: 1160px;
@@ -124,11 +124,7 @@ a.media-path:hover .media-path-go { transform: translateY(3px); }
   justify-content: center;
   margin: 8px 0 0;
   pointer-events: none;
-  transition: top 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
 }
-/* The masthead slides away while scrolling down; the island follows it up so
-   the two never leave a gap or overlap. */
-body:has(.site-header.is-scroll-hidden) .media-index { top: 14px; }
 .media-index-pill {
   display: flex;
   align-items: center;
@@ -475,9 +471,6 @@ body:has(.site-header.is-scroll-hidden) .media-index { top: 14px; }
   .media-paths { grid-template-columns: minmax(0, 1fr); }
   .media-path { min-height: 0; }
   .media-fact-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@media (max-width: 760px) {
-  .media-page { --media-header-h: 58px; }
 }
 @media (max-width: 600px) {
   .media-page { padding: 0 16px 80px; }

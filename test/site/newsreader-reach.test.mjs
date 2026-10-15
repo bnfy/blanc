@@ -4,7 +4,10 @@
 // Newsreader regular, the demo's single-sentence figure title and everything
 // else in Inter. Since 8 Oct 2026 that Newsreader is the website's condensed
 // build (site/scripts/build-condensed-newsreader.py). The press quote, the one
-// italic line, left with the Press page on 8 Oct 2026.
+// italic line, left with the Press page on 8 Oct 2026. Since the cinematic
+// redesign (15 Oct 2026) the homepage, header and footer use Blubird instead
+// (site/src/styles/blubird.css), falling back to Inter where the licensed
+// files are absent, as in CI.
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { chromium, webkit } from 'playwright';
@@ -31,30 +34,48 @@ async function openPage(path = '/', width = 1440) {
 const serif = /^"?Newsreader Condensed"?/;
 const sans = /^"?Inter/;
 
-test('the homepage headline and footer tagline are Newsreader regular, and the display face loads', async () => {
+test('the homepage, header and footer are Blubird over Inter, and other pages keep loading Newsreader', async () => {
   const { page, context } = await openPage('/');
   try {
     const type = await page.evaluate(() => {
-      const h1 = getComputedStyle(document.querySelector('main h1'));
+      const font = selector => getComputedStyle(document.querySelector(selector));
       return {
-        token: getComputedStyle(document.documentElement).getPropertyValue('--site-font-display').trim(),
-        h1Font: h1.fontFamily, h1Weight: h1.fontWeight,
-        tagFont: getComputedStyle(document.querySelector('#site-footer .website-footer-identity p')).fontFamily,
-        loaded: document.fonts.check('64px "Newsreader Condensed"'),
+        h1: font('main h1').fontFamily, h1Weight: font('main h1').fontWeight, h1Tracking: font('main h1').letterSpacing,
+        h2s: [...document.querySelectorAll('main h2')].map(h2 => [getComputedStyle(h2).fontFamily, getComputedStyle(h2).fontWeight, h2.textContent.trim()]),
+        lead: font('main .lead').fontFamily,
+        nav: font('.revamp-nav-link').fontFamily,
+        tagline: font('#site-footer .website-footer-identity p').fontFamily,
       };
     });
-    assert.match(type.token, /Newsreader Condensed/);
-    assert.match(type.h1Font, serif, 'homepage h1 is Newsreader');
+    const display = /^"?Blubird Display"?, "?Inter/;
+    const text = /^"?Blubird Text"?, "?Inter/;
+    assert.match(type.h1, display, 'homepage h1');
     assert.equal(type.h1Weight, '400');
-    assert.match(type.tagFont, serif, 'the footer tagline is Newsreader');
-    assert.equal(type.loaded, true);
+    // Blubird is drawn with its own spacing: headlines are set at 0.
+    assert.ok(['normal', '0px'].includes(type.h1Tracking), `h1 tracking ${type.h1Tracking}`);
+    for (const [family, weight, title] of type.h2s) {
+      if (title === 'Built by Bananify, an independent software studio.') { assert.match(family, text, title); continue; }
+      assert.match(family, display, title);
+      assert.equal(weight, '400', title);
+    }
+    assert.match(type.lead, text, 'homepage copy');
+    assert.match(type.nav, text, 'header links');
+    assert.match(type.tagline, text, 'footer tagline');
+    await page.goto(`${baseURL}/features`);
+    await page.evaluate(() => document.fonts.ready);
+    const other = await page.evaluate(() => ({
+      token: getComputedStyle(document.documentElement).getPropertyValue('--site-font-display').trim(),
+      loaded: document.fonts.check('64px "Newsreader Condensed"'),
+    }));
+    assert.match(other.token, /Newsreader Condensed/);
+    assert.equal(other.loaded, true);
   } finally { await context.close(); }
 });
 
 // Since the website revamp (#491) legal pages set their headline in Newsreader
 // too, while their section headings stay Inter like the legal text.
 const legalRoutes = ['/privacy', '/terms'];
-const serifRoutes = ['/', '/features', '/features/island', '/features/security', '/mail', '/features/ad-blocking', '/download', '/changelog', '/about', '/faq', '/media', '/ambassadors', '/privacy', '/terms'];
+const serifRoutes = ['/features', '/features/island', '/features/security', '/mail', '/features/ad-blocking', '/download', '/changelog', '/about', '/faq', '/media', '/ambassadors', '/privacy', '/terms'];
 
 test('every page headline and section heading is Newsreader regular with tight tracking, and nothing overflows', { timeout: 120000 }, async () => {
   const { page, context } = await openPage('/');

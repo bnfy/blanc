@@ -25,7 +25,7 @@ limits beside the claims they qualify and keep deeper information easy to find.
 
 For full-color social artwork, use the original gold Sunrise asset at `site/public/sunrise-hero-mark.png`, preserving its geometry, transparency and gold detail. Use the Sunrise theme: Blanc White `#F8F2E8`, warm surfaces `#F2EADE`, near-black headings, muted brown-gray `#6B6257`, and restrained gold `#805D28`. The approved September 11 general Sunrise creative in `marketing/social/sunrise-milestone-2026-09-11/general-review-v2-1080x1350.png` is a visual reference for the treatment, not content to recycle.
 
-Use Newsreader regular for sentence-case headings and Inter for supporting text. Choose title alignment to suit the composition; not every social asset should use the same centered poster layout. Keep generous clear space around the Sunrise symbol. Do not redraw it, replace it with a letterform, tint the original artwork, add a badge or place a glow immediately behind it. A subtle gold horizon may appear away from the symbol. Existing monochrome Sunrise site variants remain valid for the specifically documented placements below.
+Use Newsreader regular for sentence-case headings and Inter for supporting text. On the website, the homepage, masthead and footer use Blubird instead (see *Blanc lockup*): Blubird Display for headlines, set at 0 letter-spacing, and Blubird Text for copy; other pages keep Newsreader until they are redesigned. Choose title alignment to suit the composition; not every social asset should use the same centered poster layout. Keep generous clear space around the Sunrise symbol. Do not redraw it, replace it with a letterform, tint the original artwork, add a badge or place a glow immediately behind it. A subtle gold horizon may appear away from the symbol. Existing monochrome Sunrise site variants remain valid for the specifically documented placements below.
 
 **Visual variety, September 12 owner direction:** A shared brand does not mean an identical layout. Give each editorial idea an appropriate composition, and let carousel panels progress through distinct visual structures. Use a restrained mix of imagery, useful diagrams, typography, light and dark Sunrise surfaces. Keep the exact mark, palette and type family coherent. Conceptual illustrations must not impersonate product footage or evidence.
 
@@ -270,86 +270,87 @@ metadata, controls, the Island, command palette, vertical tabs, card labels,
 dialogs, warnings, errors, and body copy. Billboard and Mahjong keep their
 existing identities. Review any further product use of the serif separately.
 
+### Blanc lockup
+
+The Blanc lockup is the Sunrise mark beside the word “Blanc” set in
+**Blubird** by Rajesh Rajput (owner choice, October 15, 2026: Regular Display,
+drawn as supplied except the l–a pair, closed by 8 font units). The word never
+appears without the mark, and it is never set in lower case. Its construction
+(“C”) is fixed: the Sunrise is 1.15× the height of the l, centred on the
+vertical middle of the B, with a gap of 0.3× the B height between them.
+
+- **Display cut** for the lockup above about 32px tall (the website footer:
+  155×40px).
+- **Text cut** (Blubird Regular Text) at about 32px tall and under, where the
+  Display cut's fine joins close up (the website header: 90×22px).
+
+The word is committed as outlines, not as a font, in `assets/wordmark/`
+(`blanc-word-{display,small}-{ink,white}.svg`); `site/scripts/build-lockup-assets.mjs`
+copies them with WebP exports of the Sunrise into `site/public/lockup/`, and
+its `--check` runs inside `npm run site:build`. The Sunrise exports keep the
+1024px canvas of `build/app-icons/Icon.icon/Assets/sunrise-mark.png`, so the
+same placement percentages fit every size; `test/unit/brand-assets.test.js`
+pins them. Ink on Blanc White, white (`#F8F2E8`) on warm ink. Do not stretch,
+re-space, recolour, outline or set the word in another face.
+
+The September 12 social direction (Sunrise alone, no typeset wordmark) still
+governs social creative until the owner changes it; the lockup is for the
+website and other surfaces the owner approves.
+
+**Licence.** The owner holds Blubird's Regular Licence (web and print, for an
+individual). It forbids redistributing the font files, and this repository is
+public, so the `.woff2` files are never committed: they sit in the git-ignored
+`site/public/fonts/blubird/` on the deploying machine (`npm run site:fonts --
+/path/to/Blubird.zip`), and `npm run site:deploy` refuses to deploy without
+them. App, product or corporate use beyond that licence needs Rajesh Rajput's
+written permission first.
+
 ### Editorial website footer
 
-The shared website footer uses the monochrome Sunrise symbol alone as its
-home link, without a typeset wordmark. Use the canonical BrandMark component
-at 44px on desktop and 40px below 900px, inside a 44px touch target. Keep it
-in ink (`--site-text`) on the warm section surface (`--site-surface`), including
-on hover. Do not crop, tint, animate, outline, or place it inside a badge;
-retain a visible keyboard focus ring.
-
-Use a quiet editorial layout: the symbol and “A little less browser.” tagline
-set in Newsreader at 20px,
-grouped navigation, and a secondary newsletter, followed by a fine rule and compact
-legal/social row. Navigation and utility links may use gold for hover, focus,
-and current-page states. Social/contact icons retain their original geometry
-and use bronze (`--site-gold`) at rest, changing to ink on hover or focus.
+The shared website footer is warm ink (`#111`) on every page. It opens with
+the Display lockup (155×40px) as the home link, the tagline “A little less
+browser.” in Blubird Text, and the newsletter field, then three link columns
+(Explore, Resources, Blanc) and a fine rule above the compact legal and social
+row. Links rest in a light warm grey (`#C0BCB5`) and turn near-white on hover;
+focus rings are gold on dark (`--site-gold-on-dark`). A page may put numbered
+method notes above the columns (the homepage's footnotes do).
 
 ### Horizon rule
 
 The footer seam on every page carries the horizon rule: a 1px gold
-(`--site-gold-on-dark`) hairline that fades out toward both edges, with a
-soft gold glow rising about 160px into the page above it at no more than
-about 30% strength. It replaces the footer's neutral top border. It is a
+(`--site-gold-on-dark`) hairline, full strength across the middle 40% and
+fading out toward both edges, with a soft gold glow rising 160px into the page
+above it at about 22% strength. It replaces a neutral top border. It is a
 decorative seam, not a focus indicator, and no mark, badge, or lockup may sit
-on the glow; the footer's Sunrise symbol sits below the line.
+on the glow; the footer's lockup sits below the line.
 
-### Homepage Sunrise mark
+### Homepage sunrise
 
-The owner-approved desktop hero mark permanently displays the original gold
-Sunrise artwork used by the app icon, directly on the Blanc White page. Use the
-generated `site/public/sunrise-hero-mark.png`, which shares the monochrome
-mark's crop and geometry; do not approximate the artwork with a tint. Keep
-its 32px size and existing placement above the eyebrow. There is no entrance
-animation or fade back to ink.
+The homepage opens on the gold Sunrise alone, with no wordmark, at
+`min(56vmin, 540px)`. Where the browser supports scroll-driven animation and
+the visitor has not asked for reduced motion, the opening section is a sticky
+stage 4.2 screens tall: scrolling draws the horizon and its reflection, raises
+the disc, opens the rays and brings the sky from night to Blanc White, then
+shrinks the mark above the headline. The stage is cut from one export
+(`site/public/lockup/sunrise-mark-1024.webp`) with clip paths, never redrawn
+or tinted. Everywhere else, and for reduced motion, the mark sits still at
+160px above the headline. Focusing anything in the hero shows its copy at once.
 
-On desktop with a fine pointer, hovering gently scales the gold hero mark to
-118%, returning to rest over 280ms when the pointer leaves. Reduced-motion
-visitors see the same static gold artwork without the hover effect. The hero
-mark remains hidden on mobile.
+### Website masthead
 
-### Desktop masthead Sunrise hover
-
-The desktop masthead is a sticky white bar (`--site-surface-raised` over a
-blur, hairline beneath) that carries the monochrome Sunrise mark at 24px in
-ink at rest. On hover or keyboard focus, crossfade to the original gold
-artwork from `site/public/sunrise-hero-mark.png` over 220ms; crossfade back
-when the interaction ends. Keep the size, position, and focus outline
-unchanged. Reduced-motion visitors get the same state change instantly. Use
-the original artwork rather than tinting the monochrome silhouette. The mega
-menus that drop from the bar carry the horizon hairline along their top edge
-and may use the warm-ink release card; no mark sits on either. The masthead
-replaced the bottom navigation island on 4 September 2026 (design note:
-`docs/superpowers/specs/2026-09-04-masthead-navigation-design.md`).
-
-Navigation decision, 4 September 2026: the bar reads features, company,
-security, what's new, download. `features` opens a mega menu grouped as
-Interface, Privacy and security, and Workflow, one link per feature page with
-that page's own headline as its description, and a spotlight cropped to the
-island. `company` opens Learn (FAQ, Press, About) and Community
-(Ambassadors, Newsletter, Source on GitHub) with a warm-ink card for the
-current release and a Blanc Patron line. The second menu is deliberately not
-named for the studio or the About page, and About is listed last in its
-group. Security stays a direct link on every page because trust is the
-product's pitch, and it also appears inside features. There is no search
-affordance because the site has no search, and no Patron entry in the bar
-because there is no Patron page. Below 640px the same content becomes two
-native accordions plus the direct links and a pinned download button. Legal
-pages keep their own minimal header. Menu content lives in
-`site/src/data/navigation.mjs` and is guarded by
-`test/unit/site-navigation.test.js`.
-
-### Mobile header Sunrise mark
-
-The mobile hamburger header uses the original gold Sunrise artwork at its
-28px size on Blanc White. Reuse `site/public/sunrise-hero-mark.png`; keep
-the mark permanently in color without animation, including for reduced-motion
-visitors. Its home link retains the existing 44px touch target and focus style.
-
-Apart from the desktop navigation hover above, footer, press-kit, legal-header,
-and other logo treatments stay monochrome. These exceptions do not authorize
-recoloring other marks.
+Every page shares one sticky, 52px masthead in warm ink (`#1B1A18` at 82% over
+a blur, with a faint light hairline beneath). It carries the small (Text cut)
+lockup at 90×22px as the home link, the six direct links from
+`site/src/data/navigation.mjs` in light warm grey, current page in near-white,
+and the Download pill in near-white. At 920px and narrower the links fold
+behind a Menu button that drops a full-width list; without scripting they wrap
+onto a second row instead. The bar never hides on scroll, because the
+homepage's sticky scenes sit just below it, and on the homepage a 2px gold
+progress line runs along its bottom edge. On Mail pages the Download pill
+becomes a plain “Browser download” link, since the Mail bar carries those
+pages' one call to action. This replaced the white bar with the monochrome
+Sunrise on October 15, 2026; the earlier mega menus (September 4) and hover
+crossfade are retired.
 
 ### Share cards
 

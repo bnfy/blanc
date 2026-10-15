@@ -28,6 +28,10 @@ const ALLOWED = [
   'pages/features/workspaces.astro → Blanc Spaces',
   'pages/index.astro → Blanc Browser',
   'pages/index.astro → The Island',
+  // The cinematic homepage (October 15, 2026) names the two features its
+  // Spaces section covers, and marks where privacy starts on a long page.
+  'pages/index.astro → Blanc Spaces and tab groups',
+  'pages/index.astro → Privacy',
   'pages/mail/download.astro → macOS only · Coming soon',
   'pages/mail/pricing.astro → Blanc Mail · Planned pricing',
   'pages/mail/privacy.astro → Blanc Mail · Pre-release policy',

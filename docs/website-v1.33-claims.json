@@ -351,16 +351,6 @@
       "verdict": "verified"
     },
     {
-      "id": "site-133-index-04",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Blanc Spaces is now free for everyone.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "freeSpaces"
-      ],
-      "verdict": "verified"
-    },
-    {
       "id": "site-133-index-05",
       "source": "site/src/pages/index.astro",
       "exactWording": "Save a window’s tabs and groups as a space. Give each one a colour and a symbol, then switch between them from the Island.",
@@ -368,17 +358,6 @@
       "evidenceGroups": [
         "freeSpaces",
         "spacesRedesign"
-      ],
-      "verdict": "verified"
-    },
-    {
-      "id": "site-133-index-06",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Free on macOS, Windows and Linux. Coming from Arc? Bring your Spaces with you.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "freeSpaces",
-        "arcImport"
       ],
       "verdict": "verified"
     },
@@ -477,6 +456,29 @@
       ],
       "verdict": "verified",
       "reason": "October 14, 2026 Spaces page refresh (owner request): the hero now says why people would use Blanc Spaces, and v1.33.0 captures of the Spaces menu and a space’s editor replace the v1.30.1 capture, which still showed Patron settings. The capability claims are unchanged and recorded in docs/website-v1.33-claims.json."
+    },
+    {
+      "id": "site-133-index-04",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Blanc Spaces is now free for everyone.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "freeSpaces"
+      ],
+      "verdict": "verified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "site-133-index-06",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Free on macOS, Windows and Linux. Coming from Arc? Bring your Spaces with you.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "freeSpaces",
+        "arcImport"
+      ],
+      "verdict": "verified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
     }
   ]
 }

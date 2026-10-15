@@ -4,7 +4,8 @@ name: Site
 # against the built preview, so a PR can't break the site or leave a suite to
 # drift. Root package.json is a build input (JSON-LD softwareVersion) and
 # provides Playwright; the changelog generator is part of the releases.json
-# contract.
+# contract; the wordmark outlines and the Sunrise artwork are the sources of
+# the site's lockup assets.
 on:
   push:
     branches: [main]
@@ -13,6 +14,8 @@ on:
       - 'test/site/**'
       - 'package.json'
       - 'scripts/generate-site-changelog.mjs'
+      - 'assets/wordmark/**'
+      - 'build/app-icons/Icon.icon/Assets/sunrise-mark.png'
       - '.github/workflows/site.yml'
   pull_request:
     paths:
@@ -20,6 +23,8 @@ on:
       - 'test/site/**'
       - 'package.json'
       - 'scripts/generate-site-changelog.mjs'
+      - 'assets/wordmark/**'
+      - 'build/app-icons/Icon.icon/Assets/sunrise-mark.png'
       - '.github/workflows/site.yml'
 
 permissions:
@@ -59,6 +64,12 @@ jobs:
             echo "::error::site/src/fonts is stale. Run site/scripts/build-condensed-newsreader.py and commit the result."
             exit 1
           fi
+      # The header and footer lockups are generated from the committed wordmark
+      # outlines and the app's Sunrise artwork (sharp comes from the root).
+      - name: Check the lockup assets are current
+        run: node site/scripts/build-lockup-assets.mjs --check
+      # Blubird's licence keeps its font files out of this public repository,
+      # so CI builds and tests the site with the Inter fallback.
       - run: npm run build
         working-directory: site
       - name: Run the site browser suites

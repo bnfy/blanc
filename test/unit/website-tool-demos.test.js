@@ -42,11 +42,3 @@ test('a link to #gestures opens the gestures demo', async () => {
   initToolDemos(f.root, f);
   assert.deepEqual([f.panels.glance.hidden, f.panels.gestures.hidden], [true, false]);
 });
-
-test('without the script both demos stay visible and the switch stays hidden', () => {
-  const home = fs.readFileSync(path.resolve(__dirname, '../../site/src/pages/index.astro'), 'utf8');
-  assert.match(home, /<div class="gallery-controls tool-switch" role="group" aria-label="Choose a demo" data-tool-switch hidden>/);
-  assert.match(home, /<button type="button" aria-controls="glance" aria-pressed="true">Glance<\/button>/);
-  assert.match(home, /<button type="button" aria-controls="gestures" aria-pressed="false">Mouse gestures<\/button>/);
-  assert.match(fs.readFileSync(path.resolve(__dirname, '../../site/src/scripts/home.js'), 'utf8'), /initToolDemos\(document\.getElementById\("tools"\)\)/);
-});

@@ -49,25 +49,28 @@ test('resting website figures show the quiet Plus shortcut in horizontal layouts
   assert.match(styles, /\.pill-slash,\s*\.demo-island \.pill-shortcut \{[^}]*width: 22px;[^}]*height: 22px/s);
 });
 
-test('the masthead is a sticky top bar and the navigation hides on scroll down and returns on scroll up', () => {
-  assert.match(styles, /\.site-header \{ position: sticky; top: 0; z-index: 30;/);
-  assert.doesNotMatch(styles, /is-tucked/);
+test('the masthead is one sticky bar that stays put while the homepage scenes scroll beneath it', () => {
+  const revamp = source('site/src/styles/revamp.css');
+  assert.match(revamp, /\.site-header\.revamp-header \{\s*position: sticky;\s*top: 0;\s*z-index: 30;/);
+  assert.match(revamp, /--site-header-h: 52px;/);
+  assert.doesNotMatch(styles + revamp, /is-tucked|is-scroll-hidden/);
   assert.doesNotMatch(styles, /\.site-header[^{}]*\{[^}]*inset: auto 0 0/s);
   assert.doesNotMatch(styles, /body\.has-consent \.site-header|--consent-h/);
-  assert.match(styles, /\.site-brand-mark \{ width: 24px; height: 24px;/);
-  assert.doesNotMatch(header, /tuckDistance|is-tucked/);
   assert.match(header, /import \{ directLinks(, pagePath)? \} from ['"]\.\.\/data\/navigation\.mjs['"]/);
-  assert.match(header, /is-scroll-hidden/);
-  assert.match(header, /focusin/);
-  assert.match(header, /travel >= 8/);
+  // The homepage's sticky scenes sit just below the bar, so it never hides.
+  assert.doesNotMatch(header, /is-scroll-hidden|travel >= 8|tuckDistance|is-tucked/);
   assert.doesNotMatch(header, /pointerenter|mouseenter|site-mega/);
+  // Phones fold the links behind a Menu button that names the panel it opens.
+  assert.match(header, /<div class="site-nav-links" id="site-menu">/);
+  assert.match(header, /class="site-menu-toggle"\s+type="button"\s+aria-expanded="false"\s+aria-controls="site-menu"\s+hidden>Menu</);
+  assert.match(header, /event\.key !== "Escape"/);
 });
 
-test('homepage keeps the Sunrise mark above the hero eyebrow', () => {
+test('homepage opens on the Sunrise mark above the hero eyebrow', () => {
   const homepage = source('site/src/pages/index.astro');
-  assert.match(homepage, /src="\/sunrise-hero-mark\.png" alt=""\s*\/?>(?:\s*)<p class="frame-kicker">\s*Blanc Browser\s*<\/p>\s*<h1[^>]*>A little less browser\.<\/h1>/);
+  assert.match(homepage, /class="sun-mark"[\s\S]*?<div class="sun-copy">\s*<p class="eyebrow">Blanc Browser<\/p>\s*<h1[^>]*>A little less browser\.<\/h1>/);
+  assert.match(homepage, /src="\/lockup\/sunrise-mark-1024\.webp"/);
   assert.doesNotMatch(layout, /jetbrains-mono/);
-
 });
 
 test('optional measurement uses the selected upper-right toast and stays reopenable', () => {
@@ -82,7 +85,7 @@ test('optional measurement uses the selected upper-right toast and stays reopena
   assert.doesNotMatch(styles, /\.consent \{[^}]*inset: auto 0 0/s);
 
   assert.match(footer, /data-consent-open/);
-  assert.match(layout, /<Footer measurementControls=\{analytics\} \/>/);
+  assert.match(layout, /<Footer measurementControls=\{analytics\}[ >]/);
   assert.match(layout, /\{analytics && <Consent \/>\}/);
   assert.match(layout, /\{analytics && <script src="\.\.\/scripts\/site\.js"><\/script>\}/);
   assert.match(siteScript, /querySelectorAll\('\[data-consent-open\]'\)/);

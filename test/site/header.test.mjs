@@ -1,18 +1,17 @@
 // BLANC_SITE_URL=http://127.0.0.1:4322 node --test test/site/header.test.mjs
 //
-// The site header since the website revamp (#491): a sticky bar with the
-// Sunrise mark, six direct links (four of them secondary, hidden on phones),
-// the Download pill, and a homepage-only dark mode toggle. At 760px and
-// below only Features and Support stay; Mail joins above 800px (revamp.css). It hides while the
-// visitor scrolls down and returns when they scroll back up.
+// The site header since the cinematic redesign (October 15, 2026): one dark,
+// sticky 52px bar on every page with the small Blanc lockup, six direct links
+// and the Download pill. At 920px and below the links fold behind a Menu
+// button (revamp.css). It stays put while scrolling, because the homepage's
+// sticky scenes sit just below it.
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { chromium, webkit } from 'playwright';
 
 const baseURL = process.env.BLANC_SITE_URL || 'http://127.0.0.1:4322';
 const links = ['Features', 'Privacy & Security', 'Patron', 'About', 'Support', 'Mail'];
-const phoneLinks = ['Features', 'Support'];
-const linksAt = width => width <= 760 ? phoneLinks : width <= 800 ? links.filter(link => link !== 'Mail') : links;
+const linksAt = width => width <= 920 ? [] : links;
 let browser;
 before(async () => { browser = await (process.env.BLANC_SITE_BROWSER === 'webkit' ? webkit : chromium).launch(); });
 after(async () => { await browser?.close(); });
@@ -65,14 +64,16 @@ test('the header stays at the top, marks the current section and points Download
   } finally { await context.close(); }
 });
 
-test('phones keep Features, Support and Download in the bar, and nothing overflows at any width', async () => {
-  for (const width of [320, 390, 760, 768, 800, 801, 1024, 1440]) {
+test('narrow windows fold the links behind Menu, and nothing overflows at any width', async () => {
+  for (const width of [320, 390, 760, 768, 800, 920, 921, 1024, 1440]) {
     const { page, context } = await openPage('/', width);
     try {
       for (const path of ['/', '/features', '/mail', '/download']) {
         await page.goto(`${baseURL}${path}`);
         const bar = await header(page);
         assert.deepEqual(bar.shown, linksAt(width), `${width}px ${path}: visible links`);
+        assert.equal(await page.locator('.site-menu-toggle').isVisible(), width <= 920, `${width}px ${path}: Menu button`);
+        assert.equal(await page.locator('.site-nav-cta').isVisible(), true, `${width}px ${path}: Download stays in the bar`);
         assert.equal(bar.inBounds, true, `${width}px ${path}: every control inside the viewport`);
         assert.equal(bar.overflow, false, `${width}px ${path}: no horizontal overflow`);
       }
@@ -80,32 +81,54 @@ test('phones keep Features, Support and Download in the bar, and nothing overflo
   }
 });
 
-test('only the homepage offers the dark mode toggle, and it reports its state', async () => {
+test('Menu opens every link, reports its state, and closes with Escape', async () => {
+  const { page, context } = await openPage('/features', 390);
+  try {
+    const toggle = page.locator('.site-menu-toggle');
+    assert.equal(await toggle.getAttribute('aria-expanded'), 'false');
+    assert.equal(await toggle.getAttribute('aria-controls'), 'site-menu');
+    await toggle.click();
+    assert.equal(await toggle.getAttribute('aria-expanded'), 'true');
+    assert.equal(await toggle.textContent(), 'Close');
+    assert.deepEqual((await header(page)).shown, links, 'every link in the open menu');
+    assert.equal((await header(page)).inBounds, true, 'open menu inside the viewport');
+    await page.keyboard.press('Escape');
+    assert.equal(await toggle.getAttribute('aria-expanded'), 'false');
+    assert.equal(await page.evaluate(() => document.activeElement?.classList.contains('site-menu-toggle')), true, 'focus returns to Menu');
+    assert.deepEqual((await header(page)).shown, []);
+  } finally { await context.close(); }
+});
+
+test('without scripting, narrow windows keep every link in the bar', async () => {
+  const { page, context } = await openPage('/features', 390, { javaScriptEnabled: false });
+  try {
+    const bar = await header(page);
+    assert.deepEqual(bar.shown, links);
+    assert.equal(await page.locator('.site-menu-toggle').isVisible(), false);
+    assert.equal(bar.inBounds, true);
+    assert.equal(bar.overflow, false);
+  } finally { await context.close(); }
+});
+
+test('no page offers a dark mode toggle', async () => {
   const { page, context } = await openPage('/');
   try {
-    const toggle = page.locator('#home-appearance');
-    assert.equal(await toggle.isVisible(), true);
-    const before = await toggle.getAttribute('aria-pressed');
-    await toggle.click();
-    assert.notEqual(await toggle.getAttribute('aria-pressed'), before, 'aria-pressed follows the choice');
-    for (const path of ['/features', '/download', '/trust']) {
+    for (const path of ['/', '/features', '/download', '/trust']) {
       await page.goto(`${baseURL}${path}`);
       assert.equal(await page.locator('#home-appearance').count(), 0, `${path}: no toggle`);
     }
   } finally { await context.close(); }
 });
 
-test('scrolling down tucks the header away and scrolling up brings it back', async () => {
-  const { page, context } = await openPage('/features', 1440, { reducedMotion: 'no-preference' });
+test('the header stays in view while the page scrolls', async () => {
+  const { page, context } = await openPage('/', 1440, { reducedMotion: 'no-preference' });
   try {
-    const hidden = () => page.evaluate(() => document.querySelector('.site-header').classList.contains('is-scroll-hidden'));
-    assert.equal(await hidden(), false);
-    for (let y = 200; y <= 1600; y += 200) { await page.mouse.wheel(0, 200); await page.waitForTimeout(60); }
-    await page.waitForFunction(() => document.querySelector('.site-header').classList.contains('is-scroll-hidden'));
-    for (let i = 0; i < 4; i++) { await page.mouse.wheel(0, -200); await page.waitForTimeout(60); }
-    await page.waitForFunction(() => !document.querySelector('.site-header').classList.contains('is-scroll-hidden'));
-    await page.evaluate(() => scrollTo(0, 0));
-    await page.waitForFunction(() => !document.querySelector('.site-header').classList.contains('is-scroll-hidden'));
+    const top = () => page.evaluate(() => document.querySelector('.site-header').getBoundingClientRect().top);
+    for (let i = 0; i < 8; i++) { await page.mouse.wheel(0, 400); await page.waitForTimeout(60); }
+    assert.ok(await page.evaluate(() => scrollY) > 1000);
+    assert.equal(await top(), 0, 'still at the top after scrolling down');
+    for (let i = 0; i < 2; i++) { await page.mouse.wheel(0, -200); await page.waitForTimeout(60); }
+    assert.equal(await top(), 0, 'and after scrolling back up');
   } finally { await context.close(); }
 });
 

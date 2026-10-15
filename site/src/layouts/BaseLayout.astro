@@ -4,10 +4,10 @@ import '../styles/newsreader-condensed.css';
 import newsreaderLatin from '../fonts/newsreader-condensed-latin-opsz-normal.woff2?url';
 import '../styles/site.css';
 import '../styles/revamp.css';
+import '../styles/blubird.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import Consent from '../components/Consent.astro';
-import { restoreHomeAppearance } from '../scripts/home-appearance.js';
 import { SITE_ORIGIN } from '../lib/site-origin.mjs';
 
 const SITE = SITE_ORIGIN;
@@ -30,7 +30,7 @@ const appName = path?.startsWith('/mail') ? 'Blanc Mail' : 'Blanc Browser';
 const canonical = SITE + path;
 const ogImageUrl = SITE + ogImage;
 ---
-<html lang="en" data-home-appearance={page === 'home' ? 'light' : undefined}>
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <link rel="preload" href={newsreaderLatin} as="font" type="font/woff2" crossorigin>
@@ -38,8 +38,7 @@ const ogImageUrl = SITE + ogImage;
 <title>{title}</title>
 <meta name="description" content={description}>
 <meta name="robots" content={robots}>
-<meta name="theme-color" content="#ffffff">
-{page === 'home' && <script is:inline set:html={`(${restoreHomeAppearance.toString()})(document, window);`} />}
+<meta name="theme-color" content="#1b1a18">
 {social !== 'none' && <meta name="application-name" content={appName}>}
 {social === 'rich' && <meta name="apple-mobile-web-app-title" content="Blanc">}
 <link rel="canonical" href={canonical}>
@@ -82,7 +81,9 @@ const ogImageUrl = SITE + ogImage;
 <slot name="before-header" />
 <Header variant={header} current={current} />
 <slot />
-<Footer measurementControls={analytics} />
+<Footer measurementControls={analytics} notes={Astro.slots.has('footnotes')}>
+  <slot name="footnotes" slot="notes" />
+</Footer>
 {analytics && <Consent />}
 {analytics && <script src="../scripts/site.js"></script>}
 </body>

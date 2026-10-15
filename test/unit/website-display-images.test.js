@@ -31,12 +31,9 @@ test('phones get frameless, focused crops of every framed capture', () => {
   const start = css.indexOf('/* Phones: drop the device frames');
   assert.ok(start > 0, 'phone crop block not found');
   const phone = css.slice(start, css.indexOf('\n}\n', css.indexOf('@media (max-width: 760px)', start)));
-  assert.match(phone, /\.device-composition \.device-shell \{\s*display: none;/);
+  assert.match(phone, /\.device-frame \.device-shell \{\s*display: none;/);
   assert.match(phone, /aspect-ratio: 4 \/ 3;/);
-  assert.match(phone, /\.hero-wallpaper-scene \.device-screen \{[^}]*width: 260%/);
-  for (const layout of ['ledger', 'billboard', 'shelf', 'tally']) {
-    assert.match(phone, new RegExp(`\\.layout-shot\\[src\\*="${layout}"\\] \\{ width: \\d+%;`), layout);
-  }
+  assert.match(phone, /\.device-frame \.device-screen img \{[^}]*height: 100%;[^}]*transform: translateX\(-50%\)/);
 });
 
 test('pages use the light copies while full-size links keep the pinned captures', () => {
@@ -48,12 +45,13 @@ test('pages use the light copies while full-size links keep the pinned captures'
   }
   // Pages never load the pinned lossless originals directly.
   assert.doesNotMatch(home + read('src/components/GestureDemo.astro'), /src="\/revamp\/(island-roman-[a-z]+|champagne-desktop-v2|space-black-laptop-v2)\.webp"/);
-  assert.match(home, /src="\/feature-captures\/ledger-v1\.31\.0\.webp"/);
-  assert.doesNotMatch(read('src/scripts/home.js'), /-v1\.31\.0\.png/);
+  assert.match(home, /src="\/revamp\/space-black-laptop-v2-display\.webp"/);
+  assert.doesNotMatch(home + read('src/scripts/home.js'), /-v1\.31\.0\.png/);
   const guide = read('src/pages/features/start-page.astro');
   assert.doesNotMatch(guide, /<img src="\/feature-captures\/[a-z]+-v1\.31\.0\.png"/);
   assert.match(guide, /href="\/feature-captures\/ledger-v1\.31\.0\.png"/);
-  // Lazy wallpaper scenes: only the first ships with src.
-  assert.equal((home.match(/(?<!data-)src="\/feature-captures\/home-wallpaper-/g) || []).length, 1);
-  assert.equal((home.match(/data-src="\/feature-captures\/home-wallpaper-/g) || []).length, 7);
+  // Below the opening screen, captures wait until they are scrolled near.
+  for (const capture of ['glance-v1.30.1', 'home-wallpaper-dusk-v1.31.0', 'workspaces-v1.33.0']) {
+    assert.match(home, new RegExp(`src="/feature-captures/${capture.replace(/\./g, '\\.')}\\.webp"[^>]*loading="lazy"`), capture);
+  }
 });

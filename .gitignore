@@ -26,3 +26,7 @@ bench/tab-import/results/
 site/.parity/
 site/.parity-shots/
 .fontenv/
+# Blubird is a licensed commercial typeface: the website may use it, but the
+# font files must never be redistributed, and this repository is public. Install
+# them locally with `npm run site:fonts -- /path/to/Blubird.zip` (see site/CLAUDE.md).
+site/public/fonts/blubird/

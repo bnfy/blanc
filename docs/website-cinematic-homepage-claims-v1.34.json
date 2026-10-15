@@ -1,0 +1,1158 @@
+{
+  "publicRelease": "v1.34.0",
+  "sourceSha": "ac16aae446c22732478bfebc45ecc7ce5de51fbd",
+  "releaseEvidence": "docs/release-incidents/2026-10-14-v1.34.0.md",
+  "status": "draft: owner approval of the finished page and its exact copy is pending; nothing here is deployed",
+  "scope": "The cinematic homepage redesign of October 15, 2026 (site/src/pages/index.astro), drafted from the claim check in docs/website-switch-redesign-claims-draft-2026-10-15.md (PR #825). Every Blanc claim resolves to evidence at the immutable v1.34.0 tag. The Chrome column is sourced from Google's own pages, read October 15, 2026, and recorded in externalClaims. labels lists the page's headings, names and link text that make no claim of their own. The homepage wording this redesign retired is recorded as supersededClaims in docs/website-revamp-claims-v1.27.json, docs/website-v1.32-claims.json and docs/website-v1.33-claims.json.",
+  "accessed": "2026-10-15",
+  "prohibitedClaims": [
+    "battery life, speed, page-load, benchmark or fastest-browser claims beyond the one dated memory run",
+    "4K, HDR or protected streaming playback, or any hint that streaming support is coming",
+    "automatic tab organization, page-change alerts or any other AI feature",
+    "more private, more secure or better than Chrome without a measured, qualified basis",
+    "what Chrome does with user data, unless a current first-party source says exactly that",
+    "password import, password saving or breach alerts",
+    "web page translation",
+    "phone or tablet apps",
+    "1Password fill on Windows or Linux",
+    "Blanc with its blocker off using less memory than Chrome, or Blanc using less memory than Brave in the October 15, 2026 run",
+    "that Chrome is not open source, or that Chrome blocks no trackers"
+  ],
+  "evidenceGroups": {
+    "brand": {
+      "evidence": [
+        "docs/marketing-claims.md",
+        "docs/brand-usage.md"
+      ],
+      "qualification": "Approved brand tagline and call to action; not a feature claim."
+    },
+    "island": {
+      "evidence": [
+        "src/renderer/styles.css",
+        "src/renderer/index.html",
+        "src/renderer/overlay.html",
+        "src/renderer/overlay.js",
+        "docs/marketing-claims.md"
+      ],
+      "qualification": "Public desktop v1.34.0. The resting Island sits in a reserved 68px band (--strip-h) in the default horizontal layout; vertical tabs (View → Tab Layout) add a sidebar. Only the expanded Island overlays the page. Never say the resting Island floats over the page."
+    },
+    "platforms": {
+      "evidence": [
+        "package.json",
+        "site/src/pages/download.astro",
+        "build/installer.nsh"
+      ],
+      "qualification": "Public v1.34.0 ships for macOS 13 or later (Apple Silicon and Intel), Windows 10 or later (x64) and 64-bit Linux as an AppImage. Desktop only: no phone or tablet apps."
+    },
+    "blocking": {
+      "evidence": [
+        "src/main/settings.js",
+        "settings-schema/schema.json",
+        "src/main/adblock.js",
+        "adblock/sources/pinned.json"
+      ],
+      "qualification": "adblockEnabled defaults to true, so Blanc Blocker (Ghostery's engine with the bundled, hash-pinned EasyList and EasyPrivacy snapshots) is on from the first launch. Blocking reduces known ads and tracking; coverage is not universal."
+    },
+    "ublock": {
+      "evidence": [
+        "docs/ublock-origin-support-matrix-2026-10-03.md",
+        "src/main/ublock-platforms.json",
+        "src/main/blocking-providers.js"
+      ],
+      "qualification": "Full uBlock Origin 1.75.0 is an optional provider for regular tabs on Apple Silicon, native Intel Mac, Windows x64 and Linux x64, chosen from the Island's shield; not under Rosetta. Changing providers needs a restart, private tabs keep Blanc Blocker, and it is not general extension support."
+    },
+    "memory": {
+      "evidence": [
+        "bench/memory/README.md",
+        "bench/memory/run.js",
+        "bench/memory/browsers.json",
+        "bench/memory/workloads.json"
+      ],
+      "qualification": "Measured October 15, 2026 by the owner with the harness above on one Apple Silicon Mac (macOS 27.2, 8 GiB RAM) with Blanc 1.34.0 and Chrome 155.0.8059.80: the six ad-heavy pages in workloads.json (Forbes, CNN, The Verge, Daily Mail, Fox News, Speedtest), fresh profiles, no extensions, three repetitions, median of phys_footprint summed across each browser's process tree. Committed run: bench/memory/results/memory-2026-10-15T06-03-46-052Z.{json,md}; test/unit/public-truth.test.js recomputes the medians. Brave, which also blocks by default, used 1.5 GiB against Blanc's 1.7 GiB, and that stays beside the figure. Blanc with its blocker off (5.4 GiB, range 5.4–5.6) and Chrome (5.7 GiB, range 5.4–6.5) overlap: never say blocker-off Blanc beats Chrome. 1.7 of 5.7 is 29%: under a third, not a quarter."
+    },
+    "license": {
+      "evidence": [
+        "LICENSE",
+        "ASSET-LICENSE.md",
+        "THIRD-PARTY-NOTICES.md"
+      ],
+      "qualification": "Blanc's own code is MIT. The Blanc name, logos and identity assets in ASSET-LICENSE.md stay reserved, and third-party material keeps its own terms. Never call the whole repository blanket MIT."
+    },
+    "groupsAndSpaces": {
+      "evidence": [
+        "src/main/main.js",
+        "src/renderer/space-identity.js",
+        "src/main/session-workspace.js",
+        "docs/marketing-claims.md"
+      ],
+      "qualification": "Named groups and Blanc Spaces are user-directed: Blanc never groups or organizes tabs by itself. Spaces are free for everyone since October 2026 and are not synced."
+    },
+    "privateTabs": {
+      "evidence": [
+        "src/main/tab-view.js",
+        "src/main/main.js"
+      ],
+      "qualification": "Private tabs use a non-persistent session; its cookies, storage, cache and history are gone when Blanc quits. Files the user downloads stay on disk."
+    },
+    "connections": {
+      "evidence": [
+        "src/main/telemetry.js",
+        "src/main/search-suggestions.js",
+        "src/renderer/pages/settings.html",
+        "copy/messages/en.json"
+      ],
+      "qualification": "A fresh profile presents usage measurement and search suggestions preselected on, and sends neither until the user saves the setup choices; both can be turned off then or later in Settings. Usage measurement carries no URLs, searches or page contents."
+    },
+    "glance": {
+      "evidence": [
+        "src/main/glance-layout.js",
+        "copy/messages/en.json"
+      ],
+      "qualification": "Glance shows a second open tab of the same window beside the main page in wide windows and below it in narrow ones."
+    },
+    "startPage": {
+      "evidence": [
+        "src/renderer/pages/newtab.html",
+        "src/renderer/pages/newtab-wallpaper.js",
+        "src/main/settings.js",
+        "copy/messages/en.json"
+      ],
+      "qualification": "Four Start Page layouts: Ledger, Billboard, Shelf and Tally. Time-of-day wallpaper (newtabDynamicWallpaper) is off by default and, when turned on in Settings → General, follows the computer's clock through dawn, day, dusk and night."
+    },
+    "onePassword": {
+      "evidence": [
+        "docs/1password-integration.md",
+        "src/main/onepassword-availability.js"
+      ],
+      "qualification": "Public copy names macOS only: Windows and Linux stay unannounced under the waiver in docs/1password-integration.md. Off by default, explicit-invoke only, and it needs the 1Password app and account. Blanc has no password manager of its own and imports or saves no passwords."
+    },
+    "importChromium": {
+      "evidence": [
+        "src/main/browser-data-import.js",
+        "src/main/bookmark-import.js"
+      ],
+      "qualification": "Bring Your Tabs reads the saved session of a Chrome, Edge, Brave, Vivaldi or Chromium profile on this computer, opened read-only, and the user picks the tabs; it can keep tab groups and pins. Favorites import reads the same profile's bookmarks, read-only, or an HTML bookmarks file. Sign-ins, passwords, history and cookies are not moved. Favorites is Blanc's name for bookmarks."
+    },
+    "importArc": {
+      "evidence": [
+        "src/main/arc-import.js",
+        "src/main/arc-import-source.js"
+      ],
+      "qualification": "Arc import reads the sidebar file without changing it: chosen Spaces become Blanc spaces with pinned tabs, Today tabs and folders as tab groups, and top-row Favorites go into one Favorites folder named Arc. Sign-ins, passwords, history, archived tabs, Notes and Easels are not moved. On Linux the user chooses a StorableSidebar.json copied from a Mac or PC."
+    },
+    "tabHandoff": {
+      "evidence": [
+        "src/main/tab-import-handoff.js",
+        "extensions/blanc-tab-import/manifest.safari.json",
+        "extensions/blanc-tab-import/web-extension/manifest.json"
+      ],
+      "qualification": "The Safari and Firefox companions send one window's open tabs once: up to 100 tabs, address, title, order and the active tab, encrypted on the user's computer before upload. Groups and pins do not come over."
+    },
+    "defaultBrowser": {
+      "evidence": [
+        "src/main/default-browser-status.js",
+        "src/main/windows-default-browser.js",
+        "build/installer.nsh",
+        "src/renderer/pages/settings.html"
+      ],
+      "qualification": "Settings → General → Make default…: macOS asks the user to confirm; on Windows it opens Windows Settings at Default apps and needs the installed build; on Linux Blanc cannot set itself and the steps differ between desktops. First-run setup also offers it."
+    },
+    "sync": {
+      "evidence": [
+        "src/main/sync.js",
+        "src/main/sync-crypto.js"
+      ],
+      "qualification": "Optional, end-to-end-encrypted sync of Favorites, settings and optional per-device open-tab snapshots between the user's computers, with a passphrase the server never sees. History, downloads, permissions, passwords and private tabs never sync. Desktop only."
+    },
+    "passkeys": {
+      "evidence": [
+        "src/main/webauthn.js"
+      ],
+      "qualification": "On macOS with Touch ID, Blanc creates device-bound passkeys in the Secure Enclave. It does not read passkeys saved in other credential managers."
+    },
+    "languages": {
+      "evidence": [
+        "copy/messages/en.json",
+        "copy/messages/de.json",
+        "copy/messages/es.json",
+        "copy/messages/fr.json",
+        "copy/messages/it.json",
+        "copy/messages/pt-BR.json",
+        "src/main/i18n.js"
+      ],
+      "qualification": "Blanc translates its own interface into the six listed languages; it does not translate web pages."
+    },
+    "engine": {
+      "evidence": [
+        "package.json",
+        "docs/platform-migration-electron-to-chromium-2026-10-04.md"
+      ],
+      "qualification": "Public v1.34.0 runs official Electron 44.5.1 (Chromium). Official Electron ships no Widevine CDM, so protected streaming does not play: the owner confirmed on October 15, 2026 that a Netflix title stops at error M7701-1003. Never hint at future streaming support. Blanc does not install Chrome Web Store extensions."
+    },
+    "patron": {
+      "evidence": [
+        "src/main/settings.js",
+        "docs/polar-setup.md"
+      ],
+      "qualification": "Every feature, including Blanc Spaces, is free. Blanc Patron is optional support at US$30 a year or US$4 a month plus applicable tax, and unlocks nothing."
+    },
+    "quietTabs": {
+      "evidence": [
+        "src/main/tab-sleep.js",
+        "src/main/main.js",
+        "docs/marketing-claims.md"
+      ],
+      "qualification": "Quiet Tabs discards the renderer of an eligible idle background tab (Settings → General → Quiet inactive tabs, default 1h) and rebuilds it when the tab is activated, so the page reloads. Capturing, loading, prompt-pending and tabs with unsaved form changes stay awake."
+    }
+  },
+  "claims": [
+    {
+      "id": "cinema-hero-lead",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Tabs, search and commands live in one compact Island, in a slim band above the page. Free for macOS, Windows and Linux, with ad and tracker blocking on from the first launch.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "island",
+        "platforms",
+        "blocking"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-proof-heading",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "What you get from the first launch.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "island",
+        "blocking",
+        "memory",
+        "license"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-proof-band",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "68 px",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "island"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "cinema-proof-band-claim",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "That’s the browser. The rest of the window is the page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "island"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-proof-band-limit",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Tabs, search and commands sit in one slim band in the default layout. The open Island overlays the page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "island"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-proof-blocking-limit",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Blanc Blocker reduces known ads and tracking; no blocker catches everything. Prefer uBlock Origin? Choose it on supported builds.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blocking",
+        "ublock"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-proof-memory",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "1.7 GB",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "memory"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-proof-memory-claim",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Under a third of Chrome’s 5.7 GB, with six ad-heavy sites open.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "memory"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-proof-memory-limit",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Brave, which also blocks by default, used a little less: 1.5 GB. With its blocker off, Blanc used 5.4 GB, about the same as Chrome.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "memory"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-proof-free",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "And open source, on macOS, Windows and Linux.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "license",
+        "platforms"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-proof-free-limit",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "MIT for Blanc’s own code. The Blanc name and logo stay reserved.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "license"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-island-heading",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Tabs, search and commands. One Island.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "island"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-island-rest",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "At rest. Back and forward, your tabs as dots, the site and the blocker count, in one slim band.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "island",
+        "blocking"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-island-open",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Open it. Every tab and group in one list. Choose a tab, or type to find a page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "island"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-island-slash",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Type a slash. Run a command without leaving the keyboard. Close the Island, and you’re back on the page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "island"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-spaces-heading",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Organize tabs your way.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "groupsAndSpaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-spaces-groups",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Group related tabs and give each group a name. Drag tabs and groups to put them in order. You decide what goes together.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "groupsAndSpaces"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "cinema-spaces-arc",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Coming from Arc? Bring your Spaces with you.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "importArc"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-privacy-heading",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Blocking is on before you ask.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blocking"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-privacy-blanc-blocker",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Blanc Blocker Default",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blocking"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "cinema-privacy-ublock",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "uBlock Origin Optional",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "ublock"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-privacy-private",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Private tabs. Open a private tab when you choose. Its cookies, storage and history disappear when Blanc quits.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "privateTabs"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "cinema-privacy-choices",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Your choices first. Optional connections start only after you save your setup choices.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "connections"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-privacy-limit",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Blocking reduces known ads and tracking; coverage is not universal.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blocking"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-tools-glance",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Glance. Bring another open tab into view beside the page you’re on. Narrow windows stack it below the main page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "cinema-tools-start",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Start Page layouts. Choose Ledger, Billboard, Shelf or Tally, and let the wallpaper follow your computer’s clock. Turn on Time-of-day wallpaper in Settings → General.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-tools-quiet",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Quiet Tabs.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "quietTabs"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "cinema-tools-onepassword",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "1Password on Mac. On macOS, the optional integration fills a matching login when you ask. Off by default. Needs the 1Password app and account on macOS.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onePassword"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-compare-heading",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Blanc vs. Chrome What Blanc does, and what it doesn’t.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "engine",
+        "blocking",
+        "ublock",
+        "platforms",
+        "onePassword",
+        "license"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-compare-caption",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Blanc compared with a default Chrome install",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "engine"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-switch-heading",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Switching to Blanc is easy. Bring your tabs and Favorites, then make Blanc your default.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "importChromium",
+        "importArc",
+        "tabHandoff",
+        "defaultBrowser"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-switch-download",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Download Blanc. For macOS 13 or later on Apple Silicon or Intel, Windows 10 or later (64-bit), and 64-bit Linux as an AppImage. Free. No account needed.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "platforms",
+        "sync"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-switch-passwords",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Passwords: Blanc doesn’t import or save passwords. Keep them in your password manager; on a Mac, Blanc can fill logins from 1Password when you ask.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onePassword"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "cinema-switch-default-title",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Then make Blanc your default.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "defaultBrowser"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-closing",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Try a little less browser.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "brand"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "cinema-closing-platforms",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "macOS 13 or later · Windows 10 or later · 64-bit Linux",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "platforms"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "cinema-closing-patron",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Every feature is free. Blanc Patron is optional support and unlocks nothing.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "patron"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "cinema-foundation-engine",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Chromium + Electron",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "engine"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "cinema-foundation-evidence",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Release evidence, in public",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "platforms"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "cinema-note-memory",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Measured October 15, 2026 on one Apple Silicon Mac with 8 GB of memory, with Blanc 1.34.0 and Chrome 155.0.8059.80: six ad-heavy sites in each browser (five news sites and Speedtest), fresh profiles, no extensions, median of three runs. The figure is physical memory footprint summed across every process the browser starts. Method and raw data are in the Blanc repository.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "memory"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "cinema-data-01",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Bring Your Tabs reads the browser profile you choose on this computer and can keep its tab groups and pins. You pick which tabs come over.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "importChromium"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-02",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Sign-ins, passwords, history and cookies stay in your old browser.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "importChromium"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-03",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Import Favorites (Blanc’s name for bookmarks) from the same profile, or from an HTML bookmarks file.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "importChromium"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-04",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Blanc only reads your old browser’s files; everything stays where it was.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "importChromium"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-05",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Pick the Arc Spaces you want. Pinned tabs, Today tabs, and folders as tab groups come over, and each becomes a space in Blanc Spaces.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "importArc"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-06",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Sign-ins, passwords, history, archived tabs, Notes and Easels stay in Arc. On Linux, choose a sidebar file copied from a Mac or PC.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "importArc"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-07",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Arc’s top-row Favorites can come over into one Favorites folder named Arc.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "importArc"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-08",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Your Arc sidebar is read, never changed.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "importArc"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-09",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "The companion extension sends the open tabs of one Safari window to Blanc, encrypting the list on your Mac first.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "tabHandoff"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-10",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "One time, up to 100 tabs: address, title, order and the active tab. Groups and pins don’t come over.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "tabHandoff"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-11",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Export your bookmarks from Safari as an HTML file, then import it in Blanc.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "importChromium"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-12",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Favorites is Blanc’s name for bookmarks.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "importChromium"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-13",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "The companion add-on sends the open tabs of one Firefox window to Blanc, encrypting the list on your computer first.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "tabHandoff"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-14",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Export your bookmarks from Firefox as an HTML file, then import it in Blanc.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "importChromium"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-15",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Open Settings → General in Blanc, click Make default, and confirm when macOS asks.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "defaultBrowser"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-16",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "First-run setup offers this too.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "defaultBrowser"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-17",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Open Settings → General in Blanc and click Make default. Windows Settings opens at Default apps, where you choose Blanc.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "defaultBrowser"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-18",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Needs the installed version of Blanc.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "defaultBrowser"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-19",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Choose Blanc in your desktop’s default applications settings.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "defaultBrowser"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-20",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Blanc can’t set itself as the default on Linux, and the steps differ between desktops.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "defaultBrowser"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-21",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Optional, on supported builds",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "ublock"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-22",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Desktop only",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "platforms"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-23",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "1Password fill on Mac",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onePassword"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-24",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "MIT; name and logo reserved",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "license"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-25",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Yes. Blanc runs on macOS 13 or later (Apple Silicon or Intel), Windows 10 or later (64-bit) and 64-bit Linux as an AppImage.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "platforms"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-26",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Blanc doesn’t install extensions from the Chrome Web Store. Ad and tracker blocking is built in, and on supported builds you can choose the full uBlock Origin instead.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "engine",
+        "blocking",
+        "ublock"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-27",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Blanc runs on Chromium, the open-source engine Chrome is built on. Protected streaming video, such as Netflix, doesn’t play in Blanc.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "engine"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-28",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Yes. Every feature, including Blanc Spaces, is free. Blanc Patron is optional support at US$30 a year or US$4 a month, plus tax, and unlocks nothing.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "patron"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-29",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Nothing optional until you save your setup choices. Usage measurement (no addresses, searches or page contents) and search suggestions are preselected; turn either off before saving or later in Settings.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "connections"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-30",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "No. Blanc is a desktop browser. Optional sync keeps Favorites, settings and open tabs in step across your computers, end-to-end encrypted with a passphrase only you know. History and passwords never sync.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sync",
+        "platforms"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-31",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "On a Mac with Touch ID, Blanc creates passkeys that stay on that Mac, in Apple’s Secure Enclave. It can’t use passkeys saved in other password managers.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "passkeys"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-32",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "No. Blanc’s own menus and settings are available in English, German, Spanish, French, Italian and Portuguese (Brazil).",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "languages"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-33",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "No. You choose what goes in each group and space. Blanc doesn’t guess.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "groupsAndSpaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-data-34",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Yes. Importing reads your old browser’s files without changing them, so everything stays where it was.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "importChromium",
+        "importArc"
+      ],
+      "verdict": "qualified"
+    }
+  ],
+  "externalClaims": [
+    {
+      "id": "cinema-chrome-01",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Removes ads only on sites that violate the Better Ads Standards",
+      "row": "Ad and tracker blocking on by default",
+      "chrome": "part",
+      "sources": [
+        "https://support.google.com/chrome/answer/7632919"
+      ],
+      "supportingWords": "Chrome removes ads from websites that violate the Better Ads Standards.",
+      "verdict": "verified",
+      "note": "Narrowed to what the page says. Say violate, not fail. Google does not say either way whether Chrome blocks trackers, so the row claims nothing about it."
+    },
+    {
+      "id": "cinema-chrome-02",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Manifest V2 off since Chrome 138; uBlock Origin Lite available",
+      "row": "Full uBlock Origin",
+      "chrome": "no",
+      "sources": [
+        "https://developer.chrome.com/docs/extensions/develop/migrate/mv2-deprecation-timeline",
+        "https://chromewebstore.google.com/detail/ublock-origin-lite/ddkjiahejlhfcafbddmgiahcphecmpfh"
+      ],
+      "supportingWords": "With Chrome 138 all users on all channels of Chrome have now Manifest V2 extensions disabled. Users can no longer turn them back on. / uBO Lite (uBOL) is an efficient MV3-based content blocker.",
+      "verdict": "verified"
+    },
+    {
+      "id": "cinema-chrome-03",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "macOS, Windows and Linux",
+      "row": "macOS, Windows and Linux",
+      "chrome": "yes",
+      "sources": [
+        "https://support.google.com/chrome/answer/95346"
+      ],
+      "supportingWords": "Windows 10 and up; macOS 13 Ventura and up; 64-bit Ubuntu, Debian, openSUSE or Fedora Linux.",
+      "verdict": "verified"
+    },
+    {
+      "id": "cinema-chrome-04",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Phone and tablet apps",
+      "row": "Phone and tablet apps",
+      "chrome": "yes",
+      "sources": [
+        "https://support.google.com/chrome/answer/95346"
+      ],
+      "supportingWords": "iOS 18 and up; Android 10 and up.",
+      "verdict": "verified"
+    },
+    {
+      "id": "cinema-chrome-05",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "On desktop",
+      "row": "Chrome Web Store extensions",
+      "chrome": "yes",
+      "sources": [
+        "https://support.google.com/chrome_webstore/answer/2664769"
+      ],
+      "supportingWords": "You can customize Chrome on your desktop by adding extensions from the Chrome Web Store.",
+      "verdict": "verified",
+      "note": "Narrowed to desktop."
+    },
+    {
+      "id": "cinema-chrome-06",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Google Password Manager",
+      "row": "Built-in password manager",
+      "chrome": "yes",
+      "sources": [
+        "https://support.google.com/chrome/answer/95606"
+      ],
+      "supportingWords": "When you use Chrome, Google Password Manager saves your passwords for different sites.",
+      "verdict": "verified"
+    },
+    {
+      "id": "cinema-chrome-07",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Plays protected streaming video",
+      "row": "Plays protected streaming video",
+      "chrome": "yes",
+      "sources": [
+        "https://support.google.com/chrome/answer/4410268"
+      ],
+      "supportingWords": "By default, you can view protected content.",
+      "verdict": "verified",
+      "note": "Google's page does not name Netflix, so the row does not; Netflix appears only in Blanc's own FAQ answer."
+    },
+    {
+      "id": "cinema-chrome-08",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Free; built on the open-source Chromium project, under Google’s terms",
+      "row": "Free and open source",
+      "chrome": "part",
+      "sources": [
+        "https://developer.chrome.com/docs/chromium",
+        "https://support.google.com/chrome/a/answer/16190511",
+        "https://support.google.com/chrome/answer/95346"
+      ],
+      "supportingWords": "Chromium, the open source browser project behind Google Chrome. / Google Terms of Service and the Chrome and ChromeOS Additional Terms of Service. / at no charge",
+      "verdict": "qualified",
+      "note": "Don't say Chrome isn't open source: no reachable Google page says so."
+    },
+    {
+      "id": "cinema-chrome-note",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Chrome entries describe a default Chrome install, from Google’s own documentation, read October 15, 2026: ad blocking, the Manifest V2 timeline, uBlock Origin Lite, downloads and system requirements, extensions, passwords, Chromium, terms and protected content.",
+      "row": "note",
+      "sources": [
+        "https://support.google.com/chrome/answer/7632919",
+        "https://developer.chrome.com/docs/extensions/develop/migrate/mv2-deprecation-timeline",
+        "https://chromewebstore.google.com/detail/ublock-origin-lite/ddkjiahejlhfcafbddmgiahcphecmpfh",
+        "https://support.google.com/chrome/answer/95346",
+        "https://support.google.com/chrome_webstore/answer/2664769",
+        "https://support.google.com/chrome/answer/95606",
+        "https://developer.chrome.com/docs/chromium",
+        "https://support.google.com/chrome/a/answer/16190511",
+        "https://support.google.com/chrome/answer/4410268"
+      ],
+      "verdict": "verified"
+    }
+  ],
+  "labels": [
+    "Blanc Browser",
+    "Scroll for sunrise ↓",
+    "On",
+    "Free",
+    "The Island",
+    "Blanc Spaces and tab groups",
+    "Privacy",
+    "What Blanc sends",
+    "Step 1",
+    "Step 2",
+    "Step 3",
+    "Download Blanc.",
+    "Bring your tabs.",
+    "Bring your Favorites.",
+    "Bring your Spaces.",
+    "Send your tabs.",
+    "From Chrome, Edge, Brave or Vivaldi",
+    "From Arc",
+    "From Safari",
+    "From Firefox",
+    "Chrome, Edge, Brave or Vivaldi",
+    "Arc",
+    "Safari",
+    "Firefox",
+    "macOS",
+    "Windows",
+    "Linux",
+    "macOS:",
+    "Windows:",
+    "Linux:",
+    "Questions? Answers.",
+    "Does Blanc run on Windows and Linux?",
+    "Will my Chrome extensions work?",
+    "Will my websites work?",
+    "Is Blanc really free?",
+    "What does Blanc send?",
+    "Can I sync with my phone?",
+    "Does Blanc support passkeys?",
+    "Can Blanc translate web pages?",
+    "Does Blanc organize my tabs for me?",
+    "Can I go back to my old browser?",
+    "Blanc Patron.",
+    "Blanc",
+    "Chrome",
+    "Feature",
+    "Ad and tracker blocking on by default",
+    "Full uBlock Origin",
+    "macOS, Windows and Linux",
+    "Phone and tablet apps",
+    "Chrome Web Store extensions",
+    "Built-in password manager",
+    "Plays protected streaming video",
+    "Free and open source",
+    "Blocking details › Connections, defaults and security evidence › Using uBlock Origin after Chrome ›",
+    "How Glance works ›",
+    "Start Page layouts ›",
+    "How importing works › Switching from Arc ›",
+    "More answers in Support ›",
+    "About Blanc Source code Privacy and security",
+    "Setup and shortcuts ›",
+    "How it was measured1",
+    "Explore Blanc Spaces ›"
+  ]
+}

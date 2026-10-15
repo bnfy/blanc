@@ -110,7 +110,7 @@ test('the homepage hero and /download carry the phone markup and load the module
   assert.match(home, /<p class="handheld-note" data-handheld-note hidden>/);
   assert.match(home, /id="hero-share-status" role="status"/);
   assert.match(read('site/src/scripts/home.js'), /import \{ initHandheldDownload \} from "\.\/handheld-download\.js"/);
-  assert.match(read('site/src/scripts/home.js'), /initHandheldDownload\(\);/);
+  assert.match(read('site/src/scripts/home.js'), /initHandheldDownload\(\{ document, view \}\);/);
 
   const download = read('site/src/pages/download.astro');
   assert.match(download, /<aside class="download-handheld" data-handheld-note hidden/);
