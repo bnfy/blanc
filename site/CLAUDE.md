@@ -202,7 +202,9 @@ app's own small-size rule. Never hand-edit those outputs. `og-image.png` and
 `site/scripts/render-og-cards.mjs` (after a build) from the gold
 `sunrise-hero-mark.png`, each page's own headline and eyebrow, and real
 product: a public native capture or the page's own Island figure (see
-*Share cards* in `docs/brand-usage.md`); `press/blanc-press-card.png` reads
+*Share cards* in `docs/brand-usage.md`). The card renderers set type in
+Blubird through `scripts/blubird-card-fonts.mjs`, so they need the licensed
+fonts installed (`npm run site:fonts`) and stop without them; `press/blanc-press-card.png` reads
 `favicon.svg` via `render-press-card.mjs` (from the media kit's native
 expanded-island capture). The demo island shows no
 favicon on its blank tab because the app hides that slot on internal pages. Utility scripts in `site/scripts/`: `verify-parity.mjs` +

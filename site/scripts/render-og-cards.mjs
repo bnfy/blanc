@@ -10,8 +10,8 @@
  *
  * Every card is a Sunrise composition (docs/brand-usage.md): the original gold
  * Sunrise artwork with clear space and nothing behind it, a Blanc White or dark
- * Sunrise surface, a gold mono label naming the feature, the page's own
- * Newsreader headline, and the website's address. A soft gold horizon may glow
+ * Sunrise surface, a gold label naming the feature, the page's own
+ * Blubird Display headline, and the website's address. A soft gold horizon may glow
  * near the bottom edge, always away from the mark. The product is always real:
  * a released native capture framed as a window, or the feature page's OWN
  * Island figure, so a change to the Island reaches the share cards by
@@ -31,6 +31,7 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { blubirdFontFaces } from './blubird-card-fonts.mjs';
 
 const SITE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DIST_ROOT = path.join(SITE_ROOT, 'dist');
@@ -187,10 +188,8 @@ const browser = await chromium.launch({ channel: 'chrome', headless: true });
 
 // The original gold artwork, never a tint of the monochrome favicon.svg.
 const sunrise = dataUrl(path.join(PUBLIC_ROOT, 'sunrise-hero-mark.png'), 'image/png');
-const inter = dataUrl(path.join(SITE_ROOT, 'node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2'), 'font/woff2');
-// The site no longer depends on @fontsource/jetbrains-mono; use the face the app bundles.
-const mono = dataUrl(path.join(SITE_ROOT, '../src/renderer/pages/jetbrains-mono-latin.woff2'), 'font/woff2');
-const newsreader = dataUrl(path.join(SITE_ROOT, 'node_modules/@fontsource-variable/newsreader/files/newsreader-latin-opsz-normal.woff2'), 'font/woff2');
+// The website's faces: titles in Blubird Display, everything else in Blubird Text.
+const blubird = blubirdFontFaces();
 
 // The website's Sunrise tokens (site.css) and the dark surface the dusk
 // captures sit on. Gold on dark is the website's --site-gold-on-dark.
@@ -334,18 +333,16 @@ function placeFigure(art, { cx, cy, width, height }) {
 function compose(card, art) {
   const t = THEMES[card.theme || 'light'];
   const head = `
-    @font-face { font-family: Inter; src: url('${inter}') format('woff2'); font-weight: 100 900; }
-    @font-face { font-family: 'JetBrains Mono'; src: url('${mono}') format('woff2'); font-weight: 500; }
-    @font-face { font-family: Newsreader; src: url('${newsreader}') format('woff2-variations'); font-weight: 200 800; }
+    ${blubird}
     * { box-sizing: border-box; margin: 0; }
     html, body { width: ${WIDTH}px; height: ${HEIGHT}px; overflow: hidden; }
     body { position: relative; background: ${t.bg}; background-image: ${t.wash};
-           color: ${t.ink}; font-family: Inter, sans-serif; -webkit-font-smoothing: antialiased; }
+           color: ${t.ink}; font-family: 'Blubird Text', sans-serif; -webkit-font-smoothing: antialiased; }
     /* The Sunrise artwork at its own geometry: no badge, tint or glow. */
     .mark { display: block; width: 56px; height: 56px; }
-    .kicker { color: ${t.gold}; font: 500 14px/1 'JetBrains Mono', monospace; letter-spacing: 0.14em; text-transform: uppercase; }
-    h1 { font-family: Newsreader, serif; font-size: 64px; font-weight: 400; letter-spacing: -0.02em; line-height: 1.04;
-         font-optical-sizing: auto; text-wrap: balance; color: ${t.ink}; }
+    .kicker { color: ${t.gold}; font: 500 15px/1 'Blubird Text', sans-serif; letter-spacing: 0.12em; text-transform: uppercase; }
+    h1 { font-family: 'Blubird Display', sans-serif; font-size: 64px; font-weight: 400; letter-spacing: 0; line-height: 1.04;
+         text-wrap: balance; color: ${t.ink}; }
     .sub { color: ${t.muted}; font-size: 22px; line-height: 1.45; }
     .domain { position: absolute; left: 72px; bottom: 48px; color: ${t.gold}; font-size: 18px; font-weight: 500; letter-spacing: 0.01em; }
     .glow, .horizon { position: absolute; pointer-events: none; }

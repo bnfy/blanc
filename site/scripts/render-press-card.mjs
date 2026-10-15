@@ -7,6 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { blubirdFontFaces } from './blubird-card-fonts.mjs';
 
 const SITE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CAPTURE = path.join(SITE_ROOT, 'public/press/blanc-island-expanded-v1.31.0.png');
@@ -34,8 +35,7 @@ if (CAPTURE_SIZE.width !== 2560 || CAPTURE_SIZE.height !== 1600) {
 
 const productCapture = dataUrl(CAPTURE, 'image/png');
 const brandMark = dataUrl(path.join(SITE_ROOT, 'public/favicon.svg'), 'image/svg+xml');
-const inter = dataUrl(path.join(SITE_ROOT, 'node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2'), 'font/woff2');
-const newsreader = dataUrl(path.join(SITE_ROOT, 'node_modules/@fontsource-variable/newsreader/files/newsreader-latin-opsz-normal.woff2'), 'font/woff2');
+const blubird = blubirdFontFaces();
 
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
 try {
@@ -45,16 +45,15 @@ try {
       <head>
         <meta charset="utf-8" />
         <style>
-          @font-face { font-family: Inter; src: url('${inter}') format('woff2'); font-weight: 100 900; }
-          @font-face { font-family: Newsreader; src: url('${newsreader}') format('woff2-variations'); font-weight: 200 800; }
+          ${blubird}
           * { box-sizing: border-box; }
           html, body { width: 2400px; height: 1260px; margin: 0; overflow: hidden; background: #f7f0e5; }
-          body { color: #0e0e0e; font-family: Inter, sans-serif; -webkit-font-smoothing: antialiased; }
+          body { color: #0e0e0e; font-family: 'Blubird Text', sans-serif; -webkit-font-smoothing: antialiased; }
           .card { position: relative; width: 100%; height: 100%; }
-          .brand { position: absolute; top: 84px; left: 104px; display: flex; align-items: center; gap: 24px; color: #6b6257; font: 500 26px/1 Inter, sans-serif; letter-spacing: 0.12em; text-transform: uppercase; }
+          .brand { position: absolute; top: 84px; left: 104px; display: flex; align-items: center; gap: 24px; color: #6b6257; font: 500 26px/1 'Blubird Text', sans-serif; letter-spacing: 0.12em; text-transform: uppercase; }
           .brand img { width: 52px; height: 52px; object-fit: contain; }
-          h1 { position: absolute; top: 246px; left: 94px; width: 720px; margin: 0; font-family: Newsreader, serif; font-size: 122px; font-weight: 400; letter-spacing: -0.02em; line-height: 1.0; font-optical-sizing: auto; }
-          .meta { position: absolute; left: 100px; bottom: 96px; color: #6b6257; font: 500 26px/1 Inter, sans-serif; letter-spacing: 0.04em; }
+          h1 { position: absolute; top: 246px; left: 94px; width: 720px; margin: 0; font-family: 'Blubird Display', sans-serif; font-size: 122px; font-weight: 400; letter-spacing: 0; line-height: 1.0; }
+          .meta { position: absolute; left: 100px; bottom: 96px; color: #6b6257; font: 500 26px/1 'Blubird Text', sans-serif; letter-spacing: 0.04em; }
           .frame { position: absolute; top: 120px; right: 86px; width: ${FRAME.width}px; height: ${FRAME.height}px; overflow: hidden; border-radius: 26px; background: #fff; box-shadow: 0 0 0 1px rgba(18, 16, 11, 0.12), 0 30px 80px rgba(18, 16, 11, 0.16); }
           .frame img { position: absolute; left: ${-CROP.x * scale}px; top: ${-CROP.y * scale}px; width: ${CAPTURE_SIZE.width * scale}px; height: ${CAPTURE_SIZE.height * scale}px; }
         </style>

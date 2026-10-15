@@ -68,8 +68,6 @@ Platform-packaged forms of the same mark:
 - `assets/wordmark/blanc-word-{display,small}-{ink,white}.svg` — the outlined
   “Blanc” word of the Blanc lockup, drawn from Blubird by Rajesh Rajput (the
   font files themselves are not in this repository)
-- `assets/sunrise-mark.svg` — the Sunrise mark as vector artwork, on the same
-  1024 canvas as the macOS icon's raster layer
 - `site/public/lockup/` — the lockup's word outlines and the Sunrise exports
   (`sunrise-mark-{256,2048}.webp`, rendered from `assets/sunrise-mark.svg`) the
   website pairs them with

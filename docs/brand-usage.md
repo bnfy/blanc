@@ -358,9 +358,12 @@ crossfade are retired.
 The website's Open Graph cards (`og-image.png` and `feature-*.png`, 1200×630)
 are Sunrise compositions rendered by `site/scripts/render-og-cards.mjs`; never
 hand-edit them. Each carries the original gold Sunrise artwork with clear space
-and nothing behind it, a gold mono label taken from the page's own eyebrow, the
-page's own Newsreader headline (the homepage card adds the hero's description),
-and `blanc.day` in gold, with no typeset wordmark. The product is always real:
+and nothing behind it, a gold label naming the page, the page's own headline
+(the homepage card adds the hero's description), and `blanc.day` in gold, with
+no typeset wordmark. Since October 15, 2026 the cards are set like the website:
+titles in Blubird Display at 0 tracking, everything else in Blubird Text
+(`site/scripts/blubird-card-fonts.mjs`; the press card and the Blanc Mail card
+too). The licensed fonts must be installed to render them. The product is always real:
 a public native capture framed as its window, or the feature page's own Island
 figure. A soft gold horizon glow sits at the bottom edge, away from the mark.
 
