@@ -878,7 +878,7 @@
     },
     {
       "file": "src/main/ublock-bridge-preload.js",
-      "sha256": "3ba5563d03cb615da9266b8440f60db360c29b8a33da3a1e4e73a9cc1ebc266a",
+      "sha256": "eaae6c3c37f62259e81f1ab637bfd74eb14f00840f194d128e83c674b59ec083",
       "literalChannels": [
         "ublock:bridge"
       ],
