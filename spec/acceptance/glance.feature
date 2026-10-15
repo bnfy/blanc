@@ -267,3 +267,15 @@ Feature: Glance reference pane
     When I click that link in the reference pane
     Then the new tab is the reference and the old reference stays open
     And the new reference is private
+
+  @F34-1 @F34 @D11
+  Scenario: The Glance header goes back and reloads the reference
+    Given a main page and a reference on another site, both with history
+    Then the Glance header's Back button is enabled
+    When I click Back in the Glance header
+    Then only the reference page went back
+    And the Glance header's Back button is disabled
+    When I click Reload in the Glance header
+    Then only the reference page reloaded
+    When the reference starts a slow load
+    Then the Glance header's Reload button reads Stop

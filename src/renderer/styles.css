@@ -338,6 +338,20 @@ button svg {
 .glance-action { padding: 0 8px; font-size: 11.5px; }
 .glance-promote svg { display: none; }
 .glance-close { width: 30px; padding: 0; }
+.glance-nav {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.glance-header .glance-nav-btn { width: 30px; padding: 0; }
+/* The pill's glyph size and stroke, so the two read as one control family. */
+.glance-nav-btn svg { width: 14px; height: 14px; stroke-width: 1.4; }
+.glance-header .glance-nav-btn:disabled {
+  color: var(--border);
+  background: transparent;
+  cursor: default;
+}
 .glance-header button:hover {
   background: var(--accent-dim);
   color: var(--text);
@@ -373,7 +387,8 @@ button svg {
 
 @container (max-width: 360px) {
   .glance-eyebrow { display: none; }
-  .glance-copy { gap: 0; }
+  /* Back and Reload still sit beside the title. */
+  .glance-copy { gap: 8px; }
 }
 @container (max-width: 300px) {
   #glanceTitle { display: none; }

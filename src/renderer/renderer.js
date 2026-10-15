@@ -56,6 +56,8 @@
   const glancePromote = document.getElementById('glancePromote');
   const glanceChange = document.getElementById('glanceChange');
   const glanceClose = document.getElementById('glanceClose');
+  const glanceBack = document.getElementById('glanceBack');
+  const glanceReload = document.getElementById('glanceReload');
   const glanceDivider = document.getElementById('glanceDivider');
   const glanceStatus = document.getElementById('glanceStatus');
 
@@ -113,6 +115,11 @@
     // "close tab". The only ✕ in the pill; see `stop` above.
     close: '<svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>',
   };
+
+  // The reference header reuses the pill's own back and reload glyphs.
+  glanceBack.innerHTML = PILL_ICONS.back;
+  glanceReload.innerHTML = PILL_ICONS.reload;
+  glanceReload.dataset.mode = 'reload';
 
   /** A quiet icon button for the pill. stopPropagation keeps a click on the
    * button from bubbling to the pill (which would open the panel). */
@@ -429,6 +436,15 @@
     glanceHeader.classList.toggle('private', !!tab.private);
     glanceHeader.classList.toggle('focused', glanceLayout.focusedPane === 'glance');
     setFavicon(glanceFavicon, tab);
+    glanceBack.disabled = !tab.canGoBack;
+    const glanceReloadMode = tab.isLoading ? 'stop' : 'reload';
+    if (glanceReload.dataset.mode !== glanceReloadMode) {
+      glanceReload.dataset.mode = glanceReloadMode;
+      glanceReload.innerHTML = PILL_ICONS[glanceReloadMode];
+      const label = blancI18n.t(glanceReloadMode === 'stop' ? 'pill.stop' : 'pill.reload');
+      glanceReload.title = label;
+      glanceReload.setAttribute('aria-label', label);
+    }
     // Keep an already-known title visible while the reference navigates —
     // same rule as the picker rows: replacing useful identity with a generic
     // loading label makes the header useless on slow or long-lived loads.
@@ -929,6 +945,16 @@
     window.browserAPI.openCapturePopover({ right: r.right });
   });
 
+  glanceBack.addEventListener('click', (event) => {
+    event.stopPropagation();
+    if (state.glanceTabId) window.browserAPI.goBack(state.glanceTabId);
+  });
+  glanceReload.addEventListener('click', (event) => {
+    event.stopPropagation();
+    if (!state.glanceTabId) return;
+    if (glanceReload.dataset.mode === 'stop') window.browserAPI.stop(state.glanceTabId);
+    else window.browserAPI.reload(state.glanceTabId);
+  });
   glancePromote.addEventListener('click', (event) => {
     event.stopPropagation();
     window.browserAPI.promoteGlance();

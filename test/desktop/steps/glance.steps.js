@@ -1105,3 +1105,38 @@ Then('a background tab opened and Glance shows the same reference', async functi
   assert.equal(state.glanceTabId, this.glanceReferenceId);
   assert.equal(state.activeTabId, this.glanceMainId);
 });
+
+Then("the Glance header's Back button is enabled", async function () {
+  const chrome = await mainChromePage();
+  await chrome.locator('#glanceBack:not([disabled])').waitFor();
+  assert.equal(await chrome.locator('#glanceBack').getAttribute('aria-label'), 'Back');
+});
+
+Then("the Glance header's Back button is disabled", async function () {
+  const chrome = await mainChromePage();
+  await chrome.locator('#glanceBack[disabled]').waitFor();
+});
+
+When('I click Back in the Glance header', async function () {
+  const chrome = await mainChromePage();
+  await chrome.locator('#glanceBack').click();
+});
+
+When('I click Reload in the Glance header', async function () {
+  await recordLoadCounts(this);
+  const chrome = await mainChromePage();
+  await chrome.locator('#glanceReload').click();
+});
+
+When('the reference starts a slow load', async function () {
+  const url = new URL((await this.state()).tabs.find((tab) => tab.id === this.glanceReferenceId).url);
+  url.searchParams.set('hold', 'slow');
+  // Not awaited: navigateTab resolves only when the slow load finishes.
+  this.call('navigateTab', this.glanceReferenceId, url.toString()).catch(() => {});
+});
+
+Then("the Glance header's Reload button reads Stop", async function () {
+  const chrome = await mainChromePage();
+  await chrome.locator('#glanceReload[data-mode="stop"]').waitFor();
+  assert.equal(await chrome.locator('#glanceReload').getAttribute('aria-label'), 'Stop');
+});
