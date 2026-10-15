@@ -39,7 +39,9 @@ Mac. This environment's network proxy cannot reach either domain.
   October 15; at 09:01:30 UTC the same request returned
   `400 {"error":"invalid email"}` with
   `access-control-allow-origin: https://blanc.day`. That deploy's version ID
-  was not recorded.
+  was not recorded. The owner then joined the waitlist from
+  `https://blanc.day/mail` in Blanc with a fresh address, and its
+  confirmation email arrived.
 - `blanc-tab-import`, version `cf81a2b6-22ee-4572-8b50-3f50c43dbdb4`, on its
   custom domain `tabs.blancbrowser.com`, deployed after step 5. A
   `create_tab_handoff` call to `https://tabs.blancbrowser.com/mcp` for one
