@@ -9,7 +9,7 @@
  * tab-groups cards were a small pill stranded on an otherwise empty field.
  *
  * Every card is a Sunrise composition (docs/brand-usage.md): the original gold
- * Sunrise artwork with clear space and nothing behind it, an ivory or dark
+ * Sunrise artwork with clear space and nothing behind it, a Blanc White or dark
  * Sunrise surface, a gold mono label naming the feature, the page's own
  * Newsreader headline, and the website's address. A soft gold horizon may glow
  * near the bottom edge, always away from the mark. The product is always real:
@@ -197,12 +197,12 @@ const newsreader = dataUrl(path.join(SITE_ROOT, 'node_modules/@fontsource-variab
 // captures sit on. Gold on dark is the website's --site-gold-on-dark.
 const THEMES = {
   light: {
-    bg: '#F7F0E5', wash: 'none', ink: '#14110D', muted: '#6B6257', gold: '#805D28',
+    bg: '#FFF5EE', wash: 'none', ink: '#14110D', muted: '#6B6257', gold: '#805D28',
     glow: 'rgba(212, 173, 102, 0.30)', line: 'rgba(184, 140, 72, 0.55)', shadow: 'rgba(96, 64, 24, 0.24)',
   },
   dark: {
     bg: '#221C19', wash: 'linear-gradient(180deg, #1E1916 0%, #251E1B 55%, #2E231E 100%)',
-    ink: '#F7F0E5', muted: '#B9AE9F', gold: '#D4AD66',
+    ink: '#FFF5EE', muted: '#B9AE9F', gold: '#D4AD66',
     glow: 'rgba(212, 173, 102, 0.24)', line: 'rgba(212, 173, 102, 0.45)', shadow: 'rgba(0, 0, 0, 0.55)',
   },
 };

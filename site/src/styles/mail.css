@@ -3,8 +3,8 @@
    Loaded only by the Mail pages, so the tokens below sit on :root. */
 :root{
   --mail-ink:#12100b;--mail-text:#4f473d;--mail-muted:#6b6257;--mail-faint:#8a7f70;
-  --mail-gold:#805d28;--mail-gold-bright:#c08a3e;--mail-gold-soft:#efe6d8;
-  --mail-paper:#fffcf7;--mail-line:#ddd2c2;--mail-line-soft:#ddd2c2b3;--mail-line-strong:#c9bba6;
+  --mail-gold:#805d28;--mail-gold-bright:#c08a3e;--mail-gold-soft:#f7ebe2;
+  --mail-paper:#fffffe;--mail-line:#e5d7cc;--mail-line-soft:#e5d7ccb3;--mail-line-strong:#c9bba6;
   --mail-band:#1c1a16;--mail-band-text:#f2e9da;--mail-band-muted:#bfb3a1;--mail-band-gold:#e0b166;
   --mail-arrive:cubic-bezier(.16,1,.3,1);--mail-follow:cubic-bezier(.22,.61,.36,1);
   --mail-header-h:48px;--mail-bar-h:52px;
@@ -38,7 +38,7 @@
    Browser download becomes a plain link (owner, October 12, 2026). Every link
    stays, with Mail marked current (test/site/header.test.mjs). `body` lifts
    these rules over revamp.css whatever order the bundles load in. */
-body .site-header.revamp-header{background:#f8f2e8}
+body .site-header.revamp-header{background:#fff5ee}
 body .site-header.revamp-header .revamp-nav{flex-wrap:nowrap;height:36px;min-height:36px;gap:28px;border-bottom-color:transparent;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none}
 body .revamp-nav .site-brand{height:36px}
 body .revamp-nav .site-brand-mark{width:18px;height:18px}
@@ -117,7 +117,7 @@ body:has(.site-header.is-scroll-hidden) .mail-bar{transform:translateY(calc(-1 *
 .mail-waitlist input[type=email]{flex:1;min-width:0;padding:10px 12px;border:0;border-radius:999px;background:transparent;color:var(--mail-ink);font:inherit;font-size:16px}
 .mail-waitlist input[type=email]::placeholder{color:var(--mail-faint)}
 .mail-waitlist input[type=email]:focus-visible{outline:none}
-.mail-waitlist button{padding:11px 20px;border:0;border-radius:999px;background:var(--mail-ink);color:#f7f0e5;font:inherit;font-size:15px;font-weight:600;white-space:nowrap;cursor:pointer;transition:background-color 160ms ease,transform 100ms ease-out}
+.mail-waitlist button{padding:11px 20px;border:0;border-radius:999px;background:var(--mail-ink);color:#fff5ee;font:inherit;font-size:15px;font-weight:600;white-space:nowrap;cursor:pointer;transition:background-color 160ms ease,transform 100ms ease-out}
 .mail-waitlist button:active{transform:scale(.97)}
 @media(hover:hover){.mail-waitlist button:hover{background:#44361e}}
 .mail-waitlist button:focus-visible{outline:2px solid var(--mail-gold);outline-offset:2px}
@@ -187,7 +187,7 @@ body:has(.site-header.is-scroll-hidden) .mail-bar{transform:translateY(calc(-1 *
 .vg-chip{position:relative;display:grid;place-items:center;width:42px;height:42px;border-radius:50%;background:var(--mail-ink);box-shadow:0 10px 20px -10px #35250e99}
 .vg-ring{position:absolute;inset:3px;width:36px;height:36px;transform:rotate(-90deg)}
 .vg-ring circle{stroke:var(--mail-band-gold);stroke-width:2;stroke-dasharray:1;stroke-dashoffset:.4}
-.vg-undo-glyph{width:18px;height:18px;stroke:#f7f0e5;stroke-width:1.8}
+.vg-undo-glyph{width:18px;height:18px;stroke:#fff5ee;stroke-width:1.8}
 
 /* Later, on your terms: a message travels to a later moment. */
 .vg-later{display:flex;align-items:center;gap:24px;padding:0 28px}

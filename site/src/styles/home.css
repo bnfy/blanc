@@ -1,13 +1,13 @@
 .home-revamp {
   color-scheme: light;
-  --paper: #f8f2e8;
-  --surface: #f2eade;
+  --paper: #fff5ee;
+  --surface: #f7ebe2;
   --control-surface: #fff;
   --control-border: rgb(14 14 14 / 0.14);
   --raised: #ffffff;
   --ink: #0e0e0e;
   --dim: #696865;
-  --line: #e1d7c9;
+  --line: #e5d7cc;
   --gold: #7d653d;
   --gold-dark: #c8ac78;
   --warm-ink: #151411;
@@ -16,8 +16,8 @@
     to bottom,
     var(--paper) 0%,
     var(--paper) 8%,
-    #faf7f1 40%,
-    #fdfbf8 65%,
+    #fff9f4 40%,
+    #fffcfa 65%,
     #fff 90%,
     #fff 100%
   );

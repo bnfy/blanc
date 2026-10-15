@@ -48,7 +48,7 @@ try {
           @font-face { font-family: Inter; src: url('${inter}') format('woff2'); font-weight: 100 900; }
           @font-face { font-family: Newsreader; src: url('${newsreader}') format('woff2-variations'); font-weight: 200 800; }
           * { box-sizing: border-box; }
-          html, body { width: 2400px; height: 1260px; margin: 0; overflow: hidden; background: #f7f0e5; }
+          html, body { width: 2400px; height: 1260px; margin: 0; overflow: hidden; background: #fff5ee; }
           body { color: #0e0e0e; font-family: Inter, sans-serif; -webkit-font-smoothing: antialiased; }
           .card { position: relative; width: 100%; height: 100%; }
           .brand { position: absolute; top: 84px; left: 104px; display: flex; align-items: center; gap: 24px; color: #6b6257; font: 500 26px/1 Inter, sans-serif; letter-spacing: 0.12em; text-transform: uppercase; }

@@ -1,18 +1,18 @@
 /* Homepage-only theme. Product recordings and external sample pages keep their
    own colors; these tokens describe the surrounding website interface. */
 html[data-home-appearance] {
-  --home-page: #f8f2e8;
+  --home-page: #fff5ee;
   --home-text: #0e0e0e;
   --home-secondary: #696865;
   --home-accent: #7d653d;
-  --home-divider: #e1d7c9;
+  --home-divider: #e5d7cc;
   --home-control-border: rgb(14 14 14 / 0.14);
   --home-control-hover: #fff;
   --home-selected: #0e0e0e;
   --home-on-selected: #fff;
   --home-header: #fff;
   --home-footer: #fff;
-  --home-on-dark: #f8f2e8;
+  --home-on-dark: #fff5ee;
   --home-motion: 0ms;
 }
 
@@ -57,7 +57,7 @@ html[data-home-appearance] .home-revamp {
   position: relative;
   isolation: isolate;
   color: var(--home-text);
-  background: linear-gradient(to bottom, #f8f2e8 0%, #f8f2e8 8%, #faf7f1 40%, #fdfbf8 65%, #fff 90%, #fff 100%);
+  background: linear-gradient(to bottom, #fff5ee 0%, #fff5ee 8%, #fff9f4 40%, #fffcfa 65%, #fff 90%, #fff 100%);
   transition: color var(--home-motion) ease;
 }
 
