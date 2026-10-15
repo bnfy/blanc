@@ -5,6 +5,7 @@ const { Given, When, Then } = require('@cucumber/cucumber');
 const ctx = require('../support/context');
 const { overlayPage } = require('../support/overlay');
 const { waitForValue } = require('../support/poll');
+const { frontChromeWindow } = require('../support/tab-drag');
 
 async function mainChromePage() {
   for (let attempt = 0; attempt < 40; attempt += 1) {
@@ -527,4 +528,46 @@ Then('the third tab is the main page and Glance is closed', async function () {
     candidate.activeTabId === this.glanceReplacementId && candidate.glanceTabId === null);
   assert.ok(state.tabOrder.includes(this.glanceReplacementId));
   assert.ok(!state.tabOrder.includes(this.glanceMainId) && !state.tabOrder.includes(this.glanceReferenceId));
+});
+
+// --- Lifecycle: focus and announcements on close (Glance fixes, PR 1) ---
+
+// Prove the precondition, so a harness that cannot observe focus fails here
+// rather than passing the product assertion vacuously.
+When('the reference pane holds keyboard focus', async function () {
+  await frontChromeWindow(this);
+  assert.equal(await this.call('focusTabContents', this.glanceReferenceId), true);
+  const reference = (await this.state()).tabs.find((tab) => tab.id === this.glanceReferenceId);
+  await waitForValue(
+    () => this.call('focusedWebContentsId'),
+    (id) => id === reference.webContentsId,
+    'reference pane focused before the close'
+  );
+});
+
+When('I close the main page tab', async function () {
+  const state = await this.state();
+  assert.equal(state.activeTabId, this.glanceMainId);
+  await this.call('closeTab', this.glanceMainId);
+});
+
+Then('keyboard focus is on the main page', async function () {
+  const state = await this.waitForState((candidate) => candidate.glanceTabId === null);
+  const main = state.tabs.find((tab) => tab.id === this.glanceMainId);
+  await waitForValue(
+    () => this.call('focusedWebContentsId'),
+    (id) => id === main.webContentsId,
+    'focus handed to the main page after the reference closed'
+  );
+});
+
+Then('the strip announces that the reference is now the main page', async function () {
+  await this.waitForState((candidate) =>
+    candidate.activeTabId === this.glanceReferenceId && candidate.glanceTabId === null);
+  const chrome = await mainChromePage();
+  await waitForValue(
+    () => chrome.locator('#glanceStatus').textContent(),
+    (text) => text === 'glance-reference is now the main page. Glance closed.',
+    'main-closed announcement'
+  );
 });

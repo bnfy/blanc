@@ -6710,6 +6710,9 @@ function closeTab(id) {
   if (!tab || windowRuntimes.runtimeForTab(id) !== rt()) return;
   const wasActive = id === rt().activeTabId;
   const wasGlance = id === rt().glanceTabId;
+  // Read before the view is prepared for close: detaching drops focus onto
+  // the chrome strip, and the main page should take it instead.
+  const referenceHeldFocus = wasGlance && liveContents(tab)?.isFocused() === true;
   // Invalidate pending blank-tab focus before parking or native teardown.
   if (wasActive && !isQuitting && !rt().closing) cancelAddressBarFocusReclaim(rt(), { reveal: false });
   forgetTabWebContentsIds(id);
@@ -6798,6 +6801,12 @@ function closeTab(id) {
       rt().glanceTabId = null;
       rt().activeTabId = null;
       setActiveTab(survivingGlanceId);
+      if (hasLiveWindow()) {
+        const promoted = tabs.get(survivingGlanceId);
+        rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.mainClosed', {
+          title: displayTitle(promoted) || mainI18n.t('tab.untitledShort'),
+        }));
+      }
       return;
     }
     // Return to the previously active tab (activation history, most recent
@@ -6823,8 +6832,11 @@ function closeTab(id) {
   // Closing the underlying reference is also a layout transition. The normal
   // broadcast updates the header state, but only an explicit resize gives the
   // surviving main WebContentsView its full page bounds in the same turn.
-  if (wasGlance && hasLiveWindow()) resizeActiveView();
   if (wasGlance && hasLiveWindow()) {
+    resizeActiveView();
+    // The reference held keyboard focus: hand it to the main page rather than
+    // leaving it on the strip where the detached view dropped it.
+    if (referenceHeldFocus) liveContents(tabs.get(rt().activeTabId))?.focus();
     rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.tabClosed'));
   }
   broadcastTabs();

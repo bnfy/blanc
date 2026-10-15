@@ -2624,6 +2624,14 @@
     "message": "Glance closed because its tab was closed",
     "note": "Screen reader announcement."
   },
+  "glance.status.mainClosed": {
+    "message": "{title} is now the main page. Glance closed.",
+    "note": "Screen reader announcement after the main tab closes while Glance is open and the reference takes its place; {title} is the reference’s title."
+  },
+  "glance.status.cancelled": {
+    "message": "Didn’t open that tab in Glance",
+    "note": "Screen reader announcement when a quiet tab chosen for Glance finishes waking after the person cancelled the picker."
+  },
   "tab.untitledShort": {
     "message": "Tab",
     "note": "Fallback name for a tab without a title in announcements."

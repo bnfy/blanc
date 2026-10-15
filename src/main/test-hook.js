@@ -13,7 +13,7 @@ const sync = require('./sync');
 const history = require('./history');
 const bookmarks = require('./bookmarks');
 const path = require('node:path');
-const { app, Menu, clipboard, nativeImage } = require('electron');
+const { app, Menu, clipboard, nativeImage, webContents } = require('electron');
 const { buildAddressMenu } = require('./address-menu-model');
 const { blockableHostname } = require('./adblock-exceptions');
 const { syncSnapshot } = require('./session-snapshot');
@@ -586,6 +586,7 @@ function install(refs) {
       const tab = tabs.get(id);
       return tab?.view ? tab.view.getBounds() : null;
     },
+    focusedWebContentsId() { return webContents.getFocusedWebContents()?.id ?? null; },
     railActivationSerial() { return getRailActivationSerial(); },
     toggleGroup(id) { toggleGroupCollapsed(id); },
     moveTab(id, target) { return moveTabTo(id, target); },

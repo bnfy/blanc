@@ -721,6 +721,8 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="glance_status_closed">Glance fechado</string>
     <string name="glance_status_promoted">O Glance agora é a página principal</string>
     <string name="glance_status_tab_closed">O Glance foi fechado porque a aba dele foi fechada</string>
+    <string name="glance_status_main_closed">%1$s agora é a página principal. Glance fechado.</string>
+    <string name="glance_status_cancelled">Essa aba não foi aberta no Glance</string>
     <string name="tab_untitled_short">Aba</string>
     <string name="error_reload_failed">Não foi possível recarregar a página</string>
     <string name="arc_import_entry_title">Arc</string>

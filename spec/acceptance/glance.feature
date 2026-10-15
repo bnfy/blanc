@@ -91,3 +91,18 @@ Feature: Glance reference pane
     And the main page and the reference share a group
     When I close that group
     Then the third tab is the main page and Glance is closed
+
+  @F34-1 @F34 @D11
+  Scenario: Closing the reference tab returns focus to the main page
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And the reference pane holds keyboard focus
+    And I close the underlying Glance tab
+    Then keyboard focus is on the main page
+
+  @F34-1 @F34 @D11
+  Scenario: Closing the main page announces the promoted reference
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And I close the main page tab
+    Then the strip announces that the reference is now the main page
