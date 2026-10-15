@@ -34,6 +34,10 @@ const { isCountStable, sampleUntilSettled } = require('./lib/settle');
 const { summarize, formatBytes } = require('./lib/stats');
 const { seedBlancProfile, rotate } = require('./run');
 
+// A started Blanc window always has the browser, GPU and network-service
+// processes plus the chrome strip and Start Page renderers.
+const MIN_BLANC_PROCESSES = 5;
+
 const USAGE = `Usage: node bench/memory/idle-attribution.js --app=<Blanc.app>[=<label>] ... [options]
 
   --app=PATH[=LABEL]   A packaged Blanc bundle; repeat to compare releases
@@ -178,6 +182,10 @@ async function measureCell(app, template, options, log) {
       counts.push(last.procs.length);
       return last.total;
     }, { alsoStable: () => isCountStable(counts) });
+    // A bundle that failed to start is not a small one.
+    if (!launcher.isAlive(launched.pid) || last.procs.length < MIN_BLANC_PROCESSES) {
+      throw new Error(`${app.label}: only ${last.procs.length} readable processes${launched.stderr() ? ` — ${launched.stderr().slice(-400)}` : ''}`);
+    }
     log(`  ${app.label}: ${formatBytes(last.total)} across ${last.procs.length} processes${settled ? '' : ' (never settled)'}`);
     return { label: app.label, settled, elapsedMs, series, missing: last.missing, total: last.total, procs: last.procs };
   } finally {

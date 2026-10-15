@@ -1,8 +1,8 @@
 name: Idle memory attribution
 
 # Temporary measurement job for the idle-memory investigation: per-process
-# phys_footprint of several public Apple Silicon releases, measured in one
-# session on one hosted Mac. Not a release gate.
+# phys_footprint of public Apple Silicon releases and of locally re-signed
+# variants of 1.34.0, measured in one session on one hosted Mac. Not a gate.
 on:
   workflow_dispatch:
   push:
@@ -23,38 +23,77 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
-      - name: Describe the runner
-        run: |
-          sw_vers
-          sysctl -n machdep.cpu.brand_string hw.memsize
-          system_profiler SPDisplaysDataType | sed -n '1,40p' || true
-      - name: Download and mount public DMGs
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+      - name: Download and mount public 1.34.0
         env:
           GH_TOKEN: ${{ github.token }}
-          VERSIONS: 1.9.0 1.10.0 1.11.0 1.12.0 1.13.0 1.14.0 1.15.0 1.20.0 1.21.0 1.22.0 1.23.0 1.24.0 1.25.0 1.26.0 1.27.0 1.34.0
         run: |
           set -euo pipefail
-          for v in $VERSIONS; do
-            dir="$RUNNER_TEMP/dmg-$v"
-            mkdir -p "$dir"
-            gh release download "v$v" --repo "$GITHUB_REPOSITORY" \
-              --pattern "Blanc-$v-arm64.dmg" --pattern SHA256SUMS --dir "$dir"
-            expected=$(awk -v f="Blanc-$v-arm64.dmg" '$2 == f { print $1 }' "$dir/SHA256SUMS")
-            actual=$(shasum -a 256 "$dir/Blanc-$v-arm64.dmg" | awk '{ print $1 }')
-            [ -n "$expected" ] && [ "$expected" = "$actual" ] || { echo "digest mismatch for $v" >&2; exit 1; }
-            mkdir -p "$RUNNER_TEMP/mnt-$v"
-            hdiutil attach "$dir/Blanc-$v-arm64.dmg" -mountpoint "$RUNNER_TEMP/mnt-$v" -readonly -nobrowse
-          done
-      - name: Bisect idle memory at 2x scale (Retina-like)
-        env:
-          VERSIONS: 1.9.0 1.10.0 1.11.0 1.12.0 1.13.0 1.14.0 1.15.0 1.20.0 1.21.0 1.22.0 1.23.0 1.24.0 1.25.0 1.26.0 1.27.0 1.34.0
+          v=1.34.0
+          dir="$RUNNER_TEMP/dmg-$v"
+          mkdir -p "$dir" "$RUNNER_TEMP/mnt-$v"
+          gh release download "v$v" --repo "$GITHUB_REPOSITORY" \
+            --pattern "Blanc-$v-arm64.dmg" --pattern SHA256SUMS --dir "$dir"
+          expected=$(awk -v f="Blanc-$v-arm64.dmg" '$2 == f { print $1 }' "$dir/SHA256SUMS")
+          actual=$(shasum -a 256 "$dir/Blanc-$v-arm64.dmg" | awk '{ print $1 }')
+          [ -n "$expected" ] && [ "$expected" = "$actual" ] || { echo "digest mismatch" >&2; exit 1; }
+          hdiutil attach "$dir/Blanc-$v-arm64.dmg" -mountpoint "$RUNNER_TEMP/mnt-$v" -readonly -nobrowse
+      - name: Build re-signed variants of 1.34.0
+        # Every variant, the control included, is repacked and ad-hoc signed
+        # the same way, so signing and repacking cannot explain a difference.
+        run: |
+          set -euo pipefail
+          SRC="$RUNNER_TEMP/mnt-1.34.0/Blanc.app"
+          ASAR=node_modules/@electron/asar/bin/asar.mjs
+          ls "$SRC/Contents/Resources" | grep -i asar
+          printf '%s' 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=' | base64 -d > "$RUNNER_TEMP/1x1.png"
+          variant() {
+            name=$1
+            app="$RUNNER_TEMP/variants/$name/Blanc.app"
+            mkdir -p "$(dirname "$app")"
+            ditto "$SRC" "$app"
+            work="$RUNNER_TEMP/asar-$name"
+            node "$ASAR" extract "$app/Contents/Resources/app.asar" "$work"
+            case "$name" in
+              control) ;;
+              noblur)
+                before=$(grep -c 'backdrop-filter: blur(16px);' "$work/src/renderer/styles.css")
+                sed -i '' -E '/^  (-webkit-)?backdrop-filter: blur\(16px\);$/d' "$work/src/renderer/styles.css"
+                after=$(grep -c 'backdrop-filter' "$work/src/renderer/styles.css" || true)
+                echo "noblur: removed $before declarations, $after remain"
+                ;;
+              snapshot)
+                cp src/main/adblock-snapshot.js "$work/src/main/adblock-snapshot.js"
+                ;;
+              nowallpaper)
+                for f in "$work"/src/renderer/pages/start-page-*.png; do cp "$RUNNER_TEMP/1x1.png" "$f"; done
+                ;;
+            esac
+            rm "$app/Contents/Resources/app.asar"
+            node "$ASAR" pack "$work" "$app/Contents/Resources/app.asar"
+            hash=$(node -e 'const a=require("@electron/asar");const h=a.getRawHeader(process.argv[1]);console.log(require("crypto").createHash("sha256").update(h.headerString).digest("hex"))' "$app/Contents/Resources/app.asar")
+            /usr/libexec/PlistBuddy -c "Set :ElectronAsarIntegrity:Resources/app.asar:hash $hash" "$app/Contents/Info.plist"
+            codesign --force --deep --sign - "$app"
+            codesign --verify --deep --strict "$app"
+          }
+          for name in control noblur snapshot nowallpaper; do variant "$name"; done
+      - name: Attribute idle memory of the variants at 2x scale (Retina-like)
         run: |
           set -euo pipefail
           args=()
-          for v in $VERSIONS; do args+=("--app=$RUNNER_TEMP/mnt-$v/Blanc.app=$v"); done
-          node bench/memory/idle-attribution.js "${args[@]}" --reps=2 --sudo \
-            --extra-arg=--force-device-scale-factor=2 --out="$RUNNER_TEMP/results/bisect-scale2"
-          cat "$RUNNER_TEMP"/results/bisect-scale2/*.md >> "$GITHUB_STEP_SUMMARY"
+          for name in control noblur snapshot nowallpaper; do args+=("--app=$RUNNER_TEMP/variants/$name/Blanc.app=$name"); done
+          node bench/memory/idle-attribution.js "${args[@]}" --reps=4 --sudo \
+            --extra-arg=--force-device-scale-factor=2 --out="$RUNNER_TEMP/results/variants-scale2"
+          cat "$RUNNER_TEMP"/results/variants-scale2/*.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Attribute idle memory of the variants at native scale
+        run: |
+          set -euo pipefail
+          node bench/memory/idle-attribution.js \
+            "--app=$RUNNER_TEMP/variants/control/Blanc.app=control" \
+            "--app=$RUNNER_TEMP/variants/noblur/Blanc.app=noblur" \
+            --reps=3 --sudo --out="$RUNNER_TEMP/results/variants-native"
+          cat "$RUNNER_TEMP"/results/variants-native/*.md >> "$GITHUB_STEP_SUMMARY"
       - name: Upload results
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
