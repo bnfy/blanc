@@ -95,7 +95,7 @@
     <string name="tab_untitled_private">Aba privada</string>
     <string name="tab_private_label">Aba privada</string>
     <string name="glance_eyebrow">GLANCE</string>
-    <string name="glance_promote">Tornar o Glance a página principal</string>
+    <string name="glance_promote">Principal — trocar com a página principal</string>
     <string name="glance_promote_short">Principal</string>
     <string name="glance_change">Trocar</string>
     <string name="glance_change_title">Escolher outra aba para o Glance</string>

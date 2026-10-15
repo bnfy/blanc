@@ -334,8 +334,8 @@
     "source": "sha256:fcb19c0f9926b34ef991e7bebad4a2ea5e62f162474ce3ebd734ed7aa0a1fb61"
   },
   "glance.promote": {
-    "message": "Convertir Glance en la página principal",
-    "source": "sha256:dccee10765f6396e0c58ad5bf247a277386195aff32695fe137d17da08a21441"
+    "message": "Principal — intercambiar con la página principal",
+    "source": "sha256:eec8c9d3246f48133edee61045ede79eefc2abb3fdf5b3eb434f6638fac79dd9"
   },
   "glance.promoteShort": {
     "message": "Principal",

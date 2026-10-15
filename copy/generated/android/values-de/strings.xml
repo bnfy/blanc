@@ -92,7 +92,7 @@
     <string name="tab_untitled_private">Privater Tab</string>
     <string name="tab_private_label">Privater Tab</string>
     <string name="glance_eyebrow">GLANCE</string>
-    <string name="glance_promote">Glance zur Hauptseite machen</string>
+    <string name="glance_promote">Hauptseite — mit der Hauptseite tauschen</string>
     <string name="glance_promote_short">Hauptseite</string>
     <string name="glance_change">Ändern</string>
     <string name="glance_change_title">Einen anderen Tab für Glance wählen</string>

@@ -186,7 +186,14 @@ Then('the active page and Glance occupy separate dominant and reference panes', 
   const header = chrome.locator('#glanceHeader:not([hidden])');
   await header.waitFor();
   assert.equal(await header.getAttribute('role'), 'group');
-  assert.equal(await chrome.locator('#glancePromote').getAttribute('aria-label'), 'Make Glance the main page');
+  const promote = chrome.locator('#glancePromote');
+  const promoteName = await promote.getAttribute('aria-label');
+  assert.equal(promoteName, 'Make main — swap with the main page');
+  assert.ok(promoteName.startsWith((await promote.locator('span').textContent()).trim()),
+    'the accessible name begins with the visible words (label in name)');
+  assert.equal(await promote.locator('svg path').getAttribute('d'),
+    'M3.5 5.5h9M10 3l2.5 2.5L10 8M12.5 10.5h-9M6 8l-2.5 2.5L6 13',
+    'the icon-only state draws the swap glyph, not the Forward chevron');
   assert.equal(await chrome.locator('#glanceChange').textContent(), 'Change');
   assert.equal(await chrome.locator('#glanceClose').getAttribute('aria-label'), 'Close Glance');
   const headerFlow = await header.evaluate((element) => {

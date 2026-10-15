@@ -95,7 +95,7 @@
     <string name="tab_untitled_private">Onglet privé</string>
     <string name="tab_private_label">Onglet privé</string>
     <string name="glance_eyebrow">GLANCE</string>
-    <string name="glance_promote">Faire de Glance la page principale</string>
+    <string name="glance_promote">Principale — échanger avec la page principale</string>
     <string name="glance_promote_short">Principale</string>
     <string name="glance_change">Changer</string>
     <string name="glance_change_title">Choisir un autre onglet pour Glance</string>
