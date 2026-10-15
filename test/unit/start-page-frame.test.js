@@ -134,8 +134,8 @@ test('labels are sentence case without tracking, and the date keeps locale case'
   assert.equal(JSON.parse(read('copy/messages/en.json'))['newtab.privateTab'].message, 'Private tab');
   assert.doesNotMatch(js.match(/const dateText[\s\S]*?;\n/)[0], /toLowerCase/);
   const css = frameCss();
-  assert.match(css, /\.ledger-label,\s*\.shelf-label \{[^}]*font: 600 12px\/1\.3 var\(--font-ui\);[^}]*letter-spacing: 0\.005em;[^}]*text-transform: none;/s);
-  assert.match(css, /\.start-brand-date \{[^}]*font: 500 12px\/1\.3 var\(--font-ui\);[^}]*letter-spacing: 0;[^}]*text-transform: none;/s);
+  assert.match(css, /\.ledger-label,\s*\.shelf-label \{[^}]*font: 600 12px\/1\.3 var\(--font-text\);[^}]*letter-spacing: 0\.005em;[^}]*text-transform: none;/s);
+  assert.match(css, /\.start-brand-date \{[^}]*font: 500 12px\/1\.3 var\(--font-text\);[^}]*letter-spacing: 0;[^}]*text-transform: none;/s);
   assert.match(css, /\.shelf-count,\s*\.tally-count \{[^}]*letter-spacing: -0\.02em;[^}]*font-variant-numeric: tabular-nums;/s);
 });
 
