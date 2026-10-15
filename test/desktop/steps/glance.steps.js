@@ -571,3 +571,70 @@ Then('the strip announces that the reference is now the main page', async functi
     'main-closed announcement'
   );
 });
+
+// --- Lifecycle: wake cancellation and the orphaned picker (Glance fixes, PR 1) ---
+
+Given('a quiet background tab that loads slowly', async function () {
+  this.glanceMainUrl = this.fixtureUrl('glance-main');
+  this.glanceReferenceUrl = `${this.fixtureUrl('glance-reference')}?hold=2500`;
+  this.glanceMainId = await this.call('openTab', this.glanceMainUrl);
+  this.glanceReferenceId = await this.call('openTab', this.glanceReferenceUrl);
+  await this.call('activateTab', this.glanceMainId, false);
+  await this.waitForState((state) => {
+    const main = state.tabs.find((tab) => tab.id === this.glanceMainId);
+    const reference = state.tabs.find((tab) => tab.id === this.glanceReferenceId);
+    return main?.title === 'glance-main' && reference?.title === 'glance-reference'
+      && !main.isLoading && !reference.isLoading;
+  });
+  assert.equal(await this.call('sleepTab', this.glanceReferenceId), true);
+  await this.waitForState((candidate) =>
+    candidate.tabs.find((tab) => tab.id === this.glanceReferenceId)?.asleep === true);
+});
+
+When('I choose the slow quiet tab and cancel with Escape before it wakes', async function () {
+  const page = await overlayPage();
+  await page.fill('#glancePickerInput', 'reference');
+  await page.locator('.glance-picker-option').first().waitFor();
+  await page.press('#glancePickerInput', 'Enter');
+  await page.locator('#glancePickerInput[aria-busy="true"]').waitFor();
+  // The real cancel path is main's before-input-event on the overlay.
+  await ctx.app.evaluate(({ webContents }) => {
+    const overlay = webContents.getAllWebContents()
+      .find((candidate) => candidate.getURL() === 'blanc-chrome://overlay/');
+    overlay.sendInputEvent({ type: 'keyDown', keyCode: 'Escape' });
+    overlay.sendInputEvent({ type: 'keyUp', keyCode: 'Escape' });
+  });
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode === null, 'picker cancelled mid-wake');
+});
+
+Then('Glance stays closed after the tab finishes loading', async function () {
+  const state = await this.waitForState((candidate) => {
+    const reference = candidate.tabs.find((tab) => tab.id === this.glanceReferenceId);
+    return reference && !reference.asleep && !reference.isLoading;
+  });
+  assert.equal(state.glanceTabId, null, 'a cancelled wake still attached Glance');
+  const chrome = await mainChromePage();
+  await waitForValue(
+    () => chrome.locator('#glanceStatus').textContent(),
+    (text) => text === 'Didn’t open that tab in Glance',
+    'cancelled-wake announcement'
+  );
+});
+
+When('I open the Change picker and close Glance from the keyboard shortcut', async function () {
+  const chrome = await mainChromePage();
+  await chrome.evaluate(() => {
+    window.__glanceRestoreTriggerProbe = 'unset';
+    window.browserAPI.onIslandState(({ restoreTrigger }) => {
+      window.__glanceRestoreTriggerProbe = restoreTrigger;
+    });
+  });
+  await chrome.locator('#glanceChange').click();
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'glance', 'change picker');
+  assert.equal(await this.call('pressGlanceShortcut'), true);
+});
+
+Then('the picker is dismissed with Glance', async function () {
+  await this.waitForState((state) => state.glanceTabId === null);
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode === null, 'picker dismissed by Close Glance');
+});

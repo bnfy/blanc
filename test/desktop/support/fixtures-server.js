@@ -164,6 +164,15 @@ function start() {
       res.end();
       return;
     }
+    // ?hold=<ms>: headers now, body after the hold, so a scenario can act
+    // while a quiet tab is still waking (its wake resolves on finish-load).
+    const hold = Number(url.searchParams.get('hold'));
+    if (Number.isFinite(hold) && hold > 0) {
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      res.flushHeaders();
+      setTimeout(() => res.end(pageBody(req)), hold);
+      return;
+    }
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(pageBody(req));
   });

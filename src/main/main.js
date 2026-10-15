@@ -3515,6 +3515,7 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
   cancelAddressBarFocusReclaim();
   if (!rt().overlayMode) return;
   bumpSurfaceGeneration();
+  bumpGlanceRequestEpoch();
   const closingMode = rt().overlayMode;
   const closingPurpose = rt().overlayPurpose;
   const closingTrigger = rt().shieldTrigger;
@@ -3896,6 +3897,12 @@ let fillStatusSurface = null;
 function bumpSurfaceGeneration(runtime = rt()) {
   runtime.surfaceGeneration += 1;
   fillStatusSurface?.invalidatePending(runtime.id);
+}
+
+/** The surface a Glance choice was made from went away (see
+ * window-runtime-registry.js glanceRequestEpoch). */
+function bumpGlanceRequestEpoch() {
+  rt().glanceRequestEpoch = (rt().glanceRequestEpoch ?? 0) + 1;
 }
 
 // --- Ambient fill hint (spec §5) ---------------------------------------
@@ -6336,6 +6343,7 @@ function setActiveTab(id, {
   // and back during a broker await would restore every current-state
   // predicate and let the fill proceed on a tab the user left.
   bumpSurfaceGeneration();
+  bumpGlanceRequestEpoch();
   const promotingGlance = id === rt().glanceTabId;
 
   // Tab switches dismiss the sheet; the switched-to tab takes focus via
@@ -6449,7 +6457,15 @@ async function setGlanceTab(id) {
     windowRuntimes.runtimeForTab(id) !== rt()
   ) return false;
 
+  const requestEpoch = rt().glanceRequestEpoch ?? 0;
   if (tab.asleep && !(await wakeTab(id))) return false;
+  if ((rt().glanceRequestEpoch ?? 0) !== requestEpoch) {
+    // The person dismissed the surface they chose from, switched tabs, or
+    // closed Glance while the tab was waking: a late attach would pop a pane
+    // open under their next action.
+    if (hasLiveWindow()) rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.cancelled'));
+    return false;
+  }
   // Wake is asynchronous. Re-resolve every ownership/liveness condition so a
   // tab closed, moved, or superseded while loading can never be attached.
   tab = tabs.get(id);
@@ -6492,7 +6508,13 @@ function closeGlance({ focusContent = true } = {}) {
   const tab = activeGlanceTab();
   if (!rt().glanceTabId) return false;
   bumpSurfaceGeneration();
+  bumpGlanceRequestEpoch();
   rt().glanceTabId = null;
+  // ⌘⇧G or View → Close Glance while the Change picker is up: the picker is
+  // about a pane that no longer exists, so it goes with it. glanceTabId is
+  // already null, so the restore trigger falls through to page content and
+  // never aims at the vanished Change control.
+  if (rt().overlayMode === 'glance') hideOverlay({ refocusContent: false, reason: 'cancel' });
   if (tab?.view && hasLiveWindow()) {
     detachTabView(tab, { retainManagedRoot: true });
     tab.lastActiveAt = Date.now();

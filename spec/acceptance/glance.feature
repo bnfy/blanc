@@ -106,3 +106,20 @@ Feature: Glance reference pane
     When I open the reference tab in Glance
     And I close the main page tab
     Then the strip announces that the reference is now the main page
+
+  @F34-1 @F34 @F31 @D11
+  Scenario: Cancelling the picker while a quiet tab wakes leaves Glance closed
+    Given a quiet background tab that loads slowly
+    When I summon Glance from its native keyboard shortcut
+    And I choose the slow quiet tab and cancel with Escape before it wakes
+    Then Glance stays closed after the tab finishes loading
+    When I summon Glance from its native keyboard shortcut
+    And I filter the Glance picker and choose the reference tab
+    Then the quiet reference wakes into Glance
+
+  @F34-1 @F34 @D11
+  Scenario: Closing Glance takes the Change picker with it
+    Given three ordinary tabs with one open in Glance
+    When I open the Change picker and close Glance from the keyboard shortcut
+    Then the picker is dismissed with Glance
+    And keyboard focus is not stranded on the chrome strip
