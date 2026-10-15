@@ -339,6 +339,24 @@ Then('Glance has a labelled stacked header above its reference content', async f
   const header = chrome.locator('#glanceHeader:not([hidden])');
   await header.waitFor();
   assert.equal(await header.getAttribute('data-direction'), 'vertical');
+  // Stacked, the main page is the full page width, so the Island is centred
+  // over the whole page — not over 68% of it.
+  const centring = await chrome.evaluate(() => {
+    const strip = document.getElementById('strip');
+    const pill = document.getElementById('islandPill').getBoundingClientRect();
+    return {
+      direction: strip.dataset.glanceDirection,
+      primaryRight: parseFloat(getComputedStyle(strip).getPropertyValue('--glance-primary-right')),
+      pillCenter: pill.left + pill.width / 2,
+      headerPaddingRight: getComputedStyle(document.getElementById('glanceHeader')).paddingRight,
+    };
+  });
+  const { page: pageBounds } = state.glanceGeometry;
+  assert.equal(centring.direction, 'vertical');
+  assert.equal(centring.primaryRight, pageBounds.x + pageBounds.width);
+  const pageCenter = pageBounds.x + pageBounds.width / 2;
+  assert.ok(Math.abs(centring.pillCenter - pageCenter) <= 2, `pill centre ${centring.pillCenter}, page centre ${pageCenter}`);
+  assert.equal(centring.headerPaddingRight, '12px', 'stacked header keeps the plain 12px inset');
   assert.equal(await chrome.locator('#glanceChange').isVisible(), true);
   assert.equal(await chrome.locator('#glanceClose').isVisible(), true);
   const stackedHeader = await header.evaluate((element) => {
