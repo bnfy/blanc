@@ -44,7 +44,10 @@ test('resting island counter-scales fixed geometry and grows every element toget
   assert.match(pill, /border-radius:\s*calc\(var\(--island-resting-radius\) \/ var\(--pill-zoom\)\)/);
   assert.match(pill, /transform:\s*none/);
   assert.match(face, /background:\s*var\(--island-resting-surface\)/);
-  assert.match(face, /backdrop-filter:\s*blur\(16px\)/);
+  // Nothing but the strip's flat colour sits behind the resting pill, so a
+  // backdrop blur draws nothing, yet on macOS it forces full-window GPU
+  // compositing (docs/benchmarks/idle-memory-attribution-2026-10-15.md).
+  assert.doesNotMatch(face, /backdrop-filter/);
   assert.match(face, /box-shadow:\s*var\(--shadow-island-resting\)/);
   assert.doesNotMatch(face, /box-shadow:[^;]*--island-k/);
   // The swell pauses while a popover hangs from the pill (the shield or the Spaces menu).

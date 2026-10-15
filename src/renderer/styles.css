@@ -1004,8 +1004,14 @@ body > .tab-drag-ghost[aria-hidden="true"] {
   background: var(--island-resting-surface);
   border: 1px solid var(--border);
   border-radius: inherit;
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
+  /* No backdrop blur, unlike the website nav this copies. Websites are
+     separate views stacked above this document, so the only thing behind the
+     resting pill is the strip's own flat --page-bg, and a blur of it draws
+     nothing new. On macOS it still costs memory: a backdrop filter stops
+     Chromium handing the window's layers to Core Animation, so the GPU
+     process composites every frame into full-window buffers. With a website
+     showing, removing it saved 79 MiB at 2x scale (docs/benchmarks/
+     idle-memory-attribution-2026-10-15.md). */
   box-shadow: var(--shadow-island-resting);
 }
 
