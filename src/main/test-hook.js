@@ -2875,6 +2875,20 @@ function install(refs) {
         return true;
       })()`);
     },
+    // Chooses a detected profile by its visible label, as picking it from the
+    // Favorites page's profile menu would.
+    selectBrowserSource(label) {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`((label) => {
+        const select = document.getElementById('browserSource');
+        const option = [...(select?.options ?? [])].find((o) => o.textContent === label && !o.disabled);
+        if (!option) return false;
+        select.value = option.value;
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+        return true;
+      })(${JSON.stringify(String(label))})`);
+    },
     clickBrowserImport() {
       const wc = getUtilitySheetWebContents();
       if (!wc) return false;

@@ -1,8 +1,13 @@
 'use strict';
 
 const assert = require('node:assert/strict');
-const { Given, When, Then } = require('@cucumber/cucumber');
+const crypto = require('node:crypto');
+const fs = require('node:fs');
+const path = require('node:path');
+const { Given, When, Then, After } = require('@cucumber/cucumber');
 const { waitForValue } = require('../support/poll');
+const ctx = require('../support/context');
+const { browserDataRoot } = require('../../../src/main/browser-data-import');
 
 async function openMigration(world) {
   await world.call('openFavoritesSheet');
@@ -144,4 +149,157 @@ When('I import Favorites from first-run setup', async function () {
       /Imported 3 favorites from Google Chrome/.test(value.dom?.status ?? ''),
     'first-run browser Favorites import to settle'
   );
+});
+
+// F30-4/F30-5: a Chrome profile signed in to a Google Account. Recent Chrome
+// keeps the account's bookmarks in AccountBookmarks, beside the local
+// Bookmarks file or with no Bookmarks file at all. Each scenario creates its
+// own profile directory and removes it afterwards, so no other scenario's
+// discovery ever sees it. Without a Local State entry the profile is labelled
+// by its directory name.
+const SIGNED_IN_PROFILE = 'Profile 7';
+const SIGNED_IN_LABEL = `Google Chrome — ${SIGNED_IN_PROFILE}`;
+
+// The JSON Chrome's bookmark codec writes, for Bookmarks and AccountBookmarks
+// alike: numbered roots with GUIDs and dates, a checksum, a version, and
+// sync_metadata in the account file. Blanc reads only the roots and must
+// tolerate the rest. Chrome writes it with three-space indentation.
+function chromeBookmarksFile({ account }, build) {
+  const stamp = '13403000000000000';
+  let nextId = 3; // Chrome numbers its three roots 1–3.
+  const node = (fields) => ({
+    date_added: stamp,
+    date_last_used: '0',
+    guid: crypto.randomUUID(),
+    id: String(++nextId),
+    ...fields,
+  });
+  const link = (name, url) => node({ name, type: 'url', url });
+  const folder = (name, children) => node({ children, date_modified: stamp, name, type: 'folder' });
+  const { bar = [], other = [], synced = [] } = build({ link, folder });
+  const root = (id, name, children) => ({
+    children,
+    date_added: stamp,
+    date_last_used: '0',
+    date_modified: stamp,
+    guid: crypto.randomUUID(),
+    id: String(id),
+    name,
+    type: 'folder',
+  });
+  const roots = {
+    bookmark_bar: root(1, 'Bookmarks bar', bar),
+    other: root(2, 'Other bookmarks', other),
+    synced: root(3, 'Mobile bookmarks', synced),
+  };
+  return JSON.stringify({
+    checksum: crypto.createHash('md5').update(JSON.stringify(roots)).digest('hex'),
+    roots,
+    ...(account ? { sync_metadata: Buffer.from('account-sync-fixture').toString('base64') } : {}),
+    version: 1,
+  }, null, 3);
+}
+
+function writeSignedInProfile(world, files) {
+  const chromeRoot = browserDataRoot('chrome', {
+    platform: process.platform,
+    homeDir: ctx.browserHomeDir,
+    env: { ...process.env, LOCALAPPDATA: ctx.browserHomeDir },
+  });
+  const profileDir = path.join(chromeRoot, SIGNED_IN_PROFILE);
+  fs.rmSync(profileDir, { recursive: true, force: true });
+  fs.mkdirSync(profileDir, { recursive: true });
+  world.signedInProfileDir = profileDir;
+  for (const [name, contents] of Object.entries(files)) {
+    fs.writeFileSync(path.join(profileDir, name), contents);
+  }
+}
+
+After({ tags: '@F30-4 or @F30-5' }, function () {
+  if (this.signedInProfileDir) fs.rmSync(this.signedInProfileDir, { recursive: true, force: true });
+});
+
+Given('a signed-in Chrome profile keeps its bookmarks only in AccountBookmarks', function () {
+  writeSignedInProfile(this, {
+    AccountBookmarks: chromeBookmarksFile({ account: true }, ({ link, folder }) => ({
+      bar: [
+        link('Account one', 'https://account-one.example/'),
+        folder('Recipes', [
+          link('Account two', 'https://account-two.example/'),
+          link('Chrome flags', 'chrome://flags/'),
+        ]),
+      ],
+      synced: [link('Phone article', 'https://account-mobile.example/')],
+    })),
+  });
+});
+
+Given('a signed-in Chrome profile keeps bookmarks in both Bookmarks and AccountBookmarks', function () {
+  writeSignedInProfile(this, {
+    Bookmarks: chromeBookmarksFile({ account: false }, ({ link }) => ({
+      bar: [
+        link('Local only', 'https://local-only.example/'),
+        link('Kept in both', 'https://shared.example/'),
+      ],
+    })),
+    AccountBookmarks: chromeBookmarksFile({ account: true }, ({ link }) => ({
+      bar: [link('Kept in both', 'https://shared.example/')],
+      other: [link('Account only', 'https://account-only.example/')],
+    })),
+  });
+});
+
+When('I look for other browsers and import Favorites from that profile', async function () {
+  await this.call('openFavoritesSheet');
+  await waitForValue(
+    () => this.call('readBrowserImportDom'),
+    (dom) => dom?.findHidden === false && dom.buttonHidden === true,
+    'Favorites sheet to offer a browser lookup'
+  );
+  assert.equal(await this.call('clickBrowserFind'), true);
+  await waitForValue(
+    () => this.call('readBrowserImportDom'),
+    (dom) => dom?.options?.some((option) => option.label === SIGNED_IN_LABEL) && dom.buttonHidden === false,
+    'the signed-in Chrome profile to be offered'
+  );
+  assert.equal(await this.call('selectBrowserSource', SIGNED_IN_LABEL), true);
+  assert.equal(await this.call('clickBrowserImport'), true);
+  const settled = await waitForValue(
+    () => this.call('readBrowserImportDom'),
+    (dom) => (dom?.status ?? '').startsWith(`${SIGNED_IN_LABEL}: `),
+    'the signed-in profile import to settle'
+  );
+  this.signedInImportStatus = settled.status;
+});
+
+Then("the account's web Favorites are copied into Blanc", async function () {
+  assert.equal(this.signedInImportStatus, `${SIGNED_IN_LABEL}: Imported 3 favorites.`);
+  const records = await this.call('bookmarkRecords');
+  assert.deepEqual(records.map((record) => record.url).sort(), [
+    'https://account-mobile.example/',
+    'https://account-one.example/',
+    'https://account-two.example/',
+  ]);
+});
+
+Then("the account's folders are kept", async function () {
+  const folders = new Map(
+    (await this.call('bookmarkRecords')).map((record) => [record.url, record.folder])
+  );
+  assert.equal(folders.get('https://account-one.example/'), 'Bookmarks bar');
+  assert.equal(folders.get('https://account-two.example/'), 'Recipes');
+  assert.equal(folders.get('https://account-mobile.example/'), 'Mobile bookmarks');
+});
+
+Then('the Favorites from both files are copied into Blanc once each', async function () {
+  const records = await this.call('bookmarkRecords');
+  assert.deepEqual(records.map((record) => record.url).sort(), [
+    'https://account-only.example/',
+    'https://local-only.example/',
+    'https://shared.example/',
+  ]);
+});
+
+Then('the migration result reports no Favorite as already saved', function () {
+  assert.equal(this.signedInImportStatus, `${SIGNED_IN_LABEL}: Imported 3 favorites.`);
 });
