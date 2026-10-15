@@ -1,0 +1,16 @@
+{
+  "date": "2026-10-15",
+  "decision": "The memory benchmark was re-run on public v1.34.0 (bench/memory/results/memory-2026-10-15T06-03-46-052Z.md), replacing the 9 August 2026 run with Blanc 1.1.0. The support answer about Electron's memory is re-dated to that run and states its two changed qualifications: Brave, which also blocks by default, used a little less memory than Blanc, and Blanc with blocking disabled used about as much as Chrome. It no longer says the figures are not a current-release benchmark, because they now are one. The claim evidence is recorded in docs/website-v1.34-claims.json. Applied after docs/website-blanc-spaces-free-2026-10-14.json.",
+  "supportAnswers": [
+    {
+      "id": "electron",
+      "before": "Blanc’s published benchmark is dated measurements from August 9, 2026 on macOS 27, arm64 and 8 GiB RAM, using its published harness and raw runs. It measures phys_footprint across each browser’s process tree, rather than summing RSS, which can count shared engine memory repeatedly.",
+      "after": "Blanc’s published benchmark is dated measurements from October 15, 2026 with Blanc 1.34.0 on macOS 27, arm64 and 8 GiB RAM, using its published harness and raw runs. It measures phys_footprint across each browser’s process tree, rather than summing RSS, which can count shared engine memory repeatedly."
+    },
+    {
+      "id": "electron",
+      "before": "Brave is a useful comparison because it also blocks by default. That run also included Blanc with blocking disabled. These results describe those browser versions and workloads on that machine; they are not Windows or Linux results, a current-release benchmark, or a promise that Blanc will always use less memory.",
+      "after": "Brave is a useful comparison because it also blocks by default; in that run it used a little less memory than Blanc. The run also included Blanc with blocking disabled, which used about as much as Chrome. These results describe those browser versions and workloads on that machine; they are not Windows or Linux results, or a promise that Blanc will always use less memory."
+    }
+  ]
+}

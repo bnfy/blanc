@@ -361,15 +361,17 @@ test('published memory figures agree across the site, the fact sheet, and the ru
   // live in three places and nothing but this test stops one of them being
   // edited alone. If a re-run changes the figures, all three change together or
   // this fails.
-  const MEASURED = [['Blanc', 1.3], ['Brave', 1.7], ['Zen', 3.2], ['Chrome', 5.6], ['Vivaldi', 5.9]];
-  const RESULT = 'bench/memory/results/memory-2026-08-09T17-33-45-039Z.json';
+  // Figures are strings so a whole number keeps its published one decimal (4.0).
+  const MEASURED = [['Brave', '1.5'], ['Blanc', '1.7'], ['Zen', '4.0'], ['Chrome', '5.7'], ['Vivaldi', '7.4']];
+  const RESULT = 'bench/memory/results/memory-2026-10-15T06-03-46-052Z.json';
 
   const chart = read('site/src/components/MemoryChart.astro');
   const factSheet = read('docs/press/fact-sheet.md');
 
   for (const [name, gb] of MEASURED) {
-    assert.match(chart, new RegExp(`name: '${name}', gb: ${gb}\\b`), `${name} in MemoryChart`);
-    assert.match(factSheet, new RegExp(`\\| ${name} \\| ${gb} GB \\|`), `${name} in fact sheet`);
+    const figure = gb.replace('.', '\\.');
+    assert.match(chart, new RegExp(`name: '${name}', gb: ${figure}\\b`), `${name} in MemoryChart`);
+    assert.match(factSheet, new RegExp(`\\| ${name} \\| ${figure} GB \\|`), `${name} in fact sheet`);
   }
 
   // The claim must be traceable to a committed run, not to a number someone
@@ -388,7 +390,7 @@ test('published memory figures agree across the site, the fact sheet, and the ru
   for (const [name, gb] of MEASURED) {
     const actual = medianGiB(name === 'Zen' ? 'Zen Browser' : name === 'Chrome' ? 'Google Chrome' : name);
     assert.ok(
-      Math.abs(actual - gb) < 0.06, // displayed GiB rounds to 1 dp
+      Math.abs(actual - Number(gb)) < 0.06, // displayed GiB rounds to 1 dp
       `${name}: published ${gb} GB but the committed run measured ${actual.toFixed(2)}`
     );
   }
@@ -396,7 +398,7 @@ test('published memory figures agree across the site, the fact sheet, and the ru
   // Both qualifications must travel with the figures wherever they are shown.
   for (const [file, text] of [['MemoryChart', chart], ['fact sheet', factSheet]]) {
     assert.match(text, /blocks by default/i, `${file} must name Brave as the fair peer`);
-    assert.match(text, /4\.2 GB/, `${file} must state the blocking-off figure`);
+    assert.match(text, /5\.4 GB/, `${file} must state the blocking-off figure`);
     assert.match(text, /no extensions/i, `${file} must disclose the profile conditions`);
   }
 });
