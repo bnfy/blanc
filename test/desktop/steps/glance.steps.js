@@ -730,3 +730,35 @@ Then('window controls follow the page tint while Glance is stacked', async funct
   assert.equal(colours.tinted, 'rgba(245, 245, 245, 0.75)', 'stacked, the controls are over the page again and keep the tint rule');
   await this.call('setWindowContentSize', 1200, 800);
 });
+
+// --- Stacked Change picker (Glance fixes, PR 1) ---
+
+When('I shrink the workspace to a small stacked window', async function () {
+  await this.call('setWindowContentSize', 700, 520);
+  await this.waitForState((candidate) => candidate.glanceGeometry?.direction === 'vertical');
+});
+
+When('I open the Change picker', async function () {
+  const chrome = await mainChromePage();
+  await chrome.locator('#glanceChange').click();
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'glance', 'change picker');
+});
+
+Then('the Change picker is centred over the page with a visible list', async function () {
+  const page = await overlayPage();
+  await page.locator('#glancePicker:not([hidden])').waitFor();
+  assert.equal(await page.locator('body').getAttribute('data-glance-purpose'), 'change-stacked');
+  await page.locator('.glance-picker-option').first().waitFor();
+  const layout = await page.locator('#glancePicker').evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    const list = element.querySelector('#glancePickerList').getBoundingClientRect();
+    const row = element.querySelector('.glance-picker-option').getBoundingClientRect();
+    return { center: rect.left + rect.width / 2, viewport: window.innerWidth, listHeight: list.height, rowHeight: row.height, top: rect.top };
+  });
+  assert.ok(Math.abs(layout.center - layout.viewport / 2) <= 2, `picker centre ${layout.center} vs ${layout.viewport / 2}`);
+  assert.ok(layout.listHeight >= 52 && layout.rowHeight >= 52, `list ${layout.listHeight}px, row ${layout.rowHeight}px`);
+  assert.ok(layout.top >= 50, `picker not below the strip: ${layout.top}px`);
+  await page.locator('#glancePickerInput').press('Escape');
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode === null, 'picker dismissed');
+  await this.call('setWindowContentSize', 1200, 800);
+});

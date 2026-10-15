@@ -138,3 +138,10 @@ Feature: Glance reference pane
     Then window controls over the side-by-side header ignore the page tint
     When I narrow the workspace below the side-by-side threshold
     Then window controls follow the page tint while Glance is stacked
+
+  @F34-1 @F34 @D11
+  Scenario: The Change picker stays usable when Glance is stacked
+    Given three ordinary tabs with one open in Glance
+    When I shrink the workspace to a small stacked window
+    And I open the Change picker
+    Then the Change picker is centred over the page with a visible list

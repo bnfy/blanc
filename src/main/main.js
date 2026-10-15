@@ -3574,7 +3574,7 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
               // The Change control only exists while Glance is still open —
               // if the reference tab closed under the picker, fall through to
               // the ordinary content refocus instead of a hidden button.
-              : closingMode === 'glance' && closingPurpose === 'change' && activeGlanceTab() ? 'glance-change'
+              : closingMode === 'glance' && (closingPurpose === 'change' || closingPurpose === 'change-stacked') && activeGlanceTab() ? 'glance-change'
                 : null
         )
       : null;
@@ -6539,9 +6539,15 @@ function promoteGlance() {
 }
 
 function openGlancePicker() {
-  if (!hasLiveWindow() || rt().tabOrder.length < 2) return false;
+  if (!hasLiveWindow()) return false;
   rt().window.focus();
-  showOverlay('glance', { purpose: activeGlanceTab() ? 'change' : 'open' });
+  const glance = glanceGeometry();
+  // Side by side, the Change picker hangs from the header's Change control.
+  // Stacked, that header sits low in the window with no room beneath it, so
+  // the picker takes the open picker's centred, page-wide placement. With a
+  // single tab the picker still opens, to say what to do.
+  const purpose = !glance ? 'open' : glance.direction === 'vertical' ? 'change-stacked' : 'change';
+  showOverlay('glance', { purpose });
   return true;
 }
 
