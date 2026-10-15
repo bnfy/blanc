@@ -64,28 +64,30 @@ assistant or a general extension runtime.
 
 ## Measured memory
 
-Measured 9 August 2026 on one Apple Silicon Mac: six ad-dense news sites open in
-each browser, fresh profile, no extensions, three runs each, median reported.
+Measured 15 October 2026 on one Apple Silicon Mac with Blanc 1.34.0: six
+ad-dense news sites open in each browser, fresh profile, no extensions, three runs each, median reported.
 The figure is `phys_footprint` summed across every process the browser starts —
 not resident set size, which double-counts the engine framework mapped into each
 renderer and inflates whichever browser isolates more per site.
 
 | Browser | Memory |
 |---|---|
-| Blanc | 1.3 GB |
-| Brave | 1.7 GB |
-| Zen | 3.2 GB |
-| Chrome | 5.6 GB |
-| Vivaldi | 5.9 GB |
+| Brave | 1.5 GB |
+| Blanc | 1.7 GB |
+| Zen | 4.0 GB |
+| Chrome | 5.7 GB |
+| Vivaldi | 7.4 GB |
 
-Two qualifications belong with any use of these figures. Brave lands nearest
-Blanc because it also blocks by default, which makes it the fair peer rather
-than Chrome. And the gap is not only blocking: with Blanc's own blocker switched
-off the same pages cost 4.2 GB, still below Chrome's 5.6.
+Two qualifications belong with any use of these figures. Brave also
+blocks by default, which makes it the fair peer rather than Chrome, and in this
+run it used a little less than Blanc. And the gap to Chrome is the blocking: with
+Blanc's own blocker switched off the same pages cost 5.4 GB, about the same as
+Chrome's 5.7.
 
 Fresh, extension-free profiles make this a comparison of engines and defaults,
 not of anyone's real setup. Raw run:
-`bench/memory/results/memory-2026-08-09T17-33-45-039Z.md`; the harness that
+`bench/memory/results/memory-2026-10-15T06-03-46-052Z.md` (the earlier
+9 August 2026 run with Blanc 1.1.0 stays in the same folder); the harness that
 produced it is `bench/memory/` in the repository.
 
 ## Privacy in precise terms

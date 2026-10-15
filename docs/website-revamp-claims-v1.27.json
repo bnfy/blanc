@@ -1638,26 +1638,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "trust-125-277",
-      "source": "site/src/data/support-questions.json",
-      "exactWording": "Blanc’s published benchmark is dated measurements from August 9, 2026 on macOS 27, arm64 and 8 GiB RAM, using its published harness and raw runs. It measures phys_footprint across each browser’s process tree, rather than summing RSS, which can count shared engine memory repeatedly.",
-      "subject": "Blanc or website",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "trust-125-278",
-      "source": "site/src/data/support-questions.json",
-      "exactWording": "Brave is a useful comparison because it also blocks by default. That run also included Blanc with blocking disabled. These results describe those browser versions and workloads on that machine; they are not Windows or Linux results, a current-release benchmark, or a promise that Blanc will always use less memory.",
-      "subject": "Blanc or website",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "trust-125-282",
       "source": "site/src/data/support-questions.json",
       "exactWording": "Can I install browser extensions?",
@@ -10286,6 +10266,28 @@
       ],
       "verdict": "qualified",
       "reason": "October 14, 2026 Spaces page refresh (owner request): the hero now says why people would use Blanc Spaces, and v1.33.0 captures of the Spaces menu and a space’s editor replace the v1.30.1 capture, which still showed Patron settings. The capability claims are unchanged and recorded in docs/website-v1.33-claims.json."
+    },
+    {
+      "id": "trust-125-277",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Blanc’s published benchmark is dated measurements from August 9, 2026 on macOS 27, arm64 and 8 GiB RAM, using its published harness and raw runs. It measures phys_footprint across each browser’s process tree, rather than summing RSS, which can count shared engine memory repeatedly.",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026: the memory benchmark was re-run on public v1.34.0 (bench/memory/results/memory-2026-10-15T06-03-46-052Z.md), so the dated FAQ wording changed. The replacement wording is recorded in docs/website-v1.34-claims.json; the original remains in git history."
+    },
+    {
+      "id": "trust-125-278",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Brave is a useful comparison because it also blocks by default. That run also included Blanc with blocking disabled. These results describe those browser versions and workloads on that machine; they are not Windows or Linux results, a current-release benchmark, or a promise that Blanc will always use less memory.",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026: the memory benchmark was re-run on public v1.34.0 (bench/memory/results/memory-2026-10-15T06-03-46-052Z.md), so the dated FAQ wording changed. The replacement wording is recorded in docs/website-v1.34-claims.json; the original remains in git history."
     }
   ],
   "supersededCandidateClaims": [

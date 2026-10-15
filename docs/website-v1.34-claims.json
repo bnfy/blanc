@@ -2,13 +2,16 @@
   "publicRelease": "v1.34.0",
   "sourceSha": "ac16aae446c22732478bfebc45ecc7ce5de51fbd",
   "releaseEvidence": "docs/release-incidents/2026-10-14-v1.34.0.md",
-  "scope": "Website copy for what public v1.34.0 shipped (October 14, 2026): Kagi and a custom search address (any search engine whose address takes the search words, such as SearXNG) in Settings → General → Search engine. Every evidence path is at the immutable publicRelease tag. The retired four-engine wording is recorded as supersededClaims in docs/website-features-bento-claims-v1.30.json.",
+  "scope": "Website copy for what public v1.34.0 shipped (October 14, 2026): Kagi and a custom search address (any search engine whose address takes the search words, such as SearXNG) in Settings → General → Search engine. Every evidence path is at the immutable publicRelease tag. The retired four-engine wording is recorded as supersededClaims in docs/website-features-bento-claims-v1.30.json. Since October 15, 2026 it also records the memory figures from the benchmark re-run on public v1.34.0 (bench/memory/results/memory-2026-10-15T06-03-46-052Z.md), which replaced the 9 August 2026 run with Blanc 1.1.0.",
   "prohibitedClaims": [
     "search keywords or shortcuts, or several saved custom search engines",
     "OpenSearch auto-discovery, or importing search engines from other browsers",
     "live search suggestions from a custom search engine",
     "Kagi working without a Kagi account, or sharing its sign-in with private tabs",
-    "plain http:// custom search addresses on the open internet"
+    "plain http:// custom search addresses on the open internet",
+    "Blanc using less memory than Brave, or Brave merely \"coming closest\", in the October 15, 2026 run",
+    "Blanc with its blocker off using less memory than Chrome: the ranges overlap (5.4–5.6 GiB against 5.4–6.5 GiB)",
+    "memory figures for Windows, Linux, or any machine other than the one measured"
   ],
   "evidenceGroups": {
     "search": {
@@ -24,6 +27,15 @@
         "test/unit/search-engine-settings.test.js"
       ],
       "qualification": "Public desktop v1.34.0. Settings → General → Search engine offers DuckDuckGo, Google, Bing, Brave Search, Kagi and Custom…. A custom address has exactly one %s where the words go, after the host and port; it uses https://, or http:// only for this computer or the local network, and syncs with the other settings when Profile Sync is on. Kagi needs a Kagi account and private tabs don't share its sign-in. Kagi shows live suggestions; a custom engine shows none. Search suggestions can be turned off in Settings."
+    },
+    "memory": {
+      "evidence": [
+        "bench/memory/README.md",
+        "bench/memory/run.js",
+        "bench/memory/browsers.json",
+        "bench/memory/workloads.json"
+      ],
+      "qualification": "Public desktop v1.34.0, measured October 15, 2026 by the owner with the harness above on one Apple Silicon Mac (macOS 27.2, 8 GiB RAM): six ad-heavy news sites, fresh profiles, no extensions, three repetitions, median of phys_footprint summed across each browser’s process tree. The committed run is bench/memory/results/memory-2026-10-15T06-03-46-052Z.{json,md}; test/unit/public-truth.test.js recomputes the published medians from it. Brave, which also blocks by default, used 1.5 GiB against Blanc’s 1.7 GiB; Blanc with its blocker off used 5.4 GiB against Chrome’s 5.7 GiB, with overlapping ranges."
     }
   },
   "claims": [
@@ -44,6 +56,46 @@
       "subject": "Blanc",
       "evidenceGroups": [
         "search"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v134-003",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Blanc’s published benchmark is dated measurements from October 15, 2026 with Blanc 1.34.0 on macOS 27, arm64 and 8 GiB RAM, using its published harness and raw runs. It measures phys_footprint across each browser’s process tree, rather than summing RSS, which can count shared engine memory repeatedly.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "memory"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v134-004",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Brave is a useful comparison because it also blocks by default; in that run it used a little less memory than Blanc. The run also included Blanc with blocking disabled, which used about as much as Chrome. These results describe those browser versions and workloads on that machine; they are not Windows or Linux results, or a promise that Blanc will always use less memory.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "memory"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v134-005",
+      "source": "site/src/components/MemoryChart.astro",
+      "exactWording": "Measured 15 October 2026 with Blanc 1.34.0, on fresh profiles with no extensions. Brave also blocks by default, and it used a little less. With Blanc’s blocker turned off, the same pages used 5.4 GB, about the same as Chrome, so the saving comes from blocking.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "memory"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v134-006",
+      "source": "site/src/components/MemoryChart.astro",
+      "exactWording": "Under a third of Chrome’s memory.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "memory"
       ],
       "verdict": "qualified"
     }
