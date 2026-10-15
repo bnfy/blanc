@@ -58,18 +58,20 @@ jobs:
             case "$name" in
               control) ;;
               noblur)
-                before=$(grep -c 'backdrop-filter: blur(16px);' "$work/src/renderer/styles.css")
                 sed -i '' -E '/^  (-webkit-)?backdrop-filter: blur\(16px\);$/d' "$work/src/renderer/styles.css"
-                after=$(grep -c 'backdrop-filter' "$work/src/renderer/styles.css" || true)
-                echo "noblur: removed $before declarations, $after remain"
                 ;;
-              snapshot)
-                cp src/main/adblock-snapshot.js "$work/src/main/adblock-snapshot.js"
+              nofooterblur)
+                sed -i '' -E '/^  backdrop-filter: blur\(14px\);$/d' "$work/src/renderer/pages/pages.css"
                 ;;
-              nowallpaper)
-                for f in "$work"/src/renderer/pages/start-page-*.png; do cp "$RUNNER_TEMP/1x1.png" "$f"; done
+              noblurboth)
+                sed -i '' -E '/^  (-webkit-)?backdrop-filter: blur\(16px\);$/d' "$work/src/renderer/styles.css"
+                sed -i '' -E '/^  backdrop-filter: blur\(14px\);$/d' "$work/src/renderer/pages/pages.css"
+                ;;
+              nohelper)
+                sed -i '' -E '/^  win\.loadURL\(CHROME_DISPLAY_CAPTURE_HELPER_URL\);$/d' "$work/src/main/display-capture-broker-playout.js"
                 ;;
             esac
+            echo "$name: $(grep -c 'backdrop-filter: blur(16px)' "$work/src/renderer/styles.css" || true) strip blur, $(grep -c 'backdrop-filter: blur(14px)' "$work/src/renderer/pages/pages.css" || true) footer blur, $(grep -c 'win.loadURL(CHROME_DISPLAY_CAPTURE_HELPER_URL)' "$work/src/main/display-capture-broker-playout.js" || true) helper load"
             rm "$app/Contents/Resources/app.asar"
             node "$ASAR" pack "$work" "$app/Contents/Resources/app.asar"
             hash=$(node -e 'const a=require("@electron/asar");const h=a.getRawHeader(process.argv[1]);console.log(require("crypto").createHash("sha256").update(h.headerString).digest("hex"))' "$app/Contents/Resources/app.asar")
@@ -77,12 +79,12 @@ jobs:
             codesign --force --deep --sign - "$app"
             codesign --verify --deep --strict "$app"
           }
-          for name in control noblur snapshot nowallpaper; do variant "$name"; done
+          for name in control noblur nofooterblur noblurboth nohelper; do variant "$name"; done
       - name: Attribute idle memory of the variants at 2x scale (Retina-like)
         run: |
           set -euo pipefail
           args=()
-          for name in control noblur snapshot nowallpaper; do args+=("--app=$RUNNER_TEMP/variants/$name/Blanc.app=$name"); done
+          for name in control noblur nofooterblur noblurboth nohelper; do args+=("--app=$RUNNER_TEMP/variants/$name/Blanc.app=$name"); done
           node bench/memory/idle-attribution.js "${args[@]}" --reps=4 --sudo \
             --extra-arg=--force-device-scale-factor=2 --out="$RUNNER_TEMP/results/variants-scale2"
           cat "$RUNNER_TEMP"/results/variants-scale2/*.md >> "$GITHUB_STEP_SUMMARY"
@@ -91,7 +93,7 @@ jobs:
           set -euo pipefail
           node bench/memory/idle-attribution.js \
             "--app=$RUNNER_TEMP/variants/control/Blanc.app=control" \
-            "--app=$RUNNER_TEMP/variants/noblur/Blanc.app=noblur" \
+            "--app=$RUNNER_TEMP/variants/noblurboth/Blanc.app=noblurboth" \
             --reps=3 --sudo --out="$RUNNER_TEMP/results/variants-native"
           cat "$RUNNER_TEMP"/results/variants-native/*.md >> "$GITHUB_STEP_SUMMARY"
       - name: Upload results
