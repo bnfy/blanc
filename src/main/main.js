@@ -273,6 +273,7 @@ const {
   ratioForGlanceDivider,
 } = require('./glance-layout');
 const {
+  visiblePaneIds,
   isVisiblePaneId,
   commandTargetTab,
   focusedPane,
@@ -3924,6 +3925,14 @@ function noteFocusedPane(owner, tabId) {
   });
 }
 
+/** A pane blurred: record whichever visible pane really holds focus now. With
+ * neither (a chrome surface took focus) the record stays as it was. */
+function syncFocusedPane(owner) {
+  if (!owner) return;
+  const id = visiblePaneIds(owner).find((tabId) => liveContents(tabs.get(tabId))?.isFocused());
+  if (id != null) noteFocusedPane(owner, id);
+}
+
 /** Glance closed, the roles swapped, the main page changed, or the reference
  * left: commands without a sending pane go to the main page again. */
 function resetFocusedPane() {
@@ -6017,6 +6026,7 @@ initTabView({
   setActiveTab,
   closeTab,
   noteFocusedPane,
+  syncFocusedPane,
   setGlanceTab,
   isFindTarget: (owner, tabId) => findTargetTabId(owner) === tabId,
   dispatchMouseGesture(owner, tab, action) {

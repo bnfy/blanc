@@ -16,8 +16,11 @@ function isVisiblePaneId(runtime, tabId) {
 
 /**
  * 1. The pane whose live webContents sent the key event.
- * 2. Otherwise (a native menu click, a key in a chrome surface) the focused
- *    pane, if it is still a visible pane with a live page.
+ * 2. Otherwise (a native menu click, a key in a chrome surface) the pane that
+ *    really holds keyboard focus now, then the recorded focused pane if it is
+ *    still a visible pane with a live page. Focus events alone are not
+ *    enough: attaching a view can fire a transient focus on it and hand focus
+ *    back to the other pane without an event.
  * 3. Otherwise the main page.
  * @param {object|null} runtime window runtime
  * @param {object|null} sender the key event's webContents, or null
@@ -32,6 +35,8 @@ function commandTargetTab(runtime, sender, contentsOf) {
     });
     if (hit != null) return hit;
   }
+  const live = visiblePaneIds(runtime).find((id) => contentsOf(id)?.isFocused?.() === true);
+  if (live != null) return live;
   const focused = runtime.focusedPaneTabId;
   if (isVisiblePaneId(runtime, focused) && contentsOf(focused)) return focused;
   return runtime.activeTabId ?? null;

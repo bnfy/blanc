@@ -62,3 +62,17 @@ test('glanceLayoutPayload adds focusedPane to a layout and keeps null as null', 
   assert.equal(glanceLayoutPayload(null, 'glance'), null);
   assert.equal('focusedPane' in layout, false, 'the geometry object is not mutated');
 });
+
+test('a pane that really holds keyboard focus wins over a stale record', () => {
+  // Attaching the reference view can fire a transient focus on it and then
+  // hand focus back to the main page without a focus event for the main page.
+  const focusedMain = { id: 'main-wc', isFocused: () => true };
+  const blurredRef = { id: 'ref-wc', isFocused: () => false };
+  const lookup = (id) => ({ main: focusedMain, ref: blurredRef }[id] ?? null);
+  assert.equal(commandTargetTab(runtime({ focusedPaneTabId: 'ref' }), null, lookup), 'main');
+  // With neither pane focused (a chrome surface holds focus), the record decides.
+  const neither = (id) => ({ main: { isFocused: () => false }, ref: { isFocused: () => false } }[id] ?? null);
+  assert.equal(commandTargetTab(runtime({ focusedPaneTabId: 'ref' }), null, neither), 'ref');
+  // A sending pane still wins over everything.
+  assert.equal(commandTargetTab(runtime({ focusedPaneTabId: 'ref' }), blurredRef, lookup), 'ref');
+});

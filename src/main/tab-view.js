@@ -436,6 +436,13 @@ function wireTabView(tab, view, { owner, adopted }) {
     deps.noteFocusedPane?.(getOwner(), id);
     if (shouldReclaimAddressBarFocus(id)) reclaimAddressBarFocus(id, { consume: true });
   }));
+  // Attaching a view can fire a transient focus on it and then hand focus
+  // back to the other pane without a focus event there; re-check on blur.
+  wc.on('blur', boundToTab(() => {
+    if (tab.sleeping || tab.view?.webContents !== wc) return;
+    const owner = getOwner();
+    setImmediate(() => deps.syncFocusedPane?.(owner));
+  }));
 
   // Content may not navigate into privileged blanc:// pages. Main-initiated
   // navigation uses loadURL and therefore bypasses this page-initiated guard.
