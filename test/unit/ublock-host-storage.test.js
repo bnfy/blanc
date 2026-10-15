@@ -23,7 +23,7 @@ function host(mode) {
     callback(name === 'get' ? { ...values, ...(mode === 'mismatch' ? { blancHostStorageProbe: 'wrong' } : {}) } : undefined);
   }]));
   const chrome = { runtime, storage: { local }, tabs: {}, webRequest: { ResourceType: {} } };
-  const self = { chrome };
+  const self = { chrome, µBlock: { loadFilterLists: async () => {} } };
   vm.runInNewContext(source, { self, chrome, location: { pathname: '/background.html' },
     URL, setTimeout, clearTimeout });
   const attach = () => {

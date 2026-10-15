@@ -13,15 +13,18 @@ test('sandbox preload exposes fixed typed operations, bounded payloads and one l
     }; },
   });
   api.send({ kind: 'call', id: 1, method: 'tabs.query', args: [{}] });
-  assert.equal(sent.length, 1);
+  api.send({ kind: 'filters-reloading', value: true });
+  assert.equal(sent.length, 2);
   for (const message of [
     { kind: 'call', id: 2, method: 'evaluate', args: ['process.env'] },
     { kind: 'call', id: -1, method: 'tabs.query', args: [] },
     { kind: 'call', id: 2, method: 'tabs.query', args: [], forged: true },
     { kind: 'ready', node: 'false' },
     { kind: 'decision', id: 2, value: 'x'.repeat(3 * 1024 * 1024) },
+    { kind: 'filters-reloading', value: 'true' },
+    { kind: 'filters-reloading', value: false, forged: true },
   ]) api.send(message);
-  assert.equal(sent.length, 1);
+  assert.equal(sent.length, 2);
   let delivered = 0;
   api.listen(() => delivered++); api.listen(() => delivered++);
   assert.equal(listeners.length, 1);

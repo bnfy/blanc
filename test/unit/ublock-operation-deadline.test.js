@@ -9,18 +9,20 @@ function fixture({ warmUntil = 0 } = {}) {
   const pending = new Map(), timers = [], failures = [];
   const clock = { now: 0 };
   const context = { phase: 'ready', sequence: 0, MAX_PENDING: 256, DEADLINE_MS: 2000, OPERATION_DEADLINE_MS: 10000,
-    WARMUP_DEADLINE_MS: 10000, warmUntil,
+    WARMUP_DEADLINE_MS: 10000, warmUntil, RELOAD_DEADLINE_MS: 45000, filtersReloading: false,
     pending, send() {}, error: null, pump() {},
     performance: { now: () => clock.now },
     recoveryPolicy: require('../../src/main/ublock-recovery'),
     decisionGrace: { granted: 0, saved: 0 }, stallNextDecisionMs: 0, graceDisabledNext: false,
     setTimeout: (callback, delay) => { const timer = { callback, delay }; timers.push(timer); return timer; },
+    clearTimeout: timer => { if (timer) timer.cleared = true; },
     fail: code => { failures.push(code); for (const item of pending.values()) item.reject(new Error(code)); pending.clear(); },
   };
   const deadline = source.match(/function decisionDeadline\(\) \{[\s\S]*?\n  \}/)?.[0];
   const ask = source.match(/function ask\(message\) \{[\s\S]*?\n  \}/)?.[0];
-  assert.ok(deadline && ask, 'the provider still defines decisionDeadline() and ask()');
-  vm.runInNewContext(deadline + '\n' + ask + '\nthis.ask = ask;', context);
+  const reloading = source.match(/function noteFiltersReloading\(value\) \{[\s\S]*?\n  \}/)?.[0];
+  assert.ok(deadline && ask && reloading, 'the provider still defines decisionDeadline(), ask() and noteFiltersReloading()');
+  vm.runInNewContext(deadline + '\n' + ask + '\n' + reloading + '\nthis.ask = ask; this.noteFiltersReloading = noteFiltersReloading;', context);
   // The live context, so tests can set sandbox state such as graceDisabledNext.
   return Object.assign(context, { timers, failures, clock });
 }
@@ -76,6 +78,31 @@ test('the warm-up window ends and decisions return to two seconds', async () => 
   const rejected = assert.rejects(result, /ubo-decision-timeout/);
   assert.equal(f.timers[0].delay, 2000);
   f.timers[0].callback(); await rejected;
+});
+
+test('decisions held through a filter reload get the startup budget and still fail closed', async () => {
+  assert.match(source, /const RELOAD_DEADLINE_MS = STARTUP_DEADLINE_MS;/);
+  const f = fixture();
+  const before = f.ask({ kind: 'request', name: 'onBeforeRequest' });
+  const observer = f.ask({ kind: 'request', name: 'onCompleted' });
+  observer.catch(() => {});
+  assert.deepEqual(f.timers.map(timer => timer.delay), [2000, 10000]);
+  // A decision asked just before the host reported the reload is rearmed.
+  f.noteFiltersReloading(true);
+  assert.equal(f.timers[2].delay, 45000);
+  assert.equal(f.timers.length, 3, 'observers keep their own deadline');
+  const during = f.ask({ kind: 'request', name: 'onHeadersReceived' });
+  assert.equal(f.timers[3].delay, 45000);
+  f.noteFiltersReloading(false);
+  const after = f.ask({ kind: 'request', name: 'onBeforeSendHeaders' });
+  assert.equal(f.timers[4].delay, 2000);
+  // The superseded two-second timer no longer applies; the rearmed one does.
+  assert.equal(f.timers[0].cleared, true);
+  assert.equal(f.timers[1].cleared, undefined);
+  const rejected = assert.rejects(before, /ubo-decision-timeout/);
+  f.timers[2].callback(); await rejected;
+  assert.deepEqual(f.failures, ['ubo-decision-timeout']);
+  await Promise.allSettled([during, after]);
 });
 
 test('the warm-up window opens each time the provider becomes ready', () => {
