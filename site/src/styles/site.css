@@ -54,10 +54,10 @@
   --site-surface-raised-rgb: 255, 252, 247;
   --site-border: #E1D7C9;
   --site-text: #0e0e0e;
-  --site-text-dim: #696865;
+  --site-text-dim: #6B6257;
   --site-accent: #111111;
   --site-accent-dim: rgba(17, 17, 17, 0.08);
-  --site-gold: #7D653D;
+  --site-gold: #805D28;
   --site-gold-on-dark: #D4AD66;
   --site-selection: #F6EBD5;
   /* Warm ink for the Patron offer only: the shared --site-accent stays neutral. */

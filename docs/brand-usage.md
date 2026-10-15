@@ -23,7 +23,7 @@ limits beside the claims they qualify and keep deeper information easy to find.
 
 **Owner correction, September 12, 2026:** “We are only using Sunrise mark and theme now.” This applies to all new Blanc marketing, social creative, review previews, thumbnails and end cards. The old B letterform is retired; do not use `assets/blanc-mark.svg` or rebuild it into new creative. Its presence in the repository is not permission to use it.
 
-For full-color social artwork, use the original gold Sunrise asset at `site/public/sunrise-hero-mark.png`, preserving its geometry, transparency and gold detail. Use the Sunrise theme: Blanc White `#F8F2E8`, warm surfaces `#F2EADE`, near-black headings, muted gray `#696865`, and restrained gold `#7D653D`. The approved September 11 general Sunrise creative in `marketing/social/sunrise-milestone-2026-09-11/general-review-v2-1080x1350.png` is a visual reference for the treatment, not content to recycle.
+For full-color social artwork, use the original gold Sunrise asset at `site/public/sunrise-hero-mark.png`, preserving its geometry, transparency and gold detail. Use the Sunrise theme: Blanc White `#F8F2E8`, warm surfaces `#F2EADE`, near-black headings, muted brown-gray `#6B6257`, and restrained gold `#805D28`. The approved September 11 general Sunrise creative in `marketing/social/sunrise-milestone-2026-09-11/general-review-v2-1080x1350.png` is a visual reference for the treatment, not content to recycle.
 
 Use Newsreader regular for sentence-case headings and Inter for supporting text. Choose title alignment to suit the composition; not every social asset should use the same centered poster layout. Keep generous clear space around the Sunrise symbol. Do not redraw it, replace it with a letterform, tint the original artwork, add a badge or place a glow immediately behind it. A subtle gold horizon may appear away from the symbol. Existing monochrome Sunrise site variants remain valid for the specifically documented placements below.
 
@@ -77,19 +77,21 @@ These website and marketing tokens are separate from the released product palett
 - raised surfaces and forms, the masthead and the footer: white `#FFFFFF`
   (`--site-surface-raised`);
 - decorative borders and dividers: `#E1D7C9` (`--site-border`);
-- muted text: `#696865` (`--site-text-dim`);
-- gold on light backgrounds: `#7D653D` (`--site-gold`);
+- muted text: `#6B6257` (`--site-text-dim`);
+- gold on light backgrounds: `#805D28` (`--site-gold`);
 - gold on dark backgrounds: `#D4AD66` (`--site-gold-on-dark`);
 - pale selected-state background: `#F6EBD5` (`--site-selection`);
 - warm ink for the Patron offer only: `#12100B` (`--site-ink-warm`).
 
 **Blanc White** is the brand name for `#F8F2E8` (owner decision, October 15,
 2026). Call it Blanc White, not ivory or cream, in briefs, creative and press
-material. On the same day the owner made the colours the live website serves
-the brand palette, so the list above records what blanc.day renders on every
-page. Blanc White is a shade lighter than `#F7F0E5`, the original sample from
-the Sunrise art, which the product's Sunrise surfaces (`--sunrise-bg`), the
-share cards, the press card and the media kit's icon tiles still use.
+material. On the same day the owner set the palette above: the page, surface,
+raised and border colours are the ones blanc.day was already serving, and the
+muted text and gold keep this guide's warmer `#6B6257` and `#805D28`, not the
+cooler `#696865` and `#7D653D` the site had been rendering. Blanc White is a shade
+lighter than `#F7F0E5`, the original sample from the Sunrise art, which the
+product's Sunrise surfaces (`--sunrise-bg`), the share cards, the press card
+and the media kit's icon tiles still use.
 
 Use gold for eyebrows, section kickers, text-link arrows and interaction
 states, FAQ disclosure markers, navigation states, and the changelog's small
@@ -395,6 +397,6 @@ Before approving or publishing an asset:
 1. Inspect every frame, thumbnail, crop, and end card—not only the source file.
 2. Confirm the symbol is Sunrise, never the retired B. For new social creative, use the original gold Sunrise artwork on the Blanc White theme; preserve its geometry and clear space.
 3. Confirm crop-safe previews do not clip or crowd the mark.
-4. Confirm new marketing uses the Blanc White, warm ink, muted gray and restrained gold palette.
+4. Confirm new marketing uses the Blanc White, warm ink, muted brown-gray and restrained gold palette.
 5. Confirm titles are sentence case and subtitles follow the website hierarchy.
 6. Apply the separate product-claim gate in `docs/marketing-claims.md`.
