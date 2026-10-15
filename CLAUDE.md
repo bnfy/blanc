@@ -56,7 +56,11 @@ release checkout is detached at `origin/main`; without that flag Wrangler
 creates a `HEAD` preview and leaves the live site (`blanc.day`) unchanged. A successful
 post-release deployment is not complete until `wrangler pages deployment list
 --project-name=blancbrowser` shows the expected source SHA as `Production` on
-branch `main` and the canonical changelog shows the new version.
+branch `main` and the canonical changelog shows the new version. Since the
+October 2026 homepage redesign, `site:deploy` also refuses a build without the
+licensed Blubird fonts, which are never committed (the repository is public and
+the licence forbids redistribution): a fresh or isolated checkout must first run
+`npm run site:fonts -- /path/to/Blubird.zip`. See `site/CLAUDE.md`.
 
 `npm run lint` runs ESLint correctness checks on first-party desktop and Worker JavaScript (the `substrate` CI job runs it, and warnings fail; reviewed exceptions are in `docs/badge-lint-gate.md`). There is no plain `npm test` — the real commands are `npm run test:unit` (node --test over `test/unit/`), `npm run test:acceptance:dry` / `test:acceptance:desktop` (Cucumber scenarios in `spec/acceptance/`, the latter launching the app via Playwright), `npm run test:oauth:desktop`, and `npm run substrate:check` (tokens/settings/copy/adblock generated files match their sources). **CI skips the Electron jobs on website-only PRs.** In `.github/workflows/parity-guards.yml`, a `changes` job lets `oauth-compatibility`, `modified-link-clicks`, `tab-handoff`, `workspace-regressions`, `favorites-import`, `quiet-tabs` and `browser-shortcuts` skip when every changed path is under `site/`, `test/site/` or `docs/`, or is a root `*.md` other than `THIRD-PARTY-NOTICES.md`/`ASSET-LICENSE.md` (both packaged into `app.asar`). The gate is a job-level `if:` rather than a workflow `paths` filter, so the required `oauth-compatibility` check still reports (as skipped) instead of blocking the PR. It fails closed: if `changes` fails, the jobs run. `substrate`, `acceptance-wiring`, the Windows/macOS `unit` jobs and CodeQL always run, because unit tests also guard the website claims ledgers. A new parity-guards job must be classified in `test/unit/ci-website-only-gate.test.js`, and on a website-only PR the skipped jobs appear under their bare names next to a passing `changes`.
 

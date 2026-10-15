@@ -5,45 +5,74 @@ dependency tree is untouched). Pages live in `src/pages/` (`index`, `download`,
 `features`, `about`, `privacy`, `terms`, `changelog`, `arc-alternative`, `ublock-origin-after-chrome`, and
 `features/{island,ad-blocking,private-tabs,command-palette,tab-groups,sync,security}`),
 sharing `src/layouts/BaseLayout.astro` with three explicit page profiles —
-island (index: the masthead is solid from the start, hides while scrolling down and returns on scroll up, rich OG), standard (masthead raised from the start), legal
+island (index: rich OG), standard, legal
 (privacy/terms: **no** analytics/consent, **no**
 OG/Twitter meta). Don't flatten these differences — they're deliberate. The
-footer is one unified component on every page (`components/Footer.astro`,
-`.website-footer`: Sunrise mark, tagline and newsletter, three link columns,
-then a legal and social row). Its top edge is the horizon rule — a gold
-hairline with a soft glow rising into the page above (`revamp.css`; see
-`docs/brand-usage.md`). The masthead is `components/Header.astro`, a single bar
-of direct links fed by `src/data/navigation.mjs` and kept in step by
-`test/unit/site-navigation.test.js`. Site-wide styles are `src/styles/site.css`
+footer is one unified dark component on every page (`components/Footer.astro`,
+`.website-footer`: the Display Blanc lockup, tagline and newsletter, three link
+columns, then a legal and social row; a page can put numbered notes above the
+columns through BaseLayout's `footnotes` slot, as the homepage does). Its top
+edge is the horizon rule — a gold hairline with a soft glow rising into the page
+above (`revamp.css`; see `docs/brand-usage.md`). The masthead is
+`components/Header.astro`: one dark, sticky 52px bar (`--site-header-h`) with
+the small lockup and the direct links fed by `src/data/navigation.mjs` and kept
+in step by `test/unit/site-navigation.test.js`. At 920px and narrower the links
+fold behind a Menu button (an inline script, so phones never flash the full
+row; without scripting they wrap onto a second row). It never hides on scroll:
+the homepage's sticky scenes sit just below it. Site-wide styles are `src/styles/site.css`
 plus `revamp.css`, both imported by `BaseLayout.astro`; pages add their own
 (`home.css`, `features-bento.css`, `mail.css` …)
-(bundled + hashed; fonts self-hosted via fontsource — the UI family is `"Inter
-Variable"`, the heading family is `"Newsreader Condensed"` — Newsreader
-condensed to 92%, with 0.02em tracking built in so CSS letter-spacing values
-keep their designed look (so CSS `-0.035em` is an effective `-0.015em`, the
-loosest any Newsreader text may be set; `test/site/newsreader-reach.test.mjs`
-enforces it), by `scripts/build-condensed-newsreader.py` into `src/fonts/`
-(rerun it after a fontsource bump with the hash-locked tools in
-`scripts/build-condensed-newsreader.requirements.txt`; the site workflow fails
-if the committed fonts are stale; Newsreader has no width axis, and a CSS
-`scaleX` would break wrapping and alignment) — loaded in
-`BaseLayout.astro`; its italic is built but imported by no page since the
-press quote left with the Press page (8 Oct 2026); the
-display-headings rule at the end of `site.css` is what makes every heading
-serif, and the demo's single-sentence figure title deliberately stays Inter;
-these files are NOT under the root `tokens/` substrate guard).
+(bundled + hashed). **Every page is set in Blubird** since October 15, 2026
+(owner direction: the fonts roll out across the whole site, not only the
+redesigned homepage): headings in Blubird Display at regular weight and 0
+tracking (`--site-font-display` and `--site-font-patron`), text in Blubird
+Text (the `html, body` stack and the site's own labels and controls); see
+*Blubird and the lockup* below. Product replicas (the Island figures, demo
+UI) keep Inter, the app's face, self-hosted via fontsource with a
+metric-matched `Inter Fallback`, which is also what Blubird falls back to.
+The display-headings rule at the end of `site.css` is what makes every
+heading display; `test/site/blubird-reach.test.mjs` and
+`test/unit/site-font-fallback.test.js` enforce the faces and the 0 tracking.
+Newsreader is no longer loaded by any page; its condensed build
+(`scripts/build-condensed-newsreader.py`, `src/fonts/`) is unused and can be
+removed. These files are NOT under the root `tokens/` substrate guard.
 `src/scripts/site.js` (release-link resolution + consent-gated GA, all pages
 except legal) is Astro-processed. Anything needing a **stable URL** — favicons,
 `og-image.png`, `logo.png`, `feature-*.png` (OG images), `robots.txt`,
 `shots/**` (the Island figures' page captures) — lives in `public/`; never hash or
 rename these.
 
-**Homepage appearance:** only the homepage gets the header Dark mode toggle
-(`#home-appearance` in `Header.astro`, driven by `src/scripts/home-appearance.js`
-and BaseLayout's prepaint bootstrap). Without a saved choice the page follows the
-OS theme, including live changes; a manual toggle is saved as
-`blanc-home-appearance` and wins from then on. The button keeps a stable
-"Dark mode" label and reports state through `aria-pressed`.
+**Blubird and the lockup:** the homepage, header and footer use Blubird by
+Rajesh Rajput (`src/styles/blubird.css`: `--font-brand-display` for headlines,
+set at 0 letter-spacing, and `--font-brand-text` for copy), falling back to
+Inter. Its licence forbids redistributing the font files and this repository
+is public, so they are never committed: they live in the git-ignored
+`public/fonts/blubird/` on the deploying machine (`npm run site:fonts --
+/path/to/Blubird.zip`), CI and contributors see Inter, and `npm run site:deploy`
+refuses to deploy a build without them (`scripts/blubird-fonts.mjs check
+--dist`). The lockup's word is committed as outlines (`assets/wordmark/`), and
+`scripts/build-lockup-assets.mjs` copies it beside WebP exports of the Sunrise,
+rendered from the vector `assets/sunrise-mark.svg` (2048px for the homepage,
+256px for lockups), into `public/lockup/`; `site:build` runs its `--check`. Construction and
+licence: *Blanc lockup* in `docs/brand-usage.md`.
+
+**Homepage:** the cinematic redesign of October 15, 2026 (`pages/index.astro`,
+`styles/home.css`, `scripts/home.js`). The opening sunrise plays once on
+load (2.2 s, behind `prefers-reduced-motion: no-preference` only), so the
+first screen always ends on the headline and Download; the owner rejected a
+scroll-to-reveal opening on October 15. The rest of the motion is
+scroll-driven CSS behind `@supports (animation-timeline: view())` as well;
+every keyframe ends on the static layout, so other browsers and reduced
+motion get the finished page. The Island is a sticky stage under the 52px
+header. The switching
+steps, the Chrome comparison and the questions are data in the frontmatter;
+without the script every path shows, and with it `home.js` shows one at a time
+and preselects the visitor's system from the page itself, sending nothing.
+Every sentence on the page must be recorded in a claims ledger
+(`docs/website-cinematic-homepage-claims-v1.34.json`, or an earlier one) or
+listed there as a label; `test/unit/website-feature-evidence.test.js` fails
+otherwise. The memory card joins the `public-truth` figures. There is no dark
+mode toggle: it was removed with the redesign.
 
 **Build contract:** `astro.config.mjs` pins `build.format: 'file'` (dist emits
 `about.html`, `features/island.html` … — the exact pre-Astro URL layout; never
@@ -52,7 +81,8 @@ switch to directory format) and disables asset inlining
 external hashed files. Internal links are root-relative extensionless
 (`/features/island`) matching the canonicals Cloudflare Pages serves.
 
-Commands (root proxies): `npm run site:dev`, `npm run site:build`, and
+Commands (root proxies): `npm run site:dev`, `npm run site:build`,
+`npm run site:fonts -- /path/to/Blubird.zip` (installs the licensed fonts), and
 `npm run site:deploy` (build + `npx wrangler pages deploy site/dist
 --project-name=blancbrowser --branch=main` to the Cloudflare Pages project `blancbrowser`,
 BNFY account, canonical domain `blanc.day` since October 13, 2026, read from

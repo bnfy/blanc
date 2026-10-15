@@ -9,7 +9,7 @@
  * tab-groups cards were a small pill stranded on an otherwise empty field.
  *
  * Every card is a Sunrise composition (docs/brand-usage.md): the original gold
- * Sunrise artwork with clear space and nothing behind it, an ivory or dark
+ * Sunrise artwork with clear space and nothing behind it, a Blanc White or dark
  * Sunrise surface, a gold mono label naming the feature, the page's own
  * Newsreader headline, and the website's address. A soft gold horizon may glow
  * near the bottom edge, always away from the mark. The product is always real:

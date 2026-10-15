@@ -230,20 +230,31 @@ test('the launch cards carry the square Sunrise mark at the old placements', asy
   assert.ok(v3.width >= 33, `v3 mark is near-square, got ${v3.width}px wide`);
 });
 
-test('the site sizes the square mark everywhere the portrait B was sized', () => {
-  const css = source('site/src/styles/site.css') + source('site/src/styles/media.css');
-  assert.match(css, /\.site-brand-mark \{ width: 24px; height: 24px;/);
-  assert.match(css, /\.site-brand-mark \{ width: 28px; height: 28px;/);
+test('the site lockups keep the Sunrise square and place it by the lockup construction', () => {
+  const css = source('site/src/styles/revamp.css') + source('site/src/styles/media.css');
   assert.match(css, /\.media-index-mark \{ display: block; width: 18px; height: 18px;/);
-  for (const selector of ['\\.site-brand-mark', '\\.media-index-mark']) {
-    const rules = [...css.matchAll(new RegExp(`${selector} \\{([^}]*)\\}`, 'g'))];
-    assert.ok(rules.length > 0, `${selector} is styled`);
-    for (const [, body] of rules) {
-      const width = body.match(/width: (\\d+)px/)?.[1];
-      const height = body.match(/height: (\\d+)px/)?.[1];
-      assert.equal(width, height, `${selector} is square, got ${body.trim()}`);
-    }
+  for (const [, body] of css.matchAll(/\.media-index-mark \{([^}]*)\}/g)) {
+    assert.equal(body.match(/width: (\d+)px/)?.[1], body.match(/height: (\d+)px/)?.[1], `.media-index-mark is square, got ${body.trim()}`);
   }
+  // Construction C (docs/brand-usage.md): the mark is 1.15x the l, centred on
+  // the B, 0.3x the B height away. The mark file keeps its 1024 canvas, so its
+  // box overhangs the lockup by the same share at every size.
+  const placements = {
+    small: ['90px', '22px', ['-3.588%', '-13.802%', '31.404%'], ['30.117%', '3.623%', '69.883%']],
+    display: ['155px', '40px', ['-3.784%', '-13.802%', '33.116%'], ['31.932%', '4.735%', '68.068%']],
+  };
+  for (const [size, [width, height, mark, word]] of Object.entries(placements)) {
+    assert.match(css, new RegExp(`\\.site-lockup--${size} \\{\\s*width: ${width};\\s*height: ${height};`), `${size} lockup box`);
+    assert.match(css, new RegExp(`\\.site-lockup--${size} \\.site-lockup-mark \\{\\s*left: ${mark[0]};\\s*top: ${mark[1]};\\s*width: ${mark[2]};`), `${size} mark`);
+    assert.match(css, new RegExp(`\\.site-lockup--${size} \\.site-lockup-word \\{\\s*left: ${word[0]};\\s*top: ${word[1]};\\s*width: ${word[2]};`), `${size} word`);
+  }
+  // The header uses the Text-cut word (about 32px tall and under) and the
+  // footer the Display cut, each beside the square 256px mark.
+  const header = source('site/src/components/Header.astro');
+  const footer = source('site/src/components/Footer.astro');
+  for (const markup of [header, footer]) assert.match(markup, /src="\/lockup\/sunrise-mark-256\.webp"\s+width="256"\s+height="256"/);
+  assert.match(header, /site-lockup--small[\s\S]*src="\/lockup\/blanc-word-small-ink\.svg"/);
+  assert.match(footer, /site-lockup--display[\s\S]*src="\/lockup\/blanc-word-display-white\.svg"/);
 });
 
 test('the demo island hides the favicon slot on internal pages like the shipped app', () => {

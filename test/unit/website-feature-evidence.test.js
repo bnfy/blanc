@@ -15,6 +15,7 @@ const historicalLedger = JSON.parse(read('docs/website-v1.15-claims.json'));
 const v132Ledger = JSON.parse(read('docs/website-v1.32-claims.json'));
 const v133Ledger = JSON.parse(read('docs/website-v1.33-claims.json'));
 const v134Ledger = JSON.parse(read('docs/website-v1.34-claims.json'));
+const cinemaLedger = JSON.parse(read('docs/website-cinematic-homepage-claims-v1.34.json'));
 const entities = { rsquo: '’', lsquo: '‘', amp: '&', ldquo: '“', rdquo: '”' };
 // Compare source text only; consume incomplete tags and decode entities once.
 const normalize = text => text.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*(?:>|$)/g, '').replace(/&(rsquo|lsquo|amp|ldquo|rdquo);/g, (_, name) => entities[name]).replace(/\s+/g, ' ').trim();
@@ -190,6 +191,60 @@ test('v1.34.0 Kagi and custom search copy resolves to verified public v1.34.0 ev
   }
 });
 
+test('the cinematic homepage copy resolves to public v1.34.0 evidence and dated first-party Chrome sources', () => {
+  assert.equal(cinemaLedger.publicRelease, 'v1.34.0');
+  assert.equal(execFileSync('git', ['rev-parse', `${cinemaLedger.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), cinemaLedger.sourceSha);
+  assert.ok(read(cinemaLedger.releaseEvidence).includes(cinemaLedger.sourceSha));
+  const drifted = (claim) => {
+    const source = read(claim.source);
+    return !(normalize(source).includes(claim.exactWording) || source.replace(/\s+/g, ' ').includes(claim.exactWording));
+  };
+  for (const claim of cinemaLedger.claims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    assert.ok(!drifted(claim), `${claim.id}: exact wording drifted`);
+    assert.ok(claim.evidenceGroups.length, `${claim.id}: no release evidence`);
+    for (const key of claim.evidenceGroups) {
+      const group = cinemaLedger.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, `${claim.id}: release evidence and qualifications`);
+      for (const file of group.evidence) execFileSync('git', ['cat-file', '-e', `${cinemaLedger.publicRelease}:${file}`], { cwd: root });
+    }
+  }
+  // Claims about Chrome cite Google's own pages, read on a stated date.
+  assert.match(cinemaLedger.accessed, /^\d{4}-\d{2}-\d{2}$/);
+  for (const claim of cinemaLedger.externalClaims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    assert.ok(!drifted(claim), `${claim.id}: exact wording drifted`);
+    assert.ok(claim.sources.length && claim.sources.every(url => /^https:\/\/(support\.google\.com|developer\.chrome\.com|chromewebstore\.google\.com)\//.test(url)), `${claim.id}: first-party source`);
+  }
+});
+
+test('every sentence on the homepage is recorded in a claims ledger or named as a label', () => {
+  const file = 'site/src/pages/index.astro';
+  const source = read(file);
+  const recorded = [cinemaLedger, ledger, v132Ledger, v133Ledger, v134Ledger, JSON.parse(read('docs/website-reorder-claims-v1.30.json'))]
+    .flatMap(item => [...item.claims, ...(item.externalClaims || [])])
+    .filter(claim => claim.source === file)
+    .map(claim => claim.exactWording)
+    .concat(cinemaLedger.labels);
+  const markup = source.slice(source.indexOf('<BaseLayout'));
+  const units = [...markup.matchAll(/<(h[1-6]|p|li|figcaption|caption|strong)\b[^>]*>([\s\S]*?)<\/\1>/g)]
+    .map(match => normalize(match[2])).filter(text => text && !text.includes('{'));
+  // The switching steps, the comparison and the questions live in the
+  // frontmatter as data, so their strings are checked as written there.
+  const data = source.slice(0, source.indexOf('<BaseLayout'));
+  for (const [, text] of data.matchAll(/(?:title|body|limit|step|note|label|name): "([^"]+)"/g)) units.push(text);
+  for (const match of data.matchAll(/^\s*\["([^"]+)", "([^"]+)"(?:, "([^"]*)", "([^"]+)", "([^"]*)")?\],?$/gm)) {
+    for (const text of match.slice(1)) if (text && !['yes', 'no', 'part'].includes(text)) units.push(text);
+  }
+  assert.ok(units.length > 100, 'homepage prose found');
+  for (const unit of units) {
+    if (recorded.some(wording => wording.includes(unit))) continue;
+    for (const sentence of unit.split(/(?<=[.?!])\s+(?=[A-Z“])/)) {
+      assert.ok(recorded.some(wording => wording.includes(sentence)), `homepage sentence is not recorded: “${sentence}”`);
+    }
+  }
+});
+
 test('feature guide pages show only ledger-recorded captures or same-size WebP companions of them', async () => {
   const ledgers = fs.readdirSync(path.join(root, 'docs')).filter(name => /^website-.*captures?-.*\.json$/.test(name));
   const recorded = new Set(ledgers.flatMap(name =>
@@ -326,6 +381,10 @@ test('hero wallpaper scenes retain actual public captures and phase provenance',
     }
     const bytes = fs.readFileSync(path.join(root, capture.file));
     assert.deepEqual([bytes.readUInt32BE(16), bytes.readUInt32BE(20)], [capture.width, capture.height]);
-    assert.ok(read('site/src/pages/index.astro').includes(capture.displayAsset.file.replace('site/public', '')));
   }
+  // Every wallpaper capture the homepage shows is one of these ledgered scenes.
+  const ledgered = new Set(manifest.captures.map(capture => capture.displayAsset.file.replace('site/public', '')));
+  const shown = [...read('site/src/pages/index.astro').matchAll(/\/feature-captures\/home-wallpaper-[a-z-]+-v[\d.]+\.webp/g)].map(match => match[0]);
+  assert.ok(shown.length > 0);
+  for (const file of shown) assert.ok(ledgered.has(file), `${file} is not a ledgered wallpaper capture`);
 });

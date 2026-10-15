@@ -2658,40 +2658,9 @@
       "verdict": "qualified"
     },
     {
-      "id": "home-audit-hero-offer",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Free and open source. Ad and tracker blocking is on by default.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "trust",
-        "blockingDefault"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "home-audit-wallpaper-kicker",
       "source": "site/src/pages/index.astro",
       "exactWording": "Time-of-day wallpaper",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "wallpaper"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "home-audit-wallpaper-heading",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Match your Start Page to the time of day.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "wallpaper"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "home-audit-wallpaper-lead",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Turn on Time-of-day wallpaper in Settings → General, and the Start Page artwork follows your computer’s clock through dawn, day, dusk and night. Drag the slider to preview each phase.",
       "subject": "Blanc",
       "evidenceGroups": [
         "wallpaper"
@@ -3609,17 +3578,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "reddit-tabs-accessible-description",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Each dot is a tab. Hover to see its icon and title. Keyboard focus shows the icon; a screen reader announces the tab title. Click or press Enter to switch. +N opens the full list. Use Cmd+L on Mac or Ctrl+L on Windows and Linux to search tabs by name.",
-      "claimType": "accessible product navigation explanation",
-      "evidenceGroups": [
-        "navigation"
-      ],
-      "verdict": "qualified",
-      "reason": "Public v1.26.0 tabDot sets a title tooltip and an accessible Switch to title label; focus-visible reveals the favicon and the button activates on Enter. The description stays outside the inert replica and moves with the frame into the enlarged viewer."
-    },
-    {
       "id": "revamp-copy-001",
       "source": "site/src/pages/trust.astro",
       "exactWording": "Trust comes with the details.",
@@ -3728,41 +3686,9 @@
       "verdict": "qualified"
     },
     {
-      "id": "e1-hero-lead",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Tabs, navigation and page controls fold into one compact Island in a slim band, leaving the rest of the window to the page. A desktop browser for macOS, Windows and Linux.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "navigation",
-        "wallpaper",
-        "workspaces"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "revamp-copy-012",
       "source": "site/src/pages/index.astro",
       "exactWording": "Tabs, search and commands.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "navigation"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-013",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Open the Island to choose a tab, find a page or use a command. Close it to return to the page in front of you.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "navigation"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-014",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Each dot is a tab. Hover or focus a dot in Blanc to preview it; select it to switch. Open the Island for the full list.",
       "subject": "Blanc",
       "evidenceGroups": [
         "navigation"
@@ -3778,28 +3704,6 @@
         "builtInBlocking"
       ],
       "verdict": "verified"
-    },
-    {
-      "id": "revamp-copy-032",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Private tabs and data settings.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "security",
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "e4-private-intro",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Open a private tab when you choose. Optional connections start only after you save your setup choices.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "security",
-        "trust"
-      ],
-      "verdict": "qualified"
     },
     {
       "id": "e4-sends-title",
@@ -3844,57 +3748,6 @@
         "trust"
       ],
       "verdict": "qualified"
-    },
-    {
-      "id": "e4-blocking-limit",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Blocking reduces known ads and tracking; coverage is not universal. Connections, defaults and security evidence →",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "security",
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-035",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Choose your Start Page layout.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "startPage"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-036",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Choose Ledger, Billboard, Shelf or Tally. Keep a simple list, a large clock, a shelf of favorites or a view of blocking activity.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "startPage"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-037",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Ledger — a simple list of Favorites.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "startPage"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-mahjong-built-in",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Preview Blanc’s built-in game.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "startPage"
-      ],
-      "verdict": "verified"
     },
     {
       "id": "revamp-copy-038",
@@ -3981,51 +3834,9 @@
       "verdict": "qualified"
     },
     {
-      "id": "revamp-copy-051",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Use your 1Password logins.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance",
-        "onepassword",
-        "gestures",
-        "foundations",
-        "process"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "revamp-copy-052",
       "source": "site/src/pages/index.astro",
       "exactWording": "On macOS, the optional integration fills a matching login when you ask.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance",
-        "onepassword",
-        "gestures",
-        "foundations",
-        "process"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "e6-onepassword-limit",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Off by default. Needs the 1Password app and account on macOS. Setup and shortcuts →",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance",
-        "onepassword",
-        "gestures",
-        "foundations",
-        "process"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-054",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Free memory with Quiet Tabs.",
       "subject": "Blanc",
       "evidenceGroups": [
         "glance",
@@ -4065,92 +3876,12 @@
       "verdict": "qualified"
     },
     {
-      "id": "e2-heading",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Bring your bookmarks and tabs.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "importing"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "e2-bookmarks-title",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Bring your bookmarks.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "importing"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "e2-bookmarks",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Import Favorites from a detected browser profile or an HTML bookmarks file. How importing works →",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "importing"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "e2-tabs-title",
       "source": "site/src/pages/index.astro",
       "exactWording": "Bring your tabs.",
       "subject": "Blanc",
       "evidenceGroups": [
         "importing"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "e2-tabs",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Bring Your Tabs reads the saved session of a Chromium-based browser profile you choose on this device.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "tabImport"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "e2-vertical-title",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Prefer a sidebar?",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "navigation"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "e2-vertical",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Switch to vertical tabs in View → Tab Layout. The setting stays on this device. Vertical tabs →",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "navigation"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "e2-default-title",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Make it your default.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "e2-default",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "First-run setup helps you choose a default browser.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
       ],
       "verdict": "qualified"
     },
@@ -4171,19 +3902,6 @@
       "id": "revamp-copy-063",
       "source": "site/src/pages/index.astro",
       "exactWording": "US$30 / year or US$4 / month, plus applicable tax.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "process",
-        "trust",
-        "workspaces",
-        "releaseAuthentication"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-064",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Explore Blanc Spaces →",
       "subject": "Blanc",
       "evidenceGroups": [
         "process",
@@ -7919,37 +7637,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "revamp-island-slash-discovery",
-      "source": "site/src/scripts/home.js",
-      "exactWording": "Type / in the Island to reveal the available commands. Scroll the list in Blanc, or keep typing to filter it.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "navigation"
-      ],
-      "verdict": "verified",
-      "reason": "Public v1.26.0 overlay.js renders all available COMMANDS when slashWord is / and otherwise filters by command prefix. The native list scrolls inside the overlay; the website still shows its opening viewport."
-    },
-    {
-      "id": "tabs-native-heading",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Organize tabs into groups.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "tabs-native-intro",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Bring related tabs together in named groups. Fold a group away when you want a quieter view. You choose what belongs together.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
-      ],
-      "verdict": "verified"
-    },
-    {
       "id": "revamp-gesture-outcome-1",
       "source": "site/src/scripts/gesture-demo.js",
       "exactWording": "Return to the previous page.",
@@ -8029,16 +7716,6 @@
       "evidenceGroups": [
         "blockingDefault",
         "blockingProviders"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "home-audit-download-close",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Ready to try Blanc?",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "releaseAuthentication"
       ],
       "verdict": "qualified"
     },
@@ -8151,26 +7828,6 @@
       "subject": "Blanc",
       "evidenceGroups": [
         "releaseAuthentication"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "privacy-badge-default",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "<h3>Blanc Blocker</h3><span class=\"blocking-badge is-default\">Default</span>",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "blockingDefault"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "privacy-badge-optional",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "<h3>uBlock Origin</h3><span class=\"blocking-badge\">Optional</span>",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "blockingProviders"
       ],
       "verdict": "qualified"
     },
@@ -10288,6 +9945,379 @@
       ],
       "verdict": "qualified",
       "reason": "October 15, 2026: the memory benchmark was re-run on public v1.34.0 (bench/memory/results/memory-2026-10-15T06-03-46-052Z.md), so the dated FAQ wording changed. The replacement wording is recorded in docs/website-v1.34-claims.json; the original remains in git history."
+    },
+    {
+      "id": "home-audit-hero-offer",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Free and open source. Ad and tracker blocking is on by default.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "trust",
+        "blockingDefault"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "home-audit-wallpaper-heading",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Match your Start Page to the time of day.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "wallpaper"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "home-audit-wallpaper-lead",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Turn on Time-of-day wallpaper in Settings → General, and the Start Page artwork follows your computer’s clock through dawn, day, dusk and night. Drag the slider to preview each phase.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "wallpaper"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "reddit-tabs-accessible-description",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Each dot is a tab. Hover to see its icon and title. Keyboard focus shows the icon; a screen reader announces the tab title. Click or press Enter to switch. +N opens the full list. Use Cmd+L on Mac or Ctrl+L on Windows and Linux to search tabs by name.",
+      "claimType": "accessible product navigation explanation",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "e1-hero-lead",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Tabs, navigation and page controls fold into one compact Island in a slim band, leaving the rest of the window to the page. A desktop browser for macOS, Windows and Linux.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "navigation",
+        "wallpaper",
+        "workspaces"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "revamp-copy-013",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Open the Island to choose a tab, find a page or use a command. Close it to return to the page in front of you.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "revamp-copy-014",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Each dot is a tab. Hover or focus a dot in Blanc to preview it; select it to switch. Open the Island for the full list.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "revamp-copy-032",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Private tabs and data settings.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security",
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "e4-private-intro",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Open a private tab when you choose. Optional connections start only after you save your setup choices.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security",
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "e4-blocking-limit",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Blocking reduces known ads and tracking; coverage is not universal. Connections, defaults and security evidence →",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security",
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "revamp-copy-035",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Choose your Start Page layout.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "revamp-copy-036",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Choose Ledger, Billboard, Shelf or Tally. Keep a simple list, a large clock, a shelf of favorites or a view of blocking activity.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "revamp-copy-037",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Ledger — a simple list of Favorites.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "revamp-mahjong-built-in",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Preview Blanc’s built-in game.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "verified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "revamp-copy-051",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Use your 1Password logins.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance",
+        "onepassword",
+        "gestures",
+        "foundations",
+        "process"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "e6-onepassword-limit",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Off by default. Needs the 1Password app and account on macOS. Setup and shortcuts →",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance",
+        "onepassword",
+        "gestures",
+        "foundations",
+        "process"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "revamp-copy-054",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Free memory with Quiet Tabs.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance",
+        "onepassword",
+        "gestures",
+        "foundations",
+        "process"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "e2-heading",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Bring your bookmarks and tabs.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "importing"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "e2-bookmarks-title",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Bring your bookmarks.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "importing"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "e2-bookmarks",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Import Favorites from a detected browser profile or an HTML bookmarks file. How importing works →",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "importing"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "e2-tabs",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Bring Your Tabs reads the saved session of a Chromium-based browser profile you choose on this device.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "tabImport"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "e2-vertical-title",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Prefer a sidebar?",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "e2-vertical",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Switch to vertical tabs in View → Tab Layout. The setting stays on this device. Vertical tabs →",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "e2-default-title",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Make it your default.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "e2-default",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "First-run setup helps you choose a default browser.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "revamp-copy-064",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Explore Blanc Spaces →",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "process",
+        "trust",
+        "workspaces",
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "revamp-island-slash-discovery",
+      "source": "site/src/scripts/home.js",
+      "exactWording": "Type / in the Island to reveal the available commands. Scroll the list in Blanc, or keep typing to filter it.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "verified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "tabs-native-heading",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Organize tabs into groups.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "tabs-native-intro",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Bring related tabs together in named groups. Fold a group away when you want a quieter view. You choose what belongs together.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "verified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "home-audit-download-close",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Ready to try Blanc?",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "privacy-badge-default",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "<h3>Blanc Blocker</h3><span class=\"blocking-badge is-default\">Default</span>",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingDefault"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "privacy-badge-optional",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "<h3>uBlock Origin</h3><span class=\"blocking-badge\">Optional</span>",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
     }
   ],
   "supersededCandidateClaims": [

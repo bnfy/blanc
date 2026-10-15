@@ -73,6 +73,12 @@ test('primary navigation and footer keep supporting pages and trust one click aw
  assert.match(footer,/data-consent-open/);assert.match(footer,/Bananify/);
  assert.match(read('site/src/components/NewsletterForm.astro'),/Updates from Blanc\./);
 });
+test('the header treats the built /index page as the homepage',async()=>{
+ const {pagePath}=await import(pathToFileURL(path.join(ROOT,'site/src/data/navigation.mjs')).href);
+ for(const pathname of ['/','/index','/index.html'])assert.equal(pagePath(pathname),'/',pathname);
+ for(const pathname of ['/download','/download.html','/features/island.html'])assert.equal(pagePath(pathname),pathname.replace('.html',''),pathname);
+ assert.match(read('site/src/components/Header.astro'),/const onHome = pagePath\(Astro\.url\.pathname\) === "\/";/);
+});
 test('immutable release note links resolve to current destinations without losing fragments',async()=>{
  const {currentWebsiteLink}=await import(pathToFileURL(path.join(ROOT,'site/src/lib/website-routes.mjs')).href);
  assert.equal(currentWebsiteLink('https://blancbrowser.com/features/security#security-audit-title'),'https://blancbrowser.com/features/security#security-audit-title');
