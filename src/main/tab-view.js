@@ -208,7 +208,7 @@ function wireTabView(tab, view, { owner, adopted }) {
       return;
     }
     const enabled = gestureSettings().enabled;
-    if (!enabled || getOwner().activeTabId !== id || tab.view?.webContents !== wc) {
+    if (!enabled || !isVisiblePaneId(getOwner(), id) || tab.view?.webContents !== wc) {
       gesture.cancel(); gestureButton = null; pendingClick = null; return;
     }
     // Electron's before-mouse-event omits modifiers on some runtimes, even

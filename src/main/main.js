@@ -6019,7 +6019,7 @@ initTabView({
   noteFocusedPane,
   isFindTarget: (owner, tabId) => findTargetTabId(owner) === tabId,
   dispatchMouseGesture(owner, tab, action) {
-    if (!owner || owner.closing || owner.activeTabId !== tab.id || liveContents(tab) == null) return;
+    if (!owner || owner.closing || !isVisiblePaneId(owner, tab.id) || liveContents(tab) == null) return;
     const wc = liveContents(tab);
     switch (action) {
       case 'back': if (wc.navigationHistory.canGoBack()) wc.navigationHistory.goBack(); break;

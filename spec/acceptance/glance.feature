@@ -240,3 +240,10 @@ Feature: Glance reference pane
     When the main page is the focused pane
     Then the 1Password fill targets the main page
     And the Island hides the fill hint
+
+  @F34-1 @F34 @D11
+  Scenario: A mouse gesture in the reference acts on the reference
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And I draw the reload gesture in the reference pane
+    Then only the reference page reloaded

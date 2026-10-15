@@ -1031,3 +1031,20 @@ Then('the Island hides the fill hint', async function () {
   await chrome.locator('#pillFillHint[hidden]').waitFor({ state: 'attached' });
   await this.call('setOnePasswordConfig', false, '');
 });
+
+When('I draw the reload gesture in the reference pane', async function () {
+  await recordLoadCounts(this);
+  const original = await this.call('setMouseGestures', true);
+  await this.call('setMouseGestures', true, { ...original.mapping, R: 'reload' });
+  try {
+    for (const input of [
+      { type: 'mouseDown', x: 200, y: 200, button: 'right', clickCount: 1 },
+      { type: 'mouseMove', x: 260, y: 200, button: 'right' },
+      { type: 'mouseUp', x: 260, y: 200, button: 'right', clickCount: 1 },
+    ]) assert.equal(await this.call('sendMouseInput', this.glanceReferenceId, input), true);
+    await waitForValue(() => loadCount(this, this.glanceReferenceId),
+      (count) => count !== this.glanceLoadsBefore.reference, 'gesture acted', 2000).catch(() => {});
+  } finally {
+    await this.call('setMouseGestures', original.enabled, original.mapping);
+  }
+});
