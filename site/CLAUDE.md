@@ -148,6 +148,14 @@ page must never list as planned something the changelog shows as shipped.
 Roadmap copy describes plans, so keep each item's qualifier (testing, paused,
 depends on…) and follow `docs/marketing-claims.md`.
 
+**Slash-command lists:** the command palette page and its Support guide list
+commands through `src/lib/released-slash-commands.mjs`, never straight from
+the root `copy/slash-commands.json`, which runs ahead of the public release.
+A command merged on main stays in `src/data/unreleased-slash-commands.json`
+until a release ships it; `test/unit/site-slash-commands.test.js` compares
+that list with the latest release in `releases.json`, so the post-release
+changelog refresh is also when a shipped command comes off it.
+
 The Windows download page
 notes the installer is not yet code-signed; update that copy only when Azure
 Trusted Signing actually ships a signed build. The JSON-LD deliberately has
