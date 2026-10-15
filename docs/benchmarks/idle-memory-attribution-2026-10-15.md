@@ -221,3 +221,20 @@ node bench/memory/idle-attribution.js \
 Add `--url=https://example.com/` to measure a window showing a website, and
 `--extra-arg=--force-device-scale-factor=2` on a display that is not Retina.
 Results land in `bench/memory/results/` (gitignored) as JSON and Markdown.
+
+The variants above come from `bench/memory/make-variant.js` (after
+`npm ci --ignore-scripts`). It copies a packaged app, applies one named change
+inside `app.asar` (`noblur`, `nodock`, `nohelper`, `nowallpaper`), updates the
+integrity hash and signs ad hoc; `control` gets the same treatment with no
+change. Measure a variant only against `control`, and pass
+`--extra-arg=--use-mock-keychain`, because the re-signed copies would otherwise
+ask for the real "Blanc Safe Storage" keychain item:
+
+```sh
+node bench/memory/make-variant.js --app=/Applications/Blanc.app \
+  --out="$TMPDIR/blanc-variants" --variant=control --variant=noblur
+node bench/memory/idle-attribution.js \
+  "--app=$TMPDIR/blanc-variants/control/Blanc.app=control" \
+  "--app=$TMPDIR/blanc-variants/noblur/Blanc.app=noblur" \
+  --url=https://example.com/ --extra-arg=--use-mock-keychain --reps=4
+```

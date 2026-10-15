@@ -1233,3 +1233,24 @@ test('idle attribution reports the median per process kind for each release', ()
   assert.equal(summary.table.a.total.median, 110);
   assert.equal(summary.table.b.kinds['gpu-process'].topCategories[0].category, 'IOSurface');
 });
+
+const variants = require('../../bench/memory/make-variant');
+
+test('a variant change replaces exactly one whole line, or refuses', () => {
+  assert.equal(variants.replaceLineOnce('a\n  b;\nc', '  b;', null), 'a\nc');
+  assert.equal(variants.replaceLineOnce('a\n  b;\nc', '  b;', '  d;'), 'a\n  d;\nc');
+  // A moved or reworded line must fail loudly, never yield an unchanged variant.
+  assert.throws(() => variants.replaceLineOnce('a\nc', '  b;', null), /found 0/);
+  assert.throws(() => variants.replaceLineOnce('  b;\n  b;', '  b;', null), /found 2/);
+  // Whole lines only: a longer line that merely contains the text is not a match.
+  assert.throws(() => variants.replaceLineOnce('  b; /* x */', '  b;', null), /found 0/);
+});
+
+test('variants are named, and the control changes nothing', () => {
+  assert.deepEqual(variants.VARIANTS.control.lines, []);
+  assert.equal(variants.VARIANTS.control.images, undefined);
+  const options = variants.parseArgs(['--out=/tmp/v', '--variant=control', '--variant=noblur']);
+  assert.equal(options.app, '/Applications/Blanc.app');
+  assert.deepEqual(options.variants, ['control', 'noblur']);
+  assert.throws(() => variants.parseArgs(['--variant=nosuch']), /Unknown variant/);
+});
