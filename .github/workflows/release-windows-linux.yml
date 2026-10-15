@@ -135,6 +135,15 @@ jobs:
       - name: Verify packaged blocker inputs
         run: npm run adblock:check
 
+      - name: Install licensed Blubird fonts
+        shell: bash
+        env:
+          BLUBIRD_REGULAR_DISPLAY_WOFF2: ${{ secrets.BLUBIRD_REGULAR_DISPLAY_WOFF2 }}
+          BLUBIRD_REGULAR_TEXT_WOFF2: ${{ secrets.BLUBIRD_REGULAR_TEXT_WOFF2 }}
+          BLUBIRD_MEDIUM_TEXT_WOFF2: ${{ secrets.BLUBIRD_MEDIUM_TEXT_WOFF2 }}
+          BLUBIRD_SEMIBOLD_TEXT_WOFF2: ${{ secrets.BLUBIRD_SEMIBOLD_TEXT_WOFF2 }}
+        run: node scripts/blubird-fonts.js install-env ${{ inputs.mode == 'release' && '--require' || '' }}
+
       - name: Build Windows installer
         shell: bash
         env:
@@ -186,6 +195,10 @@ jobs:
 
       - name: Verify packaged blocker payload
         run: node scripts/verify-packaged-adblock.js dist/win-unpacked/resources/app.asar
+
+      - name: Verify packaged licensed fonts
+        if: ${{ inputs.mode == 'release' }}
+        run: node scripts/blubird-fonts.js check --require --asar dist/win-unpacked/resources/app.asar
 
       - name: Verify packaged uBlock payload and corresponding-source records
         run: node scripts/verify-packaged-ublock.js dist/win-unpacked/resources/app.asar
@@ -437,6 +450,15 @@ jobs:
             exit 1
           }
 
+      - name: Install licensed Blubird fonts
+        shell: bash
+        env:
+          BLUBIRD_REGULAR_DISPLAY_WOFF2: ${{ secrets.BLUBIRD_REGULAR_DISPLAY_WOFF2 }}
+          BLUBIRD_REGULAR_TEXT_WOFF2: ${{ secrets.BLUBIRD_REGULAR_TEXT_WOFF2 }}
+          BLUBIRD_MEDIUM_TEXT_WOFF2: ${{ secrets.BLUBIRD_MEDIUM_TEXT_WOFF2 }}
+          BLUBIRD_SEMIBOLD_TEXT_WOFF2: ${{ secrets.BLUBIRD_SEMIBOLD_TEXT_WOFF2 }}
+        run: node scripts/blubird-fonts.js install-env ${{ inputs.mode == 'release' && '--require' || '' }}
+
       - name: Build
         env:
           BLANC_UBLOCK_INTERNAL_BUILD: ${{ inputs.mode == 'validation' && inputs.ublock_candidate && '1' || '0' }}
@@ -468,6 +490,10 @@ jobs:
 
       - name: Verify packaged blocker payload
         run: node scripts/verify-packaged-adblock.js dist/linux-unpacked/resources/app.asar
+
+      - name: Verify packaged licensed fonts
+        if: ${{ inputs.mode == 'release' }}
+        run: node scripts/blubird-fonts.js check --require --asar dist/linux-unpacked/resources/app.asar
 
       - name: Verify packaged uBlock payload and corresponding-source records
         run: node scripts/verify-packaged-ublock.js dist/linux-unpacked/resources/app.asar

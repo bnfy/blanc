@@ -267,7 +267,7 @@ fi
 # resumed; every preflight above still runs. The build stamp written after a
 # successful build must match this commit, version and Mac architectures, and
 # every stamped file in dist/ must still match its recorded SHA-256.
-RESUME_STEPS=(fuses blocker-payloads compliance first-run regressions workspaces favicons-primary favicons-additional migration)
+RESUME_STEPS=(fuses blocker-payloads fonts compliance first-run regressions workspaces favicons-primary favicons-additional migration)
 RESUME_FROM="${BLANC_RELEASE_RESUME_FROM:-}"
 BUILD_STAMP="dist/.release-build-stamp"
 BUILD_STAMP_HEADER="commit=$LOCAL_HEAD version=$VERSION mac=$MAC_ARCH_CSV"
@@ -313,6 +313,14 @@ else
   echo "==> Preflighting the macOS identity and provisioning profile"
   node scripts/preflight-mac-signing.mjs
 
+  echo "==> Installing the licensed Blubird fonts from 1Password"
+  BLUBIRD_ZIP_DIR="$(mktemp -d)"
+  OP_BIOMETRIC_UNLOCK_ENABLED=true op document get "Blubird fonts" --vault Dev \
+    --out-file "$BLUBIRD_ZIP_DIR/Blubird.zip" --force
+  node scripts/blubird-fonts.js install "$BLUBIRD_ZIP_DIR/Blubird.zip"
+  rm -rf "$BLUBIRD_ZIP_DIR"
+  node scripts/blubird-fonts.js check --require
+
   echo "==> Cleaning and building notarized macOS artifacts"
   echo "    1Password desktop-app integration is forced for this command."
   echo "    Cancel any manual-account prompt; the desktop authorization is the only valid path."
@@ -350,6 +358,14 @@ if should_run blocker-payloads; then
   $HAS_MAC_ARM64 && node scripts/verify-packaged-adblock.js \
     "dist/mac-arm64/Blanc.app/Contents/Resources/app.asar"
   $HAS_MAC_X64 && node scripts/verify-packaged-adblock.js \
+    "dist/mac/Blanc.app/Contents/Resources/app.asar"
+fi
+
+if should_run fonts; then
+  echo "==> Verifying the licensed Blubird fonts in packaged apps"
+  $HAS_MAC_ARM64 && node scripts/blubird-fonts.js check --require --asar \
+    "dist/mac-arm64/Blanc.app/Contents/Resources/app.asar"
+  $HAS_MAC_X64 && node scripts/blubird-fonts.js check --require --asar \
     "dist/mac/Blanc.app/Contents/Resources/app.asar"
 fi
 
