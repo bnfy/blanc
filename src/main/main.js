@@ -6,6 +6,7 @@ const fs = require('fs');
 const crypto = require('crypto');
 const { installMacOSQuitVisibilityGate } = require('./macos-quit');
 const {
+  savesSessionEntry,
   shouldClearPersistedWindowState,
   windowCloseSessionEffect,
   windowStateName,
@@ -4402,7 +4403,7 @@ function persistSession() {
   ensureSessionStore().update((d) => {
     const previous = loadWorkspace(d);
     const previousById = new Map(previous.windows.map((entry) => [entry.id, entry]));
-    const windows = windowRuntimes.all().filter((runtime) => !runtime.resident).map((runtime) => captureWindowEntry(runtime, {
+    const windows = windowRuntimes.all().filter(savesSessionEntry).map((runtime) => captureWindowEntry(runtime, {
       previousActiveIndex: previousById.get(runtime.id)?.activeIndex ?? 0,
     }));
     const activeWindowId = windowRuntimes.all().includes(focusedRuntime)
@@ -5247,7 +5248,7 @@ function flushWorkspaceSession({ excludeRuntime = null } = {}) {
   if (sessionReadOnly) return { ok: false, error: 'future-format' };
   const saved = ensureSessionStore().updateAndFlush((data) => {
     const previous = new Map(loadWorkspace(data).windows.map((entry) => [entry.id, entry]));
-    const windows = windowRuntimes.all().filter((r) => r !== excludeRuntime && !r.resident && !r.closing)
+    const windows = windowRuntimes.all().filter((r) => r !== excludeRuntime && !r.closing && savesSessionEntry(r))
       .map((r) => captureWindowEntry(r, { previousActiveIndex: previous.get(r.id)?.activeIndex ?? 0 }));
     Object.assign(data, buildSaveShape(windows, data, { activeWindowId: focusedRuntime?.id ?? PRIMARY_WINDOW_ID }));
   });
@@ -8692,6 +8693,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     if (pendingTabHandoff?.runtimeId === runtime.id) pendingTabHandoff = null;
     flushPermissionPrompts(runtime);
     const clearPersistedWindowState = shouldClearPersistedWindowState({
+      platform: process.platform,
       isQuitting,
       isPrimaryWindow: runtime === primaryRuntime,
       closeEffect: dockReopenLifecycle.closeSessionEffect(),
@@ -8703,7 +8705,11 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
       for (const tabId of [...runtime.tabOrder]) closeTab(tabId, { record: false });
       for (const entry of runtime.closedEntries ?? []) disposeClosedEntry(entry);
       runtime.closedEntries = [];
-      windowRuntimes.discardRuntime(runtime);
+      // A Windows/Linux primary closes like any other window, but its empty
+      // runtime stays registered: much of main.js falls back to primaryRuntime.
+      // With no window and no tabs it is no longer saved (savesSessionEntry).
+      if (runtime === primaryRuntime) windowRuntimes.detachWindow(runtime);
+      else windowRuntimes.discardRuntime(runtime);
       // This window was intentionally removed from Blanc's saved session.
       // Do not accumulate native placement entries for one-off windows; a
       // normal app quit takes the other branch and retains every live window.

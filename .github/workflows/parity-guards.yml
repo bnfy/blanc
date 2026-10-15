@@ -250,6 +250,15 @@ jobs:
       - name: Closing the last window quits Blanc and keeps its tabs (Windows)
         if: ${{ !cancelled() && runner.os == 'Windows' }}
         run: npm run test:window-close-quit
+      # macOS keeps the primary for Dock reopen, so this smoke skips there.
+      - name: A closed primary window stays closed (Linux)
+        if: ${{ !cancelled() && runner.os == 'Linux' }}
+        run: |
+          bash scripts/ci-enable-linux-sandbox.sh
+          xvfb-run -a npm run test:window-close-primary
+      - name: A closed primary window stays closed (Windows)
+        if: ${{ !cancelled() && runner.os == 'Windows' }}
+        run: npm run test:window-close-primary
 
   quiet-tabs:
     needs: changes
