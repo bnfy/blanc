@@ -51,9 +51,15 @@ publishable as a comparative result.
 The canonical raw output is the generated JSON under
 `bench/memory/results/`. Publish it without removing failures or warnings and
 keep its environment, browser versions, backend, workload, repetitions,
-per-process samples, page-observation result, idle baseline, and rejected-cell
+sample series, page-observation result, idle baseline, and rejected-cell
 records. The generated Markdown is a view of that JSON, not a substitute for
 it.
+
+That JSON holds per-repetition totals and process counts, not per-process
+bytes. To find which Blanc process changed between builds, run
+`bench/memory/idle-attribution.js` on the packaged bundles; it records each
+process's footprint and `footprint(1)` categories. The first use is
+[the 1.1.0 → 1.34.0 idle attribution](idle-memory-attribution-2026-10-15.md).
 
 See [the harness documentation](../../bench/memory/README.md) for metric
 selection, fairness controls, failure handling, and interpretation. Do not turn
