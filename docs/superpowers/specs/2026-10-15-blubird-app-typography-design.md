@@ -103,6 +103,12 @@ Display webfonts plus the variable file. The website (#836) still uses the
 static Text files, so its copy is slightly wider than the app's until it
 adopts the same setting.
 
+**Owner decision, October 15 ("Where to?"):** the Display cut read too tight
+at 32px, which #836's brand rule already flagged as the Display cut's lower
+limit. "Where to?" now uses the variable file at optical size 32, so Regular
+Display is no longer used and leaves the pinned set: Medium Display (the
+Billboard clock) and the variable file remain.
+
 ## Approaches considered
 
 **A. The website's four static files (recommended).** Same files, family names

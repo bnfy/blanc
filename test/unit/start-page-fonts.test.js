@@ -47,7 +47,6 @@ test('Blubird sets headings and page copy; Inter keeps figures, keys, the chrome
   const pinned = JSON.parse(read('fonts/blubird/pinned.json'));
 
   for (const [family, file, format, weight] of [
-    ['Blubird Display', 'Blubird-RegularDisplay.woff2', 'woff2', '400'],
     ['Blubird Display', 'Blubird-MediumDisplay.woff2', 'woff2', '500'],
     ['Blubird Text', 'Blubird-VF.ttf', 'truetype', '100 900'],
   ]) {
@@ -66,7 +65,10 @@ test('Blubird sets headings and page copy; Inter keeps figures, keys, the chrome
   const opsz = rulesFor(pages, '*, *::before, *::after').find((rule) => rule.body.includes('font-variation-settings'));
   assert.ok(opsz, 'a universal rule carries the optical size');
   assert.match(opsz.body, /font-variation-settings: "opsz" var\(--text-optical-size\) !important;/);
-  assert.doesNotMatch(pages, /Blubird-(Regular|Medium|SemiBold)Text\.woff2/);
+  assert.doesNotMatch(pages, /Blubird-(Regular|Medium|SemiBold)Text\.woff2|Blubird-RegularDisplay/);
+  // "Where to?" reads the variable file at its own size, 32 (owner choice, October 15).
+  assert.match(rulesFor(pages, '.ledger-where').find((rule) => rule.body.includes('--font-text')).body,
+    /font-variation-settings: "opsz" 32 !important;/);
   assert.ok(pages.includes(`--font-text: "Blubird Text", ${INTER_STACK};`));
   assert.ok(pages.includes(`--font-display: "Blubird Display", ${INTER_STACK};`));
   assert.ok(pages.includes(`--font-ui: ${INTER_STACK};`));
@@ -80,7 +82,7 @@ test('Blubird sets headings and page copy; Inter keeps figures, keys, the chrome
     '.migration-checklist-heading h2': 'text',
     'body.sheet .page h1': 'text',
     '.ob-content h1': 'text',
-    '.ledger-where': 'display',
+    '.ledger-where': 'text',
   };
   for (const [selector, role] of Object.entries(headings)) {
     const rules = rulesFor(pages, selector);

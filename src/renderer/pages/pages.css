@@ -9,17 +9,10 @@
   font-display: swap;
 }
 /* Blubird (Rajesh Rajput) is commercially licensed and never committed. The
-   three files are installed flat beside this stylesheet by
+   two files are installed flat beside this stylesheet by
    `npm run fonts:install` and pinned in fonts/blubird/pinned.json. Without
    them every Blubird stack falls back to Inter. The Display faces match the
    website. */
-@font-face {
-  font-family: "Blubird Display";
-  src: url("Blubird-RegularDisplay.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
 @font-face {
   font-family: "Blubird Display";
   src: url("Blubird-MediumDisplay.woff2") format("woff2");
@@ -3633,7 +3626,7 @@ body.layout-ready .start-content > main { transition: opacity 160ms var(--start-
   }
 }
 
-/* Ledger: one Blubird Display line over a centered two-column spread. With
+/* Ledger: one Blubird line over a centered two-column spread. With
    nothing on the right, Favorites centers alone. */
 body[data-layout="ledger"] .ledger {
   width: 100%;
@@ -3645,7 +3638,9 @@ body[data-layout="ledger"] .ledger:not(:has(.ledger-col-secondary > section:not(
 .ledger-where {
   margin: 0 0 32px;
   color: var(--text);
-  font-family: var(--font-display);
+  font-family: var(--font-text);
+  /* The variable file at its own size reads looser than the Display cut. */
+  font-variation-settings: "opsz" 32 !important;
   letter-spacing: 0;
   font-size: 32px;
   font-weight: 400;

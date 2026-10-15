@@ -138,7 +138,6 @@ jobs:
       - name: Install licensed Blubird fonts
         shell: bash
         env:
-          BLUBIRD_REGULAR_DISPLAY_WOFF2: ${{ secrets.BLUBIRD_REGULAR_DISPLAY_WOFF2 }}
           BLUBIRD_MEDIUM_DISPLAY_WOFF2: ${{ secrets.BLUBIRD_MEDIUM_DISPLAY_WOFF2 }}
           BLUBIRD_VF_TTF_1: ${{ secrets.BLUBIRD_VF_TTF_1 }}
           BLUBIRD_VF_TTF_2: ${{ secrets.BLUBIRD_VF_TTF_2 }}
@@ -457,7 +456,6 @@ jobs:
       - name: Install licensed Blubird fonts
         shell: bash
         env:
-          BLUBIRD_REGULAR_DISPLAY_WOFF2: ${{ secrets.BLUBIRD_REGULAR_DISPLAY_WOFF2 }}
           BLUBIRD_MEDIUM_DISPLAY_WOFF2: ${{ secrets.BLUBIRD_MEDIUM_DISPLAY_WOFF2 }}
           BLUBIRD_VF_TTF_1: ${{ secrets.BLUBIRD_VF_TTF_1 }}
           BLUBIRD_VF_TTF_2: ${{ secrets.BLUBIRD_VF_TTF_2 }}

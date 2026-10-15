@@ -22,11 +22,11 @@ const FAKE = {
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'blubird-'));
 const quiet = { log() {}, warn() {}, error() {} };
 
-test('the pinned manifest names the two Display webfonts and the variable font', () => {
+test('the pinned manifest names the Medium Display webfont and the variable font', () => {
   const pinned = readPinned();
   assert.equal(pinned.sourceFolder, 'Blubird/Web-PS');
   assert.deepEqual(pinned.files.map((entry) => entry.name), [
-    'Blubird-RegularDisplay.woff2', 'Blubird-MediumDisplay.woff2', 'Blubird-VF.ttf',
+    'Blubird-MediumDisplay.woff2', 'Blubird-VF.ttf',
   ]);
   for (const entry of pinned.files) {
     assert.match(entry.sha256, /^[0-9a-f]{64}$/);
