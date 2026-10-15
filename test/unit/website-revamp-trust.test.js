@@ -32,11 +32,12 @@ test("the October 2 transparency answers survive consolidation verbatim", () => 
     )[1],
   );
   // The only reviewed wording changes since, applied in order: the Blanc
-  // Spaces rename, then free Blanc Spaces. Each must still find its exact
-  // prior text, so no stale exception lingers.
+  // Spaces rename, free Blanc Spaces, then the v1.34.0 memory re-run. Each
+  // must still find its exact prior text, so no stale exception lingers.
   const supportAnswers = [
     "docs/website-blanc-spaces-rename-2026-10-11.json",
     "docs/website-blanc-spaces-free-2026-10-14.json",
+    "docs/website-memory-rerun-2026-10-15.json",
   ].flatMap((file) => JSON.parse(read(file)).supportAnswers);
   for (const { id, before, after } of supportAnswers) {
     const entry = original.find((candidate) => candidate.id === id);
