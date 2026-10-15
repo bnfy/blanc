@@ -457,6 +457,8 @@
     <string name="address_menu_paste_and_go">Coller et accéder</string>
     <string name="tab_menu_copy_link">Copier le lien</string>
     <string name="tab_menu_duplicate">Dupliquer l’onglet</string>
+    <string name="tab_menu_rename">Renommer l’onglet…</string>
+    <string name="tab_menu_use_page_title">Utiliser le titre de la page</string>
     <string name="tab_menu_pin">Épingler l’onglet</string>
     <string name="tab_menu_unpin">Détacher l’onglet</string>
     <string name="tab_menu_mute">Couper le son de l’onglet</string>

@@ -25,7 +25,7 @@ const byId = (items, id) => items.find((i) => i.id === id);
 test('core items present, in order, for a row on a non-active tab', () => {
   const m = build({ activeTabId: 2, surface: 'row' });
   assert.deepEqual(ids(m), [
-    'copy-link', 'copy-clean-link', 'reload', 'duplicate',
+    'copy-link', 'copy-clean-link', 'reload', 'duplicate', 'rename',
     'toggle-pin', 'toggle-mute', 'toggle-favorite', 'group',
     'glance', 'quiet', 'new-tab', 'new-private-tab',
     'close-others', 'move-new-window', 'reopen-closed', 'close',
@@ -103,7 +103,7 @@ test('radio group items carry the raw groupId for the runner', () => {
 
 test('no leading, trailing, or doubled separators', () => {
   // The tracker-free URL exercises the hidden copy-clean-link path too.
-  for (const m of [build(), build({ tab: { url: 'https://example.com/plain' } })]) {
+  for (const m of [build(), build({ tab: { url: 'https://example.com/plain' } }), build({ tab: { customTitle: 'Budget' } })]) {
     assert.notEqual(m[0].type, 'separator');
     assert.notEqual(m[m.length - 1].type, 'separator');
     for (let i = 1; i < m.length; i++) {
@@ -118,4 +118,12 @@ test('closableTabIds excludes the kept tab and pinned tabs', () => {
     [3, { id: 3, pinned: false }], [4, { id: 4, pinned: false }],
   ]);
   assert.deepEqual(closableTabIds({ tabOrder: [1, 2, 3, 4], tabsById, keepId: 3 }), [1, 4]);
+});
+
+test('Rename Tab… is always offered; Use Page Title only on a renamed tab', () => {
+  assert.equal(byId(build(), 'rename').label, 'Rename Tab…');
+  assert.equal(byId(build(), 'use-page-title'), undefined);
+  const renamed = build({ tab: { customTitle: 'Budget' } });
+  assert.equal(byId(renamed, 'use-page-title').label, 'Use Page Title');
+  assert.deepEqual(ids(renamed).slice(3, 6), ['duplicate', 'rename', 'use-page-title']);
 });

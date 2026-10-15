@@ -80,6 +80,7 @@ function install(refs) {
     getGlanceGeometry,
     groupTabByName,
     renameTab,
+    beginRenameTab,
     closeGroup,
     toggleGroupCollapsed,
     moveTabTo,
@@ -560,6 +561,7 @@ function install(refs) {
     groupActiveByName(name) { groupTabByName(getActiveTabId(), name); },
     groupTabByName(id, name) { groupTabByName(id, name); },
     renameTab(id, name) { renameTab(id, name); },
+    beginRenameTab(id) { beginRenameTab(id); },
     activateTab(id, focusContent = false) { setActiveTab(id, { focusContent: !!focusContent }); },
     focusTabContents(id) {
       const tab = tabs.get(id);

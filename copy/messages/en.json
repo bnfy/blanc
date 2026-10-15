@@ -1677,6 +1677,14 @@
     "message": "Duplicate Tab",
     "note": "Tab context menu command."
   },
+  "tabMenu.rename": {
+    "message": "Rename Tab…",
+    "note": "Tab context menu command that opens the ⌘L bar to type a custom name for the tab."
+  },
+  "tabMenu.usePageTitle": {
+    "message": "Use Page Title",
+    "note": "Tab context menu command shown only on a renamed tab; removes the custom name so the tab shows the page’s own title again."
+  },
   "tabMenu.pin": {
     "message": "Pin Tab",
     "note": "Tab context menu command."

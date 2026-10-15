@@ -457,6 +457,8 @@
     <string name="address_menu_paste_and_go">Incolla e vai</string>
     <string name="tab_menu_copy_link">Copia link</string>
     <string name="tab_menu_duplicate">Duplica scheda</string>
+    <string name="tab_menu_rename">Rinomina scheda…</string>
+    <string name="tab_menu_use_page_title">Usa il titolo della pagina</string>
     <string name="tab_menu_pin">Fissa la scheda</string>
     <string name="tab_menu_unpin">Rilascia la scheda</string>
     <string name="tab_menu_mute">Disattiva l’audio della scheda</string>

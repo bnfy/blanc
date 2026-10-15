@@ -444,6 +444,8 @@
     <string name="address_menu_paste_and_go">Einfügen und öffnen</string>
     <string name="tab_menu_copy_link">Link kopieren</string>
     <string name="tab_menu_duplicate">Tab duplizieren</string>
+    <string name="tab_menu_rename">Tab umbenennen…</string>
+    <string name="tab_menu_use_page_title">Seitentitel verwenden</string>
     <string name="tab_menu_pin">Tab anheften</string>
     <string name="tab_menu_unpin">Tab lösen</string>
     <string name="tab_menu_mute">Tab stummschalten</string>

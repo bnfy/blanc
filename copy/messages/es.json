@@ -1621,6 +1621,14 @@
     "message": "Duplicar pestaña",
     "source": "sha256:6a5abab1ab91972a4ab09925b624a3e1c9c6615e1d07dc7da8be6ccde1a2fd3b"
   },
+  "tabMenu.rename": {
+    "message": "Cambiar nombre de pestaña…",
+    "source": "sha256:465869570b3a7cdb56fc2bc4c0a5c54df738d89302224291ae83e73db1e91341"
+  },
+  "tabMenu.usePageTitle": {
+    "message": "Usar título de la página",
+    "source": "sha256:4c04fc5f4280e6db2211f23c2021ac3866ee73273aab9f4818c45de7947c24ca"
+  },
   "tabMenu.pin": {
     "message": "Fijar pestaña",
     "source": "sha256:9d4454dac78cbfcc82689d9fad43f533edc9b26fef2759ab52253cb1d982e2b6"

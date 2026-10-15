@@ -457,6 +457,8 @@
     <string name="address_menu_paste_and_go">Colar e acessar</string>
     <string name="tab_menu_copy_link">Copiar link</string>
     <string name="tab_menu_duplicate">Duplicar aba</string>
+    <string name="tab_menu_rename">Renomear aba…</string>
+    <string name="tab_menu_use_page_title">Usar título da página</string>
     <string name="tab_menu_pin">Fixar aba</string>
     <string name="tab_menu_unpin">Desafixar aba</string>
     <string name="tab_menu_mute">Silenciar aba</string>

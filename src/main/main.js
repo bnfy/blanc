@@ -6881,6 +6881,16 @@ function beginNewGroup(tabId) {
   showOverlay('panel', { prefill: '/group ', purpose: { beginGroupTabId: tabId } });
 }
 
+/** "Rename Tab…" handoff (F46): the command panel prefilled with /rename and
+ * the tab's current label, bound to the right-clicked tab. Same atomic
+ * purpose-payload reasoning as beginNewGroup: the target must survive the
+ * overlay's did-finish-load replay or Enter would rename the active tab. */
+function beginRenameTab(tabId) {
+  const tab = tabs.get(tabId);
+  if (!tab) return;
+  showOverlay('panel', { prefill: `/rename ${displayTitle(tab)}`, purpose: { renameTabId: tabId } });
+}
+
 function reopenEntry(entry) {
   clearTimeout(entry.expiryTimer);
   entry.expiryTimer = null;
@@ -8510,7 +8520,7 @@ function tabContextData(tab, owner) {
   if (!tab || tab.runtimeId !== owner.id) return null;
   return {
     tab: {
-      id: tab.id, url: tab.url, title: tab.title,
+      id: tab.id, url: tab.url, title: tab.title, customTitle: tab.customTitle ?? null,
       pinned: !!tab.pinned, muted: !!tab.muted, private: !!tab.private,
       asleep: !!tab.asleep, bookmarked: !!tab.bookmarked,
       groupId: tab.groupId ?? null, capturing: !!tab.capturing,
@@ -8542,6 +8552,8 @@ function menuContextActions(owner) {
     toggleFavorite: b((id) => toggleBookmarkForTab(id)),
     setGroup: b((id, gid) => setTabGroup(id, gid)),
     beginNewGroup: b((id) => beginNewGroup(id)),
+    rename: b((id) => beginRenameTab(id)),
+    usePageTitle: b((id) => renameTab(id, null)),
     // Mirrors the row's glance chip: once the pane actually opens, dismiss the
     // panel so it isn't left floating over the fresh Glance split (a quiet tab
     // wakes first inside setGlanceTab, so success can take a beat).
@@ -10448,7 +10460,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       setGlanceTab, closeGlance, promoteGlance, resizeGlanceAt, resetGlanceRatio,
       getGlanceTabId: () => rt().glanceTabId,
       getGlanceGeometry: () => hasLiveWindow() ? glanceGeometry() : null,
-      groupTabByName, renameTab, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab,
+      groupTabByName, renameTab, beginRenameTab, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab,
       closeGroup, newTabUrl,
       getOverlayDragging: () => overlayDragActive(rt()),
       selectTabAtIndex,

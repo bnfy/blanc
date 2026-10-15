@@ -444,6 +444,8 @@
     <string name="address_menu_paste_and_go">Paste and Go</string>
     <string name="tab_menu_copy_link">Copy Link</string>
     <string name="tab_menu_duplicate">Duplicate Tab</string>
+    <string name="tab_menu_rename">Rename Tab…</string>
+    <string name="tab_menu_use_page_title">Use Page Title</string>
     <string name="tab_menu_pin">Pin Tab</string>
     <string name="tab_menu_unpin">Unpin Tab</string>
     <string name="tab_menu_mute">Mute Tab</string>

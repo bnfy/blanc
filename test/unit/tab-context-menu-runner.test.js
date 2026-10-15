@@ -8,7 +8,7 @@ function spyActions() {
   const rec = (name) => (...args) => calls.push([name, ...args]);
   const names = ['copy', 'reload', 'duplicate', 'togglePin', 'toggleMute', 'toggleFavorite',
     'setGroup', 'beginNewGroup', 'glance', 'quiet', 'newTab', 'newPrivateTab',
-    'closeOthers', 'moveToNewWindow', 'reopenClosed', 'close'];
+    'closeOthers', 'moveToNewWindow', 'reopenClosed', 'close', 'rename', 'usePageTitle'];
   const actions = {};
   for (const n of names) actions[n] = rec(n);
   return { actions, calls };
@@ -61,4 +61,12 @@ test('group items: move uses raw groupId, none clears, new begins the handoff', 
   s = spyActions();
   runTabContextMenuItem('group-new', { tab, actions: s.actions });
   assert.deepEqual(s.calls, [['beginNewGroup', 7]]);
+});
+
+test('rename begins the handoff; use-page-title clears the name', () => {
+  for (const [id, fn] of [['rename', 'rename'], ['use-page-title', 'usePageTitle']]) {
+    const { actions, calls } = spyActions();
+    runTabContextMenuItem(id, { tab, actions });
+    assert.deepEqual(calls, [[fn, 7]]);
+  }
 });
