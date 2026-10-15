@@ -77,3 +77,17 @@ Feature: Glance reference pane
     When I open the reference tab in Glance
     And I move the main page to a new window
     Then the reference is the only page of the original window
+
+  @F34-1 @F34 @F2 @D11
+  Scenario: Closing the main page's group promotes the reference
+    Given four ordinary tabs with the third open in Glance
+    And the main page and the fourth tab share a group
+    When I close that group
+    Then the reference is the main page and Glance is closed
+
+  @F34-1 @F34 @F2 @D11
+  Scenario: Closing a group that holds both panes leaves no reference behind
+    Given three ordinary tabs with one open in Glance
+    And the main page and the reference share a group
+    When I close that group
+    Then the third tab is the main page and Glance is closed

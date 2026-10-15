@@ -5208,9 +5208,15 @@ function closeGroup(groupId) {
   const anchorIndex = runtime.tabOrder.indexOf(ids[0]);
   for (const id of ids) closeTab(id, { record: false, selectReplacement: false });
   if (entry.tabs.length > 0) pushClosedEntry(entry); // an all-private group records nothing
-  // One replacement selection at the end, not one per member.
+  // One replacement selection at the end, not one per member. If the group
+  // took the main page but not the reference, the reference is the only page
+  // still on screen: promote it (closeTab's own rule) rather than a neighbour.
   if (!runtime.activeTabId) {
-    if (runtime.tabOrder.length > 0) {
+    const referenceId = runtime.glanceTabId && tabs.has(runtime.glanceTabId) ? runtime.glanceTabId : null;
+    if (referenceId) {
+      runtime.glanceTabId = null;
+      setActiveTab(referenceId);
+    } else if (runtime.tabOrder.length > 0) {
       setActiveTab(runtime.tabOrder[Math.min(Math.max(anchorIndex, 0), runtime.tabOrder.length - 1)]);
     } else if (hasLiveWindow()) {
       setActiveTab(createTab());

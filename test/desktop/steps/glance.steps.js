@@ -477,3 +477,54 @@ Then('the reference is the only page of the original window', async function () 
   const bounds = await this.call('tabBounds', this.glanceReferenceId);
   assert.ok(bounds && bounds.width > this.glanceSplitWidth, `reference still at split width: ${JSON.stringify(bounds)}`);
 });
+
+// --- Lifecycle: Close Group (Glance fixes, PR 1) ---
+
+// Tab order [main, bystander, reference, fourth]: with the reference NOT the
+// first survivor, a neighbour-at-anchor rule activates the bystander and
+// leaves Glance open — the scenario fails for the right reason.
+Given('four ordinary tabs with the third open in Glance', async function () {
+  this.glanceMainId = await this.call('openTab', this.fixtureUrl('glance-main'));
+  this.glanceBystanderId = await this.call('openTab', this.fixtureUrl('glance-bystander'));
+  this.glanceReferenceId = await this.call('openTab', this.fixtureUrl('glance-reference'));
+  this.glanceReplacementId = await this.call('openTab', this.fixtureUrl('glance-replacement'));
+  await this.call('activateTab', this.glanceMainId, false);
+  await this.waitForState((state) =>
+    ['glance-main', 'glance-bystander', 'glance-reference', 'glance-replacement'].every((title) =>
+      state.tabs.some((tab) => tab.title === title && !tab.isLoading)));
+  assert.equal(await this.call('setGlance', this.glanceReferenceId), true);
+  this.glanceSplitWidth = (await this.state()).glanceGeometry.primary.width;
+});
+
+Given('the main page and the fourth tab share a group', async function () {
+  await this.call('groupTabByName', this.glanceMainId, 'Research');
+  await this.call('groupTabByName', this.glanceReplacementId, 'Research');
+  await this.waitForState((state) => state.groups.some((group) => group.name === 'research'));
+});
+
+Given('the main page and the reference share a group', async function () {
+  await this.call('groupTabByName', this.glanceMainId, 'Research');
+  await this.call('groupTabByName', this.glanceReferenceId, 'Research');
+  await this.waitForState((state) => state.groups.some((group) => group.name === 'research'));
+});
+
+When('I close that group', async function () {
+  await this.call('closeGroupByName', 'Research');
+});
+
+Then('the reference is the main page and Glance is closed', async function () {
+  const state = await this.waitForState((candidate) =>
+    candidate.activeTabId === this.glanceReferenceId && candidate.glanceTabId === null);
+  assert.ok(state.tabOrder.includes(this.glanceBystanderId));
+  assert.ok(state.tabOrder.includes(this.glanceReferenceId));
+  assert.ok(!state.tabOrder.includes(this.glanceMainId) && !state.tabOrder.includes(this.glanceReplacementId));
+  const bounds = await this.call('tabBounds', this.glanceReferenceId);
+  assert.ok(bounds.width > this.glanceSplitWidth);
+});
+
+Then('the third tab is the main page and Glance is closed', async function () {
+  const state = await this.waitForState((candidate) =>
+    candidate.activeTabId === this.glanceReplacementId && candidate.glanceTabId === null);
+  assert.ok(state.tabOrder.includes(this.glanceReplacementId));
+  assert.ok(!state.tabOrder.includes(this.glanceMainId) && !state.tabOrder.includes(this.glanceReferenceId));
+});
