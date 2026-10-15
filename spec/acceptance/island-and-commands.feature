@@ -61,3 +61,24 @@ Feature: Island chrome, command palette, and slash commands
       | /new       | a new ungrouped tab opens on the new-tab page     |
       | /downloads | the downloads page opens in the utility sheet     |
       | /find      | the find bar is shown                             |
+
+  @F7-3 @F7 @desktop
+  Scenario Outline: A shortened slash command reads its argument after the typed word
+    Given a tab open on "slash-arguments"
+    And the appearance is set to "light"
+    When I run the slash command "<typed>"
+    Then <outcome>
+
+    Examples:
+      | typed        | outcome                                                    |
+      | /gr work     | a group named "work" exists                                |
+      | /sav Reading | the page on "slash-arguments" is a Favorite in "Reading"   |
+      | /the dark    | the appearance is "dark"                                   |
+      | /spa Weekend | a space named "Weekend" is saved and this window is in it |
+
+  @F7-4 @F7 @desktop
+  Scenario: A group command with no name asks for one
+    Given a tab open on "slash-arguments"
+    When I run the slash command "/gr"
+    Then the command bar reads "/group " with "" selected
+    And no group exists

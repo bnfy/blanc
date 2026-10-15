@@ -61,7 +61,7 @@ Then('the command bar reads {string} with {string} selected', async function (te
       return { value: input.value, selected: input.value.slice(input.selectionStart, input.selectionEnd) };
     }),
     (f) => f.value === text,
-    'the rename prefill',
+    'the command bar text',
   );
   assert.equal(field.selected, selected);
 });

@@ -81,6 +81,8 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F6-2 | Quick Switcher matches + focuses group | — | ✅ | ⬜ | ⬜ |
 | F7-1 | Slash prefix filters commands | — | ✅ | ⬜ | ⬜ |
 | F7-2 | Running a slash command acts | — | ✅ | ⬜ | ⬜ |
+| F7-3 | A shortened slash command reads its argument after the typed word | — | ✅ | ➖ | ➖ |
+| F7-4 | A group command with no name asks for one | — | ✅ | ➖ | ➖ |
 | F8-1 | Find count + page stays interactive | — | ✅ | ⬜ | ⬜ |
 | F9-1 | Favorite surfaces on newtab + list | — | ✅ | ⬜ | ⬜ |
 | F9-2 | Add all open tabs to favorites | — | ✅ | ⬜ | ⬜ |

@@ -929,8 +929,16 @@
 
   // --- Slash commands ---
 
+  /** A command's argument: whatever follows the command word as it was
+   * typed. The list runs a command for any prefix of its name or alias
+   * ("/gr" runs /group, "/work" runs /space), so stripping the full name would
+   * fold the typed word into the argument — a group called "/gr work". */
+  function commandArgument(input) {
+    return (input ?? '').replace(/^\/\S*\s*/, '').trim();
+  }
+
   function runWorkspaceCommand(input) {
-    const name = (input ?? '').replace(/^\/(?:space|workspace)\s*/, '').trim();
+    const name = commandArgument(input);
     if (!name) openWorkspaceSwitcher();
     else workspaceUI.command(name);
   }
@@ -939,19 +947,25 @@
    * no name to apply: it asks for one, as Rename Tab… does, rather than
    * naming the tab after the command text or quietly resetting it. */
   function renameNeedsName(input) {
-    const [word = '', ...rest] = (input ?? '').trim().split(/\s+/);
-    return word !== '/rename' && rest.length === 0;
+    return !commandArgument(input) && (input ?? '').trim() !== '/rename';
+  }
+
+  /** Leave the panel open with a command typed and the cursor after it,
+   * ready for its argument. */
+  function promptCommand(text) {
+    inputTouched = true;
+    addressInput.value = text;
+    renderList();
+    addressInput.focus();
+    addressInput.setSelectionRange(text.length, text.length);
   }
 
   function promptRename() {
     const target = state.tabs.find((t) => t.id === (pendingRenameTabId ?? state.activeTabId));
     if (!target) return;
     const prefill = `/rename ${target.title || ''}`;
-    inputTouched = true;
-    addressInput.value = prefill;
+    promptCommand(prefill);
     renamePrefill = prefill;
-    renderList();
-    addressInput.focus();
     addressInput.setSelectionRange('/rename '.length, prefill.length);
   }
 
@@ -961,7 +975,7 @@
     { cmd: '/favorites', hint: blancI18n.t('slash.favorites.hint'), run: () => window.browserAPI.openPage('bookmarks') },
     { cmd: '/bring-tabs', hint: blancI18n.t('slash.bringTabs.hint'), run: () => window.browserAPI.openPage('tab-import') },
     { cmd: '/save', hint: blancI18n.t('slash.save.hint'), run: (input) => {
-      const folder = (input ?? '').replace(/^\/save\s*/, '').trim();
+      const folder = commandArgument(input);
       window.browserAPI.saveFavorite(folder || null);
     } },
     { cmd: '/history', hint: blancI18n.t('slash.history.hint'), run: () => window.browserAPI.openPage('history') },
@@ -978,8 +992,7 @@
     { cmd: '/sleep', hint: blancI18n.t('slash.sleep.hint'), run: () => window.browserAPI.sleepBackgroundTabs(), keepOverlay: true, clearInput: true, resultNotice: (quieted) => Array.isArray(quieted) && quieted.length === 0 ? blancI18n.t('slash.sleep.none') : '' },
     { cmd: '/rename', hint: blancI18n.t('slash.rename.hint'), keepOverlay: renameNeedsName, run: (input) => {
       if (renameNeedsName(input)) { promptRename(); return; }
-      // Whatever was typed for the command word ("/ren"), the name follows it.
-      const name = (input ?? '').replace(/^\/\S*\s*/, '');
+      const name = commandArgument(input);
       // "Rename Tab…" targets the right-clicked tab, even if it closed in the
       // meantime (main then does nothing) — never silently the active tab.
       // An empty name hands the tab back its page title.
@@ -988,8 +1001,11 @@
       pendingRenameTabId = null;
       renamePrefill = null;
     } },
-    { cmd: '/group', hint: blancI18n.t('slash.group.hint'), run: (input) => {
-      const name = (input ?? '').replace(/^\/group\s*/, '').trim();
+    { cmd: '/group', hint: blancI18n.t('slash.group.hint'), keepOverlay: (input) => !commandArgument(input), run: (input) => {
+      const name = commandArgument(input);
+      // No name yet ("/gr", or the row clicked from "/"): ask for one in
+      // place instead of closing on nothing. A New Group… target stays bound.
+      if (!name) { promptCommand('/group '); return; }
       // A context-menu "New Group…" targets the right-clicked tab, not the
       // active one (overlay:show's purpose payload sets the pending target).
       const target = pendingGroupTabId ?? state.activeTabId;
@@ -1009,7 +1025,7 @@
       available: typeof window.browserAPI.fillLoginFromOnePassword === 'function',
       run: () => window.browserAPI.fillLoginFromOnePassword() },
     { cmd: '/theme', hint: blancI18n.t('slash.theme.hint'), run: (input) => {
-      const requested = (input ?? '').replace(/^\/theme\s*/, '').trim();
+      const requested = commandArgument(input);
       window.browserAPI.cycleTheme(requested || null);
     } },
     { cmd: '/patron', hint: blancI18n.t('slash.patron.hint'), run: () => window.browserAPI.openPage('settings', 'patron') },
