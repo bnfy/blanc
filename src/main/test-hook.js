@@ -498,6 +498,9 @@ function install(refs) {
           pinned: !!t.pinned,
           muted: !!t.muted,
           audible: !!t.audible,
+          // Projection of the one-time hidden-start autoplay guard; a visible
+          // pane must never carry it.
+          audioGuarded: !!t.backgroundAutoplayMuted,
           canGoBack: !!t.canGoBack,
           canGoForward: !!t.canGoForward,
           private: !!t.private,
@@ -569,6 +572,14 @@ function install(refs) {
       const wc = tab?.view?.webContents;
       if (!wc || wc.isDestroyed()) return false;
       wc.focus();
+      return true;
+    },
+    // Fire the webContents event the autoplay guard listens to, without a
+    // media element: the guard's decision is what is under test.
+    simulateMediaStarted(id) {
+      const wc = liveContents(tabs.get(id));
+      if (!wc || wc.isDestroyed()) return false;
+      wc.emit('media-started-playing');
       return true;
     },
     railActivationSerial() { return getRailActivationSerial(); },

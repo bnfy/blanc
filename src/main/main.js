@@ -6453,6 +6453,11 @@ async function setGlanceTab(id) {
   ) return false;
   if (!liveContents(tab) || !tab.view) return false;
 
+  // A reference pane is revealed: lift the hidden-start guard the way
+  // setActiveTab does, so media the user started while this tab was hidden
+  // becomes audible now that it is on screen.
+  if (revealTabAudio(tab)) liveContents(tab)?.setAudioMuted(effectiveTabMuted(tab));
+
   hideUtilitySheet({ refocusContent: false });
   const previous = activeGlanceTab();
   if (previous?.view && previous.id !== id) {

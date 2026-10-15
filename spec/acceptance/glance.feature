@@ -56,3 +56,17 @@ Feature: Glance reference pane
     When I open the Change picker and close the reference tab behind it
     And I dismiss the orphaned Change picker with Escape
     Then keyboard focus is not stranded on the chrome strip
+
+  @F34-1 @F34 @D11
+  Scenario: Media started in the reference pane is audible
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And media starts playing in the reference pane
+    Then the reference pane is not muted as a background tab
+
+  @F34-1 @F34 @D11
+  Scenario: A tab muted as a background tab is unmuted when it opens in Glance
+    Given three ordinary tabs with one open in Glance
+    When media starts playing in the background replacement tab
+    And I choose Change and select the replacement tab
+    Then the reference pane is not muted as a background tab

@@ -430,3 +430,24 @@ Then('the quiet reference wakes into Glance', async function () {
   assert.equal(state.activeTabId, this.glanceMainId);
   assert.equal(state.glanceTabId, this.glanceReferenceId);
 });
+
+// --- Audio in the reference pane (Glance fixes, PR 1) ---
+
+When('media starts playing in the reference pane', async function () {
+  assert.equal(await this.call('simulateMediaStarted', this.glanceReferenceId), true);
+});
+
+When('media starts playing in the background replacement tab', async function () {
+  assert.equal(await this.call('simulateMediaStarted', this.glanceReplacementId), true);
+  const state = await this.state();
+  const replacement = state.tabs.find((tab) => tab.id === this.glanceReplacementId);
+  assert.equal(replacement.audioGuarded, true, 'a hidden tab that starts media is guarded');
+});
+
+Then('the reference pane is not muted as a background tab', async function () {
+  const state = await this.waitForState((candidate) => {
+    const reference = candidate.tabs.find((tab) => tab.id === candidate.glanceTabId);
+    return reference && reference.audioGuarded === false;
+  });
+  assert.equal(state.activeTabId, this.glanceOriginalMainId ?? this.glanceMainId);
+});
