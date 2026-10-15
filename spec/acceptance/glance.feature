@@ -151,3 +151,9 @@ Feature: Glance reference pane
     Given a single ordinary tab for Glance
     When I summon Glance from its native keyboard shortcut
     Then the picker says to open another tab
+
+  @F34-1 @F34 @F3 @D11
+  Scenario: Tab reorder announcements are not trapped in the hidden picker
+    Given two ordinary tabs in one workspace for Glance
+    When I open the Island panel
+    Then the drag live region is rendered while the panel is open

@@ -787,3 +787,19 @@ Then('the picker says to open another tab', async function () {
   await page.locator('#glancePickerInput').press('Escape');
   await waitForValue(() => this.call('overlayMode'), (mode) => mode === null, 'picker dismissed');
 });
+
+// --- Drag-reorder live region (Glance fixes, PR 1) ---
+
+Then('the drag live region is rendered while the panel is open', async function () {
+  const page = await overlayPage();
+  const rendered = await page.locator('#islandDragLive').evaluate((element) => {
+    let node = element;
+    while (node) {
+      if (getComputedStyle(node).display === 'none') return false;
+      node = node.parentElement;
+    }
+    return true;
+  });
+  assert.equal(rendered, true, '#islandDragLive sits inside a display:none ancestor, so reorder announcements are never spoken');
+  await this.call('closeOverlay');
+});
