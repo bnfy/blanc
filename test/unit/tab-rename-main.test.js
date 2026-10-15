@@ -88,3 +88,20 @@ test('a renamed tab projects its name, with the live page title alongside', () =
   assert.equal(retitled.title, 'Cloudflare DNS', 'a page retitling itself never moves the name');
   assert.equal(retitled.pageTitle, '(3) DNS | Records');
 });
+
+test('every restore and reopen path hands the saved name back to createTab', () => {
+  assert.match(mainSource, /customTitle: saved\.meta\?\.\[index\]\?\.customTitle \?\? null,/, 'launch restore');
+  assert.match(mainSource, /customTitle: cleaned\.meta\?\.\[index\]\?\.customTitle \?\? null,/, 'opening a space');
+  assert.equal((mainSource.match(/asleep: true, title: member\.title, favicon: member\.favicon, customTitle: member\.customTitle,/g) || []).length, 2, 'group and batch reopen');
+  assert.match(mainSource, /pinned: entry\.pinned, muted: entry\.muted, groupId: resolvedGroupId, customTitle: entry\.customTitle,/, 'single-tab reopen, every tier');
+  const member = mainSource.match(/function closedMemberRecord\(id\) \{[\s\S]*?\n\}/)?.[0];
+  assert.match(member, /customTitle: tab\.customTitle \?\? null,/, 'group/batch close records the name');
+  const create = mainSource.match(/function createTab\(url = newTabUrl\(\), \{[\s\S]*?\n\}/)?.[0];
+  assert.match(create, /customTitle: normalizeTabName\(customTitle\),/, 'createTab cleans names from files');
+});
+
+test('duplicating a tab does not copy its name', () => {
+  const duplicate = mainSource.match(/function duplicateTab\(id\) \{[\s\S]*?\n\}/)?.[0];
+  assert.ok(duplicate, 'duplicateTab not found');
+  assert.doesNotMatch(duplicate, /customTitle/);
+});

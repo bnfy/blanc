@@ -178,7 +178,7 @@ const { groupFavoritesForMenu, mayWriteFavoriteFavicon } = require('./bookmark-d
 const history = require('./history');
 const { siteKey: topSiteKey } = require('./top-sites');
 const { JsonStore, discardProfileStoreEntries, enableTempSweep } = require('./store');
-const { persistableEntries, sessionTabMeta } = require('./session-snapshot');
+const { persistableEntries, sessionTabMeta, metaAfterHistoryClear } = require('./session-snapshot');
 const { normalizeTabName, displayTitle, resolveTabRename } = require('./tab-name');
 const {
   PRIMARY_WINDOW_ID,
@@ -4450,7 +4450,11 @@ function clearSessionMeta() {
   ensureSessionStore().update((d) => {
     if (Array.isArray(d.windows)) {
       for (const windowEntry of d.windows) {
-        if (windowEntry && typeof windowEntry === 'object') delete windowEntry.meta;
+        if (!windowEntry || typeof windowEntry !== 'object') continue;
+        // F46: page titles go with history; names the person typed stay.
+        const kept = metaAfterHistoryClear(windowEntry.meta);
+        if (kept) windowEntry.meta = kept;
+        else delete windowEntry.meta;
       }
     }
     delete d.meta;
@@ -5176,6 +5180,7 @@ function closedMemberRecord(id) {
   snapshot = sanitizeSnapshot(snapshot, { restorableCommit: tab.restorableCommit === true });
   return {
     url: tab.url, title: tab.title, favicon: tab.favicon ?? null,
+    customTitle: tab.customTitle ?? null,
     localFile: tab.localFile === true,
     openerSandboxFlags: tab.openerSandboxFlags ?? 0,
     pinned: !!tab.pinned, muted: !!tab.muted, private: !!tab.private, snapshot,
@@ -5710,6 +5715,7 @@ function applyWorkspaceToWindow(runtime, workspace) {
       asleep: true,
       title: cleaned.meta?.[index]?.title ?? '',
       favicon: cleaned.meta?.[index]?.favicon ?? null,
+      customTitle: cleaned.meta?.[index]?.customTitle ?? null,
       allowLocalFile: cleaned.localFiles?.[index] === true,
       managedExtension: restorableUblockTool(url),
     }));
@@ -6465,7 +6471,7 @@ async function setGlanceTab(id) {
   resizeActiveView();
   broadcastTabs();
   scheduleMenuRebuild();
-  rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.opened', { title: tab.title || mainI18n.t('tab.untitledShort') }));
+  rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.opened', { title: displayTitle(tab) || mainI18n.t('tab.untitledShort') }));
   return true;
 }
 
@@ -6627,7 +6633,7 @@ function reopenGroupEntry(entry) {
   const ids = entry.tabs.map((member) => {
     const id = createTab(member.url, {
       groupId: group.id, pinned: member.pinned, muted: member.muted,
-      asleep: true, title: member.title, favicon: member.favicon,
+      asleep: true, title: member.title, favicon: member.favicon, customTitle: member.customTitle,
       allowLocalFile: member.localFile === true,
       openerSandboxFlags: member.openerSandboxFlags,
     });
@@ -6658,7 +6664,7 @@ function reopenBatchEntry(entry) {
       : null;
     const id = createTab(member.url, {
       groupId, pinned: member.pinned, muted: member.muted,
-      asleep: true, title: member.title, favicon: member.favicon,
+      asleep: true, title: member.title, favicon: member.favicon, customTitle: member.customTitle,
       allowLocalFile: member.localFile === true,
       openerSandboxFlags: member.openerSandboxFlags,
     });
@@ -6885,7 +6891,7 @@ function reopenEntry(entry) {
     ? entry.groupId
     : null;
   const common = {
-    pinned: entry.pinned, muted: entry.muted, groupId: resolvedGroupId,
+    pinned: entry.pinned, muted: entry.muted, groupId: resolvedGroupId, customTitle: entry.customTitle,
     openerSandboxFlags: entry.openerSandboxFlags,
     managedExtension: restorableUblockTool(entry.url),
   };
@@ -8036,7 +8042,7 @@ function tabMenuItems(owner = rt()) {
     } catch {
       /* not a parseable URL (blank tab, blanc:// page) — show it as-is */
     }
-    const label = `${tab.title || mainI18n.t('tab.untitled')} — ${domain}${group ? ` (${group.name})` : ''}`;
+    const label = `${displayTitle(tab) || mainI18n.t('tab.untitled')} — ${domain}${group ? ` (${group.name})` : ''}`;
     return {
       label: escapeMenuLabel(label.length > 120 ? `${label.slice(0, 119)}…` : label),
       type: 'checkbox',
@@ -8807,7 +8813,7 @@ function dockActiveTabDescriptor() {
   const tab = id != null ? tabs.get(id) : null;
   if (!tab) return null;
   if (tab.private) return { label: mainI18n.t('tab.privateLabel'), iconDataUrl: null };
-  const raw = tab.title || mainI18n.t(tab.isLoading ? 'tab.loading' : 'tab.untitled');
+  const raw = displayTitle(tab) || mainI18n.t(tab.isLoading ? 'tab.loading' : 'tab.untitled');
   const label = raw.length > 75 ? `${raw.slice(0, 74)}…` : raw;
   const favicon = typeof tab.favicon === 'string' && tab.favicon.startsWith('data:image/')
     ? tab.favicon : null;
@@ -11127,6 +11133,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           asleep: true,
           title: saved.meta?.[index]?.title ?? '',
           favicon: saved.meta?.[index]?.favicon ?? null,
+          customTitle: saved.meta?.[index]?.customTitle ?? null,
           allowLocalFile: saved.localFiles?.[index] === true,
           managedExtension: restorableUblockTool(url),
         }));
