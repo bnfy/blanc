@@ -131,6 +131,17 @@ shield popover, the blocked count, `/dark-site`, `/allow-ads`, `/pin`,
 `/mute`, `/rename` and the other `/` commands that address "this tab" (the
 Island is the main page's).
 
+**Which pane has focus must be visible.** Arc's Split View (looked at on the
+owner's screen on October 15) draws a 2 px blue outline around the focused
+pane; without it, "⌘R reloads the focused pane" is a guess. Blanc's cue is
+quieter and uses what is already there: while the reference holds focus, the
+Glance header's `GLANCE` eyebrow and title use `--text` instead of
+`--text-dim` and its bottom hairline uses `--text-dim` instead of `--border`;
+when focus returns to the main page they fall back. The strip learns this
+from a `focusedPane: 'main' | 'glance'` field on the existing
+`chrome:glance-layout` payload (a contract edit). No outline, no ring, no
+change to the Island. (PR 2.)
+
 Consequences spelled out:
 
 - ⌘W in the reference closes the reference **tab**. Glance collapses, the
