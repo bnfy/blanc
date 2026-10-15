@@ -126,8 +126,8 @@
   }
 }
 :root {
-  --site-bg: #f8f2e8;
-  --site-bg-rgb: 248, 242, 232;
+  --site-bg: #f7f0e5;
+  --site-bg-rgb: 247, 240, 229;
   --site-surface: #f2eade;
   --site-surface-raised: #fff;
   --site-border: #e1d7c9;
@@ -357,7 +357,7 @@ summary:focus-visible {
   visibility: hidden;
 }
 .home-revamp {
-  --paper: #f8f2e8;
+  --paper: #f7f0e5;
   --surface: #f2eade;
   --raised: #fff;
   --line: #e1d7c9;

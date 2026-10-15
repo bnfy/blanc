@@ -1,7 +1,7 @@
 /* Homepage-only theme. Product recordings and external sample pages keep their
    own colors; these tokens describe the surrounding website interface. */
 html[data-home-appearance] {
-  --home-page: #f8f2e8;
+  --home-page: #f7f0e5;
   --home-text: #0e0e0e;
   --home-secondary: #696865;
   --home-accent: #7d653d;
@@ -12,7 +12,7 @@ html[data-home-appearance] {
   --home-on-selected: #fff;
   --home-header: #fff;
   --home-footer: #fff;
-  --home-on-dark: #f8f2e8;
+  --home-on-dark: #f7f0e5;
   --home-motion: 0ms;
 }
 
@@ -57,7 +57,7 @@ html[data-home-appearance] .home-revamp {
   position: relative;
   isolation: isolate;
   color: var(--home-text);
-  background: linear-gradient(to bottom, #f8f2e8 0%, #f8f2e8 8%, #faf7f1 40%, #fdfbf8 65%, #fff 90%, #fff 100%);
+  background: linear-gradient(to bottom, #f7f0e5 0%, #f7f0e5 8%, #faf7f1 40%, #fdfbf8 65%, #fff 90%, #fff 100%);
   transition: color var(--home-motion) ease;
 }
 
