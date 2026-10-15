@@ -45,13 +45,15 @@ const USAGE = `Usage: node bench/memory/idle-attribution.js --app=<Blanc.app>[=<
   --warm-ms=MS         Warm-up run length for each template profile (default 45000)
   --noblock            Seed adblockEnabled: false, like the blanc-noblock row
   --sudo               Run footprint(1) through sudo -n, for hardened processes
+  --url=URL            Open this page as well (repeatable), so the cell measures a
+                       window showing a website rather than only the Start Page
   --extra-arg=ARG      Append one argv entry to every launch (repeatable), for
                        example --force-device-scale-factor=2 on a non-Retina Mac
   --out=DIR            Output directory (default bench/memory/results)
 `;
 
 function parseArgs(argv) {
-  const options = { apps: [], reps: 3, warmMs: 45_000, noblock: false, sudo: false, extraArgs: [], out: null };
+  const options = { apps: [], reps: 3, warmMs: 45_000, noblock: false, sudo: false, extraArgs: [], urls: [], out: null };
   for (const arg of argv) {
     const [key, ...rest] = arg.replace(/^--/, '').split('=');
     const value = rest.join('=');
@@ -63,6 +65,7 @@ function parseArgs(argv) {
     else if (key === 'noblock') options.noblock = true;
     else if (key === 'sudo') options.sudo = true;
     else if (key === 'extra-arg') options.extraArgs.push(value);
+    else if (key === 'url') options.urls.push(value);
     else if (key === 'out') options.out = value;
     else if (key === 'help' || key === 'h') options.help = true;
     else throw new Error(`Unknown option: ${arg}`);
@@ -173,7 +176,7 @@ async function measureCell(app, template, options, log) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), `blanc-attrib-${app.label}-`));
   fs.cpSync(template, dir, { recursive: true });
   for (const name of ['SingletonLock', 'SingletonSocket', 'SingletonCookie']) fs.rmSync(path.join(dir, name), { force: true });
-  const launched = await launcher.launch(browserFor(app, options), { profileDir: dir, urls: [] });
+  const launched = await launcher.launch(browserFor(app, options), { profileDir: dir, urls: options.urls });
   let last = null;
   const counts = [];
   try {
@@ -227,7 +230,7 @@ function markdown(summary, labels, meta) {
     '# Blanc idle memory by process',
     '',
     `Run: ${meta.startedAt} · macOS ${meta.osVersion} · ${meta.arch} · ${meta.totalRamGiB} GiB RAM`,
-    `Metric: \`phys_footprint\` via \`footprint\` · median of ${meta.reps} repetitions · one window, one blanc://newtab tab${meta.extraArgs.length ? ` · extra argv: \`${meta.extraArgs.join(' ')}\`` : ''}`,
+    `Metric: \`phys_footprint\` via \`footprint\` · median of ${meta.reps} repetitions · one window, ${meta.urls.length ? `blanc://newtab plus ${meta.urls.join(', ')}` : 'one blanc://newtab tab'}${meta.extraArgs.length ? ` · extra argv: \`${meta.extraArgs.join(' ')}\`` : ''}`,
     '',
     `| Process | ${labels.join(' | ')} |`,
     `| --- | ${labels.map(() => '---:').join(' | ')} |`,
@@ -283,6 +286,7 @@ async function main() {
     totalRamGiB: Math.round(os.totalmem() / 1024 ** 3),
     reps: options.reps,
     extraArgs: options.extraArgs,
+    urls: options.urls,
     adblockEnabled: !options.noblock,
     metric: 'phys_footprint',
     backend: 'footprint',
