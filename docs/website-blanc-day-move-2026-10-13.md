@@ -28,8 +28,20 @@ Mac. This environment's network proxy cannot reach either domain.
 - `blanc-ping`, version `a9f9e3cf-2810-42f9-9d2b-3752a2e5fcb4`. Routes:
   `blanc.day/dl/*`, `www.blanc.day/dl/*`, `blancbrowser.com/dl/*`,
   `www.blancbrowser.com/dl/*`, plus its `workers.dev` address.
-- `blanc-newsletter`: deployed with `https://blanc.day` added to
-  `ALLOWED_ORIGINS`. Its version ID was not recorded.
+- `blanc-newsletter`: recorded as deployed with `https://blanc.day` added to
+  `ALLOWED_ORIGINS`, but its version ID was not recorded and the deploy did
+  not take effect. **Correction, October 15:** a POST to `/mail-waitlist`
+  with `Origin: https://blanc.day` returned `403 {"error":"origin denied"}`,
+  so the live Worker still predates #748. Every newsletter, Mail waitlist and
+  ambassador form submission from blanc.day failed from the move until the
+  Worker was redeployed. The last confirmation mail Resend sent for it was at
+  00:33 UTC on October 13. The owner redeployed `main` (`cd7a0100`) on
+  October 15; at 09:01:30 UTC the same request returned
+  `400 {"error":"invalid email"}` with
+  `access-control-allow-origin: https://blanc.day`. That deploy's version ID
+  was not recorded. The owner then joined the waitlist from
+  `https://blanc.day/mail` in Blanc with a fresh address, and its
+  confirmation email arrived.
 - `blanc-tab-import`, version `cf81a2b6-22ee-4572-8b50-3f50c43dbdb4`, on its
   custom domain `tabs.blancbrowser.com`, deployed after step 5. A
   `create_tab_handoff` call to `https://tabs.blancbrowser.com/mcp` for one

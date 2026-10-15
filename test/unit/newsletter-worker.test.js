@@ -496,3 +496,77 @@ test('confirming twice leaves exactly one removal lookup for the address', async
   await worker.fetch(admin('/mail-waitlist/member?email=twice@example.com', 'DELETE'), { ...env, ADMIN_TOKEN: 'admin' });
   assert.deepEqual([...env.SUBSCRIBERS.values.values()].filter((v) => v.includes('twice@example.com')), []);
 });
+
+// Records console.error lines for one test and restores it afterwards.
+function captureErrors(t) {
+  const lines = [];
+  const original = console.error;
+  console.error = (line) => { lines.push(String(line)); };
+  t.after(() => { console.error = original; });
+  return lines;
+}
+
+test('a Worker exception on a form route is a readable 503, and the log names the cause', async (t) => {
+  const logged = captureErrors(t);
+  const env = environment();
+  env.SUBSCRIBERS.put = async () => { throw new Error('KV put() limit exceeded for the day.'); };
+
+  for (const request of [
+    subscribeRequest({ email: 'person@example.com' }),
+    waitlistRequest({ email: 'person@example.com' }),
+  ]) {
+    const response = await worker.fetch(request, env);
+    assert.equal(response.status, 503);
+    assert.equal(response.headers.get('Access-Control-Allow-Origin'), 'https://blanc.day');
+    assert.deepEqual(await response.json(), { error: 'service unavailable' });
+  }
+  assert.deepEqual(logged.map((line) => JSON.parse(line)), [
+    { event: 'unhandled-error', route: '/subscribe', error: 'Error', message: 'KV put() limit exceeded for the day.' },
+    { event: 'unhandled-error', route: '/mail-waitlist', error: 'Error', message: 'KV put() limit exceeded for the day.' },
+  ]);
+
+  // The ambassador handler catches its expected failures itself; an
+  // unexpected one still returns its native-form HTML page.
+  t.mock.method(crypto.subtle, 'digest', async () => { throw new Error('digest failed'); });
+  const page = await worker.fetch(nativeAmbassadorRequest({
+    name: 'Grace Hopper',
+    email: 'grace@example.com',
+    profileUrl: 'https://example.com/grace',
+    introduction: 'I write about useful technology for working developers.',
+    blancCheck: '',
+  }), environment());
+  assert.equal(page.status, 503);
+  assert.equal(page.headers.get('Access-Control-Allow-Origin'), 'https://blanc.day');
+  assert.match(await page.text(), /temporarily unavailable/);
+  assert.equal(JSON.parse(logged.at(-1)).route, '/ambassador-apply');
+});
+
+test('a refused confirmation send logs Resend\'s status and error name but never the address', async (t) => {
+  const logged = captureErrors(t);
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    statusCode: 401, name: 'invalid_api_key', message: 'API key is invalid for person@example.com',
+  }), { status: 401 });
+  t.after(() => { globalThis.fetch = originalFetch; });
+
+  const env = environment();
+  const response = await worker.fetch(waitlistRequest({ email: 'person@example.com' }), env);
+  assert.equal(response.status, 503);
+  assert.equal(response.headers.get('Access-Control-Allow-Origin'), 'https://blanc.day');
+  assert.deepEqual(logged.map((line) => JSON.parse(line)), [
+    { event: 'confirmation-not-sent', list: 'mail-waitlist', status: 401, resendError: 'invalid_api_key' },
+  ]);
+  assert.ok(logged.every((line) => !line.includes('person@example.com')));
+  assert.deepEqual([...env.SUBSCRIBERS.values.keys()].filter((key) => key.startsWith('mailwait')), []);
+});
+
+test('missing Worker configuration is logged by name only', async (t) => {
+  const logged = captureErrors(t);
+  const env = environment();
+  delete env.NEWSLETTER_TOKEN_SECRET;
+  delete env.RESEND_API_KEY;
+  assert.equal((await worker.fetch(waitlistRequest({ email: 'person@example.com' }), env)).status, 503);
+  assert.deepEqual(JSON.parse(logged[0]), {
+    event: 'config-missing', list: 'mail-waitlist', missing: ['NEWSLETTER_TOKEN_SECRET', 'RESEND_API_KEY'],
+  });
+});
