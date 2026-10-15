@@ -16,7 +16,7 @@
     <string name="slash_reopen_hint">Zuletzt geschlossenen Tab wieder öffnen</string>
     <string name="slash_pin_hint">Diesen Tab anheften oder lösen</string>
     <string name="slash_mute_hint">Diesen Tab stummschalten oder den Ton wieder einschalten</string>
-    <string name="slash_rename_hint">Diesem Tab einen Namen geben – leer lassen für den Seitentitel</string>
+    <string name="slash_rename_hint">Diesem Tab einen Namen geben – leer lassen, um den Titel zurückzusetzen</string>
     <string name="slash_rename_doc">Diesem Tab einen eigenen Namen geben oder ohne Namen zum Seitentitel zurückkehren</string>
     <string name="slash_sleep_hint">Hintergrund-Tabs ruhen lassen und ihren Speicher freigeben</string>
     <string name="slash_group_hint">Leerzeichen, dann einen Gruppennamen eingeben – z. B. „arbeit“</string>
@@ -447,7 +447,7 @@
     <string name="tab_menu_copy_link">Link kopieren</string>
     <string name="tab_menu_duplicate">Tab duplizieren</string>
     <string name="tab_menu_rename">Tab umbenennen…</string>
-    <string name="tab_menu_use_page_title">Seitentitel verwenden</string>
+    <string name="tab_menu_reset_title">Tabtitel zurücksetzen</string>
     <string name="tab_menu_pin">Tab anheften</string>
     <string name="tab_menu_unpin">Tab lösen</string>
     <string name="tab_menu_mute">Tab stummschalten</string>

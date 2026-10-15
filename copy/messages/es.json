@@ -66,8 +66,8 @@
     "source": "sha256:269257650ea0481c9c2b0f12a02925dbcc43f3ecb0a169438ec10f5674d02fcd"
   },
   "slash.rename.hint": {
-    "message": "Ponle nombre a esta pestaña; déjalo vacío para usar el título de la página",
-    "source": "sha256:af5d2c8646fb4e782b6195dfc8e79df6d6554381331503bc3c56e2a29db59fa8"
+    "message": "Ponle nombre a esta pestaña; déjalo vacío para restablecer su título",
+    "source": "sha256:3384874aeddaa8e28eeb44fdd3de4d7d8c248fc545c8fe951d0903a862b5a6ec"
   },
   "slash.rename.doc": {
     "message": "Da a esta pestaña un nombre propio o, sin nombre, vuelve al título de la página",
@@ -1633,9 +1633,9 @@
     "message": "Cambiar nombre de pestaña…",
     "source": "sha256:465869570b3a7cdb56fc2bc4c0a5c54df738d89302224291ae83e73db1e91341"
   },
-  "tabMenu.usePageTitle": {
-    "message": "Usar título de la página",
-    "source": "sha256:4c04fc5f4280e6db2211f23c2021ac3866ee73273aab9f4818c45de7947c24ca"
+  "tabMenu.resetTitle": {
+    "message": "Restablecer título de pestaña",
+    "source": "sha256:76a2178eb808c0e3393f888539b7e3f47961b061cb959281cacb9cd4b330691c"
   },
   "tabMenu.pin": {
     "message": "Fijar pestaña",

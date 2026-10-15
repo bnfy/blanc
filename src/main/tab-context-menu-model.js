@@ -55,7 +55,7 @@ function buildTabContextMenu({ tab, groups = [], activeTabId, surface, canCloseO
   items.push({ id: 'duplicate', label: t('tabMenu.duplicate') });
   items.push({ id: 'rename', label: t('tabMenu.rename') });
   // Only a renamed tab has a page title to go back to (F46).
-  if (tab.customTitle) items.push({ id: 'use-page-title', label: t('tabMenu.usePageTitle') });
+  if (tab.customTitle) items.push({ id: 'reset-title', label: t('tabMenu.resetTitle') });
   items.push({ type: 'separator' });
 
   items.push({ id: 'toggle-pin', label: t(tab.pinned ? 'tabMenu.unpin' : 'tabMenu.pin') });

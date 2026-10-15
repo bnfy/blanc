@@ -18,7 +18,7 @@ function runTabContextMenuItem(id, { tab, groupId, cleanedUrl, actions }) {
     case 'reload': return actions.reload(tab.id);
     case 'duplicate': return actions.duplicate(tab.id);
     case 'rename': return actions.rename(tab.id);
-    case 'use-page-title': return actions.usePageTitle(tab.id);
+    case 'reset-title': return actions.resetTitle(tab.id);
     case 'toggle-pin': return actions.togglePin(tab.id);
     case 'toggle-mute': return actions.toggleMute(tab.id);
     case 'toggle-favorite': return actions.toggleFavorite(tab.id);

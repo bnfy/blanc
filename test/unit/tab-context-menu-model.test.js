@@ -120,10 +120,10 @@ test('closableTabIds excludes the kept tab and pinned tabs', () => {
   assert.deepEqual(closableTabIds({ tabOrder: [1, 2, 3, 4], tabsById, keepId: 3 }), [1, 4]);
 });
 
-test('Rename Tab… is always offered; Use Page Title only on a renamed tab', () => {
+test('Rename Tab… is always offered; Reset Tab Title only on a renamed tab', () => {
   assert.equal(byId(build(), 'rename').label, 'Rename Tab…');
-  assert.equal(byId(build(), 'use-page-title'), undefined);
+  assert.equal(byId(build(), 'reset-title'), undefined);
   const renamed = build({ tab: { customTitle: 'Budget' } });
-  assert.equal(byId(renamed, 'use-page-title').label, 'Use Page Title');
-  assert.deepEqual(ids(renamed).slice(3, 6), ['duplicate', 'rename', 'use-page-title']);
+  assert.equal(byId(renamed, 'reset-title').label, 'Reset Tab Title');
+  assert.deepEqual(ids(renamed).slice(3, 6), ['duplicate', 'rename', 'reset-title']);
 });

@@ -16,7 +16,7 @@
     <string name="slash_reopen_hint">Volver a abrir la pestaña que acabas de cerrar</string>
     <string name="slash_pin_hint">Fijar o soltar esta pestaña</string>
     <string name="slash_mute_hint">Silenciar o activar el sonido de esta pestaña</string>
-    <string name="slash_rename_hint">Ponle nombre a esta pestaña; déjalo vacío para usar el título de la página</string>
+    <string name="slash_rename_hint">Ponle nombre a esta pestaña; déjalo vacío para restablecer su título</string>
     <string name="slash_rename_doc">Da a esta pestaña un nombre propio o, sin nombre, vuelve al título de la página</string>
     <string name="slash_sleep_hint">Poner en reposo las pestañas en segundo plano y liberar su memoria</string>
     <string name="slash_group_hint">Escribe un espacio y luego el nombre de un grupo, p. ej., «trabajo»</string>
@@ -460,7 +460,7 @@
     <string name="tab_menu_copy_link">Copiar enlace</string>
     <string name="tab_menu_duplicate">Duplicar pestaña</string>
     <string name="tab_menu_rename">Cambiar nombre de pestaña…</string>
-    <string name="tab_menu_use_page_title">Usar título de la página</string>
+    <string name="tab_menu_reset_title">Restablecer título de pestaña</string>
     <string name="tab_menu_pin">Fijar pestaña</string>
     <string name="tab_menu_unpin">Soltar pestaña</string>
     <string name="tab_menu_mute">Silenciar pestaña</string>

@@ -16,7 +16,7 @@
     <string name="slash_reopen_hint">Reabrir a aba que você acabou de fechar</string>
     <string name="slash_pin_hint">Fixar ou desafixar esta aba</string>
     <string name="slash_mute_hint">Silenciar ou reativar o som desta aba</string>
-    <string name="slash_rename_hint">Dê um nome a esta aba — deixe vazio para usar o título da página</string>
+    <string name="slash_rename_hint">Dê um nome a esta aba — deixe vazio para redefinir o título</string>
     <string name="slash_rename_doc">Dá a esta aba um nome próprio ou, sem nome, volta ao título da página</string>
     <string name="slash_sleep_hint">Colocar as abas em segundo plano em repouso e liberar a memória delas</string>
     <string name="slash_group_hint">Digite um espaço e depois o nome de um grupo — por exemplo, “trabalho”</string>
@@ -460,7 +460,7 @@
     <string name="tab_menu_copy_link">Copiar link</string>
     <string name="tab_menu_duplicate">Duplicar aba</string>
     <string name="tab_menu_rename">Renomear aba…</string>
-    <string name="tab_menu_use_page_title">Usar título da página</string>
+    <string name="tab_menu_reset_title">Redefinir título da aba</string>
     <string name="tab_menu_pin">Fixar aba</string>
     <string name="tab_menu_unpin">Desafixar aba</string>
     <string name="tab_menu_mute">Silenciar aba</string>

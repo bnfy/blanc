@@ -61,7 +61,7 @@
     "note": "Slash command hint shown in the ⌘L palette for /mute."
   },
   "slash.rename.hint": {
-    "message": "Name this tab — leave it empty to use the page title",
+    "message": "Name this tab — leave it empty to reset its title",
     "note": "Slash command hint shown in the ⌘L palette for /rename."
   },
   "slash.rename.doc": {
@@ -1689,8 +1689,8 @@
     "message": "Rename Tab…",
     "note": "Tab context menu command that opens the ⌘L bar to type a custom name for the tab."
   },
-  "tabMenu.usePageTitle": {
-    "message": "Use Page Title",
+  "tabMenu.resetTitle": {
+    "message": "Reset Tab Title",
     "note": "Tab context menu command shown only on a renamed tab; removes the custom name so the tab shows the page’s own title again."
   },
   "tabMenu.pin": {

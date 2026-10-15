@@ -4,7 +4,7 @@ const ctx = require('./../support/context');
 const { waitForValue, openOverlaySurface } = require('./../support/poll');
 const { overlayPage } = require('./../support/overlay');
 
-// F46 custom tab names. "Rename Tab…" and "Use Page Title" are native menu
+// F46 custom tab names. "Rename Tab…" and "Reset Tab Title" are native menu
 // items the harness cannot click; their steps call exactly the action each
 // item runs (beginRenameTab / renameTab(id, null)). Typing in the command bar
 // and the labels read back go through the real overlay.
@@ -49,7 +49,7 @@ When('I choose Rename Tab… for the tab on {string}', async function (name) {
   await waitForValue(() => this.call('overlayRendererMode'), (m) => m === 'panel', 'the command bar to open');
 });
 
-When('I choose Use Page Title for the tab on {string}', async function (name) {
+When('I choose Reset Tab Title for the tab on {string}', async function (name) {
   await this.call('renameTab', ctx.tabByName[name], null);
 });
 

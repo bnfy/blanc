@@ -638,37 +638,37 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Name this tab — leave it empty to use the page title"
+            "value": "Name this tab — leave it empty to reset its title"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Diesem Tab einen Namen geben – leer lassen für den Seitentitel"
+            "value": "Diesem Tab einen Namen geben – leer lassen, um den Titel zurückzusetzen"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ponle nombre a esta pestaña; déjalo vacío para usar el título de la página"
+            "value": "Ponle nombre a esta pestaña; déjalo vacío para restablecer su título"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nommer cet onglet — laissez vide pour utiliser le titre de la page"
+            "value": "Nommer cet onglet — laissez vide pour réinitialiser son titre"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dai un nome a questa scheda — lascia vuoto per usare il titolo della pagina"
+            "value": "Dai un nome a questa scheda — lascia vuoto per reimpostarne il titolo"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dê um nome a esta aba — deixe vazio para usar o título da página"
+            "value": "Dê um nome a esta aba — deixe vazio para redefinir o título"
           }
         }
       }
@@ -18343,44 +18343,44 @@
         }
       }
     },
-    "tabMenu.usePageTitle": {
+    "tabMenu.resetTitle": {
       "comment": "Tab context menu command shown only on a renamed tab; removes the custom name so the tab shows the page’s own title again.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use Page Title"
+            "value": "Reset Tab Title"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Seitentitel verwenden"
+            "value": "Tabtitel zurücksetzen"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Usar título de la página"
+            "value": "Restablecer título de pestaña"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Utiliser le titre de la page"
+            "value": "Réinitialiser le titre de l’onglet"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Usa il titolo della pagina"
+            "value": "Reimposta titolo scheda"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Usar título da página"
+            "value": "Redefinir título da aba"
           }
         }
       }

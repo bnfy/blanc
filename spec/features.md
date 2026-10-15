@@ -1116,7 +1116,7 @@ A person can give any tab a name of their own, or keep the page's title.
 - **Rename.** The tab context menu's **Rename Tab…** opens the command bar
   with `/rename` and the tab's current label, the label selected, aimed at
   that tab. `/rename <name>` renames the active tab; `/rename` alone, or
-  **Use Page Title** (shown only on a renamed tab), restores the page title.
+  **Reset Tab Title** (shown only on a renamed tab), restores the page title.
 - **The name.** Whitespace folds to single spaces, control characters are
   dropped, at most 100 characters; empty means the page title. Submitting an
   un-renamed tab's own page title does not rename it.

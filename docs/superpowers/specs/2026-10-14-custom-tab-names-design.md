@@ -18,7 +18,8 @@ today) or give the tab a name of your own, and go back whenever you like.
 
 1. **A name sticks through navigation.** Once a tab is renamed it keeps the
    name on every page it visits, on any site, until the person chooses
-   **Use Page Title**.
+   **Reset Tab Title**. (This item was first drafted as *Use Page Title*; the
+   owner renamed it during implementation as the clearer undo.)
 2. **You type the name in the ⌘L bar.** **Rename Tab…** opens the command
    panel prefilled with `/rename` and the tab's current name, aimed at the tab
    that was right-clicked. This is the path **Move to Group ▸ New Group…**
@@ -44,7 +45,7 @@ Copy Link
 Reload            ⌘R
 Duplicate Tab
 Rename Tab…
-Use Page Title          ← only while the tab has a custom name
+Reset Tab Title         ← only while the tab has a custom name
 ─────────
 Pin Tab
 …
@@ -54,7 +55,7 @@ Pin Tab
 current label: its custom name if it has one, else the page title. Only the
 name part is selected, so typing replaces it and the arrow keys edit it. The
 panel lists the `/rename` command row with its hint, *"Name this tab — leave
-it empty to use the page title"*.
+it empty to reset its title"*.
 
 - **Enter** applies the name to the right-clicked tab, even if a different
   tab is active, and closes the panel.
@@ -64,7 +65,7 @@ it empty to use the page title"*.
 - Typing `/rename Budget` from scratch renames the **active** tab. `/rename`
   with nothing after it restores the page title.
 
-**Use Page Title** removes the custom name at once; nothing else changes.
+**Reset Tab Title** removes the custom name at once; nothing else changes.
 
 ### The name
 
@@ -192,11 +193,11 @@ name. Private tabs stay excluded.
 | `src/main/main.js` | `customTitle` on the record and `createTab` option; `renameTab()`, `beginRenameTab()`; `serializeTabs` projection; Tabs menu, Dock line and Glance status use `displayTitle`; restore and reopen paths pass `customTitle`; `clearSessionMeta` keeps names |
 | `src/main/session-snapshot.js` | `sessionTabMeta` writes `customTitle`; `syncSnapshot` sends the display title |
 | `src/main/closed-tabs.js` | entries record and project `customTitle` |
-| `src/main/tab-context-menu-model.js` / `tab-context-menu.js` | `rename` and `use-page-title` items and their actions |
+| `src/main/tab-context-menu-model.js` / `tab-context-menu.js` | `rename` and `reset-title` items and their actions |
 | `src/main/preload.js`, `browser-api/` | `renameTab` member, `pageTitle` payload field, regenerated vectors |
 | `src/renderer/overlay.js` | `/rename` command with the right-clicked target (`pendingRenameTabId`, cleared like `pendingGroupTabId`), selection of the name part of the prefill, tooltip and Quick Switcher use `pageTitle` |
 | `src/renderer/vertical-tabs.js` | renamed rows' tooltip shows `pageTitle` |
-| `copy/slash-commands.json`, `src/renderer/pages/shortcuts.js`, `copy/messages/*.json` | `/rename` registry entry and reference-page row; new strings `slash.rename.hint`, `slash.rename.doc`, `tabMenu.rename`, `tabMenu.usePageTitle` in en, de, es, fr, pt-BR and it |
+| `copy/slash-commands.json`, `src/renderer/pages/shortcuts.js`, `copy/messages/*.json` | `/rename` registry entry and reference-page row; new strings `slash.rename.hint`, `slash.rename.doc`, `tabMenu.rename`, `tabMenu.resetTitle` in en, de, es, fr, pt-BR and it |
 | `spec/features.md`, `spec/parity-matrix.md`, `spec/acceptance/tabs-and-groups.feature` | **F46 — Custom tab names** with acceptance scenarios |
 
 ## Testing
@@ -204,7 +205,7 @@ name. Private tabs stay excluded.
 - **Unit (`node --test`):** `normalizeTabName`, including whitespace, control
   characters, the 100-character cap with surrogate pairs, and empty input;
   `displayTitle`; the untouched-prefill rule; context-menu model items and
-  order (Use Page Title only when renamed; separator invariants hold);
+  order (Reset Tab Title only when renamed; separator invariants hold);
   `runTabContextMenuItem` routing; `sessionTabMeta` with and without a name;
   `syncSnapshot` display title; closed-tab entries round-trip `customTitle`
   and project it; `clearSessionMeta` keeps names and still deletes meta when
@@ -213,7 +214,7 @@ name. Private tabs stay excluded.
 - **Copy:** `npm run copy:check` (all six languages acknowledged) and
   `npm run substrate:check`.
 - **Acceptance (`@F46`):** rename from the row menu, name survives a
-  cross-site navigation, Use Page Title restores, `/rename` with no name
+  cross-site navigation, Reset Tab Title restores, `/rename` with no name
   restores, name survives relaunch, and a private tab's name is not written to
   `session.json`.
 - **Running app:** rename from the pill, a ⌘L row and the vertical rail, and

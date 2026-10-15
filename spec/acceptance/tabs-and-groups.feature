@@ -120,9 +120,9 @@ Feature: Tabs and tab groups
     Then the tab on "rename-first" is labelled "rename-first"
 
   @F46-4 @F46 @desktop
-  Scenario: Use Page Title restores the page title
+  Scenario: Reset Tab Title restores the page title
     Given a tab on "rename-first" named "Budget"
-    When I choose Use Page Title for the tab on "rename-first"
+    When I choose Reset Tab Title for the tab on "rename-first"
     Then the tab on "rename-first" is labelled "rename-first"
 
   @F46-5 @F46 @desktop

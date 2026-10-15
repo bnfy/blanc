@@ -215,7 +215,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F46-1 | Rename Tab… names the right-clicked tab | — | ✅ | ➖ | ➖ |
 | F46-2 | A name stays through navigation to another site | — | ✅ | ➖ | ➖ |
 | F46-3 | `/rename` with no name restores the page title | — | ✅ | ➖ | ➖ |
-| F46-4 | Use Page Title restores the page title | — | ✅ | ➖ | ➖ |
+| F46-4 | Reset Tab Title restores the page title | — | ✅ | ➖ | ➖ |
 | F46-5 | A name survives relaunch | — | ✅ | ➖ | ➖ |
 | F46-6 | A private tab's name never reaches session.json | — | ✅ | ➖ | ➖ |
 

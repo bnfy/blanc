@@ -8554,7 +8554,7 @@ function menuContextActions(owner) {
     setGroup: b((id, gid) => setTabGroup(id, gid)),
     beginNewGroup: b((id) => beginNewGroup(id)),
     rename: b((id) => beginRenameTab(id)),
-    usePageTitle: b((id) => renameTab(id, null)),
+    resetTitle: b((id) => renameTab(id, null)),
     // Mirrors the row's glance chip: once the pane actually opens, dismiss the
     // panel so it isn't left floating over the fresh Glance split (a quiet tab
     // wakes first inside setGlanceTab, so success can take a beat).
