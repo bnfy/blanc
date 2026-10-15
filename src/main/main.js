@@ -8451,7 +8451,6 @@ function buildMenuForRuntime(runtime) {
           id: 'toggle-glance',
           label: t(activeGlanceTab() ? 'menu.closeGlance' : 'menu.openGlance'),
           accelerator: 'CmdOrCtrl+Shift+G',
-          enabled: !!activeGlanceTab() || rt().tabOrder.length > 1,
           click: bound(toggleGlance),
         },
         { type: 'separator' },

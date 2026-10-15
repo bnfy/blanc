@@ -762,3 +762,28 @@ Then('the Change picker is centred over the page with a visible list', async fun
   await waitForValue(() => this.call('overlayMode'), (mode) => mode === null, 'picker dismissed');
   await this.call('setWindowContentSize', 1200, 800);
 });
+
+// --- Single-tab empty state (Glance fixes, PR 1) ---
+
+Given('a single ordinary tab for Glance', async function () {
+  this.glanceMainId = await this.call('openTab', this.fixtureUrl('glance-main'));
+  const state = await this.state();
+  for (const id of state.tabOrder) if (id !== this.glanceMainId) await this.call('closeTab', id);
+  await this.waitForState((candidate) =>
+    candidate.tabOrder.length === 1 && candidate.activeTabId === this.glanceMainId);
+  // The application menu rebuilds on a 100ms debounce after the last close;
+  // let it land so the summon step reads the single-tab state, not a stale
+  // two-tab menu.
+  await new Promise((resolve) => setTimeout(resolve, 300));
+});
+
+Then('the picker says to open another tab', async function () {
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'glance', 'picker with one tab');
+  const page = await overlayPage();
+  await page.locator('#glancePicker:not([hidden])').waitFor();
+  assert.equal(await page.locator('.glance-picker-option').count(), 0);
+  await page.locator('#glancePickerState:not([hidden])').waitFor();
+  assert.equal(await page.locator('#glancePickerState').textContent(), 'Open another tab to use Glance');
+  await page.locator('#glancePickerInput').press('Escape');
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode === null, 'picker dismissed');
+});

@@ -145,3 +145,9 @@ Feature: Glance reference pane
     When I shrink the workspace to a small stacked window
     And I open the Change picker
     Then the Change picker is centred over the page with a visible list
+
+  @F34-1 @F34 @D11
+  Scenario: Glance explains itself with a single tab
+    Given a single ordinary tab for Glance
+    When I summon Glance from its native keyboard shortcut
+    Then the picker says to open another tab
