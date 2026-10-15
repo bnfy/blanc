@@ -1119,7 +1119,9 @@ A person can give any tab a name of their own, or keep the page's title.
   **Reset Tab Title** (shown only on a renamed tab), restores the page title.
 - **The name.** Whitespace folds to single spaces, control characters are
   dropped, at most 100 characters; empty means the page title. Submitting an
-  un-renamed tab's own page title does not rename it.
+  un-renamed tab's own page title, or an untouched rename prompt, does not
+  rename it. `/ren Budget` works like `/rename Budget`; a bare `/ren` (or the
+  command row clicked) asks for the name instead of running.
 - **Lifetime.** The name stays through any navigation, quiet/wake, moves,
   relaunch, Blanc Spaces and Reopen Closed Tab; Duplicate Tab does not copy
   it. Private tabs can be renamed, in memory only.

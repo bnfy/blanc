@@ -107,3 +107,25 @@ Then('the saved session does not contain {string}', async function (text) {
   const data = await this.call('persistedSessionData');
   assert.equal(JSON.stringify(data).includes(text), false);
 });
+
+When('I press Enter in the command bar', async function () {
+  const page = await overlayPage();
+  await page.press('#addressInput', 'Enter');
+});
+
+When('the page on {string} retitles itself to {string}', async function (name, title) {
+  const id = ctx.tabByName[name];
+  await this.call('setTabPresentation', id, { title });
+  await this.waitForState((s) => s.tabs.some((t) => t.id === id && t.title === title));
+});
+
+When('the page on {string} starts loading', async function (name) {
+  const id = ctx.tabByName[name];
+  await this.call('setTabPresentation', id, { isLoading: true });
+  await this.waitForState((s) => s.tabs.some((t) => t.id === id && t.isLoading));
+});
+
+// Unlike "is labelled", this reads the row while the tab may be loading.
+Then('the command panel row for {string} reads {string}', async function (name, label) {
+  assert.equal(await labelOf(this, ctx.tabByName[name]), label);
+});

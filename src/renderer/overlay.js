@@ -108,6 +108,9 @@
   let pendingGroupTabId = null;
   // F46: the tab a menu-initiated "Rename Tab…" targets, like pendingGroupTabId.
   let pendingRenameTabId = null;
+  // F46: the exact text a rename prompt was opened with. Enter on it unedited
+  // changes nothing, even if the page has retitled itself since.
+  let renamePrefill = null;
   /** A click only reaches a row's handler when mousedown and mouseup land on
    * the same element. tabs:updated broadcasts arrive in bursts while any page
    * loads, and a replaceChildren between the two destroys the pressed row —
@@ -600,15 +603,18 @@
       faviconWrap.append(muteBadge);
     }
 
-    const label = tab.isLoading ? blancI18n.t('tab.loading') : tab.title || blancI18n.t('tab.untitled');
+    // A renamed tab keeps its name while it loads (F46); only a page title,
+    // which is about to change, gives way to "Loading…".
+    const showLoading = tab.isLoading && tab.pageTitle == null;
+    const label = showLoading ? blancI18n.t('tab.loading') : tab.title || blancI18n.t('tab.untitled');
     const title = document.createElement('span');
     title.className = 'row-title';
     title.textContent = label;
     // A renamed row's tooltip is the page's own title (F46).
     if (tab.pageTitle || tab.title) title.title = tab.pageTitle || tab.title;
-    if (tab.title && !tab.isLoading) title.dataset.i18nIgnore = ''; // a page title is data
+    if (tab.title && !showLoading) title.dataset.i18nIgnore = ''; // a page title is data
     row.setAttribute('aria-label', label);
-    if (tab.title && !tab.isLoading) row.dataset.i18nIgnore = 'aria-label'; // the page title again
+    if (tab.title && !showLoading) row.dataset.i18nIgnore = 'aria-label'; // the page title again
 
     const primary = document.createElement('button');
     primary.type = 'button';
@@ -929,6 +935,26 @@
     else workspaceUI.command(name);
   }
 
+  /** A shortened or bare /rename ("/ren", or the row clicked from "/") has
+   * no name to apply: it asks for one, as Rename Tab… does, rather than
+   * naming the tab after the command text or quietly resetting it. */
+  function renameNeedsName(input) {
+    const [word = '', ...rest] = (input ?? '').trim().split(/\s+/);
+    return word !== '/rename' && rest.length === 0;
+  }
+
+  function promptRename() {
+    const target = state.tabs.find((t) => t.id === (pendingRenameTabId ?? state.activeTabId));
+    if (!target) return;
+    const prefill = `/rename ${target.title || ''}`;
+    inputTouched = true;
+    addressInput.value = prefill;
+    renamePrefill = prefill;
+    renderList();
+    addressInput.focus();
+    addressInput.setSelectionRange('/rename '.length, prefill.length);
+  }
+
   const COMMANDS = [
     // Also listed on blanc://shortcuts/ — update SLASH_COMMANDS in
     // pages/shortcuts.js when adding or changing a command here.
@@ -950,14 +976,17 @@
     { cmd: '/pin', hint: blancI18n.t('slash.pin.hint'), run: () => state.activeTabId && window.browserAPI.toggleTabPinned(state.activeTabId) },
     { cmd: '/mute', hint: blancI18n.t('slash.mute.hint'), run: () => state.activeTabId && window.browserAPI.toggleTabMuted(state.activeTabId) },
     { cmd: '/sleep', hint: blancI18n.t('slash.sleep.hint'), run: () => window.browserAPI.sleepBackgroundTabs(), keepOverlay: true, clearInput: true, resultNotice: (quieted) => Array.isArray(quieted) && quieted.length === 0 ? blancI18n.t('slash.sleep.none') : '' },
-    { cmd: '/rename', hint: blancI18n.t('slash.rename.hint'), run: (input) => {
-      const name = (input ?? '').replace(/^\/rename\s*/, '');
+    { cmd: '/rename', hint: blancI18n.t('slash.rename.hint'), keepOverlay: renameNeedsName, run: (input) => {
+      if (renameNeedsName(input)) { promptRename(); return; }
+      // Whatever was typed for the command word ("/ren"), the name follows it.
+      const name = (input ?? '').replace(/^\/\S*\s*/, '');
       // "Rename Tab…" targets the right-clicked tab, even if it closed in the
       // meantime (main then does nothing) — never silently the active tab.
       // An empty name hands the tab back its page title.
       const target = pendingRenameTabId ?? state.activeTabId;
-      if (target) window.browserAPI.renameTab(target, name);
+      if (target && input !== renamePrefill) window.browserAPI.renameTab(target, name);
       pendingRenameTabId = null;
+      renamePrefill = null;
     } },
     { cmd: '/group', hint: blancI18n.t('slash.group.hint'), run: (input) => {
       const name = (input ?? '').replace(/^\/group\s*/, '').trim();
@@ -995,7 +1024,10 @@
     commandNotice = '';
     // Close first: commands that open something (a page, a fresh tab) rely
     // on main re-showing the overlay in a clean state where needed.
-    if (!command.keepOverlay) window.browserAPI.closeOverlay();
+    const keepOverlay = typeof command.keepOverlay === 'function'
+      ? command.keepOverlay(input)
+      : command.keepOverlay;
+    if (!keepOverlay) window.browserAPI.closeOverlay();
     const result = command.run(input);
     // A command that stays open and leaves its own text typed keeps the list
     // on slash commands, so the rows it just changed are never on screen —
@@ -1797,6 +1829,7 @@
         siteInfoOpen = false;
         pendingGroupTabId = null;
         pendingRenameTabId = null;
+        renamePrefill = null;
         clearWorkspacePopoverEditors();
         closeWorkspaceSwitcher();
         addressInputComposing = false;
@@ -1819,6 +1852,7 @@
       if (purpose && typeof purpose === 'object' && purpose.renameTabId != null) {
         pendingRenameTabId = purpose.renameTabId;
         pendingGroupTabId = null;
+        renamePrefill = prefill ?? null;
       }
       // A workspace row's context menu (main process) has no other channel
       // back into an already-open panel — same atomic-payload reasoning as
@@ -2391,6 +2425,7 @@
     suppressProviderSuggestions = false;
     pendingGroupTabId = null;
     pendingRenameTabId = null;
+    renamePrefill = null;
     clearWorkspacePopoverEditors();
     closeWorkspaceSwitcher();
     selectedResultIndex = -1;

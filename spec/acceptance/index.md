@@ -218,6 +218,10 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F46-4 | Reset Tab Title restores the page title | — | ✅ | ➖ | ➖ |
 | F46-5 | A name survives relaunch | — | ✅ | ➖ | ➖ |
 | F46-6 | A private tab's name never reaches session.json | — | ✅ | ➖ | ➖ |
+| F46-7 | A shortened `/rename` names the tab with the words after it | — | ✅ | ➖ | ➖ |
+| F46-8 | Choosing `/rename` without a name asks for one | — | ✅ | ➖ | ➖ |
+| F46-9 | Enter on an untouched rename prompt keeps the page title after the page retitles | — | ✅ | ➖ | ➖ |
+| F46-10 | A renamed tab keeps its name in the command panel while it loads | — | ✅ | ➖ | ➖ |
 
 > **M0–M1 note (2026-07-08):** F5 (address/search + OS hand-off) and F1 (minimal
 > address surface) are implemented and unit-tested on iOS, but the iOS acceptance

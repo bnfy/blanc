@@ -64,6 +64,10 @@ it empty to reset its title"*.
   `/group` forgets its New Group… target today.
 - Typing `/rename Budget` from scratch renames the **active** tab. `/rename`
   with nothing after it restores the page title.
+- A shortened command works like the full one: `/ren Budget` names the tab
+  "Budget". A shortened or bare command with no name after it (`/ren`, or
+  clicking the `/rename` row in the command list) asks for the name the way
+  **Rename Tab…** does, instead of running.
 
 **Reset Tab Title** removes the custom name at once; nothing else changes.
 
@@ -75,7 +79,9 @@ it empty to reset its title"*.
 - An empty result means "use the page title".
 - Pressing Enter on an untouched prefill, when the tab has no custom name and
   the text still equals the page title, does **not** rename it. Otherwise one
-  stray Enter would freeze today's page title on the tab forever.
+  stray Enter would freeze today's page title on the tab forever. The same
+  holds when the prompt's text is unchanged but the page has retitled itself
+  since it opened (unread counts and the like).
 - Names are not lowercased (unlike group names). They are the person's text.
 
 ### Where the name shows
@@ -95,7 +101,8 @@ Everywhere Blanc labels a tab with its title:
 
 On a renamed ⌘L or rail row, the hover tooltip shows the page's own title, so
 the real page is always one hover away. The Quick Switcher matches both the
-custom name and the page title.
+custom name and the page title. A renamed tab keeps its name in the ⌘L rows
+while it loads; only an un-renamed tab's row reads "Loading…".
 
 The pill shows the tab's domain, not its title, so it is unchanged. The site
 identity and certificate surfaces are unchanged too: titles are already

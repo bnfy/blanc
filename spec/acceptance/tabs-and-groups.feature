@@ -138,3 +138,30 @@ Feature: Tabs and tab groups
     And a tab on "rename-first" named "Budget"
     Then the saved session holds the name "Budget"
     And the saved session does not contain "Secret plan"
+
+  @F46-7 @F46 @desktop
+  Scenario: A shortened /rename names the tab with the words after it
+    Given a tab open on "rename-first"
+    When I run the slash command "/ren Weekly"
+    Then the tab on "rename-first" is labelled "Weekly"
+
+  @F46-8 @F46 @desktop
+  Scenario: Choosing /rename without a name asks for one
+    Given a tab on "rename-first" named "Budget"
+    When I run the slash command "/ren"
+    Then the command bar reads "/rename Budget" with "Budget" selected
+    And the tab on "rename-first" is labelled "Budget"
+
+  @F46-9 @F46 @desktop
+  Scenario: Enter on an untouched rename prompt keeps the page title after the page retitles
+    Given a tab open on "rename-first"
+    When I choose Rename Tab… for the tab on "rename-first"
+    And the page on "rename-first" retitles itself to "(3) rename-first"
+    And I press Enter in the command bar
+    Then the tab on "rename-first" is labelled "(3) rename-first"
+
+  @F46-10 @F46 @desktop
+  Scenario: A renamed tab keeps its name in the command panel while it loads
+    Given a tab on "rename-first" named "Budget"
+    When the page on "rename-first" starts loading
+    Then the command panel row for "rename-first" reads "Budget"
