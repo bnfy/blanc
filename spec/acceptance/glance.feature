@@ -123,3 +123,10 @@ Feature: Glance reference pane
     When I open the Change picker and close Glance from the keyboard shortcut
     Then the picker is dismissed with Glance
     And keyboard focus is not stranded on the chrome strip
+
+  @F34-1 @F34 @D11
+  Scenario: Dragging the divider keeps it under the pointer
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And I drag the Glance divider 80 pixels to the left from inside its grip
+    Then the divider moved 80 pixels

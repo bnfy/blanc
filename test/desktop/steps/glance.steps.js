@@ -638,3 +638,34 @@ Then('the picker is dismissed with Glance', async function () {
   await this.waitForState((state) => state.glanceTabId === null);
   await waitForValue(() => this.call('overlayMode'), (mode) => mode === null, 'picker dismissed by Close Glance');
 });
+
+// --- Divider pointer drag (Glance fixes, PR 1) ---
+
+When('I drag the Glance divider {int} pixels to the left from inside its grip', async function (distance) {
+  await this.call('resetGlanceRatio');
+  await this.waitForState((candidate) => Math.round(candidate.glanceGeometry.ratio * 100) === 62);
+  await frontChromeWindow(this);
+  const chrome = await mainChromePage();
+  const box = await chrome.locator('#glanceDivider').boundingBox();
+  this.glanceDividerStartX = (await this.state()).glanceGeometry.divider.x;
+  // 10px into the 12px grip: without grab-offset compensation the first move
+  // snaps the divider's left edge to the pointer, i.e. 10px short.
+  const x = box.x + box.width - 2;
+  const y = box.y + box.height / 2;
+  await chrome.mouse.move(x, y);
+  await chrome.mouse.down();
+  try {
+    await chrome.mouse.move(x - distance / 2, y);
+    await chrome.mouse.move(x - distance, y);
+  } finally {
+    await chrome.mouse.up();
+  }
+});
+
+Then('the divider moved {int} pixels', async function (distance) {
+  await waitForValue(
+    () => this.state(),
+    (state) => Math.abs((this.glanceDividerStartX - state.glanceGeometry.divider.x) - distance) <= 1,
+    `divider ${distance}px left of where it started`
+  );
+});

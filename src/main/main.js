@@ -6553,7 +6553,9 @@ function resizeGlanceAt(point) {
   const layout = currentChromeLayout();
   const glance = glanceGeometry(layout);
   if (!glance) return null;
-  rt().glanceRatio = ratioForGlanceDivider(layout.pageBounds, point, glance.direction);
+  const ratio = ratioForGlanceDivider(layout.pageBounds, point, glance.direction);
+  if (ratio == null) return null;
+  rt().glanceRatio = ratio;
   resizeActiveView();
   return rt().glanceRatio;
 }

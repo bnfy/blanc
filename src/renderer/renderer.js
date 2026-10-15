@@ -939,17 +939,31 @@
   glanceDivider.addEventListener('pointerdown', (event) => {
     if (event.button !== 0 || !glanceLayout) return;
     event.preventDefault();
-    glanceResizeState = { pointerId: event.pointerId };
+    // Main maps the reported point to the divider's leading edge, so report
+    // the pointer minus where inside the grip it went down — otherwise the
+    // first move jumps the divider by that much.
+    const rect = glanceDivider.getBoundingClientRect();
+    glanceResizeState = {
+      pointerId: event.pointerId,
+      grabOffset: glanceLayout.direction === 'horizontal'
+        ? event.clientX - rect.left
+        : event.clientY - rect.top,
+    };
     glanceDivider.setPointerCapture(event.pointerId);
     document.documentElement.dataset.glanceResizing = glanceLayout.direction;
   });
+  const glanceDragPoint = (event) => (
+    glanceLayout?.direction === 'horizontal'
+      ? { x: event.clientX - glanceResizeState.grabOffset, y: event.clientY }
+      : { x: event.clientX, y: event.clientY - glanceResizeState.grabOffset }
+  );
   glanceDivider.addEventListener('pointermove', (event) => {
     if (!glanceResizeState || glanceResizeState.pointerId !== event.pointerId) return;
-    queueGlanceResize({ x: event.clientX, y: event.clientY });
+    queueGlanceResize(glanceDragPoint(event));
   });
   const finishGlanceResize = (event) => {
     if (!glanceResizeState || glanceResizeState.pointerId !== event.pointerId) return;
-    queueGlanceResize({ x: event.clientX, y: event.clientY });
+    queueGlanceResize(glanceDragPoint(event));
     glanceResizeState = null;
     delete document.documentElement.dataset.glanceResizing;
     if (glanceDivider.hasPointerCapture(event.pointerId)) {
