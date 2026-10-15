@@ -260,6 +260,35 @@ jobs:
         if: ${{ !cancelled() && runner.os == 'Windows' }}
         run: npm run test:window-close-primary
 
+  favorites-import:
+    needs: changes
+    # Runs unless `changes` proved a website/docs-only PR (also runs if it failed).
+    if: ${{ !cancelled() && needs.changes.outputs.app != 'false' }}
+    # F30 Favorites import from other browsers' profiles (F30-1 to F30-5),
+    # through the real Favorites sheet and first-run setup. Each platform
+    # keeps browser profiles in a different place, so all three run.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Favorites import from detected browser profiles (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          bash scripts/ci-enable-linux-sandbox.sh
+          xvfb-run -a npm run test:favorites-import:desktop
+      - name: Favorites import from detected browser profiles (Windows/macOS)
+        if: runner.os != 'Linux'
+        run: npm run test:favorites-import:desktop
+
   quiet-tabs:
     needs: changes
     # Runs unless `changes` proved a website/docs-only PR (also runs if it failed).
