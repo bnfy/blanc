@@ -1,12 +1,12 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import slashCommandCopy from '../../../../copy/slash-commands.json';
+import { releasedSlashCommands } from '../../lib/released-slash-commands.mjs';
 
-const slashCommands = slashCommandCopy.commands.map((entry) => ({
+const slashCommands = releasedSlashCommands.map((entry) => ({
   ...(entry.doc ?? entry),
   platforms: entry.platforms,
 }));
-const paletteCommands = slashCommandCopy.commands.map(({ command, hint }) => ({ command, hint }));
+const paletteCommands = releasedSlashCommands.map(({ command, hint }) => ({ command, hint }));
 ---
 <BaseLayout
   title={"Browser Command Palette and Quick Tab Switcher | Blanc"}
