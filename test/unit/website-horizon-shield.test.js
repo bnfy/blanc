@@ -263,7 +263,10 @@ test('provider copy resolves to the verified public release with bronze display 
   const nativeIcon = read(ledger.islandIcon.file).match(/id="pillShield"[\s\S]*?(<svg[\s\S]*?<\/svg>)/)[1];
   assert.equal(hash(nativeIcon), ledger.islandIcon.sha256);
   assert.equal(hash(fs.readFileSync(path.join(root, ledger.artwork.model.outline))), ledger.artwork.model.outlineSha256);
-  assert.equal(hash(fs.readFileSync(path.join(root, ledger.artwork.recolor.reference))), ledger.artwork.recolor.referenceSha256);
+  // The recolor matched the Sunrise mark as it was on October 3, before the
+  // mark was redrawn as a vector; check that reference, not today's file.
+  const recolorReference = execFileSync('git', ['show', `${ledger.artwork.recolor.referenceRevision}:${ledger.artwork.recolor.reference}`], { cwd: root });
+  assert.equal(hash(recolorReference), ledger.artwork.recolor.referenceSha256);
   await assertDisplayExport(master, artwork);
   assert.ok(read('ASSET-LICENSE.md').includes(ledger.artwork.file));
   const activeArtwork = ledger[ledger.activeArtwork];

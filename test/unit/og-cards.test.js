@@ -77,12 +77,16 @@ test('the OG cards are generated, not hand-placed', () => {
   assert.match(source, /\.demo-shot, \$\{card\.figure\} \.demo-page \{ display: none/);
 });
 
-test('the card generators set their titles in Newsreader, the site display face', () => {
-  for (const script of ['site/scripts/render-og-cards.mjs', 'site/scripts/render-press-card.mjs']) {
+test('the card generators set their titles in Blubird Display and their text in Blubird Text, like the website', () => {
+  for (const script of ['site/scripts/render-og-cards.mjs', 'site/scripts/render-press-card.mjs', 'site/scripts/render-mail-og-card.mjs']) {
     const source = fs.readFileSync(path.join(ROOT, script), 'utf8');
-    assert.match(source, /newsreader-latin-opsz-normal\.woff2/, `${script} embeds the Newsreader file`);
-    assert.match(source, /@font-face \{ font-family: Newsreader;/, `${script} declares the face`);
-    assert.match(source, /h1 \{[^}]*font-family: Newsreader[^}]*font-weight: 400/, `${script} sets the title at regular weight`);
-    assert.doesNotMatch(source, /h1 \{[^}]*font-weight: 600/, `${script} no longer sets a bold title`);
+    assert.match(source, /import \{ blubirdFontFaces \} from '\.\/blubird-card-fonts\.mjs';/, `${script} embeds Blubird`);
+    assert.match(source, /h1[ ]?\{[^}]*'Blubird Display'[^}]*/, `${script} sets the title in Blubird Display`);
+    assert.match(source, /h1[ ]?\{[^}]*letter-spacing:[ ]?0[;}]/, `${script} sets the title at 0 tracking`);
+    assert.doesNotMatch(source, /Newsreader|newsreader/, `${script} no longer uses Newsreader`);
   }
+  const fonts = fs.readFileSync(path.join(ROOT, 'site/scripts/blubird-card-fonts.mjs'), 'utf8');
+  // The licensed files are never committed, so rendering stops without them.
+  assert.match(fonts, /Blubird is not installed/);
+  assert.match(fonts, /public\/fonts\/blubird/);
 });

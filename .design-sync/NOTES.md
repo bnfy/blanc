@@ -259,7 +259,9 @@ Pushed (plan_bee811dfe403446a_3ee10cffb81e; 24 writes + 1 delete; sentinel fence
 re-armed last):
 - **Brand.** `components/icons/Logo.jsx` now embeds `src/renderer/pages/sunrise-mark.png`
   (680×680 RGBA, 265 KB base64) VERBATIM as a data URI — Sunrise is raster (the app's brand
-  build derives it from `mahjong-wind-east.png`; there is no vector, never trace it). Two
+  build derives it from `mahjong-wind-east.png`; there is no vector, never trace it). [Superseded
+  October 15, 2026: the app now derives every Sunrise surface from the vector
+  `assets/sunrise-mark.svg`; re-embed the regenerated `sunrise-mark.png` on the next sync.] Two
   tones: `tone="ink"` (default; currentColor through the PNG alpha via CSS mask — exactly
   styles.css `.favicon.internal`) and `tone="color"` (the gold `<img>`). Below 20px the ink
   tone swaps in the app's rays-only `sunrise-favicon-mark.png`, embedded as a **128px

@@ -89,6 +89,7 @@
       "date": "2026-10-03",
       "direction": "Match the shield everywhere in the app and website to the copper/bronze tones of the original Sunrise sun; reduce the bright yellow-gold cast.",
       "reference": "site/public/sunrise-hero-mark.png",
+      "referenceRevision": "5f8be929",
       "referenceSha256": "3954f28e9a89972a6f5b9339a6102dbd9f1d65c94d876c95ccdf41c681bb631a",
       "evidence": "docs/verification/2026-10-03-horizon-shield-bronze.md",
       "tool": "Built-in image_gen.imagegen; precise-object-edit; transparent output."

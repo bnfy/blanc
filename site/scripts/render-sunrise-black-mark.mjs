@@ -30,6 +30,20 @@ const INK = 14;
   for (let y = 0; y < H; y++) { seed(y * W); seed(y * W + W - 1); }
   while (top) { const p = stack[--top]; const x = p % W;
     if (x > 0) seed(p - 1); if (x < W - 1) seed(p + 1); if (p >= W) seed(p - W); if (p < N - W) seed(p + W); }
+  // The artwork's hairline between the disc and the top horizon bar reaches
+  // the edge as ground; in ink it would read as a crack, so vertical runs of
+  // ground no taller than 16px with artwork above and below become artwork.
+  for (let x = 0; x < W; x++) {
+    let y = 1;
+    while (y < H) {
+      if (ground[y * W + x] && !ground[(y - 1) * W + x]) {
+        const start = y;
+        while (y < H && ground[y * W + x]) y++;
+        if (y < H && y - start <= 16) for (let f = start; f < y; f++) ground[f * W + x] = 0;
+      }
+      y++;
+    }
+  }
   // Distance (in px, up to 3) from the ground keeps anti-aliased outer edges.
   const near = new Uint8Array(N).fill(255);
   for (let p = 0; p < N; p++) if (ground[p]) near[p] = 0;

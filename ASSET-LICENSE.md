@@ -24,7 +24,10 @@ Source mark:
 
 - `build/app-icons/Icon.icon/` — the Icon Composer document, including
   `Assets/blanc-mark.svg`
-- `assets/sunrise-app-icon.png` — the static Sunrise platform source
+- `assets/sunrise-mark.svg` — the Sunrise mark as vector artwork, the source of
+  every Sunrise surface; `assets/sunrise-mark-4096.png` — its rendered master
+- `assets/sunrise-app-icon.png` — the static Sunrise platform icon, generated
+  from the vector mark
 - `build/icon.png` — 1024×1024 raster template
 
 Product marks:
@@ -65,8 +68,6 @@ Platform-packaged forms of the same mark:
 - `assets/wordmark/blanc-word-{display,small}-{ink,white}.svg` — the outlined
   “Blanc” word of the Blanc lockup, drawn from Blubird by Rajesh Rajput (the
   font files themselves are not in this repository)
-- `assets/sunrise-mark.svg` — the Sunrise mark as vector artwork, on the same
-  1024 canvas as the macOS icon's raster layer
 - `site/public/lockup/` — the lockup's word outlines and the Sunrise exports
   (`sunrise-mark-{256,2048}.webp`, rendered from `assets/sunrise-mark.svg`) the
   website pairs them with
