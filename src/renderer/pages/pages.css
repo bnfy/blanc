@@ -2955,7 +2955,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .bb-clock-row { margin-top: 0; }
 .bb-clock {
   font-family: var(--font-text);
-  letter-spacing: 0;
+  letter-spacing: -0.02em;
   font-size: clamp(80px, 12vw, 148px);
   font-weight: 500;
   font-variant-numeric: proportional-nums;
@@ -3631,7 +3631,7 @@ body[data-layout="ledger"] .ledger:not(:has(.ledger-col-secondary > section:not(
   margin: 0 0 32px;
   color: var(--text);
   font-family: var(--font-text);
-  letter-spacing: 0;
+  letter-spacing: -0.015em;
   font-size: 32px;
   font-weight: 400;
   line-height: 1.1;

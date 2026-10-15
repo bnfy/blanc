@@ -71,7 +71,7 @@ test('Instrument Sans sets the page copy, headings and clock; Inter keeps figure
   // to 0 explicitly so base rules (.group-title's 0.08em) cannot leak through.
   for (const selector of [
     'body.sheet .group-title, body.sheet .shortcut-section .section-title',
-    '.migration-checklist-heading h2', 'body.sheet .page h1', '.ob-content h1', '.ledger-where',
+    '.migration-checklist-heading h2', 'body.sheet .page h1', '.ob-content h1',
   ]) {
     const rules = rulesFor(pages, selector);
     const primary = rules.find((rule) => rule.body.includes('font-family: var(--font-text)'));
@@ -83,6 +83,11 @@ test('Instrument Sans sets the page copy, headings and clock; Inter keeps figure
   assert.ok(clock, 'the Billboard clock rule exists');
   assert.match(clock.body, /font-family: var\(--font-text\);/, 'the clock is Instrument Sans (owner choice, October 15)');
   assert.match(clock.body, /font-weight: 500;/);
+  // The two large lines tighten slightly at display size (owner, October 15).
+  assert.match(clock.body, /letter-spacing: -0\.02em;/, 'the clock tightens to -0.02em');
+  const where = rulesFor(pages, '.ledger-where').find((rule) => rule.body.includes('font-family: var(--font-text)'));
+  assert.ok(where, '"Where to?" uses --font-text');
+  assert.match(where.body, /letter-spacing: -0\.015em;/, '"Where to?" tightens to -0.015em');
 
   // Every remaining Inter rule is on the keep-list, and every keep-list rule uses Inter.
   for (const rule of [...cssRules(pages), ...cssRules(handoff)]) {
