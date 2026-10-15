@@ -93,6 +93,9 @@ test('nothing on a Mail page scrolls sideways, from phones to wide screens', asy
     try {
       for (const [path] of pages) {
         await page.goto(`${baseURL}${path}`);
+        // Measure the settled page: before the web fonts swap in, fallback text
+        // can briefly be wider (CI caught a 10px overflow at 320px that way).
+        await page.evaluate(() => document.fonts.ready);
         const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
         assert.ok(overflow <= 0, `${path} at ${width}px overflows by ${overflow}px`);
       }
