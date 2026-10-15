@@ -25,7 +25,7 @@ function jobs(text) {
 }
 
 const GATE = "if: ${{ !cancelled() && needs.changes.outputs.app != 'false' }}";
-const GATED = ['oauth-compatibility', 'modified-link-clicks', 'tab-handoff', 'workspace-regressions', 'quiet-tabs', 'browser-shortcuts'];
+const GATED = ['oauth-compatibility', 'modified-link-clicks', 'tab-handoff', 'workspace-regressions', 'favorites-import', 'quiet-tabs', 'browser-shortcuts'];
 
 test('parity guards gate only the Electron jobs, and fail closed', () => {
   const text = workflow('parity-guards.yml');

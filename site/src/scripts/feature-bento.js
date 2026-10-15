@@ -230,7 +230,11 @@ for (const demo of document.querySelectorAll('.native-shield-demo')) {
     demo.style.setProperty('--pointer-x', `${((center - left) / v.width * 100).toFixed(2)}%`);
     demo.style.setProperty('--chip-dy', `${((p.bottom - c.bottom) / scaleY).toFixed(2)}px`);
   };
-  new ResizeObserver(place).observe(demo);
+  // The pill reflows when the replica's UI-text font finishes loading, which
+  // moves the chip without resizing the demo, so watch the pill as well.
+  const resize = new ResizeObserver(place);
+  resize.observe(demo);
+  resize.observe(pill);
   document.fonts?.ready.then(place);
 }
 

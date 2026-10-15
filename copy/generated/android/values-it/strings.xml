@@ -721,6 +721,8 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="glance_status_closed">Glance chiuso</string>
     <string name="glance_status_promoted">Glance ora è la scheda principale</string>
     <string name="glance_status_tab_closed">Glance chiuso perché la sua scheda è stata chiusa</string>
+    <string name="glance_status_main_closed">%1$s è ora la pagina principale. Glance chiuso.</string>
+    <string name="glance_status_cancelled">Quella scheda non è stata aperta in Glance</string>
     <string name="tab_untitled_short">Scheda</string>
     <string name="error_reload_failed">Impossibile ricaricare la pagina</string>
     <string name="arc_import_entry_title">Arc</string>

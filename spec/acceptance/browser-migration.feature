@@ -23,3 +23,17 @@ Feature: Browser data migration
     Then browser Favorites migration is offered before browsing
     When I import Favorites from first-run setup
     Then its supported web Favorites are copied into Blanc
+
+  @F30-4 @desktop
+  Scenario: Import Favorites from a Chrome profile signed in to a Google Account
+    Given a signed-in Chrome profile keeps its bookmarks only in AccountBookmarks
+    When I look for other browsers and import Favorites from that profile
+    Then the account's web Favorites are copied into Blanc
+    And the account's folders are kept
+
+  @F30-5 @desktop
+  Scenario: A profile with local and account bookmarks imports each Favorite once
+    Given a signed-in Chrome profile keeps bookmarks in both Bookmarks and AccountBookmarks
+    When I look for other browsers and import Favorites from that profile
+    Then the Favorites from both files are copied into Blanc once each
+    And the migration result reports no Favorite as already saved

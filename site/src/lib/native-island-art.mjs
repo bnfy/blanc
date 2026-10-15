@@ -20,7 +20,9 @@ function nativeRules(styles) {
 export function nativeIslandArt({ styles, document, renderer, extraSelectors = [] }) {
   const { take, tokens } = nativeRules(styles);
   const selectors = [
-    '*', 'button', 'button svg', '#islandPill', '#islandPill::after', '#pillDots',
+    // The app's UI-text width and the spacing its buttons inherit.
+    '*', '*, *::before, *::after', 'button, input, select, textarea',
+    'button', 'button svg', '#islandPill', '#islandPill::after', '#pillDots',
     '.pill-btns', '.pill-btn', '.pill-btn:disabled', '.pill-btn svg', '.pill-sep',
     '.island-dot', '.island-dot.active', '#pillDomain', '.pill-shortcuts',
     '.pill-slash, .pill-shortcut', '.pill-slash::before, .pill-shortcut::before',

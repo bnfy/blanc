@@ -31,4 +31,10 @@ function evaluateDocumentVisible({
     && frameVisible === true;
 }
 
-module.exports = { evaluateAdmission, evaluateDocumentVisible };
+/** A tab is on screen when it is the window's main page or its Glance
+ *  reference and still owns a view. Both panes are user-visible surfaces. */
+function isVisiblePane(owner, tab) {
+  return !!(tab && owner && tab.view && (owner.activeTabId === tab.id || owner.glanceTabId === tab.id));
+}
+
+module.exports = { evaluateAdmission, evaluateDocumentVisible, isVisiblePane };

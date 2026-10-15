@@ -704,6 +704,8 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="glance_status_closed">Glance closed</string>
     <string name="glance_status_promoted">Glance made main</string>
     <string name="glance_status_tab_closed">Glance closed because its tab was closed</string>
+    <string name="glance_status_main_closed">%1$s is now the main page. Glance closed.</string>
+    <string name="glance_status_cancelled">Didn’t open that tab in Glance</string>
     <string name="tab_untitled_short">Tab</string>
     <string name="error_reload_failed">The page could not be reloaded</string>
     <string name="arc_import_entry_title">Arc</string>

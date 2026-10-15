@@ -3,12 +3,13 @@ import styles from '../../../src/renderer/styles.css?raw';
 import document from '../../../src/renderer/index.html?raw';
 import renderer from '../../../src/renderer/renderer.js?raw';
 import nativeFont from '../../../src/renderer/pages/inter-latin.woff2?url';
+import nativeTextFont from '../../../src/renderer/pages/instrument-sans-latin-wdth-normal.woff2?url';
 import { nativeIslandArt } from '../lib/native-island-art.mjs';
 import '../styles/hero-island.css';
 import { fitHeroIsland } from '../scripts/hero-island.js';
 const art = nativeIslandArt({styles, document, renderer});
 const presentation = `
-  :host {display:block; width:100%; height:100%; font:13px var(--font-ui); color:var(--text);}
+  :host {display:block; width:100%; height:100%; font:13px var(--font-text); letter-spacing:var(--text-tracking);word-spacing:var(--text-word-spacing); color:var(--text);}
   .native-stage {display:grid; place-items:center; height:100%;}
   [hidden] {display:none!important;}
   #islandPill {margin:0; max-width:none; flex:none; width:max-content; zoom:calc(var(--pill-zoom) * var(--art-scale, 1));}
@@ -16,7 +17,7 @@ const presentation = `
 `;
 ---
 
-<style is:inline set:html={`@font-face {font-family:Inter;src:url('${nativeFont}') format('woff2');font-style:normal;font-weight:100 900;font-display:swap;}`} />
+<style is:inline set:html={`@font-face {font-family:Inter;src:url('${nativeFont}') format('woff2');font-style:normal;font-weight:100 900;font-display:swap;}@font-face {font-family:"Instrument Sans";src:url('${nativeTextFont}') format('woff2');font-style:normal;font-weight:400 700;font-stretch:75% 100%;font-display:swap;}`} />
 <div class="hero-island-stage" data-native-island>
   <div class="hero-island-shadow" aria-hidden="true"></div>
   <div class="hero-island-plane" role="img" aria-label="An enlarged view of Blanc’s resting Island, rendered from its native interface code. Illustration with sample tabs on blanc.day and a blocker badge showing one.">

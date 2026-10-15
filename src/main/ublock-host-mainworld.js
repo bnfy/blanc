@@ -48,6 +48,29 @@
     if (queued.length >= 256 || queuedBytes + bytes > MAX_BYTES) { capacityFailed = true; return; }
     queued.push(message); queuedBytes += bytes;
   };
+  // uBO on Chromium cannot suspend network requests, so while it reloads its
+  // filter lists (after a list update or a filter change) it decides requests
+  // against an emptied engine and allows them. Decisions wait for the reload
+  // instead, and main gives them a reload-length deadline. A reload that
+  // rejects leaves the engine incomplete: decisions stay held until that
+  // deadline fails closed and recovery restarts uBO.
+  let filtersLoading;
+  let filtersLoaded = null;
+  function holdDecisionsWhileFiltersLoad(µb) {
+    const load = µb.loadFilterLists;
+    µb.loadFilterLists = function(...args) {
+      const loading = load.apply(this, args);
+      if (loading === filtersLoading) return loading;
+      if (!filtersLoaded) send({ kind: 'filters-reloading', value: true });
+      filtersLoading = loading;
+      filtersLoaded = Promise.resolve(loading).then(() => {
+        if (filtersLoading !== loading) return;
+        filtersLoading = undefined; filtersLoaded = null;
+        send({ kind: 'filters-reloading', value: false });
+      }, () => new Promise(() => {}));
+      return loading;
+    };
+  }
   if (background) {
     for (const local of new Set(roots.map(root => root.storage.local))) {
       for (const name of ['get', 'set', 'remove', 'clear']) {
@@ -352,6 +375,7 @@
         } else if (message.kind === 'request') {
           let result = {};
           try {
+            while (filtersLoaded) await filtersLoaded;
             for (const [listener, { filter, extra }] of networkEvents.get(message.name) || []) {
               if (filter?.types && !filter.types.includes(message.details.type)) continue;
               if (filter?.tabId !== undefined && filter.tabId !== message.details.tabId) continue;
@@ -417,6 +441,7 @@
     // document must never dismiss a newly opened view in the same profile.
     closePopup() { self.blancUboPopup?.close(); },
     async ready() {
+      holdDecisionsWhileFiltersLoad(self.µBlock);
       try {
         const key = 'blancHostStorageProbe';
         const token = `${Date.now()}-${Math.random()}`;

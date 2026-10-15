@@ -65,6 +65,18 @@ function createUblockRegistry({ profileId, listTabs, listWindows, liveContents }
     refresh();
     return records().find(tab => liveContents(tab)?.id === id);
   }
+  const networkUrl = value => typeof value === 'string' && /^https?:\/\//i.test(value);
+  // uBO takes a tab-less request's context from its initiator, or from this
+  // document URL when the initiator is absent or opaque, and filters it only
+  // when that context is a network URL (traffic.js
+  // onBeforeBehindTheSceneRequest). A new window's frame can still read as its
+  // initial empty document when its first requests arrive, so there a
+  // non-network frame URL yields to the network document the request names.
+  // Tabs keep the frame URL.
+  function documentUrl(tab, frame, details) {
+    if (tab || networkUrl(frame?.url)) return frame?.url || details.referrer;
+    return [details.referrer, details.initiatorOrigin].find(networkUrl) || frame?.url || details.referrer;
+  }
   const frameId = frame => !frame ? -1 : !frame.parent ? 0 : frame.frameTreeNodeId;
   function frameData(frame) {
     return { frameId: frameId(frame), parentFrameId: frame?.parent ? frameId(frame.parent) : -1, url: frame?.url || '' };
@@ -98,7 +110,7 @@ function createUblockRegistry({ profileId, listTabs, listWindows, liveContents }
       // Official Electron already emits milliseconds since the Unix epoch.
       timeStamp: details.timestamp ?? Date.now(),
       initiator: details.initiatorOrigin || details.initiator || frame?.origin || details.referrer,
-      documentUrl: frame?.url || details.referrer,
+      documentUrl: documentUrl(tab, frame, details),
       ...(details.requestHeaders ? { requestHeaders: headers(details.requestHeaders) } : {}),
       ...(details.responseHeaders ? { responseHeaders: headers(details.responseHeaders) } : {}),
       ...(details.statusCode === undefined ? {} : { statusCode: details.statusCode }),

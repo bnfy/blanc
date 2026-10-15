@@ -27,6 +27,11 @@ const WARMUP_WINDOW_MS = 15000;
 // this deadline still fails closed; it only stops a slow machine from being
 // treated as a broken one.
 const STARTUP_DEADLINE_MS = 45000;
+// While uBO reloads its filter lists, the host holds decisions until the
+// engine is whole again. A reload recompiles any updated list, as a first
+// start does, so held decisions get the startup budget; one that still
+// misses it fails closed.
+const RELOAD_DEADLINE_MS = STARTUP_DEADLINE_MS;
 const MAX_PENDING = 256;
 const instances = new Map();
 let ipcInstalled = false;
@@ -72,6 +77,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
   let enabled = true;
   let phase = 'initializing';
   let warmUntil = 0;
+  let filtersReloading = false;
   let error = null;
   let readyResolve;
   let readyReject;
@@ -278,8 +284,13 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       wc.loadURL(`blanc://error?code=-20&desc=${desc}`).catch(() => {});
     }
   }
+  function noteFiltersReloading(value) {
+    filtersReloading = value;
+    // Decisions asked before the host reported the reload are held too.
+    if (value) for (const item of pending.values()) if (item.critical) item.rearm(RELOAD_DEADLINE_MS);
+  }
   function decisionDeadline() {
-    return Date.now() < warmUntil ? WARMUP_DEADLINE_MS : DEADLINE_MS;
+    return filtersReloading ? RELOAD_DEADLINE_MS : Date.now() < warmUntil ? WARMUP_DEADLINE_MS : DEADLINE_MS;
   }
   function ask(message) {
     if (phase !== 'ready') return Promise.reject(new Error(error || 'ubo-not-ready'));
@@ -307,6 +318,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
           fail('ubo-decision-timeout');
         }, delay);
       };
+      item.rearm = delay => { clearTimeout(item.timer); arm(delay); };
       arm(critical ? decisionDeadline() : OPERATION_DEADLINE_MS);
       pending.set(id, item);
       try { send({ ...message, id }); } catch { fail('ubo-background-unavailable'); }
@@ -574,6 +586,8 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       send({ kind: 'enabled', value: enabled });
       state('ready'); refresh(); readyResolve?.(status()); pump(); markOutageRecovered(); return;
     }
+    // A list update can start a reload before the host reports ready.
+    if (message.kind === 'filters-reloading') { if (phase !== 'failed') noteFiltersReloading(message.value === true); return; }
     if (message.kind === 'disconnected') return fail('ubo-background-disconnected');
     if (message.kind === 'host-failed') return fail('ubo-host-capacity');
     if (message.kind === 'storage-failed') return fail('ubo-storage-failed');
@@ -596,6 +610,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
   }
   async function initializeInner() {
     const run = ++generation;
+    filtersReloading = false;
     const cancelled = new Promise((_, reject) => { cancelRun = () => reject(new Error(CANCELLED)); });
     cancelled.catch(() => {});
     const stale = () => run !== generation || disposed;

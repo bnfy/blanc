@@ -2565,6 +2565,14 @@
     "message": "Glance se cerró porque se cerró su pestaña",
     "source": "sha256:a0b11623f0c9f9f5a23f8181842e04caa5dce18b06fa1baf21cbfddd8a618332"
   },
+  "glance.status.mainClosed": {
+    "message": "{title} es ahora la página principal. Glance cerrado.",
+    "source": "sha256:ca62d2658a3a540a3ccb5022af926cbe667d6b999d5d967366402736e6eb59ed"
+  },
+  "glance.status.cancelled": {
+    "message": "Esa pestaña no se abrió en Glance",
+    "source": "sha256:947afed12d00c85e3cca44ea9a5e6c13f94b6de4d771b1c0116f7d08b0fe5daa"
+  },
   "tab.untitledShort": {
     "message": "Pestaña",
     "source": "sha256:6a2e12823685d42cfa2fca9e5f62508d84af5a893cff50476b913b3396aea0a1"

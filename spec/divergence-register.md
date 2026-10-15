@@ -482,8 +482,10 @@ directories, while mobile operating systems sandbox one browser from another.
 The available source formats also differ.
 
 - **Desktop:** detect known Chromium-family profiles and parse their bounded
-  `Bookmarks` JSON in the main process. A user-selected Netscape bookmarks HTML
-  file remains the cross-browser fallback, including Firefox and Safari.
+  `Bookmarks` JSON, plus the `AccountBookmarks` JSON in which recent Chrome
+  keeps a signed-in Google Account's bookmarks, in the main process. A
+  user-selected Netscape bookmarks HTML file remains the cross-browser
+  fallback, including Firefox and Safari.
 - **iOS:** use a user-selected exported bookmarks document; no scanning another
   browser's application container.
 - **Android:** use a user-selected exported bookmarks document through the
@@ -498,7 +500,9 @@ separately specified choice.
 
 **Status:** Accepted 2026-07-30. Amended 2026-08-08 to make discovery — not
 just import — require an explicit action, since profile display names commonly
-carry a person's real name or email address.
+carry a person's real name or email address. Amended 2026-10-15 to read
+Chrome's `AccountBookmarks` file beside `Bookmarks`, after signed-in Chrome
+profiles were found to import nothing.
 
 ## D23 — Who decides when a background tab loses its renderer
 **Features:** F31 (the behaviour itself is D8)

@@ -11,6 +11,7 @@ import workspaceUi from '../../../src/renderer/workspace-ui.js?raw';
 import identitySource from '../../../src/renderer/space-identity.js?raw';
 import messages from '../../../copy/messages/en.json';
 import nativeFont from '../../../src/renderer/pages/inter-latin.woff2?url';
+import nativeTextFont from '../../../src/renderer/pages/instrument-sans-latin-wdth-normal.woff2?url';
 import { loadSpaceIdentity, nativeSpacesArt, namespaceNativeArt } from '../lib/native-island-art.mjs';
 import { fitSpacesDemo } from '../scripts/spaces-demo.js';
 
@@ -33,7 +34,7 @@ const art = nativeSpacesArt({
 // script measures that edge into --menu-x. The stage keeps one width for
 // every space so switching never rescales the demo.
 const presentation = `
-  :host {display:block; --demo-width:400px; font-family:var(--font-ui); font-size:13px; color:var(--text);}
+  :host {display:block; --demo-width:400px; font-family:var(--font-text); letter-spacing:var(--text-tracking);word-spacing:var(--text-word-spacing); font-size:13px; color:var(--text);}
   @media (max-width: 760px) {:host {--demo-width:340px;}}
   [hidden] {display:none!important;}
   .native-stage {width:var(--demo-width); zoom:var(--demo-scale, 1); padding-bottom:28px;}
@@ -48,7 +49,7 @@ const raw = `<div class="native-stage"><div class="native-pill-row" aria-hidden=
 // Namespace extracted IDs: the hero draws its own Island on the same page.
 const { html, css } = namespaceNativeArt({ html: raw, css: art.css + presentation }, 'spaces-demo-');
 ---
-<style is:inline set:html={`@font-face {font-family:Inter;src:url('${nativeFont}') format('woff2');font-style:normal;font-weight:100 900;font-display:swap;}`} />
+<style is:inline set:html={`@font-face {font-family:Inter;src:url('${nativeFont}') format('woff2');font-style:normal;font-weight:100 900;font-display:swap;}@font-face {font-family:"Instrument Sans";src:url('${nativeTextFont}') format('woff2');font-style:normal;font-weight:400 700;font-stretch:75% 100%;font-display:swap;}`} />
 <blanc-spaces-demo class="spaces-native-demo" data-appearance="light">
   <template shadowrootmode="open">
     <style is:inline set:html={css} />

@@ -99,6 +99,9 @@
   /** @type {null | 'panel' | 'palette' | 'glance' | 'find' | 'shield' | 'capture' | 'spaces'} */
   let mode = null;
   let glancePickerPurpose = null;
+  // Advances on every fresh picker open and on hide, so a choice awaited
+  // across a dismissal never paints its outcome onto a later picker.
+  let glancePickerSession = 0;
   let glancePickerSelectedId = null;
   let glancePickerError = '';
   let glancePickerBusy = false;
@@ -415,13 +418,16 @@
     glancePickerBusy = true;
     glancePickerError = '';
     renderGlancePicker();
+    const session = glancePickerSession;
     let selected = false;
     try {
       selected = await window.browserAPI.setGlanceTab(tab.id);
     } catch {
       selected = false;
     }
-    if (mode !== 'glance') return;
+    // A picker dismissed and re-opened while this choice awaited is a fresh
+    // picker: this outcome belongs to the one that is gone.
+    if (mode !== 'glance' || session !== glancePickerSession) return;
     glancePickerBusy = false;
     if (selected) {
       glancePickerLive.textContent = tab.title
@@ -1916,6 +1922,7 @@
       findInput.select();
     } else if (next === 'glance') {
       if (!reshow) {
+        glancePickerSession += 1;
         glancePickerInput.value = '';
         glancePickerSelectedId = null;
         glancePickerError = '';
@@ -2413,6 +2420,7 @@
     }
     mode = null;
     glancePickerPurpose = null;
+    glancePickerSession += 1;
     glancePickerSelectedId = null;
     glancePickerError = '';
     glancePickerBusy = false;

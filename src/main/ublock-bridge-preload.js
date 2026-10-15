@@ -11,7 +11,7 @@ const OPERATIONS = new Set([
   'browserAction.setIcon', 'browserAction.setTitle',
 ]);
 const SHAPES = {
-  ready: ['node'], 'storage-failed': [], 'host-failed': [], disconnected: [], 'css-ready': [],
+  ready: ['node'], 'storage-failed': [], 'host-failed': [], disconnected: [], 'css-ready': [], 'filters-reloading': ['value'],
   call: ['id', 'method', 'args'], decision: ['id', 'value', 'error'],
   'css-target': ['id'], 'css-result': ['id', 'error', 'target'],
 };
@@ -22,6 +22,7 @@ function valid(message) {
   if (['call', 'decision', 'css-target', 'css-result'].includes(message.kind)
     && (!Number.isSafeInteger(message.id) || message.id < 1)) return false;
   if (message.kind === 'ready' && typeof message.node !== 'boolean') return false;
+  if (message.kind === 'filters-reloading' && typeof message.value !== 'boolean') return false;
   if (message.kind === 'call' && (!OPERATIONS.has(message.method) || !Array.isArray(message.args) || message.args.length > 4)) return false;
   if (message.error !== undefined && (typeof message.error !== 'string' || message.error.length > 80)) return false;
   try { return JSON.stringify(message).length <= 3 * 1024 * 1024; } catch { return false; }

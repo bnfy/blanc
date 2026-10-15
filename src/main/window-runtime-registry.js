@@ -134,6 +134,10 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
      * still invalidates the flow. Mutated only via main.js's
      * bumpSurfaceGeneration. */
     surfaceGeneration: 0,
+    /** Bumped whenever the surface a Glance choice was made from goes away
+     * (overlay hide, Glance close, a real tab switch). setGlanceTab captures
+     * it before waking a quiet tab and attaches nothing if it moved. */
+    glanceRequestEpoch: 0,
     addressMenuTicket: 0,
     addressMenuSeq: 0,
     /** The resting pill's box in window coordinates, reported by the chrome

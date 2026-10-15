@@ -133,7 +133,7 @@
     },
     {
       "file": "src/main/chrome-protocol.js",
-      "sha256": "1bc4fdd01c4e65f08291b90576082038132ec8a56e4a4b5a8dd9ff6b5dae30ec",
+      "sha256": "ac43da3e504a9bfad8e7213cc7af144eaa1a39e61a4af1a8784e8fb97c0588ff",
       "literalChannels": [
         "blanc-chrome"
       ],
@@ -220,7 +220,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "33982c80a7a9135282da36c858522db03f28d7349d6b8f1700fa019d415be111",
+      "sha256": "a84f982a6fbd1cf6d89cb7be61e5b5e45455dda0ea22fd1941f30dbcfe56cd00",
       "literalChannels": [
         "activate",
         "before-input-event",
@@ -847,7 +847,7 @@
     },
     {
       "file": "src/main/tab-view.js",
-      "sha256": "0342fed009157b5cba25faf7fd961baedf39843b043a4307be7978efd0ed9891",
+      "sha256": "e6f609c3c50948bf850ef62770a4c6fea71861dec1956066912a484a7e17879c",
       "literalChannels": [
         "audio-state-changed",
         "before-input-event",
@@ -878,7 +878,7 @@
     },
     {
       "file": "src/main/ublock-bridge-preload.js",
-      "sha256": "3ba5563d03cb615da9266b8440f60db360c29b8a33da3a1e4e73a9cc1ebc266a",
+      "sha256": "eaae6c3c37f62259e81f1ab637bfd74eb14f00840f194d128e83c674b59ec083",
       "literalChannels": [
         "ublock:bridge"
       ],

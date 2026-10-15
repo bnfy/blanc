@@ -721,6 +721,8 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="glance_status_closed">Glance fermé</string>
     <string name="glance_status_promoted">Glance est maintenant la page principale</string>
     <string name="glance_status_tab_closed">Glance s’est fermé car son onglet a été fermé</string>
+    <string name="glance_status_main_closed">%1$s est maintenant la page principale. Glance fermé.</string>
+    <string name="glance_status_cancelled">Cet onglet n’a pas été ouvert dans Glance</string>
     <string name="tab_untitled_short">Onglet</string>
     <string name="error_reload_failed">La page n’a pas pu être actualisée</string>
     <string name="arc_import_entry_title">Arc</string>

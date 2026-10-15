@@ -5,6 +5,9 @@
 const http = require('node:http');
 const https = require('node:https');
 
+// How long a ?hold=slow page stays loading before its body arrives.
+const SLOW_HOLD_MS = 2500;
+
 function pageBody(req) {
   const raw = req.url || '/';
   // Some history/wake scenarios suppress the load counter so pageState stays
@@ -162,6 +165,16 @@ function start() {
       url.searchParams.set('redirected', '1');
       res.writeHead(302, { Location: `${url.pathname}?${url.searchParams}` });
       res.end();
+      return;
+    }
+    // ?hold=slow: headers now, body after a fixed delay, so a scenario can
+    // act while a quiet tab is still waking (its wake resolves on
+    // finish-load). The delay is a constant, never a request value (CodeQL
+    // js/resource-exhaustion).
+    if (url.searchParams.get('hold') === 'slow') {
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      res.flushHeaders();
+      setTimeout(() => res.end(pageBody(req)), SLOW_HOLD_MS);
       return;
     }
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });

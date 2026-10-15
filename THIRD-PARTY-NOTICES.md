@@ -43,7 +43,7 @@ update procedure.
 Copyright (c) 2024 1Password. Full licence text in
 [compliance/THIRD_PARTY_NOTICES.txt](compliance/THIRD_PARTY_NOTICES.txt).
 
-## Inter, JetBrains Mono, Caveat, and Newsreader fonts — SIL OFL 1.1
+## Inter, Instrument Sans, JetBrains Mono, and Caveat fonts — SIL OFL 1.1
 
 - `src/renderer/pages/inter-latin.woff2` — Copyright 2020 The Inter Project
   Authors. Full licence text:
@@ -54,10 +54,10 @@ Copyright (c) 2024 1Password. Full licence text in
 - `src/renderer/pages/caveat-latin.woff2` — Copyright 2014 The Caveat Project
   Authors. Full licence text:
   [src/renderer/pages/caveat-OFL.txt](src/renderer/pages/caveat-OFL.txt).
-- `src/renderer/pages/newsreader-condensed-latin-opsz-normal.woff2` — Copyright
-  2020 The Newsreader Project Authors; a Modified Version, "Newsreader
-  Condensed", described below. Full licence text:
-  [src/renderer/pages/newsreader-OFL.txt](src/renderer/pages/newsreader-OFL.txt).
+- `src/renderer/pages/instrument-sans-latin-wdth-normal.woff2` — Copyright 2022
+  The Instrument Sans Project Authors; the unmodified Latin variable file from
+  `@fontsource-variable/instrument-sans` 5.3.0. Full license text:
+  [src/renderer/pages/instrument-sans-OFL.txt](src/renderer/pages/instrument-sans-OFL.txt).
 
 All four font files remain under the SIL Open Font License, Version 1.1; Blanc's
 MIT grant does not supersede those terms. The font files and their full licence texts

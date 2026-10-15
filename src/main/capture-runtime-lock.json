@@ -18,7 +18,7 @@
   },
   "sharedFiles": {
     "src/main/display-capture-state.js": "f9853abcfab6cefcc7ec79c7784285309fefdb6c2ead750c8f1bef8b14e26151",
-    "src/main/display-capture-admission.js": "5759afd7c87c9062a7845dd30034573312349e6cdaa41b0a672603e92619f91e",
+    "src/main/display-capture-admission.js": "a643bee1dc8a062e9e016b8d947755d049e52527f766e881cf355fd26366251b",
     "src/main/display-capture-constraints.js": "feaebdd9d3bbda0959c28f6a5f73d3c3747ce3e47e40f2352128535ff063cf41",
     "src/main/display-capture-ice.js": "cfbfb1e7bcbade283912d8042ffb166092bf24c6b4ce1f27910a4a71ee3ef911",
     "src/main/display-capture-picker.js": "8103ef1394e45b39f5d21bef8d8badf4fa9f6d34a81616b8ab2ebfba83eb9ed8",

@@ -29,7 +29,7 @@ let subscriptionRevision = 1;
 const subscriptionResponses = [];
 const server = http.createServer((request, response) => {
   hits.push(request.url);
-  methods.push({ url: request.url, method: request.method });
+  methods.push({ url: request.url, method: request.method, referer: request.headers.referer ?? null });
   const pathname = new URL(request.url, 'http://fixture').pathname;
   response.setHeader('Cache-Control', 'no-store');
   if (pathname === '/slow-document') {
@@ -845,10 +845,14 @@ try {
   await call('openTabInWindow', primaryRuntime, fixture + 'oauth-opener');
   const opener = await waitForValue(async () => (await electron.windows()).find(item => item.url() === fixture + 'oauth-opener'), Boolean, 'OAuth opener');
   const blockedBeforeChild = hits.filter(url => url === '/blocked-ubo.js').length;
+  const requestsBeforeChild = methods.length;
   await opener.locator('button').click();
   const child = await waitForValue(async () => (await electron.windows()).find(item => item.url() === fixture + 'oauth-child'), Boolean, 'OAuth child');
   await child.waitForFunction(() => window.fixturePinned === true && getComputedStyle(document.querySelector('#ad')).display === 'none');
-  assert.equal(hits.filter(url => url === '/blocked-ubo.js').length, blockedBeforeChild);
+  // Name the document behind any request that got through, so a failure
+  // shows whether it was the popup or another page.
+  assert.equal(hits.filter(url => url === '/blocked-ubo.js').length, blockedBeforeChild,
+    `blocked script reached the server from: ${JSON.stringify(methods.slice(requestsBeforeChild).filter(item => item.url === '/blocked-ubo.js').map(item => item.referer))}`);
   await electron.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().find(win => win.webContents.getURL().endsWith('/oauth-child')).close());
   stage = 'bounded request capacity';
   await call('activateTab', regular);
