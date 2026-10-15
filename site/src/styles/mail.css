@@ -38,7 +38,7 @@
    Browser download becomes a plain link (owner, October 12, 2026). Every link
    stays, with Mail marked current (test/site/header.test.mjs). `body` lifts
    these rules over revamp.css whatever order the bundles load in. */
-body .site-header.revamp-header{background:#f7f0e5}
+body .site-header.revamp-header{background:#f8f2e8}
 body .site-header.revamp-header .revamp-nav{flex-wrap:nowrap;height:36px;min-height:36px;gap:28px;border-bottom-color:transparent;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none}
 body .revamp-nav .site-brand{height:36px}
 body .revamp-nav .site-brand-mark{width:18px;height:18px}

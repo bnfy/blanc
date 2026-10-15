@@ -276,7 +276,7 @@ test('the homepage background stays a vertical warm-to-white gradient', () => {
   const fs = require('node:fs');
   const css = fs.readFileSync(path.resolve(__dirname, '../../site/src/styles/home-appearance.css'), 'utf8');
   const light = css.match(/html\[data-home-appearance\] \.home-revamp \{[^}]*?background: (linear-gradient\([^;]+\));/)[1];
-  assert.match(light, /^linear-gradient\(to bottom, #f7f0e5 0%/);
+  assert.match(light, /^linear-gradient\(to bottom, #f8f2e8 0%/);
   assert.match(light, /#fff 100%\)$/);
 });
 
