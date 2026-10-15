@@ -28,6 +28,7 @@ const { queueTabNavigation, shouldPresentTabLoadFailure } = require('./tab-navig
 const { commitEntryMarks, freshCertificateRecord } = require('./certificate-history');
 const { installExternalNavigationHandlers } = require('./external-protocols');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
+const { isVisiblePaneId } = require('./glance-focus');
 
 let deps = null;
 let mouseGestureSettings = null;
@@ -388,7 +389,7 @@ function wireTabView(tab, view, { owner, adopted }) {
     // A same-document navigation of the active tab replaces what a fill
     // message was about — dismiss it (runtime-scoped; optional dep), and
     // re-probe the new route for the ambient hint.
-    if (isMainFrame && id === getOwner().activeTabId) deps.dismissFillStatusForNavigation?.(getOwner());
+    if (isMainFrame && isVisiblePaneId(getOwner(), id)) deps.dismissFillStatusForNavigation?.(getOwner());
     if (isMainFrame) deps.onFillHintInPageNavigation?.(tab);
     syncNavState();
     if (isMainFrame && tab.historyEligible && !noteWakeSuppressed(tab)) history.addVisit(url, wc.getTitle());
@@ -401,11 +402,11 @@ function wireTabView(tab, view, { owner, adopted }) {
       tab.navEpoch++;
       if (!String(url).startsWith('blanc://error')) tab.certificateError = null;
     }
-    // Main-frame navigation of the active tab dismisses a visible fill
+    // Main-frame navigation of either visible pane dismisses a visible fill
     // message immediately — a decision must not stay actionable, nor an
     // error notice persist, over the successor page (same posture as the
     // shield dismissal below).
-    if (isMainFrame && id === getOwner().activeTabId) deps.dismissFillStatusForNavigation?.(getOwner());
+    if (isMainFrame && isVisiblePaneId(getOwner(), id)) deps.dismissFillStatusForNavigation?.(getOwner());
     // The outgoing document's hint is stale the moment navigation starts.
     if (isMainFrame) deps.onFillHintNavigationStart?.(tab);
     if (

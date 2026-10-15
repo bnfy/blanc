@@ -230,3 +230,13 @@ Feature: Glance reference pane
     Then only the reference page is zoomed
     When I press the back command
     Then only the reference page went back
+
+  @F34-1 @F34 @F38 @D11
+  Scenario: The 1Password fill and its hint follow the focused pane
+    Given 1Password fill is configured and the Glance reference shows a login form
+    When the reference pane is the focused pane
+    Then the 1Password fill targets the reference pane
+    And the Island shows the fill hint
+    When the main page is the focused pane
+    Then the 1Password fill targets the main page
+    And the Island hides the fill hint

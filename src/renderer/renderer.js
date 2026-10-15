@@ -821,7 +821,9 @@
     // login form and 1Password fill is configured. Click = the normal
     // explicit fill — an invitation, never an action. Gated on the API
     // existing so Windows/Linux never surface it.
-    pillFillHint.hidden = !(tab?.fillHint === true
+    // With Glance open the chip follows the focused pane, like the fill.
+    const hintTab = glanceLayout?.focusedPane === 'glance' ? glanceTab() : tab;
+    pillFillHint.hidden = !(hintTab?.fillHint === true
       && typeof window.browserAPI.fillLoginFromOnePassword === 'function');
 
     // Shield chip: state fully derived in main (shield-model.js) and shipped
@@ -1062,7 +1064,7 @@
     // Main has echoed the applied ratio; later keydowns step from the layout
     // again until the next same-task burst.
     glanceKeyRatio = null;
-    renderGlance();
+    render();
   });
   window.browserAPI.onGlanceStatus((message) => {
     glanceStatus.textContent = message;

@@ -3949,7 +3949,7 @@ const fillHintScheduler = !ONE_PASSWORD_AVAILABLE ? null : createFillHintSchedul
     const url = wc.getURL();
     if (!parseOnePasswordWebUrl(url) || isUtilityUrl(url)) return false;
     const runtime = windowRuntimes.runtimeForTab(tab.id);
-    return runtime?.activeTabId === tab.id; // private tabs eligible; quiet excluded above
+    return isVisiblePaneId(runtime, tab.id); // both panes; private eligible, quiet excluded above
   },
   tabEpoch: (tab) => tab.navEpoch,
   contentsToken: (tab) => liveContents(tab)?.id ?? null,
@@ -3990,10 +3990,15 @@ function captureOnePasswordTarget(runtime) {
     };
   }
 
-  const tab = tabs.get(runtime.activeTabId);
+  // With Glance open the fill targets the focused pane (spec: Commands
+  // follow focus); menu, shortcut and chip all arrive without a sender.
+  const tab = browserCommandTab(runtime);
   const wc = liveContents(tab);
   if (!tab || !wc || wc.isDestroyed()) return null;
   const island = runtime.islandRect;
+  // Fallback anchor when the field cannot be located: the reference's own
+  // top edge rather than the Island, which sits over the other pane.
+  const paneBounds = tab.id === runtime.glanceTabId ? tab.view.getBounds() : null;
   return {
     kind: 'tab',
     runtime,
@@ -4003,9 +4008,11 @@ function captureOnePasswordTarget(runtime) {
     url: wc.getURL(),
     webContents: wc,
     window: runtime.window,
-    pickerPoint: island
-      ? { x: island.x + Math.round(island.width / 2), y: island.y + island.height }
-      : { x: 16, y: runtime.chromeHeight },
+    pickerPoint: paneBounds
+      ? { x: paneBounds.x + Math.round(paneBounds.width / 2), y: paneBounds.y }
+      : island
+        ? { x: island.x + Math.round(island.width / 2), y: island.y + island.height }
+        : { x: 16, y: runtime.chromeHeight },
   };
 }
 
@@ -4022,7 +4029,7 @@ function isOnePasswordTargetCurrent(target) {
       && BrowserWindow.fromWebContents(wc) === target.window
       && wc.getURL() === target.url;
   }
-  if (target.runtime.activeTabId !== target.tabId) return false;
+  if (!isVisiblePaneId(target.runtime, target.tabId)) return false;
   const tab = tabs.get(target.tabId);
   if (!tab || tab.navEpoch !== target.navEpoch) return false;
   const wc = liveContents(tab);
@@ -6537,6 +6544,7 @@ async function setGlanceTab(id) {
   if (previous && rt().focusedPaneTabId === previous.id) resetFocusedPane();
   setTabViewVisible(tab, true);
   attachTabViewToWindow(tab);
+  fillHintScheduler?.noteActivated(tab);
   // Floating trusted surfaces must stay above both page panes.
   const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
   if (sheet) rt().window.contentView.addChildView(sheet.view);

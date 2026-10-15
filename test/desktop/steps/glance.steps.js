@@ -996,3 +996,38 @@ Then('only the reference page went back', async function () {
     candidate.tabs.find((tab) => tab.id === this.glanceReferenceId)?.title === 'glance-reference');
   assert.equal(state.tabs.find((tab) => tab.id === this.glanceMainId).title, 'glance-main-2');
 });
+
+Given('1Password fill is configured and the Glance reference shows a login form', async function () {
+  await this.call('setOnePasswordConfig', true, 'Acceptance Team');
+  this.glanceMainId = await this.call('openTab', this.fixtureUrl('glance-main'));
+  this.glanceReferenceId = await this.call('openTab', `${this.fixtureUrl('glance-reference')}?loginform=authoritative`);
+  await this.call('activateTab', this.glanceMainId, false);
+  await this.waitForState((state) => ['glance-main', 'glance-reference'].every((title) =>
+    state.tabs.some((tab) => tab.title === title && !tab.isLoading)));
+  assert.equal(await this.call('setGlance', this.glanceReferenceId), true);
+});
+
+async function fillTargetId(world) {
+  return (await world.call('onePasswordTarget'))?.webContentsId ?? null;
+}
+
+Then('the 1Password fill targets the reference pane', async function () {
+  const reference = (await this.state()).tabs.find((tab) => tab.id === this.glanceReferenceId);
+  assert.equal(await fillTargetId(this), reference.webContentsId);
+});
+
+Then('the 1Password fill targets the main page', async function () {
+  const main = (await this.state()).tabs.find((tab) => tab.id === this.glanceMainId);
+  assert.equal(await fillTargetId(this), main.webContentsId);
+});
+
+Then('the Island shows the fill hint', async function () {
+  const chrome = await mainChromePage();
+  await chrome.locator('#pillFillHint:not([hidden])').waitFor();
+});
+
+Then('the Island hides the fill hint', async function () {
+  const chrome = await mainChromePage();
+  await chrome.locator('#pillFillHint[hidden]').waitFor({ state: 'attached' });
+  await this.call('setOnePasswordConfig', false, '');
+});

@@ -109,6 +109,14 @@ this device and are excluded from Profile Sync.
   page or surface the user has already left. The picker anchors at the login
   field's live position, re-read under the fill's nonce immediately before
   the menu opens.
+- **Which page is filled (Glance).** With Glance open, the fill targets the
+  focused pane: the reference when keyboard focus is in it, otherwise the main
+  page (`commandTargetTab` in `src/main/glance-focus.js`). The ambient hint
+  probes both visible panes, and the Island's chip shows the focused pane's
+  result. At every checkpoint the flow re-verifies that its tab is still one
+  of the window's two visible panes, and the picker anchors at the field
+  inside that pane's own view bounds. The broker, the credential path, the
+  explicit-invoke rule and the renderer-free boundary are unchanged.
 
 ## Release gates
 
