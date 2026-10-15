@@ -46,7 +46,7 @@ or the claim rules forbid them:
 | A-03 | Free for macOS, Windows and Linux, with ad and tracker blocking on from the first launch. | Hero | `site/src/pages/download.astro` (requirements); `settings-schema/schema.json:32` and `src/main/settings.js:113` (`adblockEnabled: true`); `src/main/adblock.js` | Blocking reduces known ads and tracking; coverage is not universal | qualified |
 | A-04 | Coming from Chrome, Edge, Brave, Arc, Safari or Firefox? | Hero chips | `src/main/browser-data-import.js` (`BROWSERS`: Chrome, Edge, Brave, Chromium, Vivaldi); `src/main/arc-import.js`; `src/main/tab-import-handoff.js` | Each chip must land on that browser's exact steps (S-01 to S-05), which carry the limits | qualified |
 | A-05 | 68 px of browser. Blanc's controls sit in one slim band; the rest of the window is the page. | Proof strip | `src/renderer/styles.css:63`; Island boundary | Applies to the default horizontal layout; vertical tabs (View → Tab Layout) add a sidebar. The expanded Island overlays the page | qualified |
-| A-06 | 1.3 GB in Blanc, 5.6 GB in Chrome, with six ad-dense news sites open. Brave, which also blocks by default: 1.7 GB. Blanc with its blocker off: 4.2 GB. | Proof strip | `docs/press/fact-sheet.md` (Measured memory); `site/src/components/MemoryChart.astro`; `bench/memory/results/memory-2026-08-09T17-33-45-039Z.md` | **The run measured Blanc 1.1.0 and Chrome 150.0.7871.129 on 9 August 2026**, on one Apple Silicon Mac, fresh profiles, no extensions, median of three runs, `phys_footprint` summed across processes. Both qualifications (Brave; blocker off) must sit on the card, not in a footnote. The `public-truth` test pins these figures, so a new homepage use must join it. See F-1 | pending |
+| A-06 | 1.7 GB in Blanc, 5.7 GB in Chrome, with six ad-dense news sites open. Brave, which also blocks by default, used 1.5 GB. Blanc with its blocker off used about as much as Chrome. | Proof strip | `bench/memory/results/memory-2026-10-15T06-03-46-052Z.md` (owner's run on public v1.34.0, October 15, 2026); the same figures on the ad-blocking page and fact sheet through PR #826 | Measured on Blanc 1.34.0 and Chrome 155.0.8059.80, one Apple Silicon Mac with 8 GiB RAM, fresh profiles, no extensions, median of three runs. Brave used a little less than Blanc, and that stays on the card. Blocker-off Blanc (5.4 GB, range 5.4–5.6) and Chrome (5.7 GB, range 5.4–6.5) overlap, so never say blocker-off Blanc beats Chrome. Under a third of Chrome's memory (29%), not a quarter. The `public-truth` test pins these figures, so the homepage use must join it | qualified (once PR #826 merges) |
 | A-07 | Ad and tracker blocking, on from the first launch. | Proof strip | `src/main/settings.js:113`; `src/main/adblock.js`; bundled EasyList/EasyPrivacy in `adblock/sources/` | Coverage is not universal; private tabs always use Blanc Blocker | qualified |
 | A-08 | macOS, Windows and Linux. Free and open source. | Proof strip | `site/src/pages/download.astro`: macOS 13+ (Apple Silicon or Intel), Windows 10+ x64, Linux x64 AppImage; `LICENSE` (MIT) | The Blanc name, logo and identity assets stay reserved (`ASSET-LICENSE.md`); third-party material keeps its own terms (`THIRD-PARTY-NOTICES.md`). Never call the whole repository blanket MIT | qualified |
 | A-09 | Prefer uBlock Origin? Choose it from the Island's shield and restart Blanc. | Privacy | uBO boundary in `docs/marketing-claims.md`; `docs/ublock-origin-support-matrix-2026-10-03.md` | Full uBO 1.75.0 on Apple Silicon, Intel Mac, Windows x64 and Linux x64; not under Rosetta. Private tabs keep Blanc Blocker. Not general extension support | qualified |
@@ -122,13 +122,13 @@ Rows deliberately left out:
 
 ## F. Findings and open items
 
-- **F-1, memory figures are old.** The pinned figures come from Blanc
-  **1.1.0** (9 August 2026), 33 releases before v1.34.0. The ad-blocking page
-  already uses them with that date. Making them the homepage's lead proof
-  point needs the measured version beside the number, or, better, a fresh
-  run on v1.34.0 with `bench/memory/`. Re-running means updating
-  `MemoryChart.astro`, `docs/press/fact-sheet.md` and the committed run
-  together.
+- **F-1, memory figures.** Resolved on October 15, 2026: the owner re-ran
+  `bench/memory/` on public v1.34.0, and PR #826 publishes the new figures on
+  the ad-blocking page, fact sheet and support answer. Two things changed:
+  Brave now uses a little less than Blanc (1.5 GB against 1.7), and blocker-off
+  Blanc is about the same as Chrome. Blanc's idle memory roughly doubled since
+  1.1.0 (200 MB to 440 MB), which is being investigated separately. Whether the
+  memory card still earns a place in the proof strip is the owner's call.
 - **F-2, Chrome column.** Resolved on October 15, 2026: every cell in
   section C now cites the Google page it was read from. Re-read them before
   publishing if more than a few weeks pass, since Chrome's documentation
