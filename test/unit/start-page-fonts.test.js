@@ -48,6 +48,7 @@ test('Blubird sets headings and page copy; Inter keeps figures, keys, the chrome
 
   for (const [family, file, weight] of [
     ['Blubird Display', 'Blubird-RegularDisplay.woff2', '400'],
+    ['Blubird Display', 'Blubird-MediumDisplay.woff2', '500'],
     ['Blubird Text', 'Blubird-RegularText.woff2', '400'],
     ['Blubird Text', 'Blubird-MediumText.woff2', '500'],
     ['Blubird Text', 'Blubird-SemiBoldText.woff2', '600 700'],
@@ -85,7 +86,7 @@ test('Blubird sets headings and page copy; Inter keeps figures, keys, the chrome
   }
   const clock = rulesFor(pages, '.bb-clock').find((rule) => rule.body.includes('var(--font-display)'));
   assert.ok(clock, 'the Billboard clock uses the Display cut');
-  assert.match(clock.body, /font-weight: 400;/);
+  assert.match(clock.body, /font-weight: 500;/, 'the clock uses Medium Display (owner choice, October 15)');
   assert.match(clock.body, /letter-spacing: 0;/);
   assert.doesNotMatch(clock.body, /font-optical-sizing/);
 

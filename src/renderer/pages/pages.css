@@ -9,13 +9,20 @@
   font-display: swap;
 }
 /* Blubird (Rajesh Rajput) is commercially licensed and never committed. The
-   four files are installed flat beside this stylesheet by
+   five files are installed flat beside this stylesheet by
    `npm run fonts:install` and pinned in fonts/blubird/pinned.json. Without
    them every Blubird stack falls back to Inter. Same faces as the website. */
 @font-face {
   font-family: "Blubird Display";
   src: url("Blubird-RegularDisplay.woff2") format("woff2");
   font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Blubird Display";
+  src: url("Blubird-MediumDisplay.woff2") format("woff2");
+  font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
@@ -2947,7 +2954,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
   font-family: var(--font-display);
   letter-spacing: 0;
   font-size: clamp(80px, 12vw, 148px);
-  font-weight: 400;
+  font-weight: 500;
   font-variant-numeric: proportional-nums;
   text-shadow: 0 2px 24px rgba(255, 252, 247, 0.34);
 }

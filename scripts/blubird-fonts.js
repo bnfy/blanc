@@ -2,7 +2,7 @@
 
 // Blubird (Rajesh Rajput) is commercially licensed for Blanc's official builds
 // and must never be committed: this repository is public. This tool installs
-// the four licensed WOFF2 files, flat and git-ignored, into
+// the five licensed WOFF2 files, flat and git-ignored, into
 // src/renderer/pages/ (pages.js serves no subfolders) and verifies them, in a
 // checkout or inside a packaged app.asar, against fonts/blubird/pinned.json.
 // Without them every Blubird stack falls back to Inter; public releases run

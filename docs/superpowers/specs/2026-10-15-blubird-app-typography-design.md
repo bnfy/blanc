@@ -89,6 +89,12 @@ which is redistribution.
 - The uBO popup and dashboard reuse `inter-latin.woff2`
   (`src/main/ublock-package.js:70,89,244`) and stay as they are.
 
+**Owner decision, October 15:** the Billboard clock read too plain in Regular
+Display. Of the heavier cuts rendered with and without tighter tracking, the
+owner chose Medium Display at 0 letter-spacing. That adds a fifth file,
+`Blubird-MediumDisplay.woff2`, to the pinned set, the secrets and the licence
+request.
+
 ## Approaches considered
 
 **A. The website's four static files (recommended).** Same files, family names
@@ -116,7 +122,8 @@ size. The costs:
 
 | Surface | Today | After |
 |---|---|---|
-| Billboard clock, Ledger "Where to?" (32px and up) | Newsreader Condensed | Blubird Display, 400 |
+| Billboard clock (80–148px) | Newsreader Condensed | Blubird Display, 500 (Medium; owner choice, October 15) |
+| Ledger "Where to?" (32px) | Newsreader Condensed | Blubird Display, 400 |
 | Sheet titles, Shortcuts section titles, checklist heading, onboarding titles (under 32px) | Newsreader Condensed | Blubird Text, at today's weight (400 or 500) |
 | Copy on the Start Page, onboarding, utility sheets, error page, Tab import, Tab handoff | Inter | Blubird Text |
 | Rules that set `tabular-nums` (9 in `pages.css`), and `kbd` | Inter | Inter |
@@ -279,7 +286,7 @@ Gate checks:
 
 The written permission should cover:
 
-1. Embedding the four named WOFF2 files, unmodified, in the Blanc desktop app
+1. Embedding the named WOFF2 files (the website's four plus Medium Display), unmodified, in the Blanc desktop app
    for macOS, Windows and Linux, given away free to unlimited users, including
    automatic updates.
 2. Users can technically extract the files from the app package (Electron's

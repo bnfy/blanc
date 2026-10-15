@@ -22,11 +22,11 @@ const FAKE = {
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'blubird-'));
 const quiet = { log() {}, warn() {}, error() {} };
 
-test('the pinned manifest names the four licensed Web-PS files', () => {
+test('the pinned manifest names the five licensed Web-PS files', () => {
   const pinned = readPinned();
   assert.equal(pinned.sourceFolder, 'Blubird/Web-PS');
   assert.deepEqual(pinned.files.map((entry) => entry.name), [
-    'Blubird-RegularDisplay.woff2', 'Blubird-RegularText.woff2',
+    'Blubird-RegularDisplay.woff2', 'Blubird-MediumDisplay.woff2', 'Blubird-RegularText.woff2',
     'Blubird-MediumText.woff2', 'Blubird-SemiBoldText.woff2',
   ]);
   for (const entry of pinned.files) {

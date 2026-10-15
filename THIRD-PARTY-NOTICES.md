@@ -61,8 +61,8 @@ ship together inside packaged builds.
 
 ## Blubird fonts — commercial licence
 
-Official builds embed `Blubird-RegularDisplay.woff2`, `Blubird-RegularText.woff2`,
-`Blubird-MediumText.woff2` and `Blubird-SemiBoldText.woff2` — Copyright (c) 2026
+Official builds embed `Blubird-RegularDisplay.woff2`, `Blubird-MediumDisplay.woff2`,
+`Blubird-RegularText.woff2`, `Blubird-MediumText.woff2` and `Blubird-SemiBoldText.woff2` — Copyright (c) 2026
 Rajesh Rajput, all rights reserved — under a commercial licence granted to
 Bananify Creative. Blubird is not covered by Blanc's MIT grant or any open-source
 licence, and the files are not in this repository; their SHA-256 digests are
