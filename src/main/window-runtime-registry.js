@@ -50,6 +50,10 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
      * and ephemeral: it never crosses windows/profiles or session restore. */
     glanceTabId: null,
     glanceRatio: DEFAULT_GLANCE_RATIO,
+    /** The visible pane (main or reference tab id) that last took keyboard
+     * focus; browser commands without a sending pane act on it
+     * (glance-focus.js). Main-process only: never crosses IPC or disk. */
+    focusedPaneTabId: null,
     /** Reopen-closed history belongs to this native workspace, not the app
      * process. Entries remain memory-only, matching the pre-M2 behavior, and
      * the newest may hold the closed tab's still-live view (spec §2.1). */
@@ -201,6 +205,7 @@ function detachWindow(runtime) {
   runtime.overlayPrefill = null;
   runtime.overlayPurpose = null;
   runtime.glanceTabId = null;
+  runtime.focusedPaneTabId = null;
   runtime.utilitySheetView = null;
   runtime.utilitySheetUrl = null;
   runtime.utilitySheetEscapeArmed = false;

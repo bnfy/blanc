@@ -13,6 +13,7 @@ test('createRuntime initializes the per-window inventory to main.js defaults', (
   assert.deepEqual(r.groups, []);
   assert.equal(r.glanceTabId, null);
   assert.equal(r.glanceRatio, 0.62);
+  assert.equal(r.focusedPaneTabId, null);
   assert.deepEqual(r.closedEntries, []);
   assert.equal(r.overlayView, null);
   assert.equal(r.overlayMode, null);
@@ -212,4 +213,12 @@ test('discardRuntime removes a secondary runtime and all ownership edges', () =>
   assert.equal(reg.runtimeForChromeWebContentsId(201), null);
   assert.equal(reg.runtimeForAuxiliaryContent(202), null);
   assert.equal(reg.discardRuntime(secondary), null);
+});
+
+test('detachWindow forgets the focused pane with Glance', () => {
+  const r = reg.createRuntime();
+  r.glanceTabId = 'ref';
+  r.focusedPaneTabId = 'ref';
+  reg.detachWindow(r);
+  assert.equal(r.focusedPaneTabId, null);
 });
