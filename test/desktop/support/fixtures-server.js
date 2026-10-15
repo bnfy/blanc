@@ -5,6 +5,9 @@
 const http = require('node:http');
 const https = require('node:https');
 
+// Longest a ?hold= page may stay loading; scenarios use 2.5 s.
+const MAX_HOLD_MS = 10_000;
+
 function pageBody(req) {
   const raw = req.url || '/';
   // Some history/wake scenarios suppress the load counter so pageState stays
@@ -166,7 +169,9 @@ function start() {
     }
     // ?hold=<ms>: headers now, body after the hold, so a scenario can act
     // while a quiet tab is still waking (its wake resolves on finish-load).
-    const hold = Number(url.searchParams.get('hold'));
+    // Clamped to a fixed ceiling so the request can never pick an unbounded
+    // timer (CodeQL js/resource-exhaustion).
+    const hold = Math.min(MAX_HOLD_MS, Number(url.searchParams.get('hold')));
     if (Number.isFinite(hold) && hold > 0) {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.flushHeaders();
