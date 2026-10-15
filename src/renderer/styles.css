@@ -395,6 +395,22 @@ button svg {
   color: #f5f5f5;
 }
 
+/* Side-by-side Glance: the controls sit on the header's neutral surface, not
+   the sampled page tint — take the theme's ink and a fill the header lacks.
+   Stacked, the header is below the page and the tint rules above apply. */
+#strip.glance-open[data-glance-direction="horizontal"] #windowControls button,
+#strip.tint-dark.glance-open[data-glance-direction="horizontal"] #windowControls button { color: var(--text-dim); }
+#strip.glance-open[data-glance-direction="horizontal"] #windowControls button:hover,
+#strip.tint-dark.glance-open[data-glance-direction="horizontal"] #windowControls button:hover {
+  background: var(--accent-dim);
+  color: var(--text);
+}
+#strip.glance-open[data-glance-direction="horizontal"] #windowControls button.close-btn:hover,
+#strip.tint-dark.glance-open[data-glance-direction="horizontal"] #windowControls button.close-btn:hover {
+  background: var(--danger);
+  color: var(--on-danger);
+}
+
 /* ---------- Vertical tabs: optional trusted-chrome rail ----------
    The rail starts below the strip and reserves space only from page-scoped
    surfaces. With the rail now owning the full left edge, the remaining website

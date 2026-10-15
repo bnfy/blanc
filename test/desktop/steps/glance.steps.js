@@ -687,3 +687,46 @@ Then('the divider moved {int} pixels', async function (distance) {
     `divider ${distance}px left of where it started`
   );
 });
+
+// --- Windows/Linux window controls over the header (Glance fixes, PR 1) ---
+
+// The controls are only populated off-macOS, so probe the stylesheet with a
+// throwaway button inside #windowControls and read what the cascade gives it.
+async function windowControlColours(chrome) {
+  return chrome.evaluate(() => {
+    const strip = document.getElementById('strip');
+    const button = document.createElement('button');
+    document.getElementById('windowControls').append(button);
+    const probe = document.createElement('span');
+    probe.style.color = getComputedStyle(document.documentElement).getPropertyValue('--text-dim').trim();
+    document.body.append(probe);
+    const hadTint = strip.classList.contains('tint-dark');
+    strip.classList.add('tint-dark');
+    const tinted = getComputedStyle(button).color;
+    strip.classList.remove('tint-dark');
+    const plain = getComputedStyle(button).color;
+    if (hadTint) strip.classList.add('tint-dark');
+    const result = { tinted, plain, dim: getComputedStyle(probe).color, direction: strip.dataset.glanceDirection };
+    button.remove();
+    probe.remove();
+    return result;
+  });
+}
+
+Then('window controls over the side-by-side header ignore the page tint', async function () {
+  const chrome = await mainChromePage();
+  const colours = await windowControlColours(chrome);
+  assert.equal(colours.direction, 'horizontal');
+  assert.equal(colours.tinted, colours.dim, 'a dark page tint turned the controls white over the neutral header');
+  assert.equal(colours.plain, colours.dim);
+});
+
+Then('window controls follow the page tint while Glance is stacked', async function () {
+  await this.waitForState((candidate) => candidate.glanceGeometry?.direction === 'vertical');
+  const chrome = await mainChromePage();
+  await chrome.locator('#glanceHeader[data-direction="vertical"]').waitFor();
+  const colours = await windowControlColours(chrome);
+  assert.equal(colours.direction, 'vertical');
+  assert.equal(colours.tinted, 'rgba(245, 245, 245, 0.75)', 'stacked, the controls are over the page again and keep the tint rule');
+  await this.call('setWindowContentSize', 1200, 800);
+});

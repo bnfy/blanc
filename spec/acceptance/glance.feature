@@ -130,3 +130,11 @@ Feature: Glance reference pane
     When I open the reference tab in Glance
     And I drag the Glance divider 80 pixels to the left from inside its grip
     Then the divider moved 80 pixels
+
+  @F34-1 @F34 @D11
+  Scenario: Window controls stay legible over the Glance header
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    Then window controls over the side-by-side header ignore the page tint
+    When I narrow the workspace below the side-by-side threshold
+    Then window controls follow the page tint while Glance is stacked
