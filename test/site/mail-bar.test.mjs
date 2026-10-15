@@ -222,7 +222,7 @@ test('on Mail pages the site header is the same bar as everywhere, with Browser 
           label: document.querySelector('.site-nav-cta').innerText.trim(),
         };
       });
-      assert.equal(bar.height, 53, `${width}px: the 52px bar and its hairline`);
+      assert.equal(bar.height, 52, `${width}px: the 52px white bar, without a hairline`);
       assert.equal(bar.ctaBackground, 'rgba(0, 0, 0, 0)', `${width}px: the Mail bar keeps the one call to action`);
       assert.equal(bar.label, width < 390 ? 'Download' : 'Browser download', `${width}px: label`);
     } finally { await context.close(); }

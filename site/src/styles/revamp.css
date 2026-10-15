@@ -85,9 +85,11 @@ main .section-kicker {
   letter-spacing: -0.035em;
 }
 /* ---------- Site header (components/Header.astro) ----------
-   One dark, translucent bar on every page: the small Blanc lockup, the direct
-   links, Download, and on phones a Menu that folds the links away. It stays
-   put while scrolling: the homepage's sticky scenes sit just below it. */
+   One white bar on every page, in the live site's style (the owner kept it over
+   the redesign's dark bar on October 15, 2026): the small Blanc lockup in ink,
+   the direct links, a black Download pill, and on phones a Menu that folds the
+   links away. It stays put while scrolling: the homepage's sticky scenes sit
+   just below it. */
 .skip-link {
   position: fixed;
   top: 8px;
@@ -108,16 +110,8 @@ main .section-kicker {
   position: sticky;
   top: 0;
   z-index: 30;
-  background: rgb(27 26 24 / 0.82);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
-  backdrop-filter: saturate(180%) blur(20px);
-  border-bottom: 1px solid rgb(242 242 240 / 0.1);
+  background: #fff;
   font-family: var(--font-brand-text);
-}
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .site-header.revamp-header {
-    background: #1b1a18;
-  }
 }
 .site-header .revamp-nav {
   max-width: 1040px;
@@ -186,7 +180,7 @@ main .section-kicker {
   display: flex;
   align-items: center;
   min-height: 44px;
-  color: #c0bcb5;
+  color: #41403d;
   font-size: 13px;
   line-height: 1.2;
   text-decoration: none;
@@ -194,7 +188,7 @@ main .section-kicker {
 }
 .revamp-nav .revamp-nav-link:hover,
 .revamp-nav .revamp-nav-link[aria-current="page"] {
-  color: #f2f2f0;
+  color: #000;
 }
 .revamp-nav .site-nav-cta {
   display: inline-flex;
@@ -203,18 +197,18 @@ main .section-kicker {
   min-height: 30px;
   padding: 0 14px;
   border-radius: 999px;
-  background: #f2f2f0;
-  color: #1b1a18;
+  background: var(--ink);
+  color: var(--paper);
   font-size: 13px;
   font-weight: 500;
   text-decoration: none;
   white-space: nowrap;
 }
 .revamp-nav .site-nav-cta:hover {
-  background: #fff;
+  background: #000;
 }
 .site-header :is(a, button):focus-visible {
-  outline: 2px solid var(--site-gold-on-dark);
+  outline: 2px solid var(--site-gold);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -226,7 +220,7 @@ main .section-kicker {
   padding: 0 4px;
   border: 0;
   background: none;
-  color: #f2f2f0;
+  color: #1b1a18;
   font-size: 14px;
   cursor: pointer;
 }
@@ -237,7 +231,7 @@ main .section-kicker {
   right: 0;
   bottom: -1px;
   height: 2px;
-  background: var(--site-gold-on-dark);
+  background: var(--site-gold);
   transform: scaleX(0);
   transform-origin: 0 50%;
 }
@@ -299,13 +293,13 @@ main .section-kicker {
     max-height: calc(100vh - var(--site-header-h));
     overflow-y: auto;
     padding: 4px 22px 18px;
-    background: #1b1a18;
-    border-bottom: 1px solid rgb(242 242 240 / 0.1);
+    background: #fff;
+    border-bottom: 1px solid rgb(14 14 14 / 0.1);
   }
   .site-header[data-menu="open"] .revamp-nav-link {
     padding: 4px 0;
-    border-bottom: 1px solid rgb(242 242 240 / 0.08);
-    color: #f2f2f0;
+    border-bottom: 1px solid rgb(14 14 14 / 0.08);
+    color: #1b1a18;
     font-size: 17px;
   }
 }

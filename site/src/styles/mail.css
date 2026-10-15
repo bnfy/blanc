@@ -38,8 +38,8 @@
    October 12, 2026). Every link stays, with Mail marked current
    (test/site/header.test.mjs). `body` lifts these rules over revamp.css
    whatever order the bundles load in. */
-body .revamp-nav .site-nav-cta{min-height:44px;padding:0;border-radius:0;background:none;color:#c0bcb5;font-weight:400}
-body .revamp-nav .site-nav-cta:hover{background:none;color:#f2f2f0}
+body .revamp-nav .site-nav-cta{min-height:44px;padding:0;border-radius:0;background:none;color:#41403d;font-weight:400}
+body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
 /* Anchors land below both sticky bars. This replaces the site's own
    scroll-padding (a heading scroll-margin would add to it instead), and
    `:root` outranks revamp.css's `html` rule whatever order they load in. */

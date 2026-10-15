@@ -54,15 +54,6 @@
   background: var(--night-deep);
   color: var(--night-text);
 }
-.home-cinema .eyebrow {
-  margin: 0 0 14px;
-  color: var(--gold);
-  font-size: 17px;
-  font-weight: 600;
-}
-.home-cinema :is(.dark, .dark-deep) .eyebrow {
-  color: var(--gold-night);
-}
 .home-cinema .lead {
   margin: 24px 0 0;
   color: var(--text);

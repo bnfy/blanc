@@ -253,7 +253,7 @@ test('the site lockups keep the Sunrise square and place it by the lockup constr
   const header = source('site/src/components/Header.astro');
   const footer = source('site/src/components/Footer.astro');
   for (const markup of [header, footer]) assert.match(markup, /src="\/lockup\/sunrise-mark-256\.webp"\s+width="256"\s+height="256"/);
-  assert.match(header, /site-lockup--small[\s\S]*src="\/lockup\/blanc-word-small-white\.svg"/);
+  assert.match(header, /site-lockup--small[\s\S]*src="\/lockup\/blanc-word-small-ink\.svg"/);
   assert.match(footer, /site-lockup--display[\s\S]*src="\/lockup\/blanc-word-display-white\.svg"/);
 });
 
