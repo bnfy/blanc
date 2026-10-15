@@ -12,6 +12,8 @@ const COMMANDS = Object.freeze({
   find: { labelKey: 'menu.find', primary: 'CmdOrCtrl+F' },
   reload: { labelKey: 'menu.reloadTab', primary: 'CmdOrCtrl+R', aliases: ['F5'] },
   'hard-reload': { labelKey: 'menu.hardReloadTab', primary: 'CmdOrCtrl+Shift+R' },
+  back: { labelKey: 'pill.back', primary: 'CmdOrCtrl+[' },
+  forward: { labelKey: 'pill.forward', primary: 'CmdOrCtrl+]' },
   history: { labelKey: 'menu.showHistory', primary: 'CmdOrCtrl+Y', desktopPrimary: 'Ctrl+H', aliases: ['Ctrl+Y'] },
   downloads: { labelKey: 'menu.downloads', primary: 'CmdOrCtrl+Shift+J', desktopPrimary: 'Ctrl+J', aliases: ['Ctrl+Shift+J'] },
   settings: { labelKey: 'menu.settings', primary: 'CmdOrCtrl+,' },

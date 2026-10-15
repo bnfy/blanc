@@ -96,3 +96,12 @@ test('the action receives the webContents the key came from, or null from a menu
   wc.emit('before-input-event', { preventDefault() {} }, input('r', { control: true }));
   assert.deepEqual(delivered, [['reload', wc]]);
 });
+
+test('Back and Forward are browser commands labelled from the pill', () => {
+  assert.equal(browserCommandDefinition('back', 'darwin').primary, 'CmdOrCtrl+[');
+  assert.equal(browserCommandDefinition('forward', 'linux').primary, 'CmdOrCtrl+]');
+  assert.equal(browserCommandDefinition('back', 'darwin').labelKey, 'pill.back');
+  assert.equal(matchBrowserShortcut(input('[', { control: true }), 'win32'), 'back');
+  assert.equal(matchBrowserShortcut(input(']', { control: true }), 'linux'), 'forward');
+  assert.equal(matchBrowserShortcut(input('[', { control: true, shift: true }), 'linux'), null);
+});

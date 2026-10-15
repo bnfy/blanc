@@ -221,3 +221,12 @@ Feature: Glance reference pane
     Then the find capsule sits over the reference pane and searches it
     When I promote the Glance pane
     Then the find capsule is closed
+
+  @F34-1 @F34 @D11
+  Scenario: Zoom and Back follow focus into the reference
+    Given a main page and a reference on another site, both with history
+    When the reference pane is the focused pane
+    And I press the zoom-in command
+    Then only the reference page is zoomed
+    When I press the back command
+    Then only the reference page went back

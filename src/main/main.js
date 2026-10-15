@@ -4907,6 +4907,14 @@ const executeBrowserCommand = createBrowserCommandExecutor({
   find: (runtime, sender) => openFindBar(browserCommandTab(runtime, sender)?.id),
   reload: (runtime, sender) => reloadBrowserCommandTab(runtime, false, sender),
   'hard-reload': (runtime, sender) => reloadBrowserCommandTab(runtime, true, sender),
+  back: (runtime, sender) => {
+    const nav = liveContents(browserCommandTab(runtime, sender))?.navigationHistory;
+    if (nav?.canGoBack()) nav.goBack();
+  },
+  forward: (runtime, sender) => {
+    const nav = liveContents(browserCommandTab(runtime, sender))?.navigationHistory;
+    if (nav?.canGoForward()) nav.goForward();
+  },
   history: () => openInternalPage('blanc://history/'),
   downloads: () => openInternalPage('blanc://downloads/'),
   settings: () => openInternalPage('blanc://settings/'),
@@ -7276,10 +7284,11 @@ const ZOOM_STEP = 0.5;
 const ZOOM_MIN = -8;
 const ZOOM_MAX = 8;
 
-/** Zoom acts on what the user is looking at: the sheet when open, else the active tab. */
+/** Zoom acts on what the user is looking at: the sheet when open, else the
+ * focused page pane (glance-focus.js). Menu clicks carry no sender. */
 function zoomTargetWebContents() {
   if (rt().utilitySheetUrl) return liveUtilitySheet()?.wc ?? null;
-  return liveContents(tabs.get(rt().activeTabId));
+  return liveContents(browserCommandTab(rt()));
 }
 
 function zoomActiveTab(delta) {
@@ -8396,7 +8405,7 @@ function buildMenuForRuntime(runtime) {
           ...command('reopen-tab'),
           enabled: (runtime.closedEntries?.length ?? 0) > 0,
         },
-        { label: t('menu.print'), accelerator: 'CmdOrCtrl+P', click: bound(() => rt().activeTabId && tabs.get(rt().activeTabId)?.view.webContents.print()) },
+        { id: 'print', label: t('menu.print'), accelerator: 'CmdOrCtrl+P', click: bound(() => liveContents(browserCommandTab(rt()))?.print()) },
         { type: 'separator' },
         command('downloads'),
         command('settings'),
@@ -8467,13 +8476,15 @@ function buildMenuForRuntime(runtime) {
           accelerator: ONE_PASSWORD_ACCELERATOR,
           click: bound(fillLoginFromOnePassword),
         }] : []),
+        command('back'),
+        command('forward'),
         command('reload'),
         command('hard-reload'),
-        { label: t('menu.zoomIn'), accelerator: 'CmdOrCtrl+Plus', click: bound(() => zoomActiveTab(ZOOM_STEP)) },
+        { id: 'zoom-in', label: t('menu.zoomIn'), accelerator: 'CmdOrCtrl+Plus', click: bound(() => zoomActiveTab(ZOOM_STEP)) },
         // Plus requires Shift on most keyboards; Cmd/Ctrl+= is the common alternate, bound silently to the same action.
         { label: t('menu.zoomIn'), accelerator: 'CmdOrCtrl+=', visible: false, click: bound(() => zoomActiveTab(ZOOM_STEP)) },
-        { label: t('menu.zoomOut'), accelerator: 'CmdOrCtrl+-', click: bound(() => zoomActiveTab(-ZOOM_STEP)) },
-        { label: t('menu.actualSize'), accelerator: 'CmdOrCtrl+0', click: bound(resetZoomForActiveTab) },
+        { id: 'zoom-out', label: t('menu.zoomOut'), accelerator: 'CmdOrCtrl+-', click: bound(() => zoomActiveTab(-ZOOM_STEP)) },
+        { id: 'zoom-reset', label: t('menu.actualSize'), accelerator: 'CmdOrCtrl+0', click: bound(resetZoomForActiveTab) },
         { type: 'separator' },
         {
           id: 'toggle-vertical-tabs',

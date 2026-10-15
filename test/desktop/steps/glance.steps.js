@@ -959,3 +959,40 @@ Then('the find capsule sits over the reference pane and searches it', async func
 Then('the find capsule is closed', async function () {
   await waitForValue(() => this.call('overlayMode'), (mode) => mode === null, 'find capsule closed with the swap');
 });
+
+Given('a main page and a reference on another site, both with history', async function () {
+  const other = (name) => {
+    const url = new URL(this.fixtureUrl(name));
+    url.hostname = 'insecure.test';
+    return url.toString();
+  };
+  this.glanceMainId = await this.call('openTab', this.fixtureUrl('glance-main'));
+  this.glanceReferenceId = await this.call('openTab', other('glance-reference'));
+  // Both first pages must commit before the second navigation, or Chromium
+  // replaces the entry and there is nothing to go back to.
+  await this.waitForState((state) => ['glance-main', 'glance-reference'].every((title) =>
+    state.tabs.some((tab) => tab.title === title && !tab.isLoading)));
+  await this.call('navigateTab', this.glanceMainId, this.fixtureUrl('glance-main-2'));
+  await this.call('navigateTab', this.glanceReferenceId, other('glance-reference-2'));
+  await this.call('activateTab', this.glanceMainId, false);
+  await this.waitForState((state) => ['glance-main-2', 'glance-reference-2'].every((title) =>
+    state.tabs.some((tab) => tab.title === title && !tab.isLoading && tab.canGoBack)));
+  assert.equal(await this.call('setGlance', this.glanceReferenceId), true);
+  this.glanceZoomBefore = {
+    main: await this.call('zoomLevel', this.glanceMainId),
+    reference: await this.call('zoomLevel', this.glanceReferenceId),
+  };
+});
+
+Then('only the reference page is zoomed', async function () {
+  await waitForValue(() => this.call('zoomLevel', this.glanceReferenceId),
+    (level) => level > this.glanceZoomBefore.reference, 'reference zoomed in');
+  assert.equal(await this.call('zoomLevel', this.glanceMainId), this.glanceZoomBefore.main);
+  await this.call('pressBrowserCommand', this.glanceReferenceId, 'zoom-reset');
+});
+
+Then('only the reference page went back', async function () {
+  const state = await this.waitForState((candidate) =>
+    candidate.tabs.find((tab) => tab.id === this.glanceReferenceId)?.title === 'glance-reference');
+  assert.equal(state.tabs.find((tab) => tab.id === this.glanceMainId).title, 'glance-main-2');
+});

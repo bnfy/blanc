@@ -591,6 +591,7 @@ function install(refs) {
       return tab?.view ? tab.view.getBounds() : null;
     },
     focusedWebContentsId() { return webContents.getFocusedWebContents()?.id ?? null; },
+    zoomLevel(tabId) { return liveContents(tabs.get(tabId))?.getZoomLevel() ?? null; },
     // A browser command as a person presses it with this tab's page focused.
     // Windows/Linux: the key reaches the page and main's before-input-event
     // routes it by sender. macOS: the native menu item handles the key and
