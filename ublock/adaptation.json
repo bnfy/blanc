@@ -33,7 +33,7 @@
     },
     {
       "path": "src/main/ublock-registry.js",
-      "sha256": "6407fead4677c03392be8003413a328cffdfb705f22bada5d5c579119536e11d"
+      "sha256": "dc21b5b2c4fbf7639d8e8bf289b39138ad4d7aa008bf25b10e3e2c81708ca84d"
     },
     {
       "path": "src/main/ublock-documents.js",

@@ -75,3 +75,30 @@ test('tool URL queries ignore fragments across live and quiet tabs within the ow
   assert.equal(registry.query({ url: 'chrome-extension://foreign/dashboard.html' }).length, 0);
   assert.equal(registry.query({ url: [url, 'https://example.test/*'] }).length, 2);
 });
+
+test('a tab-less request from a stale initial frame keeps its network document URL', () => {
+  const tabWc = { id: 1, isDestroyed: () => false };
+  const registry = createUblockRegistry({ profileId: 'default', listTabs: () => [{ id: 'a', profileId: 'default' }],
+    listWindows: () => [], liveContents: () => tabWc });
+  const popupRequest = (frameUrl, extra = {}) => registry.request({ id: 1, webContentsId: 2, resourceType: 'script',
+    url: 'https://login.test/sdk.js', frame: { parent: null, url: frameUrl, origin: 'https://login.test' }, ...extra });
+  // A window opened blank and then navigated can still report about:blank;
+  // one opened straight to its URL can still report an empty frame URL.
+  for (const stale of ['about:blank', '']) {
+    const value = popupRequest(stale, { referrer: 'https://login.test/authorize?client=a', initiatorOrigin: 'https://login.test' });
+    assert.equal(value.tabId, -1);
+    assert.equal(value.documentUrl, 'https://login.test/authorize?client=a');
+    assert.equal(value.initiator, 'https://login.test');
+  }
+  // A no-referrer policy leaves the network initiator as the document.
+  assert.equal(popupRequest('about:blank', { referrer: '', initiatorOrigin: 'https://login.test' }).documentUrl, 'https://login.test');
+  // A committed network frame stays authoritative over its referrer.
+  assert.equal(popupRequest('https://login.test/callback', { referrer: 'https://app.test/' }).documentUrl, 'https://login.test/callback');
+  // Without network evidence the synthetic document is reported unchanged.
+  assert.equal(popupRequest('about:blank', { referrer: '' }).documentUrl, 'about:blank');
+  // Tabs keep the frame's own URL, as before.
+  const tabRequest = registry.request({ id: 2, webContentsId: 1, resourceType: 'script', url: 'https://ads.test/a.js',
+    frame: { parent: null, url: 'about:blank', origin: 'https://site.test' }, referrer: 'https://site.test/', initiatorOrigin: 'https://site.test' });
+  assert.equal(tabRequest.tabId, 1);
+  assert.equal(tabRequest.documentUrl, 'about:blank');
+});
