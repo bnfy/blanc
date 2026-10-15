@@ -94,6 +94,20 @@ test('checkAsar reads the fonts from inside a packaged app.asar', async () => {
   assert.deepEqual(checkAsar(archive, { pinned: FAKE }), { present: ['Blubird-A.woff2'], missing: ['Blubird-B.woff2'] });
 });
 
+test('asar paths use the platform separator, as @electron/asar resolves them', () => {
+  const { asarInnerPath } = require('../../scripts/blubird-fonts');
+  assert.equal(asarInnerPath('Blubird-A.woff2', '/'), 'src/renderer/pages/Blubird-A.woff2');
+  assert.equal(asarInnerPath('Blubird-A.woff2', '\\'), 'src\\renderer\\pages\\Blubird-A.woff2');
+});
+
+test('licensed Blubird sources anywhere in the tree are git-ignored', () => {
+  const { execFileSync } = require('node:child_process');
+  for (const candidate of ['Blubird.zip', 'src/renderer/pages/Blubird.zip', 'src/renderer/pages/Blubird/Variable-TT/Blubird-VF.ttf', 'src/renderer/pages/Blubird-VF.ttf']) {
+    const ignored = execFileSync('git', ['check-ignore', '--no-index', '-v', candidate], { cwd: root, encoding: 'utf8' });
+    assert.ok(ignored.length > 0, `${candidate} is ignored`);
+  }
+});
+
 test('check exits 0 with a warning when fonts are absent, 1 with --require, 1 on a mismatch', () => {
   const dir = tmp();
   const warnings = [];
@@ -114,7 +128,7 @@ test('install-env --require fails when a secret is missing', () => {
 test('Blubird files are git-ignored, untracked, and wired into the build scripts', () => {
   const { execFileSync } = require('node:child_process');
   const gitignore = fs.readFileSync(path.join(root, '.gitignore'), 'utf8');
-  assert.match(gitignore, /^\/src\/renderer\/pages\/Blubird-\*\.woff2$/m);
+  assert.match(gitignore, /^\/src\/renderer\/pages\/Blubird\*$/m);
   const tracked = execFileSync('git', ['ls-files', 'src/renderer/pages'], { cwd: root, encoding: 'utf8' });
   assert.doesNotMatch(tracked, /Blubird/i, 'no Blubird file may be committed');
   const scripts = require('../../package.json').scripts;

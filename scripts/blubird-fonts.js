@@ -92,13 +92,18 @@ function checkDirectory(dir = PAGES_DIR, { pinned = readPinned() } = {}) {
   }, pinned);
 }
 
+// @electron/asar resolves archive paths with the host separator, so a
+// forward-slash path is "not found" on Windows (as in verify-packaged-ublock).
+function asarInnerPath(name, sep = path.sep) {
+  return `${ASAR_PAGES}/${name}`.split('/').join(sep);
+}
+
 function checkAsar(asarPath, { pinned = readPinned() } = {}) {
   const asar = require('@electron/asar');
   const listed = new Set(asar.listPackage(asarPath).map((entry) => entry.replace(/\\/g, '/').replace(/^\//, '')));
-  return checkFiles((name) => {
-    const inner = `${ASAR_PAGES}/${name}`;
-    return listed.has(inner) ? asar.extractFile(asarPath, inner) : null;
-  }, pinned);
+  return checkFiles((name) => (
+    listed.has(`${ASAR_PAGES}/${name}`) ? asar.extractFile(asarPath, asarInnerPath(name)) : null
+  ), pinned);
 }
 
 function main(argv, options = {}) {
@@ -144,5 +149,5 @@ function main(argv, options = {}) {
 if (require.main === module) process.exitCode = main(process.argv.slice(2));
 
 module.exports = {
-  readPinned, sha256, verifyBytes, installFromSource, installFromEnv, checkDirectory, checkAsar, main,
+  readPinned, sha256, verifyBytes, installFromSource, installFromEnv, checkDirectory, asarInnerPath, checkAsar, main,
 };
