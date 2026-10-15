@@ -60,6 +60,14 @@
     "message": "Mute or unmute this tab",
     "note": "Slash command hint shown in the ⌘L palette for /mute."
   },
+  "slash.rename.hint": {
+    "message": "Name this tab — leave it empty to use the page title",
+    "note": "Slash command hint shown in the ⌘L palette for /rename."
+  },
+  "slash.rename.doc": {
+    "message": "Give this tab your own name, or go back to its page title with no name",
+    "note": "Reference description of /rename [name] on blanc://shortcuts and in Help → Slash Commands."
+  },
   "slash.sleep.hint": {
     "message": "Quiet background tabs and free their memory",
     "note": "Slash command hint shown in the ⌘L palette for /sleep."

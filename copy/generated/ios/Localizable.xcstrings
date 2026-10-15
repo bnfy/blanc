@@ -631,6 +631,90 @@
         }
       }
     },
+    "slash.rename.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /rename.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name this tab — leave it empty to use the page title"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diesem Tab einen Namen geben – leer lassen für den Seitentitel"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ponle nombre a esta pestaña; déjalo vacío para usar el título de la página"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nommer cet onglet — laissez vide pour utiliser le titre de la page"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dai un nome a questa scheda — lascia vuoto per usare il titolo della pagina"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dê um nome a esta aba — deixe vazio para usar o título da página"
+          }
+        }
+      }
+    },
+    "slash.rename.doc": {
+      "comment": "Reference description of /rename [name] on blanc://shortcuts and in Help → Slash Commands.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Give this tab your own name, or go back to its page title with no name"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diesem Tab einen eigenen Namen geben oder ohne Namen zum Seitentitel zurückkehren"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Da a esta pestaña un nombre propio o, sin nombre, vuelve al título de la página"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Donne à cet onglet le nom de votre choix, ou revient au titre de la page sans nom"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dà a questa scheda un nome a tua scelta o, senza nome, torna al titolo della pagina"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dá a esta aba um nome próprio ou, sem nome, volta ao título da página"
+          }
+        }
+      }
+    },
     "slash.sleep.hint": {
       "comment": "Slash command hint shown in the ⌘L palette for /sleep.",
       "extractionState": "manual",

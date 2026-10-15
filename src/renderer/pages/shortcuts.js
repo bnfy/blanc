@@ -19,6 +19,7 @@ const SLASH_COMMANDS = [
   ['/pin', 'slash.pin.hint'],
   ['/mute', 'slash.mute.hint'],
   ['/sleep', 'slash.sleep.hint'],
+  ['/rename [name]', 'slash.rename.doc'],
   ['/group <name>', 'slash.group.doc'],
   ['/ungroup', 'slash.ungroup.hint'],
   ['/close-group', 'slash.closeGroup.hint'],

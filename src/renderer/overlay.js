@@ -106,6 +106,8 @@
    * (arrives in overlay:show's purpose payload; cleared once used, dismissed,
    * or the command is edited away from /group). */
   let pendingGroupTabId = null;
+  // F46: the tab a menu-initiated "Rename Tab…" targets, like pendingGroupTabId.
+  let pendingRenameTabId = null;
   /** A click only reaches a row's handler when mousedown and mouseup land on
    * the same element. tabs:updated broadcasts arrive in bursts while any page
    * loads, and a replaceChildren between the two destroys the pressed row —
@@ -386,7 +388,7 @@
     if (!query) return eligible;
     return eligible.filter((tab) => {
       const groupName = groupById(tab.groupId)?.name ?? '';
-      return [tab.title, tabDomain(tab), groupName]
+      return [tab.title, tab.pageTitle, tabDomain(tab), groupName]
         .filter(Boolean)
         .some((value) => value.toLowerCase().includes(query));
     });
@@ -602,7 +604,8 @@
     const title = document.createElement('span');
     title.className = 'row-title';
     title.textContent = label;
-    if (tab.title) title.title = tab.title;
+    // A renamed row's tooltip is the page's own title (F46).
+    if (tab.pageTitle || tab.title) title.title = tab.pageTitle || tab.title;
     if (tab.title && !tab.isLoading) title.dataset.i18nIgnore = ''; // a page title is data
     row.setAttribute('aria-label', label);
     if (tab.title && !tab.isLoading) row.dataset.i18nIgnore = 'aria-label'; // the page title again
@@ -947,6 +950,15 @@
     { cmd: '/pin', hint: blancI18n.t('slash.pin.hint'), run: () => state.activeTabId && window.browserAPI.toggleTabPinned(state.activeTabId) },
     { cmd: '/mute', hint: blancI18n.t('slash.mute.hint'), run: () => state.activeTabId && window.browserAPI.toggleTabMuted(state.activeTabId) },
     { cmd: '/sleep', hint: blancI18n.t('slash.sleep.hint'), run: () => window.browserAPI.sleepBackgroundTabs(), keepOverlay: true, clearInput: true, resultNotice: (quieted) => Array.isArray(quieted) && quieted.length === 0 ? blancI18n.t('slash.sleep.none') : '' },
+    { cmd: '/rename', hint: blancI18n.t('slash.rename.hint'), run: (input) => {
+      const name = (input ?? '').replace(/^\/rename\s*/, '');
+      // "Rename Tab…" targets the right-clicked tab, even if it closed in the
+      // meantime (main then does nothing) — never silently the active tab.
+      // An empty name hands the tab back its page title.
+      const target = pendingRenameTabId ?? state.activeTabId;
+      if (target) window.browserAPI.renameTab(target, name);
+      pendingRenameTabId = null;
+    } },
     { cmd: '/group', hint: blancI18n.t('slash.group.hint'), run: (input) => {
       const name = (input ?? '').replace(/^\/group\s*/, '').trim();
       // A context-menu "New Group…" targets the right-clicked tab, not the
@@ -1201,7 +1213,7 @@
       if (s) results.push({ kind: 'group', title: g.name, sub: blancI18n.t('result.groupCount', { count }), group: g, count, score: s + 0.3 });
     }
     for (const t of state.tabs) {
-      const s = matchScore(query, matchableText(t.title, t.url));
+      const s = matchScore(query, matchableText([t.title, t.pageTitle].filter(Boolean).join(' '), t.url));
       // Quiet is not shown here: it lives only on the row-level dim (panel row
       // and rail). The switcher sub is just the tab's domain.
       const sub = tabDomain(t);
@@ -1784,6 +1796,7 @@
       if (!reshow) {
         siteInfoOpen = false;
         pendingGroupTabId = null;
+        pendingRenameTabId = null;
         clearWorkspacePopoverEditors();
         closeWorkspaceSwitcher();
         addressInputComposing = false;
@@ -1800,6 +1813,12 @@
       // tab). Glance's string purposes fall through harmlessly.
       if (purpose && typeof purpose === 'object' && purpose.beginGroupTabId != null) {
         pendingGroupTabId = purpose.beginGroupTabId;
+        pendingRenameTabId = null;
+      }
+      // "Rename Tab…" (F46): same atomic payload as New Group… above.
+      if (purpose && typeof purpose === 'object' && purpose.renameTabId != null) {
+        pendingRenameTabId = purpose.renameTabId;
+        pendingGroupTabId = null;
       }
       // A workspace row's context menu (main process) has no other channel
       // back into an already-open panel — same atomic-payload reasoning as
@@ -1832,7 +1851,14 @@
         // A pending workspace edit/confirm already claimed focus on its own
         // inline control — the address input must not steal it back.
         addressInput.focus();
-        if (prefill) addressInput.setSelectionRange(prefill.length, prefill.length);
+        if (prefill) {
+          // "Rename Tab…" selects only the current name, so typing replaces
+          // it and the arrow keys edit it; other prefills park the cursor.
+          const from = pendingRenameTabId != null && prefill.startsWith('/rename ')
+            ? '/rename '.length
+            : prefill.length;
+          addressInput.setSelectionRange(from, prefill.length);
+        }
         else if (!reshow || !inputTouched) addressInput.select();
       }
     } else if (next === 'find') {
@@ -2364,6 +2390,7 @@
     addressInputComposing = false;
     suppressProviderSuggestions = false;
     pendingGroupTabId = null;
+    pendingRenameTabId = null;
     clearWorkspacePopoverEditors();
     closeWorkspaceSwitcher();
     selectedResultIndex = -1;
@@ -2514,6 +2541,9 @@
     // /group meant for the active tab.
     if (pendingGroupTabId != null && !addressInput.value.startsWith('/group')) {
       pendingGroupTabId = null;
+    }
+    if (pendingRenameTabId != null && !addressInput.value.startsWith('/rename')) {
+      pendingRenameTabId = null;
     }
     if (!addressInput.value.trim()) {
       // Do not clear a paste/drop taint here. Delete followed by Undo restores

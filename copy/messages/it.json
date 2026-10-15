@@ -65,6 +65,14 @@
     "message": "Disattiva o riattiva l’audio di questa scheda",
     "source": "sha256:269257650ea0481c9c2b0f12a02925dbcc43f3ecb0a169438ec10f5674d02fcd"
   },
+  "slash.rename.hint": {
+    "message": "Dai un nome a questa scheda — lascia vuoto per usare il titolo della pagina",
+    "source": "sha256:af5d2c8646fb4e782b6195dfc8e79df6d6554381331503bc3c56e2a29db59fa8"
+  },
+  "slash.rename.doc": {
+    "message": "Dà a questa scheda un nome a tua scelta o, senza nome, torna al titolo della pagina",
+    "source": "sha256:d56351dbbbc9c766d6ce50ae4f7128dfa7364c5166e6feef0954e4ed4dd59d56"
+  },
   "slash.sleep.hint": {
     "message": "Metti in riposo le schede in background e libera la loro memoria",
     "source": "sha256:cec72b6a93330577e374f69bf56df1bddb607dbd1d2046ff9c66ad5238be8c98"

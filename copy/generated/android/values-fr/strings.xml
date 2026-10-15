@@ -16,6 +16,8 @@
     <string name="slash_reopen_hint">Rouvrir l’onglet que vous venez de fermer</string>
     <string name="slash_pin_hint">Épingler ou détacher cet onglet</string>
     <string name="slash_mute_hint">Couper ou rétablir le son de cet onglet</string>
+    <string name="slash_rename_hint">Nommer cet onglet — laissez vide pour utiliser le titre de la page</string>
+    <string name="slash_rename_doc">Donne à cet onglet le nom de votre choix, ou revient au titre de la page sans nom</string>
     <string name="slash_sleep_hint">Mettre en veille les onglets en arrière-plan et libérer leur mémoire</string>
     <string name="slash_group_hint">Saisissez un espace, puis un nom de groupe — p. ex. « travail »</string>
     <string name="slash_group_doc">Déplace cet onglet dans un groupe, en le créant la première fois</string>

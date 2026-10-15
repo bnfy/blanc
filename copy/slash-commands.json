@@ -55,6 +55,17 @@
       "command": "/sleep"
     },
     {
+      "command": "/rename",
+      "doc": {
+        "command": "/rename [name]"
+      },
+      "platforms": [
+        "macos",
+        "windows",
+        "linux"
+      ]
+    },
+    {
       "command": "/group",
       "doc": {
         "command": "/group <name>"

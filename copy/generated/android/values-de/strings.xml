@@ -16,6 +16,8 @@
     <string name="slash_reopen_hint">Zuletzt geschlossenen Tab wieder öffnen</string>
     <string name="slash_pin_hint">Diesen Tab anheften oder lösen</string>
     <string name="slash_mute_hint">Diesen Tab stummschalten oder den Ton wieder einschalten</string>
+    <string name="slash_rename_hint">Diesem Tab einen Namen geben – leer lassen für den Seitentitel</string>
+    <string name="slash_rename_doc">Diesem Tab einen eigenen Namen geben oder ohne Namen zum Seitentitel zurückkehren</string>
     <string name="slash_sleep_hint">Hintergrund-Tabs ruhen lassen und ihren Speicher freigeben</string>
     <string name="slash_group_hint">Leerzeichen, dann einen Gruppennamen eingeben – z. B. „arbeit“</string>
     <string name="slash_group_doc">Diesen Tab in eine Gruppe verschieben (wird beim ersten Mal angelegt)</string>
