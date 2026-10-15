@@ -116,7 +116,12 @@ test('Blubird sets headings and page copy; Inter keeps figures, keys, the chrome
   // Blubird's word space is 25% narrower than Inter's, so page copy opens up
   // (owner choice D, October 15). Inter rules and Mahjong opt back out.
   assert.ok(pages.includes('--text-word-spacing: 0.07em;'));
-  assert.ok(pages.includes('--text-tracking: 0.01em;'));
+  assert.ok(pages.includes('--text-tracking: 0.025em;'), 'small text opens to +0.025em (owner choice C, October 15)');
+  // Chromium's own stylesheet resets letter- and word-spacing on form controls,
+  // so buttons (Island rows, sheet buttons) must inherit them explicitly.
+  const controls = rulesFor(pages, 'button, input, select, textarea');
+  assert.ok(controls.some((rule) => /letter-spacing: inherit;/.test(rule.body) && /word-spacing: inherit;/.test(rule.body)),
+    'form controls inherit the page spacing');
   const body = rulesFor(pages, 'html, body')[0].body;
   assert.match(body, /word-spacing: var\(--text-word-spacing\);/);
   assert.match(body, /letter-spacing: var\(--text-tracking\);/);

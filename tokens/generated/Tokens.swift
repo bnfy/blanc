@@ -164,7 +164,7 @@ public enum BlancTokens {
     public static let fontDisplay = "\"Blubird Display\", \"Inter\", -apple-system, \"Segoe UI Variable\", \"Segoe UI\", system-ui, sans-serif"
     public static let fontText = "\"Blubird Text\", \"Inter\", -apple-system, \"Segoe UI Variable\", \"Segoe UI\", system-ui, sans-serif"
     public static let textWordSpacing = "0.07em"
-    public static let textTracking = "0.01em"
+    public static let textTracking = "0.025em"
     public static let textOpticalSize = "28"
     public static let typeBodySize = "13px"
     public static let typePageTitleSize = "24px"

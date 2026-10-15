@@ -75,7 +75,7 @@
   /* Blubird's word space is about 25% narrower than Inter's, so page copy
      opens up a little. Inter rules (figures, keys) and Mahjong opt out. */
   --text-word-spacing: 0.07em;
-  --text-tracking: 0.01em;
+  --text-tracking: 0.025em;
   --text-optical-size: 28;
   --type-body-size: 13px;
   --type-page-title-size: 24px;
@@ -168,6 +168,12 @@ html, body {
   word-spacing: var(--text-word-spacing);
   letter-spacing: var(--text-tracking);
   font-size: 13px;
+}
+/* Chromium's own stylesheet resets letter- and word-spacing on form controls;
+   without this, button text (rows, sheet buttons) never gets the page spacing. */
+button, input, select, textarea {
+  letter-spacing: inherit;
+  word-spacing: inherit;
 }
 /* Inter rules keep Inter's own spacing. */
 .settings-content #patronKey,
