@@ -7,6 +7,7 @@ const sharp = require('sharp');
 const APP_ICON_ASSETS = require('../../src/main/app-icon-assets');
 const { createIconDocument } = require('../../scripts/after-pack-app-icons');
 const {
+  BUNDLE_APP_ICON_NAME,
   applyDockAppIcon,
   createDockIconApplier,
   macOSMajorVersion,
@@ -344,9 +345,61 @@ test('an appearance change reloads only an icon that follows appearance', () => 
 
   const native = harness({ packaged: true });
   const applyNative = dockApplier(native, { systemVersion: '26.0' });
-  applyNative({ appIcon: 'sunrise', darkAppearance: false });
-  assert.equal(applyNative({ appIcon: 'sunrise', darkAppearance: true }), null, 'AppKit renders the adaptive stack itself');
+  applyNative({ appIcon: 'sunrise-dark', darkAppearance: false });
+  assert.equal(applyNative({ appIcon: 'sunrise-dark', darkAppearance: true }), null, 'AppKit renders the adaptive stack itself');
   assert.equal(decodes(native), 1);
+});
+
+// A packaged macOS 26+ Dock already shows the bundle's adaptive app icon until
+// something replaces it, so the default icon costs nothing at launch.
+test('the bundle icon is not re-applied at launch on macOS 26+', () => {
+  const h = harness({ packaged: true });
+  const apply = dockApplier(h, { systemVersion: '26.6.2' });
+  assert.deepEqual(apply({ appIcon: 'sunrise' }), { source: 'bundle', nativeName: BUNDLE_APP_ICON_NAME });
+  // Settings writes and appearance changes leave it alone too.
+  assert.equal(apply({ appIcon: 'sunrise' }), null);
+  assert.equal(apply({ appIcon: 'sunrise', darkAppearance: true }), null);
+  assert.deepEqual(h.calls, []);
+});
+
+test('the default icon is set again once another icon has replaced it', () => {
+  const h = harness({ packaged: true });
+  const apply = dockApplier(h, { systemVersion: '26.6.2' });
+  assert.deepEqual(apply({ appIcon: 'sunrise-dark' }), { source: 'native', nativeName: 'SunriseDark' });
+  assert.deepEqual(apply({ appIcon: 'sunrise' }), { source: 'native', nativeName: BUNDLE_APP_ICON_NAME });
+  assert.deepEqual(h.calls.filter(([kind]) => kind === 'named').map(([, name]) => name), ['SunriseDark', BUNDLE_APP_ICON_NAME]);
+  assert.equal(h.calls.filter(([kind]) => kind === 'setIcon').length, 2);
+});
+
+test('a failed apply after a replacement never mistakes the Dock for the bundle icon', () => {
+  const h = harness({ packaged: true });
+  const apply = dockApplier(h, { systemVersion: '26.6.2' });
+  apply({ appIcon: 'sunrise-dark' });
+  h.nativeImage.createFromNamedImage = (name) => (h.calls.push(['named', name]), image(true));
+  h.nativeImage.createFromPath = (file) => (h.calls.push(['path', file]), image(true));
+  assert.equal(apply({ appIcon: 'sunrise-dark' }, { force: true }), null);
+  h.nativeImage.createFromNamedImage = (name) => (h.calls.push(['named', name]), image(false));
+  assert.deepEqual(apply({ appIcon: 'sunrise' }), { source: 'native', nativeName: BUNDLE_APP_ICON_NAME });
+});
+
+test('older macOS, development builds and forced reapplies still set the icon', () => {
+  const older = harness({ packaged: true });
+  assert.deepEqual(dockApplier(older, { systemVersion: '15.7.9' })({ appIcon: 'sunrise' }), { source: 'png', appIcon: 'sunrise' });
+  const dev = harness({ packaged: false });
+  assert.deepEqual(dockApplier(dev, { systemVersion: '26.6.2' })({ appIcon: 'sunrise' }), { source: 'png', appIcon: 'sunrise' });
+  const forced = harness({ packaged: true });
+  assert.deepEqual(
+    dockApplier(forced, { systemVersion: '26.6.2' })({ appIcon: 'sunrise' }, { force: true }),
+    { source: 'native', nativeName: BUNDLE_APP_ICON_NAME },
+  );
+});
+
+test('the bundle icon name is the stack packaging compiles as the app icon', () => {
+  const afterPack = fs.readFileSync(path.join(root, 'scripts/after-pack-app-icons.js'), 'utf8');
+  assert.match(afterPack, new RegExp(`'--app-icon', '${BUNDLE_APP_ICON_NAME}'`));
+  assert.equal(BUNDLE_APP_ICON_NAME, APP_ICON_ASSETS.sunrise.nativeName);
+  const settings = fs.readFileSync(path.join(root, 'src/main/settings.js'), 'utf8');
+  assert.match(settings, /^\s*appIcon: 'sunrise',$/m, 'the default icon is the bundle icon');
 });
 
 test('a forced reapply restores the Dock icon even when unchanged', () => {

@@ -15,7 +15,8 @@ import testHookCall from './support/test-hook-call.js';
 //    the helper outlived the visible window, Blanc stayed in Task Manager, and
 //    a relaunch deferred to the stuck instance through the single-instance
 //    lock. macOS deliberately keeps running without windows, so there the
-//    helper must survive for the next dock reopen.
+//    helper must survive for the next dock reopen. The helper is created on
+//    the first share request, so the test creates it the same way first.
 // 2. It must keep the window's tabs for the next launch, exactly as Quit does.
 //    From #340 until the October 2026 fix, the close first rewrote
 //    session.json without the closing window, even when it was the last one,
@@ -143,6 +144,9 @@ try {
     10_000,
   );
 
+  assert.ok(!(await describeWindows(app)).some((w) => !w.visible),
+    'no hidden display-capture helper exists before any share request');
+  await callTestHook(app, 'prepareDisplayCaptureHelper');
   const before = await describeWindows(app);
   assert.ok(before.some((w) => w.visible), 'a visible browser window exists before the close');
   assert.ok(before.some((w) => !w.visible), 'the hidden display-capture helper exists (the precondition this test guards)');

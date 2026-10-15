@@ -1172,3 +1172,94 @@ test('an explicitly pinned backend is never downgraded', async () => {
   assert.equal(resolved.backend, null);
   assert.deepEqual(resolved.tried, ['vmmap']);
 });
+
+const attribution = require('../../bench/memory/idle-attribution');
+
+test('idle attribution reads footprint categories and skips the total row', () => {
+  const stdout = [
+    'Blanc Helper (GPU) [1234]: 64-bit    Footprint: 95 MB (16384 bytes per page)',
+    '',
+    '  Dirty      Clean  Reclaimable    Regions    Category',
+    '    ---        ---          ---        ---    ---',
+    '  54 MB        0 B          0 B         31    IOSurface',
+    '  21 MB      16 KB          0 B          9    IOAccelerator (graphics)',
+    '    ---        ---          ---        ---    ---',
+    '  95 MB      2 MB          0 B        300    TOTAL',
+  ].join('\n');
+  assert.deepEqual(attribution.parseFootprintCategories(stdout), [
+    { category: 'IOSurface', dirty: 54 * 1048576, clean: 0 },
+    { category: 'IOAccelerator (graphics)', dirty: 21 * 1048576, clean: 16 * 1024 },
+  ]);
+});
+
+test('idle attribution names processes by role, never by guessing from size', () => {
+  const helper = '/Applications/Blanc.app/Contents/Frameworks/Blanc Helper (Renderer).app/Contents/MacOS/Blanc Helper (Renderer)';
+  assert.equal(attribution.processKind(`${helper} --type=renderer --renderer-client-id=7`), 'renderer');
+  assert.equal(attribution.processKind('/Applications/Blanc.app/Contents/MacOS/Blanc --user-data-dir=/tmp/p'), 'browser');
+  assert.equal(
+    attribution.processKind('x --type=utility --utility-sub-type=network.mojom.NetworkService'),
+    'utility:network.mojom.NetworkService'
+  );
+  assert.equal(attribution.processKind('x --type=gpu-process'), 'gpu-process');
+});
+
+test('idle attribution keeps labels and argv entries that contain "="', () => {
+  const options = attribution.parseArgs([
+    '--app=/Volumes/Blanc 1.34.0/Blanc.app=1.34.0',
+    '--extra-arg=--force-device-scale-factor=2',
+    '--reps=2',
+  ]);
+  assert.deepEqual(options.apps, [{ bundlePath: '/Volumes/Blanc 1.34.0/Blanc.app', label: '1.34.0' }]);
+  assert.deepEqual(options.extraArgs, ['--force-device-scale-factor=2']);
+  assert.equal(options.reps, 2);
+  assert.throws(() => attribution.parseArgs(['--bogus']), /Unknown option/);
+});
+
+test('idle attribution reports the median per process kind for each release', () => {
+  const cell = (label, gpu, total) => ({
+    label,
+    total,
+    procs: [
+      { kind: 'browser', bytes: total - gpu, categories: [] },
+      { kind: 'gpu-process', bytes: gpu, categories: [{ category: 'IOSurface', dirty: gpu }] },
+    ],
+  });
+  const summary = attribution.summarise(
+    [cell('a', 10, 100), cell('a', 30, 120), cell('a', 20, 110), cell('b', 50, 150)],
+    ['a', 'b']
+  );
+  assert.deepEqual(summary.kinds, ['browser', 'gpu-process']);
+  assert.equal(summary.table.a.kinds['gpu-process'].median, 20);
+  assert.equal(summary.table.a.total.median, 110);
+  assert.equal(summary.table.b.kinds['gpu-process'].topCategories[0].category, 'IOSurface');
+});
+
+const variants = require('../../bench/memory/make-variant');
+
+test('a variant change replaces exactly one whole line, or refuses', () => {
+  assert.equal(variants.replaceLineOnce('a\n  b;\nc', '  b;', null), 'a\nc');
+  assert.equal(variants.replaceLineOnce('a\n  b;\nc', '  b;', '  d;'), 'a\n  d;\nc');
+  // A moved or reworded line must fail loudly, never yield an unchanged variant.
+  assert.throws(() => variants.replaceLineOnce('a\nc', '  b;', null), /found 0/);
+  assert.throws(() => variants.replaceLineOnce('  b;\n  b;', '  b;', null), /found 2/);
+  // Whole lines only: a longer line that merely contains the text is not a match.
+  assert.throws(() => variants.replaceLineOnce('  b; /* x */', '  b;', null), /found 0/);
+});
+
+test('variants are named, and the control changes nothing', () => {
+  assert.deepEqual(variants.VARIANTS.control.lines, []);
+  assert.equal(variants.VARIANTS.control.images, undefined);
+  const options = variants.parseArgs(['--out=/tmp/v', '--variant=control', '--variant=noblur']);
+  assert.equal(options.app, '/Applications/Blanc.app');
+  assert.deepEqual(options.variants, ['control', 'noblur']);
+  assert.throws(() => variants.parseArgs(['--variant=nosuch']), /Unknown variant/);
+});
+
+test('the checkout variant needs the files to copy, and only it takes them', () => {
+  const options = variants.parseArgs([
+    '--out=/tmp/v', '--variant=control', '--variant=checkout', '--checkout-file=src/main/app-icon.js',
+  ]);
+  assert.deepEqual(options.checkoutFiles, ['src/main/app-icon.js']);
+  assert.throws(() => variants.parseArgs(['--out=/tmp/v', '--variant=checkout']), /go together/);
+  assert.throws(() => variants.parseArgs(['--out=/tmp/v', '--checkout-file=src/main/app-icon.js']), /go together/);
+});

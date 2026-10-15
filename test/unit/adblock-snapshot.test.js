@@ -57,3 +57,40 @@ test('a modified bundled list fails closed before parsing', () => {
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('loading the snapshot builds no list text; compiling reads verified text', () => {
+  const snapshot = loadVerifiedAdblockSnapshot(SOURCES);
+  for (const key of ['raw', 'resources']) {
+    const descriptor = Object.getOwnPropertyDescriptor(snapshot, key);
+    assert.equal(typeof descriptor.get, 'function', `${key} must be decoded only when used`);
+  }
+  const lists = ['easylist.txt', 'easyprivacy.txt']
+    .map((file) => fs.readFileSync(path.join(SOURCES, file), 'utf8'));
+  assert.equal(snapshot.raw, lists.join('\n'));
+  assert.equal(
+    snapshot.resources,
+    fs.readFileSync(path.join(SOURCES, 'ghostery-resources.json'), 'utf8')
+  );
+});
+
+test('a list modified after the startup check fails closed when compiled', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-adblock-snapshot-'));
+  try {
+    for (const file of [
+      'pinned.json',
+      'easylist.txt',
+      'easyprivacy.txt',
+      'ghostery-resources.json',
+    ]) {
+      fs.copyFileSync(path.join(SOURCES, file), path.join(dir, file));
+    }
+    const snapshot = loadVerifiedAdblockSnapshot(dir);
+    fs.appendFileSync(path.join(dir, 'easyprivacy.txt'), '\n||tampered.invalid^');
+    assert.throws(() => snapshot.raw, /hash mismatch/);
+    fs.copyFileSync(path.join(SOURCES, 'easyprivacy.txt'), path.join(dir, 'easyprivacy.txt'));
+    fs.appendFileSync(path.join(dir, 'ghostery-resources.json'), ' ');
+    assert.throws(() => snapshot.resources, /hash mismatch/);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
