@@ -2,7 +2,10 @@
    contributes only bundled fonts and the [hidden] contract. */
 
 .mahjong-body {
-  /* Tile faces alone keep JetBrains Mono; game controls use Inter. */
+  /* Tile faces alone keep JetBrains Mono; game controls use Inter. Shared
+     pages.css rules set copy in --font-text, the licensed page face, so the
+     game maps it back to Inter. */
+  --font-text: var(--font-ui);
   --mj-face-font: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
   --mj-table: #0b3d31;
   --mj-table-deep: #04251f;

@@ -103,5 +103,7 @@ test('Blubird sets headings and page copy; Inter keeps figures, keys, the chrome
   assert.match(rulesFor(pages, 'html, body')[0].body, /font-family: var\(--font-text\);/);
 
   assert.doesNotMatch(chrome, /Blubird|--font-text|--font-display|Newsreader/);
-  assert.doesNotMatch(mahjong, /Blubird|--font-text|--font-display/);
+  assert.doesNotMatch(mahjong, /Blubird|--font-display/);
+  assert.match(mahjong, /\.mahjong-body \{[^}]*--font-text: var\(--font-ui\);/,
+    'Mahjong maps shared --font-text rules back to Inter');
 });

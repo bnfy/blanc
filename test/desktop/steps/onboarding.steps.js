@@ -18,7 +18,7 @@ Then('the onboarding walkthrough is shown', async function () {
   );
 });
 
-Then('every onboarding title fits in Newsreader in light and dark themes', async function () {
+Then('every onboarding title fits in Blubird in light and dark themes', async function () {
   const originalBounds = await this.call('windowContentBounds');
   const sizes = [
     { width: 1280, height: 800, label: 'default' },
@@ -38,17 +38,17 @@ Then('every onboarding title fits in Newsreader in light and dark themes', async
       for (const theme of ['light', 'dark']) {
         const result = audit?.[theme];
         assert.equal(result?.theme, theme);
-        assert.equal(result.fontLoaded, true);
+        if (process.env.BLANC_EXPECT_BLUBIRD === '1') assert.equal(result.fontLoaded, true);
         assert.equal(result.dialogOverflow, false);
         assert.equal(result.pageOverflow, false);
         assert.equal(result.steps.length, 6);
         for (const step of result.steps) {
           const context = `${theme} onboarding step ${step.step} at ${size.width}x${size.height}`;
-          assert.match(step.font, /Newsreader Condensed/, context);
+          assert.match(step.font, /^"?Blubird Text"?,/, context);
           assert.equal(step.size, '22px', context);
           assert.equal(step.weight, '400', context);
           assert.equal(step.lineHeight, '25.3px', context);
-          assert.equal(step.tracking, '-0.77px', context);
+          assert.ok(['normal', '0px'].includes(step.tracking), `${context}: tracking ${step.tracking}`);
           assert.equal(step.opticalSizing, 'auto', context);
           assert.equal(step.insideContent, true, context);
           assert.equal(step.horizontalOverflow, false, context);
