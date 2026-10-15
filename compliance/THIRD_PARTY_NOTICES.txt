@@ -61,6 +61,9 @@ BUNDLED ASSETS AND DATA
 - Caveat Latin webfont — OFL-1.1
   Source: https://github.com/googlefonts/caveat
   Full text: ThirdPartyLicenses/caveat-OFL.txt
+- Blubird webfonts 1.000 — LicenseRef-Blubird-Commercial
+  Attribution: Rajesh Rajput
+  Full text: ThirdPartyLicenses/blubird-NOTICE.txt
 - EasyList 202607091627 — CC-BY-SA-3.0-or-later
   Attribution: The EasyList authors (https://easylist.to/)
   Source: https://easylist.to/

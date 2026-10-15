@@ -36,6 +36,7 @@ function npmPurl(name, version) {
 }
 
 function licenseChoice(expression) {
+  if (expression.startsWith('LicenseRef-')) return { license: { name: expression } };
   return /\s(?:AND|OR|WITH)\s|[()]/.test(expression)
     ? { expression }
     : { license: { id: expression } };
@@ -357,6 +358,7 @@ function runtimeSbom(model, policy) {
     'asset:inter-font',
     'asset:jetbrains-mono-font',
     'asset:caveat-font',
+    'asset:blubird-font',
     'asset:blanc-adblock-seed',
   ]);
   for (const name of closure.directNames) {

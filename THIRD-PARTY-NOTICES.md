@@ -59,6 +59,17 @@ All three font files remain under the SIL Open Font License, Version 1.1; Blanc'
 MIT grant does not supersede those terms. The font files and their full licence texts
 ship together inside packaged builds.
 
+## Blubird fonts — commercial licence
+
+Official builds embed `Blubird-RegularDisplay.woff2`, `Blubird-RegularText.woff2`,
+`Blubird-MediumText.woff2` and `Blubird-SemiBoldText.woff2` — Copyright (c) 2026
+Rajesh Rajput, all rights reserved — under a commercial licence granted to
+Bananify Creative. Blubird is not covered by Blanc's MIT grant or any open-source
+licence, and the files are not in this repository; their SHA-256 digests are
+pinned in [fonts/blubird/pinned.json](fonts/blubird/pinned.json). Builds made
+from this repository fall back to Inter. Notice text:
+[compliance/evidence/blubird-NOTICE.txt](compliance/evidence/blubird-NOTICE.txt).
+
 ## Newsreader website source — SIL OFL 1.1
 
 The website uses Newsreader (variable, optical-size axis, regular weight) for

@@ -12,7 +12,8 @@
   ],
   "metadataOverrides": {},
   "runtimeAssetLicenseExceptions": {
-    "ublock-origin": "GPL-3.0-or-later"
+    "ublock-origin": "GPL-3.0-or-later",
+    "blubird-font": "LicenseRef-Blubird-Commercial"
   },
   "licenseFileFallbacks": {
     "@1password/sdk@0.5.0": {
@@ -72,6 +73,16 @@
       "license": "OFL-1.1",
       "licenseFile": "src/renderer/pages/caveat-OFL.txt",
       "homepage": "https://github.com/googlefonts/caveat"
+    },
+    {
+      "id": "blubird-font",
+      "name": "Blubird webfonts",
+      "version": "1.000",
+      "type": "file",
+      "file": "fonts/blubird/pinned.json",
+      "license": "LicenseRef-Blubird-Commercial",
+      "licenseFile": "compliance/evidence/blubird-NOTICE.txt",
+      "attribution": "Rajesh Rajput"
     },
     {
       "id": "easylist-data",
