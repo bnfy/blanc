@@ -73,30 +73,31 @@ or the claim rules forbid them:
 
 ## C. Comparison table: Blanc and a default Chrome install
 
-The Blanc column is checked at v1.34.0. **No Chrome cell has been read at its
-first-party source.** Google's documentation hosts were blocked by this
-session's network policy; the candidate URLs below come from search results.
-`docs/marketing-claims.md` requires reading the first-party source and
-recording the access date before a Chrome cell ships. Third-party summaries
-never count.
+The Blanc column is checked at v1.34.0. Every Chrome cell was read at a
+Google-owned page on **October 15, 2026**; saved copies were kept in the
+session that wrote this draft. Where a source supports only part of the
+draft, the cell is narrowed to what it says. `www.google.com/chrome/terms`,
+chromium.org and policies.google.com could not be reached, so C7 cites the
+help page that names Chrome's governing terms rather than the terms text.
 
-| ID | Row | Blanc | Chrome (draft) | Candidate first-party source (unread) | Verdict |
+| ID | Row | Blanc | Chrome | First-party source and supporting words (accessed 2026-10-15) | Verdict |
 | --- | --- | --- | --- | --- | --- |
-| C1 | Ad and tracker blocking on by default | Yes (A-07) | Only on sites that fail the Better Ads Standards | Chrome Help on intrusive-ad filtering; Chromium blog, February 2018 (dated) | pending |
-| C2 | Full uBlock Origin | Yes, optional, on supported builds (A-09) | No. Manifest V2 extensions are off since Chrome 138; uBlock Origin Lite is available | https://developer.chrome.com/docs/extensions/develop/migrate/mv2-deprecation-timeline ; uBO Lite's Chrome Web Store listing | pending |
-| C3 | macOS, Windows and Linux | Yes (A-08) | Yes | Chrome download page | pending |
-| C4 | Phone and tablet apps | **No** | Yes | Chrome download page | pending |
-| C5 | Chrome Web Store extensions | **No** | Yes | Chrome Web Store | pending (Blanc cell verified) |
-| C6 | Built-in password manager | **No** (S-05) | Yes, Google Password Manager | Google Password Manager help page | pending (Blanc cell verified) |
-| C7 | Free and open source | Yes, MIT with carve-outs (A-08) | Built on open-source Chromium; Chrome itself is under Google's terms | chromium.org; Google Chrome Terms of Service | pending. Optional row: the Chrome cell invites argument, so drop it if it can't be stated in one sourced line |
-| C8 | Plays protected streaming video (Netflix and similar) | **No** (see F-3; owner-tested) | Yes | Chrome Help on protected content | pending (Blanc cell verified) |
+| C1 | Ad and tracker blocking on by default | Yes (A-07) | Limited: removes ads only on sites that violate the Better Ads Standards | https://support.google.com/chrome/answer/7632919 : "Chrome removes ads from websites that violate the Better Ads Standards." Documented for Computer and Android | verified (narrowed). Say "violate", not "fail". Don't claim Chrome has no tracker blocking: no Google page says so either way |
+| C2 | Full uBlock Origin | Yes, optional, on supported builds (A-09) | No. Manifest V2 extensions are off since Chrome 138; uBlock Origin Lite (Manifest V3) is available | https://developer.chrome.com/docs/extensions/develop/migrate/mv2-deprecation-timeline (updated 2026-09-09): "With Chrome 138 all users on all channels of Chrome have now Manifest V2 extensions disabled. Users can no longer turn them back on." https://chromewebstore.google.com/detail/ublock-origin-lite/ddkjiahejlhfcafbddmgiahcphecmpfh : "uBO Lite (uBOL) is an efficient MV3-based content blocker." The original uBlock Origin listing now redirects to the Store homepage | verified |
+| C3 | macOS, Windows and Linux | Yes (A-08) | Yes | https://support.google.com/chrome/answer/95346 (Computer): Windows 10 and up, macOS 13 Ventura and up, 64-bit Linux (Ubuntu, Debian, openSUSE, Fedora) | verified |
+| C4 | Phone and tablet apps | **No** | Yes | https://support.google.com/chrome/answer/95346 (iOS: "iOS 18 and up"; Android: "Android 10 and up") | verified |
+| C5 | Chrome Web Store extensions | **No** | Yes, on desktop | https://support.google.com/chrome_webstore/answer/2664769 : "You can customize Chrome on your desktop by adding extensions from the Chrome Web Store." | verified (narrowed to desktop) |
+| C6 | Built-in password manager | **No** (S-05) | Yes, Google Password Manager | https://support.google.com/chrome/answer/95606 : "When you use Chrome, Google Password Manager saves your passwords for different sites." | verified |
+| C7 | Free and open source | Yes, MIT with carve-outs (A-08) | Free; built on the open-source Chromium project, under Google's terms | https://developer.chrome.com/docs/chromium : "Chromium, the open source browser project behind Google Chrome"; https://support.google.com/chrome/a/answer/16190511 lists the Google Terms of Service and the Chrome & ChromeOS Additional Terms for Chrome; answer 95346: "at no charge" | qualified. Don't say Chrome "isn't open source": no reachable Google page says that |
+| C8 | Plays protected streaming video | **No** (F-3; owner-tested with Netflix) | Yes | https://support.google.com/chrome/answer/4410268 : "By default, you can view protected content." | verified. Google's page doesn't name Netflix, so the table row doesn't either; Netflix appears only in the Blanc FAQ (Q-03) |
 
 Rows deliberately left out:
 - **Third-party cookies blocked by default.** Blanc blocks known tracker
   requests through EasyPrivacy, but no evidence shows it blocks all
-  third-party cookies by default (`src/main/` has no such policy). Search
-  results suggest Chrome keeps third-party cookies on by default outside
-  Incognito (privacysandbox.com, April 2025 update; unread).
+  third-party cookies by default (`src/main/` has no such policy). Chrome
+  Help (answer 95647) states a default only for Incognito ("By default,
+  third-party cookies are blocked in Incognito mode"), not for regular
+  windows, so neither cell could be sourced.
 - **"Tabs in one Island".** It's not a fair yes/no against Chrome's tab strip
   and omnibox; leave it to the Island section.
 - **Memory.** It isn't a yes/no; it stays in the proof strip with its
@@ -128,11 +129,10 @@ Rows deliberately left out:
   run on v1.34.0 with `bench/memory/`. Re-running means updating
   `MemoryChart.astro`, `docs/press/fact-sheet.md` and the committed run
   together.
-- **F-2, Chrome column.** Nothing in section C can ship until each Chrome cell
-  is read at its first-party source with an access date. Allow
-  `developer.chrome.com`, `support.google.com`, `chromewebstore.google.com`
-  and `privacysandbox.com` in the session's network settings, or check them
-  by hand.
+- **F-2, Chrome column.** Resolved on October 15, 2026: every cell in
+  section C now cites the Google page it was read from. Re-read them before
+  publishing if more than a few weeks pass, since Chrome's documentation
+  changes (the Manifest V2 timeline gained an entry on August 31, 2026).
 - **F-3, protected streaming.** Public v1.34.0 uses official Electron, which
   ships no Widevine CDM. The owner confirmed it hands-on on October 15, 2026:
   starting a Netflix title in Blanc stops at Netflix's "Pardon the
