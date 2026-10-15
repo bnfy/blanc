@@ -15,10 +15,10 @@
 /* ---------- Page base ---------- */
 .mail-page{max-width:1120px;margin:0 auto;padding:clamp(40px,7vw,96px) 24px 100px;color:var(--site-text,#111)}
 .mail-page .mail-eyebrow{margin:0;color:var(--mail-gold);font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
-/* Serif headings tighten as they grow, never looser than -0.035em
-   (test/site/newsreader-reach.test.mjs). */
-.mail-page h1,.mail-page h2,.mail-page h3{font-family:var(--site-font-patron);font-weight:400;line-height:1.08;letter-spacing:-.035em}
-.mail-page h1{font-size:clamp(44px,7vw,84px);line-height:1.02;letter-spacing:-.04em;font-optical-sizing:auto;text-wrap:balance;margin:14px 0 18px}
+/* Headings are Blubird Display at 0 tracking, like every page
+   (test/site/blubird-reach.test.mjs). */
+.mail-page h1,.mail-page h2,.mail-page h3{font-family:var(--site-font-patron);font-weight:400;line-height:1.08;letter-spacing:0}
+.mail-page h1{font-size:clamp(44px,7vw,84px);line-height:1.02;letter-spacing:0;font-optical-sizing:auto;text-wrap:balance;margin:14px 0 18px}
 .mail-page h2{font-size:clamp(31px,4vw,52px);margin:0 0 16px}
 .mail-page h3{font-size:24px;line-height:1.2;margin:0 0 8px}
 .mail-page p,.mail-page li{font-size:17px;line-height:1.6}
@@ -293,7 +293,7 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
 .mail-closing{display:flex;flex-direction:column;align-items:center}
 .mail-home .mail-closing .mail-closing-icon{width:96px;margin:0 0 10px}
 .mail-closing .mail-waitlist{width:100%;max-width:520px;margin:10px auto 0}
-.mail-closing .mail-waitlist-label{margin-bottom:24px;font-family:var(--site-font-patron);font-size:clamp(30px,3.8vw,44px);font-weight:400;line-height:1.08;letter-spacing:-.035em;text-wrap:balance}
+.mail-closing .mail-waitlist-label{margin-bottom:24px;font-family:var(--site-font-patron);font-size:clamp(30px,3.8vw,44px);font-weight:400;line-height:1.08;letter-spacing: 0;text-wrap:balance}
 
 /* ---------- Overview: family (from #636) ---------- */
 .mail-home .mail-home-family{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;max-width:820px;margin:44px auto 0;text-align:left}
@@ -321,7 +321,7 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
 .mail-plan{display:grid;grid-row:span 3;grid-template-rows:subgrid;row-gap:0;padding:30px 30px 32px;border:1px solid var(--mail-line-soft);border-radius:28px;background:var(--mail-paper);box-shadow:0 1px 2px #35250e0d}
 .mail-page .mail-plan h2{font-size:30px;margin:0 0 16px}
 .mail-page .mail-plan-price{margin:0 0 24px;color:var(--mail-text);font-size:16px;line-height:1.5;font-variant-numeric:tabular-nums}
-.mail-plan-price strong{color:var(--mail-ink);font-family:var(--site-font-patron);font-size:48px;font-weight:400;line-height:1.05;letter-spacing:-.035em}
+.mail-plan-price strong{color:var(--mail-ink);font-family:var(--site-font-patron);font-size:48px;font-weight:400;line-height:1.05;letter-spacing:0}
 .mail-plan-price strong:nth-of-type(2){font-size:26px}
 .mail-plan ul{display:grid;align-content:start;gap:12px;margin:0;padding:22px 0 0;border-top:1px solid var(--mail-line-soft);list-style:none}
 .mail-page .mail-plan li{position:relative;padding-left:30px;font-size:16px;line-height:1.5}

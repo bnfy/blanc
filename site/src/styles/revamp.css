@@ -42,7 +42,7 @@ summary:focus-visible {
   visibility: hidden;
 }
 main .section-kicker {
-  font-family: var(--font-ui);
+  font-family: var(--font-brand-text);
   letter-spacing: 0.08em;
   font-size: 11px;
   font-weight: 400;
@@ -61,7 +61,7 @@ main .section-kicker {
   h1 {
   font-family: var(--site-font-display);
   font-weight: 400;
-  letter-spacing: -0.045em;
+  letter-spacing: 0;
   line-height: 1.04;
   text-wrap: balance;
 }
@@ -82,7 +82,7 @@ main .section-kicker {
   font-family: var(--site-font-display);
   font-size: clamp(38px, 4vw, 56px);
   font-weight: 400;
-  letter-spacing: -0.035em;
+  letter-spacing: 0;
 }
 /* ---------- Site header (components/Header.astro) ----------
    One white bar on every page, in the live site's style (the owner kept it over

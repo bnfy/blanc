@@ -25,7 +25,7 @@ limits beside the claims they qualify and keep deeper information easy to find.
 
 For full-color social artwork, use the original gold Sunrise asset at `site/public/sunrise-hero-mark.png`, preserving its geometry, transparency and gold detail. Use the Sunrise theme: Blanc White `#F8F2E8`, warm surfaces `#F2EADE`, near-black headings, muted brown-gray `#6B6257`, and restrained gold `#805D28`. The approved September 11 general Sunrise creative in `marketing/social/sunrise-milestone-2026-09-11/general-review-v2-1080x1350.png` is a visual reference for the treatment, not content to recycle.
 
-Use Newsreader regular for sentence-case headings and Inter for supporting text. On the website, the homepage, masthead and footer use Blubird instead (see *Blanc lockup*): Blubird Display for headlines, set at 0 letter-spacing, and Blubird Text for copy; other pages keep Newsreader until they are redesigned. Choose title alignment to suit the composition; not every social asset should use the same centered poster layout. Keep generous clear space around the Sunrise symbol. Do not redraw it, replace it with a letterform, tint the original artwork, add a badge or place a glow immediately behind it. A subtle gold horizon may appear away from the symbol. Existing monochrome Sunrise site variants remain valid for the specifically documented placements below.
+Use Newsreader regular for sentence-case headings and Inter for supporting text. On the website, every page uses Blubird instead (see *Blanc lockup*; owner direction, October 15, 2026): Blubird Display for headings, set at 0 letter-spacing, and Blubird Text for copy. Product replicas on the site keep Inter, the app's face. Choose title alignment to suit the composition; not every social asset should use the same centered poster layout. Keep generous clear space around the Sunrise symbol. Do not redraw it, replace it with a letterform, tint the original artwork, add a badge or place a glow immediately behind it. A subtle gold horizon may appear away from the symbol. Existing monochrome Sunrise site variants remain valid for the specifically documented placements below.
 
 **Visual variety, September 12 owner direction:** A shared brand does not mean an identical layout. Give each editorial idea an appropriate composition, and let carousel panels progress through distinct visual structures. Use a restrained mix of imagery, useful diagrams, typography, light and dark Sunrise surfaces. Keep the exact mark, palette and type family coherent. Conceptual illustrations must not impersonate product footage or evidence.
 
@@ -129,7 +129,8 @@ labels, and controls. Newsreader replaced Instrument Serif on 4 September 2026
 because that face had become the default serif of current web design; do not
 reintroduce it. Newsreader carries an optical-size axis, so it sharpens on its
 own at Patron sizes; leave optical sizing automatic and set the price numeral
-with lining figures. Newsreader is also the website's heading face: every
+with lining figures. Until October 15, 2026 Newsreader was also the website's
+heading face (Blubird replaced it; the rest of this paragraph is the record): every
 page headline, section heading, feature card title, FAQ question, release
 name, and the footer tagline are set in it at regular weight, and the press
 announcement quote takes its italic. The generated share cards and press card

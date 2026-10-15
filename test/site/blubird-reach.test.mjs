@@ -1,13 +1,10 @@
-// BLANC_SITE_URL=http://127.0.0.1:4322 node --test test/site/newsreader-reach.test.mjs
+// BLANC_SITE_URL=http://127.0.0.1:4322 node --test test/site/blubird-reach.test.mjs
 //
-// Level B of the Newsreader reach decision (4 Sep 2026): every heading in
-// Newsreader regular, the demo's single-sentence figure title and everything
-// else in Inter. Since 8 Oct 2026 that Newsreader is the website's condensed
-// build (site/scripts/build-condensed-newsreader.py). The press quote, the one
-// italic line, left with the Press page on 8 Oct 2026. Since the cinematic
-// redesign (15 Oct 2026) the homepage, header and footer use Blubird instead
-// (site/src/styles/blubird.css), falling back to Inter where the licensed
-// files are absent, as in CI.
+// Since October 15, 2026 every page is set in Blubird (site/src/styles/blubird.css):
+// headings in Blubird Display at regular weight and 0 tracking, text in Blubird
+// Text. Both fall back to Inter where the licensed files are absent, as in CI,
+// so these checks match the stack, not the face that rendered. It replaced the
+// Newsreader reach decision of 4 Sep 2026; product replicas keep Inter.
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { chromium, webkit } from 'playwright';
@@ -31,10 +28,10 @@ async function openPage(path = '/', width = 1440) {
   return { page, context };
 }
 
-const serif = /^"?Newsreader Condensed"?/;
-const sans = /^"?Inter/;
+const display = /^"?Blubird Display"?, "?Inter/;
+const text = /^"?Blubird Text"?, "?Inter/;
 
-test('the homepage, header and footer are Blubird over Inter, and other pages keep loading Newsreader', async () => {
+test('the homepage, header and footer are Blubird over Inter, and other pages share its stacks', async () => {
   const { page, context } = await openPage('/');
   try {
     const type = await page.evaluate(() => {
@@ -47,8 +44,6 @@ test('the homepage, header and footer are Blubird over Inter, and other pages ke
         tagline: font('#site-footer .website-footer-identity p').fontFamily,
       };
     });
-    const display = /^"?Blubird Display"?, "?Inter/;
-    const text = /^"?Blubird Text"?, "?Inter/;
     assert.match(type.h1, display, 'homepage h1');
     assert.equal(type.h1Weight, '400');
     // Blubird is drawn with its own spacing: headlines are set at 0.
@@ -62,27 +57,26 @@ test('the homepage, header and footer are Blubird over Inter, and other pages ke
     assert.match(type.nav, text, 'header links');
     assert.match(type.tagline, text, 'footer tagline');
     await page.goto(`${baseURL}/features`);
-    await page.evaluate(() => document.fonts.ready);
     const other = await page.evaluate(() => ({
       token: getComputedStyle(document.documentElement).getPropertyValue('--site-font-display').trim(),
-      loaded: document.fonts.check('64px "Newsreader Condensed"'),
+      body: getComputedStyle(document.body).fontFamily,
     }));
-    assert.match(other.token, /Newsreader Condensed/);
-    assert.equal(other.loaded, true);
+    assert.match(other.token, /Blubird Display/);
+    assert.match(other.body, text);
   } finally { await context.close(); }
 });
 
-// Since the website revamp (#491) legal pages set their headline in Newsreader
-// too, while their section headings stay Inter like the legal text.
+// Legal pages set their headline in Blubird Display; their section headings
+// read as part of the legal text, in Blubird Text.
 const legalRoutes = ['/privacy', '/terms'];
-const serifRoutes = ['/features', '/features/island', '/features/security', '/mail', '/features/ad-blocking', '/download', '/changelog', '/about', '/faq', '/media', '/ambassadors', '/privacy', '/terms'];
+const routes = ['/features', '/features/island', '/features/security', '/mail', '/features/ad-blocking', '/download', '/changelog', '/about', '/faq', '/media', '/ambassadors', '/roadmap', '/support', '/privacy', '/terms'];
 
-test('every page headline and section heading is Newsreader regular with tight tracking, and nothing overflows', { timeout: 120000 }, async () => {
+test('every page headline and section heading is Blubird Display at 0 tracking, text is Blubird Text, and nothing overflows', { timeout: 180000 }, async () => {
   const { page, context } = await openPage('/');
   try {
     for (const width of [390, 768, 1440]) {
       await page.setViewportSize({ width, height: 900 });
-      for (const route of serifRoutes) {
+      for (const route of routes) {
         const response = await page.goto(`${baseURL}${route}`);
         assert.equal(response.status(), 200, route);
         await page.evaluate(() => document.fonts.ready);
@@ -90,36 +84,23 @@ test('every page headline and section heading is Newsreader regular with tight t
           const h1 = document.querySelector('main h1, .hero h1, h1');
           const s = getComputedStyle(h1);
           const h2 = document.querySelector('main h2');
-            const h2Style = h2 ? getComputedStyle(h2) : null;
+          const h2Style = h2 ? getComputedStyle(h2) : null;
           return {
-            font: s.fontFamily, weight: s.fontWeight, tracking: parseFloat(s.letterSpacing),
-            size: parseFloat(s.fontSize),
+            font: s.fontFamily, weight: s.fontWeight, tracking: parseFloat(s.letterSpacing) || 0,
             h2Font: h2Style ? h2Style.fontFamily : null, h2Weight: h2Style ? h2Style.fontWeight : null,
+            body: getComputedStyle(document.body).fontFamily,
             overflow: document.documentElement.scrollWidth > innerWidth,
-            // Loosest Newsreader text on the page, as CSS letter-spacing in em.
-            loosest: [...document.querySelectorAll('body *')]
-              .filter(el => el.getBoundingClientRect().width > 1 && el.textContent.trim() && // skips screen-reader-only text
-                 /^"?Newsreader Condensed/.test(getComputedStyle(el).fontFamily)
-                && !/^"?Newsreader Condensed/.test(getComputedStyle(el.parentElement).fontFamily))
-              .map(el => { const cs = getComputedStyle(el); return { em: (parseFloat(cs.letterSpacing) || 0) / parseFloat(cs.fontSize), text: el.textContent.trim().slice(0, 40) }; })
-              .sort((a, b) => b.em - a.em)[0] || null,
           };
         });
         assert.equal(type.overflow, false, `${width}px ${route} overflows`);
-        assert.match(type.font, serif, `${width}px ${route} h1 is Newsreader`);
+        assert.match(type.font, display, `${width}px ${route} h1 is Blubird Display`);
         assert.equal(type.weight, '400', `${route} h1 weight`);
-        // Display tracking is negative and tight. Newsreader Condensed builds in
-        // 0.02em of tracking, so -0.035em in CSS (an effective -0.015em) is the
-        // loosest any Newsreader text may be set; big titles go to -0.045em.
-        const em = type.tracking / type.size;
-        assert.ok(em <= -0.0345 && em >= -0.05, `${route} h1 tracking is tight, got ${em.toFixed(3)}em`);
-        if (type.loosest) {
-          assert.ok(type.loosest.em <= -0.0345, `${width}px ${route} "${type.loosest.text}" is set looser than -0.035em (${type.loosest.em.toFixed(3)}em)`);
-        }
+        assert.equal(type.tracking, 0, `${route} h1 tracking`);
+        assert.match(type.body, text, `${route} text is Blubird Text`);
         if (type.h2Font && legalRoutes.includes(route)) {
-          assert.match(type.h2Font, sans, `${route} legal section headings stay Inter`);
+          assert.match(type.h2Font, text, `${route} legal section headings are Blubird Text`);
         } else if (type.h2Font) {
-          assert.match(type.h2Font, serif, `${route} section headings are Newsreader`);
+          assert.match(type.h2Font, display, `${route} section headings are Blubird Display`);
           assert.equal(type.h2Weight, '400', `${route} section heading weight`);
         }
       }
@@ -127,12 +108,12 @@ test('every page headline and section heading is Newsreader regular with tight t
   } finally { await context.close(); }
 });
 
-test('no page declares the Newsreader italic since the press quote was retired', async () => {
-  for (const route of ['/media', '/']) {
+test('no page declares Newsreader any more', async () => {
+  for (const route of ['/', '/features', '/media', '/mail']) {
     const { page, context } = await openPage(route);
     try {
-      const italicDeclared = await page.evaluate(() => [...document.fonts].some(f => f.family === 'Newsreader Condensed' && f.style === 'italic'));
-      assert.equal(italicDeclared, false, `${route} does not declare the italic file`);
+      const declared = await page.evaluate(() => [...document.fonts].some(f => /Newsreader/.test(f.family)));
+      assert.equal(declared, false, `${route} declares no Newsreader face`);
     } finally { await context.close(); }
   }
 });

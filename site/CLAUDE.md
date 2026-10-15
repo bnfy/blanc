@@ -22,21 +22,20 @@ row; without scripting they wrap onto a second row). It never hides on scroll:
 the homepage's sticky scenes sit just below it. Site-wide styles are `src/styles/site.css`
 plus `revamp.css`, both imported by `BaseLayout.astro`; pages add their own
 (`home.css`, `features-bento.css`, `mail.css` …)
-(bundled + hashed; fonts self-hosted via fontsource — the UI family is `"Inter
-Variable"`, the heading family is `"Newsreader Condensed"` — Newsreader
-condensed to 92%, with 0.02em tracking built in so CSS letter-spacing values
-keep their designed look (so CSS `-0.035em` is an effective `-0.015em`, the
-loosest any Newsreader text may be set; `test/site/newsreader-reach.test.mjs`
-enforces it), by `scripts/build-condensed-newsreader.py` into `src/fonts/`
-(rerun it after a fontsource bump with the hash-locked tools in
-`scripts/build-condensed-newsreader.requirements.txt`; the site workflow fails
-if the committed fonts are stale; Newsreader has no width axis, and a CSS
-`scaleX` would break wrapping and alignment) — loaded in
-`BaseLayout.astro`; its italic is built but imported by no page since the
-press quote left with the Press page (8 Oct 2026); the
-display-headings rule at the end of `site.css` is what makes every heading
-serif, and the demo's single-sentence figure title deliberately stays Inter;
-these files are NOT under the root `tokens/` substrate guard).
+(bundled + hashed). **Every page is set in Blubird** since October 15, 2026
+(owner direction: the fonts roll out across the whole site, not only the
+redesigned homepage): headings in Blubird Display at regular weight and 0
+tracking (`--site-font-display` and `--site-font-patron`), text in Blubird
+Text (the `html, body` stack and the site's own labels and controls); see
+*Blubird and the lockup* below. Product replicas (the Island figures, demo
+UI) keep Inter, the app's face, self-hosted via fontsource with a
+metric-matched `Inter Fallback`, which is also what Blubird falls back to.
+The display-headings rule at the end of `site.css` is what makes every
+heading display; `test/site/blubird-reach.test.mjs` and
+`test/unit/site-font-fallback.test.js` enforce the faces and the 0 tracking.
+Newsreader is no longer loaded by any page; its condensed build
+(`scripts/build-condensed-newsreader.py`, `src/fonts/`) is unused and can be
+removed. These files are NOT under the root `tokens/` substrate guard.
 `src/scripts/site.js` (release-link resolution + consent-gated GA, all pages
 except legal) is Astro-processed. Anything needing a **stable URL** — favicons,
 `og-image.png`, `logo.png`, `feature-*.png` (OG images), `robots.txt`,
