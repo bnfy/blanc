@@ -17,6 +17,10 @@ const {
 const MAX_BROWSER_BOOKMARK_BYTES = 20 * 1024 * 1024;
 const MAX_BROWSER_BOOKMARK_NODES = 100_000;
 const CHROMIUM_EPOCH_OFFSET_MS = 11_644_473_600_000;
+// Recent Chrome keeps the bookmarks of a profile signed in to a Google
+// Account in AccountBookmarks, beside the local Bookmarks file or instead of
+// it. Both use the same JSON format, and a profile may have either or both.
+const BOOKMARK_FILE_NAMES = Object.freeze(['Bookmarks', 'AccountBookmarks']);
 
 
 function isBrowserAccessError(err) {
@@ -182,6 +186,27 @@ async function readJsonIfSmall(filePath, fsPromises, maxBytes = 2 * 1024 * 1024)
   }
 }
 
+// Concatenates each root's children across a profile's bookmark files, so
+// both parsers see one tree. The first file's root names win. Only the roots
+// the parsers read are copied, never arbitrary keys from the file.
+function mergeChromiumBookmarkFiles(files) {
+  if (files.length === 1) return files[0];
+  const roots = {};
+  for (const data of files) {
+    if (!data || typeof data !== 'object' || !data.roots || typeof data.roots !== 'object') {
+      throw new Error('invalid-bookmarks');
+    }
+    for (const key of ['bookmark_bar', 'other', 'synced']) {
+      const root = data.roots[key];
+      if (!root || typeof root !== 'object' || !Array.isArray(root.children)) continue;
+      roots[key] = roots[key]
+        ? { ...roots[key], children: roots[key].children.concat(root.children) }
+        : root;
+    }
+  }
+  return { roots };
+}
+
 function safeProfileName(infoCache, directory) {
   const candidate = infoCache?.[directory]?.name;
   if (typeof candidate === 'string' && candidate.trim()) return candidate.trim().slice(0, 120);
@@ -249,18 +274,26 @@ function createBrowserDataImportService({
       for (const entry of directories) {
         if (!entry.isDirectory() || !/^(Default|Profile .+)$/.test(entry.name)) continue;
         const profilePath = path.join(root, entry.name);
-        const bookmarksPath = path.join(root, entry.name, 'Bookmarks');
+        const bookmarkPaths = [];
         if (requireBookmarks) {
-          try {
-            const stat = await fsPromises.stat(bookmarksPath);
-            if (!stat.isFile()) continue;
-          } catch (err) {
-            if (isBrowserAccessError(err) && !blockedBrowserIds.has(browser.id)) {
+          let blocked = false;
+          for (const name of BOOKMARK_FILE_NAMES) {
+            const filePath = path.join(profilePath, name);
+            try {
+              const stat = await fsPromises.stat(filePath);
+              if (stat.isFile()) bookmarkPaths.push(filePath);
+            } catch (err) {
+              if (isBrowserAccessError(err)) blocked = true;
+            }
+          }
+          if (blocked) {
+            if (!blockedBrowserIds.has(browser.id)) {
               blockedBrowserIds.add(browser.id);
               unavailable.push({ browserId: browser.id, browser: browser.name });
             }
             continue;
           }
+          if (!bookmarkPaths.length) continue;
         }
         sources.push({
           id: sourceId(browser.id, entry.name),
@@ -269,7 +302,7 @@ function createBrowserDataImportService({
           profileDirectory: entry.name,
           profile: safeProfileName(infoCache, entry.name),
           profilePath,
-          bookmarksPath,
+          bookmarkPaths,
           sessionsPath: path.join(profilePath, 'Sessions'),
         });
       }
@@ -351,24 +384,46 @@ function createBrowserDataImportService({
     return { ...newest, recoverable: false };
   }
 
+  // Reads every bookmark file the source was discovered with and returns
+  // them merged into one Chromium bookmarks object.
+  async function readBookmarkData(source) {
+    const files = [];
+    for (const filePath of source.bookmarkPaths) {
+      let handle;
+      try {
+        // Keep validation and reading on one opened descriptor. A profile file
+        // replaced between path-based stat() and readFile() must never bypass
+        // the size/type check applied to the bytes we actually parse.
+        handle = await fsPromises.open(filePath, 'r');
+        const stat = await handle.stat();
+        if (!stat.isFile()) return { error: 'source-unavailable' };
+        if (stat.size > MAX_BROWSER_BOOKMARK_BYTES) return { error: 'too-large' };
+        files.push(JSON.parse(await handle.readFile('utf8')));
+      } catch (err) {
+        // Chrome can drop AccountBookmarks on sign-out after discovery.
+        if (err?.code === 'ENOENT') continue;
+        return { error: 'unreadable' };
+      } finally {
+        await handle?.close().catch(() => {});
+      }
+    }
+    if (!files.length) return { error: 'source-unavailable' };
+    try {
+      return { data: mergeChromiumBookmarkFiles(files) };
+    } catch {
+      return { error: 'unreadable' };
+    }
+  }
+
   async function readTree(id) {
     const source = (await discover()).sources.find((candidate) => candidate.id === id);
     if (!source) return { error: 'source-unavailable' };
-    let handle;
+    const read = await readBookmarkData(source);
+    if (read.error) return read;
     try {
-      // Keep validation and reading on one opened descriptor. A profile file
-      // replaced between path-based stat() and readFile() must never bypass
-      // the size/type check applied to the bytes we actually parse.
-      handle = await fsPromises.open(source.bookmarksPath, 'r');
-      const stat = await handle.stat();
-      if (!stat.isFile()) return { error: 'source-unavailable' };
-      if (stat.size > MAX_BROWSER_BOOKMARK_BYTES) return { error: 'too-large' };
-      const raw = await handle.readFile('utf8');
-      return { source, tree: buildChromiumTree(raw) };
+      return { source, tree: buildChromiumTree(read.data) };
     } catch {
       return { error: 'unreadable' };
-    } finally {
-      await handle?.close().catch(() => {});
     }
   }
 
@@ -421,21 +476,16 @@ function createBrowserDataImportService({
     async readSource(id) {
       const source = (await discover()).sources.find((candidate) => candidate.id === id);
       if (!source) return { error: 'source-unavailable' };
-      let file;
+      const read = await readBookmarkData(source);
+      if (read.error) return read;
+      let entries;
       try {
-        file = await fsPromises.open(source.bookmarksPath, 'r');
-        const stat = await file.stat();
-        if (!stat.isFile()) return { error: 'source-unavailable' };
-        if (stat.size > MAX_BROWSER_BOOKMARK_BYTES) return { error: 'too-large' };
-        const raw = await file.readFile('utf8');
-        const entries = parseChromiumBookmarks(raw, { t });
-        if (!entries.length) return { error: 'empty' };
-        return { source: publicSource(source), entries };
+        entries = parseChromiumBookmarks(read.data, { t });
       } catch {
         return { error: 'unreadable' };
-      } finally {
-        if (file) await file.close().catch(() => {});
       }
+      if (!entries.length) return { error: 'empty' };
+      return { source: publicSource(source), entries };
     },
 
     async readFolderTree(id) {

@@ -610,7 +610,10 @@ From the desktop `DEFAULTS`:
 - Desktop directly supports Google Chrome, Microsoft Edge, Brave, Chromium, and
   Vivaldi profiles. Discovery and file reads stay in the main process. Internal
   pages receive only an opaque source id plus browser/profile labels — never a
-  filesystem path or raw profile data.
+  filesystem path or raw profile data. A profile's Favorites are read from its
+  local `Bookmarks` file and from `AccountBookmarks`, where recent Chrome keeps
+  bookmarks saved to a signed-in Google Account; a profile with either file is
+  offered, and one with both imports them together.
 - Import is explicit, add-only, and idempotent. Only `http:`/`https:` Favorites
   are accepted; immediate folder names and valid creation dates are preserved.
   Existing URLs win, duplicates in the source are skipped, and passwords,
