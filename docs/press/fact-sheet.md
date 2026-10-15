@@ -65,7 +65,7 @@ assistant or a general extension runtime.
 ## Measured memory
 
 Measured 15 October 2026 on one Apple Silicon Mac with Blanc 1.34.0: six
-ad-dense news sites open in each browser, fresh profile, no extensions, three runs each, median reported.
+ad-dense sites (five news sites and Speedtest) open in each browser, fresh profile, no extensions, three runs each, median reported.
 The figure is `phys_footprint` summed across every process the browser starts —
 not resident set size, which double-counts the engine framework mapped into each
 renderer and inflates whichever browser isolates more per site.

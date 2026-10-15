@@ -50,7 +50,7 @@
         "bench/memory/browsers.json",
         "bench/memory/workloads.json"
       ],
-      "qualification": "Public desktop v1.34.0, measured October 15, 2026 by the owner with the harness above on one Apple Silicon Mac (macOS 27.2, 8 GiB RAM): six ad-heavy news sites, fresh profiles, no extensions, three repetitions, median of phys_footprint summed across each browser’s process tree. The committed run is bench/memory/results/memory-2026-10-15T06-03-46-052Z.{json,md}; test/unit/public-truth.test.js recomputes the published medians from it. Brave, which also blocks by default, used 1.5 GiB against Blanc’s 1.7 GiB; Blanc with its blocker off used 5.4 GiB against Chrome’s 5.7 GiB, with overlapping ranges."
+      "qualification": "Public desktop v1.34.0, measured October 15, 2026 by the owner with the harness above on one Apple Silicon Mac (macOS 27.2, 8 GiB RAM): six ad-heavy sites (five news sites and Speedtest), fresh profiles, no extensions, three repetitions, median of phys_footprint summed across each browser’s process tree. The committed run is bench/memory/results/memory-2026-10-15T06-03-46-052Z.{json,md}; test/unit/public-truth.test.js recomputes the published medians from it. Brave, which also blocks by default, used 1.5 GiB against Blanc’s 1.7 GiB; Blanc with its blocker off used 5.4 GiB against Chrome’s 5.7 GiB, with overlapping ranges."
     }
   },
   "claims": [
