@@ -16,8 +16,8 @@ function cssRules(css) {
 }
 const rulesFor = (css, selector) => cssRules(css).filter((rule) => rule.selector === selector);
 const INTER_STACK = '"Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif';
-// Counts that must line up (Blubird has no tabular figures) and key caps
-// (Blubird lacks ⌘ ⌥ ⇧ ⌃ and arrows) keep Inter in the Island and overlay.
+// Key caps (Instrument Sans lacks ⌘ ⌥ ⇧ ⌃ and arrows) and counters tuned on
+// Inter's tabular figures keep Inter in the Island and overlay.
 const CHROME_KEEP_INTER = [
   '.vertical-tabs-group-count', '.vertical-tabs-new kbd', '.pill-overflow', '#pillShieldCount',
   '.island-ghead .ghead-kbd', '.row-kbd', '.footer-kbd', '#findCount', '#shieldPopCount',
@@ -62,7 +62,7 @@ test('counts and key caps in the chrome keep Inter and its spacing', () => {
     && /word-spacing: normal;/.test(rule.body) && rule.selector.includes('.row-kbd'));
   assert.ok(reset, 'one rule returns the Inter keep-list to normal spacing');
   for (const selector of CHROME_KEEP_INTER) {
-    for (const part of selector.split(', ')) assert.ok(reset.selector.split(', ').includes(part), `${part} opts out of the Blubird spacing`);
+    for (const part of selector.split(', ')) assert.ok(reset.selector.split(', ').includes(part), `${part} opts out of the UI-text spacing`);
   }
 });
 

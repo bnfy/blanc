@@ -80,7 +80,7 @@ test('checklist is a footer pill beside Customize whose popover opens upward, an
   assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{[\s\S]{0,320}?animation: none;/);
 });
 
-test('moving-in checklist uses Blubird Text without handwritten styling', () => {
+test('moving-in checklist uses the page face without handwritten styling', () => {
   const css = read('src/renderer/pages/pages.css');
 
   assert.match(css, /\.migration-checklist-heading h2 \{[\s\S]{0,180}?font-family: var\(--font-text\)/);

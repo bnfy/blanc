@@ -8,17 +8,6 @@
   font-weight: 100 900;
   font-display: swap;
 }
-/* Blubird (Rajesh Rajput), used only for the Billboard clock, is commercially
-   licensed and never committed: the file is installed flat beside this
-   stylesheet by `npm run fonts:install` and pinned in
-   fonts/blubird/pinned.json. Without it the clock falls back to Inter. */
-@font-face {
-  font-family: "Blubird Display";
-  src: url("Blubird-MediumDisplay.woff2") format("woff2");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
 /* UI text: Instrument Sans (SIL OFL 1.1, instrument-sans-OFL.txt), the
    fontsource 5.3.0 Latin variable file with weight and width axes. */
 @font-face {
@@ -70,7 +59,6 @@
 
   --font-ui: "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
   --font-text: "Instrument Sans", "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
-  --font-display: "Blubird Display", "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
   /* UI text runs slightly narrow (width 98) with a touch of tracking. Inter
      rules (figures, keys) and Mahjong opt out. */
   --text-word-spacing: normal;
@@ -2966,8 +2954,8 @@ body:not([data-layout="ledger"]) .ledger-footer {
    the horizon so the background remains legible rather than decorative noise. */
 .bb-clock-row { margin-top: 0; }
 .bb-clock {
-  font-family: var(--font-display);
-  letter-spacing: 0.03em;
+  font-family: var(--font-text);
+  letter-spacing: 0;
   font-size: clamp(80px, 12vw, 148px);
   font-weight: 500;
   font-variant-numeric: proportional-nums;

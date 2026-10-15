@@ -1,9 +1,0 @@
-{
-  "family": "Blubird",
-  "author": "Rajesh Rajput",
-  "note": "Commercially licensed; never commit the font files. Digests only. See docs/superpowers/specs/2026-10-15-blubird-app-typography-design.md.",
-  "sourceFolder": "Blubird/Web-PS",
-  "files": [
-    { "name": "Blubird-MediumDisplay.woff2", "env": "BLUBIRD_MEDIUM_DISPLAY_WOFF2", "bytes": 21708, "sha256": "74b7d9fdd041f38afde02240ac88f2d63be6a37887d5abb3fbe275c4926aa153" }
-  ]
-}

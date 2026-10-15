@@ -1,5 +1,7 @@
 # Blubird in the Desktop App Implementation Plan
 
+> **Superseded (October 15, 2026).** Executed, then reversed: the app now uses Instrument Sans (OFL) for all UI text and ships no Blubird. See the decision notes in the spec. Kept as a record.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** The Start Page, onboarding and internal utility pages use Blubird (Display for 32px+ headlines, Text for smaller headings and copy). The font files never enter git, and no public release can ship without them.

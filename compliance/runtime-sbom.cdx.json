@@ -44,40 +44,6 @@
     },
     {
       "type": "file",
-      "bom-ref": "asset:blubird-font",
-      "name": "Blubird webfonts",
-      "scope": "required",
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "822d30cf392d57c2d8d9c44d0f1f912b15e2706c27b2555576c26d57ec3c7768"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "name": "LicenseRef-Blubird-Commercial"
-          }
-        }
-      ],
-      "properties": [
-        {
-          "name": "blanc:attribution",
-          "value": "Rajesh Rajput"
-        },
-        {
-          "name": "blanc:file",
-          "value": "fonts/blubird/pinned.json"
-        },
-        {
-          "name": "blanc:licenseFile",
-          "value": "compliance/evidence/blubird-NOTICE.txt"
-        }
-      ],
-      "version": "1.000"
-    },
-    {
-      "type": "file",
       "bom-ref": "asset:caveat-font",
       "name": "Caveat Latin webfont",
       "scope": "required",
@@ -1936,7 +1902,6 @@
       "ref": "application:runtime:blanc@1.34.0",
       "dependsOn": [
         "asset:blanc-adblock-seed",
-        "asset:blubird-font",
         "asset:caveat-font",
         "asset:instrument-sans-font",
         "asset:inter-font",
@@ -1955,10 +1920,6 @@
         "asset:ghostery-resources",
         "pkg:npm/%40ghostery/adblocker-electron@2.18.2"
       ]
-    },
-    {
-      "ref": "asset:blubird-font",
-      "dependsOn": []
     },
     {
       "ref": "asset:caveat-font",

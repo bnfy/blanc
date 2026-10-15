@@ -117,7 +117,6 @@ object BlancTokens {
     const val spaceSlate: String = "#576471"
     const val spaceGraphite: String = "#3a3a3a"
     const val fontUi: String = "\"Inter\", -apple-system, \"Segoe UI Variable\", \"Segoe UI\", system-ui, sans-serif"
-    const val fontDisplay: String = "\"Blubird Display\", \"Inter\", -apple-system, \"Segoe UI Variable\", \"Segoe UI\", system-ui, sans-serif"
     const val fontText: String = "\"Instrument Sans\", \"Inter\", -apple-system, \"Segoe UI Variable\", \"Segoe UI\", system-ui, sans-serif"
     const val textWordSpacing: String = "normal"
     const val textTracking: String = "0.01em"

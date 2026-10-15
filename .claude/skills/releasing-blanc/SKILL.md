@@ -145,7 +145,7 @@ before another release.
   same `dist/`. If it passes and shows no bug, rerun the same command with
   `BLANC_RELEASE_RESUME_FROM=<step>` and
   `BLANC_RELEASE_RESUME_REASON='<failure and passing rerun>'`. Steps are
-  `fuses`, `blocker-payloads`, `fonts`, `compliance`, `first-run`, `regressions`,
+  `fuses`, `blocker-payloads`, `compliance`, `first-run`, `regressions`,
   `workspaces`, `favicons-primary`, `favicons-additional` and `migration`.
   This reuses the stamped build instead of rebuilding and re-notarizing.
   Press-gate and build failures can't be resumed this way.

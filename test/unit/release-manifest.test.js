@@ -369,7 +369,7 @@ test('release resume reuses only a stamped, unchanged build and never skips pref
   // Only the packaged checks between the build and the tag push are resumable,
   // each behind should_run, and nothing from the tag push onward is gated.
   const steps = releaseScript.match(/^RESUME_STEPS=\(([^)]*)\)/m)[1].split(/\s+/);
-  assert.deepEqual(steps, ['fuses', 'blocker-payloads', 'fonts', 'compliance', 'first-run', 'regressions', 'workspaces', 'favicons-primary', 'favicons-additional', 'migration']);
+  assert.deepEqual(steps, ['fuses', 'blocker-payloads', 'compliance', 'first-run', 'regressions', 'workspaces', 'favicons-primary', 'favicons-additional', 'migration']);
   let previous = fullBranch;
   for (const step of steps) {
     const gate = at(`if should_run ${step}; then`);

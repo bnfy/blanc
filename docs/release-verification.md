@@ -70,7 +70,7 @@ BLANC_RELEASE_RESUME_REASON='<the failure and its passing rerun>' \
 <the same release command>
 ```
 
-`<step>` is one of `fuses`, `blocker-payloads`, `fonts`, `compliance`, `first-run`,
+`<step>` is one of `fuses`, `blocker-payloads`, `compliance`, `first-run`,
 `regressions`, `workspaces`, `favicons-primary`, `favicons-additional` or
 `migration`. Every preflight still runs. The press gate, signing preflight and
 build are skipped, as are the packaged checks before `<step>`. The script

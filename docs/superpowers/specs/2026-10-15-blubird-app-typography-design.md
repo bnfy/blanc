@@ -1,7 +1,10 @@
 # Blubird in the desktop app
 
 **Date:** October 15, 2026
-**Status:** Draft for owner review. Nothing here is built.
+**Status:** Superseded on October 15, 2026: the app ships no Blubird. UI text
+(including the Billboard clock) is Instrument Sans, SIL OFL 1.1, committed.
+Blubird remains a website and wordmark face only. The decision notes below
+record how the design got there.
 **Aligns with:** PR #836 (cinematic homepage redesign, draft), which puts
 Blubird on blanc.day and builds on #828.
 
@@ -126,6 +129,12 @@ tracking and normal word spacing. Blubird remains only for the Billboard clock
 (Medium Display), so the app embeds one licensed file; the variable file and
 its six secrets are gone. Instrument Sans has tabular figures, but counts and
 key caps keep Inter for now.
+
+**Owner decision, October 15 (final):** Blubird leaves the app entirely. The
+Billboard clock moves to Instrument Sans, so the app embeds no licensed font:
+the install tool, pinned manifest, release-gate stage, Actions secrets,
+1Password step and commercial notice are removed. The license with Rajesh
+Rajput now concerns only the website and the wordmark.
 
 ## Approaches considered
 

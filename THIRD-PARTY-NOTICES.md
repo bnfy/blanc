@@ -63,17 +63,6 @@ All four font files remain under the SIL Open Font License, Version 1.1; Blanc's
 MIT grant does not supersede those terms. The font files and their full licence texts
 ship together inside packaged builds.
 
-## Blubird fonts — commercial license
-
-Official builds embed `Blubird-MediumDisplay.woff2`, used for the Billboard
-clock — Copyright (c) 2026
-Rajesh Rajput, all rights reserved — under a commercial license granted to
-Bananify Creative. Blubird is not covered by Blanc's MIT grant or any open-source
-license, and the file is not in this repository; its SHA-256 digest is
-pinned in [fonts/blubird/pinned.json](fonts/blubird/pinned.json). Builds made
-from this repository fall back to Inter. Notice text:
-[compliance/evidence/blubird-NOTICE.txt](compliance/evidence/blubird-NOTICE.txt).
-
 ## Newsreader website source — SIL OFL 1.1
 
 The website uses Newsreader (variable, optical-size axis, regular weight) for

@@ -135,26 +135,24 @@ Then('the Billboard backfills with {string}', async function (key) {
   assert.ok(dom.sites.every((site) => !dom.hidden.includes(site.key)));
 });
 
-Then('the start page uses Blubird for the Billboard clock and invitation headings', async function () {
+Then('the start page uses Instrument Sans for the Billboard clock and invitation headings', async function () {
   const usage = await waitForValue(
     () => this.call('readStartPageFontUsage'),
     (value) => value?.page?.samples?.length === 12,
     'the new-tab document to expose its computed fonts',
   );
-  // CI builds have no licensed files, so the stacks are asserted, not the
-  // loaded faces; BLANC_EXPECT_BLUBIRD=1 adds that check where they are installed.
-  if (process.env.BLANC_EXPECT_BLUBIRD === '1') assert.equal(usage.page.blubirdLoaded, true);
+  // Instrument Sans is committed, so it must actually load.
+  assert.equal(usage.page.textFaceLoaded, true);
   assert.deepEqual(usage.page.jetbrains, []);
   assert.deepEqual(usage.page.newsreader, []);
   assert.equal(usage.page.headings.length, 9);
   for (const heading of usage.page.headings) {
-    const expected = /bb-clock/.test(heading.selector) ? /^"?Blubird Display"?,/ : /^"?Instrument Sans"?,/;
+    const expected = /^"?Instrument Sans"?,/;
     assert.match(heading.family, expected, `${heading.selector} resolved to ${heading.family}`);
   }
   const keepInter = new Set(['.shelf-count', '.tally-count', '.tally-caption']);
   for (const sample of usage.page.samples) {
-    const expected = sample.selector === '.bb-clock' ? /^"?Blubird Display"?,/
-      : keepInter.has(sample.selector) ? /^"?Inter"?,/ : /^"?Instrument Sans"?,/;
+    const expected = keepInter.has(sample.selector) ? /^"?Inter"?,/ : /^"?Instrument Sans"?,/;
     assert.match(sample.family, expected, `${sample.selector} resolved to ${sample.family}`);
   }
 });
@@ -228,7 +226,7 @@ Then('the standalone mahjong game is ready', async function () {
     'the standalone Mahjong tab to render its active Daily layout at playable size'
   );
   const game = await this.call('readMahjongDom');
-  assert.deepEqual(game.blubird, [], 'Mahjong keeps Inter and its tile font');
+  assert.deepEqual(game.instrument, [], 'Mahjong keeps Inter and its tile font');
   for (const sample of game.fontSamples) {
     assert.match(sample.family, /Inter/, `${sample.selector} resolved to ${sample.family}`);
   }

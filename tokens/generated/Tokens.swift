@@ -161,7 +161,6 @@ public enum BlancTokens {
     public static let spaceSlate = "#576471"
     public static let spaceGraphite = "#3a3a3a"
     public static let fontUi = "\"Inter\", -apple-system, \"Segoe UI Variable\", \"Segoe UI\", system-ui, sans-serif"
-    public static let fontDisplay = "\"Blubird Display\", \"Inter\", -apple-system, \"Segoe UI Variable\", \"Segoe UI\", system-ui, sans-serif"
     public static let fontText = "\"Instrument Sans\", \"Inter\", -apple-system, \"Segoe UI Variable\", \"Segoe UI\", system-ui, sans-serif"
     public static let textWordSpacing = "normal"
     public static let textTracking = "0.01em"

@@ -28,7 +28,7 @@ test('runtime SBOM covers npm closure, Electron, fonts, and blocker provenance',
   const refs = new Set(sbom.components.map((component) => component['bom-ref']));
 
   assert.equal(generated.runtime.runtimePackages.length, 32);
-  assert.equal(sbom.components.length, 45);
+  assert.equal(sbom.components.length, 44);
   assert.ok(refs.has('asset:instrument-sans-font'));
   assert.ok(refs.has('asset:ublock-origin'));
   assert.ok(refs.has('pkg:npm/electron@44.5.1'));
@@ -37,12 +37,6 @@ test('runtime SBOM covers npm closure, Electron, fonts, and blocker provenance',
   assert.ok(refs.has('asset:inter-font'));
   assert.ok(refs.has('asset:jetbrains-mono-font'));
   assert.ok(refs.has('asset:caveat-font'));
-  const blubird = sbom.components.find((component) => component['bom-ref'] === 'asset:blubird-font');
-  assert.ok(blubird, 'Blubird is listed');
-  assert.deepEqual(blubird.licenses, [{ license: { name: 'LicenseRef-Blubird-Commercial' } }]);
-  assert.equal(blubird.version, '1.000');
-  assert.ok(blubird.properties.some((property) => property.value === 'fonts/blubird/pinned.json'));
-  assert.ok(sbom.dependencies.find((entry) => entry.ref.startsWith('application:runtime:')).dependsOn.includes('asset:blubird-font'));
   assert.ok(refs.has('asset:easylist-data'));
   assert.ok(refs.has('asset:easyprivacy-data'));
   assert.ok(refs.has('asset:ghostery-resources'));
@@ -89,11 +83,8 @@ test('missing license metadata and a disallowed shipped license fail closed', ()
 test('runtime license policy selects EasyList CC BY-SA and contains no strong-copyleft npm package', () => {
   const generated = createComplianceArtifacts();
   const expressions = generated.runtime.sbom.components.flatMap((component) =>
-    ['asset:ublock-origin', 'asset:blubird-font'].includes(component['bom-ref']) ? [] : component.licenses.map((choice) => choice.expression || choice.license.id));
+    component['bom-ref'] === 'asset:ublock-origin' ? [] : component.licenses.map((choice) => choice.expression || choice.license.id));
   assert.equal(generated.policy.runtimeAssetLicenseExceptions['ublock-origin'], 'GPL-3.0-or-later');
-  // Blubird is the one commercially licensed asset, named rather than an SPDX id.
-  assert.equal(generated.policy.runtimeAssetLicenseExceptions['blubird-font'], 'LicenseRef-Blubird-Commercial');
-  assert.equal(generated.policy.runtimeAllowedLicenseExpressions.includes('LicenseRef-Blubird-Commercial'), false);
   assert.equal(generated.policy.runtimeAllowedLicenseExpressions.includes('GPL-3.0-or-later'), false);
   for (const expression of expressions) {
     assert.ok(
@@ -201,12 +192,12 @@ test('after-pack compliance payload contains SBOM, framework notices, and every 
     fs.readFileSync(path.join(resources, 'LICENSE.blanc.txt'), 'utf8'),
     fs.readFileSync(path.join(ROOT, 'LICENSE'), 'utf8')
   );
-  assert.equal(JSON.parse(fs.readFileSync(path.join(resources, 'runtime-sbom.cdx.json'))).components.length, 45);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(resources, 'runtime-sbom.cdx.json'))).components.length, 44);
   assert.equal(fs.readFileSync(path.join(resources, 'LICENSE.electron.txt'), 'utf8'), 'Electron MIT fixture\n');
   assert.equal(fs.readFileSync(path.join(resources, 'LICENSES.chromium.html'), 'utf8'), '<html>Chromium fixture</html>\n');
 
   const licenses = fs.readdirSync(path.join(resources, 'ThirdPartyLicenses'));
-  assert.equal(licenses.length, 41, '32 runtime npm records plus four OFL fonts, the Blubird notice, uBlock GPL/LGPL, Lucide and Dark Reader');
+  assert.equal(licenses.length, 40, '32 runtime npm records plus four OFL fonts, uBlock GPL/LGPL, Lucide and Dark Reader');
   assert.equal(fs.readFileSync(path.join(resources, 'ThirdPartyLicenses/LGPL-3.0.txt'), 'utf8'), fs.readFileSync(path.join(ROOT, 'ublock/licenses/LGPL-3.0.txt'), 'utf8'));
   assert.ok(licenses.includes('1password__sdk--0.5.0.txt'));
   assert.ok(licenses.includes('1password__sdk-core--0.5.0.txt'));
@@ -251,11 +242,3 @@ test('ordinary packaging records only distributed components when uBO is exclude
   assert.doesNotThrow(() => verifyPackagedCompliance(resources));
 });
 
-test('Blubird is notice-listed as a commercial license outside MIT', () => {
-  const generated = createComplianceArtifacts();
-  const notice = generated.files['compliance/THIRD_PARTY_NOTICES.txt'];
-  assert.match(notice, /Blubird webfonts 1\.000 — LicenseRef-Blubird-Commercial/);
-  assert.match(notice, /Full text: ThirdPartyLicenses\/blubird-NOTICE\.txt/);
-  const markdown = fs.readFileSync(path.join(ROOT, 'THIRD-PARTY-NOTICES.md'), 'utf8');
-  assert.match(markdown, /## Blubird fonts — commercial license/);
-});

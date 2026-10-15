@@ -1111,7 +1111,6 @@ function install(refs) {
       const page = await tab.view.webContents.executeJavaScript(`(async () => {
         await Promise.all([
           document.fonts.load('22px "Instrument Sans"'),
-          document.fonts.load('32px "Blubird Display"'),
         ]).catch(() => []);
         const selectors = [
           '.start-brand-date', '.ledger-label', '.bb-clock',
@@ -1132,7 +1131,7 @@ function install(refs) {
             selector: element.className || 'onboarding h1',
             family: getComputedStyle(element).fontFamily,
           })),
-          blubirdLoaded: document.fonts.check('22px "Instrument Sans"') && document.fonts.check('500 32px "Blubird Display"'),
+          textFaceLoaded: document.fonts.check('22px "Instrument Sans"'),
           newsreader: everything
             .filter((element) => getComputedStyle(element).fontFamily.includes('Newsreader'))
             .slice(0, 20).map(label),
@@ -1318,8 +1317,8 @@ function install(refs) {
               selector,
               family: getComputedStyle(document.querySelector(selector)).fontFamily,
             })),
-            blubird: [...document.querySelectorAll('body, body *')]
-              .filter((element) => getComputedStyle(element).fontFamily.includes('Blubird'))
+            instrument: [...document.querySelectorAll('body, body *')]
+              .filter((element) => getComputedStyle(element).fontFamily.includes('Instrument Sans'))
               .slice(0, 20)
               .map((element) => element.id || element.className || element.tagName),
             tileFaceFamily: getComputedStyle(document.querySelector('.mj-face text')).fontFamily,

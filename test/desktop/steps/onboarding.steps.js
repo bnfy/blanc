@@ -18,7 +18,7 @@ Then('the onboarding walkthrough is shown', async function () {
   );
 });
 
-Then('every onboarding title fits in Blubird in light and dark themes', async function () {
+Then('every onboarding title fits in Instrument Sans in light and dark themes', async function () {
   const originalBounds = await this.call('windowContentBounds');
   const sizes = [
     { width: 1280, height: 800, label: 'default' },
@@ -38,7 +38,7 @@ Then('every onboarding title fits in Blubird in light and dark themes', async fu
       for (const theme of ['light', 'dark']) {
         const result = audit?.[theme];
         assert.equal(result?.theme, theme);
-        if (process.env.BLANC_EXPECT_BLUBIRD === '1') assert.equal(result.fontLoaded, true);
+        assert.equal(result.fontLoaded, true);
         assert.equal(result.dialogOverflow, false);
         assert.equal(result.pageOverflow, false);
         assert.equal(result.steps.length, 6);

@@ -12,8 +12,7 @@
   ],
   "metadataOverrides": {},
   "runtimeAssetLicenseExceptions": {
-    "ublock-origin": "GPL-3.0-or-later",
-    "blubird-font": "LicenseRef-Blubird-Commercial"
+    "ublock-origin": "GPL-3.0-or-later"
   },
   "licenseFileFallbacks": {
     "@1password/sdk@0.5.0": {
@@ -83,16 +82,6 @@
       "license": "OFL-1.1",
       "licenseFile": "src/renderer/pages/instrument-sans-OFL.txt",
       "homepage": "https://github.com/Instrument/instrument-sans"
-    },
-    {
-      "id": "blubird-font",
-      "name": "Blubird webfonts",
-      "version": "1.000",
-      "type": "file",
-      "file": "fonts/blubird/pinned.json",
-      "license": "LicenseRef-Blubird-Commercial",
-      "licenseFile": "compliance/evidence/blubird-NOTICE.txt",
-      "attribution": "Rajesh Rajput"
     },
     {
       "id": "easylist-data",
