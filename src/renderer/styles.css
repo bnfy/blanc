@@ -20,10 +20,10 @@
   --text-dim: #6b6b6b;
   --accent: #111111;
   --accent-dim: rgba(17, 17, 17, 0.08);
-  --sunrise-bg: #f7f0e5;
-  --sunrise-surface: #efe6d8;
-  --sunrise-surface-raised: #fffcf7;
-  --sunrise-border: #ddd2c2;
+  --sunrise-bg: #f8f2e8;
+  --sunrise-surface: #f2eade;
+  --sunrise-surface-raised: #ffffff;
+  --sunrise-border: #e1d7c9;
   --sunrise-text: #12100b;
   --sunrise-text-dim: #6b6257;
   --sunrise-accent: #805d28;

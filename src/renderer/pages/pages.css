@@ -60,10 +60,10 @@
   --on-danger: #ffffff;
   /* Patron's own gold. Blanc's warm surfaces use the --sunrise-* palette. */
   --patron-gold: #d4ad66;
-  --sunrise-bg: #f7f0e5;
-  --sunrise-surface: #efe6d8;
-  --sunrise-surface-raised: #fffcf7;
-  --sunrise-border: #ddd2c2;
+  --sunrise-bg: #f8f2e8;
+  --sunrise-surface: #f2eade;
+  --sunrise-surface-raised: #ffffff;
+  --sunrise-border: #e1d7c9;
   --sunrise-text: #12100b;
   --sunrise-text-dim: #6b6257;
   --sunrise-accent: #805d28;
@@ -2870,16 +2870,16 @@ body:not([data-layout="ledger"]) .ledger-footer {
    The four information layouts share one calm landscape, one compact brand
    header, and one footer rail. Content and behavior stay layout-specific. */
 .ledger-body {
-  --bg: #f7f0e5;
-  --surface: rgba(239, 230, 216, 0.78);
-  --surface-raised: rgba(255, 252, 247, 0.88);
-  --onboarding-surface: #fffcf7;
-  --border: #ddd2c2;
+  --bg: #f8f2e8;
+  --surface: rgba(242, 234, 222, 0.78);
+  --surface-raised: rgba(255, 255, 255, 0.88);
+  --onboarding-surface: #ffffff;
+  --border: #e1d7c9;
   --text: #12100b;
   --text-dim: #6b6257;
   --accent: #805d28;
   --accent-dim: rgba(128, 93, 40, 0.16);
-  --start-footer: rgba(247, 240, 229, 0.82);
+  --start-footer: rgba(248, 242, 232, 0.82);
   isolation: isolate;
   position: relative;
   min-height: 100vh;

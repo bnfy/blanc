@@ -76,28 +76,28 @@ public enum BlancTokens {
     }
     public static func sunriseBg(_ theme: BlancTheme) -> String {
         switch theme {
-        case .light: return "#f7f0e5"
+        case .light: return "#f8f2e8"
         case .dark: return "#17130f"
         case .privateBrowsing: return "#100d0b"
         }
     }
     public static func sunriseSurface(_ theme: BlancTheme) -> String {
         switch theme {
-        case .light: return "#efe6d8"
+        case .light: return "#f2eade"
         case .dark: return "#2d251d"
         case .privateBrowsing: return "#251d17"
         }
     }
     public static func sunriseSurfaceRaised(_ theme: BlancTheme) -> String {
         switch theme {
-        case .light: return "#fffcf7"
+        case .light: return "#ffffff"
         case .dark: return "#221d17"
         case .privateBrowsing: return "#1a1511"
         }
     }
     public static func sunriseBorder(_ theme: BlancTheme) -> String {
         switch theme {
-        case .light: return "#ddd2c2"
+        case .light: return "#e1d7c9"
         case .dark: return "#4a3e31"
         case .privateBrowsing: return "#594a39"
         }
