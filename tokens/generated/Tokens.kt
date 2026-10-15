@@ -121,6 +121,7 @@ object BlancTokens {
     const val fontText: String = "\"Blubird Text\", \"Inter\", -apple-system, \"Segoe UI Variable\", \"Segoe UI\", system-ui, sans-serif"
     const val textWordSpacing: String = "0.07em"
     const val textTracking: String = "0.01em"
+    const val textOpticalSize: String = "28"
     const val typeBodySize: String = "13px"
     const val typePageTitleSize: String = "24px"
     const val typePageTitleWeight: String = "650"

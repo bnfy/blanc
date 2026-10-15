@@ -95,6 +95,14 @@ owner chose Medium Display at 0 letter-spacing. That adds a fifth file,
 `Blubird-MediumDisplay.woff2`, to the pinned set, the secrets and the licence
 request.
 
+**Owner decision, October 15 (page copy width):** the Text cut read wider
+than wanted. Page copy now uses the supplied variable file `Blubird-VF.ttf`
+at optical size 28 (about 2% narrower than Inter instead of 2% wider). The
+three static Text files are dropped; the pinned set is the Regular and Medium
+Display webfonts plus the variable file. The website (#836) still uses the
+static Text files, so its copy is slightly wider than the app's until it
+adopts the same setting.
+
 ## Approaches considered
 
 **A. The website's four static files (recommended).** Same files, family names

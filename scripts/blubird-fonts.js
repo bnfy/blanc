@@ -2,7 +2,7 @@
 
 // Blubird (Rajesh Rajput) is commercially licensed for Blanc's official builds
 // and must never be committed: this repository is public. This tool installs
-// the five licensed WOFF2 files, flat and git-ignored, into
+// the licensed files (two Display webfonts and the variable font), flat and git-ignored, into
 // src/renderer/pages/ (pages.js serves no subfolders) and verifies them, in a
 // checkout or inside a packaged app.asar, against fonts/blubird/pinned.json.
 // Without them every Blubird stack falls back to Inter; public releases run
@@ -37,9 +37,17 @@ function verifyBytes(entry, bytes) {
   }
 }
 
+// Where an entry sits inside the zip: its own path, or the shared web folder.
+function sourcePath(entry, pinned) {
+  return entry.source || `${pinned.sourceFolder}/${entry.name}`;
+}
+
 function readSource(source, entry, pinned) {
-  if (fs.statSync(source).isDirectory()) return fs.readFileSync(path.join(source, entry.name));
-  return execFileSync('unzip', ['-p', source, `${pinned.sourceFolder}/${entry.name}`], { maxBuffer: 8 * 1024 * 1024 });
+  if (fs.statSync(source).isDirectory()) {
+    const flat = path.join(source, entry.name);
+    return fs.readFileSync(fs.existsSync(flat) ? flat : path.join(source, sourcePath(entry, pinned)));
+  }
+  return execFileSync('unzip', ['-p', source, sourcePath(entry, pinned)], { maxBuffer: 8 * 1024 * 1024 });
 }
 
 function installFromSource(source, { pinned = readPinned(), targetDir = PAGES_DIR } = {}) {
@@ -57,7 +65,13 @@ function installFromEnv(env, { pinned = readPinned(), targetDir = PAGES_DIR } = 
   const installed = [];
   const missing = [];
   for (const entry of pinned.files) {
-    const encoded = String(env[entry.env] || '').replace(/\s+/g, '');
+    // GitHub caps one Actions secret at 48 KB, so a larger file arrives as
+    // numbered parts (NAME_1 … NAME_n) that join back into one base64 string.
+    const names = entry.parts > 1
+      ? Array.from({ length: entry.parts }, (_, index) => `${entry.env}_${index + 1}`)
+      : [entry.env];
+    const chunks = names.map((name) => String(env[name] || '').replace(/\s+/g, ''));
+    const encoded = chunks.every(Boolean) ? chunks.join('') : '';
     if (!encoded) {
       missing.push(entry.name);
       continue;
@@ -149,5 +163,5 @@ function main(argv, options = {}) {
 if (require.main === module) process.exitCode = main(process.argv.slice(2));
 
 module.exports = {
-  readPinned, sha256, verifyBytes, installFromSource, installFromEnv, checkDirectory, asarInnerPath, checkAsar, main,
+  readPinned, sha256, verifyBytes, sourcePath, installFromSource, installFromEnv, checkDirectory, asarInnerPath, checkAsar, main,
 };

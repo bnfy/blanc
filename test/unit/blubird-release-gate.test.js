@@ -29,7 +29,10 @@ test('the Windows/Linux workflow installs Blubird before each build and verifies
   const linuxBuild = workflow.indexOf('run: npx electron-builder --linux');
   assert.ok(installs[0].index < winBuild && installs[1].index > winBuild && installs[1].index < linuxBuild);
   for (const entry of pinned.files) {
-    assert.equal(workflow.split(`${entry.env}: \${{ secrets.${entry.env} }}`).length - 1, 2, `${entry.env} reaches both jobs`);
+    const names = entry.parts > 1 ? Array.from({ length: entry.parts }, (_, i) => `${entry.env}_${i + 1}`) : [entry.env];
+    for (const name of names) {
+      assert.equal(workflow.split(`${name}: \${{ secrets.${name} }}`).length - 1, 2, `${name} reaches both jobs`);
+    }
   }
   for (const dir of ['win-unpacked', 'linux-unpacked']) {
     assert.match(workflow, new RegExp(`if: \\$\\{\\{ inputs\\.mode == 'release' \\}\\}\\s+run: node scripts/blubird-fonts\\.js check --require --asar dist/${dir}/resources/app\\.asar`));

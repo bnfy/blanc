@@ -9,9 +9,10 @@
   font-display: swap;
 }
 /* Blubird (Rajesh Rajput) is commercially licensed and never committed. The
-   five files are installed flat beside this stylesheet by
+   three files are installed flat beside this stylesheet by
    `npm run fonts:install` and pinned in fonts/blubird/pinned.json. Without
-   them every Blubird stack falls back to Inter. Same faces as the website. */
+   them every Blubird stack falls back to Inter. The Display faces match the
+   website. */
 @font-face {
   font-family: "Blubird Display";
   src: url("Blubird-RegularDisplay.woff2") format("woff2");
@@ -26,24 +27,13 @@
   font-style: normal;
   font-display: swap;
 }
+/* Page copy uses the supplied variable file (weight 100–900, optical size
+   12–72) at optical size 28, set on html/body below: narrower and crisper than
+   the static Text cut. */
 @font-face {
   font-family: "Blubird Text";
-  src: url("Blubird-RegularText.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Blubird Text";
-  src: url("Blubird-MediumText.woff2") format("woff2");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Blubird Text";
-  src: url("Blubird-SemiBoldText.woff2") format("woff2");
-  font-weight: 600 700;
+  src: url("Blubird-VF.ttf") format("truetype");
+  font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
@@ -93,6 +83,7 @@
      opens up a little. Inter rules (figures, keys) and Mahjong opt out. */
   --text-word-spacing: 0.07em;
   --text-tracking: 0.01em;
+  --text-optical-size: 28;
   --type-body-size: 13px;
   --type-page-title-size: 24px;
   --type-page-title-weight: 650;
@@ -164,6 +155,11 @@
 }
 
 * { box-sizing: border-box; }
+/* Page copy reads Blubird's variable file at one optical size. Form controls do
+   not inherit font-variation-settings and every `font:` shorthand resets it, so
+   it is pinned here. Inter and the static Display files have no opsz axis, so
+   this changes nothing else. */
+*, *::before, *::after { font-variation-settings: "opsz" var(--text-optical-size) !important; }
 /* A plain class selector with display:flex/grid outranks the UA [hidden]
    rule, so any hidden flex/grid child would otherwise still render as a
    box (found via #defaultBrowserState and .toolbar-row both needing this).

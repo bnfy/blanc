@@ -1,8 +1,8 @@
 Blubird typeface
 Copyright (c) 2026 Rajesh Rajput. All rights reserved.
 
-Official Blanc builds embed five Blubird webfont files (Regular and Medium
-Display; Regular, Medium and SemiBold Text) under a commercial licence granted to
+Official Blanc builds embed three Blubird font files (the Regular and
+Medium Display webfonts and the variable font Blubird-VF.ttf) under a commercial licence granted to
 Bananify Creative by Rajesh Rajput. Blubird is not covered by Blanc's MIT
 licence or by any open-source licence. The font files are not part of Blanc's
 public source code, and they may not be extracted from Blanc, modified, or

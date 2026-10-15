@@ -46,19 +46,27 @@ test('Blubird sets headings and page copy; Inter keeps figures, keys, the chrome
   const mahjong = read('src/renderer/pages/mahjong.css');
   const pinned = JSON.parse(read('fonts/blubird/pinned.json'));
 
-  for (const [family, file, weight] of [
-    ['Blubird Display', 'Blubird-RegularDisplay.woff2', '400'],
-    ['Blubird Display', 'Blubird-MediumDisplay.woff2', '500'],
-    ['Blubird Text', 'Blubird-RegularText.woff2', '400'],
-    ['Blubird Text', 'Blubird-MediumText.woff2', '500'],
-    ['Blubird Text', 'Blubird-SemiBoldText.woff2', '600 700'],
+  for (const [family, file, format, weight] of [
+    ['Blubird Display', 'Blubird-RegularDisplay.woff2', 'woff2', '400'],
+    ['Blubird Display', 'Blubird-MediumDisplay.woff2', 'woff2', '500'],
+    ['Blubird Text', 'Blubird-VF.ttf', 'truetype', '100 900'],
   ]) {
     assert.ok(pinned.files.some((entry) => entry.name === file), `${file} is pinned`);
     assert.ok(cssRules(pages).some((rule) => rule.selector === '@font-face'
       && rule.body.includes(`font-family: "${family}";`)
-      && rule.body.includes(`src: url("${file}") format("woff2");`)
+      && rule.body.includes(`src: url("${file}") format("${format}");`)
       && rule.body.includes(`font-weight: ${weight};`)), `${family} ${weight} from ${file}`);
   }
+  // Page copy uses the variable file at optical size 28: narrower than the
+  // Text cut (owner choice, October 15). Inter and the static Display files
+  // have no opsz axis, so the inherited setting does nothing to them.
+  assert.ok(pages.includes('--text-optical-size: 28;'));
+  // Form controls do not inherit it and every `font:` shorthand resets it, so
+  // one universal rule pins it (Inter and the Display files have no opsz axis).
+  const opsz = rulesFor(pages, '*, *::before, *::after').find((rule) => rule.body.includes('font-variation-settings'));
+  assert.ok(opsz, 'a universal rule carries the optical size');
+  assert.match(opsz.body, /font-variation-settings: "opsz" var\(--text-optical-size\) !important;/);
+  assert.doesNotMatch(pages, /Blubird-(Regular|Medium|SemiBold)Text\.woff2/);
   assert.ok(pages.includes(`--font-text: "Blubird Text", ${INTER_STACK};`));
   assert.ok(pages.includes(`--font-display: "Blubird Display", ${INTER_STACK};`));
   assert.ok(pages.includes(`--font-ui: ${INTER_STACK};`));
