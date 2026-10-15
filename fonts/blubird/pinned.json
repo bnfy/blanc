@@ -1,0 +1,12 @@
+{
+  "family": "Blubird",
+  "author": "Rajesh Rajput",
+  "note": "Commercially licensed; never commit the font files. Digests only. See docs/superpowers/specs/2026-10-15-blubird-app-typography-design.md.",
+  "sourceFolder": "Blubird/Web-PS",
+  "files": [
+    { "name": "Blubird-RegularDisplay.woff2", "env": "BLUBIRD_REGULAR_DISPLAY_WOFF2", "bytes": 20976, "sha256": "4f78df47701588c3a30dba18df7beb297410e330f33a3ba42668eb25620c5571" },
+    { "name": "Blubird-RegularText.woff2", "env": "BLUBIRD_REGULAR_TEXT_WOFF2", "bytes": 20988, "sha256": "5a1e5e1f5b26455f3cb71972cdfddbfd649201252c86991fbe7fd27329cad4b9" },
+    { "name": "Blubird-MediumText.woff2", "env": "BLUBIRD_MEDIUM_TEXT_WOFF2", "bytes": 21456, "sha256": "0d738eb8374fdc67f8fcd9e05d681ddb7f5ee89d08e61eb85e291dd7d3437966" },
+    { "name": "Blubird-SemiBoldText.woff2", "env": "BLUBIRD_SEMIBOLD_TEXT_WOFF2", "bytes": 21572, "sha256": "20abf16c70f54283bea269f7c966f189446d5a648c65a1d7d906b961ad982ea8" }
+  ]
+}

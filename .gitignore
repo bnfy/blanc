@@ -26,3 +26,6 @@ bench/tab-import/results/
 site/.parity/
 site/.parity-shots/
 .fontenv/
+
+# Blubird is commercially licensed; never commit its files (see fonts/blubird/pinned.json).
+/src/renderer/pages/Blubird-*.woff2
