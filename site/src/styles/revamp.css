@@ -131,8 +131,8 @@
   --site-surface: #f2eade;
   --site-surface-raised: #fff;
   --site-border: #e1d7c9;
-  --site-text-dim: #696865;
-  --site-gold: #7d653d;
+  --site-text-dim: #6b6257;
+  --site-gold: #805d28;
   --line: var(--site-border);
   --dim: var(--site-text-dim);
   --ink: var(--site-text);
@@ -361,9 +361,9 @@ summary:focus-visible {
   --surface: #f2eade;
   --raised: #fff;
   --line: #e1d7c9;
-  --dim: #696865;
+  --dim: #6b6257;
   --ink: #0e0e0e;
-  --gold: #7d653d;
+  --gold: #805d28;
   --gold-dark: #c8ac78;
   --warm-ink: #151411;
 }

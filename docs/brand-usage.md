@@ -23,7 +23,7 @@ limits beside the claims they qualify and keep deeper information easy to find.
 
 **Owner correction, September 12, 2026:** “We are only using Sunrise mark and theme now.” This applies to all new Blanc marketing, social creative, review previews, thumbnails and end cards. The old B letterform is retired; do not use `assets/blanc-mark.svg` or rebuild it into new creative. Its presence in the repository is not permission to use it.
 
-For full-color social artwork, use the original gold Sunrise asset at `site/public/sunrise-hero-mark.png`, preserving its geometry, transparency and gold detail. Use the Sunrise theme: ivory `#F7F0E5`, warm surfaces `#EFE6D8`, near-black headings, muted brown-gray `#6B6257`, and restrained gold `#805D28`. The approved September 11 general Sunrise creative in `marketing/social/sunrise-milestone-2026-09-11/general-review-v2-1080x1350.png` is a visual reference for the treatment, not content to recycle.
+For full-color social artwork, use the original gold Sunrise asset at `site/public/sunrise-hero-mark.png`, preserving its geometry, transparency and gold detail. Use the Sunrise theme: Blanc White `#F8F2E8`, warm surfaces `#F2EADE`, near-black headings, muted brown-gray `#6B6257`, and restrained gold `#805D28`. The approved September 11 general Sunrise creative in `marketing/social/sunrise-milestone-2026-09-11/general-review-v2-1080x1350.png` is a visual reference for the treatment, not content to recycle.
 
 Use Newsreader regular for sentence-case headings and Inter for supporting text. Choose title alignment to suit the composition; not every social asset should use the same centered poster layout. Keep generous clear space around the Sunrise symbol. Do not redraw it, replace it with a letterform, tint the original artwork, add a badge or place a glow immediately behind it. A subtle gold horizon may appear away from the symbol. Existing monochrome Sunrise site variants remain valid for the specifically documented placements below.
 
@@ -67,26 +67,37 @@ detail, not a mark for new Blanc creative.
 
 ### Sunrise palette for website and marketing
 
-The website carries the Sunrise icon's warmth through ivory backgrounds,
+The website carries the Sunrise icon's warmth through Blanc White backgrounds,
 warm surfaces, and muted gold details. Keep the existing typography,
-near-black headings, dark primary buttons, and an ivory desktop masthead.
+near-black headings, dark primary buttons, and a white desktop masthead.
 These website and marketing tokens are separate from the released product palette:
 
-- page background, sampled from the Sunrise source art: `#F7F0E5` (`--site-bg`);
-- section surfaces and footer: `#EFE6D8` (`--site-surface`);
-- raised surfaces and forms: `#FFFCF7` (`--site-surface-raised`);
-- decorative borders and dividers: `#DDD2C2` (`--site-border`);
+- page background, **Blanc White**: `#F8F2E8` (`--site-bg`);
+- section surfaces: `#F2EADE` (`--site-surface`);
+- raised surfaces and forms, the masthead and the footer: white `#FFFFFF`
+  (`--site-surface-raised`);
+- decorative borders and dividers: `#E1D7C9` (`--site-border`);
 - muted text: `#6B6257` (`--site-text-dim`);
 - gold on light backgrounds: `#805D28` (`--site-gold`);
 - gold on dark backgrounds: `#D4AD66` (`--site-gold-on-dark`);
 - pale selected-state background: `#F6EBD5` (`--site-selection`);
 - warm ink for the Patron offer only: `#12100B` (`--site-ink-warm`).
 
+**Blanc White** is the brand name for `#F8F2E8` (owner decision, October 15,
+2026). Call it Blanc White, not ivory or cream, in briefs, creative and press
+material. On the same day the owner set the palette above: the page, surface,
+raised and border colours are the ones blanc.day was already serving, and the
+muted text and gold keep this guide's warmer `#6B6257` and `#805D28`, not the
+cooler `#696865` and `#7D653D` the site had been rendering. Blanc White is a shade
+lighter than `#F7F0E5`, the original sample from the Sunrise art, which the
+product's Sunrise surfaces (`--sunrise-bg`), the share cards, the press card
+and the media kit's icon tiles still use.
+
 Use gold for eyebrows, section kickers, text-link arrows and interaction
 states, FAQ disclosure markers, navigation states, and the changelog's small
 new-feature dot. The pale background belongs only to selected mobile menu
 items. Keep underlines, focus outlines, and other state indicators alongside
-color. Gold and muted text meet 4.5:1 contrast on the specified ivory, section,
+color. Gold and muted text meet 4.5:1 contrast on the specified Blanc White, section,
 raised, and pale selection surfaces. Use the dark-background gold token on
 dark sections and navigation; it meets 4.5:1 on both the shared ink and the
 warm ink. The warm ink belongs to the Patron offer alone: the shared
@@ -136,7 +147,7 @@ replace the canonical Sunrise symbol with a letterform.
 The homepage offer pairs the monochrome Sunrise symbol with this display name
 on a warm ink (`--site-ink-warm`) section. The display name and the main price
 numeral are set in gold (`--site-gold-on-dark`); supporting copy, currency,
-billing labels, and the symbol stay ivory (`--site-bg`), and the filled gold
+billing labels, and the symbol stay Blanc White (`--site-bg`), and the filled gold
 button keeps its ink text. One radial gold light spill, anchored to the
 section's top edge at no more than about a quarter strength, is the section's
 only gradient; the symbol sits below its brightest point and is never backed
@@ -173,8 +184,8 @@ require fresh review if changed.
 
 The four Start Page layouts — Ledger, Billboard, Shelf, and Tally — share the
 Sunrise identity without becoming the same composition. Use the canonical gold
-Sunrise symbol above a single date line, the warm ivory/gold palette documented
-above, and the real layered mountain sunrise in
+Sunrise symbol above a single date line, the warm Blanc White and gold
+palette documented above, and the real layered mountain sunrise in
 `src/renderer/pages/start-page-sunrise.png`. Keep the landscape quiet in the
 upper half so operating UI stays legible. Dark and private tabs may deepen the
 same image into warm dusk with overlays; private mode must retain its explicit
@@ -287,7 +298,7 @@ on the glow; the footer's Sunrise symbol sits below the line.
 ### Homepage Sunrise mark
 
 The owner-approved desktop hero mark permanently displays the original gold
-Sunrise artwork used by the app icon, directly on the ivory page. Use the
+Sunrise artwork used by the app icon, directly on the Blanc White page. Use the
 generated `site/public/sunrise-hero-mark.png`, which shares the monochrome
 mark's crop and geometry; do not approximate the artwork with a tint. Keep
 its 32px size and existing placement above the eyebrow. There is no entrance
@@ -300,7 +311,7 @@ mark remains hidden on mobile.
 
 ### Desktop masthead Sunrise hover
 
-The desktop masthead is a sticky ivory bar (`--site-surface-raised` over a
+The desktop masthead is a sticky white bar (`--site-surface-raised` over a
 blur, hairline beneath) that carries the monochrome Sunrise mark at 24px in
 ink at rest. On hover or keyboard focus, crossfade to the original gold
 artwork from `site/public/sunrise-hero-mark.png` over 220ms; crossfade back
@@ -332,7 +343,7 @@ pages keep their own minimal header. Menu content lives in
 ### Mobile header Sunrise mark
 
 The mobile hamburger header uses the original gold Sunrise artwork at its
-28px size on ivory. Reuse `site/public/sunrise-hero-mark.png`; keep
+28px size on Blanc White. Reuse `site/public/sunrise-hero-mark.png`; keep
 the mark permanently in color without animation, including for reduced-motion
 visitors. Its home link retains the existing 44px touch target and focus style.
 
@@ -355,7 +366,7 @@ Three compositions keep the set varied: the homepage centres its copy over the
 dawn Start Page, whose sun sits on the card's gold horizon line; window cards
 put the copy left and the capture right; Island cards stand a resting pill on
 the horizon below the copy, or put an open panel beside it. Most cards use the
-ivory surface. Quiet Tabs, Security and Sync use the dark Sunrise surface, which
+Blanc White surface. Quiet Tabs, Security and Sync use the dark Sunrise surface, which
 suits a white Island and avoids glaring white windows.
 
 ## Titles and subtitles
@@ -384,8 +395,8 @@ state labels, and interface annotations. It is not a headline treatment.
 Before approving or publishing an asset:
 
 1. Inspect every frame, thumbnail, crop, and end card—not only the source file.
-2. Confirm the symbol is Sunrise, never the retired B. For new social creative, use the original gold Sunrise artwork on the warm ivory theme; preserve its geometry and clear space.
+2. Confirm the symbol is Sunrise, never the retired B. For new social creative, use the original gold Sunrise artwork on the Blanc White theme; preserve its geometry and clear space.
 3. Confirm crop-safe previews do not clip or crowd the mark.
-4. Confirm new marketing uses the Sunrise ivory, warm ink, muted brown-gray and restrained gold palette.
+4. Confirm new marketing uses the Blanc White, warm ink, muted brown-gray and restrained gold palette.
 5. Confirm titles are sentence case and subtitles follow the website hierarchy.
 6. Apply the separate product-claim gate in `docs/marketing-claims.md`.

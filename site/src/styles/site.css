@@ -38,7 +38,8 @@
   --island-strip-height: 68px;
   --pill-zoom: 1.15;
 
-  /* Website presentation only. Ivory is sampled from the Sunrise source art. */
+  /* Website presentation only. --site-bg is Blanc White, the brand cream. revamp.css
+     repeats the page, surface, raised, border, muted and gold values; keep them equal. */
   /* Newsreader, condensed to 92% (site/scripts/build-condensed-newsreader.py).
      Its optical-size axis sharpens automatically at Patron display sizes. An
      installed upstream Newsreader is deliberately skipped: it is wider. */
@@ -46,12 +47,12 @@
   /* The one Newsreader line per page (page headlines, the media page quote) shares
      the Patron stack. Everything scanned rather than read stays in Inter. */
   --site-font-display: var(--site-font-patron);
-  --site-bg: #F7F0E5;
-  --site-bg-rgb: 247, 240, 229;
-  --site-surface: #EFE6D8;
-  --site-surface-raised: #FFFCF7;
+  --site-bg: #F8F2E8;
+  --site-bg-rgb: 248, 242, 232;
+  --site-surface: #F2EADE;
+  --site-surface-raised: #FFFFFF;
   --site-surface-raised-rgb: 255, 252, 247;
-  --site-border: #DDD2C2;
+  --site-border: #E1D7C9;
   --site-text: #0e0e0e;
   --site-text-dim: #6B6257;
   --site-accent: #111111;
