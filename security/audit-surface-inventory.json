@@ -24,6 +24,12 @@
   ],
   "boundaries": [
     {
+      "file": "cloudflare/inbox-alerts-worker/src/index.js",
+      "sha256": "a4fb9f37080581a85cf8360dc3393423df3b1440df6a565f10b5e5ba66046422",
+      "literalChannels": [],
+      "role": "privileged implementation or service"
+    },
+    {
       "file": "cloudflare/newsletter-worker/src/index.js",
       "sha256": "0a6c39dc08e2b92f71ac403149057c9f54647f0d926f72252cc2fb02c2be09b2",
       "literalChannels": [],

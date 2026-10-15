@@ -1,0 +1,16 @@
+name = "blanc-inbox-alerts"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+# Resend calls the workers.dev address; there is no custom route.
+workers_dev = true
+
+# RESEND_WEBHOOK_SECRET, RESEND_API_KEY and ALERT_TO are secrets; see README.md
+# for the 1Password-backed setup. Without any of them the Worker answers 503.
+[vars]
+ALERT_FROM = "Blanc Inbox Alerts <alerts@blanc.day>"
+# Resend inbox id → the label used in the alert's subject. Events from any
+# other inbox on the Resend account are ignored.
+INBOXES = { "0edd9b69-e594-4bd4-a648-307e9902c5b9" = "support@blanc.day", "67eea1d9-eb3b-4582-a52c-39c36565f388" = "support@blancbrowser.com" }
+
+[observability]
+enabled = true

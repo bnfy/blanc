@@ -1,0 +1,5 @@
+{
+  "name": "blanc-inbox-alerts-worker",
+  "private": true,
+  "type": "module"
+}
