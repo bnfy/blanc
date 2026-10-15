@@ -19,7 +19,7 @@ largest is GPU compositing, not JavaScript.
 | Start Page wallpaper: decoded image plus its GPU texture | 1.21.0 | 17 MiB | Product decision |
 | Larger chrome, overlay and Start Page documents (CSS, scripts, fonts, strings) | gradual | ≈ 10 MiB | Not worth chasing one by one |
 | Main-process startup garbage measured before the first full GC | gradual | Linux 15 MiB; not seen on macOS | Ad-block part fixed in this PR |
-| Dock icon re-applied as a bitmap at every launch | — | 9–11 MiB at 1×; likely more on Retina | Proposed, not changed |
+| Dock icon re-applied as a bitmap at every launch | — | 9–11 MiB at 1×; likely more on Retina | Fixed in this PR for macOS 26+ |
 
 Not causes: the Electron 43 → 44 upgrade (1.8.2 → 1.9.0 is flat), the ad-block
 engine (blocking off grew just as much, and the engine sits on the same two
@@ -207,7 +207,8 @@ bitmap) disappears along with 4–6 MiB of allocator memory. The owner's Mac
 larger on a Retina Mac. That has not been measured, and neither has how the
 Dock looks without the call: the `nodock` variant of `make-variant.js` shows
 both on a real Mac. Before macOS 26 the bundle may have no other icon for the
-Dock to fall back on, so a fix would skip only the macOS 26+ default case.
+Dock to fall back on, so the fix in this PR skips only the macOS 26+ default
+case; the macOS 15 saving above is not taken.
 
 ## What this PR changes
 
@@ -219,8 +220,16 @@ Dock to fall back on, so a fix would skip only the macOS 26+ default case.
    MiB, idle total at the benchmark's settle point ≈ 196 → 181 MiB; both
    settle at the same 56 MiB after the first full GC. No measurable change on
    macOS.
-2. **Adds `bench/memory/idle-attribution.js`** with unit tests, so the next
-   regression can be attributed to a process in one run.
+2. **Stops re-applying the bundle's own Dock icon at launch on macOS 26+**
+   (`src/main/app-icon.js`). With the default Sunrise colorway the first apply
+   now records the bundle icon as shown instead of rendering it into a bitmap
+   and handing it back. Choosing another colorway, and returning to Sunrise
+   afterwards, still set the Dock icon as before; older macOS, development
+   builds and forced reapplies are unchanged. Expected saving on macOS 26+: the
+   11 MiB measured for the `nodock` variant at 1×, likely more on Retina.
+3. **Adds `bench/memory/idle-attribution.js` and `bench/memory/make-variant.js`**
+   with unit tests, so the next regression can be attributed to a process,
+   and a source change measured against a release, in one run.
 
 The PR first removed the resting Island's backdrop blur as well. The owner
 chose to keep it: it is the website nav's material, and
@@ -235,7 +244,7 @@ measurements above stand as the record of what it costs.
 | Find and remove what keeps the idle Start Page on full-window compositing | ≈ 40 MiB idle | Unknown until isolated; footer blur, drop shadow, wallpaper and proximity are ruled out |
 | Create the display-capture helper on the first `getDisplayMedia` request | 18 MiB, every platform | Medium: the broker captures `helperWc` at install and `display-capture-broker*.js` are hash-pinned in `capture-runtime-lock.json`, so it needs fresh capture evidence on all three platforms |
 | Lighter Start Page wallpaper (smaller asset, or only when the window is large) | up to 17 MiB | Product decision |
-| Skip the startup Dock icon call when the default icon is selected on macOS 26+ | 9–11 MiB at 1×, likely more on Retina | Low in code; the Dock's appearance (Default, Dark, Clear, Tinted) must be checked by eye first |
+| Done here: skip the startup Dock icon call when the default icon is selected on macOS 26+ | 11 MiB at 1×, likely more on Retina | Low in code; the Dock's appearance (Default, Dark, Clear, Tinted) should still be checked by eye on a release candidate |
 | Raise the harness's minimum settle time, or wait for the first full GC | 15–35 MiB of measured transient | Changes methodology; re-run every browser, never just Blanc |
 
 ## Reproducing
@@ -254,7 +263,8 @@ Results land in `bench/memory/results/` (gitignored) as JSON and Markdown.
 
 The variants above come from `bench/memory/make-variant.js` (after
 `npm ci --ignore-scripts`). It copies a packaged app, applies one named change
-inside `app.asar` (`noblur`, `nodock`, `nohelper`, `nowallpaper`), updates the
+inside `app.asar` (`noblur`, `nodock`, `nohelper`, `nowallpaper`, or `checkout`
+for files copied from the current checkout), updates the
 integrity hash and signs ad hoc; `control` gets the same treatment with no
 change. Measure a variant only against `control`, and pass
 `--extra-arg=--use-mock-keychain`, because the re-signed copies would otherwise
