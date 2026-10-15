@@ -2973,7 +2973,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .bb-clock-row { margin-top: 0; }
 .bb-clock {
   font-family: var(--font-display);
-  letter-spacing: 0;
+  letter-spacing: 0.03em;
   font-size: clamp(80px, 12vw, 148px);
   font-weight: 500;
   font-variant-numeric: proportional-nums;

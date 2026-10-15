@@ -87,7 +87,7 @@ test('Blubird sets headings and page copy; Inter keeps figures, keys, the chrome
   const clock = rulesFor(pages, '.bb-clock').find((rule) => rule.body.includes('var(--font-display)'));
   assert.ok(clock, 'the Billboard clock uses the Display cut');
   assert.match(clock.body, /font-weight: 500;/, 'the clock uses Medium Display (owner choice, October 15)');
-  assert.match(clock.body, /letter-spacing: 0;/);
+  assert.match(clock.body, /letter-spacing: 0\.03em;/, 'the clock digits open up slightly (owner choice, October 15)');
   assert.doesNotMatch(clock.body, /font-optical-sizing/);
 
   // Every remaining Inter rule is on the keep-list, and every keep-list rule uses Inter.
