@@ -4,6 +4,7 @@ const test = require('node:test');
 const {
   evaluateAdmission,
   evaluateDocumentVisible,
+  isVisiblePane,
 } = require('../../src/main/display-capture-admission');
 
 const ok = {
@@ -78,4 +79,15 @@ test('documentVisible requires an unminimized visible window and attached view',
     tabAttached: true,
     frameVisible: null,
   }), false);
+});
+
+test('a tab is a visible pane as the main page or the Glance reference, never otherwise', () => {
+  const view = {};
+  const owner = { activeTabId: 'a', glanceTabId: 'b' };
+  assert.equal(isVisiblePane(owner, { id: 'a', view }), true);
+  assert.equal(isVisiblePane(owner, { id: 'b', view }), true);
+  assert.equal(isVisiblePane(owner, { id: 'c', view }), false);
+  assert.equal(isVisiblePane(owner, { id: 'b', view: null }), false, 'a viewless tab is not on screen');
+  assert.equal(isVisiblePane(null, { id: 'a', view }), false);
+  assert.equal(isVisiblePane(owner, null), false);
 });

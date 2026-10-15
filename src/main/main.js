@@ -103,7 +103,7 @@ const {
   CHROME_DISPLAY_CAPTURE_HELPER_URL,
   setupChromeProtocol,
 } = require('./chrome-protocol');
-const { evaluateAdmission, evaluateDocumentVisible } = require('./display-capture-admission');
+const { evaluateAdmission, evaluateDocumentVisible, isVisiblePane } = require('./display-capture-admission');
 const { parseDisplayMediaOptions } = require('./display-capture-constraints');
 const { createBrokerRegistry } = require('./display-capture-state');
 const { projectDisplayShares } = require('./display-capture-indicator');
@@ -9979,7 +9979,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           } catch {
             frameVisible = null;
           }
-          const tabAttached = !!(tab && owner && owner.activeTabId === tab.id && tab.view);
+          const tabAttached = isVisiblePane(owner, tab);
           return {
             documentFocused: win?.isFocused?.() === true && wc?.isFocused?.() === true,
             documentVisible: evaluateDocumentVisible({
