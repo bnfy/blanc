@@ -22,11 +22,11 @@ const FAKE = {
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'blubird-'));
 const quiet = { log() {}, warn() {}, error() {} };
 
-test('the pinned manifest names the Medium Display webfont and the variable font', () => {
+test('the pinned manifest names only the Medium Display webfont (the Billboard clock)', () => {
   const pinned = readPinned();
   assert.equal(pinned.sourceFolder, 'Blubird/Web-PS');
   assert.deepEqual(pinned.files.map((entry) => entry.name), [
-    'Blubird-MediumDisplay.woff2', 'Blubird-VF.ttf',
+    'Blubird-MediumDisplay.woff2',
   ]);
   for (const entry of pinned.files) {
     assert.match(entry.sha256, /^[0-9a-f]{64}$/);
@@ -35,7 +35,6 @@ test('the pinned manifest names the Medium Display webfont and the variable font
     // GitHub caps one Actions secret at 48 KB; larger files are split.
     assert.ok(Math.ceil(entry.bytes / 3) * 4 / (entry.parts || 1) < 48 * 1024, `${entry.name} fits its secrets`);
   }
-  assert.equal(pinned.files.find((entry) => entry.name === 'Blubird-VF.ttf').source, 'Blubird/Variable-TT/Blubird-VF.ttf');
 });
 
 test('verifyBytes rejects a different size or digest', () => {

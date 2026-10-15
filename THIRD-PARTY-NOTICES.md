@@ -43,7 +43,7 @@ update procedure.
 Copyright (c) 2024 1Password. Full licence text in
 [compliance/THIRD_PARTY_NOTICES.txt](compliance/THIRD_PARTY_NOTICES.txt).
 
-## Inter, JetBrains Mono, and Caveat fonts — SIL OFL 1.1
+## Inter, Instrument Sans, JetBrains Mono, and Caveat fonts — SIL OFL 1.1
 
 - `src/renderer/pages/inter-latin.woff2` — Copyright 2020 The Inter Project
   Authors. Full licence text:
@@ -54,18 +54,22 @@ Copyright (c) 2024 1Password. Full licence text in
 - `src/renderer/pages/caveat-latin.woff2` — Copyright 2014 The Caveat Project
   Authors. Full licence text:
   [src/renderer/pages/caveat-OFL.txt](src/renderer/pages/caveat-OFL.txt).
+- `src/renderer/pages/instrument-sans-latin-wdth-normal.woff2` — Copyright 2022
+  The Instrument Sans Project Authors; the unmodified Latin variable file from
+  `@fontsource-variable/instrument-sans` 5.3.0. Full license text:
+  [src/renderer/pages/instrument-sans-OFL.txt](src/renderer/pages/instrument-sans-OFL.txt).
 
-All three font files remain under the SIL Open Font License, Version 1.1; Blanc's
+All four font files remain under the SIL Open Font License, Version 1.1; Blanc's
 MIT grant does not supersede those terms. The font files and their full licence texts
 ship together inside packaged builds.
 
 ## Blubird fonts — commercial license
 
-Official builds embed `Blubird-MediumDisplay.woff2` and the variable font
-`Blubird-VF.ttf` — Copyright (c) 2026
+Official builds embed `Blubird-MediumDisplay.woff2`, used for the Billboard
+clock — Copyright (c) 2026
 Rajesh Rajput, all rights reserved — under a commercial license granted to
 Bananify Creative. Blubird is not covered by Blanc's MIT grant or any open-source
-license, and the files are not in this repository; their SHA-256 digests are
+license, and the file is not in this repository; its SHA-256 digest is
 pinned in [fonts/blubird/pinned.json](fonts/blubird/pinned.json). Builds made
 from this repository fall back to Inter. Notice text:
 [compliance/evidence/blubird-NOTICE.txt](compliance/evidence/blubird-NOTICE.txt).

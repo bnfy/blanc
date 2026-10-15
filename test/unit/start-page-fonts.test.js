@@ -46,30 +46,26 @@ test('Blubird sets headings and page copy; Inter keeps figures, keys and Mahjong
   const mahjong = read('src/renderer/pages/mahjong.css');
   const pinned = JSON.parse(read('fonts/blubird/pinned.json'));
 
-  for (const [family, file, format, weight] of [
-    ['Blubird Display', 'Blubird-MediumDisplay.woff2', 'woff2', '500'],
-    ['Blubird Text', 'Blubird-VF.ttf', 'truetype', '100 900'],
-  ]) {
-    assert.ok(pinned.files.some((entry) => entry.name === file), `${file} is pinned`);
-    assert.ok(cssRules(pages).some((rule) => rule.selector === '@font-face'
-      && rule.body.includes(`font-family: "${family}";`)
-      && rule.body.includes(`src: url("${file}") format("${format}");`)
-      && rule.body.includes(`font-weight: ${weight};`)), `${family} ${weight} from ${file}`);
-  }
-  // Page copy uses the variable file at optical size 28: narrower than the
-  // Text cut (owner choice, October 15). Inter and the static Display files
-  // have no opsz axis, so the inherited setting does nothing to them.
-  assert.ok(pages.includes('--text-optical-size: 28;'));
-  // Form controls do not inherit it and every `font:` shorthand resets it, so
-  // one universal rule pins it (Inter and the Display files have no opsz axis).
-  const opsz = rulesFor(pages, '*, *::before, *::after').find((rule) => rule.body.includes('font-variation-settings'));
-  assert.ok(opsz, 'a universal rule carries the optical size');
-  assert.match(opsz.body, /font-variation-settings: "opsz" var\(--text-optical-size\) !important;/);
-  assert.doesNotMatch(pages, /Blubird-(Regular|Medium|SemiBold)Text\.woff2|Blubird-RegularDisplay/);
-  // "Where to?" reads the variable file at its own size, 32 (owner choice, October 15).
-  assert.match(rulesFor(pages, '.ledger-where').find((rule) => rule.body.includes('--font-text')).body,
-    /font-variation-settings: "opsz" 32 !important;/);
-  assert.ok(pages.includes(`--font-text: "Blubird Text", ${INTER_STACK};`));
+  assert.ok(pinned.files.some((entry) => entry.name === 'Blubird-MediumDisplay.woff2'), 'the clock face is pinned');
+  assert.ok(cssRules(pages).some((rule) => rule.selector === '@font-face'
+    && rule.body.includes('font-family: "Blubird Display";')
+    && rule.body.includes('src: url("Blubird-MediumDisplay.woff2") format("woff2");')
+    && rule.body.includes('font-weight: 500;')), 'Blubird Medium Display for the Billboard clock');
+  // UI text is Instrument Sans (OFL, committed) at width 98 (owner choice, October 15).
+  assert.ok(cssRules(pages).some((rule) => rule.selector === '@font-face'
+    && rule.body.includes('font-family: "Instrument Sans";')
+    && rule.body.includes('src: url("instrument-sans-latin-wdth-normal.woff2") format("woff2");')
+    && rule.body.includes('font-weight: 400 700;')
+    && rule.body.includes('font-stretch: 75% 100%;')), 'Instrument Sans variable face');
+  assert.ok(pages.includes('--text-width: 98;'));
+  // Form controls do not inherit font-variation-settings and every `font:`
+  // shorthand resets it, so one universal rule pins the width (Inter and the
+  // Display file have no wdth axis).
+  const wdth = rulesFor(pages, '*, *::before, *::after').find((rule) => rule.body.includes('font-variation-settings'));
+  assert.ok(wdth, 'a universal rule carries the width');
+  assert.match(wdth.body, /font-variation-settings: "wdth" var\(--text-width\) !important;/);
+  assert.doesNotMatch(pages, /Blubird Text|Blubird-VF|Blubird-(Regular|Medium|SemiBold)Text|Blubird-RegularDisplay|"opsz"/);
+  assert.ok(pages.includes(`--font-text: "Instrument Sans", ${INTER_STACK};`));
   assert.ok(pages.includes(`--font-display: "Blubird Display", ${INTER_STACK};`));
   assert.ok(pages.includes(`--font-ui: ${INTER_STACK};`));
   assert.doesNotMatch(pages, /Newsreader/);
@@ -115,8 +111,8 @@ test('Blubird sets headings and page copy; Inter keeps figures, keys and Mahjong
 
   // Blubird's word space is 25% narrower than Inter's, so page copy opens up
   // (owner choice D, October 15). Inter rules and Mahjong opt back out.
-  assert.ok(pages.includes('--text-word-spacing: 0.07em;'));
-  assert.ok(pages.includes('--text-tracking: 0.025em;'), 'small text opens to +0.025em (owner choice C, October 15)');
+  assert.ok(pages.includes('--text-word-spacing: normal;'));
+  assert.ok(pages.includes('--text-tracking: 0.01em;'), 'Instrument Sans at +0.01em (owner choice, October 15)');
   // Chromium's own stylesheet resets letter- and word-spacing on form controls,
   // so buttons (Island rows, sheet buttons) must inherit them explicitly.
   const controls = rulesFor(pages, 'button, input, select, textarea');
@@ -139,10 +135,20 @@ test('Blubird sets headings and page copy; Inter keeps figures, keys and Mahjong
   assert.match(mahjong, /\.mahjong-body \{[^}]*--text-word-spacing: normal;[^}]*--text-tracking: normal;/,
     'Mahjong keeps Inter spacing');
 
-  // The chrome now sets copy in Blubird Text too (test/unit/chrome-fonts.test.js); it
+  // The chrome sets copy in Instrument Sans too (test/unit/chrome-fonts.test.js); it
   // never uses the Display cut or Newsreader.
   assert.doesNotMatch(chrome, /--font-display|Newsreader/);
   assert.doesNotMatch(mahjong, /Blubird|--font-display/);
   assert.match(mahjong, /\.mahjong-body \{[^}]*--font-text: var\(--font-ui\);/,
     'Mahjong maps shared --font-text rules back to Inter');
+});
+
+test('Instrument Sans ships in the repository with its OFL license', () => {
+  const { execFileSync } = require('node:child_process');
+  const tracked = execFileSync('git', ['ls-files', 'src/renderer/pages'], { cwd: root, encoding: 'utf8' });
+  assert.match(tracked, /^src\/renderer\/pages\/instrument-sans-latin-wdth-normal\.woff2$/m);
+  assert.match(tracked, /^src\/renderer\/pages\/instrument-sans-OFL\.txt$/m);
+  const font = fs.readFileSync(path.join(root, 'src/renderer/pages/instrument-sans-latin-wdth-normal.woff2'));
+  assert.deepEqual([...font.subarray(0, 4)], [119, 79, 70, 50], 'font is WOFF2');
+  assert.match(read('src/renderer/pages/instrument-sans-OFL.txt'), /SIL Open Font License, Version 1\.1/);
 });

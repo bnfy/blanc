@@ -1110,7 +1110,7 @@ function install(refs) {
       if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
       const page = await tab.view.webContents.executeJavaScript(`(async () => {
         await Promise.all([
-          document.fonts.load('22px "Blubird Text"'),
+          document.fonts.load('22px "Instrument Sans"'),
           document.fonts.load('32px "Blubird Display"'),
         ]).catch(() => []);
         const selectors = [
@@ -1132,7 +1132,7 @@ function install(refs) {
             selector: element.className || 'onboarding h1',
             family: getComputedStyle(element).fontFamily,
           })),
-          blubirdLoaded: document.fonts.check('22px "Blubird Text"') && document.fonts.check('32px "Blubird Display"'),
+          blubirdLoaded: document.fonts.check('22px "Instrument Sans"') && document.fonts.check('500 32px "Blubird Display"'),
           newsreader: everything
             .filter((element) => getComputedStyle(element).fontFamily.includes('Newsreader'))
             .slice(0, 20).map(label),
@@ -1868,7 +1868,7 @@ function install(refs) {
           }
           return {
             theme: dark ? 'dark' : 'light',
-            fontLoaded: document.fonts.check('22px "Blubird Text"'),
+            fontLoaded: document.fonts.check('22px "Instrument Sans"'),
             dialogOverflow: dialog.scrollWidth > dialog.clientWidth + 1,
             pageOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
             steps,

@@ -8,11 +8,10 @@
   font-weight: 100 900;
   font-display: swap;
 }
-/* Blubird (Rajesh Rajput) is commercially licensed and never committed. The
-   two files are installed flat beside this stylesheet by
-   `npm run fonts:install` and pinned in fonts/blubird/pinned.json. Without
-   them every Blubird stack falls back to Inter. The Display faces match the
-   website. */
+/* Blubird (Rajesh Rajput), used only for the Billboard clock, is commercially
+   licensed and never committed: the file is installed flat beside this
+   stylesheet by `npm run fonts:install` and pinned in
+   fonts/blubird/pinned.json. Without it the clock falls back to Inter. */
 @font-face {
   font-family: "Blubird Display";
   src: url("Blubird-MediumDisplay.woff2") format("woff2");
@@ -20,13 +19,13 @@
   font-style: normal;
   font-display: swap;
 }
-/* Page copy uses the supplied variable file (weight 100–900, optical size
-   12–72) at optical size 28, set on html/body below: narrower and crisper than
-   the static Text cut. */
+/* UI text: Instrument Sans (SIL OFL 1.1, instrument-sans-OFL.txt), the
+   fontsource 5.3.0 Latin variable file with weight and width axes. */
 @font-face {
-  font-family: "Blubird Text";
-  src: url("Blubird-VF.ttf") format("truetype");
-  font-weight: 100 900;
+  font-family: "Instrument Sans";
+  src: url("instrument-sans-latin-wdth-normal.woff2") format("woff2");
+  font-weight: 400 700;
+  font-stretch: 75% 100%;
   font-style: normal;
   font-display: swap;
 }
@@ -70,13 +69,13 @@
   --sunrise-accent-dim: rgba(128, 93, 40, 0.16);
 
   --font-ui: "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
-  --font-text: "Blubird Text", "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --font-text: "Instrument Sans", "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
   --font-display: "Blubird Display", "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
-  /* Blubird's word space is about 25% narrower than Inter's, so page copy
-     opens up a little. Inter rules (figures, keys) and Mahjong opt out. */
-  --text-word-spacing: 0.07em;
-  --text-tracking: 0.025em;
-  --text-optical-size: 28;
+  /* UI text runs slightly narrow (width 98) with a touch of tracking. Inter
+     rules (figures, keys) and Mahjong opt out. */
+  --text-word-spacing: normal;
+  --text-tracking: 0.01em;
+  --text-width: 98;
   --type-body-size: 13px;
   --type-page-title-size: 24px;
   --type-page-title-weight: 650;
@@ -148,11 +147,11 @@
 }
 
 * { box-sizing: border-box; }
-/* Page copy reads Blubird's variable file at one optical size. Form controls do
-   not inherit font-variation-settings and every `font:` shorthand resets it, so
-   it is pinned here. Inter and the static Display files have no opsz axis, so
-   this changes nothing else. */
-*, *::before, *::after { font-variation-settings: "opsz" var(--text-optical-size) !important; }
+/* Instrument Sans at one width. Form controls do not inherit
+   font-variation-settings and every `font:` shorthand resets it, so it is
+   pinned here. Inter and the Display file have no wdth axis, so this changes
+   nothing else. */
+*, *::before, *::after { font-variation-settings: "wdth" var(--text-width) !important; }
 /* A plain class selector with display:flex/grid outranks the UA [hidden]
    rule, so any hidden flex/grid child would otherwise still render as a
    box (found via #defaultBrowserState and .toolbar-row both needing this).
@@ -3010,7 +3009,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .tally-days { font-family: var(--font-text); }
 .tally-caption { font-family: var(--font-ui); }
 
-/* Migration checklist: a Blubird Text title over the same controls. The
+/* Migration checklist: an Instrument Sans title over the same controls. The
    former handwritten underline is intentionally gone. */
 .migration-checklist-heading { gap: 14px; }
 .migration-checklist-heading h2 {
@@ -3427,8 +3426,7 @@ body[data-layout="tally"] #layoutTally { display: grid; }
   background: color-mix(in srgb, var(--border) 80%, transparent);
 }
 
-/* Type roles (spec table). Neither Inter nor the static Blubird files carry an
-   optical-size axis, so tracking is set per size. */
+/* Type roles (spec table). Tracking is set per size. */
 .ledger-label,
 .shelf-label {
   color: var(--text-dim);
@@ -3632,7 +3630,7 @@ body.layout-ready .start-content > main { transition: opacity 160ms var(--start-
   }
 }
 
-/* Ledger: one Blubird line over a centered two-column spread. With
+/* Ledger: one large line over a centered two-column spread. With
    nothing on the right, Favorites centers alone. */
 body[data-layout="ledger"] .ledger {
   width: 100%;
@@ -3645,8 +3643,6 @@ body[data-layout="ledger"] .ledger:not(:has(.ledger-col-secondary > section:not(
   margin: 0 0 32px;
   color: var(--text);
   font-family: var(--font-text);
-  /* The variable file at its own size reads looser than the Display cut. */
-  font-variation-settings: "opsz" 32 !important;
   letter-spacing: 0;
   font-size: 32px;
   font-weight: 400;

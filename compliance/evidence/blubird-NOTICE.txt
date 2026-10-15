@@ -1,8 +1,8 @@
 Blubird typeface
 Copyright (c) 2026 Rajesh Rajput. All rights reserved.
 
-Official Blanc builds embed two Blubird font files (the Medium Display
-webfont and the variable font Blubird-VF.ttf) under a commercial license granted to
+Official Blanc builds embed one Blubird font file (the Medium Display
+webfont, for the Billboard clock) under a commercial license granted to
 Bananify Creative by Rajesh Rajput. Blubird is not covered by Blanc's MIT
 license or by any open-source license. The font files are not part of Blanc's
 public source code, and they may not be extracted from Blanc, modified, or

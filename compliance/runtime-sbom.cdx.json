@@ -50,7 +50,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1ce8980b4a0bcdcdec6fd48704822df69680bf3a1ca8af3767fe3fe7a42299b9"
+          "content": "822d30cf392d57c2d8d9c44d0f1f912b15e2706c27b2555576c26d57ec3c7768"
         }
       ],
       "licenses": [
@@ -260,6 +260,42 @@
         {
           "type": "website",
           "url": "https://github.com/ghostery/adblocker"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "bom-ref": "asset:instrument-sans-font",
+      "name": "Instrument Sans Latin variable webfont",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8b74e9bc6e415d564a5ffd32125c92ffd50b1635043e77543cb871e0a3cfcaf2"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "OFL-1.1"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "blanc:file",
+          "value": "src/renderer/pages/instrument-sans-latin-wdth-normal.woff2"
+        },
+        {
+          "name": "blanc:licenseFile",
+          "value": "src/renderer/pages/instrument-sans-OFL.txt"
+        }
+      ],
+      "version": "5.3.0",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/Instrument/instrument-sans"
         }
       ]
     },
@@ -1902,6 +1938,7 @@
         "asset:blanc-adblock-seed",
         "asset:blubird-font",
         "asset:caveat-font",
+        "asset:instrument-sans-font",
         "asset:inter-font",
         "asset:jetbrains-mono-font",
         "pkg:npm/%401password/sdk@0.5.0",
@@ -1941,6 +1978,10 @@
     },
     {
       "ref": "asset:ghostery-resources",
+      "dependsOn": []
+    },
+    {
+      "ref": "asset:instrument-sans-font",
       "dependsOn": []
     },
     {

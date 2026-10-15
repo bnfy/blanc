@@ -139,12 +139,6 @@ jobs:
         shell: bash
         env:
           BLUBIRD_MEDIUM_DISPLAY_WOFF2: ${{ secrets.BLUBIRD_MEDIUM_DISPLAY_WOFF2 }}
-          BLUBIRD_VF_TTF_1: ${{ secrets.BLUBIRD_VF_TTF_1 }}
-          BLUBIRD_VF_TTF_2: ${{ secrets.BLUBIRD_VF_TTF_2 }}
-          BLUBIRD_VF_TTF_3: ${{ secrets.BLUBIRD_VF_TTF_3 }}
-          BLUBIRD_VF_TTF_4: ${{ secrets.BLUBIRD_VF_TTF_4 }}
-          BLUBIRD_VF_TTF_5: ${{ secrets.BLUBIRD_VF_TTF_5 }}
-          BLUBIRD_VF_TTF_6: ${{ secrets.BLUBIRD_VF_TTF_6 }}
         run: node scripts/blubird-fonts.js install-env ${{ inputs.mode == 'release' && '--require' || '' }}
 
       - name: Build Windows installer
@@ -457,12 +451,6 @@ jobs:
         shell: bash
         env:
           BLUBIRD_MEDIUM_DISPLAY_WOFF2: ${{ secrets.BLUBIRD_MEDIUM_DISPLAY_WOFF2 }}
-          BLUBIRD_VF_TTF_1: ${{ secrets.BLUBIRD_VF_TTF_1 }}
-          BLUBIRD_VF_TTF_2: ${{ secrets.BLUBIRD_VF_TTF_2 }}
-          BLUBIRD_VF_TTF_3: ${{ secrets.BLUBIRD_VF_TTF_3 }}
-          BLUBIRD_VF_TTF_4: ${{ secrets.BLUBIRD_VF_TTF_4 }}
-          BLUBIRD_VF_TTF_5: ${{ secrets.BLUBIRD_VF_TTF_5 }}
-          BLUBIRD_VF_TTF_6: ${{ secrets.BLUBIRD_VF_TTF_6 }}
         run: node scripts/blubird-fonts.js install-env ${{ inputs.mode == 'release' && '--require' || '' }}
 
       - name: Build

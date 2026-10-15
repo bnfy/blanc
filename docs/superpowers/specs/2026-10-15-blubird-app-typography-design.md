@@ -118,6 +118,15 @@ spacing on buttons and form fields, so they inherit it explicitly. The chrome
 scheme allowlists exactly `/pages/Blubird-VF.ttf`. The website's live Island
 figures (kept in Inter to match the app) need a website follow-up.
 
+**Owner decision, October 15 (UI face):** Blubird stayed too tight at UI sizes
+even with extra tracking, so UI text (internal pages, the Island and overlay)
+moves to Instrument Sans: SIL OFL 1.1, committed with its license, the
+unmodified fontsource 5.3.0 Latin variable file, at width 98 with +0.01em
+tracking and normal word spacing. Blubird remains only for the Billboard clock
+(Medium Display), so the app embeds one licensed file; the variable file and
+its six secrets are gone. Instrument Sans has tabular figures, but counts and
+key caps keep Inter for now.
+
 ## Approaches considered
 
 **A. The website's four static files (recommended).** Same files, family names

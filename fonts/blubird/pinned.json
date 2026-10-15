@@ -4,7 +4,6 @@
   "note": "Commercially licensed; never commit the font files. Digests only. See docs/superpowers/specs/2026-10-15-blubird-app-typography-design.md.",
   "sourceFolder": "Blubird/Web-PS",
   "files": [
-    { "name": "Blubird-MediumDisplay.woff2", "env": "BLUBIRD_MEDIUM_DISPLAY_WOFF2", "bytes": 21708, "sha256": "74b7d9fdd041f38afde02240ac88f2d63be6a37887d5abb3fbe275c4926aa153" },
-    { "name": "Blubird-VF.ttf", "source": "Blubird/Variable-TT/Blubird-VF.ttf", "env": "BLUBIRD_VF_TTF", "parts": 6, "bytes": 207748, "sha256": "5af86ed68ac31c6abba13d77db6e872174aaabf6f74af7dbf42c3326f1e96bd7" }
+    { "name": "Blubird-MediumDisplay.woff2", "env": "BLUBIRD_MEDIUM_DISPLAY_WOFF2", "bytes": 21708, "sha256": "74b7d9fdd041f38afde02240ac88f2d63be6a37887d5abb3fbe275c4926aa153" }
   ]
 }

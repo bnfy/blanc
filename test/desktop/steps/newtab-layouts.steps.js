@@ -148,13 +148,13 @@ Then('the start page uses Blubird for the Billboard clock and invitation heading
   assert.deepEqual(usage.page.newsreader, []);
   assert.equal(usage.page.headings.length, 9);
   for (const heading of usage.page.headings) {
-    const expected = /bb-clock/.test(heading.selector) ? /^"?Blubird Display"?,/ : /^"?Blubird Text"?,/;
+    const expected = /bb-clock/.test(heading.selector) ? /^"?Blubird Display"?,/ : /^"?Instrument Sans"?,/;
     assert.match(heading.family, expected, `${heading.selector} resolved to ${heading.family}`);
   }
   const keepInter = new Set(['.shelf-count', '.tally-count', '.tally-caption']);
   for (const sample of usage.page.samples) {
     const expected = sample.selector === '.bb-clock' ? /^"?Blubird Display"?,/
-      : keepInter.has(sample.selector) ? /^"?Inter"?,/ : /^"?Blubird Text"?,/;
+      : keepInter.has(sample.selector) ? /^"?Inter"?,/ : /^"?Instrument Sans"?,/;
     assert.match(sample.family, expected, `${sample.selector} resolved to ${sample.family}`);
   }
 });

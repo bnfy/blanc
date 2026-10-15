@@ -358,6 +358,7 @@ function runtimeSbom(model, policy) {
     'asset:inter-font',
     'asset:jetbrains-mono-font',
     'asset:caveat-font',
+    'asset:instrument-sans-font',
     'asset:blubird-font',
     'asset:blanc-adblock-seed',
   ]);

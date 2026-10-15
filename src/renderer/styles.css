@@ -10,13 +10,13 @@
   font-weight: 100 900;
   font-display: swap;
 }
-/* Blubird (Rajesh Rajput) is commercially licensed and never committed; the
-   variable file is installed beside the internal pages by
-   `npm run fonts:install`. Without it every Blubird stack falls back to Inter. */
+/* UI text: Instrument Sans (SIL OFL 1.1, instrument-sans-OFL.txt), the
+   fontsource 5.3.0 Latin variable file with weight and width axes. */
 @font-face {
-  font-family: "Blubird Text";
-  src: url("pages/Blubird-VF.ttf") format("truetype");
-  font-weight: 100 900;
+  font-family: "Instrument Sans";
+  src: url("pages/instrument-sans-latin-wdth-normal.woff2") format("woff2");
+  font-weight: 400 700;
+  font-stretch: 75% 100%;
   font-style: normal;
   font-display: swap;
 }
@@ -52,12 +52,12 @@
   --space-graphite: #3a3a3a;
 
   --font-ui: "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
-  --font-text: "Blubird Text", "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
-  /* Blubird's word space is about 25% narrower than Inter's and its fit is
-     tight at UI sizes, so copy opens up. Counts and key caps opt out. */
-  --text-word-spacing: 0.07em;
-  --text-tracking: 0.025em;
-  --text-optical-size: 28;
+  --font-text: "Instrument Sans", "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  /* UI text runs slightly narrow (width 98) with a touch of tracking.
+     Counts and key caps opt out. */
+  --text-word-spacing: normal;
+  --text-tracking: 0.01em;
+  --text-width: 98;
   --type-body-size: 13px;
   --type-page-title-size: 24px;
   --type-page-title-weight: 650;
@@ -176,10 +176,10 @@ button, input, select, textarea {
   letter-spacing: normal;
   word-spacing: normal;
 }
-/* One optical size for Blubird copy. Form controls do not inherit
+/* One width for Instrument Sans. Form controls do not inherit
    font-variation-settings and every `font:` shorthand resets it; Inter has no
-   opsz axis, so this changes nothing else. */
-*, *::before, *::after { font-variation-settings: "opsz" var(--text-optical-size) !important; }
+   wdth axis, so this changes nothing else. */
+*, *::before, *::after { font-variation-settings: "wdth" var(--text-width) !important; }
 
 button {
   font-family: inherit;

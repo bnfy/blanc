@@ -24,24 +24,26 @@ const CHROME_KEEP_INTER = [
   '.ws-row-count', '.space-picker-hex', '.pill-slash, .pill-shortcut',
 ];
 
-test('the Island and overlay set their copy in Blubird, matching the pages', () => {
+test('the Island and overlay set their copy in Instrument Sans, matching the pages', () => {
   const chrome = read('src/renderer/styles.css');
   assert.ok(cssRules(chrome).some((rule) => rule.selector === '@font-face'
-    && rule.body.includes('font-family: "Blubird Text";')
-    && rule.body.includes('src: url("pages/Blubird-VF.ttf") format("truetype");')
-    && rule.body.includes('font-weight: 100 900;')));
+    && rule.body.includes('font-family: "Instrument Sans";')
+    && rule.body.includes('src: url("pages/instrument-sans-latin-wdth-normal.woff2") format("woff2");')
+    && rule.body.includes('font-weight: 400 700;')
+    && rule.body.includes('font-stretch: 75% 100%;')));
+  assert.doesNotMatch(chrome, /Blubird/);
   assert.ok(chrome.includes(`--font-ui: ${INTER_STACK};`));
-  assert.ok(chrome.includes(`--font-text: "Blubird Text", ${INTER_STACK};`));
-  assert.ok(chrome.includes('--text-word-spacing: 0.07em;'));
-  assert.ok(chrome.includes('--text-tracking: 0.025em;'));
-  assert.ok(chrome.includes('--text-optical-size: 28;'));
+  assert.ok(chrome.includes(`--font-text: "Instrument Sans", ${INTER_STACK};`));
+  assert.ok(chrome.includes('--text-word-spacing: normal;'));
+  assert.ok(chrome.includes('--text-tracking: 0.01em;'));
+  assert.ok(chrome.includes('--text-width: 98;'));
   const body = rulesFor(chrome, 'html, body')[0].body;
   assert.match(body, /font-family: var\(--font-text\);/);
   assert.match(body, /word-spacing: var\(--text-word-spacing\);/);
   assert.match(body, /letter-spacing: var\(--text-tracking\);/);
-  const opsz = rulesFor(chrome, '*, *::before, *::after').find((rule) => rule.body.includes('font-variation-settings'));
-  assert.ok(opsz, 'a universal rule carries the optical size');
-  assert.match(opsz.body, /font-variation-settings: "opsz" var\(--text-optical-size\) !important;/);
+  const wdth = rulesFor(chrome, '*, *::before, *::after').find((rule) => rule.body.includes('font-variation-settings'));
+  assert.ok(wdth, 'a universal rule carries the width');
+  assert.match(wdth.body, /font-variation-settings: "wdth" var\(--text-width\) !important;/);
   assert.ok(rulesFor(chrome, 'button, input, select, textarea').some((rule) =>
     /letter-spacing: inherit;/.test(rule.body) && /word-spacing: inherit;/.test(rule.body)),
   'Island rows are buttons, which Chromium resets; they inherit the spacing');
@@ -64,9 +66,10 @@ test('counts and key caps in the chrome keep Inter and its spacing', () => {
   }
 });
 
-test('the chrome scheme serves the variable font and no other Blubird file', () => {
+test('the chrome scheme serves Instrument Sans and no Blubird file', () => {
   for (const host of ['index', 'overlay']) {
-    assert.ok(chromeResourcePath(`blanc-chrome://${host}/pages/Blubird-VF.ttf`), `${host} loads the variable font`);
+    assert.ok(chromeResourcePath(`blanc-chrome://${host}/pages/instrument-sans-latin-wdth-normal.woff2`), `${host} loads Instrument Sans`);
+    assert.equal(chromeResourcePath(`blanc-chrome://${host}/pages/Blubird-VF.ttf`), null);
     assert.equal(chromeResourcePath(`blanc-chrome://${host}/pages/Blubird-MediumDisplay.woff2`), null);
   }
 });
