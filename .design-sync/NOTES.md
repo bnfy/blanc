@@ -504,3 +504,38 @@ entry. The three canonical pairs are the scan's floor, not its ceiling.
   see the standing rule.
 - PORT-CHECKLIST's older gaps: the capture-controls popover and retinted theme icons.
 - The display-share picker dialog stays unmodeled (transient in-flow UI).
+
+## 2026-10-15 sync (push, ahead of release — Instrument Sans + Blanc White, app PR #840)
+
+Pushed while **PR #840 was still unmerged**, at the owner's request ("push those five
+files to the Design System"). If #840 changes before merge, re-sync these files. Owner
+approved the five-file write below; nothing else in the project was touched.
+
+- **`tokens/typography.css`** — adds the Instrument Sans `@font-face` (the shipped
+  `instrument-sans-latin-wdth-normal.woff2`, weight 400–700, stretch 75–100%) and
+  `--font-text`, `--text-width: 98`, `--text-tracking: 0.01em` and
+  `--text-word-spacing: normal`, copied from `pages.css`/`styles.css`. Header comment
+  now says UI text is Instrument Sans and Inter stays as `--font-ui` for key caps
+  (⌘ ⌥ ⇧ ⌃ and arrows are missing from Instrument Sans) and tabular counters.
+  Everything else in the file is unchanged.
+- **`tokens/colors.css`** — the original file plus new `--sunrise-*` blocks (`:root`
+  light = Blanc White `#f8f2e8` / `#f2eade` / `#ffffff` / `#e1d7c9`, dark via
+  `prefers-color-scheme`, and the light/dark/private `data-theme` scopes), copied from
+  `tokens/tokens.json`. The DS had **no Sunrise tokens before this push**.
+- **`guidelines/type-ui.html`** — retitled "UI type — Instrument Sans" (width 98,
+  +0.01em, 13px base) with a row showing key caps staying Inter.
+- **`guidelines/colors-sunrise.html`** — new `@dsCard` "Sunrise surfaces — Blanc White"
+  (group Colors): the four light surface swatches plus text, dim and gold ink.
+- **`assets/fonts/instrument-sans-latin-wdth-normal.woff2`** — byte-copy of the
+  shipped file from `src/renderer/pages/`.
+
+Blubird is **not** in the DS and must not be added: the app dropped it (website and
+wordmark only, under the owner's web license). No `_ds_needs_recompile` — only tokens,
+guidelines and a font asset changed, no components.
+
+**Known drift left for a later pass (not synced here):**
+- The typography sizes (`--text-*` sizes) and the mono-stack statements in
+  `typography.css` predate System v2 (2026-09-27).
+- Components and UI kits were not changed in this push; any that set `--font-ui` for
+  body text still draw Inter until a component pass moves them to `--font-text`.
+- Newsreader / `--font-display` were never in the DS (they left the app in #840 anyway).
