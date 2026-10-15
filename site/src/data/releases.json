@@ -1,5 +1,173 @@
 [
   {
+    "tag": "v1.34.0",
+    "version": "1.34.0",
+    "name": "1.34.0",
+    "publishedAt": "2026-10-15T01:18:35.000Z",
+    "humanDate": "October 14, 2026",
+    "machineDate": "2026-10-14",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.34.0",
+    "anchor": "v1-34-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Kagi, or your own search engine."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Settings → General → Search engine now offers Kagi, and "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Custom…"
+                  },
+                  {
+                    "type": "text",
+                    "value": " for any search engine that puts your search words in its address, such as SearXNG. Paste that address with "
+                  },
+                  {
+                    "type": "code",
+                    "value": "%s"
+                  },
+                  {
+                    "type": "text",
+                    "value": " where the words go, for example "
+                  },
+                  {
+                    "type": "code",
+                    "value": "https://searx.example.org/search?q=%s"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". It syncs with your other settings when Profile Sync is on. Plain "
+                  },
+                  {
+                    "type": "code",
+                    "value": "http://"
+                  },
+                  {
+                    "type": "text",
+                    "value": " addresses work only for this computer or your home network."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Kagi shows live suggestions as you type, like the other search engines. Kagi needs a Kagi account, and private tabs don't share your sign-in, so a Kagi search in a private tab asks you to sign in. A custom search engine shows no suggestions, so nothing you type is sent before you press Enter."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "In Settings, the lists of sites that skip ad blocking or Dark websites now sit directly under their switches, in one bordered box, and every site has an always-visible × to remove it."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On Linux, a page could stop redrawing and barely respond to scrolling after you came back to its tab: by switching tabs, viewing it beside another tab with Glance, reopening a closed tab, returning to a space or moving it to a new window. These pages now keep drawing."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On Linux, with Settings → General → Quiet inactive tabs turned on, a background tab that keeps data for the current session could come back frozen after it was quieted: it didn't redraw or scroll. It now reloads, redraws and responds to scrolling again when you go back to it."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On Windows and Linux, closing the last window with Blanc's own close button (✕) lost your tabs: the next launch opened only a new tab. Blanc now keeps them, as Quit already did."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On Windows and Linux, closing Blanc's original window while another Blanc window stayed open didn't fully close it: its pages kept running, and it came back with its tabs the next time you started Blanc. It now closes for good. Blanc also no longer opens an extra empty window after restoring only a second window."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Paste and Go with a search operator such as "
+                  },
+                  {
+                    "type": "code",
+                    "value": "site:example.com"
+                  },
+                  {
+                    "type": "text",
+                    "value": " opened a broken address. It now searches."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "In Settings → Privacy & Security, an invalid custom Encrypted DNS address could switch you to a custom address you had saved earlier. It now keeps the provider you had. The error under the field now shows in red, and screen readers announce it."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.33.0",
     "version": "1.33.0",
     "name": "1.33.0",

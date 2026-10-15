@@ -79,17 +79,17 @@ its qualifications remain subject to the release-backed claim gate above.
 
 ## Current Blanc capability boundaries
 
-These boundaries describe public v1.33.0; its scope, publication evidence and
-owner-confirmed adjacent public-feed updater handoffs are recorded in
-[the release report](release-incidents/2026-10-14-v1.33.0.md). Installed
+These boundaries describe public v1.34.0; its scope, publication evidence and
+pending adjacent public-feed updater handoffs are recorded in
+[the release report](release-incidents/2026-10-14-v1.34.0.md). Installed
 candidates keep their original source/artifact bindings; hosted verification
 does not establish physical-machine outcomes. The v1.27.0 uBO acceptance, the
-v1.28.0 duplicate macOS build number, the v1.29.0, v1.30.0, v1.30.1, v1.31.0 and
-v1.32.0 updater confirmations, the v1.30.0 drag-to-reorder hands-on coverage, historical
+v1.28.0 duplicate macOS build number, the v1.29.0, v1.30.0, v1.30.1, v1.31.0,
+v1.32.0 and v1.33.0 updater confirmations, the v1.30.0 drag-to-reorder hands-on coverage, historical
 wallpaper/Linux waivers and earlier updater confirmations remain in their
 original reports:
 
-- **Optional uBlock Origin:** Public v1.33.0 offers full uBO 1.75.0 on
+- **Optional uBlock Origin:** Public v1.34.0 offers full uBO 1.75.0 on
   Apple Silicon, native Intel Mac, Windows x64 and Linux x64, on official
   Electron 44.5.1. Click the Island shield to choose a blocker and restart
   Blanc to apply it. Blanc Blocker stays the default and protects private
@@ -130,6 +130,15 @@ original reports:
   The user can choose the exact-text web-search result explicitly. Do not
   promise that Enter always searches the typed text. Address-shaped input
   navigates unless the user explicitly selects a result.
+- **Search engines:** Since v1.34.0 Settings → General → Search engine offers
+  DuckDuckGo, Google, Bing, Brave Search, Kagi and Custom…. A custom engine is
+  the user's own search address with `%s` where the words go, for example a
+  SearXNG server. It syncs with the other settings when Profile Sync is on,
+  and a plain `http://` address is accepted only for this computer or the
+  local network. Kagi needs a Kagi account, and private tabs don't share its
+  sign-in. Kagi shows live suggestions; a custom engine shows none. Do not
+  claim search keywords or shortcuts, several saved custom engines, OpenSearch
+  auto-discovery, or suggestions for custom engines.
 - **Fresh optional connections:** Search suggestions and usage measurement
   are preselected on in fresh-install setup. Optional sends are gated until
   the user saves their choices; either can be turned off before continuing
