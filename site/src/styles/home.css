@@ -1,9 +1,10 @@
 /* Homepage (index.astro): the cinematic redesign of October 15, 2026.
    Headlines are Blubird Display and copy Blubird Text (src/styles/blubird.css;
    Inter where the licensed files are absent). Light sections sit on Blanc
-   White, dark ones on warm ink. Motion is scroll-driven CSS only: it needs
-   animation-timeline support and no reduced-motion preference, and without
-   either the page shows its finished, static state. */
+   White, dark ones on warm ink. The opening sunrise plays once on load; the
+   rest of the motion is scroll-driven CSS that needs animation-timeline
+   support. All of it needs no reduced-motion preference, and without it the
+   page shows its finished, static state. */
 .home-cinema {
   --paper: #f8f2e8;
   --surface: #f2eade;
@@ -250,10 +251,6 @@
 .home-cinema .coming-from a:hover {
   border-color: var(--ink);
 }
-.sun-cue {
-  display: none;
-}
-
 /* ---------- The device ---------- */
 .home-cinema .device {
   overflow: hidden;
@@ -1332,9 +1329,10 @@ details[open] .faq-sign::after {
 }
 
 /* ---------- Motion ----------
-   Scroll-driven only. Every keyframe ends on the static layout above, so a
-   browser without animation-timeline, or a visitor who prefers reduced
-   motion, gets the same page without the movement. */
+   Scroll-driven, except the opening sunrise, which plays on load (below).
+   Every keyframe ends on the static layout above, so a browser without
+   animation-timeline, or a visitor who prefers reduced motion, gets the same
+   page without the movement. */
 @media (prefers-reduced-motion: no-preference) {
   @supports (animation-timeline: view()) {
     .home-cinema .rise {
@@ -1398,62 +1396,6 @@ details[open] .faq-sign::after {
       animation: home-fade linear both;
       animation-timeline: view();
       animation-range: entry 0% entry 100%;
-    }
-
-    /* The sunrise: a sticky stage over a tall section; scrolling raises the
-       disc, opens the rays and brings the day up behind it. */
-    .home-cinema .sunrise {
-      height: 420vh;
-      view-timeline-name: --sun;
-    }
-    .sun-stage {
-      --w: min(56vmin, 540px);
-      position: sticky;
-      top: var(--site-header-h);
-      height: calc(100vh - var(--site-header-h));
-      height: calc(100svh - var(--site-header-h));
-      box-sizing: border-box;
-      justify-content: center;
-      overflow: hidden;
-      padding-top: 0;
-      padding-bottom: 0;
-    }
-    .sun-sky,
-    .sun-mark,
-    .sun-horizon,
-    .sun-reflect,
-    .sun-mark .sun-disc,
-    .sun-rays,
-    .sun-copy,
-    .sun-cue {
-      animation-timing-function: linear;
-      animation-fill-mode: both;
-      animation-timeline: --sun;
-      animation-range: contain 0% contain 100%;
-    }
-    .sun-sky { animation-name: sun-sky; }
-    .sun-mark { transform-origin: 50% 0; animation-name: sun-mark; }
-    .sun-horizon { animation-name: sun-horizon; }
-    .sun-reflect { animation-name: sun-reflect; }
-    .sun-mark .sun-disc { animation-name: sun-disc; }
-    .sun-rays { animation-name: sun-rays; }
-    .sun-copy { margin-top: calc(var(--w) * -0.52 + 8px); animation-name: sun-copy; }
-    /* The copy waits for the sunrise, but never hides from the keyboard:
-       focusing its links shows it at once. */
-    .sun-copy:focus-within { animation: none; }
-    .sun-cue {
-      position: absolute;
-      z-index: 1;
-      bottom: 28px;
-      left: 0;
-      right: 0;
-      display: block;
-      margin: 0;
-      color: var(--night-faint);
-      font-size: 13px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      animation-name: sun-cue;
     }
 
     /* The Island: three captured states crossfade on a sticky stage. */
@@ -1526,6 +1468,43 @@ details[open] .faq-sign::after {
     .island-pin .pin-c { animation-name: pin-c; }
   }
 }
+/* The sunrise plays once when the page opens, so the first screen always ends
+   on the headline and Download. It needs no animation-timeline support, only
+   no reduced-motion preference; otherwise the finished scene shows at once. */
+@media (prefers-reduced-motion: no-preference) {
+  .sun-stage {
+    --w: min(56vmin, 540px);
+    min-height: calc(100vh - var(--site-header-h));
+    min-height: calc(100svh - var(--site-header-h));
+    box-sizing: border-box;
+    justify-content: center;
+    overflow: hidden;
+    padding-top: 32px;
+    padding-bottom: 48px;
+  }
+  .sun-sky,
+  .sun-mark,
+  .sun-horizon,
+  .sun-reflect,
+  .sun-mark .sun-disc,
+  .sun-rays,
+  .sun-copy {
+    animation-duration: 2.2s;
+    animation-delay: 0.15s;
+    animation-timing-function: cubic-bezier(0.33, 0, 0.2, 1);
+    animation-fill-mode: both;
+  }
+  .sun-sky { animation-name: sun-sky; }
+  .sun-mark { transform-origin: 50% 0; animation-name: sun-mark; }
+  .sun-horizon { animation-name: sun-horizon; }
+  .sun-reflect { animation-name: sun-reflect; }
+  .sun-mark .sun-disc { animation-name: sun-disc; }
+  .sun-rays { animation-name: sun-rays; }
+  .sun-copy { margin-top: calc(var(--w) * -0.52 + 8px); animation-name: sun-copy; }
+  /* The copy never hides from the keyboard: focusing a link shows it at once. */
+  .sun-copy:focus-within { animation: none; }
+}
+
 @keyframes home-rise { from { opacity: 0; transform: translateY(80px); } to { opacity: 1; transform: none; } }
 @keyframes home-figure { from { opacity: 0; transform: scale(0.55); filter: blur(14px); } to { opacity: 1; transform: none; filter: none; } }
 @keyframes home-parallax { from { transform: translateY(90px); } to { transform: translateY(-90px); } }
@@ -1542,8 +1521,7 @@ details[open] .faq-sign::after {
 @keyframes sun-reflect { 0%, 8% { clip-path: inset(0 50% 0 50%); opacity: 0.4; } 28%, 100% { clip-path: inset(0 0 0 0); opacity: 1; } }
 @keyframes sun-disc { 0%, 20% { transform: translateY(22%); } 54%, 100% { transform: none; } }
 @keyframes sun-rays { 0%, 44% { clip-path: circle(21% at 49.9% 64.2%); opacity: 0; } 48% { opacity: 1; } 70%, 100% { clip-path: circle(75% at 49.9% 64.2%); opacity: 1; } }
-@keyframes sun-copy { 0%, 84% { opacity: 0; transform: translateY(50px); } 97%, 100% { opacity: 1; transform: none; } }
-@keyframes sun-cue { 0% { opacity: 1; } 7%, 100% { opacity: 0; } }
+@keyframes sun-copy { 0%, 72% { opacity: 0; transform: translateY(40px); } 100% { opacity: 1; transform: none; } }
 @keyframes pin-a { 0%, 26% { opacity: 1; transform: none; } 36%, 100% { opacity: 0; transform: scale(0.96); } }
 @keyframes pin-b { 0%, 26% { opacity: 0; transform: scale(1.04); } 36%, 60% { opacity: 1; transform: none; } 70%, 100% { opacity: 0; transform: scale(0.96); } }
 @keyframes pin-c { 0%, 60% { opacity: 0; transform: scale(1.04); } 70%, 100% { opacity: 1; transform: none; } }

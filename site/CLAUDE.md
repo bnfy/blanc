@@ -57,11 +57,14 @@ into `public/lockup/`; `site:build` runs its `--check`. Construction and
 licence: *Blanc lockup* in `docs/brand-usage.md`.
 
 **Homepage:** the cinematic redesign of October 15, 2026 (`pages/index.astro`,
-`styles/home.css`, `scripts/home.js`). Its motion is scroll-driven CSS only,
-behind `@supports (animation-timeline: view())` and
-`prefers-reduced-motion: no-preference`; every keyframe ends on the static
-layout, so other browsers and reduced motion get the finished page. The
-sunrise and the Island are sticky stages under the 52px header. The switching
+`styles/home.css`, `scripts/home.js`). The opening sunrise plays once on
+load (2.2 s, behind `prefers-reduced-motion: no-preference` only), so the
+first screen always ends on the headline and Download; the owner rejected a
+scroll-to-reveal opening on October 15. The rest of the motion is
+scroll-driven CSS behind `@supports (animation-timeline: view())` as well;
+every keyframe ends on the static layout, so other browsers and reduced
+motion get the finished page. The Island is a sticky stage under the 52px
+header. The switching
 steps, the Chrome comparison and the questions are data in the frontmatter;
 without the script every path shows, and with it `home.js` shows one at a time
 and preselects the visitor's system from the page itself, sending nothing.
