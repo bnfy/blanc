@@ -123,9 +123,9 @@ page headline, section heading, feature card title, FAQ question, release
 name, and the footer tagline are set in it at regular weight, and the press
 announcement quote takes its italic. The generated share cards and press card
 set their titles in it. Body copy, labels, controls, the legal pages, the
-consent card, and every product replica stay in Inter. The desktop app uses
-Newsreader for its invitation voice and utility-sheet headings, documented
-below; its operating text stays in Inter. The homepage demo carries one short, centered sentence per scene, never a
+consent card, and every product replica stay in Inter. The desktop app sets
+its UI text in Instrument Sans, documented below; it does not use Newsreader.
+The homepage demo carries one short, centered sentence per scene, never a
 second headline-and-subline pair under the hero. The current trust homepage
 uses its Newsreader heading treatment for these captions, sized down on narrow
 screens; the enlarged viewer uses a compact centered figure title. Use the
@@ -186,7 +186,7 @@ All four layouts share one frame (owner decision, October 5, 2026): the
 Sunrise mark and date on the left of an in-flow header row, the moving-in
 checklist on its right, one centered content area, and a fixed footer. The
 footer has no divider line; a soft fade appears above it only while content
-runs underneath. Ledger leads with one 32px Newsreader "Where to?" line; no
+runs underneath. Ledger leads with one 32px Instrument Sans "Where to?" line; no
 other layout adds a heading. Labels are sentence case without letter-spacing.
 Icon tiles use 6px corners, cards 10px, floating surfaces 14px, chips fully
 rounded. The Patron upgrade is a quiet chip outlined in Sunrise gold with no
@@ -237,27 +237,23 @@ colors. Gold marks state and navigation; primary buttons stay ink on ivory
 (ivory on ink in dark mode). Keyboard focus on `blanc://` pages is one 1px
 ring in `--text-dim`; Mahjong keeps its own.
 
-**System v2, September 27:** Inter is the product UI operating face, including
-addresses, counters, keycaps, commands, and license keys. Align changing
-numbers with tabular figures; use a slashed zero for the Patron license key.
-Only Mahjong tile faces keep JetBrains Mono through `--mj-face-font`.
-Newsreader also sets utility-sheet page and section headings. System v2 uses 8px small,
-10px control/row, 14px card/group, 20px sheet/dialog, and full pill radii.
-The Island and Start Page retain their existing 6px base radius and layouts.
-On warm sheets, page headings are Newsreader 30px/500, section headings are
-Newsreader 21px/500, card labels are dim Inter 12px/600, and body text is Inter 13px. Avoid
-uppercase letter-spaced labels on these surfaces.
-
-### Desktop display voice
-
-Newsreader appears where Blanc welcomes or orients the user: the Start Page
-moving-in checklist title and the six first-run onboarding titles. It also
-sets utility-sheet page and section headings. Use upright optical sizing;
-the sheet headings use medium weight for legibility at their smaller sizes.
-Inter remains the app's operating voice for dates, clocks, navigation, lists,
-metadata, controls, the Island, command palette, vertical tabs, card labels,
-dialogs, warnings, errors, and body copy. Billboard and Mahjong keep their
-existing identities. Review any further product use of the serif separately.
+**System v3, October 15, 2026 (owner decision):** UI text on the internal
+pages and in the Island and overlay, including the Billboard clock and the
+Start Page and sheet headings, is Instrument Sans (SIL OFL 1.1, committed with
+its license in `src/renderer/pages/`) at width 98 and +0.01em letter spacing.
+Large lines tighten slightly: the Billboard clock to -0.02em and Ledger's
+"Where to?" to -0.015em. Inter stays for key caps, which need ⌘ ⌥ ⇧ ⌃ and
+arrows that Instrument Sans lacks, and for counters and license keys tuned on
+its tabular figures; use a slashed zero for the Patron license key. Only
+Mahjong tile faces keep JetBrains Mono through `--mj-face-font`, and the game
+keeps Inter for its controls. Buttons and form fields must inherit the page's
+letter and word spacing explicitly, because Chromium resets them. The app
+ships no commercially licensed font: Blubird is a website and wordmark face
+only. System v2 radii stand: 8px small, 10px control/row, 14px card/group,
+20px sheet/dialog, and full pills; the Island and Start Page keep their 6px
+base radius. On warm sheets, page headings are 30px/500, section headings are
+21px/500, card labels are dim 12px/600, and body text is 13px. Avoid uppercase
+letter-spaced labels on these surfaces.
 
 ### Editorial website footer
 
