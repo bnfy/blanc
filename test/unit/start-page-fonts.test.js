@@ -103,6 +103,27 @@ test('Blubird sets headings and page copy; Inter keeps figures, keys, the chrome
   }
   assert.match(rulesFor(pages, 'html, body')[0].body, /font-family: var\(--font-text\);/);
 
+  // Blubird's word space is 25% narrower than Inter's, so page copy opens up
+  // (owner choice D, October 15). Inter rules and Mahjong opt back out.
+  assert.ok(pages.includes('--text-word-spacing: 0.07em;'));
+  assert.ok(pages.includes('--text-tracking: 0.01em;'));
+  const body = rulesFor(pages, 'html, body')[0].body;
+  assert.match(body, /word-spacing: var\(--text-word-spacing\);/);
+  assert.match(body, /letter-spacing: var\(--text-tracking\);/);
+  const reset = cssRules(pages).find((rule) => /letter-spacing: normal;/.test(rule.body)
+    && /word-spacing: normal;/.test(rule.body) && rule.selector.includes('.shortcut-row kbd'));
+  assert.ok(reset, 'one rule returns the Inter keep-list to normal spacing');
+  for (const selector of KEEP_INTER) {
+    assert.ok(reset.selector.split(', ').join('\n').includes(selector.split(', ')[0]), `${selector} opts out of the Blubird spacing`);
+  }
+  const resetIndex = cssRules(pages).indexOf(reset);
+  for (const selector of ['.shelf-count', '.tally-count', '.tally-caption']) {
+    const explicit = cssRules(pages).findIndex((rule) => rule.selector.split(', ').includes(selector) && /letter-spacing: -?0\.0/.test(rule.body));
+    if (explicit >= 0) assert.ok(explicit > resetIndex, `${selector}'s own tracking still wins over the reset`);
+  }
+  assert.match(mahjong, /\.mahjong-body \{[^}]*--text-word-spacing: normal;[^}]*--text-tracking: normal;/,
+    'Mahjong keeps Inter spacing');
+
   assert.doesNotMatch(chrome, /Blubird|--font-text|--font-display|Newsreader/);
   assert.doesNotMatch(mahjong, /Blubird|--font-display/);
   assert.match(mahjong, /\.mahjong-body \{[^}]*--font-text: var\(--font-ui\);/,
