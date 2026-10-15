@@ -9034,16 +9034,24 @@ function moveTabToNewWindow(id) {
   //    this window's runtime and would float over unrelated content (and its
   //    per-tab cancel path could never find it again post-move) — cancel it,
   //    same as closeTab; the page re-requests in the new window. If the tab
-  //    is the Glance pane, close that; if active, hand focus to the MRU
-  //    survivor (closeTab's rule) with the right-neighbour as fallback. The
-  //    view is hidden at that point (active → survivor selection, Glance →
-  //    closeGlance). On Linux a view shown here before stays a child of this
-  //    window until the new one attaches it (tab-view-lifecycle.js).
+  //    is the Glance pane, close that; if active with a reference beside it,
+  //    promote the reference (closeTab's rule); otherwise hand focus to the
+  //    MRU survivor with the right-neighbour as fallback. The view is hidden
+  //    at that point (active → survivor selection, Glance → closeGlance). On
+  //    Linux a view shown here before stays a child of this window until the
+  //    new one attaches it (tab-view-lifecycle.js).
   withWindowRuntime(source, () => {
     cancelPermissionPromptsForTab(id);
     if (rt().glanceTabId === id) closeGlance({ focusContent: false });
     if (rt().activeTabId === id) {
-      const mruId = previousSurvivor(rt().activationHistory,
+      // Moving the main page away with a reference beside it is the same
+      // transition as closing the main page: the reference becomes the sole
+      // page and Glance collapses. Clear glanceTabId FIRST so setActiveTab
+      // takes its ordinary path — its promote branch would otherwise keep the
+      // departing tab as the reference of a window it no longer belongs to.
+      const referenceId = rt().glanceTabId && tabs.has(rt().glanceTabId) ? rt().glanceTabId : null;
+      if (referenceId) rt().glanceTabId = null;
+      const mruId = referenceId ?? previousSurvivor(rt().activationHistory,
         (tid) => tid !== id && tabs.has(tid) && windowRuntimes.runtimeForTab(tid) === rt());
       const survivor = mruId ?? pickSurvivorTabId(source.tabOrder, id);
       if (survivor != null) setActiveTab(survivor, { focusContent: false });

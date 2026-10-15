@@ -582,6 +582,10 @@ function install(refs) {
       wc.emit('media-started-playing');
       return true;
     },
+    tabBounds(id) {
+      const tab = tabs.get(id);
+      return tab?.view ? tab.view.getBounds() : null;
+    },
     railActivationSerial() { return getRailActivationSerial(); },
     toggleGroup(id) { toggleGroupCollapsed(id); },
     moveTab(id, target) { return moveTabTo(id, target); },

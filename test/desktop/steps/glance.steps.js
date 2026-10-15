@@ -451,3 +451,29 @@ Then('the reference pane is not muted as a background tab', async function () {
   });
   assert.equal(state.activeTabId, this.glanceOriginalMainId ?? this.glanceMainId);
 });
+
+// --- Lifecycle: Move Tab to New Window (Glance fixes, PR 1) ---
+
+When('I move the main page to a new window', async function () {
+  const state = await this.state();
+  this.glanceSplitWidth = state.glanceGeometry.primary.width;
+  const runtimes = await this.call('windowRuntimes');
+  this.glanceSourceRuntimeId = runtimes.find((runtime) => runtime.tabOrder.includes(this.glanceMainId)).id;
+  this.glanceNewRuntimeId = await this.call('moveTabToNewWindow', this.glanceMainId);
+  assert.ok(this.glanceNewRuntimeId, 'the main page was not adopted by a new window');
+  assert.notEqual(this.glanceNewRuntimeId, this.glanceSourceRuntimeId);
+});
+
+Then('the reference is the only page of the original window', async function () {
+  const source = await waitForValue(
+    async () => (await this.call('windowRuntimes')).find((runtime) => runtime.id === this.glanceSourceRuntimeId),
+    (runtime) => runtime && runtime.activeTabId === this.glanceReferenceId && runtime.glanceTabId === null,
+    'the source window promoted the reference and closed Glance'
+  );
+  // The harness keeps one blank tab per scenario, so "only page" means the
+  // reference stayed and the main page left.
+  assert.ok(source.tabOrder.includes(this.glanceReferenceId));
+  assert.ok(!source.tabOrder.includes(this.glanceMainId), 'the moved tab is still listed in the source window');
+  const bounds = await this.call('tabBounds', this.glanceReferenceId);
+  assert.ok(bounds && bounds.width > this.glanceSplitWidth, `reference still at split width: ${JSON.stringify(bounds)}`);
+});

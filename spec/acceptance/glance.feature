@@ -70,3 +70,10 @@ Feature: Glance reference pane
     When media starts playing in the background replacement tab
     And I choose Change and select the replacement tab
     Then the reference pane is not muted as a background tab
+
+  @F34-1 @F34 @F2 @D11
+  Scenario: Moving the main page to a new window promotes the reference
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And I move the main page to a new window
+    Then the reference is the only page of the original window
