@@ -76,6 +76,31 @@ const json = (obj, status = 200, headers = {}) => new Response(JSON.stringify(ob
   },
 });
 
+// Workers Logs keeps these lines. They name the step that failed and never
+// carry an address, a token or a request body.
+function logFailure(event, details = {}) {
+  console.error(JSON.stringify({ event, ...details }));
+}
+
+const errorDetails = (error) => ({
+  error: typeof error?.name === 'string' ? error.name : 'Error',
+  message: String(error?.message ?? error).slice(0, 200),
+});
+
+const missingConfig = (env, names) => names.filter((name) => !env[name]);
+
+// Resend's error body names the problem (`invalid_api_key`,
+// `validation_error`, ...). Only that name is logged; its message can quote
+// the recipient.
+async function resendFailure(response) {
+  let name = null;
+  try {
+    const body = await response.json();
+    if (typeof body?.name === 'string') name = body.name.slice(0, 64);
+  } catch { /* not JSON */ }
+  return { status: response.status, resendError: name };
+}
+
 function allowedCors(request) {
   const origin = request.headers.get('Origin');
   if (!origin || !ALLOWED_ORIGINS.has(origin)) return null;
@@ -120,7 +145,6 @@ async function ipRateLimited(env, ip, scope = 'subscribe', limit = SUBSCRIBE_RAT
 }
 
 async function sendConfirmation(env, list, email, confirmationUrl, idempotencyKey) {
-  if (!env.RESEND_API_KEY || !env.NEWSLETTER_FROM) return false;
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
@@ -136,15 +160,16 @@ async function sendConfirmation(env, list, email, confirmationUrl, idempotencyKe
       html: `<p>${list.request}.</p><p><a href="${confirmationUrl}">${list.confirmLabel}</a></p><p>If you did not request this, ignore this email. The request expires in 24 hours.</p>`,
     }),
   });
+  if (!response.ok) logFailure('confirmation-not-sent', { list: list.rateScope, ...(await resendFailure(response)) });
   return response.ok;
 }
 
 async function handleSubscribe(request, env, cors, list = LISTS.newsletter) {
-  if (
-    !env.NEWSLETTER_TOKEN_SECRET ||
-    !env.RESEND_API_KEY ||
-    !env.NEWSLETTER_FROM
-  ) return json({ error: 'service unavailable' }, 503, cors);
+  const missing = missingConfig(env, ['NEWSLETTER_TOKEN_SECRET', 'RESEND_API_KEY', 'NEWSLETTER_FROM']);
+  if (missing.length) {
+    logFailure('config-missing', { list: list.rateScope, missing });
+    return json({ error: 'service unavailable' }, 503, cors);
+  }
   if (await ipRateLimited(env, request.headers.get('CF-Connecting-IP'), list.rateScope)) {
     return json({ error: 'rate-limited' }, 429, cors);
   }
@@ -195,7 +220,9 @@ async function handleSubscribe(request, env, cors, list = LISTS.newsletter) {
   let sent = false;
   try {
     sent = await sendConfirmation(env, list, email, confirmationUrl, `${list.idempotency}${tokenHash}`);
-  } catch { /* fail closed below */ }
+  } catch (error) {
+    logFailure('confirmation-not-sent', { list: list.rateScope, ...errorDetails(error) });
+  }
   if (!sent) {
     await env.SUBSCRIBERS.delete(pendingKey);
     return json({ error: 'service unavailable' }, 503, cors);
@@ -263,7 +290,9 @@ async function ambassadorRateLimit(env, ip) {
 }
 
 async function handleAmbassadorApplication(request, env, cors) {
-  if (!env.RESEND_API_KEY || !env.NEWSLETTER_FROM || !env.AMBASSADOR_TO) {
+  const missing = missingConfig(env, ['RESEND_API_KEY', 'NEWSLETTER_FROM', 'AMBASSADOR_TO']);
+  if (missing.length) {
+    logFailure('config-missing', { list: 'ambassador', missing });
     return applicationResult(
       request, cors, 503, 'The form is temporarily unavailable. Please try again later.',
       { error: 'service unavailable' }
@@ -273,10 +302,13 @@ async function handleAmbassadorApplication(request, env, cors) {
   if (limitState === 'limited') return applicationResult(
     request, cors, 429, 'Please wait a minute and try again.', { error: 'rate-limited' }
   );
-  if (limitState === 'unavailable') return applicationResult(
-    request, cors, 503, 'The form is temporarily unavailable. Please try again later.',
-    { error: 'service unavailable' }
-  );
+  if (limitState === 'unavailable') {
+    logFailure('rate-limiter-unavailable', { list: 'ambassador' });
+    return applicationResult(
+      request, cors, 503, 'The form is temporarily unavailable. Please try again later.',
+      { error: 'service unavailable' }
+    );
+  }
 
   let body;
   try { body = await applicationBody(request); }
@@ -340,7 +372,10 @@ async function handleAmbassadorApplication(request, env, cors) {
       }),
     });
     delivered = response.ok;
-  } catch { /* fail closed below */ }
+    if (!delivered) logFailure('application-not-sent', await resendFailure(response));
+  } catch (error) {
+    logFailure('application-not-sent', errorDetails(error));
+  }
   return delivered
     ? applicationResult(
       request, cors, 202, 'Thank you. We will review your work and reply if the pilot looks like a fit.',
@@ -482,6 +517,23 @@ async function purgeWaitlist(env, url) {
   return json({ deleted, remaining });
 }
 
+// The site's forms can read a response only when it carries CORS headers. An
+// uncaught exception becomes Cloudflare's bare 500, which the browser reports
+// as a network failure, so the form routes turn one into a readable 503.
+async function formRoute(request, cors, route, handler) {
+  try {
+    return await handler();
+  } catch (error) {
+    logFailure('unhandled-error', { route, ...errorDetails(error) });
+    return route === '/ambassador-apply'
+      ? applicationResult(
+        request, cors, 503, 'The form is temporarily unavailable. Please try again later.',
+        { error: 'service unavailable' }
+      )
+      : json({ error: 'service unavailable' }, 503, cors);
+  }
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -498,19 +550,25 @@ export default {
       const cors = allowedCors(request);
       if (!cors) return json({ error: 'origin denied' }, 403);
       if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
-      if (request.method === 'POST') return handleSubscribe(request, env, cors);
+      if (request.method === 'POST') {
+        return formRoute(request, cors, url.pathname, () => handleSubscribe(request, env, cors));
+      }
     }
     if (url.pathname === '/mail-waitlist') {
       const cors = allowedCors(request);
       if (!cors) return json({ error: 'origin denied' }, 403);
       if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
-      if (request.method === 'POST') return handleSubscribe(request, env, cors, LISTS.mailWaitlist);
+      if (request.method === 'POST') {
+        return formRoute(request, cors, url.pathname, () => handleSubscribe(request, env, cors, LISTS.mailWaitlist));
+      }
     }
     if (url.pathname === '/ambassador-apply') {
       const cors = allowedCors(request);
       if (!cors) return json({ error: 'origin denied' }, 403);
       if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
-      if (request.method === 'POST') return handleAmbassadorApplication(request, env, cors);
+      if (request.method === 'POST') {
+        return formRoute(request, cors, url.pathname, () => handleAmbassadorApplication(request, env, cors));
+      }
     }
     if (url.pathname === '/subscribers' || url.pathname === '/subscriber') {
       if (!authorized(request, env)) return new Response('unauthorized', { status: 401 });
