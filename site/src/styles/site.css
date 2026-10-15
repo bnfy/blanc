@@ -38,7 +38,7 @@
   --island-strip-height: 68px;
   --pill-zoom: 1.15;
 
-  /* Website presentation only. Ivory is sampled from the Sunrise source art. */
+  /* Website presentation only. Blanc White (--site-bg) is sampled from the Sunrise source art. */
   /* Newsreader, condensed to 92% (site/scripts/build-condensed-newsreader.py).
      Its optical-size axis sharpens automatically at Patron display sizes. An
      installed upstream Newsreader is deliberately skipped: it is wider. */
