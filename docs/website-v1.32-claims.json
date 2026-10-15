@@ -160,16 +160,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "site-132-home-01",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "It can also bring your Spaces over from Arc.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "arcImport"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "site-132-features-10",
       "source": "site/src/pages/features.astro",
       "exactWording": "Import bookmarks and Arc Spaces",
@@ -446,6 +436,17 @@
       ],
       "verdict": "qualified",
       "reason": "October 14, 2026: public v1.33.0 made Blanc Spaces free for everyone; Blanc Patron is optional support and unlocks nothing (owner decision, docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md). The replacement wording is recorded in docs/website-v1.33-claims.json; the original remains in git history."
+    },
+    {
+      "id": "site-132-home-01",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "It can also bring your Spaces over from Arc.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport"
+      ],
+      "verdict": "qualified",
+      "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
     }
   ]
 }

@@ -37,6 +37,8 @@ test('divider input clamps the main-page share to the supported range', () => {
   const page = { x: 100, y: CHROME_HEIGHT, width: 1000, height: 700 };
   assert.equal(ratioForGlanceDivider(page, { x: -500 }, 'horizontal'), 0.5);
   assert.equal(ratioForGlanceDivider(page, { x: 5000 }, 'horizontal'), 0.78);
+  assert.equal(ratioForGlanceDivider(page, { x: Number.NaN }, 'horizontal'), null, 'a malformed point is ignored, not reset');
+  assert.equal(ratioForGlanceDivider(page, undefined, 'vertical'), null);
   assert.equal(
     Math.round(ratioForGlanceDivider(page, { x: 100 + 988 * 0.64 }, 'horizontal') * 100),
     64

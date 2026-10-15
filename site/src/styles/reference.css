@@ -9,7 +9,7 @@
 }
 .reference-heading h1 {
   font: 400 clamp(48px, 7vw, 88px) / 1.02 var(--site-font-display);
-  letter-spacing: -0.045em;
+  letter-spacing: 0;
   margin: 18px 0 24px;
 }
 .reference-heading > p:last-child {
@@ -19,7 +19,7 @@
   color: var(--dim);
 }
 .reference-page .section-kicker {
-  font-family: var(--font-ui);
+  font-family: var(--font-brand-text);
   letter-spacing: 0.09em;
   font-size: 11px;
 }
@@ -49,7 +49,7 @@
   color: var(--dim);
 }
 .support-search input {
-  font: 400 15px/1.5 var(--font-ui);
+  font: 400 15px/1.5 var(--font-brand-text);
   background: none;
   min-width: 0;
   width: 100%;
@@ -93,7 +93,7 @@
 .answer-group > h2,
 .reference-section-title {
   font: 400 38px/1.1 var(--site-font-display);
-  letter-spacing: -0.035em;
+  letter-spacing: 0;
   margin: 0 0 24px;
 }
 .answer-topic {
@@ -110,14 +110,14 @@
   align-items: center;
   gap: 20px;
   padding: 23px 0;
-  font: 500 17px/1.45 var(--font-ui);
+  font: 500 17px/1.45 var(--font-brand-text);
   cursor: pointer;
 }
 .answer-topic > summary::-webkit-details-marker {
   display: none;
 }
 .answer-topic > summary > span {
-  font: 300 24px/1 var(--font-ui);
+  font: 300 24px/1 var(--font-brand-text);
   color: var(--gold);
   transition: transform 160ms;
 }
@@ -156,7 +156,7 @@
 }
 .answer-body h2,
 .answer-body h3 {
-  font: 500 17px/1.5 var(--font-ui);
+  font: 500 17px/1.5 var(--font-brand-text);
   letter-spacing: 0;
   color: var(--ink);
   margin: 24px 0 10px;
@@ -202,7 +202,7 @@
   max-width: 100%;
 }
 .answer-body code {
-  font-family: var(--font-ui);
+  font-family: var(--font-brand-text);
   font-size: 0.93em;
   background: var(--site-surface);
   border-radius: 3px;
@@ -216,7 +216,7 @@
 }
 .reference-contact h2 {
   font: 400 38px/1.1 var(--site-font-display);
-  letter-spacing: -0.035em;
+  letter-spacing: 0;
   margin: 0 0 18px;
 }
 .reference-contact p {
@@ -258,7 +258,7 @@
   color: var(--gold);
 }
 .trust-overview h2 {
-  font: 500 17px/1.5 var(--font-ui);
+  font: 500 17px/1.5 var(--font-brand-text);
   margin: 18px 0 10px;
 }
 .trust-overview p {
@@ -292,7 +292,7 @@
   grid-column: 1;
   grid-row: 1/20;
   font: 400 27px/1.2 var(--site-font-display);
-  letter-spacing: -0.025em;
+  letter-spacing: 0;
   margin: 0;
 }
 .foundations > section p,
@@ -394,7 +394,7 @@
 .trust-evidence .release-verification h2,
 .trust-evidence #security-audit-title {
   font: 400 35px/1.1 var(--site-font-display);
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
 }
 .trust-evidence table {
   font-size: 12px;

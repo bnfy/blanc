@@ -235,7 +235,8 @@ test('provider copy resolves to the verified public release with bronze display 
   const platforms = JSON.parse(execFileSync('git', ['show', `${ledger.publicRelease}:src/main/ublock-platforms.json`], { cwd: root, encoding: 'utf8' }));
   assert.deepEqual(ledger.verifiedPlatforms, Object.keys(platforms.platforms).filter(key => platforms.platforms[key].enabled));
   assert.match(ledger.excludedRuntime, /Rosetta/);
-  const privacy = home.slice(home.indexOf('id="privacy"'), home.indexOf('id="start"'));
+  const privacy = home.slice(home.indexOf('id="privacy"'), home.indexOf('id="tools"'));
+  assert.ok(privacy.length > 500, 'the homepage privacy section is found');
   assert.doesNotMatch(privacy, /In development|Upcoming|Preview of work in progress/);
   for (const claim of ledger.claims) {
     const source = read(claim.source || ledger.source).replace(/<br\s*\/?>/g, ' ').replace(/\s+/g, ' ');
@@ -276,7 +277,8 @@ test('provider copy resolves to the verified public release with bronze display 
   assert.equal(hash(fs.readFileSync(path.join(root, activeArtwork.model.outline))), activeArtwork.model.outlineSha256);
   await assertDisplayExport(blockerMaster, blockerExport);
   assert.ok(read('ASSET-LICENSE.md').includes(activeArtwork.file));
-  assert.match(home, /<HorizonShield variant="blocker"/);
-  assert.match(home, /href="\/trust#ad-blocking"/);
-  assert.match(home, /href="\/trust#connections"/);
+  // The homepage states the providers in words (the shield artwork stays on the
+  // Features board) and links the blocking and connection details.
+  assert.match(privacy, /href="\/trust#ad-blocking"/);
+  assert.match(privacy, /href="\/trust#connections"/);
 });

@@ -30,8 +30,8 @@ test('closed-tab rows can forget one entry or clear the undo list', () => {
   assert.match(main, /if \(entry\.view\) downgradeHeldEntry\(entry\)/);
   assert.match(
     styles,
-    /\.closed-clear\s*\{[^}]*font-family:\s*var\(--font-ui\)/,
-    'the recently-closed clear action uses Inter with the rest of the section UI',
+    /\.closed-clear\s*\{[^}]*font-family:\s*var\(--font-text\)/,
+    'the recently-closed clear action uses the UI copy face with the rest of the section',
   );
 });
 

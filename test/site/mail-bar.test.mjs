@@ -5,7 +5,7 @@
 // the product's name, its six pages with the current one marked, and a "Join
 // the waitlist" popover. At 880px and narrower the links fold into a page
 // menu; at 480px and narrower Join shortens on screen but keeps its name.
-// The bar sticks under the site header and rises with it when it tucks away.
+// The bar sticks under the site header, which stays in view on every page.
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { chromium, webkit } from 'playwright';
@@ -34,12 +34,10 @@ async function openPage(path, width = 1440, options = {}) {
 const isOpen = (page, id) => page.evaluate(id => document.getElementById(id).matches(':popover-open'), id);
 const waitOpen = (page, id, open = true) =>
   page.waitForFunction(([id, open]) => document.getElementById(id).matches(':popover-open') === open, [id, open]);
-const tuckHeaderAway = async page => {
+const scrollDown = async page => {
   await page.mouse.move(page.viewportSize().width / 2, 450);
   for (let i = 0; i < 8; i++) { await page.mouse.wheel(0, 200); await page.waitForTimeout(60); }
-  await page.waitForFunction(() => document.querySelector('.site-header').classList.contains('is-scroll-hidden'));
-  // The bar's 220ms slide has finished once it reaches the top edge.
-  await page.waitForFunction(() => Math.abs(document.querySelector('.mail-bar').getBoundingClientRect().top) < 0.5);
+  await page.waitForFunction(() => scrollY > 1000);
 };
 
 test('every Mail page names the product, lists its six pages and marks the current one', async () => {
@@ -95,6 +93,9 @@ test('nothing on a Mail page scrolls sideways, from phones to wide screens', asy
     try {
       for (const [path] of pages) {
         await page.goto(`${baseURL}${path}`);
+        // Measure the settled page: before the web fonts swap in, fallback text
+        // can briefly be wider (CI caught a 10px overflow at 320px that way).
+        await page.evaluate(() => document.fonts.ready);
         const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
         assert.ok(overflow <= 0, `${path} at ${width}px overflows by ${overflow}px`);
       }
@@ -102,21 +103,19 @@ test('nothing on a Mail page scrolls sideways, from phones to wide screens', asy
   }
 });
 
-test('the bar sits under the site header and rises with it when the header tucks away', async () => {
+test('the bar stays directly under the site header while the page scrolls', async () => {
   const { page, context } = await openPage('/mail/privacy', 1440, { reducedMotion: 'no-preference' });
   try {
     const place = () => page.evaluate(() => {
       const bar = document.querySelector('.mail-bar').getBoundingClientRect();
       const header = document.querySelector('.site-header').getBoundingClientRect();
-      return { top: Math.round(bar.top), underHeader: Math.round(bar.top - header.bottom) };
+      return { headerTop: Math.round(header.top), underHeader: Math.round(bar.top - header.bottom) };
     });
-    assert.equal((await place()).underHeader, 0, 'directly under the header at first');
-    await tuckHeaderAway(page);
-    assert.equal((await place()).top, 0, 'the bar takes the top edge while the header is away');
+    assert.deepEqual(await place(), { headerTop: 0, underHeader: 0 }, 'directly under the header at first');
+    await scrollDown(page);
+    assert.deepEqual(await place(), { headerTop: 0, underHeader: 0 }, 'still under the header after scrolling down');
     for (let i = 0; i < 4; i++) { await page.mouse.wheel(0, -200); await page.waitForTimeout(60); }
-    await page.waitForFunction(() => !document.querySelector('.site-header').classList.contains('is-scroll-hidden'));
-    await page.waitForTimeout(400);
-    assert.equal((await place()).underHeader, 0, 'back under the header');
+    assert.deepEqual(await place(), { headerTop: 0, underHeader: 0 }, 'and after scrolling back up');
   } finally { await context.close(); }
 });
 
@@ -183,10 +182,10 @@ test('at 880px and narrower the six links fold into a page menu', async () => {
   } finally { await wide.context.close(); }
 });
 
-test('Join pressed after the header has tucked away still opens under the button', async () => {
+test('Join pressed after scrolling still opens under the button', async () => {
   const { page, context } = await openPage('/mail/privacy', 1440, { reducedMotion: 'no-preference' });
   try {
-    await tuckHeaderAway(page);
+    await scrollDown(page);
     await page.locator('.mail-bar-join').click();
     await waitOpen(page, 'mail-bar-waitlist');
     const state = await page.evaluate(() => {
@@ -204,7 +203,7 @@ test('focusing a bar control from the keyboard leaves the page where it is', asy
   for (const [width, control] of [[1440, '.mail-bar-join'], [390, '.mail-bar-pages'], [390, '.mail-bar-join']]) {
     const { page, context } = await openPage('/mail/privacy', width, { reducedMotion: 'no-preference' });
     try {
-      await tuckHeaderAway(page);
+      await scrollDown(page);
       const before = await page.evaluate(() => scrollY);
       await page.locator(control).focus();
       await page.waitForTimeout(400);
@@ -214,19 +213,21 @@ test('focusing a bar control from the keyboard leaves the page where it is', asy
   }
 });
 
-test('on Mail pages the site header is a quiet strip at every width, with no line under it', async () => {
-  for (const [width, height] of [[1440, 36], [800, 36], [760, 44], [390, 44], [320, 44]]) {
+test('on Mail pages the site header is the same bar as everywhere, with Browser download as a plain link', async () => {
+  for (const width of [1440, 800, 760, 390, 320]) {
     const { page, context } = await openPage('/mail', width);
     try {
-      const strip = await page.evaluate(() => {
-        const nav = getComputedStyle(document.querySelector('.site-header .revamp-nav'));
+      const bar = await page.evaluate(() => {
+        const cta = getComputedStyle(document.querySelector('.site-nav-cta'));
         return {
           height: Math.round(document.querySelector('.site-header').getBoundingClientRect().height),
-          line: nav.borderBottomStyle !== 'none' && nav.borderBottomWidth !== '0px' && nav.borderBottomColor !== 'rgba(0, 0, 0, 0)',
+          ctaBackground: cta.backgroundColor,
+          label: document.querySelector('.site-nav-cta').innerText.trim(),
         };
       });
-      assert.equal(strip.height, height, `${width}px: strip height`);
-      assert.equal(strip.line, false, `${width}px: no line between the strip and the Mail bar`);
+      assert.equal(bar.height, 52, `${width}px: the 52px white bar, without a hairline`);
+      assert.equal(bar.ctaBackground, 'rgba(0, 0, 0, 0)', `${width}px: the Mail bar keeps the one call to action`);
+      assert.equal(bar.label, width < 390 ? 'Download' : 'Browser download', `${width}px: label`);
     } finally { await context.close(); }
   }
 });

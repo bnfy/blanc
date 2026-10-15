@@ -103,7 +103,7 @@ const {
   CHROME_DISPLAY_CAPTURE_HELPER_URL,
   setupChromeProtocol,
 } = require('./chrome-protocol');
-const { evaluateAdmission, evaluateDocumentVisible } = require('./display-capture-admission');
+const { evaluateAdmission, evaluateDocumentVisible, isVisiblePane } = require('./display-capture-admission');
 const { parseDisplayMediaOptions } = require('./display-capture-constraints');
 const { createBrokerRegistry } = require('./display-capture-state');
 const { projectDisplayShares } = require('./display-capture-indicator');
@@ -3515,6 +3515,7 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
   cancelAddressBarFocusReclaim();
   if (!rt().overlayMode) return;
   bumpSurfaceGeneration();
+  bumpGlanceRequestEpoch();
   const closingMode = rt().overlayMode;
   const closingPurpose = rt().overlayPurpose;
   const closingTrigger = rt().shieldTrigger;
@@ -3573,7 +3574,7 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
               // The Change control only exists while Glance is still open —
               // if the reference tab closed under the picker, fall through to
               // the ordinary content refocus instead of a hidden button.
-              : closingMode === 'glance' && closingPurpose === 'change' && activeGlanceTab() ? 'glance-change'
+              : closingMode === 'glance' && (closingPurpose === 'change' || closingPurpose === 'change-stacked') && activeGlanceTab() ? 'glance-change'
                 : null
         )
       : null;
@@ -3896,6 +3897,12 @@ let fillStatusSurface = null;
 function bumpSurfaceGeneration(runtime = rt()) {
   runtime.surfaceGeneration += 1;
   fillStatusSurface?.invalidatePending(runtime.id);
+}
+
+/** The surface a Glance choice was made from went away (see
+ * window-runtime-registry.js glanceRequestEpoch). */
+function bumpGlanceRequestEpoch() {
+  rt().glanceRequestEpoch = (rt().glanceRequestEpoch ?? 0) + 1;
 }
 
 // --- Ambient fill hint (spec §5) ---------------------------------------
@@ -5208,9 +5215,15 @@ function closeGroup(groupId) {
   const anchorIndex = runtime.tabOrder.indexOf(ids[0]);
   for (const id of ids) closeTab(id, { record: false, selectReplacement: false });
   if (entry.tabs.length > 0) pushClosedEntry(entry); // an all-private group records nothing
-  // One replacement selection at the end, not one per member.
+  // One replacement selection at the end, not one per member. If the group
+  // took the main page but not the reference, the reference is the only page
+  // still on screen: promote it (closeTab's own rule) rather than a neighbour.
   if (!runtime.activeTabId) {
-    if (runtime.tabOrder.length > 0) {
+    const referenceId = runtime.glanceTabId && tabs.has(runtime.glanceTabId) ? runtime.glanceTabId : null;
+    if (referenceId) {
+      runtime.glanceTabId = null;
+      setActiveTab(referenceId);
+    } else if (runtime.tabOrder.length > 0) {
       setActiveTab(runtime.tabOrder[Math.min(Math.max(anchorIndex, 0), runtime.tabOrder.length - 1)]);
     } else if (hasLiveWindow()) {
       setActiveTab(createTab());
@@ -6330,6 +6343,7 @@ function setActiveTab(id, {
   // and back during a broker await would restore every current-state
   // predicate and let the fill proceed on a tab the user left.
   bumpSurfaceGeneration();
+  bumpGlanceRequestEpoch();
   const promotingGlance = id === rt().glanceTabId;
 
   // Tab switches dismiss the sheet; the switched-to tab takes focus via
@@ -6443,7 +6457,19 @@ async function setGlanceTab(id) {
     windowRuntimes.runtimeForTab(id) !== rt()
   ) return false;
 
+  const requestEpoch = rt().glanceRequestEpoch ?? 0;
   if (tab.asleep && !(await wakeTab(id))) return false;
+  if ((rt().glanceRequestEpoch ?? 0) !== requestEpoch) {
+    // The person dismissed the surface they chose from, switched tabs, or
+    // closed Glance while the tab was waking: a late attach would pop a pane
+    // open under their next action. Say so only if the tab did not end up in
+    // Glance meanwhile (a second, current choice may have attached it while
+    // this first wake was still loading).
+    if (hasLiveWindow() && rt().glanceTabId !== id) {
+      rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.cancelled'));
+    }
+    return false;
+  }
   // Wake is asynchronous. Re-resolve every ownership/liveness condition so a
   // tab closed, moved, or superseded while loading can never be attached.
   tab = tabs.get(id);
@@ -6452,6 +6478,11 @@ async function setGlanceTab(id) {
     windowRuntimes.runtimeForTab(id) !== rt()
   ) return false;
   if (!liveContents(tab) || !tab.view) return false;
+
+  // A reference pane is revealed: lift the hidden-start guard the way
+  // setActiveTab does, so media the user started while this tab was hidden
+  // becomes audible now that it is on screen.
+  if (revealTabAudio(tab)) liveContents(tab)?.setAudioMuted(effectiveTabMuted(tab));
 
   hideUtilitySheet({ refocusContent: false });
   const previous = activeGlanceTab();
@@ -6481,7 +6512,13 @@ function closeGlance({ focusContent = true } = {}) {
   const tab = activeGlanceTab();
   if (!rt().glanceTabId) return false;
   bumpSurfaceGeneration();
+  bumpGlanceRequestEpoch();
   rt().glanceTabId = null;
+  // ⌘⇧G or View → Close Glance while the Change picker is up: the picker is
+  // about a pane that no longer exists, so it goes with it. glanceTabId is
+  // already null, so the restore trigger falls through to page content and
+  // never aims at the vanished Change control.
+  if (rt().overlayMode === 'glance') hideOverlay({ refocusContent: false, reason: 'cancel' });
   if (tab?.view && hasLiveWindow()) {
     detachTabView(tab, { retainManagedRoot: true });
     tab.lastActiveAt = Date.now();
@@ -6506,9 +6543,15 @@ function promoteGlance() {
 }
 
 function openGlancePicker() {
-  if (!hasLiveWindow() || rt().tabOrder.length < 2) return false;
+  if (!hasLiveWindow()) return false;
   rt().window.focus();
-  showOverlay('glance', { purpose: activeGlanceTab() ? 'change' : 'open' });
+  const glance = glanceGeometry();
+  // Side by side, the Change picker hangs from the header's Change control.
+  // Stacked, that header sits low in the window with no room beneath it, so
+  // the picker takes the open picker's centred, page-wide placement. With a
+  // single tab the picker still opens, to say what to do.
+  const purpose = !glance ? 'open' : glance.direction === 'vertical' ? 'change-stacked' : 'change';
+  showOverlay('glance', { purpose });
   return true;
 }
 
@@ -6520,7 +6563,9 @@ function resizeGlanceAt(point) {
   const layout = currentChromeLayout();
   const glance = glanceGeometry(layout);
   if (!glance) return null;
-  rt().glanceRatio = ratioForGlanceDivider(layout.pageBounds, point, glance.direction);
+  const ratio = ratioForGlanceDivider(layout.pageBounds, point, glance.direction);
+  if (ratio == null) return null;
+  rt().glanceRatio = ratio;
   resizeActiveView();
   return rt().glanceRatio;
 }
@@ -6699,6 +6744,9 @@ function closeTab(id) {
   if (!tab || windowRuntimes.runtimeForTab(id) !== rt()) return;
   const wasActive = id === rt().activeTabId;
   const wasGlance = id === rt().glanceTabId;
+  // Read before the view is prepared for close: detaching drops focus onto
+  // the chrome strip, and the main page should take it instead.
+  const referenceHeldFocus = wasGlance && liveContents(tab)?.isFocused() === true;
   // Invalidate pending blank-tab focus before parking or native teardown.
   if (wasActive && !isQuitting && !rt().closing) cancelAddressBarFocusReclaim(rt(), { reveal: false });
   forgetTabWebContentsIds(id);
@@ -6787,6 +6835,12 @@ function closeTab(id) {
       rt().glanceTabId = null;
       rt().activeTabId = null;
       setActiveTab(survivingGlanceId);
+      if (hasLiveWindow()) {
+        const promoted = tabs.get(survivingGlanceId);
+        rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.mainClosed', {
+          title: displayTitle(promoted) || mainI18n.t('tab.untitledShort'),
+        }));
+      }
       return;
     }
     // Return to the previously active tab (activation history, most recent
@@ -6812,8 +6866,11 @@ function closeTab(id) {
   // Closing the underlying reference is also a layout transition. The normal
   // broadcast updates the header state, but only an explicit resize gives the
   // surviving main WebContentsView its full page bounds in the same turn.
-  if (wasGlance && hasLiveWindow()) resizeActiveView();
   if (wasGlance && hasLiveWindow()) {
+    resizeActiveView();
+    // The reference held keyboard focus: hand it to the main page rather than
+    // leaving it on the strip where the detached view dropped it.
+    if (referenceHeldFocus) liveContents(tabs.get(rt().activeTabId))?.focus();
     rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.tabClosed'));
   }
   broadcastTabs();
@@ -8398,7 +8455,6 @@ function buildMenuForRuntime(runtime) {
           id: 'toggle-glance',
           label: t(activeGlanceTab() ? 'menu.closeGlance' : 'menu.openGlance'),
           accelerator: 'CmdOrCtrl+Shift+G',
-          enabled: !!activeGlanceTab() || rt().tabOrder.length > 1,
           click: bound(toggleGlance),
         },
         { type: 'separator' },
@@ -9029,16 +9085,24 @@ function moveTabToNewWindow(id) {
   //    this window's runtime and would float over unrelated content (and its
   //    per-tab cancel path could never find it again post-move) — cancel it,
   //    same as closeTab; the page re-requests in the new window. If the tab
-  //    is the Glance pane, close that; if active, hand focus to the MRU
-  //    survivor (closeTab's rule) with the right-neighbour as fallback. The
-  //    view is hidden at that point (active → survivor selection, Glance →
-  //    closeGlance). On Linux a view shown here before stays a child of this
-  //    window until the new one attaches it (tab-view-lifecycle.js).
+  //    is the Glance pane, close that; if active with a reference beside it,
+  //    promote the reference (closeTab's rule); otherwise hand focus to the
+  //    MRU survivor with the right-neighbour as fallback. The view is hidden
+  //    at that point (active → survivor selection, Glance → closeGlance). On
+  //    Linux a view shown here before stays a child of this window until the
+  //    new one attaches it (tab-view-lifecycle.js).
   withWindowRuntime(source, () => {
     cancelPermissionPromptsForTab(id);
     if (rt().glanceTabId === id) closeGlance({ focusContent: false });
     if (rt().activeTabId === id) {
-      const mruId = previousSurvivor(rt().activationHistory,
+      // Moving the main page away with a reference beside it is the same
+      // transition as closing the main page: the reference becomes the sole
+      // page and Glance collapses. Clear glanceTabId FIRST so setActiveTab
+      // takes its ordinary path — its promote branch would otherwise keep the
+      // departing tab as the reference of a window it no longer belongs to.
+      const referenceId = rt().glanceTabId && tabs.has(rt().glanceTabId) ? rt().glanceTabId : null;
+      if (referenceId) rt().glanceTabId = null;
+      const mruId = referenceId ?? previousSurvivor(rt().activationHistory,
         (tid) => tid !== id && tabs.has(tid) && windowRuntimes.runtimeForTab(tid) === rt());
       const survivor = mruId ?? pickSurvivorTabId(source.tabOrder, id);
       if (survivor != null) setActiveTab(survivor, { focusContent: false });
@@ -9919,7 +9983,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           } catch {
             frameVisible = null;
           }
-          const tabAttached = !!(tab && owner && owner.activeTabId === tab.id && tab.view);
+          const tabAttached = isVisiblePane(owner, tab);
           return {
             documentFocused: win?.isFocused?.() === true && wc?.isFocused?.() === true,
             documentVisible: evaluateDocumentVisible({

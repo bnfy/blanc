@@ -399,13 +399,17 @@
     if (!visible) {
       stripEl.style.removeProperty('--glance-primary-right');
       stripEl.style.removeProperty('--glance-primary-width');
+      delete stripEl.dataset.glanceDirection;
       return;
     }
 
     const { primary, glanceHeader: header, divider, page, direction, ratio } = glanceLayout;
+    // Side by side the Island sits over the main pane; stacked, the main
+    // pane is the full page width.
     const chromePrimaryRight = direction === 'horizontal'
       ? primary.x + primary.width
-      : page.x + Math.round(page.width * 0.68);
+      : page.x + page.width;
+    stripEl.dataset.glanceDirection = direction;
     stripEl.style.setProperty('--glance-primary-right', `${chromePrimaryRight}px`);
     stripEl.style.setProperty('--glance-primary-width', `${chromePrimaryRight - page.x}px`);
     glanceDivider.dataset.direction = direction;
@@ -421,7 +425,6 @@
     glanceHeader.style.top = `${header.y}px`;
     glanceHeader.style.width = `${header.width}px`;
     glanceHeader.style.height = `${header.height}px`;
-    glanceHeader.style.paddingRight = `${direction === 'horizontal' && !isMac ? 126 : 12}px`;
     glanceHeader.dataset.direction = direction;
     glanceHeader.classList.toggle('private', !!tab.private);
     setFavicon(glanceFavicon, tab);
@@ -939,17 +942,31 @@
   glanceDivider.addEventListener('pointerdown', (event) => {
     if (event.button !== 0 || !glanceLayout) return;
     event.preventDefault();
-    glanceResizeState = { pointerId: event.pointerId };
+    // Main maps the reported point to the divider's leading edge, so report
+    // the pointer minus where inside the grip it went down — otherwise the
+    // first move jumps the divider by that much.
+    const rect = glanceDivider.getBoundingClientRect();
+    glanceResizeState = {
+      pointerId: event.pointerId,
+      grabOffset: glanceLayout.direction === 'horizontal'
+        ? event.clientX - rect.left
+        : event.clientY - rect.top,
+    };
     glanceDivider.setPointerCapture(event.pointerId);
     document.documentElement.dataset.glanceResizing = glanceLayout.direction;
   });
+  function glanceDragPoint(event) {
+    return glanceLayout?.direction === 'horizontal'
+      ? { x: event.clientX - glanceResizeState.grabOffset, y: event.clientY }
+      : { x: event.clientX, y: event.clientY - glanceResizeState.grabOffset };
+  }
   glanceDivider.addEventListener('pointermove', (event) => {
     if (!glanceResizeState || glanceResizeState.pointerId !== event.pointerId) return;
-    queueGlanceResize({ x: event.clientX, y: event.clientY });
+    queueGlanceResize(glanceDragPoint(event));
   });
   const finishGlanceResize = (event) => {
     if (!glanceResizeState || glanceResizeState.pointerId !== event.pointerId) return;
-    queueGlanceResize({ x: event.clientX, y: event.clientY });
+    queueGlanceResize(glanceDragPoint(event));
     glanceResizeState = null;
     delete document.documentElement.dataset.glanceResizing;
     if (glanceDivider.hasPointerCapture(event.pointerId)) {

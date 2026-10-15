@@ -35,6 +35,15 @@ test('hero extraction retains native dimensions, material and actual action SVGs
   assert.doesNotMatch(art.html, /horizon-shield\.webp|shield-horizon\.png/);
   assert.doesNotMatch(art.html, /<script|browserAPI/);
   assert.match(art.css, /:host\(\[data-appearance="dark"\]\)/);
+  // The app's UI text (Instrument Sans at a fixed width, with spacing that
+  // buttons must inherit) reaches the replica, not just its tokens.
+  assert.match(art.css, /\*, \*::before, \*::after \{[^}]*font-variation-settings: "wdth" var\(--text-width\) !important;/);
+  assert.match(art.css, /button, input, select, textarea \{[^}]*letter-spacing: inherit;[^}]*word-spacing: inherit;/);
+  for (const file of ['site/src/components/NativeIslandHero.astro', 'site/src/components/SpacesDemo.astro', 'site/src/components/bento/demos/ShieldDemo.astro']) {
+    const component = read(file);
+    assert.match(component, /:host \{[^}]*var\(--font-text\)[^}]*letter-spacing:var\(--text-tracking\);word-spacing:var\(--text-word-spacing\);/, `${file} hosts the app's UI text`);
+    assert.match(component, /instrument-sans-latin-wdth-normal\.woff2\?url/, `${file} declares Instrument Sans at document level`);
+  }
   assert.match(read('site/src/components/NativeIslandHero.astro'), /aria-hidden="true" inert/);
 });
 

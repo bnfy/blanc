@@ -1,6 +1,7 @@
 ---
 import NewsletterForm from "./NewsletterForm.astro";
-const { measurementControls = true } = Astro.props;
+// notes: the page passes numbered notes (its footnotes slot) to show above the links.
+const { measurementControls = true, notes = false } = Astro.props;
 ---
 
 <footer
@@ -9,13 +10,31 @@ const { measurementControls = true } = Astro.props;
   aria-label="Blanc website footer"
 >
   <div class="website-footer-inner">
+    {
+      notes && (
+        <div class="website-footer-notes">
+          <slot name="notes" />
+        </div>
+      )
+    }
     <div class="website-footer-grid">
       <div class="website-footer-identity">
-        <a href="/#opening" aria-label="Blanc home"
-          ><img
-            src="/sunrise-hero-mark.png"
-            alt="Blanc Sunrise mark"
-          /></a
+        <a class="website-footer-brand" href="/#opening" aria-label="Blanc home"
+          ><span class="site-lockup site-lockup--display" aria-hidden="true"
+            ><img
+              class="site-lockup-mark"
+              src="/lockup/sunrise-mark-256.webp"
+              width="256"
+              height="256"
+              alt=""
+            /><img
+              class="site-lockup-word"
+              src="/lockup/blanc-word-display-white.svg"
+              width="2217"
+              height="742"
+              alt=""
+            /></span
+          ></a
         ><p>A little less browser.</p><NewsletterForm />
       </div>
       <nav aria-label="Explore Blanc">

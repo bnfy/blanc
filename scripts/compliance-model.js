@@ -357,7 +357,7 @@ function runtimeSbom(model, policy) {
     'asset:inter-font',
     'asset:jetbrains-mono-font',
     'asset:caveat-font',
-    'asset:newsreader-font',
+    'asset:instrument-sans-font',
     'asset:blanc-adblock-seed',
   ]);
   for (const name of closure.directNames) {

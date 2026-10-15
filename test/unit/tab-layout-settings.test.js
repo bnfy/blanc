@@ -167,7 +167,7 @@ test('vertical rail top chrome is reduced to an accessible sidebar toggle', () =
   );
 });
 
-test('vertical rail text uses Inter without JetBrains Mono overrides', () => {
+test('vertical rail text uses the UI copy face without JetBrains Mono overrides', () => {
   const styles = fs.readFileSync(
     path.join(__dirname, '../../src/renderer/styles.css'),
     'utf8'
@@ -177,7 +177,7 @@ test('vertical rail text uses Inter without JetBrains Mono overrides', () => {
   assert.ok(railStart >= 0 && railEnd > railStart, 'vertical rail CSS range must exist');
   const railStyles = styles.slice(railStart, railEnd);
 
-  assert.match(railStyles, /\.vertical-tabs-rail\s*\{[^}]*font-family: var\(--font-ui\);/s);
+  assert.match(railStyles, /\.vertical-tabs-rail\s*\{[^}]*font-family: var\(--font-text\);/s);
   assert.doesNotMatch(railStyles, /font-family:\s*var\(--font-mono\)/);
 });
 

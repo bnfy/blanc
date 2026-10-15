@@ -53,7 +53,6 @@ test('app chrome and internal pages have no live Google Fonts dependency', () =>
   for (const font of [
     'inter-latin.woff2',
     'jetbrains-mono-latin.woff2',
-    'newsreader-condensed-latin-opsz-normal.woff2',
   ]) {
     assert.ok(fs.statSync(path.join(root, 'src/renderer/pages', font)).size > 1_000, font);
   }
@@ -395,8 +394,15 @@ test('published memory figures agree across the site, the fact sheet, and the ru
     );
   }
 
+  // The homepage's first-launch card quotes Blanc, Chrome and Brave from the
+  // same run, so it joins the check.
+  const homepage = read('site/src/pages/index.astro');
+  for (const [name, gb] of MEASURED.filter(([name]) => ['Blanc', 'Chrome', 'Brave'].includes(name))) {
+    assert.ok(homepage.includes(`${gb} GB`), `${name} on the homepage`);
+  }
+
   // Both qualifications must travel with the figures wherever they are shown.
-  for (const [file, text] of [['MemoryChart', chart], ['fact sheet', factSheet]]) {
+  for (const [file, text] of [['MemoryChart', chart], ['fact sheet', factSheet], ['homepage', homepage]]) {
     assert.match(text, /blocks by default/i, `${file} must name Brave as the fair peer`);
     assert.match(text, /5\.4 GB/, `${file} must state the blocking-off figure`);
     assert.match(text, /no extensions/i, `${file} must disclose the profile conditions`);

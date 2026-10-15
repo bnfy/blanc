@@ -23,9 +23,9 @@ limits beside the claims they qualify and keep deeper information easy to find.
 
 **Owner correction, September 12, 2026:** “We are only using Sunrise mark and theme now.” This applies to all new Blanc marketing, social creative, review previews, thumbnails and end cards. The old B letterform is retired; do not use `assets/blanc-mark.svg` or rebuild it into new creative. Its presence in the repository is not permission to use it.
 
-For full-color social artwork, use the original gold Sunrise asset at `site/public/sunrise-hero-mark.png`, preserving its geometry, transparency and gold detail. Use the Sunrise theme: ivory `#F7F0E5`, warm surfaces `#EFE6D8`, near-black headings, muted brown-gray `#6B6257`, and restrained gold `#805D28`. The approved September 11 general Sunrise creative in `marketing/social/sunrise-milestone-2026-09-11/general-review-v2-1080x1350.png` is a visual reference for the treatment, not content to recycle.
+For full-color social artwork, use the original gold Sunrise asset at `site/public/sunrise-hero-mark.png`, preserving its geometry, transparency and gold detail. Use the Sunrise theme: Blanc White `#F8F2E8`, warm surfaces `#F2EADE`, near-black headings, muted brown-gray `#6B6257`, and restrained gold `#805D28`. The approved September 11 general Sunrise creative in `marketing/social/sunrise-milestone-2026-09-11/general-review-v2-1080x1350.png` is a visual reference for the treatment, not content to recycle.
 
-Use Newsreader regular for sentence-case headings and Inter for supporting text. Choose title alignment to suit the composition; not every social asset should use the same centered poster layout. Keep generous clear space around the Sunrise symbol. Do not redraw it, replace it with a letterform, tint the original artwork, add a badge or place a glow immediately behind it. A subtle gold horizon may appear away from the symbol. Existing monochrome Sunrise site variants remain valid for the specifically documented placements below.
+Use Newsreader regular for sentence-case headings and Inter for supporting text. On the website, every page uses Blubird instead (see *Blanc lockup*; owner direction, October 15, 2026): Blubird Display for headings, set at 0 letter-spacing, and Blubird Text for copy. Product replicas on the site keep Inter, the app's face. Choose title alignment to suit the composition; not every social asset should use the same centered poster layout. Keep generous clear space around the Sunrise symbol. Do not redraw it, replace it with a letterform, tint the original artwork, add a badge or place a glow immediately behind it. A subtle gold horizon may appear away from the symbol. Existing monochrome Sunrise site variants remain valid for the specifically documented placements below.
 
 **Visual variety, September 12 owner direction:** A shared brand does not mean an identical layout. Give each editorial idea an appropriate composition, and let carousel panels progress through distinct visual structures. Use a restrained mix of imagery, useful diagrams, typography, light and dark Sunrise surfaces. Keep the exact mark, palette and type family coherent. Conceptual illustrations must not impersonate product footage or evidence.
 
@@ -67,26 +67,37 @@ detail, not a mark for new Blanc creative.
 
 ### Sunrise palette for website and marketing
 
-The website carries the Sunrise icon's warmth through ivory backgrounds,
+The website carries the Sunrise icon's warmth through Blanc White backgrounds,
 warm surfaces, and muted gold details. Keep the existing typography,
-near-black headings, dark primary buttons, and an ivory desktop masthead.
+near-black headings, dark primary buttons, and a white desktop masthead.
 These website and marketing tokens are separate from the released product palette:
 
-- page background, sampled from the Sunrise source art: `#F7F0E5` (`--site-bg`);
-- section surfaces and footer: `#EFE6D8` (`--site-surface`);
-- raised surfaces and forms: `#FFFCF7` (`--site-surface-raised`);
-- decorative borders and dividers: `#DDD2C2` (`--site-border`);
+- page background, **Blanc White**: `#F8F2E8` (`--site-bg`);
+- section surfaces: `#F2EADE` (`--site-surface`);
+- raised surfaces and forms, the masthead and the footer: white `#FFFFFF`
+  (`--site-surface-raised`);
+- decorative borders and dividers: `#E1D7C9` (`--site-border`);
 - muted text: `#6B6257` (`--site-text-dim`);
 - gold on light backgrounds: `#805D28` (`--site-gold`);
 - gold on dark backgrounds: `#D4AD66` (`--site-gold-on-dark`);
 - pale selected-state background: `#F6EBD5` (`--site-selection`);
 - warm ink for the Patron offer only: `#12100B` (`--site-ink-warm`).
 
+**Blanc White** is the brand name for `#F8F2E8` (owner decision, October 15,
+2026). Call it Blanc White, not ivory or cream, in briefs, creative and press
+material. On the same day the owner set the palette above: the page, surface,
+raised and border colours are the ones blanc.day was already serving, and the
+muted text and gold keep this guide's warmer `#6B6257` and `#805D28`, not the
+cooler `#696865` and `#7D653D` the site had been rendering. Blanc White is a shade
+lighter than `#F7F0E5`, the original sample from the Sunrise art, which the
+product's Sunrise surfaces (`--sunrise-bg`), the share cards, the press card
+and the media kit's icon tiles still use.
+
 Use gold for eyebrows, section kickers, text-link arrows and interaction
 states, FAQ disclosure markers, navigation states, and the changelog's small
 new-feature dot. The pale background belongs only to selected mobile menu
 items. Keep underlines, focus outlines, and other state indicators alongside
-color. Gold and muted text meet 4.5:1 contrast on the specified ivory, section,
+color. Gold and muted text meet 4.5:1 contrast on the specified Blanc White, section,
 raised, and pale selection surfaces. Use the dark-background gold token on
 dark sections and navigation; it meets 4.5:1 on both the shared ink and the
 warm ink. The warm ink belongs to the Patron offer alone: the shared
@@ -118,14 +129,15 @@ labels, and controls. Newsreader replaced Instrument Serif on 4 September 2026
 because that face had become the default serif of current web design; do not
 reintroduce it. Newsreader carries an optical-size axis, so it sharpens on its
 own at Patron sizes; leave optical sizing automatic and set the price numeral
-with lining figures. Newsreader is also the website's heading face: every
+with lining figures. Until October 15, 2026 Newsreader was also the website's
+heading face (Blubird replaced it; the rest of this paragraph is the record): every
 page headline, section heading, feature card title, FAQ question, release
 name, and the footer tagline are set in it at regular weight, and the press
 announcement quote takes its italic. The generated share cards and press card
 set their titles in it. Body copy, labels, controls, the legal pages, the
-consent card, and every product replica stay in Inter. The desktop app uses
-Newsreader for its invitation voice and utility-sheet headings, documented
-below; its operating text stays in Inter. The homepage demo carries one short, centered sentence per scene, never a
+consent card, and every product replica stay in Inter. The desktop app sets
+its UI text in Instrument Sans, documented below; it does not use Newsreader.
+The homepage demo carries one short, centered sentence per scene, never a
 second headline-and-subline pair under the hero. The current trust homepage
 uses its Newsreader heading treatment for these captions, sized down on narrow
 screens; the enlarged viewer uses a compact centered figure title. Use the
@@ -136,7 +148,7 @@ replace the canonical Sunrise symbol with a letterform.
 The homepage offer pairs the monochrome Sunrise symbol with this display name
 on a warm ink (`--site-ink-warm`) section. The display name and the main price
 numeral are set in gold (`--site-gold-on-dark`); supporting copy, currency,
-billing labels, and the symbol stay ivory (`--site-bg`), and the filled gold
+billing labels, and the symbol stay Blanc White (`--site-bg`), and the filled gold
 button keeps its ink text. One radial gold light spill, anchored to the
 section's top edge at no more than about a quarter strength, is the section's
 only gradient; the symbol sits below its brightest point and is never backed
@@ -173,8 +185,8 @@ require fresh review if changed.
 
 The four Start Page layouts — Ledger, Billboard, Shelf, and Tally — share the
 Sunrise identity without becoming the same composition. Use the canonical gold
-Sunrise symbol above a single date line, the warm ivory/gold palette documented
-above, and the real layered mountain sunrise in
+Sunrise symbol above a single date line, the warm Blanc White and gold
+palette documented above, and the real layered mountain sunrise in
 `src/renderer/pages/start-page-sunrise.png`. Keep the landscape quiet in the
 upper half so operating UI stays legible. Dark and private tabs may deepen the
 same image into warm dusk with overlays; private mode must retain its explicit
@@ -186,7 +198,7 @@ All four layouts share one frame (owner decision, October 5, 2026): the
 Sunrise mark and date on the left of an in-flow header row, the moving-in
 checklist on its right, one centered content area, and a fixed footer. The
 footer has no divider line; a soft fade appears above it only while content
-runs underneath. Ledger leads with one 32px Newsreader "Where to?" line; no
+runs underneath. Ledger leads with one 32px Instrument Sans "Where to?" line; no
 other layout adds a heading. Labels are sentence case without letter-spacing.
 Icon tiles use 6px corners, cards 10px, floating surfaces 14px, chips fully
 rounded. The Patron upgrade is a quiet chip outlined in Sunrise gold with no
@@ -237,108 +249,109 @@ colors. Gold marks state and navigation; primary buttons stay ink on ivory
 (ivory on ink in dark mode). Keyboard focus on `blanc://` pages is one 1px
 ring in `--text-dim`; Mahjong keeps its own.
 
-**System v2, September 27:** Inter is the product UI operating face, including
-addresses, counters, keycaps, commands, and license keys. Align changing
-numbers with tabular figures; use a slashed zero for the Patron license key.
-Only Mahjong tile faces keep JetBrains Mono through `--mj-face-font`.
-Newsreader also sets utility-sheet page and section headings. System v2 uses 8px small,
-10px control/row, 14px card/group, 20px sheet/dialog, and full pill radii.
-The Island and Start Page retain their existing 6px base radius and layouts.
-On warm sheets, page headings are Newsreader 30px/500, section headings are
-Newsreader 21px/500, card labels are dim Inter 12px/600, and body text is Inter 13px. Avoid
-uppercase letter-spaced labels on these surfaces.
+**System v3, October 15, 2026 (owner decision):** UI text on the internal
+pages and in the Island and overlay, including the Billboard clock and the
+Start Page and sheet headings, is Instrument Sans (SIL OFL 1.1, committed with
+its license in `src/renderer/pages/`) at width 98 and +0.01em letter spacing.
+Large lines tighten slightly: the Billboard clock to -0.02em and Ledger's
+"Where to?" to -0.015em. Inter stays for key caps, which need ⌘ ⌥ ⇧ ⌃ and
+arrows that Instrument Sans lacks, and for counters and license keys tuned on
+its tabular figures; use a slashed zero for the Patron license key. Only
+Mahjong tile faces keep JetBrains Mono through `--mj-face-font`, and the game
+keeps Inter for its controls. Buttons and form fields must inherit the page's
+letter and word spacing explicitly, because Chromium resets them. The app
+ships no commercially licensed font: Blubird is a website and wordmark face
+only. System v2 radii stand: 8px small, 10px control/row, 14px card/group,
+20px sheet/dialog, and full pills; the Island and Start Page keep their 6px
+base radius. On warm sheets, page headings are 30px/500, section headings are
+21px/500, card labels are dim 12px/600, and body text is 13px. Avoid uppercase
+letter-spaced labels on these surfaces.
 
-### Desktop display voice
+### Blanc lockup
 
-Newsreader appears where Blanc welcomes or orients the user: the Start Page
-moving-in checklist title and the six first-run onboarding titles. It also
-sets utility-sheet page and section headings. Use upright optical sizing;
-the sheet headings use medium weight for legibility at their smaller sizes.
-Inter remains the app's operating voice for dates, clocks, navigation, lists,
-metadata, controls, the Island, command palette, vertical tabs, card labels,
-dialogs, warnings, errors, and body copy. Billboard and Mahjong keep their
-existing identities. Review any further product use of the serif separately.
+The Blanc lockup is the Sunrise mark beside the word “Blanc” set in
+**Blubird** by Rajesh Rajput (owner choice, October 15, 2026: Regular Display,
+drawn as supplied except the l–a pair, closed by 8 font units). The word never
+appears without the mark, and it is never set in lower case. Its construction
+(“C”) is fixed: the Sunrise is 1.15× the height of the l, centred on the
+vertical middle of the B, with a gap of 0.3× the B height between them.
+
+- **Display cut** for the lockup above about 32px tall (the website footer:
+  155×40px).
+- **Text cut** (Blubird Regular Text) at about 32px tall and under, where the
+  Display cut's fine joins close up (the website header: 90×22px).
+
+The word is committed as outlines, not as a font, in `assets/wordmark/`
+(`blanc-word-{display,small}-{ink,white}.svg`); `site/scripts/build-lockup-assets.mjs`
+copies them with WebP exports of the Sunrise into `site/public/lockup/`, and
+its `--check` runs inside `npm run site:build`. The Sunrise exports are rendered
+from the vector `assets/sunrise-mark.svg` (October 15, 2026, replacing the 1024px
+raster, which blurred when the homepage drew it large or a visitor zoomed in).
+It keeps the 1024px canvas of `build/app-icons/Icon.icon/Assets/sunrise-mark.png`,
+so the same placement percentages fit every size; `test/unit/brand-assets.test.js`
+pins them. Ink on Blanc White, white (`#F8F2E8`) on warm ink. Do not stretch,
+re-space, recolour, outline or set the word in another face.
+
+The September 12 social direction (Sunrise alone, no typeset wordmark) still
+governs social creative until the owner changes it; the lockup is for the
+website and other surfaces the owner approves.
+
+**Licence.** The owner holds Blubird's Regular Licence (web and print, for an
+individual). It forbids redistributing the font files, and this repository is
+public, so the `.woff2` files are never committed: they sit in the git-ignored
+`site/public/fonts/blubird/` on the deploying machine (`npm run site:fonts --
+/path/to/Blubird.zip`), and `npm run site:deploy` refuses to deploy without
+them. App, product or corporate use beyond that licence needs Rajesh Rajput's
+written permission first.
 
 ### Editorial website footer
 
-The shared website footer uses the monochrome Sunrise symbol alone as its
-home link, without a typeset wordmark. Use the canonical BrandMark component
-at 44px on desktop and 40px below 900px, inside a 44px touch target. Keep it
-in ink (`--site-text`) on the warm section surface (`--site-surface`), including
-on hover. Do not crop, tint, animate, outline, or place it inside a badge;
-retain a visible keyboard focus ring.
-
-Use a quiet editorial layout: the symbol and “A little less browser.” tagline
-set in Newsreader at 20px,
-grouped navigation, and a secondary newsletter, followed by a fine rule and compact
-legal/social row. Navigation and utility links may use gold for hover, focus,
-and current-page states. Social/contact icons retain their original geometry
-and use bronze (`--site-gold`) at rest, changing to ink on hover or focus.
+The shared website footer is warm ink (`#111`) on every page. It opens with
+the Display lockup (155×40px) as the home link, the tagline “A little less
+browser.” in Blubird Text, and the newsletter field, then three link columns
+(Explore, Resources, Blanc) and a fine rule above the compact legal and social
+row. Links rest in a light warm grey (`#C0BCB5`) and turn near-white on hover;
+focus rings are gold on dark (`--site-gold-on-dark`). A page may put numbered
+method notes above the columns (the homepage's footnotes do).
 
 ### Horizon rule
 
 The footer seam on every page carries the horizon rule: a 1px gold
-(`--site-gold-on-dark`) hairline that fades out toward both edges, with a
-soft gold glow rising about 160px into the page above it at no more than
-about 30% strength. It replaces the footer's neutral top border. It is a
+(`--site-gold-on-dark`) hairline, full strength across the middle 40% and
+fading out toward both edges, with a soft gold glow rising 160px into the page
+above it at about 22% strength. It replaces a neutral top border. It is a
 decorative seam, not a focus indicator, and no mark, badge, or lockup may sit
-on the glow; the footer's Sunrise symbol sits below the line.
+on the glow; the footer's lockup sits below the line.
 
-### Homepage Sunrise mark
+### Homepage sunrise
 
-The owner-approved desktop hero mark permanently displays the original gold
-Sunrise artwork used by the app icon, directly on the ivory page. Use the
-generated `site/public/sunrise-hero-mark.png`, which shares the monochrome
-mark's crop and geometry; do not approximate the artwork with a tint. Keep
-its 32px size and existing placement above the eyebrow. There is no entrance
-animation or fade back to ink.
+The homepage opens on the gold Sunrise alone, with no wordmark, at
+`min(56vmin, 540px)`. Unless the visitor has asked for reduced motion, the
+sunrise plays once as the page opens (2.2 seconds, in one screen): it draws the
+horizon and its reflection, raises the disc, opens the rays and brings the sky
+from night to Blanc White, then shrinks the mark above the headline and brings
+in the copy. It used to be driven by scrolling a stage 4.2 screens tall; the
+owner rejected that on October 15, 2026, because the first screen showed
+neither what Blanc is nor how to get it. The stage is cut from one export
+(`site/public/lockup/sunrise-mark-2048.webp`) with clip paths, never redrawn
+or tinted. Everywhere else, and for reduced motion, the mark sits still at
+160px above the headline. Focusing anything in the hero shows its copy at once.
 
-On desktop with a fine pointer, hovering gently scales the gold hero mark to
-118%, returning to rest over 280ms when the pointer leaves. Reduced-motion
-visitors see the same static gold artwork without the hover effect. The hero
-mark remains hidden on mobile.
+### Website masthead
 
-### Desktop masthead Sunrise hover
-
-The desktop masthead is a sticky ivory bar (`--site-surface-raised` over a
-blur, hairline beneath) that carries the monochrome Sunrise mark at 24px in
-ink at rest. On hover or keyboard focus, crossfade to the original gold
-artwork from `site/public/sunrise-hero-mark.png` over 220ms; crossfade back
-when the interaction ends. Keep the size, position, and focus outline
-unchanged. Reduced-motion visitors get the same state change instantly. Use
-the original artwork rather than tinting the monochrome silhouette. The mega
-menus that drop from the bar carry the horizon hairline along their top edge
-and may use the warm-ink release card; no mark sits on either. The masthead
-replaced the bottom navigation island on 4 September 2026 (design note:
-`docs/superpowers/specs/2026-09-04-masthead-navigation-design.md`).
-
-Navigation decision, 4 September 2026: the bar reads features, company,
-security, what's new, download. `features` opens a mega menu grouped as
-Interface, Privacy and security, and Workflow, one link per feature page with
-that page's own headline as its description, and a spotlight cropped to the
-island. `company` opens Learn (FAQ, Press, About) and Community
-(Ambassadors, Newsletter, Source on GitHub) with a warm-ink card for the
-current release and a Blanc Patron line. The second menu is deliberately not
-named for the studio or the About page, and About is listed last in its
-group. Security stays a direct link on every page because trust is the
-product's pitch, and it also appears inside features. There is no search
-affordance because the site has no search, and no Patron entry in the bar
-because there is no Patron page. Below 640px the same content becomes two
-native accordions plus the direct links and a pinned download button. Legal
-pages keep their own minimal header. Menu content lives in
-`site/src/data/navigation.mjs` and is guarded by
-`test/unit/site-navigation.test.js`.
-
-### Mobile header Sunrise mark
-
-The mobile hamburger header uses the original gold Sunrise artwork at its
-28px size on ivory. Reuse `site/public/sunrise-hero-mark.png`; keep
-the mark permanently in color without animation, including for reduced-motion
-visitors. Its home link retains the existing 44px touch target and focus style.
-
-Apart from the desktop navigation hover above, footer, press-kit, legal-header,
-and other logo treatments stay monochrome. These exceptions do not authorize
-recoloring other marks.
+Every page shares one sticky, 52px masthead in warm ink (`#1B1A18` at 82% over
+a blur, with a faint light hairline beneath). It carries the small (Text cut)
+lockup at 90×22px as the home link, the six direct links from
+`site/src/data/navigation.mjs` in light warm grey, current page in near-white,
+and the Download pill in near-white. At 920px and narrower the links fold
+behind a Menu button that drops a full-width list; without scripting they wrap
+onto a second row instead. The bar never hides on scroll, because the
+homepage's sticky scenes sit just below it, and on the homepage a 2px gold
+progress line runs along its bottom edge. On Mail pages the Download pill
+becomes a plain “Browser download” link, since the Mail bar carries those
+pages' one call to action. This replaced the white bar with the monochrome
+Sunrise on October 15, 2026; the earlier mega menus (September 4) and hover
+crossfade are retired.
 
 ### Share cards
 
@@ -355,7 +368,7 @@ Three compositions keep the set varied: the homepage centres its copy over the
 dawn Start Page, whose sun sits on the card's gold horizon line; window cards
 put the copy left and the capture right; Island cards stand a resting pill on
 the horizon below the copy, or put an open panel beside it. Most cards use the
-ivory surface. Quiet Tabs, Security and Sync use the dark Sunrise surface, which
+Blanc White surface. Quiet Tabs, Security and Sync use the dark Sunrise surface, which
 suits a white Island and avoids glaring white windows.
 
 ## Titles and subtitles
@@ -384,8 +397,8 @@ state labels, and interface annotations. It is not a headline treatment.
 Before approving or publishing an asset:
 
 1. Inspect every frame, thumbnail, crop, and end card—not only the source file.
-2. Confirm the symbol is Sunrise, never the retired B. For new social creative, use the original gold Sunrise artwork on the warm ivory theme; preserve its geometry and clear space.
+2. Confirm the symbol is Sunrise, never the retired B. For new social creative, use the original gold Sunrise artwork on the Blanc White theme; preserve its geometry and clear space.
 3. Confirm crop-safe previews do not clip or crowd the mark.
-4. Confirm new marketing uses the Sunrise ivory, warm ink, muted brown-gray and restrained gold palette.
+4. Confirm new marketing uses the Blanc White, warm ink, muted brown-gray and restrained gold palette.
 5. Confirm titles are sentence case and subtitles follow the website hierarchy.
 6. Apply the separate product-claim gate in `docs/marketing-claims.md`.

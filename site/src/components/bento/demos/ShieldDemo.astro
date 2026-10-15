@@ -10,6 +10,7 @@ import renderer from '../../../../../src/renderer/renderer.js?raw';
 import overlay from '../../../../../src/renderer/overlay.html?raw';
 import mark from '../../../../../src/renderer/sunrise-hero-mark.png?url';
 import nativeFont from '../../../../../src/renderer/pages/inter-latin.woff2?url';
+import nativeTextFont from '../../../../../src/renderer/pages/instrument-sans-latin-wdth-normal.woff2?url';
 import { nativeIslandArt, nativeShieldPopoverArt, namespaceNativeArt, SHIELD_OPEN_SELECTORS } from '../../../lib/native-island-art.mjs';
 
 const host = 'nytimes.com', count = 24;
@@ -29,7 +30,7 @@ pillHtml = swap(pillHtml, 'id="pillShield" class="shield" aria-expanded="false"'
 pillHtml = swap(pillHtml, '<span id="pillShieldCount">1</span>', `<span id="pillShieldCount">${count}</span>`);
 
 const presentation = `
-  :host {display:block; font-family:var(--font-ui); font-size:13px; color:var(--text);}
+  :host {display:block; font-family:var(--font-text); letter-spacing:var(--text-tracking);word-spacing:var(--text-word-spacing); font-size:13px; color:var(--text);}
   [hidden] {display:none!important;}
   .native-stage {display:flex; flex-direction:column; align-items:center; width:var(--native-width, 520px);}
   #islandPill {margin:0; flex:none; width:max-content; max-width:none;}
@@ -50,7 +51,7 @@ const steps = [['1', 'summary', 'blanc'], ['2', 'chooser', 'blanc'], ['3', 'choo
   return { at, html, css };
 });
 ---
-<style is:inline set:html={`@font-face {font-family:Inter;src:url('${nativeFont}') format('woff2');font-style:normal;font-weight:100 900;font-display:swap;}`} />
+<style is:inline set:html={`@font-face {font-family:Inter;src:url('${nativeFont}') format('woff2');font-style:normal;font-weight:100 900;font-display:swap;}@font-face {font-family:"Instrument Sans";src:url('${nativeTextFont}') format('woff2');font-style:normal;font-weight:400 700;font-stretch:75% 100%;font-display:swap;}`} />
 <div class="demo demo-shield-native">
   {steps.map(({ at, html, css }) => (
     <div class="demo-native-step" data-at={at}>

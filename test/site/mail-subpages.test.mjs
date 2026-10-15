@@ -55,12 +55,11 @@ test('a link to a section lands with its heading below the bars', async () => {
     await page.waitForFunction(() => document.querySelector('.mail-contents a[aria-current="location"]')?.getAttribute('href') === '#subscriptions');
     const gap = id => page.evaluate(id => document.getElementById(id).getBoundingClientRect().top - document.querySelector('.mail-bar').getBoundingClientRect().bottom, id);
     assert.ok(await gap('subscriptions') >= 0, `the heading starts ${await gap('subscriptions')}px below the bar`);
-    // Jumping back up brings the site header back, and the bar down with it.
+    // Jumping back up lands below both bars too.
     await page.evaluate(() => { location.hash = '#contact'; });
     await page.waitForTimeout(400);
     await page.locator('.mail-contents a[href="#the-app-and-trial"]').click();
-    await page.waitForFunction(() => !document.querySelector('.site-header').classList.contains('is-scroll-hidden'));
-    await page.waitForTimeout(400); // the bars' 220ms slide
+    await page.waitForTimeout(400);
     assert.ok(await gap('the-app-and-trial') >= 0, `after jumping up, the heading starts ${await gap('the-app-and-trial')}px below the bar`);
     assert.equal(await current(page), '#the-app-and-trial');
   } finally { await context.close(); }

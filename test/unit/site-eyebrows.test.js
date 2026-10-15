@@ -26,8 +26,8 @@ const ALLOWED = [
   'pages/features.astro → Patron',
   'pages/features/security.astro → public v1.27.0 · October 3, 2026',
   'pages/features/workspaces.astro → Blanc Spaces',
-  'pages/index.astro → Blanc Browser',
-  'pages/index.astro → The Island',
+  // The cinematic homepage carries none: the owner cut its four on October 15,
+  // 2026 ("we need to cool it with all the eyebrow usage").
   'pages/mail/download.astro → macOS only · Coming soon',
   'pages/mail/pricing.astro → Blanc Mail · Planned pricing',
   'pages/mail/privacy.astro → Blanc Mail · Pre-release policy',

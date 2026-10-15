@@ -1,6 +1,7 @@
 ---
 /**
- * Measured browser memory, six ad-heavy news sites open in each.
+ * Measured browser memory, six ad-heavy sites open in each (five news sites
+ * and Speedtest; bench/memory/workloads.json).
  *
  * Source of truth: bench/memory/results/memory-2026-10-15T06-03-46-052Z.md —
  * a single-session run, three repetitions per browser, on one Mac. Every figure
@@ -31,7 +32,7 @@ interface Props {
 const {
   headingId = 'memory-title',
   heading = 'Under a third of Chrome’s memory.',
-  intro = 'Six ad-heavy news sites open in every browser, on the same Mac, in the same sitting.',
+  intro = 'Six ad-heavy sites open in every browser, on the same Mac, in the same sitting.',
 } = Astro.props;
 ---
 
@@ -44,7 +45,7 @@ const {
   <figure class="memchart">
     <table class="memchart-table">
       <caption class="sr-only">
-        Memory used by each browser with six ad-heavy news sites open, in gibibytes
+        Memory used by each browser with six ad-heavy sites open, in gibibytes
       </caption>
       <thead>
         <tr>

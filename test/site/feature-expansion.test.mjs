@@ -45,6 +45,13 @@ test('expanded pages load their images and fit 360, 768, and 1440 pixel viewport
         // Captures inside closed Features popovers stay hidden until opened.
         for (const img of await page.locator('main img[src^="/feature-captures/"]').filter({ visible: true }).all()) {
           await img.scrollIntoViewIfNeeded();
+          // A lazy image far down the page only starts loading once it nears
+          // the viewport, and Chromium rejects a decode() made just before that
+          // load restarts the request. Wait for the load itself, then decode.
+          await img.evaluate(image => image.complete || new Promise((resolve, reject) => {
+            image.addEventListener('load', resolve, { once: true });
+            image.addEventListener('error', () => reject(new Error(`${image.currentSrc} failed to load`)), { once: true });
+          }));
           await img.evaluate(image => image.decode());
           assert.ok(await img.evaluate(image => image.complete && image.naturalWidth === 1440), `${route}: capture loaded`);
         }

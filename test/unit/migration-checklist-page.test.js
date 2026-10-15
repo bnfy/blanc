@@ -80,11 +80,11 @@ test('checklist is a footer pill beside Customize whose popover opens upward, an
   assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{[\s\S]{0,320}?animation: none;/);
 });
 
-test('moving-in checklist uses Newsreader and Inter without handwritten styling', () => {
+test('moving-in checklist uses the page face without handwritten styling', () => {
   const css = read('src/renderer/pages/pages.css');
 
-  assert.match(css, /\.migration-checklist-heading h2 \{[\s\S]{0,180}?font-family: var\(--font-display\)/);
-  assert.match(css, /\.migration-task-label \{[\s\S]{0,180}?font-family: var\(--font-ui\)/);
+  assert.match(css, /\.migration-checklist-heading h2 \{[\s\S]{0,180}?font-family: var\(--font-text\)/);
+  assert.match(css, /\.migration-task-label \{[\s\S]{0,180}?font-family: var\(--font-text\)/);
   const heading = css.match(/\.migration-checklist-heading h2 \{([\s\S]*?)\n\}/)?.[1] ?? '';
   const task = css.match(/\.migration-task-label \{([\s\S]*?)\n\}/)?.[1] ?? '';
   assert.doesNotMatch(heading, /Caveat|rotate/);

@@ -13,7 +13,7 @@ const sync = require('./sync');
 const history = require('./history');
 const bookmarks = require('./bookmarks');
 const path = require('node:path');
-const { app, Menu, clipboard, nativeImage } = require('electron');
+const { app, Menu, clipboard, nativeImage, webContents } = require('electron');
 const { buildAddressMenu } = require('./address-menu-model');
 const { blockableHostname } = require('./adblock-exceptions');
 const { syncSnapshot } = require('./session-snapshot');
@@ -498,6 +498,9 @@ function install(refs) {
           pinned: !!t.pinned,
           muted: !!t.muted,
           audible: !!t.audible,
+          // Projection of the one-time hidden-start autoplay guard; a visible
+          // pane must never carry it.
+          audioGuarded: !!t.backgroundAutoplayMuted,
           canGoBack: !!t.canGoBack,
           canGoForward: !!t.canGoForward,
           private: !!t.private,
@@ -571,6 +574,19 @@ function install(refs) {
       wc.focus();
       return true;
     },
+    // Fire the webContents event the autoplay guard listens to, without a
+    // media element: the guard's decision is what is under test.
+    simulateMediaStarted(id) {
+      const wc = liveContents(tabs.get(id));
+      if (!wc || wc.isDestroyed()) return false;
+      wc.emit('media-started-playing');
+      return true;
+    },
+    tabBounds(id) {
+      const tab = tabs.get(id);
+      return tab?.view ? tab.view.getBounds() : null;
+    },
+    focusedWebContentsId() { return webContents.getFocusedWebContents()?.id ?? null; },
     railActivationSerial() { return getRailActivationSerial(); },
     toggleGroup(id) { toggleGroupCollapsed(id); },
     moveTab(id, target) { return moveTabTo(id, target); },
@@ -1109,7 +1125,9 @@ function install(refs) {
       const tab = tabs.get(getActiveTabId());
       if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
       const page = await tab.view.webContents.executeJavaScript(`(async () => {
-        await document.fonts.load('22px "Newsreader Condensed"');
+        await Promise.all([
+          document.fonts.load('22px "Instrument Sans"'),
+        ]).catch(() => []);
         const selectors = [
           '.start-brand-date', '.ledger-label', '.bb-clock',
           '.bb-blocked', '.shelf-label', '.shelf-count', '.tally-count',
@@ -1117,28 +1135,25 @@ function install(refs) {
           '.ob-step-label', '.ob-content p'
         ];
         if (selectors.some((selector) => !document.querySelector(selector))) return null;
-        const newsreaderSelector = '.bb-clock, .ledger-where, .migration-checklist-heading h2, .ob-content h1';
-        const newsreader = [...document.querySelectorAll(newsreaderSelector)];
-        const newsreaderElements = [...document.querySelectorAll('body, body *')]
-          .filter((element) => getComputedStyle(element).fontFamily.includes('Newsreader'));
+        const headingSelector = '.bb-clock, .ledger-where, .migration-checklist-heading h2, .ob-content h1';
+        const everything = [...document.querySelectorAll('body, body *')];
+        const label = (element) => element.id || element.className || element.tagName;
         return {
           samples: selectors.map((selector) => ({
             selector,
             family: getComputedStyle(document.querySelector(selector)).fontFamily,
           })),
-          newsreader: newsreader.map((element) => ({
+          headings: [...document.querySelectorAll(headingSelector)].map((element) => ({
             selector: element.className || 'onboarding h1',
             family: getComputedStyle(element).fontFamily,
           })),
-          newsreaderLoaded: document.fonts.check('22px "Newsreader Condensed"'),
-          newsreaderOutsideApproved: newsreaderElements
-            .filter((element) => !element.matches(newsreaderSelector))
-            .slice(0, 20)
-            .map((element) => element.id || element.className || element.tagName),
-          jetbrains: [...document.querySelectorAll('body, body *')]
+          textFaceLoaded: document.fonts.check('22px "Instrument Sans"'),
+          newsreader: everything
+            .filter((element) => getComputedStyle(element).fontFamily.includes('Newsreader'))
+            .slice(0, 20).map(label),
+          jetbrains: everything
             .filter((element) => getComputedStyle(element).fontFamily.includes('JetBrains Mono'))
-            .slice(0, 20)
-            .map((element) => element.id || element.className || element.tagName),
+            .slice(0, 20).map(label),
         };
       })()`);
       return { page };
@@ -1318,8 +1333,8 @@ function install(refs) {
               selector,
               family: getComputedStyle(document.querySelector(selector)).fontFamily,
             })),
-            newsreader: [...document.querySelectorAll('body, body *')]
-              .filter((element) => getComputedStyle(element).fontFamily.includes('Newsreader'))
+            instrument: [...document.querySelectorAll('body, body *')]
+              .filter((element) => getComputedStyle(element).fontFamily.includes('Instrument Sans'))
               .slice(0, 20)
               .map((element) => element.id || element.className || element.tagName),
             tileFaceFamily: getComputedStyle(document.querySelector('.mj-face text')).fontFamily,
@@ -1868,7 +1883,7 @@ function install(refs) {
           }
           return {
             theme: dark ? 'dark' : 'light',
-            fontLoaded: document.fonts.check('22px "Newsreader Condensed"'),
+            fontLoaded: document.fonts.check('22px "Instrument Sans"'),
             dialogOverflow: dialog.scrollWidth > dialog.clientWidth + 1,
             pageOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
             steps,

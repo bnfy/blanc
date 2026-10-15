@@ -53,22 +53,22 @@ object BlancTokens {
         BlancTheme.PRIVATE -> "rgba(245, 245, 245, 0.12)"
     }
     fun sunriseBg(theme: BlancTheme): String = when (theme) {
-        BlancTheme.LIGHT -> "#f7f0e5"
+        BlancTheme.LIGHT -> "#f8f2e8"
         BlancTheme.DARK -> "#17130f"
         BlancTheme.PRIVATE -> "#100d0b"
     }
     fun sunriseSurface(theme: BlancTheme): String = when (theme) {
-        BlancTheme.LIGHT -> "#efe6d8"
+        BlancTheme.LIGHT -> "#f2eade"
         BlancTheme.DARK -> "#2d251d"
         BlancTheme.PRIVATE -> "#251d17"
     }
     fun sunriseSurfaceRaised(theme: BlancTheme): String = when (theme) {
-        BlancTheme.LIGHT -> "#fffcf7"
+        BlancTheme.LIGHT -> "#ffffff"
         BlancTheme.DARK -> "#221d17"
         BlancTheme.PRIVATE -> "#1a1511"
     }
     fun sunriseBorder(theme: BlancTheme): String = when (theme) {
-        BlancTheme.LIGHT -> "#ddd2c2"
+        BlancTheme.LIGHT -> "#e1d7c9"
         BlancTheme.DARK -> "#4a3e31"
         BlancTheme.PRIVATE -> "#594a39"
     }
@@ -117,7 +117,10 @@ object BlancTokens {
     const val spaceSlate: String = "#576471"
     const val spaceGraphite: String = "#3a3a3a"
     const val fontUi: String = "\"Inter\", -apple-system, \"Segoe UI Variable\", \"Segoe UI\", system-ui, sans-serif"
-    const val fontDisplay: String = "\"Newsreader Condensed\", \"Newsreader\", \"Iowan Old Style\", \"Palatino Linotype\", Palatino, serif"
+    const val fontText: String = "\"Instrument Sans\", \"Inter\", -apple-system, \"Segoe UI Variable\", \"Segoe UI\", system-ui, sans-serif"
+    const val textWordSpacing: String = "normal"
+    const val textTracking: String = "0.01em"
+    const val textWidth: String = "98"
     const val typeBodySize: String = "13px"
     const val typePageTitleSize: String = "24px"
     const val typePageTitleWeight: String = "650"
