@@ -594,7 +594,7 @@ Then('the strip announces that the reference is now the main page', async functi
 
 Given('a quiet background tab that loads slowly', async function () {
   this.glanceMainUrl = this.fixtureUrl('glance-main');
-  this.glanceReferenceUrl = `${this.fixtureUrl('glance-reference')}?hold=2500`;
+  this.glanceReferenceUrl = `${this.fixtureUrl('glance-reference')}?hold=slow`;
   this.glanceMainId = await this.call('openTab', this.glanceMainUrl);
   this.glanceReferenceId = await this.call('openTab', this.glanceReferenceUrl);
   await this.call('activateTab', this.glanceMainId, false);
