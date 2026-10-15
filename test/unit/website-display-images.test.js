@@ -51,7 +51,8 @@ test('pages use the light copies while full-size links keep the pinned captures'
   assert.doesNotMatch(guide, /<img src="\/feature-captures\/[a-z]+-v1\.31\.0\.png"/);
   assert.match(guide, /href="\/feature-captures\/ledger-v1\.31\.0\.png"/);
   // Below the opening screen, captures wait until they are scrolled near.
+  const escape = text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   for (const capture of ['glance-v1.30.1', 'home-wallpaper-dusk-v1.31.0', 'workspaces-v1.33.0']) {
-    assert.match(home, new RegExp(`src="/feature-captures/${capture.replace(/\./g, '\\.')}\\.webp"[^>]*loading="lazy"`), capture);
+    assert.match(home, new RegExp(`src="${escape(`/feature-captures/${capture}.webp`)}"[^>]*loading="lazy"`), capture);
   }
 });

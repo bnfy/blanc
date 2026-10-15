@@ -36,10 +36,21 @@ for (const name of fs.readdirSync(WORDS).filter(name => name.endsWith('.svg')).s
   outputs.set(name, fs.readFileSync(path.join(WORDS, name)));
 }
 
+// Read the current file directly rather than checking for it first, so there
+// is no window between a check and the write that follows.
+const readCurrent = (target) => {
+  try {
+    return fs.readFileSync(target);
+  } catch (error) {
+    if (error.code === 'ENOENT') return null;
+    throw error;
+  }
+};
+
 const stale = [];
 for (const [name, bytes] of outputs) {
   const target = path.join(OUT, name);
-  const current = fs.existsSync(target) ? fs.readFileSync(target) : null;
+  const current = readCurrent(target);
   if (current && current.equals(bytes)) continue;
   if (check) stale.push(name);
   else {
