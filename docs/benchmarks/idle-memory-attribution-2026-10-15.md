@@ -14,7 +14,7 @@ largest is GPU compositing, not JavaScript.
 
 | What | Arrived | macOS cost (2× scale) | Status |
 | --- | --- | ---: | --- |
-| Full-window GPU compositing: forced by the resting Island's `backdrop-filter` whenever a website is showing; the Start Page holds the same buffers by itself, for a reason not yet isolated | 1.14.0 | ≈ 40 MiB idle; **79 MiB with a website showing** | Island blur removed in this PR; Start Page cause still open |
+| Full-window GPU compositing: forced by the resting Island's `backdrop-filter` whenever a website is showing; the Start Page holds the same buffers by itself, for a reason not yet isolated | 1.14.0 | ≈ 40 MiB idle; **79 MiB with a website showing** | Island blur kept by owner decision; Start Page cause still open |
 | Hidden display-capture helper window (a whole renderer) created at startup | 1.16.0 | 18 MiB | Make it lazy; touches hash-pinned capture files |
 | Start Page wallpaper: decoded image plus its GPU texture | 1.21.0 | 17 MiB | Product decision |
 | Larger chrome, overlay and Start Page documents (CSS, scripts, fonts, strings) | gradual | ≈ 10 MiB | Not worth chasing one by one |
@@ -182,11 +182,7 @@ before the next published run.
 
 ## What this PR changes
 
-1. **Removes the resting Island's backdrop blur** (`src/renderer/styles.css`).
-   No visible change; −79 MiB at 2× (−35 MiB at 1×) on macOS whenever a
-   website is the active tab; 1–4 MiB at idle. The visual test that pinned the
-   blur now pins its absence, with the reason.
-2. **Verifies the bundled blocker lists without building their text**
+1. **Verifies the bundled blocker lists without building their text**
    (`src/main/adblock-snapshot.js`). Every byte is still hashed against the
    release pins at startup; the text is decoded only when the engine must be
    compiled from source, and that path reads and verifies the files again. On
@@ -194,14 +190,19 @@ before the next published run.
    MiB, idle total at the benchmark's settle point ≈ 196 → 181 MiB; both
    settle at the same 56 MiB after the first full GC. No measurable change on
    macOS.
-3. **Adds `bench/memory/idle-attribution.js`** with unit tests, so the next
+2. **Adds `bench/memory/idle-attribution.js`** with unit tests, so the next
    regression can be attributed to a process in one run.
+
+The PR first removed the resting Island's backdrop blur as well. The owner
+chose to keep it: it is the website nav's material, and
+`test/unit/island-resting-visual.test.js` pins it on purpose. The
+measurements above stand as the record of what it costs.
 
 ## Further fixes, ranked by memory saved against risk
 
 | Fix | Saves (macOS 2×) | Risk |
 | --- | ---: | --- |
-| Done here: drop the Island backdrop blur | 79 MiB browsing, 1–4 idle | Very low: pixel-identical apart from antialiasing |
+| Drop the Island backdrop blur (kept by owner decision, October 15, 2026) | 79 MiB browsing, 1–4 idle | Very low technically: pixel-identical apart from antialiasing; reverses a deliberate design choice |
 | Find and remove what keeps the idle Start Page on full-window compositing | ≈ 40 MiB idle | Unknown until isolated; footer blur, drop shadow, wallpaper and proximity are ruled out |
 | Create the display-capture helper on the first `getDisplayMedia` request | 18 MiB, every platform | Medium: the broker captures `helperWc` at install and `display-capture-broker*.js` are hash-pinned in `capture-runtime-lock.json`, so it needs fresh capture evidence on all three platforms |
 | Lighter Start Page wallpaper (smaller asset, or only when the window is large) | up to 17 MiB | Product decision |
