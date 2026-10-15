@@ -46,8 +46,8 @@
     "q": "How much memory does Electron use?",
     "a": [
       "Memory use depends on the pages, number of tabs, background activity and operating system. Electron uses multiple processes, so a single process’s memory figure does not describe the whole browser. Quiet Tabs can reclaim inactive-tab renderers and rebuild them when needed.",
-      "Blanc’s published benchmark is dated measurements from August 9, 2026 on macOS 27, arm64 and 8 GiB RAM, using its published harness and raw runs. It measures phys_footprint across each browser’s process tree, rather than summing RSS, which can count shared engine memory repeatedly.",
-      "Brave is a useful comparison because it also blocks by default. That run also included Blanc with blocking disabled. These results describe those browser versions and workloads on that machine; they are not Windows or Linux results, a current-release benchmark, or a promise that Blanc will always use less memory."
+      "Blanc’s published benchmark is dated measurements from October 15, 2026 with Blanc 1.34.0 on macOS 27, arm64 and 8 GiB RAM, using its published harness and raw runs. It measures phys_footprint across each browser’s process tree, rather than summing RSS, which can count shared engine memory repeatedly.",
+      "Brave is a useful comparison because it also blocks by default; in that run it used a little less memory than Blanc. The run also included Blanc with blocking disabled, which used about as much as Chrome. These results describe those browser versions and workloads on that machine; they are not Windows or Linux results, or a promise that Blanc will always use less memory."
     ]
   },
   {
