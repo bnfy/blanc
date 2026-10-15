@@ -4875,17 +4875,21 @@ function installGlanceShortcut(webContents, owner = rt()) {
   }));
 }
 
-function activeBrowserCommandTab(runtime) {
-  const tab = tabs.get(runtime.activeTabId);
+/** The page a browser command acts on: the pane the key came from, else the
+ * focused pane, else the main page (glance-focus.js). Never a quiet tab. */
+function browserCommandTab(runtime, sender = null) {
+  const contentsOf = (tabId) =>
+    windowRuntimes.runtimeForTab(tabId) === runtime ? liveContents(tabs.get(tabId)) : null;
+  const tab = tabs.get(commandTargetTab(runtime, sender, contentsOf));
   return tab && windowRuntimes.runtimeForTab(tab.id) === runtime &&
     !tab.sleeping && liveContents(tab) ? tab : null;
 }
 
-function reloadBrowserCommandTab(runtime, bypassCache = false) {
-  const tab = activeBrowserCommandTab(runtime);
+function reloadBrowserCommandTab(runtime, bypassCache = false, sender = null) {
+  const tab = browserCommandTab(runtime, sender);
   const wc = liveContents(tab);
   return queueTabNavigation(wc, {
-    isCurrent: () => activeBrowserCommandTab(runtime) === tab && liveContents(tab) === wc,
+    isCurrent: () => !!tab && isVisiblePaneId(runtime, tab.id) && liveContents(tab) === wc,
     run: contents => reloadContents(contents, bypassCache),
   });
 }
@@ -4894,14 +4898,14 @@ const executeBrowserCommand = createBrowserCommandExecutor({
   'new-window': runtime => openNewWindow({ profileId: runtime.profileId }),
   'new-tab': () => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true }),
   'new-private-tab': () => setActiveTab(createTab(PRIVATE_NEW_TAB_URL, { private: true }), { focusContent: false, focusAddress: true }),
-  'close-tab': runtime => { const tab = activeBrowserCommandTab(runtime); if (tab) closeTab(tab.id); },
+  'close-tab': (runtime, sender) => { const tab = browserCommandTab(runtime, sender); if (tab) closeTab(tab.id); },
   'reopen-tab': reopenClosedTab,
   'next-tab': () => cycleTab(1),
   'previous-tab': () => cycleTab(-1),
   address: toggleIsland,
   find: openFindBar,
-  reload: runtime => reloadBrowserCommandTab(runtime),
-  'hard-reload': runtime => reloadBrowserCommandTab(runtime, true),
+  reload: (runtime, sender) => reloadBrowserCommandTab(runtime, false, sender),
+  'hard-reload': (runtime, sender) => reloadBrowserCommandTab(runtime, true, sender),
   history: () => openInternalPage('blanc://history/'),
   downloads: () => openInternalPage('blanc://downloads/'),
   settings: () => openInternalPage('blanc://settings/'),
@@ -4934,7 +4938,7 @@ function installChromeShortcuts(webContents, owner = rt()) {
     webContents,
     getRuntime,
     ownsSurface: ownsBrowserShortcutSurface,
-    execute: (id, runtime) => bindWindowRuntime(runtime, () => executeBrowserCommand(id, runtime))(),
+    execute: (id, runtime, sender) => bindWindowRuntime(runtime, () => executeBrowserCommand(id, runtime, sender))(),
     observe: observeBrowserCommand,
   });
   installVerticalTabsShortcut(webContents, owner);

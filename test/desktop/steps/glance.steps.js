@@ -45,6 +45,23 @@ async function focusPane(world, tabId) {
   await world.waitForState((state) => state.focusedPaneTabId === tabId);
 }
 
+/** The fixture page's own load counter (sessionStorage, +1 per load). */
+async function loadCount(world, tabId) {
+  try {
+    return await world.call('workspacePageScript', tabId,
+      "Number(sessionStorage.getItem('acceptance-load-count'))");
+  } catch {
+    return null;
+  }
+}
+
+async function recordLoadCounts(world) {
+  world.glanceLoadsBefore = {
+    main: await loadCount(world, world.glanceMainId),
+    reference: await loadCount(world, world.glanceReferenceId),
+  };
+}
+
 async function cssColour(chrome, token) {
   return chrome.evaluate((name) => {
     const probe = document.createElement('span');
@@ -887,4 +904,42 @@ Then('the Glance header shows the main page has focus', async function () {
   );
   const eyebrow = await chrome.locator('#glanceEyebrow').evaluate((element) => getComputedStyle(element).color);
   assert.equal(eyebrow, await cssColour(chrome, '--text-dim'));
+});
+
+When('I press the {word} command', async function (command) {
+  const state = await this.state();
+  await recordLoadCounts(this);
+  const target = state.focusedPaneTabId ?? state.activeTabId;
+  assert.equal(await this.call('pressBrowserCommand', target, command), true);
+});
+
+When('the replacement tab becomes the reference without a focus change', async function () {
+  assert.equal(await this.call('setGlance', this.glanceReplacementId), true);
+  await this.waitForState((state) => state.glanceTabId === this.glanceReplacementId);
+});
+
+Then('only the reference page reloaded', async function () {
+  await waitForValue(() => loadCount(this, this.glanceReferenceId),
+    (count) => count === this.glanceLoadsBefore.reference + 1, 'the reference reloaded');
+  assert.equal(await loadCount(this, this.glanceMainId), this.glanceLoadsBefore.main, 'the main page reloaded too');
+});
+
+Then('only the main page reloaded', async function () {
+  await waitForValue(() => loadCount(this, this.glanceMainId),
+    (count) => count === this.glanceLoadsBefore.main + 1, 'the main page reloaded');
+  assert.equal(await loadCount(this, this.glanceReferenceId), this.glanceLoadsBefore.reference);
+});
+
+Then('the reference tab is closed and the main page has focus', async function () {
+  const state = await this.waitForState((candidate) =>
+    candidate.glanceTabId === null && !candidate.tabs.some((tab) => tab.id === this.glanceReferenceId));
+  assert.equal(state.activeTabId, this.glanceMainId);
+  assert.equal(state.focusedPaneTabId, this.glanceMainId);
+  const main = state.tabs.find((tab) => tab.id === this.glanceMainId);
+  await waitForValue(() => this.call('focusedWebContentsId'), (id) => id === main.webContentsId,
+    'focus handed to the main page');
+});
+
+Then('the main page tab is closed', async function () {
+  await this.waitForState((state) => !state.tabs.some((tab) => tab.id === this.glanceMainId));
 });

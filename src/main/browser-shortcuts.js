@@ -53,13 +53,15 @@ function matchBrowserShortcut(input, platform = process.platform) {
 }
 
 function createBrowserCommandExecutor(actions, { platform = process.platform } = {}) {
-  return (id, runtime) => {
+  return (id, runtime, sender = null) => {
     const action = Object.hasOwn(COMMANDS, id) ? actions[id] : null;
     if (!action || !runtime || runtime.closing || runtime.resident) return false;
     const detachedMacAction = platform === 'darwin' && !runtime.window &&
       ['new-window', 'new-tab', 'new-private-tab', 'reopen-tab'].includes(id);
     if (!detachedMacAction && (!runtime.window || runtime.window.isDestroyed())) return false;
-    action(runtime);
+    // The key event's webContents, so a command can act on the pane it was
+    // pressed in (glance-focus.js). Menu clicks pass none.
+    action(runtime, sender);
     return true;
   };
 }
@@ -75,7 +77,7 @@ function installBrowserShortcuts({ webContents, getRuntime, ownsSurface, execute
     // are consumed too, so holding Ctrl+W cannot close an entire workspace.
     event.preventDefault();
     if (input.isAutoRepeat) return;
-    const handled = execute(id, runtime);
+    const handled = execute(id, runtime, webContents);
     observe({ id, runtimeId: runtime.id, webContentsId: webContents.id, handled });
   });
 }

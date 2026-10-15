@@ -184,3 +184,30 @@ Feature: Glance reference pane
     Then the Glance header shows the reference has focus
     When the main page is the focused pane
     Then the Glance header shows the main page has focus
+
+  @F34-1 @F34 @D11
+  Scenario: Reload with focus in the reference reloads the reference
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And the reference pane is the focused pane
+    And I press the reload command
+    Then only the reference page reloaded
+
+  @F34-1 @F34 @D11
+  Scenario: Close Tab with focus in the reference closes the reference tab only
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And the reference pane is the focused pane
+    And I press the close-tab command
+    Then the reference tab is closed and the main page has focus
+    When I press the close-tab command
+    Then the main page tab is closed
+
+  @F34-1 @F34 @D11
+  Scenario: Replacing the reference hands commands back to the main page
+    Given three ordinary tabs with one open in Glance
+    When the reference pane is the focused pane
+    And the replacement tab becomes the reference without a focus change
+    And I press the reload command
+    Then only the main page reloaded
+    And the Glance header shows the main page has focus
