@@ -24,7 +24,10 @@ Source mark:
 
 - `build/app-icons/Icon.icon/` — the Icon Composer document, including
   `Assets/blanc-mark.svg`
-- `assets/sunrise-app-icon.png` — the static Sunrise platform source
+- `assets/sunrise-mark.svg` — the Sunrise mark as vector artwork, the source of
+  every Sunrise surface; `assets/sunrise-mark-4096.png` — its rendered master
+- `assets/sunrise-app-icon.png` — the static Sunrise platform icon, generated
+  from the vector mark
 - `build/icon.png` — 1024×1024 raster template
 
 Product marks:

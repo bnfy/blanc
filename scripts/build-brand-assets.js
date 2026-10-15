@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+const crypto = require('node:crypto');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const sharp = require('sharp');
@@ -8,8 +9,16 @@ const { pngsEquivalent } = require('./png-equivalence');
 
 const ROOT = path.join(__dirname, '..');
 const SOURCE = path.join(ROOT, 'assets/blanc-mark.svg');
-const SUNRISE_SOURCE = path.join(ROOT, 'src/renderer/pages/mahjong-wind-east.png');
-const PLATFORM_ICON_SOURCE = path.join(ROOT, 'assets/sunrise-app-icon.png');
+// The Sunrise mark's source is the vector assets/sunrise-mark.svg. It is
+// rendered once to a 4096px master PNG (on the macOS icon layer's 1024 canvas,
+// scaled 4x) and every Sunrise surface is cut and resized from that master.
+// librsvg renders the SVG slightly differently on each platform, so --check
+// never re-renders it: writing records both files' sha256 in
+// assets/sunrise-mark.lock.json and --check requires them to match.
+const SUNRISE_SVG = 'assets/sunrise-mark.svg';
+const SUNRISE_MASTER = 'assets/sunrise-mark-4096.png';
+const SUNRISE_LOCK = 'assets/sunrise-mark.lock.json';
+const SUNRISE_MASTER_SIZE = 4096;
 const PAGES_DIR = path.join(ROOT, 'src/renderer/pages');
 // Historical artwork/export inputs only. package.json excludes these B icons
 // from the app payload; Settings and the native catalog expose Sunrise only.
@@ -40,10 +49,41 @@ const ICON_MARK_HEIGHT = 544;
 const ICON_MARK_CENTER = { x: 535.5, y: 511.5 };
 const ICON_ERASE_REGION = { left: 296, top: 226, width: 480, height: 572 };
 const SQUARE_EXPORT_BOX = { left: 170, top: 170, width: 684, height: 684 };
-const SUNRISE_CROP = { left: 36, top: 16, width: 190, height: 194 };
-// The 14px internal-page favicon keeps only the rays and half-sun. The water
-// lines begin on source row 146 and collapse into noise at that scale.
-const SUNRISE_FAVICON_CROP = { left: 36, top: 16, width: 190, height: 130 };
+// Regions of the 4096 master: the whole mark (the native layer's 845px box at
+// 89px on the 1024 canvas), and for the 14px internal-page favicon only the
+// rays and half-sun, whose water lines collapse into noise at that scale.
+const SUNRISE_CROP = { left: 356, top: 356, width: 3380, height: 3380 };
+const SUNRISE_FAVICON_CROP = { left: 356, top: 356, width: 3380, height: 2265 };
+// The static "enhanced" Sunrise icons (Windows, Linux, iOS, the media kit and
+// the square exports): the gold mark edge to edge on a solid field, its
+// bounding box at these fractions of the canvas.
+const SUNRISE_ENHANCED_BOX = { left: 0.1357, top: 0.0990, right: 0.8652, bottom: 0.8380 };
+const SUNRISE_ENHANCED_FIELDS = { light: [247, 240, 229], dark: [28, 26, 22] };
+// The SVG leaves a hairline (7 to 12 master px) between the disc and the top
+// horizon bar. It reads as a highlight in gold, but as a crack in a flat ink
+// silhouette, so ink versions fill any vertical gap this short. The next
+// shortest gap in the mark, between the lowest bars, is 40px.
+const SUNRISE_INK_SEAM = 16;
+
+// Fills vertical runs of transparency no taller than `limit` that have
+// opaque artwork directly above and below (RGBA raw buffer, in place).
+function closeVerticalSeams(data, width, height, limit) {
+  const opaque = (x, y) => data[(((y * width) + x) * 4) + 3] >= 128;
+  for (let x = 0; x < width; x += 1) {
+    let y = 1;
+    while (y < height) {
+      if (!opaque(x, y) && opaque(x, y - 1)) {
+        const start = y;
+        while (y < height && !opaque(x, y)) y += 1;
+        if (y < height && y - start <= limit) {
+          // The rows bounding the gap are only partly opaque; include them.
+          for (let fill = start - 1; fill <= y; fill += 1) data[(((fill * width) + x) * 4) + 3] = 255;
+        }
+      }
+      y += 1;
+    }
+  }
+}
 const SUNRISE_FLAT_SIZE = 680;
 const SUNRISE_FLAT_POSITION = 172;
 const SUNRISE_NATIVE_SIZE = 845;
@@ -236,13 +276,54 @@ function sunriseTileSvg({ dark }) {
   `);
 }
 
-async function buildSunriseAssets() {
-  const { data, info } = await sharp(SUNRISE_SOURCE)
+const sha256 = (bytes) => crypto.createHash('sha256').update(bytes).digest('hex');
+
+async function sunriseMaster() {
+  const svg = await fs.readFile(path.join(ROOT, SUNRISE_SVG));
+  if (!check) {
+    const master = await sharp(svg, { density: (72 * SUNRISE_MASTER_SIZE) / ICON_CANVAS })
+      .resize(SUNRISE_MASTER_SIZE, SUNRISE_MASTER_SIZE)
+      .png({ compressionLevel: 9, adaptiveFiltering: true })
+      .toBuffer();
+    await emit(SUNRISE_MASTER, master);
+    const lock = { svg: { file: SUNRISE_SVG, sha256: sha256(svg) }, master: { file: SUNRISE_MASTER, sha256: sha256(master) } };
+    await emit(SUNRISE_LOCK, `${JSON.stringify(lock, null, 2)}\n`);
+  }
+  const master = await fs.readFile(path.join(ROOT, SUNRISE_MASTER));
+  const lock = JSON.parse(await fs.readFile(path.join(ROOT, SUNRISE_LOCK), 'utf8').catch(() => '{}'));
+  if (lock.svg?.sha256 !== sha256(svg) || lock.master?.sha256 !== sha256(master)) {
+    stale.push(`${SUNRISE_MASTER} (does not match ${SUNRISE_SVG} and ${SUNRISE_LOCK})`);
+  }
+  return master;
+}
+
+// The enhanced icon: the master's mark scaled into SUNRISE_ENHANCED_BOX on a
+// solid field, as an opaque square PNG.
+async function enhancedSunrise(master, size, field) {
+  const tight = await sharp(master).trim({ threshold: 8 }).png().toBuffer();
+  const box = {
+    left: Math.round(SUNRISE_ENHANCED_BOX.left * size),
+    top: Math.round(SUNRISE_ENHANCED_BOX.top * size),
+    width: Math.round((SUNRISE_ENHANCED_BOX.right - SUNRISE_ENHANCED_BOX.left) * size),
+    height: Math.round((SUNRISE_ENHANCED_BOX.bottom - SUNRISE_ENHANCED_BOX.top) * size),
+  };
+  const mark = await sharp(tight)
+    .resize(box.width, box.height, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 }, kernel: sharp.kernel.lanczos3 })
+    .png()
+    .toBuffer();
+  return sharp({ create: { width: size, height: size, channels: 3, background: { r: field[0], g: field[1], b: field[2] } } })
+    .composite([{ input: mark, left: box.left, top: box.top }])
+    .png({ compressionLevel: 9, adaptiveFiltering: true })
+    .toBuffer();
+}
+
+async function buildSunriseAssets(master) {
+  const { data, info } = await sharp(master)
     .ensureAlpha()
     .raw()
     .toBuffer({ resolveWithObject: true });
-  if (info.width !== 256 || info.height !== 256 || info.channels !== 4) {
-    throw new Error('mahjong-wind-east.png must remain a 256px RGBA source asset');
+  if (info.width !== SUNRISE_MASTER_SIZE || info.height !== SUNRISE_MASTER_SIZE || info.channels !== 4) {
+    throw new Error(`${SUNRISE_MASTER} must be a ${SUNRISE_MASTER_SIZE}px RGBA image`);
   }
   const cleaned = Buffer.from(data);
   for (let pixel = 0; pixel < info.width * info.height; pixel += 1) {
@@ -261,6 +342,19 @@ async function buildSunriseAssets() {
     })
     .png({ compressionLevel: 9, adaptiveFiltering: true })
     .toBuffer();
+  const inked = Buffer.from(cleaned);
+  closeVerticalSeams(inked, info.width, info.height, SUNRISE_INK_SEAM);
+  const flatMotif = (buffer, crop) => sharp(buffer, sourceOptions)
+    .extract(crop)
+    .resize(SUNRISE_FLAT_SIZE, SUNRISE_FLAT_SIZE, {
+      fit: 'contain',
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+      kernel: sharp.kernel.lanczos3,
+    })
+    .png({ compressionLevel: 9, adaptiveFiltering: true })
+    .toBuffer();
+  const inkMotif = await flatMotif(inked, SUNRISE_CROP);
+  const inkFaviconMotif = await flatMotif(inked, SUNRISE_FAVICON_CROP);
   const faviconMotif = await sharp(cleaned, sourceOptions)
     .extract(SUNRISE_FAVICON_CROP)
     .resize(SUNRISE_FLAT_SIZE, SUNRISE_FLAT_SIZE, {
@@ -309,6 +403,8 @@ async function buildSunriseAssets() {
     dark: await buildFlat(true),
     faviconMotif,
     motif,
+    inkMotif,
+    inkFaviconMotif,
     nativeLayer,
   };
 }
@@ -368,8 +464,8 @@ async function patchStaticBrandMark(relativePath, motif, placement) {
 async function buildSiteAssets(sunrise) {
   const ink = [14, 14, 14];
   const marks = {
-    full: pngDataUri(await silhouettePng(sunrise.motif, 256, ink)),
-    small: pngDataUri(await silhouettePng(sunrise.faviconMotif, 128, ink)),
+    full: pngDataUri(await silhouettePng(sunrise.inkMotif, 256, ink)),
+    small: pngDataUri(await silhouettePng(sunrise.inkFaviconMotif, 128, ink)),
   };
   await emit('site/src/components/BrandMark.astro', siteBrandComponent(marks));
 
@@ -384,10 +480,26 @@ async function buildSiteAssets(sunrise) {
   // The blocker dialog uses the original gold mark, with the same bytes and
   // brand-generation check as the canonical website asset.
   await emit('src/renderer/sunrise-hero-mark.png', heroMark);
+  // The tab connector plugin's icon is the same gold mark.
+  await emit('plugins/blanc-tab-import/assets/sunrise-mark.png', heroMark);
+
+  // Email signature: the ink silhouette on a transparent field with a small
+  // margin, at its native 48px and at 1024px for resizing in an email editor.
+  for (const [relativePath, size, inner] of [
+    ['site/public/blanc-signature.png', 48, 43],
+    ['site/public/blanc-signature-hires.png', 1024, 917],
+  ]) {
+    const silhouette = await silhouettePng(sunrise.inkMotif, inner, ink);
+    const offset = Math.round((size - inner) / 2);
+    await emit(relativePath, await sharp({ create: { width: size, height: size, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
+      .composite([{ input: silhouette, left: offset, top: offset }])
+      .png({ compressionLevel: 9, adaptiveFiltering: true })
+      .toBuffer());
+  }
 
   // Favicons carry the rays-only crop (the app's own ≤16px rule); the 180px
   // touch icon has room for the full mark.
-  const favicon = tileSvg(pngDataUri(await silhouettePng(sunrise.faviconMotif, 256, ink)));
+  const favicon = tileSvg(pngDataUri(await silhouettePng(sunrise.inkFaviconMotif, 256, ink)));
   await emit('site/public/favicon.svg', favicon);
   const favicon16 = await raster(favicon, 16);
   const favicon32 = await raster(favicon, 32);
@@ -402,7 +514,7 @@ async function buildSiteAssets(sunrise) {
   ]));
 
   // Press-kit mark: white 1024 square, mark at 80% height (unchanged geometry).
-  const logoMark = await silhouettePng(sunrise.motif, 824, ink);
+  const logoMark = await silhouettePng(sunrise.inkMotif, 824, ink);
   const siteLogo = await sharp({ create: { width: 1024, height: 1024, channels: 3, background: '#ffffff' } })
     .composite([{ input: logoMark, left: 100, top: 100 }])
     .png({ compressionLevel: 9, adaptiveFiltering: true })
@@ -413,14 +525,14 @@ async function buildSiteAssets(sunrise) {
     await sharp(siteLogo).resize(240, 240, { kernel: sharp.kernel.lanczos3 }).png({ compressionLevel: 9 }).toBuffer(),
   );
 
-  await patchStaticBrandMark('site/public/press/blanc-1.0-launch-card-v2.png', sunrise.motif, {
+  await patchStaticBrandMark('site/public/press/blanc-1.0-launch-card-v2.png', sunrise.inkMotif, {
     sampleX: 120,
     sampleY: 104,
     erase: { left: 121, top: 110, width: 62, height: 72 },
     height: 62,
     color: '#0e0e0e',
   });
-  await patchStaticBrandMark('site/public/press/blanc-1.0-launch-card-v3.png', sunrise.motif, {
+  await patchStaticBrandMark('site/public/press/blanc-1.0-launch-card-v3.png', sunrise.inkMotif, {
     sampleX: 110,
     sampleY: 92,
     erase: { left: 111, top: 93, width: 36, height: 43 },
@@ -432,13 +544,24 @@ async function buildSiteAssets(sunrise) {
 async function main() {
   const source = await fs.readFile(SOURCE, 'utf8');
   const artwork = sourceArtwork(source);
-  const platformIcon = await fs.readFile(PLATFORM_ICON_SOURCE);
-  const platformIconMetadata = await sharp(platformIcon).metadata();
-  if (platformIconMetadata.format !== 'png'
-      || platformIconMetadata.width !== ICON_CANVAS
-      || platformIconMetadata.height !== ICON_CANVAS) {
-    throw new Error('assets/sunrise-app-icon.png must remain a 1024px square PNG');
+  const master = await sunriseMaster();
+
+  // The enhanced Sunrise icons. The light 1024px one is the static icon for
+  // Windows, Linux and iOS; the 4096px ones are the media kit's masters.
+  const enhanced = {};
+  for (const [id, field] of Object.entries(SUNRISE_ENHANCED_FIELDS)) {
+    enhanced[id] = {
+      small: await enhancedSunrise(master, ICON_CANVAS, field),
+      large: await enhancedSunrise(master, SUNRISE_MASTER_SIZE, field),
+    };
   }
+  const platformIcon = enhanced.light.small;
+  await emit('assets/sunrise-app-icon.png', platformIcon);
+  await emit('export/app-icons-1024-square/icon-sunrise-enhanced-1024.png', enhanced.light.small);
+  await emit('export/app-icons-1024-square/icon-sunrise-dark-enhanced-1024.png', enhanced.dark.small);
+  await emit('export/app-icons-1024-square/icon-sunrise-4096.png', enhanced.light.large);
+  await emit('export/app-icons-1024-square/icon-sunrise-dark-4096.png', enhanced.dark.large);
+  await emit('site/public/press/blanc-sunrise-mark-4096.png', enhanced.light.large);
 
   const builtIcons = new Map();
   for (const id of MONOGRAM_ICON_IDS) {
@@ -453,7 +576,7 @@ async function main() {
     );
   }
 
-  const sunrise = await buildSunriseAssets();
+  const sunrise = await buildSunriseAssets(master);
   for (const [id, icon] of [
     ['sunrise', sunrise.light],
     ['sunrise-dark', sunrise.dark],
@@ -471,6 +594,7 @@ async function main() {
   await emit('src/renderer/pages/icon.svg', standaloneMarkSvg(artwork));
   await emit('src/renderer/pages/sunrise-favicon-mark.png', sunrise.faviconMotif);
   await emit('src/renderer/pages/sunrise-mark.png', sunrise.motif);
+  await emit('site/public/demo-assets/sunrise-mark.png', sunrise.motif);
 
   const nativeHeight = ICON_MARK_HEIGHT * (ICON_CANVAS / 824);
   const nativeCenterX = (ICON_CANVAS / 2) + (((ICON_MARK_CENTER.x - 511.5) / 824) * ICON_CANVAS);

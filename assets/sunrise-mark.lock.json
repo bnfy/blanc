@@ -1,0 +1,10 @@
+{
+  "svg": {
+    "file": "assets/sunrise-mark.svg",
+    "sha256": "4aff05c714ae8aebc2fd549176b8f9e22d21b727b7bd61123a5fd6005377c878"
+  },
+  "master": {
+    "file": "assets/sunrise-mark-4096.png",
+    "sha256": "05e3efe13611d1067d19a48e051cfff7b6fd7bf68aaabd947e0012df2d65e24d"
+  }
+}
