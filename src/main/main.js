@@ -8653,6 +8653,7 @@ function tabContextData(tab, owner) {
     },
     groups: owner.groups.map((g) => ({ id: g.id, name: g.name })),
     activeTabId: owner.activeTabId,
+    glanceTabId: owner.glanceTabId ?? null,
     canCloseOthers: closableTabIds({ tabOrder: owner.tabOrder, tabsById: tabs, keepId: tab.id }).length > 0,
     canMoveToNewWindow: owner.tabOrder.length > 1,
     canQuiet: explicitSleepEligible(tab, owner),
@@ -8684,6 +8685,7 @@ function menuContextActions(owner) {
     // panel so it isn't left floating over the fresh Glance split (a quiet tab
     // wakes first inside setGlanceTab, so success can take a beat).
     glance: b(async (id) => { if (await setGlanceTab(id)) hideOverlay(); }),
+    closeGlance: b(() => closeGlance()),
     quiet: b((id) => sleepTabNow(id)),
     newTab: b(() => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true })),
     newPrivateTab: b(() => setActiveTab(createTab(PRIVATE_NEW_TAB_URL, { private: true }), { focusContent: false, focusAddress: true })),

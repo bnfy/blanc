@@ -8,7 +8,7 @@ function spyActions() {
   const rec = (name) => (...args) => calls.push([name, ...args]);
   const names = ['copy', 'reload', 'duplicate', 'togglePin', 'toggleMute', 'toggleFavorite',
     'setGroup', 'beginNewGroup', 'glance', 'quiet', 'newTab', 'newPrivateTab',
-    'closeOthers', 'moveToNewWindow', 'reopenClosed', 'close', 'rename', 'resetTitle'];
+    'closeOthers', 'moveToNewWindow', 'reopenClosed', 'close', 'rename', 'resetTitle', 'closeGlance'];
   const actions = {};
   for (const n of names) actions[n] = rec(n);
   return { actions, calls };
@@ -69,4 +69,10 @@ test('rename begins the handoff; reset-title clears the name', () => {
     runTabContextMenuItem(id, { tab, actions });
     assert.deepEqual(calls, [[fn, 7]]);
   }
+});
+
+test('close-glance closes the pane, not the tab', () => {
+  const { actions, calls } = spyActions();
+  runTabContextMenuItem('close-glance', { tab, actions });
+  assert.deepEqual(calls, [['closeGlance']]);
 });

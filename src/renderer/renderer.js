@@ -14,8 +14,13 @@
   // at event time (same mechanism as the overlay's rows): main reads the id
   // instead of hit-testing coordinates the strip may have re-rendered under.
   document.addEventListener('contextmenu', (e) => {
+    // The Glance header's title and empty area address the reference tab;
+    // its buttons are controls and open nothing.
+    const onGlanceHeader = !!e.target.closest('#glanceHeader') && !e.target.closest('button');
     window.__blancCtxRowTabId =
-      e.target.closest('.vertical-tab-row[data-tab-id]')?.dataset.tabId ?? null;
+      e.target.closest('.vertical-tab-row[data-tab-id]')?.dataset.tabId
+      ?? (onGlanceHeader ? state.glanceTabId : null)
+      ?? null;
     if (!e.target.closest('#islandPill') && window.__blancCtxRowTabId == null) {
       e.preventDefault();
     }

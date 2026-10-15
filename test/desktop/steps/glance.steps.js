@@ -1147,3 +1147,34 @@ Then("the Glance header's Reload button reads Stop", async function () {
   await chrome.locator('#glanceReload[data-mode="stop"]').waitFor();
   assert.equal(await chrome.locator('#glanceReload').getAttribute('aria-label'), 'Stop');
 });
+
+// A synthetic contextmenu reaches the strip's DOM handler but not main's
+// native context-menu event, so this observes exactly what the strip hands
+// main: the recorded tab id and whether the default menu was suppressed.
+async function stripContextTarget(chrome, selector) {
+  return chrome.evaluate((target) => {
+    window.__blancCtxRowTabId = 'unset';
+    const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+    document.querySelector(target).dispatchEvent(event);
+    const id = window.__blancCtxRowTabId;
+    window.__blancCtxRowTabId = null;
+    return { id, prevented: event.defaultPrevented };
+  }, selector);
+}
+
+Then('a right-click on the Glance title addresses the reference tab', async function () {
+  const chrome = await mainChromePage();
+  await chrome.locator('#glanceHeader:not([hidden])').waitFor();
+  const result = await stripContextTarget(chrome, '#glanceTitle');
+  assert.equal(String(result.id), String(this.glanceReferenceId));
+  assert.equal(result.prevented, false);
+});
+
+Then('a right-click on a Glance header button addresses no tab', async function () {
+  const chrome = await mainChromePage();
+  for (const selector of ['#glanceBack', '#glanceReload', '#glancePromote', '#glanceChange', '#glanceClose']) {
+    const result = await stripContextTarget(chrome, selector);
+    assert.equal(result.id, null, `${selector} addressed a tab`);
+    assert.equal(result.prevented, true, `${selector} let a default menu through`);
+  }
+});

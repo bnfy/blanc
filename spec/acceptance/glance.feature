@@ -279,3 +279,10 @@ Feature: Glance reference pane
     Then only the reference page reloaded
     When the reference starts a slow load
     Then the Glance header's Reload button reads Stop
+
+  @F34-1 @F34 @D11
+  Scenario: Right-clicking the Glance header addresses the reference tab
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    Then a right-click on the Glance title addresses the reference tab
+    And a right-click on a Glance header button addresses no tab

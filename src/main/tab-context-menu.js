@@ -26,6 +26,7 @@ function runTabContextMenuItem(id, { tab, groupId, cleanedUrl, actions }) {
     case 'group-none': return actions.setGroup(tab.id, null);
     case 'group-new': return actions.beginNewGroup(tab.id);
     case 'glance': return actions.glance(tab.id);
+    case 'close-glance': return actions.closeGlance();
     case 'quiet': return actions.quiet(tab.id);
     case 'new-tab': return actions.newTab();
     case 'new-private-tab': return actions.newPrivateTab();
