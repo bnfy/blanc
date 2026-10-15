@@ -28513,6 +28513,90 @@
         }
       }
     },
+    "glance.status.mainClosed": {
+      "comment": "Screen reader announcement after the main tab closes while Glance is open and the reference takes its place; {title} is the reference’s title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ is now the main page. Glance closed."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ ist jetzt die Hauptseite. Glance geschlossen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ es ahora la página principal. Glance cerrado."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ est maintenant la page principale. Glance fermé."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ è ora la pagina principale. Glance chiuso."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ agora é a página principal. Glance fechado."
+          }
+        }
+      }
+    },
+    "glance.status.cancelled": {
+      "comment": "Screen reader announcement when a quiet tab chosen for Glance finishes waking after the person cancelled the picker.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Didn’t open that tab in Glance"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Tab wurde nicht in Glance geöffnet"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esa pestaña no se abrió en Glance"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cet onglet n’a pas été ouvert dans Glance"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quella scheda non è stata aperta in Glance"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Essa aba não foi aberta no Glance"
+          }
+        }
+      }
+    },
     "tab.untitledShort": {
       "comment": "Fallback name for a tab without a title in announcements.",
       "extractionState": "manual",

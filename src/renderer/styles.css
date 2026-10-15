@@ -194,6 +194,13 @@ button svg {
   transition: background-color 80ms linear;
 }
 
+/* Width of the custom Windows/Linux window-control cluster (3 × 34px, two
+   2px gaps, 8px inset), reserved by the side-by-side Glance header and the
+   stacked pill. macOS draws native traffic lights at the left and reserves
+   nothing. Declared off :root {} so tokens:check stays desktop-only. */
+:root[data-platform="darwin"] { --window-controls-w: 0px; }
+:root:not([data-platform="darwin"]) { --window-controls-w: 114px; }
+
 /* Glance keeps the existing Island centered over the dominant page pane.
    Main ships exact native-view geometry; padding narrows the strip's flex
    centerline without teaching CSS about vertical-rail arithmetic. */
@@ -202,6 +209,11 @@ button svg {
 }
 #strip.glance-open #islandPill {
   max-width: calc((var(--glance-primary-width) - 24px) / var(--pill-zoom));
+}
+/* Stacked: centred over the full page, kept clear of the window controls on
+   both sides so the centre line does not move. */
+#strip.glance-open[data-glance-direction="vertical"] #islandPill {
+  max-width: calc((var(--glance-primary-width) - 2 * var(--window-controls-w) - 24px) / var(--pill-zoom));
 }
 
 .glance-header {
@@ -300,6 +312,9 @@ button svg {
   border-top: 7px solid var(--surface-raised);
   filter: drop-shadow(0 1px 0 var(--border));
 }
+.glance-header[data-direction="horizontal"] {
+  padding-right: calc(12px + var(--window-controls-w));
+}
 .glance-header[data-direction="vertical"] {
   border-left: 0;
   padding-left: 12px;
@@ -378,6 +393,22 @@ button svg {
 #strip.tint-dark #mainMenuButton[aria-expanded="true"] {
   background: rgba(255, 255, 255, 0.14);
   color: #f5f5f5;
+}
+
+/* Side-by-side Glance: the controls sit on the header's neutral surface, not
+   the sampled page tint — take the theme's ink and a fill the header lacks.
+   Stacked, the header is below the page and the tint rules above apply. */
+#strip.glance-open[data-glance-direction="horizontal"] #windowControls button,
+#strip.tint-dark.glance-open[data-glance-direction="horizontal"] #windowControls button { color: var(--text-dim); }
+#strip.glance-open[data-glance-direction="horizontal"] #windowControls button:hover,
+#strip.tint-dark.glance-open[data-glance-direction="horizontal"] #windowControls button:hover {
+  background: var(--accent-dim);
+  color: var(--text);
+}
+#strip.glance-open[data-glance-direction="horizontal"] #windowControls button.close-btn:hover,
+#strip.tint-dark.glance-open[data-glance-direction="horizontal"] #windowControls button.close-btn:hover {
+  background: var(--danger);
+  color: var(--on-danger);
 }
 
 /* ---------- Vertical tabs: optional trusted-chrome rail ----------

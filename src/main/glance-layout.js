@@ -111,7 +111,8 @@ function calculateGlanceLayout(pageBounds, ratio = DEFAULT_GLANCE_RATIO) {
   };
 }
 
-/** Convert a renderer-reported divider coordinate back into a safe ratio. */
+/** Convert a renderer-reported divider coordinate back into a safe ratio;
+ * `null` when the point carries no usable coordinate. */
 function ratioForGlanceDivider(pageBounds, point, direction) {
   const page = normalizedPageBounds(pageBounds);
   const horizontal = direction !== 'vertical';
@@ -126,7 +127,7 @@ function ratioForGlanceDivider(pageBounds, point, direction) {
     : Math.max(1, page.height - divider - header);
   const coordinate = horizontal ? Number(point?.x) : Number(point?.y);
   const origin = horizontal ? page.x : page.y;
-  if (!Number.isFinite(coordinate)) return DEFAULT_GLANCE_RATIO;
+  if (!Number.isFinite(coordinate)) return null;
   return normalizeGlanceRatio((coordinate - origin) / available);
 }
 

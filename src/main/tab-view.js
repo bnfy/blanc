@@ -286,7 +286,11 @@ function wireTabView(tab, view, { owner, adopted }) {
   // main-frame commit clears the signal.
   wc.on('media-started-playing', boundToTab(() => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
-    if (noteMediaStarted(tab, !getOwner().resident && id === getOwner().activeTabId)) wc.setAudioMuted(true);
+    // Both visible panes count as foreground: the reference is on screen and
+    // the user pressed play there.
+    const owner = getOwner();
+    const visible = !owner.resident && (id === owner.activeTabId || id === owner.glanceTabId);
+    if (noteMediaStarted(tab, visible)) wc.setAudioMuted(true);
   }));
   wc.on('page-title-updated', boundToTab((_e, title) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;

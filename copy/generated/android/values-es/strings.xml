@@ -721,6 +721,8 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="glance_status_closed">Glance cerrado</string>
     <string name="glance_status_promoted">Glance es ahora la página principal</string>
     <string name="glance_status_tab_closed">Glance se cerró porque se cerró su pestaña</string>
+    <string name="glance_status_main_closed">%1$s es ahora la página principal. Glance cerrado.</string>
+    <string name="glance_status_cancelled">Esa pestaña no se abrió en Glance</string>
     <string name="tab_untitled_short">Pestaña</string>
     <string name="error_reload_failed">No se pudo recargar la página</string>
     <string name="arc_import_entry_title">Arc</string>

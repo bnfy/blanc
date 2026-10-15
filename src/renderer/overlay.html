@@ -145,8 +145,10 @@
       <span data-i18n="glance.picker.hintNavigate">↑↓ navigate</span><span data-i18n="glance.picker.hintOpen">↵ open</span><span data-i18n="glance.picker.hintCancel">esc cancel</span>
     </footer>
     <div id="glancePickerLive" class="sr-only" aria-live="polite" aria-atomic="true"></div>
-    <div id="islandDragLive" class="sr-only" aria-live="polite" aria-atomic="true"></div>
   </section>
+  <!-- Outside the picker on purpose: that section is hidden in every other
+       overlay mode, and a live region inside display:none is never spoken. -->
+  <div id="islandDragLive" class="sr-only" aria-live="polite" aria-atomic="true"></div>
   <div id="findBar" hidden>
     <input id="findInput" spellcheck="false" autocomplete="off" placeholder="Find in page" data-i18n-placeholder="find.placeholder" />
     <div id="findCount"></div>

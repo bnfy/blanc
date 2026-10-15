@@ -13,7 +13,7 @@ const sync = require('./sync');
 const history = require('./history');
 const bookmarks = require('./bookmarks');
 const path = require('node:path');
-const { app, Menu, clipboard, nativeImage } = require('electron');
+const { app, Menu, clipboard, nativeImage, webContents } = require('electron');
 const { buildAddressMenu } = require('./address-menu-model');
 const { blockableHostname } = require('./adblock-exceptions');
 const { syncSnapshot } = require('./session-snapshot');
@@ -498,6 +498,9 @@ function install(refs) {
           pinned: !!t.pinned,
           muted: !!t.muted,
           audible: !!t.audible,
+          // Projection of the one-time hidden-start autoplay guard; a visible
+          // pane must never carry it.
+          audioGuarded: !!t.backgroundAutoplayMuted,
           canGoBack: !!t.canGoBack,
           canGoForward: !!t.canGoForward,
           private: !!t.private,
@@ -571,6 +574,19 @@ function install(refs) {
       wc.focus();
       return true;
     },
+    // Fire the webContents event the autoplay guard listens to, without a
+    // media element: the guard's decision is what is under test.
+    simulateMediaStarted(id) {
+      const wc = liveContents(tabs.get(id));
+      if (!wc || wc.isDestroyed()) return false;
+      wc.emit('media-started-playing');
+      return true;
+    },
+    tabBounds(id) {
+      const tab = tabs.get(id);
+      return tab?.view ? tab.view.getBounds() : null;
+    },
+    focusedWebContentsId() { return webContents.getFocusedWebContents()?.id ?? null; },
     railActivationSerial() { return getRailActivationSerial(); },
     toggleGroup(id) { toggleGroupCollapsed(id); },
     moveTab(id, target) { return moveTabTo(id, target); },
