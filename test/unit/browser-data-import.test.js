@@ -191,6 +191,285 @@ test('service discovers opaque sources and reads only a rediscovered source id',
   assert.deepEqual(await service.readSource('forged-id'), { error: 'source-unavailable' });
 });
 
+function accountFixture() {
+  return {
+    roots: {
+      bookmark_bar: {
+        type: 'folder',
+        name: 'Bookmarks bar',
+        children: [
+          { type: 'url', name: 'Account', url: 'https://account.example/' },
+          { type: 'url', name: 'Top again', url: 'https://top.example/' },
+        ],
+      },
+      synced: {
+        type: 'folder',
+        name: 'Mobile bookmarks',
+        children: [{ type: 'url', name: 'Phone', url: 'https://phone.example/' }],
+      },
+    },
+  };
+}
+
+test('a signed-in Chrome profile with only AccountBookmarks is discovered and read', async (t) => {
+  const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-browser-import-account-'));
+  t.after(() => fs.rmSync(homeDir, { recursive: true, force: true }));
+  const root = browserDataRoot('chrome', { platform: 'win32', homeDir, env: { LOCALAPPDATA: homeDir } });
+  fs.mkdirSync(path.join(root, 'Default'), { recursive: true });
+  fs.writeFileSync(path.join(root, 'Default', 'AccountBookmarks'), JSON.stringify(accountFixture()));
+
+  const service = createBrowserDataImportService({
+    platform: 'win32',
+    homeDir,
+    env: { LOCALAPPDATA: homeDir },
+  });
+  const [source] = (await service.listSources()).sources;
+  assert.equal(source?.label, 'Google Chrome');
+  const read = await service.readSource(source.id);
+  assert.deepEqual(read.entries.map(({ url, folder }) => ({ url, folder })), [
+    { url: 'https://account.example/', folder: 'Bookmarks bar' },
+    { url: 'https://top.example/', folder: 'Bookmarks bar' },
+    { url: 'https://phone.example/', folder: 'Mobile bookmarks' },
+  ]);
+  const tree = await service.readFolderTree(source.id);
+  assert.deepEqual(tree.rootFolderIds, [
+    folderIdFromPath(['Bookmarks bar']),
+    folderIdFromPath(['Mobile bookmarks']),
+  ]);
+});
+
+function chromeProfile(t, platform, prefix) {
+  const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+  t.after(() => fs.rmSync(homeDir, { recursive: true, force: true }));
+  const env = platform === 'win32' ? { LOCALAPPDATA: homeDir } : {};
+  const profile = path.join(browserDataRoot('chrome', { platform, homeDir, env }), 'Default');
+  fs.mkdirSync(profile, { recursive: true });
+  return {
+    homeDir,
+    env,
+    local: path.join(profile, 'Bookmarks'),
+    account: path.join(profile, 'AccountBookmarks'),
+  };
+}
+
+// fs.promises with chosen bookmark-file operations failing with `code`.
+function failingFs(failures) {
+  const fail = (op, filePath) => {
+    const code = failures[`${op}:${path.basename(filePath)}`];
+    if (code) throw Object.assign(new Error(code), { code });
+  };
+  return {
+    ...fs.promises,
+    async stat(filePath, ...rest) {
+      fail('stat', filePath);
+      return fs.promises.stat(filePath, ...rest);
+    },
+    async open(filePath, ...rest) {
+      fail('open', filePath);
+      return fs.promises.open(filePath, ...rest);
+    },
+  };
+}
+
+test('a profile with Bookmarks and AccountBookmarks imports both, local first, once per URL', async (t) => {
+  const p = chromeProfile(t, 'linux', 'blanc-browser-import-both-');
+  fs.writeFileSync(p.local, JSON.stringify(fixture()));
+  fs.writeFileSync(p.account, JSON.stringify(accountFixture()));
+
+  const service = createBrowserDataImportService({ platform: 'linux', homeDir: p.homeDir, env: p.env });
+  const result = await service.listSources();
+  assert.equal(result.sources.length, 1, 'one profile is one source, whatever its files');
+  const read = await service.readSource(result.sources[0].id);
+  assert.deepEqual(read.entries.map(({ url }) => url), [
+    'https://top.example/',
+    'https://article.example/',
+    'https://other.example/',
+    'https://account.example/',
+    'https://phone.example/',
+  ], 'an account bookmark the local file already has is not imported twice');
+
+  const subtree = await service.readSubtreeCandidates(
+    result.sources[0].id,
+    folderIdFromPath(['Bookmarks bar']),
+  );
+  assert.deepEqual(subtree.candidates.map(({ url }) => url).sort(), [
+    'https://account.example/',
+    'https://article.example/',
+    'https://top.example/',
+  ]);
+  assert.equal(subtree.duplicateCount, 1);
+});
+
+test('an empty local Bookmarks file does not hide the account bookmarks', async (t) => {
+  const p = chromeProfile(t, 'darwin', 'blanc-browser-import-empty-local-');
+  fs.writeFileSync(p.local, JSON.stringify({
+    roots: {
+      bookmark_bar: { type: 'folder', name: 'Bookmarks bar', children: [] },
+      other: { type: 'folder', name: 'Other bookmarks', children: [] },
+    },
+  }));
+  fs.writeFileSync(p.account, JSON.stringify(accountFixture()));
+
+  const service = createBrowserDataImportService({ platform: 'darwin', homeDir: p.homeDir, env: p.env });
+  const [source] = (await service.listSources()).sources;
+  assert.equal((await service.readSource(source.id)).entries.length, 3);
+});
+
+test('the node cap applies to each bookmark file, not to the two together', async (t) => {
+  const p = chromeProfile(t, 'linux', 'blanc-browser-import-node-cap-');
+  const many = (host, count) => ({
+    roots: {
+      bookmark_bar: {
+        type: 'folder',
+        name: 'Bookmarks bar',
+        children: Array.from({ length: count }, (_, i) => ({
+          type: 'url',
+          name: `${host} ${i}`,
+          url: `https://${host}.example/${i}`,
+        })),
+      },
+    },
+  });
+  fs.writeFileSync(p.local, JSON.stringify(many('local', 60_000)));
+  fs.writeFileSync(p.account, JSON.stringify(many('account', 60_000)));
+
+  const service = createBrowserDataImportService({ platform: 'linux', homeDir: p.homeDir, env: p.env });
+  const [source] = (await service.listSources()).sources;
+  assert.equal((await service.readSource(source.id)).entries.length, 120_000);
+  const tree = await service.readFolderTree(source.id);
+  assert.equal(tree.folders.find((folder) => folder.pathLabels.length === 1).subtreeHttpCount, 120_000);
+
+  fs.writeFileSync(p.account, JSON.stringify(many('account', 100_001)));
+  assert.equal(
+    (await service.readSource(source.id)).entries.length,
+    60_000,
+    'an account file over the cap is left out beside a readable local file',
+  );
+});
+
+test('a root without children reads the same whether the profile has one file or two', async (t) => {
+  const p = chromeProfile(t, 'linux', 'blanc-browser-import-childless-');
+  const childless = {
+    roots: {
+      bookmark_bar: {
+        type: 'folder',
+        name: 'Bookmarks bar',
+        children: [{ type: 'url', name: 'Top', url: 'https://top.example/' }],
+      },
+      other: { type: 'folder', name: 'Other bookmarks' },
+    },
+  };
+  fs.writeFileSync(p.local, JSON.stringify(childless));
+  const service = createBrowserDataImportService({ platform: 'linux', homeDir: p.homeDir, env: p.env });
+  const [source] = (await service.listSources()).sources;
+  const alone = await service.readFolderTree(source.id);
+
+  fs.writeFileSync(p.account, JSON.stringify({
+    roots: { other: { type: 'folder', name: 'Other bookmarks' } },
+  }));
+  const together = await service.readFolderTree(source.id);
+  assert.deepEqual(together.rootFolderIds, alone.rootFolderIds);
+  assert.deepEqual(together.rootFolderIds, [
+    folderIdFromPath(['Bookmarks bar']),
+    folderIdFromPath(['Other bookmarks']),
+  ]);
+});
+
+test('a broken AccountBookmarks beside a readable Bookmarks imports the local file as before', async (t) => {
+  const p = chromeProfile(t, 'linux', 'blanc-browser-import-bad-account-');
+  fs.writeFileSync(p.local, JSON.stringify(fixture()));
+  const service = createBrowserDataImportService({ platform: 'linux', homeDir: p.homeDir, env: p.env });
+  const localOnly = ['https://top.example/', 'https://article.example/', 'https://other.example/'];
+
+  for (const write of [
+    () => fs.writeFileSync(p.account, '{"roots":'),
+    () => fs.writeFileSync(p.account, '{}'),
+    () => fs.writeFileSync(p.account, JSON.stringify({ roots: 'nope' })),
+    () => {
+      fs.writeFileSync(p.account, '');
+      fs.truncateSync(p.account, MAX_BROWSER_BOOKMARK_BYTES + 1);
+    },
+  ]) {
+    write();
+    const [source] = (await service.listSources()).sources;
+    assert.deepEqual((await service.readSource(source.id)).entries.map(({ url }) => url), localOnly);
+    assert.equal((await service.readFolderTree(source.id)).error, undefined);
+  }
+});
+
+test('a broken Bookmarks file still rejects the profile, whatever AccountBookmarks holds', async (t) => {
+  const p = chromeProfile(t, 'linux', 'blanc-browser-import-bad-local-');
+  fs.writeFileSync(p.account, JSON.stringify(accountFixture()));
+  fs.writeFileSync(p.local, '{"roots":');
+  const service = createBrowserDataImportService({ platform: 'linux', homeDir: p.homeDir, env: p.env });
+  const [source] = (await service.listSources()).sources;
+  assert.deepEqual(await service.readSource(source.id), { error: 'unreadable' });
+  assert.deepEqual(await service.readFolderTree(source.id), { error: 'unreadable' });
+
+  fs.writeFileSync(p.local, '');
+  fs.truncateSync(p.local, MAX_BROWSER_BOOKMARK_BYTES + 1);
+  assert.deepEqual(await service.readSource(source.id), { error: 'too-large' });
+});
+
+test('an AccountBookmarks file on its own fails the way Bookmarks would', async (t) => {
+  const p = chromeProfile(t, 'linux', 'blanc-browser-import-bad-account-only-');
+  fs.writeFileSync(p.account, '{"roots":');
+  const service = createBrowserDataImportService({ platform: 'linux', homeDir: p.homeDir, env: p.env });
+  const [source] = (await service.listSources()).sources;
+  assert.deepEqual(await service.readSource(source.id), { error: 'unreadable' });
+
+  fs.writeFileSync(p.account, '');
+  fs.truncateSync(p.account, MAX_BROWSER_BOOKMARK_BYTES + 1);
+  assert.deepEqual(await service.readSource(source.id), { error: 'too-large' });
+});
+
+test('a bookmark file that vanishes after discovery is skipped only if it is AccountBookmarks', async (t) => {
+  const p = chromeProfile(t, 'linux', 'blanc-browser-import-vanished-');
+  fs.writeFileSync(p.local, JSON.stringify(fixture()));
+  fs.writeFileSync(p.account, JSON.stringify(accountFixture()));
+  const serviceWith = (failures) => createBrowserDataImportService({
+    platform: 'linux',
+    homeDir: p.homeDir,
+    env: p.env,
+    fsPromises: failingFs(failures),
+  });
+
+  const accountGone = serviceWith({ 'open:AccountBookmarks': 'ENOENT' });
+  const [source] = (await accountGone.listSources()).sources;
+  assert.equal((await accountGone.readSource(source.id)).entries.length, 3);
+
+  const localGone = serviceWith({ 'open:Bookmarks': 'ENOENT' });
+  assert.deepEqual(await localGone.readSource(source.id), { error: 'unreadable' });
+  assert.deepEqual(await localGone.readFolderTree(source.id), { error: 'unreadable' });
+});
+
+test('a blocked AccountBookmarks hides the profile only when it is the only bookmarks', async (t) => {
+  const p = chromeProfile(t, 'darwin', 'blanc-browser-import-blocked-account-');
+  fs.writeFileSync(p.account, JSON.stringify(accountFixture()));
+  const blocked = (failures) => createBrowserDataImportService({
+    platform: 'darwin',
+    homeDir: p.homeDir,
+    env: p.env,
+    fsPromises: failingFs(failures),
+  });
+
+  const alone = await blocked({ 'stat:AccountBookmarks': 'EPERM' }).listSources();
+  assert.deepEqual(alone.sources, []);
+  assert.deepEqual(alone.unavailable.map(({ browserId, reason }) => ({ browserId, reason })), [
+    { browserId: 'chrome', reason: 'permission' },
+  ]);
+
+  fs.writeFileSync(p.local, JSON.stringify(fixture()));
+  const beside = blocked({ 'stat:AccountBookmarks': 'EPERM' });
+  const result = await beside.listSources();
+  assert.deepEqual(result.unavailable, []);
+  assert.equal((await beside.readSource(result.sources[0].id)).entries.length, 3);
+
+  const localBlocked = await blocked({ 'stat:Bookmarks': 'EACCES' }).listSources();
+  assert.deepEqual(localBlocked.sources, [], 'a blocked local file still blocks the profile');
+  assert.equal(localBlocked.unavailable.length, 1);
+});
+
 test('open-tab sources require a verified newest snapshot and use older state only as quit preflight', async (t) => {
   const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-open-tab-import-'));
   t.after(() => fs.rmSync(homeDir, { recursive: true, force: true }));

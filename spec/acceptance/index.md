@@ -152,6 +152,8 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F30-1 | Direct profile import preserves supported Favorites and folders | D22 | ✅ | ⬜ | ⬜ |
 | F30-2 | Repeated browser import is idempotent | D22 | ✅ | ⬜ | ⬜ |
 | F30-3 | Fresh first run offers Favorites migration | D22 | ✅ | ⬜ | ⬜ |
+| F30-4 | A signed-in Chrome profile's AccountBookmarks import | D22 | ✅ | ➖ | ➖ |
+| F30-5 | Local and account bookmarks import once each | D22 | ✅ | ➖ | ➖ |
 | F31-1 | Quiet then wake preserves identity, history, oversized-state fallback, and redirect safety | D8 | ✅ | ⬜ | ⬜ |
 | F31-2 | The active tab is never quieted | D8 | ✅ | ⬜ | ⬜ |
 | F31-3 | Protected background tabs stay awake and beforeunload remains functional | D8 | ✅ | ⬜ | ⬜ |
