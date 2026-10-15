@@ -71,6 +71,12 @@ jobs:
                 sed -i '' -E 's/^  window\.browserAPI\.onIslandProximity\(\(\{ k \}\) => \{$/  window.browserAPI.onIslandProximity(({ k }) => { k = 0;/' "$work/src/renderer/renderer.js"
                 grep -c 'onIslandProximity(({ k }) => { k = 0;' "$work/src/renderer/renderer.js"
                 ;;
+              nofilters)
+                sed -i '' -E '/^  (-webkit-)?backdrop-filter: blur\(16px\);$/d' "$work/src/renderer/styles.css"
+                sed -i '' -E '/^  backdrop-filter: blur\(14px\);$/d' "$work/src/renderer/pages/pages.css"
+                sed -i '' -E '/^  filter: drop-shadow\(0 5px 12px rgba\(128, 93, 40, 0\.16\)\);$/d' "$work/src/renderer/pages/pages.css"
+                ! grep -q 'drop-shadow(0 5px 12px' "$work/src/renderer/pages/pages.css"
+                ;;
               nohelper)
                 sed -i '' -E '/^  win\.loadURL\(CHROME_DISPLAY_CAPTURE_HELPER_URL\);$/d' "$work/src/main/display-capture-broker-playout.js"
                 ;;
@@ -83,25 +89,15 @@ jobs:
             codesign --force --deep --sign - "$app"
             codesign --verify --deep --strict "$app"
           }
-          for name in control noblur noblurboth noproximity; do variant "$name"; done
-      - name: Attribute proximity with the cursor where the runner left it (2x scale)
+          for name in control noblurboth nofilters; do variant "$name"; done
+      - name: Attribute Start Page filters at idle (2x scale)
         run: |
           set -euo pipefail
-          osascript -l JavaScript -e 'ObjC.import("AppKit"); const p = $.NSEvent.mouseLocation; const f = $.NSScreen.mainScreen.frame; "cursor " + p.x + "," + p.y + " screen " + f.size.width + "x" + f.size.height'
-          node bench/memory/idle-attribution.js \
-            "--app=$RUNNER_TEMP/variants/control/Blanc.app=control" \
-            "--app=$RUNNER_TEMP/variants/noproximity/Blanc.app=noproximity" \
-            --reps=4 --sudo --extra-arg=--force-device-scale-factor=2 --out="$RUNNER_TEMP/results/proximity-cursor-default"
-          cat "$RUNNER_TEMP"/results/proximity-cursor-default/*.md >> "$GITHUB_STEP_SUMMARY"
-      - name: Attribute proximity with the cursor in the bottom-right corner (2x scale)
-        run: |
-          set -euo pipefail
-          osascript -l JavaScript -e 'ObjC.import("AppKit"); ObjC.import("CoreGraphics"); const f = $.NSScreen.mainScreen.frame; $.CGWarpMouseCursorPosition({ x: f.size.width - 2, y: f.size.height - 2 }); const p = $.NSEvent.mouseLocation; "cursor " + p.x + "," + p.y'
-          node bench/memory/idle-attribution.js \
-            "--app=$RUNNER_TEMP/variants/control/Blanc.app=control" \
-            "--app=$RUNNER_TEMP/variants/noproximity/Blanc.app=noproximity" \
-            --reps=4 --sudo --extra-arg=--force-device-scale-factor=2 --out="$RUNNER_TEMP/results/proximity-cursor-corner"
-          cat "$RUNNER_TEMP"/results/proximity-cursor-corner/*.md >> "$GITHUB_STEP_SUMMARY"
+          args=()
+          for name in control noblurboth nofilters; do args+=("--app=$RUNNER_TEMP/variants/$name/Blanc.app=$name"); done
+          node bench/memory/idle-attribution.js "${args[@]}" --reps=4 --sudo \
+            --extra-arg=--force-device-scale-factor=2 --out="$RUNNER_TEMP/results/startpage-filters-scale2"
+          cat "$RUNNER_TEMP"/results/startpage-filters-scale2/*.md >> "$GITHUB_STEP_SUMMARY"
       - name: Upload results
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
