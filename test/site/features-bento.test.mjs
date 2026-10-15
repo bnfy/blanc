@@ -331,7 +331,11 @@ test('the native shield popover meets its chip after an animated or a reduced-mo
       // lands on the next layout).
       await page.waitForFunction(() => document.getElementById('feature-pop').open
         && document.querySelector('.pop-card').getAnimations().every(animation => animation.playState === 'finished')
-        && document.querySelector('.demo-native-step[data-at="1"] .native-shield-demo').style.getPropertyValue('--view-x') !== '');
+        && document.querySelector('.demo-native-step[data-at="1"] .native-shield-demo').style.getPropertyValue('--view-x') !== ''
+        && document.fonts.status === 'loaded');
+      // The replica's UI-text font can land after the first placement and reflow
+      // the pill; give the re-placement it triggers a frame to apply.
+      await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
       placements.push(await page.evaluate(() => {
         const host = document.querySelector('.demo-native-step[data-at="1"] .native-shield-demo'), root = host.shadowRoot;
         const rect = suffix => root.querySelector(`[id$="${suffix}"]`).getBoundingClientRect();
