@@ -46,7 +46,8 @@ that order to WebContents (`getOSProcessId()`), and it was stable across runs.
   7 GiB), public arm64 DMGs verified against each release's `SHA256SUMS`, run
   by a temporary workflow on the investigation branch (runs 38697657384,
   38701457707, 38705401765, 38707740222, 38707858332, 38710103078,
-  38710271108 and, on macOS 26 and 15, 38714177305 in `bnfy/blanc` Actions). Its display
+  38710271108 and, on macOS 26 and 15, 38714177305 and 38715745466 in
+  `bnfy/blanc` Actions). Its display
   is not Retina, so most runs add `--force-device-scale-factor=2` to render the
   way an 8 GiB MacBook Air does. Absolute totals are lower than on the owner's
   Mac (macOS 27.2, real Retina panel): 1.1.0 → 1.34.0 grows 171 → 233 MiB at
@@ -225,8 +226,11 @@ case; the macOS 15 saving above is not taken.
    now records the bundle icon as shown instead of rendering it into a bitmap
    and handing it back. Choosing another colorway, and returning to Sunrise
    afterwards, still set the Dock icon as before; older macOS, development
-   builds and forced reapplies are unchanged. Expected saving on macOS 26+: the
-   11 MiB measured for the `nodock` variant at 1×, likely more on Retina.
+   builds and forced reapplies are unchanged. Applied to the public 1.34.0
+   with `make-variant.js --variant=checkout` (idle, 1×, four repetitions):
+   macOS 26.6 browser process 96 → 87 MiB and total 244 → 237 MiB, level
+   with the `nodock` variant (236) and with the `CG Image` region gone;
+   macOS 15.7 unchanged (248 vs 250), as intended. Likely more on Retina.
 3. **Adds `bench/memory/idle-attribution.js` and `bench/memory/make-variant.js`**
    with unit tests, so the next regression can be attributed to a process,
    and a source change measured against a release, in one run.
@@ -244,7 +248,7 @@ measurements above stand as the record of what it costs.
 | Find and remove what keeps the idle Start Page on full-window compositing | ≈ 40 MiB idle | Unknown until isolated; footer blur, drop shadow, wallpaper and proximity are ruled out |
 | Create the display-capture helper on the first `getDisplayMedia` request | 18 MiB, every platform | Medium: the broker captures `helperWc` at install and `display-capture-broker*.js` are hash-pinned in `capture-runtime-lock.json`, so it needs fresh capture evidence on all three platforms |
 | Lighter Start Page wallpaper (smaller asset, or only when the window is large) | up to 17 MiB | Product decision |
-| Done here: skip the startup Dock icon call when the default icon is selected on macOS 26+ | 11 MiB at 1×, likely more on Retina | Low in code; the Dock's appearance (Default, Dark, Clear, Tinted) should still be checked by eye on a release candidate |
+| Done here: skip the startup Dock icon call when the default icon is selected on macOS 26+ | 7–9 MiB at 1× (measured), likely more on Retina | Low in code; the Dock's appearance (Default, Dark, Clear, Tinted) should still be checked by eye on a release candidate |
 | Raise the harness's minimum settle time, or wait for the first full GC | 15–35 MiB of measured transient | Changes methodology; re-run every browser, never just Blanc |
 
 ## Reproducing
