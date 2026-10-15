@@ -68,6 +68,11 @@ const VARIANTS = {
       },
     ],
   },
+  checkout: {
+    describe: 'Files copied from this checkout (--checkout-file), to measure a source change',
+    lines: [],
+    fromCheckout: true,
+  },
   nowallpaper: {
     describe: 'Start Page wallpapers replaced with 1×1 images',
     lines: [],
@@ -93,18 +98,22 @@ function replaceLineOnce(text, line, replacement) {
 }
 
 function parseArgs(argv) {
-  const options = { app: '/Applications/Blanc.app', out: null, variants: [] };
+  const options = { app: '/Applications/Blanc.app', out: null, variants: [], checkoutFiles: [] };
   for (const arg of argv) {
     const [key, ...rest] = arg.replace(/^--/, '').split('=');
     const value = rest.join('=');
     if (key === 'app') options.app = value;
     else if (key === 'out') options.out = value;
     else if (key === 'variant') options.variants.push(value);
+    else if (key === 'checkout-file') options.checkoutFiles.push(value);
     else if (key === 'help' || key === 'h') options.help = true;
     else throw new Error(`Unknown option: ${arg}`);
   }
   for (const name of options.variants) {
     if (!VARIANTS[name]) throw new Error(`Unknown variant "${name}". Known: ${Object.keys(VARIANTS).join(', ')}`);
+  }
+  if (options.variants.includes('checkout') !== options.checkoutFiles.length > 0) {
+    throw new Error('--variant=checkout and --checkout-file=PATH go together');
   }
   return options;
 }
@@ -113,7 +122,7 @@ function run(file, args) {
   execFileSync(file, args, { stdio: ['ignore', 'inherit', 'inherit'] });
 }
 
-async function buildVariant(asar, source, outDir, name) {
+async function buildVariant(asar, source, outDir, name, checkoutFiles = []) {
   const variant = VARIANTS[name];
   const app = path.join(outDir, name, 'Blanc.app');
   const work = path.join(outDir, name, 'app');
@@ -129,6 +138,16 @@ async function buildVariant(asar, source, outDir, name) {
   for (const { file, line, replace } of variant.lines) {
     const target = path.join(work, file);
     fs.writeFileSync(target, replaceLineOnce(fs.readFileSync(target, 'utf8'), line, replace));
+  }
+  // Only meaningful for a file whose one change since the measured release is
+  // the change under test; anything else that differs is measured with it.
+  if (variant.fromCheckout) {
+    const repo = path.join(__dirname, '..', '..');
+    for (const file of checkoutFiles) {
+      const target = path.join(work, file);
+      if (!fs.existsSync(target)) throw new Error(`${file} is not in this app's archive`);
+      fs.copyFileSync(path.join(repo, file), target);
+    }
   }
   if (variant.images) {
     const dir = path.join(work, variant.imageDir);
@@ -155,7 +174,8 @@ async function main() {
   const options = parseArgs(process.argv.slice(2));
   if (options.help || !options.out || !options.variants.length) {
     process.stdout.write(
-      'Usage: node bench/memory/make-variant.js [--app=/Applications/Blanc.app] --out=DIR --variant=NAME ...\n\n'
+      'Usage: node bench/memory/make-variant.js [--app=/Applications/Blanc.app] --out=DIR --variant=NAME ...\n'
+      + '       [--checkout-file=src/main/file.js ...]  (with --variant=checkout)\n\n'
       + Object.entries(VARIANTS).map(([name, v]) => `  ${name.padEnd(12)} ${v.describe}`).join('\n') + '\n'
     );
     return;
@@ -165,7 +185,7 @@ async function main() {
   const built = [];
   for (const name of options.variants) {
     process.stdout.write(`building ${name}…\n`);
-    built.push([name, await buildVariant(asar, path.resolve(options.app), path.resolve(options.out), name)]);
+    built.push([name, await buildVariant(asar, path.resolve(options.app), path.resolve(options.out), name, options.checkoutFiles)]);
   }
   process.stdout.write(`\nMeasure with:\n  node bench/memory/idle-attribution.js ${
     built.map(([name, app]) => `"--app=${app}=${name}"`).join(' ')

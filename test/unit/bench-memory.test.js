@@ -1254,3 +1254,12 @@ test('variants are named, and the control changes nothing', () => {
   assert.deepEqual(options.variants, ['control', 'noblur']);
   assert.throws(() => variants.parseArgs(['--variant=nosuch']), /Unknown variant/);
 });
+
+test('the checkout variant needs the files to copy, and only it takes them', () => {
+  const options = variants.parseArgs([
+    '--out=/tmp/v', '--variant=control', '--variant=checkout', '--checkout-file=src/main/app-icon.js',
+  ]);
+  assert.deepEqual(options.checkoutFiles, ['src/main/app-icon.js']);
+  assert.throws(() => variants.parseArgs(['--out=/tmp/v', '--variant=checkout']), /go together/);
+  assert.throws(() => variants.parseArgs(['--out=/tmp/v', '--checkout-file=src/main/app-icon.js']), /go together/);
+});
