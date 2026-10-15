@@ -1048,3 +1048,60 @@ When('I draw the reload gesture in the reference pane', async function () {
     await this.call('setMouseGestures', original.enabled, original.mapping);
   }
 });
+
+async function referenceWithLink(world, opts = {}) {
+  world.glanceMainId = await world.call('openTab', world.fixtureUrl('glance-main'));
+  world.glanceReferenceId = await world.call('openTab',
+    `${world.fixtureUrl('glance-reference')}?blanklink=glance-opened`, opts);
+  await world.call('activateTab', world.glanceMainId, false);
+  await world.waitForState((state) => ['glance-main', 'glance-reference'].every((title) =>
+    state.tabs.some((tab) => tab.title === title && !tab.isLoading)));
+  assert.equal(await world.call('setGlance', world.glanceReferenceId), true);
+  world.glanceMainUrlBefore = (await world.state()).tabs.find((tab) => tab.id === world.glanceMainId).url;
+}
+
+Given('a Glance reference with a link that opens a new tab', async function () {
+  await referenceWithLink(this);
+});
+
+Given('a private Glance reference with a link that opens a new tab', async function () {
+  await referenceWithLink(this, { private: true });
+});
+
+When('I click that link in the reference pane', async function () {
+  assert.equal(await this.call('clickInTab', this.glanceReferenceId, '#acceptance-blank'), true);
+});
+
+When('I click that link in the reference pane as a background tab', async function () {
+  const modifier = (await ctx.app.evaluate(() => process.platform)) === 'darwin' ? 'meta' : 'control';
+  assert.equal(await this.call('clickInTab', this.glanceReferenceId, '#acceptance-blank', [modifier]), true);
+});
+
+Then('the new tab is the reference and the old reference stays open', async function () {
+  const state = await this.waitForState((candidate) => {
+    const reference = candidate.tabs.find((tab) => tab.id === candidate.glanceTabId);
+    return reference && reference.id !== this.glanceReferenceId && reference.title === 'glance-opened';
+  });
+  this.glanceOpenedId = state.glanceTabId;
+  assert.equal(state.activeTabId, this.glanceMainId);
+  assert.ok(state.tabOrder.includes(this.glanceReferenceId), 'the previous reference was closed');
+});
+
+Then('the main page is unchanged', async function () {
+  const state = await this.state();
+  assert.equal(state.activeTabId, this.glanceMainId);
+  assert.equal(state.tabs.find((tab) => tab.id === this.glanceMainId).url, this.glanceMainUrlBefore);
+});
+
+Then('the new reference is private', async function () {
+  const opened = (await this.state()).tabs.find((tab) => tab.id === this.glanceOpenedId);
+  assert.equal(opened.private, true);
+  assert.equal(opened.sessionKind, 'private');
+});
+
+Then('a background tab opened and Glance shows the same reference', async function () {
+  const state = await this.waitForState((candidate) =>
+    candidate.tabs.some((tab) => tab.title === 'glance-opened' && !tab.isLoading));
+  assert.equal(state.glanceTabId, this.glanceReferenceId);
+  assert.equal(state.activeTabId, this.glanceMainId);
+});

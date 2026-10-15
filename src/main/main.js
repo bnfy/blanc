@@ -6017,6 +6017,7 @@ initTabView({
   setActiveTab,
   closeTab,
   noteFocusedPane,
+  setGlanceTab,
   isFindTarget: (owner, tabId) => findTargetTabId(owner) === tabId,
   dispatchMouseGesture(owner, tab, action) {
     if (!owner || owner.closing || !isVisiblePaneId(owner, tab.id) || liveContents(tab) == null) return;

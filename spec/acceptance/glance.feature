@@ -247,3 +247,23 @@ Feature: Glance reference pane
     When I open the reference tab in Glance
     And I draw the reload gesture in the reference pane
     Then only the reference page reloaded
+
+  @F34-1 @F34 @D11
+  Scenario: A link that opens a new tab from the reference opens into Glance
+    Given a Glance reference with a link that opens a new tab
+    When I click that link in the reference pane
+    Then the new tab is the reference and the old reference stays open
+    And the main page is unchanged
+
+  @F34-1 @F34 @D11
+  Scenario: A background-tab click in the reference stays in the background
+    Given a Glance reference with a link that opens a new tab
+    When I click that link in the reference pane as a background tab
+    Then a background tab opened and Glance shows the same reference
+
+  @F34-1 @F34 @F11 @D11
+  Scenario: A private reference opens its new tab privately into Glance
+    Given a private Glance reference with a link that opens a new tab
+    When I click that link in the reference pane
+    Then the new tab is the reference and the old reference stays open
+    And the new reference is private

@@ -588,6 +588,9 @@ function wireTabView(tab, view, { owner, adopted }) {
           const childView = options.webContents
             ? new WebContentsView({ webContents: options.webContents })
             : null;
+          // Read at open time: a foreground tab the reference opened becomes
+          // the reference, leaving the main page and its focus untouched.
+          const fromReference = getOwner().glanceTabId === tab.id;
           // A discarded opener leaves this child's window.opener unusable.
           const newId = createTab(targetUrl, {
             private: tab.private, groupId: tab.groupId, view: childView, managedExtension,
@@ -598,7 +601,14 @@ function wireTabView(tab, view, { owner, adopted }) {
             openerSandboxFlags: options.webPreferences?.openerSandboxFlags ?? 0,
             httpReferrer: childView ? null : referrer,
           });
-          if (disposition !== 'background-tab') setImmediate(() => setActiveTab(newId));
+          if (disposition !== 'background-tab') {
+            setImmediate(() => {
+              if (!fromReference) return setActiveTab(newId);
+              // setGlanceTab re-checks ownership and liveness; a tab that
+              // closed or moved meanwhile simply stays where it is.
+              Promise.resolve(deps.setGlanceTab?.(newId)).catch(() => {});
+            });
+          }
           return liveContents(tabs.get(newId));
         }),
       };

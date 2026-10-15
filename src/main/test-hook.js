@@ -592,6 +592,22 @@ function install(refs) {
     },
     focusedWebContentsId() { return webContents.getFocusedWebContents()?.id ?? null; },
     zoomLevel(tabId) { return liveContents(tabs.get(tabId))?.getZoomLevel() ?? null; },
+    // A real mouse click on an element of a tab's page, so the page's own
+    // target=_blank / modifier handling decides the window-open disposition.
+    async clickInTab(tabId, selector, modifiers = []) {
+      const wc = liveContents(tabs.get(tabId));
+      if (!wc) return false;
+      const point = await wc.executeJavaScript(`(() => {
+        const rect = document.querySelector(${JSON.stringify(String(selector))})?.getBoundingClientRect();
+        return rect ? { x: Math.round(rect.x + rect.width / 2), y: Math.round(rect.y + rect.height / 2) } : null;
+      })()`);
+      if (!point) return false;
+      wc.focus();
+      const input = { ...point, button: 'left', clickCount: 1, modifiers: [...modifiers] };
+      wc.sendInputEvent({ ...input, type: 'mouseDown' });
+      wc.sendInputEvent({ ...input, type: 'mouseUp' });
+      return true;
+    },
     // A browser command as a person presses it with this tab's page focused.
     // Windows/Linux: the key reaches the page and main's before-input-event
     // routes it by sender. macOS: the native menu item handles the key and
