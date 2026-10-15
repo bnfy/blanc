@@ -803,3 +803,38 @@ Then('the drag live region is rendered while the panel is open', async function 
   assert.equal(rendered, true, '#islandDragLive sits inside a display:none ancestor, so reorder announcements are never spoken');
   await this.call('closeOverlay');
 });
+
+// --- Cancel, then choose again before the first wake lands (review fix) ---
+
+Then("the strip's last Glance announcement is that the reference opened", async function () {
+  // Let the FIRST (cancelled) wake land: the slow page is still loading when
+  // the second choice attaches it.
+  await this.waitForState((candidate) => {
+    const reference = candidate.tabs.find((tab) => tab.id === this.glanceReferenceId);
+    return reference && !reference.asleep && !reference.isLoading;
+  });
+  await new Promise((resolve) => setTimeout(resolve, 300));
+  const chrome = await mainChromePage();
+  assert.equal(
+    await chrome.locator('#glanceStatus').textContent(),
+    'glance-reference opened in Glance',
+    'a stale cancellation announcement overwrote the open announcement'
+  );
+  assert.equal((await this.state()).glanceTabId, this.glanceReferenceId);
+});
+
+Then('the fresh picker stays clean after the first wake lands', async function () {
+  const page = await overlayPage();
+  await page.locator('#glancePicker:not([hidden])').waitFor();
+  await this.waitForState((candidate) => {
+    const reference = candidate.tabs.find((tab) => tab.id === this.glanceReferenceId);
+    return reference && !reference.asleep && !reference.isLoading;
+  });
+  await new Promise((resolve) => setTimeout(resolve, 300));
+  assert.equal(await this.call('overlayMode'), 'glance', 'the fresh picker was closed by the stale request');
+  assert.equal(await page.locator('#glancePickerState').evaluate((element) => element.hidden), true,
+    `stale error painted onto the fresh picker: ${await page.locator('#glancePickerState').textContent()}`);
+  assert.equal((await this.state()).glanceTabId, null);
+  await page.locator('#glancePickerInput').press('Escape');
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode === null, 'picker dismissed');
+});

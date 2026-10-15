@@ -157,3 +157,21 @@ Feature: Glance reference pane
     Given two ordinary tabs in one workspace for Glance
     When I open the Island panel
     Then the drag live region is rendered while the panel is open
+
+  @F34-1 @F34 @F31 @D11
+  Scenario: Choosing again before a cancelled wake lands opens Glance without a contradictory announcement
+    Given a quiet background tab that loads slowly
+    When I summon Glance from its native keyboard shortcut
+    And I choose the slow quiet tab and cancel with Escape before it wakes
+    And I summon Glance from its native keyboard shortcut
+    And I filter the Glance picker and choose the reference tab
+    Then the quiet reference wakes into Glance
+    And the strip's last Glance announcement is that the reference opened
+
+  @F34-1 @F34 @F31 @D11
+  Scenario: A picker re-opened after a cancelled wake shows no stale error
+    Given a quiet background tab that loads slowly
+    When I summon Glance from its native keyboard shortcut
+    And I choose the slow quiet tab and cancel with Escape before it wakes
+    And I summon Glance from its native keyboard shortcut
+    Then the fresh picker stays clean after the first wake lands

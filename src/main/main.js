@@ -6462,8 +6462,12 @@ async function setGlanceTab(id) {
   if ((rt().glanceRequestEpoch ?? 0) !== requestEpoch) {
     // The person dismissed the surface they chose from, switched tabs, or
     // closed Glance while the tab was waking: a late attach would pop a pane
-    // open under their next action.
-    if (hasLiveWindow()) rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.cancelled'));
+    // open under their next action. Say so only if the tab did not end up in
+    // Glance meanwhile (a second, current choice may have attached it while
+    // this first wake was still loading).
+    if (hasLiveWindow() && rt().glanceTabId !== id) {
+      rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.cancelled'));
+    }
     return false;
   }
   // Wake is asynchronous. Re-resolve every ownership/liveness condition so a

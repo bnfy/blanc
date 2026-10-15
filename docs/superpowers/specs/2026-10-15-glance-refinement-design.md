@@ -210,8 +210,12 @@ the context menu or the ⌘L row works as for any tab.
   carries the window's `glanceRequestEpoch`; dismissing the picker, closing
   Glance, switching the main tab or closing the window bumps it. A
   `setGlanceTab` that finishes waking a tab after the epoch moved attaches
-  nothing, announces nothing, and the row action's follow-up `hideOverlay()`
-  (`main.js:8563`) runs only for a still-current request.
+  nothing and says "Didn't open that tab in Glance" — unless a later,
+  current choice already put that tab in Glance, in which case it stays
+  silent — and the row action's follow-up `hideOverlay()` (`main.js:8563`)
+  runs only for a still-current request. A picker dismissed and re-opened
+  while a choice was still waking is a fresh picker: the old choice's
+  outcome never reaches it.
 - **Orphaned Change picker.** ⌘⇧G or View → Close Glance while the Change
   picker is open dismisses the picker with Glance.
 - **Quiet Tabs, closed-tab holds, session restore, Spaces, sync and private
