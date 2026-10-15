@@ -1557,26 +1557,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-144",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "Search with DuckDuckGo, Google, Bing or Brave.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "search"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "bento-130-145",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "Pick your search engine in Settings. Search suggestions can be turned off at any time.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "search"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "bento-130-146",
       "source": "site/src/pages/features.astro",
       "exactWording": "Suggestions are optional.",
@@ -1946,6 +1926,28 @@
       ],
       "verdict": "qualified",
       "reason": "October 14, 2026: public v1.33.0 made Blanc Spaces free for everyone; Blanc Patron is optional support and unlocks nothing (owner decision, docs/superpowers/specs/2026-10-13-blanc-spaces-redesign-design.md). The replacement wording is recorded in docs/website-v1.33-claims.json; the original remains in git history."
+    },
+    {
+      "id": "bento-130-144",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Search with DuckDuckGo, Google, Bing or Brave.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "search"
+      ],
+      "verdict": "qualified",
+      "reason": "October 14, 2026: public v1.34.0 added Kagi and a custom search address to Settings → General → Search engine. The replacement wording is recorded in docs/website-v1.34-claims.json; the original remains in git history."
+    },
+    {
+      "id": "bento-130-145",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Pick your search engine in Settings. Search suggestions can be turned off at any time.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "search"
+      ],
+      "verdict": "qualified",
+      "reason": "October 14, 2026: public v1.34.0 added Kagi and a custom search address to Settings → General → Search engine. The replacement wording is recorded in docs/website-v1.34-claims.json; the original remains in git history."
     }
   ]
 }

@@ -14,6 +14,7 @@ const previousLedger = JSON.parse(read('docs/website-v1.21-claims.json'));
 const historicalLedger = JSON.parse(read('docs/website-v1.15-claims.json'));
 const v132Ledger = JSON.parse(read('docs/website-v1.32-claims.json'));
 const v133Ledger = JSON.parse(read('docs/website-v1.33-claims.json'));
+const v134Ledger = JSON.parse(read('docs/website-v1.34-claims.json'));
 const entities = { rsquo: '’', lsquo: '‘', amp: '&', ldquo: '“', rdquo: '”' };
 // Compare source text only; consume incomplete tags and decode entities once.
 const normalize = text => text.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*(?:>|$)/g, '').replace(/&(rsquo|lsquo|amp|ldquo|rdquo);/g, (_, name) => entities[name]).replace(/\s+/g, ' ').trim();
@@ -165,6 +166,30 @@ test('v1.33.0 free Blanc Spaces copy resolves to verified public v1.33.0 evidenc
   }
 });
 
+test('v1.34.0 Kagi and custom search copy resolves to verified public v1.34.0 evidence', () => {
+  assert.equal(v134Ledger.publicRelease, 'v1.34.0');
+  assert.equal(execFileSync('git', ['rev-parse', `${v134Ledger.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), v134Ledger.sourceSha);
+  assert.ok(read(v134Ledger.releaseEvidence).includes(v134Ledger.sourceSha));
+  for (const claim of v134Ledger.claims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    const source = read(claim.source);
+    assert.ok(normalize(source).includes(claim.exactWording) || source.replace(/\s+/g, ' ').includes(claim.exactWording), `${claim.id}: exact wording drifted`);
+    assert.ok(claim.evidenceGroups.length, `${claim.id}: no release evidence`);
+    for (const key of claim.evidenceGroups) {
+      const group = v134Ledger.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, `${claim.id}: release evidence and qualifications`);
+      for (const file of group.evidence) execFileSync('git', ['cat-file', '-e', `${v134Ledger.publicRelease}:${file}`], { cwd: root });
+    }
+  }
+  // Kagi needs an account: wherever the site names Kagi as a search engine,
+  // that qualification travels with it.
+  for (const file of new Set(v134Ledger.claims.map(claim => claim.source))) {
+    const text = normalize(read(file));
+    if (/\bKagi\b/.test(text)) assert.match(text, /Kagi needs a Kagi account/, `${file}: Kagi without its account qualification`);
+    assert.doesNotMatch(text, /Search with DuckDuckGo, Google, Bing or Brave\./, `${file}: retired four-engine wording`);
+  }
+});
+
 test('feature guide pages show only ledger-recorded captures or same-size WebP companions of them', async () => {
   const ledgers = fs.readdirSync(path.join(root, 'docs')).filter(name => /^website-.*captures?-.*\.json$/.test(name));
   const recorded = new Set(ledgers.flatMap(name =>
@@ -222,7 +247,7 @@ test('Features bento copy resolves to verified public v1.30.1 evidence, and ever
   }
   // Every text element above the unchanged Patron and download sections is a
   // recorded claim in this ledger, the reorder ledger, or the v1.27 ledger.
-  const recorded = [...bento.claims, ...reorder.claims, ...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims].filter(claim => claim.source === file).map(claim => claim.exactWording);
+  const recorded = [...bento.claims, ...reorder.claims, ...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...v134Ledger.claims].filter(claim => claim.source === file).map(claim => claim.exactWording);
   const scope = page.slice(page.indexOf('<main'), page.indexOf('class="bento-patron"'));
   for (const [, , text] of scope.matchAll(/<(h[1-6]|p|figcaption|li|button)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
     const wording = normalize(text);

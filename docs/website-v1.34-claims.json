@@ -1,0 +1,52 @@
+{
+  "publicRelease": "v1.34.0",
+  "sourceSha": "ac16aae446c22732478bfebc45ecc7ce5de51fbd",
+  "releaseEvidence": "docs/release-incidents/2026-10-14-v1.34.0.md",
+  "scope": "Website copy for what public v1.34.0 shipped (October 14, 2026): Kagi and a custom search address (any search engine whose address takes the search words, such as SearXNG) in Settings → General → Search engine. Every evidence path is at the immutable publicRelease tag. The retired four-engine wording is recorded as supersededClaims in docs/website-features-bento-claims-v1.30.json.",
+  "prohibitedClaims": [
+    "search keywords or shortcuts, or several saved custom search engines",
+    "OpenSearch auto-discovery, or importing search engines from other browsers",
+    "live search suggestions from a custom search engine",
+    "Kagi working without a Kagi account, or sharing its sign-in with private tabs",
+    "plain http:// custom search addresses on the open internet"
+  ],
+  "evidenceGroups": {
+    "search": {
+      "evidence": [
+        "docs/press/release-notes/v1.34.0.md",
+        "src/main/settings.js",
+        "src/main/search-engine-template.js",
+        "src/main/search-suggestions.js",
+        "src/renderer/pages/settings.html",
+        "spec/features.md",
+        "spec/acceptance/navigation-and-context-menu.feature",
+        "test/unit/search-engine-template.test.js",
+        "test/unit/search-engine-settings.test.js"
+      ],
+      "qualification": "Public desktop v1.34.0. Settings → General → Search engine offers DuckDuckGo, Google, Bing, Brave Search, Kagi and Custom…. A custom address has exactly one %s where the words go, after the host and port; it uses https://, or http:// only for this computer or the local network, and syncs with the other settings when Profile Sync is on. Kagi needs a Kagi account and private tabs don't share its sign-in. Kagi shows live suggestions; a custom engine shows none. Search suggestions can be turned off in Settings."
+    }
+  },
+  "claims": [
+    {
+      "id": "v134-001",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Search with DuckDuckGo, Google, Bing, Brave, Kagi or your own engine.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "search"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v134-002",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Pick your search engine in Settings, or paste your own search address, such as a SearXNG server. Kagi needs a Kagi account. Search suggestions can be turned off at any time.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "search"
+      ],
+      "verdict": "qualified"
+    }
+  ],
+  "supersededClaims": []
+}
