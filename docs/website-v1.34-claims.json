@@ -2,13 +2,14 @@
   "publicRelease": "v1.34.0",
   "sourceSha": "ac16aae446c22732478bfebc45ecc7ce5de51fbd",
   "releaseEvidence": "docs/release-incidents/2026-10-14-v1.34.0.md",
-  "scope": "Website copy for what public v1.34.0 shipped (October 14, 2026): Kagi and a custom search address (any search engine whose address takes the search words, such as SearXNG) in Settings → General → Search engine. Every evidence path is at the immutable publicRelease tag. The retired four-engine wording is recorded as supersededClaims in docs/website-features-bento-claims-v1.30.json.",
+  "scope": "Website copy for what public v1.34.0 shipped (October 14, 2026): Kagi and a custom search address (any search engine whose address takes the search words, such as SearXNG) in Settings → General → Search engine. Also the Quiet Tabs page's Island figure, its caption, its accessible name and its share-card description (October 15, 2026), redrawn to the dimmed rows v1.34.0 actually shows. Every evidence path is at the immutable publicRelease tag. The retired four-engine wording is recorded as supersededClaims in docs/website-features-bento-claims-v1.30.json; the retired quiet-dot figure wording is recorded as supersededClaims here.",
   "prohibitedClaims": [
     "search keywords or shortcuts, or several saved custom search engines",
     "OpenSearch auto-discovery, or importing search engines from other browsers",
     "live search suggestions from a custom search engine",
     "Kagi working without a Kagi account, or sharing its sign-in with private tabs",
-    "plain http:// custom search addresses on the open internet"
+    "plain http:// custom search addresses on the open internet",
+    "quiet tabs drawn differently on the resting Island's tab dots, or marked by a glyph or text label in the tab list or vertical rail"
   ],
   "evidenceGroups": {
     "search": {
@@ -24,6 +25,20 @@
         "test/unit/search-engine-settings.test.js"
       ],
       "qualification": "Public desktop v1.34.0. Settings → General → Search engine offers DuckDuckGo, Google, Bing, Brave Search, Kagi and Custom…. A custom address has exactly one %s where the words go, after the host and port; it uses https://, or http:// only for this computer or the local network, and syncs with the other settings when Profile Sync is on. Kagi needs a Kagi account and private tabs don't share its sign-in. Kagi shows live suggestions; a custom engine shows none. Search suggestions can be turned off in Settings."
+    },
+    "quietTabsFigure": {
+      "evidence": [
+        "src/renderer/overlay.js",
+        "src/renderer/styles.css",
+        "src/renderer/renderer.js",
+        "src/main/main.js",
+        "src/main/tab-sleep.js",
+        "spec/features.md",
+        "docs/superpowers/specs/2026-08-18-quiet-marker-dim-only-design.md",
+        "test/unit/quiet-tabs-chrome.test.js",
+        "test/unit/island-tab-presentation.test.js"
+      ],
+      "qualification": "Public desktop v1.34.0. A quiet tab's row dims as one unit to half strength in the expanded Island (.island-row.quiet) and in the vertical tab rail (.vertical-tab-row.quiet); hover or keyboard focus restores it, and its accessible name says quiet. Those rows carry no glyph or text marker, and the resting Island's tab dots, the Quick Switcher and the start page carry no quiet treatment. Quiet tabs keep their place in the tab order. Eligible inactive background tabs release renderer memory and reload when opened; this is not a CPU, battery or exact-resumption promise. The at-rest list shows ungrouped tabs as plain rows, the current tab's title in bold with its close button showing, under an address field holding the current tab's address. The figure is website markup with sample sites and favicons, not captured app footage."
     }
   },
   "claims": [
@@ -46,7 +61,71 @@
         "search"
       ],
       "verdict": "qualified"
+    },
+    {
+      "id": "v134-003",
+      "source": "site/src/pages/features/quiet-tabs.astro",
+      "exactWording": "Threads and Netflix are quiet: Blanc has freed their memory, so their rows in the expanded island are dimmed. They keep their place in the list and reload when you open one.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "quietTabsFigure"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v134-004",
+      "source": "site/src/pages/features/quiet-tabs.astro",
+      "exactWording": "Blanc's expanded island open over a page, listing five tabs with Notion as the current tab. The Threads and Netflix rows are dimmed to half strength because those tabs are quiet: Blanc has freed their memory, and they reload when opened.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "quietTabsFigure"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v134-005",
+      "source": "site/src/pages/features/quiet-tabs.astro",
+      "exactWording": "Blanc's expanded island listing five open tabs, two of them dimmed because they are quiet.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "quietTabsFigure"
+      ],
+      "verdict": "qualified"
     }
   ],
-  "supersededClaims": []
+  "supersededClaims": [
+    {
+      "id": "quiet-tabs-figure-retired-01",
+      "source": "site/src/pages/features/quiet-tabs.astro",
+      "exactWording": "Two of these tabs are quiet. They keep their place in the island until you go back to one.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "quietTabsFigure"
+      ],
+      "verdict": "remove",
+      "reason": "October 15, 2026: public v1.34.0 never draws quiet tabs on the resting Island's dots (renderer.js: \"A dot is a switch target, not a status field\"; quiet-tabs-chrome.test.js asserts no dot treatment), and the site had no rule styling the figure's .dots > span.quiet, so its dots rendered identically while this wording described smaller quiet cores. Replaced by the expanded-Island figure with dimmed rows (v134-003 to v134-005); the original remains in git history."
+    },
+    {
+      "id": "quiet-tabs-figure-retired-02",
+      "source": "site/src/pages/features/quiet-tabs.astro",
+      "exactWording": "Blanc's resting island above a page: five tab dots, two of them drawn as smaller quiet cores for tabs whose memory has been given back.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "quietTabsFigure"
+      ],
+      "verdict": "remove",
+      "reason": "October 15, 2026: public v1.34.0 never draws quiet tabs on the resting Island's dots (renderer.js: \"A dot is a switch target, not a status field\"; quiet-tabs-chrome.test.js asserts no dot treatment), and the site had no rule styling the figure's .dots > span.quiet, so its dots rendered identically while this wording described smaller quiet cores. Replaced by the expanded-Island figure with dimmed rows (v134-003 to v134-005); the original remains in git history."
+    },
+    {
+      "id": "quiet-tabs-figure-retired-03",
+      "source": "site/src/pages/features/quiet-tabs.astro",
+      "exactWording": "Blanc's resting island with five tab dots, two drawn as smaller quiet cores.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "quietTabsFigure"
+      ],
+      "verdict": "remove",
+      "reason": "October 15, 2026: public v1.34.0 never draws quiet tabs on the resting Island's dots (renderer.js: \"A dot is a switch target, not a status field\"; quiet-tabs-chrome.test.js asserts no dot treatment), and the site had no rule styling the figure's .dots > span.quiet, so its dots rendered identically while this wording described smaller quiet cores. Replaced by the expanded-Island figure with dimmed rows (v134-003 to v134-005); the original remains in git history."
+    }
+  ]
 }

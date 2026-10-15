@@ -9,7 +9,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   current="features"
   ogDescription={"Tabs you are not using give their memory back and reload when you return. You choose the delay."}
   ogImage="/feature-quiet-tabs.png"
-  ogImageAlt={"Blanc's resting island with five tab dots, two drawn as smaller quiet cores."}
+  ogImageAlt={"Blanc's expanded island listing five open tabs, two of them dimmed because they are quiet."}
 >
   <script type="application/ld+json" is:inline slot="head">
 {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://blanc.day/"},{"@type":"ListItem","position":2,"name":"Features","item":"https://blanc.day/features"},{"@type":"ListItem","position":3,"name":"Quiet tabs","item":"https://blanc.day/features/quiet-tabs"}]}
@@ -19,18 +19,22 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">home</a><span aria-hidden="true">/</span><a href="/features">features</a><span aria-hidden="true">/</span><span aria-current="page">quiet tabs</span></nav>
   <section class="feature-hero feature-hero--detail feature-hero--text" aria-labelledby="quiet-title"><h1 id="quiet-title">Tabs you are not using give their memory back.</h1><p>Leave a tab alone long enough and Blanc hands its page back to your computer. The tab stays exactly where it was in your session, and it reloads the moment you return to it.</p></section>
   <figure class="product-capture feature-capture">
-    <div class="demo-stage island-figure" role="img" aria-label="Blanc's resting island above a page: five tab dots, two of them drawn as smaller quiet cores for tabs whose memory has been given back.">
+    <div class="demo-stage island-figure island-figure--panel island-figure--quiet" role="img" aria-label="Blanc's expanded island open over a page, listing five tabs with Notion as the current tab. The Threads and Netflix rows are dimmed to half strength because those tabs are quiet: Blanc has freed their memory, and they reload when opened.">
       <div class="demo-page" aria-hidden="true"><div class="bar w1"></div><div class="bar w2"></div><div class="bar w3"></div><div class="bar w4"></div></div>
-      <div class="demo-island" aria-hidden="true">
-        <div class="pill">
-          <div class="dots"><span class="quiet"></span><span></span><span class="cur"></span><span></span><span class="quiet"></span></div>
-          <span class="pill-fav"></span>
-          <span class="domain">blanc.day</span>
-          <span class="pill-shortcuts"><span class="pill-shortcut" title="New tab (⌘T)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3.25v9.5M3.25 8h9.5"/></svg></span></span>
+      <div class="demo-island open" aria-hidden="true">
+        <div class="panel">
+          <div class="panel-row"><div class="field"><span class="typed">https://www.notion.so/</span><span class="caret"></span></div></div>
+          <div class="list">
+            <div class="trow quiet"><span class="fav fav--threads"></span><span class="title">Threads</span></div>
+            <div class="trow"><span class="fav fav--gmail"></span><span class="title">Gmail</span></div>
+            <div class="trow hl"><span class="fav fav--notion"></span><span class="title">Notion</span><span class="row-close"><svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg></span></div>
+            <div class="trow"><span class="fav fav--youtube"></span><span class="title">YouTube</span></div>
+            <div class="trow quiet"><span class="fav fav--netflix"></span><span class="title">Netflix</span></div>
+          </div>
         </div>
       </div>
     </div>
-    <figcaption>Two of these tabs are quiet. They keep their place in the island until you go back to one.</figcaption>
+    <figcaption>Threads and Netflix are quiet: Blanc has freed their memory, so their rows in the expanded island are dimmed. They keep their place in the list and reload when you open one.</figcaption>
   </figure>
   <section class="feature-copy-grid feature-copy-grid--top" aria-labelledby="quiet-behavior-title">
     <div><h2 id="quiet-behavior-title">You choose the delay. Blanc does the rest.</h2></div>
