@@ -231,7 +231,12 @@
           "type": "TabId"
         },
         "title": {
-          "type": "string"
+          "type": "string",
+          "doc": "The label to draw: the person's custom name when the tab is renamed (F46), else the page title."
+        },
+        "pageTitle": {
+          "type": "string | null",
+          "doc": "The page's own title while the tab has a custom name; null otherwise."
         },
         "url": {
           "type": "string"
@@ -1726,6 +1731,24 @@
       ],
       "returns": "TabId | undefined",
       "doc": "Duplicate a tab. Resolves to the duplicate's id, or undefined when the tab is unknown."
+    },
+    {
+      "name": "renameTab",
+      "group": "tabs",
+      "kind": "invoke",
+      "channel": "tabs:rename",
+      "params": [
+        {
+          "name": "id",
+          "type": "TabId"
+        },
+        {
+          "name": "name",
+          "type": "string | null"
+        }
+      ],
+      "returns": "void",
+      "doc": "Give a tab a custom name, or with an empty or null name restore its page title (F46)."
     },
     {
       "name": "openPage",

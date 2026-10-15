@@ -179,6 +179,7 @@ const history = require('./history');
 const { siteKey: topSiteKey } = require('./top-sites');
 const { JsonStore, discardProfileStoreEntries, enableTempSweep } = require('./store');
 const { persistableEntries, sessionTabMeta } = require('./session-snapshot');
+const { normalizeTabName, displayTitle, resolveTabRename } = require('./tab-name');
 const {
   PRIMARY_WINDOW_ID,
   loadWorkspace,
@@ -4203,7 +4204,12 @@ function serializeTabs() {
       // cross this boundary merely because they were added to a tab record.
       const rest = {
         id: tab.id,
-        title: tab.title,
+        // F46: the label to draw — the person's name when renamed, else the
+        // page's title. pageTitle carries the page's own title only while the
+        // tab is renamed (tooltips, Quick Switcher). Inline on purpose: tests
+        // lift this function without tab-name.js.
+        title: tab.customTitle || tab.title,
+        pageTitle: tab.customTitle ? tab.title : null,
         url: tab.url,
         isLoading: tab.isLoading,
         canGoBack: tab.canGoBack,
@@ -5120,6 +5126,20 @@ function groupTabByName(tabId, rawName) {
   scheduleMenuRebuild();
 }
 
+/** F46: give a tab the person's own name, or with an empty name hand it back
+ * its page title. The rules (cleaning, the untouched-prefill check) live in
+ * tab-name.js; this applies the verdict. A tab of another window or one that
+ * closed while the panel was open is left alone. */
+function renameTab(tabId, rawName) {
+  const tab = tabs.get(tabId);
+  if (!tab || tab.runtimeId !== rt().id) return;
+  const next = resolveTabRename(tab, rawName);
+  if (next === undefined) return;
+  tab.customTitle = next;
+  broadcastTabs();
+  scheduleMenuRebuild();
+}
+
 function toggleGroupCollapsed(groupId) {
   const group = rt().groups.find((g) => g.id === groupId);
   if (!group) return;
@@ -5989,7 +6009,7 @@ initTabView({
   notePopupChild,
 });
 
-function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, adoptView = null, allowLocalFile = false, openerSandboxFlags = 0, httpReferrer = null, managedExtension = false } = {}) {
+function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, customTitle = null, adoptView = null, allowLocalFile = false, openerSandboxFlags = 0, httpReferrer = null, managedExtension = false } = {}) {
   if (/^chrome-extension:/i.test(url) && (isPrivate || !managedExtension)) return null;
   const admittedLocalFile = allowLocalFile && isSupportedLocalHtmlUrl(url);
   if (isForbiddenTopLevelUrl(url) && !admittedLocalFile) url = NEW_TAB_URL;
@@ -6037,6 +6057,10 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     profileId: owner.profileId,
     view: bornQuiet ? null : view,
     title: typeof title === 'string' && title ? title : mainI18n.t('tab.untitled'),
+    // F46: the person's own name for this tab, or null for the page title.
+    // `title` stays the page's own; restore paths hand in file contents, so
+    // the name is normalized here too.
+    customTitle: normalizeTabName(customTitle),
     url,
     // Main-process grant, never copied from an IPC option. Cleared when the
     // document leaves this local file; only an OS handoff can originate it.
@@ -7605,6 +7629,7 @@ function registerIpcHandlers() {
   chromeHandle('tabs:toggle-pinned', (_e, id) => toggleTabPinned(id));
   chromeHandle('tabs:toggle-muted', (_e, id) => toggleTabMuted(id));
   chromeHandle('tabs:duplicate', (_e, id) => duplicateTab(id));
+  chromeHandle('tabs:rename', (_e, id, name) => { renameTab(id, name ?? null); });
   chromeHandle('tabs:open-page', (_e, name, section) => {
     if (name === 'settings') return openSettingsSection(section);
     if (['bookmarks', 'history', 'downloads', 'tab-import'].includes(name)) {
@@ -10417,7 +10442,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       setGlanceTab, closeGlance, promoteGlance, resizeGlanceAt, resetGlanceRatio,
       getGlanceTabId: () => rt().glanceTabId,
       getGlanceGeometry: () => hasLiveWindow() ? glanceGeometry() : null,
-      groupTabByName, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab,
+      groupTabByName, renameTab, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab,
       closeGroup, newTabUrl,
       getOverlayDragging: () => overlayDragActive(rt()),
       selectTabAtIndex,

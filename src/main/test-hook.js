@@ -79,6 +79,7 @@ function install(refs) {
     getGlanceTabId,
     getGlanceGeometry,
     groupTabByName,
+    renameTab,
     closeGroup,
     toggleGroupCollapsed,
     moveTabTo,
@@ -489,6 +490,7 @@ function install(refs) {
           loading: isLoadingOf(t),
           isLoading: !!t.isLoading,
           title: t.title || '',
+          customTitle: t.customTitle ?? null,
           favicon: t.favicon || null,
           groupId: t.groupId ?? null,
           pinned: !!t.pinned,
@@ -557,6 +559,7 @@ function install(refs) {
     reopenClosedInWindow(runtimeId) { return reopenClosedTabInWindow(String(runtimeId)); },
     groupActiveByName(name) { groupTabByName(getActiveTabId(), name); },
     groupTabByName(id, name) { groupTabByName(id, name); },
+    renameTab(id, name) { renameTab(id, name); },
     activateTab(id, focusContent = false) { setActiveTab(id, { focusContent: !!focusContent }); },
     focusTabContents(id) {
       const tab = tabs.get(id);
