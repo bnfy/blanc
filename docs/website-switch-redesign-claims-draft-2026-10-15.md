@@ -127,8 +127,12 @@ Rows deliberately left out:
   the ad-blocking page, fact sheet and support answer. Two things changed:
   Brave now uses a little less than Blanc (1.5 GB against 1.7), and blocker-off
   Blanc is about the same as Chrome. Blanc's idle memory roughly doubled since
-  1.1.0 (200 MB to 440 MB), which is being investigated separately. Whether the
-  memory card still earns a place in the proof strip is the owner's call.
+  1.1.0 (200 MB to 440 MB). PR #831 traced that growth, mostly to GPU
+  compositing and a display-capture helper created at startup, in
+  `docs/benchmarks/idle-memory-attribution-2026-10-15.md`; its fixes reach
+  users in the next release and don't change the six-site figures above.
+  Whether the memory card still earns a place in the proof strip is the
+  owner's call.
 - **F-2, Chrome column.** Resolved on October 15, 2026: every cell in
   section C now cites the Google page it was read from. Re-read them before
   publishing if more than a few weeks pass, since Chrome's documentation
