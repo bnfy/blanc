@@ -1,0 +1,73 @@
+name: Idle memory attribution
+
+# Temporary measurement job for the idle-memory investigation: per-process
+# phys_footprint of several public Apple Silicon releases, measured in one
+# session on one hosted Mac. Not a release gate.
+on:
+  workflow_dispatch:
+  push:
+    branches: [claude/clever-albattani-087dyh]
+    paths:
+      - '.github/workflows/idle-memory-attribution.yml'
+      - 'bench/memory/idle-attribution.js'
+
+permissions:
+  contents: read
+
+jobs:
+  attribute:
+    runs-on: macos-15
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Describe the runner
+        run: |
+          sw_vers
+          sysctl -n machdep.cpu.brand_string hw.memsize
+          system_profiler SPDisplaysDataType | sed -n '1,40p' || true
+      - name: Download and mount public DMGs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSIONS: 1.1.0 1.8.2 1.9.0 1.15.0 1.16.0 1.20.0 1.24.0 1.27.0 1.31.0 1.34.0
+        run: |
+          set -euo pipefail
+          for v in $VERSIONS; do
+            dir="$RUNNER_TEMP/dmg-$v"
+            mkdir -p "$dir"
+            gh release download "v$v" --repo "$GITHUB_REPOSITORY" \
+              --pattern "Blanc-$v-arm64.dmg" --pattern SHA256SUMS --dir "$dir"
+            expected=$(awk -v f="Blanc-$v-arm64.dmg" '$2 == f { print $1 }' "$dir/SHA256SUMS")
+            actual=$(shasum -a 256 "$dir/Blanc-$v-arm64.dmg" | awk '{ print $1 }')
+            [ -n "$expected" ] && [ "$expected" = "$actual" ] || { echo "digest mismatch for $v" >&2; exit 1; }
+            mkdir -p "$RUNNER_TEMP/mnt-$v"
+            hdiutil attach "$dir/Blanc-$v-arm64.dmg" -mountpoint "$RUNNER_TEMP/mnt-$v" -readonly -nobrowse
+          done
+      - name: Attribute idle memory across releases (native scale)
+        env:
+          VERSIONS: 1.1.0 1.8.2 1.9.0 1.15.0 1.16.0 1.20.0 1.24.0 1.27.0 1.31.0 1.34.0
+        run: |
+          set -euo pipefail
+          args=()
+          for v in $VERSIONS; do args+=("--app=$RUNNER_TEMP/mnt-$v/Blanc.app=$v"); done
+          node bench/memory/idle-attribution.js "${args[@]}" --reps=3 --sudo --out="$RUNNER_TEMP/results/native"
+          cat "$RUNNER_TEMP"/results/native/*.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Attribute idle memory at 2x scale (Retina-like)
+        run: |
+          set -euo pipefail
+          node bench/memory/idle-attribution.js \
+            "--app=$RUNNER_TEMP/mnt-1.1.0/Blanc.app=1.1.0" \
+            "--app=$RUNNER_TEMP/mnt-1.15.0/Blanc.app=1.15.0" \
+            "--app=$RUNNER_TEMP/mnt-1.16.0/Blanc.app=1.16.0" \
+            "--app=$RUNNER_TEMP/mnt-1.34.0/Blanc.app=1.34.0" \
+            --extra-arg=--force-device-scale-factor=2 --reps=3 --sudo --out="$RUNNER_TEMP/results/scale2"
+          cat "$RUNNER_TEMP"/results/scale2/*.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: idle-memory-attribution
+          path: ${{ runner.temp }}/results
+          if-no-files-found: warn
