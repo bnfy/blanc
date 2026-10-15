@@ -1,7 +1,6 @@
 'use strict';
 
 const assert = require('node:assert/strict');
-const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
@@ -26,36 +25,83 @@ test('product UI uses Inter while Mahjong tile faces retain their separate font'
   assert.match(game, /<body class="mahjong-body"/);
 });
 
-test('Newsreader is bundled for the Billboard clock, invitations, and sheet headings', () => {
-  const pages = read('src/renderer/pages/pages.css');
-  const chrome = read('src/renderer/styles.css');
-  const newtab = withoutInterfaceKeys(read('src/renderer/pages/newtab.html'));
-  const font = fs.readFileSync(path.join(root, 'src/renderer/pages/newsreader-condensed-latin-opsz-normal.woff2'));
+function cssRules(css) {
+  const stripped = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  return [...stripped.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+    .map(([, selector, body]) => ({ selector: selector.trim().replace(/\s+/g, ' '), body }));
+}
+const rulesFor = (css, selector) => cssRules(css).filter((rule) => rule.selector === selector);
+const INTER_STACK = '"Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif';
+// Blubird has no tabular figures and lacks ⌘ ⌥ ⇧ ⌃ and arrows, so these keep Inter.
+const KEEP_INTER = [
+  '.settings-content #patronKey', '.migration-progress-ring', '.folder-count',
+  '.shelf-count', '.tally-count', '.tally-caption',
+  'body.sheet .row .meta, body.sheet .row .url, body.sheet kbd', '.shortcut-row kbd', '.ob-kbd',
+];
 
-  assert.deepEqual([...font.subarray(0, 4)], [119, 79, 70, 50], 'font is WOFF2');
-  assert.equal(
-    crypto.createHash('sha256').update(font).digest('hex'),
-    crypto.createHash('sha256').update(fs.readFileSync(path.join(root, 'site/src/fonts/newsreader-condensed-latin-opsz-normal.woff2'))).digest('hex'),
-    'app ships the same Newsreader Condensed Latin build as the website'
-  );
-  assert.match(
-    pages,
-    /font-family: "Newsreader Condensed";\s*src: url\("newsreader-condensed-latin-opsz-normal\.woff2"\) format\("woff2-variations"\);/
-  );
-  assert.match(pages, /--font-display:\s*"Newsreader Condensed"[^;]*serif;/);
-  assert.match(pages, /body\.sheet \.page h1\s*\{[^}]*font-family:\s*var\(--font-display\)/s);
-  assert.match(pages, /body\.sheet \.group-title,\s*body\.sheet \.shortcut-section \.section-title\s*\{[^}]*font-family:\s*var\(--font-display\)/s);
-  assert.match(pages, /\.bb-clock\s*\{[^}]*font-family:\s*var\(--font-display\)[^}]*font-size:\s*clamp\(80px, 12vw, 148px\)[^}]*font-weight:\s*500[^}]*font-optical-sizing:\s*auto/s);
-  assert.match(pages, /\.migration-checklist-heading h2\s*\{[^}]*font-family:\s*var\(--font-display\)[^}]*font-size:\s*28px[^}]*font-weight:\s*400[^}]*line-height:\s*1\.05[^}]*letter-spacing:\s*-0\.04em[^}]*font-optical-sizing:\s*auto/s);
-  assert.match(pages, /\.migration-checklist-heading \{ gap: 14px; \}\s*\.migration-checklist-heading h2 \{\s*font-size: 27px;\s*letter-spacing: -0\.045em;/,
-    'the later Sunrise override is the effective checklist heading spacing, so it carries the -0.02em compensation too');
-  assert.match(pages, /\.ob-content h1\s*\{[^}]*font-family:\s*var\(--font-display\)[^}]*font-size:\s*22px[^}]*font-weight:\s*400[^}]*line-height:\s*1\.15[^}]*letter-spacing:\s*-0\.035em[^}]*font-optical-sizing:\s*auto[^}]*text-wrap:\s*balance/s);
-  assert.doesNotMatch(newtab, /bbMeridiem|bb-meridiem/, 'the Billboard clock shows no am/pm');
-  assert.doesNotMatch(pages, /bb-meridiem/);
-  assert.match(newtab, /id="startDate" class="start-brand-date"/);
-  assert.match(newtab, /<h2 class="ledger-where">Where to\?<\/h2>/, 'Ledger leads with one Newsreader line');
-  assert.match(pages, /\.ledger-where \{[^}]*font-family: var\(--font-display\);[^}]*font-size: 32px;[^}]*font-weight: 400;[^}]*line-height: 1\.1;[^}]*letter-spacing: -0\.035em;[^}]*font-optical-sizing: auto;/s);
-  assert.equal((newtab.match(/<section data-step="[0-5]"/g) || []).length, 6);
-  assert.equal((newtab.match(/<h1>/g) || []).length, 6, 'all six plain h1 elements are onboarding titles');
-  assert.doesNotMatch(chrome, /Newsreader|--font-display/);
+test('Blubird sets headings and page copy; Inter keeps figures, keys, the chrome and Mahjong', () => {
+  const pages = read('src/renderer/pages/pages.css');
+  const handoff = read('src/renderer/pages/tab-handoff.css');
+  const chrome = read('src/renderer/styles.css');
+  const mahjong = read('src/renderer/pages/mahjong.css');
+  const pinned = JSON.parse(read('fonts/blubird/pinned.json'));
+
+  for (const [family, file, weight] of [
+    ['Blubird Display', 'Blubird-RegularDisplay.woff2', '400'],
+    ['Blubird Text', 'Blubird-RegularText.woff2', '400'],
+    ['Blubird Text', 'Blubird-MediumText.woff2', '500'],
+    ['Blubird Text', 'Blubird-SemiBoldText.woff2', '600 700'],
+  ]) {
+    assert.ok(pinned.files.some((entry) => entry.name === file), `${file} is pinned`);
+    assert.ok(cssRules(pages).some((rule) => rule.selector === '@font-face'
+      && rule.body.includes(`font-family: "${family}";`)
+      && rule.body.includes(`src: url("${file}") format("woff2");`)
+      && rule.body.includes(`font-weight: ${weight};`)), `${family} ${weight} from ${file}`);
+  }
+  assert.ok(pages.includes(`--font-text: "Blubird Text", ${INTER_STACK};`));
+  assert.ok(pages.includes(`--font-display: "Blubird Display", ${INTER_STACK};`));
+  assert.ok(pages.includes(`--font-ui: ${INTER_STACK};`));
+  assert.doesNotMatch(pages, /Newsreader/);
+  assert.equal(fs.existsSync(path.join(root, 'src/renderer/pages/newsreader-condensed-latin-opsz-normal.woff2')), false);
+
+  // Display only at 32px and up; smaller headings use the Text cut. Tracking is
+  // set to 0 explicitly so base rules (.group-title's 0.08em) cannot leak through.
+  const headings = {
+    'body.sheet .group-title, body.sheet .shortcut-section .section-title': 'text',
+    '.migration-checklist-heading h2': 'text',
+    'body.sheet .page h1': 'text',
+    '.ob-content h1': 'text',
+    '.ledger-where': 'display',
+  };
+  for (const [selector, role] of Object.entries(headings)) {
+    const rules = rulesFor(pages, selector);
+    assert.ok(rules.length > 0, `${selector} exists`);
+    const primary = rules.find((rule) => rule.body.includes(`font-family: var(--font-${role})`));
+    assert.ok(primary, `${selector} uses --font-${role}`);
+    assert.match(primary.body, /letter-spacing: 0;/, `${selector} sets Blubird at 0 tracking`);
+    for (const rule of rules) {
+      assert.doesNotMatch(rule.body, /letter-spacing: -|font-optical-sizing/, `${selector} carries no Newsreader tuning`);
+    }
+  }
+  const clock = rulesFor(pages, '.bb-clock').find((rule) => rule.body.includes('var(--font-display)'));
+  assert.ok(clock, 'the Billboard clock uses the Display cut');
+  assert.match(clock.body, /font-weight: 400;/);
+  assert.match(clock.body, /letter-spacing: 0;/);
+  assert.doesNotMatch(clock.body, /font-optical-sizing/);
+
+  // Every remaining Inter rule is on the keep-list, and every keep-list rule uses Inter.
+  for (const rule of [...cssRules(pages), ...cssRules(handoff)]) {
+    if (rule.body.includes('var(--font-ui)')) assert.ok(KEEP_INTER.includes(rule.selector), `${rule.selector} should use --font-text`);
+  }
+  for (const selector of KEEP_INTER) {
+    const rules = rulesFor(pages, selector);
+    assert.ok(rules.some((rule) => rule.body.includes('var(--font-ui)')), `${selector} keeps Inter`);
+    for (const rule of rules) {
+      if (/(?:^|[\s;])font(?:-family)?:/.test(rule.body)) assert.match(rule.body, /var\(--font-ui\)/, `every ${selector} rule that sets a family keeps Inter`);
+    }
+  }
+  assert.match(rulesFor(pages, 'html, body')[0].body, /font-family: var\(--font-text\);/);
+
+  assert.doesNotMatch(chrome, /Blubird|--font-text|--font-display|Newsreader/);
+  assert.doesNotMatch(mahjong, /Blubird|--font-text|--font-display/);
 });

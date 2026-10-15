@@ -122,7 +122,8 @@
   --on-danger: #ffffff;
   --patron-gold: #d4ad66;
   --font-ui: "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
-  --font-display: "Newsreader Condensed", "Newsreader", "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+  --font-display: "Blubird Display", "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --font-text: "Blubird Text", "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
   --type-body-size: 13px;
   --type-page-title-size: 24px;
   --type-page-title-weight: 650;
