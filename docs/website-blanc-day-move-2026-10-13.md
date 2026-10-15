@@ -42,6 +42,19 @@ Mac. This environment's network proxy cannot reach either domain.
   was not recorded. The owner then joined the waitlist from
   `https://blanc.day/mail` in Blanc with a fresh address, and its
   confirmation email arrived.
+
+  #829 (readable, logged form errors) was then deployed from `main` at
+  `37694194` through `deploy.mjs`, which passed its Resend domain check:
+  version `75577632-e3b0-486f-be53-49d5e99077cf`, with the `SUBSCRIBERS` KV
+  namespace, `AMBASSADOR_RATE_LIMITER` and both variables bound. At
+  09:15:04 UTC the origin check again returned `400 {"error":"invalid email"}`
+  with `access-control-allow-origin: https://blanc.day`. Before that deploy,
+  the Cloudflare token in `.env.1password` (an Account API Token for BNFY)
+  was refused with "No access to the specified service", which is probably
+  why the October 13 deploy never took effect. Its permissions were updated,
+  but a repeat deploy right after the successful one got the same refusal,
+  so check that the token has Workers Scripts: Edit for `blanc-newsletter`
+  before relying on it.
 - `blanc-tab-import`, version `cf81a2b6-22ee-4572-8b50-3f50c43dbdb4`, on its
   custom domain `tabs.blancbrowser.com`, deployed after step 5. A
   `create_tab_handoff` call to `https://tabs.blancbrowser.com/mcp` for one
