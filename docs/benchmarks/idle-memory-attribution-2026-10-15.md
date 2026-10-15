@@ -15,7 +15,7 @@ largest is GPU compositing, not JavaScript.
 | What | Arrived | macOS cost (2× scale) | Status |
 | --- | --- | ---: | --- |
 | Full-window GPU compositing: forced by the resting Island's `backdrop-filter` whenever a website is showing; the Start Page holds the same buffers by itself, for a reason not yet isolated | 1.14.0 | ≈ 40 MiB idle; **79 MiB with a website showing** | Island blur kept by owner decision; Start Page cause still open |
-| Hidden display-capture helper window (a whole renderer) created at startup | 1.16.0 | 18 MiB | Make it lazy; touches hash-pinned capture files |
+| Hidden display-capture helper window (a whole renderer) created at startup | 1.16.0 | 18 MiB | Created on the first share request in this PR |
 | Start Page wallpaper: decoded image plus its GPU texture | 1.21.0 | 17 MiB | Product decision |
 | Larger chrome, overlay and Start Page documents (CSS, scripts, fonts, strings) | gradual | ≈ 10 MiB | Not worth chasing one by one |
 | Main-process startup garbage measured before the first full GC | gradual | Linux 15 MiB; not seen on macOS | Ad-block part fixed in this PR |
@@ -151,6 +151,20 @@ every platform, although it is only used once a page calls `getDisplayMedia`.
 A variant that never loads it measured 275 MiB against 293 (−18 MiB, one
 process fewer, nothing else moved). On Linux it is 9.5 MiB `Private_Dirty`.
 
+This PR creates the helper on the first `display-capture:request` instead
+(`src/main/display-capture-lazy.js`). The pinned broker, helper page and
+helper preload are unchanged: a stand-in handler creates the helper session
+and window exactly as `main.js` did at startup, waits for the helper page's
+own `display-capture-helper:ready` message, installs the broker, and passes
+the waiting request to the broker's handler. If the helper fails to load,
+crashes or is not ready within 10 s, it is destroyed, that request fails with
+`AbortError` and the next one starts over. In a development build on Linux the
+idle tree has three renderers instead of four, and a page's `getDisplayMedia`
+reached the picker through both the first-request handover and the broker's
+own handler afterwards, ending exactly as on `main` in an environment with no
+system sharing dialog. A completed share has not been exercised: that needs a
+real macOS, Windows and Linux desktop before release.
+
 ### 3. The Start Page wallpaper (1.21.0)
 
 The Start Page paints a 1586 × 992 wallpaper on every layout: 6 MiB decoded in
@@ -213,7 +227,12 @@ case; the macOS 15 saving above is not taken.
 
 ## What this PR changes
 
-1. **Verifies the bundled blocker lists without building their text**
+1. **Creates the display-capture helper on the first share request**
+   instead of at every launch (`src/main/display-capture-lazy.js`), one
+   renderer process and about 18 MiB fewer on macOS (9.5 MiB on Linux). The
+   window-close smoke test now checks that no helper exists at startup and
+   creates one through the same path before testing the #368 close.
+2. **Verifies the bundled blocker lists without building their text**
    (`src/main/adblock-snapshot.js`). Every byte is still hashed against the
    release pins at startup; the text is decoded only when the engine must be
    compiled from source, and that path reads and verifies the files again. On
@@ -221,7 +240,7 @@ case; the macOS 15 saving above is not taken.
    MiB, idle total at the benchmark's settle point ≈ 196 → 181 MiB; both
    settle at the same 56 MiB after the first full GC. No measurable change on
    macOS.
-2. **Stops re-applying the bundle's own Dock icon at launch on macOS 26+**
+3. **Stops re-applying the bundle's own Dock icon at launch on macOS 26+**
    (`src/main/app-icon.js`). With the default Sunrise colorway the first apply
    now records the bundle icon as shown instead of rendering it into a bitmap
    and handing it back. Choosing another colorway, and returning to Sunrise
@@ -231,7 +250,7 @@ case; the macOS 15 saving above is not taken.
    macOS 26.6 browser process 96 → 87 MiB and total 244 → 237 MiB, level
    with the `nodock` variant (236) and with the `CG Image` region gone;
    macOS 15.7 unchanged (248 vs 250), as intended. Likely more on Retina.
-3. **Adds `bench/memory/idle-attribution.js` and `bench/memory/make-variant.js`**
+4. **Adds `bench/memory/idle-attribution.js` and `bench/memory/make-variant.js`**
    with unit tests, so the next regression can be attributed to a process,
    and a source change measured against a release, in one run.
 
@@ -246,7 +265,7 @@ measurements above stand as the record of what it costs.
 | --- | ---: | --- |
 | Drop the Island backdrop blur (kept by owner decision, October 15, 2026) | 79 MiB browsing, 1–4 idle | Very low technically: pixel-identical apart from antialiasing; reverses a deliberate design choice |
 | Find and remove what keeps the idle Start Page on full-window compositing | ≈ 40 MiB idle | Unknown until isolated; footer blur, drop shadow, wallpaper and proximity are ruled out |
-| Create the display-capture helper on the first `getDisplayMedia` request | 18 MiB, every platform | Medium: the broker captures `helperWc` at install and `display-capture-broker*.js` are hash-pinned in `capture-runtime-lock.json`, so it needs fresh capture evidence on all three platforms |
+| Done here: create the display-capture helper on the first `getDisplayMedia` request | 18 MiB on macOS, 9.5 on Linux | Medium: no pinned capture file changes, but a completed share must still be checked on macOS, Windows and Linux before release |
 | Lighter Start Page wallpaper (smaller asset, or only when the window is large) | up to 17 MiB | Product decision |
 | Done here: skip the startup Dock icon call when the default icon is selected on macOS 26+ | 7–9 MiB at 1× (measured), likely more on Retina | Low in code; the Dock's appearance (Default, Dark, Clear, Tinted) should still be checked by eye on a release candidate |
 | Raise the harness's minimum settle time, or wait for the first full GC | 15–35 MiB of measured transient | Changes methodology; re-run every browser, never just Blanc |

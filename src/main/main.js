@@ -100,6 +100,7 @@ const {
   CHROME_OVERLAY_URL,
   CHROME_PERMISSION_URL,
   CHROME_FILL_STATUS_URL,
+  CHROME_DISPLAY_CAPTURE_HELPER_URL,
   setupChromeProtocol,
 } = require('./chrome-protocol');
 const { evaluateAdmission, evaluateDocumentVisible } = require('./display-capture-admission');
@@ -118,6 +119,7 @@ const {
   attachHelperWindow,
   installDisplayCaptureBroker,
 } = require('./' + CAPTURE_RUNTIME.broker);
+const { createLazyDisplayCaptureBroker } = require('./display-capture-lazy');
 const { setupPermissionPolicy, setPermissionPrompter, setCaptureGrantObserver, setPermissionDecisionObserver, mediaQueryState, setHeldRequesterCheck } = require('./permissions');
 const nativeMediaAccess = createNativeMediaAccessGate({
   platform: process.platform,
@@ -9485,8 +9487,9 @@ let lastIslandSiteColors = null;
 let lastDarkWebsitesKey = null;
 let displayCaptureRegistry = null;
 let displayCaptureBroker = null;
+let displayCaptureLazy = null;
 let displayCapturePicker = null;
-let displayCaptureHelperWindow = null; // hidden BrowserWindow; released on the last visible close
+let displayCaptureHelperWindow = null; // hidden BrowserWindow, created on the first share request; released on the last visible close
 
 app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // A launch that lost the single-instance lock has already handed its URLs
@@ -9808,24 +9811,34 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     }, { liveOnly: true });
   });
   const displayCaptureAuthority = createHelperAuthority();
-  const displayCaptureHelperSession = createHelperSession({
-    sessionFactory: session,
-    setupChromeProtocol,
-    net,
-  });
-  displayCaptureHelperSession.setPermissionRequestHandler((_wc, permission, callback) => {
-    callback(permission === 'media' || permission === 'display-capture');
-  });
-  displayCaptureHelperSession.setPermissionCheckHandler((_wc, permission) => (
-    permission === 'media' || permission === 'display-capture'
-  ));
-  displayCaptureHelperWindow = attachHelperWindow({
-    BrowserWindow,
-    session: displayCaptureHelperSession,
-    preloadPath: path.join(__dirname, 'display-capture-helper-preload.js'),
-    lockPrivilegedNavigation,
-    authority: displayCaptureAuthority,
-  });
+  // The helper window, its session and the broker are created on the first
+  // display-capture request (display-capture-lazy.js), not at startup: the
+  // hidden helper is a whole renderer process most sessions never use.
+  const createDisplayCaptureHelper = () => {
+    const helperSession = createHelperSession({
+      sessionFactory: session,
+      setupChromeProtocol,
+      net,
+    });
+    helperSession.setPermissionRequestHandler((_wc, permission, callback) => {
+      callback(permission === 'media' || permission === 'display-capture');
+    });
+    helperSession.setPermissionCheckHandler((_wc, permission) => (
+      permission === 'media' || permission === 'display-capture'
+    ));
+    displayCaptureHelperWindow = attachHelperWindow({
+      BrowserWindow,
+      session: helperSession,
+      preloadPath: path.join(__dirname, 'display-capture-helper-preload.js'),
+      lockPrivilegedNavigation,
+      authority: displayCaptureAuthority,
+    });
+    return {
+      window: displayCaptureHelperWindow,
+      webContents: displayCaptureHelperWindow.webContents,
+      session: helperSession,
+    };
+  };
   const pickerOwner = (requestId) => {
     const row = displayCaptureRegistry.listShares().find((item) => item.requestId === requestId);
     return row ? windowRuntimes.runtimeForTab(row.tabId) : null;
@@ -9858,7 +9871,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       }
     }),
     onCancel: (requestId) => displayCaptureBroker?.cancelAcquisition(requestId),
-    onChoose: (event, choice, source) => displayCaptureBroker.resolvePicker(event, choice, source),
+    onChoose: (event, choice, source) => displayCaptureBroker?.resolvePicker(event, choice, source),
   });
   ipcMain.on('display-capture:picker-resolve', (event, payload) => {
     displayCapturePicker.resolve(event, payload).catch(() => {
@@ -9868,59 +9881,68 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       }
     });
   });
-  displayCaptureBroker = installDisplayCaptureBroker({
+  displayCaptureLazy = createLazyDisplayCaptureBroker({
     ipcMain,
-    registry: displayCaptureRegistry,
-    evaluateAdmission,
-    parseDisplayMediaOptions,
-    filterSignaling,
-    collectLocalAddresses,
-    helperWc: displayCaptureHelperWindow.webContents,
-    helperSession: displayCaptureHelperSession,
-    desktopCapturer,
-    showPicker: (id, model) => displayCapturePicker.show(id, model),
-    hidePicker: (id) => displayCapturePicker.hide(id),
-    handlePickerIpc: false,
-    authority: displayCaptureAuthority,
-    isPackaged: app.isPackaged,
-    stubPicker: false,
-    isOverlaySender: (event, requestId) => pickerSender(event,
-      requestId ? pickerOwner(requestId) : windowRuntimes.runtimeForChromeWebContentsId(event.sender.id)),
-    readTrustedFacts: (event) => {
-      const wc = event.sender;
-      const tab = tabForWebContents(wc);
-      const owner = tab ? windowRuntimes.runtimeForTab(tab.id) : null;
-      const win = owner?.window;
-      const frame = event.senderFrame || wc?.mainFrame;
-      let frameVisible = null;
-      try {
-        frameVisible = typeof frame?.visibilityState === 'string'
-          ? frame.visibilityState === 'visible'
-          : null;
-      } catch {
-        frameVisible = null;
-      }
-      const tabAttached = !!(tab && owner && owner.activeTabId === tab.id && tab.view);
-      return {
-        documentFocused: win?.isFocused?.() === true && wc?.isFocused?.() === true,
-        documentVisible: evaluateDocumentVisible({
-          windowVisible: win?.isVisible?.() === true,
-          windowMinimized: win?.isMinimized?.() === true,
-          tabAttached,
-          frameVisible: frameVisible === true,
-        }),
-        // Subframes remain unsupported until preload reach and policy are proven.
-        frameAlive: !!tab && frame === wc?.mainFrame
-          && frame?.isDestroyed?.() === false && frame.detached === false,
-        tabId: tab?.id ?? null,
-        webContentsId: wc?.id ?? null,
-        frameId: frame?.frameTreeNodeId ?? frame?.routingId ?? null,
-        origin: (() => {
-          try { return new URL(frame.url).origin; } catch { return null; }
-        })(),
-        documentGeneration: frame ? `${frame.processId}:${frame.routingId}` : null,
-        sources: [],
-      };
+    createHelper: createDisplayCaptureHelper,
+    isHelperSender: (event, helperWc) => event.sender === helperWc
+      && displayCaptureAuthority.isAuthorizedHelperSender(helperWc, CHROME_DISPLAY_CAPTURE_HELPER_URL),
+    installBroker: ({ ipcMain: brokerIpc, helperWc, helperSession }) => {
+      displayCaptureBroker = installDisplayCaptureBroker({
+        ipcMain: brokerIpc,
+        registry: displayCaptureRegistry,
+        evaluateAdmission,
+        parseDisplayMediaOptions,
+        filterSignaling,
+        collectLocalAddresses,
+        helperWc,
+        helperSession,
+        desktopCapturer,
+        showPicker: (id, model) => displayCapturePicker.show(id, model),
+        hidePicker: (id) => displayCapturePicker.hide(id),
+        handlePickerIpc: false,
+        authority: displayCaptureAuthority,
+        isPackaged: app.isPackaged,
+        stubPicker: false,
+        isOverlaySender: (event, requestId) => pickerSender(event,
+          requestId ? pickerOwner(requestId) : windowRuntimes.runtimeForChromeWebContentsId(event.sender.id)),
+        readTrustedFacts: (event) => {
+          const wc = event.sender;
+          const tab = tabForWebContents(wc);
+          const owner = tab ? windowRuntimes.runtimeForTab(tab.id) : null;
+          const win = owner?.window;
+          const frame = event.senderFrame || wc?.mainFrame;
+          let frameVisible = null;
+          try {
+            frameVisible = typeof frame?.visibilityState === 'string'
+              ? frame.visibilityState === 'visible'
+              : null;
+          } catch {
+            frameVisible = null;
+          }
+          const tabAttached = !!(tab && owner && owner.activeTabId === tab.id && tab.view);
+          return {
+            documentFocused: win?.isFocused?.() === true && wc?.isFocused?.() === true,
+            documentVisible: evaluateDocumentVisible({
+              windowVisible: win?.isVisible?.() === true,
+              windowMinimized: win?.isMinimized?.() === true,
+              tabAttached,
+              frameVisible: frameVisible === true,
+            }),
+            // Subframes remain unsupported until preload reach and policy are proven.
+            frameAlive: !!tab && frame === wc?.mainFrame
+              && frame?.isDestroyed?.() === false && frame.detached === false,
+            tabId: tab?.id ?? null,
+            webContentsId: wc?.id ?? null,
+            frameId: frame?.frameTreeNodeId ?? frame?.routingId ?? null,
+            origin: (() => {
+              try { return new URL(frame.url).origin; } catch { return null; }
+            })(),
+            documentGeneration: frame ? `${frame.processId}:${frame.routingId}` : null,
+            sources: [],
+          };
+        },
+      });
+      return displayCaptureBroker;
     },
   });
   // Resolve null when there's no window to ask through — the policy treats
@@ -10430,6 +10452,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // BLANC_TEST=0/false stays off.
   if (acceptanceTestMode) {
     require('./test-hook').install({
+      prepareDisplayCaptureHelper: () => displayCaptureLazy.prepare(),
       i18nState: () => mainI18n.state(),
       t: mainI18n.t,
       continueUnsafeForSender,
