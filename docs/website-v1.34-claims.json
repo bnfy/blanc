@@ -105,7 +105,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "v134-003",
+      "id": "v134-006",
       "source": "site/src/data/support-questions.json",
       "exactWording": "Blanc’s published benchmark is dated measurements from October 15, 2026 with Blanc 1.34.0 on macOS 27, arm64 and 8 GiB RAM, using its published harness and raw runs. It measures phys_footprint across each browser’s process tree, rather than summing RSS, which can count shared engine memory repeatedly.",
       "subject": "Blanc",
@@ -115,7 +115,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "v134-004",
+      "id": "v134-007",
       "source": "site/src/data/support-questions.json",
       "exactWording": "Brave is a useful comparison because it also blocks by default; in that run it used a little less memory than Blanc. The run also included Blanc with blocking disabled, which used about as much as Chrome. These results describe those browser versions and workloads on that machine; they are not Windows or Linux results, or a promise that Blanc will always use less memory.",
       "subject": "Blanc",
@@ -125,7 +125,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "v134-005",
+      "id": "v134-008",
       "source": "site/src/components/MemoryChart.astro",
       "exactWording": "Measured 15 October 2026 with Blanc 1.34.0, on fresh profiles with no extensions. Brave also blocks by default, and it used a little less. With Blanc’s blocker turned off, the same pages used 5.4 GB, about the same as Chrome, so the saving comes from blocking.",
       "subject": "Blanc",
@@ -135,7 +135,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "v134-006",
+      "id": "v134-009",
       "source": "site/src/components/MemoryChart.astro",
       "exactWording": "Under a third of Chrome’s memory.",
       "subject": "Blanc",
