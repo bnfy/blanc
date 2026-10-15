@@ -12756,6 +12756,16 @@
             "after": "<p>Pick your search engine in Settings, or paste your own search address, such as a SearXNG server. Kagi needs a Kagi account. Search suggestions can be turned off at any time.</p>"
           }
         ]
+      },
+      {
+        "source": "site/src/pages/features/quiet-tabs.astro",
+        "reason": "October 15, 2026 correction for public v1.34.0: the Island figure said two tab dots were drawn as smaller quiet cores, which v1.34.0 never shows (a quiet tab dims its whole row in the expanded Island and the vertical rail; the resting Island's dots carry no quiet treatment). The figure now shows the expanded Island with two dimmed rows, and its caption, accessible name and share-card description say so. Verified at public v1.34.0 and recorded in docs/website-v1.34-claims.json, with the retired figure wording as supersededClaims there.",
+        "replacements": [
+          {
+            "before": "<figcaption>Two of these tabs are quiet. They keep their place in the island until you go back to one.</figcaption>",
+            "after": "<figcaption>Threads and Netflix are quiet: Blanc has freed their memory, so their rows in the expanded island are dimmed. They keep their place in the list and reload when you open one.</figcaption>"
+          }
+        ]
       }
     ]
   },

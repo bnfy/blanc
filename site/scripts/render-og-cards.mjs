@@ -124,10 +124,9 @@ const CARDS = [
   {
     out: 'feature-quiet-tabs.png',
     page: '/features/quiet-tabs.html',
-    figure: '.island-figure',
+    figure: '.island-figure--panel',
     kicker: 'quiet tabs',
     headline: 'Tabs you are not using give their memory back.',
-    shape: 'pill',
     theme: 'dark',
   },
   {
