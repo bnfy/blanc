@@ -89,7 +89,7 @@ never count.
 | C5 | Chrome Web Store extensions | **No** | Yes | Chrome Web Store | pending (Blanc cell verified) |
 | C6 | Built-in password manager | **No** (S-05) | Yes, Google Password Manager | Google Password Manager help page | pending (Blanc cell verified) |
 | C7 | Free and open source | Yes, MIT with carve-outs (A-08) | Built on open-source Chromium; Chrome itself is under Google's terms | chromium.org; Google Chrome Terms of Service | pending. Optional row: the Chrome cell invites argument, so drop it if it can't be stated in one sourced line |
-| C8 | Plays protected streaming video (Netflix and similar) | **No** (see F-3) | Yes | Chrome Help on protected content | pending: hands-on check in public v1.34.0 needed before the Blanc cell ships |
+| C8 | Plays protected streaming video (Netflix and similar) | **No** (see F-3; owner-tested) | Yes | Chrome Help on protected content | pending (Blanc cell verified) |
 
 Rows deliberately left out:
 - **Third-party cookies blocked by default.** Blanc blocks known tracker
@@ -110,7 +110,7 @@ Rows deliberately left out:
 | --- | --- | --- | --- | --- |
 | Q-01 | Does Blanc run on Windows and Linux? | Yes. Blanc runs on macOS 13 or later (Apple Silicon or Intel), Windows 10 or later (64-bit) and 64-bit Linux as an AppImage. | `site/src/pages/download.astro` | verified |
 | Q-02 | Will my Chrome extensions work? | Blanc doesn't install extensions from the Chrome Web Store. It has ad and tracker blocking built in, and on supported builds you can choose the full uBlock Origin instead. | Electron decision in `CLAUDE.md`; uBO boundary | verified |
-| Q-03 | Will my websites work? | Blanc runs on Chromium, the open-source engine Chrome is built on, through Electron 44.5.1. Protected streaming video, such as Netflix, doesn't play in Blanc. | `package.json` (`electron` ^44.5.1); F-3 | pending (C8 hands-on check) |
+| Q-03 | Will my websites work? | Blanc runs on Chromium, the open-source engine Chrome is built on, through Electron 44.5.1. Protected streaming video, such as Netflix, doesn't play in Blanc. | `package.json` (`electron` ^44.5.1); F-3 | verified: the streaming sentence is owner-tested. Don't add a broader "most sites work" claim without evidence |
 | Q-04 | Is Blanc really free? | Yes. Every feature, including Blanc Spaces, is free. Blanc Patron is optional support at US$30 a year or US$4 a month, plus tax, and unlocks nothing. | Patron section of `site/src/pages/index.astro`; Patron section of `CLAUDE.md` | verified |
 | Q-05 | What does Blanc send? | Nothing optional until you save your setup choices. Usage measurement (no URLs, searches or page contents) and search suggestions are preselected; turn either off before saving or later in Settings. | "What Blanc sends" in `site/src/pages/index.astro`; Fresh optional connections boundary | qualified: link to Trust → Connections for the full list |
 | Q-06 | Can I sync with my phone? | No. Blanc is a desktop browser. Optional Profile Sync keeps Favorites, settings and open tabs in step across your computers, end-to-end encrypted with a passphrase only you know. History and passwords never sync. | `src/main/sync.js` (`STORES`); Profile Sync section of `CLAUDE.md` | qualified: open-tab sharing is per-device and optional; private tabs never sync |
@@ -134,9 +134,13 @@ Rows deliberately left out:
   and `privacysandbox.com` in the session's network settings, or check them
   by hand.
 - **F-3, protected streaming.** Public v1.34.0 uses official Electron, which
-  ships no Widevine CDM, so services such as Netflix shouldn't play. That is
-  an inference from the architecture and must be confirmed hands-on before
-  C8 and Q-03 ship. The castlabs path (ECS plus free EVS signing for
+  ships no Widevine CDM. The owner confirmed it hands-on on October 15, 2026:
+  starting a Netflix title in Blanc stops at Netflix's "Pardon the
+  interruption" page with error **M7701-1003**, which tells the viewer to
+  visit `chrome://settings/content/protectedContent`, a page Blanc doesn't
+  have. Every current Blanc build ships the same official Electron, so the
+  result doesn't depend on the build. Support copy that explains this error
+  would save switchers a dead end. The castlabs path (ECS plus free EVS signing for
   unmodified ECS, confirmed by castlabs by email on October 6, 2026) is
   recorded in `docs/platform-migration-electron-to-chromium-2026-10-04.md`.
   It is not adopted, and Widevine L3 is typically limited to SD, so copy must
