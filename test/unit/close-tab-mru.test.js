@@ -26,6 +26,10 @@ function makeSandbox({ runtime, tabs, onSelect }) {
     detachTabView: () => {},
     prepareTabViewForClose: () => {},
     cancelPermissionPromptsForTab: () => {},
+    // Glance PR 2: an open find capsule bound to the closing tab closes with it.
+    findTargetTabId: () => null,
+    hideOverlay: () => {},
+    resetFocusedPane: () => {},
     permissionPendingTabIds: () => new Set(),
     lastMainFrameMethod: new Map(),
     closedEntries: [],

@@ -2969,12 +2969,13 @@ function overlayBounds() {
   }
   if (rt().overlayMode === 'find') {
     if (!glance) return layout.findBounds;
-    const width = Math.min(560, glance.primary.width);
+    const pane = findTargetTabId(rt()) === rt().glanceTabId ? glance.glance : glance.primary;
+    const width = Math.min(560, pane.width);
     return {
-      x: glance.primary.x + Math.round((glance.primary.width - width) / 2),
-      y: rt().chromeHeight,
+      x: pane.x + Math.round((pane.width - width) / 2),
+      y: pane.y,
       width,
-      height: Math.min(160, glance.primary.height),
+      height: Math.min(160, pane.height),
     };
   }
   if (rt().overlayMode === 'palette' || rt().overlayMode === 'panel') {
@@ -4903,7 +4904,7 @@ const executeBrowserCommand = createBrowserCommandExecutor({
   'next-tab': () => cycleTab(1),
   'previous-tab': () => cycleTab(-1),
   address: toggleIsland,
-  find: openFindBar,
+  find: (runtime, sender) => openFindBar(browserCommandTab(runtime, sender)?.id),
   reload: (runtime, sender) => reloadBrowserCommandTab(runtime, false, sender),
   'hard-reload': (runtime, sender) => reloadBrowserCommandTab(runtime, true, sender),
   history: () => openInternalPage('blanc://history/'),
@@ -6001,6 +6002,7 @@ initTabView({
   setActiveTab,
   closeTab,
   noteFocusedPane,
+  isFindTarget: (owner, tabId) => findTargetTabId(owner) === tabId,
   dispatchMouseGesture(owner, tab, action) {
     if (!owner || owner.closing || owner.activeTabId !== tab.id || liveContents(tab) == null) return;
     const wc = liveContents(tab);
@@ -6520,6 +6522,7 @@ async function setGlanceTab(id) {
     detachTabView(previous, { retainManagedRoot: true });
     previous.lastActiveAt = Date.now();
   }
+  if (previous && findTargetTabId(rt()) === previous.id) hideOverlay({ refocusContent: false });
 
   bumpSurfaceGeneration();
   rt().glanceTabId = id;
@@ -6542,6 +6545,7 @@ async function setGlanceTab(id) {
 function closeGlance({ focusContent = true } = {}) {
   const tab = activeGlanceTab();
   if (!rt().glanceTabId) return false;
+  if (findTargetTabId(rt()) === rt().glanceTabId) hideOverlay({ refocusContent: false });
   bumpSurfaceGeneration();
   bumpGlanceRequestEpoch();
   rt().glanceTabId = null;
@@ -6776,6 +6780,8 @@ function closeTab(id) {
   if (!tab || windowRuntimes.runtimeForTab(id) !== rt()) return;
   const wasActive = id === rt().activeTabId;
   const wasGlance = id === rt().glanceTabId;
+  // A find capsule searching this tab goes with it.
+  if (findTargetTabId(rt()) === id) hideOverlay({ refocusContent: false });
   // Read before the view is prepared for close: detaching drops focus onto
   // the chrome strip, and the main page should take it instead.
   const referenceHeldFocus = wasGlance && liveContents(tab)?.isFocused() === true;
@@ -7287,9 +7293,18 @@ function resetZoomForActiveTab() {
   zoomTargetWebContents()?.setZoomLevel(0);
 }
 
-function openFindBar() {
+/** The tab an open find capsule searches; null when none is open. */
+function findTargetTabId(runtime) {
+  if (runtime?.overlayMode !== 'find') return null;
+  return runtime.overlayPurpose?.findTabId ?? runtime.activeTabId ?? null;
+}
+
+/** ⌘F binds the capsule to the pane it was pressed in; the Island's /find
+ * and the strip stay on the main page. */
+function openFindBar(tabId = rt().activeTabId) {
   if (!rt().window || rt().window.isDestroyed()) return;
-  showOverlay('find');
+  const findTabId = isVisiblePaneId(rt(), tabId) ? tabId : rt().activeTabId;
+  showOverlay('find', { purpose: { findTabId } });
 }
 
 /** ⌘L opens the expanded island and closes it again. Both expanded states share
@@ -7795,7 +7810,7 @@ function registerIpcHandlers() {
   chromeOn('chrome:open-island-commands', () => openIslandTyping('/'));
   // The pill's own keydown, when the pill holds keyboard focus.
   chromeOn('chrome:open-island-typing', (_e, char) => openIslandTyping(char));
-  chromeOn('chrome:open-find', () => showOverlay('find'));
+  chromeOn('chrome:open-find', () => openFindBar());
   chromeOn('chrome:open-shield', (_e, anchor) => {
     const trigger = anchor?.trigger === 'insecure' ? 'insecure' : 'shield';
     closeUblockPopup(rt().id);
@@ -10580,6 +10595,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       setGlanceTab, closeGlance, promoteGlance, resizeGlanceAt, resetGlanceRatio,
       getGlanceTabId: () => rt().glanceTabId,
       getFocusedPaneTabId: () => rt().focusedPaneTabId,
+      getFindTargetTabId: () => findTargetTabId(rt()),
+      getOverlayViewBounds: () => rt().overlayView?.getBounds() ?? null,
       getGlanceGeometry: () => hasLiveWindow() ? glanceGeometry() : null,
       groupTabByName, renameTab, beginRenameTab, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab,
       closeGroup, newTabUrl,

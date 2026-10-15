@@ -943,3 +943,19 @@ Then('the reference tab is closed and the main page has focus', async function (
 Then('the main page tab is closed', async function () {
   await this.waitForState((state) => !state.tabs.some((tab) => tab.id === this.glanceMainId));
 });
+
+Then('the find capsule sits over the reference pane and searches it', async function () {
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'find', 'find capsule');
+  assert.equal(await this.call('findTabId'), this.glanceReferenceId);
+  const { glanceGeometry } = await this.state();
+  const bounds = await this.call('overlayViewBounds');
+  assert.ok(bounds.x >= glanceGeometry.glanceContent.x, `capsule at x=${bounds.x}, reference starts at ${glanceGeometry.glanceContent.x}`);
+  const page = await overlayPage();
+  await page.locator('#findInput').fill('widget');
+  await waitForValue(() => page.locator('#findCount').textContent(), (text) => text === '1/3',
+    'match count from the reference');
+});
+
+Then('the find capsule is closed', async function () {
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode === null, 'find capsule closed with the swap');
+});

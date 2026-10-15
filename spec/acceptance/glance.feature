@@ -211,3 +211,13 @@ Feature: Glance reference pane
     And I press the reload command
     Then only the main page reloaded
     And the Glance header shows the main page has focus
+
+  @F34-1 @F34 @D11
+  Scenario: Find with focus in the reference searches the reference
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And the reference pane is the focused pane
+    And I press the find command
+    Then the find capsule sits over the reference pane and searches it
+    When I promote the Glance pane
+    Then the find capsule is closed

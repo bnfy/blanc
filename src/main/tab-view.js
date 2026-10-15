@@ -540,7 +540,7 @@ function wireTabView(tab, view, { owner, adopted }) {
   }));
   wc.on('found-in-page', boundToTab((_e, result) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
-    if (id === getOwner().activeTabId) {
+    if (deps.isFindTarget?.(getOwner(), id) ?? id === getOwner().activeTabId) {
       getOwner().overlayView?.webContents.send('chrome:find-result', {
         activeMatchOrdinal: result.activeMatchOrdinal,
         matches: result.matches,
