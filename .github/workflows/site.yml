@@ -15,7 +15,7 @@ on:
       - 'package.json'
       - 'scripts/generate-site-changelog.mjs'
       - 'assets/wordmark/**'
-      - 'build/app-icons/Icon.icon/Assets/sunrise-mark.png'
+      - 'assets/sunrise-mark.svg'
       - '.github/workflows/site.yml'
   pull_request:
     paths:
@@ -24,7 +24,7 @@ on:
       - 'package.json'
       - 'scripts/generate-site-changelog.mjs'
       - 'assets/wordmark/**'
-      - 'build/app-icons/Icon.icon/Assets/sunrise-mark.png'
+      - 'assets/sunrise-mark.svg'
       - '.github/workflows/site.yml'
 
 permissions:

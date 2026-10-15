@@ -287,9 +287,11 @@ vertical middle of the B, with a gap of 0.3× the B height between them.
 The word is committed as outlines, not as a font, in `assets/wordmark/`
 (`blanc-word-{display,small}-{ink,white}.svg`); `site/scripts/build-lockup-assets.mjs`
 copies them with WebP exports of the Sunrise into `site/public/lockup/`, and
-its `--check` runs inside `npm run site:build`. The Sunrise exports keep the
-1024px canvas of `build/app-icons/Icon.icon/Assets/sunrise-mark.png`, so the
-same placement percentages fit every size; `test/unit/brand-assets.test.js`
+its `--check` runs inside `npm run site:build`. The Sunrise exports are rendered
+from the vector `assets/sunrise-mark.svg` (October 15, 2026, replacing the 1024px
+raster, which blurred when the homepage drew it large or a visitor zoomed in).
+It keeps the 1024px canvas of `build/app-icons/Icon.icon/Assets/sunrise-mark.png`,
+so the same placement percentages fit every size; `test/unit/brand-assets.test.js`
 pins them. Ink on Blanc White, white (`#F8F2E8`) on warm ink. Do not stretch,
 re-space, recolour, outline or set the word in another face.
 
@@ -327,12 +329,14 @@ on the glow; the footer's lockup sits below the line.
 ### Homepage sunrise
 
 The homepage opens on the gold Sunrise alone, with no wordmark, at
-`min(56vmin, 540px)`. Where the browser supports scroll-driven animation and
-the visitor has not asked for reduced motion, the opening section is a sticky
-stage 4.2 screens tall: scrolling draws the horizon and its reflection, raises
-the disc, opens the rays and brings the sky from night to Blanc White, then
-shrinks the mark above the headline. The stage is cut from one export
-(`site/public/lockup/sunrise-mark-1024.webp`) with clip paths, never redrawn
+`min(56vmin, 540px)`. Unless the visitor has asked for reduced motion, the
+sunrise plays once as the page opens (2.2 seconds, in one screen): it draws the
+horizon and its reflection, raises the disc, opens the rays and brings the sky
+from night to Blanc White, then shrinks the mark above the headline and brings
+in the copy. It used to be driven by scrolling a stage 4.2 screens tall; the
+owner rejected that on October 15, 2026, because the first screen showed
+neither what Blanc is nor how to get it. The stage is cut from one export
+(`site/public/lockup/sunrise-mark-2048.webp`) with clip paths, never redrawn
 or tinted. Everywhere else, and for reduced motion, the mark sits still at
 160px above the headline. Focusing anything in the hero shows its copy at once.
 

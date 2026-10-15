@@ -69,7 +69,7 @@ test('the masthead is one sticky bar that stays put while the homepage scenes sc
 test('homepage opens on the Sunrise mark above the hero eyebrow', () => {
   const homepage = source('site/src/pages/index.astro');
   assert.match(homepage, /class="sun-mark"[\s\S]*?<div class="sun-copy">\s*<p class="eyebrow">Blanc Browser<\/p>\s*<h1[^>]*>A little less browser\.<\/h1>/);
-  assert.match(homepage, /src="\/lockup\/sunrise-mark-1024\.webp"/);
+  assert.match(homepage, /src="\/lockup\/sunrise-mark-2048\.webp"/);
   assert.doesNotMatch(layout, /jetbrains-mono/);
 });
 
