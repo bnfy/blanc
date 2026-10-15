@@ -279,6 +279,11 @@ button svg {
 
 .glance-header[hidden] { display: none; }
 .glance-header.private { border-left-style: dashed; border-bottom-style: dashed; }
+/* The reference holds keyboard focus, so ⌘R, ⌘W, ⌘F … act on it. Quieter
+   than an outline: the eyebrow and the bottom hairline brighten. (The title
+   is already --text.) */
+.glance-header.focused { border-bottom-color: var(--text-dim); }
+.glance-header.focused .glance-eyebrow { color: var(--text); }
 .glance-copy {
   min-width: 0;
   flex: 1 1 auto;

@@ -636,6 +636,11 @@
         "glance": {
           "type": "Rect",
           "doc": "Alias of glanceContent kept for older consumers."
+        },
+        "focusedPane": {
+          "type": "'main' | 'glance'",
+          "optional": true,
+          "doc": "Which pane holds keyboard focus. Present on chrome:glance-layout (glanceLayoutPayload() in glance-focus.js); calculateGlanceLayout() leaves it out."
         }
       }
     },

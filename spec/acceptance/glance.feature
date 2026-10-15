@@ -175,3 +175,12 @@ Feature: Glance reference pane
     And I choose the slow quiet tab and cancel with Escape before it wakes
     And I summon Glance from its native keyboard shortcut
     Then the fresh picker stays clean after the first wake lands
+
+  @F34-1 @F34 @D11
+  Scenario: The Glance header shows when the reference holds keyboard focus
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And the reference pane is the focused pane
+    Then the Glance header shows the reference has focus
+    When the main page is the focused pane
+    Then the Glance header shows the main page has focus

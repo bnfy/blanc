@@ -36,6 +36,26 @@ async function createGlanceTabs(world) {
   });
 }
 
+/** Give a pane keyboard focus and wait until main has recorded it — the
+ * state every follow-focus command reads on macOS, where the menu carries no
+ * sender. */
+async function focusPane(world, tabId) {
+  await frontChromeWindow(world);
+  assert.equal(await world.call('focusTabContents', tabId), true);
+  await world.waitForState((state) => state.focusedPaneTabId === tabId);
+}
+
+async function cssColour(chrome, token) {
+  return chrome.evaluate((name) => {
+    const probe = document.createElement('span');
+    probe.style.color = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    document.body.append(probe);
+    const colour = getComputedStyle(probe).color;
+    probe.remove();
+    return colour;
+  }, token);
+}
+
 Given('two ordinary tabs in one workspace for Glance', async function () {
   await createGlanceTabs(this);
 });
@@ -837,4 +857,34 @@ Then('the fresh picker stays clean after the first wake lands', async function (
   assert.equal((await this.state()).glanceTabId, null);
   await page.locator('#glancePickerInput').press('Escape');
   await waitForValue(() => this.call('overlayMode'), (mode) => mode === null, 'picker dismissed');
+});
+
+// --- The reference behaves like a page (Glance PR 2) ---
+
+When('the reference pane is the focused pane', async function () {
+  await focusPane(this, this.glanceReferenceId);
+});
+
+When('the main page is the focused pane', async function () {
+  await focusPane(this, this.glanceMainId);
+});
+
+Then('the Glance header shows the reference has focus', async function () {
+  const chrome = await mainChromePage();
+  await chrome.locator('#glanceHeader.focused').waitFor();
+  const eyebrow = await chrome.locator('#glanceEyebrow').evaluate((element) => getComputedStyle(element).color);
+  const border = await chrome.locator('#glanceHeader').evaluate((element) => getComputedStyle(element).borderBottomColor);
+  assert.equal(eyebrow, await cssColour(chrome, '--text'));
+  assert.equal(border, await cssColour(chrome, '--text-dim'));
+});
+
+Then('the Glance header shows the main page has focus', async function () {
+  const chrome = await mainChromePage();
+  await waitForValue(
+    () => chrome.locator('#glanceHeader').evaluate((element) => element.classList.contains('focused')),
+    (focused) => focused === false,
+    'focus cue cleared'
+  );
+  const eyebrow = await chrome.locator('#glanceEyebrow').evaluate((element) => getComputedStyle(element).color);
+  assert.equal(eyebrow, await cssColour(chrome, '--text-dim'));
 });

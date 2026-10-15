@@ -302,6 +302,8 @@ export interface GlanceLayout {
   glanceContent: Rect;
   /** Alias of glanceContent kept for older consumers. */
   glance: Rect;
+  /** Which pane holds keyboard focus. Present on chrome:glance-layout (glanceLayoutPayload() in glance-focus.js); calculateGlanceLayout() leaves it out. */
+  focusedPane?: 'main' | 'glance';
 }
 
 /** Named Workspaces storage status, from workspaces.js. */

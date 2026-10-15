@@ -430,6 +430,9 @@ function wireTabView(tab, view, { owner, adopted }) {
   }));
   wc.on('focus', boundToTab(() => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
+    // Which visible pane holds focus decides where ⌘R, ⌘W, ⌘F … go. Focus
+    // in the reference deliberately does not change roles.
+    deps.noteFocusedPane?.(getOwner(), id);
     if (shouldReclaimAddressBarFocus(id)) reclaimAddressBarFocus(id, { consume: true });
   }));
 

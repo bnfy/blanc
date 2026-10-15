@@ -1922,6 +1922,96 @@
         },
         {
           "emit": [
+            {
+              "direction": "horizontal",
+              "ratio": 1,
+              "page": {
+                "x": 1,
+                "y": 1,
+                "width": 1,
+                "height": 1
+              },
+              "primary": {
+                "x": 1,
+                "y": 1,
+                "width": 1,
+                "height": 1
+              },
+              "divider": {
+                "x": 1,
+                "y": 1,
+                "width": 1,
+                "height": 1
+              },
+              "glanceHeader": {
+                "x": 1,
+                "y": 1,
+                "width": 1,
+                "height": 1
+              },
+              "glanceContent": {
+                "x": 1,
+                "y": 1,
+                "width": 1,
+                "height": 1
+              },
+              "glance": {
+                "x": 1,
+                "y": 1,
+                "width": 1,
+                "height": 1
+              },
+              "focusedPane": "main"
+            }
+          ],
+          "callbacks": [
+            [
+              {
+                "direction": "horizontal",
+                "ratio": 1,
+                "page": {
+                  "x": 1,
+                  "y": 1,
+                  "width": 1,
+                  "height": 1
+                },
+                "primary": {
+                  "x": 1,
+                  "y": 1,
+                  "width": 1,
+                  "height": 1
+                },
+                "divider": {
+                  "x": 1,
+                  "y": 1,
+                  "width": 1,
+                  "height": 1
+                },
+                "glanceHeader": {
+                  "x": 1,
+                  "y": 1,
+                  "width": 1,
+                  "height": 1
+                },
+                "glanceContent": {
+                  "x": 1,
+                  "y": 1,
+                  "width": 1,
+                  "height": 1
+                },
+                "glance": {
+                  "x": 1,
+                  "y": 1,
+                  "width": 1,
+                  "height": 1
+                },
+                "focusedPane": "main"
+              }
+            ]
+          ]
+        },
+        {
+          "emit": [
             null
           ],
           "callbacks": [

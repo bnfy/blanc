@@ -427,6 +427,7 @@
     glanceHeader.style.height = `${header.height}px`;
     glanceHeader.dataset.direction = direction;
     glanceHeader.classList.toggle('private', !!tab.private);
+    glanceHeader.classList.toggle('focused', glanceLayout.focusedPane === 'glance');
     setFavicon(glanceFavicon, tab);
     // Keep an already-known title visible while the reference navigates —
     // same rule as the picker rows: replacing useful identity with a generic

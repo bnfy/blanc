@@ -272,6 +272,12 @@ const {
   calculateGlanceLayout,
   ratioForGlanceDivider,
 } = require('./glance-layout');
+const {
+  isVisiblePaneId,
+  commandTargetTab,
+  focusedPane,
+  glanceLayoutPayload,
+} = require('./glance-focus');
 const { moveTab: resolveTabMove, reorderGroup: resolveGroupReorder } = require('./tab-order');
 const { acceptOverlayDragState, resetOverlayDragState, overlayDragActive } = require('./overlay-drag-state');
 const {
@@ -3905,6 +3911,24 @@ function bumpGlanceRequestEpoch() {
   rt().glanceRequestEpoch = (rt().glanceRequestEpoch ?? 0) + 1;
 }
 
+/** A visible pane's page took keyboard focus (tab-view.js). Only the strip's
+ * focus cue needs to hear about it; nothing is re-laid out. */
+function noteFocusedPane(owner, tabId) {
+  if (!owner || !isVisiblePaneId(owner, tabId) || owner.focusedPaneTabId === tabId) return;
+  owner.focusedPaneTabId = tabId;
+  if (owner.glanceTabId == null) return;
+  withWindowRuntime(owner, () => {
+    if (!hasLiveWindow()) return;
+    rt().window.webContents.send('chrome:glance-layout', glanceLayoutPayload(glanceGeometry(), focusedPane(rt())));
+  });
+}
+
+/** Glance closed, the roles swapped, the main page changed, or the reference
+ * left: commands without a sending pane go to the main page again. */
+function resetFocusedPane() {
+  rt().focusedPaneTabId = rt().activeTabId ?? null;
+}
+
 // --- Ambient fill hint (spec §5) ---------------------------------------
 // Structure-only probe on the ACTIVE tab; the scheduler owns epochs, the
 // identity token, and the single recheck (fill-hint.js, unit-tested).
@@ -4737,7 +4761,7 @@ function resizeActiveView() {
   // frame. A dedicated geometry event avoids turning every pointermove or
   // window resize into a tab/session-sync broadcast.
   rt().window.webContents.send('chrome:vertical-tabs-width', verticalTabsMetrics(layout));
-  rt().window.webContents.send('chrome:glance-layout', glance);
+  rt().window.webContents.send('chrome:glance-layout', glanceLayoutPayload(glance, focusedPane(rt())));
 }
 
 function applyVerticalTabsWidth(nextWidth) {
@@ -5972,6 +5996,7 @@ initTabView({
   createTab,
   setActiveTab,
   closeTab,
+  noteFocusedPane,
   dispatchMouseGesture(owner, tab, action) {
     if (!owner || owner.closing || owner.activeTabId !== tab.id || liveContents(tab) == null) return;
     const wc = liveContents(tab);
@@ -6397,6 +6422,7 @@ function setActiveTab(id, {
   }
 
   rt().activeTabId = id;
+  resetFocusedPane();
   fillHintScheduler?.noteActivated(next);
   if (prevId && prevId !== id) rt().tabsWantingAddressBarFocus.delete(prevId);
   const shouldFocusAddress = focusAddress && !focusContent;
@@ -6493,6 +6519,7 @@ async function setGlanceTab(id) {
 
   bumpSurfaceGeneration();
   rt().glanceTabId = id;
+  if (previous && rt().focusedPaneTabId === previous.id) resetFocusedPane();
   setTabViewVisible(tab, true);
   attachTabViewToWindow(tab);
   // Floating trusted surfaces must stay above both page panes.
@@ -6514,6 +6541,7 @@ function closeGlance({ focusContent = true } = {}) {
   bumpSurfaceGeneration();
   bumpGlanceRequestEpoch();
   rt().glanceTabId = null;
+  resetFocusedPane();
   // ⌘⇧G or View → Close Glance while the Change picker is up: the picker is
   // about a pane that no longer exists, so it goes with it. glanceTabId is
   // already null, so the restore trigger falls through to page content and
@@ -6799,7 +6827,7 @@ function closeTab(id) {
     if (!parked) prepareTabViewForClose(tab);
     else if (wasActive || wasGlance) detachTabView(tab);
   }
-  if (wasGlance) rt().glanceTabId = null;
+  if (wasGlance) { rt().glanceTabId = null; resetFocusedPane(); }
 
   rt().tabsWantingAddressBarFocus.delete(id);
   tabs.delete(id);
@@ -10547,6 +10575,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       createTab, setActiveTab, closeTab, duplicateTab, toggleTabPinned, toggleTabMuted,
       setGlanceTab, closeGlance, promoteGlance, resizeGlanceAt, resetGlanceRatio,
       getGlanceTabId: () => rt().glanceTabId,
+      getFocusedPaneTabId: () => rt().focusedPaneTabId,
       getGlanceGeometry: () => hasLiveWindow() ? glanceGeometry() : null,
       groupTabByName, renameTab, beginRenameTab, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab,
       closeGroup, newTabUrl,

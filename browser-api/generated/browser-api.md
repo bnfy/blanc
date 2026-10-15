@@ -507,6 +507,7 @@ Glance split geometry, from calculateGlanceLayout() in glance-layout.js.
 | `glanceHeader` | `Rect` |  |
 | `glanceContent` | `Rect` |  |
 | `glance` | `Rect` | Alias of glanceContent kept for older consumers. |
+| `focusedPane?` | `'main' \| 'glance'` | Which pane holds keyboard focus. Present on chrome:glance-layout (glanceLayoutPayload() in glance-focus.js); calculateGlanceLayout() leaves it out. |
 
 ### `WorkspaceSaveStatus`
 

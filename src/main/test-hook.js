@@ -77,6 +77,7 @@ function install(refs) {
     resizeGlanceAt,
     resetGlanceRatio: resetGlanceRatioAction,
     getGlanceTabId,
+    getFocusedPaneTabId,
     getGlanceGeometry,
     groupTabByName,
     renameTab,
@@ -529,6 +530,7 @@ function install(refs) {
         groups: getGroups().map((g) => ({ id: g.id, name: g.name, collapsed: !!g.collapsed })),
         activeTabId: getActiveTabId(),
         glanceTabId: getGlanceTabId(),
+        focusedPaneTabId: getFocusedPaneTabId(),
         glanceGeometry: getGlanceGeometry(),
       };
     },

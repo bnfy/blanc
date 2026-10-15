@@ -1382,6 +1382,12 @@ export function payloadFixtures() {
   for (const bounds of [{ x: 0, y: 68, width: 1400, height: 900 }, { x: 0, y: 68, width: 600, height: 900 }, { x: 0, y: 0, width: 0, height: 0 }, null]) {
     for (const ratio of [0.5, 0.7, 2, undefined]) add(`calculateGlanceLayout(${JSON.stringify(bounds)}, ${ratio})`, 'GlanceLayout | null', calculateGlanceLayout(bounds, ratio));
   }
+  const { glanceLayoutPayload } = requireMain('./glance-focus');
+  for (const pane of ['main', 'glance', 'unknown']) {
+    add(`glanceLayoutPayload(side by side, ${pane})`, 'GlanceLayout | null',
+      glanceLayoutPayload(calculateGlanceLayout({ x: 0, y: 68, width: 1400, height: 900 }), pane));
+  }
+  add('glanceLayoutPayload(null)', 'GlanceLayout | null', glanceLayoutPayload(null, 'glance'));
   cases.push(...workspaceControllerFixtures(), ...listFixtures());
   return cases;
 }
