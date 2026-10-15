@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 
 const {
-  persistableEntries, syncSnapshot, sessionTabMeta, MAX_META_TITLE, MAX_META_FAVICON,
+  persistableEntries, syncSnapshot, sessionTabMeta, metaAfterHistoryClear, MAX_META_TITLE, MAX_META_FAVICON,
 } = require('../../src/main/session-snapshot');
 const SAFE_ICON = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGElEQVR42mNgGAWjYBSMglEwCkbBqAABBgAE/wABeV0FzgAAAABJRU5ErkJggg==';
 
@@ -93,4 +93,42 @@ test('sessionTabMeta persists an EMPTY title for a tab sitting on our error page
   }));
   assert.deepEqual(meta, { title: '', favicon: null },
     'persistableUrl unwraps to the site; the title there is Blanc error page copy');
+});
+
+test('sessionTabMeta writes customTitle only for a renamed tab', () => {
+  assert.deepEqual(Object.keys(sessionTabMeta(tab())).sort(), ['favicon', 'title']);
+  const meta = sessionTabMeta(tab({ title: 'Sheets', customTitle: '  Budget ' }));
+  assert.equal(meta.title, 'Sheets', 'title keeps the page title for older builds');
+  assert.equal(meta.customTitle, 'Budget');
+  // An error page drops its Blanc-authored title but keeps the person's name.
+  const onError = sessionTabMeta(tab({
+    url: 'blanc://error/?url=' + encodeURIComponent('https://fail.example/'),
+    title: 'Can’t reach this page', customTitle: 'Budget',
+  }));
+  assert.equal(onError.title, '');
+  assert.equal(onError.customTitle, 'Budget');
+});
+
+test('syncSnapshot sends the name a renamed tab shows', () => {
+  const snap = syncSnapshot([tab({ title: 'Sheets', customTitle: 'Budget' }), tab({ id: 'b', title: 'Plain' })], []);
+  assert.deepEqual(snap.tabs.map((t) => t.title), ['Budget', 'Plain']);
+  assert.deepEqual(Object.keys(snap.tabs[0]).sort(), ['groupId', 'pinned', 'title', 'url']);
+});
+
+test('metaAfterHistoryClear keeps typed names and drops page titles and icons', () => {
+  const kept = metaAfterHistoryClear([
+    { title: 'Sheets', favicon: SAFE_ICON, customTitle: 'Budget' },
+    { title: 'Mail', favicon: null },
+  ]);
+  assert.deepEqual(kept, [
+    { title: '', favicon: null, customTitle: 'Budget' },
+    { title: '', favicon: null },
+  ]);
+});
+
+test('metaAfterHistoryClear returns null when there is no name to keep', () => {
+  assert.equal(metaAfterHistoryClear([{ title: 'Mail', favicon: null }]), null);
+  assert.equal(metaAfterHistoryClear([{ title: 'Mail', customTitle: '   ' }]), null);
+  assert.equal(metaAfterHistoryClear(undefined), null);
+  assert.equal(metaAfterHistoryClear('junk'), null);
 });

@@ -217,3 +217,17 @@ test('the not-secure document record and entry marks ride in the seed, never in 
   assert.equal(plain.seed.documentCertificateException, null);
   assert.deepEqual(plain.seed.certificateEntryMarks, { urls: [], marks: [], index: -1 });
 });
+
+test('closed entries keep a custom name and label themselves with it', () => {
+  const renamed = baseTab({ title: 'Sheets', customTitle: 'Budget' });
+  const entry = buildTabEntry(renamed, SNAP, { index: 0 }, 0);
+  assert.equal(entry.title, 'Sheets');
+  assert.equal(entry.customTitle, 'Budget');
+  assert.equal(buildTabEntry(baseTab(), SNAP).customTitle, null);
+  const group = buildGroupEntry({ id: 'g', name: 'work', index: 0 }, [renamed], 0);
+  const batch = buildBatchEntry([renamed], 0);
+  assert.equal(group.tabs[0].customTitle, 'Budget');
+  assert.equal(batch.tabs[0].customTitle, 'Budget');
+  assert.equal(projectEntries([entry])[0].title, 'Budget');
+  assert.equal(projectEntries([buildTabEntry(baseTab(), SNAP)])[0].title, 'A');
+});
