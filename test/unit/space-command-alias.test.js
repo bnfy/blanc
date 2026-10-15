@@ -17,11 +17,17 @@ test('the palette matches a command by its aliases too', () => {
   assert.match(overlay, /\[c\.cmd, \.\.\.\(c\.aliases \?\? \[\]\)\]\.some\(\(name\) => name\.startsWith\(slashWord\)\)/);
 });
 
-test('either spelling is stripped before the space name is read', () => {
-  const strip = overlay.match(/replace\((\/\^\\\/\(\?:space\|workspace\)\\s\*\/), ''\)/);
-  assert.ok(strip, 'runWorkspaceCommand strips /space and /workspace');
-  const re = new RegExp(strip[1].slice(1, -1));
-  assert.equal('/space Work'.replace(re, '').trim(), 'Work');
-  assert.equal('/workspace Work'.replace(re, '').trim(), 'Work');
-  assert.equal('/space'.replace(re, '').trim(), '');
+test('either spelling, or any shortening of it, is stripped before the space name is read', () => {
+  // Every argument-taking command reads its argument through one helper: the
+  // list runs a command for any prefix of its name or alias ("/spa", "/work"),
+  // so the argument is whatever follows the word actually typed.
+  const helper = overlay.match(/function commandArgument\(input\) \{[\s\S]*?\n  \}/)?.[0];
+  assert.ok(helper, 'commandArgument not found in overlay.js');
+  const commandArgument = new Function(`${helper}; return commandArgument;`)();
+  for (const typed of ['/space Work', '/workspace Work', '/spa Work', '/work  Work ']) {
+    assert.equal(commandArgument(typed), 'Work', typed);
+  }
+  assert.equal(commandArgument('/space'), '');
+  assert.equal(commandArgument('/spa'), '');
+  assert.match(overlay, /function runWorkspaceCommand\(input\) \{\n    const name = commandArgument\(input\);/);
 });

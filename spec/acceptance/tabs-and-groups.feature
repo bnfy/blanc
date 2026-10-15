@@ -96,3 +96,72 @@ Feature: Tabs and tab groups
     When I pin "anchor"
     Then "anchor" is marked pinned
     And "anchor" is shown inside the group "work"
+
+  @F46-1 @F46 @desktop
+  Scenario: Rename Tab… names the right-clicked tab
+    Given a tab open on "rename-first"
+    And a tab open on "rename-other"
+    When I choose Rename Tab… for the tab on "rename-first"
+    Then the command bar reads "/rename rename-first" with "rename-first" selected
+    When I type "Budget" and press Enter in the command bar
+    Then the tab on "rename-first" is labelled "Budget"
+    And the tab on "rename-other" is labelled "rename-other"
+
+  @F46-2 @F46 @desktop
+  Scenario: A name stays through navigation to another site
+    Given a tab on "rename-first" named "Budget"
+    When that tab goes to "rename-second" on another site
+    Then the tab on "rename-second" is labelled "Budget"
+
+  @F46-3 @F46 @desktop
+  Scenario: /rename with no name restores the page title
+    Given a tab on "rename-first" named "Budget"
+    When I run the slash command "/rename"
+    Then the tab on "rename-first" is labelled "rename-first"
+
+  @F46-4 @F46 @desktop
+  Scenario: Reset Tab Title restores the page title
+    Given a tab on "rename-first" named "Budget"
+    When I choose Reset Tab Title for the tab on "rename-first"
+    Then the tab on "rename-first" is labelled "rename-first"
+
+  @F46-5 @F46 @desktop
+  Scenario: A name survives relaunch
+    Given a tab on "rename-first" named "Budget"
+    And the saved session holds the name "Budget"
+    When I relaunch Blanc
+    Then the tab on "rename-first" is labelled "Budget"
+
+  @F46-6 @F46 @desktop
+  Scenario: A private tab's name never reaches session.json
+    Given a private tab on "rename-private" named "Secret plan"
+    And a tab on "rename-first" named "Budget"
+    Then the saved session holds the name "Budget"
+    And the saved session does not contain "Secret plan"
+
+  @F46-7 @F46 @desktop
+  Scenario: A shortened /rename names the tab with the words after it
+    Given a tab open on "rename-first"
+    When I run the slash command "/ren Weekly"
+    Then the tab on "rename-first" is labelled "Weekly"
+
+  @F46-8 @F46 @desktop
+  Scenario: Choosing /rename without a name asks for one
+    Given a tab on "rename-first" named "Budget"
+    When I run the slash command "/ren"
+    Then the command bar reads "/rename Budget" with "Budget" selected
+    And the tab on "rename-first" is labelled "Budget"
+
+  @F46-9 @F46 @desktop
+  Scenario: Enter on an untouched rename prompt keeps the page title after the page retitles
+    Given a tab open on "rename-first"
+    When I choose Rename Tab… for the tab on "rename-first"
+    And the page on "rename-first" retitles itself to "(3) rename-first"
+    And I press Enter in the command bar
+    Then the tab on "rename-first" is labelled "(3) rename-first"
+
+  @F46-10 @F46 @desktop
+  Scenario: A renamed tab keeps its name in the command panel while it loads
+    Given a tab on "rename-first" named "Budget"
+    When the page on "rename-first" starts loading
+    Then the command panel row for "rename-first" reads "Budget"

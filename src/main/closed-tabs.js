@@ -5,6 +5,7 @@
 // See docs/superpowers/specs/2026-08-16-reopen-closed-tab-design.md.
 
 const { cloneEntryMarks } = require('./certificate-history');
+const { normalizeTabName } = require('./tab-name');
 
 /** Held views live this long before degrading to their snapshot (§2.1). */
 const CLOSED_GRACE_MS = 30_000;
@@ -81,6 +82,7 @@ function buildTabEntry(tab, snapshot, slot = {}, now = 0) {
     localFile: tab.localFile === true,
     openerSandboxFlags: tab.openerSandboxFlags ?? 0,
     title: typeof tab.title === 'string' && tab.title ? tab.title : tab.url,
+    customTitle: normalizeTabName(tab.customTitle),
     favicon: typeof tab.favicon === 'string' ? tab.favicon : null,
     pinned: !!tab.pinned,
     muted: !!tab.muted,
@@ -133,6 +135,7 @@ function buildGroupEntry(group, members, now = 0) {
         localFile: m.localFile === true,
         openerSandboxFlags: m.openerSandboxFlags ?? 0,
         title: typeof m.title === 'string' && m.title ? m.title : m.url,
+        customTitle: normalizeTabName(m.customTitle),
         favicon: typeof m.favicon === 'string' ? m.favicon : null,
         pinned: !!m.pinned,
         muted: !!m.muted,
@@ -161,6 +164,7 @@ function buildBatchEntry(members, now = 0) {
         localFile: m.localFile === true,
         openerSandboxFlags: m.openerSandboxFlags ?? 0,
         title: typeof m.title === 'string' && m.title ? m.title : m.url,
+        customTitle: normalizeTabName(m.customTitle),
         favicon: typeof m.favicon === 'string' ? m.favicon : null,
         pinned: !!m.pinned,
         muted: !!m.muted,
@@ -200,7 +204,7 @@ function projectEntries(entries) {
     id: e.id,
     title: e.kind === 'group' ? e.group.name
       : e.kind === 'batch' ? `${e.tabs.length} tabs`
-      : e.title,
+      : (e.customTitle || e.title),
     favicon: e.kind === 'group' || e.kind === 'batch' ? null : pngFavicon(e.favicon),
     tabCount: e.kind === 'group' || e.kind === 'batch' ? e.tabs.length : 1,
   }));

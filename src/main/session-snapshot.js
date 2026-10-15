@@ -25,6 +25,7 @@ function persistableUrl(url) {
 const MAX_META_TITLE = 200;
 const MAX_META_FAVICON = 8192;
 const { validFavicon } = require('./bookmark-validate');
+const { normalizeTabName, displayTitle } = require('./tab-name');
 
 /** Session metadata carries only the same fixed-size PNG data accepted by
  * Favorites; live remote sources never survive a restart. */
@@ -40,7 +41,24 @@ function sessionTabMeta(tab) {
   const title = !onErrorPage && typeof tab?.title === 'string'
     ? tab.title.slice(0, MAX_META_TITLE)
     : '';
-  return { title, favicon: persistableFavicon(tab?.favicon) };
+  const meta = { title, favicon: persistableFavicon(tab?.favicon) };
+  // F46: only a renamed tab carries the key, so every other entry is written
+  // exactly as before and older builds simply ignore it.
+  const customTitle = normalizeTabName(tab?.customTitle);
+  if (customTitle) meta.customTitle = customTitle;
+  return meta;
+}
+
+/** clearSessionMeta's rewrite of one window's meta column (F46). Page titles
+ * and icons are history and go; a name the person typed is theirs, like a
+ * group name, and stays. Null when nothing is worth keeping, so the caller
+ * deletes the column exactly as it always has. */
+function metaAfterHistoryClear(meta) {
+  if (!Array.isArray(meta) || !meta.some((m) => normalizeTabName(m?.customTitle))) return null;
+  return meta.map((m) => {
+    const customTitle = normalizeTabName(m?.customTitle);
+    return customTitle ? { title: '', favicon: null, customTitle } : { title: '', favicon: null };
+  });
 }
 
 /** Exactly persistSession's session.json semantics: private tabs excluded,
@@ -67,7 +85,8 @@ function syncSnapshot(tabList, groups) {
       if (!url || !/^https?:\/\//.test(url) || url.length > MAX_SYNC_URL) return null;
       return {
         url,
-        title: typeof t.title === 'string' ? t.title.slice(0, MAX_SYNC_TITLE) : '',
+        // F46: other devices see what this tab is labelled with here.
+        title: displayTitle(t).slice(0, MAX_SYNC_TITLE),
         groupId: t.groupId ?? null,
         pinned: !!t.pinned,
       };
@@ -82,6 +101,6 @@ function syncSnapshot(tabList, groups) {
 }
 
 module.exports = {
-  persistableEntries, syncSnapshot, sessionTabMeta,
+  persistableEntries, syncSnapshot, sessionTabMeta, metaAfterHistoryClear,
   MAX_SYNC_TABS, MAX_SYNC_URL, MAX_SYNC_TITLE, MAX_META_TITLE, MAX_META_FAVICON,
 };

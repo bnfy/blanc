@@ -178,7 +178,8 @@ const { groupFavoritesForMenu, mayWriteFavoriteFavicon } = require('./bookmark-d
 const history = require('./history');
 const { siteKey: topSiteKey } = require('./top-sites');
 const { JsonStore, discardProfileStoreEntries, enableTempSweep } = require('./store');
-const { persistableEntries, sessionTabMeta } = require('./session-snapshot');
+const { persistableEntries, sessionTabMeta, metaAfterHistoryClear } = require('./session-snapshot');
+const { normalizeTabName, displayTitle, resolveTabRename } = require('./tab-name');
 const {
   PRIMARY_WINDOW_ID,
   loadWorkspace,
@@ -4203,7 +4204,12 @@ function serializeTabs() {
       // cross this boundary merely because they were added to a tab record.
       const rest = {
         id: tab.id,
-        title: tab.title,
+        // F46: the label to draw — the person's name when renamed, else the
+        // page's title. pageTitle carries the page's own title only while the
+        // tab is renamed (tooltips, Quick Switcher). Inline on purpose: tests
+        // lift this function without tab-name.js.
+        title: tab.customTitle || tab.title,
+        pageTitle: tab.customTitle ? tab.title : null,
         url: tab.url,
         isLoading: tab.isLoading,
         canGoBack: tab.canGoBack,
@@ -4444,7 +4450,11 @@ function clearSessionMeta() {
   ensureSessionStore().update((d) => {
     if (Array.isArray(d.windows)) {
       for (const windowEntry of d.windows) {
-        if (windowEntry && typeof windowEntry === 'object') delete windowEntry.meta;
+        if (!windowEntry || typeof windowEntry !== 'object') continue;
+        // F46: page titles go with history; names the person typed stay.
+        const kept = metaAfterHistoryClear(windowEntry.meta);
+        if (kept) windowEntry.meta = kept;
+        else delete windowEntry.meta;
       }
     }
     delete d.meta;
@@ -5120,6 +5130,20 @@ function groupTabByName(tabId, rawName) {
   scheduleMenuRebuild();
 }
 
+/** F46: give a tab the person's own name, or with an empty name hand it back
+ * its page title. The rules (cleaning, the untouched-prefill check) live in
+ * tab-name.js; this applies the verdict. A tab of another window or one that
+ * closed while the panel was open is left alone. */
+function renameTab(tabId, rawName) {
+  const tab = tabs.get(tabId);
+  if (!tab || tab.runtimeId !== rt().id) return;
+  const next = resolveTabRename(tab, rawName);
+  if (next === undefined) return;
+  tab.customTitle = next;
+  broadcastTabs();
+  scheduleMenuRebuild();
+}
+
 function toggleGroupCollapsed(groupId) {
   const group = rt().groups.find((g) => g.id === groupId);
   if (!group) return;
@@ -5156,6 +5180,7 @@ function closedMemberRecord(id) {
   snapshot = sanitizeSnapshot(snapshot, { restorableCommit: tab.restorableCommit === true });
   return {
     url: tab.url, title: tab.title, favicon: tab.favicon ?? null,
+    customTitle: tab.customTitle ?? null,
     localFile: tab.localFile === true,
     openerSandboxFlags: tab.openerSandboxFlags ?? 0,
     pinned: !!tab.pinned, muted: !!tab.muted, private: !!tab.private, snapshot,
@@ -5690,6 +5715,7 @@ function applyWorkspaceToWindow(runtime, workspace) {
       asleep: true,
       title: cleaned.meta?.[index]?.title ?? '',
       favicon: cleaned.meta?.[index]?.favicon ?? null,
+      customTitle: cleaned.meta?.[index]?.customTitle ?? null,
       allowLocalFile: cleaned.localFiles?.[index] === true,
       managedExtension: restorableUblockTool(url),
     }));
@@ -5989,7 +6015,7 @@ initTabView({
   notePopupChild,
 });
 
-function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, adoptView = null, allowLocalFile = false, openerSandboxFlags = 0, httpReferrer = null, managedExtension = false } = {}) {
+function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, customTitle = null, adoptView = null, allowLocalFile = false, openerSandboxFlags = 0, httpReferrer = null, managedExtension = false } = {}) {
   if (/^chrome-extension:/i.test(url) && (isPrivate || !managedExtension)) return null;
   const admittedLocalFile = allowLocalFile && isSupportedLocalHtmlUrl(url);
   if (isForbiddenTopLevelUrl(url) && !admittedLocalFile) url = NEW_TAB_URL;
@@ -6037,6 +6063,10 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     profileId: owner.profileId,
     view: bornQuiet ? null : view,
     title: typeof title === 'string' && title ? title : mainI18n.t('tab.untitled'),
+    // F46: the person's own name for this tab, or null for the page title.
+    // `title` stays the page's own; restore paths hand in file contents, so
+    // the name is normalized here too.
+    customTitle: normalizeTabName(customTitle),
     url,
     // Main-process grant, never copied from an IPC option. Cleared when the
     // document leaves this local file; only an OS handoff can originate it.
@@ -6441,7 +6471,7 @@ async function setGlanceTab(id) {
   resizeActiveView();
   broadcastTabs();
   scheduleMenuRebuild();
-  rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.opened', { title: tab.title || mainI18n.t('tab.untitledShort') }));
+  rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.opened', { title: displayTitle(tab) || mainI18n.t('tab.untitledShort') }));
   return true;
 }
 
@@ -6603,7 +6633,7 @@ function reopenGroupEntry(entry) {
   const ids = entry.tabs.map((member) => {
     const id = createTab(member.url, {
       groupId: group.id, pinned: member.pinned, muted: member.muted,
-      asleep: true, title: member.title, favicon: member.favicon,
+      asleep: true, title: member.title, favicon: member.favicon, customTitle: member.customTitle,
       allowLocalFile: member.localFile === true,
       openerSandboxFlags: member.openerSandboxFlags,
     });
@@ -6634,7 +6664,7 @@ function reopenBatchEntry(entry) {
       : null;
     const id = createTab(member.url, {
       groupId, pinned: member.pinned, muted: member.muted,
-      asleep: true, title: member.title, favicon: member.favicon,
+      asleep: true, title: member.title, favicon: member.favicon, customTitle: member.customTitle,
       allowLocalFile: member.localFile === true,
       openerSandboxFlags: member.openerSandboxFlags,
     });
@@ -6851,6 +6881,16 @@ function beginNewGroup(tabId) {
   showOverlay('panel', { prefill: '/group ', purpose: { beginGroupTabId: tabId } });
 }
 
+/** "Rename Tab…" handoff (F46): the command panel prefilled with /rename and
+ * the tab's current label, bound to the right-clicked tab. Same atomic
+ * purpose-payload reasoning as beginNewGroup: the target must survive the
+ * overlay's did-finish-load replay or Enter would rename the active tab. */
+function beginRenameTab(tabId) {
+  const tab = tabs.get(tabId);
+  if (!tab) return;
+  showOverlay('panel', { prefill: `/rename ${displayTitle(tab)}`, purpose: { renameTabId: tabId } });
+}
+
 function reopenEntry(entry) {
   clearTimeout(entry.expiryTimer);
   entry.expiryTimer = null;
@@ -6861,7 +6901,7 @@ function reopenEntry(entry) {
     ? entry.groupId
     : null;
   const common = {
-    pinned: entry.pinned, muted: entry.muted, groupId: resolvedGroupId,
+    pinned: entry.pinned, muted: entry.muted, groupId: resolvedGroupId, customTitle: entry.customTitle,
     openerSandboxFlags: entry.openerSandboxFlags,
     managedExtension: restorableUblockTool(entry.url),
   };
@@ -7605,6 +7645,7 @@ function registerIpcHandlers() {
   chromeHandle('tabs:toggle-pinned', (_e, id) => toggleTabPinned(id));
   chromeHandle('tabs:toggle-muted', (_e, id) => toggleTabMuted(id));
   chromeHandle('tabs:duplicate', (_e, id) => duplicateTab(id));
+  chromeHandle('tabs:rename', (_e, id, name) => { renameTab(id, name ?? null); });
   chromeHandle('tabs:open-page', (_e, name, section) => {
     if (name === 'settings') return openSettingsSection(section);
     if (['bookmarks', 'history', 'downloads', 'tab-import'].includes(name)) {
@@ -8011,7 +8052,7 @@ function tabMenuItems(owner = rt()) {
     } catch {
       /* not a parseable URL (blank tab, blanc:// page) — show it as-is */
     }
-    const label = `${tab.title || mainI18n.t('tab.untitled')} — ${domain}${group ? ` (${group.name})` : ''}`;
+    const label = `${displayTitle(tab) || mainI18n.t('tab.untitled')} — ${domain}${group ? ` (${group.name})` : ''}`;
     return {
       label: escapeMenuLabel(label.length > 120 ? `${label.slice(0, 119)}…` : label),
       type: 'checkbox',
@@ -8127,6 +8168,7 @@ const SLASH_COMMANDS = [
   ['/pin', 'slash.pin.hint'],
   ['/mute', 'slash.mute.hint'],
   ['/sleep', 'slash.sleep.hint'],
+  ['/rename [name]', 'slash.rename.doc'],
   ['/group <name>', 'slash.group.doc'],
   ['/ungroup', 'slash.ungroup.hint'],
   ['/close-group', 'slash.closeGroup.hint'],
@@ -8479,7 +8521,7 @@ function tabContextData(tab, owner) {
   if (!tab || tab.runtimeId !== owner.id) return null;
   return {
     tab: {
-      id: tab.id, url: tab.url, title: tab.title,
+      id: tab.id, url: tab.url, title: tab.title, customTitle: tab.customTitle ?? null,
       pinned: !!tab.pinned, muted: !!tab.muted, private: !!tab.private,
       asleep: !!tab.asleep, bookmarked: !!tab.bookmarked,
       groupId: tab.groupId ?? null, capturing: !!tab.capturing,
@@ -8511,6 +8553,8 @@ function menuContextActions(owner) {
     toggleFavorite: b((id) => toggleBookmarkForTab(id)),
     setGroup: b((id, gid) => setTabGroup(id, gid)),
     beginNewGroup: b((id) => beginNewGroup(id)),
+    rename: b((id) => beginRenameTab(id)),
+    resetTitle: b((id) => renameTab(id, null)),
     // Mirrors the row's glance chip: once the pane actually opens, dismiss the
     // panel so it isn't left floating over the fresh Glance split (a quiet tab
     // wakes first inside setGlanceTab, so success can take a beat).
@@ -8782,7 +8826,7 @@ function dockActiveTabDescriptor() {
   const tab = id != null ? tabs.get(id) : null;
   if (!tab) return null;
   if (tab.private) return { label: mainI18n.t('tab.privateLabel'), iconDataUrl: null };
-  const raw = tab.title || mainI18n.t(tab.isLoading ? 'tab.loading' : 'tab.untitled');
+  const raw = displayTitle(tab) || mainI18n.t(tab.isLoading ? 'tab.loading' : 'tab.untitled');
   const label = raw.length > 75 ? `${raw.slice(0, 74)}…` : raw;
   const favicon = typeof tab.favicon === 'string' && tab.favicon.startsWith('data:image/')
     ? tab.favicon : null;
@@ -10417,7 +10461,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       setGlanceTab, closeGlance, promoteGlance, resizeGlanceAt, resetGlanceRatio,
       getGlanceTabId: () => rt().glanceTabId,
       getGlanceGeometry: () => hasLiveWindow() ? glanceGeometry() : null,
-      groupTabByName, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab,
+      groupTabByName, renameTab, beginRenameTab, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab,
       closeGroup, newTabUrl,
       getOverlayDragging: () => overlayDragActive(rt()),
       selectTabAtIndex,
@@ -11102,6 +11146,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           asleep: true,
           title: saved.meta?.[index]?.title ?? '',
           favicon: saved.meta?.[index]?.favicon ?? null,
+          customTitle: saved.meta?.[index]?.customTitle ?? null,
           allowLocalFile: saved.localFiles?.[index] === true,
           managedExtension: restorableUblockTool(url),
         }));

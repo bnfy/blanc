@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-108 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
+109 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -37,6 +37,7 @@
 | `toggleTabPinned` | tabs | invoke | `tabs:toggle-pinned` | `(id: TabId) => Promise<boolean>` | all |
 | `toggleTabMuted` | tabs | invoke | `tabs:toggle-muted` | `(id: TabId) => Promise<boolean>` | all |
 | `duplicateTab` | tabs | invoke | `tabs:duplicate` | `(id: TabId) => Promise<TabId \| undefined>` | all |
+| `renameTab` | tabs | invoke | `tabs:rename` | `(id: TabId, name: string \| null) => Promise<void>` | all |
 | `openPage` | pages | invoke | `tabs:open-page` | `(name: string, section?: string) => Promise<void>` | all |
 | `getAllTabs` | tabs | invoke | `tabs:get-all` | `() => Promise<TabsSnapshot>` | all |
 | `findInPage` | find | invoke | `tabs:find` | `(id: TabId, query: string, options?: FindInPageOptions) => Promise<number \| boolean \| undefined>` | all |
@@ -300,7 +301,8 @@ One tab in tabs:updated, projected by serializeTabs() in main.js. Main-only stat
 | Field | Type | Notes |
 | --- | --- | --- |
 | `id` | `TabId` |  |
-| `title` | `string` |  |
+| `title` | `string` | The label to draw: the person's custom name when the tab is renamed (F46), else the page title. |
+| `pageTitle` | `string \| null` | The page's own title while the tab has a custom name; null otherwise. |
 | `url` | `string` |  |
 | `isLoading` | `boolean` |  |
 | `canGoBack` | `boolean` |  |

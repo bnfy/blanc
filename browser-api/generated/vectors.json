@@ -1049,6 +1049,52 @@
         }
       ]
     },
+    "renameTab": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "tabs:rename",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "tab-id-1",
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "tabs:rename",
+              "args": [
+                "tab-id-1",
+                "example"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "name = null",
+          "args": [
+            "tab-id-1",
+            null
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "tabs:rename",
+              "args": [
+                "tab-id-1",
+                null
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": []
+    },
     "openPage": {
       "kind": "invoke",
       "platforms": [
@@ -1136,6 +1182,7 @@
             {
               "id": "tab-id-1",
               "title": "tab-entry-1",
+              "pageTitle": "tab-entry-1",
               "url": "tab-entry-1",
               "isLoading": true,
               "canGoBack": true,
@@ -4306,6 +4353,7 @@
                 {
                   "id": "tab-id-1",
                   "title": "tab-entry-1",
+                  "pageTitle": "tab-entry-1",
                   "url": "tab-entry-1",
                   "isLoading": true,
                   "canGoBack": true,
@@ -4438,6 +4486,7 @@
                   {
                     "id": "tab-id-1",
                     "title": "tab-entry-1",
+                    "pageTitle": "tab-entry-1",
                     "url": "tab-entry-1",
                     "isLoading": true,
                     "canGoBack": true,

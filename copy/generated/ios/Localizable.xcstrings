@@ -631,6 +631,90 @@
         }
       }
     },
+    "slash.rename.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /rename.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name this tab — leave it empty to reset its title"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diesem Tab einen Namen geben – leer lassen, um den Titel zurückzusetzen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ponle nombre a esta pestaña; déjalo vacío para restablecer su título"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nommer cet onglet — laissez vide pour réinitialiser son titre"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dai un nome a questa scheda — lascia vuoto per reimpostarne il titolo"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dê um nome a esta aba — deixe vazio para redefinir o título"
+          }
+        }
+      }
+    },
+    "slash.rename.doc": {
+      "comment": "Reference description of /rename [name] on blanc://shortcuts and in Help → Slash Commands.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Give this tab your own name, or go back to its page title with no name"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diesem Tab einen eigenen Namen geben oder ohne Namen zum Seitentitel zurückkehren"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Da a esta pestaña un nombre propio o, sin nombre, vuelve al título de la página"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Donne à cet onglet le nom de votre choix, ou revient au titre de la page sans nom"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dà a questa scheda un nome a tua scelta o, senza nome, torna al titolo della pagina"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dá a esta aba um nome próprio ou, sem nome, volta ao título da página"
+          }
+        }
+      }
+    },
     "slash.sleep.hint": {
       "comment": "Slash command hint shown in the ⌘L palette for /sleep.",
       "extractionState": "manual",
@@ -18213,6 +18297,90 @@
           "stringUnit": {
             "state": "translated",
             "value": "Duplicar aba"
+          }
+        }
+      }
+    },
+    "tabMenu.rename": {
+      "comment": "Tab context menu command that opens the ⌘L bar to type a custom name for the tab.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rename Tab…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tab umbenennen…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambiar nombre de pestaña…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renommer l’onglet…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rinomina scheda…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renomear aba…"
+          }
+        }
+      }
+    },
+    "tabMenu.resetTitle": {
+      "comment": "Tab context menu command shown only on a renamed tab; removes the custom name so the tab shows the page’s own title again.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset Tab Title"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabtitel zurücksetzen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restablecer título de pestaña"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réinitialiser le titre de l’onglet"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reimposta titolo scheda"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redefinir título da aba"
           }
         }
       }

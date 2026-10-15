@@ -65,6 +65,14 @@
     "message": "Silenciar o activar el sonido de esta pestaña",
     "source": "sha256:269257650ea0481c9c2b0f12a02925dbcc43f3ecb0a169438ec10f5674d02fcd"
   },
+  "slash.rename.hint": {
+    "message": "Ponle nombre a esta pestaña; déjalo vacío para restablecer su título",
+    "source": "sha256:3384874aeddaa8e28eeb44fdd3de4d7d8c248fc545c8fe951d0903a862b5a6ec"
+  },
+  "slash.rename.doc": {
+    "message": "Da a esta pestaña un nombre propio o, sin nombre, vuelve al título de la página",
+    "source": "sha256:d56351dbbbc9c766d6ce50ae4f7128dfa7364c5166e6feef0954e4ed4dd59d56"
+  },
   "slash.sleep.hint": {
     "message": "Poner en reposo las pestañas en segundo plano y liberar su memoria",
     "source": "sha256:cec72b6a93330577e374f69bf56df1bddb607dbd1d2046ff9c66ad5238be8c98"
@@ -1620,6 +1628,14 @@
   "tabMenu.duplicate": {
     "message": "Duplicar pestaña",
     "source": "sha256:6a5abab1ab91972a4ab09925b624a3e1c9c6615e1d07dc7da8be6ccde1a2fd3b"
+  },
+  "tabMenu.rename": {
+    "message": "Cambiar nombre de pestaña…",
+    "source": "sha256:465869570b3a7cdb56fc2bc4c0a5c54df738d89302224291ae83e73db1e91341"
+  },
+  "tabMenu.resetTitle": {
+    "message": "Restablecer título de pestaña",
+    "source": "sha256:76a2178eb808c0e3393f888539b7e3f47961b061cb959281cacb9cd4b330691c"
   },
   "tabMenu.pin": {
     "message": "Fijar pestaña",

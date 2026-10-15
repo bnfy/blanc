@@ -51,6 +51,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   toggleTabPinned: (id) => ipcRenderer.invoke('tabs:toggle-pinned', id),
   toggleTabMuted: (id) => ipcRenderer.invoke('tabs:toggle-muted', id),
   duplicateTab: (id) => ipcRenderer.invoke('tabs:duplicate', id),
+  renameTab: (id, name) => ipcRenderer.invoke('tabs:rename', id, name),
   openPage: (name, section) => ipcRenderer.invoke('tabs:open-page', name, section),
   getAllTabs: () => ipcRenderer.invoke('tabs:get-all'),
   findInPage: (id, query, options) => ipcRenderer.invoke('tabs:find', id, query, options),

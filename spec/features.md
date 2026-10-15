@@ -1108,3 +1108,28 @@ Bring Your Tabs.
   [`acceptance/arc-spaces-import.feature`](./acceptance/arc-spaces-import.feature)
   (`@F45`, bound in `test/desktop/steps/arc-import.steps.js`);
   `test/unit/arc-*.test.js` and `test/unit/tab-import-arc.test.js`.
+
+## F46 — Custom tab names (desktop)
+
+A person can give any tab a name of their own, or keep the page's title.
+
+- **Rename.** The tab context menu's **Rename Tab…** opens the command bar
+  with `/rename` and the tab's current label, the label selected, aimed at
+  that tab. `/rename <name>` renames the active tab; `/rename` alone, or
+  **Reset Tab Title** (shown only on a renamed tab), restores the page title.
+- **The name.** Whitespace folds to single spaces, control characters are
+  dropped, at most 100 characters; empty means the page title. Submitting an
+  un-renamed tab's own page title, or an untouched rename prompt, does not
+  rename it. `/ren Budget` works like `/rename Budget`; a bare `/ren` (or the
+  command row clicked) asks for the name instead of running.
+- **Lifetime.** The name stays through any navigation, quiet/wake, moves,
+  relaunch, Blanc Spaces and Reopen Closed Tab; Duplicate Tab does not copy
+  it. Private tabs can be renamed, in memory only.
+- **Where it shows.** Every Blanc label for the tab (rows, rail, dots, Glance,
+  Tabs and Dock menus, Recently Closed, other devices via Tab Sync). History
+  and Favorites keep page titles; a renamed row's tooltip shows the page
+  title, and the Quick Switcher matches both.
+- **Acceptance:**
+  [`acceptance/tabs-and-groups.feature`](./acceptance/tabs-and-groups.feature)
+  (`@F46`, bound in `test/desktop/steps/custom-tab-names.steps.js`);
+  `test/unit/tab-name.test.js` and `test/unit/tab-rename-main.test.js`.

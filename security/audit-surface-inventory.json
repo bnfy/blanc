@@ -141,7 +141,7 @@
     },
     {
       "file": "src/main/closed-tabs.js",
-      "sha256": "c34cbc03fb9e5b759e4a1b27b23e933a9d25d45af1e6bc2969f82683120ad26e",
+      "sha256": "7e512a5a434eff13f4feee8f9860efa2ef490364d252b882bd541c2ae9772316",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -220,7 +220,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "ac2312aec7fe574562909c9350e4f5ceefeddf4acdbe4c1685c397b4199e1f84",
+      "sha256": "edde12206ad9e1358b81d6cf40e75dab9f93d8e9c835ae169f9cf7ed7f37d7ef",
       "literalChannels": [
         "activate",
         "before-input-event",
@@ -346,6 +346,7 @@
         "tabs:open-page",
         "tabs:promote-glance",
         "tabs:reload",
+        "tabs:rename",
         "tabs:reopen-closed",
         "tabs:reopen-entry",
         "tabs:save-favorite",
@@ -524,7 +525,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "536dda9bcfb7510c6a0dace4e8deb07804f8671ac0ea8f9ec16957007b8530bf",
+      "sha256": "bb2b09b39e0702c8ee4354fda9cb2cada397d3328c58bed12fed487e190d3fcb",
       "literalChannels": [
         "chrome:adblock-exempt-active",
         "chrome:adblock-toggle",
@@ -617,6 +618,7 @@
         "tabs:open-page",
         "tabs:promote-glance",
         "tabs:reload",
+        "tabs:rename",
         "tabs:reopen-closed",
         "tabs:reopen-entry",
         "tabs:save-favorite",

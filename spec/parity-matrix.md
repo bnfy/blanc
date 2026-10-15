@@ -54,6 +54,7 @@ See [`README.md`](./README.md#status-legend) for meanings.
 | F42 | Dark websites | PARTIAL | PLANNED | PLANNED | Off by default, device-local. While Blanc is dark, http(s) pages without their own dark mode are darkened from first paint by the pinned Dark Reader engine in an isolated world; per-site opt-out via Settings, `/dark-site` or the shield popover switch (memory-only in private tabs). Desktop is PARTIAL: main frames only, iframes stay as drawn. | — |
 | F44 | Interface language | SHIPPED | PLANNED | PLANNED | All Blanc-authored UI text from the shared catalog; fixed brand/command terms; English fallback; user may pin a supported language other than the OS's; web-facing language signals unaffected. Desktop: in-app picker + relaunch; mobile: OS per-app language. | D27 |
 | F45 | Arc Spaces import | SHIPPED | — | — | Desktop only. Arc's StorableSidebar.json (found on macOS/Windows, or a chosen file anywhere) becomes one Blanc space per Arc Space, in one all-or-nothing write; folders become groups, tabs stay quiet, top-row Favorites join an Arc folder. The page sees only names and counts. | — |
+| F46 | Custom tab names | SHIPPED | — | — | Desktop only. A tab may carry the person's own name instead of its page title; it survives navigation, relaunch, Spaces and reopen, never reaches History or Favorites, and is memory-only for private tabs. | — |
 
 ## Notes on the "mobile-only wins"
 

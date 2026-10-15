@@ -16,6 +16,8 @@
     <string name="slash_reopen_hint">Rouvrir l’onglet que vous venez de fermer</string>
     <string name="slash_pin_hint">Épingler ou détacher cet onglet</string>
     <string name="slash_mute_hint">Couper ou rétablir le son de cet onglet</string>
+    <string name="slash_rename_hint">Nommer cet onglet — laissez vide pour réinitialiser son titre</string>
+    <string name="slash_rename_doc">Donne à cet onglet le nom de votre choix, ou revient au titre de la page sans nom</string>
     <string name="slash_sleep_hint">Mettre en veille les onglets en arrière-plan et libérer leur mémoire</string>
     <string name="slash_group_hint">Saisissez un espace, puis un nom de groupe — p. ex. « travail »</string>
     <string name="slash_group_doc">Déplace cet onglet dans un groupe, en le créant la première fois</string>
@@ -457,6 +459,8 @@
     <string name="address_menu_paste_and_go">Coller et accéder</string>
     <string name="tab_menu_copy_link">Copier le lien</string>
     <string name="tab_menu_duplicate">Dupliquer l’onglet</string>
+    <string name="tab_menu_rename">Renommer l’onglet…</string>
+    <string name="tab_menu_reset_title">Réinitialiser le titre de l’onglet</string>
     <string name="tab_menu_pin">Épingler l’onglet</string>
     <string name="tab_menu_unpin">Détacher l’onglet</string>
     <string name="tab_menu_mute">Couper le son de l’onglet</string>

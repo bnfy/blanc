@@ -125,7 +125,10 @@ export interface SiteInfo {
 /** One tab in tabs:updated, projected by serializeTabs() in main.js. Main-only state never crosses this projection. */
 export interface TabEntry {
   id: TabId;
+  /** The label to draw: the person's custom name when the tab is renamed (F46), else the page title. */
   title: string;
+  /** The page's own title while the tab has a custom name; null otherwise. */
+  pageTitle: string | null;
   url: string;
   isLoading: boolean;
   canGoBack: boolean;
@@ -794,6 +797,11 @@ export interface BlancBrowserAPI {
    * IPC: invoke `tabs:duplicate`.
    */
   duplicateTab(id: TabId): Promise<TabId | undefined>;
+  /**
+   * Give a tab a custom name, or with an empty or null name restore its page title (F46).
+   * IPC: invoke `tabs:rename`.
+   */
+  renameTab(id: TabId, name: string | null): Promise<void>;
   /**
    * Open an internal page (utility pages open in the sheet).
    * IPC: invoke `tabs:open-page`.

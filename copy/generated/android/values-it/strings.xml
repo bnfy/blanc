@@ -16,6 +16,8 @@
     <string name="slash_reopen_hint">Riapri la scheda che hai appena chiuso</string>
     <string name="slash_pin_hint">Fissa o rilascia questa scheda</string>
     <string name="slash_mute_hint">Disattiva o riattiva l’audio di questa scheda</string>
+    <string name="slash_rename_hint">Dai un nome a questa scheda — lascia vuoto per reimpostarne il titolo</string>
+    <string name="slash_rename_doc">Dà a questa scheda un nome a tua scelta o, senza nome, torna al titolo della pagina</string>
     <string name="slash_sleep_hint">Metti in riposo le schede in background e libera la loro memoria</string>
     <string name="slash_group_hint">Digita uno spazio, poi il nome di un gruppo — ad es. «lavoro»</string>
     <string name="slash_group_doc">Sposta questa scheda in un gruppo, creandolo al primo utilizzo</string>
@@ -457,6 +459,8 @@
     <string name="address_menu_paste_and_go">Incolla e vai</string>
     <string name="tab_menu_copy_link">Copia link</string>
     <string name="tab_menu_duplicate">Duplica scheda</string>
+    <string name="tab_menu_rename">Rinomina scheda…</string>
+    <string name="tab_menu_reset_title">Reimposta titolo scheda</string>
     <string name="tab_menu_pin">Fissa la scheda</string>
     <string name="tab_menu_unpin">Rilascia la scheda</string>
     <string name="tab_menu_mute">Disattiva l’audio della scheda</string>

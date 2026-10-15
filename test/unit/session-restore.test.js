@@ -175,3 +175,12 @@ test('restoreTargetId clamps an out-of-range or non-integer index', () => {
   assert.equal(restoreTargetId(['a', 'b'], -3), 'a');
   assert.equal(restoreTargetId(['a', 'b'], undefined), 'a');
 });
+
+test('a saved custom name rides through the restore filter with its tab', () => {
+  const out = filterRestoredSession({
+    urls: ['blanc://settings/', 'https://a.example/'],
+    meta: [{ title: 'Settings', favicon: null }, { title: 'A', favicon: null, customTitle: 'Budget' }],
+  }, (url) => url.startsWith('blanc://settings'));
+  assert.deepEqual(out.urls, ['https://a.example/']);
+  assert.equal(out.meta[0].customTitle, 'Budget');
+});

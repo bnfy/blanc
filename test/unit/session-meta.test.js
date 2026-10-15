@@ -123,6 +123,7 @@ function runClear(data, { readOnly = false } = {}) {
   const sandbox = {
     sessionReadOnly: readOnly,
     ensureSessionStore: () => ({ update: (fn) => fn(data) }),
+    metaAfterHistoryClear: require('../../src/main/session-snapshot').metaAfterHistoryClear,
   };
   vm.runInNewContext(`${clearSource}\nthis.__fn = clearSessionMeta;`, sandbox);
   sandbox.__fn();
@@ -154,4 +155,19 @@ test('both history-clear entry points clear the persisted titles', () => {
   const pagesSource = fs.readFileSync(path.join(__dirname, '../../src/main/pages.js'), 'utf8');
   assert.match(pagesSource, /pages:history:clear'[\s\S]{0,160}onHistoryCleared/,
     'the History page clears through the same hook');
+});
+
+test('clearing history keeps names the person typed and drops page titles', () => {
+  const data = runClear({
+    version: 2,
+    windows: [
+      { urls: ['https://a/', 'https://b/'], meta: [{ title: 'A', favicon: null, customTitle: 'Budget' }, { title: 'B', favicon: null }] },
+      { urls: ['https://c/'], meta: [{ title: 'C', favicon: null }] },
+    ],
+  });
+  assert.deepEqual(data.windows[0].meta, [
+    { title: '', favicon: null, customTitle: 'Budget' },
+    { title: '', favicon: null },
+  ]);
+  assert.equal('meta' in data.windows[1], false, 'a window without names loses its meta as before');
 });

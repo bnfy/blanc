@@ -56,6 +56,7 @@
       tabs: (payload.tabs || []).map((tab) => ({
         id: tab.id,
         title: tab.title,
+        pageTitle: tab.pageTitle,
         url: tab.url,
         favicon: tab.favicon,
         isLoading: tab.isLoading,
@@ -313,7 +314,7 @@
       states.length ? blancI18n.t('rail.tab.withStates', { label: rowLabel, states: states.join(', ') }) : rowLabel
     );
     if (active) primary.setAttribute('aria-current', 'page');
-    primary.title = title;
+    primary.title = tab.pageTitle || title;
     // A tab title is page data, not interface copy (pseudo-locale sweep): only
     // this button's title attribute and the title text below are exempt.
     if (tab.title) primary.dataset.i18nIgnore = 'title';

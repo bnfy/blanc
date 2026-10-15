@@ -30,6 +30,7 @@ function run({ slotIds, tabsById, groups = [], activeTabId = null }) {
     setActiveTab: () => {},
     escapeMenuLabel: (l) => l,
     URL,
+    displayTitle: require('../../src/main/tab-name').displayTitle,
   };
   vm.runInNewContext(`${fnSource}\nthis.__fn = tabMenuItems;`, sandbox);
   return sandbox.__fn();
@@ -81,4 +82,9 @@ test('a tab that closed before the debounced rebuild does not crash the menu', (
 
 test('a rebuild after every tab closed produces an empty menu, not a crash', () => {
   assert.deepEqual(run({ slotIds: [7, 8], tabsById: {} }), []);
+});
+
+test('a renamed tab is listed by its custom name', () => {
+  const items = run({ slotIds: [1], tabsById: { 1: tab({ customTitle: 'Reading' }) } });
+  assert.equal(items[0].label, 'Reading — theverge.com');
 });

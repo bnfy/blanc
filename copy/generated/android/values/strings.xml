@@ -16,6 +16,8 @@
     <string name="slash_reopen_hint">Reopen the tab you just closed</string>
     <string name="slash_pin_hint">Pin or unpin this tab</string>
     <string name="slash_mute_hint">Mute or unmute this tab</string>
+    <string name="slash_rename_hint">Name this tab — leave it empty to reset its title</string>
+    <string name="slash_rename_doc">Give this tab your own name, or go back to its page title with no name</string>
     <string name="slash_sleep_hint">Quiet background tabs and free their memory</string>
     <string name="slash_group_hint">Type a space, then a group name — e.g. \"work\"</string>
     <string name="slash_group_doc">Move this tab into a group, creating it on first use</string>
@@ -444,6 +446,8 @@
     <string name="address_menu_paste_and_go">Paste and Go</string>
     <string name="tab_menu_copy_link">Copy Link</string>
     <string name="tab_menu_duplicate">Duplicate Tab</string>
+    <string name="tab_menu_rename">Rename Tab…</string>
+    <string name="tab_menu_reset_title">Reset Tab Title</string>
     <string name="tab_menu_pin">Pin Tab</string>
     <string name="tab_menu_unpin">Unpin Tab</string>
     <string name="tab_menu_mute">Mute Tab</string>
