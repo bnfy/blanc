@@ -613,13 +613,16 @@ From the desktop `DEFAULTS`:
   filesystem path or raw profile data. A profile's Favorites are read from its
   local `Bookmarks` file and from `AccountBookmarks`, where recent Chrome keeps
   bookmarks saved to a signed-in Google Account; a profile with either file is
-  offered, and one with both imports them together.
+  offered, and one with both imports them together, skipping account entries
+  whose URL the local file already has. The account file only ever adds: beside
+  a readable `Bookmarks` file, one that is blocked, gone, too large, or
+  malformed is left out, and the profile imports as it would without it.
 - Import is explicit, add-only, and idempotent. Only `http:`/`https:` Favorites
   are accepted; immediate folder names and valid creation dates are preserved.
   Existing URLs win, duplicates in the source are skipped, and passwords,
   history, cookies, sessions, and browser settings are untouched.
 - Input is bounded before and during parsing: a 20 MiB file cap, a 100,000-node
-  traversal cap, and a depth cap. The selected opaque id is rediscovered and
+  traversal cap, and a depth cap, each applied to every file on its own. The selected opaque id is rediscovered and
   matched in main immediately before reading, so a renderer cannot substitute
   an arbitrary path.
 - Source discovery diverges by platform (D22), but every implementation must

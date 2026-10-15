@@ -344,6 +344,7 @@ function enforceCandidateCap(candidates, max = DEFAULT_MAX_CANDIDATES) {
 }
 
 module.exports = {
+  CHROMIUM_ROOTS,
   DEFAULT_MAX_CANDIDATES,
   DEFAULT_MAX_DEPTH,
   DEFAULT_MAX_NODES,
