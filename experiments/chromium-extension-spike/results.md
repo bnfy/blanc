@@ -772,3 +772,27 @@ guard and surfaced its error banner; the host now treats a private tab as a
 silent no-op and hides both hearts under the private theme, with the native
 guard kept as defense in depth. The retest above used a real http(s) page in a
 private window, not its start page.
+
+
+## ⌘D toggles the Island Favorite — October 16, 2026 (implementation; compilation and runtime verification pending)
+
+Chromium's `IDC_BOOKMARK_THIS_TAB` (⌘D) opened the native star bubble, which
+has no toolbar to anchor to in an Island window. `prepare.mjs` now inserts a
+call to `blanc_prototype::ToggleFavoriteFromIsland(browser)` at the start of
+the shared `BookmarkCurrentTab` command function (it accepts either the
+`BrowserWindowInterface*` or `Browser*` signature, failing closed if neither
+is found exactly once). In Island windows the function toggles the Favorite
+under the same rules as the heart (committed http(s) page, loaded model, no
+private windows; otherwise a no-op like Electron), then asks the Island host to
+refresh so the heart repaints immediately. Other windows keep Chromium's
+bubble. ⌘⇧D (bookmark all tabs) is untouched.
+
+Checks run in the Linux session: Node syntax checks, the eight build-guard
+tests and ESLint recommended rules over the prototype JavaScript; the native
+source is not compiled here. Pending on the Mac: `prepare.mjs` (confirm the
+`BookmarkCurrentTab` anchor and that the ActionItem dispatch path reaches it),
+`build.mjs --check` then `--build`; then with native input on a fixture page:
+⌘D turns the heart on without a bubble, ⌘D again turns it off, ⌘D on the start
+page and in a private window does nothing, ⌘D in a non-Island window (if any)
+still shows Chromium's bubble, and the original tabs are preserved. Do not
+record this as passed from this section.

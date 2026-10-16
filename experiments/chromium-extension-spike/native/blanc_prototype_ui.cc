@@ -957,6 +957,29 @@ bool OpenExtensions(BrowserWindowInterface* browser) {
   return true;
 }
 
+bool ToggleFavoriteFromIsland(BrowserWindowInterface* browser) {
+  if (!IsIslandWindow(browser)) return false;
+  // Same rules as the Island heart: committed http(s) page, loaded model,
+  // never a private window. Anything else is a no-op, as in Electron, rather
+  // than Chromium's bubble, which has no toolbar to anchor to here.
+  auto* active = browser->GetTabStripModel()->GetActiveWebContents();
+  auto* model = LoadedBookmarkModel(browser->GetProfile());
+  if (!active || !model) return true;
+  const GURL& url = active->GetPrimaryMainFrame()->GetLastCommittedURL();
+  if (!IsFavoritable(url)) return true;
+  ToggleFavorite(model, url, active->GetTitle());
+  // Repaint the heart now instead of on the next 300ms snapshot poll.
+  auto* parent = BrowserView::GetBrowserViewForBrowser(browser);
+  auto* view = parent ? static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId)) : nullptr;
+  auto* contents = view ? view->GetWebContents() : nullptr;
+  if (contents && contents->GetLastCommittedURL() == GURL("chrome://blanc-prototype/host.html") &&
+      contents->GetPrimaryMainFrame()->IsRenderFrameLive()) {
+    contents->GetPrimaryMainFrame()->ExecuteJavaScript(
+        u"window.BlancPrototypeHost?.refresh()", base::NullCallback());
+  }
+  return true;
+}
+
 bool OpenIsland(BrowserWindowInterface* browser, bool new_tab,
                 const std::string& initial_text) {
   auto* parent = BrowserView::GetBrowserViewForBrowser(browser);

@@ -393,6 +393,23 @@ edit('chrome/browser/ui/browser_commands.cc', [
   },
 ]);
 
+// ⌘D (IDC_BOOKMARK_THIS_TAB) toggles the Island's Favorite instead of opening
+// Chromium's star bubble, which has no toolbar to anchor to in Island windows.
+// The shared command function serves both dispatch paths; its parameter type
+// differs between Chromium pins, so accept either exact signature.
+const commandsFile = path.join(chromium, 'chrome/browser/ui/browser_commands.cc');
+const commandsSource = fs.readFileSync(commandsFile, 'utf8');
+const bookmarkAnchor = [
+  'void BookmarkCurrentTab(BrowserWindowInterface* browser) {\n',
+  'void BookmarkCurrentTab(Browser* browser) {\n',
+].find((anchor) => commandsSource.split(anchor).length === 2);
+if (!bookmarkAnchor) fail('BookmarkCurrentTab anchor changed');
+edit('chrome/browser/ui/browser_commands.cc', [{
+  anchor: bookmarkAnchor,
+  replacement: `${bookmarkAnchor}  if (blanc_prototype::ToggleFavoriteFromIsland(browser))\n    return;\n`,
+  present: '  if (blanc_prototype::ToggleFavoriteFromIsland(browser))\n',
+}]);
+
 edit('chrome/browser/search/search.cc', [
   {
     anchor: '#include "base/check_deref.h"\n',
