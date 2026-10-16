@@ -108,6 +108,13 @@ test('feature hub reaches all sixteen guides and Media kit downloads are real PN
       const size = [bytes.readUInt32BE(16), bytes.readUInt32BE(20)].join('x');
       assert.ok(['2560x1600', '4096x4096', '1024x1024'].includes(size), `${href}: ${size}`);
     }
+    // After the checksums, the kit links the current fact sheet ahead of the
+    // dated 1.0 announcement.
+    const kitLinks = await page.locator('.media-kit-links a').evaluateAll(links => links.map(link => [link.textContent, link.getAttribute('href')]));
+    assert.deepEqual(kitLinks.slice(1), [
+      ['Read the press fact sheet', 'https://github.com/bnfy/blanc/blob/main/docs/press/fact-sheet.md'],
+      ['Read the 1.0 announcement', 'https://github.com/bnfy/blanc/blob/main/docs/press/press-release.md'],
+    ]);
     const downloaded = page.waitForEvent('download');
     const firstHref = await downloads.first().getAttribute('href');
     await downloads.first().click();
