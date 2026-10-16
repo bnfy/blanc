@@ -143,6 +143,7 @@ import '../styles/features-bento.css';
         <BentoSmall id="downloads" href="/support" feature="downloads" icon="down"><h3>Resume downloads</h3></BentoSmall>
         <BentoSmall id="search-engine" href="/features/command-palette" feature="search-engine" icon="search"><h3>Choose your search engine</h3></BentoSmall>
         <BentoSmall id="pin-mute" href="/features/island" feature="pin-mute" icon="pin"><h3>Pin and mute tabs</h3></BentoSmall>
+        <BentoSmall id="rename-tabs" href="/features/island" feature="rename-tabs" icon="pencil"><h3>Rename your tabs</h3></BentoSmall>
         <BentoSmall id="default-browser" href="/download" feature="default-browser" icon="globe"><h3>Set Blanc as default browser</h3></BentoSmall>
         <BentoSmall id="security" href="/features/security" feature="security" icon="box"><h3>Sandboxed pages</h3></BentoSmall>
         <BentoSmall id="signed-releases" href="/features/security" feature="signed-releases" icon="seal"><h3>Signed, verifiable releases</h3></BentoSmall>
@@ -353,6 +354,12 @@ import '../styles/features-bento.css';
           <h2 id="pop-pin-mute-title">Pin the tabs you keep and mute the ones that play.</h2>
           <p>Type /pin to keep a tab first in its group, and /mute to silence a noisy one.</p>
           <p class="pop-note">Pinned tabs stay loaded.</p>
+        </FeaturePop>
+        <FeaturePop id="rename-tabs" label="Rename tabs" feature="rename-tabs" href="/features/island" linkText="Read more about the Island">
+          <BentoIcon slot="visual" name="pencil" size="pop" />
+          <h2 id="pop-rename-tabs-title">Give a tab a name of your own.</h2>
+          <p>Right-click a tab and choose Rename Tab…, or type /rename and a name in the ⌘L or Ctrl+L panel. The name stays when you browse to another site, restart Blanc or save the tab in a space.</p>
+          <p class="pop-note">Reset Tab Title goes back to the page’s title. History and Favorites keep the page’s own title.</p>
         </FeaturePop>
         <FeaturePop id="default-browser" label="Default browser" feature="default-browser" href="/download" linkText="Download Blanc">
           <BentoIcon slot="visual" name="globe" size="pop" />
