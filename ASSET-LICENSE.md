@@ -71,6 +71,9 @@ Platform-packaged forms of the same mark:
 - `site/public/lockup/` — the lockup's word outlines and the Sunrise exports
   (`sunrise-mark-{256,2048}.webp`, rendered from `assets/sunrise-mark.svg`) the
   website pairs them with
+- `site/public/press/blanc-lockup-{ink,white}{.svg,.png,-600.webp,-1200.webp}` —
+  the Blanc lockup as media-kit downloads and previews, rendered from the two
+  sources above by `site/scripts/render-press-lockup.mjs`
 
 Blanc Mail app icon (the Sunrise in a gold envelope; its Icon Composer source
 lives with the Blanc Mail app, outside this repository):

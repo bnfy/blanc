@@ -292,6 +292,12 @@ so the same placement percentages fit every size; `test/unit/brand-assets.test.j
 pins them. Ink on Blanc White, white (`#F8F2E8`) on warm ink. Do not stretch,
 re-space, recolour, outline or set the word in another face.
 
+The media kit (`/media`) offers the Display lockup for download, in ink and
+white, as SVG and a 3000px PNG (owner request, October 16, 2026).
+`site/scripts/render-press-lockup.mjs` composes it from the same two sources
+with the footer's placement and a clear space of 10% of its height;
+`test/unit/media-page.test.js` runs its `--check`.
+
 The September 12 social direction (Sunrise alone, no typeset wordmark) still
 governs social creative until the owner changes it; the lockup is for the
 website and other surfaces the owner approves.
