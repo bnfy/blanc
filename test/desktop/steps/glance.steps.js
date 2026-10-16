@@ -1305,8 +1305,16 @@ Then("a full-width Island stays clear of the window's traffic lights", async fun
     const filler = document.createElement('span');
     filler.style.cssText = 'flex: 0 0 4000px; height: 1px';
     pill.append(filler);
+    // The pointer may be near the Island, which swells it by a few percent
+    // (renderer.js proximity); measure the layout width, not the swell.
+    const swell = pill.classList.contains('proximity-active');
+    const k = pill.style.getPropertyValue('--island-k');
+    pill.classList.remove('proximity-active');
+    pill.style.setProperty('--island-k', '0');
     const rect = pill.getBoundingClientRect();
     filler.remove();
+    if (swell) pill.classList.add('proximity-active');
+    pill.style.setProperty('--island-k', k);
     root.dataset.platform = realPlatform;
     return { left: rect.left, right: rect.right, direction: document.getElementById('strip').dataset.glanceDirection };
   });
@@ -1333,9 +1341,16 @@ Then('a full-width Island stays clear of the Windows and Linux window controls',
     const filler = document.createElement('span');
     filler.style.cssText = 'flex: 0 0 4000px; height: 1px';
     pill.append(filler);
+    // As in the traffic-light step: the layout width, not the proximity swell.
+    const swell = pill.classList.contains('proximity-active');
+    const k = pill.style.getPropertyValue('--island-k');
+    pill.classList.remove('proximity-active');
+    pill.style.setProperty('--island-k', '0');
     const rect = pill.getBoundingClientRect();
     const controls = parseFloat(getComputedStyle(root).getPropertyValue('--window-controls-w'));
     filler.remove();
+    if (swell) pill.classList.add('proximity-active');
+    pill.style.setProperty('--island-k', k);
     root.dataset.platform = realPlatform;
     return {
       left: rect.left, right: rect.right, controls,
