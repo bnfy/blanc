@@ -412,6 +412,11 @@ button svg {
   /* Back and Reload still sit beside the title. */
   .glance-copy { gap: 8px; }
 }
+/* The title keeps priority (renderer.js fitGlanceHeader): Make main shows
+   only its swap icon before the title is cut below about ten characters. */
+.glance-header.promote-icon .glance-promote { width: 30px; padding: 0; }
+.glance-header.promote-icon .glance-promote svg { display: block; }
+.glance-header.promote-icon .glance-promote span { display: none; }
 @container (max-width: 300px) {
   #glanceTitle { display: none; }
   .glance-copy { flex: 0 0 auto; }

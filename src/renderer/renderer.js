@@ -488,6 +488,7 @@
   document.fonts.addEventListener('loadingdone', () => {
     dotFitKey = '';
     fitIslandDots();
+    fitGlanceHeader();
     requestAnimationFrame(() => reportIslandRect());
   });
 
@@ -600,6 +601,22 @@
     glanceTitle.textContent = tab.title || tabDomain(tab)
       || (tab.isLoading ? blancI18n.t('tab.loading') : tab.private ? blancI18n.t('tab.privateLabel') : blancI18n.t('tab.new'));
     glanceHeader.title = tab.title || glanceTitle.textContent;
+    fitGlanceHeader();
+  }
+
+  // The title is what the header is for. Before it is cut below about ten
+  // characters, Make main gives up its label for its swap icon (its name and
+  // tooltip stay). Measured, not a fixed width, because the label's length
+  // depends on the language and Windows and Linux reserve the window
+  // controls' width. One layout read per render. 70 px is the floor the
+  // Island keeps for its address too.
+  function fitGlanceHeader() {
+    const titleFloor = 70;
+    glanceHeader.classList.remove('promote-icon');
+    // At the narrowest tier the title is hidden altogether (styles.css).
+    if (glanceHeader.hidden || glanceTitle.getClientRects().length === 0) return;
+    const cut = glanceTitle.scrollWidth > glanceTitle.clientWidth + 1;
+    if (cut && glanceTitle.getBoundingClientRect().width < titleFloor) glanceHeader.classList.add('promote-icon');
   }
 
   function queueGlanceResize(point) {

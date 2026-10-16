@@ -421,3 +421,13 @@ Feature: Glance reference pane
     And the Island's address stays readable
     And the Island stays clear of the window controls and the tab rail
     And the Glance window returns to its usual layout
+
+  @F34-1 @F34 @D11
+  Scenario: The Glance title keeps its room beside the Windows and Linux window controls
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And the window is 1200 pixels wide
+    And the strip draws the Windows and Linux window controls
+    Then the Glance title shows at least ten characters
+    And Make main still says what it does
+    And the Glance window returns to its usual layout

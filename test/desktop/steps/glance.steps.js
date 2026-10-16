@@ -40,6 +40,8 @@ After({ tags: '@glance' }, async function () {
   await restore(() => this.call('setTabLayout', 'island'));
   await restore(() => this.call('setVerticalTabsWidth', 248));
   await restore(() => this.call('setWindowContentSize', 1200, 800));
+  // A dragged divider would otherwise carry into the next scenario.
+  await restore(() => this.call('resetGlanceRatio'));
   if (this.glanceOnePasswordOn) await restore(() => this.call('setOnePasswordConfig', false, ''));
   if (this.glanceDownloadsShown) {
     await restore(() => sendDownloadsActivity({ active: 0, hasRecent: false, receivedBytes: 0, totalBytes: 0, lastCompletedAt: null }));
@@ -1748,4 +1750,35 @@ Then('the recorded focused pane is the pane that holds keyboard focus', async fu
     return { recorded: focusedPaneTabId, holder: holder?.id ?? null };
   }, (value) => value.holder === null || value.recorded === value.holder,
   'the recorded focused pane to match the pane that holds keyboard focus', 3000);
+});
+
+// ---- The reference title keeps priority in the header ----
+
+// The title is what the header is for: Make main's label gives way to its
+// swap icon before the title is cut below about ten characters (70 px, the
+// same floor the Island keeps for its address).
+Then('the Glance title shows at least ten characters', async function () {
+  const chrome = await mainChromePage();
+  await waitForValue(() => chrome.evaluate(() => {
+    const title = document.getElementById('glanceTitle');
+    const rect = title.getBoundingClientRect();
+    return {
+      text: title.textContent,
+      shown: Math.round(rect.width),
+      cut: title.scrollWidth > title.clientWidth + 1,
+      header: Math.round(document.getElementById('glanceHeader').getBoundingClientRect().width),
+    };
+  }), (value) => value.shown > 0 && (!value.cut || value.shown >= 70),
+  'the Glance title at least ten characters wide', 3000);
+});
+
+Then('Make main still says what it does', async function () {
+  const chrome = await mainChromePage();
+  const promote = chrome.locator('#glancePromote');
+  assert.equal(await promote.getAttribute('aria-label'), 'Make main — swap with the main page');
+  const shows = await promote.evaluate((button) => {
+    const visible = (element) => element && element.getClientRects().length > 0 && element.getBoundingClientRect().width > 0;
+    return { label: visible(button.querySelector('span')), icon: visible(button.querySelector('svg')) };
+  });
+  assert.ok(shows.label || shows.icon, `Make main shows neither its label nor its icon: ${JSON.stringify(shows)}`);
 });
