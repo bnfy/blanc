@@ -10,10 +10,16 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, '../..');
 const require = createRequire(import.meta.url);
 const digest = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
+// Read first and treat a missing file as changed, rather than checking
+// existence and then reading (CodeQL js/file-system-race).
 function writeIfChanged(file, bytes) {
-  if (!fs.existsSync(file) || !fs.readFileSync(file).equals(Buffer.from(bytes))) {
-    fs.writeFileSync(file, bytes);
+  let current = null;
+  try {
+    current = fs.readFileSync(file);
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
   }
+  if (!current || !current.equals(Buffer.from(bytes))) fs.writeFileSync(file, bytes);
 }
 function run(args) {
   const result = spawnSync('/usr/bin/xcrun', args, { encoding: 'utf8' });
@@ -49,8 +55,15 @@ export function prepareMacIcon(chromium) {
   let saved = {};
   try { saved = JSON.parse(fs.readFileSync(manifest, 'utf8')); } catch { /* First preparation. */ }
   const files = { [`${iconName}.icns`]: 'app.icns', 'Assets.car': 'Assets.car' };
+  // Same read-first rule as writeIfChanged: a missing output is simply stale.
+  const cachedDigest = (name) => {
+    try { return digest(fs.readFileSync(path.join(cache, name))); } catch (error) {
+      if (error.code === 'ENOENT') return null;
+      throw error;
+    }
+  };
   const fresh = saved.fingerprint === fingerprint && Object.keys(files).every(name =>
-    fs.existsSync(path.join(cache, name)) && digest(fs.readFileSync(path.join(cache, name))) === saved.outputs?.[name]);
+    cachedDigest(name) !== null && cachedDigest(name) === saved.outputs?.[name]);
   if (!fresh) {
     const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-prototype-icon-'));
     try {
