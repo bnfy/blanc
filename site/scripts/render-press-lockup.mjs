@@ -35,9 +35,13 @@ const word = (color) => {
 
 // The footer lockup is a 155 × 40 box; drawn here at 10 units per pixel.
 const css = fs.readFileSync(path.join(ROOT, 'site/src/styles/revamp.css'), 'utf8');
+// Reads one rule's declarations by plain string search, e.g. "left: -3.784%".
 const rule = (selector) => {
-  const body = css.match(new RegExp(`${selector.replace(/\./g, '\\.')} \\{([^}]*)\\}`))[1];
-  const value = (prop) => Number(body.match(new RegExp(`(?:^|[\\s;])${prop}: (-?[\\d.]+)`))?.[1]);
+  const start = css.indexOf(`${selector} {`);
+  if (start < 0) throw new Error(`revamp.css has no "${selector}" rule`);
+  const body = css.slice(css.indexOf('{', start) + 1, css.indexOf('}', start));
+  const values = Object.fromEntries(body.split(';').map((declaration) => declaration.split(':').map((part) => part.trim())));
+  const value = (prop) => Number.parseFloat(values[prop]);
   return { left: value('left'), top: value('top'), width: value('width'), height: value('height') };
 };
 const box = rule('.site-lockup--display');
