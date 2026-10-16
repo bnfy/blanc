@@ -42,6 +42,13 @@ function commandTargetTab(runtime, sender, contentsOf) {
   return runtime.activeTabId ?? null;
 }
 
+/** Where a foreground tab opened from a page goes: into Glance when the
+ * reference opened it, else it becomes the main page. Every opening path
+ * (links, window.open, Search for…, View Page Source) uses this one rule. */
+function foregroundOpenRole(runtime, openerTabId) {
+  return runtime?.glanceTabId != null && runtime.glanceTabId === openerTabId ? 'glance' : 'main';
+}
+
 /** What the strip may know: whether the reference holds focus. */
 function focusedPane(runtime) {
   return runtime?.glanceTabId != null && runtime.focusedPaneTabId === runtime.glanceTabId
@@ -54,4 +61,4 @@ function glanceLayoutPayload(layout, pane) {
   return layout ? { ...layout, focusedPane: pane === 'glance' ? 'glance' : 'main' } : null;
 }
 
-module.exports = { visiblePaneIds, isVisiblePaneId, commandTargetTab, focusedPane, glanceLayoutPayload };
+module.exports = { visiblePaneIds, isVisiblePaneId, commandTargetTab, focusedPane, glanceLayoutPayload, foregroundOpenRole };

@@ -28,7 +28,7 @@ const { queueTabNavigation, shouldPresentTabLoadFailure } = require('./tab-navig
 const { commitEntryMarks, freshCertificateRecord } = require('./certificate-history');
 const { installExternalNavigationHandlers } = require('./external-protocols');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
-const { isVisiblePaneId } = require('./glance-focus');
+const { isVisiblePaneId, foregroundOpenRole } = require('./glance-focus');
 
 let deps = null;
 let mouseGestureSettings = null;
@@ -556,6 +556,15 @@ function wireTabView(tab, view, { owner, adopted }) {
     }
   }));
 
+  /** Show a foreground tab this page opened: as the main page, or into
+   * Glance when the reference opened it (foregroundOpenRole). setGlanceTab
+   * re-checks ownership and liveness; a tab that closed or moved meanwhile
+   * simply stays where it is. */
+  const showOpenedTab = (newId, role) => {
+    if (role !== 'glance') return setActiveTab(newId);
+    Promise.resolve(deps.setGlanceTab?.(newId)).catch(() => {});
+  };
+
   // target=_blank becomes an adopted managed tab; featureful new-window
   // requests (OAuth/SSO and payments) keep a real BrowserWindow so their
   // opener survives. Both paths preserve opener relationships.
@@ -597,7 +606,7 @@ function wireTabView(tab, view, { owner, adopted }) {
             : null;
           // Read at open time: a foreground tab the reference opened becomes
           // the reference, leaving the main page and its focus untouched.
-          const fromReference = getOwner().glanceTabId === tab.id;
+          const role = foregroundOpenRole(getOwner(), tab.id);
           // A discarded opener leaves this child's window.opener unusable.
           const newId = createTab(targetUrl, {
             private: tab.private, groupId: tab.groupId, view: childView, managedExtension,
@@ -608,14 +617,7 @@ function wireTabView(tab, view, { owner, adopted }) {
             openerSandboxFlags: options.webPreferences?.openerSandboxFlags ?? 0,
             httpReferrer: childView ? null : referrer,
           });
-          if (disposition !== 'background-tab') {
-            setImmediate(() => {
-              if (!fromReference) return setActiveTab(newId);
-              // setGlanceTab re-checks ownership and liveness; a tab that
-              // closed or moved meanwhile simply stays where it is.
-              Promise.resolve(deps.setGlanceTab?.(newId)).catch(() => {});
-            });
-          }
+          if (disposition !== 'background-tab') setImmediate(() => showOpenedTab(newId, role));
           return liveContents(tabs.get(newId));
         }),
       };
@@ -650,7 +652,8 @@ function wireTabView(tab, view, { owner, adopted }) {
     openTab: boundToTab((targetUrl) => {
       if (handOffToOs(targetUrl)) return;
       if (isForbiddenTopLevelUrl(targetUrl)) return;
-      setActiveTab(createTab(targetUrl, { private: tab.private, groupId: tab.groupId }));
+      const role = foregroundOpenRole(getOwner(), tab.id);
+      showOpenedTab(createTab(targetUrl, { private: tab.private, groupId: tab.groupId }), role);
     }),
   }, () => {
     if (!gestureSettings().enabled) return true;

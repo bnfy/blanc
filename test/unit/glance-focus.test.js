@@ -3,7 +3,7 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 const {
-  visiblePaneIds, isVisiblePaneId, commandTargetTab, focusedPane, glanceLayoutPayload,
+  visiblePaneIds, isVisiblePaneId, commandTargetTab, focusedPane, glanceLayoutPayload, foregroundOpenRole,
 } = require('../../src/main/glance-focus');
 
 const mainWc = { id: 'main-wc' };
@@ -75,4 +75,13 @@ test('a pane that really holds keyboard focus wins over a stale record', () => {
   assert.equal(commandTargetTab(runtime({ focusedPaneTabId: 'ref' }), null, neither), 'ref');
   // A sending pane still wins over everything.
   assert.equal(commandTargetTab(runtime({ focusedPaneTabId: 'ref' }), blurredRef, lookup), 'ref');
+});
+
+test('a foreground tab the reference opens becomes the reference; any other opener makes it the main page', () => {
+  // Links, window.open, Search for…, View Page Source: one rule for every path.
+  assert.equal(foregroundOpenRole(runtime(), 'ref'), 'glance');
+  assert.equal(foregroundOpenRole(runtime(), 'main'), 'main');
+  assert.equal(foregroundOpenRole(runtime(), 'other'), 'main');
+  assert.equal(foregroundOpenRole(runtime({ glanceTabId: null }), 'ref'), 'main');
+  assert.equal(foregroundOpenRole(null, 'ref'), 'main');
 });
