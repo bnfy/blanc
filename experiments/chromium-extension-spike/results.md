@@ -1040,3 +1040,10 @@ not change the active tab; quit and relaunch to see whether Chromium restores
 groups; no saved-group bubble or crash with the tab strip hidden. Original tabs
 preserved; remove only fixture tabs and groups. Do not record any of this as
 passed from this section.
+
+First Mac attempt on `b7ef09e` (Codex): compilation failed after 5 seconds on
+two headers this pin no longer has: `base/containers/contains.h` (the one
+`base::Contains` use is now `std::find`) and `chrome/browser/ui/tabs/tab_group.h`
+(now `components/tabs/public/tab_group.h`). Codex confirmed that
+`CloseAllTabsInGroup` exists in this pin. No cold rebuild; native testing is
+still pending, and the checklist above still applies.

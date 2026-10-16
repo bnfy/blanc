@@ -9,7 +9,6 @@
 #include <string>
 #include <utility>
 #include "base/command_line.h"
-#include "base/containers/contains.h"
 #include "base/files/file_util.h"
 #include "base/functional/bind.h"
 #include "base/functional/callback_helpers.h"
@@ -55,7 +54,7 @@
 #include "chrome/browser/ui/exclusive_access/exclusive_access_manager.h"
 #include "chrome/browser/ui/exclusive_access/fullscreen_controller.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
-#include "chrome/browser/ui/tabs/tab_group.h"
+#include "components/tabs/public/tab_group.h"
 #include "chrome/browser/ui/tabs/tab_group_model.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/browser/ui/tabs/tab_strip_model_observer.h"
@@ -262,7 +261,8 @@ std::vector<tab_groups::TabGroupId> GroupsInOrder(TabStripModel* model) {
   if (!model->SupportsTabGroups()) return groups;
   for (int i = 0; i < model->count(); ++i) {
     const auto group = model->GetTabGroupForTab(i);
-    if (group && !base::Contains(groups, *group)) groups.push_back(*group);
+    if (group && std::find(groups.begin(), groups.end(), *group) == groups.end())
+      groups.push_back(*group);
   }
   return groups;
 }
