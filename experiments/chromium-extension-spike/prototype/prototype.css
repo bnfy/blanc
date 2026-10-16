@@ -7,6 +7,12 @@
 #footerTabLayout, #footerSettings, .row-pin, .row-mute, .row-glance {
   display: none !important;
 }
+/* Private windows have no Favorites (Electron: private tabs never populate
+   them). The copied renderers set this theme from the active tab's `private`. */
+:root[data-theme="private"] #pillHeart,
+:root[data-theme="private"] #heartBtn {
+  display: none !important;
+}
 
 /* Native Chromium extension views occupy this measured slot in the pill. */
 #nativeExtensions { display: inline-block; flex: 0 0 auto; width: calc(26px / var(--pill-zoom)); height: calc(26px / var(--pill-zoom)); }

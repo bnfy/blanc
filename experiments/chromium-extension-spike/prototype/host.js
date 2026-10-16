@@ -194,14 +194,20 @@
     },
     // Favorites and history are Chromium's own BookmarkModel and
     // HistoryService, shaped like Electron's records; see contract.json.
+    // The copied hearts enable on any http(s) page without checking
+    // `private`; like Electron's main, a private tab is a silent no-op here
+    // (prototype.css also hides them under the private theme). The native
+    // guard stays as defense in depth.
     toggleBookmark: async () => {
-      if (snapshot?.activeTabId == null) return;
-      await request('toggleBookmark', [snapshot.activeTabId]);
+      const tab = snapshot?.tabs.find(tab => tab.id === snapshot.activeTabId);
+      if (!tab || tab.private) return;
+      await request('toggleBookmark', [tab.id]);
       await refresh();
     },
     saveFavorite: async (folder) => {
-      if (snapshot?.activeTabId == null) return;
-      await request('saveFavorite', [snapshot.activeTabId, typeof folder === 'string' ? folder : '']);
+      const tab = snapshot?.tabs.find(tab => tab.id === snapshot.activeTabId);
+      if (!tab || tab.private) return;
+      await request('saveFavorite', [tab.id, typeof folder === 'string' ? folder : '']);
       await refresh();
     },
     listFavorites: () => request('listFavorites'),

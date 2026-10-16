@@ -748,7 +748,7 @@ decides) → `build.mjs --build`, then the native checklist in the pull request.
 Chromium 156 call sites to confirm against the pinned checkout:
 `BookmarkModel::AddNewURL`, `AddFolder`, `Move`, `Remove(node,
 BookmarkEditSource::kUser, FROM_HERE)`, `GetFavicon`,
-`bookmarks::GetMostRecentlyAddedUserNodeForURL`,
+`GetMostRecentlyAddedUserNodeForURL`,
 `BaseBookmarkModelObserver::{BookmarkModelChanged, BookmarkNodeFaviconChanged,
 BookmarkModelBeingDeleted()}`, `HistoryServiceFactory::GetForProfile(profile,
 ServiceAccessType::EXPLICIT_ACCESS)`, `HistoryService::QueryHistory` with a
@@ -758,3 +758,16 @@ by-value `QueryResults` callback and `CancelableTaskTracker`,
 `//components/bookmarks/browser`, `//components/history/core/browser` and
 `//base:i18n`. Do not record any row of the target flow as passed from this
 section; it describes source, not runtime behavior.
+
+First Mac build attempt on `89d7637` (Codex): the guarded build failed after
+8.77 s with three compile errors, caches and the running prototype preserved.
+Fixed in the follow-up commit: `GetMostRecentlyAddedUserNodeForURL` is a
+`BookmarkModel` member in this pin, not a `bookmark_utils` free function;
+`NavigationEntry::GetFavicon()` is non-const, so the entry pointer is
+non-const; `history::QueryOptions` names the field `duplicate_policy`. The
+same review found that the copied hearts enable on any http(s) page without
+checking `private`, so a click in an incognito window reached the native
+guard and surfaced its error banner; the host now treats a private tab as a
+silent no-op and hides both hearts under the private theme, with the native
+guard kept as defense in depth. Retest on a real http(s) page in a private
+window, not its start page. Compilation and runtime results are still pending.

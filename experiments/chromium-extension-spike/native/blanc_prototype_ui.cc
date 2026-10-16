@@ -37,7 +37,6 @@
 #include "components/bookmarks/browser/base_bookmark_model_observer.h"
 #include "components/bookmarks/browser/bookmark_model.h"
 #include "components/bookmarks/browser/bookmark_node.h"
-#include "components/bookmarks/browser/bookmark_utils.h"
 #include "components/bookmarks/browser/url_and_title.h"
 #include "components/bookmarks/common/bookmark_metrics.h"
 #include "components/history/core/browser/history_service.h"
@@ -195,7 +194,7 @@ bool ToggleFavorite(bookmarks::BookmarkModel* model, const GURL& url,
                     const std::u16string& title) {
   if (model->IsBookmarked(url)) {
     for (int guard = 0; guard < 64; ++guard) {
-      const auto* node = bookmarks::GetMostRecentlyAddedUserNodeForURL(model, url);
+      const auto* node = model->GetMostRecentlyAddedUserNodeForURL(url);
       if (!node) break;
       model->Remove(node, bookmarks::metrics::BookmarkEditSource::kUser, FROM_HERE);
     }
@@ -219,7 +218,7 @@ bool SaveFavorite(bookmarks::BookmarkModel* model, const GURL& url,
     if (!name) return model->IsBookmarked(url);
   }
   if (model->IsBookmarked(url)) {
-    const auto* node = bookmarks::GetMostRecentlyAddedUserNodeForURL(model, url);
+    const auto* node = model->GetMostRecentlyAddedUserNodeForURL(url);
     if (node && name) {
       const auto* target = FindOrCreateFolder(model, *name);
       if (node->parent() != target)
@@ -256,7 +255,8 @@ class Owner : public base::SupportsUserData::Data,
   // as Electron does for private tabs.
   std::string TabFavicon(int tab_id, content::WebContents* contents) {
     if (browser->GetProfile()->IsOffTheRecord()) return std::string();
-    const auto* entry = contents->GetController().GetLastCommittedEntry();
+    // NavigationEntry::GetFavicon() is non-const; the status is read only.
+    auto* entry = contents->GetController().GetLastCommittedEntry();
     const content::FaviconStatus* status =
         entry && entry->GetFavicon().valid ? &entry->GetFavicon() : nullptr;
     if (!status || status->image.IsEmpty()) {
@@ -737,7 +737,7 @@ class Handler : public content::WebUIMessageHandler {
       if (!service) { reply(true, base::Value(base::ListValue())); return; }
       history::QueryOptions options;
       options.max_count = std::clamp(args[0].GetInt(), 1, kHistoryLimit);
-      options.duplicate_handling = history::QueryOptions::REMOVE_ALL_DUPLICATES;
+      options.duplicate_policy = history::QueryOptions::REMOVE_ALL_DUPLICATES;
       service->QueryHistory(std::u16string(), options,
           base::BindOnce(&Handler::HistoryReady, weak_factory_.GetWeakPtr(), id),
           &tracker_);
