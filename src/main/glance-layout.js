@@ -11,6 +11,10 @@ const MAX_GLANCE_RATIO = 0.78;
 const MIN_SIDE_BY_SIDE_WIDTH = 800;
 const DIVIDER_SIZE = 12;
 const STACKED_HEADER_HEIGHT = 44;
+/** Side by side needs room for a usable reference beside the main pane's
+ * minimum: below this the reference header compacts past its last step
+ * (styles.css, @container max-width: 300px), so Glance stacks instead. */
+const MIN_REFERENCE_WIDTH = 300;
 /** The slimmed Island (one tab dot, no Forward or Favorite) with an address
  * of about ten characters still readable. */
 const ISLAND_MIN_WIDTH = 430;
@@ -67,8 +71,10 @@ function normalizedPageBounds(pageBounds) {
 function calculateGlanceLayout(pageBounds, ratio = DEFAULT_GLANCE_RATIO, minPrimaryWidth = 0) {
   const page = normalizedPageBounds(pageBounds);
 
-  if (page.width >= MIN_SIDE_BY_SIDE_WIDTH) {
-    const divider = Math.min(DIVIDER_SIZE, page.width);
+  const sideBySideDivider = Math.min(DIVIDER_SIZE, page.width);
+  const roomBesideMinimum = page.width - sideBySideDivider - Math.max(0, Number(minPrimaryWidth) || 0);
+  if (page.width >= MIN_SIDE_BY_SIDE_WIDTH && roomBesideMinimum >= MIN_REFERENCE_WIDTH) {
+    const divider = sideBySideDivider;
     const usable = Math.max(0, page.width - divider);
     const minRatio = minimumGlanceRatio(usable, minPrimaryWidth);
     const resolvedRatio = Math.max(minRatio, normalizeGlanceRatio(ratio));
@@ -171,6 +177,7 @@ module.exports = {
   MIN_SIDE_BY_SIDE_WIDTH,
   DIVIDER_SIZE,
   STACKED_HEADER_HEIGHT,
+  MIN_REFERENCE_WIDTH,
   normalizeGlanceRatio,
   calculateGlanceLayout,
   ratioForGlanceDivider,

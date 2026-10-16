@@ -79,10 +79,12 @@ test('a minimum main-pane width stops the divider before the Island runs out of 
   assert.equal(Math.round(ratioForGlanceDivider(page, { x: 600 }, 'horizontal', 480) * 808), 600);
 });
 
-test('the main-pane minimum never pushes past the maximum share or into a stacked layout', () => {
-  const narrow = { x: 0, y: CHROME_HEIGHT, width: 800, height: 700 };
-  assert.equal(calculateGlanceLayout(narrow, 0.5, 5000).ratio, 0.78);
-  assert.equal(calculateGlanceLayout(narrow, 0.5, 5000).minRatio, 0.78);
+test('the main-pane minimum never pushes past the maximum share, and stacked ignores it', () => {
+  // usable 2000, minimum 1600 (0.8): capped at the 0.78 maximum share.
+  const wide = { x: 0, y: CHROME_HEIGHT, width: 2012, height: 700 };
+  assert.equal(calculateGlanceLayout(wide, 0.5, 1600).direction, 'horizontal');
+  assert.equal(calculateGlanceLayout(wide, 0.5, 1600).ratio, 0.78);
+  assert.equal(calculateGlanceLayout(wide, 0.5, 1600).minRatio, 0.78);
   const stacked = calculateGlanceLayout({ x: 0, y: CHROME_HEIGHT, width: 700, height: 700 }, 0.5, 480);
   assert.equal(stacked.direction, 'vertical');
   assert.equal(stacked.minRatio, 0.5, 'stacked, the divider sets heights, not the main pane width');
@@ -97,4 +99,17 @@ test('the divider leaves the main pane room for a slim Island with a readable ad
   assert.equal(glanceMinPrimaryWidth({ platform: 'darwin', tabLayout: 'vertical' }), 454);
   assert.equal(glanceMinPrimaryWidth({ platform: 'win32', tabLayout: 'island' }), 454);
   assert.equal(glanceMinPrimaryWidth({ platform: 'linux', tabLayout: 'vertical' }), 454);
+});
+
+test('Glance stacks when the main-pane minimum would leave the reference too narrow to use', () => {
+  const page = (width) => ({ x: 0, y: CHROME_HEIGHT, width, height: 700 });
+  // Without a minimum, 800px is still the side-by-side threshold.
+  assert.equal(calculateGlanceLayout(page(800), 0.62, 0).direction, 'horizontal');
+  // A 600px main pane at an 850px page would leave the reference 238px.
+  assert.equal(calculateGlanceLayout(page(850), 0.62, 600).direction, 'vertical');
+  // 600 + 12 + 300 = 912: from there the reference gets at least 300px.
+  assert.equal(calculateGlanceLayout(page(911), 0.62, 600).direction, 'vertical');
+  const wide = calculateGlanceLayout(page(912), 0.5, 600);
+  assert.equal(wide.direction, 'horizontal');
+  assert.equal(wide.glanceContent.width, 300);
 });

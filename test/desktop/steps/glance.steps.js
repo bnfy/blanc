@@ -1286,18 +1286,16 @@ Given('twelve ordinary tabs with one open in Glance', async function () {
 });
 
 When('I narrow the main pane to its smallest side-by-side width', async function () {
-  // 820px keeps the page above the 800px side-by-side threshold; the divider
-  // at 50% is the smallest main pane the divider allows.
-  await this.call('setWindowContentSize', 820, 800);
-  await this.waitForState((state) => state.glanceGeometry?.direction === 'horizontal' && state.glanceGeometry.page.width === 820);
+  // Wide enough to stay side by side even with the main pane's minimum; the
+  // divider dragged all the way left settles at the smallest main pane.
+  await this.call('setWindowContentSize', 1000, 800);
+  await this.waitForState((state) => state.glanceGeometry?.direction === 'horizontal' && state.glanceGeometry.page.width === 1000);
   // Drag well past the stop; the divider settles at the smallest share allowed.
   await this.call('resizeGlance', { x: 0, y: 200 });
   const state = await this.waitForState((candidate) =>
     candidate.glanceGeometry.ratio === candidate.glanceGeometry.minRatio);
-  if ((await ctx.app.evaluate(() => process.platform)) === 'darwin') {
-    // macOS: room for the slimmed Island plus the traffic lights.
-    assert.ok(state.glanceGeometry.primary.width >= 600, `main pane ${state.glanceGeometry.primary.width}px`);
-  }
+  // Side by side always leaves the reference a usable width.
+  assert.ok(state.glanceGeometry.glanceContent.width >= 300, `reference ${state.glanceGeometry.glanceContent.width}px`);
 });
 
 Then('every Island control stays inside the Island', async function () {
