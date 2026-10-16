@@ -12133,6 +12133,48 @@
         }
       }
     },
+    "glance.picker.opening": {
+      "comment": "The picker row's secondary line, and the live region, while a chosen quiet tab wakes.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opening…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird geöffnet…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abriendo…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouverture…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apertura…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrindo…"
+          }
+        }
+      }
+    },
     "find.placeholder": {
       "comment": "Placeholder of the find-in-page input.",
       "extractionState": "manual",

@@ -307,6 +307,7 @@
     <string name="glance_opened">%1$s ouvert dans Glance</string>
     <string name="glance_opened_untitled">Onglet ouvert dans Glance</string>
     <string name="glance_open_failed">Impossible d’ouvrir cet onglet dans Glance</string>
+    <string name="glance_picker_opening">Ouverture…</string>
     <string name="find_placeholder">Rechercher dans la page</string>
     <string name="find_prev">Occurrence précédente</string>
     <string name="find_next">Occurrence suivante</string>

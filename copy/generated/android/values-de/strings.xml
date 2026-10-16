@@ -297,6 +297,7 @@
     <string name="glance_opened">%1$s in Glance geöffnet</string>
     <string name="glance_opened_untitled">Tab in Glance geöffnet</string>
     <string name="glance_open_failed">Dieser Tab konnte nicht in Glance geöffnet werden</string>
+    <string name="glance_picker_opening">Wird geöffnet…</string>
     <string name="find_placeholder">Auf der Seite suchen</string>
     <string name="find_prev">Vorheriger Treffer</string>
     <string name="find_next">Nächster Treffer</string>

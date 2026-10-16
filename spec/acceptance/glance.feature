@@ -464,3 +464,29 @@ Feature: Glance reference pane
     And Reduce Motion is on
     When I open the reference tab in Glance
     Then the Glance header and divider only fade
+
+  @F34-1 @F34 @D11
+  Scenario: Picker rows read like the panel's rows
+    Given a quiet background tab and a private background tab eligible for Glance
+    When I summon Glance from its native keyboard shortcut
+    Then the quiet row is dimmed and says quiet only to assistive tech
+    And the private row carries the private chip
+    And every picker row has a tooltip with its title and host
+    And the row names join their parts with commas
+
+  @F34-1 @F34 @D11
+  Scenario: Arrow keys move the highlight quietly
+    Given twelve ordinary tabs with one open in Glance
+    When I choose Change from the Glance header
+    And I press ArrowDown in the picker
+    Then the live region did not re-announce the count
+    When I type "a" into the picker filter and press Home
+    Then the caret is at the start of the filter and the first row is still highlighted
+
+  @F34-1 @F34 @D11
+  Scenario: A chosen quiet tab says Opening while it wakes
+    Given a quiet background tab that loads slowly
+    When I summon Glance from its native keyboard shortcut
+    And I choose the slow quiet tab in the picker
+    Then the chosen row says Opening and the live region says it
+    And the other rows are dimmed while it wakes

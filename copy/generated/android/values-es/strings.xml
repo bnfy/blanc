@@ -307,6 +307,7 @@
     <string name="glance_opened">%1$s abierta en Glance</string>
     <string name="glance_opened_untitled">Pestaña abierta en Glance</string>
     <string name="glance_open_failed">No se pudo abrir esa pestaña en Glance</string>
+    <string name="glance_picker_opening">Abriendo…</string>
     <string name="find_placeholder">Buscar en la página</string>
     <string name="find_prev">Coincidencia anterior</string>
     <string name="find_next">Coincidencia siguiente</string>

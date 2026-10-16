@@ -307,6 +307,7 @@
     <string name="glance_opened">%1$s aberta no Glance</string>
     <string name="glance_opened_untitled">Aba aberta no Glance</string>
     <string name="glance_open_failed">Não foi possível abrir essa aba no Glance</string>
+    <string name="glance_picker_opening">Abrindo…</string>
     <string name="find_placeholder">Localizar na página</string>
     <string name="find_prev">Ocorrência anterior</string>
     <string name="find_next">Próxima ocorrência</string>

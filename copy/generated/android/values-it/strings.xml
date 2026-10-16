@@ -307,6 +307,7 @@
     <string name="glance_opened">%1$s aperta in Glance</string>
     <string name="glance_opened_untitled">Scheda aperta in Glance</string>
     <string name="glance_open_failed">Impossibile aprire la scheda in Glance</string>
+    <string name="glance_picker_opening">Apertura…</string>
     <string name="find_placeholder">Trova nella pagina</string>
     <string name="find_prev">Risultato precedente</string>
     <string name="find_next">Risultato successivo</string>

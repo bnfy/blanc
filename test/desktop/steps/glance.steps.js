@@ -1906,3 +1906,123 @@ Then('the Glance header and divider only fade', async function () {
     assert.ok(!motion[part].transition.includes('transform'), `${part} still moves: ${motion[part].transition}`);
   }
 });
+
+// ---- Picker rows in the panel's vocabulary ----
+
+Given('a quiet background tab and a private background tab eligible for Glance', async function () {
+  await createGlanceTabs(this);
+  this.glancePrivateId = await this.call('openTab', this.fixtureUrl('glance-private-ref'), { private: true });
+  await this.call('activateTab', this.glanceMainId, false);
+  await this.waitForState((state) => {
+    const priv = state.tabs.find((tab) => tab.id === this.glancePrivateId);
+    return priv?.private === true && priv.title === 'glance-private-ref' && !priv.isLoading && state.activeTabId === this.glanceMainId;
+  });
+  assert.equal(await this.call('sleepTab', this.glanceReferenceId), true);
+  await this.waitForState((candidate) => candidate.tabs.find((tab) => tab.id === this.glanceReferenceId)?.asleep === true);
+});
+
+async function pickerRows(page) {
+  await page.locator('.glance-picker-option').first().waitFor();
+  return page.locator('.glance-picker-option').evaluateAll((rows) => rows.map((row) => ({
+    label: row.getAttribute('aria-label'),
+    title: row.title,
+    quiet: row.classList.contains('quiet'),
+    sub: row.querySelector('.glance-picker-option-sub')?.textContent ?? '',
+    privateChip: row.querySelector('.row-private')?.textContent ?? null,
+    opacity: Number(getComputedStyle(row).opacity),
+  })));
+}
+
+Then('the quiet row is dimmed and says quiet only to assistive tech', async function () {
+  const rows = await pickerRows(await overlayPage());
+  const quiet = rows.find((row) => row.label.includes('glance-reference'));
+  assert.ok(quiet, `no quiet row: ${JSON.stringify(rows)}`);
+  assert.equal(quiet.quiet, true, 'the quiet row is not marked quiet');
+  assert.ok(quiet.opacity < 1, `the quiet row is not dimmed: opacity ${quiet.opacity}`);
+  assert.ok(!quiet.sub.includes('quiet'), `the visible line still says quiet: "${quiet.sub}"`);
+  assert.ok(quiet.label.includes('quiet'), `the accessible name lost quiet: "${quiet.label}"`);
+});
+
+Then('the private row carries the private chip', async function () {
+  const rows = await pickerRows(await overlayPage());
+  const priv = rows.find((row) => row.label.includes('glance-private-ref'));
+  assert.ok(priv, `no private row: ${JSON.stringify(rows)}`);
+  assert.equal(priv.privateChip, 'private');
+  assert.ok(!priv.sub.includes('private'), `the secondary line still says private: "${priv.sub}"`);
+});
+
+Then('every picker row has a tooltip with its title and host', async function () {
+  const rows = await pickerRows(await overlayPage());
+  // Fixture pages have a host; the harness's blank tab has none, so its
+  // tooltip is its title alone.
+  for (const row of rows) {
+    const expected = row.label.includes('127.0.0.1') ? /^glance-[a-z-]+ — 127\.0\.0\.1(:\d+)?$/ : /^New Tab$/;
+    assert.ok(expected.test(row.title), `tooltip "${row.title}" for "${row.label}"`);
+  }
+});
+
+Then('the row names join their parts with commas', async function () {
+  const rows = await pickerRows(await overlayPage());
+  for (const row of rows) {
+    assert.ok(row.label.includes(', '), `no comma in "${row.label}"`);
+    assert.ok(!row.label.includes(' · '), `visual separator in the name "${row.label}"`);
+  }
+});
+
+When('I press ArrowDown in the picker', async function () {
+  const page = await overlayPage();
+  // Clear the live region first: a re-announcement would write the same
+  // count back, which an unchanged-text check could not see.
+  await page.evaluate(() => { document.getElementById('glancePickerLive').textContent = ''; });
+  this.pickerLiveBefore = '';
+  await page.press('#glancePickerInput', 'ArrowDown');
+  await page.waitForFunction(() => document.querySelectorAll('.glance-picker-option')[1]?.getAttribute('aria-selected') === 'true');
+});
+
+Then('the live region did not re-announce the count', async function () {
+  const page = await overlayPage();
+  await new Promise((resolve) => setTimeout(resolve, 200));
+  assert.equal(await page.locator('#glancePickerLive').textContent(), this.pickerLiveBefore);
+});
+
+When('I type {string} into the picker filter and press Home', async function (text) {
+  const page = await overlayPage();
+  await page.fill('#glancePickerInput', text);
+  await page.locator('.glance-picker-option').first().waitFor();
+  await page.press('#glancePickerInput', 'End');
+  await page.press('#glancePickerInput', 'Home');
+});
+
+Then('the caret is at the start of the filter and the first row is still highlighted', async function () {
+  const page = await overlayPage();
+  const state = await page.evaluate(() => {
+    const input = document.getElementById('glancePickerInput');
+    const rows = [...document.querySelectorAll('.glance-picker-option')];
+    return { caret: input.selectionStart, value: input.value, selected: rows.findIndex((row) => row.getAttribute('aria-selected') === 'true') };
+  });
+  assert.equal(state.caret, 0, `caret at ${state.caret} in "${state.value}"`);
+  assert.equal(state.selected, 0, `row ${state.selected} highlighted`);
+});
+
+When('I choose the slow quiet tab in the picker', async function () {
+  const page = await overlayPage();
+  await page.fill('#glancePickerInput', 'reference');
+  await page.locator('.glance-picker-option').first().waitFor();
+  await page.press('#glancePickerInput', 'Enter');
+  await page.locator('#glancePickerInput[aria-busy="true"]').waitFor();
+});
+
+Then('the chosen row says Opening and the live region says it', async function () {
+  const page = await overlayPage();
+  const seen = await waitForValue(() => page.evaluate(() => {
+    const row = document.querySelector('.glance-picker-option[data-opening="true"]');
+    return { sub: row?.querySelector('.glance-picker-option-sub')?.textContent ?? null, live: document.getElementById('glancePickerLive').textContent };
+  }), (value) => value.sub === 'Opening…', 'the chosen row saying Opening', 2000);
+  assert.equal(seen.live, 'Opening…');
+});
+
+Then('the other rows are dimmed while it wakes', async function () {
+  const page = await overlayPage();
+  const others = await page.locator('.glance-picker-option:not([data-opening="true"])').evaluateAll((rows) => rows.map((row) => row.disabled));
+  assert.ok(others.every(Boolean), `other rows not dimmed: ${JSON.stringify(others)}`);
+});

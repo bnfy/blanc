@@ -1069,6 +1069,10 @@
     "message": "Impossibile aprire la scheda in Glance",
     "source": "sha256:75e359192d83849c84d985ab8d801e51b79d9d3e5b84806db13bde9c310b2097"
   },
+  "glance.picker.opening": {
+    "message": "Apertura…",
+    "source": "sha256:e85d165ffc1c8139a8ca37e45bd30ccc932f18dc36238e366125c26e61c418f0"
+  },
   "find.placeholder": {
     "message": "Trova nella pagina",
     "source": "sha256:cd0e11cb1114d5af61365c53968cdadc56aba77270c93a4fba2bef30659f1266"

@@ -2097,7 +2097,7 @@ body[data-mode=""] #backdrop, #backdrop[hidden] { animation: none; }
   padding: 16px;
   background: var(--surface-raised);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: var(--island-panel-radius);
   box-shadow: var(--shadow-popover);
   /* The Spaces menu's enter and exit, growing out of the top centre; the
      Change picker grows out of the Change caret instead (below). While
@@ -2184,16 +2184,37 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
   gap: 10px;
   padding: 7px 10px;
   text-align: left;
-  border-radius: 9px;
+  border-radius: var(--radius);
   color: var(--text);
 }
 .glance-picker-option .favicon {
   width: 20px;
   height: 20px;
 }
-.glance-picker-option:hover,
-.glance-picker-option[aria-selected="true"] { background: var(--accent-dim); }
+/* The ⌘L panel's row vocabulary: the highlighted row takes the panel's
+   edge-faded wash and weight, never a second fill. mousemove moves the
+   highlight (renderer), so no :hover fill: a row is lit once. */
+.glance-picker-option[aria-selected="true"] {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--text) 4%, transparent) 14%,
+    color-mix(in srgb, var(--text) 4%, transparent) 86%,
+    transparent 100%
+  );
+}
+.glance-picker-option[aria-selected="true"] .glance-picker-option-title { font-weight: 600; }
+.glance-picker-option.quiet { opacity: .5; transition: opacity 120ms ease; }
+.glance-picker-option.quiet:hover,
+.glance-picker-option.quiet[aria-selected="true"] { opacity: 1; }
 .glance-picker-option:disabled { opacity: 0.55; cursor: wait; }
+.glance-picker-option[data-opening="true"] { opacity: 1; }
+.glance-picker-option-identity {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 .glance-picker-option-copy {
   min-width: 0;
   display: flex;
@@ -2207,10 +2228,10 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.glance-picker-option-title { font-size: 13.5px; color: var(--text); }
+.glance-picker-option-title { min-width: 0; font-size: 13px; color: var(--text); }
 .glance-picker-option-sub {
   font-family: var(--font-text);
-  font-size: 10.5px;
+  font-size: 11px;
   color: var(--text-dim);
 }
 .glance-picker-state {
@@ -2229,7 +2250,7 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
   padding-top: 8px;
   border-top: 1px solid var(--border);
   font-family: var(--font-text);
-  font-size: 9.5px;
+  font-size: 11px;
   color: var(--text-dim);
 }
 @media (max-width: 560px) {
@@ -2692,7 +2713,7 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
    private marker, and placed just before the row's ✕ so it lands in the same
    column on every row whether or not hover actions (glance) are present.
    (Quiet is dim-only — 2026-08-18 spec.) */
-.island-row .row-private {
+:is(.island-row, .glance-picker-option) .row-private {
   display: inline-flex;
   align-items: center;
   height: 16px;

@@ -1107,6 +1107,10 @@
     "message": "Couldn’t open that tab in Glance",
     "note": "Glance picker error."
   },
+  "glance.picker.opening": {
+    "message": "Opening…",
+    "note": "The picker row's secondary line, and the live region, while a chosen quiet tab wakes."
+  },
   "find.placeholder": {
     "message": "Find in page",
     "note": "Placeholder of the find-in-page input."
