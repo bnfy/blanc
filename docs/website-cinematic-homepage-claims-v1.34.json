@@ -36,6 +36,14 @@
       ],
       "qualification": "Public desktop v1.34.0. The resting Island sits in a reserved 68px band (--strip-h) in the default horizontal layout; vertical tabs (View → Tab Layout) add a sidebar. Only the expanded Island overlays the page. Never say the resting Island floats over the page."
     },
+    "commandBar": {
+      "evidence": [
+        "src/main/browser-shortcuts.js",
+        "src/renderer/overlay.js",
+        "copy/messages/en.json"
+      ],
+      "qualification": "CmdOrCtrl+L (⌘L on macOS, Ctrl+L on Windows and Linux, with Alt+D as an alias) opens the Island command bar, Search & Commands: the tab switcher at rest, the Quick Switcher across open tabs, Favorites and history while typing, and slash commands after /. \"Everything\" means the Island’s tabs, search and commands, not every browser function."
+    },
     "platforms": {
       "evidence": [
         "package.json",
@@ -253,32 +261,32 @@
     {
       "id": "cinema-proof-band",
       "source": "site/src/pages/index.astro",
-      "exactWording": "68 px",
+      "exactWording": "⌘L",
       "subject": "Blanc",
       "evidenceGroups": [
-        "island"
+        "commandBar"
       ],
       "verdict": "verified"
     },
     {
       "id": "cinema-proof-band-claim",
       "source": "site/src/pages/index.astro",
-      "exactWording": "That’s the browser. The rest of the window is the page.",
+      "exactWording": "One shortcut for everything.",
       "subject": "Blanc",
       "evidenceGroups": [
-        "island"
+        "commandBar"
       ],
       "verdict": "qualified"
     },
     {
       "id": "cinema-proof-band-limit",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Tabs, search and commands sit in one slim band in the default layout. The open Island overlays the page.",
+      "exactWording": "Switch tabs, search or run a command from the Island. Ctrl+L on Windows and Linux.",
       "subject": "Blanc",
       "evidenceGroups": [
-        "island"
+        "commandBar"
       ],
-      "verdict": "qualified"
+      "verdict": "verified"
     },
     {
       "id": "cinema-proof-blocking-limit",
