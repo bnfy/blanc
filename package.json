@@ -163,7 +163,10 @@
     "pretest:packaged:browser-compatibility": "npm run runtime:check",
     "pretest:trust-receipt": "npm run runtime:check"
   },
-  "author": "",
+  "author": {
+    "name": "Bananify Creative",
+    "url": "https://blanc.day"
+  },
   "license": "MIT",
   "private": true,
   "devDependencies": {
