@@ -4,11 +4,29 @@
   <meta charset="utf-8">
   <title>Blanc Chromium prototype</title>
   <link rel="stylesheet" href="host.css">
+  <link rel="stylesheet" href="extensions.css">
+  <script src="extensions.js" defer></script>
   <script src="host.js" defer></script>
 </head>
 <body>
   <iframe id="strip" src="index.html" title="Blanc Island"></iframe>
   <iframe id="overlay" src="overlay.html" title="Blanc address and tabs" hidden></iframe>
+  <section id="extensionsPanel" aria-label="Extensions" hidden>
+    <header class="extensions-heading">
+      <button id="extensionsBack" aria-label="Back to tabs"><img src="icons/chevron-left.svg" alt=""></button>
+      <h1>Extensions</h1><button id="extensionsEscape" aria-label="Close extensions">Esc</button>
+    </header>
+    <label class="extension-search"><img src="icons/search.svg" alt="">
+      <input id="extensionSearch" type="search" placeholder="Find an extension…" aria-label="Find an extension" role="combobox" aria-expanded="true" aria-controls="extensionList" aria-autocomplete="list" autocomplete="off" spellcheck="false">
+    </label>
+    <div id="extensionList" role="listbox" aria-label="Installed extensions"></div>
+    <p id="extensionMessage" role="status"></p>
+    <footer class="extensions-footer">
+      <button id="extensionsManage"><img src="icons/settings.svg" alt="">Manage extensions</button>
+      <button id="extensionsGet"><img src="icons/external-link.svg" alt="">Get extensions</button>
+    </footer>
+    <div class="extensions-keys">↑ ↓ to move &nbsp; Enter to open &nbsp; Esc to close</div>
+  </section>
   <div id="status" role="status" hidden></div>
 </body>
 </html>

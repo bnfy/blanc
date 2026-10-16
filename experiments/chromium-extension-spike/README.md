@@ -10,8 +10,8 @@ Chromium derivative:
 
 It does not replace the shipping Electron application. Normal prototype windows
 now use the Island as their only browser chrome. Chromium's native tab strip,
-address toolbar and bookmarks bar are hidden. The real Chromium extension
-buttons and menu are embedded in the Island, preserving native popup anchors,
+address toolbar and bookmarks bar are hidden. A single native Extensions button opens a searchable view inside the expanded
+Island. Selecting a row invokes the real Chromium action, preserving popup anchors,
 permission handling and the real tab model. macOS close/minimize/fullscreen
 buttons remain native, with inset placement.
 
@@ -85,7 +85,7 @@ Run with an isolated profile and the reviewed asset directory:
 
 ```sh
 "/Users/anthonyjloria/Projects/BlancChromium/src/out/BlancPrototype/Blanc Prototype.app/Contents/MacOS/Blanc Prototype" \
-  --user-data-dir=/private/tmp/blanc-chromium-profile \
+  --user-data-dir="/Users/anthonyjloria/Library/Application Support/Blanc Chromium Prototype" \
   --blanc-prototype-assets="/Users/anthonyjloria/Projects/Blanc/experiments/chromium-extension-spike/generated" \
   --no-first-run --use-mock-keychain
 ```
@@ -142,9 +142,14 @@ tabs, sync, or the expanded Island's secondary commands. Unsupported Island
 controls are hidden; its slash menu contains only `/downloads`, `/new` and
 `/close`. Downloads opens Chromium's native manager. Cmd+L and Cmd+T focus the
 Island address input; Cmd+A selects its text. See `results.md` for native retests.
-Extension actions remain native Chromium views; the Island reserves a measured
-slot for pinned actions and the Extensions menu. Narrow windows overflow actions
-into that menu. Window whitespace supports native dragging; the Island panel
+The resting Island reserves a fixed 36px slot for the native Extensions button.
+Pinned action icons stay hidden in Island windows without changing their stored
+pin preferences. The expanded Extensions view lists enabled native actions,
+filters by name, supports arrows/Enter/Escape, and links to Chromium management
+and the Web Store. Its scrollable list keeps footer controls visible in small
+windows. Native popups anchor to the single Extensions button. Extension settings
+and site access remain in Chromium’s manager; authenticated workflows need
+separate acceptance checks. Window whitespace supports native dragging; the Island panel
 scrolls within the available height. Page-requested fullscreen hides the Island
 and gives the page the full viewport. See the Island-only section in `results.md`
 for runtime verification and remaining limits.

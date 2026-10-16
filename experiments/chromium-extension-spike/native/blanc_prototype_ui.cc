@@ -43,6 +43,11 @@
 #include "content/public/browser/web_ui_message_handler.h"
 #include "services/network/public/mojom/content_security_policy.mojom.h"
 #include "ui/base/page_transition_types.h"
+#include "ui/base/webui/web_ui_util.h"
+#include "ui/gfx/image/image.h"
+#include "ui/gfx/image/image_skia.h"
+#include "ui/gfx/image/image_skia_rep.h"
+#include "chrome/browser/ui/toolbar/toolbar_action_view_model.h"
 #include "ui/views/controls/webview/webview.h"
 #include "url/gurl.h"
 
@@ -73,7 +78,8 @@ Owner* GetOwner(content::WebContents* contents) {
 bool IsAsset(const std::string& path) {
   static constexpr const char* kAssets[] = {
       "pages/newtab.html", "pages/newtab.js", "pages/close.svg", "pages/newtab-wallpaper.js", "pages/start-site-name.js", "pages/pages.css", "pages/type-to-open.js", "pages/i18n.js", "pages/sunrise-mark.png", "pages/icon-sunrise.png", "pages/icon-sunrise-dark.png", "pages/onboarding-island-dark.png", "pages/onboarding-island-light.png", "pages/start-page-sunrise.png", "pages/start-page-day.png", "pages/start-page-dusk.png", "pages/start-page-night.png", "pages/caveat-latin.woff2", "pages/select-caret.svg", "pages/select-caret-dark.svg", "pages/strings.js", "pages/newtab-adapter.js", "pages/newtab-prototype.css",
-      "host.html", "host.js", "host.css", "adapter.js", "prototype.css",
+      "host.html", "host.js", "host.css", "extensions.js", "extensions.css",
+      "icons/search.svg", "icons/settings.svg", "icons/external-link.svg", "icons/chevron-left.svg", "adapter.js", "prototype.css",
       "index.html", "overlay.html", "styles.css", "renderer.js", "overlay.js",
       "strings.js", "i18n.js", "tab-drag.js", "vertical-tabs.js",
       "space-identity.js", "space-picker.js", "workspace-ui.js", "panel-left.svg",
@@ -123,9 +129,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser) {
   auto* browser_view = BrowserView::GetBrowserViewForBrowser(browser);
   auto* extensions = browser_view && browser_view->toolbar()
       ? browser_view->toolbar()->extensions_container() : nullptr;
-  const int extension_width = extensions
-      ? std::clamp(40 + static_cast<int>(ToolbarActionsModel::Get(browser->GetProfile())->pinned_action_ids().size()) * 34, 80,
-                   std::max(80, std::min(280, browser_view->width() - 440))) : 0;
+  const int extension_width = extensions ? 36 : 0;
   return base::DictValue()
       .Set("extensionsWidth", extension_width)
       .Set("tabs", std::move(tabs))
@@ -243,6 +247,51 @@ class Handler : public content::WebUIMessageHandler {
     const base::ListValue& args = message[2].GetList();
     if (method == "snapshot") {
       reply(true, base::Value(Snapshot(browser)));
+      return;
+    }
+    if (method == "extensions" && args.empty()) {
+      auto* container = BrowserView::GetBrowserViewForBrowser(browser)
+                            ->toolbar()->extensions_container();
+      base::ListValue items;
+      auto* active = model->GetActiveWebContents();
+      if (container && active) {
+        auto* actions = container->GetToolbarViewModel();
+        for (const auto& action_id : actions->GetAllActionIds()) {
+          auto* action = actions->GetActionModelForId(action_id);
+          if (!action) continue;
+          const auto icon = action->GetIcon(active, gfx::Size(16, 16));
+          items.Append(base::DictValue().Set("id", action_id)
+              .Set("name", base::UTF16ToUTF8(action->GetActionName()))
+              .Set("title", base::UTF16ToUTF8(action->GetTooltip(active)))
+              .Set("enabled", action->IsEnabled(active))
+              .Set("icon", icon.IsImage() && !icon.GetImage().IsEmpty()
+                  ? webui::GetBitmapDataUrl(icon.GetImage().AsImageSkia().GetRepresentation(2.0f).GetBitmap()) : ""));
+        }
+      }
+      reply(true, base::Value(base::DictValue().Set("items", std::move(items))
+          .Set("tabId", active ? sessions::SessionTabHelper::IdForTab(active).id() : -1)));
+      return;
+    }
+    if (method == "extensionAction" && args.size() == 2 &&
+        args[0].is_string() && args[1].is_int()) {
+      auto* active = model->GetActiveWebContents();
+      if (!active || sessions::SessionTabHelper::IdForTab(active).id() != args[1].GetInt() ||
+          !contents->GetPrimaryMainFrame()->ConsumeTransientUserActivation()) {
+        reply(false, base::Value("Select the extension again on the active tab."));
+        return;
+      }
+      auto* container = BrowserView::GetBrowserViewForBrowser(browser)
+                            ->toolbar()->extensions_container();
+      auto* action = container ? container->GetToolbarViewModel()
+          ->GetActionModelForId(args[0].GetString()) : nullptr;
+      if (!action || !action->IsEnabled(active)) {
+        reply(false, base::Value("This extension is unavailable on the current page."));
+        return;
+      }
+      reply(true, base::Value());
+      // Use Chromium's user-action path: activeTab grants, onClicked, popup,
+      // side-panel behavior and permissions remain owned by Chromium.
+      action->ExecuteUserAction(ToolbarActionViewModel::InvocationSource::kMenuEntry);
       return;
     }
     if (method == "geometry" && args.size() == 8 &&
@@ -367,8 +416,24 @@ std::unique_ptr<views::WebView> CreateIsland(
   owner->view = view.get();
   view->GetWebContents(GURL("chrome://blanc-prototype/host.html"))
       ->SetUserData(kOwnerKey, std::move(owner));
+  view->GetWebContents()->SetPageBaseBackgroundColor(SK_ColorTRANSPARENT);
   view->LoadInitialURL(GURL("chrome://blanc-prototype/host.html"));
   return view;
+}
+
+bool OpenExtensions(BrowserWindowInterface* browser) {
+  if (!IsIslandWindow(browser)) return false;
+  auto* parent = BrowserView::GetBrowserViewForBrowser(browser);
+  auto* view = parent ? static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId)) : nullptr;
+  if (!view) return false;
+  auto* contents = view->GetWebContents();
+  if (contents->GetLastCommittedURL() != GURL("chrome://blanc-prototype/host.html") ||
+      !contents->GetPrimaryMainFrame()->IsRenderFrameLive()) return false;
+  view->RequestFocus();
+  contents->Focus();
+  contents->GetPrimaryMainFrame()->ExecuteJavaScript(
+      u"window.BlancPrototypeHost?.extensions()", base::NullCallback());
+  return true;
 }
 
 bool OpenIsland(BrowserWindowInterface* browser, bool new_tab,

@@ -59,6 +59,10 @@ const copies = [
   ['src/renderer/pages/strings.en.js', 'pages/strings.js'],
   ['prototype/newtab-adapter.js', 'pages/newtab-adapter.js'],
   ['prototype/newtab-prototype.css', 'pages/newtab-prototype.css'],
+  ['prototype/extensions.js', 'extensions.js'],
+  ['prototype/extensions.css', 'extensions.css'],
+  ...['search', 'settings', 'external-link', 'chevron-left'].map(name =>
+    [`src/renderer/ublock-popup-icons/${name}.svg`, `icons/${name}.svg`]),
   ['prototype/host.html', 'host.html'],
   ['prototype/host.css', 'host.css'],
   ['prototype/host.js', 'host.js'],
@@ -433,6 +437,40 @@ edit('ui/webui/resources/tools/eslint/tsconfig_base.json', [{
   replacement: '    "types": ["node", "trusted-types"],\n    "skipLibCheck": true\n',
   present: '    "skipLibCheck": true\n',
 }]);
+
+
+// Blanc exposes extension actions in the expanded Island, never as pinned icons.
+edit('chrome/browser/ui/views/extensions/extensions_toolbar_button.cc', [
+  { anchor: '#include "chrome/browser/ui/views/extensions/extensions_toolbar_button.h"\n',
+    replacement: '#include "chrome/browser/ui/views/extensions/extensions_toolbar_button.h"\n#include "chrome/browser/ui/blanc_prototype_ui.h"\n',
+    present: '#include "chrome/browser/ui/blanc_prototype_ui.h"' },
+  { anchor: 'int ExtensionsToolbarButton::GetIconSize() const {\n',
+    replacement: 'int ExtensionsToolbarButton::GetIconSize() const {\n  // Match the Island\'s 14px icons at 1.15 zoom, retaining native hit bounds.\n  if (blanc_prototype::IsIslandWindow(browser_)) return 16;\n',
+    present: 'if (blanc_prototype::IsIslandWindow(browser_)) return 16;' },
+  { anchor: 'void ExtensionsToolbarButton::ToggleExtensionsMenu() {\n',
+    replacement: 'void ExtensionsToolbarButton::ToggleExtensionsMenu() {\n  if (blanc_prototype::OpenExtensions(browser_)) return;\n',
+    present: 'if (blanc_prototype::OpenExtensions(browser_)) return;' },
+]);
+edit('chrome/browser/ui/views/extensions/extensions_toolbar_desktop.cc', [
+  { anchor: '#include "chrome/browser/ui/views/extensions/extensions_toolbar_desktop.h"\n',
+    replacement: '#include "chrome/browser/ui/views/extensions/extensions_toolbar_desktop.h"\n#include "chrome/browser/ui/blanc_prototype_ui.h"\n',
+    present: '#include "chrome/browser/ui/blanc_prototype_ui.h"' },
+  { anchor: '  // Popped out action uses a flex rule',
+    replacement: '  if (blanc_prototype::IsIslandWindow(browser_)) {\n    GetAnimatingLayoutManager()->FadeOut(action_view);\n    return;\n  }\n\n  // Popped out action uses a flex rule',
+    present: 'blanc_prototype::IsIslandWindow(browser_)) {\n    GetAnimatingLayoutManager()->FadeOut(action_view);' },
+  { anchor: '  icon->SetVisible(ToolbarActionsModel::CanShowActionsInToolbar(*browser_) &&',
+    replacement: '  icon->SetVisible(!blanc_prototype::IsIslandWindow(browser_) &&\n                   ToolbarActionsModel::CanShowActionsInToolbar(*browser_) &&',
+    present: 'icon->SetVisible(!blanc_prototype::IsIslandWindow(browser_)' },
+  { anchor: '  return model_->IsActionPinned(action_id) || ShouldForceVisibility(action_id);',
+    replacement: '  return !blanc_prototype::IsIslandWindow(browser_) &&\n      (model_->IsActionPinned(action_id) || ShouldForceVisibility(action_id));',
+    present: 'return !blanc_prototype::IsIslandWindow(browser_) &&' },
+  { anchor: '  UpdateExtensionsButton(*web_contents);\n  UpdateRequestAccessButton(*web_contents);\n}',
+    replacement: '  UpdateExtensionsButton(*web_contents);\n  UpdateRequestAccessButton(*web_contents);\n  if (blanc_prototype::IsIslandWindow(browser_))\n    request_access_button_->SetVisible(false);\n}',
+    present: 'request_access_button_->SetVisible(false);' },
+  { anchor: '  ToolbarActionView* view = GetViewForId(action_id);\n  return view ? view->GetReferenceButtonForPopup()',
+    replacement: '  if (blanc_prototype::IsIslandWindow(browser_)) return GetExtensionsButtonAnchor();\n  ToolbarActionView* view = GetViewForId(action_id);\n  return view ? view->GetReferenceButtonForPopup()',
+    present: 'if (blanc_prototype::IsIslandWindow(browser_)) return GetExtensionsButtonAnchor();' },
+]);
 
 console.log(`Prepared Blanc Chromium prototype from ${expectedVersion}`);
 console.log(`Assets: ${generated}`);

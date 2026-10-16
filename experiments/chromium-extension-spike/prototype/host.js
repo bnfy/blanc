@@ -6,6 +6,7 @@
   let pillRect = null;
   let opened = false;
   let refreshing = false;
+  let extensionsOpened = false;
   let geometry = "";
   const pending = new Map();
   const subscribers = new Map();
@@ -73,7 +74,8 @@
 
   function reportGeometry() {
     const slot = strip.contentDocument?.getElementById('nativeExtensions');
-    const panel = opened ? overlay.contentDocument?.getElementById('islandPanel')
+    const panel = extensionsOpened ? document.getElementById('extensionsPanel')
+      : opened ? overlay.contentDocument?.getElementById('islandPanel')
       : strip.contentDocument?.getElementById('islandPill');
     if (!slot || !panel) return;
     const a = slot.getBoundingClientRect(), b = panel.getBoundingClientRect();
@@ -86,6 +88,9 @@
   }
 
   async function show(prefill) {
+    extensionsOpened = false;
+    extensionsPanel.hide();
+    strip.style.visibility = '';
     await refresh();
     await request('height', [640]);
     opened = true;
@@ -102,14 +107,41 @@
     });
   }
 
-  async function close() {
+  async function close(focus = true) {
+    extensionsOpened = false;
+    extensionsPanel.hide();
+    strip.style.visibility = '';
     emit('onOverlayHide', {});
     emit('onIslandState', { mode: null });
     opened = false;
     overlay.hidden = true;
     await request('height', [68]);
-    strip.contentWindow.focus();
+    if (focus) strip.contentWindow.focus();
+    reportGeometry();
   }
+
+  const extensionsPanel = new window.BlancExtensions({
+    request, close, refreshGeometry: reportGeometry, back: () => show(),
+  });
+  async function showExtensions() {
+    if (extensionsOpened) return close();
+    emit('onOverlayHide', {});
+    emit('onIslandState', { mode: null });
+    opened = false;
+    overlay.hidden = true;
+    extensionsOpened = true;
+    strip.style.visibility = 'hidden';
+    await request('height', [640]);
+    await extensionsPanel.show();
+    reportGeometry();
+  }
+  document.addEventListener('pointerdown', event => {
+    if (extensionsOpened && !extensionsPanel.panel.contains(event.target)) close();
+  });
+  window.addEventListener('blur', () => {
+    setTimeout(() => { if (extensionsOpened && !document.hasFocus()) close(); }, 0);
+  });
+  setInterval(() => extensionsPanel.update(), 1000);
 
   function destination(value) {
     const text = String(value ?? '').trim();
@@ -182,7 +214,8 @@
     api,
     notice,
     open: (newTab = false, text = '') => show(newTab ? text : undefined),
-    escape: () => opened ? close() : undefined,
+    extensions: showExtensions,
+    escape: () => opened || extensionsOpened ? close() : undefined,
     refresh,
   };
 

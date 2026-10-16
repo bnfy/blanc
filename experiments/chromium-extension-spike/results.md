@@ -492,3 +492,79 @@ preserved. All temporary test windows/tabs and only the probe bookmark were
 removed. Original start-page preferences were restored, and the prototype was
 left open on the Blanc page. The temporary preview server was stopped. Evidence
 is in `evidence/newtab-*.json` and the native screenshots listed above.
+
+
+## Expanded Island extensions view — October 16, 2026
+
+Implemented selected option 2 in the actual Chromium prototype. The native
+Extensions button opens a searchable six-action list within the expanded Island.
+Resting windows show one button regardless of pin preferences. Genuine native
+actions, popups, permission handling and active-tab grants remain Chromium-owned.
+No shipping Electron source changed.
+
+Validation used the permanent isolated profile at
+`~/Library/Application Support/Blanc Chromium Prototype`. All six extensions
+were installed through the live Web Store before this UI change and had survived
+a browser restart. This round checked their logged-out action/startup surfaces:
+
+| Extension | Native action result |
+|---|---|
+| Bitwarden | Genuine popup, default-password-manager prompt; no setting changed |
+| 1Password | Existing native welcome tab activated |
+| React Developer Tools | Genuine restricted-browser-page popup on New Tab |
+| Tampermonkey | Genuine action popup, restricted-page and Allow User Scripts notices |
+| Grammarly | Genuine logged-out popup |
+| MetaMask | Genuine wallet onboarding interface; no account or wallet created |
+
+Physical CGEvent mouse/keyboard checks passed: native Extensions button, typing,
+case-insensitive search, no matches, Cmd+A replacement, reopening with an empty
+query, arrows, Enter, Escape, back to the address/tab panel, and pointer selection
+of Bitwarden. Cmd+L and Cmd+T still focused `addressInput`; Cmd+T added one tab.
+Manage and Get opened the real extension manager and live Web Store.
+
+The native action bridge rejected requests without transient user activation,
+with a stale active-tab ID, and for an absent extension ID. All six native pin
+preferences were temporarily enabled: the Island slot remained 36px. Original
+pin preferences were restored. Temporarily disabling React removed its row on
+the next refresh; restoring it returned the six-row list.
+
+At 600×420 the panel fits within the window, its list scrolls, and its footer
+remains visible. Final polish hides the underlying resting pill during expansion,
+uses Instrument Sans for Blanc UI and Inter for key caps, and leaves the actual
+page visible around the panel. See `design-qa.md` and `evidence/extensions-*.png`.
+
+Builds were incremental: the main change completed 16 actions in 60.08s and the
+transparency/icon refinement completed 7 in 36.36s. Subsequent UI polish used
+assets-only preparation. The final guarded dry run reported zero actions; no
+cold build or toolchain change was required. JavaScript syntax and targeted
+ESLint checks passed. The existing seven build-guard tests passed. Full repository
+`npm run lint` could not run because this checkout lacks its local ESLint
+dependency; targeted checks used the existing Chromium devtools ESLint runtime.
+
+Harness corrections: allow tab-switch layout to settle before clicking measured
+native controls; clear inherited modifier flags on synthesized Unicode events;
+wait for MetaMask's transient popup to become its onboarding tab. Failed harness
+attempts were repeated using real input and settled targets. They are not counted
+as passes. No authenticated password filling, wallet signing, or userscript
+execution is claimed by this UI smoke test.
+
+Evidence: `evidence/extensions-controls.json`, final/narrow/resting native
+screenshots, and the design QA report. Temporary tabs/windows were removed,
+original profile tabs and pin settings retained, and the prototype left open.
+
+
+### Resting Extensions icon size correction
+
+The owner noted the native Extensions glyph looked larger than its neighbors.
+Chromium's standard glyph is 20 logical pixels; the Island navigation/action
+SVG boxes render at approximately 16.09 (14px × 1.15 zoom). The prototype's
+`ExtensionsToolbarButton::GetIconSize()` now returns 16 only in Island windows.
+The 36px native slot, hit target, native state artwork and popup anchor remain
+intact; other Chromium windows retain the upstream size.
+
+The guarded incremental build succeeded in 33.32s with six steps. After relaunch,
+the two existing tabs were restored. Physical clicks opened the six-row picker,
+and selecting Bitwarden opened its genuine popup. Before/after native crops were
+compared at the same size; the glyph now matches the adjacent control scale.
+Evidence: `evidence/extensions-icon-{before,after}.png` and
+`evidence/extensions-icon-verification.json`. The prototype was left open.

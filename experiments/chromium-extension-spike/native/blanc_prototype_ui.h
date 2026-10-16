@@ -33,6 +33,7 @@ bool IsIslandWindow(const BrowserWindowInterface* browser);
 bool HasIsland(views::View* parent);
 bool IsCaption(views::View* parent, int x, int y);
 void RestoreExtensions(views::View* parent);
+bool OpenExtensions(BrowserWindowInterface* browser);
 bool OpenIsland(BrowserWindowInterface* browser, bool new_tab = false,
                 const std::string& initial_text = std::string());
 std::unique_ptr<views::WebView> CreateIsland(BrowserWindowInterface* browser);
