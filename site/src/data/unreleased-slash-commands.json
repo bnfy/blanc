@@ -1,5 +1,6 @@
 {
   "commands": {
-    "/rename": "Tab names (F46, #824), merged after public v1.34.0."
+    "/rename": "Tab names (F46, #824), merged after public v1.34.0.",
+    "/glance": "Glance polish and discoverability (F34, PR 3), after public v1.34.0."
   }
 }
