@@ -51,6 +51,12 @@ test('the MacBook screen moves from dawn to night only with scroll-driven motion
   assert.match(motion, /overflow: clip;/);
   for (const time of ['day', 'dusk', 'night']) assert.match(motion, new RegExp(`\\.device-screen \\.wallpaper-${time} \\{\\s*animation-range: entry 0% contain 10%, contain \\d+% contain \\d+%;`));
   assert.match(motion, /\.device-stage \{\s*position: sticky;/);
+  // The captures' traffic lights are covered by a patch in each strip's
+  // color that crossfades with the wallpaper; phones crop them off.
+  assert.match(css, /\.device-screen::after \{\s*content: "";[^}]*width: 4\.2%;\s*aspect-ratio: 7 \/ 4;\s*background: rgb\(248 240 231\);/);
+  assert.match(css, /@keyframes screen-tint \{ 0%, 18% \{[^}]+\} 28%, 45% \{[^}]+\} 55%, 72% \{[^}]+\} 82%, 100% \{[^}]+\} \}/);
+  assert.match(motion, /\.device-screen::after \{\s*animation: screen-tint linear both;\s*animation-timeline: --device;/);
+  assert.match(css, /The 4:3 crop already leaves the traffic lights out\. \*\/\s*\.device-screen::after \{\s*display: none;/);
   for (const time of ['dawn', 'day', 'dusk', 'night']) {
     assert.match(motion, new RegExp(`\\.device-phases \\.phase-${time} \\{ animation-name: phase-${time}; \\}`));
     assert.match(css, new RegExp(`@keyframes phase-${time} \\{`));

@@ -277,6 +277,21 @@
 .device-screen :is(.wallpaper-day, .wallpaper-dusk, .wallpaper-night) {
   opacity: 0;
 }
+/* The captures are native windows: a patch in the strip's own color (dawn
+   here; motion below follows the wallpaper) covers the traffic lights in the
+   top-left corner, x 0-5.6% and y 0-3.1% of each capture. The capture is
+   105% of the screen, so in screen widths the lights end 3.4% across and
+   2% down. */
+.device-screen::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4.2%;
+  aspect-ratio: 7 / 4;
+  background: rgb(248 240 231);
+  pointer-events: none;
+}
 
 /* ---------- First launch ---------- */
 .proof h2,
@@ -1732,6 +1747,10 @@ details[open] .faq-sign::after {
     height: 100%;
     object-fit: cover;
   }
+  /* The 4:3 crop already leaves the traffic lights out. */
+  .device-screen::after {
+    display: none;
+  }
 }
 @media (max-width: 760px) {
   .home-cinema section {
@@ -1888,6 +1907,11 @@ details[open] .faq-sign::after {
       animation-timeline: --device;
       animation-range: contain 0% contain 100%;
     }
+    .device-screen::after {
+      animation: screen-tint linear both;
+      animation-timeline: --device;
+      animation-range: contain 0% contain 100%;
+    }
     .device-phases .phase-dawn { animation-name: phase-dawn; }
     .device-phases .phase-day { animation-name: phase-day; }
     .device-phases .phase-dusk { animation-name: phase-dusk; }
@@ -2041,6 +2065,9 @@ details[open] .faq-sign::after {
 @keyframes sun-disc { 0%, 20% { transform: translateY(22%); } 54%, 100% { transform: none; } }
 @keyframes sun-rays { 0%, 44% { clip-path: circle(21% at 49.9% 64.2%); opacity: 0; } 48% { opacity: 1; } 70%, 100% { clip-path: circle(75% at 49.9% 64.2%); opacity: 1; } }
 @keyframes sun-copy { 0%, 72% { opacity: 0; transform: translateY(40px); } 100% { opacity: 1; transform: none; } }
+/* The strip color of each wallpaper capture as Chromium draws it, cross-
+   fading with the captures. */
+@keyframes screen-tint { 0%, 18% { background-color: rgb(248 240 231); } 28%, 45% { background-color: rgb(226 231 232); } 55%, 72% { background-color: rgb(240 230 222); } 82%, 100% { background-color: rgb(232 227 217); } }
 /* Each label is lit while its wallpaper shows: the fades run at 18–28%,
    45–55% and 72–82% of the --device timeline. */
 @keyframes phase-dawn { 0%, 21% { color: var(--ink); border-top-color: var(--gold); } 25%, 100% { color: var(--dim); border-top-color: rgb(14 14 14 / 0.15); } }
