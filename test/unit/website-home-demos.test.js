@@ -32,6 +32,9 @@ test('the homepage keeps the live demos in the redesign, each working without th
   // since #840: Instrument Sans at width 98 and +0.01em.
   assert.match(read('site/src/components/GlanceIsland.astro'), /:host \{[^}]*font-family:var\(--font-text\);[^}]*letter-spacing:var\(--text-tracking\);/);
   assert.match(css, /\.tool-illustration \{[^}]*font-family: "Instrument Sans", var\(--font-ui\);\s*font-variation-settings: "wdth" 98;\s*letter-spacing: 0\.01em;/);
+  // The app's Spaces list contains its overscroll; the demo's copy must let
+  // a page scroll through, or wheeling over the (scaled-up) menu sticks.
+  assert.match(read('site/src/components/SpacesDemo.astro'), /#workspaceSwitcherList \{overflow:visible; overscroll-behavior:auto;\}/);
   const gestures = read('site/src/components/GestureDemo.astro');
   assert.match(gestures, /\{!compact && <button class="gesture-replay"/);
   assert.match(gestures, /\{!compact && <p class="gesture-setup">/);
