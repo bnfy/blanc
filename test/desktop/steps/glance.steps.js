@@ -1544,9 +1544,10 @@ Then("the Island's address is whole and its controls fit", async function () {
 });
 
 // On macOS the strip is told it is Windows and given three stand-in
-// buttons where Windows and Linux draw minimize, maximize and close; on those
-// platforms the real controls are already there. A 1px nudge makes the strip
-// re-fit and re-measure under those rules.
+// buttons where Windows and Linux draw minimize, maximize and close, and a
+// 1px nudge makes it re-fit and re-measure under those rules. On Windows and
+// Linux the real controls and rules are already there, so nothing changes
+// (and a window that already fills a small display may not grow by 1px).
 When('the strip draws the Windows and Linux window controls', async function () {
   const chrome = await mainChromePage();
   this.glanceRealPlatform = await chrome.evaluate(() => {
@@ -1563,6 +1564,7 @@ When('the strip draws the Windows and Linux window controls', async function () 
     }
     return real;
   });
+  if (this.glanceRealPlatform !== 'darwin') return;
   const { glanceGeometry } = await this.state();
   await this.call('setWindowContentSize', glanceGeometry.page.width + 1, 800);
   await this.waitForState((state) => state.glanceGeometry?.page.width === glanceGeometry.page.width + 1);
