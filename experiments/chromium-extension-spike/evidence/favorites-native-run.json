@@ -1,0 +1,568 @@
+{
+  "commit": "3d9fcd3c8711143c2ad9ee4c29f8315bd379e818",
+  "checks": [
+    {
+      "name": "before-relaunch",
+      "at": "2026-10-16T20:27:51.845Z",
+      "pages": []
+    },
+    {
+      "name": "relaunched",
+      "at": "2026-10-16T20:27:54.057Z",
+      "pages": [
+        {
+          "id": "3959655236C82F93A21CAC7AE81D2F7C",
+          "title": "Blanc Browser — A Minimal Browser with Built-in Ad Blocking",
+          "url": "https://blanc.day/#switch"
+        }
+      ]
+    },
+    {
+      "name": "input-baseline",
+      "at": "2026-10-16T20:28:26.149Z",
+      "tabs": [
+        {
+          "id": 138412667,
+          "title": "Blanc Browser — A Minimal Browser with Built-in Ad Blocking",
+          "url": "https://blanc.day/#switch"
+        }
+      ],
+      "favorites": []
+    },
+    {
+      "name": "native-cmd-d-start-page-no-op",
+      "at": "2026-10-16T20:28:28.581Z"
+    },
+    {
+      "name": "failure",
+      "at": "2026-10-16T20:28:40.515Z",
+      "message": "Error: Timed out: navigate http://127.0.0.1:8785/Alpha\n    at until (file:///private/tmp/blanc-native858-lib.mjs:17:165)\n    at async goto (file:///private/tmp/blanc-native858-lib.mjs:23:122)\n    at async file:///private/tmp/blanc-native858-input.mjs:12:3"
+    },
+    {
+      "name": "screenshot",
+      "at": "2026-10-16T20:28:54.294Z",
+      "path": "/private/tmp/blanc-native858-navigation-debug.png"
+    },
+    {
+      "name": "screenshot",
+      "at": "2026-10-16T20:30:49.783Z",
+      "path": "/private/tmp/blanc-native858-cmd-d-debug.png"
+    },
+    {
+      "name": "screenshot",
+      "at": "2026-10-16T20:33:58.294Z",
+      "path": "/private/tmp/blanc-native858-cmd-d-on-confirmed.png"
+    },
+    {
+      "name": "native-cmd-d-web-on-confirmed",
+      "at": "2026-10-16T20:33:58.318Z",
+      "favorites": [
+        {
+          "addedAt": 1792182828667.12,
+          "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+          "folder": null,
+          "id": "5",
+          "title": "Native858 Alpha",
+          "url": "http://127.0.0.1:8785/Alpha"
+        }
+      ]
+    },
+    {
+      "name": "input-baseline",
+      "at": "2026-10-16T20:34:01.003Z",
+      "tabs": [
+        {
+          "id": 138412667,
+          "title": "Blanc Browser — A Minimal Browser with Built-in Ad Blocking",
+          "url": "https://blanc.day/#switch"
+        },
+        {
+          "id": 138412732,
+          "title": "Native858 Alpha",
+          "url": "http://127.0.0.1:8785/Alpha"
+        }
+      ],
+      "favorites": []
+    },
+    {
+      "name": "native-cmd-d-start-page-no-op",
+      "at": "2026-10-16T20:34:03.359Z"
+    },
+    {
+      "name": "failure",
+      "at": "2026-10-16T20:34:16.214Z",
+      "message": "Error: Timed out: navigate http://127.0.0.1:8785/Alpha\n    at until (file:///private/tmp/blanc-native858-lib.mjs:17:165)\n    at async goto (file:///private/tmp/blanc-native858-lib.mjs:23:122)\n    at async file:///private/tmp/blanc-native858-input.mjs:12:3"
+    },
+    {
+      "name": "failure",
+      "at": "2026-10-16T20:34:54.762Z",
+      "message": "Error: Timed out: navigate http://127.0.0.1:8785/Alpha\n    at until (file:///private/tmp/blanc-native858-lib.mjs:17:165)\n    at async goto (file:///private/tmp/blanc-native858-lib.mjs:23:181)\n    at async file:///private/tmp/blanc-native858-input-resume.mjs:6:3"
+    },
+    {
+      "name": "failure",
+      "at": "2026-10-16T20:35:32.159Z",
+      "message": "Error: Timed out: Cmd-D saved Alpha\n    at until (file:///private/tmp/blanc-native858-lib.mjs:17:165)\n    at async file:///private/tmp/blanc-native858-input-resume.mjs:7:18"
+    },
+    {
+      "name": "screenshot",
+      "at": "2026-10-16T20:35:46.869Z",
+      "path": "/private/tmp/blanc-native858-cmd-d-on.png"
+    },
+    {
+      "name": "native-cmd-d-web-on",
+      "at": "2026-10-16T20:35:46.931Z",
+      "windows": "1230 {\n    Height = 941;\n    Width = 1440;\n    X = 313;\n    Y = 80;\n} Native858 Alpha\n"
+    },
+    {
+      "name": "native-cmd-d-web-off",
+      "at": "2026-10-16T20:35:47.559Z"
+    },
+    {
+      "name": "native-mouse-pill-heart-on-off",
+      "at": "2026-10-16T20:35:49.398Z"
+    },
+    {
+      "name": "failure",
+      "at": "2026-10-16T20:35:50.536Z",
+      "message": "AssertionError [ERR_ASSERTION]: {\"x\":0,\"y\":0,\"w\":0,\"h\":0,\"display\":\"flex\"}\n    at point (file:///private/tmp/blanc-native858-lib.mjs:29:12)\n    at async click (file:///private/tmp/blanc-native858-lib.mjs:33:72)\n    at async file:///private/tmp/blanc-native858-input-resume.mjs:15:36"
+    },
+    {
+      "name": "native-mouse-panel-heart-on-off",
+      "at": "2026-10-16T20:36:06.791Z"
+    },
+    {
+      "name": "native-slash-save",
+      "at": "2026-10-16T20:36:10.650Z",
+      "item": {
+        "addedAt": 1792182970066.504,
+        "favicon": null,
+        "folder": "Codex-Native858",
+        "id": "10",
+        "title": "Native858 Alpha",
+        "url": "http://127.0.0.1:8785/Alpha"
+      }
+    },
+    {
+      "name": "native-slash-case-insensitive-reuse",
+      "at": "2026-10-16T20:36:14.523Z",
+      "id": "10"
+    },
+    {
+      "name": "native-bare-save-no-duplicate",
+      "at": "2026-10-16T20:36:18.400Z"
+    },
+    {
+      "name": "failure",
+      "at": "2026-10-16T20:36:34.444Z",
+      "message": "Error: Timed out: navigate http://127.0.0.1:8785/Invalid\n    at until (file:///private/tmp/blanc-native858-lib.mjs:17:165)\n    at async goto (file:///private/tmp/blanc-native858-lib.mjs:23:232)\n    at async file:///private/tmp/blanc-native858-phase1b.mjs:13:3"
+    },
+    {
+      "name": "native-overlong-folder-rejected",
+      "at": "2026-10-16T20:36:53.304Z"
+    },
+    {
+      "name": "native-slash-moves-existing-node",
+      "at": "2026-10-16T20:37:06.221Z",
+      "id": "12"
+    },
+    {
+      "name": "native-slash-favorites-manager",
+      "at": "2026-10-16T20:37:10.048Z"
+    },
+    {
+      "name": "native-slash-history-manager",
+      "at": "2026-10-16T20:37:15.081Z"
+    },
+    {
+      "name": "native-mouse-favorites-footer",
+      "at": "2026-10-16T20:37:18.423Z"
+    },
+    {
+      "name": "native-mouse-history-footer",
+      "at": "2026-10-16T20:37:21.679Z"
+    },
+    {
+      "name": "input-phase-one-complete",
+      "at": "2026-10-16T20:37:22.704Z"
+    },
+    {
+      "name": "native-cmd-d-start-page-no-op-retest",
+      "at": "2026-10-16T20:37:58.041Z"
+    },
+    {
+      "name": "failure",
+      "at": "2026-10-16T20:38:01.097Z",
+      "message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n2 !== 1\n\n    at file:///private/tmp/blanc-native858-search-private.mjs:8:102"
+    },
+    {
+      "name": "native-cmd-d-start-page-no-op-retest",
+      "at": "2026-10-16T20:38:18.533Z"
+    },
+    {
+      "name": "failure",
+      "at": "2026-10-16T20:38:21.603Z",
+      "message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n0 !== 1\n\n    at file:///private/tmp/blanc-native858-search-private.mjs:8:150"
+    },
+    {
+      "name": "native-typed-favorite-deduplicated",
+      "at": "2026-10-16T20:38:53.802Z",
+      "rows": [
+        {
+          "title": "Native858 Alpha",
+          "tag": "favorite",
+          "active": true
+        },
+        {
+          "title": "Native858 Alpha",
+          "tag": "search",
+          "active": false
+        }
+      ]
+    },
+    {
+      "name": "screenshot",
+      "at": "2026-10-16T20:38:54.126Z",
+      "path": "/private/tmp/blanc-native858-favorite-search.png"
+    },
+    {
+      "name": "native-favorite-enter-navigation",
+      "at": "2026-10-16T20:38:54.755Z"
+    },
+    {
+      "name": "failure",
+      "at": "2026-10-16T20:39:09.643Z",
+      "message": "Error: Timed out: navigate chrome://newtab/\n    at until (file:///private/tmp/blanc-native858-lib.mjs:17:165)\n    at async goto (file:///private/tmp/blanc-native858-lib.mjs:23:232)\n    at async file:///private/tmp/blanc-native858-search-private.mjs:8:3"
+    },
+    {
+      "name": "native-typed-history-result",
+      "at": "2026-10-16T20:39:40.210Z",
+      "rows": [
+        {
+          "title": "Native858 Invalid",
+          "tag": "history",
+          "active": true
+        },
+        {
+          "title": "Native858 Invalid",
+          "tag": "search",
+          "active": false
+        }
+      ]
+    },
+    {
+      "name": "native-history-enter-navigation",
+      "at": "2026-10-16T20:39:40.844Z"
+    },
+    {
+      "name": "failure",
+      "at": "2026-10-16T20:39:55.694Z",
+      "message": "Error: Timed out: private HTTP page\n    at until (file:///private/tmp/blanc-native858-lib.mjs:17:165)\n    at async file:///private/tmp/blanc-native858-private-resume.mjs:8:87"
+    },
+    {
+      "name": "native-private-http-cmd-d-no-op-hidden-hearts",
+      "at": "2026-10-16T20:40:19.834Z",
+      "state": {
+        "pill": "none",
+        "panel": "none",
+        "error": ""
+      }
+    },
+    {
+      "name": "native-search-private-complete",
+      "at": "2026-10-16T20:40:22.352Z"
+    },
+    {
+      "name": "layout-preferences-before",
+      "at": "2026-10-16T20:40:36.801Z",
+      "prefs": null
+    },
+    {
+      "name": "screenshot",
+      "at": "2026-10-16T20:40:40.130Z",
+      "path": "/private/tmp/blanc-native858-live-ledger.png"
+    },
+    {
+      "name": "visible-layout-live-refresh",
+      "at": "2026-10-16T20:40:40.287Z",
+      "layout": "ledger",
+      "shown": {
+        "visible": true,
+        "hidden": false,
+        "title": "1Native858 ledger127.0.0.1"
+      },
+      "mutation": "chrome.bookmarks API; layout selected with native mouse"
+    },
+    {
+      "name": "screenshot",
+      "at": "2026-10-16T20:40:43.541Z",
+      "path": "/private/tmp/blanc-native858-live-shelf.png"
+    },
+    {
+      "name": "visible-layout-live-refresh",
+      "at": "2026-10-16T20:40:43.696Z",
+      "layout": "shelf",
+      "shown": {
+        "visible": true,
+        "hidden": false,
+        "title": "1Native858 shelf127.0.0.1"
+      },
+      "mutation": "chrome.bookmarks API; layout selected with native mouse"
+    },
+    {
+      "name": "screenshot",
+      "at": "2026-10-16T20:40:46.990Z",
+      "path": "/private/tmp/blanc-native858-live-tally.png"
+    },
+    {
+      "name": "visible-layout-live-refresh",
+      "at": "2026-10-16T20:40:47.145Z",
+      "layout": "tally",
+      "shown": {
+        "visible": true,
+        "hidden": false,
+        "title": "1Native858 tally127.0.0.1"
+      },
+      "mutation": "chrome.bookmarks API; layout selected with native mouse"
+    },
+    {
+      "name": "native-start-page-favorite-click",
+      "at": "2026-10-16T20:40:48.108Z"
+    },
+    {
+      "name": "native-layout-picker-restored-billboard",
+      "at": "2026-10-16T20:40:52.590Z"
+    },
+    {
+      "name": "native-layouts-complete",
+      "at": "2026-10-16T20:40:52.591Z"
+    },
+    {
+      "name": "late-favicon-saved-before-icon",
+      "at": "2026-10-16T20:41:30.118Z",
+      "present": false,
+      "id": "16"
+    },
+    {
+      "name": "late-favicon-arrival-updated-bookmark",
+      "at": "2026-10-16T20:41:43.789Z"
+    },
+    {
+      "name": "cmd-d-with-island-input-focused",
+      "at": "2026-10-16T20:41:45.952Z",
+      "toggled": false,
+      "remainingSaved": true
+    },
+    {
+      "name": "screenshot",
+      "at": "2026-10-16T20:41:46.176Z",
+      "path": "/private/tmp/blanc-native858-cmd-d-panel-focus.png"
+    },
+    {
+      "name": "cmd-l-from-page",
+      "at": "2026-10-16T20:41:48.502Z",
+      "opened": true
+    },
+    {
+      "name": "cmd-l-after-island-escape",
+      "at": "2026-10-16T20:41:50.257Z",
+      "opened": false
+    },
+    {
+      "name": "non-island-popup-cmd-d",
+      "at": "2026-10-16T20:41:53.727Z",
+      "bookmarkSaved": false,
+      "nativeTree": "AXWindow Native858 Popup - Chromium Optional((0.0, 30.0, 800.0, 666.0))\nAXPopUpButton View site information Optional((5.0, 67.0, 24.0, 24.0))\nAXButton Open non-Island window Optional((56.0, 334.0, 163.0, 22.0))\nAXButton  Optional((8.0, 38.0, 16.0, 16.0))\nAXButton  Optional((54.0, 38.0, 16.0, 16.0))\nAXButton  Optional((31.0, 38.0, 16.0, 16.0))\nAXWindow Native858 Late - Chromium Optional((313.0, 80.0, 1440.0, 941.0))\nAXButton Back Optional((313.0, 1004.0, 1.0, 34.0))\nAXButton Reload Optional((313.0, 1004.0, 1.0, 34.0))\nAXButton Open non-Island window Optional((369.0, 385.0, 163.0, 22.0))\nAXButton Back Forward Switch to Blanc Browser — A Minimal Browser with Built-in Ad Blocking Switch to Bookmarks Switch to Native858 Late 127.0.0.1:8786 New tab Reload Favorite this page Close tab Optional((833.0, 92.0, 401.0, 44.0))\nAXButton Back Optional((850.0, 101.0, 26.0, 26.0))\nAXButton Forward Optional((876.0, 101.0, 26.0, 26.0))\nAXButton Switch to Blanc Browser — A Minimal Browser with Built-in Ad Blocking Optional((908.0, 110.0, 8.0, 7.0))\nAXButton Switch to Bookmarks Optional((927.0, 110.0, 7.0, 7.0))\nAXButton Switch to Native858 Late Optional((945.0, 110.0, 8.0, 7.0))\nAXButton New tab Optional((1064.0, 101.0, 26.0, 26.0))\nAXButton Reload Optional((1136.0, 101.0, 26.0, 26.0))\nAXButton Favorite this page Optional((1163.0, 101.0, 27.0, 26.0))\nAXButton Close tab Optional((1190.0, 101.0, 27.0, 26.0))\nAXPopUpButton Extensions allowed on this site. Select to open menu Optional((1109.0, 101.0, 26.0, 26.0))\nAXButton  Optional((333.0, 100.0, 16.0, 16.0))\nAXButton  Optional((379.0, 100.0, 16.0, 16.0))\nAXButton  Optional((356.0, 100.0, 16.0, 16.0))\n"
+    },
+    {
+      "name": "last-native-input-complete",
+      "at": "2026-10-16T20:41:55.928Z"
+    },
+    {
+      "name": "focus-shortcut-retest-without-reactivation",
+      "at": "2026-10-16T20:42:28.023Z",
+      "url": "http://127.0.0.1:8786/Late?late",
+      "before": true,
+      "after": true
+    },
+    {
+      "name": "cmd-l-after-escape-without-reactivation",
+      "at": "2026-10-16T20:42:29.642Z",
+      "opened": false
+    },
+    {
+      "name": "persistence-before",
+      "at": "2026-10-16T20:43:03.236Z",
+      "favorites": [
+        {
+          "id": "10",
+          "url": "http://127.0.0.1:8785/Alpha",
+          "title": "Native858 Alpha",
+          "folder": "Codex-Native858",
+          "hasIcon": true
+        },
+        {
+          "id": "12",
+          "url": "http://127.0.0.1:8785/Beta",
+          "title": "Native858 Beta",
+          "folder": "Codex-Native858",
+          "hasIcon": true
+        },
+        {
+          "id": "16",
+          "url": "http://127.0.0.1:8786/Late?late",
+          "title": "Native858 Late",
+          "folder": null,
+          "hasIcon": true
+        }
+      ],
+      "testHistory": [
+        {
+          "favicon": null,
+          "title": "Native858 Popup",
+          "url": "http://127.0.0.1:8786/Popup",
+          "visitedAt": 1792183311488.214
+        },
+        {
+          "favicon": null,
+          "title": "Native858 Late",
+          "url": "http://127.0.0.1:8786/Late?late",
+          "visitedAt": 1792183288041.504
+        },
+        {
+          "favicon": null,
+          "title": "Native858 Alpha",
+          "url": "http://127.0.0.1:8785/Alpha",
+          "visitedAt": 1792183247650.907
+        },
+        {
+          "favicon": null,
+          "title": "Native858 Invalid",
+          "url": "http://127.0.0.1:8785/Invalid",
+          "visitedAt": 1792183180733.235
+        },
+        {
+          "favicon": null,
+          "title": "Native858 Beta",
+          "url": "http://127.0.0.1:8785/Beta",
+          "visitedAt": 1792183017939.203
+        }
+      ]
+    },
+    {
+      "name": "before-relaunch",
+      "at": "2026-10-16T20:43:03.271Z",
+      "pages": [
+        {
+          "id": "7DC70F74F616361388EA8037BB7BE939",
+          "title": "Native858 Popup",
+          "url": "http://127.0.0.1:8786/Popup"
+        },
+        {
+          "id": "6ACA93A529BCCB9F4B33F4203BC12D27",
+          "title": "Native858 Late",
+          "url": "http://127.0.0.1:8786/Late?late"
+        },
+        {
+          "id": "D1DB649EA882F906989C181355883772",
+          "title": "Bookmarks",
+          "url": "chrome://bookmarks/"
+        },
+        {
+          "id": "3959655236C82F93A21CAC7AE81D2F7C",
+          "title": "Blanc Browser — A Minimal Browser with Built-in Ad Blocking",
+          "url": "https://blanc.day/#switch"
+        }
+      ]
+    },
+    {
+      "name": "relaunched",
+      "at": "2026-10-16T20:43:05.311Z",
+      "pages": [
+        {
+          "id": "67BFBB866999BEE81D9EDD1ECCDEB00E",
+          "title": "Native858 Popup",
+          "url": "http://127.0.0.1:8786/Popup"
+        },
+        {
+          "id": "E4FD731B37D0229AE9C4BD18ECE3900F",
+          "title": "Native858 Late",
+          "url": "http://127.0.0.1:8786/Late?late"
+        },
+        {
+          "id": "22B14902B861790547F24867ABB7E9C7",
+          "title": "Blanc Browser — A Minimal Browser with Built-in Ad Blocking",
+          "url": "https://blanc.day/#switch"
+        },
+        {
+          "id": "5217FE704DDECB4A59956624B1BE5499",
+          "title": "chrome://bookmarks",
+          "url": "chrome://bookmarks/"
+        }
+      ]
+    },
+    {
+      "name": "same-profile-restart-persistence",
+      "at": "2026-10-16T20:43:38.045Z",
+      "favorites": [
+        {
+          "id": "10",
+          "url": "http://127.0.0.1:8785/Alpha",
+          "title": "Native858 Alpha",
+          "folder": "Codex-Native858",
+          "hasIcon": true
+        },
+        {
+          "id": "12",
+          "url": "http://127.0.0.1:8785/Beta",
+          "title": "Native858 Beta",
+          "folder": "Codex-Native858",
+          "hasIcon": true
+        },
+        {
+          "id": "16",
+          "url": "http://127.0.0.1:8786/Late?late",
+          "title": "Native858 Late",
+          "folder": null,
+          "hasIcon": true
+        }
+      ],
+      "userTabRestored": true,
+      "historyRestored": true,
+      "note": "Favicon loading is asynchronous; waited for all stored icons instead of asserting immediately at launch."
+    },
+    {
+      "name": "cleanup-exact-history-urls",
+      "at": "2026-10-16T20:43:40.791Z",
+      "urls": [
+        "http://127.0.0.1:8786/Popup",
+        "http://127.0.0.1:8786/Late?late",
+        "http://127.0.0.1:8785/Alpha",
+        "http://127.0.0.1:8785/Invalid",
+        "https://www.google.com/search?q=chrome%3A%2F%2Fnewtab%2F&sei=Y4vSasymGoqyruEP-ZjT0Qo",
+        "http://127.0.0.1:8785/Beta"
+      ],
+      "privateUrlAbsent": true
+    },
+    {
+      "name": "cleanup-complete",
+      "at": "2026-10-16T20:43:42.761Z",
+      "foldersRemoved": [
+        "9",
+        "11"
+      ],
+      "historyRowsRemoved": 6,
+      "favorites": [],
+      "tabs": [
+        {
+          "id": 138412829,
+          "url": "https://blanc.day/#switch"
+        }
+      ]
+    },
+    {
+      "name": "screenshot",
+      "at": "2026-10-16T20:43:42.980Z",
+      "path": "/private/tmp/blanc-native858-final.png"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "originalTabCount": 3,
+  "finalTabCount": 3,
+  "originalTabsPreserved": true,
+  "dedicatedTestWindowClosed": true,
+  "finalBuild": {
+    "steps": 7,
+    "durationSeconds": 42.97
+  },
+  "noOpBuild": {
+    "steps": 0,
+    "durationSeconds": 3.64
+  },
+  "firstBuild": {
+    "steps": 534,
+    "durationSeconds": 130.03
+  }
+}

@@ -1,0 +1,123 @@
+[
+  {
+    "test": "new-tab",
+    "color": "rgb(247, 240, 230)",
+    "strip": "rgb(247, 240, 230)",
+    "tint": "#f7f0e6",
+    "body": "rgba(0, 0, 0, 0)",
+    "status": ""
+  },
+  {
+    "test": "/cream",
+    "latency": 10,
+    "color": "rgb(244, 233, 215)",
+    "strip": "rgb(244, 233, 215)",
+    "tint": "#f4e9d7",
+    "body": "rgba(0, 0, 0, 0)",
+    "status": ""
+  },
+  {
+    "test": "/dark",
+    "latency": 3,
+    "color": "rgb(20, 44, 63)",
+    "strip": "rgb(20, 44, 63)",
+    "tint": "#142c3f",
+    "body": "rgba(0, 0, 0, 0)",
+    "status": ""
+  },
+  {
+    "test": "switch-back",
+    "latency": 180,
+    "color": "rgb(244, 233, 215)",
+    "strip": "rgb(244, 233, 215)",
+    "tint": "#f4e9d7",
+    "body": "rgba(0, 0, 0, 0)",
+    "status": ""
+  },
+  {
+    "test": "scroll",
+    "latency": 165,
+    "color": "rgb(20, 44, 63)",
+    "strip": "rgb(20, 44, 63)",
+    "tint": "#142c3f",
+    "body": "rgba(0, 0, 0, 0)",
+    "status": ""
+  },
+  {
+    "test": "idle-dynamic-change",
+    "latency": 169,
+    "color": "rgb(80, 123, 100)",
+    "strip": "rgb(80, 123, 100)",
+    "tint": "#507b64",
+    "body": "rgba(0, 0, 0, 0)",
+    "status": ""
+  },
+  {
+    "test": "continuous-color-transition",
+    "distinctColors": 14,
+    "samples": [
+      "#527c64",
+      "#5c8066",
+      "#6f8869",
+      "#788c6a",
+      "#82906c",
+      "#8b946e",
+      "#94996f",
+      "#9f9d70",
+      "#b2a474",
+      "#bba876",
+      "#c5ac76",
+      "#cfb078",
+      "#d8b47a",
+      "#e0b87b",
+      "#e0b87b",
+      "#e0b87b",
+      "#e0b87b",
+      "#e0b87b"
+    ]
+  },
+  {
+    "test": "rapid-tab-switch",
+    "latency": 83,
+    "color": "rgb(80, 123, 100)",
+    "strip": "rgb(80, 123, 100)",
+    "tint": "#507b64",
+    "body": "rgba(0, 0, 0, 0)",
+    "status": ""
+  },
+  {
+    "test": "rapid-navigation",
+    "latency": 339,
+    "color": "rgb(244, 233, 215)",
+    "strip": "rgb(244, 233, 215)",
+    "tint": "#f4e9d7",
+    "body": "rgba(0, 0, 0, 0)",
+    "status": ""
+  },
+  {
+    "test": "expanded-extensions",
+    "open": true,
+    "rows": 6,
+    "backdropHeight": 68,
+    "body": "rgba(0, 0, 0, 0)",
+    "hostHeight": 640
+  },
+  {
+    "test": "internal-page-reset",
+    "latency": 87,
+    "color": "rgb(255, 255, 255)",
+    "strip": "rgb(255, 255, 255)",
+    "tint": "var(--bg)",
+    "body": "rgba(0, 0, 0, 0)",
+    "status": ""
+  },
+  {
+    "test": "close-during-sample",
+    "latency": 1,
+    "color": "rgb(255, 255, 255)",
+    "strip": "rgb(255, 255, 255)",
+    "tint": "var(--bg)",
+    "body": "rgba(0, 0, 0, 0)",
+    "status": ""
+  }
+]

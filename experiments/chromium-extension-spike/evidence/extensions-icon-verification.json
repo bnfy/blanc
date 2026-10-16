@@ -1,0 +1,24 @@
+{
+  "iconLogicalSize": 16,
+  "neighborIconLogicalSize": 16.09375,
+  "buttonSlot": {
+    "x": 803.4296875,
+    "y": 17.3984375,
+    "width": 36,
+    "height": 32.1953125,
+    "top": 17.3984375,
+    "right": 839.4296875,
+    "bottom": 49.59375,
+    "left": 803.4296875
+  },
+  "state": {
+    "open": true,
+    "count": 6,
+    "status": ""
+  },
+  "popup": "chrome-extension://nngceckbapebfimnlniiiahkandclblb/popup/index.html",
+  "restoredTabs": [
+    "chrome://newtab/",
+    "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/home.html#/onboarding/welcome"
+  ]
+}

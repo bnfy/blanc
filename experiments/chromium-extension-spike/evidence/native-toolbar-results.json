@@ -1,0 +1,119 @@
+{
+  "windowId": 60438575,
+  "results": [
+    {
+      "name": "Bitwarden",
+      "id": "nngceckbapebfimnlniiiahkandclblb",
+      "method": "macOS CGEvent mouse down/up at Accessibility-located native toolbar button",
+      "checkedAt": "2026-10-16T13:24:31.796Z",
+      "nativeClick": "CLICKED Bitwarden at (1298.0, 135.0)",
+      "targets": [
+        {
+          "url": "chrome-extension://nngceckbapebfimnlniiiahkandclblb/popup/index.html",
+          "title": "Bitwarden",
+          "state": "interactive",
+          "text": ""
+        }
+      ],
+      "result": "pass",
+      "renderedInterface": {
+        "checkedAt": "2026-10-16T13:25:22.638Z",
+        "title": "Bitwarden",
+        "state": "complete",
+        "text": "Make Bitwarden your browser's default password manager\n1\n\nSelect Continue.\n\n2\n\nSelect Allow from the browser prompt to give Bitwarden permission to change your settings.\n\n3\n\nWe'll turn off your browser's built-in password manager so you can enjoy a secure login experience.\n\nContinue\nSkip"
+      },
+      "outcome": "Native action popup rendered default-password-manager prompt; no settings accepted."
+    },
+    {
+      "name": "React Developer Tools",
+      "id": "fmkadmapgofadopljbjfkapdkoienihi",
+      "method": "macOS CGEvent mouse down/up at Accessibility-located native toolbar button",
+      "checkedAt": "2026-10-16T13:24:33.577Z",
+      "nativeClick": "CLICKED React Developer Tools at (1334.0, 135.0)",
+      "targets": [
+        {
+          "url": "chrome-extension://fmkadmapgofadopljbjfkapdkoienihi/popups/development.html",
+          "title": "",
+          "state": "complete",
+          "text": "This page is using the development build of React. 🚧\n\nNote that the development build is not suitable for production.\nMake sure to use the production build before deployment.\n\nOpen the developer tools, and \"Components\" and \"Profiler\" tabs will appear to the right."
+        }
+      ],
+      "result": "pass",
+      "outcome": "Native action popup rendered."
+    },
+    {
+      "name": "1Password",
+      "id": "aeblfdkhhhdcdjpifhhbdiojplfjncoa",
+      "method": "macOS CGEvent mouse down/up at Accessibility-located native toolbar button",
+      "checkedAt": "2026-10-16T13:24:35.212Z",
+      "nativeClick": "CLICKED 1Password at (1370.0, 135.0)",
+      "targets": [
+        {
+          "url": "chrome-extension://aeblfdkhhhdcdjpifhhbdiojplfjncoa/app/app.html#/page/welcome?language=en",
+          "title": "1Password",
+          "state": "complete",
+          "text": "Start setup\nAdd account\n\nIf you have a 1Password account, sign in to get started.\n\nCreate your 1Password account\nSign in\nLearn how to use 1Password (tutorial)\nPin the 1Password extension to your browser's toolbar"
+        }
+      ],
+      "result": "pass",
+      "outcome": "Native action opened welcome/account setup tab."
+    },
+    {
+      "name": "Tampermonkey",
+      "id": "dhdgffkkebhmkfjojejmpbldmpobfkfo",
+      "method": "macOS CGEvent mouse down/up at Accessibility-located native toolbar button",
+      "checkedAt": "2026-10-16T13:24:36.964Z",
+      "nativeClick": "CLICKED Tampermonkey at (1406.0, 135.0)",
+      "targets": [
+        {
+          "url": "chrome-extension://dhdgffkkebhmkfjojejmpbldmpobfkfo/action.html",
+          "title": "",
+          "state": "complete",
+          "text": "Please enable the `Allow User Scripts` extension setting. Click here for more info how to do this.\n\tScan the QR code to use Tampermonkey on your phone or tablet.\nLearn more\n\t\n\tEnabled\n\tTampermonkey has no access to this page\n\tFind new scripts...\n\tCreate a new script...\n\n\n\tPlease send a donation\n\n\t\nUtilities\n\t\n\tDashboard\n\tHelp | Changelog | "
+        }
+      ],
+      "result": "pass",
+      "outcome": "Native action popup rendered."
+    },
+    {
+      "name": "Grammarly extension:",
+      "id": "kbfnbcaeplbcioakkpcpgfkobkghlhen",
+      "method": "macOS CGEvent mouse down/up at Accessibility-located native toolbar button",
+      "checkedAt": "2026-10-16T13:24:38.610Z",
+      "nativeClick": "CLICKED Grammarly extension: at (1442.0, 135.0)",
+      "targets": [
+        {
+          "url": "chrome-extension://kbfnbcaeplbcioakkpcpgfkobkghlhen/src/popup.html",
+          "title": "",
+          "state": "complete",
+          "text": "Grammarly is active, but key features are missing.\n\nSign up now to unlock the following:\n\nPersonal dictionary\nSave and access your documents\nGet weekly writing statistics and tips\nSign up\nOpens a new tab\nAlready have an account?\nSign in\nOpens a new tab"
+        }
+      ],
+      "result": "pass",
+      "outcome": "Native action popup rendered."
+    },
+    {
+      "name": "MetaMask",
+      "id": "nkbihfbeogaeaoehlefnkodbefgpgknn",
+      "method": "macOS CGEvent mouse down/up at Accessibility-located native toolbar button",
+      "checkedAt": "2026-10-16T13:24:40.269Z",
+      "nativeClick": "CLICKED MetaMask at (1478.0, 135.0)",
+      "targets": [
+        {
+          "url": "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/sidepanel.html",
+          "title": "MetaMask",
+          "state": "interactive",
+          "text": ""
+        }
+      ],
+      "result": "pass",
+      "renderedInterface": {
+        "checkedAt": "2026-10-16T13:25:07.107Z",
+        "title": "MetaMask",
+        "state": "complete",
+        "text": "አማርኛ\nالعربية\nбългарски\nবাংলা\nCatalà\nČeština\nDansk\nDeutsch\nελληνικά\nEnglish\nEspañol (Latinoamérica)\nEstonian\nفارسی\nSuomi\nFrançais\nGaeilge\nગુજરાત\nעברית\nमानक हिन्दी\nहिन्दी\nHrvatski\nKreyòl ayisyen\nMagyar\nBahasa Indonesia\nItaliano\n日本語\nಕನ್ನಡ\n한국어\nLietuviškai\nLatvian\nമലയാളം\nमराठी\nMalay\nNederlands\nNorwegian\nPolskie\nPortuguês\nPortuguês (Brazillian)\nPortuguês (European)\nLimba română\nРусский\nSlovenčina\nSlovenščina\nсрпски\nSvenska\nSwahili\nதமிழ்\nతెలుగు\nไทย\nFilipino\nTürkçe\nУкраїнська мова\nTiếng Việt\n中文(简体)\n中文(繁體)\nCreate a new wallet\nI have an existing wallet"
+      },
+      "outcome": "Initial side-panel target transitioned to a new home.html#/onboarding/welcome tab; wallet setup rendered. No wallet created or imported."
+    }
+  ]
+}

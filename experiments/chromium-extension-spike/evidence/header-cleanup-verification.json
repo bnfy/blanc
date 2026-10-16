@@ -1,0 +1,66 @@
+{
+  "removedFixtureVisits": [
+    {
+      "url": "http://127.0.0.1:54863/cream",
+      "timestamps": [
+        1792177343468.926
+      ]
+    },
+    {
+      "url": "http://127.0.0.1:55104/cream",
+      "timestamps": [
+        1792177543136.494
+      ]
+    },
+    {
+      "url": "http://127.0.0.1:55104/dark",
+      "timestamps": [
+        1792177544200.31
+      ]
+    },
+    {
+      "url": "http://127.0.0.1:55189/cream",
+      "timestamps": [
+        1792177585915.267
+      ]
+    },
+    {
+      "url": "http://127.0.0.1:55189/dark",
+      "timestamps": [
+        1792177587717.09
+      ]
+    },
+    {
+      "url": "http://127.0.0.1:55226/cream",
+      "timestamps": [
+        1792177632344.853
+      ]
+    },
+    {
+      "url": "http://127.0.0.1:55226/dark",
+      "timestamps": [
+        1792177632169.064
+      ]
+    },
+    {
+      "url": "http://127.0.0.1:55363/cream",
+      "timestamps": [
+        1792177738694.913
+      ]
+    },
+    {
+      "url": "http://127.0.0.1:55363/dark",
+      "timestamps": [
+        1792177738483.877
+      ]
+    }
+  ],
+  "originalTabs": [
+    "chrome://newtab/",
+    "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/home.html#/onboarding/welcome"
+  ],
+  "remainingTopSites": [
+    "https://chromewebstore.google.com/category/extensions",
+    "https://chrome.google.com/webstore?hl=en"
+  ]
+}
