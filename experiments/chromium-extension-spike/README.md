@@ -183,7 +183,7 @@ per-tab `WebContents` mute, not Chromium's site-level setting.
 Electron's history-only `/clear` rather than Chromium's wider Clear browsing
 data; it is refused from a private window. It is destructive: exercise it only
 on a disposable `--user-data-dir`, never the permanent prototype profile
-(pending Mac verification; see `results.md`).
+(verified that way on the Mac on October 16; see `results.md`).
 
 It does not implement Blanc's Favorites and History sheets, tab groups,
 Spaces, Glance, blocking, private tabs, sync, or the expanded Island's

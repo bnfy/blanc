@@ -921,7 +921,7 @@ Evidence: Codex's retest record (`/private/tmp/blanc-pr861-864-retest-results.md
 on the Mac), to be committed under `evidence/tab-controls-*`.
 
 
-## `/clear` on a disposable profile — October 16, 2026 (implementation; compilation and runtime verification pending)
+## `/clear` on a disposable profile — October 16, 2026 (built and verified on a disposable profile at `742cfb4`)
 
 `/clear` is back in the slash allowlist and backed by a `clearHistory` bridge
 method. It mirrors Electron's history-only `/clear`: the handler calls
@@ -964,3 +964,13 @@ coalesced per kind like the bookmarks refresh. TopSites re-queries after
 history deletions, so `/clear` and Chromium's own history manager both reach
 an open page. `/clear` was not run; no cold rebuild. The disposable-profile
 protocol above still applies in full.
+
+Mac result on `742cfb4` (Codex): the guarded build passed in 35 seconds with
+no cold rebuild and the final check reported zero pending work. On a
+disposable `--user-data-dir`: `/clear` emptied history, the already open start
+page dropped its recent sites live, the Favorite and other profile data were
+preserved, the private-window attempt was refused, and the cleared state
+survived a relaunch. The disposable profile was deleted afterwards and the
+permanent profile was never touched by `/clear`. Evidence: Codex's retest
+record (`/private/tmp/blanc-pr861-864-retest-results.md` on the Mac), to be
+committed under `evidence/clear-history-*`.
