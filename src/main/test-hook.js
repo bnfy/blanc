@@ -2949,6 +2949,44 @@ function install(refs) {
       );
     },
     utilitySheetContentsId() { return getUtilitySheetWebContents()?.id ?? null; },
+    // Settings → Sync device pairing (design 2026-10-16): the off-state code
+    // path as the person sees it, and the clicks/typing that drive it. Reads
+    // DOM state only; the pairing code itself never appears in this record.
+    settingsSyncPairingDom() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc || !wc.getURL().startsWith('blanc://settings')) return null;
+      return wc.executeJavaScript(`(() => {
+        const byId = (id) => document.getElementById(id);
+        const visible = (el) => !!el && !el.hidden && el.offsetParent !== null;
+        return {
+          pathOrder: [...document.querySelectorAll('#syncPaths .sync-path')].map((b) => b.id),
+          pathsVisible: visible(byId('syncPaths')),
+          codeFormVisible: visible(byId('syncCodeForm')),
+          nameFormVisible: visible(byId('syncForm')),
+          connectDisabled: !!byId('syncCodeSubmit')?.disabled,
+          codeValue: byId('syncCode')?.value ?? '',
+          status: byId('syncCodeStatus')?.textContent ?? '',
+        };
+      })()`);
+    },
+    settingsSyncPairingAct(action, value) {
+      const wc = getUtilitySheetWebContents();
+      if (!wc || !wc.getURL().startsWith('blanc://settings')) return false;
+      return wc.executeJavaScript(`(() => {
+        const action = ${JSON.stringify(String(action))};
+        const value = ${JSON.stringify(String(value ?? ''))};
+        if (action === 'choose-code') { document.getElementById('syncPathCode').click(); return true; }
+        if (action === 'use-passphrase') { document.getElementById('syncUsePassphrase').click(); return true; }
+        if (action === 'back') { document.getElementById('syncCodeBack').click(); return true; }
+        if (action === 'type-code') {
+          const input = document.getElementById('syncCode');
+          input.value = value;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          return true;
+        }
+        return false;
+      })()`);
+    },
     async destroyUtilitySheetContents() {
       const wc = getUtilitySheetWebContents();
       if (!wc || wc.isDestroyed()) return false;
