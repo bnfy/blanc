@@ -213,6 +213,27 @@
       await request('saveFavorite', [tab.id, typeof folder === 'string' ? folder : '']);
       await refresh();
     },
+    // Pin, mute and reorder are TabStripModel operations; the snapshot's
+    // pinned/muted/audible fields feed the copied rows and pill unchanged.
+    toggleTabPinned: async (id) => {
+      const pinned = await request('togglePinned', [id]);
+      await refresh();
+      return pinned;
+    },
+    toggleTabMuted: async (id) => {
+      const muted = await request('toggleMuted', [id]);
+      await refresh();
+      return muted;
+    },
+    moveTab: async (id, target) => {
+      // No tab groups exist in the prototype, so a grouped target is a stale
+      // or foreign intent; Electron rejects those too.
+      if (target?.groupId != null) return false;
+      const moved = await request('moveTab', [id, Number.isInteger(target?.beforeId) ? target.beforeId : null]);
+      await refresh();
+      return moved === true;
+    },
+    reorderGroup: async () => false,
     listFavorites: () => request('listFavorites'),
     listHistory: (options) => {
       const limit = Number.isInteger(options?.limit) ? options.limit : 300;

@@ -150,7 +150,7 @@ let overlaySource = assets.get(overlayScript).toString('utf8');
 const commandsAnchor = '  ];\n\n  function runCommand(command) {';
 if (overlaySource.split(commandsAnchor).length !== 2) fail('command list anchor changed');
 overlaySource = overlaySource.replace(commandsAnchor,
-  "  ].filter((command) => ['/downloads', '/new', '/close', '/save', '/favorites', '/history'].includes(command.cmd));\n\n  function runCommand(command) {");
+  "  ].filter((command) => ['/downloads', '/new', '/close', '/save', '/favorites', '/history', '/pin', '/mute'].includes(command.cmd));\n\n  function runCommand(command) {");
 assets.set(overlayScript, overlaySource);
 
 for (const [target, value] of assets) writeIfChanged(target, value);

@@ -859,3 +859,40 @@ prototype left open. The exact build took 36.54 seconds (7 steps), and the
 final guard scheduled zero actions. See the committed
 [focus report](evidence/favorites-focus-results.md) and
 [run record](evidence/favorites-focus-run.json).
+
+
+## Pin, mute and reorder through the Island — October 16, 2026 (implementation; compilation and runtime verification pending)
+
+The copied Island's row pin and mute controls, `/pin`, `/mute`, drag-to-reorder
+in the ⌘L panel (`tab-drag.js`) and its ⌥⇧↑/↓ keyboard move are now backed by
+Chromium's `TabStripModel`. Tab snapshots carry `muted` (`IsAudioMuted`) and
+`audible` (`IsCurrentlyAudible`) beside the existing `pinned`, so the rows'
+mute control and badge draw from the same fields Electron sends.
+
+- `togglePinned` → `SetTabPinned(index, !pinned)`; Chromium moves the tab to
+  the pinned boundary, and the reply re-reads the state at its new index.
+- `toggleMuted` → `WebContents::SetAudioMuted(!muted)`, the per-tab mute
+  Electron uses (not Chromium's site-level content-setting mute, so
+  Chromium's own "Unmute site" entry will not describe it).
+- `moveTab [id, beforeId | null]` mirrors Electron's `resolveTabMove`: the
+  pinned state never changes, a tab lands only inside its own bucket (pinned
+  or unpinned), a before-tab from the other bucket or an unknown id is
+  rejected with `false`, and `null` means the end of the bucket; the host
+  rejects any intent naming a tab group, since the prototype has none.
+  `reorderGroup` resolves `false`.
+- `prototype.css` no longer hides `.row-pin` and `.row-mute`; `.row-glance`
+  stays hidden. The slash allowlist adds `/pin` and `/mute`.
+
+Checks run in the Linux session: Node syntax checks, the eight build-guard
+tests and ESLint recommended rules over the prototype JavaScript. The native
+source is not compiled here. Mac checklist: `prepare.mjs` → `build.mjs --check`
+→ `--build`; then with native input on fixture tabs: the row pin moves a tab to
+the pinned leading section and back; `/pin` and `/mute` act on the active tab;
+a playing fixture shows the row mute control and badge, and muting silences it
+(`chrome://media-internals` or the fixture's own state as the oracle); dragging
+a row reorders it within the loose section, a pinned row within the pinned
+section, and a drop across the boundary is refused; ⌥⇧↑/↓ moves the focused
+row; Chromium's own order (visible after showing a normal window's tab strip is
+not possible here, so use the snapshot or `chrome://tabs`-equivalent DevTools
+readback) matches the Island; the original tabs are preserved. Do not record
+any of this as passed from this section.

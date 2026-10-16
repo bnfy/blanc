@@ -573,6 +573,9 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
                     .Set("canGoBack", controller.CanGoBack())
                     .Set("canGoForward", controller.CanGoForward())
                     .Set("pinned", model->IsTabPinned(index))
+                    // Electron reads the same two signals from its WebContents.
+                    .Set("muted", contents->IsAudioMuted())
+                    .Set("audible", contents->IsCurrentlyAudible())
                     .Set("private", browser->GetProfile()->IsOffTheRecord())
                     .Set("groupId", base::Value())
                     .Set("blockedCount", 0));
@@ -896,6 +899,49 @@ class Handler : public content::WebUIMessageHandler {
         return;
       }
       reply(false, base::Value("Expected a tab ID and a folder name."));
+      return;
+    }
+    if (method == "togglePinned" && args.size() == 1) {
+      // TabStripModel moves the tab to the pinned boundary itself, so re-read
+      // its state at the new index.
+      model->SetTabPinned(index, !model->IsTabPinned(index));
+      reply(true, base::Value(model->IsTabPinned(model->GetIndexOfWebContents(tab))));
+      return;
+    }
+    if (method == "toggleMuted" && args.size() == 1) {
+      // Per-tab mute on the WebContents, as Electron's toggleTabMuted does.
+      tab->SetAudioMuted(!tab->IsAudioMuted());
+      reply(true, base::Value(tab->IsAudioMuted()));
+      return;
+    }
+    if (method == "moveTab" && args.size() == 2 &&
+        (args[1].is_int() || args[1].is_none())) {
+      // Electron's resolveTabMove: the pinned state never changes, so a tab
+      // only lands inside its own bucket; a before-tab from the other bucket
+      // or another window is rejected rather than coerced.
+      const int first_unpinned = model->IndexOfFirstNonPinnedTab();
+      const bool pinned = model->IsTabPinned(index);
+      const int bucket_begin = pinned ? 0 : first_unpinned;
+      const int bucket_end = pinned ? first_unpinned : model->count();  // exclusive
+      int to = bucket_end - 1;
+      if (args[1].is_int()) {
+        int before = -1;
+        for (int i = 0; i < model->count(); ++i) {
+          if (sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id() ==
+              args[1].GetInt()) {
+            before = i;
+            break;
+          }
+        }
+        if (before < bucket_begin || before >= bucket_end) {
+          reply(true, base::Value(false));
+          return;
+        }
+        // Land immediately before `before`, after the source leaves its slot.
+        to = before > index ? before - 1 : before;
+      }
+      if (to != index) model->MoveWebContentsAt(index, to, false);
+      reply(true, base::Value(true));
       return;
     }
     if (method == "switchTab") {
