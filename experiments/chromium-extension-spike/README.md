@@ -158,7 +158,7 @@ existing private-page routing.
 
 The prototype polls Chromium tab state and exposes only a small native bridge.
 Favorites and history are Chromium's own `BookmarkModel` and `HistoryService`
-behind Blanc's UI: the pill and panel hearts toggle a bookmark under Other
+behind Blanc's UI: the pill and panel hearts and ⌘D toggle a bookmark under Other
 bookmarks, `/save [folder]` adds (or moves into a folder directly under Other
 bookmarks, matched case-insensitively like Electron), the Quick Switcher lists
 Favorites and the 300 most recent history entries with Electron's ranking, and

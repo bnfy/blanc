@@ -790,7 +790,7 @@ guard kept as defense in depth. The retest above used a real http(s) page in a
 private window, not its start page.
 
 
-## ⌘D toggles the Island Favorite — October 16, 2026 (implementation; compilation and runtime verification pending)
+## ⌘D toggles the Island Favorite — October 16, 2026 (built and natively retested on the Mac at `a50eb2a`)
 
 Chromium's `IDC_BOOKMARK_THIS_TAB` (⌘D) opened the native star bubble, which
 has no toolbar to anchor to in an Island window. `prepare.mjs` now inserts a
@@ -829,9 +829,14 @@ process-wide `content::WebContentsDelegate` on the Island WebContents whose
 with the Island view's FocusManager (the pattern BrowserView and Chromium's
 side-panel WebUI views use), and the host's close path now asks the bridge to
 focus the page (`focusPage`), matching Electron's hideOverlay; extension
-activation keeps passing `focus = false` so the native popup takes focus. Not
-compiled or tested here. Mac retest: ⌘D with the panel open and the address
-input focused toggles the heart; Escape then ⌘L reopens the Island without a
-page click; ⌘R and ⌘[ work from the open panel; Escape still returns typing to
-the page; an extension popup still receives focus after selection; the
-original tabs are preserved.
+activation keeps passing `focus = false` so the native popup takes focus.
+
+Mac result on `a50eb2a` (Codex): the guarded build passed in 37 seconds with
+no cold rebuild, and every native retest passed: ⌘D toggles the Favorite with
+the Island's address input focused; Escape then ⌘L reopens the Island without
+clicking the page; ⌘R and ⌘[ work from the open panel; Escape restores typing
+to the page; Bitwarden's popup retains keyboard focus after selection from the
+Extensions view. Fixtures were cleaned up, the original tab preserved and the
+prototype left open. Evidence: Codex's run record
+(`/private/tmp/blanc-pr858-focus-results.md` on the Mac), to be committed under
+`evidence/favorites-*` with the earlier records.
