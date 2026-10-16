@@ -47,8 +47,8 @@ test('pages use the light copies while full-size links keep the pinned captures'
   const read = file => fs.readFileSync(path.join(site, file), 'utf8');
   const home = read('src/pages/index.astro');
   for (const name of ['rest', 'tabs', 'command']) {
-    assert.match(home, new RegExp(`<source media="\\(max-width: 760px\\)" srcset="/revamp/island-roman-${name}-800\\.webp"`));
-    assert.match(home, new RegExp(`src="/revamp/island-roman-${name}-display\\.webp"`));
+    assert.match(home, new RegExp(`<source media="\\(max-width: 760px\\)" srcset="/revamp/island-smithsonian-${name}-c70c55fa-800\\.webp"`));
+    assert.match(home, new RegExp(`src="/revamp/island-smithsonian-${name}-c70c55fa-display\\.webp"`));
   }
   // Pages never load the pinned lossless originals directly.
   assert.doesNotMatch(home + read('src/components/GestureDemo.astro'), /src="\/revamp\/(island-roman-[a-z]+|champagne-desktop-v2|space-black-laptop-v2)\.webp"/);

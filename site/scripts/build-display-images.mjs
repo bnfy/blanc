@@ -22,6 +22,12 @@ const jobs = [
     // Full-size lossy copy for desktops; the lossless original stays pinned.
     { source: `revamp/island-roman-${name}.webp`, output: `revamp/island-roman-${name}-display.webp` },
   ]),
+  // The homepage's Island stage: candidates from main at c70c55fa over the
+  // Smithsonian American Art Museum (docs/website-candidate-captures-c70c55fa.json).
+  ...['rest', 'tabs', 'command'].flatMap(name => [
+    { source: `revamp/island-smithsonian-${name}-c70c55fa.webp`, output: `revamp/island-smithsonian-${name}-c70c55fa-800.webp`, width: 800 },
+    { source: `revamp/island-smithsonian-${name}-c70c55fa.webp`, output: `revamp/island-smithsonian-${name}-c70c55fa-display.webp` },
+  ]),
   // Glance demo: a phone copy of the wide Nyhavn photo. (A WebP copy of the
   // noisy Kusama JPEG came out larger than the original, so it stays as is.)
   { source: 'revamp/glance-nyhavn.webp', output: 'revamp/glance-nyhavn-800.webp', width: 800 },

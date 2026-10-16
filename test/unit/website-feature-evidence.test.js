@@ -417,6 +417,20 @@ test('candidate Start Page captures are tied to main after v1.34.0 and are all t
     const job = display.find(item => `site/public/${item.output}` === capture.webp.file);
     assert.equal(job?.sourceSha256, capture.sha256, `${capture.webp.file} is the display copy of ${capture.file}`);
   }
+  // The Island stage's three states, over Smithsonian pages, with their
+  // display copies made from these exact files.
+  assert.deepEqual(manifest.island.captures.map(capture => capture.state), ['rest', 'tabs', 'command']);
+  assert.match(manifest.island.rights, /CC0/);
+  for (const capture of manifest.island.captures) {
+    assert.equal(hash(capture.file), capture.sha256, capture.file);
+    const jobs = display.filter(item => `site/public/${item.source}` === capture.file);
+    assert.equal(jobs.length, 2, `${capture.file} has a phone and a display copy`);
+    for (const job of jobs) assert.equal(job.sourceSha256, capture.sha256);
+  }
+  const pin = read('site/src/pages/index.astro').split('id="island"')[1].split('</section>')[0];
+  const pinned = [...pin.matchAll(/\/revamp\/island-[a-z0-9-]+\.webp/g)].map(match => match[0]);
+  assert.equal(pinned.length, 6);
+  for (const file of pinned) assert.match(file, /^\/revamp\/island-smithsonian-(rest|tabs|command)-c70c55fa-(800|display)\.webp$/);
   // Every Start Page capture on the homepage is one of these candidates.
   const homepage = read('site/src/pages/index.astro');
   const shown = [...homepage.matchAll(/\/feature-captures\/(?:home-wallpaper-|ledger-|billboard-|shelf-|tally-|\$\{name\.toLowerCase\(\)\}-)[^"`]*\.webp/g)].map(match => match[0]);

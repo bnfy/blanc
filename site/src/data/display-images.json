@@ -42,6 +42,48 @@
     "height": 1000
   },
   {
+    "source": "revamp/island-smithsonian-rest-c70c55fa.webp",
+    "sourceSha256": "4f4639cc5abd056eb160db156fb09265b438e643a45c882ec74869ba2ff29dc6",
+    "output": "revamp/island-smithsonian-rest-c70c55fa-800.webp",
+    "width": 800,
+    "height": 571
+  },
+  {
+    "source": "revamp/island-smithsonian-rest-c70c55fa.webp",
+    "sourceSha256": "4f4639cc5abd056eb160db156fb09265b438e643a45c882ec74869ba2ff29dc6",
+    "output": "revamp/island-smithsonian-rest-c70c55fa-display.webp",
+    "width": 1400,
+    "height": 1000
+  },
+  {
+    "source": "revamp/island-smithsonian-tabs-c70c55fa.webp",
+    "sourceSha256": "dda4ffd4a8990b871e75b9d88ec211d027544ef4c3d3ca3f479545ebd0932e8b",
+    "output": "revamp/island-smithsonian-tabs-c70c55fa-800.webp",
+    "width": 800,
+    "height": 571
+  },
+  {
+    "source": "revamp/island-smithsonian-tabs-c70c55fa.webp",
+    "sourceSha256": "dda4ffd4a8990b871e75b9d88ec211d027544ef4c3d3ca3f479545ebd0932e8b",
+    "output": "revamp/island-smithsonian-tabs-c70c55fa-display.webp",
+    "width": 1400,
+    "height": 1000
+  },
+  {
+    "source": "revamp/island-smithsonian-command-c70c55fa.webp",
+    "sourceSha256": "4704254963528f4815e1432615f31e16ffe869513a4f3c6452b0f82ba753ca29",
+    "output": "revamp/island-smithsonian-command-c70c55fa-800.webp",
+    "width": 800,
+    "height": 571
+  },
+  {
+    "source": "revamp/island-smithsonian-command-c70c55fa.webp",
+    "sourceSha256": "4704254963528f4815e1432615f31e16ffe869513a4f3c6452b0f82ba753ca29",
+    "output": "revamp/island-smithsonian-command-c70c55fa-display.webp",
+    "width": 1400,
+    "height": 1000
+  },
+  {
     "source": "revamp/glance-nyhavn.webp",
     "sourceSha256": "95cec15601f3c3d4371fcb8d17d3455091bd25c79c347ac000a2d096734a3e31",
     "output": "revamp/glance-nyhavn-800.webp",

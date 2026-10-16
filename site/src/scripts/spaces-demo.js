@@ -8,7 +8,7 @@
 const STEP_MS = 1100;
 const EASING = 'cubic-bezier(.2, .9, .25, 1)';
 
-// Scales the stage to its column (never past 1.3×) and lines the menu up
+// Scales the stage to its column (never past 1.8×) and lines the menu up
 // with the mark's left edge. SpacesDemo also inlines this right after the
 // element so the demo is sized while parsing; keep it self-contained,
 // because it runs from its source text.
@@ -17,7 +17,7 @@ export function fitSpacesDemo(host, view) {
   const mark = host.shadowRoot?.querySelector('.space-mark');
   if (!stage || !mark || !host.clientWidth) return;
   const width = parseFloat(view.getComputedStyle(host).getPropertyValue('--demo-width')) || 400;
-  host.style.setProperty('--demo-scale', String(Math.min(1.3, host.clientWidth / width)));
+  host.style.setProperty('--demo-scale', String(Math.min(1.8, host.clientWidth / width)));
   const ratio = stage.getBoundingClientRect().width / width;
   if (ratio > 0) stage.style.setProperty('--menu-x', `${(mark.getBoundingClientRect().left - stage.getBoundingClientRect().left) / ratio}px`);
 }

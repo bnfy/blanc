@@ -28,6 +28,10 @@ test('the homepage keeps the live demos in the redesign, each working without th
   const glance = read('site/src/components/GlanceDemo.astro');
   assert.match(glance, /\{!compact && <h3 id="glance-title">/);
   assert.match(glance, /compact \? <p class="sr-only" id="glance-hint">Drag the divider to resize\.<\/p>/);
+  // Every drawn Island and coded illustration uses the app's interface text
+  // since #840: Instrument Sans at width 98 and +0.01em.
+  assert.match(read('site/src/components/GlanceIsland.astro'), /:host \{[^}]*font-family:var\(--font-text\);[^}]*letter-spacing:var\(--text-tracking\);/);
+  assert.match(css, /\.tool-illustration \{[^}]*font-family: "Instrument Sans", var\(--font-ui\);\s*font-variation-settings: "wdth" 98;\s*letter-spacing: 0\.01em;/);
   const gestures = read('site/src/components/GestureDemo.astro');
   assert.match(gestures, /\{!compact && <button class="gesture-replay"/);
   assert.match(gestures, /\{!compact && <p class="gesture-setup">/);

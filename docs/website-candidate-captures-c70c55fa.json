@@ -137,5 +137,56 @@
         "sha256": "603ca24652dd3045645832a97652bd7031cd91f50ce7e2eeeaab5af41d731e7d"
       }
     }
-  ]
+  ],
+  "island": {
+    "method": "BLANC_PACKAGED_EXECUTABLE=dist/mac-arm64/Blanc.app/Contents/MacOS/Blanc BLANC_CAPTURE_VERSION=1.34.0 BLANC_CAPTURE_SUFFIX=c70c55fa node scripts/capture-installed-island.mjs. Native window captures (2560×1600, kept out of the repository; their hashes are below) of live pages in a disposable profile with Blanc Blocker as shipped. The Island is opened with the same call a click makes and / is typed into it; the pointer is parked so no row shows a hover. Lossless 1400×1000 crops (left 580, top 0); the site shows 16:9 display copies from site/scripts/build-display-images.mjs.",
+    "pages": [
+      {
+        "url": "https://www.si.edu/openaccess",
+        "title": "Smithsonian Open Access | Smithsonian Institution"
+      },
+      {
+        "url": "https://americanart.si.edu/artwork/grand-canyon-yellowstone-17831",
+        "title": "The Grand Canyon of the Yellowstone | Smithsonian American Art Museum"
+      },
+      {
+        "url": "https://americanart.si.edu/artwork/among-sierra-nevada-california-2059",
+        "title": "Among the Sierra Nevada, California | Smithsonian American Art Museum",
+        "active": true
+      }
+    ],
+    "rights": "The active page shows Albert Bierstadt, Among the Sierra Nevada, California (1868), Smithsonian American Art Museum, released CC0 through Smithsonian Open Access (marked Free to use on the page). The pages’ design, text and marks are the Smithsonian’s, shown as an ordinary view of a public website.",
+    "crop": {
+      "left": 580,
+      "top": 0,
+      "width": 1400,
+      "height": 1000
+    },
+    "captures": [
+      {
+        "state": "rest",
+        "windowSha256": "543ce77e189b5f743879529cd1bf393c81c82aaf9eaaacef3d14d1f3242f35cd",
+        "file": "site/public/revamp/island-smithsonian-rest-c70c55fa.webp",
+        "width": 1400,
+        "height": 1000,
+        "sha256": "4f4639cc5abd056eb160db156fb09265b438e643a45c882ec74869ba2ff29dc6"
+      },
+      {
+        "state": "tabs",
+        "windowSha256": "56e4c6e208338e54cebc136b95d4c4c9b33f399bc0cc239ca8b703f2fa2b5bd2",
+        "file": "site/public/revamp/island-smithsonian-tabs-c70c55fa.webp",
+        "width": 1400,
+        "height": 1000,
+        "sha256": "dda4ffd4a8990b871e75b9d88ec211d027544ef4c3d3ca3f479545ebd0932e8b"
+      },
+      {
+        "state": "command",
+        "windowSha256": "c32b63cfbd3087a4f9d83532f4b169c41fe23a110be6f59701c625387fa8f4a3",
+        "file": "site/public/revamp/island-smithsonian-command-c70c55fa.webp",
+        "width": 1400,
+        "height": 1000,
+        "sha256": "4704254963528f4815e1432615f31e16ffe869513a4f3c6452b0f82ba753ca29"
+      }
+    ]
+  }
 }

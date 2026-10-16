@@ -397,7 +397,7 @@
   gap: 56px;
 }
 .spaces-copy {
-  flex: 1 1 340px;
+  flex: 1 1 320px;
   min-width: 0;
 }
 .spaces h2 {
@@ -417,8 +417,8 @@
    (spaces-demo.js), on a surface card. */
 .spaces-demo {
   display: grid;
-  flex: 1.4 1 520px;
-  grid-template-columns: minmax(0, 520px);
+  flex: 2 1 560px;
+  grid-template-columns: minmax(0, 720px);
   justify-content: center;
   min-width: 0;
   box-sizing: border-box;
@@ -655,8 +655,17 @@
 /* Live demos in place of a capture: Glance keeps the cards' 16:10 media,
    its split centered on the surface; the wide gestures card sizes to its
    stage. */
-.tool-card-wide .tool-demo {
+.tool-card-wide .tool-demo,
+.tool-card-full .tool-demo {
   aspect-ratio: auto;
+}
+/* Glance takes the full row, its split across the top, so its Island reads
+   near the app's size; the copy sits below. */
+.tool-card-full {
+  grid-column: 1 / -1;
+}
+.tool-card-full .tool-copy {
+  max-width: 44em;
 }
 .tool-card-wide {
   display: grid;
@@ -676,7 +685,7 @@
   height: 100%;
   box-sizing: border-box;
   margin: 0;
-  padding: 24px;
+  padding: clamp(16px, 3vw, 36px);
   background: var(--surface);
 }
 .glance-viewport {
@@ -976,9 +985,6 @@
   }
 }
 @media (max-width: 760px) {
-  #glance .glance-demo {
-    padding: 16px;
-  }
   .gesture-scene {
     display: block;
     min-height: 0;
@@ -1010,13 +1016,17 @@
 
 /* Coded illustrations, drawn to the v1.34.0 interface: a quiet tab is a
    half-strength row in the open Island (never a dot), and the 1Password key
-   hint sits beside the shield in the resting Island. */
+   hint sits beside the shield in the resting Island. Their text is the app's
+   interface text since #840: Instrument Sans at width 98 and +0.01em (its
+   @font-face comes with SpacesDemo, from the app's own file). */
 .tool-illustration {
   position: relative;
   box-sizing: border-box;
   background: var(--surface);
   color: var(--ink);
-  font-family: var(--font-ui);
+  font-family: "Instrument Sans", var(--font-ui);
+  font-variation-settings: "wdth" 98;
+  letter-spacing: 0.01em;
 }
 .quiet-list {
   position: absolute;
