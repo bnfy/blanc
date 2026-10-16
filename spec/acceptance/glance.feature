@@ -297,3 +297,22 @@ Feature: Glance reference pane
     And the reference pane is the focused pane
     And I press the find command
     Then the find capsule is fresh and bound to the reference
+
+  @F34-1 @F34 @D11
+  Scenario: The Island stays clear of the macOS traffic lights while Glance is open
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    Then a full-width Island stays clear of the window's traffic lights
+    When I narrow the workspace below the side-by-side threshold
+    Then a full-width Island stays clear of the window's traffic lights
+
+  @F34-1 @F34 @F28 @D11
+  Scenario: The Island stays clear of the Windows and Linux window controls while Glance is open
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    Then a full-width Island stays clear of the Windows and Linux window controls
+    When I narrow the workspace below the side-by-side threshold
+    Then a full-width Island stays clear of the Windows and Linux window controls
+    When I switch the Glance window to vertical tabs
+    Then a full-width Island stays clear of the Windows and Linux window controls
+    And the Glance window returns to its usual layout

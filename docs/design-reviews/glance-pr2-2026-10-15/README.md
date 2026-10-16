@@ -30,3 +30,24 @@ Window content 700 × 800, Glance stacked below the main page.
 1. Back and Reload lead the stacked header.
 2. The bottom hairline is darker with the reference focused. The stacked
    header still hides the GLANCE label at this width, as before.
+
+## island-clearance-macos-side-by-side-before-above-after.png
+
+Window content 1200 × 800, Glance side by side, macOS. The Island is forced to
+its maximum width with a filler, so the result does not depend on how many
+tabs are open; the crop is the main pane's strip. "Before" is `origin/main`
+at `3fa7c7e4`.
+
+1. Before: the Island reached to within a few pixels of the window's left
+   edge, where macOS draws the traffic lights (they are native and do not
+   appear in a page capture). This dates from Glance's first release (#139).
+2. After: the Island keeps the same 85 px each side it keeps without Glance.
+
+## island-clearance-windows-stacked-vertical-tabs-before-above-after.png
+
+Window content 900 × 800, vertical tabs on, Glance stacked, the strip set to
+`data-platform="win32"` with three stand-in buttons in `#windowControls`. The
+crop is the page area's strip, right of the rail.
+
+1. Before: the Island ran under minimize, maximize and close.
+2. After: it reserves the controls' width on both sides and stays centred.

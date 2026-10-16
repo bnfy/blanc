@@ -1194,3 +1194,80 @@ Then('the find capsule is fresh and bound to the reference', async function () {
   await waitForValue(() => page.locator('#findInput').inputValue(), (value) => value === '', 'query cleared');
   assert.equal(await page.locator('#findCount').textContent(), '');
 });
+
+// macOS draws its traffic lights at the window's left edge, inside the main
+// pane's strip. Without Glance the Island keeps 85px clear on each side; with
+// Glance open it must keep the same clearance, in both layouts.
+Then("a full-width Island stays clear of the window's traffic lights", async function () {
+  if ((await ctx.app.evaluate(() => process.platform)) !== 'darwin') return 'skipped';
+  const state = await waitForValue(() => this.state(), (value) => value.glanceGeometry, 'Glance geometry');
+  const chrome = await mainChromePage();
+  await chrome.locator('#strip.glance-open').waitFor();
+  // A pill with many tabs grows to its maximum width; force that width with
+  // a filler so the result does not depend on how many tabs the scenario has.
+  const box = await chrome.evaluate(() => {
+    const pill = document.getElementById('islandPill');
+    const filler = document.createElement('span');
+    filler.style.cssText = 'flex: 0 0 4000px; height: 1px';
+    pill.append(filler);
+    const rect = pill.getBoundingClientRect();
+    filler.remove();
+    return { left: rect.left, right: rect.right, direction: document.getElementById('strip').dataset.glanceDirection };
+  });
+  const { primary, page } = state.glanceGeometry;
+  const paneRight = box.direction === 'horizontal' ? primary.x + primary.width : page.x + page.width;
+  assert.ok(box.left >= 80, `${box.direction}: the Island starts ${box.left}px from the left edge, under the traffic lights`);
+  assert.ok(paneRight - box.right >= 80, `${box.direction}: the Island is not centred (right gap ${paneRight - box.right}px)`);
+  if (box.direction === 'vertical') await this.call('setWindowContentSize', 1200, 800);
+});
+
+// Windows and Linux draw minimize/maximize/close at the window's top-right
+// (#windowControls, --window-controls-w). Side by side they sit over the
+// Glance header; stacked they sit over the main page's strip. On macOS the
+// strip is told it is Windows for the measurement, which is what the CSS keys on.
+Then('a full-width Island stays clear of the Windows and Linux window controls', async function () {
+  const state = await waitForValue(() => this.state(), (value) => value.glanceGeometry, 'Glance geometry');
+  const chrome = await mainChromePage();
+  await chrome.locator('#strip.glance-open').waitFor();
+  const box = await chrome.evaluate(() => {
+    const root = document.documentElement;
+    const realPlatform = root.dataset.platform;
+    if (realPlatform === 'darwin') root.dataset.platform = 'win32';
+    const pill = document.getElementById('islandPill');
+    const filler = document.createElement('span');
+    filler.style.cssText = 'flex: 0 0 4000px; height: 1px';
+    pill.append(filler);
+    const rect = pill.getBoundingClientRect();
+    const controls = parseFloat(getComputedStyle(root).getPropertyValue('--window-controls-w'));
+    filler.remove();
+    root.dataset.platform = realPlatform;
+    return {
+      left: rect.left, right: rect.right, controls,
+      direction: document.getElementById('strip').dataset.glanceDirection,
+      layout: root.dataset.tabLayout ?? 'island',
+    };
+  });
+  const { primary, page } = state.glanceGeometry;
+  const where = `${box.layout}/${box.direction}`;
+  if (box.direction === 'horizontal') {
+    // The controls are over the Glance header; the Island stays over the main pane.
+    assert.ok(box.right <= primary.x + primary.width, `${where}: the Island runs past the main pane (${box.right}px)`);
+  } else {
+    const windowRight = page.x + page.width;
+    assert.ok(windowRight - box.right >= box.controls,
+      `${where}: the Island reaches under the window controls (right gap ${windowRight - box.right}px, controls ${box.controls}px)`);
+    assert.ok(Math.abs((box.left - page.x) - (windowRight - box.right)) <= 2, `${where}: the Island is not centred over the page`);
+  }
+});
+
+When('I switch the Glance window to vertical tabs', async function () {
+  await this.call('setTabLayout', 'vertical');
+  const chrome = await mainChromePage();
+  await chrome.waitForFunction(() => document.documentElement.dataset.tabLayout === 'vertical');
+  await this.waitForState((state) => state.glanceGeometry?.direction === 'vertical');
+});
+
+Then('the Glance window returns to its usual layout', async function () {
+  await this.call('setTabLayout', 'island');
+  await this.call('setWindowContentSize', 1200, 800);
+});

@@ -260,6 +260,13 @@ button svg {
 #strip.glance-open[data-glance-direction="vertical"] #islandPill {
   max-width: calc((var(--glance-primary-width) - 2 * var(--window-controls-w) - 24px) / var(--pill-zoom));
 }
+/* macOS draws its traffic lights at the window's left edge, inside the main
+   pane's strip in both Glance layouts. Keep the same clearance the Island has
+   without Glance (#islandPill: 170px), split across both sides so the pill
+   stays centred. With vertical tabs the lights sit in the rail instead. */
+:root[data-platform="darwin"]:not([data-tab-layout="vertical"]) #strip.glance-open #islandPill {
+  max-width: calc((var(--glance-primary-width) - 170px) / var(--pill-zoom));
+}
 
 .glance-header {
   position: fixed;
@@ -498,6 +505,13 @@ button svg {
 
 :root[data-tab-layout="vertical"] #strip.glance-open #islandPill {
   max-width: calc((var(--glance-primary-width) - 24px) / var(--pill-zoom));
+}
+/* Stacked with the rail: the Island is centred over the whole page, which
+   reaches the window's right edge, where Windows and Linux draw their window
+   controls. Reserve them on both sides as the stacked rule above does; on
+   macOS --window-controls-w is 0 and the traffic lights are in the rail. */
+:root[data-tab-layout="vertical"] #strip.glance-open[data-glance-direction="vertical"] #islandPill {
+  max-width: calc((var(--glance-primary-width) - 2 * var(--window-controls-w) - 24px) / var(--pill-zoom));
 }
 
 /* In vertical mode the rail is the persistent tab presentation. The Island
