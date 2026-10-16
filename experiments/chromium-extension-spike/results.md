@@ -917,8 +917,11 @@ within the loose and pinned sections, keyboard reorder, the refused
 cross-boundary drop and the control regressions (row click, close, heart, ⌘D)
 all passed, completing the checklist after the pin, mute and restart passes on
 `3b6b418`. Fixtures were cleaned up and the permanent profile preserved.
-Evidence: Codex's retest record (`/private/tmp/blanc-pr861-864-retest-results.md`
-on the Mac), to be committed under `evidence/tab-controls-*`.
+Evidence: committed [Mac acceptance report](evidence/tab-controls-results.md),
+[initial native run](evidence/tab-controls-native-run.json), and
+[fixed-assets retest](evidence/tab-controls-retest-run.json). The report links
+the native build log and screenshots and distinguishes bridge-driven setup
+from native-input acceptance.
 
 
 ## `/clear` on a disposable profile — October 16, 2026 (built and verified on a disposable profile at `742cfb4`)
