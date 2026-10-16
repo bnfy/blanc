@@ -391,7 +391,8 @@ test('candidate Start Page captures are tied to main after v1.34.0 and are all t
   const manifest = JSON.parse(read('docs/website-candidate-captures-c70c55fa.json'));
   assert.equal(manifest.status, 'candidate');
   assert.equal(manifest.release, null);
-  assert.match(manifest.publishGate, /waits for a release that contains sourceSha/);
+  // Published early by owner decision; replaced once the release is public.
+  assert.match(manifest.publishGate, /owner decision of October 16, 2026[\s\S]*Once that release is public, rerun the capture commands/);
   assert.equal(execFileSync('git', ['rev-parse', `${manifest.sourceSha}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), manifest.sourceSha);
   execFileSync('git', ['merge-base', '--is-ancestor', 'v1.34.0', manifest.sourceSha], { cwd: root });
   assert.equal(manifest.settings.newtabDynamicWallpaper, true);

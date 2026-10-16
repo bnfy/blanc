@@ -6,7 +6,7 @@
   "sourceSha": "c70c55fa6c157a45802c618a722bef9023396a6a",
   "captureDate": "2026-10-16",
   "timezone": "America/New_York",
-  "publishGate": "Not publishable on its own: these show unreleased work (the Instrument Sans interface text from #840). The site deploy that carries them waits for a release that contains sourceSha. Before that deploy, rerun both capture commands against the public app, replace these files with -v<release> captures, and record them in a release-tied ledger.",
+  "publishGate": "Shown before release by owner decision of October 16, 2026: the owner lifted the site deploy hold and chose to publish these candidates, which show unreleased work (the Instrument Sans interface text from #840) and a v1.34.0 footer, rather than wait for a release that contains sourceSha. Once that release is public, rerun the capture commands against the public app, replace these files with -v<release> captures and record them in a release-tied ledger.",
   "source": {
     "artifact": "Local npm run dist:dir build of main at sourceSha (dist/mac-arm64/Blanc.app), not a public release asset",
     "app": "Signed with the pinned Developer ID; not notarized",
