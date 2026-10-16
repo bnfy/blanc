@@ -6624,12 +6624,18 @@ function closeGlance({ focusContent = true } = {}) {
 }
 
 function promoteGlance() {
-  const id = activeGlanceTab()?.id;
+  const reference = activeGlanceTab();
+  const id = reference?.id;
   if (!id) return false;
+  // Both names, read before the swap: the strip says which page is now main
+  // and which is in Glance.
+  const untitled = mainI18n.t('tab.untitledShort');
+  const title = displayTitle(reference) || untitled;
+  const other = displayTitle(tabs.get(rt().activeTabId)) || untitled;
   setActiveTab(id, { focusContent: true });
   const promoted = rt().activeTabId === id;
   if (promoted && hasLiveWindow()) {
-    rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.promoted'));
+    rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.promoted', { title, other }));
   }
   return promoted;
 }

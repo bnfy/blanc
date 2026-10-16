@@ -28472,43 +28472,43 @@
       }
     },
     "glance.status.promoted": {
-      "comment": "Screen reader announcement after the Glance tab becomes the main tab.",
+      "comment": "Screen reader announcement after Make main: the former reference ({title}) is the main page and the former main page ({other}) is in Glance.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Glance made main"
+            "value": "%1$@ is now the main page; %2$@ is in Glance"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Glance zur Hauptseite gemacht"
+            "value": "%1$@ ist jetzt die Hauptseite; %2$@ ist in Glance"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Glance es ahora la página principal"
+            "value": "%1$@ es ahora la página principal; %2$@ está en Glance"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Glance est maintenant la page principale"
+            "value": "%1$@ est maintenant la page principale ; %2$@ est dans Glance"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Glance ora è la scheda principale"
+            "value": "%1$@ ora è la pagina principale; %2$@ è in Glance"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O Glance agora é a página principal"
+            "value": "%1$@ agora é a página principal; %2$@ está no Glance"
           }
         }
       }

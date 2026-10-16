@@ -504,3 +504,10 @@ Feature: Glance reference pane
     Given two ordinary tabs in one workspace for Glance
     When I summon Glance from its native keyboard shortcut
     Then the picker has the dialog role and is labelled by its heading
+
+  @F34-1 @F34 @D11
+  Scenario: Make main names both pages
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And I choose Make main
+    Then the strip announces "glance-reference is now the main page; glance-main is in Glance"

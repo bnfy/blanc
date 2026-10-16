@@ -2094,3 +2094,9 @@ Then('the Glance header shows no private chip', async function () {
   }));
   assert.deepEqual(chip, { hidden: true, drawn: false });
 });
+
+Then('the strip announces {string}', async function (expected) {
+  const chrome = await mainChromePage();
+  await waitForValue(() => chrome.locator('#glanceStatus').textContent(), (text) => text === expected,
+    `the strip announcing "${expected}"`);
+});

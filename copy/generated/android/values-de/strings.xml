@@ -703,7 +703,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="shortcuts_background_link">Link in Hintergrund-Tab öffnen</string>
     <string name="glance_status_opened">%1$s in Glance geöffnet</string>
     <string name="glance_status_closed">Glance geschlossen</string>
-    <string name="glance_status_promoted">Glance zur Hauptseite gemacht</string>
+    <string name="glance_status_promoted">%1$s ist jetzt die Hauptseite; %2$s ist in Glance</string>
     <string name="glance_status_tab_closed">Glance geschlossen, weil sein Tab geschlossen wurde</string>
     <string name="glance_status_main_closed">%1$s ist jetzt die Hauptseite. Glance geschlossen.</string>
     <string name="glance_status_cancelled">Dieser Tab wurde nicht in Glance geöffnet</string>

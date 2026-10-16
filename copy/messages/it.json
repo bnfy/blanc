@@ -2562,8 +2562,8 @@
     "source": "sha256:1008c10836b5872a9ac50e128369c885836df91e8e756948e2b3abf4aed4a15e"
   },
   "glance.status.promoted": {
-    "message": "Glance ora è la scheda principale",
-    "source": "sha256:3bdc56c9dd0203256fac739476588ec54861f814522b375a9ec992cdfbec3990"
+    "message": "{title} ora è la pagina principale; {other} è in Glance",
+    "source": "sha256:f1844b81d7e515a8fbe384d87c4dac18634f8b689b6a7da50c71b2dd8a32fd85"
   },
   "glance.status.tabClosed": {
     "message": "Glance chiuso perché la sua scheda è stata chiusa",

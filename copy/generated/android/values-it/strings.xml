@@ -720,7 +720,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="shortcuts_background_link">Apri il link in una scheda in background</string>
     <string name="glance_status_opened">Aperto in Glance: %1$s</string>
     <string name="glance_status_closed">Glance chiuso</string>
-    <string name="glance_status_promoted">Glance ora è la scheda principale</string>
+    <string name="glance_status_promoted">%1$s ora è la pagina principale; %2$s è in Glance</string>
     <string name="glance_status_tab_closed">Glance chiuso perché la sua scheda è stata chiusa</string>
     <string name="glance_status_main_closed">%1$s è ora la pagina principale. Glance chiuso.</string>
     <string name="glance_status_cancelled">Quella scheda non è stata aperta in Glance</string>

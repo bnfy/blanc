@@ -2621,8 +2621,8 @@
     "note": "Screen reader announcement."
   },
   "glance.status.promoted": {
-    "message": "Glance made main",
-    "note": "Screen reader announcement after the Glance tab becomes the main tab."
+    "message": "{title} is now the main page; {other} is in Glance",
+    "note": "Screen reader announcement after Make main: the former reference ({title}) is the main page and the former main page ({other}) is in Glance."
   },
   "glance.status.tabClosed": {
     "message": "Glance closed because its tab was closed",
