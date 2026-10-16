@@ -275,6 +275,7 @@ const {
 const {
   visiblePaneIds,
   isVisiblePaneId,
+  livePaneId,
   commandTargetTab,
   focusedPane,
   glanceLayoutPayload,
@@ -3945,18 +3946,21 @@ function noteFocusedPane(owner, tabId) {
   });
 }
 
-/** A pane blurred: record whichever visible pane really holds focus now. With
- * neither (a chrome surface took focus) the record stays as it was. */
+/** A pane blurred, or the window was activated (Linux then restores focus
+ * to the last focused view without a webContents 'focus' event): record
+ * whichever visible pane really holds focus now. With neither (a chrome
+ * surface took focus) the record stays as it was. */
 function syncFocusedPane(owner) {
   if (!owner) return;
-  const id = visiblePaneIds(owner).find((tabId) => liveContents(tabs.get(tabId))?.isFocused());
+  const id = livePaneId(owner, (tabId) => liveContents(tabs.get(tabId)));
   if (id != null) noteFocusedPane(owner, id);
 }
 
 /** Glance closed, the roles swapped, the main page changed, or the reference
- * left: commands without a sending pane go to the main page again. */
+ * left: commands without a sending pane go to the main page again, unless
+ * a visible pane still really holds keyboard focus. */
 function resetFocusedPane() {
-  rt().focusedPaneTabId = rt().activeTabId ?? null;
+  rt().focusedPaneTabId = livePaneId(rt(), (tabId) => liveContents(tabs.get(tabId))) ?? rt().activeTabId ?? null;
 }
 
 // --- Ambient fill hint (spec §5) ---------------------------------------
@@ -8847,6 +8851,8 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     buildMenu(runtime);
     refreshDockMenu(); // frontmost window changed → new active-tab line
     refocusAddressBarIfWanted();
+    // Activation can hand a pane focus without that pane's 'focus' event.
+    setImmediate(() => syncFocusedPane(runtime));
   }));
   const dockReopenLifecycle = createDockReopenLifecycle({
     platform: process.platform,

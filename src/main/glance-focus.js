@@ -35,11 +35,18 @@ function commandTargetTab(runtime, sender, contentsOf) {
     });
     if (hit != null) return hit;
   }
-  const live = visiblePaneIds(runtime).find((id) => contentsOf(id)?.isFocused?.() === true);
+  const live = livePaneId(runtime, contentsOf);
   if (live != null) return live;
   const focused = runtime.focusedPaneTabId;
   if (isVisiblePaneId(runtime, focused) && contentsOf(focused)) return focused;
   return runtime.activeTabId ?? null;
+}
+
+/** The visible pane whose webContents really holds keyboard focus, or null.
+ * Focus can land on a pane without a webContents 'focus' event: on Linux,
+ * activating the window restores focus to the last focused view. */
+function livePaneId(runtime, contentsOf) {
+  return visiblePaneIds(runtime).find((id) => contentsOf(id)?.isFocused?.() === true) ?? null;
 }
 
 /** Where a foreground tab opened from a page goes: into Glance when the
@@ -61,4 +68,4 @@ function glanceLayoutPayload(layout, pane) {
   return layout ? { ...layout, focusedPane: pane === 'glance' ? 'glance' : 'main' } : null;
 }
 
-module.exports = { visiblePaneIds, isVisiblePaneId, commandTargetTab, focusedPane, glanceLayoutPayload, foregroundOpenRole };
+module.exports = { visiblePaneIds, isVisiblePaneId, livePaneId, commandTargetTab, focusedPane, glanceLayoutPayload, foregroundOpenRole };

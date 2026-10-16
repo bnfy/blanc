@@ -3,7 +3,7 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 const {
-  visiblePaneIds, isVisiblePaneId, commandTargetTab, focusedPane, glanceLayoutPayload, foregroundOpenRole,
+  visiblePaneIds, isVisiblePaneId, commandTargetTab, focusedPane, glanceLayoutPayload, foregroundOpenRole, livePaneId,
 } = require('../../src/main/glance-focus');
 
 const mainWc = { id: 'main-wc' };
@@ -84,4 +84,17 @@ test('a foreground tab the reference opens becomes the reference; any other open
   assert.equal(foregroundOpenRole(runtime(), 'other'), 'main');
   assert.equal(foregroundOpenRole(runtime({ glanceTabId: null }), 'ref'), 'main');
   assert.equal(foregroundOpenRole(null, 'ref'), 'main');
+});
+
+test('livePaneId names the visible pane that really holds keyboard focus, else null', () => {
+  // Focus can land on a pane without a webContents focus event (Linux
+  // restores focus to the last focused view when the window is activated),
+  // so the record is re-read from live focus at those moments.
+  const focused = (which) => (id) => ({ main: { isFocused: () => which === 'main' }, ref: { isFocused: () => which === 'ref' } }[id] ?? null);
+  assert.equal(livePaneId(runtime(), focused('ref')), 'ref');
+  assert.equal(livePaneId(runtime(), focused('main')), 'main');
+  assert.equal(livePaneId(runtime(), focused('none')), null);
+  assert.equal(livePaneId(runtime({ glanceTabId: null }), focused('ref')), null, 'a pane that is not visible never counts');
+  assert.equal(livePaneId(runtime(), () => null), null);
+  assert.equal(livePaneId(null, focused('ref')), null);
 });

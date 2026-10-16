@@ -220,7 +220,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "34da259bb9dcc155431be49cff87a19956424160ef7d843236d445f8d340e854",
+      "sha256": "df9b5cbf23a51b6061639f7311119992b97e93702c93150558b6e3c5e28c3af8",
       "literalChannels": [
         "activate",
         "before-input-event",
