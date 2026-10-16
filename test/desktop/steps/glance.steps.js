@@ -1728,3 +1728,24 @@ Then('the Island stays clear of the window controls and the tab rail', async fun
   }), (box) => box.right <= box.width - box.controls && box.left >= box.rail,
   'the Island between the rail and the window controls', 3000);
 });
+
+// ---- Focus that arrives without a focus event ----
+
+// On Linux inactive tab views stay attached (hidden) to their window, so a
+// background tab can hold keyboard focus. When it opens in Glance it is
+// already focused, and no focus event follows.
+When('the reference tab takes keyboard focus while it is in the background', async function () {
+  await frontChromeWindow(this);
+  assert.equal(await this.call('focusTabContents', this.glanceReferenceId), true);
+  await new Promise((resolve) => setTimeout(resolve, 300));
+});
+
+Then('the recorded focused pane is the pane that holds keyboard focus', async function () {
+  await waitForValue(async () => {
+    const { focusedPaneTabId, tabs, glanceTabId } = await this.state();
+    const focusedContents = await this.call('focusedWebContentsId');
+    const holder = tabs.find((tab) => tab.webContentsId === focusedContents && tab.id && [this.glanceMainId, glanceTabId].includes(tab.id));
+    return { recorded: focusedPaneTabId, holder: holder?.id ?? null };
+  }, (value) => value.holder === null || value.recorded === value.holder,
+  'the recorded focused pane to match the pane that holds keyboard focus', 3000);
+});

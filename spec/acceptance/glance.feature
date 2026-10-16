@@ -188,6 +188,13 @@ Feature: Glance reference pane
     Then the Glance header shows the main page has focus
 
   @F34-1 @F34 @D11
+  Scenario: A reference that already holds keyboard focus when Glance opens is the focused pane
+    Given two ordinary tabs in one workspace for Glance
+    When the reference tab takes keyboard focus while it is in the background
+    And I open the reference tab in Glance
+    Then the recorded focused pane is the pane that holds keyboard focus
+
+  @F34-1 @F34 @D11
   Scenario: Reload with focus in the reference reloads the reference
     Given two ordinary tabs in one workspace for Glance
     When I open the reference tab in Glance
