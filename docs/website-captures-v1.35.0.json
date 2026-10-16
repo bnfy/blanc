@@ -1,0 +1,211 @@
+{
+  "schemaVersion": 1,
+  "status": "public",
+  "release": "v1.35.0",
+  "sourceSha": "95e1c2c1adb26bc223dfd8a4f98246984d43bd89",
+  "captureDate": "2026-10-16",
+  "timezone": "America/New_York",
+  "replaces": "docs/website-candidate-captures-c70c55fa.json: candidates from a local build of main at c70c55fa, published before the release by owner decision of October 16, 2026, with the gate that they be recaptured from the public app once a release containing c70c55fa is public. v1.35.0 (tag v1.35.0, 95e1c2c1) is that release.",
+  "source": {
+    "artifact": "Public release asset Blanc-1.35.0-arm64.dmg from https://github.com/bnfy/blanc/releases/tag/v1.35.0, checked against the Sigstore-verified SHA256SUMS and mounted read-only; the installed /Applications/Blanc.app and its profile were not used",
+    "dmgSha256": "50b22b219bbb4b04d7159683a0bf8a2d5717d35c3f30178272fec7cd697e4204",
+    "app": "Notarized Developer ID; accepted by Gatekeeper",
+    "version": "1.35.0",
+    "bundleBuild": "1350",
+    "architecture": "arm64",
+    "teamId": "XYGUCY4498"
+  },
+  "method": "BLANC_PACKAGED_EXECUTABLE=<mounted DMG>/Blanc.app/Contents/MacOS/Blanc BLANC_CAPTURE_VERSION=1.35.0 npm run capture:wallpaper:installed, npm run capture:start-page:installed and node scripts/capture-installed-island.mjs, the same unpatched procedures as the candidate ledger, in disposable fixture profiles. Only the light wallpapers are kept. Wallpaper WebPs are the capture tool’s 1440px quality-90 exports; layout, Mahjong and Island display copies come from site/scripts/build-display-images.mjs.",
+  "settings": {
+    "layout": "billboard (wallpapers)",
+    "newtabDynamicWallpaper": true,
+    "usagePing": false,
+    "searchSuggestions": false,
+    "sync": "not configured",
+    "patron": "not configured"
+  },
+  "fixtures": "Wallpapers: four sample Favorites and no seeded blocking total, so the visible zero is not a measurement. Layouts: synthetic Favorites, visits, two named groups and a seeded weekly blocked total of 328 with blocking off.",
+  "wallpapers": [
+    {
+      "phase": "dawn",
+      "theme": "light",
+      "localHourFixture": 6,
+      "chromeTint": "#f8f1e7",
+      "file": "site/public/feature-captures/home-wallpaper-dawn-v1.35.0.png",
+      "width": 2560,
+      "height": 1600,
+      "sha256": "4f7527799c256b01e33b787717d69e6fd602bb909b0039cde0f5ad2f219d066a",
+      "displayAsset": {
+        "file": "site/public/feature-captures/home-wallpaper-dawn-v1.35.0.webp",
+        "width": 1440,
+        "height": 900,
+        "sha256": "d586950cdcf698d6aa96b0fa3e83f31ee6307c1cf419b3bf0f1769b91446270e"
+      }
+    },
+    {
+      "phase": "day",
+      "theme": "light",
+      "localHourFixture": 12,
+      "chromeTint": "#e3e8e9",
+      "file": "site/public/feature-captures/home-wallpaper-day-v1.35.0.png",
+      "width": 2560,
+      "height": 1600,
+      "sha256": "b0ad6d54ce83cf4187b65957fee201581b1f93945a1cd5100edfdeacaf1e406a",
+      "displayAsset": {
+        "file": "site/public/feature-captures/home-wallpaper-day-v1.35.0.webp",
+        "width": 1440,
+        "height": 900,
+        "sha256": "7a79fd8799bff1563329cd262877b35af3d4abf1f117af121a054ea643675580"
+      }
+    },
+    {
+      "phase": "dusk",
+      "theme": "light",
+      "localHourFixture": 18,
+      "chromeTint": "#f1e7df",
+      "file": "site/public/feature-captures/home-wallpaper-dusk-v1.35.0.png",
+      "width": 2560,
+      "height": 1600,
+      "sha256": "653413e89cac5014fb9360800f3986bb18fc1f93cfd2e93967c8f18c11f60af0",
+      "displayAsset": {
+        "file": "site/public/feature-captures/home-wallpaper-dusk-v1.35.0.webp",
+        "width": 1440,
+        "height": 900,
+        "sha256": "8c877739a846c04a17c08596fc7ee6b8b55d99910395ca766999095b9d10a99d"
+      }
+    },
+    {
+      "phase": "night",
+      "theme": "light",
+      "localHourFixture": 23,
+      "chromeTint": "#e9e4db",
+      "file": "site/public/feature-captures/home-wallpaper-night-v1.35.0.png",
+      "width": 2560,
+      "height": 1600,
+      "sha256": "d2bf21c17f2fb5709bad296572339da0a6465ea6f0a91261492f01ed7bcfd7f5",
+      "displayAsset": {
+        "file": "site/public/feature-captures/home-wallpaper-night-v1.35.0.webp",
+        "width": 1440,
+        "height": 900,
+        "sha256": "396da7dbdd67a38d6f1b68a48884307f92d8b21c35a3f4061e7e28faf9022074"
+      }
+    }
+  ],
+  "layouts": [
+    {
+      "layout": "ledger",
+      "file": "site/public/feature-captures/ledger-v1.35.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "6f87af6aa5f6afd482c9356b6e2b7c94dc3b64f6c11204c96515e38d03d00e10",
+      "webp": {
+        "file": "site/public/feature-captures/ledger-v1.35.0.webp",
+        "sha256": "b27b319775e01d6951056d727d1808e7651503bcec39f1be4ed94b498bfd310a"
+      }
+    },
+    {
+      "layout": "billboard",
+      "file": "site/public/feature-captures/billboard-v1.35.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "489196ad6efa9e25ac4cecf317f2dd4c6ebc88d4610227b707b6423db8b309f4",
+      "webp": {
+        "file": "site/public/feature-captures/billboard-v1.35.0.webp",
+        "sha256": "b0f759573aeb5ad1259231dc3a3d92b9d115359568f976e15e7925ac164282fd"
+      }
+    },
+    {
+      "layout": "shelf",
+      "file": "site/public/feature-captures/shelf-v1.35.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "0d5fcac57a504f2ae1498a7db17386c27ccf69bb2681e093891b5ec124d7633d",
+      "webp": {
+        "file": "site/public/feature-captures/shelf-v1.35.0.webp",
+        "sha256": "9bc85e151e72efb503af84061875deb55ccba4eb6530763a39a73920827c03bf"
+      }
+    },
+    {
+      "layout": "tally",
+      "file": "site/public/feature-captures/tally-v1.35.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "8f79e445cb39dad3a48a9c8ab6486518177b6dcf63fb4ab4ae6e6343c32db660",
+      "webp": {
+        "file": "site/public/feature-captures/tally-v1.35.0.webp",
+        "sha256": "5bba03688547cf97b8e1dc8e2ba580f200ddfd478b52747f7256a07242db3cbf"
+      }
+    },
+    {
+      "layout": "mahjong",
+      "file": "site/public/feature-captures/mahjong-v1.35.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "1bc0bf03c53c7fe8f5be6f1a3f7901ed48dd538a583291e7a330ed68c7634d26",
+      "webp": {
+        "file": "site/public/feature-captures/mahjong-v1.35.0.webp",
+        "sha256": "6e81533bb4bbe4f5dc878b6d9ebc03fc1567a8f7378d703f0c093bc39afbd2ab"
+      },
+      "note": "Standalone Mahjong (blanc://mahjong), captured by the same capture:start-page:installed run; shown on /features."
+    }
+  ],
+  "island": {
+    "method": "BLANC_PACKAGED_EXECUTABLE=<mounted DMG>/Blanc.app/Contents/MacOS/Blanc BLANC_CAPTURE_VERSION=1.35.0 node scripts/capture-installed-island.mjs. Native window captures (2560×1600, kept out of the repository; their hashes are below) of live pages in a disposable profile with Blanc Blocker as shipped. The Island is opened with the same call a click makes and / is typed into it; the pointer is parked so no row shows a hover. Lossless 1400×1000 crops (left 580, top 0); the site shows 16:9 display copies from site/scripts/build-display-images.mjs. A first run timed out before the typed state because Blanc lost the foreground while the pages loaded and the opened Island closed; the second run passed. All three crops are byte-identical to the c70c55fa candidates (sameAsCandidate), while the full-window captures differ.",
+    "pages": [
+      {
+        "url": "https://www.si.edu/openaccess",
+        "title": "Smithsonian Open Access | Smithsonian Institution"
+      },
+      {
+        "url": "https://americanart.si.edu/artwork/grand-canyon-yellowstone-17831",
+        "title": "The Grand Canyon of the Yellowstone | Smithsonian American Art Museum"
+      },
+      {
+        "url": "https://americanart.si.edu/artwork/among-sierra-nevada-california-2059",
+        "title": "Among the Sierra Nevada, California | Smithsonian American Art Museum",
+        "active": true
+      }
+    ],
+    "rights": "The active page shows Albert Bierstadt, Among the Sierra Nevada, California (1868), Smithsonian American Art Museum, released CC0 through Smithsonian Open Access (marked Free to use on the page). The pages’ design, text and marks are the Smithsonian’s, shown as an ordinary view of a public website.",
+    "crop": {
+      "left": 580,
+      "top": 0,
+      "width": 1400,
+      "height": 1000
+    },
+    "captures": [
+      {
+        "state": "rest",
+        "windowSha256": "0641a80d3bcda499228c4baa0c8baae9b8c9800002c0aab3a0891ac948e33941",
+        "file": "site/public/revamp/island-smithsonian-rest-v1.35.0.webp",
+        "width": 1400,
+        "height": 1000,
+        "sha256": "4f4639cc5abd056eb160db156fb09265b438e643a45c882ec74869ba2ff29dc6",
+        "sameAsCandidate": true
+      },
+      {
+        "state": "tabs",
+        "windowSha256": "2415d7a59f80703fc86949af2c4d8a3088fc2dd38a881754bde2724835ec208c",
+        "file": "site/public/revamp/island-smithsonian-tabs-v1.35.0.webp",
+        "width": 1400,
+        "height": 1000,
+        "sha256": "dda4ffd4a8990b871e75b9d88ec211d027544ef4c3d3ca3f479545ebd0932e8b",
+        "sameAsCandidate": true
+      },
+      {
+        "state": "command",
+        "windowSha256": "e30ee70222290e3315d191bb4a77d4504a9c0757e3e86ed0249c8139a532a853",
+        "file": "site/public/revamp/island-smithsonian-command-v1.35.0.webp",
+        "width": 1400,
+        "height": 1000,
+        "sha256": "4704254963528f4815e1432615f31e16ffe869513a4f3c6452b0f82ba753ca29",
+        "sameAsCandidate": true
+      }
+    ]
+  },
+  "shownOn": [
+    "site/src/pages/index.astro",
+    "site/src/pages/features.astro",
+    "site/src/components/GestureDemo.astro"
+  ]
+}

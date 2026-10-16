@@ -372,8 +372,8 @@ test('the new homepage capture is tied to public v1.25.0 and its faithful export
     assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), item.sha256);
   }
   const homepage = read('site/src/pages/index.astro');
-  const candidate = JSON.parse(read('docs/website-candidate-captures-c70c55fa.json'));
-  assert.ok(homepage.includes(candidate.wallpapers[0].displayAsset.file.replace('site/public', '')));
+  const startPage = JSON.parse(read('docs/website-captures-v1.35.0.json'));
+  assert.ok(homepage.includes(startPage.wallpapers[0].displayAsset.file.replace('site/public', '')));
   assert.match(homepage, /aria-label="Blanc’s Billboard Start Page with the time-of-day wallpaper/);
 });
 
@@ -410,24 +410,26 @@ test('hero wallpaper scenes retain actual public captures and phase provenance',
   }
 });
 
-// The homepage shows the Start Page as main draws it after v1.34.0 (Instrument
-// Sans interface text), captured from a local build. These candidates are
-// replaced by public-release captures before the deploy that carries them.
-test('candidate Start Page captures are tied to main after v1.34.0 and are all the homepage shows', async () => {
-  const manifest = JSON.parse(read('docs/website-candidate-captures-c70c55fa.json'));
-  assert.equal(manifest.status, 'candidate');
-  assert.equal(manifest.release, null);
-  // Published early by owner decision; replaced once the release is public.
-  assert.match(manifest.publishGate, /owner decision of October 16, 2026[\s\S]*Once that release is public, rerun the capture commands/);
-  assert.equal(execFileSync('git', ['rev-parse', `${manifest.sourceSha}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), manifest.sourceSha);
-  execFileSync('git', ['merge-base', '--is-ancestor', 'v1.34.0', manifest.sourceSha], { cwd: root });
+// The homepage and /features show the Start Page as public v1.35.0 draws it
+// (Instrument Sans interface text), captured from the public DMG. They replace
+// the c70c55fa candidates that were published before the release.
+test('Start Page captures are tied to public v1.35.0 and are all the homepage shows', async () => {
+  const manifest = JSON.parse(read('docs/website-captures-v1.35.0.json'));
+  assert.equal(manifest.status, 'public');
+  assert.equal(manifest.release, 'v1.35.0');
+  assert.equal(execFileSync('git', ['rev-parse', `${manifest.release}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), manifest.sourceSha);
+  assert.equal(manifest.source.version, '1.35.0');
+  assert.equal(manifest.source.bundleBuild, '1350');
+  assert.match(manifest.source.artifact, /Blanc-1\.35\.0-arm64\.dmg/);
+  assert.match(manifest.replaces, /website-candidate-captures-c70c55fa\.json/);
+  assert.equal(fs.existsSync(path.join(root, 'docs/website-candidate-captures-c70c55fa.json')), false);
   assert.equal(manifest.settings.newtabDynamicWallpaper, true);
   assert.deepEqual(manifest.wallpapers.map(item => [item.phase, item.theme]), ['dawn', 'day', 'dusk', 'night'].map(phase => [phase, 'light']));
-  const candidateModule = { exports: {} };
-  runInNewContext(execFileSync('git', ['show', `${manifest.sourceSha}:src/renderer/pages/newtab-wallpaper.js`], { cwd: root, encoding: 'utf8' }), { module: candidateModule });
+  const releasedModule = { exports: {} };
+  runInNewContext(execFileSync('git', ['show', `${manifest.release}:src/renderer/pages/newtab-wallpaper.js`], { cwd: root, encoding: 'utf8' }), { module: releasedModule });
   const hash = file => crypto.createHash('sha256').update(fs.readFileSync(path.join(root, file))).digest('hex');
   for (const capture of manifest.wallpapers) {
-    assert.equal(candidateModule.exports.phaseForTime(new Date(2026, 9, 16, capture.localHourFixture)), capture.phase);
+    assert.equal(releasedModule.exports.phaseForTime(new Date(2026, 9, 16, capture.localHourFixture)), capture.phase);
     const expected = [1, 3, 5].map(i => parseInt(capture.chromeTint.slice(i, i + 2), 16));
     for (const item of [capture, capture.displayAsset]) {
       const { data } = await sharp(path.join(root, item.file)).extract({
@@ -455,18 +457,18 @@ test('candidate Start Page captures are tied to main after v1.34.0 and are all t
     for (const job of jobs) assert.equal(job.sourceSha256, capture.sha256);
   }
   const pin = read('site/src/pages/index.astro').split('id="island"')[1].split('</section>')[0];
-  const pinned = [...pin.matchAll(/\/revamp\/island-[a-z0-9-]+\.webp/g)].map(match => match[0]);
+  const pinned = [...pin.matchAll(/\/revamp\/island-[a-z0-9.-]+\.webp/g)].map(match => match[0]);
   assert.equal(pinned.length, 6);
-  for (const file of pinned) assert.match(file, /^\/revamp\/island-smithsonian-(rest|tabs|command)-c70c55fa-(800|display)\.webp$/);
-  // Every Start Page capture on the homepage is one of these candidates.
+  for (const file of pinned) assert.match(file, /^\/revamp\/island-smithsonian-(rest|tabs|command)-v1\.35\.0-(800|display)\.webp$/);
+  // Every Start Page capture on the homepage is one of these public captures.
   const homepage = read('site/src/pages/index.astro');
   const shown = [...homepage.matchAll(/\/feature-captures\/(?:home-wallpaper-|ledger-|billboard-|shelf-|tally-|\$\{name\.toLowerCase\(\)\}-)[^"`]*\.webp/g)].map(match => match[0]);
   assert.ok(shown.length >= 4);
-  for (const file of shown) assert.match(file, /-c70c55fa\.webp$/, `${file} is not a candidate capture`);
+  for (const file of shown) assert.match(file, /-v1\.35\.0\.webp$/, `${file} is not a v1.35.0 capture`);
   for (const time of ['dawn', 'day', 'dusk', 'night']) {
-    assert.ok(manifest.wallpapers.some(item => item.displayAsset.file === `site/public/feature-captures/home-wallpaper-${time}-c70c55fa.webp`), time);
+    assert.ok(manifest.wallpapers.some(item => item.displayAsset.file === `site/public/feature-captures/home-wallpaper-${time}-v1.35.0.webp`), time);
   }
-  // The Features page shows the same candidates: the time-of-day tile, the
+  // The Features page shows the same captures: the time-of-day tile, the
   // layouts, Mahjong and the Island, never the older public captures.
   const features = read('site/src/pages/features.astro');
   const known = new Set([
@@ -476,5 +478,5 @@ test('candidate Start Page captures are tied to main after v1.34.0 and are all t
   ].map(file => file.replace('site/public', '')));
   const featureCaptures = [...features.matchAll(/\/(?:feature-captures|revamp)\/(?:home-wallpaper|ledger|billboard|shelf|tally|mahjong|island)[^"]*\.webp/g)].map(match => match[0]);
   assert.ok(featureCaptures.length >= 12);
-  for (const file of featureCaptures) assert.ok(known.has(file), `${file} on /features is not a candidate capture`);
+  for (const file of featureCaptures) assert.ok(known.has(file), `${file} on /features is not a v1.35.0 capture`);
 });
