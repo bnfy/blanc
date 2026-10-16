@@ -423,8 +423,13 @@ and record what it costs.
    count is part of the approval request.
 6. **Build, under the separate approval.** Only with the owner's written
    approval of that specific plan: `build.mjs <new-src> --build
-   --allow-large-build`. Record wall-clock time; this is also the first
-   measured respin cost without a cache. Fix compile errors, ledger each,
+   --allow-large-build`. Record its wall-clock time and action count as
+   its own ledger column, separate from patching and testing effort: it is
+   a clean-build recovery benchmark for an empty output directory with no
+   configured compilation cache, not a cost assumed to recur every
+   milestone (routine rebases reuse whatever a later cache configuration
+   and unchanged inputs allow, which Task 0 does not measure). Fix
+   compile errors, ledger each,
    and rebuild incrementally (those later builds go through the normal
    guard, including its regeneration and buildflag stops).
 7. **Re-verify.** Re-run the prototype's automated checks and the

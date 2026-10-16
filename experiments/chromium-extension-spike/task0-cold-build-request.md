@@ -63,7 +63,7 @@ needed. Nothing in the existing checkout is deleted or moved.
 | `prepare.mjs` anchor fixes | unknown; this is what Task 0 measures | 20 anchored upstream files today |
 | `gn gen` | minutes | — |
 | `--record-environment`, `--check` | minutes; `--check` stops on the large plan by design, or on a buildflag-generation stop handled per the README | — |
-| Cold build, `chrome` target | **about 2.5–3.5 h** | the focused UI cold build took 2h20m for 40,298 actions and the following `chrome` target 8m6s for 2,721 more, on this machine with Xcode 27.1; a cold build from a fresh checkout has no cache to prune and may run somewhat longer |
+| Cold build, `chrome` target | **about 2.5–3.5 h (provisional)** | the focused UI cold build took 2h20m for 40,298 actions and the following `chrome` target 8m6s for 2,721 more, on this machine with Xcode 27.1. This build is cold because it starts from an empty output directory with no configured compilation cache, not because a new major necessarily invalidates everything; how much a configured cache or unchanged inputs would reuse across 156 → 157 is unmeasured |
 | Compile-error fixes and incremental rebuilds | unknown; measured | recent small rebuilds 32–60 s, earlier native fixes 1m49s–8m6s |
 | Re-verification (automated checks and native-input checklist) | 1–2 h | the October 16 milestone retests |
 
@@ -102,9 +102,12 @@ A dated section in `results.md` and the first row of a new
 `experiments/chromium-extension-spike/rebase-ledger.md` with: upstream tag
 and commit, measured free space before and after, fetch time, anchors
 broken (file, hunk, cause, minutes), files patched before and after, `gn`
-and plan outcomes, cold-build wall-clock and action count, compile errors
-and their fixes, re-verification results, owner attention time and agent
-time. If criterion 1 of the plan's §5 is hit (more than two owner-days of
+and plan outcomes, cold-build wall-clock and action count **recorded as
+their own column**, compile errors and their fixes, re-verification
+results, owner attention time and agent time. The cold-build column is a
+clean-build recovery benchmark; the routine per-milestone rebase cost is
+the patching, compiling-incrementally and testing columns, and the ledger
+must not fold the two together. If criterion 1 of the plan's §5 is hit (more than two owner-days of
 attention or more than one calendar week including builds), the ledger says
 so and the task stops there.
 
