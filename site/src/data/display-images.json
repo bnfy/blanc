@@ -161,6 +161,13 @@
     "height": 900
   },
   {
+    "source": "feature-captures/mahjong-c70c55fa.png",
+    "sourceSha256": "b24b7c166791b9ee6d3f4c19c7dfb16e804b5b2f977606fefd6a7cfc2756c06a",
+    "output": "feature-captures/mahjong-c70c55fa.webp",
+    "width": 1440,
+    "height": 900
+  },
+  {
     "source": "feature-captures/mahjong-v1.21.0.png",
     "sourceSha256": "675203949417c5d9492be8e17ccf337a7e2578896ebbd9730319ee1acff81efc",
     "output": "feature-captures/mahjong-v1.21.0.webp",

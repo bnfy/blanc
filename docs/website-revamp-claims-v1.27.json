@@ -12892,6 +12892,20 @@
             "after": "<h3>Optional 1Password fill on macOS, Windows and Linux.</h3>"
           }
         ]
+      },
+      {
+        "source": "site/src/pages/features.astro",
+        "reason": "October 16, 2026: the owner added a Rename your tabs tile and popover for renamable tab titles (F46, in the prepared v1.35.0) before that release is public. Its claims are recorded as candidates in docs/website-candidate-claims-v1.35.0.json.",
+        "replacements": [
+          {
+            "before": "<h3>Pin and mute tabs</h3>",
+            "after": "<h3>Pin and mute tabs</h3>\n<h3>Rename your tabs</h3>"
+          },
+          {
+            "before": "<p class=\"pop-note\">Pinned tabs stay loaded.</p>",
+            "after": "<p class=\"pop-note\">Pinned tabs stay loaded.</p>\n<h2 id=\"pop-rename-tabs-title\">Give a tab a name of your own.</h2>\n<p>Right-click a tab and choose Rename Tab…, or type /rename and a name in the ⌘L or Ctrl+L panel. The name stays when you browse to another site, restart Blanc or save the tab in a space.</p>\n<p class=\"pop-note\">Reset Tab Title goes back to the page’s title. History and Favorites keep the page’s own title.</p>"
+          }
+        ]
       }
     ]
   },

@@ -302,13 +302,39 @@ test('Features bento copy resolves to verified public v1.30.1 evidence, and ever
   }
   // Every text element above the unchanged Patron and download sections is a
   // recorded claim in this ledger, the reorder ledger, or the v1.27 ledger.
-  const recorded = [...bento.claims, ...reorder.claims, ...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...v134Ledger.claims].filter(claim => claim.source === file).map(claim => claim.exactWording);
+  const candidate = JSON.parse(read('docs/website-candidate-claims-v1.35.0.json'));
+  const recorded = [...bento.claims, ...reorder.claims, ...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...v134Ledger.claims, ...candidate.claims].filter(claim => claim.source === file).map(claim => claim.exactWording);
   const scope = page.slice(page.indexOf('<main'), page.indexOf('class="bento-patron"'));
   for (const [, , text] of scope.matchAll(/<(h[1-6]|p|figcaption|li|button)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
     const wording = normalize(text);
     // Glyph-only controls (the popover's ← and → buttons) carry no claim.
     if (/\p{L}/u.test(wording)) assert.ok(recorded.includes(wording), `${file}: unrecorded copy: ${wording}`);
   }
+});
+
+// Copy for a feature in the prepared but unpublished v1.35.0, added early by
+// owner decision: backed by main's source at the commit that prepared the
+// release, and moved to a v1.35.0 ledger once the tag exists.
+test('candidate v1.35.0 copy resolves to the commit that prepared the release', () => {
+  const candidate = JSON.parse(read('docs/website-candidate-claims-v1.35.0.json'));
+  assert.equal(candidate.status, 'candidate');
+  assert.equal(candidate.release, null);
+  assert.match(candidate.ownerDecision, /October 16, 2026/);
+  assert.equal(execFileSync('git', ['rev-parse', `${candidate.sourceSha}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), candidate.sourceSha);
+  execFileSync('git', ['merge-base', '--is-ancestor', 'v1.34.0', candidate.sourceSha], { cwd: root });
+  assert.match(execFileSync('git', ['show', `${candidate.sourceSha}:package.json`], { cwd: root, encoding: 'utf8' }), /"version": "1\.35\.0"/);
+  for (const claim of candidate.claims) {
+    assert.equal(claim.verdict, 'qualified', claim.id);
+    assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: exact wording drifted`);
+    for (const key of claim.evidenceGroups) {
+      const group = candidate.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, `${claim.id}: evidence and qualification`);
+      for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${candidate.sourceSha}:${evidence}`], { cwd: root });
+    }
+  }
+  const notes = execFileSync('git', ['show', `${candidate.sourceSha}:docs/press/release-notes/v1.35.0.md`], { cwd: root, encoding: 'utf8' });
+  assert.match(notes, /Rename Tab…/);
+  assert.match(notes, /Reset Tab Title/);
 });
 
 test('public product captures match their reviewed dimensions, hashes, and source release', () => {
@@ -440,4 +466,15 @@ test('candidate Start Page captures are tied to main after v1.34.0 and are all t
   for (const time of ['dawn', 'day', 'dusk', 'night']) {
     assert.ok(manifest.wallpapers.some(item => item.displayAsset.file === `site/public/feature-captures/home-wallpaper-${time}-c70c55fa.webp`), time);
   }
+  // The Features page shows the same candidates: the time-of-day tile, the
+  // layouts, Mahjong and the Island, never the older public captures.
+  const features = read('site/src/pages/features.astro');
+  const known = new Set([
+    ...manifest.wallpapers.map(item => item.displayAsset.file),
+    ...manifest.layouts.map(item => item.webp.file),
+    ...manifest.island.captures.map(item => item.file.replace('.webp', '-800.webp')),
+  ].map(file => file.replace('site/public', '')));
+  const featureCaptures = [...features.matchAll(/\/(?:feature-captures|revamp)\/(?:home-wallpaper|ledger|billboard|shelf|tally|mahjong|island)[^"]*\.webp/g)].map(match => match[0]);
+  assert.ok(featureCaptures.length >= 12);
+  for (const file of featureCaptures) assert.ok(known.has(file), `${file} on /features is not a candidate capture`);
 });
