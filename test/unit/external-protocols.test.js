@@ -208,3 +208,34 @@ test('redirect and frame callbacks are consumed, ordinary web navigation remains
     assert.equal(prevented, false);
   }
 });
+
+test("the built-in PDF viewer may load a document into its own inner frame, and nothing else gets through", () => {
+  // Chromium's PDF viewer (index.html) loads each document into a child frame
+  // from its own origin. Blocking that left every PDF an empty viewer.
+  const viewer = 'chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai';
+  const viewerPage = { url: `${viewer}/index.html`, origin: viewer };
+  const webPage = { url: 'https://external.found.com/invoice', origin: 'https://external.found.com' };
+  const wc = new EventEmitter();
+  wc.getURL = () => 'https://external.found.com/api/invoices/13/pdf'; wc.isDestroyed = () => false;
+  const calls = [];
+  installExternalNavigationHandlers(wc, (url) => {
+    calls.push(url); return classifyExternalNavigation(url).action !== 'none';
+  });
+  const navigate = (event) => {
+    let prevented = false;
+    wc.emit('will-frame-navigate', { ...event, preventDefault() { prevented = true; } });
+    return prevented;
+  };
+
+  assert.equal(navigate({ url: `${viewer}/0f7c5a2e-uuid`, isMainFrame: false, initiator: viewerPage }), false);
+  assert.deepEqual(calls, [], 'the viewer\'s own frame load never reaches the OS handoff');
+
+  // A web page cannot borrow the exemption, nor can the viewer leave its frame
+  // or reach another extension.
+  assert.equal(navigate({ url: `${viewer}/index.html`, isMainFrame: false, initiator: webPage }), true);
+  assert.equal(navigate({ url: `${viewer}/index.html`, isMainFrame: false, initiator: null }), true);
+  assert.equal(navigate({ url: `${viewer}/0f7c5a2e-uuid`, isMainFrame: true, initiator: viewerPage }), true);
+  assert.equal(navigate({ url: 'chrome-extension://cjpalhdlnbpafiamejdnhcphjbkeiagm/dashboard.html',
+    isMainFrame: false, initiator: viewerPage }), true);
+  assert.equal(navigate({ url: `${viewer}.evil/x`, isMainFrame: false, initiator: viewerPage }), true);
+});

@@ -61,7 +61,7 @@
     },
     {
       "path": "src/main/blocking-resources.js",
-      "sha256": "1c5a0dac44753a5359bc2f185bb7736aea9d6ba9c779bc271314820330338548"
+      "sha256": "6cb112b4ccba9d5d26d08a0f4a4070374df7d59b1dac72feb57c23b13e58b9fc"
     },
     {
       "path": "src/renderer/pages/i18n.js",

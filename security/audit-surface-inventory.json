@@ -183,7 +183,7 @@
     },
     {
       "file": "src/main/external-protocols.js",
-      "sha256": "73cb077e081e7b7436226b4fc2232201cd8f8e97f6887f86d7a77254f35cbeca",
+      "sha256": "e3de37e86a4c74cb9ff1acafe8946ef040672d606ba734367f1aa2697152d4cb",
       "literalChannels": [
         "will-frame-navigate",
         "will-redirect"
