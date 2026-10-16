@@ -502,13 +502,25 @@
     transform: none;
   }
 }
+/* Four items that always divide evenly: four across where each gets about
+   220 px, two by two below that, one column on phones. */
 .privacy-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 44px;
   max-width: 1040px;
   margin: 56px auto 0;
   text-align: left;
+}
+@media (min-width: 1080px) {
+  .privacy-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (max-width: 600px) {
+  .privacy-grid {
+    grid-template-columns: 1fr;
+  }
 }
 .privacy-grid h3 {
   display: flex;
