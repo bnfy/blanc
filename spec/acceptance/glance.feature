@@ -490,3 +490,17 @@ Feature: Glance reference pane
     And I choose the slow quiet tab in the picker
     Then the chosen row says Opening and the live region says it
     And the other rows are dimmed while it wakes
+
+  @F34-1 @F34 @F11 @D11
+  Scenario: A private reference shows the private chip in the header
+    Given twelve ordinary tabs and a private main page with one open in Glance
+    Then the Glance header shows no private chip
+    When I choose Make main
+    Then the Glance header shows the private chip
+    And the header's identity cross-faded rather than swapping
+
+  @F34-1 @F34 @D11
+  Scenario: The picker is a dialog named by its heading
+    Given two ordinary tabs in one workspace for Glance
+    When I summon Glance from its native keyboard shortcut
+    Then the picker has the dialog role and is labelled by its heading

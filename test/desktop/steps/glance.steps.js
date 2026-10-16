@@ -2026,3 +2026,56 @@ Then('the other rows are dimmed while it wakes', async function () {
   const others = await page.locator('.glance-picker-option:not([data-opening="true"])').evaluateAll((rows) => rows.map((row) => row.disabled));
   assert.ok(others.every(Boolean), `other rows not dimmed: ${JSON.stringify(others)}`);
 });
+
+// ---- The header's private chip, the identity cross-fade, the dialog ----
+
+Then('the Glance header shows the private chip', async function () {
+  const chrome = await mainChromePage();
+  await chrome.locator('#glancePrivate:not([hidden])').waitFor();
+  assert.equal((await chrome.locator('#glancePrivate').textContent()).trim(), 'private');
+});
+
+// Make main swaps the panes at once; the header's favicon, title and chip
+// cross-fade over 120 ms instead of changing in one frame.
+Then("the header's identity cross-faded rather than swapping", async function () {
+  const motion = await this.call('glanceHeaderMotion');
+  assert.ok(motion.identity, 'no identity measured');
+  assert.ok(motion.identity.transition.includes('opacity 0.12s'), `identity transition: ${motion.identity.transition}`);
+  assert.equal(this.glanceIdentitySwapped, true, 'the identity never entered its swapping state');
+});
+
+Then('the picker has the dialog role and is labelled by its heading', async function () {
+  const page = await overlayPage();
+  const picker = page.locator('#glancePicker');
+  assert.equal(await picker.getAttribute('role'), 'dialog');
+  assert.equal(await picker.getAttribute('aria-labelledby'), 'glancePickerTitle');
+  assert.equal((await page.locator('#glancePickerTitle').textContent()).trim(), 'Choose a tab for Glance');
+});
+
+// Make main, watching the header's identity for its cross-fade state, which
+// lasts 120 ms and would otherwise be gone by the time a step looked.
+When('I choose Make main', async function () {
+  const chrome = await mainChromePage();
+  await chrome.evaluate(() => {
+    const identity = document.querySelector('#glanceHeader .glance-tab-identity');
+    window.__glanceIdentitySwapped = identity.classList.contains('swapping');
+    new MutationObserver(() => { if (identity.classList.contains('swapping')) window.__glanceIdentitySwapped = true; })
+      .observe(identity, { attributes: true, attributeFilter: ['class'] });
+  });
+  const { activeTabId, glanceTabId } = await this.state();
+  await chrome.locator('#glancePromote').click();
+  await this.waitForState((state) => state.activeTabId === glanceTabId && state.glanceTabId === activeTabId);
+  this.glanceMainId = glanceTabId;
+  this.glanceReferenceId = activeTabId;
+  await new Promise((resolve) => setTimeout(resolve, 150));
+  this.glanceIdentitySwapped = await chrome.evaluate(() => window.__glanceIdentitySwapped === true);
+});
+
+Then('the Glance header shows no private chip', async function () {
+  const chrome = await mainChromePage();
+  await chrome.locator('#glanceHeader:not([hidden])').waitFor();
+  const chip = await chrome.locator('#glancePrivate').evaluate((element) => ({
+    hidden: element.hidden, drawn: element.getClientRects().length > 0,
+  }));
+  assert.deepEqual(chip, { hidden: true, drawn: false });
+});

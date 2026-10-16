@@ -334,10 +334,18 @@ button svg {
 .glance-tab-identity {
   min-width: 0;
   display: flex;
+  /* A new reference's favicon, title and chip fade in over 120 ms
+     (renderer.js adds .swapping for one frame, with no transition, so the
+     fade runs from 0). A fade already, so Reduce Motion keeps it. */
+  transition: opacity 120ms ease;
   align-items: center;
   gap: 8px;
 }
+.glance-tab-identity.swapping { opacity: 0; transition: none; }
 .glance-tab-identity .favicon { flex: 0 0 auto; }
+.glance-tab-identity .row-private { margin-left: 6px; }
+/* The chip's own display rule would otherwise outrank the hidden attribute. */
+.glance-tab-identity .row-private[hidden] { display: none; }
 #glanceTitle {
   min-width: 0;
   overflow: hidden;
@@ -2713,7 +2721,7 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
    private marker, and placed just before the row's ✕ so it lands in the same
    column on every row whether or not hover actions (glance) are present.
    (Quiet is dim-only — 2026-08-18 spec.) */
-:is(.island-row, .glance-picker-option) .row-private {
+:is(.island-row, .glance-picker-option, .glance-tab-identity) .row-private {
   display: inline-flex;
   align-items: center;
   height: 16px;
