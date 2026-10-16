@@ -2223,6 +2223,8 @@ function install(refs) {
             bottom: rect.bottom,
             islandBottom: document.getElementById('islandPill').getBoundingClientRect().bottom,
             animatedProperties: [...new Set(parts.flatMap((p) => p.getAnimations()).flatMap((a) => a.effect.getKeyframes().flatMap((k) => Object.keys(k))))],
+            animations: parts.flatMap((p) => p.getAnimations()).map((a) => ({ kind: a.constructor.name, time: a.currentTime, duration: a.effect.getTiming().duration })),
+            reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
           };
         })()`);
       };
