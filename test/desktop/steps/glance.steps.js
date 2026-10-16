@@ -1282,20 +1282,27 @@ Then('the find capsule is fresh and bound to the reference', async function () {
 // macOS draws its traffic lights at the window's left edge, inside the main
 // pane's strip. Without Glance the Island keeps 85px clear on each side; with
 // Glance open it must keep the same clearance, in both layouts.
+// macOS draws its traffic lights at the window's top-left, inside the main
+// pane's strip; the stylesheet keys on data-platform="darwin". On Windows
+// and Linux the strip is told it is macOS for the measurement, the mirror of
+// the Windows check below, so the rule is checked on every platform.
 Then("a full-width Island stays clear of the window's traffic lights", async function () {
-  if ((await ctx.app.evaluate(() => process.platform)) !== 'darwin') return 'skipped';
   const state = await waitForValue(() => this.state(), (value) => value.glanceGeometry, 'Glance geometry');
   const chrome = await mainChromePage();
   await chrome.locator('#strip.glance-open').waitFor();
   // A pill with many tabs grows to its maximum width; force that width with
   // a filler so the result does not depend on how many tabs the scenario has.
   const box = await chrome.evaluate(() => {
+    const root = document.documentElement;
+    const realPlatform = root.dataset.platform;
+    if (realPlatform !== 'darwin') root.dataset.platform = 'darwin';
     const pill = document.getElementById('islandPill');
     const filler = document.createElement('span');
     filler.style.cssText = 'flex: 0 0 4000px; height: 1px';
     pill.append(filler);
     const rect = pill.getBoundingClientRect();
     filler.remove();
+    root.dataset.platform = realPlatform;
     return { left: rect.left, right: rect.right, direction: document.getElementById('strip').dataset.glanceDirection };
   });
   const { primary, page } = state.glanceGeometry;
