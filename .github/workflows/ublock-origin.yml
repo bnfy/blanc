@@ -151,7 +151,7 @@ jobs:
           BLANC_PACKAGED_ASAR: ${{ runner.temp }}/Applications/Blanc.app/Contents/Resources/app.asar
           BLANC_UBLOCK_EVIDENCE: ${{ github.workspace }}/dist/ublock-noscript-intel-unsigned.json
         run: npm run test:ublock-noscript:packaged
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: unsigned-native-intel-observations-${{ github.run_id }}
@@ -190,7 +190,7 @@ jobs:
             xvfb-run -a npm run test:ublock:desktop > "dist/native-diagnostics/restore-stress-$attempt.log" 2>&1
             tail -n 40 "dist/native-diagnostics/restore-stress-$attempt.log"
           done
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: linux-native-stacks-${{ github.run_id }}
