@@ -1,7 +1,8 @@
 # Task 0 cold-build approval request
 
-**Status: awaiting the owner's written approval. Nothing has been fetched,
-generated or built.** This request exists because
+**Status: approved by the owner on October 16, 2026 (§7). The build has
+not started; Codex runs it on the Mac within the §5 scope and fills
+`rebase-ledger.md` row 0.** This request exists because
 `docs/chromium-migration-implementation-plan-2026-10-16.md` §6 proposes a
 measured rebase of the prototype patch set onto the next Chromium major, and
 that task needs one cold build, which the build-cache rule in `AGENTS.md`
@@ -120,4 +121,11 @@ recorded here before any command in §5 runs:
       `41520584daa68d0040db7746ae562a0ff82187f6` (Codex, October 16)
 - [x] Free space measured: 480.7 GiB against an estimate of about 42 GiB
       (Codex, October 16)
-- [ ] Approved by the owner on `_______` (quote or link)
+- [x] Approved by the owner on October 16, 2026, in the Claude Code
+      session after reviewing the measured request at `ea352cc` (merged as
+      #870): "Approve the Task 0 cold build". The approval covers exactly
+      the §5 scope: the sibling checkout at `157.0.8103.6`, one cold build
+      in `BlancChromium157/src/out/BlancPrototype` with cached continuation
+      of that same build, and ordinary guarded incremental rebuilds there.
+      Any other cold output, toolchain or `args.gn` change, or touch of the
+      existing checkout needs a new approval.
