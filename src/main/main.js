@@ -10708,6 +10708,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       getFocusedPaneTabId: () => rt().focusedPaneTabId,
       getFindTargetTabId: () => findTargetTabId(rt()),
       getOverlayViewBounds: () => rt().overlayView?.getBounds() ?? null,
+      // Whether the overlay view is really in the window (and shown, where
+      // hiding keeps it attached): a detached view still reports bounds.
+      getOverlayViewAttached: () => {
+        const view = rt().overlayView;
+        if (!view || !hasLiveWindow()) return false;
+        return rt().window.contentView.children.includes(view) && (process.platform !== 'linux' || view.getVisible());
+      },
       getGlanceGeometry: () => hasLiveWindow() ? glanceGeometry() : null,
       // The divider's stops as main will use them: measured, else the last measured.
       getGlanceMinimums: () => ({ primary: glanceMinPrimaryWidth(), reference: glanceMinReferenceWidth() }),

@@ -420,7 +420,7 @@
     glancePickerBusy = true;
     glancePickerError = '';
     renderGlancePicker();
-    glancePickerLive.textContent = blancI18n.t('glance.picker.opening');
+    if (tab.asleep) glancePickerLive.textContent = blancI18n.t('glance.picker.opening');
     const session = glancePickerSession;
     let selected = false;
     try {
@@ -479,7 +479,8 @@
       // the accessible name only), a private tab carries the chip, and the
       // secondary line is the host and group.
       const metadata = [tabDomain(tab), groupById(tab.groupId)?.name].filter(Boolean);
-      const opening = glancePickerBusy && tab.id === glancePickerSelectedId;
+      // Only a quiet tab has anything to wait for; an awake one attaches at once.
+      const opening = glancePickerBusy && tab.id === glancePickerSelectedId && !!tab.asleep;
       const sub = document.createElement('span');
       sub.className = 'glance-picker-option-sub';
       sub.textContent = opening

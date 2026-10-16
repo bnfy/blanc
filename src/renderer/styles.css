@@ -3762,16 +3762,19 @@ body:is([data-mode="spaces"], [data-closing="spaces"]) #workspaceSwitcher.ws-swi
 #workspaceFeedback .ws-error { margin: 6px 0; color: var(--danger); font: 12.5px/1.45 var(--font-text); }
 
 @media (prefers-reduced-motion: reduce) {
-  /* Glance: the fade only. The open picker keeps the translate that
-     centres it. */
-  .glance-header, .glance-header[hidden], .glance-divider, .glance-divider[hidden],
+  /* Glance: the fade only, in both layouts (the stacked rules above carry
+     their own [hidden] offset, so they are named here too). The open picker
+     keeps the translate that centres it. */
+  .glance-header, .glance-header[hidden], .glance-header[data-direction="vertical"][hidden],
+  .glance-divider, .glance-divider[hidden], .glance-divider[data-direction="vertical"][hidden],
   body[data-glance-purpose="change"] .glance-picker, body[data-glance-purpose="change"] .glance-picker[hidden] {
     transform: none;
     transition: opacity 140ms ease, display 140ms allow-discrete;
   }
   .glance-picker, .glance-picker[hidden] { transform: translateX(-50%); transition: opacity 140ms ease, display 140ms allow-discrete; }
   @starting-style {
-    .glance-header:not([hidden]), .glance-divider:not([hidden]),
+    .glance-header:not([hidden]), .glance-header[data-direction="vertical"]:not([hidden]),
+    .glance-divider:not([hidden]), .glance-divider[data-direction="vertical"]:not([hidden]),
     body[data-glance-purpose="change"] .glance-picker:not([hidden]) { transform: none; }
     .glance-picker:not([hidden]) { transform: translateX(-50%); }
   }

@@ -123,6 +123,7 @@ function install(refs) {
     getOverlayMode,
     getFindTargetTabId,
     getOverlayViewBounds,
+    getOverlayViewAttached,
     prepareDisplayCaptureHelper,
     getResidentSpaces,
     getRoomPass,
@@ -2453,6 +2454,7 @@ function install(refs) {
     overlayMode() { return getOverlayMode(); },
     findTabId() { return getFindTargetTabId(); },
     overlayViewBounds() { return getOverlayViewBounds(); },
+    overlayViewAttached() { return getOverlayViewAttached(); },
     // The hidden display-capture helper is created on the first share
     // request; this creates it the same way, for tests that need it to exist.
     async prepareDisplayCaptureHelper() {

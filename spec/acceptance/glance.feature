@@ -464,6 +464,16 @@ Feature: Glance reference pane
     And Reduce Motion is on
     When I open the reference tab in Glance
     Then the Glance header and divider only fade
+    When I narrow the workspace below the side-by-side threshold
+    And I close Glance
+    Then the leaving stacked header and divider do not move
+
+  @F34-1 @F34 @D11
+  Scenario: Choosing an awake tab says nothing about opening
+    Given two ordinary tabs in one workspace for Glance
+    When I summon Glance from its native keyboard shortcut
+    And I filter the Glance picker and choose the reference tab
+    Then the live region never said Opening
 
   @F34-1 @F34 @D11
   Scenario: Picker rows read like the panel's rows

@@ -204,8 +204,17 @@ When('I filter the Glance picker and choose the reference tab', async function (
   assert.equal(await result.count(), 1);
   assert.equal(await result.first().getAttribute('aria-selected'), 'true');
   assert.ok(await page.locator('#glancePickerInput').getAttribute('aria-activedescendant'));
+  // Watch the live region through the choice: an awake tab must not be
+  // announced as opening (only a waking quiet tab is).
+  await page.evaluate(() => {
+    const live = document.getElementById('glancePickerLive');
+    window.__glanceLiveSeen = [];
+    new MutationObserver(() => { window.__glanceLiveSeen.push(live.textContent); }).observe(live, { childList: true, characterData: true, subtree: true });
+  });
   await page.press('#glancePickerInput', 'Enter');
   await this.waitForState((state) => state.glanceTabId === this.glanceReferenceId);
+  const seen = await page.evaluate(() => window.__glanceLiveSeen);
+  this.pickerLiveSeen = seen.includes('Opening…') ? 'Opening…' : seen.at(-1) ?? '';
 });
 
 Then('the active page and Glance occupy separate dominant and reference panes', async function () {
@@ -1907,10 +1916,10 @@ Then('the picker is still drawn while it leaves', async function () {
   const page = await overlayPage();
   const seen = await waitForValue(async () => ({
     mode: await this.call('overlayMode'),
-    bounds: await this.call('overlayViewBounds'),
+    attached: await this.call('overlayViewAttached'),
     closing: await page.evaluate(() => document.body.dataset.closing ?? ''),
   }), (value) => value.mode === null, 'the picker closed', 2000);
-  assert.ok(seen.bounds, 'the overlay view was detached before the picker could leave');
+  assert.equal(seen.attached, true, 'the overlay view was detached before the picker could leave');
   assert.equal(seen.closing, 'glance', `overlay body data-closing: "${seen.closing}"`);
 });
 
@@ -2189,4 +2198,23 @@ Then('the reference is a private tab in the private session', async function () 
   const reference = state.tabs.find((tab) => tab.id === this.glanceLinkedId);
   assert.equal(reference.private, true);
   assert.equal(reference.sessionKind, 'private');
+});
+
+// A hidden element keeps its specified transform in its computed style, so
+// the leaving header's offset can be read while it is already hidden.
+Then('the leaving stacked header and divider do not move', async function () {
+  const chrome = await mainChromePage();
+  const transforms = await chrome.evaluate(() => ['#glanceHeader', '#glanceDivider'].map((selector) => {
+    const element = document.querySelector(selector);
+    return { selector, hidden: element.hidden, direction: element.dataset.direction, transform: getComputedStyle(element).transform };
+  }));
+  for (const item of transforms) {
+    assert.equal(item.hidden, true, `${item.selector} is not hidden`);
+    assert.equal(item.direction, 'vertical', `${item.selector} is not stacked`);
+    assert.equal(item.transform, 'none', `${item.selector} still moves while leaving: ${item.transform}`);
+  }
+});
+
+Then('the live region never said Opening', async function () {
+  assert.notEqual(this.pickerLiveSeen, 'Opening…', 'the live region said Opening… for a tab that was already awake');
 });
