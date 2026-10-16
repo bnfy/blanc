@@ -766,15 +766,33 @@ bookmarks, the empty test folder, the exact fixture history entries and the
 temporary tabs and windows were removed; the prototype was left open on its
 original start page.
 
-Not established by that pass, still pending with native input: physical heart
-clicks, typing and submitting `/save`, `/favorites` and `/history`, Quick
-Switcher Enter navigation, case-insensitive folder reuse, overlong-folder
-rejection, late favicon arrival (the fixture had no favicon, so only the
-letter fallback is verified), and per-layout live refresh. Authenticated
-extension workflows were not repeated. The Chromium 156 call sites listed in
-the pull request compiled as written after the three corrections below.
-Evidence: Codex's run record and final screenshot, to be committed under
-`evidence/favorites-*` from the Mac; until then this section is the record.
+That initial pass did not establish native input behavior. The later Mac pass
+on `3d9fcd3c` completed those checks: native clicks on both hearts; native typing
+and Enter for `/save`, `/favorites` and `/history`; Favorites/History footer
+clicks; Quick Switcher Favorite/history Enter navigation; case-insensitive
+folder reuse, bare-save deduplication, moving an existing bookmark and rejection
+of a 101-character folder name. A fresh-origin page saved with native Cmd-D
+before its delayed favicon arrived subsequently acquired the cached PNG icon.
+Ledger, Shelf and Tally were each selected with native mouse input and verified
+while visible: insertion/removal through Chromium's bookmark API refreshed the
+rendered list without reload. Those observer mutations were API-driven, not
+native input. Native clicking on a rendered Favorite also navigated correctly.
+Bookmark IDs, folders, history and favicon data survived a full restart; the
+favicon assertion waited for asynchronous cache loading. Start-page/private
+HTTP Cmd-D no-ops, hidden private hearts, and precise fixture cleanup passed.
+Authenticated extension workflows were not repeated.
+
+The focus failures discovered in that pass were fixed and natively retested at
+`a50eb2a`, as described below. Evidence is now committed:
+[initial bridge results](evidence/favorites-bridge-results.json),
+[initial final window](evidence/favorites-bridge-final.png),
+[broader native results](evidence/favorites-native-results.md) and
+[focus retest](evidence/favorites-focus-results.md), with the chronological
+[native run](evidence/favorites-native-run.json) and
+[focus run](evidence/favorites-focus-run.json). The run records retain failed
+harness attempts and their corrected retests; the reports distinguish these
+from product findings. No broader native-input checklist item above remains
+pending within this tested scope.
 
 First Mac build attempt on `89d7637` (Codex): the guarded build failed after
 8.77 s with three compile errors, caches and the running prototype preserved.
@@ -805,13 +823,13 @@ bubble. ⌘⇧D (bookmark all tabs) is untouched.
 
 Checks run in the Linux session: Node syntax checks, the eight build-guard
 tests and ESLint recommended rules over the prototype JavaScript; the native
-source is not compiled here. Pending on the Mac: `prepare.mjs` (confirm the
-`BookmarkCurrentTab` anchor and that the ActionItem dispatch path reaches it),
-`build.mjs --check` then `--build`; then with native input on a fixture page:
-⌘D turns the heart on without a bubble, ⌘D again turns it off, ⌘D on the start
-page and in a private window does nothing, ⌘D in a non-Island window (if any)
-still shows Chromium's bubble, and the original tabs are preserved. Do not
-record this as passed from this section.
+source is not compiled in that environment. The Mac passes below ran
+`prepare.mjs`, the guarded check and build, then verified native Cmd-D on/off
+without a bubble, start-page/private HTTP no-ops, and preservation of the
+baseline tabs. A non-Island popup did not show a bookmark bubble: pinned
+Chromium's `CanBookmarkCurrentTab()` restricts that command to `TYPE_NORMAL`.
+The popup therefore cannot establish ordinary-window bubble preservation;
+no such bubble pass is claimed.
 
 Mac result on the ⌘D head (Codex): the guarded build passed in 58 seconds with
 no cold rebuild; restart persistence and the other tested controls passed; test
@@ -837,6 +855,7 @@ the Island's address input focused; Escape then ⌘L reopens the Island without
 clicking the page; ⌘R and ⌘[ work from the open panel; Escape restores typing
 to the page; Bitwarden's popup retains keyboard focus after selection from the
 Extensions view. Fixtures were cleaned up, the original tab preserved and the
-prototype left open. Evidence: Codex's run record
-(`/private/tmp/blanc-pr858-focus-results.md` on the Mac), to be committed under
-`evidence/favorites-*` with the earlier records.
+prototype left open. The exact build took 36.54 seconds (7 steps), and the
+final guard scheduled zero actions. See the committed
+[focus report](evidence/favorites-focus-results.md) and
+[run record](evidence/favorites-focus-run.json).
