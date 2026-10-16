@@ -185,12 +185,21 @@ data; it is refused from a private window. It is destructive: exercise it only
 on a disposable `--user-data-dir`, never the permanent prototype profile
 (verified that way on the Mac on October 16; see `results.md`).
 
-It does not implement Blanc's Favorites and History sheets, tab groups,
-Spaces, Glance, blocking, private tabs, sync, or the expanded Island's
-remaining secondary commands. Unsupported Island controls are hidden; its
-slash menu contains only `/downloads`, `/new`, `/close`, `/save`,
-`/favorites`, `/history`, `/clear`, `/pin` and `/mute`. Downloads opens
-Chromium's native manager. Cmd+L and Cmd+T focus the
+Named tab groups are Chromium tab groups behind Blanc's UI: `/group <name>`
+finds or creates a group by lowercase name, `/ungroup` and `/close-group` act
+on the active tab's group, the ⌘L panel's group headers fold and unfold, the
+Quick Switcher's group results focus a group, and drag or ⌥⇧↑/↓ moves tabs
+between groups and reorders groups. Group colour is fixed and never shown.
+Chromium cannot pin a grouped tab, so grouping a pinned tab unpins it, unlike
+Electron's group-local pins (pending Mac verification; see `results.md`).
+
+It does not implement Blanc's Favorites and History sheets, the tab context
+menu's Move to Group submenu, Spaces, Glance, blocking, private tabs, sync, or
+the expanded Island's remaining secondary commands. Unsupported Island
+controls are hidden; its slash menu contains only `/downloads`, `/new`,
+`/close`, `/save`, `/favorites`, `/history`, `/clear`, `/pin`, `/mute`,
+`/group`, `/ungroup` and `/close-group`. Downloads opens Chromium's native
+manager. Cmd+L and Cmd+T focus the
 Island address input; Cmd+A selects its text. See `results.md` for native retests.
 The resting Island reserves a fixed 26px slot for the native Extensions button.
 Extensions, Reload and Close use equal 26px footprints, identical gaps and matching

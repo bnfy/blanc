@@ -978,3 +978,65 @@ permanent profile was never touched by `/clear`. Evidence: committed [Mac accept
 [disposable-profile run](evidence/clear-history-run.json),
 [guarded build log](evidence/clear-history-build.log), and
 [Billboard after deletion](evidence/clear-history-billboard-cleared.png).
+
+
+## Named tab groups through the Island — October 16, 2026 (implementation; compilation and runtime verification pending)
+
+Blanc's named groups now run on Chromium's `TabStripModel` tab groups. The
+snapshot fills `groupId` on each tab (`TabGroupId::ToString()`) and lists
+`groups` as Blanc's `{id, name, collapsed}` in cluster order (first tab
+index), so the copied panel's group headers, the pill's active-group dots and
+the Quick Switcher's group results work unchanged.
+
+- `groupTabByName` mirrors Electron: the name is trimmed, lowercased and
+  capped at 40 characters; an existing group with that title is reused, else
+  `AddToNewGroup` plus `ChangeTabGroupVisuals` sets the title with a fixed grey
+  colour that the Island never shows. `setTabGroup` moves a tab into a group
+  (`AddToExistingGroup`) or out (`RemoveFromGroup`); a group id that no longer
+  exists is a no-op, never an ungroup.
+- `focusGroup` unfolds the group and activates its first tab;
+  `toggleGroupCollapsed` flips only the model's collapsed flag (panel state,
+  as in Electron), not Chromium's tab-strip collapse handler;
+  `closeGroup` calls `CloseAllTabsInGroup`, adding a fresh new tab first when
+  the group is the whole window, as `closeTab` does.
+- `reorderGroup` follows Electron's `resolveGroupReorder`: before another
+  group (`MoveGroupTo` its first index) or to the end with `null`.
+- `moveTab [id, groupId | null, beforeId | null]` follows Electron's
+  `resolveTabMove` across sections: the pinned state never changes, the
+  before-tab must be in the target bucket (pins, that group, or loose), and a
+  stale group or foreign tab is rejected. Membership changes first, position
+  second, and the final bucket is re-asserted and reported, because Chromium
+  keeps groups contiguous and may adjust membership at a group edge.
+- `/group`, `/ungroup` and `/close-group` join the slash allowlist.
+
+Divergences to record if confirmed: Chromium has no grouped pins, so
+`/group` on a pinned tab unpins it (Chromium's own rule) and a drag of a pin
+into a group is refused; Electron keeps group-local pins. ⌘1–9 keep
+Chromium's nth-tab meaning rather than Electron's nth-cluster meaning. The
+tab context menu's Move to Group submenu (an Electron native menu) is not
+reproduced. Chromium 156 may also save groups through its Tab Groups
+service; the prototype does not expose saved groups.
+
+Checks run in the Linux session: Node syntax checks, the eight build-guard
+tests and ESLint recommended rules over the prototype JavaScript. The native
+source is not compiled here. Chromium 156 calls to confirm: `TabStripModel::
+SupportsTabGroups`, `GetTabGroupForTab`, `AddToNewGroup`, `AddToExistingGroup`,
+`RemoveFromGroup`, `ChangeTabGroupVisuals`, `MoveGroupTo`,
+`CloseAllTabsInGroup`, `group_model()->GetTabGroup()->ListTabs()` /
+`visual_data()`, `TabGroupVisualData(title, color, collapsed)`, and the GN
+dependency on `//components/tab_groups`.
+
+Mac checklist: `prepare.mjs` → `build.mjs --check` → `--build`; then with
+native input on fixture tabs: `/group work` on two tabs creates one group whose
+header reads `work`; `/group Work` on a third joins it; the pill shows only
+the active group's dots; the header folds and unfolds; a Quick Switcher
+search for `wor` ranks the group above its tabs and Enter focuses it, unfolding
+it; drag a loose row into the group and a grouped row back out; drag the group
+header above another group (and ⌥⇧↑/↓ on a header); `/ungroup` removes the
+active tab and an emptied group disappears; `/close-group` closes the group's
+tabs, including the whole-window case; `/group` on a pinned tab (record the
+unpin) and a refused pin-into-group drag; folding the active tab's group does
+not change the active tab; quit and relaunch to see whether Chromium restores
+groups; no saved-group bubble or crash with the tab strip hidden. Original tabs
+preserved; remove only fixture tabs and groups. Do not record any of this as
+passed from this section.
