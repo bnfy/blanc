@@ -2320,6 +2320,22 @@
     "message": "Sync is off.",
     "note": "Profile Sync status when syncing is requested while it is off."
   },
+  "sync.error.syncOn": {
+    "message": "Sync is already on. To move this device to a different sync, use Connect to a different sync.",
+    "note": "Sync: a pairing code was entered on the setup card while Sync was already on."
+  },
+  "sync.error.pairNotFound": {
+    "message": "That code isn’t valid any more. Make a new one on your other device.",
+    "note": "Sync: a pairing code was not found on the server, or has expired or been used."
+  },
+  "sync.error.pairUnavailable": {
+    "message": "Pairing isn’t available right now. You can still connect with your sync name and passphrase.",
+    "note": "Sync: the server does not offer pairing (older deployment)."
+  },
+  "sync.error.pairInvalid": {
+    "message": "That doesn’t look like a code. Check it and try again.",
+    "note": "Sync: a pairing or recovery code failed local validation before any network call."
+  },
   "sync.error.localKeyProtect": {
     "message": "Could not protect the local sync key",
     "note": "Profile Sync status line when the saved key could not be protected."

@@ -1,12 +1,13 @@
 const os = require('os');
 const crypto = require('crypto');
-const { net, safeStorage } = require('electron');
+const { net, safeStorage, dialog, clipboard } = require('electron');
 const { JsonStore } = require('./store');
 const settings = require('./settings');
 const bookmarks = require('./bookmarks');
 const tabsync = require('./tabsync');
 const tabicons = require('./tabicons');
 const { deriveKeys, encrypt, decrypt } = require('./sync-crypto');
+const pairingCodes = require('./sync-pairing');
 const { wipeDecision } = require('./sync-wipe');
 const {
   SyncKeyStorageError,
@@ -199,7 +200,7 @@ function passphraseStrong(p) {
 
 function errorCode(err) {
   const code = err instanceof SyncError ? err.message : '';
-  if (['bad-passphrase', 'rate-limited', 'conflict', 'server'].includes(code)) return code;
+  if (['bad-passphrase', 'rate-limited', 'conflict', 'server', 'pair-not-found', 'pair-unavailable', 'pair-invalid'].includes(code)) return code;
   if (/^http-4/.test(code)) return `rejected:${code.slice(5)}`;
   if (/^http-5/.test(code)) return 'server-error';
   return 'offline';
@@ -215,35 +216,11 @@ async function enable({ handle, passphrase }) {
   if (h.length < 2) return { ok: false, error: 'name-too-short', status: status() };
   if (!passphraseStrong(p)) return { ok: false, error: 'weak-passphrase', status: status() };
   const { accountId, key } = deriveKeys(h, p);
-  let protectedKey;
-  try {
-    protectedKey = protectSyncKey(safeStorage, key);
-  } catch (error) {
+  const adopted = adoptCredentials({ handle: h, accountId, key });
+  if (!adopted.ok) {
     key.fill(0);
-    return {
-      ok: false,
-      error: error instanceof SyncKeyStorageError ? `key-store:${error.code}` : 'key-protect-failed',
-      status: status(),
-    };
+    return { ...adopted, status: status() };
   }
-  syncGen += 1; // new identity — strand any in-flight run from the old one
-  clearOptionalMissingRetries();
-  tabicons.cancelCaptures();
-  const syncStore = ensureStore();
-  syncStore.update((d) => {
-    d.enabled = true; d.handle = h; d.accountId = accountId;
-    d.protectedKey = protectedKey; d.key = ''; d.lastError = null;
-  });
-  if (!syncStore.flush()) {
-    syncStore.data.enabled = false;
-    syncStore.data.handle = '';
-    syncStore.data.accountId = '';
-    syncStore.data.protectedKey = '';
-    key.fill(0);
-    return { ok: false, error: 'credentials-save-failed', status: status() };
-  }
-  keyProtectionError = null;
-  refreshTabIcons().catch(() => {});
   // Joining existing data, or starting fresh? A mistyped passphrase derives a
   // *different* accountId → 404 → a silent new account, so the UI warns when
   // nothing was found. null = couldn't tell (offline).
@@ -255,6 +232,227 @@ async function enable({ handle, passphrase }) {
   key.fill(0);
   const res = await syncNow();
   return { ok: res.ok, error: res.error, created, status: status() };
+}
+
+/** The part of enable() every credential source shares — the passphrase
+ * path, a pairing code, a recovery code: protect the key, become this
+ * identity, persist, and refresh icons. The caller still owns `key` and
+ * zero-fills it. */
+function adoptCredentials({ handle, accountId, key }) {
+  let protectedKey;
+  try {
+    protectedKey = protectSyncKey(safeStorage, key);
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof SyncKeyStorageError ? `key-store:${error.code}` : 'key-protect-failed',
+    };
+  }
+  syncGen += 1; // new identity — strand any in-flight run from the old one
+  clearOptionalMissingRetries();
+  tabicons.cancelCaptures();
+  const syncStore = ensureStore();
+  syncStore.update((d) => {
+    d.enabled = true; d.handle = handle; d.accountId = accountId;
+    d.protectedKey = protectedKey; d.key = ''; d.lastError = null;
+  });
+  if (!syncStore.flush()) {
+    syncStore.data.enabled = false;
+    syncStore.data.handle = '';
+    syncStore.data.accountId = '';
+    syncStore.data.protectedKey = '';
+    return { ok: false, error: 'credentials-save-failed' };
+  }
+  keyProtectionError = null;
+  refreshTabIcons().catch(() => {});
+  return { ok: true };
+}
+
+// ---- Device pairing (design 2026-10-16 §5.4 / §5.4a) ----
+// A device that already syncs parks its wrapped secret on the Worker under a
+// code-derived id for ten minutes; the new device fetches it once. The code
+// lives in memory here and nowhere else — never the store, logs or IPC
+// beyond the Settings page that displays it.
+const PAIR_ATTEMPTS = 3;
+let pairing = null; // { code, pairId, expiresAt }
+
+const pairUrl = (pairId) => `${SYNC_ENDPOINT}/v1/pair/${pairId}`;
+
+/** A 404 from the pair route is JSON on a current Worker and plain text on
+ * one that predates the route: the two mean different things to the person. */
+async function pairNotFoundCode(res) {
+  try {
+    const body = await res.json();
+    return body?.error === 'not-found' ? 'pair-not-found' : 'pair-unavailable';
+  } catch {
+    return 'pair-unavailable';
+  }
+}
+
+async function beginPairing() {
+  if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID, beginPairing);
+  const d = ensureStore().data;
+  if (!d.enabled || !d.accountId || !d.protectedKey) return { ok: false, error: keyProtectionError || 'sync-off' };
+  if (!bananifyServiceAllowed(SYNC_ENDPOINT)) return { ok: false, error: SERVICE_UNAVAILABLE };
+  let key;
+  try {
+    try {
+      key = unprotectSyncKey(safeStorage, d.protectedKey);
+    } catch (error) {
+      return { ok: false, error: error instanceof SyncKeyStorageError ? `key:${error.code}` : 'local-key-unlock' };
+    }
+    const payload = { v: 1, handle: d.handle, accountId: d.accountId, key: key.toString('base64') };
+    for (let attempt = 0; attempt < PAIR_ATTEMPTS; attempt += 1) {
+      const code = pairingCodes.generateCode();
+      const { pairId, wrapKey } = pairingCodes.pairingMaterial(code);
+      const blob = pairingCodes.wrapSecret(wrapKey, payload);
+      wrapKey.fill(0);
+      let res;
+      try {
+        res = await net.fetch(pairUrl(pairId), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ blob }),
+        });
+      } catch {
+        return { ok: false, error: 'offline' };
+      }
+      if (res.status === 409) continue;
+      if (res.status === 404) return { ok: false, error: 'pair-unavailable' };
+      if (res.status === 429) return { ok: false, error: 'rate-limited' };
+      if (!res.ok) return { ok: false, error: errorCode(new SyncError(`http-${res.status}`)) };
+      const expiresAt = Date.now() + pairingCodes.PAIR_TTL_MS;
+      pairing = { code, pairId, expiresAt };
+      return { ok: true, code, expiresAt };
+    }
+    return { ok: false, error: 'server' };
+  } finally {
+    key?.fill(0);
+  }
+}
+
+async function cancelPairing() {
+  if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID, cancelPairing);
+  const current = pairing;
+  pairing = null;
+  if (current) {
+    try { await net.fetch(pairUrl(current.pairId), { method: 'DELETE' }); } catch { /* it expires on its own */ }
+  }
+  return { ok: true };
+}
+
+function pairingState() {
+  if (!pairing) return { active: false };
+  if (Date.now() >= pairing.expiresAt) {
+    pairing = null;
+    return { active: false };
+  }
+  return { active: true, code: pairing.code, expiresAt: pairing.expiresAt };
+}
+
+/** The secret behind a code: fetched once from the Worker for a pairing code,
+ * decoded locally for a recovery code. Returns { payload, key } with `key`
+ * a Buffer the caller zero-fills, or { error }. */
+async function resolveCode(input) {
+  let payload;
+  if (pairingCodes.isRecoveryCode(input)) {
+    try {
+      payload = pairingCodes.decodeRecoveryCode(input);
+    } catch {
+      return { error: 'pair-invalid' };
+    }
+  } else {
+    const code = pairingCodes.normalizeCode(input);
+    if (!code) return { error: 'pair-invalid' };
+    if (!bananifyServiceAllowed(SYNC_ENDPOINT)) return { error: SERVICE_UNAVAILABLE };
+    const { pairId, wrapKey } = pairingCodes.pairingMaterial(code);
+    try {
+      let res;
+      try {
+        res = await net.fetch(pairUrl(pairId));
+      } catch {
+        return { error: 'offline' };
+      }
+      if (res.status === 404) return { error: await pairNotFoundCode(res) };
+      if (res.status === 429) return { error: 'rate-limited' };
+      if (!res.ok) return { error: errorCode(new SyncError(`http-${res.status}`)) };
+      let body;
+      try { body = await res.json(); } catch { return { error: 'server' }; }
+      try {
+        payload = pairingCodes.unwrapSecret(wrapKey, body?.blob);
+      } catch {
+        return { error: 'pair-invalid' };
+      }
+    } finally {
+      wrapKey.fill(0);
+    }
+  }
+  return { payload, key: Buffer.from(payload.key, 'base64') };
+}
+
+async function joinWithCode(input) {
+  if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID, () => joinWithCode(input));
+  if (ensureStore().data.enabled) return { ok: false, error: 'sync-on', status: status() };
+  const resolved = await resolveCode(input);
+  if (resolved.error) return { ok: false, error: resolved.error, status: status() };
+  try {
+    const adopted = adoptCredentials({ handle: resolved.payload.handle, accountId: resolved.payload.accountId, key: resolved.key });
+    if (!adopted.ok) return { ...adopted, status: status() };
+  } finally {
+    resolved.key.fill(0);
+  }
+  const res = await syncNow();
+  return { ok: res.ok, error: res.error, status: status() };
+}
+
+/** Leave the current sync for the one behind a code, in one step (§5.4a).
+ * The code is resolved first so a bad code changes nothing; then disable()'s
+ * barrier drains any in-flight pass and performs the optional wipe, and a
+ * failed wipe keeps the old credentials exactly as disable() would. */
+async function switchWithCode(input, { wipeRemote = false } = {}) {
+  if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID, () => switchWithCode(input, { wipeRemote }));
+  const resolved = await resolveCode(input);
+  if (resolved.error) return { ok: false, error: resolved.error, status: status() };
+  try {
+    const left = await disable({ wipeRemote });
+    if (!left.ok) return left;
+    const adopted = adoptCredentials({ handle: resolved.payload.handle, accountId: resolved.payload.accountId, key: resolved.key });
+    if (!adopted.ok) return { ...adopted, status: status() };
+  } finally {
+    resolved.key.fill(0);
+  }
+  const res = await syncNow();
+  return { ok: res.ok, error: res.error, status: status() };
+}
+
+/** The recovery code goes straight from main to the clipboard behind a
+ * native dialog (§4.3). `texts` is the interface copy pages.js resolves at
+ * the Settings boundary; the reply carries no code. */
+async function copyRecoveryCode({ texts } = {}) {
+  if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID, () => copyRecoveryCode({ texts }));
+  const d = ensureStore().data;
+  if (!d.enabled || !d.accountId || !d.protectedKey) return { ok: false, error: keyProtectionError || 'sync-off' };
+  let key;
+  try {
+    try {
+      key = unprotectSyncKey(safeStorage, d.protectedKey);
+    } catch (error) {
+      return { ok: false, error: error instanceof SyncKeyStorageError ? `key:${error.code}` : 'local-key-unlock' };
+    }
+    const { response } = await dialog.showMessageBox({
+      type: 'warning',
+      message: texts?.message ?? 'Copy your sync recovery code?',
+      detail: texts?.detail ?? 'Anyone with this code can read and change your synced data. Paste it into your password manager now, and nowhere else.',
+      buttons: [texts?.copy ?? 'Copy to Clipboard', texts?.cancel ?? 'Cancel'],
+      defaultId: 1,
+      cancelId: 1,
+    });
+    if (response !== 0) return { ok: false, error: 'cancelled' };
+    clipboard.writeText(pairingCodes.encodeRecoveryCode({ v: 1, handle: d.handle, accountId: d.accountId, key: key.toString('base64') }));
+    return { ok: true };
+  } finally {
+    key?.fill(0);
+  }
 }
 
 // Join-path probe (design 2026-09-17 §4.3): does data already exist under
@@ -306,6 +504,7 @@ async function disable({ wipeRemote = false } = {}) {
   syncGen += 1;
   clearOptionalMissingRetries();
   tabicons.cancelCaptures();
+  if (pairing) cancelPairing().catch(() => {});
   try {
     await passSettled;
     const d = ensureStore().data;
@@ -658,6 +857,12 @@ module.exports = {
   enable,
   preflight,
   disable,
+  beginPairing,
+  cancelPairing,
+  pairingState,
+  joinWithCode,
+  switchWithCode,
+  copyRecoveryCode,
   syncNow,
   status,
   setSyncTabs,
