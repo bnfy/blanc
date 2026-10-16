@@ -228,6 +228,16 @@
       "verdict": "qualified"
     },
     {
+      "id": "cinema-wallpaper",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Your Start Page, from dawn to night. Turn on Time-of-day wallpaper in Settings → General, and the Start Page follows your computer’s clock.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
       "id": "cinema-proof-heading",
       "source": "site/src/pages/index.astro",
       "exactWording": "What you get from the first launch.",

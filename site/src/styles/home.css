@@ -245,13 +245,32 @@
 /* ---------- The device ---------- */
 .home-cinema .device {
   overflow: hidden;
-  padding: 24px 22px 0;
+  padding: 120px 22px 0;
   background: var(--paper);
+}
+.device-copy {
+  max-width: 1100px;
+  margin: 0 auto;
+  text-align: center;
+}
+.device-copy h2 {
+  margin: 0;
+  font-size: clamp(40px, 5vw, 72px);
+  line-height: 0.98;
+}
+.home-cinema .device-copy .lead {
+  max-width: 34em;
+  margin: 18px auto 0;
 }
 .device-frame {
   position: relative;
   max-width: 1180px;
-  margin: 72px auto 0;
+  margin: 56px auto 0;
+}
+/* The labels follow the scroll-driven wallpaper (motion below); without it
+   the screen stays at dawn, so they stay hidden. */
+.device-phases {
+  display: none;
 }
 .device-shell {
   position: relative;
@@ -1723,10 +1742,6 @@ details[open] .faq-sign::after {
   .device-frame {
     margin-top: 40px;
   }
-  /* The pinned capture's height, for centering it (motion below). */
-  .home-cinema .device-frame {
-    --frame-h: calc((100vw - 44px) * 3 / 4);
-  }
   .device-frame .device-screen {
     position: relative;
     inset: auto;
@@ -1846,25 +1861,70 @@ details[open] .faq-sign::after {
       animation-timeline: view();
       animation-range: entry 0% contain 10%;
     }
-    /* The laptop holds still, centered below the header, while its
-       wallpaper moves from dawn to night, then rests on the next section.
-       overflow: clip, not hidden, so the section is no scroll container and
-       the frame can stick. The fades follow the section's own timeline: the
-       screen clips its images, which makes it their nearest scroll
-       container. */
+    /* The wallpaper: heading, laptop and phase labels share one pinned
+       screen while the screen moves from dawn to night, as the Island stage
+       does. overflow: clip, not hidden, so the section is no scroll
+       container and the stage can stick. The fades follow the section's own
+       timeline: the screen clips its images, which makes it their nearest
+       scroll container. */
     .home-cinema .device {
       height: 220vh;
       box-sizing: border-box;
+      padding-top: 0;
+      padding-bottom: 0;
       overflow: clip;
       view-timeline: --device block;
     }
-    .device-frame {
-      --frame-h: calc(min(100vw - 44px, 1180px) * 2 / 3);
+    .device-stage {
       position: sticky;
-      top: max(
-        var(--site-header-h),
-        calc(50svh + var(--site-header-h) / 2 - var(--frame-h) / 2)
-      );
+      top: var(--site-header-h);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: calc(100vh - var(--site-header-h));
+      height: calc(100svh - var(--site-header-h));
+      box-sizing: border-box;
+      padding: 24px 0;
+    }
+    .device-copy h2 {
+      font-size: clamp(32px, min(4.4vw, 6.5vh), 64px);
+    }
+    .home-cinema .device-copy .lead {
+      margin-top: 12px;
+      font-size: clamp(15px, 2.2vh, 19px);
+    }
+    /* The laptop (3:2) takes the height the copy and labels leave. */
+    .device-frame {
+      width: min(100%, 1180px, calc((100svh - var(--site-header-h) - 300px) * 1.5));
+      margin-top: clamp(16px, 3.5vh, 40px);
+    }
+    .device-phases {
+      display: flex;
+      gap: 10px;
+      margin-top: clamp(14px, 2.5vh, 24px);
+    }
+    .device-phases span {
+      width: 64px;
+      padding-top: 8px;
+      border-top: 3px solid rgb(14 14 14 / 0.15);
+      color: var(--dim);
+      font-size: 13px;
+      text-align: center;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: --device;
+      animation-range: contain 0% contain 100%;
+    }
+    .device-phases .phase-dawn { animation-name: phase-dawn; }
+    .device-phases .phase-day { animation-name: phase-day; }
+    .device-phases .phase-dusk { animation-name: phase-dusk; }
+    .device-phases .phase-night { animation-name: phase-night; }
+    @media (max-width: 760px) {
+      /* Phones show the capture alone, at 4:3. */
+      .device-frame {
+        width: min(100%, calc((100svh - var(--site-header-h) - 300px) * 4 / 3));
+      }
     }
     .device-screen :is(.wallpaper-day, .wallpaper-dusk, .wallpaper-night) {
       animation: home-screen linear both, home-fade linear both;
@@ -2009,6 +2069,12 @@ details[open] .faq-sign::after {
 @keyframes sun-disc { 0%, 20% { transform: translateY(22%); } 54%, 100% { transform: none; } }
 @keyframes sun-rays { 0%, 44% { clip-path: circle(21% at 49.9% 64.2%); opacity: 0; } 48% { opacity: 1; } 70%, 100% { clip-path: circle(75% at 49.9% 64.2%); opacity: 1; } }
 @keyframes sun-copy { 0%, 72% { opacity: 0; transform: translateY(40px); } 100% { opacity: 1; transform: none; } }
+/* Each label is lit while its wallpaper shows: the fades run at 18–28%,
+   45–55% and 72–82% of the --device timeline. */
+@keyframes phase-dawn { 0%, 21% { color: var(--ink); border-top-color: var(--gold); } 25%, 100% { color: var(--dim); border-top-color: rgb(14 14 14 / 0.15); } }
+@keyframes phase-day { 0%, 21% { color: var(--dim); border-top-color: rgb(14 14 14 / 0.15); } 25%, 48% { color: var(--ink); border-top-color: var(--gold); } 52%, 100% { color: var(--dim); border-top-color: rgb(14 14 14 / 0.15); } }
+@keyframes phase-dusk { 0%, 48% { color: var(--dim); border-top-color: rgb(14 14 14 / 0.15); } 52%, 75% { color: var(--ink); border-top-color: var(--gold); } 79%, 100% { color: var(--dim); border-top-color: rgb(14 14 14 / 0.15); } }
+@keyframes phase-night { 0%, 75% { color: var(--dim); border-top-color: rgb(14 14 14 / 0.15); } 79%, 100% { color: var(--ink); border-top-color: var(--gold); } }
 @keyframes pin-a { 0%, 26% { opacity: 1; transform: none; } 36%, 100% { opacity: 0; transform: scale(0.96); } }
 @keyframes pin-b { 0%, 26% { opacity: 0; transform: scale(1.04); } 36%, 60% { opacity: 1; transform: none; } 70%, 100% { opacity: 0; transform: scale(0.96); } }
 @keyframes pin-c { 0%, 60% { opacity: 0; transform: scale(1.04); } 70%, 100% { opacity: 1; transform: none; } }

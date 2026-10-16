@@ -33,8 +33,13 @@ test('the homepage keeps the live demos in the redesign, each working without th
   assert.match(gestures, /\{!compact && <p class="gesture-setup">/);
 });
 
-test('the MacBook screen moves from dawn to night only with scroll-driven motion', () => {
+test('the MacBook screen moves from dawn to night only with scroll-driven motion, and says so', () => {
   const device = home.slice(home.indexOf('class="device"'), home.indexOf('id="first-launch"'));
+  // A heading and one line say what the screen shows; the phase labels light
+  // with the wallpaper and are hidden where it does not move.
+  assert.match(device, /<h2 id="wallpaper-title">Your Start Page, from dawn to night\.<\/h2>/);
+  assert.match(device, /<div class="device-phases" aria-hidden="true">(<span class="phase-(dawn|day|dusk|night)">[A-Z][a-z]+<\/span>){4}<\/div>/);
+  assert.match(css, /\.device-phases \{\s*display: none;/);
   assert.match(device, /src="\/feature-captures\/home-wallpaper-dawn-[^"]+\.webp"/);
   assert.match(device, /\["day", "dusk", "night"\]\.map/);
   assert.match(device, /loading="lazy"/);
@@ -45,6 +50,11 @@ test('the MacBook screen moves from dawn to night only with scroll-driven motion
   assert.match(motion, /view-timeline: --device block;/);
   assert.match(motion, /overflow: clip;/);
   for (const time of ['day', 'dusk', 'night']) assert.match(motion, new RegExp(`\\.device-screen \\.wallpaper-${time} \\{\\s*animation-range: entry 0% contain 10%, contain \\d+% contain \\d+%;`));
+  assert.match(motion, /\.device-stage \{\s*position: sticky;/);
+  for (const time of ['dawn', 'day', 'dusk', 'night']) {
+    assert.match(motion, new RegExp(`\\.device-phases \\.phase-${time} \\{ animation-name: phase-${time}; \\}`));
+    assert.match(css, new RegExp(`@keyframes phase-${time} \\{`));
+  }
 });
 
 function glanceFixture({ compact = true } = {}) {

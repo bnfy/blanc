@@ -197,39 +197,46 @@ const faqs = [
       </div>
     </section>
 
-    <section class="device" aria-label="Blanc on a MacBook">
-      <div class="device-frame">
-        <img
-          class="device-shell"
-          src="/revamp/space-black-laptop-v2-display.webp"
-          width="1536"
-          height="1024"
-          alt=""
-        />
-        <div
-          class="device-screen"
-          role="img"
-          aria-label="Blanc’s Billboard Start Page with the time-of-day wallpaper, from dawn to night, on a MacBook"
-        >
-          <img
-            src="/feature-captures/home-wallpaper-dawn-c70c55fa.webp"
-            width="1440"
-            height="900"
-            alt=""
-          />{
-            ["day", "dusk", "night"].map((time) => (
-              <img
-                class={`wallpaper-${time}`}
-                src={`/feature-captures/home-wallpaper-${time}-c70c55fa.webp`}
-                width="1440"
-                height="900"
-                loading="lazy"
-                decoding="async"
-                alt=""
-              />
-            ))
-          }
+    <section class="device" id="wallpaper" aria-labelledby="wallpaper-title">
+      <div class="device-stage">
+        <div class="device-copy">
+          <h2 id="wallpaper-title">Your Start Page, from dawn to night.</h2>
+          <p class="lead">Turn on Time-of-day wallpaper in Settings → General, and the Start Page follows your computer’s clock.</p>
         </div>
+        <div class="device-frame">
+          <img
+            class="device-shell"
+            src="/revamp/space-black-laptop-v2-display.webp"
+            width="1536"
+            height="1024"
+            alt=""
+          />
+          <div
+            class="device-screen"
+            role="img"
+            aria-label="Blanc’s Billboard Start Page with the time-of-day wallpaper, from dawn to night, on a MacBook"
+          >
+            <img
+              src="/feature-captures/home-wallpaper-dawn-c70c55fa.webp"
+              width="1440"
+              height="900"
+              alt=""
+            />{
+              ["day", "dusk", "night"].map((time) => (
+                <img
+                  class={`wallpaper-${time}`}
+                  src={`/feature-captures/home-wallpaper-${time}-c70c55fa.webp`}
+                  width="1440"
+                  height="900"
+                  loading="lazy"
+                  decoding="async"
+                  alt=""
+                />
+              ))
+            }
+          </div>
+        </div>
+        <div class="device-phases" aria-hidden="true"><span class="phase-dawn">Dawn</span><span class="phase-day">Day</span><span class="phase-dusk">Dusk</span><span class="phase-night">Night</span></div>
       </div>
     </section>
 
