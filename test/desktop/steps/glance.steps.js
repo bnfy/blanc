@@ -775,6 +775,10 @@ When('I drag the Glance divider {int} pixels to the left from inside its grip', 
   await this.waitForState((candidate) => Math.round(candidate.glanceGeometry.ratio * 100) === 62);
   await frontChromeWindow(this);
   const chrome = await mainChromePage();
+  // The divider slides in over 340 ms; grab it once it has settled, or the
+  // box read mid-slide puts the pointer off its grip.
+  await waitForValue(() => chrome.locator('#glanceDivider').evaluate((element) => getComputedStyle(element).transform),
+    (transform) => transform === 'none' || transform.startsWith('matrix(1, 0, 0, 1, 0, 0)'), 'the divider settled', 2000);
   const box = await chrome.locator('#glanceDivider').boundingBox();
   this.glanceDividerStartX = (await this.state()).glanceGeometry.divider.x;
   // 10px into the 12px grip: without grab-offset compensation the first move
