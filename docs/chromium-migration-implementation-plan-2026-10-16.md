@@ -161,7 +161,7 @@ on Electron primitives and must be redone against Chromium's.
 | F9 | Favorites | Native model; no sheet, no "Add all open tabs" | Keep `BookmarkModel`; port `blanc://bookmarks` as a WebUI sheet; import from Electron `bookmarks.json` (Workstream E) | M |
 | F10 | History | Native service; no sheet | Keep `HistoryService`; port the sheet; import `history.json` | S |
 | F11 | Downloads | Chromium's manager | Port the sheet over `DownloadManager`; keep `downloads.json` import | M |
-| F12 | Ad/tracker blocking | **Missing** | Rebuild. Options: (a) Blanc Blocker on Chromium's network service through a `URLLoaderThrottle`/`WebRequest`-style hook plus cosmetic injection as a renderer-side user script; (b) full uBO, which needs Manifest V2: upstream Chromium removed MV2 loading, enterprise exception included, by Chrome 139 (§7), so option (b) means Blanc re-adding and maintaining MV2 loading as fork patches, an unproven maintenance effort to be sized by its own spike, not a policy default. Either way the shield count, per-site allow and the popover are Blanc UI over the chosen engine. Highest-risk workstream; its estimate is unknown until both spikes run. | L+ |
+| F12 | Ad/tracker blocking | **Missing** | Rebuild. Options: (a) Blanc Blocker on Chromium's network service through a `URLLoaderThrottle`/`WebRequest`-style hook plus cosmetic injection as a renderer-side user script; (b) full uBO, which needs Manifest V2: Chrome's supported MV2 use ended with Chrome 139, enterprise exception included (§7), while this checkout still carries MV2 handling, test overrides and component exceptions, so restoring a supported full-uBO path requires a source/API audit and a runtime spike; the required patches and their maintenance cost remain unknown, and option (b) is not a policy default. Either way the shield count, per-site allow and the popover are Blanc UI over the chosen engine. Highest-risk workstream; its estimate is unknown until both spikes run. | L+ |
 | F13 | Permissions | Chromium prompts | Rebuild the explicit policy and copy over `PermissionRequestManager` with a Blanc prompt view; the held-view denial rules become moot or divergences | M |
 | F14 | Settings | Missing | Port `blanc://settings` as WebUI; `settings-schema` stays the source; Chromium prefs only for things Chromium owns | M |
 | F15 | Theming | Done (system/dark/private tint) | Port; drive `ThemeService`/`NativeTheme` from the setting | S |
@@ -389,26 +389,35 @@ and record what it costs.
    tag, outside the existing checkout. Run Chromium's required setup hooks
    once for that checkout only, as `README.md` describes for fresh
    initialization. Record the tag, the commit and the paths.
-2. **Generate.** `gn gen out/BlancPrototype` in the new checkout with the
-   same arguments as the existing one (`is_debug=false
-   is_component_build=false symbol_level=0 target_cpu="arm64"`).
-3. **Prepare.** Extend `prepare.mjs` to accept the new version (it refuses
+2. **Prepare.** Extend `prepare.mjs` to accept the new version (it refuses
    unknown versions by design) and run it against the new checkout. Every
    anchor that no longer matches is one line in the ledger: file, hunk, cause
    (moved, renamed, API changed), minutes to fix.
+3. **Generate, after preparing.** `gn gen out/BlancPrototype` in the new
+   checkout with the same arguments as the existing one (`is_debug=false
+   is_component_build=false symbol_level=0 target_cpu="arm64"`). Generation
+   comes after `prepare.mjs` because preparation edits `BUILD.gn`, which
+   invalidates any graph generated earlier, and the guard refuses a pending
+   regeneration even with `--allow-large-build`. If a later `prepare.mjs`
+   fix touches `BUILD.gn` again, re-run `gn gen` with unchanged arguments
+   before the next guarded step.
 4. **Record the environment.** `build.mjs <new-src> --record-environment`
    writes the environment baseline for the new output directory and exits;
    it compiles nothing.
 5. **Inspect the plan.** `build.mjs <new-src> --check` runs the Siso dry run
    and stops, as designed, because a cold build is far above the 1,000-action
-   threshold. Save the plan log with the ledger; its action count is part of
-   the approval request.
+   threshold. If it instead stops on pending buildflag-header generation
+   (Siso does not run generators in a dry run, so the plan cannot see what
+   depends on them), generate only the reported flag target, as the
+   prototype README describes, and run `--check` again; do not treat that
+   stop as the plan. Save the final plan log with the ledger; its action
+   count is part of the approval request.
 6. **Build, under the separate approval.** Only with the owner's written
    approval of that specific plan: `build.mjs <new-src> --build
    --allow-large-build`. Record wall-clock time; this is also the first
    measured respin cost without a cache. Fix compile errors, ledger each,
    and rebuild incrementally (those later builds go through the normal
-   guard).
+   guard, including its regeneration and buildflag stops).
 7. **Re-verify.** Re-run the prototype's automated checks and the
    native-input checklist from `results.md` (Web Store install, one extension
    update, Island tab control, Favorites, groups) on the new build. Ledger
@@ -429,12 +438,13 @@ explaining why. Either outcome is the deliverable.
   support; the enterprise policy exception ended with Chrome 139 (official
   timeline:
   <https://developer.chrome.com/docs/extensions/develop/migrate/mv2-deprecation-timeline>).
-  A Chromium 156 fork therefore has no MV2 switch to flip: full uBO would
-  mean Blanc re-adding and maintaining MV2 extension loading itself, an
-  unproven fork-maintenance effort whose size is unknown until a spike
-  measures it, against the alternatives of Blanc Blocker on Chromium's
-  network stack or uBO Lite. Needed before F12's option (b) is scoped, and
-  it changes F12's estimate.
+  That ends supported use; it does not establish that every loading path is
+  gone, and the pinned 156 checkout still carries MV2 handling, test
+  overrides and component exceptions. Restoring a supported full-uBO path
+  therefore requires a source/API audit and a runtime spike; the required
+  patches and their maintenance cost remain unknown, against the
+  alternatives of Blanc Blocker on Chromium's network stack or uBO Lite.
+  Needed before F12's option (b) is scoped, and it changes F12's estimate.
 - Private tabs in a regular window (F4) versus incognito windows: a product
   decision with a large patch delta; recommend the divergence.
 - Which of Reopen Closed Tab's three tiers survive (F2): Tier 1's parked live
