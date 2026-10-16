@@ -716,6 +716,7 @@ class Handler : public content::WebUIMessageHandler {
     web_ui()->CallJavascriptFunctionUnsafe("blancPrototypeReply", base::Value(id),
                                            base::Value(success), result);
   }
+  void HistoryCleared(std::string id) { Reply(id, true, base::Value()); }
   void HistoryReady(std::string id, history::QueryResults results) {
     base::ListValue items;
     for (const history::URLResult& result : results) {
@@ -772,6 +773,25 @@ class Handler : public content::WebUIMessageHandler {
       options.duplicate_policy = history::QueryOptions::REMOVE_ALL_DUPLICATES;
       service->QueryHistory(std::u16string(), options,
           base::BindOnce(&Handler::HistoryReady, weak_factory_.GetWeakPtr(), id),
+          &tracker_);
+      return;
+    }
+    if (method == "clearHistory" && args.empty()) {
+      // Electron's /clear empties the history list and nothing else, so this
+      // expires every local visit through HistoryService rather than running
+      // Chromium's wider Clear browsing data. A private window never clears
+      // the regular profile's history, and the service is never resolved
+      // through an off-the-record profile. Destructive: test only on a
+      // disposable --user-data-dir, never the permanent prototype profile.
+      auto* service = profile->IsOffTheRecord() ? nullptr
+          : HistoryServiceFactory::GetForProfile(profile, ServiceAccessType::EXPLICIT_ACCESS);
+      if (!service) {
+        reply(false, base::Value("Clear history from a regular window."));
+        return;
+      }
+      service->ExpireHistoryBetween(
+          /*restrict_urls=*/{}, base::Time(), base::Time::Max(), /*user_initiated=*/true,
+          base::BindOnce(&Handler::HistoryCleared, weak_factory_.GetWeakPtr(), id),
           &tracker_);
       return;
     }

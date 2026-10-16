@@ -143,14 +143,14 @@ rendererSource = rendererSource.replace(favoriteAnchor, favoriteAnchor + "\n  fa
 assets.set(renderer, rendererSource);
 
 // Only these copied slash commands have native implementations in this spike.
-// /save, /favorites and /history ride the bookmark and history bridge; /clear
-// stays out until history deletion is implemented and tested on a disposable profile.
+// /save, /favorites, /history and /clear ride the bookmark and history bridge;
+// /clear is destructive and is tested only on a disposable profile.
 const overlayScript = path.join(generated, 'overlay.js');
 let overlaySource = assets.get(overlayScript).toString('utf8');
 const commandsAnchor = '  ];\n\n  function runCommand(command) {';
 if (overlaySource.split(commandsAnchor).length !== 2) fail('command list anchor changed');
 overlaySource = overlaySource.replace(commandsAnchor,
-  "  ].filter((command) => ['/downloads', '/new', '/close', '/save', '/favorites', '/history', '/pin', '/mute'].includes(command.cmd));\n\n  function runCommand(command) {");
+  "  ].filter((command) => ['/downloads', '/new', '/close', '/save', '/favorites', '/history', '/clear', '/pin', '/mute'].includes(command.cmd));\n\n  function runCommand(command) {");
 assets.set(overlayScript, overlaySource);
 
 for (const [target, value] of assets) writeIfChanged(target, value);

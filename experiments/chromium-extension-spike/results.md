@@ -896,3 +896,35 @@ row; Chromium's own order (visible after showing a normal window's tab strip is
 not possible here, so use the snapshot or `chrome://tabs`-equivalent DevTools
 readback) matches the Island; the original tabs are preserved. Do not record
 any of this as passed from this section.
+
+
+## `/clear` on a disposable profile — October 16, 2026 (implementation; compilation and runtime verification pending)
+
+`/clear` is back in the slash allowlist and backed by a `clearHistory` bridge
+method. It mirrors Electron's history-only `/clear`: the handler calls
+`HistoryService::ExpireHistoryBetween({}, base::Time(), base::Time::Max(),
+user_initiated = true, …)` with the handler's `CancelableTaskTracker`, and
+replies only after the deletion callback, through the same guarded `Reply`.
+It does not run Chromium's wider Clear browsing data (cookies, cache,
+downloads and site data are untouched), so TopSites and the start page's
+recent sites update through the history-deletion observers. A private window
+gets "Clear history from a regular window." and the history service is never
+resolved through an off-the-record profile. Favorites are not affected.
+
+Checks run in the Linux session: Node syntax checks, the eight build-guard
+tests and ESLint recommended rules over the prototype JavaScript; the native
+source is not compiled here.
+
+Mac protocol (Codex): `prepare.mjs` → `build.mjs --check` → `--build`. Then
+**only on a disposable profile** — launch a second instance with a fresh
+`--user-data-dir` under `/private/tmp`, never
+`~/Library/Application Support/Blanc Chromium Prototype`: visit two localhost
+fixtures and save one as a Favorite; ⌘L shows both in history and one as a
+Favorite; type `/clear` and press Return; ⌘L shows no history rows, the
+Favorite row remains, `chrome://history/` is empty, and the start page's
+recent sites are gone; `⌘⇧N`, `/clear` in the private window shows the refusal
+notice and leaves the regular profile's state unchanged (verify by reopening
+⌘L in the regular window after visiting one more fixture); quit, relaunch the
+disposable profile and confirm the cleared history stays cleared. Delete the
+disposable `--user-data-dir` afterwards. Do not run `/clear` in the permanent
+profile; do not record any row as passed from this section.

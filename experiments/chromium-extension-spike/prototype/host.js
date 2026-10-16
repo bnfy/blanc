@@ -234,6 +234,9 @@
       return moved === true;
     },
     reorderGroup: async () => false,
+    // Destructive and history-only, like Electron's /clear; main refuses it
+    // from a private window. Test on a disposable profile only.
+    clearHistory: () => request('clearHistory'),
     listFavorites: () => request('listFavorites'),
     listHistory: (options) => {
       const limit = Number.isInteger(options?.limit) ? options.limit : 300;
