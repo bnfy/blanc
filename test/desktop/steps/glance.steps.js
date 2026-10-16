@@ -1709,6 +1709,10 @@ Then('the fill question is gone', async function () {
 // ---- A stacked Island between the rail and the window controls ----
 
 When('the window is {int} pixels wide', async function (width) {
+  // A display narrower than the window (the Linux VM's GNOME screen is
+  // 1024 px) cannot show this layout at all: skip rather than test another.
+  const available = await ctx.app.evaluate(({ screen }) => screen.getPrimaryDisplay().workAreaSize.width);
+  if (available < width) return 'skipped';
   await this.call('setWindowContentSize', width, 800);
   await this.waitForState((state) =>
     state.glanceGeometry && state.glanceGeometry.page.x + state.glanceGeometry.page.width === width);
