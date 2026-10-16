@@ -4336,8 +4336,76 @@
     "note": "Settings → Sync → Add this device: hint under the code field."
   },
   "settings.sync.addThisDeviceHint": {
-    "message": "Get a code from a Mac that already syncs: Settings → Sync → Add another device.",
+    "message": "Get a code from a device that already syncs: Settings → Sync → Add another device.",
     "note": "Settings → Sync: hint under the Add this device to my sync button and intro of the code step."
+  },
+  "settings.sync.addThisDevice": {
+    "message": "Add this device to my sync",
+    "note": "Settings → Sync → Set up Sync: first path button (join with a code from another device)."
+  },
+  "settings.sync.startOnlyFirstDevice": {
+    "message": "Only for your first device. If you already sync elsewhere, add this device from there instead.",
+    "note": "Settings → Sync → Set up Sync: hint under Start syncing from this device."
+  },
+  "settings.sync.setup.codeFinishHint": {
+    "message": "Your favorites and settings arrive right after. Open tabs stay private to this device until you choose to share them.",
+    "note": "Settings → Sync → Add this device: text above the Connect button."
+  },
+  "settings.sync.setup.usePassphrase": {
+    "message": "Use my sync name and passphrase instead",
+    "note": "Settings → Sync → Add this device: link to the name-and-passphrase fallback."
+  },
+  "settings.sync.addAnotherDevice": {
+    "message": "Add another device",
+    "note": "Settings → Sync (on): button that shows a pairing code for a new device."
+  },
+  "settings.sync.pairing.instruction": {
+    "message": "On your other device, open Settings → Sync, choose Add this device to my sync, and enter this code.",
+    "note": "Settings → Sync → Add another device: instruction above the code."
+  },
+  "settings.sync.pairing.expiresIn": {
+    "message": "Expires in {time}",
+    "note": "Settings → Sync → Add another device: countdown; {time} is m:ss."
+  },
+  "settings.sync.pairing.copy": {
+    "message": "Copy",
+    "note": "Settings → Sync → Add another device: copies the pairing code."
+  },
+  "settings.sync.pairing.cancel": {
+    "message": "Cancel",
+    "note": "Settings → Sync: cancels the pairing code or the switch panel."
+  },
+  "settings.sync.pairing.expired": {
+    "message": "That code expired. Make a new one when you’re ready.",
+    "note": "Settings → Sync → Add another device: shown when the ten minutes run out."
+  },
+  "settings.sync.switch.open": {
+    "message": "Connect to a different sync with a code",
+    "note": "Settings → Sync (on): opens the panel that moves this device to another sync."
+  },
+  "settings.sync.switch.title": {
+    "message": "This device will leave its current sync, “{name}”.",
+    "note": "Settings → Sync → Connect to a different sync: heading; {name} is the current sync name."
+  },
+  "settings.sync.switch.body": {
+    "message": "Your favorites and settings stay on this device. Other devices on “{name}” are not affected.",
+    "note": "Settings → Sync → Connect to a different sync: explanation; {name} is the current sync name."
+  },
+  "settings.sync.switch.wipe": {
+    "message": "Also erase “{name}”’s server copy. Only do this if no other device uses it.",
+    "note": "Settings → Sync → Connect to a different sync: checkbox label; {name} is the current sync name."
+  },
+  "settings.sync.switch.connect": {
+    "message": "Connect",
+    "note": "Settings → Sync → Connect to a different sync: submit button."
+  },
+  "settings.sync.recovery.copy": {
+    "message": "Copy recovery code",
+    "note": "Settings → Sync (on): copies the recovery code to the clipboard after a native confirmation."
+  },
+  "settings.sync.recovery.copied": {
+    "message": "Copied. Paste it into your password manager.",
+    "note": "Settings → Sync: shown after the recovery code reached the clipboard."
   },
   "settings.sync.setup.joinTitle": {
     "message": "Connect this device",

@@ -238,6 +238,19 @@
                 </p>
               </header>
               <div id="syncPaths" class="sync-paths" aria-label="Choose how to set up Sync" data-i18n-aria-label="settings.sync.syncPaths.ariaLabel">
+                <button id="syncPathCode" class="sync-path" type="button">
+                  <svg class="sync-path-icon" viewBox="0 0 48 48" aria-hidden="true">
+                    <rect x="5" y="10" width="25" height="19" rx="2"></rect>
+                    <path d="M2 33h31"></path>
+                    <rect x="35" y="15" width="9" height="20" rx="2"></rect>
+                    <path d="M25 40c6 3 13 1 16-3M40 9c-6-3-13-1-16 3"></path>
+                  </svg>
+                  <span class="sync-path-copy">
+                    <strong data-i18n="settings.sync.addThisDevice">Add this device to my sync</strong>
+                    <span data-i18n="settings.sync.addThisDeviceHint">Get a code from a device that already syncs: Settings → Sync → Add another device.</span>
+                  </span>
+                  <span class="sync-path-arrow" aria-hidden="true">→</span>
+                </button>
                 <button id="syncPathStart" class="sync-path" type="button">
                   <svg class="sync-path-icon" viewBox="0 0 48 48" aria-hidden="true">
                     <rect x="7" y="11" width="34" height="23" rx="2"></rect>
@@ -246,24 +259,45 @@
                   </svg>
                   <span class="sync-path-copy">
                     <strong data-i18n="settings.sync.startSyncingFromThis">Start syncing from this device</strong>
-                    <span data-i18n="settings.sync.createTheNameAnd">Create the name and passphrase you’ll use on your other devices.</span>
-                  </span>
-                  <span class="sync-path-arrow" aria-hidden="true">→</span>
-                </button>
-                <button id="syncPathJoin" class="sync-path" type="button">
-                  <svg class="sync-path-icon" viewBox="0 0 48 48" aria-hidden="true">
-                    <rect x="5" y="10" width="25" height="19" rx="2"></rect>
-                    <path d="M2 33h31"></path>
-                    <rect x="35" y="15" width="9" height="20" rx="2"></rect>
-                    <path d="M25 40c6 3 13 1 16-3M40 9c-6-3-13-1-16 3"></path>
-                  </svg>
-                  <span class="sync-path-copy">
-                    <strong data-i18n="settings.sync.iAlreadySyncOn">I already sync on another device</strong>
-                    <span data-i18n="settings.sync.connectWithTheExact">Connect with the exact same name and passphrase.</span>
+                    <span data-i18n="settings.sync.startOnlyFirstDevice">Only for your first device. If you already sync elsewhere, add this device from there instead.</span>
                   </span>
                   <span class="sync-path-arrow" aria-hidden="true">→</span>
                 </button>
               </div>
+              <form id="syncCodeForm" class="sync-form" hidden>
+                <ol class="sync-guide">
+                  <li class="sync-guide-step" data-step="1">
+                    <span class="sync-step-number" aria-hidden="true">1</span>
+                    <svg class="sync-guide-icon" viewBox="0 0 48 48" aria-hidden="true">
+                      <rect x="8" y="14" width="32" height="20" rx="3"></rect>
+                      <path d="M14 24h4M22 24h4M30 24h4"></path>
+                    </svg>
+                    <label class="sync-field">
+                      <strong data-i18n="settings.sync.setup.codeTitle">Enter the code from your other device</strong>
+                      <input id="syncCode" class="sync-code-input" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" />
+                      <span class="hint" id="syncCodeHint" data-i18n="settings.sync.setup.codeHint">It’s good for ten minutes.</span>
+                    </label>
+                  </li>
+                  <li class="sync-guide-step sync-guide-finish" data-step="2">
+                    <span class="sync-step-number" aria-hidden="true">2</span>
+                    <svg class="sync-guide-icon" viewBox="0 0 48 48" aria-hidden="true">
+                      <rect x="4" y="15" width="23" height="17" rx="2"></rect>
+                      <path d="M2 36h27M34 12h10v24H34zM37 32h4"></path>
+                      <path d="M26 10c5-3 10-2 13 0M39 10l-3-3M22 39c5 3 10 2 13 0M22 39l3 3"></path>
+                    </svg>
+                    <div class="sync-guide-content">
+                      <strong data-i18n="settings.sync.setup.connect">Connect</strong>
+                      <p data-i18n="settings.sync.setup.codeFinishHint">Your favorites and settings arrive right after. Open tabs stay private to this device until you choose to share them.</p>
+                      <div class="toolbar-row">
+                        <button id="syncCodeSubmit" type="submit" data-i18n="settings.sync.setup.connect">Connect</button>
+                        <button id="syncCodeBack" type="button" class="quiet" data-i18n="settings.sync.syncBack">Back</button>
+                      </div>
+                      <p class="section-hint"><button id="syncUsePassphrase" type="button" class="link-button" data-i18n="settings.sync.setup.usePassphrase">Use my sync name and passphrase instead</button></p>
+                      <p class="section-hint" id="syncCodeStatus" role="status"></p>
+                    </div>
+                  </li>
+                </ol>
+              </form>
               <form id="syncForm" class="sync-form" hidden>
                 <ol class="sync-guide">
                   <li class="sync-guide-step" data-step="1">
@@ -339,6 +373,38 @@
               </div>
               <div class="toolbar-row">
                 <label class="inline-check"><input id="syncTabsShare" type="checkbox" /> <span data-i18n="settings.sync.syncTabsShare">share this device’s open tabs with your other devices</span></label>
+              </div>
+              <div class="sync-devices">
+                <div class="toolbar-row" id="syncDeviceActions">
+                  <button id="syncAddDevice" type="button" data-i18n="settings.sync.addAnotherDevice">Add another device</button>
+                  <button id="syncSwitchOpen" type="button" class="quiet" data-i18n="settings.sync.switch.open">Connect to a different sync with a code</button>
+                  <button id="syncRecoveryCopy" type="button" class="quiet" data-i18n="settings.sync.recovery.copy">Copy recovery code</button>
+                </div>
+                <p class="section-hint" id="syncRecoveryNote" role="status"></p>
+                <div id="syncPairing" class="sync-pairing" hidden>
+                  <p class="sync-pairing-instruction" data-i18n="settings.sync.pairing.instruction">On your other device, open Settings → Sync, choose Add this device to my sync, and enter this code.</p>
+                  <div class="sync-pairing-code" id="syncPairingCode" data-i18n-ignore="" aria-live="polite"></div>
+                  <div class="toolbar-row sync-pairing-actions">
+                    <span class="section-hint" id="syncPairingRemaining"></span>
+                    <button id="syncPairingCopy" type="button" class="quiet" data-i18n="settings.sync.pairing.copy">Copy</button>
+                    <button id="syncPairingCancel" type="button" class="quiet" data-i18n="settings.sync.pairing.cancel">Cancel</button>
+                  </div>
+                  <p class="section-hint" id="syncPairingNotice" role="status"></p>
+                </div>
+                <form id="syncSwitch" class="sync-switch" hidden>
+                  <strong id="syncSwitchName"></strong>
+                  <p class="section-hint" id="syncSwitchBody"></p>
+                  <label class="inline-check"><input id="syncSwitchWipe" type="checkbox" /> <span id="syncSwitchWipeLabel"></span></label>
+                  <label class="sync-field">
+                    <strong data-i18n="settings.sync.setup.codeTitle">Enter the code from your other device</strong>
+                    <input id="syncSwitchCode" class="sync-code-input" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" />
+                  </label>
+                  <div class="toolbar-row">
+                    <button id="syncSwitchSubmit" type="submit" class="danger" data-i18n="settings.sync.switch.connect">Connect</button>
+                    <button id="syncSwitchCancel" type="button" class="quiet" data-i18n="settings.sync.pairing.cancel">Cancel</button>
+                  </div>
+                  <p class="section-hint" id="syncSwitchNotice" role="status"></p>
+                </form>
               </div>
             </div>
           </div>
@@ -631,6 +697,7 @@
   <script src="settings-nav-model.js"></script>
   <script src="settings-language-model.js"></script>
   <script src="settings-sync-setup-model.js"></script>
+  <script src="settings-sync-pairing-model.js"></script>
   <script src="settings.js"></script>
 </body>
 </html>

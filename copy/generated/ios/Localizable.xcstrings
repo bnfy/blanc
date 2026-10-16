@@ -25330,6 +25330,36 @@
             "state": "translated",
             "value": "Copy your sync recovery code?"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiederherstellungscode für die Synchronisierung kopieren?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Copiar el código de recuperación de la sincronización?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier le code de récupération de la synchronisation ?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiare il codice di recupero della sincronizzazione?"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar o código de recuperação da sincronização?"
+          }
         }
       }
     },
@@ -25341,6 +25371,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Anyone with this code can read and change your synced data. Paste it into your password manager now, and nowhere else."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wer diesen Code hat, kann deine synchronisierten Daten lesen und ändern. Füge ihn jetzt in deinen Passwort-Manager ein – und nirgendwo sonst."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cualquiera con este código puede leer y cambiar tus datos sincronizados. Pégalo ahora en tu gestor de contraseñas, y en ningún otro sitio."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiconque possède ce code peut lire et modifier vos données synchronisées. Collez-le maintenant dans votre gestionnaire de mots de passe, et nulle part ailleurs."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiunque abbia questo codice può leggere e modificare i tuoi dati sincronizzati. Incollalo subito nel tuo gestore di password, e da nessun’altra parte."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qualquer pessoa com este código pode ler e alterar seus dados sincronizados. Cole-o agora no seu gerenciador de senhas, e em nenhum outro lugar."
           }
         }
       }
@@ -25354,6 +25414,36 @@
             "state": "translated",
             "value": "Copy to Clipboard"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In die Zwischenablage kopieren"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar al portapapeles"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier dans le presse-papiers"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copia negli appunti"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar para a área de transferência"
+          }
         }
       }
     },
@@ -25365,6 +25455,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cancel"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abbrechen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuler"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annulla"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelar"
           }
         }
       }
@@ -25378,6 +25498,36 @@
             "state": "translated",
             "value": "Sync is already on. To move this device to a different sync, use Connect to a different sync."
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Synchronisierung ist bereits an. Um dieses Gerät zu einer anderen Synchronisierung zu bewegen, verwende „Mit einer anderen Synchronisierung verbinden“."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La sincronización ya está activada. Para mover este dispositivo a otra sincronización, usa «Conectar con otra sincronización»."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La synchronisation est déjà activée. Pour déplacer cet appareil vers une autre synchronisation, utilisez « Se connecter à une autre synchronisation »."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La sincronizzazione è già attiva. Per spostare questo dispositivo su un’altra sincronizzazione, usa “Collegati a un’altra sincronizzazione”."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A sincronização já está ativada. Para mover este dispositivo para outra sincronização, use “Conectar a outra sincronização”."
+          }
         }
       }
     },
@@ -25389,6 +25539,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "That code isn’t valid any more. Make a new one on your other device."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Code ist nicht mehr gültig. Erzeuge auf deinem anderen Gerät einen neuen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ese código ya no es válido. Crea uno nuevo en tu otro dispositivo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce code n’est plus valide. Créez-en un nouveau sur votre autre appareil."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quel codice non è più valido. Creane uno nuovo sull’altro dispositivo."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esse código não é mais válido. Crie um novo no seu outro dispositivo."
           }
         }
       }
@@ -25402,6 +25582,36 @@
             "state": "translated",
             "value": "Pairing isn’t available right now. You can still connect with your sync name and passphrase."
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Koppeln ist gerade nicht verfügbar. Du kannst dich weiterhin mit Synchronisierungsname und Passphrase verbinden."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El emparejamiento no está disponible ahora mismo. Aún puedes conectarte con tu nombre de sincronización y tu frase de contraseña."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le jumelage n’est pas disponible pour le moment. Vous pouvez toujours vous connecter avec votre nom de synchronisation et votre phrase secrète."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’abbinamento al momento non è disponibile. Puoi comunque collegarti con il nome della sincronizzazione e la passphrase."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O pareamento não está disponível agora. Você ainda pode conectar com seu nome de sincronização e sua frase secreta."
+          }
         }
       }
     },
@@ -25413,6 +25623,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "That doesn’t look like a code. Check it and try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das sieht nicht wie ein Code aus. Prüfe ihn und versuche es erneut."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eso no parece un código. Revísalo e inténtalo de nuevo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cela ne ressemble pas à un code. Vérifiez-le et réessayez."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non sembra un codice. Controllalo e riprova."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Isso não parece um código. Confira e tente de novo."
           }
         }
       }
@@ -46210,6 +46450,36 @@
             "state": "translated",
             "value": "Enter the code from your other device"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib den Code von deinem anderen Gerät ein"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escribe el código de tu otro dispositivo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez le code de votre autre appareil"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inserisci il codice dell’altro dispositivo"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Digite o código do seu outro dispositivo"
+          }
         }
       }
     },
@@ -46222,6 +46492,36 @@
             "state": "translated",
             "value": "It’s good for ten minutes."
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er gilt zehn Minuten lang."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Es válido durante diez minutos."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il est valable dix minutes."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vale per dieci minuti."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ele vale por dez minutos."
+          }
         }
       }
     },
@@ -46232,7 +46532,751 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Get a code from a Mac that already syncs: Settings → Sync → Add another device."
+            "value": "Get a code from a device that already syncs: Settings → Sync → Add another device."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hol dir einen Code von einem Gerät, das bereits synchronisiert: Einstellungen → Synchronisierung → Weiteres Gerät hinzufügen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consigue un código en un dispositivo que ya sincroniza: Ajustes → Sincronización → Añadir otro dispositivo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obtenez un code sur un appareil qui synchronise déjà : Réglages → Synchronisation → Ajouter un autre appareil."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ottieni un codice da un dispositivo che sincronizza già: Impostazioni → Sincronizzazione → Aggiungi un altro dispositivo."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pegue um código em um dispositivo que já sincroniza: Ajustes → Sincronização → Adicionar outro dispositivo."
+          }
+        }
+      }
+    },
+    "settings.sync.addThisDevice": {
+      "comment": "Settings → Sync → Set up Sync: first path button (join with a code from another device).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add this device to my sync"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Gerät zu meiner Synchronisierung hinzufügen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añadir este dispositivo a mi sincronización"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter cet appareil à ma synchronisation"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aggiungi questo dispositivo alla mia sincronizzazione"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adicionar este dispositivo à minha sincronização"
+          }
+        }
+      }
+    },
+    "settings.sync.startOnlyFirstDevice": {
+      "comment": "Settings → Sync → Set up Sync: hint under Start syncing from this device.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only for your first device. If you already sync elsewhere, add this device from there instead."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur für dein erstes Gerät. Wenn du schon woanders synchronisierst, füge dieses Gerät von dort aus hinzu."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo para tu primer dispositivo. Si ya sincronizas en otro, añade este dispositivo desde allí."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seulement pour votre premier appareil. Si vous synchronisez déjà ailleurs, ajoutez cet appareil depuis là-bas."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo per il tuo primo dispositivo. Se sincronizzi già altrove, aggiungi questo dispositivo da lì."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Só para o seu primeiro dispositivo. Se você já sincroniza em outro, adicione este dispositivo a partir de lá."
+          }
+        }
+      }
+    },
+    "settings.sync.setup.codeFinishHint": {
+      "comment": "Settings → Sync → Add this device: text above the Connect button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your favorites and settings arrive right after. Open tabs stay private to this device until you choose to share them."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Favoriten und Einstellungen kommen gleich danach an. Offene Tabs bleiben auf diesem Gerät privat, bis du sie teilen möchtest."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tus favoritos y ajustes llegan justo después. Las pestañas abiertas siguen siendo privadas en este dispositivo hasta que decidas compartirlas."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vos favoris et réglages arrivent juste après. Les onglets ouverts restent privés sur cet appareil tant que vous ne choisissez pas de les partager."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preferiti e impostazioni arrivano subito dopo. Le schede aperte restano private su questo dispositivo finché non scegli di condividerle."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seus favoritos e ajustes chegam logo em seguida. As abas abertas continuam privadas neste dispositivo até você escolher compartilhá-las."
+          }
+        }
+      }
+    },
+    "settings.sync.setup.usePassphrase": {
+      "comment": "Settings → Sync → Add this device: link to the name-and-passphrase fallback.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use my sync name and passphrase instead"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stattdessen Synchronisierungsname und Passphrase verwenden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usar mi nombre de sincronización y mi frase de contraseña"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utiliser plutôt mon nom de synchronisation et ma phrase secrète"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usa invece il nome della sincronizzazione e la passphrase"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usar meu nome de sincronização e minha frase secreta"
+          }
+        }
+      }
+    },
+    "settings.sync.addAnotherDevice": {
+      "comment": "Settings → Sync (on): button that shows a pairing code for a new device.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add another device"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weiteres Gerät hinzufügen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añadir otro dispositivo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter un autre appareil"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aggiungi un altro dispositivo"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adicionar outro dispositivo"
+          }
+        }
+      }
+    },
+    "settings.sync.pairing.instruction": {
+      "comment": "Settings → Sync → Add another device: instruction above the code.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On your other device, open Settings → Sync, choose Add this device to my sync, and enter this code."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffne auf deinem anderen Gerät Einstellungen → Synchronisierung, wähle „Dieses Gerät zu meiner Synchronisierung hinzufügen“ und gib diesen Code ein."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En tu otro dispositivo, abre Ajustes → Sincronización, elige «Añadir este dispositivo a mi sincronización» y escribe este código."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sur votre autre appareil, ouvrez Réglages → Synchronisation, choisissez « Ajouter cet appareil à ma synchronisation » et saisissez ce code."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sull’altro dispositivo apri Impostazioni → Sincronizzazione, scegli “Aggiungi questo dispositivo alla mia sincronizzazione” e inserisci questo codice."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No seu outro dispositivo, abra Ajustes → Sincronização, escolha “Adicionar este dispositivo à minha sincronização” e digite este código."
+          }
+        }
+      }
+    },
+    "settings.sync.pairing.expiresIn": {
+      "comment": "Settings → Sync → Add another device: countdown; {time} is m:ss.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expires in %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Läuft ab in %1$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caduca en %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expire dans %1$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scade tra %1$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expira em %1$@"
+          }
+        }
+      }
+    },
+    "settings.sync.pairing.copy": {
+      "comment": "Settings → Sync → Add another device: copies the pairing code.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopieren"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copia"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar"
+          }
+        }
+      }
+    },
+    "settings.sync.pairing.cancel": {
+      "comment": "Settings → Sync: cancels the pairing code or the switch panel.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abbrechen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuler"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annulla"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelar"
+          }
+        }
+      }
+    },
+    "settings.sync.pairing.expired": {
+      "comment": "Settings → Sync → Add another device: shown when the ten minutes run out.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That code expired. Make a new one when you’re ready."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Code ist abgelaufen. Erzeuge einen neuen, wenn du so weit bist."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ese código ha caducado. Crea uno nuevo cuando quieras."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce code a expiré. Créez-en un nouveau quand vous serez prêt."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quel codice è scaduto. Creane uno nuovo quando vuoi."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esse código expirou. Crie um novo quando quiser."
+          }
+        }
+      }
+    },
+    "settings.sync.switch.open": {
+      "comment": "Settings → Sync (on): opens the panel that moves this device to another sync.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect to a different sync with a code"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit einer anderen Synchronisierung per Code verbinden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectar con otra sincronización mediante un código"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se connecter à une autre synchronisation avec un code"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collegati a un’altra sincronizzazione con un codice"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectar a outra sincronização com um código"
+          }
+        }
+      }
+    },
+    "settings.sync.switch.title": {
+      "comment": "Settings → Sync → Connect to a different sync: heading; {name} is the current sync name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This device will leave its current sync, “%1$@”."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Gerät verlässt seine aktuelle Synchronisierung „%1$@“."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este dispositivo dejará su sincronización actual, «%1$@»."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cet appareil va quitter sa synchronisation actuelle, « %1$@ »."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo dispositivo lascerà la sincronizzazione attuale, “%1$@”."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este dispositivo vai sair da sincronização atual, “%1$@”."
+          }
+        }
+      }
+    },
+    "settings.sync.switch.body": {
+      "comment": "Settings → Sync → Connect to a different sync: explanation; {name} is the current sync name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your favorites and settings stay on this device. Other devices on “%1$@” are not affected."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Favoriten und Einstellungen bleiben auf diesem Gerät. Andere Geräte in „%1$@“ sind nicht betroffen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tus favoritos y ajustes se quedan en este dispositivo. Los demás dispositivos de «%1$@» no se ven afectados."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vos favoris et réglages restent sur cet appareil. Les autres appareils de « %1$@ » ne sont pas concernés."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preferiti e impostazioni restano su questo dispositivo. Gli altri dispositivi di “%1$@” non sono coinvolti."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seus favoritos e ajustes ficam neste dispositivo. Os outros dispositivos em “%1$@” não são afetados."
+          }
+        }
+      }
+    },
+    "settings.sync.switch.wipe": {
+      "comment": "Settings → Sync → Connect to a different sync: checkbox label; {name} is the current sync name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Also erase “%1$@”’s server copy. Only do this if no other device uses it."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auch die Serverkopie von „%1$@“ löschen. Nur, wenn kein anderes Gerät sie verwendet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Borrar también la copia de «%1$@» en el servidor. Hazlo solo si ningún otro dispositivo la usa."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Effacer aussi la copie de « %1$@ » sur le serveur. Seulement si aucun autre appareil ne l’utilise."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancella anche la copia di “%1$@” sul server. Solo se nessun altro dispositivo la usa."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apagar também a cópia de “%1$@” no servidor. Só faça isso se nenhum outro dispositivo a usar."
+          }
+        }
+      }
+    },
+    "settings.sync.switch.connect": {
+      "comment": "Settings → Sync → Connect to a different sync: submit button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbinden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se connecter"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collegati"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectar"
+          }
+        }
+      }
+    },
+    "settings.sync.recovery.copy": {
+      "comment": "Settings → Sync (on): copies the recovery code to the clipboard after a native confirmation.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy recovery code"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiederherstellungscode kopieren"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar código de recuperación"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier le code de récupération"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copia il codice di recupero"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar código de recuperação"
+          }
+        }
+      }
+    },
+    "settings.sync.recovery.copied": {
+      "comment": "Settings → Sync: shown after the recovery code reached the clipboard.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copied. Paste it into your password manager."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopiert. Füge ihn in deinen Passwort-Manager ein."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiado. Pégalo en tu gestor de contraseñas."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copié. Collez-le dans votre gestionnaire de mots de passe."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiato. Incollalo nel tuo gestore di password."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiado. Cole no seu gerenciador de senhas."
           }
         }
       }

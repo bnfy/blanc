@@ -2261,6 +2261,38 @@
     "message": "La sincronizzazione è disattivata.",
     "source": "sha256:a6b94c2efc548ceae8da66471f7f2a1917d874cf56b34623e92f11790da5323d"
   },
+  "settings.sync.recovery.dialogMessage": {
+    "message": "Copiare il codice di recupero della sincronizzazione?",
+    "source": "sha256:f845de77b6c5ee8077b4523af5750307d27f07c5805b9e6d4ef92fb3934817fa"
+  },
+  "settings.sync.recovery.dialogDetail": {
+    "message": "Chiunque abbia questo codice può leggere e modificare i tuoi dati sincronizzati. Incollalo subito nel tuo gestore di password, e da nessun’altra parte.",
+    "source": "sha256:6b7b1a7fe5617fb803013e0adf1d95feeabfd892156e280290ec78cb9de93829"
+  },
+  "settings.sync.recovery.dialogCopy": {
+    "message": "Copia negli appunti",
+    "source": "sha256:7263b5d67117f6e7a1c40d681195bfc733515e7060b152863d232e01d310e600"
+  },
+  "settings.sync.recovery.cancel": {
+    "message": "Annulla",
+    "source": "sha256:74ed028ffd024966791113c2cfac24a5c8d2fc5fca2790b6c23a08718e6953db"
+  },
+  "sync.error.syncOn": {
+    "message": "La sincronizzazione è già attiva. Per spostare questo dispositivo su un’altra sincronizzazione, usa “Collegati a un’altra sincronizzazione”.",
+    "source": "sha256:16a4db32b0d28bf177fd7587e4bc9e24c1664732a612957a199f79b85523b276"
+  },
+  "sync.error.pairNotFound": {
+    "message": "Quel codice non è più valido. Creane uno nuovo sull’altro dispositivo.",
+    "source": "sha256:340d44413416bc37537355a4cef076f007e069d628fab014b2e24a5565ce0fa4"
+  },
+  "sync.error.pairUnavailable": {
+    "message": "L’abbinamento al momento non è disponibile. Puoi comunque collegarti con il nome della sincronizzazione e la passphrase.",
+    "source": "sha256:7c37215dae82ea6e340091b4803c80f3a65217a5ee7b8fdbd0ba325453cd394d"
+  },
+  "sync.error.pairInvalid": {
+    "message": "Non sembra un codice. Controllalo e riprova.",
+    "source": "sha256:0731c8593204460da168ff287819df9a1091337bd8a0472ac00c82b476d2c182"
+  },
   "sync.error.localKeyProtect": {
     "message": "Impossibile proteggere la chiave di sincronizzazione locale",
     "source": "sha256:198194f02697dd740a8180fa7dbf9382b5bb034a8d0af88ef01fc06e1b1b8c51"
@@ -4148,6 +4180,86 @@
   "settings.sync.setup.intro": {
     "message": "Sincronizza preferiti e impostazioni tra i tuoi dispositivi e, se vuoi, anche le schede aperte. Tutto è crittografato end-to-end.",
     "source": "sha256:1b3bb5e6a29c0d154ded7c5232b9430ae6e4660d34d4745f40322a7ac9419b02"
+  },
+  "settings.sync.setup.codeTitle": {
+    "message": "Inserisci il codice dell’altro dispositivo",
+    "source": "sha256:ef301b0b095bcd830fb5a0c136586723185a8effa432f46c480a7bd1b946a47a"
+  },
+  "settings.sync.setup.codeHint": {
+    "message": "Vale per dieci minuti.",
+    "source": "sha256:93e97ade1407099982fec305ebc406813002684dd8ea185a5c50d72e42e2e725"
+  },
+  "settings.sync.addThisDeviceHint": {
+    "message": "Ottieni un codice da un dispositivo che sincronizza già: Impostazioni → Sincronizzazione → Aggiungi un altro dispositivo.",
+    "source": "sha256:cf7e3c2e193baf5c9c61cbb45e3d5d8709b6a398e370a7b9cf96f541499ef187"
+  },
+  "settings.sync.addThisDevice": {
+    "message": "Aggiungi questo dispositivo alla mia sincronizzazione",
+    "source": "sha256:c503267ab92393f448d6cc24ca5b08e270a08a0b7bd3e23305fd6ed2c156b257"
+  },
+  "settings.sync.startOnlyFirstDevice": {
+    "message": "Solo per il tuo primo dispositivo. Se sincronizzi già altrove, aggiungi questo dispositivo da lì.",
+    "source": "sha256:b5792e5d1aea9f0f6f81cbef6dbdad10fe211417bfe2458e6db3143a547e0dc5"
+  },
+  "settings.sync.setup.codeFinishHint": {
+    "message": "Preferiti e impostazioni arrivano subito dopo. Le schede aperte restano private su questo dispositivo finché non scegli di condividerle.",
+    "source": "sha256:bb0026fca8819fb7e8d136f87766adaaa5b2ce4a37b17ea9ee709e3481cc9fee"
+  },
+  "settings.sync.setup.usePassphrase": {
+    "message": "Usa invece il nome della sincronizzazione e la passphrase",
+    "source": "sha256:20bce7ba0245b2ec051a965ddef6e9f8570a30b3bae2d7319f6cad81f61bc254"
+  },
+  "settings.sync.addAnotherDevice": {
+    "message": "Aggiungi un altro dispositivo",
+    "source": "sha256:f2685746e9bb506c73833ba5d1e14e1534854427b3ab01cf38aa9e094bd93e8e"
+  },
+  "settings.sync.pairing.instruction": {
+    "message": "Sull’altro dispositivo apri Impostazioni → Sincronizzazione, scegli “Aggiungi questo dispositivo alla mia sincronizzazione” e inserisci questo codice.",
+    "source": "sha256:716bde0e975f43357a82fffdcc9dbf9300d21f048b22f253074cd951b9de43e9"
+  },
+  "settings.sync.pairing.expiresIn": {
+    "message": "Scade tra {time}",
+    "source": "sha256:65a9ef22dd81fc46a4a24bcb4e1ece6df8407f4ad8b8a84d2e4ccbd43c8c72b6"
+  },
+  "settings.sync.pairing.copy": {
+    "message": "Copia",
+    "source": "sha256:b2d8b41dbeef42c3d27e5d4c25dc64f5d2be06ad2ecbc6bd14fc1fd80c95f406"
+  },
+  "settings.sync.pairing.cancel": {
+    "message": "Annulla",
+    "source": "sha256:c011897de36e1b9e4f4a68fb1e2196e68f2fefbc76bd66cfb9cd5575bb034cc3"
+  },
+  "settings.sync.pairing.expired": {
+    "message": "Quel codice è scaduto. Creane uno nuovo quando vuoi.",
+    "source": "sha256:fb765737b44a84b45256841c8eea53f94784d274babbf3ceb07eaf1727245fbd"
+  },
+  "settings.sync.switch.open": {
+    "message": "Collegati a un’altra sincronizzazione con un codice",
+    "source": "sha256:a8f93780fed5e33ab8a57b5f836c7f471ca6d2b2c04d7f1a88a0628dbb93dbf4"
+  },
+  "settings.sync.switch.title": {
+    "message": "Questo dispositivo lascerà la sincronizzazione attuale, “{name}”.",
+    "source": "sha256:3b7d7ad43cb524826acb2c6deaa11f31801063a8755d3cc103632a78c98e6149"
+  },
+  "settings.sync.switch.body": {
+    "message": "Preferiti e impostazioni restano su questo dispositivo. Gli altri dispositivi di “{name}” non sono coinvolti.",
+    "source": "sha256:f43c2e5091fbf4c27a1d0b70f7a68bb44ecfc5d443c902c3ff91e96c0944870e"
+  },
+  "settings.sync.switch.wipe": {
+    "message": "Cancella anche la copia di “{name}” sul server. Solo se nessun altro dispositivo la usa.",
+    "source": "sha256:86fa7f1b304f6d0ef96f3f7c9cd7b1abe52a77a616f5d559874506567f7a10d3"
+  },
+  "settings.sync.switch.connect": {
+    "message": "Collegati",
+    "source": "sha256:45059419fa12edeec6a89d9094d5965b478b18addf741ed822fd26678d1423c5"
+  },
+  "settings.sync.recovery.copy": {
+    "message": "Copia il codice di recupero",
+    "source": "sha256:45c4b77a5c682e067f3793752189c885140807cd1586068ffcf1e04ee5be7a91"
+  },
+  "settings.sync.recovery.copied": {
+    "message": "Copiato. Incollalo nel tuo gestore di password.",
+    "source": "sha256:01915ca719baa1c84cb3da88ebaaa2b94f30b026c121373c5dcf655a0030cad9"
   },
   "settings.sync.setup.joinTitle": {
     "message": "Connetti questo dispositivo",
