@@ -861,7 +861,7 @@ final guard scheduled zero actions. See the committed
 [run record](evidence/favorites-focus-run.json).
 
 
-## Pin, mute and reorder through the Island — October 16, 2026 (implementation; compilation and runtime verification pending)
+## Pin, mute and reorder through the Island — October 16, 2026 (built and natively retested on the Mac at `35f43c6`)
 
 The copied Island's row pin and mute controls, `/pin`, `/mute`, drag-to-reorder
 in the ⌘L panel (`tab-drag.js`) and its ⌥⇧↑/↓ keyboard move are now backed by
@@ -911,3 +911,11 @@ source and before-id) converts back through `nativeId()`; `pageTint`
 compares the native id as a string. Assets-only change, no rebuild. Retest:
 drag within the loose and pinned sections, a refused cross-boundary drop,
 ⌥⇧↑/↓, and the untouched controls (row click, close, heart, ⌘D) still work.
+
+Mac result on `35f43c6` (Codex): assets-only update, no rebuild. Native drag
+within the loose and pinned sections, keyboard reorder, the refused
+cross-boundary drop and the control regressions (row click, close, heart, ⌘D)
+all passed, completing the checklist after the pin, mute and restart passes on
+`3b6b418`. Fixtures were cleaned up and the permanent profile preserved.
+Evidence: Codex's retest record (`/private/tmp/blanc-pr861-864-retest-results.md`
+on the Mac), to be committed under `evidence/tab-controls-*`.
