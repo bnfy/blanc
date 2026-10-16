@@ -163,6 +163,10 @@
     else window.browserAPI.reload(t.id);
   });
   const favoriteBtn = pillButton('heart', blancI18n.t('pill.favorite'), () => window.browserAPI.toggleBookmark());
+  // The first controls to give way in a slim Island (fitIslandDots); both
+  // stay reachable from ⌘L, the menus and the keyboard.
+  forwardBtn.classList.add('pill-slim-hide');
+  favoriteBtn.classList.add('pill-slim-hide');
   const closeBtn = pillButton('close', blancI18n.t('pill.closeTab'), () => {
     if (state.activeTabId) window.browserAPI.closeTab(state.activeTabId);
   });
@@ -402,6 +406,49 @@
     }
   }
 
+  /** True when the pill's trailing controls run past its far edge. Compares
+   * the trailing inset with the leading one, so it needs no knowledge of the
+   * pill's padding or zoom. */
+  function pillOverflows() {
+    const pill = islandPill.getBoundingClientRect();
+    const first = [...islandPill.children].find((element) => element.getBoundingClientRect().width > 0);
+    if (!first) return false;
+    const inset = first.getBoundingClientRect().left - pill.left;
+    return pill.right - pillActions.getBoundingClientRect().right < inset - 1;
+  }
+
+  /** When the pill is narrower than its controls (a narrow Glance main
+   * pane), it gives way in order: fewer dots, with the rest folded into +N
+   * (the active tab always keeps its dot); then, with one dot left, Forward
+   * and Favorite hide. Only a change of room, tab count or active tab starts
+   * again from the full Island, so an ordinary broadcast never rebuilds the
+   * dot row (see dotsSignature). */
+  function fitIslandDots() {
+    const key = `${stripEl.clientWidth}|${glanceLayout?.primary?.width ?? ''}|${glanceLayout?.direction ?? ''}|${state.tabs.length}|${state.activeTabId}`;
+    if (key !== dotFitKey) {
+      dotFitKey = key;
+      dotBudget = DOT_CAP;
+      islandPill.classList.remove('slim');
+    }
+    for (;;) {
+      // Only rebuild the dot row when the dots themselves change — not on
+      // every blocked-count broadcast. Rebuilding tears down each dot's peek
+      // span and any keyboard focus on it.
+      const dotsSig = dotsSignature();
+      if (dotsSig !== lastDotsSig) {
+        lastDotsSig = dotsSig;
+        pillDots.replaceChildren(...islandDots());
+      }
+      if (!pillOverflows()) return;
+      if (dotBudget > 1) {
+        dotBudget -= 1;
+      } else {
+        islandPill.classList.add('slim');
+        return;
+      }
+    }
+  }
+
   /** With Glance open the fill chip follows the focused pane, like the fill. */
   function renderFillHint() {
     const hintTab = glanceLayout?.focusedPane === 'glance' ? glanceTab() : activeTab();
@@ -438,6 +485,7 @@
     glanceDivider.style.height = `${divider.height}px`;
     glanceDivider.setAttribute('aria-orientation', direction === 'horizontal' ? 'vertical' : 'horizontal');
     glanceDivider.setAttribute('aria-valuenow', String(Math.round(ratio * 100)));
+    glanceDivider.setAttribute('aria-valuemin', String(Math.round((glanceLayout.minRatio ?? 0.5) * 100)));
     glanceDivider.setAttribute('aria-valuetext', blancI18n.t('glance.dividerValue', { percent: Math.round(ratio * 100) }));
 
     glanceHeader.style.left = `${header.x}px`;
@@ -545,6 +593,10 @@
   darkSchemeQuery.addEventListener('change', releaseOptimisticThemeAppearance);
 
   const DOT_CAP = 8;
+  /** How many dots fit right now: DOT_CAP, or fewer when the pill is too
+   * narrow for its controls (fitIslandDots). */
+  let dotBudget = DOT_CAP;
+  let dotFitKey = '';
 
   /** The resting Island is current context, not a false total-tab map:
    * standalone pins stay globally reachable, followed by the active section
@@ -575,7 +627,7 @@
     // The pinned shelf is already the active section in this case. Return it
     // as one set so no artificial section gap or duplicate active dot appears.
     if (activeIsStandalonePin) {
-      const pinned = activeWindow(standalonePins, DOT_CAP);
+      const pinned = activeWindow(standalonePins, dotBudget);
       return {
         pinned,
         section: [],
@@ -586,13 +638,13 @@
 
     // Reserve one slot for the active tab before applying pinned-first
     // priority. Any additional standalone pins remain included in +N.
-    const pinned = standalonePins.slice(0, Math.max(0, DOT_CAP - 1));
+    const pinned = standalonePins.slice(0, Math.max(0, dotBudget - 1));
     const sectionMembers = tab.groupId
       ? state.tabs
         .filter((t) => t.groupId === tab.groupId)
         .sort((a, b) => Number(b.pinned) - Number(a.pinned))
       : state.tabs.filter((t) => !t.groupId && !t.pinned);
-    const section = activeWindow(sectionMembers, DOT_CAP - pinned.length);
+    const section = activeWindow(sectionMembers, dotBudget - pinned.length);
     const shown = [...pinned, ...section];
     return {
       pinned,
@@ -818,14 +870,8 @@
     favoriteBtn.classList.toggle('on', favoritable && !!tab?.bookmarked);
     favoriteBtn.title = tab?.bookmarked ? blancI18n.t('pill.unfavorite') : blancI18n.t('pill.favorite');
 
-    // Only rebuild the dot row when the dots themselves change — not on every
-    // blocked-count broadcast (see dotsSignature). Rebuilding tears down each
-    // dot's peek span and any keyboard focus on it.
-    const dotsSig = dotsSignature();
-    if (dotsSig !== lastDotsSig) {
-      lastDotsSig = dotsSig;
-      pillDots.replaceChildren(...islandDots());
-    }
+    // The dot row is fitted after renderGlance below: the pill's width
+    // depends on the Glance geometry it applies.
 
     setFavicon(pillFavicon, tab);
     renderPillLabel(tab);
@@ -895,6 +941,7 @@
 
     applyStripTint(tab);
     renderGlance();
+    fitIslandDots();
 
     // The strip's draggable region is registered at the WINDOW level and
     // hit-tests above every WebContentsView — with the command bar overlay
@@ -1025,7 +1072,8 @@
     if (!glanceLayout) return;
     let next = glanceKeyRatio ?? glanceLayout.ratio;
     const step = event.shiftKey ? 0.05 : 0.02;
-    if (event.key === 'Home') next = 0.5;
+    const minRatio = glanceLayout.minRatio ?? 0.5;
+    if (event.key === 'Home') next = minRatio;
     else if (event.key === 'End') next = 0.78;
     else if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
@@ -1042,7 +1090,7 @@
     ) next += step;
     else return;
     event.preventDefault();
-    glanceKeyRatio = Math.max(0.5, Math.min(0.78, next));
+    glanceKeyRatio = Math.max(minRatio, Math.min(0.78, next));
     const point = pointForGlanceRatio(glanceKeyRatio);
     if (point) window.browserAPI.resizeGlance(point);
   });
@@ -1104,6 +1152,7 @@
     // on every resize, snapping the rail back mid-drag.
     renderGlance();
     renderFillHint();
+    fitIslandDots();
   });
   window.browserAPI.onGlanceStatus((message) => {
     glanceStatus.textContent = message;

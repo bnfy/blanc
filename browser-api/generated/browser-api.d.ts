@@ -295,6 +295,8 @@ export interface VerticalTabsMetrics {
 export interface GlanceLayout {
   direction: 'horizontal' | 'vertical';
   ratio: number;
+  /** The smallest main-pane share the divider allows; above 0.5 on macOS when the main pane needs room for the Island and the traffic lights. */
+  minRatio: number;
   page: Rect;
   primary: Rect;
   divider: Rect;

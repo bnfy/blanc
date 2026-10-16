@@ -14,6 +14,7 @@ test('Glance gives the active page a dominant 62/38 side-by-side split and 68px 
   assert.deepEqual(calculateGlanceLayout({ x: 0, y: CHROME_HEIGHT, width: 1000, height: 700 }), {
     direction: 'horizontal',
     ratio: DEFAULT_GLANCE_RATIO,
+    minRatio: 0.5,
     page: { x: 0, y: 68, width: 1000, height: 700 },
     primary: { x: 0, y: 68, width: 613, height: 700 },
     divider: { x: 613, y: 68, width: 12, height: 700 },
@@ -60,4 +61,29 @@ test('transient zero-size bounds never produce negative pane geometry', () => {
     assert.ok(region.width >= 0);
     assert.ok(region.height >= 0);
   }
+});
+
+test('a minimum main-pane width stops the divider before the Island runs out of room', () => {
+  const page = { x: 0, y: CHROME_HEIGHT, width: 820, height: 700 };
+  // usable = 820 - 12 = 808; 480 / 808 ≈ 0.594 is the new floor.
+  const layout = calculateGlanceLayout(page, 0.5, 480);
+  assert.equal(layout.direction, 'horizontal');
+  assert.equal(layout.primary.width, 480);
+  assert.equal(layout.minRatio, 480 / 808);
+  assert.equal(layout.ratio, 480 / 808);
+  // A wider choice is kept as it is.
+  assert.equal(calculateGlanceLayout(page, 0.7, 480).ratio, 0.7);
+  // The divider follows the same floor.
+  assert.equal(ratioForGlanceDivider(page, { x: 0 }, 'horizontal', 480), 480 / 808);
+  assert.equal(Math.round(ratioForGlanceDivider(page, { x: 600 }, 'horizontal', 480) * 808), 600);
+});
+
+test('the main-pane minimum never pushes past the maximum share or into a stacked layout', () => {
+  const narrow = { x: 0, y: CHROME_HEIGHT, width: 800, height: 700 };
+  assert.equal(calculateGlanceLayout(narrow, 0.5, 5000).ratio, 0.78);
+  assert.equal(calculateGlanceLayout(narrow, 0.5, 5000).minRatio, 0.78);
+  const stacked = calculateGlanceLayout({ x: 0, y: CHROME_HEIGHT, width: 700, height: 700 }, 0.5, 480);
+  assert.equal(stacked.direction, 'vertical');
+  assert.equal(stacked.minRatio, 0.5, 'stacked, the divider sets heights, not the main pane width');
+  assert.equal(ratioForGlanceDivider({ x: 0, y: CHROME_HEIGHT, width: 700, height: 700 }, { y: 0 }, 'vertical', 480), 0.5);
 });

@@ -11,6 +11,10 @@ const MAX_GLANCE_RATIO = 0.78;
 const MIN_SIDE_BY_SIDE_WIDTH = 800;
 const DIVIDER_SIZE = 12;
 const STACKED_HEADER_HEIGHT = 44;
+/** On macOS (Island layout) the main pane hosts the traffic lights and the
+ * Island: the slimmed Island needs about 300px and keeps 85px clear on each
+ * side, so the divider stops before the main pane is narrower than this. */
+const MAC_MIN_PRIMARY_WIDTH = 480;
 
 const dimension = (value) => (
   Number.isFinite(value) ? Math.max(0, Math.round(value)) : 0
@@ -19,6 +23,16 @@ const dimension = (value) => (
 function normalizeGlanceRatio(value) {
   if (!Number.isFinite(value)) return DEFAULT_GLANCE_RATIO;
   return Math.max(MIN_GLANCE_RATIO, Math.min(MAX_GLANCE_RATIO, value));
+}
+
+/** The smallest main-pane share the divider allows: MIN_GLANCE_RATIO, or
+ * more when the main pane needs a minimum width (the Island and the macOS
+ * traffic lights), never more than MAX_GLANCE_RATIO. */
+function minimumGlanceRatio(usable, minPrimaryWidth) {
+  const floor = Number.isFinite(minPrimaryWidth) && minPrimaryWidth > 0 && usable > 0
+    ? minPrimaryWidth / usable
+    : 0;
+  return Math.min(MAX_GLANCE_RATIO, Math.max(MIN_GLANCE_RATIO, floor));
 }
 
 function normalizedPageBounds(pageBounds) {
@@ -36,13 +50,14 @@ function normalizedPageBounds(pageBounds) {
  * the existing chrome strip for the header; narrow windows reserve a compact
  * header between the divider and lower page so ownership remains clear.
  */
-function calculateGlanceLayout(pageBounds, ratio = DEFAULT_GLANCE_RATIO) {
+function calculateGlanceLayout(pageBounds, ratio = DEFAULT_GLANCE_RATIO, minPrimaryWidth = 0) {
   const page = normalizedPageBounds(pageBounds);
-  const resolvedRatio = normalizeGlanceRatio(ratio);
 
   if (page.width >= MIN_SIDE_BY_SIDE_WIDTH) {
     const divider = Math.min(DIVIDER_SIZE, page.width);
     const usable = Math.max(0, page.width - divider);
+    const minRatio = minimumGlanceRatio(usable, minPrimaryWidth);
+    const resolvedRatio = Math.max(minRatio, normalizeGlanceRatio(ratio));
     const primaryWidth = Math.round(usable * resolvedRatio);
     const glanceContent = {
       x: page.x + primaryWidth + divider,
@@ -53,6 +68,7 @@ function calculateGlanceLayout(pageBounds, ratio = DEFAULT_GLANCE_RATIO) {
     return {
       direction: 'horizontal',
       ratio: resolvedRatio,
+      minRatio,
       page,
       primary: { x: page.x, y: page.y, width: primaryWidth, height: page.height },
       divider: {
@@ -76,6 +92,7 @@ function calculateGlanceLayout(pageBounds, ratio = DEFAULT_GLANCE_RATIO) {
     };
   }
 
+  const resolvedRatio = normalizeGlanceRatio(ratio);
   const divider = Math.min(DIVIDER_SIZE, page.height);
   const availableAfterDivider = Math.max(0, page.height - divider);
   const headerHeight = Math.min(STACKED_HEADER_HEIGHT, availableAfterDivider);
@@ -102,6 +119,7 @@ function calculateGlanceLayout(pageBounds, ratio = DEFAULT_GLANCE_RATIO) {
   return {
     direction: 'vertical',
     ratio: resolvedRatio,
+    minRatio: MIN_GLANCE_RATIO,
     page,
     primary: { x: page.x, y: page.y, width: page.width, height: primaryHeight },
     divider: dividerRegion,
@@ -113,7 +131,7 @@ function calculateGlanceLayout(pageBounds, ratio = DEFAULT_GLANCE_RATIO) {
 
 /** Convert a renderer-reported divider coordinate back into a safe ratio;
  * `null` when the point carries no usable coordinate. */
-function ratioForGlanceDivider(pageBounds, point, direction) {
+function ratioForGlanceDivider(pageBounds, point, direction, minPrimaryWidth = 0) {
   const page = normalizedPageBounds(pageBounds);
   const horizontal = direction !== 'vertical';
   const divider = horizontal
@@ -128,7 +146,8 @@ function ratioForGlanceDivider(pageBounds, point, direction) {
   const coordinate = horizontal ? Number(point?.x) : Number(point?.y);
   const origin = horizontal ? page.x : page.y;
   if (!Number.isFinite(coordinate)) return null;
-  return normalizeGlanceRatio((coordinate - origin) / available);
+  const ratio = normalizeGlanceRatio((coordinate - origin) / available);
+  return horizontal ? Math.max(minimumGlanceRatio(available, minPrimaryWidth), ratio) : ratio;
 }
 
 module.exports = {
@@ -138,6 +157,7 @@ module.exports = {
   MIN_SIDE_BY_SIDE_WIDTH,
   DIVIDER_SIZE,
   STACKED_HEADER_HEIGHT,
+  MAC_MIN_PRIMARY_WIDTH,
   normalizeGlanceRatio,
   calculateGlanceLayout,
   ratioForGlanceDivider,

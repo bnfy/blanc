@@ -316,3 +316,11 @@ Feature: Glance reference pane
     When I switch the Glance window to vertical tabs
     Then a full-width Island stays clear of the Windows and Linux window controls
     And the Glance window returns to its usual layout
+
+  @F34-1 @F34 @F3 @D11
+  Scenario: The Island's controls stay inside it when the main pane is narrow
+    Given twelve ordinary tabs with one open in Glance
+    When I narrow the main pane to its smallest side-by-side width
+    Then every Island control stays inside the Island
+    And the Island shows the active tab and counts the rest
+    And the Glance window returns to its usual layout

@@ -1271,3 +1271,64 @@ Then('the Glance window returns to its usual layout', async function () {
   await this.call('setTabLayout', 'island');
   await this.call('setWindowContentSize', 1200, 800);
 });
+
+Given('twelve ordinary tabs with one open in Glance', async function () {
+  const ids = [];
+  for (let i = 1; i <= 12; i += 1) ids.push(await this.call('openTab', this.fixtureUrl(`glance-many-${i}`)));
+  this.glanceMainId = ids[5];
+  this.glanceReferenceId = ids[6];
+  await this.call('activateTab', this.glanceMainId, false);
+  await this.waitForState((state) => ids.every((id) => {
+    const tab = state.tabs.find((candidate) => candidate.id === id);
+    return tab && !tab.isLoading && tab.title.startsWith('glance-many');
+  }));
+  assert.equal(await this.call('setGlance', this.glanceReferenceId), true);
+});
+
+When('I narrow the main pane to its smallest side-by-side width', async function () {
+  // 820px keeps the page above the 800px side-by-side threshold; the divider
+  // at 50% is the smallest main pane the divider allows.
+  await this.call('setWindowContentSize', 820, 800);
+  await this.waitForState((state) => state.glanceGeometry?.direction === 'horizontal' && state.glanceGeometry.page.width === 820);
+  // Drag well past the stop; the divider settles at the smallest share allowed.
+  await this.call('resizeGlance', { x: 0, y: 200 });
+  const state = await this.waitForState((candidate) =>
+    candidate.glanceGeometry.ratio === candidate.glanceGeometry.minRatio);
+  if ((await ctx.app.evaluate(() => process.platform)) === 'darwin') {
+    // macOS: room for the slimmed Island plus the traffic lights.
+    assert.ok(state.glanceGeometry.primary.width >= 480, `main pane ${state.glanceGeometry.primary.width}px`);
+  }
+});
+
+Then('every Island control stays inside the Island', async function () {
+  const chrome = await mainChromePage();
+  await waitForValue(async () => chrome.evaluate(() => {
+    const pill = document.getElementById('islandPill').getBoundingClientRect();
+    const outside = [...document.querySelectorAll('#islandPill button, #islandPill .favicon')]
+      .map((element) => ({ element, rect: element.getBoundingClientRect() }))
+      .filter(({ rect }) => rect.width > 0 && (rect.left < pill.left - 0.5 || rect.right > pill.right + 0.5))
+      .map(({ element, rect }) => `${element.id || element.className} ${Math.round(rect.left)}–${Math.round(rect.right)}`);
+    return { outside, pill: `${Math.round(pill.left)}–${Math.round(pill.right)}` };
+  }), (result) => result.outside.length === 0, 'Island controls inside the Island', 3000)
+    .catch(async (error) => {
+      const result = await chrome.evaluate(() => document.getElementById('islandPill').getBoundingClientRect().right);
+      throw new Error(`${error.message} (pill right ${result})`);
+    });
+});
+
+Then('the Island shows the active tab and counts the rest', async function () {
+  const chrome = await mainChromePage();
+  const row = await chrome.evaluate(() => ({
+    dots: document.querySelectorAll('#pillDots .island-dot').length,
+    active: !!document.querySelector('#pillDots .island-dot.active'),
+    more: Number((document.querySelector('#pillDots .pill-overflow')?.textContent ?? '+0').slice(1)),
+  }));
+  const state = await this.state();
+  assert.equal(row.active, true, 'the active tab has no dot');
+  // Back, the shield, Reload and Close never give way.
+  for (const selector of ['#pillNav .pill-btn:first-child', '#pillShield', '#pillActions .pill-close']) {
+    assert.ok(await chrome.locator(selector).isVisible(), `${selector} was hidden`);
+  }
+  assert.ok(row.dots < 8, `the dot row did not give way (${row.dots} dots)`);
+  assert.equal(row.dots + row.more, state.tabs.length, `dots ${row.dots} + more ${row.more} ≠ ${state.tabs.length} tabs`);
+});

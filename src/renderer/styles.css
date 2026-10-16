@@ -1173,6 +1173,8 @@ body > .tab-drag-ghost[aria-hidden="true"] {
    `display: none`; restore it (higher specificity) so the contextual
    downloads button can hide itself. */
 .pill-btn[hidden] { display: none; }
+/* A slim Island (a narrow Glance main pane) drops Forward and Favorite. */
+#islandPill.slim .pill-slim-hide { display: none; }
 :root[data-tab-layout="vertical"] #pillNewTab { display: none; }
 .pill-btn:hover { background: var(--accent-dim); color: var(--accent); }
 .pill-btn:disabled { color: var(--border); cursor: default; background: transparent; }

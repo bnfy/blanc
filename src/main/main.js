@@ -269,6 +269,7 @@ const {
 } = require('./chrome-layout');
 const {
   DEFAULT_GLANCE_RATIO,
+  MAC_MIN_PRIMARY_WIDTH,
   calculateGlanceLayout,
   ratioForGlanceDivider,
 } = require('./glance-layout');
@@ -2947,9 +2948,17 @@ function activeGlanceTab() {
   return tab && windowRuntimes.runtimeForTab(id) === rt() ? tab : null;
 }
 
+/** The narrowest main pane the divider allows, in px. On macOS with the
+ * Island layout the traffic lights share the main pane's strip with the
+ * Island; with vertical tabs they sit in the rail, and on Windows/Linux the
+ * controls sit over the Glance header, so no extra floor is needed there. */
+function glanceMinPrimaryWidth() {
+  return process.platform === 'darwin' && tabLayout !== 'vertical' ? MAC_MIN_PRIMARY_WIDTH : 0;
+}
+
 function glanceGeometry(layout = currentChromeLayout()) {
   if (!activeGlanceTab()) return null;
-  return calculateGlanceLayout(layout.pageBounds, rt().glanceRatio);
+  return calculateGlanceLayout(layout.pageBounds, rt().glanceRatio, glanceMinPrimaryWidth());
 }
 
 function currentTabBounds(tab) {
@@ -6626,7 +6635,7 @@ function resizeGlanceAt(point) {
   const layout = currentChromeLayout();
   const glance = glanceGeometry(layout);
   if (!glance) return null;
-  const ratio = ratioForGlanceDivider(layout.pageBounds, point, glance.direction);
+  const ratio = ratioForGlanceDivider(layout.pageBounds, point, glance.direction, glanceMinPrimaryWidth());
   if (ratio == null) return null;
   rt().glanceRatio = ratio;
   resizeActiveView();

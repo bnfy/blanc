@@ -51,3 +51,16 @@ crop is the page area's strip, right of the rail.
 
 1. Before: the Island ran under minimize, maximize and close.
 2. After: it reserves the controls' width on both sides and stays centred.
+
+## island-slim-narrow-main-pane-before-above-after.png
+
+Window content 820 × 800, 13 tabs, Glance side by side with the divider
+dragged as far left as it goes, macOS. "Before" is `96fe63cc` (the clearance
+fix alone); "after" is the next commit. The crop is the main pane's strip plus
+the start of the Glance header.
+
+1. Before: the divider went down to a 404 px main pane, and the Island's
+   "+5", favicon and new-tab button ran out of it toward the Glance header.
+2. After: the divider stops at a 480 px main pane on macOS. The Island shows
+   one dot and folds the rest into "+12", then hides Forward and Favorite.
+   Back, new tab, the shield, Reload and Close stay.

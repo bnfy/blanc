@@ -501,6 +501,7 @@ Glance split geometry, from calculateGlanceLayout() in glance-layout.js.
 | --- | --- | --- |
 | `direction` | `'horizontal' \| 'vertical'` |  |
 | `ratio` | `number` |  |
+| `minRatio` | `number` | The smallest main-pane share the divider allows; above 0.5 on macOS when the main pane needs room for the Island and the traffic lights. |
 | `page` | `Rect` |  |
 | `primary` | `Rect` |  |
 | `divider` | `Rect` |  |
