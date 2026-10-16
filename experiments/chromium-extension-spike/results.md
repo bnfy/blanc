@@ -1,12 +1,15 @@
 # Chromium extension spike results
 
-**Draft PR status (October 16, 2026):** The earlier Island-only/extension gates
-below describe the previously completed native build. The new Blanc start-page
-integration has passed targeted native compilation and renderer fixture checks,
-but its full Chromium build is still running after an Xcode toolchain change.
-Native new-tab routing, profile data, typing, customization persistence and
-extension regression checks on that new binary remain pending. Do not treat the
-earlier passes as acceptance of the new-tab integration.
+**Draft PR status (October 16, 2026):** The new-tab full build succeeded in
+2h37m36s (45,219 steps). Native integration testing found and fixed a missing
+close icon and a bridge URL check that failed after virtual-URL rewriting.
+Those fixes rebuilt incrementally in 35.00s and 33.57s (7 steps each); the final
+guarded dry run reports zero actions. Real profile data, four layouts, reload,
+DOM bookmark navigation, cross-tab preferences, active-tab authorization and
+full-restart persistence pass. After the Mac was unlocked, native keyboard,
+mouse, Bitwarden popup, visible wallpaper and 500/600/1200px layout checks
+also passed. The prototype is open with the original current tab and preferences
+restored. Earlier extension acceptance rows below retain their stated scope.
 
 Status (October 16, 2026): branded Island-only build complete. Native Chromium
 tab strip, address toolbar and bookmarks bar are hidden in normal prototype
@@ -70,8 +73,8 @@ migration approval.
 
 The focused UI cold build completed 40,298 actions in 2h20m13s. The subsequent
 `chrome` target completed 2,721 actions in 8m6s. The WebUI runtime fix rebuild
-completed 533 actions in 1m49s. Those earlier builds are finished. The running prototype still uses the prior
-binary while the new-tab build described above is in progress.
+completed 533 actions in 1m49s. Those earlier builds are finished. The running prototype now uses the corrected
+new-tab binary described above.
 
 Do not turn pending or partial rows into passes from source inspection.
 Remaining work includes account-dependent extension features, advanced Island
@@ -438,6 +441,54 @@ re-adds its definitions in separate writes. Two instrumented preparations found
 zero writes against the current source/assets. Guard tests: 7 passed; lint:
 280 files, zero errors/warnings. Actual guard invocations rejected a competing
 build and a changed fixture build configuration. A separate Siso dry-run fixture
-verified the action-count format without compiling anything. The full Chromium
-plan through this wrapper remains pending until the existing build finishes.
+verified the action-count format without compiling anything. After the full build finished, the real Chromium wrapper dry run passed with
+zero actions; both seven-step runtime fixes also passed through the wrapper.
 Evidence: `evidence/build-cache-guards.json`.
+
+
+## Blanc start-page native integration — October 16, 2026 (completed)
+
+The actual `chrome://newtab/` rewrite now serves the bundled Blanc page. Direct
+page loading initially worked, but reloading the rewritten URL exposed that
+WebContents::GetLastCommittedURL returns the virtual URL. The bridge now checks
+the primary main frame's actual committed URL, retaining the exact page check.
+Added the missing `close.svg` to copied resources and the native allowlist.
+
+Automated checks on the corrected binary passed: native bookmarks and TopSites,
+a temporary bookmark rendered in Ledger/Shelf/Tally and navigated to its URL,
+all four layout selections, hidden unavailable statistics, Customize popover,
+preferences propagated to a second page and survived reload and full process
+exit/relaunch. The active start page can request Island typing; an inactive page
+is rejected. No resource/console errors or broken images were observed on reload.
+Six installed extensions were enabled on the corrected binary. This checks their
+installed state; a subsequent physical Bitwarden toolbar click opened its real
+popup on the corrected binary, with its default-password-manager prompt rendered.
+No account login or default-password-manager setting was changed.
+
+After unlocking, native CGEvent keyboard and mouse checks passed:
+
+- Cmd+T and the Island + each added exactly one Blanc new tab and focused an empty address field.
+- Clicking the page and typing `e` focused the Island with exactly `e`; adding `xample.com` and pressing Return navigated to `https://example.com/`.
+- Physical Customize clicks selected Ledger, Shelf, Tally and Billboard. Dynamic wallpaper rendered the day scene while visible; it had correctly paused while the Mac was locked.
+- Actual window/content widths matched 500, 600 and 1200 pixels. All four layouts were exercised at 500 and 600; document width did not overflow and Customize remained within the viewport. A physical corner drag changed the window from 600×700 to 695×747.
+- Native traffic lights remained 20 logical pixels from the top/left. Screenshots show no native header divider. The Island is dense at 500px: its label truncates and the close control sits at the pill edge, within the window.
+- Bitwarden's native toolbar popup rendered after a physical click. This smoke regression complements, rather than repeats, the earlier six-extension compatibility checks.
+
+The earlier locked resize attempt in `newtab-automated-controls-results.json` is
+historical; the actual visible sizes are in `newtab-physical-results.json`.
+Screenshots include `newtab-final.png`, `newtab-native-1200.png`,
+`newtab-native-500-resize.png`, the three other layouts at 500px, and
+`newtab-bitwarden-popup.png`. Native screenshots were captured directly from
+the running window; the popup image is its live DevTools capture.
+
+Remaining prototype limitations: native bookmarks are read-only through this
+bridge and managed via the Favorites heading/bookmark manager; the copied empty
+state still mentions the Electron heart control. Electron-only services remain
+hidden, and authenticated extension workflows and production migration remain
+outside this proof.
+
+The pre-restart live profile contained one New Tab, so that current session was
+preserved. All temporary test windows/tabs and only the probe bookmark were
+removed. Original start-page preferences were restored, and the prototype was
+left open on the Blanc page. The temporary preview server was stopped. Evidence
+is in `evidence/newtab-*.json` and the native screenshots listed above.

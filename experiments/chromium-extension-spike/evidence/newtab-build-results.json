@@ -1,0 +1,30 @@
+{
+  "fullBuild": {
+    "status": "passed",
+    "steps": 45219,
+    "duration": "2h37m36s"
+  },
+  "incrementalIconFix": {
+    "status": "passed",
+    "steps": 7,
+    "duration": "35.00s"
+  },
+  "incrementalBridgeFix": {
+    "status": "passed",
+    "steps": 7,
+    "duration": "33.57s"
+  },
+  "finalGuardedDryRun": {
+    "status": "passed",
+    "actions": 0
+  },
+  "nativePhysicalChecks": "pending Mac unlock",
+  "lint": {
+    "files": 280,
+    "errors": 0,
+    "warnings": 0
+  },
+  "guardTests": {
+    "passed": 7
+  }
+}

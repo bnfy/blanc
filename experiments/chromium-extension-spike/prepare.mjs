@@ -39,6 +39,7 @@ const assets = new Map();
 const copies = [
   ['src/renderer/pages/newtab.html', 'pages/newtab.html'],
   ['src/renderer/pages/newtab.js', 'pages/newtab.js'],
+  ['src/renderer/pages/close.svg', 'pages/close.svg'],
   ['src/renderer/pages/newtab-wallpaper.js', 'pages/newtab-wallpaper.js'],
   ['src/renderer/pages/start-site-name.js', 'pages/start-site-name.js'],
   ['src/renderer/pages/pages.css', 'pages/pages.css'],

@@ -72,7 +72,7 @@ Owner* GetOwner(content::WebContents* contents) {
 
 bool IsAsset(const std::string& path) {
   static constexpr const char* kAssets[] = {
-      "pages/newtab.html", "pages/newtab.js", "pages/newtab-wallpaper.js", "pages/start-site-name.js", "pages/pages.css", "pages/type-to-open.js", "pages/i18n.js", "pages/sunrise-mark.png", "pages/icon-sunrise.png", "pages/icon-sunrise-dark.png", "pages/onboarding-island-dark.png", "pages/onboarding-island-light.png", "pages/start-page-sunrise.png", "pages/start-page-day.png", "pages/start-page-dusk.png", "pages/start-page-night.png", "pages/caveat-latin.woff2", "pages/select-caret.svg", "pages/select-caret-dark.svg", "pages/strings.js", "pages/newtab-adapter.js", "pages/newtab-prototype.css",
+      "pages/newtab.html", "pages/newtab.js", "pages/close.svg", "pages/newtab-wallpaper.js", "pages/start-site-name.js", "pages/pages.css", "pages/type-to-open.js", "pages/i18n.js", "pages/sunrise-mark.png", "pages/icon-sunrise.png", "pages/icon-sunrise-dark.png", "pages/onboarding-island-dark.png", "pages/onboarding-island-light.png", "pages/start-page-sunrise.png", "pages/start-page-day.png", "pages/start-page-dusk.png", "pages/start-page-night.png", "pages/caveat-latin.woff2", "pages/select-caret.svg", "pages/select-caret-dark.svg", "pages/strings.js", "pages/newtab-adapter.js", "pages/newtab-prototype.css",
       "host.html", "host.js", "host.css", "adapter.js", "prototype.css",
       "index.html", "overlay.html", "styles.css", "renderer.js", "overlay.js",
       "strings.js", "i18n.js", "tab-drag.js", "vertical-tabs.js",
@@ -149,7 +149,9 @@ class NewTabHandler : public content::WebUIMessageHandler {
 
  private:
   bool IsStartPage() {
-    return web_ui()->GetWebContents()->GetLastCommittedURL() ==
+    // WebContents returns the virtual chrome://newtab/ URL after rewriting.
+    // Authorize against the actual committed top-level document instead.
+    return web_ui()->GetWebContents()->GetPrimaryMainFrame()->GetLastCommittedURL() ==
         GURL("chrome://blanc-prototype/pages/newtab.html");
   }
   void Reply(const std::string& id, bool success, base::Value value) {
