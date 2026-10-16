@@ -1981,6 +1981,22 @@ details[open] .faq-sign::after {
       max-height: calc(100vh - 420px);
       max-height: calc(100svh - 420px);
     }
+    /* Desktops: each state fills the page width at 16:9, cropped from the
+       top, where the Island and its panels sit, so the Island reads at a
+       size close to the app's; the caption keeps to one line to leave the
+       height to the capture. */
+    @media (min-width: 761px) {
+      .pin-media img {
+        width: min(100%, 1100px, calc((100svh - 340px) * 16 / 9));
+        max-height: none;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+        object-position: top;
+      }
+      .pin-media figcaption {
+        max-width: 60em;
+      }
+    }
     .pin-dots {
       display: flex;
       justify-content: center;
