@@ -47,8 +47,8 @@ test('pages use the light copies while full-size links keep the pinned captures'
   const read = file => fs.readFileSync(path.join(site, file), 'utf8');
   const home = read('src/pages/index.astro');
   for (const name of ['rest', 'tabs', 'command']) {
-    assert.match(home, new RegExp(`<source media="\\(max-width: 760px\\)" srcset="/revamp/island-roman-${name}-800\\.webp"`));
-    assert.match(home, new RegExp(`src="/revamp/island-roman-${name}-display\\.webp"`));
+    assert.match(home, new RegExp(`<source media="\\(max-width: 760px\\)" srcset="/revamp/island-smithsonian-${name}-c70c55fa-800\\.webp"`));
+    assert.match(home, new RegExp(`src="/revamp/island-smithsonian-${name}-c70c55fa-display\\.webp"`));
   }
   // Pages never load the pinned lossless originals directly.
   assert.doesNotMatch(home + read('src/components/GestureDemo.astro'), /src="\/revamp\/(island-roman-[a-z]+|champagne-desktop-v2|space-black-laptop-v2)\.webp"/);
@@ -59,7 +59,8 @@ test('pages use the light copies while full-size links keep the pinned captures'
   assert.match(guide, /href="\/feature-captures\/ledger-v1\.31\.0\.png"/);
   // Below the opening screen, captures wait until they are scrolled near.
   const escape = text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  for (const capture of ['glance-v1.30.1', 'home-wallpaper-dusk-v1.31.0', 'workspaces-v1.33.0']) {
+  // (The later wallpapers are lazy too: website-home-demos.test.js.)
+  for (const capture of ['billboard-c70c55fa']) {
     assert.match(home, new RegExp(`src="${escape(`/feature-captures/${capture}.webp`)}"[^>]*loading="lazy"`), capture);
   }
 });

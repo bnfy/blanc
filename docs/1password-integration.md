@@ -1,10 +1,12 @@
 # 1Password login fill
 
-Status: shipped on macOS since v1.9.0. Windows and Linux are wired up on main
-from October 10, 2026 (see *Windows and Linux enablement* below) but have not
-shipped in a public release. Their live-account gate ran in virtual machines on
-October 10–12, 2026, with a written waiver for what those machines could not
-show (see *Windows and Linux real-account gate* below). The
+Status: shipped on macOS since v1.9.0, and on Windows and Linux since v1.34.0
+(October 14, 2026; see *Windows and Linux enablement* below). Their
+live-account gate ran in virtual machines on October 10–12, 2026, with a
+written waiver for what those machines could not show (see *Windows and Linux
+real-account gate* below). They shipped unannounced; on October 16, 2026 the
+owner chose to announce them on the website, within that evidence and naming
+the Windows on Arm limit. The
 product-owner risk decision is recorded in
 [`1password-legal-inquiry.md`](1password-legal-inquiry.md). This integration is
 independent, is not affiliated with or endorsed by 1Password, and remains

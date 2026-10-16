@@ -1,5 +1,9 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import GestureDemo from "../components/GestureDemo.astro";
+import GlanceDemo from "../components/GlanceDemo.astro";
+import HorizonShield from "../components/HorizonShield.astro";
+import SpacesDemo from "../components/SpacesDemo.astro";
 import "../styles/home.css";
 import pkg from "../../../package.json";
 import chromiumMark from "../assets/summary-icons/chromium.svg?raw";
@@ -63,8 +67,8 @@ const sources = [
     label: "Chrome, Edge, Brave or Vivaldi",
     name: "From Chrome, Edge, Brave or Vivaldi",
     steps: [
-      { title: "Bring your tabs.", body: "Bring Your Tabs reads the browser profile you choose on this computer and can keep its tab groups and pins. You pick which tabs come over.", limit: "Sign-ins, passwords, history and cookies stay in your old browser." },
-      { title: "Bring your Favorites.", body: "Import Favorites (Blanc’s name for bookmarks) from the same profile, or from an HTML bookmarks file.", limit: "Blanc only reads your old browser’s files; everything stays where it was." },
+      { title: "Bring your tabs", body: "Bring Your Tabs reads the browser profile you choose on this computer and can keep its tab groups and pins. You pick which tabs come over.", limit: "Sign-ins, passwords, history and cookies stay in your old browser." },
+      { title: "Bring your Favorites", body: "Import Favorites (Blanc’s name for bookmarks) from the same profile, or from an HTML bookmarks file.", limit: "Blanc only reads your old browser’s files; everything stays where it was." },
     ],
   },
   {
@@ -72,8 +76,8 @@ const sources = [
     label: "Arc",
     name: "From Arc",
     steps: [
-      { title: "Bring your Spaces.", body: "Pick the Arc Spaces you want. Pinned tabs, Today tabs, and folders as tab groups come over, and each becomes a space in Blanc Spaces.", limit: "Sign-ins, passwords, history, archived tabs, Notes and Easels stay in Arc. On Linux, choose a sidebar file copied from a Mac or PC." },
-      { title: "Bring your Favorites.", body: "Arc’s top-row Favorites can come over into one Favorites folder named Arc.", limit: "Your Arc sidebar is read, never changed." },
+      { title: "Bring your Spaces", body: "Pick the Arc Spaces you want. Pinned tabs, Today tabs, and folders as tab groups come over, and each becomes a space in Blanc Spaces.", limit: "Sign-ins, passwords, history, archived tabs, Notes and Easels stay in Arc. On Linux, choose a sidebar file copied from a Mac or PC." },
+      { title: "Bring your Favorites", body: "Arc’s top-row Favorites can come over into one Favorites folder named Arc.", limit: "Your Arc sidebar is read, never changed." },
     ],
   },
   {
@@ -81,8 +85,8 @@ const sources = [
     label: "Safari",
     name: "From Safari",
     steps: [
-      { title: "Send your tabs.", body: "The companion extension sends the open tabs of one Safari window to Blanc, encrypting the list on your Mac first.", limit: "One time, up to 100 tabs: address, title, order and the active tab. Groups and pins don’t come over." },
-      { title: "Bring your Favorites.", body: "Export your bookmarks from Safari as an HTML file, then import it in Blanc.", limit: "Favorites is Blanc’s name for bookmarks." },
+      { title: "Send your tabs", body: "The companion extension sends the open tabs of one Safari window to Blanc, encrypting the list on your Mac first.", limit: "One time, up to 100 tabs: address, title, order and the active tab. Groups and pins don’t come over." },
+      { title: "Bring your Favorites", body: "Export your bookmarks from Safari as an HTML file, then import it in Blanc.", limit: "Favorites is Blanc’s name for bookmarks." },
     ],
   },
   {
@@ -90,14 +94,10 @@ const sources = [
     label: "Firefox",
     name: "From Firefox",
     steps: [
-      { title: "Send your tabs.", body: "The companion add-on sends the open tabs of one Firefox window to Blanc, encrypting the list on your computer first.", limit: "One time, up to 100 tabs: address, title, order and the active tab. Groups and pins don’t come over." },
-      { title: "Bring your Favorites.", body: "Export your bookmarks from Firefox as an HTML file, then import it in Blanc.", limit: "Favorites is Blanc’s name for bookmarks." },
+      { title: "Send your tabs", body: "The companion add-on sends the open tabs of one Firefox window to Blanc, encrypting the list on your computer first.", limit: "One time, up to 100 tabs: address, title, order and the active tab. Groups and pins don’t come over." },
+      { title: "Bring your Favorites", body: "Export your bookmarks from Firefox as an HTML file, then import it in Blanc.", limit: "Favorites is Blanc’s name for bookmarks." },
     ],
   },
-];
-const comingFrom = [
-  ["Chrome", "chromium"], ["Edge", "chromium"], ["Brave", "chromium"],
-  ["Arc", "arc"], ["Safari", "safari"], ["Firefox", "firefox"],
 ];
 const systems = [
   { id: "mac", label: "macOS", step: "Open Settings → General in Blanc, click Make default, and confirm when macOS asks.", note: "First-run setup offers this too." },
@@ -112,7 +112,7 @@ const comparison = [
   ["macOS, Windows and Linux", "yes", "", "yes", ""],
   ["Phone and tablet apps", "no", "Desktop only", "yes", ""],
   ["Chrome Web Store extensions", "no", "", "yes", "On desktop"],
-  ["Built-in password manager", "no", "1Password fill on Mac", "yes", "Google Password Manager"],
+  ["Built-in password manager", "no", "1Password fill", "yes", "Google Password Manager"],
   ["Plays protected streaming video", "no", "", "yes", ""],
   ["Free and open source", "yes", "MIT; name and logo reserved", "part", "Free; built on the open-source Chromium project, under Google’s terms"],
 ];
@@ -183,37 +183,50 @@ const faqs = [
             Blanc is a desktop browser for macOS, Windows and Linux.
             <span id="hero-share-status" role="status" aria-live="polite"></span>
           </p>
-          <p class="coming-from">
-            <span>Coming from</span>
-            {comingFrom.map(([label, source]) => (
-              <a href="#switch" data-switch-source={source}>{label}</a>
-            ))}
-          </p>
         </div>
       </div>
     </section>
 
-    <section class="device" aria-label="Blanc on a MacBook">
-      <div class="device-frame">
-        <img
-          class="device-shell"
-          src="/revamp/space-black-laptop-v2-display.webp"
-          width="1536"
-          height="1024"
-          alt=""
-        />
-        <div
-          class="device-screen"
-          role="img"
-          aria-label="Blanc v1.31.0 Billboard Start Page with the dawn wallpaper, on a MacBook"
-        >
+    <section class="device" id="wallpaper" aria-labelledby="wallpaper-title">
+      <div class="device-stage">
+        <div class="device-copy">
+          <h2 id="wallpaper-title">Your Start Page, from dawn to night.</h2>
+          <p class="lead">Turn on Time-of-day wallpaper in Settings → General, and the Start Page follows your computer’s clock.</p>
+        </div>
+        <div class="device-frame">
           <img
-            src="/feature-captures/home-wallpaper-dawn-v1.31.0.webp"
-            width="1440"
-            height="900"
+            class="device-shell"
+            src="/revamp/space-black-laptop-v2-display.webp"
+            width="1536"
+            height="1024"
             alt=""
           />
+          <div
+            class="device-screen"
+            role="img"
+            aria-label="Blanc’s Billboard Start Page with the time-of-day wallpaper, from dawn to night, on a MacBook"
+          >
+            <img
+              src="/feature-captures/home-wallpaper-dawn-c70c55fa.webp"
+              width="1440"
+              height="900"
+              alt=""
+            />{
+              ["day", "dusk", "night"].map((time) => (
+                <img
+                  class={`wallpaper-${time}`}
+                  src={`/feature-captures/home-wallpaper-${time}-c70c55fa.webp`}
+                  width="1440"
+                  height="900"
+                  loading="lazy"
+                  decoding="async"
+                  alt=""
+                />
+              ))
+            }
+          </div>
         </div>
+        <div class="device-phases" aria-hidden="true"><span class="phase-dawn">Dawn</span><span class="phase-day">Day</span><span class="phase-dusk">Dusk</span><span class="phase-night">Night</span></div>
       </div>
     </section>
 
@@ -222,9 +235,9 @@ const faqs = [
         <h2 id="proof-title" class="rise">What you get from the first launch.</h2>
         <div class="proof-grid">
           <article class="proof-card rise">
-            <p class="proof-figure">68 px</p>
-            <p class="proof-claim">That’s the browser. The rest of the window is the page.</p>
-            <p class="proof-limit">Tabs, search and commands sit in one slim band in the default layout. The open Island overlays the page.</p>
+            <p class="proof-figure">⌘L</p>
+            <p class="proof-claim">One shortcut for everything.</p>
+            <p class="proof-limit">Switch tabs, search or run a command from the Island. Ctrl+L on Windows and Linux.</p>
           </article>
           <article class="proof-card rise">
             <p class="proof-figure">On</p>
@@ -251,33 +264,33 @@ const faqs = [
         <h2 id="island-title">Tabs, search and commands. One Island.</h2>
         <div class="pin-media">
           <figure class="pin-a">
-            <picture><source media="(max-width: 760px)" srcset="/revamp/island-roman-rest-800.webp" width="800" height="571" /><img
-              src="/revamp/island-roman-rest-display.webp"
+            <picture><source media="(max-width: 760px)" srcset="/revamp/island-smithsonian-rest-c70c55fa-800.webp" width="800" height="571" /><img
+              src="/revamp/island-smithsonian-rest-c70c55fa-display.webp"
               width="1400"
               height="1000"
-              alt="Blanc v1.27.0: the resting Island above NASA’s Adopt a Pixel telescope scene"
+              alt="Blanc’s resting Island above Albert Bierstadt’s Among the Sierra Nevada, California, on the Smithsonian American Art Museum’s site"
             /></picture>
-            <figcaption><strong>At rest.</strong> Back and forward, your tabs as dots, the site and the blocker count, in one slim band.</figcaption>
+            <figcaption><strong>At rest</strong> Back and forward, your tabs as dots, the site and the blocker count, in one slim band.</figcaption>
           </figure>
           <figure class="pin-b">
-            <picture><source media="(max-width: 760px)" srcset="/revamp/island-roman-tabs-800.webp" width="800" height="571" /><img
-              src="/revamp/island-roman-tabs-display.webp"
+            <picture><source media="(max-width: 760px)" srcset="/revamp/island-smithsonian-tabs-c70c55fa-800.webp" width="800" height="571" /><img
+              src="/revamp/island-smithsonian-tabs-c70c55fa-display.webp"
               width="1400"
               height="1000"
               loading="lazy"
-              alt="Blanc v1.27.0: the open Island lists the Roman telescope, Adopt a Pixel and NASA Science pages"
+              alt="Blanc’s open Island lists three Smithsonian tabs: Smithsonian Open Access, The Grand Canyon of the Yellowstone and Among the Sierra Nevada, California"
             /></picture>
-            <figcaption><strong>Open it.</strong> Every tab and group in one list. Choose a tab, or type to find a page.</figcaption>
+            <figcaption><strong>Open it</strong> Every tab and group in one list. Choose a tab, or type to find a page.</figcaption>
           </figure>
           <figure class="pin-c">
-            <picture><source media="(max-width: 760px)" srcset="/revamp/island-roman-command-800.webp" width="800" height="571" /><img
-              src="/revamp/island-roman-command-display.webp"
+            <picture><source media="(max-width: 760px)" srcset="/revamp/island-smithsonian-command-c70c55fa-800.webp" width="800" height="571" /><img
+              src="/revamp/island-smithsonian-command-c70c55fa-display.webp"
               width="1400"
               height="1000"
               loading="lazy"
-              alt="Blanc v1.27.0: typing / reveals the unfiltered slash-command list, starting with Favorites, Bring Your Tabs, Save, History, Downloads and Settings"
+              alt="In Blanc’s Island, typing / reveals the slash-command list, starting with Favorites, Bring Your Tabs, Save, History, Downloads and Settings"
             /></picture>
-            <figcaption><strong>Type a slash.</strong> Run a command without leaving the keyboard. Close the Island, and you’re back on the page.</figcaption>
+            <figcaption><strong>Type a slash</strong> Run a command without leaving the keyboard. Close the Island, and you’re back on the page.</figcaption>
           </figure>
         </div>
         <div class="pin-dots" aria-hidden="true"><span><span class="pin-a"></span></span><span><span class="pin-b"></span></span><span><span class="pin-c"></span></span></div>
@@ -296,14 +309,9 @@ const faqs = [
               class="more-link" href="/features/workspaces" data-track="feature_cta_click" data-feature="named-workspaces" data-cta-position="home-spaces-detail">Explore Blanc Spaces <span aria-hidden="true">›</span></a>
           </div>
         </div>
-        <img
-          class="spaces-shot parallax"
-          src="/feature-captures/workspaces-v1.33.0.webp"
-          width="1440"
-          height="900"
-          loading="lazy"
-          alt="Blanc v1.33.0: the Spaces menu open from the Island, listing saved spaces with their colours and symbols"
-        />
+        <div class="spaces-demo">
+          <SpacesDemo />
+        </div>
       </div>
     </section>
 
@@ -311,6 +319,7 @@ const faqs = [
       <div class="wrap">
         <h2 id="privacy-title" class="sweep">Blocking is on before you ask.</h2>
         <p class="lead privacy-lead">Blanc Blocker is on from first launch. Prefer uBlock Origin? On supported builds, you can choose it for regular tabs.</p>
+        <HorizonShield variant="blocker" />
         <div class="privacy-grid rise-late">
           <div>
             <h3>Blanc Blocker <span class="badge">Default</span></h3>
@@ -321,11 +330,11 @@ const faqs = [
             <p>Customizable filter lists, advanced settings and a request logger for regular tabs.</p>
           </div>
           <div>
-            <h3>Private tabs.</h3>
+            <h3>Private tabs</h3>
             <p>Open a private tab when you choose. Its cookies, storage and history disappear when Blanc quits.</p>
           </div>
           <div>
-            <h3>Your choices first.</h3>
+            <h3>Your choices first</h3>
             <p>Optional connections start only after you save your setup choices.</p>
           </div>
         </div>
@@ -350,21 +359,33 @@ const faqs = [
       <div class="wrap">
         <h2 id="tools-title" class="rise">Everyday browser tools.</h2>
         <div class="tools-grid">
-          <article class="tool-card rise">
-            <div class="tool-media"><img class="zoom" src="/feature-captures/glance-v1.30.1.webp" width="1440" height="900" loading="lazy" alt="Blanc v1.30.1: Glance showing two tabs side by side" /></div>
+          <article class="tool-card tool-card-full rise">
+            <div class="tool-media tool-demo"><GlanceDemo compact /></div>
             <div class="tool-copy">
-              <h3>Glance.</h3>
+              <h3>Glance</h3>
               <p>Bring another open tab into view beside the page you’re on.</p>
               <p class="tool-limit">Narrow windows stack it below the main page.</p>
               <a class="more-link" href="/features/glance">How Glance works <span aria-hidden="true">›</span></a>
             </div>
           </article>
-          <article class="tool-card rise">
-            <div class="tool-media"><img class="zoom" src="/feature-captures/home-wallpaper-dusk-v1.31.0.webp" width="1440" height="900" loading="lazy" alt="Blanc v1.31.0: the Billboard Start Page with the dusk wallpaper" /></div>
+          <article class="tool-card tool-card-wide rise">
+            <div class="tool-media"><img class="zoom" id="layout-image" src="/feature-captures/billboard-c70c55fa.webp" width="1440" height="900" loading="lazy" alt="Blanc’s Billboard Start Page" /></div>
             <div class="tool-copy">
-              <h3>Start Page layouts.</h3>
+              <h3>Start Page layouts</h3>
               <p>Choose Ledger, Billboard, Shelf or Tally, and let the wallpaper follow your computer’s clock.</p>
               <p class="tool-limit">Turn on Time-of-day wallpaper in Settings → General.</p>
+              <div class="segmented layout-switch" role="group" aria-label="Choose a Start Page layout" data-layouts hidden>
+                {
+                  ["Ledger", "Billboard", "Shelf", "Tally"].map((name) => (
+                    <button
+                      type="button"
+                      aria-pressed={String(name === "Billboard")}
+                      data-layout-src={`/feature-captures/${name.toLowerCase()}-c70c55fa.webp`}
+                      data-layout-alt={`Blanc’s ${name} Start Page`}
+                    >{name}</button>
+                  ))
+                }
+              </div>
               <a class="more-link" href="/features/start-page">Start Page layouts <span aria-hidden="true">›</span></a>
             </div>
           </article>
@@ -378,7 +399,7 @@ const faqs = [
               </div>
             </div>
             <div class="tool-copy">
-              <h3>Quiet Tabs.</h3>
+              <h3>Quiet Tabs</h3>
               <p>Quiet Tabs can release memory from eligible inactive background pages while retaining their tabs.</p>
               <p class="tool-limit">Quiet pages reload when you return to them.</p>
             </div>
@@ -404,9 +425,18 @@ const faqs = [
               </div>
             </div>
             <div class="tool-copy">
-              <h3>1Password on Mac.</h3>
-              <p>On macOS, the optional integration fills a matching login when you ask.</p>
-              <p class="tool-limit">Off by default. Needs the 1Password app and account on macOS. <a href="/support#1password">Setup and shortcuts <span aria-hidden="true">›</span></a></p>
+              <h3>1Password</h3>
+              <p>The optional integration fills a matching login when you ask, on macOS, Windows and Linux.</p>
+              <p class="tool-limit">Off by default. Needs the 1Password app and account. Not on Windows on Arm. <a href="/support#1password">Setup and shortcuts <span aria-hidden="true">›</span></a></p>
+            </div>
+          </article>
+          <article class="tool-card tool-card-wide rise">
+            <div class="tool-media tool-demo"><GestureDemo compact /></div>
+            <div class="tool-copy">
+              <h3>Mouse gestures</h3>
+              <p>Go back, move forward or open a new tab with a simple mouse movement.</p>
+              <p class="tool-limit">Off by default. Right-drag with a mouse, or Option/Alt-drag with a trackpad.</p>
+              <a class="more-link" href="/features/mouse-gestures">How mouse gestures work <span aria-hidden="true">›</span></a>
             </div>
           </article>
         </div>
@@ -460,7 +490,7 @@ const faqs = [
         <div class="switch-steps" data-switch-steps>
           <article class="step-card rise">
             <p class="step-label">Step 1</p>
-            <h3>Download Blanc.</h3>
+            <h3>Download Blanc</h3>
             <p>For macOS 13 or later on Apple Silicon or Intel, Windows 10 or later (64-bit), and 64-bit Linux as an AppImage.</p>
             <p class="step-limit">Free. No account needed.</p>
           </article>
@@ -478,10 +508,10 @@ const faqs = [
             </div>
           ))}
         </div>
-        <p class="switch-passwords"><strong>Passwords:</strong> Blanc doesn’t import or save passwords. Keep them in your password manager; on a Mac, Blanc can fill logins from 1Password when you ask.</p>
+        <p class="switch-passwords"><strong>Passwords:</strong> Blanc doesn’t import or save passwords. Keep them in your password manager; Blanc can fill logins from 1Password when you ask.</p>
         <p class="switch-more"><a href="/support#bookmark-import">How importing works <span aria-hidden="true">›</span></a> <a href="/arc-alternative">Switching from Arc <span aria-hidden="true">›</span></a></p>
 
-        <h3 class="default-title">Then make Blanc your default.</h3>
+        <h3 class="default-title">Then make Blanc your default</h3>
         <div class="segmented-row">
           <div class="segmented" role="group" aria-label="Choose your system" data-switch-systems hidden>
             {systems.map((system, index) => (

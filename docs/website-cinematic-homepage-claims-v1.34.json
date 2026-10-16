@@ -36,6 +36,14 @@
       ],
       "qualification": "Public desktop v1.34.0. The resting Island sits in a reserved 68px band (--strip-h) in the default horizontal layout; vertical tabs (View → Tab Layout) add a sidebar. Only the expanded Island overlays the page. Never say the resting Island floats over the page."
     },
+    "commandBar": {
+      "evidence": [
+        "src/main/browser-shortcuts.js",
+        "src/renderer/overlay.js",
+        "copy/messages/en.json"
+      ],
+      "qualification": "CmdOrCtrl+L (⌘L on macOS, Ctrl+L on Windows and Linux, with Alt+D as an alias) opens the Island command bar, Search & Commands: the tab switcher at rest, the Quick Switcher across open tabs, Favorites and history while typing, and slash commands after /. \"Everything\" means the Island’s tabs, search and commands, not every browser function."
+    },
     "platforms": {
       "evidence": [
         "package.json",
@@ -103,6 +111,15 @@
       ],
       "qualification": "A fresh profile presents usage measurement and search suggestions preselected on, and sends neither until the user saves the setup choices; both can be turned off then or later in Settings. Usage measurement carries no URLs, searches or page contents."
     },
+    "gestures": {
+      "evidence": [
+        "src/main/mouse-gestures.js",
+        "src/main/tab-view.js",
+        "src/main/settings.js",
+        "test/unit/mouse-gestures.test.js"
+      ],
+      "qualification": "Off by default (mouseGesturesEnabled is false) and device-local. A right-button drag, or an Alt/Option left drag on a trackpad. Default strokes: left Back, right Forward, up New tab, down Close tab."
+    },
     "glance": {
       "evidence": [
         "src/main/glance-layout.js",
@@ -124,7 +141,7 @@
         "docs/1password-integration.md",
         "src/main/onepassword-availability.js"
       ],
-      "qualification": "Public copy names macOS only: Windows and Linux stay unannounced under the waiver in docs/1password-integration.md. Off by default, explicit-invoke only, and it needs the 1Password app and account. Blanc has no password manager of its own and imports or saves no passwords."
+      "qualification": "v1.34.0 enables fill on macOS, Windows and Linux (SUPPORTED_PLATFORMS); x64 Blanc translated on Windows on Arm says fill is not supported there. Off by default, explicit-invoke only (⌥⌘P on macOS, Ctrl+Shift+P on Windows and Linux), and it needs the installed 1Password app and account. Windows and Linux evidence is from virtual machines under the owner’s waiver of October 12, 2026 (no real x64 Windows PC, no packaged x64 AppImage with an account); the owner chose to announce them on the homepage on October 16, 2026, within that evidence. Blanc has no password manager of its own and imports or saves no passwords."
     },
     "importChromium": {
       "evidence": [
@@ -219,6 +236,16 @@
       "verdict": "qualified"
     },
     {
+      "id": "cinema-wallpaper",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Your Start Page, from dawn to night. Turn on Time-of-day wallpaper in Settings → General, and the Start Page follows your computer’s clock.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
       "id": "cinema-proof-heading",
       "source": "site/src/pages/index.astro",
       "exactWording": "What you get from the first launch.",
@@ -234,32 +261,32 @@
     {
       "id": "cinema-proof-band",
       "source": "site/src/pages/index.astro",
-      "exactWording": "68 px",
+      "exactWording": "⌘L",
       "subject": "Blanc",
       "evidenceGroups": [
-        "island"
+        "commandBar"
       ],
       "verdict": "verified"
     },
     {
       "id": "cinema-proof-band-claim",
       "source": "site/src/pages/index.astro",
-      "exactWording": "That’s the browser. The rest of the window is the page.",
+      "exactWording": "One shortcut for everything.",
       "subject": "Blanc",
       "evidenceGroups": [
-        "island"
+        "commandBar"
       ],
       "verdict": "qualified"
     },
     {
       "id": "cinema-proof-band-limit",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Tabs, search and commands sit in one slim band in the default layout. The open Island overlays the page.",
+      "exactWording": "Switch tabs, search or run a command from the Island. Ctrl+L on Windows and Linux.",
       "subject": "Blanc",
       "evidenceGroups": [
-        "island"
+        "commandBar"
       ],
-      "verdict": "qualified"
+      "verdict": "verified"
     },
     {
       "id": "cinema-proof-blocking-limit",
@@ -336,7 +363,7 @@
     {
       "id": "cinema-island-rest",
       "source": "site/src/pages/index.astro",
-      "exactWording": "At rest. Back and forward, your tabs as dots, the site and the blocker count, in one slim band.",
+      "exactWording": "At rest Back and forward, your tabs as dots, the site and the blocker count, in one slim band.",
       "subject": "Blanc",
       "evidenceGroups": [
         "island",
@@ -347,7 +374,7 @@
     {
       "id": "cinema-island-open",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Open it. Every tab and group in one list. Choose a tab, or type to find a page.",
+      "exactWording": "Open it Every tab and group in one list. Choose a tab, or type to find a page.",
       "subject": "Blanc",
       "evidenceGroups": [
         "island"
@@ -357,7 +384,7 @@
     {
       "id": "cinema-island-slash",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Type a slash. Run a command without leaving the keyboard. Close the Island, and you’re back on the page.",
+      "exactWording": "Type a slash Run a command without leaving the keyboard. Close the Island, and you’re back on the page.",
       "subject": "Blanc",
       "evidenceGroups": [
         "island"
@@ -427,7 +454,7 @@
     {
       "id": "cinema-privacy-private",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Private tabs. Open a private tab when you choose. Its cookies, storage and history disappear when Blanc quits.",
+      "exactWording": "Private tabs Open a private tab when you choose. Its cookies, storage and history disappear when Blanc quits.",
       "subject": "Blanc",
       "evidenceGroups": [
         "privateTabs"
@@ -437,7 +464,7 @@
     {
       "id": "cinema-privacy-choices",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Your choices first. Optional connections start only after you save your setup choices.",
+      "exactWording": "Your choices first Optional connections start only after you save your setup choices.",
       "subject": "Blanc",
       "evidenceGroups": [
         "connections"
@@ -457,7 +484,7 @@
     {
       "id": "cinema-tools-glance",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Glance. Bring another open tab into view beside the page you’re on. Narrow windows stack it below the main page.",
+      "exactWording": "Glance Bring another open tab into view beside the page you’re on. Narrow windows stack it below the main page.",
       "subject": "Blanc",
       "evidenceGroups": [
         "glance"
@@ -467,7 +494,7 @@
     {
       "id": "cinema-tools-start",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Start Page layouts. Choose Ledger, Billboard, Shelf or Tally, and let the wallpaper follow your computer’s clock. Turn on Time-of-day wallpaper in Settings → General.",
+      "exactWording": "Start Page layouts Choose Ledger, Billboard, Shelf or Tally, and let the wallpaper follow your computer’s clock. Turn on Time-of-day wallpaper in Settings → General.",
       "subject": "Blanc",
       "evidenceGroups": [
         "startPage"
@@ -477,7 +504,7 @@
     {
       "id": "cinema-tools-quiet",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Quiet Tabs.",
+      "exactWording": "Quiet Tabs",
       "subject": "Blanc",
       "evidenceGroups": [
         "quietTabs"
@@ -487,10 +514,20 @@
     {
       "id": "cinema-tools-onepassword",
       "source": "site/src/pages/index.astro",
-      "exactWording": "1Password on Mac. On macOS, the optional integration fills a matching login when you ask. Off by default. Needs the 1Password app and account on macOS.",
+      "exactWording": "1Password The optional integration fills a matching login when you ask, on macOS, Windows and Linux. Off by default. Needs the 1Password app and account. Not on Windows on Arm.",
       "subject": "Blanc",
       "evidenceGroups": [
         "onePassword"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-tools-gestures",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Mouse gestures Go back, move forward or open a new tab with a simple mouse movement. Off by default. Right-drag with a mouse, or Option/Alt-drag with a trackpad.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "gestures"
       ],
       "verdict": "qualified"
     },
@@ -535,7 +572,7 @@
     {
       "id": "cinema-switch-download",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Download Blanc. For macOS 13 or later on Apple Silicon or Intel, Windows 10 or later (64-bit), and 64-bit Linux as an AppImage. Free. No account needed.",
+      "exactWording": "Download Blanc For macOS 13 or later on Apple Silicon or Intel, Windows 10 or later (64-bit), and 64-bit Linux as an AppImage. Free. No account needed.",
       "subject": "Blanc",
       "evidenceGroups": [
         "platforms",
@@ -546,7 +583,7 @@
     {
       "id": "cinema-switch-passwords",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Passwords: Blanc doesn’t import or save passwords. Keep them in your password manager; on a Mac, Blanc can fill logins from 1Password when you ask.",
+      "exactWording": "Passwords: Blanc doesn’t import or save passwords. Keep them in your password manager; Blanc can fill logins from 1Password when you ask.",
       "subject": "Blanc",
       "evidenceGroups": [
         "onePassword"
@@ -556,7 +593,7 @@
     {
       "id": "cinema-switch-default-title",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Then make Blanc your default.",
+      "exactWording": "Then make Blanc your default",
       "subject": "Blanc",
       "evidenceGroups": [
         "defaultBrowser"
@@ -846,7 +883,7 @@
     {
       "id": "cinema-data-23",
       "source": "site/src/pages/index.astro",
-      "exactWording": "1Password fill on Mac",
+      "exactWording": "1Password fill",
       "subject": "Blanc",
       "evidenceGroups": [
         "onePassword"
@@ -1099,11 +1136,11 @@
     "Step 1",
     "Step 2",
     "Step 3",
-    "Download Blanc.",
-    "Bring your tabs.",
-    "Bring your Favorites.",
-    "Bring your Spaces.",
-    "Send your tabs.",
+    "Download Blanc",
+    "Bring your tabs",
+    "Bring your Favorites",
+    "Bring your Spaces",
+    "Send your tabs",
     "From Chrome, Edge, Brave or Vivaldi",
     "From Arc",
     "From Safari",

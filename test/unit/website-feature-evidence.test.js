@@ -346,9 +346,9 @@ test('the new homepage capture is tied to public v1.25.0 and its faithful export
     assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), item.sha256);
   }
   const homepage = read('site/src/pages/index.astro');
-  const wallpaper = JSON.parse(read('docs/website-wallpaper-captures-v1.31.0.json'));
-  assert.ok(homepage.includes(wallpaper.captures[0].displayAsset.file.replace('site/public', '')));
-  assert.match(homepage, /aria-label="Blanc v1\.31\.0 Billboard Start Page/);
+  const candidate = JSON.parse(read('docs/website-candidate-captures-c70c55fa.json'));
+  assert.ok(homepage.includes(candidate.wallpapers[0].displayAsset.file.replace('site/public', '')));
+  assert.match(homepage, /aria-label="Blanc’s Billboard Start Page with the time-of-day wallpaper/);
 });
 
 
@@ -382,9 +382,62 @@ test('hero wallpaper scenes retain actual public captures and phase provenance',
     const bytes = fs.readFileSync(path.join(root, capture.file));
     assert.deepEqual([bytes.readUInt32BE(16), bytes.readUInt32BE(20)], [capture.width, capture.height]);
   }
-  // Every wallpaper capture the homepage shows is one of these ledgered scenes.
-  const ledgered = new Set(manifest.captures.map(capture => capture.displayAsset.file.replace('site/public', '')));
-  const shown = [...read('site/src/pages/index.astro').matchAll(/\/feature-captures\/home-wallpaper-[a-z-]+-v[\d.]+\.webp/g)].map(match => match[0]);
-  assert.ok(shown.length > 0);
-  for (const file of shown) assert.ok(ledgered.has(file), `${file} is not a ledgered wallpaper capture`);
+});
+
+// The homepage shows the Start Page as main draws it after v1.34.0 (Instrument
+// Sans interface text), captured from a local build. These candidates are
+// replaced by public-release captures before the deploy that carries them.
+test('candidate Start Page captures are tied to main after v1.34.0 and are all the homepage shows', async () => {
+  const manifest = JSON.parse(read('docs/website-candidate-captures-c70c55fa.json'));
+  assert.equal(manifest.status, 'candidate');
+  assert.equal(manifest.release, null);
+  // Published early by owner decision; replaced once the release is public.
+  assert.match(manifest.publishGate, /owner decision of October 16, 2026[\s\S]*Once that release is public, rerun the capture commands/);
+  assert.equal(execFileSync('git', ['rev-parse', `${manifest.sourceSha}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), manifest.sourceSha);
+  execFileSync('git', ['merge-base', '--is-ancestor', 'v1.34.0', manifest.sourceSha], { cwd: root });
+  assert.equal(manifest.settings.newtabDynamicWallpaper, true);
+  assert.deepEqual(manifest.wallpapers.map(item => [item.phase, item.theme]), ['dawn', 'day', 'dusk', 'night'].map(phase => [phase, 'light']));
+  const candidateModule = { exports: {} };
+  runInNewContext(execFileSync('git', ['show', `${manifest.sourceSha}:src/renderer/pages/newtab-wallpaper.js`], { cwd: root, encoding: 'utf8' }), { module: candidateModule });
+  const hash = file => crypto.createHash('sha256').update(fs.readFileSync(path.join(root, file))).digest('hex');
+  for (const capture of manifest.wallpapers) {
+    assert.equal(candidateModule.exports.phaseForTime(new Date(2026, 9, 16, capture.localHourFixture)), capture.phase);
+    const expected = [1, 3, 5].map(i => parseInt(capture.chromeTint.slice(i, i + 2), 16));
+    for (const item of [capture, capture.displayAsset]) {
+      const { data } = await sharp(path.join(root, item.file)).extract({
+        left: Math.round(item.width * 0.15), top: Math.round(item.height * 0.02), width: 1, height: 1,
+      }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+      assert.ok(expected.every((value, i) => Math.abs(value - data[i]) <= 2), `${capture.phase}: native tint matches the screenshot strip`);
+      assert.equal(hash(item.file), item.sha256, item.file);
+    }
+  }
+  const display = JSON.parse(read('site/src/data/display-images.json'));
+  for (const capture of manifest.layouts) {
+    assert.equal(hash(capture.file), capture.sha256, capture.file);
+    assert.equal(hash(capture.webp.file), capture.webp.sha256, capture.webp.file);
+    const job = display.find(item => `site/public/${item.output}` === capture.webp.file);
+    assert.equal(job?.sourceSha256, capture.sha256, `${capture.webp.file} is the display copy of ${capture.file}`);
+  }
+  // The Island stage's three states, over Smithsonian pages, with their
+  // display copies made from these exact files.
+  assert.deepEqual(manifest.island.captures.map(capture => capture.state), ['rest', 'tabs', 'command']);
+  assert.match(manifest.island.rights, /CC0/);
+  for (const capture of manifest.island.captures) {
+    assert.equal(hash(capture.file), capture.sha256, capture.file);
+    const jobs = display.filter(item => `site/public/${item.source}` === capture.file);
+    assert.equal(jobs.length, 2, `${capture.file} has a phone and a display copy`);
+    for (const job of jobs) assert.equal(job.sourceSha256, capture.sha256);
+  }
+  const pin = read('site/src/pages/index.astro').split('id="island"')[1].split('</section>')[0];
+  const pinned = [...pin.matchAll(/\/revamp\/island-[a-z0-9-]+\.webp/g)].map(match => match[0]);
+  assert.equal(pinned.length, 6);
+  for (const file of pinned) assert.match(file, /^\/revamp\/island-smithsonian-(rest|tabs|command)-c70c55fa-(800|display)\.webp$/);
+  // Every Start Page capture on the homepage is one of these candidates.
+  const homepage = read('site/src/pages/index.astro');
+  const shown = [...homepage.matchAll(/\/feature-captures\/(?:home-wallpaper-|ledger-|billboard-|shelf-|tally-|\$\{name\.toLowerCase\(\)\}-)[^"`]*\.webp/g)].map(match => match[0]);
+  assert.ok(shown.length >= 4);
+  for (const file of shown) assert.match(file, /-c70c55fa\.webp$/, `${file} is not a candidate capture`);
+  for (const time of ['dawn', 'day', 'dusk', 'night']) {
+    assert.ok(manifest.wallpapers.some(item => item.displayAsset.file === `site/public/feature-captures/home-wallpaper-${time}-c70c55fa.webp`), time);
+  }
 });
