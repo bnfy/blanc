@@ -131,6 +131,11 @@ Given('Reduce Motion is on', async function () {
   await (await chromePage()).emulateMedia({ reducedMotion: 'reduce' });
   await waitForValue(() => this.call('pillPlaceholderState'), (pill) => pill?.reducedMotion === true,
     'the strip reporting Reduce Motion');
+  // The window was bound to its space before Reduce Motion was on, with the
+  // full switch animation. On a throttled Linux strip that animation's clock
+  // can lag seconds behind, and a switch made while it still runs would
+  // count its keyframes. Let the mark come to rest first.
+  await mark(this, (m) => m.animatedProperties.length === 0, 'the space mark at rest before the switch');
 });
 After({ tags: '@F41-23 or @F41-28' }, async function () {
   await this.call('emulateReducedMotion', false);
