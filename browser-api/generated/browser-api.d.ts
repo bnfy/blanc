@@ -588,6 +588,8 @@ export interface IslandRectReport {
   shieldAnchor?: ShieldAnchor;
   /** Present while the Spaces menu is open from the mark, so it follows the pill. */
   spacesAnchor?: SpacesAnchor;
+  /** With Glance side by side: the narrowest main pane that holds the slim Island with a readable address, its chips and clearance included. Main stops the divider there. */
+  minPrimaryWidth?: number;
 }
 
 /** Where the Spaces menu opens: the space mark's left and bottom edges in window coordinates. Main validates both. */

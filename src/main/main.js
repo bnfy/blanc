@@ -271,7 +271,6 @@ const {
   DEFAULT_GLANCE_RATIO,
   calculateGlanceLayout,
   ratioForGlanceDivider,
-  glanceMinPrimaryWidth: minPrimaryWidthFor,
 } = require('./glance-layout');
 const {
   visiblePaneIds,
@@ -2948,9 +2947,10 @@ function activeGlanceTab() {
   return tab && windowRuntimes.runtimeForTab(id) === rt() ? tab : null;
 }
 
-/** The narrowest main pane the divider allows, in px (glance-layout.js). */
+/** The narrowest main pane the divider allows, in px: what the strip last
+ * measured the slim Island to need, chips and clearance included. */
 function glanceMinPrimaryWidth() {
-  return minPrimaryWidthFor({ platform: process.platform, tabLayout });
+  return rt().islandMinPrimaryWidth || 0;
 }
 
 function glanceGeometry(layout = currentChromeLayout()) {
@@ -7814,6 +7814,14 @@ function registerIpcHandlers() {
   chromeHandle('tabs:find-stop', (_e, id) => liveContents(tabs.get(id))?.stopFindInPage('clearSelection'));
 
   chromeOn('chrome:island-rect', (event, rect) => {
+    // The strip measures the narrowest main pane its Island needs (renderer.js
+    // measureIslandFloor); the Glance divider stops there.
+    const floor = Number(rect?.minPrimaryWidth);
+    if (event.sender === rt().window?.webContents && Number.isFinite(floor) && floor >= 0 && floor <= 4000
+        && Math.round(floor) !== rt().islandMinPrimaryWidth) {
+      rt().islandMinPrimaryWidth = Math.round(floor);
+      if (activeGlanceTab()) resizeActiveView();
+    }
     const ok = rect && ['x', 'y', 'width', 'height'].every((f) => Number.isFinite(rect[f]));
     rt().islandRect = ok && rect.width > 0 ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : null;
     const popup = ublockPopups.get(rt().id);

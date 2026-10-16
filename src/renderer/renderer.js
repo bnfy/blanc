@@ -434,28 +434,66 @@
    * rebuilds the dot row (see dotsSignature). */
   function fitIslandDots() {
     const key = `${stripEl.clientWidth}|${glanceLayout?.primary?.width ?? ''}|${glanceLayout?.direction ?? ''}|${state.tabs.length}|${state.activeTabId}|${pillDomain.textContent}`;
-    if (key !== dotFitKey) {
+    const refit = key !== dotFitKey;
+    if (refit) {
       dotFitKey = key;
       dotBudget = DOT_CAP;
       islandPill.classList.remove('slim');
     }
     for (;;) {
-      // Only rebuild the dot row when the dots themselves change — not on
-      // every blocked-count broadcast. Rebuilding tears down each dot's peek
-      // span and any keyboard focus on it.
-      const dotsSig = dotsSignature();
-      if (dotsSig !== lastDotsSig) {
-        lastDotsSig = dotsSig;
-        pillDots.replaceChildren(...islandDots());
-      }
-      if (!pillOverflows() && !addressTruncated()) return;
+      renderDotRow();
+      if (!pillOverflows() && !addressTruncated()) break;
       if (dotBudget > 1) {
         dotBudget -= 1;
       } else {
         islandPill.classList.add('slim');
-        return;
+        break;
       }
     }
+    if (refit) measureIslandFloor();
+  }
+
+  /** Only rebuild the dot row when the dots themselves change — not on every
+   * blocked-count broadcast. Rebuilding tears down each dot's peek span and
+   * any keyboard focus on it. */
+  function renderDotRow() {
+    const dotsSig = dotsSignature();
+    if (dotsSig !== lastDotsSig) {
+      lastDotsSig = dotsSig;
+      pillDots.replaceChildren(...islandDots());
+    }
+  }
+
+  /** The pill's on-screen width without the proximity swell (reportIslandRect
+   * applies the same correction). */
+  function pillWidth() {
+    const k = islandPill.classList.contains('shield-open') || islandPill.classList.contains('spaces-open') ? 0 : Number(islandPill.style.getPropertyValue('--island-k')) || 0;
+    return islandPill.getBoundingClientRect().width / (1 + ISLAND_SCALE * k);
+  }
+
+  /** The narrowest side-by-side main pane that holds the slim Island (one
+   * dot, no Forward or Favorite) with about ten characters of address, plus
+   * the clearance the stylesheet gives the Island in this layout. Measured
+   * on the live pill, so every chip on show counts and the clearance stays
+   * defined in one place (styles.css). Main stops the Glance divider there. */
+  function measureIslandFloor() {
+    if (glanceLayout?.direction !== 'horizontal' || !islandPill.getBoundingClientRect().width) return;
+    // The room the stylesheet allows: a filler grows the pill to its max-width.
+    const filler = document.createElement('span');
+    filler.className = 'island-measure-filler';
+    islandPill.append(filler);
+    const room = pillWidth();
+    filler.remove();
+    const saved = { budget: dotBudget, slim: islandPill.classList.contains('slim') };
+    dotBudget = 1;
+    renderDotRow();
+    islandPill.classList.add('slim', 'measuring');
+    const needed = pillWidth();
+    islandPill.classList.remove('measuring');
+    islandPill.classList.toggle('slim', saved.slim);
+    dotBudget = saved.budget;
+    renderDotRow();
+    islandFloor = Math.ceil(glanceLayout.primary.width - room + needed);
   }
 
   /** With Glance open the fill chip follows the focused pane, like the fill. */
@@ -606,6 +644,9 @@
    * narrow for its controls (fitIslandDots). */
   let dotBudget = DOT_CAP;
   let dotFitKey = '';
+  /** The last measured main-pane minimum (measureIslandFloor), reported to
+   * main with the Island's rectangle. */
+  let islandFloor = null;
 
   /** The resting Island is current context, not a false total-tab map:
    * standalone pins stay globally reachable, followed by the active section
@@ -1162,6 +1203,7 @@
     renderGlance();
     renderFillHint();
     fitIslandDots();
+    requestAnimationFrame(() => reportIslandRect());
   });
   window.browserAPI.onGlanceStatus((message) => {
     glanceStatus.textContent = message;
@@ -1250,6 +1292,7 @@
       height,
       ...(trigger ? { shieldAnchor: shieldAnchorFor(trigger) } : {}),
       ...(pillSpace.getAttribute('aria-expanded') === 'true' ? { spacesAnchor: spacesAnchor() } : {}),
+      ...(islandFloor != null ? { minPrimaryWidth: islandFloor } : {}),
     };
     const serialized = JSON.stringify(rect);
     if (serialized === lastIslandReport) return;

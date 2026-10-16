@@ -1175,6 +1175,12 @@ body > .tab-drag-ghost[aria-hidden="true"] {
 .pill-btn[hidden] { display: none; }
 /* A slim Island (a narrow Glance main pane) drops Forward and Favorite. */
 #islandPill.slim .pill-slim-hide { display: none; }
+/* Measuring the Island (renderer.js measureIslandFloor): a filler shows the
+   room the max-width rules allow; the measuring state shows what the slim
+   Island needs with about ten characters of address. */
+.island-measure-filler { flex: 0 0 4000px; height: 1px; }
+#islandPill.measuring { max-width: none !important; flex-shrink: 0; }
+#islandPill.measuring #pillDomain { flex: 0 0 10ch; }
 :root[data-tab-layout="vertical"] #pillNewTab { display: none; }
 .pill-btn:hover { background: var(--accent-dim); color: var(--accent); }
 .pill-btn:disabled { color: var(--border); cursor: default; background: transparent; }

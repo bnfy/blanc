@@ -15,13 +15,6 @@ const STACKED_HEADER_HEIGHT = 44;
  * minimum: below this the reference header compacts past its last step
  * (styles.css, @container max-width: 300px), so Glance stacks instead. */
 const MIN_REFERENCE_WIDTH = 300;
-/** The slimmed Island (one tab dot, no Forward or Favorite) with an address
- * of about ten characters still readable. */
-const ISLAND_MIN_WIDTH = 430;
-/** What the Island keeps clear of the main pane's edges: 85px a side for the
- * macOS traffic lights with the Island layout, else its usual 12px a side. */
-const MAC_TRAFFIC_LIGHT_CLEARANCE = 170;
-const ISLAND_EDGE_CLEARANCE = 24;
 
 const dimension = (value) => (
   Number.isFinite(value) ? Math.max(0, Math.round(value)) : 0
@@ -30,17 +23,6 @@ const dimension = (value) => (
 function normalizeGlanceRatio(value) {
   if (!Number.isFinite(value)) return DEFAULT_GLANCE_RATIO;
   return Math.max(MIN_GLANCE_RATIO, Math.min(MAX_GLANCE_RATIO, value));
-}
-
-/** The narrowest side-by-side main pane: the slim Island with a readable
- * address, plus its edge clearance. With vertical tabs the traffic lights sit
- * in the rail; on Windows/Linux the window controls sit over the Glance
- * header, so only the Island's own edges count there. */
-function glanceMinPrimaryWidth({ platform, tabLayout }) {
-  const clearance = platform === 'darwin' && tabLayout !== 'vertical'
-    ? MAC_TRAFFIC_LIGHT_CLEARANCE
-    : ISLAND_EDGE_CLEARANCE;
-  return ISLAND_MIN_WIDTH + clearance;
 }
 
 /** The smallest main-pane share the divider allows: MIN_GLANCE_RATIO, or
@@ -181,5 +163,4 @@ module.exports = {
   normalizeGlanceRatio,
   calculateGlanceLayout,
   ratioForGlanceDivider,
-  glanceMinPrimaryWidth,
 };

@@ -1553,7 +1553,8 @@
                 "left": 1,
                 "bottom": 1,
                 "closing": true
-              }
+              },
+              "minPrimaryWidth": 1
             }
           ],
           "sends": [
@@ -1576,7 +1577,8 @@
                     "left": 1,
                     "bottom": 1,
                     "closing": true
-                  }
+                  },
+                  "minPrimaryWidth": 1
                 }
               ]
             }

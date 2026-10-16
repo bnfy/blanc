@@ -1285,6 +1285,23 @@ Given('twelve ordinary tabs with one open in Glance', async function () {
   assert.equal(await this.call('setGlance', this.glanceReferenceId), true);
 });
 
+// The private chip widens the Island beyond its usual slim width; the
+// divider's stop must account for whatever the Island is showing.
+Given('twelve ordinary tabs and a private main page with one open in Glance', async function () {
+  const ids = [];
+  for (let i = 1; i <= 12; i += 1) ids.push(await this.call('openTab', this.fixtureUrl(`glance-many-${i}`)));
+  this.glanceMainId = await this.call('openTab', this.fixtureUrl('glance-private-main'), { private: true });
+  this.glanceReferenceId = ids[6];
+  await this.call('activateTab', this.glanceMainId, false);
+  await this.waitForState((state) => [...ids, this.glanceMainId].every((id) => {
+    const tab = state.tabs.find((candidate) => candidate.id === id);
+    return tab && !tab.isLoading && tab.title.startsWith('glance-');
+  }));
+  assert.equal(await this.call('setGlance', this.glanceReferenceId), true);
+  const chrome = await mainChromePage();
+  await chrome.locator('#pillPrivateChip:not([hidden])').waitFor();
+});
+
 When('I narrow the main pane to its smallest side-by-side width', async function () {
   // Wide enough to stay side by side even with the main pane's minimum; the
   // divider dragged all the way left settles at the smallest main pane.

@@ -325,3 +325,11 @@ Feature: Glance reference pane
     And the Island's address stays readable
     And the Island shows the active tab and counts the rest
     And the Glance window returns to its usual layout
+
+  @F34-1 @F34 @F11 @D11
+  Scenario: The divider leaves room for the Island's chips too
+    Given twelve ordinary tabs and a private main page with one open in Glance
+    When I narrow the main pane to its smallest side-by-side width
+    Then every Island control stays inside the Island
+    And the Island's address stays readable
+    And the Glance window returns to its usual layout
