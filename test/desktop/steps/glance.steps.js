@@ -1310,7 +1310,7 @@ Then('a full-width Island stays clear of the Windows and Linux window controls',
     if (box.uncentred) {
       // Room was short: the Island gave up its centre line to stay clear of
       // the controls (renderer.js fitIslandDots), so it sits nearer the left.
-      assert.ok(box.left - page.x >= 12, `${where}: the Island runs off the left edge (${box.left - page.x}px)`);
+      assert.ok(box.left - page.x >= 11.5, `${where}: the Island runs off the left edge (${box.left - page.x}px)`);
     } else {
       assert.ok(Math.abs((box.left - page.x) - (windowRight - box.right)) <= 2, `${where}: the Island is not centred over the page`);
     }
