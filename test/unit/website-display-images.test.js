@@ -47,8 +47,8 @@ test('pages use the light copies while full-size links keep the pinned captures'
   const read = file => fs.readFileSync(path.join(site, file), 'utf8');
   const home = read('src/pages/index.astro');
   for (const name of ['rest', 'tabs', 'command']) {
-    assert.match(home, new RegExp(`<source media="\\(max-width: 760px\\)" srcset="/revamp/island-smithsonian-${name}-c70c55fa-800\\.webp"`));
-    assert.match(home, new RegExp(`src="/revamp/island-smithsonian-${name}-c70c55fa-display\\.webp"`));
+    assert.match(home, new RegExp(`<source media="\\(max-width: 760px\\)" srcset="/revamp/island-smithsonian-${name}-v1.35.0-800\\.webp"`));
+    assert.match(home, new RegExp(`src="/revamp/island-smithsonian-${name}-v1.35.0-display\\.webp"`));
   }
   // Pages never load the pinned lossless originals directly.
   assert.doesNotMatch(home + read('src/components/GestureDemo.astro'), /src="\/revamp\/(island-roman-[a-z]+|champagne-desktop-v2|space-black-laptop-v2)\.webp"/);
@@ -60,7 +60,7 @@ test('pages use the light copies while full-size links keep the pinned captures'
   // Below the opening screen, captures wait until they are scrolled near.
   const escape = text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   // (The later wallpapers are lazy too: website-home-demos.test.js.)
-  for (const capture of ['billboard-c70c55fa']) {
+  for (const capture of ['billboard-v1.35.0']) {
     assert.match(home, new RegExp(`src="${escape(`/feature-captures/${capture}.webp`)}"[^>]*loading="lazy"`), capture);
   }
 });

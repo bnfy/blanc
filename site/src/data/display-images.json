@@ -42,44 +42,44 @@
     "height": 1000
   },
   {
-    "source": "revamp/island-smithsonian-rest-c70c55fa.webp",
+    "source": "revamp/island-smithsonian-rest-v1.35.0.webp",
     "sourceSha256": "4f4639cc5abd056eb160db156fb09265b438e643a45c882ec74869ba2ff29dc6",
-    "output": "revamp/island-smithsonian-rest-c70c55fa-800.webp",
+    "output": "revamp/island-smithsonian-rest-v1.35.0-800.webp",
     "width": 800,
     "height": 571
   },
   {
-    "source": "revamp/island-smithsonian-rest-c70c55fa.webp",
+    "source": "revamp/island-smithsonian-rest-v1.35.0.webp",
     "sourceSha256": "4f4639cc5abd056eb160db156fb09265b438e643a45c882ec74869ba2ff29dc6",
-    "output": "revamp/island-smithsonian-rest-c70c55fa-display.webp",
+    "output": "revamp/island-smithsonian-rest-v1.35.0-display.webp",
     "width": 1400,
     "height": 1000
   },
   {
-    "source": "revamp/island-smithsonian-tabs-c70c55fa.webp",
+    "source": "revamp/island-smithsonian-tabs-v1.35.0.webp",
     "sourceSha256": "dda4ffd4a8990b871e75b9d88ec211d027544ef4c3d3ca3f479545ebd0932e8b",
-    "output": "revamp/island-smithsonian-tabs-c70c55fa-800.webp",
+    "output": "revamp/island-smithsonian-tabs-v1.35.0-800.webp",
     "width": 800,
     "height": 571
   },
   {
-    "source": "revamp/island-smithsonian-tabs-c70c55fa.webp",
+    "source": "revamp/island-smithsonian-tabs-v1.35.0.webp",
     "sourceSha256": "dda4ffd4a8990b871e75b9d88ec211d027544ef4c3d3ca3f479545ebd0932e8b",
-    "output": "revamp/island-smithsonian-tabs-c70c55fa-display.webp",
+    "output": "revamp/island-smithsonian-tabs-v1.35.0-display.webp",
     "width": 1400,
     "height": 1000
   },
   {
-    "source": "revamp/island-smithsonian-command-c70c55fa.webp",
+    "source": "revamp/island-smithsonian-command-v1.35.0.webp",
     "sourceSha256": "4704254963528f4815e1432615f31e16ffe869513a4f3c6452b0f82ba753ca29",
-    "output": "revamp/island-smithsonian-command-c70c55fa-800.webp",
+    "output": "revamp/island-smithsonian-command-v1.35.0-800.webp",
     "width": 800,
     "height": 571
   },
   {
-    "source": "revamp/island-smithsonian-command-c70c55fa.webp",
+    "source": "revamp/island-smithsonian-command-v1.35.0.webp",
     "sourceSha256": "4704254963528f4815e1432615f31e16ffe869513a4f3c6452b0f82ba753ca29",
-    "output": "revamp/island-smithsonian-command-c70c55fa-display.webp",
+    "output": "revamp/island-smithsonian-command-v1.35.0-display.webp",
     "width": 1400,
     "height": 1000
   },
@@ -133,37 +133,37 @@
     "height": 900
   },
   {
-    "source": "feature-captures/ledger-c70c55fa.png",
-    "sourceSha256": "03471637e0273de2d6be93277e2a29c95b4fead30d9873460614ee77f8b60731",
-    "output": "feature-captures/ledger-c70c55fa.webp",
+    "source": "feature-captures/ledger-v1.35.0.png",
+    "sourceSha256": "6f87af6aa5f6afd482c9356b6e2b7c94dc3b64f6c11204c96515e38d03d00e10",
+    "output": "feature-captures/ledger-v1.35.0.webp",
     "width": 1440,
     "height": 900
   },
   {
-    "source": "feature-captures/billboard-c70c55fa.png",
-    "sourceSha256": "d769a2505906d95aa0b049180c20af902d13c058b939ec636932b27a9d1d9f3d",
-    "output": "feature-captures/billboard-c70c55fa.webp",
+    "source": "feature-captures/billboard-v1.35.0.png",
+    "sourceSha256": "489196ad6efa9e25ac4cecf317f2dd4c6ebc88d4610227b707b6423db8b309f4",
+    "output": "feature-captures/billboard-v1.35.0.webp",
     "width": 1440,
     "height": 900
   },
   {
-    "source": "feature-captures/shelf-c70c55fa.png",
-    "sourceSha256": "eda8831390059d785625daeebf5faa3e88be63a621a1593084232106aeeda2a9",
-    "output": "feature-captures/shelf-c70c55fa.webp",
+    "source": "feature-captures/shelf-v1.35.0.png",
+    "sourceSha256": "0d5fcac57a504f2ae1498a7db17386c27ccf69bb2681e093891b5ec124d7633d",
+    "output": "feature-captures/shelf-v1.35.0.webp",
     "width": 1440,
     "height": 900
   },
   {
-    "source": "feature-captures/tally-c70c55fa.png",
-    "sourceSha256": "4012c2dd1fbf1331d223570715e742de347512cc98b97948064bb9812088d1d1",
-    "output": "feature-captures/tally-c70c55fa.webp",
+    "source": "feature-captures/tally-v1.35.0.png",
+    "sourceSha256": "8f79e445cb39dad3a48a9c8ab6486518177b6dcf63fb4ab4ae6e6343c32db660",
+    "output": "feature-captures/tally-v1.35.0.webp",
     "width": 1440,
     "height": 900
   },
   {
-    "source": "feature-captures/mahjong-c70c55fa.png",
-    "sourceSha256": "b24b7c166791b9ee6d3f4c19c7dfb16e804b5b2f977606fefd6a7cfc2756c06a",
-    "output": "feature-captures/mahjong-c70c55fa.webp",
+    "source": "feature-captures/mahjong-v1.35.0.png",
+    "sourceSha256": "1bc0bf03c53c7fe8f5be6f1a3f7901ed48dd538a583291e7a330ed68c7634d26",
+    "output": "feature-captures/mahjong-v1.35.0.webp",
     "width": 1440,
     "height": 900
   },
