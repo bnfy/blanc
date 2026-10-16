@@ -76,10 +76,13 @@ async function focusPane(world, tabId) {
     assert.equal(await world.call('focusTabContents', tabId), true);
     const { focusedPaneTabId, tabs } = await world.state();
     const focusedContents = await world.call('focusedWebContentsId');
+    const paneContents = tabs.find((tab) => tab.id === tabId)?.webContentsId;
     return {
       recorded: focusedPaneTabId,
       windowFocused,
-      paneHoldsFocus: focusedContents === tabs.find((tab) => tab.id === tabId)?.webContentsId,
+      paneHoldsFocus: focusedContents === paneContents,
+      paneReportsFocused: await ctx.app.evaluate(({ webContents }, id) =>
+        webContents.fromId(id)?.isFocused() ?? null, paneContents),
     };
   }, (value) => value.recorded === tabId, `pane ${tabId} recorded as focused`);
 }
