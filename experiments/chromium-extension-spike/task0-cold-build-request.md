@@ -89,7 +89,9 @@ Blanc.
 Interrupted or failed builds: resuming the **same** cold build in the same
 output directory, with its Siso cache and completed actions intact, stays
 within this approval (that is an incremental continuation, and the guard's
-plan check applies to it like any other build). Deleting or recreating
+plan check applies to it like any other build; if the inspected plan still
+shows more than 1,000 remaining actions, the continuation runs with
+`--allow-large-build` under this same approval). Deleting or recreating
 `BlancChromium157/src/out/BlancPrototype`, or starting a cold build in any
 other output directory, is a new cold build and needs a separate approval.
 An interruption is recorded in the ledger either way.
