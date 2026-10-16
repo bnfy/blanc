@@ -1067,3 +1067,17 @@ assets-only change. Fixtures were cleaned up and the original tab and
 Favorites preserved. Evidence: Codex's run record
 (`/private/tmp/blanc-pr867-mac-results.md` on the Mac), to be committed under
 `evidence/tab-groups-*`.
+
+
+### Tab-groups Mac evidence packaged
+
+The committed [Mac acceptance report](evidence/tab-groups-results.md) links the
+36.84-second native build log, chronological native checks, group/reorder
+screenshots, clean final window and exact locally tested startup patch.
+The patch in `0759e7f` matches the tested fix (HTML identical; JavaScript differs
+only in comments/whitespace), with unchanged native source. Assets-only
+preparation succeeded; no new native build or repeated group acceptance run
+was needed. The report preserves the original restart failure, the overlay-only
+reload used to finish group checks, and the three successful relaunches with
+the fix. It also records Chromium retaining closed saved groups and the targeted
+cleanup of those fixture records.
