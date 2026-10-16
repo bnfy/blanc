@@ -248,6 +248,7 @@ Then('the active page and Glance occupy separate dominant and reference panes', 
     const bounds = element.getBoundingClientRect();
     return {
       direction: getComputedStyle(element.querySelector('.glance-copy')).flexDirection,
+      eyebrowShown: getComputedStyle(element.querySelector('.glance-eyebrow')).display !== 'none',
       eyebrowCenter: eyebrow.top + eyebrow.height / 2,
       identityCenter: identity.top + identity.height / 2,
       copyRight: copy.right,
@@ -257,7 +258,10 @@ Then('the active page and Glance occupy separate dominant and reference panes', 
     };
   });
   assert.equal(headerFlow.direction, 'row');
-  assert.ok(Math.abs(headerFlow.eyebrowCenter - headerFlow.identityCenter) <= 1);
+  // The GLANCE label sits on the title's line where it is shown; Windows and
+  // Linux hide it at this width because the header reserves the window
+  // controls' width (styles.css).
+  if (headerFlow.eyebrowShown) assert.ok(Math.abs(headerFlow.eyebrowCenter - headerFlow.identityCenter) <= 1);
   assert.ok(headerFlow.copyRight <= headerFlow.actionsLeft);
   assert.ok(headerFlow.actionsRight <= headerFlow.headerRight);
 
@@ -353,16 +357,19 @@ When('I choose Change and select the replacement tab', async function () {
   const page = await overlayPage();
   await page.locator('#glancePicker:not([hidden])').waitFor();
   assert.equal(await page.locator('body').getAttribute('data-glance-purpose'), 'change');
-  const pickerPosition = await page.locator('#glancePicker').evaluate((element) => {
+  // The picker hangs from the overlay's right edge: 24 px, or 12 px when the
+  // overlay (the reference header's width) is 560 px or narrower
+  // (styles.css). The overlay's bounds settle a moment after it shows.
+  const pickerPosition = await waitForValue(() => page.locator('#glancePicker').evaluate((element) => {
     const rect = element.getBoundingClientRect();
     return {
       width: rect.width,
       rightGap: window.innerWidth - rect.right,
       overlayWidth: window.innerWidth,
+      expectedGap: window.innerWidth <= 560 ? 12 : 24,
     };
-  });
+  }), (value) => Math.abs(value.rightGap - value.expectedGap) <= 1, 'the change picker in place', 3000);
   assert.ok(pickerPosition.width <= 421, `change picker was too wide: ${pickerPosition.width}px`);
-  assert.ok(pickerPosition.rightGap >= 23 && pickerPosition.rightGap <= 25, `change picker position: ${JSON.stringify(pickerPosition)}`);
   await page.fill('#glancePickerInput', 'replacement');
   await page.locator('.glance-picker-option').first().waitFor();
   assert.equal(await page.locator('.glance-picker-option').count(), 1);
@@ -658,14 +665,23 @@ When('I close the main page tab', async function () {
   await this.call('closeTab', this.glanceMainId);
 });
 
+// Another app can take the foreground between steps (a long run on a busy
+// desktop); then no page reports focus. Front the window and read again:
+// activation restores the responder the app chose, so a page the app never
+// focused still fails the check.
+async function mainPageHoldsFocus(world, main, label) {
+  await waitForValue(async () => {
+    const id = await world.call('focusedWebContentsId');
+    if (id === main.webContentsId) return id;
+    await frontChromeWindow(world);
+    return world.call('focusedWebContentsId');
+  }, (id) => id === main.webContentsId, label);
+}
+
 Then('keyboard focus is on the main page', async function () {
   const state = await this.waitForState((candidate) => candidate.glanceTabId === null);
   const main = state.tabs.find((tab) => tab.id === this.glanceMainId);
-  await waitForValue(
-    () => this.call('focusedWebContentsId'),
-    (id) => id === main.webContentsId,
-    'focus handed to the main page after the reference closed'
-  );
+  await mainPageHoldsFocus(this, main, 'focus handed to the main page after the reference closed');
 });
 
 Then('the strip announces that the reference is now the main page', async function () {
@@ -1006,8 +1022,7 @@ Then('the reference tab is closed and the main page has focus', async function (
   assert.equal(state.activeTabId, this.glanceMainId);
   assert.equal(state.focusedPaneTabId, this.glanceMainId);
   const main = state.tabs.find((tab) => tab.id === this.glanceMainId);
-  await waitForValue(() => this.call('focusedWebContentsId'), (id) => id === main.webContentsId,
-    'focus handed to the main page');
+  await mainPageHoldsFocus(this, main, 'focus handed to the main page');
 });
 
 Then('the main page tab is closed', async function () {
