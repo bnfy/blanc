@@ -1,10 +1,11 @@
 /* The prototype exposes only controls backed by its native bridge. The pill
    and panel hearts and the Favorites/History footer buttons are backed by
-   Chromium's bookmark and history services. */
+   Chromium's bookmark and history services; the row pin and mute controls and
+   drag-to-reorder by TabStripModel. Glance has no native counterpart yet. */
 #pillShield, #pillInsecure, #pillFillHint, #pillCapture, #pillDisplayShare,
 #pillSpace, #pillSlash, #glanceHeader, #panelSiteInfo,
 #footerNewPrivate, #footerWorkspace,
-#footerTabLayout, #footerSettings, .row-pin, .row-mute, .row-glance {
+#footerTabLayout, #footerSettings, .row-glance {
   display: none !important;
 }
 /* Private windows have no Favorites (Electron: private tabs never populate

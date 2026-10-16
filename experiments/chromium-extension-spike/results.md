@@ -859,3 +859,66 @@ prototype left open. The exact build took 36.54 seconds (7 steps), and the
 final guard scheduled zero actions. See the committed
 [focus report](evidence/favorites-focus-results.md) and
 [run record](evidence/favorites-focus-run.json).
+
+
+## Pin, mute and reorder through the Island — October 16, 2026 (built and natively retested on the Mac at `35f43c6`)
+
+The copied Island's row pin and mute controls, `/pin`, `/mute`, drag-to-reorder
+in the ⌘L panel (`tab-drag.js`) and its ⌥⇧↑/↓ keyboard move are now backed by
+Chromium's `TabStripModel`. Tab snapshots carry `muted` (`IsAudioMuted`) and
+`audible` (`IsCurrentlyAudible`) beside the existing `pinned`, so the rows'
+mute control and badge draw from the same fields Electron sends.
+
+- `togglePinned` → `SetTabPinned(index, !pinned)`; Chromium moves the tab to
+  the pinned boundary, and the reply re-reads the state at its new index.
+- `toggleMuted` → `WebContents::SetAudioMuted(!muted)`, the per-tab mute
+  Electron uses (not Chromium's site-level content-setting mute, so
+  Chromium's own "Unmute site" entry will not describe it).
+- `moveTab [id, beforeId | null]` mirrors Electron's `resolveTabMove`: the
+  pinned state never changes, a tab lands only inside its own bucket (pinned
+  or unpinned), a before-tab from the other bucket or an unknown id is
+  rejected with `false`, and `null` means the end of the bucket; the host
+  rejects any intent naming a tab group, since the prototype has none.
+  `reorderGroup` resolves `false`.
+- `prototype.css` no longer hides `.row-pin` and `.row-mute`; `.row-glance`
+  stays hidden. The slash allowlist adds `/pin` and `/mute`.
+
+Checks run in the Linux session: Node syntax checks, the eight build-guard
+tests and ESLint recommended rules over the prototype JavaScript. The native
+source is not compiled here. Mac checklist: `prepare.mjs` → `build.mjs --check`
+→ `--build`; then with native input on fixture tabs: the row pin moves a tab to
+the pinned leading section and back; `/pin` and `/mute` act on the active tab;
+a playing fixture shows the row mute control and badge, and muting silences it
+(`chrome://media-internals` or the fixture's own state as the oracle); dragging
+a row reorders it within the loose section, a pinned row within the pinned
+section, and a drop across the boundary is refused; ⌥⇧↑/↓ moves the focused
+row; Chromium's own order (visible after showing a normal window's tab strip is
+not possible here, so use the snapshot or `chrome://tabs`-equivalent DevTools
+readback) matches the Island; the original tabs are preserved. Do not record
+any of this as passed from this section.
+
+Mac result on `3b6b418` (Codex): the guarded build passed in 36 seconds with no
+cold rebuild; native pin/unpin, mute/unmute and restart persistence passed.
+Drag and keyboard reorder failed: the copied renderers round-trip tab ids
+through DOM datasets (`row.dataset.tabId`, drag intents, `keyboardTabMove`),
+so the ids reached the host as strings while the snapshot and the native
+handlers used integers, and neither the source nor the destination resolved.
+The follow-up commit makes the host present the contract's opaque string
+`TabId`: every snapshot id and `activeTabId` becomes a string on receipt, and
+every bridge call that names a tab (`switchTab`, `closeTab`, navigation,
+`toggleBookmark`, `saveFavorite`, `togglePinned`, `toggleMuted`, `moveTab`
+source and before-id) converts back through `nativeId()`; `pageTint`
+compares the native id as a string. Assets-only change, no rebuild. Retest:
+drag within the loose and pinned sections, a refused cross-boundary drop,
+⌥⇧↑/↓, and the untouched controls (row click, close, heart, ⌘D) still work.
+
+Mac result on `35f43c6` (Codex): assets-only update, no rebuild. Native drag
+within the loose and pinned sections, keyboard reorder, the refused
+cross-boundary drop and the control regressions (row click, close, heart, ⌘D)
+all passed, completing the checklist after the pin, mute and restart passes on
+`3b6b418`. Fixtures were cleaned up and the permanent profile preserved.
+Evidence: committed [Mac acceptance report](evidence/tab-controls-results.md),
+[initial native run](evidence/tab-controls-native-run.json), and
+[fixed-assets retest](evidence/tab-controls-retest-run.json). The report links
+the native build log and screenshots and distinguishes bridge-driven setup
+from native-input acceptance.

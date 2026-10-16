@@ -1,0 +1,663 @@
+{
+  "commit": "35f43c649d5c707af987afb8d2abf15ba319d86a",
+  "checks": [
+    {
+      "name": "before-relaunch",
+      "at": "2026-10-16T21:39:55.708Z",
+      "pages": [
+        {
+          "id": "0FC65664D40C12776C2BA92EEE2E0346",
+          "title": "New Tab",
+          "url": "chrome://newtab/"
+        }
+      ]
+    },
+    {
+      "name": "relaunched",
+      "at": "2026-10-16T21:39:57.974Z",
+      "pages": [
+        {
+          "id": "D04435DC697DD9A8100AC943B728B4C8",
+          "title": "New Tab",
+          "url": "chrome://newtab/"
+        }
+      ]
+    },
+    {
+      "name": "baseline",
+      "at": "2026-10-16T21:40:30.389Z",
+      "tabs": [
+        {
+          "audible": false,
+          "blockedCount": 0,
+          "bookmarked": false,
+          "canGoBack": false,
+          "canGoForward": false,
+          "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==",
+          "groupId": null,
+          "id": "138413351",
+          "isLoading": false,
+          "muted": false,
+          "pageBg": "#f7f0e6",
+          "pinned": false,
+          "private": false,
+          "title": "New Tab",
+          "url": "blanc://newtab/"
+        }
+      ]
+    },
+    {
+      "name": "fixtures-created",
+      "at": "2026-10-16T21:40:32.023Z",
+      "tabs": [
+        {
+          "id": "138413351",
+          "url": "blanc://newtab/",
+          "pinned": false
+        },
+        {
+          "id": "138413352",
+          "url": "http://127.0.0.1:8785/A",
+          "pinned": false
+        },
+        {
+          "id": "138413353",
+          "url": "http://127.0.0.1:8785/B",
+          "pinned": false
+        },
+        {
+          "id": "138413354",
+          "url": "http://127.0.0.1:8785/C",
+          "pinned": false
+        }
+      ]
+    },
+    {
+      "name": "native-row-pin-leading",
+      "at": "2026-10-16T21:40:33.920Z",
+      "tabs": [
+        {
+          "id": "138413352",
+          "url": "http://127.0.0.1:8785/A",
+          "pinned": true,
+          "muted": false
+        },
+        {
+          "id": "138413351",
+          "url": "blanc://newtab/",
+          "pinned": false,
+          "muted": false
+        },
+        {
+          "id": "138413353",
+          "url": "http://127.0.0.1:8785/B",
+          "pinned": false,
+          "muted": false
+        },
+        {
+          "id": "138413354",
+          "url": "http://127.0.0.1:8785/C",
+          "pinned": false,
+          "muted": false
+        }
+      ],
+      "dots": [
+        138413352,
+        138413351,
+        138413353,
+        138413354
+      ]
+    },
+    {
+      "name": "native-row-unpin",
+      "at": "2026-10-16T21:40:34.843Z"
+    },
+    {
+      "name": "native-slash-pin-on-off",
+      "at": "2026-10-16T21:40:43.142Z"
+    },
+    {
+      "name": "failure",
+      "at": "2026-10-16T21:40:50.404Z",
+      "message": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(order.indexOf(B)<order.indexOf(A))\n\n    at file:///private/tmp/blanc-pr861-retest-controls.mjs:11:90"
+    },
+    {
+      "name": "native-drag-retest",
+      "at": "2026-10-16T21:41:08.054Z",
+      "points": {
+        "a": {
+          "x": 1017,
+          "y": 281.5
+        },
+        "b": {
+          "x": 1017,
+          "y": 217.5
+        }
+      },
+      "calls": [],
+      "tabs": [
+        {
+          "id": "138413354",
+          "url": "http://127.0.0.1:8785/C",
+          "pinned": true
+        },
+        {
+          "id": "138413352",
+          "url": "http://127.0.0.1:8785/A",
+          "pinned": false
+        },
+        {
+          "id": "138413351",
+          "url": "blanc://newtab/",
+          "pinned": false
+        },
+        {
+          "id": "138413353",
+          "url": "http://127.0.0.1:8785/B",
+          "pinned": false
+        }
+      ]
+    },
+    {
+      "name": "screenshot",
+      "at": "2026-10-16T21:41:08.241Z",
+      "path": "/private/tmp/blanc-pr861-retest-drag.png"
+    },
+    {
+      "name": "native-pointer-probe",
+      "at": "2026-10-16T21:41:25.802Z",
+      "ptr": [
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 201.5,
+          "buttons": 0,
+          "trusted": true,
+          "target": "row-title",
+          "row": "138413353"
+        },
+        {
+          "kind": "pointerdown",
+          "x": 704,
+          "y": 201.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": "row-title",
+          "row": "138413353"
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 200.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": "row-title",
+          "row": "138413353"
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 199.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": "row-title",
+          "row": "138413353"
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 198.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": "row-title",
+          "row": "138413353"
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 197.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": "row-title",
+          "row": "138413353"
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 196.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 195.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 194.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 193.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 192.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 191.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 190.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 189.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 188.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 187.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 186.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 185.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 184.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 183.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 182.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 181.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 180.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 179.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 178.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 177.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 176.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 175.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 174.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 173.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 172.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 171.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 170.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 169.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 168.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 167.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 166.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 165.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 164.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 163.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 162.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointermove",
+          "x": 704,
+          "y": 161.5,
+          "buttons": 1,
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointerup",
+          "x": 704,
+          "y": 161.5,
+          "buttons": 0,
+          "trusted": true,
+          "target": ""
+        }
+      ],
+      "calls": [
+        {
+          "args": [
+            "138413353",
+            {
+              "groupId": null,
+              "beforeId": "138413351"
+            }
+          ],
+          "result": true
+        }
+      ],
+      "tabs": [
+        {
+          "id": "138413354",
+          "url": "http://127.0.0.1:8785/C"
+        },
+        {
+          "id": "138413352",
+          "url": "http://127.0.0.1:8785/A"
+        },
+        {
+          "id": "138413353",
+          "url": "http://127.0.0.1:8785/B"
+        },
+        {
+          "id": "138413351",
+          "url": "blanc://newtab/"
+        }
+      ]
+    },
+    {
+      "name": "pinned-drag-attempt",
+      "at": "2026-10-16T21:41:47.052Z",
+      "order": [
+        "138413352",
+        "138413354",
+        "138413353",
+        "138413351"
+      ],
+      "calls": [
+        {
+          "args": [
+            "138413353",
+            {
+              "groupId": null,
+              "beforeId": "138413351"
+            }
+          ],
+          "result": true
+        },
+        {
+          "args": [
+            "138413352",
+            {
+              "groupId": null,
+              "beforeId": "138413354"
+            }
+          ],
+          "result": true
+        }
+      ]
+    },
+    {
+      "name": "native-cross-boundary-drop-refused",
+      "at": "2026-10-16T21:42:04.556Z"
+    },
+    {
+      "name": "native-option-shift-arrow-reorder",
+      "at": "2026-10-16T21:42:11.883Z",
+      "order": [
+        "138413354",
+        "138413352",
+        "138413353",
+        "138413351"
+      ]
+    },
+    {
+      "name": "screenshot",
+      "at": "2026-10-16T21:42:12.054Z",
+      "path": "/private/tmp/blanc-pr861-retest-controls.png"
+    },
+    {
+      "name": "native-switch-string-id",
+      "at": "2026-10-16T21:42:25.572Z"
+    },
+    {
+      "name": "native-navigation-back-forward-reload",
+      "at": "2026-10-16T21:42:32.078Z"
+    },
+    {
+      "name": "native-cmd-d-regression",
+      "at": "2026-10-16T21:42:34.743Z"
+    },
+    {
+      "name": "native-save-regression",
+      "at": "2026-10-16T21:42:39.163Z"
+    },
+    {
+      "name": "native-mute-regression",
+      "at": "2026-10-16T21:42:54.545Z"
+    },
+    {
+      "name": "native-close-string-id",
+      "at": "2026-10-16T21:42:56.363Z"
+    },
+    {
+      "name": "cleanup-complete",
+      "at": "2026-10-16T21:43:05.859Z",
+      "tabs": [
+        {
+          "id": "138413351",
+          "url": "blanc://newtab/"
+        }
+      ],
+      "historyRowsRemoved": 3,
+      "favorites": []
+    },
+    {
+      "name": "screenshot",
+      "at": "2026-10-16T21:43:06.162Z",
+      "path": "/private/tmp/blanc-pr861-retest-final.png"
+    },
+    {
+      "name": "permanent-final-verification",
+      "at": "2026-10-16T21:46:12.933Z",
+      "tabs": [
+        {
+          "url": "blanc://newtab/",
+          "pinned": false,
+          "muted": false
+        }
+      ],
+      "favorites": [],
+      "fixtureHistory": 0
+    },
+    {
+      "name": "screenshot",
+      "at": "2026-10-16T21:46:13.246Z",
+      "path": "/private/tmp/blanc-pr861-retest-final.png"
+    }
+  ]
+}

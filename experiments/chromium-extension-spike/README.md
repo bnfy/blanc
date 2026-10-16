@@ -173,11 +173,18 @@ dedup, live start-page refresh, restart persistence, private window) passed,
 and the native-input checklist is still pending; see `results.md`. Billboard
 shows recent sites, not Favorites.
 
+Pin, mute and reorder run on Chromium's `TabStripModel`: the ⌘L rows' pin and
+mute controls, `/pin`, `/mute`, drag-to-reorder and the ⌥⇧↑/↓ keyboard move,
+with Electron's rule that a tab never crosses the pinned boundary by moving
+(natively retested on the Mac on October 16; see `results.md`). Mute is the
+per-tab `WebContents` mute, not Chromium's site-level setting.
+
 It does not implement history deletion (`/clear`), Blanc's Favorites and
-History sheets, Spaces, Glance, blocking, private tabs, sync, or the expanded
-Island's secondary commands. Unsupported Island controls are hidden; its slash
-menu contains only `/downloads`, `/new`, `/close`, `/save`, `/favorites` and
-`/history`. Downloads opens Chromium's native manager. Cmd+L and Cmd+T focus the
+History sheets, tab groups, Spaces, Glance, blocking, private tabs, sync, or
+the expanded Island's remaining secondary commands. Unsupported Island controls
+are hidden; its slash menu contains only `/downloads`, `/new`, `/close`,
+`/save`, `/favorites`, `/history`, `/pin` and `/mute`. Downloads opens
+Chromium's native manager. Cmd+L and Cmd+T focus the
 Island address input; Cmd+A selects its text. See `results.md` for native retests.
 The resting Island reserves a fixed 26px slot for the native Extensions button.
 Extensions, Reload and Close use equal 26px footprints, identical gaps and matching
