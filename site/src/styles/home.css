@@ -1952,8 +1952,11 @@ details[open] .faq-sign::after {
     }
 
     /* The Island: three captured states crossfade on a sticky stage. */
+    /* Room above the stage, so the heading doesn't arrive right under the
+       dark section before the stage pins. */
     .home-cinema .island-pin {
       height: 340vh;
+      padding-top: 96px;
       view-timeline-name: --island;
     }
     .pin-stage {
