@@ -43,6 +43,7 @@
 #include "components/history/core/browser/history_service.h"
 #include "components/history/core/browser/history_types.h"
 #include "components/history/core/browser/top_sites.h"
+#include "components/history/core/browser/top_sites_observer.h"
 #include "components/keyed_service/core/service_access_type.h"
 #include "components/input/native_web_keyboard_event.h"
 #include "content/public/browser/favicon_status.h"
@@ -603,9 +604,11 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
 
 // Only the bundled top-level start page gets this read-only profile bridge.
 // It also watches the bookmark model so a page left open re-lists Favorites
-// after the Island, Chromium's manager or a late favicon load changes them.
+// after the Island, Chromium's manager or a late favicon load changes them,
+// and TopSites so recent sites follow history (including /clear) the same way.
 class NewTabHandler : public content::WebUIMessageHandler,
-                      public bookmarks::BaseBookmarkModelObserver {
+                      public bookmarks::BaseBookmarkModelObserver,
+                      public history::TopSitesObserver {
  public:
   void RegisterMessages() override {
     web_ui()->RegisterMessageCallback("blancNewTab",
@@ -614,6 +617,8 @@ class NewTabHandler : public content::WebUIMessageHandler,
   void OnJavascriptDisallowed() override {
     weak_factory_.InvalidateWeakPtrs();
     bookmark_observation_.Reset();
+    top_sites_observation_.Reset();
+    top_sites_.reset();
   }
 
  private:
@@ -630,15 +635,19 @@ class NewTabHandler : public content::WebUIMessageHandler,
   }
   // BaseBookmarkModelObserver: every structural change funnels here. The page
   // coalesces bursts; this only tells it that Favorites may have changed.
-  void BookmarkModelChanged() override { NotifyBookmarksChanged(); }
+  void BookmarkModelChanged() override { Notify("bookmarks"); }
   void BookmarkNodeFaviconChanged(const bookmarks::BookmarkNode*) override {
-    NotifyBookmarksChanged();
+    Notify("bookmarks");
   }
   void BookmarkModelBeingDeleted() override { bookmark_observation_.Reset(); }
-  void NotifyBookmarksChanged() {
+  // TopSitesObserver: TopSites re-queries after history deletions, so this is
+  // how an open start page learns that /clear (or Chromium's own history
+  // manager) emptied its recent sites.
+  void TopSitesLoaded(history::TopSites*) override {}
+  void TopSitesChanged(history::TopSites*, ChangeReason) override { Notify("topSites"); }
+  void Notify(const char* kind) {
     if (!IsStartPage() || !IsJavascriptAllowed()) return;
-    web_ui()->CallJavascriptFunctionUnsafe("blancNewTabEvent",
-                                          base::Value("bookmarks"));
+    web_ui()->CallJavascriptFunctionUnsafe("blancNewTabEvent", base::Value(kind));
   }
   void Handle(const base::ListValue& message) {
     if (!IsStartPage() || message.size() != 3 || !message[0].is_string() ||
@@ -662,6 +671,10 @@ class NewTabHandler : public content::WebUIMessageHandler,
     if (method == "topSites" && args.empty()) {
       auto sites = TopSitesFactory::GetForProfile(profile);
       if (!sites) { Reply(id, true, base::Value(base::ListValue())); return; }
+      if (!top_sites_observation_.IsObserving()) {
+        top_sites_ = sites;  // TopSites is ref-counted; hold it while observing.
+        top_sites_observation_.Observe(sites.get());
+      }
       sites->GetMostVisitedURLs(base::BindOnce(&NewTabHandler::TopSitesReady,
                                               weak_factory_.GetWeakPtr(), id));
       return;
@@ -688,6 +701,9 @@ class NewTabHandler : public content::WebUIMessageHandler,
   }
   base::ScopedObservation<bookmarks::BookmarkModel, bookmarks::BookmarkModelObserver>
       bookmark_observation_{this};
+  scoped_refptr<history::TopSites> top_sites_;
+  base::ScopedObservation<history::TopSites, history::TopSitesObserver>
+      top_sites_observation_{this};
   base::WeakPtrFactory<NewTabHandler> weak_factory_{this};
 };
 
@@ -716,6 +732,7 @@ class Handler : public content::WebUIMessageHandler {
     web_ui()->CallJavascriptFunctionUnsafe("blancPrototypeReply", base::Value(id),
                                            base::Value(success), result);
   }
+  void HistoryCleared(std::string id) { Reply(id, true, base::Value()); }
   void HistoryReady(std::string id, history::QueryResults results) {
     base::ListValue items;
     for (const history::URLResult& result : results) {
@@ -772,6 +789,26 @@ class Handler : public content::WebUIMessageHandler {
       options.duplicate_policy = history::QueryOptions::REMOVE_ALL_DUPLICATES;
       service->QueryHistory(std::u16string(), options,
           base::BindOnce(&Handler::HistoryReady, weak_factory_.GetWeakPtr(), id),
+          &tracker_);
+      return;
+    }
+    if (method == "clearHistory" && args.empty()) {
+      // Electron's /clear empties the history list and nothing else, so this
+      // expires every local visit through HistoryService rather than running
+      // Chromium's wider Clear browsing data. A private window never clears
+      // the regular profile's history, and the service is never resolved
+      // through an off-the-record profile. Destructive: test only on a
+      // disposable --user-data-dir, never the permanent prototype profile.
+      auto* service = profile->IsOffTheRecord() ? nullptr
+          : HistoryServiceFactory::GetForProfile(profile, ServiceAccessType::EXPLICIT_ACCESS);
+      if (!service) {
+        reply(false, base::Value("Clear history from a regular window."));
+        return;
+      }
+      service->ExpireHistoryBetween(
+          /*restrict_urls=*/{}, /*restrict_app_id=*/std::nullopt, base::Time(),
+          base::Time::Max(), /*user_initiated=*/true,
+          base::BindOnce(&Handler::HistoryCleared, weak_factory_.GetWeakPtr(), id),
           &tracker_);
       return;
     }

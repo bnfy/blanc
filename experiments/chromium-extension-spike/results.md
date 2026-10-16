@@ -922,3 +922,59 @@ Evidence: committed [Mac acceptance report](evidence/tab-controls-results.md),
 [fixed-assets retest](evidence/tab-controls-retest-run.json). The report links
 the native build log and screenshots and distinguishes bridge-driven setup
 from native-input acceptance.
+
+
+## `/clear` on a disposable profile — October 16, 2026 (built and verified on a disposable profile at `742cfb4`)
+
+`/clear` is back in the slash allowlist and backed by a `clearHistory` bridge
+method. It mirrors Electron's history-only `/clear`: the handler calls
+`HistoryService::ExpireHistoryBetween({}, std::nullopt, base::Time(),
+base::Time::Max(), user_initiated = true, …)` with the handler's `CancelableTaskTracker`, and
+replies only after the deletion callback, through the same guarded `Reply`.
+It does not run Chromium's wider Clear browsing data (cookies, cache,
+downloads and site data are untouched), so TopSites and the start page's
+recent sites update through the history-deletion observers. A private window
+gets "Clear history from a regular window." and the history service is never
+resolved through an off-the-record profile. Favorites are not affected.
+
+Checks run in the Linux session: Node syntax checks, the eight build-guard
+tests and ESLint recommended rules over the prototype JavaScript; the native
+source is not compiled here.
+
+Mac protocol (Codex): `prepare.mjs` → `build.mjs --check` → `--build`. Then
+**only on a disposable profile** — launch a second instance with a fresh
+`--user-data-dir` under `/private/tmp`, never
+`~/Library/Application Support/Blanc Chromium Prototype`: visit two localhost
+fixtures and save one as a Favorite; ⌘L shows both in history and one as a
+Favorite; type `/clear` and press Return; ⌘L shows no history rows, the
+Favorite row remains, `chrome://history/` is empty, and the start page's
+recent sites are gone; `⌘⇧N`, `/clear` in the private window shows the refusal
+notice and leaves the regular profile's state unchanged (verify by reopening
+⌘L in the regular window after visiting one more fixture); quit, relaunch the
+disposable profile and confirm the cleared history stays cleared. Delete the
+disposable `--user-data-dir` afterwards. Do not run `/clear` in the permanent
+profile; do not record any row as passed from this section.
+
+First Mac attempt (Codex): compilation failed after 9 seconds because this
+pin's `HistoryService::ExpireHistoryBetween` takes a `restrict_app_id`
+(`std::optional<std::string>`) as its second argument; the call now passes
+`std::nullopt`. Source review also found no refresh path for recent sites on
+an already open start page. The start-page handler now also observes
+`history::TopSites` (holding its `scoped_refptr` while observing) and sends
+`blancNewTabEvent('topSites')` on `TopSitesChanged`; the adapter re-fetches
+the native list, replaces `state.topSites` and re-renders the current layout,
+coalesced per kind like the bookmarks refresh. TopSites re-queries after
+history deletions, so `/clear` and Chromium's own history manager both reach
+an open page. `/clear` was not run; no cold rebuild. The disposable-profile
+protocol above still applies in full.
+
+Mac result on `742cfb4` (Codex): the guarded build passed in 35 seconds with
+no cold rebuild and the final check reported zero pending work. On a
+disposable `--user-data-dir`: `/clear` emptied history, the already open start
+page dropped its recent sites live, the Favorite and other profile data were
+preserved, the private-window attempt was refused, and the cleared state
+survived a relaunch. The disposable profile was deleted afterwards and the
+permanent profile was never touched by `/clear`. Evidence: committed [Mac acceptance report](evidence/clear-history-results.md),
+[disposable-profile run](evidence/clear-history-run.json),
+[guarded build log](evidence/clear-history-build.log), and
+[Billboard after deletion](evidence/clear-history-billboard-cleared.png).

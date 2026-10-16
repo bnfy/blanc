@@ -70,20 +70,31 @@
     },
   };
   // The native handler reports bookmark-model changes (Island heart, /save,
-  // Chromium's manager, a favicon arriving). Bursts coalesce into one re-list,
-  // which re-renders through the copied page's own globals once it is ready.
-  let bookmarksRefresh = null;
+  // Chromium's manager, a favicon arriving) and TopSites changes (history
+  // visits, /clear). Bursts coalesce per kind into one re-fetch, which
+  // re-renders through the copied page's own globals once it is ready.
+  const refreshers = {
+    bookmarks: async () => {
+      const items = await window.bowserPages.bookmarks.list();
+      if (typeof renderLedgerFavorites !== 'function') return;
+      state.favorites = items;
+      renderLedgerFavorites(items);
+    },
+    topSites: async () => {
+      // The page's own pager is already exhausted (start.topSites returns
+      // nothing more), so the full native list simply replaces the state.
+      state.topSites = await request('topSites');
+    },
+  };
+  const pendingRefresh = {};
   window.blancNewTabEvent = (kind) => {
-    if (kind !== 'bookmarks' || bookmarksRefresh) return;
-    bookmarksRefresh = setTimeout(async () => {
-      bookmarksRefresh = null;
+    if (!refreshers[kind] || pendingRefresh[kind]) return;
+    pendingRefresh[kind] = setTimeout(async () => {
+      pendingRefresh[kind] = null;
       if (!document.body.classList.contains('layout-ready')) return;
       try {
-        const items = await window.bowserPages.bookmarks.list();
-        if (typeof state !== 'object' || typeof renderLedgerFavorites !== 'function'
-            || typeof invalidate !== 'function' || typeof applyLayout !== 'function') return;
-        state.favorites = items;
-        renderLedgerFavorites(items);
+        if (typeof state !== 'object' || typeof invalidate !== 'function' || typeof applyLayout !== 'function') return;
+        await refreshers[kind]();
         invalidate();
         applyLayout(state.layout);
       } catch (error) { console.warn(error.message); }

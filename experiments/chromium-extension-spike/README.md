@@ -179,11 +179,17 @@ with Electron's rule that a tab never crosses the pinned boundary by moving
 (natively retested on the Mac on October 16; see `results.md`). Mute is the
 per-tab `WebContents` mute, not Chromium's site-level setting.
 
-It does not implement history deletion (`/clear`), Blanc's Favorites and
-History sheets, tab groups, Spaces, Glance, blocking, private tabs, sync, or
-the expanded Island's remaining secondary commands. Unsupported Island controls
-are hidden; its slash menu contains only `/downloads`, `/new`, `/close`,
-`/save`, `/favorites`, `/history`, `/pin` and `/mute`. Downloads opens
+`/clear` expires every local history visit through `HistoryService`, like
+Electron's history-only `/clear` rather than Chromium's wider Clear browsing
+data; it is refused from a private window. It is destructive: exercise it only
+on a disposable `--user-data-dir`, never the permanent prototype profile
+(verified that way on the Mac on October 16; see `results.md`).
+
+It does not implement Blanc's Favorites and History sheets, tab groups,
+Spaces, Glance, blocking, private tabs, sync, or the expanded Island's
+remaining secondary commands. Unsupported Island controls are hidden; its
+slash menu contains only `/downloads`, `/new`, `/close`, `/save`,
+`/favorites`, `/history`, `/clear`, `/pin` and `/mute`. Downloads opens
 Chromium's native manager. Cmd+L and Cmd+T focus the
 Island address input; Cmd+A selects its text. See `results.md` for native retests.
 The resting Island reserves a fixed 26px slot for the native Extensions button.
