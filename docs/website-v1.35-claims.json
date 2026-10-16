@@ -1,0 +1,107 @@
+{
+  "publicRelease": "v1.35.0",
+  "sourceSha": "95e1c2c1adb26bc223dfd8a4f98246984d43bd89",
+  "releaseEvidence": "docs/release-incidents/2026-10-16-v1.35.0.md",
+  "scope": "Site copy verified against public v1.35.0: renamable tab titles on /features (added October 16, 2026 before the release went out, as candidates in docs/website-candidate-claims-v1.35.0.json, now retired) and the six interface languages.",
+  "evidenceGroups": {
+    "renameTabs": {
+      "evidence": [
+        "src/main/main.js",
+        "src/main/closed-tabs.js",
+        "copy/messages/en.json",
+        "docs/press/release-notes/v1.35.0.md"
+      ],
+      "qualification": "Tab names (F46): Rename Tab… in the tab context menu and /rename in the ⌘L or Ctrl+L panel set tab.customTitle (renameTab, beginRenameTab in main.js); Reset Tab Title or /rename alone clears it. The name survives navigation, quieting, moving to a new window, reopen-closed (closed-tabs.js), spaces and restart; History and Favorites keep the page title; a private tab’s name is forgotten on quit. Every desktop platform."
+    },
+    "interfaceLanguages": {
+      "evidence": [
+        "copy/messages/de.json",
+        "copy/messages/es.json",
+        "copy/messages/fr.json",
+        "copy/messages/it.json",
+        "copy/messages/pt-BR.json",
+        "src/main/i18n.js"
+      ],
+      "qualification": "Every translation is status selectable in v1.35.0 (Italian since v1.33.0); machine-made. The interface follows the system language when it matches, or Settings → General → Language, applied after a relaunch. Web pages are not translated."
+    }
+  },
+  "claims": [
+    {
+      "id": "v135-001",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Rename your tabs",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "renameTabs"
+      ],
+      "verdict": "qualified",
+      "replaces": "rename-001"
+    },
+    {
+      "id": "v135-002",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Give a tab a name of your own.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "renameTabs"
+      ],
+      "verdict": "qualified",
+      "replaces": "rename-002"
+    },
+    {
+      "id": "v135-003",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Right-click a tab and choose Rename Tab…, or type /rename and a name in the ⌘L or Ctrl+L panel. The name stays when you browse to another site, restart Blanc or save the tab in a space.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "renameTabs"
+      ],
+      "verdict": "qualified",
+      "replaces": "rename-003"
+    },
+    {
+      "id": "v135-004",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Reset Tab Title goes back to the page’s title. History and Favorites keep the page’s own title.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "renameTabs"
+      ],
+      "verdict": "qualified",
+      "replaces": "rename-004"
+    },
+    {
+      "id": "v135-005",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Six interface languages",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "interfaceLanguages"
+      ],
+      "verdict": "verified",
+      "replaces": "site-132-features-02"
+    },
+    {
+      "id": "v135-006",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Use Blanc in German, Spanish, French, Italian or Portuguese.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "interfaceLanguages"
+      ],
+      "verdict": "qualified",
+      "replaces": "site-132-features-06"
+    },
+    {
+      "id": "v135-007",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Blanc’s own interface is available in English, German, Spanish, French, Italian and Portuguese (Brazil). It follows your computer’s language when it matches one of them, or you can choose one in Settings → General → Language.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "interfaceLanguages"
+      ],
+      "verdict": "qualified",
+      "replaces": "site-132-features-07"
+    }
+  ]
+}

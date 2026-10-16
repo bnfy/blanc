@@ -206,6 +206,64 @@
   "shownOn": [
     "site/src/pages/index.astro",
     "site/src/pages/features.astro",
-    "site/src/components/GestureDemo.astro"
-  ]
+    "site/src/components/GestureDemo.astro",
+    "site/src/pages/features/glance.astro",
+    "site/src/pages/media.astro"
+  ],
+  "glance": {
+    "source": "The installed public Blanc 1.35.0 (build 1350) in /Applications, checked on October 16, 2026 with strict deep codesign, Gatekeeper (Notarized Developer ID, team XYGUCY4498) and stapler validation; launched as a separate instance (open -n) in a disposable profile.",
+    "method": "BLANC_CAPTURE_VERSION=1.35.0 npm run capture:glance:installed: a map of Lisbon (OpenStreetMap) as the main page with the Wikivoyage Lisbon guide as the Glance reference, one native window capture resized to 1440×900 sRGB with a WebP companion. Replaces the v1.30.1 capture on /features and /features/glance; Glance’s header changed in v1.35.0.",
+    "file": "site/public/feature-captures/glance-v1.35.0.png",
+    "width": 1440,
+    "height": 900,
+    "sha256": "c1973899482bc6f0e802209d62886d47c7b2badb471cc566fcbfae013c79f011",
+    "webp": {
+      "file": "site/public/feature-captures/glance-v1.35.0.webp",
+      "sha256": "88f9d61c3595b05ec5ccbf5c58456d042e3381cfa1d759a2ff30706315f6bb2d"
+    }
+  },
+  "media": {
+    "source": "The installed public Blanc 1.35.0 (build 1350) in /Applications, checked on October 16, 2026 with strict deep codesign, Gatekeeper (Notarized Developer ID, team XYGUCY4498) and stapler validation; launched as a separate instance (open -n) in a disposable profile.",
+    "method": "BLANC_CAPTURE_VERSION=1.35.0 node scripts/capture-installed-media.mjs: The Met’s public-domain Van Gogh as the active page, with six sample tabs in the named groups inspiration and reading (Smithsonian Open Access replaces the earlier NASA tab). Native window captures at 2560×1600 with 2560 and 1280 px WebP copies. The press card is re-rendered from the expanded capture by site/scripts/render-press-card.mjs.",
+    "captures": [
+      {
+        "state": "resting",
+        "file": "site/public/press/blanc-island-resting-v1.35.0.png",
+        "width": 2560,
+        "height": 1600,
+        "sha256": "5cbb9aa26278847527cc00b2666280470311afadae546cd1c44bbb7f89ad7a53",
+        "display": [
+          {
+            "file": "site/public/press/blanc-island-resting-v1.35.0.webp",
+            "sha256": "b3418c16bb2f31132577aa3a027a9f69859237a7daef8eb4249765c389ad4d9f"
+          },
+          {
+            "file": "site/public/press/blanc-island-resting-v1.35.0-1280.webp",
+            "sha256": "62a90721e53f69c4ab20acbe41fdae67412988fc11b7f524ffc79e83c5bd90af"
+          }
+        ]
+      },
+      {
+        "state": "expanded",
+        "file": "site/public/press/blanc-island-expanded-v1.35.0.png",
+        "width": 2560,
+        "height": 1600,
+        "sha256": "507033f5cb14f34ea7bd13846c88b009e197512bcfc9b40ca988c2ade377c90b",
+        "display": [
+          {
+            "file": "site/public/press/blanc-island-expanded-v1.35.0.webp",
+            "sha256": "e4e909fbd0657725b8c147b3f0adeda43c3d2b165ab9de55ae2c85fae0e59e64"
+          },
+          {
+            "file": "site/public/press/blanc-island-expanded-v1.35.0-1280.webp",
+            "sha256": "589ca90b5adb70b5872fc3ef2736806ebb6726e0aef2fbe1386358fedfaf2ee0"
+          }
+        ]
+      }
+    ],
+    "pressCard": {
+      "file": "site/public/press/blanc-press-card.png",
+      "sha256": "63dc20a95dbd070241ac93b00820bf246e576025fa947a0125dcadbf91806e71"
+    }
+  }
 }
