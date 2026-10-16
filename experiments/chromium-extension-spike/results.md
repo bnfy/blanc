@@ -704,7 +704,7 @@ Eight build-guard tests, targeted ESLint, Node syntax and diff checks passed.
 Evidence: `evidence/dock-sunrise-dark-verification.json`.
 
 
-## Favorites, history and Island search — October 16, 2026 (implementation pushed; compilation and runtime verification pending)
+## Favorites, history and Island search — October 16, 2026 (built and verified on the Mac at `06b3094`)
 
 Target flow: save a page from the Island → see it on Blanc's start page → find
 it through Island search → verify persistence after restart. The bridge now
@@ -742,22 +742,23 @@ recommended rules over the prototype JavaScript (repository-pinned ESLint
 10.12.0, @eslint/js 10.0.1, globals 17.13.0 in a temporary directory). The
 native source has not been compiled.
 
-Pending on the Mac (Codex): `prepare.mjs` → `build.mjs --check` (review the
-plan; no new asset names, plist or buildflag inputs are expected, but the plan
-decides) → `build.mjs --build`, then the native checklist in the pull request.
-Chromium 156 call sites to confirm against the pinned checkout:
-`BookmarkModel::AddNewURL`, `AddFolder`, `Move`, `Remove(node,
-BookmarkEditSource::kUser, FROM_HERE)`, `GetFavicon`,
-`GetMostRecentlyAddedUserNodeForURL`,
-`BaseBookmarkModelObserver::{BookmarkModelChanged, BookmarkNodeFaviconChanged,
-BookmarkModelBeingDeleted()}`, `HistoryServiceFactory::GetForProfile(profile,
-ServiceAccessType::EXPLICIT_ACCESS)`, `HistoryService::QueryHistory` with a
-by-value `QueryResults` callback and `CancelableTaskTracker`,
-`base::Time::InMillisecondsFSinceUnixEpoch`, `base::i18n::ToLower`, and the
-`chrome/browser/ui` GN dependencies on `//chrome/browser/history`,
-`//components/bookmarks/browser`, `//components/history/core/browser` and
-`//base:i18n`. Do not record any row of the target flow as passed from this
-section; it describes source, not runtime behavior.
+Mac verification (Codex, second attempt, on `06b3094`): the guarded incremental
+build completed 7 steps in 36 seconds and the follow-up dry run reported zero
+actions; no cache, toolchain or build-mode change. With native input on the
+permanent profile and localhost fixtures only: the Favorites toggle, named
+folders through `/save`, history results, the Quick Switcher (one deduplicated
+row for a page that is both a Favorite and a history entry), live start-page
+refresh and persistence across a full quit and relaunch passed. Favorites were
+verified in Ledger, Shelf and Tally; Billboard intentionally shows recent sites
+rather than Favorites. On a real http(s) page in a private window both hearts
+were hidden, no banner appeared, and no Favorite or history row leaked. All six
+installed extensions remained available in the Island picker. The test
+bookmarks, the folder, the fixture visits, the test tabs and the private window
+were cleaned up; the prototype was left open on the permanent profile with its
+original new-tab page. The Chromium 156 call sites listed in the pull request
+compiled as written after the three corrections below. Evidence: Codex's native
+run record and final screenshot, to be committed under `evidence/favorites-*`
+from the Mac; until then this section is the written record.
 
 First Mac build attempt on `89d7637` (Codex): the guarded build failed after
 8.77 s with three compile errors, caches and the running prototype preserved.
@@ -769,5 +770,5 @@ same review found that the copied hearts enable on any http(s) page without
 checking `private`, so a click in an incognito window reached the native
 guard and surfaced its error banner; the host now treats a private tab as a
 silent no-op and hides both hearts under the private theme, with the native
-guard kept as defense in depth. Retest on a real http(s) page in a private
-window, not its start page. Compilation and runtime results are still pending.
+guard kept as defense in depth. The retest above used a real http(s) page in a
+private window, not its start page.
