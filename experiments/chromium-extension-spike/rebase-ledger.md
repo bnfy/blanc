@@ -5,8 +5,8 @@ tag, plus one detail section per row. This is the measured record that
 `docs/chromium-migration-implementation-plan-2026-10-16.md` (§2 spike gate,
 §4 A2, §5 criterion 1, §6 Task 0) and the owner's Decision 2 read. **No
 rebase has been run yet; the table below is the template, and its first row
-is filled only after the owner approves the Task 0 cold build in
-`task0-cold-build-request.md` §7.**
+is filled as Task 0 runs; the owner approved its cold build on
+October 16, 2026 (`task0-cold-build-request.md` §7).**
 
 Rules for filling it in:
 
@@ -39,7 +39,7 @@ Rules for filling it in:
 
 | # | Date | From tag | To tag (commit) | Cadence in force | Machine / toolchain | Anchors broken | Files patched before → after | Prepare and anchor fixes (wall / attention) | Cold build (accumulated build runtime, actions) | Compile errors | Compile fixes and incremental builds (wall) | Re-verification (wall, result) | Owner attention | Agent time | Calendar span | Outcome |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 0 | — | `156.0.8078.36` (`5a93aa59e304`) | `157.0.8103.6` (`41520584daa6`), proposed | two weeks (since Chrome 153) | owner's Mac, Xcode 27.1 (`27A9275`), Apple Silicon | — | 20 → — | — | — | — | — | — | — | — | — | not started: awaiting cold-build approval |
+| 0 | — | `156.0.8078.36` (`5a93aa59e304`) | `157.0.8103.6` (`41520584daa6`) | two weeks (since Chrome 153) | owner's Mac, Xcode 27.1 (`27A9275`), Apple Silicon | — | 20 → — | — | — | — | — | — | — | — | — | approved October 16; not started |
 
 Column notes: *Anchors broken* counts `prepare.mjs` anchors that no longer
 matched (details below). *Files patched* counts upstream files `prepare.mjs`
@@ -50,9 +50,10 @@ idle gaps excluded, with Siso's reported action count. *Calendar span* runs from
 result. *Outcome* is `passed`, `passed with divergences` (listed below),
 `stopped (criterion N)` or `not started`.
 
-## Rebase 0: `156.0.8078.36` → `157.0.8103.6` (proposed)
+## Rebase 0: `156.0.8078.36` → `157.0.8103.6`
 
-Status: **not started.** Approval: `task0-cold-build-request.md` §7, open.
+Status: **approved, not started.** Approval: `task0-cold-build-request.md`
+§7, granted by the owner on October 16, 2026.
 
 ### Environment
 
@@ -91,7 +92,7 @@ changed: `_______`.
 
 | | |
 | --- | --- |
-| Approved by the owner on | `_______` |
+| Approved by the owner on | October 16, 2026 (`task0-cold-build-request.md` §7) |
 | First invocation started / first complete `chrome` target finished | `_______` / `_______` |
 | Accumulated build runtime (sum of the *cached continuation* rows below) | `_______` |
 | Calendar span of the above, for contrast (includes idle gaps) | `_______` |
