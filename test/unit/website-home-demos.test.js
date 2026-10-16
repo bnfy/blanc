@@ -129,3 +129,14 @@ test('the full Glance demo still closes and reopens its reference', async () => 
   assert.ok(!nodes['#glance-window'].classList.set.has('is-closed'));
   assert.equal(nodes['#glance-hint'].textContent, 'Drag the divider to resize.');
 });
+
+test('homepage titles are phrases without a closing period; section headlines keep theirs', () => {
+  // Card, step and privacy titles, the switching steps' data titles and the
+  // Island stage's lead-ins end without a period (owner, October 16, 2026).
+  for (const [, title] of home.matchAll(/<h3\b[^>]*>([^<]+)<\/h3>/g)) assert.doesNotMatch(title.trim(), /\.$/, title);
+  for (const [, title] of home.matchAll(/title: "([^"]+)"/g)) assert.doesNotMatch(title, /\.$/, title);
+  const pin = home.split('id="island"')[1].split('</section>')[0];
+  for (const [, lead] of pin.matchAll(/<strong>([^<]+)<\/strong>/g)) assert.doesNotMatch(lead, /\.$/, lead);
+  assert.match(css, /\.pin-media figcaption strong \{\s*display: block;/);
+  assert.match(home, /<h1 id="opening-title">A little less browser\.<\/h1>/);
+});

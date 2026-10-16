@@ -377,7 +377,9 @@
   color: var(--text);
   font-size: 19px;
 }
+/* The state's name sits on its own line, without a period. */
 .pin-media figcaption strong {
+  display: block;
   color: var(--ink);
   font-weight: 600;
 }
@@ -2012,7 +2014,7 @@ details[open] .faq-sign::after {
        height to the capture. */
     @media (min-width: 761px) {
       .pin-media img {
-        width: min(100%, 1100px, calc((100svh - 340px) * 16 / 9));
+        width: min(100%, 1100px, calc((100svh - 370px) * 16 / 9));
         max-height: none;
         aspect-ratio: 16 / 9;
         object-fit: cover;

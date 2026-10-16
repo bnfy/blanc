@@ -3878,7 +3878,7 @@
     {
       "id": "e2-tabs-title",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Bring your tabs.",
+      "exactWording": "Bring your tabs",
       "subject": "Blanc",
       "evidenceGroups": [
         "importing"

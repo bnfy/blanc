@@ -363,7 +363,7 @@
     {
       "id": "cinema-island-rest",
       "source": "site/src/pages/index.astro",
-      "exactWording": "At rest. Back and forward, your tabs as dots, the site and the blocker count, in one slim band.",
+      "exactWording": "At rest Back and forward, your tabs as dots, the site and the blocker count, in one slim band.",
       "subject": "Blanc",
       "evidenceGroups": [
         "island",
@@ -374,7 +374,7 @@
     {
       "id": "cinema-island-open",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Open it. Every tab and group in one list. Choose a tab, or type to find a page.",
+      "exactWording": "Open it Every tab and group in one list. Choose a tab, or type to find a page.",
       "subject": "Blanc",
       "evidenceGroups": [
         "island"
@@ -384,7 +384,7 @@
     {
       "id": "cinema-island-slash",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Type a slash. Run a command without leaving the keyboard. Close the Island, and you’re back on the page.",
+      "exactWording": "Type a slash Run a command without leaving the keyboard. Close the Island, and you’re back on the page.",
       "subject": "Blanc",
       "evidenceGroups": [
         "island"
@@ -454,7 +454,7 @@
     {
       "id": "cinema-privacy-private",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Private tabs. Open a private tab when you choose. Its cookies, storage and history disappear when Blanc quits.",
+      "exactWording": "Private tabs Open a private tab when you choose. Its cookies, storage and history disappear when Blanc quits.",
       "subject": "Blanc",
       "evidenceGroups": [
         "privateTabs"
@@ -464,7 +464,7 @@
     {
       "id": "cinema-privacy-choices",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Your choices first. Optional connections start only after you save your setup choices.",
+      "exactWording": "Your choices first Optional connections start only after you save your setup choices.",
       "subject": "Blanc",
       "evidenceGroups": [
         "connections"
@@ -484,7 +484,7 @@
     {
       "id": "cinema-tools-glance",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Glance. Bring another open tab into view beside the page you’re on. Narrow windows stack it below the main page.",
+      "exactWording": "Glance Bring another open tab into view beside the page you’re on. Narrow windows stack it below the main page.",
       "subject": "Blanc",
       "evidenceGroups": [
         "glance"
@@ -494,7 +494,7 @@
     {
       "id": "cinema-tools-start",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Start Page layouts. Choose Ledger, Billboard, Shelf or Tally, and let the wallpaper follow your computer’s clock. Turn on Time-of-day wallpaper in Settings → General.",
+      "exactWording": "Start Page layouts Choose Ledger, Billboard, Shelf or Tally, and let the wallpaper follow your computer’s clock. Turn on Time-of-day wallpaper in Settings → General.",
       "subject": "Blanc",
       "evidenceGroups": [
         "startPage"
@@ -504,7 +504,7 @@
     {
       "id": "cinema-tools-quiet",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Quiet Tabs.",
+      "exactWording": "Quiet Tabs",
       "subject": "Blanc",
       "evidenceGroups": [
         "quietTabs"
@@ -514,7 +514,7 @@
     {
       "id": "cinema-tools-onepassword",
       "source": "site/src/pages/index.astro",
-      "exactWording": "1Password on Mac. On macOS, the optional integration fills a matching login when you ask. Off by default. Needs the 1Password app and account on macOS.",
+      "exactWording": "1Password on Mac On macOS, the optional integration fills a matching login when you ask. Off by default. Needs the 1Password app and account on macOS.",
       "subject": "Blanc",
       "evidenceGroups": [
         "onePassword"
@@ -524,7 +524,7 @@
     {
       "id": "cinema-tools-gestures",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Mouse gestures. Go back, move forward or open a new tab with a simple mouse movement. Off by default. Right-drag with a mouse, or Option/Alt-drag with a trackpad.",
+      "exactWording": "Mouse gestures Go back, move forward or open a new tab with a simple mouse movement. Off by default. Right-drag with a mouse, or Option/Alt-drag with a trackpad.",
       "subject": "Blanc",
       "evidenceGroups": [
         "gestures"
@@ -572,7 +572,7 @@
     {
       "id": "cinema-switch-download",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Download Blanc. For macOS 13 or later on Apple Silicon or Intel, Windows 10 or later (64-bit), and 64-bit Linux as an AppImage. Free. No account needed.",
+      "exactWording": "Download Blanc For macOS 13 or later on Apple Silicon or Intel, Windows 10 or later (64-bit), and 64-bit Linux as an AppImage. Free. No account needed.",
       "subject": "Blanc",
       "evidenceGroups": [
         "platforms",
@@ -593,7 +593,7 @@
     {
       "id": "cinema-switch-default-title",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Then make Blanc your default.",
+      "exactWording": "Then make Blanc your default",
       "subject": "Blanc",
       "evidenceGroups": [
         "defaultBrowser"
@@ -1136,11 +1136,11 @@
     "Step 1",
     "Step 2",
     "Step 3",
-    "Download Blanc.",
-    "Bring your tabs.",
-    "Bring your Favorites.",
-    "Bring your Spaces.",
-    "Send your tabs.",
+    "Download Blanc",
+    "Bring your tabs",
+    "Bring your Favorites",
+    "Bring your Spaces",
+    "Send your tabs",
     "From Chrome, Edge, Brave or Vivaldi",
     "From Arc",
     "From Safari",
