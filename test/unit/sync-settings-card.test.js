@@ -19,8 +19,12 @@ test('Sync is the second Settings group in nav and content order', () => {
 
 test('the off state offers two explicit paths and a not-found choice', () => {
   const html = read('src/renderer/pages/settings.html');
+  // Design 2026-10-16 §4.2: adding a device with a code comes first; the
+  // name-and-passphrase join path is reached from inside that step.
+  assert.match(html, /id="syncPathCode"[\s\S]{0,900}?Add this device to my sync/);
   assert.match(html, /id="syncPathStart"[\s\S]{0,900}?Start syncing from this device/);
-  assert.match(html, /id="syncPathJoin"[\s\S]{0,900}?I already sync on another device/);
+  assert.ok(html.indexOf('id="syncPathCode"') < html.indexOf('id="syncPathStart"'));
+  assert.match(html, /id="syncUsePassphrase"[\s\S]{0,200}?Use my sync name and passphrase instead/);
   assert.match(html, /<button id="syncTryAgain" type="button">Try again<\/button>/);
   assert.match(html, /<button id="syncStartNew" type="button" class="quiet">Start a new sync with these<\/button>/);
   assert.match(html, /Nothing was found under that name and passphrase\. Check for typos, including capital letters, then try again\./);
@@ -82,7 +86,7 @@ test('the visual redesign preserves every established on-state control and handl
 
 test('settings.js drives the flow through the reducer and performs effects once', () => {
   const html = read('src/renderer/pages/settings.html');
-  assert.match(html, /<script src="settings-sync-setup-model\.js"><\/script>\s*<script src="settings\.js"><\/script>/);
+  assert.match(html, /<script src="settings-sync-setup-model\.js"><\/script>\s*<script src="settings-sync-pairing-model\.js"><\/script>\s*<script src="settings\.js"><\/script>/);
   const js = read('src/renderer/pages/settings.js');
   assert.match(js, /const \{ createSyncSetupModel, transition, view, relativeSyncTime \} = window\.blancSyncSetupModel/);
   assert.match(js, /function dispatch\(event\) \{[\s\S]*?const \{ state: next, effect \} = transition\(model, event\)/);

@@ -1242,7 +1242,6 @@
       const setupIntro = document.getElementById('syncSetupIntro');
       const paths = document.getElementById('syncPaths');
       const pathStart = document.getElementById('syncPathStart');
-      const pathJoin = document.getElementById('syncPathJoin');
       const form = document.getElementById('syncForm');
       const handleEl = document.getElementById('syncHandle');
       const passEl = document.getElementById('syncPassphrase');
@@ -1267,6 +1266,40 @@
       const disableBtn = document.getElementById('syncDisable');
       const wipeEl = document.getElementById('syncWipe');
       const tabsShareEl = document.getElementById('syncTabsShare');
+      // Device pairing (design 2026-10-16): the code path of the off state,
+      // and the on state's Add another device / Connect to a different sync /
+      // Copy recovery code. Driven by settings-sync-pairing-model.js.
+      const {
+        createPairingModel, pairingTransition, pairingView,
+        createSwitchModel, switchTransition, switchView,
+      } = window.blancSyncPairingModel;
+      const pathCode = document.getElementById('syncPathCode');
+      const codeForm = document.getElementById('syncCodeForm');
+      const codeEl = document.getElementById('syncCode');
+      const codeSubmit = document.getElementById('syncCodeSubmit');
+      const codeBack = document.getElementById('syncCodeBack');
+      const usePassphrase = document.getElementById('syncUsePassphrase');
+      const codeStatus = document.getElementById('syncCodeStatus');
+      const addDeviceBtn = document.getElementById('syncAddDevice');
+      const pairingPanel = document.getElementById('syncPairing');
+      const pairingCodeEl = document.getElementById('syncPairingCode');
+      const pairingRemaining = document.getElementById('syncPairingRemaining');
+      const pairingCopy = document.getElementById('syncPairingCopy');
+      const pairingCancel = document.getElementById('syncPairingCancel');
+      const pairingNotice = document.getElementById('syncPairingNotice');
+      const switchOpen = document.getElementById('syncSwitchOpen');
+      const switchForm = document.getElementById('syncSwitch');
+      const switchName = document.getElementById('syncSwitchName');
+      const switchBody = document.getElementById('syncSwitchBody');
+      const switchWipe = document.getElementById('syncSwitchWipe');
+      const switchWipeLabel = document.getElementById('syncSwitchWipeLabel');
+      const switchCode = document.getElementById('syncSwitchCode');
+      const switchSubmit = document.getElementById('syncSwitchSubmit');
+      const switchCancel = document.getElementById('syncSwitchCancel');
+      const switchNotice = document.getElementById('syncSwitchNotice');
+      const recoveryCopy = document.getElementById('syncRecoveryCopy');
+      const recoveryNote = document.getElementById('syncRecoveryNote');
+      let currentHandle = '';
 
       // On-state: one row per category; the error lives ONLY in its own row.
       function renderStatus(status, note) {
@@ -1275,6 +1308,7 @@
         active.hidden = !on;
         tabsShareEl.checked = !!status.syncTabs;
         if (on) {
+          currentHandle = status.handle;
           syncStatusHandle.textContent = status.handle;
           const lastSynced = relativeSyncTime(status.lastSyncedAt);
           syncStatusData.textContent = lastSynced ? t('settings.sync.lastSynced', { when: lastSynced }) : t('settings.sync.notSynced');
@@ -1294,6 +1328,12 @@
         setupIntro.textContent = v.setupIntro;
         paths.hidden = v.pathChosen;
         form.hidden = !v.fieldsVisible;
+        codeForm.hidden = !v.codePath;
+        if (v.codePath) {
+          codeSubmit.disabled = v.submitDisabled;
+          codeStatus.textContent = v.noticeText;
+          if (codeEl.value !== model.code) codeEl.value = model.code;
+        }
         handleHint.textContent = v.handleHint;
         passHint.textContent = v.passphraseHint;
         submitBtn.textContent = v.submitLabel;
@@ -1343,17 +1383,137 @@
         dispatch({ type: 'preflight-reply', token: effect.token, outcome: reply.outcome, message: reply.message });
       }
 
+      async function performJoinCode(effect) {
+        codeStatus.textContent = t('settings.sync.turningOn');
+        let res;
+        try {
+          res = await window.bowserPages.settings.syncJoinCode(effect.code);
+        } catch {
+          res = { ok: false, message: t('settings.sync.checkFailed') };
+        }
+        const current = model.phase === 'joining' && model.token === effect.token;
+        dispatch({ type: 'join-code-reply', token: effect.token, ok: res.ok, outcome: res.error, message: res.message });
+        if (res.status) {
+          renderStatus(res.status, current && res.ok ? t('settings.sync.connectedTo', { name: res.status.handle }) : null);
+        }
+      }
+
       function dispatch(event) {
         const { state: next, effect } = transition(model, event);
         model = next;
         renderSetup();
         if (effect?.type === 'preflight') performPreflight(effect);
         if (effect?.type === 'enable') performEnable(effect);
+        if (effect?.type === 'join-code') performJoinCode(effect);
       }
 
+      // --- On state: Add another device ---
+      let pairingModel = createPairingModel();
+      let pairingTimer = null;
+      function renderPairing() {
+        const pv = pairingView(pairingModel, Date.now());
+        pairingPanel.hidden = !pv.showing;
+        addDeviceBtn.hidden = !pv.beginVisible;
+        addDeviceBtn.disabled = pairingModel.phase === 'starting';
+        pairingCodeEl.textContent = pv.codeText;
+        pairingRemaining.textContent = pv.showing ? t('settings.sync.pairing.expiresIn', { time: pv.remainingText }) : '';
+        pairingNotice.textContent = pv.expired ? t('settings.sync.pairing.expired') : pv.noticeText;
+        pairingNotice.hidden = !pairingNotice.textContent;
+        if (pv.showing && !pairingTimer) pairingTimer = setInterval(() => dispatchPairing({ type: 'tick', now: Date.now() }), 1000);
+        if (!pv.showing && pairingTimer) { clearInterval(pairingTimer); pairingTimer = null; }
+      }
+      async function performPairBegin() {
+        let res;
+        try {
+          res = await window.bowserPages.settings.syncPairBegin();
+        } catch {
+          res = { ok: false, message: t('settings.sync.checkFailed') };
+        }
+        dispatchPairing({ type: 'began', ok: res.ok, code: res.code, expiresAt: res.expiresAt, message: res.message });
+      }
+      function dispatchPairing(event) {
+        const { state: next, effect } = pairingTransition(pairingModel, event);
+        pairingModel = next;
+        renderPairing();
+        if (effect?.type === 'pair-begin') performPairBegin();
+        if (effect?.type === 'pair-cancel') window.bowserPages.settings.syncPairCancel().catch(() => {});
+      }
+      addDeviceBtn.addEventListener('click', () => dispatchPairing({ type: 'begin' }));
+      pairingCancel.addEventListener('click', () => dispatchPairing({ type: 'cancel' }));
+      pairingCopy.addEventListener('click', () => {
+        // The pairing code is the one secret meant to travel; the recovery
+        // code never passes through this page.
+        navigator.clipboard?.writeText(pairingModel.code).catch(() => {});
+      });
+      // A reopened Settings sheet shows the code still counting down.
+      function resumePairing() {
+        window.bowserPages.settings.syncPairState()
+          .then((state) => dispatchPairing({ type: 'resume', ...state }))
+          .catch(() => {});
+      }
+
+      // --- On state: Connect to a different sync ---
+      let switchModel = createSwitchModel();
+      function renderSwitch() {
+        const sv = switchView(switchModel);
+        switchForm.hidden = !sv.open;
+        switchOpen.hidden = sv.open;
+        if (sv.open) {
+          switchName.textContent = t('settings.sync.switch.title', { name: currentHandle });
+          switchBody.textContent = t('settings.sync.switch.body', { name: currentHandle });
+          switchWipeLabel.textContent = t('settings.sync.switch.wipe', { name: currentHandle });
+          switchWipe.checked = sv.wipeRemote;
+          switchSubmit.disabled = sv.submitDisabled;
+          switchNotice.textContent = sv.noticeText;
+          if (switchCode.value !== sv.codeValue) switchCode.value = sv.codeValue;
+        }
+      }
+      async function performSwitch(effect) {
+        switchNotice.textContent = t('settings.sync.turningOn');
+        let res;
+        try {
+          res = await window.bowserPages.settings.syncSwitchCode({ code: effect.code, wipeRemote: effect.wipeRemote });
+        } catch {
+          res = { ok: false, message: t('settings.sync.checkFailed') };
+        }
+        const current = switchModel.phase === 'pending' && switchModel.token === effect.token;
+        dispatchSwitch({ type: 'switch-reply', token: effect.token, ok: res.ok, message: res.message });
+        if (res.status) {
+          renderStatus(res.status, current && res.ok ? t('settings.sync.connectedTo', { name: res.status.handle }) : null);
+        }
+      }
+      function dispatchSwitch(event) {
+        const { state: next, effect } = switchTransition(switchModel, event);
+        switchModel = next;
+        renderSwitch();
+        if (effect?.type === 'switch-code') performSwitch(effect);
+      }
+      switchOpen.addEventListener('click', () => { dispatchSwitch({ type: 'open' }); switchCode.focus(); });
+      switchCancel.addEventListener('click', () => dispatchSwitch({ type: 'cancel' }));
+      switchCode.addEventListener('input', () => dispatchSwitch({ type: 'code-input', code: switchCode.value }));
+      switchWipe.addEventListener('change', () => dispatchSwitch({ type: 'toggle-wipe', on: switchWipe.checked }));
+      switchForm.addEventListener('submit', (e) => { e.preventDefault(); dispatchSwitch({ type: 'submit' }); });
+
+      // --- On state: Copy recovery code (main shows the dialog and writes the clipboard) ---
+      recoveryCopy.addEventListener('click', async () => {
+        recoveryCopy.disabled = true;
+        let res;
+        try {
+          res = await window.bowserPages.settings.syncRecoveryCodeCopy();
+        } catch {
+          res = { ok: false };
+        }
+        recoveryCopy.disabled = false;
+        recoveryNote.textContent = res.ok ? t('settings.sync.recovery.copied') : (res.error === 'cancelled' ? '' : (res.message ?? ''));
+      });
+
       pathStart.addEventListener('click', () => { dispatch({ type: 'choose', path: 'start' }); handleEl.focus(); });
-      pathJoin.addEventListener('click', () => { dispatch({ type: 'choose', path: 'join' }); handleEl.focus(); });
+      pathCode.addEventListener('click', () => { dispatch({ type: 'choose', path: 'code' }); codeEl.focus(); });
       backBtn.addEventListener('click', () => dispatch({ type: 'back' }));
+      codeBack.addEventListener('click', () => dispatch({ type: 'back' }));
+      codeEl.addEventListener('input', () => dispatch({ type: 'code-input', code: codeEl.value }));
+      codeForm.addEventListener('submit', (e) => { e.preventDefault(); dispatch({ type: 'submit' }); });
+      usePassphrase.addEventListener('click', () => { dispatch({ type: 'use-passphrase' }); handleEl.focus(); });
       const onInput = () => dispatch({ type: 'input', handle: handleEl.value, passphrase: passEl.value });
       handleEl.addEventListener('input', onInput);
       passEl.addEventListener('input', onInput);
@@ -1361,7 +1521,13 @@
       tryAgainBtn.addEventListener('click', () => { dispatch({ type: 'input', handle: handleEl.value, passphrase: passEl.value }); passEl.focus(); });
       startNewBtn.addEventListener('click', () => dispatch({ type: 'start-new' }));
 
-      window.bowserPages.settings.syncGet().then((status) => { renderStatus(status); renderSetup(); }).catch(() => {});
+      window.bowserPages.settings.syncGet().then((status) => {
+        renderStatus(status);
+        renderSetup();
+        renderPairing();
+        renderSwitch();
+        if (status.enabled) resumePairing();
+      }).catch(() => {});
 
       nowBtn.addEventListener('click', async () => {
         nowBtn.disabled = true;
@@ -1376,8 +1542,12 @@
         // on the server copy) — leave the checkbox set for the retry and say why.
         wipeEl.checked = res.ok ? false : wipeEl.checked;
         model = createSyncSetupModel();
+        pairingModel = createPairingModel();
+        switchModel = createSwitchModel();
         renderStatus(res.status, res.ok ? null : res.message);
         renderSetup();
+        renderPairing();
+        renderSwitch();
       });
 
       tabsShareEl.addEventListener('change', async () => {

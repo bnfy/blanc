@@ -67,3 +67,18 @@ Feature: Tab sync (open tabs from other devices)
     When I close the Settings sheet
     Then the moving-in checklist briefly confirms completion
     And the moving-in checklist retires
+
+  @F27-8 @F27 @desktop
+  Scenario: Adding this device with a code stops at an invalid code
+    Given a profile that completed first run
+    When I run the slash command "/sync"
+    Then the Settings sheet is at the "sync" section
+    And the Sync card offers Add this device to my sync before Start syncing from this device
+    When I choose Add this device to my sync
+    Then the code field replaces the name and passphrase fields
+    When I type "K7MR-4PX" into the code field
+    Then Connect is disabled
+    When I type "K7MR-4PX2" into the code field
+    Then Connect is enabled
+    When I choose Use my sync name and passphrase instead
+    Then the name and passphrase fields replace the code field

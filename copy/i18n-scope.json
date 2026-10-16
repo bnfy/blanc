@@ -323,6 +323,10 @@
     "src/renderer/pages/mahjong-engine.js": {
       "state": "guarded",
       "allow": []
+    },
+    "src/renderer/pages/settings-sync-pairing-model.js": {
+      "state": "guarded",
+      "allow": []
     }
   }
 }

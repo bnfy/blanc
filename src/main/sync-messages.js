@@ -24,6 +24,10 @@ const ERROR_KEYS = {
   'local-key-protect': 'sync.error.localKeyProtect',
   'local-key-unlock': 'sync.error.localKeyUnlock',
   'wipe-offline': 'sync.error.wipeOffline',
+  'pair-not-found': 'sync.error.pairNotFound',
+  'pair-unavailable': 'sync.error.pairUnavailable',
+  'pair-invalid': 'sync.error.pairInvalid',
+  'sync-on': 'sync.error.syncOn',
 };
 
 // SyncKeyStorageError codes (sync-key-storage.js, sync.js).

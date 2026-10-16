@@ -4189,6 +4189,30 @@ body[data-layout="shelf"] #layoutShelf { display: grid; }
 .sync-status-list > div { display: contents; }
 .sync-status-list dt { color: var(--text-dim); }
 .sync-status-list dd { margin: 0; }
+.sync-code-input {
+  font-family: "Inter", var(--font-text);
+  font-variant-numeric: tabular-nums;
+  font-size: 18px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.sync-devices { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+.sync-pairing, .sync-switch { margin-top: 10px; display: grid; gap: 8px; }
+.sync-pairing-instruction { margin: 0; font-size: 13px; line-height: 1.45; }
+.sync-pairing-code {
+  font-family: "Inter", var(--font-text);
+  font-variant-numeric: tabular-nums;
+  font-size: 34px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-align: center;
+  padding: 10px 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  user-select: all;
+}
+.sync-pairing-actions { align-items: center; }
+.sync-switch > strong { font-size: 14px; }
 
 @media (max-width: 720px) {
   .sync-guide-step {

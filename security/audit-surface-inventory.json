@@ -49,7 +49,7 @@
     },
     {
       "file": "cloudflare/sync-worker/src/index.js",
-      "sha256": "d4ab9999e1b1e8495c358a10ac7cf4c421b5cd4415855cc27a50e135d2f24a6e",
+      "sha256": "877b2b54aa84af5db3034cb4231e4f0d9dcf2fdb53c613b570789ca49b233ba8",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -420,7 +420,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "a04c87c39e21ce2027c5708249ab43d1028e0e9b93db419a8357f944ff9b588f",
+      "sha256": "4aa264988913bbe51def6c4aa9fef58053a5e872aae84bcd5efc9ece93541259",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -477,8 +477,14 @@
         "pages:settings:sync-disable",
         "pages:settings:sync-enable",
         "pages:settings:sync-get",
+        "pages:settings:sync-join-code",
         "pages:settings:sync-now",
+        "pages:settings:sync-pair-begin",
+        "pages:settings:sync-pair-cancel",
+        "pages:settings:sync-pair-state",
         "pages:settings:sync-preflight",
+        "pages:settings:sync-recovery-code-copy",
+        "pages:settings:sync-switch-code",
         "pages:settings:sync-tabs-set",
         "pages:settings:trust-receipt",
         "pages:settings:welcome-tour",
@@ -712,7 +718,7 @@
     },
     {
       "file": "src/main/sync-crypto.js",
-      "sha256": "5438ffffd4cd4b4895225116bb17ca1afe89fc825f00763b89f5a00b2be52749",
+      "sha256": "e1575b178424eb86b97ed6c3ebf78e8e7d7f2f015855f379a691a755d8bbddbd",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -724,8 +730,10 @@
     },
     {
       "file": "src/main/sync.js",
-      "sha256": "095f97c3d037fd67a45909ffe6eb4465dbceef9c3e75c13d0c6ae6d3ccd6d0ef",
-      "literalChannels": [],
+      "sha256": "2ef3143f40b54652b278e102fa9137713f6654be511f1d684a772e5c004c4835",
+      "literalChannels": [
+        "before-quit"
+      ],
       "role": "privileged implementation or service"
     },
     {
@@ -736,7 +744,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "505cd31e49b7c71d762c4b596532e4aaec927a713bf3210d03d1faf99e62a775",
+      "sha256": "e92bddef6b71b0dd7ac090e3f1aadca664b6c92648edb3aa971c1aad8d053757",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -794,8 +802,14 @@
         "pages:settings:sync-disable",
         "pages:settings:sync-enable",
         "pages:settings:sync-get",
+        "pages:settings:sync-join-code",
         "pages:settings:sync-now",
+        "pages:settings:sync-pair-begin",
+        "pages:settings:sync-pair-cancel",
+        "pages:settings:sync-pair-state",
         "pages:settings:sync-preflight",
+        "pages:settings:sync-recovery-code-copy",
+        "pages:settings:sync-switch-code",
         "pages:settings:sync-tabs-set",
         "pages:settings:trust-receipt",
         "pages:settings:welcome-tour",

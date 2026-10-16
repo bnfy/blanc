@@ -533,9 +533,20 @@ From the desktop `DEFAULTS`:
   enter the snapshot. Toggle-off publishes a retraction; entries prune after
   30 days; a 24 h heartbeat keeps live devices present. Design:
   `docs/superpowers/specs/2026-07-21-tab-sync-design.md`.
+- **Adding a device (desktop, 2026-10-16):** a device that already syncs shows
+  an eight-character code, valid ten minutes, under Settings → Sync → **Add
+  another device**; the new device enters it under **Add this device to my
+  sync** and joins without a name or passphrase. The code derives a one-shot
+  locator and a wrapping key; the Worker holds only ciphertext. A device that
+  already syncs can also **Connect to a different sync with a code** in one
+  step, and any synced device can copy a recovery code to the clipboard. The
+  name-and-passphrase path remains as the fallback. Design:
+  `docs/superpowers/specs/2026-10-16-sync-device-pairing-design.md`. Mobile:
+  the same route and code; a QR presentation may be added there.
 - **Acceptance:** With sharing on on device A, device B lists A's tabs after a
   focus refresh and opens one as a new ungrouped local tab; toggling sharing
-  off on A removes A's section from B after the next sync.
+  off on A removes A's section from B after the next sync. Adding a device
+  with a code stops at an invalid code and offers the passphrase fallback.
 
 ## F28 — Vertical tabs
 

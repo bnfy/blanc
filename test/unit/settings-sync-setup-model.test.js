@@ -168,3 +168,57 @@ test('relativeSyncTime falls back to a date beyond a month, and has no value to 
 test('a clock skewed into the future reads as just now rather than a negative age', () => {
   assert.equal(relativeSyncTime(NOW + 5 * MINUTE, NOW), 'just now');
 });
+
+// --- Add this device with a code (design 2026-10-16 §4.2, §5.5) ---
+
+function codePath(code) {
+  let { state } = transition(createSyncSetupModel(), { type: 'choose', path: 'code' });
+  ({ state } = transition(state, { type: 'code-input', code }));
+  return state;
+}
+
+test('choosing the code path shows one field and Connect; submit with a valid code emits join-code', () => {
+  const chosen = transition(createSyncSetupModel(), { type: 'choose', path: 'code' }).state;
+  const v = view(chosen);
+  assert.equal(v.codePath, true);
+  assert.equal(v.fieldsVisible, false, 'name and passphrase stay hidden on the code path');
+  assert.equal(v.submitDisabled, true);
+  const { state, effect } = transition(codePath(' k7mr-4px2 '), { type: 'submit' });
+  assert.deepEqual(effect, { type: 'join-code', token: state.token, code: 'k7mr-4px2' });
+  assert.equal(state.phase, 'joining');
+  assert.equal(view(state).submitDisabled, true);
+});
+
+test('submit with an invalid code emits nothing', () => {
+  const { state, effect } = transition(codePath('K7MR4PX0'), { type: 'submit' });
+  assert.equal(effect, null);
+  assert.equal(state.phase, 'idle');
+  assert.equal(view(state).submitDisabled, true);
+});
+
+test('a recovery code is a valid submit', () => {
+  const { effect } = transition(codePath('blanc-sync:1:abc'), { type: 'submit' });
+  assert.equal(effect?.type, 'join-code');
+});
+
+test('use-passphrase moves to the join path and strands a pending reply', () => {
+  const joining = transition(codePath('K7MR4PX2'), { type: 'submit' }).state;
+  const { state, effect } = transition(joining, { type: 'use-passphrase' });
+  assert.equal(effect, null);
+  assert.equal(state.path, 'join');
+  assert.equal(state.phase, 'idle');
+  assert.notEqual(state.token, joining.token);
+  const stale = transition(state, { type: 'join-code-reply', token: joining.token, ok: false, outcome: 'notFound' });
+  assert.equal(stale.state.notice, null, 'a reply for the abandoned attempt is dropped');
+});
+
+test('join-code-reply notFound sets the notice and keeps the code; ok clears it', () => {
+  const joining = transition(codePath('K7MR4PX2'), { type: 'submit' }).state;
+  const failed = transition(joining, { type: 'join-code-reply', token: joining.token, ok: false, outcome: 'pair-not-found', message: 'That code isn’t valid any more.' }).state;
+  assert.equal(failed.phase, 'idle');
+  assert.equal(failed.code, 'K7MR4PX2');
+  assert.equal(view(failed).noticeText, 'That code isn’t valid any more.');
+  const done = transition(joining, { type: 'join-code-reply', token: joining.token, ok: true }).state;
+  assert.equal(done.code, '');
+  assert.equal(done.notice, null);
+});
