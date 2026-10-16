@@ -69,11 +69,19 @@ async function createGlanceTabs(world) {
 // call, and the app's activation itself lands asynchronously: keep fronting
 // and focusing until main records the pane as focused.
 async function focusPane(world, tabId) {
+  // The timeout message says whether the window itself held OS focus, which
+  // tells an inactive window (the desktop's doing) from a routing bug.
   await waitForValue(async () => {
-    await frontChromeWindow(world);
+    const windowFocused = await world.call('focusWindow');
     assert.equal(await world.call('focusTabContents', tabId), true);
-    return (await world.state()).focusedPaneTabId;
-  }, (id) => id === tabId, `pane ${tabId} recorded as focused`);
+    const { focusedPaneTabId, tabs } = await world.state();
+    const focusedContents = await world.call('focusedWebContentsId');
+    return {
+      recorded: focusedPaneTabId,
+      windowFocused,
+      paneHoldsFocus: focusedContents === tabs.find((tab) => tab.id === tabId)?.webContentsId,
+    };
+  }, (value) => value.recorded === tabId, `pane ${tabId} recorded as focused`);
 }
 
 /** The fixture page's own load counter (sessionStorage, +1 per load). */
