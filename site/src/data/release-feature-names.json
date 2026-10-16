@@ -1,4 +1,5 @@
 {
+  "1.35.0": ["Name your tabs", "Open links in Glance", "PDFs show in the built-in viewer again"],
   "1.34.0": ["Kagi and custom search engines", "Tabs kept when closing the last window"],
   "1.33.0": ["Blanc Spaces, free for everyone", "Space colours and symbols", "Italian interface"],
   "1.32.0": ["Import Spaces from Arc", "Four new interface languages"],

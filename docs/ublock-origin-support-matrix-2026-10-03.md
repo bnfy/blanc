@@ -78,3 +78,19 @@ provenance, logged-out downloads and exact-tag public checks. On October 4 the
 owner confirmed successful adjacent public v1.26.0 → v1.27.0 Restart Now
 handoffs on both macOS and Windows. The staged candidate handoffs above remain
 separate evidence; this confirmation adds no post-update close/relaunch claim.
+
+## Runtime update in v1.35.0 (October 16, 2026)
+
+Public v1.35.0 moves to official Electron **44.8.0** / Chromium
+152.0.7977.167, and `src/main/ublock-platforms.json` moved its reviewed runtime
+to `44.8.0` with it (#852). uBO 1.75.0, its pinned upstream files and the four
+enabled combinations above are unchanged. As the
+[runtime maintenance policy](ublock-origin-shipping-2026-10-03.md#runtime-maintenance-policy)
+requires, the real blocking and tools suite passed on every enabled platform
+before release: the four `desktop (…)` jobs of
+[run 38940435065](https://github.com/bnfy/blanc/actions/runs/38940435065) on
+`macos-15`, `macos-15-intel`, `windows-latest` and `ubuntu-latest`, on #852's
+head `0646b46b`. That is hosted CI on unpackaged builds; the installed-candidate
+acceptance above was recorded for v1.27.0 on Electron 44.5.1 and was not
+repeated. The release record is
+[2026-10-16-v1.35.0.md](release-incidents/2026-10-16-v1.35.0.md).

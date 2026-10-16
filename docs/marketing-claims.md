@@ -79,19 +79,21 @@ its qualifications remain subject to the release-backed claim gate above.
 
 ## Current Blanc capability boundaries
 
-These boundaries describe public v1.34.0; its scope, publication evidence and
-owner-confirmed adjacent public-feed updater handoffs are recorded in
-[the release report](release-incidents/2026-10-14-v1.34.0.md). Installed
+These boundaries describe public v1.35.0; its scope, publication evidence,
+pre-release hand checks and adjacent public-feed updater handoffs are recorded
+in [the release report](release-incidents/2026-10-16-v1.35.0.md). Installed
 candidates keep their original source/artifact bindings; hosted verification
 does not establish physical-machine outcomes. The v1.27.0 uBO acceptance, the
 v1.28.0 duplicate macOS build number, the v1.29.0, v1.30.0, v1.30.1, v1.31.0,
-v1.32.0 and v1.33.0 updater confirmations, the v1.30.0 drag-to-reorder hands-on coverage, historical
+v1.32.0, v1.33.0 and v1.34.0 updater confirmations, the v1.30.0 drag-to-reorder hands-on coverage, historical
 wallpaper/Linux waivers and earlier updater confirmations remain in their
 original reports:
 
-- **Optional uBlock Origin:** Public v1.34.0 offers full uBO 1.75.0 on
+- **Optional uBlock Origin:** Public v1.35.0 offers full uBO 1.75.0 on
   Apple Silicon, native Intel Mac, Windows x64 and Linux x64, on official
-  Electron 44.5.1. Click the Island shield to choose a blocker and restart
+  Electron 44.8.0. The move from 44.5.1 passed the real blocking and tools
+  suite on all four in hosted CI; the installed-candidate acceptance dates
+  from v1.27.0 on 44.5.1. Click the Island shield to choose a blocker and restart
   Blanc to apply it. Blanc Blocker stays the default and protects private
   tabs; Rosetta uses Blanc Blocker. Profile configuration is separate and
   outside Sync. Filter data can update, while executable resources remain
@@ -162,6 +164,29 @@ original reports:
   ungrouped tab and focuses its address field. It stays bare beside the slash
   keycap and is hidden in vertical-tabs mode, where the rail already has a New
   tab control. Do not describe it as creating private or grouped tabs.
+- **Custom tab names:** Since v1.35.0 the user can give a tab a name of
+  their own with Rename Tab… in the tab's right-click menu or `/rename`, and
+  go back to the page title with Reset Tab Title or `/rename` alone. The name
+  stays through navigation, Quiet Tabs, Move Tab to New Window, Reopen Closed
+  Tab, Blanc Spaces and relaunch, and shows on other devices when Profile
+  Sync shares open tabs. History and Favorites keep the page's own title, and
+  a private tab's name is kept only in memory. Blanc never names tabs itself:
+  do not describe automatic, suggested or AI-generated tab names.
+- **Glance:** Glance shows one other tab the user picks, the reference,
+  beside or below the main page. Since v1.35.0 Reload, Close Tab, Find, zoom,
+  Print, Back, Forward, mouse gestures and the 1Password fill act on the pane
+  that has keyboard focus, while ⌘L, ⌘T, ⌘1–9, the shield and slash commands
+  stay on the main page. A link the reference opens in a new tab opens in
+  Glance, a link's right-click menu offers Open Link in Glance, and `/glance`
+  opens the picker. Glance holds one reference at a time; do not describe
+  more panes, tiling of several tabs, or automatic pairing of related pages.
+- **Favorites import from signed-in Chrome profiles:** Since v1.35.0
+  Favorites import from Chrome, Edge, Brave, Chromium and Vivaldi also reads a
+  signed-in profile's separate account bookmarks file (`AccountBookmarks`)
+  and combines it with the local file without duplicates. The release
+  evidence is scenarios that reproduce Chrome's file format; no file written
+  by a real signed-in Chrome was tried before release, so do not claim it was
+  checked against a live Google account.
 - **Named Groups:** The user explicitly creates or assigns a tab to a named
   group through `/group` or the grouping UI. Blanc does not infer group names,
   categorize tabs semantically, or organize them automatically.
