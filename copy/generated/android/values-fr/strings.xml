@@ -864,6 +864,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="import_folder_other">Autres favoris</string>
     <string name="import_folder_mobile">Favoris mobiles</string>
     <string name="about_credits">Navigateur indépendant de Bananify.</string>
+    <string name="about_chromium">Chromium %1$s</string>
     <string name="settings_page_title">Réglages</string>
     <string name="pages_nav_settings">Réglages</string>
     <string name="pages_nav_bookmarks">Favoris</string>

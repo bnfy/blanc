@@ -33758,7 +33758,7 @@
       }
     },
     "about.credits": {
-      "comment": "macOS About panel credits line; Bananify is the company name.",
+      "comment": "About panel credits line on Windows; Bananify is the company name.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -33795,6 +33795,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "Navegador independente da Bananify."
+          }
+        }
+      }
+    },
+    "about.chromium": {
+      "comment": "About panel line naming the browser engine Blanc runs on; {version} is its full version number, such as 152.0.7977.167. Chromium is a product name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chromium %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chromium %1$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chromium %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chromium %1$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chromium %1$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chromium %1$@"
           }
         }
       }

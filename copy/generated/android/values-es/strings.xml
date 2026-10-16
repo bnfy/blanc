@@ -864,6 +864,7 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="import_folder_other">Otros marcadores</string>
     <string name="import_folder_mobile">Marcadores del móvil</string>
     <string name="about_credits">Navegador independiente de Bananify.</string>
+    <string name="about_chromium">Chromium %1$s</string>
     <string name="settings_page_title">Configuración</string>
     <string name="pages_nav_settings">Configuración</string>
     <string name="pages_nav_bookmarks">Favoritos</string>

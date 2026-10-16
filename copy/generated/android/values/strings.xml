@@ -837,6 +837,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="import_folder_other">Other bookmarks</string>
     <string name="import_folder_mobile">Mobile bookmarks</string>
     <string name="about_credits">Independent browser by Bananify.</string>
+    <string name="about_chromium">Chromium %1$s</string>
     <string name="settings_page_title">Settings</string>
     <string name="pages_nav_settings">Settings</string>
     <string name="pages_nav_bookmarks">Favorites</string>
