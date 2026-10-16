@@ -17,10 +17,18 @@ Rules for filling it in:
   fixes, watching a foreground build does not count); **agent time** is
   the time Codex or Claude were actively working on it.
 - The **cold build** columns are a clean-build recovery benchmark for an
-  empty output directory with no configured compilation cache. They are
-  recorded on their own and are never added into the routine cost columns
-  (prepare, compile fixes, incremental builds, re-verification), which are
-  what recurs per milestone.
+  empty output directory with no configured compilation cache. **Cold-build
+  time is the accumulated runtime of the build process itself**: the sum of
+  the `build.mjs --build` invocations that bring the empty output to the
+  first complete `chrome` target, excluding repair time (editing sources
+  between invocations) and idle gaps (an interrupted build left overnight).
+  Log every invocation once in the invocation table, marked either
+  *cached continuation* (resuming the same build after an interruption, no
+  source change) or *recompilation after a fix* (a source change in
+  between); only the first kind counts toward the cold-build column, the
+  second kind counts toward compile fixes. The cold-build column is never
+  added into the routine cost columns (prepare, compile fixes, incremental
+  builds, re-verification), which are what recurs per milestone.
 - Chrome milestones ship every two weeks since Chrome 153; record the
   cadence in force in the row so later readers can tell what each rebase
   was keeping up with.
@@ -29,16 +37,16 @@ Rules for filling it in:
 
 ## Summary table
 
-| # | Date | From tag | To tag (commit) | Cadence in force | Machine / toolchain | Anchors broken | Files patched before → after | Prepare and anchor fixes (wall / attention) | Cold build (wall, actions) | Compile errors | Compile fixes and incremental builds (wall) | Re-verification (wall, result) | Owner attention | Agent time | Calendar span | Outcome |
+| # | Date | From tag | To tag (commit) | Cadence in force | Machine / toolchain | Anchors broken | Files patched before → after | Prepare and anchor fixes (wall / attention) | Cold build (accumulated build runtime, actions) | Compile errors | Compile fixes and incremental builds (wall) | Re-verification (wall, result) | Owner attention | Agent time | Calendar span | Outcome |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 0 | — | `156.0.8078.36` (`5a93aa59e304`) | `157.0.8103.6` (`41520584daa6`), proposed | two weeks (since Chrome 153) | owner's Mac, Xcode 27.1 (`27A9275`), Apple Silicon | — | 20 → — | — | — | — | — | — | — | — | — | not started: awaiting cold-build approval |
 
 Column notes: *Anchors broken* counts `prepare.mjs` anchors that no longer
 matched (details below). *Files patched* counts upstream files `prepare.mjs`
-edits, excluding Blanc's own new files. *Cold build* is the single
-`--build --allow-large-build` run from the empty output, including any
-cached continuation after an interruption, with Siso's reported action
-count. *Calendar span* runs from the first fetch to the last re-verification
+edits, excluding Blanc's own new files. *Cold build* is the accumulated
+runtime of the build invocations from the empty output to the first
+complete `chrome` target, cached continuations included, repair time and
+idle gaps excluded, with Siso's reported action count. *Calendar span* runs from the first fetch to the last re-verification
 result. *Outcome* is `passed`, `passed with divergences` (listed below),
 `stopped (criterion N)` or `not started`.
 
@@ -84,11 +92,20 @@ changed: `_______`.
 | | |
 | --- | --- |
 | Approved by the owner on | `_______` |
-| Started / finished | `_______` / `_______` |
-| Wall-clock | `_______` |
-| Siso actions | `_______` |
-| Interruptions and cached continuations (each: when, why, `--allow-large-build` needed) | `_______` |
+| First invocation started / first complete `chrome` target finished | `_______` / `_______` |
+| Accumulated build runtime (sum of the *cached continuation* rows below) | `_______` |
+| Calendar span of the above, for contrast (includes idle gaps) | `_______` |
+| Siso actions, total | `_______` |
 | Peak disk during build | `_______` |
+
+Build invocations, one row each, in order. *Kind* is `cold start`, `cached
+continuation` (same sources, resumed after an interruption) or
+`recompilation after fix` (sources changed since the previous invocation;
+counted under compile fixes, not here).
+
+| # | Started | Runtime | Actions | Kind | `--allow-large-build` | Why it ended (complete / interrupted: cause) |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | | | | cold start | yes | |
 
 ### Compile errors and incremental rebuilds
 
@@ -101,18 +118,23 @@ changed: `_______`.
 Same checks as the milestones in `results.md`; each is pass / fail /
 not run, with the evidence file.
 
-| Check | Result | Evidence |
-| --- | --- | --- |
-| Prototype launches on a disposable `--user-data-dir`; Island renders | | |
-| Island tab control (create, switch, close, navigate, back, forward, reload, stop, ⌘L/⌘T) | | |
-| Live Web Store install, native prompt (one extension) | | |
-| One extension update from Google's endpoint | | |
-| Favorites: heart, ⌘D, `/save`, switcher | | |
-| Pin, mute, reorder | | |
-| Named tab groups | | |
-| Start page: bookmarks and TopSites | | |
-| Automated bridge checks | | |
-| Native-input checklist | | |
+| Check | Milestone it preserves | Result | Evidence |
+| --- | --- | --- | --- |
+| Prototype launches on a disposable `--user-data-dir`; Island renders; header tint follows the page | Island-only window | | |
+| Island tab control (create, switch, close, navigate, back, forward, reload, stop, ⌘L/⌘T/⌘A, Escape, type-to-open) | Island interaction | | |
+| Live Web Store install with the native permission prompt (one extension) | Web Store gate | | |
+| One extension update from Google's endpoint, surviving restart | Verified version upgrade | | |
+| Extension action popup opens from the Island's Extensions button and takes focus; Escape and ⌘L return focus to the Island | Expanded Island extensions view; four Island focus fixes | | |
+| Favorites: pill and panel hearts, ⌘D (including while the Island has focus), `/save [folder]`, Quick Switcher, live start-page refresh | Favorites, history and Island search; ⌘D | | |
+| History: `/history`, switcher ranking and dedup; `/clear` on the disposable profile expires every visit and the start page's recent sites refresh | `/clear` on a disposable profile | | |
+| Private window: no Favorites or history listed, hearts hidden, `/save`, `/clear` and ⌘D refused silently, keyboard checks pass | Private-window guards | | |
+| Pin, mute, reorder: row controls, `/pin`, `/mute`, drag, ⌥⇧↑/↓, pinned boundary respected | Pin, mute and reorder | | |
+| Named tab groups: `/group`, `/ungroup`, `/close-group`, headers fold/unfold, switcher focus, cross-group drag and reorder; grouping a pinned tab unpins it (known divergence) | Named tab groups | | |
+| Start page: four layouts and dynamic wallpaper selectable from Customize, choice persists across restart and propagates to another open start page; bookmarks and TopSites listed | Blanc start-page native integration | | |
+| Dock icon is Sunrise Dark from the bundle | Sunrise Dark Dock icon | | |
+| Build guard: `--check` plan inspection, lock, environment pin behave as before | Build cache safeguards | | |
+| Automated bridge and DOM checks (the milestone scripts) | all | | |
+| Native-input checklist (CGEvent mouse and keyboard) | all | | |
 
 New divergences from Electron found in this rebase: `_______`.
 
