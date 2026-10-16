@@ -167,9 +167,11 @@ off removes every user bookmark with that exact URL and never removes a folder.
 Favicons come only from Chromium's caches (committed tab favicon, stored
 bookmark favicon); history rows use the Island's letter fallback, and nothing
 is fetched from the network for them. Private windows list no Favorites or
-history, hide the hearts, and refuse to save natively. Verified on the Mac on
-October 16 (build, native input, restart persistence, private window); see the
-last section of `results.md`. Billboard shows recent sites, not Favorites.
+history, hide the hearts, and refuse to save natively. Built on the Mac on
+October 16; automated bridge and DOM checks (save, folder, history, switcher
+dedup, live start-page refresh, restart persistence, private window) passed,
+and the native-input checklist is still pending; see `results.md`. Billboard
+shows recent sites, not Favorites.
 
 It does not implement history deletion (`/clear`), Blanc's Favorites and
 History sheets, Spaces, Glance, blocking, private tabs, sync, or the expanded

@@ -704,7 +704,7 @@ Eight build-guard tests, targeted ESLint, Node syntax and diff checks passed.
 Evidence: `evidence/dock-sunrise-dark-verification.json`.
 
 
-## Favorites, history and Island search — October 16, 2026 (built and verified on the Mac at `06b3094`)
+## Favorites, history and Island search — October 16, 2026 (built on the Mac at `06b3094`; automated bridge checks passed, native-input checklist pending)
 
 Target flow: save a page from the Island → see it on Blanc's start page → find
 it through Island search → verify persistence after restart. The bridge now
@@ -742,23 +742,39 @@ recommended rules over the prototype JavaScript (repository-pinned ESLint
 10.12.0, @eslint/js 10.0.1, globals 17.13.0 in a temporary directory). The
 native source has not been compiled.
 
-Mac verification (Codex, second attempt, on `06b3094`): the guarded incremental
-build completed 7 steps in 36 seconds and the follow-up dry run reported zero
-actions; no cache, toolchain or build-mode change. With native input on the
-permanent profile and localhost fixtures only: the Favorites toggle, named
-folders through `/save`, history results, the Quick Switcher (one deduplicated
-row for a page that is both a Favorite and a history entry), live start-page
-refresh and persistence across a full quit and relaunch passed. Favorites were
-verified in Ledger, Shelf and Tally; Billboard intentionally shows recent sites
-rather than Favorites. On a real http(s) page in a private window both hearts
-were hidden, no banner appeared, and no Favorite or history row leaked. All six
-installed extensions remained available in the Island picker. The test
-bookmarks, the folder, the fixture visits, the test tabs and the private window
-were cleaned up; the prototype was left open on the permanent profile with its
-original new-tab page. The Chromium 156 call sites listed in the pull request
-compiled as written after the three corrections below. Evidence: Codex's native
-run record and final screenshot, to be committed under `evidence/favorites-*`
-from the Mac; until then this section is the written record.
+Mac pass (Codex, second attempt, on `06b3094`; recorded in the PR review of
+October 16): the guarded incremental build completed 7 steps in 35.94 seconds
+and a repeated preparation plus guarded dry run reported zero actions; no
+cache, toolchain or build-mode change. The runtime checks were **automated
+bridge and DOM checks driven through DevTools** on the permanent profile with
+localhost fixtures, not native mouse or keyboard input; the one native shortcut
+exercised was ⌘⇧N. They established: the host's `toggleBookmark` saved a fixture
+into Chromium's model and removed it again; `saveFavorite('Codex PR 858')`
+saved a second fixture into that named folder; the already open start page
+acquired the Favorite without reloading and its Ledger, Shelf and Tally
+renderers produced the link (Billboard shows recent sites by design); history
+returned the localhost visit; the Quick Switcher showed one Favorite row with
+its letter fallback and no duplicate history row for that URL (an open-tab row
+for the same page still appeared, as designed); `openPage` opened Chromium's
+bookmarks and history managers; Favorites, the folder assignment and history
+survived a full quit and relaunch; in a private window on a real http fixture
+the snapshot reported `private: true` and `bookmarked: false`, both hearts were
+hidden, `toggleBookmark` was silent with no banner, and Favorites and history
+listed empty; the extension picker listed all six installed extensions, with
+their six service-worker targets present after relaunch. Only the test
+bookmarks, the empty test folder, the exact fixture history entries and the
+temporary tabs and windows were removed; the prototype was left open on its
+original start page.
+
+Not established by that pass, still pending with native input: physical heart
+clicks, typing and submitting `/save`, `/favorites` and `/history`, Quick
+Switcher Enter navigation, case-insensitive folder reuse, overlong-folder
+rejection, late favicon arrival (the fixture had no favicon, so only the
+letter fallback is verified), and per-layout live refresh. Authenticated
+extension workflows were not repeated. The Chromium 156 call sites listed in
+the pull request compiled as written after the three corrections below.
+Evidence: Codex's run record and final screenshot, to be committed under
+`evidence/favorites-*` from the Mac; until then this section is the record.
 
 First Mac build attempt on `89d7637` (Codex): the guarded build failed after
 8.77 s with three compile errors, caches and the running prototype preserved.
