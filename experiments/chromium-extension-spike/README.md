@@ -176,8 +176,8 @@ shows recent sites, not Favorites.
 Pin, mute and reorder run on Chromium's `TabStripModel`: the ⌘L rows' pin and
 mute controls, `/pin`, `/mute`, drag-to-reorder and the ⌥⇧↑/↓ keyboard move,
 with Electron's rule that a tab never crosses the pinned boundary by moving
-(pending Mac verification; see `results.md`). Mute is the per-tab
-`WebContents` mute, not Chromium's site-level setting.
+(natively retested on the Mac on October 16; see `results.md`). Mute is the
+per-tab `WebContents` mute, not Chromium's site-level setting.
 
 `/clear` expires every local history visit through `HistoryService`, like
 Electron's history-only `/clear` rather than Chromium's wider Clear browsing
