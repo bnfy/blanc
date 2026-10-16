@@ -185,13 +185,30 @@
       await refresh();
     },
     openPage: async (name) => {
-      if (!['downloads', 'extensions'].includes(name)) {
+      // Electron names Favorites `bookmarks` internally; Chromium's manager
+      // pages stand in for Blanc's utility sheets in this prototype.
+      if (!['downloads', 'extensions', 'bookmarks', 'history'].includes(name)) {
         throw new Error('Use Chromium’s native controls for this page in the prototype.');
       }
       await request('createTab', [`chrome://${name}/`]);
     },
-    listHistory: async () => [],
-    listFavorites: async () => [],
+    // Favorites and history are Chromium's own BookmarkModel and
+    // HistoryService, shaped like Electron's records; see contract.json.
+    toggleBookmark: async () => {
+      if (snapshot?.activeTabId == null) return;
+      await request('toggleBookmark', [snapshot.activeTabId]);
+      await refresh();
+    },
+    saveFavorite: async (folder) => {
+      if (snapshot?.activeTabId == null) return;
+      await request('saveFavorite', [snapshot.activeTabId, typeof folder === 'string' ? folder : '']);
+      await refresh();
+    },
+    listFavorites: () => request('listFavorites'),
+    listHistory: (options) => {
+      const limit = Number.isInteger(options?.limit) ? options.limit : 300;
+      return request('listHistory', [Math.min(300, Math.max(1, limit))]);
+    },
     listRemoteTabs: async () => [],
     listWorkspaces: async () => ({ items: [], tint: 'mark' }),
     searchSuggestions: async () => [],

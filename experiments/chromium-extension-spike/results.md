@@ -702,3 +702,59 @@ Repeated preparation reused the compiled icon, and final guarded preflight
 reported zero actions. Bundle resources match the compiled cache byte-for-byte.
 Eight build-guard tests, targeted ESLint, Node syntax and diff checks passed.
 Evidence: `evidence/dock-sunrise-dark-verification.json`.
+
+
+## Favorites, history and Island search — October 16, 2026 (implementation pushed; compilation and runtime verification pending)
+
+Target flow: save a page from the Island → see it on Blanc's start page → find
+it through Island search → verify persistence after restart. The bridge now
+backs Blanc's existing Favorites and history UI with Chromium's `BookmarkModel`
+and `HistoryService`; no shipping Electron source changed, and the start page,
+pill and overlay are still the copied Electron documents.
+
+What changed (`native/blanc_prototype_ui.cc`, `prototype/host.js`,
+`prototype/newtab-adapter.js`, `prototype/prototype.css`, the slash allowlist
+in `prepare.mjs`):
+
+- Tab snapshots carry `bookmarked` (committed main-frame URL, loaded model,
+  http(s) only) and `favicon` (the committed `NavigationEntry` favicon as a PNG
+  data URL, re-encoded only when the image changes, never for private windows).
+- `toggleBookmark` / `saveFavorite` validate the tab ID and re-read the
+  committed URL natively. Off removes every user bookmark with that exact URL
+  and leaves folders in place; `/save <folder>` finds or creates a folder
+  directly under Other bookmarks (case-insensitive match, 1–100 characters
+  after trimming, like Electron) and moves an existing entry into it.
+- `listFavorites` walks the bookmark tree (bar, other, mobile; capped at
+  1,000) into contract-shaped `FavoriteItem`s with Chromium's cached bookmark
+  favicons; `listHistory` queries up to 300 deduplicated entries with
+  `favicon: null` (letter fallback). Both reply empty in private windows, and
+  the history service is never resolved through an off-the-record profile.
+- `/favorites` and `/history` open `chrome://bookmarks/` and `chrome://history/`
+  in a tab. `/clear` stays out of the allowlist.
+- The start page's handler observes the bookmark model and tells an open page
+  to re-list Favorites; the adapter coalesces bursts and re-renders the current
+  layout. The pill heart, panel heart and the Favorites/History footer buttons
+  are no longer hidden.
+
+Checks run in the Linux session (no Chromium checkout or Mac here): Node syntax
+checks for every prototype script, the eight build-guard tests, and ESLint
+recommended rules over the prototype JavaScript (repository-pinned ESLint
+10.12.0, @eslint/js 10.0.1, globals 17.13.0 in a temporary directory). The
+native source has not been compiled.
+
+Pending on the Mac (Codex): `prepare.mjs` → `build.mjs --check` (review the
+plan; no new asset names, plist or buildflag inputs are expected, but the plan
+decides) → `build.mjs --build`, then the native checklist in the pull request.
+Chromium 156 call sites to confirm against the pinned checkout:
+`BookmarkModel::AddNewURL`, `AddFolder`, `Move`, `Remove(node,
+BookmarkEditSource::kUser, FROM_HERE)`, `GetFavicon`,
+`bookmarks::GetMostRecentlyAddedUserNodeForURL`,
+`BaseBookmarkModelObserver::{BookmarkModelChanged, BookmarkNodeFaviconChanged,
+BookmarkModelBeingDeleted()}`, `HistoryServiceFactory::GetForProfile(profile,
+ServiceAccessType::EXPLICIT_ACCESS)`, `HistoryService::QueryHistory` with a
+by-value `QueryResults` callback and `CancelableTaskTracker`,
+`base::Time::InMillisecondsFSinceUnixEpoch`, `base::i18n::ToLower`, and the
+`chrome/browser/ui` GN dependencies on `//chrome/browser/history`,
+`//components/bookmarks/browser`, `//components/history/core/browser` and
+`//base:i18n`. Do not record any row of the target flow as passed from this
+section; it describes source, not runtime behavior.

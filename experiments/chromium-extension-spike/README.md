@@ -144,7 +144,9 @@ With the prototype flag, normal `chrome://newtab/` navigation resolves to the
 bundled Blanc new-tab document copied from Electron. It reuses the clock,
 Sunrise artwork, fonts, four layouts and dynamic wallpaper. A narrow adapter
 reads this Chromium profile's bookmarks and TopSites; it does not import the
-Electron profile. Layout and wallpaper choices persist locally and propagate
+Electron profile. An open start page re-lists Favorites when the bookmark
+model changes (Island heart, `/save`, Chromium's manager, a stored favicon
+arriving). Layout and wallpaper choices persist locally and propagate
 to other open start pages. Typing on the page opens the Island with that text.
 
 Electron onboarding, blocker statistics, Spaces, sync, Patron prompts and
@@ -155,10 +157,25 @@ existing private-page routing.
 ## Limits
 
 The prototype polls Chromium tab state and exposes only a small native bridge.
-It does not implement bookmarks, history, Spaces, Glance, blocking, private
-tabs, sync, or the expanded Island's secondary commands. Unsupported Island
-controls are hidden; its slash menu contains only `/downloads`, `/new` and
-`/close`. Downloads opens Chromium's native manager. Cmd+L and Cmd+T focus the
+Favorites and history are Chromium's own `BookmarkModel` and `HistoryService`
+behind Blanc's UI: the pill and panel hearts toggle a bookmark under Other
+bookmarks, `/save [folder]` adds (or moves into a folder directly under Other
+bookmarks, matched case-insensitively like Electron), the Quick Switcher lists
+Favorites and the 300 most recent history entries with Electron's ranking, and
+`/favorites` and `/history` open Chromium's managers in a tab. Turning the heart
+off removes every user bookmark with that exact URL and never removes a folder.
+Favicons come only from Chromium's caches (committed tab favicon, stored
+bookmark favicon); history rows use the Island's letter fallback, and nothing
+is fetched from the network for them. Private windows list no Favorites or
+history and refuse to save. This bridge landed after the October 16 evidence
+below and is pending native compilation and runtime verification on the Mac;
+see the last section of `results.md`.
+
+It does not implement history deletion (`/clear`), Blanc's Favorites and
+History sheets, Spaces, Glance, blocking, private tabs, sync, or the expanded
+Island's secondary commands. Unsupported Island controls are hidden; its slash
+menu contains only `/downloads`, `/new`, `/close`, `/save`, `/favorites` and
+`/history`. Downloads opens Chromium's native manager. Cmd+L and Cmd+T focus the
 Island address input; Cmd+A selects its text. See `results.md` for native retests.
 The resting Island reserves a fixed 26px slot for the native Extensions button.
 Extensions, Reload and Close use equal 26px footprints, identical gaps and matching

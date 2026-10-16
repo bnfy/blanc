@@ -69,6 +69,26 @@
       openIsland: text => request('openIsland', [text]),
     },
   };
+  // The native handler reports bookmark-model changes (Island heart, /save,
+  // Chromium's manager, a favicon arriving). Bursts coalesce into one re-list,
+  // which re-renders through the copied page's own globals once it is ready.
+  let bookmarksRefresh = null;
+  window.blancNewTabEvent = (kind) => {
+    if (kind !== 'bookmarks' || bookmarksRefresh) return;
+    bookmarksRefresh = setTimeout(async () => {
+      bookmarksRefresh = null;
+      if (!document.body.classList.contains('layout-ready')) return;
+      try {
+        const items = await window.bowserPages.bookmarks.list();
+        if (typeof state !== 'object' || typeof renderLedgerFavorites !== 'function'
+            || typeof invalidate !== 'function' || typeof applyLayout !== 'function') return;
+        state.favorites = items;
+        renderLedgerFavorites(items);
+        invalidate();
+        applyLayout(state.layout);
+      } catch (error) { console.warn(error.message); }
+    }, 80);
+  };
   document.addEventListener('DOMContentLoaded', () => {
     // Keep the existing Favorites heading useful without the Electron protocol.
     for (const link of document.querySelectorAll('a[href="blanc://bookmarks/"]')) link.href = 'chrome://bookmarks/';
