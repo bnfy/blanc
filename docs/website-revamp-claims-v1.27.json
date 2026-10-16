@@ -1160,16 +1160,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "website-115-206",
-      "source": "site/src/components/guides/security.astro",
-      "exactWording": "Optional 1Password fill on macOS.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "security"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "website-115-207",
       "source": "site/src/components/guides/security.astro",
       "exactWording": "Use matching Login items from your installed 1Password desktop app and account. Blanc’s narrow SDK integration is off by default, and credential lookup and fill require your explicit action. It is not automatic fill, an extension runtime, or a Blanc password store.",
@@ -1648,16 +1638,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "trust-125-283",
-      "source": "site/src/data/support-questions.json",
-      "exactWording": "Blanc does not offer a general third-party extension runtime. Ad and tracker blocking is built into the network layer. On macOS, the optional 1Password integration is a narrow, user-invoked bridge to the installed 1Password app, not an extension runtime or a Blanc password store.",
-      "subject": "Blanc or website",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "trust-125-284",
       "source": "site/src/data/support-questions.json",
       "exactWording": "Does Blanc include a VPN?",
@@ -1771,16 +1751,6 @@
       "id": "trust-125-295",
       "source": "site/src/data/support-questions.json",
       "exactWording": "Bananify, an independent software studio. Source code, official releases and security reporting are linked from How Blanc works.",
-      "subject": "Blanc or website",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "trust-125-296",
-      "source": "site/src/pages/privacy.astro",
-      "exactWording": "Last updated October 13, 2026",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "trust"
@@ -1941,26 +1911,6 @@
       "id": "trust-125-312",
       "source": "site/src/pages/privacy.astro",
       "exactWording": "On a fresh profile, search suggestions are presented on; you can turn them off before continuing or later in Settings. When enabled, Blanc sends an eligible prefix typed in the island to the selected provider—DuckDuckGo, Google, Bing, or Brave Search—and shows that provider's suggestions. Requests are main-process-only, cookie-free, bounded, and never made from private tabs. Pasted text, slash commands, URLs and URL-like values, local paths, payment-card-like numbers, and recognized credential or token prefixes are excluded. Pressing Enter for a search still sends the completed query to the selected search provider, as expected.",
-      "subject": "Blanc or website",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "trust-125-313",
-      "source": "site/src/pages/privacy.astro",
-      "exactWording": "1Password login fill on macOS (off by default)",
-      "subject": "Blanc or website",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "trust-125-314",
-      "source": "site/src/pages/privacy.astro",
-      "exactWording": "On macOS, if you enable this device-local integration and enter the email address used to sign in to 1Password or an account ID, Blanc can connect to your installed 1Password desktop app through 1Password's SDK when you choose Verify in Settings or explicitly invoke Fill on a login form. The 1Password app asks you to authorize Blanc and applies 1Password's own session and audit rules. SDK authorization can cover the approved account; Blanc limits its behavior to verifying access, listing vault and Login-item overview metadata for local website matching and a chooser of at most ten items, then reading only the built-in username and/or password the detected fields require from the one selected Login item.",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "trust"
@@ -2598,16 +2548,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "trust-125-380",
-      "source": "site/src/components/guides/foundations.astro",
-      "exactWording": "Patron activation and subscription checks contact Polar. On macOS, the optional 1Password integration contacts your installed 1Password app when you choose Verify or request a fill. It does not provide a general extension runtime.",
-      "subject": "Blanc or website",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "trust-125-381",
       "source": "site/src/components/guides/foundations.astro",
       "exactWording": "A handoff transfers selected tab metadata after your request. The ChatGPT path processes that metadata through OpenAI; the Firefox/Safari companion encrypts locally. Neither path transfers logins or cookies.",
@@ -2691,16 +2631,6 @@
       "id": "reddit-408",
       "source": "site/src/pages/download.astro",
       "exactWording": "Check the integrations you rely on",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-409",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Blanc has no general third-party extension runtime. Its optional, user-invoked 1Password bridge and device-bound Touch ID passkeys are macOS-only. Synced provider passkeys, including iCloud Keychain, are not supported. If your workflow depends on an extension, check that limitation before switching.",
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
         "trust"
@@ -3418,16 +3348,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "website-115-205",
-      "source": "site/src/components/guides/security.astro",
-      "exactWording": "1Password login fill on macOS.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "security"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "onepassword-126-004",
       "source": "site/src/components/guides/1password.astro",
       "exactWording": "Connect the app you already use.",
@@ -3551,26 +3471,6 @@
       "id": "onepassword-126-016",
       "source": "site/src/components/guides/1password.astro",
       "exactWording": "The integration is currently available on macOS only. Windows and Linux builds do not offer 1Password login fill. It fills matching Login items; it does not provide password saving, payment-card filling, or 1Password passkeys.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "onepassword"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "onepassword-126-024",
-      "source": "site/src/data/support-questions.json",
-      "exactWording": "Yes, on macOS. Blanc includes an optional integration that fills matching Login items from your installed 1Password desktop app and account when you ask. It is off by default. Windows and Linux do not currently offer this integration.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "onepassword"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "onepassword-126-025",
-      "source": "site/src/data/support-questions.json",
-      "exactWording": "In 1Password Settings → Developer, enable Integrate with other apps under Integrate with the 1Password SDKs. In Blanc, open Settings → Privacy & Security → 1Password, enable Fill logins from 1Password, enter your sign-in email or account ID, and choose Verify. On a login form, press ⌥⌘P (Option + Command + P), or choose View → Fill Login from 1Password. You can also run /1password from the Island.",
       "subject": "Blanc",
       "evidenceGroups": [
         "onepassword"
@@ -5040,36 +4940,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "onepassword-126-002",
-      "source": "site/src/pages/features/1password.astro",
-      "exactWording": "Use the logins you already keep in 1Password. Blanc’s built-in macOS integration fills a matching Login item from your installed desktop app when you ask.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "onepassword"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "onepassword-126-003",
-      "source": "site/src/pages/features/1password.astro",
-      "exactWording": "Requires the 1Password desktop app and account. Off by default. Currently available on macOS only.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "onepassword"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "onepassword-126-017",
-      "source": "site/src/pages/features/1password.astro",
-      "exactWording": "Bring your logins to Blanc on Mac.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "onepassword"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "feature-retained-website-115-026",
       "source": "site/src/pages/features/sync.astro",
       "exactWording": "separate browsing identities",
@@ -5926,16 +5796,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "feature-retained-website-115-206",
-      "source": "site/src/pages/features/security.astro",
-      "exactWording": "Optional 1Password fill on macOS.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "security"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "feature-retained-website-115-207",
       "source": "site/src/pages/features/security.astro",
       "exactWording": "Use matching Login items from your installed 1Password desktop app and account. Blanc’s narrow SDK integration is off by default, and credential lookup and fill require your explicit action. It is not automatic fill, an extension runtime, or a Blanc password store.",
@@ -6653,16 +6513,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "feature-retained-website-115-205",
-      "source": "site/src/pages/features/security.astro",
-      "exactWording": "1Password login fill on macOS.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "security"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "feature-retained-onepassword-126-004",
       "source": "site/src/pages/features/1password.astro",
       "exactWording": "Connect the app you already use.",
@@ -6703,29 +6553,9 @@
       "verdict": "qualified"
     },
     {
-      "id": "feature-retained-onepassword-126-008",
-      "source": "site/src/pages/features/1password.astro",
-      "exactWording": "Open Settings → Privacy & Security → 1Password. Turn on Fill logins from 1Password, enter the email address you use to sign in to 1Password or your account ID, and choose Verify. Approve Blanc Browser when 1Password asks.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "onepassword"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "feature-retained-onepassword-126-009",
       "source": "site/src/pages/features/1password.astro",
       "exactWording": "3. Fill when you need it.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "onepassword"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "feature-retained-onepassword-126-010",
-      "source": "site/src/pages/features/1password.astro",
-      "exactWording": "On a website login form, press ⌥⌘P (Option + Command + P), or choose View → Fill Login from 1Password. If several Login items match the site, choose the one you want. You can also run /1password from the Island.",
       "subject": "Blanc",
       "evidenceGroups": [
         "onepassword"
@@ -6776,16 +6606,6 @@
       "id": "feature-retained-onepassword-126-015",
       "source": "site/src/pages/features/1password.astro",
       "exactWording": "Blanc never fills automatically or saves the returned credentials. The setting and account identifier stay on this device and are excluded from Sync. Read how login fill handles data.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "onepassword"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "feature-retained-onepassword-126-016",
-      "source": "site/src/pages/features/1password.astro",
-      "exactWording": "The integration is currently available on macOS only. Windows and Linux builds do not offer 1Password login fill. It fills matching Login items; it does not provide password saving, payment-card filling, or 1Password passkeys.",
       "subject": "Blanc",
       "evidenceGroups": [
         "onepassword"
@@ -8040,18 +7860,6 @@
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
         "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "about-2026-10-04-10",
-      "source": "site/src/pages/about.astro",
-      "exactWording": "Blanc has no general third-party extension runtime. Its optional 1Password bridge and device-bound Touch ID passkeys are macOS-only.",
-      "subject": "Blanc",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust",
-        "onepassword"
       ],
       "verdict": "qualified"
     },
@@ -10319,6 +10127,217 @@
       ],
       "verdict": "qualified",
       "reason": "October 16, 2026: the owner chose to announce 1Password fill on Windows and Linux, shipped in v1.34.0, so the homepage no longer limits it to macOS. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json (cinema-tools-onepassword)."
+    },
+    {
+      "id": "website-115-206",
+      "source": "site/src/components/guides/security.astro",
+      "exactWording": "Optional 1Password fill on macOS.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified",
+      "reason": "October 16, 2026: the owner chose to announce 1Password login fill on Windows and Linux, shipped in public v1.34.0, so the site no longer limits it to macOS. The replacement wording is recorded in docs/website-v1.34-claims.json."
+    },
+    {
+      "id": "trust-125-283",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Blanc does not offer a general third-party extension runtime. Ad and tracker blocking is built into the network layer. On macOS, the optional 1Password integration is a narrow, user-invoked bridge to the installed 1Password app, not an extension runtime or a Blanc password store.",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "October 16, 2026: the owner chose to announce 1Password login fill on Windows and Linux, shipped in public v1.34.0, so the site no longer limits it to macOS. The replacement wording is recorded in docs/website-v1.34-claims.json."
+    },
+    {
+      "id": "trust-125-296",
+      "source": "site/src/pages/privacy.astro",
+      "exactWording": "Last updated October 13, 2026",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "October 16, 2026: the owner chose to announce 1Password login fill on Windows and Linux, shipped in public v1.34.0, so the site no longer limits it to macOS. The replacement wording is recorded in docs/website-v1.34-claims.json."
+    },
+    {
+      "id": "trust-125-313",
+      "source": "site/src/pages/privacy.astro",
+      "exactWording": "1Password login fill on macOS (off by default)",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "October 16, 2026: the owner chose to announce 1Password login fill on Windows and Linux, shipped in public v1.34.0, so the site no longer limits it to macOS. The replacement wording is recorded in docs/website-v1.34-claims.json."
+    },
+    {
+      "id": "trust-125-314",
+      "source": "site/src/pages/privacy.astro",
+      "exactWording": "On macOS, if you enable this device-local integration and enter the email address used to sign in to 1Password or an account ID, Blanc can connect to your installed 1Password desktop app through 1Password's SDK when you choose Verify in Settings or explicitly invoke Fill on a login form. The 1Password app asks you to authorize Blanc and applies 1Password's own session and audit rules. SDK authorization can cover the approved account; Blanc limits its behavior to verifying access, listing vault and Login-item overview metadata for local website matching and a chooser of at most ten items, then reading only the built-in username and/or password the detected fields require from the one selected Login item.",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "October 16, 2026: the owner chose to announce 1Password login fill on Windows and Linux, shipped in public v1.34.0, so the site no longer limits it to macOS. The replacement wording is recorded in docs/website-v1.34-claims.json."
+    },
+    {
+      "id": "trust-125-380",
+      "source": "site/src/components/guides/foundations.astro",
+      "exactWording": "Patron activation and subscription checks contact Polar. On macOS, the optional 1Password integration contacts your installed 1Password app when you choose Verify or request a fill. It does not provide a general extension runtime.",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "October 16, 2026: the owner chose to announce 1Password login fill on Windows and Linux, shipped in public v1.34.0, so the site no longer limits it to macOS. The replacement wording is recorded in docs/website-v1.34-claims.json."
+    },
+    {
+      "id": "reddit-409",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Blanc has no general third-party extension runtime. Its optional, user-invoked 1Password bridge and device-bound Touch ID passkeys are macOS-only. Synced provider passkeys, including iCloud Keychain, are not supported. If your workflow depends on an extension, check that limitation before switching.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "October 16, 2026: the owner chose to announce 1Password login fill on Windows and Linux, shipped in public v1.34.0, so the site no longer limits it to macOS. The replacement wording is recorded in docs/website-v1.34-claims.json."
+    },
+    {
+      "id": "website-115-205",
+      "source": "site/src/components/guides/security.astro",
+      "exactWording": "1Password login fill on macOS.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified",
+      "reason": "October 16, 2026: the owner chose to announce 1Password login fill on Windows and Linux, shipped in public v1.34.0, so the site no longer limits it to macOS. The replacement wording is recorded in docs/website-v1.34-claims.json."
+    },
+    {
+      "id": "onepassword-126-024",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Yes, on macOS. Blanc includes an optional integration that fills matching Login items from your installed 1Password desktop app and account when you ask. It is off by default. Windows and Linux do not currently offer this integration.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onepassword"
+      ],
+      "verdict": "qualified",
+      "reason": "October 16, 2026: the owner chose to announce 1Password login fill on Windows and Linux, shipped in public v1.34.0, so the site no longer limits it to macOS. The replacement wording is recorded in docs/website-v1.34-claims.json."
+    },
+    {
+      "id": "onepassword-126-025",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "In 1Password Settings → Developer, enable Integrate with other apps under Integrate with the 1Password SDKs. In Blanc, open Settings → Privacy & Security → 1Password, enable Fill logins from 1Password, enter your sign-in email or account ID, and choose Verify. On a login form, press ⌥⌘P (Option + Command + P), or choose View → Fill Login from 1Password. You can also run /1password from the Island.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onepassword"
+      ],
+      "verdict": "qualified",
+      "reason": "October 16, 2026: the owner chose to announce 1Password login fill on Windows and Linux, shipped in public v1.34.0, so the site no longer limits it to macOS. The replacement wording is recorded in docs/website-v1.34-claims.json."
+    },
+    {
+      "id": "onepassword-126-002",
+      "source": "site/src/pages/features/1password.astro",
+      "exactWording": "Use the logins you already keep in 1Password. Blanc’s built-in macOS integration fills a matching Login item from your installed desktop app when you ask.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onepassword"
+      ],
+      "verdict": "qualified",
+      "reason": "October 16, 2026: the owner chose to announce 1Password login fill on Windows and Linux, shipped in public v1.34.0, so the site no longer limits it to macOS. The replacement wording is recorded in docs/website-v1.34-claims.json."
+    },
+    {
+      "id": "onepassword-126-003",
+      "source": "site/src/pages/features/1password.astro",
+      "exactWording": "Requires the 1Password desktop app and account. Off by default. Currently available on macOS only.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onepassword"
+      ],
+      "verdict": "qualified",
+      "reason": "October 16, 2026: the owner chose to announce 1Password login fill on Windows and Linux, shipped in public v1.34.0, so the site no longer limits it to macOS. The replacement wording is recorded in docs/website-v1.34-claims.json."
+    },
+    {
+      "id": "onepassword-126-017",
+      "source": "site/src/pages/features/1password.astro",
+      "exactWording": "Bring your logins to Blanc on Mac.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onepassword"
+      ],
+      "verdict": "qualified",
+      "reason": "October 16, 2026: the owner chose to announce 1Password login fill on Windows and Linux, shipped in public v1.34.0, so the site no longer limits it to macOS. The replacement wording is recorded in docs/website-v1.34-claims.json."
+    },
+    {
+      "id": "feature-retained-website-115-206",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Optional 1Password fill on macOS.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified",
+      "reason": "October 16, 2026: the owner chose to announce 1Password login fill on Windows and Linux, shipped in public v1.34.0, so the site no longer limits it to macOS. The replacement wording is recorded in docs/website-v1.34-claims.json."
+    },
+    {
+      "id": "feature-retained-website-115-205",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "1Password login fill on macOS.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified",
+      "reason": "October 16, 2026: the owner chose to announce 1Password login fill on Windows and Linux, shipped in public v1.34.0, so the site no longer limits it to macOS. The replacement wording is recorded in docs/website-v1.34-claims.json."
+    },
+    {
+      "id": "feature-retained-onepassword-126-008",
+      "source": "site/src/pages/features/1password.astro",
+      "exactWording": "Open Settings → Privacy & Security → 1Password. Turn on Fill logins from 1Password, enter the email address you use to sign in to 1Password or your account ID, and choose Verify. Approve Blanc Browser when 1Password asks.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onepassword"
+      ],
+      "verdict": "qualified",
+      "reason": "October 16, 2026: the owner chose to announce 1Password login fill on Windows and Linux, shipped in public v1.34.0, so the site no longer limits it to macOS. The replacement wording is recorded in docs/website-v1.34-claims.json."
+    },
+    {
+      "id": "feature-retained-onepassword-126-010",
+      "source": "site/src/pages/features/1password.astro",
+      "exactWording": "On a website login form, press ⌥⌘P (Option + Command + P), or choose View → Fill Login from 1Password. If several Login items match the site, choose the one you want. You can also run /1password from the Island.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onepassword"
+      ],
+      "verdict": "qualified",
+      "reason": "October 16, 2026: the owner chose to announce 1Password login fill on Windows and Linux, shipped in public v1.34.0, so the site no longer limits it to macOS. The replacement wording is recorded in docs/website-v1.34-claims.json."
+    },
+    {
+      "id": "feature-retained-onepassword-126-016",
+      "source": "site/src/pages/features/1password.astro",
+      "exactWording": "The integration is currently available on macOS only. Windows and Linux builds do not offer 1Password login fill. It fills matching Login items; it does not provide password saving, payment-card filling, or 1Password passkeys.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onepassword"
+      ],
+      "verdict": "qualified",
+      "reason": "October 16, 2026: the owner chose to announce 1Password login fill on Windows and Linux, shipped in public v1.34.0, so the site no longer limits it to macOS. The replacement wording is recorded in docs/website-v1.34-claims.json."
+    },
+    {
+      "id": "about-2026-10-04-10",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "Blanc has no general third-party extension runtime. Its optional 1Password bridge and device-bound Touch ID passkeys are macOS-only.",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust",
+        "onepassword"
+      ],
+      "verdict": "qualified",
+      "reason": "October 16, 2026: the owner chose to announce 1Password login fill on Windows and Linux, shipped in public v1.34.0, so the site no longer limits it to macOS. The replacement wording is recorded in docs/website-v1.34-claims.json."
     }
   ],
   "supersededCandidateClaims": [
@@ -12797,6 +12816,80 @@
           {
             "before": "<figcaption>Two of these tabs are quiet. They keep their place in the island until you go back to one.</figcaption>",
             "after": "<figcaption>Threads and Netflix are quiet: Blanc has freed their memory, so their rows in the expanded island are dimmed. They keep their place in the list and reload when you open one.</figcaption>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features.astro",
+        "reason": "October 16, 2026: the owner chose to announce 1Password login fill on Windows and Linux, shipped in public v1.34.0 (VM evidence under the October 12 waiver in docs/1password-integration.md). Copy now names macOS, Windows and Linux, the Ctrl+Shift+P shortcut and the Windows on Arm limit; the new wording is recorded in docs/website-v1.34-claims.json.",
+        "replacements": [
+          {
+            "before": "<h3>1Password fill on Mac</h3>",
+            "after": "<h3>1Password fill</h3>"
+          },
+          {
+            "before": "<h2 id=\"pop-1password-title\">Fill logins from 1Password on macOS.</h2>",
+            "after": "<h2 id=\"pop-1password-title\">Fill logins from 1Password.</h2>"
+          },
+          {
+            "before": "then press ⌥⌘P on a login form to fill a matching login from your installed 1Password app.",
+            "after": "then press ⌥⌘P (Ctrl+Shift+P on Windows and Linux) on a login form to fill a matching login from your installed 1Password app."
+          },
+          {
+            "before": "<p class=\"pop-note\">macOS only. Blanc never fills anything automatically.</p>",
+            "after": "<p class=\"pop-note\">On macOS, Windows and Linux, but not Windows on Arm. Blanc never fills anything automatically.</p>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/1password.astro",
+        "reason": "October 16, 2026: the owner chose to announce 1Password login fill on Windows and Linux, shipped in public v1.34.0 (VM evidence under the October 12 waiver in docs/1password-integration.md). Copy now names macOS, Windows and Linux, the Ctrl+Shift+P shortcut and the Windows on Arm limit; the new wording is recorded in docs/website-v1.34-claims.json.",
+        "replacements": [
+          {
+            "before": "title=\"1Password in Blanc — Built-in Login Fill on macOS\"",
+            "after": "title=\"1Password in Blanc — Login Fill on Mac, Windows and Linux\""
+          },
+          {
+            "before": "description=\"Use your existing 1Password logins in Blanc on macOS. Set up",
+            "after": "description=\"Use your existing 1Password logins in Blanc on macOS, Windows and Linux. Set up"
+          },
+          {
+            "before": "Blanc’s built-in macOS integration fills a matching Login item",
+            "after": "Blanc’s built-in integration fills a matching Login item"
+          },
+          {
+            "before": "Off by default. Currently available on macOS only.</p>",
+            "after": "Off by default. Available on macOS, Windows and Linux, but not on Windows on Arm.</p>"
+          },
+          {
+            "before": "Approve Blanc Browser when 1Password asks.",
+            "after": "Approve Blanc when 1Password asks (on macOS it’s named Blanc Browser)."
+          },
+          {
+            "before": "press <kbd>⌥⌘P</kbd> (Option + Command + P), or choose View → Fill Login from 1Password.",
+            "after": "press <kbd>⌥⌘P</kbd> (Option + Command + P) on macOS or <kbd>Ctrl+Shift+P</kbd> on Windows and Linux, or choose View → Fill Login from 1Password."
+          },
+          {
+            "before": "<h3>Mac support today.</h3><p>The integration is currently available on macOS only. Windows and Linux builds do not offer 1Password login fill.",
+            "after": "<h3>Mac, Windows and Linux.</h3><p>The integration works on all three. On Windows on Arm, Blanc runs translated and can’t load 1Password’s Arm library, so fill says it isn’t supported there."
+          },
+          {
+            "before": "Bring your logins to Blanc on Mac.",
+            "after": "Bring your logins to Blanc."
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/security.astro",
+        "reason": "October 16, 2026: the owner chose to announce 1Password login fill on Windows and Linux, shipped in public v1.34.0 (VM evidence under the October 12 waiver in docs/1password-integration.md). Copy now names macOS, Windows and Linux, the Ctrl+Shift+P shortcut and the Windows on Arm limit; the new wording is recorded in docs/website-v1.34-claims.json.",
+        "replacements": [
+          {
+            "before": "<h2 id=\"security-login-title\">1Password login fill on macOS.</h2>",
+            "after": "<h2 id=\"security-login-title\">1Password login fill.</h2>"
+          },
+          {
+            "before": "<h3>Optional 1Password fill on macOS.</h3>",
+            "after": "<h3>Optional 1Password fill on macOS, Windows and Linux.</h3>"
           }
         ]
       }

@@ -497,16 +497,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-024",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "1Password fill on Mac",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "onepassword"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "bento-130-025",
       "source": "site/src/pages/features.astro",
       "exactWording": "Full uBlock Origin, optional",
@@ -1277,36 +1267,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-111",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "Fill logins from 1Password on macOS.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "onepassword"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "bento-130-112",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "Turn on the integration in Settings, then press ⌥⌘P on a login form to fill a matching login from your installed 1Password app.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "onepassword"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "bento-130-113",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "macOS only. Blanc never fills anything automatically.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "onepassword"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "bento-130-114",
       "source": "site/src/pages/features.astro",
       "exactWording": "uBlock Origin",
@@ -1948,6 +1908,50 @@
       ],
       "verdict": "qualified",
       "reason": "October 14, 2026: public v1.34.0 added Kagi and a custom search address to Settings → General → Search engine. The replacement wording is recorded in docs/website-v1.34-claims.json; the original remains in git history."
+    },
+    {
+      "id": "bento-130-024",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "1Password fill on Mac",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onepassword"
+      ],
+      "verdict": "qualified",
+      "reason": "October 16, 2026: the owner chose to announce 1Password login fill on Windows and Linux, shipped in public v1.34.0, so the site no longer limits it to macOS. The replacement wording is recorded in docs/website-v1.34-claims.json."
+    },
+    {
+      "id": "bento-130-111",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Fill logins from 1Password on macOS.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onepassword"
+      ],
+      "verdict": "qualified",
+      "reason": "October 16, 2026: the owner chose to announce 1Password login fill on Windows and Linux, shipped in public v1.34.0, so the site no longer limits it to macOS. The replacement wording is recorded in docs/website-v1.34-claims.json."
+    },
+    {
+      "id": "bento-130-112",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Turn on the integration in Settings, then press ⌥⌘P on a login form to fill a matching login from your installed 1Password app.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onepassword"
+      ],
+      "verdict": "qualified",
+      "reason": "October 16, 2026: the owner chose to announce 1Password login fill on Windows and Linux, shipped in public v1.34.0, so the site no longer limits it to macOS. The replacement wording is recorded in docs/website-v1.34-claims.json."
+    },
+    {
+      "id": "bento-130-113",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "macOS only. Blanc never fills anything automatically.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onepassword"
+      ],
+      "verdict": "qualified",
+      "reason": "October 16, 2026: the owner chose to announce 1Password login fill on Windows and Linux, shipped in public v1.34.0, so the site no longer limits it to macOS. The replacement wording is recorded in docs/website-v1.34-claims.json."
     }
   ]
 }
