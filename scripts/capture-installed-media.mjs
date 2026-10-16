@@ -22,7 +22,7 @@ import { captureOutputDirectory, installedBlanc, poll, run, settle, sha256, writ
 const tabs = [
   ['inspiration', 'https://www.metmuseum.org/art/collection/search/436535'],
   ['inspiration', 'https://www.metmuseum.org/art/collection/search/45434'],
-  ['inspiration', 'https://science.nasa.gov/'],
+  ['inspiration', 'https://www.si.edu/openaccess'],
   ['reading', 'https://en.wikipedia.org/wiki/Stockholm_Public_Library'],
   ['reading', 'https://www.gutenberg.org/'],
   ['reading', 'https://archive.org/'],

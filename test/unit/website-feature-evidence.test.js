@@ -127,8 +127,9 @@ test('v1.32.0 Arc import, interface-language and /space copy resolves to verifie
     }
   }
   // Any sentence on these pages about importing from Arc or about Blanc's
-  // interface languages must be a recorded claim in this ledger or the v1.27 one.
-  const recorded = [...v132Ledger.claims, ...v133Ledger.claims, ...ledger.claims].map(claim => claim.exactWording);
+  // interface languages must be a recorded claim in this ledger, a later one
+  // (v1.33, v1.35: Italian since v1.33.0) or the v1.27 one.
+  const recorded = [...v132Ledger.claims, ...v133Ledger.claims, ...ledger.claims, ...JSON.parse(read('docs/website-v1.35-claims.json')).claims].map(claim => claim.exactWording);
   const topic = /\bArc\b.*\b(Spaces?|import|sidebar|Favorites|StorableSidebar)\b|\b(German|Spanish|French|Portuguese|Italian|Dutch|Polish|Russian|Ukrainian|Turkish|Arabic|Hebrew|Hindi|Chinese|Japanese|Korean|Swedish|Danish|Norwegian|Finnish)\b|\binterface languages?\b|\btranslat(e|ed|ion|ions)\b/i;
   for (const file of new Set(v132Ledger.claims.map(claim => claim.source))) {
     const text = read(file);
@@ -302,8 +303,8 @@ test('Features bento copy resolves to verified public v1.30.1 evidence, and ever
   }
   // Every text element above the unchanged Patron and download sections is a
   // recorded claim in this ledger, the reorder ledger, or the v1.27 ledger.
-  const candidate = JSON.parse(read('docs/website-candidate-claims-v1.35.0.json'));
-  const recorded = [...bento.claims, ...reorder.claims, ...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...v134Ledger.claims, ...candidate.claims].filter(claim => claim.source === file).map(claim => claim.exactWording);
+  const v135Ledger = JSON.parse(read('docs/website-v1.35-claims.json'));
+  const recorded = [...bento.claims, ...reorder.claims, ...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...v134Ledger.claims, ...v135Ledger.claims].filter(claim => claim.source === file).map(claim => claim.exactWording);
   const scope = page.slice(page.indexOf('<main'), page.indexOf('class="bento-patron"'));
   for (const [, , text] of scope.matchAll(/<(h[1-6]|p|figcaption|li|button)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
     const wording = normalize(text);
@@ -312,29 +313,29 @@ test('Features bento copy resolves to verified public v1.30.1 evidence, and ever
   }
 });
 
-// Copy for a feature in the prepared but unpublished v1.35.0, added early by
-// owner decision: backed by main's source at the commit that prepared the
-// release, and moved to a v1.35.0 ledger once the tag exists.
-test('candidate v1.35.0 copy resolves to the commit that prepared the release', () => {
-  const candidate = JSON.parse(read('docs/website-candidate-claims-v1.35.0.json'));
-  assert.equal(candidate.status, 'candidate');
-  assert.equal(candidate.release, null);
-  assert.match(candidate.ownerDecision, /October 16, 2026/);
-  assert.equal(execFileSync('git', ['rev-parse', `${candidate.sourceSha}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), candidate.sourceSha);
-  execFileSync('git', ['merge-base', '--is-ancestor', 'v1.34.0', candidate.sourceSha], { cwd: root });
-  assert.match(execFileSync('git', ['show', `${candidate.sourceSha}:package.json`], { cwd: root, encoding: 'utf8' }), /"version": "1\.35\.0"/);
-  for (const claim of candidate.claims) {
-    assert.equal(claim.verdict, 'qualified', claim.id);
+// Renamable tab titles (added before the release by owner decision) and the
+// six interface languages, verified against public v1.35.0.
+test('v1.35.0 site copy resolves to verified public v1.35.0 evidence', () => {
+  const v135 = JSON.parse(read('docs/website-v1.35-claims.json'));
+  assert.equal(v135.publicRelease, 'v1.35.0');
+  assert.equal(execFileSync('git', ['rev-parse', `${v135.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), v135.sourceSha);
+  assert.ok(read(v135.releaseEvidence).includes(v135.sourceSha));
+  assert.equal(fs.existsSync(path.join(root, 'docs/website-candidate-claims-v1.35.0.json')), false);
+  for (const claim of v135.claims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
     assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: exact wording drifted`);
     for (const key of claim.evidenceGroups) {
-      const group = candidate.evidenceGroups[key];
+      const group = v135.evidenceGroups[key];
       assert.ok(group?.qualification && group.evidence.length, `${claim.id}: evidence and qualification`);
-      for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${candidate.sourceSha}:${evidence}`], { cwd: root });
+      for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${v135.publicRelease}:${evidence}`], { cwd: root });
     }
   }
-  const notes = execFileSync('git', ['show', `${candidate.sourceSha}:docs/press/release-notes/v1.35.0.md`], { cwd: root, encoding: 'utf8' });
+  const notes = execFileSync('git', ['show', `${v135.publicRelease}:docs/press/release-notes/v1.35.0.md`], { cwd: root, encoding: 'utf8' });
   assert.match(notes, /Rename Tab…/);
   assert.match(notes, /Reset Tab Title/);
+  for (const code of ['de', 'es', 'fr', 'it', 'pt-BR']) {
+    assert.match(execFileSync('git', ['show', `${v135.publicRelease}:copy/messages/${code}.json`], { cwd: root, encoding: 'utf8' }), /"status": "selectable"/, code);
+  }
 });
 
 test('public product captures match their reviewed dimensions, hashes, and source release', () => {
