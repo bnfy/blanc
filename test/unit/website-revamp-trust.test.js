@@ -104,7 +104,9 @@ test("home keeps product limits and links to detailed ownership, licensing and a
     "Built by Bananify, an independent software studio.",
     "MIT for Blanc’s own code",
     "Patron unlocks nothing.",
-    "Off by default. Needs the 1Password app and account on macOS.",
+    // 1Password fill on Windows and Linux announced October 16, 2026; the
+    // Windows on Arm limit travels with it.
+    "Off by default. Needs the 1Password app and account. Not on Windows on Arm.",
   ])
     assert.ok(home.includes(phrase), phrase);
   assert.match(home, /href="\/trust#engine"/);

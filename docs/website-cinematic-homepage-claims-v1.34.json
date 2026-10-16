@@ -141,7 +141,7 @@
         "docs/1password-integration.md",
         "src/main/onepassword-availability.js"
       ],
-      "qualification": "Public copy names macOS only: Windows and Linux stay unannounced under the waiver in docs/1password-integration.md. Off by default, explicit-invoke only, and it needs the 1Password app and account. Blanc has no password manager of its own and imports or saves no passwords."
+      "qualification": "v1.34.0 enables fill on macOS, Windows and Linux (SUPPORTED_PLATFORMS); x64 Blanc translated on Windows on Arm says fill is not supported there. Off by default, explicit-invoke only (⌥⌘P on macOS, Ctrl+Shift+P on Windows and Linux), and it needs the installed 1Password app and account. Windows and Linux evidence is from virtual machines under the owner’s waiver of October 12, 2026 (no real x64 Windows PC, no packaged x64 AppImage with an account); the owner chose to announce them on the homepage on October 16, 2026, within that evidence. Blanc has no password manager of its own and imports or saves no passwords."
     },
     "importChromium": {
       "evidence": [
@@ -514,7 +514,7 @@
     {
       "id": "cinema-tools-onepassword",
       "source": "site/src/pages/index.astro",
-      "exactWording": "1Password on Mac On macOS, the optional integration fills a matching login when you ask. Off by default. Needs the 1Password app and account on macOS.",
+      "exactWording": "1Password The optional integration fills a matching login when you ask, on macOS, Windows and Linux. Off by default. Needs the 1Password app and account. Not on Windows on Arm.",
       "subject": "Blanc",
       "evidenceGroups": [
         "onePassword"
@@ -583,7 +583,7 @@
     {
       "id": "cinema-switch-passwords",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Passwords: Blanc doesn’t import or save passwords. Keep them in your password manager; on a Mac, Blanc can fill logins from 1Password when you ask.",
+      "exactWording": "Passwords: Blanc doesn’t import or save passwords. Keep them in your password manager; Blanc can fill logins from 1Password when you ask.",
       "subject": "Blanc",
       "evidenceGroups": [
         "onePassword"
@@ -883,7 +883,7 @@
     {
       "id": "cinema-data-23",
       "source": "site/src/pages/index.astro",
-      "exactWording": "1Password fill on Mac",
+      "exactWording": "1Password fill",
       "subject": "Blanc",
       "evidenceGroups": [
         "onePassword"
