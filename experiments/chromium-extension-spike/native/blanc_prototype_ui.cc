@@ -15,6 +15,7 @@
 #include "base/i18n/case_conversion.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
+#include "base/no_destructor.h"
 #include "base/json/string_escape.h"
 #include "base/memory/ref_counted_memory.h"
 #include "base/strings/string_number_conversions.h"
@@ -43,8 +44,11 @@
 #include "components/history/core/browser/history_types.h"
 #include "components/history/core/browser/top_sites.h"
 #include "components/keyed_service/core/service_access_type.h"
+#include "components/input/native_web_keyboard_event.h"
 #include "content/public/browser/favicon_status.h"
 #include "content/public/browser/navigation_entry.h"
+#include "content/public/browser/web_contents_delegate.h"
+#include "ui/views/controls/webview/unhandled_keyboard_event_handler.h"
 #include "chrome/browser/ui/browser_tabstrip.h"
 #include "chrome/browser/ui/exclusive_access/exclusive_access_manager.h"
 #include "chrome/browser/ui/exclusive_access/fullscreen_controller.h"
@@ -488,6 +492,31 @@ Owner* GetOwner(content::WebContents* contents) {
   return static_cast<Owner*>(contents->GetUserData(kOwnerKey));
 }
 
+// Key equivalents the Island's own renderer leaves unhandled (⌘D, ⌘L, ⌘R, …)
+// must reach the window's accelerators and the macOS menu, as they do from a
+// tab: BrowserView and Chromium's side-panel WebUI views redispatch through
+// UnhandledKeyboardEventHandler; a views::WebView-created WebContents on its
+// own drops them, so shortcuts died while the Island had focus. Reserved
+// commands (⌘T, ⌘W) are dispatched before the first responder and were never
+// affected. Stateless, so one process-wide instance serves every window.
+class IslandDelegate : public content::WebContentsDelegate {
+ public:
+  bool HandleKeyboardEvent(content::WebContents* source,
+                           const input::NativeWebKeyboardEvent& event) override {
+    auto* owner = GetOwner(source);
+    if (!owner || !owner->view) return false;
+    return handler_.HandleKeyboardEvent(event, owner->view->GetFocusManager());
+  }
+
+ private:
+  views::UnhandledKeyboardEventHandler handler_;
+};
+
+IslandDelegate* GetIslandDelegate() {
+  static base::NoDestructor<IslandDelegate> delegate;
+  return delegate.get();
+}
+
 bool IsAsset(const std::string& path) {
   static constexpr const char* kAssets[] = {
       "pages/newtab.html", "pages/newtab.js", "pages/close.svg", "pages/newtab-wallpaper.js", "pages/start-site-name.js", "pages/pages.css", "pages/type-to-open.js", "pages/i18n.js", "pages/sunrise-mark.png", "pages/icon-sunrise.png", "pages/icon-sunrise-dark.png", "pages/onboarding-island-dark.png", "pages/onboarding-island-light.png", "pages/start-page-sunrise.png", "pages/start-page-day.png", "pages/start-page-dusk.png", "pages/start-page-night.png", "pages/caveat-latin.woff2", "pages/select-caret.svg", "pages/select-caret-dark.svg", "pages/strings.js", "pages/newtab-adapter.js", "pages/newtab-prototype.css",
@@ -798,6 +827,13 @@ class Handler : public content::WebUIMessageHandler {
       reply(true, base::Value());
       return;
     }
+    if (method == "focusPage" && args.empty()) {
+      // Escape and outside clicks hand focus back to the page, as Electron's
+      // hideOverlay does, instead of parking it in the hidden overlay.
+      if (auto* active = model->GetActiveWebContents()) active->Focus();
+      reply(true, base::Value());
+      return;
+    }
     if (method == "height" && args.size() == 1 && args[0].is_int()) {
       owner->height = std::clamp(args[0].GetInt(), 68, 640);
       if (owner->view->parent()) owner->view->parent()->InvalidateLayout();
@@ -937,6 +973,7 @@ std::unique_ptr<views::WebView> CreateIsland(
   owner->view = view.get();
   view->GetWebContents(GURL("chrome://blanc-prototype/host.html"))
       ->SetUserData(kOwnerKey, std::move(owner));
+  view->GetWebContents()->SetDelegate(GetIslandDelegate());
   view->GetWebContents()->SetPageBaseBackgroundColor(SK_ColorTRANSPARENT);
   view->LoadInitialURL(GURL("chrome://blanc-prototype/host.html"));
   return view;

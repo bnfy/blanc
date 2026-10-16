@@ -812,3 +812,26 @@ source is not compiled here. Pending on the Mac: `prepare.mjs` (confirm the
 page and in a private window does nothing, ⌘D in a non-Island window (if any)
 still shows Chromium's bubble, and the original tabs are preserved. Do not
 record this as passed from this section.
+
+Mac result on the ⌘D head (Codex): the guarded build passed in 58 seconds with
+no cold rebuild; restart persistence and the other tested controls passed; test
+data was cleaned up and the prototype left on the original tab. Two shortcut
+failures remained: ⌘D while the Island had focus, and ⌘L after closing the
+Island with Escape until the page was clicked. Both share one cause. The
+Island's WebContents is created by `views::WebView`, which gives it no handler
+for keyboard events its renderer leaves unhandled, so non-reserved key
+equivalents (⌘D, ⌘L, ⌘R, …) died whenever the Island was the first responder;
+reserved commands (⌘T, ⌘W) are dispatched before the first responder and kept
+working, and the host's Escape path parked focus in the hidden overlay, which
+is why ⌘L stayed dead until a page click. The follow-up commit sets a
+process-wide `content::WebContentsDelegate` on the Island WebContents whose
+`HandleKeyboardEvent` redispatches through `views::UnhandledKeyboardEventHandler`
+with the Island view's FocusManager (the pattern BrowserView and Chromium's
+side-panel WebUI views use), and the host's close path now asks the bridge to
+focus the page (`focusPage`), matching Electron's hideOverlay; extension
+activation keeps passing `focus = false` so the native popup takes focus. Not
+compiled or tested here. Mac retest: ⌘D with the panel open and the address
+input focused toggles the heart; Escape then ⌘L reopens the Island without a
+page click; ⌘R and ⌘[ work from the open panel; Escape still returns typing to
+the page; an extension popup still receives focus after selection; the
+original tabs are preserved.

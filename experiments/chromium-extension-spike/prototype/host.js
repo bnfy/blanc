@@ -134,7 +134,10 @@
     opened = false;
     overlay.hidden = true;
     await request('height', [68]);
-    if (focus) strip.contentWindow.focus();
+    // Escape and outside clicks return focus to the page (Electron's
+    // hideOverlay does the same); extension activation passes false so the
+    // native popup takes focus instead.
+    if (focus) await request('focusPage');
     reportGeometry();
   }
 
