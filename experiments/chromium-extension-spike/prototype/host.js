@@ -59,7 +59,8 @@
     document.documentElement.style.setProperty('--page-bg', color);
   }
 
-  function pageTint(id, color) {
+  function pageTint(nativeTabId, color) {
+    const id = String(nativeTabId);
     if (snapshot?.activeTabId !== id || (color && !/^#[0-9a-f]{6}$/i.test(color))) return;
     const tab = snapshot.tabs.find(tab => tab.id === id);
     if (!tab || tab.private) return;
@@ -74,6 +75,12 @@
     refreshing = true;
     try {
       snapshot = await request('snapshot');
+      // The contract's TabId is an opaque string, and the copied renderers
+      // round-trip ids through DOM datasets (drag intents, keyboard moves,
+      // context rows), so native integer ids become strings here and go
+      // back through nativeId() on every call.
+      for (const tab of snapshot.tabs) tab.id = String(tab.id);
+      if (snapshot.activeTabId != null) snapshot.activeTabId = String(snapshot.activeTabId);
       paintHeader();
       const slot = strip.contentDocument?.getElementById('nativeExtensions');
       if (slot) slot.style.width = `${snapshot.extensionsWidth / 1.15}px`;
@@ -164,6 +171,13 @@
   });
   setInterval(() => extensionsPanel.update(), 1000);
 
+  // Native handlers take the integer SessionID; anything else fails their
+  // "real tab ID" check instead of matching by accident.
+  function nativeId(id) {
+    const n = typeof id === 'string' && /^\d+$/.test(id) ? Number(id) : id;
+    return Number.isInteger(n) ? n : -1;
+  }
+
   function destination(value) {
     const text = String(value ?? '').trim();
     if (/^https?:\/\//i.test(text)) return text;
@@ -182,9 +196,9 @@
       await refresh();
       if (options?.focusAddress) await show('');
     },
-    navigate: async (id, value) => { await request('navigate', [id, destination(value)]); await refresh(); },
+    navigate: async (id, value) => { await request('navigate', [nativeId(id), destination(value)]); await refresh(); },
     search: async (id, query) => {
-      await request('navigate', [id, `https://www.google.com/search?q=${encodeURIComponent(query)}`]);
+      await request('navigate', [nativeId(id), `https://www.google.com/search?q=${encodeURIComponent(query)}`]);
       await refresh();
     },
     openPage: async (name) => {
@@ -204,24 +218,24 @@
     toggleBookmark: async () => {
       const tab = snapshot?.tabs.find(tab => tab.id === snapshot.activeTabId);
       if (!tab || tab.private) return;
-      await request('toggleBookmark', [tab.id]);
+      await request('toggleBookmark', [nativeId(tab.id)]);
       await refresh();
     },
     saveFavorite: async (folder) => {
       const tab = snapshot?.tabs.find(tab => tab.id === snapshot.activeTabId);
       if (!tab || tab.private) return;
-      await request('saveFavorite', [tab.id, typeof folder === 'string' ? folder : '']);
+      await request('saveFavorite', [nativeId(tab.id), typeof folder === 'string' ? folder : '']);
       await refresh();
     },
     // Pin, mute and reorder are TabStripModel operations; the snapshot's
     // pinned/muted/audible fields feed the copied rows and pill unchanged.
     toggleTabPinned: async (id) => {
-      const pinned = await request('togglePinned', [id]);
+      const pinned = await request('togglePinned', [nativeId(id)]);
       await refresh();
       return pinned;
     },
     toggleTabMuted: async (id) => {
-      const muted = await request('toggleMuted', [id]);
+      const muted = await request('toggleMuted', [nativeId(id)]);
       await refresh();
       return muted;
     },
@@ -229,7 +243,8 @@
       // No tab groups exist in the prototype, so a grouped target is a stale
       // or foreign intent; Electron rejects those too.
       if (target?.groupId != null) return false;
-      const moved = await request('moveTab', [id, Number.isInteger(target?.beforeId) ? target.beforeId : null]);
+      // Drag intents carry DOM dataset strings for both ids.
+      const moved = await request('moveTab', [nativeId(id), target?.beforeId == null ? null : nativeId(target.beforeId)]);
       await refresh();
       return moved === true;
     },
@@ -261,7 +276,7 @@
 
   for (const method of ['switchTab', 'closeTab', 'goBack', 'goForward', 'reload', 'stop']) {
     implemented[method] = async (id) => {
-      await request(method, [id]);
+      await request(method, [nativeId(id)]);
       await refresh();
     };
   }

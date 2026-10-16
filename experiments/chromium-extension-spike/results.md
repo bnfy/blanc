@@ -897,6 +897,21 @@ not possible here, so use the snapshot or `chrome://tabs`-equivalent DevTools
 readback) matches the Island; the original tabs are preserved. Do not record
 any of this as passed from this section.
 
+Mac result on `3b6b418` (Codex): the guarded build passed in 36 seconds with no
+cold rebuild; native pin/unpin, mute/unmute and restart persistence passed.
+Drag and keyboard reorder failed: the copied renderers round-trip tab ids
+through DOM datasets (`row.dataset.tabId`, drag intents, `keyboardTabMove`),
+so the ids reached the host as strings while the snapshot and the native
+handlers used integers, and neither the source nor the destination resolved.
+The follow-up commit makes the host present the contract's opaque string
+`TabId`: every snapshot id and `activeTabId` becomes a string on receipt, and
+every bridge call that names a tab (`switchTab`, `closeTab`, navigation,
+`toggleBookmark`, `saveFavorite`, `togglePinned`, `toggleMuted`, `moveTab`
+source and before-id) converts back through `nativeId()`; `pageTint`
+compares the native id as a string. Assets-only change, no rebuild. Retest:
+drag within the loose and pinned sections, a refused cross-boundary drop,
+⌥⇧↑/↓, and the untouched controls (row click, close, heart, ⌘D) still work.
+
 
 ## `/clear` on a disposable profile — October 16, 2026 (implementation; compilation and runtime verification pending)
 
