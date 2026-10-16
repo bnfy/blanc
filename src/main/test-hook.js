@@ -562,6 +562,16 @@ function install(refs) {
       return setGlanceTabInWindow(String(runtimeId), String(tabId));
     },
     closeWindowGlance(runtimeId) { return closeGlanceInWindow(String(runtimeId)); },
+    // A window's first Glance layout, before its own strip has measured the
+    // Island: size the window, open Glance there and read the geometry in the
+    // same turn, ahead of any report from that strip.
+    async firstGlanceLayoutInWindow(runtimeId, tabId, width) {
+      return refs.runInWindowRuntime(String(runtimeId), async () => {
+        setWindowContentSize(Number(width), 800);
+        await setGlanceTab(String(tabId));
+        return getGlanceGeometry();
+      });
+    },
     closeTabInWindow(runtimeId, tabId) {
       return closeTabInWindowAction(String(runtimeId), String(tabId));
     },
@@ -650,6 +660,7 @@ function install(refs) {
       if (typeof patch.favicon === 'string' || patch.favicon === null) tab.favicon = patch.favicon;
       if (typeof patch.isLoading === 'boolean') tab.isLoading = patch.isLoading;
       if (typeof patch.audible === 'boolean') tab.audible = patch.audible;
+      if (Number.isInteger(patch.blockedCount) && patch.blockedCount >= 0) tab.blockedCount = patch.blockedCount;
       if (typeof patch.muted === 'boolean') {
         tab.muted = patch.muted;
         tab.view?.webContents?.setAudioMuted(patch.muted);

@@ -1840,6 +1840,7 @@
               "direction": "horizontal",
               "ratio": 1,
               "minRatio": 1,
+              "maxRatio": 1,
               "page": {
                 "x": 1,
                 "y": 1,
@@ -1884,6 +1885,7 @@
                 "direction": "horizontal",
                 "ratio": 1,
                 "minRatio": 1,
+                "maxRatio": 1,
                 "page": {
                   "x": 1,
                   "y": 1,
@@ -1930,6 +1932,7 @@
               "direction": "horizontal",
               "ratio": 1,
               "minRatio": 1,
+              "maxRatio": 1,
               "page": {
                 "x": 1,
                 "y": 1,
@@ -1975,6 +1978,7 @@
                 "direction": "horizontal",
                 "ratio": 1,
                 "minRatio": 1,
+                "maxRatio": 1,
                 "page": {
                   "x": 1,
                   "y": 1,

@@ -33,6 +33,7 @@ After({ tags: '@glance' }, async function () {
     await chrome.evaluate((real) => { document.documentElement.dataset.platform = real; }, this.glanceRealPlatform);
     this.glanceRealPlatform = null;
   });
+  if (this.glanceExtraWindowId) await restore(() => this.call('closeWindowRuntime', this.glanceExtraWindowId));
   await restore(() => this.call('setTabLayout', 'island'));
   await restore(() => this.call('setVerticalTabsWidth', 248));
   await restore(() => this.call('setWindowContentSize', 1200, 800));
@@ -942,6 +943,24 @@ When('I press the {word} command', async function (command) {
   assert.equal(await this.call('pressBrowserCommand', target, command), true);
 });
 
+// With the find bar focused the key reaches the overlay, not a page: on
+// Windows/Linux it is routed from the overlay's webContents, on macOS the
+// native menu handles it with no sender.
+When('I press the close-tab command in the find bar', async function () {
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'find', 'find capsule');
+  const page = await overlayPage();
+  await page.locator('#findInput').waitFor();
+  await ctx.app.evaluate(({ Menu, webContents }) => {
+    if (process.platform === 'darwin') {
+      Menu.getApplicationMenu().getMenuItemById('browser-close-tab').click();
+      return;
+    }
+    const overlay = webContents.getAllWebContents().find((wc) => wc.getURL() === 'blanc-chrome://overlay/');
+    overlay.sendInputEvent({ type: 'keyDown', keyCode: 'W', modifiers: ['control'] });
+    overlay.sendInputEvent({ type: 'keyUp', keyCode: 'W', modifiers: ['control'] });
+  });
+});
+
 When('the replacement tab becomes the reference without a focus change', async function () {
   assert.equal(await this.call('setGlance', this.glanceReplacementId), true);
   await this.waitForState((state) => state.glanceTabId === this.glanceReplacementId);
@@ -1460,6 +1479,76 @@ Given('twelve ordinary tabs in a narrow window', async function () {
     }
   }
   throw new Error(`no window width left the Island partly reduced: ${JSON.stringify(await islandState(chrome))}`);
+});
+
+// The count is a badge over the shield: it changes no widths, so it must
+// not restart the fit, whose rebuild of a reduced dot row tears down a
+// hovered dot's peek and any keyboard focus on a dot.
+When("the active page's blocked count grows from {int} to {int}", async function (from, to) {
+  const chrome = await mainChromePage();
+  await chrome.evaluate(() => { document.querySelector('#pillDots .island-dot').dataset.glanceProbe = 'kept'; });
+  const { activeTabId } = await this.state();
+  for (const count of [from, Math.round((from + to) / 2), to]) {
+    assert.equal(await this.call('setTabPresentation', activeTabId, { blockedCount: count }), true);
+    await waitForValue(() => chrome.locator('#pillShieldCount').textContent(), (text) => text === String(count),
+      `the shield showing ${count}`);
+  }
+});
+
+Then("the Island's tab dots were not rebuilt", async function () {
+  const chrome = await mainChromePage();
+  assert.equal(await chrome.locator('#pillDots .island-dot[data-glance-probe="kept"]').count(), 1,
+    'the dot row was rebuilt by a blocked-count change');
+});
+
+// font-display: swap draws the fallback font first; when the real one
+// arrives every label widens without any tab or layout change. Simulate that
+// with wider letter spacing on the address, then the font set's own event.
+When('the interface font finishes loading with wider letters', async function () {
+  const chrome = await mainChromePage();
+  await chrome.evaluate(() => {
+    const style = document.createElement('style');
+    style.id = 'glance-font-swap-probe';
+    style.textContent = '#pillDomain { letter-spacing: 3px; }';
+    document.head.append(style);
+    document.fonts.dispatchEvent(new Event('loadingdone'));
+  });
+});
+
+Then("the Island's address is whole and its controls fit", async function () {
+  const chrome = await mainChromePage();
+  try {
+    await waitForValue(() => islandState(chrome), (value) => !value.addressCut && value.outside === 0,
+      'the Island re-fitted to the wider font');
+  } finally {
+    await chrome.evaluate(() => document.getElementById('glance-font-swap-probe')?.remove());
+  }
+});
+
+When('I open Glance in a new window just wide enough to stay side by side', async function () {
+  // The first window has measured its Island: at the divider's stop the main
+  // pane is exactly that minimum.
+  this.glanceMeasuredFloor = (await this.state()).glanceGeometry.primary.width;
+  const runtimeId = await this.call('openNewWindow');
+  this.glanceExtraWindowId = runtimeId;
+  const main = await this.call('openTabInWindow', runtimeId, this.fixtureUrl('glance-second-main'));
+  const reference = await this.call('openTabInWindow', runtimeId, this.fixtureUrl('glance-second-reference'));
+  await this.call('activateTabInWindow', runtimeId, main, false);
+  await waitForValue(async () => (await this.call('windowRuntimes')).find((runtime) => runtime.id === runtimeId),
+    (runtime) => runtime?.tabOrder.includes(reference), 'the new window holding both tabs');
+  // usable = minimum + 320, so the reference keeps more than 300 px.
+  this.glanceFirstLayout = await this.call('firstGlanceLayoutInWindow', runtimeId, reference,
+    this.glanceMeasuredFloor + 12 + 320);
+});
+
+Then("its first layout already stops the divider at the Island's minimum", async function () {
+  const layout = this.glanceFirstLayout;
+  assert.equal(layout?.direction, 'horizontal', `first layout: ${JSON.stringify(layout)}`);
+  const usable = layout.page.width - layout.divider.width;
+  assert.ok(Math.abs(layout.minRatio * usable - this.glanceMeasuredFloor) <= 1,
+    `the new window started with a ${Math.round(layout.minRatio * usable)}px minimum, not the measured ${this.glanceMeasuredFloor}px`);
+  await this.call('closeWindowRuntime', this.glanceExtraWindowId);
+  this.glanceExtraWindowId = null;
 });
 
 When('a download starts', async function () {

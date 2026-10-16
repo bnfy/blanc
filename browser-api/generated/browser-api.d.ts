@@ -297,6 +297,8 @@ export interface GlanceLayout {
   ratio: number;
   /** The smallest main-pane share the divider allows; above 0.5 on macOS when the main pane needs room for the Island and the traffic lights. */
   minRatio: number;
+  /** The largest main-pane share the divider allows: 0.78, or less so the reference keeps 300 px. */
+  maxRatio: number;
   page: Rect;
   primary: Rect;
   divider: Rect;

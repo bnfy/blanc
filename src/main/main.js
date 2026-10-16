@@ -2947,10 +2947,15 @@ function activeGlanceTab() {
   return tab && windowRuntimes.runtimeForTab(id) === rt() ? tab : null;
 }
 
+/** The last Island minimum any window's strip measured. A window that has
+ * not measured its own yet starts from it, so its first Glance layout does
+ * not lay out side by side and then flip once its strip reports. */
+let lastIslandMinPrimaryWidth = 0;
+
 /** The narrowest main pane the divider allows, in px: what the strip last
  * measured the slim Island to need, chips and clearance included. */
 function glanceMinPrimaryWidth() {
-  return rt().islandMinPrimaryWidth || 0;
+  return rt().islandMinPrimaryWidth || lastIslandMinPrimaryWidth;
 }
 
 function glanceGeometry(layout = currentChromeLayout()) {
@@ -6813,11 +6818,15 @@ function closeTab(id) {
   if (!tab || windowRuntimes.runtimeForTab(id) !== rt()) return;
   const wasActive = id === rt().activeTabId;
   const wasGlance = id === rt().glanceTabId;
-  // A find capsule searching this tab goes with it.
-  if (findTargetTabId(rt()) === id) hideOverlay({ refocusContent: false });
+  // A find capsule searching this tab goes with it. Its focus counts as the
+  // tab's: ⌘W pressed in the find bar on the reference hands focus to the
+  // main page, like ⌘W pressed in the reference itself.
+  const findBoundHere = findTargetTabId(rt()) === id;
+  const findHeldFocus = findBoundHere && liveViewContents(rt().overlayView)?.isFocused() === true;
+  if (findBoundHere) hideOverlay({ refocusContent: false });
   // Read before the view is prepared for close: detaching drops focus onto
   // the chrome strip, and the main page should take it instead.
-  const referenceHeldFocus = wasGlance && liveContents(tab)?.isFocused() === true;
+  const referenceHeldFocus = wasGlance && (findHeldFocus || liveContents(tab)?.isFocused() === true);
   // Invalidate pending blank-tab focus before parking or native teardown.
   if (wasActive && !isQuitting && !rt().closing) cancelAddressBarFocusReclaim(rt(), { reveal: false });
   forgetTabWebContentsIds(id);
@@ -7820,6 +7829,7 @@ function registerIpcHandlers() {
     if (event.sender === rt().window?.webContents && Number.isFinite(floor) && floor >= 0 && floor <= 4000
         && Math.round(floor) !== rt().islandMinPrimaryWidth) {
       rt().islandMinPrimaryWidth = Math.round(floor);
+      lastIslandMinPrimaryWidth = rt().islandMinPrimaryWidth;
       if (activeGlanceTab()) resizeActiveView();
     }
     const ok = rect && ['x', 'y', 'width', 'height'].every((f) => Number.isFinite(rect[f]));

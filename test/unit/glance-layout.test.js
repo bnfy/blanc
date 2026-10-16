@@ -15,6 +15,7 @@ test('Glance gives the active page a dominant 62/38 side-by-side split and 68px 
     direction: 'horizontal',
     ratio: DEFAULT_GLANCE_RATIO,
     minRatio: 0.5,
+    maxRatio: 688 / 988,
     page: { x: 0, y: 68, width: 1000, height: 700 },
     primary: { x: 0, y: 68, width: 613, height: 700 },
     divider: { x: 613, y: 68, width: 12, height: 700 },
@@ -37,7 +38,8 @@ test('Glance stacks below the main page with an owned reference header when narr
 test('divider input clamps the main-page share to the supported range', () => {
   const page = { x: 100, y: CHROME_HEIGHT, width: 1000, height: 700 };
   assert.equal(ratioForGlanceDivider(page, { x: -500 }, 'horizontal'), 0.5);
-  assert.equal(ratioForGlanceDivider(page, { x: 5000 }, 'horizontal'), 0.78);
+  // usable 988: the reference keeps 300px, so the share stops at 688/988.
+  assert.equal(ratioForGlanceDivider(page, { x: 5000 }, 'horizontal'), 688 / 988);
   assert.equal(ratioForGlanceDivider(page, { x: Number.NaN }, 'horizontal'), null, 'a malformed point is ignored, not reset');
   assert.equal(ratioForGlanceDivider(page, undefined, 'vertical'), null);
   assert.equal(
@@ -71,11 +73,12 @@ test('a minimum main-pane width stops the divider before the Island runs out of 
   assert.equal(layout.primary.width, 480);
   assert.equal(layout.minRatio, 480 / 808);
   assert.equal(layout.ratio, 480 / 808);
-  // A wider choice is kept as it is.
-  assert.equal(calculateGlanceLayout(page, 0.7, 480).ratio, 0.7);
+  // A choice inside the range is kept as it is (the reference's 300px caps
+  // this 820px page at 508 / 808).
+  assert.equal(calculateGlanceLayout(page, 0.6, 480).ratio, 0.6);
   // The divider follows the same floor.
   assert.equal(ratioForGlanceDivider(page, { x: 0 }, 'horizontal', 480), 480 / 808);
-  assert.equal(Math.round(ratioForGlanceDivider(page, { x: 600 }, 'horizontal', 480) * 808), 600);
+  assert.equal(Math.round(ratioForGlanceDivider(page, { x: 500 }, 'horizontal', 480) * 808), 500);
 });
 
 test('the main-pane minimum never pushes past the maximum share, and stacked ignores it', () => {
@@ -102,4 +105,19 @@ test('Glance stacks when the main-pane minimum would leave the reference too nar
   const wide = calculateGlanceLayout(page(912), 0.5, 600);
   assert.equal(wide.direction, 'horizontal');
   assert.equal(wide.glanceContent.width, 300);
+});
+
+test('the divider stops before the reference is narrower than 300px', () => {
+  const page = (width) => ({ x: 0, y: CHROME_HEIGHT, width, height: 700 });
+  // 1000px page: usable 988, the reference keeps 300px.
+  const narrow = calculateGlanceLayout(page(1000), 0.78);
+  assert.equal(narrow.maxRatio, 688 / 988);
+  assert.equal(narrow.glanceContent.width, 300);
+  // Wide pages keep the 0.78 maximum share.
+  assert.equal(calculateGlanceLayout(page(2000), 0.78).maxRatio, 0.78);
+  assert.equal(calculateGlanceLayout(page(2000), 0.78).ratio, 0.78);
+  // An 800px page with no main-pane minimum: the default split already gives 300px.
+  assert.equal(calculateGlanceLayout(page(800), 0.78).glanceContent.width, 300);
+  // Stacked layouts keep their own range.
+  assert.equal(calculateGlanceLayout(page(700), 0.78).maxRatio, 0.78);
 });

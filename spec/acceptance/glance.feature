@@ -353,3 +353,34 @@ Feature: Glance reference pane
     And the Island's address stays readable
     And a full-width Island stays clear of the Windows and Linux window controls
     And the Glance window returns to its usual layout
+
+  @F34-1 @F34 @F12 @D11
+  Scenario: A growing blocked count leaves the Island's dots alone
+    Given twelve ordinary tabs in a narrow window
+    When the active page's blocked count grows from 9 to 123
+    Then the Island's tab dots were not rebuilt
+    And the Glance window returns to its usual layout
+
+  @F34-1 @F34 @F3 @D11
+  Scenario: The Island re-fits when the interface font finishes loading
+    Given twelve ordinary tabs in a narrow window
+    When the interface font finishes loading with wider letters
+    Then the Island's address is whole and its controls fit
+    And the Glance window returns to its usual layout
+
+  @F34-1 @F34 @F9 @D11
+  Scenario: Close Tab from the find bar on the reference hands focus to the main page
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And the reference pane is the focused pane
+    And I press the find command
+    And I press the close-tab command in the find bar
+    Then the reference tab is closed and the main page has focus
+
+  @F34-1 @F34 @F2 @D11
+  Scenario: A new window's first Glance layout already leaves room for the Island
+    Given twelve ordinary tabs with one open in Glance
+    When I narrow the main pane to its smallest side-by-side width
+    And I open Glance in a new window just wide enough to stay side by side
+    Then its first layout already stops the divider at the Island's minimum
+    And the Glance window returns to its usual layout

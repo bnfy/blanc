@@ -40,6 +40,7 @@ test('a quitting active-tab teardown never selects and wakes a quiet replacement
     cancelPermissionPromptsForTab: () => {},
     // Glance PR 2: an open find capsule bound to the closing tab closes with it.
     findTargetTabId: () => null,
+    liveViewContents: () => null,
     hideOverlay: () => {},
     resetFocusedPane: () => {},
     permissionPendingTabIds: () => new Set(),
@@ -93,6 +94,7 @@ test('closeTab tolerates a malformed provisional url during WebContents teardown
     cancelPermissionPromptsForTab: () => {},
     // Glance PR 2: an open find capsule bound to the closing tab closes with it.
     findTargetTabId: () => null,
+    liveViewContents: () => null,
     hideOverlay: () => {},
     resetFocusedPane: () => {},
     permissionPendingTabIds: () => new Set(),
@@ -149,6 +151,7 @@ test('closing a quiet storage-bearing tab also closes its retained WebContents',
     cancelPermissionPromptsForTab: () => {},
     // Glance PR 2: an open find capsule bound to the closing tab closes with it.
     findTargetTabId: () => null,
+    liveViewContents: () => null,
     hideOverlay: () => {},
     resetFocusedPane: () => {},
     permissionPendingTabIds: () => new Set(),
@@ -212,6 +215,7 @@ test('active private close keeps its native parent until WebContents destruction
     cancelPermissionPromptsForTab: () => {},
     // Glance PR 2: an open find capsule bound to the closing tab closes with it.
     findTargetTabId: () => null,
+    liveViewContents: () => null,
     hideOverlay: () => {},
     resetFocusedPane: () => {}, popupChildCounts: new Map(),
     pruneEmptyGroups: () => {}, lastMainFrameMethod: new Map(),

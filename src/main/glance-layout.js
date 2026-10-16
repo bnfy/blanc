@@ -35,6 +35,13 @@ function minimumGlanceRatio(usable, minPrimaryWidth) {
   return Math.min(MAX_GLANCE_RATIO, Math.max(MIN_GLANCE_RATIO, floor));
 }
 
+/** The largest main-pane share the divider allows: MAX_GLANCE_RATIO, or less
+ * so the reference keeps MIN_REFERENCE_WIDTH (the mirror of the minimum). */
+function maximumGlanceRatio(usable) {
+  if (!(usable > 0)) return MAX_GLANCE_RATIO;
+  return Math.max(MIN_GLANCE_RATIO, Math.min(MAX_GLANCE_RATIO, (usable - MIN_REFERENCE_WIDTH) / usable));
+}
+
 function normalizedPageBounds(pageBounds) {
   return {
     x: dimension(pageBounds?.x),
@@ -59,7 +66,8 @@ function calculateGlanceLayout(pageBounds, ratio = DEFAULT_GLANCE_RATIO, minPrim
     const divider = sideBySideDivider;
     const usable = Math.max(0, page.width - divider);
     const minRatio = minimumGlanceRatio(usable, minPrimaryWidth);
-    const resolvedRatio = Math.max(minRatio, normalizeGlanceRatio(ratio));
+    const maxRatio = Math.max(minRatio, maximumGlanceRatio(usable));
+    const resolvedRatio = Math.min(maxRatio, Math.max(minRatio, normalizeGlanceRatio(ratio)));
     const primaryWidth = Math.round(usable * resolvedRatio);
     const glanceContent = {
       x: page.x + primaryWidth + divider,
@@ -71,6 +79,7 @@ function calculateGlanceLayout(pageBounds, ratio = DEFAULT_GLANCE_RATIO, minPrim
       direction: 'horizontal',
       ratio: resolvedRatio,
       minRatio,
+      maxRatio,
       page,
       primary: { x: page.x, y: page.y, width: primaryWidth, height: page.height },
       divider: {
@@ -122,6 +131,7 @@ function calculateGlanceLayout(pageBounds, ratio = DEFAULT_GLANCE_RATIO, minPrim
     direction: 'vertical',
     ratio: resolvedRatio,
     minRatio: MIN_GLANCE_RATIO,
+    maxRatio: MAX_GLANCE_RATIO,
     page,
     primary: { x: page.x, y: page.y, width: page.width, height: primaryHeight },
     divider: dividerRegion,
@@ -149,7 +159,9 @@ function ratioForGlanceDivider(pageBounds, point, direction, minPrimaryWidth = 0
   const origin = horizontal ? page.x : page.y;
   if (!Number.isFinite(coordinate)) return null;
   const ratio = normalizeGlanceRatio((coordinate - origin) / available);
-  return horizontal ? Math.max(minimumGlanceRatio(available, minPrimaryWidth), ratio) : ratio;
+  if (!horizontal) return ratio;
+  const minRatio = minimumGlanceRatio(available, minPrimaryWidth);
+  return Math.min(Math.max(minRatio, maximumGlanceRatio(available)), Math.max(minRatio, ratio));
 }
 
 module.exports = {

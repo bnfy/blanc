@@ -465,15 +465,25 @@
   /** Everything the fit depends on except the dots themselves: the room the
    * stylesheet gives the pill (its computed max-width, which follows the
    * window, the rail and Glance), which chips are showing, and the address.
+   * Not the blocked count: it is a badge over the shield and takes no width.
    * Style only, no layout. */
   function islandFitKey() {
     const shown = [...islandPill.children, ...pillShortcuts.children, ...pillActions.children]
       .map((element) => (element.hidden ? 0 : 1)).join('');
     return [
-      getComputedStyle(islandPill).maxWidth, state.tabLayout, shown, pillShieldCount.textContent,
+      getComputedStyle(islandPill).maxWidth, state.tabLayout, shown,
       state.tabs.length, state.activeTabId, pillDomain.textContent,
     ].join('|');
   }
+
+  // The interface fonts load with font-display: swap, so a fit made before
+  // they arrive was measured in the fallback. Every label changes width when
+  // they swap in, with nothing in the fit key changing: fit again from scratch.
+  document.fonts.addEventListener('loadingdone', () => {
+    dotFitKey = '';
+    fitIslandDots();
+    requestAnimationFrame(() => reportIslandRect());
+  });
 
   /** Only rebuild the dot row when the dots themselves change — not on every
    * blocked-count broadcast. Rebuilding tears down each dot's peek span and
@@ -493,8 +503,9 @@
     return islandPill.getBoundingClientRect().width / (1 + ISLAND_SCALE * k);
   }
 
-  /** The narrowest side-by-side main pane that holds the slim Island (one
-   * dot, no Forward or Favorite) with about ten characters of address, plus
+  /** The narrowest side-by-side main pane that holds the slim Island (no
+   * Forward or Favorite, and no dot row: Glance hides it) with about ten
+   * characters of address, plus
    * the clearance the stylesheet gives the Island in this layout. Measured
    * on the live pill, so every chip on show counts and the clearance stays
    * defined in one place (styles.css). Main stops the Glance divider there. */
@@ -506,15 +517,11 @@
     islandPill.append(filler);
     const room = pillWidth();
     filler.remove();
-    const saved = { budget: dotBudget, slim: islandPill.classList.contains('slim') };
-    dotBudget = 1;
-    renderDotRow();
+    const wasSlim = islandPill.classList.contains('slim');
     islandPill.classList.add('slim', 'measuring');
     const needed = pillWidth();
     islandPill.classList.remove('measuring');
-    islandPill.classList.toggle('slim', saved.slim);
-    dotBudget = saved.budget;
-    renderDotRow();
+    islandPill.classList.toggle('slim', wasSlim);
     islandFloor = Math.ceil(glanceLayout.primary.width - room + needed);
   }
 
@@ -555,6 +562,7 @@
     glanceDivider.setAttribute('aria-orientation', direction === 'horizontal' ? 'vertical' : 'horizontal');
     glanceDivider.setAttribute('aria-valuenow', String(Math.round(ratio * 100)));
     glanceDivider.setAttribute('aria-valuemin', String(Math.round((glanceLayout.minRatio ?? 0.5) * 100)));
+    glanceDivider.setAttribute('aria-valuemax', String(Math.round((glanceLayout.maxRatio ?? 0.78) * 100)));
     glanceDivider.setAttribute('aria-valuetext', blancI18n.t('glance.dividerValue', { percent: Math.round(ratio * 100) }));
 
     glanceHeader.style.left = `${header.x}px`;
@@ -1145,8 +1153,9 @@
     let next = glanceKeyRatio ?? glanceLayout.ratio;
     const step = event.shiftKey ? 0.05 : 0.02;
     const minRatio = glanceLayout.minRatio ?? 0.5;
+    const maxRatio = glanceLayout.maxRatio ?? 0.78;
     if (event.key === 'Home') next = minRatio;
-    else if (event.key === 'End') next = 0.78;
+    else if (event.key === 'End') next = maxRatio;
     else if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       glanceKeyRatio = null;
@@ -1162,7 +1171,7 @@
     ) next += step;
     else return;
     event.preventDefault();
-    glanceKeyRatio = Math.max(minRatio, Math.min(0.78, next));
+    glanceKeyRatio = Math.max(minRatio, Math.min(maxRatio, next));
     const point = pointForGlanceRatio(glanceKeyRatio);
     if (point) window.browserAPI.resizeGlance(point);
   });

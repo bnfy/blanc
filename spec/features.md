@@ -767,8 +767,9 @@ From the desktop `DEFAULTS`:
   ⌘L panel, the rail and `Cmd/Ctrl+1–9`. When the main pane is narrow the
   Island also hides Forward and Favorite, and the divider stops before the
   address becomes unreadable (measured from what the Island is showing).
-  Glance stacks instead of going side by side when that minimum would leave
-  the reference under 300 px.
+  The divider also never makes the reference narrower than 300 px, and Glance
+  stacks instead of going side by side when the main pane's minimum would
+  leave the reference less than that.
 - The reference header carries **Back** (disabled when there is nothing to go
   back to) and **Reload** / **Stop**. **Make main**'s accessible name begins
   with its visible words, and right-clicking the header's title opens the
