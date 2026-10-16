@@ -34,6 +34,10 @@ bool HasIsland(views::View* parent);
 bool IsCaption(views::View* parent, int x, int y);
 void RestoreExtensions(views::View* parent);
 bool OpenExtensions(BrowserWindowInterface* browser);
+// ⌘D in an Island window: toggle the Favorite like the Island heart instead of
+// opening Chromium's star bubble. Returns true when the window is an Island
+// window, whether or not the page could be saved.
+bool ToggleFavoriteFromIsland(BrowserWindowInterface* browser);
 bool OpenIsland(BrowserWindowInterface* browser, bool new_tab = false,
                 const std::string& initial_text = std::string());
 std::unique_ptr<views::WebView> CreateIsland(BrowserWindowInterface* browser);

@@ -134,7 +134,10 @@
     opened = false;
     overlay.hidden = true;
     await request('height', [68]);
-    if (focus) strip.contentWindow.focus();
+    // Escape and outside clicks return focus to the page (Electron's
+    // hideOverlay does the same); extension activation passes false so the
+    // native popup takes focus instead.
+    if (focus) await request('focusPage');
     reportGeometry();
   }
 
@@ -185,13 +188,36 @@
       await refresh();
     },
     openPage: async (name) => {
-      if (!['downloads', 'extensions'].includes(name)) {
+      // Electron names Favorites `bookmarks` internally; Chromium's manager
+      // pages stand in for Blanc's utility sheets in this prototype.
+      if (!['downloads', 'extensions', 'bookmarks', 'history'].includes(name)) {
         throw new Error('Use Chromium’s native controls for this page in the prototype.');
       }
       await request('createTab', [`chrome://${name}/`]);
     },
-    listHistory: async () => [],
-    listFavorites: async () => [],
+    // Favorites and history are Chromium's own BookmarkModel and
+    // HistoryService, shaped like Electron's records; see contract.json.
+    // The copied hearts enable on any http(s) page without checking
+    // `private`; like Electron's main, a private tab is a silent no-op here
+    // (prototype.css also hides them under the private theme). The native
+    // guard stays as defense in depth.
+    toggleBookmark: async () => {
+      const tab = snapshot?.tabs.find(tab => tab.id === snapshot.activeTabId);
+      if (!tab || tab.private) return;
+      await request('toggleBookmark', [tab.id]);
+      await refresh();
+    },
+    saveFavorite: async (folder) => {
+      const tab = snapshot?.tabs.find(tab => tab.id === snapshot.activeTabId);
+      if (!tab || tab.private) return;
+      await request('saveFavorite', [tab.id, typeof folder === 'string' ? folder : '']);
+      await refresh();
+    },
+    listFavorites: () => request('listFavorites'),
+    listHistory: (options) => {
+      const limit = Number.isInteger(options?.limit) ? options.limit : 300;
+      return request('listHistory', [Math.min(300, Math.max(1, limit))]);
+    },
     listRemoteTabs: async () => [],
     listWorkspaces: async () => ({ items: [], tint: 'mark' }),
     searchSuggestions: async () => [],

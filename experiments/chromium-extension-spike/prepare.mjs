@@ -27,10 +27,16 @@ if (actualVersion !== expectedVersion) {
   fail(`expected Chromium ${expectedVersion}, found ${actualVersion}; review anchors before changing the pin`);
 }
 
+// Read first and treat a missing file as changed, rather than checking
+// existence and then reading (CodeQL js/file-system-race).
 function writeIfChanged(target, value) {
-  if (!fs.existsSync(target) || !fs.readFileSync(target).equals(Buffer.from(value))) {
-    fs.writeFileSync(target, value);
+  let current = null;
+  try {
+    current = fs.readFileSync(target);
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
   }
+  if (!current || !current.equals(Buffer.from(value))) fs.writeFileSync(target, value);
 }
 
 const generated = path.join(here, 'generated');
@@ -137,12 +143,14 @@ rendererSource = rendererSource.replace(favoriteAnchor, favoriteAnchor + "\n  fa
 assets.set(renderer, rendererSource);
 
 // Only these copied slash commands have native implementations in this spike.
+// /save, /favorites and /history ride the bookmark and history bridge; /clear
+// stays out until history deletion is implemented and tested on a disposable profile.
 const overlayScript = path.join(generated, 'overlay.js');
 let overlaySource = assets.get(overlayScript).toString('utf8');
 const commandsAnchor = '  ];\n\n  function runCommand(command) {';
 if (overlaySource.split(commandsAnchor).length !== 2) fail('command list anchor changed');
 overlaySource = overlaySource.replace(commandsAnchor,
-  "  ].filter((command) => ['/downloads', '/new', '/close'].includes(command.cmd));\n\n  function runCommand(command) {");
+  "  ].filter((command) => ['/downloads', '/new', '/close', '/save', '/favorites', '/history'].includes(command.cmd));\n\n  function runCommand(command) {");
 assets.set(overlayScript, overlaySource);
 
 for (const [target, value] of assets) writeIfChanged(target, value);
@@ -390,6 +398,23 @@ edit('chrome/browser/ui/browser_commands.cc', [
     present: '  if (blanc_prototype::IsEnabled() && blanc_prototype::OpenIsland(browser))\n',
   },
 ]);
+
+// ⌘D (IDC_BOOKMARK_THIS_TAB) toggles the Island's Favorite instead of opening
+// Chromium's star bubble, which has no toolbar to anchor to in Island windows.
+// The shared command function serves both dispatch paths; its parameter type
+// differs between Chromium pins, so accept either exact signature.
+const commandsFile = path.join(chromium, 'chrome/browser/ui/browser_commands.cc');
+const commandsSource = fs.readFileSync(commandsFile, 'utf8');
+const bookmarkAnchor = [
+  'void BookmarkCurrentTab(BrowserWindowInterface* browser) {\n',
+  'void BookmarkCurrentTab(Browser* browser) {\n',
+].find((anchor) => commandsSource.split(anchor).length === 2);
+if (!bookmarkAnchor) fail('BookmarkCurrentTab anchor changed');
+edit('chrome/browser/ui/browser_commands.cc', [{
+  anchor: bookmarkAnchor,
+  replacement: `${bookmarkAnchor}  if (blanc_prototype::ToggleFavoriteFromIsland(browser))\n    return;\n`,
+  present: '  if (blanc_prototype::ToggleFavoriteFromIsland(browser))\n',
+}]);
 
 edit('chrome/browser/search/search.cc', [
   {

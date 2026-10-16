@@ -702,3 +702,160 @@ Repeated preparation reused the compiled icon, and final guarded preflight
 reported zero actions. Bundle resources match the compiled cache byte-for-byte.
 Eight build-guard tests, targeted ESLint, Node syntax and diff checks passed.
 Evidence: `evidence/dock-sunrise-dark-verification.json`.
+
+
+## Favorites, history and Island search — October 16, 2026 (built on the Mac at `06b3094`; automated bridge checks passed, native-input checklist pending)
+
+Target flow: save a page from the Island → see it on Blanc's start page → find
+it through Island search → verify persistence after restart. The bridge now
+backs Blanc's existing Favorites and history UI with Chromium's `BookmarkModel`
+and `HistoryService`; no shipping Electron source changed, and the start page,
+pill and overlay are still the copied Electron documents.
+
+What changed (`native/blanc_prototype_ui.cc`, `prototype/host.js`,
+`prototype/newtab-adapter.js`, `prototype/prototype.css`, the slash allowlist
+in `prepare.mjs`):
+
+- Tab snapshots carry `bookmarked` (committed main-frame URL, loaded model,
+  http(s) only) and `favicon` (the committed `NavigationEntry` favicon as a PNG
+  data URL, re-encoded only when the image changes, never for private windows).
+- `toggleBookmark` / `saveFavorite` validate the tab ID and re-read the
+  committed URL natively. Off removes every user bookmark with that exact URL
+  and leaves folders in place; `/save <folder>` finds or creates a folder
+  directly under Other bookmarks (case-insensitive match, 1–100 characters
+  after trimming, like Electron) and moves an existing entry into it.
+- `listFavorites` walks the bookmark tree (bar, other, mobile; capped at
+  1,000) into contract-shaped `FavoriteItem`s with Chromium's cached bookmark
+  favicons; `listHistory` queries up to 300 deduplicated entries with
+  `favicon: null` (letter fallback). Both reply empty in private windows, and
+  the history service is never resolved through an off-the-record profile.
+- `/favorites` and `/history` open `chrome://bookmarks/` and `chrome://history/`
+  in a tab. `/clear` stays out of the allowlist.
+- The start page's handler observes the bookmark model and tells an open page
+  to re-list Favorites; the adapter coalesces bursts and re-renders the current
+  layout. The pill heart, panel heart and the Favorites/History footer buttons
+  are no longer hidden.
+
+Checks run in the Linux session (no Chromium checkout or Mac here): Node syntax
+checks for every prototype script, the eight build-guard tests, and ESLint
+recommended rules over the prototype JavaScript (repository-pinned ESLint
+10.12.0, @eslint/js 10.0.1, globals 17.13.0 in a temporary directory). The
+native source has not been compiled.
+
+Mac pass (Codex, second attempt, on `06b3094`; recorded in the PR review of
+October 16): the guarded incremental build completed 7 steps in 35.94 seconds
+and a repeated preparation plus guarded dry run reported zero actions; no
+cache, toolchain or build-mode change. The runtime checks were **automated
+bridge and DOM checks driven through DevTools** on the permanent profile with
+localhost fixtures, not native mouse or keyboard input; the one native shortcut
+exercised was ⌘⇧N. They established: the host's `toggleBookmark` saved a fixture
+into Chromium's model and removed it again; `saveFavorite('Codex PR 858')`
+saved a second fixture into that named folder; the already open start page
+acquired the Favorite without reloading and its Ledger, Shelf and Tally
+renderers produced the link (Billboard shows recent sites by design); history
+returned the localhost visit; the Quick Switcher showed one Favorite row with
+its letter fallback and no duplicate history row for that URL (an open-tab row
+for the same page still appeared, as designed); `openPage` opened Chromium's
+bookmarks and history managers; Favorites, the folder assignment and history
+survived a full quit and relaunch; in a private window on a real http fixture
+the snapshot reported `private: true` and `bookmarked: false`, both hearts were
+hidden, `toggleBookmark` was silent with no banner, and Favorites and history
+listed empty; the extension picker listed all six installed extensions, with
+their six service-worker targets present after relaunch. Only the test
+bookmarks, the empty test folder, the exact fixture history entries and the
+temporary tabs and windows were removed; the prototype was left open on its
+original start page.
+
+That initial pass did not establish native input behavior. The later Mac pass
+on `3d9fcd3c` completed those checks: native clicks on both hearts; native typing
+and Enter for `/save`, `/favorites` and `/history`; Favorites/History footer
+clicks; Quick Switcher Favorite/history Enter navigation; case-insensitive
+folder reuse, bare-save deduplication, moving an existing bookmark and rejection
+of a 101-character folder name. A fresh-origin page saved with native Cmd-D
+before its delayed favicon arrived subsequently acquired the cached PNG icon.
+Ledger, Shelf and Tally were each selected with native mouse input and verified
+while visible: insertion/removal through Chromium's bookmark API refreshed the
+rendered list without reload. Those observer mutations were API-driven, not
+native input. Native clicking on a rendered Favorite also navigated correctly.
+Bookmark IDs, folders, history and favicon data survived a full restart; the
+favicon assertion waited for asynchronous cache loading. Start-page/private
+HTTP Cmd-D no-ops, hidden private hearts, and precise fixture cleanup passed.
+Authenticated extension workflows were not repeated.
+
+The focus failures discovered in that pass were fixed and natively retested at
+`a50eb2a`, as described below. Evidence is now committed:
+[initial bridge results](evidence/favorites-bridge-results.json),
+[initial final window](evidence/favorites-bridge-final.png),
+[broader native results](evidence/favorites-native-results.md) and
+[focus retest](evidence/favorites-focus-results.md), with the chronological
+[native run](evidence/favorites-native-run.json) and
+[focus run](evidence/favorites-focus-run.json). The run records retain failed
+harness attempts and their corrected retests; the reports distinguish these
+from product findings. No broader native-input checklist item above remains
+pending within this tested scope.
+
+First Mac build attempt on `89d7637` (Codex): the guarded build failed after
+8.77 s with three compile errors, caches and the running prototype preserved.
+Fixed in the follow-up commit: `GetMostRecentlyAddedUserNodeForURL` is a
+`BookmarkModel` member in this pin, not a `bookmark_utils` free function;
+`NavigationEntry::GetFavicon()` is non-const, so the entry pointer is
+non-const; `history::QueryOptions` names the field `duplicate_policy`. The
+same review found that the copied hearts enable on any http(s) page without
+checking `private`, so a click in an incognito window reached the native
+guard and surfaced its error banner; the host now treats a private tab as a
+silent no-op and hides both hearts under the private theme, with the native
+guard kept as defense in depth. The retest above used a real http(s) page in a
+private window, not its start page.
+
+
+## ⌘D toggles the Island Favorite — October 16, 2026 (built and natively retested on the Mac at `a50eb2a`)
+
+Chromium's `IDC_BOOKMARK_THIS_TAB` (⌘D) opened the native star bubble, which
+has no toolbar to anchor to in an Island window. `prepare.mjs` now inserts a
+call to `blanc_prototype::ToggleFavoriteFromIsland(browser)` at the start of
+the shared `BookmarkCurrentTab` command function (it accepts either the
+`BrowserWindowInterface*` or `Browser*` signature, failing closed if neither
+is found exactly once). In Island windows the function toggles the Favorite
+under the same rules as the heart (committed http(s) page, loaded model, no
+private windows; otherwise a no-op like Electron), then asks the Island host to
+refresh so the heart repaints immediately. Other windows keep Chromium's
+bubble. ⌘⇧D (bookmark all tabs) is untouched.
+
+Checks run in the Linux session: Node syntax checks, the eight build-guard
+tests and ESLint recommended rules over the prototype JavaScript; the native
+source is not compiled in that environment. The Mac passes below ran
+`prepare.mjs`, the guarded check and build, then verified native Cmd-D on/off
+without a bubble, start-page/private HTTP no-ops, and preservation of the
+baseline tabs. A non-Island popup did not show a bookmark bubble: pinned
+Chromium's `CanBookmarkCurrentTab()` restricts that command to `TYPE_NORMAL`.
+The popup therefore cannot establish ordinary-window bubble preservation;
+no such bubble pass is claimed.
+
+Mac result on the ⌘D head (Codex): the guarded build passed in 58 seconds with
+no cold rebuild; restart persistence and the other tested controls passed; test
+data was cleaned up and the prototype left on the original tab. Two shortcut
+failures remained: ⌘D while the Island had focus, and ⌘L after closing the
+Island with Escape until the page was clicked. Both share one cause. The
+Island's WebContents is created by `views::WebView`, which gives it no handler
+for keyboard events its renderer leaves unhandled, so non-reserved key
+equivalents (⌘D, ⌘L, ⌘R, …) died whenever the Island was the first responder;
+reserved commands (⌘T, ⌘W) are dispatched before the first responder and kept
+working, and the host's Escape path parked focus in the hidden overlay, which
+is why ⌘L stayed dead until a page click. The follow-up commit sets a
+process-wide `content::WebContentsDelegate` on the Island WebContents whose
+`HandleKeyboardEvent` redispatches through `views::UnhandledKeyboardEventHandler`
+with the Island view's FocusManager (the pattern BrowserView and Chromium's
+side-panel WebUI views use), and the host's close path now asks the bridge to
+focus the page (`focusPage`), matching Electron's hideOverlay; extension
+activation keeps passing `focus = false` so the native popup takes focus.
+
+Mac result on `a50eb2a` (Codex): the guarded build passed in 37 seconds with
+no cold rebuild, and every native retest passed: ⌘D toggles the Favorite with
+the Island's address input focused; Escape then ⌘L reopens the Island without
+clicking the page; ⌘R and ⌘[ work from the open panel; Escape restores typing
+to the page; Bitwarden's popup retains keyboard focus after selection from the
+Extensions view. Fixtures were cleaned up, the original tab preserved and the
+prototype left open. The exact build took 36.54 seconds (7 steps), and the
+final guard scheduled zero actions. See the committed
+[focus report](evidence/favorites-focus-results.md) and
+[run record](evidence/favorites-focus-run.json).

@@ -4,31 +4,51 @@
 #include <algorithm>
 #include <memory>
 #include <map>
+#include <optional>
+#include <set>
 #include <string>
 #include <utility>
 #include "base/command_line.h"
 #include "base/files/file_util.h"
 #include "base/functional/bind.h"
 #include "base/functional/callback_helpers.h"
+#include "base/i18n/case_conversion.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
+#include "base/no_destructor.h"
 #include "base/json/string_escape.h"
 #include "base/memory/ref_counted_memory.h"
+#include "base/strings/string_number_conversions.h"
+#include "base/strings/string_util.h"
 #include "base/strings/utf_string_conversions.h"
 #include "base/supports_user_data.h"
+#include "base/task/cancelable_task_tracker.h"
 #include "base/task/thread_pool.h"
 #include "base/task/bind_post_task.h"
+#include "base/time/time.h"
 #include "base/timer/timer.h"
 #include "base/scoped_observation.h"
 #include "base/strings/stringprintf.h"
 #include "base/values.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/bookmarks/bookmark_model_factory.h"
+#include "chrome/browser/history/history_service_factory.h"
 #include "chrome/browser/history/top_sites_factory.h"
 #include "chrome/browser/ui/browser_window/public/global_browser_collection.h"
+#include "components/bookmarks/browser/base_bookmark_model_observer.h"
 #include "components/bookmarks/browser/bookmark_model.h"
+#include "components/bookmarks/browser/bookmark_node.h"
 #include "components/bookmarks/browser/url_and_title.h"
+#include "components/bookmarks/common/bookmark_metrics.h"
+#include "components/history/core/browser/history_service.h"
+#include "components/history/core/browser/history_types.h"
 #include "components/history/core/browser/top_sites.h"
+#include "components/keyed_service/core/service_access_type.h"
+#include "components/input/native_web_keyboard_event.h"
+#include "content/public/browser/favicon_status.h"
+#include "content/public/browser/navigation_entry.h"
+#include "content/public/browser/web_contents_delegate.h"
+#include "ui/views/controls/webview/unhandled_keyboard_event_handler.h"
 #include "chrome/browser/ui/browser_tabstrip.h"
 #include "chrome/browser/ui/exclusive_access/exclusive_access_manager.h"
 #include "chrome/browser/ui/exclusive_access/fullscreen_controller.h"
@@ -69,6 +89,152 @@ namespace blanc_prototype {
 namespace {
 constexpr char kOwnerKey[] = "blanc-prototype-owner";
 constexpr int kIslandViewId = 0x424c;
+// Electron's Quick Switcher asks for 300 entries; the bridge never returns more.
+constexpr int kHistoryLimit = 300;
+constexpr size_t kFavoritesLimit = 1000;
+// Electron's validFolder(): trimmed, 1–100 UTF-16 units.
+constexpr size_t kFolderMaxLength = 100;
+// Favicons are small by construction; anything larger is not a favicon.
+constexpr int kFaviconMaxSide = 64;
+
+// Favorites and history are web pages only, as in Electron.
+bool IsFavoritable(const GURL& url) {
+  return url.SchemeIsHTTPOrHTTPS();
+}
+
+// The regular profile's bookmarks, once loaded. Private windows get none:
+// Electron never populates Favorites from private tabs, and Chromium shares
+// the regular model with incognito, so the guard lives here, not in the model.
+bookmarks::BookmarkModel* LoadedBookmarkModel(Profile* profile) {
+  if (!profile || profile->IsOffTheRecord()) return nullptr;
+  auto* model = BookmarkModelFactory::GetForBrowserContext(profile);
+  return model && model->loaded() ? model : nullptr;
+}
+
+// A bounded PNG data URL for a cached favicon, or "" when there is none.
+// No network fetch happens here: the image is whatever Chromium already has.
+std::string FaviconDataUrl(const gfx::Image& image) {
+  if (image.IsEmpty()) return std::string();
+  const SkBitmap bitmap = image.AsBitmap();
+  if (bitmap.drawsNothing() || bitmap.width() > kFaviconMaxSide ||
+      bitmap.height() > kFaviconMaxSide) {
+    return std::string();
+  }
+  return webui::GetBitmapDataUrl(bitmap);
+}
+
+base::Value NullableString(const std::string& value) {
+  return value.empty() ? base::Value() : base::Value(value);
+}
+
+// One FavoriteItem (browser-api/contract.json). `folder` is the immediate
+// user folder's title; nodes directly under a permanent node are ungrouped.
+// GetFavicon() returns the cached image and schedules a load when there is
+// none yet; BookmarkNodeFaviconChanged then refreshes open start pages.
+base::DictValue FavoriteRecord(bookmarks::BookmarkModel* model,
+                               const bookmarks::BookmarkNode* node) {
+  const auto* parent = node->parent();
+  const bool in_folder = parent && !parent->is_permanent_node();
+  const std::u16string title = node->GetTitle();
+  return base::DictValue()
+      .Set("id", base::NumberToString(node->id()))
+      .Set("url", node->url().spec())
+      .Set("title", title.empty() ? node->url().spec() : base::UTF16ToUTF8(title))
+      .Set("favicon", NullableString(FaviconDataUrl(model->GetFavicon(node))))
+      .Set("addedAt", node->date_added().InMillisecondsFSinceUnixEpoch())
+      .Set("folder", in_folder ? base::Value(base::UTF16ToUTF8(parent->GetTitle()))
+                               : base::Value());
+}
+
+void CollectFavorites(bookmarks::BookmarkModel* model,
+                      const bookmarks::BookmarkNode* node,
+                      base::ListValue& items) {
+  for (const auto& child : node->children()) {
+    if (items.size() >= kFavoritesLimit) return;
+    if (child->is_folder()) {
+      CollectFavorites(model, child.get(), items);
+    } else if (child->is_url() && IsFavoritable(child->url())) {
+      items.Append(FavoriteRecord(model, child.get()));
+    }
+  }
+}
+
+// Every bookmark in the profile, in Chromium's own order (bar, other, mobile;
+// folders flattened in place), capped. An unloaded model lists nothing.
+base::ListValue ListFavorites(bookmarks::BookmarkModel* model) {
+  base::ListValue items;
+  if (model) CollectFavorites(model, model->root_node(), items);
+  return items;
+}
+
+// Electron's folderKey(): trimmed, case-insensitive. Returns nullopt for a
+// name Electron's validFolder() would reject, so the caller writes nothing.
+std::optional<std::u16string> ValidFolderName(const std::string& folder) {
+  std::u16string trimmed;
+  base::TrimWhitespace(base::UTF8ToUTF16(folder), base::TRIM_ALL, &trimmed);
+  if (trimmed.empty() || trimmed.size() > kFolderMaxLength) return std::nullopt;
+  return trimmed;
+}
+
+// `/save <folder>` targets a folder directly under Other bookmarks, matched
+// like Electron (Work and work are one folder), created at the end if absent.
+const bookmarks::BookmarkNode* FindOrCreateFolder(bookmarks::BookmarkModel* model,
+                                                  const std::u16string& name) {
+  const auto* parent = model->other_node();
+  const std::u16string key = base::i18n::ToLower(name);
+  for (const auto& child : parent->children()) {
+    if (child->is_folder() && base::i18n::ToLower(child->GetTitle()) == key)
+      return child.get();
+  }
+  return model->AddFolder(parent, parent->children().size(), name);
+}
+
+// Toggle semantics, defined before any removal: a page is a Favorite while
+// any user bookmark carries its exact URL. Turning it off removes every such
+// node across folders (Chromium's own star bubble Remove does the same, and
+// Electron's store holds one entry per URL), and never removes a folder, even
+// one it empties. Managed or otherwise non-user-editable nodes are left alone.
+bool ToggleFavorite(bookmarks::BookmarkModel* model, const GURL& url,
+                    const std::u16string& title) {
+  if (model->IsBookmarked(url)) {
+    for (int guard = 0; guard < 64; ++guard) {
+      const auto* node = model->GetMostRecentlyAddedUserNodeForURL(url);
+      if (!node) break;
+      model->Remove(node, bookmarks::metrics::BookmarkEditSource::kUser, FROM_HERE);
+    }
+    return model->IsBookmarked(url);
+  }
+  const auto* parent = model->other_node();
+  model->AddNewURL(parent, parent->children().size(),
+                   title.empty() ? base::UTF8ToUTF16(url.spec()) : title, url);
+  return true;
+}
+
+// `/save [folder]`, mirroring Electron's applySaveFavorite(): add-only; an
+// already saved page is a no-op for a bare save and moves for a named folder;
+// an invalid folder name writes nothing.
+bool SaveFavorite(bookmarks::BookmarkModel* model, const GURL& url,
+                  const std::u16string& title, const std::string& folder) {
+  const bool wants_folder = !folder.empty();
+  std::optional<std::u16string> name;
+  if (wants_folder) {
+    name = ValidFolderName(folder);
+    if (!name) return model->IsBookmarked(url);
+  }
+  if (model->IsBookmarked(url)) {
+    const auto* node = model->GetMostRecentlyAddedUserNodeForURL(url);
+    if (node && name) {
+      const auto* target = FindOrCreateFolder(model, *name);
+      if (node->parent() != target)
+        model->Move(node, target, target->children().size());
+    }
+    return true;
+  }
+  const auto* parent = name ? FindOrCreateFolder(model, *name) : model->other_node();
+  model->AddNewURL(parent, parent->children().size(),
+                   title.empty() ? base::UTF8ToUTF16(url.spec()) : title, url);
+  return true;
+}
 
 // Like Electron's faux header, use the mode of the rendered top two rows.
 // Only the active, visible page is sampled. Pixels never leave this process.
@@ -87,6 +253,32 @@ class Owner : public base::SupportsUserData::Data,
   gfx::Rect extension_bounds;
   gfx::Rect interactive_bounds;
   std::string page_tint;
+
+  // The tab's committed favicon as a data URL, encoded once per distinct
+  // image rather than on every 300ms snapshot. Private windows report none,
+  // as Electron does for private tabs.
+  std::string TabFavicon(int tab_id, content::WebContents* contents) {
+    if (browser->GetProfile()->IsOffTheRecord()) return std::string();
+    // NavigationEntry::GetFavicon() is non-const; the status is read only.
+    auto* entry = contents->GetController().GetLastCommittedEntry();
+    const content::FaviconStatus* status =
+        entry && entry->GetFavicon().valid ? &entry->GetFavicon() : nullptr;
+    if (!status || status->image.IsEmpty()) {
+      favicon_cache_.erase(tab_id);
+      return std::string();
+    }
+    const std::string key = base::StringPrintf(
+        "%s#%u", status->url.spec().c_str(),
+        status->image.AsBitmap().getGenerationID());
+    auto& cached = favicon_cache_[tab_id];
+    if (cached.first != key) cached = {key, FaviconDataUrl(status->image)};
+    return cached.second;
+  }
+  void PruneFaviconCache(const std::set<int>& live_tab_ids) {
+    std::erase_if(favicon_cache_, [&](const auto& entry) {
+      return !live_tab_ids.contains(entry.first);
+    });
+  }
 
   void SyncActive() {
     if (closing_) return;
@@ -278,6 +470,7 @@ class Owner : public base::SupportsUserData::Data,
   int generation_ = 0;
   bool in_flight_ = false;
   bool closing_ = false;
+  std::map<int, std::pair<std::string, std::string>> favicon_cache_;
   base::TimeTicks last_sample_;
   base::TimeTicks burst_until_;
   // A small idle check catches CSS/DOM animation starts without injecting
@@ -297,6 +490,31 @@ bool IsPageFullscreen(BrowserWindowInterface* browser) {
 
 Owner* GetOwner(content::WebContents* contents) {
   return static_cast<Owner*>(contents->GetUserData(kOwnerKey));
+}
+
+// Key equivalents the Island's own renderer leaves unhandled (⌘D, ⌘L, ⌘R, …)
+// must reach the window's accelerators and the macOS menu, as they do from a
+// tab: BrowserView and Chromium's side-panel WebUI views redispatch through
+// UnhandledKeyboardEventHandler; a views::WebView-created WebContents on its
+// own drops them, so shortcuts died while the Island had focus. Reserved
+// commands (⌘T, ⌘W) are dispatched before the first responder and were never
+// affected. Stateless, so one process-wide instance serves every window.
+class IslandDelegate : public content::WebContentsDelegate {
+ public:
+  bool HandleKeyboardEvent(content::WebContents* source,
+                           const input::NativeWebKeyboardEvent& event) override {
+    auto* owner = GetOwner(source);
+    if (!owner || !owner->view) return false;
+    return handler_.HandleKeyboardEvent(event, owner->view->GetFocusManager());
+  }
+
+ private:
+  views::UnhandledKeyboardEventHandler handler_;
+};
+
+IslandDelegate* GetIslandDelegate() {
+  static base::NoDestructor<IslandDelegate> delegate;
+  return delegate.get();
 }
 
 bool IsAsset(const std::string& path) {
@@ -329,16 +547,26 @@ scoped_refptr<base::RefCountedMemory> ReadAsset(base::FilePath root,
 base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
   owner->SyncActive();
   auto* model = browser->GetTabStripModel();
+  auto* favorites = LoadedBookmarkModel(browser->GetProfile());
+  std::set<int> live_tab_ids;
   base::ListValue tabs;
   for (int index = 0; index < model->count(); ++index) {
     auto* contents = model->GetWebContentsAt(index);
     auto& controller = contents->GetController();
+    const int tab_id = sessions::SessionTabHelper::IdForTab(contents).id();
+    live_tab_ids.insert(tab_id);
+    // Favorite state follows the committed document, never the virtual or
+    // pending URL, so a typed address is not reported as saved before it lands.
+    const GURL& committed = contents->GetPrimaryMainFrame()->GetLastCommittedURL();
     tabs.Append(base::DictValue()
-                    .Set("id", sessions::SessionTabHelper::IdForTab(contents).id())
+                    .Set("id", tab_id)
                     .Set("url", contents->GetVisibleURL() == GURL("chrome://newtab/") ||
                                   contents->GetLastCommittedURL() == GURL("chrome://blanc-prototype/pages/newtab.html")
                               ? "blanc://newtab/" : contents->GetVisibleURL().spec())
                     .Set("title", base::UTF16ToUTF8(contents->GetTitle()))
+                    .Set("favicon", NullableString(owner->TabFavicon(tab_id, contents)))
+                    .Set("bookmarked", favorites && IsFavoritable(committed) &&
+                                           favorites->IsBookmarked(committed))
                     .Set("pageBg", contents == model->GetActiveWebContents()
                         ? owner->page_tint : "")
                     .Set("isLoading", contents->IsLoading())
@@ -349,6 +577,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
                     .Set("groupId", base::Value())
                     .Set("blockedCount", 0));
   }
+  owner->PruneFaviconCache(live_tab_ids);
   auto* active = model->GetActiveWebContents();
   base::Value active_id =
       active ? base::Value(sessions::SessionTabHelper::IdForTab(active).id())
@@ -370,13 +599,19 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
 }
 
 // Only the bundled top-level start page gets this read-only profile bridge.
-class NewTabHandler : public content::WebUIMessageHandler {
+// It also watches the bookmark model so a page left open re-lists Favorites
+// after the Island, Chromium's manager or a late favicon load changes them.
+class NewTabHandler : public content::WebUIMessageHandler,
+                      public bookmarks::BaseBookmarkModelObserver {
  public:
   void RegisterMessages() override {
     web_ui()->RegisterMessageCallback("blancNewTab",
         base::BindRepeating(&NewTabHandler::Handle, base::Unretained(this)));
   }
-  void OnJavascriptDisallowed() override { weak_factory_.InvalidateWeakPtrs(); }
+  void OnJavascriptDisallowed() override {
+    weak_factory_.InvalidateWeakPtrs();
+    bookmark_observation_.Reset();
+  }
 
  private:
   bool IsStartPage() {
@@ -390,6 +625,18 @@ class NewTabHandler : public content::WebUIMessageHandler {
     web_ui()->CallJavascriptFunctionUnsafe("blancNewTabReply", base::Value(id),
                                           base::Value(success), value);
   }
+  // BaseBookmarkModelObserver: every structural change funnels here. The page
+  // coalesces bursts; this only tells it that Favorites may have changed.
+  void BookmarkModelChanged() override { NotifyBookmarksChanged(); }
+  void BookmarkNodeFaviconChanged(const bookmarks::BookmarkNode*) override {
+    NotifyBookmarksChanged();
+  }
+  void BookmarkModelBeingDeleted() override { bookmark_observation_.Reset(); }
+  void NotifyBookmarksChanged() {
+    if (!IsStartPage() || !IsJavascriptAllowed()) return;
+    web_ui()->CallJavascriptFunctionUnsafe("blancNewTabEvent",
+                                          base::Value("bookmarks"));
+  }
   void Handle(const base::ListValue& message) {
     if (!IsStartPage() || message.size() != 3 || !message[0].is_string() ||
         !message[1].is_string() || !message[2].is_list()) return;
@@ -402,14 +649,11 @@ class NewTabHandler : public content::WebUIMessageHandler {
     if (profile->IsOffTheRecord()) return;
     if (method == "bookmarks" && args.empty()) {
       auto* model = BookmarkModelFactory::GetForBrowserContext(profile);
+      if (model && !bookmark_observation_.IsObserving())
+        bookmark_observation_.Observe(model);
+      // null tells the page the model is still loading; it retries.
       if (!model || !model->loaded()) { Reply(id, true, base::Value()); return; }
-      base::ListValue items;
-      for (const auto& item : model->GetUniqueUrls()) {
-        if (!item.url.SchemeIsHTTPOrHTTPS()) continue;
-        items.Append(base::DictValue().Set("url", item.url.spec())
-            .Set("title", base::UTF16ToUTF8(item.title)));
-      }
-      Reply(id, true, base::Value(std::move(items)));
+      Reply(id, true, base::Value(ListFavorites(model)));
       return;
     }
     if (method == "topSites" && args.empty()) {
@@ -439,6 +683,8 @@ class NewTabHandler : public content::WebUIMessageHandler {
     }
     Reply(id, true, base::Value(std::move(items)));
   }
+  base::ScopedObservation<bookmarks::BookmarkModel, bookmarks::BookmarkModelObserver>
+      bookmark_observation_{this};
   base::WeakPtrFactory<NewTabHandler> weak_factory_{this};
 };
 
@@ -449,31 +695,81 @@ class Handler : public content::WebUIMessageHandler {
         "blancPrototype",
         base::BindRepeating(&Handler::Handle, base::Unretained(this)));
   }
+  void OnJavascriptDisallowed() override {
+    // A navigated or torn-down host must not receive a late history reply.
+    weak_factory_.InvalidateWeakPtrs();
+    tracker_.TryCancelAll();
+  }
 
  private:
+  bool IsIslandHost() {
+    auto* contents = web_ui()->GetWebContents();
+    return GetOwner(contents) && contents->GetLastCommittedURL() ==
+        GURL("chrome://blanc-prototype/host.html");
+  }
+  // Every reply, synchronous or not, re-checks the host before touching it.
+  void Reply(const std::string& id, bool success, base::Value result) {
+    if (!IsIslandHost() || !IsJavascriptAllowed()) return;
+    web_ui()->CallJavascriptFunctionUnsafe("blancPrototypeReply", base::Value(id),
+                                           base::Value(success), result);
+  }
+  void HistoryReady(std::string id, history::QueryResults results) {
+    base::ListValue items;
+    for (const history::URLResult& result : results) {
+      if (!IsFavoritable(result.url())) continue;
+      const std::u16string& title = result.title();
+      // favicon is null, not fetched: the Island draws its letter fallback.
+      items.Append(base::DictValue()
+          .Set("url", result.url().spec())
+          .Set("title", title.empty() ? result.url().spec() : base::UTF16ToUTF8(title))
+          .Set("visitedAt", result.visit_time().InMillisecondsFSinceUnixEpoch())
+          .Set("favicon", base::Value()));
+    }
+    Reply(id, true, base::Value(std::move(items)));
+  }
   void Handle(const base::ListValue& message) {
     if (message.size() != 3 || !message[0].is_string() ||
         !message[1].is_string() || !message[2].is_list()) {
       return;
     }
     AllowJavascript();
+    const std::string id = message[0].GetString();
     auto reply = [&](bool success, base::Value result) {
-      web_ui()->CallJavascriptFunctionUnsafe("blancPrototypeReply", message[0],
-                                             base::Value(success), result);
+      Reply(id, success, std::move(result));
     };
     auto* contents = web_ui()->GetWebContents();
     auto* owner = GetOwner(contents);
-    if (!owner || contents->GetLastCommittedURL() !=
-                      GURL("chrome://blanc-prototype/host.html")) {
-      reply(false, base::Value("This bridge belongs to the native Island only."));
+    if (!IsIslandHost()) {
+      web_ui()->CallJavascriptFunctionUnsafe("blancPrototypeReply", message[0],
+          base::Value(false), base::Value("This bridge belongs to the native Island only."));
       return;
     }
     auto* browser = owner->browser.get();
     auto* model = browser->GetTabStripModel();
+    auto* profile = browser->GetProfile();
     const std::string& method = message[1].GetString();
     const base::ListValue& args = message[2].GetList();
     if (method == "snapshot") {
       reply(true, base::Value(Snapshot(browser, owner)));
+      return;
+    }
+    if (method == "listFavorites" && args.empty()) {
+      // A private window or a model still loading lists nothing.
+      reply(true, base::Value(ListFavorites(LoadedBookmarkModel(profile))));
+      return;
+    }
+    if (method == "listHistory" && args.size() == 1 && args[0].is_int()) {
+      // Never resolve the service through an off-the-record profile: the
+      // factory would hand back the regular profile's history.
+      auto* service = profile->IsOffTheRecord() ? nullptr
+          : HistoryServiceFactory::GetForProfile(profile, ServiceAccessType::EXPLICIT_ACCESS);
+      if (!service) { reply(true, base::Value(base::ListValue())); return; }
+      history::QueryOptions options;
+      options.max_count = std::clamp(args[0].GetInt(), 1, kHistoryLimit);
+      options.duplicate_policy = history::QueryOptions::REMOVE_ALL_DUPLICATES;
+      service->QueryHistory(std::u16string(), options,
+          base::BindOnce(&Handler::HistoryReady, weak_factory_.GetWeakPtr(), id),
+          &tracker_);
       return;
     }
     if (method == "extensions" && args.empty()) {
@@ -531,6 +827,13 @@ class Handler : public content::WebUIMessageHandler {
       reply(true, base::Value());
       return;
     }
+    if (method == "focusPage" && args.empty()) {
+      // Escape and outside clicks hand focus back to the page, as Electron's
+      // hideOverlay does, instead of parking it in the hidden overlay.
+      if (auto* active = model->GetActiveWebContents()) active->Focus();
+      reply(true, base::Value());
+      return;
+    }
     if (method == "height" && args.size() == 1 && args[0].is_int()) {
       owner->height = std::clamp(args[0].GetInt(), 68, 640);
       if (owner->view->parent()) owner->view->parent()->InvalidateLayout();
@@ -545,7 +848,9 @@ class Handler : public content::WebUIMessageHandler {
       const GURL url(args[0].GetString());
       if (!url.SchemeIsHTTPOrHTTPS() && url != GURL("chrome://newtab/") &&
           url != GURL("chrome://extensions/") &&
-          url != GURL("chrome://downloads/")) {
+          url != GURL("chrome://downloads/") &&
+          url != GURL("chrome://bookmarks/") &&
+          url != GURL("chrome://history/")) {
         reply(false, base::Value("Unsupported prototype destination."));
         return;
       }
@@ -570,6 +875,29 @@ class Handler : public content::WebUIMessageHandler {
       return;
     }
     auto* tab = model->GetWebContentsAt(index);
+    if (method == "toggleBookmark" || method == "saveFavorite") {
+      // The Island's heart and /save act on the tab it names; main re-reads
+      // the committed page here rather than trusting a renderer-supplied URL.
+      auto* favorites = LoadedBookmarkModel(profile);
+      const GURL& url = tab->GetPrimaryMainFrame()->GetLastCommittedURL();
+      if (!favorites || !IsFavoritable(url)) {
+        reply(false, base::Value(profile->IsOffTheRecord()
+            ? "Favorites are unavailable in private windows."
+            : "Only web pages can be Favorites."));
+        return;
+      }
+      const std::u16string title = tab->GetTitle();
+      if (method == "toggleBookmark" && args.size() == 1) {
+        reply(true, base::Value(ToggleFavorite(favorites, url, title)));
+        return;
+      }
+      if (method == "saveFavorite" && args.size() == 2 && args[1].is_string()) {
+        reply(true, base::Value(SaveFavorite(favorites, url, title, args[1].GetString())));
+        return;
+      }
+      reply(false, base::Value("Expected a tab ID and a folder name."));
+      return;
+    }
     if (method == "switchTab") {
       model->ActivateTabAt(index);
     } else if (method == "closeTab") {
@@ -599,6 +927,8 @@ class Handler : public content::WebUIMessageHandler {
     }
     reply(true, base::Value());
   }
+  base::CancelableTaskTracker tracker_;
+  base::WeakPtrFactory<Handler> weak_factory_{this};
 };
 }  // namespace
 
@@ -643,6 +973,7 @@ std::unique_ptr<views::WebView> CreateIsland(
   owner->view = view.get();
   view->GetWebContents(GURL("chrome://blanc-prototype/host.html"))
       ->SetUserData(kOwnerKey, std::move(owner));
+  view->GetWebContents()->SetDelegate(GetIslandDelegate());
   view->GetWebContents()->SetPageBaseBackgroundColor(SK_ColorTRANSPARENT);
   view->LoadInitialURL(GURL("chrome://blanc-prototype/host.html"));
   return view;
@@ -660,6 +991,29 @@ bool OpenExtensions(BrowserWindowInterface* browser) {
   contents->Focus();
   contents->GetPrimaryMainFrame()->ExecuteJavaScript(
       u"window.BlancPrototypeHost?.extensions()", base::NullCallback());
+  return true;
+}
+
+bool ToggleFavoriteFromIsland(BrowserWindowInterface* browser) {
+  if (!IsIslandWindow(browser)) return false;
+  // Same rules as the Island heart: committed http(s) page, loaded model,
+  // never a private window. Anything else is a no-op, as in Electron, rather
+  // than Chromium's bubble, which has no toolbar to anchor to here.
+  auto* active = browser->GetTabStripModel()->GetActiveWebContents();
+  auto* model = LoadedBookmarkModel(browser->GetProfile());
+  if (!active || !model) return true;
+  const GURL& url = active->GetPrimaryMainFrame()->GetLastCommittedURL();
+  if (!IsFavoritable(url)) return true;
+  ToggleFavorite(model, url, active->GetTitle());
+  // Repaint the heart now instead of on the next 300ms snapshot poll.
+  auto* parent = BrowserView::GetBrowserViewForBrowser(browser);
+  auto* view = parent ? static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId)) : nullptr;
+  auto* contents = view ? view->GetWebContents() : nullptr;
+  if (contents && contents->GetLastCommittedURL() == GURL("chrome://blanc-prototype/host.html") &&
+      contents->GetPrimaryMainFrame()->IsRenderFrameLive()) {
+    contents->GetPrimaryMainFrame()->ExecuteJavaScript(
+        u"window.BlancPrototypeHost?.refresh()", base::NullCallback());
+  }
   return true;
 }
 

@@ -1,8 +1,16 @@
-/* The prototype exposes only controls backed by its native bridge. */
+/* The prototype exposes only controls backed by its native bridge. The pill
+   and panel hearts and the Favorites/History footer buttons are backed by
+   Chromium's bookmark and history services. */
 #pillShield, #pillInsecure, #pillFillHint, #pillCapture, #pillDisplayShare,
-#pillSpace, #pillSlash, #glanceHeader, #heartBtn, #pillHeart, #panelSiteInfo,
-#footerNewPrivate, #footerWorkspace, #footerFavorites, #footerHistory,
+#pillSpace, #pillSlash, #glanceHeader, #panelSiteInfo,
+#footerNewPrivate, #footerWorkspace,
 #footerTabLayout, #footerSettings, .row-pin, .row-mute, .row-glance {
+  display: none !important;
+}
+/* Private windows have no Favorites (Electron: private tabs never populate
+   them). The copied renderers set this theme from the active tab's `private`. */
+:root[data-theme="private"] #pillHeart,
+:root[data-theme="private"] #heartBtn {
   display: none !important;
 }
 
