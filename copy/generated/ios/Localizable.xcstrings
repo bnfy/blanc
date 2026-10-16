@@ -3734,43 +3734,43 @@
       }
     },
     "glance.promote": {
-      "comment": "Tooltip and accessible name of the button that swaps Glance with the main page.",
+      "comment": "Tooltip and accessible name of the button that swaps Glance with the main page. Begins with the visible label (glance.promoteShort) so speech-input users can say what they see.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Make Glance the main page"
+            "value": "Make main — swap with the main page"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Glance zur Hauptseite machen"
+            "value": "Hauptseite — mit der Hauptseite tauschen"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Convertir Glance en la página principal"
+            "value": "Principal — intercambiar con la página principal"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Faire de Glance la page principale"
+            "value": "Principale — échanger avec la page principale"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rendi Glance la pagina principale"
+            "value": "Principale — scambia con la pagina principale"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tornar o Glance a página principal"
+            "value": "Principal — trocar com a página principal"
           }
         }
       }

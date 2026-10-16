@@ -295,6 +295,10 @@ export interface VerticalTabsMetrics {
 export interface GlanceLayout {
   direction: 'horizontal' | 'vertical';
   ratio: number;
+  /** The smallest main-pane share the divider allows; above 0.5 on macOS when the main pane needs room for the Island and the traffic lights. */
+  minRatio: number;
+  /** The largest main-pane share the divider allows: 0.78, or less so the reference keeps 300 px. */
+  maxRatio: number;
   page: Rect;
   primary: Rect;
   divider: Rect;
@@ -302,6 +306,8 @@ export interface GlanceLayout {
   glanceContent: Rect;
   /** Alias of glanceContent kept for older consumers. */
   glance: Rect;
+  /** Which pane holds keyboard focus. Present on chrome:glance-layout (glanceLayoutPayload() in glance-focus.js); calculateGlanceLayout() leaves it out. */
+  focusedPane?: 'main' | 'glance';
 }
 
 /** Named Workspaces storage status, from workspaces.js. */
@@ -584,6 +590,10 @@ export interface IslandRectReport {
   shieldAnchor?: ShieldAnchor;
   /** Present while the Spaces menu is open from the mark, so it follows the pill. */
   spacesAnchor?: SpacesAnchor;
+  /** With Glance side by side: the narrowest main pane that holds the slim Island with a readable address, its chips and clearance included. Main stops the divider there. */
+  minPrimaryWidth?: number;
+  /** With Glance side by side: the narrowest reference that holds the Glance header at its most compact, including the window-control space on Windows and Linux. Main stops the divider there. */
+  minReferenceWidth?: number;
 }
 
 /** Where the Spaces menu opens: the space mark's left and bottom edges in window coordinates. Main validates both. */

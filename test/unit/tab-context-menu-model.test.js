@@ -13,6 +13,7 @@ const build = (over = {}) => buildTabContextMenu({
   tab: { ...baseTab, ...(over.tab || {}) },
   groups: over.groups ?? [],
   activeTabId: over.activeTabId ?? 1,
+  glanceTabId: over.glanceTabId ?? null,
   surface: over.surface ?? 'row',
   canCloseOthers: over.canCloseOthers ?? true,
   canMoveToNewWindow: over.canMoveToNewWindow ?? true,
@@ -126,4 +127,13 @@ test('Rename Tab… is always offered; Reset Tab Title only on a renamed tab', (
   const renamed = build({ tab: { customTitle: 'Budget' } });
   assert.equal(byId(renamed, 'reset-title').label, 'Reset Tab Title');
   assert.deepEqual(ids(renamed).slice(3, 6), ['duplicate', 'rename', 'reset-title']);
+});
+
+test('the current Glance reference offers Close Glance instead of Open in Glance', () => {
+  const reference = build({ activeTabId: 2, surface: 'row', glanceTabId: 1 });
+  assert.equal(byId(reference, 'glance'), undefined);
+  assert.equal(byId(reference, 'close-glance').label, 'Close Glance');
+  const other = build({ activeTabId: 2, surface: 'row', glanceTabId: 3 });
+  assert.equal(byId(other, 'glance').label, 'Open in Glance');
+  assert.equal(byId(other, 'close-glance'), undefined);
 });

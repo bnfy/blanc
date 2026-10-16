@@ -618,6 +618,14 @@
         "ratio": {
           "type": "number"
         },
+        "minRatio": {
+          "type": "number",
+          "doc": "The smallest main-pane share the divider allows; above 0.5 on macOS when the main pane needs room for the Island and the traffic lights."
+        },
+        "maxRatio": {
+          "type": "number",
+          "doc": "The largest main-pane share the divider allows: 0.78, or less so the reference keeps 300 px."
+        },
         "page": {
           "type": "Rect"
         },
@@ -636,6 +644,11 @@
         "glance": {
           "type": "Rect",
           "doc": "Alias of glanceContent kept for older consumers."
+        },
+        "focusedPane": {
+          "type": "'main' | 'glance'",
+          "optional": true,
+          "doc": "Which pane holds keyboard focus. Present on chrome:glance-layout (glanceLayoutPayload() in glance-focus.js); calculateGlanceLayout() leaves it out."
         }
       }
     },
@@ -1188,6 +1201,16 @@
           "type": "SpacesAnchor",
           "optional": true,
           "doc": "Present while the Spaces menu is open from the mark, so it follows the pill."
+        },
+        "minPrimaryWidth": {
+          "type": "number",
+          "optional": true,
+          "doc": "With Glance side by side: the narrowest main pane that holds the slim Island with a readable address, its chips and clearance included. Main stops the divider there."
+        },
+        "minReferenceWidth": {
+          "type": "number",
+          "optional": true,
+          "doc": "With Glance side by side: the narrowest reference that holds the Glance header at its most compact, including the window-control space on Windows and Linux. Main stops the divider there."
         }
       }
     },

@@ -339,8 +339,8 @@
     "note": "Uppercase eyebrow of the Glance reference-pane header. Glance is a fixed product name."
   },
   "glance.promote": {
-    "message": "Make Glance the main page",
-    "note": "Tooltip and accessible name of the button that swaps Glance with the main page."
+    "message": "Make main — swap with the main page",
+    "note": "Tooltip and accessible name of the button that swaps Glance with the main page. Begins with the visible label (glance.promoteShort) so speech-input users can say what they see."
   },
   "glance.promoteShort": {
     "message": "Make main",

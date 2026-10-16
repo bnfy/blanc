@@ -29,6 +29,12 @@ function pageBody(req) {
       : loginVariant === 'invisible'
         ? '<form><input type="password" autocomplete="current-password" style="opacity:0"></form>'
         : '';
+  // Glance links (F34): ?blanklink=<name> adds a target=_blank link to
+  // /site/<name>. The name is restricted so nothing reaches the markup raw.
+  const blankName = /[?&]blanklink=([a-z0-9-]{1,40})(?:&|$)/.exec(raw)?.[1];
+  const blankLink = blankName
+    ? `<p><a id="acceptance-blank" href="/site/${blankName}" target="_blank" style="display:inline-block;padding:16px">open ${blankName}</a></p>`
+    : '';
   // Drag-out probe (F3-15): records anything a page could learn from a tab
   // drag released over it. Read back with workspacePageScript.
   const dragProbe = raw.includes('dragprobe=1')
@@ -43,7 +49,9 @@ function pageBody(req) {
     `<body><h1>page</h1><script>` +
     `const fixtureName=decodeURIComponent(location.pathname.replace(/^\\/site\\//,'')||'page');` +
     `document.title=fixtureName;document.querySelector('h1').textContent=fixtureName;` +
-    `</script><p>widget widget widget</p>` +
+    `</script>` +
+    blankLink +
+    `<p>widget widget widget</p>` +
     loginForm +
     dragProbe +
     `<input id="acceptance-draft" aria-label="Unsaved draft">` +

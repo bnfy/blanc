@@ -749,6 +749,37 @@ From the desktop `DEFAULTS`:
   reference a flat header with favicon/title plus **Make main**, **Change**, and
   close controls. Reference pages remain fully interactive without changing
   roles; promotion is explicit and swaps the two visible tabs.
+- Browser commands follow the focused pane. With keyboard focus in the
+  reference, Reload and Hard Reload, Close Tab, Find, zoom, Print, Back and
+  Forward (`Cmd+[` / `]` on macOS, `Alt+Left` / `Right` on Windows and
+  Linux), the 1Password fill and its hint, and mouse
+  gestures act on the reference; Close Tab there closes the reference tab and
+  Glance collapses. ⌘L and the Island, New Tab, ⌘1–9, the shield popover, the
+  blocked count and the tab-scoped slash commands stay on the main page. The
+  header's eyebrow and bottom hairline brighten while the reference holds
+  focus. A 1Password message belongs to the pane it is about: only that
+  pane navigating dismisses it, not the other pane.
+- A tab the reference opens in the foreground (`target=_blank`,
+  `window.open`, Cmd/Ctrl+Shift-click) becomes the reference; the previous
+  reference stays open as an ordinary tab and the main page is untouched.
+  Background opens stay in the background.
+- While Glance is open the Island hides its tab dots (and the +N count) to
+  keep room for the address and its controls; tabs stay reachable from the
+  ⌘L panel, the rail and `Cmd/Ctrl+1–9`. When the main pane is narrow the
+  Island also hides Forward and Favorite, and the divider stops before the
+  address becomes unreadable (measured from what the Island is showing).
+  The divider also never makes the reference narrower than its header needs
+  at its most compact (measured, so it includes the window controls on
+  Windows and Linux), and Glance stacks instead of going side by side when
+  the main pane's minimum would leave the reference less than that. Stacked
+  on Windows and Linux the Island is centred between two reservations for
+  the window controls; when even the slim Island does not fit there (a narrow
+  window with vertical tabs), it gives up its centre line, reserving the
+  controls once on their side, before its address truncates.
+- The reference header carries **Back** (disabled when there is nothing to go
+  back to) and **Reload** / **Stop**. **Make main**'s accessible name begins
+  with its visible words, and right-clicking the header's title opens the
+  reference tab's menu with **Close Glance**.
 - The divider is pointer-resizable and keyboard accessible, with a reset to the
   62/38 default. Glance never crosses window/profile ownership, never survives
   native-window teardown or session restore, and a visible Glance tab is never
@@ -760,6 +791,10 @@ From the desktop `DEFAULTS`:
   tab through the dedicated picker, verifies dominant/reference geometry,
   proves reference focus does not promote, changes and explicitly swaps the
   visible roles, resizes the divider, and dismisses back to one full page.
+  It also proves that reload, close, find, zoom, Back, the 1Password fill and
+  gestures follow the focused pane, that foreground links from the reference
+  open into Glance, and that the header's Back, Reload and menu address the
+  reference.
 
 ## F35 — Start page layouts
 

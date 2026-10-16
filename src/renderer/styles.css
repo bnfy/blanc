@@ -255,10 +255,21 @@ button svg {
 #strip.glance-open #islandPill {
   max-width: calc((var(--glance-primary-width) - 24px) / var(--pill-zoom));
 }
+/* With Glance open the Island gives up its tab dots (and +N) entirely, to
+   keep room for the address and its controls in a narrower main pane; tabs
+   stay reachable from ⌘L, the rail and ⌘1–9. */
+#strip.glance-open #pillDots { display: none; }
 /* Stacked: centred over the full page, kept clear of the window controls on
    both sides so the centre line does not move. */
 #strip.glance-open[data-glance-direction="vertical"] #islandPill {
   max-width: calc((var(--glance-primary-width) - 2 * var(--window-controls-w) - 24px) / var(--pill-zoom));
+}
+/* macOS draws its traffic lights at the window's left edge, inside the main
+   pane's strip in both Glance layouts. Keep the same clearance the Island has
+   without Glance (#islandPill: 170px), split across both sides so the pill
+   stays centred. With vertical tabs the lights sit in the rail instead. */
+:root[data-platform="darwin"]:not([data-tab-layout="vertical"]) #strip.glance-open #islandPill {
+  max-width: calc((var(--glance-primary-width) - 170px) / var(--pill-zoom));
 }
 
 .glance-header {
@@ -279,6 +290,11 @@ button svg {
 
 .glance-header[hidden] { display: none; }
 .glance-header.private { border-left-style: dashed; border-bottom-style: dashed; }
+/* The reference holds keyboard focus, so ⌘R, ⌘W, ⌘F … act on it. Quieter
+   than an outline: the eyebrow and the bottom hairline brighten. (The title
+   is already --text.) */
+.glance-header.focused { border-bottom-color: var(--text-dim); }
+.glance-header.focused .glance-eyebrow { color: var(--text); }
 .glance-copy {
   min-width: 0;
   flex: 1 1 auto;
@@ -333,6 +349,20 @@ button svg {
 .glance-action { padding: 0 8px; font-size: 11.5px; }
 .glance-promote svg { display: none; }
 .glance-close { width: 30px; padding: 0; }
+.glance-nav {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.glance-header .glance-nav-btn { width: 30px; padding: 0; }
+/* The pill's glyph size and stroke, so the two read as one control family. */
+.glance-nav-btn svg { width: 14px; height: 14px; stroke-width: 1.4; }
+.glance-header .glance-nav-btn:disabled {
+  color: var(--border);
+  background: transparent;
+  cursor: default;
+}
 .glance-header button:hover {
   background: var(--accent-dim);
   color: var(--text);
@@ -366,16 +396,29 @@ button svg {
 }
 .glance-header[data-direction="vertical"] .glance-eyebrow { display: none; }
 
+/* Measuring the Glance header (renderer.js measureGlanceFloors): the same
+   compaction as the two container queries below, at the width its contents
+   need. Containment is lifted so max-content sees the children. */
+.glance-header.measuring { container-type: normal; width: max-content !important; }
+.glance-header.measuring .glance-eyebrow { display: none; }
+.glance-header.measuring .glance-copy { gap: 8px; flex: 0 0 auto; }
+.glance-header.measuring #glanceTitle { display: none; }
+
 @container (max-width: 360px) {
   .glance-eyebrow { display: none; }
-  .glance-copy { gap: 0; }
+  /* Back and Reload still sit beside the title. */
+  .glance-copy { gap: 8px; }
 }
+/* Make main as its swap icon alone, in one place: while measuring the
+   header's floor, and when renderer.js fitGlanceHeader decides the title
+   needs the room (cut below about ten characters, or hidden by the tier
+   below). */
+.glance-header:is(.measuring, .promote-icon) .glance-promote { width: 30px; padding: 0; }
+.glance-header:is(.measuring, .promote-icon) .glance-promote svg { display: block; }
+.glance-header:is(.measuring, .promote-icon) .glance-promote span { display: none; }
 @container (max-width: 300px) {
   #glanceTitle { display: none; }
   .glance-copy { flex: 0 0 auto; }
-  .glance-promote { width: 30px; padding: 0; }
-  .glance-promote svg { display: block; }
-  .glance-promote span { display: none; }
 }
 
 /* The child page views deliberately leave this narrow gap uncovered, so the
@@ -478,6 +521,23 @@ button svg {
 
 :root[data-tab-layout="vertical"] #strip.glance-open #islandPill {
   max-width: calc((var(--glance-primary-width) - 24px) / var(--pill-zoom));
+}
+/* Stacked with the rail: the Island is centred over the whole page, which
+   reaches the window's right edge, where Windows and Linux draw their window
+   controls. Reserve them on both sides as the stacked rule above does; on
+   macOS --window-controls-w is 0 and the traffic lights are in the rail. */
+:root[data-tab-layout="vertical"] #strip.glance-open[data-glance-direction="vertical"] #islandPill {
+  max-width: calc((var(--glance-primary-width) - 2 * var(--window-controls-w) - 24px) / var(--pill-zoom));
+}
+/* When even the slim Island does not fit between those two reservations, it
+   gives up its centre line before its address (renderer.js fitIslandDots adds
+   .uncentred): the controls are reserved once, on their own side, and the
+   margin shifts the centred pill left by half their width. Windows and Linux
+   only; macOS has no controls on this edge. Written to outrank both stacked
+   rules above. */
+:root:not([data-platform="darwin"]) #strip.glance-open[data-glance-direction="vertical"] #islandPill.uncentred {
+  max-width: calc((var(--glance-primary-width) - var(--window-controls-w) - 24px) / var(--pill-zoom));
+  margin-right: calc(var(--window-controls-w) / var(--pill-zoom));
 }
 
 /* In vertical mode the rail is the persistent tab presentation. The Island
@@ -1139,6 +1199,14 @@ body > .tab-drag-ghost[aria-hidden="true"] {
    `display: none`; restore it (higher specificity) so the contextual
    downloads button can hide itself. */
 .pill-btn[hidden] { display: none; }
+/* A slim Island (a narrow Glance main pane) drops Forward and Favorite. */
+#islandPill.slim .pill-slim-hide { display: none; }
+/* Measuring the Island (renderer.js measureGlanceFloors): a filler shows the
+   room the max-width rules allow; the measuring state shows what the slim
+   Island needs with about ten characters of address. */
+.island-measure-filler { flex: 0 0 4000px; height: 1px; }
+#islandPill.measuring { max-width: none !important; flex-shrink: 0; }
+#islandPill.measuring #pillDomain { flex: 0 0 10ch; }
 :root[data-tab-layout="vertical"] #pillNewTab { display: none; }
 .pill-btn:hover { background: var(--accent-dim); color: var(--accent); }
 .pill-btn:disabled { color: var(--border); cursor: default; background: transparent; }

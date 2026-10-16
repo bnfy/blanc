@@ -77,7 +77,9 @@ function install(refs) {
     resizeGlanceAt,
     resetGlanceRatio: resetGlanceRatioAction,
     getGlanceTabId,
+    getFocusedPaneTabId,
     getGlanceGeometry,
+    getGlanceMinimums,
     groupTabByName,
     renameTab,
     beginRenameTab,
@@ -118,6 +120,8 @@ function install(refs) {
     openInternalPage,
     openFindBar,
     getOverlayMode,
+    getFindTargetTabId,
+    getOverlayViewBounds,
     prepareDisplayCaptureHelper,
     getResidentSpaces,
     getRoomPass,
@@ -529,7 +533,9 @@ function install(refs) {
         groups: getGroups().map((g) => ({ id: g.id, name: g.name, collapsed: !!g.collapsed })),
         activeTabId: getActiveTabId(),
         glanceTabId: getGlanceTabId(),
+        focusedPaneTabId: getFocusedPaneTabId(),
         glanceGeometry: getGlanceGeometry(),
+        glanceMinimums: getGlanceMinimums(),
       };
     },
 
@@ -558,6 +564,16 @@ function install(refs) {
       return setGlanceTabInWindow(String(runtimeId), String(tabId));
     },
     closeWindowGlance(runtimeId) { return closeGlanceInWindow(String(runtimeId)); },
+    // A window's first Glance layout, before its own strip has measured the
+    // Island: size the window, open Glance there and read the geometry in the
+    // same turn, ahead of any report from that strip.
+    async firstGlanceLayoutInWindow(runtimeId, tabId, width) {
+      return refs.runInWindowRuntime(String(runtimeId), async () => {
+        setWindowContentSize(Number(width), 800);
+        await setGlanceTab(String(tabId));
+        return getGlanceGeometry();
+      });
+    },
     closeTabInWindow(runtimeId, tabId) {
       return closeTabInWindowAction(String(runtimeId), String(tabId));
     },
@@ -587,6 +603,51 @@ function install(refs) {
       return tab?.view ? tab.view.getBounds() : null;
     },
     focusedWebContentsId() { return webContents.getFocusedWebContents()?.id ?? null; },
+    zoomLevel(tabId) { return liveContents(tabs.get(tabId))?.getZoomLevel() ?? null; },
+    // A real mouse click on an element of a tab's page, so the page's own
+    // target=_blank / modifier handling decides the window-open disposition.
+    async clickInTab(tabId, selector, modifiers = []) {
+      const wc = liveContents(tabs.get(tabId));
+      if (!wc) return false;
+      const point = await wc.executeJavaScript(`(() => {
+        const rect = document.querySelector(${JSON.stringify(String(selector))})?.getBoundingClientRect();
+        return rect ? { x: Math.round(rect.x + rect.width / 2), y: Math.round(rect.y + rect.height / 2) } : null;
+      })()`);
+      if (!point) return false;
+      wc.focus();
+      const input = { ...point, button: 'left', clickCount: 1, modifiers: [...modifiers] };
+      wc.sendInputEvent({ ...input, type: 'mouseDown' });
+      wc.sendInputEvent({ ...input, type: 'mouseUp' });
+      return true;
+    },
+    // A browser command as a person presses it with this tab's page focused.
+    // Windows/Linux: the key reaches the page and main's before-input-event
+    // routes it by sender. macOS: the native menu item handles the key and
+    // carries no sender, so the focused pane decides — callers establish it
+    // first. Zoom and print exist only as menu items on every platform.
+    pressBrowserCommand(tabId, commandId) {
+      const wc = liveContents(tabs.get(tabId));
+      if (!wc) return false;
+      const menuOnly = { 'zoom-in': 'zoom-in', 'zoom-out': 'zoom-out', 'zoom-reset': 'zoom-reset' };
+      if (process.platform === 'darwin' || menuOnly[commandId]) {
+        const itemId = menuOnly[commandId] ?? `browser-${commandId}`;
+        const item = Menu.getApplicationMenu()?.getMenuItemById(itemId);
+        if (!item) throw new Error(`no menu item ${itemId}`);
+        item.click();
+        return true;
+      }
+      const keys = {
+        reload: ['R', ['control']], 'hard-reload': ['R', ['control', 'shift']],
+        'close-tab': ['W', ['control']], find: ['F', ['control']],
+        back: ['Left', ['alt']], forward: ['Right', ['alt']], 'new-tab': ['T', ['control']],
+      };
+      if (!keys[commandId]) throw new Error(`no key for ${commandId}`);
+      const [keyCode, modifiers] = keys[commandId];
+      wc.focus();
+      wc.sendInputEvent({ type: 'keyDown', keyCode, modifiers });
+      wc.sendInputEvent({ type: 'keyUp', keyCode, modifiers });
+      return true;
+    },
     railActivationSerial() { return getRailActivationSerial(); },
     toggleGroup(id) { toggleGroupCollapsed(id); },
     moveTab(id, target) { return moveTabTo(id, target); },
@@ -601,6 +662,7 @@ function install(refs) {
       if (typeof patch.favicon === 'string' || patch.favicon === null) tab.favicon = patch.favicon;
       if (typeof patch.isLoading === 'boolean') tab.isLoading = patch.isLoading;
       if (typeof patch.audible === 'boolean') tab.audible = patch.audible;
+      if (Number.isInteger(patch.blockedCount) && patch.blockedCount >= 0) tab.blockedCount = patch.blockedCount;
       if (typeof patch.muted === 'boolean') {
         tab.muted = patch.muted;
         tab.view?.webContents?.setAudioMuted(patch.muted);
@@ -2362,6 +2424,8 @@ function install(refs) {
     openPalette() { showOverlay('palette'); },
     closeOverlay() { hideOverlay({ refocusContent: false }); },
     overlayMode() { return getOverlayMode(); },
+    findTabId() { return getFindTargetTabId(); },
+    overlayViewBounds() { return getOverlayViewBounds(); },
     // The hidden display-capture helper is created on the first share
     // request; this creates it the same way, for tests that need it to exist.
     async prepareDisplayCaptureHelper() {

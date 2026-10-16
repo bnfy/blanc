@@ -99,6 +99,8 @@
   /** @type {null | 'panel' | 'palette' | 'glance' | 'find' | 'shield' | 'capture' | 'spaces'} */
   let mode = null;
   let glancePickerPurpose = null;
+  /** The tab the find capsule searches (overlay:show purpose). */
+  let findTabId = null;
   // Advances on every fresh picker open and on hide, so a choice awaited
   // across a dismissal never paints its outcome onto a later picker.
   let glancePickerSession = 0;
@@ -1832,6 +1834,7 @@
     renderQueued = false;
     mode = next;
     glancePickerPurpose = next === 'glance' ? purpose : null;
+    if (next === 'find') findTabId = purpose?.findTabId ?? state.activeTabId;
     document.body.dataset.mode = next ?? '';
     document.body.dataset.glancePurpose = glancePickerPurpose ?? '';
     if (next !== 'panel' && next !== 'palette' && next !== 'spaces') closeWorkspaceSwitcher();
@@ -2197,7 +2200,7 @@
   function resetFind() {
     findInput.value = '';
     findCount.textContent = '';
-    if (findLastQuery && state.activeTabId) window.browserAPI.stopFindInPage(state.activeTabId);
+    if (findLastQuery && findTabId) window.browserAPI.stopFindInPage(findTabId);
     findLastQuery = null;
   }
 
@@ -2673,11 +2676,11 @@
 
   function runFind(options) {
     const query = findInput.value;
-    if (!state.activeTabId || !query) {
+    if (!findTabId || !query) {
       findCount.textContent = '';
       return;
     }
-    window.browserAPI.findInPage(state.activeTabId, query, options);
+    window.browserAPI.findInPage(findTabId, query, options);
     findLastQuery = query;
   }
 
@@ -2689,7 +2692,7 @@
     if (!findInput.value) {
       findCount.textContent = '';
       findLastQuery = null;
-      if (state.activeTabId) window.browserAPI.stopFindInPage(state.activeTabId);
+      if (findTabId) window.browserAPI.stopFindInPage(findTabId);
       return;
     }
     runFind({ forward: true, findNext: true });

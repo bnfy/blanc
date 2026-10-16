@@ -10,6 +10,7 @@ Feature: Glance reference pane
     Then Glance shows a dedicated accessible local-tab picker
     When I filter the Glance picker and choose the reference tab
     Then the active page and Glance occupy separate dominant and reference panes
+    And the Island shows no tab dots while Glance is open
     When I focus the interactive Glance page
     Then the main and reference roles do not change
     When I promote the Glance pane
@@ -18,6 +19,7 @@ Feature: Glance reference pane
     Then the main pane remains larger than the reference pane
     When I close Glance
     Then the active page fills the browser page region
+    And the Island shows its tab dots again
 
   @F34-1 @F34 @D11
   Scenario: Change and close the underlying Glance tab without disturbing main
@@ -175,3 +177,273 @@ Feature: Glance reference pane
     And I choose the slow quiet tab and cancel with Escape before it wakes
     And I summon Glance from its native keyboard shortcut
     Then the fresh picker stays clean after the first wake lands
+
+  @F34-1 @F34 @D11
+  Scenario: The Glance header shows when the reference holds keyboard focus
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And the reference pane is the focused pane
+    Then the Glance header shows the reference has focus
+    When the main page is the focused pane
+    Then the Glance header shows the main page has focus
+
+  @F34-1 @F34 @D11
+  Scenario: A reference that already holds keyboard focus when Glance opens is the focused pane
+    Given two ordinary tabs in one workspace for Glance
+    When the reference tab takes keyboard focus while it is in the background
+    And I open the reference tab in Glance
+    Then the recorded focused pane is the pane that holds keyboard focus
+
+  @F34-1 @F34 @D11
+  Scenario: Reload with focus in the reference reloads the reference
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And the reference pane is the focused pane
+    And I press the reload command
+    Then only the reference page reloaded
+
+  @F34-1 @F34 @D11
+  Scenario: Close Tab with focus in the reference closes the reference tab only
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And the reference pane is the focused pane
+    And I press the close-tab command
+    Then the reference tab is closed and the main page has focus
+    When I press the close-tab command
+    Then the main page tab is closed
+
+  @F34-1 @F34 @D11
+  Scenario: Replacing the reference hands commands back to the main page
+    Given three ordinary tabs with one open in Glance
+    When the reference pane is the focused pane
+    And the replacement tab becomes the reference without a focus change
+    And I press the reload command
+    Then only the main page reloaded
+    And the Glance header shows the main page has focus
+
+  @F34-1 @F34 @D11
+  Scenario: Find with focus in the reference searches the reference
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And the reference pane is the focused pane
+    And I press the find command
+    Then the find capsule sits over the reference pane and searches it
+    When I promote the Glance pane
+    Then the find capsule is closed
+
+  @F34-1 @F34 @D11
+  Scenario: Zoom and Back follow focus into the reference
+    Given a main page and a reference on another site, both with history
+    When the reference pane is the focused pane
+    And I press the zoom-in command
+    Then only the reference page is zoomed
+    When I press the back command
+    Then only the reference page went back
+
+  @F34-1 @F34 @F38 @D11
+  Scenario: The 1Password fill and its hint follow the focused pane
+    Given 1Password fill is configured and the Glance reference shows a login form
+    When the reference pane is the focused pane
+    Then the 1Password fill targets the reference pane
+    And the Island shows the fill hint
+    When the main page is the focused pane
+    Then the 1Password fill targets the main page
+    And the Island hides the fill hint
+
+  @F34-1 @F34 @F38 @D11
+  Scenario: A reference navigation leaves a 1Password question about the main page alone
+    Given 1Password fill is configured and the Glance reference shows a login form
+    When the main page is the focused pane
+    And a fill confirmation question is presented
+    And the reference pane navigates to another page
+    Then the fill question is still showing
+    When the main page navigates to another page
+    Then the fill question is gone
+
+  @F34-1 @F34 @D11
+  Scenario: A mouse gesture in the reference acts on the reference
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And I draw the reload gesture in the reference pane
+    Then only the reference page reloaded
+
+  @F34-1 @F34 @D11
+  Scenario: A link that opens a new tab from the reference opens into Glance
+    Given a Glance reference with a link that opens a new tab
+    When I click that link in the reference pane
+    Then the new tab is the reference and the old reference stays open
+    And the main page is unchanged
+
+  @F34-1 @F34 @D11
+  Scenario: A background-tab click in the reference stays in the background
+    Given a Glance reference with a link that opens a new tab
+    When I click that link in the reference pane as a background tab
+    Then a background tab opened and Glance shows the same reference
+
+  @F34-1 @F34 @F11 @D11
+  Scenario: A private reference opens its new tab privately into Glance
+    Given a private Glance reference with a link that opens a new tab
+    When I click that link in the reference pane
+    Then the new tab is the reference and the old reference stays open
+    And the new reference is private
+
+  @F34-1 @F34 @D11
+  Scenario: The Glance header goes back and reloads the reference
+    Given a main page and a reference on another site, both with history
+    Then the Glance header's Back button is enabled
+    When I click Back in the Glance header
+    Then only the reference page went back
+    And the Glance header's Back button is disabled
+    When I click Reload in the Glance header
+    Then only the reference page reloaded
+    When the reference starts a slow load
+    Then the Glance header's Reload button reads Stop
+
+  @F34-1 @F34 @D11
+  Scenario: Right-clicking the Glance header addresses the reference tab
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    Then a right-click on the Glance title addresses the reference tab
+    And a right-click on a Glance header button addresses no tab
+
+  @F34-1 @F34 @D11
+  Scenario: Find pressed in the other pane starts a fresh search there
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And the main page is the focused pane
+    And I press the find command
+    And I search the page for "widget"
+    And the reference pane is the focused pane
+    And I press the find command
+    Then the find capsule is fresh and bound to the reference
+
+  @F34-1 @F34 @D11
+  Scenario: The Island stays clear of the macOS traffic lights while Glance is open
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    Then a full-width Island stays clear of the window's traffic lights
+    When I narrow the workspace below the side-by-side threshold
+    Then a full-width Island stays clear of the window's traffic lights
+
+  @F34-1 @F34 @F28 @D11
+  Scenario: The Island stays clear of the Windows and Linux window controls while Glance is open
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    Then a full-width Island stays clear of the Windows and Linux window controls
+    When I narrow the workspace below the side-by-side threshold
+    Then a full-width Island stays clear of the Windows and Linux window controls
+    When I switch the Glance window to vertical tabs
+    Then a full-width Island stays clear of the Windows and Linux window controls
+    And the Glance window returns to its usual layout
+
+  @F34-1 @F34 @F3 @D11
+  Scenario: The Island's controls stay inside it when the main pane is narrow
+    Given twelve ordinary tabs with one open in Glance
+    When I narrow the main pane to its smallest side-by-side width
+    Then every Island control stays inside the Island
+    And the Island's address stays readable
+    And the Island shows no tab dots while Glance is open
+    And the Glance window returns to its usual layout
+
+  @F34-1 @F34 @F11 @D11
+  Scenario: The divider leaves room for the Island's chips too
+    Given twelve ordinary tabs and a private main page with one open in Glance
+    When I narrow the main pane to its smallest side-by-side width
+    Then every Island control stays inside the Island
+    And the Island's address stays readable
+    And the Glance window returns to its usual layout
+
+  @F34-1 @F34 @F3 @D11
+  Scenario: The Island makes room for a new chip and grows back when it goes
+    Given twelve ordinary tabs in a narrow window
+    When a download starts
+    Then the Island makes room for the downloads button
+    When the download indicator goes away
+    Then the Island shows as many tab dots as before
+    And the Glance window returns to its usual layout
+
+  @F34-1 @F34 @D11
+  Scenario: Stacked on Windows and Linux, the Island keeps its address readable in a small window
+    Given twelve ordinary tabs with one open in Glance
+    When the window is as small as it goes with the Windows and Linux window controls
+    Then every Island control stays inside the Island
+    And the Island's address stays readable
+    And a full-width Island stays clear of the Windows and Linux window controls
+    And the Glance window returns to its usual layout
+
+  @F34-1 @F34 @F12 @D11
+  Scenario: A growing blocked count leaves the Island's dots alone
+    Given twelve ordinary tabs in a narrow window
+    When the active page's blocked count grows from 9 to 123
+    Then the Island's tab dots were not rebuilt
+    And the Glance window returns to its usual layout
+
+  @F34-1 @F34 @F3 @D11
+  Scenario: The Island re-fits when the interface font finishes loading
+    Given twelve ordinary tabs in a narrow window
+    When the interface font finishes loading with wider letters
+    Then the Island's address is whole and its controls fit
+    And the Glance window returns to its usual layout
+
+  @F34-1 @F34 @F9 @D11
+  Scenario: Close Tab from the find bar on the reference hands focus to the main page
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And the reference pane is the focused pane
+    And I press the find command
+    And I press the close-tab command in the find bar
+    Then the reference tab is closed and the main page has focus
+
+  @F34-1 @F34 @F2 @D11
+  Scenario: A new window's first Glance layout already leaves room for the Island
+    Given twelve ordinary tabs with one open in Glance
+    When I narrow the main pane to its smallest side-by-side width
+    And I open Glance in a new window just wide enough to stay side by side
+    Then its first layout already stops the divider at the Island's minimum
+    And the Glance window returns to its usual layout
+
+  @F34-1 @F34 @D11
+  Scenario: The Glance header stays clear of the Windows and Linux window controls at its narrowest
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And the strip draws the Windows and Linux window controls
+    And I drag the Glance divider as far right as it goes
+    Then the Glance header's buttons are clear of the window controls
+    And the Glance window returns to its usual layout
+
+  @F34-1 @F34 @F28 @D11
+  Scenario: Stacked with vertical tabs on Windows and Linux, the Island's controls stay inside it
+    Given twelve ordinary tabs with one open in Glance
+    When the strip draws the Windows and Linux window controls
+    And the window is 700 pixels wide
+    And I switch the Glance window to vertical tabs
+    Then every Island control stays inside the Island
+    And the Island's address stays readable
+    And the Island stays clear of the window controls and the tab rail
+    And the Glance window returns to its usual layout
+
+  @F34-1 @F34 @D11
+  Scenario: The Glance title keeps its room beside the Windows and Linux window controls
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And the window is 1200 pixels wide
+    And the strip draws the Windows and Linux window controls
+    Then the Glance title shows at least ten characters
+    And Make main still says what it does
+    And the Glance window returns to its usual layout
+
+  @F34-1 @F34 @D11
+  Scenario: A new tab opened with focus in the reference makes the main page the focused pane
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And the reference pane is the focused pane
+    And I press the new-tab command
+    Then the recorded focused pane is the main page
+
+  @F34-1 @F34 @D11
+  Scenario: Activating the window again keeps the focused pane truthful
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And the reference pane is the focused pane
+    And another Blanc window takes the foreground and this one is activated again
+    Then the recorded focused pane is the pane that holds keyboard focus

@@ -501,12 +501,15 @@ Glance split geometry, from calculateGlanceLayout() in glance-layout.js.
 | --- | --- | --- |
 | `direction` | `'horizontal' \| 'vertical'` |  |
 | `ratio` | `number` |  |
+| `minRatio` | `number` | The smallest main-pane share the divider allows; above 0.5 on macOS when the main pane needs room for the Island and the traffic lights. |
+| `maxRatio` | `number` | The largest main-pane share the divider allows: 0.78, or less so the reference keeps 300 px. |
 | `page` | `Rect` |  |
 | `primary` | `Rect` |  |
 | `divider` | `Rect` |  |
 | `glanceHeader` | `Rect` |  |
 | `glanceContent` | `Rect` |  |
 | `glance` | `Rect` | Alias of glanceContent kept for older consumers. |
+| `focusedPane?` | `'main' \| 'glance'` | Which pane holds keyboard focus. Present on chrome:glance-layout (glanceLayoutPayload() in glance-focus.js); calculateGlanceLayout() leaves it out. |
 
 ### `WorkspaceSaveStatus`
 
@@ -853,6 +856,8 @@ The resting pill's rectangle as the strip reports it, plus the open shield popov
 | `height` | `number` |  |
 | `shieldAnchor?` | `ShieldAnchor` | Present while the shield popover is open, so a uBlock Origin popup can follow the pill. |
 | `spacesAnchor?` | `SpacesAnchor` | Present while the Spaces menu is open from the mark, so it follows the pill. |
+| `minPrimaryWidth?` | `number` | With Glance side by side: the narrowest main pane that holds the slim Island with a readable address, its chips and clearance included. Main stops the divider there. |
+| `minReferenceWidth?` | `number` | With Glance side by side: the narrowest reference that holds the Glance header at its most compact, including the window-control space on Windows and Linux. Main stops the divider there. |
 
 ### `SpacesAnchor`
 

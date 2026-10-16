@@ -272,6 +272,14 @@ const {
   calculateGlanceLayout,
   ratioForGlanceDivider,
 } = require('./glance-layout');
+const {
+  visiblePaneIds,
+  isVisiblePaneId,
+  livePaneId,
+  commandTargetTab,
+  focusedPane,
+  glanceLayoutPayload,
+} = require('./glance-focus');
 const { moveTab: resolveTabMove, reorderGroup: resolveGroupReorder } = require('./tab-order');
 const { acceptOverlayDragState, resetOverlayDragState, overlayDragActive } = require('./overlay-drag-state');
 const {
@@ -2940,9 +2948,29 @@ function activeGlanceTab() {
   return tab && windowRuntimes.runtimeForTab(id) === rt() ? tab : null;
 }
 
+/** The last Island minimum any window's strip measured. A window that has
+ * not measured its own yet starts from it, so its first Glance layout does
+ * not lay out side by side and then flip once its strip reports. */
+let lastIslandMinPrimaryWidth = 0;
+/** The same for the reference's minimum (the compact Glance header). */
+let lastGlanceMinReferenceWidth = 0;
+
+/** The narrowest main pane the divider allows, in px: what the strip last
+ * measured the slim Island to need, chips and clearance included. */
+function glanceMinPrimaryWidth() {
+  return rt().islandMinPrimaryWidth || lastIslandMinPrimaryWidth;
+}
+
+/** The narrowest reference the divider allows, in px: what the strip last
+ * measured the compact Glance header to need (0 = not yet; the layout then
+ * uses its default). */
+function glanceMinReferenceWidth() {
+  return rt().glanceMinReferenceWidth || lastGlanceMinReferenceWidth;
+}
+
 function glanceGeometry(layout = currentChromeLayout()) {
   if (!activeGlanceTab()) return null;
-  return calculateGlanceLayout(layout.pageBounds, rt().glanceRatio);
+  return calculateGlanceLayout(layout.pageBounds, rt().glanceRatio, glanceMinPrimaryWidth(), glanceMinReferenceWidth());
 }
 
 function currentTabBounds(tab) {
@@ -2963,12 +2991,13 @@ function overlayBounds() {
   }
   if (rt().overlayMode === 'find') {
     if (!glance) return layout.findBounds;
-    const width = Math.min(560, glance.primary.width);
+    const pane = findTargetTabId(rt()) === rt().glanceTabId ? glance.glance : glance.primary;
+    const width = Math.min(560, pane.width);
     return {
-      x: glance.primary.x + Math.round((glance.primary.width - width) / 2),
-      y: rt().chromeHeight,
+      x: pane.x + Math.round((pane.width - width) / 2),
+      y: pane.y,
       width,
-      height: Math.min(160, glance.primary.height),
+      height: Math.min(160, pane.height),
     };
   }
   if (rt().overlayMode === 'palette' || rt().overlayMode === 'panel') {
@@ -3905,6 +3934,37 @@ function bumpGlanceRequestEpoch() {
   rt().glanceRequestEpoch = (rt().glanceRequestEpoch ?? 0) + 1;
 }
 
+/** A visible pane's page took keyboard focus (tab-view.js). Only the strip's
+ * focus cue needs to hear about it; nothing is re-laid out. */
+function noteFocusedPane(owner, tabId) {
+  if (!owner || !isVisiblePaneId(owner, tabId) || owner.focusedPaneTabId === tabId) return;
+  owner.focusedPaneTabId = tabId;
+  if (owner.glanceTabId == null) return;
+  withWindowRuntime(owner, () => {
+    if (!hasLiveWindow()) return;
+    rt().window.webContents.send('chrome:glance-layout', glanceLayoutPayload(glanceGeometry(), focusedPane(rt())));
+  });
+}
+
+/** A pane blurred, or the window was activated (Linux then restores focus
+ * to the last focused view without a webContents 'focus' event): record
+ * whichever visible pane really holds focus now. With neither (a chrome
+ * surface took focus) the record stays as it was. */
+function syncFocusedPane(owner) {
+  if (!owner) return;
+  const id = livePaneId(owner, (tabId) => liveContents(tabs.get(tabId)));
+  if (id != null) noteFocusedPane(owner, id);
+}
+
+/** Glance closed, the roles swapped, the main page changed, or the reference
+ * left: commands without a sending pane go to the main page again (spec:
+ * Commands follow focus). A pane that then takes or keeps focus is recorded
+ * by its focus event, by the sync after Glance attaches, or by the window's
+ * activation. */
+function resetFocusedPane() {
+  rt().focusedPaneTabId = rt().activeTabId ?? null;
+}
+
 // --- Ambient fill hint (spec §5) ---------------------------------------
 // Structure-only probe on the ACTIVE tab; the scheduler owns epochs, the
 // identity token, and the single recheck (fill-hint.js, unit-tested).
@@ -3924,7 +3984,7 @@ const fillHintScheduler = !ONE_PASSWORD_AVAILABLE ? null : createFillHintSchedul
     const url = wc.getURL();
     if (!parseOnePasswordWebUrl(url) || isUtilityUrl(url)) return false;
     const runtime = windowRuntimes.runtimeForTab(tab.id);
-    return runtime?.activeTabId === tab.id; // private tabs eligible; quiet excluded above
+    return isVisiblePaneId(runtime, tab.id); // both panes; private eligible, quiet excluded above
   },
   tabEpoch: (tab) => tab.navEpoch,
   contentsToken: (tab) => liveContents(tab)?.id ?? null,
@@ -3965,10 +4025,15 @@ function captureOnePasswordTarget(runtime) {
     };
   }
 
-  const tab = tabs.get(runtime.activeTabId);
+  // With Glance open the fill targets the focused pane (spec: Commands
+  // follow focus); menu, shortcut and chip all arrive without a sender.
+  const tab = browserCommandTab(runtime);
   const wc = liveContents(tab);
   if (!tab || !wc || wc.isDestroyed()) return null;
   const island = runtime.islandRect;
+  // Fallback anchor when the field cannot be located: the reference's own
+  // top edge rather than the Island, which sits over the other pane.
+  const paneBounds = tab.id === runtime.glanceTabId ? tab.view.getBounds() : null;
   return {
     kind: 'tab',
     runtime,
@@ -3978,9 +4043,11 @@ function captureOnePasswordTarget(runtime) {
     url: wc.getURL(),
     webContents: wc,
     window: runtime.window,
-    pickerPoint: island
-      ? { x: island.x + Math.round(island.width / 2), y: island.y + island.height }
-      : { x: 16, y: runtime.chromeHeight },
+    pickerPoint: paneBounds
+      ? { x: paneBounds.x + Math.round(paneBounds.width / 2), y: paneBounds.y }
+      : island
+        ? { x: island.x + Math.round(island.width / 2), y: island.y + island.height }
+        : { x: 16, y: runtime.chromeHeight },
   };
 }
 
@@ -3997,7 +4064,7 @@ function isOnePasswordTargetCurrent(target) {
       && BrowserWindow.fromWebContents(wc) === target.window
       && wc.getURL() === target.url;
   }
-  if (target.runtime.activeTabId !== target.tabId) return false;
+  if (!isVisiblePaneId(target.runtime, target.tabId)) return false;
   const tab = tabs.get(target.tabId);
   if (!tab || tab.navEpoch !== target.navEpoch) return false;
   const wc = liveContents(tab);
@@ -4737,7 +4804,7 @@ function resizeActiveView() {
   // frame. A dedicated geometry event avoids turning every pointermove or
   // window resize into a tab/session-sync broadcast.
   rt().window.webContents.send('chrome:vertical-tabs-width', verticalTabsMetrics(layout));
-  rt().window.webContents.send('chrome:glance-layout', glance);
+  rt().window.webContents.send('chrome:glance-layout', glanceLayoutPayload(glance, focusedPane(rt())));
 }
 
 function applyVerticalTabsWidth(nextWidth) {
@@ -4851,17 +4918,21 @@ function installGlanceShortcut(webContents, owner = rt()) {
   }));
 }
 
-function activeBrowserCommandTab(runtime) {
-  const tab = tabs.get(runtime.activeTabId);
+/** The page a browser command acts on: the pane the key came from, else the
+ * focused pane, else the main page (glance-focus.js). Never a quiet tab. */
+function browserCommandTab(runtime, sender = null) {
+  const contentsOf = (tabId) =>
+    windowRuntimes.runtimeForTab(tabId) === runtime ? liveContents(tabs.get(tabId)) : null;
+  const tab = tabs.get(commandTargetTab(runtime, sender, contentsOf));
   return tab && windowRuntimes.runtimeForTab(tab.id) === runtime &&
     !tab.sleeping && liveContents(tab) ? tab : null;
 }
 
-function reloadBrowserCommandTab(runtime, bypassCache = false) {
-  const tab = activeBrowserCommandTab(runtime);
+function reloadBrowserCommandTab(runtime, bypassCache = false, sender = null) {
+  const tab = browserCommandTab(runtime, sender);
   const wc = liveContents(tab);
   return queueTabNavigation(wc, {
-    isCurrent: () => activeBrowserCommandTab(runtime) === tab && liveContents(tab) === wc,
+    isCurrent: () => !!tab && isVisiblePaneId(runtime, tab.id) && liveContents(tab) === wc,
     run: contents => reloadContents(contents, bypassCache),
   });
 }
@@ -4870,14 +4941,22 @@ const executeBrowserCommand = createBrowserCommandExecutor({
   'new-window': runtime => openNewWindow({ profileId: runtime.profileId }),
   'new-tab': () => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true }),
   'new-private-tab': () => setActiveTab(createTab(PRIVATE_NEW_TAB_URL, { private: true }), { focusContent: false, focusAddress: true }),
-  'close-tab': runtime => { const tab = activeBrowserCommandTab(runtime); if (tab) closeTab(tab.id); },
+  'close-tab': (runtime, sender) => { const tab = browserCommandTab(runtime, sender); if (tab) closeTab(tab.id); },
   'reopen-tab': reopenClosedTab,
   'next-tab': () => cycleTab(1),
   'previous-tab': () => cycleTab(-1),
   address: toggleIsland,
-  find: openFindBar,
-  reload: runtime => reloadBrowserCommandTab(runtime),
-  'hard-reload': runtime => reloadBrowserCommandTab(runtime, true),
+  find: (runtime, sender) => openFindBar(browserCommandTab(runtime, sender)?.id),
+  reload: (runtime, sender) => reloadBrowserCommandTab(runtime, false, sender),
+  'hard-reload': (runtime, sender) => reloadBrowserCommandTab(runtime, true, sender),
+  back: (runtime, sender) => {
+    const nav = liveContents(browserCommandTab(runtime, sender))?.navigationHistory;
+    if (nav?.canGoBack()) nav.goBack();
+  },
+  forward: (runtime, sender) => {
+    const nav = liveContents(browserCommandTab(runtime, sender))?.navigationHistory;
+    if (nav?.canGoForward()) nav.goForward();
+  },
   history: () => openInternalPage('blanc://history/'),
   downloads: () => openInternalPage('blanc://downloads/'),
   settings: () => openInternalPage('blanc://settings/'),
@@ -4910,7 +4989,7 @@ function installChromeShortcuts(webContents, owner = rt()) {
     webContents,
     getRuntime,
     ownsSurface: ownsBrowserShortcutSurface,
-    execute: (id, runtime) => bindWindowRuntime(runtime, () => executeBrowserCommand(id, runtime))(),
+    execute: (id, runtime, sender) => bindWindowRuntime(runtime, () => executeBrowserCommand(id, runtime, sender))(),
     observe: observeBrowserCommand,
   });
   installVerticalTabsShortcut(webContents, owner);
@@ -5958,9 +6037,9 @@ initTabView({
   windowRuntimes,
   bindWindowRuntime,
   tabIdByWebContentsId,
-  // Optional (not in tab-view's required list): active-tab main-frame and
-  // same-document navigations dismiss that window's fill capsule.
-  dismissFillStatusForNavigation: (owner) => fillStatusSurface?.invalidatePending(owner.id),
+  // Optional (not in tab-view's required list): a visible pane's main-frame
+  // and same-document navigations dismiss a fill message about that pane.
+  dismissFillStatusForNavigation: (owner, tabId) => fillStatusSurface?.invalidatePending(owner.id, tabId),
   // Optional ambient-hint triggers (fill-hint.js owns all revalidation).
   onFillHintLoad: (tab) => fillHintScheduler?.notePageLoad(tab),
   onFillHintInPageNavigation: (tab) => fillHintScheduler?.noteInPageNavigation(tab),
@@ -5972,8 +6051,12 @@ initTabView({
   createTab,
   setActiveTab,
   closeTab,
+  noteFocusedPane,
+  syncFocusedPane,
+  setGlanceTab,
+  isFindTarget: (owner, tabId) => findTargetTabId(owner) === tabId,
   dispatchMouseGesture(owner, tab, action) {
-    if (!owner || owner.closing || owner.activeTabId !== tab.id || liveContents(tab) == null) return;
+    if (!owner || owner.closing || !isVisiblePaneId(owner, tab.id) || liveContents(tab) == null) return;
     const wc = liveContents(tab);
     switch (action) {
       case 'back': if (wc.navigationHistory.canGoBack()) wc.navigationHistory.goBack(); break;
@@ -6397,6 +6480,7 @@ function setActiveTab(id, {
   }
 
   rt().activeTabId = id;
+  resetFocusedPane();
   fillHintScheduler?.noteActivated(next);
   if (prevId && prevId !== id) rt().tabsWantingAddressBarFocus.delete(prevId);
   const shouldFocusAddress = focusAddress && !focusContent;
@@ -6490,11 +6574,17 @@ async function setGlanceTab(id) {
     detachTabView(previous, { retainManagedRoot: true });
     previous.lastActiveAt = Date.now();
   }
+  if (previous && findTargetTabId(rt()) === previous.id) hideOverlay({ refocusContent: false });
 
   bumpSurfaceGeneration();
   rt().glanceTabId = id;
+  if (previous && rt().focusedPaneTabId === previous.id) resetFocusedPane();
   setTabViewVisible(tab, true);
   attachTabViewToWindow(tab);
+  // On Linux an inactive tab view stays attached and can already hold focus,
+  // so it arrives focused with no focus event: record what holds focus now.
+  syncFocusedPane(rt());
+  fillHintScheduler?.noteActivated(tab);
   // Floating trusted surfaces must stay above both page panes.
   const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
   if (sheet) rt().window.contentView.addChildView(sheet.view);
@@ -6511,9 +6601,11 @@ async function setGlanceTab(id) {
 function closeGlance({ focusContent = true } = {}) {
   const tab = activeGlanceTab();
   if (!rt().glanceTabId) return false;
+  if (findTargetTabId(rt()) === rt().glanceTabId) hideOverlay({ refocusContent: false });
   bumpSurfaceGeneration();
   bumpGlanceRequestEpoch();
   rt().glanceTabId = null;
+  resetFocusedPane();
   // ⌘⇧G or View → Close Glance while the Change picker is up: the picker is
   // about a pane that no longer exists, so it goes with it. glanceTabId is
   // already null, so the restore trigger falls through to page content and
@@ -6563,7 +6655,7 @@ function resizeGlanceAt(point) {
   const layout = currentChromeLayout();
   const glance = glanceGeometry(layout);
   if (!glance) return null;
-  const ratio = ratioForGlanceDivider(layout.pageBounds, point, glance.direction);
+  const ratio = ratioForGlanceDivider(layout.pageBounds, point, glance.direction, glanceMinPrimaryWidth(), glanceMinReferenceWidth());
   if (ratio == null) return null;
   rt().glanceRatio = ratio;
   resizeActiveView();
@@ -6744,9 +6836,15 @@ function closeTab(id) {
   if (!tab || windowRuntimes.runtimeForTab(id) !== rt()) return;
   const wasActive = id === rt().activeTabId;
   const wasGlance = id === rt().glanceTabId;
+  // A find capsule searching this tab goes with it. Its focus counts as the
+  // tab's: ⌘W pressed in the find bar on the reference hands focus to the
+  // main page, like ⌘W pressed in the reference itself.
+  const findBoundHere = findTargetTabId(rt()) === id;
+  const findHeldFocus = findBoundHere && liveViewContents(rt().overlayView)?.isFocused() === true;
+  if (findBoundHere) hideOverlay({ refocusContent: false });
   // Read before the view is prepared for close: detaching drops focus onto
   // the chrome strip, and the main page should take it instead.
-  const referenceHeldFocus = wasGlance && liveContents(tab)?.isFocused() === true;
+  const referenceHeldFocus = wasGlance && (findHeldFocus || liveContents(tab)?.isFocused() === true);
   // Invalidate pending blank-tab focus before parking or native teardown.
   if (wasActive && !isQuitting && !rt().closing) cancelAddressBarFocusReclaim(rt(), { reveal: false });
   forgetTabWebContentsIds(id);
@@ -6799,7 +6897,7 @@ function closeTab(id) {
     if (!parked) prepareTabViewForClose(tab);
     else if (wasActive || wasGlance) detachTabView(tab);
   }
-  if (wasGlance) rt().glanceTabId = null;
+  if (wasGlance) { rt().glanceTabId = null; resetFocusedPane(); }
 
   rt().tabsWantingAddressBarFocus.delete(id);
   tabs.delete(id);
@@ -7238,10 +7336,11 @@ const ZOOM_STEP = 0.5;
 const ZOOM_MIN = -8;
 const ZOOM_MAX = 8;
 
-/** Zoom acts on what the user is looking at: the sheet when open, else the active tab. */
+/** Zoom acts on what the user is looking at: the sheet when open, else the
+ * focused page pane (glance-focus.js). Menu clicks carry no sender. */
 function zoomTargetWebContents() {
   if (rt().utilitySheetUrl) return liveUtilitySheet()?.wc ?? null;
-  return liveContents(tabs.get(rt().activeTabId));
+  return liveContents(browserCommandTab(rt()));
 }
 
 function zoomActiveTab(delta) {
@@ -7255,9 +7354,22 @@ function resetZoomForActiveTab() {
   zoomTargetWebContents()?.setZoomLevel(0);
 }
 
-function openFindBar() {
+/** The tab an open find capsule searches; null when none is open. */
+function findTargetTabId(runtime) {
+  if (runtime?.overlayMode !== 'find') return null;
+  return runtime.overlayPurpose?.findTabId ?? runtime.activeTabId ?? null;
+}
+
+/** ⌘F binds the capsule to the pane it was pressed in; the Island's /find
+ * and the strip stay on the main page. */
+function openFindBar(tabId = rt().activeTabId) {
   if (!rt().window || rt().window.isDestroyed()) return;
-  showOverlay('find');
+  const findTabId = isVisiblePaneId(rt(), tabId) ? tabId : rt().activeTabId;
+  // Open on the other pane: close it first, so the overlay clears the first
+  // page's highlights and the new pane starts a fresh search.
+  const open = findTargetTabId(rt());
+  if (open != null && open !== findTabId) hideOverlay({ refocusContent: false });
+  showOverlay('find', { purpose: { findTabId } });
 }
 
 /** ⌘L opens the expanded island and closes it again. Both expanded states share
@@ -7729,6 +7841,27 @@ function registerIpcHandlers() {
   chromeHandle('tabs:find-stop', (_e, id) => liveContents(tabs.get(id))?.stopFindInPage('clearSelection'));
 
   chromeOn('chrome:island-rect', (event, rect) => {
+    // The strip measures the narrowest main pane its Island needs and the
+    // narrowest reference its Glance header needs (renderer.js
+    // measureGlanceFloors); the Glance divider stops at both.
+    if (event.sender === rt().window?.webContents) {
+      const measured = (value) => {
+        const width = Number(value);
+        return Number.isFinite(width) && width >= 0 && width <= 4000 ? Math.round(width) : null;
+      };
+      const primary = measured(rect?.minPrimaryWidth);
+      const reference = measured(rect?.minReferenceWidth);
+      let changed = false;
+      if (primary != null && primary !== rt().islandMinPrimaryWidth) {
+        rt().islandMinPrimaryWidth = lastIslandMinPrimaryWidth = primary;
+        changed = true;
+      }
+      if (reference != null && reference !== rt().glanceMinReferenceWidth) {
+        rt().glanceMinReferenceWidth = lastGlanceMinReferenceWidth = reference;
+        changed = true;
+      }
+      if (changed && activeGlanceTab()) resizeActiveView();
+    }
     const ok = rect && ['x', 'y', 'width', 'height'].every((f) => Number.isFinite(rect[f]));
     rt().islandRect = ok && rect.width > 0 ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : null;
     const popup = ublockPopups.get(rt().id);
@@ -7763,7 +7896,7 @@ function registerIpcHandlers() {
   chromeOn('chrome:open-island-commands', () => openIslandTyping('/'));
   // The pill's own keydown, when the pill holds keyboard focus.
   chromeOn('chrome:open-island-typing', (_e, char) => openIslandTyping(char));
-  chromeOn('chrome:open-find', () => showOverlay('find'));
+  chromeOn('chrome:open-find', () => openFindBar());
   chromeOn('chrome:open-shield', (_e, anchor) => {
     const trigger = anchor?.trigger === 'insecure' ? 'insecure' : 'shield';
     closeUblockPopup(rt().id);
@@ -8349,7 +8482,7 @@ function buildMenuForRuntime(runtime) {
           ...command('reopen-tab'),
           enabled: (runtime.closedEntries?.length ?? 0) > 0,
         },
-        { label: t('menu.print'), accelerator: 'CmdOrCtrl+P', click: bound(() => rt().activeTabId && tabs.get(rt().activeTabId)?.view.webContents.print()) },
+        { id: 'print', label: t('menu.print'), accelerator: 'CmdOrCtrl+P', click: bound(() => liveContents(browserCommandTab(rt()))?.print()) },
         { type: 'separator' },
         command('downloads'),
         command('settings'),
@@ -8420,13 +8553,15 @@ function buildMenuForRuntime(runtime) {
           accelerator: ONE_PASSWORD_ACCELERATOR,
           click: bound(fillLoginFromOnePassword),
         }] : []),
+        command('back'),
+        command('forward'),
         command('reload'),
         command('hard-reload'),
-        { label: t('menu.zoomIn'), accelerator: 'CmdOrCtrl+Plus', click: bound(() => zoomActiveTab(ZOOM_STEP)) },
+        { id: 'zoom-in', label: t('menu.zoomIn'), accelerator: 'CmdOrCtrl+Plus', click: bound(() => zoomActiveTab(ZOOM_STEP)) },
         // Plus requires Shift on most keyboards; Cmd/Ctrl+= is the common alternate, bound silently to the same action.
         { label: t('menu.zoomIn'), accelerator: 'CmdOrCtrl+=', visible: false, click: bound(() => zoomActiveTab(ZOOM_STEP)) },
-        { label: t('menu.zoomOut'), accelerator: 'CmdOrCtrl+-', click: bound(() => zoomActiveTab(-ZOOM_STEP)) },
-        { label: t('menu.actualSize'), accelerator: 'CmdOrCtrl+0', click: bound(resetZoomForActiveTab) },
+        { id: 'zoom-out', label: t('menu.zoomOut'), accelerator: 'CmdOrCtrl+-', click: bound(() => zoomActiveTab(-ZOOM_STEP)) },
+        { id: 'zoom-reset', label: t('menu.actualSize'), accelerator: 'CmdOrCtrl+0', click: bound(resetZoomForActiveTab) },
         { type: 'separator' },
         {
           id: 'toggle-vertical-tabs',
@@ -8586,6 +8721,7 @@ function tabContextData(tab, owner) {
     },
     groups: owner.groups.map((g) => ({ id: g.id, name: g.name })),
     activeTabId: owner.activeTabId,
+    glanceTabId: owner.glanceTabId ?? null,
     canCloseOthers: closableTabIds({ tabOrder: owner.tabOrder, tabsById: tabs, keepId: tab.id }).length > 0,
     canMoveToNewWindow: owner.tabOrder.length > 1,
     canQuiet: explicitSleepEligible(tab, owner),
@@ -8617,6 +8753,7 @@ function menuContextActions(owner) {
     // panel so it isn't left floating over the fresh Glance split (a quiet tab
     // wakes first inside setGlanceTab, so success can take a beat).
     glance: b(async (id) => { if (await setGlanceTab(id)) hideOverlay(); }),
+    closeGlance: b(() => closeGlance()),
     quiet: b((id) => sleepTabNow(id)),
     newTab: b(() => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true })),
     newPrivateTab: b(() => setActiveTab(createTab(PRIVATE_NEW_TAB_URL, { private: true }), { focusContent: false, focusAddress: true })),
@@ -8719,6 +8856,8 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     buildMenu(runtime);
     refreshDockMenu(); // frontmost window changed → new active-tab line
     refocusAddressBarIfWanted();
+    // Activation can hand a pane focus without that pane's 'focus' event.
+    setImmediate(() => syncFocusedPane(runtime));
   }));
   const dockReopenLifecycle = createDockReopenLifecycle({
     platform: process.platform,
@@ -10547,7 +10686,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       createTab, setActiveTab, closeTab, duplicateTab, toggleTabPinned, toggleTabMuted,
       setGlanceTab, closeGlance, promoteGlance, resizeGlanceAt, resetGlanceRatio,
       getGlanceTabId: () => rt().glanceTabId,
+      getFocusedPaneTabId: () => rt().focusedPaneTabId,
+      getFindTargetTabId: () => findTargetTabId(rt()),
+      getOverlayViewBounds: () => rt().overlayView?.getBounds() ?? null,
       getGlanceGeometry: () => hasLiveWindow() ? glanceGeometry() : null,
+      // The divider's stops as main will use them: measured, else the last measured.
+      getGlanceMinimums: () => ({ primary: glanceMinPrimaryWidth(), reference: glanceMinReferenceWidth() }),
       groupTabByName, renameTab, beginRenameTab, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab,
       closeGroup, newTabUrl,
       getOverlayDragging: () => overlayDragActive(rt()),

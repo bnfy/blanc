@@ -28,6 +28,7 @@ const { queueTabNavigation, shouldPresentTabLoadFailure } = require('./tab-navig
 const { commitEntryMarks, freshCertificateRecord } = require('./certificate-history');
 const { installExternalNavigationHandlers } = require('./external-protocols');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
+const { isVisiblePaneId, foregroundOpenRole } = require('./glance-focus');
 
 let deps = null;
 let mouseGestureSettings = null;
@@ -207,7 +208,7 @@ function wireTabView(tab, view, { owner, adopted }) {
       return;
     }
     const enabled = gestureSettings().enabled;
-    if (!enabled || getOwner().activeTabId !== id || tab.view?.webContents !== wc) {
+    if (!enabled || !isVisiblePaneId(getOwner(), id) || tab.view?.webContents !== wc) {
       gesture.cancel(); gestureButton = null; pendingClick = null; return;
     }
     // Electron's before-mouse-event omits modifiers on some runtimes, even
@@ -385,10 +386,10 @@ function wireTabView(tab, view, { owner, adopted }) {
   wc.on('did-navigate-in-page', boundToTab((_e, url, isMainFrame) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
     if (isMainFrame) tab.navEpoch++;
-    // A same-document navigation of the active tab replaces what a fill
-    // message was about — dismiss it (runtime-scoped; optional dep), and
+    // A same-document navigation of a visible pane replaces what a fill
+    // message about that pane was about — dismiss it (optional dep), and
     // re-probe the new route for the ambient hint.
-    if (isMainFrame && id === getOwner().activeTabId) deps.dismissFillStatusForNavigation?.(getOwner());
+    if (isMainFrame && isVisiblePaneId(getOwner(), id)) deps.dismissFillStatusForNavigation?.(getOwner(), id);
     if (isMainFrame) deps.onFillHintInPageNavigation?.(tab);
     syncNavState();
     if (isMainFrame && tab.historyEligible && !noteWakeSuppressed(tab)) history.addVisit(url, wc.getTitle());
@@ -401,11 +402,11 @@ function wireTabView(tab, view, { owner, adopted }) {
       tab.navEpoch++;
       if (!String(url).startsWith('blanc://error')) tab.certificateError = null;
     }
-    // Main-frame navigation of the active tab dismisses a visible fill
-    // message immediately — a decision must not stay actionable, nor an
-    // error notice persist, over the successor page (same posture as the
-    // shield dismissal below).
-    if (isMainFrame && id === getOwner().activeTabId) deps.dismissFillStatusForNavigation?.(getOwner());
+    // Main-frame navigation of a visible pane dismisses a visible fill
+    // message about that pane immediately — a decision must not stay
+    // actionable, nor an error notice persist, over the successor page (same
+    // posture as the shield dismissal below). The other pane's message stays.
+    if (isMainFrame && isVisiblePaneId(getOwner(), id)) deps.dismissFillStatusForNavigation?.(getOwner(), id);
     // The outgoing document's hint is stale the moment navigation starts.
     if (isMainFrame) deps.onFillHintNavigationStart?.(tab);
     if (
@@ -430,7 +431,17 @@ function wireTabView(tab, view, { owner, adopted }) {
   }));
   wc.on('focus', boundToTab(() => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
+    // Which visible pane holds focus decides where ⌘R, ⌘W, ⌘F … go. Focus
+    // in the reference deliberately does not change roles.
+    deps.noteFocusedPane?.(getOwner(), id);
     if (shouldReclaimAddressBarFocus(id)) reclaimAddressBarFocus(id, { consume: true });
+  }));
+  // Attaching a view can fire a transient focus on it and then hand focus
+  // back to the other pane without a focus event there; re-check on blur.
+  wc.on('blur', boundToTab(() => {
+    if (tab.sleeping || tab.view?.webContents !== wc) return;
+    const owner = getOwner();
+    setImmediate(() => deps.syncFocusedPane?.(owner));
   }));
 
   // Content may not navigate into privileged blanc:// pages. Main-initiated
@@ -537,13 +548,22 @@ function wireTabView(tab, view, { owner, adopted }) {
   }));
   wc.on('found-in-page', boundToTab((_e, result) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
-    if (id === getOwner().activeTabId) {
+    if (deps.isFindTarget?.(getOwner(), id) ?? id === getOwner().activeTabId) {
       getOwner().overlayView?.webContents.send('chrome:find-result', {
         activeMatchOrdinal: result.activeMatchOrdinal,
         matches: result.matches,
       });
     }
   }));
+
+  /** Show a foreground tab this page opened: as the main page, or into
+   * Glance when the reference opened it (foregroundOpenRole). setGlanceTab
+   * re-checks ownership and liveness; a tab that closed or moved meanwhile
+   * simply stays where it is. */
+  const showOpenedTab = (newId, role) => {
+    if (role !== 'glance') return setActiveTab(newId);
+    Promise.resolve(deps.setGlanceTab?.(newId)).catch(() => {});
+  };
 
   // target=_blank becomes an adopted managed tab; featureful new-window
   // requests (OAuth/SSO and payments) keep a real BrowserWindow so their
@@ -584,6 +604,9 @@ function wireTabView(tab, view, { owner, adopted }) {
           const childView = options.webContents
             ? new WebContentsView({ webContents: options.webContents })
             : null;
+          // Read at open time: a foreground tab the reference opened becomes
+          // the reference, leaving the main page and its focus untouched.
+          const role = foregroundOpenRole(getOwner(), tab.id);
           // A discarded opener leaves this child's window.opener unusable.
           const newId = createTab(targetUrl, {
             private: tab.private, groupId: tab.groupId, view: childView, managedExtension,
@@ -594,7 +617,7 @@ function wireTabView(tab, view, { owner, adopted }) {
             openerSandboxFlags: options.webPreferences?.openerSandboxFlags ?? 0,
             httpReferrer: childView ? null : referrer,
           });
-          if (disposition !== 'background-tab') setImmediate(() => setActiveTab(newId));
+          if (disposition !== 'background-tab') setImmediate(() => showOpenedTab(newId, role));
           return liveContents(tabs.get(newId));
         }),
       };
@@ -629,7 +652,8 @@ function wireTabView(tab, view, { owner, adopted }) {
     openTab: boundToTab((targetUrl) => {
       if (handOffToOs(targetUrl)) return;
       if (isForbiddenTopLevelUrl(targetUrl)) return;
-      setActiveTab(createTab(targetUrl, { private: tab.private, groupId: tab.groupId }));
+      const role = foregroundOpenRole(getOwner(), tab.id);
+      showOpenedTab(createTab(targetUrl, { private: tab.private, groupId: tab.groupId }), role);
     }),
   }, () => {
     if (!gestureSettings().enabled) return true;
