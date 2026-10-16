@@ -4,8 +4,8 @@
 // mergeFromSync via its STORES table and passes ctx = { accountId, deviceId,
 // syncTabs, deviceName, platform } from sync.json — no circular require.
 // See the tab-sync design spec §4–§6.
-const os = require('os');
 const { JsonStore } = require('./store');
+const { deviceName } = require('./device-name');
 const model = require('./tabsync-model');
 const { syncSnapshot } = require('./session-snapshot');
 
@@ -27,10 +27,10 @@ const currentSnapshot = () => {
 };
 
 /** The complete publishable content — spec §6's fingerprint includes device
- * name and platform, so a hostname rename counts as a change too. */
+ * name and platform, so a rename of this Mac counts as a change too. */
 const ownContent = () => {
   const { tabs, groups } = currentSnapshot();
-  return { name: os.hostname(), platform: process.platform, tabs, groups };
+  return { name: deviceName(), platform: process.platform, tabs, groups };
 };
 
 /** Registering the provider seeds the baseline explicitly, so noteTabsChanged

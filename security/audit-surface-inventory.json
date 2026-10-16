@@ -724,7 +724,7 @@
     },
     {
       "file": "src/main/sync.js",
-      "sha256": "d8f5ab3be9384db75b90dbe3c042930ae4b100cd89101edcc79c0777df53b571",
+      "sha256": "095f97c3d037fd67a45909ffe6eb4465dbceef9c3e75c13d0c6ae6d3ccd6d0ef",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
