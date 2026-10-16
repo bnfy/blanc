@@ -97,7 +97,7 @@ export function initHome({ document = window.document, view = window } = {}) {
     "os",
     localSystem(view.navigator),
   );
-  // "Coming from" links in the hero and Spaces open that browser's steps.
+  // A link naming a browser (the Spaces note's Arc link) opens its steps.
   document.querySelectorAll("a[data-switch-source]").forEach((link) =>
     link.addEventListener("click", () => selectSource(link.dataset.switchSource)),
   );

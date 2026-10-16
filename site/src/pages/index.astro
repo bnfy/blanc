@@ -99,10 +99,6 @@ const sources = [
     ],
   },
 ];
-const comingFrom = [
-  ["Chrome", "chromium"], ["Edge", "chromium"], ["Brave", "chromium"],
-  ["Arc", "arc"], ["Safari", "safari"], ["Firefox", "firefox"],
-];
 const systems = [
   { id: "mac", label: "macOS", step: "Open Settings → General in Blanc, click Make default, and confirm when macOS asks.", note: "First-run setup offers this too." },
   { id: "win", label: "Windows", step: "Open Settings → General in Blanc and click Make default. Windows Settings opens at Default apps, where you choose Blanc.", note: "Needs the installed version of Blanc." },
@@ -186,12 +182,6 @@ const faqs = [
           <p class="handheld-note" data-handheld-note hidden>
             Blanc is a desktop browser for macOS, Windows and Linux.
             <span id="hero-share-status" role="status" aria-live="polite"></span>
-          </p>
-          <p class="coming-from">
-            <span>Coming from</span>
-            {comingFrom.map(([label, source]) => (
-              <a href="#switch" data-switch-source={source}>{label}</a>
-            ))}
           </p>
         </div>
       </div>
