@@ -42,7 +42,7 @@ const jobs = [
   })),
   // Candidates from main at c70c55fa, shown on the homepage until the next
   // release is captured (docs/website-candidate-captures-c70c55fa.json).
-  ...['ledger', 'billboard', 'shelf', 'tally'].map(name => ({
+  ...['ledger', 'billboard', 'shelf', 'tally', 'mahjong'].map(name => ({
     source: `feature-captures/${name}-c70c55fa.png`,
     output: `feature-captures/${name}-c70c55fa.webp`,
   })),

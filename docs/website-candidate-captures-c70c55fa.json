@@ -136,6 +136,18 @@
         "file": "site/public/feature-captures/tally-c70c55fa.webp",
         "sha256": "603ca24652dd3045645832a97652bd7031cd91f50ce7e2eeeaab5af41d731e7d"
       }
+    },
+    {
+      "layout": "mahjong",
+      "file": "site/public/feature-captures/mahjong-c70c55fa.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "b24b7c166791b9ee6d3f4c19c7dfb16e804b5b2f977606fefd6a7cfc2756c06a",
+      "webp": {
+        "file": "site/public/feature-captures/mahjong-c70c55fa.webp",
+        "sha256": "e5fd414b46f5838181e0f73f006862455e88c08b889516ad5ca4d723e7918eee"
+      },
+      "note": "Standalone Mahjong (blanc://mahjong), captured by the same capture:start-page:installed run; shown on /features."
     }
   ],
   "island": {
@@ -188,5 +200,9 @@
         "sha256": "4704254963528f4815e1432615f31e16ffe869513a4f3c6452b0f82ba753ca29"
       }
     ]
-  }
+  },
+  "shownOn": [
+    "site/src/pages/index.astro",
+    "site/src/pages/features.astro"
+  ]
 }

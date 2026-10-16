@@ -440,4 +440,15 @@ test('candidate Start Page captures are tied to main after v1.34.0 and are all t
   for (const time of ['dawn', 'day', 'dusk', 'night']) {
     assert.ok(manifest.wallpapers.some(item => item.displayAsset.file === `site/public/feature-captures/home-wallpaper-${time}-c70c55fa.webp`), time);
   }
+  // The Features page shows the same candidates: the time-of-day tile, the
+  // layouts, Mahjong and the Island, never the older public captures.
+  const features = read('site/src/pages/features.astro');
+  const known = new Set([
+    ...manifest.wallpapers.map(item => item.displayAsset.file),
+    ...manifest.layouts.map(item => item.webp.file),
+    ...manifest.island.captures.map(item => item.file.replace('.webp', '-800.webp')),
+  ].map(file => file.replace('site/public', '')));
+  const featureCaptures = [...features.matchAll(/\/(?:feature-captures|revamp)\/(?:home-wallpaper|ledger|billboard|shelf|tally|mahjong|island)[^"]*\.webp/g)].map(match => match[0]);
+  assert.ok(featureCaptures.length >= 12);
+  for (const file of featureCaptures) assert.ok(known.has(file), `${file} on /features is not a candidate capture`);
 });
