@@ -319,6 +319,11 @@
     refresh,
     pageTint,
   };
+  // The strip and overlay adapters read parent.BlancPrototypeHost as they
+  // load, so the frames start only once it exists. A src in the markup let a
+  // fast relaunch load the overlay first and leave its bridge undefined.
+  strip.src = strip.dataset.src;
+  overlay.src = overlay.dataset.src;
 
   window.addEventListener('unhandledrejection', (event) => {
     notice(event.reason?.message ?? String(event.reason));

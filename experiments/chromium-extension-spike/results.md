@@ -980,7 +980,7 @@ permanent profile was never touched by `/clear`. Evidence: committed [Mac accept
 [Billboard after deletion](evidence/clear-history-billboard-cleared.png).
 
 
-## Named tab groups through the Island — October 16, 2026 (implementation; compilation and runtime verification pending)
+## Named tab groups through the Island — October 16, 2026 (built and natively verified on the Mac at `fd12eb2`)
 
 Blanc's named groups now run on Chromium's `TabStripModel` tab groups. The
 snapshot fills `groupId` on each tab (`TabGroupId::ToString()`) and lists
@@ -1047,3 +1047,23 @@ two headers this pin no longer has: `base/containers/contains.h` (the one
 (now `components/tabs/public/tab_group.h`). Codex confirmed that
 `CloseAllTabsInGroup` exists in this pin. No cold rebuild; native testing is
 still pending, and the checklist above still applies.
+
+Mac result on `fd12eb2` (Codex): the guarded build passed in 36.84 seconds
+with no cold rebuild, and a repeated preparation and check reported zero
+actions; `tab_group_model.h` and the existing GN dependencies compiled as
+written. Native group tests passed: creation and reuse by name, folding,
+Quick Switcher search, drag and keyboard reorder, ungrouping, closing groups
+including the whole-window case, and persistence across relaunch. The
+documented divergences were confirmed: grouping a pinned tab unpins it, and
+⌘1–9 keep Chromium's nth-tab meaning.
+
+The relaunch exposed a startup race that predates this milestone: the overlay
+frame could load before `host.js` had defined `window.BlancPrototypeHost`, so
+its adapter read an undefined bridge (reloading the overlay recovered). The
+follow-up commit gives both host frames `data-src` instead of `src` and starts
+them right after the host object is assigned; Codex tested that exact change
+across three relaunches with native clicks, typing, Escape and ⌘L. It is an
+assets-only change. Fixtures were cleaned up and the original tab and
+Favorites preserved. Evidence: Codex's run record
+(`/private/tmp/blanc-pr867-mac-results.md` on the Mac), to be committed under
+`evidence/tab-groups-*`.

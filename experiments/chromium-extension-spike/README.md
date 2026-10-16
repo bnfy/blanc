@@ -191,7 +191,8 @@ on the active tab's group, the ⌘L panel's group headers fold and unfold, the
 Quick Switcher's group results focus a group, and drag or ⌥⇧↑/↓ moves tabs
 between groups and reorders groups. Group colour is fixed and never shown.
 Chromium cannot pin a grouped tab, so grouping a pinned tab unpins it, unlike
-Electron's group-local pins (pending Mac verification; see `results.md`).
+Electron's group-local pins (verified natively on the Mac on October 16; see
+`results.md`).
 
 It does not implement Blanc's Favorites and History sheets, the tab context
 menu's Move to Group submenu, Spaces, Glance, blocking, private tabs, sync, or
