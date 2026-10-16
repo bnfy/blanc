@@ -27,10 +27,16 @@ if (actualVersion !== expectedVersion) {
   fail(`expected Chromium ${expectedVersion}, found ${actualVersion}; review anchors before changing the pin`);
 }
 
+// Read first and treat a missing file as changed, rather than checking
+// existence and then reading (CodeQL js/file-system-race).
 function writeIfChanged(target, value) {
-  if (!fs.existsSync(target) || !fs.readFileSync(target).equals(Buffer.from(value))) {
-    fs.writeFileSync(target, value);
+  let current = null;
+  try {
+    current = fs.readFileSync(target);
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
   }
+  if (!current || !current.equals(Buffer.from(value))) fs.writeFileSync(target, value);
 }
 
 const generated = path.join(here, 'generated');
