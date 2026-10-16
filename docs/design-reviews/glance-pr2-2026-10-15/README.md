@@ -87,3 +87,22 @@ the default split, macOS. "Before" is `396a35c4`; "after" is the next commit.
 2. After: the owner's call, the Island shows no tab dots while Glance is
    open. Forward and Favorite come back and the address stays whole; tabs
    stay reachable from ⌘L, the rail and ⌘1–9.
+
+## island-uncentred-windows-stacked-vertical-tabs-before-above-after.png
+
+Window content 700 × 800, vertical tabs on at the default 248 px rail,
+Glance stacked, the strip set to `data-platform="win32"` with three stand-in
+buttons in `#windowControls`. The real Island, no filler; the crop is the
+page area's strip, right of the rail. "Before" is `9c819c92`; "after" is the
+next commit.
+
+1. Before: stacked, the Island reserved the window controls' width on both
+   sides to stay centred, which left it 200 px here. The address was squeezed
+   to nothing and Close sat on the Island's edge. Without Glance the same
+   window gives the Island 302 px, so this was Glance making things worse.
+2. After: when even the slim Island does not fit between the two
+   reservations, it gives up its centre line before its address: the
+   controls are reserved once, on their side, and the Island shifts left by
+   half their width. The address is back and the Island stays clear of both
+   the rail and the controls. Nothing changes while the centred Island fits,
+   and nothing changes on macOS.

@@ -771,7 +771,11 @@ From the desktop `DEFAULTS`:
   The divider also never makes the reference narrower than its header needs
   at its most compact (measured, so it includes the window controls on
   Windows and Linux), and Glance stacks instead of going side by side when
-  the main pane's minimum would leave the reference less than that.
+  the main pane's minimum would leave the reference less than that. Stacked
+  on Windows and Linux the Island is centred between two reservations for
+  the window controls; when even the slim Island does not fit there (a narrow
+  window with vertical tabs), it gives up its centre line, reserving the
+  controls once on their side, before its address truncates.
 - The reference header carries **Back** (disabled when there is nothing to go
   back to) and **Reload** / **Stop**. **Make main**'s accessible name begins
   with its visible words, and right-clicking the header's title opens the

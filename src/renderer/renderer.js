@@ -442,37 +442,43 @@
     if (refit) {
       dotFitKey = key;
       dotBudget = DOT_CAP;
-      islandPill.classList.remove('slim');
+      islandPill.classList.remove('slim', 'uncentred');
     } else if (dotsSignature() === lastDotsSig) {
       return;
     }
     // With vertical tabs or Glance the dot row is not drawn, so fewer dots
     // free nothing.
     const dotsShown = state.tabLayout !== 'vertical' && !stripEl.classList.contains('glance-open');
+    // Stacked on Windows and Linux the Island is centred between two
+    // reservations for the window controls (styles.css); when even the slim
+    // Island does not fit, it gives up its centre line before its address.
+    const canUncentre = stripEl.dataset.glanceDirection === 'vertical'
+      && parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--window-controls-w')) > 0;
     for (;;) {
       renderDotRow();
       if (!pillOverflows() && !addressTruncated()) break;
-      if (dotsShown && dotBudget > 1) {
-        dotBudget -= 1;
-      } else {
-        islandPill.classList.add('slim');
-        break;
-      }
+      if (dotsShown && dotBudget > 1) dotBudget -= 1;
+      else if (!islandPill.classList.contains('slim')) islandPill.classList.add('slim');
+      else if (canUncentre && !islandPill.classList.contains('uncentred')) islandPill.classList.add('uncentred');
+      else break;
     }
     if (refit) measureGlanceFloors();
   }
 
   /** Everything the fit depends on except the dots themselves: the room the
-   * stylesheet gives the pill (its computed max-width, which follows the
-   * window, the rail and Glance), which chips are showing, and the address.
-   * Not the blocked count: it is a badge over the shield and takes no width.
-   * Style only, no layout. */
+   * stylesheet gives the pill (styles.css #islandPill max-width rules follow
+   * the window, the platform, the rail and Glance — read from those inputs,
+   * not the computed max-width, which the fit's own .uncentred changes),
+   * which chips are showing, and the address. Not the blocked count: it is a
+   * badge over the shield and takes no width. No layout. */
   function islandFitKey() {
+    const root = document.documentElement;
     const shown = [...islandPill.children, ...pillShortcuts.children, ...pillActions.children]
       .map((element) => (element.hidden ? 0 : 1)).join('');
     return [
-      getComputedStyle(islandPill).maxWidth, state.tabLayout, shown,
-      state.tabs.length, state.activeTabId, pillDomain.textContent,
+      window.innerWidth, root.dataset.platform, state.tabLayout, root.style.getPropertyValue('--vertical-tabs-w'),
+      stripEl.dataset.glanceDirection ?? '', stripEl.style.getPropertyValue('--glance-primary-width'),
+      shown, state.tabs.length, state.activeTabId, pillDomain.textContent,
     ].join('|');
   }
 

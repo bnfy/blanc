@@ -403,3 +403,14 @@ Feature: Glance reference pane
     And I drag the Glance divider as far right as it goes
     Then the Glance header's buttons are clear of the window controls
     And the Glance window returns to its usual layout
+
+  @F34-1 @F34 @F28 @D11
+  Scenario: Stacked with vertical tabs on Windows and Linux, the Island's controls stay inside it
+    Given twelve ordinary tabs with one open in Glance
+    When the strip draws the Windows and Linux window controls
+    And the window is 700 pixels wide
+    And I switch the Glance window to vertical tabs
+    Then every Island control stays inside the Island
+    And the Island's address stays readable
+    And the Island stays clear of the window controls and the tab rail
+    And the Glance window returns to its usual layout

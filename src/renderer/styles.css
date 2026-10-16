@@ -528,6 +528,16 @@ button svg {
 :root[data-tab-layout="vertical"] #strip.glance-open[data-glance-direction="vertical"] #islandPill {
   max-width: calc((var(--glance-primary-width) - 2 * var(--window-controls-w) - 24px) / var(--pill-zoom));
 }
+/* When even the slim Island does not fit between those two reservations, it
+   gives up its centre line before its address (renderer.js fitIslandDots adds
+   .uncentred): the controls are reserved once, on their own side, and the
+   margin shifts the centred pill left by half their width. Windows and Linux
+   only; macOS has no controls on this edge. Written to outrank both stacked
+   rules above. */
+:root:not([data-platform="darwin"]) #strip.glance-open[data-glance-direction="vertical"] #islandPill.uncentred {
+  max-width: calc((var(--glance-primary-width) - var(--window-controls-w) - 24px) / var(--pill-zoom));
+  margin-right: calc(var(--window-controls-w) / var(--pill-zoom));
+}
 
 /* In vertical mode the rail is the persistent tab presentation. The Island
    keeps navigation, active-page context, search, and every expanded command

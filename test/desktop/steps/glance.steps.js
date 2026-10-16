@@ -1295,6 +1295,7 @@ Then('a full-width Island stays clear of the Windows and Linux window controls',
       left: rect.left, right: rect.right, controls,
       direction: document.getElementById('strip').dataset.glanceDirection,
       layout: root.dataset.tabLayout ?? 'island',
+      uncentred: pill.classList.contains('uncentred'),
     };
   });
   const { primary, page } = state.glanceGeometry;
@@ -1306,7 +1307,13 @@ Then('a full-width Island stays clear of the Windows and Linux window controls',
     const windowRight = page.x + page.width;
     assert.ok(windowRight - box.right >= box.controls,
       `${where}: the Island reaches under the window controls (right gap ${windowRight - box.right}px, controls ${box.controls}px)`);
-    assert.ok(Math.abs((box.left - page.x) - (windowRight - box.right)) <= 2, `${where}: the Island is not centred over the page`);
+    if (box.uncentred) {
+      // Room was short: the Island gave up its centre line to stay clear of
+      // the controls (renderer.js fitIslandDots), so it sits nearer the left.
+      assert.ok(box.left - page.x >= 12, `${where}: the Island runs off the left edge (${box.left - page.x}px)`);
+    } else {
+      assert.ok(Math.abs((box.left - page.x) - (windowRight - box.right)) <= 2, `${where}: the Island is not centred over the page`);
+    }
   }
 });
 
@@ -1669,4 +1676,29 @@ Then('the fill question is still showing', async function () {
 Then('the fill question is gone', async function () {
   await waitForValue(() => this.call('fillStatusState'),
     (state) => !state.showing && !state.attached && state.lastOutcome === 'cancel', 'the question dismissed');
+});
+
+// ---- A stacked Island between the rail and the window controls ----
+
+When('the window is {int} pixels wide', async function (width) {
+  await this.call('setWindowContentSize', width, 800);
+  await this.waitForState((state) =>
+    state.glanceGeometry && state.glanceGeometry.page.x + state.glanceGeometry.page.width === width);
+  await new Promise((resolve) => setTimeout(resolve, 200));
+});
+
+// The real Island, as the fit left it: inside the page's right edge minus the
+// window controls, and right of the rail.
+Then('the Island stays clear of the window controls and the tab rail', async function () {
+  const chrome = await mainChromePage();
+  await waitForValue(() => chrome.evaluate(() => {
+    const root = document.documentElement;
+    const pill = document.getElementById('islandPill').getBoundingClientRect();
+    return {
+      left: Math.round(pill.left), right: Math.round(pill.right), width: window.innerWidth,
+      controls: parseFloat(getComputedStyle(root).getPropertyValue('--window-controls-w')),
+      rail: parseFloat(root.style.getPropertyValue('--vertical-tabs-w')) || 0,
+    };
+  }), (box) => box.right <= box.width - box.controls && box.left >= box.rail,
+  'the Island between the rail and the window controls', 3000);
 });
