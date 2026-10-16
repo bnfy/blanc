@@ -495,7 +495,8 @@ Then('the spaces are listed as {string} then {string}', async function (first, s
 });
 Then('the space mark changes to {string} without sliding', async function (name) {
   const m = await mark(this, (s) => s.name === name && s.animatedProperties.length > 0, `the switch animation to ${name}`);
-  assert.equal(m.animatedProperties.includes('transform'), false, `only opacity animates: ${m.animatedProperties}`);
+  assert.equal(m.animatedProperties.includes('transform'), false,
+    `only opacity animates: ${m.animatedProperties} (strip reduced motion ${m.reducedMotion}; ${JSON.stringify(m.animations)})`);
 });
 Then('the switch prompt offers save, new window, close, then cancel', async function () {
   const page = await menu();
