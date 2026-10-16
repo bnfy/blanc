@@ -742,10 +742,11 @@ export interface BlancBrowserAPI {
    */
   setGlanceTab(id: TabId): Promise<boolean>;
   /**
-   * Open the Glance tab picker.
+   * Open the Glance tab picker, or the Change picker while Glance is open.
+   * @param query Text the picker's filter starts with (/glance <text>); main caps it at 200 characters.
    * IPC: invoke `tabs:open-glance-picker`.
    */
-  openGlancePicker(): Promise<boolean>;
+  openGlancePicker(query?: string): Promise<boolean>;
   /**
    * Close the Glance view.
    * IPC: invoke `tabs:close-glance`.

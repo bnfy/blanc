@@ -220,7 +220,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "37b48dd81f529f0096c0b0372b82a97712d8ef230cbfdefaf1c26fcbed040a15",
+      "sha256": "b5d8bc4b9007b200eff221a192bfae442458cf51f3a435323d3a0c32727f707b",
       "literalChannels": [
         "activate",
         "before-input-event",
@@ -525,7 +525,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "bb2b09b39e0702c8ee4354fda9cb2cada397d3328c58bed12fed487e190d3fcb",
+      "sha256": "d5333d1f54312d8c2095315235c59321e7ce2875404c3c823513df38cb2ed17f",
       "literalChannels": [
         "chrome:adblock-exempt-active",
         "chrome:adblock-toggle",
@@ -847,7 +847,7 @@
     },
     {
       "file": "src/main/tab-view.js",
-      "sha256": "be1c3744f287ef4382bc47c731a6a83cde2de70974ab5678e1490028866db19e",
+      "sha256": "5c6a1aa31a9b58ba1ec4d7eaa14aa244a3baba33677fdc2895d264c1db04221f",
       "literalChannels": [
         "audio-state-changed",
         "before-input-event",

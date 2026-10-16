@@ -1303,6 +1303,90 @@
         }
       }
     },
+    "slash.glance.hint": {
+      "comment": "The /glance slash command's hint in the ⌘L list and on the Shortcuts page. Opens the Glance picker (the Change picker while Glance is open).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep another open tab beside this page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einen anderen offenen Tab neben dieser Seite behalten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantener otra pestaña abierta junto a esta página"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Garder un autre onglet ouvert à côté de cette page"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tieni un'altra scheda aperta accanto a questa pagina"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manter outra aba aberta ao lado desta página"
+          }
+        }
+      }
+    },
+    "slash.glance.doc": {
+      "comment": "The Shortcuts page's description of /glance <text>: the text becomes the picker's filter.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the Glance picker, filtered to the text"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Glance-Auswahl öffnen, gefiltert nach dem Text"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir el selector de Glance, filtrado por el texto"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir le sélecteur Glance, filtré par le texte"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri il selettore di Glance, filtrato per il testo"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir o seletor do Glance, filtrado pelo texto"
+          }
+        }
+      }
+    },
     "settings.language.label": {
       "comment": "Settings → General row label and the language menu's accessible name.",
       "extractionState": "manual",
@@ -12133,6 +12217,48 @@
         }
       }
     },
+    "glance.picker.opening": {
+      "comment": "The picker row's secondary line, and the live region, while a chosen quiet tab wakes.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opening…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird geöffnet…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abriendo…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouverture…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apertura…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrindo…"
+          }
+        }
+      }
+    },
     "find.placeholder": {
       "comment": "Placeholder of the find-in-page input.",
       "extractionState": "manual",
@@ -17709,6 +17835,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "Abrir link em nova aba"
+          }
+        }
+      }
+    },
+    "contextMenu.openLinkInGlance": {
+      "comment": "Page context menu item on a link, after Open Link in New Tab: the link opens as the Glance reference.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Link in Glance"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link in Glance öffnen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir enlace en Glance"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir le lien dans Glance"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri link in Glance"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir link no Glance"
           }
         }
       }
@@ -28430,43 +28598,43 @@
       }
     },
     "glance.status.promoted": {
-      "comment": "Screen reader announcement after the Glance tab becomes the main tab.",
+      "comment": "Screen reader announcement after Make main: the former reference ({title}) is the main page and the former main page ({other}) is in Glance.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Glance made main"
+            "value": "%1$@ is now the main page; %2$@ is in Glance"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Glance zur Hauptseite gemacht"
+            "value": "%1$@ ist jetzt die Hauptseite; %2$@ ist in Glance"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Glance es ahora la página principal"
+            "value": "%1$@ es ahora la página principal; %2$@ está en Glance"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Glance est maintenant la page principale"
+            "value": "%1$@ est maintenant la page principale ; %2$@ est dans Glance"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Glance ora è la scheda principale"
+            "value": "%1$@ ora è la pagina principale; %2$@ è in Glance"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O Glance agora é a página principal"
+            "value": "%1$@ agora é a página principal; %2$@ está no Glance"
           }
         }
       }

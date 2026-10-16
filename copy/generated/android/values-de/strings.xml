@@ -32,6 +32,8 @@
     <string name="slash_theme_doc">Darstellung wechseln oder direkt zu system, light oder dark wechseln</string>
     <string name="slash_patron_hint">Blanc mit einem Patron-Abo unterstützen</string>
     <string name="slash_space_hint">Zu einem Space wechseln oder einen neuen Namen eingeben, um dieses Fenster zu speichern</string>
+    <string name="slash_glance_hint">Einen anderen offenen Tab neben dieser Seite behalten</string>
+    <string name="slash_glance_doc">Die Glance-Auswahl öffnen, gefiltert nach dem Text</string>
     <string name="settings_language_label">Sprache</string>
     <string name="settings_language_hint">Übersetzungen werden maschinell erstellt.</string>
     <string name="settings_language_system">System (%1$s)</string>
@@ -297,6 +299,7 @@
     <string name="glance_opened">%1$s in Glance geöffnet</string>
     <string name="glance_opened_untitled">Tab in Glance geöffnet</string>
     <string name="glance_open_failed">Dieser Tab konnte nicht in Glance geöffnet werden</string>
+    <string name="glance_picker_opening">Wird geöffnet…</string>
     <string name="find_placeholder">Auf der Seite suchen</string>
     <string name="find_prev">Vorheriger Treffer</string>
     <string name="find_next">Nächster Treffer</string>
@@ -432,6 +435,7 @@
     <string name="menu_delete">Löschen</string>
     <string name="menu_select_all">Alles auswählen</string>
     <string name="context_menu_open_link_in_new_tab">Link in neuem Tab öffnen</string>
+    <string name="context_menu_open_link_in_glance">Link in Glance öffnen</string>
     <string name="context_menu_copy_link_address">Linkadresse kopieren</string>
     <string name="context_menu_open_image_in_new_tab">Bild in neuem Tab öffnen</string>
     <string name="context_menu_copy_image">Bild kopieren</string>
@@ -702,7 +706,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="shortcuts_background_link">Link in Hintergrund-Tab öffnen</string>
     <string name="glance_status_opened">%1$s in Glance geöffnet</string>
     <string name="glance_status_closed">Glance geschlossen</string>
-    <string name="glance_status_promoted">Glance zur Hauptseite gemacht</string>
+    <string name="glance_status_promoted">%1$s ist jetzt die Hauptseite; %2$s ist in Glance</string>
     <string name="glance_status_tab_closed">Glance geschlossen, weil sein Tab geschlossen wurde</string>
     <string name="glance_status_main_closed">%1$s ist jetzt die Hauptseite. Glance geschlossen.</string>
     <string name="glance_status_cancelled">Dieser Tab wurde nicht in Glance geöffnet</string>

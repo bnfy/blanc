@@ -447,3 +447,110 @@ Feature: Glance reference pane
     And the reference pane is the focused pane
     And another Blanc window takes the foreground and this one is activated again
     Then the recorded focused pane is the pane that holds keyboard focus
+
+  @F34-1 @F34 @D11
+  Scenario: Glance opens and closes with the chrome's motion
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    Then the Glance header and divider glide in on the chrome's curve
+    When I choose Change from the Glance header
+    Then the Change picker grows out of the Change control
+    When I press Escape in the Change picker
+    Then the picker is still drawn while it leaves
+
+  @F34-1 @F34 @D11
+  Scenario: With Reduce Motion Glance only fades
+    Given two ordinary tabs in one workspace for Glance
+    And Reduce Motion is on
+    When I open the reference tab in Glance
+    Then the Glance header and divider only fade
+    When I narrow the workspace below the side-by-side threshold
+    And I close Glance
+    Then the leaving stacked header and divider do not move
+
+  @F34-1 @F34 @D11
+  Scenario: Choosing an awake tab says nothing about opening
+    Given two ordinary tabs in one workspace for Glance
+    When I summon Glance from its native keyboard shortcut
+    And I filter the Glance picker and choose the reference tab
+    Then the live region never said Opening
+
+  @F34-1 @F34 @D11
+  Scenario: Picker rows read like the panel's rows
+    Given a quiet background tab and a private background tab eligible for Glance
+    When I summon Glance from its native keyboard shortcut
+    Then the quiet row is dimmed and says quiet only to assistive tech
+    And the private row carries the private chip
+    And every picker row has a tooltip with its title and host
+    And the row names join their parts with commas
+
+  @F34-1 @F34 @D11
+  Scenario: Arrow keys move the highlight quietly
+    Given twelve ordinary tabs with one open in Glance
+    When I choose Change from the Glance header
+    And I press ArrowDown in the picker
+    Then the live region did not re-announce the count
+    When I type "a" into the picker filter and press Home
+    Then the caret is at the start of the filter and the first row is still highlighted
+
+  @F34-1 @F34 @D11
+  Scenario: A chosen quiet tab says Opening while it wakes
+    Given a quiet background tab that loads slowly
+    When I summon Glance from its native keyboard shortcut
+    And I choose the slow quiet tab in the picker
+    Then the chosen row says Opening and the live region says it
+    And the other rows are dimmed while it wakes
+
+  @F34-1 @F34 @F11 @D11
+  Scenario: A private reference shows the private chip in the header
+    Given twelve ordinary tabs and a private main page with one open in Glance
+    Then the Glance header shows no private chip
+    When I choose Make main
+    Then the Glance header shows the private chip
+    And the header's identity cross-faded rather than swapping
+
+  @F34-1 @F34 @D11
+  Scenario: The picker is a dialog named by its heading
+    Given two ordinary tabs in one workspace for Glance
+    When I summon Glance from its native keyboard shortcut
+    Then the picker has the dialog role and is labelled by its heading
+
+  @F34-1 @F34 @D11
+  Scenario: Make main names both pages
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And I choose Make main
+    Then the strip announces "glance-reference is now the main page; glance-main is in Glance"
+
+  @F34-1 @F34 @F14 @D11
+  Scenario: /glance opens the picker filtered to the typed text
+    Given twelve ordinary tabs in one workspace
+    When I run the slash command "/glance many-3"
+    Then the Glance picker is open with the filter "many-3" and one row
+
+  @F34-1 @F34 @D11
+  Scenario: /glance with Glance open opens the Change picker
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And I run the slash command "/glance"
+    Then the Change picker is open
+
+  @F34-1 @F34 @D11
+  Scenario: /glance with nothing else open still opens the picker
+    Given a single ordinary tab for Glance
+    When I run the slash command "/glance work"
+    Then the picker says to open another tab and keeps the filter "work"
+
+  @F34-1 @F34 @D11
+  Scenario: Open Link in Glance makes the link the reference
+    Given two ordinary tabs in one workspace for Glance
+    When I open a link from the main page in Glance
+    Then the linked page is the reference and the main page is untouched
+    When I open a link from the reference in Glance
+    Then the linked page replaced the reference
+
+  @F34-1 @F34 @F11 @D11
+  Scenario: Open Link in Glance from a private page stays private
+    Given a private main page and an ordinary tab
+    When I open a link from the main page in Glance
+    Then the reference is a private tab in the private session

@@ -129,6 +129,14 @@
     "message": "Zu einem Space wechseln oder einen neuen Namen eingeben, um dieses Fenster zu speichern",
     "source": "sha256:2c357c354eb837202c27e466c8eae03f656733b0c84b8b8b955d31044fbca4c6"
   },
+  "slash.glance.hint": {
+    "message": "Einen anderen offenen Tab neben dieser Seite behalten",
+    "source": "sha256:1e9a55801e7a04c926a6c3389ede976e70a92b09685378e051dcd9d2c3f8e4df"
+  },
+  "slash.glance.doc": {
+    "message": "Die Glance-Auswahl öffnen, gefiltert nach dem Text",
+    "source": "sha256:fdecc3708ced17c473a2ebc7b37080a50eb0daec012e2672521b99676bee4f9e"
+  },
   "settings.language.label": {
     "message": "Sprache",
     "source": "sha256:f0879385146ff54dfc9d1707c76f07c9b9cd66f9057ea176c076ab2b1b7b1cb8"
@@ -1069,6 +1077,10 @@
     "message": "Dieser Tab konnte nicht in Glance geöffnet werden",
     "source": "sha256:75e359192d83849c84d985ab8d801e51b79d9d3e5b84806db13bde9c310b2097"
   },
+  "glance.picker.opening": {
+    "message": "Wird geöffnet…",
+    "source": "sha256:e85d165ffc1c8139a8ca37e45bd30ccc932f18dc36238e366125c26e61c418f0"
+  },
   "find.placeholder": {
     "message": "Auf der Seite suchen",
     "source": "sha256:cd0e11cb1114d5af61365c53968cdadc56aba77270c93a4fba2bef30659f1266"
@@ -1572,6 +1584,10 @@
   "contextMenu.openLinkInNewTab": {
     "message": "Link in neuem Tab öffnen",
     "source": "sha256:f2910732c77c1df03fcb642c344a5b13976f53a769f74d5939890d36d87ffd6e"
+  },
+  "contextMenu.openLinkInGlance": {
+    "message": "Link in Glance öffnen",
+    "source": "sha256:2ce16abaf444dbb0bdcec08573f69e6f89bf8a0d04a8ac3a6e6724fbef19bbcb"
   },
   "contextMenu.copyLinkAddress": {
     "message": "Linkadresse kopieren",
@@ -2558,8 +2574,8 @@
     "source": "sha256:1008c10836b5872a9ac50e128369c885836df91e8e756948e2b3abf4aed4a15e"
   },
   "glance.status.promoted": {
-    "message": "Glance zur Hauptseite gemacht",
-    "source": "sha256:3bdc56c9dd0203256fac739476588ec54861f814522b375a9ec992cdfbec3990"
+    "message": "{title} ist jetzt die Hauptseite; {other} ist in Glance",
+    "source": "sha256:f1844b81d7e515a8fbe384d87c4dac18634f8b689b6a7da50c71b2dd8a32fd85"
   },
   "glance.status.tabClosed": {
     "message": "Glance geschlossen, weil sein Tab geschlossen wurde",

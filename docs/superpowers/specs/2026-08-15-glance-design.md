@@ -28,7 +28,9 @@ viewport. Responsive rules below are authoritative where that image is silent.
 
 - `Cmd/Ctrl+Shift+G` and View → Open Glance… open a purpose-built picker when
   Glance is closed. They never guess which tab should become the reference.
-- The picker is a compact popover visually attached to the Island. It contains
+- The picker is a compact popover visually attached to the Island (the Change
+  picker hangs from **Change**, with its caret only when side by side; stacked
+  it takes the open picker's centred placement; amended October 16, 2026). It contains
   the heading **Choose a tab for Glance**, an initially empty **Filter open
   tabs** field, and eligible tabs from the focused native window only.
 - The picker never includes history, Favorites, remote tabs, search
@@ -44,7 +46,8 @@ viewport. Responsive rules below are authoritative where that image is silent.
   Enter chooses it, Escape cancels, and pointer activation chooses the clicked
   row. With no match, the picker says **No matching open tabs** and Enter does
   nothing. If no eligible tabs exist, it says **Open another tab to use
-  Glance**.
+  Glance** (reachable: ⌘⇧G, View → Open Glance… and `/glance` always open
+  the picker; amended October 16, 2026).
 - Selection is transactional: the picker closes only after main confirms the
   tab is live and attached. A failed wake/attachment leaves the picker open
   with an inline **Couldn’t open that tab in Glance** message.
@@ -63,11 +66,16 @@ viewport. Responsive rules below are authoritative where that image is silent.
   intentionally absent from `session.json`, Profile Sync, and crash reports.
 - At page widths of 800px or more, pages sit side by side at a default 62/38
   split. The main share is clamped to 50–78 percent.
-- The reference owns a flat 64px header aligned with the top strip. Its neutral
-  surface prevents the main page's sampled tint from visually claiming the
-  reference pane. The header shows the mono `GLANCE` eyebrow, favicon, a
-  single-line tab title, and text actions **Make main**, **Change**, and close.
-- The main Island stays centered over the actual main pane. No second floating
+- The reference owns a flat header aligned with the top strip (68 px, the
+  strip's height, not 64 px as first written; amended October 16, 2026). Its
+  neutral surface prevents the main page's sampled tint from visually claiming
+  the reference pane. The header shows the `GLANCE` eyebrow in the UI sans
+  (not mono), favicon, a single-line tab title, and text actions **Make
+  main**, **Change**, and close; the refinement spec of October 15, 2026 adds
+  Back, Reload and the private chip.
+- The main Island stays centered over the actual main pane side by side;
+  stacked, the main page is the full page width and the Island is centred
+  over the full page width (amended October 16, 2026). No second floating
   pill, duplicate address bar, or site-control cluster appears over Glance.
 - Below 800px, pages stack. The main page stays above; the divider follows it;
   a 44px full-width Glance header then introduces the lower reference page.

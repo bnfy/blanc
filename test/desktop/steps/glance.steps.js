@@ -204,8 +204,17 @@ When('I filter the Glance picker and choose the reference tab', async function (
   assert.equal(await result.count(), 1);
   assert.equal(await result.first().getAttribute('aria-selected'), 'true');
   assert.ok(await page.locator('#glancePickerInput').getAttribute('aria-activedescendant'));
+  // Watch the live region through the choice: an awake tab must not be
+  // announced as opening (only a waking quiet tab is).
+  await page.evaluate(() => {
+    const live = document.getElementById('glancePickerLive');
+    window.__glanceLiveSeen = [];
+    new MutationObserver(() => { window.__glanceLiveSeen.push(live.textContent); }).observe(live, { childList: true, characterData: true, subtree: true });
+  });
   await page.press('#glancePickerInput', 'Enter');
   await this.waitForState((state) => state.glanceTabId === this.glanceReferenceId);
+  const seen = await page.evaluate(() => window.__glanceLiveSeen);
+  this.pickerLiveSeen = seen.includes('Opening…') ? 'Opening…' : seen.at(-1) ?? '';
 });
 
 Then('the active page and Glance occupy separate dominant and reference panes', async function () {
@@ -775,6 +784,10 @@ When('I drag the Glance divider {int} pixels to the left from inside its grip', 
   await this.waitForState((candidate) => Math.round(candidate.glanceGeometry.ratio * 100) === 62);
   await frontChromeWindow(this);
   const chrome = await mainChromePage();
+  // The divider slides in over 340 ms; grab it once it has settled, or the
+  // box read mid-slide puts the pointer off its grip.
+  await waitForValue(() => chrome.locator('#glanceDivider').evaluate((element) => getComputedStyle(element).transform),
+    (transform) => transform === 'none' || transform.startsWith('matrix(1, 0, 0, 1, 0, 0)'), 'the divider settled', 2000);
   const box = await chrome.locator('#glanceDivider').boundingBox();
   this.glanceDividerStartX = (await this.state()).glanceGeometry.divider.x;
   // 10px into the 12px grip: without grab-offset compensation the first move
@@ -860,12 +873,13 @@ Then('the Change picker is centred over the page with a visible list', async fun
   await page.locator('#glancePicker:not([hidden])').waitFor();
   assert.equal(await page.locator('body').getAttribute('data-glance-purpose'), 'change-stacked');
   await page.locator('.glance-picker-option').first().waitFor();
-  const layout = await page.locator('#glancePicker').evaluate((element) => {
+  // The picker grows in over 340 ms; measure it once it has settled.
+  const layout = await waitForValue(() => page.locator('#glancePicker').evaluate((element) => {
     const rect = element.getBoundingClientRect();
     const list = element.querySelector('#glancePickerList').getBoundingClientRect();
     const row = element.querySelector('.glance-picker-option').getBoundingClientRect();
-    return { center: rect.left + rect.width / 2, viewport: window.innerWidth, listHeight: list.height, rowHeight: row.height, top: rect.top };
-  });
+    return { center: rect.left + rect.width / 2, viewport: window.innerWidth, listHeight: list.height, rowHeight: row.height, top: rect.top, settled: getComputedStyle(element).transform === 'none' || getComputedStyle(element).transform.startsWith('matrix(1, 0, 0, 1') };
+  }), (value) => value.settled, 'the picker settled', 2000);
   assert.ok(Math.abs(layout.center - layout.viewport / 2) <= 2, `picker centre ${layout.center} vs ${layout.viewport / 2}`);
   assert.ok(layout.listHeight >= 52 && layout.rowHeight >= 52, `list ${layout.listHeight}px, row ${layout.rowHeight}px`);
   assert.ok(layout.top >= 50, `picker not below the strip: ${layout.top}px`);
@@ -1300,8 +1314,16 @@ Then("a full-width Island stays clear of the window's traffic lights", async fun
     const filler = document.createElement('span');
     filler.style.cssText = 'flex: 0 0 4000px; height: 1px';
     pill.append(filler);
+    // The pointer may be near the Island, which swells it by a few percent
+    // (renderer.js proximity); measure the layout width, not the swell.
+    const swell = pill.classList.contains('proximity-active');
+    const k = pill.style.getPropertyValue('--island-k');
+    pill.classList.remove('proximity-active');
+    pill.style.setProperty('--island-k', '0');
     const rect = pill.getBoundingClientRect();
     filler.remove();
+    if (swell) pill.classList.add('proximity-active');
+    pill.style.setProperty('--island-k', k);
     root.dataset.platform = realPlatform;
     return { left: rect.left, right: rect.right, direction: document.getElementById('strip').dataset.glanceDirection };
   });
@@ -1328,9 +1350,16 @@ Then('a full-width Island stays clear of the Windows and Linux window controls',
     const filler = document.createElement('span');
     filler.style.cssText = 'flex: 0 0 4000px; height: 1px';
     pill.append(filler);
+    // As in the traffic-light step: the layout width, not the proximity swell.
+    const swell = pill.classList.contains('proximity-active');
+    const k = pill.style.getPropertyValue('--island-k');
+    pill.classList.remove('proximity-active');
+    pill.style.setProperty('--island-k', '0');
     const rect = pill.getBoundingClientRect();
     const controls = parseFloat(getComputedStyle(root).getPropertyValue('--window-controls-w'));
     filler.remove();
+    if (swell) pill.classList.add('proximity-active');
+    pill.style.setProperty('--island-k', k);
     root.dataset.platform = realPlatform;
     return {
       left: rect.left, right: rect.right, controls,
@@ -1846,4 +1875,346 @@ When('another Blanc window takes the foreground and this one is activated again'
   this.glanceExtraWindowId = null;
   await frontChromeWindow(this);
   await new Promise((resolve) => setTimeout(resolve, 300));
+});
+
+// ---- Motion: the chrome's own vocabulary ----
+
+const SPACES_CURVE = 'cubic-bezier(0.2, 0.9, 0.25, 1)';
+
+Then("the Glance header and divider glide in on the chrome's curve", async function () {
+  const motion = await this.call('glanceHeaderMotion');
+  for (const part of ['header', 'divider']) {
+    assert.ok(motion[part].transition.includes('opacity 0.14s'), `${part} transition: ${motion[part].transition}`);
+    assert.ok(motion[part].transition.includes(`transform 0.34s ${SPACES_CURVE}`), `${part} transition: ${motion[part].transition}`);
+  }
+});
+
+When('I choose Change from the Glance header', async function () {
+  const chrome = await mainChromePage();
+  await chrome.locator('#glanceChange').click();
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'glance', 'the Change picker');
+  const page = await overlayPage();
+  await page.locator('#glancePicker:not([hidden])').waitFor();
+});
+
+Then('the Change picker grows out of the Change control', async function () {
+  const motion = await this.call('glanceHeaderMotion');
+  assert.ok(motion.picker, 'no picker measured');
+  assert.ok(motion.picker.transition.includes(`transform 0.34s ${SPACES_CURVE}`), `picker transition: ${motion.picker.transition}`);
+  // The origin is under the Change caret, right of the picker's centre.
+  const originX = parseFloat(motion.picker.transformOrigin);
+  assert.ok(originX > motion.picker.width / 2, `picker origin ${motion.picker.transformOrigin} in ${motion.picker.width}px`);
+});
+
+When('I press Escape in the Change picker', async function () {
+  assert.equal(await this.call('pressOverlayKey', 'Escape'), true);
+});
+
+// Main keeps the overlay view attached for a moment after the picker closes
+// so its exit can be seen; the overlay marks the body meanwhile.
+Then('the picker is still drawn while it leaves', async function () {
+  const page = await overlayPage();
+  const seen = await waitForValue(async () => ({
+    mode: await this.call('overlayMode'),
+    attached: await this.call('overlayViewAttached'),
+    closing: await page.evaluate(() => document.body.dataset.closing ?? ''),
+  }), (value) => value.mode === null, 'the picker closed', 2000);
+  assert.equal(seen.attached, true, 'the overlay view was detached before the picker could leave');
+  assert.equal(seen.closing, 'glance', `overlay body data-closing: "${seen.closing}"`);
+});
+
+Then('the Glance header and divider only fade', async function () {
+  const motion = await this.call('glanceHeaderMotion');
+  for (const part of ['header', 'divider']) {
+    assert.ok(motion[part].transition.includes('opacity 0.14s'), `${part} transition: ${motion[part].transition}`);
+    assert.ok(!motion[part].transition.includes('transform'), `${part} still moves: ${motion[part].transition}`);
+  }
+});
+
+// ---- Picker rows in the panel's vocabulary ----
+
+Given('a quiet background tab and a private background tab eligible for Glance', async function () {
+  await createGlanceTabs(this);
+  this.glancePrivateId = await this.call('openTab', this.fixtureUrl('glance-private-ref'), { private: true });
+  await this.call('activateTab', this.glanceMainId, false);
+  await this.waitForState((state) => {
+    const priv = state.tabs.find((tab) => tab.id === this.glancePrivateId);
+    return priv?.private === true && priv.title === 'glance-private-ref' && !priv.isLoading && state.activeTabId === this.glanceMainId;
+  });
+  assert.equal(await this.call('sleepTab', this.glanceReferenceId), true);
+  await this.waitForState((candidate) => candidate.tabs.find((tab) => tab.id === this.glanceReferenceId)?.asleep === true);
+});
+
+async function pickerRows(page) {
+  await page.locator('.glance-picker-option').first().waitFor();
+  return page.locator('.glance-picker-option').evaluateAll((rows) => rows.map((row) => ({
+    label: row.getAttribute('aria-label'),
+    title: row.title,
+    quiet: row.classList.contains('quiet'),
+    sub: row.querySelector('.glance-picker-option-sub')?.textContent ?? '',
+    privateChip: row.querySelector('.row-private')?.textContent ?? null,
+    opacity: Number(getComputedStyle(row).opacity),
+  })));
+}
+
+Then('the quiet row is dimmed and says quiet only to assistive tech', async function () {
+  const rows = await pickerRows(await overlayPage());
+  const quiet = rows.find((row) => row.label.includes('glance-reference'));
+  assert.ok(quiet, `no quiet row: ${JSON.stringify(rows)}`);
+  assert.equal(quiet.quiet, true, 'the quiet row is not marked quiet');
+  assert.ok(quiet.opacity < 1, `the quiet row is not dimmed: opacity ${quiet.opacity}`);
+  assert.ok(!quiet.sub.includes('quiet'), `the visible line still says quiet: "${quiet.sub}"`);
+  assert.ok(quiet.label.includes('quiet'), `the accessible name lost quiet: "${quiet.label}"`);
+});
+
+Then('the private row carries the private chip', async function () {
+  const rows = await pickerRows(await overlayPage());
+  const priv = rows.find((row) => row.label.includes('glance-private-ref'));
+  assert.ok(priv, `no private row: ${JSON.stringify(rows)}`);
+  assert.equal(priv.privateChip, 'private');
+  assert.ok(!priv.sub.includes('private'), `the secondary line still says private: "${priv.sub}"`);
+});
+
+Then('every picker row has a tooltip with its title and host', async function () {
+  const rows = await pickerRows(await overlayPage());
+  // Fixture pages have a host; the harness's blank tab has none, so its
+  // tooltip is its title alone.
+  for (const row of rows) {
+    const expected = row.label.includes('127.0.0.1') ? /^glance-[a-z-]+ — 127\.0\.0\.1(:\d+)?$/ : /^New Tab$/;
+    assert.ok(expected.test(row.title), `tooltip "${row.title}" for "${row.label}"`);
+  }
+});
+
+Then('the row names join their parts with commas', async function () {
+  const rows = await pickerRows(await overlayPage());
+  for (const row of rows) {
+    assert.ok(row.label.includes(', '), `no comma in "${row.label}"`);
+    assert.ok(!row.label.includes(' · '), `visual separator in the name "${row.label}"`);
+  }
+});
+
+When('I press ArrowDown in the picker', async function () {
+  const page = await overlayPage();
+  // Clear the live region first: a re-announcement would write the same
+  // count back, which an unchanged-text check could not see.
+  await page.evaluate(() => { document.getElementById('glancePickerLive').textContent = ''; });
+  this.pickerLiveBefore = '';
+  await page.press('#glancePickerInput', 'ArrowDown');
+  await page.waitForFunction(() => document.querySelectorAll('.glance-picker-option')[1]?.getAttribute('aria-selected') === 'true');
+});
+
+Then('the live region did not re-announce the count', async function () {
+  const page = await overlayPage();
+  await new Promise((resolve) => setTimeout(resolve, 200));
+  assert.equal(await page.locator('#glancePickerLive').textContent(), this.pickerLiveBefore);
+});
+
+When('I type {string} into the picker filter and press Home', async function (text) {
+  const page = await overlayPage();
+  await page.fill('#glancePickerInput', text);
+  await page.locator('.glance-picker-option').first().waitFor();
+  await page.press('#glancePickerInput', 'End');
+  await page.press('#glancePickerInput', 'Home');
+});
+
+Then('the caret is at the start of the filter and the first row is still highlighted', async function () {
+  const page = await overlayPage();
+  const state = await page.evaluate(() => {
+    const input = document.getElementById('glancePickerInput');
+    const rows = [...document.querySelectorAll('.glance-picker-option')];
+    return { caret: input.selectionStart, value: input.value, selected: rows.findIndex((row) => row.getAttribute('aria-selected') === 'true') };
+  });
+  assert.equal(state.caret, 0, `caret at ${state.caret} in "${state.value}"`);
+  assert.equal(state.selected, 0, `row ${state.selected} highlighted`);
+});
+
+When('I choose the slow quiet tab in the picker', async function () {
+  const page = await overlayPage();
+  await page.fill('#glancePickerInput', 'reference');
+  await page.locator('.glance-picker-option').first().waitFor();
+  await page.press('#glancePickerInput', 'Enter');
+  await page.locator('#glancePickerInput[aria-busy="true"]').waitFor();
+});
+
+Then('the chosen row says Opening and the live region says it', async function () {
+  const page = await overlayPage();
+  const seen = await waitForValue(() => page.evaluate(() => {
+    const row = document.querySelector('.glance-picker-option[data-opening="true"]');
+    return { sub: row?.querySelector('.glance-picker-option-sub')?.textContent ?? null, live: document.getElementById('glancePickerLive').textContent };
+  }), (value) => value.sub === 'Opening…', 'the chosen row saying Opening', 2000);
+  assert.equal(seen.live, 'Opening…');
+});
+
+Then('the other rows are dimmed while it wakes', async function () {
+  const page = await overlayPage();
+  const others = await page.locator('.glance-picker-option:not([data-opening="true"])').evaluateAll((rows) => rows.map((row) => row.disabled));
+  assert.ok(others.every(Boolean), `other rows not dimmed: ${JSON.stringify(others)}`);
+});
+
+// ---- The header's private chip, the identity cross-fade, the dialog ----
+
+Then('the Glance header shows the private chip', async function () {
+  const chrome = await mainChromePage();
+  await chrome.locator('#glancePrivate:not([hidden])').waitFor();
+  assert.equal((await chrome.locator('#glancePrivate').textContent()).trim(), 'private');
+});
+
+// Make main swaps the panes at once; the header's favicon, title and chip
+// cross-fade over 120 ms instead of changing in one frame.
+Then("the header's identity cross-faded rather than swapping", async function () {
+  const motion = await this.call('glanceHeaderMotion');
+  assert.ok(motion.identity, 'no identity measured');
+  assert.ok(motion.identity.transition.includes('opacity 0.12s'), `identity transition: ${motion.identity.transition}`);
+  assert.equal(this.glanceIdentitySwapped, true, 'the identity never entered its swapping state');
+});
+
+Then('the picker has the dialog role and is labelled by its heading', async function () {
+  const page = await overlayPage();
+  const picker = page.locator('#glancePicker');
+  assert.equal(await picker.getAttribute('role'), 'dialog');
+  assert.equal(await picker.getAttribute('aria-labelledby'), 'glancePickerTitle');
+  assert.equal((await page.locator('#glancePickerTitle').textContent()).trim(), 'Choose a tab for Glance');
+});
+
+// Make main, watching the header's identity for its cross-fade state, which
+// lasts 120 ms and would otherwise be gone by the time a step looked.
+When('I choose Make main', async function () {
+  const chrome = await mainChromePage();
+  await chrome.evaluate(() => {
+    const identity = document.querySelector('#glanceHeader .glance-tab-identity');
+    window.__glanceIdentitySwapped = identity.classList.contains('swapping');
+    new MutationObserver(() => { if (identity.classList.contains('swapping')) window.__glanceIdentitySwapped = true; })
+      .observe(identity, { attributes: true, attributeFilter: ['class'] });
+  });
+  const { activeTabId, glanceTabId } = await this.state();
+  await chrome.locator('#glancePromote').click();
+  await this.waitForState((state) => state.activeTabId === glanceTabId && state.glanceTabId === activeTabId);
+  this.glanceMainId = glanceTabId;
+  this.glanceReferenceId = activeTabId;
+  await new Promise((resolve) => setTimeout(resolve, 150));
+  this.glanceIdentitySwapped = await chrome.evaluate(() => window.__glanceIdentitySwapped === true);
+});
+
+Then('the Glance header shows no private chip', async function () {
+  const chrome = await mainChromePage();
+  await chrome.locator('#glanceHeader:not([hidden])').waitFor();
+  const chip = await chrome.locator('#glancePrivate').evaluate((element) => ({
+    hidden: element.hidden, drawn: element.getClientRects().length > 0,
+  }));
+  assert.deepEqual(chip, { hidden: true, drawn: false });
+});
+
+Then('the strip announces {string}', async function (expected) {
+  const chrome = await mainChromePage();
+  await waitForValue(() => chrome.locator('#glanceStatus').textContent(), (text) => text === expected,
+    `the strip announcing "${expected}"`);
+});
+
+// ---- /glance ----
+
+Given('twelve ordinary tabs in one workspace', async function () {
+  const ids = [];
+  for (let i = 1; i <= 12; i += 1) ids.push(await this.call('openTab', this.fixtureUrl(`glance-many-${i}`)));
+  await this.call('activateTab', ids[5], false);
+  await this.waitForState((state) => ids.every((id) => {
+    const tab = state.tabs.find((candidate) => candidate.id === id);
+    return tab && !tab.isLoading && tab.title.startsWith('glance-many');
+  }));
+});
+
+Then('the Glance picker is open with the filter {string} and one row', async function (filter) {
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'glance', 'the Glance picker');
+  const page = await overlayPage();
+  await page.locator('#glancePicker:not([hidden])').waitFor();
+  assert.equal(await page.locator('body').getAttribute('data-glance-purpose'), 'open');
+  assert.equal(await page.inputValue('#glancePickerInput'), filter);
+  await page.locator('.glance-picker-option').first().waitFor();
+  assert.equal(await page.locator('.glance-picker-option').count(), 1);
+  assert.ok((await page.locator('.glance-picker-option').first().getAttribute('aria-label')).includes(filter));
+});
+
+Then('the Change picker is open', async function () {
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'glance', 'the Change picker');
+  const page = await overlayPage();
+  await page.locator('#glancePicker:not([hidden])').waitFor();
+  assert.equal(await page.locator('body').getAttribute('data-glance-purpose'), 'change');
+});
+
+Then('the picker says to open another tab and keeps the filter {string}', async function (filter) {
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'glance', 'the Glance picker');
+  const page = await overlayPage();
+  await page.locator('#glancePicker:not([hidden])').waitFor();
+  await page.locator('#glancePickerState:not([hidden])').waitFor();
+  assert.equal(await page.locator('#glancePickerState').textContent(), 'Open another tab to use Glance');
+  assert.equal(await page.inputValue('#glancePickerInput'), filter);
+});
+
+// ---- Open Link in Glance ----
+// The page context menu is native, so the step calls the same main-process
+// action the menu item calls, through the test hook.
+
+let glanceLinkCount = 0;
+async function openLinkInGlanceFrom(world, tabId) {
+  glanceLinkCount += 1;
+  const name = `glance-linked-${glanceLinkCount}`;
+  const before = new Set((await world.state()).tabs.map((tab) => tab.id));
+  assert.equal(await world.call('openLinkInGlance', tabId, world.fixtureUrl(name)), true);
+  const state = await world.waitForState((candidate) => candidate.tabs.some((tab) => !before.has(tab.id) && tab.title === name && !tab.isLoading));
+  return state.tabs.find((tab) => !before.has(tab.id) && tab.title === name).id;
+}
+
+When('I open a link from the main page in Glance', async function () {
+  this.glanceLinkedId = await openLinkInGlanceFrom(this, this.glanceMainId);
+});
+
+When('I open a link from the reference in Glance', async function () {
+  this.glancePreviousReferenceId = (await this.state()).glanceTabId;
+  this.glanceLinkedId = await openLinkInGlanceFrom(this, this.glancePreviousReferenceId);
+});
+
+Then('the linked page is the reference and the main page is untouched', async function () {
+  const state = await this.waitForState((candidate) => candidate.glanceTabId === this.glanceLinkedId);
+  assert.equal(state.activeTabId, this.glanceMainId);
+});
+
+Then('the linked page replaced the reference', async function () {
+  const state = await this.waitForState((candidate) => candidate.glanceTabId === this.glanceLinkedId);
+  assert.equal(state.activeTabId, this.glanceMainId);
+  assert.ok(state.tabs.some((tab) => tab.id === this.glancePreviousReferenceId), 'the previous reference was closed');
+});
+
+Given('a private main page and an ordinary tab', async function () {
+  this.glanceMainId = await this.call('openTab', this.fixtureUrl('glance-private-main'), { private: true });
+  this.glanceReferenceId = await this.call('openTab', this.fixtureUrl('glance-reference'));
+  await this.call('activateTab', this.glanceMainId, false);
+  await this.waitForState((state) => {
+    const main = state.tabs.find((tab) => tab.id === this.glanceMainId);
+    return main?.private === true && !main.isLoading && state.activeTabId === this.glanceMainId;
+  });
+});
+
+Then('the reference is a private tab in the private session', async function () {
+  const state = await this.waitForState((candidate) => candidate.glanceTabId === this.glanceLinkedId);
+  const reference = state.tabs.find((tab) => tab.id === this.glanceLinkedId);
+  assert.equal(reference.private, true);
+  assert.equal(reference.sessionKind, 'private');
+});
+
+// A hidden element keeps its specified transform in its computed style, so
+// the leaving header's offset can be read while it is already hidden.
+Then('the leaving stacked header and divider do not move', async function () {
+  const chrome = await mainChromePage();
+  const transforms = await chrome.evaluate(() => ['#glanceHeader', '#glanceDivider'].map((selector) => {
+    const element = document.querySelector(selector);
+    return { selector, hidden: element.hidden, direction: element.dataset.direction, transform: getComputedStyle(element).transform };
+  }));
+  for (const item of transforms) {
+    assert.equal(item.hidden, true, `${item.selector} is not hidden`);
+    assert.equal(item.direction, 'vertical', `${item.selector} is not stacked`);
+    assert.equal(item.transform, 'none', `${item.selector} still moves while leaving: ${item.transform}`);
+  }
+});
+
+Then('the live region never said Opening', async function () {
+  assert.notEqual(this.pickerLiveSeen, 'Opening…', 'the live region said Opening… for a tab that was already awake');
 });

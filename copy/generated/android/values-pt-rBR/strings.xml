@@ -32,6 +32,8 @@
     <string name="slash_theme_doc">Alterna a aparência, ou muda direto para system, light ou dark</string>
     <string name="slash_patron_hint">Apoiar o Blanc com uma assinatura Patron</string>
     <string name="slash_space_hint">Mudar para um Space, ou digitar um novo nome para salvar esta janela</string>
+    <string name="slash_glance_hint">Manter outra aba aberta ao lado desta página</string>
+    <string name="slash_glance_doc">Abrir o seletor do Glance, filtrado pelo texto</string>
     <string name="settings_language_label">Idioma</string>
     <string name="settings_language_hint">As traduções são geradas automaticamente.</string>
     <string name="settings_language_system">Sistema (%1$s)</string>
@@ -307,6 +309,7 @@
     <string name="glance_opened">%1$s aberta no Glance</string>
     <string name="glance_opened_untitled">Aba aberta no Glance</string>
     <string name="glance_open_failed">Não foi possível abrir essa aba no Glance</string>
+    <string name="glance_picker_opening">Abrindo…</string>
     <string name="find_placeholder">Localizar na página</string>
     <string name="find_prev">Ocorrência anterior</string>
     <string name="find_next">Próxima ocorrência</string>
@@ -445,6 +448,7 @@
     <string name="menu_delete">Excluir</string>
     <string name="menu_select_all">Selecionar tudo</string>
     <string name="context_menu_open_link_in_new_tab">Abrir link em nova aba</string>
+    <string name="context_menu_open_link_in_glance">Abrir link no Glance</string>
     <string name="context_menu_copy_link_address">Copiar endereço do link</string>
     <string name="context_menu_open_image_in_new_tab">Abrir imagem em nova aba</string>
     <string name="context_menu_copy_image">Copiar imagem</string>
@@ -719,7 +723,7 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="shortcuts_background_link">Abrir o link em uma aba em segundo plano</string>
     <string name="glance_status_opened">%1$s aberta no Glance</string>
     <string name="glance_status_closed">Glance fechado</string>
-    <string name="glance_status_promoted">O Glance agora é a página principal</string>
+    <string name="glance_status_promoted">%1$s agora é a página principal; %2$s está no Glance</string>
     <string name="glance_status_tab_closed">O Glance foi fechado porque a aba dele foi fechada</string>
     <string name="glance_status_main_closed">%1$s agora é a página principal. Glance fechado.</string>
     <string name="glance_status_cancelled">Essa aba não foi aberta no Glance</string>

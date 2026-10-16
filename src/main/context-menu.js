@@ -1,6 +1,7 @@
 const { Menu, clipboard } = require('electron');
 const settings = require('./settings');
 const { VIEW_SOURCE_PREFIX, canViewSource } = require('./view-source');
+const { linkMenuItems } = require('./glance-open-link');
 
 /**
  * Right-click menu for tab web content. Electron ships NO default context
@@ -10,6 +11,7 @@ const { VIEW_SOURCE_PREFIX, canViewSource } = require('./view-source');
  * main.js (which requires this file — avoid the cycle):
  *   openBackgroundTab(url) — new tab, not activated
  *   openTab(url)           — new tab, activated
+ *   openInGlance(url)      — new tab that becomes the Glance reference
  *   t(key, params)         — the interface translator
  */
 function attachContextMenu(wc, actions, menuGate = null) {
@@ -21,9 +23,13 @@ function attachContextMenu(wc, actions, menuGate = null) {
       if (items.length && items[items.length - 1].type !== 'separator') push({ type: 'separator' });
     };
 
-    if (params.linkURL) {
-      push({ label: t('contextMenu.openLinkInNewTab'), click: () => actions.openBackgroundTab(params.linkURL) });
-      push({ label: t('contextMenu.copyLinkAddress'), click: () => clipboard.writeText(params.linkURL) });
+    const linkItems = linkMenuItems(params, {
+      openBackgroundTab: actions.openBackgroundTab,
+      openInGlance: actions.openInGlance,
+      copyLink: (url) => clipboard.writeText(url),
+    }, t);
+    if (linkItems.length) {
+      linkItems.forEach(push);
       sep();
     }
 

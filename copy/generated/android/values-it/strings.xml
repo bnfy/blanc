@@ -32,6 +32,8 @@
     <string name="slash_theme_doc">Cambia aspetto, o passa direttamente a system, light o dark</string>
     <string name="slash_patron_hint">Sostieni Blanc con un abbonamento Patron</string>
     <string name="slash_space_hint">Passa a uno Space, o digita un nuovo nome per salvare questa finestra</string>
+    <string name="slash_glance_hint">Tieni un\'altra scheda aperta accanto a questa pagina</string>
+    <string name="slash_glance_doc">Apri il selettore di Glance, filtrato per il testo</string>
     <string name="settings_language_label">Lingua</string>
     <string name="settings_language_hint">Le traduzioni sono generate automaticamente.</string>
     <string name="settings_language_system">Sistema (%1$s)</string>
@@ -307,6 +309,7 @@
     <string name="glance_opened">%1$s aperta in Glance</string>
     <string name="glance_opened_untitled">Scheda aperta in Glance</string>
     <string name="glance_open_failed">Impossibile aprire la scheda in Glance</string>
+    <string name="glance_picker_opening">Apertura…</string>
     <string name="find_placeholder">Trova nella pagina</string>
     <string name="find_prev">Risultato precedente</string>
     <string name="find_next">Risultato successivo</string>
@@ -445,6 +448,7 @@
     <string name="menu_delete">Elimina</string>
     <string name="menu_select_all">Seleziona tutto</string>
     <string name="context_menu_open_link_in_new_tab">Apri link in una nuova scheda</string>
+    <string name="context_menu_open_link_in_glance">Apri link in Glance</string>
     <string name="context_menu_copy_link_address">Copia indirizzo del link</string>
     <string name="context_menu_open_image_in_new_tab">Apri immagine in una nuova scheda</string>
     <string name="context_menu_copy_image">Copia immagine</string>
@@ -719,7 +723,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="shortcuts_background_link">Apri il link in una scheda in background</string>
     <string name="glance_status_opened">Aperto in Glance: %1$s</string>
     <string name="glance_status_closed">Glance chiuso</string>
-    <string name="glance_status_promoted">Glance ora è la scheda principale</string>
+    <string name="glance_status_promoted">%1$s ora è la pagina principale; %2$s è in Glance</string>
     <string name="glance_status_tab_closed">Glance chiuso perché la sua scheda è stata chiusa</string>
     <string name="glance_status_main_closed">%1$s è ora la pagina principale. Glance chiuso.</string>
     <string name="glance_status_cancelled">Quella scheda non è stata aperta in Glance</string>

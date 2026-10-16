@@ -38,7 +38,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   reorderGroup: (id, beforeGroupId) => ipcRenderer.invoke('groups:reorder', id, beforeGroupId),
   activateTabFromRail: (id) => ipcRenderer.invoke('tabs:activate-from-rail', id),
   setGlanceTab: (id) => ipcRenderer.invoke('tabs:set-glance', id),
-  openGlancePicker: () => ipcRenderer.invoke('tabs:open-glance-picker'),
+  openGlancePicker: (query) => ipcRenderer.invoke('tabs:open-glance-picker', query),
   closeGlance: () => ipcRenderer.invoke('tabs:close-glance'),
   promoteGlance: () => ipcRenderer.invoke('tabs:promote-glance'),
   setTabGroup: (id, groupId) => ipcRenderer.invoke('tabs:set-group', id, groupId),

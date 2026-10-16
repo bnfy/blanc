@@ -32,6 +32,8 @@
     <string name="slash_theme_doc">Change d’apparence, ou passe directement en system, light ou dark</string>
     <string name="slash_patron_hint">Soutenir Blanc avec un abonnement Patron</string>
     <string name="slash_space_hint">Passer à un Space, ou saisir un nouveau nom pour enregistrer cette fenêtre</string>
+    <string name="slash_glance_hint">Garder un autre onglet ouvert à côté de cette page</string>
+    <string name="slash_glance_doc">Ouvrir le sélecteur Glance, filtré par le texte</string>
     <string name="settings_language_label">Langue</string>
     <string name="settings_language_hint">Les traductions sont générées automatiquement.</string>
     <string name="settings_language_system">Système (%1$s)</string>
@@ -307,6 +309,7 @@
     <string name="glance_opened">%1$s ouvert dans Glance</string>
     <string name="glance_opened_untitled">Onglet ouvert dans Glance</string>
     <string name="glance_open_failed">Impossible d’ouvrir cet onglet dans Glance</string>
+    <string name="glance_picker_opening">Ouverture…</string>
     <string name="find_placeholder">Rechercher dans la page</string>
     <string name="find_prev">Occurrence précédente</string>
     <string name="find_next">Occurrence suivante</string>
@@ -445,6 +448,7 @@
     <string name="menu_delete">Supprimer</string>
     <string name="menu_select_all">Tout sélectionner</string>
     <string name="context_menu_open_link_in_new_tab">Ouvrir le lien dans un nouvel onglet</string>
+    <string name="context_menu_open_link_in_glance">Ouvrir le lien dans Glance</string>
     <string name="context_menu_copy_link_address">Copier l’adresse du lien</string>
     <string name="context_menu_open_image_in_new_tab">Ouvrir l’image dans un nouvel onglet</string>
     <string name="context_menu_copy_image">Copier l’image</string>
@@ -719,7 +723,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="shortcuts_background_link">Ouvrir le lien dans un onglet en arrière-plan</string>
     <string name="glance_status_opened">%1$s ouvert dans Glance</string>
     <string name="glance_status_closed">Glance fermé</string>
-    <string name="glance_status_promoted">Glance est maintenant la page principale</string>
+    <string name="glance_status_promoted">%1$s est maintenant la page principale ; %2$s est dans Glance</string>
     <string name="glance_status_tab_closed">Glance s’est fermé car son onglet a été fermé</string>
     <string name="glance_status_main_closed">%1$s est maintenant la page principale. Glance fermé.</string>
     <string name="glance_status_cancelled">Cet onglet n’a pas été ouvert dans Glance</string>

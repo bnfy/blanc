@@ -59,6 +59,9 @@
   const glanceHeader = document.getElementById('glanceHeader');
   const glanceFavicon = document.getElementById('glanceFavicon');
   const glanceTitle = document.getElementById('glanceTitle');
+  const glancePrivate = document.getElementById('glancePrivate');
+  const glanceIdentity = document.querySelector('#glanceHeader .glance-tab-identity');
+  let shownGlanceTabId = null;
   const glancePromote = document.getElementById('glancePromote');
   const glanceChange = document.getElementById('glanceChange');
   const glanceClose = document.getElementById('glanceClose');
@@ -557,6 +560,7 @@
       stripEl.style.removeProperty('--glance-primary-right');
       stripEl.style.removeProperty('--glance-primary-width');
       delete stripEl.dataset.glanceDirection;
+      shownGlanceTabId = null;
       fitGlanceHeader();
       return;
     }
@@ -588,7 +592,16 @@
     glanceHeader.dataset.direction = direction;
     glanceHeader.classList.toggle('private', !!tab.private);
     glanceHeader.classList.toggle('focused', glanceLayout.focusedPane === 'glance');
+    // A different reference (Make main, Change): the favicon, title and chip
+    // cross-fade over 120 ms (styles.css .swapping) instead of changing in
+    // one frame. The panes themselves swap at once.
+    if (shownGlanceTabId != null && shownGlanceTabId !== tab.id) {
+      glanceIdentity.classList.add('swapping');
+      requestAnimationFrame(() => requestAnimationFrame(() => glanceIdentity.classList.remove('swapping')));
+    }
+    shownGlanceTabId = tab.id;
     setFavicon(glanceFavicon, tab);
+    glancePrivate.hidden = !tab.private;
     glanceBack.disabled = !tab.canGoBack;
     const glanceReloadMode = tab.isLoading ? 'stop' : 'reload';
     if (glanceReload.dataset.mode !== glanceReloadMode) {

@@ -80,6 +80,7 @@ function install(refs) {
     getFocusedPaneTabId,
     getGlanceGeometry,
     getGlanceMinimums,
+    openLinkInGlance,
     groupTabByName,
     renameTab,
     beginRenameTab,
@@ -122,6 +123,7 @@ function install(refs) {
     getOverlayMode,
     getFindTargetTabId,
     getOverlayViewBounds,
+    getOverlayViewAttached,
     prepareDisplayCaptureHelper,
     getResidentSpaces,
     getRoomPass,
@@ -2069,6 +2071,30 @@ function install(refs) {
     // Read through the real chrome DOM rather than the tab model: the point
     // of F37 is what the pill SHOWS, and a model-level proxy would pass even
     // if the placeholder never rendered.
+    // The computed motion of the Glance chrome: the strip's header and
+    // divider, and the overlay's picker when one is up.
+    // The page context menu's Open Link in Glance, which Playwright cannot
+    // click (a native menu): the same main-process action the item calls.
+    openLinkInGlance(tabId, url) { return openLinkInGlance(String(tabId), String(url)); },
+    async glanceHeaderMotion() {
+      const strip = getChromeWebContents();
+      if (!strip) return null;
+      const read = (selector) => `(() => {
+        const element = document.querySelector(${JSON.stringify(selector)});
+        if (!element) return null;
+        const style = getComputedStyle(element);
+        return { transition: style.transition, transform: style.transform, opacity: style.opacity, transformOrigin: style.transformOrigin, width: element.getBoundingClientRect().width };
+      })()`;
+      const header = await strip.executeJavaScript(read('#glanceHeader'));
+      const divider = await strip.executeJavaScript(read('#glanceDivider'));
+      const identity = await strip.executeJavaScript(`(() => {
+        const element = document.querySelector('#glanceHeader .glance-tab-identity');
+        return element ? { transition: getComputedStyle(element).transition, swapping: element.classList.contains('swapping') } : null;
+      })()`);
+      const overlay = getOverlayWebContents();
+      const picker = overlay && getOverlayMode() === 'glance' ? await overlay.executeJavaScript(read('#glancePicker')) : null;
+      return { header, divider, identity, picker };
+    },
     pillPlaceholderState() {
       const wc = getChromeWebContents();
       if (!wc) return null;
@@ -2428,6 +2454,7 @@ function install(refs) {
     overlayMode() { return getOverlayMode(); },
     findTabId() { return getFindTargetTabId(); },
     overlayViewBounds() { return getOverlayViewBounds(); },
+    overlayViewAttached() { return getOverlayViewAttached(); },
     // The hidden display-capture helper is created on the first share
     // request; this creates it the same way, for tests that need it to exist.
     async prepareDisplayCaptureHelper() {

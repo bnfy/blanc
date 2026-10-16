@@ -744,7 +744,17 @@ From the desktop `DEFAULTS`:
 - A person chooses the exact reference tab from a dedicated local-tab picker
   that excludes search, history, Favorites, commands, and remote tabs. The native
   View menu exposes **Open Glance… / Close Glance** with
-  `Cmd/Ctrl+Shift+G`, so the feature is reachable on macOS, Windows, and Linux.
+  `Cmd/Ctrl+Shift+G`, so the feature is reachable on macOS, Windows, and Linux;
+  `/glance` opens the same picker (the Change picker while Glance is open) and
+  `/glance <text>` opens it filtered to the text; a link's context menu offers
+  **Open Link in Glance** after **Open Link in New Tab**, with the same
+  hand-off and forbidden-URL guards, opening the link as the reference in the
+  opener's profile, private flag and group. The picker is a dialog named by
+  its heading; its rows share the ⌘L panel's vocabulary (quiet tabs dimmed
+  with the word only in the accessible name, private tabs with the chip, a
+  tooltip of title and host, names joined with commas), arrow keys move the
+  highlight without re-announcing the count, and a chosen quiet tab's row
+  says "Opening…" while it wakes.
 - The strip keeps the Island centered over the main pane and gives the
   reference a flat header with favicon/title plus **Make main**, **Change**, and
   close controls. Reference pages remain fully interactive without changing
@@ -779,7 +789,12 @@ From the desktop `DEFAULTS`:
 - The reference header carries **Back** (disabled when there is nothing to go
   back to) and **Reload** / **Stop**. **Make main**'s accessible name begins
   with its visible words, and right-clicking the header's title opens the
-  reference tab's menu with **Close Glance**.
+  reference tab's menu with **Close Glance**. A private reference shows the
+  private chip beside its title. Glance moves in the chrome's own vocabulary:
+  the header and divider fade and slide 6 px in and out, the picker grows out
+  of its anchor and shrinks back, Make main cross-fades the header's identity
+  and announces "{title} is now the main page; {other} is in Glance"; under
+  Reduce Motion every one of these is a 140 ms fade.
 - The divider is pointer-resizable and keyboard accessible, with a reset to the
   62/38 default. Glance never crosses window/profile ownership, never survives
   native-window teardown or session restore, and a visible Glance tab is never
@@ -794,7 +809,9 @@ From the desktop `DEFAULTS`:
   It also proves that reload, close, find, zoom, Back, the 1Password fill and
   gestures follow the focused pane, that foreground links from the reference
   open into Glance, and that the header's Back, Reload and menu address the
-  reference.
+  reference; and that the motion and its reduced form hold, that picker rows
+  read like the panel's, that `/glance` and **Open Link in Glance** reach
+  the picker and the reference, and that Make main names both pages.
 
 ## F35 — Start page layouts
 

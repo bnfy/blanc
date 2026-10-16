@@ -108,6 +108,12 @@
     },
     {
       "command": "/space"
+    },
+    {
+      "command": "/glance",
+      "doc": {
+        "command": "/glance <text>"
+      }
     }
   ]
 }

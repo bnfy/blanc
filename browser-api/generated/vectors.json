@@ -669,12 +669,31 @@
       "calls": [
         {
           "label": "typical",
+          "args": [
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "tabs:open-glance-picker",
+              "args": [
+                "example"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "trailing optional arguments omitted",
           "args": [],
           "sends": [
             {
               "kind": "invoke",
               "channel": "tabs:open-glance-picker",
-              "args": []
+              "args": [
+                {
+                  "$undefined": true
+                }
+              ]
             }
           ]
         }

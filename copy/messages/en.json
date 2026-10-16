@@ -124,6 +124,14 @@
     "message": "Switch to a space, or type a new name to save this window",
     "note": "Slash command hint shown in the ⌘L palette for /space (/workspace still works as an alias)."
   },
+  "slash.glance.hint": {
+    "message": "Keep another open tab beside this page",
+    "note": "The /glance slash command's hint in the ⌘L list and on the Shortcuts page. Opens the Glance picker (the Change picker while Glance is open)."
+  },
+  "slash.glance.doc": {
+    "message": "Open the Glance picker, filtered to the text",
+    "note": "The Shortcuts page's description of /glance <text>: the text becomes the picker's filter."
+  },
   "settings.language.label": {
     "message": "Language",
     "note": "Settings → General row label and the language menu's accessible name.",
@@ -1107,6 +1115,10 @@
     "message": "Couldn’t open that tab in Glance",
     "note": "Glance picker error."
   },
+  "glance.picker.opening": {
+    "message": "Opening…",
+    "note": "The picker row's secondary line, and the live region, while a chosen quiet tab wakes."
+  },
   "find.placeholder": {
     "message": "Find in page",
     "note": "Placeholder of the find-in-page input."
@@ -1628,6 +1640,10 @@
   "contextMenu.openLinkInNewTab": {
     "message": "Open Link in New Tab",
     "note": "Page context menu command for a link."
+  },
+  "contextMenu.openLinkInGlance": {
+    "message": "Open Link in Glance",
+    "note": "Page context menu item on a link, after Open Link in New Tab: the link opens as the Glance reference."
   },
   "contextMenu.copyLinkAddress": {
     "message": "Copy Link Address",
@@ -2617,8 +2633,8 @@
     "note": "Screen reader announcement."
   },
   "glance.status.promoted": {
-    "message": "Glance made main",
-    "note": "Screen reader announcement after the Glance tab becomes the main tab."
+    "message": "{title} is now the main page; {other} is in Glance",
+    "note": "Screen reader announcement after Make main: the former reference ({title}) is the main page and the former main page ({other}) is in Glance."
   },
   "glance.status.tabClosed": {
     "message": "Glance closed because its tab was closed",

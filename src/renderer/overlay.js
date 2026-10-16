@@ -420,6 +420,7 @@
     glancePickerBusy = true;
     glancePickerError = '';
     renderGlancePicker();
+    if (tab.asleep) glancePickerLive.textContent = blancI18n.t('glance.picker.opening');
     const session = glancePickerSession;
     let selected = false;
     try {
@@ -474,20 +475,39 @@
       // picker impossible to use on a slow or long-lived navigation.
       title.textContent = tab.title || (tab.isLoading ? blancI18n.t('tab.loading') : blancI18n.t('tab.new'));
       if (tab.title) title.dataset.i18nIgnore = ''; // a page title is data
-      const metadata = [
-        tabDomain(tab),
-        groupById(tab.groupId)?.name,
-        tab.private ? blancI18n.t('rail.state.private') : '',
-        tab.asleep ? blancI18n.t('rail.state.quiet') : '',
-      ].filter(Boolean);
+      // The ⌘L panel's vocabulary: a quiet tab is dimmed (the word stays in
+      // the accessible name only), a private tab carries the chip, and the
+      // secondary line is the host and group.
+      const metadata = [tabDomain(tab), groupById(tab.groupId)?.name].filter(Boolean);
+      // Only a quiet tab has anything to wait for; an awake one attaches at once.
+      const opening = glancePickerBusy && tab.id === glancePickerSelectedId && !!tab.asleep;
       const sub = document.createElement('span');
       sub.className = 'glance-picker-option-sub';
-      sub.textContent = metadata.join(' · ') || blancI18n.t('glance.picker.openTab');
+      sub.textContent = opening
+        ? blancI18n.t('glance.picker.opening')
+        : metadata.join(' · ') || blancI18n.t('glance.picker.openTab');
       // Host and group name are data; the state words are translated.
-      if (tabDomain(tab) || tab.groupId) sub.dataset.i18nIgnore = '';
-      copy.append(title, sub);
+      if (!opening && metadata.length) sub.dataset.i18nIgnore = '';
+      const identity = document.createElement('span');
+      identity.className = 'glance-picker-option-identity';
+      identity.append(title);
+      if (tab.private) {
+        const chip = document.createElement('span');
+        chip.className = 'row-private';
+        chip.textContent = blancI18n.t('rail.state.private');
+        identity.append(chip);
+      }
+      copy.append(identity, sub);
       row.append(favicon, copy);
-      row.setAttribute('aria-label', blancI18n.t('glance.picker.optionLabel', { title: title.textContent, details: sub.textContent }));
+      row.classList.toggle('quiet', !!tab.asleep);
+      if (opening) row.dataset.opening = 'true';
+      row.title = [title.textContent, tabDomain(tab)].filter(Boolean).join(' — ');
+      const details = [
+        ...metadata,
+        tab.private ? blancI18n.t('rail.state.private') : '',
+        tab.asleep ? blancI18n.t('rail.state.quiet') : '',
+      ].filter(Boolean).join(', ') || blancI18n.t('glance.picker.openTab');
+      row.setAttribute('aria-label', blancI18n.t('glance.picker.optionLabel', { title: title.textContent, details }));
       row.addEventListener('pointerdown', (event) => event.preventDefault());
       row.addEventListener('mousemove', () => {
         if (glancePickerSelectedId !== tab.id) selectGlanceResult(tab.id);
@@ -536,13 +556,14 @@
     if (!results.length) return;
     const current = Math.max(0, results.findIndex((tab) => tab.id === glancePickerSelectedId));
     let next = current;
+    // Home and End stay the text field's own (the caret); the list's ends
+    // are reached with the arrows. Moving the highlight announces nothing:
+    // the active descendant speaks for itself, and only typing re-counts.
     if (event.key === 'ArrowDown') next = (current + 1) % results.length;
     else if (event.key === 'ArrowUp') next = (current - 1 + results.length) % results.length;
-    else if (event.key === 'Home') next = 0;
-    else if (event.key === 'End') next = results.length - 1;
     else return;
     event.preventDefault();
-    selectGlanceResult(results[next].id, { announce: true });
+    selectGlanceResult(results[next].id);
     glancePickerList.querySelector(`#${CSS.escape(glanceOptionId(results[next].id))}`)
       ?.scrollIntoView({ block: 'nearest' });
   });
@@ -1039,6 +1060,7 @@
     { cmd: '/patron', hint: blancI18n.t('slash.patron.hint'), run: () => window.browserAPI.openPage('settings', 'patron') },
     // /workspace was the command before the Blanc Spaces rename; it still works.
     { cmd: '/space', hint: blancI18n.t('slash.space.hint'), aliases: ['/workspace'], keepOverlay: true, clearInput: true, run: runWorkspaceCommand },
+    { cmd: '/glance', hint: blancI18n.t('slash.glance.hint'), keepOverlay: true, run: (input) => window.browserAPI.openGlancePicker(commandArgument(input)) },
   ];
 
   function runCommand(command) {
@@ -1926,7 +1948,8 @@
     } else if (next === 'glance') {
       if (!reshow) {
         glancePickerSession += 1;
-        glancePickerInput.value = '';
+        // /glance <text> opens the picker already filtered.
+        glancePickerInput.value = typeof prefill === 'string' ? prefill : '';
         glancePickerSelectedId = null;
         glancePickerError = '';
         glancePickerBusy = false;
@@ -2234,8 +2257,15 @@
   let morphTimer = null;
   // Closing, the Spaces menu fades back into the Island's mark from where it
   // hung; body[data-closing] keeps that placement while main holds the view.
-  let spacesExitTimer = null;
-  function endSpacesExit() { clearTimeout(spacesExitTimer); spacesExitTimer = null; document.body.dataset.closing = ''; }
+  // The Glance picker shrinks back the same way, keeping its purpose's
+  // placement until main lets the view go.
+  let overlayExitTimer = null;
+  function endOverlayExit() {
+    clearTimeout(overlayExitTimer);
+    overlayExitTimer = null;
+    document.body.dataset.closing = '';
+    if (mode !== 'glance') document.body.dataset.glancePurpose = '';
+  }
   let morphFrame = 0;
   let morphGeneration = 0;
   let drawnGeneration = 0;
@@ -2345,7 +2375,7 @@
   });
   window.browserAPI.onOverlayShow(({ mode: next, prefill, purpose, pillRect }) => {
     const wasOpen = mode === next;
-    endSpacesExit();
+    endOverlayExit();
     // A quick close/reopen can arrive while the old retract timer is still
     // holding `pointer-events: none` on the panel. Cancel that stale exit
     // before constructing the new opening state, or the fresh panel renders
@@ -2416,10 +2446,11 @@
     const retracting = payload?.retract && (mode === 'panel' || mode === 'palette')
       && retractPanelIntoPill();
     if (mode === 'find') resetFind();
-    if (mode === 'spaces') {
-      endSpacesExit();
-      document.body.dataset.closing = 'spaces';
-      spacesExitTimer = setTimeout(endSpacesExit, RETRACT_MS);
+    const leaving = mode === 'spaces' || mode === 'glance' ? mode : null;
+    if (leaving) {
+      endOverlayExit();
+      document.body.dataset.closing = leaving;
+      overlayExitTimer = setTimeout(endOverlayExit, RETRACT_MS);
     }
     mode = null;
     glancePickerPurpose = null;
@@ -2428,7 +2459,8 @@
     glancePickerError = '';
     glancePickerBusy = false;
     document.body.dataset.mode = '';
-    document.body.dataset.glancePurpose = '';
+    // The leaving picker keeps its purpose's placement until the exit ends.
+    if (leaving !== 'glance') document.body.dataset.glancePurpose = '';
     backdrop.hidden = true;
     if (retracting) {
       // The anchor stays up until the panel has shrunk away. pointer-events

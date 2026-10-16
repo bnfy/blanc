@@ -655,6 +655,8 @@ function wireTabView(tab, view, { owner, adopted }) {
       const role = foregroundOpenRole(getOwner(), tab.id);
       showOpenedTab(createTab(targetUrl, { private: tab.private, groupId: tab.groupId }), role);
     }),
+    // Open Link in Glance: main owns the guards and the role change.
+    openInGlance: boundToTab((targetUrl) => deps.openLinkInGlance?.(tab, targetUrl)),
   }, () => {
     if (!gestureSettings().enabled) return true;
     if (Date.now() < suppressMenuUntil) return false;

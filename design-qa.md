@@ -79,7 +79,8 @@ There are no remaining actionable P0, P1, or P2 findings.
 - Fonts and typography: the final header uses the approved single-row
   `GLANCE | favicon + title` hierarchy. Picker heading, filter, rows, metadata,
   and keyboard hint now match the source's comfortable density while retaining
-  Blanc's bundled UI and mono families. Long live titles truncate without
+  Blanc's bundled UI sans (the eyebrow is no longer mono; amended October 16,
+  2026). Long live titles truncate without
   moving the actions.
 - Spacing and layout rhythm: the Island remains centered over the dominant
   pane; the reference has one flat header; the picker is a compact 420px-max

@@ -281,6 +281,7 @@ const {
   glanceLayoutPayload,
 } = require('./glance-focus');
 const { moveTab: resolveTabMove, reorderGroup: resolveGroupReorder } = require('./tab-order');
+const { openLinkInGlance: openLinkInGlanceWith } = require('./glance-open-link');
 const { acceptOverlayDragState, resetOverlayDragState, overlayDragActive } = require('./overlay-drag-state');
 const {
   installPlatformMainMenuShortcut,
@@ -3577,7 +3578,7 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
       clearTimeout(rt().overlayExitTimer);
       rt().overlayExitTimer = null;
     }
-    if (retracts || closingMode === 'spaces') {
+    if (retracts || closingMode === 'spaces' || closingMode === 'glance') {
       rt().overlayExitTimer = setTimeout(bindWindowRuntime(rt(), () => {
         rt().overlayExitTimer = null;
         // Re-check: a new overlay may have opened while this was retracting,
@@ -6040,6 +6041,9 @@ initTabView({
   // Optional (not in tab-view's required list): a visible pane's main-frame
   // and same-document navigations dismiss a fill message about that pane.
   dismissFillStatusForNavigation: (owner, tabId) => fillStatusSurface?.invalidatePending(owner.id, tabId),
+  // Optional: the page context menu's Open Link in Glance (runs bound to the
+  // opener's window runtime, so createTab and setGlanceTab act there).
+  openLinkInGlance,
   // Optional ambient-hint triggers (fill-hint.js owns all revalidation).
   onFillHintLoad: (tab) => fillHintScheduler?.notePageLoad(tab),
   onFillHintInPageNavigation: (tab) => fillHintScheduler?.noteInPageNavigation(tab),
@@ -6624,17 +6628,30 @@ function closeGlance({ focusContent = true } = {}) {
 }
 
 function promoteGlance() {
-  const id = activeGlanceTab()?.id;
+  const reference = activeGlanceTab();
+  const id = reference?.id;
   if (!id) return false;
+  // Both names, read before the swap: the strip says which page is now main
+  // and which is in Glance.
+  const untitled = mainI18n.t('tab.untitledShort');
+  const title = displayTitle(reference) || untitled;
+  const other = displayTitle(tabs.get(rt().activeTabId)) || untitled;
   setActiveTab(id, { focusContent: true });
   const promoted = rt().activeTabId === id;
   if (promoted && hasLiveWindow()) {
-    rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.promoted'));
+    rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.promoted', { title, other }));
   }
   return promoted;
 }
 
-function openGlancePicker() {
+/** Open Link in Glance, from the page context menu: the link becomes the
+ * reference, in the opener's profile, private flag and group. Same guards
+ * as Open Link in New Tab. */
+function openLinkInGlance(opener, url) {
+  return openLinkInGlanceWith(opener, url, { handOffToOs, isForbiddenTopLevelUrl, createTab, setGlanceTab });
+}
+
+function openGlancePicker(query = '') {
   if (!hasLiveWindow()) return false;
   rt().window.focus();
   const glance = glanceGeometry();
@@ -6643,7 +6660,8 @@ function openGlancePicker() {
   // the picker takes the open picker's centred, page-wide placement. With a
   // single tab the picker still opens, to say what to do.
   const purpose = !glance ? 'open' : glance.direction === 'vertical' ? 'change-stacked' : 'change';
-  showOverlay('glance', { purpose });
+  // /glance <text>: the picker opens already filtered to the text.
+  showOverlay('glance', { purpose, prefill: query || undefined });
   return true;
 }
 
@@ -7747,7 +7765,7 @@ function registerIpcHandlers() {
   chromeHandle('tabs:switch', (_e, id) => setActiveTab(id));
   chromeHandle('tabs:activate-from-rail', (_e, id) => activateTabFromRail(id));
   chromeHandle('tabs:set-glance', (_e, id) => setGlanceTab(id));
-  chromeHandle('tabs:open-glance-picker', () => openGlancePicker());
+  chromeHandle('tabs:open-glance-picker', (_e, query) => openGlancePicker(typeof query === 'string' ? query.slice(0, 200) : ''));
   chromeHandle('tabs:close-glance', () => closeGlance());
   chromeHandle('tabs:promote-glance', () => promoteGlance());
   chromeHandle('tabs:navigate', (_e, id, url) => navigateTabToAddress(id, url));
@@ -8372,6 +8390,7 @@ const SLASH_COMMANDS = [
   ['/theme [system|light|dark]', 'slash.theme.doc'],
   ['/patron', 'slash.patron.hint'],
   ['/space', 'slash.space.hint'],
+  ['/glance <text>', 'slash.glance.doc'],
 ];
 
 // A hand-picked subset of the full inventory (blanc://shortcuts/, via
@@ -10689,9 +10708,20 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       getFocusedPaneTabId: () => rt().focusedPaneTabId,
       getFindTargetTabId: () => findTargetTabId(rt()),
       getOverlayViewBounds: () => rt().overlayView?.getBounds() ?? null,
+      // Whether the overlay view is really in the window (and shown, where
+      // hiding keeps it attached): a detached view still reports bounds.
+      getOverlayViewAttached: () => {
+        const view = rt().overlayView;
+        if (!view || !hasLiveWindow()) return false;
+        return rt().window.contentView.children.includes(view) && (process.platform !== 'linux' || view.getVisible());
+      },
       getGlanceGeometry: () => hasLiveWindow() ? glanceGeometry() : null,
       // The divider's stops as main will use them: measured, else the last measured.
       getGlanceMinimums: () => ({ primary: glanceMinPrimaryWidth(), reference: glanceMinReferenceWidth() }),
+      openLinkInGlance: (tabId, url) => {
+        const opener = tabs.get(tabId);
+        return opener ? withWindowRuntime(windowRuntimes.runtimeForTab(opener) ?? rt(), () => openLinkInGlance(opener, url)) : false;
+      },
       groupTabByName, renameTab, beginRenameTab, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab,
       closeGroup, newTabUrl,
       getOverlayDragging: () => overlayDragActive(rt()),

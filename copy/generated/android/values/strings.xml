@@ -32,6 +32,8 @@
     <string name="slash_theme_doc">Cycle appearance, or switch directly to system, light, or dark</string>
     <string name="slash_patron_hint">Support Blanc with a Patron subscription</string>
     <string name="slash_space_hint">Switch to a space, or type a new name to save this window</string>
+    <string name="slash_glance_hint">Keep another open tab beside this page</string>
+    <string name="slash_glance_doc">Open the Glance picker, filtered to the text</string>
     <string name="settings_language_label">Language</string>
     <string name="settings_language_hint">Translations are machine-generated.</string>
     <string name="settings_language_system">System (%1$s)</string>
@@ -297,6 +299,7 @@
     <string name="glance_opened">%1$s opened in Glance</string>
     <string name="glance_opened_untitled">Tab opened in Glance</string>
     <string name="glance_open_failed">Couldn’t open that tab in Glance</string>
+    <string name="glance_picker_opening">Opening…</string>
     <string name="find_placeholder">Find in page</string>
     <string name="find_prev">Previous match</string>
     <string name="find_next">Next match</string>
@@ -432,6 +435,7 @@
     <string name="menu_delete">Delete</string>
     <string name="menu_select_all">Select All</string>
     <string name="context_menu_open_link_in_new_tab">Open Link in New Tab</string>
+    <string name="context_menu_open_link_in_glance">Open Link in Glance</string>
     <string name="context_menu_copy_link_address">Copy Link Address</string>
     <string name="context_menu_open_image_in_new_tab">Open Image in New Tab</string>
     <string name="context_menu_copy_image">Copy Image</string>
@@ -702,7 +706,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="shortcuts_background_link">Open link in background tab</string>
     <string name="glance_status_opened">%1$s opened in Glance</string>
     <string name="glance_status_closed">Glance closed</string>
-    <string name="glance_status_promoted">Glance made main</string>
+    <string name="glance_status_promoted">%1$s is now the main page; %2$s is in Glance</string>
     <string name="glance_status_tab_closed">Glance closed because its tab was closed</string>
     <string name="glance_status_main_closed">%1$s is now the main page. Glance closed.</string>
     <string name="glance_status_cancelled">Didn’t open that tab in Glance</string>
