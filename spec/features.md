@@ -762,6 +762,13 @@ From the desktop `DEFAULTS`:
   `window.open`, Cmd/Ctrl+Shift-click) becomes the reference; the previous
   reference stays open as an ordinary tab and the main page is untouched.
   Background opens stay in the background.
+- While Glance is open the Island hides its tab dots (and the +N count) to
+  keep room for the address and its controls; tabs stay reachable from the
+  ⌘L panel, the rail and `Cmd/Ctrl+1–9`. When the main pane is narrow the
+  Island also hides Forward and Favorite, and the divider stops before the
+  address becomes unreadable (measured from what the Island is showing).
+  Glance stacks instead of going side by side when that minimum would leave
+  the reference under 300 px.
 - The reference header carries **Back** (disabled when there is nothing to go
   back to) and **Reload** / **Stop**. **Make main**'s accessible name begins
   with its visible words, and right-clicking the header's title opens the

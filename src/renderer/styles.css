@@ -255,6 +255,10 @@ button svg {
 #strip.glance-open #islandPill {
   max-width: calc((var(--glance-primary-width) - 24px) / var(--pill-zoom));
 }
+/* With Glance open the Island gives up its tab dots (and +N) entirely, to
+   keep room for the address and its controls in a narrower main pane; tabs
+   stay reachable from ⌘L, the rail and ⌘1–9. */
+#strip.glance-open #pillDots { display: none; }
 /* Stacked: centred over the full page, kept clear of the window controls on
    both sides so the centre line does not move. */
 #strip.glance-open[data-glance-direction="vertical"] #islandPill {

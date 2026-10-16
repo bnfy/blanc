@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('node:assert/strict');
-const { Given, When, Then } = require('@cucumber/cucumber');
+const { Given, When, Then, After } = require('@cucumber/cucumber');
 const ctx = require('../support/context');
 const { overlayPage } = require('../support/overlay');
 const { waitForValue } = require('../support/poll');
@@ -19,6 +19,28 @@ async function mainChromePage() {
   }
   throw new Error('main chrome window never appeared');
 }
+
+// Glance scenarios change window-wide state (size, tab layout, rail width,
+// the strip's platform, 1Password, the downloads indicator). Put it back after
+// every one, also when a step failed midway, so a failure never leaks into
+// the scenarios that follow.
+After({ tags: '@glance' }, async function () {
+  if (!ctx.app) return;
+  const restore = async (work) => { try { await work(); } catch { /* the app may be gone */ } };
+  await restore(async () => {
+    if (!this.glanceRealPlatform) return;
+    const chrome = await mainChromePage();
+    await chrome.evaluate((real) => { document.documentElement.dataset.platform = real; }, this.glanceRealPlatform);
+    this.glanceRealPlatform = null;
+  });
+  await restore(() => this.call('setTabLayout', 'island'));
+  await restore(() => this.call('setVerticalTabsWidth', 248));
+  await restore(() => this.call('setWindowContentSize', 1200, 800));
+  if (this.glanceOnePasswordOn) await restore(() => this.call('setOnePasswordConfig', false, ''));
+  if (this.glanceDownloadsShown) {
+    await restore(() => sendDownloadsActivity({ active: 0, hasRecent: false, receivedBytes: 0, totalBytes: 0, lastCompletedAt: null }));
+  }
+});
 
 async function createGlanceTabs(world) {
   world.glanceMainUrl = world.fixtureUrl('glance-main');
@@ -1006,6 +1028,7 @@ Then('only the reference page went back', async function () {
 
 Given('1Password fill is configured and the Glance reference shows a login form', async function () {
   await this.call('setOnePasswordConfig', true, 'Acceptance Team');
+  this.glanceOnePasswordOn = true;
   this.glanceMainId = await this.call('openTab', this.fixtureUrl('glance-main'));
   this.glanceReferenceId = await this.call('openTab', `${this.fixtureUrl('glance-reference')}?loginform=authoritative`);
   await this.call('activateTab', this.glanceMainId, false);
@@ -1260,6 +1283,23 @@ Then('a full-width Island stays clear of the Windows and Linux window controls',
   }
 });
 
+// 640 x 800 is Blanc's minimum window. On macOS the strip is told it is
+// Windows (what the stylesheet keys on), then the window is nudged so the
+// strip re-fits the Island under those rules.
+When('the window is as small as it goes with the Windows and Linux window controls', async function () {
+  await this.call('setWindowContentSize', 640, 800);
+  await this.waitForState((state) => state.glanceGeometry?.direction === 'vertical');
+  const chrome = await mainChromePage();
+  this.glanceRealPlatform = await chrome.evaluate(() => {
+    const real = document.documentElement.dataset.platform;
+    if (real === 'darwin') document.documentElement.dataset.platform = 'win32';
+    return real;
+  });
+  await this.call('setWindowContentSize', 641, 800);
+  await this.waitForState((state) => state.glanceGeometry?.page.width === 641);
+  await new Promise((resolve) => setTimeout(resolve, 300));
+});
+
 When('I switch the Glance window to vertical tabs', async function () {
   await this.call('setTabLayout', 'vertical');
   const chrome = await mainChromePage();
@@ -1268,7 +1308,13 @@ When('I switch the Glance window to vertical tabs', async function () {
 });
 
 Then('the Glance window returns to its usual layout', async function () {
+  if (this.glanceRealPlatform) {
+    const chrome = await mainChromePage();
+    await chrome.evaluate((real) => { document.documentElement.dataset.platform = real; }, this.glanceRealPlatform);
+    this.glanceRealPlatform = null;
+  }
   await this.call('setTabLayout', 'island');
+  await this.call('setVerticalTabsWidth', 248);
   await this.call('setWindowContentSize', 1200, 800);
 });
 
@@ -1349,19 +1395,94 @@ Then("the Island's address stays readable", async function () {
     `the address "${label.text}" shows only ${Math.round(label.shown)}px of ${Math.round(label.full)}px`);
 });
 
-Then('the Island shows the active tab and counts the rest', async function () {
+// In Glance the Island gives its dot row (and +N) up entirely, so the
+// address and controls keep their room; tabs stay reachable from ⌘L.
+Then('the Island shows no tab dots while Glance is open', async function () {
   const chrome = await mainChromePage();
-  const row = await chrome.evaluate(() => ({
-    dots: document.querySelectorAll('#pillDots .island-dot').length,
-    active: !!document.querySelector('#pillDots .island-dot.active'),
-    more: Number((document.querySelector('#pillDots .pill-overflow')?.textContent ?? '+0').slice(1)),
-  }));
-  const state = await this.state();
-  assert.equal(row.active, true, 'the active tab has no dot');
+  await waitForValue(() => chrome.evaluate(() => {
+    const row = document.getElementById('pillDots');
+    return row.getClientRects().length === 0 || row.getBoundingClientRect().width === 0;
+  }), Boolean, 'the dot row hidden in Glance');
   // Back, the shield, Reload and Close never give way.
   for (const selector of ['#pillNav .pill-btn:first-child', '#pillShield', '#pillActions .pill-close']) {
     assert.ok(await chrome.locator(selector).isVisible(), `${selector} was hidden`);
   }
-  assert.ok(row.dots < 8, `the dot row did not give way (${row.dots} dots)`);
-  assert.equal(row.dots + row.more, state.tabs.length, `dots ${row.dots} + more ${row.more} ≠ ${state.tabs.length} tabs`);
+});
+
+Then('the Island shows its tab dots again', async function () {
+  const chrome = await mainChromePage();
+  await chrome.locator('#pillDots .island-dot').first().waitFor();
+});
+
+async function sendDownloadsActivity(payload) {
+  // The strip learns about downloads only from this main → strip message.
+  await ctx.app.evaluate(({ webContents }, activity) => {
+    const strip = webContents.getAllWebContents().find((wc) => wc.getURL() === 'blanc-chrome://index/');
+    strip.send('chrome:downloads', activity);
+  }, payload);
+}
+
+async function islandState(chrome) {
+  return chrome.evaluate(() => {
+    const pill = document.getElementById('islandPill').getBoundingClientRect();
+    const outside = [...document.querySelectorAll('#islandPill button, #islandPill .favicon')]
+      .map((element) => element.getBoundingClientRect())
+      .filter((rect) => rect.width > 0 && (rect.left < pill.left - 0.5 || rect.right > pill.right + 0.5)).length;
+    return {
+      dots: document.querySelectorAll('#pillDots .island-dot').length,
+      slim: document.getElementById('islandPill').classList.contains('slim'),
+      downloads: !document.querySelector('#pillActions .pill-download').hidden,
+      addressCut: (() => {
+        const domain = document.getElementById('pillDomain');
+        return domain.scrollWidth > domain.clientWidth + 1;
+      })(),
+      outside,
+    };
+  });
+}
+
+Given('twelve ordinary tabs in a narrow window', async function () {
+  const ids = [];
+  for (let i = 1; i <= 12; i += 1) ids.push(await this.call('openTab', this.fixtureUrl(`glance-many-${i}`)));
+  await this.call('activateTab', ids[5], false);
+  await this.waitForState((state) => ids.every((id) => state.tabs.find((tab) => tab.id === id && !tab.isLoading)));
+  await sendDownloadsActivity({ active: 0, hasRecent: false, receivedBytes: 0, totalBytes: 0, lastCompletedAt: null });
+  const chrome = await mainChromePage();
+  // Find a width where the Island has already given up some dots but still
+  // has more to give, so a new chip forces a visible change.
+  for (let width = 640; width <= 1100; width += 20) {
+    await this.call('setWindowContentSize', width, 800);
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    const state = await islandState(chrome);
+    if (!state.downloads && state.outside === 0 && !state.addressCut && state.dots >= 2 && state.dots < 8) {
+      this.islandBefore = state;
+      return;
+    }
+  }
+  throw new Error(`no window width left the Island partly reduced: ${JSON.stringify(await islandState(chrome))}`);
+});
+
+When('a download starts', async function () {
+  this.glanceDownloadsShown = true;
+  await sendDownloadsActivity({ active: 1, hasRecent: true, receivedBytes: 10, totalBytes: 100, lastCompletedAt: null });
+});
+
+Then('the Island makes room for the downloads button', async function () {
+  const chrome = await mainChromePage();
+  // The dots give way, not the address.
+  const after = await waitForValue(() => islandState(chrome),
+    (value) => value.downloads && value.outside === 0 && !value.addressCut,
+    'the downloads button inside the Island with the address whole');
+  assert.ok(after.dots < this.islandBefore.dots || after.slim, `nothing gave way: ${JSON.stringify(after)}`);
+});
+
+When('the download indicator goes away', async function () {
+  await sendDownloadsActivity({ active: 0, hasRecent: false, receivedBytes: 0, totalBytes: 0, lastCompletedAt: null });
+});
+
+Then('the Island shows as many tab dots as before', async function () {
+  const chrome = await mainChromePage();
+  await waitForValue(() => islandState(chrome),
+    (value) => !value.downloads && value.dots === this.islandBefore.dots && value.slim === this.islandBefore.slim,
+    `the Island back to ${this.islandBefore.dots} dots`);
 });

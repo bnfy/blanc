@@ -35,6 +35,7 @@
   const pillFavicon = document.getElementById('pillFavicon');
   const pillDomain = document.getElementById('pillDomain');
   const pillSlash = document.getElementById('pillSlash');
+  const pillShortcuts = document.getElementById('pillShortcuts');
   const pillFillHint = document.getElementById('pillFillHint');
   const fillHintLabel = blancI18n.t('pill.fillHint', {
     shortcut: isMac ? '⌥⌘P' : `${blancI18n.t('key.ctrl')}+${blancI18n.t('key.shift')}+P`,
@@ -241,7 +242,10 @@
 
   function renderDownloads() {
     const { active, hasRecent, receivedBytes, totalBytes, lastCompletedAt } = downloadState;
+    const wasHidden = downloadsBtn.hidden;
     downloadsBtn.hidden = !(active > 0 || hasRecent);
+    // The button takes or gives back room in the Island.
+    if (downloadsBtn.hidden !== wasHidden) fitIslandDots();
     downloadsBtn.classList.toggle('active', active > 0);
 
     // Keyed off the timestamp changing rather than `active` falling to 0, so a
@@ -429,21 +433,26 @@
    * dots, with the rest folded into +N (the active tab always keeps its
    * dot); then, with one dot left, Forward and Favorite hide. Only then may
    * the address truncate; the Glance divider stops before it gets unreadable
-   * (glanceMinPrimaryWidth). Only a change of room, tab count, active tab or
-   * address starts again from the full Island, so an ordinary broadcast never
-   * rebuilds the dot row (see dotsSignature). */
+   * (measureIslandFloor). Any change to the room or to what the Island shows
+   * starts again from the full Island, so it grows back when room returns;
+   * when nothing changed, the last fit stands and nothing is measured. */
   function fitIslandDots() {
-    const key = `${stripEl.clientWidth}|${glanceLayout?.primary?.width ?? ''}|${glanceLayout?.direction ?? ''}|${state.tabs.length}|${state.activeTabId}|${pillDomain.textContent}`;
+    const key = islandFitKey();
     const refit = key !== dotFitKey;
     if (refit) {
       dotFitKey = key;
       dotBudget = DOT_CAP;
       islandPill.classList.remove('slim');
+    } else if (dotsSignature() === lastDotsSig) {
+      return;
     }
+    // With vertical tabs or Glance the dot row is not drawn, so fewer dots
+    // free nothing.
+    const dotsShown = state.tabLayout !== 'vertical' && !stripEl.classList.contains('glance-open');
     for (;;) {
       renderDotRow();
       if (!pillOverflows() && !addressTruncated()) break;
-      if (dotBudget > 1) {
+      if (dotsShown && dotBudget > 1) {
         dotBudget -= 1;
       } else {
         islandPill.classList.add('slim');
@@ -451,6 +460,19 @@
       }
     }
     if (refit) measureIslandFloor();
+  }
+
+  /** Everything the fit depends on except the dots themselves: the room the
+   * stylesheet gives the pill (its computed max-width, which follows the
+   * window, the rail and Glance), which chips are showing, and the address.
+   * Style only, no layout. */
+  function islandFitKey() {
+    const shown = [...islandPill.children, ...pillShortcuts.children, ...pillActions.children]
+      .map((element) => (element.hidden ? 0 : 1)).join('');
+    return [
+      getComputedStyle(islandPill).maxWidth, state.tabLayout, shown, pillShieldCount.textContent,
+      state.tabs.length, state.activeTabId, pillDomain.textContent,
+    ].join('|');
   }
 
   /** Only rebuild the dot row when the dots themselves change — not on every

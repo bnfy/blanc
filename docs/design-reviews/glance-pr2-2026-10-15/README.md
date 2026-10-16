@@ -76,3 +76,14 @@ commit.
 2. After: the address keeps priority. Dots and then Forward and Favorite give
    way first, and the divider now stops at a 600 px main pane on macOS (454 px
    elsewhere), so the address keeps at least about ten characters.
+
+## island-no-dots-in-glance-before-above-after.png
+
+Window content 1200 × 800, 13 tabs on a long host, Glance side by side at
+the default split, macOS. "Before" is `396a35c4`; "after" is the next commit.
+
+1. Before: to keep the address whole the Island had dropped to one tab dot
+   with "+12" and hidden Forward and Favorite.
+2. After: the owner's call, the Island shows no tab dots while Glance is
+   open. Forward and Favorite come back and the address stays whole; tabs
+   stay reachable from ⌘L, the rail and ⌘1–9.

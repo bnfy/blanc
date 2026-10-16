@@ -10,6 +10,7 @@ Feature: Glance reference pane
     Then Glance shows a dedicated accessible local-tab picker
     When I filter the Glance picker and choose the reference tab
     Then the active page and Glance occupy separate dominant and reference panes
+    And the Island shows no tab dots while Glance is open
     When I focus the interactive Glance page
     Then the main and reference roles do not change
     When I promote the Glance pane
@@ -18,6 +19,7 @@ Feature: Glance reference pane
     Then the main pane remains larger than the reference pane
     When I close Glance
     Then the active page fills the browser page region
+    And the Island shows its tab dots again
 
   @F34-1 @F34 @D11
   Scenario: Change and close the underlying Glance tab without disturbing main
@@ -323,7 +325,7 @@ Feature: Glance reference pane
     When I narrow the main pane to its smallest side-by-side width
     Then every Island control stays inside the Island
     And the Island's address stays readable
-    And the Island shows the active tab and counts the rest
+    And the Island shows no tab dots while Glance is open
     And the Glance window returns to its usual layout
 
   @F34-1 @F34 @F11 @D11
@@ -332,4 +334,22 @@ Feature: Glance reference pane
     When I narrow the main pane to its smallest side-by-side width
     Then every Island control stays inside the Island
     And the Island's address stays readable
+    And the Glance window returns to its usual layout
+
+  @F34-1 @F34 @F3 @D11
+  Scenario: The Island makes room for a new chip and grows back when it goes
+    Given twelve ordinary tabs in a narrow window
+    When a download starts
+    Then the Island makes room for the downloads button
+    When the download indicator goes away
+    Then the Island shows as many tab dots as before
+    And the Glance window returns to its usual layout
+
+  @F34-1 @F34 @D11
+  Scenario: Stacked on Windows and Linux, the Island keeps its address readable in a small window
+    Given twelve ordinary tabs with one open in Glance
+    When the window is as small as it goes with the Windows and Linux window controls
+    Then every Island control stays inside the Island
+    And the Island's address stays readable
+    And a full-width Island stays clear of the Windows and Linux window controls
     And the Glance window returns to its usual layout
