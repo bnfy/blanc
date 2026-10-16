@@ -10679,6 +10679,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       getFindTargetTabId: () => findTargetTabId(rt()),
       getOverlayViewBounds: () => rt().overlayView?.getBounds() ?? null,
       getGlanceGeometry: () => hasLiveWindow() ? glanceGeometry() : null,
+      // The divider's stops as main will use them: measured, else the last measured.
+      getGlanceMinimums: () => ({ primary: glanceMinPrimaryWidth(), reference: glanceMinReferenceWidth() }),
       groupTabByName, renameTab, beginRenameTab, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab,
       closeGroup, newTabUrl,
       getOverlayDragging: () => overlayDragActive(rt()),

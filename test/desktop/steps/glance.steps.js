@@ -1592,10 +1592,17 @@ Then("the Glance header's buttons are clear of the window controls", async funct
   assert.equal(glanceGeometry.direction, 'horizontal');
 });
 
+// The first window has measured its minimums: the slim Island's main pane
+// and the compact header's reference. A new window has measured nothing yet,
+// so its first layout must already stop the divider at both, not at the
+// built-in 50% and 300 px. Which one binds differs by platform (on Windows
+// and Linux the slim Island can need less than half the pane), so the
+// expectation is computed from the measured values.
 When('I open Glance in a new window just wide enough to stay side by side', async function () {
-  // The first window has measured its Island: at the divider's stop the main
-  // pane is exactly that minimum.
-  this.glanceMeasuredFloor = (await this.state()).glanceGeometry.primary.width;
+  const { glanceMinimums } = await this.state();
+  assert.ok(glanceMinimums.primary > 0 && glanceMinimums.reference > 0,
+    `the first window measured nothing: ${JSON.stringify(glanceMinimums)}`);
+  this.glanceMeasured = glanceMinimums;
   const runtimeId = await this.call('openNewWindow');
   this.glanceExtraWindowId = runtimeId;
   const main = await this.call('openTabInWindow', runtimeId, this.fixtureUrl('glance-second-main'));
@@ -1603,17 +1610,23 @@ When('I open Glance in a new window just wide enough to stay side by side', asyn
   await this.call('activateTabInWindow', runtimeId, main, false);
   await waitForValue(async () => (await this.call('windowRuntimes')).find((runtime) => runtime.id === runtimeId),
     (runtime) => runtime?.tabOrder.includes(reference), 'the new window holding both tabs');
-  // usable = minimum + 320, so the reference keeps more than 300 px.
+  // Both minimums plus the divider, with 20 px to spare: side by side only
+  // if the new window already knows them.
   this.glanceFirstLayout = await this.call('firstGlanceLayoutInWindow', runtimeId, reference,
-    this.glanceMeasuredFloor + 12 + 320);
+    Math.max(800, glanceMinimums.primary + glanceMinimums.reference + 12 + 20));
 });
 
 Then("its first layout already stops the divider at the Island's minimum", async function () {
   const layout = this.glanceFirstLayout;
+  const { primary, reference } = this.glanceMeasured;
   assert.equal(layout?.direction, 'horizontal', `first layout: ${JSON.stringify(layout)}`);
   const usable = layout.page.width - layout.divider.width;
-  assert.ok(Math.abs(layout.minRatio * usable - this.glanceMeasuredFloor) <= 1,
-    `the new window started with a ${Math.round(layout.minRatio * usable)}px minimum, not the measured ${this.glanceMeasuredFloor}px`);
+  const expectedMin = Math.min(0.78 * usable, Math.max(0.5 * usable, primary));
+  const expectedMax = Math.max(expectedMin, Math.min(0.78 * usable, usable - reference));
+  assert.ok(Math.abs(layout.minRatio * usable - expectedMin) <= 1,
+    `the new window started with a ${Math.round(layout.minRatio * usable)}px main-pane stop, not ${Math.round(expectedMin)}px from the measured ${primary}px`);
+  assert.ok(Math.abs(layout.maxRatio * usable - expectedMax) <= 1,
+    `the new window left the reference ${Math.round(usable - layout.maxRatio * usable)}px at most, not the measured ${reference}px`);
   await this.call('closeWindowRuntime', this.glanceExtraWindowId);
   this.glanceExtraWindowId = null;
 });

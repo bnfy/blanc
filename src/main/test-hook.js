@@ -79,6 +79,7 @@ function install(refs) {
     getGlanceTabId,
     getFocusedPaneTabId,
     getGlanceGeometry,
+    getGlanceMinimums,
     groupTabByName,
     renameTab,
     beginRenameTab,
@@ -534,6 +535,7 @@ function install(refs) {
         glanceTabId: getGlanceTabId(),
         focusedPaneTabId: getFocusedPaneTabId(),
         glanceGeometry: getGlanceGeometry(),
+        glanceMinimums: getGlanceMinimums(),
       };
     },
 
