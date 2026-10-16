@@ -402,6 +402,13 @@
     }
   }
 
+  /** With Glance open the fill chip follows the focused pane, like the fill. */
+  function renderFillHint() {
+    const hintTab = glanceLayout?.focusedPane === 'glance' ? glanceTab() : activeTab();
+    pillFillHint.hidden = !(hintTab?.fillHint === true
+      && typeof window.browserAPI.fillLoginFromOnePassword === 'function');
+  }
+
   function renderGlance() {
     const tab = glanceTab();
     const visible = !!tab && !!glanceLayout;
@@ -842,10 +849,7 @@
     // login form and 1Password fill is configured. Click = the normal
     // explicit fill — an invitation, never an action. Gated on the API
     // existing so Windows/Linux never surface it.
-    // With Glance open the chip follows the focused pane, like the fill.
-    const hintTab = glanceLayout?.focusedPane === 'glance' ? glanceTab() : tab;
-    pillFillHint.hidden = !(hintTab?.fillHint === true
-      && typeof window.browserAPI.fillLoginFromOnePassword === 'function');
+    renderFillHint();
 
     // Shield chip: state fully derived in main (shield-model.js) and shipped
     // on the broadcast — the strip only renders. Always present on a page
@@ -1095,7 +1099,11 @@
     // Main has echoed the applied ratio; later keydowns step from the layout
     // again until the next same-task burst.
     glanceKeyRatio = null;
-    render();
+    // Only the Glance header and the fill chip depend on this message. A full
+    // render() here would re-apply the rail width from the last tabs payload
+    // on every resize, snapping the rail back mid-drag.
+    renderGlance();
+    renderFillHint();
   });
   window.browserAPI.onGlanceStatus((message) => {
     glanceStatus.textContent = message;
