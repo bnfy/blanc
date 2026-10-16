@@ -1,5 +1,5 @@
 {
-  "electron": "44.5.1",
+  "electron": "44.8.0",
   "manifestV2": "supported",
   "ublock": "1.75.0",
   "platforms": {
