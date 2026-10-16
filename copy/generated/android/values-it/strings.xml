@@ -32,6 +32,8 @@
     <string name="slash_theme_doc">Cambia aspetto, o passa direttamente a system, light o dark</string>
     <string name="slash_patron_hint">Sostieni Blanc con un abbonamento Patron</string>
     <string name="slash_space_hint">Passa a uno Space, o digita un nuovo nome per salvare questa finestra</string>
+    <string name="slash_glance_hint">Tieni un\'altra scheda aperta accanto a questa pagina</string>
+    <string name="slash_glance_doc">Apri il selettore di Glance, filtrato per il testo</string>
     <string name="settings_language_label">Lingua</string>
     <string name="settings_language_hint">Le traduzioni sono generate automaticamente.</string>
     <string name="settings_language_system">Sistema (%1$s)</string>

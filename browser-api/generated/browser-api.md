@@ -24,7 +24,7 @@
 | `reorderGroup` | tabs | invoke | `groups:reorder` | `(id: GroupId, beforeGroupId: GroupId \| null) => Promise<boolean>` | all |
 | `activateTabFromRail` | tabs | invoke | `tabs:activate-from-rail` | `(id: TabId) => Promise<boolean>` | all |
 | `setGlanceTab` | glance | invoke | `tabs:set-glance` | `(id: TabId) => Promise<boolean>` | all |
-| `openGlancePicker` | glance | invoke | `tabs:open-glance-picker` | `() => Promise<boolean>` | all |
+| `openGlancePicker` | glance | invoke | `tabs:open-glance-picker` | `(query?: string) => Promise<boolean>` | all |
 | `closeGlance` | glance | invoke | `tabs:close-glance` | `() => Promise<boolean>` | all |
 | `promoteGlance` | glance | invoke | `tabs:promote-glance` | `() => Promise<boolean>` | all |
 | `setTabGroup` | groups | invoke | `tabs:set-group` | `(id: TabId, groupId: GroupId \| null) => Promise<void>` | all |

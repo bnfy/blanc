@@ -1059,6 +1059,7 @@
     { cmd: '/patron', hint: blancI18n.t('slash.patron.hint'), run: () => window.browserAPI.openPage('settings', 'patron') },
     // /workspace was the command before the Blanc Spaces rename; it still works.
     { cmd: '/space', hint: blancI18n.t('slash.space.hint'), aliases: ['/workspace'], keepOverlay: true, clearInput: true, run: runWorkspaceCommand },
+    { cmd: '/glance', hint: blancI18n.t('slash.glance.hint'), keepOverlay: true, run: (input) => window.browserAPI.openGlancePicker(commandArgument(input)) },
   ];
 
   function runCommand(command) {
@@ -1946,7 +1947,8 @@
     } else if (next === 'glance') {
       if (!reshow) {
         glancePickerSession += 1;
-        glancePickerInput.value = '';
+        // /glance <text> opens the picker already filtered.
+        glancePickerInput.value = typeof prefill === 'string' ? prefill : '';
         glancePickerSelectedId = null;
         glancePickerError = '';
         glancePickerBusy = false;

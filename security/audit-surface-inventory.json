@@ -220,7 +220,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "d361a5ebff64e6b0d730c80553082a0c95feec8c44876fcae8ce5a301d9ff662",
+      "sha256": "ab08aca7c5da1a2482810cb599bfb50420469710510664f6b43b5256aab19b15",
       "literalChannels": [
         "activate",
         "before-input-event",
@@ -525,7 +525,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "bb2b09b39e0702c8ee4354fda9cb2cada397d3328c58bed12fed487e190d3fcb",
+      "sha256": "d5333d1f54312d8c2095315235c59321e7ce2875404c3c823513df38cb2ed17f",
       "literalChannels": [
         "chrome:adblock-exempt-active",
         "chrome:adblock-toggle",

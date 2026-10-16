@@ -1589,9 +1589,16 @@
       "group": "glance",
       "kind": "invoke",
       "channel": "tabs:open-glance-picker",
-      "params": [],
+      "params": [
+        {
+          "name": "query",
+          "type": "string",
+          "optional": true,
+          "doc": "Text the picker's filter starts with (/glance <text>); main caps it at 200 characters."
+        }
+      ],
       "returns": "boolean",
-      "doc": "Open the Glance tab picker."
+      "doc": "Open the Glance tab picker, or the Change picker while Glance is open."
     },
     {
       "name": "closeGlance",

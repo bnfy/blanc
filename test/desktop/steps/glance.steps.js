@@ -2100,3 +2100,42 @@ Then('the strip announces {string}', async function (expected) {
   await waitForValue(() => chrome.locator('#glanceStatus').textContent(), (text) => text === expected,
     `the strip announcing "${expected}"`);
 });
+
+// ---- /glance ----
+
+Given('twelve ordinary tabs in one workspace', async function () {
+  const ids = [];
+  for (let i = 1; i <= 12; i += 1) ids.push(await this.call('openTab', this.fixtureUrl(`glance-many-${i}`)));
+  await this.call('activateTab', ids[5], false);
+  await this.waitForState((state) => ids.every((id) => {
+    const tab = state.tabs.find((candidate) => candidate.id === id);
+    return tab && !tab.isLoading && tab.title.startsWith('glance-many');
+  }));
+});
+
+Then('the Glance picker is open with the filter {string} and one row', async function (filter) {
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'glance', 'the Glance picker');
+  const page = await overlayPage();
+  await page.locator('#glancePicker:not([hidden])').waitFor();
+  assert.equal(await page.locator('body').getAttribute('data-glance-purpose'), 'open');
+  assert.equal(await page.inputValue('#glancePickerInput'), filter);
+  await page.locator('.glance-picker-option').first().waitFor();
+  assert.equal(await page.locator('.glance-picker-option').count(), 1);
+  assert.ok((await page.locator('.glance-picker-option').first().getAttribute('aria-label')).includes(filter));
+});
+
+Then('the Change picker is open', async function () {
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'glance', 'the Change picker');
+  const page = await overlayPage();
+  await page.locator('#glancePicker:not([hidden])').waitFor();
+  assert.equal(await page.locator('body').getAttribute('data-glance-purpose'), 'change');
+});
+
+Then('the picker says to open another tab and keeps the filter {string}', async function (filter) {
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'glance', 'the Glance picker');
+  const page = await overlayPage();
+  await page.locator('#glancePicker:not([hidden])').waitFor();
+  await page.locator('#glancePickerState:not([hidden])').waitFor();
+  assert.equal(await page.locator('#glancePickerState').textContent(), 'Open another tab to use Glance');
+  assert.equal(await page.inputValue('#glancePickerInput'), filter);
+});

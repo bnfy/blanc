@@ -32,6 +32,8 @@
     <string name="slash_theme_doc">Change d’apparence, ou passe directement en system, light ou dark</string>
     <string name="slash_patron_hint">Soutenir Blanc avec un abonnement Patron</string>
     <string name="slash_space_hint">Passer à un Space, ou saisir un nouveau nom pour enregistrer cette fenêtre</string>
+    <string name="slash_glance_hint">Garder un autre onglet ouvert à côté de cette page</string>
+    <string name="slash_glance_doc">Ouvrir le sélecteur Glance, filtré par le texte</string>
     <string name="settings_language_label">Langue</string>
     <string name="settings_language_hint">Les traductions sont générées automatiquement.</string>
     <string name="settings_language_system">Système (%1$s)</string>

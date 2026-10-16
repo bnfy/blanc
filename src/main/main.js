@@ -6640,7 +6640,7 @@ function promoteGlance() {
   return promoted;
 }
 
-function openGlancePicker() {
+function openGlancePicker(query = '') {
   if (!hasLiveWindow()) return false;
   rt().window.focus();
   const glance = glanceGeometry();
@@ -6649,7 +6649,8 @@ function openGlancePicker() {
   // the picker takes the open picker's centred, page-wide placement. With a
   // single tab the picker still opens, to say what to do.
   const purpose = !glance ? 'open' : glance.direction === 'vertical' ? 'change-stacked' : 'change';
-  showOverlay('glance', { purpose });
+  // /glance <text>: the picker opens already filtered to the text.
+  showOverlay('glance', { purpose, prefill: query || undefined });
   return true;
 }
 
@@ -7753,7 +7754,7 @@ function registerIpcHandlers() {
   chromeHandle('tabs:switch', (_e, id) => setActiveTab(id));
   chromeHandle('tabs:activate-from-rail', (_e, id) => activateTabFromRail(id));
   chromeHandle('tabs:set-glance', (_e, id) => setGlanceTab(id));
-  chromeHandle('tabs:open-glance-picker', () => openGlancePicker());
+  chromeHandle('tabs:open-glance-picker', (_e, query) => openGlancePicker(typeof query === 'string' ? query.slice(0, 200) : ''));
   chromeHandle('tabs:close-glance', () => closeGlance());
   chromeHandle('tabs:promote-glance', () => promoteGlance());
   chromeHandle('tabs:navigate', (_e, id, url) => navigateTabToAddress(id, url));
@@ -8378,6 +8379,7 @@ const SLASH_COMMANDS = [
   ['/theme [system|light|dark]', 'slash.theme.doc'],
   ['/patron', 'slash.patron.hint'],
   ['/space', 'slash.space.hint'],
+  ['/glance <text>', 'slash.glance.doc'],
 ];
 
 // A hand-picked subset of the full inventory (blanc://shortcuts/, via

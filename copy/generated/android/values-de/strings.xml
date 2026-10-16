@@ -32,6 +32,8 @@
     <string name="slash_theme_doc">Darstellung wechseln oder direkt zu system, light oder dark wechseln</string>
     <string name="slash_patron_hint">Blanc mit einem Patron-Abo unterstützen</string>
     <string name="slash_space_hint">Zu einem Space wechseln oder einen neuen Namen eingeben, um dieses Fenster zu speichern</string>
+    <string name="slash_glance_hint">Einen anderen offenen Tab neben dieser Seite behalten</string>
+    <string name="slash_glance_doc">Die Glance-Auswahl öffnen, gefiltert nach dem Text</string>
     <string name="settings_language_label">Sprache</string>
     <string name="settings_language_hint">Übersetzungen werden maschinell erstellt.</string>
     <string name="settings_language_system">System (%1$s)</string>

@@ -32,6 +32,8 @@
     <string name="slash_theme_doc">Cycle appearance, or switch directly to system, light, or dark</string>
     <string name="slash_patron_hint">Support Blanc with a Patron subscription</string>
     <string name="slash_space_hint">Switch to a space, or type a new name to save this window</string>
+    <string name="slash_glance_hint">Keep another open tab beside this page</string>
+    <string name="slash_glance_doc">Open the Glance picker, filtered to the text</string>
     <string name="settings_language_label">Language</string>
     <string name="settings_language_hint">Translations are machine-generated.</string>
     <string name="settings_language_system">System (%1$s)</string>

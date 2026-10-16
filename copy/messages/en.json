@@ -124,6 +124,14 @@
     "message": "Switch to a space, or type a new name to save this window",
     "note": "Slash command hint shown in the ⌘L palette for /space (/workspace still works as an alias)."
   },
+  "slash.glance.hint": {
+    "message": "Keep another open tab beside this page",
+    "note": "The /glance slash command's hint in the ⌘L list and on the Shortcuts page. Opens the Glance picker (the Change picker while Glance is open)."
+  },
+  "slash.glance.doc": {
+    "message": "Open the Glance picker, filtered to the text",
+    "note": "The Shortcuts page's description of /glance <text>: the text becomes the picker's filter."
+  },
   "settings.language.label": {
     "message": "Language",
     "note": "Settings → General row label and the language menu's accessible name.",

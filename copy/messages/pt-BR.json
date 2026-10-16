@@ -129,6 +129,14 @@
     "message": "Mudar para um Space, ou digitar um novo nome para salvar esta janela",
     "source": "sha256:2c357c354eb837202c27e466c8eae03f656733b0c84b8b8b955d31044fbca4c6"
   },
+  "slash.glance.hint": {
+    "message": "Manter outra aba aberta ao lado desta página",
+    "source": "sha256:1e9a55801e7a04c926a6c3389ede976e70a92b09685378e051dcd9d2c3f8e4df"
+  },
+  "slash.glance.doc": {
+    "message": "Abrir o seletor do Glance, filtrado pelo texto",
+    "source": "sha256:fdecc3708ced17c473a2ebc7b37080a50eb0daec012e2672521b99676bee4f9e"
+  },
   "settings.language.label": {
     "message": "Idioma",
     "source": "sha256:f0879385146ff54dfc9d1707c76f07c9b9cd66f9057ea176c076ab2b1b7b1cb8"

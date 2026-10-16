@@ -511,3 +511,22 @@ Feature: Glance reference pane
     When I open the reference tab in Glance
     And I choose Make main
     Then the strip announces "glance-reference is now the main page; glance-main is in Glance"
+
+  @F34-1 @F34 @F14 @D11
+  Scenario: /glance opens the picker filtered to the typed text
+    Given twelve ordinary tabs in one workspace
+    When I run the slash command "/glance many-3"
+    Then the Glance picker is open with the filter "many-3" and one row
+
+  @F34-1 @F34 @D11
+  Scenario: /glance with Glance open opens the Change picker
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And I run the slash command "/glance"
+    Then the Change picker is open
+
+  @F34-1 @F34 @D11
+  Scenario: /glance with nothing else open still opens the picker
+    Given a single ordinary tab for Glance
+    When I run the slash command "/glance work"
+    Then the picker says to open another tab and keeps the filter "work"

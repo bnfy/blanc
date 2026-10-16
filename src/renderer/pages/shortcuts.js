@@ -31,6 +31,7 @@ const SLASH_COMMANDS = [
   ['/theme [system|light|dark]', 'slash.theme.doc'],
   ['/patron', 'slash.patron.hint'],
   ['/space', 'slash.space.hint'],
+  ['/glance <text>', 'slash.glance.doc'],
 ];
 
 /** One titled section of label/keys rows. */

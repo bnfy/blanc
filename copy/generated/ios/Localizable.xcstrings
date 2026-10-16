@@ -1303,6 +1303,90 @@
         }
       }
     },
+    "slash.glance.hint": {
+      "comment": "The /glance slash command's hint in the ⌘L list and on the Shortcuts page. Opens the Glance picker (the Change picker while Glance is open).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep another open tab beside this page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einen anderen offenen Tab neben dieser Seite behalten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantener otra pestaña abierta junto a esta página"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Garder un autre onglet ouvert à côté de cette page"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tieni un'altra scheda aperta accanto a questa pagina"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manter outra aba aberta ao lado desta página"
+          }
+        }
+      }
+    },
+    "slash.glance.doc": {
+      "comment": "The Shortcuts page's description of /glance <text>: the text becomes the picker's filter.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the Glance picker, filtered to the text"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Glance-Auswahl öffnen, gefiltert nach dem Text"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir el selector de Glance, filtrado por el texto"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir le sélecteur Glance, filtré par le texte"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri il selettore di Glance, filtrato per il testo"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir o seletor do Glance, filtrado pelo texto"
+          }
+        }
+      }
+    },
     "settings.language.label": {
       "comment": "Settings → General row label and the language menu's accessible name.",
       "extractionState": "manual",
