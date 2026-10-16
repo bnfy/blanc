@@ -33,7 +33,14 @@ test('phones get frameless, focused crops of every framed capture', () => {
   const phone = css.slice(start, css.indexOf('\n}\n', css.indexOf('@media (max-width: 760px)', start)));
   assert.match(phone, /\.device-frame \.device-shell \{\s*display: none;/);
   assert.match(phone, /aspect-ratio: 4 \/ 3;/);
-  assert.match(phone, /\.device-frame \.device-screen img \{[^}]*height: 100%;[^}]*transform: translateX\(-50%\)/);
+  assert.match(phone, /\.home-cinema \.device \{\s*padding-bottom: \d+px;/, 'the frameless capture needs space above the dark section');
+  // The scroll motion's home-screen keyframes end on transform: none and hold
+  // it, so the phone crop must center without a transform.
+  const img = phone.match(/\.device-frame \.device-screen img \{([^}]*)\}/);
+  assert.ok(img, 'phone capture rule not found');
+  assert.match(img[1], /height: 100%;/);
+  assert.match(img[1], /object-fit: cover;/);
+  assert.doesNotMatch(img[1], /transform/);
 });
 
 test('pages use the light copies while full-size links keep the pinned captures', () => {

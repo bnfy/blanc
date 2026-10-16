@@ -1264,6 +1264,10 @@ details[open] .faq-sign::after {
   .device-frame .device-shell {
     display: none;
   }
+  /* Without the laptop's base the capture would sit on the dark section. */
+  .home-cinema .device {
+    padding-bottom: 56px;
+  }
   .device-frame {
     margin-top: 40px;
   }
@@ -1276,11 +1280,14 @@ details[open] .faq-sign::after {
     border-radius: 20px;
     box-shadow: 0 30px 60px -30px rgb(21 20 17 / 0.45);
   }
+  /* Centered with object-fit, not a transform: the scroll motion's
+     home-screen keyframes end on transform: none and hold it, which would
+     undo a translateX centering. */
   .device-frame .device-screen img {
-    left: 50%;
-    width: auto;
+    left: 0;
+    width: 100%;
     height: 100%;
-    transform: translateX(-50%);
+    object-fit: cover;
   }
 }
 @media (max-width: 760px) {
