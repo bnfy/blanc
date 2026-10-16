@@ -1,5 +1,330 @@
 [
   {
+    "tag": "v1.35.0",
+    "version": "1.35.0",
+    "name": "1.35.0",
+    "publishedAt": "2026-10-16T19:01:32.000Z",
+    "humanDate": "October 16, 2026",
+    "machineDate": "2026-10-16",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.35.0",
+    "anchor": "v1-35-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Name your tabs."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Right-click a tab and choose "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Rename Tab…"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", or type "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/rename"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and a name in the ⌘L or Ctrl+L panel, to give a tab a name of your own instead of the page's title. "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Reset Tab Title"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in the same menu, or "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/rename"
+                  },
+                  {
+                    "type": "text",
+                    "value": " on its own, goes back to the page title. The name stays when you browse to another site, when the tab goes quiet, when you move it to a new window, reopen it after closing it, save it in a space or restart Blanc. With Profile Sync sharing your open tabs, your other devices show the name too. History and Favorites keep the page's own title, and a private tab's name is forgotten when Blanc quits."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Open a link straight into Glance."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Right-click a link and choose "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Open Link in Glance"
+                  },
+                  {
+                    "type": "text",
+                    "value": " to see it beside the page you're on. Typing "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/glance"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in the ⌘L or Ctrl+L panel opens the Glance picker, and "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/glance"
+                  },
+                  {
+                    "type": "text",
+                    "value": " followed by a few words opens it showing only the matching tabs."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Back and Reload in Glance."
+                  },
+                  {
+                    "type": "text",
+                    "value": " The page you keep beside your main page in Glance now has its own Back button and Reload (or Stop) button."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Back and Forward shortcuts:"
+                  },
+                  {
+                    "type": "text",
+                    "value": " ⌘[ and ⌘] on macOS, Alt+Left and Alt+Right on Windows and Linux."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Glance follows the page you're using."
+                  },
+                  {
+                    "type": "text",
+                    "value": " When you click into the page in Glance, Reload, Close Tab, Find, zoom, Print, Back, Forward, mouse gestures and the 1Password fill act on that page instead of the main page. When that page opens a link in a new tab, the link opens in Glance; links you open in the background still open as background tabs. ⌘L, ⌘T, ⌘1–9, the shield and slash commands still act on the main page."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Glance opens and closes with a short slide and fade (a plain fade when Reduce Motion is on), its picker rows look like the ⌘L list, and a private tab in Glance shows the private label. While Glance is open the Island hides its tab dots to keep room for the address."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc's interface text is now set in Instrument Sans. In light mode, the Start Page and the Favorites, History, Downloads and Settings sheets use a new warm off-white palette, Blanc White."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The Sunrise app icon and the Sunrise mark inside Blanc are redrawn from a vector drawing, so they are sharper at large sizes on macOS, Windows and Linux."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc no longer starts its screen-sharing helper every time it launches. It starts the first time a site asks to share your screen, so idle Blanc uses a little less memory."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Updated to Electron 44.8.0 and Chromium 152.0.7977.167 for upstream fixes. The optional uBlock Origin blocker remains available on this version."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "PDFs show in Blanc's built-in viewer again."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Since v1.20.0 every PDF opened as an empty viewer: a dark toolbar with no pages."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Importing Favorites from Chrome could find nothing when you were signed in to Chrome."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Recent Chrome keeps a signed-in profile's bookmarks in a separate file, which Blanc didn't read. Blanc now imports from both files, without duplicates. This also applies to Edge, Brave, Chromium and Vivaldi."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "With uBlock Origin chosen, some requests could get through unblocked while uBlock Origin reloaded its filter lists"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", which it does shortly after launch, after a list update and after you change filters. Pages now wait for the reload to finish, usually less than a second."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Shortened slash commands put the command into the name: "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/gr work"
+                  },
+                  {
+                    "type": "text",
+                    "value": " made a group named \"/gr work\", "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/sav"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/spa"
+                  },
+                  {
+                    "type": "text",
+                    "value": " did the same, and "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/the dark"
+                  },
+                  {
+                    "type": "text",
+                    "value": " did nothing. They now work like the full commands."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "In Glance, sound from a video in the Glance page now plays, and a site in the Glance page can ask to share your screen. Moving the main page to a new window, or closing the group that holds it, now makes the Glance page the main page, and closing the Glance page returns the keyboard to the main page."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Glance's layout: the divider stays under the pointer while you drag it. When Glance is stacked, the Island is centered on the window and the picker fits. On Windows and Linux the window buttons stay readable over the Glance header, and with Glance open the Island no longer slides under the macOS window buttons, or under the Windows and Linux ones with vertical tabs."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "⌘⇧G (Ctrl+Shift+G on Windows and Linux) opens the Glance picker even with one tab open, where it explains that Glance needs another tab. Closing Glance while its picker is open closes the picker too."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Screen readers now announce when you reorder tabs in the ⌘L list."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.34.0",
     "version": "1.34.0",
     "name": "1.34.0",
