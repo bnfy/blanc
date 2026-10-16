@@ -1,0 +1,45 @@
+{
+  "checkedAt": "2026-10-16T13:30:19.671Z",
+  "results": [
+    {
+      "name": "Settled footer New tab native click",
+      "result": "pass",
+      "detail": {
+        "beforeIds": [
+          60438576,
+          60438577,
+          60438578,
+          60438579,
+          60438580
+        ],
+        "afterIds": [
+          60438576,
+          60438577,
+          60438578,
+          60438579,
+          60438580,
+          60438591
+        ],
+        "activeTabId": 60438591
+      }
+    },
+    {
+      "name": "Expanded Stop native click",
+      "result": "pass",
+      "detail": {
+        "isLoading": false
+      }
+    },
+    {
+      "name": "Native Cmd+L with page active",
+      "result": "gap",
+      "detail": {
+        "islandOpen": false,
+        "nativeAddressFieldPresent": true
+      }
+    }
+  ],
+  "notes": [
+    "Picker verification is in native-picker-result.json, which asserts the exact destination tab."
+  ]
+}

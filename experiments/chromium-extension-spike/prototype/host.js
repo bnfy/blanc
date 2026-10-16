@@ -1,0 +1,195 @@
+'use strict';
+(() => {
+  let nextId = 0;
+  let snapshot = null;
+  let serialized = '';
+  let pillRect = null;
+  let opened = false;
+  let refreshing = false;
+  let geometry = "";
+  const pending = new Map();
+  const subscribers = new Map();
+  const strip = document.getElementById('strip');
+  const overlay = document.getElementById('overlay');
+
+  function notice(message) {
+    const status = document.getElementById('status');
+    status.textContent = message;
+    status.hidden = false;
+    console.warn(message);
+  }
+
+  function subscribe(event, callback) {
+    if (!subscribers.has(event)) subscribers.set(event, new Set());
+    subscribers.get(event).add(callback);
+    return () => subscribers.get(event)?.delete(callback);
+  }
+
+  function emit(event, value) {
+    for (const callback of subscribers.get(event) ?? []) {
+      try { callback(value); } catch (error) { notice(error.message); }
+    }
+  }
+
+  function request(method, args = []) {
+    return new Promise((resolve, reject) => {
+      const id = String(++nextId);
+      const timeout = setTimeout(() => {
+        pending.delete(id);
+        reject(new Error(`Native bridge timed out: ${method}`));
+      }, 10000);
+      pending.set(id, { resolve, reject, timeout });
+      chrome.send('blancPrototype', [id, method, args]);
+    });
+  }
+
+  window.blancPrototypeReply = (id, success, value) => {
+    const entry = pending.get(id);
+    if (!entry) return;
+    pending.delete(id);
+    clearTimeout(entry.timeout);
+    (success ? entry.resolve : entry.reject)(success ? value : new Error(value));
+  };
+
+  async function refresh() {
+    if (refreshing) return;
+    refreshing = true;
+    try {
+      snapshot = await request('snapshot');
+      const slot = strip.contentDocument?.getElementById('nativeExtensions');
+      if (slot) slot.style.width = `${snapshot.extensionsWidth / 1.15}px`;
+      reportGeometry();
+      const next = JSON.stringify(snapshot);
+      if (next !== serialized) {
+        serialized = next;
+        emit('onTabsUpdated', snapshot);
+      }
+    } catch (error) {
+      notice(error.message);
+    } finally {
+      refreshing = false;
+    }
+  }
+
+  function reportGeometry() {
+    const slot = strip.contentDocument?.getElementById('nativeExtensions');
+    const panel = opened ? overlay.contentDocument?.getElementById('islandPanel')
+      : strip.contentDocument?.getElementById('islandPill');
+    if (!slot || !panel) return;
+    const a = slot.getBoundingClientRect(), b = panel.getBoundingClientRect();
+    const values = [a.x, a.y, a.width, a.height, b.x, b.y, b.width, b.height].map(Math.round);
+    const next = JSON.stringify(values);
+    if (next !== geometry) {
+      geometry = next;
+      request('geometry', values).catch(error => notice(error.message));
+    }
+  }
+
+  async function show(prefill) {
+    await refresh();
+    await request('height', [640]);
+    opened = true;
+    overlay.hidden = false;
+    emit('onIslandState', { mode: 'panel' });
+    requestAnimationFrame(() => {
+      emit('onOverlayShow', { mode: 'panel', prefill, pillRect });
+      if (prefill !== undefined) {
+        const input = overlay.contentDocument.getElementById('addressInput');
+        input.value = prefill;
+        input.dispatchEvent(new overlay.contentWindow.Event('input', { bubbles: true }));
+      }
+      overlay.contentWindow.focus();
+    });
+  }
+
+  async function close() {
+    emit('onOverlayHide', {});
+    emit('onIslandState', { mode: null });
+    opened = false;
+    overlay.hidden = true;
+    await request('height', [68]);
+    strip.contentWindow.focus();
+  }
+
+  function destination(value) {
+    const text = String(value ?? '').trim();
+    if (/^https?:\/\//i.test(text)) return text;
+    if (/^[a-z0-9.-]+\.[a-z]{2,}(?:[/:?#]|$)/i.test(text) || /^localhost[:/]/i.test(text)) {
+      return `https://${text}`;
+    }
+    return `https://www.google.com/search?q=${encodeURIComponent(text)}`;
+  }
+
+  const implemented = {
+    platform: 'darwin',
+    getAllTabs: async () => snapshot ?? request('snapshot'),
+    createTab: async (url, options) => {
+      if (options?.private) throw new Error('Use Chromium’s native private-window command in this prototype.');
+      await request('createTab', [url ? destination(url) : 'chrome://newtab/']);
+      await refresh();
+      if (options?.focusAddress) await show('');
+    },
+    navigate: async (id, value) => { await request('navigate', [id, destination(value)]); await refresh(); },
+    search: async (id, query) => {
+      await request('navigate', [id, `https://www.google.com/search?q=${encodeURIComponent(query)}`]);
+      await refresh();
+    },
+    openPage: async (name) => {
+      if (!['downloads', 'extensions'].includes(name)) {
+        throw new Error('Use Chromium’s native controls for this page in the prototype.');
+      }
+      await request('createTab', [`chrome://${name}/`]);
+    },
+    listHistory: async () => [],
+    listFavorites: async () => [],
+    listRemoteTabs: async () => [],
+    listWorkspaces: async () => ({ items: [], tint: 'mark' }),
+    searchSuggestions: async () => [],
+    openIsland: () => show(),
+    openIslandTyping: (character) => show(character),
+    openIslandCommands: () => show('/'),
+    closeOverlay: close,
+    reportIslandRect: (rect) => { pillRect = rect; reportGeometry(); },
+    reportChromeLayout: () => {},
+    reportPanelDrawn: () => emit('onIslandCovered'),
+    // Shared panel cleanup runs even though this prototype has no workspace actions.
+    cancelWorkspaceAction: () => {},
+    setWorkspaceSwitcherOpen: () => {},
+    setOverlayDragState: () => {},
+    acknowledgeDownloads: () => {},
+  };
+
+  for (const method of ['switchTab', 'closeTab', 'goBack', 'goForward', 'reload', 'stop']) {
+    implemented[method] = async (id) => {
+      await request(method, [id]);
+      await refresh();
+    };
+  }
+
+  const api = new Proxy(implemented, {
+    get(target, property) {
+      if (property in target) return target[property];
+      if (String(property).startsWith('on')) return (callback) => subscribe(property, callback);
+      return () => {
+        const error = new Error(`Prototype does not implement ${String(property)}. Use Chromium’s native controls.`);
+        notice(error.message);
+        return Promise.reject(error);
+      };
+    },
+  });
+
+  window.BlancPrototypeHost = {
+    api,
+    notice,
+    open: (newTab = false, text = '') => show(newTab ? text : undefined),
+    escape: () => opened ? close() : undefined,
+    refresh,
+  };
+
+  window.addEventListener('unhandledrejection', (event) => {
+    notice(event.reason?.message ?? String(event.reason));
+  });
+  window.addEventListener('resize', reportGeometry);
+  setInterval(refresh, 300);
+  refresh();
+})();

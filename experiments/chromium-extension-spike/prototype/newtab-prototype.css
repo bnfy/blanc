@@ -1,0 +1,6 @@
+/* These Electron services are not implemented by the Chromium prototype. */
+#startupCard, #onboardScrim, #onboardDialog, #patronCallout,
+#migrationChecklistShell, #mahjongLink, #footerLeft, #version,
+#bbBlocked, #bbGroups, #groupsSection, #remoteSection,
+.shelf-card-groups, .shelf-card-blocked, .tally-label-groups,
+#tlGroups, .tally-right { display: none !important; }
