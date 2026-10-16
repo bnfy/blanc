@@ -65,10 +65,15 @@ async function createGlanceTabs(world) {
 /** Give a pane keyboard focus and wait until main has recorded it — the
  * state every follow-focus command reads on macOS, where the menu carries no
  * sender. */
+// A busy desktop can take the window back between fronting it and the focus
+// call, and the app's activation itself lands asynchronously: keep fronting
+// and focusing until main records the pane as focused.
 async function focusPane(world, tabId) {
-  await frontChromeWindow(world);
-  assert.equal(await world.call('focusTabContents', tabId), true);
-  await world.waitForState((state) => state.focusedPaneTabId === tabId);
+  await waitForValue(async () => {
+    await frontChromeWindow(world);
+    assert.equal(await world.call('focusTabContents', tabId), true);
+    return (await world.state()).focusedPaneTabId;
+  }, (id) => id === tabId, `pane ${tabId} recorded as focused`);
 }
 
 /** The fixture page's own load counter (sessionStorage, +1 per load). */
@@ -623,14 +628,14 @@ Then('the third tab is the main page and Glance is closed', async function () {
 // Prove the precondition, so a harness that cannot observe focus fails here
 // rather than passing the product assertion vacuously.
 When('the reference pane holds keyboard focus', async function () {
-  await frontChromeWindow(this);
-  assert.equal(await this.call('focusTabContents', this.glanceReferenceId), true);
   const reference = (await this.state()).tabs.find((tab) => tab.id === this.glanceReferenceId);
-  await waitForValue(
-    () => this.call('focusedWebContentsId'),
-    (id) => id === reference.webContentsId,
-    'reference pane focused before the close'
-  );
+  // Same rule as focusPane: front and focus until the reference really holds
+  // keyboard focus, not just once.
+  await waitForValue(async () => {
+    await frontChromeWindow(this);
+    assert.equal(await this.call('focusTabContents', this.glanceReferenceId), true);
+    return this.call('focusedWebContentsId');
+  }, (id) => id === reference.webContentsId, 'reference pane focused before the close');
 });
 
 When('I close the main page tab', async function () {
