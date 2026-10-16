@@ -639,7 +639,7 @@ function install(refs) {
       const keys = {
         reload: ['R', ['control']], 'hard-reload': ['R', ['control', 'shift']],
         'close-tab': ['W', ['control']], find: ['F', ['control']],
-        back: ['Left', ['alt']], forward: ['Right', ['alt']],
+        back: ['Left', ['alt']], forward: ['Right', ['alt']], 'new-tab': ['T', ['control']],
       };
       if (!keys[commandId]) throw new Error(`no key for ${commandId}`);
       const [keyCode, modifiers] = keys[commandId];
