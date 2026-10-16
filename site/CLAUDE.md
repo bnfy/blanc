@@ -79,7 +79,13 @@ mode toggle: it was removed with the redesign.
 switch to directory format) and disables asset inlining
 (`assetsInlineLimit: 0`, `inlineStylesheets: 'never'`) so CSS/JS are always
 external hashed files. Internal links are root-relative extensionless
-(`/features/island`) matching the canonicals Cloudflare Pages serves.
+(`/features/island`) matching the canonicals Cloudflare Pages serves. It also
+gives the CSS minifier real browser targets (`vite.build.cssTarget`): Astro
+builds for `esnext`, and with no targets Lightning CSS folds
+`animation-timeline` into the `animation` shorthand, which no browser accepts
+yet. Every scroll-driven animation then vanished from the build while the
+unminified dev server still showed it (October 2026);
+`test/site/scroll-motion.test.mjs` checks the built site.
 
 Commands (root proxies): `npm run site:dev`, `npm run site:build`,
 `npm run site:fonts -- /path/to/Blubird.zip` (installs the licensed fonts), and
