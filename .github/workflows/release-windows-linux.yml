@@ -367,7 +367,7 @@ jobs:
 
       - name: Preserve Windows candidate uBO evidence
         if: ${{ always() && inputs.mode == 'validation' && inputs.ublock_candidate }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: Blanc-Windows-uBO-scripting-${{ github.run_id }}
           if-no-files-found: ignore
@@ -378,7 +378,7 @@ jobs:
 
       - name: Upload private signed Windows validation artifact
         if: ${{ inputs.mode == 'validation' }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: Blanc-Windows-${{ github.run_id }}-validation
           if-no-files-found: error
@@ -647,7 +647,7 @@ jobs:
 
       - name: Preserve Linux candidate scripting-policy evidence
         if: ${{ always() && inputs.mode == 'validation' && inputs.ublock_candidate }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: Blanc-Linux-uBO-scripting-${{ github.run_id }}
           if-no-files-found: ignore
@@ -659,7 +659,7 @@ jobs:
 
       - name: Upload private Linux validation artifact
         if: ${{ inputs.mode == 'validation' }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: Blanc-Linux-${{ github.run_id }}-validation
           if-no-files-found: error
@@ -705,7 +705,7 @@ jobs:
         run: |
           IMAGE="$PWD/dist/Blanc-$(node -p "require('./package.json').version").AppImage"
           dbus-run-session -- xvfb-run -a node scripts/verify-linux-sandbox-candidate.mjs "$IMAGE" "$PWD/squashfs-root/blanc"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: sandbox-evidence-${{ matrix.os }}-${{ github.run_id }}
