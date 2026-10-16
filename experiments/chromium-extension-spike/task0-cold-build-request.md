@@ -7,9 +7,9 @@ measured rebase of the prototype patch set onto the next Chromium major, and
 that task needs one cold build, which the build-cache rule in `AGENTS.md`
 makes a separately approved event. Approving PR #868 did not approve this.
 
-Fields marked **to measure** are filled by Codex on the Mac before the request
-is submitted; the Linux session that drafted this cannot read the Mac's disk
-or reach `chromium.googlesource.com` and `chromiumdash.appspot.com`.
+The measured fields (tag commit, disk) were filled by Codex on the Mac on
+October 16; the Linux session that drafted this cannot read the Mac's disk or
+reach `chromium.googlesource.com` and `chromiumdash.appspot.com`.
 
 ## 1. Target tag
 
@@ -18,8 +18,8 @@ or reach `chromium.googlesource.com` and `chromiumdash.appspot.com`.
 | Current pin | `156.0.8078.36`, commit `5a93aa59e3043e747eff68659dcf7d20193d160e` |
 | Proposed target | **`157.0.8103.6`**, the build Google promoted to the Chrome Beta channel for Windows, Mac and Linux on October 16, 2026 ([Chrome Releases post](https://chromereleases.googleblog.com/2026/10/chrome-beta-for-desktop-update_02089051700.html)). Chromium stable on Mac is still `155.0.8059.40` (October 6); 157 stable is scheduled for November 3 per [Chrome Platform Status](https://chromestatus.com/release-notes/157), a date to confirm on the Chrome Releases blog. |
 | Why beta, not stable | A fork has to rebase at the branch point or early beta to ship a security-current build on stable day; measuring against the first 157 beta tag is the realistic case, and 157 stable will not exist for about three weeks. If 157 reaches stable before approval arrives, substitute the first 157 stable tag and note it in the ledger. |
-| **To measure** | Confirm the tag exists before fetching: `git ls-remote --tags https://chromium.googlesource.com/chromium/src refs/tags/157.0.8103.6`. If a later `157.0.81xx.y` beta has been tagged by then, prefer the newest beta tag and record it here. |
-| Aside for the cadence estimate | Chrome Enterprise's release notes say Chrome Stable is moving to a two-week release cycle ([Chrome Enterprise release notes](https://chromeenterprise.google/resources/release-notes/)); when and whether that applies to Chromium majors is unconfirmed, but it bears directly on the four-weekly cadence the evaluation doc assumed and the ledger should record which cadence was in force. |
+| Tag confirmed | Codex confirmed on October 16 that `157.0.8103.6` exists upstream at commit `41520584daa68d0040db7746ae562a0ff82187f6`. If a later `157.0.81xx.y` beta is tagged before the fetch, prefer the newest beta tag and record it here. |
+| Cadence this measures against | Chrome milestones ship every **two weeks** starting with Chrome 153 ([Google's announcement](https://developer.chrome.com/blog/chrome-two-week-start)). The evaluation doc's four-weekly assumption is out of date: a fork rebases onto a new major twice as often as that doc priced, and Task 0's ledger entry is the first data point at the real cadence. |
 
 ## 2. Paths
 
@@ -41,25 +41,25 @@ one-time setup hooks there cannot reach the existing checkout.
 
 ## 3. Disk estimate
 
-| Item | Estimate | **To measure** |
-| --- | --- | --- |
-| Existing checkout, for reference | — | `du -sh /Users/anthonyjloria/Projects/BlancChromium` |
-| Existing output, for reference | — | `du -sh /Users/anthonyjloria/Projects/BlancChromium/src/out/BlancPrototype` |
-| New checkout with full history | about the same as the existing checkout | measured value above |
-| New checkout, shallow (`fetch --no-history`, then `git fetch --depth 1 origin refs/tags/157.0.8103.6`) | roughly 20–25 GB less than full history | — |
-| New output, `is_debug=false is_component_build=false symbol_level=0` | about the same as the existing output | measured value above |
-| Free space required before starting | sum of the two new items plus 20% headroom | `df -h /Users/anthonyjloria/Projects` |
+Measured by Codex on the Mac on October 16:
 
-Recommendation: the shallow checkout. Task 0 needs one tag, not history,
-and `prepare.mjs` reads files, not git. If the measured free space cannot
-hold even the shallow estimate, the request is withdrawn until space is
-made; nothing in the existing checkout is deleted to make room.
+| Item | Measured or estimated |
+| --- | --- |
+| Free space on the volume | **480.7 GiB** |
+| Existing checkout, `/Users/anthonyjloria/Projects/BlancChromium`, total | **42.3 GiB**, of which `out/BlancPrototype` is **9.0 GiB** (so sources, `.git`, toolchain and third-party fetches are about 33.3 GiB); the checkout is already shallow |
+| New checkout at `157.0.8103.6`, shallow like the existing one | about **33 GiB** (same shape as the existing sources) |
+| New output, `is_debug=false is_component_build=false symbol_level=0` | about **9 GiB** |
+| New total | about **42 GiB**; about 51 GiB with 20% headroom, against 480.7 GiB free |
+
+Disk is not a constraint. The new checkout is made the same way as the
+existing one (shallow); no extra history-trimming step is claimed or
+needed. Nothing in the existing checkout is deleted or moved.
 
 ## 4. Expected duration
 
 | Stage | Estimate | Basis |
 | --- | --- | --- |
-| Fetch and one-time hooks | 30–90 min | network-bound; no prior measurement on this machine is recorded |
+| Fetch and one-time hooks | 30–90 min | network-bound; about 33 GiB of sources and toolchain; no prior measurement on this machine is recorded |
 | `prepare.mjs` anchor fixes | unknown; this is what Task 0 measures | 20 anchored upstream files today |
 | `gn gen` | minutes | — |
 | `--record-environment`, `--check` | minutes; `--check` stops on the large plan by design, or on a buildflag-generation stop handled per the README | — |
@@ -67,8 +67,9 @@ made; nothing in the existing checkout is deleted to make room.
 | Compile-error fixes and incremental rebuilds | unknown; measured | recent small rebuilds 32–60 s, earlier native fixes 1m49s–8m6s |
 | Re-verification (automated checks and native-input checklist) | 1–2 h | the October 16 milestone retests |
 
-Total: half a working day of machine time plus an unknown amount of
-patch-fixing attention. The Mac should not be needed for another build
+Total: the stated stages come to about **4–7 hours** of machine time plus
+an unknown amount of patch-fixing attention, which is the quantity Task 0
+exists to measure. The Mac should not be needed for another build
 during the cold build (one builder at a time), and the build should run
 foreground in a visible Terminal, as other long operations do.
 
@@ -82,8 +83,16 @@ the new output only.
 
 It does not cover: touching `/Users/anthonyjloria/Projects/BlancChromium` in
 any way, changing Xcode or depot_tools, changing `args.gn`, a second cold
-build (a failed or interrupted one is reported, not retried, until the owner
-says so), any build for Windows or Linux, or any change to shipping Blanc.
+output directory, any build for Windows or Linux, or any change to shipping
+Blanc.
+
+Interrupted or failed builds: resuming the **same** cold build in the same
+output directory, with its Siso cache and completed actions intact, stays
+within this approval (that is an incremental continuation, and the guard's
+plan check applies to it like any other build). Deleting or recreating
+`BlancChromium157/src/out/BlancPrototype`, or starting a cold build in any
+other output directory, is a new cold build and needs a separate approval.
+An interruption is recorded in the ledger either way.
 
 ## 6. Deliverables
 
@@ -102,6 +111,8 @@ so and the task stops there.
 Owner's written approval, with the measured fields above filled in, is
 recorded here before any command in §5 runs:
 
-- [ ] Target tag confirmed to exist: `_______`
-- [ ] Free space measured: `_______` against a shallow estimate of `_______`
+- [x] Target tag confirmed to exist: `157.0.8103.6` at
+      `41520584daa68d0040db7746ae562a0ff82187f6` (Codex, October 16)
+- [x] Free space measured: 480.7 GiB against an estimate of about 42 GiB
+      (Codex, October 16)
 - [ ] Approved by the owner on `_______` (quote or link)

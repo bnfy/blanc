@@ -110,8 +110,9 @@ Windows or Linux exist. The budget, and the out-of-tree layout that keeps it,
 are therefore the first design decision of Workstream A, not a later clean-up.
 
 **The one number Decision 2 still lacks:** no rebase has been measured. The
-evaluation's 2–5 engineer-days per Chromium major is a hypothesis, and the
-owner's October 5 decline rested entirely on that cost. Section 6 makes it the
+evaluation's 2–5 engineer-days per Chromium major is a hypothesis, priced
+at a four-week cadence that has since become two weeks (Workstream A2), and
+the owner's October 5 decline rested entirely on that cost. Section 6 makes it the
 first proposed engineering task, pending its separate cold-build approval.
 
 ## 2. Gates, restated with evidence
@@ -211,7 +212,12 @@ that closes it. They are ordered by dependency in §5, not here.
   patch budget (proposal: 40 files, 120 hunks) and have CI print the count on
   every PR. `prepare.mjs` remains the UI-asset copier until the Island host
   is rewritten as a real WebUI resource bundle.
-- **A2. Rebase cadence.** Task 0 (§6) first. Then a scripted rebase runbook:
+- **A2. Rebase cadence.** Chrome milestones ship every **two weeks** since
+  Chrome 153 ([Google's announcement](https://developer.chrome.com/blog/chrome-two-week-start)),
+  not the four weeks the evaluation doc priced, so every per-major figure in
+  that doc's burden table (rebase days, CI hours, security respins layered on
+  top) is to be read at twice the frequency until the ledger replaces it.
+  Task 0 (§6) first. Then a scripted rebase runbook:
   fetch the tag, apply patches, rebuild incrementally where Siso allows, run
   the prototype's checks, record wall-clock and human time in a dated ledger.
   The ledger is the input to every later staffing claim.
@@ -351,6 +357,9 @@ ledger in A2 and the PR history; do not quote them outside this document.
 
 1. Task 0 shows a rebase costing more than two owner-days of attention, or
    more than one calendar week including builds, for the current patch set.
+   At a two-week milestone cadence, one calendar week per rebase is already
+   half of all available time, so this criterion is the generous bound, not
+   a comfortable one.
 2. The patch count exceeds the A1 budget and the overflow cannot be moved into
    overrides within one sprint.
 3. Neither F12 option blocks at least Blanc Blocker's current rate on the
