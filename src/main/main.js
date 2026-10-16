@@ -6579,6 +6579,9 @@ async function setGlanceTab(id) {
   if (previous && rt().focusedPaneTabId === previous.id) resetFocusedPane();
   setTabViewVisible(tab, true);
   attachTabViewToWindow(tab);
+  // On Linux an inactive tab view stays attached and can already hold focus,
+  // so it arrives focused with no focus event: record what holds focus now.
+  syncFocusedPane(rt());
   fillHintScheduler?.noteActivated(tab);
   // Floating trusted surfaces must stay above both page panes.
   const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
