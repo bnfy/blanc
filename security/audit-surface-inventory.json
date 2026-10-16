@@ -730,7 +730,7 @@
     },
     {
       "file": "src/main/sync.js",
-      "sha256": "bf48e04d8d753accb09b6714b1c4c36abe7f7704ae084dc0b124fca014c47ac3",
+      "sha256": "2ef3143f40b54652b278e102fa9137713f6654be511f1d684a772e5c004c4835",
       "literalChannels": [
         "before-quit"
       ],

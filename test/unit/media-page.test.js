@@ -130,6 +130,20 @@ test('the island index lists every section it links to, in page order', () => {
   assert.deepEqual([...positions].sort((a, b) => a - b), positions, 'sections follow the index order');
 });
 
+test('the media kit offers the Blanc logo in ink and white, rendered from the footer construction', () => {
+  const page = read('site/src/pages/media.astro');
+  const license = read('ASSET-LICENSE.md');
+  for (const color of ['ink', 'white']) {
+    assert.deepEqual(pngSize(`site/public/press/blanc-lockup-${color}.png`), { width: 3000, height: 888 }, color);
+    assert.match(page, new RegExp(`href="/press/blanc-lockup-${color}\\.svg" download`), `${color} SVG download link`);
+    assert.match(page, new RegExp(`href="/press/blanc-lockup-${color}\\.png" download`), `${color} PNG download link`);
+  }
+  assert.ok(license.includes('`site/public/press/blanc-lockup-{ink,white}{.svg,.png,-600.webp,-1200.webp}`'), 'logo downloads are reserved');
+  // The SVGs embed the vector Sunrise and the outlined word unchanged, placed
+  // by the footer lockup's CSS; a change to any of them needs a re-render.
+  execFileSync(process.execPath, [path.join(ROOT, 'site/scripts/render-press-lockup.mjs'), '--check'], { cwd: ROOT, stdio: 'pipe' });
+});
+
 test('the black Sunrise mark still matches what its renderer makes from the color master', () => {
   // The two marks must share one canvas and crop; a changed master without a
   // re-render would silently break that.

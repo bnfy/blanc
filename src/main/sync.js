@@ -1,4 +1,3 @@
-const os = require('os');
 const crypto = require('crypto');
 const { app, net, safeStorage, dialog, clipboard } = require('electron');
 const { JsonStore } = require('./store');
@@ -6,6 +5,7 @@ const settings = require('./settings');
 const bookmarks = require('./bookmarks');
 const tabsync = require('./tabsync');
 const tabicons = require('./tabicons');
+const { deviceName } = require('./device-name');
 const { deriveKeys, encrypt, decrypt } = require('./sync-crypto');
 const pairingCodes = require('./sync-pairing');
 const { wipeDecision } = require('./sync-wipe');
@@ -86,7 +86,7 @@ function tabSyncContext() {
   const d = s.data;
   return {
     accountId: d.accountId, deviceId: d.deviceId, syncTabs: !!d.syncTabs,
-    deviceName: os.hostname(), platform: process.platform,
+    deviceName: deviceName(), platform: process.platform,
   };
 }
 
@@ -126,6 +126,17 @@ const STORES = [
 ];
 
 let syncing = false, timer = null, sessionTimer = null, iconTimer = null;
+/** Tab-driven publishes are trailing debounces, re-armed on every change —
+ * but bounded: a tab whose title changes more often than the delay (a ticker,
+ * a timer, a flashing unread title) would otherwise postpone the publish
+ * forever. Each store remembers its first unpublished change and never waits
+ * longer than the ceiling past it (tab-sync spec §6). */
+const TAB_PUBLISH_DEBOUNCE_MS = 15_000;
+const TAB_PUBLISH_MAX_WAIT_MS = 60_000;
+let sessionPendingSince = 0, iconPendingSince = 0;
+function boundedDelay(delay, pendingSince, now = Date.now()) {
+  return Math.max(0, Math.min(delay, pendingSince + TAB_PUBLISH_MAX_WAIT_MS - now));
+}
 const OPTIONAL_MISSING_RETRY_MS = 65_000;
 // One bounded retry per account/store generation. This covers KV propagation
 // without turning an older Worker (where `icons` genuinely does not exist)
@@ -517,8 +528,10 @@ async function disable({ wipeRemote = false } = {}) {
   timer = null;
   clearTimeout(sessionTimer);
   sessionTimer = null;
+  sessionPendingSince = 0;
   clearTimeout(iconTimer);
   iconTimer = null;
+  iconPendingSince = 0;
   // Barrier (PR #41 re-review): a dispatched PUT can't be recalled, and a
   // stale check after its response can't undo the server mutation. So before
   // touching the server or the credentials: (1) block new passes, (2) strand
@@ -740,23 +753,25 @@ function schedule(delay = 4000) {
 /** Tab churn gets timers separate from both favorites/settings and cosmetic
  * icon work. A page rotating favicons must never postpone the primary session
  * snapshot (especially the prompt consent-change retraction/publication). */
-function scheduleSession(delay = 15000) {
+function scheduleSession(delay = TAB_PUBLISH_DEBOUNCE_MS) {
+  sessionPendingSince ||= Date.now();
   clearTimeout(sessionTimer);
   sessionTimer = setTimeout(() => withLocalProfile(
     DEFAULT_PROFILE_ID,
-    () => { syncNow(['session']).catch(() => {}); }
-  ), delay);
+    () => { sessionPendingSince = 0; syncNow(['session']).catch(() => {}); }
+  ), boundedDelay(delay, sessionPendingSince));
 }
 
-function scheduleIcons(delay = 15000) {
+function scheduleIcons(delay = TAB_PUBLISH_DEBOUNCE_MS) {
+  iconPendingSince ||= Date.now();
   clearTimeout(iconTimer);
   iconTimer = setTimeout(() => withLocalProfile(
     DEFAULT_PROFILE_ID,
-    () => { syncNow(['icons']).catch(() => {}); }
-  ), delay);
+    () => { iconPendingSince = 0; syncNow(['icons']).catch(() => {}); }
+  ), boundedDelay(delay, iconPendingSince));
 }
 
-function scheduleTabs(delay = 15000) {
+function scheduleTabs(delay = TAB_PUBLISH_DEBOUNCE_MS) {
   scheduleSession(delay);
   scheduleIcons(delay);
 }

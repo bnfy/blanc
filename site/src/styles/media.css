@@ -282,8 +282,9 @@ a.media-path:hover .media-path-go { transform: translateY(3px); }
 
 .media-kit-row {
   display: grid;
-  /* The expanded capture takes a full row like the lead; the two marks
-     share the next one, and the two Blanc Mail icons the one after. */
+  /* The expanded capture takes a full row like the lead; the two logos
+     share the next one, the two marks the one after, and the two Blanc Mail
+     icons the last. */
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: start;
   gap: clamp(48px, 6vw, 72px) clamp(20px, 3vw, 32px);
@@ -297,6 +298,12 @@ a.media-path:hover .media-path-go { transform: translateY(3px); }
 .media-tile img { display: block; width: 100%; height: auto; }
 .media-kit-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 36px; margin: clamp(48px, 6vw, 72px) 0 0; padding: 0; list-style: none; font-size: 15px; }
 .media-kit .media-tile--mark figcaption { flex-direction: column; gap: 4px; }
+/* The logo is wide, so its tile frames it with room on every side. The white
+   logo sits on the footer's warm ink. */
+.media-tile--lockup > a { padding: clamp(28px, 5vw, 56px) clamp(24px, 4vw, 48px); }
+.media-tile--on-dark > a { background: #111; border-color: #111; }
+.media-kit .media-tile--lockup figcaption { flex-direction: column; gap: 4px; }
+.media-tile-downloads { display: flex; flex-wrap: wrap; gap: 4px 16px; }
 /* ---------- descriptions ---------- */
 .media-describe-card {
   max-width: 880px;
