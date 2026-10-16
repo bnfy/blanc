@@ -25321,6 +25321,102 @@
         }
       }
     },
+    "settings.sync.recovery.dialogMessage": {
+      "comment": "Settings → Sync → Copy recovery code: native dialog title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy your sync recovery code?"
+          }
+        }
+      }
+    },
+    "settings.sync.recovery.dialogDetail": {
+      "comment": "Settings → Sync → Copy recovery code: native dialog body.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anyone with this code can read and change your synced data. Paste it into your password manager now, and nowhere else."
+          }
+        }
+      }
+    },
+    "settings.sync.recovery.dialogCopy": {
+      "comment": "Settings → Sync → Copy recovery code: native dialog confirm button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy to Clipboard"
+          }
+        }
+      }
+    },
+    "settings.sync.recovery.cancel": {
+      "comment": "Settings → Sync → Copy recovery code: native dialog cancel button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        }
+      }
+    },
+    "sync.error.syncOn": {
+      "comment": "Sync: a pairing code was entered on the setup card while Sync was already on.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync is already on. To move this device to a different sync, use Connect to a different sync."
+          }
+        }
+      }
+    },
+    "sync.error.pairNotFound": {
+      "comment": "Sync: a pairing code was not found on the server, or has expired or been used.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That code isn’t valid any more. Make a new one on your other device."
+          }
+        }
+      }
+    },
+    "sync.error.pairUnavailable": {
+      "comment": "Sync: the server does not offer pairing (older deployment).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pairing isn’t available right now. You can still connect with your sync name and passphrase."
+          }
+        }
+      }
+    },
+    "sync.error.pairInvalid": {
+      "comment": "Sync: a pairing or recovery code failed local validation before any network call.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That doesn’t look like a code. Check it and try again."
+          }
+        }
+      }
+    },
     "sync.error.localKeyProtect": {
       "comment": "Profile Sync status line when the saved key could not be protected.",
       "extractionState": "manual",
@@ -46101,6 +46197,42 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sincronize seus favoritos e configurações entre seus dispositivos e, se quiser, as abas abertas. Tudo é criptografado de ponta a ponta."
+          }
+        }
+      }
+    },
+    "settings.sync.setup.codeTitle": {
+      "comment": "Settings → Sync → Add this device: step heading above the code field.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the code from your other device"
+          }
+        }
+      }
+    },
+    "settings.sync.setup.codeHint": {
+      "comment": "Settings → Sync → Add this device: hint under the code field.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "It’s good for ten minutes."
+          }
+        }
+      }
+    },
+    "settings.sync.addThisDeviceHint": {
+      "comment": "Settings → Sync: hint under the Add this device to my sync button and intro of the code step.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Get a code from a Mac that already syncs: Settings → Sync → Add another device."
           }
         }
       }

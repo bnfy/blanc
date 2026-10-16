@@ -4327,6 +4327,18 @@
     "message": "Sync your favorites and settings across your devices, and, if you choose, open tabs. Everything is end-to-end encrypted.",
     "note": "Settings → Sync setup: introduction before a path is chosen."
   },
+  "settings.sync.setup.codeTitle": {
+    "message": "Enter the code from your other device",
+    "note": "Settings → Sync → Add this device: step heading above the code field."
+  },
+  "settings.sync.setup.codeHint": {
+    "message": "It’s good for ten minutes.",
+    "note": "Settings → Sync → Add this device: hint under the code field."
+  },
+  "settings.sync.addThisDeviceHint": {
+    "message": "Get a code from a Mac that already syncs: Settings → Sync → Add another device.",
+    "note": "Settings → Sync: hint under the Add this device to my sync button and intro of the code step."
+  },
   "settings.sync.setup.joinTitle": {
     "message": "Connect this device",
     "note": "Settings → Sync setup: heading when joining a sync from another device."
