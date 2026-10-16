@@ -943,3 +943,16 @@ notice and leaves the regular profile's state unchanged (verify by reopening
 disposable profile and confirm the cleared history stays cleared. Delete the
 disposable `--user-data-dir` afterwards. Do not run `/clear` in the permanent
 profile; do not record any row as passed from this section.
+
+First Mac attempt (Codex): compilation failed after 9 seconds because this
+pin's `HistoryService::ExpireHistoryBetween` takes a `restrict_app_id`
+(`std::optional<std::string>`) as its second argument; the call now passes
+`std::nullopt`. Source review also found no refresh path for recent sites on
+an already open start page. The start-page handler now also observes
+`history::TopSites` (holding its `scoped_refptr` while observing) and sends
+`blancNewTabEvent('topSites')` on `TopSitesChanged`; the adapter re-fetches
+the native list, replaces `state.topSites` and re-renders the current layout,
+coalesced per kind like the bookmarks refresh. TopSites re-queries after
+history deletions, so `/clear` and Chromium's own history manager both reach
+an open page. `/clear` was not run; no cold rebuild. The disposable-profile
+protocol above still applies in full.
