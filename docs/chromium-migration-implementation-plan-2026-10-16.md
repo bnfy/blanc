@@ -8,8 +8,12 @@ prototype has shown into the work a migration would need, in order, with the
 evidence each step must produce and the conditions under which the owner
 should stop. It does not authorize a production migration, a public release, a
 general extension runtime in Electron, or any work outside the prototype
-directory and its branch. Only Decision 2 does that, and the first task below
-exists to give Decision 2 the one number it still lacks.
+directory and its branch. Only Decision 2 does that. The first task below
+(§6) exists to give Decision 2 the one number it still lacks; it is proposed
+here, not authorized: it needs a cold build, and approving this document does
+not approve that build. The owner approves it separately, after being shown
+the target tag, the checkout and output paths, a disk estimate and the
+expected duration.
 
 Companion documents:
 
@@ -38,12 +42,19 @@ profile):**
 - Live Chrome Web Store installation in an independently branded build, with
   Chromium's native permission prompt, the real install handler and no
   diagnostic install API.
-- Six real extensions enabled (Bitwarden, 1Password, React Developer Tools,
-  Grammarly, MetaMask, Tampermonkey): MV3 service workers, content scripts,
-  messaging, storage, action popups from a native button, persistence across a
-  full relaunch, and an update fetched from Google's update endpoint
-  (Bitwarden 2026.9.3 → 2026.10.0). Authenticated features (vault sign-in,
-  wallet signing, desktop pairing) remain untested by design.
+- Six real extensions enabled, each verified only on the scoped checks its
+  row in the compatibility matrix names (`results.md` → Extension
+  compatibility matrix): Bitwarden (worker, content-script response, native
+  popup, full restart, signed update 2026.9.3 → 2026.10.0 in a separate
+  profile; its initial installation used the documented diagnostic flow,
+  the other five the listing's normal Add to Chrome button), React Developer
+  Tools (renderer detection, popup, storage round trip), 1Password (worker,
+  inline scripts, welcome flow to account setup), Tampermonkey (worker,
+  popup, userscript install, GM storage across reload), Grammarly (worker,
+  content scripts, logged-out popup), MetaMask (worker, inpage provider,
+  `eth_accounts` with zero accounts). Every account-dependent feature (vault
+  sign-in, autofill, desktop pairing, wallet creation and signing, writing
+  suggestions) remains unverified, as does the scheduled update timer.
 - Island-only windows: native tab strip, toolbar and bookmarks bar hidden; the
   copied Electron strip and overlay renderers run as `chrome://blanc-prototype`
   WebUI over a JSON `chrome.send` bridge; inset native macOS window controls;
@@ -61,8 +72,10 @@ profile):**
   Extensions view invoking real extension actions.
 - Build discipline: `build.mjs` guards every incremental build (toolchain,
   Clang, `args.gn` digest, Siso dry-run plan under 1,000 actions, lock); UI
-  changes ship with `prepare.mjs --assets-only` and no compile. Incremental
-  native builds for the milestones above took 32–60 s each.
+  changes ship with `prepare.mjs --assets-only` and no compile. The recent
+  small native rebuilds (a few hundred lines in one file) took about 32–60 s
+  each; earlier native fixes took 1m49s to 8m6s, and the focused UI cold
+  build took 2h20m for 40,298 actions. None of these is a rebase.
 
 **Confirmed divergences from Electron Blanc** (each one is a `D#` candidate
 for `spec/divergence-register.md` if the migration proceeds, not a bug):
@@ -71,10 +84,13 @@ for `spec/divergence-register.md` if the migration proceeds, not a bug):
 | --- | --- | --- |
 | Grouped pins | A pinned tab stays in its group and leads it | Chromium unpins a tab when it is grouped |
 | ⌘1–⌘9 with groups | nth cluster | nth tab |
-| Mute | Per-tab | Per-tab `WebContents` mute (Chromium's site-level mute unused) |
-| `/clear` | Blanc history only | `HistoryService` visits only (not Clear browsing data) |
 | Favicons for history rows | Captured pixels | Chromium cache or letter fallback; nothing fetched |
 | Favorites manager | `blanc://bookmarks` sheet | `chrome://bookmarks/` in a tab |
+
+Two choices that look like divergences are not: mute is the per-tab
+`WebContents` mute rather than Chromium's site-level setting, and `/clear`
+expires `HistoryService` visits rather than opening Clear browsing data; both
+keep Electron's semantics on a different mechanism.
 
 **Not implemented, in the prototype's own words** (`README.md` → Limits):
 Favorites and History sheets, the tab context menu's Move to Group submenu,
@@ -96,7 +112,7 @@ are therefore the first design decision of Workstream A, not a later clean-up.
 **The one number Decision 2 still lacks:** no rebase has been measured. The
 evaluation's 2–5 engineer-days per Chromium major is a hypothesis, and the
 owner's October 5 decline rested entirely on that cost. Section 6 makes it the
-first engineering task.
+first proposed engineering task, pending its separate cold-build approval.
 
 ## 2. Gates, restated with evidence
 
@@ -108,14 +124,16 @@ result that was not reproduced with real input.
 | Gate | What it requires | Evidence present | Evidence missing |
 | --- | --- | --- | --- |
 | **Spike gate** (end of Phase 1) | Measured rebase cost; Web Store acceptance; CEF control test | Web Store acceptance passed October 16 (`results.md` §§ Normal Web Store installation, Verified version upgrade, Extension compatibility matrix). CEF control test moot: option C was built directly. | **One measured rebase** of the prototype patch set onto the next Chromium major, with wall-clock and human time recorded (Task 0, §6). |
-| **Kill gate** (end of Phase 2) | Patch budget held; action popups attach to the Island; pixel parity without a UI rewrite; measured rebase and security cost fits available staffing | Popups: pass (native button inside the resting Island, real `ExtensionsToolbarButton` anchor). Pixels: the Island renderers are the Electron files, copied by `prepare.mjs`, so parity is by construction for the strip and overlay; the start page likewise. Island input routing: pass with CGEvent input. | Patch budget: not yet defined for the fork layout (§4, A1). Accessibility: no VoiceOver pass recorded. Staffing fit: depends on Task 0. Windows/Linux: nothing. |
+| **Kill gate** (end of Phase 2) | Patch budget held; action popups attach to the Island; pixel parity without a UI rewrite; measured rebase and security cost fits available staffing | Popups: pass (native button inside the resting Island, real `ExtensionsToolbarButton` anchor). Island input routing: pass with CGEvent input. Layouts: native screenshots prove the tested window sizes render and hit-test correctly. | Pixel parity: **not proven.** The renderers are copied from Electron, but `prototype.css` changes geometry (pill zoom 1.15, a 26px slot for the native Extensions button, altered gaps) and hides controls whose services do not exist; an explicit Electron-versus-Chromium visual comparison of the same states at the same sizes has not been made. Patch budget: not yet defined for the fork layout (§4, A1). Accessibility: no VoiceOver pass recorded. Staffing fit: depends on Task 0. Windows/Linux: nothing. |
 | **Beta gate** (end of Phase 3) | Spec acceptance suite green on macOS, Windows and Linux against the Chromium build | None. `test/desktop/` drives Electron through `src/main/test-hook.js`; no Chromium adapter exists. | A Chromium test hook, a Playwright/CDP launch path for the fork, and green runs on three platforms (§4, F). |
 | **Cutover gate** (Phase 4) | Installed-upgrade spike: `electron-updater` hands off to the Chromium build on all three platforms with user-data migration, signing and publisher continuity, rollback and updater-ownership handover | None. | Everything in Workstream G; a proven Restart Now from the immediately preceding public Electron Blanc on each platform, as the release protocol already demands of every Electron release. |
 
 **Decision 2 is taken after the kill gate, before Phase 3.** The minimum
 package for it: Task 0's measured rebase, the A1 patch-budget design with the
 current count against it, the §3 parity table updated with whatever has
-been built by then, a VoiceOver pass of the Island on the Mac, and a
+been built by then, a side-by-side visual comparison of Electron and
+Chromium Island states (resting, panel, palette, find, private) at the same
+window sizes, a VoiceOver pass of the Island on the Mac, and a
 one-page staffing and CI cost sheet that replaces the evaluation's hypotheses
 with measurements where any exist.
 
@@ -143,7 +161,7 @@ on Electron primitives and must be redone against Chromium's.
 | F9 | Favorites | Native model; no sheet, no "Add all open tabs" | Keep `BookmarkModel`; port `blanc://bookmarks` as a WebUI sheet; import from Electron `bookmarks.json` (Workstream E) | M |
 | F10 | History | Native service; no sheet | Keep `HistoryService`; port the sheet; import `history.json` | S |
 | F11 | Downloads | Chromium's manager | Port the sheet over `DownloadManager`; keep `downloads.json` import | M |
-| F12 | Ad/tracker blocking | **Missing** | Rebuild. Options: (a) Blanc Blocker on Chromium's network service through a `URLLoaderThrottle`/`WebRequest`-style hook plus cosmetic injection as a renderer-side user script; (b) managed uBO as a packaged MV2/MV3 extension, which depends on the fork's MV2 policy (§7). Either way the shield count, per-site allow and the popover are Blanc UI over the chosen engine. Highest-risk workstream. | L |
+| F12 | Ad/tracker blocking | **Missing** | Rebuild. Options: (a) Blanc Blocker on Chromium's network service through a `URLLoaderThrottle`/`WebRequest`-style hook plus cosmetic injection as a renderer-side user script; (b) full uBO, which needs Manifest V2: upstream Chromium removed MV2 loading, enterprise exception included, by Chrome 139 (§7), so option (b) means Blanc re-adding and maintaining MV2 loading as fork patches, an unproven maintenance effort to be sized by its own spike, not a policy default. Either way the shield count, per-site allow and the popover are Blanc UI over the chosen engine. Highest-risk workstream; its estimate is unknown until both spikes run. | L+ |
 | F13 | Permissions | Chromium prompts | Rebuild the explicit policy and copy over `PermissionRequestManager` with a Blanc prompt view; the held-view denial rules become moot or divergences | M |
 | F14 | Settings | Missing | Port `blanc://settings` as WebUI; `settings-schema` stays the source; Chromium prefs only for things Chromium owns | M |
 | F15 | Theming | Done (system/dark/private tint) | Port; drive `ThemeService`/`NativeTheme` from the setting | S |
@@ -287,7 +305,8 @@ shipped one full update cycle to the public.
 Already proven for the Web Store path. Remaining: the extension demand check
 the owner dropped on October 5 can stay dropped; policy defaults (no Google
 sign-in, no sync, proxied or disabled Google endpoints as Brave does);
-MV2 policy for uBO (§7); account-dependent passes for 1Password and
+the MV2 question for uBO (§7, a fork-maintenance effort, not a policy);
+account-dependent passes for 1Password and
 Bitwarden in a **signed** fork build; the simple MV3 fixture from the original
 acceptance matrix.
 
@@ -296,16 +315,20 @@ acceptance matrix.
 Per-platform signing and notarization from CI, the authenticated manifest,
 SBOM and provenance as today, `THIRD-PARTY-NOTICES.md` regenerated for the
 Chromium tree (BSD-3 plus its bundled notices; the reserved identity assets
-and MIT first-party carve-outs unchanged), Widevine through castlabs or a
-documented absence, Safe Browsing and other Google services replaced or
-disabled with a recorded decision each.
+and MIT first-party carve-outs unchanged), Widevine (castlabs answered on
+October 5 and 6: free EVS signing covers only unmodified ECS Electron
+releases; a custom Chromium build needs commercial VMP certification with an
+audit through castlabs' Widevine 3PL partnership, so the fork either budgets
+that or documents the absence of Widevine), Safe Browsing and other Google
+services replaced or disabled with a recorded decision each.
 
 ## 5. Ordering, sizing and kill criteria
 
 Sequence (each box gated by the previous one's evidence):
 
-1. **Task 0: measured rebase** (§6). One to two weeks of calendar, mostly
-   build time. Produces the spike gate's missing number.
+1. **Task 0: measured rebase** (§6), once its cold build is approved. One
+   to two weeks of calendar, mostly build time. Produces the spike gate's
+   missing number.
 2. **A1 patch layout + B Mojo bridge + C F12 blocking spikes.** Four to six
    weeks in parallel between the two agents and the owner. Produces the kill
    gate package.
@@ -344,33 +367,56 @@ shipping Blanc changes.
 
 ## 6. Task 0: measure a rebase
 
-The first engineering task, and the only one this plan asks to start now.
+The first engineering task this plan proposes. It is **not** started by
+approving this document: it needs one cold build, and the build-cache rule in
+`AGENTS.md` makes every cold build a separately approved, reviewed event.
+Before asking for that approval, present the target tag, the checkout and
+output paths, a disk estimate (a second Chromium checkout plus output is on
+the order of 100 GB or more) and the expected duration (the only comparable
+figure is the 2h20m focused UI cold build; a full `chrome` target from
+nothing will take longer). Nothing in the prototype's existing checkout,
+`out/BlancPrototype`, caches or toolchain is touched at any point.
 
 **Goal:** apply the current prototype patch set to the next Chromium major
 after 156 (whichever is on the stable or beta channel when the task starts)
 and record what it costs.
 
-**Procedure (owner's Mac, with the build-cache rules in `AGENTS.md`):**
+**Procedure (owner's Mac):**
 
-1. Do **not** touch `out/BlancPrototype`. Create a second checkout or
-   worktree of the Chromium source at the new tag and a second output
-   directory with the same `args.gn`; this is an intentional cold build, the
-   only one the task needs, and under the build-cache rule in `AGENTS.md` it
-   starts only after the owner has approved it in writing with its disk and
-   time cost stated. Record its wall-clock time, which is also the first
-   measured respin cost without a cache.
-2. Extend `prepare.mjs` to accept the new version (it refuses unknown
-   versions by design) and run it. Every anchor that no longer matches is one
-   line in the ledger: file, hunk, cause (moved, renamed, API changed), minutes
-   to fix.
-3. Build with `build.mjs --record-environment` against the new output
-   directory, fix compile errors, ledger each.
-4. Re-run the prototype's automated checks and the native-input checklist
-   from `results.md` (Web Store install, one extension update, Island tab
-   control, Favorites, groups). Ledger failures.
-5. Record: upstream tag, total calendar time, owner attention time, agent
-   time, anchors broken, files patched before and after, compile errors, and
-   check results, as a dated section in `results.md` and a row in a new
+1. **Fresh checkout, separately.** `build.mjs` fixes its output directory to
+   `<source>/out/BlancPrototype`, so the new major needs its own source
+   checkout (not a second output directory in the existing tree) at the new
+   tag, outside the existing checkout. Run Chromium's required setup hooks
+   once for that checkout only, as `README.md` describes for fresh
+   initialization. Record the tag, the commit and the paths.
+2. **Generate.** `gn gen out/BlancPrototype` in the new checkout with the
+   same arguments as the existing one (`is_debug=false
+   is_component_build=false symbol_level=0 target_cpu="arm64"`).
+3. **Prepare.** Extend `prepare.mjs` to accept the new version (it refuses
+   unknown versions by design) and run it against the new checkout. Every
+   anchor that no longer matches is one line in the ledger: file, hunk, cause
+   (moved, renamed, API changed), minutes to fix.
+4. **Record the environment.** `build.mjs <new-src> --record-environment`
+   writes the environment baseline for the new output directory and exits;
+   it compiles nothing.
+5. **Inspect the plan.** `build.mjs <new-src> --check` runs the Siso dry run
+   and stops, as designed, because a cold build is far above the 1,000-action
+   threshold. Save the plan log with the ledger; its action count is part of
+   the approval request.
+6. **Build, under the separate approval.** Only with the owner's written
+   approval of that specific plan: `build.mjs <new-src> --build
+   --allow-large-build`. Record wall-clock time; this is also the first
+   measured respin cost without a cache. Fix compile errors, ledger each,
+   and rebuild incrementally (those later builds go through the normal
+   guard).
+7. **Re-verify.** Re-run the prototype's automated checks and the
+   native-input checklist from `results.md` (Web Store install, one extension
+   update, Island tab control, Favorites, groups) on the new build. Ledger
+   failures.
+8. **Record.** Upstream tag, total calendar time, owner attention time, agent
+   time, anchors broken, files patched before and after, compile errors,
+   cold-build duration and disk used, and check results, as a dated section
+   in `results.md` and a row in a new
    `experiments/chromium-extension-spike/rebase-ledger.md`.
 
 **Done when:** the ledger row exists and the prototype passes the same checks
@@ -379,10 +425,16 @@ explaining why. Either outcome is the deliverable.
 
 ## 7. Open questions carried forward
 
-- MV2 in the fork: Chromium's own MV2 removal is enterprise-policy-gated in
-  this era. Decide whether the fork keeps MV2 loading for the managed uBO
-  provider (a Blanc policy default and a patch to maintain) or ships uBO Lite
-  / Blanc Blocker only. Needed before F12's option (b) is scoped.
+- MV2 in the fork: upstream Chromium has finished removing Manifest V2
+  support; the enterprise policy exception ended with Chrome 139 (official
+  timeline:
+  <https://developer.chrome.com/docs/extensions/develop/migrate/mv2-deprecation-timeline>).
+  A Chromium 156 fork therefore has no MV2 switch to flip: full uBO would
+  mean Blanc re-adding and maintaining MV2 extension loading itself, an
+  unproven fork-maintenance effort whose size is unknown until a spike
+  measures it, against the alternatives of Blanc Blocker on Chromium's
+  network stack or uBO Lite. Needed before F12's option (b) is scoped, and
+  it changes F12's estimate.
 - Private tabs in a regular window (F4) versus incognito windows: a product
   decision with a large patch delta; recommend the divergence.
 - Which of Reopen Closed Tab's three tiers survive (F2): Tier 1's parked live
@@ -390,7 +442,12 @@ explaining why. Either outcome is the deliverable.
 - F38: does the 1Password extension's desktop integration work in a signed,
   notarized fork? If yes, the broker, the `disable-library-validation`
   exception and the fill-status capsule retire together.
-- Widevine via castlabs (asked October 5, awaiting a reply) and the Google
-  service replacements, both inherited from the evaluation doc.
+- Widevine: castlabs answered on October 5 and 6 (recorded in the evaluation
+  doc). The open question for a fork is different from Electron's: free EVS
+  signing applies only to unmodified ECS Electron releases, and a custom
+  Chromium build needs commercial VMP certification with an audit. Decide
+  whether to budget that or ship without Widevine. The Google service
+  replacements (Safe Browsing, push, geolocation, translate) remain open from
+  the evaluation doc.
 - Whether macOS builds can leave the owner's machine (A4); without that,
   criterion 4 is hard to meet.
