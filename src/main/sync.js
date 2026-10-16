@@ -1,6 +1,6 @@
 const os = require('os');
 const crypto = require('crypto');
-const { net, safeStorage, dialog, clipboard } = require('electron');
+const { app, net, safeStorage, dialog, clipboard } = require('electron');
 const { JsonStore } = require('./store');
 const settings = require('./settings');
 const bookmarks = require('./bookmarks');
@@ -238,15 +238,19 @@ async function enable({ handle, passphrase }) {
  * path, a pairing code, a recovery code: protect the key, become this
  * identity, persist, and refresh icons. The caller still owns `key` and
  * zero-fills it. */
-function adoptCredentials({ handle, accountId, key }) {
-  let protectedKey;
+function protectKey(key) {
   try {
-    protectedKey = protectSyncKey(safeStorage, key);
+    return { protectedKey: protectSyncKey(safeStorage, key) };
   } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof SyncKeyStorageError ? `key-store:${error.code}` : 'key-protect-failed',
-    };
+    return { error: error instanceof SyncKeyStorageError ? `key-store:${error.code}` : 'key-protect-failed' };
+  }
+}
+
+function adoptCredentials({ handle, accountId, key, protectedKey }) {
+  if (!protectedKey) {
+    const protectedResult = protectKey(key);
+    if (protectedResult.error) return { ok: false, error: protectedResult.error };
+    ({ protectedKey } = protectedResult);
   }
   syncGen += 1; // new identity — strand any in-flight run from the old one
   clearOptionalMissingRetries();
@@ -294,6 +298,9 @@ async function beginPairing() {
   const d = ensureStore().data;
   if (!d.enabled || !d.accountId || !d.protectedKey) return { ok: false, error: keyProtectionError || 'sync-off' };
   if (!bananifyServiceAllowed(SYNC_ENDPOINT)) return { ok: false, error: SERVICE_UNAVAILABLE };
+  // One live code at a time: a previous entry is retracted before another is parked.
+  if (pairing) await cancelPairing();
+  const gen = syncGen;
   let key;
   try {
     try {
@@ -321,6 +328,12 @@ async function beginPairing() {
       if (res.status === 404) return { ok: false, error: 'pair-unavailable' };
       if (res.status === 429) return { ok: false, error: 'rate-limited' };
       if (!res.ok) return { ok: false, error: errorCode(new SyncError(`http-${res.status}`)) };
+      // Sync turned off (or changed identity) while the POST was on the wire:
+      // the parked secret belongs to a sync that no longer exists here.
+      if (gen !== syncGen || !ensureStore().data.enabled) {
+        try { await net.fetch(pairUrl(pairId), { method: 'DELETE' }); } catch { /* it expires on its own */ }
+        return { ok: false, error: 'sync-off' };
+      }
       const expiresAt = Date.now() + pairingCodes.PAIR_TTL_MS;
       pairing = { code, pairId, expiresAt };
       return { ok: true, code, expiresAt };
@@ -392,6 +405,7 @@ async function resolveCode(input) {
 
 async function joinWithCode(input) {
   if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID, () => joinWithCode(input));
+  if (!bananifyServiceAllowed(SYNC_ENDPOINT)) return { ok: false, error: SERVICE_UNAVAILABLE, status: status() };
   if (ensureStore().data.enabled) return { ok: false, error: 'sync-on', status: status() };
   const resolved = await resolveCode(input);
   if (resolved.error) return { ok: false, error: resolved.error, status: status() };
@@ -411,12 +425,22 @@ async function joinWithCode(input) {
  * failed wipe keeps the old credentials exactly as disable() would. */
 async function switchWithCode(input, { wipeRemote = false } = {}) {
   if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID, () => switchWithCode(input, { wipeRemote }));
+  if (!bananifyServiceAllowed(SYNC_ENDPOINT)) return { ok: false, error: SERVICE_UNAVAILABLE, status: status() };
   const resolved = await resolveCode(input);
   if (resolved.error) return { ok: false, error: resolved.error, status: status() };
   try {
-    const left = await disable({ wipeRemote });
+    // Everything that can fail locally happens before the old sync is left,
+    // so a keychain refusal never strands the device with no credentials.
+    const protectedResult = protectKey(resolved.key);
+    if (protectedResult.error) return { ok: false, error: protectedResult.error, status: status() };
+    // Joining the sync this device already uses is a no-op switch: never
+    // erase the account being joined, whatever the box says.
+    const sameAccount = resolved.payload.accountId === ensureStore().data.accountId;
+    const left = await disable({ wipeRemote: wipeRemote && !sameAccount });
     if (!left.ok) return left;
-    const adopted = adoptCredentials({ handle: resolved.payload.handle, accountId: resolved.payload.accountId, key: resolved.key });
+    const adopted = adoptCredentials({
+      handle: resolved.payload.handle, accountId: resolved.payload.accountId, protectedKey: protectedResult.protectedKey,
+    });
     if (!adopted.ok) return { ...adopted, status: status() };
   } finally {
     resolved.key.fill(0);
@@ -840,16 +864,20 @@ function init() {
     if (d.enabled && d.syncTabs) scheduleIcons();
   }));
   refreshTabIcons().catch(() => {});
+  // A pairing code must not outlive the app that showed it (pairing design §5.4).
+  app.on('before-quit', () => { if (pairing) cancelPairing().catch(() => {}); });
   // Heartbeat (spec §6): hourly check; republishes once our entry is 24h old
   // so a long-running device with stable tabs never ages past the 30-day
   // prune on other devices.
+  // unref: the heartbeat must never be what keeps the process alive (it is
+  // not in Electron, and under node --test it would hang the run).
   setInterval(() => withLocalProfile(DEFAULT_PROFILE_ID, () => {
     const d = ensureStore().data;
     if (!d.enabled || !d.syncTabs) return;
     const ctx = tabSyncContext();
     if (tabsync.heartbeatDue(ctx)) scheduleSession(5000);
     if (tabicons.heartbeatDue(ctx)) scheduleIcons(5000);
-  }), 60 * 60 * 1000);
+  }), 60 * 60 * 1000).unref?.();
 }
 
 module.exports = {

@@ -96,3 +96,14 @@ test('turning sync off can still erase the server copy', async () => {
   assert.deepEqual(fetchCalls.map((call) => call.method), ['DELETE']);
   assert.equal(sync.status().enabled, false);
 });
+
+test('a recovery code is refused in a renamed build before anything is stored', async () => {
+  const pairing = require('../../src/main/sync-pairing');
+  fetchCalls = [];
+  const code = pairing.encodeRecoveryCode({ v: 1, handle: 'x', accountId: 'b'.repeat(64), key: Buffer.alloc(32, 3).toString('base64') });
+  const res = await sync.joinWithCode(code);
+  assert.equal(res.ok, false);
+  assert.equal(res.error, 'service-unavailable');
+  assert.equal(fetchCalls.length, 0);
+  assert.equal(sync.status().enabled, false);
+});

@@ -730,8 +730,10 @@
     },
     {
       "file": "src/main/sync.js",
-      "sha256": "c3d82382a326e2b5b4252678de16ca572bc851c58401c1d98312c9c66b280c8f",
-      "literalChannels": [],
+      "sha256": "bf48e04d8d753accb09b6714b1c4c36abe7f7704ae084dc0b124fca014c47ac3",
+      "literalChannels": [
+        "before-quit"
+      ],
       "role": "privileged implementation or service"
     },
     {

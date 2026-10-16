@@ -4190,7 +4190,8 @@ body[data-layout="shelf"] #layoutShelf { display: grid; }
 .sync-status-list dt { color: var(--text-dim); }
 .sync-status-list dd { margin: 0; }
 .sync-code-input {
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: "Inter", var(--font-text);
+  font-variant-numeric: tabular-nums;
   font-size: 18px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -4199,7 +4200,8 @@ body[data-layout="shelf"] #layoutShelf { display: grid; }
 .sync-pairing, .sync-switch { margin-top: 10px; display: grid; gap: 8px; }
 .sync-pairing-instruction { margin: 0; font-size: 13px; line-height: 1.45; }
 .sync-pairing-code {
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: "Inter", var(--font-text);
+  font-variant-numeric: tabular-nums;
   font-size: 34px;
   font-weight: 600;
   letter-spacing: 0.12em;

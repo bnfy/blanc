@@ -21,6 +21,10 @@ let olderWorker = false;       // pair routes answer a plain-text 404
 let deleteStatus = 204;        // account DELETE outcome
 let putGate = null;            // when set, PUTs wait on it (in-flight simulation)
 let onPutDispatched = () => {};
+let postGate = null;           // when set, pair POSTs wait on it
+let onPostDispatched = () => {};
+let failNextEncrypt = false;   // one protectSyncKey failure
+const appListeners = [];
 const dialogReplies = [];
 const clipboardWrites = [];
 
@@ -44,6 +48,8 @@ require.cache[electronId] = {
           if (olderWorker) return textRes(404, 'not found');
           const key = `pair:${pair[1]}`;
           if (method === 'POST') {
+            onPostDispatched();
+            if (postGate) await postGate;
             if (kv.has(key)) return jsonRes(409, { error: 'exists' });
             kv.set(key, JSON.parse(options.body).blob);
             return jsonRes(201, {});
@@ -79,12 +85,15 @@ require.cache[electronId] = {
     safeStorage: {
       isEncryptionAvailable: () => true,
       getSelectedStorageBackend: () => 'test',
-      encryptString: (value) => Buffer.from(value),
+      encryptString: (value) => {
+        if (failNextEncrypt) { failNextEncrypt = false; throw new Error('keychain locked'); }
+        return Buffer.from(value);
+      },
       decryptString: (value) => value.toString(),
     },
     dialog: { showMessageBox: async () => ({ response: dialogReplies.shift() ?? 1 }) },
     clipboard: { writeText: (text) => clipboardWrites.push(text) },
-    app: { getPath: () => tmp, on: () => {} },
+    app: { getPath: () => tmp, on: (event, fn) => appListeners.push([event, fn]) },
   },
 };
 
@@ -290,3 +299,84 @@ test('a truncated recovery code is pair-invalid', async () => {
   assert.equal(res.error, 'pair-invalid');
   assert.equal(readSync().enabled, false);
 });
+
+// ---- Review fixes (final pass) ----
+const OWN_PAYLOAD = { v: 1, handle: 'anthony', accountId: OWN_ACCOUNT, key: OWN_KEY.toString('base64') };
+
+test('beginPairing retracts a still-live previous code before issuing a new one', async () => {
+  await sync.joinWithCode(pairing.encodeRecoveryCode(OWN_PAYLOAD));
+  await waitForJson(path.join(tmp, 'sync.json'), (json) => json.enabled === true);
+  const first = await sync.beginPairing();
+  const firstId = pairing.pairingMaterial(first.code).pairId;
+  requests.length = 0;
+  const second = await sync.beginPairing();
+  assert.equal(second.ok, true);
+  const order = requests.filter((r) => r.url.includes('/v1/pair/')).map((r) => `${r.method} ${r.url.slice(-8)}`);
+  assert.equal(order[0], `DELETE ${firstId.slice(-8)}`, `the old entry goes first, got ${JSON.stringify(order)}`);
+  assert.equal(kv.has(`pair:${firstId}`), false);
+  assert.deepEqual(sync.pairingState().code, second.code);
+  await sync.cancelPairing();
+});
+
+test('quitting retracts a live pairing code', async () => {
+  sync.init(); // registers the before-quit listener, as startProfileSync does
+  const res = await sync.beginPairing();
+  const id = pairing.pairingMaterial(res.code).pairId;
+  const quit = appListeners.filter(([event]) => event === 'before-quit').map(([, fn]) => fn);
+  assert.ok(quit.length > 0, 'init registered a before-quit listener');
+  requests.length = 0;
+  for (const fn of quit) fn();
+  await settleRequests();
+  assert.ok(pairRequests('DELETE').some((r) => r.url.endsWith(id)), 'the entry is deleted on quit');
+  assert.deepEqual(sync.pairingState(), { active: false });
+});
+
+test('a code still being parked when Sync is turned off is retracted, not left for a dead sync', async () => {
+  let release;
+  postGate = new Promise((resolve) => { release = resolve; });
+  let dispatched;
+  const posted = new Promise((resolve) => { dispatched = resolve; });
+  onPostDispatched = () => dispatched();
+  const begin = sync.beginPairing();
+  await posted;
+  const off = sync.disable();
+  await new Promise((resolve) => setImmediate(resolve));
+  release();
+  postGate = null;
+  const [res] = await Promise.all([begin, off]);
+  assert.equal(res.ok, false);
+  await settleRequests();
+  assert.equal(kv.size, 0, 'nothing stays parked for the sync that was turned off');
+  assert.deepEqual(sync.pairingState(), { active: false });
+  await waitForJson(path.join(tmp, 'sync.json'), (json) => json.enabled === false);
+});
+
+test('switchWithCode with a key-protect failure keeps the old credentials and never deletes the old account', async () => {
+  await sync.joinWithCode(pairing.encodeRecoveryCode(OWN_PAYLOAD));
+  await waitForJson(path.join(tmp, 'sync.json'), (json) => json.enabled === true && json.accountId === OWN_ACCOUNT);
+  parkCode('K7MR4PX2');
+  requests.length = 0;
+  failNextEncrypt = true;
+  const res = await sync.switchWithCode('K7MR4PX2', { wipeRemote: true });
+  assert.equal(res.ok, false);
+  assert.match(String(res.error), /^key-store:|^key-protect-failed$/);
+  assert.ok(!requests.some((r) => r.method === 'DELETE-landed'), 'the old account was not erased');
+  const s = readSync();
+  assert.equal(s.enabled, true);
+  assert.equal(s.accountId, OWN_ACCOUNT);
+  kv.clear();
+});
+
+test('switchWithCode to the sync this device already uses never erases it, even with the box on', async () => {
+  parkCode('K7MR4PX2', OWN_PAYLOAD);
+  requests.length = 0;
+  const res = await sync.switchWithCode('K7MR4PX2', { wipeRemote: true });
+  assert.equal(res.ok, true, JSON.stringify(res));
+  assert.ok(!requests.some((r) => r.method === 'DELETE-landed'), 'no wipe of the account being joined');
+  assert.equal(readSync().accountId, OWN_ACCOUNT);
+  assert.equal(readSync().enabled, true);
+});
+
+async function settleRequests() {
+  for (let i = 0; i < 20; i += 1) await new Promise((resolve) => setImmediate(resolve));
+}

@@ -386,9 +386,17 @@ const settingsStep = (step) => async (ctx) => {
 const SETTINGS_SURFACES = [
   { name: 'settings', open: openSettings },
   {
-    name: 'settings (sync setup, joining)',
+    name: 'settings (sync setup, add this device with a code)',
     open: settingsStep(async (page) => {
-      await page.locator('#syncPathJoin').click();
+      await page.locator('#syncPathCode').click();
+      await page.locator('#syncCodeForm').waitFor({ state: 'visible' });
+    }),
+  },
+  {
+    name: 'settings (sync setup, joining with name and passphrase)',
+    open: settingsStep(async (page) => {
+      await page.locator('#syncPathCode').click();
+      await page.locator('#syncUsePassphrase').click();
       await page.locator('#syncForm').waitFor({ state: 'visible' });
     }),
   },
