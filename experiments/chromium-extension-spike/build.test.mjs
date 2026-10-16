@@ -30,3 +30,11 @@ test('large builds require an explicit override, small builds proceed', () => {
 test('pending manifest regeneration cannot sneak past the size check', () => {
   assert.throws(() => checkPlan('../../buildtools/mac/gn --root=../.. -q --regeneration gen .\nBuild Succeeded: 1 steps', true), /GN regeneration is pending/);
 });
+
+// Regression: the icon-name edit produced a five-step dry run, then changed
+// APP_INFO_PLIST_FILE_SIZE and invalidated libbase's generated dependents.
+test('small plans with generated buildflags cannot conceal dependent compilation', () => {
+  const output = '../../build/write_buildflag_header.py --output base/apple/app_plist_size_buildflags.h\nBuild Succeeded: 5 steps';
+  assert.throws(() => checkPlan(output), /Generated build flags are pending/);
+  assert.equal(checkPlan(output, true), 5);
+});

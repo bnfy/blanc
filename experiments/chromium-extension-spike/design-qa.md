@@ -66,3 +66,39 @@ windows. Same-scale native crops `evidence/extensions-icon-before.png` and
 `evidence/extensions-icon-after.png` were viewed together: size and baseline
 now align with neighboring controls. Native picker and Bitwarden popup retested.
 This finding is resolved; final result remains passed.
+
+
+Placement follow-up: moved Extensions into the existing right-side action group
+with Reload and Close, reducing inter-group whitespace to the shared 1px gap.
+Native same-scale before/after crops in `evidence/extensions-spacing-*.png`
+confirm the tighter cluster; native picker and popup activation passed.
+
+
+Hover/spacing follow-up: the native Extensions hit box remained wider than its
+neighbors, and Close had a solid hover fill. Resolved by using 26×26 logical
+footprints for all three actions with identical measured gaps (1.1484375px),
+and matching circular hover colors and foregrounds. Native screenshots
+`evidence/controls-hover-{light,dark}-{extensions,reload,close}.png` were viewed
+together per theme at identical 2× density. Both themes show equal highlight
+diameters and consistent color/spacing. Physical picker, popup, Reload and Close
+checks passed. The default appearance and original tabs were restored.
+Final result remains passed.
+
+
+Dynamic header follow-up: passed. Native full-window captures were inspected for
+light and dark fixtures, scrolling, MetaMask and the expanded Extensions panel.
+The frame and page have no divider or mismatched band; pixel checks across the
+seam match exactly on eight captured surfaces. Live CSS transitions and NTP
+wallpaper fades change the header continuously. Native tab changes bypass the
+snapshot polling delay. Only the 68px header is opaque, leaving page content
+visible outside expanded panels. Private fallback, narrow layout, extension
+popup and NTP typing checks passed. Original tabs/preferences and window size
+were restored; local fixture history/TopSites entries were cleaned up. Evidence
+and input-method qualifications are recorded in results.md and evidence/header-*.
+
+
+Sunrise Dark Dock icon: passed. The actual native Dock capture
+`evidence/dock-sunrise-dark.png` was viewed and shows the gold Sunrise artwork
+on the dark tile. Verified after relaunch with the existing permanent profile;
+tabs and extension popup behavior were preserved. The runtime icon refresh
+replaces the stale Chromium tile while reusing the shipping icon artwork.

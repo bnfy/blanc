@@ -7,7 +7,7 @@
 }
 
 /* Native Chromium extension views occupy this measured slot in the pill. */
-#nativeExtensions { display: inline-block; flex: 0 0 auto; width: 35px; height: 28px; }
+#nativeExtensions { display: inline-block; flex: 0 0 auto; width: calc(26px / var(--pill-zoom)); height: calc(26px / var(--pill-zoom)); }
 #islandPill { --pill-zoom: 1.15; gap: 6px; }
 #pillDomain { min-width: 24px; flex-shrink: 1; }
 /* Native controls cannot inherit a renderer transform. Keep their shared frame stable. */
@@ -18,4 +18,16 @@
 @media (max-width: 800px) {
   #panelAnchor { top: 48px; }
   #islandPanel { max-height: calc(100vh - 60px); }
+}
+
+/* Keep the three actions visually consistent with the native Extensions inkdrop.
+   26px is the rendered circle diameter; the pill scales CSS by --pill-zoom. */
+#pillActions .pill-btn {
+  width: calc(26px / var(--pill-zoom));
+  height: calc(26px / var(--pill-zoom));
+}
+#pillActions .pill-btn:not(:disabled):hover,
+#pillActions .pill-btn:not(:disabled):active {
+  background: var(--accent-dim) !important;
+  color: var(--accent) !important;
 }

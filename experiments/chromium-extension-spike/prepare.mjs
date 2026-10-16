@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import { prepareMacIcon } from './mac-icon.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, '../..');
@@ -111,7 +112,8 @@ for (const name of ['index.html', 'overlay.html']) {
   if (name === 'index.html') {
     const anchor = '<div id="pillActions" class="pill-btns"></div>';
     if (!html.includes(anchor)) fail('Island actions anchor changed');
-    html = html.replace(anchor, '<span id="nativeExtensions" aria-hidden="true"></span>' + anchor);
+    // Keep the native slot in the same tightly spaced group as Reload and Close.
+    html = html.replace(anchor, '<div id="pillActions" class="pill-btns"><span id="nativeExtensions" aria-hidden="true"></span></div>');
   }
   assets.set(target, html);
 }
@@ -148,6 +150,8 @@ if (assetsOnly) {
   console.log(`Updated prototype assets: ${generated}. Reload the page or relaunch the browser; no native files changed.`);
   process.exit(0);
 }
+
+prepareMacIcon(chromium);
 
 for (const name of ['blanc_prototype_ui.h', 'blanc_prototype_ui.cc']) {
   writeIfChanged(path.join(chromium, 'chrome/browser/ui', name),
@@ -405,6 +409,30 @@ edit('chrome/browser/search/search.cc', [
   },
 ]);
 
+// Use a distinct catalog identity so the Dock does not reuse Chromium's
+// AppIcon rendition when upgrading this local bundle without a version bump.
+// Keep the original seven-character length: Chromium embeds the source plist's
+// byte size in libbase; changing it triggers unrelated generated dependents.
+edit('chrome/app/app-Info.plist', [{
+  anchor: '<key>CFBundleIconName</key>\n\t<string>AppIcon</string>',
+  replacement: '<key>CFBundleIconName</key>\n\t<string>BlancDK</string>',
+  present: '<key>CFBundleIconName</key>\n\t<string>BlancDK</string>',
+}]);
+
+// Refresh the runtime icon as well as the bundle resources: macOS can retain
+// Chromium's old Dock tile for a locally rebuilt app with the same identity.
+edit('chrome/browser/app_controller_mac.mm', [{
+  anchor: '  [self setUpdateCheckInterval];',
+  replacement: `  [self setUpdateCheckInterval];
+
+  if (base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-prototype-assets")) {
+    NSImage* blancIcon = [NSWorkspace.sharedWorkspace
+        iconForFile:NSRunningApplication.currentApplication.bundleURL.path];
+    NSApp.applicationIconImage = blancIcon;
+  }`,
+  present: 'NSApp.applicationIconImage = blancIcon;',
+}]);
+
 edit('chrome/app/theme/chromium/BRANDING', [
   { anchor: 'PRODUCT_FULLNAME=Chromium\n', replacement: 'PRODUCT_FULLNAME=Blanc Prototype\n', present: 'PRODUCT_FULLNAME=Blanc Prototype\n' },
   { anchor: 'PRODUCT_SHORTNAME=Chromium\n', replacement: 'PRODUCT_SHORTNAME=Blanc Prototype\n', present: 'PRODUCT_SHORTNAME=Blanc Prototype\n' },
@@ -440,7 +468,24 @@ edit('ui/webui/resources/tools/eslint/tsconfig_base.json', [{
 
 
 // Blanc exposes extension actions in the expanded Island, never as pinned icons.
+edit('chrome/browser/ui/views/extensions/extensions_toolbar_button.h', [
+  { anchor: "  int GetIconSize() const override;",
+    replacement: "  int GetIconSize() const override;\n  SkColor GetForegroundColor(ButtonState state) const override;",
+    present: "  SkColor GetForegroundColor(ButtonState state) const override;" },
+]);
 edit('chrome/browser/ui/views/extensions/extensions_toolbar_button.cc', [
+  { anchor: "    const views::SizeBounds& available_size) const {\n  return extensions_toolbar_->GetToolbarActionSize();",
+    replacement: "    const views::SizeBounds& available_size) const {\n  if (blanc_prototype::IsIslandWindow(browser_)) return gfx::Size(26, 26);\n  return extensions_toolbar_->GetToolbarActionSize();",
+    present: "if (blanc_prototype::IsIslandWindow(browser_)) return gfx::Size(26, 26);" },
+  { anchor: "#include \"ui/views/accessibility/view_accessibility.h\"\n",
+    replacement: "#include \"ui/views/accessibility/view_accessibility.h\"\n#include \"ui/native_theme/native_theme.h\"\n#include \"ui/views/animation/ink_drop.h\"\n#include \"ui/views/animation/ink_drop_highlight.h\"\n#include \"ui/views/animation/flood_fill_ink_drop_ripple.h\"\n#include \"ui/views/controls/highlight_path_generator.h\"\n",
+    present: "#include \"ui/views/animation/ink_drop_highlight.h\"" },
+  { anchor: "  GetViewAccessibility().SetHasPopup(ax::mojom::HasPopup::kMenu);",
+    replacement: "  if (blanc_prototype::IsIslandWindow(browser_)) {\n    // Match Blanc's 26px circular action hover while retaining the native anchor.\n    views::InstallFixedSizeCircleHighlightPathGenerator(this, 13);\n    views::InkDrop::Get(this)->SetCreateHighlightCallback(base::BindRepeating(\n        [](views::View* host) {\n          const bool dark = host->GetNativeTheme()->preferred_color_scheme() == ui::NativeTheme::PreferredColorScheme::kDark;\n          const SkColor ink = dark ? SkColorSetRGB(245, 245, 245)\n                                   : SkColorSetRGB(17, 17, 17);\n          auto highlight = std::make_unique<views::InkDropHighlight>(\n              gfx::SizeF(host->size()), ink);\n          highlight->set_visible_opacity(dark ? 0.12f : 0.08f);\n          return highlight;\n        }, this));\n    views::InkDrop::Get(this)->SetCreateRippleCallback(base::BindRepeating(\n        [](views::View* host) -> std::unique_ptr<views::InkDropRipple> {\n          const bool dark = host->GetNativeTheme()->preferred_color_scheme() == ui::NativeTheme::PreferredColorScheme::kDark;\n          return std::make_unique<views::FloodFillInkDropRipple>(\n              views::InkDrop::Get(host), host->size(),\n              host->GetLocalBounds().CenterPoint(),\n              dark ? SkColorSetRGB(245, 245, 245) : SkColorSetRGB(17, 17, 17),\n              dark ? 0.12f : 0.08f);\n        }, this));\n  }\n\n  GetViewAccessibility().SetHasPopup(ax::mojom::HasPopup::kMenu);",
+    present: "// Match Blanc's 26px circular action hover" },
+  { anchor: "int ExtensionsToolbarButton::GetIconSize() const {\n",
+    replacement: "SkColor ExtensionsToolbarButton::GetForegroundColor(ButtonState state) const {\n  if (!blanc_prototype::IsIslandWindow(browser_) || state == STATE_DISABLED)\n    return ToolbarChipButton::GetForegroundColor(state);\n  const bool dark = GetNativeTheme()->preferred_color_scheme() == ui::NativeTheme::PreferredColorScheme::kDark;\n  if (state == STATE_HOVERED || state == STATE_PRESSED)\n    return dark ? SkColorSetRGB(245, 245, 245) : SkColorSetRGB(17, 17, 17);\n  return dark ? SkColorSetRGB(156, 156, 156) : SkColorSetRGB(107, 107, 107);\n}\n\nint ExtensionsToolbarButton::GetIconSize() const {\n",
+    present: "SkColor ExtensionsToolbarButton::GetForegroundColor(ButtonState state) const {" },
   { anchor: '#include "chrome/browser/ui/views/extensions/extensions_toolbar_button.h"\n',
     replacement: '#include "chrome/browser/ui/views/extensions/extensions_toolbar_button.h"\n#include "chrome/browser/ui/blanc_prototype_ui.h"\n',
     present: '#include "chrome/browser/ui/blanc_prototype_ui.h"' },

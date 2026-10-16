@@ -22,6 +22,20 @@ buttons remain native, with inset placement.
 - Source checkout: `/Users/anthonyjloria/Projects/BlancChromium/src`
 - Output: `out/BlancPrototype`
 
+The header behind the Island follows the active page's rendered top edge,
+including scrolling, animated backgrounds, Blanc's wallpaper and extension
+pages. It uses Electron's dominant-color treatment with native pixel sampling;
+only the 68px header is filled, so expanded panels remain transparent around
+their edges. Private windows retain the private theme.
+
+The macOS bundle uses **Sunrise Dark** for Dock testing, derived from the shipping
+Icon Composer Sunrise layers and the `sunrise-dark` definition. `mac-icon.mjs`
+compiles and caches its adaptive `Assets.car` and `.icns` fallback; unchanged
+artwork preserves source timestamps. Prototype startup also refreshes the
+running application's icon from its bundle to replace stale local Dock artwork. `BlancDK` is the catalog
+name; it intentionally has the same length as Chromium's original `AppIcon`,
+so the plist-size build flag does not change.
+
 ## Prepare and build
 
 Keep the existing checkout, `out/BlancPrototype`, build arguments, and Siso cache.
@@ -55,7 +69,11 @@ run uses the same Siso backend and saves `out/BlancPrototype/blanc-build-plan.lo
 More than 1,000 planned actions stops before compilation; an unparseable or failed
 plan also stops. Pending GN regeneration stops too: review the environment, run
 `gn gen out/BlancPrototype` without changing arguments, then repeat preflight so
-the estimate uses the regenerated graph. Counts can conservatively overestimate cache misses. Use
+the estimate uses the regenerated graph. Pending buildflag-header generation also
+stops: Siso does not execute generators during a dry run, so a small reported
+count can hide dependent compilation. Review the change and generate only the
+flag target before inspecting the plan again. The count is an estimate, not a
+hard upper bound. Use
 `--check` (the default) to inspect without compiling. An active Siso build blocks
 a second invocation; a directory lock protects concurrent guarded invocations.
 No clean operation is provided. A successful build records its environment and
@@ -142,8 +160,9 @@ tabs, sync, or the expanded Island's secondary commands. Unsupported Island
 controls are hidden; its slash menu contains only `/downloads`, `/new` and
 `/close`. Downloads opens Chromium's native manager. Cmd+L and Cmd+T focus the
 Island address input; Cmd+A selects its text. See `results.md` for native retests.
-The resting Island reserves a fixed 36px slot for the native Extensions button.
-Pinned action icons stay hidden in Island windows without changing their stored
+The resting Island reserves a fixed 26px slot for the native Extensions button.
+Extensions, Reload and Close use equal 26px footprints, identical gaps and matching
+circular hover feedback in light and dark themes. Pinned action icons stay hidden in Island windows without changing their stored
 pin preferences. The expanded Extensions view lists enabled native actions,
 filters by name, supports arrows/Enter/Escape, and links to Chromium management
 and the Web Store. Its scrollable list keeps footer controls visible in small

@@ -23,6 +23,11 @@ export function checkPlan(output, allowLarge = false) {
   if (/--regeneration\s+gen|Regenerating ninja files/.test(output)) {
     throw new Error('GN regeneration is pending. Regenerate with unchanged arguments after reviewing the environment, then rerun preflight. No compilation started.');
   }
+  // Siso's dry run does not execute generators. A changed buildflag can
+  // invalidate shared libraries and their dependents after this small plan.
+  if (/write_buildflag_header\.py/.test(output) && !allowLarge) {
+    throw new Error('Generated build flags are pending; the dry run can hide dependent compilation. Review and generate those flags separately, then rerun preflight. No compilation started.');
+  }
   const actions = plannedActions(output);
   if (actions > 1000 && !allowLarge) {
     throw new Error('Large rebuild stopped before compilation. Diagnose the saved plan; use --allow-large-build only for an intentional rebuild.');
@@ -93,7 +98,7 @@ function main() {
     fs.writeFileSync(planFile, output);
     if (result.error || result.status !== 0) throw new Error(`Dry run failed; inspect ${planFile}. No build started.`);
     const actions = plannedActions(output);
-    console.log(`Dry-run estimate: up to ${actions} actions. Plan: ${planFile}`);
+    console.log(`Dry-run scheduled actions: ${actions} (generated outputs may add work). Plan: ${planFile}`);
     checkPlan(output, options.includes('--allow-large-build'));
     if (mode !== '--build') { console.log('Check only; no compilation started.'); return; }
     if (changedInputs(inputs, environment(src, out).inputs).length) {

@@ -568,3 +568,137 @@ and selecting Bitwarden opened its genuine popup. Before/after native crops were
 compared at the same size; the glyph now matches the adjacent control scale.
 Evidence: `evidence/extensions-icon-{before,after}.png` and
 `evidence/extensions-icon-verification.json`. The prototype was left open.
+
+
+### Extensions placement refinement
+
+Moved the native Extensions slot into `pillActions`, alongside Reload and Close,
+in the generated prototype document. It now uses the action group's 1px CSS gap
+instead of the outer Island's 6px gap: measured separation is 1.15 logical pixels
+instead of 6.90 after Island zoom. The native 36px hit slot and 16px glyph remain
+intact. Assets-only preparation and host reload applied this without compilation.
+A physical click opened all six picker entries; Bitwarden's real popup opened
+from the repositioned anchor, then closed normally. No bridge error was reported.
+See `evidence/extensions-spacing-{before,after}.png` and
+`evidence/extensions-spacing-verification.json`.
+
+
+### Consistent action hover and spacing
+
+The owner identified different hover sizes/colors and unequal icon spacing.
+The native Extensions preferred size and measured slot are now 26×26 logical
+pixels, matching Reload and Close. Both horizontal gaps measured 1.1484375
+logical pixels after Island zoom; this supersedes the earlier 36px slot.
+Native Extensions uses a 13px-radius circular highlight and the same foreground
+and hover colors as Blanc's controls. The prototype overrides Close's solid
+hover fill so all three match. Other Chromium windows retain upstream styling.
+
+Light: normal ink #6b6b6b, hovered ink #111111, highlight rgba(17,17,17,.08).
+Dark: normal ink #9c9c9c, hovered ink #f5f5f5, highlight rgba(245,245,245,.12).
+These native constants mirror the prototype's existing Island theme tokens.
+
+Live native mouse hover screenshots were compared for each control in both
+themes. Dark mode used the temporary --force-dark-mode process flag; the final
+process was relaunched without it. No system appearance setting was changed.
+Physical clicks opened the six-row picker and Bitwarden popup in both themes.
+On a disposable new tab, Reload replaced a page-context probe and Close removed
+only that tab. Original tabs were preserved. Bridge status remained clear.
+
+The first native compile exposed an obsolete theme API name; it was corrected
+to the current preferred_color_scheme accessor. The hover build then completed
+11 steps in 44.13s. The equal-footprint refinement completed 8 steps in 38.35s,
+using the existing incremental cache. Evidence is in `evidence/controls-hover-*`.
+
+
+### Dynamic page-matched header
+
+Ported Electron's faux-header behavior into the isolated Chromium prototype.
+The native owner samples the active visible page's top two rows, counts every
+fourth pixel and sends only the dominant color to the trusted Island host.
+Samples are converted from the captured display color space to sRGB before
+being used as CSS colors. The same color drives the resting strip and a separate
+68px backdrop, including when the strip hides for the Extensions panel.
+The host below that band remains transparent. No website scripts or bridge
+capabilities are injected, and captured bitmaps are neither persisted nor sent
+to the renderer. As in Electron, complex top-edge imagery is represented by a
+single dominant color, not a duplicated image or gradient.
+
+The initial implementation excluded extension pages and used a slower fallback
+for changes that did not trigger WebContents interaction notifications. The
+owner identified the missing dynamic behavior during implementation. The final
+version includes full extension tabs, observes native wheel/gesture input and
+native tab selection, samples at 80ms during change/input bursts, and uses a
+250ms idle check for DOM/CSS changes without page-script injection. Navigation,
+visibility, renderer destruction, tab switches and window teardown invalidate
+pending capture results. Only one capture is in flight per window; hidden,
+minimized, loading and private pages are not sampled. Chrome utility pages
+retain the theme fallback; private windows keep #0a0a0a.
+
+Runtime verification on the final native build:
+
+- Solid cream and navy pages matched their CSS colors despite conflicting red
+  theme-color metadata. Native screenshot pixels above/below the seam match
+  exactly after display color management, also on a scrolled page and MetaMask.
+- Chromium mouse-wheel input moved the page to its navy section; the header
+  settled in 165ms. An idle DOM background change settled in 169ms. A 1.2s
+  background transition produced 14 distinct sampled header colors.
+- A tab switch settled in 180ms; rapid alternating tabs ended on the correct
+  final color in 83ms. Rapid navigation, an internal-page reset, and closing a
+  page with a capture pending did not leave the previous page's tint behind.
+- New-tab wallpaper enable/disable fades were followed continuously. Original
+  preferences were restored byte-for-byte. The 720×600 window and the NTP
+  type-to-open bridge passed; the original window dimensions were restored.
+- Expanded Extensions retained all six entries, transparent surroundings and
+  a 68px backdrop. Native button/search/Enter opened the real Bitwarden popup.
+- Native Cmd-Shift-N opened a temporary private window. Both its resting strip
+  and expanded Extensions backdrop stayed #0a0a0a; the window was then closed.
+
+Scrolling/animation/typing checks used CDP input and page evaluation. The separate
+CGEvent wheel helper did not scroll the fixture and is not counted as a physical
+scroll pass. Native extension click/keyboard and private-window keyboard checks
+were run with the existing working native-input helper. The early screenshot
+helper selected a tooltip window; final evidence uses the largest actual app
+window and was visually inspected.
+
+All temporary test tabs were closed. Only exact localhost fixture visits were
+removed through Chromium's history API; a native TopSites query confirmed they
+were gone. The original New Tab and MetaMask welcome tabs remain open, with the
+New Tab active. Evidence: `evidence/header-*.png` and `header-*.json`.
+
+The final guarded incremental build completed 7 steps in 35.18s; follow-up
+preflight reported zero pending actions. No output/cache/toolchain reset.
+Targeted host/extensions ESLint, Node syntax checking and git diff checks passed.
+Full repository ESLint remains unavailable in this checkout without node_modules.
+
+
+## Sunrise Dark Dock icon — October 16, 2026
+
+Passed on the running prototype: the actual macOS Dock tile displays the gold
+Sunrise mark on its dark tile, captured in `evidence/dock-sunrise-dark.png`.
+The resolved native artwork is saved alongside it. Both original tabs restored;
+all six extension actions remain available, and native click/search/Enter opened
+the real Bitwarden popup. The completed prototype remains open on New Tab.
+
+`mac-icon.mjs` derives the Dark colorway from the shipping Icon Composer document
+and `sunrise-dark` definition. It preserves the Sunrise layer and compiles the
+adaptive catalog plus `.icns` fallback with the installed Xcode. A content/tool
+fingerprint caches compilation; copying preserves unchanged timestamps. Normal
+prepare/build includes the icon. Prototype startup refreshes the application
+icon from its bundle, which was necessary to replace macOS's stale Chromium
+Dock tile. Chromium's download badge drawing is unchanged.
+
+The first resource build took 13 steps / 6.57s. During cache diagnosis, changing
+the icon catalog name to a longer string changed Chromium's plist-size buildflag.
+Siso's five-action dry run did not expose the generated dependents. That build
+was stopped after 31 seconds / 229 completed steps; caches were preserved. The
+final `BlancDK` name retains the original `AppIcon` byte length. The original
+buildflag was regenerated alone, followed by a successful 401-step / 86.51s
+incremental recovery. The final launch-refresh change took 7 steps / 33.48s.
+No output cleanup, toolchain change or cold build occurred. A new regression
+check stops pending buildflag generation before ordinary compilation; the CLI
+also clarifies that a dry-run count is not a hard upper bound.
+
+Repeated preparation reused the compiled icon, and final guarded preflight
+reported zero actions. Bundle resources match the compiled cache byte-for-byte.
+Eight build-guard tests, targeted ESLint, Node syntax and diff checks passed.
+Evidence: `evidence/dock-sunrise-dark-verification.json`.

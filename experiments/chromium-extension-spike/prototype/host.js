@@ -52,11 +52,29 @@
     (success ? entry.resolve : entry.reject)(success ? value : new Error(value));
   };
 
+  function paintHeader() {
+    const active = snapshot?.tabs.find(tab => tab.id === snapshot.activeTabId);
+    const color = active?.private ? '#0a0a0a'
+      : /^#[0-9a-f]{6}$/i.test(active?.pageBg) ? active.pageBg : '';
+    document.documentElement.style.setProperty('--page-bg', color);
+  }
+
+  function pageTint(id, color) {
+    if (snapshot?.activeTabId !== id || (color && !/^#[0-9a-f]{6}$/i.test(color))) return;
+    const tab = snapshot.tabs.find(tab => tab.id === id);
+    if (!tab || tab.private) return;
+    tab.pageBg = color;
+    paintHeader();
+    if (color) emit('onPageTint', { id, color });
+    else emit('onTabsUpdated', snapshot);
+  }
+
   async function refresh() {
     if (refreshing) return;
     refreshing = true;
     try {
       snapshot = await request('snapshot');
+      paintHeader();
       const slot = strip.contentDocument?.getElementById('nativeExtensions');
       if (slot) slot.style.width = `${snapshot.extensionsWidth / 1.15}px`;
       reportGeometry();
@@ -217,6 +235,7 @@
     extensions: showExtensions,
     escape: () => opened || extensionsOpened ? close() : undefined,
     refresh,
+    pageTint,
   };
 
   window.addEventListener('unhandledrejection', (event) => {
