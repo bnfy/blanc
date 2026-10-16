@@ -54,13 +54,19 @@
 #include "chrome/browser/ui/exclusive_access/exclusive_access_manager.h"
 #include "chrome/browser/ui/exclusive_access/fullscreen_controller.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
+#include "components/tabs/public/tab_group.h"
+#include "chrome/browser/ui/tabs/tab_group_model.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/browser/ui/tabs/tab_strip_model_observer.h"
+#include "components/tab_groups/tab_group_color.h"
+#include "components/tab_groups/tab_group_id.h"
+#include "components/tab_groups/tab_group_visual_data.h"
 #include "chrome/browser/ui/toolbar/toolbar_actions_model.h"
 #include "chrome/browser/ui/views/frame/browser_view.h"
 #include "chrome/browser/ui/views/toolbar/toolbar_view.h"
 #include "chrome/browser/ui/views/extensions/extensions_toolbar_desktop.h"
 #include "ui/gfx/geometry/rect.h"
+#include "ui/gfx/range/range.h"
 #include "components/sessions/content/session_tab_helper.h"
 #include "components/viz/common/frame_sinks/copy_output_result.h"
 #include "content/public/browser/navigation_controller.h"
@@ -235,6 +241,44 @@ bool SaveFavorite(bookmarks::BookmarkModel* model, const GURL& url,
   model->AddNewURL(parent, parent->children().size(),
                    title.empty() ? base::UTF8ToUTF16(url.spec()) : title, url);
   return true;
+}
+
+// Blanc groups have names, not colours (lowercase labels, at most 40 UTF-16
+// units, like Electron's groupTabByName). Chromium's TabGroupId::ToString()
+// is the opaque GroupId the Island sees; colour is fixed and never shown.
+constexpr size_t kGroupNameMaxLength = 40;
+constexpr tab_groups::TabGroupColorId kGroupColor = tab_groups::TabGroupColorId::kGrey;
+
+std::u16string GroupName(const std::string& raw) {
+  std::u16string trimmed;
+  base::TrimWhitespace(base::UTF8ToUTF16(raw), base::TRIM_ALL, &trimmed);
+  return base::i18n::ToLower(trimmed).substr(0, kGroupNameMaxLength);
+}
+
+// Groups in cluster order (first tab index), the order Blanc's panel uses.
+std::vector<tab_groups::TabGroupId> GroupsInOrder(TabStripModel* model) {
+  std::vector<tab_groups::TabGroupId> groups;
+  if (!model->SupportsTabGroups()) return groups;
+  for (int i = 0; i < model->count(); ++i) {
+    const auto group = model->GetTabGroupForTab(i);
+    if (group && std::find(groups.begin(), groups.end(), *group) == groups.end())
+      groups.push_back(*group);
+  }
+  return groups;
+}
+
+std::optional<tab_groups::TabGroupId> FindGroup(TabStripModel* model,
+                                                const std::string& id) {
+  for (const auto& group : GroupsInOrder(model)) {
+    if (group.ToString() == id) return group;
+  }
+  return std::nullopt;
+}
+
+const tab_groups::TabGroupVisualData* GroupVisuals(TabStripModel* model,
+                                                   const tab_groups::TabGroupId& group) {
+  auto* record = model->group_model()->GetTabGroup(group);
+  return record ? record->visual_data() : nullptr;
 }
 
 // Like Electron's faux header, use the mode of the rendered top two rows.
@@ -559,6 +603,8 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
     // Favorite state follows the committed document, never the virtual or
     // pending URL, so a typed address is not reported as saved before it lands.
     const GURL& committed = contents->GetPrimaryMainFrame()->GetLastCommittedURL();
+    const auto group = model->SupportsTabGroups() ? model->GetTabGroupForTab(index)
+                                                  : std::nullopt;
     tabs.Append(base::DictValue()
                     .Set("id", tab_id)
                     .Set("url", contents->GetVisibleURL() == GURL("chrome://newtab/") ||
@@ -578,10 +624,19 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
                     .Set("muted", contents->IsAudioMuted())
                     .Set("audible", contents->IsCurrentlyAudible())
                     .Set("private", browser->GetProfile()->IsOffTheRecord())
-                    .Set("groupId", base::Value())
+                    .Set("groupId", group ? base::Value(group->ToString()) : base::Value())
                     .Set("blockedCount", 0));
   }
   owner->PruneFaviconCache(live_tab_ids);
+  // Blanc's TabGroup records: {id, name, collapsed}, in cluster order.
+  base::ListValue groups;
+  for (const auto& group : GroupsInOrder(model)) {
+    const auto* visuals = GroupVisuals(model, group);
+    groups.Append(base::DictValue()
+                      .Set("id", group.ToString())
+                      .Set("name", visuals ? base::UTF16ToUTF8(visuals->title()) : "")
+                      .Set("collapsed", visuals ? visuals->is_collapsed() : false));
+  }
   auto* active = model->GetActiveWebContents();
   base::Value active_id =
       active ? base::Value(sessions::SessionTabHelper::IdForTab(active).id())
@@ -594,7 +649,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       .Set("extensionsWidth", extension_width)
       .Set("tabs", std::move(tabs))
       .Set("activeTabId", std::move(active_id))
-      .Set("groups", base::ListValue())
+      .Set("groups", std::move(groups))
       .Set("closed", base::ListValue())
       .Set("glanceTabId", base::Value())
       .Set("tabLayout", "island")
@@ -898,6 +953,73 @@ class Handler : public content::WebUIMessageHandler {
       reply(true, base::Value());
       return;
     }
+    // Group-level commands name a group, not a tab. Group ids are
+    // TabGroupId::ToString() values from the snapshot; a stale or foreign id
+    // finds nothing and is a no-op, like Electron's per-window group lookup.
+    if ((method == "focusGroup" || method == "toggleGroupCollapsed" ||
+         method == "closeGroup" || method == "reorderGroup") &&
+        !args.empty() && args[0].is_string()) {
+      const auto group = FindGroup(model, args[0].GetString());
+      if (!group) {
+        reply(true, base::Value(false));
+        return;
+      }
+      const auto* visuals = GroupVisuals(model, *group);
+      const gfx::Range range = model->group_model()->GetTabGroup(*group)->ListTabs();
+      if (method == "focusGroup" && args.size() == 1) {
+        // Electron's focusGroup: unfold, then activate the group's first tab.
+        if (visuals && visuals->is_collapsed()) {
+          model->ChangeTabGroupVisuals(*group, tab_groups::TabGroupVisualData(
+              visuals->title(), visuals->color(), /*is_collapsed=*/false));
+        }
+        model->ActivateTabAt(static_cast<int>(range.start()));
+        reply(true, base::Value(true));
+        return;
+      }
+      if (method == "toggleGroupCollapsed" && args.size() == 1 && visuals) {
+        // Folding is panel state, as in Electron: the model flag only, never
+        // Chromium's tab-strip collapse handler (which would move activation).
+        model->ChangeTabGroupVisuals(*group, tab_groups::TabGroupVisualData(
+            visuals->title(), visuals->color(), !visuals->is_collapsed()));
+        reply(true, base::Value(true));
+        return;
+      }
+      if (method == "closeGroup" && args.size() == 1) {
+        // Closing every tab of the window would close the window; keep it,
+        // like closeTab and Electron's closeGroup, with a fresh new tab.
+        if (static_cast<int>(range.length()) == model->count())
+          chrome::AddTabAt(browser, GURL("chrome://newtab/"), -1, true);
+        model->CloseAllTabsInGroup(*group);
+        reply(true, base::Value(true));
+        return;
+      }
+      if (method == "reorderGroup" && args.size() == 2 &&
+          (args[1].is_string() || args[1].is_none())) {
+        // Electron's resolveGroupReorder: land before another group, or at
+        // the end with null. Groups are contiguous runs of unpinned tabs.
+        const int size = static_cast<int>(range.length());
+        int to = model->count() - size;
+        if (args[1].is_string()) {
+          const auto before = FindGroup(model, args[1].GetString());
+          if (!before) {
+            reply(true, base::Value(false));
+            return;
+          }
+          if (*before == *group) {
+            reply(true, base::Value(true));
+            return;
+          }
+          const int b = static_cast<int>(
+              model->group_model()->GetTabGroup(*before)->ListTabs().start());
+          to = b > static_cast<int>(range.start()) ? b - size : b;
+        }
+        if (to != static_cast<int>(range.start())) model->MoveGroupTo(*group, to);
+        reply(true, base::Value(true));
+        return;
+      }
+      reply(false, base::Value("Unexpected group request."));
+      return;
+    }
     if (args.empty() || !args[0].is_int()) {
       reply(false, base::Value("Expected a real tab ID."));
       return;
@@ -951,34 +1073,117 @@ class Handler : public content::WebUIMessageHandler {
       reply(true, base::Value(tab->IsAudioMuted()));
       return;
     }
-    if (method == "moveTab" && args.size() == 2 &&
-        (args[1].is_int() || args[1].is_none())) {
-      // Electron's resolveTabMove: the pinned state never changes, so a tab
-      // only lands inside its own bucket; a before-tab from the other bucket
-      // or another window is rejected rather than coerced.
-      const int first_unpinned = model->IndexOfFirstNonPinnedTab();
-      const bool pinned = model->IsTabPinned(index);
-      const int bucket_begin = pinned ? 0 : first_unpinned;
-      const int bucket_end = pinned ? first_unpinned : model->count();  // exclusive
-      int to = bucket_end - 1;
-      if (args[1].is_int()) {
-        int before = -1;
-        for (int i = 0; i < model->count(); ++i) {
-          if (sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id() ==
-              args[1].GetInt()) {
-            before = i;
-            break;
-          }
-        }
-        if (before < bucket_begin || before >= bucket_end) {
+    if ((method == "groupTabByName" && args.size() == 2 && args[1].is_string()) ||
+        (method == "setTabGroup" && args.size() == 2 &&
+         (args[1].is_string() || args[1].is_none()))) {
+      if (!model->SupportsTabGroups()) {
+        reply(true, base::Value(false));
+        return;
+      }
+      std::optional<tab_groups::TabGroupId> target;
+      if (method == "groupTabByName") {
+        // Electron's groupTabByName: find-or-create by lowercase name.
+        const std::u16string name = GroupName(args[1].GetString());
+        if (name.empty()) {
           reply(true, base::Value(false));
           return;
         }
-        // Land immediately before `before`, after the source leaves its slot.
-        to = before > index ? before - 1 : before;
+        for (const auto& group : GroupsInOrder(model)) {
+          const auto* visuals = GroupVisuals(model, group);
+          if (visuals && visuals->title() == name) target = group;
+        }
+        if (!target) {
+          // Chromium cannot group a pinned tab; AddToNewGroup unpins it.
+          target = model->AddToNewGroup({index});
+          model->ChangeTabGroupVisuals(*target,
+              tab_groups::TabGroupVisualData(name, kGroupColor, /*is_collapsed=*/false));
+          reply(true, base::Value(true));
+          return;
+        }
+      } else if (args[1].is_string()) {
+        // A requested group that no longer exists is a no-op; it must not
+        // ungroup the tab instead (Electron's setTabGroup rule).
+        target = FindGroup(model, args[1].GetString());
+        if (!target) {
+          reply(true, base::Value(false));
+          return;
+        }
+      }
+      if (model->GetTabGroupForTab(index) != target) {
+        if (target) model->AddToExistingGroup({index}, *target);
+        else model->RemoveFromGroup({index});
+      }
+      reply(true, base::Value(true));
+      return;
+    }
+    if (method == "moveTab" && args.size() == 3 &&
+        (args[1].is_string() || args[1].is_none()) &&
+        (args[2].is_int() || args[2].is_none())) {
+      // Electron's resolveTabMove: the pinned state never changes, a tab
+      // lands only inside the target bucket (pinned, a named group, or the
+      // loose section), and a before-tab outside that bucket, an unknown
+      // group or another window's tab is rejected rather than coerced.
+      // Chromium has no grouped pins, so a pinned tab moves only among pins.
+      const bool pinned = model->IsTabPinned(index);
+      std::optional<tab_groups::TabGroupId> target;
+      if (args[1].is_string()) {
+        target = model->SupportsTabGroups() ? FindGroup(model, args[1].GetString())
+                                            : std::nullopt;
+        if (!target || pinned) {
+          reply(true, base::Value(false));
+          return;
+        }
+      }
+      content::WebContents* before = nullptr;
+      if (args[2].is_int()) {
+        for (int i = 0; i < model->count(); ++i) {
+          if (sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id() ==
+              args[2].GetInt()) {
+            before = model->GetWebContentsAt(i);
+            break;
+          }
+        }
+        const int b = before ? model->GetIndexOfWebContents(before) : -1;
+        if (!before || before == tab || model->IsTabPinned(b) != pinned ||
+            (model->SupportsTabGroups() && model->GetTabGroupForTab(b) != target)) {
+          reply(true, base::Value(before == tab));
+          return;
+        }
+      }
+      const auto group_of = [&](int i) {
+        return model->SupportsTabGroups() ? model->GetTabGroupForTab(i) : std::nullopt;
+      };
+      // Membership first (Chromium keeps groups contiguous and moves the tab
+      // to the group's edge), then the position within the bucket.
+      if (!pinned && group_of(index) != target) {
+        if (target) model->AddToExistingGroup({index}, *target);
+        else model->RemoveFromGroup({index});
+      }
+      index = model->GetIndexOfWebContents(tab);
+      int to;
+      if (before) {
+        const int b = model->GetIndexOfWebContents(before);
+        to = b > index ? b - 1 : b;
+      } else if (pinned) {
+        to = model->IndexOfFirstNonPinnedTab() - 1;
+      } else if (target) {
+        to = static_cast<int>(model->group_model()->GetTabGroup(*target)->ListTabs().end()) - 1;
+      } else {
+        // End of the loose section: the last ungrouped unpinned slot.
+        to = model->count() - 1;
+        while (to > index && group_of(to)) --to;
       }
       if (to != index) model->MoveWebContentsAt(index, to, false);
-      reply(true, base::Value(true));
+      // Chromium may adjust membership when a tab crosses a group edge;
+      // re-assert the requested bucket and report what actually happened.
+      index = model->GetIndexOfWebContents(tab);
+      if (!pinned && group_of(index) != target) {
+        if (target) model->AddToExistingGroup({index}, *target);
+        else model->RemoveFromGroup({index});
+        index = model->GetIndexOfWebContents(tab);
+      }
+      reply(true, base::Value(model->IsTabPinned(index) == pinned &&
+                              (pinned || group_of(index) == target)));
       return;
     }
     if (method == "switchTab") {

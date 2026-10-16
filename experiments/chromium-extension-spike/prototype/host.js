@@ -240,15 +240,32 @@
       return muted;
     },
     moveTab: async (id, target) => {
-      // No tab groups exist in the prototype, so a grouped target is a stale
-      // or foreign intent; Electron rejects those too.
-      if (target?.groupId != null) return false;
-      // Drag intents carry DOM dataset strings for both ids.
-      const moved = await request('moveTab', [nativeId(id), target?.beforeId == null ? null : nativeId(target.beforeId)]);
+      // Drag intents carry DOM dataset strings for both tab ids; group ids are
+      // Chromium's TabGroupId strings straight from the snapshot.
+      const groupId = typeof target?.groupId === 'string' ? target.groupId : null;
+      const beforeId = target?.beforeId == null ? null : nativeId(target.beforeId);
+      const moved = await request('moveTab', [nativeId(id), groupId, beforeId]);
       await refresh();
       return moved === true;
     },
-    reorderGroup: async () => false,
+    // Named groups are Chromium tab groups (TabStripModel), shaped as Blanc's
+    // {id, name, collapsed}; names are lowercase labels and colour is unused.
+    groupTabByName: async (id, name) => {
+      await request('groupTabByName', [nativeId(id), String(name ?? '')]);
+      await refresh();
+    },
+    setTabGroup: async (id, groupId) => {
+      await request('setTabGroup', [nativeId(id), typeof groupId === 'string' ? groupId : null]);
+      await refresh();
+    },
+    reorderGroup: async (groupId, beforeGroupId) => {
+      const moved = await request('reorderGroup',
+        [String(groupId), typeof beforeGroupId === 'string' ? beforeGroupId : null]);
+      await refresh();
+      return moved === true;
+    },
+    ...Object.fromEntries(['focusGroup', 'toggleGroupCollapsed', 'closeGroup'].map((method) =>
+      [method, async (groupId) => { await request(method, [String(groupId)]); await refresh(); }])),
     // Destructive and history-only, like Electron's /clear; main refuses it
     // from a private window. Test on a disposable profile only.
     clearHistory: () => request('clearHistory'),
@@ -302,6 +319,11 @@
     refresh,
     pageTint,
   };
+  // The strip and overlay adapters read parent.BlancPrototypeHost as they
+  // load, so the frames start only once it exists. A src in the markup let a
+  // fast relaunch load the overlay first and leave its bridge undefined.
+  strip.src = strip.dataset.src;
+  overlay.src = overlay.dataset.src;
 
   window.addEventListener('unhandledrejection', (event) => {
     notice(event.reason?.message ?? String(event.reason));
