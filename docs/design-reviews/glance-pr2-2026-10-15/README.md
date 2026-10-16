@@ -63,4 +63,16 @@ the start of the Glance header.
    "+5", favicon and new-tab button ran out of it toward the Glance header.
 2. After: the divider stops at a 480 px main pane on macOS. The Island shows
    one dot and folds the rest into "+12", then hides Forward and Favorite.
-   Back, new tab, the shield, Reload and Close stay.
+   Back, new tab, the shield, Reload and Close stay. (Superseded by the next
+   capture: at 480 px the address had no room left.)
+
+## island-address-narrow-main-pane-before-above-after.png
+
+Same setup, with pages on a long host (`www.sherwin-williams.test`, plain
+http, hence the red open lock). "Before" is `6d4128a6`; "after" is the next
+commit.
+
+1. Before: at a 480 px main pane the address had shrunk to nothing.
+2. After: the address keeps priority. Dots and then Forward and Favorite give
+   way first, and the divider now stops at a 600 px main pane on macOS (454 px
+   elsewhere), so the address keeps at least about ten characters.

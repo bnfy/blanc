@@ -6,6 +6,7 @@ const {
   DEFAULT_GLANCE_RATIO,
   calculateGlanceLayout,
   ratioForGlanceDivider,
+  glanceMinPrimaryWidth,
 } = require('../../src/main/glance-layout');
 
 const CHROME_HEIGHT = 68;
@@ -86,4 +87,14 @@ test('the main-pane minimum never pushes past the maximum share or into a stacke
   assert.equal(stacked.direction, 'vertical');
   assert.equal(stacked.minRatio, 0.5, 'stacked, the divider sets heights, not the main pane width');
   assert.equal(ratioForGlanceDivider({ x: 0, y: CHROME_HEIGHT, width: 700, height: 700 }, { y: 0 }, 'vertical', 480), 0.5);
+});
+
+test('the divider leaves the main pane room for a slim Island with a readable address', () => {
+  // macOS with the Island layout also keeps the traffic lights clear (85px a side).
+  assert.equal(glanceMinPrimaryWidth({ platform: 'darwin', tabLayout: 'island' }), 600);
+  // With vertical tabs the lights sit in the rail; Windows/Linux controls sit
+  // over the Glance header. Only the Island's 12px edges remain.
+  assert.equal(glanceMinPrimaryWidth({ platform: 'darwin', tabLayout: 'vertical' }), 454);
+  assert.equal(glanceMinPrimaryWidth({ platform: 'win32', tabLayout: 'island' }), 454);
+  assert.equal(glanceMinPrimaryWidth({ platform: 'linux', tabLayout: 'vertical' }), 454);
 });

@@ -1296,7 +1296,7 @@ When('I narrow the main pane to its smallest side-by-side width', async function
     candidate.glanceGeometry.ratio === candidate.glanceGeometry.minRatio);
   if ((await ctx.app.evaluate(() => process.platform)) === 'darwin') {
     // macOS: room for the slimmed Island plus the traffic lights.
-    assert.ok(state.glanceGeometry.primary.width >= 480, `main pane ${state.glanceGeometry.primary.width}px`);
+    assert.ok(state.glanceGeometry.primary.width >= 600, `main pane ${state.glanceGeometry.primary.width}px`);
   }
 });
 
@@ -1314,6 +1314,24 @@ Then('every Island control stays inside the Island', async function () {
       const result = await chrome.evaluate(() => document.getElementById('islandPill').getBoundingClientRect().right);
       throw new Error(`${error.message} (pill right ${result})`);
     });
+});
+
+// The address is the Island's main content: dots and secondary buttons give
+// way before it, and it never shrinks below about ten characters.
+Then("the Island's address stays readable", async function () {
+  const chrome = await mainChromePage();
+  const label = await chrome.evaluate(() => {
+    const domain = document.getElementById('pillDomain');
+    return {
+      text: domain.textContent,
+      shown: domain.getBoundingClientRect().width,
+      full: domain.scrollWidth * (domain.getBoundingClientRect().width / Math.max(1, domain.clientWidth)),
+      truncated: domain.scrollWidth > domain.clientWidth + 1,
+    };
+  });
+  assert.ok(label.text.includes('127.0.0.1'), `the Island is not showing the page's address: "${label.text}"`);
+  assert.ok(!label.truncated || label.shown >= 70,
+    `the address "${label.text}" shows only ${Math.round(label.shown)}px of ${Math.round(label.full)}px`);
 });
 
 Then('the Island shows the active tab and counts the rest', async function () {

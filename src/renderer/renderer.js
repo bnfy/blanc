@@ -417,14 +417,23 @@
     return pill.right - pillActions.getBoundingClientRect().right < inset - 1;
   }
 
-  /** When the pill is narrower than its controls (a narrow Glance main
-   * pane), it gives way in order: fewer dots, with the rest folded into +N
-   * (the active tab always keeps its dot); then, with one dot left, Forward
-   * and Favorite hide. Only a change of room, tab count or active tab starts
-   * again from the full Island, so an ordinary broadcast never rebuilds the
-   * dot row (see dotsSignature). */
+  /** The page's address is cut short. Only a real address counts: the
+   * placeholder and the loading label may truncate like any hint. */
+  function addressTruncated() {
+    if (pillDomain.classList.contains('placeholder') || pillDomain.classList.contains('dim')) return false;
+    return pillDomain.scrollWidth > pillDomain.clientWidth + 1;
+  }
+
+  /** When the pill is narrower than its contents (a narrow Glance main
+   * pane), the address keeps priority and the rest gives way in order: fewer
+   * dots, with the rest folded into +N (the active tab always keeps its
+   * dot); then, with one dot left, Forward and Favorite hide. Only then may
+   * the address truncate; the Glance divider stops before it gets unreadable
+   * (glanceMinPrimaryWidth). Only a change of room, tab count, active tab or
+   * address starts again from the full Island, so an ordinary broadcast never
+   * rebuilds the dot row (see dotsSignature). */
   function fitIslandDots() {
-    const key = `${stripEl.clientWidth}|${glanceLayout?.primary?.width ?? ''}|${glanceLayout?.direction ?? ''}|${state.tabs.length}|${state.activeTabId}`;
+    const key = `${stripEl.clientWidth}|${glanceLayout?.primary?.width ?? ''}|${glanceLayout?.direction ?? ''}|${state.tabs.length}|${state.activeTabId}|${pillDomain.textContent}`;
     if (key !== dotFitKey) {
       dotFitKey = key;
       dotBudget = DOT_CAP;
@@ -439,7 +448,7 @@
         lastDotsSig = dotsSig;
         pillDots.replaceChildren(...islandDots());
       }
-      if (!pillOverflows()) return;
+      if (!pillOverflows() && !addressTruncated()) return;
       if (dotBudget > 1) {
         dotBudget -= 1;
       } else {
