@@ -31,7 +31,16 @@ export default defineConfig({
     inlineStylesheets: 'never',
   },
   vite: {
-    build: { assetsInlineLimit: 0 },
+    build: {
+      assetsInlineLimit: 0,
+      // Astro builds for 'esnext', which leaves Lightning CSS minifying with
+      // no browser targets. It then folds `animation-timeline` into the
+      // `animation` shorthand as the newest spec allows, but no browser
+      // accepts that yet, so every scroll-driven animation was dropped in the
+      // build (test/site/scroll-motion.test.mjs). These are Vite's own
+      // 'baseline-widely-available' targets.
+      cssTarget: ['chrome111', 'edge111', 'firefox114', 'safari16.4', 'ios16.4'],
+    },
     // Dev server: index.astro imports the ROOT package.json (JSON-LD
     // softwareVersion), which sits outside this Vite root.
     server: { fs: { allow: [fileURLToPath(new URL('..', import.meta.url))] } },
