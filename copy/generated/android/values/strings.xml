@@ -435,6 +435,7 @@
     <string name="menu_delete">Delete</string>
     <string name="menu_select_all">Select All</string>
     <string name="context_menu_open_link_in_new_tab">Open Link in New Tab</string>
+    <string name="context_menu_open_link_in_glance">Open Link in Glance</string>
     <string name="context_menu_copy_link_address">Copy Link Address</string>
     <string name="context_menu_open_image_in_new_tab">Open Image in New Tab</string>
     <string name="context_menu_copy_image">Copy Image</string>

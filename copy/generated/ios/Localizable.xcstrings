@@ -17839,6 +17839,48 @@
         }
       }
     },
+    "contextMenu.openLinkInGlance": {
+      "comment": "Page context menu item on a link, after Open Link in New Tab: the link opens as the Glance reference.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Link in Glance"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link in Glance öffnen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir enlace en Glance"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir le lien dans Glance"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri link in Glance"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir link no Glance"
+          }
+        }
+      }
+    },
     "contextMenu.copyLinkAddress": {
       "comment": "Page context menu command for a link.",
       "extractionState": "manual",

@@ -448,6 +448,7 @@
     <string name="menu_delete">Elimina</string>
     <string name="menu_select_all">Seleziona tutto</string>
     <string name="context_menu_open_link_in_new_tab">Apri link in una nuova scheda</string>
+    <string name="context_menu_open_link_in_glance">Apri link in Glance</string>
     <string name="context_menu_copy_link_address">Copia indirizzo del link</string>
     <string name="context_menu_open_image_in_new_tab">Apri immagine in una nuova scheda</string>
     <string name="context_menu_copy_image">Copia immagine</string>

@@ -1641,6 +1641,10 @@
     "message": "Open Link in New Tab",
     "note": "Page context menu command for a link."
   },
+  "contextMenu.openLinkInGlance": {
+    "message": "Open Link in Glance",
+    "note": "Page context menu item on a link, after Open Link in New Tab: the link opens as the Glance reference."
+  },
   "contextMenu.copyLinkAddress": {
     "message": "Copy Link Address",
     "note": "Page context menu command for a link."

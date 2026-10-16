@@ -448,6 +448,7 @@
     <string name="menu_delete">Excluir</string>
     <string name="menu_select_all">Selecionar tudo</string>
     <string name="context_menu_open_link_in_new_tab">Abrir link em nova aba</string>
+    <string name="context_menu_open_link_in_glance">Abrir link no Glance</string>
     <string name="context_menu_copy_link_address">Copiar endereço do link</string>
     <string name="context_menu_open_image_in_new_tab">Abrir imagem em nova aba</string>
     <string name="context_menu_copy_image">Copiar imagem</string>

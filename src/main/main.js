@@ -281,6 +281,7 @@ const {
   glanceLayoutPayload,
 } = require('./glance-focus');
 const { moveTab: resolveTabMove, reorderGroup: resolveGroupReorder } = require('./tab-order');
+const { openLinkInGlance: openLinkInGlanceWith } = require('./glance-open-link');
 const { acceptOverlayDragState, resetOverlayDragState, overlayDragActive } = require('./overlay-drag-state');
 const {
   installPlatformMainMenuShortcut,
@@ -6040,6 +6041,9 @@ initTabView({
   // Optional (not in tab-view's required list): a visible pane's main-frame
   // and same-document navigations dismiss a fill message about that pane.
   dismissFillStatusForNavigation: (owner, tabId) => fillStatusSurface?.invalidatePending(owner.id, tabId),
+  // Optional: the page context menu's Open Link in Glance (runs bound to the
+  // opener's window runtime, so createTab and setGlanceTab act there).
+  openLinkInGlance,
   // Optional ambient-hint triggers (fill-hint.js owns all revalidation).
   onFillHintLoad: (tab) => fillHintScheduler?.notePageLoad(tab),
   onFillHintInPageNavigation: (tab) => fillHintScheduler?.noteInPageNavigation(tab),
@@ -6638,6 +6642,13 @@ function promoteGlance() {
     rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.promoted', { title, other }));
   }
   return promoted;
+}
+
+/** Open Link in Glance, from the page context menu: the link becomes the
+ * reference, in the opener's profile, private flag and group. Same guards
+ * as Open Link in New Tab. */
+function openLinkInGlance(opener, url) {
+  return openLinkInGlanceWith(opener, url, { handOffToOs, isForbiddenTopLevelUrl, createTab, setGlanceTab });
 }
 
 function openGlancePicker(query = '') {
@@ -10700,6 +10711,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       getGlanceGeometry: () => hasLiveWindow() ? glanceGeometry() : null,
       // The divider's stops as main will use them: measured, else the last measured.
       getGlanceMinimums: () => ({ primary: glanceMinPrimaryWidth(), reference: glanceMinReferenceWidth() }),
+      openLinkInGlance: (tabId, url) => {
+        const opener = tabs.get(tabId);
+        return opener ? withWindowRuntime(windowRuntimes.runtimeForTab(opener) ?? rt(), () => openLinkInGlance(opener, url)) : false;
+      },
       groupTabByName, renameTab, beginRenameTab, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab,
       closeGroup, newTabUrl,
       getOverlayDragging: () => overlayDragActive(rt()),

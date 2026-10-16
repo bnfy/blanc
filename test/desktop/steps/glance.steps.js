@@ -2139,3 +2139,54 @@ Then('the picker says to open another tab and keeps the filter {string}', async 
   assert.equal(await page.locator('#glancePickerState').textContent(), 'Open another tab to use Glance');
   assert.equal(await page.inputValue('#glancePickerInput'), filter);
 });
+
+// ---- Open Link in Glance ----
+// The page context menu is native, so the step calls the same main-process
+// action the menu item calls, through the test hook.
+
+let glanceLinkCount = 0;
+async function openLinkInGlanceFrom(world, tabId) {
+  glanceLinkCount += 1;
+  const name = `glance-linked-${glanceLinkCount}`;
+  const before = new Set((await world.state()).tabs.map((tab) => tab.id));
+  assert.equal(await world.call('openLinkInGlance', tabId, world.fixtureUrl(name)), true);
+  const state = await world.waitForState((candidate) => candidate.tabs.some((tab) => !before.has(tab.id) && tab.title === name && !tab.isLoading));
+  return state.tabs.find((tab) => !before.has(tab.id) && tab.title === name).id;
+}
+
+When('I open a link from the main page in Glance', async function () {
+  this.glanceLinkedId = await openLinkInGlanceFrom(this, this.glanceMainId);
+});
+
+When('I open a link from the reference in Glance', async function () {
+  this.glancePreviousReferenceId = (await this.state()).glanceTabId;
+  this.glanceLinkedId = await openLinkInGlanceFrom(this, this.glancePreviousReferenceId);
+});
+
+Then('the linked page is the reference and the main page is untouched', async function () {
+  const state = await this.waitForState((candidate) => candidate.glanceTabId === this.glanceLinkedId);
+  assert.equal(state.activeTabId, this.glanceMainId);
+});
+
+Then('the linked page replaced the reference', async function () {
+  const state = await this.waitForState((candidate) => candidate.glanceTabId === this.glanceLinkedId);
+  assert.equal(state.activeTabId, this.glanceMainId);
+  assert.ok(state.tabs.some((tab) => tab.id === this.glancePreviousReferenceId), 'the previous reference was closed');
+});
+
+Given('a private main page and an ordinary tab', async function () {
+  this.glanceMainId = await this.call('openTab', this.fixtureUrl('glance-private-main'), { private: true });
+  this.glanceReferenceId = await this.call('openTab', this.fixtureUrl('glance-reference'));
+  await this.call('activateTab', this.glanceMainId, false);
+  await this.waitForState((state) => {
+    const main = state.tabs.find((tab) => tab.id === this.glanceMainId);
+    return main?.private === true && !main.isLoading && state.activeTabId === this.glanceMainId;
+  });
+});
+
+Then('the reference is a private tab in the private session', async function () {
+  const state = await this.waitForState((candidate) => candidate.glanceTabId === this.glanceLinkedId);
+  const reference = state.tabs.find((tab) => tab.id === this.glanceLinkedId);
+  assert.equal(reference.private, true);
+  assert.equal(reference.sessionKind, 'private');
+});

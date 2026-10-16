@@ -1585,6 +1585,10 @@
     "message": "Ouvrir le lien dans un nouvel onglet",
     "source": "sha256:f2910732c77c1df03fcb642c344a5b13976f53a769f74d5939890d36d87ffd6e"
   },
+  "contextMenu.openLinkInGlance": {
+    "message": "Ouvrir le lien dans Glance",
+    "source": "sha256:2ce16abaf444dbb0bdcec08573f69e6f89bf8a0d04a8ac3a6e6724fbef19bbcb"
+  },
   "contextMenu.copyLinkAddress": {
     "message": "Copier l’adresse du lien",
     "source": "sha256:bbb75b2920ecf9f3a1e840623ff46bbb93fb592c3104a9dbb0213f28dd7872f1"

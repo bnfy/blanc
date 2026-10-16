@@ -530,3 +530,17 @@ Feature: Glance reference pane
     Given a single ordinary tab for Glance
     When I run the slash command "/glance work"
     Then the picker says to open another tab and keeps the filter "work"
+
+  @F34-1 @F34 @D11
+  Scenario: Open Link in Glance makes the link the reference
+    Given two ordinary tabs in one workspace for Glance
+    When I open a link from the main page in Glance
+    Then the linked page is the reference and the main page is untouched
+    When I open a link from the reference in Glance
+    Then the linked page replaced the reference
+
+  @F34-1 @F34 @F11 @D11
+  Scenario: Open Link in Glance from a private page stays private
+    Given a private main page and an ordinary tab
+    When I open a link from the main page in Glance
+    Then the reference is a private tab in the private session

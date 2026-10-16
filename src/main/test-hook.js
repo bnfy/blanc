@@ -80,6 +80,7 @@ function install(refs) {
     getFocusedPaneTabId,
     getGlanceGeometry,
     getGlanceMinimums,
+    openLinkInGlance,
     groupTabByName,
     renameTab,
     beginRenameTab,
@@ -2071,6 +2072,9 @@ function install(refs) {
     // if the placeholder never rendered.
     // The computed motion of the Glance chrome: the strip's header and
     // divider, and the overlay's picker when one is up.
+    // The page context menu's Open Link in Glance, which Playwright cannot
+    // click (a native menu): the same main-process action the item calls.
+    openLinkInGlance(tabId, url) { return openLinkInGlance(String(tabId), String(url)); },
     async glanceHeaderMotion() {
       const strip = getChromeWebContents();
       if (!strip) return null;
