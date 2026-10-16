@@ -59,6 +59,7 @@ const descriptions = [
   { id: 'long', label: 'Long', text: longDescription },
 ].map((entry) => ({ ...entry, words: entry.text.split(/\s+/).length }));
 
+const FACT_SHEET_URL = 'https://github.com/bnfy/blanc/blob/main/docs/press/fact-sheet.md';
 const ANNOUNCEMENT_URL = 'https://github.com/bnfy/blanc/blob/main/docs/press/press-release.md';
 ---
 <BaseLayout
@@ -202,6 +203,7 @@ const ANNOUNCEMENT_URL = 'https://github.com/bnfy/blanc/blob/main/docs/press/pre
 
     <ul class="media-kit-links">
       <li><a href={CHECKSUM_URL}>Verify with SHA-256</a></li>
+      <li><a href={FACT_SHEET_URL}>Read the press fact sheet</a></li>
       <li><a href={ANNOUNCEMENT_URL}>Read the 1.0 announcement</a></li>
     </ul>
   </section>
