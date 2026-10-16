@@ -30,7 +30,10 @@ After({ tags: '@glance' }, async function () {
   await restore(async () => {
     if (!this.glanceRealPlatform) return;
     const chrome = await mainChromePage();
-    await chrome.evaluate((real) => { document.documentElement.dataset.platform = real; }, this.glanceRealPlatform);
+    await chrome.evaluate((real) => {
+      document.documentElement.dataset.platform = real;
+      document.querySelectorAll('#windowControls [data-glance-stand-in]').forEach((button) => button.remove());
+    }, this.glanceRealPlatform);
     this.glanceRealPlatform = null;
   });
   if (this.glanceExtraWindowId) await restore(() => this.call('closeWindowRuntime', this.glanceExtraWindowId));
@@ -1329,7 +1332,10 @@ When('I switch the Glance window to vertical tabs', async function () {
 Then('the Glance window returns to its usual layout', async function () {
   if (this.glanceRealPlatform) {
     const chrome = await mainChromePage();
-    await chrome.evaluate((real) => { document.documentElement.dataset.platform = real; }, this.glanceRealPlatform);
+    await chrome.evaluate((real) => {
+      document.documentElement.dataset.platform = real;
+      document.querySelectorAll('#windowControls [data-glance-stand-in]').forEach((button) => button.remove());
+    }, this.glanceRealPlatform);
     this.glanceRealPlatform = null;
   }
   await this.call('setTabLayout', 'island');
@@ -1523,6 +1529,55 @@ Then("the Island's address is whole and its controls fit", async function () {
   } finally {
     await chrome.evaluate(() => document.getElementById('glance-font-swap-probe')?.remove());
   }
+});
+
+// On macOS the strip is told it is Windows and given three stand-in
+// buttons where Windows and Linux draw minimize, maximize and close; on those
+// platforms the real controls are already there. A 1px nudge makes the strip
+// re-fit and re-measure under those rules.
+When('the strip draws the Windows and Linux window controls', async function () {
+  const chrome = await mainChromePage();
+  this.glanceRealPlatform = await chrome.evaluate(() => {
+    const real = document.documentElement.dataset.platform;
+    if (real === 'darwin') {
+      document.documentElement.dataset.platform = 'win32';
+      document.getElementById('windowControls').replaceChildren(...['–', '□', '✕'].map((text, i) => {
+        const button = document.createElement('button');
+        button.textContent = text;
+        button.dataset.glanceStandIn = '';
+        if (i === 2) button.className = 'close-btn';
+        return button;
+      }));
+    }
+    return real;
+  });
+  const { glanceGeometry } = await this.state();
+  await this.call('setWindowContentSize', glanceGeometry.page.width + 1, 800);
+  await this.waitForState((state) => state.glanceGeometry?.page.width === glanceGeometry.page.width + 1);
+  await new Promise((resolve) => setTimeout(resolve, 300));
+});
+
+When('I drag the Glance divider as far right as it goes', async function () {
+  await this.call('resizeGlance', { x: 100000, y: 200 });
+  await this.waitForState((state) => state.glanceGeometry?.ratio === state.glanceGeometry?.maxRatio);
+  await new Promise((resolve) => setTimeout(resolve, 200));
+});
+
+Then("the Glance header's buttons are clear of the window controls", async function () {
+  const chrome = await mainChromePage();
+  const result = await chrome.evaluate(() => {
+    const header = document.getElementById('glanceHeader').getBoundingClientRect();
+    const controls = document.getElementById('windowControls').getBoundingClientRect();
+    const crowded = [...document.querySelectorAll('#glanceHeader button')]
+      .map((button) => ({ id: button.id, rect: button.getBoundingClientRect() }))
+      .filter(({ rect }) => rect.width > 0
+        && (rect.right > controls.left - 1 || rect.left < header.left - 0.5 || rect.right > header.right + 0.5))
+      .map(({ id, rect }) => `${id} ${Math.round(rect.left)}–${Math.round(rect.right)}`);
+    return { crowded, controls: `${Math.round(controls.left)}–${Math.round(controls.right)}` };
+  });
+  assert.deepEqual(result.crowded, [], `header buttons under the window controls (${result.controls})`);
+  const { glanceGeometry } = await this.state();
+  assert.equal(glanceGeometry.direction, 'horizontal');
 });
 
 When('I open Glance in a new window just wide enough to stay side by side', async function () {

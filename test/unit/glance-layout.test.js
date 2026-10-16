@@ -121,3 +121,20 @@ test('the divider stops before the reference is narrower than 300px', () => {
   // Stacked layouts keep their own range.
   assert.equal(calculateGlanceLayout(page(700), 0.78).maxRatio, 0.78);
 });
+
+test('a measured reference minimum replaces the 300px default', () => {
+  const page = (width) => ({ x: 0, y: CHROME_HEIGHT, width, height: 700 });
+  // Windows/Linux: the compact header plus the window-control space needs 380px.
+  const capped = calculateGlanceLayout(page(1200), 0.78, 0, 380);
+  assert.equal(capped.maxRatio, (1188 - 380) / 1188);
+  assert.equal(capped.glanceContent.width, 380);
+  assert.equal(ratioForGlanceDivider(page(1200), { x: 5000 }, 'horizontal', 0, 380), (1188 - 380) / 1188);
+  // Side by side needs the main pane's minimum plus the reference's: 1000 - 12
+  // - 600 leaves 388px, short of a 400px reference.
+  assert.equal(calculateGlanceLayout(page(1000), 0.62, 600, 400).direction, 'vertical');
+  assert.equal(calculateGlanceLayout(page(1000), 0.62, 600, 300).direction, 'horizontal');
+  // A smaller measured need (macOS) lets the reference go narrower than 300px.
+  assert.equal(calculateGlanceLayout(page(1000), 0.78, 0, 240).glanceContent.width, 240);
+  // Unmeasured or invalid falls back to the 300px default.
+  assert.equal(calculateGlanceLayout(page(1000), 0.78, 0, Number.NaN).glanceContent.width, 300);
+});

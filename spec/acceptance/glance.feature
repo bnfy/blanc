@@ -384,3 +384,12 @@ Feature: Glance reference pane
     And I open Glance in a new window just wide enough to stay side by side
     Then its first layout already stops the divider at the Island's minimum
     And the Glance window returns to its usual layout
+
+  @F34-1 @F34 @D11
+  Scenario: The Glance header stays clear of the Windows and Linux window controls at its narrowest
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And the strip draws the Windows and Linux window controls
+    And I drag the Glance divider as far right as it goes
+    Then the Glance header's buttons are clear of the window controls
+    And the Glance window returns to its usual layout

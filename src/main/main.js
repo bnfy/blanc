@@ -2951,6 +2951,8 @@ function activeGlanceTab() {
  * not measured its own yet starts from it, so its first Glance layout does
  * not lay out side by side and then flip once its strip reports. */
 let lastIslandMinPrimaryWidth = 0;
+/** The same for the reference's minimum (the compact Glance header). */
+let lastGlanceMinReferenceWidth = 0;
 
 /** The narrowest main pane the divider allows, in px: what the strip last
  * measured the slim Island to need, chips and clearance included. */
@@ -2958,9 +2960,16 @@ function glanceMinPrimaryWidth() {
   return rt().islandMinPrimaryWidth || lastIslandMinPrimaryWidth;
 }
 
+/** The narrowest reference the divider allows, in px: what the strip last
+ * measured the compact Glance header to need (0 = not yet; the layout then
+ * uses its default). */
+function glanceMinReferenceWidth() {
+  return rt().glanceMinReferenceWidth || lastGlanceMinReferenceWidth;
+}
+
 function glanceGeometry(layout = currentChromeLayout()) {
   if (!activeGlanceTab()) return null;
-  return calculateGlanceLayout(layout.pageBounds, rt().glanceRatio, glanceMinPrimaryWidth());
+  return calculateGlanceLayout(layout.pageBounds, rt().glanceRatio, glanceMinPrimaryWidth(), glanceMinReferenceWidth());
 }
 
 function currentTabBounds(tab) {
@@ -6637,7 +6646,7 @@ function resizeGlanceAt(point) {
   const layout = currentChromeLayout();
   const glance = glanceGeometry(layout);
   if (!glance) return null;
-  const ratio = ratioForGlanceDivider(layout.pageBounds, point, glance.direction, glanceMinPrimaryWidth());
+  const ratio = ratioForGlanceDivider(layout.pageBounds, point, glance.direction, glanceMinPrimaryWidth(), glanceMinReferenceWidth());
   if (ratio == null) return null;
   rt().glanceRatio = ratio;
   resizeActiveView();
@@ -7823,14 +7832,26 @@ function registerIpcHandlers() {
   chromeHandle('tabs:find-stop', (_e, id) => liveContents(tabs.get(id))?.stopFindInPage('clearSelection'));
 
   chromeOn('chrome:island-rect', (event, rect) => {
-    // The strip measures the narrowest main pane its Island needs (renderer.js
-    // measureIslandFloor); the Glance divider stops there.
-    const floor = Number(rect?.minPrimaryWidth);
-    if (event.sender === rt().window?.webContents && Number.isFinite(floor) && floor >= 0 && floor <= 4000
-        && Math.round(floor) !== rt().islandMinPrimaryWidth) {
-      rt().islandMinPrimaryWidth = Math.round(floor);
-      lastIslandMinPrimaryWidth = rt().islandMinPrimaryWidth;
-      if (activeGlanceTab()) resizeActiveView();
+    // The strip measures the narrowest main pane its Island needs and the
+    // narrowest reference its Glance header needs (renderer.js
+    // measureGlanceFloors); the Glance divider stops at both.
+    if (event.sender === rt().window?.webContents) {
+      const measured = (value) => {
+        const width = Number(value);
+        return Number.isFinite(width) && width >= 0 && width <= 4000 ? Math.round(width) : null;
+      };
+      const primary = measured(rect?.minPrimaryWidth);
+      const reference = measured(rect?.minReferenceWidth);
+      let changed = false;
+      if (primary != null && primary !== rt().islandMinPrimaryWidth) {
+        rt().islandMinPrimaryWidth = lastIslandMinPrimaryWidth = primary;
+        changed = true;
+      }
+      if (reference != null && reference !== rt().glanceMinReferenceWidth) {
+        rt().glanceMinReferenceWidth = lastGlanceMinReferenceWidth = reference;
+        changed = true;
+      }
+      if (changed && activeGlanceTab()) resizeActiveView();
     }
     const ok = rect && ['x', 'y', 'width', 'height'].every((f) => Number.isFinite(rect[f]));
     rt().islandRect = ok && rect.width > 0 ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : null;

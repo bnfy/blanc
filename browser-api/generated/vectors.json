@@ -1554,7 +1554,8 @@
                 "bottom": 1,
                 "closing": true
               },
-              "minPrimaryWidth": 1
+              "minPrimaryWidth": 1,
+              "minReferenceWidth": 1
             }
           ],
           "sends": [
@@ -1578,7 +1579,8 @@
                     "bottom": 1,
                     "closing": true
                   },
-                  "minPrimaryWidth": 1
+                  "minPrimaryWidth": 1,
+                  "minReferenceWidth": 1
                 }
               ]
             }

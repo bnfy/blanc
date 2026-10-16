@@ -57,6 +57,10 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     /** The narrowest side-by-side main pane that holds the slim Island with
      * a readable address, as the strip last measured it (0 until then). */
     islandMinPrimaryWidth: 0,
+    /** The narrowest reference that holds the Glance header at its most
+     * compact, window-control space included, as the strip last measured it
+     * (0 until then; glance-layout.js then uses its 300px default). */
+    glanceMinReferenceWidth: 0,
     /** Reopen-closed history belongs to this native workspace, not the app
      * process. Entries remain memory-only, matching the pre-M2 behavior, and
      * the newest may hold the closed tab's still-live view (spec §2.1). */

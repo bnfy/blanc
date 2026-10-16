@@ -11,10 +11,16 @@ const MAX_GLANCE_RATIO = 0.78;
 const MIN_SIDE_BY_SIDE_WIDTH = 800;
 const DIVIDER_SIZE = 12;
 const STACKED_HEADER_HEIGHT = 44;
-/** Side by side needs room for a usable reference beside the main pane's
- * minimum: below this the reference header compacts past its last step
- * (styles.css, @container max-width: 300px), so Glance stacks instead. */
+/** The reference's minimum until the strip has measured what its header
+ * needs (renderer.js measureGlanceFloors): the header's last compaction step
+ * (styles.css, @container max-width: 300px). */
 const MIN_REFERENCE_WIDTH = 300;
+
+/** A measured reference minimum, or the default when none is known. */
+function referenceMinimum(minReferenceWidth) {
+  const width = Number(minReferenceWidth);
+  return Number.isFinite(width) && width > 0 ? width : MIN_REFERENCE_WIDTH;
+}
 
 const dimension = (value) => (
   Number.isFinite(value) ? Math.max(0, Math.round(value)) : 0
@@ -36,10 +42,11 @@ function minimumGlanceRatio(usable, minPrimaryWidth) {
 }
 
 /** The largest main-pane share the divider allows: MAX_GLANCE_RATIO, or less
- * so the reference keeps MIN_REFERENCE_WIDTH (the mirror of the minimum). */
-function maximumGlanceRatio(usable) {
+ * so the reference keeps its minimum (the mirror of the main pane's). */
+function maximumGlanceRatio(usable, minReferenceWidth) {
   if (!(usable > 0)) return MAX_GLANCE_RATIO;
-  return Math.max(MIN_GLANCE_RATIO, Math.min(MAX_GLANCE_RATIO, (usable - MIN_REFERENCE_WIDTH) / usable));
+  const room = (usable - referenceMinimum(minReferenceWidth)) / usable;
+  return Math.max(MIN_GLANCE_RATIO, Math.min(MAX_GLANCE_RATIO, room));
 }
 
 function normalizedPageBounds(pageBounds) {
@@ -57,16 +64,16 @@ function normalizedPageBounds(pageBounds) {
  * the existing chrome strip for the header; narrow windows reserve a compact
  * header between the divider and lower page so ownership remains clear.
  */
-function calculateGlanceLayout(pageBounds, ratio = DEFAULT_GLANCE_RATIO, minPrimaryWidth = 0) {
+function calculateGlanceLayout(pageBounds, ratio = DEFAULT_GLANCE_RATIO, minPrimaryWidth = 0, minReferenceWidth = MIN_REFERENCE_WIDTH) {
   const page = normalizedPageBounds(pageBounds);
 
   const sideBySideDivider = Math.min(DIVIDER_SIZE, page.width);
   const roomBesideMinimum = page.width - sideBySideDivider - Math.max(0, Number(minPrimaryWidth) || 0);
-  if (page.width >= MIN_SIDE_BY_SIDE_WIDTH && roomBesideMinimum >= MIN_REFERENCE_WIDTH) {
+  if (page.width >= MIN_SIDE_BY_SIDE_WIDTH && roomBesideMinimum >= referenceMinimum(minReferenceWidth)) {
     const divider = sideBySideDivider;
     const usable = Math.max(0, page.width - divider);
     const minRatio = minimumGlanceRatio(usable, minPrimaryWidth);
-    const maxRatio = Math.max(minRatio, maximumGlanceRatio(usable));
+    const maxRatio = Math.max(minRatio, maximumGlanceRatio(usable, minReferenceWidth));
     const resolvedRatio = Math.min(maxRatio, Math.max(minRatio, normalizeGlanceRatio(ratio)));
     const primaryWidth = Math.round(usable * resolvedRatio);
     const glanceContent = {
@@ -143,7 +150,7 @@ function calculateGlanceLayout(pageBounds, ratio = DEFAULT_GLANCE_RATIO, minPrim
 
 /** Convert a renderer-reported divider coordinate back into a safe ratio;
  * `null` when the point carries no usable coordinate. */
-function ratioForGlanceDivider(pageBounds, point, direction, minPrimaryWidth = 0) {
+function ratioForGlanceDivider(pageBounds, point, direction, minPrimaryWidth = 0, minReferenceWidth = MIN_REFERENCE_WIDTH) {
   const page = normalizedPageBounds(pageBounds);
   const horizontal = direction !== 'vertical';
   const divider = horizontal
@@ -161,7 +168,7 @@ function ratioForGlanceDivider(pageBounds, point, direction, minPrimaryWidth = 0
   const ratio = normalizeGlanceRatio((coordinate - origin) / available);
   if (!horizontal) return ratio;
   const minRatio = minimumGlanceRatio(available, minPrimaryWidth);
-  return Math.min(Math.max(minRatio, maximumGlanceRatio(available)), Math.max(minRatio, ratio));
+  return Math.min(Math.max(minRatio, maximumGlanceRatio(available, minReferenceWidth)), Math.max(minRatio, ratio));
 }
 
 module.exports = {

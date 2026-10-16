@@ -592,6 +592,8 @@ export interface IslandRectReport {
   spacesAnchor?: SpacesAnchor;
   /** With Glance side by side: the narrowest main pane that holds the slim Island with a readable address, its chips and clearance included. Main stops the divider there. */
   minPrimaryWidth?: number;
+  /** With Glance side by side: the narrowest reference that holds the Glance header at its most compact, including the window-control space on Windows and Linux. Main stops the divider there. */
+  minReferenceWidth?: number;
 }
 
 /** Where the Spaces menu opens: the space mark's left and bottom edges in window coordinates. Main validates both. */

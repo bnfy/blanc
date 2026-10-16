@@ -433,7 +433,7 @@
    * dots, with the rest folded into +N (the active tab always keeps its
    * dot); then, with one dot left, Forward and Favorite hide. Only then may
    * the address truncate; the Glance divider stops before it gets unreadable
-   * (measureIslandFloor). Any change to the room or to what the Island shows
+   * (measureGlanceFloors). Any change to the room or to what the Island shows
    * starts again from the full Island, so it grows back when room returns;
    * when nothing changed, the last fit stands and nothing is measured. */
   function fitIslandDots() {
@@ -459,7 +459,7 @@
         break;
       }
     }
-    if (refit) measureIslandFloor();
+    if (refit) measureGlanceFloors();
   }
 
   /** Everything the fit depends on except the dots themselves: the room the
@@ -503,13 +503,15 @@
     return islandPill.getBoundingClientRect().width / (1 + ISLAND_SCALE * k);
   }
 
-  /** The narrowest side-by-side main pane that holds the slim Island (no
-   * Forward or Favorite, and no dot row: Glance hides it) with about ten
-   * characters of address, plus
-   * the clearance the stylesheet gives the Island in this layout. Measured
-   * on the live pill, so every chip on show counts and the clearance stays
-   * defined in one place (styles.css). Main stops the Glance divider there. */
-  function measureIslandFloor() {
+  /** With Glance side by side, measure the two minimums main stops the
+   * divider at. The main pane's: the slim Island (no Forward or Favorite, and
+   * no dot row: Glance hides it) with about ten characters of address, plus
+   * the clearance the stylesheet gives the Island in this layout. The
+   * reference's: the Glance header at its most compact, with the padding the
+   * stylesheet gives it (which reserves the window controls on Windows and
+   * Linux). Measured on the live elements, so every chip, label and language
+   * counts and the spacing stays defined in one place (styles.css). */
+  function measureGlanceFloors() {
     if (glanceLayout?.direction !== 'horizontal' || !islandPill.getBoundingClientRect().width) return;
     // The room the stylesheet allows: a filler grows the pill to its max-width.
     const filler = document.createElement('span');
@@ -523,6 +525,10 @@
     islandPill.classList.remove('measuring');
     islandPill.classList.toggle('slim', wasSlim);
     islandFloor = Math.ceil(glanceLayout.primary.width - room + needed);
+    glanceHeader.classList.add('measuring');
+    const header = glanceHeader.getBoundingClientRect().width;
+    glanceHeader.classList.remove('measuring');
+    referenceFloor = Math.ceil(header - glanceLayout.divider.width);
   }
 
   /** With Glance open the fill chip follows the focused pane, like the fill. */
@@ -674,9 +680,11 @@
    * narrow for its controls (fitIslandDots). */
   let dotBudget = DOT_CAP;
   let dotFitKey = '';
-  /** The last measured main-pane minimum (measureIslandFloor), reported to
+  /** The last measured main-pane minimum (measureGlanceFloors), reported to
    * main with the Island's rectangle. */
   let islandFloor = null;
+  /** The last measured reference minimum (the compact Glance header). */
+  let referenceFloor = null;
 
   /** The resting Island is current context, not a false total-tab map:
    * standalone pins stay globally reachable, followed by the active section
@@ -1324,6 +1332,7 @@
       ...(trigger ? { shieldAnchor: shieldAnchorFor(trigger) } : {}),
       ...(pillSpace.getAttribute('aria-expanded') === 'true' ? { spacesAnchor: spacesAnchor() } : {}),
       ...(islandFloor != null ? { minPrimaryWidth: islandFloor } : {}),
+      ...(referenceFloor != null ? { minReferenceWidth: referenceFloor } : {}),
     };
     const serialized = JSON.stringify(rect);
     if (serialized === lastIslandReport) return;

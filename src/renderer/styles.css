@@ -396,6 +396,17 @@ button svg {
 }
 .glance-header[data-direction="vertical"] .glance-eyebrow { display: none; }
 
+/* Measuring the Glance header (renderer.js measureGlanceFloors): the same
+   compaction as the two container queries below, at the width its contents
+   need. Containment is lifted so max-content sees the children. */
+.glance-header.measuring { container-type: normal; width: max-content !important; }
+.glance-header.measuring .glance-eyebrow { display: none; }
+.glance-header.measuring .glance-copy { gap: 8px; flex: 0 0 auto; }
+.glance-header.measuring #glanceTitle { display: none; }
+.glance-header.measuring .glance-promote { width: 30px; padding: 0; }
+.glance-header.measuring .glance-promote svg { display: block; }
+.glance-header.measuring .glance-promote span { display: none; }
+
 @container (max-width: 360px) {
   .glance-eyebrow { display: none; }
   /* Back and Reload still sit beside the title. */
@@ -1179,7 +1190,7 @@ body > .tab-drag-ghost[aria-hidden="true"] {
 .pill-btn[hidden] { display: none; }
 /* A slim Island (a narrow Glance main pane) drops Forward and Favorite. */
 #islandPill.slim .pill-slim-hide { display: none; }
-/* Measuring the Island (renderer.js measureIslandFloor): a filler shows the
+/* Measuring the Island (renderer.js measureGlanceFloors): a filler shows the
    room the max-width rules allow; the measuring state shows what the slim
    Island needs with about ten characters of address. */
 .island-measure-filler { flex: 0 0 4000px; height: 1px; }
