@@ -2320,6 +2320,22 @@
     "message": "Sync is off.",
     "note": "Profile Sync status when syncing is requested while it is off."
   },
+  "settings.sync.recovery.dialogMessage": {
+    "message": "Copy your sync recovery code?",
+    "note": "Settings → Sync → Copy recovery code: native dialog title."
+  },
+  "settings.sync.recovery.dialogDetail": {
+    "message": "Anyone with this code can read and change your synced data. Paste it into your password manager now, and nowhere else.",
+    "note": "Settings → Sync → Copy recovery code: native dialog body."
+  },
+  "settings.sync.recovery.dialogCopy": {
+    "message": "Copy to Clipboard",
+    "note": "Settings → Sync → Copy recovery code: native dialog confirm button."
+  },
+  "settings.sync.recovery.cancel": {
+    "message": "Cancel",
+    "note": "Settings → Sync → Copy recovery code: native dialog cancel button."
+  },
   "sync.error.syncOn": {
     "message": "Sync is already on. To move this device to a different sync, use Connect to a different sync.",
     "note": "Sync: a pairing code was entered on the setup card while Sync was already on."

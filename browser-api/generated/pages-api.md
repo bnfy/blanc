@@ -86,6 +86,12 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `settings.syncDisable` | invoke | `pages:settings:sync-disable` | settings | Turn off Profile Sync. |
 | `settings.syncNow` | invoke | `pages:settings:sync-now` | settings | Sync now, then return the new status. |
 | `settings.syncTabsSet` | invoke | `pages:settings:sync-tabs-set` | settings | Turn open-tab sync on or off; main coerces to boolean. |
+| `settings.syncPairBegin` | invoke | `pages:settings:sync-pair-begin` | settings | Park this device's wrapped sync secret under a fresh pairing code; returns the code and expiry for display. No key crosses. |
+| `settings.syncPairCancel` | invoke | `pages:settings:sync-pair-cancel` | settings | Retract the current pairing code. |
+| `settings.syncPairState` | invoke | `pages:settings:sync-pair-state` | settings | The live pairing code and expiry, so a reopened Settings page can resume the countdown. |
+| `settings.syncJoinCode` | invoke | `pages:settings:sync-join-code` | settings | Join an existing sync from the off state with a pairing or recovery code; status-only reply. |
+| `settings.syncSwitchCode` | invoke | `pages:settings:sync-switch-code` | settings | Leave the current sync for the one behind a code, optionally erasing the old server copy; status-only reply. |
+| `settings.syncRecoveryCodeCopy` | invoke | `pages:settings:sync-recovery-code-copy` | settings | Copy the recovery code to the clipboard from main behind a native dialog. The reply never carries the code. |
 | `settings.welcomeTour` | invoke | `pages:settings:welcome-tour` | settings | Replay the welcome tour. |
 | `settings.onePasswordStatus` | invoke | `pages:settings:onepassword-status` | settings | 1Password fill status. Main registers this handler only when 1Password fill is available. |
 | `settings.onePasswordVerify` | invoke | `pages:settings:onepassword-verify` | settings | Verify a 1Password account. Registered only when 1Password fill is available. |

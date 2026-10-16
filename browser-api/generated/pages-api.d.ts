@@ -207,6 +207,18 @@ export interface SettingsPagesAPI {
     syncNow: () => Promise<unknown>;
     /** Turn open-tab sync on or off; main coerces to boolean. IPC: invoke `pages:settings:sync-tabs-set`. */
     syncTabsSet: (on: unknown) => Promise<unknown>;
+    /** Park this device's wrapped sync secret under a fresh pairing code; returns the code and expiry for display. No key crosses. IPC: invoke `pages:settings:sync-pair-begin`. */
+    syncPairBegin: () => Promise<unknown>;
+    /** Retract the current pairing code. IPC: invoke `pages:settings:sync-pair-cancel`. */
+    syncPairCancel: () => Promise<unknown>;
+    /** The live pairing code and expiry, so a reopened Settings page can resume the countdown. IPC: invoke `pages:settings:sync-pair-state`. */
+    syncPairState: () => Promise<unknown>;
+    /** Join an existing sync from the off state with a pairing or recovery code; status-only reply. IPC: invoke `pages:settings:sync-join-code`. */
+    syncJoinCode: (code: unknown) => Promise<unknown>;
+    /** Leave the current sync for the one behind a code, optionally erasing the old server copy; status-only reply. IPC: invoke `pages:settings:sync-switch-code`. */
+    syncSwitchCode: (payload: unknown) => Promise<unknown>;
+    /** Copy the recovery code to the clipboard from main behind a native dialog. The reply never carries the code. IPC: invoke `pages:settings:sync-recovery-code-copy`. */
+    syncRecoveryCodeCopy: () => Promise<unknown>;
     /** Replay the welcome tour. IPC: invoke `pages:settings:welcome-tour`. */
     welcomeTour: () => Promise<unknown>;
     /** 1Password fill status. Main registers this handler only when 1Password fill is available. IPC: invoke `pages:settings:onepassword-status`. */
