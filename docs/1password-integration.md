@@ -115,8 +115,11 @@ this device and are excluded from Profile Sync.
   probes both visible panes, and the Island's chip shows the focused pane's
   result. At every checkpoint the flow re-verifies that its tab is still one
   of the window's two visible panes, and the picker anchors at the field
-  inside that pane's own view bounds. The broker, the credential path, the
-  explicit-invoke rule and the renderer-free boundary are unchanged.
+  inside that pane's own view bounds. A capsule message belongs to the pane
+  it is about: that pane's main-frame or same-document navigation dismisses
+  it, the other pane's does not (`invalidatePending(runtimeId, tabId)`). The
+  broker, the credential path, the explicit-invoke rule and the
+  renderer-free boundary are unchanged.
 
 ## Release gates
 

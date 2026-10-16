@@ -757,7 +757,8 @@ From the desktop `DEFAULTS`:
   Glance collapses. ⌘L and the Island, New Tab, ⌘1–9, the shield popover, the
   blocked count and the tab-scoped slash commands stay on the main page. The
   header's eyebrow and bottom hairline brighten while the reference holds
-  focus.
+  focus. A 1Password message belongs to the pane it is about: only that
+  pane navigating dismisses it, not the other pane.
 - A tab the reference opens in the foreground (`target=_blank`,
   `window.open`, Cmd/Ctrl+Shift-click) becomes the reference; the previous
   reference stays open as an ordinary tab and the main page is untouched.

@@ -6031,9 +6031,9 @@ initTabView({
   windowRuntimes,
   bindWindowRuntime,
   tabIdByWebContentsId,
-  // Optional (not in tab-view's required list): active-tab main-frame and
-  // same-document navigations dismiss that window's fill capsule.
-  dismissFillStatusForNavigation: (owner) => fillStatusSurface?.invalidatePending(owner.id),
+  // Optional (not in tab-view's required list): a visible pane's main-frame
+  // and same-document navigations dismiss a fill message about that pane.
+  dismissFillStatusForNavigation: (owner, tabId) => fillStatusSurface?.invalidatePending(owner.id, tabId),
   // Optional ambient-hint triggers (fill-hint.js owns all revalidation).
   onFillHintLoad: (tab) => fillHintScheduler?.notePageLoad(tab),
   onFillHintInPageNavigation: (tab) => fillHintScheduler?.noteInPageNavigation(tab),

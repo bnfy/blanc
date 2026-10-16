@@ -1630,3 +1630,38 @@ Then('the Island shows as many tab dots as before', async function () {
     (value) => !value.downloads && value.dots === this.islandBefore.dots && value.slim === this.islandBefore.slim,
     `the Island back to ${this.islandBefore.dots} dots`);
 });
+
+// ---- A 1Password message belongs to one pane ----
+
+async function navigatePane(world, tabId, name) {
+  const url = world.fixtureUrl(name);
+  // A page-initiated navigation, like following a link.
+  try {
+    await world.call('workspacePageScript', tabId, `location.assign(${JSON.stringify(url)})`);
+  } catch { /* the script's own page is going away */ }
+  await world.waitForState((state) => {
+    const tab = state.tabs.find((candidate) => candidate.id === tabId);
+    return tab?.title === name && !tab.isLoading;
+  });
+}
+
+When('the reference pane navigates to another page', async function () {
+  await navigatePane(this, this.glanceReferenceId, 'glance-reference-next');
+});
+
+When('the main page navigates to another page', async function () {
+  await navigatePane(this, this.glanceMainId, 'glance-main-next');
+});
+
+Then('the fill question is still showing', async function () {
+  // A dismissal comes at the navigation's start, long before the page finished
+  // loading (which the step before waited for), so one read is conclusive.
+  const state = await this.call('fillStatusState');
+  assert.equal(state.showing, true, `the question was dismissed by the other pane: ${JSON.stringify(state)}`);
+  assert.equal(state.attached, true);
+});
+
+Then('the fill question is gone', async function () {
+  await waitForValue(() => this.call('fillStatusState'),
+    (state) => !state.showing && !state.attached && state.lastOutcome === 'cancel', 'the question dismissed');
+});

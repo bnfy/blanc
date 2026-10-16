@@ -10,8 +10,10 @@
 // loadFailed) carries (runtimeId, viewId) and acts only when BOTH match the
 // active record — runtime scoping alone would let a recreated view in the
 // same window fail late and kill its replacement's message.
-// invalidatePending is runtime-only: surface transitions are about the
-// window, not a particular view.
+// invalidatePending is runtime-scoped: surface transitions are about the
+// window, not a particular view. A pane's navigation adds the pane's tab id,
+// because with Glance open the window shows two pages and the message is
+// about one of them.
 
 const { FILL_KINDS, MODES } = require('./fill-status-kinds');
 
@@ -199,8 +201,12 @@ function createFillStatusSurface({
       else settle({ outcome: 'cancel', sendHide: false });
     },
 
-    invalidatePending(runtimeId) {
+    /** A successor surface in this window cancels the message. With a tabId
+     * (a pane's main-frame navigation) only a message about that tab: the
+     * other pane's page is still there, and a popup window's never navigated. */
+    invalidatePending(runtimeId, tabId) {
       if (!active || active.runtimeId !== runtimeId) return;
+      if (tabId != null && active.target?.tabId !== tabId) return;
       // Successor surface: cancel without stealing focus back.
       settle({ outcome: 'cancel' });
     },

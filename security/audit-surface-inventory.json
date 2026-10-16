@@ -220,7 +220,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "ccaf3fd01755883b9d11e4668cda8e73d58a089d1269439533e4cbc37da9433a",
+      "sha256": "9bd51a486255d93331f8af6e99232855d8c0d7d26a4c7fb1a675504d675a4b4b",
       "literalChannels": [
         "activate",
         "before-input-event",
@@ -847,7 +847,7 @@
     },
     {
       "file": "src/main/tab-view.js",
-      "sha256": "7bd787f8902c5725ee53a300d17a25bb4c3abeba3105afd26232930db78e29f3",
+      "sha256": "be1c3744f287ef4382bc47c731a6a83cde2de70974ab5678e1490028866db19e",
       "literalChannels": [
         "audio-state-changed",
         "before-input-event",

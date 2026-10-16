@@ -386,10 +386,10 @@ function wireTabView(tab, view, { owner, adopted }) {
   wc.on('did-navigate-in-page', boundToTab((_e, url, isMainFrame) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
     if (isMainFrame) tab.navEpoch++;
-    // A same-document navigation of the active tab replaces what a fill
-    // message was about — dismiss it (runtime-scoped; optional dep), and
+    // A same-document navigation of a visible pane replaces what a fill
+    // message about that pane was about — dismiss it (optional dep), and
     // re-probe the new route for the ambient hint.
-    if (isMainFrame && isVisiblePaneId(getOwner(), id)) deps.dismissFillStatusForNavigation?.(getOwner());
+    if (isMainFrame && isVisiblePaneId(getOwner(), id)) deps.dismissFillStatusForNavigation?.(getOwner(), id);
     if (isMainFrame) deps.onFillHintInPageNavigation?.(tab);
     syncNavState();
     if (isMainFrame && tab.historyEligible && !noteWakeSuppressed(tab)) history.addVisit(url, wc.getTitle());
@@ -402,11 +402,11 @@ function wireTabView(tab, view, { owner, adopted }) {
       tab.navEpoch++;
       if (!String(url).startsWith('blanc://error')) tab.certificateError = null;
     }
-    // Main-frame navigation of either visible pane dismisses a visible fill
-    // message immediately — a decision must not stay actionable, nor an
-    // error notice persist, over the successor page (same posture as the
-    // shield dismissal below).
-    if (isMainFrame && isVisiblePaneId(getOwner(), id)) deps.dismissFillStatusForNavigation?.(getOwner());
+    // Main-frame navigation of a visible pane dismisses a visible fill
+    // message about that pane immediately — a decision must not stay
+    // actionable, nor an error notice persist, over the successor page (same
+    // posture as the shield dismissal below). The other pane's message stays.
+    if (isMainFrame && isVisiblePaneId(getOwner(), id)) deps.dismissFillStatusForNavigation?.(getOwner(), id);
     // The outgoing document's hint is stale the moment navigation starts.
     if (isMainFrame) deps.onFillHintNavigationStart?.(tab);
     if (

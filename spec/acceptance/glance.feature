@@ -243,6 +243,16 @@ Feature: Glance reference pane
     Then the 1Password fill targets the main page
     And the Island hides the fill hint
 
+  @F34-1 @F34 @F38 @D11
+  Scenario: A reference navigation leaves a 1Password question about the main page alone
+    Given 1Password fill is configured and the Glance reference shows a login form
+    When the main page is the focused pane
+    And a fill confirmation question is presented
+    And the reference pane navigates to another page
+    Then the fill question is still showing
+    When the main page navigates to another page
+    Then the fill question is gone
+
   @F34-1 @F34 @D11
   Scenario: A mouse gesture in the reference acts on the reference
     Given two ordinary tabs in one workspace for Glance
