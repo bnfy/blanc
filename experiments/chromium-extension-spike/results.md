@@ -928,8 +928,8 @@ from native-input acceptance.
 
 `/clear` is back in the slash allowlist and backed by a `clearHistory` bridge
 method. It mirrors Electron's history-only `/clear`: the handler calls
-`HistoryService::ExpireHistoryBetween({}, base::Time(), base::Time::Max(),
-user_initiated = true, …)` with the handler's `CancelableTaskTracker`, and
+`HistoryService::ExpireHistoryBetween({}, std::nullopt, base::Time(),
+base::Time::Max(), user_initiated = true, …)` with the handler's `CancelableTaskTracker`, and
 replies only after the deletion callback, through the same guarded `Reply`.
 It does not run Chromium's wider Clear browsing data (cookies, cache,
 downloads and site data are untouched), so TopSites and the start page's
@@ -974,6 +974,7 @@ disposable `--user-data-dir`: `/clear` emptied history, the already open start
 page dropped its recent sites live, the Favorite and other profile data were
 preserved, the private-window attempt was refused, and the cleared state
 survived a relaunch. The disposable profile was deleted afterwards and the
-permanent profile was never touched by `/clear`. Evidence: Codex's retest
-record (`/private/tmp/blanc-pr861-864-retest-results.md` on the Mac), to be
-committed under `evidence/clear-history-*`.
+permanent profile was never touched by `/clear`. Evidence: committed [Mac acceptance report](evidence/clear-history-results.md),
+[disposable-profile run](evidence/clear-history-run.json),
+[guarded build log](evidence/clear-history-build.log), and
+[Billboard after deletion](evidence/clear-history-billboard-cleared.png).
