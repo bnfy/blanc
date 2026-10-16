@@ -447,3 +447,20 @@ Feature: Glance reference pane
     And the reference pane is the focused pane
     And another Blanc window takes the foreground and this one is activated again
     Then the recorded focused pane is the pane that holds keyboard focus
+
+  @F34-1 @F34 @D11
+  Scenario: Glance opens and closes with the chrome's motion
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    Then the Glance header and divider glide in on the chrome's curve
+    When I choose Change from the Glance header
+    Then the Change picker grows out of the Change control
+    When I press Escape in the Change picker
+    Then the picker is still drawn while it leaves
+
+  @F34-1 @F34 @D11
+  Scenario: With Reduce Motion Glance only fades
+    Given two ordinary tabs in one workspace for Glance
+    And Reduce Motion is on
+    When I open the reference tab in Glance
+    Then the Glance header and divider only fade

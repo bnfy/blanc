@@ -2234,8 +2234,15 @@
   let morphTimer = null;
   // Closing, the Spaces menu fades back into the Island's mark from where it
   // hung; body[data-closing] keeps that placement while main holds the view.
-  let spacesExitTimer = null;
-  function endSpacesExit() { clearTimeout(spacesExitTimer); spacesExitTimer = null; document.body.dataset.closing = ''; }
+  // The Glance picker shrinks back the same way, keeping its purpose's
+  // placement until main lets the view go.
+  let overlayExitTimer = null;
+  function endOverlayExit() {
+    clearTimeout(overlayExitTimer);
+    overlayExitTimer = null;
+    document.body.dataset.closing = '';
+    if (mode !== 'glance') document.body.dataset.glancePurpose = '';
+  }
   let morphFrame = 0;
   let morphGeneration = 0;
   let drawnGeneration = 0;
@@ -2345,7 +2352,7 @@
   });
   window.browserAPI.onOverlayShow(({ mode: next, prefill, purpose, pillRect }) => {
     const wasOpen = mode === next;
-    endSpacesExit();
+    endOverlayExit();
     // A quick close/reopen can arrive while the old retract timer is still
     // holding `pointer-events: none` on the panel. Cancel that stale exit
     // before constructing the new opening state, or the fresh panel renders
@@ -2416,10 +2423,11 @@
     const retracting = payload?.retract && (mode === 'panel' || mode === 'palette')
       && retractPanelIntoPill();
     if (mode === 'find') resetFind();
-    if (mode === 'spaces') {
-      endSpacesExit();
-      document.body.dataset.closing = 'spaces';
-      spacesExitTimer = setTimeout(endSpacesExit, RETRACT_MS);
+    const leaving = mode === 'spaces' || mode === 'glance' ? mode : null;
+    if (leaving) {
+      endOverlayExit();
+      document.body.dataset.closing = leaving;
+      overlayExitTimer = setTimeout(endOverlayExit, RETRACT_MS);
     }
     mode = null;
     glancePickerPurpose = null;
@@ -2428,7 +2436,8 @@
     glancePickerError = '';
     glancePickerBusy = false;
     document.body.dataset.mode = '';
-    document.body.dataset.glancePurpose = '';
+    // The leaving picker keeps its purpose's placement until the exit ends.
+    if (leaving !== 'glance') document.body.dataset.glancePurpose = '';
     backdrop.hidden = true;
     if (retracting) {
       // The anchor stays up until the panel has shrunk away. pointer-events

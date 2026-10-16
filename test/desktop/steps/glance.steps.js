@@ -860,12 +860,13 @@ Then('the Change picker is centred over the page with a visible list', async fun
   await page.locator('#glancePicker:not([hidden])').waitFor();
   assert.equal(await page.locator('body').getAttribute('data-glance-purpose'), 'change-stacked');
   await page.locator('.glance-picker-option').first().waitFor();
-  const layout = await page.locator('#glancePicker').evaluate((element) => {
+  // The picker grows in over 340 ms; measure it once it has settled.
+  const layout = await waitForValue(() => page.locator('#glancePicker').evaluate((element) => {
     const rect = element.getBoundingClientRect();
     const list = element.querySelector('#glancePickerList').getBoundingClientRect();
     const row = element.querySelector('.glance-picker-option').getBoundingClientRect();
-    return { center: rect.left + rect.width / 2, viewport: window.innerWidth, listHeight: list.height, rowHeight: row.height, top: rect.top };
-  });
+    return { center: rect.left + rect.width / 2, viewport: window.innerWidth, listHeight: list.height, rowHeight: row.height, top: rect.top, settled: getComputedStyle(element).transform === 'none' || getComputedStyle(element).transform.startsWith('matrix(1, 0, 0, 1') };
+  }), (value) => value.settled, 'the picker settled', 2000);
   assert.ok(Math.abs(layout.center - layout.viewport / 2) <= 2, `picker centre ${layout.center} vs ${layout.viewport / 2}`);
   assert.ok(layout.listHeight >= 52 && layout.rowHeight >= 52, `list ${layout.listHeight}px, row ${layout.rowHeight}px`);
   assert.ok(layout.top >= 50, `picker not below the strip: ${layout.top}px`);
@@ -1846,4 +1847,58 @@ When('another Blanc window takes the foreground and this one is activated again'
   this.glanceExtraWindowId = null;
   await frontChromeWindow(this);
   await new Promise((resolve) => setTimeout(resolve, 300));
+});
+
+// ---- Motion: the chrome's own vocabulary ----
+
+const SPACES_CURVE = 'cubic-bezier(0.2, 0.9, 0.25, 1)';
+
+Then("the Glance header and divider glide in on the chrome's curve", async function () {
+  const motion = await this.call('glanceHeaderMotion');
+  for (const part of ['header', 'divider']) {
+    assert.ok(motion[part].transition.includes('opacity 0.14s'), `${part} transition: ${motion[part].transition}`);
+    assert.ok(motion[part].transition.includes(`transform 0.34s ${SPACES_CURVE}`), `${part} transition: ${motion[part].transition}`);
+  }
+});
+
+When('I choose Change from the Glance header', async function () {
+  const chrome = await mainChromePage();
+  await chrome.locator('#glanceChange').click();
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'glance', 'the Change picker');
+  const page = await overlayPage();
+  await page.locator('#glancePicker:not([hidden])').waitFor();
+});
+
+Then('the Change picker grows out of the Change control', async function () {
+  const motion = await this.call('glanceHeaderMotion');
+  assert.ok(motion.picker, 'no picker measured');
+  assert.ok(motion.picker.transition.includes(`transform 0.34s ${SPACES_CURVE}`), `picker transition: ${motion.picker.transition}`);
+  // The origin is under the Change caret, right of the picker's centre.
+  const originX = parseFloat(motion.picker.transformOrigin);
+  assert.ok(originX > motion.picker.width / 2, `picker origin ${motion.picker.transformOrigin} in ${motion.picker.width}px`);
+});
+
+When('I press Escape in the Change picker', async function () {
+  assert.equal(await this.call('pressOverlayKey', 'Escape'), true);
+});
+
+// Main keeps the overlay view attached for a moment after the picker closes
+// so its exit can be seen; the overlay marks the body meanwhile.
+Then('the picker is still drawn while it leaves', async function () {
+  const page = await overlayPage();
+  const seen = await waitForValue(async () => ({
+    mode: await this.call('overlayMode'),
+    bounds: await this.call('overlayViewBounds'),
+    closing: await page.evaluate(() => document.body.dataset.closing ?? ''),
+  }), (value) => value.mode === null, 'the picker closed', 2000);
+  assert.ok(seen.bounds, 'the overlay view was detached before the picker could leave');
+  assert.equal(seen.closing, 'glance', `overlay body data-closing: "${seen.closing}"`);
+});
+
+Then('the Glance header and divider only fade', async function () {
+  const motion = await this.call('glanceHeaderMotion');
+  for (const part of ['header', 'divider']) {
+    assert.ok(motion[part].transition.includes('opacity 0.14s'), `${part} transition: ${motion[part].transition}`);
+    assert.ok(!motion[part].transition.includes('transform'), `${part} still moves: ${motion[part].transition}`);
+  }
 });

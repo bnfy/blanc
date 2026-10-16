@@ -3577,7 +3577,7 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
       clearTimeout(rt().overlayExitTimer);
       rt().overlayExitTimer = null;
     }
-    if (retracts || closingMode === 'spaces') {
+    if (retracts || closingMode === 'spaces' || closingMode === 'glance') {
       rt().overlayExitTimer = setTimeout(bindWindowRuntime(rt(), () => {
         rt().overlayExitTimer = null;
         // Re-check: a new overlay may have opened while this was retracting,
