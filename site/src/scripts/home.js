@@ -1,4 +1,8 @@
 import { initHandheldDownload } from "./handheld-download.js";
+import { initHorizonShield } from "./horizon-shield.js";
+import { initGlanceDemo } from "./glance-demo.js";
+import { initGestureDemo } from "./gesture-demo.js";
+import { createImagePreview } from "./image-preview.js";
 
 // The homepage works without this script: every switching path and every
 // system's default-browser steps are in the page, and the questions are
@@ -52,8 +56,35 @@ export function initFaq(toggle, questions) {
   refresh();
 }
 
+// The Start Page card shows one layout's capture at a time; without the
+// script it shows Billboard.
+export function initLayouts(group, image, { view = window } = {}) {
+  if (!group || !image) return;
+  const preview = createImagePreview(image, { view });
+  const buttons = [...group.querySelectorAll("button")];
+  buttons.forEach((button) =>
+    button.addEventListener("click", () =>
+      preview.show(button.dataset.layoutSrc, button.dataset.layoutAlt, () =>
+        buttons.forEach((other) =>
+          other.setAttribute("aria-pressed", String(other === button)),
+        ),
+      ),
+    ),
+  );
+  group.hidden = false;
+}
+
 export function initHome({ document = window.document, view = window } = {}) {
   initHandheldDownload({ document, view });
+  // The Blocker shield turns as it scrolls by (three.js, loaded lazily).
+  initHorizonShield(document.querySelector(".horizon-study"), { view });
+  initGlanceDemo(document.querySelector("#glance"), { view });
+  initGestureDemo(document.querySelector(".gesture-study"), { view });
+  initLayouts(
+    document.querySelector("[data-layouts]"),
+    document.querySelector("#layout-image"),
+    { view },
+  );
   const selectSource = initSwitcher(
     document.querySelector("[data-switch-sources]"),
     [...document.querySelectorAll("[data-source-panel]")],

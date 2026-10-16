@@ -90,9 +90,12 @@ export function initGestureDemo(root, { view = window } = {}) {
   };
 
   choices.forEach(button => button.addEventListener('click', () => play(button.dataset.gesturePreview)));
-  replay.addEventListener('click', () => play());
+  // The compact demo has no Replay: choosing a gesture again replays it.
+  if (replay) {
+    replay.addEventListener('click', () => play());
+    replay.hidden = false;
+  }
   root.querySelector('.gesture-controls').hidden = false;
-  replay.hidden = false;
   const observer = new view.IntersectionObserver(([entry]) => {
     if (!entry.isIntersecting) settle();
     else if (!started) play('back', false);

@@ -103,6 +103,15 @@
       ],
       "qualification": "A fresh profile presents usage measurement and search suggestions preselected on, and sends neither until the user saves the setup choices; both can be turned off then or later in Settings. Usage measurement carries no URLs, searches or page contents."
     },
+    "gestures": {
+      "evidence": [
+        "src/main/mouse-gestures.js",
+        "src/main/tab-view.js",
+        "src/main/settings.js",
+        "test/unit/mouse-gestures.test.js"
+      ],
+      "qualification": "Off by default (mouseGesturesEnabled is false) and device-local. A right-button drag, or an Alt/Option left drag on a trackpad. Default strokes: left Back, right Forward, up New tab, down Close tab."
+    },
     "glance": {
       "evidence": [
         "src/main/glance-layout.js",
@@ -491,6 +500,16 @@
       "subject": "Blanc",
       "evidenceGroups": [
         "onePassword"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "cinema-tools-gestures",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Mouse gestures. Go back, move forward or open a new tab with a simple mouse movement. Off by default. Right-drag with a mouse, or Option/Alt-drag with a trackpad.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "gestures"
       ],
       "verdict": "qualified"
     },

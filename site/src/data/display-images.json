@@ -91,6 +91,34 @@
     "height": 900
   },
   {
+    "source": "feature-captures/ledger-c70c55fa.png",
+    "sourceSha256": "03471637e0273de2d6be93277e2a29c95b4fead30d9873460614ee77f8b60731",
+    "output": "feature-captures/ledger-c70c55fa.webp",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "source": "feature-captures/billboard-c70c55fa.png",
+    "sourceSha256": "d769a2505906d95aa0b049180c20af902d13c058b939ec636932b27a9d1d9f3d",
+    "output": "feature-captures/billboard-c70c55fa.webp",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "source": "feature-captures/shelf-c70c55fa.png",
+    "sourceSha256": "eda8831390059d785625daeebf5faa3e88be63a621a1593084232106aeeda2a9",
+    "output": "feature-captures/shelf-c70c55fa.webp",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "source": "feature-captures/tally-c70c55fa.png",
+    "sourceSha256": "4012c2dd1fbf1331d223570715e742de347512cc98b97948064bb9812088d1d1",
+    "output": "feature-captures/tally-c70c55fa.webp",
+    "width": 1440,
+    "height": 900
+  },
+  {
     "source": "feature-captures/mahjong-v1.21.0.png",
     "sourceSha256": "675203949417c5d9492be8e17ccf337a7e2578896ebbd9730319ee1acff81efc",
     "output": "feature-captures/mahjong-v1.21.0.webp",

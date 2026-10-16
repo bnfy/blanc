@@ -34,6 +34,12 @@ const jobs = [
     source: `feature-captures/${name}-v1.31.0.png`,
     output: `feature-captures/${name}-v1.31.0.webp`,
   })),
+  // Candidates from main at c70c55fa, shown on the homepage until the next
+  // release is captured (docs/website-candidate-captures-c70c55fa.json).
+  ...['ledger', 'billboard', 'shelf', 'tally'].map(name => ({
+    source: `feature-captures/${name}-c70c55fa.png`,
+    output: `feature-captures/${name}-c70c55fa.webp`,
+  })),
   { source: 'feature-captures/mahjong-v1.21.0.png', output: 'feature-captures/mahjong-v1.21.0.webp' },
   // Blanc Mail screenshots (capture-public-shots.sh in bnfy/blanc-mail):
   // 1100px copies for MailShot's srcset; the 2200px captures stay as taken.

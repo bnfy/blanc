@@ -1,8 +1,17 @@
-<section class="gesture-study" id="gestures" aria-labelledby="gestures-title">
-  <div class="gesture-heading">
+---
+interface Props {
+  // compact: the stage and its three choices alone, for a homepage tool card
+  // that carries its own heading and setup note.
+  compact?: boolean;
+}
+const { compact = false } = Astro.props;
+const Root = compact ? 'div' : 'section';
+---
+<Root class:list={['gesture-study', { 'is-compact': compact }]} id="gestures" aria-labelledby={compact ? undefined : 'gestures-title'}>
+  {!compact && <div class="gesture-heading">
     <h3 id="gestures-title">Navigate with mouse gestures.</h3>
     <p>Go back, move forward or open a new tab with a simple mouse movement.</p>
-  </div>
+  </div>}
   <div class="gesture-demo" data-gesture="back" data-phase="result" data-page="start">
     <div class="gesture-scene">
       <div class="gesture-story">
@@ -14,7 +23,7 @@
         <div class="gesture-window-stack" aria-hidden="true">
           <div class="gesture-window">
             <picture><source media="(max-width: 760px)" srcset="/revamp/island-roman-rest-800.webp" width="800" height="571" /><img class="gesture-page gesture-page-nasa" src="/revamp/island-roman-rest-display.webp" width="1400" height="1000" alt="" loading="lazy" decoding="async" /></picture>
-            <img class="gesture-page gesture-page-start" src="/feature-captures/home-wallpaper-dawn-v1.31.0.webp" width="1440" height="900" alt="" loading="lazy" decoding="async" />
+            <img class="gesture-page gesture-page-start" src="/feature-captures/home-wallpaper-dawn-c70c55fa.webp" width="1440" height="900" alt="" loading="lazy" decoding="async" />
           </div>
         </div>
         <svg class="gesture-motion" viewBox="0 0 640 400" aria-hidden="true">
@@ -29,15 +38,15 @@
       </div>
     </div>
     <div class="gesture-bottom">
-      <span class="gesture-demo-label">Gesture demo</span>
+      {!compact && <span class="gesture-demo-label">Gesture demo</span>}
       <div class="gesture-controls" role="group" aria-label="Preview a mouse gesture" hidden>
         <button type="button" data-gesture-preview="back" aria-pressed="true"><span aria-hidden="true">←</span> Back</button>
         <button type="button" data-gesture-preview="forward" aria-pressed="false">Forward <span aria-hidden="true">→</span></button>
         <button type="button" data-gesture-preview="new" aria-pressed="false"><span aria-hidden="true">↑</span> New tab</button>
       </div>
-      <button class="gesture-replay" type="button" aria-label="Replay mouse gesture" hidden>Replay <span aria-hidden="true">↻</span></button>
+      {!compact && <button class="gesture-replay" type="button" aria-label="Replay mouse gesture" hidden>Replay <span aria-hidden="true">↻</span></button>}
     </div>
     <span class="sr-only" data-gesture-status aria-live="polite"></span>
   </div>
-  <p class="gesture-setup">Off by default. Right-drag with a mouse, or Option/Alt-drag with a trackpad. <a href="/support#mouse-gestures">Enable mouse gestures</a></p>
-</section>
+  {!compact && <p class="gesture-setup">Off by default. Right-drag with a mouse, or Option/Alt-drag with a trackpad. <a href="/support#mouse-gestures">Enable mouse gestures</a></p>}
+</Root>

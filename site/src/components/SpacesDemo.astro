@@ -56,5 +56,5 @@ const { html, css } = namespaceNativeArt({ html: raw, css: art.css + presentatio
     <Fragment set:html={html} />
   </template>
 </blanc-spaces-demo>
-<script is:inline set:html={`(() => { const host = document.currentScript.previousElementSibling; host.dataset.appearance = document.documentElement.dataset.homeAppearance === 'dark' ? 'dark' : 'light'; (${fitSpacesDemo.toString()})(host, window); })();`} />
+<script is:inline set:html={`(() => { const host = document.currentScript.previousElementSibling; (${fitSpacesDemo.toString()})(host, window); })();`} />
 <script src="../scripts/spaces-demo.js"></script>

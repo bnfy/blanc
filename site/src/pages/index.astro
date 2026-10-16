@@ -1,5 +1,9 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import GestureDemo from "../components/GestureDemo.astro";
+import GlanceDemo from "../components/GlanceDemo.astro";
+import HorizonShield from "../components/HorizonShield.astro";
+import SpacesDemo from "../components/SpacesDemo.astro";
 import "../styles/home.css";
 import pkg from "../../../package.json";
 import chromiumMark from "../assets/summary-icons/chromium.svg?raw";
@@ -205,14 +209,26 @@ const faqs = [
         <div
           class="device-screen"
           role="img"
-          aria-label="Blanc v1.31.0 Billboard Start Page with the dawn wallpaper, on a MacBook"
+          aria-label="Blanc’s Billboard Start Page with the time-of-day wallpaper, from dawn to night, on a MacBook"
         >
           <img
-            src="/feature-captures/home-wallpaper-dawn-v1.31.0.webp"
+            src="/feature-captures/home-wallpaper-dawn-c70c55fa.webp"
             width="1440"
             height="900"
             alt=""
-          />
+          />{
+            ["day", "dusk", "night"].map((time) => (
+              <img
+                class={`wallpaper-${time}`}
+                src={`/feature-captures/home-wallpaper-${time}-c70c55fa.webp`}
+                width="1440"
+                height="900"
+                loading="lazy"
+                decoding="async"
+                alt=""
+              />
+            ))
+          }
         </div>
       </div>
     </section>
@@ -296,14 +312,9 @@ const faqs = [
               class="more-link" href="/features/workspaces" data-track="feature_cta_click" data-feature="named-workspaces" data-cta-position="home-spaces-detail">Explore Blanc Spaces <span aria-hidden="true">›</span></a>
           </div>
         </div>
-        <img
-          class="spaces-shot parallax"
-          src="/feature-captures/workspaces-v1.33.0.webp"
-          width="1440"
-          height="900"
-          loading="lazy"
-          alt="Blanc v1.33.0: the Spaces menu open from the Island, listing saved spaces with their colours and symbols"
-        />
+        <div class="spaces-demo">
+          <SpacesDemo />
+        </div>
       </div>
     </section>
 
@@ -311,6 +322,7 @@ const faqs = [
       <div class="wrap">
         <h2 id="privacy-title" class="sweep">Blocking is on before you ask.</h2>
         <p class="lead privacy-lead">Blanc Blocker is on from first launch. Prefer uBlock Origin? On supported builds, you can choose it for regular tabs.</p>
+        <HorizonShield variant="blocker" />
         <div class="privacy-grid rise-late">
           <div>
             <h3>Blanc Blocker <span class="badge">Default</span></h3>
@@ -351,7 +363,7 @@ const faqs = [
         <h2 id="tools-title" class="rise">Everyday browser tools.</h2>
         <div class="tools-grid">
           <article class="tool-card rise">
-            <div class="tool-media"><img class="zoom" src="/feature-captures/glance-v1.30.1.webp" width="1440" height="900" loading="lazy" alt="Blanc v1.30.1: Glance showing two tabs side by side" /></div>
+            <div class="tool-media tool-demo"><GlanceDemo compact /></div>
             <div class="tool-copy">
               <h3>Glance.</h3>
               <p>Bring another open tab into view beside the page you’re on.</p>
@@ -360,11 +372,23 @@ const faqs = [
             </div>
           </article>
           <article class="tool-card rise">
-            <div class="tool-media"><img class="zoom" src="/feature-captures/home-wallpaper-dusk-v1.31.0.webp" width="1440" height="900" loading="lazy" alt="Blanc v1.31.0: the Billboard Start Page with the dusk wallpaper" /></div>
+            <div class="tool-media"><img class="zoom" id="layout-image" src="/feature-captures/billboard-c70c55fa.webp" width="1440" height="900" loading="lazy" alt="Blanc’s Billboard Start Page" /></div>
             <div class="tool-copy">
               <h3>Start Page layouts.</h3>
               <p>Choose Ledger, Billboard, Shelf or Tally, and let the wallpaper follow your computer’s clock.</p>
               <p class="tool-limit">Turn on Time-of-day wallpaper in Settings → General.</p>
+              <div class="segmented layout-switch" role="group" aria-label="Choose a Start Page layout" data-layouts hidden>
+                {
+                  ["Ledger", "Billboard", "Shelf", "Tally"].map((name) => (
+                    <button
+                      type="button"
+                      aria-pressed={String(name === "Billboard")}
+                      data-layout-src={`/feature-captures/${name.toLowerCase()}-c70c55fa.webp`}
+                      data-layout-alt={`Blanc’s ${name} Start Page`}
+                    >{name}</button>
+                  ))
+                }
+              </div>
               <a class="more-link" href="/features/start-page">Start Page layouts <span aria-hidden="true">›</span></a>
             </div>
           </article>
@@ -407,6 +431,15 @@ const faqs = [
               <h3>1Password on Mac.</h3>
               <p>On macOS, the optional integration fills a matching login when you ask.</p>
               <p class="tool-limit">Off by default. Needs the 1Password app and account on macOS. <a href="/support#1password">Setup and shortcuts <span aria-hidden="true">›</span></a></p>
+            </div>
+          </article>
+          <article class="tool-card tool-card-wide rise">
+            <div class="tool-media tool-demo"><GestureDemo compact /></div>
+            <div class="tool-copy">
+              <h3>Mouse gestures.</h3>
+              <p>Go back, move forward or open a new tab with a simple mouse movement.</p>
+              <p class="tool-limit">Off by default. Right-drag with a mouse, or Option/Alt-drag with a trackpad.</p>
+              <a class="more-link" href="/features/mouse-gestures">How mouse gestures work <span aria-hidden="true">›</span></a>
             </div>
           </article>
         </div>
