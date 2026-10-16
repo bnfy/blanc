@@ -3957,10 +3957,12 @@ function syncFocusedPane(owner) {
 }
 
 /** Glance closed, the roles swapped, the main page changed, or the reference
- * left: commands without a sending pane go to the main page again, unless
- * a visible pane still really holds keyboard focus. */
+ * left: commands without a sending pane go to the main page again (spec:
+ * Commands follow focus). A pane that then takes or keeps focus is recorded
+ * by its focus event, by the sync after Glance attaches, or by the window's
+ * activation. */
 function resetFocusedPane() {
-  rt().focusedPaneTabId = livePaneId(rt(), (tabId) => liveContents(tabs.get(tabId))) ?? rt().activeTabId ?? null;
+  rt().focusedPaneTabId = rt().activeTabId ?? null;
 }
 
 // --- Ambient fill hint (spec §5) ---------------------------------------

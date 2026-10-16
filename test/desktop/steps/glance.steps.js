@@ -1713,7 +1713,12 @@ When('the window is {int} pixels wide', async function (width) {
   // A display narrower than the window (the Linux VM's GNOME screen is
   // 1024 px) cannot show this layout at all: skip rather than test another.
   const available = await ctx.app.evaluate(({ screen }) => screen.getPrimaryDisplay().workAreaSize.width);
-  if (available < width) return 'skipped';
+  if (available < width) {
+    const note = `skipped: this display is ${available} px wide, the scenario needs a ${width} px window`;
+    console.warn(`\n${note}`);
+    this.attach(note);
+    return 'skipped';
+  }
   await this.call('setWindowContentSize', width, 800);
   await this.waitForState((state) =>
     state.glanceGeometry && state.glanceGeometry.page.x + state.glanceGeometry.page.width === width);
@@ -1786,4 +1791,32 @@ Then('Make main still says what it does', async function () {
     return { label: visible(button.querySelector('span')), icon: visible(button.querySelector('svg')) };
   });
   assert.ok(shows.label || shows.icon, `Make main shows neither its label nor its icon: ${JSON.stringify(shows)}`);
+});
+
+// ---- The record after a main-page change and after activation ----
+
+// A new tab is a new working page and becomes main, with the address bar
+// focused (spec: Commands follow focus, "Reset to the main tab whenever ...
+// the main tab changes"). The reference's focus is gone with it.
+Then('the recorded focused pane is the main page', async function () {
+  await waitForValue(async () => {
+    const { focusedPaneTabId, activeTabId } = await this.state();
+    return { recorded: focusedPaneTabId, main: activeTabId, reference: this.glanceReferenceId };
+  }, (value) => value.recorded === value.main && value.main !== value.reference,
+  'the main page recorded as the focused pane', 3000);
+});
+
+// On Linux, activating a window restores focus to its last focused view
+// without that view's own focus event, so main re-reads live focus on the
+// window's activation.
+When('another Blanc window takes the foreground and this one is activated again', async function () {
+  this.glanceExtraWindowId = await this.call('openNewWindow');
+  await waitForValue(async () => (await this.call('windowRuntimes')).find((runtime) => runtime.id === this.glanceExtraWindowId),
+    Boolean, 'the second window');
+  await new Promise((resolve) => setTimeout(resolve, 400));
+  await frontChromeWindow(this);
+  await this.call('closeWindowRuntime', this.glanceExtraWindowId);
+  this.glanceExtraWindowId = null;
+  await frontChromeWindow(this);
+  await new Promise((resolve) => setTimeout(resolve, 300));
 });

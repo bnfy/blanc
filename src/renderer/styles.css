@@ -403,26 +403,22 @@ button svg {
 .glance-header.measuring .glance-eyebrow { display: none; }
 .glance-header.measuring .glance-copy { gap: 8px; flex: 0 0 auto; }
 .glance-header.measuring #glanceTitle { display: none; }
-.glance-header.measuring .glance-promote { width: 30px; padding: 0; }
-.glance-header.measuring .glance-promote svg { display: block; }
-.glance-header.measuring .glance-promote span { display: none; }
 
 @container (max-width: 360px) {
   .glance-eyebrow { display: none; }
   /* Back and Reload still sit beside the title. */
   .glance-copy { gap: 8px; }
 }
-/* The title keeps priority (renderer.js fitGlanceHeader): Make main shows
-   only its swap icon before the title is cut below about ten characters. */
-.glance-header.promote-icon .glance-promote { width: 30px; padding: 0; }
-.glance-header.promote-icon .glance-promote svg { display: block; }
-.glance-header.promote-icon .glance-promote span { display: none; }
+/* Make main as its swap icon alone, in one place: while measuring the
+   header's floor, and when renderer.js fitGlanceHeader decides the title
+   needs the room (cut below about ten characters, or hidden by the tier
+   below). */
+.glance-header:is(.measuring, .promote-icon) .glance-promote { width: 30px; padding: 0; }
+.glance-header:is(.measuring, .promote-icon) .glance-promote svg { display: block; }
+.glance-header:is(.measuring, .promote-icon) .glance-promote span { display: none; }
 @container (max-width: 300px) {
   #glanceTitle { display: none; }
   .glance-copy { flex: 0 0 auto; }
-  .glance-promote { width: 30px; padding: 0; }
-  .glance-promote svg { display: block; }
-  .glance-promote span { display: none; }
 }
 
 /* The child page views deliberately leave this narrow gap uncovered, so the

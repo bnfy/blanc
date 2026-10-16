@@ -449,11 +449,12 @@
     // With vertical tabs or Glance the dot row is not drawn, so fewer dots
     // free nothing.
     const dotsShown = state.tabLayout !== 'vertical' && !stripEl.classList.contains('glance-open');
-    // Stacked on Windows and Linux the Island is centred between two
-    // reservations for the window controls (styles.css); when even the slim
-    // Island does not fit, it gives up its centre line before its address.
+    // Stacked on Windows and Linux (the platforms with window controls on
+    // the strip's right edge) the Island is centred between two reservations
+    // for them (styles.css); when even the slim Island does not fit, it gives
+    // up its centre line before its address.
     const canUncentre = stripEl.dataset.glanceDirection === 'vertical'
-      && parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--window-controls-w')) > 0;
+      && document.documentElement.dataset.platform !== 'darwin';
     for (;;) {
       renderDotRow();
       if (!pillOverflows() && !addressTruncated()) break;
@@ -488,6 +489,7 @@
   document.fonts.addEventListener('loadingdone', () => {
     dotFitKey = '';
     fitIslandDots();
+    glanceHeaderFitKey = '';
     fitGlanceHeader();
     requestAnimationFrame(() => reportIslandRect());
   });
@@ -555,6 +557,7 @@
       stripEl.style.removeProperty('--glance-primary-right');
       stripEl.style.removeProperty('--glance-primary-width');
       delete stripEl.dataset.glanceDirection;
+      fitGlanceHeader();
       return;
     }
 
@@ -608,13 +611,20 @@
   // characters, Make main gives up its label for its swap icon (its name and
   // tooltip stay). Measured, not a fixed width, because the label's length
   // depends on the language and Windows and Linux reserve the window
-  // controls' width. One layout read per render. 70 px is the floor the
-  // Island keeps for its address too.
+  // controls' width. 70 px is the floor the Island keeps for its address
+  // too. Measured only when an input changed (the title, the header's width
+  // or direction, the font swap), not on every broadcast.
+  let glanceHeaderFitKey = '';
   function fitGlanceHeader() {
     const titleFloor = 70;
+    const key = glanceHeader.hidden ? '' : [glanceTitle.textContent, glanceHeader.style.width, glanceHeader.dataset.direction].join('|');
+    if (key === glanceHeaderFitKey) return;
+    glanceHeaderFitKey = key;
     glanceHeader.classList.remove('promote-icon');
-    // At the narrowest tier the title is hidden altogether (styles.css).
-    if (glanceHeader.hidden || glanceTitle.getClientRects().length === 0) return;
+    if (glanceHeader.hidden) return;
+    // At the narrowest tier the stylesheet hides the title altogether; Make
+    // main is icon-only there too.
+    if (glanceTitle.getClientRects().length === 0) { glanceHeader.classList.add('promote-icon'); return; }
     const cut = glanceTitle.scrollWidth > glanceTitle.clientWidth + 1;
     if (cut && glanceTitle.getBoundingClientRect().width < titleFloor) glanceHeader.classList.add('promote-icon');
   }

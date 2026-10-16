@@ -431,3 +431,19 @@ Feature: Glance reference pane
     Then the Glance title shows at least ten characters
     And Make main still says what it does
     And the Glance window returns to its usual layout
+
+  @F34-1 @F34 @D11
+  Scenario: A new tab opened with focus in the reference makes the main page the focused pane
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And the reference pane is the focused pane
+    And I press the new-tab command
+    Then the recorded focused pane is the main page
+
+  @F34-1 @F34 @D11
+  Scenario: Activating the window again keeps the focused pane truthful
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And the reference pane is the focused pane
+    And another Blanc window takes the foreground and this one is activated again
+    Then the recorded focused pane is the pane that holds keyboard focus
