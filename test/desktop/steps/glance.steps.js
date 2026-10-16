@@ -358,10 +358,11 @@ When('I choose Change and select the replacement tab', async function () {
     return {
       width: rect.width,
       rightGap: window.innerWidth - rect.right,
+      overlayWidth: window.innerWidth,
     };
   });
   assert.ok(pickerPosition.width <= 421, `change picker was too wide: ${pickerPosition.width}px`);
-  assert.ok(pickerPosition.rightGap >= 23 && pickerPosition.rightGap <= 25);
+  assert.ok(pickerPosition.rightGap >= 23 && pickerPosition.rightGap <= 25, `change picker position: ${JSON.stringify(pickerPosition)}`);
   await page.fill('#glancePickerInput', 'replacement');
   await page.locator('.glance-picker-option').first().waitFor();
   assert.equal(await page.locator('.glance-picker-option').count(), 1);

@@ -73,9 +73,12 @@ Their assertions assume macOS:
   Windows and Linux the header reserves the window controls' width, so the
   label hides at the default split, on main as on this branch.
 - "Change and close…" and "A tab muted as a background tab…" expect the
-  Change picker 24 px from the window's right edge. On Linux it sits 12 px
-  from it, starting below the window controls without covering them, on
-  main as on this branch.
+  Change picker 24 px from the overlay's right edge. The stylesheet uses
+  12 px whenever the overlay is under 560 px wide, which it is at these
+  window sizes (494 px on the Mac at 1280 px). On October 16 the Mac fails
+  this the same way at `04162d0a`, so earlier passes most likely measured
+  the overlay before its bounds settled. On Linux the picker starts below
+  the window controls without covering them.
 
 The Windows VM has no Node, so the scenarios ran on Linux only.
 
@@ -100,13 +103,24 @@ The Windows VM has no Node, so the scenarios ran on Linux only.
   1024 px GNOME display can't do (`2700341d`). An edge check missed by
   0.01 px (`e4e8231d`).
 
-## A trade-off for the owner
+## The reference title beside the window controls (fixed)
 
-`*-header-default-split-before-above-after.png`: at the default split of a
-1200 px window, Windows and Linux reserve the controls' width in the
-header. With Back and Reload added, the reference title there shrinks from
-"Lisbon travel gui…" to "Lisb…". It is still in the tooltip. macOS has no
-reservation and keeps more of the title.
+At the default split of a 1200 px window, Windows and Linux reserve the
+window controls' width in the header. With Back and Reload added, the
+reference title was cut to "Lisb…" while Make main and Change kept their
+full labels. The owner asked for the title first. Now, if the title would
+be cut below 70 px (about ten characters, the floor the Island keeps for
+its address), Make main shows only its swap icon; its name and tooltip are
+unchanged (`3130f0fd`).
+
+| Platform | Before (`5ca2a484`) | After (`3130f0fd`) |
+| --- | --- | --- |
+| Windows 11 VM, 1200 × 800 | 40 px, "Lisb…", Make main label | 83 px, "Lisbon trav…", Make main icon |
+| Ubuntu VM, 1200 × 800 under xvfb | 40 px, Make main label | 83 px, Make main icon |
+
+The Linux pair ran under xvfb with a 1600 × 1000 screen, because GNOME
+in this VM sometimes clamps a 1200 px window to its 1024 px screen. All
+other scenes still pass at `3130f0fd` on both platforms.
 
 ## Images
 
@@ -129,9 +143,9 @@ All "after" images are from `04162d0a`.
 - `windows-window-stacked-vertical-tabs-700-after.png`,
   `linux-window-stacked-vertical-tabs-700-after.png`: scene E, the whole
   window.
-- `windows-header-default-split-before-above-after.png`,
-  `linux-header-default-split-before-above-after.png`: scene A, the
-  reference header at the default split (see the trade-off above).
+- `windows-header-title-default-split-before-above-after.png`,
+  `linux-header-title-default-split-before-above-after.png`: scene A, the
+  reference header at the default split, `5ca2a484` above `3130f0fd`.
 
 ## Not covered
 
