@@ -145,13 +145,15 @@ sending provider is chosen. The privacy page's "Newsletter (optional)" section
 describes exactly this contract — change them together or not at all.
 `components/NewsletterPrompt.astro` is the discreet signup card BaseLayout
 adds to measured, non-legal pages (not `/mail*`, `/ambassadors`, `/patron`):
-bottom corner, shown once per visit only after 20 s on the page and 40% read,
+bottom corner, shown once per visit only after 8 s on the page and a quarter of it read,
 never while the footer form is on screen, no focus stealing. "Not now" snoozes
 it 60 days and a request from either form stops it for good, through one
 `localStorage` entry (`blanc-newsletter-prompt-v1`) that the privacy page
 discloses. It submits through NewsletterForm's script
 (`form[data-newsletter-prompt]`, `blanc:newsletter-requested` event), so the
 Worker contract stays in one place; `test/site/newsletter-prompt.test.mjs`.
+Add `?newsletter-card` to a page's URL to show it at once for checking; that
+ignores and never writes the memory.
 
 **Blanc Patron (`/patron`):** the header's Patron link and the footer point
 here. It explains the plans, the single Polar checkout link (the buyer picks

@@ -7,7 +7,7 @@ import { chromium, webkit } from 'playwright';
 const baseURL = process.env.BLANC_SITE_URL || 'http://127.0.0.1:4322';
 const endpoint = 'https://blanc-newsletter.bnfy-441.workers.dev/subscribe';
 const KEY = 'blanc-newsletter-prompt-v1';
-const DWELL_MS = 20000;
+const DWELL_MS = 8000;
 let browser;
 before(async () => { browser = await (process.env.BLANC_SITE_BROWSER === 'webkit' ? webkit : chromium).launch(); });
 after(async () => { await browser?.close(); });
@@ -42,6 +42,18 @@ test('the card waits for both reading time and scroll depth, and never takes foc
     await card(page).waitFor({ state: 'visible' });
     assert.equal(await page.evaluate(() => document.activeElement?.closest('#newsletter-prompt')), null);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+  } finally { await page.close(); }
+});
+
+test('?newsletter-card shows it at once, even after Not now, and remembers nothing', async () => {
+  const state = { dismissedAt: Date.now() };
+  const page = await openPage('/features?newsletter-card', { state });
+  try {
+    await card(page).waitFor({ state: 'visible' });
+    await card(page).getByRole('button', { name: 'Not now' }).click();
+    assert.equal(await card(page).isVisible(), false);
+    const saved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
+    assert.deepEqual(saved, state);
   } finally { await page.close(); }
 });
 
