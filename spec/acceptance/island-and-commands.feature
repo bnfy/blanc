@@ -256,12 +256,14 @@ Feature: Island chrome, command palette, and slash commands
 
   @F47-17 @F47 @desktop
   Scenario: A custom bang's site is never sent to Blanc's icon server
+    # github.com is in the bundled list too, so only the custom-bang rule
+    # keeps it from being asked for.
     Given Blanc's icon server has an icon for every popular bang
-    And a custom bang "mine" named "Mine" for "https://intranet.example/?q=%s"
+    And a custom bang "mine" named "Mine" for "https://github.com/search?q=%s"
     And a tab open on "bangs-start"
     When I type "!mine" in the command bar
     Then the bang hint row reads "Open Mine"
-    And Blanc's icon server has not been asked for "intranet.example"
+    And Blanc's icon server has not been asked for "github.com"
 
   @F47-18 @F47 @desktop
   Scenario: Clearing history clears the kept bang icons
