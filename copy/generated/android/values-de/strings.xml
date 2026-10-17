@@ -402,6 +402,15 @@
     <string name="site_info_hint_chromium">Verbindungsdetails stammen von Chromium</string>
     <string name="list_no_command">kein passender Befehl</string>
     <string name="list_no_matches">keine Treffer – ↵ öffnet als Adresse oder Suche</string>
+    <string name="bang_search">%1$s nach „%2$s“ durchsuchen</string>
+    <string name="bang_open">%1$s öffnen</string>
+    <string name="bang_yours">eigene</string>
+    <string name="bang_section_recent">zuletzt</string>
+    <string name="bang_section_popular">beliebt</string>
+    <string name="bang_section_all">alle Bangs</string>
+    <string name="bang_fold">Abschnitt einklappen</string>
+    <string name="bang_unfold">Abschnitt aufklappen</string>
+    <string name="hint_bang">!code wörter durchsucht eine Website · ! allein zeigt alle</string>
     <string name="hint_private">privat · hier wird nichts im Verlauf gespeichert</string>
     <string name="hint_groups">/group verschiebt diesen Tab · %1$s1–9 springt zwischen Abschnitten</string>
     <string name="hint_default">%1$sL ruft auf · / für Befehle</string>

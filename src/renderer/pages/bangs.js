@@ -160,9 +160,13 @@
     for (const entry of catalog || []) {
       candidates.push({ record: catalogRecord(entry), codes: [entry[0], ...entry[1]] });
     }
+    // The person's own bangs lead the section whatever their code length, so
+    // the row cap never hides them behind catalog entries.
     const byCode = candidates
       .filter((c) => matchesCode(c.record, c.codes))
-      .sort((a, b) => a.record.code.length - b.record.code.length || (a.record.code < b.record.code ? -1 : a.record.code > b.record.code ? 1 : 0));
+      .sort((a, b) => Number(b.record.custom) - Number(a.record.custom)
+        || a.record.code.length - b.record.code.length
+        || (a.record.code < b.record.code ? -1 : a.record.code > b.record.code ? 1 : 0));
     for (const c of byCode) push('all', c.record);
     if (rows.length < MAX_ROWS) {
       for (const c of candidates) {

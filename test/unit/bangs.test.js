@@ -127,9 +127,15 @@ test('matchBangs caps at eight rows', () => {
   assert.equal(matchBangs('z', big, [], [], []).length, 8);
 });
 
-test('matchBangs lists custom bangs with their template host', () => {
+test('matchBangs lists custom bangs with their template host, ahead of the catalog', () => {
   const rows = matchBangs('min', cat, [{ code: 'mine', name: 'Mine', template: 'https://search.mine.example/?q=%s' }], [], []);
   assert.deepEqual(rows.map((r) => [r.section, r.code, r.custom, r.domain]), [['all', 'mine', true, 'search.mine.example']]);
+  // The person's own bangs lead the section whatever their code length, so
+  // the eight-row cap never hides them behind catalog entries.
+  const crowded = Array.from({ length: 12 }, (_, i) => [`m${i}`, [], `M ${i}`, `m${i}.org`, `https://m${i}.org/?q=%s`, 3, `https://m${i}.org/`]);
+  const lead = matchBangs('m', crowded, [{ code: 'mylongcode', name: 'Mine', template: 'https://mine.example/?q=%s' }], [], []);
+  assert.equal(lead[0].code, 'mylongcode');
+  assert.equal(lead.length, 8);
 });
 
 test('matchBangs matches aliases but shows the primary code', () => {

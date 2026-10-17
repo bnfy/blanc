@@ -414,6 +414,15 @@
     <string name="site_info_hint_chromium">les détails de connexion sont fournis par Chromium</string>
     <string name="list_no_command">aucune commande correspondante</string>
     <string name="list_no_matches">aucun résultat — ↵ l’ouvre comme adresse ou recherche</string>
+    <string name="bang_search">Rechercher « %2$s » sur %1$s</string>
+    <string name="bang_open">Ouvrir %1$s</string>
+    <string name="bang_yours">à vous</string>
+    <string name="bang_section_recent">récents</string>
+    <string name="bang_section_popular">populaires</string>
+    <string name="bang_section_all">tous les bangs</string>
+    <string name="bang_fold">Replier cette section</string>
+    <string name="bang_unfold">Déplier cette section</string>
+    <string name="hint_bang">!code mots cherche sur un site · ! seul les liste</string>
     <string name="hint_private">privé · rien ici n’est enregistré dans l’historique</string>
     <string name="hint_groups">/group déplace cet onglet · %1$s1–9 passe d’une section à l’autre</string>
     <string name="hint_default">%1$sL l’ouvre · / pour les commandes</string>

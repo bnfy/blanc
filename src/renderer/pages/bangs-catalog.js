@@ -10628,6 +10628,8 @@
     ["zz",[],"ZeroZero","www.zerozero.pt","https://www.zerozero.pt/search.php?op=all&inputString=%s",3,"https://www.zerozero.pt/"],
     ["zzounds",[],"ZZounds","www.zzounds.com","https://www.zzounds.com/prodsearch?q=%s",3,"https://www.zzounds.com/"],
   ];
+  // The `!` picker's popular set (bangs/popular.json), in order.
+  Object.defineProperty(catalog, 'popular', { value: Object.freeze(["w","yt","a","g","r","gh","imdb","gmap","so","x","wa","ebay","gi","gmail","nf","spotify","gtr","ddg","kt"]) });
   if (typeof module !== 'undefined') module.exports = catalog;
   else root.BangsCatalog = catalog;
 })(typeof window !== 'undefined' ? window : globalThis);

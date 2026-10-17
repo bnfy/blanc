@@ -32,6 +32,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
 const SOURCE = path.join(ROOT, 'sources', 'bangs.json');
 const PINNED = path.join(ROOT, 'pinned.json');
 const EXCLUDED = path.join(ROOT, 'excluded.json');
+const POPULAR = path.join(ROOT, 'popular.json');
 const OUT = path.join(ROOT, '..', 'src', 'renderer', 'pages', 'bangs-catalog.js');
 const OUT_REL = 'src/renderer/pages/bangs-catalog.js';
 
@@ -94,6 +95,8 @@ export function generate({ log = () => {} } = {}) {
   const actual = createHash('sha256').update(content).digest('hex');
   if (actual !== pinned.sha256) throw new Error('Pinned hash mismatch for bangs/sources/bangs.json');
   const excluded = JSON.parse(fs.readFileSync(EXCLUDED, 'utf8')).codes ?? {};
+  const popular = JSON.parse(fs.readFileSync(POPULAR, 'utf8'));
+  if (!Array.isArray(popular) || !popular.every((code) => BANG_CODE.test(code))) throw new Error('Invalid bangs/popular.json');
 
   const entries = [];
   const dropped = new Map();
@@ -125,6 +128,8 @@ export function generate({ log = () => {} } = {}) {
     `  const catalog = [`,
     ...entries.map((entry) => `    ${JSON.stringify(entry)},`),
     `  ];`,
+    `  // The \`!\` picker's popular set (bangs/popular.json), in order.`,
+    `  Object.defineProperty(catalog, 'popular', { value: Object.freeze(${JSON.stringify(popular)}) });`,
     `  if (typeof module !== 'undefined') module.exports = catalog;`,
     `  else root.BangsCatalog = catalog;`,
     `})(typeof window !== 'undefined' ? window : globalThis);`,

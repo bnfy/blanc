@@ -2537,6 +2537,10 @@ function install(refs) {
           }
           return {
             title: row.querySelector('.row-title')?.textContent ?? '',
+            // Bang hint and picker rows carry a code and a sentence or name.
+            cmd: row.querySelector('.row-cmd')?.textContent ?? '',
+            hint: row.querySelector('.row-hint')?.textContent ?? '',
+            sub: row.querySelector('.row-sub')?.textContent ?? '',
             tag: row.querySelector('.row-tag')?.textContent ?? '',
             label: row.querySelector('.row-primary')?.getAttribute('aria-label') ?? '',
             quiet: row.classList.contains('quiet'),

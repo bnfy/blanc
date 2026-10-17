@@ -65,6 +65,8 @@ test('generated catalog is current', async () => {
 test('generated catalog loads as a module and exposes well-formed entries', () => {
   const catalog = require('../../src/renderer/pages/bangs-catalog.js');
   assert.ok(Array.isArray(catalog) && catalog.length > 9000);
+  assert.ok(catalog.popular.includes('w') && Object.isFrozen(catalog.popular));
+  for (const code of catalog.popular) assert.ok(catalog.some((e) => e[0] === code || e[1].includes(code)), `popular code ${code} is in the catalog`);
   for (const entry of catalog) {
     assert.equal(entry.length, 7);
     assert.match(entry[0], /^[a-z0-9][a-z0-9_-]{0,31}$/);

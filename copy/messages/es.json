@@ -1465,6 +1465,42 @@
     "message": "sin resultados: ↵ lo abre como dirección o búsqueda",
     "source": "sha256:9228597eea4e330cdf99391128acb497ceabf682cb04a97c4208f0f772eb24f5"
   },
+  "bang.search": {
+    "message": "Buscar «{query}» en {site}",
+    "source": "sha256:c05e3683f0f07f541c3b7c8cd708f61db2e8e07864df4980dbf09f09454f2346"
+  },
+  "bang.open": {
+    "message": "Abrir {site}",
+    "source": "sha256:61ba4ed601a6b2bd8bee6c0205873f02dc2bfa881250b2c7532b7d2be5f7a820"
+  },
+  "bang.yours": {
+    "message": "tuyo",
+    "source": "sha256:c33f26356d5d9c2add317866752a44e686f6ef3b7043f2a6d7782dc7cd4217db"
+  },
+  "bang.section.recent": {
+    "message": "recientes",
+    "source": "sha256:491db91b69ec71d0a634885426a4779e787c7b7b5563b2387dab746ef528faa7"
+  },
+  "bang.section.popular": {
+    "message": "populares",
+    "source": "sha256:ef89539344d4dec400f8a8684be93241adc354c63fd4026619dae977d42b7694"
+  },
+  "bang.section.all": {
+    "message": "todos los bangs",
+    "source": "sha256:42ff40c52ffa0b382d8c774c4537611a7a727a924af681c41e60ccb8956fc453"
+  },
+  "bang.fold": {
+    "message": "Contraer esta sección",
+    "source": "sha256:5226e558419e7fbd34f3ed00b7558b6b5998216ede0ce7f8b1cf496aa294a910"
+  },
+  "bang.unfold": {
+    "message": "Expandir esta sección",
+    "source": "sha256:3c14d0febf237b86827385b4e4766b8f543423a4cf1c626b9a8e79d94a881928"
+  },
+  "hint.bang": {
+    "message": "!code palabras busca en un sitio · ! solo los muestra",
+    "source": "sha256:879d3983c7e7f393cc23a6d57f532e0cf28261fd00572e2d2edc3e2e3c5fb949"
+  },
   "hint.private": {
     "message": "privada · nada de aquí se guarda en el historial",
     "source": "sha256:feefda763965f9187e4eb9dd56a30b5b98c6c8794c7a3ad92f61d0dde8467299"
