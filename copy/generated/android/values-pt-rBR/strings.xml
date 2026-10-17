@@ -950,7 +950,7 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="settings_general_home_page_hint">Deixe vazio para usar a página da nova aba integrada</string>
     <string name="settings_sync_title">Sincronização</string>
     <string name="settings_sync_sync_setup_title">Configurar a sincronização</string>
-    <string name="settings_sync_sync_setup_intro">Sincronize seus favoritos e configurações entre seus dispositivos e, se quiser, as abas abertas. Tudo é criptografado de ponta a ponta — o Blanc não consegue ler nem recuperar se você esquecer sua frase secreta.</string>
+    <string name="settings_sync_sync_setup_intro">Sincronize entre seus dispositivos seus favoritos, configurações e os nomes deles e, se quiser, as abas abertas. Tudo é criptografado de ponta a ponta — o Blanc não consegue ler nem recuperar se você esquecer sua frase secreta.</string>
     <string name="settings_sync_sync_paths_aria_label">Escolha como configurar a sincronização</string>
     <string name="settings_sync_start_syncing_from_this">Começar a sincronizar por este dispositivo</string>
     <string name="settings_sync_create_the_name_and">Crie o nome e a frase secreta que você vai usar nos outros dispositivos.</string>
@@ -967,6 +967,8 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="settings_sync_sync_try_again">Tentar de novo</string>
     <string name="settings_sync_sync_start_new">Iniciar nova sincronização com estes</string>
     <string name="settings_sync_sync_name">Nome da sincronização</string>
+    <string name="settings_sync_device_name">Nome deste dispositivo</string>
+    <string name="settings_sync_device_name_hint">Como seus outros dispositivos mostram este. Deixe vazio para usar o nome do computador.</string>
     <string name="settings_sync_favorites_and_settings">Favoritos e configurações</string>
     <string name="settings_sync_this_devices_open_tabs">Abas abertas deste dispositivo</string>
     <string name="settings_sync_last_error">Último erro</string>
@@ -1166,13 +1168,13 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="settings_sync_turning_on">Ativando a sincronização…</string>
     <string name="settings_sync_connected_to">Conectado a “%1$s”. Trazendo seus favoritos e configurações agora.</string>
     <string name="settings_sync_joined_as">Você entrou na sua sincronização existente como “%1$s”.</string>
-    <string name="settings_sync_on">A sincronização está ativada. Seus favoritos e configurações vão sincronizar conforme você muda.</string>
+    <string name="settings_sync_on">A sincronização está ativada. Seus favoritos, configurações e nomes de dispositivos vão sincronizar conforme você muda.</string>
     <string name="settings_sync_checking">Verificando…</string>
     <string name="settings_sync_check_failed">Não foi possível verificar a sincronização. Tente de novo.</string>
     <string name="settings_sync_syncing">Sincronizando…</string>
     <string name="settings_sync_notice_offline">Não foi possível acessar o servidor de sincronização. Verifique sua conexão e tente de novo.</string>
     <string name="settings_sync_notice_rate_limited">Tentativas demais. Espere um minuto e tente de novo.</string>
-    <string name="settings_sync_setup_intro">Sincronize seus favoritos e configurações entre seus dispositivos e, se quiser, as abas abertas. Tudo é criptografado de ponta a ponta.</string>
+    <string name="settings_sync_setup_intro">Sincronize entre seus dispositivos seus favoritos, configurações e os nomes deles e, se quiser, as abas abertas. Tudo é criptografado de ponta a ponta.</string>
     <string name="settings_sync_setup_code_title">Digite o código do seu outro dispositivo</string>
     <string name="settings_sync_setup_code_hint">Ele vale por dez minutos.</string>
     <string name="settings_sync_add_this_device_hint">Pegue um código em um dispositivo que já sincroniza: Ajustes → Sincronização → Adicionar outro dispositivo.</string>
@@ -1244,7 +1246,7 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="settings_trust_fact_crash_ledger">Registro de falhas</string>
     <string name="settings_trust_build_packaged">%1$s (%2$s) · empacotada</string>
     <string name="settings_trust_build_development">%1$s (%2$s) · desenvolvimento</string>
-    <string name="settings_trust_sync_scope">Favoritos, configurações selecionadas · só Personal</string>
+    <string name="settings_trust_sync_scope">Favoritos, configurações selecionadas, nomes dos dispositivos · só Personal</string>
     <string name="settings_trust_crash_ledger">Só no dispositivo · envio automático desativado · %1$s/%2$s eventos</string>
     <string name="settings_trust_checked">Comprovante verificado localmente.</string>
     <string name="settings_trust_failed">Não foi possível montar o comprovante de confiança local.</string>

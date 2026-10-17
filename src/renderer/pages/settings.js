@@ -1258,6 +1258,7 @@
       const setupStatus = document.getElementById('syncSetupStatus');
       const activeStatus = document.getElementById('syncActiveStatus');
       const syncStatusHandle = document.getElementById('syncStatusHandle');
+      const deviceNameEl = document.getElementById('syncDeviceName');
       const syncStatusData = document.getElementById('syncStatusData');
       const syncStatusTabs = document.getElementById('syncStatusTabs');
       const syncStatusErrorRow = document.getElementById('syncStatusErrorRow');
@@ -1310,6 +1311,9 @@
         if (on) {
           currentHandle = status.handle;
           syncStatusHandle.textContent = status.handle;
+          // The chosen name, or empty with the computer's name as the hint.
+          if (document.activeElement !== deviceNameEl) deviceNameEl.value = status.deviceName || '';
+          deviceNameEl.placeholder = status.deviceNamePublished || '';
           const lastSynced = relativeSyncTime(status.lastSyncedAt);
           syncStatusData.textContent = lastSynced ? t('settings.sync.lastSynced', { when: lastSynced }) : t('settings.sync.notSynced');
           syncStatusTabs.textContent = status.syncTabs ? t('settings.sync.sharing') : t('settings.sync.notShared');
@@ -1552,6 +1556,12 @@
 
       tabsShareEl.addEventListener('change', async () => {
         renderStatus(await window.bowserPages.settings.syncTabsSet(tabsShareEl.checked));
+      });
+      deviceNameEl.addEventListener('change', async () => {
+        renderStatus(await window.bowserPages.settings.syncDeviceNameSet(deviceNameEl.value));
+      });
+      deviceNameEl.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') deviceNameEl.blur(); // commits through change
       });
     })();
   } else {

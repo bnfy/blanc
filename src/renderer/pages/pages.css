@@ -4189,6 +4189,8 @@ body[data-layout="shelf"] #layoutShelf { display: grid; }
 .sync-status-list > div { display: contents; }
 .sync-status-list dt { color: var(--text-dim); }
 .sync-status-list dd { margin: 0; }
+.sync-status-list dd > input { width: 100%; max-width: 320px; }
+.sync-device-name-hint { display: block; margin-top: 4px; color: var(--text-dim); font-size: 12px; }
 .sync-code-input {
   font-family: "Inter", var(--font-text);
   font-variant-numeric: tabular-nums;

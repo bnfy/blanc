@@ -37418,37 +37418,37 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sync your favorites and settings across your devices, and, if you choose, open tabs. Everything is end-to-end encrypted — Blanc can’t read it, and can’t recover it if you forget your passphrase."
+            "value": "Sync your favorites, settings and device names across your devices, and, if you choose, open tabs. Everything is end-to-end encrypted — Blanc can’t read it, and can’t recover it if you forget your passphrase."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Synchronisiere deine Favoriten und Einstellungen und auf Wunsch auch offene Tabs zwischen deinen Geräten. Alles ist Ende-zu-Ende-verschlüsselt – Blanc kann es weder lesen noch wiederherstellen, wenn du deine Passphrase vergisst."
+            "value": "Synchronisiere deine Favoriten, Einstellungen und Gerätenamen und auf Wunsch auch offene Tabs zwischen deinen Geräten. Alles ist Ende-zu-Ende-verschlüsselt – Blanc kann es weder lesen noch wiederherstellen, wenn du deine Passphrase vergisst."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sincroniza tus favoritos y tus ajustes entre tus dispositivos y, si quieres, también las pestañas abiertas. Todo está cifrado de extremo a extremo: Blanc no puede leerlo ni recuperarlo si olvidas tu frase de contraseña."
+            "value": "Sincroniza entre tus dispositivos tus favoritos, tus ajustes y sus nombres y, si quieres, también las pestañas abiertas. Todo está cifrado de extremo a extremo: Blanc no puede leerlo ni recuperarlo si olvidas tu frase de contraseña."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Synchronisez vos favoris et vos réglages entre vos appareils et, si vous le souhaitez, vos onglets ouverts. Tout est chiffré de bout en bout : Blanc ne peut pas le lire, ni le récupérer si vous oubliez votre phrase secrète."
+            "value": "Synchronisez entre vos appareils vos favoris, vos réglages et leurs noms et, si vous le souhaitez, vos onglets ouverts. Tout est chiffré de bout en bout : Blanc ne peut pas le lire, ni le récupérer si vous oubliez votre phrase secrète."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sincronizza i tuoi preferiti e le impostazioni tra i tuoi dispositivi e, se vuoi, anche le schede aperte. Tutto è crittografato end-to-end: Blanc non può leggerlo né recuperarlo se dimentichi la passphrase."
+            "value": "Sincronizza tra i tuoi dispositivi i preferiti, le impostazioni e i loro nomi e, se vuoi, anche le schede aperte. Tutto è crittografato end-to-end: Blanc non può leggerlo né recuperarlo se dimentichi la passphrase."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sincronize seus favoritos e configurações entre seus dispositivos e, se quiser, as abas abertas. Tudo é criptografado de ponta a ponta — o Blanc não consegue ler nem recuperar se você esquecer sua frase secreta."
+            "value": "Sincronize entre seus dispositivos seus favoritos, configurações e os nomes deles e, se quiser, as abas abertas. Tudo é criptografado de ponta a ponta — o Blanc não consegue ler nem recuperar se você esquecer sua frase secreta."
           }
         }
       }
@@ -38121,6 +38121,90 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nome da sincronização"
+          }
+        }
+      }
+    },
+    "settings.sync.deviceName": {
+      "comment": "Settings → Sync, on: label (dt) of the field naming this device as the user's other devices list it (in their Island's Other devices, Quick Switcher and start page).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This device’s name"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name dieses Geräts"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nombre de este dispositivo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nom de cet appareil"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nome di questo dispositivo"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nome deste dispositivo"
+          }
+        }
+      }
+    },
+    "settings.sync.deviceNameHint": {
+      "comment": "Settings → Sync, on: hint under This device’s name. The field's placeholder shows the computer's name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How your other devices list this one. Leave empty to use the computer’s name."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "So zeigen deine anderen Geräte dieses an. Leer lassen, um den Namen des Computers zu verwenden."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Así lo ven tus otros dispositivos. Déjalo vacío para usar el nombre del ordenador."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le nom sous lequel vos autres appareils l’affichent. Laissez vide pour utiliser le nom de l’ordinateur."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il nome con cui lo mostrano gli altri tuoi dispositivi. Lascia vuoto per usare il nome del computer."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Como seus outros dispositivos mostram este. Deixe vazio para usar o nome do computador."
           }
         }
       }
@@ -46490,37 +46574,37 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sync is on. Your favorites and settings will sync as you change them."
+            "value": "Sync is on. Your favorites, settings and device names will sync as you change them."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Die Synchronisierung ist an. Deine Favoriten und Einstellungen werden synchronisiert, sobald du sie änderst."
+            "value": "Die Synchronisierung ist an. Deine Favoriten, Einstellungen und Gerätenamen werden synchronisiert, sobald du sie änderst."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La sincronización está activada. Tus favoritos y ajustes se sincronizarán cuando los cambies."
+            "value": "La sincronización está activada. Tus favoritos, ajustes y nombres de dispositivos se sincronizarán cuando los cambies."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "La synchronisation est activée. Vos favoris et réglages se synchroniseront à chaque modification."
+            "value": "La synchronisation est activée. Vos favoris, réglages et noms d’appareils se synchroniseront à chaque modification."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "La sincronizzazione è attiva. I tuoi preferiti e le impostazioni si sincronizzeranno man mano che li modifichi."
+            "value": "La sincronizzazione è attiva. I tuoi preferiti, le impostazioni e i nomi dei dispositivi si sincronizzeranno man mano che li modifichi."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "A sincronização está ativada. Seus favoritos e configurações vão sincronizar conforme você muda."
+            "value": "A sincronização está ativada. Seus favoritos, configurações e nomes de dispositivos vão sincronizar conforme você muda."
           }
         }
       }
@@ -46742,37 +46826,37 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sync your favorites and settings across your devices, and, if you choose, open tabs. Everything is end-to-end encrypted."
+            "value": "Sync your favorites, settings and device names across your devices, and, if you choose, open tabs. Everything is end-to-end encrypted."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Synchronisiere deine Favoriten und Einstellungen und auf Wunsch auch offene Tabs zwischen deinen Geräten. Alles ist Ende-zu-Ende-verschlüsselt."
+            "value": "Synchronisiere deine Favoriten, Einstellungen und Gerätenamen und auf Wunsch auch offene Tabs zwischen deinen Geräten. Alles ist Ende-zu-Ende-verschlüsselt."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sincroniza tus favoritos y tus ajustes entre tus dispositivos y, si quieres, también las pestañas abiertas. Todo está cifrado de extremo a extremo."
+            "value": "Sincroniza entre tus dispositivos tus favoritos, tus ajustes y sus nombres y, si quieres, también las pestañas abiertas. Todo está cifrado de extremo a extremo."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Synchronisez vos favoris et vos réglages entre vos appareils et, si vous le souhaitez, vos onglets ouverts. Tout est chiffré de bout en bout."
+            "value": "Synchronisez entre vos appareils vos favoris, vos réglages et leurs noms et, si vous le souhaitez, vos onglets ouverts. Tout est chiffré de bout en bout."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sincronizza preferiti e impostazioni tra i tuoi dispositivi e, se vuoi, anche le schede aperte. Tutto è crittografato end-to-end."
+            "value": "Sincronizza tra i tuoi dispositivi preferiti, impostazioni e i loro nomi e, se vuoi, anche le schede aperte. Tutto è crittografato end-to-end."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sincronize seus favoritos e configurações entre seus dispositivos e, se quiser, as abas abertas. Tudo é criptografado de ponta a ponta."
+            "value": "Sincronize entre seus dispositivos seus favoritos, configurações e os nomes deles e, se quiser, as abas abertas. Tudo é criptografado de ponta a ponta."
           }
         }
       }
@@ -49550,37 +49634,37 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Favorites, selected settings · Personal only"
+            "value": "Favorites, selected settings, device names · Personal only"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Favoriten, ausgewählte Einstellungen · nur Personal"
+            "value": "Favoriten, ausgewählte Einstellungen, Gerätenamen · nur Personal"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Favoritos, ajustes seleccionados · solo Personal"
+            "value": "Favoritos, ajustes seleccionados, nombres de dispositivos · solo Personal"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Favoris, réglages sélectionnés · Personal uniquement"
+            "value": "Favoris, réglages sélectionnés, noms des appareils · Personal uniquement"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Preferiti, impostazioni selezionate · solo Personal"
+            "value": "Preferiti, impostazioni selezionate, nomi dei dispositivi · solo Personal"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Favoritos, configurações selecionadas · só Personal"
+            "value": "Favoritos, configurações selecionadas, nomes dos dispositivos · só Personal"
           }
         }
       }

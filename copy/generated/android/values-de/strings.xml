@@ -923,7 +923,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_general_home_page_hint">Leer lassen für die eingebaute Neue-Tab-Seite</string>
     <string name="settings_sync_title">Synchronisierung</string>
     <string name="settings_sync_sync_setup_title">Synchronisierung einrichten</string>
-    <string name="settings_sync_sync_setup_intro">Synchronisiere deine Favoriten und Einstellungen und auf Wunsch auch offene Tabs zwischen deinen Geräten. Alles ist Ende-zu-Ende-verschlüsselt – Blanc kann es weder lesen noch wiederherstellen, wenn du deine Passphrase vergisst.</string>
+    <string name="settings_sync_sync_setup_intro">Synchronisiere deine Favoriten, Einstellungen und Gerätenamen und auf Wunsch auch offene Tabs zwischen deinen Geräten. Alles ist Ende-zu-Ende-verschlüsselt – Blanc kann es weder lesen noch wiederherstellen, wenn du deine Passphrase vergisst.</string>
     <string name="settings_sync_sync_paths_aria_label">Wähle, wie du die Synchronisierung einrichtest</string>
     <string name="settings_sync_start_syncing_from_this">Synchronisierung auf diesem Gerät beginnen</string>
     <string name="settings_sync_create_the_name_and">Lege den Namen und die Passphrase fest, die du auf deinen anderen Geräten verwendest.</string>
@@ -940,6 +940,8 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_sync_sync_try_again">Erneut versuchen</string>
     <string name="settings_sync_sync_start_new">Damit neu beginnen</string>
     <string name="settings_sync_sync_name">Synchronisierungsname</string>
+    <string name="settings_sync_device_name">Name dieses Geräts</string>
+    <string name="settings_sync_device_name_hint">So zeigen deine anderen Geräte dieses an. Leer lassen, um den Namen des Computers zu verwenden.</string>
     <string name="settings_sync_favorites_and_settings">Favoriten und Einstellungen</string>
     <string name="settings_sync_this_devices_open_tabs">Offene Tabs dieses Geräts</string>
     <string name="settings_sync_last_error">Letzter Fehler</string>
@@ -1139,13 +1141,13 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_sync_turning_on">Synchronisierung wird eingeschaltet…</string>
     <string name="settings_sync_connected_to">Mit „%1$s“ verbunden. Deine Favoriten und Einstellungen werden jetzt geladen.</string>
     <string name="settings_sync_joined_as">Deiner bestehenden Synchronisierung als „%1$s“ beigetreten.</string>
-    <string name="settings_sync_on">Die Synchronisierung ist an. Deine Favoriten und Einstellungen werden synchronisiert, sobald du sie änderst.</string>
+    <string name="settings_sync_on">Die Synchronisierung ist an. Deine Favoriten, Einstellungen und Gerätenamen werden synchronisiert, sobald du sie änderst.</string>
     <string name="settings_sync_checking">Wird geprüft…</string>
     <string name="settings_sync_check_failed">Die Synchronisierung konnte nicht geprüft werden. Versuch es noch einmal.</string>
     <string name="settings_sync_syncing">Wird synchronisiert…</string>
     <string name="settings_sync_notice_offline">Der Sync-Server ist nicht erreichbar. Prüfe deine Verbindung und versuch es noch einmal.</string>
     <string name="settings_sync_notice_rate_limited">Zu viele Versuche. Warte eine Minute und versuch es dann noch einmal.</string>
-    <string name="settings_sync_setup_intro">Synchronisiere deine Favoriten und Einstellungen und auf Wunsch auch offene Tabs zwischen deinen Geräten. Alles ist Ende-zu-Ende-verschlüsselt.</string>
+    <string name="settings_sync_setup_intro">Synchronisiere deine Favoriten, Einstellungen und Gerätenamen und auf Wunsch auch offene Tabs zwischen deinen Geräten. Alles ist Ende-zu-Ende-verschlüsselt.</string>
     <string name="settings_sync_setup_code_title">Gib den Code von deinem anderen Gerät ein</string>
     <string name="settings_sync_setup_code_hint">Er gilt zehn Minuten lang.</string>
     <string name="settings_sync_add_this_device_hint">Hol dir einen Code von einem Gerät, das bereits synchronisiert: Einstellungen → Synchronisierung → Weiteres Gerät hinzufügen.</string>
@@ -1214,7 +1216,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_trust_fact_crash_ledger">Absturzprotokoll</string>
     <string name="settings_trust_build_packaged">%1$s (%2$s) · paketiert</string>
     <string name="settings_trust_build_development">%1$s (%2$s) · Entwicklung</string>
-    <string name="settings_trust_sync_scope">Favoriten, ausgewählte Einstellungen · nur Personal</string>
+    <string name="settings_trust_sync_scope">Favoriten, ausgewählte Einstellungen, Gerätenamen · nur Personal</string>
     <string name="settings_trust_crash_ledger">Nur auf dem Gerät · automatischer Upload aus · %1$s/%2$s Ereignisse</string>
     <string name="settings_trust_checked">Beleg lokal geprüft.</string>
     <string name="settings_trust_failed">Der lokale Vertrauensbeleg konnte nicht erstellt werden.</string>

@@ -3322,8 +3322,8 @@
     "source": "sha256:67f95923387928a3c9f5eecc13dcf0ee651624107f1f9f00e4abb0c8513bc7f8"
   },
   "settings.sync.syncSetupIntro": {
-    "message": "Sincronizza i tuoi preferiti e le impostazioni tra i tuoi dispositivi e, se vuoi, anche le schede aperte. Tutto è crittografato end-to-end: Blanc non può leggerlo né recuperarlo se dimentichi la passphrase.",
-    "source": "sha256:5029f3a12c9b9570cf8c9d1d21b7d9e6a2533837f4e81c7e050fa9565fb21c77"
+    "message": "Sincronizza tra i tuoi dispositivi i preferiti, le impostazioni e i loro nomi e, se vuoi, anche le schede aperte. Tutto è crittografato end-to-end: Blanc non può leggerlo né recuperarlo se dimentichi la passphrase.",
+    "source": "sha256:9b27e3ef39e00e02289ca868e21aa6b947cedd507fa40fd9c38caf11d07aaeef"
   },
   "settings.sync.syncPaths.ariaLabel": {
     "message": "Scegli come configurare la sincronizzazione",
@@ -3388,6 +3388,14 @@
   "settings.sync.syncName": {
     "message": "Nome della sincronizzazione",
     "source": "sha256:102c09945d3514a97bd684db0a5b1298689a14b06ce77ff37569249ea2ce9591"
+  },
+  "settings.sync.deviceName": {
+    "message": "Nome di questo dispositivo",
+    "source": "sha256:1a8bb7c111ba9a5ec6f7037d5e05abdd05d435ddff620a2d0cc98113d0bda58f"
+  },
+  "settings.sync.deviceNameHint": {
+    "message": "Il nome con cui lo mostrano gli altri tuoi dispositivi. Lascia vuoto per usare il nome del computer.",
+    "source": "sha256:00b062f722c450745e1ae0f72529c015df823df8d6b7f5dfcf7408a434765597"
   },
   "settings.sync.favoritesAndSettings": {
     "message": "Preferiti e impostazioni",
@@ -4186,8 +4194,8 @@
     "source": "sha256:896763a6465a2e0244557c548d089378fed1283b434ccc383fcab8969e081b9e"
   },
   "settings.sync.on": {
-    "message": "La sincronizzazione è attiva. I tuoi preferiti e le impostazioni si sincronizzeranno man mano che li modifichi.",
-    "source": "sha256:836859840bdb7bafe33153c76196171f34c63b4b9c17d3351d3a93d79e5fd32a"
+    "message": "La sincronizzazione è attiva. I tuoi preferiti, le impostazioni e i nomi dei dispositivi si sincronizzeranno man mano che li modifichi.",
+    "source": "sha256:2f989c767007f6b124ad2fe66aa86b6e0b563758902f0e2edc296e038720f3e2"
   },
   "settings.sync.checking": {
     "message": "Verifica in corso…",
@@ -4210,8 +4218,8 @@
     "source": "sha256:9548a27590036ec76dd6499c31e2941df5cb4635cdbc0816df43ecac7004a312"
   },
   "settings.sync.setup.intro": {
-    "message": "Sincronizza preferiti e impostazioni tra i tuoi dispositivi e, se vuoi, anche le schede aperte. Tutto è crittografato end-to-end.",
-    "source": "sha256:1b3bb5e6a29c0d154ded7c5232b9430ae6e4660d34d4745f40322a7ac9419b02"
+    "message": "Sincronizza tra i tuoi dispositivi preferiti, impostazioni e i loro nomi e, se vuoi, anche le schede aperte. Tutto è crittografato end-to-end.",
+    "source": "sha256:76b6e822f8ef2be6f7b1fd153bf1469c3c3f92c12268658c0bd717ded71ab24e"
   },
   "settings.sync.setup.codeTitle": {
     "message": "Inserisci il codice dell’altro dispositivo",
@@ -4450,8 +4458,8 @@
     "source": "sha256:5f48d473b4e4c94dc83230f7ce0108e0f20f22ac8410f23fd60f05db372e3f71"
   },
   "settings.trust.syncScope": {
-    "message": "Preferiti, impostazioni selezionate · solo Personal",
-    "source": "sha256:65ce3d502b10a2b660dad5554cef0d0d2b14027288117873ec782d98ef10de60"
+    "message": "Preferiti, impostazioni selezionate, nomi dei dispositivi · solo Personal",
+    "source": "sha256:3396c89c8bb35f5a84e8b6588b88305b22f1166c831a9f4d69c1ebd134d28682"
   },
   "settings.trust.crashLedger": {
     "message": "Solo sul dispositivo · caricamento automatico disattivato · {count}/{limit} eventi",
