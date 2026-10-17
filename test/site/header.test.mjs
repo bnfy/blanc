@@ -49,7 +49,7 @@ test('the header stays at the top, marks the current section and points Download
   try {
     for (const [path, current, cta] of [
       ['/', [], '/download'], ['/features', ['Features'], '/download'], ['/features/island', ['Features'], '/download'],
-      ['/trust', ['Privacy & Security'], '/download'], ['/support', ['Support'], '/download'], ['/mail', ['Mail'], '/download'],
+      ['/trust', ['Privacy & Security'], '/download'], ['/patron', ['Patron'], '/download'], ['/support', ['Support'], '/download'], ['/mail', ['Mail'], '/download'],
       ['/download', [], '#download-options'],
     ]) {
       await page.goto(`${baseURL}${path}`);

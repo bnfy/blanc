@@ -2088,16 +2088,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "trust-125-332",
-      "source": "site/src/pages/privacy.astro",
-      "exactWording": "Submitting the footer form does not immediately subscribe an address. The newsletter Worker temporarily stores the address, request time, and opaque confirmation/unsubscribe material for up to 24 hours and asks Resend to deliver a confirmation email. Resend therefore processes the address for that delivery under its privacy policy. The Worker uses short-lived per-IP rate-limit keys, expiring after about two minutes, but does not attach an IP address to the subscriber record.",
-      "subject": "Blanc or website",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "trust-125-333",
       "source": "site/src/pages/privacy.astro",
       "exactWording": "Only following the confirmation link creates a subscriber record containing the email address, confirmation time, and opaque unsubscribe token. Every message must include the generated one-click unsubscribe link; using it deletes the record. You can also request deletion at support@blanc.day. A valid address caught by the hidden honeypot is held in a separate 30-day quarantine for manual review of possible browser-autofill false positives. It is never subscribed or sent to Resend unless someone submits it again without the honeypot and then follows the confirmation link.",
@@ -10338,6 +10328,17 @@
       ],
       "verdict": "qualified",
       "reason": "October 16, 2026: the owner chose to announce 1Password login fill on Windows and Linux, shipped in public v1.34.0, so the site no longer limits it to macOS. The replacement wording is recorded in docs/website-v1.34-claims.json."
+    },
+    {
+      "id": "trust-125-332",
+      "source": "site/src/pages/privacy.astro",
+      "exactWording": "Submitting the footer form does not immediately subscribe an address. The newsletter Worker temporarily stores the address, request time, and opaque confirmation/unsubscribe material for up to 24 hours and asks Resend to deliver a confirmation email. Resend therefore processes the address for that delivery under its privacy policy. The Worker uses short-lived per-IP rate-limit keys, expiring after about two minutes, but does not attach an IP address to the subscriber record.",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "October 17, 2026: the privacy page now also names the website's discreet newsletter signup card, which submits to the same Worker as the footer form, and records the browser-local entry it keeps. The replacement wording is recorded in docs/website-v1.35-claims.json."
     }
   ],
   "supersededCandidateClaims": [

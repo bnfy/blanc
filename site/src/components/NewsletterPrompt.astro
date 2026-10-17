@@ -1,0 +1,262 @@
+---
+// A discreet newsletter invitation: a small card in the bottom corner that
+// appears at most once per visit, only after the visitor has spent a while on
+// the page and read well into it, and never while the footer form is on
+// screen. "Not now" keeps it away for 60 days; asking to subscribe (here or in
+// the footer) keeps it away for good. That memory is one localStorage entry
+// in this browser; nothing is sent until the visitor submits the form.
+// Submission reuses NewsletterForm.astro's script (form[data-newsletter-prompt]
+// and its foot-news-* class names), so the Worker contract stays in one place.
+---
+<aside class="news-prompt" id="newsletter-prompt" aria-labelledby="newsPromptTitle" hidden>
+  <button class="news-prompt-close" type="button" aria-label="Close" data-news-prompt-dismiss>
+    <svg viewBox="0 0 10 10" width="10" height="10" aria-hidden="true"><path d="M2 2l6 6M8 2l-6 6"></path></svg>
+  </button>
+  <div class="news-prompt-head">
+    <img class="news-prompt-mark" src="/lockup/sunrise-mark-256.webp" width="256" height="256" alt="" />
+    <h2 id="newsPromptTitle">Get updates from Blanc</h2>
+  </div>
+  <p class="news-prompt-copy">An occasional email when a new version of Blanc ships, with what changed. Confirm by email, and unsubscribe in one click.</p>
+  <form class="foot-news news-prompt-form" data-newsletter-prompt>
+    <label class="foot-news-label sr-only" for="newsletterPromptEmail">Get updates from Blanc. Email address</label>
+    <span class="foot-news-controls news-prompt-controls">
+      <input id="newsletterPromptEmail" name="email" type="email" required maxlength="254" placeholder="you@example.com" autocomplete="email">
+      <input class="foot-news-hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <button type="submit" data-track="newsletter_subscribe" data-cta-position="newsletter-prompt">Subscribe</button>
+    </span>
+    <span class="foot-news-status news-prompt-status" role="status" aria-live="polite"></span>
+  </form>
+  <p class="news-prompt-patron" data-news-prompt-patron hidden>
+    Want to help Blanc grow? <a href="/patron" data-cta-position="newsletter-prompt">Become a Patron</a>
+  </p>
+  <button class="news-prompt-later" type="button" data-news-prompt-dismiss>Not now</button>
+</aside>
+<style>
+  .news-prompt {
+    position: fixed;
+    right: max(20px, env(safe-area-inset-right, 0px));
+    bottom: max(20px, env(safe-area-inset-bottom, 0px));
+    z-index: 90;
+    box-sizing: border-box;
+    width: min(340px, calc(100vw - 32px));
+    padding: 18px 18px 14px;
+    border: 1px solid var(--site-border);
+    border-radius: 18px;
+    background: var(--site-bg);
+    color: var(--site-text);
+    font-family: var(--font-brand-text);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, .7) inset, 0 18px 48px -18px rgba(27, 26, 24, .32), 0 2px 8px rgba(27, 26, 24, .06);
+  }
+  .news-prompt[hidden] { display: none; }
+  .news-prompt.is-entering { animation: news-prompt-in .42s cubic-bezier(.2, .8, .2, 1) both; }
+  @keyframes news-prompt-in {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .news-prompt.is-entering { animation: none; }
+  }
+  .news-prompt-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-right: 28px;
+  }
+  .news-prompt-mark { width: 30px; height: 30px; flex: none; }
+  .news-prompt h2 {
+    margin: 0;
+    font-family: var(--site-font-display);
+    font-size: 21px;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: 1.1;
+  }
+  .news-prompt-copy {
+    margin: 10px 0 14px;
+    color: var(--site-text-dim);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .news-prompt-controls {
+    display: flex;
+    gap: 8px;
+  }
+  .news-prompt-controls[hidden] { display: none; }
+  .news-prompt-controls input[type="email"] {
+    flex: 1;
+    min-width: 0;
+    height: 40px;
+    box-sizing: border-box;
+    padding: 0 12px;
+    border: 1px solid var(--site-border);
+    border-radius: 999px;
+    background: var(--site-surface-raised);
+    color: var(--site-text);
+    font: inherit;
+    font-size: 15px;
+  }
+  .news-prompt-controls input[type="email"]:focus-visible {
+    outline: 2px solid var(--site-gold);
+    outline-offset: 1px;
+  }
+  .news-prompt-controls button {
+    flex: none;
+    height: 40px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--site-text);
+    color: var(--site-bg);
+    font: inherit;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .news-prompt-controls button:hover { background: #000; }
+  .news-prompt-controls button:disabled { opacity: .6; cursor: progress; }
+  /* Keep the bot trap out of the layout. */
+  .news-prompt .foot-news-hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    opacity: 0;
+  }
+  .news-prompt-status {
+    display: block;
+    color: var(--site-text);
+    font-size: 14px;
+    line-height: 1.45;
+  }
+  .news-prompt-status:empty { display: none; }
+  .news-prompt-controls:not([hidden]) + .news-prompt-status { margin-top: 8px; color: var(--site-text-dim); }
+  .news-prompt-patron {
+    margin: 10px 0 0;
+    color: var(--site-text-dim);
+    font-size: 14px;
+  }
+  .news-prompt-patron[hidden] { display: none; }
+  .news-prompt-patron a { color: var(--site-gold); }
+  .news-prompt-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--site-text-dim);
+    cursor: pointer;
+  }
+  .news-prompt-close:hover { background: var(--site-surface); color: var(--site-text); }
+  .news-prompt-close path { fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; }
+  .news-prompt-later {
+    display: block;
+    margin: 8px 0 0 auto;
+    padding: 6px 2px;
+    border: 0;
+    background: transparent;
+    color: var(--site-text-dim);
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .news-prompt-later:hover { color: var(--site-text); text-decoration: underline; }
+  .news-prompt :focus-visible { outline: 2px solid var(--site-gold); outline-offset: 2px; }
+  @media (max-width: 520px) {
+    .news-prompt {
+      right: 12px;
+      bottom: max(12px, env(safe-area-inset-bottom, 0px));
+      width: calc(100vw - 24px);
+    }
+  }
+</style>
+<script>
+  // Timing and memory for the prompt. test/site/newsletter-prompt.test.mjs
+  // uses the same key and windows; change them together.
+  const STORAGE_KEY = 'blanc-newsletter-prompt-v1';
+  const SNOOZE_MS = 60 * 24 * 60 * 60 * 1000; // "Not now" lasts 60 days.
+  const MIN_DWELL_MS = 20000;                 // at least 20 s on the page,
+  const MIN_SCROLL = 0.4;                     // and 40% of it read (or no scroll possible).
+
+  const prompt = document.getElementById('newsletter-prompt');
+  const footerForm = document.getElementById('newsletter');
+
+  function readState() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') || {};
+    } catch {
+      return null; // storage blocked: stay quiet rather than ask on every page
+    }
+  }
+  function writeState(state) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* best effort */ }
+  }
+
+  const state = readState();
+  const eligible = prompt && state
+    && !state.requested
+    && !(state.dismissedAt && Date.now() - state.dismissedAt < SNOOZE_MS);
+
+  let footerVisible = false;
+  let dwellDone = false;
+  let shown = false;
+  let closed = false;
+
+  function scrolledEnough() {
+    const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+    if (scrollable <= 0) return true;
+    return window.scrollY / scrollable >= MIN_SCROLL;
+  }
+  function consentOpen() {
+    const consent = document.getElementById('consent');
+    return consent && !consent.hidden;
+  }
+  function maybeShow() {
+    if (shown || closed || !dwellDone || footerVisible || consentOpen() || !scrolledEnough()) return;
+    shown = true;
+    prompt.hidden = false;
+    prompt.classList.add('is-entering');
+    window.removeEventListener('scroll', onScroll);
+  }
+  function onScroll() { maybeShow(); }
+  function close(remember) {
+    closed = true;
+    prompt.hidden = true;
+    if (remember) writeState({ ...readState(), dismissedAt: Date.now() });
+  }
+
+  if (eligible) {
+    window.setTimeout(() => { dwellDone = true; maybeShow(); }, MIN_DWELL_MS);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    if (footerForm && 'IntersectionObserver' in window) {
+      new IntersectionObserver((entries) => {
+        footerVisible = entries.some((entry) => entry.isIntersecting);
+        maybeShow();
+      }).observe(footerForm);
+    }
+    prompt.querySelectorAll('[data-news-prompt-dismiss]').forEach((button) => {
+      button.addEventListener('click', () => close(true));
+    });
+    prompt.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') close(true);
+    });
+  }
+
+  // A request from either form means this browser has been asked: never
+  // invite again. The prompt stays open after its own request so the visitor
+  // reads the confirmation note.
+  document.addEventListener('blanc:newsletter-requested', () => {
+    writeState({ ...readState(), requested: Date.now() });
+    if (!shown) closed = true;
+    else if (!closed) {
+      prompt.querySelector('[data-news-prompt-patron]').hidden = false;
+      prompt.querySelector('.news-prompt-later').textContent = 'Close';
+    }
+  });
+</script>

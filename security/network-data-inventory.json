@@ -188,7 +188,7 @@
       "recipient": "Blanc Cloudflare Worker and Resend",
       "data": ["email address", "request/confirmation time", "opaque confirmation and unsubscribe material", "edge address for short-lived rate limiting"],
       "retentionByBlanc": "pending request up to 24 hours; honeypot quarantine up to 30 days; confirmed record until one-click unsubscribe or deletion",
-      "code": ["site/src/components/NewsletterForm.astro", "cloudflare/newsletter-worker/src/index.js"]
+      "code": ["site/src/components/NewsletterForm.astro", "site/src/components/NewsletterPrompt.astro", "cloudflare/newsletter-worker/src/index.js"]
     }
   ]
 }
