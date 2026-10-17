@@ -70,6 +70,8 @@ function install(refs) {
     getIslandRect,
     getIslandHoverState,
     setIslandHoverOpen,
+    getOverlayShowCount,
+    resetOverlayShowCount,
     runBlockAdsCommand,
     runAllowAdsCommand,
     clusterSlots,
@@ -514,6 +516,8 @@ function install(refs) {
     islandRect() { const r = getIslandRect(); return r ? { ...r } : null; },
     islandHoverState() { return getIslandHoverState(); },
     setIslandHoverOpen(on) { return setIslandHoverOpen(on); },
+    overlayShowCount() { return getOverlayShowCount(); },
+    resetOverlayShowCount() { resetOverlayShowCount(); },
     sendChromeMouseInput(input) {
       const wc = getChromeWebContents();
       if (!wc || wc.isDestroyed()) return false;
@@ -3470,6 +3474,7 @@ function install(refs) {
         onePasswordEnabled: false,
         onePasswordAccount: '',
         tabSleep: '1h',
+        islandHoverOpen: false,
         // The launch-time auto-complete records false; F36-2 seeds true and
         // relies on Skip to overwrite it — a failure before Skip must not
         // leak that seed into later scenarios.

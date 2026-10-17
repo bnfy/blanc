@@ -25,6 +25,73 @@ Feature: Island chrome, command palette, and slash commands
     Then the command bar is shown over the page content
     And the list area shows the tab switcher
 
+  @F1-3 @F1 @desktop @island-hover
+  Scenario: Hover-open is off by default
+    Given Island hover-open is off
+    When I rest the pointer over the Island for 400 milliseconds
+    Then the Island panel stays closed
+
+  @F1-4 @F1 @desktop @island-hover
+  Scenario: Hover-open waits for its dwell before opening
+    Given Island hover-open is on
+    When I rest the pointer over the Island for less than 300 milliseconds
+    Then the Island panel stays closed
+    When I keep the pointer there through the 300 millisecond dwell
+    Then the Island panel opens from hover
+
+  @F1-5 @F1 @desktop @island-hover
+  Scenario: Crossing the Island does not open it
+    Given Island hover-open is on
+    When I cross the Island in 150 milliseconds
+    Then the Island panel stays closed after 400 milliseconds
+
+  @F1-6 @F1 @desktop @island-hover
+  Scenario: Motion inside the Island does not postpone opening
+    Given Island hover-open is on
+    When I move within the Island every 50 milliseconds
+    Then the Island panel opens from hover
+
+  @F1-7 @F1 @desktop @island-hover
+  Scenario: The proximity band does not count as hovering the Island
+    Given Island hover-open is on
+    When I rest the pointer 100 pixels below the Island for 400 milliseconds
+    Then the Island panel stays closed
+
+  @F1-8 @F1 @desktop @island-hover
+  Scenario: Closing under a resting pointer requires an exit before reopening
+    Given Island hover-open is on
+    And the Island panel opened under the real pointer
+    When I dismiss the panel without moving the pointer
+    Then the Island panel stays closed after 600 milliseconds
+    When I leave and re-enter the Island
+    Then the Island panel opens from hover
+
+  @F1-9 @F1 @desktop @island-hover
+  Scenario: An ordinary open during the dwell wins once
+    Given Island hover-open is on
+    When I open the Island normally during its hover dwell
+    Then exactly one Island panel is open
+
+  @F1-10 @F1 @desktop @island-hover
+  Scenario: An open shield popover blocks hover-open
+    Given a tab open on "hover-shield"
+    And Island hover-open is on
+    And the shield popover is open for hover testing
+    When I rest the pointer over the Island for 400 milliseconds
+    Then the shield popover remains open without the Island panel
+
+  @F1-11 @F1 @desktop @island-hover
+  Scenario: Hover-open works with vertical tabs
+    Given Island hover-open is on with vertical tabs
+    When I rest the pointer over the Island through its dwell
+    Then the Island panel opens from hover
+
+  @F1-12 @F1 @desktop @island-hover
+  Scenario: Turning hover-open off cancels an active dwell
+    Given Island hover-open is on
+    When I turn Island hover-open off halfway through its dwell
+    Then the Island panel stays closed after 400 milliseconds
+
   @F6-1 @F6 @all
   Scenario: The Quick Switcher matches open tabs and favorites
     Given a tab open on "news.example"

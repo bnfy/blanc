@@ -3692,6 +3692,7 @@ function refocusOverlayAfterMenu() {
 
 function showOverlay(mode, { prefill, purpose } = {}) {
   if (!hasLiveWindow() || !rt().overlayView) return;
+  if (acceptanceTestMode) rt().testOverlayShowCount = (rt().testOverlayShowCount ?? 0) + 1;
   suppressIslandHover();
   closeUblockPopup(rt().id);
   if (rt().overlayMode === 'display-share'
@@ -11374,6 +11375,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       getOverlayMode: () => rt().overlayMode, showOverlay, hideOverlay, getPrivateBrowsingSession,
       getIslandHoverState: () => ({ ...islandHoverRecord(rt()).state }),
       setIslandHoverOpen: (on) => settings.setSettings({ islandHoverOpen: !!on }).islandHoverOpen,
+      getOverlayShowCount: () => rt().testOverlayShowCount ?? 0,
+      resetOverlayShowCount: () => { rt().testOverlayShowCount = 0; },
       // The spaces set aside after a switch (D22), oldest first, and whether
       // each of their tabs is loaded or quiet.
       getResidentSpaces: () => windowRuntimes.all().filter((r) => r.resident && !r.closing)

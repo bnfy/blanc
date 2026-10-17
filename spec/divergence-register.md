@@ -632,3 +632,20 @@ it and disagree with it. Desktop has no such OS facility for Electron apps.
 
 **Parity contract that still holds:** the same catalog, the same fixed terms,
 the same English fallback and the same selectable set on every platform.
+
+## D28 — Desktop Island hover-open vs. touch-only input
+**Features:** F1
+
+**Why:** A persistent mouse or trackpad pointer can dwell over the resting
+Island without activating it. A finger cannot hover, and treating proximity or
+a first tap as hover would steal the tap's ordinary job.
+
+- **Desktop with a hover-capable fine pointer:** an off-by-default setting may
+  open the Island panel after a continuous 300 ms dwell on the resting Island.
+- **Touch-only desktop hardware, iOS and Android:** hover-open is unavailable;
+  the ordinary tap, keyboard and gesture routes remain.
+
+**Parity contract:** the same Island panel and all of its actions remain
+reachable. Only the optional pointer-hover trigger is desktop-specific.
+
+**Status:** Accepted 2026-10-17.

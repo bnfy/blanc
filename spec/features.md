@@ -31,6 +31,10 @@ toolbar (Bowser Design System "Island Chrome").
 - **Expanded states** (one at a time): `panel` (command bar expanded in place),
   `palette` (same panel summoned by the ⌘L-equivalent, floated over a scrim),
   `find` (F8). Only the active state shows; Escape/back dismisses.
+- On desktop, an off-by-default setting may open `panel` after the pointer
+  remains over the resting Island for 300 ms. Leaving early cancels it; closing
+  under a resting pointer requires leaving and re-entering before it can open
+  again. Touch-only devices have no hover-open behavior (D28).
 - The panel's list area shows: the **tab switcher** at rest, **slash commands**
   (F7) when input starts with `/`, the **Quick Switcher** (F6) otherwise.
 - Below the list, one footer line holds **New tab** (the one solid pill, with
@@ -48,7 +52,9 @@ toolbar (Bowser Design System "Island Chrome").
   active page, the pill shows the platform back/forward affordance (buttons on
   desktop, edge-swipe gesture on mobile per D7), 3 dots, the domain, a shield
   count of 2, and the action cluster — and not the name `work`. Summoning the
-  palette floats the command bar with the tab switcher listed.
+  palette floats the command bar with the tab switcher listed. On desktop,
+  enabling hover-open and dwelling on the Island opens the panel once; crossing
+  it, hovering nearby, or disabling the setting mid-dwell does not.
 
 ## F2 — Tabs
 

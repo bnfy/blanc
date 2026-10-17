@@ -51,6 +51,16 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 |----|----------|---------|:-------:|:---:|:-------:|
 | F1-1 | Resting pill reflects tab and blocking state | — | ✅ | ⬜ | ⬜ |
 | F1-2 | Palette floats command bar + tab switcher | — | ✅ | ⬜ | ⬜ |
+| F1-3 | Hover-open is off by default | D28 | ✅ | ➖ | ➖ |
+| F1-4 | Hover-open waits for its dwell | D28 | ✅ | ➖ | ➖ |
+| F1-5 | Crossing the Island does not open it | D28 | ✅ | ➖ | ➖ |
+| F1-6 | Motion inside does not postpone hover-open | D28 | ✅ | ➖ | ➖ |
+| F1-7 | The proximity band does not trigger hover-open | D28 | ✅ | ➖ | ➖ |
+| F1-8 | A resting pointer must exit before reopening | D28 | ✅ | ➖ | ➖ |
+| F1-9 | An ordinary open during dwell wins once | D28 | ✅ | ➖ | ➖ |
+| F1-10 | Shield popover blocks hover-open | D28 | ✅ | ➖ | ➖ |
+| F1-11 | Hover-open works with vertical tabs | D28 | ✅ | ➖ | ➖ |
+| F1-12 | Disabling hover-open cancels its dwell | D28 | ✅ | ➖ | ➖ |
 | F2-1 | Reopen closed restores URL | — | ✅ | ⬜ | ⬜ |
 | F2-2 | Duplicate tab | — | ✅ | ⬜ | ⬜ |
 | F2-3 | Pin orders ahead of unpinned | — | ✅ | ⬜ | ⬜ |
