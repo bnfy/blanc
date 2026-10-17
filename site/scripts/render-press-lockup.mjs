@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Renders the media kit's Blanc lockup downloads: the Sunrise mark beside the
 // outlined "Blanc", in ink (for light grounds) and white (for dark grounds),
-// as SVG, a 3000px-wide transparent PNG, and WebP previews.
+// as SVG, a 3000px-wide transparent PNG, WebP previews, and a 480px PNG for
+// email, where WebP and SVG images don't display everywhere.
 //
 //   node site/scripts/render-press-lockup.mjs           (write)
 //   node site/scripts/render-press-lockup.mjs --check   (fail if stale)
@@ -24,6 +25,8 @@ const OUT = path.join(ROOT, 'site/public/press');
 const COLORS = ['ink', 'white'];
 const PNG_WIDTH = 3000;
 const PREVIEW_WIDTHS = [600, 1200];
+// Emails draw the lockup 160px wide; 480px keeps it sharp on 3x screens.
+const EMAIL_PNG_WIDTH = 480;
 const check = process.argv.includes('--check');
 
 const markSrc = fs.readFileSync(path.join(ROOT, 'assets/sunrise-mark.svg'), 'utf8');
@@ -81,6 +84,7 @@ const files = (color) => ({
   svg: path.join(OUT, `blanc-lockup-${color}.svg`),
   png: path.join(OUT, `blanc-lockup-${color}.png`),
   previews: PREVIEW_WIDTHS.map((width) => [width, path.join(OUT, `blanc-lockup-${color}-${width}.webp`)]),
+  email: path.join(OUT, `blanc-lockup-${color}-${EMAIL_PNG_WIDTH}.png`),
 });
 
 let viewBox;
@@ -98,7 +102,7 @@ for (const color of viewBox ? COLORS : []) {
   const svg = compose(color, viewBox);
   if (check) {
     if (!fs.existsSync(f.svg) || fs.readFileSync(f.svg, 'utf8') !== svg) problems.push(`${rel(f.svg)} no longer matches the mark, wordmark, or footer construction`);
-    for (const [file, width] of [[f.png, PNG_WIDTH], ...f.previews.map(([w, p]) => [p, w])]) {
+    for (const [file, width] of [[f.png, PNG_WIDTH], [f.email, EMAIL_PNG_WIDTH], ...f.previews.map(([w, p]) => [p, w])]) {
       if (!fs.existsSync(file)) { problems.push(`${rel(file)} is missing`); continue; }
       const meta = await sharp(file).metadata();
       if (meta.width !== width || Math.abs(meta.height - height(width)) > 1) problems.push(`${rel(file)} is ${meta.width} × ${meta.height}, expected ${width} × ${height(width)}`);
@@ -108,10 +112,11 @@ for (const color of viewBox ? COLORS : []) {
   fs.writeFileSync(f.svg, svg);
   const density = (width) => 72 * width / viewBox[2];
   await sharp(Buffer.from(svg), { density: density(PNG_WIDTH) }).resize({ width: PNG_WIDTH }).png({ compressionLevel: 9 }).toFile(f.png);
+  await sharp(Buffer.from(svg), { density: density(EMAIL_PNG_WIDTH) * 2 }).resize({ width: EMAIL_PNG_WIDTH }).png({ compressionLevel: 9 }).toFile(f.email);
   for (const [width, file] of f.previews) {
     await sharp(Buffer.from(svg), { density: density(width) * 2 }).resize({ width }).webp({ quality: 90, alphaQuality: 100 }).toFile(file);
   }
-  console.log(`wrote ${rel(f.svg)}, ${rel(f.png)} (${PNG_WIDTH} × ${height(PNG_WIDTH)}) and previews`);
+  console.log(`wrote ${rel(f.svg)}, ${rel(f.png)} (${PNG_WIDTH} × ${height(PNG_WIDTH)}), the email PNG and previews`);
 }
 
 if (problems.length) {
