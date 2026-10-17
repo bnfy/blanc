@@ -6,6 +6,16 @@ const path = require('node:path');
 const ROOT = path.join(__dirname, '..', '..');
 const main = fs.readFileSync(path.join(ROOT, 'src/main/main.js'), 'utf8');
 
+test('mouse moves use the cached hover setting instead of rereading settings', () => {
+  const eligible = main.slice(
+    main.indexOf('function islandHoverEligible(runtime)'),
+    main.indexOf('function clearIslandHoverTimer(runtime)')
+  );
+  assert.match(eligible, /if \(!islandHoverOpen\) return false;/);
+  assert.doesNotMatch(eligible, /settings\.getSettings\(\)/);
+  assert.match(main, /islandHoverOpen = s\.islandHoverOpen === true;/);
+});
+
 test('the hover timer stays bound to its owning focused window', () => {
   assert.match(main, /runtime\.window\.isFocused\(\)/);
   assert.match(main, /setTimeout\(bindWindowRuntime\(runtime, \(\) => \{/);
@@ -18,7 +28,7 @@ test('closing the panel samples and disarms a pointer already over the Island', 
 
 test('blur, disabled settings, and native menus suppress hover opening', () => {
   assert.match(main, /window\.on\('blur',[\s\S]*?suppressIslandHover\(runtime\)/);
-  assert.match(main, /if \(!s\.islandHoverOpen\) \{[\s\S]*?suppressIslandHover\(runtime\)/);
+  assert.match(main, /if \(!islandHoverOpen\) \{[\s\S]*?suppressIslandHover\(runtime\)/);
 
   for (const file of ['src/main/tab-context-menu.js', 'src/main/group-context-menu.js']) {
     const source = fs.readFileSync(path.join(ROOT, file), 'utf8');

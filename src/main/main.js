@@ -2962,6 +2962,7 @@ function cancelPermissionPromptsForTab(tabId) {
 // one coherent value throughout a layout transition.
 const initialPresentationSettings = settings.getSettings();
 let tabLayout = normalizeTabLayout(initialPresentationSettings.tabLayout);
+let islandHoverOpen = initialPresentationSettings.islandHoverOpen === true;
 let onePasswordConfigurationKey = JSON.stringify([
   initialPresentationSettings.onePasswordEnabled,
   initialPresentationSettings.onePasswordAccount,
@@ -3072,7 +3073,8 @@ function islandHoverRecord(runtime) {
 }
 
 function islandHoverEligible(runtime) {
-  return settings.getSettings().islandHoverOpen === true && runtime.islandHoverCapable === true &&
+  if (!islandHoverOpen) return false;
+  return runtime.islandHoverCapable === true &&
     runtime.window && !runtime.window.isDestroyed() && runtime.window.isFocused() &&
     !runtime.overlayMode && !runtime.utilitySheetUrl && !runtime.glanceTabId &&
     !runtime.permissionViewAttached && !!runtime.islandRect && !overlayDragActive(runtime);
@@ -11551,7 +11553,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // 'pages:settings:set' IPC handler — not only from already-bound callers here.
   settings.onRecentBangsChanged(() => broadcastBangsChanged());
   settings.onSettingsChanged((s) => {
-    if (!s.islandHoverOpen) {
+    islandHoverOpen = s.islandHoverOpen === true;
+    if (!islandHoverOpen) {
       for (const runtime of windowRuntimes.all()) suppressIslandHover(runtime);
     }
     const nextOnePasswordConfigurationKey = JSON.stringify([
