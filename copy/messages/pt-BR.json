@@ -4837,6 +4837,14 @@
     "message": "Ocultar o convite do Blanc Patron por 90 dias",
     "source": "sha256:04a0a1e02ff9336de15171f566dca19334d81e04c7d45d681cd0f761354eadd4"
   },
+  "newtab.whatsNew.label": {
+    "message": "Novidades da {version}",
+    "source": "sha256:8987c31b7707a91e32be215c9e185ab853e5b532c962547de0fa2b303c6389fc"
+  },
+  "newtab.whatsNew.hide": {
+    "message": "Ocultar as novidades",
+    "source": "sha256:ff76a4615a80f1a3cb1c8dca9e892dfd9987742f7c3ac13660d503b2cdb830e7"
+  },
   "newtab.customize.button": {
     "message": "Personalizar",
     "source": "sha256:93e2ccadcc22cca7535c80684f0ca1391bf0ea7a1d06c91b7dbb193ad6ae71f9"

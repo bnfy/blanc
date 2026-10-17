@@ -35,6 +35,7 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `start.openSettings` | invoke | `pages:start:open-settings` | newtab | Open Settings at a section. |
 | `start.dismissMigrationChecklist` | invoke | `pages:start:migration-checklist-dismiss` | newtab | Dismiss the migration checklist. |
 | `start.dismissPatronCallout` | invoke | `pages:start:patron-callout-dismiss` | newtab | Hide the start page's Patron upgrade pill for 90 days. |
+| `start.dismissWhatsNew` | invoke | `pages:start:whats-new-dismiss` | newtab | Hide the start page's What's new pill for the current update. |
 | `start.defaultBrowser` | invoke | `pages:default-browser:get` | newtab | Default-browser status, for onboarding. |
 | `start.setDefaultBrowser` | invoke | `pages:default-browser:set` | newtab | Ask to become the default browser (opens system settings on Windows). |
 | `start.onboardingSet` | invoke | `pages:start:onboarding-set` | newtab | Save onboarding progress. |

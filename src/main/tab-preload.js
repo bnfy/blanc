@@ -99,6 +99,7 @@ if (window.location.protocol === 'blanc:') {
         openSettings: (section) => invoke('pages:start:open-settings', section),
         dismissMigrationChecklist: () => invoke('pages:start:migration-checklist-dismiss'),
         dismissPatronCallout: () => invoke('pages:start:patron-callout-dismiss'),
+        dismissWhatsNew: () => invoke('pages:start:whats-new-dismiss'),
         onUtilitySheetVisibility: (callback) => {
           ipcRenderer.on('pages:start:utility-sheet-visibility', (_event, visible) => callback(visible === true));
         },

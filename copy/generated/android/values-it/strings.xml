@@ -1369,6 +1369,8 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="newtab_checklist_task_not_completed">%1$s — non completato</string>
     <string name="newtab_patron_become">Diventa Blanc Patron</string>
     <string name="newtab_patron_hide">Nascondi l’invito a Blanc Patron per 90 giorni</string>
+    <string name="newtab_whats_new_label">Novità della %1$s</string>
+    <string name="newtab_whats_new_hide">Nascondi le novità</string>
     <string name="newtab_customize_button">Personalizza</string>
     <string name="newtab_customize_label">Personalizza la pagina iniziale</string>
     <string name="newtab_customize_layout">Layout</string>

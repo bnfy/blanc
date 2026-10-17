@@ -81,7 +81,7 @@ test('layouts no longer carry their own Patron chip', () => {
 
 test('private tabs never show the Patron chip or blocked counts', () => {
   const js = read('src/renderer/pages/newtab.js');
-  assert.match(js, /function renderPatronCallout\(\) \{[\s\S]*?const hide = patronCallout\.active \|\| Date\.now\(\) < patronCallout\.snoozedUntil \|\| isPrivate;/);
+  assert.match(js, /function renderPatronCallout\(\) \{[\s\S]*?const hide = patronCallout\.active \|\| Date\.now\(\) < patronCallout\.snoozedUntil \|\| isPrivate \|\| !whatsNewEl\.hidden;/);
   assert.match(js, /patronCalloutHide\.addEventListener\('click', \(\) => \{\s*patronCallout\.snoozedUntil = Infinity;\s*renderPatronCallout\(\);\s*window\.bowserPages\?\.start\.dismissPatronCallout\(\)/,
     'closing hides the pill at once, then main records the 90-day snooze');
   assert.match(js, /document\.addEventListener\('visibilitychange', \(\) => \{\s*if \(!document\.hidden\) renderPatronCallout\(\);/,

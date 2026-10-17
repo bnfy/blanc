@@ -1332,6 +1332,8 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="newtab_checklist_task_not_completed">%1$s — not completed</string>
     <string name="newtab_patron_become">Become a Blanc Patron</string>
     <string name="newtab_patron_hide">Hide the Blanc Patron invitation for 90 days</string>
+    <string name="newtab_whats_new_label">What’s new in %1$s</string>
+    <string name="newtab_whats_new_hide">Hide What’s new</string>
     <string name="newtab_customize_button">Customize</string>
     <string name="newtab_customize_label">Customize start page</string>
     <string name="newtab_customize_layout">Layout</string>

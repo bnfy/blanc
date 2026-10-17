@@ -226,7 +226,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "c84ec9ccf19d9447b5081d4c2ce5898b04260ebdbf0b35defbfb554ce605ab49",
+      "sha256": "51482916921dd14cfe34b6028857e64699ed3b6c145c280074733ad27c43b8c5",
       "literalChannels": [
         "activate",
         "bangs:changed",
@@ -433,7 +433,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "cafc11c33bb2894b12ae4a6f8e59b5614d03fdedbfad6c0f0e63f9e5414c71ae",
+      "sha256": "3ed16cab3472b48fcb7b4dd0e2e9f5dc44b8983867a486d72861f7daec436765",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -520,6 +520,7 @@
         "pages:start:startup-continue",
         "pages:start:startup-retry",
         "pages:start:top-sites",
+        "pages:start:whats-new-dismiss",
         "pages:surface:close",
         "pages:surface:escape-arm",
         "pages:tab-handoff:accept",
@@ -765,7 +766,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "4c65aceda6d4e80b67333e9c87633cc5b9595518ee8927f458571014a3185198",
+      "sha256": "b6f57a5f6b6dfcd7aaf4ab98e00b5fca22fe388f06c72b0ae14e06d36d05c91f",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -857,6 +858,7 @@
         "pages:start:top-sites",
         "pages:start:utility-sheet-visibility",
         "pages:start:visibility",
+        "pages:start:whats-new-dismiss",
         "pages:surface:close",
         "pages:surface:escape",
         "pages:surface:escape-arm",

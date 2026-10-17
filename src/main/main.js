@@ -221,6 +221,7 @@ const {
   defaultTaskIntroduction,
 } = require('./migration-checklist');
 const { patronCalloutSnoozedUntil } = require('./patron-callout');
+const { whatsNewOnLaunch, whatsNewState } = require('./whats-new');
 const localProfiles = require('./local-profiles');
 const profileDeletions = require('./profile-deletions');
 const {
@@ -10154,6 +10155,15 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     hasSpaces: withLocalProfile(DEFAULT_PROFILE_ID, () => namedWorkspaces.list().length > 0),
   });
   if (spaceTaskPatch) settings.setSettings(spaceTaskPatch);
+  // Note an update once per launch, before any window exists, so the start
+  // page's What's new pill is ready on the first paint. Packaged builds only:
+  // they are the ones that update, and dev and test profiles keep their footer.
+  const whatsNewPatch = app.isPackaged && whatsNewOnLaunch(settings.getSettings(), {
+    version: app.getVersion(),
+    now: Date.now(),
+    firstRunComplete: settings.isFirstRunComplete(),
+  });
+  if (whatsNewPatch) settings.setSettings(whatsNewPatch);
   // Introduce "Make Blanc your default" the same way, then note whether
   // Blanc already is the default so the task starts done for those people.
   const defaultTaskPatch = defaultTaskIntroduction(settings.getSettings());
@@ -10673,6 +10683,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       patronActive: settings.isPatronActive(),
       // A closed Patron pill stays away for 90 days on this device.
       patronCalloutSnoozedUntil: patronCalloutSnoozedUntil(current.patronCalloutDismissedAt, Date.now()),
+      // The What's new pill after an update: { version, url } or null.
+      whatsNew: whatsNewState(current, { version: app.getVersion(), now: Date.now() }),
       dynamicWallpaperEnabled: settings.isDynamicWallpaperEnabled(),
       // Start-page moving-in checklist. Shared across tabs; the send sites
       // apply the per-tab profile/private guard.
@@ -10870,6 +10882,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       },
       dismissPatronCallout: () => {
         settings.setSettings({ patronCalloutDismissedAt: Date.now() });
+        return true;
+      },
+      dismissWhatsNew: () => {
+        settings.setSettings({ whatsNewVersion: '' });
         return true;
       },
       // Runs inside runInPageRuntime, so the sheet opens in the start page's own window.
