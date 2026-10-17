@@ -31,12 +31,24 @@ Text (the `html, body` stack and the site's own labels and controls); see
 figures, demo UI, coded illustrations) use the app's face, Instrument Sans at
 width 98 and +0.01em, never Blubird (owner direction, October 17, 2026); its
 `@font-face` comes from the app's own file,
-`src/renderer/pages/instrument-sans-latin-wdth-normal.woff2`, as SpacesDemo,
-ShieldDemo and `/bangs` declare it. Counts and key caps in a mockup stay
-Inter, as in the app. The shared `.demo-island` replica in `site.css` and some
-older figures still draw in Inter, self-hosted via fontsource with a
-metric-matched `Inter Fallback` (also what Blubird falls back to); move them
-to Instrument Sans when you next touch them.
+`src/renderer/pages/instrument-sans-latin-wdth-normal.woff2`, declared once
+for every page by `BaseLayout.astro` (SpacesDemo, ShieldDemo and
+NativeIslandHero also declare it for their shadow roots). Counts and key caps
+in a mockup stay Inter, as in the app. The shared `.demo-island` replica in
+`site.css` draws in it through `--font-app`, so the Island figures on the
+feature pages and the share cards rendered from them follow; Inter stays
+self-hosted via fontsource with a metric-matched `Inter Fallback` (also what
+Blubird falls back to). The `/features` bento tiles' mini UI (`.ui`,
+`.demo-pill` in `features-bento.css`) still draws in Inter.
+**A replica draws only what the released app's code draws** (owner direction,
+October 17, 2026): copy each element, string and icon from
+`src/renderer/overlay.html`, `overlay.js`, `styles.css` and
+`copy/messages/en.json`, and invent no state, text or layout. The open panel's
+action buttons and footer come from `components/IslandPanelActions.astro` and
+`components/IslandFooter.astro`; the footer is one row. Blanc is desktop only,
+so a narrow figure shows the same 620px drawing scaled down (container steps on
+`.island-figure` in `site.css`), never a reflowed, icon-only or chrome-shedding
+"phone" version.
 The display-headings rule at the end of `site.css` is what makes every
 heading display; `test/site/blubird-reach.test.mjs` and
 `test/unit/site-font-fallback.test.js` enforce the faces and the 0 tracking.
