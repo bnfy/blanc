@@ -471,6 +471,8 @@
     <string name="device_menu_rename">Rename Device…</string>
     <string name="tab_menu_reset_title">Reset Tab Title</string>
     <string name="tab_menu_pin">Pin Tab</string>
+    <string name="tab_menu_return_pinned_home">Return to Pinned Home</string>
+    <string name="tab_menu_set_pinned_home">Make This the Pinned Home</string>
     <string name="tab_menu_unpin">Unpin Tab</string>
     <string name="tab_menu_mute">Mute Tab</string>
     <string name="tab_menu_unmute">Unmute Tab</string>

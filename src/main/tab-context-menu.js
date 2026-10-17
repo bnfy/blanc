@@ -20,6 +20,8 @@ function runTabContextMenuItem(id, { tab, groupId, cleanedUrl, actions }) {
     case 'rename': return actions.rename(tab.id);
     case 'reset-title': return actions.resetTitle(tab.id);
     case 'toggle-pin': return actions.togglePin(tab.id);
+    case 'return-pinned-home': return actions.returnPinnedHome(tab.id);
+    case 'set-pinned-home': return actions.setPinnedHome(tab.id);
     case 'toggle-mute': return actions.toggleMute(tab.id);
     case 'toggle-favorite': return actions.toggleFavorite(tab.id);
     case 'group-move': return actions.setGroup(tab.id, groupId);

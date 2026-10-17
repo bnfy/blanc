@@ -59,6 +59,18 @@ function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null
   items.push({ type: 'separator' });
 
   items.push({ id: 'toggle-pin', label: t(tab.pinned ? 'tabMenu.unpin' : 'tabMenu.pin') });
+  if (tab.pinned) {
+    items.push({
+      id: 'return-pinned-home',
+      label: t('tabMenu.returnPinnedHome'),
+      enabled: !!tab.pinnedHome?.canReturn,
+    });
+    items.push({
+      id: 'set-pinned-home',
+      label: t('tabMenu.setPinnedHome'),
+      enabled: !!tab.pinnedHome?.canSet,
+    });
+  }
   items.push({ id: 'toggle-mute', label: t(tab.muted ? 'tabMenu.unmute' : 'tabMenu.mute') });
   items.push({
     id: 'toggle-favorite',

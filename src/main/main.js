@@ -201,7 +201,7 @@ const { groupFavoritesForMenu, mayWriteFavoriteFavicon } = require('./bookmark-d
 const history = require('./history');
 const { siteKey: topSiteKey } = require('./top-sites');
 const { JsonStore, discardProfileStoreEntries, enableTempSweep } = require('./store');
-const { persistableEntries, sessionTabMeta, metaAfterHistoryClear } = require('./session-snapshot');
+const { persistableUrl, persistableEntries, sessionTabMeta, metaAfterHistoryClear } = require('./session-snapshot');
 const { pinnedHomeFor, applyPinnedHomes } = require('./pinned-home');
 const { normalizeTabName, displayTitle, resolveTabRename } = require('./tab-name');
 const {
@@ -9240,12 +9240,18 @@ function buildMenuForRuntime(runtime) {
  * is the window runtime the menu belongs to. Null if the tab isn't in it. */
 function tabContextData(tab, owner) {
   if (!tab || tab.runtimeId !== owner.id) return null;
+  const home = tab.pinnedHomeUrl;
+  const candidate = pinnedHomeFor(tab.url, { localFile: tab.localFile === true });
   return {
     tab: {
       id: tab.id, url: tab.url, title: tab.title, customTitle: tab.customTitle ?? null,
       pinned: !!tab.pinned, muted: !!tab.muted, private: !!tab.private,
       asleep: !!tab.asleep, bookmarked: !!tab.bookmarked,
       groupId: tab.groupId ?? null, capturing: !!tab.capturing,
+      pinnedHome: {
+        canReturn: !!tab.pinned && !!home && persistableUrl(tab.url) !== home,
+        canSet: !!tab.pinned && candidate !== null && candidate !== home,
+      },
     },
     groups: owner.groups.map((g) => ({ id: g.id, name: g.name })),
     activeTabId: owner.activeTabId,
@@ -9271,6 +9277,21 @@ function menuContextActions(owner) {
     }),
     duplicate: b((id) => duplicateTab(id)),
     togglePin: b((id) => toggleTabPinned(id)),
+    returnPinnedHome: b((id) => {
+      const tab = tabs.get(id);
+      if (!tab?.pinned || !tab.pinnedHomeUrl) return false;
+      navigateTabToAddress(id, tab.pinnedHomeUrl);
+      return true;
+    }),
+    setPinnedHome: b((id) => {
+      const tab = tabs.get(id);
+      if (!tab?.pinned) return false;
+      const candidate = pinnedHomeFor(tab.url, { localFile: tab.localFile === true });
+      if (!candidate || candidate === tab.pinnedHomeUrl) return false;
+      tab.pinnedHomeUrl = candidate;
+      persistSession();
+      return true;
+    }),
     toggleMute: b((id) => toggleTabMuted(id)),
     toggleFavorite: b((id) => toggleBookmarkForTab(id)),
     setGroup: b((id, gid) => setTabGroup(id, gid)),
