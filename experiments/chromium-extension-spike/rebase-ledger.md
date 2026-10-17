@@ -289,3 +289,19 @@ cleanup checks pass. Controlled run-06 passes both profile replay pairs and
 matches final source hashes. 16 pipeline + 7 network + 15 validator tests pass;
 lint clean. No native build/prepare/GN or cold-column change. Active attention
 not measured; invocation, runtime brackets and source hashes are in evidence.
+
+### Approved synthetic corpus checkpoint — October 17, 2026
+
+Owner approved the corpus amendment at `68892cc1`, recorded at `4abb4509`.
+The explicit matrix was committed before capture (`cf3f0abe`). Generation
+produces 5,905 candidate URLs, not oracle decisions. Final 24-case resource
+probe passed two fresh regular and two fresh private offline Electron replays:
+8 blocked / 16 allowed candidate URLs, with authored script descendants and
+saved DOM outcomes. Two failed fixture attempts are retained, followed by
+three passing attempts of progressively broader evidence. See
+[evidence/f12-synthetic-20261017/README.md](evidence/f12-synthetic-20261017/README.md).
+No native build, private real-page acquisition, deadline extension or baseline
+promotion. Full threshold/matrix and native fork comparison remain pending.
+Runtime start/end timestamps are in each report. Agent/owner attention was not
+measured and is not inferred from calendar time. These harness operations do
+not alter row 0's cold-build column.

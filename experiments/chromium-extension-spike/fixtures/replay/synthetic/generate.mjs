@@ -68,8 +68,9 @@ export function buildCandidates(sources, {limit=2500}={}) {
       if(seen.has(seed.url)){increment('duplicate-url');continue;}
       const provenance={list:source.file,line:index+1,rule,sourceSha256:source.sha256};
       function add(item) {
-        const id='case-'+sha(item.url).slice(0,16);
+        const id='case-'+[...sha(item.url).slice(0,16)].map(x=>String.fromCharCode(97+parseInt(x,16))).join('');
         const descendantUrl='https://'+item.sourceHost+'/blanc-fixture/child/'+id+'.json';
+        scrub.safeUrl(descendantUrl);
         const c={...item,id,provenance,descendantUrl:item.resourceType==='script'?descendantUrl:null};
         c.response=authoredResponse(c);c.response.sha256=sha(c.response.body);
         if(c.descendantUrl)c.descendantResponse={status:200,contentType:'application/json',body:'{"fixture":"authored-child"}',causedBy:id};

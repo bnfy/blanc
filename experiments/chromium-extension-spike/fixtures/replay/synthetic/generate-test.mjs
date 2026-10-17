@@ -39,3 +39,8 @@ test('limits cap seeds without turning surplus candidates into oracle observatio
   const a=buildCandidates(source('||a.example^\n||b.example^'),{limit:1});
   assert.equal(a.counts['blocking-candidate'],1);assert.equal(a.refusals['per-kind-cap'],1);assert.equal(a.observedDecisions,0);
 });
+
+test('authored child identifiers cannot trip numeric identifier privacy gate',()=>{
+  const a=buildCandidates(source('||029519cbdc.com^$script'));
+  for(const c of a.candidates)assert.match(c.id,/^case-[a-p]{16}$/);
+});
