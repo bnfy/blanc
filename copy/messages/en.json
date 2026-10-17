@@ -1528,6 +1528,46 @@
     "message": "No matches — ↵ opens as address or search",
     "note": "Empty row in the Quick Switcher. Sentence case."
   },
+  "bang.search": {
+    "message": "Search {site} for \u201c{query}\u201d",
+    "note": "The Island's bang hint row while a bang with words is typed (!yt lofi); {site} is the site's name, {query} the words."
+  },
+  "bang.open": {
+    "message": "Open {site}",
+    "note": "The Island's bang hint row for a bare code (!yt): Enter opens the site's front page."
+  },
+  "bang.yours": {
+    "message": "yours",
+    "note": "Lowercase tag on a bang picker row for a bang the person added in Settings, where other rows show the site's domain.",
+    "maxLength": 10
+  },
+  "bang.section.recent": {
+    "message": "recent",
+    "note": "Lowercase header of the bang picker's recently used section.",
+    "maxLength": 22
+  },
+  "bang.section.popular": {
+    "message": "popular",
+    "note": "Lowercase header of the bang picker's popular section.",
+    "maxLength": 22
+  },
+  "bang.section.all": {
+    "message": "all bangs",
+    "note": "Lowercase header of the bang picker's section of every other matching bang.",
+    "maxLength": 22
+  },
+  "bang.fold": {
+    "message": "Fold this section",
+    "note": "Tooltip of an unfolded bang picker header."
+  },
+  "bang.unfold": {
+    "message": "Unfold this section",
+    "note": "Tooltip of a folded bang picker header."
+  },
+  "hint.bang": {
+    "message": "!code words searches one site · ! alone lists them",
+    "note": "Lowercase hint under the Island list while a bang is typed. Keep !code and ! as typed."
+  },
   "hint.private": {
     "message": "Private tab · Nothing here is saved to history",
     "note": "Note under the ⌘L panel footer while the active tab is private. Sentence case."
@@ -3368,6 +3408,61 @@
   "settings.general.searchSuggestions.hint": {
     "message": "Send eligible typed prefixes to your selected search provider, including Google if selected. Private tabs and recognized sensitive-looking input are excluded. Submitting a search sends the completed query even when suggestions are off.",
     "note": "Settings → General: explanation under a setting."
+  },
+  "settings.general.bangs.label": {
+    "message": "Bangs",
+    "note": "Settings → General: setting name. A bang is a !code typed in the address bar that searches one site directly."
+  },
+  "settings.general.bangs.hint": {
+    "message": "Type ! followed by a site's code to search that site directly, for example !w for Wikipedia or !yt for YouTube. Type ! alone to see them. It syncs with your other settings.",
+    "note": "Settings → General: explanation under the Bangs switch. Keep !w, !yt and ! as typed."
+  },
+  "settings.general.customBangs.label": {
+    "message": "Your bangs",
+    "note": "Settings → General: heading of the list of bangs the person added."
+  },
+  "settings.general.customBangs.hint": {
+    "message": "Syncs with your other settings; the device that saves last wins.",
+    "note": "Settings → General: explanation under the Your bangs heading."
+  },
+  "settings.general.customBangs.code": {
+    "message": "Code",
+    "note": "Settings → General → Your bangs: placeholder and accessible name of the code field (the part after !).",
+    "maxLength": 12
+  },
+  "settings.general.customBangs.name": {
+    "message": "Name",
+    "note": "Settings → General → Your bangs: placeholder and accessible name of the site name field.",
+    "maxLength": 16
+  },
+  "settings.general.customBangs.address": {
+    "message": "Address with %s",
+    "note": "Settings → General → Your bangs: accessible name of the search address field; %s stays as typed."
+  },
+  "settings.general.customBangs.add": {
+    "message": "Add",
+    "note": "Settings → General → Your bangs: button.",
+    "maxLength": 12
+  },
+  "settings.general.customBangs.empty": {
+    "message": "No bangs of your own yet.",
+    "note": "Settings → General → Your bangs: shown when the list is empty."
+  },
+  "settings.general.customBangs.replaces": {
+    "message": "Replaces the built-in !{code} ({site})",
+    "note": "Settings → General → Your bangs: shown after adding a bang whose code a built-in bang already uses; {code} is the code, {site} the built-in's site name."
+  },
+  "settings.general.customBangs.duplicate": {
+    "message": "You already have !{code}.",
+    "note": "Settings → General → Your bangs: shown when the code is already in the person's own list."
+  },
+  "settings.general.customBangsError": {
+    "message": "That bang isn't valid — check the code and the address.",
+    "note": "Settings → General → Your bangs: shown when main refused the row (code outside the grammar, empty name, or an address that is not https:// with one %s after the host)."
+  },
+  "settings.general.customBangs.remove": {
+    "message": "Remove !{code}",
+    "note": "Settings → General → Your bangs: accessible name of the × button beside one bang; {code} is its code."
   },
   "settings.general.homePage.label": {
     "message": "New tab page",
@@ -5468,6 +5563,10 @@
   "shortcuts.slashCommands": {
     "message": "Slash Commands",
     "note": "Keyboard shortcuts page: heading above the slash commands typed in the Island."
+  },
+  "shortcuts.bangs": {
+    "message": "Search one site directly; ! alone lists them",
+    "note": "Keyboard shortcuts page, slash-commands section: the row for bangs, shown beside the key cap \"!code words\"."
   },
   "sheet.close": {
     "message": "Close",

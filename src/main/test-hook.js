@@ -876,6 +876,9 @@ function install(refs) {
       return settings.setSettings({ searchEngine: 'custom', searchEngineTemplate: template }).searchEngine;
     },
     setSearchSuggestions(on) { settings.setSettings({ searchSuggestions: !!on }); },
+    setBangsEnabled(on) { settings.setSettings({ bangsEnabled: !!on }); },
+    setCustomBangs(list) { return settings.setSettings({ customBangs: list }).customBangs; },
+    recentBangs() { return settings.getSettings().recentBangs; },
     setUsagePing(on) { settings.setSettings({ usagePing: !!on }); },
     searchSuggestions() { return settings.getSettings().searchSuggestions; },
     settingsSyncValues() { return settings.exportForSync().values; },
@@ -2341,6 +2344,45 @@ function install(refs) {
     openDownloads() { openInternalPage('blanc://downloads/'); },
     openHistorySheet() { openInternalPage('blanc://history/'); },
     openSettings() { openInternalPage('blanc://settings/'); },
+    // F47: Settings → General → Your bangs, through the page's own controls.
+    async settingsBangControls() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => ({
+        enabled: document.getElementById('bangsEnabled')?.checked ?? null,
+        rows: [...document.querySelectorAll('#customBangList .site-row')].map((row) => ({
+          code: row.querySelector('.custom-bang-code')?.textContent.replace(/^!/, '') ?? '',
+          name: row.querySelector('.site-row-name')?.textContent ?? '',
+          host: row.querySelector('.custom-bang-host')?.textContent ?? '',
+        })),
+        empty: !!document.querySelector('#customBangList .site-list-empty'),
+        error: document.getElementById('customBangError')?.hidden === false ? document.getElementById('customBangError').textContent : null,
+        replaces: document.getElementById('customBangReplaces')?.hidden === false ? document.getElementById('customBangReplaces').textContent : null,
+      }))()`);
+    },
+    async settingsAddBang(code, name, template) {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const set = (id, value) => { const el = document.getElementById(id); if (!el) return false; el.value = value; return true; };
+        if (!set('customBangCode', ${JSON.stringify(String(code))})) return false;
+        if (!set('customBangName', ${JSON.stringify(String(name))})) return false;
+        if (!set('customBangTemplate', ${JSON.stringify(String(template))})) return false;
+        document.getElementById('customBangAdd').click();
+        return true;
+      })()`);
+    },
+    async settingsRemoveBang(code) {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const row = [...document.querySelectorAll('#customBangList .site-row')]
+          .find((r) => r.querySelector('.custom-bang-code')?.textContent === '!' + ${JSON.stringify(String(code))});
+        if (!row) return false;
+        row.querySelector('.site-row-remove').click();
+        return true;
+      })()`);
+    },
     async settingsProfileRows() {
       const wc = getUtilitySheetWebContents();
       if (!wc) return [];
@@ -2510,6 +2552,38 @@ function install(refs) {
     // synced icon whose bytes are corrupt still yields a `has-icon` class and a
     // non-empty background-image, so only an actual decode separates a rendered
     // favicon from a broken one.
+    /** The ⌘L panel's section headers (groups, devices, the bang picker). */
+    async addressSectionHeaders() {
+      const wc = getOverlayWebContents();
+      if (!wc) return [];
+      return wc.executeJavaScript(`[...document.querySelectorAll('#islandList .island-ghead .ghead-name')].map((el) => el.textContent)`);
+    },
+    /** Whether the ⌘L list's highlighted row sits inside the list's scroll
+     * viewport (null when nothing is highlighted). */
+    async addressActiveRowVisible() {
+      const wc = getOverlayWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const list = document.getElementById('islandList');
+        const row = list?.querySelector('.island-row.active');
+        if (!list || !row) return null;
+        const l = list.getBoundingClientRect();
+        const r = row.getBoundingClientRect();
+        return r.top >= l.top - 1 && r.bottom <= l.bottom + 1;
+      })()`);
+    },
+    async addressInputValue() {
+      const wc = getOverlayWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`document.getElementById(${JSON.stringify(ADDRESS_INPUT_ID)})?.value ?? null`);
+    },
+    /** A suggestions request straight through the bridge, around the
+     * overlay's own guard, so main's refusal is what is tested. */
+    async requestSearchSuggestions(query) {
+      const wc = getOverlayWebContents();
+      if (!wc) throw new Error('overlay is not open');
+      return wc.executeJavaScript(`window.browserAPI.searchSuggestions(${JSON.stringify(String(query))})`);
+    },
     async addressResultRows() {
       const wc = getOverlayWebContents();
       if (!wc) return [];
@@ -2534,6 +2608,10 @@ function install(refs) {
           }
           return {
             title: row.querySelector('.row-title')?.textContent ?? '',
+            // Bang hint and picker rows carry a code and a sentence or name.
+            cmd: row.querySelector('.row-cmd')?.textContent ?? '',
+            hint: row.querySelector('.row-hint')?.textContent ?? '',
+            sub: row.querySelector('.row-sub')?.textContent ?? '',
             tag: row.querySelector('.row-tag')?.textContent ?? '',
             label: row.querySelector('.row-primary')?.getAttribute('aria-label') ?? '',
             quiet: row.classList.contains('quiet'),
@@ -3322,6 +3400,8 @@ function install(refs) {
         verticalTabsWidth: 248,
         appIcon: 'sunrise',
         adblockExceptions: [],
+        bangsEnabled: true,
+        customBangs: [],
         onePasswordEnabled: false,
         onePasswordAccount: '',
         tabSleep: '1h',
@@ -3331,6 +3411,7 @@ function install(refs) {
         usagePing: false,
       });
       settings.setPatron(null);
+      settings.clearRecentBangs();
       clearTestSearchSuggestionFixture();
       setTestSearchNavigationCapture(false);
       broadcastTabs();
