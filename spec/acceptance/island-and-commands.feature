@@ -111,13 +111,13 @@ Feature: Island chrome, command palette, and slash commands
   Scenario: ! alone lists popular bangs, then the ones used recently
     Given a tab open on "bangs-start"
     When I type "!" in the command bar
-    Then the picker shows the section "popular"
+    Then the picker shows the section "Popular"
     And the picker lists "!wikipedia"
     When I type "!yt lofi" in the command bar
     And I submit the command-bar text
     Then the bang submission goes to "https://www.youtube.com/results?search_query=lofi"
     When I type "!" in the command bar
-    Then the picker shows the section "recent"
+    Then the picker shows the section "Recent"
     And the picker lists "!yt" first
     When I press Arrow Down in the command bar
     Then the first picker row is highlighted
@@ -227,8 +227,8 @@ Feature: Island chrome, command palette, and slash commands
     Given a tab open on "bangs-start"
     And ten bangs were used recently
     When I type "!" in the command bar
-    Then the picker shows the section "recent"
-    And the picker shows the section "popular"
+    Then the picker shows the section "Recent"
+    And the picker shows the section "Popular"
     When I press Arrow Up in the command bar
     Then the highlighted picker row is scrolled into view
     When I press Arrow Down in the command bar
