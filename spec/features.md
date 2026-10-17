@@ -59,6 +59,13 @@ toolbar (Bowser Design System "Island Chrome").
 - On desktop, reopen-closed history is scoped to the native window workspace
   that closed the tab (D11). Reopening in one window can never consume another
   window's recovery entry.
+- In the ⌘L panel, **Recently closed** is a band styled like a named group,
+  placed among the groups (by default directly under Pinned). It starts folded
+  every time the panel opens, lists every entry newest first with per-entry
+  Forget and Clear all, takes no ⌘1–9 number and holds no tabs. The person can
+  drag it, or move it with ⌥⇧↑/↓, to any place among the groups (never above
+  Pinned or among the ungrouped tabs); that place is kept with the window's
+  group order, in its session and in a Space.
 - **Acceptance:** Open a tab, close it, reopen-closed → same URL returns. Duplicate
   a tab → a second tab with the same URL. Pin a tab → it is marked pinned and
   ordered ahead of unpinned tabs in its current group. An ungrouped pin uses the
