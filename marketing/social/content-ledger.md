@@ -55,8 +55,12 @@ executions are in
 [`reopen-closed-tab-campaign-brief-2026-08-29.md`](reopen-closed-tab-campaign-brief-2026-08-29.md).
 Its read-only public-build and recovery-policy verifier is
 [`reopen-closed-tab-campaign-preflight.mjs`](reopen-closed-tab-campaign-preflight.mjs).
-The Substack-specific privacy, power, consent, and business-model editorial
-lane is in
+The current Substack plan (October 13, 2026), covering all of Blanc rather
+than only the browser, is in [`substack/README.md`](substack/README.md), with
+its profile refresh and first drafts beside it. Nothing in it has been entered
+into Substack or published.
+The earlier, superseded Substack privacy, power, consent, and business-model
+editorial lane is in
 [`substack-privacy-editorial-lane-2026-08-30.md`](substack-privacy-editorial-lane-2026-08-30.md).
 It is a strategy and draft queue, not authorization to publish, reply, like,
 restack, or subscribe.
@@ -234,3 +238,15 @@ A separate Vivaldi recovery-comment draft was rejected by automatic approval rev
 ### September 15, 5 p.m. — audience response and verified follow-up
 
 Felix responded substantively to Blanc's September 14 Substack minimalism comment. Blanc replied with a focused question about when motion helps a minimal layout: https://substack.com/profile/542769413-blanc-browser/note/c-337992572. Exact text, parent and live URL are in `daily-scorecard-2026-09-15.json`. This brings September 15 to three verified conversation replies. The September 14 reply review found 35 visible views across Threads and X, one substantive Substack audience response and three secondary likes. TikTok and Substack comment views were unavailable. Do not duplicate the Felix thread or infer follower conversion from this interaction.
+
+## October 13 — Substack becomes Blanc (profile and publication refresh)
+
+Owner-approved and entered in Substack: the profile and publication are now
+named **Blanc** (handle `@blancbrowser` and `blancbrowser.substack.com`
+unchanged), with the new bio, short description ("Less is more. …"),
+Introduction, About page, welcome email, sender name "Blanc", copyright
+"Bananify", and the profile website link moved to `https://blanc.day`. The
+homepage layout changed from Profile to Custom (owner's choice) so the name,
+description and About page show. Exact text and verification are in
+[`substack/profile-2026-10-13.md`](substack/profile-2026-10-13.md). No Note or
+post was published.
