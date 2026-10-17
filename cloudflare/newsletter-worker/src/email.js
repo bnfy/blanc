@@ -1,7 +1,9 @@
 // The branded layout every Blanc email uses: the lockup on Blanc White, one
 // white card, and a fine-print footer with the tagline. docs/brand-usage.md
 // (*Email*) describes the treatment; the Resend win-back templates are
-// rendered from this same function, so change them together.
+// rendered from this same function, and bnfy/blanc-mail's
+// services/mail-worker/src/email.js mirrors it for the Blanc Mail licence
+// email, so change them together.
 //
 // Many email clients drop <style> blocks, SVG and often WebP, so the layout is
 // inline-styled tables and the lockup is the media kit's 480px PNG. The one
@@ -33,8 +35,14 @@ export const escapeHtml = (value) => String(value)
 
 const text = (size, line, color) => `${FACE}font-size:${size}px;line-height:${line}px;color:${color};`;
 
-// A paragraph is plain text, or { lead, text } for a bold lead-in.
+const MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+
+// A paragraph is plain text, { lead, text } for a bold lead-in, or { code }
+// for something the reader copies, such as a licence key.
 const paragraph = (item) => {
+  if (item.code) {
+    return `<tr><td style="padding-bottom:16px;"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td bgcolor="${COLORS.page}" style="background-color:${COLORS.page};border:1px solid ${COLORS.border};border-radius:8px;padding-top:12px;padding-bottom:12px;padding-left:16px;padding-right:16px;font-family:${MONO};font-size:17px;line-height:24px;letter-spacing:0.04em;color:${COLORS.ink};">${escapeHtml(item.code)}</td></tr></table></td></tr>`;
+  }
   const body = typeof item === 'string'
     ? escapeHtml(item)
     : `<strong style="color:${COLORS.ink};">${escapeHtml(item.lead)}</strong> ${escapeHtml(item.text)}`;
