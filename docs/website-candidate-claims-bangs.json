@@ -176,7 +176,7 @@
     {
       "id": "bangs-013",
       "source": "site/src/pages/bangs.astro",
-      "exactWording": "Settings, General, Your bangs: pick a code, a name, and the site’s search address with %s where your words go, for example your own SearXNG server. With Profile Sync on, your bangs follow you to your other computers.",
+      "exactWording": "Settings, General, Your bangs: pick a code, a name, and the site’s search address with %s where your words go, for example your own SearXNG server. With Sync on, your bangs follow you to your other computers.",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsCustom"
