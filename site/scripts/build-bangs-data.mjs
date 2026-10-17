@@ -130,10 +130,12 @@ function renderData({ ref, release, catalogBytes, messagesBytes }) {
 
 // The hosts the icon server (cloudflare/bang-icons-worker) may answer for:
 // every bang's host, once, sorted. It reads this file from blanc.day, so a
-// re-pin and site deploy update it with no Worker deploy.
+// re-pin and site deploy update it with no Worker deploy. `popular` is the
+// featured cards' hosts in the app's order, which its coverage check reads.
 function renderHosts(data) {
   const hosts = [...new Set(data.entries.map((entry) => entry[3].toLowerCase()))].sort();
-  return `${JSON.stringify({ ref: data.ref, release: data.release, count: hosts.length, hosts }, null, 2)}\n`;
+  const popular = data.popular.map((code) => data.entries.find((entry) => entry[0] === code || entry[1].includes(code))[3].toLowerCase());
+  return `${JSON.stringify({ ref: data.ref, release: data.release, count: hosts.length, popular, hosts }, null, 2)}\n`;
 }
 
 function buildOutputs({ ref, release }) {
