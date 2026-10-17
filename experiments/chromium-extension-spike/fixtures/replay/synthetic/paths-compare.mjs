@@ -1,3 +1,4 @@
+import {correlateWorker} from './worker-context.mjs';
 import fs from 'node:fs';import path from 'node:path';import {fileURLToPath} from 'node:url';import {sha} from './generate.mjs';
 const controls=new Set(['https://page.blanc-fixture.test/favicon.ico']);
 const services=new Set(['clients2.google.com','www.google.com:443','accounts.google.com:443']);
@@ -18,6 +19,7 @@ export function normalizePathRun(run,fixtures){
    if(r.status!=='ready'||![0,1].includes(r.engine_result)||r.decision!==(r.engine_result===0?'allow':'block'))faults.push('invalid-native-decision');
    x={url:r.url,method:r.method,type:r.resource_type,referrer:r.referrer,initiatorPresent:r.initiator_present,initiator:r.initiator_origin,top:r.top_frame_origin,role:r.frame_role,profile:r.profile_kind,hop:r.redirect_index,decision:r.decision};
   }
+  if(x.top==='unresolved'||x.role==='unresolved'){const worker=correlateWorker(run,r);x.worker={status:worker.status,reason:worker.reason,context:worker.context};}
   if(x.profile!==run.kind||typeof x.initiatorPresent!=='boolean'||(x.initiatorPresent?x.initiator==='absent':x.initiator!=='absent'))faults.push('invalid-context');
   const a=arrivals.get(r.url);
   if(x.decision==='block'&&a)faults.push('blocked-arrival');
@@ -49,9 +51,13 @@ export function comparePathRuns(electronA,electronB,nativeA,nativeB,fixtures,cas
    const left=e.get(url),right=n.get(url);
    if(!left&&!right){observed.push({url,issued:false});continue;}
    if(!left||!right){differences.push({url,reason:'missing-observation'});continue;}
-   observed.push({url,issued:true,decision:left.decision,hop:left.hop});
+   observed.push({url,issued:true,decision:left.decision,hop:left.hop,...(left.worker?.status==='resolved'&&right.worker?.status==='resolved'?{workerContext:left.worker.context}:{} )});
    for(const key of ['method','type','referrer','initiatorPresent','initiator','profile','hop','decision'])if(left[key]!==right[key])differences.push({url,field:key,electron:left[key],chromium:right[key]});
-   if([left.top,right.top,left.role,right.role].includes('unresolved'))gaps.push({url,reason:'top-frame-or-role-unresolved',electron:{top:left.top,role:left.role},chromium:{top:right.top,role:right.role}});
+   if([left.top,right.top,left.role,right.role].includes('unresolved')){
+    if(left.worker?.status==='resolved'&&right.worker?.status==='resolved'){
+     if(JSON.stringify(left.worker.context)!==JSON.stringify(right.worker.context))differences.push({url,reason:'worker-context-mismatch',electron:left.worker.context,chromium:right.worker.context});
+    }else gaps.push({url,reason:'top-frame-or-role-unresolved',electron:{top:left.top,role:left.role,worker:left.worker},chromium:{top:right.top,role:right.role,worker:right.worker}});
+   }
    else for(const key of ['top','role'])if(left[key]!==right[key])differences.push({url,field:key,electron:left[key],chromium:right[key]});
   }
   if(c.kind!=='navigation'){
@@ -64,7 +70,7 @@ export function comparePathRuns(electronA,electronB,nativeA,nativeB,fixtures,cas
  }
  if(JSON.stringify(electronA.dom.scripts)!==JSON.stringify(nativeA.dom.scripts))faults.push('script-execution-difference');
  const covered=new Set(cases.flatMap(c=>c.hops));for(const url of new Set([...e.keys(),...n.keys()]))if(!covered.has(url))faults.push('unexplained-request');
- return {valid:faults.length===0,faults,results,fullAcceptance:false,scope:'authored GET chains, browser-started root redirect, dedicated/shared worker creation/import/fetch with live owner only'};
+ return {valid:faults.length===0,faults,results,fullAcceptance:false,scope:'authored GET redirects; live-owner dedicated/shared probes; service-worker imports and message-triggered fetches with independently observed controlled-client sets; no general worker acceptance'};
 }
 if(process.argv[1]===fileURLToPath(import.meta.url)){
  const dir=process.argv[2],fixtures=new Map(JSON.parse(fs.readFileSync(path.join(dir,'fixtures.json')))),cases=JSON.parse(fs.readFileSync(path.join(dir,'cases.json'))),summary={profiles:{},fullAcceptance:false};

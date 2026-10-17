@@ -249,6 +249,31 @@ results until its observation/correlation is demonstrated on both browsers.
 | Raw `referrer` / effective engine source URL | `details.referrer`; Ghostery's `fromElectronDetails` uses this as `sourceUrl` | Request referrer and the source URL actually passed to the chosen engine | Record separately; never rename either to initiator. Not compared by the current dataset validator. The future adapter must report and review engine-input differences before interpreting block-rate parity; raw logging alone does not validate those inputs. |
 | Raw frame origin, top origin, tab URL, request/frame/process IDs | Snapshot at provider entry | Snapshot at interception | Record only; retain lifecycle mapping evidence. These can describe precommit/obsolete frames and cannot repair a missing initiator. |
 
+### Approved explicit worker-context branch — October 17, 2026
+
+The owner approved **“Yes—use explicit worker contexts with strict evidence”**
+in response to: “If runtime observations prove a shared/service-worker request
+has no unique document frame, may I represent its context explicitly as a worker
+identity plus observed client set, while keeping ambiguous or uncorrelated
+requests as gaps? This changes the comparison contract; it would not substitute
+a visible-tab or storage-partition origin.”
+
+For these frameless requests, the typed alternative to a document context is
+`{kind, scriptUrl, executionOrigin, profileKind, documentFrame: not-associated,
+clients}`. Both runtimes must independently prove the worker request identity,
+realm and observed client set. Raw hook fields remain unchanged. Client kind is
+explicit: service-worker **controlled documents** are not shared-worker connected
+documents, all message senders, or a synthetic top frame. An unobserved set is
+never an empty set. Other request fields, including actual initiator, method,
+resource type, profile, hop, referrer and decision, still compare exactly.
+
+The implementation is currently only the bounded `synthetic/paths-compare.mjs`
+adapter with its archived browser observations. It does not relax the generic
+dataset validator, rewrite engine inputs, or admit untested worker classes into
+the 2,000/2,000 corpus. See [the worker protocol](synthetic/PATHS-AND-LATENCY.md)
+for exact joins, observation limits and remaining gaps. A counterpart without
+independent evidence remains a gap even if the other runtime resolves it.
+
 Canonical resource names use Electron's vocabulary: `main_frame` → `mainFrame`,
 `sub_frame` → `subFrame`, `xmlhttprequest` → `xhr`, `csp_report` → `cspReport`,
 `websocket` → `webSocket`; stylesheet/script/image/font/object/ping/media/other

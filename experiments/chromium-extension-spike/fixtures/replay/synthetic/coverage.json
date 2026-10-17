@@ -139,7 +139,7 @@
         "worker-origin"
       ],
       "status": "gap",
-      "reason": "Dedicated worker creation, importScripts, fetch and redirect-to-block pass with a live owner in both profiles. Shared-worker decisions/behavior match but six subrequests lack top-frame/role identity, so shared coverage remains a gap. Owner teardown, multiple owners and other worker variants untested."
+      "reason": "Dedicated-worker live-owner probes pass. Independent shared-worker request identities now observed, but six subrequests lack connected-client lifecycle evidence in Electron and remain gaps. Owner teardown/multiple owners untested."
     },
     {
       "priority": 2,
@@ -159,7 +159,7 @@
         "worker-origin"
       ],
       "status": "gap",
-      "reason": "Registration/evaluation imports, activation and message-triggered independent fetch/redirect behavior match in both profiles. Seven observations lack top-frame/role identity and remain unadmitted gaps. Updates, controlled-client fetch events, cache-only outcomes and other import variants untested."
+      "reason": "Six service imports/fetch/redirect observations match with explicit worker identity and independently observed empty or single controlled-page sets, twice per runtime/profile/variant. Initial service-worker script correlation remains a gap. Updates, multi-client/teardown, controlled-client fetch events and cache-only outcomes untested."
     },
     {
       "priority": 2,
@@ -282,6 +282,12 @@
       "evidence": "../../../evidence/f12-paths-latency-20261017/README.md",
       "status": "gap",
       "scope": "Full-corpus one warm-up plus five measured repetitions per profile: native warm p99 below 5 ms in every repetition, but quiet-machine condition never met; formal latency gate open",
+      "full_acceptance": false
+    },
+    {
+      "evidence": "../../../evidence/f12-worker-identity-20261017/README.md",
+      "status": "passed",
+      "scope": "Six service-worker subrequests per regular/private profile with independently observed empty or single-client sets; initial service script and shared connected clients remain gaps; latency deferred",
       "full_acceptance": false
     }
   ]

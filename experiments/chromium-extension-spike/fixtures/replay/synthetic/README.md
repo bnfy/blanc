@@ -125,3 +125,5 @@ probes. Latency-protocol, redirect, worker/SW, speculative, WebSocket/WebTranspo
 cosmetic and scriptlet gaps are explicitly retained.
 
 Redirect/worker and latency extension: see [measured results](../../../evidence/f12-paths-latency-20261017/README.md). GET redirects and dedicated workers pass the bounded probes; shared/service worker identity and quiet-machine latency remain gaps.
+
+Explicit worker-context follow-up: [evidence](../../../evidence/f12-worker-identity-20261017/README.md). Six service-worker subrequests now compare with independently observed worker identity and controlled-client sets in both profiles. Shared connected-client lifecycle and the initial service-worker script remain gaps. Engine inputs are unchanged; latency stays deferred.

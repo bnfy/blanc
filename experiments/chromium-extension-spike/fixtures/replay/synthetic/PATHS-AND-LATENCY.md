@@ -28,8 +28,9 @@ must not be silently counted as issued. DOM/worker outcomes must match both
 stable runs. Engine errors and transport/observer faults invalidate a run.
 
 For frameless shared/service-worker subrequests, both raw observations are
-preserved. Matching decisions with unresolved top-frame/role are a **gap**, not
-an admitted parity pass. A worker startup failure that prevents issuing its
+preserved. Matching decisions with unresolved top-frame/role are a **gap** unless
+both runtimes independently satisfy the approved typed worker-context branch
+below; matching decisions alone never admit parity. A worker startup failure that prevents issuing its
 subrequests also remains a gap. No referrer, active tab or test intent fills
 missing context. The optional favicon is declared as a control before capture
 and excluded from case comparison. Initial `about:blank` frame/tab sentinels are
@@ -92,7 +93,8 @@ recorded separately from the contract. Neither isolation metadata nor an
 apparently owning visible tab fills an unresolved top-frame or role. The gap
 report preserves each runtime's unresolved values. Shared/service-worker
 admission requires independently observed request-to-client lifecycle data,
-including cases with no single client; current hooks do not supply that proof.
+including cases with no single client. The sidecar observation below supplies
+that proof only for the explicitly measured subset.
 
 With `--require-idle`, the harness also checks idle before opening any browser
 and stops before a repetition if none of its five samples reaches 90%. The
@@ -100,3 +102,56 @@ stopped report and cleanup result are retained. This does not relax the bound,
 change the corpus, or select favorable measurements from an invalid repetition.
 An approved temporary process pause must be recorded and restored; open user
 applications must not be terminated to make a benchmark pass.
+
+
+### Independently observed worker contexts (owner-approved October 17)
+
+`paths-run.mjs CONFIG_JSON NEW_EVIDENCE controlled` also exercises a service
+worker whose scope includes the observed page. The default keeps that page
+outside the worker scope. Each variant runs twice per browser and profile.
+Imports precede installation; message-triggered fetches follow activation (and,
+in the controlled variant, an observed `controllerchange`). This is not a
+service-worker fetch-event or cache interception test.
+
+`worker-observer.mjs` attaches to worker targets on the disposable browser's
+loopback CDP endpoint, with Network and Runtime enabled before execution. A
+one-shot `beforeScriptExecution` debugger barrier enables Network again once the
+worker renderer is ready, then resumes it. This fixes an observed missing first
+shared-worker import event. The instrumentation changes scheduling and is
+**never enabled by the latency runner**. `workerObservation` defaults to false.
+Only declared fixture request metadata is retained; arbitrary headers, cookies,
+certificates and response bodies are not logged by this sidecar.
+
+`worker-context.mjs` requires a unique target-scoped request event, one observed
+worker realm and an exact browserContextId match to the page target obtained
+through that page's CDP handle. Native records join by the actual
+`ResourceRequest.devtools_request_id`. A redirect blocked before reaching the
+renderer joins only through the same ID and contiguous, observed allowed native
+predecessors. Electron IDs differ, so its finite-run join requires a unique URL,
+method/referrer match and a wall-time difference no greater than two seconds.
+Duplicate URLs invalidate the run; none is selected arbitrarily. CDP's resource
+type remains diagnostic (`importScripts` can appear as `Other`); actual hook
+resource types still compare directly.
+
+ServiceWorker domain events independently associate version, script and target
+with controlled-client IDs. The nearest snapshots before and after the request
+must agree, and a forced final snapshot is required. Only the directly observed
+page target can currently be resolved as a client; its default Runtime context
+must supply an unambiguous origin. An observed empty set is valid. A nonempty set
+is compared as client roles/origins rather than process-specific IDs. A change
+across the bracket, unknown client, multiple worker realms, missing event or
+observer fault leaves a gap. These are **observed lifecycle brackets**, not an
+atomic proof against every possible rapid client transition. Multi-client and
+teardown races are not covered.
+
+The sidecar establishes comparison evidence, not a change to the blocker's
+engine inputs: both engines still receive their actual hook inputs. No worker
+client origin replaces the referrer, initiator or raw unresolved top frame.
+
+Measured: six service-worker subrequest observations (allowed/blocked imports,
+fetches and allow-to-block redirect) per profile and variant match with explicit
+worker contexts. The initial service-worker script request remains uncorrelated.
+Shared-worker request identities are observed but CDP does not expose the
+connected-document lifecycle; all six shared subrequests remain gaps. A native
+SharedWorkerService observer alone would not close them: equivalent independent
+Electron evidence is required. No client set is inferred from fixture intent.

@@ -1,0 +1,1301 @@
+{
+  "profiles": {
+    "regular": {
+      "valid": true,
+      "faults": [],
+      "results": [
+        {
+          "id": "navigation",
+          "status": "passed",
+          "differences": [],
+          "gaps": [],
+          "observed": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/start.html",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/index.html",
+              "issued": true,
+              "decision": "allow",
+              "hop": 1
+            }
+          ]
+        },
+        {
+          "id": "fetch-allow",
+          "status": "passed",
+          "differences": [],
+          "gaps": [],
+          "observed": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/fetch-allow-hop-1",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/fetch-end",
+              "issued": true,
+              "decision": "allow",
+              "hop": 1
+            }
+          ]
+        },
+        {
+          "id": "fetch-block",
+          "status": "passed",
+          "differences": [],
+          "gaps": [],
+          "observed": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/fetch-block-hop-1",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/paths/fetch-block",
+              "issued": true,
+              "decision": "block",
+              "hop": 1
+            }
+          ]
+        },
+        {
+          "id": "blocked-start",
+          "status": "passed",
+          "differences": [],
+          "gaps": [],
+          "observed": [
+            {
+              "url": "https://000491b06a.com/blanc-fixture/paths/blocked-start",
+              "issued": true,
+              "decision": "block",
+              "hop": 0
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/unreachable-end",
+              "issued": false
+            }
+          ]
+        },
+        {
+          "id": "multi",
+          "status": "passed",
+          "differences": [],
+          "gaps": [],
+          "observed": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/multi-hop-1",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/multi-hop-2",
+              "issued": true,
+              "decision": "allow",
+              "hop": 1
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/multi-end",
+              "issued": true,
+              "decision": "allow",
+              "hop": 2
+            }
+          ]
+        },
+        {
+          "id": "script-allow",
+          "status": "passed",
+          "differences": [],
+          "gaps": [],
+          "observed": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/script-allow-hop-1",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/script-end.js",
+              "issued": true,
+              "decision": "allow",
+              "hop": 1
+            }
+          ]
+        },
+        {
+          "id": "script-block",
+          "status": "passed",
+          "differences": [],
+          "gaps": [],
+          "observed": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/script-block-hop-1",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/paths/script-block.js",
+              "issued": true,
+              "decision": "block",
+              "hop": 1
+            }
+          ]
+        },
+        {
+          "id": "dedicated",
+          "status": "passed",
+          "differences": [],
+          "gaps": [],
+          "observed": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated.js",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated-import.js",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/paths/dedicated-import-block.js",
+              "issued": true,
+              "decision": "block",
+              "hop": 0
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated-fetch",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/paths/dedicated-block",
+              "issued": true,
+              "decision": "block",
+              "hop": 0
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated-redirect-hop-1",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/paths/dedicated-redirect-block",
+              "issued": true,
+              "decision": "block",
+              "hop": 1
+            }
+          ]
+        },
+        {
+          "id": "shared",
+          "status": "gap",
+          "differences": [],
+          "gaps": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-import.js",
+              "reason": "top-frame-or-role-unresolved",
+              "electron": {
+                "top": "unresolved",
+                "role": "unresolved",
+                "worker": {
+                  "status": "gap",
+                  "reason": "shared-client-lifecycle-not-exposed",
+                  "context": {
+                    "kind": "shared_worker",
+                    "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/shared.js",
+                    "executionOrigin": "https://page.blanc-fixture.test",
+                    "profileKind": "regular",
+                    "documentFrame": "not-associated",
+                    "clients": {
+                      "kind": "connected-documents",
+                      "status": "unobserved"
+                    }
+                  }
+                }
+              },
+              "chromium": {
+                "top": "unresolved",
+                "role": "unresolved",
+                "worker": {
+                  "status": "gap",
+                  "reason": "shared-client-lifecycle-not-exposed",
+                  "context": {
+                    "kind": "shared_worker",
+                    "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/shared.js",
+                    "executionOrigin": "https://page.blanc-fixture.test",
+                    "profileKind": "regular",
+                    "documentFrame": "not-associated",
+                    "clients": {
+                      "kind": "connected-documents",
+                      "status": "unobserved"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/paths/shared-import-block.js",
+              "reason": "top-frame-or-role-unresolved",
+              "electron": {
+                "top": "unresolved",
+                "role": "unresolved",
+                "worker": {
+                  "status": "gap",
+                  "reason": "shared-client-lifecycle-not-exposed",
+                  "context": {
+                    "kind": "shared_worker",
+                    "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/shared.js",
+                    "executionOrigin": "https://page.blanc-fixture.test",
+                    "profileKind": "regular",
+                    "documentFrame": "not-associated",
+                    "clients": {
+                      "kind": "connected-documents",
+                      "status": "unobserved"
+                    }
+                  }
+                }
+              },
+              "chromium": {
+                "top": "unresolved",
+                "role": "unresolved",
+                "worker": {
+                  "status": "gap",
+                  "reason": "shared-client-lifecycle-not-exposed",
+                  "context": {
+                    "kind": "shared_worker",
+                    "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/shared.js",
+                    "executionOrigin": "https://page.blanc-fixture.test",
+                    "profileKind": "regular",
+                    "documentFrame": "not-associated",
+                    "clients": {
+                      "kind": "connected-documents",
+                      "status": "unobserved"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-fetch",
+              "reason": "top-frame-or-role-unresolved",
+              "electron": {
+                "top": "unresolved",
+                "role": "unresolved",
+                "worker": {
+                  "status": "gap",
+                  "reason": "shared-client-lifecycle-not-exposed",
+                  "context": {
+                    "kind": "shared_worker",
+                    "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/shared.js",
+                    "executionOrigin": "https://page.blanc-fixture.test",
+                    "profileKind": "regular",
+                    "documentFrame": "not-associated",
+                    "clients": {
+                      "kind": "connected-documents",
+                      "status": "unobserved"
+                    }
+                  }
+                }
+              },
+              "chromium": {
+                "top": "unresolved",
+                "role": "unresolved",
+                "worker": {
+                  "status": "gap",
+                  "reason": "shared-client-lifecycle-not-exposed",
+                  "context": {
+                    "kind": "shared_worker",
+                    "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/shared.js",
+                    "executionOrigin": "https://page.blanc-fixture.test",
+                    "profileKind": "regular",
+                    "documentFrame": "not-associated",
+                    "clients": {
+                      "kind": "connected-documents",
+                      "status": "unobserved"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/paths/shared-block",
+              "reason": "top-frame-or-role-unresolved",
+              "electron": {
+                "top": "unresolved",
+                "role": "unresolved",
+                "worker": {
+                  "status": "gap",
+                  "reason": "shared-client-lifecycle-not-exposed",
+                  "context": {
+                    "kind": "shared_worker",
+                    "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/shared.js",
+                    "executionOrigin": "https://page.blanc-fixture.test",
+                    "profileKind": "regular",
+                    "documentFrame": "not-associated",
+                    "clients": {
+                      "kind": "connected-documents",
+                      "status": "unobserved"
+                    }
+                  }
+                }
+              },
+              "chromium": {
+                "top": "unresolved",
+                "role": "unresolved",
+                "worker": {
+                  "status": "gap",
+                  "reason": "shared-client-lifecycle-not-exposed",
+                  "context": {
+                    "kind": "shared_worker",
+                    "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/shared.js",
+                    "executionOrigin": "https://page.blanc-fixture.test",
+                    "profileKind": "regular",
+                    "documentFrame": "not-associated",
+                    "clients": {
+                      "kind": "connected-documents",
+                      "status": "unobserved"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-redirect-hop-1",
+              "reason": "top-frame-or-role-unresolved",
+              "electron": {
+                "top": "unresolved",
+                "role": "unresolved",
+                "worker": {
+                  "status": "gap",
+                  "reason": "shared-client-lifecycle-not-exposed",
+                  "context": {
+                    "kind": "shared_worker",
+                    "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/shared.js",
+                    "executionOrigin": "https://page.blanc-fixture.test",
+                    "profileKind": "regular",
+                    "documentFrame": "not-associated",
+                    "clients": {
+                      "kind": "connected-documents",
+                      "status": "unobserved"
+                    }
+                  }
+                }
+              },
+              "chromium": {
+                "top": "unresolved",
+                "role": "unresolved",
+                "worker": {
+                  "status": "gap",
+                  "reason": "shared-client-lifecycle-not-exposed",
+                  "context": {
+                    "kind": "shared_worker",
+                    "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/shared.js",
+                    "executionOrigin": "https://page.blanc-fixture.test",
+                    "profileKind": "regular",
+                    "documentFrame": "not-associated",
+                    "clients": {
+                      "kind": "connected-documents",
+                      "status": "unobserved"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/paths/shared-redirect-block",
+              "reason": "top-frame-or-role-unresolved",
+              "electron": {
+                "top": "unresolved",
+                "role": "unresolved",
+                "worker": {
+                  "status": "gap",
+                  "reason": "shared-client-lifecycle-not-exposed",
+                  "context": {
+                    "kind": "shared_worker",
+                    "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/shared.js",
+                    "executionOrigin": "https://page.blanc-fixture.test",
+                    "profileKind": "regular",
+                    "documentFrame": "not-associated",
+                    "clients": {
+                      "kind": "connected-documents",
+                      "status": "unobserved"
+                    }
+                  }
+                }
+              },
+              "chromium": {
+                "top": "unresolved",
+                "role": "unresolved",
+                "worker": {
+                  "status": "gap",
+                  "reason": "shared-client-lifecycle-not-exposed",
+                  "context": {
+                    "kind": "shared_worker",
+                    "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/shared.js",
+                    "executionOrigin": "https://page.blanc-fixture.test",
+                    "profileKind": "regular",
+                    "documentFrame": "not-associated",
+                    "clients": {
+                      "kind": "connected-documents",
+                      "status": "unobserved"
+                    }
+                  }
+                }
+              }
+            }
+          ],
+          "observed": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared.js",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-import.js",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/paths/shared-import-block.js",
+              "issued": true,
+              "decision": "block",
+              "hop": 0
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-fetch",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/paths/shared-block",
+              "issued": true,
+              "decision": "block",
+              "hop": 0
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-redirect-hop-1",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/paths/shared-redirect-block",
+              "issued": true,
+              "decision": "block",
+              "hop": 1
+            }
+          ]
+        },
+        {
+          "id": "service",
+          "status": "gap",
+          "differences": [],
+          "gaps": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service.js",
+              "reason": "top-frame-or-role-unresolved",
+              "electron": {
+                "top": "unresolved",
+                "role": "unresolved",
+                "worker": {
+                  "status": "gap",
+                  "reason": "worker-request-context-mismatch"
+                }
+              },
+              "chromium": {
+                "top": "unresolved",
+                "role": "unresolved",
+                "worker": {
+                  "status": "gap",
+                  "reason": "worker-request-not-unique"
+                }
+              }
+            }
+          ],
+          "observed": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service.js",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service-import.js",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0,
+              "workerContext": {
+                "kind": "service_worker",
+                "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/service.js",
+                "executionOrigin": "https://page.blanc-fixture.test",
+                "profileKind": "regular",
+                "documentFrame": "not-associated",
+                "clients": {
+                  "kind": "controlled-documents",
+                  "status": "observed-stable",
+                  "members": []
+                }
+              }
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/paths/service-import-block.js",
+              "issued": true,
+              "decision": "block",
+              "hop": 0,
+              "workerContext": {
+                "kind": "service_worker",
+                "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/service.js",
+                "executionOrigin": "https://page.blanc-fixture.test",
+                "profileKind": "regular",
+                "documentFrame": "not-associated",
+                "clients": {
+                  "kind": "controlled-documents",
+                  "status": "observed-stable",
+                  "members": []
+                }
+              }
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service-fetch",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0,
+              "workerContext": {
+                "kind": "service_worker",
+                "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/service.js",
+                "executionOrigin": "https://page.blanc-fixture.test",
+                "profileKind": "regular",
+                "documentFrame": "not-associated",
+                "clients": {
+                  "kind": "controlled-documents",
+                  "status": "observed-stable",
+                  "members": []
+                }
+              }
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/paths/service-block",
+              "issued": true,
+              "decision": "block",
+              "hop": 0,
+              "workerContext": {
+                "kind": "service_worker",
+                "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/service.js",
+                "executionOrigin": "https://page.blanc-fixture.test",
+                "profileKind": "regular",
+                "documentFrame": "not-associated",
+                "clients": {
+                  "kind": "controlled-documents",
+                  "status": "observed-stable",
+                  "members": []
+                }
+              }
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service-redirect-hop-1",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0,
+              "workerContext": {
+                "kind": "service_worker",
+                "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/service.js",
+                "executionOrigin": "https://page.blanc-fixture.test",
+                "profileKind": "regular",
+                "documentFrame": "not-associated",
+                "clients": {
+                  "kind": "controlled-documents",
+                  "status": "observed-stable",
+                  "members": []
+                }
+              }
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/paths/service-redirect-block",
+              "issued": true,
+              "decision": "block",
+              "hop": 1,
+              "workerContext": {
+                "kind": "service_worker",
+                "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/service.js",
+                "executionOrigin": "https://page.blanc-fixture.test",
+                "profileKind": "regular",
+                "documentFrame": "not-associated",
+                "clients": {
+                  "kind": "controlled-documents",
+                  "status": "observed-stable",
+                  "members": []
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "fullAcceptance": false,
+      "scope": "authored GET redirects; live-owner dedicated/shared probes; service-worker imports and message-triggered fetches with independently observed controlled-client sets; no general worker acceptance"
+    },
+    "private": {
+      "valid": true,
+      "faults": [],
+      "results": [
+        {
+          "id": "navigation",
+          "status": "passed",
+          "differences": [],
+          "gaps": [],
+          "observed": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/start.html",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/index.html",
+              "issued": true,
+              "decision": "allow",
+              "hop": 1
+            }
+          ]
+        },
+        {
+          "id": "fetch-allow",
+          "status": "passed",
+          "differences": [],
+          "gaps": [],
+          "observed": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/fetch-allow-hop-1",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/fetch-end",
+              "issued": true,
+              "decision": "allow",
+              "hop": 1
+            }
+          ]
+        },
+        {
+          "id": "fetch-block",
+          "status": "passed",
+          "differences": [],
+          "gaps": [],
+          "observed": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/fetch-block-hop-1",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/paths/fetch-block",
+              "issued": true,
+              "decision": "block",
+              "hop": 1
+            }
+          ]
+        },
+        {
+          "id": "blocked-start",
+          "status": "passed",
+          "differences": [],
+          "gaps": [],
+          "observed": [
+            {
+              "url": "https://000491b06a.com/blanc-fixture/paths/blocked-start",
+              "issued": true,
+              "decision": "block",
+              "hop": 0
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/unreachable-end",
+              "issued": false
+            }
+          ]
+        },
+        {
+          "id": "multi",
+          "status": "passed",
+          "differences": [],
+          "gaps": [],
+          "observed": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/multi-hop-1",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/multi-hop-2",
+              "issued": true,
+              "decision": "allow",
+              "hop": 1
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/multi-end",
+              "issued": true,
+              "decision": "allow",
+              "hop": 2
+            }
+          ]
+        },
+        {
+          "id": "script-allow",
+          "status": "passed",
+          "differences": [],
+          "gaps": [],
+          "observed": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/script-allow-hop-1",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/script-end.js",
+              "issued": true,
+              "decision": "allow",
+              "hop": 1
+            }
+          ]
+        },
+        {
+          "id": "script-block",
+          "status": "passed",
+          "differences": [],
+          "gaps": [],
+          "observed": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/script-block-hop-1",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/paths/script-block.js",
+              "issued": true,
+              "decision": "block",
+              "hop": 1
+            }
+          ]
+        },
+        {
+          "id": "dedicated",
+          "status": "passed",
+          "differences": [],
+          "gaps": [],
+          "observed": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated.js",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated-import.js",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/paths/dedicated-import-block.js",
+              "issued": true,
+              "decision": "block",
+              "hop": 0
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated-fetch",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/paths/dedicated-block",
+              "issued": true,
+              "decision": "block",
+              "hop": 0
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/dedicated-redirect-hop-1",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/paths/dedicated-redirect-block",
+              "issued": true,
+              "decision": "block",
+              "hop": 1
+            }
+          ]
+        },
+        {
+          "id": "shared",
+          "status": "gap",
+          "differences": [],
+          "gaps": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-import.js",
+              "reason": "top-frame-or-role-unresolved",
+              "electron": {
+                "top": "unresolved",
+                "role": "unresolved",
+                "worker": {
+                  "status": "gap",
+                  "reason": "shared-client-lifecycle-not-exposed",
+                  "context": {
+                    "kind": "shared_worker",
+                    "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/shared.js",
+                    "executionOrigin": "https://page.blanc-fixture.test",
+                    "profileKind": "private",
+                    "documentFrame": "not-associated",
+                    "clients": {
+                      "kind": "connected-documents",
+                      "status": "unobserved"
+                    }
+                  }
+                }
+              },
+              "chromium": {
+                "top": "unresolved",
+                "role": "unresolved",
+                "worker": {
+                  "status": "gap",
+                  "reason": "shared-client-lifecycle-not-exposed",
+                  "context": {
+                    "kind": "shared_worker",
+                    "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/shared.js",
+                    "executionOrigin": "https://page.blanc-fixture.test",
+                    "profileKind": "private",
+                    "documentFrame": "not-associated",
+                    "clients": {
+                      "kind": "connected-documents",
+                      "status": "unobserved"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/paths/shared-import-block.js",
+              "reason": "top-frame-or-role-unresolved",
+              "electron": {
+                "top": "unresolved",
+                "role": "unresolved",
+                "worker": {
+                  "status": "gap",
+                  "reason": "shared-client-lifecycle-not-exposed",
+                  "context": {
+                    "kind": "shared_worker",
+                    "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/shared.js",
+                    "executionOrigin": "https://page.blanc-fixture.test",
+                    "profileKind": "private",
+                    "documentFrame": "not-associated",
+                    "clients": {
+                      "kind": "connected-documents",
+                      "status": "unobserved"
+                    }
+                  }
+                }
+              },
+              "chromium": {
+                "top": "unresolved",
+                "role": "unresolved",
+                "worker": {
+                  "status": "gap",
+                  "reason": "shared-client-lifecycle-not-exposed",
+                  "context": {
+                    "kind": "shared_worker",
+                    "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/shared.js",
+                    "executionOrigin": "https://page.blanc-fixture.test",
+                    "profileKind": "private",
+                    "documentFrame": "not-associated",
+                    "clients": {
+                      "kind": "connected-documents",
+                      "status": "unobserved"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-fetch",
+              "reason": "top-frame-or-role-unresolved",
+              "electron": {
+                "top": "unresolved",
+                "role": "unresolved",
+                "worker": {
+                  "status": "gap",
+                  "reason": "shared-client-lifecycle-not-exposed",
+                  "context": {
+                    "kind": "shared_worker",
+                    "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/shared.js",
+                    "executionOrigin": "https://page.blanc-fixture.test",
+                    "profileKind": "private",
+                    "documentFrame": "not-associated",
+                    "clients": {
+                      "kind": "connected-documents",
+                      "status": "unobserved"
+                    }
+                  }
+                }
+              },
+              "chromium": {
+                "top": "unresolved",
+                "role": "unresolved",
+                "worker": {
+                  "status": "gap",
+                  "reason": "shared-client-lifecycle-not-exposed",
+                  "context": {
+                    "kind": "shared_worker",
+                    "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/shared.js",
+                    "executionOrigin": "https://page.blanc-fixture.test",
+                    "profileKind": "private",
+                    "documentFrame": "not-associated",
+                    "clients": {
+                      "kind": "connected-documents",
+                      "status": "unobserved"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/paths/shared-block",
+              "reason": "top-frame-or-role-unresolved",
+              "electron": {
+                "top": "unresolved",
+                "role": "unresolved",
+                "worker": {
+                  "status": "gap",
+                  "reason": "shared-client-lifecycle-not-exposed",
+                  "context": {
+                    "kind": "shared_worker",
+                    "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/shared.js",
+                    "executionOrigin": "https://page.blanc-fixture.test",
+                    "profileKind": "private",
+                    "documentFrame": "not-associated",
+                    "clients": {
+                      "kind": "connected-documents",
+                      "status": "unobserved"
+                    }
+                  }
+                }
+              },
+              "chromium": {
+                "top": "unresolved",
+                "role": "unresolved",
+                "worker": {
+                  "status": "gap",
+                  "reason": "shared-client-lifecycle-not-exposed",
+                  "context": {
+                    "kind": "shared_worker",
+                    "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/shared.js",
+                    "executionOrigin": "https://page.blanc-fixture.test",
+                    "profileKind": "private",
+                    "documentFrame": "not-associated",
+                    "clients": {
+                      "kind": "connected-documents",
+                      "status": "unobserved"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-redirect-hop-1",
+              "reason": "top-frame-or-role-unresolved",
+              "electron": {
+                "top": "unresolved",
+                "role": "unresolved",
+                "worker": {
+                  "status": "gap",
+                  "reason": "shared-client-lifecycle-not-exposed",
+                  "context": {
+                    "kind": "shared_worker",
+                    "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/shared.js",
+                    "executionOrigin": "https://page.blanc-fixture.test",
+                    "profileKind": "private",
+                    "documentFrame": "not-associated",
+                    "clients": {
+                      "kind": "connected-documents",
+                      "status": "unobserved"
+                    }
+                  }
+                }
+              },
+              "chromium": {
+                "top": "unresolved",
+                "role": "unresolved",
+                "worker": {
+                  "status": "gap",
+                  "reason": "shared-client-lifecycle-not-exposed",
+                  "context": {
+                    "kind": "shared_worker",
+                    "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/shared.js",
+                    "executionOrigin": "https://page.blanc-fixture.test",
+                    "profileKind": "private",
+                    "documentFrame": "not-associated",
+                    "clients": {
+                      "kind": "connected-documents",
+                      "status": "unobserved"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/paths/shared-redirect-block",
+              "reason": "top-frame-or-role-unresolved",
+              "electron": {
+                "top": "unresolved",
+                "role": "unresolved",
+                "worker": {
+                  "status": "gap",
+                  "reason": "shared-client-lifecycle-not-exposed",
+                  "context": {
+                    "kind": "shared_worker",
+                    "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/shared.js",
+                    "executionOrigin": "https://page.blanc-fixture.test",
+                    "profileKind": "private",
+                    "documentFrame": "not-associated",
+                    "clients": {
+                      "kind": "connected-documents",
+                      "status": "unobserved"
+                    }
+                  }
+                }
+              },
+              "chromium": {
+                "top": "unresolved",
+                "role": "unresolved",
+                "worker": {
+                  "status": "gap",
+                  "reason": "shared-client-lifecycle-not-exposed",
+                  "context": {
+                    "kind": "shared_worker",
+                    "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/shared.js",
+                    "executionOrigin": "https://page.blanc-fixture.test",
+                    "profileKind": "private",
+                    "documentFrame": "not-associated",
+                    "clients": {
+                      "kind": "connected-documents",
+                      "status": "unobserved"
+                    }
+                  }
+                }
+              }
+            }
+          ],
+          "observed": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared.js",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-import.js",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/paths/shared-import-block.js",
+              "issued": true,
+              "decision": "block",
+              "hop": 0
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-fetch",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/paths/shared-block",
+              "issued": true,
+              "decision": "block",
+              "hop": 0
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/shared-redirect-hop-1",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/paths/shared-redirect-block",
+              "issued": true,
+              "decision": "block",
+              "hop": 1
+            }
+          ]
+        },
+        {
+          "id": "service",
+          "status": "gap",
+          "differences": [],
+          "gaps": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service.js",
+              "reason": "top-frame-or-role-unresolved",
+              "electron": {
+                "top": "unresolved",
+                "role": "unresolved",
+                "worker": {
+                  "status": "gap",
+                  "reason": "worker-request-context-mismatch"
+                }
+              },
+              "chromium": {
+                "top": "unresolved",
+                "role": "unresolved",
+                "worker": {
+                  "status": "gap",
+                  "reason": "worker-request-not-unique"
+                }
+              }
+            }
+          ],
+          "observed": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service.js",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service-import.js",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0,
+              "workerContext": {
+                "kind": "service_worker",
+                "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/service.js",
+                "executionOrigin": "https://page.blanc-fixture.test",
+                "profileKind": "private",
+                "documentFrame": "not-associated",
+                "clients": {
+                  "kind": "controlled-documents",
+                  "status": "observed-stable",
+                  "members": []
+                }
+              }
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/paths/service-import-block.js",
+              "issued": true,
+              "decision": "block",
+              "hop": 0,
+              "workerContext": {
+                "kind": "service_worker",
+                "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/service.js",
+                "executionOrigin": "https://page.blanc-fixture.test",
+                "profileKind": "private",
+                "documentFrame": "not-associated",
+                "clients": {
+                  "kind": "controlled-documents",
+                  "status": "observed-stable",
+                  "members": []
+                }
+              }
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service-fetch",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0,
+              "workerContext": {
+                "kind": "service_worker",
+                "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/service.js",
+                "executionOrigin": "https://page.blanc-fixture.test",
+                "profileKind": "private",
+                "documentFrame": "not-associated",
+                "clients": {
+                  "kind": "controlled-documents",
+                  "status": "observed-stable",
+                  "members": []
+                }
+              }
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/paths/service-block",
+              "issued": true,
+              "decision": "block",
+              "hop": 0,
+              "workerContext": {
+                "kind": "service_worker",
+                "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/service.js",
+                "executionOrigin": "https://page.blanc-fixture.test",
+                "profileKind": "private",
+                "documentFrame": "not-associated",
+                "clients": {
+                  "kind": "controlled-documents",
+                  "status": "observed-stable",
+                  "members": []
+                }
+              }
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/paths/service-redirect-hop-1",
+              "issued": true,
+              "decision": "allow",
+              "hop": 0,
+              "workerContext": {
+                "kind": "service_worker",
+                "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/service.js",
+                "executionOrigin": "https://page.blanc-fixture.test",
+                "profileKind": "private",
+                "documentFrame": "not-associated",
+                "clients": {
+                  "kind": "controlled-documents",
+                  "status": "observed-stable",
+                  "members": []
+                }
+              }
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/paths/service-redirect-block",
+              "issued": true,
+              "decision": "block",
+              "hop": 1,
+              "workerContext": {
+                "kind": "service_worker",
+                "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/paths/service.js",
+                "executionOrigin": "https://page.blanc-fixture.test",
+                "profileKind": "private",
+                "documentFrame": "not-associated",
+                "clients": {
+                  "kind": "controlled-documents",
+                  "status": "observed-stable",
+                  "members": []
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "fullAcceptance": false,
+      "scope": "authored GET redirects; live-owner dedicated/shared probes; service-worker imports and message-triggered fetches with independently observed controlled-client sets; no general worker acceptance"
+    }
+  },
+  "fullAcceptance": false
+}

@@ -3,7 +3,7 @@ import {scriptLiteral} from '../../../script-literal.mjs';
 export const origin='https://page.blanc-fixture.test';
 const url=p=>origin+'/blanc-fixture/paths/'+p;
 export const entryUrl=url('start.html'),finalUrl=url('index.html');
-export function pathFixtures(){
+export function pathFixtures({controlledService=false}={}){
  const fixtures=new Map(),cases=[];
  const add=(u,body,type='text/plain',location=null)=>{if(fixtures.has(u))throw Error('duplicate');fixtures.set(u,{status:location?302:200,contentType:type,body,...(location?{location}:{})});return u;};
  const blocked=(id,type='text/plain',body='authored blocked target')=>add('https://000491b06a.com/blanc-fixture/paths/'+id,body,type);
@@ -40,7 +40,7 @@ window.pathScripts=[];window.pathProbe={done:false,results:[]};(async()=>{for(co
  const result=await new Promise(resolve=>{let w;let done=false;const finish=r=>{if(done)return;done=true;clearTimeout(timer);if(c.kind==='dedicated')w?.terminate();if(c.kind==='shared')w?.port.close();resolve({id:c.id,...r});};const timer=setTimeout(()=>finish({outcome:'timeout'}),15000);
  if(c.kind==='fetch'){fetch(c.url).then(async r=>finish({outcome:'load',body:await r.text()}),()=>finish({outcome:'error'}));}
  else if(c.kind==='script'){const s=document.createElement('script');s.onload=()=>finish({outcome:'load'});s.onerror=()=>finish({outcome:'error'});s.src=c.url;document.head.append(s);}
- else if(c.kind==='service'){(async()=>{try{const reg=await navigator.serviceWorker.register(c.url,{scope:'/blanc-fixture/paths/sw-scope/'});const worker=reg.active||reg.waiting||reg.installing;if(worker.state!=='activated')await new Promise((ok,fail)=>{worker.addEventListener('statechange',()=>{if(worker.state==='activated')ok();else if(worker.state==='redundant')fail(Error('redundant'));});});const channel=new MessageChannel();channel.port1.onmessage=e=>{finish({outcome:'load',worker:e.data});channel.port1.close();};worker.postMessage('probe',[channel.port2]);}catch(e){finish({outcome:'error',message:String(e)});}})();}
+ else if(c.kind==='service'){(async()=>{try{const reg=await navigator.serviceWorker.register(c.url,{scope:${scriptLiteral(controlledService?'/blanc-fixture/paths/':'/blanc-fixture/paths/sw-scope/')}});const worker=reg.active||reg.waiting||reg.installing;if(worker.state!=='activated')await new Promise((ok,fail)=>{worker.addEventListener('statechange',()=>{if(worker.state==='activated')ok();else if(worker.state==='redundant')fail(Error('redundant'));});});if(${scriptLiteral(controlledService)}&&!navigator.serviceWorker.controller)await new Promise(ok=>navigator.serviceWorker.addEventListener('controllerchange',ok,{once:true}));const channel=new MessageChannel();channel.port1.onmessage=e=>{finish({outcome:'load',worker:e.data});channel.port1.close();};worker.postMessage('probe',[channel.port2]);}catch(e){finish({outcome:'error',message:String(e)});}})();}
  else{try{w=c.kind==='shared'?new SharedWorker(c.url):new Worker(c.url);const p=c.kind==='shared'?w.port:w;p.onmessage=e=>finish({outcome:'load',worker:e.data});w.onerror=()=>finish({outcome:'error'});if(c.kind==='shared')p.start();}catch(e){finish({outcome:'error',message:String(e)});}}
  });pathProbe.results.push(result);
 }pathProbe.scripts=pathScripts;pathProbe.done=true;})();</script>`;

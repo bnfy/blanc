@@ -83,3 +83,5 @@ origins remain separate: a storage partition can reduce a top origin to a
 schemeful site and cannot supply the required document identity. Shared/service
 workers still lack independently correlated frame context in both observations;
 matching decisions do not close that acceptance gap.
+
+Explicit worker-context follow-up: [evidence](../../evidence/f12-worker-identity-20261017/README.md). Six service-worker subrequests now compare with independently observed worker identity and controlled-client sets in both profiles. Shared connected-client lifecycle and the initial service-worker script remain gaps. Engine inputs are unchanged; latency stays deferred.

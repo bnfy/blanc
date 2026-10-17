@@ -1234,3 +1234,34 @@ build/regression logs, observations, audit and fingerprints. Existing 156/profil
 tabs and Task 0's upgrade gate are unchanged. Runtime brackets are not attention
 measurements. Broader request coverage, cosmetics/scriptlets and private sanity
 sample gaps remain open.
+
+
+### Explicit worker contexts — October 17, 2026
+
+Owner approval: “Yes—use explicit worker contexts with strict evidence.”
+[Evidence](evidence/f12-worker-identity-20261017/README.md) records the contract
+branch and independent CDP worker/realm/client observations in both runtimes.
+Six service-worker subrequests per profile and variant now compare with observed
+empty or single controlled-page sets. Raw unresolved top-frame fields stay raw;
+no sidecar client origin changes engine inputs. Shared connected-client lifecycle
+and the initial service-worker script remain gaps. No general worker acceptance.
+
+Final paths-06 and controlled-07: eight fresh runs each, stable and valid in both
+profiles, no failed cases; 25.791 s and 21.366 s respectively. Earlier probes and
+the paths-04 private instability are archived with their limitations. A first-script
+observation barrier fixes missing first-import telemetry; it changes scheduling
+and is never enabled for latency. Recomparison with the final code is identical.
+
+One guarded incremental build: one planned action, six steps, 30.65 s Siso /
+36.441 s wrapper; zero-action check. No GN/args/toolchain/cache/cold-output change.
+Budget 25 files / 62 hunks, 151 dependencies clean at pins. Routine tranche-2
+cost only, never Task 0 cold time. 104 tests and 47-file lint pass. Full corpus
+and fail-closed tests remain the previous 3ca65a11 results, not re-claimed here.
+Eight verified archives preserve 129 files, including failed attempts and exact
+capture-module snapshots. No private keys or permanent profile data.
+
+Latency remains deferred by the owner; no process pause or password dialog.
+Correction to the earlier checkpoint: administrator authentication is no longer
+pending. Multi-client/teardown, service-worker fetch-event/cache/update behavior
+and other F12 gaps remain open. The 156 baseline and Task 0 upgrade gate remain
+unchanged. Attention/agent time is not measured.

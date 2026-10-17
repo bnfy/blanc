@@ -26,3 +26,22 @@ test('partition metadata and visible tab never fill an absent worker frame',()=>
 test('native worker context alone cannot admit an unresolved Electron context',()=>{
  const x=sample();x.electron.records[0].frame=null;assert.equal(compare(x).results[0].status,'gap');
 });
+function workerSample(){
+ const x=sample(),script=origin+'/worker.js';x.electron.records[0].frame=null;
+ Object.assign(x.native.records[0],{top_frame_origin:'unresolved',frame_role:'unresolved',devtools_request_id:'native-id'});
+ x.electron.records[0].timestamp=new Date(1000000).toISOString();
+ for(const run of [x.electron,x.native]){
+  run.source={observedPageTarget:{targetId:'page',browserContextId:'profile'}};
+  const version={targetId:'worker',versionId:'version',scriptURL:script,controlledClients:[]};
+  run.workerEvidence={faults:[],events:[
+   {method:'Target.attachedToTarget',params:{sessionId:'worker-session',targetInfo:{targetId:'worker',type:'service_worker',browserContextId:'profile',url:script}}},
+   {method:'Runtime.executionContextCreated',sessionId:'worker-session',params:{context:{origin}}},
+   {method:'ServiceWorker.workerVersionUpdated',params:{versions:[structuredClone(version)]}},
+   {method:'Network.requestWillBeSent',sessionId:'worker-session',params:{requestId:'native-id',url,method:'GET',referrer:origin+'/page',wallTime:1000,frameId:null,type:'Fetch'}},
+   {method:'ServiceWorker.workerVersionUpdated',params:{versions:[structuredClone(version)]}}
+  ].map((e,sequence)=>({...e,sequence}))};
+ }return x;
+}
+test('two independent worker contexts admit a bounded request without inventing its document frame',()=>{const x=workerSample(),r=compare(x);assert(r.valid);assert.equal(r.results[0].status,'passed');assert.equal(r.results[0].observed[0].workerContext.documentFrame,'not-associated');assert.equal(x.native.records[0].top_frame_origin,'unresolved');});
+test('one-sided worker enrichment leaves the request as a gap',()=>{const x=workerSample();delete x.electron.workerEvidence;assert.equal(compare(x).results[0].status,'gap');});
+test('stable but different independent worker identities fail comparison',()=>{const x=workerSample(),s=origin+'/different.js';x.native.workerEvidence.events[0].params.targetInfo.url=s;for(const i of [2,4])x.native.workerEvidence.events[i].params.versions[0].scriptURL=s;assert.equal(compare(x).results[0].status,'failed');});

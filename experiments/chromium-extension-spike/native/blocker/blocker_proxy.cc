@@ -229,6 +229,7 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
     event.Set("frame_role", type == "mainFrame" ? "main" : frame_role_);
     event.Set("frame_state", frame_state_);
     event.Set("factory_kind", FactoryKind(context_.factory_type));
+    event.Set("devtools_request_id", request_.devtools_request_id.value_or("absent"));
     // Isolation metadata is NOT a document/client origin. StorageKey can reduce
     // it to a schemeful site; never substitute it for the required frame fields.
     const auto& factory_top = context_.isolation_info.top_frame_origin();
