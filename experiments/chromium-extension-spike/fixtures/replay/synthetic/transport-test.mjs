@@ -9,18 +9,18 @@ import {createCertificates} from '../pilot/certificates.mjs';
 import {buildCandidates,sha} from './generate.mjs';
 import {fixturesFor,startSynthetic} from './transport.mjs';
 const dir=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-synthetic-transport-test-'));
-const hosts=['page.fixture.test'];
+const hosts=['page.fixture.test','page.blanc-fixture.test','page.fixture.test.blanc-control.test'];
 const proxy=createCertificates(path.join(dir,'certificates'),hosts);
 test.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
-async function get(port,target='/index.html',extra=''){
+async function get(port,target='/index.html',extra='',host=hosts[0],material=proxy,sni=host){
  const socket=await new Promise((resolve,reject)=>{
   const s=net.connect(port,'127.0.0.1');s.setTimeout(5000,()=>s.destroy(new Error('timeout')));s.on('error',reject);
-  s.once('connect',()=>s.write('CONNECT page.fixture.test:443 HTTP/1.1\r\nHost: page.fixture.test:443\r\n\r\n'));
+  s.once('connect',()=>s.write(`CONNECT ${host}:443 HTTP/1.1\r\nHost: ${host}:443\r\n\r\n`));
   s.once('data',header=>{assert.match(header.toString(),/200/);resolve(s);});
  });
  return new Promise((resolve,reject)=>{
-  const s=tls.connect({socket,servername:hosts[0],ca:proxy.ca});let data='';
-  s.once('secureConnect',()=>s.write(`GET ${target} HTTP/1.1\r\nHost: ${hosts[0]}\r\n${extra}Connection: close\r\n\r\n`));
+  const s=tls.connect({socket,servername:sni,ca:material.ca});let data='';
+  s.once('secureConnect',()=>s.write(`GET ${target} HTTP/1.1\r\nHost: ${host}\r\n${extra}Connection: close\r\n\r\n`));
   s.on('data',d=>data+=d);s.once('end',()=>resolve(data));s.on('error',reject);
  });
 }
@@ -46,4 +46,17 @@ test('tampered response or duplicate candidate fails manifest construction',()=>
  const c=buildCandidates([{file:'fixture.txt',sha256:sha(text),text}]).candidates[0];
  assert.throws(()=>fixturesFor([c,c]),/Duplicate/);
  c.response.body+='tampered';assert.throws(()=>fixturesFor([c]),/digest/);
+});
+
+test('CONNECT selects the correct certificate shard; mismatched SNI is refused',async()=>{
+ const other=createCertificates(path.join(dir,'other'),['other.fixture.test']);
+ const body='authored';
+ const fixtures=new Map(['page.fixture.test','other.fixture.test'].map(h=>['https://'+h+'/index.html',{status:200,contentType:'text/plain',body}]));
+ const replay=await startSynthetic({fixtures,tlsMaterial:{entries:[proxy,other]}});
+ try {
+  assert.match(await get(replay.port),/200 OK/);
+  assert.match(await get(replay.port,'/index.html','','other.fixture.test',other),/200 OK/);
+  const mismatched=await get(replay.port,'/index.html','','other.fixture.test',other,'page.fixture.test').catch(()=>'TLS rejected');
+  assert(!/200 OK/.test(mismatched));assert.equal(replay.arrivals.length,2);
+ }finally{await replay.close();}
 });

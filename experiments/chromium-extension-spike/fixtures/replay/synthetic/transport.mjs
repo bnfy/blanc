@@ -17,7 +17,7 @@ export function fixturesFor(candidates) {
 export async function startSynthetic({fixtures,tlsMaterial}) {
   const faults=[],arrivals=[];
   const hosts=[...new Set([...fixtures.keys()].map(u=>new URL(u).hostname))];
-  const server=await serve({hosts,tlsMaterial,fault:code=>faults.push({code}),respond:async(req,res,protocol)=>{
+  const server=await serve({hosts,tlsMaterial,fault:(code,authority)=>faults.push({code,...(authority?{authority: /^[a-z0-9.:-]{1,200}$/.test(authority)?authority:'unrecorded-invalid-authority'}:{})}),respond:async(req,res,protocol)=>{
     const url='https://'+req.headers.host+req.url;
     const response=fixtures.get(url);
     if(req.method!=='GET'||!response){faults.push({code:'unmanifested-request',url});res.writeHead(502);res.end();return;}

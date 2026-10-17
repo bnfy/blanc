@@ -1,4 +1,4 @@
-# Synthetic acceptance corpus: generation checkpoint
+# Synthetic corpus and pre-integration Chromium control
 
 Owner approval: `tranche2-request.md` §8.1, reviewed at `68892cc1`.
 List-derived data and generated page content carry [../NOTICE](../NOTICE).
@@ -47,30 +47,60 @@ node --test experiments/chromium-extension-spike/fixtures/replay/synthetic/gener
 The output path must be new. The output says `acceptedOracleUrls: 0` and
 `captureProvenanceVerified: false`; generated counts do not meet acceptance.
 
-`run.mjs ELECTRON APP_ASAR ASAR_MODULE PLAYWRIGHT_MODULE NEW_EVIDENCE_DIR`
-selects the first two compatible script/xhr/image/stylesheet candidates of
-each kind (24 total)
-with `page.blanc-fixture.test` as their source. It performs two fresh regular
-and two fresh private offline replays of the same authored response manifest,
-using the existing provider observer and a synthetic-only single-frame
-stability gate that admits those four resource types. The public recorder
-admission gate is unchanged.
-It verifies the installed app's list pins against the generated source pins,
-records wrapper/engine artifact/build/configuration identifiers and checks
-child completion. The installed app remains read-only; all launches use
-extracted source and disposable profiles, `BLANC_TEST=0`, the real blocker,
-fixture-only certificate trust and resolver rules denying direct network access.
+`run.mjs ELECTRON APP_ASAR ASAR_MODULE PLAYWRIGHT_MODULE NEW_EVIDENCE_DIR [probe|full] [default|no-referrer]`
+selects either the first two compatible candidates per kind/type (24), or all
+5,123 candidates whose declared source is `page.blanc-fixture.test`. Another
+782 domain-scoped candidates remain excluded, explicitly. Both modes add four
+first-party authored coverage controls; these are never counted toward the
+2,000/2,000 floor. The generator's `party` field is a construction hint, not
+observed classification. The summary uses observed request/top-frame origins
+and a pinned PSL implementation instead.
 
-This small probe is not the 4,000-URL acceptance corpus and has no native fork
-adapter. Exceptions, negative controls and source rule labels cannot stand in
-for observed decisions. Preserve every failed attempt. The matrix in
-`coverage.json` was committed before capture; all full acceptance cells remain
-`gap` until both browsers and required contexts have evidence. A passed resource
-probe alone does not update an entire matrix row to `passed`.
+Each mode performs two fresh regular and two fresh private offline Electron
+replays, using the real provider observer and strict single-frame stability
+comparison. Requests run at eight-way authored concurrency; timeouts, missing
+loads, ambiguous contexts and absent children fail the whole run. A script
+consumes its child's complete response body before signalling completion.
+Every scripted response, including a blocked parent's response, exists offline.
+The installed ASAR is read-only; profiles and extracted app trees are disposable.
+`BLANC_TEST=0` keeps the real engine and startup gate enabled.
 
-Next: expand independently correlated resource types, first-party and frame
-contexts, redirects, and batch the distinct candidates; build the native
-adapter under the existing guard before claiming synthetic fixture parity.
-Cosmetics, scriptlets, latency and private real-page sanity recording are still
-pending. No native build or private real-page acquisition is part of this
-checkpoint. No deadline or budget is extended.
+TLS is fixture-scoped: groups of at most 400 exact SAN hosts avoid oversized
+certificates, CONNECT selects the TLS context and SNI/Host must agree. Both
+browsers pin only this run's fresh leaf public keys through
+`--ignore-certificate-errors-spki-list`; no global ignore switch or system CA
+installation is used. Electron also retains the exact leaf/CA/host session
+verifier. Its verifier-only large runs intermittently rejected valid pins; all
+failures are retained, with root cause not claimed. `trust-probe.mjs` checks in
+both real browsers that the pinned leaf loads and an unpinned leaf never reaches
+HTTP. Keys and profiles are deleted after each invocation.
+
+`chromium-baseline.mjs CHROMIUM_EXECUTABLE ASSETS PLAYWRIGHT_MODULE ELECTRON_EVIDENCE NEW_EVIDENCE`
+launches the built 157 executable in disposable regular/private contexts, twice
+each. It loads the *same bytes*, records CDP requests, response completion,
+proxy body hashes and actual DOM/script-child execution. It never uses Electron
+decisions to intercept or answer requests. This is intentionally a **no-blocker
+negative control**, not the native hook adapter: the utility-process engine and
+browser interception are not implemented. CDP's initiator type or document URL
+is not substituted for `request_initiator`, and no acceptance parity percentage
+is calculated. The full comparison must wait for independent hook observations.
+
+The proxy refuses background attempts too. Denials to the exact built-in
+`clients2.google.com`, `www.google.com:443` and `accounts.google.com:443`
+endpoints outside the observed page are retained as service-denial evidence,
+separately from page fixture faults. An unknown page request, unknown authority,
+missing/incorrect payload, cache hit, failed load or unexecuted child fails the
+control. The transport never forwards a denied request.
+
+`summarize.mjs ELECTRON_FULL NO_REFERRER_PROBE CHROMIUM_FULL TLDTS_MODULE NEW_OUTPUT`
+counts distinct observed candidate URLs once per profile. It does not add
+profiles, repeat runs, coverage controls or children to the floor. The source
+list and module hashes accompany observed per-type/party/kind counts.
+
+See [the expanded evidence](../../../evidence/f12-expanded-20261017/README.md)
+for stable oracle counts, failed attempts, TLS controls and Chromium differences.
+A numerical floor alone is not acceptance: the planned matrix in `coverage.json`
+stays open. Native interception, independent context, expanded frame/path/type
+coverage, cosmetics, scriptlets, latency and the private real-page sample remain
+gaps. No native build, baseline promotion, deadline extension or private-page
+acquisition occurred in this checkpoint.

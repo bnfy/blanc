@@ -1,0 +1,23 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {createRequire} from 'node:module';
+import {createCertificateSet,publicTrust} from './certificate-set.mjs';
+const temp=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-certificate-set-test-'));
+test.after(()=>fs.rmSync(temp,{recursive:true,force:true}));
+fs.copyFileSync(new URL('../pilot/fixture-trust.cjs',import.meta.url),path.join(temp,'single-fixture-trust.cjs'));
+fs.copyFileSync(new URL('./fixture-trust.cjs',import.meta.url),path.join(temp,'fixture-trust.cjs'));
+const {createVerifier}=createRequire(import.meta.url)(path.join(temp,'fixture-trust.cjs'));
+test('certificate shards preserve exact-host, exact-leaf, CA and validity checks',()=>{
+ const hosts=Array.from({length:401},(_,i)=>'fixture'+i+'.example.test');
+ const material=createCertificateSet(path.join(temp,'certificates'),hosts);
+ assert.equal(material.entries.length,2);
+ const exposed=publicTrust(material);assert(!JSON.stringify(exposed).includes('PRIVATE KEY'));
+ const verify=createVerifier(exposed);
+ assert(verify(hosts[0],material.entries[0].cert));assert(verify(hosts[400],material.entries[1].cert));
+ assert(!verify(hosts[0],material.entries[1].cert));assert(!verify('not-allowed.test',material.entries[0].cert));
+ assert(!verify(hosts[0],material.entries[0].cert,Date.now()+3*86400000));
+ assert.throws(()=>createVerifier({entries:[exposed.entries[0],exposed.entries[0]]}),/Duplicate/);
+});

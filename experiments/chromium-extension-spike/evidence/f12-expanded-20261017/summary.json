@@ -1,0 +1,396 @@
+{
+  "kind": "synthetic-corpus-and-chromium-negative-control",
+  "scope": "Single main frame; script/xhr/image/stylesheet; regular/private; default-referrer full set and no-referrer 24-case probe",
+  "bundleSha256": "d0b37595faa4d1354c2b54cc0b75e979567e825959a2d66a1a9c46c57094a15d",
+  "sourcePin": [
+    {
+      "file": "easylist.txt",
+      "sha256": "ceac7bd34d538ad448f05a7237b600485f2185a620d8ce32f77ae7365e1e662b"
+    },
+    {
+      "file": "easyprivacy.txt",
+      "sha256": "5b69cbb6958485b5688e76bf2a43a548acaa5cc57380aed7d3dc800da7e0bf6b"
+    }
+  ],
+  "generatedCandidates": 5905,
+  "eligibleDistinctCandidateUrls": 5123,
+  "excludedDomainScopedCandidates": 782,
+  "profiles": {
+    "regular": {
+      "distinctCandidateUrls": 5123,
+      "block": 2503,
+      "allow": 2620,
+      "meetsNumericalFloor": true,
+      "repeatedRunsCounted": false,
+      "controlsOrChildrenCounted": false
+    },
+    "private": {
+      "distinctCandidateUrls": 5123,
+      "block": 2503,
+      "allow": 2620,
+      "meetsNumericalFloor": true,
+      "repeatedRunsCounted": false,
+      "controlsOrChildrenCounted": false
+    }
+  },
+  "electronCells": [
+    {
+      "profile": "regular",
+      "kind": "blocking-candidate",
+      "resourceType": "stylesheet",
+      "party": "third-party",
+      "block": 419,
+      "allow": 0
+    },
+    {
+      "profile": "regular",
+      "kind": "near-miss-candidate",
+      "resourceType": "stylesheet",
+      "party": "third-party",
+      "block": 0,
+      "allow": 419
+    },
+    {
+      "profile": "regular",
+      "kind": "blocking-candidate",
+      "resourceType": "xhr",
+      "party": "third-party",
+      "block": 420,
+      "allow": 0
+    },
+    {
+      "profile": "regular",
+      "kind": "near-miss-candidate",
+      "resourceType": "xhr",
+      "party": "third-party",
+      "block": 0,
+      "allow": 420
+    },
+    {
+      "profile": "regular",
+      "kind": "blocking-candidate",
+      "resourceType": "image",
+      "party": "third-party",
+      "block": 452,
+      "allow": 0
+    },
+    {
+      "profile": "regular",
+      "kind": "near-miss-candidate",
+      "resourceType": "image",
+      "party": "third-party",
+      "block": 1,
+      "allow": 451
+    },
+    {
+      "profile": "regular",
+      "kind": "blocking-candidate",
+      "resourceType": "script",
+      "party": "third-party",
+      "block": 1209,
+      "allow": 0
+    },
+    {
+      "profile": "regular",
+      "kind": "near-miss-candidate",
+      "resourceType": "script",
+      "party": "third-party",
+      "block": 2,
+      "allow": 1207
+    },
+    {
+      "profile": "regular",
+      "kind": "exception-candidate",
+      "resourceType": "script",
+      "party": "third-party",
+      "block": 0,
+      "allow": 45
+    },
+    {
+      "profile": "regular",
+      "kind": "exception-candidate",
+      "resourceType": "image",
+      "party": "third-party",
+      "block": 0,
+      "allow": 24
+    },
+    {
+      "profile": "regular",
+      "kind": "exception-candidate",
+      "resourceType": "stylesheet",
+      "party": "third-party",
+      "block": 0,
+      "allow": 15
+    },
+    {
+      "profile": "regular",
+      "kind": "exception-candidate",
+      "resourceType": "xhr",
+      "party": "third-party",
+      "block": 0,
+      "allow": 39
+    },
+    {
+      "profile": "regular",
+      "kind": "coverage-control",
+      "resourceType": "script",
+      "party": "first-party",
+      "block": 0,
+      "allow": 1
+    },
+    {
+      "profile": "regular",
+      "kind": "coverage-control",
+      "resourceType": "xhr",
+      "party": "first-party",
+      "block": 0,
+      "allow": 1
+    },
+    {
+      "profile": "regular",
+      "kind": "coverage-control",
+      "resourceType": "image",
+      "party": "first-party",
+      "block": 0,
+      "allow": 1
+    },
+    {
+      "profile": "regular",
+      "kind": "coverage-control",
+      "resourceType": "stylesheet",
+      "party": "first-party",
+      "block": 0,
+      "allow": 1
+    },
+    {
+      "profile": "private",
+      "kind": "blocking-candidate",
+      "resourceType": "stylesheet",
+      "party": "third-party",
+      "block": 419,
+      "allow": 0
+    },
+    {
+      "profile": "private",
+      "kind": "near-miss-candidate",
+      "resourceType": "stylesheet",
+      "party": "third-party",
+      "block": 0,
+      "allow": 419
+    },
+    {
+      "profile": "private",
+      "kind": "blocking-candidate",
+      "resourceType": "xhr",
+      "party": "third-party",
+      "block": 420,
+      "allow": 0
+    },
+    {
+      "profile": "private",
+      "kind": "near-miss-candidate",
+      "resourceType": "xhr",
+      "party": "third-party",
+      "block": 0,
+      "allow": 420
+    },
+    {
+      "profile": "private",
+      "kind": "blocking-candidate",
+      "resourceType": "image",
+      "party": "third-party",
+      "block": 452,
+      "allow": 0
+    },
+    {
+      "profile": "private",
+      "kind": "near-miss-candidate",
+      "resourceType": "image",
+      "party": "third-party",
+      "block": 1,
+      "allow": 451
+    },
+    {
+      "profile": "private",
+      "kind": "blocking-candidate",
+      "resourceType": "script",
+      "party": "third-party",
+      "block": 1209,
+      "allow": 0
+    },
+    {
+      "profile": "private",
+      "kind": "near-miss-candidate",
+      "resourceType": "script",
+      "party": "third-party",
+      "block": 2,
+      "allow": 1207
+    },
+    {
+      "profile": "private",
+      "kind": "exception-candidate",
+      "resourceType": "script",
+      "party": "third-party",
+      "block": 0,
+      "allow": 45
+    },
+    {
+      "profile": "private",
+      "kind": "exception-candidate",
+      "resourceType": "image",
+      "party": "third-party",
+      "block": 0,
+      "allow": 24
+    },
+    {
+      "profile": "private",
+      "kind": "exception-candidate",
+      "resourceType": "stylesheet",
+      "party": "third-party",
+      "block": 0,
+      "allow": 15
+    },
+    {
+      "profile": "private",
+      "kind": "exception-candidate",
+      "resourceType": "xhr",
+      "party": "third-party",
+      "block": 0,
+      "allow": 39
+    },
+    {
+      "profile": "private",
+      "kind": "coverage-control",
+      "resourceType": "script",
+      "party": "first-party",
+      "block": 0,
+      "allow": 1
+    },
+    {
+      "profile": "private",
+      "kind": "coverage-control",
+      "resourceType": "xhr",
+      "party": "first-party",
+      "block": 0,
+      "allow": 1
+    },
+    {
+      "profile": "private",
+      "kind": "coverage-control",
+      "resourceType": "image",
+      "party": "first-party",
+      "block": 0,
+      "allow": 1
+    },
+    {
+      "profile": "private",
+      "kind": "coverage-control",
+      "resourceType": "stylesheet",
+      "party": "first-party",
+      "block": 0,
+      "allow": 1
+    }
+  ],
+  "partyClassification": {
+    "basis": "Observed request URL and top_frame_origin, registrable domain with private suffixes; never generator party hint",
+    "moduleSha256": "221fd34cb18e748eb105201f642605d4ebea89085e349341205b68fdb2ca3ae7"
+  },
+  "noReferrer": {
+    "distinctCandidateUrls": 24,
+    "referrerDifferences": [
+      {
+        "profile": "regular",
+        "url": "https://amazon-adsystem.com/widgets/q?",
+        "resourceType": "image",
+        "defaultReferrerDecision": "allow",
+        "noReferrerDecision": "block",
+        "initiatorUnchanged": true
+      },
+      {
+        "profile": "private",
+        "url": "https://amazon-adsystem.com/widgets/q?",
+        "resourceType": "image",
+        "defaultReferrerDecision": "allow",
+        "noReferrerDecision": "block",
+        "initiatorUnchanged": true
+      }
+    ],
+    "countsNotAddedToFloor": true
+  },
+  "chromium": {
+    "kind": "chromium-no-blocker-negative-control",
+    "nativeBlockerInstalled": false,
+    "acceptance": false,
+    "runs": [
+      {
+        "kind": "regular",
+        "letter": "a",
+        "runId": "63e7ec63-9f4f-424d-a418-04e5bce937d7",
+        "counts": {
+          "candidates": 5123,
+          "electronBlockedChromiumLoaded": 2503,
+          "bothLoaded": 2620,
+          "coverageControls": 4,
+          "forkOnlyChildren": 1211
+        },
+        "acceptance": false
+      },
+      {
+        "kind": "regular",
+        "letter": "b",
+        "runId": "29d9503e-03fd-4f0f-bdc2-4675f3322dab",
+        "counts": {
+          "candidates": 5123,
+          "electronBlockedChromiumLoaded": 2503,
+          "bothLoaded": 2620,
+          "coverageControls": 4,
+          "forkOnlyChildren": 1211
+        },
+        "acceptance": false
+      },
+      {
+        "kind": "private",
+        "letter": "a",
+        "runId": "afb24a51-28c0-4d86-8e58-4f2d67df46fc",
+        "counts": {
+          "candidates": 5123,
+          "electronBlockedChromiumLoaded": 2503,
+          "bothLoaded": 2620,
+          "coverageControls": 4,
+          "forkOnlyChildren": 1211
+        },
+        "acceptance": false
+      },
+      {
+        "kind": "private",
+        "letter": "b",
+        "runId": "3858c4a0-266f-481c-a414-ff9f3e8b7282",
+        "counts": {
+          "candidates": 5123,
+          "electronBlockedChromiumLoaded": 2503,
+          "bothLoaded": 2620,
+          "coverageControls": 4,
+          "forkOnlyChildren": 1211
+        },
+        "acceptance": false
+      }
+    ],
+    "independentRequestInitiator": "not observed; CDP is not the native hook",
+    "serviceDenials": "Retained per run, exact named browser services only; any unknown page request faults",
+    "syntheticFixtureParity": null
+  },
+  "fullyAdmittedPairedUrls": 0,
+  "overallAcceptance": "gap",
+  "remainingGaps": [
+    "Native browser interception and Mojo utility-process engine absent; no native blocking parity or latency measured",
+    "Independent native request_initiator observation absent; no frame/referrer substitution",
+    "First-party coverage is four authored allowed controls, not list-derived first-party blocking coverage",
+    "782 domain-scoped candidates require additional top-frame origins",
+    "Subframes, redirects, opaque origins, workers, service workers, sender teardown, prefetch/prerender, WebSocket/WebTransport",
+    "Font/media/object/other resource coverage, cosmetics/procedural rules/main-world scriptlets",
+    "Private real-page sanity sample not acquired; no real-web block-rate claim"
+  ],
+  "nativeBuilds": 0,
+  "baselinePromoted": false,
+  "publicRecordingPrivacyPolicyChanged": false
+}
