@@ -151,8 +151,8 @@
     </plurals>
     <string name="rail_group_collapsed">contraído</string>
     <string name="rail_group_expanded">expandido</string>
-    <string name="rail_private_marker">privada</string>
-    <string name="rail_section_pinned">fijadas</string>
+    <string name="rail_private_marker">Privada</string>
+    <string name="rail_section_pinned">Fijadas</string>
     <string name="rail_section_tabs">pestañas</string>
     <string name="permission_surface_title">Permiso</string>
     <string name="permission_label">Solicitud de permiso del sitio</string>
@@ -392,12 +392,12 @@
         <item quantity="other">%1$s · %2$d pestañas</item>
     </plurals>
     <string name="closed_forget">Olvidar la pestaña cerrada</string>
-    <string name="result_tag_tab">pestaña</string>
-    <string name="result_tag_favorite">favorito</string>
-    <string name="result_tag_history">historial</string>
-    <string name="result_tag_group">grupo</string>
-    <string name="result_tag_remote">remota</string>
-    <string name="site_info_local_page">página local</string>
+    <string name="result_tag_tab">Pestaña</string>
+    <string name="result_tag_favorite">Favorito</string>
+    <string name="result_tag_history">Historial</string>
+    <string name="result_tag_group">Grupo</string>
+    <string name="result_tag_remote">Remota</string>
+    <string name="site_info_local_page">Página local</string>
     <string name="site_info_cert_subject">Certificado para</string>
     <string name="site_info_cert_issuer">Emitido por</string>
     <string name="site_info_cert_valid_from">Válido desde</string>
@@ -411,18 +411,18 @@
     <string name="site_info_none_blocked">No hay solicitudes bloqueadas en esta página</string>
     <string name="site_info_privacy_settings">Ajustes de privacidad</string>
     <string name="site_info_stop_allowing">Dejar de permitir</string>
-    <string name="site_info_hint_cert_error">no se pudo verificar este certificado</string>
-    <string name="site_info_hint_cert_exception">continuaste pese a una advertencia del certificado</string>
+    <string name="site_info_hint_cert_error">No se pudo verificar este certificado</string>
+    <string name="site_info_hint_cert_exception">Continuaste pese a una advertencia del certificado</string>
     <string name="site_info_hint_chromium">Chromium proporciona los detalles de la conexión</string>
-    <string name="list_no_command">ningún comando coincide</string>
-    <string name="list_no_matches">sin resultados: ↵ lo abre como dirección o búsqueda</string>
+    <string name="list_no_command">Ningún comando coincide</string>
+    <string name="list_no_matches">Sin resultados: ↵ lo abre como dirección o búsqueda</string>
     <string name="hint_private">Pestaña privada · Nada de aquí se guarda en el historial</string>
     <plurals name="result_group_count">
         <item quantity="one">%1$d pestaña</item>
         <item quantity="many">%1$d pestañas</item>
         <item quantity="other">%1$d pestañas</item>
     </plurals>
-    <string name="result_tag_search">búsqueda</string>
+    <string name="result_tag_search">Búsqueda</string>
     <string name="menu_new_window">Nueva ventana</string>
     <string name="menu_new_private_window">Nueva ventana privada</string>
     <string name="menu_new_tab">Nueva pestaña</string>
@@ -2027,7 +2027,7 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="spaces_picker_square_value">Saturación %1$s %%, brillo %2$s %%</string>
     <string name="spaces_picker_hue">Tono</string>
     <string name="spaces_picker_hex">Hex</string>
-    <string name="result_tag_space">space</string>
+    <string name="result_tag_space">Space</string>
     <string name="workspace_menu_edit">Editar…</string>
     <string name="newtab_checklist_space">Crea tu primer Space</string>
     <string name="ws_editor_retry">Reintentar</string>

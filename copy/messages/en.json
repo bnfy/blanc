@@ -533,13 +533,13 @@
     "note": "Rail group state read by screen readers."
   },
   "rail.private.marker": {
-    "message": "private",
-    "note": "Lowercase marker on a private tab's rail row.",
+    "message": "Private",
+    "note": "Marker on a private tab's rail row. Sentence case.",
     "maxLength": 10
   },
   "rail.section.pinned": {
-    "message": "pinned",
-    "note": "Lowercase heading of the rail section holding pinned tabs that are not in a group.",
+    "message": "Pinned",
+    "note": "Heading of the rail section holding pinned tabs that are not in a group. Sentence case.",
     "maxLength": 14
   },
   "rail.section.tabs": {
@@ -1444,33 +1444,33 @@
     "note": "Button that forgets one recently-closed entry."
   },
   "result.tag.tab": {
-    "message": "tab",
-    "note": "Lowercase tag on a Quick Switcher result that is an open tab.",
+    "message": "Tab",
+    "note": "Tag on a Quick Switcher result that is an open tab. Sentence case.",
     "maxLength": 8
   },
   "result.tag.favorite": {
-    "message": "favorite",
-    "note": "Lowercase tag on a Quick Switcher result from Favorites.",
+    "message": "Favorite",
+    "note": "Tag on a Quick Switcher result from Favorites. Sentence case.",
     "maxLength": 10
   },
   "result.tag.history": {
-    "message": "history",
-    "note": "Lowercase tag on a Quick Switcher result from History.",
+    "message": "History",
+    "note": "Tag on a Quick Switcher result from History. Sentence case.",
     "maxLength": 10
   },
   "result.tag.group": {
-    "message": "group",
-    "note": "Lowercase tag on a Quick Switcher result that is a tab group.",
+    "message": "Group",
+    "note": "Tag on a Quick Switcher result that is a tab group. Sentence case.",
     "maxLength": 10
   },
   "result.tag.remote": {
-    "message": "remote",
-    "note": "Lowercase tag on a Quick Switcher result that is a tab on another device.",
+    "message": "Remote",
+    "note": "Tag on a Quick Switcher result that is a tab on another device. Sentence case.",
     "maxLength": 10
   },
   "siteInfo.localPage": {
-    "message": "local page",
-    "note": "Site information origin line for a local page."
+    "message": "Local page",
+    "note": "Site information origin line for a local page. Sentence case."
   },
   "siteInfo.cert.subject": {
     "message": "Certificate for",
@@ -1509,24 +1509,24 @@
     "note": "Site information button that forgets a certificate exception."
   },
   "siteInfo.hint.certError": {
-    "message": "this certificate could not be verified",
-    "note": "Lowercase hint under the site information card."
+    "message": "This certificate could not be verified",
+    "note": "Hint under the site information card. Sentence case."
   },
   "siteInfo.hint.certException": {
-    "message": "you continued past a certificate warning",
-    "note": "Lowercase hint under the site information card."
+    "message": "You continued past a certificate warning",
+    "note": "Hint under the site information card. Sentence case."
   },
   "siteInfo.hint.chromium": {
-    "message": "connection details are supplied by Chromium",
-    "note": "Lowercase hint under the site information card."
+    "message": "Connection details are supplied by Chromium",
+    "note": "Hint under the site information card. Sentence case."
   },
   "list.noCommand": {
-    "message": "no matching command",
-    "note": "Lowercase empty row in the slash command list."
+    "message": "No matching command",
+    "note": "Empty row in the slash command list. Sentence case."
   },
   "list.noMatches": {
-    "message": "no matches — ↵ opens as address or search",
-    "note": "Lowercase empty row in the Quick Switcher."
+    "message": "No matches — ↵ opens as address or search",
+    "note": "Empty row in the Quick Switcher. Sentence case."
   },
   "hint.private": {
     "message": "Private tab · Nothing here is saved to history",
@@ -1537,8 +1537,8 @@
     "note": "Detail line of a Quick Switcher group result: how many tabs the group holds."
   },
   "result.tag.search": {
-    "message": "search",
-    "note": "Lowercase tag on a Quick Switcher search row when the search engine's own name is not available.",
+    "message": "Search",
+    "note": "Tag on a Quick Switcher search row when the search engine's own name is not available. Sentence case.",
     "maxLength": 10
   },
   "menu.newWindow": {
@@ -7226,8 +7226,8 @@
     "maxLength": 6
   },
   "result.tag.space": {
-    "message": "space",
-    "note": "Lowercase tag on a Quick Switcher result that is a space.",
+    "message": "Space",
+    "note": "Tag on a Quick Switcher result that is a space. Sentence case.",
     "maxLength": 10
   },
   "workspaceMenu.edit": {

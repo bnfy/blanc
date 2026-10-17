@@ -151,8 +151,8 @@
     </plurals>
     <string name="rail_group_collapsed">recolhido</string>
     <string name="rail_group_expanded">expandido</string>
-    <string name="rail_private_marker">privada</string>
-    <string name="rail_section_pinned">fixadas</string>
+    <string name="rail_private_marker">Privada</string>
+    <string name="rail_section_pinned">Fixadas</string>
     <string name="rail_section_tabs">abas</string>
     <string name="permission_surface_title">Permissão</string>
     <string name="permission_label">Pedido de permissão do site</string>
@@ -392,12 +392,12 @@
         <item quantity="other">%1$s · %2$d abas</item>
     </plurals>
     <string name="closed_forget">Esquecer a aba fechada</string>
-    <string name="result_tag_tab">aba</string>
-    <string name="result_tag_favorite">favorito</string>
-    <string name="result_tag_history">histórico</string>
-    <string name="result_tag_group">grupo</string>
-    <string name="result_tag_remote">remota</string>
-    <string name="site_info_local_page">página local</string>
+    <string name="result_tag_tab">Aba</string>
+    <string name="result_tag_favorite">Favorito</string>
+    <string name="result_tag_history">Histórico</string>
+    <string name="result_tag_group">Grupo</string>
+    <string name="result_tag_remote">Remota</string>
+    <string name="site_info_local_page">Página local</string>
     <string name="site_info_cert_subject">Certificado para</string>
     <string name="site_info_cert_issuer">Emitido por</string>
     <string name="site_info_cert_valid_from">Válido a partir de</string>
@@ -411,18 +411,18 @@
     <string name="site_info_none_blocked">Nenhuma solicitação bloqueada nesta página</string>
     <string name="site_info_privacy_settings">Configurações de privacidade</string>
     <string name="site_info_stop_allowing">Deixar de permitir</string>
-    <string name="site_info_hint_cert_error">não foi possível verificar este certificado</string>
-    <string name="site_info_hint_cert_exception">você ignorou um aviso de certificado</string>
-    <string name="site_info_hint_chromium">os detalhes da conexão são fornecidos pelo Chromium</string>
-    <string name="list_no_command">nenhum comando correspondente</string>
-    <string name="list_no_matches">nenhum resultado — ↵ abre como endereço ou pesquisa</string>
+    <string name="site_info_hint_cert_error">Não foi possível verificar este certificado</string>
+    <string name="site_info_hint_cert_exception">Você ignorou um aviso de certificado</string>
+    <string name="site_info_hint_chromium">Os detalhes da conexão são fornecidos pelo Chromium</string>
+    <string name="list_no_command">Nenhum comando correspondente</string>
+    <string name="list_no_matches">Nenhum resultado — ↵ abre como endereço ou pesquisa</string>
     <string name="hint_private">Aba privada · Nada aqui é salvo no histórico</string>
     <plurals name="result_group_count">
         <item quantity="one">%1$d aba</item>
         <item quantity="many">%1$d abas</item>
         <item quantity="other">%1$d abas</item>
     </plurals>
-    <string name="result_tag_search">pesquisa</string>
+    <string name="result_tag_search">Pesquisa</string>
     <string name="menu_new_window">Nova janela</string>
     <string name="menu_new_private_window">Nova janela privada</string>
     <string name="menu_new_tab">Nova aba</string>
@@ -2027,7 +2027,7 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="spaces_picker_square_value">Saturação %1$s%%, brilho %2$s%%</string>
     <string name="spaces_picker_hue">Matiz</string>
     <string name="spaces_picker_hex">Hex</string>
-    <string name="result_tag_space">space</string>
+    <string name="result_tag_space">Space</string>
     <string name="workspace_menu_edit">Editar…</string>
     <string name="newtab_checklist_space">Crie seu primeiro Space</string>
     <string name="ws_editor_retry">Tentar de novo</string>

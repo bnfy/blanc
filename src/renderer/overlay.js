@@ -927,6 +927,7 @@
     ns[0].textContent = String(device.tabs.length);
     ns[1].textContent = timeAgo(device.updatedAt);
     ns[1].classList.add('ghead-ago');
+    ns[1].dataset.i18nIgnore = ''; // Intl-formatted in the interface locale, not catalog text
     row.title = open ? blancI18n.t('device.fold') : blancI18n.t('device.unfold');
     row.dataset.deviceId = device.deviceId;
     row.tabIndex = 0;

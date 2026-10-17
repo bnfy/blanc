@@ -67,10 +67,10 @@ test('the private tag sits directly before ✕ on active and background rows ali
   }
 });
 
-test('the private tag is visual only; the switch button says "private"', () => {
+test('the private tag is visual only ("Private"); the switch button says "private"', () => {
   const row = buildRow(TAB);
   const tag = row.children.find((child) => child.className === 'row-private');
-  assert.equal(tag.textContent, 'private');
+  assert.equal(tag.textContent, 'Private');
   assert.equal(tag.attrs['aria-hidden'], 'true');
   const primary = row.children.find((child) => child.className === 'row-primary');
   assert.equal(primary.attrs['aria-label'], 'Switch to Docs, example.com, private');

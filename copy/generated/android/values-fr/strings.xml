@@ -151,8 +151,8 @@
     </plurals>
     <string name="rail_group_collapsed">replié</string>
     <string name="rail_group_expanded">déplié</string>
-    <string name="rail_private_marker">privé</string>
-    <string name="rail_section_pinned">épinglés</string>
+    <string name="rail_private_marker">Privé</string>
+    <string name="rail_section_pinned">Épinglés</string>
     <string name="rail_section_tabs">onglets</string>
     <string name="permission_surface_title">Autorisation</string>
     <string name="permission_label">Demande d’autorisation du site</string>
@@ -392,12 +392,12 @@
         <item quantity="other">%1$s · %2$d onglets</item>
     </plurals>
     <string name="closed_forget">Oublier l’onglet fermé</string>
-    <string name="result_tag_tab">onglet</string>
-    <string name="result_tag_favorite">favori</string>
-    <string name="result_tag_history">historique</string>
-    <string name="result_tag_group">groupe</string>
-    <string name="result_tag_remote">distant</string>
-    <string name="site_info_local_page">page locale</string>
+    <string name="result_tag_tab">Onglet</string>
+    <string name="result_tag_favorite">Favori</string>
+    <string name="result_tag_history">Historique</string>
+    <string name="result_tag_group">Groupe</string>
+    <string name="result_tag_remote">Distant</string>
+    <string name="site_info_local_page">Page locale</string>
     <string name="site_info_cert_subject">Certificat pour</string>
     <string name="site_info_cert_issuer">Émis par</string>
     <string name="site_info_cert_valid_from">Valide du</string>
@@ -411,18 +411,18 @@
     <string name="site_info_none_blocked">Aucune requête bloquée sur cette page</string>
     <string name="site_info_privacy_settings">Réglages de confidentialité</string>
     <string name="site_info_stop_allowing">Ne plus autoriser</string>
-    <string name="site_info_hint_cert_error">ce certificat n’a pas pu être vérifié</string>
-    <string name="site_info_hint_cert_exception">vous avez ignoré un avertissement de certificat</string>
-    <string name="site_info_hint_chromium">les détails de connexion sont fournis par Chromium</string>
-    <string name="list_no_command">aucune commande correspondante</string>
-    <string name="list_no_matches">aucun résultat — ↵ l’ouvre comme adresse ou recherche</string>
+    <string name="site_info_hint_cert_error">Ce certificat n’a pas pu être vérifié</string>
+    <string name="site_info_hint_cert_exception">Vous avez ignoré un avertissement de certificat</string>
+    <string name="site_info_hint_chromium">Les détails de connexion sont fournis par Chromium</string>
+    <string name="list_no_command">Aucune commande correspondante</string>
+    <string name="list_no_matches">Aucun résultat — ↵ l’ouvre comme adresse ou recherche</string>
     <string name="hint_private">Onglet privé · Rien ici n’est enregistré dans l’historique</string>
     <plurals name="result_group_count">
         <item quantity="one">%1$d onglet</item>
         <item quantity="many">%1$d onglets</item>
         <item quantity="other">%1$d onglets</item>
     </plurals>
-    <string name="result_tag_search">recherche</string>
+    <string name="result_tag_search">Recherche</string>
     <string name="menu_new_window">Nouvelle fenêtre</string>
     <string name="menu_new_private_window">Nouvelle fenêtre privée</string>
     <string name="menu_new_tab">Nouvel onglet</string>
@@ -2027,7 +2027,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="spaces_picker_square_value">Saturation %1$s %%, luminosité %2$s %%</string>
     <string name="spaces_picker_hue">Teinte</string>
     <string name="spaces_picker_hex">Hex</string>
-    <string name="result_tag_space">space</string>
+    <string name="result_tag_space">Space</string>
     <string name="workspace_menu_edit">Modifier…</string>
     <string name="newtab_checklist_space">Créer votre premier Space</string>
     <string name="ws_editor_retry">Réessayer</string>
