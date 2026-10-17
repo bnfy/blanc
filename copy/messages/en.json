@@ -1406,8 +1406,8 @@
     "note": "Notice when /sleep fails."
   },
   "closed.header": {
-    "message": "recently closed",
-    "note": "Lowercase header of the recently-closed section in the Island.",
+    "message": "Recently closed",
+    "note": "Header of the Recently closed section in the ⌘L panel, styled like a tab group header. Sentence case.",
     "maxLength": 22
   },
   "closed.fold": {
@@ -1419,9 +1419,9 @@
     "note": "Tooltip of the collapsed recently-closed header."
   },
   "closed.clear": {
-    "message": "clear",
-    "note": "Lowercase button that forgets every recently-closed entry.",
-    "maxLength": 8
+    "message": "Clear all",
+    "note": "Button on the Recently closed header that forgets every entry. Sentence case.",
+    "maxLength": 16
   },
   "closed.clearAll": {
     "message": "Forget all closed tabs",

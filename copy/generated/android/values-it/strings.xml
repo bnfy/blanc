@@ -379,10 +379,10 @@
     <string name="device_unfold">Espandi il dispositivo</string>
     <string name="slash_sleep_none">Al momento nessuna scheda in background può essere messa in riposo.</string>
     <string name="slash_sleep_failed">Impossibile mettere in riposo le schede in background.</string>
-    <string name="closed_header">chiuse di recente</string>
+    <string name="closed_header">Chiuse di recente</string>
     <string name="closed_fold">Comprimi le schede chiuse di recente</string>
     <string name="closed_unfold">Espandi le schede chiuse di recente</string>
-    <string name="closed_clear">cancella</string>
+    <string name="closed_clear">Cancella tutto</string>
     <string name="closed_clear_all">Dimentica tutte le schede chiuse</string>
     <string name="closed_reopen">Riapri la scheda chiusa</string>
     <plurals name="closed_group_title">
