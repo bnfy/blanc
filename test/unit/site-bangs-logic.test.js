@@ -125,3 +125,40 @@ test('directory order ignores leading punctuation in site names', async () => {
   assert.ok(blender > firstB, '_ Blender Stack Exchange sorts with the B names');
   assert.ok(index('yt') > 0);
 });
+
+test("featuredCards follows the app's popular list", async () => {
+  const { featuredCards } = await directory();
+  const cards = featuredCards(data);
+  assert.equal(cards.length, 19);
+  assert.deepEqual(cards.map((card) => card.code), data.popular);
+  const w = cards.find((card) => card.code === 'w');
+  assert.equal(w.name, 'Wikipedia');
+  assert.equal(w.host, 'wikipedia.org');
+  assert.equal(w.codes[0], 'w');
+  for (const card of cards) {
+    assert.ok(card.codes.length >= 1 && card.codes.length <= 3, card.code);
+    assert.equal(new Set(card.codes).size, card.codes.length, `${card.code} repeats a code`);
+  }
+  assert.equal(cards.find((card) => card.code === 'yt').codes[0], 'yt');
+});
+
+test('iconTile is stable and readable', async () => {
+  const { iconTile } = await directory();
+  const youtube = iconTile('www.youtube.com', 'YouTube');
+  assert.equal(youtube.letter, 'Y');
+  assert.deepEqual(iconTile('www.youtube.com', 'YouTube'), youtube);
+  assert.equal(iconTile('example.org', '_ Blender').letter, 'B');
+  assert.equal(iconTile('9gag.com', '9GAG').letter, '9');
+  const tones = new Set();
+  for (const entry of data.entries) {
+    const { tone } = iconTile(entry[3], entry[2]);
+    assert.ok(Number.isInteger(tone) && tone >= 0 && tone <= 5, entry[3]);
+    tones.add(tone);
+  }
+  assert.ok(tones.size >= 5, `only ${tones.size} tones occur`);
+});
+
+test('iconUrl keeps the host as the path', async () => {
+  const { iconUrl } = await directory();
+  assert.equal(iconUrl('maps.google.com'), '/bang-icons/maps.google.com');
+});
