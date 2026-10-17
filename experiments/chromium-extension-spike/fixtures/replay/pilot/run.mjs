@@ -56,7 +56,7 @@ async function until(fn, label) {
 }
 try {
   const env = { ...process.env, BLANC_TEST: '0', BLANC_UBLOCK_TEST: '0',
-    BLANC_F12_PROFILE: profile, BLANC_F12_URLS: JSON.stringify(Object.values(urls)), BLANC_F12_LOG: captureLog };
+    BLANC_F12_PROFILE: profile, BLANC_F12_LOG: captureLog };
   delete env.ELECTRON_RUN_AS_NODE; delete env.NODE_OPTIONS;
   electron = await _electron.launch({ executablePath: electronPath,
     args: [appDir, '--use-mock-keychain', `--user-data-dir=${profile}`, `--proxy-server=http://127.0.0.1:${proxy.port}`,
@@ -84,19 +84,26 @@ try {
     assert.equal(dom.href, urls.page); assert(dom.pilot.allowedScript);
     assert.equal(dom.pilot.outcomes.data, '{"fixture":"allowed"}');
     assert.equal(dom.pilot.blockedScriptExecuted, undefined);
-    const records = fs.readFileSync(captureLog,'utf8').trim().split('\n').filter(Boolean).map(JSON.parse).filter(r=>r.profileKind===kind);
+    assert.equal(dom.pilot.outcomes.noReferrerData, '{"fixture":"no-referrer"}');
+    const allRecords = fs.readFileSync(captureLog,'utf8').trim().split('\n').filter(Boolean).map(JSON.parse).filter(r=>r.profileKind===kind);
+    const records = allRecords.filter(r => Object.values(urls).includes(r.url));
     assert.equal(records.length, Object.keys(urls).length, 'one decision per fixture request');
     for (const url of Object.values(urls)) {
       const row = records.find(r=>r.url===url);
       assert(row, 'missing actual decision: '+url); assert.equal(row.provider,'blanc');
       assert.equal(row.status.phase,'ready'); assert(!row.error);
+      // Browser-started navigation has no initiator; subresources retain the
+      // actual request initiator even when referrer policy removes Referer.
+      assert.equal(row.initiatorOriginPresent, url !== urls.page);
+      assert.equal(row.initiatorOrigin, url === urls.page ? null : new URL(urls.page).origin);
+      if (url === urls.noReferrerData) assert.equal(row.referrer, '');
       const blocked = [urls.blockedScript, urls.blockedData].includes(url);
       assert.equal(!!(row.result.cancel || row.result.redirectURL), blocked, url);
     }
     const arrivals = proxy.requests.slice(before).filter(r=>r.known);
-    assert.deepEqual(arrivals.map(r=>r.url).sort(), [urls.page,urls.script,urls.data].sort());
+    assert.deepEqual(arrivals.map(r=>r.url).sort(), [urls.page,urls.script,urls.data,urls.noReferrerData].sort());
     for (const row of arrivals) assert.equal(row.host, new URL(row.url).host);
-    report.profiles[kind] = {dom, decisions:records.length, arrivals};
+    report.profiles[kind] = {dom, decisions:records.length, allObservedDecisions:allRecords.length, arrivals};
     await chrome.evaluate(id => window.browserAPI.closeTab(id), id);
     await until(() => chrome.evaluate(async id => !(await window.browserAPI.getAllTabs()).tabs.some(tab => tab.id === id), id), 'fixture removed from tab model');
   }

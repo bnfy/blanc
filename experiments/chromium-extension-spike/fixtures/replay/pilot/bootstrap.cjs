@@ -8,7 +8,6 @@ const expected = process.env.BLANC_F12_PROFILE;
 if (!expected || fs.realpathSync(app.getPath('userData')) !== fs.realpathSync(expected)) {
   throw new Error('Unexpected capture profile: ' + app.getPath('userData'));
 }
-const allowedUrls = new Set(JSON.parse(process.env.BLANC_F12_URLS));
 const log = process.env.BLANC_F12_LOG;
 if (!log) throw new Error('Capture log required');
 const modulePath = './src/main/blocking-coordinator.js';
@@ -32,7 +31,7 @@ coordinatorModule.createBlockingCoordinator = function(...args) {
       const observer = Object.create(provider);
       const profileKind = session.isPersistent() ? 'regular' : 'private';
       observer.decide = async function(event, details) {
-        if (event !== 'onBeforeRequest' || !allowedUrls.has(details.url)) {
+        if (event !== 'onBeforeRequest') {
           return provider.decide(event, details);
         }
         const wc = safe(() => webContents.fromId(details.webContentsId));
@@ -40,7 +39,8 @@ coordinatorModule.createBlockingCoordinator = function(...args) {
         const observed = {
           requestId: String(details.id), url: details.url, method: details.method,
           resourceType: details.resourceType, referrer: details.referrer ?? null,
-          initiator: details.initiator ?? null, webContentsId: details.webContentsId ?? null,
+          initiatorOrigin: details.initiatorOrigin ?? null,
+          initiatorOriginPresent: Object.hasOwn(details, 'initiatorOrigin'), webContentsId: details.webContentsId ?? null,
           frame: safe(() => ({ url: details.frame.url, origin: details.frame.origin,
             routingId: details.frame.routingId, processId: details.frame.processId,
             topUrl: details.frame.top.url, topOrigin: details.frame.top.origin })),

@@ -11,23 +11,29 @@ were edited. Native build invocations: **0**; no cold-build time is added.
 ## Observation
 
 The final run loads one authored HTTP page in each of a regular and private tab.
-Each page causes five actual provider decisions: its navigation, two scripts,
-and two fetches. Across both profiles that is **10 captured decisions: 6 allow,
-4 cancel**. Allowed requests reach the loopback proxy with their original URLs
+Each page causes six fixture provider decisions: its navigation, two scripts,
+and three fetches (one with `no-referrer`). Across both profiles that is **12
+fixture decisions: 8 allow, 4 cancel**. The full log also retains internal and
+non-fixture calls, which are not counted as fixture or acceptance coverage. Allowed requests reach the loopback proxy with their original URLs
 and Host headers. Neither blocked request reaches the proxy. The allowed script
 executes and the allowed fetch returns the fixture payload; both blocked DOM
 outcomes report errors. This proves those specific paths in this pilot only.
 
 The observer obtains `profileKind` from the actual originating Session's
-persistence. Raw frame/top-frame URLs, resource types and `referrer` are recorded;
-Electron supplies no `initiator` in these observations. The adapter must not
-invent one. Ghostery derives its source URL from `referrer`, so true initiator
-and effective engine input need separate treatment during normalization.
+persistence. Run 07 fixes an observation bug: Electron 44.8.0's property is
+`initiatorOrigin`, not `initiator`. Earlier nulls are instrumentation loss.
+All ten subresources carry `http://page.blanc-fixture.test` as their actual
+initiator; both browser-started navigations lack the property. Both no-referrer
+fetches retain the same initiator while recording an empty referrer. Frame
+origin and referrer are never substituted for the initiator. Ghostery's source
+URL comes from referrer and remains a separate engine input. The raw precommit
+main-frame origin remains recorded even though normalization will define the
+navigation's top-frame origin from the actual request URL.
 
-- [Final report](run-06/report.json), including runtime, source/filter hashes,
+- [Final report](run-07/report.json), including runtime, source/filter hashes,
   original page origins, per-profile outcomes and cleanup checks.
-- [Raw actual decisions](run-06/decisions.jsonl).
-- [Independent proxy arrivals](run-06/proxy-requests.json).
+- [Raw actual decisions](run-07/decisions.jsonl).
+- [Independent proxy arrivals](run-07/proxy-requests.json).
 - [Runtime download digest](runtime-download.json), verified against the pinned
   Electron npm package's archive checksum.
 - [Harness and operating instructions](../../fixtures/replay/pilot/README.md).
@@ -41,7 +47,12 @@ and effective engine input need separate treatment during normalization.
 | [03](run-03/report.json) | Passed both profiles | First passing actual capture. Waiting for destruction of a closed page took time because Recently Closed retains it. |
 | [04](run-04/report.json) | Passed both profiles | Select new page identities explicitly and verify removal through the tab model instead of requiring immediate renderer destruction. |
 | [05](run-05/report.json) | Failed harness wait | Page-identity selection timed out despite five real provider decisions. Readiness now observes the coordinator releasing its navigation gates, and regular selection permits an existing page. The real blocker still recorded five decisions; no result was fabricated. |
-| [06](run-06/report.json) | Passed both profiles | Final harness waits for gate release and uses `--use-mock-keychain`; recorded harness hash matches committed source. |
+| [06](run-06/report.json) | Passed both profiles | Pre-review harness passes with gate-release wait and mock keychain. Its obsolete `initiator` lookup lost initiator metadata; the original log is retained. |
+
+| [07](run-07/report.json) | Passed both profiles | Correct `initiatorOrigin` and presence bit; no-referrer assertions; log every provider call. Report hashes match the current harness. |
+
+The original six attempts contained three failures and three passes. Run 07 adds
+one pass; it does not rewrite or rehabilitate earlier metadata.
 
 All run reports retain their original outcomes. The installed ASAR digest is
 unchanged and the disposable app/profile tree was removed after each run. The
@@ -51,7 +62,7 @@ could not bind a socket (EPERM), then all passed with loopback access.
 
 ## Limits and next work
 
-Captured **acceptance-corpus requests: 0**. The ten final pilot observations are
+Captured **acceptance-corpus requests: 0**. The twelve final fixture observations are
 authored fixture traffic and must not be counted toward the 2,000 blocked plus
 2,000 allowed real-page corpus. These raw records are not yet normalized into
 the replay validator's schema or correlated across browsers. There is no 157

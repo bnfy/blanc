@@ -5,6 +5,7 @@ export const urls = {
   script: 'http://asset.blanc-fixture.test/control.js',
   blockedScript: 'http://ad.doubleclick.net/advertisement.js',
   data: 'http://asset.blanc-fixture.test/data.json',
+  noReferrerData: 'http://asset.blanc-fixture.test/no-referrer.json',
   blockedData: 'http://doubleclick.net/pagead/ads?client=fixture',
 };
 const html = `<!doctype html><meta charset="utf-8"><title>Blanc capture pilot</title>
@@ -20,6 +21,7 @@ Promise.all([
   script(${JSON.stringify(urls.script)}, 'allowedScript'),
   script(${JSON.stringify(urls.blockedScript)}, 'blockedScript'),
   fetch(${JSON.stringify(urls.data)}).then(r => r.text()).then(t => pilot.outcomes.data = t, () => pilot.outcomes.data = 'error'),
+  fetch(${JSON.stringify(urls.noReferrerData)}, {referrerPolicy:'no-referrer'}).then(r => r.text()).then(t => pilot.outcomes.noReferrerData = t, () => pilot.outcomes.noReferrerData = 'error'),
   fetch(${JSON.stringify(urls.blockedData)}).then(r => r.text()).then(t => pilot.outcomes.blockedData = t, () => pilot.outcomes.blockedData = 'error')
 ]).then(() => pilot.done = true);
 </script>`;
@@ -28,6 +30,7 @@ export const fixtures = new Map([
   [urls.script, ['text/javascript', 'window.pilot.allowedScript = true;']],
   [urls.blockedScript, ['text/javascript', 'window.pilot.blockedScriptExecuted = true;']],
   [urls.data, ['application/json', '{"fixture":"allowed"}']],
+  [urls.noReferrerData, ['application/json', '{"fixture":"no-referrer"}']],
   [urls.blockedData, ['application/json', '{"fixture":"should-not-arrive"}']],
 ]);
 
