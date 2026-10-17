@@ -4,6 +4,8 @@
 // Workers KV there; see its README for the deploy/export/unsubscribe runbook.
 // The "website" field is a honeypot: visually hidden, skipped by keyboard and
 // screen readers, and any bot that fills it is silently dropped server-side.
+// The same script also submits the discreet signup prompt
+// (NewsletterPrompt.astro), which reuses these foot-news-* class names.
 ---
 <form class="foot-news" id="newsletter" data-newsletter>
   <label class="foot-news-label sr-only" for="newsletterEmail">Updates from Blanc. Email address</label>
@@ -28,7 +30,7 @@
 <script>
   const NEWSLETTER_ENDPOINT = 'https://blanc-newsletter.bnfy-441.workers.dev/subscribe';
 
-  document.querySelectorAll('form[data-newsletter]').forEach((form) => {
+  document.querySelectorAll('form[data-newsletter], form[data-newsletter-prompt]').forEach((form) => {
     const status = form.querySelector('.foot-news-status');
     const button = form.querySelector('button');
     form.addEventListener('submit', async (event) => {
@@ -48,6 +50,7 @@
           form.querySelector('.foot-news-controls').hidden = true;
           form.querySelector('.foot-news-label').hidden = true;
           status.textContent = 'check your inbox to confirm — the link expires in 24 hours';
+          document.dispatchEvent(new CustomEvent('blanc:newsletter-requested'));
         } else if (response.status === 400) {
           status.textContent = 'that address didn’t look right — try again?';
         } else {

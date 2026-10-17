@@ -6,6 +6,7 @@ import '../styles/blubird.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import Consent from '../components/Consent.astro';
+import NewsletterPrompt from '../components/NewsletterPrompt.astro';
 import { SITE_ORIGIN } from '../lib/site-origin.mjs';
 
 const SITE = SITE_ORIGIN;
@@ -24,6 +25,11 @@ const {
   ogImage = path?.startsWith('/mail') ? '/mail-og.png' : '/og-image.png',
   ogImageAlt = path?.startsWith('/mail') ? 'The gold Sunrise mark for Blanc Mail.' : 'Blanc’s Start Page at dawn in a desktop window, under the line “A little less browser.”',
 } = Astro.props;
+// The discreet newsletter invitation runs where measurement may run (never on
+// legal or utility pages), and not on pages that already ask for an address
+// or a purchase: the Mail waitlist, ambassador applications and Patron.
+const promptExcluded = ['/mail', '/ambassadors', '/patron'].some(prefix => path === prefix || path?.startsWith(`${prefix}/`));
+const { newsletterPrompt = analytics && header !== 'legal' && !promptExcluded } = Astro.props;
 const appName = path?.startsWith('/mail') ? 'Blanc Mail' : 'Blanc Browser';
 const canonical = SITE + path;
 const ogImageUrl = SITE + ogImage;
@@ -81,6 +87,7 @@ const ogImageUrl = SITE + ogImage;
 <Footer measurementControls={analytics} notes={Astro.slots.has('footnotes')}>
   <slot name="footnotes" slot="notes" />
 </Footer>
+{newsletterPrompt && <NewsletterPrompt />}
 {analytics && <Consent />}
 {analytics && <script src="../scripts/site.js"></script>}
 </body>
