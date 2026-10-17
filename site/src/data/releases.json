@@ -1,5 +1,437 @@
 [
   {
+    "tag": "v1.36.0",
+    "version": "1.36.0",
+    "name": "1.36.0",
+    "publishedAt": "2026-10-17T14:28:15.000Z",
+    "humanDate": "October 17, 2026",
+    "machineDate": "2026-10-17",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.36.0",
+    "anchor": "v1-36-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Bangs."
+                  },
+                  {
+                    "type": "text",
+                    "value": " In the ⌘L or Ctrl+L panel, type an exclamation mark and a site's code before your search, like "
+                  },
+                  {
+                    "type": "code",
+                    "value": "!yt lofi"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", and Blanc opens that site's results directly, whichever search engine you use. The code also works at the end ("
+                  },
+                  {
+                    "type": "code",
+                    "value": "lofi !yt"
+                  },
+                  {
+                    "type": "text",
+                    "value": "), and a code on its own, like "
+                  },
+                  {
+                    "type": "code",
+                    "value": "!yt"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", opens the site. Type "
+                  },
+                  {
+                    "type": "code",
+                    "value": "!"
+                  },
+                  {
+                    "type": "text",
+                    "value": " on its own to see the bangs you used recently and a set of popular ones, then keep typing to search more than 10,000 bangs by code or site name. The list is Kagi's open bang list. It ships inside Blanc and changes only with a Blanc update, so Blanc never looks bangs up online. Add your own bangs, or turn bangs off, in Settings → General. Blanc doesn't ask your search engine for suggestions while a bang is in the box. The bangs you used recently stay on this device, and private tabs don't record them."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Add a device to Sync with a code."
+                  },
+                  {
+                    "type": "text",
+                    "value": " On a device that already syncs, go to Settings → Sync and choose "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Add another device"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". It shows a code that works for ten minutes. On the new device, choose "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Add this device to my sync"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and enter the code. Your sync name and passphrase still work too. A device that started its own sync by mistake can join yours with "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Connect to a different sync with a code"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Copy recovery code"
+                  },
+                  {
+                    "type": "text",
+                    "value": " puts a code on the clipboard for your password manager, which also adds a device."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Name your devices."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Right-click a device under "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Other devices"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in the ⌘L panel and choose "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Rename Device…"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", or set "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "This device's name"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in Settings → Sync. The name shows on your other devices running 1.36.0; earlier versions keep showing the computer's name."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Invite a Friend."
+                  },
+                  {
+                    "type": "text",
+                    "value": " "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Help → Invite a Friend…"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", or "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/invite"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in the ⌘L or Ctrl+L panel, opens a new email in your mail app with a short invite and a link to download Blanc. You choose who it goes to and send it yourself. Blanc sends nothing and doesn't learn who you invited. If no mail app opens, the invite is copied so you can paste it."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Rename, ungroup or close a group from its header."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Right-click a group's header in the ⌘L panel or on the vertical tabs rail and choose "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Rename Group…"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Ungroup"
+                  },
+                  {
+                    "type": "text",
+                    "value": " or "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Close Group"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "About Blanc shows the Chromium version"
+                  },
+                  {
+                    "type": "text",
+                    "value": " Blanc runs on."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "What's new after an update."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Once Blanc restarts into a new version, the Start Page footer shows a "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "What's new in 1.36.0"
+                  },
+                  {
+                    "type": "text",
+                    "value": " pill that opens that release's notes on blanc.day. It stays for seven days, or until you open it or close it with its ×. While it shows, it takes the place of the Patron pill. Fresh installs and private tabs don't show it."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "A tidier ⌘L panel."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Recently closed"
+                  },
+                  {
+                    "type": "text",
+                    "value": " is a band under Pinned. It's folded each time the panel opens; unfold it to see every closed tab Blanc keeps (up to 25), newest first. Drag its header to move it among your groups. Each window remembers where you put it, and so does each space."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The footer is one line: "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "New tab"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Private"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Other devices"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and the tools. Tabs from your other devices moved from the bottom of the list into an "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Other devices"
+                  },
+                  {
+                    "type": "text",
+                    "value": " drawer above the footer, shown only when another device shares its tabs."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "A tab in Glance shows a Glance icon beside pin and close instead of a \"glance\" label."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Labels in the panel use sentence case, and slash commands and bang codes sit in small chips."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Group names keep the capitals you type."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Matching still ignores case, so "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/group research"
+                  },
+                  {
+                    "type": "text",
+                    "value": " joins a group named Research. Group names saved before this update get a capital first letter once."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Finish setup leads with Make Blanc your default"
+                  },
+                  {
+                    "type": "text",
+                    "value": " on macOS and Windows, and checks it off once Blanc is your default browser. If you finish setup on a new install without switching, Blanc asks once more, between 12 hours and 14 days later, with "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Set as default"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Not now"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", and never again."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "A Mac now appears on your other devices under its computer name, not a name taken from the network such as \"mac.lan\"."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On Windows, Blanc and its installer name Bananify Creative as the company, so Windows Firewall's prompt and Settings → Apps show Bananify Creative instead of GitHub, Inc."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Open tabs could stop syncing"
+                  },
+                  {
+                    "type": "text",
+                    "value": " to your other devices while one tab's title kept changing, such as a timer or an unread count."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.35.0",
     "version": "1.35.0",
     "name": "1.35.0",

@@ -1,5 +1,3 @@
 {
-  "commands": {
-    "/invite": "Invite a Friend (#880), after public v1.35.0."
-  }
+  "commands": {}
 }
