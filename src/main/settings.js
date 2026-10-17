@@ -19,6 +19,8 @@ const {
   searchTemplateLabel,
   reconcileSearchEngineWrite,
 } = require('./search-engine-template');
+// The pure bang grammar, shared with the overlay (src/renderer/pages/bangs.js).
+const Bangs = require('../renderer/pages/bangs');
 
 const SEARCH_ENGINES = {
   duckduckgo: { label: 'DuckDuckGo', url: (q) => `https://duckduckgo.com/?q=${encodeURIComponent(q)}` },
@@ -73,7 +75,7 @@ const GROUP_NAMES_RECASE_VERSION = 1;
 // that would be license sharing).
 // deviceNames is merged entry by entry (device-names.js), never as one
 // last-writer-wins value, and only setDeviceName() writes it.
-const SYNCED_KEYS = ['searchEngine', 'searchEngineTemplate', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions', 'newtabLayout', 'newtabDynamicWallpaper', 'deviceNames'];
+const SYNCED_KEYS = ['searchEngine', 'searchEngineTemplate', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions', 'newtabLayout', 'newtabDynamicWallpaper', 'bangsEnabled', 'customBangs', 'deviceNames'];
 
 // App icon variants — id maps to src/renderer/pages/icon-<id>.png; order here
 // is also the tile order Settings renders.
@@ -109,6 +111,44 @@ function normalizeHostnameList(value) {
   return [...new Set(value.map(normalizeAdblockHostname).filter(Boolean))];
 }
 
+const MAX_CUSTOM_BANGS = 100;
+const MAX_RECENT_BANGS = 10;
+const MAX_CUSTOM_BANG_NAME = 60;
+
+/** A person's own bangs: { code, name, template } rows, code per the shared
+ * grammar and lowercased, name trimmed to 1–60 characters, template valid
+ * by the custom search address's rule. Junk rows are dropped, unknown keys
+ * stripped, the first of a duplicate code kept, at most 100. */
+function normalizeCustomBangs(value) {
+  if (!Array.isArray(value)) return [];
+  const out = [];
+  const seen = new Set();
+  for (const row of value) {
+    if (!row || typeof row !== 'object') continue;
+    const code = typeof row.code === 'string' ? row.code.trim().toLowerCase() : '';
+    const name = typeof row.name === 'string' ? row.name.trim() : '';
+    const template = typeof row.template === 'string' ? row.template.trim() : '';
+    if (!Bangs.isBangCode(code) || seen.has(code)) continue;
+    if (!name || name.length > MAX_CUSTOM_BANG_NAME) continue;
+    if (!isValidSearchTemplate(template)) continue;
+    seen.add(code);
+    out.push({ code, name, template });
+    if (out.length >= MAX_CUSTOM_BANGS) break;
+  }
+  return out;
+}
+
+function normalizeRecentBangs(value) {
+  if (!Array.isArray(value)) return [];
+  const out = [];
+  for (const code of value) {
+    if (!Bangs.isBangCode(code) || out.includes(code)) continue;
+    out.push(code);
+    if (out.length >= MAX_RECENT_BANGS) break;
+  }
+  return out;
+}
+
 const DEFAULTS = {
   searchEngine: 'duckduckgo',
   // The Custom engine's address, with %s where the query goes. Synced with
@@ -117,6 +157,12 @@ const DEFAULTS = {
   // Live address-bar prefixes are sent to the selected search provider.
   // Device-local and user-disableable; private tabs override it off.
   searchSuggestions: true,
+  // Bangs (`!yt lofi`). The switch and the person's own bangs sync; the
+  // recently used codes are usage data — device-local, deliberately NOT in
+  // SYNCED_KEYS, never written from private tabs, cleared with history.
+  bangsEnabled: true,
+  customBangs: [],
+  recentBangs: [],
   adblockEnabled: true,
   // Provider/configuration are device/profile local, outside Profile Sync.
   adblockProvider: 'blanc',
@@ -350,6 +396,9 @@ function getSettings() {
   if (typeof data.searchSuggestions !== 'boolean') {
     data.searchSuggestions = DEFAULTS.searchSuggestions;
   }
+  if (typeof data.bangsEnabled !== 'boolean') data.bangsEnabled = DEFAULTS.bangsEnabled;
+  data.customBangs = normalizeCustomBangs(data.customBangs);
+  data.recentBangs = normalizeRecentBangs(data.recentBangs);
   if (!Number.isInteger(data.onboardingVersion) || data.onboardingVersion < 0) {
     data.onboardingVersion = DEFAULTS.onboardingVersion;
   }
@@ -422,6 +471,9 @@ function sanitize(partial) {
   if (typeof partial.searchSuggestions === 'boolean') {
     clean.searchSuggestions = partial.searchSuggestions;
   }
+  if (typeof partial.bangsEnabled === 'boolean') clean.bangsEnabled = partial.bangsEnabled;
+  if (Array.isArray(partial.customBangs)) clean.customBangs = normalizeCustomBangs(partial.customBangs);
+  // recentBangs is written only by recordRecentBang()/clearRecentBangs().
   if (typeof partial.adblockEnabled === 'boolean') clean.adblockEnabled = partial.adblockEnabled;
   if (['blanc', 'ublock-origin'].includes(partial.adblockProvider)) clean.adblockProvider = partial.adblockProvider;
   if (typeof partial.usagePing === 'boolean') clean.usagePing = partial.usagePing;
@@ -591,6 +643,39 @@ function setSupporter(record) {
     data.supporter = record;
   });
   for (const fn of listeners) fn(getSettings());
+}
+
+// A bang used is usage data, not a settings change: it never wakes the
+// generic listeners (theme, blocker, sync, every window's broadcast). Main
+// subscribes here to push the Island's picker its new recents.
+const recentListeners = new Set();
+function onRecentBangsChanged(fn) { recentListeners.add(fn); }
+function notifyRecentBangs() {
+  const recent = getSettings().recentBangs;
+  for (const fn of recentListeners) fn(recent);
+}
+
+/** A bang was used: remember its primary code, newest first, at most ten.
+ * Private write path — the generic whitelist has no recentBangs entry.
+ * Callers skip private tabs. Returns whether the list changed. */
+function recordRecentBang(code) {
+  if (!Bangs.isBangCode(code)) return false;
+  const before = JSON.stringify(getSettings().recentBangs);
+  ensureStore().update((data) => {
+    data.recentBangs = normalizeRecentBangs([code, ...(Array.isArray(data.recentBangs) ? data.recentBangs : [])]);
+  });
+  if (JSON.stringify(getSettings().recentBangs) === before) return false;
+  notifyRecentBangs();
+  return true;
+}
+
+/** Clearing history also forgets which bangs were used. */
+function clearRecentBangs() {
+  if (getSettings().recentBangs.length === 0) return;
+  ensureStore().update((data) => {
+    data.recentBangs = [];
+  });
+  notifyRecentBangs();
 }
 
 /** The language-transition service's private write path (src/main/i18n.js
@@ -846,4 +931,8 @@ module.exports = {
   syncPayloadEquals,
   getDeviceNames,
   setDeviceName,
+  normalizeCustomBangs,
+  recordRecentBang,
+  clearRecentBangs,
+  onRecentBangsChanged,
 };

@@ -84,7 +84,11 @@ try {
     // On failure, show whether the request reached the fixture server and
     // what the tab and the blocker report, so a stalled navigation, a held
     // one and a missing Playwright page differ.
-    const page = await waitForValue(async () => (await electron.windows()).find(page => page.url() === origin + route), Boolean, 'fixture tab')
+    // The first tab after launch is a cold renderer plus the network service
+    // on a shared runner: Windows needed more than the default 5 s twice on
+    // 2026-10-17 (PR #876) with the request never reaching the fixture server
+    // in time, so this wait gets the cold-start budget the launch waits use.
+    const page = await waitForValue(async () => (await electron.windows()).find(page => page.url() === origin + route), Boolean, 'fixture tab', 20000)
       .catch(async error => {
         const tab = (await call('state').catch(() => null))?.tabs?.find(item => item.id === id);
         console.error('fixture tab diagnostics:', JSON.stringify({
@@ -97,7 +101,7 @@ try {
         throw error;
       });
     await page.locator('#ready').waitFor();
-    await waitForValue(async () => (await call('state')).tabs.find(tab => tab.id === id && !tab.isLoading), Boolean, 'fixture finished');
+    await waitForValue(async () => (await call('state')).tabs.find(tab => tab.id === id && !tab.isLoading), Boolean, 'fixture finished', 20000);
     return page;
   }
   await visit('/ordinary'); await visit('/private', true);

@@ -3943,6 +3943,111 @@
         }
       ]
     },
+    "bangs": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:bangs",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:bangs",
+              "args": []
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "enabled": true,
+          "custom": [],
+          "recent": []
+        },
+        {
+          "enabled": true,
+          "custom": [
+            {
+              "code": "custom-bang-1",
+              "name": "custom-bang-1",
+              "template": "custom-bang-1"
+            }
+          ],
+          "recent": [
+            "bangs-state-1"
+          ]
+        }
+      ]
+    },
+    "onBangsChanged": {
+      "kind": "event",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "bangs:changed",
+      "deliveries": [
+        {
+          "emit": [
+            {
+              "enabled": true,
+              "custom": [],
+              "recent": []
+            }
+          ],
+          "callbacks": [
+            [
+              {
+                "enabled": true,
+                "custom": [],
+                "recent": []
+              }
+            ]
+          ]
+        },
+        {
+          "emit": [
+            {
+              "enabled": true,
+              "custom": [
+                {
+                  "code": "custom-bang-1",
+                  "name": "custom-bang-1",
+                  "template": "custom-bang-1"
+                }
+              ],
+              "recent": [
+                "bangs-state-1"
+              ]
+            }
+          ],
+          "callbacks": [
+            [
+              {
+                "enabled": true,
+                "custom": [
+                  {
+                    "code": "custom-bang-1",
+                    "name": "custom-bang-1",
+                    "template": "custom-bang-1"
+                  }
+                ],
+                "recent": [
+                  "bangs-state-1"
+                ]
+              }
+            ]
+          ]
+        }
+      ]
+    },
     "onRemoteTabsUpdated": {
       "kind": "event",
       "platforms": [

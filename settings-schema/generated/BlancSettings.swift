@@ -74,6 +74,7 @@ public struct BlancSettingsDefaults {
     public static let searchEngineTemplate: String = ""
     public static let searchSuggestions: Bool = true
     public static let adblockEnabled: Bool = true
+    public static let bangsEnabled: Bool = true
     public static let homePage: String = ""
     public static let theme: BlancThemePreference = .system
     public static let newtabDynamicWallpaper: Bool = false

@@ -1119,6 +1119,37 @@
         }
       }
     },
+    "CustomBang": {
+      "doc": "A bang the person added in Settings, from settings.js normalizeCustomBangs().",
+      "fields": {
+        "code": {
+          "type": "string",
+          "doc": "Lowercase; a letter or digit, then up to 31 letters, digits, hyphens or underscores."
+        },
+        "name": {
+          "type": "string"
+        },
+        "template": {
+          "type": "string",
+          "doc": "The search address with %s where the words go; the custom search address's rule."
+        }
+      }
+    },
+    "BangsState": {
+      "doc": "The bang settings the Island draws its hint row and picker from, from bangsState() in main.js.",
+      "fields": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "custom": {
+          "type": "CustomBang[]"
+        },
+        "recent": {
+          "type": "string[]",
+          "doc": "Recently used primary codes, newest first, at most ten; device-local."
+        }
+      }
+    },
     "SearchSuggestions": {
       "doc": "Search suggestions for the address bar, labelled with the engine that produced them.",
       "fields": {
@@ -2547,6 +2578,23 @@
       ],
       "returns": "SearchSuggestions",
       "doc": "Fetch search suggestions when enabled in Settings."
+    },
+    {
+      "name": "bangs",
+      "group": "search",
+      "kind": "invoke",
+      "channel": "chrome:bangs",
+      "params": [],
+      "returns": "BangsState",
+      "doc": "The bang settings: the switch, the person's own bangs and the recently used codes."
+    },
+    {
+      "name": "onBangsChanged",
+      "group": "search",
+      "kind": "event",
+      "channel": "bangs:changed",
+      "payload": "BangsState",
+      "doc": "The bang settings changed. Same projection as bangs()."
     },
     {
       "name": "onRemoteTabsUpdated",

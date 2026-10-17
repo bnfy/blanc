@@ -133,7 +133,7 @@
     },
     {
       "file": "src/main/chrome-protocol.js",
-      "sha256": "ac43da3e504a9bfad8e7213cc7af144eaa1a39e61a4af1a8784e8fb97c0588ff",
+      "sha256": "0480f7bbe68c56e72bf316acc99c3bafa45927651d7ca90a6d6dfee9a61550ec",
       "literalChannels": [
         "blanc-chrome"
       ],
@@ -220,9 +220,10 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "988d45f0e80bee58d638e7dc6f3b7d55e121816da0dc354a1e30446b87b036d9",
+      "sha256": "ba5da8e51989319f07d57abea3bd3740ac05a6e906c43cab10f7408b7df7d638",
       "literalChannels": [
         "activate",
+        "bangs:changed",
         "before-input-event",
         "before-mouse-event",
         "before-quit",
@@ -234,6 +235,7 @@
         "capture:stop",
         "chrome:adblock-exempt-active",
         "chrome:adblock-toggle",
+        "chrome:bangs",
         "chrome:blocking-popup",
         "chrome:blocking-provider",
         "chrome:capture-focus",
@@ -424,7 +426,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "b4a0dd9098f6120e24d908e73daa6e60d9b8ab2f2adecc2b6028a1d9bcf9a212",
+      "sha256": "769b15445823e5f12ae1acc93b401974c34ec722dfa27538a2e3d7f69ffc052c",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -536,10 +538,12 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "b8168e8d7bc6e778a5067a025b1e652aacd2725040500cb4974b0df047c6d3a6",
+      "sha256": "ffbcc72975f0800de631ecbd1209797a40c03c63e0a032d5c71a0f39e130f7a2",
       "literalChannels": [
+        "bangs:changed",
         "chrome:adblock-exempt-active",
         "chrome:adblock-toggle",
+        "chrome:bangs",
         "chrome:blocking-popup",
         "chrome:blocking-provider",
         "chrome:capture-focus",

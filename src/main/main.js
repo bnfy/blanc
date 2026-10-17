@@ -174,6 +174,19 @@ const { closableTabIds, pickSurvivorTabId } = require('./tab-context-menu-model'
 const { attachChromeMenu, attachRowMenu } = require('./tab-context-menu');
 const { attachWorkspaceRowMenu } = require('./workspace-context-menu');
 const settings = require('./settings');
+// Bangs: the pure grammar and the generated catalog the Island shares with
+// main, and main's resolver over the settings (spec
+// docs/superpowers/specs/2026-10-16-bangs-design.md).
+const Bangs = require('../renderer/pages/bangs');
+const bangsCatalog = require('../renderer/pages/bangs-catalog');
+const { createBangResolver } = require('./bang-resolution');
+const bangResolver = createBangResolver({ settings, catalog: bangsCatalog, Bangs });
+/** The chrome documents' view of the bang settings (chrome:bangs and the
+ * bangs:changed push share this one literal so the bridge check can read it). */
+function bangsState() {
+  const state = bangResolver.state();
+  return { enabled: state.enabled, custom: state.custom, recent: state.recent };
+}
 const patron = require('./patron');
 const bookmarks = require('./bookmarks');
 const { groupFavoritesForMenu, mayWriteFavoriteFavicon } = require('./bookmark-data');
@@ -4252,7 +4265,20 @@ function navigateTabToAddress(id, rawText) {
   // — a bare mailto:/tel: URI has no "://" and would otherwise fall
   // through its domain-guessing heuristic into an unreachable https:// URL.
   if (handOffToOs(rawText, { trusted: true })) return;
-  const target = normalizeAddressInput(rawText);
+  // A known bang wins over every address rule (the overlay checks the same
+  // way, before looksLikeAddress); an unknown code or bangs off leaves the
+  // text to normalizeAddressInput untouched.
+  const bang = bangResolver.resolveTyped(rawText, { private: tab.private });
+  if (bang && testSearchNavigationCapture) {
+    testSearchSubmission = { engine: 'bang', code: bang.code, query: bang.query, url: bang.url };
+    return;
+  }
+  const target = bang ? bang.url : normalizeAddressInput(rawText);
+  if (testSearchNavigationCapture) {
+    // The acceptance suite runs offline: record where Enter would have gone.
+    testSearchSubmission = { engine: 'address', query: rawText, url: target };
+    return;
+  }
   // A typed utility address opens the sheet, never navigates the tab.
   if (isUtilityUrl(target)) return openInternalPage(target);
   rt().tabsWantingAddressBarFocus.delete(id);
@@ -7730,6 +7756,18 @@ function broadcastWorkspacesUpdated() {
   }, { liveOnly: true });
 }
 
+/** The bang settings changed (switch, the person's own bangs, recents): every
+ * live window's strip and overlay redraw their hint row and picker. */
+function broadcastBangsChanged() {
+  forEachWindowRuntime((runtime) => {
+    const payload = bangsState();
+    runtime.window.webContents.send('bangs:changed', payload);
+    if (runtime.overlayView && !runtime.overlayView.webContents.isDestroyed()) {
+      runtime.overlayView.webContents.send('bangs:changed', payload);
+    }
+  }, { liveOnly: true });
+}
+
 /** A row's right-click choice runs in the Spaces menu that is already open. */
 function sendWorkspaceAction(kind, workspaceId) {
   const wc = rt().overlayView?.webContents;
@@ -7939,14 +7977,15 @@ function registerIpcHandlers() {
     // default after Settings or Profile Sync changes it. Treat its provider id
     // as display metadata only: submission always honors the current default.
     const engine = settings.currentSearchEngine();
-    const target = engine.url(query.trim());
+    // A search row's text can carry a bang too (the panel shows the hint row
+    // only for the typed text; a provider suggestion never contains one).
+    const bang = bangResolver.resolveTyped(query, { private: tab.private });
+    const target = bang ? bang.url : engine.url(query.trim());
     rt().tabsWantingAddressBarFocus.delete(id);
     if (testSearchNavigationCapture) {
-      testSearchSubmission = {
-        engine: engine.id,
-        query: query.trim(),
-        url: target,
-      };
+      testSearchSubmission = bang
+        ? { engine: 'bang', code: bang.code, query: bang.query, url: bang.url }
+        : { engine: engine.id, query: query.trim(), url: target };
       return target;
     }
     if (tab.asleep) return wakeTab(id, { navigateTo: target });
@@ -8299,11 +8338,14 @@ function registerIpcHandlers() {
     // searchSuggestionService before its fetch implementation can run. Exact-
     // query search still works; only live provider suggestions pause.
     const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
+    // Bang-shaped text (known or not, bangs on or off) never reaches the
+    // suggestion service: the words beside a bang are meant for one site.
     if (
       !settings.isFirstRunComplete() ||
       !currentSettings.searchSuggestions ||
       !tab ||
-      tab.private
+      tab.private ||
+      bangResolver.hasBangToken(query)
     ) return response;
 
     const controller = new AbortController();
@@ -8353,7 +8395,11 @@ function registerIpcHandlers() {
   chromeHandle('chrome:history-clear', () => {
     history.clearHistory();
     clearSessionMeta();
+    // Which bangs were used goes with the history (the History page's own
+    // clear does the same through onHistoryCleared).
+    settings.clearRecentBangs();
   });
+  chromeHandle('chrome:bangs', () => bangsState());
   chromeHandle('chrome:adblock-toggle', () => runBlockAdsCommand());
   chromeHandle('chrome:adblock-exempt-active', () => runAllowAdsCommand());
   chromeHandle('chrome:dark-site-active', () => {
@@ -9881,6 +9927,7 @@ let lastSecureDnsTemplate = null;
 // Same idea for Match site colors: re-project strips only on a real change.
 let lastIslandSiteColors = null;
 let lastDarkWebsitesKey = null;
+let lastBangsKey = null;
 let displayCaptureRegistry = null;
 let displayCaptureBroker = null;
 let displayCaptureLazy = null;
@@ -10599,7 +10646,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // using the same manual updater flow as the native menu.
     checkForUpdates: checkForUpdatesManually,
     onDataChanged: refreshBookmarkFlags,
-    onHistoryCleared: clearSessionMeta,
+    onHistoryCleared: () => {
+      clearSessionMeta();
+      settings.clearRecentBangs();
+    },
     // Parent for the favorites-import file dialog (evaluated lazily at click).
     getMainWindow: () => (hasLiveWindow() ? rt().window : undefined),
     // Utility sheet: only the sheet view itself may close the sheet — the
@@ -11190,6 +11240,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // Settings fan-out: settings.js calls every registered listener synchronously
   // from setSettings()/etc, which can be reached from pages.js's OWN unbound
   // 'pages:settings:set' IPC handler — not only from already-bound callers here.
+  settings.onRecentBangsChanged(() => broadcastBangsChanged());
   settings.onSettingsChanged((s) => {
     const nextOnePasswordConfigurationKey = JSON.stringify([
       s.onePasswordEnabled,
@@ -11230,6 +11281,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       lastDarkWebsitesKey = nextDarkWebsitesKey;
       darkWebsites.broadcast();
       forEachWindowRuntime(() => broadcastTabs(), { liveOnly: true });
+    }
+    // Recents arrive through settings.onRecentBangsChanged, not this fan-out.
+    const nextBangsKey = JSON.stringify([s.bangsEnabled, s.customBangs]);
+    if (nextBangsKey !== lastBangsKey) {
+      lastBangsKey = nextBangsKey;
+      broadcastBangsChanged();
     }
     if (s.islandSiteColors !== lastIslandSiteColors) {
       lastIslandSiteColors = s.islandSiteColors;

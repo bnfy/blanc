@@ -353,6 +353,8 @@ function setupPages(hooks = {}) {
       presentationDefaultsResetVersion,
       groupNamesRecasedVersion,
       deviceNames,
+      // Which bangs were used is the Island's business, not the page's.
+      recentBangs: _recentBangs,
       ...rest
     } = settings.getSettings();
     return {
