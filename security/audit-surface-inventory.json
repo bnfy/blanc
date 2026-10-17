@@ -25,7 +25,7 @@
   "boundaries": [
     {
       "file": "cloudflare/newsletter-worker/src/index.js",
-      "sha256": "a0bdfefda7ada1ebfcb1e58baddf13c71e3935dd25f3772c791713033a57d681",
+      "sha256": "769af5d756d99b5a0cd1b920beae4390cbfd875c12f730191c19dfa2cfa272fd",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
