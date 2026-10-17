@@ -68,6 +68,18 @@ const PRESENTATION_DEFAULTS_RESET_VERSION = 1;
 // recaseSavedGroupNamesOnce; spec 2026-10-16-island-lower-section §9.2).
 const GROUP_NAMES_RECASE_VERSION = 1;
 
+// Device-local moving-in checklist and default-browser reminder flags.
+const CHECKLIST_FLAGS = [
+  'migrationChecklistDismissed',
+  'syncMigrationCompleted',
+  'tabImportCompleted',
+  'spaceMigrationCompleted',
+  'spaceChecklistIntroduced',
+  'defaultBrowserMigrationCompleted',
+  'defaultChecklistIntroduced',
+  'defaultBrowserReminderShown',
+];
+
 // Keys that sync across devices (see the profile-sync spec). Deliberately
 // excludes tabLayout, verticalTabsWidth, appIcon, searchSuggestions, and the
 // device's 1Password integration configuration
@@ -220,6 +232,11 @@ const DEFAULTS = {
   // pre-existing settings file is first opened; only a truly missing
   // settings file starts at 0.
   onboardingVersion: 0,
+  // When this device first saved its privacy choices (ms since the epoch;
+  // 0 = before this field existed, or never). Written only by
+  // completeFirstRunPrivacyChoices(); the default-browser reminder measures
+  // install age from it, so it needs no telemetry state.
+  firstRunCompletedAt: 0,
   // Device-local moving-in checklist state. Completion means the migration
   // action succeeded at least once; it is not cleared if the feature is later
   // turned off or used again. None of these keys are Profile Synced.
@@ -230,6 +247,12 @@ const DEFAULTS = {
   // that task (so a checklist that already retired stays retired).
   spaceMigrationCompleted: false,
   spaceChecklistIntroduced: false,
+  // "Make Blanc your default" completed (Blanc was seen as the default at
+  // least once), the one-time introduction of that task, and whether the
+  // single later reminder (default-browser-reminder.js) was already shown.
+  defaultBrowserMigrationCompleted: false,
+  defaultChecklistIntroduced: false,
+  defaultBrowserReminderShown: false,
   // When the start page's Patron upgrade pill was last closed (ms since the
   // epoch; 0 = never). It stays hidden for 90 days (patron-callout.js).
   // Device-local, never Profile Synced.
@@ -402,11 +425,14 @@ function getSettings() {
   if (!Number.isInteger(data.onboardingVersion) || data.onboardingVersion < 0) {
     data.onboardingVersion = DEFAULTS.onboardingVersion;
   }
-  for (const key of ['migrationChecklistDismissed', 'syncMigrationCompleted', 'tabImportCompleted', 'spaceMigrationCompleted', 'spaceChecklistIntroduced']) {
+  for (const key of CHECKLIST_FLAGS) {
     if (typeof data[key] !== 'boolean') data[key] = DEFAULTS[key];
   }
   if (!Number.isFinite(data.patronCalloutDismissedAt) || data.patronCalloutDismissedAt < 0) {
     data.patronCalloutDismissedAt = DEFAULTS.patronCalloutDismissedAt;
+  }
+  if (!Number.isFinite(data.firstRunCompletedAt) || data.firstRunCompletedAt < 0) {
+    data.firstRunCompletedAt = DEFAULTS.firstRunCompletedAt;
   }
   if (!TAB_LAYOUTS.includes(data.tabLayout)) data.tabLayout = DEFAULTS.tabLayout;
   if (typeof data.islandSiteColors !== 'boolean') data.islandSiteColors = DEFAULTS.islandSiteColors;
@@ -477,7 +503,7 @@ function sanitize(partial) {
   if (typeof partial.adblockEnabled === 'boolean') clean.adblockEnabled = partial.adblockEnabled;
   if (['blanc', 'ublock-origin'].includes(partial.adblockProvider)) clean.adblockProvider = partial.adblockProvider;
   if (typeof partial.usagePing === 'boolean') clean.usagePing = partial.usagePing;
-  for (const key of ['migrationChecklistDismissed', 'syncMigrationCompleted', 'tabImportCompleted', 'spaceMigrationCompleted', 'spaceChecklistIntroduced']) {
+  for (const key of CHECKLIST_FLAGS) {
     if (typeof partial[key] === 'boolean') clean[key] = partial[key];
   }
   if (Number.isFinite(partial.patronCalloutDismissedAt) && partial.patronCalloutDismissedAt >= 0) {
@@ -617,11 +643,13 @@ function completeFirstRunPrivacyChoices(partial = {}) {
     searchSuggestions: s.data.searchSuggestions,
     usagePing: s.data.usagePing,
     onboardingVersion: s.data.onboardingVersion,
+    firstRunCompletedAt: s.data.firstRunCompletedAt,
   };
   s.update((data) => {
     data.searchSuggestions = partial.searchSuggestions;
     data.usagePing = partial.usagePing;
     data.onboardingVersion = FIRST_RUN_VERSION;
+    if (!(data.firstRunCompletedAt > 0)) data.firstRunCompletedAt = Date.now();
   });
   if (!s.flush()) {
     Object.assign(s.data, previous);

@@ -2069,5 +2069,10 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="result_tag_space">Space</string>
     <string name="workspace_menu_edit">Modifier…</string>
     <string name="newtab_checklist_space">Créer votre premier Space</string>
+    <string name="newtab_checklist_default">Faire de Blanc votre navigateur par défaut</string>
+    <string name="default_browser_reminder_title">Utiliser Blanc comme navigateur par défaut ?</string>
+    <string name="default_browser_reminder_body">Les liens ouverts depuis vos e-mails, vos messageries et vos autres apps s’ouvriront dans Blanc. Vous pouvez changer cela à tout moment dans les Réglages.</string>
+    <string name="default_browser_reminder_set">Définir par défaut</string>
+    <string name="default_browser_reminder_later">Pas maintenant</string>
     <string name="ws_editor_retry">Réessayer</string>
 </resources>

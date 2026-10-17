@@ -81457,6 +81457,216 @@
         }
       }
     },
+    "newtab.checklist.default": {
+      "comment": "Start page moving-in checklist task: asks the OS to make Blanc the default browser. Shown only where Blanc can ask (macOS, Windows).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Make Blanc your default"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mach Blanc zu deinem Standardbrowser"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Haz de Blanc tu navegador predeterminado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Faire de Blanc votre navigateur par défaut"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imposta Blanc come predefinito"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Torne o Blanc seu navegador padrão"
+          }
+        }
+      }
+    },
+    "defaultBrowser.reminder.title": {
+      "comment": "Default-browser reminder: native dialog heading, shown once a few days after setup if Blanc still isn't the default.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Make Blanc your default browser?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc als Standardbrowser verwenden?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Usar Blanc como navegador predeterminado?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utiliser Blanc comme navigateur par défaut ?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usare Blanc come browser predefinito?"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usar o Blanc como navegador padrão?"
+          }
+        }
+      }
+    },
+    "defaultBrowser.reminder.body": {
+      "comment": "Default-browser reminder: native dialog explanation under the heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Links you open from mail, chat and other apps will open in Blanc. You can change this anytime in Settings."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Links aus Mails, Chats und anderen Apps öffnen sich dann in Blanc. Du kannst das jederzeit in den Einstellungen ändern."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los enlaces que abras desde el correo, los chats y otras apps se abrirán en Blanc. Puedes cambiarlo cuando quieras en Configuración."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les liens ouverts depuis vos e-mails, vos messageries et vos autres apps s’ouvriront dans Blanc. Vous pouvez changer cela à tout moment dans les Réglages."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I link che apri dalla posta, dalle chat e dalle altre app si apriranno in Blanc. Puoi cambiare questa scelta quando vuoi nelle Impostazioni."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os links que você abrir no e-mail, em chats e em outros apps vão abrir no Blanc. Você pode mudar isso quando quiser nas Configurações."
+          }
+        }
+      }
+    },
+    "defaultBrowser.reminder.set": {
+      "comment": "Default-browser reminder: native dialog button that asks the OS to make Blanc the default.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set as default"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als Standard setzen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usar por defecto"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Définir par défaut"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imposta predefinito"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Definir como padrão"
+          }
+        }
+      }
+    },
+    "defaultBrowser.reminder.later": {
+      "comment": "Default-browser reminder: native dialog button that closes it; it is never shown again.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not now"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht jetzt"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ahora no"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pas maintenant"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non ora"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agora não"
+          }
+        }
+      }
+    },
     "ws.editor.retry": {
       "comment": "Space editor: button that sends an edit again after it failed to save.",
       "extractionState": "manual",

@@ -2001,5 +2001,10 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="result_tag_space">Space</string>
     <string name="workspace_menu_edit">Bearbeiten…</string>
     <string name="newtab_checklist_space">Ersten Space erstellen</string>
+    <string name="newtab_checklist_default">Mach Blanc zu deinem Standardbrowser</string>
+    <string name="default_browser_reminder_title">Blanc als Standardbrowser verwenden?</string>
+    <string name="default_browser_reminder_body">Links aus Mails, Chats und anderen Apps öffnen sich dann in Blanc. Du kannst das jederzeit in den Einstellungen ändern.</string>
+    <string name="default_browser_reminder_set">Als Standard setzen</string>
+    <string name="default_browser_reminder_later">Nicht jetzt</string>
     <string name="ws_editor_retry">Erneut versuchen</string>
 </resources>

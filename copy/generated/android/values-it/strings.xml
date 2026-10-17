@@ -2069,5 +2069,10 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="result_tag_space">Space</string>
     <string name="workspace_menu_edit">Modifica…</string>
     <string name="newtab_checklist_space">Crea il tuo primo Space</string>
+    <string name="newtab_checklist_default">Imposta Blanc come predefinito</string>
+    <string name="default_browser_reminder_title">Usare Blanc come browser predefinito?</string>
+    <string name="default_browser_reminder_body">I link che apri dalla posta, dalle chat e dalle altre app si apriranno in Blanc. Puoi cambiare questa scelta quando vuoi nelle Impostazioni.</string>
+    <string name="default_browser_reminder_set">Imposta predefinito</string>
+    <string name="default_browser_reminder_later">Non ora</string>
     <string name="ws_editor_retry">Riprova</string>
 </resources>
