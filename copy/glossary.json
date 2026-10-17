@@ -214,7 +214,9 @@
       "spaces.color.sand",
       "spaces.symbol.code",
       "spaces.picker.hex",
-      "result.tag.space"
+      "result.tag.space",
+      "settings.general.bangs.label",
+      "settings.general.customBangs.name"
     ],
     "es": [
       "about.chromium",
@@ -252,7 +254,8 @@
       "ws.editor.color",
       "spaces.color.iris",
       "spaces.picker.hex",
-      "result.tag.space"
+      "result.tag.space",
+      "settings.general.bangs.label"
     ],
     "fr": [
       "about.chromium",
@@ -296,7 +299,9 @@
       "spaces.color.graphite",
       "spaces.symbol.code",
       "spaces.picker.hex",
-      "result.tag.space"
+      "result.tag.space",
+      "settings.general.bangs.label",
+      "settings.general.customBangs.code"
     ],
     "pt-BR": [
       "about.chromium",
@@ -336,7 +341,8 @@
       "mahjong.live.combo",
       "mahjong.combo.combo",
       "spaces.picker.hex",
-      "result.tag.space"
+      "result.tag.space",
+      "settings.general.bangs.label"
     ],
     "it": [
       "about.chromium",

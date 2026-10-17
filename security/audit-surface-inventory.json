@@ -422,7 +422,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "4aa264988913bbe51def6c4aa9fef58053a5e872aae84bcd5efc9ece93541259",
+      "sha256": "63023d4f735d212601fde42919e5caa3654c17bef09d9e27d075d25dd9588452",
       "literalChannels": [
         "blanc",
         "pages:app-version",
