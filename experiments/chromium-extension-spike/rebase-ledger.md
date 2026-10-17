@@ -149,3 +149,68 @@ New divergences from Electron found in this rebase: `_______`.
 | Criterion 1 (plan §5: more than two owner-days of attention, or more than one calendar week including builds) | not hit / hit |
 | Outcome | `_______` |
 | What to change in `prepare.mjs` or the fork layout before the next rebase | `_______` |
+
+
+## Tranche 2 incremental builds
+
+### Spike A audit checkpoint — October 17, 2026
+
+Owner approval: request §8 at `5863215d`, merged with #906 as `14b04362`.
+Development on the 157 sibling has begun while Rebase 0's Google-endpoint
+extension-upgrade observation remains open. The detailed Rebase 0 measurements
+remain on `codex/chromium157-rebase` (`e105e52a` at this checkpoint); this
+audit-only change does not promote 157 or replace row 0's pending record.
+
+- [Request-path source audit](evidence/f12-spike-a/request-path-audit.md), with
+  pinned source ranges and hashes. Runtime coverage: **not run**.
+- [Starting inventory](evidence/f12-spike-a/patch-budget-start.json): **21
+  upstream files, 55 hunks** against `41520584daa68d0040db7746ae562a0ff82187f6`.
+  No native modifications in this checkpoint, so its delta is **0 files /
+  0 hunks**. Aggregate ceiling remains 40 / 120.
+- [Replay contract and validator](fixtures/replay/README.md): captured real
+  requests **0**; comparison unit tests **8 passed**; budget-counter scratch
+  repository tests **4 passed**. No block-rate or latency result.
+- No native build, preparation, generation, toolchain or profile operation.
+  No addition to the clean-build benchmark.
+- Owner attention and active agent time: **not measured** for this initial
+  audit session. The source-reference timestamp is a checkpoint, not an
+  attention measurement. Subsequent sessions must record start/stop intervals
+  explicitly, without treating idle waits as attention.
+
+| Build invocation | Start / end | Guard plan | Actions | Result | Classification |
+| --- | --- | --- | --- | --- | --- |
+| None (source audit and Python harness tools only) | not applicable | not run | 0 | no native build | routine audit; not cold build |
+
+Audit/tool invocations (not native build invocations):
+
+```sh
+python3 experiments/chromium-extension-spike/patch-budget.py /Users/anthonyjloria/Projects/BlancChromium157/src --upstream 41520584daa68d0040db7746ae562a0ff82187f6 --output experiments/chromium-extension-spike/evidence/f12-spike-a/patch-budget-start.json
+PYTHONDONTWRITEBYTECODE=1 python3 experiments/chromium-extension-spike/patch-budget-test.py
+PYTHONDONTWRITEBYTECODE=1 python3 experiments/chromium-extension-spike/fixtures/replay/validate-test.py
+```
+
+Next: resolve the audit's open paths and implement origin-preserving fixture
+transport and real Electron capture in disposable profiles. The audit and
+validator do not satisfy the request-path runtime coverage fixture requirement.
+
+
+### Spike A audit review corrections — October 17, 2026
+
+[Reviewed inventory](evidence/f12-spike-a/patch-budget-reviewed.json): **21 files /
+55 hunks**, unchanged per file; **151 Git dependencies** clean at the resolved
+sync manifest's pins. Classification now uses raw content (NUL in first 8,000
+bytes), text diffs force `--text`, and applicable `diff`/`binary` attributes are
+recorded. Dependency local changes, missing checkouts, pin drift or missing
+metadata refuse the inventory instead of silently returning a partial total.
+Intentional dependency patches cannot proceed until the counter supports them.
+
+Counter tests: **11 passed**. Replay validator tests: **10 passed**, including
+required `profile_kind: regular|private` and profile mismatch rejection.
+No native build, runtime coverage or capture; zero addition to the cold column.
+This review repair's active attention was not timed; not inferred from wall time.
+
+Post-merge action: merge the spike head into `codex/chromium157-rebase`, retaining
+that branch's measured Rebase 0 record and open upgrade gate while incorporating
+this separate tranche section. Resolve the expected ledger conflict once; never
+replace the measured record with this branch's template. This action is pending
+#907's merge, not performed by this correction.

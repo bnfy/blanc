@@ -283,8 +283,8 @@ deterministically by
 ```sh
 GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 git diff \
   --unified=0 --inter-hunk-context=0 --diff-algorithm=myers \
-  --no-indent-heuristic --no-renames --no-ext-diff --no-textconv --no-color \
-  <upstream-tag> -- <inventory paths>
+  --no-indent-heuristic --no-renames --no-ext-diff --no-textconv --no-color --text \
+  <upstream-tag> -- <text inventory paths>
 ```
 
 run inside the patched checkout (or the same options with `--no-index`
@@ -299,8 +299,11 @@ counter records the Git version with each count. The count is taken over
 the text files in the inventory, as the number of `@@` headers (`--stat` and `--numstat` count changed lines, not hunks, and are
 not used; see <https://git-scm.com/docs/git-diff>). Adjacent changes
 separated by at least one unchanged line are therefore separate hunks; `prepare.mjs` edits files in place and never renames them, so rename
-detection is off; a mode-only change counts as zero hunks and one file. Binary files (the two icon assets) count as one file and one
-hunk each, since a binary diff has no `@@` sections. The counter is a
+detection is off; a mode-only change counts as zero hunks and one file. The
+counter classifies a file as binary when either side's content has a NUL byte
+in its first 8,000 bytes; changed binary content (including the two icon assets)
+counts as one hunk and one file. Text diffs force `--text`, and applicable `diff`
+and `binary` attributes are recorded rather than used to classify content. The counter is a
 script in the experiments tree, run against the same pristine checkout the
 inventory used, and its output is committed with each count. The count is produced by the same inventory method
 as `evidence/rebase-157-20261016/patched-upstream-files.json`, run before

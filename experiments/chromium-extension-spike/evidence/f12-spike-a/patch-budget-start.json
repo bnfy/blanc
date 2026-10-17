@@ -1,0 +1,155 @@
+{
+  "schema": 1,
+  "observed_at_utc": "2026-10-17T17:19:47.021401+00:00",
+  "upstream_commit": "41520584daa68d0040db7746ae562a0ff82187f6",
+  "git_version": "git version 2.54.0 (Apple Git-157)",
+  "diff_options": [
+    "--unified=0",
+    "--inter-hunk-context=0",
+    "--diff-algorithm=myers",
+    "--no-indent-heuristic",
+    "--no-renames",
+    "--no-ext-diff",
+    "--no-textconv",
+    "--no-color",
+    "--src-prefix=a/",
+    "--dst-prefix=b/"
+  ],
+  "upstream_files": 21,
+  "hunks": 55,
+  "files": [
+    {
+      "path": "chrome/app/app-Info.plist",
+      "binary": false,
+      "hunks": 1,
+      "patch_sha256": "a854057b23414bd87c5158bfa2dfca23b453bbb15ff132c0eb7f6183583b2532"
+    },
+    {
+      "path": "chrome/app/theme/chromium/BRANDING",
+      "binary": false,
+      "hunks": 2,
+      "patch_sha256": "3f4f115c76d6441b7eb05953e33328ae00e5d7957fe6e6d20764d0263e5c9179"
+    },
+    {
+      "path": "chrome/app/theme/chromium/mac/Assets.car",
+      "binary": true,
+      "hunks": 1,
+      "patch_sha256": "5be9b33d0a814337cc87b49b7309d6dca69d9300fbc3fb7fd64f804a9c63b73a"
+    },
+    {
+      "path": "chrome/app/theme/chromium/mac/app.icns",
+      "binary": true,
+      "hunks": 1,
+      "patch_sha256": "09f518a0d219b9a2a0b8ced5aca9e35f8323dbe9076f5520e2293bdca548f332"
+    },
+    {
+      "path": "chrome/browser/app_controller_mac.mm",
+      "binary": false,
+      "hunks": 1,
+      "patch_sha256": "dc0c708db63fa9c3542faa3f5f538d988fa517c875807f2c4754127efdf92d40"
+    },
+    {
+      "path": "chrome/browser/search/search.cc",
+      "binary": false,
+      "hunks": 2,
+      "patch_sha256": "2c7fcebc263fabfb97d723aee15a19cd926bba88ed5f85ccb7e92cb8d3b00acd"
+    },
+    {
+      "path": "chrome/browser/ui/browser_command_controller.cc",
+      "binary": false,
+      "hunks": 2,
+      "patch_sha256": "2220a2cee502bced881bce24ad8760ff9e9483b3fe2b5ce5257f9617378d74fe"
+    },
+    {
+      "path": "chrome/browser/ui/browser_commands.cc",
+      "binary": false,
+      "hunks": 4,
+      "patch_sha256": "5b438c2882e24675d139beb649ec2936630f3f7e7dd763ce2174fcf0ddb42bac"
+    },
+    {
+      "path": "chrome/browser/ui/views/extensions/extensions_toolbar_button.cc",
+      "binary": false,
+      "hunks": 7,
+      "patch_sha256": "f258ace6866a8cd9e2d20b48dab5b2bb41e694f4c9e5e379652cc5f77eb05c06"
+    },
+    {
+      "path": "chrome/browser/ui/views/extensions/extensions_toolbar_button.h",
+      "binary": false,
+      "hunks": 1,
+      "patch_sha256": "fa99fa45c45e86ca0e723611045d326ae189b01e689632a52f3dd7405ede873c"
+    },
+    {
+      "path": "chrome/browser/ui/views/extensions/extensions_toolbar_desktop.cc",
+      "binary": false,
+      "hunks": 6,
+      "patch_sha256": "5e528a1b29cdacc050fdd20e45cad7916d06f4ad9bbb5cd9b493bbc5fc4f99d6"
+    },
+    {
+      "path": "chrome/browser/ui/views/frame/BUILD.gn",
+      "binary": false,
+      "hunks": 3,
+      "patch_sha256": "baa229ef2b3c1b730f5446911a502ac078757d0a09f42634546dd3c24125fa20"
+    },
+    {
+      "path": "chrome/browser/ui/views/frame/browser_frame_view_mac.mm",
+      "binary": false,
+      "hunks": 2,
+      "patch_sha256": "99bf207384c72436d2fe50f8d467265bf2e144eb665f8a4bb9ea008d9f1badb7"
+    },
+    {
+      "path": "chrome/browser/ui/views/frame/browser_native_widget_mac.mm",
+      "binary": false,
+      "hunks": 2,
+      "patch_sha256": "0764032bf816615504a0185901bc67357aa6ccc70a193cb5d9395fcdef70a83f"
+    },
+    {
+      "path": "chrome/browser/ui/views/frame/browser_view.cc",
+      "binary": false,
+      "hunks": 9,
+      "patch_sha256": "a4e861c8dc632c51397bc05b2af83f48027ed65f7b7c4a4b4af5ecce303776ca"
+    },
+    {
+      "path": "chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc",
+      "binary": false,
+      "hunks": 2,
+      "patch_sha256": "faddcc4a618550909a1756dbaf75076e7f01f9583c076056aa24a9dbf20d619e"
+    },
+    {
+      "path": "chrome/browser/ui/webui/chrome_web_ui_configs.cc",
+      "binary": false,
+      "hunks": 2,
+      "patch_sha256": "106e6567c86fedc3b4278b9176645a4abec496494985906d150229cfa7ee78a0"
+    },
+    {
+      "path": "chrome/browser/ui/window_feature_controller/window_feature_controller.cc",
+      "binary": false,
+      "hunks": 3,
+      "patch_sha256": "68cf5c0f47608b60c7509952d89dec2c237e668cd9fc153344bda0562eeef237"
+    },
+    {
+      "path": "components/remote_cocoa/app_shim/browser_native_widget_window_mac.mm",
+      "binary": false,
+      "hunks": 2,
+      "patch_sha256": "ee2a995e643efec0ed23c9c6cd2325cbaa1dda4643f0528ae98ddf8cf682e2e4"
+    },
+    {
+      "path": "ui/webui/resources/tools/eslint/BUILD.gn",
+      "binary": false,
+      "hunks": 1,
+      "patch_sha256": "f4a089cb4cd3a827c39a89ad91c41119d114f02ece22ce64dd38620463471d7c"
+    },
+    {
+      "path": "ui/webui/resources/tools/eslint/tsconfig_base.json",
+      "binary": false,
+      "hunks": 1,
+      "patch_sha256": "a3baf33b5fdd0e21b73561b3530fa0acb58af0ae67c0748ce6580bd669d8362f"
+    }
+  ],
+  "excluded_new_tracked_files": [],
+  "policy": "Existing upstream paths only; untracked/new Blanc files excluded; binary change = one hunk; mode-only = zero hunks; renames disabled.",
+  "budget": {
+    "upstream_files": 40,
+    "hunks": 120
+  },
+  "within_budget": true
+}
