@@ -120,7 +120,8 @@ try {
     return null;
   }, Boolean, label, timeoutMs);
   // The strip document is the one whose shipped preload exposes openIsland.
-  const chrome = await findPage(async (page) => page.url().startsWith('blanc-chrome://')
+  // The overlay shares that preload, so match the strip's own address.
+  const chrome = await findPage(async (page) => page.url().startsWith('blanc-chrome://index/')
     && await page.evaluate(() => typeof window.browserAPI?.openIsland === 'function'), 'Blanc chrome document did not appear');
 
   // The window restored into Painting class: its mark shows that space.
