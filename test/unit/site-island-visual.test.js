@@ -17,15 +17,16 @@ function source(relativePath) {
   return fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
 }
 
-test('website Island replicas use the released resting material and geometry', () => {
-  assert.match(styles, /--island-resting-surface:\s*rgba\(255,255,255,\.94\)/);
-  assert.match(styles, /--shadow-island-resting:\s*inset 0 1px 0 rgba\(255,255,255,\.72\), inset 0 -1px 0 rgba\(14,14,14,\.035\), 0 5px 18px -12px rgba\(14,14,14,\.24\)/);
-  assert.match(styles, /--island-resting-height:\s*44px/);
-  assert.match(styles, /--island-resting-radius:\s*17px/);
-  assert.match(styles, /--island-strip-height:\s*68px/);
-  assert.match(styles, /\.demo-island \.pill \{[^}]*height: calc\(var\(--island-resting-height\) \/ var\(--pill-zoom\)\)[^}]*zoom: var\(--pill-zoom\)[^}]*transform: none/s);
-  assert.match(styles, /\.demo-island \.pill::after \{[^}]*backdrop-filter: blur\(16px\)[^}]*box-shadow: var\(--shadow-island-resting\)/s);
-  assert.doesNotMatch(styles, /\.demo-island \.pill \{[^}]*0 12px 28px/s);
+test('website resting-Island figures draw the app’s own resting material and geometry', () => {
+  // The resting Island is no longer redrawn in site.css: NativeWindowFigure
+  // takes the app's pill, its tokens and its rules from src/renderer, so the
+  // figures follow every released change to the material.
+  const figure = source('site/src/components/NativeWindowFigure.astro');
+  assert.match(figure, /import styles from '\.\.\/\.\.\/\.\.\/src\/renderer\/styles\.css\?raw'/);
+  assert.match(figure, /nativeWindowArt\(/);
+  const art = source('site/src/lib/native-island-art.mjs');
+  for (const selector of ["'#islandPill'", "'#islandPill::after'", "'#strip'"]) assert.ok(art.includes(selector), selector);
+  assert.doesNotMatch(styles, /\.demo-island \.pill\b|--island-resting-|--shadow-island-resting/);
 });
 
 test('website Island figures keep the released command-bar geometry', () => {
@@ -36,17 +37,14 @@ test('website Island figures keep the released command-bar geometry', () => {
 });
 
 test('resting website figures show the quiet Plus shortcut in horizontal layouts', () => {
-  // The interactive press demo was retired with the Media page; the Island
-  // guide's resting figure carries the same pill.
-  const restingFigures = ['site/src/pages/features/island.astro'];
-  for (const file of restingFigures) {
-    assert.match(source(file), /class="pill-shortcut"/, `${file} should show Plus`);
-  }
-
-  const verticalTabs = source('site/src/components/guides/vertical-tabs.astro');
-  assert.doesNotMatch(verticalTabs, /pill-shortcut/, 'vertical-tabs figure should omit the redundant Plus');
-  assert.match(styles, /\.pill-shortcuts \{[^}]*gap: calc\(4px \/ var\(--pill-zoom\)\)/s);
-  assert.match(styles, /\.pill-slash,\s*\.demo-island \.pill-shortcut \{[^}]*width: 22px;[^}]*height: 22px/s);
+  // A site tab's resting Island carries renderer.js's Plus (#pillNewTab);
+  // vertical tabs hide it with the app's own rule, the rail having New tab.
+  const island = source('site/src/pages/features/island.astro');
+  assert.match(island, /<NativeWindowFigure[\s\S]*?tab=\{\{ url: 'https:\/\/github\.com\/'/);
+  const art = source('site/src/lib/native-island-art.mjs');
+  assert.match(art, /<button id="pillNewTab" class="pill-btn pill-shortcut">/);
+  assert.match(art, /scoped\(':root\[data-tab-layout="vertical"\] #pillNewTab'\)/);
+  assert.match(source('site/src/pages/features/vertical-tabs.astro'), /<NativeWindowFigure[\s\S]*?rail=\{\{/);
 });
 
 test('the masthead is one sticky bar that stays put while the homepage scenes scroll beneath it', () => {

@@ -4,7 +4,7 @@
   "catalogSha256": "8129954e3909f0c0bc6a738d5f9b3164965c2822c7aeb344dcf87814f16e756e",
   "count": 10624,
   "popular": ["w","yt","a","g","r","gh","imdb","gmap","so","x","wa","ebay","gi","gmail","nf","spotify","gtr","ddg","kt"],
-  "labels": {"search":"Search {site} for “{query}”","open":"Open {site}","popular":"Popular","all":"All bangs"},
+  "labels": {"search":"Search {site} for “{query}”","open":"Open {site}","popular":"Popular","all":"All bangs","hintBang":"!code words searches one site · ! alone lists them","hintPrivate":"Private tab · Nothing here is saved to history"},
   "via": {"95g":"Google","aamulehti":"DuckDuckGo","amusing":"Google","bluelight":"Google","boingboing":"Google","cwe":"Google","debianfr":"Google","engtb":"Google","eqd":"Google","ev":"Google","fdo":"Google","gaccess":"Google","gcubed":"Google","greddit":"Google","gso":"Google","gwp":"Google","gwpde":"Google","h2m":"DuckDuckGo","hou":"Google","idd":"Google","kkbruce":"Google","lawphil":"Google","lifeprint":"Google","mjtsai":"DuckDuckGo","moz":"Google","musiker-board":"Google","netbsd":"Google","newsmax":"Google","nodejs":"DuckDuckGo","pfs":"Google","phalcondoc":"Google","salt":"Google","scienceblogs":"Google","sog":"Google","superphysique":"Google","thehackernews":"Google","tldp":"Google","ubuntufr":"Google","vim":"Google","w3scn":"Google"},
   "entries": [
     ["01net",[],"01net","www.01net.com","https://www.01net.com/recherche/recherche.php?searchstring=%s&chaine=home",3,"https://www.01net.com/"],

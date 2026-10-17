@@ -244,11 +244,24 @@ async function shootFigure(card) {
     [data-og-backdrop] { background: transparent !important; border-color: transparent !important; box-shadow: none !important; outline: none !important; }
     [data-og-backdrop]::before, [data-og-backdrop]::after { display: none !important; }
   ` });
+  // A resting-Island figure draws a whole Blanc window from the app's own
+  // markup in a shadow root (NativeWindowFigure.astro); the card keeps only
+  // its Island and any open popover, with nothing clipped around them.
+  const native = await shooter.evaluate((sel) => {
+    const model = document.querySelector(sel)?.querySelector('blanc-native-window');
+    if (!model?.shadowRoot) return false;
+    const style = document.createElement('style');
+    style.textContent = '*, *::before, *::after { animation: none !important; transition: none !important; } .native-page, .vertical-tabs-rail { display: none !important; } .native-window, #strip { background: transparent !important; overflow: visible !important; }';
+    model.shadowRoot.append(style);
+    model.style.setProperty('overflow', 'visible', 'important');
+    document.querySelector(sel).style.setProperty('overflow', 'visible', 'important');
+    return true;
+  }, card.figure);
   // Isolate the Island: everything beside it on the way up to the document is
   // hidden (layout kept), and every element it sits in paints nothing, so the
   // shot's shadow room never picks up a caption, hairline or section fill.
   await shooter.evaluate((sel) => {
-    const island = document.querySelector(sel)?.querySelector('.demo-island');
+    const island = document.querySelector(sel)?.querySelector('.demo-island, blanc-native-window');
     for (let node = island; node?.parentElement; node = node.parentElement) {
       for (const sibling of node.parentElement.children) {
         if (sibling !== node) sibling.style.setProperty('visibility', 'hidden', 'important');
@@ -262,8 +275,9 @@ async function shootFigure(card) {
   if (card.identity) {
     await shooter.evaluate(({ sel, identity }) => {
       const figure = document.querySelector(sel);
-      const domain = figure?.querySelector('.domain');
-      const favicon = figure?.querySelector('.pill-fav');
+      const root = figure?.querySelector('blanc-native-window')?.shadowRoot ?? figure;
+      const domain = root?.querySelector('.domain, #pillDomain');
+      const favicon = root?.querySelector('.pill-fav, #pillFavicon');
       if (domain) domain.textContent = identity.domain;
       if (favicon) {
         favicon.style.backgroundImage = `url('${identity.favicon}')`;
@@ -277,7 +291,14 @@ async function shootFigure(card) {
 
   // Clip to the Island itself (plus room for its shadow), not the whole
   // figure — otherwise a short pill floats in a mostly empty frame.
-  const box = await shooter.evaluate(({ sel, pad }) => {
+  const box = native ? await shooter.evaluate(({ sel, pad }) => {
+    const root = document.querySelector(sel).querySelector('blanc-native-window').shadowRoot;
+    const rects = ['#islandPill', '#shieldPopPointer', '#shieldPop'].map(id => root.querySelector(id))
+      .filter(node => node && node.offsetParent !== null).map(node => node.getBoundingClientRect());
+    const left = Math.min(...rects.map(r => r.left)), top = Math.min(...rects.map(r => r.top));
+    const right = Math.max(...rects.map(r => r.right)), bottom = Math.max(...rects.map(r => r.bottom));
+    return { x: left - pad, y: top - pad, width: right - left + pad * 2, height: bottom - top + pad * 2 };
+  }, { sel: card.figure, pad: SHADOW_ROOM }) : await shooter.evaluate(({ sel, pad }) => {
     const figure = document.querySelector(sel);
     const island = figure.querySelector('.demo-island');
     // The Island's own border box covers the resting pill ONLY: its panel and

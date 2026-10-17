@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import NativeWindowFigure from '../../components/NativeWindowFigure.astro';
 ---
 <BaseLayout
   title={"Private Tabs That Stay Out of Your History | Blanc Browser"}
@@ -19,16 +20,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">home</a><span aria-hidden="true">/</span><a href="/features">features</a><span aria-hidden="true">/</span><span aria-current="page">private tabs</span></nav>
   <section class="feature-hero feature-hero--detail feature-hero--text" aria-labelledby="private-title"><h1 id="private-title">Private browsing tabs that stay out of the record.</h1><p>Pages opened in a private tab are not written to Blanc history and are not restored when you reopen the browser.</p></section>
   <figure class="product-capture feature-capture">
-    <div class="demo-stage island-figure" data-theme="private" role="img" aria-label="A Blanc private tab: the island has a dashed outline and hollow tab dots with a 'private' quick-exit chip, in a slim band above Blanc's dark private page.">
-      <div class="demo-page" aria-hidden="true"><div class="bar w1"></div><div class="bar w2"></div><div class="bar w3"></div><div class="bar w4"></div></div>
-      <div class="demo-island private" aria-hidden="true">
-        <div class="pill">
-          <div class="dots"><span></span><span class="cur"></span><span></span></div>
-          <span class="pill-shortcuts"><span class="pill-shortcut" title="New tab (⌘T)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3.25v9.5M3.25 8h9.5"/></svg></span></span>
-          <span class="priv-chip">private <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg></span>
-        </div>
-      </div>
-    </div>
+    <NativeWindowFigure
+      label="A Blanc private tab: the island has a dashed outline and hollow tab dots with a 'private' quick-exit chip, in a slim band above Blanc's dark private page."
+      height={300}
+      tab={{ url: 'blanc://newtab/?private=1', private: true }}
+      dots={{ count: 3, active: 1 }}
+    />
     <figcaption>A private tab visibly changes the island, and its quick-exit chip closes the tab when you are done.</figcaption>
   </figure>
   <section class="feature-copy-grid feature-copy-grid--top" aria-labelledby="private-behavior-title">

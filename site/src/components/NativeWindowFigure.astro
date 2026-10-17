@@ -1,0 +1,104 @@
+---
+// A feature page's resting-Island figure: a Blanc window drawn from the app's
+// own markup and CSS (nativeWindowArt in site/src/lib/native-island-art.mjs),
+// the strip and resting Island over a captured page, with the shield popover
+// or the vertical tab rail when a page asks for them. The window is laid out
+// at desktop size and scaled as a whole; a narrow figure shows the middle of
+// the same window, never a reflowed one (fitNativeWindow below).
+import styles from '../../../src/renderer/styles.css?raw';
+import islandDocument from '../../../src/renderer/index.html?raw';
+import renderer from '../../../src/renderer/renderer.js?raw';
+import overlay from '../../../src/renderer/overlay.html?raw';
+import verticalTabs from '../../../src/renderer/vertical-tabs.js?raw';
+import messages from '../../../copy/messages/en.json';
+import mark from '../../../src/renderer/sunrise-hero-mark.png?url';
+import panelLeft from '../../../src/renderer/panel-left.svg?url';
+import nativeFont from '../../../src/renderer/pages/inter-latin.woff2?url';
+import nativeTextFont from '../../../src/renderer/pages/instrument-sans-latin-wdth-normal.woff2?url';
+import { nativeWindowArt } from '../lib/native-island-art.mjs';
+
+interface Props {
+  label: string;
+  /** The page's top-edge colour, which the strip takes on (renderer.js --page-bg). */
+  tone?: string;
+  /** A desktop capture of the page below the strip (1280px wide). */
+  shot?: string;
+  /** The window's height at desktop size, strip included. */
+  height?: number;
+  tab: { url: string; favicon?: string; private?: boolean; shield?: 'quiet' | number };
+  dots: { count: number; active: number };
+  popover?: { host: string; count: number };
+  rail?: { tabs: { title: string; favicon: string }[]; active: number };
+  class?: string;
+}
+const { label, tone, shot, height = 430, tab, dots, popover, rail, class: className } = Astro.props;
+const art = nativeWindowArt({
+  styles, document: islandDocument, renderer, overlay, verticalTabs, messages, tab, dots, rail, panelLeft,
+  popover: popover && { ...popover, mark },
+});
+const presentation = `
+  :host {display:block; position:relative; width:100%; height:calc(var(--fig-window-h) * var(--fig-scale)); overflow:hidden;
+    font-family:var(--font-text); letter-spacing:var(--text-tracking); word-spacing:var(--text-word-spacing); font-size:13px; color:var(--text);}
+  [hidden] {display:none!important;}
+  .native-window {position:absolute; top:0; left:0; width:calc(100% / var(--fig-scale)); height:var(--fig-window-h);
+    transform:scale(var(--fig-scale)); transform-origin:0 0; overflow:hidden; background:var(--page-bg, var(--bg)); --vertical-tabs-w:248px;}
+  .native-page {position:absolute; top:var(--strip-h); right:0; bottom:0; left:0; overflow:hidden; background:var(--page-bg, var(--bg));}
+  .native-window[data-tab-layout="vertical"] .native-page {left:var(--vertical-tabs-w);}
+  .native-page img {position:absolute; top:0; left:50%; width:1280px; transform:translateX(-50%); display:block;}
+  #strip {position:relative; z-index:2;}
+  #islandPill {flex:none; max-width:none;}
+  .vertical-tabs-rail {position:absolute;}
+  /* chrome-layout.js calculateShieldBounds: the 404px view starts at the
+     chip's bottom edge, centred on it but kept 12px inside the window, with
+     the pointer over the chip; fitNativeWindow measures them. */
+  .native-shield-view {position:absolute; z-index:3; top:var(--view-y, 56px); left:var(--view-x, calc(50% - 202px)); width:404px; padding-top:10px;}
+  #shieldPopPointer {left:var(--pointer-x, 50%);}
+  #shieldPop {position:relative; inset:auto; margin:0 12px; max-height:none; overflow:visible;}
+`;
+// Fits the window to the figure: the full 1280px window while that keeps the
+// Island at 60% or more, else at 60%, or smaller still when the Island (with
+// its popover or the rail) would not fit. Inlined after the figure so it
+// applies while the page parses; it runs from its source text.
+function fitNativeWindow(figure: HTMLElement) {
+  const model = figure.querySelector('blanc-native-window') as HTMLElement;
+  const root = model?.shadowRoot;
+  const win = root?.querySelector('.native-window') as HTMLElement;
+  if (!win) return;
+  const pill = root.getElementById('islandPill'), chip = root.getElementById('pillShield');
+  const view = root.querySelector('.native-shield-view') as HTMLElement, rail = root.querySelector('.vertical-tabs-rail') as HTMLElement;
+  const place = () => {
+    const width = model.clientWidth;
+    const scale = parseFloat(getComputedStyle(model).getPropertyValue('--fig-scale')) || 1;
+    if (!width || !pill) return;
+    const origin = win.getBoundingClientRect();
+    const local = (r: DOMRect) => ({ left: (r.left - origin.left) / scale, width: r.width / scale, bottom: (r.bottom - origin.top) / scale });
+    const content = Math.max(local(pill.getBoundingClientRect()).width, view ? 404 : 0) + (rail ? rail.offsetWidth : 0) + 24;
+    const next = Math.max(width / 1280, Math.min(0.6, (width - 8) / content));
+    model.style.setProperty('--fig-scale', next.toFixed(4));
+    if (view && chip) {
+      const c = local(chip.getBoundingClientRect()), winWidth = width / next;
+      const center = c.left + c.width / 2;
+      const left = Math.max(12, Math.min(center - 202, winWidth - 404 - 12));
+      model.style.setProperty('--view-x', `${left.toFixed(2)}px`);
+      model.style.setProperty('--view-y', `${c.bottom.toFixed(2)}px`);
+      model.style.setProperty('--pointer-x', `${((center - left) / 404 * 100).toFixed(2)}%`);
+    }
+  };
+  place();
+  new ResizeObserver(place).observe(model);
+  document.fonts?.ready.then(place);
+}
+---
+<style is:inline set:html={`@font-face {font-family:Inter;src:url('${nativeFont}') format('woff2');font-style:normal;font-weight:100 900;font-display:swap;}@font-face {font-family:"Instrument Sans";src:url('${nativeTextFont}') format('woff2');font-style:normal;font-weight:400 700;font-stretch:75% 100%;font-display:swap;}`} />
+<div class:list={['demo-stage island-figure island-figure--native', className]} role="img" aria-label={label}>
+  <blanc-native-window class="native-window-model" data-appearance="light" style={`--fig-window-h:${height}px`} aria-hidden="true" inert>
+    <template shadowrootmode="open">
+      <style is:inline set:html={art.css + presentation} />
+      <div class="native-window mac" data-platform="darwin" data-theme={tab.private ? 'private' : undefined} data-tab-layout={rail ? 'vertical' : undefined} style={tone ? `--page-bg:${tone}` : undefined}>
+        <div class="native-page">{shot && <img src={shot} alt="" />}</div>
+        <Fragment set:html={art.rail + art.strip + art.popover} />
+      </div>
+    </template>
+  </blanc-native-window>
+</div>
+<script is:inline set:html={`(${fitNativeWindow.toString()})(document.currentScript.previousElementSibling);`} />

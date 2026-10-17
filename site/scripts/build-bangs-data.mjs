@@ -29,9 +29,14 @@ const CATALOG_PATH = 'src/renderer/pages/bangs-catalog.js';
 const MODULE_PATH = 'src/renderer/pages/bangs.js';
 const LICENSE_PATH = 'bangs/sources/kagi-bangs-LICENSE.txt';
 const MESSAGES_PATH = 'copy/messages/en.json';
-// The try-it box's hint and section labels, in the app's own English words
-// at the same ref, so a re-pin carries any copy change the release made.
-const LABEL_KEYS = { search: 'bang.search', open: 'bang.open', popular: 'bang.section.popular', all: 'bang.section.all' };
+// The try-it box's hint and section labels and the Island's hint line (a
+// bang typed, else the private-tab note the box's private panel shows), in
+// the app's own English words at the same ref, so a re-pin carries any copy
+// change the release made.
+const LABEL_KEYS = {
+  search: 'bang.search', open: 'bang.open', popular: 'bang.section.popular', all: 'bang.section.all',
+  hintBang: 'hint.bang', hintPrivate: 'hint.private',
+};
 
 // The catalog is about 1.5 MB; Node's default 1 MiB maxBuffer fails with ENOBUFS.
 function gitShow(ref, file) {

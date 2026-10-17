@@ -80,6 +80,8 @@ test('the try-it labels are the app’s English copy at the same ref', () => {
     open: messages['bang.open'].message,
     popular: messages['bang.section.popular'].message,
     all: messages['bang.section.all'].message,
+    hintBang: messages['hint.bang'].message,
+    hintPrivate: messages['hint.private'].message,
   });
 });
 
