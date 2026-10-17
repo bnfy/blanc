@@ -280,7 +280,7 @@ in `contract.json`. So does a new return value from one of the helper modules.
 
 ## Coverage today
 
-The surface is complete (100 members: 1 value, 59 `invoke`, 22 `send`, 18
+The surface is complete (111 members: 1 value, 64 `invoke`, 25 `send`, 21
 events), and every member's IPC behaviour is checked. Every parameter, result
 and event payload is typed:
 

@@ -220,9 +220,10 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "e58e9594cd7590eccbecc6f6c43abd3dc10674da625e3dc45e4ac362838423f9",
+      "sha256": "3809f93646245b24c881c32f5ea214297a7e51043dab80beffac0a2568b8c936",
       "literalChannels": [
         "activate",
+        "bangs:changed",
         "before-input-event",
         "before-mouse-event",
         "before-quit",
@@ -234,6 +235,7 @@
         "capture:stop",
         "chrome:adblock-exempt-active",
         "chrome:adblock-toggle",
+        "chrome:bangs",
         "chrome:blocking-popup",
         "chrome:blocking-provider",
         "chrome:capture-focus",
@@ -531,10 +533,12 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "d5333d1f54312d8c2095315235c59321e7ce2875404c3c823513df38cb2ed17f",
+      "sha256": "92a89a5f5900b12fafcfafd8b2d3405733cdb83239555209b3f64c12977e1c83",
       "literalChannels": [
+        "bangs:changed",
         "chrome:adblock-exempt-active",
         "chrome:adblock-toggle",
+        "chrome:bangs",
         "chrome:blocking-popup",
         "chrome:blocking-provider",
         "chrome:capture-focus",

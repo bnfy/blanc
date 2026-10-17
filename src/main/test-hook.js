@@ -876,6 +876,9 @@ function install(refs) {
       return settings.setSettings({ searchEngine: 'custom', searchEngineTemplate: template }).searchEngine;
     },
     setSearchSuggestions(on) { settings.setSettings({ searchSuggestions: !!on }); },
+    setBangsEnabled(on) { settings.setSettings({ bangsEnabled: !!on }); },
+    setCustomBangs(list) { return settings.setSettings({ customBangs: list }).customBangs; },
+    recentBangs() { return settings.getSettings().recentBangs; },
     setUsagePing(on) { settings.setSettings({ usagePing: !!on }); },
     searchSuggestions() { return settings.getSettings().searchSuggestions; },
     settingsSyncValues() { return settings.exportForSync().values; },
@@ -3315,6 +3318,8 @@ function install(refs) {
         verticalTabsWidth: 248,
         appIcon: 'sunrise',
         adblockExceptions: [],
+        bangsEnabled: true,
+        customBangs: [],
         onePasswordEnabled: false,
         onePasswordAccount: '',
         tabSleep: '1h',
@@ -3324,6 +3329,7 @@ function install(refs) {
         usagePing: false,
       });
       settings.setPatron(null);
+      settings.clearRecentBangs();
       clearTestSearchSuggestionFixture();
       setTestSearchNavigationCapture(false);
       broadcastTabs();

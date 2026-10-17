@@ -143,6 +143,12 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   moveWorkspaceTo: (id, index) => ipcRenderer.invoke('chrome:workspaces-move-to', id, index),
   undoRemoveWorkspace: (id) => ipcRenderer.invoke('chrome:workspaces-undo-remove', id),
   searchSuggestions: (query) => ipcRenderer.invoke('chrome:search-suggestions', query),
+  bangs: () => ipcRenderer.invoke('chrome:bangs'),
+  onBangsChanged: (callback) => {
+    const listener = (_event, payload) => callback(payload);
+    ipcRenderer.on('bangs:changed', listener);
+    return () => ipcRenderer.removeListener('bangs:changed', listener);
+  },
   onRemoteTabsUpdated: (callback) => {
     const listener = (_event, devices) => callback(devices);
     ipcRenderer.on('chrome:remote-tabs-updated', listener);
