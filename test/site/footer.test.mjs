@@ -36,7 +36,7 @@ const groups = {
 };
 const social = [
   'https://blancbrowser.substack.com/', 'https://www.instagram.com/blancbrowser/', 'https://www.threads.net/@blancbrowser',
-  'https://www.facebook.com/blancbrowser/', 'https://www.tiktok.com/@blancbrowser',
+  'https://www.facebook.com/blancbrowser/', 'https://www.tiktok.com/@blancbrowser', 'https://www.reddit.com/r/blancbrowser/',
 ];
 
 test('footer groups, legal links and conditional privacy choices render on every page', async () => {
