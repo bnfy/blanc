@@ -8,10 +8,11 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const overlay = fs.readFileSync(path.join(__dirname, '../../src/renderer/overlay.js'), 'utf8');
-const source = overlay.match(/\n {2}function scheduleSearchSuggestions\(\) \{[\s\S]*?\n {2}\}\n/)?.[0];
+const lift = (name) => overlay.match(new RegExp(`\\n {2}function ${name}\\([^)]*\\) \\{[\\s\\S]*?\\n {2}\\}\\n`))?.[0];
+const sources = ['suggestionsAllowed', 'scheduleSearchSuggestions'].map(lift);
 
-test('scheduleSearchSuggestions could be lifted from overlay.js', () => {
-  assert.ok(source, 'scheduleSearchSuggestions not found — update this test with it');
+test('scheduleSearchSuggestions and its gate could be lifted from overlay.js', () => {
+  assert.ok(sources.every(Boolean), 'a function was not found — update this test with it');
 });
 
 function schedule({ namePrompt }) {
@@ -25,11 +26,12 @@ function schedule({ namePrompt }) {
     addressInputComposing: false,
     suppressProviderSuggestions: false,
     namePrompt,
+    Bangs: { parseBang: () => null },
     suggestionRequestGeneration: 0,
     suggestionDebounce: null,
     setTimeout: (fn) => { timers.push(fn); return 1; },
   };
-  vm.runInNewContext(`${source}\nscheduleSearchSuggestions();`, sandbox);
+  vm.runInNewContext(`${sources.join('\n')}\nscheduleSearchSuggestions();`, sandbox);
   return timers.length;
 }
 

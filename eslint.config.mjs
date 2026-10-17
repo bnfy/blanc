@@ -56,9 +56,16 @@ export default [
     languageOptions: { globals: { blancI18n: 'readonly' } },
   },
   {
-    // overlay.html loads workspace-ui.js first; it publishes window.WorkspaceUI.
+    // overlay.html loads workspace-ui.js, pages/bangs.js and
+    // pages/bangs-catalog.js first; they publish window.WorkspaceUI,
+    // window.Bangs and window.BangsCatalog.
     files: ['src/renderer/overlay.js'],
-    languageOptions: { globals: { WorkspaceUI: 'readonly' } },
+    languageOptions: { globals: { WorkspaceUI: 'readonly', Bangs: 'readonly', BangsCatalog: 'readonly' } },
+  },
+  {
+    // settings.html loads bangs.js and bangs-catalog.js before settings.js.
+    files: ['src/renderer/pages/settings.js'],
+    languageOptions: { globals: { Bangs: 'readonly', BangsCatalog: 'readonly' } },
   },
   {
     // index.html loads space-identity.js first; it publishes window.SpaceIdentity.

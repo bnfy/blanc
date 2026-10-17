@@ -288,6 +288,122 @@
       window.bowserPages.settings.set({ searchEngine: searchEngine.value }));
   }
 
+  // --- Bangs: the switch and the person's own bangs ---
+  if (supports('bangsEnabled')) {
+    const bangsEnabled = document.getElementById('bangsEnabled');
+    bangsEnabled.checked = settings.bangsEnabled !== false;
+    bangsEnabled.addEventListener('change', () =>
+      window.bowserPages.settings.set({ bangsEnabled: bangsEnabled.checked }));
+
+    const bangCode = document.getElementById('customBangCode');
+    const bangName = document.getElementById('customBangName');
+    const bangTemplate = document.getElementById('customBangTemplate');
+    const bangAdd = document.getElementById('customBangAdd');
+    const bangList = document.getElementById('customBangList');
+    const bangError = document.getElementById('customBangError');
+    const bangReplaces = document.getElementById('customBangReplaces');
+    const bangHost = (template) => {
+      try { return new URL(template.replace('%s', 'x')).host; } catch { return ''; }
+    };
+    const showBangNotice = (error, replaces) => {
+      bangError.hidden = !error;
+      if (error) bangError.textContent = error;
+      bangReplaces.hidden = !replaces;
+      if (replaces) bangReplaces.textContent = replaces;
+    };
+
+    function renderCustomBangs(list) {
+      bangList.replaceChildren();
+      if (list.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'site-list-empty';
+        empty.textContent = t('settings.general.customBangs.empty');
+        bangList.append(empty);
+        return;
+      }
+      list.forEach((bang, index) => {
+        const row = document.createElement('div');
+        row.className = 'site-row';
+        const code = document.createElement('span');
+        code.className = 'custom-bang-code';
+        code.textContent = `!${bang.code}`;
+        code.dataset.i18nIgnore = '';
+        const name = document.createElement('span');
+        name.className = 'site-row-name';
+        name.textContent = bang.name;
+        name.dataset.i18nIgnore = '';
+        const host = document.createElement('span');
+        host.className = 'custom-bang-host';
+        host.textContent = bangHost(bang.template);
+        host.dataset.i18nIgnore = '';
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'site-row-remove';
+        remove.textContent = '×';
+        remove.setAttribute('aria-label', t('settings.general.customBangs.remove', { code: bang.code }));
+        remove.addEventListener('click', async () => {
+          const hadFocus = document.activeElement === remove;
+          siteRemovals = siteRemovals.then(async () => {
+            const { settings: saved } = await window.bowserPages.settings.get();
+            const next = await window.bowserPages.settings.set({
+              customBangs: (saved.customBangs ?? []).filter((b) => b.code !== bang.code),
+            });
+            renderCustomBangs(next.customBangs ?? []);
+            showBangNotice('', '');
+          }).catch((error) => console.error(error));
+          await siteRemovals;
+          if (!hadFocus) return;
+          const buttons = bangList.querySelectorAll('.site-row-remove');
+          (buttons[Math.min(index, buttons.length - 1)] ?? bangCode).focus();
+        });
+        row.append(code, name, host, remove);
+        bangList.append(row);
+      });
+    }
+
+    // Main is the sole validator: send the row, then look for it in what was
+    // stored. A duplicate code is refused here first, because the stored list
+    // would keep the earlier row and make the add look accepted.
+    async function addCustomBang() {
+      const code = bangCode.value.trim().replace(/^!/, '').toLowerCase();
+      const name = bangName.value.trim();
+      const template = bangTemplate.value.trim();
+      if (!code && !name && !template) return;
+      const { settings: current } = await window.bowserPages.settings.get();
+      const existing = current.customBangs ?? [];
+      if (existing.some((b) => b.code === code)) {
+        showBangNotice(t('settings.general.customBangs.duplicate', { code }), '');
+        return;
+      }
+      const intended = { code, name, template };
+      const next = await window.bowserPages.settings.set({ customBangs: [...existing, intended] });
+      const stored = (next.customBangs ?? []).find((b) =>
+        b.code === intended.code && b.name === intended.name && b.template === intended.template);
+      if (!stored) {
+        showBangNotice(t('settings.general.customBangsError'), '');
+        return; // leaves the draft in the fields to correct
+      }
+      renderCustomBangs(next.customBangs ?? []);
+      bangCode.value = '';
+      bangName.value = '';
+      bangTemplate.value = '';
+      const builtIn = Bangs.findBang(code, BangsCatalog, []);
+      showBangNotice('', builtIn ? t('settings.general.customBangs.replaces', { code, site: builtIn.name }) : '');
+      bangCode.focus();
+    }
+
+    bangAdd.addEventListener('click', addCustomBang);
+    for (const field of [bangCode, bangName, bangTemplate]) {
+      field.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') addCustomBang();
+      });
+    }
+    renderCustomBangs(settings.customBangs ?? []);
+  } else {
+    document.getElementById('customBangsBlock')?.remove();
+    document.getElementById('bangsEnabled')?.closest('.setting')?.remove();
+  }
+
   // --- Tab presentation (desktop-only, device-local) ---
   if (supports('tabLayout')) {
     const tabLayout = document.getElementById('tabLayout');

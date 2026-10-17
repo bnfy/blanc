@@ -65,6 +65,11 @@ const HOST_ASSETS = new Map([
     // The Spaces editor's colour picker, drawn inside the overlay (a native
     // colour panel would take focus and blur-dismiss the menu).
     ['/space-picker.js', 'space-picker.js'],
+    // Bangs: the pure parser/matcher and the generated Kagi catalog (data
+    // only, no IPC). They live under pages/ so the Settings page, served by
+    // pages.js, loads the same two files.
+    ['/pages/bangs.js', 'pages/bangs.js'],
+    ['/pages/bangs-catalog.js', 'pages/bangs-catalog.js'],
     ['/sunrise-hero-mark.png', 'sunrise-hero-mark.png'],
   ])],
   ['permission', new Map([

@@ -8,11 +8,11 @@ const test = require('node:test');
 
 const read = (file) => fs.readFileSync(path.join(__dirname, '../..', file), 'utf8');
 
-test('the resting hint is only the private-tab note', () => {
+test('the resting hint is only the private-tab note; a typed bang has its own', () => {
   const overlay = read('src/renderer/overlay.js');
   assert.doesNotMatch(overlay, /hint\.default/);
   assert.doesNotMatch(overlay, /hint\.groups/);
-  assert.match(overlay, /islandHint\.textContent = activeTab\(\)\?\.private \? blancI18n\.t\('hint\.private'\) : '';/);
+  assert.match(overlay, /islandHint\.textContent = bang\s*\? blancI18n\.t\('hint\.bang'\)\s*: activeTab\(\)\?\.private \? blancI18n\.t\('hint\.private'\) : '';/);
 });
 
 test('the hint reads at full strength and takes no space when empty', () => {

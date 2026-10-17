@@ -53,6 +53,7 @@ object BlancSettingsDefaults {
     const val searchEngineTemplate = ""
     const val searchSuggestions = true
     const val adblockEnabled = true
+    const val bangsEnabled = true
     const val homePage = ""
     val theme = BlancThemePreference.SYSTEM
     const val newtabDynamicWallpaper = false

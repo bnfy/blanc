@@ -73,3 +73,9 @@ ublock/adaptation.patch -whitespace
 /dark-reader/*.json text eol=lf
 /dark-reader/*.js text eol=lf
 /src/main/dark-websites-preload.js text eol=lf -whitespace
+
+# Bangs: Kagi's pinned list, its license, the pin and the generated catalog
+# are byte-checked (bangs:check, compliance:check).
+/bangs/sources/* text eol=lf
+/bangs/*.json text eol=lf
+/src/renderer/pages/bangs-catalog.js text eol=lf

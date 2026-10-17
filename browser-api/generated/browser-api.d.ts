@@ -546,6 +546,23 @@ export interface RemoteDevice {
   groups: RemoteGroup[];
 }
 
+/** A bang the person added in Settings, from settings.js normalizeCustomBangs(). */
+export interface CustomBang {
+  /** Lowercase; a letter or digit, then up to 31 letters, digits, hyphens or underscores. */
+  code: string;
+  name: string;
+  /** The search address with %s where the words go; the custom search address's rule. */
+  template: string;
+}
+
+/** The bang settings the Island draws its hint row and picker from, from bangsState() in main.js. */
+export interface BangsState {
+  enabled: boolean;
+  custom: CustomBang[];
+  /** Recently used primary codes, newest first, at most ten; device-local. */
+  recent: string[];
+}
+
 /** Search suggestions for the address bar, labelled with the engine that produced them. */
 export interface SearchSuggestions {
   engine: SearchEngineId;
@@ -1100,6 +1117,16 @@ export interface BlancBrowserAPI {
    * IPC: invoke `chrome:search-suggestions`.
    */
   searchSuggestions(query: string): Promise<SearchSuggestions>;
+  /**
+   * The bang settings: the switch, the person's own bangs and the recently used codes.
+   * IPC: invoke `chrome:bangs`.
+   */
+  bangs(): Promise<BangsState>;
+  /**
+   * The bang settings changed. Same projection as bangs().
+   * IPC: event `bangs:changed`.
+   */
+  onBangsChanged(callback: (payload: BangsState) => void): () => void;
   /**
    * Other devices' open tabs changed. Same projection as listRemoteTabs.
    * IPC: event `chrome:remote-tabs-updated`.

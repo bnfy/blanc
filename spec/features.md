@@ -1220,3 +1220,44 @@ A person can give any tab a name of their own, or keep the page's title.
   [`acceptance/tabs-and-groups.feature`](./acceptance/tabs-and-groups.feature)
   (`@F46`, bound in `test/desktop/steps/custom-tab-names.steps.js`);
   `test/unit/tab-name.test.js` and `test/unit/tab-rename-main.test.js`.
+
+## F47 — Bangs (desktop)
+
+`!yt lofi` in the address bar searches YouTube directly, for every search
+engine, without passing through it. Design:
+`docs/superpowers/specs/2026-10-16-bangs-design.md`.
+
+- **Typing.** A token `!code` (a letter or digit, then up to 31 letters,
+  digits, hyphens or underscores) at the start or the end of the text is a
+  bang; the first token wins. A known code puts a hint row at the top of the
+  ⌘L list, *Search YouTube for "lofi"* (or *Open YouTube* for a bare code,
+  which opens the site's home), over the Quick Switcher matches for the
+  words; Enter opens the site's results. A known bang wins over every
+  address rule in both the overlay and main. An unknown code searches the
+  text as typed with the usual engine.
+- **The picker.** `!` alone lists recently used bangs, then a fixed popular
+  set, under foldable headers; more letters filter the whole catalog by code
+  (shorter first) and site name, at most eight rows, the person's own bangs
+  first. Choosing a row fills `!code ` into the input.
+- **The list.** Kagi's open bang list (`bangs/sources/bangs.json`, MIT),
+  pinned by commit and hash and compiled into
+  `src/renderer/pages/bangs-catalog.js` by `bangs/build.mjs`; updating it is
+  a reviewed release input like the blocklists. Codes with a `.` and
+  templates that are not `https://` are dropped at build.
+- **Your bangs.** Settings → General: a switch (on by default, synced) and a
+  list of the person's own bangs (code, name, address with `%s`; synced as
+  one value, last writer wins). A custom code shadows a built-in code or
+  alias.
+- **Privacy.** A bang request goes only to the bang's site; nothing is sent
+  to Kagi. No search-suggestion request is made for bang-shaped text, known
+  or not, on or off, in the overlay or at main's boundary. Recently used
+  codes are device-local, never recorded from private tabs, and cleared
+  with history.
+- **Portability.** `src/renderer/pages/bangs.js` (the parser, resolver and
+  matcher) and the generated catalog have no Electron, Node or DOM
+  dependency, so another browser core takes them unchanged.
+- **Acceptance:**
+  [`acceptance/island-and-commands.feature`](./acceptance/island-and-commands.feature)
+  (`@F47`, bound in `test/desktop/steps/bangs.steps.js`);
+  `test/unit/bangs.test.js`, `bangs-build.test.js`, `bangs-settings.test.js`,
+  `bang-resolution.test.js` and `bangs-overlay.test.js`.

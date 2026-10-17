@@ -163,6 +163,10 @@
   let closedSectionOpen = false;
   // The Other devices drawer; closed on every fresh open of the panel.
   let devicesDrawerOpen = false;
+  // Bangs (`!yt lofi`): the settings main projects (switch, the person's own
+  // bangs, recents) and which picker sections are unfolded, for this window.
+  let bangsState = { enabled: true, custom: [], recent: [] };
+  const bangSectionsOpen = { recent: true, popular: true, all: true };
   // What Enter acts on — rebuilt on every list render.
   let visibleCommands = [];
   let visibleResults = [];
@@ -1467,6 +1471,8 @@
     if (result.kind === 'space') return `space:${result.workspace.id}`;
     if (result.kind === 'tab') return `tab:${result.tab.id}`;
     if (result.kind === 'search') return `search:${result.query.toLowerCase()}`;
+    if (result.kind === 'bang') return `bang:${result.code}:${result.query}`;
+    if (result.kind === 'bangPick') return `bangPick:${result.code}`;
     return `${result.kind}:${result.url}`;
   }
 
@@ -1474,6 +1480,14 @@
     // The Spaces menu closes the overlay itself after a switch, and keeps it
     // open when switching must first ask about this window's tabs.
     if (result.kind === 'space') { workspaceUI.switchTo(result.workspace); return; }
+    // A picker row fills the input and keeps the panel open; the hint row
+    // sends the typed text, not the URL, so main resolves the bang itself.
+    if (result.kind === 'bangPick') { fillBang(result.code); return; }
+    if (result.kind === 'bang') {
+      if (state.activeTabId) window.browserAPI.navigate(state.activeTabId, result.text);
+      window.browserAPI.closeOverlay();
+      return;
+    }
     if (result.kind === 'group') window.browserAPI.focusGroup(result.group.id);
     else if (result.kind === 'tab') window.browserAPI.switchTab(result.tab.id);
     else if (result.kind === 'remote') window.browserAPI.createTab(result.url, { focusAddress: false });
@@ -1537,6 +1551,131 @@
     row.append(leading, title, sub, tag);
     if (isEnterTarget) row.append(enterGlyph());
     row.addEventListener('click', () => pickResult(result));
+    return row;
+  }
+
+  // --- Bangs: the hint row and the `!` picker ---
+
+  /** What the list shows for bang-shaped input, or null to fall through to
+   * the normal list: the hint row for a known code (with the Quick Switcher
+   * matches for the words under it), and, for a bare `!` or a bare code, the
+   * picker's sections and rows. Folded sections keep their header and
+   * count; only unfolded rows are drawn or selectable. */
+  function bangResults(value) {
+    if (!bangsState.enabled) return null;
+    const text = value.trim();
+    const parsed = Bangs.parseBang(text);
+    if (!parsed && text !== '!') return null;
+    const resolved = parsed ? Bangs.resolveBang(text, BangsCatalog, bangsState.custom) : null;
+    const hint = resolved
+      ? {
+        kind: 'bang',
+        code: resolved.code,
+        name: resolved.name,
+        query: resolved.query,
+        url: resolved.url,
+        text,
+        title: resolved.query
+          ? blancI18n.t('bang.search', { site: resolved.name, query: resolved.query })
+          : blancI18n.t('bang.open', { site: resolved.name }),
+      }
+      : null;
+    // The picker lists while only a code (or nothing) follows the `!`.
+    const prefix = !parsed ? '' : parsed.query || parsed.position === 'end' ? null : parsed.code;
+    if (!hint && prefix === null) return null;
+    const sections = [];
+    const picks = [];
+    if (prefix !== null) {
+      const rows = Bangs.matchBangs(prefix, BangsCatalog, bangsState.custom, bangsState.recent, BangsCatalog.popular);
+      for (const section of ['recent', 'popular', 'all']) {
+        const inSection = rows.filter((row) => row.section === section);
+        if (!inSection.length) continue;
+        const open = bangSectionsOpen[section] !== false;
+        sections.push({ section, count: inSection.length, open });
+        if (open) picks.push(...inSection.map((row) => ({ kind: 'bangPick', ...row })));
+      }
+    }
+    const local = parsed && parsed.query ? switcherResults(parsed.query.toLowerCase()) : [];
+    return { hint, sections, picks, local };
+  }
+
+  /** Where the first Arrow Down lands: past row 0 when that row is already
+   * the bare-Enter target (search text, a strong local match, a bang hint),
+   * on row 0 when nothing is (address-shaped text, a picker). */
+  function arrowStartIndex() {
+    const first = visibleResults[0];
+    if (!first) return 0;
+    if (first.kind === 'bangPick') return 0;
+    if (first.kind !== 'bang' && looksLikeAddress(addressInput.value)) return 0;
+    return Math.min(1, visibleResults.length - 1);
+  }
+
+  /** A picker row was chosen: the code goes into the input, the words come next. */
+  function fillBang(code) {
+    addressInput.value = `!${code} `;
+    inputTouched = true;
+    selectedResultIndex = -1;
+    addressInput.focus();
+    addressInput.setSelectionRange(addressInput.value.length, addressInput.value.length);
+    scheduleSearchSuggestions();
+    renderList();
+  }
+
+  /** The hint row, drawn like a slash command: the code in accent ink, then
+   * a plain sentence. */
+  function bangRow(result, isActive, isEnterTarget) {
+    const row = document.createElement('div');
+    row.className = 'island-row' + (isActive ? ' active' : '');
+    const code = document.createElement('span');
+    code.className = 'row-cmd';
+    code.textContent = `!${result.code}`;
+    code.dataset.i18nIgnore = '';
+    const hint = document.createElement('span');
+    hint.className = 'row-hint';
+    hint.textContent = result.title;
+    row.append(code, hint);
+    if (isEnterTarget) row.append(enterGlyph());
+    row.addEventListener('click', () => pickResult(result));
+    return row;
+  }
+
+  function bangPickRow(result, isActive) {
+    const row = document.createElement('div');
+    row.className = 'island-row' + (isActive ? ' active' : '');
+    const code = document.createElement('span');
+    code.className = 'row-cmd';
+    code.textContent = `!${result.code}`;
+    code.dataset.i18nIgnore = '';
+    const name = document.createElement('span');
+    name.className = 'row-hint';
+    name.textContent = result.name;
+    name.dataset.i18nIgnore = '';
+    const sub = document.createElement('span');
+    sub.className = 'row-sub';
+    sub.textContent = result.custom ? blancI18n.t('bang.yours') : result.domain;
+    if (!result.custom) sub.dataset.i18nIgnore = '';
+    row.append(code, name, sub);
+    row.addEventListener('click', () => pickResult(result));
+    return row;
+  }
+
+  /** A picker section header: the group-header look, folded or not, bound
+   * to this window's bangSectionsOpen rather than to a tab group. */
+  function bangHeaderRow(section, count) {
+    const row = document.createElement('div');
+    row.className = 'island-ghead';
+    row.innerHTML = `${CARET}<span class="ghead-name dim"></span><span class="ghead-n"></span>`;
+    const label = section === 'recent'
+      ? blancI18n.t('bang.section.recent')
+      : section === 'popular' ? blancI18n.t('bang.section.popular') : blancI18n.t('bang.section.all');
+    row.querySelector('.ghead-name').textContent = label;
+    row.querySelector('.caret').classList.toggle('open', bangSectionsOpen[section] !== false);
+    row.querySelector('.ghead-n').textContent = String(count);
+    row.title = bangSectionsOpen[section] !== false ? blancI18n.t('bang.fold') : blancI18n.t('bang.unfold');
+    row.addEventListener('click', () => {
+      bangSectionsOpen[section] = bangSectionsOpen[section] === false;
+      renderList();
+    });
     return row;
   }
 
@@ -1683,6 +1822,7 @@
       : '';
     visibleCommands = [];
     visibleResults = [];
+    const bang = !siteInfoOpen && inputTouched && !value.startsWith('/') ? bangResults(value) : null;
 
     // A name prompt owns the panel: one line saying what Enter does (or why
     // a name was refused), and no switcher results for the name being typed.
@@ -1697,6 +1837,35 @@
 
     if (siteInfoOpen) {
       renderSiteInfo();
+    } else if (bang) {
+      visibleResults = [...(bang.hint ? [bang.hint] : []), ...bang.picks, ...bang.local];
+      if (selectedKey) {
+        selectedResultIndex = visibleResults.findIndex((result) => resultKey(result) === selectedKey);
+      } else if (selectedResultIndex >= visibleResults.length) {
+        selectedResultIndex = -1;
+      }
+      // The hint row is the bare-Enter target; a picker has none until an
+      // arrow chooses a row.
+      const activeIndex = selectedResultIndex >= 0 ? selectedResultIndex : bang.hint ? 0 : -1;
+      const nodes = [];
+      let i = 0;
+      if (bang.hint) { nodes.push(bangRow(bang.hint, activeIndex === 0, activeIndex === 0)); i = 1; }
+      for (const { section, count, open } of bang.sections) {
+        nodes.push(bangHeaderRow(section, count));
+        if (!open) continue;
+        for (const pick of bang.picks.filter((p) => p.section === section)) {
+          nodes.push(bangPickRow(pick, i === activeIndex));
+          i += 1;
+        }
+      }
+      for (const result of bang.local) {
+        nodes.push(resultRow(result, i === activeIndex, i === activeIndex));
+        i += 1;
+      }
+      islandList.replaceChildren(...(nodes.length ? nodes : [emptyRow(blancI18n.t('list.noMatches'))]));
+      // The uncapped picker can outgrow the panel; an arrowed row must be
+      // where the person can see it, as the Glance picker already does.
+      islandList.querySelector('.island-row.active')?.scrollIntoView({ block: 'nearest' });
     } else if (inputTouched && value.startsWith('/')) {
       selectedResultIndex = -1;
       const slashWord = value.trim().split(/\s+/)[0];
@@ -1794,11 +1963,13 @@
     // command steps it aside until the field is clear again.
     renderDevicesDrawer(!siteInfoOpen && !(inputTouched && (value.startsWith('/') || value.trim())), rowAnchor);
 
-    // The hint line keeps only the private-tab note (and the site-info notes,
-    // written by renderSiteInfo); the address field and the Shortcuts sheet
-    // already teach "/" and ⌘1–9.
+    // The hint line keeps only the bang hint while a bang is typed and the
+    // private-tab note (and the site-info notes, written by renderSiteInfo);
+    // the address field and the Shortcuts sheet already teach "/" and ⌘1–9.
     if (!siteInfoOpen) {
-      islandHint.textContent = activeTab()?.private ? blancI18n.t('hint.private') : '';
+      islandHint.textContent = bang
+        ? blancI18n.t('hint.bang')
+        : activeTab()?.private ? blancI18n.t('hint.private') : '';
     }
   }
 
@@ -1845,22 +2016,28 @@
     searchProviderLabel = null;
   }
 
+  /** Whether typed text may go to the suggestion service. Provider
+   * autocomplete is intentionally off in private tabs: typed prefixes stay
+   * local until the user explicitly submits a search. Bang-shaped text
+   * (known or not, bangs on or off) never goes: the words beside a bang are
+   * meant for one site. Main refuses the same text at its boundary. A name
+   * prompt (Rename Group…) is not a search at all. */
+  function suggestionsAllowed(query) {
+    return !namePrompt
+      && inputTouched
+      && query.length >= 2
+      && !query.startsWith('/')
+      && !looksLikeAddress(query)
+      && !activeTab()?.private
+      && !addressInputComposing
+      && !suppressProviderSuggestions
+      && Bangs.parseBang(query) === null;
+  }
+
   function scheduleSearchSuggestions() {
     resetSearchSuggestions();
     const query = addressInput.value.trim();
-    // Provider autocomplete is intentionally off in private tabs: typed
-    // prefixes stay local until the user explicitly submits a search. A name
-    // prompt (Rename Group…) is not a search at all.
-    if (
-      namePrompt
-      || !inputTouched
-      || query.length < 2
-      || query.startsWith('/')
-      || looksLikeAddress(query)
-      || activeTab()?.private
-      || addressInputComposing
-      || suppressProviderSuggestions
-    ) return;
+    if (!suggestionsAllowed(query)) return;
 
     const generation = suggestionRequestGeneration;
     suggestionDebounce = setTimeout(async () => {
@@ -2818,9 +2995,7 @@
       e.preventDefault();
       if (selectedResultIndex < 0) {
         selectedResultIndex = e.key === 'ArrowDown'
-          // Search text already highlights its bare-Enter target, so Down moves
-          // past it. Address-shaped input has no such target and starts at row 0.
-          ? (looksLikeAddress(addressInput.value) ? 0 : Math.min(1, visibleResults.length - 1))
+          ? arrowStartIndex()
           : visibleResults.length - 1;
       } else {
         const delta = e.key === 'ArrowDown' ? 1 : -1;
@@ -2836,6 +3011,13 @@
       // Arrow navigation is an explicit choice, so it may select a completion,
       // weak local match, or local result while address-shaped text is typed.
       pickResult(visibleResults[selectedResultIndex]);
+    } else if (visibleResults[0]?.kind === 'bang') {
+      // The hint row is the bare-Enter target whatever the words look like.
+      pickResult(visibleResults[0]);
+    } else if (visibleResults[0]?.kind === 'bangPick' && addressInput.value.trim() === '!') {
+      // The picker alone: Enter does nothing rather than search for "!".
+      // A bare unknown code (`!ddgbang`) falls through to the final branch
+      // and searches as typed, as an unknown bang with words would.
     } else if (
       visibleResults.length
       && !looksLikeAddress(addressInput.value)
@@ -2896,16 +3078,18 @@
   // --- State sync ---
 
   async function refreshSwitcherData() {
-    const [favoritesList, historyList, remoteList, workspacesPayload] = await Promise.all([
+    const [favoritesList, historyList, remoteList, workspacesPayload, bangsPayload] = await Promise.all([
       window.browserAPI.listFavorites(),
       window.browserAPI.listHistory({ limit: 300 }),
       window.browserAPI.listRemoteTabs(),
       window.browserAPI.listWorkspaces(),
+      window.browserAPI.bangs(),
     ]);
     favorites = favoritesList;
     historyEntries = historyList;
     remoteDevices = remoteList;
     applyWorkspacesPayload(workspacesPayload);
+    bangsState = bangsPayload;
     // Data lands after the panel already rendered — refresh it.
     if (mode === 'panel' || mode === 'palette') renderList();
   }
@@ -2932,6 +3116,12 @@
   // when the panel-open refresh's pull lands (tab sync).
   window.browserAPI.onRemoteTabsUpdated((devices) => {
     remoteDevices = devices;
+    if (mode === 'panel' || mode === 'palette') renderList();
+  });
+  // The bang settings changed (Settings, Profile Sync, a bang used, history
+  // cleared): the hint row and picker follow without a relaunch.
+  window.browserAPI.onBangsChanged((payload) => {
+    bangsState = payload;
     if (mode === 'panel' || mode === 'palette') renderList();
   });
   // Freshness for the workspaces section: a switch/rename/delete anywhere
