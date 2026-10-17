@@ -1546,6 +1546,9 @@
   // menu key / VoiceOver open the row menu from the focused row).
   function focusedRowAnchor() {
     const el = document.activeElement;
+    // A synced device's header in the Other devices drawer.
+    const device = el?.closest?.('[data-device-id]');
+    if (device && islandDrawer.contains(device)) return { deviceId: device.dataset.deviceId };
     const header = el?.closest?.('[data-drag-header]');
     if (header && islandList.contains(header)) return { groupId: header.dataset.groupId };
     const row = el && el.closest && el.closest('.island-row[data-tab-id]');
@@ -1774,7 +1777,7 @@
 
     // The drawer shows only beside the resting list: typing a query or a
     // command steps it aside until the field is clear again.
-    renderDevicesDrawer(!siteInfoOpen && !(inputTouched && (value.startsWith('/') || value.trim())));
+    renderDevicesDrawer(!siteInfoOpen && !(inputTouched && (value.startsWith('/') || value.trim())), rowAnchor);
 
     // The hint line keeps only the private-tab note (and the site-info notes,
     // written by renderSiteInfo); the address field and the Shortcuts sheet
@@ -1786,7 +1789,7 @@
 
   /** Other devices (spec 2026-10-16 §6): the footer toggle, hidden with no
    * other device to show, and the drawer between the list and the footer. */
-  function renderDevicesDrawer(resting) {
+  function renderDevicesDrawer(resting, anchor = null) {
     footerDevices.hidden = !remoteDevices.length;
     footerDevicesCount.textContent = String(remoteDevices.length);
     const show = resting && devicesDrawerOpen && remoteDevices.length > 0;
@@ -1804,6 +1807,9 @@
       }
     }
     islandDrawer.replaceChildren(...rows);
+    // Unfolding a device, or any re-render while the drawer is open, keeps
+    // keyboard focus on the device header it was on.
+    if (anchor?.deviceId) islandDrawer.querySelector(`[data-device-id="${CSS.escape(anchor.deviceId)}"]`)?.focus();
   }
 
   function renderPanel() {

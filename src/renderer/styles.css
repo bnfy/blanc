@@ -2923,10 +2923,12 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
 
 /* The Other devices drawer, between the tab list and the footer. While the
    panel has room it grows, as unfolding a group does; at the panel's maximum
-   the drawer keeps about six rows and the tab list above gives up the space. */
+   the drawer keeps about six rows and the tab list above gives up the space.
+   In a short window the cap shrinks with it (about 290px of panel chrome plus
+   two list rows stay clear), never below two rows of its own. */
 #islandDrawer {
   flex: 0 0 auto;
-  max-height: 204px;
+  max-height: clamp(76px, calc(100vh - 290px), 204px);
   overflow-y: auto;
   overscroll-behavior: contain;
   margin-top: 6px;

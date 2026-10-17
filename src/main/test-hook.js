@@ -2781,9 +2781,16 @@ function install(refs) {
       clearFocusObservation();
       return result;
     },
-    injectRemoteDevices() {
-      pushRemoteDevices(remoteFixture);
-      return structuredClone(remoteFixture);
+    /** `count` > 1 adds numbered copies of the fixture device, for a drawer
+     * taller than its height cap. */
+    injectRemoteDevices(count = 1) {
+      const devices = Array.from({ length: Math.max(1, count) }, (_, index) => (index === 0 ? remoteFixture[0] : {
+        ...remoteFixture[0],
+        deviceId: `${remoteFixture[0].deviceId}-${index + 1}`,
+        name: `${remoteFixture[0].name} ${index + 1}`,
+      }));
+      pushRemoteDevices(devices);
+      return structuredClone(devices);
     },
     clearRemoteDevices() { pushRemoteDevices([]); },
     // Mirrors addressResultRows' favicon reporting so the start page and the

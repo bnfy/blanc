@@ -56,3 +56,15 @@ test('Other devices is a plain text toggle, not a pill', () => {
   assert.doesNotMatch(states, /accent-dim/);
   assert.match(styles, /\.footer-new\.devices\[aria-expanded="true"\] \.devices-caret \{[^}]*rotate\(180deg\)/);
 });
+
+test('the Other devices glyph keeps the laptop base clear of the phone', () => {
+  const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../src/renderer/overlay.html'), 'utf8');
+  const svg = html.match(/<button id="footerDevices"[\s\S]*?<svg viewBox="0 0 16 16">([\s\S]*?)<\/svg>/)?.[1] ?? '';
+  const base = svg.match(/<path d="M([\d.]+) [\d.]+h([\d.]+)"\/>/);
+  const rects = [...svg.matchAll(/<rect x="([\d.]+)"/g)].map((m) => Number(m[1]));
+  assert.ok(base && rects.length === 2, `laptop base and two rects: ${svg}`);
+  const stroke = 1.5;
+  const baseRight = Number(base[1]) + Number(base[2]) + stroke / 2; // round cap
+  const phoneLeft = Math.max(...rects) - stroke / 2;
+  assert.ok(baseRight < phoneLeft, `base ends at ${baseRight}, phone starts at ${phoneLeft}`);
+});

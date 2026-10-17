@@ -91,6 +91,8 @@ Feature: Tab sync (open tabs from other devices)
     And the tab list shows no device rows
     When I toggle Other devices
     Then the Other devices drawer lists "Press Mac" between the tab list and the footer
+    When I unfold "Press Mac" from the keyboard
+    Then keyboard focus stays on the "Press Mac" header
     When I toggle Other devices
     Then the Other devices drawer is closed
     When I toggle Other devices
@@ -112,3 +114,12 @@ Feature: Tab sync (open tabs from other devices)
     Given no other device is sharing its tabs
     When I open the Island panel for other devices
     Then there is no Other devices button
+
+  @F27-12 @F27 @desktop
+  Scenario: The Other devices drawer leaves the tab list room in a small window
+    Given ten tabs are open
+    And eight other devices are sharing their tabs
+    And the window is 640 by 480 with the Island at 125%
+    When I open the Island panel for other devices
+    And I toggle Other devices
+    Then the tab list keeps at least two rows and the footer stays in the window
