@@ -139,8 +139,25 @@ original reports:
   and a plain `http://` address is accepted only for this computer or the
   local network. Kagi needs a Kagi account, and private tabs don't share its
   sign-in. Kagi shows live suggestions; a custom engine shows none. Do not
-  claim search keywords or shortcuts, several saved custom engines, OpenSearch
-  auto-discovery, or suggestions for custom engines.
+  claim Chrome-style search-engine keywords, several saved custom engines,
+  OpenSearch auto-discovery, or suggestions for custom engines. Bangs are a
+  separate feature with their own entry below.
+- **Bangs:** Not yet in a public release; merged on October 17, 2026 (#876)
+  and described on the candidate `/bangs` page, which may not go live before
+  the release that ships it. Once shipped: typing `!` and a site's code with a
+  search, such as `!yt lofi` or `lofi !yt`, opens that site's results
+  directly, resolved inside Blanc for every search engine; a code alone opens
+  the site's home page; `!` alone lists recently used and popular bangs; more
+  letters filter the whole list by code or site name. The list is Kagi's open
+  bang list (MIT), bundled and changed only by a Blanc update, with no online
+  lookup. Qualify every privacy claim: Blanc opens the bang's own address and
+  never sends the words to the selected search engine first, but a few bangs
+  (37 in the first list) are another engine's search limited to one site, so
+  never claim a bang avoids every search engine. No suggestions are requested
+  while a bang is in the box; text typed before a trailing bang may already
+  have been sent. Your bangs (Settings → General) sync only with Profile Sync
+  on. Recently used bangs stay on the device and are never recorded from
+  private tabs. Never imply Kagi endorses Blanc.
 - **Fresh optional connections:** Search suggestions and usage measurement
   are preselected on in fresh-install setup. Optional sends are gated until
   the user saves their choices; either can be turned off before continuing

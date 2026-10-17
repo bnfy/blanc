@@ -338,6 +338,33 @@ test('v1.35.0 site copy resolves to verified public v1.35.0 evidence', () => {
   }
 });
 
+// Bangs page copy, written before the release that ships bangs (owner
+// decision, October 17, 2026). Pinned to the bangs merge commit until that
+// release; then it becomes the release's ledger and this test goes.
+test('candidate bangs copy resolves to the bangs merge commit', () => {
+  const candidate = JSON.parse(read('docs/website-candidate-claims-bangs.json'));
+  const bangsData = JSON.parse(read('site/src/data/bangs.json'));
+  assert.equal(candidate.status, 'candidate');
+  assert.equal(candidate.release, null);
+  assert.match(candidate.ownerDecision, /October 17, 2026/);
+  assert.equal(execFileSync('git', ['rev-parse', `${candidate.sourceSha}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), candidate.sourceSha);
+  execFileSync('git', ['merge-base', '--is-ancestor', 'v1.35.0', candidate.sourceSha], { cwd: root });
+  assert.equal(candidate.sourceSha, bangsData.ref, 'the copy and the bang data are pinned to the same commit');
+  for (const claim of candidate.claims) {
+    assert.equal(claim.verdict, 'qualified', claim.id);
+    assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: exact wording drifted`);
+    for (const key of claim.evidenceGroups) {
+      const group = candidate.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, `${claim.id}: evidence and qualification`);
+      for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${candidate.sourceSha}:${evidence}`], { cwd: root });
+    }
+  }
+  for (const [key, group] of Object.entries(candidate.evidenceGroups)) {
+    assert.ok(group.qualification && group.evidence.length, key);
+    for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${candidate.sourceSha}:${evidence}`], { cwd: root });
+  }
+});
+
 test('public product captures match their reviewed dimensions, hashes, and source release', () => {
   const manifests = [
     ['docs/website-captures-v1.15.json', historicalLedger.publicRelease, historicalLedger.sourceSha, 10],

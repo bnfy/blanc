@@ -1,0 +1,55 @@
+{
+  "status": "candidate",
+  "candidateFor": "the release that ships bangs (F47)",
+  "release": null,
+  "sourceSha": "081c965bb35058be5fc4d789e53c11c6ce38d607",
+  "sourceNote": "main at Bangs (#876), the merge that added bangs; the /bangs page's data is pinned to the same commit (site/src/data/bangs.json)",
+  "ownerDecision": "On October 17, 2026 the owner chose to build the bangs page, its Features board tile and its homepage card now, and to merge and deploy them only after the release that ships bangs is public, so no visitor reads about bangs before they can use them.",
+  "publishGate": "Do not merge or deploy while release is null. Once the release that ships bangs is public, move these claims to a ledger tied to that release's tag, regenerate site/src/data/bangs.json at the tag, and retire this file and its test (plan docs/superpowers/plans/2026-10-17-bangs-page.md, Task 9).",
+  "evidenceGroups": {
+    "bangsCore": {
+      "evidence": [
+        "spec/features.md",
+        "src/renderer/pages/bangs.js",
+        "test/unit/bangs.test.js",
+        "spec/acceptance/island-and-commands.feature"
+      ],
+      "qualification": "A bang is `!` plus a site's code at the start or the end of the text, resolved inside Blanc for every search engine; a known code shows a hint row and Enter opens the bang's address; a bare code opens the site's home; `!` alone lists recent and popular bangs and more letters filter by code or site name; an unknown code searches as typed. Desktop only."
+    },
+    "bangsTryIt": {
+      "evidence": [
+        "src/renderer/pages/bangs.js",
+        "src/renderer/pages/bangs-catalog.js",
+        "test/unit/bangs-overlay.test.js"
+      ],
+      "qualification": "The page's try-it box runs a byte copy of bangs.js and the catalog at this commit, so its hint rows and addresses match the app's; it shows no recents, no custom bangs and no open tabs, and it never navigates or sends what is typed."
+    },
+    "bangsPrivacy": {
+      "evidence": [
+        "src/main/main.js",
+        "src/main/bang-resolution.js",
+        "test/unit/bang-resolution.test.js",
+        "src/main/settings.js"
+      ],
+      "qualification": "Blanc resolves the bang itself and opens the bang's own address, never the selected search engine first; 37 bangs at this commit open another search engine's search of one site and the directory marks them. No suggestion request is made while a bang-shaped token is in the box (text typed before a trailing bang may already have been sent). Recently used codes stay on the device, are never recorded from private tabs, and are cleared with history."
+    },
+    "bangsCustom": {
+      "evidence": [
+        "src/main/settings.js",
+        "src/renderer/pages/settings.js",
+        "test/unit/bangs-settings.test.js"
+      ],
+      "qualification": "Settings, General, Your bangs takes a code, a name and a search address with %s (https, or http only to this computer or the home network); the list syncs only when Profile Sync is on, and the device that saves last wins."
+    },
+    "bangsList": {
+      "evidence": [
+        "bangs/pinned.json",
+        "bangs/build.mjs",
+        "THIRD-PARTY-NOTICES.md",
+        "compliance/policy.json"
+      ],
+      "qualification": "The list is Kagi's open bang list (MIT) at a pinned commit, bundled in the app and changed only by a Blanc update; Blanc makes no request for it. 10,624 bangs at this commit. Not an endorsement by Kagi."
+    }
+  },
+  "claims": []
+}
