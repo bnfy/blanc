@@ -864,6 +864,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="import_folder_other">Altri preferiti</string>
     <string name="import_folder_mobile">Preferiti per dispositivi mobili</string>
     <string name="about_credits">Browser indipendente di Bananify.</string>
+    <string name="about_chromium">Chromium %1$s</string>
     <string name="settings_page_title">Impostazioni</string>
     <string name="pages_nav_settings">Impostazioni</string>
     <string name="pages_nav_bookmarks">Preferiti</string>

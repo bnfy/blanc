@@ -8474,7 +8474,7 @@ function buildMenuForRuntime(runtime) {
     ? [{
         label: app.name,
         submenu: [
-          { role: 'about', label: t('menu.app.about', { app: app.name }) },
+          { label: t('menu.app.about', { app: app.name }), click: bound(() => showAboutPanel({ app, t })) },
           { label: t('menu.checkForUpdates'), click: bound(checkForUpdatesManually) },
           { type: 'separator' },
           { role: 'services', label: t('menu.app.services') },

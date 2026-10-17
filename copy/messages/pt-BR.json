@@ -2975,7 +2975,11 @@
   },
   "about.credits": {
     "message": "Navegador independente da Bananify.",
-    "source": "sha256:eb9ba521f2c478e41ca65b7fdbb352973124439ffa8287c57abf5102a5931698"
+    "source": "sha256:12417ee2f50743239bc37f278023747206a650fbd0729ebb6538f1143d60f003"
+  },
+  "about.chromium": {
+    "message": "Chromium {version}",
+    "source": "sha256:9305cd05222687ea0426423b5b88d4dc5e4eca3cf5e00cc04c7e389c119a5f7c"
   },
   "settings.page.title": {
     "message": "Configurações",

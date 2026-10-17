@@ -3034,7 +3034,11 @@
   },
   "about.credits": {
     "message": "Independent browser by Bananify.",
-    "note": "macOS About panel credits line; Bananify is the company name."
+    "note": "About panel credits line on Windows; Bananify is the company name."
+  },
+  "about.chromium": {
+    "message": "Chromium {version}",
+    "note": "About panel line naming the browser engine Blanc runs on; {version} is its full version number, such as 152.0.7977.167. Chromium is a product name."
   },
   "settings.page.title": {
     "message": "Settings",

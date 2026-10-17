@@ -165,6 +165,7 @@
   },
   "sameAsSource": {
     "de": [
+      "about.chromium",
       "settings.language.system",
       "glance.eyebrow",
       "pill.downloads",
@@ -216,6 +217,7 @@
       "result.tag.space"
     ],
     "es": [
+      "about.chromium",
       "key.ctrl",
       "glance.eyebrow",
       "dialog.ok",
@@ -253,6 +255,7 @@
       "result.tag.space"
     ],
     "fr": [
+      "about.chromium",
       "key.ctrl",
       "glance.eyebrow",
       "dialog.ok",
@@ -296,6 +299,7 @@
       "result.tag.space"
     ],
     "pt-BR": [
+      "about.chromium",
       "key.ctrl",
       "key.shift",
       "pill.downloads",
@@ -335,6 +339,7 @@
       "result.tag.space"
     ],
     "it": [
+      "about.chromium",
       "key.ctrl",
       "glance.eyebrow",
       "dialog.ok",

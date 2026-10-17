@@ -837,6 +837,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="import_folder_other">Weitere Lesezeichen</string>
     <string name="import_folder_mobile">Mobile Lesezeichen</string>
     <string name="about_credits">Unabhängiger Browser von Bananify.</string>
+    <string name="about_chromium">Chromium %1$s</string>
     <string name="settings_page_title">Einstellungen</string>
     <string name="pages_nav_settings">Einstellungen</string>
     <string name="pages_nav_bookmarks">Favoriten</string>
