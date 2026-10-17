@@ -2,7 +2,7 @@
   "publicRelease": "v1.35.0",
   "sourceSha": "95e1c2c1adb26bc223dfd8a4f98246984d43bd89",
   "releaseEvidence": "docs/release-incidents/2026-10-16-v1.35.0.md",
-  "scope": "Site copy verified against public v1.35.0: renamable tab titles on /features (added October 16, 2026 before the release went out, as candidates in docs/website-candidate-claims-v1.35.0.json, now retired) and the six interface languages.",
+  "scope": "Site copy verified against public v1.35.0: renamable tab titles on /features (added October 16, 2026 before the release went out, as candidates in docs/website-candidate-claims-v1.35.0.json, now retired) and the six interface languages. Also, from October 17, 2026: the newsletter signup card and its Privacy Policy disclosure, and the Blanc Patron page (/patron), whose copy repeats Patron facts already published on the Terms, Privacy and About pages.",
   "evidenceGroups": {
     "renameTabs": {
       "evidence": [
@@ -23,6 +23,30 @@
         "src/main/i18n.js"
       ],
       "qualification": "Every translation is status selectable in v1.35.0 (Italian since v1.33.0); machine-made. The interface follows the system language when it matches, or Settings → General → Language, applied after a relaunch. Web pages are not translated."
+    },
+    "newsletterPrompt": {
+      "evidence": [
+        "cloudflare/newsletter-worker/src/index.js",
+        "site/src/components/NewsletterForm.astro"
+      ],
+      "qualification": "Website only, not a browser feature. The signup card (site/src/components/NewsletterPrompt.astro, added after v1.35.0) posts the same {email, website} body to the same /subscribe route as the v1.35.0 footer form, so the double opt-in, retention and honeypot contract the Privacy Policy describes is unchanged. The card itself sends nothing; it keeps one localStorage entry (blanc-newsletter-prompt-v1) with a Not now time or a request time."
+    },
+    "privacyRevision": {
+      "evidence": [
+        "site/src/pages/privacy.astro"
+      ],
+      "qualification": "The Privacy Policy's October 17, 2026 revision only adds the newsletter signup card and its browser-local entry; every other data flow it describes is unchanged."
+    },
+    "patronPage": {
+      "evidence": [
+        "src/main/patron.js",
+        "src/renderer/pages/settings.html",
+        "docs/polar-setup.md",
+        "site/src/pages/terms.astro",
+        "site/src/pages/privacy.astro",
+        "site/src/pages/about.astro"
+      ],
+      "qualification": "Patron is optional support and unlocks nothing (public since v1.33.0). One Polar checkout link sells the US$4 monthly and US$30 annual plans and the buyer chooses at checkout (docs/polar-setup.md); v1.35.0 Settings → Blanc Patron takes the license key found under Purchases in Polar and offers the same link. Cancellation, refunds and the merchant of record are Polar's under the Terms; the daily subscription check-in data is as the Privacy Policy states. Earlier one-time Supporter licenses activate as lifetime Patron access."
     }
   },
   "claims": [
@@ -102,6 +126,158 @@
       ],
       "verdict": "qualified",
       "replaces": "site-132-features-07"
+    },
+    {
+      "id": "v135-008",
+      "source": "site/src/pages/privacy.astro",
+      "exactWording": "Submitting the footer form, or the small signup card that some pages show after you have read for a while, does not immediately subscribe an address. The newsletter Worker temporarily stores the address, request time, and opaque confirmation/unsubscribe material for up to 24 hours and asks Resend to deliver a confirmation email. Resend therefore processes the address for that delivery under its privacy policy. The Worker uses short-lived per-IP rate-limit keys, expiring after about two minutes, but does not attach an IP address to the subscriber record.",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "newsletterPrompt"
+      ],
+      "verdict": "qualified",
+      "replaces": "trust-125-332"
+    },
+    {
+      "id": "v135-009",
+      "source": "site/src/pages/privacy.astro",
+      "exactWording": "The signup card sends nothing on its own. To avoid asking again, it keeps one entry in your browser’s local storage recording when you chose Not now (it stays away for 60 days) or asked to subscribe (it stays away for good). That entry never leaves your browser; clearing site data removes it.",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "newsletterPrompt"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v135-010",
+      "source": "site/src/pages/privacy.astro",
+      "exactWording": "Last updated October 17, 2026",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "privacyRevision"
+      ],
+      "verdict": "qualified",
+      "replaces": "v134-1p-003"
+    },
+    {
+      "id": "v135-011",
+      "source": "site/src/components/NewsletterPrompt.astro",
+      "exactWording": "An occasional email when a new version of Blanc ships, with what changed. Confirm by email, and unsubscribe in one click.",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "newsletterPrompt"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v135-p01",
+      "source": "site/src/pages/patron.astro",
+      "exactWording": "Blanc Patron is the optional subscription that funds Blanc’s development. Blanc has no venture funding and is not funded by selling ads, so Patrons help pay for its development directly. Every feature stays free for everyone.",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "patronPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v135-p02",
+      "source": "site/src/pages/patron.astro",
+      "exactWording": "US$2.50 a month, billed yearly.",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "patronPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v135-p03",
+      "source": "site/src/pages/patron.astro",
+      "exactWording": "Plus applicable tax. Choose monthly or annual at checkout. Cancel anytime.",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "patronPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v135-p04",
+      "source": "site/src/pages/patron.astro",
+      "exactWording": "Polar, the merchant of record, takes the payment, adds any applicable tax and sends the receipt. Pick monthly or annual at checkout.",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "patronPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v135-p05",
+      "source": "site/src/pages/patron.astro",
+      "exactWording": "After checkout, your Blanc Patron license key is under Purchases in Polar.",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "patronPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v135-p06",
+      "source": "site/src/pages/patron.astro",
+      "exactWording": "Open Blanc’s Settings, go to Blanc Patron, paste the key and choose Activate.",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "patronPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v135-p07",
+      "source": "site/src/pages/patron.astro",
+      "exactWording": "No. Every feature, including ad and tracker blocking, private tabs, tab groups, Blanc Spaces and optional encrypted Sync, is free for everyone. Patron is support, not a paywall.",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "patronPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v135-p08",
+      "source": "site/src/pages/patron.astro",
+      "exactWording": "You can cancel anytime through Polar, and your Patron benefits continue until the end of the period you paid for. Ending a subscription changes nothing in the browser.",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "patronPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v135-p09",
+      "source": "site/src/pages/patron.astro",
+      "exactWording": "Thank you. Earlier one-time supporters keep their lifetime Patron access, with nothing more to pay.",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "patronPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v135-p10",
+      "source": "site/src/pages/patron.astro",
+      "exactWording": "Polar handles payment and contact details; Bananify does not receive full payment-card details. A subscription checks in with Polar about once a day using only the license key, activation ID and Blanc’s organization ID, never browsing data.",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "patronPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v135-p11",
+      "source": "site/src/pages/patron.astro",
+      "exactWording": "Activating another computer, or reinstalling Blanc? Enter the same license key.",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "patronPage"
+      ],
+      "verdict": "qualified"
     }
   ]
 }

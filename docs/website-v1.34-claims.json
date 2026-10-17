@@ -181,17 +181,6 @@
       "replaces": "trust-125-283"
     },
     {
-      "id": "v134-1p-003",
-      "source": "site/src/pages/privacy.astro",
-      "exactWording": "Last updated October 16, 2026",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "privacyRevision"
-      ],
-      "verdict": "qualified",
-      "replaces": "trust-125-296"
-    },
-    {
       "id": "v134-1p-004",
       "source": "site/src/pages/privacy.astro",
       "exactWording": "1Password login fill (off by default)",
@@ -445,6 +434,18 @@
       ],
       "verdict": "remove",
       "reason": "October 15, 2026: public v1.34.0 never draws quiet tabs on the resting Island's dots (renderer.js: \"A dot is a switch target, not a status field\"; quiet-tabs-chrome.test.js asserts no dot treatment), and the site had no rule styling the figure's .dots > span.quiet, so its dots rendered identically while this wording described smaller quiet cores. Replaced by the expanded-Island figure with dimmed rows (v134-003 to v134-005); the original remains in git history."
+    },
+    {
+      "id": "v134-1p-003",
+      "source": "site/src/pages/privacy.astro",
+      "exactWording": "Last updated October 16, 2026",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "privacyRevision"
+      ],
+      "verdict": "qualified",
+      "replaces": "trust-125-296",
+      "reason": "October 17, 2026: the privacy page now also names the website's discreet newsletter signup card, which submits to the same Worker as the footer form, and records the browser-local entry it keeps. The replacement wording is recorded in docs/website-v1.35-claims.json."
     }
   ]
 }
