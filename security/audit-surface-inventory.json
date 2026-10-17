@@ -25,7 +25,7 @@
   "boundaries": [
     {
       "file": "cloudflare/newsletter-worker/src/index.js",
-      "sha256": "a0bdfefda7ada1ebfcb1e58baddf13c71e3935dd25f3772c791713033a57d681",
+      "sha256": "769af5d756d99b5a0cd1b920beae4390cbfd875c12f730191c19dfa2cfa272fd",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -220,7 +220,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "b0b513e1426dbb1a9471774f1f389e2a3d37231caa5ed0070d5a0298ba68b93e",
+      "sha256": "d762c16dc83a27d9dc718830a83619cbc3255673c3f9ab2f585bd3c7a31d09c0",
       "literalChannels": [
         "activate",
         "bangs:changed",
@@ -249,6 +249,7 @@
         "chrome:glance-status",
         "chrome:history-clear",
         "chrome:history-list",
+        "chrome:invite-friend",
         "chrome:island-covered",
         "chrome:island-proximity",
         "chrome:island-rect",
@@ -536,7 +537,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "5b290d94655b79d3053b70f788ba7e2d57893c92fbab92563b5d796415eb556f",
+      "sha256": "c2269011d41c5ad772d59fc7a96675cceba37de38145eaa1718aee28709ae143",
       "literalChannels": [
         "bangs:changed",
         "chrome:adblock-exempt-active",
@@ -556,6 +557,7 @@
         "chrome:glance-status",
         "chrome:history-clear",
         "chrome:history-list",
+        "chrome:invite-friend",
         "chrome:island-covered",
         "chrome:island-proximity",
         "chrome:island-rect",

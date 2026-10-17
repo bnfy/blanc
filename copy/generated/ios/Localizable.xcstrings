@@ -1387,6 +1387,48 @@
         }
       }
     },
+    "slash.invite.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /invite. Opens a new email in the person’s own mail app, ready to address to a friend.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Email a friend a link to download Blanc"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jemandem per E-Mail einen Link zum Download von Blanc schicken"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enviar por correo a alguien un enlace para descargar Blanc"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Envoyer par e-mail à un proche un lien pour télécharger Blanc"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invia per email a qualcuno un link per scaricare Blanc"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enviar por e-mail a alguém um link para baixar o Blanc"
+          }
+        }
+      }
+    },
     "settings.language.label": {
       "comment": "Settings → General row label and the language menu's accessible name.",
       "extractionState": "manual",
@@ -15195,6 +15237,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "Não foi possível colocar as abas em segundo plano em repouso."
+          }
+        }
+      }
+    },
+    "slash.invite.copied": {
+      "comment": "Notice in the ⌘L palette after /invite when no mail app could open the email; the invite text is now on the clipboard.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your mail app didn’t open, so the invite was copied. Paste it into a message."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Mail-App hat sich nicht geöffnet, deshalb wurde die Einladung kopiert. Füge sie in eine Nachricht ein."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu aplicación de correo no se abrió, así que se copió la invitación. Pégala en un mensaje."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre app de messagerie ne s’est pas ouverte ; l’invitation a donc été copiée. Collez-la dans un message."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’app di posta non si è aperta, quindi l’invito è stato copiato. Incollalo in un messaggio."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu app de e-mail não abriu, então o convite foi copiado. Cole-o em uma mensagem."
           }
         }
       }
@@ -29265,6 +29349,216 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mostrar todos os atalhos…"
+          }
+        }
+      }
+    },
+    "menu.inviteFriend": {
+      "comment": "Help menu item that opens a new email inviting a friend to try Blanc, in the person’s own mail app.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invite a Friend…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Freunde einladen…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invitar a un amigo…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inviter un proche…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invita un amico…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Convidar um amigo…"
+          }
+        }
+      }
+    },
+    "invite.email.subject": {
+      "comment": "Subject of the invite email the person sends a friend from their own mail app (Help → Invite a Friend…, /invite). Written in the person’s voice.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try Blanc, the browser I use"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Probier mal Blanc, den Browser, den ich nutze"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prueba Blanc, el navegador que uso"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Essayez Blanc, le navigateur que j’utilise"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prova Blanc, il browser che uso"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Experimente o Blanc, o navegador que eu uso"
+          }
+        }
+      }
+    },
+    "invite.email.greeting": {
+      "comment": "First line of the invite email the person sends a friend. Written in the person’s voice.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hi,"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hallo,"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hola:"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bonjour,"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ciao,"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oi,"
+          }
+        }
+      }
+    },
+    "invite.email.pitch": {
+      "comment": "Middle paragraph of the invite email the person sends a friend, in the person’s voice. Every claim must stay true of the current release: keep “known” and “by default”.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I’ve been using Blanc, a free and open-source web browser for Mac, Windows and Linux. It blocks known ads and trackers by default, with nothing extra to install."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ich nutze Blanc, einen kostenlosen Open-Source-Browser für Mac, Windows und Linux. Er blockiert bekannte Werbung und Tracker von Haus aus, ganz ohne zusätzliche Installation."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uso Blanc, un navegador web gratuito y de código abierto para Mac, Windows y Linux. Bloquea de forma predeterminada los anuncios y rastreadores conocidos, sin instalar nada más."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "J’utilise Blanc, un navigateur web gratuit et open source pour Mac, Windows et Linux. Il bloque par défaut les publicités et traceurs connus, sans rien installer de plus."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uso Blanc, un browser gratuito e open source per Mac, Windows e Linux. Blocca in modo predefinito annunci e tracker noti, senza installare nient’altro."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eu uso o Blanc, um navegador gratuito e de código aberto para Mac, Windows e Linux. Ele bloqueia por padrão anúncios e rastreadores conhecidos, sem precisar instalar mais nada."
+          }
+        }
+      }
+    },
+    "invite.email.link": {
+      "comment": "Last line of the invite email. {url} is the blanc.day download link.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can download it here: %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hier kannst du ihn herunterladen: %1$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puedes descargarlo aquí: %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous pouvez le télécharger ici : %1$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puoi scaricarlo qui: %1$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Você pode baixá-lo aqui: %1$@"
           }
         }
       }

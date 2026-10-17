@@ -114,6 +114,9 @@
       "doc": {
         "command": "/glance <text>"
       }
+    },
+    {
+      "command": "/invite"
     }
   ]
 }

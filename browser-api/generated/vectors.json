@@ -4372,6 +4372,32 @@
         ]
       ]
     },
+    "inviteFriend": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:invite-friend",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:invite-friend",
+              "args": []
+            }
+          ]
+        }
+      ],
+      "replies": [
+        "mail",
+        "copied"
+      ]
+    },
     "fillLoginFromOnePassword": {
       "kind": "invoke",
       "platforms": [

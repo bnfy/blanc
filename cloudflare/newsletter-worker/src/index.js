@@ -169,7 +169,7 @@ async function sendConfirmation(env, list, email, confirmationUrl, idempotencyKe
         after: ['If you did not request this, ignore this email. The request expires in 24 hours.'],
         finePrint: [
           `You got this email because this address was entered at ${fineLink('blanc.day', 'https://blanc.day')}.`,
-          'Blanc is made by Bananify Creative.',
+          'Blanc is built by Bananify.',
         ],
       }),
     }),
