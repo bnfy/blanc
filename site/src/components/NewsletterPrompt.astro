@@ -181,8 +181,11 @@
   // uses the same key and windows; change them together.
   const STORAGE_KEY = 'blanc-newsletter-prompt-v1';
   const SNOOZE_MS = 60 * 24 * 60 * 60 * 1000; // "Not now" lasts 60 days.
-  const MIN_DWELL_MS = 20000;                 // at least 20 s on the page,
-  const MIN_SCROLL = 0.4;                     // and 40% of it read (or no scroll possible).
+  const MIN_DWELL_MS = 8000;                  // at least 8 s on the page,
+  const MIN_SCROLL = 0.25;                    // and a quarter of it read (or no scroll possible).
+  // ?newsletter-card shows it at once, ignoring and never writing the memory,
+  // so the card can be checked on the live site.
+  const PREVIEW = new URLSearchParams(location.search).has('newsletter-card');
 
   const prompt = document.getElementById('newsletter-prompt');
   const footerForm = document.getElementById('newsletter');
@@ -198,7 +201,7 @@
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* best effort */ }
   }
 
-  const state = readState();
+  const state = PREVIEW ? {} : readState();
   const eligible = prompt && state
     && !state.requested
     && !(state.dismissedAt && Date.now() - state.dismissedAt < SNOOZE_MS);
@@ -228,10 +231,11 @@
   function close(remember) {
     closed = true;
     prompt.hidden = true;
-    if (remember) writeState({ ...readState(), dismissedAt: Date.now() });
+    if (remember && !PREVIEW) writeState({ ...readState(), dismissedAt: Date.now() });
   }
 
   if (eligible) {
+    if (PREVIEW) { shown = true; prompt.hidden = false; }
     window.setTimeout(() => { dwellDone = true; maybeShow(); }, MIN_DWELL_MS);
     window.addEventListener('scroll', onScroll, { passive: true });
     if (footerForm && 'IntersectionObserver' in window) {
