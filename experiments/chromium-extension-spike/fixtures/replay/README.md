@@ -1,7 +1,7 @@
 # Spike A replay contract — capture pending
 
 This directory contains a **dataset validator, synthetic unit tests and an
-authored HTTP/HTTPS transport pilot**, not the acceptance corpus. Captured
+authored HTTP/HTTPS transport pilot plus a controlled recording/replay pipeline**, not the acceptance corpus. Captured
 acceptance-corpus requests: **0**. The pilot has measured Electron observations;
 no full request-path coverage, fork block-rate, cosmetic or latency pass is claimed.
 The validator's success is necessary but insufficient for Spike A acceptance.
@@ -23,8 +23,9 @@ transport (local proxy or resolver override and a fixture CA trusted only by the
 disposable browsers). Do not rewrite requests to localhost URLs. Both browsers
 must receive identical responses. Record server observations as well as blocker
 observations; an absent network request alone does not prove a blocking decision.
-The authored pilot transport exists. Real-page acquisition, scrub/stability
-gates and the fork replay adapter are **not implemented** in this checkpoint.
+The authored pilot and [controlled recorder/scrubber/stability pipeline](pipeline/README.md)
+exist. Real-page acquisition/admission and the fork replay adapter remain
+**pending**; the controlled probe does not establish their coverage.
 
 ## Acquisition, stability and oracle order
 
@@ -32,7 +33,8 @@ The live acquisition run is **not the oracle**. Its decisions may be saved as
 sanitized diagnostics, but never count toward the 2,000/2,000 acceptance totals.
 A distinct recording tool may connect upstream using normal server certificate
 and hostname verification; the offline replay tool must contain no upstream
-forwarding or fallback. The current pilot is the latter only.
+forwarding or fallback. The current pilot is offline; the separate pipeline
+recorder has only been exercised against a controlled local upstream.
 
 1. Record a public, unauthenticated page load in a fresh disposable profile.
    Capture response bytes and metadata with the per-field persistence gate below.
@@ -113,9 +115,11 @@ bounded public-site allowlist; no personal profile, login flow or credentials.
   If a transformation changes page behavior so the load is unstable or context
   cannot be correlated, reject it rather than fill gaps with expected values.
 
-The scrubber, protocol recorder, graph correlator and stability admission tool
-need tests and a runtime probe before any live acquisition starts. This section
-is the implementation contract, not a claim that these gates already execute.
+The pipeline now exercises a narrow scrubber, per-leg protocol recorder and
+single-frame stability matcher with unit/network tests and actual Electron
+replays. General causal correlation, public-page completion, broader content
+admission and request-path coverage still need implementation and runtime proof
+before real-page acquisition. This section remains the full contract.
 
 ## Decision records
 

@@ -1,0 +1,24 @@
+{
+  "kind": "controlled-record-offline-replay",
+  "passed": false,
+  "started": "2026-10-17T18:18:03.737Z",
+  "runs": [],
+  "sourceAsarSha256": "5b4b78c8790c3af193a2c893564c674f2b05c75481d1b5673c0428dde60203ab",
+  "acceptanceCorpusRequests": 0,
+  "nativeBuilds": 0,
+  "cleanup": {
+    "sourceAsarUnchanged": true,
+    "disposableTreeRemoved": true
+  },
+  "sourceHashes": {
+    "scrub.cjs": "a68fe97005e9477b89d2f55e9ab862a238cbcc7caf01923605c83359ce568f39",
+    "recorder.mjs": "3ab766bf657adc2ce390ce05fa96ad6b1f9e506ba84853034b75c5252053aef2",
+    "offline.mjs": "36eaa9bbd842b777883bd57d914e070932312b3b58865ba82bddd91a79ca116d",
+    "transport.mjs": "bd149705aafe7c65a25113f2a4eb0715533926010876162bb34968d08117aa14",
+    "stability.mjs": "044ab979cc120dde84f072b47d61197dda1b7fccd4b540a4242dcb5865707d0d",
+    "bootstrap.cjs": "b0eb22b6fcc4d677c6df30df2682563f3d8c7b93423c2e5111b5f75c2e69d6f0",
+    "roundtrip.mjs": "149781bd14f3e0082882cf411a2e3ca92ae8a1001270b49d333cd521cc0cd61e"
+  },
+  "error": "controlled-roundtrip-failed",
+  "finished": "2026-10-17T18:18:05.778Z"
+}

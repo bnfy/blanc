@@ -232,3 +232,17 @@ proxy arrivals, certificate decisions and cleanup are saved. Invocations and
 run wall clocks are in the evidence; active attention is **not measured**.
 No native build/prepare/GN invocation, no new native patch, no cold-column change.
 157 replay, real-page corpus and remaining request-path admission stay pending.
+
+### Controlled recording and offline stability — October 17, 2026
+
+#912 merged as `2af25c66` after all 21 current-head jobs passed. The separate
+recorder/scrubber/offline modules now have [controlled evidence](evidence/f12-record-replay-20261017/README.md):
+one failed acquisition retained, then two successful acquisition rounds with two fresh
+replays per regular/private profile, upstream shut down before replay. Each pair
+matches six decisions (four allow, two cancel), with zero harness faults. Tests:
+12 pipeline + 4 controlled TLS network. Public-page capture, general correlation,
+Chromium replay, cosmetics and latency remain pending; corpus count zero.
+
+No native build, prepare or GN invocation; no native patch or cold-column delta.
+Runtime interval and all seven source hashes are in run-03/report.json; active
+attention is not measured. Existing Chromium checkouts and profiles are untouched.
