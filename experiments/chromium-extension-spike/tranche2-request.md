@@ -1,7 +1,7 @@
 # Tranche 2 request: the Decision 2 package, F12 first
 
-**Status: awaiting the owner's written approval (§8). Nothing in this tranche
-has started.** Task 0 measured a rebase (`rebase-ledger.md`, row 0: 2h39m47s
+**Status: approved by the owner on October 17, 2026, as written (§8). The
+tranche has not started; it runs on the Mac within §5 and §6.** Task 0 measured a rebase (`rebase-ledger.md`, row 0: 2h39m47s
 cold build, one broken anchor, one API change, 21 upstream files) and its
 native acceptance passed except the extension version-upgrade observation,
 which stays under daily check through November 3. That open gate blocks 157's
@@ -316,5 +316,11 @@ it is hit; the tranche does not continue past it without a new decision.
 
 ## 8. Approval
 
-- [ ] Approved by the owner on `_______` (quote or link), with any change
-      to the order or scope above noted here.
+- [x] Approved by the owner on October 17, 2026, in the Claude Code
+      session after Codex cleared the request at `416b5ac` with no blocking
+      findings: "Approve §8 as written". No change to order or scope: the
+      F12 spikes first with no-build items 3–6 between builds, two-week
+      boxes per spike, the proposed latency bounds (p99 2 ms in-process,
+      5 ms over Mojo) retained, and §7's fixed budget of 40 upstream files
+      and 120 hunks. The approval covers exactly §6; anything §6 excludes,
+      including a new cold output, needs a new approval.
