@@ -211,8 +211,16 @@ short:
    inside the previous public Blanc, which finds, downloads and installs the
    update through **Restart Now**. Opening an installer directly never
    counts. Record them as pending until the user reports each one.
+7. **r/blancbrowser release post:** after the site deploy, draft a post for
+   Blanc's own subreddit in the format of the v1.36.0 post in
+   `docs/reddit-community/r-blancbrowser-setup.md` (title naming the main
+   changes, Release flair, a link to the version's `/changelog#vX-Y-Z`
+   anchor). Check every claim against the new release with
+   `docs/marketing-claims.md`. The owner approves the exact text and posts
+   it; Claude can't open reddit.com.
 
-No posts or launch channels go out as part of a release.
+Apart from that r/blancbrowser post, no posts or launch channels go out as
+part of a release.
 
 ## macOS signing details
 
