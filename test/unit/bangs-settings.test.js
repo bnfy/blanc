@@ -119,12 +119,18 @@ test('recordRecentBang keeps ten codes, newest first, without repeats', (t) => {
   assert.deepEqual(s.getSettings().recentBangs, []);
 });
 
-test('recordRecentBang notifies listeners', (t) => {
+test('recents notify their own listeners, never the settings fan-out, and only on a change', (t) => {
   const s = freshProfile(t, 'recent-listen');
-  const seen = [];
-  s.onSettingsChanged((d) => seen.push(d.recentBangs));
-  s.recordRecentBang('gh');
-  assert.deepEqual(seen, [['gh']]);
+  const generic = [];
+  const own = [];
+  s.onSettingsChanged((d) => generic.push(d.recentBangs));
+  s.onRecentBangsChanged((recent) => own.push(recent));
+  assert.equal(s.recordRecentBang('gh'), true);
+  assert.equal(s.recordRecentBang('gh'), false, 'already first: nothing changed');
+  s.clearRecentBangs();
+  s.clearRecentBangs();
+  assert.deepEqual(own, [['gh'], []]);
+  assert.deepEqual(generic, [], 'a bang used is not a settings change: no theme/sync/broadcast fan-out');
 });
 
 test('stored recents are sanitized on read', (t) => {

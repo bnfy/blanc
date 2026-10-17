@@ -2860,9 +2860,10 @@
     } else if (visibleResults[0]?.kind === 'bang') {
       // The hint row is the bare-Enter target whatever the words look like.
       pickResult(visibleResults[0]);
-    } else if (visibleResults[0]?.kind === 'bangPick') {
-      // A picker with no chosen row — Enter does nothing rather than search
-      // for a bare "!" or half a code.
+    } else if (visibleResults[0]?.kind === 'bangPick' && addressInput.value.trim() === '!') {
+      // The picker alone: Enter does nothing rather than search for "!".
+      // A bare unknown code (`!ddgbang`) falls through to the final branch
+      // and searches as typed, as an unknown bang with words would.
     } else if (
       visibleResults.length
       && !looksLikeAddress(addressInput.value)

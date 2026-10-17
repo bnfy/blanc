@@ -212,3 +212,12 @@ Feature: Island chrome, command palette, and slash commands
     Then the bang hint row reads "Search YouTube for “lofi”"
     When I press Arrow Down in the command bar
     Then the row for the tab titled "lofi hip hop" is highlighted under the hint
+
+  @F47-13 @F47 @desktop
+  Scenario: A bare unknown code searches as typed, and ! alone does nothing
+    Given the search engine is "duckduckgo"
+    And a tab open on "bangs-start"
+    When I type "!zzzq" in the command bar
+    Then no bang hint row is shown
+    When I submit the command-bar text
+    Then the address submission goes to "https://duckduckgo.com/?q=!zzzq"

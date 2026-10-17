@@ -623,23 +623,37 @@ function setSupporter(record) {
   for (const fn of listeners) fn(getSettings());
 }
 
+// A bang used is usage data, not a settings change: it never wakes the
+// generic listeners (theme, blocker, sync, every window's broadcast). Main
+// subscribes here to push the Island's picker its new recents.
+const recentListeners = new Set();
+function onRecentBangsChanged(fn) { recentListeners.add(fn); }
+function notifyRecentBangs() {
+  const recent = getSettings().recentBangs;
+  for (const fn of recentListeners) fn(recent);
+}
+
 /** A bang was used: remember its primary code, newest first, at most ten.
  * Private write path — the generic whitelist has no recentBangs entry.
- * Callers skip private tabs. */
+ * Callers skip private tabs. Returns whether the list changed. */
 function recordRecentBang(code) {
-  if (!Bangs.isBangCode(code)) return;
+  if (!Bangs.isBangCode(code)) return false;
+  const before = JSON.stringify(getSettings().recentBangs);
   ensureStore().update((data) => {
     data.recentBangs = normalizeRecentBangs([code, ...(Array.isArray(data.recentBangs) ? data.recentBangs : [])]);
   });
-  for (const fn of listeners) fn(getSettings());
+  if (JSON.stringify(getSettings().recentBangs) === before) return false;
+  notifyRecentBangs();
+  return true;
 }
 
 /** Clearing history also forgets which bangs were used. */
 function clearRecentBangs() {
+  if (getSettings().recentBangs.length === 0) return;
   ensureStore().update((data) => {
     data.recentBangs = [];
   });
-  for (const fn of listeners) fn(getSettings());
+  notifyRecentBangs();
 }
 
 /** The language-transition service's private write path (src/main/i18n.js
@@ -799,4 +813,5 @@ module.exports = {
   normalizeCustomBangs,
   recordRecentBang,
   clearRecentBangs,
+  onRecentBangsChanged,
 };

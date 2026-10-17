@@ -122,9 +122,15 @@ test('matchBangs matches site names by substring after codes', () => {
   assert.deepEqual(rows.map((r) => r.code), ['yt', 'ytm', 'ytmusic2']);
 });
 
-test('matchBangs caps at eight rows', () => {
+test('matchBangs caps filtered results at eight rows, but ! alone lists every recent and popular bang', () => {
   const big = Array.from({ length: 20 }, (_, i) => [`z${i}`, [], `Z ${i}`, `z${i}.org`, `https://z${i}.org/?q=%s`, 3, `https://z${i}.org/`]);
   assert.equal(matchBangs('z', big, [], [], []).length, 8);
+  const recent = big.slice(0, 10).map((e) => e[0]);
+  const popular = big.map((e) => e[0]);
+  const rows = matchBangs('', big, [], recent, popular);
+  assert.equal(rows.length, 20);
+  assert.equal(rows.filter((r) => r.section === 'recent').length, 10);
+  assert.equal(rows.filter((r) => r.section === 'popular').length, 10);
 });
 
 test('matchBangs lists custom bangs with their template host, ahead of the catalog', () => {

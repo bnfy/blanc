@@ -4247,6 +4247,11 @@ function navigateTabToAddress(id, rawText) {
     return;
   }
   const target = bang ? bang.url : normalizeAddressInput(rawText);
+  if (testSearchNavigationCapture) {
+    // The acceptance suite runs offline: record where Enter would have gone.
+    testSearchSubmission = { engine: 'address', query: rawText, url: target };
+    return;
+  }
   // A typed utility address opens the sheet, never navigates the tab.
   if (isUtilityUrl(target)) return openInternalPage(target);
   rt().tabsWantingAddressBarFocus.delete(id);
@@ -11060,6 +11065,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // Settings fan-out: settings.js calls every registered listener synchronously
   // from setSettings()/etc, which can be reached from pages.js's OWN unbound
   // 'pages:settings:set' IPC handler — not only from already-bound callers here.
+  settings.onRecentBangsChanged(() => broadcastBangsChanged());
   settings.onSettingsChanged((s) => {
     const nextOnePasswordConfigurationKey = JSON.stringify([
       s.onePasswordEnabled,
@@ -11101,7 +11107,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       darkWebsites.broadcast();
       forEachWindowRuntime(() => broadcastTabs(), { liveOnly: true });
     }
-    const nextBangsKey = JSON.stringify([s.bangsEnabled, s.customBangs, s.recentBangs]);
+    // Recents arrive through settings.onRecentBangsChanged, not this fan-out.
+    const nextBangsKey = JSON.stringify([s.bangsEnabled, s.customBangs]);
     if (nextBangsKey !== lastBangsKey) {
       lastBangsKey = nextBangsKey;
       broadcastBangsChanged();

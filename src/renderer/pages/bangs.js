@@ -137,8 +137,10 @@
     const exact = needle ? findBang(needle, catalog, customBangs) : null;
     if (exact) seen.add(exact.code);
     const matchesCode = (record, codes) => codes.some((c) => c.startsWith(needle));
+    // `!` alone lists every recent and popular bang under its foldable
+    // headers; only a filtered list is capped.
     const push = (section, record) => {
-      if (rows.length >= MAX_ROWS || seen.has(record.code)) return;
+      if ((needle && rows.length >= MAX_ROWS) || seen.has(record.code)) return;
       seen.add(record.code);
       rows.push(pickRow(section, record));
     };

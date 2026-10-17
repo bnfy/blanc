@@ -87,6 +87,14 @@ Then('the bang submission goes to {string}', async function (url) {
   assert.strictEqual(submission.url, url);
 });
 
+Then('the address submission goes to {string}', async function (url) {
+  await waitForValue(
+    () => this.call('capturedSearchSubmission'),
+    (value) => value?.engine === 'address' && value?.url === url,
+    `address submission to ${url}`
+  );
+});
+
 Then('the picker shows the section {string}', async function (name) {
   await waitForValue(() => this.call('addressSectionHeaders'), (headers) => headers.includes(name), `picker section ${name}`);
 });

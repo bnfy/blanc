@@ -75,3 +75,12 @@ test('generated catalog loads as a module and exposes well-formed entries', () =
     assert.match(entry[6], /^https?:\/\//);
   }
 });
+
+test('the byte-checked bang files keep LF line endings on every checkout', () => {
+  const attributes = fs.readFileSync(path.join(ROOT, '.gitattributes'), 'utf8').split(/\r?\n/);
+  for (const rule of [
+    '/bangs/sources/* text eol=lf',
+    '/bangs/*.json text eol=lf',
+    '/src/renderer/pages/bangs-catalog.js text eol=lf',
+  ]) assert.ok(attributes.includes(rule), `missing Git attribute: ${rule}`);
+});
