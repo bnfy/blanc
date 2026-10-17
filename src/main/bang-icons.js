@@ -28,6 +28,8 @@ function createBangIcons({ store, readIconBytes, sanitizeIconBytes, catalogHosts
   // store the person just emptied.
   let generation = 0;
   let reader = readIconBytes;
+  // Acceptance tests read which hosts were asked for; production keeps no log.
+  let logRequests = false;
 
   const records = () => (Array.isArray(store.data.records) ? store.data.records : []);
   // The file can be edited by hand: only an inert 32px PNG ever reaches the
@@ -45,7 +47,10 @@ function createBangIcons({ store, readIconBytes, sanitizeIconBytes, catalogHosts
 
   async function fetchOne(host) {
     const startedIn = generation;
-    requested.push(host);
+    // A test reset swaps the run state; this fetch reports to the one it
+    // started in.
+    const runAtStart = run;
+    if (logRequests) requested.push(host);
     let outcome = 'failed';
     try {
       const result = await reader(policy.iconUrl(host), {
@@ -72,7 +77,7 @@ function createBangIcons({ store, readIconBytes, sanitizeIconBytes, catalogHosts
     } catch {
       outcome = 'failed';
     }
-    run.finished(host, outcome, now());
+    runAtStart.finished(host, outcome, now());
   }
 
   function pump() {
@@ -139,6 +144,7 @@ function createBangIcons({ store, readIconBytes, sanitizeIconBytes, catalogHosts
     // Acceptance test hooks only (src/main/test-hook.js, test mode).
     setFetcherForTest(fetcher) {
       reader = fetcher;
+      logRequests = true;
     },
     requestedHosts() {
       return requested.slice();

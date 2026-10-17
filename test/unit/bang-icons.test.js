@@ -26,22 +26,25 @@ function harness({ records = [], hosts = ['a.example', 'b.example', 'c.example',
   const calls = [];
   const pending = new Map();
   const store = fakeStore(records);
+  const reader = (url, options) => {
+    calls.push({ url, options });
+    const d = deferred();
+    pending.set(url.split('/').pop(), d);
+    return d.promise;
+  };
   const service = createBangIcons({
     store,
     catalogHosts: new Set(hosts),
     now: () => NOW,
-    readIconBytes: (url, options) => {
-      calls.push({ url, options });
-      const d = deferred();
-      pending.set(url.split('/').pop(), d);
-      return d.promise;
-    },
+    readIconBytes: reader,
     sanitizeIconBytes: async (contentType, bytes) => (bytes ? VALID_ICON : null),
   });
+  // The request log (requestedHosts) records only once a test fetcher is in.
+  service.setFetcherForTest(reader);
   const changes = [];
   service.onChange((host, icon) => changes.push([host, icon]));
   const settle = () => new Promise((r) => setImmediate(r));
-  return { calls, pending, store, service, changes, settle };
+  return { calls, pending, store, service, changes, settle, reader };
 }
 
 test('held returns a stored icon and marks it stale after 30 days', () => {
@@ -223,4 +226,27 @@ test('a stored record without a valid time is stale, so it gets refreshed', () =
   assert.deepEqual(service.held('a.example'), { icon: VALID_ICON, stale: true });
   service.request(['a.example'], ALLOW);
   assert.equal(calls.length, 1);
+});
+
+test('the request log stays empty unless a test fetcher is installed', async () => {
+  const service = createBangIcons({
+    store: fakeStore(),
+    catalogHosts: new Set(['a.example']),
+    now: () => NOW,
+    readIconBytes: async () => null,
+    sanitizeIconBytes: async () => null,
+  });
+  service.request(['a.example'], ALLOW);
+  await new Promise((r) => setImmediate(r));
+  assert.deepEqual(service.requestedHosts(), []);
+});
+
+test('a fetch from before a test reset cannot rule a host out afterward', async () => {
+  const { service, pending, settle } = harness();
+  service.request(['a.example'], ALLOW);
+  service.resetForTest();
+  pending.get('a.example').resolve({ status: 404 });
+  await settle();
+  service.request(['a.example'], ALLOW);
+  assert.deepEqual(service.requestedHosts(), ['a.example'], 'the old 404 landed in the old run state');
 });
