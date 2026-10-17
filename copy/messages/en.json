@@ -537,13 +537,13 @@
     "note": "Rail group state read by screen readers."
   },
   "rail.private.marker": {
-    "message": "private",
-    "note": "Lowercase marker on a private tab's rail row.",
+    "message": "Private",
+    "note": "Marker on a private tab's rail row. Sentence case.",
     "maxLength": 10
   },
   "rail.section.pinned": {
-    "message": "pinned",
-    "note": "Lowercase heading of the rail section holding pinned tabs that are not in a group.",
+    "message": "Pinned",
+    "note": "Heading of the rail section holding pinned tabs that are not in a group. Sentence case.",
     "maxLength": 14
   },
   "rail.section.tabs": {
@@ -871,14 +871,23 @@
     "note": "Accessible name of the button that collapses the expanded Island."
   },
   "footer.newTab": {
-    "message": "new tab",
-    "note": "Lowercase launcher label in the Island footer.",
+    "message": "New tab",
+    "note": "Label of the New tab button at the left of the ⌘L panel footer; its shortcut follows it. Sentence case; keep it short.",
     "maxLength": 12
   },
   "footer.private": {
-    "message": "private",
-    "note": "Lowercase launcher label for a private tab in the Island footer.",
+    "message": "Private",
+    "note": "Label of the button that opens a new private tab, beside New tab in the ⌘L panel footer. Sentence case; keep it short.",
     "maxLength": 10
+  },
+  "footer.devices": {
+    "message": "Other devices",
+    "note": "Footer toggle in the ⌘L panel that opens the list of tabs open on the person's other synced devices. Sentence case; keep it short — it shares one line with New tab, Private and six icons.",
+    "maxLength": 16
+  },
+  "footer.devices.title": {
+    "message": "Tabs open on your other devices",
+    "note": "Tooltip of the Other devices footer toggle."
   },
   "footer.newPrivate.title": {
     "message": "New private tab ({shortcut})",
@@ -1372,11 +1381,6 @@
     "message": "Unmute tab",
     "note": "Tab row button."
   },
-  "row.glance": {
-    "message": "glance",
-    "note": "Lowercase tab row button that opens the tab in Glance (a fixed product name).",
-    "maxLength": 8
-  },
   "row.glanceOpen": {
     "message": "Open this tab in Glance",
     "note": "Tooltip of that button."
@@ -1448,33 +1452,33 @@
     "note": "Button that forgets one recently-closed entry."
   },
   "result.tag.tab": {
-    "message": "tab",
-    "note": "Lowercase tag on a Quick Switcher result that is an open tab.",
+    "message": "Tab",
+    "note": "Tag on a Quick Switcher result that is an open tab. Sentence case.",
     "maxLength": 8
   },
   "result.tag.favorite": {
-    "message": "favorite",
-    "note": "Lowercase tag on a Quick Switcher result from Favorites.",
+    "message": "Favorite",
+    "note": "Tag on a Quick Switcher result from Favorites. Sentence case.",
     "maxLength": 10
   },
   "result.tag.history": {
-    "message": "history",
-    "note": "Lowercase tag on a Quick Switcher result from History.",
+    "message": "History",
+    "note": "Tag on a Quick Switcher result from History. Sentence case.",
     "maxLength": 10
   },
   "result.tag.group": {
-    "message": "group",
-    "note": "Lowercase tag on a Quick Switcher result that is a tab group.",
+    "message": "Group",
+    "note": "Tag on a Quick Switcher result that is a tab group. Sentence case.",
     "maxLength": 10
   },
   "result.tag.remote": {
-    "message": "remote",
-    "note": "Lowercase tag on a Quick Switcher result that is a tab on another device.",
+    "message": "Remote",
+    "note": "Tag on a Quick Switcher result that is a tab on another device. Sentence case.",
     "maxLength": 10
   },
   "siteInfo.localPage": {
-    "message": "local page",
-    "note": "Site information origin line for a local page."
+    "message": "Local page",
+    "note": "Site information origin line for a local page. Sentence case."
   },
   "siteInfo.cert.subject": {
     "message": "Certificate for",
@@ -1513,27 +1517,27 @@
     "note": "Site information button that forgets a certificate exception."
   },
   "siteInfo.hint.certError": {
-    "message": "this certificate could not be verified",
-    "note": "Lowercase hint under the site information card."
+    "message": "This certificate could not be verified",
+    "note": "Hint under the site information card. Sentence case."
   },
   "siteInfo.hint.certException": {
-    "message": "you continued past a certificate warning",
-    "note": "Lowercase hint under the site information card."
+    "message": "You continued past a certificate warning",
+    "note": "Hint under the site information card. Sentence case."
   },
   "siteInfo.hint.chromium": {
-    "message": "connection details are supplied by Chromium",
-    "note": "Lowercase hint under the site information card."
+    "message": "Connection details are supplied by Chromium",
+    "note": "Hint under the site information card. Sentence case."
   },
   "list.noCommand": {
-    "message": "no matching command",
-    "note": "Lowercase empty row in the slash command list."
+    "message": "No matching command",
+    "note": "Empty row in the slash command list. Sentence case."
   },
   "list.noMatches": {
-    "message": "no matches — ↵ opens as address or search",
-    "note": "Lowercase empty row in the Quick Switcher."
+    "message": "No matches — ↵ opens as address or search",
+    "note": "Empty row in the Quick Switcher. Sentence case."
   },
   "bang.search": {
-    "message": "Search {site} for \u201c{query}\u201d",
+    "message": "Search {site} for “{query}”",
     "note": "The Island's bang hint row while a bang with words is typed (!yt lofi); {site} is the site's name, {query} the words."
   },
   "bang.open": {
@@ -1541,23 +1545,23 @@
     "note": "The Island's bang hint row for a bare code (!yt): Enter opens the site's front page."
   },
   "bang.yours": {
-    "message": "yours",
-    "note": "Lowercase tag on a bang picker row for a bang the person added in Settings, where other rows show the site's domain.",
+    "message": "Yours",
+    "note": "Tag on a bang picker row for a bang the person added in Settings, where other rows show the site's domain. Sentence case.",
     "maxLength": 10
   },
   "bang.section.recent": {
-    "message": "recent",
-    "note": "Lowercase header of the bang picker's recently used section.",
+    "message": "Recent",
+    "note": "Header of the bang picker's recently used section. Sentence case, like the other ⌘L panel headers.",
     "maxLength": 22
   },
   "bang.section.popular": {
-    "message": "popular",
-    "note": "Lowercase header of the bang picker's popular section.",
+    "message": "Popular",
+    "note": "Header of the bang picker's popular section. Sentence case.",
     "maxLength": 22
   },
   "bang.section.all": {
-    "message": "all bangs",
-    "note": "Lowercase header of the bang picker's section of every other matching bang.",
+    "message": "All bangs",
+    "note": "Header of the bang picker's section of every other matching bang. Sentence case.",
     "maxLength": 22
   },
   "bang.fold": {
@@ -1570,27 +1574,19 @@
   },
   "hint.bang": {
     "message": "!code words searches one site · ! alone lists them",
-    "note": "Lowercase hint under the Island list while a bang is typed. Keep !code and ! as typed."
+    "note": "Hint under the Island list while a bang is typed. Keep !code and ! as typed; the rest is sentence case."
   },
   "hint.private": {
-    "message": "private · nothing here is saved to history",
-    "note": "Lowercase hint under the Island list on a private tab."
-  },
-  "hint.groups": {
-    "message": "/group moves this tab · {mod}1–9 jumps between sections",
-    "note": "Lowercase hint under the Island list when groups exist; {mod} is ⌘ or ctrl+."
-  },
-  "hint.default": {
-    "message": "{mod}L summons · / for commands",
-    "note": "Lowercase hint under the Island list; {mod} is ⌘ or ctrl+."
+    "message": "Private tab · Nothing here is saved to history",
+    "note": "Note under the ⌘L panel footer while the active tab is private. Sentence case."
   },
   "result.groupCount": {
     "message": "{count, plural, one {# tab} other {# tabs}}",
     "note": "Detail line of a Quick Switcher group result: how many tabs the group holds."
   },
   "result.tag.search": {
-    "message": "search",
-    "note": "Lowercase tag on a Quick Switcher search row when the search engine's own name is not available.",
+    "message": "Search",
+    "note": "Tag on a Quick Switcher search row when the search engine's own name is not available. Sentence case.",
     "maxLength": 10
   },
   "menu.newWindow": {
@@ -7358,8 +7354,8 @@
     "maxLength": 6
   },
   "result.tag.space": {
-    "message": "space",
-    "note": "Lowercase tag on a Quick Switcher result that is a space.",
+    "message": "Space",
+    "note": "Tag on a Quick Switcher result that is a space. Sentence case.",
     "maxLength": 10
   },
   "workspaceMenu.edit": {

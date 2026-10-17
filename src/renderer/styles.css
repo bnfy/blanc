@@ -2457,6 +2457,8 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
 .island-ghead .ghead-spacer { width: 10px; flex: 0 0 auto; }
 .island-ghead .closed-clear { margin-left: auto; }
 .island-ghead .ghead-n { margin-right: 0; }
+/* A synced device's "how long ago" sits at the right of its header. */
+.island-ghead .ghead-ago { margin-left: auto; }
 
 /* Named groups only: present --surface field (not empty whitespace). */
 .island-drag-section {
@@ -2546,27 +2548,28 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
 /* The per-tab group chip and its inline picker were retired when grouping
    moved into the tab rows' right-click context menu (Move to Group ▸). */
 
-/* Explicit Glance selection lives with the tab row actions. The active
-   reference stays labelled at rest; other rows reveal the action on
-   hover/focus so the ordinary switcher remains quiet. */
+/* Explicit Glance selection lives with the tab row actions: an icon like pin
+   and close, revealed on hover/focus. The tab showing in Glance keeps it
+   visible and filled at rest; clicking it there closes Glance. */
 .row-glance {
   opacity: 0;
+  width: 18px;
   height: 18px;
-  flex: 0 0 auto;
-  padding: 0 7px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: 50%;
   color: var(--text-dim);
-  font-family: var(--font-text);
-  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  flex: 0 0 auto;
 }
+.row-glance svg { width: 14px; height: 14px; stroke-width: 1.25; }
 .island-row:hover .row-glance,
 .island-row:focus-within .row-glance,
 .row-glance:focus-visible,
 .row-glance.on { opacity: 1; }
-.row-glance:hover,
-.row-glance.on { color: var(--accent); border-color: var(--accent); }
-.row-glance.on { background: var(--accent-dim); }
+.row-glance:hover { background: var(--border); color: var(--text); }
+.row-glance.on { color: var(--accent); background: var(--accent-dim); }
 
 /* Pin row button — reserved-space/hover-reveal convention shared with
    .row-close: always occupies layout width, opacity-faded until the row is
@@ -2682,13 +2685,21 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
   flex: 0 0 auto;
 }
 
-/* Slash-command rows */
+/* Slash-command and bang rows: the command or !code is a small chip */
 .island-row .row-cmd {
   font-family: var(--font-text);
-  font-size: 12.5px;
-  color: var(--accent);
+  font-size: 12px;
+  font-weight: 550;
+  line-height: 20px;
+  padding: 0 7px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+  color: var(--text);
   flex: 0 0 auto;
   white-space: nowrap;
+}
+.island-row.active .row-cmd {
+  background: color-mix(in srgb, var(--text) 12%, transparent);
 }
 .island-row .row-hint {
   font-size: 12.5px;
@@ -2863,45 +2874,88 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
 .footer-new {
   display: flex;
   align-items: center;
-  gap: 5px;
-  height: 28px;
-  padding: 0 12px;
-  border-radius: 999px;
-  border: 1px solid var(--accent);
+  gap: 6px;
+  height: 30px;
+  padding: 0 13px 0 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
   background: var(--accent);
   color: var(--surface-raised);
   font-family: var(--font-text);
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 12.5px;
+  font-weight: 550;
   white-space: nowrap;
   flex: 0 0 auto;
   cursor: pointer;
+  transition: background-color 120ms ease;
 }
-.footer-new:hover { opacity: 0.85; }
+/* Hover deepens the fill one step (lighter ink in light, darker in dark)
+   instead of fading the whole pill. */
+.footer-new:hover { background: color-mix(in srgb, var(--accent) 86%, var(--surface-raised)); }
 .footer-new svg { width: 13px; height: 13px; }
 
-/* Private launcher: the same geometry as a ghost — dashed, the marker that
-   denotes private throughout the chrome (so the label no longer needs its
-   own dashed underline). It must not read as a second primary action. */
+/* Private: the soft secondary pill (System v2). Dashes stay reserved for
+   "you are in a private tab", the private panel's own border. Its shortcut
+   lives in the tooltip. */
 .footer-new.private {
+  margin-left: 2px;
+  background: var(--accent-dim);
+  color: var(--text);
+}
+.footer-new.private:hover { background: color-mix(in srgb, var(--text) 13%, transparent); }
+
+/* Other devices: a plain text toggle, not a pill — dim until hovered,
+   focused or open, never filled. Its chevron points up at the drawer it
+   opens and turns over while the drawer is open. */
+.footer-new.devices {
   margin-left: 4px;
+  padding: 0 6px;
+  border-radius: var(--radius-sm);
   background: none;
   color: var(--text-dim);
-  border: 1px dashed var(--text-dim);
 }
-.footer-new.private:hover { opacity: 1; color: var(--text); border-color: var(--text); }
+.footer-new.devices:hover,
+.footer-new.devices:focus-visible,
+.footer-new.devices[aria-expanded="true"] {
+  background: none;
+  color: var(--text);
+}
+.footer-new.devices:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 0; }
+.footer-new.devices .devices-caret {
+  width: 10px;
+  height: 10px;
+  transition: transform 120ms ease;
+}
+.footer-new.devices[aria-expanded="true"] .devices-caret { transform: rotate(180deg); }
+.footer-new[hidden] { display: none; }
+
+/* The Other devices drawer, between the tab list and the footer. While the
+   panel has room it grows, as unfolding a group does; at the panel's maximum
+   the drawer keeps about six rows and the tab list above gives up the space.
+   In a short window the cap shrinks with it (about 290px of panel chrome plus
+   two list rows stay clear), never below two rows of its own. */
+#islandDrawer {
+  flex: 0 0 auto;
+  max-height: clamp(76px, calc(100vh - 290px), 204px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin-top: 6px;
+  padding-top: 2px;
+  border-top: 1px solid var(--border);
+}
+#islandDrawer[hidden] { display: none; }
 
 .footer-kbd {
   font-family: var(--font-ui);
-  font-size: 10.5px;
-  opacity: 0.55;
-  margin-left: 2px;
+  font-size: 11px;
+  opacity: 0.6;
+  margin-left: 1px;
 }
 
 .footer-act {
   width: 28px;
   height: 28px;
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2920,20 +2974,17 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
 #footerWorkspace svg { width: 17px; height: 17px; stroke-width: 2; }
 /* No thick focus ring — keyboard focus uses the same surface cue as hover
    (island footer policy; global button:focus-visible outline is suppressed). */
-.footer-act:focus-visible,
-.footer-new:focus-visible {
+.footer-act:focus-visible {
   outline: none;
   background: var(--surface);
   color: var(--text);
 }
 .footer-new:focus-visible {
-  opacity: 0.85;
+  outline: none;
+  background: color-mix(in srgb, var(--accent) 86%, var(--surface-raised));
 }
 .footer-new.private:focus-visible {
-  opacity: 1;
-  color: var(--text);
-  border-color: var(--text);
-  background: none;
+  background: color-mix(in srgb, var(--text) 13%, transparent);
 }
 
 /* The Spaces button is icon-only like the other footer acts; the space's name
@@ -2949,11 +3000,11 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
 
 #islandHint {
   font-family: var(--font-text);
-  font-size: 10.5px;
+  font-size: 11.5px;
   color: var(--text-dim);
-  opacity: 0.7;
   padding: 8px 10px 2px;
 }
+#islandHint:empty { display: none; }
 
 /* ---------- Platform menu + window controls (non-mac) ---------- */
 
@@ -3519,6 +3570,7 @@ body.fill-status-surface { background: transparent; }
   /* Quiet rows still un-dim on hover/focus, just without the fade. */
   .island-row.quiet,
   .vertical-tab-row.quiet { transition: none; }
+  .footer-new.devices .devices-caret { transition: none; }
   /* Peek still appears on hover/focus, just without the fade + pop. */
   .dot-peek { transition: none; }
   .island-ghead svg.caret { transition: none; }
