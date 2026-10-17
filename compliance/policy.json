@@ -146,6 +146,17 @@
       "licenseFile": "dark-reader/darkreader-LICENSE.txt",
       "homepage": "https://github.com/darkreader/darkreader",
       "attribution": "Dark Reader Ltd. and contributors; the unmodified npm API build is embedded in src/main/dark-websites-preload.js"
+    },
+    {
+      "id": "kagi-bangs-data",
+      "name": "Kagi bangs",
+      "version": "449cf7a18c66",
+      "type": "data",
+      "file": "bangs/sources/bangs.json",
+      "license": "MIT",
+      "licenseFile": "bangs/sources/kagi-bangs-LICENSE.txt",
+      "homepage": "https://github.com/kagisearch/bangs",
+      "attribution": "Kagi Search and contributors; compiled into src/renderer/pages/bangs-catalog.js by bangs/build.mjs"
     }
   ]
 }

@@ -55,6 +55,7 @@ See [`README.md`](./README.md#status-legend) for meanings.
 | F44 | Interface language | SHIPPED | PLANNED | PLANNED | All Blanc-authored UI text from the shared catalog; fixed brand/command terms; English fallback; user may pin a supported language other than the OS's; web-facing language signals unaffected. Desktop: in-app picker + relaunch; mobile: OS per-app language. | D27 |
 | F45 | Arc Spaces import | SHIPPED | — | — | Desktop only. Arc's StorableSidebar.json (found on macOS/Windows, or a chosen file anywhere) becomes one Blanc space per Arc Space, in one all-or-nothing write; folders become groups, tabs stay quiet, top-row Favorites join an Arc folder. The page sees only names and counts. | — |
 | F46 | Custom tab names | SHIPPED | — | — | Desktop only. A tab may carry the person's own name instead of its page title; it survives navigation, relaunch, Spaces and reopen, never reaches History or Favorites, and is memory-only for private tabs. | — |
+| F47 | Bangs | SHIPPED | PLANNED | PLANNED | `!code words` searches one site directly for every search engine, from Kagi's pinned open list; a hint row and a `!` picker in the command bar; a synced switch and the person's own bangs in Settings; no suggestion request for bang-shaped text; recents device-local and never from private tabs. The pure module and catalog under `bangs/` are the shared substrate. | — |
 
 ## Notes on the "mobile-only wins"
 

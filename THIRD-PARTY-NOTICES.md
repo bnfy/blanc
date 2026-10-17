@@ -103,6 +103,18 @@ License, kept in `dark-reader/darkreader-LICENSE.txt` and shipped as
 not the Dark Reader name or logo. Upstream:
 <https://github.com/darkreader/darkreader>.
 
+## Kagi bangs — MIT
+
+Bangs (`!yt lofi`) resolve from Kagi Search's open bang list,
+`data/bangs.json` at commit `449cf7a18c6614b4472168004c9b8804331885cc`
+(October 15, 2026), committed verbatim as `bangs/sources/bangs.json` and
+pinned by hash in `bangs/pinned.json`; `bangs/build.mjs` compiles it into
+the generated `src/renderer/pages/bangs-catalog.js`. Copyright (c) 2024 Kagi
+Search. It remains under Kagi's MIT License, kept in `bangs/sources/kagi-bangs-LICENSE.txt`
+and shipped as `ThirdPartyLicenses/kagi-bangs-LICENSE.txt`. The MIT License covers the
+list, not the Kagi name or logo. Upstream:
+<https://github.com/kagisearch/bangs>.
+
 ## Runtime dependencies
 
 Blanc is built on Electron (MIT) and bundles the Chromium engine, which carries

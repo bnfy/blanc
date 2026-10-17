@@ -1465,6 +1465,42 @@
     "message": "sin resultados: ↵ lo abre como dirección o búsqueda",
     "source": "sha256:9228597eea4e330cdf99391128acb497ceabf682cb04a97c4208f0f772eb24f5"
   },
+  "bang.search": {
+    "message": "Buscar «{query}» en {site}",
+    "source": "sha256:c05e3683f0f07f541c3b7c8cd708f61db2e8e07864df4980dbf09f09454f2346"
+  },
+  "bang.open": {
+    "message": "Abrir {site}",
+    "source": "sha256:61ba4ed601a6b2bd8bee6c0205873f02dc2bfa881250b2c7532b7d2be5f7a820"
+  },
+  "bang.yours": {
+    "message": "tuyo",
+    "source": "sha256:c33f26356d5d9c2add317866752a44e686f6ef3b7043f2a6d7782dc7cd4217db"
+  },
+  "bang.section.recent": {
+    "message": "recientes",
+    "source": "sha256:491db91b69ec71d0a634885426a4779e787c7b7b5563b2387dab746ef528faa7"
+  },
+  "bang.section.popular": {
+    "message": "populares",
+    "source": "sha256:ef89539344d4dec400f8a8684be93241adc354c63fd4026619dae977d42b7694"
+  },
+  "bang.section.all": {
+    "message": "todos los bangs",
+    "source": "sha256:42ff40c52ffa0b382d8c774c4537611a7a727a924af681c41e60ccb8956fc453"
+  },
+  "bang.fold": {
+    "message": "Contraer esta sección",
+    "source": "sha256:5226e558419e7fbd34f3ed00b7558b6b5998216ede0ce7f8b1cf496aa294a910"
+  },
+  "bang.unfold": {
+    "message": "Expandir esta sección",
+    "source": "sha256:3c14d0febf237b86827385b4e4766b8f543423a4cf1c626b9a8e79d94a881928"
+  },
+  "hint.bang": {
+    "message": "!code palabras busca en un sitio · ! solo los muestra",
+    "source": "sha256:879d3983c7e7f393cc23a6d57f532e0cf28261fd00572e2d2edc3e2e3c5fb949"
+  },
   "hint.private": {
     "message": "privada · nada de aquí se guarda en el historial",
     "source": "sha256:feefda763965f9187e4eb9dd56a30b5b98c6c8794c7a3ad92f61d0dde8467299"
@@ -3276,6 +3312,58 @@
   "settings.general.searchSuggestions.hint": {
     "message": "Envía los comienzos aptos de lo que escribes al buscador elegido, incluido Google si lo eliges. Se excluyen las pestañas privadas y lo que parece información sensible. Al enviar una búsqueda se manda la consulta completa aunque las sugerencias estén desactivadas.",
     "source": "sha256:e6f02de36973e8ec7dd259e90a89caa247828753dbc3a0ffe55c4f76a1ecf5a4"
+  },
+  "settings.general.bangs.label": {
+    "message": "Bangs",
+    "source": "sha256:98e829c495009653395fa6e1b4f811179328f4c9e9b08f392e93c3f7955db63a"
+  },
+  "settings.general.bangs.hint": {
+    "message": "Escribe ! seguido del código de un sitio para buscar directamente en él, por ejemplo !w para Wikipedia o !yt para YouTube. Escribe solo ! para verlos. Se sincroniza con tus otros ajustes.",
+    "source": "sha256:ce2f88c4d3791c2dc6953bf28cdee5063cb86d22f7e8b714c60715f0fa169897"
+  },
+  "settings.general.customBangs.label": {
+    "message": "Tus bangs",
+    "source": "sha256:12f12903fed5e472cdd0312936f28f85966b87efebcd56e0a96f99ef7afd2839"
+  },
+  "settings.general.customBangs.hint": {
+    "message": "Se sincroniza con tus otros ajustes; gana el dispositivo que guarda en último lugar.",
+    "source": "sha256:f80fb3c14abf9b69d489e3bebd86b404aa1f4bc48b2adaa41cebb9869f4d33a6"
+  },
+  "settings.general.customBangs.code": {
+    "message": "Código",
+    "source": "sha256:d60384b210c5cf995ca313dfde788af249fa27423ad01abd55c59331b36b289b"
+  },
+  "settings.general.customBangs.name": {
+    "message": "Nombre",
+    "source": "sha256:877aa39bee328b192f48494879e8fc5ab663b137bc00e86f70e5ac08b21a4c07"
+  },
+  "settings.general.customBangs.address": {
+    "message": "Dirección con %s",
+    "source": "sha256:e172a9c24188afad951acd87080d4c88c4a66bee45a8bcd71c2e517df65b88ed"
+  },
+  "settings.general.customBangs.add": {
+    "message": "Añadir",
+    "source": "sha256:73666f19c45cacf15832eab64eb9202f2f57371137e3b37d205be653624ed5d4"
+  },
+  "settings.general.customBangs.empty": {
+    "message": "Todavía no tienes bangs propios.",
+    "source": "sha256:64b3acca46a391766978463de0ed2e98a73039313a6c055dafeb1036f7ae5de8"
+  },
+  "settings.general.customBangs.replaces": {
+    "message": "Sustituye al !{code} integrado ({site})",
+    "source": "sha256:b42ae379fcb4d5d9937df56e71d1fc78161a47e573febcc2e1f9236f41c8721e"
+  },
+  "settings.general.customBangs.duplicate": {
+    "message": "Ya tienes !{code}.",
+    "source": "sha256:28f9f37a4df8809578042011299762d6e27fbd4d4c5d3f329f98af62d940d286"
+  },
+  "settings.general.customBangsError": {
+    "message": "Ese bang no es válido; revisa el código y la dirección.",
+    "source": "sha256:34b766f673c10cf4fb94f6cdfdb6ecafbdee6df7c30b20bf3e38753303c958f5"
+  },
+  "settings.general.customBangs.remove": {
+    "message": "Quitar !{code}",
+    "source": "sha256:e4fab8ff29c88aaad35f3693e198df725610db105222c4bea2a92004ba7051d2"
   },
   "settings.general.homePage.label": {
     "message": "Página de pestaña nueva",
@@ -5280,6 +5368,10 @@
   "shortcuts.slashCommands": {
     "message": "Comandos de barra",
     "source": "sha256:c0d8774ec8ed706bdb744ee37bfd9b4a8db9f2ef28bdce2bc1a019a2494a9601"
+  },
+  "shortcuts.bangs": {
+    "message": "Buscar directamente en un sitio; ! solo los muestra",
+    "source": "sha256:9f04e5c300d7672f9976d10fd4474e690f29dc43eaef90a4966fd4d7d3b0b80a"
   },
   "sheet.close": {
     "message": "Cerrar",

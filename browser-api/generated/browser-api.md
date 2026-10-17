@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-109 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
+111 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -90,6 +90,8 @@
 | `moveWorkspaceTo` | workspaces | invoke | `chrome:workspaces-move-to` | `(id: WorkspaceId, index: number) => Promise<WorkspaceActionResult>` | all |
 | `undoRemoveWorkspace` | workspaces | invoke | `chrome:workspaces-undo-remove` | `(id: WorkspaceId) => Promise<WorkspaceActionResult>` | all |
 | `searchSuggestions` | search | invoke | `chrome:search-suggestions` | `(query: string) => Promise<SearchSuggestions>` | all |
+| `bangs` | search | invoke | `chrome:bangs` | `() => Promise<BangsState>` | all |
+| `onBangsChanged` | search | event | `bangs:changed` | `(payload: BangsState) => void` | all |
 | `onRemoteTabsUpdated` | sync | event | `chrome:remote-tabs-updated` | `(payload: RemoteDevice[]) => void` | all |
 | `onWorkspacesUpdated` | workspaces | event | `chrome:workspaces-updated` | `(payload: WorkspacesPayload) => void` | all |
 | `onWorkspaceAction` | workspaces | event | `overlay:workspace-action` | `(payload: WorkspaceActionEvent) => void` | all |
@@ -787,6 +789,26 @@ Another device's open tabs, from displayDevices() in tabsync-model.js. Newest fi
 | `updatedAt` | `number` | Epoch milliseconds. |
 | `tabs` | `RemoteTab[]` |  |
 | `groups` | `RemoteGroup[]` |  |
+
+### `CustomBang`
+
+A bang the person added in Settings, from settings.js normalizeCustomBangs().
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `code` | `string` | Lowercase; a letter or digit, then up to 31 letters, digits, hyphens or underscores. |
+| `name` | `string` |  |
+| `template` | `string` | The search address with %s where the words go; the custom search address's rule. |
+
+### `BangsState`
+
+The bang settings the Island draws its hint row and picker from, from bangsState() in main.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `enabled` | `boolean` |  |
+| `custom` | `CustomBang[]` |  |
+| `recent` | `string[]` | Recently used primary codes, newest first, at most ten; device-local. |
 
 ### `SearchSuggestions`
 
