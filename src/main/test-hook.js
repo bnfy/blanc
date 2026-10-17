@@ -2558,6 +2558,20 @@ function install(refs) {
       if (!wc) return [];
       return wc.executeJavaScript(`[...document.querySelectorAll('#islandList .island-ghead .ghead-name')].map((el) => el.textContent)`);
     },
+    /** Whether the ⌘L list's highlighted row sits inside the list's scroll
+     * viewport (null when nothing is highlighted). */
+    async addressActiveRowVisible() {
+      const wc = getOverlayWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const list = document.getElementById('islandList');
+        const row = list?.querySelector('.island-row.active');
+        if (!list || !row) return null;
+        const l = list.getBoundingClientRect();
+        const r = row.getBoundingClientRect();
+        return r.top >= l.top - 1 && r.bottom <= l.bottom + 1;
+      })()`);
+    },
     async addressInputValue() {
       const wc = getOverlayWebContents();
       if (!wc) return null;

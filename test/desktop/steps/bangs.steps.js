@@ -54,6 +54,27 @@ When('I turn bangs off while the command bar is open', async function () {
   await this.call('setBangsEnabled', false);
 });
 
+When('I press Arrow Up in the command bar', async function () {
+  assert.strictEqual(await this.call('pressAddressKey', 'ArrowUp'), true);
+});
+
+Then('the highlighted picker row is scrolled into view', async function () {
+  await waitForValue(() => this.call('addressActiveRowVisible'), (visible) => visible === true, 'the highlighted row inside the list viewport');
+});
+
+Given('ten bangs were used recently', async function () {
+  // Ten codes outside the popular set, so recent (10) and popular (19)
+  // stay separate sections and the panel's capped height has to scroll.
+  for (const code of ['y8', 'ya', 'yc', 'yd', 'yh', 'yi', 'yj', 'mcf', 'mib', 'mik']) {
+    await this.call('captureSearchNavigation', true);
+    await openOverlaySurface(this, 'openPalette', 'palette');
+    assert.strictEqual(await this.call('editAddressInput', `!${code} probe`, 'insertText'), true);
+    assert.strictEqual(await this.call('pressAddressKey', 'Enter'), true);
+    await waitForValue(() => this.call('capturedSearchSubmission'), (v) => v?.engine === 'bang' && v.query === 'probe', `bang ${code} recorded`);
+  }
+  await waitForValue(() => this.call('recentBangs'), (r) => r.length === 10, 'ten recents');
+});
+
 When('I press Arrow Down in the command bar', async function () {
   assert.strictEqual(await this.call('pressAddressKey', 'ArrowDown'), true);
 });

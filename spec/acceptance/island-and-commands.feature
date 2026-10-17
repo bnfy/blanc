@@ -221,3 +221,16 @@ Feature: Island chrome, command palette, and slash commands
     Then no bang hint row is shown
     When I submit the command-bar text
     Then the address submission goes to "https://duckduckgo.com/?q=!zzzq"
+
+  @F47-14 @F47 @desktop
+  Scenario: Arrow keys keep the highlighted picker row in view when the list scrolls
+    Given a tab open on "bangs-start"
+    And ten bangs were used recently
+    When I type "!" in the command bar
+    Then the picker shows the section "recent"
+    And the picker shows the section "popular"
+    When I press Arrow Up in the command bar
+    Then the highlighted picker row is scrolled into view
+    When I press Arrow Down in the command bar
+    Then the first picker row is highlighted
+    And the highlighted picker row is scrolled into view

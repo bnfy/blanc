@@ -149,3 +149,15 @@ test('matchBangs matches aliases but shows the primary code', () => {
   // An exact alias is the hint row's job, so the picker leaves it out.
   assert.deepEqual(matchBangs('ytb', cat, [], [], []).map((r) => r.code), []);
 });
+
+test('a built-in shadowed by a custom bang leaves the picker, by code and by name', () => {
+  const mine = { code: 'yt', name: 'Mine', template: 'https://mine.example/?q=%s' };
+  // By name: "tube" matches YouTube's name, but !yt now means Mine.
+  assert.deepEqual(matchBangs('tube', cat, [mine], [], []).map((r) => [r.code, r.custom]), [['ytm', false], ['ytmusic2', false]]);
+  // By code prefix: the custom row stands in for the catalog entry, once.
+  assert.deepEqual(matchBangs('y', cat, [mine], [], []).map((r) => [r.code, r.custom]), [['yt', true], ['ytm', false], ['ytmusic2', false]]);
+  // A custom code equal to an alias shadows only that alias: YouTube stays reachable as !yt.
+  const alias = { code: 'ytb', name: 'Shadow', template: 'https://shadow.example/?q=%s' };
+  assert.deepEqual(matchBangs('ytb', cat, [alias], [], []).map((r) => [r.code, r.custom]), []);
+  assert.deepEqual(matchBangs('tube', cat, [alias], [], []).map((r) => r.code), ['yt', 'ytm', 'ytmusic2']);
+});

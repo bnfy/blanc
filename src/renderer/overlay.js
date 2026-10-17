@@ -1778,6 +1778,9 @@
         i += 1;
       }
       islandList.replaceChildren(...(nodes.length ? nodes : [emptyRow(blancI18n.t('list.noMatches'))]));
+      // The uncapped picker can outgrow the panel; an arrowed row must be
+      // where the person can see it, as the Glance picker already does.
+      islandList.querySelector('.island-row.active')?.scrollIntoView({ block: 'nearest' });
     } else if (inputTouched && value.startsWith('/')) {
       selectedResultIndex = -1;
       const slashWord = value.trim().split(/\s+/)[0];

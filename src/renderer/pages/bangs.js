@@ -156,11 +156,18 @@
     if (!needle) return rows;
 
     const candidates = [];
+    const shadowed = new Set();
     for (const bang of customBangs || []) {
-      if (bang && isBangCode(bang.code)) candidates.push({ record: customRecord(bang), codes: [bang.code] });
+      if (!bang || !isBangCode(bang.code)) continue;
+      candidates.push({ record: customRecord(bang), codes: [bang.code] });
+      shadowed.add(bang.code);
     }
+    // A catalog entry whose primary code a custom bang took is gone from the
+    // picker (its row would fill a code that now means the custom bang); a
+    // taken alias only stops matching.
     for (const entry of catalog || []) {
-      candidates.push({ record: catalogRecord(entry), codes: [entry[0], ...entry[1]] });
+      if (shadowed.has(entry[0])) continue;
+      candidates.push({ record: catalogRecord(entry), codes: [entry[0], ...entry[1].filter((alias) => !shadowed.has(alias))] });
     }
     // The person's own bangs lead the section whatever their code length, so
     // the row cap never hides them behind catalog entries.
