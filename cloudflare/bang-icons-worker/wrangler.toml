@@ -16,6 +16,12 @@ kv_namespaces = [
   { binding = "ICONS", id = "SET-ME-ICONS-NAMESPACE-ID" }
 ]
 
+# A backstop on top of the parser's bounds: no request may spend more than
+# one second of CPU (wall time waiting on sites does not count). Needs the
+# Workers Paid plan, which the README's first deploy step checks.
+[limits]
+cpu_ms = 1000
+
 [vars]
 HOSTS_URL = "https://blanc.day/bang-hosts.json"
 

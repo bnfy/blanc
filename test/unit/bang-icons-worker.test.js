@@ -295,3 +295,71 @@ test('the hold-back list is reviewed and names only real bang hosts', () => {
     assert.ok(!popularHosts.has(host), `${host} is a featured host`);
   }
 });
+
+// Review fixes: a hostile homepage, trailing-dot names, cancelled requests and
+// the security inventories.
+
+test('a hostile homepage cannot burn CPU or crash the parser', async () => {
+  const { iconCandidates } = await load('rules.js');
+  const timed = (html) => {
+    const started = Date.now();
+    const result = iconCandidates(html, 'https://example.org/');
+    return { result, ms: Date.now() - started };
+  };
+  const longName = timed(`<link rel="icon" ${'a'.repeat(262144)}>`);
+  assert.ok(longName.ms < 300, `a 256 KiB attribute run took ${longName.ms} ms`);
+  const unclosed = timed('<link'.repeat(52428));
+  assert.ok(unclosed.ms < 300, `256 KiB of unclosed <link took ${unclosed.ms} ms`);
+  const farClose = timed(`${'<link '.repeat(40000)}>`);
+  assert.ok(farClose.ms < 300, `<link tags closed far away took ${farClose.ms} ms`);
+  const sizes = timed(`<link rel="icon" sizes="${'1x1 '.repeat(150000)}" href="/a.png">`);
+  assert.ok(Array.isArray(sizes.result), 'a huge sizes attribute threw');
+});
+
+test('a lookup that throws is a miss, not a crash', async (t) => {
+  const { createWorker } = await load('index.js');
+  const env = environment();
+  withFetch(t, { [env.HOSTS_URL]: hostList('example.org') });
+  const worker = createWorker({ heldBack: [], findIconImpl: async () => { throw new RangeError('boom'); } });
+  const response = await serve(worker, env, 'https://blanc.day/bang-icons/example.org');
+  assert.equal(response.status, 404);
+  assert.deepEqual(env.ICONS.puts[0].options.metadata, { miss: true });
+});
+
+test('trailing-dot local names are refused, as the app refuses them', async () => {
+  const { isPublicUrl } = await load('rules.js');
+  for (const url of ['http://localhost./', 'http://printer.local./', 'http://nas.lan./', 'http://foo.internal./', 'http://intranet./']) {
+    assert.equal(isPublicUrl(new URL(url)), false, url);
+  }
+  assert.equal(isPublicUrl(new URL('https://example.org./')), true);
+});
+
+test('the lookup is kept alive past a cancelled request', async (t) => {
+  const { createWorker } = await load('index.js');
+  const env = environment();
+  withFetch(t, { [env.HOSTS_URL]: hostList('example.org') });
+  let finish;
+  const worker = createWorker({ heldBack: [], findIconImpl: () => new Promise((resolve) => { finish = resolve; }) });
+  const pending = [];
+  const replied = worker.fetch(new Request('https://blanc.day/bang-icons/example.org'), env, { waitUntil: (promise) => pending.push(promise) });
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  assert.equal(pending.length, 1, 'the lookup was not handed to waitUntil before it finished');
+  finish({ bytes: PNG_BYTES, type: 'image/png', source: 'site' });
+  await Promise.all(pending);
+  assert.equal(env.ICONS.puts.length, 1, 'the icon was not kept');
+  assert.equal((await replied).status, 200);
+});
+
+test('the security inventories list the bang icons Worker', () => {
+  const fs = require('node:fs');
+  const root = path.resolve(__dirname, '../..');
+  const read = (file) => JSON.parse(fs.readFileSync(path.join(root, file), 'utf8'));
+  const flow = read('security/network-data-inventory.json').flows.find((entry) => entry.id === 'bang-icons');
+  assert.ok(flow, 'no bang-icons flow');
+  assert.equal(flow.surface, 'website');
+  assert.ok(flow.code.includes('cloudflare/bang-icons-worker/src/index.js'));
+  const boundaries = read('security/audit-surface-inventory.json').boundaries.map((entry) => entry.file);
+  for (const file of ['find-icon.js', 'hosts.js', 'index.js', 'rules.js']) {
+    assert.ok(boundaries.includes(`cloudflare/bang-icons-worker/src/${file}`), `${file} is not a boundary`);
+  }
+});

@@ -47,16 +47,18 @@ export function createWorker({ heldBack = heldBackList.hosts, findIconImpl = fin
       if (kept.metadata?.type) return reply(request, 200, HIT_CACHE, kept.value, kept.metadata.type);
       if (kept.metadata?.miss) return reply(request, 404, MISS_CACHE);
 
-      const icon = await findIconImpl(host);
-      if (!icon) {
-        ctx.waitUntil(env.ICONS.put(key, '', { expirationTtl: MISS_TTL, metadata: { miss: true } }));
-        return reply(request, 404, MISS_CACHE);
-      }
-      ctx.waitUntil(env.ICONS.put(key, icon.bytes, {
-        expirationTtl: HIT_TTL,
-        metadata: { type: icon.type, source: icon.source, fetchedAt: new Date().toISOString() },
-      }));
-      return reply(request, 200, HIT_CACHE, icon.bytes, icon.type);
+      // The lookup and its KV write are handed to waitUntil, so a visitor who
+      // scrolls past (cancelling the image) still leaves the result kept for
+      // the next one. A lookup that throws counts as a miss.
+      const found = Promise.resolve().then(() => findIconImpl(host)).catch(() => null);
+      ctx.waitUntil(found.then((icon) => (icon
+        ? env.ICONS.put(key, icon.bytes, {
+          expirationTtl: HIT_TTL,
+          metadata: { type: icon.type, source: icon.source, fetchedAt: new Date().toISOString() },
+        })
+        : env.ICONS.put(key, '', { expirationTtl: MISS_TTL, metadata: { miss: true } }))).catch(() => {}));
+      const icon = await found;
+      return icon ? reply(request, 200, HIT_CACHE, icon.bytes, icon.type) : reply(request, 404, MISS_CACHE);
     },
   };
 }

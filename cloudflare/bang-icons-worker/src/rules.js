@@ -17,16 +17,17 @@ export function hostFromPath(pathname) {
 }
 
 /**
- * Whether the server may fetch `url`, following the app's own favicon rules:
- * plain http(s) on a default port, no credentials, and never an IP literal or
- * a local network name. The URL parser has already turned numeric IPv4 forms
- * (`2130706433`, `0x7f.1`) into dotted decimal.
+ * Whether the server may fetch `url`, following the app's own favicon rules
+ * (src/main/favicon-network.js): plain http(s) on a default port, no
+ * credentials, and never an IP literal or a local network name, with or
+ * without a trailing dot. The URL parser has already turned numeric IPv4
+ * forms (`2130706433`, `0x7f.1`) into dotted decimal.
  */
 export function isPublicUrl(url) {
   if (url.protocol !== 'https:' && url.protocol !== 'http:') return false;
   if (url.username || url.password) return false;
   if (url.port !== '' && url.port !== '80' && url.port !== '443') return false;
-  const host = url.hostname;
+  const host = url.hostname.endsWith('.') ? url.hostname.slice(0, -1) : url.hostname;
   if (host.startsWith('[') || /^\d+(?:\.\d+){3}$/.test(host)) return false;
   if (host === 'localhost' || PRIVATE_SUFFIXES.some((suffix) => host.endsWith(suffix))) return false;
   return host.includes('.');
@@ -45,9 +46,31 @@ export function sniffImageType(data) {
   return null;
 }
 
-const LINK = /<link\b[^>]*>/gi;
-const ATTRIBUTE = /([a-z-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/gi;
+// Homepages are third-party input, so every scan is bounded: the head only,
+// at most 64 <link> tags of at most 2 KiB each, and attribute patterns with
+// fixed limits, so no page can make parsing quadratic.
+const MAX_LINKS = 64;
+const MAX_TAG = 2048;
+const ATTRIBUTE = /([a-z-]{1,64})\s*=\s*(?:"([^"]{0,2048})"|'([^']{0,2048})'|([^\s>]{1,2048}))/gi;
 const ICON_RELS = new Set(['icon', 'apple-touch-icon', 'apple-touch-icon-precomposed']);
+
+// The <link …> tags in the head, found in one pass: the next `>` is looked up
+// only once the scan has passed the last one found, and an unclosed tag ends
+// the scan.
+function linkTags(html) {
+  const lower = html.toLowerCase();
+  const headEnd = lower.indexOf('</head');
+  const end = headEnd === -1 ? lower.length : headEnd;
+  const tags = [];
+  let close = -1;
+  for (let at = lower.indexOf('<link'); at !== -1 && at < end && tags.length < MAX_LINKS; at = lower.indexOf('<link', at + 5)) {
+    if (!/[\s/>]/.test(lower[at + 5] ?? '')) continue;
+    if (close < at) close = lower.indexOf('>', at);
+    if (close === -1) break;
+    if (close - at <= MAX_TAG) tags.push(html.slice(at, close + 1));
+  }
+  return tags;
+}
 
 function attributes(tag) {
   const found = {};
@@ -59,7 +82,7 @@ function attributes(tag) {
 // usually 180px and a plain icon 32px.
 function declaredSize(rels, sizes) {
   const numbers = String(sizes ?? '').match(/\d+/g);
-  if (numbers) return Math.max(...numbers.map(Number));
+  if (numbers) return numbers.reduce((largest, number) => Math.max(largest, Number(number)), 0);
   return rels.some((rel) => rel.startsWith('apple-touch-icon')) ? 180 : 32;
 }
 
@@ -70,7 +93,7 @@ function declaredSize(rels, sizes) {
  */
 export function iconCandidates(html, pageUrl) {
   const found = [];
-  for (const [tag] of html.matchAll(LINK)) {
+  for (const tag of linkTags(html)) {
     const attrs = attributes(tag);
     const rels = String(attrs.rel ?? '').toLowerCase().split(/\s+/);
     if (!rels.some((rel) => ICON_RELS.has(rel)) || !attrs.href) continue;

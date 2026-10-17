@@ -24,6 +24,30 @@
   ],
   "boundaries": [
     {
+      "file": "cloudflare/bang-icons-worker/src/find-icon.js",
+      "sha256": "8fbc367189a14d2986e289c85ef824c34683404c0a85b99768c8ebe853f57f84",
+      "literalChannels": [],
+      "role": "privileged implementation or service"
+    },
+    {
+      "file": "cloudflare/bang-icons-worker/src/hosts.js",
+      "sha256": "e967c91a5ad6509daaeda43d562371746317a51683efcdfe0956c02481da2a82",
+      "literalChannels": [],
+      "role": "privileged implementation or service"
+    },
+    {
+      "file": "cloudflare/bang-icons-worker/src/index.js",
+      "sha256": "4b237d1b8a898f1f8f6e9e3ee19329cfe1685c9e4230cd188acf290036f56d96",
+      "literalChannels": [],
+      "role": "privileged implementation or service"
+    },
+    {
+      "file": "cloudflare/bang-icons-worker/src/rules.js",
+      "sha256": "967b79763cea6ab2ac1be57abcf0f8b98905bb48b214bdcc3929f0d1f5765d35",
+      "literalChannels": [],
+      "role": "privileged implementation or service"
+    },
+    {
       "file": "cloudflare/newsletter-worker/src/index.js",
       "sha256": "e323c0020b044c56068bd4ea6bd7a1a2c8b1b92aebdf874430dcde994ef6dfb8",
       "literalChannels": [],
