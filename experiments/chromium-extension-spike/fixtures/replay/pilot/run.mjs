@@ -4,7 +4,10 @@ import path from 'node:path';
 import os from 'node:os';
 import { createHash } from 'node:crypto';
 import { pathToFileURL, fileURLToPath } from 'node:url';
-import { startProxy, urls, fixtures } from './proxy.mjs';
+import { startProxy, fixtureSet } from './proxy.mjs';
+import { createCertificates } from './certificates.mjs';
+const scheme = process.env.BLANC_F12_TLS === '1' ? 'https' : 'http';
+const {urls,fixtures} = fixtureSet(scheme);
 
 // Explicit tool locations keep this experiment independent of shipping deps.
 const [electronPath, asarPath, asarModulePath, playwrightModulePath, evidencePath] = process.argv.slice(2);
@@ -24,6 +27,8 @@ const pkg = JSON.parse(fs.readFileSync(pkgPath));
 assert.equal(pkg.version, '1.36.0', 'Pilot is pinned to installed Blanc 1.36.0 source');
 const instrumentation = fs.readFileSync(new URL('./bootstrap.cjs', import.meta.url));
 fs.writeFileSync(path.join(appDir, 'capture-bootstrap.cjs'), instrumentation);
+const trustModule = fs.readFileSync(new URL('./fixture-trust.cjs', import.meta.url));
+fs.writeFileSync(path.join(appDir, 'fixture-trust.cjs'), trustModule);
 fs.writeFileSync(pkgPath, JSON.stringify({ ...pkg, main: 'capture-bootstrap.cjs' }));
 const profile = path.join(sandbox, 'profile');
 fs.mkdirSync(profile); fs.mkdirSync(profile + '-Dev');
@@ -33,14 +38,22 @@ fs.writeFileSync(path.join(profile + '-Dev', 'settings.json'), JSON.stringify({
 }));
 const captureLog = path.join(evidencePath, 'decisions.jsonl');
 fs.writeFileSync(captureLog, '');
-const proxy = await startProxy();
-const report = { kind: 'instrumented-electron-http-capture-pilot', passed: false,
+const tlsMaterial = scheme === 'https' ? createCertificates(path.join(sandbox,'certificates'),
+  [...new Set(Object.values(urls).map(u=>new URL(u).hostname))]) : null;
+const trustPath=path.join(sandbox,'fixture-trust.json');
+const trustLog=path.join(evidencePath,'certificate-decisions.jsonl');
+if (tlsMaterial) fs.writeFileSync(trustPath,JSON.stringify({ca:tlsMaterial.ca,cert:tlsMaterial.cert,hosts:tlsMaterial.hosts}));
+const proxy = await startProxy({scheme,tlsMaterial});
+const report = { kind: 'instrumented-electron-'+scheme+'-capture-pilot', passed: false,
   started: new Date().toISOString(), sourceAsarSha256: sourceDigest, appVersion: pkg.version,
-  instrumentationSha256: sha(instrumentation),
-  harnessSha256: sha(fs.readFileSync(fileURLToPath(import.meta.url))), sourceFiles: {},
+  instrumentationSha256: sha(instrumentation), trustModuleSha256:sha(trustModule),
+  tls:tlsMaterial && {openssl:tlsMaterial.version,caFingerprint:tlsMaterial.caFingerprint,leafFingerprint:tlsMaterial.leafFingerprint,hosts:tlsMaterial.hosts,trustScope:'disposable Electron Sessions only; pinned CA-signed leaf'},
+  harnessSha256: sha(fs.readFileSync(fileURLToPath(import.meta.url))),
+  transportSha256:sha(fs.readFileSync(new URL('./proxy.mjs', import.meta.url))),
+  certificateFactorySha256:sha(fs.readFileSync(new URL('./certificates.mjs', import.meta.url))), sourceFiles: {},
   fixtures: [...fixtures].map(([url, [contentType, body]]) => ({url, contentType, sha256: sha(body)})),
   limits: ['Instrumented extracted app source on stock Electron; not a signed-package acceptance run.',
-    'HTTP-only transport pilot; no TLS/CA, workers, redirects, private teardown or 157 replay yet.',
+    'Fixture transport pilot; no workers, redirects, private teardown or 157 replay yet.',
     'Authored fixture traffic, not the 4000-request acceptance corpus; no latency result.'],
   profiles: {}, cleanup: {} };
 for (const file of ['src/main/adblock.js', 'src/main/blocking-coordinator.js', 'node_modules/@ghostery/adblocker-electron/dist/commonjs/index.js', 'adblock/sources/pinned.json']) {
@@ -56,7 +69,8 @@ async function until(fn, label) {
 }
 try {
   const env = { ...process.env, BLANC_TEST: '0', BLANC_UBLOCK_TEST: '0',
-    BLANC_F12_PROFILE: profile, BLANC_F12_LOG: captureLog };
+    BLANC_F12_PROFILE: profile, BLANC_F12_LOG: captureLog,
+    BLANC_F12_TRUST: tlsMaterial ? trustPath : '', BLANC_F12_TRUST_LOG: trustLog };
   delete env.ELECTRON_RUN_AS_NODE; delete env.NODE_OPTIONS;
   electron = await _electron.launch({ executablePath: electronPath,
     args: [appDir, '--use-mock-keychain', `--user-data-dir=${profile}`, `--proxy-server=http://127.0.0.1:${proxy.port}`,
@@ -100,9 +114,14 @@ try {
       const blocked = [urls.blockedScript, urls.blockedData].includes(url);
       assert.equal(!!(row.result.cancel || row.result.redirectURL), blocked, url);
     }
-    const arrivals = proxy.requests.slice(before).filter(r=>r.known);
+    const arrivals = proxy.requests.slice(before).filter(r=>r.known && r.method !== 'CONNECT');
     assert.deepEqual(arrivals.map(r=>r.url).sort(), [urls.page,urls.script,urls.data,urls.noReferrerData].sort());
     for (const row of arrivals) assert.equal(row.host, new URL(row.url).host);
+    if (tlsMaterial) {
+      assert(arrivals.every(r=>r.encrypted));
+      const trustRows=fs.readFileSync(trustLog,'utf8').trim().split('\n').map(JSON.parse).filter(r=>r.profileKind===kind);
+      assert(trustRows.length >= 2 && trustRows.every(r=>r.accepted));
+    }
     report.profiles[kind] = {dom, decisions:records.length, allObservedDecisions:allRecords.length, arrivals};
     await chrome.evaluate(id => window.browserAPI.closeTab(id), id);
     await until(() => chrome.evaluate(async id => !(await window.browserAPI.getAllTabs()).tabs.some(tab => tab.id === id), id), 'fixture removed from tab model');

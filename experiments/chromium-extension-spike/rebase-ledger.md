@@ -214,3 +214,21 @@ that branch's measured Rebase 0 record and open upgrade gate while incorporating
 this separate tranche section. Resolve the expected ledger conflict once; never
 replace the measured record with this branch's template. This action is pending
 #907's merge, not performed by this correction.
+
+### HTTPS fixture transport checkpoint — October 17, 2026
+
+After owner-authorized squash merges #909 (`5120969d`) and #907 (`176b9ace`),
+the 157 branch took spike head `176b9ace` as merge `cc1edca2`. Its entire measured
+Rebase 0 record was retained and the separate tranche audit section appended;
+the predicted ledger conflict is resolved. The existing native build and open
+extension-upgrade gate were not changed.
+
+[HTTPS capture evidence](evidence/f12-https-capture-20261017/README.md): three HTTPS
+runs and one HTTP regression passed using the real Electron provider in fresh
+regular/private profiles, with session-scoped fixture trust and all fixtures
+served offline. Twelve fixture decisions per run, 8 allow / 4 cancel; these are
+not acceptance-corpus requests. Transport/trust tests **8/8**. Source hashes,
+proxy arrivals, certificate decisions and cleanup are saved. Invocations and
+run wall clocks are in the evidence; active attention is **not measured**.
+No native build/prepare/GN invocation, no new native patch, no cold-column change.
+157 replay, real-page corpus and remaining request-path admission stay pending.
