@@ -1,0 +1,40 @@
+import {assert,base,record,native,key,text,until,pause,snapshot,active,favorites,evaluate,goto,enter,click,capture,execFileSync} from './lib.mjs';
+const alpha=base+'Alpha';
+const folder='Codex-Native858';
+const has=async url=>(await favorites()).find(f=>f.url===url);
+try {
+  const before=await snapshot();
+  record('input-baseline',{tabs:before.tabs.map(({id,title,url})=>({id,title,url})),favorites:await favorites()});
+
+  key(17,1048576);await until(async()=>(await active()).url==='blanc://newtab/','Cmd-T new tab');
+  key(53);const originalFavorites=await favorites();key(2,1048576);await pause(500);
+  assert.deepEqual(await favorites(),originalFavorites);record('native-cmd-d-start-page-no-op');
+  await goto(alpha);
+  key(2,1048576);await until(()=>has(alpha),'Cmd-D saved Alpha');
+  assert.equal((await active()).bookmarked,true);
+  await capture('cmd-d-on');
+  record('native-cmd-d-web-on');
+  key(2,1048576);await until(async()=>!await has(alpha),'Cmd-D removed Alpha');
+  record('native-cmd-d-web-off');
+  await click('#pillHeart');await until(()=>has(alpha),'mouse pill saved');
+  await click('#pillHeart');await until(async()=>!await has(alpha),'mouse pill removed');record('native-mouse-pill-heart-on-off');
+  key(37,1048576);await pause(500);await click('#heartBtn','overlay');await until(()=>has(alpha),'panel saved');
+  await click('#heartBtn','overlay');await until(async()=>!await has(alpha),'panel removed');key(53);record('native-mouse-panel-heart-on-off');
+  await enter('/save '+folder);const saved=await until(()=>has(alpha),'slash save');assert.equal(saved.folder,folder);record('native-slash-save',{item:saved});
+  await enter('/save '+folder.toLowerCase());
+  const same=(await favorites()).filter(f=>f.url===alpha);assert.equal(same.length,1);assert.equal(same[0].id,saved.id);assert.equal(same[0].folder,folder);record('native-slash-case-insensitive-reuse',{id:saved.id});
+  await enter('/save');assert.equal((await has(alpha)).id,saved.id);record('native-bare-save-no-duplicate');
+  await goto(base+'Invalid',true);await enter('/save '+'x'.repeat(101));assert.equal(await has(base+'Invalid'),undefined);record('native-overlong-folder-rejected');
+  await goto(base+'Beta');await enter('/save Codex-Native858-Moved');
+  const beta=await until(()=>has(base+'Beta'),'saved Beta');
+  await enter('/save '+folder);const moved=await has(base+'Beta');assert.equal(moved.id,beta.id);assert.equal(moved.folder,folder);record('native-slash-moves-existing-node',{id:moved.id});
+  await enter('/favorites');await until(async()=>(await active()).url==='chrome://bookmarks/','slash favorites manager');record('native-slash-favorites-manager');
+  key(13,1048576);await pause(500);
+  await enter('/history');await until(async()=>(await active()).url==='chrome://history/','slash history manager');record('native-slash-history-manager');
+  key(13,1048576);await pause(500);
+  key(37,1048576);await pause(400);await click('#footerFavorites','overlay');await until(async()=>(await active()).url==='chrome://bookmarks/','footer favorites');record('native-mouse-favorites-footer');
+  key(13,1048576);await pause(400);
+  key(37,1048576);await pause(400);await click('#footerHistory','overlay');await until(async()=>(await active()).url==='chrome://history/','footer history');record('native-mouse-history-footer');
+  key(13,1048576);await pause(400);
+  record('input-phase-one-complete');
+} catch(error) {record('failure',{message:error.stack});throw error;}

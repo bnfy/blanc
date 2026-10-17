@@ -1,0 +1,3 @@
+{"name":"native-clear-site-data-retained","data":{"cookie":"rebaseSentinel=kept; nativeSentinel=kept","storage":"kept"}}
+{"name":"native-web-store-install-restart-persistence","version":"2026.10.0"}
+{"name":"native-layout-visual-pass","widths":[1200,800],"height":[996,700],"trafficLightInset":20,"divider":"absent","dynamicTint":"Native screenshot matches changed blue page; host WebUI itself is transparent","image":"native-narrow-tint.png"}

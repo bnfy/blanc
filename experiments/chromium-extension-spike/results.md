@@ -1081,3 +1081,17 @@ was needed. The report preserves the original restart failure, the overlay-only
 reload used to finish group checks, and the three successful relaunches with
 the fix. It also records Chromium retaining closed saved groups and the targeted
 cleanup of those fixture records.
+
+## Chromium 157 Task 0 — unlocked native acceptance (October 17, 2026)
+
+The sibling 157 build passes the native keyboard/mouse, tab/group, Favorites,
+private-window, visible start-page, header/window/Dock and normal Web Store
+install/popup/persistence checks in the [native acceptance report](evidence/rebase-157-native-20261017/results.md).
+A first-loose-tab drag gap with an empty pinned section was fixed in prototype
+assets and retested without a native rebuild (14 focused/guard tests pass).
+
+Task 0 stays **in progress**: an actual Google-endpoint extension version upgrade
+has not been run because the older signed CRX is unavailable. Bitwarden is
+already 2026.10.0; a successful no-change update check does not close that gate.
+The 156 baseline is preserved, and 157 baseline promotion remains conditional
+on complete acceptance. See the [measured ledger](rebase-ledger.md).

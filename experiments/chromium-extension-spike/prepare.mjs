@@ -3,6 +3,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { prepareMacIcon } from './mac-icon.mjs';
+import { prepareDragAsset } from './drag-assets.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, '../..');
@@ -153,6 +154,9 @@ if (overlaySource.split(commandsAnchor).length !== 2) fail('command list anchor 
 overlaySource = overlaySource.replace(commandsAnchor,
   "  ].filter((command) => ['/downloads', '/new', '/close', '/save', '/favorites', '/history', '/clear', '/pin', '/mute', '/group', '/ungroup', '/close-group'].includes(command.cmd));\n\n  function runCommand(command) {");
 assets.set(overlayScript, overlaySource);
+
+const dragScript = path.join(generated, 'tab-drag.js');
+assets.set(dragScript, prepareDragAsset(assets.get(dragScript).toString('utf8')));
 
 for (const [target, value] of assets) writeIfChanged(target, value);
 if (assetsOnly) {

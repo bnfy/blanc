@@ -1,0 +1,3 @@
+import {targets,connect,assert,native,pause,active} from './lib.mjs';
+export async function page(url){const t=(await targets()).find(t=>t.type==='page'&&t.url===url);assert.ok(t,url);return connect(t);}
+export async function pageClick(c,selector){const b=(await c.send('Browser.getWindowForTarget')).bounds;const r=await c.eval(`(()=>{const e=document.querySelector(${JSON.stringify(selector)}),r=e.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height,inner:innerHeight}})()`);assert.ok(r.w&&r.h,selector);native('click',b.left+r.x+r.w/2,b.top+b.height-r.inner+r.y+r.h/2);await pause(350);}
