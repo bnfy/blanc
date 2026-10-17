@@ -76,3 +76,74 @@ test('iconCandidates prefers a sharp declared icon and ends with favicon.ico', a
     'https://example.org/favicon.ico',
   ]);
 });
+
+// A fetch stub serving a fixed map of URL → response maker, recording calls.
+function stubFetch(routes) {
+  const calls = [];
+  const fetchImpl = async (url) => {
+    calls.push(String(url));
+    const route = routes[String(url)];
+    return route ? route() : new Response('', { status: 404 });
+  };
+  return { fetchImpl, calls };
+}
+const PNG_BYTES = bytes(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3);
+const ICO_BYTES = bytes(0, 0, 1, 0, 1, 0, 16, 16);
+const image = (body) => () => new Response(body, { headers: { 'content-type': 'image/png' } });
+const page = (html) => () => new Response(html, { headers: { 'content-type': 'text/html' } });
+const DDG = 'https://icons.duckduckgo.com/ip3/example.org.ico';
+
+test("the site's declared icon wins", async () => {
+  const { findIcon } = await load('find-icon.js');
+  const { fetchImpl, calls } = stubFetch({
+    'https://example.org/': page('<link rel="apple-touch-icon" href="/t.png">'),
+    'https://example.org/t.png': image(PNG_BYTES),
+  });
+  const icon = await findIcon('example.org', fetchImpl);
+  assert.equal(icon.source, 'site');
+  assert.equal(icon.type, 'image/png');
+  assert.deepEqual([...icon.bytes], [...PNG_BYTES]);
+  assert.ok(!calls.includes(DDG), 'DuckDuckGo was asked');
+});
+
+test('favicon.ico, then DuckDuckGo, when the site declares nothing usable', async () => {
+  const { findIcon } = await load('find-icon.js');
+  const { fetchImpl, calls } = stubFetch({
+    'https://example.org/': page('<link rel="icon" href="/i.svg">'),
+    [DDG]: image(ICO_BYTES),
+  });
+  const icon = await findIcon('example.org', fetchImpl);
+  assert.equal(icon.source, 'duckduckgo');
+  assert.equal(icon.type, 'image/x-icon');
+  assert.ok(calls.includes('https://example.org/favicon.ico'));
+});
+
+test('a redirect into a private address is refused', async () => {
+  const { findIcon } = await load('find-icon.js');
+  const { fetchImpl, calls } = stubFetch({
+    'https://example.org/': () => new Response(null, { status: 302, headers: { location: 'http://10.0.0.5/' } }),
+    'https://example.org/favicon.ico': image(PNG_BYTES),
+  });
+  const icon = await findIcon('example.org', fetchImpl);
+  assert.ok(!calls.some((url) => url.includes('10.0.0.5')), 'the private address was fetched');
+  assert.equal(icon.source, 'site');
+});
+
+test('an oversized icon is refused', async () => {
+  const { findIcon } = await load('find-icon.js');
+  const big = new Uint8Array(102401);
+  big.set(PNG_BYTES);
+  const { fetchImpl } = stubFetch({
+    'https://example.org/': page('<link rel="icon" sizes="192x192" href="/big.png"><link rel="icon" sizes="32x32" href="/small.png">'),
+    'https://example.org/big.png': image(big),
+    'https://example.org/small.png': image(PNG_BYTES),
+  });
+  const icon = await findIcon('example.org', fetchImpl);
+  assert.equal(icon.bytes.length, PNG_BYTES.length);
+});
+
+test('nothing usable is a miss', async () => {
+  const { findIcon } = await load('find-icon.js');
+  const { fetchImpl } = stubFetch({});
+  assert.equal(await findIcon('example.org', fetchImpl), null);
+});
