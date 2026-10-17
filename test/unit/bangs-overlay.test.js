@@ -238,21 +238,31 @@ function fakeElement(tag) {
 
 function iconSandbox(cache = new Map()) {
   const cells = [];
+  const timers = fakeTimers();
+  const sent = [];
+  const view = { private: false, observed: 0 };
   const context = {
     document: { createElement: fakeElement },
     URL,
     CSS: { escape: (value) => value },
     bangIconCache: cache,
+    bangIconVisibleCells: new Map(),
+    bangIconsPrivate: false,
+    activeTab: () => ({ private: view.private }),
+    observeBangIconRows: () => { view.observed += 1; },
+    timers,
+    sent,
     islandList: { querySelectorAll: (selector) => cells.filter((cell) => selector === `[data-bang-host="${cell.dataset.bangHost}"]`) },
     blancI18n: { t: (key) => key },
     pickResult: () => {},
   };
   vm.runInNewContext(
-    ['faviconFallbackLabel', 'setFavicon', 'enterGlyph', 'bangIconHost', 'bangIconCell', 'bangRow', 'bangPickRow', 'applyBangIconChange', 'createBangIconRequester'].map(lift).join('\n')
-    + '\nthis.api = { bangRow, bangPickRow, bangIconCell, applyBangIconChange, createBangIconRequester };',
+    ['faviconFallbackLabel', 'setFavicon', 'enterGlyph', 'bangIconHost', 'bangIconCell', 'bangRow', 'bangPickRow', 'applyBangIconChange', 'createBangIconRequester', 'bangIconVisibility', 'noteBangIconPrivacy'].map(lift).join('\n')
+    + '\nvar bangIconRequester = createBangIconRequester({ delayMs: 300, setTimer: timers.set, clearTimer: timers.clear, send: (hosts) => sent.push(hosts) });'
+    + '\nthis.api = { bangRow, bangPickRow, bangIconCell, applyBangIconChange, createBangIconRequester, bangIconVisibility, noteBangIconPrivacy, requester: bangIconRequester };',
     context,
   );
-  return { ...context.api, cells, cache };
+  return { ...context.api, cells, cache, timers, sent, view };
 }
 
 test('the bang hint carries the site\'s domain and custom flag', () => {
@@ -348,4 +358,61 @@ test('a row that stays across a re-render keeps its wait', () => {
   requester.visible('a.example');
   timers.advance(100);
   assert.deepEqual(plain(sent), [['a.example']]);
+});
+
+test('one off-screen row does not cancel a visible row of the same site', () => {
+  const { bangIconVisibility, timers, sent } = iconSandbox();
+  const shown = { dataset: { bangHost: 'www.google.com' } };
+  const clipped = { dataset: { bangHost: 'www.google.com' } };
+  bangIconVisibility([{ target: shown, isIntersecting: true }, { target: clipped, isIntersecting: false }]);
+  timers.advance(300);
+  assert.deepEqual(plain(sent), [['www.google.com']]);
+});
+
+test('the last visible row of a site leaving cancels its wait', () => {
+  const { bangIconVisibility, timers, sent } = iconSandbox();
+  const a = { dataset: { bangHost: 'www.google.com' } };
+  const b = { dataset: { bangHost: 'www.google.com' } };
+  bangIconVisibility([{ target: a, isIntersecting: true }, { target: b, isIntersecting: true }]);
+  timers.advance(100);
+  bangIconVisibility([{ target: a, isIntersecting: false }]);
+  timers.advance(100);
+  bangIconVisibility([{ target: b, isIntersecting: false }]);
+  timers.advance(1000);
+  assert.deepEqual(plain(sent), []);
+});
+
+test('a withdrawn icon on a visible row is asked for again', () => {
+  const { bangIconVisibility, applyBangIconChange, timers, sent } = iconSandbox();
+  const cell = { dataset: { bangHost: 'wikipedia.org' } };
+  bangIconVisibility([{ target: cell, isIntersecting: true }]);
+  timers.advance(300);
+  applyBangIconChange({ host: 'wikipedia.org', icon: 'data:image/png;base64,BBBB' });
+  applyBangIconChange({ host: 'wikipedia.org', icon: null });
+  timers.advance(300);
+  assert.deepEqual(plain(sent), [['wikipedia.org'], ['wikipedia.org']], 'main may answer from Favorites or a tab');
+  applyBangIconChange({ host: 'other.example', icon: null });
+  timers.advance(300);
+  assert.equal(sent.length, 2, 'a row not on screen is not asked for');
+});
+
+test('switching between a private and a normal tab lets rows ask again', () => {
+  const { requester, noteBangIconPrivacy, timers, sent, view } = iconSandbox();
+  requester.visible('wikipedia.org');
+  timers.advance(300);
+  noteBangIconPrivacy();
+  assert.equal(view.observed, 0, 'no change, nothing redone');
+  view.private = true;
+  noteBangIconPrivacy();
+  assert.equal(view.observed, 1, 'rows are observed afresh');
+  requester.visible('wikipedia.org');
+  timers.advance(300);
+  assert.deepEqual(plain(sent), [['wikipedia.org'], ['wikipedia.org']]);
+});
+
+test('the name prompt\'s early return still lets go of bang rows', () => {
+  const body = lift('renderList');
+  const prompt = body.slice(body.indexOf('if (namePrompt) {'));
+  const block = prompt.slice(0, prompt.indexOf('return;'));
+  assert.match(block, /observeBangIconRows\(\);/);
 });

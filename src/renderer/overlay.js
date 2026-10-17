@@ -184,15 +184,15 @@
         .catch(() => {});
     },
   });
+  // Bang icon cells on screen, by host: several codes can share one site,
+  // and its wait ends only when none of its rows is on screen.
+  const bangIconVisibleCells = new Map();
+  // Whether the active tab was private when the rows last asked: main
+  // decides per ask, so a switch lets them ask again.
+  let bangIconsPrivate = false;
   // The document's viewport, not the list: a row scrolled out of the panel is
   // clipped by its scrolling ancestor and so counts as off screen.
-  const bangIconObserver = new IntersectionObserver((entries) => {
-    for (const entry of entries) {
-      const host = entry.target.dataset.bangHost;
-      if (entry.isIntersecting) bangIconRequester.visible(host);
-      else bangIconRequester.hidden(host);
-    }
-  });
+  const bangIconObserver = new IntersectionObserver((entries) => bangIconVisibility(entries));
   // What Enter acts on — rebuilt on every list render.
   let visibleCommands = [];
   let visibleResults = [];
@@ -1672,8 +1672,15 @@
   function applyBangIconChange(change) {
     const host = bangIconHost(change?.host);
     if (!host) return;
-    if (typeof change.icon === 'string' && change.icon) bangIconCache.set(host, change.icon);
-    else bangIconCache.delete(host);
+    if (typeof change.icon === 'string' && change.icon) {
+      bangIconCache.set(host, change.icon);
+    } else {
+      bangIconCache.delete(host);
+      // Withdrawn (a history clear, or the server dropped it): a row on
+      // screen asks again, so an icon from Favorites or an open tab returns.
+      bangIconRequester.forget(host);
+      if (bangIconVisibleCells.has(host)) bangIconRequester.visible(host);
+    }
     for (const cell of islandList.querySelectorAll(`[data-bang-host="${CSS.escape(host)}"]`)) {
       setFavicon(cell, { url: `https://${host}/`, favicon: bangIconCache.get(host) || null });
     }
@@ -1709,6 +1716,10 @@
         clearTimer(waiting.get(host));
         waiting.delete(host);
       },
+      /** The host may be asked for again this open. */
+      forget(host) {
+        sent.delete(host);
+      },
       /** After a redraw: rows whose host is still listed keep their wait. */
       retain(hosts) {
         for (const host of [...waiting.keys()]) if (!hosts.has(host)) this.hidden(host);
@@ -1722,10 +1733,39 @@
     };
   }
 
+  function bangIconVisibility(entries) {
+    for (const entry of entries) {
+      const host = entry.target.dataset.bangHost;
+      if (!host) continue;
+      const cells = bangIconVisibleCells.get(host) ?? new Set();
+      if (entry.isIntersecting) cells.add(entry.target);
+      else cells.delete(entry.target);
+      if (cells.size) {
+        bangIconVisibleCells.set(host, cells);
+        bangIconRequester.visible(host);
+      } else {
+        bangIconVisibleCells.delete(host);
+        bangIconRequester.hidden(host);
+      }
+    }
+  }
+
+  /** The active tab switched between private and normal: rows already asked
+   * for may ask again, and main answers by the new tab. */
+  function noteBangIconPrivacy() {
+    const isPrivate = activeTab()?.private === true;
+    if (isPrivate === bangIconsPrivate) return;
+    bangIconsPrivate = isPrivate;
+    bangIconRequester.reset();
+    observeBangIconRows();
+  }
+
   /** After every list draw: watch the bang rows now listed. A host still
    * listed keeps its wait; one that left cancels it. */
   function observeBangIconRows() {
     bangIconObserver.disconnect();
+    // The observer reports every watched cell afresh.
+    bangIconVisibleCells.clear();
     const cells = [...islandList.querySelectorAll('[data-bang-host]')];
     bangIconRequester.retain(new Set(cells.map((cell) => cell.dataset.bangHost)));
     for (const cell of cells) bangIconObserver.observe(cell);
@@ -1943,6 +1983,7 @@
       islandList.replaceChildren(row);
       renderDevicesDrawer(false);
       islandHint.textContent = '';
+      observeBangIconRows();
       return;
     }
 
@@ -3223,6 +3264,7 @@
   window.browserAPI.onTabsUpdated((payload) => {
     const activeTabChanged = payload.activeTabId !== state.activeTabId;
     state = payload;
+    noteBangIconPrivacy();
     islandDrag.notePayload(payload);
     if (mode === 'panel' || mode === 'palette') {
       if (!inputTouched) addressInput.value = addressDisplayValue(activeTab());
