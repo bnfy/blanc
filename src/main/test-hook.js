@@ -526,6 +526,7 @@ function install(refs) {
       wc.sendInputEvent(input);
       return true;
     },
+    pinnedHome(tabId) { return tabs.get(String(tabId))?.pinnedHomeUrl ?? null; },
     state() {
       const list = [];
       for (const [id, t] of tabs) {
