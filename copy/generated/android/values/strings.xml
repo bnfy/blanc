@@ -34,6 +34,7 @@
     <string name="slash_space_hint">Switch to a space, or type a new name to save this window</string>
     <string name="slash_glance_hint">Keep another open tab beside this page</string>
     <string name="slash_glance_doc">Open the Glance picker, filtered to the text</string>
+    <string name="slash_invite_hint">Email a friend a link to download Blanc</string>
     <string name="settings_language_label">Language</string>
     <string name="settings_language_hint">Translations are machine-generated.</string>
     <string name="settings_language_system">System (%1$s)</string>
@@ -370,6 +371,7 @@
     <string name="device_unfold">Unfold device</string>
     <string name="slash_sleep_none">No background tabs can be quieted right now.</string>
     <string name="slash_sleep_failed">Could not quiet background tabs.</string>
+    <string name="slash_invite_copied">Your mail app didn’t open, so the invite was copied. Paste it into a message.</string>
     <string name="closed_header">Recently closed</string>
     <string name="closed_fold">Fold recently closed</string>
     <string name="closed_unfold">Unfold recently closed</string>
@@ -724,6 +726,11 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="menu_slash_commands">Slash Commands</string>
     <string name="menu_keyboard_shortcuts">Keyboard Shortcuts</string>
     <string name="menu_show_all_shortcuts">Show All Shortcuts…</string>
+    <string name="menu_invite_friend">Invite a Friend…</string>
+    <string name="invite_email_subject">Try Blanc, the browser I use</string>
+    <string name="invite_email_greeting">Hi,</string>
+    <string name="invite_email_pitch">I’ve been using Blanc, a free and open-source web browser for Mac, Windows and Linux. It blocks known ads and trackers by default, with nothing extra to install.</string>
+    <string name="invite_email_link">You can download it here: %1$s</string>
     <string name="shortcuts_island">Island</string>
     <string name="shortcuts_dismiss">Dismiss island panel / find bar</string>
     <string name="shortcuts_submit">Open address or run command (in command bar)</string>

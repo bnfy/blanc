@@ -163,6 +163,10 @@ test('an address enters the list only after confirmation and can self-unsubscrib
   assert.equal(await env.SUBSCRIBERS.get('hp:person@example.com'), null);
   const confirmationUrl = mail.text.match(/https:\/\/[^\s]+\/confirm\?token=[A-Za-z0-9_-]{43}/)?.[0];
   assert.ok(confirmationUrl);
+  // The HTML part is the branded layout and carries the same link.
+  assert.ok(mail.html.includes(`href="${confirmationUrl}"`), 'HTML button links to the confirmation URL');
+  assert.ok(mail.html.includes('src="https://blanc.day/press/blanc-lockup-ink-480.png"'), 'HTML shows the Blanc lockup');
+  assert.match(mail.html, /background-color:#F8F2E8/, 'HTML sits on Blanc White');
 
   const confirmed = await worker.fetch(new Request(confirmationUrl), env);
   assert.equal(confirmed.status, 200);
@@ -569,4 +573,25 @@ test('missing Worker configuration is logged by name only', async (t) => {
   assert.deepEqual(JSON.parse(logged[0]), {
     event: 'config-missing', list: 'mail-waitlist', missing: ['NEWSLETTER_TOKEN_SECRET', 'RESEND_API_KEY'],
   });
+});
+
+test('the branded email layout escapes text and keeps the lockup PNG served by the site', async () => {
+  const { renderEmail, LOCKUP_URL, FONT_URL } = await import(pathToFileURL(path.resolve(__dirname, '../../cloudflare/newsletter-worker/src/email.js')));
+  const html = renderEmail({ heading: 'A <b> & "c"', paragraphs: ['x < y', { lead: 'L&', text: '<i>' }], action: { label: 'Go', url: 'https://blanc.day/?a=1&b=2' } });
+  assert.ok(html.includes('A &lt;b&gt; &amp; &quot;c&quot;'));
+  assert.ok(html.includes('x &lt; y'));
+  assert.ok(html.includes('L&amp;</strong> &lt;i&gt;'));
+  assert.ok(html.includes('href="https://blanc.day/?a=1&amp;b=2"'));
+  assert.ok(!/<svg|\.webp/.test(html), 'no SVG or WebP, which email clients drop');
+  // The only <style> declares the web font; everything else is inline.
+  assert.deepEqual(html.match(/<style>[^<]*<\/style>/g), [`<style>@font-face{font-family:'Instrument Sans';src:url(${FONT_URL}) format('woff2');font-weight:400 700;font-stretch:75% 100%;font-style:normal;}</style>`]);
+  assert.ok(!/Newsreader|Inter,/.test(html), 'emails no longer use Newsreader or Inter');
+  const fontFile = readFileSync(path.resolve(__dirname, '../../site/public', `.${new URL(FONT_URL).pathname}`));
+  assert.deepEqual(fontFile, readFileSync(path.resolve(__dirname, '../../src/renderer/pages/instrument-sans-latin-wdth-normal.woff2')), 'site serves the app\'s own Instrument Sans file');
+  const headers = readFileSync(SITE_HEADERS_PATH, 'utf8');
+  assert.match(headers, /\/fonts\/instrument-sans\/\*\n  ! Cross-Origin-Resource-Policy\n  Access-Control-Allow-Origin: \*/, 'mail apps on other origins may load the font');
+  assert.match(headers, /\/press\/blanc-lockup-ink-480\.png\n  ! Cross-Origin-Resource-Policy/, 'mail apps on other origins may load the lockup');
+  const published = new URL(LOCKUP_URL).pathname;
+  const file = readFileSync(path.resolve(__dirname, '../../site/public', `.${published}`));
+  assert.deepEqual([file.readUInt32BE(16), file.readUInt32BE(20)], [480, 142], 'lockup PNG is 480 × 142, drawn at 160 × 47');
 });

@@ -307,6 +307,7 @@ const {
   popupPlatformMainMenu,
 } = require('./platform-main-menu');
 const { showAboutPanel } = require('./about-panel');
+const { inviteFriend } = require('./invite-friend');
 const { webUrlsFromArgv } = require('./startup-urls');
 const { bringExternalWindowToFront, externalWindowRuntime } = require('./window-activation');
 const { createExternalUrlHandoff } = require('./external-url-handoff');
@@ -2437,6 +2438,16 @@ function parkTabView(tab, entry) {
 /** `/sleep`: quiet every eligible background tab now. It bypasses only the
  * idle threshold; the ordinary safety predicate and teardown revalidation
  * remain authoritative. */
+// Help → Invite a Friend… and /invite: a prefilled email in the person's own
+// mail app (invite-friend.js), or the invite on the clipboard without one.
+function inviteFriendNow() {
+  return inviteFriend({
+    t: mainI18n.t,
+    openExternal: (url) => shell.openExternal(url),
+    writeClipboard: (text) => clipboard.writeText(text),
+  });
+}
+
 async function sleepBackgroundTabsNow() {
   if (isQuitting || sessionPersistenceSuspended || startupNavigationGateActive || !net.isOnline()) {
     return [];
@@ -8411,6 +8422,7 @@ function registerIpcHandlers() {
   });
   chromeHandle('chrome:site-info-forget-certificate-exception', () => forgetActiveCertificateException());
   chromeHandle('chrome:sleep-background-tabs', () => sleepBackgroundTabsNow());
+  chromeHandle('chrome:invite-friend', () => inviteFriendNow());
   chromeHandle('chrome:cycle-theme', (_event, requestedTheme) => {
     const order = ['system', 'light', 'dark'];
     const current = settings.getSettings().theme;
@@ -8602,6 +8614,7 @@ const SLASH_COMMANDS = [
   ['/patron', 'slash.patron.hint'],
   ['/space', 'slash.space.hint'],
   ['/glance <text>', 'slash.glance.doc'],
+  ['/invite', 'slash.invite.hint'],
 ];
 
 // A hand-picked subset of the full inventory (blanc://shortcuts/, via
@@ -8928,6 +8941,8 @@ function buildMenuForRuntime(runtime) {
             { label: t('menu.showAllShortcuts'), accelerator: 'CmdOrCtrl+/', click: bound(() => openInternalPage('blanc://shortcuts/')) },
           ],
         },
+        { type: 'separator' },
+        { label: t('menu.inviteFriend'), click: () => { inviteFriendNow(); } },
         ...(isMac ? [] : [
           { type: 'separator' },
           { label: t('menu.app.about', { app: app.name }), click: bound(() => showAboutPanel({ app, t })) },

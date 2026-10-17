@@ -4,6 +4,8 @@
 // Blanc's own KV. The two lists share this flow but never share keys: joining
 // the Mail waitlist does not subscribe anyone to the newsletter.
 
+import { fineLink, renderEmail } from './email.js';
+
 const MAX_EMAIL_LENGTH = 254;
 const MAX_NAME_LENGTH = 100;
 const MAX_PROFILE_URL_LENGTH = 500;
@@ -44,6 +46,7 @@ const LISTS = {
     confirmPath: '/confirm',
     leavePath: '/unsubscribe',
     subject: 'Confirm your Blanc release notes subscription',
+    heading: 'Confirm your subscription',
     request: 'Confirm that you want occasional Blanc release notes',
     confirmLabel: 'Confirm subscription',
     confirmed: ['Subscription confirmed', 'You will receive occasional Blanc release notes.'],
@@ -60,6 +63,7 @@ const LISTS = {
     confirmPath: '/mail-waitlist/confirm',
     leavePath: '/mail-waitlist/leave',
     subject: 'Confirm your place on the Blanc Mail waitlist',
+    heading: 'Confirm your place on the waitlist',
     request: 'Confirm that you want an email when Blanc Mail for macOS is ready. This does not subscribe you to the Blanc newsletter, and your address is deleted after the launch announcement',
     confirmLabel: 'Join the waitlist',
     confirmed: ['You are on the waitlist', 'We will email you when Blanc Mail for macOS is ready, then delete your address from the waitlist.'],
@@ -157,7 +161,17 @@ async function sendConfirmation(env, list, email, confirmationUrl, idempotencyKe
       to: [email],
       subject: list.subject,
       text: `${list.request}:\n\n${confirmationUrl}\n\nIf you did not request this, ignore this email. The request expires in 24 hours.`,
-      html: `<p>${list.request}.</p><p><a href="${confirmationUrl}">${list.confirmLabel}</a></p><p>If you did not request this, ignore this email. The request expires in 24 hours.</p>`,
+      html: renderEmail({
+        preheader: `${list.request}.`,
+        heading: list.heading,
+        paragraphs: [`${list.request}.`],
+        action: { label: list.confirmLabel, url: confirmationUrl },
+        after: ['If you did not request this, ignore this email. The request expires in 24 hours.'],
+        finePrint: [
+          `You got this email because this address was entered at ${fineLink('blanc.day', 'https://blanc.day')}.`,
+          'Blanc is built by Bananify.',
+        ],
+      }),
     }),
   });
   if (!response.ok) logFailure('confirmation-not-sent', { list: list.rateScope, ...(await resendFailure(response)) });

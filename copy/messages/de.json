@@ -137,6 +137,10 @@
     "message": "Die Glance-Auswahl öffnen, gefiltert nach dem Text",
     "source": "sha256:fdecc3708ced17c473a2ebc7b37080a50eb0daec012e2672521b99676bee4f9e"
   },
+  "slash.invite.hint": {
+    "message": "Jemandem per E-Mail einen Link zum Download von Blanc schicken",
+    "source": "sha256:c4f70308ea3c465ba739c8c921b54ac8d7165a1be31cfd920cfad687e28d71d7"
+  },
   "settings.language.label": {
     "message": "Sprache",
     "source": "sha256:f0879385146ff54dfc9d1707c76f07c9b9cd66f9057ea176c076ab2b1b7b1cb8"
@@ -1360,6 +1364,10 @@
   "slash.sleep.failed": {
     "message": "Hintergrund-Tabs konnten nicht ruhen gelassen werden.",
     "source": "sha256:37d383571027c67881018ba394feb3a5cb1585f4339ac130044ebd1922cf1c23"
+  },
+  "slash.invite.copied": {
+    "message": "Deine Mail-App hat sich nicht geöffnet, deshalb wurde die Einladung kopiert. Füge sie in eine Nachricht ein.",
+    "source": "sha256:a3a79e34d44065dd60e736aec9e6fef01fb250e15b855895af66d19e1eaddab8"
   },
   "closed.header": {
     "message": "Zuletzt geschlossen",
@@ -2644,6 +2652,26 @@
   "menu.showAllShortcuts": {
     "message": "Alle Tastenkürzel anzeigen…",
     "source": "sha256:74f9fe1ce3e762ed4893bb1141e00b21f991cb7297a0bcd0f198bf6a1648b8b4"
+  },
+  "menu.inviteFriend": {
+    "message": "Freunde einladen…",
+    "source": "sha256:e1165674176013e02fdfdf0c40e53ce8322388ef4da7078634eb725ee4ddc36a"
+  },
+  "invite.email.subject": {
+    "message": "Probier mal Blanc, den Browser, den ich nutze",
+    "source": "sha256:48d184ec5d2bc7f2e8efd53fa81a63a5a9169454b54ed22054fcd29dbc45ed4c"
+  },
+  "invite.email.greeting": {
+    "message": "Hallo,",
+    "source": "sha256:a0f86fa2330bb6ce10b8f3b75ebb5fe166e82877dcd364e9c0cb9343c7f4d3de"
+  },
+  "invite.email.pitch": {
+    "message": "Ich nutze Blanc, einen kostenlosen Open-Source-Browser für Mac, Windows und Linux. Er blockiert bekannte Werbung und Tracker von Haus aus, ganz ohne zusätzliche Installation.",
+    "source": "sha256:6a78f6ae1d5baec83bae098cc3d26d57b898b3c360a8dc4f3e222f1d0b2321f1"
+  },
+  "invite.email.link": {
+    "message": "Hier kannst du ihn herunterladen: {url}",
+    "source": "sha256:0ca21dd851237f30e261b840f1c67abfaa27c52d76ca2a0d5650ff067de49d75"
   },
   "shortcuts.island": {
     "message": "Island",
