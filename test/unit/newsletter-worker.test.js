@@ -595,3 +595,163 @@ test('the branded email layout escapes text and keeps the lockup PNG served by t
   const file = readFileSync(path.resolve(__dirname, '../../site/public', `.${published}`));
   assert.deepEqual([file.readUInt32BE(16), file.readUInt32BE(20)], [480, 142], 'lockup PNG is 480 × 142, drawn at 160 × 47');
 });
+
+const SYNC_PATH = path.resolve(__dirname, '../../cloudflare/newsletter-worker/src/resend-sync.js');
+const WEBHOOK_SECRET = `whsec_${Buffer.from('a webhook signing key for tests').toString('base64')}`;
+
+function signedWebhook(event, { secret = WEBHOOK_SECRET, timestamp = Math.floor(Date.now() / 1000) } = {}) {
+  const crypto = require('node:crypto');
+  const body = JSON.stringify(event);
+  const id = 'msg_test';
+  const key = Buffer.from(secret.slice('whsec_'.length), 'base64');
+  const signature = crypto.createHmac('sha256', key).update(`${id}.${timestamp}.${body}`).digest('base64');
+  return new Request('https://newsletter.test/resend-webhook', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'svix-id': id,
+      'svix-timestamp': String(timestamp),
+      'svix-signature': `v1,bm90IHRoaXMgb25l v1,${signature}`,
+    },
+    body,
+  });
+}
+
+const contactEvent = (type, email, unsubscribed) => ({
+  type,
+  created_at: '2026-10-17T10:00:00.000Z',
+  data: { id: 'contact-1', email, unsubscribed, segment_ids: [] },
+});
+
+async function confirmedSubscriber(env, email) {
+  const originalFetch = globalThis.fetch;
+  let mail;
+  globalThis.fetch = async (_url, init) => { mail = JSON.parse(init.body); return new Response('{}'); };
+  try {
+    await worker.fetch(subscribeRequest({ email }), env);
+    const confirmationUrl = mail.text.match(/https:\/\/[^\s]+\/confirm\?token=[A-Za-z0-9_-]{43}/)[0];
+    return confirmationUrl;
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+}
+
+test('an unsubscribe or deletion in Resend removes the newsletter record, and only a signed webhook can', async (t) => {
+  const env = { ...environment(), RESEND_WEBHOOK_SECRET: WEBHOOK_SECRET };
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response('{}');
+  t.after(() => { globalThis.fetch = originalFetch; });
+
+  for (const [type, unsubscribed] of [['contact.updated', true], ['contact.deleted', false]]) {
+    const email = `${type.split('.')[1]}@example.com`;
+    await worker.fetch(new Request(await confirmedSubscriber(env, email)), env);
+    const record = await env.SUBSCRIBERS.get(`sub:${email}`, { type: 'json' });
+    assert.ok(record, 'subscribed before the webhook');
+
+    const forged = signedWebhook(contactEvent(type, email.toUpperCase(), unsubscribed), { secret: `whsec_${Buffer.from('wrong').toString('base64')}` });
+    assert.equal((await worker.fetch(forged, env)).status, 401);
+    const stale = signedWebhook(contactEvent(type, email, unsubscribed), { timestamp: Math.floor(Date.now() / 1000) - 600 });
+    assert.equal((await worker.fetch(stale, env)).status, 401);
+    assert.ok(await env.SUBSCRIBERS.get(`sub:${email}`), 'a bad or stale signature removes nothing');
+
+    assert.equal((await worker.fetch(signedWebhook(contactEvent(type, email.toUpperCase(), unsubscribed)), env)).status, 204);
+    assert.equal(await env.SUBSCRIBERS.get(`sub:${email}`), null, type);
+    assert.equal(await env.SUBSCRIBERS.get(`unsub:${require('node:crypto').createHash('sha256').update(record.unsubscribeToken).digest('hex')}`), null);
+  }
+
+  // A contact that is still subscribed keeps its record.
+  await worker.fetch(new Request(await confirmedSubscriber(env, 'kept@example.com')), env);
+  assert.equal((await worker.fetch(signedWebhook(contactEvent('contact.updated', 'kept@example.com', false)), env)).status, 204);
+  assert.ok(await env.SUBSCRIBERS.get('sub:kept@example.com'));
+});
+
+test('the Resend webhook fails closed without its signing secret', async () => {
+  const env = environment();
+  const response = await worker.fetch(signedWebhook(contactEvent('contact.deleted', 'a@example.com', false)), env);
+  assert.equal(response.status, 503);
+});
+
+test('with a contacts key, confirming joins the Resend segment and leaving removes only segment membership', async (t) => {
+  const env = { ...environment(), RESEND_CONTACTS_API_KEY: 're_contacts', RESEND_SEGMENT_ID: 'seg-1' };
+  const confirmationUrl = await confirmedSubscriber(env, 'person@example.com');
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+  let createStatus = 200;
+  globalThis.fetch = async (url, init) => {
+    calls.push({ url: String(url), method: init.method, body: init.body ? JSON.parse(init.body) : undefined, headers: init.headers });
+    return new Response('{}', { status: String(url).endsWith('/contacts') ? createStatus : 200 });
+  };
+  t.after(() => { globalThis.fetch = originalFetch; });
+
+  await worker.fetch(new Request(confirmationUrl), env);
+  assert.deepEqual(calls.map(({ method, url }) => `${method} ${url}`), ['POST https://api.resend.com/contacts']);
+  assert.deepEqual(calls[0].body, { email: 'person@example.com', segments: [{ id: 'seg-1' }] });
+  assert.equal(calls[0].headers.Authorization, 'Bearer re_contacts', 'contacts use their own key, not the send-only key');
+  assert.ok(calls[0].headers['User-Agent']);
+
+  const record = await env.SUBSCRIBERS.get('sub:person@example.com', { type: 'json' });
+  calls.length = 0;
+  await worker.fetch(new Request(`https://newsletter.test/unsubscribe?token=${record.unsubscribeToken}`), env);
+  assert.deepEqual(calls.map(({ method, url }) => `${method} ${url}`),
+    ['DELETE https://api.resend.com/contacts/person%40example.com/segments/seg-1']);
+  assert.ok(!calls.some(({ body }) => body && 'unsubscribed' in body), 'never touches the account-wide unsubscribe flag');
+
+  // An address Resend already knows (another brand's contact) is added to the
+  // segment as it is, and a failing Resend never undoes the confirmation.
+  createStatus = 409;
+  calls.length = 0;
+  await worker.fetch(new Request(await confirmedSubscriber(env, 'known@example.com')), env);
+  assert.deepEqual(calls.map(({ method, url }) => `${method} ${url}`), [
+    'POST https://api.resend.com/contacts',
+    'POST https://api.resend.com/contacts/known%40example.com/segments/seg-1',
+  ]);
+  globalThis.fetch = async () => { throw new TypeError('network down'); };
+  const errors = [];
+  const originalError = console.error;
+  console.error = (line) => errors.push(line);
+  t.after(() => { console.error = originalError; });
+  const late = await confirmedSubscriber(env, 'offline@example.com');
+  globalThis.fetch = async () => { throw new TypeError('network down'); };
+  assert.equal((await worker.fetch(new Request(late), env)).status, 200);
+  assert.ok(await env.SUBSCRIBERS.get('sub:offline@example.com'));
+  assert.ok(errors.some((line) => line.includes('resend-sync-add-failed') && !line.includes('offline@example.com')));
+});
+
+test('without a contacts key the Worker makes no Resend contact calls', async (t) => {
+  const env = environment();
+  const confirmationUrl = await confirmedSubscriber(env, 'person@example.com');
+  const originalFetch = globalThis.fetch;
+  let calls = 0;
+  globalThis.fetch = async () => { calls += 1; return new Response('{}'); };
+  t.after(() => { globalThis.fetch = originalFetch; });
+  await worker.fetch(new Request(confirmationUrl), env);
+  const record = await env.SUBSCRIBERS.get('sub:person@example.com', { type: 'json' });
+  await worker.fetch(new Request(`https://newsletter.test/unsubscribe?token=${record.unsubscribeToken}`), env);
+  assert.equal(calls, 0);
+});
+
+test('only an unsubscribe or a deletion in Resend removes a subscriber', async () => {
+  const { addressToRemove } = await import(pathToFileURL(SYNC_PATH));
+  assert.equal(addressToRemove(contactEvent('contact.created', 'a@example.com', false)), null);
+  assert.equal(addressToRemove({ type: 'contact.updated', data: {} }), null);
+  assert.equal(addressToRemove(contactEvent('contact.updated', ' A@Example.com ', true)), 'a@example.com');
+});
+
+test('the Blanc Mail waitlist is never synced to Resend', async (t) => {
+  const env = { ...environment(), RESEND_CONTACTS_API_KEY: 're_contacts', RESEND_SEGMENT_ID: 'seg-1' };
+  const originalFetch = globalThis.fetch;
+  let mail;
+  globalThis.fetch = async (_url, init) => { mail = JSON.parse(init.body); return new Response('{}'); };
+  t.after(() => { globalThis.fetch = originalFetch; });
+  await worker.fetch(new Request('https://newsletter.test/mail-waitlist', {
+    method: 'POST',
+    headers: { Origin: 'https://blanc.day', 'CF-Connecting-IP': '203.0.113.20', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: 'waiting@example.com' }),
+  }), env);
+  const confirmationUrl = mail.text.match(/https:\/\/[^\s]+\/mail-waitlist\/confirm\?token=[A-Za-z0-9_-]{43}/)[0];
+  let calls = 0;
+  globalThis.fetch = async () => { calls += 1; return new Response('{}'); };
+  await worker.fetch(new Request(confirmationUrl), env);
+  assert.ok(await env.SUBSCRIBERS.get('mailwait:waiting@example.com'));
+  assert.equal(calls, 0);
+});

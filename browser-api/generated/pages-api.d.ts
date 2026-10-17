@@ -209,6 +209,8 @@ export interface SettingsPagesAPI {
     syncNow: () => Promise<unknown>;
     /** Turn open-tab sync on or off; main coerces to boolean. IPC: invoke `pages:settings:sync-tabs-set`. */
     syncTabsSet: (on: unknown) => Promise<unknown>;
+    /** Name this device as the user's other devices list it, then return the new status. An empty name restores the computer's name; main ignores a non-string. IPC: invoke `pages:settings:sync-device-name-set`. */
+    syncDeviceNameSet: (name: unknown) => Promise<unknown>;
     /** Park this device's wrapped sync secret under a fresh pairing code; returns the code and expiry for display. No key crosses. IPC: invoke `pages:settings:sync-pair-begin`. */
     syncPairBegin: () => Promise<unknown>;
     /** Retract the current pairing code. IPC: invoke `pages:settings:sync-pair-cancel`. */

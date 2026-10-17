@@ -141,3 +141,32 @@ Then('the tab list keeps at least two rows and the footer stays in the window', 
     });
   }
 });
+
+When('I choose Rename Device… for {string}', async function (name) {
+  assert.equal(await this.call('beginRenameDeviceByName', name), true, `a device named ${name}`);
+  await waitForValue(() => this.call('overlayRendererMode'), (m) => m === 'panel', 'the command bar to open');
+});
+
+Then('the panel says the field renames the device', async function () {
+  const page = await overlayPage();
+  await page.locator('#islandList .name-prompt').filter({ hasText: 'Rename device' }).waitFor({ state: 'visible' });
+});
+
+When('I clear the command bar and press Enter', async function () {
+  const page = await overlayPage();
+  await page.press('#addressInput', 'Backspace');
+  await page.press('#addressInput', 'Enter');
+});
+
+Then('the start page lists {string} from {string}', async function (title, device) {
+  await waitForValue(() => this.call('remoteStartPageRows'),
+    (rows) => rows.some((row) => row.title === title && row.host.endsWith(` · ${device}`)),
+    `${title} from ${device} on the start page`);
+});
+
+Then('the Quick Switcher lists {string} from {string}', async function (title, device) {
+  assert.equal(await this.call('editAddressInput', title), true);
+  await waitForValue(() => this.call('addressResultRows'),
+    (rows) => rows.some((row) => row.title === title && row.sub.endsWith(` · ${device}`)),
+    `${title} from ${device} in the Quick Switcher`);
+});

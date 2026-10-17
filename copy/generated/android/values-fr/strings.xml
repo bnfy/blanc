@@ -475,6 +475,13 @@
     <string name="tab_menu_copy_link">Copier le lien</string>
     <string name="tab_menu_duplicate">Dupliquer l’onglet</string>
     <string name="tab_menu_rename">Renommer l’onglet…</string>
+    <string name="prompt_rename_group">Renommer le groupe · Entrée enregistre · Échap annule</string>
+    <string name="prompt_rename_device">Renommer l’appareil · Entrée enregistre · Échap annule</string>
+    <string name="group_menu_duplicate">Un groupe nommé « %1$s » existe déjà</string>
+    <string name="group_menu_close">Fermer le groupe</string>
+    <string name="group_menu_ungroup">Dégrouper</string>
+    <string name="group_menu_rename">Renommer le groupe…</string>
+    <string name="device_menu_rename">Renommer l’appareil…</string>
     <string name="tab_menu_reset_title">Réinitialiser le titre de l’onglet</string>
     <string name="tab_menu_pin">Épingler l’onglet</string>
     <string name="tab_menu_unpin">Détacher l’onglet</string>
@@ -972,7 +979,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_general_home_page_hint">Laissez vide pour la page du nouvel onglet intégrée</string>
     <string name="settings_sync_title">Synchronisation</string>
     <string name="settings_sync_sync_setup_title">Configurer la synchronisation</string>
-    <string name="settings_sync_sync_setup_intro">Synchronisez vos favoris et vos réglages entre vos appareils et, si vous le souhaitez, vos onglets ouverts. Tout est chiffré de bout en bout : Blanc ne peut pas le lire, ni le récupérer si vous oubliez votre phrase secrète.</string>
+    <string name="settings_sync_sync_setup_intro">Synchronisez entre vos appareils vos favoris, vos réglages et leurs noms et, si vous le souhaitez, vos onglets ouverts. Tout est chiffré de bout en bout : Blanc ne peut pas le lire, ni le récupérer si vous oubliez votre phrase secrète.</string>
     <string name="settings_sync_sync_paths_aria_label">Choisir comment configurer la synchronisation</string>
     <string name="settings_sync_start_syncing_from_this">Commencer la synchronisation depuis cet appareil</string>
     <string name="settings_sync_create_the_name_and">Créez le nom et la phrase secrète que vous utiliserez sur vos autres appareils.</string>
@@ -989,6 +996,8 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_sync_sync_try_again">Réessayer</string>
     <string name="settings_sync_sync_start_new">Créer une synchro avec ces données</string>
     <string name="settings_sync_sync_name">Nom de synchronisation</string>
+    <string name="settings_sync_device_name">Nom de cet appareil</string>
+    <string name="settings_sync_device_name_hint">Le nom sous lequel vos autres appareils l’affichent. Laissez vide pour utiliser le nom de l’ordinateur.</string>
     <string name="settings_sync_favorites_and_settings">Favoris et réglages</string>
     <string name="settings_sync_this_devices_open_tabs">Onglets ouverts de cet appareil</string>
     <string name="settings_sync_last_error">Dernière erreur</string>
@@ -1188,13 +1197,13 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_sync_turning_on">Activation de la synchronisation…</string>
     <string name="settings_sync_connected_to">Connecté à « %1$s ». Récupération de vos favoris et réglages en cours.</string>
     <string name="settings_sync_joined_as">Vous avez rejoint votre synchronisation existante en tant que « %1$s ».</string>
-    <string name="settings_sync_on">La synchronisation est activée. Vos favoris et réglages se synchroniseront à chaque modification.</string>
+    <string name="settings_sync_on">La synchronisation est activée. Vos favoris, réglages et noms d’appareils se synchroniseront à chaque modification.</string>
     <string name="settings_sync_checking">Vérification…</string>
     <string name="settings_sync_check_failed">Impossible de vérifier la synchronisation. Réessayez.</string>
     <string name="settings_sync_syncing">Synchronisation…</string>
     <string name="settings_sync_notice_offline">Impossible de joindre le serveur de synchronisation. Vérifiez votre connexion et réessayez.</string>
     <string name="settings_sync_notice_rate_limited">Trop de tentatives. Patientez une minute et réessayez.</string>
-    <string name="settings_sync_setup_intro">Synchronisez vos favoris et vos réglages entre vos appareils et, si vous le souhaitez, vos onglets ouverts. Tout est chiffré de bout en bout.</string>
+    <string name="settings_sync_setup_intro">Synchronisez entre vos appareils vos favoris, vos réglages et leurs noms et, si vous le souhaitez, vos onglets ouverts. Tout est chiffré de bout en bout.</string>
     <string name="settings_sync_setup_code_title">Saisissez le code de votre autre appareil</string>
     <string name="settings_sync_setup_code_hint">Il est valable dix minutes.</string>
     <string name="settings_sync_add_this_device_hint">Obtenez un code sur un appareil qui synchronise déjà : Réglages → Synchronisation → Ajouter un autre appareil.</string>
@@ -1266,7 +1275,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_trust_fact_crash_ledger">Journal des plantages</string>
     <string name="settings_trust_build_packaged">%1$s (%2$s) · empaquetée</string>
     <string name="settings_trust_build_development">%1$s (%2$s) · développement</string>
-    <string name="settings_trust_sync_scope">Favoris, réglages sélectionnés · Personal uniquement</string>
+    <string name="settings_trust_sync_scope">Favoris, réglages sélectionnés, noms des appareils · Personal uniquement</string>
     <string name="settings_trust_crash_ledger">Sur l’appareil uniquement · envoi automatique désactivé · %1$s/%2$s événements</string>
     <string name="settings_trust_checked">Reçu vérifié localement.</string>
     <string name="settings_trust_failed">Impossible de générer le reçu de confiance local.</string>

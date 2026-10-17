@@ -49,14 +49,14 @@ test('planner preserves preview order and focuses the first candidate', () => {
   );
   assert.deepEqual(
     plan.tabs.map((tab) => tab.groupName),
-    [null, 'work', 'work'],
+    [null, 'Work', 'Work'],
   );
   assert.equal(plan.focusCandidateId, 'preview-first');
   assert.deepEqual(plan.tabs.map((tab) => tab.pinned), [true, false, false]);
   assert.equal('favoriteEntries' in plan, false);
 });
 
-test('planner marks exact lowercase group collisions for merge', () => {
+test('planner merges into an existing group whatever its case, keeping its name', () => {
   const mergeCandidates = [
     ...candidates.slice(1),
     {
@@ -93,7 +93,7 @@ test('planner marks exact lowercase group collisions for merge', () => {
   });
   assert.deepEqual(plan.groups, [
     {
-      name: 'work',
+      name: 'WORK',
       candidateIds: ['work-a', 'work-b'],
       action: 'merge',
     },

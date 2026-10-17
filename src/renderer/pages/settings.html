@@ -262,7 +262,7 @@
               <header class="sync-setup-header">
                 <h3 id="syncSetupTitle" data-i18n="settings.sync.syncSetupTitle">Set up Sync</h3>
                 <p id="syncSetupIntro" data-i18n="settings.sync.syncSetupIntro">
-                  Sync your favorites and settings across your devices, and, if you choose, open tabs.
+                  Sync your favorites, settings and device names across your devices, and, if you choose, open tabs.
                   Everything is end-to-end encrypted — Blanc can’t read it, and can’t recover it if you forget your passphrase.
                 </p>
               </header>
@@ -390,6 +390,7 @@
             <div id="syncActive" hidden>
               <dl class="sync-status-list">
                 <div><dt data-i18n="settings.sync.syncName">Sync name</dt><dd id="syncStatusHandle" data-i18n-ignore=""></dd></div>
+                <div><dt><label for="syncDeviceName" data-i18n="settings.sync.deviceName">This device’s name</label></dt><dd><input id="syncDeviceName" type="text" maxlength="80" autocomplete="off" spellcheck="false" aria-describedby="syncDeviceNameHint" data-i18n-ignore="placeholder" /><span class="sync-device-name-hint" id="syncDeviceNameHint" data-i18n="settings.sync.deviceNameHint">How your other devices list this one. Leave empty to use the computer’s name.</span></dd></div>
                 <div><dt data-i18n="settings.sync.favoritesAndSettings">Favorites and settings</dt><dd id="syncStatusData"></dd></div>
                 <div><dt data-i18n="settings.sync.thisDevicesOpenTabs">This device’s open tabs</dt><dd id="syncStatusTabs"></dd></div>
                 <div id="syncStatusErrorRow" hidden><dt data-i18n="settings.sync.lastError">Last error</dt><dd id="syncStatusError"></dd></div>

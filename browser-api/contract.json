@@ -489,6 +489,19 @@
         }
       }
     },
+    "GroupRenameResult": {
+      "doc": "Result of renameGroup, built by renameGroup() in main.js.",
+      "fields": {
+        "ok": {
+          "type": "boolean"
+        },
+        "error": {
+          "type": "'duplicate' | 'unknown'",
+          "doc": "Present when ok is false: another group already has the name, or the group is gone.",
+          "optional": true
+        }
+      }
+    },
     "TabsSnapshot": {
       "doc": "Result of getAllTabs, built by the tabs:get-all handler in main.js.",
       "fields": {
@@ -1614,6 +1627,38 @@
       "doc": "Move the ⌘L panel's Recently closed band before a group, or after the last group with null."
     },
     {
+      "name": "renameGroup",
+      "group": "groups",
+      "kind": "invoke",
+      "channel": "groups:rename",
+      "params": [
+        {
+          "name": "groupId",
+          "type": "GroupId"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "returns": "GroupRenameResult",
+      "doc": "Rename a group, keeping the case typed. An empty or unchanged name changes nothing; another group's name in this window (in any case) is refused."
+    },
+    {
+      "name": "ungroupGroup",
+      "group": "groups",
+      "kind": "invoke",
+      "channel": "groups:ungroup",
+      "params": [
+        {
+          "name": "groupId",
+          "type": "GroupId"
+        }
+      ],
+      "returns": "void",
+      "doc": "Make every tab in a group ungrouped; the empty group goes away."
+    },
+    {
       "name": "activateTabFromRail",
       "group": "tabs",
       "kind": "invoke",
@@ -2339,6 +2384,24 @@
       "params": [],
       "returns": "RemoteDevice[]",
       "doc": "List other devices' open tabs. Empty unless Profile Sync is on in the Personal profile."
+    },
+    {
+      "name": "renameDevice",
+      "group": "sync",
+      "kind": "invoke",
+      "channel": "chrome:rename-device",
+      "params": [
+        {
+          "name": "deviceId",
+          "type": "string"
+        },
+        {
+          "name": "name",
+          "type": "string | null"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Name another synced device as this profile's devices list it; an empty name or null restores the name it publishes. Refused (false) for a device the Other devices drawer does not list."
     },
     {
       "name": "cancelWorkspaceAction",

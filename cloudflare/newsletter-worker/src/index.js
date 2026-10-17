@@ -5,6 +5,7 @@
 // the Mail waitlist does not subscribe anyone to the newsletter.
 
 import { fineLink, renderEmail } from './email.js';
+import { addToSegment, addressToRemove, removeFromSegment, verifyWebhook } from './resend-sync.js';
 
 const MAX_EMAIL_LENGTH = 254;
 const MAX_NAME_LENGTH = 100;
@@ -439,6 +440,7 @@ async function handleConfirm(env, url, list = LISTS.newsletter) {
     env.SUBSCRIBERS.delete(pendingKey),
     env.SUBSCRIBERS.delete(`${list.quarantine}${pending.email}`),
   ]);
+  if (list === LISTS.newsletter) await addToSegment(env, pending.email);
   return htmlResult(...list.confirmed);
 }
 
@@ -448,7 +450,10 @@ async function handleUnsubscribe(env, url, list = LISTS.newsletter) {
   if (!TOKEN_RE.test(token)) return htmlResult(title, missing);
   const key = `${list.leave}${await sha256(token)}`;
   const email = await env.SUBSCRIBERS.get(key);
-  if (email) await Promise.all([env.SUBSCRIBERS.delete(`${list.member}${email}`), env.SUBSCRIBERS.delete(key)]);
+  if (email) {
+    await Promise.all([env.SUBSCRIBERS.delete(`${list.member}${email}`), env.SUBSCRIBERS.delete(key)]);
+    if (list === LISTS.newsletter) await removeFromSegment(env, email);
+  }
   return htmlResult(title, removed);
 }
 
@@ -491,9 +496,7 @@ async function listMembers(env, list = LISTS.newsletter) {
   return json({ count: subscribers.length, subscribers, quarantined });
 }
 
-async function handleRemove(env, url, list = LISTS.newsletter) {
-  const email = (url.searchParams.get('email') ?? '').trim().toLowerCase();
-  if (!email) return json({ error: 'email required' }, 400);
+async function removeMember(env, email, list = LISTS.newsletter) {
   const record = await env.SUBSCRIBERS.get(`${list.member}${email}`, { type: 'json' });
   const tokenHash = TOKEN_RE.test(record?.unsubscribeToken ?? '')
     ? await sha256(record.unsubscribeToken)
@@ -503,6 +506,32 @@ async function handleRemove(env, url, list = LISTS.newsletter) {
     env.SUBSCRIBERS.delete(`${list.quarantine}${email}`),
     tokenHash ? env.SUBSCRIBERS.delete(`${list.leave}${tokenHash}`) : Promise.resolve(),
   ]);
+}
+
+async function handleRemove(env, url, list = LISTS.newsletter) {
+  const email = (url.searchParams.get('email') ?? '').trim().toLowerCase();
+  if (!email) return json({ error: 'email required' }, 400);
+  await removeMember(env, email, list);
+  if (list === LISTS.newsletter) await removeFromSegment(env, email);
+  return new Response(null, { status: 204 });
+}
+
+// Resend's contact webhooks. Only a signed request can remove a subscriber,
+// and without the signing secret the endpoint refuses everything.
+async function handleResendWebhook(request, env) {
+  if (!env.RESEND_WEBHOOK_SECRET) {
+    logFailure('config-missing', { list: 'resend-webhook', missing: ['RESEND_WEBHOOK_SECRET'] });
+    return json({ error: 'service unavailable' }, 503);
+  }
+  const body = await request.text();
+  if (!(await verifyWebhook(env.RESEND_WEBHOOK_SECRET, request.headers, body))) {
+    return json({ error: 'invalid signature' }, 401);
+  }
+  let event;
+  try { event = JSON.parse(body); }
+  catch { return json({ error: 'bad request' }, 400); }
+  const email = addressToRemove(event);
+  if (email) await removeMember(env, email);
   return new Response(null, { status: 204 });
 }
 
@@ -584,6 +613,7 @@ export default {
         return formRoute(request, cors, url.pathname, () => handleAmbassadorApplication(request, env, cors));
       }
     }
+    if (url.pathname === '/resend-webhook' && request.method === 'POST') return handleResendWebhook(request, env);
     if (url.pathname === '/subscribers' || url.pathname === '/subscriber') {
       if (!authorized(request, env)) return new Response('unauthorized', { status: 401 });
       if (request.method === 'GET' && url.pathname === '/subscribers') return listMembers(env);

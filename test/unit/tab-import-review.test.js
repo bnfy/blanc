@@ -69,7 +69,8 @@ const candidates = () => ['a', 'b', 'c', 'd', 'e'].map((candidateId) => ({
 test('review group names normalize and reject blank, generic, and duplicate names', () => {
   const model = loadReviewModel();
   const p = proposal();
-  assert.equal(model.normalizeReviewGroupName('  Project   Atlas '), 'project atlas');
+  assert.equal(model.normalizeReviewGroupName('  Project   Atlas '), 'Project Atlas', 'names keep their case');
+  assert.equal(model.reviewGroupNameError('MISC', p, 'g-work'), 'Choose a more specific group name.');
   assert.equal(model.reviewGroupNameError('', p, 'g-work'), 'Type a group name.');
   assert.equal(model.reviewGroupNameError('misc', p, 'g-work'), 'Choose a more specific group name.');
   assert.equal(model.reviewGroupNameError('READING', p, 'g-work'), 'That group name is already in use.');
@@ -136,4 +137,12 @@ test('post-import workspace handoff enters the shared workspace UI, with no Patr
   const uiSource = fs.readFileSync(path.join(__dirname, '../../src/renderer/workspace-ui.js'), 'utf8');
   assert.doesNotMatch(uiSource, /patronActive/);
   assert.doesNotMatch(uiSource, /buy\.polar|checkout/i);
+});
+
+test('an applied group keeps the case it was given', () => {
+  const model = loadReviewModel();
+  const p = proposal();
+  p.groups[0].name = '  Project   Atlas ';
+  const request = JSON.parse(JSON.stringify(model.tabImportApplyRequest(p, 'generation-1')));
+  assert.equal(request.groups[0].name, 'Project Atlas');
 });
