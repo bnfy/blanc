@@ -1,8 +1,9 @@
 # r/blancbrowser setup — owner review
 
-Status: drafts only, written October 17, 2026. Nothing has been posted or
-changed on Reddit. Every step on Reddit is the owner's: Claude's browser tools
-can't open reddit.com. Approve the exact text below before any of it goes up.
+Status: written October 17, 2026, and approved as written by the owner the
+same day. The owner pastes it into Reddit. Every step on Reddit is the
+owner's: Claude's browser tools can't open reddit.com. Any later change to
+this text needs the owner's approval again before it goes up.
 Capability baseline: public v1.36.0 (`docs/marketing-claims.md`).
 
 ## What the community is for
