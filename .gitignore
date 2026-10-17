@@ -34,3 +34,6 @@ site/public/fonts/blubird/
 /src/renderer/pages/Blubird*
 # The licensed zip, or anything unpacked from it, anywhere in the tree.
 Blubird*.zip
+
+# Wrangler's local dev and dry-run state (can hold the machine's IP geolocation).
+.wrangler/
