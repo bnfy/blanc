@@ -258,9 +258,12 @@ test('the site lockups keep the Sunrise square and place it by the lockup constr
 });
 
 test('the demo island hides the favicon slot on internal pages like the shipped app', () => {
-  const css = source('site/src/styles/site.css');
-  assert.match(css, /\.demo-island \.pill-fav\.internal \{ display: none;/);
-  assert.doesNotMatch(css, /\.demo-island \.pill-fav\.internal \{[^}]*logo\.png/);
+  // The resting-Island figures draw the app's own pill, so they take the
+  // app's rule for that slot and mark an internal page's favicon with it.
+  const art = source('site/src/lib/native-island-art.mjs');
+  assert.match(art, /'#islandPill #pillFavicon\.internal'/);
+  assert.match(art, /class="favicon internal"/);
+  assert.match(source('src/renderer/styles.css'), /#islandPill #pillFavicon\.internal \{\s*display: none;/);
 });
 
 test('the site icon links carry a version query so cached favicons refetch after a mark change', () => {

@@ -12947,6 +12947,16 @@
             "after": "<p class=\"pop-note\">Websites that follow the system theme change too.</p>\n<h2 id=\"pop-reopen-closed-tabs-title\">Reopen a closed tab or a whole group, sometimes without a reload.</h2>\n<p>Press ⌘⇧T, type /reopen, or choose from Recently Closed in the Island. For about 30 seconds, one eligible tab you closed can come back without loading again, which can keep its scroll position and the text you were typing.</p>\n<p class=\"pop-note\">On Windows and Linux, press Ctrl+Shift+T. After that window the tab reloads from a saved snapshot or its address. Each window keeps up to 25 entries for an hour, and private tabs are never recorded.</p>"
           }
         ]
+      },
+      {
+        "source": "site/src/pages/features/ad-blocking.astro",
+        "reason": "October 17, 2026 replica audit: the hand-drawn site-controls popover predated the app's Site protection popover and drew lines the app no longer shows. The figure now renders the shipped popover from the app's own overlay markup (NativeWindowFigure.astro), so its two old status lines leave the page's prose; the popover's current text is the app's, checked by test/unit/site-native-island.test.js.",
+        "replacements": [
+          {
+            "before": "<p>Uses HTTPS</p>\n          <p>3 requests blocked</p>",
+            "after": ""
+          }
+        ]
       }
     ]
   },

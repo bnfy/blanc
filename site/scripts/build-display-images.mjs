@@ -22,11 +22,15 @@ const jobs = [
     // Full-size lossy copy for desktops; the lossless original stays pinned.
     { source: `revamp/island-roman-${name}.webp`, output: `revamp/island-roman-${name}-display.webp` },
   ]),
-  // The homepage's Island stage: public v1.35.0 over the Smithsonian American
-  // Art Museum (docs/website-captures-v1.35.0.json).
+  // The homepage's Island stage: public v1.36.0 over the Smithsonian American
+  // Art Museum (docs/website-captures-v1.36.0.json, island). The stage is
+  // about 940 CSS px wide, so desktops get the wide crop at full size (1:1 on
+  // a 2x screen); phones and the /features tiles get the tighter crop, where
+  // the Island stays large enough to read.
   ...['rest', 'tabs', 'command'].flatMap(name => [
-    { source: `revamp/island-smithsonian-${name}-v1.35.0.webp`, output: `revamp/island-smithsonian-${name}-v1.35.0-800.webp`, width: 800 },
-    { source: `revamp/island-smithsonian-${name}-v1.35.0.webp`, output: `revamp/island-smithsonian-${name}-v1.35.0-display.webp` },
+    { source: `revamp/island-smithsonian-${name}-v1.36.0.webp`, output: `revamp/island-smithsonian-${name}-v1.36.0-800.webp`, width: 800 },
+    { source: `revamp/island-smithsonian-${name}-v1.36.0.webp`, output: `revamp/island-smithsonian-${name}-v1.36.0-1400.webp` },
+    { source: `revamp/island-smithsonian-${name}-v1.36.0-wide.webp`, output: `revamp/island-smithsonian-${name}-v1.36.0-display.webp` },
   ]),
   // Glance demo: a phone copy of the wide Nyhavn photo. (A WebP copy of the
   // noisy Kusama JPEG came out larger than the original, so it stays as is.)

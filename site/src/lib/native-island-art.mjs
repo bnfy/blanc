@@ -14,7 +14,17 @@ function nativeRules(styles) {
   const root = rules.filter(rule => rule.selector === ':root');
   if (root.length < 2) throw new Error('Missing native light/dark tokens');
   const tokens = `:host {${root[0].body}}\n:host([data-appearance="dark"]) {${root[1].body}}`;
-  return { rules, take, tokens };
+  // A rule written against the chrome document (:root[data-theme="private"],
+  // body.mac …), aimed at the figure's .native-window, which carries the same
+  // attributes. `last` takes the final rule of that name, such as the
+  // reduced-motion variant of an animated one.
+  const scoped = (selector, { last = false } = {}) => {
+    const matches = rules.filter(rule => rule.selector === selector);
+    const rule = last ? matches.at(-1) : matches[0];
+    if (!rule) throw new Error(`Missing native Island rule: ${selector}`);
+    return `${selector.replace(/:root|body/g, '.native-window')} {${rule.body}}`;
+  };
+  return { rules, take, tokens, scoped };
 }
 
 export function nativeIslandArt({ styles, document, renderer, extraSelectors = [] }) {
@@ -34,11 +44,7 @@ export function nativeIslandArt({ styles, document, renderer, extraSelectors = [
   const start = document.indexOf('<div id="islandPill"');
   const end = document.indexOf('<header id="glanceHeader"', start);
   if (start < 0 || end < start) throw new Error('Missing native resting Island markup');
-  const icon = key => {
-    const value = renderer.match(new RegExp(`\\b${key}: '(<svg[^']+)'`))?.[1];
-    if (!value) throw new Error(`Missing native Island icon: ${key}`);
-    return value;
-  };
+  const icon = key => rendererIcon(renderer, key);
   const button = (key, extra = '') => `<button class="pill-btn" ${extra}>${icon(key)}</button>`;
   let html = stripInterfaceKeys(document.slice(start, end).trim());
   html = html.replace('<div id="pillNav" class="pill-btns"></div>',
@@ -54,6 +60,13 @@ export function nativeIslandArt({ styles, document, renderer, extraSelectors = [
   html = html.replace('<span id="pillShieldCount"></span>', '<span id="pillShieldCount">1</span>');
   html = html.replace('<div id="pillActions" class="pill-btns"></div>', `<div id="pillActions" class="pill-btns">${button('reload')}${button('heart')}${button('close')}</div>`);
   return { css, html };
+}
+
+// renderer.js ICONS entry `key`, an inline SVG string.
+function rendererIcon(renderer, key) {
+  const value = renderer.match(new RegExp(`\\b${key}: '(<svg[^']+)'`))?.[1];
+  if (!value) throw new Error(`Missing native Island icon: ${key}`);
+  return value;
 }
 
 // The app's documents carry data-i18n* attributes naming interface-string keys
@@ -222,4 +235,120 @@ export function nativeSpacesArt({ styles, document, renderer, overlay, workspace
   const menu = `<div id="workspaceSwitcher" class="ws-switcher" role="group" aria-label="Sample spaces"><div id="workspaceSwitcherList">${rows}</div>`
     + `<div id="workspaceSwitcherCommands" class="ws-commands">${command}</div></div>`;
   return { css, pill: html, menu };
+}
+
+// A whole Blanc window for the feature pages' resting-Island figures: the
+// strip with the resting Island in one tab state, the page below it, and
+// optionally the shield popover open (overlay.html) or the vertical tab rail
+// (index.html #verticalTabsRail). Each piece is the app's own markup and CSS;
+// renderer.js and vertical-tabs.js decide which pieces show for the state:
+//
+//   tab.url      'https://host/…' for a site, 'blanc://newtab/' for a new tab
+//                (placeholder label, the / keycap, no favicon or shield)
+//   tab.favicon  the site's icon URL
+//   tab.private  a private tab: the private theme, chip and hollow dots
+//   tab.shield   'quiet' (nothing blocked) or a blocked count, for a site
+//   dots         {count, active} for the active group's tabs
+//   popover      {host, count, mark}: the Site protection summary, open
+//   rail         {tabs: [{title, favicon}], active}: vertical tabs on, with
+//                vertical-tabs.js as `verticalTabs` and panel-left.svg's URL
+//
+// The strip and the page are laid out at desktop size; the figure scales the
+// whole window to fit (NativeWindowFigure.astro). Strings come from the
+// interface catalog (`messages`, copy/messages/en.json).
+export function nativeWindowArt({ styles, document, renderer, overlay, verticalTabs, messages, tab, dots, popover, rail, panelLeft }) {
+  const t = key => {
+    const message = messages[key]?.message;
+    if (!message) throw new Error(`Missing interface string: ${key}`);
+    return message;
+  };
+  const internal = tab.url.startsWith('blanc://');
+  const host = internal ? '' : new URL(tab.url).host;
+  if (tab.shield != null && !host) throw new Error('Native window: only a site shows the shield');
+  if (popover && (tab.shield == null || tab.private)) throw new Error('Native window: the popover opens from a regular tab’s shield');
+
+  const extraSelectors = [
+    '#strip', '.island-dot.private', '.island-dot.private.active', '#islandPill #pillFavicon.internal',
+    '#pillDomain.placeholder',
+    '#pillPrivateChip, #pillSourceChip', '#pillPrivateChip', '#pillPrivateChip svg',
+    ...(popover ? SHIELD_OPEN_SELECTORS : []),
+  ];
+  const pill = nativeIslandArt({ styles, document, renderer, extraSelectors });
+  const { rules, take, scoped } = nativeRules(styles);
+  const css = [pill.css,
+    // The placeholder's shimmer is motion; a still figure draws its
+    // reduced-motion state.
+    scoped('#pillDomain.placeholder', { last: true }),
+    scoped(':root[data-theme="private"]'), scoped('[data-theme="private"] #islandPill::after'),
+    ...(rail ? [scoped(':root[data-tab-layout="vertical"] #strip'), scoped(':root[data-tab-layout="vertical"] #pillDots'),
+      scoped(':root[data-tab-layout="vertical"] #pillNewTab'), scoped(':root[data-theme="private"] .vertical-tabs-rail::after'),
+      scoped('body.mac .vertical-tabs-toolbar'),
+      ...[...new Set(rules.map(rule => rule.selector).filter(selector => /^\.vertical-tab/.test(selector)))].map(take)] : []),
+  ];
+
+  let html = pill.html;
+  const set = (from, to) => {
+    if (!html.includes(from)) throw new Error(`Missing native window markup: ${from}`);
+    html = html.replace(from, to);
+  };
+  const icon = key => rendererIcon(renderer, key);
+  // renderer.js: a fresh tab has nowhere to go back to.
+  html = html.replace(/<div id="pillNav" class="pill-btns">[\s\S]*?<\/div>/,
+    `<div id="pillNav" class="pill-btns"><button class="pill-btn"${internal ? ' disabled' : ''}>${icon('back')}</button><button class="pill-btn" disabled>${icon('forward')}</button></div>`);
+  html = html.replace(/<div id="pillDots">[\s\S]*?<\/div>/, `<div id="pillDots">${Array.from({ length: dots.count }, (_, i) =>
+    `<button class="island-dot${i === dots.active ? ' active' : ''}${tab.private ? ' private' : ''}"></button>`).join('')}</div>`);
+  if (internal) {
+    // setFavicon: an internal page's mark, which the resting Island hides;
+    // renderPillLabel: the placeholder and the / keycap.
+    set(' class="favicon has-icon" style="background-image:url(/favicon.svg)"', ' class="favicon internal"');
+    set('<span id="pillDomain">blanc.day</span>', `<span id="pillDomain" class="placeholder">${escapeHtml(t('pill.placeholder'))}</span>`);
+    html = html.replace(/(<button id="pillSlash"[^>]*?) hidden>/, '$1>');
+  } else {
+    set('style="background-image:url(/favicon.svg)"', `style="background-image:url(${tab.favicon})"`);
+    set('<span id="pillDomain">blanc.day</span>', `<span id="pillDomain">${escapeHtml(host)}</span>`);
+  }
+  if (tab.private) html = html.replace(/(<button id="pillPrivateChip"[^>]*?) hidden>/, '$1>');
+  // shield-model.js: no blockable host hides the chip; nothing blocked is quiet.
+  if (tab.shield == null) set('id="pillShield" class="shield" aria-expanded="false"', 'id="pillShield" class="shield" aria-expanded="false" hidden');
+  else if (tab.shield === 'quiet') set('id="pillShield" class="shield"', 'id="pillShield" class="shield shield-quiet"');
+  set('<span id="pillShieldCount">1</span>', `<span id="pillShieldCount">${typeof tab.shield === 'number' ? tab.shield : ''}</span>`);
+  if (popover) {
+    set('id="islandPill" class="no-drag"', 'id="islandPill" class="no-drag shield-open"');
+    set('id="pillShield" class="shield" aria-expanded="false"', 'id="pillShield" class="shield" aria-expanded="true"');
+  }
+
+  let railHtml = '';
+  if (rail) {
+    const start = document.indexOf('<aside id="verticalTabsRail"');
+    const end = document.indexOf('</aside>', start);
+    if (start < 0 || end < start) throw new Error('Missing native vertical tabs markup');
+    railHtml = stripInterfaceKeys(document.slice(start, end + '</aside>'.length));
+    const setRail = (from, to) => {
+      if (!railHtml.includes(from)) throw new Error(`Missing native vertical tabs markup: ${from}`);
+      railHtml = railHtml.replace(from, to);
+    };
+    setRail('class="vertical-tabs-rail no-drag" aria-label="Vertical tabs" hidden>', 'class="vertical-tabs-rail no-drag" aria-label="Vertical tabs">');
+    const close = verticalTabs.match(/\bclose: '(<svg[^']+)'/)?.[1];
+    if (!close) throw new Error('Missing native vertical tabs icon: close');
+    // vertical-tabs.js renderNow: no pins, so one Tabs section (staticBucket)
+    // of rows (tabRow), each a favicon and title with its close button.
+    const rows = rail.tabs.map((row, i) => `<div class="vertical-tab-row${i === rail.active ? ' active' : ''}" role="listitem">`
+      + `<button type="button" class="vertical-tab-primary"><span class="favicon vertical-tab-favicon has-icon" aria-hidden="true" style="background-image:url(${row.favicon})"></span>`
+      + `<span class="vertical-tab-title" aria-hidden="true"><span class="vertical-tab-title-text">${escapeHtml(row.title)}</span></span></button>`
+      + `<button type="button" class="vertical-tab-close">${close}</button></div>`).join('');
+    setRail('role="list" aria-label="Open tabs"></div>', `role="list" aria-label="Open tabs"><section class="vertical-tabs-section" role="group" aria-label="${escapeHtml(t('rail.section.tabs'))}">`
+      + `<h2 class="vertical-tabs-section-heading">${escapeHtml(t('rail.section.tabs'))}<span>${rail.tabs.length}</span></h2>${rows}</section></div>`);
+    setRail('<kbd id="verticalTabsNewShortcut"></kbd>', '<kbd id="verticalTabsNewShortcut">⌘T</kbd>');
+    const layoutIcon = css.findIndex(rule => rule.startsWith('.vertical-tabs-layout-icon {'));
+    if (layoutIcon < 0 || !css[layoutIcon].includes('url("panel-left.svg")')) throw new Error('Missing native vertical tabs icon');
+    css[layoutIcon] = css[layoutIcon].replaceAll('url("panel-left.svg")', `url("${panelLeft}")`);
+  }
+
+  let popoverHtml = '', popoverCss = '';
+  if (popover) {
+    const art = nativeShieldPopoverArt({ styles, overlay, mark: popover.mark, step: 'summary', host: popover.host, count: popover.count });
+    popoverHtml = `<div class="native-shield-view">${art.html}</div>`;
+    popoverCss = art.css;
+  }
+  return { css: `${css.join('\n')}\n${popoverCss}`, strip: `<div id="strip">${html}</div>`, rail: railHtml, popover: popoverHtml };
 }
