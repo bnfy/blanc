@@ -310,6 +310,23 @@ public, so the `.woff2` files are never committed: they sit in the git-ignored
 them. App, product or corporate use beyond that licence needs Rajesh Rajput's
 written permission first.
 
+### Email
+
+**Owner direction, October 17, 2026:** every email Blanc sends is branded and
+carries the full lockup. `renderEmail()` in
+`cloudflare/newsletter-worker/src/email.js` is the one layout: the Display
+lockup (`site/public/press/blanc-lockup-ink-480.png`, drawn 160 × 47px and
+linked to blanc.day) on Blanc White `#F8F2E8`, one white card with a
+`#E1D7C9` border, a Newsreader heading falling back to Georgia, Inter text
+falling back to the system sans, ink `#111111` buttons with Blanc White
+labels, and a footer with the tagline “A little less browser.” in gold
+`#805D28` above muted `#6B6257` fine print. Email clients drop `<style>`
+blocks, web fonts, SVG and often WebP, so the layout is inline-styled tables
+and the lockup is a PNG; Blubird never appears in email. The Worker's
+confirmation emails use it directly, and Resend templates are rendered from
+the same function, so change them together. Copy follows
+`docs/marketing-claims.md` like any other channel.
+
 ### Editorial website footer
 
 The shared website footer is warm ink (`#111`) on every page. It opens with
