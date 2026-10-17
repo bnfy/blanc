@@ -14863,48 +14863,6 @@
         }
       }
     },
-    "row.glance": {
-      "comment": "Lowercase tab row button that opens the tab in Glance (a fixed product name).",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "glance"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "glance"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "glance"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "glance"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "glance"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "glance"
-          }
-        }
-      }
-    },
     "row.glanceOpen": {
       "comment": "Tooltip of that button.",
       "extractionState": "manual",

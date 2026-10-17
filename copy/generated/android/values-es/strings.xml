@@ -372,7 +372,6 @@
     <string name="row_unpin">Soltar pestaña</string>
     <string name="row_mute">Silenciar pestaña</string>
     <string name="row_unmute">Activar el sonido de la pestaña</string>
-    <string name="row_glance">glance</string>
     <string name="row_glance_open">Abrir esta pestaña en Glance</string>
     <string name="row_action_label">%1$s: %2$s</string>
     <string name="group_fold">Contraer el grupo</string>

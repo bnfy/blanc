@@ -372,7 +372,6 @@
     <string name="row_unpin">Rilascia la scheda</string>
     <string name="row_mute">Disattiva audio della scheda</string>
     <string name="row_unmute">Riattiva audio della scheda</string>
-    <string name="row_glance">glance</string>
     <string name="row_glance_open">Apri questa scheda in Glance</string>
     <string name="row_action_label">%1$s: %2$s</string>
     <string name="group_fold">Comprimi il gruppo</string>

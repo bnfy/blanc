@@ -362,7 +362,6 @@
     <string name="row_unpin">Tab lösen</string>
     <string name="row_mute">Tab stummschalten</string>
     <string name="row_unmute">Ton des Tabs einschalten</string>
-    <string name="row_glance">glance</string>
     <string name="row_glance_open">Diesen Tab in Glance öffnen</string>
     <string name="row_action_label">%1$s: %2$s</string>
     <string name="group_fold">Gruppe einklappen</string>

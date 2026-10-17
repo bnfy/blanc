@@ -1329,10 +1329,6 @@
     "message": "Activar el sonido de la pestaña",
     "source": "sha256:f6c522aa80b75241c2a403d2a3dab4b72714b001238f13a6b290bc8c6f495735"
   },
-  "row.glance": {
-    "message": "glance",
-    "source": "sha256:1d0003411ede87c53c55a91e44471849215cb33fa121091d1057c2c9b0efa206"
-  },
   "row.glanceOpen": {
     "message": "Abrir esta pestaña en Glance",
     "source": "sha256:ab2e1433aa5729822e7063ec36c52b2e12f0d8d788835340148b8109d7ca4711"

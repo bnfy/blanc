@@ -42,7 +42,7 @@ function buildRow(tab, { activeTabId = 'active' } = {}) {
   const sandbox = {
     document: { createElement: fakeElement },
     state: { activeTabId, glanceTabId: null },
-    ICONS: { pin: '', mute: '', close: '' },
+    ICONS: { pin: '', mute: '', close: '', glance: '<svg data-glyph="glance"></svg>' },
     setFavicon() {},
     tabDomain: () => 'example.com',
     window: { browserAPI: {} },
@@ -81,4 +81,13 @@ test('an ordinary row has no private tag or private name', () => {
   assert.ok(!classes(row).includes('row-private'));
   const primary = row.children.find((child) => child.className === 'row-primary');
   assert.doesNotMatch(primary.attrs['aria-label'], /private/);
+});
+
+test('the Glance action is an icon, not a word', () => {
+  const row = buildRow({ ...TAB, private: false });
+  const glance = row.children.find((child) => child.className.split(' ')[0] === 'row-glance');
+  assert.ok(glance, 'a background row offers Glance');
+  assert.equal(glance.textContent, '');
+  assert.match(glance.innerHTML, /<svg/);
+  assert.equal(glance.title, 'Open this tab in Glance');
 });

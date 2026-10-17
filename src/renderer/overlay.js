@@ -295,6 +295,9 @@
     // Reopen: a leftward return arrow — drawn, not the Unicode ↶, which sits
     // baseline-low and renders unevenly across platforms.
     reopen: '<svg viewBox="0 0 16 16"><path d="M3.5 6.75h6a3 3 0 0 1 0 6h-3"/><path d="M6.25 4 3.5 6.75l2.75 2.75"/></svg>',
+    // Glance: a page with a narrower page beside it — not the footer's
+    // sidebar glyph, which is the tab-layout toggle.
+    glance: '<svg viewBox="0 0 16 16"><rect x="2.25" y="3.25" width="7.5" height="9.5" rx="1.5"/><rect x="11.25" y="4.75" width="2.5" height="6.5" rx="1"/></svg>',
   };
   reloadBtn.innerHTML = ICONS.reload;
 
@@ -709,7 +712,7 @@
       const isGlance = tab.id === state.glanceTabId;
       glance.className = 'row-glance' + (isGlance ? ' on' : '');
       glance.dataset.noDrag = '';
-      glance.textContent = blancI18n.t('row.glance');
+      glance.innerHTML = ICONS.glance;
       glance.title = isGlance ? blancI18n.t('glance.close') : blancI18n.t('row.glanceOpen');
       glance.setAttribute('aria-label', blancI18n.t('row.actionLabel', { action: glance.title, title: label }));
       if (tab.title) glance.dataset.i18nIgnore = 'aria-label'; // carries the page title

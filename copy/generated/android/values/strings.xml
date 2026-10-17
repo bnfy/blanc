@@ -362,7 +362,6 @@
     <string name="row_unpin">Unpin tab</string>
     <string name="row_mute">Mute tab</string>
     <string name="row_unmute">Unmute tab</string>
-    <string name="row_glance">glance</string>
     <string name="row_glance_open">Open this tab in Glance</string>
     <string name="row_action_label">%1$s: %2$s</string>
     <string name="group_fold">Fold group</string>

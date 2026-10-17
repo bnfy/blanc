@@ -372,7 +372,6 @@
     <string name="row_unpin">Desafixar aba</string>
     <string name="row_mute">Silenciar aba</string>
     <string name="row_unmute">Reativar o som da aba</string>
-    <string name="row_glance">glance</string>
     <string name="row_glance_open">Abrir esta aba no Glance</string>
     <string name="row_action_label">%1$s: %2$s</string>
     <string name="group_fold">Recolher o grupo</string>

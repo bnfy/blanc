@@ -1377,11 +1377,6 @@
     "message": "Unmute tab",
     "note": "Tab row button."
   },
-  "row.glance": {
-    "message": "glance",
-    "note": "Lowercase tab row button that opens the tab in Glance (a fixed product name).",
-    "maxLength": 8
-  },
   "row.glanceOpen": {
     "message": "Open this tab in Glance",
     "note": "Tooltip of that button."
