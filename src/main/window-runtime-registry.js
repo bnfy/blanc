@@ -37,6 +37,11 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     tabOrder: [],
     activeTabId: null,
     groups: [],
+    /** Recently closed band: how many of `groups` sit above it (0 = under
+     * Pinned), and the group ids it was last reconciled against
+     * (closed-slot.js). Only closedSlot is persisted. */
+    closedSlot: 0,
+    closedSlotIds: [],
     /** Named Workspaces single-window binding: the id of the workspace this
      * window currently shows, or null for a scratch window. The process-wide
      * {workspaceId: windowId} map is derived from live runtimes on demand —

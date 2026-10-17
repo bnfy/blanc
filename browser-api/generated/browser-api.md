@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-111 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
+112 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -21,7 +21,8 @@
 | `reload` | navigation | invoke | `tabs:reload` | `(id: TabId) => Promise<boolean \| undefined>` | all |
 | `stop` | navigation | invoke | `tabs:stop` | `(id: TabId) => Promise<void>` | all |
 | `moveTab` | tabs | invoke | `tabs:move` | `(id: TabId, target: TabMoveTarget) => Promise<boolean>` | all |
-| `reorderGroup` | tabs | invoke | `groups:reorder` | `(id: GroupId, beforeGroupId: GroupId \| null) => Promise<boolean>` | all |
+| `reorderGroup` | tabs | invoke | `groups:reorder` | `(id: GroupId, beforeGroupId: GroupId \| 'recently-closed' \| null) => Promise<boolean>` | all |
+| `moveClosedSection` | tabs | invoke | `groups:move-closed` | `(beforeGroupId: GroupId \| null) => Promise<boolean>` | all |
 | `activateTabFromRail` | tabs | invoke | `tabs:activate-from-rail` | `(id: TabId) => Promise<boolean>` | all |
 | `setGlanceTab` | glance | invoke | `tabs:set-glance` | `(id: TabId) => Promise<boolean>` | all |
 | `openGlancePicker` | glance | invoke | `tabs:open-glance-picker` | `(query?: string) => Promise<boolean>` | all |
@@ -444,6 +445,7 @@ Result of getAllTabs, built by the tabs:get-all handler in main.js.
 | `glanceTabId` | `TabId \| null` |  |
 | `groups` | `TabGroup[]` |  |
 | `closed` | `ClosedEntrySummary[]` |  |
+| `closedSlot` | `number` | How many of groups sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). |
 | `tabLayout` | `TabLayout` |  |
 | `verticalTabsWidth` | `number` |  |
 | `verticalTabsPreferredWidth` | `number` |  |
@@ -462,6 +464,7 @@ The tabs:updated broadcast, built by currentTabsPayload() in main.js.
 | `glanceTabId` | `TabId \| null` |  |
 | `groups` | `TabGroup[]` |  |
 | `closed` | `ClosedEntrySummary[]` |  |
+| `closedSlot` | `number` | How many of groups sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). |
 | `tabLayout` | `TabLayout` |  |
 | `adblockEnabled` | `boolean` |  |
 | `shieldPopover` | `ShieldPopover \| null` |  |

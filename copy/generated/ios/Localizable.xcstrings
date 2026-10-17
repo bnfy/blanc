@@ -5161,6 +5161,48 @@
         }
       }
     },
+    "drag.movedClosed": {
+      "comment": "Announced after moving the Recently closed section of the ⌘L panel among the tab groups. \"Recently closed\" is that section's header (closed.header).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moved Recently closed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bereich „Zuletzt geschlossen“ verschoben"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sección Cerradas recientemente movida"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Section Fermés récemment déplacée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sezione Chiuse di recente spostata"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seção Fechadas recentemente movida"
+          }
+        }
+      }
+    },
     "drag.movedTab": {
       "comment": "Announced after reordering a tab; {title} is its title.",
       "extractionState": "manual",
@@ -15116,43 +15158,43 @@
       }
     },
     "closed.header": {
-      "comment": "Lowercase header of the recently-closed section in the Island.",
+      "comment": "Header of the Recently closed section in the ⌘L panel, styled like a tab group header. Sentence case.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "recently closed"
+            "value": "Recently closed"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "zuletzt geschlossen"
+            "value": "Zuletzt geschlossen"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "cerradas recientemente"
+            "value": "Cerradas recientemente"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "fermés récemment"
+            "value": "Fermés récemment"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "chiuse di recente"
+            "value": "Chiuse di recente"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "fechadas recentemente"
+            "value": "Fechadas recentemente"
           }
         }
       }
@@ -15242,43 +15284,43 @@
       }
     },
     "closed.clear": {
-      "comment": "Lowercase button that forgets every recently-closed entry.",
+      "comment": "Button on the Recently closed header that forgets every entry. Sentence case.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "clear"
+            "value": "Clear all"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "leeren"
+            "value": "Alle leeren"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "borrar"
+            "value": "Borrar todo"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "effacer"
+            "value": "Tout effacer"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "cancella"
+            "value": "Cancella tutto"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "limpar"
+            "value": "Limpar tudo"
           }
         }
       }

@@ -129,6 +129,7 @@
     <string name="rail_move_top">Ya está arriba del todo</string>
     <string name="rail_move_bottom">Ya está abajo del todo</string>
     <string name="drag_moved_group">Grupo %1$s movido</string>
+    <string name="drag_moved_closed">Sección Cerradas recientemente movida</string>
     <string name="drag_moved_tab">%1$s movida</string>
     <string name="drag_moved_tab_untitled">Pestaña movida</string>
     <string name="drag_moved_to">Movida a %1$s</string>
@@ -378,10 +379,10 @@
     <string name="device_unfold">Expandir el dispositivo</string>
     <string name="slash_sleep_none">Ahora mismo no se puede poner en reposo ninguna pestaña en segundo plano.</string>
     <string name="slash_sleep_failed">No se pudieron poner en reposo las pestañas en segundo plano.</string>
-    <string name="closed_header">cerradas recientemente</string>
+    <string name="closed_header">Cerradas recientemente</string>
     <string name="closed_fold">Contraer las cerradas recientemente</string>
     <string name="closed_unfold">Expandir las cerradas recientemente</string>
-    <string name="closed_clear">borrar</string>
+    <string name="closed_clear">Borrar todo</string>
     <string name="closed_clear_all">Olvidar todas las pestañas cerradas</string>
     <string name="closed_reopen">Volver a abrir la pestaña cerrada</string>
     <plurals name="closed_group_title">

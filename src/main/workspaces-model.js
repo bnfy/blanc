@@ -38,6 +38,10 @@ function sanitizeName(raw) {
 // Always a NEW array. Returning the caller's array by reference would let a
 // later updateCapture (or a store write) mutate the object we normalized from.
 const asArray = (value) => (Array.isArray(value) ? value.slice() : []);
+/** Where the Recently closed band sits among the Space's groups; the default
+ * (0, under Pinned) is never written. */
+const closedSlotColumn = (source) => (
+  Number.isInteger(source.closedSlot) && source.closedSlot > 0 ? { closedSlot: source.closedSlot } : {});
 
 /** One workspace record, repaired — or null when it cannot be trusted.
  * Rejects (rather than repairs) identity fields: a record with no id, no
@@ -70,6 +74,7 @@ function normalizeWorkspace(raw) {
     meta: meta.length === urls.length ? meta : [],
     ...(Array.isArray(raw.localFiles) && raw.localFiles.length === urls.length
       ? { localFiles: raw.localFiles.map((value) => value === true) } : {}),
+    ...closedSlotColumn(raw),
     // Identity fields only when valid; normalizeFile assigns the defaults.
     ...(Identity.normalizeHex(raw.color) ? { color: Identity.normalizeHex(raw.color) } : {}),
     ...(Identity.isSymbol(raw.symbol) ? { symbol: raw.symbol } : {}),
@@ -130,6 +135,8 @@ function loadFile(raw) {
   return { status: 'supported', file: normalizeFile(raw) };
 }
 
+const OPTIONAL_CAPTURE_COLUMNS = ['localFiles', 'closedSlot'];
+
 /** The tab columns a capture carries, copied so the record never aliases the
  * live arrays main.js built it from. */
 const captureColumns = (capture) => {
@@ -145,6 +152,7 @@ const captureColumns = (capture) => {
     meta: meta.length === urls.length ? meta : [],
     ...(Array.isArray(source.localFiles) && source.localFiles.length === urls.length
       ? { localFiles: source.localFiles.map((value) => value === true) } : {}),
+    ...closedSlotColumn(source),
   };
 };
 
@@ -235,6 +243,10 @@ function updateCapture(file, id, capture, now) {
     return { file: clean, workspace: existing, unchanged: true };
   }
   const workspace = { ...existing, ...columns, updatedAt: now, revision: existing.revision + 1 };
+  // Optional columns are written only when they carry something, so one the
+  // new capture omits must not survive from the old record (a band moved back
+  // under Pinned, a local file closed).
+  for (const key of OPTIONAL_CAPTURE_COLUMNS) if (!(key in columns)) delete workspace[key];
   return {
     file: withWorkspaces(clean, clean.workspaces.map((w) => (w.id === id ? workspace : w))),
     workspace,

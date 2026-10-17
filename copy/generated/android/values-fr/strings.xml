@@ -129,6 +129,7 @@
     <string name="rail_move_top">Déjà tout en haut</string>
     <string name="rail_move_bottom">Déjà tout en bas</string>
     <string name="drag_moved_group">Groupe %1$s déplacé</string>
+    <string name="drag_moved_closed">Section Fermés récemment déplacée</string>
     <string name="drag_moved_tab">%1$s déplacé</string>
     <string name="drag_moved_tab_untitled">Onglet déplacé</string>
     <string name="drag_moved_to">Déplacé dans %1$s</string>
@@ -378,10 +379,10 @@
     <string name="device_unfold">Déplier l’appareil</string>
     <string name="slash_sleep_none">Aucun onglet en arrière-plan ne peut être mis en veille pour le moment.</string>
     <string name="slash_sleep_failed">Impossible de mettre en veille les onglets en arrière-plan.</string>
-    <string name="closed_header">fermés récemment</string>
+    <string name="closed_header">Fermés récemment</string>
     <string name="closed_fold">Replier les onglets fermés récemment</string>
     <string name="closed_unfold">Déplier les onglets fermés récemment</string>
-    <string name="closed_clear">effacer</string>
+    <string name="closed_clear">Tout effacer</string>
     <string name="closed_clear_all">Oublier tous les onglets fermés</string>
     <string name="closed_reopen">Rouvrir l’onglet fermé</string>
     <plurals name="closed_group_title">

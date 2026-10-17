@@ -231,9 +231,13 @@
     const message = dragApi.describeMove(state, intent);
     let ok = false;
     try {
-      ok = intent.kind === 'group'
-        ? await window.browserAPI.reorderGroup(intent.id, intent.beforeGroupId)
-        : await window.browserAPI.moveTab(intent.id, { groupId: intent.groupId, beforeId: intent.beforeId });
+      if (intent.kind === 'group' && intent.id === dragApi.constants.CLOSED_SECTION_ID) {
+        ok = await window.browserAPI.moveClosedSection(intent.beforeGroupId);
+      } else {
+        ok = intent.kind === 'group'
+          ? await window.browserAPI.reorderGroup(intent.id, intent.beforeGroupId)
+          : await window.browserAPI.moveTab(intent.id, { groupId: intent.groupId, beforeId: intent.beforeId });
+      }
     } catch (error) {
       console.error('Island: move failed', error);
     }
@@ -262,7 +266,7 @@
     const header = event.target.closest?.('[data-drag-header]');
     const row = event.target.closest?.('.island-row[data-tab-id]');
     const result = header
-      ? dragApi.keyboardGroupMove(state, header.dataset.groupId, direction)
+      ? dragApi.keyboardGroupMove(state, header.dataset.groupId, direction, { withClosed: true })
       : row ? dragApi.keyboardTabMove(state, row.dataset.tabId, direction) : null;
     if (!result) return;
     event.preventDefault();
@@ -1136,25 +1140,60 @@
     return empty;
   }
 
-  /** "› recently closed 4" — one foldable line like a synced device. Clear
-   * stays reachable when unfolded. */
+  /** The Recently closed band (spec 2026-10-16 §4): a named group's band
+   * and header, placed among the groups where the user dragged it. It starts
+   * folded on every open, takes no ⌘ number, and holds no tabs. */
+  function closedBand(entries) {
+    const band = document.createElement('div');
+    band.className = 'island-group-band closed-band';
+    band.dataset.dragSection = 'closed';
+    band.dataset.groupId = dragApi.constants.CLOSED_SECTION_ID;
+    band.dataset.collapsed = String(!closedSectionOpen);
+    band.append(closedHeaderRow(entries.length));
+    if (closedSectionOpen) band.append(...entries.map(closedRow));
+    return band;
+  }
+
+  /** "› Recently closed 12": folds like a group header and drags like one.
+   * Clear all stays reachable when unfolded. */
   function closedHeaderRow(count) {
     const row = document.createElement('div');
     row.className = 'island-ghead';
-    row.innerHTML = `${CARET}<span class="ghead-name dim"></span><span class="ghead-n"></span>`;
-    row.querySelector('.ghead-name').textContent = blancI18n.t('closed.header');
-    row.querySelector('.caret').classList.toggle('open', closedSectionOpen);
-    row.querySelector('.ghead-n').textContent = String(count);
     row.title = closedSectionOpen ? blancI18n.t('closed.fold') : blancI18n.t('closed.unfold');
-    row.addEventListener('click', (e) => {
-      if (e.target.closest('button')) return;
+    row.dataset.dragHeader = '';
+    row.dataset.groupId = dragApi.constants.CLOSED_SECTION_ID;
+    row.dataset.dragTitle = blancI18n.t('closed.header');
+    // The row also holds Clear all, and a button's content is presentational
+    // to assistive tech, so the fold control is an inner button. Focusable so
+    // it folds from the keyboard and ⌥⇧↑/↓ can move the band.
+    const toggle = document.createElement('span');
+    toggle.className = 'ghead-toggle';
+    toggle.innerHTML = `${CARET}<span class="ghead-name"></span><span class="ghead-n"></span>`;
+    toggle.querySelector('.ghead-name').textContent = blancI18n.t('closed.header');
+    toggle.querySelector('.caret').classList.toggle('open', closedSectionOpen);
+    toggle.querySelector('.ghead-n').textContent = String(count);
+    toggle.tabIndex = 0;
+    toggle.setAttribute('role', 'button');
+    toggle.setAttribute('aria-expanded', String(closedSectionOpen));
+    row.append(toggle);
+    const flip = () => {
       closedSectionOpen = !closedSectionOpen;
       renderList();
+    };
+    row.addEventListener('click', (e) => {
+      if (e.target.closest('button')) return;
+      flip();
+    });
+    toggle.addEventListener('keydown', (event) => {
+      if (event.target !== toggle || (event.key !== 'Enter' && event.key !== ' ')) return;
+      event.preventDefault();
+      flip();
     });
     if (closedSectionOpen) {
       const clear = document.createElement('button');
       clear.type = 'button';
       clear.className = 'closed-clear';
+      clear.dataset.noDrag = '';
       clear.textContent = blancI18n.t('closed.clear');
       clear.title = blancI18n.t('closed.clearAll');
       clear.setAttribute('aria-label', clear.title);
@@ -1173,8 +1212,9 @@
    *  either proposed id, so a stale renderer action is a no-op. */
   function closedRow(entry) {
     const row = document.createElement('div');
-    row.className = 'island-row closed-row';
+    row.className = 'island-row closed-row in-group';
     row.setAttribute('role', 'button');
+    row.tabIndex = 0;
     row.title = blancI18n.t('closed.reopen');
     const glyph = document.createElement('span');
     glyph.className = 'closed-glyph';
@@ -1197,9 +1237,15 @@
       window.browserAPI.forgetClosedEntry(entry.id);
     });
     row.append(glyph, title, forget);
-    row.addEventListener('click', () => {
+    const reopen = () => {
       window.browserAPI.closeOverlay();
       window.browserAPI.reopenClosedEntry(entry.id);
+    };
+    row.addEventListener('click', reopen);
+    row.addEventListener('keydown', (event) => {
+      if (event.target !== row || (event.key !== 'Enter' && event.key !== ' ')) return;
+      event.preventDefault();
+      reopen();
     });
     return row;
   }
@@ -1631,7 +1677,9 @@
   function restoreRowFocus(anchor) {
     if (!anchor) return;
     if (anchor.groupId) {
-      islandList.querySelector(`[data-drag-header][data-group-id="${CSS.escape(anchor.groupId)}"]`)?.focus();
+      const header = islandList.querySelector(`[data-drag-header][data-group-id="${CSS.escape(anchor.groupId)}"]`);
+      // The Recently closed header's focus target is its inner toggle.
+      (header && header.tabIndex >= 0 ? header : header?.querySelector('[role="button"]'))?.focus();
       return;
     }
     const row = islandList.querySelector(
@@ -1836,7 +1884,20 @@
 
       const clusters = clusterTabs();
       const shortcutOffset = pinned.length ? 1 : 0;
+      // Recently closed sits before the first group at or past its slot
+      // (main's closedSlot), else after the last group — never among the
+      // ungrouped tabs. Newest first; every entry Blanc keeps.
+      const closed = (state.closed ?? []).slice().reverse();
+      const closedSlot = dragApi.closedSlotIndex(state);
+      const groupIndex = new Map(state.groups.map((g, index) => [g.id, index]));
+      let closedPlaced = !closed.length;
+      const placeClosed = () => {
+        if (closedPlaced) return;
+        rows.push(closedBand(closed));
+        closedPlaced = true;
+      };
       for (const [clusterIndex, { group, tabs: gtabs }] of clusters.entries()) {
+        if (!group || groupIndex.get(group.id) >= closedSlot) placeClosed();
         if (group) {
           const bandNodes = [groupHeaderRow(group, gtabs.length, clusterIndex + shortcutOffset)];
           // Collapsed: header alone. Open: indent membership under the group.
@@ -1852,6 +1913,7 @@
           rows.push(dragSection('loose', gtabs.map(tabRow)));
         }
       }
+      placeClosed();
       if (!clusters.some(({ group }) => !group)) rows.push(dragEmptyZone('loose'));
 
       const furniture = [];
@@ -1860,11 +1922,6 @@
         if (unfoldedDevices.has(device.deviceId)) {
           furniture.push(...clusterRemoteTabs(device).map((t) => remoteTabRow(t, device)));
         }
-      }
-      const closed = (state.closed ?? []).slice(-4).reverse(); // newest first
-      if (closed.length) {
-        furniture.push(closedHeaderRow(closed.length));
-        if (closedSectionOpen) furniture.push(...closed.map(closedRow));
       }
       if (furniture.length) {
         const wrap = document.createElement('div');
@@ -2051,6 +2108,7 @@
     if (next === 'panel' || next === 'palette') {
       if (!reshow) {
         siteInfoOpen = false;
+        closedSectionOpen = false;
         pendingGroupTabId = null;
         pendingRenameTabId = null;
         renamePrefill = null;

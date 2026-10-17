@@ -246,6 +246,8 @@ export interface TabsSnapshot {
   glanceTabId: TabId | null;
   groups: TabGroup[];
   closed: ClosedEntrySummary[];
+  /** How many of groups sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). */
+  closedSlot: number;
   tabLayout: TabLayout;
   verticalTabsWidth: number;
   verticalTabsPreferredWidth: number;
@@ -261,6 +263,8 @@ export interface TabsUpdatedPayload {
   glanceTabId: TabId | null;
   groups: TabGroup[];
   closed: ClosedEntrySummary[];
+  /** How many of groups sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). */
+  closedSlot: number;
   tabLayout: TabLayout;
   adblockEnabled: boolean;
   shieldPopover: ShieldPopover | null;
@@ -744,10 +748,15 @@ export interface BlancBrowserAPI {
    */
   moveTab(id: TabId, target: TabMoveTarget): Promise<boolean>;
   /**
-   * Move a group before another group, or to the end with null.
+   * Move a group before another group, directly above the Recently closed band with 'recently-closed', or to the end with null.
    * IPC: invoke `groups:reorder`.
    */
-  reorderGroup(id: GroupId, beforeGroupId: GroupId | null): Promise<boolean>;
+  reorderGroup(id: GroupId, beforeGroupId: GroupId | 'recently-closed' | null): Promise<boolean>;
+  /**
+   * Move the ⌘L panel's Recently closed band before a group, or after the last group with null.
+   * IPC: invoke `groups:move-closed`.
+   */
+  moveClosedSection(beforeGroupId: GroupId | null): Promise<boolean>;
   /**
    * Activate a tab from the vertical tab rail.
    * IPC: invoke `tabs:activate-from-rail`.

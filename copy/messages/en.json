@@ -476,6 +476,10 @@
     "message": "Moved group {group}",
     "note": "Announced after moving a tab group; {group} is its name."
   },
+  "drag.movedClosed": {
+    "message": "Moved Recently closed",
+    "note": "Announced after moving the Recently closed section of the ⌘L panel among the tab groups. \"Recently closed\" is that section's header (closed.header)."
+  },
   "drag.movedTab": {
     "message": "Moved {title}",
     "note": "Announced after reordering a tab; {title} is its title."
@@ -1402,8 +1406,8 @@
     "note": "Notice when /sleep fails."
   },
   "closed.header": {
-    "message": "recently closed",
-    "note": "Lowercase header of the recently-closed section in the Island.",
+    "message": "Recently closed",
+    "note": "Header of the Recently closed section in the ⌘L panel, styled like a tab group header. Sentence case.",
     "maxLength": 22
   },
   "closed.fold": {
@@ -1415,9 +1419,9 @@
     "note": "Tooltip of the collapsed recently-closed header."
   },
   "closed.clear": {
-    "message": "clear",
-    "note": "Lowercase button that forgets every recently-closed entry.",
-    "maxLength": 8
+    "message": "Clear all",
+    "note": "Button on the Recently closed header that forgets every entry. Sentence case.",
+    "maxLength": 16
   },
   "closed.clearAll": {
     "message": "Forget all closed tabs",
