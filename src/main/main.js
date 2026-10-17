@@ -282,6 +282,7 @@ const {
 } = require('./glance-focus');
 const { moveTab: resolveTabMove } = require('./tab-order');
 const { CLOSED_SECTION_ID, clampClosedSlot, reconcileClosedSlot, reorderGroupsWithClosed } = require('./closed-slot');
+const { normalizeGroupName, sameGroupName } = require('./group-name-case');
 const { openLinkInGlance: openLinkInGlanceWith } = require('./glance-open-link');
 const { acceptOverlayDragState, resetOverlayDragState, overlayDragActive } = require('./overlay-drag-state');
 const {
@@ -5213,11 +5214,15 @@ function setTabGroup(tabId, groupId) {
 
 /** "/group work" — move a tab into the named group, creating it on first
  * use. Names are lowercase mono labels, per the design. */
-function groupTabByName(tabId, rawName) {
+/** Names keep the case typed and match without regard to it (spec
+ * 2026-10-16 §9.1). `adoptCase` (the /group command) re-cases a matching
+ * group to what was just typed; reopening a closed tab never does. */
+function groupTabByName(tabId, rawName, { adoptCase = false } = {}) {
   const tab = tabs.get(tabId);
-  const name = String(rawName ?? '').trim().toLowerCase().slice(0, 40);
+  const name = normalizeGroupName(rawName);
   if (!tab || !name) return;
-  let group = rt().groups.find((g) => g.name === name);
+  let group = rt().groups.find((g) => sameGroupName(g.name, name));
+  if (group && adoptCase) group.name = name;
   if (!group) {
     group = { id: crypto.randomUUID(), name, collapsed: false };
     rt().groups.push(group);
@@ -6793,7 +6798,7 @@ function clearClosedEntries() {
  *  inserted between those two. */
 function reopenGroupEntry(entry) {
   const runtime = rt();
-  let group = runtime.groups.find((g) => g.name === entry.group.name);
+  let group = runtime.groups.find((g) => sameGroupName(g.name, entry.group.name));
   if (!group) {
     group = { id: entry.group.id, name: entry.group.name, collapsed: !!entry.group.collapsed };
     runtime.groups.splice(Math.min(entry.group.index, runtime.groups.length), 0, group);
@@ -7875,7 +7880,7 @@ function registerIpcHandlers() {
     acceptOverlayDragState(rt(), event.sender, active);
   });
   chromeHandle('tabs:set-group', (_e, id, groupId) => setTabGroup(id, groupId ?? null));
-  chromeHandle('tabs:group-by-name', (_e, id, name) => groupTabByName(id, name));
+  chromeHandle('tabs:group-by-name', (_e, id, name) => groupTabByName(id, name, { adoptCase: true }));
   chromeHandle('tabs:toggle-group-collapsed', (_e, groupId) => toggleGroupCollapsed(groupId));
   chromeHandle('tabs:focus-group', (_e, groupId) => focusGroup(groupId));
   chromeHandle('tabs:close-group', (_e, groupId) => closeGroup(groupId));
