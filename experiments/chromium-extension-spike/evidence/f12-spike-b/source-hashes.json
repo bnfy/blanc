@@ -1,0 +1,10 @@
+{
+  "extensions/common/extension.cc": "bd98629908903a03d680ef8964909a58404f0b0fb8ec54972bed6db76cbe1ad6",
+  "extensions/browser/manifest_v2_handler.cc": "8ce631c10e207acb2dd20ce3481e2173ee2dfd37688e04d7a5fff40e9a7076ab",
+  "extensions/browser/manifest_v2_util.cc": "c93867d533f1d3b939d3f0214963974bdf420a59c7a4008a2399f07ab3d5e413",
+  "chrome/browser/extensions/component_loader.cc": "bea885f5444170c516c0b147e7ea845cbf346b53d36a7dd70999e4d9b876d1dc",
+  "extensions/common/api/_permission_features.json": "cd185b5ea3321ed87e0ec8774b2379e402dbb829adb31982f4b2c99cc4904ae2",
+  "extensions/browser/api/web_request/web_request_api.cc": "3befcdcd3896907c61bd522674455f4fcebdc8d1e52811842682eb719d1d612e",
+  "extensions/browser/api/webstore_private/extension_install_status.cc": "13f9ecf49edb718c182ad70476fd7cf8913759aed703898b638095c7551f4835",
+  "components/policy/resources/templates/policy_definitions/Extensions/ExtensionManifestV2Availability.yaml": "d22f4e49f16c7d2db79986e73e98726e33443a5cd11263951199197beeb408a3"
+}

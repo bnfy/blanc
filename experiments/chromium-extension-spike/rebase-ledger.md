@@ -697,3 +697,28 @@ path regression remains green.
   service-worker behavior remain explicit gaps.
 - Latency: deferred by owner; no latency measurement or process pause occurred.
 - Owner attention / agent time: not measured.
+
+### MV2 audit and service-worker lifecycle — October 17, 2026
+
+[Spike B source audit](evidence/f12-spike-b/README.md) starts the approved second
+F12 spike. Ordinary MV2 install/enable/startup gates are hard-disabled in the 157
+pin; parser, component exception and blocking API remain. Component packaging,
+privileges and payload dependencies need further audit before a runtime decision.
+No ordinary MV2 restoration or uBO runtime success is claimed. Spike B remains
+in progress; no extension-system patch or native build occurred.
+
+[Service lifecycle evidence](evidence/f12-service-lifecycle-20261017/README.md)
+records eight passing behavior sessions across Electron/Chromium and regular/private:
+failed registration, controlled network fetch, cache response, blocked fetch and
+replacement by a different script URL. Raw provider decisions independently verify
+allow/block, profile and initiator. Observer session-loss errors remain in all
+final sessions, so strict context acceptance stays open. Same-URL update revalidation,
+failed-script realm correlation, multi-client/in-flight ownership and cache restart
+remain gaps. Both attempts are archived with verified hashes; the first stopped
+on offline-rejected background requests. Final invocation bracket: 27.831 seconds.
+
+57-file lint is clean; eight evidence-verifier cases pass. No native build,
+prepare, GN, output, toolchain or args change; zero upstream patch delta. This is
+routine tranche work, not Task 0 cold time. Owner attention and agent time are not
+measured. Latency remains deferred; 156, permanent profiles/tabs and Task 0's
+extension-upgrade gate are unchanged. Plan progress table and coverage gaps updated.

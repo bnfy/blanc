@@ -159,7 +159,7 @@
         "worker-origin"
       ],
       "status": "gap",
-      "reason": "Initial script correlates through the new worker target token and pre-install lifecycle; six imports/fetch/redirect observations match with independently observed empty or single controlled-page sets. Three variants, twice per runtime/profile. Updates, failed scripts without a realm, multi-client/teardown, controlled fetch events and cache-only outcomes remain gaps."
+      "reason": "Initial script and bounded imports/fetch/redirect contexts were measured previously. Eight additional behavior runs pass failed registration, controlled network/cache/blocked fetch and different-URL replacement across both runtimes/profiles; observer session-loss errors prevent strict context acceptance. Same-URL updates, failed scripts without a realm, multi-client/teardown, controlled-fetch ownership and cache eviction/restart remain gaps. See evidence/f12-service-lifecycle-20261017."
     },
     {
       "priority": 2,
