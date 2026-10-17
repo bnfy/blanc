@@ -1,7 +1,11 @@
 # Tranche 2 request: the Decision 2 package, F12 first
 
-**Status: approved by the owner on October 17, 2026, as written (§8). The
-tranche has not started; it runs on the Mac within §5 and §6.** Task 0 measured a rebase (`rebase-ledger.md`, row 0: 2h39m47s
+**Status: the original tranche was approved on October 17, 2026 (§8), and
+its audit and recording checkpoints have started. The corpus amendment in
+§2.1 was explicitly approved on October 17, 2026 at `68892cc1` (§8.1).
+The owner authorized recording approval, merging #916 once CI is green,
+and resuming implementation within the amended scope. Further option C
+runs remain stopped.** Task 0 measured a rebase (`rebase-ledger.md`, row 0: 2h39m47s
 cold build, one broken anchor, one API change, 21 upstream files) and its
 native acceptance passed except the extension version-upgrade observation,
 which stays under daily check through November 3. That open gate blocks 157's
@@ -96,7 +100,10 @@ the patch budget, and with acceptable per-request latency?
 | Patch count | upstream files and hunks, counted by the §7 rules and counter before and after the spike | within §7's fixed tranche budget (40 files, 120 hunks); reported either way |
 | Private windows | the same hook active in incognito, verified by the fixture | blocked, as Blanc Blocker protects private tabs today |
 
-**Replay corpus.** The unit tests named in the plan (`adblock-youtube`,
+**Replay corpus — original approved definition.** This definition remains
+the approval record until §8.1 is explicitly approved; §2.1 proposes its
+replacement for acceptance provenance and a separate private sanity sample.
+The unit tests named in the plan (`adblock-youtube`,
 `adblock-exceptions`, `adblock-events`, `adblock-engine-loader`) exercise the
 engine against mocks, not a browser; they seed URLs but cannot be the
 acceptance fixture. Spike A first builds
@@ -137,6 +144,154 @@ of `experiments/` only with a later decision):
   than assumed; a procedural rule that holds at load and fails after
   mutation is a fail.
 - A coverage page issuing one request of every path the audit found.
+
+### 2.1 Corpus amendment — approved at `68892cc1` (§8.1)
+
+**Approved change.** Replace the real-page provenance requirement in the
+first replay-corpus bullet with the committed synthetic acceptance corpus
+below, and authorize a separate, bounded private real-page sanity sample.
+Merging this document does not approve either change. The original approval
+in §8 does not extend to this amendment. No replacement-corpus generator,
+private recorder, capture, replay run or native implementation starts until
+the owner approves §8.1 explicitly.
+
+**Reason and evidence.** Option C and its repeat admitted 0 of 10 initial
+documents. At recorder commit `570d9939b83a5fb3a882254107c9a2f5ca34ea87`
+([#914](https://github.com/bnfy/blanc/pull/914)), the repeat recorded three
+uncontrolled-Vary refusals, four encoded/opaque-body refusals and three
+status refusals (one 401, two 403). No script/xhr/image distribution was
+measurable because the initial documents were refused. These are feasibility
+results, not blocking-parity evidence. The statuses are consistent with bot
+protection but do not establish its cause; the body heuristic can reject
+ordinary nonces, hashes and inline data without proving that they are private
+identifiers. Preserve these failed attempts and their limits. Stop iterating
+C; this proposal does not weaken the public scrubber or turn those attempts
+into acceptance data.
+
+**A. Committed synthetic acceptance corpus.**
+
+- Generate deterministic candidate URLs and authored fixture pages from the
+  pinned EasyList/EasyPrivacy snapshot: blocking rules, exception rules and
+  near-miss negative controls. Commit the generator, seed, rule references,
+  list hashes, fixture bytes and manifest under `fixtures/replay/`, with
+  list-derived URLs, data and generated page content licensed under
+  **CC BY-SA 3.0-or-later**, attributed to **The EasyList authors**, as
+  specified in `fixtures/replay/NOTICE`. Preserve source hashes, source
+  links and transformation descriptions with generated artifacts; the
+  first-party generator and independently authored harness code retain
+  their existing terms. Do not edit the packaged root
+  `THIRD-PARTY-NOTICES.md` from this spike branch; any future integration
+  into `main` must align its notices in that separate change. Rules seed
+  candidates; they do not supply the expected block/allow answer.
+- Keep the minimum **2,000 distinct URLs observed blocked and 2,000 distinct
+  URLs observed allowed** by the real Electron provider. Repetitions,
+  regular/private reruns and superficial identifier variants cannot pad
+  these counts. Report unique rules, rule families and URL/context cases
+  separately, with the selection and deduplication algorithm. If the
+  threshold cannot be reached without padding, report the shortfall.
+- Before capture, commit a coverage matrix mapping rule families and
+  block/exception/negative cases to resource types, first- and third-party
+  relationships, initiator and top-frame combinations, frame context and
+  `profile_kind: regular|private`. Include same-origin and cross-origin
+  frames, absent and opaque initiators, no-referrer requests, redirects,
+  worker/service-worker and sender-teardown cases, and every request-path
+  class in the audit (including keepalive/beacons, prefetch/prerender,
+  worker scripts, WebSocket and WebTransport). Each applicable cell needs
+  a runtime assertion and evidence; unsupported or unobservable cells stay
+  explicit gaps, never implied passes or silently dropped rows. Explain
+  genuinely inapplicable combinations. Meeting 4,000 URLs alone is not
+  acceptance and does not close an unimplemented coverage path.
+  Prioritize renderer subresources by resource type, first- versus
+  third-party contexts, regular/private profiles and redirects, so the
+  highest-priority criterion 3 evidence is gathered first. This ordering
+  does not narrow criterion 3 or waive other cells. Given the unchanged
+  two-week box, a partial matrix with explicit gaps is an expected possible
+  deadline outcome, not a reason to extend the box or manufacture passes.
+  Report each cell as passed, failed, gap or inapplicable with its evidence
+  or reason; distinguish untested coverage from observed mismatches. A
+  stopped spike with gaps is a valid measurement deliverable, not completed
+  acceptance or a claim that criterion 3 passed. Apply the existing stop
+  and kill criteria to the evidence actually obtained.
+- Use actual browser loads, the real provider and startup gate, and the
+  same origin-preserving offline transport with disposable fixture TLS in
+  both browsers. No live upstream fallback. Observe each hook's actual
+  URL, type, initiator presence/value, top-frame origin, frame context and
+  profile kind independently using the reviewed context mapping. Never
+  substitute referrer or frame origin for the initiator. Context mismatch
+  remains a harness fault; absence and opaque `null` stay distinct.
+- Produce the oracle from **two fresh offline Electron replays** of the
+  identical manifest and response bytes. Require exact stable request,
+  context and decision sets, retaining failed attempts; do not prune to an
+  intersection. A source rule's predicted answer or unit-test mock is not
+  an oracle. Record browser/build, engine artifact and list hashes,
+  configuration, enabled rules and initialization/readiness settings for
+  both browsers. Identical engine source alone does not establish identical
+  behavior; configuration, initialization and integration can differ.
+- Supply complete, safe, authored responses for **every candidate URL,
+  including Electron-blocked requests**, and a manifest of their authored
+  descendant requests. An incorrectly allowed script must execute that
+  fixture behavior rather than receive a synthetic 502 that hides its
+  children. Descendants that Electron never issued are reported separately
+  as causally attributable fork-only behavior, not fabricated Electron
+  decisions or additions to the oracle denominator. Unknown, unmanifested
+  requests remain harness faults. Preserve direct block→allow differences
+  even if a secondary harness fault occurs; do not discard or disguise
+  them. If any missing response still prevents downstream execution, mark
+  `downstream_behavior_tested: false` and qualify the false-negative count
+  as a lower bound beside every reported rate.
+- Preserve the three outcome groups already specified above: native CSS,
+  procedural cosmetics with dynamic-node mutation assertions, and
+  main-world document-start scriptlets. Counts of network decisions cannot
+  substitute for DOM outcomes, scriptlet delivery or audited path coverage.
+  Report results as **synthetic fixture parity**, not a measured real-web
+  block rate or proof of complete real-world coverage.
+
+**B. Separate private real-page sanity sample.**
+
+- After approval, record at most five public, unauthenticated pages through
+  a real browser network session in fresh disposable profiles, with a
+  bounded 60-second observation per page. Use a distinct recording path;
+  Node's upstream client is not this sample's browser transport. Do not
+  bypass bot challenges, authenticate, import user profiles, autofill,
+  submit forms, or record personal browsing. Record negotiated protocols
+  and refusals; a failed page remains a failed observation.
+- Keep response bodies, full-URL observations and any transient identifiers
+  only on this Mac, outside the repository and synced folders, under an
+  owner-only run directory under
+  `~/Library/Caches/me.bnfy.blanc-f12-private-sanity/<run-id>/`
+  (directories 0700, files 0600), with the expanded absolute path recorded
+  locally. This avoids relying on temporary-directory retention, but a
+  cache is not guaranteed storage: record any early eviction as lost
+  evidence, never as a completed check. Do not persist Cookie, Set-Cookie,
+  Authorization, Proxy-Authorization or credential material in recordings;
+  fresh-session cookies needed by the browser remain ephemeral. Do not
+  export profiles, HARs, raw stderr, screenshots, keys or individual URLs
+  to GitHub, CI, remote artifacts or third-party analysis services.
+- Delete disposable profiles and trust keys when each run ends; retain
+  private recordings only until the earlier of seven days after capture
+  or completion/stopping of spike A. Record the exact local path, expiry
+  and cleanup result locally. Longer retention needs a separate owner
+  decision. No raw data goes into the public evidence tree, even if a
+  recording fails.
+- Commit only reviewed, aggregate summaries: attempted/completed pages,
+  requests and differences by resource type, first/third-party and profile
+  class, refusal counts/reasons, observation bounds, tool/build identifiers
+  and hashes of whole recording bundles. No per-URL hashes or identifiers.
+  The private sample is excluded from the 2,000/2,000 threshold and all
+  synthetic-parity denominators; report it beside those results as a
+  limited realism check whose raw evidence is not publicly reproducible.
+  If paired comparison is attempted, derive its oracle from two stable
+  offline Electron replays, not the live acquisition; otherwise report
+  observations only, without a parity claim.
+
+**Unchanged limits.** This proposal does not reset either two-week box,
+waive coverage gaps, change latency bounds or kill criteria, enlarge the
+40-file/120-hunk budget, authorize a cold output or promote 157. Spike B's
+reference to the same fixtures follows the amended definition only after
+§8.1 approval. Record any effect on the remaining time box in the ledger;
+no automatic extension. Existing §5 build guards and §6 exclusions remain.
+The only proposed exception to committing corpus artifacts under §6 is the
+bounded local private sample above. Implementation may resume under the explicit approval recorded in §8.1.
 
 **Latency protocol.** The thresholds above are new proposals for this
 tranche; plan §5 criterion 3 speaks only to block rate, so these bounds
@@ -327,3 +482,19 @@ it is hit; the tranche does not continue past it without a new decision.
       5 ms over Mojo) retained, and §7's fixed budget of 40 upstream files
       and 120 hunks. The approval covers exactly §6; anything §6 excludes,
       including a new cold output, needs a new approval.
+
+### 8.1 Corpus amendment approval — granted October 17, 2026
+
+- [x] Approved by the owner on October 17, 2026 in this Codex session at
+      reviewed commit `68892cc1b997694483af943de12a297b0f44175d`.
+      Owner's exact words: "Approve §8.1 as written at 68892cc1. Record my
+      approval, merge #916 once CI is green, and resume implementation."
+      No changes to the reviewed scope, including the separate experiment
+      cache namespace, were requested.
+
+The original checked §8 approval remains historical. This separate explicit
+approval covers §2.1 A's synthetic acceptance definition and B's bounded
+local sample, with their reporting, retention and cleanup requirements and
+all unchanged limits above; anything beyond them requires another decision.
+Merging alone was not approval. The owner separately authorized merging
+#916 once CI on its current head is green and resuming the amended work.
