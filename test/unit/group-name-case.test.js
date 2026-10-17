@@ -75,3 +75,15 @@ test('recaseWorkspacesFile covers every Space and the recently deleted', () => {
   assert.equal(next.deleted[0].workspace.groups[0].name, 'Reading');
   assert.equal(file.workspaces[0].groups[0].name, 'work', 'the input is not mutated');
 });
+
+test('the pass only touches names saved all lowercase, so a lost stamp is harmless', () => {
+  const data = {
+    version: 2,
+    windows: [{ id: 'primary', groups: [group('a', 'projects'), group('b', 'iOS'), group('c', 'eBay'), group('d', 'Work')] }],
+    groups: [group('a', 'projects'), group('b', 'iOS'), group('c', 'eBay'), group('d', 'Work')],
+  };
+  const { data: next } = recaseSessionData(data);
+  assert.deepEqual(next.windows[0].groups.map((g) => g.name), ['Projects', 'iOS', 'eBay', 'Work']);
+  const { file } = recaseWorkspacesFile({ version: 2, workspaces: [{ id: 'ws', groups: [group('x', 'macOS'), group('y', 'reading')] }], deleted: [] });
+  assert.deepEqual(file.workspaces[0].groups.map((g) => g.name), ['macOS', 'Reading']);
+});

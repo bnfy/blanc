@@ -63,3 +63,11 @@ test('reopening a closed tab recorded under "work" rejoins "Work" without re-cas
 test('a reopened closed group joins a group with the same name in any case', () => {
   assert.match(sources[1], /sameGroupName\(g\.name, entry\.group\.name\)/);
 });
+
+test('/group in lowercase joins a capitalized group without lowering it', () => {
+  const h = harness([{ id: 'g', name: 'Work', collapsed: false }, { id: 'i', name: 'iOS', collapsed: false }]);
+  h.groupTabByName('t1', 'work', { adoptCase: true });
+  h.groupTabByName('t2', 'ios', { adoptCase: true });
+  assert.deepEqual(h.runtime.groups.map((g) => g.name), ['Work', 'iOS'], 'lowercase typing has no capitals to adopt');
+  assert.equal(h.tabs.get('t1').groupId, 'g');
+});

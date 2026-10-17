@@ -1849,9 +1849,11 @@
     resetSearchSuggestions();
     const query = addressInput.value.trim();
     // Provider autocomplete is intentionally off in private tabs: typed
-    // prefixes stay local until the user explicitly submits a search.
+    // prefixes stay local until the user explicitly submits a search. A name
+    // prompt (Rename Group…) is not a search at all.
     if (
-      !inputTouched
+      namePrompt
+      || !inputTouched
       || query.length < 2
       || query.startsWith('/')
       || looksLikeAddress(query)

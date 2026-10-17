@@ -5228,13 +5228,15 @@ function setTabGroup(tabId, groupId) {
  * use. Names are lowercase mono labels, per the design. */
 /** Names keep the case typed and match without regard to it (spec
  * 2026-10-16 §9.1). `adoptCase` (the /group command) re-cases a matching
- * group to what was just typed; reopening a closed tab never does. */
+ * group to the capitals just typed — typing all lowercase has none, so a
+ * habitual `/group work` never lowers "Work"; reopening a closed tab never
+ * re-cases. */
 function groupTabByName(tabId, rawName, { adoptCase = false } = {}) {
   const tab = tabs.get(tabId);
   const name = normalizeGroupName(rawName);
   if (!tab || !name) return;
   let group = rt().groups.find((g) => sameGroupName(g.name, name));
-  if (group && adoptCase) group.name = name;
+  if (group && adoptCase && name !== name.toLowerCase()) group.name = name;
   if (!group) {
     group = { id: crypto.randomUUID(), name, collapsed: false };
     rt().groups.push(group);

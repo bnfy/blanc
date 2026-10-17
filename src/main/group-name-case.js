@@ -26,12 +26,15 @@ function capitalizeFirst(name) {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-/** Groups with capitalized names, and whether any changed. */
+/** Groups with capitalized names, and whether any changed. Only a name saved
+ * all lowercase is touched: one with any capital was set by a build that
+ * keeps case ("iOS", "eBay"), so a pass that runs again after a lost stamp
+ * (a downgrade, a restored backup) leaves it alone. */
 function recaseGroups(groups) {
   if (!Array.isArray(groups)) return { groups, changed: false };
   let changed = false;
   const next = groups.map((group) => {
-    if (!group || typeof group.name !== 'string') return group;
+    if (!group || typeof group.name !== 'string' || group.name !== group.name.toLowerCase()) return group;
     const name = capitalizeFirst(group.name);
     if (name === group.name) return group;
     changed = true;
