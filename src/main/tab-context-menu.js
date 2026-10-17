@@ -91,6 +91,7 @@ function attachChromeMenu(wc, deps) {
       if (!ctx) return;
       const template = buildTabContextMenu({ ...ctx, surface: 'row', t: deps.t });
       const menu = Menu.buildFromTemplate(toElectronTemplate(template, { tab: ctx.tab, actions: deps.actions }));
+      menu.on('menu-will-show', () => deps.suppressIslandHover?.());
       try {
         menu.popup({ window: deps.getWindow(), x: Math.round(params.x), y: Math.round(params.y), sourceType: params.menuSourceType });
       } catch { /* window died mid-popup */ }
@@ -103,6 +104,7 @@ function attachChromeMenu(wc, deps) {
     if (!ctx) return;
     const template = buildTabContextMenu({ ...ctx, surface: 'pill', t: deps.t });
     const menu = Menu.buildFromTemplate(toElectronTemplate(template, { tab: ctx.tab, actions: deps.actions }));
+    menu.on('menu-will-show', () => deps.suppressIslandHover?.());
     try {
       menu.popup({ window: deps.getWindow(), x: Math.round(params.x), y: Math.round(params.y), sourceType: params.menuSourceType });
     } catch { /* window died mid-popup */ }
@@ -125,6 +127,7 @@ function attachRowMenu(wc, deps) {
     if (!ctx) return;
     const template = buildTabContextMenu({ ...ctx, surface: 'row', t: deps.t });
     const menu = Menu.buildFromTemplate(toElectronTemplate(template, { tab: ctx.tab, actions: deps.actions }));
+    menu.on('menu-will-show', () => deps.suppressIslandHover?.());
     const bounds = deps.getOverlayBounds();
     const ticket = deps.acquireMenuGuard();
     try {

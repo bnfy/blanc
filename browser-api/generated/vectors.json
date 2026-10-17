@@ -1683,13 +1683,14 @@
           ]
         },
         {
-          "label": "rect = {\"x\":1,\"y\":1,\"width\":1,\"height\":1,\"shiel",
+          "label": "rect = {\"x\":1,\"y\":1,\"width\":1,\"height\":1,\"hover",
           "args": [
             {
               "x": 1,
               "y": 1,
               "width": 1,
               "height": 1,
+              "hoverCapable": true,
               "shieldAnchor": {
                 "right": 1,
                 "center": 1,
@@ -1715,6 +1716,7 @@
                   "y": 1,
                   "width": 1,
                   "height": 1,
+                  "hoverCapable": true,
                   "shieldAnchor": {
                     "right": 1,
                     "center": 1,

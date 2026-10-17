@@ -3240,6 +3240,14 @@
     "message": "Tint the Island bar with the color of the page you’re on. Off keeps it on your theme’s background.",
     "note": "Settings → General: explanation under a setting."
   },
+  "settings.general.islandHoverOpen.label": {
+    "message": "Open the Island on hover",
+    "note": "Settings → General: setting name."
+  },
+  "settings.general.islandHoverOpen.hint": {
+    "message": "Rest the pointer on the Island to open it without clicking.",
+    "note": "Settings → General: explanation under a setting."
+  },
   "settings.general.darkWebsites.label": {
     "message": "Dark websites",
     "note": "Settings → General: setting name."

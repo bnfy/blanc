@@ -42,6 +42,7 @@ function attachGroupHeaderMenu(wc, deps) {
     const group = deps.resolveGroup(rawId);
     if (!group) return;
     const menu = Menu.buildFromTemplate(toElectronTemplate(buildGroupContextMenu(deps.t), { group, actions: deps.actions }));
+    menu.on('menu-will-show', () => deps.suppressIslandHover?.());
     const offset = deps.getOffset();
     const ticket = deps.acquireMenuGuard?.();
     try {

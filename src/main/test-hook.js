@@ -68,6 +68,11 @@ function install(refs) {
     getGroups,
     getActiveTabId,
     getIslandRect,
+    getIslandHoverState,
+    setIslandHoverOpen,
+    getOverlayShowCount,
+    resetOverlayShowCount,
+    setTestCursorPoint,
     runBlockAdsCommand,
     runAllowAdsCommand,
     clusterSlots,
@@ -510,6 +515,17 @@ function install(refs) {
      * tests assert the morph/proximity anchor tracks the real pill (it went
      * stale across window resizes when only a pill ResizeObserver fed it). */
     islandRect() { const r = getIslandRect(); return r ? { ...r } : null; },
+    islandHoverState() { return getIslandHoverState(); },
+    setIslandHoverOpen(on) { return setIslandHoverOpen(on); },
+    overlayShowCount() { return getOverlayShowCount(); },
+    resetOverlayShowCount() { resetOverlayShowCount(); },
+    setTestCursorPoint(point) { return setTestCursorPoint(point); },
+    sendChromeMouseInput(input) {
+      const wc = getChromeWebContents();
+      if (!wc || wc.isDestroyed()) return false;
+      wc.sendInputEvent(input);
+      return true;
+    },
     state() {
       const list = [];
       for (const [id, t] of tabs) {
@@ -3420,6 +3436,7 @@ function install(refs) {
       }
       getSleepSnapshots().clear();
       getPermissionPrompts().clear();
+      setTestCursorPoint(null);
       beforeUnloadProbes.clear();
       setSleepThresholdOverride(null);
       // No scenario inherits another's open surface.
@@ -3460,6 +3477,7 @@ function install(refs) {
         onePasswordEnabled: false,
         onePasswordAccount: '',
         tabSleep: '1h',
+        islandHoverOpen: false,
         // The launch-time auto-complete records false; F36-2 seeds true and
         // relies on Skip to overwrite it — a failure before Skip must not
         // leak that seed into later scenarios.
