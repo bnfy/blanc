@@ -171,7 +171,9 @@ build; that's the point). Served at `/sitemap.xml` (URL unchanged for Search
 Console).
 
 Releases don't deploy the site. After a release: `npm run site:changelog`,
-commit `releases.json`, update the Feature Roadmap, then `npm run site:deploy`.
+commit `releases.json`, update the Feature Roadmap, re-pin the Bangs page to
+the new tag (`npm run site:bangs -- --ref <tag> --release <tag>`), then
+`npm run site:deploy`.
 
 **Feature Roadmap (`/roadmap`):** `src/pages/roadmap.astro` renders the
 hand-edited `src/data/roadmap.json` (Now / Next / Later, no dates) plus a
@@ -183,6 +185,21 @@ re-check every remaining item against the release, and bump `updated`. The
 page must never list as planned something the changelog shows as shipped.
 Roadmap copy describes plans, so keep each item's qualifier (testing, paused,
 depends on…) and follow `docs/marketing-claims.md`.
+
+**Bangs page (`/bangs`):** `src/pages/bangs.astro` explains bangs, runs a
+try-it box and lists every bang. Its data never comes from main's working
+tree, which runs ahead of the public release: `scripts/build-bangs-data.mjs`
+reads the app's `src/renderer/pages/bangs-catalog.js` and `bangs.js` at one
+pinned git ref and writes `src/data/bangs.json` (the directory, with the bangs
+that search through Google or DuckDuckGo tagged), `src/scripts/bangs.js` (a
+byte copy of the app's matcher, which answers the try-it box) and
+`public/licenses/kagi-bangs-MIT.txt`. Never hand-edit those three;
+`npm run site:bangs:check` and `test/unit/site-bangs-data.test.js` guard them.
+Until a public release ships bangs, the data is pinned to the bangs merge
+commit with `release: null`, the page's copy is recorded in
+`docs/website-candidate-claims-bangs.json`, and the page must not deploy. The
+try-it box never navigates and sends nothing; only the page's own data file
+is fetched.
 
 **Slash-command lists:** the command palette page and its Support guide list
 commands through `src/lib/released-slash-commands.mjs`, never straight from
