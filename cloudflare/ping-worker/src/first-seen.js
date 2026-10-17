@@ -79,3 +79,30 @@ export async function markNextDayReturn(kv, hashedId, day, prevDay, bumpFn) {
   }));
   return true;
 }
+
+// Week-two return: of the installs first seen on day D, how many launch again
+// on any day from D+7 through D+13 (UTC), the week where a habit either forms
+// or doesn't. Counted once per install on its first launch in that window.
+// first:<id> already records D for every install since new-install counting
+// began, so cohorts before the deploy count as soon as their window is wholly
+// after it. The return:w2:<D> counter never expires (growth history); the
+// ret7: marker only needs to outlive the seven-day window, so it expires
+// after eight days. A backfilled month value never parses as a day.
+export const WEEK_TWO_RETURN_MARKER_TTL = 8 * 24 * 3600;
+const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+export function daysSince(firstDay, day) {
+  if (!DAY_RE.test(firstDay ?? '') || !DAY_RE.test(day ?? '')) return NaN;
+  return Math.round((Date.parse(`${day}T00:00:00Z`) - Date.parse(`${firstDay}T00:00:00Z`)) / 86400000);
+}
+
+export async function markWeekTwoReturn(kv, hashedId, day, bumpFn) {
+  const firstDay = await kv.get(`first:${hashedId}`);
+  const age = daysSince(firstDay, day);
+  if (!(age >= 7 && age <= 13)) return false;
+  const markerKey = `ret7:${firstDay}:${hashedId}`;
+  if ((await kv.get(markerKey)) !== null) return false;
+  await bumpFn(kv, `return:w2:${firstDay}`);
+  await kv.put(markerKey, '1', { expirationTtl: WEEK_TWO_RETURN_MARKER_TTL });
+  return true;
+}

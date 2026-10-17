@@ -7149,6 +7149,26 @@
     "message": "Créer votre premier Space",
     "source": "sha256:583985cb0e68a2239263fe8514fdcb31951707ada14a96ca9bc48b5ba5e47940"
   },
+  "newtab.checklist.default": {
+    "message": "Faire de Blanc votre navigateur par défaut",
+    "source": "sha256:9eaa1e0647ec0b136740c720baf1cf4be4fd90aea1d340002acc075dba515b0e"
+  },
+  "defaultBrowser.reminder.title": {
+    "message": "Utiliser Blanc comme navigateur par défaut ?",
+    "source": "sha256:4661c2d1b52d2ffddd6160004d0df77de69eb51ef4300ebe8bf310c4d05241a9"
+  },
+  "defaultBrowser.reminder.body": {
+    "message": "Les liens ouverts depuis vos e-mails, vos messageries et vos autres apps s’ouvriront dans Blanc. Vous pouvez changer cela à tout moment dans les Réglages.",
+    "source": "sha256:fec392aebf53480f6c0fcfd25fd32e10e5f8491bba3f40a6e2c8e717b07139c6"
+  },
+  "defaultBrowser.reminder.set": {
+    "message": "Définir par défaut",
+    "source": "sha256:16bdbae9501a21a2a057e0fb3e6e26396e10c0845b96e9563ab228361fd3c1e8"
+  },
+  "defaultBrowser.reminder.later": {
+    "message": "Pas maintenant",
+    "source": "sha256:35c26e295f15b25156f1ccfef5abebe3097e80794f4a1cd3307d37e3c0396eea"
+  },
   "ws.editor.retry": {
     "message": "Réessayer",
     "source": "sha256:ab2341248d6702836c2e7982bf70f75cdfb57d31f69323e993225bdc89d0ba31"

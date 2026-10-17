@@ -52,7 +52,7 @@ test('first-day signals start only after the launch report and require saved con
     main,
     /canSend: \(\) => app\.isPackaged\s*&& settings\.isFirstRunComplete\(\)\s*&& settings\.getSettings\(\)\.usagePing === true\s*&& launchPingSent/,
   );
-  assert.match(main, /defaultBrowserChanged: \(\) => dayOneSignals\.checkDefault\(\)/);
+  assert.match(main, /defaultBrowserChanged: \(\) => \{\s*noteDefaultBrowser\(\);\s*dayOneSignals\.checkDefault\(\);/);
   assert.match(main, /noteWebPageLoaded: \(url\) => dayOneSignals\.notePageLoaded\(url\)/);
 });
 

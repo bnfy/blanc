@@ -206,6 +206,8 @@ const migrationChecklistTitle = document.getElementById('migrationChecklistTitle
 const migrationChecklistCompact = document.getElementById('migrationChecklistCompact');
 const migrationChecklistLabel = document.getElementById('migrationChecklistLabel');
 const migrationChecklist = document.getElementById('migrationChecklist');
+const migrationDefaultTask = document.getElementById('migrationDefaultTask');
+const migrationDefaultAction = document.getElementById('migrationDefaultAction');
 const migrationSyncTask = document.getElementById('migrationSyncTask');
 const migrationTabsTask = document.getElementById('migrationTabsTask');
 const migrationSyncAction = document.getElementById('migrationSyncAction');
@@ -228,13 +230,17 @@ function setMigrationTask(task, action, complete, label) {
     : t('newtab.checklist.taskNotCompleted', { task: label }));
 }
 
-const MIGRATION_TASKS = 3; // keep in step with migration-checklist.js
+// Main decides how many tasks apply (the default-browser task only where
+// Blanc can ask the OS); the projection always carries that count.
+const migrationTaskCount = (checklist) => checklist?.taskCount ?? 3;
 function paintMigrationChecklist(checklist, { completing = false } = {}) {
   for (const el of document.querySelectorAll('.js-migration-progress')) {
-    el.textContent = `${checklist.completedCount}/${MIGRATION_TASKS}`;
+    el.textContent = `${checklist.completedCount}/${migrationTaskCount(checklist)}`;
   }
   migrationChecklistTitle.textContent = completing ? t('newtab.checklist.doneTitle') : t('newtab.checklist.title');
   migrationChecklistLabel.textContent = completing ? t('newtab.checklist.doneLabel') : t('newtab.checklist.label');
+  migrationDefaultTask.hidden = checklist.defaultAvailable !== true;
+  setMigrationTask(migrationDefaultTask, migrationDefaultAction, checklist.defaultComplete === true, t('newtab.checklist.default'));
   setMigrationTask(migrationSyncTask, migrationSyncAction, checklist.syncComplete, t('newtab.checklist.sync'));
   setMigrationTask(migrationTabsTask, migrationTabsAction, checklist.tabsComplete, t('newtab.checklist.tabs'));
   setMigrationTask(migrationSpaceTask, migrationSpaceAction, checklist.spaceComplete, t('newtab.checklist.space'));
@@ -280,8 +286,9 @@ function renderMigrationChecklist(checklist) {
     return;
   }
 
+  const total = migrationTaskCount(checklist);
   const justCompleted = previous?.visible === true &&
-    previous.completedCount < MIGRATION_TASKS && checklist.completedCount === MIGRATION_TASKS;
+    previous.completedCount < total && checklist.completedCount === total;
   if (justCompleted) {
     migrationChecklistPendingCompletion = checklist;
     paintMigrationChecklist(checklist, { completing: true });
@@ -294,7 +301,7 @@ function renderMigrationChecklist(checklist) {
   // Their completion push reaches this page while it is covered. Preserve the
   // pending confirmation across later status pushes and start its dwell only
   // after the start page itself becomes presentable again.
-  if (migrationChecklistPendingCompletion && checklist.completedCount === MIGRATION_TASKS) {
+  if (migrationChecklistPendingCompletion && checklist.completedCount === total) {
     presentPendingMigrationChecklistCompletion();
     return;
   }
@@ -316,6 +323,12 @@ function renderMigrationChecklist(checklist) {
 const closeMigrationChecklistPopover = () => {
   if (migrationChecklist.matches(':popover-open')) migrationChecklist.hidePopover();
 };
+// The OS answers the default-browser request (a macOS prompt, or Windows'
+// Default apps page); main notes the result when Blanc regains focus.
+migrationDefaultAction.addEventListener('click', () => {
+  closeMigrationChecklistPopover();
+  window.bowserPages?.start.setDefaultBrowser().catch(() => {});
+});
 migrationSyncAction.addEventListener('click', () => {
   closeMigrationChecklistPopover();
   window.bowserPages?.start.openSettings('sync').catch(() => {});

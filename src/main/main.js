@@ -140,7 +140,12 @@ const {
   productUsageAllowed,
 } = require('./telemetry');
 const { createDayOneSignals } = require('./day-one-signals');
-const { createDefaultBrowserStatus } = require('./default-browser-status');
+const {
+  canSetDefaultBrowser,
+  createDefaultBrowserStatus,
+  requestDefaultBrowser,
+} = require('./default-browser-status');
+const { shouldRemindDefaultBrowser, REMINDER_DELAY_MS } = require('./default-browser-reminder');
 const { execFileSync, spawn } = require('node:child_process');
 const diagnostics = require('./diagnostics');
 const sync = require('./sync');
@@ -213,6 +218,7 @@ const {
   migrationChecklistState,
   migrationChecklistForTab,
   spaceTaskIntroduction,
+  defaultTaskIntroduction,
 } = require('./migration-checklist');
 const { patronCalloutSnoozedUntil } = require('./patron-callout');
 const { whatsNewOnLaunch, whatsNewState } = require('./whats-new');
@@ -1585,6 +1591,71 @@ function releaseStartupNavigationGate(sessions, { blockerAttached }) {
 
 let launchPingSent = false;
 const defaultBrowserStatus = createDefaultBrowserStatus({ app, platform: process.platform, execFileSync });
+const defaultBrowserSettable = () => canSetDefaultBrowser({ app, platform: process.platform });
+// The moving-in checklist's "Make Blanc your default" completes the first
+// time Blanc is seen as the default and stays done if the user later
+// switches away, like the other tasks. Checked at launch, after a request,
+// and when Blanc regains focus (the OS prompt or Windows' Default apps page
+// answers after the request returns).
+function noteDefaultBrowser() {
+  if (settings.getSettings().defaultBrowserMigrationCompleted || !defaultBrowserSettable()) return false;
+  let isDefault = false;
+  try {
+    isDefault = defaultBrowserStatus().isDefault === true;
+  } catch {
+    isDefault = false;
+  }
+  if (isDefault) settings.setSettings({ defaultBrowserMigrationCompleted: true });
+  return isDefault;
+}
+const DEFAULT_BROWSER_FOCUS_CHECK_MS = 30 * 1000;
+let lastDefaultBrowserFocusCheck = 0;
+function noteDefaultBrowserOnFocus() {
+  // Only while the checklist could still show the task: on Windows the
+  // check reads the registry synchronously.
+  if (settings.getSettings().migrationChecklistDismissed || !settings.isFirstRunComplete()) return;
+  const now = Date.now();
+  if (now - lastDefaultBrowserFocusCheck < DEFAULT_BROWSER_FOCUS_CHECK_MS) return;
+  lastDefaultBrowserFocusCheck = now;
+  noteDefaultBrowser();
+}
+
+// The one later ask (default-browser-reminder.js), a native dialog on the
+// focused window once startup has settled. Marked shown before it opens, so
+// a crash or a second window can never ask twice.
+function scheduleDefaultBrowserReminder() {
+  setTimeout(() => {
+    const current = settings.getSettings();
+    if (!shouldRemindDefaultBrowser({
+      firstRunCompletedAt: current.firstRunCompletedAt,
+      now: Date.now(),
+      firstRunComplete: settings.isFirstRunComplete(),
+      reminderShown: current.defaultBrowserReminderShown,
+      canSet: defaultBrowserSettable(),
+      // Someone who made Blanc the default once and later switched away
+      // chose that; they are not asked again.
+      isDefault: () => current.defaultBrowserMigrationCompleted || noteDefaultBrowser(),
+    })) return;
+    const win = (focusedRuntime ?? primaryRuntime)?.window;
+    if (!win || win.isDestroyed()) return;
+    settings.setSettings({ defaultBrowserReminderShown: true });
+    const t = mainI18n.t;
+    dialog.showMessageBox(win, {
+      type: 'question',
+      message: t('defaultBrowser.reminder.title'),
+      detail: t('defaultBrowser.reminder.body'),
+      buttons: [t('defaultBrowser.reminder.set'), t('defaultBrowser.reminder.later')],
+      defaultId: 0,
+      cancelId: 1,
+      noLink: true,
+    }).then(({ response }) => {
+      if (response !== 0) return;
+      requestDefaultBrowser({ app, platform: process.platform, shell });
+      noteDefaultBrowser();
+      dayOneSignals.checkDefault();
+    }).catch(() => {});
+  }, REMINDER_DELAY_MS).unref?.();
+}
 // First-day retention signals (docs/superpowers/specs/2026-10-09-first-day-
 // retention-signals-design.md). Same consent rule as every other event, plus:
 // only after this process sent its launch report.
@@ -10093,6 +10164,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     firstRunComplete: settings.isFirstRunComplete(),
   });
   if (whatsNewPatch) settings.setSettings(whatsNewPatch);
+  // Introduce "Make Blanc your default" the same way, then note whether
+  // Blanc already is the default so the task starts done for those people.
+  const defaultTaskPatch = defaultTaskIntroduction(settings.getSettings());
+  if (defaultTaskPatch) settings.setSettings(defaultTaskPatch);
+  noteDefaultBrowser();
+  app.on('browser-window-focus', noteDefaultBrowserOnFocus);
   // Baseline for the settings fan-out's Match site colors re-projection.
   lastIslandSiteColors = settings.getSettings().islandSiteColors;
   lastDarkWebsitesKey = JSON.stringify([
@@ -10617,6 +10694,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         syncComplete: current.syncMigrationCompleted,
         tabsComplete: current.tabImportCompleted,
         spaceComplete: current.spaceMigrationCompleted,
+        defaultAvailable: defaultBrowserSettable(),
+        defaultComplete: current.defaultBrowserMigrationCompleted,
       }),
     };
   };
@@ -10650,7 +10729,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   const pagesRegistration = setupPages({
     stringsScript: () => mainI18n.stringsScript(),
     i18n: mainI18n,
-    defaultBrowserChanged: () => dayOneSignals.checkDefault(),
+    defaultBrowserChanged: () => {
+      noteDefaultBrowser();
+      dayOneSignals.checkDefault();
+    },
     blocking: {
       status: () => blockingProviders.status(rt().profileId),
       retry: () => blockingRecovery.retry(),
@@ -11767,6 +11849,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     tabHandoffsFlushable = true;
     withWindowRuntime(focusedRuntime, flushTabHandoffs);
     maybeSendLaunchPing();
+    scheduleDefaultBrowserReminder();
 
     // Patron subscription revalidation — off the critical path, after the
     // navigation gate is released and session restore is done. The model's

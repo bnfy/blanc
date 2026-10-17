@@ -2071,5 +2071,10 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="result_tag_space">Space</string>
     <string name="workspace_menu_edit">Editar…</string>
     <string name="newtab_checklist_space">Crie seu primeiro Space</string>
+    <string name="newtab_checklist_default">Torne o Blanc seu navegador padrão</string>
+    <string name="default_browser_reminder_title">Usar o Blanc como navegador padrão?</string>
+    <string name="default_browser_reminder_body">Os links que você abrir no e-mail, em chats e em outros apps vão abrir no Blanc. Você pode mudar isso quando quiser nas Configurações.</string>
+    <string name="default_browser_reminder_set">Definir como padrão</string>
+    <string name="default_browser_reminder_later">Agora não</string>
     <string name="ws_editor_retry">Tentar de novo</string>
 </resources>

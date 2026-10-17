@@ -12,7 +12,7 @@ const history = require('./history');
 const downloads = require('./downloads');
 const settings = require('./settings');
 const { runOnePasswordVerify } = require('./onepassword-verify-flow');
-const { createDefaultBrowserStatus } = require('./default-browser-status');
+const { createDefaultBrowserStatus, requestDefaultBrowser } = require('./default-browser-status');
 const patron = require('./patron');
 const sync = require('./sync');
 const { syncErrorText } = require('./sync-messages');
@@ -634,21 +634,7 @@ function setupPages(hooks = {}) {
   // canSet guard is identical for both senders.
   handle('pages:default-browser:get', ['settings', 'newtab'], () => defaultBrowserStatus());
   handle('pages:default-browser:set', ['settings', 'newtab'], () => {
-    if (defaultBrowserStatus().canSet) {
-      if (process.platform === 'win32') {
-        // Windows 10+ ignores a programmatic http/https handler change: the
-        // user must pick the browser in Settings > Default apps, where Blanc
-        // is listed by the installer's StartMenuInternet registration
-        // (build/installer.nsh). Hand off to that page instead of writing a
-        // protocol handler that would only fool isDefaultProtocolClient.
-        shell.openExternal('ms-settings:defaultapps').catch(() => {});
-      } else {
-        // macOS raises its "change your default web browser?" prompt PER
-        // CALL, and answering it assigns the browser role — http and https
-        // together — so one call is the whole request.
-        app.setAsDefaultProtocolClient('http');
-      }
-    }
+    requestDefaultBrowser({ app, platform: process.platform, shell });
     hooks.defaultBrowserChanged?.();
     return defaultBrowserStatus();
   });

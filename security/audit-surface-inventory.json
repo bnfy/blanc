@@ -43,13 +43,13 @@
     },
     {
       "file": "cloudflare/ping-worker/src/first-seen.js",
-      "sha256": "a7219e23dbd4a53e8251d2d5c2208741827988e172d40a211de8b3f6da87e579",
+      "sha256": "29ad31e189ab3bb5b31fb222792311fd1428dee414ac98cd00342d577854cbc9",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
     {
       "file": "cloudflare/ping-worker/src/index.js",
-      "sha256": "8bc10924aa118e7f4547df1d1b6b9802efd8d74a962bcb2b7fb6a83217685f14",
+      "sha256": "32911eff9c02caa73bfe2439ae53e63afab51e9875f23d8ad393f7ddae497bc6",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -226,7 +226,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "6614d1573987c64b479daf3c13d31ebd5365f1c995e3aee9db795cadac15cc3e",
+      "sha256": "51482916921dd14cfe34b6028857e64699ed3b6c145c280074733ad27c43b8c5",
       "literalChannels": [
         "activate",
         "bangs:changed",
@@ -433,7 +433,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "62ffafe45bc344318e7a5972334750348e804e4e68d7d6772dc9d1cba1ed51fa",
+      "sha256": "3ed16cab3472b48fcb7b4dd0e2e9f5dc44b8983867a486d72861f7daec436765",
       "literalChannels": [
         "blanc",
         "pages:app-version",
