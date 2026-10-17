@@ -1,0 +1,34 @@
+{
+  "kind": "chromium-no-blocker-negative-control",
+  "started": "2026-10-17T19:06:10.317Z",
+  "passed": false,
+  "nativeBlockerInstalled": false,
+  "acceptance": false,
+  "oraclePath": "blanc-f12-expanded-05",
+  "bundleSha256": "527430a60cd4c699466a80d85f1e0699d0e4011a7bff075cf9efc1d7350a8c48",
+  "sourceHashes": {
+    "chromium-baseline.mjs": "25749da9ca879b099039a7a81fdabfa5d6c44f4ec56b6d0f436a7f6fcaf0ea45",
+    "comparison.mjs": "c960d0ebb8de584d3f9723c891b3178eb4cc1adc30ad754640d8ec15eb1859ee",
+    "transport.mjs": "89c5bcf6cfe992d53a65dac6c0b80a8eaecdcb4d907fb868e38a54a2d701b141",
+    "certificate-set.mjs": "02aac7229046d1a324c218904afc6513cb64d3c5f9d1b85be4a56ee041acbf14"
+  },
+  "runs": [],
+  "cleanup": {
+    "disposableTreeRemoved": true
+  },
+  "nativeBuilds": 0,
+  "trust": {
+    "mechanism": "ephemeral leaf SPKI list plus exact CONNECT/SNI/Host/URL allowlist",
+    "systemTrustChanged": false,
+    "leafFingerprints": [
+      "54:26:C2:DC:4F:06:35:1E:35:76:42:7D:24:F9:3B:A8:BE:D6:76:3E:4C:55:E1:B8:45:01:10:26:4B:DD:23:39"
+    ]
+  },
+  "gaps": [
+    "Native Mojo engine and browser request hook absent",
+    "CDP does not expose request_initiator; no substituted frame origin",
+    "Native hook timing and startup/crash holds unmeasured"
+  ],
+  "error": "[\"incomplete-or-faulted-negative-control\"]",
+  "finished": "2026-10-17T19:06:11.774Z"
+}

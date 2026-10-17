@@ -1,0 +1,86 @@
+{
+  "kind": "chromium-no-blocker-negative-control",
+  "started": "2026-10-17T19:07:35.586Z",
+  "passed": true,
+  "nativeBlockerInstalled": false,
+  "acceptance": false,
+  "oraclePath": "blanc-f12-expanded-05",
+  "bundleSha256": "527430a60cd4c699466a80d85f1e0699d0e4011a7bff075cf9efc1d7350a8c48",
+  "sourceHashes": {
+    "chromium-baseline.mjs": "f26d9eb6317239b57026bff16932ad281a39a511aac2d18124d2b06188a36b2f",
+    "comparison.mjs": "c960d0ebb8de584d3f9723c891b3178eb4cc1adc30ad754640d8ec15eb1859ee",
+    "transport.mjs": "f380dd4931ee609247b6068c977f2c3f67778b7296122d636338e6213e91e44e",
+    "certificate-set.mjs": "02aac7229046d1a324c218904afc6513cb64d3c5f9d1b85be4a56ee041acbf14"
+  },
+  "runs": [
+    {
+      "kind": "regular",
+      "letter": "a",
+      "runId": "9d5eb12e-eefb-407d-80a9-9f08f189e4c3",
+      "counts": {
+        "candidates": 24,
+        "electronBlockedChromiumLoaded": 9,
+        "bothLoaded": 15,
+        "coverageControls": 4,
+        "forkOnlyChildren": 2
+      },
+      "acceptance": false
+    },
+    {
+      "kind": "regular",
+      "letter": "b",
+      "runId": "718af16c-09a6-4260-b1c6-d7504c7e6433",
+      "counts": {
+        "candidates": 24,
+        "electronBlockedChromiumLoaded": 9,
+        "bothLoaded": 15,
+        "coverageControls": 4,
+        "forkOnlyChildren": 2
+      },
+      "acceptance": false
+    },
+    {
+      "kind": "private",
+      "letter": "a",
+      "runId": "32f22984-e32b-41cc-b835-e9d4c856454f",
+      "counts": {
+        "candidates": 24,
+        "electronBlockedChromiumLoaded": 9,
+        "bothLoaded": 15,
+        "coverageControls": 4,
+        "forkOnlyChildren": 2
+      },
+      "acceptance": false
+    },
+    {
+      "kind": "private",
+      "letter": "b",
+      "runId": "37085f04-11b5-4519-8f6b-e8c8561fb63e",
+      "counts": {
+        "candidates": 24,
+        "electronBlockedChromiumLoaded": 9,
+        "bothLoaded": 15,
+        "coverageControls": 4,
+        "forkOnlyChildren": 2
+      },
+      "acceptance": false
+    }
+  ],
+  "cleanup": {
+    "disposableTreeRemoved": true
+  },
+  "nativeBuilds": 0,
+  "trust": {
+    "mechanism": "ephemeral leaf SPKI list plus exact CONNECT/SNI/Host/URL allowlist",
+    "systemTrustChanged": false,
+    "leafFingerprints": [
+      "5C:E5:C6:95:B1:38:20:B7:EF:29:A1:3D:BE:94:A1:53:A4:4C:A6:75:9D:04:A8:64:E9:41:D7:81:15:97:1F:4B"
+    ]
+  },
+  "gaps": [
+    "Native Mojo engine and browser request hook absent",
+    "CDP does not expose request_initiator; no substituted frame origin",
+    "Native hook timing and startup/crash holds unmeasured"
+  ],
+  "finished": "2026-10-17T19:07:43.143Z"
+}

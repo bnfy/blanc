@@ -289,3 +289,46 @@ cleanup checks pass. Controlled run-06 passes both profile replay pairs and
 matches final source hashes. 16 pipeline + 7 network + 15 validator tests pass;
 lint clean. No native build/prepare/GN or cold-column change. Active attention
 not measured; invocation, runtime brackets and source hashes are in evidence.
+
+### Approved synthetic corpus checkpoint — October 17, 2026
+
+Owner approved the corpus amendment at `68892cc1`, recorded at `4abb4509`.
+The explicit matrix was committed before capture (`cf3f0abe`). Generation
+produces 5,905 candidate URLs, not oracle decisions. Final 24-case resource
+probe passed two fresh regular and two fresh private offline Electron replays:
+8 blocked / 16 allowed candidate URLs, with authored script descendants and
+saved DOM outcomes. Two failed fixture attempts are retained, followed by
+three passing attempts of progressively broader evidence. See
+[evidence/f12-synthetic-20261017/README.md](evidence/f12-synthetic-20261017/README.md).
+No native build, private real-page acquisition, deadline extension or baseline
+promotion. Full threshold/matrix and native fork comparison remain pending.
+Runtime start/end timestamps are in each report. Agent/owner attention was not
+measured and is not inferred from calendar time. These harness operations do
+not alter row 0's cold-build column.
+
+### Expanded synthetic oracle and Chromium control — October 17, 2026
+
+[Committed evidence](evidence/f12-expanded-20261017/README.md): 5,123 eligible
+list-derived URLs ran twice in fresh regular and private Electron profiles.
+Each profile observed 2,503 blocked / 2,620 allowed unique candidates, excluding
+four first-party controls, child requests and repeats. Another 782 domain-scoped
+candidates remain excluded. The 24-case no-referrer subset is stable at 9/15;
+the unchanged initiator and changed referrer produce a real exception difference.
+The matching Ghostery Electron artifact uses referrer as Request.sourceUrl.
+
+Chromium 157 ran the same complete authored bytes twice per profile as an
+explicit **no-blocker negative control**: all 5,123 candidates loaded, including
+2,503 Electron-blocked ones, and 1,211 additional script children executed and
+loaded each time. This validates observable false negatives/descendants in the
+harness, not native blocking parity or criterion-3 acceptance. Native engine,
+interception and independent request_initiator observations are still absent.
+No frame/referrer substitution is used; fully admitted paired URLs remain zero.
+
+All attempts, including certificate and fixture-completion failures, are kept
+losslessly with hashes. Scoped ephemeral leaf-key trust passes pinned/unpinned
+browser controls; system trust remains unchanged. 48 replay tests and 15 paired
+validator tests pass; targeted lint and whitespace checks pass. No native build,
+prepare/GN invocation, upstream edit, private real-page capture, baseline
+promotion or deadline extension. Native budget not remeasured; row 0's cold
+column unchanged. Runtime brackets include harness overhead; owner/agent active
+attention is not measured. See summary for the remaining coverage matrix gaps.

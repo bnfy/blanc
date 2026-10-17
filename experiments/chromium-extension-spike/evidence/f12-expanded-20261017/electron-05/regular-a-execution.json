@@ -1,0 +1,411 @@
+{
+  "execution": {
+    "executed": [
+      "case-kiaipddgomehpejk",
+      "case-kkgddpifilomlfle",
+      "case-jgnklpcnfhnpkjmh",
+      "case-dhmobacdhgjbnmbm",
+      "context-script"
+    ],
+    "children": [
+      "case-kiaipddgomehpejk",
+      "case-kkgddpifilomlfle",
+      "case-jgnklpcnfhnpkjmh",
+      "case-dhmobacdhgjbnmbm",
+      "context-script"
+    ],
+    "loads": [
+      {
+        "id": "case-cigeialdmedaodlf",
+        "event": "error"
+      },
+      {
+        "id": "case-oonlhkiiohimnfln",
+        "event": "error"
+      },
+      {
+        "id": "case-bcbleakoohnafnnk",
+        "event": "error"
+      },
+      {
+        "id": "case-kfcchjbkgcomiamc",
+        "event": "error"
+      },
+      {
+        "id": "case-kiaipddgomehpejk",
+        "event": "load"
+      },
+      {
+        "id": "case-nloocppdahlambdf",
+        "event": "error"
+      },
+      {
+        "id": "case-hppckcgecbimhlmc",
+        "event": "error"
+      },
+      {
+        "id": "case-kkgddpifilomlfle",
+        "event": "load"
+      },
+      {
+        "id": "case-jgnklpcnfhnpkjmh",
+        "event": "load"
+      },
+      {
+        "id": "case-gpfopokkpackdfgl",
+        "event": "load"
+      },
+      {
+        "id": "case-aahcghbnedgofbfa",
+        "event": "error"
+      },
+      {
+        "id": "case-dehdhgbgioekanea",
+        "event": "error"
+      },
+      {
+        "id": "case-kfmihkegnkmmlicd",
+        "event": "error"
+      },
+      {
+        "id": "case-dhmobacdhgjbnmbm",
+        "event": "load"
+      },
+      {
+        "id": "case-iffejhfckkpdlknk",
+        "event": "load"
+      },
+      {
+        "id": "case-jhpankimkclbhklm",
+        "event": "load"
+      },
+      {
+        "id": "case-ejiimdjlmgpmckim",
+        "event": "load"
+      },
+      {
+        "id": "case-pkfkgbhhoagoemac",
+        "event": "load"
+      },
+      {
+        "id": "case-pdkmldfhnmcgcghp",
+        "event": "load"
+      },
+      {
+        "id": "case-kebagjmhchoeahie",
+        "event": "load"
+      },
+      {
+        "id": "case-fefppaigganpdiak",
+        "event": "load"
+      },
+      {
+        "id": "case-fojninndocoijmlj",
+        "event": "load"
+      },
+      {
+        "id": "case-gfjnjepagaclpiok",
+        "event": "load"
+      },
+      {
+        "id": "case-fclbhmeefdmfchmb",
+        "event": "load"
+      },
+      {
+        "id": "context-stylesheet",
+        "event": "load"
+      },
+      {
+        "id": "context-script",
+        "event": "load"
+      },
+      {
+        "id": "context-xhr",
+        "event": "load"
+      },
+      {
+        "id": "context-image",
+        "event": "load"
+      }
+    ]
+  },
+  "browserFailures": [],
+  "connectionErrors": [],
+  "arrivals": [
+    {
+      "url": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "sha256": "1804c6d83e2043f86542b306cf9eb59636a719c6a12b436a4d7543c79362bd74",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://accuweather.com/bundles/prebid.",
+      "sha256": "4485d4dabccdb7b7929d43bfa6c6d2bf14eead12fb7415fc9eb656a811e3148a",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://00e2120672.com.blanc-control.test/blanc-fixture/resource.js",
+      "sha256": "8877615851a765f6a2a35ec55f6080fcb564a683c08d009e7a02ffdf2ddd7e82",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://015ea24446.com.blanc-control.test/blanc-fixture/resource.js",
+      "sha256": "b3f34236db4279308c84a7122b402806f831a92dc451e575b613dfee46281e31",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://00609c257b.com.blanc-control.test/blanc-fixture/resource.js",
+      "sha256": "0ef571d82881a2367c37eaec11ab63e3e22dd00868954be68cc4aec6469171a9",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://adap.tv/redir/javascript/vpaid.js",
+      "sha256": "f2f1ed3a5c63d196523d9bf88899b131497230d7d90734a44aa7656d74123a79",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://00a39e6dfd.com.blanc-control.test/blanc-fixture/resource.js",
+      "sha256": "0ef571d82881a2367c37eaec11ab63e3e22dd00868954be68cc4aec6469171a9",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://basinnow.com/admin/upload/settings/advertise-img.jpg",
+      "sha256": "0ef571d82881a2367c37eaec11ab63e3e22dd00868954be68cc4aec6469171a9",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://go.xlirdr.com/api/models/vast",
+      "sha256": "0ef571d82881a2367c37eaec11ab63e3e22dd00868954be68cc4aec6469171a9",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://page.blanc-fixture.test/blanc-fixture/child/case-kiaipddgomehpejk.json",
+      "sha256": "f56432bd8bdaa4334f38c831e6c8ab1f1cbbf7b9b1286aaeec7c566610d1e382",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://00427011ae.com.blanc-control.test/blanc-fixture/resource.js",
+      "sha256": "6411f729e80626774fd61d87622a57abcfb740b5af32840b1128b5c6c9cbc8cb",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://page.blanc-fixture.test/blanc-fixture/child/case-kkgddpifilomlfle.json",
+      "sha256": "f56432bd8bdaa4334f38c831e6c8ab1f1cbbf7b9b1286aaeec7c566610d1e382",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://page.blanc-fixture.test/blanc-fixture/child/case-jgnklpcnfhnpkjmh.json",
+      "sha256": "f56432bd8bdaa4334f38c831e6c8ab1f1cbbf7b9b1286aaeec7c566610d1e382",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://02228640b9.com.blanc-control.test/blanc-fixture/resource.js",
+      "sha256": "6411f729e80626774fd61d87622a57abcfb740b5af32840b1128b5c6c9cbc8cb",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://000491b06a.com.blanc-control.test/blanc-fixture/resource.js",
+      "sha256": "6564dd53a7b6159776176b899fd28a7d80cc7421d1509ae92d6deea1cec15a26",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://airplaydirect.com/openx/www/images/",
+      "sha256": "6411f729e80626774fd61d87622a57abcfb740b5af32840b1128b5c6c9cbc8cb",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://page.blanc-fixture.test/blanc-fixture/child/case-dhmobacdhgjbnmbm.json",
+      "sha256": "f56432bd8bdaa4334f38c831e6c8ab1f1cbbf7b9b1286aaeec7c566610d1e382",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://0019x.com.blanc-control.test/blanc-fixture/resource.js",
+      "sha256": "6564dd53a7b6159776176b899fd28a7d80cc7421d1509ae92d6deea1cec15a26",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://aone-soft.com/style/images/ad2.jpg",
+      "sha256": "6564dd53a7b6159776176b899fd28a7d80cc7421d1509ae92d6deea1cec15a26",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://banmancounselling.com/wp-content/themes/banman/",
+      "sha256": "6564dd53a7b6159776176b899fd28a7d80cc7421d1509ae92d6deea1cec15a26",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://page.blanc-fixture.test/blanc-fixture/context/stylesheet",
+      "sha256": "6564dd53a7b6159776176b899fd28a7d80cc7421d1509ae92d6deea1cec15a26",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://page.blanc-fixture.test/blanc-fixture/context/script",
+      "sha256": "d549791a9b50674d5639300496836d81d1b21730cb358aaf40f8c92536314c19",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://page.blanc-fixture.test/blanc-fixture/context/xhr",
+      "sha256": "0ef571d82881a2367c37eaec11ab63e3e22dd00868954be68cc4aec6469171a9",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://page.blanc-fixture.test/blanc-fixture/context/image",
+      "sha256": "6411f729e80626774fd61d87622a57abcfb740b5af32840b1128b5c6c9cbc8cb",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://page.blanc-fixture.test/blanc-fixture/context/script-child",
+      "sha256": "d14250b0befb2ecefcdf3607812638bfd53ec2a3234a09254f23abf7f45da096",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    }
+  ]
+}

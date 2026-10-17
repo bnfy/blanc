@@ -6,10 +6,30 @@ acceptance-corpus requests: **0**. The pilot has measured Electron observations;
 no full request-path coverage, fork block-rate, cosmetic or latency pass is claimed.
 The validator's success is necessary but insufficient for Spike A acceptance.
 
-## Capture and replay requirements
+## Approved synthetic acceptance track
 
-Capture at least 2,000 blocked and 2,000 allowed requests from real Electron
-Blanc page loads, with the blocker's actual decisions as the oracle. Mock unit
+The owner approved `tranche2-request.md` §2.1 at `68892cc1` (recorded in
+§8.1). Acceptance provenance now comes from rule-derived authored pages and
+two stable offline Electron replays, with independent context observations;
+see [synthetic/README.md](synthetic/README.md) and its committed coverage matrix.
+Rule predictions and generated counts are not oracle decisions. The 2,000
+blocked / 2,000 allowed floor counts distinct URLs, excluding repeated runs.
+Every candidate, including blocked ones, has authored response bytes; these
+are explicitly not recordings of the original site. Full acceptance remains
+pending, including the native fork adapter and uncovered request classes.
+
+Option C iterations are stopped. A separate bounded private real-browser
+sample is authorized under §2.1 B, but is not implemented here and never
+contributes to acceptance thresholds. Its raw data must remain local under
+`~/Library/Caches/me.bnfy.blanc-f12-private-sanity/` with the specified expiry
+and permissions. Public recording scrub rules below are unchanged; private
+sample policy must be implemented separately, not by weakening those rules.
+
+## Historical public recording track and unchanged persistence gates
+
+The original real-page acceptance definition below is superseded by §2.1
+for the synthetic track. It is retained as the public recorder design record,
+not a requirement to restart option C. Actual offline decisions remain the oracle. Mock unit
 fixtures are URL seeds only. Record the exact Electron build/source, engine and
 EasyList/EasyPrivacy hashes, capture timestamps, disposable-profile configuration,
 page entrypoints, response payload hashes and capture instrumentation. Do not use
