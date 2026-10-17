@@ -132,6 +132,10 @@
     "message": "Open the Glance picker, filtered to the text",
     "note": "The Shortcuts page's description of /glance <text>: the text becomes the picker's filter."
   },
+  "slash.invite.hint": {
+    "message": "Email a friend a link to download Blanc",
+    "note": "Slash command hint shown in the ⌘L palette for /invite. Opens a new email in the person’s own mail app, ready to address to a friend."
+  },
   "settings.language.label": {
     "message": "Language",
     "note": "Settings → General row label and the language menu's accessible name.",
@@ -1400,6 +1404,10 @@
   "slash.sleep.failed": {
     "message": "Could not quiet background tabs.",
     "note": "Notice when /sleep fails."
+  },
+  "slash.invite.copied": {
+    "message": "Your mail app didn’t open, so the invite was copied. Paste it into a message.",
+    "note": "Notice in the ⌘L palette after /invite when no mail app could open the email; the invite text is now on the clipboard."
   },
   "closed.header": {
     "message": "recently closed",
@@ -2679,6 +2687,27 @@
   "menu.showAllShortcuts": {
     "message": "Show All Shortcuts…",
     "note": "Help menu item that opens the shortcuts page."
+  },
+  "menu.inviteFriend": {
+    "message": "Invite a Friend…",
+    "note": "Help menu item that opens a new email inviting a friend to try Blanc, in the person’s own mail app.",
+    "maxLength": 32
+  },
+  "invite.email.subject": {
+    "message": "Try Blanc, the browser I use",
+    "note": "Subject of the invite email the person sends a friend from their own mail app (Help → Invite a Friend…, /invite). Written in the person’s voice."
+  },
+  "invite.email.greeting": {
+    "message": "Hi,",
+    "note": "First line of the invite email the person sends a friend. Written in the person’s voice."
+  },
+  "invite.email.pitch": {
+    "message": "I’ve been using Blanc, a free and open-source web browser for Mac, Windows and Linux. It blocks known ads and trackers by default, with nothing extra to install.",
+    "note": "Middle paragraph of the invite email the person sends a friend, in the person’s voice. Every claim must stay true of the current release: keep “known” and “by default”."
+  },
+  "invite.email.link": {
+    "message": "You can download it here: {url}",
+    "note": "Last line of the invite email. {url} is the blanc.day download link."
   },
   "shortcuts.island": {
     "message": "Island",

@@ -170,6 +170,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   toggleDarkSiteOnActiveSite: () => ipcRenderer.invoke('chrome:dark-site-active'),
   siteInfoForgetCertificateException: () => ipcRenderer.invoke('chrome:site-info-forget-certificate-exception'),
   sleepBackgroundTabs: () => ipcRenderer.invoke('chrome:sleep-background-tabs'),
+  inviteFriend: () => ipcRenderer.invoke('chrome:invite-friend'),
   ...(ONE_PASSWORD_AVAILABLE ? {
     fillLoginFromOnePassword: () => ipcRenderer.invoke('chrome:onepassword-fill'),
   } : {}),

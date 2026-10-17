@@ -38,6 +38,9 @@ export type TabLayout = 'island' | 'vertical';
 /** Appearance preference. */
 export type ThemePreference = 'system' | 'light' | 'dark';
 
+/** How an invite left Blanc: opened in the person's mail app, or copied to the clipboard because no mail app opened. */
+export type InviteFriendResult = 'mail' | 'copied';
+
 /** Options for a new tab. Only `private` is read by main today. */
 export type CreateTabOptions = { private?: boolean };
 
@@ -1146,6 +1149,11 @@ export interface BlancBrowserAPI {
    * IPC: invoke `chrome:sleep-background-tabs`.
    */
   sleepBackgroundTabs(): Promise<TabId[]>;
+  /**
+   * Open a prefilled invite email in the person's own mail app (/invite). Blanc sends nothing; without a mail app the invite is copied instead.
+   * IPC: invoke `chrome:invite-friend`.
+   */
+  inviteFriend(): Promise<InviteFriendResult>;
   /**
    * Fill a login from 1Password (explicit invoke only). Resolves to false when the broker is unavailable.
    * IPC: invoke `chrome:onepassword-fill`.
