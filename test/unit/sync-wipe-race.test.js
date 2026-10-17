@@ -3,6 +3,7 @@ const test = require('node:test');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { trackJsonStores } = require('./support/track-json-stores');
 
 // Regression pin for PR #41 (P1, re-review): a dispatched PUT cannot be
 // recalled, and a stale check after its response cannot undo the server
@@ -33,8 +34,14 @@ require.cache[electronId] = {
   },
 };
 
+const jsonStores = trackJsonStores();
 const sync = require('../../src/main/sync');
 sync.setTabStateReady(true);
+
+test.after(async () => {
+  await jsonStores.settle();
+  fs.rmSync(tmp, { recursive: true, force: true });
+});
 
 test('a successful wipe cannot be undone by an already-dispatched PUT', async () => {
   // Fake worker: blobs apply in settlement order, like the real network.

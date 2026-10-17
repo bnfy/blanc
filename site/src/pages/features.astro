@@ -11,6 +11,7 @@ import TabDragFigure from '../components/TabDragFigure.astro';
 import QuietDemo from '../components/bento/demos/QuietDemo.astro';
 import ReopenDemo from '../components/bento/demos/ReopenDemo.astro';
 import PrivateDemo from '../components/bento/demos/PrivateDemo.astro';
+import BangsDemo from '../components/bento/demos/BangsDemo.astro';
 import '../styles/features-bento.css';
 ---
 <BaseLayout
@@ -44,11 +45,11 @@ import '../styles/features-bento.css';
     <h2 class="bento-sr" id="bento-title">Blanc’s main features.</h2>
     <div class="bento-board">
       <BentoTile id="glance" href="/features/glance" feature="glance" area="L1">
-        <img slot="visual" class="bento-img bento-img--contain" src="/feature-hub/glance.webp" width="1440" height="900" alt="" />
+        <img slot="visual" class="bento-img bento-img--contain" src="/feature-captures/glance-v1.35.0.webp" width="1440" height="900" alt="" />
         <h3>View two tabs side by side with Glance</h3>
       </BentoTile>
       <BentoTile id="island" href="/features/island" feature="island" area="C1" tone="photo">
-        <img slot="visual" class="bento-img bento-img--cover bento-pos-island" src="/revamp/island-roman-rest-800.webp" width="800" height="571" alt="" />
+        <img slot="visual" class="bento-img bento-img--cover bento-pos-island" src="/revamp/island-smithsonian-rest-v1.35.0-800.webp" width="800" height="571" alt="" />
         <h3 class="bento-title">The Island</h3>
         <p>Tabs, search and page controls in one bar</p>
       </BentoTile>
@@ -64,10 +65,10 @@ import '../styles/features-bento.css';
       </BentoTile>
       <BentoTile id="wallpaper" href="/features/start-page" feature="time-of-day-wallpaper" area="R2" tone="daylight">
         <div slot="visual" class="bento-dayparts">
-          <img class="bento-img bento-img--cover bento-pos-clock bento-daypart bento-daypart--dawn" src="/feature-captures/home-wallpaper-dawn-v1.31.0.webp" width="1440" height="900" alt="" />
-          <img class="bento-img bento-img--cover bento-pos-clock bento-daypart bento-daypart--day" src="/feature-captures/home-wallpaper-day-v1.31.0.webp" width="1440" height="900" alt="" loading="lazy" />
-          <img class="bento-img bento-img--cover bento-pos-clock bento-daypart bento-daypart--dusk" src="/feature-captures/home-wallpaper-dusk-v1.31.0.webp" width="1440" height="900" alt="" loading="lazy" />
-          <img class="bento-img bento-img--cover bento-pos-clock bento-daypart bento-daypart--night" src="/feature-captures/home-wallpaper-night-v1.31.0.webp" width="1440" height="900" alt="" loading="lazy" />
+          <img class="bento-img bento-img--cover bento-pos-clock bento-daypart bento-daypart--dawn" src="/feature-captures/home-wallpaper-dawn-v1.35.0.webp" width="1440" height="900" alt="" />
+          <img class="bento-img bento-img--cover bento-pos-clock bento-daypart bento-daypart--day" src="/feature-captures/home-wallpaper-day-v1.35.0.webp" width="1440" height="900" alt="" loading="lazy" />
+          <img class="bento-img bento-img--cover bento-pos-clock bento-daypart bento-daypart--dusk" src="/feature-captures/home-wallpaper-dusk-v1.35.0.webp" width="1440" height="900" alt="" loading="lazy" />
+          <img class="bento-img bento-img--cover bento-pos-clock bento-daypart bento-daypart--night" src="/feature-captures/home-wallpaper-night-v1.35.0.webp" width="1440" height="900" alt="" loading="lazy" />
         </div>
         <h3>A Start Page that follows the time of day</h3>
       </BentoTile>
@@ -76,24 +77,20 @@ import '../styles/features-bento.css';
         <h3>Ads and trackers blocked by default</h3>
       </BentoTile>
       <BentoTile id="mahjong" href="/features/start-page" feature="mahjong" area="L3" tone="felt" label="top">
-        <img slot="visual" class="bento-img bento-img--cover bento-pos-mahjong" src="/feature-captures/mahjong-v1.21.0.webp" width="1440" height="900" alt="" loading="lazy" />
+        <img slot="visual" class="bento-img bento-img--cover bento-pos-mahjong" src="/feature-captures/mahjong-v1.35.0.webp" width="1440" height="900" alt="" loading="lazy" />
         <h3>Take a break to play Mahjong</h3>
       </BentoTile>
       <BentoTile id="blanc" href="/download" feature="blanc" area="C2" tone="hero" label="center">
         <img slot="visual" class="bento-img bento-img--cover bento-pos-sunrise" src="/feature-hub/sunrise-hero.webp" width="1600" height="1001" alt="" />
         <img class="bento-mark" src="/demo-assets/sunrise-mark.png" width="680" height="680" alt="Blanc" />
       </BentoTile>
-      <BentoTile id="reopen-closed-tabs" href="/features/reopen-closed-tabs" feature="reopen-closed-tabs" area="R3">
-        <div slot="visual" class="ui ui-panel ui-panel--narrow">
-          <div class="ui-sec">this window · 3 tabs</div>
-          <div class="ui-row"><span class="ui-fav ui-fav--a">W</span><span class="ui-t">Typography — Wikipedia</span></div>
-          <div class="ui-row ui-extra"><span class="ui-fav ui-fav--e">V</span><span class="ui-t">Visit Copenhagen — Guide</span></div>
-          <div class="ui-row ui-extra"><span class="ui-fav ui-fav--c">F</span><span class="ui-t">Flight search</span></div>
-          <div class="ui-sec">⌄ recently closed 2</div>
-          <div class="ui-row is-on"><span class="ui-fav ui-fav--b">T</span><span class="ui-t">The New York Times</span><span class="ui-m">just now</span></div>
-          <div class="ui-row"><span>▸</span><span class="ui-t">research · 4 tabs</span><span class="ui-m">2 min</span></div>
+      <BentoTile id="bangs" href="/bangs" feature="bangs" area="R3">
+        <div slot="visual" class="ui ui-panel ui-panel--narrow ui-bangs">
+          <div class="ui-bang-step ui-bang-step--1"><div class="ui-bang-in">!yt lofi</div><div class="ui-row is-on"><span class="ui-bang-code">!yt</span><span class="ui-t">Search YouTube for “lofi”</span><span class="ui-m">↵</span></div></div>
+          <div class="ui-bang-step ui-bang-step--2"><div class="ui-bang-in">!w golden retriever</div><div class="ui-row is-on"><span class="ui-bang-code">!wikipedia</span><span class="ui-t">Search Wikipedia for “golden retriever”</span><span class="ui-m">↵</span></div></div>
+          <div class="ui-bang-step ui-bang-step--3"><div class="ui-bang-in">usb cable !a</div><div class="ui-row is-on"><span class="ui-bang-code">!a</span><span class="ui-t">Search Amazon.com for “usb cable”</span><span class="ui-m">↵</span></div></div>
         </div>
-        <h3>Reopen closed tabs, even whole groups</h3>
+        <h3>Bangs: search any site from the address bar</h3>
       </BentoTile>
       <BentoTile id="private-tabs" href="/features/private-tabs" feature="private-tabs" area="L4" tone="ink" label="top">
         <div slot="visual" class="ui ui-private"><span class="ui-private-pill">nytimes.com <span class="ui-private-chip">private ×</span></span><span class="ui-private-note">History stays untouched</span></div>
@@ -131,22 +128,24 @@ import '../styles/features-bento.css';
         <BentoSmall id="sync" href="/features/sync" feature="sync" icon="lock"><h3>Encrypted sync across devices</h3></BentoSmall>
         <BentoSmall id="vertical-tabs" href="/features/vertical-tabs" feature="vertical-tabs" icon="rail"><h3>Optional vertical tab rail</h3></BentoSmall>
         <BentoSmall id="mouse-gestures" href="/features/mouse-gestures" feature="mouse-gestures" icon="gesture"><h3>Mouse gestures</h3></BentoSmall>
-        <BentoSmall id="1password" href="/features/1password" feature="1password" icon="key"><h3>1Password fill on Mac</h3></BentoSmall>
+        <BentoSmall id="1password" href="/features/1password" feature="1password" icon="key"><h3>1Password fill</h3></BentoSmall>
         <BentoSmall id="ublock-origin" href="/features/ad-blocking" feature="ublock-origin" icon="shield"><h3>Full uBlock Origin, optional</h3></BentoSmall>
         <BentoSmall id="dark-websites" href="/features/ad-blocking" feature="dark-websites" icon="moon"><h3>Dark websites</h3></BentoSmall>
         <BentoSmall id="passkeys" href="/features/security" feature="passkeys" icon="finger"><h3>Touch ID passkeys on Mac</h3></BentoSmall>
         <BentoSmall id="drag-to-reorder" href="/features/tab-groups" feature="drag-to-reorder" icon="grip"><h3>Drag tabs into order</h3></BentoSmall>
         <BentoSmall id="import" href="/support#bookmark-import" feature="import" icon="import"><h3>Import bookmarks and Arc Spaces</h3></BentoSmall>
-        <BentoSmall id="languages" href="/support#languages" feature="languages" icon="speech"><h3>Five interface languages</h3></BentoSmall>
+        <BentoSmall id="languages" href="/support#languages" feature="languages" icon="speech"><h3>Six interface languages</h3></BentoSmall>
         <BentoSmall id="capture" href="/features/security" feature="capture-indicator" icon="mic"><h3>Camera and mic indicator</h3></BentoSmall>
         <BentoSmall id="recovery" href="/features/security" feature="recovery" icon="restore"><h3>Restore after a crash</h3></BentoSmall>
         <BentoSmall id="downloads" href="/support" feature="downloads" icon="down"><h3>Resume downloads</h3></BentoSmall>
         <BentoSmall id="search-engine" href="/features/command-palette" feature="search-engine" icon="search"><h3>Choose your search engine</h3></BentoSmall>
         <BentoSmall id="pin-mute" href="/features/island" feature="pin-mute" icon="pin"><h3>Pin and mute tabs</h3></BentoSmall>
+        <BentoSmall id="rename-tabs" href="/features/island" feature="rename-tabs" icon="pencil"><h3>Rename your tabs</h3></BentoSmall>
         <BentoSmall id="default-browser" href="/download" feature="default-browser" icon="globe"><h3>Set Blanc as default browser</h3></BentoSmall>
         <BentoSmall id="security" href="/features/security" feature="security" icon="box"><h3>Sandboxed pages</h3></BentoSmall>
         <BentoSmall id="signed-releases" href="/features/security" feature="signed-releases" icon="seal"><h3>Signed, verifiable releases</h3></BentoSmall>
         <BentoSmall id="themes" href="/features/island" feature="themes" icon="half"><h3>Light, dark or system</h3></BentoSmall>
+        <BentoSmall id="reopen-closed-tabs" href="/features/reopen-closed-tabs" feature="reopen-closed-tabs" icon="undo"><h3>Reopen closed tabs, even whole groups</h3></BentoSmall>
       </div>
     </div>
   </section>
@@ -158,13 +157,13 @@ import '../styles/features-bento.css';
       <div class="pop-content">
         <!-- Board popovers -->
         <FeaturePop id="glance" label="Glance" feature="glance" href="/features/glance" linkText="Read more about Glance">
-          <img slot="visual" class="pop-img" src="/feature-hub/glance.webp" width="1440" height="900" alt="" loading="lazy" />
+          <img slot="visual" class="pop-img" src="/feature-captures/glance-v1.35.0.webp" width="1440" height="900" alt="" loading="lazy" />
           <h2 id="pop-glance-title">View two tabs side by side with Glance.</h2>
           <p>Choose another tab from this window to open beside your page. Drag the divider to resize, swap the two sides, or close the reference when you are done.</p>
           <p class="pop-note">Glance is never restored after a restart or synced.</p>
         </FeaturePop>
         <FeaturePop id="island" label="The Island" feature="island" href="/features/island" linkText="Read more about the Island">
-          <img slot="visual" class="pop-img" src="/revamp/island-roman-tabs-800.webp" width="800" height="571" alt="" loading="lazy" />
+          <img slot="visual" class="pop-img" src="/revamp/island-smithsonian-tabs-v1.35.0-800.webp" width="800" height="571" alt="" loading="lazy" />
           <h2 id="pop-island-title">The Island puts tabs, search and page controls in one compact bar.</h2>
           <p>Blanc replaces the tab strip and toolbar with one Island in a slim band above the page. Open it to switch tabs, search or run a command, then close it to get back to the page.</p>
           <p class="pop-note">The resting Island keeps its own band above the page; the panel opens over the page.</p>
@@ -176,7 +175,7 @@ import '../styles/features-bento.css';
           <p class="pop-note">Tabs playing sound, pinned tabs and pages with a half-filled form stay loaded. A quiet tab reloads; it does not resume exactly where the page’s scripts left off.</p>
         </FeaturePop>
         <FeaturePop id="wallpaper" label="Time-of-day wallpaper" feature="time-of-day-wallpaper" href="/features/start-page" linkText="Read more about the Start Page">
-          <div slot="visual" class="pop-pair"><img src="/feature-captures/home-wallpaper-dawn-v1.31.0.webp" width="1440" height="900" alt="" loading="lazy" /><img src="/feature-captures/home-wallpaper-day-v1.31.0.webp" width="1440" height="900" alt="" loading="lazy" /><img src="/feature-captures/home-wallpaper-dusk-v1.31.0.webp" width="1440" height="900" alt="" loading="lazy" /><img src="/feature-captures/home-wallpaper-night-v1.31.0.webp" width="1440" height="900" alt="" loading="lazy" /></div>
+          <div slot="visual" class="pop-pair"><img src="/feature-captures/home-wallpaper-dawn-v1.35.0.webp" width="1440" height="900" alt="" loading="lazy" /><img src="/feature-captures/home-wallpaper-day-v1.35.0.webp" width="1440" height="900" alt="" loading="lazy" /><img src="/feature-captures/home-wallpaper-dusk-v1.35.0.webp" width="1440" height="900" alt="" loading="lazy" /><img src="/feature-captures/home-wallpaper-night-v1.35.0.webp" width="1440" height="900" alt="" loading="lazy" /></div>
           <h2 id="pop-wallpaper-title">A Start Page that follows the time of day.</h2>
           <p>Turn on time-of-day wallpaper in Settings → General, and the Start Page artwork moves through dawn, day, dusk and night with your computer’s clock.</p>
           <p class="pop-note">When Sync is on, the on/off choice follows you to your other devices; the artwork always follows each computer’s own clock.</p>
@@ -189,7 +188,7 @@ import '../styles/features-bento.css';
           <p class="pop-note">uBlock Origin is available on supported builds and applies after a restart. Private tabs always use Blanc Blocker. The 24 shown was measured on nytimes.com in Blanc 1.30.1.</p>
         </FeaturePop>
         <FeaturePop id="mahjong" label="Mahjong" feature="mahjong" href="/features/start-page" linkText="Read more about the Start Page">
-          <img slot="visual" class="pop-img" src="/feature-captures/mahjong-v1.21.0.webp" width="1440" height="900" alt="" loading="lazy" />
+          <img slot="visual" class="pop-img" src="/feature-captures/mahjong-v1.35.0.webp" width="1440" height="900" alt="" loading="lazy" />
           <h2 id="pop-mahjong-title">Play Mahjong from any Start Page.</h2>
           <p>Every Start Page footer opens Mahjong in its own tab, with eight boards, a Daily deal, hints, undo and records kept on this device.</p>
           <p class="pop-note">Mahjong is offline and single-player; nothing is synced.</p>
@@ -203,11 +202,11 @@ import '../styles/features-bento.css';
           <p>Blanc is a desktop browser for macOS, Windows and Linux that keeps its controls in one small Island, blocks ads and trackers by default, and stays out of the way of the page you came for. It is free and open source.</p>
           <p class="pop-note">Built by Bananify, an independent studio.</p>
         </FeaturePop>
-        <FeaturePop id="reopen-closed-tabs" label="Reopen Closed Tab" feature="reopen-closed-tabs" href="/features/reopen-closed-tabs" linkText="Read more about reopening tabs" demo>
-          <ReopenDemo slot="visual" />
-          <h2 id="pop-reopen-closed-tabs-title">Reopen a closed tab or a whole group, sometimes without a reload.</h2>
-          <p>Press ⌘⇧T, type /reopen, or choose from Recently Closed in the Island. For about 30 seconds, one eligible tab you closed can come back without loading again, which can keep its scroll position and the text you were typing.</p>
-          <p class="pop-note">On Windows and Linux, press Ctrl+Shift+T. After that window the tab reloads from a saved snapshot or its address. Each window keeps up to 25 entries for an hour, and private tabs are never recorded.</p>
+        <FeaturePop id="bangs" label="Bangs" feature="bangs" href="/bangs" linkText="See every bang" demo>
+          <BangsDemo slot="visual" />
+          <h2 id="pop-bangs-title">Type !yt lofi to search YouTube directly, with any search engine.</h2>
+          <p>Put a site’s code before your search. Your words go straight to the address the bang opens, not through your search engine. A few bangs search one site through Google or DuckDuckGo; the list marks them.</p>
+          <p class="pop-note">Type ! on its own to see popular bangs, or add your own in Settings.</p>
         </FeaturePop>
         <FeaturePop id="private-tabs" label="Private tabs" feature="private-tabs" href="/features/private-tabs" linkText="Read more about private tabs" demo>
           <PrivateDemo slot="visual" />
@@ -233,13 +232,13 @@ import '../styles/features-bento.css';
           <p class="pop-note">On Windows and Linux, press Ctrl+L. For search text, Enter opens the highlighted result; choose the result showing your exact text to search the web.</p>
         </FeaturePop>
         <FeaturePop id="slash-commands" label="Slash commands" feature="slash-commands" href="/features/command-palette" linkText="See every command">
-          <img slot="visual" class="pop-img" src="/revamp/island-roman-command-800.webp" width="800" height="571" alt="" loading="lazy" />
+          <img slot="visual" class="pop-img" src="/revamp/island-smithsonian-command-v1.35.0-800.webp" width="800" height="571" alt="" loading="lazy" />
           <h2 id="pop-slash-commands-title">Type / to run a browser command.</h2>
           <p>In the Island, type / to see every command, then keep typing to narrow the list: /private opens a private tab, /group moves this tab into a group, /sleep quiets background tabs and /allow-ads lets one site through.</p>
           <p class="pop-note">Commands act only when you choose them.</p>
         </FeaturePop>
         <FeaturePop id="start-page" label="Start Page" feature="start-page" href="/features/start-page" linkText="Read more about the Start Page">
-          <div slot="visual" class="pop-pair"><img src="/feature-captures/ledger-v1.31.0.webp" width="1440" height="900" alt="" loading="lazy" /><img src="/feature-captures/billboard-v1.31.0.webp" width="1440" height="900" alt="" loading="lazy" /><img src="/feature-captures/shelf-v1.31.0.webp" width="1440" height="900" alt="" loading="lazy" /><img src="/feature-captures/tally-v1.31.0.webp" width="1440" height="900" alt="" loading="lazy" /></div>
+          <div slot="visual" class="pop-pair"><img src="/feature-captures/ledger-v1.35.0.webp" width="1440" height="900" alt="" loading="lazy" /><img src="/feature-captures/billboard-v1.35.0.webp" width="1440" height="900" alt="" loading="lazy" /><img src="/feature-captures/shelf-v1.35.0.webp" width="1440" height="900" alt="" loading="lazy" /><img src="/feature-captures/tally-v1.35.0.webp" width="1440" height="900" alt="" loading="lazy" /></div>
           <h2 id="pop-start-page-title">Choose your Start Page layout.</h2>
           <p>Pick Ledger, Billboard, Shelf or Tally for new tabs. Billboard brings your frequent sites from local history, and Tally puts a big clock front and centre.</p>
           <p class="pop-note">Your layout choice can follow you through Sync; history stays on this device.</p>
@@ -283,9 +282,9 @@ import '../styles/features-bento.css';
         </FeaturePop>
         <FeaturePop id="1password" label="1Password" feature="1password" href="/features/1password" linkText="Read more about 1Password">
           <BentoIcon slot="visual" name="key" size="pop" />
-          <h2 id="pop-1password-title">Fill logins from 1Password on macOS.</h2>
-          <p>Turn on the integration in Settings, then press ⌥⌘P on a login form to fill a matching login from your installed 1Password app.</p>
-          <p class="pop-note">macOS only. Blanc never fills anything automatically.</p>
+          <h2 id="pop-1password-title">Fill logins from 1Password.</h2>
+          <p>Turn on the integration in Settings, then press ⌥⌘P (Ctrl+Shift+P on Windows and Linux) on a login form to fill a matching login from your installed 1Password app.</p>
+          <p class="pop-note">On macOS, Windows and Linux, but not Windows on Arm. Blanc never fills anything automatically.</p>
         </FeaturePop>
         <FeaturePop id="ublock-origin" label="uBlock Origin" feature="ublock-origin" href="/features/ad-blocking" linkText="Read more about uBlock Origin">
           <BentoIcon slot="visual" name="shield" size="pop" />
@@ -320,8 +319,8 @@ import '../styles/features-bento.css';
         </FeaturePop>
         <FeaturePop id="languages" label="Languages" feature="languages" href="/support#languages" linkText="Read more about languages">
           <BentoIcon slot="visual" name="speech" size="pop" />
-          <h2 id="pop-languages-title">Use Blanc in German, Spanish, French or Portuguese.</h2>
-          <p>Blanc’s own interface is available in English, German, Spanish, French and Portuguese (Brazil). It follows your computer’s language when it matches one of them, or you can choose one in Settings → General → Language.</p>
+          <h2 id="pop-languages-title">Use Blanc in German, Spanish, French, Italian or Portuguese.</h2>
+          <p>Blanc’s own interface is available in English, German, Spanish, French, Italian and Portuguese (Brazil). It follows your computer’s language when it matches one of them, or you can choose one in Settings → General → Language.</p>
           <p class="pop-note">The translations are machine-made, and a change applies after you relaunch Blanc. Blanc does not translate web pages.</p>
         </FeaturePop>
         <FeaturePop id="capture" label="Camera and microphone" feature="capture-indicator" href="/features/security" linkText="Read more about call controls">
@@ -354,6 +353,12 @@ import '../styles/features-bento.css';
           <p>Type /pin to keep a tab first in its group, and /mute to silence a noisy one.</p>
           <p class="pop-note">Pinned tabs stay loaded.</p>
         </FeaturePop>
+        <FeaturePop id="rename-tabs" label="Rename tabs" feature="rename-tabs" href="/features/island" linkText="Read more about the Island">
+          <BentoIcon slot="visual" name="pencil" size="pop" />
+          <h2 id="pop-rename-tabs-title">Give a tab a name of your own.</h2>
+          <p>Right-click a tab and choose Rename Tab…, or type /rename and a name in the ⌘L or Ctrl+L panel. The name stays when you browse to another site, restart Blanc or save the tab in a space.</p>
+          <p class="pop-note">Reset Tab Title goes back to the page’s title. History and Favorites keep the page’s own title.</p>
+        </FeaturePop>
         <FeaturePop id="default-browser" label="Default browser" feature="default-browser" href="/download" linkText="Download Blanc">
           <BentoIcon slot="visual" name="globe" size="pop" />
           <h2 id="pop-default-browser-title">Make Blanc your default browser.</h2>
@@ -377,6 +382,12 @@ import '../styles/features-bento.css';
           <h2 id="pop-themes-title">A look that follows your computer.</h2>
           <p>Choose light, dark or system, and Blanc’s own pages change with it. Change it in Settings or with /theme.</p>
           <p class="pop-note">Websites that follow the system theme change too.</p>
+        </FeaturePop>
+        <FeaturePop id="reopen-closed-tabs" label="Reopen Closed Tab" feature="reopen-closed-tabs" href="/features/reopen-closed-tabs" linkText="Read more about reopening tabs" demo>
+          <ReopenDemo slot="visual" />
+          <h2 id="pop-reopen-closed-tabs-title">Reopen a closed tab or a whole group, sometimes without a reload.</h2>
+          <p>Press ⌘⇧T, type /reopen, or choose from Recently Closed in the Island. For about 30 seconds, one eligible tab you closed can come back without loading again, which can keep its scroll position and the text you were typing.</p>
+          <p class="pop-note">On Windows and Linux, press Ctrl+Shift+T. After that window the tab reloads from a saved snapshot or its address. Each window keeps up to 25 entries for an hour, and private tabs are never recorded.</p>
         </FeaturePop>
       </div>
       <div class="pop-nav">

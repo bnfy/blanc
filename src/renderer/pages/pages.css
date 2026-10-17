@@ -712,6 +712,25 @@ body.sheet .page > .row-list > .empty {
 }
 .site-list .site-list-add > input:focus-visible { outline: none; }
 .site-list .site-list-add > button:not([class]) { min-height: 28px; padding: 0 12px; border-radius: var(--radius-sm); }
+/* Your bangs: a setting's label block above the list (title, hint, and the
+   notices one under another), then code · name · address in one add row.
+   The code is short, the address takes the room. */
+.custom-bangs-head { display: flex; flex-direction: column; gap: 3px; margin-bottom: 10px; }
+.custom-bangs-head .hint { color: var(--text-dim); font-size: 12px; }
+.custom-bangs-head .hint.field-error { color: var(--danger); }
+.site-list .custom-bang-add { display: grid; grid-template-columns: 5.5em 9em minmax(0, 1fr) auto; }
+.site-list .custom-bang-add > input[type="url"] {
+  min-width: 0;
+  min-height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+.site-list .custom-bang-add > input:focus-visible { outline: none; }
+.site-list:has(.custom-bang-add > input:focus-visible) { border-color: var(--text-dim); }
+.site-row .custom-bang-code { flex: none; font-weight: 600; }
+.site-row .custom-bang-host { flex: none; color: var(--text-dim); }
 
 /* Default-browser row: quiet confirmation once Blanc holds the role. */
 #defaultBrowserState {
@@ -1364,6 +1383,37 @@ a.ledger-label:hover { color: var(--accent); }
   height: 16px;
   flex: 0 0 auto;
   object-fit: contain;
+}
+
+/* What's new pill after an update, in the Patron pill's place while it
+   shows. Same shape, outlined in the neutral border: it is news, not an
+   invitation. */
+.js-whats-new {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  font-family: var(--font-text);
+  transition: border-color 120ms ease;
+}
+.js-whats-new[hidden] { display: none; }
+.js-whats-new:hover { border-color: var(--text-dim); }
+.js-whats-new a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 3px 4px 3px 10px;
+  border-radius: 999px;
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+.js-whats-new a:hover { color: var(--text); background: transparent; }
+.js-whats-new a:focus-visible {
+  outline: 1px solid var(--text-dim);
+  outline-offset: 0;
 }
 
 /* A single moving-in checklist replaces the separate Sync and tab-import
@@ -4189,6 +4239,35 @@ body[data-layout="shelf"] #layoutShelf { display: grid; }
 .sync-status-list > div { display: contents; }
 .sync-status-list dt { color: var(--text-dim); }
 .sync-status-list dd { margin: 0; }
+.sync-status-list dd > input { width: 100%; max-width: 320px; }
+/* A field row: its label lines up with the text inside the input. */
+.sync-status-list dt:has(> label),
+.sync-status-list dt:has(> label) + dd { align-self: baseline; }
+.sync-device-name-hint { display: block; margin-top: 4px; color: var(--text-dim); font-size: 12px; }
+.sync-code-input {
+  font-family: "Inter", var(--font-text);
+  font-variant-numeric: tabular-nums;
+  font-size: 18px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.sync-devices { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+.sync-pairing, .sync-switch { margin-top: 10px; display: grid; gap: 8px; }
+.sync-pairing-instruction { margin: 0; font-size: 13px; line-height: 1.45; }
+.sync-pairing-code {
+  font-family: "Inter", var(--font-text);
+  font-variant-numeric: tabular-nums;
+  font-size: 34px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-align: center;
+  padding: 10px 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  user-select: all;
+}
+.sync-pairing-actions { align-items: center; }
+.sync-switch > strong { font-size: 14px; }
 
 @media (max-width: 720px) {
   .sync-guide-step {

@@ -63,6 +63,18 @@ test('only the strip and overlay documents can load the space identity module', 
   ]) assert.equal(chromeResourcePath(url), null, url);
 });
 
+test('only the overlay can load the bang module and catalog', () => {
+  for (const file of ['bangs.js', 'bangs-catalog.js']) {
+    assert.equal(chromeResourcePath(`blanc-chrome://overlay/pages/${file}`), path.join(renderer, 'pages', file));
+    for (const url of [
+      `blanc-chrome://index/pages/${file}`,
+      `blanc-chrome://permission/pages/${file}`,
+      `blanc-chrome://fill-status/pages/${file}`,
+      `blanc-chrome://overlay/pages/${file}?v=1`,
+    ]) assert.equal(chromeResourcePath(url), null, url);
+  }
+});
+
 test('only the overlay can load the Spaces colour picker', () => {
   assert.equal(chromeResourcePath('blanc-chrome://overlay/space-picker.js'), path.join(renderer, 'space-picker.js'));
   for (const url of [

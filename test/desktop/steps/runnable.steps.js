@@ -97,7 +97,7 @@ When('I activate a tab in group {string}', async function (name) {
  *  comparisons go by URL, never by id. */
 async function groupUrls(world, name) {
   const state = await world.call('state');
-  const group = state.groups.find((g) => g.name === String(name).toLowerCase());
+  const group = state.groups.find((g) => g.name.toLowerCase() === String(name).toLowerCase());
   if (!group) return [];
   return state.tabs.filter((t) => t.groupId === group.id).map((t) => t.url);
 }
@@ -147,7 +147,7 @@ Given('recently closed contains {string} and {string}', async function (older, n
 When('I unfold recently closed', async function () {
   await openOverlaySurface(this, 'openPalette', 'palette');
   const page = await overlayPage();
-  const header = page.locator('.island-ghead').filter({ hasText: 'recently closed' });
+  const header = page.locator('.island-ghead[data-group-id="recently-closed"]');
   await header.waitFor({ state: 'visible' });
   if (!await header.locator('.caret').evaluate((caret) => caret.classList.contains('open'))) {
     await header.click();
@@ -165,6 +165,23 @@ Then('recently closed exposes no recovery-tier jargon', async function () {
   assert.doesNotMatch(await rows.allTextContents().then((parts) => parts.join(' ')), /\bheld\b/i);
   assert.strictEqual(await page.locator('.closed-forget').count(), 2);
   assert.strictEqual(await page.locator('.closed-clear').count(), 1);
+});
+
+Then('Recently closed is folded directly under Pinned with {int} entries', async function (count) {
+  const page = await overlayPage();
+  const band = page.locator('#islandList > .closed-band');
+  await band.waitFor({ state: 'visible' });
+  const order = await page.locator('#islandList').evaluate((list) =>
+    [...list.querySelectorAll(':scope > [data-drag-section]')].map((el) => el.dataset.groupId || el.dataset.dragSection));
+  assert.equal(order.indexOf('recently-closed'), order.indexOf('pinned') + 1, `order: ${order.join(', ')}`);
+  assert.equal(await band.getAttribute('data-collapsed'), 'true');
+  assert.equal(await page.locator('.closed-row').count(), 0);
+  assert.equal(await band.locator('.ghead-n').first().textContent(), String(count));
+});
+
+When('I close and reopen the command palette', async function () {
+  await this.call('closeOverlay');
+  await openOverlaySurface(this, 'openPalette', 'palette');
 });
 
 When('I forget the newest recently closed tab', async function () {
@@ -278,7 +295,7 @@ Then('the island shows {int} more tabs', async function (count) {
 
 Then('{string} is shown inside the group {string}', async function (tabName, groupName) {
   const s = await this.state();
-  const group = s.groups.find((g) => g.name === groupName.toLowerCase());
+  const group = s.groups.find((g) => g.name.toLowerCase() === groupName.toLowerCase());
   const cluster = s.clusters.find((c) => c.groupId === group?.id);
   assert.ok(group && cluster?.tabIds.includes(ctx.tabByName[tabName]), `${tabName} should render inside ${groupName}`);
 });
@@ -335,19 +352,19 @@ Then("the private tab's start page loads in the non-persistent session", async f
 
 Then('a group named {string} exists', async function (name) {
   const s = await this.state();
-  assert.ok(s.groups.some((g) => g.name === name.toLowerCase()), `group ${name} should exist`);
+  assert.ok(s.groups.some((g) => g.name.toLowerCase() === name.toLowerCase()), `group ${name} should exist`);
 });
 
 Then('the active tab is in {string}', async function (name) {
   const s = await this.state();
-  const g = s.groups.find((x) => x.name === name.toLowerCase());
+  const g = s.groups.find((x) => x.name.toLowerCase() === name.toLowerCase());
   const t = s.tabs.find((x) => x.id === s.activeTabId);
   assert.ok(g && t && t.groupId === g.id, `active tab should be in ${name}`);
 });
 
 Then('the group {string} no longer exists', async function (name) {
   const s = await this.state();
-  assert.ok(!s.groups.some((g) => g.name === name.toLowerCase()), `group ${name} should be pruned`);
+  assert.ok(!s.groups.some((g) => g.name.toLowerCase() === name.toLowerCase()), `group ${name} should be pruned`);
 });
 
 Then('the favorite control shows as active', async function () {

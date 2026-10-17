@@ -33,6 +33,13 @@ toolbar (Bowser Design System "Island Chrome").
   `find` (F8). Only the active state shows; Escape/back dismisses.
 - The panel's list area shows: the **tab switcher** at rest, **slash commands**
   (F7) when input starts with `/`, the **Quick Switcher** (F6) otherwise.
+- Below the list, one footer line holds **New tab** (the one solid pill, with
+  its shortcut), **Private**, the **Other devices** toggle (F27; hidden when no
+  other device shares its tabs) and the icon tools (Spaces, Favorites,
+  History, Downloads, tab layout, Settings). Other devices opens a drawer
+  between the list and the footer; it starts closed on every open and steps
+  aside while the input has text. Under the footer, a private tab adds a
+  one-line note that nothing is saved to history. Labels are sentence case.
 - **Platform note:** desktop draws this as a 68px strip + an always-on-top overlay
   view. Mobile renders it natively (SwiftUI / Compose) driven by shared design
   tokens (→ substrate). The *layout, contents, and states* are the contract; the
@@ -59,6 +66,13 @@ toolbar (Bowser Design System "Island Chrome").
 - On desktop, reopen-closed history is scoped to the native window workspace
   that closed the tab (D11). Reopening in one window can never consume another
   window's recovery entry.
+- In the ⌘L panel, **Recently closed** is a band styled like a named group,
+  placed among the groups (by default directly under Pinned). It starts folded
+  every time the panel opens, lists every entry newest first with per-entry
+  Forget and Clear all, takes no ⌘1–9 number and holds no tabs. The person can
+  drag it, or move it with ⌥⇧↑/↓, to any place among the groups (never above
+  Pinned or among the ungrouped tabs); that place is kept with the window's
+  group order, in its session and in a Space.
 - **Acceptance:** Open a tab, close it, reopen-closed → same URL returns. Duplicate
   a tab → a second tab with the same URL. Pin a tab → it is marked pinned and
   ordered ahead of unpinned tabs in its current group. An ungrouped pin uses the
@@ -66,10 +80,14 @@ toolbar (Bowser Design System "Island Chrome").
 
 ## F3 — Tab groups
 
-- Groups have **names, not colors** — lowercase mono labels. A group exists only
-  while it holds ≥1 tab (auto-pruned when empty).
-- Create/join via `/group <name>` (find-or-create) or an inline picker on the
-  tab row; leave via `/ungroup`; close all via `/close-group`.
+- Groups have **names, not colors**, kept in the case typed and matched in any
+  case: `/group research` joins "Research", and two groups can't differ only
+  by case. A group exists only while it holds ≥1 tab (auto-pruned when empty).
+- Create/join via `/group <name>` (find-or-create; typing new capitals for an
+  existing group re-cases it) or an inline picker on the tab row; leave via
+  `/ungroup`; close all via `/close-group`. A group header's right-click menu
+  offers **Rename Group…** (a name another group already has is refused, not
+  merged), **Ungroup** and **Close Group**.
 - The pill's direct dots show standalone pins followed by the active section:
   the active named group, loose ungrouped tabs, or the pinned shelf itself.
   They share an eight-dot budget, always retain the active tab, and use `+N` to
@@ -301,8 +319,14 @@ From the desktop `DEFAULTS`:
 | `onePasswordAccount` | `""` | desktop-only account name/id, trimmed and capped at 200 characters; device-local, never synced (F38/D26) |
 | `migrationChecklistDismissed` | `false` | desktop-only boolean set when the moving-in checklist is hidden; device-local, never synced |
 | `patronCalloutDismissedAt` | `0` | desktop-only time (ms) the start page's Patron pill was last closed; it stays hidden for 90 days; device-local, never synced |
+| `lastRunVersion` | `''` | desktop-only: the app version that last launched on this device, used to notice an update; device-local, never synced |
+| `whatsNewVersion` | `''` | desktop-only: the update whose start-page What's new pill is showing (`''` for none); cleared when the pill is opened or closed; device-local, never synced |
+| `whatsNewSince` | `0` | desktop-only time (ms) that update first launched; the pill shows for 7 days from it; device-local, never synced |
 | `syncMigrationCompleted` | `false` | desktop-only boolean set once Sync credentials persist, including for already-enabled profiles; device-local, never synced |
 | `tabImportCompleted` | `false` | desktop-only boolean set after a Bring Your Tabs apply succeeds; device-local, never synced |
+| `defaultBrowserMigrationCompleted` | `false` | desktop-only boolean set once Blanc is seen as the default browser; device-local, never synced |
+| `firstRunCompletedAt` | `0` | desktop-only time (ms) this device first saved its privacy choices; 0 for profiles that finished first run before the field existed; device-local, never synced |
+| `defaultBrowserReminderShown` | `false` | desktop-only boolean set when the one later default-browser reminder is shown; device-local, never synced |
 | `usagePing` | `true` | boolean (F21) |
 | `supporter` | `null` | written only by the activation flow, never generic writes (F17) |
 
@@ -526,16 +550,39 @@ From the desktop `DEFAULTS`:
   its open tabs (url, title, group, pinned; http(s) only, bounded) plus a
   separately-budgeted E2EE sidecar of source-rasterized, bounded PNG favicons
   under the sync account. Favicon source URLs never cross devices and remote
-  surfaces never load them. Other devices browse it **read-only** — ⌘L panel (folded
-  per-device sections), Quick Switcher (ranked below local tabs and
+  surfaces never load them. Other devices browse it **read-only** — ⌘L panel (the Other
+  devices drawer, folded per-device sections), Quick Switcher (ranked below local tabs and
   favorites), start page — and open individual tabs locally. Never a merged
   live session: nothing force-opens or closes remotely. Private tabs never
   enter the snapshot. Toggle-off publishes a retraction; entries prune after
   30 days; a 24 h heartbeat keeps live devices present. Design:
   `docs/superpowers/specs/2026-07-21-tab-sync-design.md`.
+- **Adding a device (desktop, 2026-10-16):** a device that already syncs shows
+  an eight-character code, valid ten minutes, under Settings → Sync → **Add
+  another device**; the new device enters it under **Add this device to my
+  sync** and joins without a name or passphrase. The code derives a one-shot
+  locator and a wrapping key; the Worker holds only ciphertext. A device that
+  already syncs can also **Connect to a different sync with a code** in one
+  step, and any synced device can copy a recovery code to the clipboard. The
+  name-and-passphrase path remains as the fallback. Design:
+  `docs/superpowers/specs/2026-10-16-sync-device-pairing-design.md`. Mobile:
+  the same route and code; a QR presentation may be added there.
+- **Device names:** every device has one display name, the name the person
+  gave it or else the name it publishes (the computer name). Right-clicking a
+  device header in the Other devices drawer offers **Rename Device…** (the
+  panel's field takes the shown name, selected; Enter saves, Esc cancels, an
+  empty name restores the published one); Settings → Sync renames the device
+  you are on, which the Island never lists. Names sync as one settings key
+  with a clock per device, so two devices renaming two different devices keep
+  both, and travel on the focus refresh. A device never publishes its chosen
+  name in place of its own. Design:
+  `docs/superpowers/specs/2026-10-16-island-lower-section-design.md` §7.
 - **Acceptance:** With sharing on on device A, device B lists A's tabs after a
   focus refresh and opens one as a new ungrouped local tab; toggling sharing
-  off on A removes A's section from B after the next sync.
+  off on A removes A's section from B after the next sync. Adding a device
+  with a code stops at an invalid code and offers the passphrase fallback.
+  Renaming A on B shows the new name in B's drawer, Quick Switcher and start
+  page; renaming it to empty shows A's published name again.
 
 ## F28 — Vertical tabs
 
@@ -744,11 +791,57 @@ From the desktop `DEFAULTS`:
 - A person chooses the exact reference tab from a dedicated local-tab picker
   that excludes search, history, Favorites, commands, and remote tabs. The native
   View menu exposes **Open Glance… / Close Glance** with
-  `Cmd/Ctrl+Shift+G`, so the feature is reachable on macOS, Windows, and Linux.
+  `Cmd/Ctrl+Shift+G`, so the feature is reachable on macOS, Windows, and Linux;
+  `/glance` opens the same picker (the Change picker while Glance is open) and
+  `/glance <text>` opens it filtered to the text; a link's context menu offers
+  **Open Link in Glance** after **Open Link in New Tab**, with the same
+  hand-off and forbidden-URL guards, opening the link as the reference in the
+  opener's profile, private flag and group. The picker is a dialog named by
+  its heading; its rows share the ⌘L panel's vocabulary (quiet tabs dimmed
+  with the word only in the accessible name, private tabs with the chip, a
+  tooltip of title and host, names joined with commas), arrow keys move the
+  highlight without re-announcing the count, and a chosen quiet tab's row
+  says "Opening…" while it wakes.
 - The strip keeps the Island centered over the main pane and gives the
   reference a flat header with favicon/title plus **Make main**, **Change**, and
   close controls. Reference pages remain fully interactive without changing
   roles; promotion is explicit and swaps the two visible tabs.
+- Browser commands follow the focused pane. With keyboard focus in the
+  reference, Reload and Hard Reload, Close Tab, Find, zoom, Print, Back and
+  Forward (`Cmd+[` / `]` on macOS, `Alt+Left` / `Right` on Windows and
+  Linux), the 1Password fill and its hint, and mouse
+  gestures act on the reference; Close Tab there closes the reference tab and
+  Glance collapses. ⌘L and the Island, New Tab, ⌘1–9, the shield popover, the
+  blocked count and the tab-scoped slash commands stay on the main page. The
+  header's eyebrow and bottom hairline brighten while the reference holds
+  focus. A 1Password message belongs to the pane it is about: only that
+  pane navigating dismisses it, not the other pane.
+- A tab the reference opens in the foreground (`target=_blank`,
+  `window.open`, Cmd/Ctrl+Shift-click) becomes the reference; the previous
+  reference stays open as an ordinary tab and the main page is untouched.
+  Background opens stay in the background.
+- While Glance is open the Island hides its tab dots (and the +N count) to
+  keep room for the address and its controls; tabs stay reachable from the
+  ⌘L panel, the rail and `Cmd/Ctrl+1–9`. When the main pane is narrow the
+  Island also hides Forward and Favorite, and the divider stops before the
+  address becomes unreadable (measured from what the Island is showing).
+  The divider also never makes the reference narrower than its header needs
+  at its most compact (measured, so it includes the window controls on
+  Windows and Linux), and Glance stacks instead of going side by side when
+  the main pane's minimum would leave the reference less than that. Stacked
+  on Windows and Linux the Island is centred between two reservations for
+  the window controls; when even the slim Island does not fit there (a narrow
+  window with vertical tabs), it gives up its centre line, reserving the
+  controls once on their side, before its address truncates.
+- The reference header carries **Back** (disabled when there is nothing to go
+  back to) and **Reload** / **Stop**. **Make main**'s accessible name begins
+  with its visible words, and right-clicking the header's title opens the
+  reference tab's menu with **Close Glance**. A private reference shows the
+  private chip beside its title. Glance moves in the chrome's own vocabulary:
+  the header and divider fade and slide 6 px in and out, the picker grows out
+  of its anchor and shrinks back, Make main cross-fades the header's identity
+  and announces "{title} is now the main page; {other} is in Glance"; under
+  Reduce Motion every one of these is a 140 ms fade.
 - The divider is pointer-resizable and keyboard accessible, with a reset to the
   62/38 default. Glance never crosses window/profile ownership, never survives
   native-window teardown or session restore, and a visible Glance tab is never
@@ -760,6 +853,12 @@ From the desktop `DEFAULTS`:
   tab through the dedicated picker, verifies dominant/reference geometry,
   proves reference focus does not promote, changes and explicitly swaps the
   visible roles, resizes the divider, and dismisses back to one full page.
+  It also proves that reload, close, find, zoom, Back, the 1Password fill and
+  gestures follow the focused pane, that foreground links from the reference
+  open into Glance, and that the header's Back, Reload and menu address the
+  reference; and that the motion and its reduced form hold, that picker rows
+  read like the panel's, that `/glance` and **Open Link in Glance** reach
+  the picker and the reference, and that Make main names both pages.
 
 ## F35 — Start page layouts
 
@@ -1092,7 +1191,7 @@ Bring Your Tabs.
   bounded (32 MiB, 100,000 items, depth 32, 100 Spaces), read-only, refused
   if the file changes mid-read, and never asks Arc to quit.
 - **Mapping.** Loose pinned tabs become pinned tabs; each top-level folder
-  becomes a lowercase group (nested folders and split views fold into it);
+  becomes a group named as the folder is (nested folders and split views fold into it);
   Today tabs follow ungrouped. Only http(s) tabs come across; notes, Easels
   and other kinds are counted and skipped. At most 500 tabs and 50 groups per
   Space; extra tabs are counted, never silently dropped.
@@ -1139,3 +1238,44 @@ A person can give any tab a name of their own, or keep the page's title.
   [`acceptance/tabs-and-groups.feature`](./acceptance/tabs-and-groups.feature)
   (`@F46`, bound in `test/desktop/steps/custom-tab-names.steps.js`);
   `test/unit/tab-name.test.js` and `test/unit/tab-rename-main.test.js`.
+
+## F47 — Bangs (desktop)
+
+`!yt lofi` in the address bar searches YouTube directly, for every search
+engine, without passing through it. Design:
+`docs/superpowers/specs/2026-10-16-bangs-design.md`.
+
+- **Typing.** A token `!code` (a letter or digit, then up to 31 letters,
+  digits, hyphens or underscores) at the start or the end of the text is a
+  bang; the first token wins. A known code puts a hint row at the top of the
+  ⌘L list, *Search YouTube for "lofi"* (or *Open YouTube* for a bare code,
+  which opens the site's home), over the Quick Switcher matches for the
+  words; Enter opens the site's results. A known bang wins over every
+  address rule in both the overlay and main. An unknown code searches the
+  text as typed with the usual engine.
+- **The picker.** `!` alone lists recently used bangs, then a fixed popular
+  set, under foldable headers; more letters filter the whole catalog by code
+  (shorter first) and site name, at most eight rows, the person's own bangs
+  first. Choosing a row fills `!code ` into the input.
+- **The list.** Kagi's open bang list (`bangs/sources/bangs.json`, MIT),
+  pinned by commit and hash and compiled into
+  `src/renderer/pages/bangs-catalog.js` by `bangs/build.mjs`; updating it is
+  a reviewed release input like the blocklists. Codes with a `.` and
+  templates that are not `https://` are dropped at build.
+- **Your bangs.** Settings → General: a switch (on by default, synced) and a
+  list of the person's own bangs (code, name, address with `%s`; synced as
+  one value, last writer wins). A custom code shadows a built-in code or
+  alias.
+- **Privacy.** A bang request goes only to the bang's site; nothing is sent
+  to Kagi. No search-suggestion request is made for bang-shaped text, known
+  or not, on or off, in the overlay or at main's boundary. Recently used
+  codes are device-local, never recorded from private tabs, and cleared
+  with history.
+- **Portability.** `src/renderer/pages/bangs.js` (the parser, resolver and
+  matcher) and the generated catalog have no Electron, Node or DOM
+  dependency, so another browser core takes them unchanged.
+- **Acceptance:**
+  [`acceptance/island-and-commands.feature`](./acceptance/island-and-commands.feature)
+  (`@F47`, bound in `test/desktop/steps/bangs.steps.js`);
+  `test/unit/bangs.test.js`, `bangs-build.test.js`, `bangs-settings.test.js`,
+  `bang-resolution.test.js` and `bangs-overlay.test.js`.

@@ -36,9 +36,12 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   stop: (id) => ipcRenderer.invoke('tabs:stop', id),
   moveTab: (id, target) => ipcRenderer.invoke('tabs:move', id, target),
   reorderGroup: (id, beforeGroupId) => ipcRenderer.invoke('groups:reorder', id, beforeGroupId),
+  moveClosedSection: (beforeGroupId) => ipcRenderer.invoke('groups:move-closed', beforeGroupId),
+  renameGroup: (groupId, name) => ipcRenderer.invoke('groups:rename', groupId, name),
+  ungroupGroup: (groupId) => ipcRenderer.invoke('groups:ungroup', groupId),
   activateTabFromRail: (id) => ipcRenderer.invoke('tabs:activate-from-rail', id),
   setGlanceTab: (id) => ipcRenderer.invoke('tabs:set-glance', id),
-  openGlancePicker: () => ipcRenderer.invoke('tabs:open-glance-picker'),
+  openGlancePicker: (query) => ipcRenderer.invoke('tabs:open-glance-picker', query),
   closeGlance: () => ipcRenderer.invoke('tabs:close-glance'),
   promoteGlance: () => ipcRenderer.invoke('tabs:promote-glance'),
   setTabGroup: (id, groupId) => ipcRenderer.invoke('tabs:set-group', id, groupId),
@@ -128,6 +131,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   listHistory: (opts) => ipcRenderer.invoke('chrome:history-list', opts),
   listFavorites: () => ipcRenderer.invoke('chrome:favorites-list'),
   listRemoteTabs: () => ipcRenderer.invoke('chrome:remote-tabs-list'),
+  renameDevice: (deviceId, name) => ipcRenderer.invoke('chrome:rename-device', deviceId, name),
   cancelWorkspaceAction: () => ipcRenderer.send('chrome:workspaces-cancel'),
   listWorkspaces: () => ipcRenderer.invoke('chrome:workspaces-list'),
   saveWorkspaceAs: (name, identity) => ipcRenderer.invoke('chrome:workspaces-save-as', name, identity),
@@ -143,6 +147,12 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   moveWorkspaceTo: (id, index) => ipcRenderer.invoke('chrome:workspaces-move-to', id, index),
   undoRemoveWorkspace: (id) => ipcRenderer.invoke('chrome:workspaces-undo-remove', id),
   searchSuggestions: (query) => ipcRenderer.invoke('chrome:search-suggestions', query),
+  bangs: () => ipcRenderer.invoke('chrome:bangs'),
+  onBangsChanged: (callback) => {
+    const listener = (_event, payload) => callback(payload);
+    ipcRenderer.on('bangs:changed', listener);
+    return () => ipcRenderer.removeListener('bangs:changed', listener);
+  },
   onRemoteTabsUpdated: (callback) => {
     const listener = (_event, devices) => callback(devices);
     ipcRenderer.on('chrome:remote-tabs-updated', listener);
@@ -164,6 +174,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   toggleDarkSiteOnActiveSite: () => ipcRenderer.invoke('chrome:dark-site-active'),
   siteInfoForgetCertificateException: () => ipcRenderer.invoke('chrome:site-info-forget-certificate-exception'),
   sleepBackgroundTabs: () => ipcRenderer.invoke('chrome:sleep-background-tabs'),
+  inviteFriend: () => ipcRenderer.invoke('chrome:invite-friend'),
   ...(ONE_PASSWORD_AVAILABLE ? {
     fillLoginFromOnePassword: () => ipcRenderer.invoke('chrome:onepassword-fill'),
   } : {}),

@@ -85,17 +85,19 @@ function cloneProposal(value) {
   } : null;
 }
 
+/** Group names keep their case; checks compare them without it (spec
+ * 2026-10-16-island-lower-section §9.1). */
 function normalizeReviewGroupName(value) {
-  return String(value ?? '').trim().replace(/\s+/g, ' ').toLowerCase();
+  return String(value ?? '').trim().replace(/\s+/g, ' ');
 }
 
 function reviewGroupNameError(value, reviewProposal, currentId = '') {
   const name = normalizeReviewGroupName(value);
   if (!name) return t('tabImport.groupName.empty');
   if ([...name].length > MAX_GROUP_NAME_LENGTH) return t('tabImport.groupName.tooLong', { max: MAX_GROUP_NAME_LENGTH });
-  if (GENERIC_GROUP_NAMES.has(name)) return t('tabImport.groupName.generic');
+  if (GENERIC_GROUP_NAMES.has(name.toLowerCase())) return t('tabImport.groupName.generic');
   if ((reviewProposal?.groups ?? []).some((group) =>
-    group.suggestionId !== currentId && normalizeReviewGroupName(group.name) === name)) {
+    group.suggestionId !== currentId && normalizeReviewGroupName(group.name).toLowerCase() === name.toLowerCase())) {
     return t('tabImport.groupName.taken');
   }
   return '';
@@ -140,7 +142,7 @@ function reviewProposalIssue(reviewProposal, reviewCandidates) {
   for (const group of reviewProposal.groups ?? []) {
     const issue = reviewGroupNameError(group.name, reviewProposal, group.suggestionId);
     if (issue) return issue;
-    const name = normalizeReviewGroupName(group.name);
+    const name = normalizeReviewGroupName(group.name).toLowerCase();
     if (names.has(name)) return t('tabImport.issue.duplicateName');
     names.add(name);
     if (!Array.isArray(group.candidateIds) || group.candidateIds.length < 2) {

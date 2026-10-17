@@ -20,7 +20,18 @@
     DRAG_THRESHOLD_PX: 4,
     EDGE_PX: 24,
     MAX_SCROLL_STEP: 12,
+    // The ⌘L panel's Recently closed band; main's closed-slot.js owns the
+    // same id (a unit test keeps them equal).
+    CLOSED_SECTION_ID: 'recently-closed',
   });
+
+  /** Where the Recently closed band sits: the number of groups above it,
+   * clamped like main's clampClosedSlot. */
+  function closedSlotIndex(snapshot) {
+    const count = (snapshot?.groups || []).length;
+    const slot = snapshot?.closedSlot;
+    return Number.isInteger(slot) && slot > 0 ? Math.min(slot, count) : 0;
+  }
 
   const inside = (y, box) => y >= box.top && y <= box.bottom;
 
@@ -28,6 +39,7 @@
   function tabSlots(model, sourceId) {
     const slots = [];
     for (const section of model.sections) {
+      if (section.kind === 'closed') continue; // the band never takes tabs
       if (section.kind === 'group' && section.collapsed) continue;
       const rows = section.rows;
       const pinCount = section.kind === 'group'
@@ -75,7 +87,10 @@
     }
     let best = null;
     for (const slot of tabSlots(model, source.id)) {
-      if (!best || Math.abs(slot.y - y) < Math.abs(best.y - y)) best = slot;
+      const allowed = source.pinned ? slot.pinned : slot.unpinned;
+      const bestAllowed = best && (source.pinned ? best.pinned : best.unpinned);
+      if (!best || Math.abs(slot.y - y) < Math.abs(best.y - y) ||
+          (slot.y === best.y && allowed && !bestAllowed)) best = slot;
     }
     if (!best) return null;
     const allowed = source.pinned ? best.pinned : best.unpinned;
@@ -91,7 +106,9 @@
 
   function resolveGroupDrop(model, groupId, y) {
     if (!model || !(y >= model.top && y <= model.bottom)) return null;
-    const groups = model.sections.filter((s) => s.kind === 'group');
+    // The Recently closed band is a slot among the groups: a group can land
+    // directly above it, and the band itself moves like a group.
+    const groups = model.sections.filter((s) => s.kind === 'group' || s.kind === 'closed');
     if (!groups.some((s) => s.groupId === groupId)) return null;
     let bestIndex = 0;
     let bestY = groups[0].top;
@@ -145,15 +162,18 @@
     return prev ? intent(prev.groupId, null) : { stop: 'top' };
   }
 
-  function keyboardGroupMove(snapshot, groupId, direction) {
-    const groups = snapshot?.groups || [];
-    const gi = groups.findIndex((g) => g.id === groupId);
+  /** `withClosed`: the island, where the Recently closed band sits among the
+   * groups (while it has entries) and can be stepped past or moved itself. */
+  function keyboardGroupMove(snapshot, groupId, direction, { withClosed = false } = {}) {
+    const order = (snapshot?.groups || []).map((g) => g.id);
+    if (withClosed && snapshot?.closed?.length) order.splice(closedSlotIndex(snapshot), 0, constants.CLOSED_SECTION_ID);
+    const gi = order.indexOf(groupId);
     if (gi === -1) return null;
     const intent = (beforeGroupId) => ({ intent: { kind: 'group', id: groupId, beforeGroupId } });
     if (direction === 'down') {
-      return gi === groups.length - 1 ? { stop: 'bottom' } : intent(groups[gi + 2]?.id ?? null);
+      return gi === order.length - 1 ? { stop: 'bottom' } : intent(order[gi + 2] ?? null);
     }
-    return gi === 0 ? { stop: 'top' } : intent(groups[gi - 1].id);
+    return gi === 0 ? { stop: 'top' } : intent(order[gi - 1]);
   }
 
   // Announcements come from the interface catalog: i18n.js publishes
@@ -162,6 +182,7 @@
     const groups = snapshot?.groups || [];
     const tabs = snapshot?.tabs || [];
     const nameOf = (gid) => groups.find((g) => g.id === gid)?.name ?? '';
+    if (intent.kind === 'group' && intent.id === constants.CLOSED_SECTION_ID) return globalThis.blancI18n.t('drag.movedClosed');
     if (intent.kind === 'group') return globalThis.blancI18n.t('drag.movedGroup', { group: nameOf(intent.id) });
     const tab = tabs.find((t) => t.id === intent.id);
     const from = tab?.groupId ?? null;
@@ -296,6 +317,7 @@
     }
 
     function sourceStillValid(payload) {
+      if (source.kind === 'group' && source.id === constants.CLOSED_SECTION_ID) return !!payload?.closed?.length;
       if (source.kind === 'group') return (payload?.groups || []).some((g) => g.id === source.id);
       const tab = (payload?.tabs || []).find((t) => t.id === source.id);
       if (!tab) return false;
@@ -517,7 +539,7 @@
   }
 
   globalThis.blancTabDrag = {
-    constants, resolveTabDrop, resolveGroupDrop, keyboardTabMove, keyboardGroupMove, describeMove,
+    constants, closedSlotIndex, resolveTabDrop, resolveGroupDrop, keyboardTabMove, keyboardGroupMove, describeMove,
     createDragSession, attach,
   };
 })();

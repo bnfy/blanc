@@ -576,6 +576,23 @@
           ]
         },
         {
+          "label": "beforeGroupId = \"recently-closed\"",
+          "args": [
+            "group-id-1",
+            "recently-closed"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:reorder",
+              "args": [
+                "group-id-1",
+                "recently-closed"
+              ]
+            }
+          ]
+        },
+        {
           "label": "beforeGroupId = null",
           "args": [
             "group-id-1",
@@ -597,6 +614,115 @@
         true,
         false
       ]
+    },
+    "moveClosedSection": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "groups:move-closed",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "group-id-1"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:move-closed",
+              "args": [
+                "group-id-1"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "beforeGroupId = null",
+          "args": [
+            null
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:move-closed",
+              "args": [
+                null
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
+    "renameGroup": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "groups:rename",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "group-id-1",
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:rename",
+              "args": [
+                "group-id-1",
+                "example"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "ok": true
+        },
+        {
+          "ok": true,
+          "error": "duplicate"
+        }
+      ]
+    },
+    "ungroupGroup": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "groups:ungroup",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "group-id-1"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:ungroup",
+              "args": [
+                "group-id-1"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": []
     },
     "activateTabFromRail": {
       "kind": "invoke",
@@ -669,12 +795,31 @@
       "calls": [
         {
           "label": "typical",
+          "args": [
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "tabs:open-glance-picker",
+              "args": [
+                "example"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "trailing optional arguments omitted",
           "args": [],
           "sends": [
             {
               "kind": "invoke",
               "channel": "tabs:open-glance-picker",
-              "args": []
+              "args": [
+                {
+                  "$undefined": true
+                }
+              ]
             }
           ]
         }
@@ -1170,6 +1315,7 @@
           "glanceTabId": "tab-id-1",
           "groups": [],
           "closed": [],
+          "closedSlot": 1,
           "tabLayout": "island",
           "verticalTabsWidth": 1,
           "verticalTabsPreferredWidth": 1,
@@ -1248,6 +1394,7 @@
               "tabCount": 1
             }
           ],
+          "closedSlot": 1,
           "tabLayout": "island",
           "verticalTabsWidth": 1,
           "verticalTabsPreferredWidth": 1,
@@ -1553,7 +1700,9 @@
                 "left": 1,
                 "bottom": 1,
                 "closing": true
-              }
+              },
+              "minPrimaryWidth": 1,
+              "minReferenceWidth": 1
             }
           ],
           "sends": [
@@ -1576,7 +1725,9 @@
                     "left": 1,
                     "bottom": 1,
                     "closing": true
-                  }
+                  },
+                  "minPrimaryWidth": 1,
+                  "minReferenceWidth": 1
                 }
               ]
             }
@@ -1837,6 +1988,8 @@
             {
               "direction": "horizontal",
               "ratio": 1,
+              "minRatio": 1,
+              "maxRatio": 1,
               "page": {
                 "x": 1,
                 "y": 1,
@@ -1880,6 +2033,8 @@
               {
                 "direction": "horizontal",
                 "ratio": 1,
+                "minRatio": 1,
+                "maxRatio": 1,
                 "page": {
                   "x": 1,
                   "y": 1,
@@ -1916,6 +2071,100 @@
                   "width": 1,
                   "height": 1
                 }
+              }
+            ]
+          ]
+        },
+        {
+          "emit": [
+            {
+              "direction": "horizontal",
+              "ratio": 1,
+              "minRatio": 1,
+              "maxRatio": 1,
+              "page": {
+                "x": 1,
+                "y": 1,
+                "width": 1,
+                "height": 1
+              },
+              "primary": {
+                "x": 1,
+                "y": 1,
+                "width": 1,
+                "height": 1
+              },
+              "divider": {
+                "x": 1,
+                "y": 1,
+                "width": 1,
+                "height": 1
+              },
+              "glanceHeader": {
+                "x": 1,
+                "y": 1,
+                "width": 1,
+                "height": 1
+              },
+              "glanceContent": {
+                "x": 1,
+                "y": 1,
+                "width": 1,
+                "height": 1
+              },
+              "glance": {
+                "x": 1,
+                "y": 1,
+                "width": 1,
+                "height": 1
+              },
+              "focusedPane": "main"
+            }
+          ],
+          "callbacks": [
+            [
+              {
+                "direction": "horizontal",
+                "ratio": 1,
+                "minRatio": 1,
+                "maxRatio": 1,
+                "page": {
+                  "x": 1,
+                  "y": 1,
+                  "width": 1,
+                  "height": 1
+                },
+                "primary": {
+                  "x": 1,
+                  "y": 1,
+                  "width": 1,
+                  "height": 1
+                },
+                "divider": {
+                  "x": 1,
+                  "y": 1,
+                  "width": 1,
+                  "height": 1
+                },
+                "glanceHeader": {
+                  "x": 1,
+                  "y": 1,
+                  "width": 1,
+                  "height": 1
+                },
+                "glanceContent": {
+                  "x": 1,
+                  "y": 1,
+                  "width": 1,
+                  "height": 1
+                },
+                "glance": {
+                  "x": 1,
+                  "y": 1,
+                  "width": 1,
+                  "height": 1
+                },
+                "focusedPane": "main"
               }
             ]
           ]
@@ -2745,6 +2994,55 @@
             ]
           }
         ]
+      ]
+    },
+    "renameDevice": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:rename-device",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example",
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:rename-device",
+              "args": [
+                "example",
+                "example"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "name = null",
+          "args": [
+            "example",
+            null
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:rename-device",
+              "args": [
+                "example",
+                null
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
       ]
     },
     "cancelWorkspaceAction": {
@@ -3645,6 +3943,111 @@
         }
       ]
     },
+    "bangs": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:bangs",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:bangs",
+              "args": []
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "enabled": true,
+          "custom": [],
+          "recent": []
+        },
+        {
+          "enabled": true,
+          "custom": [
+            {
+              "code": "custom-bang-1",
+              "name": "custom-bang-1",
+              "template": "custom-bang-1"
+            }
+          ],
+          "recent": [
+            "bangs-state-1"
+          ]
+        }
+      ]
+    },
+    "onBangsChanged": {
+      "kind": "event",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "bangs:changed",
+      "deliveries": [
+        {
+          "emit": [
+            {
+              "enabled": true,
+              "custom": [],
+              "recent": []
+            }
+          ],
+          "callbacks": [
+            [
+              {
+                "enabled": true,
+                "custom": [],
+                "recent": []
+              }
+            ]
+          ]
+        },
+        {
+          "emit": [
+            {
+              "enabled": true,
+              "custom": [
+                {
+                  "code": "custom-bang-1",
+                  "name": "custom-bang-1",
+                  "template": "custom-bang-1"
+                }
+              ],
+              "recent": [
+                "bangs-state-1"
+              ]
+            }
+          ],
+          "callbacks": [
+            [
+              {
+                "enabled": true,
+                "custom": [
+                  {
+                    "code": "custom-bang-1",
+                    "name": "custom-bang-1",
+                    "template": "custom-bang-1"
+                  }
+                ],
+                "recent": [
+                  "bangs-state-1"
+                ]
+              }
+            ]
+          ]
+        }
+      ]
+    },
     "onRemoteTabsUpdated": {
       "kind": "event",
       "platforms": [
@@ -4018,6 +4421,32 @@
         ]
       ]
     },
+    "inviteFriend": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:invite-friend",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:invite-friend",
+              "args": []
+            }
+          ]
+        }
+      ],
+      "replies": [
+        "mail",
+        "copied"
+      ]
+    },
     "fillLoginFromOnePassword": {
       "kind": "invoke",
       "platforms": [
@@ -4252,6 +4681,7 @@
               "glanceTabId": "tab-id-1",
               "groups": [],
               "closed": [],
+              "closedSlot": 1,
               "tabLayout": "island",
               "adblockEnabled": true,
               "shieldPopover": {
@@ -4302,6 +4732,7 @@
                 "glanceTabId": "tab-id-1",
                 "groups": [],
                 "closed": [],
+                "closedSlot": 1,
                 "tabLayout": "island",
                 "adblockEnabled": true,
                 "shieldPopover": {
@@ -4419,6 +4850,7 @@
                   "tabCount": 1
                 }
               ],
+              "closedSlot": 1,
               "tabLayout": "island",
               "adblockEnabled": true,
               "shieldPopover": {
@@ -4552,6 +4984,7 @@
                     "tabCount": 1
                   }
                 ],
+                "closedSlot": 1,
                 "tabLayout": "island",
                 "adblockEnabled": true,
                 "shieldPopover": {

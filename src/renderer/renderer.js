@@ -14,9 +14,18 @@
   // at event time (same mechanism as the overlay's rows): main reads the id
   // instead of hit-testing coordinates the strip may have re-rendered under.
   document.addEventListener('contextmenu', (e) => {
+    // The Glance header's title and empty area address the reference tab;
+    // its buttons are controls and open nothing.
+    const onGlanceHeader = !!e.target.closest('#glanceHeader') && !e.target.closest('button');
     window.__blancCtxRowTabId =
-      e.target.closest('.vertical-tab-row[data-tab-id]')?.dataset.tabId ?? null;
-    if (!e.target.closest('#islandPill') && window.__blancCtxRowTabId == null) {
+      e.target.closest('.vertical-tab-row[data-tab-id]')?.dataset.tabId
+      ?? (onGlanceHeader ? state.glanceTabId : null)
+      ?? null;
+    // A rail group header gets main's group menu (group-context-menu.js).
+    window.__blancCtxGroupId = window.__blancCtxRowTabId == null
+      ? e.target.closest('.vertical-tabs-group-header[data-group-id]')?.dataset.groupId ?? null
+      : null;
+    if (!e.target.closest('#islandPill') && window.__blancCtxRowTabId == null && window.__blancCtxGroupId == null) {
       e.preventDefault();
     }
   });
@@ -30,6 +39,7 @@
   const pillFavicon = document.getElementById('pillFavicon');
   const pillDomain = document.getElementById('pillDomain');
   const pillSlash = document.getElementById('pillSlash');
+  const pillShortcuts = document.getElementById('pillShortcuts');
   const pillFillHint = document.getElementById('pillFillHint');
   const fillHintLabel = blancI18n.t('pill.fillHint', {
     shortcut: isMac ? '⌥⌘P' : `${blancI18n.t('key.ctrl')}+${blancI18n.t('key.shift')}+P`,
@@ -53,9 +63,14 @@
   const glanceHeader = document.getElementById('glanceHeader');
   const glanceFavicon = document.getElementById('glanceFavicon');
   const glanceTitle = document.getElementById('glanceTitle');
+  const glancePrivate = document.getElementById('glancePrivate');
+  const glanceIdentity = document.querySelector('#glanceHeader .glance-tab-identity');
+  let shownGlanceTabId = null;
   const glancePromote = document.getElementById('glancePromote');
   const glanceChange = document.getElementById('glanceChange');
   const glanceClose = document.getElementById('glanceClose');
+  const glanceBack = document.getElementById('glanceBack');
+  const glanceReload = document.getElementById('glanceReload');
   const glanceDivider = document.getElementById('glanceDivider');
   const glanceStatus = document.getElementById('glanceStatus');
 
@@ -114,6 +129,11 @@
     close: '<svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>',
   };
 
+  // The reference header reuses the pill's own back and reload glyphs.
+  glanceBack.innerHTML = PILL_ICONS.back;
+  glanceReload.innerHTML = PILL_ICONS.reload;
+  glanceReload.dataset.mode = 'reload';
+
   /** A quiet icon button for the pill. stopPropagation keeps a click on the
    * button from bubbling to the pill (which would open the panel). */
   function pillButton(iconKey, title, onClick) {
@@ -151,6 +171,10 @@
     else window.browserAPI.reload(t.id);
   });
   const favoriteBtn = pillButton('heart', blancI18n.t('pill.favorite'), () => window.browserAPI.toggleBookmark());
+  // The first controls to give way in a slim Island (fitIslandDots); both
+  // stay reachable from ⌘L, the menus and the keyboard.
+  forwardBtn.classList.add('pill-slim-hide');
+  favoriteBtn.classList.add('pill-slim-hide');
   const closeBtn = pillButton('close', blancI18n.t('pill.closeTab'), () => {
     if (state.activeTabId) window.browserAPI.closeTab(state.activeTabId);
   });
@@ -225,7 +249,10 @@
 
   function renderDownloads() {
     const { active, hasRecent, receivedBytes, totalBytes, lastCompletedAt } = downloadState;
+    const wasHidden = downloadsBtn.hidden;
     downloadsBtn.hidden = !(active > 0 || hasRecent);
+    // The button takes or gives back room in the Island.
+    if (downloadsBtn.hidden !== wasHidden) fitIslandDots();
     downloadsBtn.classList.toggle('active', active > 0);
 
     // Keyed off the timestamp changing rather than `active` falling to 0, so a
@@ -390,6 +417,143 @@
     }
   }
 
+  /** True when the pill's trailing controls run past its far edge. Compares
+   * the trailing inset with the leading one, so it needs no knowledge of the
+   * pill's padding or zoom. */
+  function pillOverflows() {
+    const pill = islandPill.getBoundingClientRect();
+    const first = [...islandPill.children].find((element) => element.getBoundingClientRect().width > 0);
+    if (!first) return false;
+    const inset = first.getBoundingClientRect().left - pill.left;
+    return pill.right - pillActions.getBoundingClientRect().right < inset - 1;
+  }
+
+  /** The page's address is cut short. Only a real address counts: the
+   * placeholder and the loading label may truncate like any hint. */
+  function addressTruncated() {
+    if (pillDomain.classList.contains('placeholder') || pillDomain.classList.contains('dim')) return false;
+    return pillDomain.scrollWidth > pillDomain.clientWidth + 1;
+  }
+
+  /** When the pill is narrower than its contents (a narrow Glance main
+   * pane), the address keeps priority and the rest gives way in order: fewer
+   * dots, with the rest folded into +N (the active tab always keeps its
+   * dot); then, with one dot left, Forward and Favorite hide. Only then may
+   * the address truncate; the Glance divider stops before it gets unreadable
+   * (measureGlanceFloors). Any change to the room or to what the Island shows
+   * starts again from the full Island, so it grows back when room returns;
+   * when nothing changed, the last fit stands and nothing is measured. */
+  function fitIslandDots() {
+    const key = islandFitKey();
+    const refit = key !== dotFitKey;
+    if (refit) {
+      dotFitKey = key;
+      dotBudget = DOT_CAP;
+      islandPill.classList.remove('slim', 'uncentred');
+    } else if (dotsSignature() === lastDotsSig) {
+      return;
+    }
+    // With vertical tabs or Glance the dot row is not drawn, so fewer dots
+    // free nothing.
+    const dotsShown = state.tabLayout !== 'vertical' && !stripEl.classList.contains('glance-open');
+    // Stacked on Windows and Linux (the platforms with window controls on
+    // the strip's right edge) the Island is centred between two reservations
+    // for them (styles.css); when even the slim Island does not fit, it gives
+    // up its centre line before its address.
+    const canUncentre = stripEl.dataset.glanceDirection === 'vertical'
+      && document.documentElement.dataset.platform !== 'darwin';
+    for (;;) {
+      renderDotRow();
+      if (!pillOverflows() && !addressTruncated()) break;
+      if (dotsShown && dotBudget > 1) dotBudget -= 1;
+      else if (!islandPill.classList.contains('slim')) islandPill.classList.add('slim');
+      else if (canUncentre && !islandPill.classList.contains('uncentred')) islandPill.classList.add('uncentred');
+      else break;
+    }
+    if (refit) measureGlanceFloors();
+  }
+
+  /** Everything the fit depends on except the dots themselves: the room the
+   * stylesheet gives the pill (styles.css #islandPill max-width rules follow
+   * the window, the platform, the rail and Glance — read from those inputs,
+   * not the computed max-width, which the fit's own .uncentred changes),
+   * which chips are showing, and the address. Not the blocked count: it is a
+   * badge over the shield and takes no width. No layout. */
+  function islandFitKey() {
+    const root = document.documentElement;
+    const shown = [...islandPill.children, ...pillShortcuts.children, ...pillActions.children]
+      .map((element) => (element.hidden ? 0 : 1)).join('');
+    return [
+      window.innerWidth, root.dataset.platform, state.tabLayout, root.style.getPropertyValue('--vertical-tabs-w'),
+      stripEl.dataset.glanceDirection ?? '', stripEl.style.getPropertyValue('--glance-primary-width'),
+      shown, state.tabs.length, state.activeTabId, pillDomain.textContent,
+    ].join('|');
+  }
+
+  // The interface fonts load with font-display: swap, so a fit made before
+  // they arrive was measured in the fallback. Every label changes width when
+  // they swap in, with nothing in the fit key changing: fit again from scratch.
+  document.fonts.addEventListener('loadingdone', () => {
+    dotFitKey = '';
+    fitIslandDots();
+    glanceHeaderFitKey = '';
+    fitGlanceHeader();
+    requestAnimationFrame(() => reportIslandRect());
+  });
+
+  /** Only rebuild the dot row when the dots themselves change — not on every
+   * blocked-count broadcast. Rebuilding tears down each dot's peek span and
+   * any keyboard focus on it. */
+  function renderDotRow() {
+    const dotsSig = dotsSignature();
+    if (dotsSig !== lastDotsSig) {
+      lastDotsSig = dotsSig;
+      pillDots.replaceChildren(...islandDots());
+    }
+  }
+
+  /** The pill's on-screen width without the proximity swell (reportIslandRect
+   * applies the same correction). */
+  function pillWidth() {
+    const k = islandPill.classList.contains('shield-open') || islandPill.classList.contains('spaces-open') ? 0 : Number(islandPill.style.getPropertyValue('--island-k')) || 0;
+    return islandPill.getBoundingClientRect().width / (1 + ISLAND_SCALE * k);
+  }
+
+  /** With Glance side by side, measure the two minimums main stops the
+   * divider at. The main pane's: the slim Island (no Forward or Favorite, and
+   * no dot row: Glance hides it) with about ten characters of address, plus
+   * the clearance the stylesheet gives the Island in this layout. The
+   * reference's: the Glance header at its most compact, with the padding the
+   * stylesheet gives it (which reserves the window controls on Windows and
+   * Linux). Measured on the live elements, so every chip, label and language
+   * counts and the spacing stays defined in one place (styles.css). */
+  function measureGlanceFloors() {
+    if (glanceLayout?.direction !== 'horizontal' || !islandPill.getBoundingClientRect().width) return;
+    // The room the stylesheet allows: a filler grows the pill to its max-width.
+    const filler = document.createElement('span');
+    filler.className = 'island-measure-filler';
+    islandPill.append(filler);
+    const room = pillWidth();
+    filler.remove();
+    const wasSlim = islandPill.classList.contains('slim');
+    islandPill.classList.add('slim', 'measuring');
+    const needed = pillWidth();
+    islandPill.classList.remove('measuring');
+    islandPill.classList.toggle('slim', wasSlim);
+    islandFloor = Math.ceil(glanceLayout.primary.width - room + needed);
+    glanceHeader.classList.add('measuring');
+    const header = glanceHeader.getBoundingClientRect().width;
+    glanceHeader.classList.remove('measuring');
+    referenceFloor = Math.ceil(header - glanceLayout.divider.width);
+  }
+
+  /** With Glance open the fill chip follows the focused pane, like the fill. */
+  function renderFillHint() {
+    const hintTab = glanceLayout?.focusedPane === 'glance' ? glanceTab() : activeTab();
+    pillFillHint.hidden = !(hintTab?.fillHint === true
+      && typeof window.browserAPI.fillLoginFromOnePassword === 'function');
+  }
+
   function renderGlance() {
     const tab = glanceTab();
     const visible = !!tab && !!glanceLayout;
@@ -400,6 +564,8 @@
       stripEl.style.removeProperty('--glance-primary-right');
       stripEl.style.removeProperty('--glance-primary-width');
       delete stripEl.dataset.glanceDirection;
+      shownGlanceTabId = null;
+      fitGlanceHeader();
       return;
     }
 
@@ -419,6 +585,8 @@
     glanceDivider.style.height = `${divider.height}px`;
     glanceDivider.setAttribute('aria-orientation', direction === 'horizontal' ? 'vertical' : 'horizontal');
     glanceDivider.setAttribute('aria-valuenow', String(Math.round(ratio * 100)));
+    glanceDivider.setAttribute('aria-valuemin', String(Math.round((glanceLayout.minRatio ?? 0.5) * 100)));
+    glanceDivider.setAttribute('aria-valuemax', String(Math.round((glanceLayout.maxRatio ?? 0.78) * 100)));
     glanceDivider.setAttribute('aria-valuetext', blancI18n.t('glance.dividerValue', { percent: Math.round(ratio * 100) }));
 
     glanceHeader.style.left = `${header.x}px`;
@@ -427,13 +595,55 @@
     glanceHeader.style.height = `${header.height}px`;
     glanceHeader.dataset.direction = direction;
     glanceHeader.classList.toggle('private', !!tab.private);
+    glanceHeader.classList.toggle('focused', glanceLayout.focusedPane === 'glance');
+    // A different reference (Make main, Change): the favicon, title and chip
+    // cross-fade over 120 ms (styles.css .swapping) instead of changing in
+    // one frame. The panes themselves swap at once.
+    if (shownGlanceTabId != null && shownGlanceTabId !== tab.id) {
+      glanceIdentity.classList.add('swapping');
+      requestAnimationFrame(() => requestAnimationFrame(() => glanceIdentity.classList.remove('swapping')));
+    }
+    shownGlanceTabId = tab.id;
     setFavicon(glanceFavicon, tab);
+    glancePrivate.hidden = !tab.private;
+    glanceBack.disabled = !tab.canGoBack;
+    const glanceReloadMode = tab.isLoading ? 'stop' : 'reload';
+    if (glanceReload.dataset.mode !== glanceReloadMode) {
+      glanceReload.dataset.mode = glanceReloadMode;
+      glanceReload.innerHTML = PILL_ICONS[glanceReloadMode];
+      const label = blancI18n.t(glanceReloadMode === 'stop' ? 'pill.stop' : 'pill.reload');
+      glanceReload.title = label;
+      glanceReload.setAttribute('aria-label', label);
+    }
     // Keep an already-known title visible while the reference navigates —
     // same rule as the picker rows: replacing useful identity with a generic
     // loading label makes the header useless on slow or long-lived loads.
     glanceTitle.textContent = tab.title || tabDomain(tab)
       || (tab.isLoading ? blancI18n.t('tab.loading') : tab.private ? blancI18n.t('tab.privateLabel') : blancI18n.t('tab.new'));
     glanceHeader.title = tab.title || glanceTitle.textContent;
+    fitGlanceHeader();
+  }
+
+  // The title is what the header is for. Before it is cut below about ten
+  // characters, Make main gives up its label for its swap icon (its name and
+  // tooltip stay). Measured, not a fixed width, because the label's length
+  // depends on the language and Windows and Linux reserve the window
+  // controls' width. 70 px is the floor the Island keeps for its address
+  // too. Measured only when an input changed (the title, the header's width
+  // or direction, the font swap), not on every broadcast.
+  let glanceHeaderFitKey = '';
+  function fitGlanceHeader() {
+    const titleFloor = 70;
+    const key = glanceHeader.hidden ? '' : [glanceTitle.textContent, glanceHeader.style.width, glanceHeader.dataset.direction].join('|');
+    if (key === glanceHeaderFitKey) return;
+    glanceHeaderFitKey = key;
+    glanceHeader.classList.remove('promote-icon');
+    if (glanceHeader.hidden) return;
+    // At the narrowest tier the stylesheet hides the title altogether; Make
+    // main is icon-only there too.
+    if (glanceTitle.getClientRects().length === 0) { glanceHeader.classList.add('promote-icon'); return; }
+    const cut = glanceTitle.scrollWidth > glanceTitle.clientWidth + 1;
+    if (cut && glanceTitle.getBoundingClientRect().width < titleFloor) glanceHeader.classList.add('promote-icon');
   }
 
   function queueGlanceResize(point) {
@@ -516,6 +726,15 @@
   darkSchemeQuery.addEventListener('change', releaseOptimisticThemeAppearance);
 
   const DOT_CAP = 8;
+  /** How many dots fit right now: DOT_CAP, or fewer when the pill is too
+   * narrow for its controls (fitIslandDots). */
+  let dotBudget = DOT_CAP;
+  let dotFitKey = '';
+  /** The last measured main-pane minimum (measureGlanceFloors), reported to
+   * main with the Island's rectangle. */
+  let islandFloor = null;
+  /** The last measured reference minimum (the compact Glance header). */
+  let referenceFloor = null;
 
   /** The resting Island is current context, not a false total-tab map:
    * standalone pins stay globally reachable, followed by the active section
@@ -546,7 +765,7 @@
     // The pinned shelf is already the active section in this case. Return it
     // as one set so no artificial section gap or duplicate active dot appears.
     if (activeIsStandalonePin) {
-      const pinned = activeWindow(standalonePins, DOT_CAP);
+      const pinned = activeWindow(standalonePins, dotBudget);
       return {
         pinned,
         section: [],
@@ -557,13 +776,13 @@
 
     // Reserve one slot for the active tab before applying pinned-first
     // priority. Any additional standalone pins remain included in +N.
-    const pinned = standalonePins.slice(0, Math.max(0, DOT_CAP - 1));
+    const pinned = standalonePins.slice(0, Math.max(0, dotBudget - 1));
     const sectionMembers = tab.groupId
       ? state.tabs
         .filter((t) => t.groupId === tab.groupId)
         .sort((a, b) => Number(b.pinned) - Number(a.pinned))
       : state.tabs.filter((t) => !t.groupId && !t.pinned);
-    const section = activeWindow(sectionMembers, DOT_CAP - pinned.length);
+    const section = activeWindow(sectionMembers, dotBudget - pinned.length);
     const shown = [...pinned, ...section];
     return {
       pinned,
@@ -789,14 +1008,8 @@
     favoriteBtn.classList.toggle('on', favoritable && !!tab?.bookmarked);
     favoriteBtn.title = tab?.bookmarked ? blancI18n.t('pill.unfavorite') : blancI18n.t('pill.favorite');
 
-    // Only rebuild the dot row when the dots themselves change — not on every
-    // blocked-count broadcast (see dotsSignature). Rebuilding tears down each
-    // dot's peek span and any keyboard focus on it.
-    const dotsSig = dotsSignature();
-    if (dotsSig !== lastDotsSig) {
-      lastDotsSig = dotsSig;
-      pillDots.replaceChildren(...islandDots());
-    }
+    // The dot row is fitted after renderGlance below: the pill's width
+    // depends on the Glance geometry it applies.
 
     setFavicon(pillFavicon, tab);
     renderPillLabel(tab);
@@ -820,8 +1033,7 @@
     // login form and 1Password fill is configured. Click = the normal
     // explicit fill — an invitation, never an action. Gated on the API
     // existing so Windows/Linux never surface it.
-    pillFillHint.hidden = !(tab?.fillHint === true
-      && typeof window.browserAPI.fillLoginFromOnePassword === 'function');
+    renderFillHint();
 
     // Shield chip: state fully derived in main (shield-model.js) and shipped
     // on the broadcast — the strip only renders. Always present on a page
@@ -867,6 +1079,7 @@
 
     applyStripTint(tab);
     renderGlance();
+    fitIslandDots();
 
     // The strip's draggable region is registered at the WINDOW level and
     // hit-tests above every WebContentsView — with the command bar overlay
@@ -926,6 +1139,16 @@
     window.browserAPI.openCapturePopover({ right: r.right });
   });
 
+  glanceBack.addEventListener('click', (event) => {
+    event.stopPropagation();
+    if (state.glanceTabId) window.browserAPI.goBack(state.glanceTabId);
+  });
+  glanceReload.addEventListener('click', (event) => {
+    event.stopPropagation();
+    if (!state.glanceTabId) return;
+    if (glanceReload.dataset.mode === 'stop') window.browserAPI.stop(state.glanceTabId);
+    else window.browserAPI.reload(state.glanceTabId);
+  });
   glancePromote.addEventListener('click', (event) => {
     event.stopPropagation();
     window.browserAPI.promoteGlance();
@@ -987,8 +1210,10 @@
     if (!glanceLayout) return;
     let next = glanceKeyRatio ?? glanceLayout.ratio;
     const step = event.shiftKey ? 0.05 : 0.02;
-    if (event.key === 'Home') next = 0.5;
-    else if (event.key === 'End') next = 0.78;
+    const minRatio = glanceLayout.minRatio ?? 0.5;
+    const maxRatio = glanceLayout.maxRatio ?? 0.78;
+    if (event.key === 'Home') next = minRatio;
+    else if (event.key === 'End') next = maxRatio;
     else if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       glanceKeyRatio = null;
@@ -1004,7 +1229,7 @@
     ) next += step;
     else return;
     event.preventDefault();
-    glanceKeyRatio = Math.max(0.5, Math.min(0.78, next));
+    glanceKeyRatio = Math.max(minRatio, Math.min(maxRatio, next));
     const point = pointForGlanceRatio(glanceKeyRatio);
     if (point) window.browserAPI.resizeGlance(point);
   });
@@ -1061,7 +1286,13 @@
     // Main has echoed the applied ratio; later keydowns step from the layout
     // again until the next same-task burst.
     glanceKeyRatio = null;
+    // Only the Glance header and the fill chip depend on this message. A full
+    // render() here would re-apply the rail width from the last tabs payload
+    // on every resize, snapping the rail back mid-drag.
     renderGlance();
+    renderFillHint();
+    fitIslandDots();
+    requestAnimationFrame(() => reportIslandRect());
   });
   window.browserAPI.onGlanceStatus((message) => {
     glanceStatus.textContent = message;
@@ -1150,6 +1381,8 @@
       height,
       ...(trigger ? { shieldAnchor: shieldAnchorFor(trigger) } : {}),
       ...(pillSpace.getAttribute('aria-expanded') === 'true' ? { spacesAnchor: spacesAnchor() } : {}),
+      ...(islandFloor != null ? { minPrimaryWidth: islandFloor } : {}),
+      ...(referenceFloor != null ? { minReferenceWidth: referenceFloor } : {}),
     };
     const serialized = JSON.stringify(rect);
     if (serialized === lastIslandReport) return;

@@ -1,10 +1,12 @@
 # 1Password login fill
 
-Status: shipped on macOS since v1.9.0. Windows and Linux are wired up on main
-from October 10, 2026 (see *Windows and Linux enablement* below) but have not
-shipped in a public release. Their live-account gate ran in virtual machines on
-October 10–12, 2026, with a written waiver for what those machines could not
-show (see *Windows and Linux real-account gate* below). The
+Status: shipped on macOS since v1.9.0, and on Windows and Linux since v1.34.0
+(October 14, 2026; see *Windows and Linux enablement* below). Their
+live-account gate ran in virtual machines on October 10–12, 2026, with a
+written waiver for what those machines could not show (see *Windows and Linux
+real-account gate* below). They shipped unannounced; on October 16, 2026 the
+owner chose to announce them on the website, within that evidence and naming
+the Windows on Arm limit. The
 product-owner risk decision is recorded in
 [`1password-legal-inquiry.md`](1password-legal-inquiry.md). This integration is
 independent, is not affiliated with or endorsed by 1Password, and remains
@@ -109,6 +111,17 @@ this device and are excluded from Profile Sync.
   page or surface the user has already left. The picker anchors at the login
   field's live position, re-read under the fill's nonce immediately before
   the menu opens.
+- **Which page is filled (Glance).** With Glance open, the fill targets the
+  focused pane: the reference when keyboard focus is in it, otherwise the main
+  page (`commandTargetTab` in `src/main/glance-focus.js`). The ambient hint
+  probes both visible panes, and the Island's chip shows the focused pane's
+  result. At every checkpoint the flow re-verifies that its tab is still one
+  of the window's two visible panes, and the picker anchors at the field
+  inside that pane's own view bounds. A capsule message belongs to the pane
+  it is about: that pane's main-frame or same-document navigation dismisses
+  it, the other pane's does not (`invalidatePending(runtimeId, tabId)`). The
+  broker, the credential path, the explicit-invoke rule and the
+  renderer-free boundary are unchanged.
 
 ## Release gates
 

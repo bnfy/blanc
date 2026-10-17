@@ -37,6 +37,11 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     tabOrder: [],
     activeTabId: null,
     groups: [],
+    /** Recently closed band: how many of `groups` sit above it (0 = under
+     * Pinned), and the group ids it was last reconciled against
+     * (closed-slot.js). Only closedSlot is persisted. */
+    closedSlot: 0,
+    closedSlotIds: [],
     /** Named Workspaces single-window binding: the id of the workspace this
      * window currently shows, or null for a scratch window. The process-wide
      * {workspaceId: windowId} map is derived from live runtimes on demand —
@@ -50,6 +55,17 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
      * and ephemeral: it never crosses windows/profiles or session restore. */
     glanceTabId: null,
     glanceRatio: DEFAULT_GLANCE_RATIO,
+    /** The visible pane (main or reference tab id) that last took keyboard
+     * focus; browser commands without a sending pane act on it
+     * (glance-focus.js). Main-process only: never crosses IPC or disk. */
+    focusedPaneTabId: null,
+    /** The narrowest side-by-side main pane that holds the slim Island with
+     * a readable address, as the strip last measured it (0 until then). */
+    islandMinPrimaryWidth: 0,
+    /** The narrowest reference that holds the Glance header at its most
+     * compact, window-control space included, as the strip last measured it
+     * (0 until then; glance-layout.js then uses its 300px default). */
+    glanceMinReferenceWidth: 0,
     /** Reopen-closed history belongs to this native workspace, not the app
      * process. Entries remain memory-only, matching the pre-M2 behavior, and
      * the newest may hold the closed tab's still-live view (spec §2.1). */
@@ -201,6 +217,7 @@ function detachWindow(runtime) {
   runtime.overlayPrefill = null;
   runtime.overlayPurpose = null;
   runtime.glanceTabId = null;
+  runtime.focusedPaneTabId = null;
   runtime.utilitySheetView = null;
   runtime.utilitySheetUrl = null;
   runtime.utilitySheetEscapeArmed = false;

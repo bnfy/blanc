@@ -41,6 +41,16 @@ Never set `CLEANUP_ENABLED` until every account has a marker:
 - `GET /v1/blob/:accountId/:store` → `{ version, blob }` | 404 | 429
 - `PUT /v1/blob/:accountId/:store` `{ ifVersion, blob }` → `{ version }` | 409 | 400 | 413
 - `DELETE /v1/blob/:accountId` → 204 (account wipe)
+- `POST /v1/pair/:pairId` `{ blob }` → 201 | 409 `{"error":"exists"}` | 400 | 413 (4 KiB cap).
+  Device pairing (design 2026-10-16): the sender parks its wrapped sync secret
+  under an id derived from an eight-character code; stored with a 600 s TTL.
+- `GET /v1/pair/:pairId` → `{ blob }` and the entry is deleted | 404
+  `{"error":"not-found"}` | 429 past 10 pair GETs per client IP per minute.
+  One-shot by design; the Worker never sees the code or any key.
+- `DELETE /v1/pair/:pairId` → 204 (the sender cancelled).
+  Deploy this route before any client release that offers pairing; older
+  clients never call it, and a client meeting an older Worker reports
+  "pairing unavailable" and falls back to name and passphrase.
 
 `accountId` is 64 hex chars; `store` is one of `bookmarks`, `settings`,
 `session` (tab sync — per-device open-tab snapshots), or `icons` (optional

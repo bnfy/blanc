@@ -37,4 +37,4 @@ function decrypt(key, blob) {
   return Buffer.concat([decipher.update(Buffer.from(blob.ct, 'base64')), decipher.final()]).toString('utf8');
 }
 
-module.exports = { deriveKeys, encrypt, decrypt };
+module.exports = { SCRYPT, deriveKeys, encrypt, decrypt };

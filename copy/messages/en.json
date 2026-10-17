@@ -124,6 +124,18 @@
     "message": "Switch to a space, or type a new name to save this window",
     "note": "Slash command hint shown in the ⌘L palette for /space (/workspace still works as an alias)."
   },
+  "slash.glance.hint": {
+    "message": "Keep another open tab beside this page",
+    "note": "The /glance slash command's hint in the ⌘L list and on the Shortcuts page. Opens the Glance picker (the Change picker while Glance is open)."
+  },
+  "slash.glance.doc": {
+    "message": "Open the Glance picker, filtered to the text",
+    "note": "The Shortcuts page's description of /glance <text>: the text becomes the picker's filter."
+  },
+  "slash.invite.hint": {
+    "message": "Email a friend a link to download Blanc",
+    "note": "Slash command hint shown in the ⌘L palette for /invite. Opens a new email in the person’s own mail app, ready to address to a friend."
+  },
   "settings.language.label": {
     "message": "Language",
     "note": "Settings → General row label and the language menu's accessible name.",
@@ -339,8 +351,8 @@
     "note": "Uppercase eyebrow of the Glance reference-pane header. Glance is a fixed product name."
   },
   "glance.promote": {
-    "message": "Make Glance the main page",
-    "note": "Tooltip and accessible name of the button that swaps Glance with the main page."
+    "message": "Make main — swap with the main page",
+    "note": "Tooltip and accessible name of the button that swaps Glance with the main page. Begins with the visible label (glance.promoteShort) so speech-input users can say what they see."
   },
   "glance.promoteShort": {
     "message": "Make main",
@@ -468,6 +480,10 @@
     "message": "Moved group {group}",
     "note": "Announced after moving a tab group; {group} is its name."
   },
+  "drag.movedClosed": {
+    "message": "Moved Recently closed",
+    "note": "Announced after moving the Recently closed section of the ⌘L panel among the tab groups. \"Recently closed\" is that section's header (closed.header)."
+  },
   "drag.movedTab": {
     "message": "Moved {title}",
     "note": "Announced after reordering a tab; {title} is its title."
@@ -521,13 +537,13 @@
     "note": "Rail group state read by screen readers."
   },
   "rail.private.marker": {
-    "message": "private",
-    "note": "Lowercase marker on a private tab's rail row.",
+    "message": "Private",
+    "note": "Marker on a private tab's rail row. Sentence case.",
     "maxLength": 10
   },
   "rail.section.pinned": {
-    "message": "pinned",
-    "note": "Lowercase heading of the rail section holding pinned tabs that are not in a group.",
+    "message": "Pinned",
+    "note": "Heading of the rail section holding pinned tabs that are not in a group. Sentence case.",
     "maxLength": 14
   },
   "rail.section.tabs": {
@@ -855,14 +871,23 @@
     "note": "Accessible name of the button that collapses the expanded Island."
   },
   "footer.newTab": {
-    "message": "new tab",
-    "note": "Lowercase launcher label in the Island footer.",
+    "message": "New tab",
+    "note": "Label of the New tab button at the left of the ⌘L panel footer; its shortcut follows it. Sentence case; keep it short.",
     "maxLength": 12
   },
   "footer.private": {
-    "message": "private",
-    "note": "Lowercase launcher label for a private tab in the Island footer.",
+    "message": "Private",
+    "note": "Label of the button that opens a new private tab, beside New tab in the ⌘L panel footer. Sentence case; keep it short.",
     "maxLength": 10
+  },
+  "footer.devices": {
+    "message": "Other devices",
+    "note": "Footer toggle in the ⌘L panel that opens the list of tabs open on the person's other synced devices. Sentence case; keep it short — it shares one line with New tab, Private and six icons.",
+    "maxLength": 16
+  },
+  "footer.devices.title": {
+    "message": "Tabs open on your other devices",
+    "note": "Tooltip of the Other devices footer toggle."
   },
   "footer.newPrivate.title": {
     "message": "New private tab ({shortcut})",
@@ -1106,6 +1131,10 @@
   "glance.openFailed": {
     "message": "Couldn’t open that tab in Glance",
     "note": "Glance picker error."
+  },
+  "glance.picker.opening": {
+    "message": "Opening…",
+    "note": "The picker row's secondary line, and the live region, while a chosen quiet tab wakes."
   },
   "find.placeholder": {
     "message": "Find in page",
@@ -1352,11 +1381,6 @@
     "message": "Unmute tab",
     "note": "Tab row button."
   },
-  "row.glance": {
-    "message": "glance",
-    "note": "Lowercase tab row button that opens the tab in Glance (a fixed product name).",
-    "maxLength": 8
-  },
   "row.glanceOpen": {
     "message": "Open this tab in Glance",
     "note": "Tooltip of that button."
@@ -1389,9 +1413,13 @@
     "message": "Could not quiet background tabs.",
     "note": "Notice when /sleep fails."
   },
+  "slash.invite.copied": {
+    "message": "Your mail app didn’t open, so the invite was copied. Paste it into a message.",
+    "note": "Notice in the ⌘L palette after /invite when no mail app could open the email; the invite text is now on the clipboard."
+  },
   "closed.header": {
-    "message": "recently closed",
-    "note": "Lowercase header of the recently-closed section in the Island.",
+    "message": "Recently closed",
+    "note": "Header of the Recently closed section in the ⌘L panel, styled like a tab group header. Sentence case.",
     "maxLength": 22
   },
   "closed.fold": {
@@ -1403,9 +1431,9 @@
     "note": "Tooltip of the collapsed recently-closed header."
   },
   "closed.clear": {
-    "message": "clear",
-    "note": "Lowercase button that forgets every recently-closed entry.",
-    "maxLength": 8
+    "message": "Clear all",
+    "note": "Button on the Recently closed header that forgets every entry. Sentence case.",
+    "maxLength": 16
   },
   "closed.clearAll": {
     "message": "Forget all closed tabs",
@@ -1424,33 +1452,33 @@
     "note": "Button that forgets one recently-closed entry."
   },
   "result.tag.tab": {
-    "message": "tab",
-    "note": "Lowercase tag on a Quick Switcher result that is an open tab.",
+    "message": "Tab",
+    "note": "Tag on a Quick Switcher result that is an open tab. Sentence case.",
     "maxLength": 8
   },
   "result.tag.favorite": {
-    "message": "favorite",
-    "note": "Lowercase tag on a Quick Switcher result from Favorites.",
+    "message": "Favorite",
+    "note": "Tag on a Quick Switcher result from Favorites. Sentence case.",
     "maxLength": 10
   },
   "result.tag.history": {
-    "message": "history",
-    "note": "Lowercase tag on a Quick Switcher result from History.",
+    "message": "History",
+    "note": "Tag on a Quick Switcher result from History. Sentence case.",
     "maxLength": 10
   },
   "result.tag.group": {
-    "message": "group",
-    "note": "Lowercase tag on a Quick Switcher result that is a tab group.",
+    "message": "Group",
+    "note": "Tag on a Quick Switcher result that is a tab group. Sentence case.",
     "maxLength": 10
   },
   "result.tag.remote": {
-    "message": "remote",
-    "note": "Lowercase tag on a Quick Switcher result that is a tab on another device.",
+    "message": "Remote",
+    "note": "Tag on a Quick Switcher result that is a tab on another device. Sentence case.",
     "maxLength": 10
   },
   "siteInfo.localPage": {
-    "message": "local page",
-    "note": "Site information origin line for a local page."
+    "message": "Local page",
+    "note": "Site information origin line for a local page. Sentence case."
   },
   "siteInfo.cert.subject": {
     "message": "Certificate for",
@@ -1489,44 +1517,76 @@
     "note": "Site information button that forgets a certificate exception."
   },
   "siteInfo.hint.certError": {
-    "message": "this certificate could not be verified",
-    "note": "Lowercase hint under the site information card."
+    "message": "This certificate could not be verified",
+    "note": "Hint under the site information card. Sentence case."
   },
   "siteInfo.hint.certException": {
-    "message": "you continued past a certificate warning",
-    "note": "Lowercase hint under the site information card."
+    "message": "You continued past a certificate warning",
+    "note": "Hint under the site information card. Sentence case."
   },
   "siteInfo.hint.chromium": {
-    "message": "connection details are supplied by Chromium",
-    "note": "Lowercase hint under the site information card."
+    "message": "Connection details are supplied by Chromium",
+    "note": "Hint under the site information card. Sentence case."
   },
   "list.noCommand": {
-    "message": "no matching command",
-    "note": "Lowercase empty row in the slash command list."
+    "message": "No matching command",
+    "note": "Empty row in the slash command list. Sentence case."
   },
   "list.noMatches": {
-    "message": "no matches — ↵ opens as address or search",
-    "note": "Lowercase empty row in the Quick Switcher."
+    "message": "No matches — ↵ opens as address or search",
+    "note": "Empty row in the Quick Switcher. Sentence case."
+  },
+  "bang.search": {
+    "message": "Search {site} for “{query}”",
+    "note": "The Island's bang hint row while a bang with words is typed (!yt lofi); {site} is the site's name, {query} the words."
+  },
+  "bang.open": {
+    "message": "Open {site}",
+    "note": "The Island's bang hint row for a bare code (!yt): Enter opens the site's front page."
+  },
+  "bang.yours": {
+    "message": "Yours",
+    "note": "Tag on a bang picker row for a bang the person added in Settings, where other rows show the site's domain. Sentence case.",
+    "maxLength": 10
+  },
+  "bang.section.recent": {
+    "message": "Recent",
+    "note": "Header of the bang picker's recently used section. Sentence case, like the other ⌘L panel headers.",
+    "maxLength": 22
+  },
+  "bang.section.popular": {
+    "message": "Popular",
+    "note": "Header of the bang picker's popular section. Sentence case.",
+    "maxLength": 22
+  },
+  "bang.section.all": {
+    "message": "All bangs",
+    "note": "Header of the bang picker's section of every other matching bang. Sentence case.",
+    "maxLength": 22
+  },
+  "bang.fold": {
+    "message": "Fold this section",
+    "note": "Tooltip of an unfolded bang picker header."
+  },
+  "bang.unfold": {
+    "message": "Unfold this section",
+    "note": "Tooltip of a folded bang picker header."
+  },
+  "hint.bang": {
+    "message": "!code words searches one site · ! alone lists them",
+    "note": "Hint under the Island list while a bang is typed. Keep !code and ! as typed; the rest is sentence case."
   },
   "hint.private": {
-    "message": "private · nothing here is saved to history",
-    "note": "Lowercase hint under the Island list on a private tab."
-  },
-  "hint.groups": {
-    "message": "/group moves this tab · {mod}1–9 jumps between sections",
-    "note": "Lowercase hint under the Island list when groups exist; {mod} is ⌘ or ctrl+."
-  },
-  "hint.default": {
-    "message": "{mod}L summons · / for commands",
-    "note": "Lowercase hint under the Island list; {mod} is ⌘ or ctrl+."
+    "message": "Private tab · Nothing here is saved to history",
+    "note": "Note under the ⌘L panel footer while the active tab is private. Sentence case."
   },
   "result.groupCount": {
     "message": "{count, plural, one {# tab} other {# tabs}}",
     "note": "Detail line of a Quick Switcher group result: how many tabs the group holds."
   },
   "result.tag.search": {
-    "message": "search",
-    "note": "Lowercase tag on a Quick Switcher search row when the search engine's own name is not available.",
+    "message": "Search",
+    "note": "Tag on a Quick Switcher search row when the search engine's own name is not available. Sentence case.",
     "maxLength": 10
   },
   "menu.newWindow": {
@@ -1629,6 +1689,10 @@
     "message": "Open Link in New Tab",
     "note": "Page context menu command for a link."
   },
+  "contextMenu.openLinkInGlance": {
+    "message": "Open Link in Glance",
+    "note": "Page context menu item on a link, after Open Link in New Tab: the link opens as the Glance reference."
+  },
   "contextMenu.copyLinkAddress": {
     "message": "Copy Link Address",
     "note": "Page context menu command for a link."
@@ -1688,6 +1752,34 @@
   "tabMenu.rename": {
     "message": "Rename Tab…",
     "note": "Tab context menu command that opens the ⌘L bar to type a custom name for the tab."
+  },
+  "prompt.renameGroup": {
+    "message": "Rename group · Enter saves · Esc cancels",
+    "note": "One line in the ⌘L panel while its field edits a group's name (after Rename Group…). Sentence case."
+  },
+  "prompt.renameDevice": {
+    "message": "Rename device · Enter saves · Esc cancels",
+    "note": "One line in the ⌘L panel while its field edits another synced device's name (after Rename Device…). An empty name shows the name the device reports again. Sentence case."
+  },
+  "groupMenu.duplicate": {
+    "message": "A group named “{name}” already exists",
+    "note": "Shown in the ⌘L panel when a group is renamed to a name another group in the window already has; {name} is what was typed."
+  },
+  "groupMenu.close": {
+    "message": "Close Group",
+    "note": "Item in a tab group header's right-click menu; closes every tab in the group."
+  },
+  "groupMenu.ungroup": {
+    "message": "Ungroup",
+    "note": "Item in a tab group header's right-click menu; every tab in the group becomes an ungrouped tab."
+  },
+  "groupMenu.rename": {
+    "message": "Rename Group…",
+    "note": "Item in a tab group header's right-click menu (⌘L panel and vertical tabs rail); opens the panel to rename the group. Menu items use title case, like Rename Tab…."
+  },
+  "deviceMenu.rename": {
+    "message": "Rename Device…",
+    "note": "Only item in the right-click menu of a synced device's header in the ⌘L panel's Other devices drawer; opens the panel to rename that device on every synced device. Menu items use title case, like Rename Group…."
   },
   "tabMenu.resetTitle": {
     "message": "Reset Tab Title",
@@ -2304,6 +2396,38 @@
     "message": "Sync is off.",
     "note": "Profile Sync status when syncing is requested while it is off."
   },
+  "settings.sync.recovery.dialogMessage": {
+    "message": "Copy your sync recovery code?",
+    "note": "Settings → Sync → Copy recovery code: native dialog title."
+  },
+  "settings.sync.recovery.dialogDetail": {
+    "message": "Anyone with this code can read and change your synced data. Paste it into your password manager now, and nowhere else.",
+    "note": "Settings → Sync → Copy recovery code: native dialog body."
+  },
+  "settings.sync.recovery.dialogCopy": {
+    "message": "Copy to Clipboard",
+    "note": "Settings → Sync → Copy recovery code: native dialog confirm button."
+  },
+  "settings.sync.recovery.cancel": {
+    "message": "Cancel",
+    "note": "Settings → Sync → Copy recovery code: native dialog cancel button."
+  },
+  "sync.error.syncOn": {
+    "message": "Sync is already on. To move this device to a different sync, use Connect to a different sync.",
+    "note": "Sync: a pairing code was entered on the setup card while Sync was already on."
+  },
+  "sync.error.pairNotFound": {
+    "message": "That code isn’t valid any more. Make a new one on your other device.",
+    "note": "Sync: a pairing code was not found on the server, or has expired or been used."
+  },
+  "sync.error.pairUnavailable": {
+    "message": "Pairing isn’t available right now. You can still connect with your sync name and passphrase.",
+    "note": "Sync: the server does not offer pairing (older deployment)."
+  },
+  "sync.error.pairInvalid": {
+    "message": "That doesn’t look like a code. Check it and try again.",
+    "note": "Sync: a pairing or recovery code failed local validation before any network call."
+  },
   "sync.error.localKeyProtect": {
     "message": "Could not protect the local sync key",
     "note": "Profile Sync status line when the saved key could not be protected."
@@ -2592,6 +2716,27 @@
     "message": "Show All Shortcuts…",
     "note": "Help menu item that opens the shortcuts page."
   },
+  "menu.inviteFriend": {
+    "message": "Invite a Friend…",
+    "note": "Help menu item that opens a new email inviting a friend to try Blanc, in the person’s own mail app.",
+    "maxLength": 32
+  },
+  "invite.email.subject": {
+    "message": "Try Blanc, the browser I use",
+    "note": "Subject of the invite email the person sends a friend from their own mail app (Help → Invite a Friend…, /invite). Written in the person’s voice."
+  },
+  "invite.email.greeting": {
+    "message": "Hi,",
+    "note": "First line of the invite email the person sends a friend. Written in the person’s voice."
+  },
+  "invite.email.pitch": {
+    "message": "I’ve been using Blanc, a free and open-source web browser for Mac, Windows and Linux. It blocks known ads and trackers by default, with nothing extra to install.",
+    "note": "Middle paragraph of the invite email the person sends a friend, in the person’s voice. Every claim must stay true of the current release: keep “known” and “by default”."
+  },
+  "invite.email.link": {
+    "message": "You can download it here: {url}",
+    "note": "Last line of the invite email. {url} is the blanc.day download link."
+  },
   "shortcuts.island": {
     "message": "Island",
     "note": "Shortcuts page category for the Island’s own keys (a fixed product name)."
@@ -2617,8 +2762,8 @@
     "note": "Screen reader announcement."
   },
   "glance.status.promoted": {
-    "message": "Glance made main",
-    "note": "Screen reader announcement after the Glance tab becomes the main tab."
+    "message": "{title} is now the main page; {other} is in Glance",
+    "note": "Screen reader announcement after Make main: the former reference ({title}) is the main page and the former main page ({other}) is in Glance."
   },
   "glance.status.tabClosed": {
     "message": "Glance closed because its tab was closed",
@@ -2986,7 +3131,11 @@
   },
   "about.credits": {
     "message": "Independent browser by Bananify.",
-    "note": "macOS About panel credits line; Bananify is the company name."
+    "note": "About panel credits line on Windows; Bananify is the company name."
+  },
+  "about.chromium": {
+    "message": "Chromium {version}",
+    "note": "About panel line naming the browser engine Blanc runs on; {version} is its full version number, such as 152.0.7977.167. Chromium is a product name."
   },
   "settings.page.title": {
     "message": "Settings",
@@ -3317,6 +3466,61 @@
     "message": "Send eligible typed prefixes to your selected search provider, including Google if selected. Private tabs and recognized sensitive-looking input are excluded. Submitting a search sends the completed query even when suggestions are off.",
     "note": "Settings → General: explanation under a setting."
   },
+  "settings.general.bangs.label": {
+    "message": "Bangs",
+    "note": "Settings → General: setting name. A bang is a !code typed in the address bar that searches one site directly."
+  },
+  "settings.general.bangs.hint": {
+    "message": "Type ! followed by a site's code to search that site directly, for example !w for Wikipedia or !yt for YouTube. Type ! alone to see them. It syncs with your other settings.",
+    "note": "Settings → General: explanation under the Bangs switch. Keep !w, !yt and ! as typed."
+  },
+  "settings.general.customBangs.label": {
+    "message": "Your bangs",
+    "note": "Settings → General: heading of the list of bangs the person added."
+  },
+  "settings.general.customBangs.hint": {
+    "message": "Syncs with your other settings; the device that saves last wins.",
+    "note": "Settings → General: explanation under the Your bangs heading."
+  },
+  "settings.general.customBangs.code": {
+    "message": "Code",
+    "note": "Settings → General → Your bangs: placeholder and accessible name of the code field (the part after !).",
+    "maxLength": 12
+  },
+  "settings.general.customBangs.name": {
+    "message": "Name",
+    "note": "Settings → General → Your bangs: placeholder and accessible name of the site name field.",
+    "maxLength": 16
+  },
+  "settings.general.customBangs.address": {
+    "message": "Address with %s",
+    "note": "Settings → General → Your bangs: accessible name of the search address field; %s stays as typed."
+  },
+  "settings.general.customBangs.add": {
+    "message": "Add",
+    "note": "Settings → General → Your bangs: button.",
+    "maxLength": 12
+  },
+  "settings.general.customBangs.empty": {
+    "message": "No bangs of your own yet.",
+    "note": "Settings → General → Your bangs: shown when the list is empty."
+  },
+  "settings.general.customBangs.replaces": {
+    "message": "Replaces the built-in !{code} ({site})",
+    "note": "Settings → General → Your bangs: shown after adding a bang whose code a built-in bang already uses; {code} is the code, {site} the built-in's site name."
+  },
+  "settings.general.customBangs.duplicate": {
+    "message": "You already have !{code}.",
+    "note": "Settings → General → Your bangs: shown when the code is already in the person's own list."
+  },
+  "settings.general.customBangsError": {
+    "message": "That bang isn't valid — check the code and the address.",
+    "note": "Settings → General → Your bangs: shown when main refused the row (code outside the grammar, empty name, or an address that is not https:// with one %s after the host)."
+  },
+  "settings.general.customBangs.remove": {
+    "message": "Remove !{code}",
+    "note": "Settings → General → Your bangs: accessible name of the × button beside one bang; {code} is its code."
+  },
   "settings.general.homePage.label": {
     "message": "New tab page",
     "note": "Settings → General: setting name."
@@ -3334,7 +3538,7 @@
     "note": "Settings → Sync → Set up Sync: card heading."
   },
   "settings.sync.syncSetupIntro": {
-    "message": "Sync your favorites and settings across your devices, and, if you choose, open tabs. Everything is end-to-end encrypted — Blanc can’t read it, and can’t recover it if you forget your passphrase.",
+    "message": "Sync your favorites, settings and device names across your devices, and, if you choose, open tabs. Everything is end-to-end encrypted — Blanc can’t read it, and can’t recover it if you forget your passphrase.",
     "note": "Settings → Sync → Set up Sync: text (p)."
   },
   "settings.sync.syncPaths.ariaLabel": {
@@ -3404,6 +3608,14 @@
   "settings.sync.syncName": {
     "message": "Sync name",
     "note": "Settings → Sync → Set up Sync: text (dt)."
+  },
+  "settings.sync.deviceName": {
+    "message": "This device’s name",
+    "note": "Settings → Sync, on: label (dt) of the field naming this device as the user's other devices list it (in their Island's Other devices, Quick Switcher and start page)."
+  },
+  "settings.sync.deviceNameHint": {
+    "message": "How your other devices list this one. Leave empty to use the computer’s name.",
+    "note": "Settings → Sync, on: hint under This device’s name. The field's placeholder shows the computer's name."
   },
   "settings.sync.favoritesAndSettings": {
     "message": "Favorites and settings",
@@ -4252,7 +4464,7 @@
     "note": "Settings → Sync: confirmation when starting sync found existing data under that name; {name} is the sync name."
   },
   "settings.sync.on": {
-    "message": "Sync is on. Your favorites and settings will sync as you change them.",
+    "message": "Sync is on. Your favorites, settings and device names will sync as you change them.",
     "note": "Settings → Sync: confirmation after turning sync on."
   },
   "settings.sync.checking": {
@@ -4276,8 +4488,88 @@
     "note": "Settings → Sync setup: error."
   },
   "settings.sync.setup.intro": {
-    "message": "Sync your favorites and settings across your devices, and, if you choose, open tabs. Everything is end-to-end encrypted.",
+    "message": "Sync your favorites, settings and device names across your devices, and, if you choose, open tabs. Everything is end-to-end encrypted.",
     "note": "Settings → Sync setup: introduction before a path is chosen."
+  },
+  "settings.sync.setup.codeTitle": {
+    "message": "Enter the code from your other device",
+    "note": "Settings → Sync → Add this device: step heading above the code field."
+  },
+  "settings.sync.setup.codeHint": {
+    "message": "It’s good for ten minutes.",
+    "note": "Settings → Sync → Add this device: hint under the code field."
+  },
+  "settings.sync.addThisDeviceHint": {
+    "message": "Get a code from a device that already syncs: Settings → Sync → Add another device.",
+    "note": "Settings → Sync: hint under the Add this device to my sync button and intro of the code step."
+  },
+  "settings.sync.addThisDevice": {
+    "message": "Add this device to my sync",
+    "note": "Settings → Sync → Set up Sync: first path button (join with a code from another device)."
+  },
+  "settings.sync.startOnlyFirstDevice": {
+    "message": "Only for your first device. If you already sync elsewhere, add this device from there instead.",
+    "note": "Settings → Sync → Set up Sync: hint under Start syncing from this device."
+  },
+  "settings.sync.setup.codeFinishHint": {
+    "message": "Your favorites and settings arrive right after. Open tabs stay private to this device until you choose to share them.",
+    "note": "Settings → Sync → Add this device: text above the Connect button."
+  },
+  "settings.sync.setup.usePassphrase": {
+    "message": "Use my sync name and passphrase instead",
+    "note": "Settings → Sync → Add this device: link to the name-and-passphrase fallback."
+  },
+  "settings.sync.addAnotherDevice": {
+    "message": "Add another device",
+    "note": "Settings → Sync (on): button that shows a pairing code for a new device."
+  },
+  "settings.sync.pairing.instruction": {
+    "message": "On your other device, open Settings → Sync, choose Add this device to my sync, and enter this code.",
+    "note": "Settings → Sync → Add another device: instruction above the code."
+  },
+  "settings.sync.pairing.expiresIn": {
+    "message": "Expires in {time}",
+    "note": "Settings → Sync → Add another device: countdown; {time} is m:ss."
+  },
+  "settings.sync.pairing.copy": {
+    "message": "Copy",
+    "note": "Settings → Sync → Add another device: copies the pairing code."
+  },
+  "settings.sync.pairing.cancel": {
+    "message": "Cancel",
+    "note": "Settings → Sync: cancels the pairing code or the switch panel."
+  },
+  "settings.sync.pairing.expired": {
+    "message": "That code expired. Make a new one when you’re ready.",
+    "note": "Settings → Sync → Add another device: shown when the ten minutes run out."
+  },
+  "settings.sync.switch.open": {
+    "message": "Connect to a different sync with a code",
+    "note": "Settings → Sync (on): opens the panel that moves this device to another sync."
+  },
+  "settings.sync.switch.title": {
+    "message": "This device will leave its current sync, “{name}”.",
+    "note": "Settings → Sync → Connect to a different sync: heading; {name} is the current sync name."
+  },
+  "settings.sync.switch.body": {
+    "message": "Your favorites and settings stay on this device. Other devices on “{name}” are not affected.",
+    "note": "Settings → Sync → Connect to a different sync: explanation; {name} is the current sync name."
+  },
+  "settings.sync.switch.wipe": {
+    "message": "Also erase “{name}”’s server copy. Only do this if no other device uses it.",
+    "note": "Settings → Sync → Connect to a different sync: checkbox label; {name} is the current sync name."
+  },
+  "settings.sync.switch.connect": {
+    "message": "Connect",
+    "note": "Settings → Sync → Connect to a different sync: submit button."
+  },
+  "settings.sync.recovery.copy": {
+    "message": "Copy recovery code",
+    "note": "Settings → Sync (on): copies the recovery code to the clipboard after a native confirmation."
+  },
+  "settings.sync.recovery.copied": {
+    "message": "Copied. Paste it into your password manager.",
+    "note": "Settings → Sync: shown after the recovery code reached the clipboard."
   },
   "settings.sync.setup.joinTitle": {
     "message": "Connect this device",
@@ -4437,7 +4729,7 @@
     "note": "Settings → About & Trust: local trust receipt: build fact for a development run; {version} is the app version, {build} the build number."
   },
   "settings.trust.syncScope": {
-    "message": "Favorites, selected settings · Personal only",
+    "message": "Favorites, selected settings, device names · Personal only",
     "note": "Settings → About & Trust: local trust receipt: what Sync covers when it is on. “Personal” is the name of the built-in profile."
   },
   "settings.trust.crashLedger": {
@@ -4708,6 +5000,15 @@
   "newtab.patron.hide": {
     "message": "Hide the Blanc Patron invitation for 90 days",
     "note": "Start page footer: accessible name of the × on the Patron pill."
+  },
+  "newtab.whatsNew.label": {
+    "message": "What’s new in {version}",
+    "note": "Start page footer: pill shown for a week after Blanc updates, linking to that release on the website changelog; {version} is the new version number, such as 1.36.0.",
+    "maxLength": 33
+  },
+  "newtab.whatsNew.hide": {
+    "message": "Hide What’s new",
+    "note": "Start page footer: accessible name of the × on the What’s new pill."
   },
   "newtab.customize.button": {
     "message": "Customize",
@@ -5336,6 +5637,10 @@
   "shortcuts.slashCommands": {
     "message": "Slash Commands",
     "note": "Keyboard shortcuts page: heading above the slash commands typed in the Island."
+  },
+  "shortcuts.bangs": {
+    "message": "Search one site directly; ! alone lists them",
+    "note": "Keyboard shortcuts page, slash-commands section: the row for bangs, shown beside the key cap \"!code words\"."
   },
   "sheet.close": {
     "message": "Close",
@@ -7094,8 +7399,8 @@
     "maxLength": 6
   },
   "result.tag.space": {
-    "message": "space",
-    "note": "Lowercase tag on a Quick Switcher result that is a space.",
+    "message": "Space",
+    "note": "Tag on a Quick Switcher result that is a space. Sentence case.",
     "maxLength": 10
   },
   "workspaceMenu.edit": {
@@ -7105,6 +7410,28 @@
   "newtab.checklist.space": {
     "message": "Make your first space",
     "note": "Start page moving-in checklist task: opens the Spaces menu."
+  },
+  "newtab.checklist.default": {
+    "message": "Make Blanc your default",
+    "note": "Start page moving-in checklist task: asks the OS to make Blanc the default browser. Shown only where Blanc can ask (macOS, Windows)."
+  },
+  "defaultBrowser.reminder.title": {
+    "message": "Make Blanc your default browser?",
+    "note": "Default-browser reminder: native dialog heading, shown once a few days after setup if Blanc still isn't the default."
+  },
+  "defaultBrowser.reminder.body": {
+    "message": "Links you open from mail, chat and other apps will open in Blanc. You can change this anytime in Settings.",
+    "note": "Default-browser reminder: native dialog explanation under the heading."
+  },
+  "defaultBrowser.reminder.set": {
+    "message": "Set as default",
+    "note": "Default-browser reminder: native dialog button that asks the OS to make Blanc the default.",
+    "maxLength": 20
+  },
+  "defaultBrowser.reminder.later": {
+    "message": "Not now",
+    "note": "Default-browser reminder: native dialog button that closes it; it is never shown again.",
+    "maxLength": 20
   },
   "ws.editor.retry": {
     "message": "Try again",

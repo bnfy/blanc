@@ -120,11 +120,26 @@ Given('Quiet Tabs is off', async function () {
 After({ tags: '@F41-36 or @F41-39' }, async function () {
   await this.call('setQuietTabs', '1h');
 });
+// The test hook emulates the media feature through Electron's debugger, but
+// Playwright holds its own CDP session on the strip and, on Linux, reapplies
+// its own media emulation while the scenario drives the overlay, undoing it
+// (the Ubuntu VM reproduced this on main). Playwright's emulation is the one
+// that lasts, so the strip gets it from Playwright too, and the step waits
+// until the strip itself reports Reduce Motion.
 Given('Reduce Motion is on', async function () {
   assert.equal(await this.call('emulateReducedMotion', true), true);
+  await (await chromePage()).emulateMedia({ reducedMotion: 'reduce' });
+  await waitForValue(() => this.call('pillPlaceholderState'), (pill) => pill?.reducedMotion === true,
+    'the strip reporting Reduce Motion');
+  // The window was bound to its space before Reduce Motion was on, with the
+  // full switch animation. On a throttled Linux strip that animation's clock
+  // can lag seconds behind, and a switch made while it still runs would
+  // count its keyframes. Let the mark come to rest first.
+  await mark(this, (m) => m.animatedProperties.length === 0, 'the space mark at rest before the switch');
 });
 After({ tags: '@F41-23 or @F41-28' }, async function () {
   await this.call('emulateReducedMotion', false);
+  await (await chromePage()).emulateMedia({ reducedMotion: 'no-preference' });
 });
 
 When('I open the Spaces menu from the space mark', async function () {
@@ -270,10 +285,13 @@ const rgb = (hex) => `rgb(${[1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 1
 // The quiet mark: the space's exact colour fills the square behind its
 // symbol; the mark itself stays clear and the name is the Island's own text.
 Then('the Island\'s space mark reads {string} in {string} with the symbol {string}', async function (name, color, symbol) {
-  const m = await mark(this, (s) => s.state === 'space' && s.name === name && s.fill === color && s.symbol === symbol
-    && s.squareBackground === rgb(color), `the mark for ${name} in ${color} with ${symbol}`);
   // At rest the mark has no fill of its own; open, it takes the Island's
-  // control highlight, never the space's colour.
+  // control highlight, never the space's colour. The hover and open
+  // highlight fades over 350 ms (styles.css), so a mark just closed is still
+  // fading: wait for rest, not a frame of it.
+  const m = await mark(this, (s) => s.state === 'space' && s.name === name && s.fill === color && s.symbol === symbol
+    && s.squareBackground === rgb(color) && (s.expanded !== 'false' || s.markBackground === 'rgba(0, 0, 0, 0)'),
+  `the mark for ${name} in ${color} with ${symbol}, at rest`);
   if (m.expanded === 'false') assert.equal(m.markBackground, 'rgba(0, 0, 0, 0)', 'the mark has no fill of its own at rest');
   else assert.notEqual(m.markBackground, rgb(color), 'open, the mark is highlighted, not filled');
   assert.equal(m.nameColor, m.islandText, 'the name is the Island\'s ordinary text');
@@ -482,7 +500,8 @@ Then('the spaces are listed as {string} then {string}', async function (first, s
 });
 Then('the space mark changes to {string} without sliding', async function (name) {
   const m = await mark(this, (s) => s.name === name && s.animatedProperties.length > 0, `the switch animation to ${name}`);
-  assert.equal(m.animatedProperties.includes('transform'), false, `only opacity animates: ${m.animatedProperties}`);
+  assert.equal(m.animatedProperties.includes('transform'), false,
+    `only opacity animates: ${m.animatedProperties} (strip reduced motion ${m.reducedMotion}; ${JSON.stringify(m.animations)})`);
 });
 Then('the switch prompt offers save, new window, close, then cancel', async function () {
   const page = await menu();

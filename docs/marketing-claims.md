@@ -79,19 +79,21 @@ its qualifications remain subject to the release-backed claim gate above.
 
 ## Current Blanc capability boundaries
 
-These boundaries describe public v1.34.0; its scope, publication evidence and
-owner-confirmed adjacent public-feed updater handoffs are recorded in
-[the release report](release-incidents/2026-10-14-v1.34.0.md). Installed
+These boundaries describe public v1.36.0; its scope, publication evidence,
+pre-release hand checks and adjacent public-feed updater handoffs are recorded
+in [the release report](release-incidents/2026-10-17-v1.36.0.md). Installed
 candidates keep their original source/artifact bindings; hosted verification
 does not establish physical-machine outcomes. The v1.27.0 uBO acceptance, the
 v1.28.0 duplicate macOS build number, the v1.29.0, v1.30.0, v1.30.1, v1.31.0,
-v1.32.0 and v1.33.0 updater confirmations, the v1.30.0 drag-to-reorder hands-on coverage, historical
+v1.32.0, v1.33.0, v1.34.0 and v1.35.0 updater confirmations, the v1.35.0 hand checks, the v1.30.0 drag-to-reorder hands-on coverage, historical
 wallpaper/Linux waivers and earlier updater confirmations remain in their
 original reports:
 
-- **Optional uBlock Origin:** Public v1.34.0 offers full uBO 1.75.0 on
+- **Optional uBlock Origin:** Public v1.36.0 offers full uBO 1.75.0 on
   Apple Silicon, native Intel Mac, Windows x64 and Linux x64, on official
-  Electron 44.5.1. Click the Island shield to choose a blocker and restart
+  Electron 44.8.0, unchanged since v1.35.0. The move from 44.5.1 passed the real blocking and tools
+  suite on all four in hosted CI; the installed-candidate acceptance dates
+  from v1.27.0 on 44.5.1. Click the Island shield to choose a blocker and restart
   Blanc to apply it. Blanc Blocker stays the default and protects private
   tabs; Rosetta uses Blanc Blocker. Profile configuration is separate and
   outside Sync. Filter data can update, while executable resources remain
@@ -137,8 +139,25 @@ original reports:
   and a plain `http://` address is accepted only for this computer or the
   local network. Kagi needs a Kagi account, and private tabs don't share its
   sign-in. Kagi shows live suggestions; a custom engine shows none. Do not
-  claim search keywords or shortcuts, several saved custom engines, OpenSearch
-  auto-discovery, or suggestions for custom engines.
+  claim Chrome-style search-engine keywords, several saved custom engines,
+  OpenSearch auto-discovery, or suggestions for custom engines. Bangs are a
+  separate feature with their own entry below.
+- **Bangs:** Since v1.36.0 a known bang (`!` plus a site's code, such as
+  `!yt lofi`) at the start or the end of the text in the ⌘L or Ctrl+L panel
+  opens that site's search directly, whichever search engine is chosen, and a
+  code alone opens the site's home page; `!` alone lists recently used and
+  popular bangs, and more letters filter the whole list by code or site name.
+  The list is Kagi's open bang list (MIT), 10,624 bangs bundled and changed
+  only by a Blanc update, with no online lookup and nothing sent to Kagi.
+  Settings → General has a Bangs switch (on by default) and Your bangs, the
+  user's own codes, which sync with the other settings when Sync is on.
+  Qualify every privacy claim: Blanc opens the bang's own address and never
+  sends the words to the selected search engine first, but 40 bangs in this
+  list send the words through Google or DuckDuckGo to search one site, so
+  never claim a bang avoids every search engine. No suggestions are requested
+  while a bang is in the box; text typed before a trailing bang may already
+  have been sent. Recently used bangs stay on the device and are never
+  recorded from private tabs. Never imply Kagi endorses Blanc.
 - **Fresh optional connections:** Search suggestions and usage measurement
   are preselected on in fresh-install setup. Optional sends are gated until
   the user saves their choices; either can be turned off before continuing
@@ -162,9 +181,36 @@ original reports:
   ungrouped tab and focuses its address field. It stays bare beside the slash
   keycap and is hidden in vertical-tabs mode, where the rail already has a New
   tab control. Do not describe it as creating private or grouped tabs.
+- **Custom tab names:** Since v1.35.0 the user can give a tab a name of
+  their own with Rename Tab… in the tab's right-click menu or `/rename`, and
+  go back to the page title with Reset Tab Title or `/rename` alone. The name
+  stays through navigation, Quiet Tabs, Move Tab to New Window, Reopen Closed
+  Tab, Blanc Spaces and relaunch, and shows on other devices when Profile
+  Sync shares open tabs. History and Favorites keep the page's own title, and
+  a private tab's name is kept only in memory. Blanc never names tabs itself:
+  do not describe automatic, suggested or AI-generated tab names.
+- **Glance:** Glance shows one other tab the user picks, the reference,
+  beside or below the main page. Since v1.35.0 Reload, Close Tab, Find, zoom,
+  Print, Back, Forward, mouse gestures and the 1Password fill act on the pane
+  that has keyboard focus, while ⌘L, ⌘T, ⌘1–9, the shield and slash commands
+  stay on the main page. A link the reference opens in a new tab opens in
+  Glance, a link's right-click menu offers Open Link in Glance, and `/glance`
+  opens the picker. Glance holds one reference at a time; do not describe
+  more panes, tiling of several tabs, or automatic pairing of related pages.
+- **Favorites import from signed-in Chrome profiles:** Since v1.35.0
+  Favorites import from Chrome, Edge, Brave, Chromium and Vivaldi also reads a
+  signed-in profile's separate account bookmarks file (`AccountBookmarks`)
+  and combines it with the local file without duplicates. The release
+  evidence is scenarios that reproduce Chrome's file format; no file written
+  by a real signed-in Chrome was tried before release, so do not claim it was
+  checked against a live Google account.
 - **Named Groups:** The user explicitly creates or assigns a tab to a named
   group through `/group` or the grouping UI. Blanc does not infer group names,
-  categorize tabs semantically, or organize them automatically.
+  categorize tabs semantically, or organize them automatically. Since v1.36.0
+  a group name keeps the capitals the user types (matching ignores case),
+  names saved in lowercase before that were given a capital first letter
+  once, and a group header's right-click menu offers Rename Group…, Ungroup
+  and Close Group.
 - **Drag to reorder:** Since v1.30.0 the user can drag tabs and group headers
   in the expanded Island and in vertical tabs, or use Alt/Option+Shift+Up and
   Down on a focused row or header. A drag can move a tab within its group,
@@ -203,6 +249,52 @@ original reports:
   entry may fall back to its safe navigation snapshot or URL. Entries expire,
   the buffer is capped, and private tabs never enter Recently Closed. Do not
   promise exact state recovery, permanent retention, or recovery of every tab.
+  Since v1.36.0 Recently closed is a band under Pinned in the ⌘L panel,
+  folded each time the panel opens and listing up to 25 entries per window
+  when unfolded; the user can drag it among the groups.
+- **Adding a Sync device with a code:** Since v1.36.0 a device that already
+  syncs shows an eight-character code that works for ten minutes, and a new
+  device enters it under Add this device to my sync; the sync name and
+  passphrase still work. A device can also move to another sync with a code.
+  The sync service holds the wrapped sync secret under an identifier derived
+  from the code for at most ten minutes and deletes it when it is read or
+  cancelled; it cannot unwrap it without the code. Copy recovery code puts a
+  code on the clipboard only after a native confirmation. Do not claim QR
+  codes, nearby or Bluetooth pairing, accounts or sign-in, or that the service
+  never stores anything.
+- **Device names:** Since v1.36.0 the user can rename a synced device from the
+  Other devices drawer (Rename Device…) or name the current device in Settings
+  → Sync; names sync with the settings and show in the drawer, the Quick
+  Switcher and the Start Page. A device still publishes its computer name, so
+  earlier Blanc versions keep showing that. A Mac now publishes its computer
+  name rather than a network-derived host name.
+- **Invite a Friend:** Since v1.36.0 Help → Invite a Friend… and `/invite`
+  open a new email in the user's default mail app with a short invite and the
+  link `https://blanc.day/?ref=invite`; the user chooses the recipient and
+  sends it. Without a mail app, Windows asks which app to use. Blanc copies
+  the text only when the system reports that no mail app opened. That fallback
+  wasn't hand-checked on macOS, and on Linux v1.36.0 it never runs: Electron
+  reports the hand-off as successful even when no mail app is set up, so
+  nothing happens. Don't claim the copy fallback on Linux until a release
+  fixes it.
+  Blanc sends nothing and
+  learns nothing about who was invited; the link is the same for everyone, so
+  invite landings can only be counted in aggregate by the website's
+  consent-gated analytics. Do not describe referral rewards, per-person
+  invite codes or tracking of invitees.
+- **What's new after an update:** Since v1.36.0, after Blanc restarts into a
+  newer release, the Start Page footer shows a What's new pill linking to that
+  release on the changelog for seven days or until it is opened or closed. It
+  is device-local, takes the Patron pill's place, and never shows on fresh
+  installs, downgrades, pre-releases or private tabs.
+- **Default browser prompts:** Since v1.36.0 Finish setup leads with Make
+  Blanc your default on macOS and Windows and checks it off once Blanc is the
+  default. On a new install that finished setup without switching, Blanc asks
+  once, between 12 hours and 14 days after setup, with Set as default and Not
+  now, and never again; profiles from before v1.36.0 and Linux are never
+  asked. Setting the default still goes through the operating system's own
+  prompt or Settings. Do not describe repeated nagging or Blanc changing the
+  default by itself.
 - **1Password on macOS:** The optional integration depends on the installed
   1Password app and account. Blanc may show a small device-local hint when the
   visible page has a current-password field, and Settings can verify the saved
@@ -210,13 +302,12 @@ original reports:
   metadata, never field values or page text, and does not contact 1Password.
   Credential lookup and fill remain explicit user actions. This is not
   automatic fill, a general extension runtime, or a Blanc password manager.
-- **1Password on Windows and Linux:** Since v1.32.0 public Blanc enables the
-  same fill on Windows and Linux, but it is deliberately unannounced. Its evidence comes
-  from x64 Windows Blanc and 1Password under Arm emulation in a VM, and an
-  ARM64 Linux development build, under the waiver in
-  [the 1Password integration doc](1password-integration.md). Do not announce
-  or list it as shipped until the real-account matrix passes on a real x64
-  Windows PC and a packaged x64 Linux AppImage.
+- **1Password on Windows and Linux:** Since v1.34.0 public Blanc enables the
+  same fill on Windows and Linux (not on Windows on Arm), announced on the
+  website on October 16, 2026. Its evidence comes from Windows and Linux
+  virtual machines under the waiver in
+  [the 1Password integration doc](1password-integration.md); keep any claim
+  within that evidence and name the Windows on Arm limit.
 - **Interface languages:** Blanc's own interface is available in German,
   Spanish, French and Portuguese (Brazil) since v1.32.0, and in Italian since
   v1.33.0, all machine-translated. Blanc

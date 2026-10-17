@@ -197,12 +197,12 @@ Then('their loose pinned tabs are pinned and their folders are groups', function
   const u = this.arcUrls;
   assert.deepEqual(work.urls, [u.mail, u.ci, u.docs, u.news]);
   assert.deepEqual(work.pinned, [true, false, false, false]);
-  assert.deepEqual(work.groups.map((g) => g.name), ['engineering']);
+  assert.deepEqual(work.groups.map((g) => g.name), ['Engineering']);
   const engineering = work.groups[0].id;
   assert.deepEqual(work.groupIds, [null, engineering, engineering, null]);
   assert.equal(work.meta[0].title, 'Inbox');
   assert.deepEqual(reading.urls, [u.essay, u.paper]);
-  assert.deepEqual(reading.groups.map((g) => g.name), ['long reads']);
+  assert.deepEqual(reading.groups.map((g) => g.name), ['Long reads']);
 });
 
 Then('no window is switched to either space', async function () {

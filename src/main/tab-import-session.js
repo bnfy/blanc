@@ -14,10 +14,8 @@ function hostnameFromUrl(url) {
   }
 }
 
-function normalizeGroupName(name) {
-  const trimmed = String(name ?? '').trim().toLowerCase();
-  return trimmed ? trimmed.slice(0, 40) : '';
-}
+// Group names keep their case (spec 2026-10-16 §9.1).
+const { normalizeGroupName } = require('./group-name-case');
 
 function createTabImportSessionStore({
   now = () => Date.now(),

@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-109 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
+116 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -21,10 +21,13 @@
 | `reload` | navigation | invoke | `tabs:reload` | `(id: TabId) => Promise<boolean \| undefined>` | all |
 | `stop` | navigation | invoke | `tabs:stop` | `(id: TabId) => Promise<void>` | all |
 | `moveTab` | tabs | invoke | `tabs:move` | `(id: TabId, target: TabMoveTarget) => Promise<boolean>` | all |
-| `reorderGroup` | tabs | invoke | `groups:reorder` | `(id: GroupId, beforeGroupId: GroupId \| null) => Promise<boolean>` | all |
+| `reorderGroup` | tabs | invoke | `groups:reorder` | `(id: GroupId, beforeGroupId: GroupId \| 'recently-closed' \| null) => Promise<boolean>` | all |
+| `moveClosedSection` | tabs | invoke | `groups:move-closed` | `(beforeGroupId: GroupId \| null) => Promise<boolean>` | all |
+| `renameGroup` | groups | invoke | `groups:rename` | `(groupId: GroupId, name: string) => Promise<GroupRenameResult>` | all |
+| `ungroupGroup` | groups | invoke | `groups:ungroup` | `(groupId: GroupId) => Promise<void>` | all |
 | `activateTabFromRail` | tabs | invoke | `tabs:activate-from-rail` | `(id: TabId) => Promise<boolean>` | all |
 | `setGlanceTab` | glance | invoke | `tabs:set-glance` | `(id: TabId) => Promise<boolean>` | all |
-| `openGlancePicker` | glance | invoke | `tabs:open-glance-picker` | `() => Promise<boolean>` | all |
+| `openGlancePicker` | glance | invoke | `tabs:open-glance-picker` | `(query?: string) => Promise<boolean>` | all |
 | `closeGlance` | glance | invoke | `tabs:close-glance` | `() => Promise<boolean>` | all |
 | `promoteGlance` | glance | invoke | `tabs:promote-glance` | `() => Promise<boolean>` | all |
 | `setTabGroup` | groups | invoke | `tabs:set-group` | `(id: TabId, groupId: GroupId \| null) => Promise<void>` | all |
@@ -78,6 +81,7 @@
 | `listHistory` | history | invoke | `chrome:history-list` | `(opts?: HistoryListOptions) => Promise<HistoryEntry[]>` | all |
 | `listFavorites` | favorites | invoke | `chrome:favorites-list` | `() => Promise<FavoriteItem[]>` | all |
 | `listRemoteTabs` | sync | invoke | `chrome:remote-tabs-list` | `() => Promise<RemoteDevice[]>` | all |
+| `renameDevice` | sync | invoke | `chrome:rename-device` | `(deviceId: string, name: string \| null) => Promise<boolean>` | all |
 | `cancelWorkspaceAction` | workspaces | send | `chrome:workspaces-cancel` | `()` | all |
 | `listWorkspaces` | workspaces | invoke | `chrome:workspaces-list` | `() => Promise<WorkspacesPayload>` | all |
 | `saveWorkspaceAs` | workspaces | invoke | `chrome:workspaces-save-as` | `(name: string, identity?: SpaceIdentityInput) => Promise<WorkspaceActionResult>` | all |
@@ -90,6 +94,8 @@
 | `moveWorkspaceTo` | workspaces | invoke | `chrome:workspaces-move-to` | `(id: WorkspaceId, index: number) => Promise<WorkspaceActionResult>` | all |
 | `undoRemoveWorkspace` | workspaces | invoke | `chrome:workspaces-undo-remove` | `(id: WorkspaceId) => Promise<WorkspaceActionResult>` | all |
 | `searchSuggestions` | search | invoke | `chrome:search-suggestions` | `(query: string) => Promise<SearchSuggestions>` | all |
+| `bangs` | search | invoke | `chrome:bangs` | `() => Promise<BangsState>` | all |
+| `onBangsChanged` | search | event | `bangs:changed` | `(payload: BangsState) => void` | all |
 | `onRemoteTabsUpdated` | sync | event | `chrome:remote-tabs-updated` | `(payload: RemoteDevice[]) => void` | all |
 | `onWorkspacesUpdated` | workspaces | event | `chrome:workspaces-updated` | `(payload: WorkspacesPayload) => void` | all |
 | `onWorkspaceAction` | workspaces | event | `overlay:workspace-action` | `(payload: WorkspaceActionEvent) => void` | all |
@@ -99,6 +105,7 @@
 | `toggleDarkSiteOnActiveSite` | appearance | invoke | `chrome:dark-site-active` | `() => Promise<DarkSiteResult \| null>` | all |
 | `siteInfoForgetCertificateException` | island | invoke | `chrome:site-info-forget-certificate-exception` | `() => Promise<boolean>` | all |
 | `sleepBackgroundTabs` | tabs | invoke | `chrome:sleep-background-tabs` | `() => Promise<TabId[]>` | all |
+| `inviteFriend` | island | invoke | `chrome:invite-friend` | `() => Promise<InviteFriendResult>` | all |
 | `fillLoginFromOnePassword` | passwords | invoke | `chrome:onepassword-fill` | `() => Promise<FillLoginSuccess \| FillLoginFailure \| false>` | darwin, win32, linux |
 | `cycleTheme` | appearance | invoke | `chrome:cycle-theme` | `(theme?: ThemePreference) => Promise<ThemePreference>` | all |
 | `onThemeAppearance` | appearance | event | `chrome:theme-appearance` | `(payload: ThemeAppearance) => void` | all |
@@ -189,6 +196,12 @@ Tab presentation; main ignores other values.
 Appearance preference.
 
 `'system' \| 'light' \| 'dark'`
+
+### `InviteFriendResult`
+
+How an invite left Blanc: opened in the person's mail app, or copied to the clipboard because no mail app opened.
+
+`'mail' \| 'copied'`
 
 ### `CreateTabOptions`
 
@@ -431,6 +444,15 @@ A screen share, projected by projectDisplayShares() in display-capture-indicator
 | `computerAudio` | `boolean` |  |
 | `tabId` | `TabId \| null` |  |
 
+### `GroupRenameResult`
+
+Result of renameGroup, built by renameGroup() in main.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `ok` | `boolean` |  |
+| `error?` | `'duplicate' \| 'unknown'` | Present when ok is false: another group already has the name, or the group is gone. |
+
 ### `TabsSnapshot`
 
 Result of getAllTabs, built by the tabs:get-all handler in main.js.
@@ -442,6 +464,7 @@ Result of getAllTabs, built by the tabs:get-all handler in main.js.
 | `glanceTabId` | `TabId \| null` |  |
 | `groups` | `TabGroup[]` |  |
 | `closed` | `ClosedEntrySummary[]` |  |
+| `closedSlot` | `number` | How many of groups sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). |
 | `tabLayout` | `TabLayout` |  |
 | `verticalTabsWidth` | `number` |  |
 | `verticalTabsPreferredWidth` | `number` |  |
@@ -460,6 +483,7 @@ The tabs:updated broadcast, built by currentTabsPayload() in main.js.
 | `glanceTabId` | `TabId \| null` |  |
 | `groups` | `TabGroup[]` |  |
 | `closed` | `ClosedEntrySummary[]` |  |
+| `closedSlot` | `number` | How many of groups sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). |
 | `tabLayout` | `TabLayout` |  |
 | `adblockEnabled` | `boolean` |  |
 | `shieldPopover` | `ShieldPopover \| null` |  |
@@ -501,12 +525,15 @@ Glance split geometry, from calculateGlanceLayout() in glance-layout.js.
 | --- | --- | --- |
 | `direction` | `'horizontal' \| 'vertical'` |  |
 | `ratio` | `number` |  |
+| `minRatio` | `number` | The smallest main-pane share the divider allows; above 0.5 on macOS when the main pane needs room for the Island and the traffic lights. |
+| `maxRatio` | `number` | The largest main-pane share the divider allows: 0.78, or less so the reference keeps 300 px. |
 | `page` | `Rect` |  |
 | `primary` | `Rect` |  |
 | `divider` | `Rect` |  |
 | `glanceHeader` | `Rect` |  |
 | `glanceContent` | `Rect` |  |
 | `glance` | `Rect` | Alias of glanceContent kept for older consumers. |
+| `focusedPane?` | `'main' \| 'glance'` | Which pane holds keyboard focus. Present on chrome:glance-layout (glanceLayoutPayload() in glance-focus.js); calculateGlanceLayout() leaves it out. |
 
 ### `WorkspaceSaveStatus`
 
@@ -785,6 +812,26 @@ Another device's open tabs, from displayDevices() in tabsync-model.js. Newest fi
 | `tabs` | `RemoteTab[]` |  |
 | `groups` | `RemoteGroup[]` |  |
 
+### `CustomBang`
+
+A bang the person added in Settings, from settings.js normalizeCustomBangs().
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `code` | `string` | Lowercase; a letter or digit, then up to 31 letters, digits, hyphens or underscores. |
+| `name` | `string` |  |
+| `template` | `string` | The search address with %s where the words go; the custom search address's rule. |
+
+### `BangsState`
+
+The bang settings the Island draws its hint row and picker from, from bangsState() in main.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `enabled` | `boolean` |  |
+| `custom` | `CustomBang[]` |  |
+| `recent` | `string[]` | Recently used primary codes, newest first, at most ten; device-local. |
+
 ### `SearchSuggestions`
 
 Search suggestions for the address bar, labelled with the engine that produced them.
@@ -853,6 +900,8 @@ The resting pill's rectangle as the strip reports it, plus the open shield popov
 | `height` | `number` |  |
 | `shieldAnchor?` | `ShieldAnchor` | Present while the shield popover is open, so a uBlock Origin popup can follow the pill. |
 | `spacesAnchor?` | `SpacesAnchor` | Present while the Spaces menu is open from the mark, so it follows the pill. |
+| `minPrimaryWidth?` | `number` | With Glance side by side: the narrowest main pane that holds the slim Island with a readable address, its chips and clearance included. Main stops the divider there. |
+| `minReferenceWidth?` | `number` | With Glance side by side: the narrowest reference that holds the Glance header at its most compact, including the window-control space on Windows and Linux. Main stops the divider there. |
 
 ### `SpacesAnchor`
 

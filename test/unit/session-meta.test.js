@@ -18,21 +18,27 @@ const fnSource = mainSource.match(/function persistSession\(\) \{[\s\S]*?\n\}/)?
 // extraction, reused by Named Workspaces' capture path) — lift it too, so
 // the sandbox mirrors real module scope instead of one function's text.
 const captureSource = mainSource.match(/function captureWindowEntry\([\s\S]*?\n\}/)?.[0];
+// captureWindowEntry reconciles the Recently closed band's slot first.
+const syncSource = mainSource.match(/function syncClosedSlot\([\s\S]*?\n\}/)?.[0];
+const closedSlotModel = require('../../src/main/closed-slot');
 
 test('persistSession is still liftable out of main.js', () => {
   assert.ok(fnSource, 'persistSession not found — update this test with it');
   assert.ok(captureSource, 'captureWindowEntry not found — update this test with it');
+  assert.ok(syncSource, 'syncClosedSlot not found — update this test with it');
 });
 
 function run(tabList, activeTabId, {
-  sessionHeldForQuit = false, primaryWindow = {}, primaryTabs = null, others = [],
+  sessionHeldForQuit = false, primaryWindow = {}, primaryTabs = null, others = [], groups = [], closedSlot = 0,
 } = {}) {
   const data = {};
   const runtime = {
     id: PRIMARY_WINDOW_ID,
     window: primaryWindow,
     tabOrder: primaryTabs ?? tabList.map((t) => t.id),
-    groups: [],
+    groups,
+    closedSlot,
+    closedSlotIds: groups.map((group) => group.id),
     activeTabId,
   };
   const sandbox = {
@@ -57,8 +63,9 @@ function run(tabList, activeTabId, {
     // session.json assertions cover — stubbed inert so the lifted source
     // runs without needing to know that store exists.
     autosaveWorkspaceBindings: () => {},
+    ...closedSlotModel,
   };
-  vm.runInNewContext(`${captureSource}\n${fnSource}\nthis.__fn = persistSession;`, sandbox);
+  vm.runInNewContext(`${syncSource}\n${captureSource}\n${fnSource}\nthis.__fn = persistSession;`, sandbox);
   sandbox.__fn();
   return data;
 }
@@ -170,4 +177,14 @@ test('clearing history keeps names the person typed and drops page titles', () =
     { title: '', favicon: null },
   ]);
   assert.equal('meta' in data.windows[1], false, 'a window without names loses its meta as before');
+});
+
+test('the Recently closed slot counts only groups that are written', () => {
+  const groups = [{ id: 'secret', name: 'Secret', collapsed: false }, { id: 'work', name: 'Work', collapsed: false }];
+  const tabsList = [
+    tab({ id: 'p', url: 'https://secret/', private: true, groupId: 'secret' }),
+    tab({ id: 'w', url: 'https://work/', groupId: 'work' }),
+  ];
+  assert.equal(run(tabsList, 'w', { groups, closedSlot: 2 }).windows[0].closedSlot, 1);
+  assert.equal('closedSlot' in run(tabsList, 'w', { groups, closedSlot: 1 }).windows[0], false);
 });

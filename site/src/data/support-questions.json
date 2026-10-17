@@ -71,15 +71,15 @@
     "id": "1password",
     "q": "Does Blanc work with 1Password?",
     "a": [
-      "Yes, on macOS. Blanc includes an optional integration that fills matching Login items from your installed 1Password desktop app and account when you ask. It is off by default. Windows and Linux do not currently offer this integration.",
-      "In 1Password Settings → Developer, enable Integrate with other apps under Integrate with the 1Password SDKs. In Blanc, open Settings → Privacy & Security → 1Password, enable Fill logins from 1Password, enter your sign-in email or account ID, and choose Verify. On a login form, press ⌥⌘P (Option + Command + P), or choose View → Fill Login from 1Password. You can also run /1password from the Island."
+      "Yes, on macOS, Windows and Linux. Blanc includes an optional integration that fills matching Login items from your installed 1Password desktop app and account when you ask. It is off by default. It isn’t available on Windows on Arm.",
+      "In 1Password Settings → Developer, enable Integrate with other apps under Integrate with the 1Password SDKs. In Blanc, open Settings → Privacy & Security → 1Password, enable Fill logins from 1Password, enter your sign-in email or account ID, and choose Verify. On a login form, press ⌥⌘P (Option + Command + P) on macOS or Ctrl+Shift+P on Windows and Linux, or choose View → Fill Login from 1Password. You can also run /1password from the Island."
     ]
   },
   {
     "id": "extensions",
     "q": "Can I install browser extensions?",
     "a": [
-      "Blanc does not offer a general third-party extension runtime. Ad and tracker blocking is built into the network layer. On macOS, the optional 1Password integration is a narrow, user-invoked bridge to the installed 1Password app, not an extension runtime or a Blanc password store."
+      "Blanc does not offer a general third-party extension runtime. Ad and tracker blocking is built into the network layer. The optional 1Password integration is a narrow, user-invoked bridge to the installed 1Password app, not an extension runtime or a Blanc password store."
     ]
   },
   {

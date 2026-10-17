@@ -202,6 +202,55 @@ When('I focus the last {string} tab in the {word} and press Alt+Shift+ArrowDown'
   await page.keyboard.press('Alt+Shift+ArrowDown');
 });
 
+// ---------- Recently closed band (island only) ----------
+
+const CLOSED = 'recently-closed';
+
+/** The island list's top-level sections in order: group ids, the band's id,
+ * 'pinned' and 'loose'. */
+function islandSectionOrder(page) {
+  return page.locator('#islandList').evaluate((list) =>
+    [...list.querySelectorAll(':scope > [data-drag-section]')].map((el) => el.dataset.groupId || el.dataset.dragSection));
+}
+
+Given('a loose tab has been closed', async function () {
+  const before = (await this.call('closedEntriesSummary')).length;
+  const loose = (await this.state()).tabs.find((tab) => !tab.groupId && !tab.pinned && /^https?:/.test(tab.url));
+  assert.ok(loose, 'a loose tab to close');
+  await this.call('closeTab', loose.id);
+  await waitForValue(() => this.call('closedEntriesSummary'), (entries) => entries.length > before,
+    'a new recently closed entry');
+});
+
+When('I drag Recently closed above the {string} header in the island', async function (name) {
+  this.dragSurface = await surfaceFor(this, 'island');
+  const { page, list } = this.dragSurface;
+  const y = await gapBefore(headerFor(list, await groupIdOf(this, name)), `${name} header`);
+  await pointerDrag(this, page, headerFor(list, CLOSED), { y });
+  await settleDrag(this);
+});
+
+When('I focus Recently closed in the island and press Alt+Shift+ArrowUp', async function () {
+  this.dragSurface = await surfaceFor(this, 'island');
+  await headerFor(this.dragSurface.list, CLOSED).locator('[role="button"]').focus();
+  await this.dragSurface.page.keyboard.press('Alt+Shift+ArrowUp');
+});
+
+Then('in the island Recently closed sits before {string}', async function (name) {
+  const { page } = await surfaceFor(this, 'island');
+  const gid = await groupIdOf(this, name);
+  await waitForValue(() => islandSectionOrder(page),
+    (order) => order.includes(CLOSED) && order.indexOf(CLOSED) === order.indexOf(gid) - 1,
+    `Recently closed directly above ${name}`);
+});
+
+Then('in the island Recently closed sits directly under Pinned', async function () {
+  const { page } = await surfaceFor(this, 'island');
+  await waitForValue(() => islandSectionOrder(page),
+    (order) => order.includes(CLOSED) && order.indexOf(CLOSED) === order.indexOf('pinned') + 1,
+    'Recently closed directly under Pinned');
+});
+
 // ---------- Outcomes ----------
 
 Then('{string} lists that tab first', async function (name) {

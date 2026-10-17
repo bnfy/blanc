@@ -365,6 +365,14 @@ jobs:
       - name: Real Chrome Web Store documents (Windows/macOS)
         if: runner.os != 'Linux'
         run: npm run test:web-store
+      # Chromium's PDF viewer loads each document from its own chrome-extension:
+      # origin; a guard that refuses it leaves PDFs as an empty viewer.
+      - name: PDFs render with each blocker (Linux)
+        if: ${{ !cancelled() && runner.os == 'Linux' }}
+        run: xvfb-run -a npm run test:pdf-viewer:desktop
+      - name: PDFs render with each blocker (Windows/macOS)
+        if: ${{ !cancelled() && runner.os != 'Linux' }}
+        run: npm run test:pdf-viewer:desktop
       - name: Retain private native command failure diagnostics
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

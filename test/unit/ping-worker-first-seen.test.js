@@ -69,3 +69,46 @@ test('markNextDayReturn', async (t) => {
     assert.deepEqual([...kv.store.keys()].filter((k) => k.startsWith('return:')), []);
   });
 });
+
+test('markWeekTwoReturn', async (t) => {
+  const { markFirstSeen, markWeekTwoReturn, daysSince } =
+    await import('../../cloudflare/ping-worker/src/first-seen.js');
+
+  await t.test('daysSince counts whole UTC days and rejects non-days', () => {
+    assert.equal(daysSince('2026-10-12', '2026-10-19'), 7);
+    assert.equal(daysSince('2026-10-28', '2026-11-04'), 7); // across a month end
+    assert.ok(Number.isNaN(daysSince('2026-07', '2026-10-19')));
+    assert.ok(Number.isNaN(daysSince(null, '2026-10-19')));
+  });
+
+  await t.test('a launch on day 7 through day 13 counts once per install', async () => {
+    const kv = fakeKv();
+    await markFirstSeen(kv, 'abc123', '2026-10-12', bump);
+    assert.equal(await markWeekTwoReturn(kv, 'abc123', '2026-10-19', bump), true);
+    assert.equal(await markWeekTwoReturn(kv, 'abc123', '2026-10-25', bump), false);
+    assert.equal(kv.store.get('return:w2:2026-10-12'), '1');
+  });
+
+  await t.test('the last day of the window still counts', async () => {
+    const kv = fakeKv();
+    await markFirstSeen(kv, 'abc123', '2026-10-12', bump);
+    assert.equal(await markWeekTwoReturn(kv, 'abc123', '2026-10-25', bump), true);
+  });
+
+  await t.test('days 0 to 6 and day 14 onwards never count', async () => {
+    const kv = fakeKv();
+    await markFirstSeen(kv, 'abc123', '2026-10-12', bump);
+    for (const day of ['2026-10-12', '2026-10-13', '2026-10-18', '2026-10-26', '2026-11-30']) {
+      assert.equal(await markWeekTwoReturn(kv, 'abc123', day, bump), false, day);
+    }
+    assert.equal(kv.store.get('return:w2:2026-10-12'), undefined);
+  });
+
+  await t.test('unknown and backfilled installs never count', async () => {
+    const kv = fakeKv();
+    assert.equal(await markWeekTwoReturn(kv, 'nobody', '2026-10-19', bump), false);
+    await kv.put('first:old1', '2026-07');
+    assert.equal(await markWeekTwoReturn(kv, 'old1', '2026-10-19', bump), false);
+    assert.deepEqual([...kv.store.keys()].filter((k) => k.startsWith('return:w2:')), []);
+  });
+});

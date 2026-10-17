@@ -238,6 +238,10 @@ test('provider copy resolves to the verified public release with bronze display 
   const privacy = home.slice(home.indexOf('id="privacy"'), home.indexOf('id="tools"'));
   assert.ok(privacy.length > 500, 'the homepage privacy section is found');
   assert.doesNotMatch(privacy, /In development|Upcoming|Preview of work in progress/);
+  // The bronze Blocker shield turns in the redesigned section, between its
+  // lead and the blocker grid, started by home.js.
+  assert.match(privacy, /class="lead privacy-lead"[\s\S]*<HorizonShield variant="blocker" \/>[\s\S]*class="privacy-grid/);
+  assert.match(read('site/src/scripts/home.js'), /initHorizonShield\(document\.querySelector\("\.horizon-study"\)/);
   for (const claim of ledger.claims) {
     const source = read(claim.source || ledger.source).replace(/<br\s*\/?>/g, ' ').replace(/\s+/g, ' ');
     assert.ok(source.includes(claim.exactWording), claim.exactWording);

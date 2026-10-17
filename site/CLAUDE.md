@@ -27,9 +27,28 @@ plus `revamp.css`, both imported by `BaseLayout.astro`; pages add their own
 redesigned homepage): headings in Blubird Display at regular weight and 0
 tracking (`--site-font-display` and `--site-font-patron`), text in Blubird
 Text (the `html, body` stack and the site's own labels and controls); see
-*Blubird and the lockup* below. Product replicas (the Island figures, demo
-UI) keep Inter, the app's face, self-hosted via fontsource with a
-metric-matched `Inter Fallback`, which is also what Blubird falls back to.
+*Blubird and the lockup* below. Mockups of the app's own UI (the Island
+figures, demo UI, coded illustrations) use the app's face, Instrument Sans at
+width 98 and +0.01em, never Blubird (owner direction, October 17, 2026); its
+`@font-face` comes from the app's own file,
+`src/renderer/pages/instrument-sans-latin-wdth-normal.woff2`, declared once
+for every page by `BaseLayout.astro` (SpacesDemo, ShieldDemo and
+NativeIslandHero also declare it for their shadow roots). Counts and key caps
+in a mockup stay Inter, as in the app. The shared `.demo-island` replica in
+`site.css` draws in it through `--font-app`, so the Island figures on the
+feature pages and the share cards rendered from them follow; Inter stays
+self-hosted via fontsource with a metric-matched `Inter Fallback` (also what
+Blubird falls back to). The `/features` bento tiles' mini UI (`.ui`,
+`.demo-pill` in `features-bento.css`) still draws in Inter.
+**A replica draws only what the released app's code draws** (owner direction,
+October 17, 2026): copy each element, string and icon from
+`src/renderer/overlay.html`, `overlay.js`, `styles.css` and
+`copy/messages/en.json`, and invent no state, text or layout. The open panel's
+action buttons and footer come from `components/IslandPanelActions.astro` and
+`components/IslandFooter.astro`; the footer is one row. Blanc is desktop only,
+so a narrow figure shows the same 620px drawing scaled down (container steps on
+`.island-figure` in `site.css`), never a reflowed, icon-only or chrome-shedding
+"phone" version.
 The display-headings rule at the end of `site.css` is what makes every
 heading display; `test/site/blubird-reach.test.mjs` and
 `test/unit/site-font-fallback.test.js` enforce the faces and the 0 tracking.
@@ -79,7 +98,13 @@ mode toggle: it was removed with the redesign.
 switch to directory format) and disables asset inlining
 (`assetsInlineLimit: 0`, `inlineStylesheets: 'never'`) so CSS/JS are always
 external hashed files. Internal links are root-relative extensionless
-(`/features/island`) matching the canonicals Cloudflare Pages serves.
+(`/features/island`) matching the canonicals Cloudflare Pages serves. It also
+gives the CSS minifier real browser targets (`vite.build.cssTarget`): Astro
+builds for `esnext`, and with no targets Lightning CSS folds
+`animation-timeline` into the `animation` shorthand, which no browser accepts
+yet. Every scroll-driven animation then vanished from the build while the
+unminified dev server still showed it (October 2026);
+`test/site/scroll-motion.test.mjs` checks the built site.
 
 Commands (root proxies): `npm run site:dev`, `npm run site:build`,
 `npm run site:fonts -- /path/to/Blubird.zip` (installs the licensed fonts), and
@@ -137,6 +162,28 @@ means a site redeploy. The Worker stores only email + signup timestamp in KV;
 no double opt-in yet and unsubscribe is manual (token-gated DELETE) until a
 sending provider is chosen. The privacy page's "Newsletter (optional)" section
 describes exactly this contract — change them together or not at all.
+`components/NewsletterPrompt.astro` is the discreet signup card BaseLayout
+adds to measured, non-legal pages (not `/mail*`, `/ambassadors`, `/patron`):
+bottom corner, shown once per visit only after 8 s on the page and a quarter of it read,
+never while the footer form is on screen, no focus stealing. "Not now" snoozes
+it 60 days and a request from either form stops it for good, through one
+`localStorage` entry (`blanc-newsletter-prompt-v1`) that the privacy page
+discloses. It submits through NewsletterForm's script
+(`form[data-newsletter-prompt]`, `blanc:newsletter-requested` event), so the
+Worker contract stays in one place; `test/site/newsletter-prompt.test.mjs`.
+Add `?newsletter-card` to a page's URL to show it at once for checking; that
+ignores and never writes the memory.
+
+**Blanc Patron (`/patron`):** the header's Patron link and the footer point
+here. It explains the plans, the single Polar checkout link (the buyer picks
+monthly or annual there; the same link as the app's Patron settings) and
+activation with the license key. Its copy repeats claims from the Terms,
+Privacy and About pages; keep it in step with them.
+Owner direction (October 17, 2026): the page names the payment provider only
+by role, never as Polar (the Terms and Privacy Policy still name it, as the
+law needs), and offers Patrons priority feature requests: requests emailed to
+support@blanc.day from the checkout address are read and answered first.
+Patron still unlocks no browser features.
 
 **Blanc Mail waitlist:** `components/MailWaitlistForm.astro` (on `/mail` and
 `/mail/download`) posts `{email, website}` to the same Worker's
@@ -165,7 +212,9 @@ build; that's the point). Served at `/sitemap.xml` (URL unchanged for Search
 Console).
 
 Releases don't deploy the site. After a release: `npm run site:changelog`,
-commit `releases.json`, update the Feature Roadmap, then `npm run site:deploy`.
+commit `releases.json`, update the Feature Roadmap, re-pin the Bangs page to
+the new tag (`npm run site:bangs -- --ref <tag> --release <tag>`), then
+`npm run site:deploy`.
 
 **Feature Roadmap (`/roadmap`):** `src/pages/roadmap.astro` renders the
 hand-edited `src/data/roadmap.json` (Now / Next / Later, no dates) plus a
@@ -175,8 +224,28 @@ the changelog: add concise feature names (40 characters max) for the new
 version if it shipped features, move anything that shipped off the roadmap,
 re-check every remaining item against the release, and bump `updated`. The
 page must never list as planned something the changelog shows as shipped.
+`test/unit/site-roadmap.test.js` fails while `updated` is older than the
+newest release in `releases.json`, so the changelog refresh cannot land
+without that review.
 Roadmap copy describes plans, so keep each item's qualifier (testing, paused,
 depends on…) and follow `docs/marketing-claims.md`.
+
+**Bangs page (`/bangs`):** `src/pages/bangs.astro` explains bangs, runs a
+try-it box and lists every bang. Its data never comes from main's working
+tree, which runs ahead of the public release: `scripts/build-bangs-data.mjs`
+reads the app's `src/renderer/pages/bangs-catalog.js` and `bangs.js` at one
+pinned git ref and writes `src/data/bangs.json` (the directory, with the bangs
+that search through Google or DuckDuckGo tagged), `src/scripts/bangs.js` (a
+byte copy of the app's matcher, which answers the try-it box) and
+`public/licenses/kagi-bangs-MIT.txt`, plus the try-it's hint and section
+labels from the app's `copy/messages/en.json` at the same ref. Never hand-edit
+those three; `npm run site:bangs:check` and `test/unit/site-bangs-data.test.js`
+guard them. Since bangs shipped in public v1.36.0, the data is pinned to the
+latest release tag (`release` must equal `releases.json`'s newest tag, so a
+release's changelog refresh fails the data test until the page is re-pinned
+in the same follow-up), and the page's copy is recorded in
+`docs/website-v1.36-claims.json`. The try-it box never navigates and sends
+nothing; only the page's own data file is fetched.
 
 **Slash-command lists:** the command palette page and its Support guide list
 commands through `src/lib/released-slash-commands.mjs`, never straight from

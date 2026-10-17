@@ -1,0 +1,133 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// One Polar checkout link sells both plans; the buyer picks monthly or annual
+// there (docs/polar-setup.md). The same link is in the app's Patron settings.
+const CHECKOUT = 'https://buy.polar.sh/polar_cl_auwRq39Q2hIVLJwANEqFWgWuZ8DGjdJmEI4mE0JaNDf';
+
+const steps = [
+  ['Choose a plan', 'Pick monthly or annual at checkout, which handles payment, any applicable tax and your receipt.'],
+  ['Copy your license key', 'Your purchase includes a Blanc Patron license key. Keep it to activate Blanc.'],
+  ['Activate it in Blanc', 'Open Blanc’s Settings, go to Blanc Patron, paste the key and choose Activate.'],
+];
+
+const questions = [
+  ['Does Patron unlock any features?', 'No browser features. Every feature, including ad and tracker blocking, private tabs, tab groups, Blanc Spaces and optional encrypted Sync, is free for everyone. What Patrons get is priority for their feature requests.'],
+  ['What happens if I cancel?', 'You can cancel anytime, and your Patron benefits continue until the end of the period you paid for. Ending a subscription changes nothing in the browser.'],
+  ['I bought the earlier one-time Supporter license.', 'Thank you. Earlier one-time supporters keep their lifetime Patron access, with nothing more to pay.'],
+  ['What does Blanc learn about me?', 'Payments are handled by a dedicated payment provider, and Bananify does not receive full payment-card details. A subscription checks in about once a day using only the license key, activation ID and Blanc’s organization ID, never browsing data.'],
+];
+---
+<BaseLayout
+  title="Blanc Patron — Support an independent browser"
+  description="Blanc Patron funds Blanc’s development and puts your feature requests first: US$30 a year or US$4 a month, plus tax. Every feature stays free."
+  path="/patron"
+  page="patron"
+  current="patron"
+  ogTitle="Blanc Patron — Support an independent browser"
+  ogDescription="Every feature in Blanc is free. Patron is how you fund its development, from US$4 a month."
+>
+<main id="main-content" class="patron-page">
+  <section class="patron-hero" aria-labelledby="patron-page-title">
+    <img class="patron-hero-mark" src="/lockup/sunrise-mark-256.webp" width="256" height="256" alt="" />
+    <h1 id="patron-page-title">Support Blanc as a Patron.</h1>
+    <p>Blanc Patron is the optional subscription that funds Blanc’s development. Blanc has no venture funding and is not funded by selling ads, so Patrons help pay for its development directly. Every feature stays free for everyone.</p>
+  </section>
+
+  <section class="patron-plans" aria-label="Plans">
+    <div class="patron-plan-grid">
+      <article class="patron-plan is-featured">
+        <p class="patron-plan-name">Annual</p>
+        <p class="patron-plan-price"><span class="patron-plan-currency">US$</span>30<span class="patron-plan-period"> / year</span></p>
+        <p class="patron-plan-note">US$2.50 a month, billed yearly.</p>
+      </article>
+      <article class="patron-plan">
+        <p class="patron-plan-name">Monthly</p>
+        <p class="patron-plan-price"><span class="patron-plan-currency">US$</span>4<span class="patron-plan-period"> / month</span></p>
+        <p class="patron-plan-note">Billed monthly.</p>
+      </article>
+    </div>
+    <div class="patron-cta">
+      <a
+        class="patron-button"
+        href={CHECKOUT}
+        target="_blank"
+        rel="noopener"
+        data-track="supporter_click"
+        data-feature="patron"
+        data-cta-position="patron-page"
+        >Become a Patron <span aria-hidden="true">↗</span></a>
+      <p>Plus applicable tax. Choose monthly or annual at checkout. Cancel anytime.</p>
+    </div>
+  </section>
+
+  <section class="patron-perk" aria-labelledby="patron-perk-title">
+    <h2 id="patron-perk-title">Priority feature requests.</h2>
+    <p>Patrons’ feature requests go to the front of the line. Email your idea to <!--email_off--><a href="mailto:support@blanc.day?subject=Patron%20feature%20request">support@blanc.day</a><!--/email_off--> from the address you used at checkout, and it is read and answered before general requests.</p>
+  </section>
+
+  <section class="patron-steps" aria-labelledby="patron-steps-title">
+    <h2 id="patron-steps-title">How it works</h2>
+    <ol>
+      {steps.map(([title, body]) => (
+        <li><h3>{title}</h3><p>{body}</p></li>
+      ))}
+    </ol>
+    <p class="patron-steps-more">Activating another computer, or reinstalling Blanc? Enter the same license key. <a href="/support#patron">Patron in Support <span aria-hidden="true">›</span></a></p>
+  </section>
+
+  <section class="patron-faq" aria-labelledby="patron-faq-title">
+    <h2 id="patron-faq-title">Questions</h2>
+    {questions.map(([q, a]) => (
+      <details><summary>{q}</summary><p>{a}</p></details>
+    ))}
+    <p class="patron-faq-more">Terms of the subscription are in the <a href="/terms">Terms</a>, and payment data is covered in the <a href="/privacy">Privacy Policy</a>. Anything else: <!--email_off--><a href="mailto:support@blanc.day">support@blanc.day</a><!--/email_off-->.</p>
+  </section>
+</main>
+</BaseLayout>
+<style>
+  .patron-page { max-width: 980px; margin: 0 auto; padding: 64px 24px 112px; }
+  .patron-hero { max-width: 720px; margin: 0 auto 56px; text-align: center; }
+  .patron-hero-mark { display: block; width: 84px; height: 84px; margin: 0 auto 8px; }
+  .patron-hero h1 { margin: 0; font-family: var(--site-font-patron); font-size: clamp(38px, 5.4vw, 66px); font-weight: 400; letter-spacing: 0; line-height: 1.03; text-wrap: balance; }
+  .patron-hero > p:last-child { max-width: 56ch; margin: 22px auto 0; color: var(--site-text-dim); font-size: 17px; line-height: 1.65; text-wrap: balance; }
+
+  .patron-plan-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; max-width: 640px; margin: 0 auto; }
+  .patron-plan { padding: 28px 28px 24px; border: 1px solid var(--site-border); border-radius: 22px; background: var(--site-surface); }
+  .patron-plan.is-featured { border-color: var(--site-gold); background: var(--site-surface-raised); box-shadow: 0 18px 44px -28px rgba(128, 93, 40, .45); }
+  .patron-plan-name { margin: 0; color: var(--site-text-dim); font-size: 14px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; }
+  .patron-plan.is-featured .patron-plan-name { color: var(--site-gold); }
+  .patron-plan-price { margin: 10px 0 0; font-family: var(--site-font-patron); font-size: 56px; line-height: 1; }
+  .patron-plan-currency { margin-right: 2px; font-size: .45em; vertical-align: .7em; }
+  .patron-plan-period { color: var(--site-text-dim); font-size: .36em; }
+  .patron-plan-note { margin: 12px 0 0; color: var(--site-text-dim); font-size: 15px; }
+
+  .patron-cta { display: flex; flex-direction: column; align-items: center; gap: 14px; margin: 32px auto 0; text-align: center; }
+  .patron-button { display: inline-flex; align-items: center; gap: 6px; min-height: 52px; padding: 0 32px; border-radius: 999px; background: var(--site-text); color: var(--site-bg); font-size: 18px; font-weight: 500; text-decoration: none; }
+  .patron-button:hover { background: #000; color: var(--site-bg); }
+  .patron-button:focus-visible { outline: 2px solid var(--site-gold); outline-offset: 3px; }
+  .patron-cta p { margin: 0; color: var(--site-text-dim); font-size: 14px; }
+
+  .patron-perk { max-width: 720px; margin: 72px auto 0; padding: 28px 30px; border: 1px solid var(--site-border); border-radius: 22px; background: var(--site-surface-raised); }
+  .patron-perk h2 { margin: 0; font-family: var(--site-font-display); font-size: clamp(26px, 3vw, 34px); font-weight: 400; letter-spacing: 0; line-height: 1.1; }
+  .patron-perk p { margin: 10px 0 0; color: var(--site-text-dim); font-size: 16px; line-height: 1.6; }
+  .patron-steps, .patron-faq { max-width: 720px; margin: 88px auto 0; }
+  .patron-steps h2, .patron-faq h2 { margin: 0 0 24px; font-family: var(--site-font-display); font-size: clamp(30px, 3.6vw, 42px); font-weight: 400; letter-spacing: 0; line-height: 1.05; }
+  .patron-steps ol { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; counter-reset: patron-step; }
+  .patron-steps li { position: relative; padding: 20px 22px 20px 70px; border: 1px solid var(--site-border); border-radius: 18px; background: var(--site-surface); counter-increment: patron-step; }
+  .patron-steps li::before { content: counter(patron-step); position: absolute; top: 18px; left: 22px; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--site-text); color: var(--site-bg); font-size: 15px; font-weight: 600; }
+  .patron-steps h3 { margin: 2px 0 0; font-family: var(--site-font-display); font-size: 21px; font-weight: 400; letter-spacing: 0; line-height: 1.2; }
+  .patron-steps li p { margin: 6px 0 0; color: var(--site-text-dim); font-size: 15px; line-height: 1.55; }
+  .patron-steps-more, .patron-faq-more { margin: 18px 0 0; color: var(--site-text-dim); font-size: 15px; }
+
+  .patron-faq details { border-top: 1px solid var(--site-border); }
+  .patron-faq details:last-of-type { border-bottom: 1px solid var(--site-border); }
+  .patron-faq summary { padding: 18px 0; font-family: var(--site-font-display); font-size: 21px; font-weight: 400; letter-spacing: 0; line-height: 1.25; cursor: pointer; }
+  .patron-faq details p { margin: 0 0 18px; color: var(--site-text-dim); font-size: 15px; line-height: 1.6; }
+
+  @media (max-width: 600px) {
+    .patron-page { padding-top: 40px; }
+    .patron-plan-grid { grid-template-columns: 1fr; }
+    .patron-plan-price { font-size: 48px; }
+  }
+</style>

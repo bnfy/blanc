@@ -473,6 +473,17 @@
         "doc": "Hide the start page's Patron upgrade pill for 90 days."
       },
       {
+        "name": "start.dismissWhatsNew",
+        "kind": "invoke",
+        "channel": "pages:start:whats-new-dismiss",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Hide the start page's What's new pill for the current update."
+      },
+      {
         "name": "start.defaultBrowser",
         "kind": "invoke",
         "channel": "pages:default-browser:get",
@@ -1200,6 +1211,98 @@
         ],
         "returns": "unknown",
         "doc": "Turn open-tab sync on or off; main coerces to boolean."
+      },
+      {
+        "name": "settings.syncDeviceNameSet",
+        "kind": "invoke",
+        "channel": "pages:settings:sync-device-name-set",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "name",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Name this device as the user's other devices list it, then return the new status. An empty name restores the computer's name; main ignores a non-string."
+      },
+      {
+        "name": "settings.syncPairBegin",
+        "kind": "invoke",
+        "channel": "pages:settings:sync-pair-begin",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Park this device's wrapped sync secret under a fresh pairing code; returns the code and expiry for display. No key crosses."
+      },
+      {
+        "name": "settings.syncPairCancel",
+        "kind": "invoke",
+        "channel": "pages:settings:sync-pair-cancel",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Retract the current pairing code."
+      },
+      {
+        "name": "settings.syncPairState",
+        "kind": "invoke",
+        "channel": "pages:settings:sync-pair-state",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "The live pairing code and expiry, so a reopened Settings page can resume the countdown."
+      },
+      {
+        "name": "settings.syncJoinCode",
+        "kind": "invoke",
+        "channel": "pages:settings:sync-join-code",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "code",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Join an existing sync from the off state with a pairing or recovery code; status-only reply."
+      },
+      {
+        "name": "settings.syncSwitchCode",
+        "kind": "invoke",
+        "channel": "pages:settings:sync-switch-code",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "payload",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Leave the current sync for the one behind a code, optionally erasing the old server copy; status-only reply."
+      },
+      {
+        "name": "settings.syncRecoveryCodeCopy",
+        "kind": "invoke",
+        "channel": "pages:settings:sync-recovery-code-copy",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Copy the recovery code to the clipboard from main behind a native dialog. The reply never carries the code."
       },
       {
         "name": "settings.welcomeTour",

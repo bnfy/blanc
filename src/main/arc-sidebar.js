@@ -196,7 +196,9 @@ function parseArcSidebar(input, {
   }
 }
 
-const normalizeGroupName = (value) => boundedText(value, MAX_GROUP_NAME).toLowerCase();
+// Folder names keep their case; same-named folders (in any case) share one
+// group, shown in the first folder's spelling (spec 2026-10-16 §9.1).
+const normalizeGroupName = (value) => boundedText(value, MAX_GROUP_NAME);
 
 /** A workspace name not already used in this profile (case-insensitive). */
 function uniqueWorkspaceName(base, taken) {
@@ -211,8 +213,8 @@ function uniqueWorkspaceName(base, taken) {
 
 /**
  * Turns one parsed Space into workspace capture columns: loose pinned
- * tabs lead as pinned tabs, each top-level folder becomes a lowercase group
- * (same-named folders share one), Today tabs follow ungrouped. Tabs past the
+ * tabs lead as pinned tabs, each top-level folder becomes a group named as
+ * the folder is (same-named folders share one), Today tabs follow ungrouped. Tabs past the
  * per-Space cap are counted, not silently lost.
  */
 function planSpaceCapture(space, { randomId }) {
@@ -224,11 +226,11 @@ function planSpaceCapture(space, { randomId }) {
   const groupByName = new Map();
   const groups = [];
   for (const folder of space.folders) {
-    const name = normalizeGroupName(folder.name) || 'folder';
-    let group = groupByName.get(name);
+    const name = normalizeGroupName(folder.name) || 'Folder';
+    let group = groupByName.get(name.toLowerCase());
     if (!group && groups.length < MAX_SPACE_GROUPS) {
       group = { id: randomId(), name, collapsed: false };
-      groupByName.set(name, group);
+      groupByName.set(name.toLowerCase(), group);
       groups.push(group);
     }
     if (group) groupByFolder.set(folder.key, group.id);

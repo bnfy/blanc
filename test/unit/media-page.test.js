@@ -16,7 +16,7 @@ function pngSize(relativePath) {
   };
 }
 
-const CAPTURES = ['resting', 'expanded'].map((state) => `site/public/press/blanc-island-${state}-v1.31.0.png`);
+const CAPTURES = ['resting', 'expanded'].map((state) => `site/public/press/blanc-island-${state}-v1.35.0.png`);
 
 test('media-kit raster assets exist at their declared dimensions', () => {
   for (const capture of CAPTURES) {
@@ -92,7 +92,7 @@ test('the media page keeps its release links, indexability, and no-analytics bou
   // The captures are pinned to the release they were taken from, so the copy
   // that names that release must match the files rather than follow VERSION.
   for (const capture of CAPTURES) assert.ok(page.includes(`/press/${path.basename(capture)}`), `${capture} is on the page`);
-  assert.match(page, /Native captures of public Blanc 1\.31\.0 with a sample profile/);
+  assert.match(page, /Native captures of public Blanc 1\.35\.0 with a sample profile/);
   assert.doesNotMatch(page, /Native captures of public Blanc \{/);
   assert.match(page, /Make the island the lead image/);
   assert.match(page, /href="\/press\/blanc-sunrise-mark-4096\.png" download/);
@@ -130,6 +130,21 @@ test('the island index lists every section it links to, in page order', () => {
   assert.deepEqual([...positions].sort((a, b) => a - b), positions, 'sections follow the index order');
 });
 
+test('the media kit offers the Blanc logo in ink and white, rendered from the footer construction', () => {
+  const page = read('site/src/pages/media.astro');
+  const license = read('ASSET-LICENSE.md');
+  for (const color of ['ink', 'white']) {
+    assert.deepEqual(pngSize(`site/public/press/blanc-lockup-${color}.png`), { width: 3000, height: 888 }, color);
+    assert.deepEqual(pngSize(`site/public/press/blanc-lockup-${color}-480.png`), { width: 480, height: 142 }, `${color} email PNG`);
+    assert.match(page, new RegExp(`href="/press/blanc-lockup-${color}\\.svg" download`), `${color} SVG download link`);
+    assert.match(page, new RegExp(`href="/press/blanc-lockup-${color}\\.png" download`), `${color} PNG download link`);
+  }
+  assert.ok(license.includes('`site/public/press/blanc-lockup-{ink,white}{.svg,.png,-480.png,-600.webp,-1200.webp}`'), 'logo downloads are reserved');
+  // The SVGs embed the vector Sunrise and the outlined word unchanged, placed
+  // by the footer lockup's CSS; a change to any of them needs a re-render.
+  execFileSync(process.execPath, [path.join(ROOT, 'site/scripts/render-press-lockup.mjs'), '--check'], { cwd: ROOT, stdio: 'pipe' });
+});
+
 test('the black Sunrise mark still matches what its renderer makes from the color master', () => {
   // The two marks must share one canvas and crop; a changed master without a
   // re-render would silently break that.
@@ -148,7 +163,7 @@ test('description and copy controls work without :has(), and the copy path falls
 
 test('the press card renderer builds from the native capture and keeps third-party brands out of frame', () => {
   const renderer = read('site/scripts/render-press-card.mjs');
-  assert.match(renderer, /public\/press\/blanc-island-expanded-v1\.31\.0\.png/);
+  assert.match(renderer, /public\/press\/blanc-island-expanded-v1\.35\.0\.png/);
   assert.match(renderer, /const CROP = \{ x: (\d+),/);
   // The Met wordmark ends at x ≈ 262 in the 2560-wide capture, and the
   // renderer refuses any other capture size rather than shifting the crop.

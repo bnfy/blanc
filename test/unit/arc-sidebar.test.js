@@ -181,7 +181,7 @@ test('survives cycles and refuses pathological depth', () => {
   assert.deepEqual(deep, { error: 'too-complex' });
 });
 
-test('plans a workspace: pinned lead, folders become lowercase groups, Today follows', () => {
+test('plans a workspace: pinned lead, folders become groups that keep their names, Today follows', () => {
   const { spaces } = parseArcSidebar(workSidebar());
   let n = 0;
   const plan = planArcSpacesImport({
@@ -200,7 +200,7 @@ test('plans a workspace: pinned lead, folders become lowercase groups, Today fol
     'https://news.example.com/',
   ]);
   assert.deepEqual(capture.pinned, [true, false, false, false]);
-  assert.deepEqual(capture.groups, [{ id: 'g1', name: 'engineering', collapsed: false }]);
+  assert.deepEqual(capture.groups, [{ id: 'g1', name: 'Engineering', collapsed: false }]);
   assert.deepEqual(capture.groupIds, [null, 'g1', 'g1', null]);
   assert.equal(capture.meta.length, capture.urls.length);
   assert.deepEqual(capture.meta[0], { title: 'Inbox', favicon: null });
@@ -223,6 +223,7 @@ test('same-named folders share one group', () => {
     spaces, selectedSpaceIds: ['s'], randomId: () => `g${n += 1}`,
   }).planned;
   assert.equal(capture.groups.length, 1);
+  assert.equal(capture.groups[0].name, 'Reading', 'same-named folders share one group, first-seen case');
   assert.deepEqual(capture.groupIds, ['g1', 'g1']);
 });
 

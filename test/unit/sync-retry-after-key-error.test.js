@@ -5,6 +5,7 @@ const test = require('node:test');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const { trackJsonStores } = require('./support/track-json-stores');
 
 // Regression coverage for the whole-pass syncing guard. Credential failures
 // happen before the network/store loop, so they must still release the guard.
@@ -55,10 +56,17 @@ fs.writeFileSync(path.join(tmp, 'sync.json'), JSON.stringify({
   syncTabs: false,
 }));
 
+const jsonStores = trackJsonStores();
 const sync = require('../../src/main/sync');
 const { englishT: t } = require('../support/english-t');
 const { syncErrorText } = require('../../src/main/sync-messages');
 sync.setTabStateReady(true);
+
+test.after(async () => {
+  await sync.disable().catch(() => {}); // clears the optional-store retry timer
+  await jsonStores.settle();
+  fs.rmSync(tmp, { recursive: true, force: true });
+});
 
 test('credential failures release the sync guard so later passes can retry', async () => {
   const unlockFailure = await sync.syncNow(['icons']);

@@ -6,7 +6,11 @@ import '../styles/blubird.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import Consent from '../components/Consent.astro';
+import NewsletterPrompt from '../components/NewsletterPrompt.astro';
 import { SITE_ORIGIN } from '../lib/site-origin.mjs';
+// Drawings of the app's own UI (the .demo-island replica) use its face, from
+// the app's own file; a page that draws none never downloads it.
+import appTextFont from '../../../src/renderer/pages/instrument-sans-latin-wdth-normal.woff2?url';
 
 const SITE = SITE_ORIGIN;
 const {
@@ -24,6 +28,11 @@ const {
   ogImage = path?.startsWith('/mail') ? '/mail-og.png' : '/og-image.png',
   ogImageAlt = path?.startsWith('/mail') ? 'The gold Sunrise mark for Blanc Mail.' : 'Blanc’s Start Page at dawn in a desktop window, under the line “A little less browser.”',
 } = Astro.props;
+// The discreet newsletter invitation runs where measurement may run (never on
+// legal or utility pages), and not on pages that already ask for an address
+// or a purchase: the Mail waitlist, ambassador applications and Patron.
+const promptExcluded = ['/mail', '/ambassadors', '/patron'].some(prefix => path === prefix || path?.startsWith(`${prefix}/`));
+const { newsletterPrompt = analytics && header !== 'legal' && !promptExcluded } = Astro.props;
 const appName = path?.startsWith('/mail') ? 'Blanc Mail' : 'Blanc Browser';
 const canonical = SITE + path;
 const ogImageUrl = SITE + ogImage;
@@ -39,6 +48,7 @@ const ogImageUrl = SITE + ogImage;
 {social !== 'none' && <meta name="application-name" content={appName}>}
 {social === 'rich' && <meta name="apple-mobile-web-app-title" content="Blanc">}
 <link rel="canonical" href={canonical}>
+<style is:inline set:html={`@font-face {font-family:"Instrument Sans";src:url('${appTextFont}') format('woff2');font-style:normal;font-weight:400 700;font-stretch:75% 100%;font-display:swap;}`} />
 {social !== 'none' && (
   <>
     <meta property="og:site_name" content={appName}>
@@ -81,6 +91,7 @@ const ogImageUrl = SITE + ogImage;
 <Footer measurementControls={analytics} notes={Astro.slots.has('footnotes')}>
   <slot name="footnotes" slot="notes" />
 </Footer>
+{newsletterPrompt && <NewsletterPrompt />}
 {analytics && <Consent />}
 {analytics && <script src="../scripts/site.js"></script>}
 </body>

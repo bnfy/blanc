@@ -25,7 +25,13 @@
   "boundaries": [
     {
       "file": "cloudflare/newsletter-worker/src/index.js",
-      "sha256": "0a6c39dc08e2b92f71ac403149057c9f54647f0d926f72252cc2fb02c2be09b2",
+      "sha256": "e323c0020b044c56068bd4ea6bd7a1a2c8b1b92aebdf874430dcde994ef6dfb8",
+      "literalChannels": [],
+      "role": "privileged implementation or service"
+    },
+    {
+      "file": "cloudflare/newsletter-worker/src/resend-sync.js",
+      "sha256": "338e55f741af0674e5b1ad55968ae0b884bbed97268de76c58fed24f46197c9f",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -37,19 +43,19 @@
     },
     {
       "file": "cloudflare/ping-worker/src/first-seen.js",
-      "sha256": "a7219e23dbd4a53e8251d2d5c2208741827988e172d40a211de8b3f6da87e579",
+      "sha256": "29ad31e189ab3bb5b31fb222792311fd1428dee414ac98cd00342d577854cbc9",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
     {
       "file": "cloudflare/ping-worker/src/index.js",
-      "sha256": "8bc10924aa118e7f4547df1d1b6b9802efd8d74a962bcb2b7fb6a83217685f14",
+      "sha256": "32911eff9c02caa73bfe2439ae53e63afab51e9875f23d8ad393f7ddae497bc6",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
     {
       "file": "cloudflare/sync-worker/src/index.js",
-      "sha256": "d4ab9999e1b1e8495c358a10ac7cf4c421b5cd4415855cc27a50e135d2f24a6e",
+      "sha256": "877b2b54aa84af5db3034cb4231e4f0d9dcf2fdb53c613b570789ca49b233ba8",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -133,7 +139,7 @@
     },
     {
       "file": "src/main/chrome-protocol.js",
-      "sha256": "ac43da3e504a9bfad8e7213cc7af144eaa1a39e61a4af1a8784e8fb97c0588ff",
+      "sha256": "0480f7bbe68c56e72bf316acc99c3bafa45927651d7ca90a6d6dfee9a61550ec",
       "literalChannels": [
         "blanc-chrome"
       ],
@@ -183,7 +189,7 @@
     },
     {
       "file": "src/main/external-protocols.js",
-      "sha256": "73cb077e081e7b7436226b4fc2232201cd8f8e97f6887f86d7a77254f35cbeca",
+      "sha256": "e3de37e86a4c74cb9ff1acafe8946ef040672d606ba734367f1aa2697152d4cb",
       "literalChannels": [
         "will-frame-navigate",
         "will-redirect"
@@ -220,9 +226,10 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "a84f982a6fbd1cf6d89cb7be61e5b5e45455dda0ea22fd1941f30dbcfe56cd00",
+      "sha256": "51482916921dd14cfe34b6028857e64699ed3b6c145c280074733ad27c43b8c5",
       "literalChannels": [
         "activate",
+        "bangs:changed",
         "before-input-event",
         "before-mouse-event",
         "before-quit",
@@ -234,6 +241,7 @@
         "capture:stop",
         "chrome:adblock-exempt-active",
         "chrome:adblock-toggle",
+        "chrome:bangs",
         "chrome:blocking-popup",
         "chrome:blocking-provider",
         "chrome:capture-focus",
@@ -247,6 +255,7 @@
         "chrome:glance-status",
         "chrome:history-clear",
         "chrome:history-list",
+        "chrome:invite-friend",
         "chrome:island-covered",
         "chrome:island-proximity",
         "chrome:island-rect",
@@ -265,6 +274,7 @@
         "chrome:preview-vertical-tabs-width",
         "chrome:remote-tabs-list",
         "chrome:remote-tabs-updated",
+        "chrome:rename-device",
         "chrome:reset-glance",
         "chrome:resize-glance",
         "chrome:search-suggestions",
@@ -296,7 +306,10 @@
         "display-capture:picker-resolve",
         "fill:reply",
         "focus",
+        "groups:move-closed",
+        "groups:rename",
         "groups:reorder",
+        "groups:ungroup",
         "input-event",
         "login",
         "open-file",
@@ -420,7 +433,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "a04c87c39e21ce2027c5708249ab43d1028e0e9b93db419a8357f944ff9b588f",
+      "sha256": "3ed16cab3472b48fcb7b4dd0e2e9f5dc44b8983867a486d72861f7daec436765",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -474,11 +487,18 @@
         "pages:settings:open-trust-link",
         "pages:settings:set",
         "pages:settings:supporter-activate",
+        "pages:settings:sync-device-name-set",
         "pages:settings:sync-disable",
         "pages:settings:sync-enable",
         "pages:settings:sync-get",
+        "pages:settings:sync-join-code",
         "pages:settings:sync-now",
+        "pages:settings:sync-pair-begin",
+        "pages:settings:sync-pair-cancel",
+        "pages:settings:sync-pair-state",
         "pages:settings:sync-preflight",
+        "pages:settings:sync-recovery-code-copy",
+        "pages:settings:sync-switch-code",
         "pages:settings:sync-tabs-set",
         "pages:settings:trust-receipt",
         "pages:settings:welcome-tour",
@@ -500,6 +520,7 @@
         "pages:start:startup-continue",
         "pages:start:startup-retry",
         "pages:start:top-sites",
+        "pages:start:whats-new-dismiss",
         "pages:surface:close",
         "pages:surface:escape-arm",
         "pages:tab-handoff:accept",
@@ -525,10 +546,12 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "bb2b09b39e0702c8ee4354fda9cb2cada397d3328c58bed12fed487e190d3fcb",
+      "sha256": "07c553e49a45449366e8e400d0a517690b684f2f22174dc5c207df83d5f82c76",
       "literalChannels": [
+        "bangs:changed",
         "chrome:adblock-exempt-active",
         "chrome:adblock-toggle",
+        "chrome:bangs",
         "chrome:blocking-popup",
         "chrome:blocking-provider",
         "chrome:capture-focus",
@@ -543,6 +566,7 @@
         "chrome:glance-status",
         "chrome:history-clear",
         "chrome:history-list",
+        "chrome:invite-friend",
         "chrome:island-covered",
         "chrome:island-proximity",
         "chrome:island-rect",
@@ -561,6 +585,7 @@
         "chrome:preview-vertical-tabs-width",
         "chrome:remote-tabs-list",
         "chrome:remote-tabs-updated",
+        "chrome:rename-device",
         "chrome:reset-glance",
         "chrome:resize-glance",
         "chrome:search-suggestions",
@@ -585,7 +610,10 @@
         "chrome:workspaces-updated",
         "display-capture:picker-resolve",
         "display-capture:stop",
+        "groups:move-closed",
+        "groups:rename",
         "groups:reorder",
+        "groups:ungroup",
         "overlay:close",
         "overlay:drag-state",
         "overlay:escape",
@@ -712,7 +740,7 @@
     },
     {
       "file": "src/main/sync-crypto.js",
-      "sha256": "5438ffffd4cd4b4895225116bb17ca1afe89fc825f00763b89f5a00b2be52749",
+      "sha256": "e1575b178424eb86b97ed6c3ebf78e8e7d7f2f015855f379a691a755d8bbddbd",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -724,8 +752,10 @@
     },
     {
       "file": "src/main/sync.js",
-      "sha256": "d8f5ab3be9384db75b90dbe3c042930ae4b100cd89101edcc79c0777df53b571",
-      "literalChannels": [],
+      "sha256": "3a69085a4194d116a98623a6116d7d43f6eebaf618daa32ffce1cdedcbb97006",
+      "literalChannels": [
+        "before-quit"
+      ],
       "role": "privileged implementation or service"
     },
     {
@@ -736,7 +766,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "505cd31e49b7c71d762c4b596532e4aaec927a713bf3210d03d1faf99e62a775",
+      "sha256": "b6f57a5f6b6dfcd7aaf4ab98e00b5fca22fe388f06c72b0ae14e06d36d05c91f",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -791,11 +821,18 @@
         "pages:settings:open-trust-link",
         "pages:settings:set",
         "pages:settings:supporter-activate",
+        "pages:settings:sync-device-name-set",
         "pages:settings:sync-disable",
         "pages:settings:sync-enable",
         "pages:settings:sync-get",
+        "pages:settings:sync-join-code",
         "pages:settings:sync-now",
+        "pages:settings:sync-pair-begin",
+        "pages:settings:sync-pair-cancel",
+        "pages:settings:sync-pair-state",
         "pages:settings:sync-preflight",
+        "pages:settings:sync-recovery-code-copy",
+        "pages:settings:sync-switch-code",
         "pages:settings:sync-tabs-set",
         "pages:settings:trust-receipt",
         "pages:settings:welcome-tour",
@@ -821,6 +858,7 @@
         "pages:start:top-sites",
         "pages:start:utility-sheet-visibility",
         "pages:start:visibility",
+        "pages:start:whats-new-dismiss",
         "pages:surface:close",
         "pages:surface:escape",
         "pages:surface:escape-arm",
@@ -847,7 +885,7 @@
     },
     {
       "file": "src/main/tab-view.js",
-      "sha256": "e6f609c3c50948bf850ef62770a4c6fea71861dec1956066912a484a7e17879c",
+      "sha256": "5c6a1aa31a9b58ba1ec4d7eaa14aa244a3baba33677fdc2895d264c1db04221f",
       "literalChannels": [
         "audio-state-changed",
         "before-input-event",

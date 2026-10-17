@@ -55,6 +55,10 @@
       "ts": "'system' | 'light' | 'dark'",
       "doc": "Appearance preference."
     },
+    "InviteFriendResult": {
+      "ts": "'mail' | 'copied'",
+      "doc": "How an invite left Blanc: opened in the person's mail app, or copied to the clipboard because no mail app opened."
+    },
     "CreateTabOptions": {
       "ts": "{ private?: boolean }",
       "doc": "Options for a new tab. Only `private` is read by main today."
@@ -485,6 +489,19 @@
         }
       }
     },
+    "GroupRenameResult": {
+      "doc": "Result of renameGroup, built by renameGroup() in main.js.",
+      "fields": {
+        "ok": {
+          "type": "boolean"
+        },
+        "error": {
+          "type": "'duplicate' | 'unknown'",
+          "doc": "Present when ok is false: another group already has the name, or the group is gone.",
+          "optional": true
+        }
+      }
+    },
     "TabsSnapshot": {
       "doc": "Result of getAllTabs, built by the tabs:get-all handler in main.js.",
       "fields": {
@@ -502,6 +519,10 @@
         },
         "closed": {
           "type": "ClosedEntrySummary[]"
+        },
+        "closedSlot": {
+          "type": "number",
+          "doc": "How many of groups sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned)."
         },
         "tabLayout": {
           "type": "TabLayout"
@@ -540,6 +561,10 @@
         },
         "closed": {
           "type": "ClosedEntrySummary[]"
+        },
+        "closedSlot": {
+          "type": "number",
+          "doc": "How many of groups sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned)."
         },
         "tabLayout": {
           "type": "TabLayout"
@@ -618,6 +643,14 @@
         "ratio": {
           "type": "number"
         },
+        "minRatio": {
+          "type": "number",
+          "doc": "The smallest main-pane share the divider allows; above 0.5 on macOS when the main pane needs room for the Island and the traffic lights."
+        },
+        "maxRatio": {
+          "type": "number",
+          "doc": "The largest main-pane share the divider allows: 0.78, or less so the reference keeps 300 px."
+        },
         "page": {
           "type": "Rect"
         },
@@ -636,6 +669,11 @@
         "glance": {
           "type": "Rect",
           "doc": "Alias of glanceContent kept for older consumers."
+        },
+        "focusedPane": {
+          "type": "'main' | 'glance'",
+          "optional": true,
+          "doc": "Which pane holds keyboard focus. Present on chrome:glance-layout (glanceLayoutPayload() in glance-focus.js); calculateGlanceLayout() leaves it out."
         }
       }
     },
@@ -1085,6 +1123,37 @@
         }
       }
     },
+    "CustomBang": {
+      "doc": "A bang the person added in Settings, from settings.js normalizeCustomBangs().",
+      "fields": {
+        "code": {
+          "type": "string",
+          "doc": "Lowercase; a letter or digit, then up to 31 letters, digits, hyphens or underscores."
+        },
+        "name": {
+          "type": "string"
+        },
+        "template": {
+          "type": "string",
+          "doc": "The search address with %s where the words go; the custom search address's rule."
+        }
+      }
+    },
+    "BangsState": {
+      "doc": "The bang settings the Island draws its hint row and picker from, from bangsState() in main.js.",
+      "fields": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "custom": {
+          "type": "CustomBang[]"
+        },
+        "recent": {
+          "type": "string[]",
+          "doc": "Recently used primary codes, newest first, at most ten; device-local."
+        }
+      }
+    },
     "SearchSuggestions": {
       "doc": "Search suggestions for the address bar, labelled with the engine that produced them.",
       "fields": {
@@ -1188,6 +1257,16 @@
           "type": "SpacesAnchor",
           "optional": true,
           "doc": "Present while the Spaces menu is open from the mark, so it follows the pill."
+        },
+        "minPrimaryWidth": {
+          "type": "number",
+          "optional": true,
+          "doc": "With Glance side by side: the narrowest main pane that holds the slim Island with a readable address, its chips and clearance included. Main stops the divider there."
+        },
+        "minReferenceWidth": {
+          "type": "number",
+          "optional": true,
+          "doc": "With Glance side by side: the narrowest reference that holds the Glance header at its most compact, including the window-control space on Windows and Linux. Main stops the divider there."
         }
       }
     },
@@ -1527,11 +1606,57 @@
         },
         {
           "name": "beforeGroupId",
+          "type": "GroupId | 'recently-closed' | null"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Move a group before another group, directly above the Recently closed band with 'recently-closed', or to the end with null."
+    },
+    {
+      "name": "moveClosedSection",
+      "group": "tabs",
+      "kind": "invoke",
+      "channel": "groups:move-closed",
+      "params": [
+        {
+          "name": "beforeGroupId",
           "type": "GroupId | null"
         }
       ],
       "returns": "boolean",
-      "doc": "Move a group before another group, or to the end with null."
+      "doc": "Move the ⌘L panel's Recently closed band before a group, or after the last group with null."
+    },
+    {
+      "name": "renameGroup",
+      "group": "groups",
+      "kind": "invoke",
+      "channel": "groups:rename",
+      "params": [
+        {
+          "name": "groupId",
+          "type": "GroupId"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "returns": "GroupRenameResult",
+      "doc": "Rename a group, keeping the case typed. An empty or unchanged name changes nothing; another group's name in this window (in any case) is refused."
+    },
+    {
+      "name": "ungroupGroup",
+      "group": "groups",
+      "kind": "invoke",
+      "channel": "groups:ungroup",
+      "params": [
+        {
+          "name": "groupId",
+          "type": "GroupId"
+        }
+      ],
+      "returns": "void",
+      "doc": "Make every tab in a group ungrouped; the empty group goes away."
     },
     {
       "name": "activateTabFromRail",
@@ -1566,9 +1691,16 @@
       "group": "glance",
       "kind": "invoke",
       "channel": "tabs:open-glance-picker",
-      "params": [],
+      "params": [
+        {
+          "name": "query",
+          "type": "string",
+          "optional": true,
+          "doc": "Text the picker's filter starts with (/glance <text>); main caps it at 200 characters."
+        }
+      ],
       "returns": "boolean",
-      "doc": "Open the Glance tab picker."
+      "doc": "Open the Glance tab picker, or the Change picker while Glance is open."
     },
     {
       "name": "closeGlance",
@@ -2254,6 +2386,24 @@
       "doc": "List other devices' open tabs. Empty unless Profile Sync is on in the Personal profile."
     },
     {
+      "name": "renameDevice",
+      "group": "sync",
+      "kind": "invoke",
+      "channel": "chrome:rename-device",
+      "params": [
+        {
+          "name": "deviceId",
+          "type": "string"
+        },
+        {
+          "name": "name",
+          "type": "string | null"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Name another synced device as this profile's devices list it; an empty name or null restores the name it publishes. Refused (false) for a device the Other devices drawer does not list."
+    },
+    {
       "name": "cancelWorkspaceAction",
       "group": "workspaces",
       "kind": "send",
@@ -2434,6 +2584,23 @@
       "doc": "Fetch search suggestions when enabled in Settings."
     },
     {
+      "name": "bangs",
+      "group": "search",
+      "kind": "invoke",
+      "channel": "chrome:bangs",
+      "params": [],
+      "returns": "BangsState",
+      "doc": "The bang settings: the switch, the person's own bangs and the recently used codes."
+    },
+    {
+      "name": "onBangsChanged",
+      "group": "search",
+      "kind": "event",
+      "channel": "bangs:changed",
+      "payload": "BangsState",
+      "doc": "The bang settings changed. Same projection as bangs()."
+    },
+    {
       "name": "onRemoteTabsUpdated",
       "group": "sync",
       "kind": "event",
@@ -2511,6 +2678,15 @@
       "params": [],
       "returns": "TabId[]",
       "doc": "Quiet all background tabs now. Resolves to the ids of the tabs that were quieted."
+    },
+    {
+      "name": "inviteFriend",
+      "group": "island",
+      "kind": "invoke",
+      "channel": "chrome:invite-friend",
+      "params": [],
+      "returns": "InviteFriendResult",
+      "doc": "Open a prefilled invite email in the person's own mail app (/invite). Blanc sends nothing; without a mail app the invite is copied instead."
     },
     {
       "name": "fillLoginFromOnePassword",

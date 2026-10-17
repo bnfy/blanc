@@ -1,5 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import IslandFooter from '../../components/IslandFooter.astro';
+import IslandPanelActions from '../../components/IslandPanelActions.astro';
 ---
 <BaseLayout
   title={"Quiet Tabs: Browser Memory Saver | Blanc Browser"}
@@ -23,7 +25,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       <div class="demo-page" aria-hidden="true"><div class="bar w1"></div><div class="bar w2"></div><div class="bar w3"></div><div class="bar w4"></div></div>
       <div class="demo-island open" aria-hidden="true">
         <div class="panel">
-          <div class="panel-row"><div class="field"><span class="typed">https://www.notion.so/</span><span class="caret"></span></div></div>
+          <div class="panel-row"><div class="field"><span class="typed">https://www.notion.so/</span><span class="caret"></span></div><IslandPanelActions /></div>
           <div class="list">
             <div class="trow quiet"><span class="fav fav--threads"></span><span class="title">Threads</span></div>
             <div class="trow"><span class="fav fav--gmail"></span><span class="title">Gmail</span></div>
@@ -31,6 +33,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             <div class="trow"><span class="fav fav--youtube"></span><span class="title">YouTube</span></div>
             <div class="trow quiet"><span class="fav fav--netflix"></span><span class="title">Netflix</span></div>
           </div>
+          <IslandFooter />
         </div>
       </div>
     </div>

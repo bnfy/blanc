@@ -5,6 +5,7 @@ const test = require('node:test');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const { trackJsonStores } = require('./support/track-json-stores');
 
 // A renamed build (product name other than Blanc) must not store data on
 // Bananify's sync server, but may still erase a copy it already put there.
@@ -57,12 +58,18 @@ fs.writeFileSync(path.join(tmp, 'sync.json'), JSON.stringify({
   syncTabs: false,
 }));
 
+const jsonStores = trackJsonStores();
 const sync = require('../../src/main/sync');
 const { englishT: t } = require('../support/english-t');
 const { syncErrorText } = require('../../src/main/sync-messages');
 sync.setTabStateReady(true);
 
 const creds = { handle: 'renamed-build', passphrase: 'a passphrase long enough to pass' };
+
+test.after(async () => {
+  await jsonStores.settle();
+  fs.rmSync(tmp, { recursive: true, force: true });
+});
 
 test.beforeEach(() => { fetchCalls = []; encryptCalls = 0; });
 
@@ -94,5 +101,16 @@ test('turning sync off can still erase the server copy', async () => {
   const res = await sync.disable({ wipeRemote: true });
   assert.equal(res.ok, true);
   assert.deepEqual(fetchCalls.map((call) => call.method), ['DELETE']);
+  assert.equal(sync.status().enabled, false);
+});
+
+test('a recovery code is refused in a renamed build before anything is stored', async () => {
+  const pairing = require('../../src/main/sync-pairing');
+  fetchCalls = [];
+  const code = pairing.encodeRecoveryCode({ v: 1, handle: 'x', accountId: 'b'.repeat(64), key: Buffer.alloc(32, 3).toString('base64') });
+  const res = await sync.joinWithCode(code);
+  assert.equal(res.ok, false);
+  assert.equal(res.error, 'service-unavailable');
+  assert.equal(fetchCalls.length, 0);
   assert.equal(sync.status().enabled, false);
 });

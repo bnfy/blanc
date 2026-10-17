@@ -386,9 +386,17 @@ const settingsStep = (step) => async (ctx) => {
 const SETTINGS_SURFACES = [
   { name: 'settings', open: openSettings },
   {
-    name: 'settings (sync setup, joining)',
+    name: 'settings (sync setup, add this device with a code)',
     open: settingsStep(async (page) => {
-      await page.locator('#syncPathJoin').click();
+      await page.locator('#syncPathCode').click();
+      await page.locator('#syncCodeForm').waitFor({ state: 'visible' });
+    }),
+  },
+  {
+    name: 'settings (sync setup, joining with name and passphrase)',
+    open: settingsStep(async (page) => {
+      await page.locator('#syncPathCode').click();
+      await page.locator('#syncUsePassphrase').click();
       await page.locator('#syncForm').waitFor({ state: 'visible' });
     }),
   },
@@ -526,11 +534,47 @@ const MAHJONG_SURFACES = [
   { name: 'mahjong (records)', open: mahjongSheet('#mjRecords', '#mjRecordsSheet'), close: (page) => page.locator('#mjRecordsClose').click() },
 ].map((surface) => ({ ...surface, files: MAHJONG_FILES }));
 
+// Every visible footer button stays inside the footer and clear of the others
+// with the longest labels (spec 2026-10-16-island-lower-section §5).
+const footerProblems = (page) => page.evaluate(() => {
+  const footer = document.getElementById('islandFooter').getBoundingClientRect();
+  const rects = [...document.querySelectorAll('#islandFooter button')].filter((button) => !button.hidden)
+    .map((button) => ({ id: button.id, rect: button.getBoundingClientRect() }));
+  const problems = [];
+  for (const { id, rect } of rects) {
+    if (rect.left < footer.left - 1 || rect.right > footer.right + 1 || rect.top < footer.top - 1 || rect.bottom > footer.bottom + 1) {
+      problems.push(`${id} leaves the footer`);
+    }
+  }
+  for (let i = 0; i < rects.length; i += 1) for (let j = i + 1; j < rects.length; j += 1) {
+    const a = rects[i].rect; const b = rects[j].rect;
+    if (!(a.right <= b.left + 1 || b.right <= a.left + 1 || a.bottom <= b.top + 1 || b.bottom <= a.top + 1)) {
+      problems.push(`${rects[i].id} overlaps ${rects[j].id}`);
+    }
+  }
+  return problems;
+});
+
 const SURFACES = [
   {
     name: 'island panel (tab list)',
     files: OVERLAY_FILES,
     open: openPanel,
+  },
+  {
+    name: 'island panel (footer and Other devices drawer)',
+    files: OVERLAY_FILES,
+    open: async (ctx) => {
+      const overlay = await openPanel(ctx);
+      // Opening reloads devices from the real (disabled) sync cache first.
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      await callTestHook(ctx.app, 'injectRemoteDevices');
+      await overlay.locator('#footerDevices').waitFor({ state: 'visible' });
+      await overlay.locator('#footerDevices').click();
+      await overlay.locator('#islandDrawer').waitFor({ state: 'visible' });
+      assert.deepEqual(await footerProblems(overlay), [], 'the footer holds its pseudo-locale labels on one line');
+      return overlay;
+    },
   },
   {
     name: 'island panel (slash commands)',

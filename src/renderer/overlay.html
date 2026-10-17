@@ -49,17 +49,23 @@
         </div>
       </div>
       <div id="islandList"></div>
+      <div id="islandDrawer" hidden></div>
       <div id="islandFooter">
         <div class="footer-launchers">
         <button id="footerNewTab" class="footer-new">
           <svg viewBox="0 0 16 16"><path d="M8 3.25v9.5M3.25 8h9.5"/></svg>
-          <span data-i18n="footer.newTab">new tab</span>
+          <span data-i18n="footer.newTab">New tab</span>
           <span id="footerNewTabKbd" class="footer-kbd" data-i18n-ignore></span>
         </button>
         <button id="footerNewPrivate" class="footer-new private">
-          <svg viewBox="0 0 16 16"><path d="M8 3.25v9.5M3.25 8h9.5"/></svg>
-          <span data-i18n="footer.private">private</span>
-          <span id="footerNewPrivateKbd" class="footer-kbd" data-i18n-ignore></span>
+          <svg viewBox="0 0 16 16"><path d="M1.75 8C3.1 5.4 5.4 3.75 8 3.75S12.9 5.4 14.25 8C12.9 10.6 10.6 12.25 8 12.25S3.1 10.6 1.75 8Z"/><circle cx="8" cy="8" r="1.75"/><path d="M3 3l10 10"/></svg>
+          <span data-i18n="footer.private">Private</span>
+        </button>
+        <button id="footerDevices" class="footer-new devices" type="button" aria-expanded="false" aria-controls="islandDrawer" hidden>
+          <svg viewBox="0 0 16 16"><rect x="2" y="3.5" width="8" height="6" rx="1"/><path d="M1.25 11.75h9.25"/><rect x="12.25" y="6" width="2.75" height="6.25" rx="0.75"/></svg>
+          <span data-i18n="footer.devices">Other devices</span>
+          <span id="footerDevicesCount" class="footer-kbd" data-i18n-ignore></span>
+          <svg class="devices-caret" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 9.75 8 6.25l3.5 3.5"/></svg>
         </button>
         </div>
         <div class="footer-tools">
@@ -118,7 +124,7 @@
     <div id="workspaceSwitcherList"></div>
     <div id="workspaceSwitcherCommands" class="ws-commands" hidden></div>
   </div>
-  <section id="glancePicker" class="glance-picker" aria-labelledby="glancePickerTitle" hidden>
+  <div id="glancePicker" class="glance-picker" role="dialog" aria-labelledby="glancePickerTitle" hidden>
     <header class="glance-picker-head">
       <h2 id="glancePickerTitle" data-i18n="glance.picker.title">Choose a tab for Glance</h2>
       <button id="glancePickerClose" class="glance-picker-close" type="button" title="Cancel" aria-label="Cancel choosing a Glance tab" data-i18n-title="common.cancel" data-i18n-aria-label="glance.picker.cancelLabel">
@@ -145,7 +151,7 @@
       <span data-i18n="glance.picker.hintNavigate">↑↓ navigate</span><span data-i18n="glance.picker.hintOpen">↵ open</span><span data-i18n="glance.picker.hintCancel">esc cancel</span>
     </footer>
     <div id="glancePickerLive" class="sr-only" aria-live="polite" aria-atomic="true"></div>
-  </section>
+  </div>
   <!-- Outside the picker on purpose: that section is hidden in every other
        overlay mode, and a live region inside display:none is never spoken. -->
   <div id="islandDragLive" class="sr-only" aria-live="polite" aria-atomic="true"></div>
@@ -224,6 +230,8 @@
   <script src="space-identity.js"></script>
   <script src="space-picker.js"></script>
   <script src="workspace-ui.js"></script>
+  <script src="pages/bangs-catalog.js"></script>
+  <script src="pages/bangs.js"></script>
   <script src="overlay.js"></script>
 </body>
 </html>

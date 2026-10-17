@@ -284,9 +284,10 @@ test('the Spaces demo switches like the app, walks once in under five seconds an
       tick() { const timer = timers.shift(); elapsed += timer.ms; timer.fn(); }};
   }
 
-  // Fits the stage to its column, at most 1.3×, and lines the menu up with the mark.
+  // Fits the stage to its column, at most 1.8×, and lines the menu up with the mark.
   const p = fixture();
   assert.equal(p.host.style.props['--demo-scale'], '1.3');
+  assert.equal(fixture({width: 900}).host.style.props['--demo-scale'], '1.8');
   assert.ok(Math.abs(parseFloat(p.stage.style.props['--menu-x']) - 9) < 1e-9, 'the menu starts under the mark');
   const narrow = {...p.host, clientWidth: 260, style: {props: {}, setProperty(k, v) { this.props[k] = v; }}};
   fitSpacesDemo(narrow, p.view);
