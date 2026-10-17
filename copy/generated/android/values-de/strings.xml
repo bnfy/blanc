@@ -34,6 +34,7 @@
     <string name="slash_space_hint">Zu einem Space wechseln oder einen neuen Namen eingeben, um dieses Fenster zu speichern</string>
     <string name="slash_glance_hint">Einen anderen offenen Tab neben dieser Seite behalten</string>
     <string name="slash_glance_doc">Die Glance-Auswahl öffnen, gefiltert nach dem Text</string>
+    <string name="slash_invite_hint">Jemandem per E-Mail einen Link zum Download von Blanc schicken</string>
     <string name="settings_language_label">Sprache</string>
     <string name="settings_language_hint">Übersetzungen werden maschinell erstellt.</string>
     <string name="settings_language_system">System (%1$s)</string>
@@ -370,6 +371,7 @@
     <string name="device_unfold">Gerät aufklappen</string>
     <string name="slash_sleep_none">Gerade können keine Hintergrund-Tabs ruhen gelassen werden.</string>
     <string name="slash_sleep_failed">Hintergrund-Tabs konnten nicht ruhen gelassen werden.</string>
+    <string name="slash_invite_copied">Deine Mail-App hat sich nicht geöffnet, deshalb wurde die Einladung kopiert. Füge sie in eine Nachricht ein.</string>
     <string name="closed_header">Zuletzt geschlossen</string>
     <string name="closed_fold">Zuletzt geschlossene einklappen</string>
     <string name="closed_unfold">Zuletzt geschlossene aufklappen</string>
@@ -717,6 +719,11 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="menu_slash_commands">Slash-Befehle</string>
     <string name="menu_keyboard_shortcuts">Tastenkürzel</string>
     <string name="menu_show_all_shortcuts">Alle Tastenkürzel anzeigen…</string>
+    <string name="menu_invite_friend">Freunde einladen…</string>
+    <string name="invite_email_subject">Probier mal Blanc, den Browser, den ich nutze</string>
+    <string name="invite_email_greeting">Hallo,</string>
+    <string name="invite_email_pitch">Ich nutze Blanc, einen kostenlosen Open-Source-Browser für Mac, Windows und Linux. Er blockiert bekannte Werbung und Tracker von Haus aus, ganz ohne zusätzliche Installation.</string>
+    <string name="invite_email_link">Hier kannst du ihn herunterladen: %1$s</string>
     <string name="shortcuts_island">Island</string>
     <string name="shortcuts_dismiss">Island-Panel / Suchleiste schließen</string>
     <string name="shortcuts_submit">Adresse öffnen oder Befehl ausführen (in der Befehlsleiste)</string>

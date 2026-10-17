@@ -34,6 +34,7 @@
     <string name="slash_space_hint">Passa a uno Space, o digita un nuovo nome per salvare questa finestra</string>
     <string name="slash_glance_hint">Tieni un\'altra scheda aperta accanto a questa pagina</string>
     <string name="slash_glance_doc">Apri il selettore di Glance, filtrato per il testo</string>
+    <string name="slash_invite_hint">Invia per email a qualcuno un link per scaricare Blanc</string>
     <string name="settings_language_label">Lingua</string>
     <string name="settings_language_hint">Le traduzioni sono generate automaticamente.</string>
     <string name="settings_language_system">Sistema (%1$s)</string>
@@ -380,6 +381,7 @@
     <string name="device_unfold">Espandi il dispositivo</string>
     <string name="slash_sleep_none">Al momento nessuna scheda in background può essere messa in riposo.</string>
     <string name="slash_sleep_failed">Impossibile mettere in riposo le schede in background.</string>
+    <string name="slash_invite_copied">L’app di posta non si è aperta, quindi l’invito è stato copiato. Incollalo in un messaggio.</string>
     <string name="closed_header">Chiuse di recente</string>
     <string name="closed_fold">Comprimi le schede chiuse di recente</string>
     <string name="closed_unfold">Espandi le schede chiuse di recente</string>
@@ -734,6 +736,11 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="menu_slash_commands">Comandi slash</string>
     <string name="menu_keyboard_shortcuts">Scorciatoie da tastiera</string>
     <string name="menu_show_all_shortcuts">Mostra tutte le scorciatoie…</string>
+    <string name="menu_invite_friend">Invita un amico…</string>
+    <string name="invite_email_subject">Prova Blanc, il browser che uso</string>
+    <string name="invite_email_greeting">Ciao,</string>
+    <string name="invite_email_pitch">Uso Blanc, un browser gratuito e open source per Mac, Windows e Linux. Blocca in modo predefinito annunci e tracker noti, senza installare nient’altro.</string>
+    <string name="invite_email_link">Puoi scaricarlo qui: %1$s</string>
     <string name="shortcuts_island">Island</string>
     <string name="shortcuts_dismiss">Chiudi il pannello dell’Island o la barra di ricerca</string>
     <string name="shortcuts_submit">Apri l’indirizzo o esegui il comando (nella barra dei comandi)</string>

@@ -32,6 +32,7 @@ const SLASH_COMMANDS = [
   ['/patron', 'slash.patron.hint'],
   ['/space', 'slash.space.hint'],
   ['/glance <text>', 'slash.glance.doc'],
+  ['/invite', 'slash.invite.hint'],
 ];
 
 /** One titled section of label/keys rows. */

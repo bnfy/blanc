@@ -26,4 +26,5 @@
     <string name="slash_patron">Support Blanc with a Patron subscription</string>
     <string name="slash_space">Switch to a space, or type a new name to save this window</string>
     <string name="slash_glance">Keep another open tab beside this page</string>
+    <string name="slash_invite">Email a friend a link to download Blanc</string>
 </resources>

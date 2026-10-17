@@ -240,6 +240,10 @@
       "state": "guarded",
       "allow": []
     },
+    "src/main/invite-friend.js": {
+      "state": "guarded",
+      "allow": []
+    },
     "src/main/external-protocols.js": {
       "state": "guarded",
       "allow": []
