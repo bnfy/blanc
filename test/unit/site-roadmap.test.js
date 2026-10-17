@@ -62,3 +62,14 @@ test('roadmap links point at real site pages', () => {
     assert.ok(candidates.some((file) => fs.existsSync(file)), `${item.id} links to missing page ${href}`);
   }
 });
+
+// Every release's changelog refresh must come with a roadmap review, so a
+// shipped feature never lingers on the page as planned.
+test('roadmap was reviewed on or after the newest release', () => {
+  const releases = JSON.parse(fs.readFileSync(path.join(ROOT, 'site/src/data/releases.json'), 'utf8'));
+  const newest = releases[0];
+  assert.ok(
+    roadmap.updated >= newest.machineDate,
+    `roadmap.json updated ${roadmap.updated} predates ${newest.tag} (${newest.machineDate}); move shipped items off and bump updated`,
+  );
+});

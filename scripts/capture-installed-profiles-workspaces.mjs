@@ -135,7 +135,8 @@ try {
   }, Boolean, label);
   const isStartPage = (page) => page.url().startsWith('blanc://newtab/');
   // The strip document is the one whose shipped preload exposes openPage.
-  const chrome = await findPage(async (page) => page.url().startsWith('blanc-chrome://')
+  // The overlay shares that preload, so match the strip's own address.
+  const chrome = await findPage(async (page) => page.url().startsWith('blanc-chrome://index/')
     && await page.evaluate(() => typeof window.browserAPI?.openPage === 'function'), 'Blanc chrome document did not appear');
   await findPage(async (page) => isStartPage(page), 'Start Page did not restore');
 

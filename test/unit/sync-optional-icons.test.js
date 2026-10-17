@@ -3,6 +3,7 @@ const test = require('node:test');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { trackJsonStores } = require('./support/track-json-stores');
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-sync-icons-'));
 const requests = [];
@@ -59,6 +60,7 @@ fs.writeFileSync(path.join(tmp, 'sync.json'), JSON.stringify({
   syncTabs: true,
 }));
 
+const jsonStores = trackJsonStores();
 const sync = require('../../src/main/sync');
 sync.setTabStateReady(true);
 
@@ -66,6 +68,7 @@ test.after(async () => {
   await sync.disable();
   global.setTimeout = realSetTimeout;
   global.clearTimeout = realClearTimeout;
+  await jsonStores.settle();
   fs.rmSync(tmp, { recursive: true, force: true });
 });
 

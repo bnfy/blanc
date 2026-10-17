@@ -224,6 +224,9 @@ the changelog: add concise feature names (40 characters max) for the new
 version if it shipped features, move anything that shipped off the roadmap,
 re-check every remaining item against the release, and bump `updated`. The
 page must never list as planned something the changelog shows as shipped.
+`test/unit/site-roadmap.test.js` fails while `updated` is older than the
+newest release in `releases.json`, so the changelog refresh cannot land
+without that review.
 Roadmap copy describes plans, so keep each item's qualifier (testing, paused,
 depends on…) and follow `docs/marketing-claims.md`.
 

@@ -84,6 +84,17 @@ op run --env-file=../.env.1password -- npx wrangler secret put RESEND_WEBHOOK_SE
   `unsubscribeUrl` from the export. After the launch announcement is sent,
   purge the whole list (below).
 
+## Signup alerts
+
+- When an address confirms a newsletter subscription for the first time, the
+  Worker emails `SIGNUP_ALERT_TO` (a `[vars]` entry, `support@blanc.day`) with
+  the address, the confirmation time and the new subscriber total, in the
+  branded layout.
+- Re-confirming an address already on the list, the Resend sync and the Blanc
+  Mail waitlist send no alert. Removing `SIGNUP_ALERT_TO` turns alerts off.
+- A failed alert is logged as `signup-alert-not-sent` and never affects the
+  subscriber's confirmation.
+
 ## Ambassador applications
 
 - `POST /ambassador-apply` accepts JSON from the interactive page or a native

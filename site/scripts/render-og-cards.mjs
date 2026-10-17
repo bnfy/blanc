@@ -47,19 +47,19 @@ const CARDS = [
   {
     out: 'og-image.png',
     layout: 'horizon',
-    capture: 'home-wallpaper-dawn-v1.31.0.png',
+    capture: 'home-wallpaper-dawn-v1.35.0.png',
     headline: 'A little less browser.',
     sub: 'A minimal desktop browser, with ad and tracker blocking built in.',
   },
   {
     out: 'feature-start-page.png',
-    capture: 'billboard-v1.31.0.png',
+    capture: 'billboard-v1.35.0.png',
     kicker: 'start page',
     headline: 'Four ways to begin. Mahjong when you want a break.',
   },
   {
     out: 'feature-glance.png',
-    capture: 'glance.png',
+    capture: 'glance-v1.35.0.png',
     kicker: 'glance',
     headline: 'Keep a reference beside the page you’re using.',
     // The reference panel is the right-hand third of the window; running the
@@ -68,19 +68,19 @@ const CARDS = [
   },
   {
     out: 'feature-workspaces.png',
-    capture: 'workspaces-v1.33.0.png',
+    capture: 'workspaces-v1.36.0.png',
     kicker: 'blanc spaces',
     headline: 'Work, home and side projects, each in its own space.',
   },
   {
     out: 'feature-profiles.png',
-    capture: 'profiles.png',
+    capture: 'profiles-v1.36.0.png',
     kicker: 'profiles & windows',
     headline: 'Separate browsing identities. Keep every window independent.',
   },
   {
     out: 'feature-reopen-closed-tabs.png',
-    capture: 'reopen-closed-tabs.png',
+    capture: 'reopen-closed-tabs-v1.36.0.png',
     kicker: 'reopen closed tabs',
     headline: 'Get the tab back, not just its address.',
   },

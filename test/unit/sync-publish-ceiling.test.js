@@ -5,6 +5,7 @@ const { test, mock } = require('node:test');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const { trackJsonStores } = require('./support/track-json-stores');
 
 // Regression for publish starvation: the session and icon publishes are
 // trailing 15 s debounces, re-armed on every fingerprint change. A tab whose
@@ -55,13 +56,20 @@ fs.writeFileSync(path.join(tmp, 'sync.json'), JSON.stringify({
   syncTabs: true,
 }));
 
+const jsonStores = trackJsonStores();
 const sync = require('../../src/main/sync');
 const tabsync = require('../../src/main/tabsync');
 const tabicons = require('../../src/main/tabicons');
 const { deviceName } = require('../../src/main/device-name');
 const { decrypt } = require('../../src/main/sync-crypto');
 
-test.after(() => {
+test.after(async () => {
+  // Under the mocked clock every store update is past JsonStore's 5 s save
+  // ceiling, so it writes at once and queues a rewrite behind the write in
+  // flight. The tests' own settle() drains callbacks, not file I/O, so
+  // sync.json, tab-sync.json and tab-icons.json are still being written when
+  // the last test ends.
+  await jsonStores.settle();
   fs.rmSync(tmp, { recursive: true, force: true });
 });
 

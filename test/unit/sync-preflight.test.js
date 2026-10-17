@@ -5,6 +5,7 @@ const test = require('node:test');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const { trackJsonStores } = require('./support/track-json-stores');
 
 // preflight() must read one blob and write nothing: no sync.json, no key
 // protection, no enabled state — so the join path can catch a mistyped
@@ -52,9 +53,15 @@ require.cache[cryptoId].exports = {
   },
 };
 
+const jsonStores = trackJsonStores();
 const sync = require('../../src/main/sync');
 const creds = { handle: 'preflight-test', passphrase: 'a passphrase long enough to pass' };
 const isZeroed = (buf) => Buffer.isBuffer(buf) && buf.length === 32 && buf.every((b) => b === 0);
+
+test.after(async () => {
+  await jsonStores.settle();
+  fs.rmSync(tmp, { recursive: true, force: true });
+});
 
 test.beforeEach(() => { fetchCalls = []; encryptCalls = 0; });
 

@@ -179,6 +179,46 @@ async function sendConfirmation(env, list, email, confirmationUrl, idempotencyKe
   return response.ok;
 }
 
+// Tells Blanc's own inbox about a genuinely new newsletter subscriber. A
+// failure is logged and never undoes or delays the confirmation the
+// subscriber is looking at.
+async function sendSignupAlert(env, email, ts) {
+  try {
+    const count = (await keysWithPrefix(env, LISTS.newsletter.member)).length;
+    const total = `That makes ${count} ${count === 1 ? 'subscriber' : 'subscribers'}.`;
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+        'Idempotency-Key': `blanc-signup-alert-${await sha256(`${email}\n${ts}`)}`,
+      },
+      body: JSON.stringify({
+        from: env.NEWSLETTER_FROM,
+        to: [env.SIGNUP_ALERT_TO],
+        subject: `New Blanc newsletter subscriber: ${email}`,
+        text: `${email} confirmed a Blanc newsletter subscription at ${ts}.\n\n${total}`,
+        html: renderEmail({
+          preheader: `${email} just subscribed. ${total}`,
+          heading: 'New newsletter subscriber',
+          paragraphs: [
+            { lead: 'Email:', text: email },
+            { lead: 'Confirmed:', text: ts },
+            total,
+          ],
+          finePrint: [
+            'You got this email because signup alerts for Blanc release notes go to this address.',
+            'Blanc is built by Bananify.',
+          ],
+        }),
+      }),
+    });
+    if (!response.ok) logFailure('signup-alert-not-sent', await resendFailure(response));
+  } catch (error) {
+    logFailure('signup-alert-not-sent', errorDetails(error));
+  }
+}
+
 async function handleSubscribe(request, env, cors, list = LISTS.newsletter) {
   const missing = missingConfig(env, ['NEWSLETTER_TOKEN_SECRET', 'RESEND_API_KEY', 'NEWSLETTER_FROM']);
   if (missing.length) {
@@ -441,6 +481,11 @@ async function handleConfirm(env, url, list = LISTS.newsletter) {
     env.SUBSCRIBERS.delete(`${list.quarantine}${pending.email}`),
   ]);
   if (list === LISTS.newsletter) await addToSegment(env, pending.email);
+  // Only a first subscription alerts: re-confirming an address already on the
+  // list, the Resend sync and the Mail waitlist never do.
+  if (list === LISTS.newsletter && !previous && env.SIGNUP_ALERT_TO) {
+    await sendSignupAlert(env, pending.email, ts);
+  }
   return htmlResult(...list.confirmed);
 }
 

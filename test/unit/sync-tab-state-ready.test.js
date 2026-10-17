@@ -6,6 +6,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { waitForJson } = require('./support/wait-for-json');
+const { trackJsonStores } = require('./support/track-json-stores');
 
 // Regression for the pre-restore sync race: showOverlay('palette'|'panel')
 // calls refreshSession() before startProfileSync registers snapshot providers.
@@ -93,6 +94,7 @@ fs.writeFileSync(path.join(tmp, 'tab-icons.json'), JSON.stringify({
   devices: { [DEVICE_ID]: LIVE_ICONS },
 }));
 
+const jsonStores = trackJsonStores();
 const sync = require('../../src/main/sync');
 const tabsync = require('../../src/main/tabsync');
 const tabicons = require('../../src/main/tabicons');
@@ -100,6 +102,7 @@ const mainSource = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'
 
 test.after(async () => {
   await sync.disable().catch(() => {});
+  await jsonStores.settle();
   fs.rmSync(tmp, { recursive: true, force: true });
 });
 

@@ -7,6 +7,7 @@ const os = require('node:os');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { waitForJson } = require('./support/wait-for-json');
+const { trackJsonStores } = require('./support/track-json-stores');
 
 // sync.js pairing entry points (design 2026-10-16 §5.4/§5.4a): begin and
 // cancel a pairing, join from the off state, switch from the on state with
@@ -109,6 +110,7 @@ fs.writeFileSync(path.join(tmp, 'tab-sync.json'), JSON.stringify({
   devices: { peer: { name: 'Peer', platform: 'darwin', updatedAt: Date.now(), tabs: [{ url: 'https://p.example/', title: 'P', groupId: null, pinned: false }], groups: [] } },
 }));
 
+const jsonStores = trackJsonStores();
 const sync = require('../../src/main/sync');
 const pairing = require('../../src/main/sync-pairing');
 sync.setTabStateReady(true);
@@ -124,7 +126,11 @@ function parkCode(code, payload = OTHER) {
   return pairId;
 }
 
-test.after(() => { fs.rmSync(tmp, { recursive: true, force: true }); });
+test.after(async () => {
+  await sync.disable().catch(() => {}); // clears the optional-store retry timer
+  await jsonStores.settle();
+  fs.rmSync(tmp, { recursive: true, force: true });
+});
 
 test('beginPairing posts a wrapped secret under the code-derived pairId and keeps the code in memory only', async () => {
   const res = await sync.beginPairing();
