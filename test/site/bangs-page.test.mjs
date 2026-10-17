@@ -228,18 +228,25 @@ test('a long pasted search never scrolls the page sideways, and long codes are n
   } finally { await context.close(); }
 });
 
-test('the Island drawing is set in the app\'s Instrument Sans with its chips, and the page around it in Blubird', async () => {
+test('the Island drawing and every bang are set in the app\'s Instrument Sans with its chips, and the page around it in Blubird', async () => {
   const { context, page } = await open();
   try {
     await page.locator('#bangs-try').fill('!w golden retriever');
     await page.waitForFunction(() => document.querySelector('#bangs-try-list').textContent.includes('golden retriever'));
     const family = (selectors) => page.evaluate((list) => Object.fromEntries(
       list.map((selector) => [selector, getComputedStyle(document.querySelector(selector)).fontFamily])), selectors);
-    // The drawing of the app's Island uses the app's face; the page is the website's.
-    for (const [selector, value] of Object.entries(await family(['#bangs-try', '#bangs-try-list .cmd', '#bangs-try-list .hint']))) {
+    // The drawing of the app's Island, and every bang the page asks you to
+    // type, use the app's face; the page is the website's.
+    const bangs = ['[data-chip]', '#bangs-rows li b', '#bangs-rows li[data-code="yt"] small kbd', '.bangs-hero .bang-chip', '.feature-copy-list .bang-chip'];
+    for (const [selector, value] of Object.entries(await family(['#bangs-try', '#bangs-try-list .cmd', '#bangs-try-list .hint', ...bangs]))) {
       assert.match(value, /^"Instrument Sans"/, `${selector} is ${value}`);
     }
-    for (const [selector, value] of Object.entries(await family(['#bangs-try-dest', '[data-chip]', '#bangs-search', '#bangs-rows li b', '#bangs-rows li em', '#bangs-count']))) {
+    for (const selector of bangs) {
+      const style = await page.locator(selector).first().evaluate((el) => ({ radius: getComputedStyle(el).borderTopLeftRadius, background: getComputedStyle(el).backgroundColor }));
+      assert.ok(parseFloat(style.radius) > 0, `${selector} is not round`);
+      assert.doesNotMatch(style.background, /rgba\(0, 0, 0, 0\)|transparent/, `${selector} has no chip`);
+    }
+    for (const [selector, value] of Object.entries(await family(['#bangs-try-dest', '#bangs-search', '#bangs-rows li em', '#bangs-count']))) {
       assert.match(value, /^"Blubird Text"/, `${selector} is ${value}`);
     }
     assert.ok(await page.evaluate(() => [...document.fonts].some((face) => face.family.replace(/"/g, '') === 'Instrument Sans')), 'the page declares Instrument Sans');

@@ -351,7 +351,7 @@ function bangsPageDynamicLines() {
     ["{example.kind === 'bang' && Return would open {example.hint.url}}", ['Return would open']],
     ['{chip}', []],
     ['{`${countText} bangs, exactly the list in ${versionText}. Search by site or by code.`}', [`${countText} bangs, exactly the list in ${versionText}. Search by site or by code.`]],
-    ['{`!${row.code}`}{row.name}{otherCodes(row.aliases)}{row.host}{row.via && {`via ${row.via}`}}', [...new Set(Object.values(bangData.via))].map(via => `via ${via}`)],
+    ['{`!${row.code}`}{row.name}{shownAliases(row.aliases).map((code) => {code} )}{moreAliases(row.aliases)}{row.host}{row.via && {`via ${row.via}`}}', [...new Set(Object.values(bangData.via))].map(via => `via ${via}`)],
     ['{`Showing all ${countText}`}', [`Showing all ${countText}`]],
   ]);
 }

@@ -273,6 +273,20 @@ a { color: inherit; }
   color: var(--text); font-size: 12px; font-weight: 550; line-height: 20px; white-space: nowrap;
 }
 .demo-island .trow.command.hl .cmd { background: color-mix(in srgb, var(--text) 12%, transparent); font-weight: 600; }
+/* A bang the site's own text asks you to type (<kbd class="bang-chip">!yt
+   lofi</kbd>) sits in the same chip, sized to the words around it: the app's
+   12px chip in a 12.5px row, 7px across, 6px round and 20px tall. Its ink is
+   the surface's strong text, as the app's is; a dark surface sets
+   --bang-chip-ink. */
+.bang-chip {
+  padding: 0.21em 0.58em; border-radius: 0.5em;
+  background: color-mix(in srgb, var(--bang-chip-ink, var(--site-text)) 7%, transparent);
+  color: var(--bang-chip-ink, var(--site-text)); font-family: var(--font-app); font-size: 0.96em;
+  font-variation-settings: "wdth" 98; font-weight: 550; letter-spacing: 0.01em; white-space: nowrap;
+}
+/* Display headings run large and light: the chip stays the smaller, UI-sized
+   thing it is in the app. */
+:is(h1, h2) .bang-chip { padding: 0.16em 0.5em; border-radius: 0.4em; font-size: 0.78em; }
 .demo-island .trow.command .hint { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-dim); font-size: 12.5px; }
 .demo-island .trow.folded { color: var(--text-dim); }
 .demo-island .trow .empty { color: var(--text-dim); font-size: 13px; }

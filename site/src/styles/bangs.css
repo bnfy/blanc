@@ -2,7 +2,8 @@
    replica itself is the shared .demo-island markup from site.css; only what
    is new to this page lives here. The drawing of the app is set in the app's
    Instrument Sans, like every .demo-island; the page around it, address line
-   and examples included, is the website's Blubird. */
+   included, is the website's Blubird. A bang in it, an example or a code in
+   the directory, is the app's chip (.bang-chip in site.css). */
 
 /* ---------- hero ---------- */
 .bangs-hero .bangs-jump { margin-top: 18px; }
@@ -20,8 +21,8 @@
 .bangs-field:focus-within { border-color: var(--text-dim); }
 .bangs-stage .list.command-directory { max-height: 200px; }
 .bangs-stage .trow .domain { flex: 0 0 auto; margin-left: auto; color: var(--text-dim); font-size: 11px; }
-/* The address and the chips stack under the Island, so neither covers the
-   other however the chips wrap; the address shows in full. */
+/* The address and the examples stack under the Island, so neither covers the
+   other however the examples wrap; the address shows in full. */
 .bangs-under {
   position: absolute; left: 50%; bottom: 24px; display: flex; flex-direction: column; align-items: center; gap: 14px;
   width: min(620px, 92%); transform: translateX(-50%);
@@ -32,13 +33,12 @@
 }
 .bangs-dest:empty { display: none; }
 .bangs-dest code { color: var(--text); font-family: var(--font-brand-text); }
-.bangs-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
-.bangs-chips button {
-  padding: 5px 11px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface-raised);
-  color: var(--text); cursor: pointer; font-family: var(--font-brand-text); font-size: 12px;
-}
-.bangs-chips button:hover { border-color: var(--text-dim); }
-.bangs-chips button:focus-visible { outline-color: var(--text); }
+.bangs-chips { --bang-chip-ink: var(--text); display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+/* Each example is the chip at the app's own size; hover takes the selected
+   row's deeper tint. */
+.bangs-chips .bang-chip { padding: 0 7px; border: 0; border-radius: 6px; cursor: pointer; font-size: 12px; line-height: 20px; }
+.bangs-chips .bang-chip:hover { background: color-mix(in srgb, var(--bang-chip-ink) 12%, transparent); }
+.bangs-chips .bang-chip:focus-visible { outline-color: var(--text); }
 
 /* ---------- directory ---------- */
 .bangs-dir { max-width: 920px; margin: 120px auto 0; scroll-margin-top: calc(var(--site-header-h) + 24px); }
@@ -62,8 +62,14 @@
 }
 .bangs-rows li:first-child { border-top: 0; }
 .bangs-rows li[hidden] { display: none; }
-/* A code is what a visitor came for: long ones wrap rather than truncate. */
-.bangs-rows b { min-width: 0; font-family: var(--font-brand-text); font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+/* Each code is the chip, as in the app's bang picker rows. The row's own
+   code is what a visitor came for: a long one wraps rather than truncates. */
+.bangs-rows :is(b, kbd) {
+  border-radius: 6px; background: color-mix(in srgb, var(--site-text) 7%, transparent); color: var(--site-text);
+  font-family: var(--font-app); font-variation-settings: "wdth" 98; font-weight: 550; letter-spacing: 0.01em;
+}
+.bangs-rows b { justify-self: start; min-width: 0; padding: 1px 7px; font-size: 12.5px; line-height: 20px; overflow-wrap: anywhere; }
+.bangs-rows kbd { padding: 1px 6px; font-size: 11px; }
 .bangs-rows span { min-width: 0; overflow-wrap: anywhere; font-size: 14px; }
 .bangs-rows small, .bangs-rows em { min-width: 0; overflow: hidden; color: var(--site-text-dim); font-family: var(--font-brand-text); font-size: 11.5px; font-style: normal; text-overflow: ellipsis; white-space: nowrap; }
 .bangs-rows em { text-align: right; }
@@ -92,6 +98,5 @@
 }
 @media (max-width: 420px) {
   .bangs-stage { height: 480px; }
-  .bangs-chips button { font-size: 11px; }
   .bangs-rows li { padding: 10px 12px; }
 }

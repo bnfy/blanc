@@ -603,6 +603,7 @@
   gap: 20px;
 }
 .tool-card {
+  --bang-chip-ink: var(--night-text);
   overflow: hidden;
   border-radius: 28px;
   background: var(--night-card);
