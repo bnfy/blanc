@@ -1,8 +1,8 @@
 /* /bangs: the try-it stage, the example chips and the directory. The Island
    replica itself is the shared .demo-island markup from site.css; only what
    is new to this page lives here. The drawing of the app is set in the app's
-   Instrument Sans (declared on the page from the app's own file); the page
-   around it, address line and examples included, is the website's Blubird. */
+   Instrument Sans, like every .demo-island; the page around it, address line
+   and examples included, is the website's Blubird. */
 
 /* ---------- hero ---------- */
 .bangs-hero .bangs-jump { margin-top: 18px; }
@@ -19,19 +19,6 @@
 /* The field's border carries focus, since the input itself draws none. */
 .bangs-field:focus-within { border-color: var(--text-dim); }
 .bangs-stage .list.command-directory { max-height: 236px; }
-.bangs-stage .demo-island, .bangs-stage .demo-island * {
-  font-family: "Instrument Sans", var(--font-ui); font-variation-settings: "wdth" 98; letter-spacing: 0.01em;
-}
-/* Counts and key caps stay Inter, as in the app. */
-.bangs-stage .demo-island .count, .bangs-stage .demo-island .enter { font-family: var(--font-ui); font-variation-settings: normal; letter-spacing: 0; }
-/* Each !code sits in the app's chip (styles.css .island-row .row-cmd). */
-.bangs-stage .demo-island .trow.command .cmd {
-  padding: 0 7px; border-radius: 6px; background: color-mix(in srgb, var(--text) 7%, transparent);
-  color: var(--text); font-family: "Instrument Sans", var(--font-ui); font-size: 12px; font-weight: 550; line-height: 20px;
-}
-/* site.css names the replica's field and messages a face of their own. */
-.bangs-stage .demo-island .field, .bangs-stage .demo-island .trow .empty { font-family: "Instrument Sans", var(--font-ui); }
-.bangs-stage .demo-island .trow.command.hl .cmd { background: color-mix(in srgb, var(--text) 12%, transparent); font-weight: 600; }
 .bangs-stage .trow .domain { flex: 0 0 auto; margin-left: auto; color: var(--text-dim); font-size: 11px; }
 /* The Island replica never wraps; these messages are sentences. */
 .bangs-stage .trow .empty { flex: 1 1 auto; min-width: 0; white-space: normal; }

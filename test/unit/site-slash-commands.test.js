@@ -30,6 +30,12 @@ test('the website lists only the slash commands the latest public release ships'
 
   const { releasedSlashCommands } = await import(pathToFileURL(path.join(ROOT, 'site/src/lib/released-slash-commands.mjs')).href);
   assert.deepEqual(releasedSlashCommands.map(entry => entry.command), catalog.filter(command => released.has(command)));
+  // The registry lost its text to the interface catalog in F44, and the site
+  // went on reading it from the registry: every hint on the page was blank.
+  for (const entry of releasedSlashCommands) {
+    assert.ok(entry.hint?.trim(), `${entry.command} has no hint`);
+    if (entry.doc) assert.ok(entry.doc.hint?.trim(), `${entry.doc.command} has no description`);
+  }
   for (const file of ['site/src/pages/features/command-palette.astro', 'site/src/components/guides/command-palette.astro']) {
     const source = read(file);
     assert.match(source, /releasedSlashCommands/, file);

@@ -1,5 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import IslandFooter from '../../components/IslandFooter.astro';
+import IslandPanelActions from '../../components/IslandPanelActions.astro';
 import { releasedSlashCommands } from '../../lib/released-slash-commands.mjs';
 
 const slashCommands = releasedSlashCommands.map((entry) => ({
@@ -34,9 +36,8 @@ const paletteCommands = releasedSlashCommands.map(({ command, hint }) => ({ comm
       </picture>
       <div class="demo-island open" aria-hidden="true">
         <div class="panel">
-          <div class="panel-row"><div class="field"><span class="typed">/</span><span class="caret"></span></div></div>
+          <div class="panel-row"><div class="field"><span class="typed">/</span><span class="caret"></span></div><IslandPanelActions /></div>
           <div class="list command-directory">
-            <div class="sec-head"><span>slash commands</span></div>
             {paletteCommands.map((entry, index) => (
               <div class:list={['trow', 'command', { hl: index === 0 }]}>
                 <span class="cmd">{entry.command}</span>
@@ -45,7 +46,7 @@ const paletteCommands = releasedSlashCommands.map(({ command, hint }) => ({ comm
               </div>
             ))}
           </div>
-          <div class="foot">esc to dismiss · ⌘L summons · / for commands</div>
+          <IslandFooter />
         </div>
       </div>
     </div>

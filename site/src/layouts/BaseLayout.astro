@@ -8,6 +8,9 @@ import Footer from '../components/Footer.astro';
 import Consent from '../components/Consent.astro';
 import NewsletterPrompt from '../components/NewsletterPrompt.astro';
 import { SITE_ORIGIN } from '../lib/site-origin.mjs';
+// Drawings of the app's own UI (the .demo-island replica) use its face, from
+// the app's own file; a page that draws none never downloads it.
+import appTextFont from '../../../src/renderer/pages/instrument-sans-latin-wdth-normal.woff2?url';
 
 const SITE = SITE_ORIGIN;
 const {
@@ -45,6 +48,7 @@ const ogImageUrl = SITE + ogImage;
 {social !== 'none' && <meta name="application-name" content={appName}>}
 {social === 'rich' && <meta name="apple-mobile-web-app-title" content="Blanc">}
 <link rel="canonical" href={canonical}>
+<style is:inline set:html={`@font-face {font-family:"Instrument Sans";src:url('${appTextFont}') format('woff2');font-style:normal;font-weight:400 700;font-stretch:75% 100%;font-display:swap;}`} />
 {social !== 'none' && (
   <>
     <meta property="og:site_name" content={appName}>
