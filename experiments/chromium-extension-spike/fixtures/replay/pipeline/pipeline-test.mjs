@@ -71,3 +71,28 @@ test('matching omissions cannot turn incomplete observations into a stable oracl
   const a=run('a'),b=run('b');change(a);change(b);assert(!compareReplays(a,b).stable);
  }
 });
+
+test('summary-only observer keeps decisions unchanged and never writes rejected URLs',async()=>{
+ const {default:vm}=await import('node:vm');
+ const {default:fs}=await import('node:fs');
+ const writes=[];let observedProvider;
+ const coordinator={setGate(){},setProvider(_session,provider){observedProvider=provider;}};
+ const module={createBlockingCoordinator:()=>coordinator};
+ const context={process:{env:{BLANC_TEST:'0',BLANC_F12_PROFILE:'/profile',BLANC_F12_LOG:'/never-write',BLANC_F12_SUMMARY_ONLY:'1'},versions:{}},
+  require(name){
+   if(name==='node:fs')return {realpathSync:x=>x,appendFileSync:(...args)=>writes.push(args)};
+   if(name==='electron')return {app:{getPath:()=>'/profile'},webContents:{fromId:()=>null}};
+   if(name==='./scrub.cjs')return createRequire(import.meta.url)('./scrub.cjs');
+   if(name==='./src/main/blocking-coordinator.js')return module;
+   if(name==='./src/main/main.js')return {};
+   throw new Error('Unexpected module');
+  }};
+ vm.runInNewContext(fs.readFileSync(new URL('./bootstrap.cjs',import.meta.url),'utf8'),context);
+ const result={cancel:true};
+ module.createBlockingCoordinator().setProvider({isPersistent:()=>true},{id:'blanc',status:()=>({phase:'ready'}),decide:async()=>result});
+ const returned=await observedProvider.decide('onBeforeRequest',{id:1,url:'https://a.example/?token=SECRET_SENTINEL',resourceType:'script',referrer:'',method:'GET'});
+ assert.equal(returned,result);assert.equal(writes.length,0);
+ const metrics=context.__blancF12Capture.state().metrics;
+ assert.equal(metrics.decisions['script|block|identifier-query'],1);
+ assert(!JSON.stringify(metrics).includes('SECRET_SENTINEL'));
+});

@@ -1,5 +1,9 @@
 # Controlled recorder and replay evidence — October 17, 2026
 
+Historical checkpoint at `833130c8`. Source-match statements below refer to that
+checkpoint. Later review changes and their controlled regression are recorded in
+[the public-feasibility evidence](../f12-public-feasibility-20261017/README.md).
+
 This is authored fixture traffic, not the >=2,000 blocked / >=2,000 allowed
 real-page acceptance corpus. No public pages were acquired and no Chromium
 builds, source, output or profile changes occurred. Task 0 promotion stays open.

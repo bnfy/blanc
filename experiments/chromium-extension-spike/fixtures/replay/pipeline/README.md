@@ -1,8 +1,9 @@
 # Recording and offline stability checkpoint
 
 This implementation is under the approved F12 spike, not a captured acceptance
-corpus. The runnable driver acquires **only authored, controlled HTTPS pages**.
-No public page has been acquired. Acceptance-corpus count is zero, and
+corpus. The roundtrip driver acquires **only authored, controlled HTTPS pages**.
+The owner-selected public feasibility probe attempted ten entrypoints; none
+passed response admission ([results](../../../evidence/f12-public-feasibility-20261017/README.md)). Acceptance-corpus count is zero, and
 `captureProvenanceVerified` remains false. No Chromium build is involved.
 
 ## Separation and persistence
@@ -81,3 +82,44 @@ Measured runs, including the failed first attempt, are in
 [the evidence record](../../../evidence/f12-record-replay-20261017/README.md).
 Next: extend context/completion admission and the reviewed acquisition protocol,
 then capture stable real-page traffic and replay the same bytes in Chromium 157.
+
+## Public feasibility probe (owner selected C)
+
+`feasibility.mjs` uses the same five command-line paths as `roundtrip.mjs`, with
+an explicit ten-entry public-page list in source and a fresh evidence directory.
+It exercises the actual public upstream client (no controlled-origin override),
+normal upstream certificate verification, the unchanged scrub policy, and the
+real installed Electron blocker in one fresh **regular** profile per entry.
+No login, personal profile, public bundle or oracle is captured.
+
+The observer's summary-only mode persists no individual provider observations
+or certificate hostnames. The recorder reports only bounded reason/category
+enums, not rejected URLs/headers/bodies. Browser stderr is discarded (byte count
+only). Only predeclared public entrypoints and aggregate diagnostics are saved.
+No bundle freeze occurs, even if content is admissible. Keys and profiles are
+removed after child exit; there is no keychain trust change.
+
+The entry-host allowlist deliberately refuses unlisted CONNECTs. This is an
+**initial feasibility bound**, not complete public-page capture: cross-origin
+requests outside it are transport refusals, and root responses rejected before
+rendering cannot reveal the page's tracker distribution. Record those limitations
+separately from scrub refusals. Provider categories are Electron resource types;
+transport categories are the browser's allowlisted Sec-Fetch-Dest values, with
+unknown values collapsed to `unknown`. The 15-second interval is a probe window,
+not a page-completion criterion. Refusal reason is the first failing gate, not an
+exhaustive inventory of identifiers. IPv6-only upstreams remain unsupported;
+public IPv4 exclusions now use the intended documentation /24s rather than /16s.
+
+A and B remain owner decisions after inspecting C's results. This probe does not
+authorize retaining raw recordings or relaxing the scrubber.
+
+### Paired comparison is separate
+
+Keep `compareReplays` strict for Electron oracle admission. The future fork
+adapter feeds `../validate.py` independent decisions plus causally joined
+transport events. An oracle-blocked/fork-allowed request with a matching context
+is a blocking regression even if its response was never acquired. The validator
+retains that difference and labels the missing response as a downstream coverage
+limitation. It does not fabricate descendants, suppress unrelated harness faults,
+or use a URL-only match to excuse a miss. These paired-event tests are synthetic;
+no native fork adapter or real Chromium comparison is claimed.

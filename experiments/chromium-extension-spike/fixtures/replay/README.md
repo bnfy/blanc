@@ -72,6 +72,30 @@ Do not treat a 502 page as a successful replay. Real recordings may require a
 separately declared response-acquisition policy to cover requests blocked by the
 recording run; that policy has not been implemented or measured yet.
 
+### Electron stability versus the paired comparison
+
+`pipeline/stability.mjs` admits two Electron replays into the oracle. It stays
+strict: a transport fault there means the oracle is not stable. Never run the
+fork through that oracle-admission function or discard the fork's decision log
+because its transport failed.
+
+`validate.py` compares independent oracle/fork decisions and optionally accepts
+`--transport EVENTS.json`. Each event is `{ "code": "unrecorded-request",
+"request_id": "causally-joined-request-hop-id" }`. The adapter must establish
+that join from actual request/hop evidence, not guess from a matching URL. The
+157 adapter and this join have not been implemented or exercised yet.
+
+If the same valid context was blocked by the oracle but allowed by the fork,
+the validator retains the **block→allow difference**. Its joined missing
+response is a `response_limitations` entry (`blocked-response-not-acquired`),
+not a reason to erase or invalidate that observed regression. Downstream
+behavior is untested; it must not be fabricated. Unknown/unjoined misses,
+misses on an oracle-allowed response, mismatched contexts, duplicates and other
+transport errors remain harness faults. Missing/extra descendants remain named
+faults too, alongside the proven blocking difference. Consumers must inspect
+both lists rather than convert a faulted run into "no result". The comparison
+never passes when a blocking difference exists.
+
 ### Protocol and timing metadata
 
 Record browser-to-proxy HTTP version and TLS ALPN, and recording-proxy-to-origin
@@ -249,3 +273,10 @@ PYTHONDONTWRITEBYTECODE=1 python3 experiments/chromium-extension-spike/fixtures/
 
 The generated records in those tests are synthetic and must never be installed
 as the acceptance corpus or cited as browser coverage.
+
+## Public feasibility result (owner-selected C)
+
+[Ten-entrypoint probe](../../evidence/f12-public-feasibility-20261017/README.md):
+0/10 initial documents passed the existing policy (7 Vary refusals, 3 unsupported
+statuses). No public bundle/oracle was persisted; this measures an admission
+barrier, not tracker distribution. General real-page capture is still pending.

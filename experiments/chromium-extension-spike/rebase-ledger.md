@@ -246,3 +246,25 @@ Chromium replay, cosmetics and latency remain pending; corpus count zero.
 No native build, prepare or GN invocation; no native patch or cold-column delta.
 Runtime interval and all seven source hashes are in run-04/report.json; active
 attention is not measured. Existing Chromium checkouts and profiles are untouched.
+
+### Review and owner-selected public feasibility C — October 17, 2026
+
+[Committed aggregate evidence](evidence/f12-public-feasibility-20261017/README.md):
+actual public client exercised on ten fixed unauthenticated entrypoints with
+unchanged scrub policy and real Electron blocker. Initial documents: 0 admitted,
+7 refused at Vary and 3 at status; one other request refused at body type. No
+tracker distribution or block-rate result follows because documents never passed
+recording admission. No public bundle, raw observations or raw corpus retained.
+Profile/key cleanup and installed ASAR preservation passed. A/B remains undecided.
+
+Paired validator now accepts optional causally joined transport events: a valid
+oracle-blocked/fork-allowed observation remains a block→allow difference, with
+its absent response marked a downstream limitation. Unknown/unjoined misses
+remain faults. Electron oracle stability admission stays strict. Native adapter
+and causal transport join remain unimplemented; tests here are synthetic.
+IPv4 exclusions corrected to the documentation /24s; IPv6 remains unsupported.
+
+Checks: 14 pipeline + 5 controlled TLS/IP + 15 validator tests; targeted lint clean.
+Controlled run-05 passes acquisition plus two regular/two private offline runs,
+matching final seven implementation hashes. Every invocation is in evidence.
+No native build/prepare/GN or cold-column change; active attention not measured.

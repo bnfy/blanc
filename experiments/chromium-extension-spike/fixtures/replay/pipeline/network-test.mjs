@@ -7,7 +7,7 @@ import https from 'node:https';
 import net from 'node:net';
 import tls from 'node:tls';
 import {createCertificates} from '../pilot/certificates.mjs';
-import {startRecorder} from './recorder.mjs';
+import {startRecorder,publicIPv4} from './recorder.mjs';
 import {startReplay} from './offline.mjs';
 const dir=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-recorder-test-'));
 const hosts=['page.fixture.test'];
@@ -51,7 +51,8 @@ test('record once, strip before write/forward, close origin and replay frozen by
 test('identifier URL is refused before upstream access and bundle cannot freeze',async()=>{
  const up=await origin(),rec=await startRecorder({hosts,tlsMaterial:proxy,testOrigin:{port:up.port,ca:source.ca}});
  try {
-  assert.match(await get(rec.port,'/?token=SECRET_SENTINEL'),/502/);assert.equal(up.hits.length,0);
+  assert.match(await get(rec.port,'/?token=SECRET_SENTINEL','Sec-Fetch-Dest: image\r\n'),/502/);assert.equal(up.hits.length,0);
+  assert.deepEqual(rec.audit,[{outcome:'refused',destination:'image',reason:'identifier-query'}]);
   const file=path.join(dir,'refused.json');assert.throws(()=>rec.freeze(file));assert(!fs.existsSync(file));
   assert(!JSON.stringify(rec.faults).includes('SECRET_SENTINEL'));
  }finally{await rec.close();await up.close();}
@@ -67,4 +68,9 @@ test('upstream uses normal certificate verification, rejecting an unrelated CA',
  const up=await origin(),rec=await startRecorder({hosts,tlsMaterial:proxy,testOrigin:{port:up.port,ca:proxy.ca}});
  try {assert.match(await get(rec.port),/502/);assert.equal(up.hits.length,0);assert.throws(()=>rec.freeze(path.join(dir,'bad-ca.json')));}
  finally{await rec.close();await up.close();}
+});
+
+test('public IPv4 classification keeps documentation ranges narrow',()=>{
+ for(const ip of ['192.0.1.1','192.2.1.1','198.51.101.1','203.0.114.1'])assert(publicIPv4(ip),ip);
+ for(const ip of ['192.0.2.1','198.51.100.1','203.0.113.1','192.0.0.1','127.0.0.1','10.1.1.1','169.254.1.1','100.64.0.1','198.18.1.1','198.19.1.1','::1'])assert(!publicIPv4(ip),ip);
 });

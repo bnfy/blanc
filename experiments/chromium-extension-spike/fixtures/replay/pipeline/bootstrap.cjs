@@ -15,10 +15,23 @@ const modulePath = './src/main/blocking-coordinator.js';
 const coordinatorModule = require(modulePath);
 const create = coordinatorModule.createBlockingCoordinator;
 const providers = [];
+const summaryOnly = process.env.BLANC_F12_SUMMARY_ONLY === '1';
+const metrics = {decisions:{},faults:{},trust:{accepted:0,refused:0}};
+const increment = (map,key) => {map[key]=(map[key]||0)+1;};
+function saveFault(code) {
+  if(summaryOnly)increment(metrics.faults,code);
+  else fs.appendFileSync(log,JSON.stringify({fault:code})+'\n');
+}
 let excludedInternal = 0;
 function saveDecision(row) {
+  if(summaryOnly){
+    const type=['mainFrame','subFrame','script','image','stylesheet','xhr','font','ping','other'].includes(row.resourceType)?row.resourceType:'unknown';
+    let reason='admitted';try{scrub.decision(row);}catch(error){reason=error instanceof scrub.Refusal?error.code:'scrub-failed';}
+    increment(metrics.decisions,[type,row.result?.cancel===true?'block':'allow',reason].join('|'));
+    return;
+  }
   try { fs.appendFileSync(log, JSON.stringify(scrub.decision(row))+'\n'); }
-  catch { fs.appendFileSync(log, JSON.stringify({fault:'decision-scrub-refused'})+'\n'); }
+  catch { saveFault('decision-scrub-refused'); }
 }
 const fixtureTrust = process.env.BLANC_F12_TRUST && JSON.parse(fs.readFileSync(process.env.BLANC_F12_TRUST));
 const verifyFixture = fixtureTrust && require('./fixture-trust.cjs').createVerifier(fixtureTrust);
@@ -27,7 +40,8 @@ function installFixtureTrust(session) {
   if (!verifyFixture || trustedSessions.has(session)) return;
   session.setCertificateVerifyProc((request, callback) => {
     const accepted = verifyFixture(request.hostname, request.certificate.data);
-    fs.appendFileSync(process.env.BLANC_F12_TRUST_LOG, JSON.stringify({hostname:request.hostname,
+    if(summaryOnly)metrics.trust[accepted?'accepted':'refused']++;
+    else fs.appendFileSync(process.env.BLANC_F12_TRUST_LOG, JSON.stringify({hostname:request.hostname,
       accepted,profileKind:session.isPersistent()?'regular':'private',
       originalResult:request.verificationResult})+'\n');
     callback(accepted ? 0 : -2);
@@ -58,7 +72,7 @@ coordinatorModule.createBlockingCoordinator = function(...args) {
         }
         if (!/^https?:/.test(details.url)) {
           if (/^(?:file|blanc|blanc-chrome|data|devtools):/.test(details.url)) excludedInternal++;
-          else fs.appendFileSync(log, JSON.stringify({fault:'unsupported-network-scheme'})+'\n');
+          else saveFault('unsupported-network-scheme');
           return provider.decide(event, details);
         }
         const wc = safe(() => webContents.fromId(details.webContentsId));
@@ -80,7 +94,7 @@ coordinatorModule.createBlockingCoordinator = function(...args) {
           saveDecision({ ...observed, result: result ?? {} });
           return result;
         } catch (error) {
-          fs.appendFileSync(log, JSON.stringify({fault:'provider-error'})+'\n');
+          saveFault('provider-error');
           throw error;
         }
       };
@@ -92,7 +106,8 @@ coordinatorModule.createBlockingCoordinator = function(...args) {
   return coordinator;
 };
 globalThis.__blancF12Capture = {
-  state: () => ({ userData: app.getPath('userData'), versions: process.versions, activeGates: activeGates.size, excludedInternal,
+  resetMetrics: () => {metrics.decisions={};metrics.faults={};metrics.trust={accepted:0,refused:0};},
+  state: () => ({ metrics, userData: app.getPath('userData'), versions: process.versions, activeGates: activeGates.size, excludedInternal,
     providers: providers.map(({session, provider}) => ({persistent: session.isPersistent(),
       status: provider.status()})) }),
 };

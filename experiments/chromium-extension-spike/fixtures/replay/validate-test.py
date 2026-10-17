@@ -81,6 +81,33 @@ class ValidatorTests(unittest.TestCase):
         self.assertEqual(len(result['decision_differences']), 2)
         self.assertFalse(result['dataset_comparison_passed'])
 
+    def test_oracle_blocked_transport_miss_preserves_false_negative(self):
+        self.observed[0]['decision'] = 'allow'
+        result = compare(self.oracle, self.observed,
+                         [{'code': 'unrecorded-request', 'request_id': '0'}])
+        self.assertEqual(result['harness_faults'], [])
+        self.assertEqual(len(result['decision_differences']), 1)
+        self.assertEqual(result['decision_differences'][0]['oracle'], 'block')
+        self.assertEqual(len(result['response_limitations']), 1)
+        self.assertFalse(result['dataset_comparison_passed'])
+
+    def test_transport_missing_or_wrong_join_cannot_exempt_fault(self):
+        for event in [{'code': 'unrecorded-request', 'request_id': 'unknown'},
+                      {'code': 'unrecorded-request', 'request_id': '2000'},
+                      {'code': 'unrecorded-request', 'request_id': '0'},
+                      {'code': 'unrecorded-request', 'url': 'https://fixture.example/request/0'}]:
+            self.assertTrue(compare(self.oracle, self.observed, [event])['harness_faults'])
+
+    def test_other_faults_and_missing_descendants_never_erase_difference(self):
+        self.observed[0]['decision'] = 'allow'
+        del self.observed[-1]
+        result = compare(self.oracle, self.observed,
+                         [{'code': 'unrecorded-request', 'request_id': '0'},
+                          {'code': 'authority-mismatch', 'request_id': '1'}])
+        self.assertTrue(result['harness_faults'])
+        self.assertEqual(len(result['decision_differences']), 1)
+        self.assertEqual(len(result['response_limitations']), 1)
+
     def test_small_corpus_never_passes(self):
         result = compare(self.oracle[:2], self.observed[:2])
         self.assertFalse(result['minimum_counts_met'])
