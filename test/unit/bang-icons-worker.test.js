@@ -278,3 +278,20 @@ test('only GET and HEAD', async (t) => {
   const response = await serve(createWorker({ heldBack: [] }), env, 'https://blanc.day/bang-icons/example.org', 'POST');
   assert.equal(response.status, 405);
 });
+
+test('the hold-back list is reviewed and names only real bang hosts', () => {
+  const fs = require('node:fs');
+  const root = path.resolve(__dirname, '../..');
+  const read = (file) => JSON.parse(fs.readFileSync(path.join(root, file), 'utf8'));
+  const heldBack = read('cloudflare/bang-icons-worker/src/held-back.json');
+  const hosts = new Set(read('site/public/bang-hosts.json').hosts);
+  const data = read('site/src/data/bangs.json');
+  const popularHosts = new Set(data.popular.map((code) => data.entries.find((entry) => entry[0] === code || entry[1].includes(code))[3]));
+  assert.match(String(heldBack.reviewed), /^\d{4}-\d{2}-\d{2}$/);
+  assert.ok(heldBack.hosts.length > 0, 'the list is empty');
+  assert.deepEqual(heldBack.hosts, [...heldBack.hosts].sort(), 'keep the list sorted');
+  for (const host of heldBack.hosts) {
+    assert.ok(hosts.has(host), `${host} is not a bang host`);
+    assert.ok(!popularHosts.has(host), `${host} is a featured host`);
+  }
+});
