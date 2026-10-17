@@ -158,6 +158,11 @@ here. It explains the plans, the single Polar checkout link (the buyer picks
 monthly or annual there; the same link as the app's Patron settings) and
 activation with the license key. Its copy repeats claims from the Terms,
 Privacy and About pages; keep it in step with them.
+Owner direction (October 17, 2026): the page names the payment provider only
+by role, never as Polar (the Terms and Privacy Policy still name it, as the
+law needs), and offers Patrons priority feature requests: requests emailed to
+support@blanc.day from the checkout address are read and answered first.
+Patron still unlocks no browser features.
 
 **Blanc Mail waitlist:** `components/MailWaitlistForm.astro` (on `/mail` and
 `/mail/download`) posts `{email, website}` to the same Worker's

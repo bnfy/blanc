@@ -6,21 +6,21 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 const CHECKOUT = 'https://buy.polar.sh/polar_cl_auwRq39Q2hIVLJwANEqFWgWuZ8DGjdJmEI4mE0JaNDf';
 
 const steps = [
-  ['Choose a plan with Polar', 'Polar, the merchant of record, takes the payment, adds any applicable tax and sends the receipt. Pick monthly or annual at checkout.'],
-  ['Copy your license key', 'After checkout, your Blanc Patron license key is under Purchases in Polar.'],
+  ['Choose a plan', 'Pick monthly or annual at checkout, which handles payment, any applicable tax and your receipt.'],
+  ['Copy your license key', 'Your purchase includes a Blanc Patron license key. Keep it to activate Blanc.'],
   ['Activate it in Blanc', 'Open Blanc’s Settings, go to Blanc Patron, paste the key and choose Activate.'],
 ];
 
 const questions = [
-  ['Does Patron unlock any features?', 'No. Every feature, including ad and tracker blocking, private tabs, tab groups, Blanc Spaces and optional encrypted Sync, is free for everyone. Patron is support, not a paywall.'],
-  ['What happens if I cancel?', 'You can cancel anytime through Polar, and your Patron benefits continue until the end of the period you paid for. Ending a subscription changes nothing in the browser.'],
+  ['Does Patron unlock any features?', 'No browser features. Every feature, including ad and tracker blocking, private tabs, tab groups, Blanc Spaces and optional encrypted Sync, is free for everyone. What Patrons get is priority for their feature requests.'],
+  ['What happens if I cancel?', 'You can cancel anytime, and your Patron benefits continue until the end of the period you paid for. Ending a subscription changes nothing in the browser.'],
   ['I bought the earlier one-time Supporter license.', 'Thank you. Earlier one-time supporters keep their lifetime Patron access, with nothing more to pay.'],
-  ['What does Blanc learn about me?', 'Polar handles payment and contact details; Bananify does not receive full payment-card details. A subscription checks in with Polar about once a day using only the license key, activation ID and Blanc’s organization ID, never browsing data.'],
+  ['What does Blanc learn about me?', 'Payments are handled by a dedicated payment provider, and Bananify does not receive full payment-card details. A subscription checks in about once a day using only the license key, activation ID and Blanc’s organization ID, never browsing data.'],
 ];
 ---
 <BaseLayout
   title="Blanc Patron — Support an independent browser"
-  description="Blanc Patron is the optional subscription that funds Blanc’s development: US$30 a year or US$4 a month, plus tax. Every feature stays free."
+  description="Blanc Patron funds Blanc’s development and puts your feature requests first: US$30 a year or US$4 a month, plus tax. Every feature stays free."
   path="/patron"
   page="patron"
   current="patron"
@@ -62,6 +62,11 @@ const questions = [
     </div>
   </section>
 
+  <section class="patron-perk" aria-labelledby="patron-perk-title">
+    <h2 id="patron-perk-title">Priority feature requests.</h2>
+    <p>Patrons’ feature requests go to the front of the line. Email your idea to <!--email_off--><a href="mailto:support@blanc.day?subject=Patron%20feature%20request">support@blanc.day</a><!--/email_off--> from the address you used at checkout, and it is read and answered before general requests.</p>
+  </section>
+
   <section class="patron-steps" aria-labelledby="patron-steps-title">
     <h2 id="patron-steps-title">How it works</h2>
     <ol>
@@ -77,7 +82,7 @@ const questions = [
     {questions.map(([q, a]) => (
       <details><summary>{q}</summary><p>{a}</p></details>
     ))}
-    <p class="patron-faq-more">Terms of the subscription are in the <a href="/terms">Terms</a>. Anything else: <!--email_off--><a href="mailto:support@blanc.day">support@blanc.day</a><!--/email_off-->.</p>
+    <p class="patron-faq-more">Terms of the subscription are in the <a href="/terms">Terms</a>, and payment data is covered in the <a href="/privacy">Privacy Policy</a>. Anything else: <!--email_off--><a href="mailto:support@blanc.day">support@blanc.day</a><!--/email_off-->.</p>
   </section>
 </main>
 </BaseLayout>
@@ -104,6 +109,9 @@ const questions = [
   .patron-button:focus-visible { outline: 2px solid var(--site-gold); outline-offset: 3px; }
   .patron-cta p { margin: 0; color: var(--site-text-dim); font-size: 14px; }
 
+  .patron-perk { max-width: 720px; margin: 72px auto 0; padding: 28px 30px; border: 1px solid var(--site-border); border-radius: 22px; background: var(--site-surface-raised); }
+  .patron-perk h2 { margin: 0; font-family: var(--site-font-display); font-size: clamp(26px, 3vw, 34px); font-weight: 400; letter-spacing: 0; line-height: 1.1; }
+  .patron-perk p { margin: 10px 0 0; color: var(--site-text-dim); font-size: 16px; line-height: 1.6; }
   .patron-steps, .patron-faq { max-width: 720px; margin: 88px auto 0; }
   .patron-steps h2, .patron-faq h2 { margin: 0 0 24px; font-family: var(--site-font-display); font-size: clamp(30px, 3.6vw, 42px); font-weight: 400; letter-spacing: 0; line-height: 1.05; }
   .patron-steps ol { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; counter-reset: patron-step; }

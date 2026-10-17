@@ -2,7 +2,7 @@
   "publicRelease": "v1.35.0",
   "sourceSha": "95e1c2c1adb26bc223dfd8a4f98246984d43bd89",
   "releaseEvidence": "docs/release-incidents/2026-10-16-v1.35.0.md",
-  "scope": "Site copy verified against public v1.35.0: renamable tab titles on /features (added October 16, 2026 before the release went out, as candidates in docs/website-candidate-claims-v1.35.0.json, now retired) and the six interface languages. Also, from October 17, 2026: the newsletter signup card and its Privacy Policy disclosure, and the Blanc Patron page (/patron), whose copy repeats Patron facts already published on the Terms, Privacy and About pages.",
+  "scope": "Site copy verified against public v1.35.0: renamable tab titles on /features (added October 16, 2026 before the release went out, as candidates in docs/website-candidate-claims-v1.35.0.json, now retired) and the six interface languages. Also, from October 17, 2026: the newsletter signup card and its Privacy Policy disclosure, and the Blanc Patron page (/patron), whose copy repeats Patron facts already published on the Terms, Privacy and About pages, plus the owner's October 17 priority feature request commitment.",
   "evidenceGroups": {
     "renameTabs": {
       "evidence": [
@@ -46,7 +46,7 @@
         "site/src/pages/privacy.astro",
         "site/src/pages/about.astro"
       ],
-      "qualification": "Patron is optional support and unlocks nothing (public since v1.33.0). One Polar checkout link sells the US$4 monthly and US$30 annual plans and the buyer chooses at checkout (docs/polar-setup.md); v1.35.0 Settings → Blanc Patron takes the license key found under Purchases in Polar and offers the same link. Cancellation, refunds and the merchant of record are Polar's under the Terms; the daily subscription check-in data is as the Privacy Policy states. Earlier one-time Supporter licenses activate as lifetime Patron access."
+      "qualification": "Patron unlocks no browser features (public since v1.33.0). One checkout link sells the US$4 monthly and US$30 annual plans and the buyer chooses at checkout (docs/polar-setup.md); v1.35.0 Settings → Blanc Patron takes the license key and offers the same link. Cancellation and refunds are under the Terms; the payment provider is named in the Terms and Privacy Policy, and the page names it only by role at the owner's direction (October 17, 2026). The daily subscription check-in data is as the Privacy Policy states. Earlier one-time Supporter licenses activate as lifetime Patron access. Priority feature requests are a service commitment the owner made on October 17, 2026, not browser code: a Patron's emailed request to support@blanc.day from the checkout address is read and answered before general requests; it does not promise that a request ships."
     }
   },
   "claims": [
@@ -182,7 +182,7 @@
     {
       "id": "v135-p02",
       "source": "site/src/pages/patron.astro",
-      "exactWording": "US$2.50 a month, billed yearly.",
+      "exactWording": "Patrons’ feature requests go to the front of the line. Email your idea to support@blanc.day from the address you used at checkout, and it is read and answered before general requests.",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "patronPage"
@@ -192,7 +192,7 @@
     {
       "id": "v135-p03",
       "source": "site/src/pages/patron.astro",
-      "exactWording": "Plus applicable tax. Choose monthly or annual at checkout. Cancel anytime.",
+      "exactWording": "US$2.50 a month, billed yearly.",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "patronPage"
@@ -202,7 +202,7 @@
     {
       "id": "v135-p04",
       "source": "site/src/pages/patron.astro",
-      "exactWording": "Polar, the merchant of record, takes the payment, adds any applicable tax and sends the receipt. Pick monthly or annual at checkout.",
+      "exactWording": "Plus applicable tax. Choose monthly or annual at checkout. Cancel anytime.",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "patronPage"
@@ -212,7 +212,7 @@
     {
       "id": "v135-p05",
       "source": "site/src/pages/patron.astro",
-      "exactWording": "After checkout, your Blanc Patron license key is under Purchases in Polar.",
+      "exactWording": "Pick monthly or annual at checkout, which handles payment, any applicable tax and your receipt.",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "patronPage"
@@ -222,7 +222,7 @@
     {
       "id": "v135-p06",
       "source": "site/src/pages/patron.astro",
-      "exactWording": "Open Blanc’s Settings, go to Blanc Patron, paste the key and choose Activate.",
+      "exactWording": "Your purchase includes a Blanc Patron license key. Keep it to activate Blanc.",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "patronPage"
@@ -232,7 +232,7 @@
     {
       "id": "v135-p07",
       "source": "site/src/pages/patron.astro",
-      "exactWording": "No. Every feature, including ad and tracker blocking, private tabs, tab groups, Blanc Spaces and optional encrypted Sync, is free for everyone. Patron is support, not a paywall.",
+      "exactWording": "Open Blanc’s Settings, go to Blanc Patron, paste the key and choose Activate.",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "patronPage"
@@ -242,7 +242,7 @@
     {
       "id": "v135-p08",
       "source": "site/src/pages/patron.astro",
-      "exactWording": "You can cancel anytime through Polar, and your Patron benefits continue until the end of the period you paid for. Ending a subscription changes nothing in the browser.",
+      "exactWording": "No browser features. Every feature, including ad and tracker blocking, private tabs, tab groups, Blanc Spaces and optional encrypted Sync, is free for everyone. What Patrons get is priority for their feature requests.",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "patronPage"
@@ -252,7 +252,7 @@
     {
       "id": "v135-p09",
       "source": "site/src/pages/patron.astro",
-      "exactWording": "Thank you. Earlier one-time supporters keep their lifetime Patron access, with nothing more to pay.",
+      "exactWording": "You can cancel anytime, and your Patron benefits continue until the end of the period you paid for. Ending a subscription changes nothing in the browser.",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "patronPage"
@@ -262,7 +262,7 @@
     {
       "id": "v135-p10",
       "source": "site/src/pages/patron.astro",
-      "exactWording": "Polar handles payment and contact details; Bananify does not receive full payment-card details. A subscription checks in with Polar about once a day using only the license key, activation ID and Blanc’s organization ID, never browsing data.",
+      "exactWording": "Thank you. Earlier one-time supporters keep their lifetime Patron access, with nothing more to pay.",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "patronPage"
@@ -271,6 +271,16 @@
     },
     {
       "id": "v135-p11",
+      "source": "site/src/pages/patron.astro",
+      "exactWording": "Payments are handled by a dedicated payment provider, and Bananify does not receive full payment-card details. A subscription checks in about once a day using only the license key, activation ID and Blanc’s organization ID, never browsing data.",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "patronPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v135-p12",
       "source": "site/src/pages/patron.astro",
       "exactWording": "Activating another computer, or reinstalling Blanc? Enter the same license key.",
       "subject": "Blanc or website",
