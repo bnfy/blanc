@@ -2,9 +2,10 @@
 
 **Status: the original tranche was approved on October 17, 2026 (§8), and
 its audit and recording checkpoints have started. The corpus amendment in
-§2.1 is proposed, not approved (§8.1). Implementation is paused at the
-owner's request until explicit amendment approval; further option C runs
-are stopped.** Task 0 measured a rebase (`rebase-ledger.md`, row 0: 2h39m47s
+§2.1 was explicitly approved on October 17, 2026 at `68892cc1` (§8.1).
+The owner authorized recording approval, merging #916 once CI is green,
+and resuming implementation within the amended scope. Further option C
+runs remain stopped.** Task 0 measured a rebase (`rebase-ledger.md`, row 0: 2h39m47s
 cold build, one broken anchor, one API change, 21 upstream files) and its
 native acceptance passed except the extension version-upgrade observation,
 which stays under daily check through November 3. That open gate blocks 157's
@@ -144,9 +145,9 @@ of `experiments/` only with a later decision):
   mutation is a fail.
 - A coverage page issuing one request of every path the audit found.
 
-### 2.1 Proposed corpus amendment — awaiting §8.1 approval
+### 2.1 Corpus amendment — approved at `68892cc1` (§8.1)
 
-**Decision requested.** Replace the real-page provenance requirement in the
+**Approved change.** Replace the real-page provenance requirement in the
 first replay-corpus bullet with the committed synthetic acceptance corpus
 below, and authorize a separate, bounded private real-page sanity sample.
 Merging this document does not approve either change. The original approval
@@ -290,8 +291,7 @@ reference to the same fixtures follows the amended definition only after
 §8.1 approval. Record any effect on the remaining time box in the ledger;
 no automatic extension. Existing §5 build guards and §6 exclusions remain.
 The only proposed exception to committing corpus artifacts under §6 is the
-bounded local private sample above. Implementation remains paused while
-this document is reviewed.
+bounded local private sample above. Implementation may resume under the explicit approval recorded in §8.1.
 
 **Latency protocol.** The thresholds above are new proposals for this
 tranche; plan §5 criterion 3 speaks only to block rate, so these bounds
@@ -483,17 +483,18 @@ it is hit; the tranche does not continue past it without a new decision.
       and 120 hunks. The approval covers exactly §6; anything §6 excludes,
       including a new cold output, needs a new approval.
 
-### 8.1 Corpus amendment approval — separate and not yet granted
+### 8.1 Corpus amendment approval — granted October 17, 2026
 
-- [ ] Owner explicitly approves the §2.1 amendment at reviewed commit:
-      **not approved**. Approval date: **not recorded**. Owner's exact
-      words: **not recorded**. Any changes to scope: **not recorded**.
+- [x] Approved by the owner on October 17, 2026 in this Codex session at
+      reviewed commit `68892cc1b997694483af943de12a297b0f44175d`.
+      Owner's exact words: "Approve §8.1 as written at 68892cc1. Record my
+      approval, merge #916 once CI is green, and resume implementation."
+      No changes to the reviewed scope, including the separate experiment
+      cache namespace, were requested.
 
-The owner's instruction to draft this amendment PR authorizes documentation
-only. The original checked §8 approval remains historical and does not
-check this box. Opening, reviewing, marking ready or merging this PR is not
-implementation approval. After an explicit owner decision, record the date,
-exact words and reviewed commit here before resuming the amended work.
-Approval would cover A's synthetic acceptance definition and B's bounded
+The original checked §8 approval remains historical. This separate explicit
+approval covers §2.1 A's synthetic acceptance definition and B's bounded
 local sample, with their reporting, retention and cleanup requirements and
 all unchanged limits above; anything beyond them requires another decision.
+Merging alone was not approval. The owner separately authorized merging
+#916 once CI on its current head is green and resuming the amended work.
