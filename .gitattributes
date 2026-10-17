@@ -79,3 +79,7 @@ ublock/adaptation.patch -whitespace
 /bangs/sources/* text eol=lf
 /bangs/*.json text eol=lf
 /src/renderer/pages/bangs-catalog.js text eol=lf
+# The /bangs page's pinned copies, byte-checked by site:bangs:check.
+/site/src/data/bangs.json text eol=lf
+/site/src/scripts/bangs.js text eol=lf
+/site/public/licenses/kagi-bangs-MIT.txt text eol=lf

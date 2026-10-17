@@ -27,9 +27,16 @@ plus `revamp.css`, both imported by `BaseLayout.astro`; pages add their own
 redesigned homepage): headings in Blubird Display at regular weight and 0
 tracking (`--site-font-display` and `--site-font-patron`), text in Blubird
 Text (the `html, body` stack and the site's own labels and controls); see
-*Blubird and the lockup* below. Product replicas (the Island figures, demo
-UI) keep Inter, the app's face, self-hosted via fontsource with a
-metric-matched `Inter Fallback`, which is also what Blubird falls back to.
+*Blubird and the lockup* below. Mockups of the app's own UI (the Island
+figures, demo UI, coded illustrations) use the app's face, Instrument Sans at
+width 98 and +0.01em, never Blubird (owner direction, October 17, 2026); its
+`@font-face` comes from the app's own file,
+`src/renderer/pages/instrument-sans-latin-wdth-normal.woff2`, as SpacesDemo,
+ShieldDemo and `/bangs` declare it. Counts and key caps in a mockup stay
+Inter, as in the app. The shared `.demo-island` replica in `site.css` and some
+older figures still draw in Inter, self-hosted via fontsource with a
+metric-matched `Inter Fallback` (also what Blubird falls back to); move them
+to Instrument Sans when you next touch them.
 The display-headings rule at the end of `site.css` is what makes every
 heading display; `test/site/blubird-reach.test.mjs` and
 `test/unit/site-font-fallback.test.js` enforce the faces and the 0 tracking.
@@ -191,7 +198,9 @@ build; that's the point). Served at `/sitemap.xml` (URL unchanged for Search
 Console).
 
 Releases don't deploy the site. After a release: `npm run site:changelog`,
-commit `releases.json`, update the Feature Roadmap, then `npm run site:deploy`.
+commit `releases.json`, update the Feature Roadmap, re-pin the Bangs page to
+the new tag (`npm run site:bangs -- --ref <tag> --release <tag>`), then
+`npm run site:deploy`.
 
 **Feature Roadmap (`/roadmap`):** `src/pages/roadmap.astro` renders the
 hand-edited `src/data/roadmap.json` (Now / Next / Later, no dates) plus a
@@ -203,6 +212,23 @@ re-check every remaining item against the release, and bump `updated`. The
 page must never list as planned something the changelog shows as shipped.
 Roadmap copy describes plans, so keep each item's qualifier (testing, paused,
 depends on…) and follow `docs/marketing-claims.md`.
+
+**Bangs page (`/bangs`):** `src/pages/bangs.astro` explains bangs, runs a
+try-it box and lists every bang. Its data never comes from main's working
+tree, which runs ahead of the public release: `scripts/build-bangs-data.mjs`
+reads the app's `src/renderer/pages/bangs-catalog.js` and `bangs.js` at one
+pinned git ref and writes `src/data/bangs.json` (the directory, with the bangs
+that search through Google or DuckDuckGo tagged), `src/scripts/bangs.js` (a
+byte copy of the app's matcher, which answers the try-it box) and
+`public/licenses/kagi-bangs-MIT.txt`, plus the try-it's hint and section
+labels from the app's `copy/messages/en.json` at the same ref. Never hand-edit
+those three; `npm run site:bangs:check` and `test/unit/site-bangs-data.test.js`
+guard them. Since bangs shipped in public v1.36.0, the data is pinned to the
+latest release tag (`release` must equal `releases.json`'s newest tag, so a
+release's changelog refresh fails the data test until the page is re-pinned
+in the same follow-up), and the page's copy is recorded in
+`docs/website-v1.36-claims.json`. The try-it box never navigates and sends
+nothing; only the page's own data file is fetched.
 
 **Slash-command lists:** the command palette page and its Support guide list
 commands through `src/lib/released-slash-commands.mjs`, never straight from

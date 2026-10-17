@@ -1218,6 +1218,74 @@
   border-radius: 999px;
   background: var(--ink);
 }
+/* Bangs: the open Island with a bang typed and its hint row selected, in
+   the resting pill's white, shadow and type. */
+.bang-scene {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.bang-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: min(80%, 420px);
+  box-sizing: border-box;
+  padding: 10px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 24px 50px -28px rgb(21 20 17 / 0.45);
+}
+.bang-input {
+  display: flex;
+  align-items: center;
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  font-size: 15px;
+}
+.bang-input i {
+  width: 1.5px;
+  height: 18px;
+  margin-left: 2px;
+  background: var(--ink);
+}
+.bang-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 10px;
+  background: var(--surface);
+  font-size: 14px;
+}
+/* The selected row's !code in the app's chip (styles.css .island-row .row-cmd). */
+.bang-row b {
+  flex: none;
+  padding: 0 7px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 20px;
+}
+.bang-row span {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.bang-row kbd {
+  flex: none;
+  color: #6f6a63;
+  font: inherit;
+  /* Key caps stay Inter, as in the app. */
+  font-family: var(--font-ui);
+  font-variation-settings: normal;
+  letter-spacing: 0;
+}
 
 /* ---------- Comparison ---------- */
 .compare-wrap {

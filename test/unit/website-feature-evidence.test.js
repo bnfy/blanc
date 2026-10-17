@@ -222,7 +222,8 @@ test('the cinematic homepage copy resolves to public v1.34.0 evidence and dated 
 test('every sentence on the homepage is recorded in a claims ledger or named as a label', () => {
   const file = 'site/src/pages/index.astro';
   const source = read(file);
-  const recorded = [cinemaLedger, ledger, v132Ledger, v133Ledger, v134Ledger, JSON.parse(read('docs/website-reorder-claims-v1.30.json'))]
+  const recorded = [cinemaLedger, ledger, v132Ledger, v133Ledger, v134Ledger, JSON.parse(read('docs/website-reorder-claims-v1.30.json')),
+    JSON.parse(read('docs/website-v1.36-claims.json'))]
     .flatMap(item => [...item.claims, ...(item.externalClaims || [])])
     .filter(claim => claim.source === file)
     .map(claim => claim.exactWording)
@@ -304,7 +305,7 @@ test('Features bento copy resolves to verified public v1.30.1 evidence, and ever
   // Every text element above the unchanged Patron and download sections is a
   // recorded claim in this ledger, the reorder ledger, or the v1.27 ledger.
   const v135Ledger = JSON.parse(read('docs/website-v1.35-claims.json'));
-  const recorded = [...bento.claims, ...reorder.claims, ...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...v134Ledger.claims, ...v135Ledger.claims].filter(claim => claim.source === file).map(claim => claim.exactWording);
+  const recorded = [...bento.claims, ...reorder.claims, ...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...v134Ledger.claims, ...v135Ledger.claims, ...JSON.parse(read('docs/website-v1.36-claims.json')).claims].filter(claim => claim.source === file).map(claim => claim.exactWording);
   const scope = page.slice(page.indexOf('<main'), page.indexOf('class="bento-patron"'));
   for (const [, , text] of scope.matchAll(/<(h[1-6]|p|figcaption|li|button)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
     const wording = normalize(text);
@@ -335,6 +336,99 @@ test('v1.35.0 site copy resolves to verified public v1.35.0 evidence', () => {
   assert.match(notes, /Reset Tab Title/);
   for (const code of ['de', 'es', 'fr', 'it', 'pt-BR']) {
     assert.match(execFileSync('git', ['show', `${v135.publicRelease}:copy/messages/${code}.json`], { cwd: root, encoding: 'utf8' }), /"status": "selectable"/, code);
+  }
+});
+
+// Bangs page copy, written before v1.36.0 as candidates (owner decision,
+// October 17, 2026) and recorded against public v1.36.0 once it shipped.
+// The /bangs lines that bangs.astro builds from its pinned data, keyed by
+// their normalized source, expanded as the page expands them.
+function bangsPageDynamicLines() {
+  const bangData = JSON.parse(read('site/src/data/bangs.json'));
+  const countText = bangData.count.toLocaleString('en-US');
+  const versionText = bangData.release ? `Blanc ${bangData.release.replace(/^v/, '')}` : 'this build of Blanc';
+  return new Map([
+    ["{example.kind === 'bang' && Return would open {example.hint.url}}", ['Return would open']],
+    ['{chip}', []],
+    ['{`${countText} bangs, exactly the list in ${versionText}. Search by site or by code.`}', [`${countText} bangs, exactly the list in ${versionText}. Search by site or by code.`]],
+    ['{`!${row.code}`}{row.name}{otherCodes(row.aliases)}{row.host}{row.via && {`via ${row.via}`}}', [...new Set(Object.values(bangData.via))].map(via => `via ${via}`)],
+    ['{`Showing all ${countText}`}', [`Showing all ${countText}`]],
+  ]);
+}
+
+test('bangs privacy copy holds only for a code typed first, and names the engines some bangs use', () => {
+  // The app stops asking for suggestions only once a bang is in the box, so
+  // words typed before a trailing bang may already have gone to the engine.
+  const section = (source, id, end) => source.slice(source.indexOf(id), source.indexOf(end, source.indexOf(id)));
+  const features = read('site/src/pages/features.astro');
+  const pop = section(features, 'id="pop-bangs-title"', '</FeaturePop>');
+  assert.match(pop, /not through your search engine/);
+  assert.doesNotMatch(pop, /before or after/);
+  const page = read('site/src/pages/bangs.astro');
+  assert.match(section(page, 'id="bangs-title"', '</section>'), /code before your search/);
+  const privacy = section(page, 'id="bangs-privacy-title"', '</section>');
+  assert.match(privacy, /A bang typed at the end is different/);
+  assert.match(privacy, /through Google or DuckDuckGo/);
+  assert.doesNotMatch(privacy, /another search engine/);
+});
+
+test('v1.36.0 bangs copy resolves to verified public v1.36.0 evidence', () => {
+  const v136 = JSON.parse(read('docs/website-v1.36-claims.json'));
+  const bangsData = JSON.parse(read('site/src/data/bangs.json'));
+  assert.equal(v136.publicRelease, 'v1.36.0');
+  assert.equal(execFileSync('git', ['rev-parse', `${v136.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), v136.sourceSha);
+  assert.ok(read(v136.releaseEvidence).includes(v136.sourceSha));
+  assert.equal(fs.existsSync(path.join(root, 'docs/website-candidate-claims-bangs.json')), false);
+  assert.equal(bangsData.release, v136.publicRelease, 'the bang data is pinned to the same release');
+  assert.equal(bangsData.ref, v136.sourceSha, 'the copy and the bang data are pinned to the same commit');
+  const builtFromData = new Set([...bangsPageDynamicLines().values()].flat());
+  for (const claim of v136.claims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    const source = read(claim.source);
+    // Meta copy lives in the BaseLayout tag's attributes, which normalize() strips.
+    const literal = normalize(source).includes(claim.exactWording) || source.replace(/\s+/g, ' ').includes(claim.exactWording);
+    const built = claim.source === 'site/src/pages/bangs.astro' && builtFromData.has(claim.exactWording);
+    assert.ok(literal || built, `${claim.id}: exact wording drifted`);
+    for (const key of claim.evidenceGroups) {
+      const group = v136.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, `${claim.id}: evidence and qualification`);
+      for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${v136.publicRelease}:${evidence}`], { cwd: root });
+    }
+  }
+  const notes = execFileSync('git', ['show', `${v136.publicRelease}:docs/press/release-notes/v1.36.0.md`], { cwd: root, encoding: 'utf8' });
+  assert.match(notes, /\*\*Bangs\.\*\*/);
+  assert.match(notes, /!yt lofi/);
+});
+
+// Every sentence on /bangs, including the try-it messages and the page's
+// meta copy, is recorded against public v1.36.0.
+test('every sentence on the bangs page is recorded', () => {
+  const file = 'site/src/pages/bangs.astro';
+  const source = read(file);
+  const v136 = JSON.parse(read('docs/website-v1.36-claims.json'));
+  const recorded = v136.claims.filter(claim => claim.source === file).map(claim => claim.exactWording);
+  // From the hero on: the breadcrumb's labels are navigation, not claims.
+  const markup = source.slice(source.indexOf('<section class="feature-hero'));
+  const units = [...markup.matchAll(/<(h[1-6]|p|li|figcaption|strong|button|a)\b[^>]*>([\s\S]*?)<\/\1>/g)]
+    .map(match => normalize(match[2])).filter(Boolean);
+  // Lines built from data are expanded the way the page builds them; any
+  // other line with an expression fails rather than being skipped.
+  const dynamic = bangsPageDynamicLines();
+  const expanded = units.flatMap(unit => {
+    if (!unit.includes('{')) return [unit];
+    assert.ok(dynamic.has(unit), `bangs page line built from an expression is not expanded here: “${unit}”`);
+    return dynamic.get(unit);
+  });
+  assert.ok(expanded.length > 15, 'the page copy was found');
+  for (const unit of expanded) {
+    if (recorded.some(wording => wording.includes(unit))) continue;
+    for (const sentence of unit.split(/(?<=[.?!])\s+(?=[A-Z“\d])/)) {
+      assert.ok(recorded.some(wording => wording.includes(sentence)), `bangs page sentence is not recorded: “${sentence}”`);
+    }
+  }
+  for (const attribute of ['title', 'description', 'ogDescription', 'ogImageAlt']) {
+    const value = source.match(new RegExp(`\\b${attribute}=\\{"([^"]+)"\\}`))?.[1];
+    assert.ok(value && recorded.includes(value), `bangs page ${attribute} is not recorded`);
   }
 });
 

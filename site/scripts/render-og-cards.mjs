@@ -123,6 +123,14 @@ const CARDS = [
     headline: 'Named tab groups: keep the tabs you need. Tuck away the rest.',
   },
   {
+    out: 'feature-bangs.png',
+    page: '/bangs.html',
+    figure: '.island-figure--panel',
+    kicker: 'bangs',
+    headline: 'Search the site. Skip the engine.',
+    theme: 'dark',
+  },
+  {
     out: 'feature-quiet-tabs.png',
     page: '/features/quiet-tabs.html',
     figure: '.island-figure--panel',
