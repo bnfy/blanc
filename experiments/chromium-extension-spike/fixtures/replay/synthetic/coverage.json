@@ -1,26 +1,276 @@
 {
   "schema": 1,
   "approval": "68892cc1",
-  "scope": "planned runtime matrix; no coverage claimed from generation",
-  "profiles": ["regular", "private"],
-  "rule_cases": ["blocking-candidate", "exception-candidate", "near-miss-candidate"],
-  "cell_identity": ["request_path", "resource_type", "party", "profile_kind", "frame_context", "initiator_case", "rule_case"],
-  "required_statuses": ["passed", "failed", "gap", "inapplicable"],
+  "scope": "Required runtime matrix; broad rows stay gaps until every listed cell is measured. Bounded checkpoints are linked separately.",
+  "profiles": [
+    "regular",
+    "private"
+  ],
+  "rule_cases": [
+    "blocking-candidate",
+    "exception-candidate",
+    "near-miss-candidate"
+  ],
+  "cell_identity": [
+    "request_path",
+    "resource_type",
+    "party",
+    "profile_kind",
+    "frame_context",
+    "initiator_case",
+    "rule_case"
+  ],
+  "required_statuses": [
+    "passed",
+    "failed",
+    "gap",
+    "inapplicable"
+  ],
   "rows": [
-    {"priority":1,"request_path":"renderer-subresource","resource_types":["script","xhr","image","stylesheet","font","media","object","other"],"party":["first-party","third-party"],"frame_context":["main","same-origin-child","cross-origin-child"],"initiator_case":["present","no-referrer"],"status":"gap","reason":"Independent Electron and fork observations pending; generator covers only four resource types."},
-    {"priority":1,"request_path":"navigation","resource_types":["mainFrame","subFrame"],"party":["first-party","third-party"],"frame_context":["main","same-origin-child","cross-origin-child"],"initiator_case":["browser-started-absent","renderer-started-present"],"status":"gap","reason":"Navigation candidate emission and fork adapter pending."},
-    {"priority":1,"request_path":"redirect","resource_types":["mainFrame","script","xhr"],"party":["first-party","third-party"],"frame_context":["main"],"initiator_case":["present","browser-started-absent"],"status":"gap","reason":"Per-hop correlation pending; include allow-to-block, blocked-predecessor and multiple-hop cases."},
-    {"priority":2,"request_path":"opaque-frame","resource_types":["script","xhr"],"party":["unresolved"],"frame_context":["sandboxed-child"],"initiator_case":["opaque"],"status":"gap","reason":"Independent opaque-origin identity mapping pending."},
-    {"priority":2,"request_path":"dedicated-and-shared-workers","resource_types":["script","xhr"],"party":["first-party","third-party"],"frame_context":["worker","worker-after-owner-close"],"initiator_case":["worker-origin"],"status":"gap","reason":"Worker identity and top-frame mapping pending."},
-    {"priority":2,"request_path":"service-worker","resource_types":["script","xhr"],"party":["first-party","third-party"],"frame_context":["service-worker"],"initiator_case":["worker-origin"],"status":"gap","reason":"Registration/update/importScripts, independent network fetch, fetch-event network request and cache-only outcomes need separate probes."},
-    {"priority":2,"request_path":"keepalive-and-beacon","resource_types":["xhr","ping"],"party":["first-party","third-party"],"frame_context":["main","after-sender-teardown"],"initiator_case":["present"],"status":"gap","reason":"Retained identity, redirect and retry observations pending."},
-    {"priority":2,"request_path":"prefetch-pre-prefetch-prerender","resource_types":["mainFrame","script","xhr"],"party":["first-party","third-party"],"frame_context":["before-activation","after-activation","cancelled"],"initiator_case":["present"],"status":"gap","reason":"Reachability and early interception unresolved in source audit; private applicability must be measured."},
-    {"priority":2,"request_path":"websocket","resource_types":["webSocket"],"party":["first-party","third-party"],"frame_context":["main","worker"],"initiator_case":["present","worker-origin"],"status":"gap","reason":"Handshake fixture and native interception pending."},
-    {"priority":2,"request_path":"webtransport","resource_types":["unresolved"],"party":["first-party","third-party"],"frame_context":["main","worker"],"initiator_case":["present","worker-origin"],"status":"gap","reason":"HTTP/3 fixture, canonical type and native interception pending."}
+    {
+      "priority": 1,
+      "request_path": "renderer-subresource",
+      "resource_types": [
+        "script",
+        "xhr",
+        "image",
+        "stylesheet",
+        "font",
+        "media",
+        "object",
+        "other"
+      ],
+      "party": [
+        "first-party",
+        "third-party"
+      ],
+      "frame_context": [
+        "main",
+        "same-origin-child",
+        "cross-origin-child"
+      ],
+      "initiator_case": [
+        "present",
+        "no-referrer"
+      ],
+      "status": "gap",
+      "reason": "Native paired checkpoint covers four resource types in a single main frame for the admitted corpus and first-party allow controls; fonts/media/object/other, child frames, domain-scoped candidates and broader first-party decisions remain gaps."
+    },
+    {
+      "priority": 1,
+      "request_path": "navigation",
+      "resource_types": [
+        "mainFrame",
+        "subFrame"
+      ],
+      "party": [
+        "first-party",
+        "third-party"
+      ],
+      "frame_context": [
+        "main",
+        "same-origin-child",
+        "cross-origin-child"
+      ],
+      "initiator_case": [
+        "browser-started-absent",
+        "renderer-started-present"
+      ],
+      "status": "gap",
+      "reason": "Browser-started root navigation with absent initiator measured; navigation candidates, renderer-started and subframe cases remain gaps."
+    },
+    {
+      "priority": 1,
+      "request_path": "redirect",
+      "resource_types": [
+        "mainFrame",
+        "script",
+        "xhr"
+      ],
+      "party": [
+        "first-party",
+        "third-party"
+      ],
+      "frame_context": [
+        "main"
+      ],
+      "initiator_case": [
+        "present",
+        "browser-started-absent"
+      ],
+      "status": "gap",
+      "reason": "Native hop gate implemented, but per-hop corpus/correlation and allow-to-block, blocked-predecessor and multi-hop runtime cases remain gaps."
+    },
+    {
+      "priority": 2,
+      "request_path": "opaque-frame",
+      "resource_types": [
+        "script",
+        "xhr"
+      ],
+      "party": [
+        "unresolved"
+      ],
+      "frame_context": [
+        "sandboxed-child"
+      ],
+      "initiator_case": [
+        "opaque"
+      ],
+      "status": "gap",
+      "reason": "Independent opaque-origin identity mapping pending."
+    },
+    {
+      "priority": 2,
+      "request_path": "dedicated-and-shared-workers",
+      "resource_types": [
+        "script",
+        "xhr"
+      ],
+      "party": [
+        "first-party",
+        "third-party"
+      ],
+      "frame_context": [
+        "worker",
+        "worker-after-owner-close"
+      ],
+      "initiator_case": [
+        "worker-origin"
+      ],
+      "status": "gap",
+      "reason": "Worker identity and top-frame mapping pending."
+    },
+    {
+      "priority": 2,
+      "request_path": "service-worker",
+      "resource_types": [
+        "script",
+        "xhr"
+      ],
+      "party": [
+        "first-party",
+        "third-party"
+      ],
+      "frame_context": [
+        "service-worker"
+      ],
+      "initiator_case": [
+        "worker-origin"
+      ],
+      "status": "gap",
+      "reason": "Registration/update/importScripts, independent network fetch, fetch-event network request and cache-only outcomes need separate probes."
+    },
+    {
+      "priority": 2,
+      "request_path": "keepalive-and-beacon",
+      "resource_types": [
+        "xhr",
+        "ping"
+      ],
+      "party": [
+        "first-party",
+        "third-party"
+      ],
+      "frame_context": [
+        "main",
+        "after-sender-teardown"
+      ],
+      "initiator_case": [
+        "present"
+      ],
+      "status": "gap",
+      "reason": "Retained identity, redirect and retry observations pending."
+    },
+    {
+      "priority": 2,
+      "request_path": "prefetch-pre-prefetch-prerender",
+      "resource_types": [
+        "mainFrame",
+        "script",
+        "xhr"
+      ],
+      "party": [
+        "first-party",
+        "third-party"
+      ],
+      "frame_context": [
+        "before-activation",
+        "after-activation",
+        "cancelled"
+      ],
+      "initiator_case": [
+        "present"
+      ],
+      "status": "gap",
+      "reason": "Reachability and early interception unresolved in source audit; private applicability must be measured."
+    },
+    {
+      "priority": 2,
+      "request_path": "websocket",
+      "resource_types": [
+        "webSocket"
+      ],
+      "party": [
+        "first-party",
+        "third-party"
+      ],
+      "frame_context": [
+        "main",
+        "worker"
+      ],
+      "initiator_case": [
+        "present",
+        "worker-origin"
+      ],
+      "status": "gap",
+      "reason": "Handshake fixture and native interception pending."
+    },
+    {
+      "priority": 2,
+      "request_path": "webtransport",
+      "resource_types": [
+        "unresolved"
+      ],
+      "party": [
+        "first-party",
+        "third-party"
+      ],
+      "frame_context": [
+        "main",
+        "worker"
+      ],
+      "initiator_case": [
+        "present",
+        "worker-origin"
+      ],
+      "status": "gap",
+      "reason": "HTTP/3 fixture, canonical type and native interception pending."
+    }
   ],
   "outcomes": [
-    {"kind":"native-css","status":"gap","reason":"Per-frame outcome assertions pending."},
-    {"kind":"procedural-cosmetics","status":"gap","reason":"Inserted, moved and re-attributed nodes after load/timers pending."},
-    {"kind":"main-world-scriptlets","status":"gap","reason":"Document-start page-global assertions pending."}
+    {
+      "kind": "native-css",
+      "status": "gap",
+      "reason": "Per-frame outcome assertions pending."
+    },
+    {
+      "kind": "procedural-cosmetics",
+      "status": "gap",
+      "reason": "Inserted, moved and re-attributed nodes after load/timers pending."
+    },
+    {
+      "kind": "main-world-scriptlets",
+      "status": "gap",
+      "reason": "Document-start page-global assertions pending."
+    }
+  ],
+  "bounded_checkpoints": [
+    {
+      "evidence": "../../../evidence/f12-native-20261017/README.md",
+      "status": "passed",
+      "scope": "5123 candidate URLs; single main frame; script/xhr/image/stylesheet; two fresh regular and private runs; no-referrer subset separately",
+      "full_acceptance": false
+    }
   ]
 }

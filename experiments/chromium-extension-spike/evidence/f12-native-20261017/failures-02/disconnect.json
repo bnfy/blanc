@@ -1,0 +1,42 @@
+[
+  {
+    "bundle_sha256": "e969dfa8dced64d6edcf32047445a7044a2b0137ab174148a2cea8238c465113",
+    "event": "engine-ready"
+  },
+  {
+    "decision": "allow",
+    "engine_result": 0,
+    "event": "decision",
+    "factory_type": 0,
+    "frame_role": "main",
+    "hook_to_decision_us": 1418544,
+    "initiator_origin": "absent",
+    "initiator_present": false,
+    "method": "GET",
+    "profile_kind": "regular",
+    "redirect_index": 0,
+    "referrer": "",
+    "resource_type": "mainFrame",
+    "status": "ready",
+    "top_frame_origin": "http://127.0.0.1:63490",
+    "url": "http://127.0.0.1:63490/disconnect"
+  },
+  {
+    "decision": "block",
+    "engine_result": -1,
+    "event": "decision",
+    "factory_type": 2,
+    "frame_role": "main",
+    "hook_to_decision_us": 11,
+    "initiator_origin": "http://127.0.0.1:63490",
+    "initiator_present": true,
+    "method": "GET",
+    "profile_kind": "regular",
+    "redirect_index": 0,
+    "referrer": "http://127.0.0.1:63490/disconnect",
+    "resource_type": "xhr",
+    "status": "engine-error",
+    "top_frame_origin": "http://127.0.0.1:63490",
+    "url": "http://127.0.0.1:63490/after-disconnect"
+  }
+]

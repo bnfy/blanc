@@ -1,0 +1,331 @@
+{
+  "label": "synthetic fixture parity",
+  "fullAcceptance": false,
+  "scope": "single main frame; script/xhr/image/stylesheet; regular and private; default and no-referrer subset",
+  "full": {
+    "passed": true,
+    "runs": [
+      {
+        "kind": "regular",
+        "letter": "a",
+        "runId": "3eb7bb62-0ce8-4d90-9a2d-35b76967def2",
+        "counts": {
+          "candidateUrls": 5123,
+          "electronBlocked": 2503,
+          "electronAllowed": 2620,
+          "blockToAllow": 0,
+          "allowToBlock": 0,
+          "matchedDecisions": 5123,
+          "coverageControls": 4,
+          "nativeRequests": 6381
+        },
+        "parity": true,
+        "acceptance": false
+      },
+      {
+        "kind": "regular",
+        "letter": "b",
+        "runId": "28a444d6-0721-4a28-9229-3f362c0b2d1b",
+        "counts": {
+          "candidateUrls": 5123,
+          "electronBlocked": 2503,
+          "electronAllowed": 2620,
+          "blockToAllow": 0,
+          "allowToBlock": 0,
+          "matchedDecisions": 5123,
+          "coverageControls": 4,
+          "nativeRequests": 6381
+        },
+        "parity": true,
+        "acceptance": false
+      },
+      {
+        "kind": "private",
+        "letter": "a",
+        "runId": "81ca96b9-71c4-4120-b9c0-116d6816308a",
+        "counts": {
+          "candidateUrls": 5123,
+          "electronBlocked": 2503,
+          "electronAllowed": 2620,
+          "blockToAllow": 0,
+          "allowToBlock": 0,
+          "matchedDecisions": 5123,
+          "coverageControls": 4,
+          "nativeRequests": 6381
+        },
+        "parity": true,
+        "acceptance": false
+      },
+      {
+        "kind": "private",
+        "letter": "b",
+        "runId": "0f9ec6ea-b3a0-4284-ae06-ac33709617d9",
+        "counts": {
+          "candidateUrls": 5123,
+          "electronBlocked": 2503,
+          "electronAllowed": 2620,
+          "blockToAllow": 0,
+          "allowToBlock": 0,
+          "matchedDecisions": 5123,
+          "coverageControls": 4,
+          "nativeRequests": 6381
+        },
+        "parity": true,
+        "acceptance": false
+      }
+    ],
+    "cleanup": {
+      "disposableTreeRemoved": true
+    }
+  },
+  "noReferrer": {
+    "passed": true,
+    "runs": [
+      {
+        "kind": "regular",
+        "letter": "a",
+        "runId": "bea721f3-f693-4063-b413-23f793a29e25",
+        "counts": {
+          "candidateUrls": 24,
+          "electronBlocked": 9,
+          "electronAllowed": 15,
+          "blockToAllow": 0,
+          "allowToBlock": 0,
+          "matchedDecisions": 24,
+          "coverageControls": 4,
+          "nativeRequests": 34
+        },
+        "parity": true,
+        "acceptance": false
+      },
+      {
+        "kind": "regular",
+        "letter": "b",
+        "runId": "14efae5b-b0cb-4679-a1be-0ea33781d5f9",
+        "counts": {
+          "candidateUrls": 24,
+          "electronBlocked": 9,
+          "electronAllowed": 15,
+          "blockToAllow": 0,
+          "allowToBlock": 0,
+          "matchedDecisions": 24,
+          "coverageControls": 4,
+          "nativeRequests": 34
+        },
+        "parity": true,
+        "acceptance": false
+      },
+      {
+        "kind": "private",
+        "letter": "a",
+        "runId": "44bbd1e4-935d-4bad-81db-69d4697168fd",
+        "counts": {
+          "candidateUrls": 24,
+          "electronBlocked": 9,
+          "electronAllowed": 15,
+          "blockToAllow": 0,
+          "allowToBlock": 0,
+          "matchedDecisions": 24,
+          "coverageControls": 4,
+          "nativeRequests": 34
+        },
+        "parity": true,
+        "acceptance": false
+      },
+      {
+        "kind": "private",
+        "letter": "b",
+        "runId": "31876576-9c71-4dd2-a39a-5f97aabd9214",
+        "counts": {
+          "candidateUrls": 24,
+          "electronBlocked": 9,
+          "electronAllowed": 15,
+          "blockToAllow": 0,
+          "allowToBlock": 0,
+          "matchedDecisions": 24,
+          "coverageControls": 4,
+          "nativeRequests": 34
+        },
+        "parity": true,
+        "acceptance": false
+      }
+    ],
+    "cleanup": {
+      "disposableTreeRemoved": true
+    }
+  },
+  "failureInjection": {
+    "passed": true,
+    "results": [
+      {
+        "variant": "missing",
+        "blocked": true,
+        "requestReachedServer": false,
+        "error": "page.goto: net::ERR_BLOCKED_BY_CLIENT at http://127.0.0.1:63490/missing\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:63490/missing\", waiting until \"domcontentloaded\"\u001b[22m\n"
+      },
+      {
+        "variant": "tampered",
+        "blocked": true,
+        "requestReachedServer": false,
+        "error": "page.goto: net::ERR_BLOCKED_BY_CLIENT at http://127.0.0.1:63490/tampered\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:63490/tampered\", waiting until \"domcontentloaded\"\u001b[22m\n"
+      },
+      {
+        "variant": "disconnect",
+        "ownedUtilityTerminated": true,
+        "blockedAfterDisconnect": true,
+        "requestReachedServer": false
+      }
+    ],
+    "startupDelayInjection": false,
+    "timeoutInjection": false
+  },
+  "latency": {
+    "acceptanceProtocolRun": false,
+    "note": "Exploratory full replay observations only, including startup. No discarded warm-up, five repetitions, or paired Electron timing. Not the approved latency gate.",
+    "runs": {
+      "private-a-native": {
+        "count": 6381,
+        "unit": "ms",
+        "p50": 0.217,
+        "p95": 0.394,
+        "p99": 0.594,
+        "maximum": 1501.749
+      },
+      "private-b-native": {
+        "count": 6381,
+        "unit": "ms",
+        "p50": 0.24,
+        "p95": 0.429,
+        "p99": 0.716,
+        "maximum": 1480.914
+      },
+      "regular-a-native": {
+        "count": 6381,
+        "unit": "ms",
+        "p50": 0.197,
+        "p95": 0.318,
+        "p99": 0.487,
+        "maximum": 1456.041
+      },
+      "regular-b-native": {
+        "count": 6381,
+        "unit": "ms",
+        "p50": 0.197,
+        "p95": 0.321,
+        "p99": 0.488,
+        "maximum": 1451.166
+      }
+    }
+  },
+  "patchBudget": {
+    "before": {
+      "files": 21,
+      "hunks": 55
+    },
+    "after": {
+      "files": 25,
+      "hunks": 62
+    },
+    "limit": {
+      "files": 40,
+      "hunks": 120
+    }
+  },
+  "nativeBuilds": [
+    {
+      "stage": "build-01",
+      "argv": [
+        "/Users/anthonyjloria/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "experiments/chromium-extension-spike/build.mjs",
+        "/Users/anthonyjloria/Projects/BlancChromium157/src",
+        "--build"
+      ],
+      "cwd": "/private/tmp/blanc-chromium157-work",
+      "start": "2026-10-17T19:24:10.559218+00:00",
+      "classification": "tranche-2 routine; never Task0 cold",
+      "end": "2026-10-17T19:24:19.142124+00:00",
+      "seconds": 8.582903833,
+      "exit_code": 1
+    },
+    {
+      "stage": "build-02",
+      "argv": [
+        "/Users/anthonyjloria/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "experiments/chromium-extension-spike/build.mjs",
+        "/Users/anthonyjloria/Projects/BlancChromium157/src",
+        "--build"
+      ],
+      "cwd": "/private/tmp/blanc-chromium157-work",
+      "start": "2026-10-17T19:24:34.503386+00:00",
+      "classification": "tranche-2 routine; never Task0 cold",
+      "end": "2026-10-17T19:24:43.990359+00:00",
+      "seconds": 9.486965583000002,
+      "exit_code": 1
+    },
+    {
+      "stage": "build-03",
+      "argv": [
+        "/Users/anthonyjloria/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "experiments/chromium-extension-spike/build.mjs",
+        "/Users/anthonyjloria/Projects/BlancChromium157/src",
+        "--build"
+      ],
+      "cwd": "/private/tmp/blanc-chromium157-work",
+      "start": "2026-10-17T19:25:21.130018+00:00",
+      "classification": "tranche-2 routine; never Task0 cold",
+      "end": "2026-10-17T19:26:09.316897+00:00",
+      "seconds": 48.1866755,
+      "exit_code": 0
+    },
+    {
+      "stage": "build-04",
+      "argv": [
+        "/Users/anthonyjloria/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "experiments/chromium-extension-spike/build.mjs",
+        "/Users/anthonyjloria/Projects/BlancChromium157/src",
+        "--build"
+      ],
+      "cwd": "/private/tmp/blanc-chromium157-work",
+      "start": "2026-10-17T19:27:34.616720+00:00",
+      "classification": "tranche-2 routine; never Task0 cold",
+      "end": "2026-10-17T19:28:24.044216+00:00",
+      "seconds": 49.427284125,
+      "exit_code": 0
+    },
+    {
+      "stage": "build-05",
+      "argv": [
+        "/Users/anthonyjloria/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "experiments/chromium-extension-spike/build.mjs",
+        "/Users/anthonyjloria/Projects/BlancChromium157/src",
+        "--build"
+      ],
+      "cwd": "/private/tmp/blanc-chromium157-work",
+      "start": "2026-10-17T19:31:47.822004+00:00",
+      "classification": "tranche-2 routine; never Task0 cold",
+      "end": "2026-10-17T19:32:25.212905+00:00",
+      "seconds": 37.390761209,
+      "exit_code": 0
+    }
+  ],
+  "tests": {
+    "replay": 55,
+    "pairedValidator": 15,
+    "buildGuard": 10,
+    "patchCounter": 11,
+    "lintErrors": 0,
+    "lintWarnings": 0
+  },
+  "remainingGaps": [
+    "redirect runtime cases and navigation/subframe matrix",
+    "782 domain-scoped candidates and broader first-party decisions",
+    "fonts/media/object/other and opaque-origin frames",
+    "workers and service workers, including cache-only requests",
+    "keepalive/beacon after sender teardown, pre-prefetch/prefetch/prerender",
+    "WebSocket and WebTransport interception absent",
+    "Ghostery resource redirects fail closed as unsupported, not parity",
+    "CSP response handling, CSS, procedural cosmetics and main-world scriptlets",
+    "latency acceptance protocol, forced startup-delay and timeout injection",
+    "live engine reload/recovery UX and private real-page sanity sample"
+  ]
+}

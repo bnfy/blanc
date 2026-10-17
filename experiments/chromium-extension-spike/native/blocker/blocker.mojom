@@ -1,0 +1,9 @@
+// Blanc experimental utility service. Engine code/data are authenticated by the
+// browser before transfer. No network or filesystem interface is exposed.
+module blanc.mojom;
+import "sandbox/policy/mojom/sandbox.mojom";
+[ServiceSandbox=sandbox.mojom.Sandbox.kService]
+interface Blocker {
+  Initialize(string script) => (bool ready);
+  Decide(string url, string resource_type, string referrer) => (int32 decision);
+};

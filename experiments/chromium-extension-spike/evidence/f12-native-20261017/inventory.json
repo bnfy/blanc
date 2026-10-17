@@ -1,0 +1,857 @@
+[
+  {
+    "path": "probe-01/regular-a-native.jsonl",
+    "source": "/private/tmp/blanc-f12-native-probe-01/regular-a-native.jsonl",
+    "bytes": 1,
+    "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "storedBytes": 1,
+    "storedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "compression": "none"
+  },
+  {
+    "path": "probe-01/report.json",
+    "source": "/private/tmp/blanc-f12-native-probe-01/report.json",
+    "bytes": 19463,
+    "sha256": "e49fed1377e38ab341392e1b697a3e380510753a2b3461d92b02f006beb3ef64",
+    "storedBytes": 19463,
+    "storedSha256": "e49fed1377e38ab341392e1b697a3e380510753a2b3461d92b02f006beb3ef64",
+    "compression": "none"
+  },
+  {
+    "path": "probe-02/regular-a-native.jsonl",
+    "source": "/private/tmp/blanc-f12-native-probe-02/regular-a-native.jsonl",
+    "bytes": 13450,
+    "sha256": "e02dee3f8ea11e0c21fb5fddbf859a3852072d320face091620fad25f31c4873",
+    "storedBytes": 13450,
+    "storedSha256": "e02dee3f8ea11e0c21fb5fddbf859a3852072d320face091620fad25f31c4873",
+    "compression": "none"
+  },
+  {
+    "path": "probe-02/report.json",
+    "source": "/private/tmp/blanc-f12-native-probe-02/report.json",
+    "bytes": 1561,
+    "sha256": "e91415c5893b248bf4323496564252f427fe09e0a730c569d55ed1bbf06808c6",
+    "storedBytes": 1561,
+    "storedSha256": "e91415c5893b248bf4323496564252f427fe09e0a730c569d55ed1bbf06808c6",
+    "compression": "none"
+  },
+  {
+    "path": "probe-03/diagnostic-stop.json",
+    "source": "/private/tmp/blanc-f12-native-probe-03/diagnostic-stop.json",
+    "bytes": 164,
+    "sha256": "e97e7a7dc4d113925899fc0d909ceff989d7946a3beef5e72dc2443d7206a910",
+    "storedBytes": 164,
+    "storedSha256": "e97e7a7dc4d113925899fc0d909ceff989d7946a3beef5e72dc2443d7206a910",
+    "compression": "none"
+  },
+  {
+    "path": "probe-03/regular-a-native.jsonl",
+    "source": "/private/tmp/blanc-f12-native-probe-03/regular-a-native.jsonl",
+    "bytes": 14353,
+    "sha256": "2c2417da5995cc5a8aaf9223e8154aae5fc3ede7ea1f2b4d1585f5b0449dd1dc",
+    "storedBytes": 14353,
+    "storedSha256": "2c2417da5995cc5a8aaf9223e8154aae5fc3ede7ea1f2b4d1585f5b0449dd1dc",
+    "compression": "none"
+  },
+  {
+    "path": "probe-03/regular-a-partial.json",
+    "source": "/private/tmp/blanc-f12-native-probe-03/regular-a-partial.json",
+    "bytes": 27161,
+    "sha256": "cd951c6adc011503cfe6cc15e3f62d3161a81865e606d98e09d61cf2574fa847",
+    "storedBytes": 27161,
+    "storedSha256": "cd951c6adc011503cfe6cc15e3f62d3161a81865e606d98e09d61cf2574fa847",
+    "compression": "none"
+  },
+  {
+    "path": "probe-03/report.json",
+    "source": "/private/tmp/blanc-f12-native-probe-03/report.json",
+    "bytes": 4185,
+    "sha256": "e67d322132b07d8e96c86d7c8d75172580719f4bdd5287bc7bf5ed09facfe24b",
+    "storedBytes": 4185,
+    "storedSha256": "e67d322132b07d8e96c86d7c8d75172580719f4bdd5287bc7bf5ed09facfe24b",
+    "compression": "none"
+  },
+  {
+    "path": "probe-04/private-a-comparison.json",
+    "source": "/private/tmp/blanc-f12-native-probe-04/private-a-comparison.json",
+    "bytes": 609,
+    "sha256": "552b05bbddc36708016273170eb7abb891b0ae1eabb4349dd9167eab3f459b33",
+    "storedBytes": 609,
+    "storedSha256": "552b05bbddc36708016273170eb7abb891b0ae1eabb4349dd9167eab3f459b33",
+    "compression": "none"
+  },
+  {
+    "path": "probe-04/private-a-native.jsonl",
+    "source": "/private/tmp/blanc-f12-native-probe-04/private-a-native.jsonl",
+    "bytes": 14807,
+    "sha256": "275a311501f6655b6267d0aff8902530d9620d7bfa422180fc2716fb21f71fbb",
+    "storedBytes": 14807,
+    "storedSha256": "275a311501f6655b6267d0aff8902530d9620d7bfa422180fc2716fb21f71fbb",
+    "compression": "none"
+  },
+  {
+    "path": "probe-04/private-a-run.json.gz",
+    "source": "/private/tmp/blanc-f12-native-probe-04/private-a-run.json",
+    "bytes": 49746,
+    "sha256": "3c529899663e50ea1122eb02a8c76e35004602528b21bbd237fe79cf449e3d45",
+    "storedBytes": 3458,
+    "storedSha256": "239c784b7fe34d2cd70eabbacb7c012250d7d35fd4e35a4f0527a8d1d43bb76d",
+    "compression": "gzip"
+  },
+  {
+    "path": "probe-04/private-b-comparison.json",
+    "source": "/private/tmp/blanc-f12-native-probe-04/private-b-comparison.json",
+    "bytes": 609,
+    "sha256": "552b05bbddc36708016273170eb7abb891b0ae1eabb4349dd9167eab3f459b33",
+    "storedBytes": 609,
+    "storedSha256": "552b05bbddc36708016273170eb7abb891b0ae1eabb4349dd9167eab3f459b33",
+    "compression": "none"
+  },
+  {
+    "path": "probe-04/private-b-native.jsonl",
+    "source": "/private/tmp/blanc-f12-native-probe-04/private-b-native.jsonl",
+    "bytes": 14811,
+    "sha256": "35c01580b0ae4b6ee51d77b7e8bc259cb7815c51654d031b943815a03ddb5abc",
+    "storedBytes": 14811,
+    "storedSha256": "35c01580b0ae4b6ee51d77b7e8bc259cb7815c51654d031b943815a03ddb5abc",
+    "compression": "none"
+  },
+  {
+    "path": "probe-04/private-b-run.json.gz",
+    "source": "/private/tmp/blanc-f12-native-probe-04/private-b-run.json",
+    "bytes": 49578,
+    "sha256": "d7515ade082eb3aeae589cafd9023a313c6c69e5cdda92830f300674ac0e2b7c",
+    "storedBytes": 3447,
+    "storedSha256": "9d3161c52dcd60ae6e7ea94b660f1e21c23e96568f33e424940af5147e0aa089",
+    "compression": "gzip"
+  },
+  {
+    "path": "probe-04/regular-a-comparison.json",
+    "source": "/private/tmp/blanc-f12-native-probe-04/regular-a-comparison.json",
+    "bytes": 609,
+    "sha256": "552b05bbddc36708016273170eb7abb891b0ae1eabb4349dd9167eab3f459b33",
+    "storedBytes": 609,
+    "storedSha256": "552b05bbddc36708016273170eb7abb891b0ae1eabb4349dd9167eab3f459b33",
+    "compression": "none"
+  },
+  {
+    "path": "probe-04/regular-a-native.jsonl",
+    "source": "/private/tmp/blanc-f12-native-probe-04/regular-a-native.jsonl",
+    "bytes": 14807,
+    "sha256": "b78a6d1b270161d252eccb90fc3931b793eac4cf6668faac283743a1494167fa",
+    "storedBytes": 14807,
+    "storedSha256": "b78a6d1b270161d252eccb90fc3931b793eac4cf6668faac283743a1494167fa",
+    "compression": "none"
+  },
+  {
+    "path": "probe-04/regular-a-run.json.gz",
+    "source": "/private/tmp/blanc-f12-native-probe-04/regular-a-run.json",
+    "bytes": 49814,
+    "sha256": "d6a0e0660088e51d43fd2bbc6b04cb7a5b38ee5d683bdf7c1e9f256271c44d81",
+    "storedBytes": 3493,
+    "storedSha256": "d546539d384738690f72a20f0ed12f34868129b648cf1b69e8d5c1474a58d33e",
+    "compression": "gzip"
+  },
+  {
+    "path": "probe-04/regular-b-comparison.json",
+    "source": "/private/tmp/blanc-f12-native-probe-04/regular-b-comparison.json",
+    "bytes": 609,
+    "sha256": "552b05bbddc36708016273170eb7abb891b0ae1eabb4349dd9167eab3f459b33",
+    "storedBytes": 609,
+    "storedSha256": "552b05bbddc36708016273170eb7abb891b0ae1eabb4349dd9167eab3f459b33",
+    "compression": "none"
+  },
+  {
+    "path": "probe-04/regular-b-native.jsonl",
+    "source": "/private/tmp/blanc-f12-native-probe-04/regular-b-native.jsonl",
+    "bytes": 14804,
+    "sha256": "26caec99cc5721ee561e54adc8c355160050cd14a467bb795a06a67ce1dfbde0",
+    "storedBytes": 14804,
+    "storedSha256": "26caec99cc5721ee561e54adc8c355160050cd14a467bb795a06a67ce1dfbde0",
+    "compression": "none"
+  },
+  {
+    "path": "probe-04/regular-b-run.json.gz",
+    "source": "/private/tmp/blanc-f12-native-probe-04/regular-b-run.json",
+    "bytes": 49744,
+    "sha256": "b75058834aa761d7d7809709a57945a625e978acb7263af9193925e72c627be4",
+    "storedBytes": 3460,
+    "storedSha256": "b55a48884ba8533619def7fcfea26fc259047f27c7198a11f1a73102c4967c84",
+    "compression": "gzip"
+  },
+  {
+    "path": "probe-04/report.json",
+    "source": "/private/tmp/blanc-f12-native-probe-04/report.json",
+    "bytes": 3063,
+    "sha256": "12211afd6564de5b29f195b09449ab20fc42c22b58f05a588b1ad3bbceb6ee01",
+    "storedBytes": 3063,
+    "storedSha256": "12211afd6564de5b29f195b09449ab20fc42c22b58f05a588b1ad3bbceb6ee01",
+    "compression": "none"
+  },
+  {
+    "path": "full-01/private-a-comparison.json",
+    "source": "/private/tmp/blanc-f12-native-full-01/private-a-comparison.json",
+    "bytes": 620,
+    "sha256": "17817743db210a8eb82079bd07c08ada00ff2c0acffd4a44b24da03d89df1420",
+    "storedBytes": 620,
+    "storedSha256": "17817743db210a8eb82079bd07c08ada00ff2c0acffd4a44b24da03d89df1420",
+    "compression": "none"
+  },
+  {
+    "path": "full-01/private-a-native.jsonl.gz",
+    "source": "/private/tmp/blanc-f12-native-full-01/private-a-native.jsonl",
+    "bytes": 3022656,
+    "sha256": "0ee7f3919532a721d40f46314df6c9db4325780238638200dd82a7854aa304e5",
+    "storedBytes": 82407,
+    "storedSha256": "1f367bc098a738a223c22a03fb76151cd553092093dbaffc02fc2ea4c52d07c3",
+    "compression": "gzip"
+  },
+  {
+    "path": "full-01/private-a-run.json.gz",
+    "source": "/private/tmp/blanc-f12-native-full-01/private-a-run.json",
+    "bytes": 9090994,
+    "sha256": "734c8aaaf3fceb2608eda4ed04c380df96b9412d85cacf950cc402bb749fec40",
+    "storedBytes": 382710,
+    "storedSha256": "a0ee3bf487d1f8c8d5200197c04c2dd0205bb042fd06169a658ac2586c1d0eea",
+    "compression": "gzip"
+  },
+  {
+    "path": "full-01/private-b-comparison.json",
+    "source": "/private/tmp/blanc-f12-native-full-01/private-b-comparison.json",
+    "bytes": 620,
+    "sha256": "17817743db210a8eb82079bd07c08ada00ff2c0acffd4a44b24da03d89df1420",
+    "storedBytes": 620,
+    "storedSha256": "17817743db210a8eb82079bd07c08ada00ff2c0acffd4a44b24da03d89df1420",
+    "compression": "none"
+  },
+  {
+    "path": "full-01/private-b-native.jsonl.gz",
+    "source": "/private/tmp/blanc-f12-native-full-01/private-b-native.jsonl",
+    "bytes": 3022672,
+    "sha256": "e38c491b662e0b2f71884d1c9a677a891bed4b1f1b237a469299a982afbffb1d",
+    "storedBytes": 82706,
+    "storedSha256": "767355939ffdb04d362e241fc253845d5bf5e76534a3a0e3f3eb158dc4c60380",
+    "compression": "gzip"
+  },
+  {
+    "path": "full-01/private-b-run.json.gz",
+    "source": "/private/tmp/blanc-f12-native-full-01/private-b-run.json",
+    "bytes": 9091034,
+    "sha256": "4931504dcb2b3940fda37c7fcb37f660bb301a0d13903a9ef3bdf074428cc74f",
+    "storedBytes": 383086,
+    "storedSha256": "4fdcd7442e401dc586529cc16a80fc6be2f175c2bc8e77664e68416e8ee96c43",
+    "compression": "gzip"
+  },
+  {
+    "path": "full-01/regular-a-comparison.json",
+    "source": "/private/tmp/blanc-f12-native-full-01/regular-a-comparison.json",
+    "bytes": 620,
+    "sha256": "17817743db210a8eb82079bd07c08ada00ff2c0acffd4a44b24da03d89df1420",
+    "storedBytes": 620,
+    "storedSha256": "17817743db210a8eb82079bd07c08ada00ff2c0acffd4a44b24da03d89df1420",
+    "compression": "none"
+  },
+  {
+    "path": "full-01/regular-a-native.jsonl.gz",
+    "source": "/private/tmp/blanc-f12-native-full-01/regular-a-native.jsonl",
+    "bytes": 3022652,
+    "sha256": "5a196517c7a638d221b51c0ffacbb055be8ad998f9f1e20925ea57d4188d4c91",
+    "storedBytes": 81848,
+    "storedSha256": "8d7b58f3def8a6dd3e40d1e59b49c7dde1756780ab9ff93f9b66f2a0860b4256",
+    "compression": "gzip"
+  },
+  {
+    "path": "full-01/regular-a-run.json.gz",
+    "source": "/private/tmp/blanc-f12-native-full-01/regular-a-run.json",
+    "bytes": 9090991,
+    "sha256": "31387a0b0f87d34d3c94a010ce4edc2a1b4f401c94dc10be87540e943a3c915a",
+    "storedBytes": 382413,
+    "storedSha256": "718edb045b6d13d8aaf4c1812cf031c8b1f67f5a126977b411bac5033eb7be10",
+    "compression": "gzip"
+  },
+  {
+    "path": "full-01/regular-b-comparison.json",
+    "source": "/private/tmp/blanc-f12-native-full-01/regular-b-comparison.json",
+    "bytes": 620,
+    "sha256": "17817743db210a8eb82079bd07c08ada00ff2c0acffd4a44b24da03d89df1420",
+    "storedBytes": 620,
+    "storedSha256": "17817743db210a8eb82079bd07c08ada00ff2c0acffd4a44b24da03d89df1420",
+    "compression": "none"
+  },
+  {
+    "path": "full-01/regular-b-native.jsonl.gz",
+    "source": "/private/tmp/blanc-f12-native-full-01/regular-b-native.jsonl",
+    "bytes": 3022651,
+    "sha256": "c683b3e3c796f72a332ba1ff228ae13d5881e5dda278f963c4f02f16d28b4f25",
+    "storedBytes": 81891,
+    "storedSha256": "a3635e6071150865ff63c94871c9f1aa4f4fc8173a438ca461aa00b720ecffba",
+    "compression": "gzip"
+  },
+  {
+    "path": "full-01/regular-b-run.json.gz",
+    "source": "/private/tmp/blanc-f12-native-full-01/regular-b-run.json",
+    "bytes": 9091014,
+    "sha256": "b07296e25b8d95d188130d92e4be5169643896a22e29ae79f3bd48cf3a52bca9",
+    "storedBytes": 382343,
+    "storedSha256": "e3bce92a6dcc99a4bcc62bb7cf276518bba71a11ff73611836d0930e62bc2f71",
+    "compression": "gzip"
+  },
+  {
+    "path": "full-01/report.json",
+    "source": "/private/tmp/blanc-f12-native-full-01/report.json",
+    "bytes": 4367,
+    "sha256": "1ea48652d89bde8e6a6cbe371648557003d4b532fa6fae9461ad81b5a4b56ccf",
+    "storedBytes": 4367,
+    "storedSha256": "1ea48652d89bde8e6a6cbe371648557003d4b532fa6fae9461ad81b5a4b56ccf",
+    "compression": "none"
+  },
+  {
+    "path": "failures-01/missing.json",
+    "source": "/private/tmp/blanc-f12-native-failures-01/missing.json",
+    "bytes": 489,
+    "sha256": "c3e875778bae7308e01855545a37ee69b81c938f7125d8eb61b5ee4ded994cfb",
+    "storedBytes": 489,
+    "storedSha256": "c3e875778bae7308e01855545a37ee69b81c938f7125d8eb61b5ee4ded994cfb",
+    "compression": "none"
+  },
+  {
+    "path": "failures-01/result.json",
+    "source": "/private/tmp/blanc-f12-native-failures-01/result.json",
+    "bytes": 501,
+    "sha256": "20c2a0c6452a01d139677ff2e609f021dd078c44ca6a28049d53f47cd459766f",
+    "storedBytes": 501,
+    "storedSha256": "20c2a0c6452a01d139677ff2e609f021dd078c44ca6a28049d53f47cd459766f",
+    "compression": "none"
+  },
+  {
+    "path": "failures-02/disconnect.json",
+    "source": "/private/tmp/blanc-f12-native-failures-02/disconnect.json",
+    "bytes": 1149,
+    "sha256": "c8b0d3fa8f1f5ee89200899de9ef81fc2a304dbb1728788ac91aa8bdc3b980fa",
+    "storedBytes": 1149,
+    "storedSha256": "c8b0d3fa8f1f5ee89200899de9ef81fc2a304dbb1728788ac91aa8bdc3b980fa",
+    "compression": "none"
+  },
+  {
+    "path": "failures-02/missing.json",
+    "source": "/private/tmp/blanc-f12-native-failures-02/missing.json",
+    "bytes": 488,
+    "sha256": "ea410f88ad3ba2893163957db4d3317fde795267b0c39c75d68f3e4911a114a7",
+    "storedBytes": 488,
+    "storedSha256": "ea410f88ad3ba2893163957db4d3317fde795267b0c39c75d68f3e4911a114a7",
+    "compression": "none"
+  },
+  {
+    "path": "failures-02/result.json",
+    "source": "/private/tmp/blanc-f12-native-failures-02/result.json",
+    "bytes": 885,
+    "sha256": "169baddaf8d38a7a07a39a4bff6a8301f28943c6b0a86ab3f55d2cf0fe7bba75",
+    "storedBytes": 885,
+    "storedSha256": "169baddaf8d38a7a07a39a4bff6a8301f28943c6b0a86ab3f55d2cf0fe7bba75",
+    "compression": "none"
+  },
+  {
+    "path": "failures-02/tampered.json",
+    "source": "/private/tmp/blanc-f12-native-failures-02/tampered.json",
+    "bytes": 490,
+    "sha256": "29556cd3f0a6571b4c532578c831610622e81bbe31e23bcea4d53aeb3cf78c88",
+    "storedBytes": 490,
+    "storedSha256": "29556cd3f0a6571b4c532578c831610622e81bbe31e23bcea4d53aeb3cf78c88",
+    "compression": "none"
+  },
+  {
+    "path": "build/budget-after.json.gz",
+    "source": "/private/tmp/blanc-f12-native-build/budget-after.json",
+    "bytes": 38127,
+    "sha256": "0c7bfb2e823b41d901aa940d15b63000d9529dd1823726b7a95cb2e1e445828e",
+    "storedBytes": 10410,
+    "storedSha256": "75bbba95e4a89760de2fca1f1bf32387a7fbdf424ea3946f330de9f3780a32bd",
+    "compression": "gzip"
+  },
+  {
+    "path": "build/budget-before.json.gz",
+    "source": "/private/tmp/blanc-f12-native-build/budget-before.json",
+    "bytes": 36988,
+    "sha256": "914a6d8aa6fb5a633ed62ea0d194a09ac491b0cdd169a19e3d2f079cc38eb759",
+    "storedBytes": 10203,
+    "storedSha256": "d470bb2c8778d6913290be51297997b2e49e650826b7cee1f6a9edfab5ef2ea8",
+    "compression": "gzip"
+  },
+  {
+    "path": "build/budget-final.json.gz",
+    "source": "/private/tmp/blanc-f12-native-build/budget-final.json",
+    "bytes": 38127,
+    "sha256": "a1072415f1dcd2911b42c6c56bebb525c603660f399878e85367857e20b9f10e",
+    "storedBytes": 10410,
+    "storedSha256": "7d7bcf31679a71d0e09e9fc231894d2cc6fddf53b30da4674e40f4895f007da9",
+    "compression": "gzip"
+  },
+  {
+    "path": "build/build-01.log",
+    "source": "/private/tmp/blanc-f12-native-build/build-01.log",
+    "bytes": 10553,
+    "sha256": "00d98c263a0b726f648c4b6d2b06e14348f242313bb023139456221af2eb6211",
+    "storedBytes": 10553,
+    "storedSha256": "00d98c263a0b726f648c4b6d2b06e14348f242313bb023139456221af2eb6211",
+    "compression": "none"
+  },
+  {
+    "path": "build/build-02.log",
+    "source": "/private/tmp/blanc-f12-native-build/build-02.log",
+    "bytes": 14423,
+    "sha256": "8b858f0ee18f756d9f0916c82f0c12cedd2a87eed6f0ef05f2fddb685fbabf13",
+    "storedBytes": 14423,
+    "storedSha256": "8b858f0ee18f756d9f0916c82f0c12cedd2a87eed6f0ef05f2fddb685fbabf13",
+    "compression": "none"
+  },
+  {
+    "path": "build/build-03.log",
+    "source": "/private/tmp/blanc-f12-native-build/build-03.log",
+    "bytes": 2964,
+    "sha256": "71a3a05d568523b2185820a933ba8f846335e433e95c69333b1e0781e52d6832",
+    "storedBytes": 2964,
+    "storedSha256": "71a3a05d568523b2185820a933ba8f846335e433e95c69333b1e0781e52d6832",
+    "compression": "none"
+  },
+  {
+    "path": "build/build-04.log",
+    "source": "/private/tmp/blanc-f12-native-build/build-04.log",
+    "bytes": 2745,
+    "sha256": "596b2c8ac81a2825c015b07eb8d7227e58f592e39b22a1fa8f637186a53ba764",
+    "storedBytes": 2745,
+    "storedSha256": "596b2c8ac81a2825c015b07eb8d7227e58f592e39b22a1fa8f637186a53ba764",
+    "compression": "none"
+  },
+  {
+    "path": "build/build-05.log",
+    "source": "/private/tmp/blanc-f12-native-build/build-05.log",
+    "bytes": 2586,
+    "sha256": "19f758d21a5dc7ffd2ff26a01bdb10fb5ba27af93fd0535b858ce96d4181b282",
+    "storedBytes": 2586,
+    "storedSha256": "19f758d21a5dc7ffd2ff26a01bdb10fb5ba27af93fd0535b858ce96d4181b282",
+    "compression": "none"
+  },
+  {
+    "path": "build/checkpoint-notes.md",
+    "source": "/private/tmp/blanc-f12-native-build/checkpoint-notes.md",
+    "bytes": 1293,
+    "sha256": "2c0187f847b39de78764c4a7268f3dde970c859b390dfd9ca08b1345a3b8b004",
+    "storedBytes": 1293,
+    "storedSha256": "2c0187f847b39de78764c4a7268f3dde970c859b390dfd9ca08b1345a3b8b004",
+    "compression": "none"
+  },
+  {
+    "path": "build/cleanup-verification.json",
+    "source": "/private/tmp/blanc-f12-native-build/cleanup-verification.json",
+    "bytes": 339,
+    "sha256": "da404f5c64ad8af7c59703ee663729183b4aea6df3b1326ff045d7cd976b1ba6",
+    "storedBytes": 339,
+    "storedSha256": "da404f5c64ad8af7c59703ee663729183b4aea6df3b1326ff045d7cd976b1ba6",
+    "compression": "none"
+  },
+  {
+    "path": "build/engine-preflight.cjs",
+    "source": "/private/tmp/blanc-f12-native-build/engine-preflight.cjs",
+    "bytes": 853,
+    "sha256": "5f8227e5e0553743ef26b3dbec7769deead9a18bff573bad8482494e8724c3b7",
+    "storedBytes": 853,
+    "storedSha256": "5f8227e5e0553743ef26b3dbec7769deead9a18bff573bad8482494e8724c3b7",
+    "compression": "none"
+  },
+  {
+    "path": "build/engine-preflight.json",
+    "source": "/private/tmp/blanc-f12-native-build/engine-preflight.json",
+    "bytes": 103,
+    "sha256": "f9c6028a7fb239941c1aafb421e08e213812bc4b81afc4b69f8405a479821a65",
+    "storedBytes": 103,
+    "storedSha256": "f9c6028a7fb239941c1aafb421e08e213812bc4b81afc4b69f8405a479821a65",
+    "compression": "none"
+  },
+  {
+    "path": "build/failure-probe-01.log",
+    "source": "/private/tmp/blanc-f12-native-build/failure-probe-01.log",
+    "bytes": 551,
+    "sha256": "d0954543f5fe1c8b373151b205e3475b064b8d963e7f1a8d815f1e76fc2b388f",
+    "storedBytes": 551,
+    "storedSha256": "d0954543f5fe1c8b373151b205e3475b064b8d963e7f1a8d815f1e76fc2b388f",
+    "compression": "none"
+  },
+  {
+    "path": "build/failure-probe-02.log",
+    "source": "/private/tmp/blanc-f12-native-build/failure-probe-02.log",
+    "bytes": 685,
+    "sha256": "1d2d3348f6bbae8a6f9f2a044b6b109115184b34012dc7fa9dca30e31e58e2e5",
+    "storedBytes": 685,
+    "storedSha256": "1d2d3348f6bbae8a6f9f2a044b6b109115184b34012dc7fa9dca30e31e58e2e5",
+    "compression": "none"
+  },
+  {
+    "path": "build/final-plan-check.log",
+    "source": "/private/tmp/blanc-f12-native-build/final-plan-check.log",
+    "bytes": 196,
+    "sha256": "c5b2ea96710d515c3cb30bb0844fb07af778ec266c08943ed9a297707e8b6ab4",
+    "storedBytes": 196,
+    "storedSha256": "c5b2ea96710d515c3cb30bb0844fb07af778ec266c08943ed9a297707e8b6ab4",
+    "compression": "none"
+  },
+  {
+    "path": "build/gn-01.log",
+    "source": "/private/tmp/blanc-f12-native-build/gn-01.log",
+    "bytes": 51,
+    "sha256": "90d15cef0cab7e0a25d595ca6b14f8a1620fc3c590cae2dc797726527237921f",
+    "storedBytes": 51,
+    "storedSha256": "90d15cef0cab7e0a25d595ca6b14f8a1620fc3c590cae2dc797726527237921f",
+    "compression": "none"
+  },
+  {
+    "path": "build/inspect-launch.log",
+    "source": "/private/tmp/blanc-f12-native-build/inspect-launch.log",
+    "bytes": 5999,
+    "sha256": "9243b9848d92c6f143910f9afff0eb3157fb0d5a423c0daf8321cd7b033335b8",
+    "storedBytes": 5999,
+    "storedSha256": "9243b9848d92c6f143910f9afff0eb3157fb0d5a423c0daf8321cd7b033335b8",
+    "compression": "none"
+  },
+  {
+    "path": "build/inspect-launch.mjs",
+    "source": "/private/tmp/blanc-f12-native-build/inspect-launch.mjs",
+    "bytes": 1032,
+    "sha256": "9da62f9f7a19d95674a19c35a051e68062db5b8fb78522a9d812845bf4821633",
+    "storedBytes": 1032,
+    "storedSha256": "9da62f9f7a19d95674a19c35a051e68062db5b8fb78522a9d812845bf4821633",
+    "compression": "none"
+  },
+  {
+    "path": "build/inspect-no-blocker.log",
+    "source": "/private/tmp/blanc-f12-native-build/inspect-no-blocker.log",
+    "bytes": 4172,
+    "sha256": "0954c5aab9550f9223007b17a5dae2943be8976e84465b7f766c02c0755061d8",
+    "storedBytes": 4172,
+    "storedSha256": "0954c5aab9550f9223007b17a5dae2943be8976e84465b7f766c02c0755061d8",
+    "compression": "none"
+  },
+  {
+    "path": "build/inspect-no-blocker.mjs",
+    "source": "/private/tmp/blanc-f12-native-build/inspect-no-blocker.mjs",
+    "bytes": 970,
+    "sha256": "f85b3e4ef757c201a2eeca683e5c6184bc8d24d1e5dccfe0b6de032dfaabd8df",
+    "storedBytes": 970,
+    "storedSha256": "f85b3e4ef757c201a2eeca683e5c6184bc8d24d1e5dccfe0b6de032dfaabd8df",
+    "compression": "none"
+  },
+  {
+    "path": "build/invocations.jsonl",
+    "source": "/private/tmp/blanc-f12-native-build/invocations.jsonl",
+    "bytes": 22670,
+    "sha256": "c30ec846ff4ce8fb890b47c29b98b53ef5d8ff068dd36041ffe9deb999467e3d",
+    "storedBytes": 22670,
+    "storedSha256": "c30ec846ff4ce8fb890b47c29b98b53ef5d8ff068dd36041ffe9deb999467e3d",
+    "compression": "none"
+  },
+  {
+    "path": "build/lint-final.log",
+    "source": "/private/tmp/blanc-f12-native-build/lint-final.log",
+    "bytes": 38,
+    "sha256": "4f9a6e9e3ed52207dc0167aed1c586114894958d510ebf1d4f85c882b9f6362c",
+    "storedBytes": 38,
+    "storedSha256": "4f9a6e9e3ed52207dc0167aed1c586114894958d510ebf1d4f85c882b9f6362c",
+    "compression": "none"
+  },
+  {
+    "path": "build/lint-result.log",
+    "source": "/private/tmp/blanc-f12-native-build/lint-result.log",
+    "bytes": 38,
+    "sha256": "4f9a6e9e3ed52207dc0167aed1c586114894958d510ebf1d4f85c882b9f6362c",
+    "storedBytes": 38,
+    "storedSha256": "4f9a6e9e3ed52207dc0167aed1c586114894958d510ebf1d4f85c882b9f6362c",
+    "compression": "none"
+  },
+  {
+    "path": "build/lint.mjs",
+    "source": "/private/tmp/blanc-f12-native-build/lint.mjs",
+    "bytes": 1061,
+    "sha256": "5b584237d329cc4b7d8c09b7cc9426d155103c998682407c40b12d71d2cb8ff1",
+    "storedBytes": 1061,
+    "storedSha256": "5b584237d329cc4b7d8c09b7cc9426d155103c998682407c40b12d71d2cb8ff1",
+    "compression": "none"
+  },
+  {
+    "path": "build/native-full-01.log",
+    "source": "/private/tmp/blanc-f12-native-build/native-full-01.log",
+    "bytes": 1154,
+    "sha256": "0c96ce16987dfefbaa632cf0a662db56fe5d54d3d66e340172203cc1a0d91dc4",
+    "storedBytes": 1154,
+    "storedSha256": "0c96ce16987dfefbaa632cf0a662db56fe5d54d3d66e340172203cc1a0d91dc4",
+    "compression": "none"
+  },
+  {
+    "path": "build/native-probe-01.log",
+    "source": "/private/tmp/blanc-f12-native-build/native-probe-01.log",
+    "bytes": 18189,
+    "sha256": "caf9f3670a82d6025cd1017bdb3120f9b8c9e5fa7ae0014d9623f152b7e89b63",
+    "storedBytes": 18189,
+    "storedSha256": "caf9f3670a82d6025cd1017bdb3120f9b8c9e5fa7ae0014d9623f152b7e89b63",
+    "compression": "none"
+  },
+  {
+    "path": "build/native-probe-02.log",
+    "source": "/private/tmp/blanc-f12-native-build/native-probe-02.log",
+    "bytes": 287,
+    "sha256": "7fcb5e1d872e875486dfe8175dd0c63d34431cd3044ee945649f62a6f4335bcb",
+    "storedBytes": 287,
+    "storedSha256": "7fcb5e1d872e875486dfe8175dd0c63d34431cd3044ee945649f62a6f4335bcb",
+    "compression": "none"
+  },
+  {
+    "path": "build/native-probe-03.log",
+    "source": "/private/tmp/blanc-f12-native-build/native-probe-03.log",
+    "bytes": 2943,
+    "sha256": "72e65621af7682bee97852cdf76e6778b2f77ba575e511a28d6c163dcec1fd95",
+    "storedBytes": 2943,
+    "storedSha256": "72e65621af7682bee97852cdf76e6778b2f77ba575e511a28d6c163dcec1fd95",
+    "compression": "none"
+  },
+  {
+    "path": "build/native-probe-04.log",
+    "source": "/private/tmp/blanc-f12-native-build/native-probe-04.log",
+    "bytes": 1111,
+    "sha256": "6fa70e4529807d9c7097ae4ec07329d5ba4146baf54590de147911cb5ef1beee",
+    "storedBytes": 1111,
+    "storedSha256": "6fa70e4529807d9c7097ae4ec07329d5ba4146baf54590de147911cb5ef1beee",
+    "compression": "none"
+  },
+  {
+    "path": "build/plan-01.log",
+    "source": "/private/tmp/blanc-f12-native-build/plan-01.log",
+    "bytes": 197,
+    "sha256": "8ad4f3a64966c14eb6160de305f494e36d3694c3753730141283e2cac7d23249",
+    "storedBytes": 197,
+    "storedSha256": "8ad4f3a64966c14eb6160de305f494e36d3694c3753730141283e2cac7d23249",
+    "compression": "none"
+  },
+  {
+    "path": "build/prepare-01.log",
+    "source": "/private/tmp/blanc-f12-native-build/prepare-01.log",
+    "bytes": 83,
+    "sha256": "eacdfbf62e21d158a4dc6ba5a263a05bfe79c5e55693033c5e00f4a0e9143b54",
+    "storedBytes": 83,
+    "storedSha256": "eacdfbf62e21d158a4dc6ba5a263a05bfe79c5e55693033c5e00f4a0e9143b54",
+    "compression": "none"
+  },
+  {
+    "path": "build/prepare-02.log",
+    "source": "/private/tmp/blanc-f12-native-build/prepare-02.log",
+    "bytes": 83,
+    "sha256": "eacdfbf62e21d158a4dc6ba5a263a05bfe79c5e55693033c5e00f4a0e9143b54",
+    "storedBytes": 83,
+    "storedSha256": "eacdfbf62e21d158a4dc6ba5a263a05bfe79c5e55693033c5e00f4a0e9143b54",
+    "compression": "none"
+  },
+  {
+    "path": "build/prepare-03.log",
+    "source": "/private/tmp/blanc-f12-native-build/prepare-03.log",
+    "bytes": 83,
+    "sha256": "eacdfbf62e21d158a4dc6ba5a263a05bfe79c5e55693033c5e00f4a0e9143b54",
+    "storedBytes": 83,
+    "storedSha256": "eacdfbf62e21d158a4dc6ba5a263a05bfe79c5e55693033c5e00f4a0e9143b54",
+    "compression": "none"
+  },
+  {
+    "path": "build/prepare-04.log",
+    "source": "/private/tmp/blanc-f12-native-build/prepare-04.log",
+    "bytes": 83,
+    "sha256": "eacdfbf62e21d158a4dc6ba5a263a05bfe79c5e55693033c5e00f4a0e9143b54",
+    "storedBytes": 83,
+    "storedSha256": "eacdfbf62e21d158a4dc6ba5a263a05bfe79c5e55693033c5e00f4a0e9143b54",
+    "compression": "none"
+  },
+  {
+    "path": "build/prepare-05.log",
+    "source": "/private/tmp/blanc-f12-native-build/prepare-05.log",
+    "bytes": 83,
+    "sha256": "eacdfbf62e21d158a4dc6ba5a263a05bfe79c5e55693033c5e00f4a0e9143b54",
+    "storedBytes": 83,
+    "storedSha256": "eacdfbf62e21d158a4dc6ba5a263a05bfe79c5e55693033c5e00f4a0e9143b54",
+    "compression": "none"
+  },
+  {
+    "path": "build/run.py",
+    "source": "/private/tmp/blanc-f12-native-build/run.py",
+    "bytes": 869,
+    "sha256": "725753339518cad21395e6d25aef5ef05e060855e0c021c676cfec34b9178914",
+    "storedBytes": 869,
+    "storedSha256": "725753339518cad21395e6d25aef5ef05e060855e0c021c676cfec34b9178914",
+    "compression": "none"
+  },
+  {
+    "path": "build/source-verification.json",
+    "source": "/private/tmp/blanc-f12-native-build/source-verification.json",
+    "bytes": 18828,
+    "sha256": "2771f29839f1d9aab90aa7f764662e772985b2ab8ac25dbfeee130f9ae5808a7",
+    "storedBytes": 18828,
+    "storedSha256": "2771f29839f1d9aab90aa7f764662e772985b2ab8ac25dbfeee130f9ae5808a7",
+    "compression": "none"
+  },
+  {
+    "path": "build/tests-budget.log",
+    "source": "/private/tmp/blanc-f12-native-build/tests-budget.log",
+    "bytes": 110,
+    "sha256": "ecf8fb99c77b87ced118077e709eaec45e00ef1ec214bf8d85e05e7d76a01b8f",
+    "storedBytes": 110,
+    "storedSha256": "ecf8fb99c77b87ced118077e709eaec45e00ef1ec214bf8d85e05e7d76a01b8f",
+    "compression": "none"
+  },
+  {
+    "path": "build/tests-build-guard.log",
+    "source": "/private/tmp/blanc-f12-native-build/tests-build-guard.log",
+    "bytes": 937,
+    "sha256": "ef1faefa813c78c569f9cf6e8e458a7792def77f727986ce9b8d2a4c9339bc9c",
+    "storedBytes": 937,
+    "storedSha256": "ef1faefa813c78c569f9cf6e8e458a7792def77f727986ce9b8d2a4c9339bc9c",
+    "compression": "none"
+  },
+  {
+    "path": "build/tests-js-allowed.log",
+    "source": "/private/tmp/blanc-f12-native-build/tests-js-allowed.log",
+    "bytes": 4919,
+    "sha256": "8da4ef1f18148db76c5f6ef15785c9536e349d6bb2767e012c0456f92078c619",
+    "storedBytes": 4919,
+    "storedSha256": "8da4ef1f18148db76c5f6ef15785c9536e349d6bb2767e012c0456f92078c619",
+    "compression": "none"
+  },
+  {
+    "path": "build/tests-js.log",
+    "source": "/private/tmp/blanc-f12-native-build/tests-js.log",
+    "bytes": 9498,
+    "sha256": "9b1aec58f96353eacec6bcd4af57e25faa30183ba45c341071e5aba6f4709548",
+    "storedBytes": 9498,
+    "storedSha256": "9b1aec58f96353eacec6bcd4af57e25faa30183ba45c341071e5aba6f4709548",
+    "compression": "none"
+  },
+  {
+    "path": "build/tests-validator.log",
+    "source": "/private/tmp/blanc-f12-native-build/tests-validator.log",
+    "bytes": 114,
+    "sha256": "f76d6dfb7bbf53a81cf86d2fceedd819a8da89e841a0a8e7dd42efc57d21cff0",
+    "storedBytes": 114,
+    "storedSha256": "f76d6dfb7bbf53a81cf86d2fceedd819a8da89e841a0a8e7dd42efc57d21cff0",
+    "compression": "none"
+  },
+  {
+    "path": "engine/bundle_hash.h",
+    "source": "/private/tmp/blanc-f12-native-assets/bundle_hash.h",
+    "bytes": 161,
+    "sha256": "18ff357c4a21e7ee8b2aafd2cf078ec8dd5babe1052b7190626a11178187faec",
+    "storedBytes": 161,
+    "storedSha256": "18ff357c4a21e7ee8b2aafd2cf078ec8dd5babe1052b7190626a11178187faec",
+    "compression": "none"
+  },
+  {
+    "path": "engine/engine.js.gz",
+    "source": "/private/tmp/blanc-f12-native-assets/engine.js",
+    "bytes": 4667854,
+    "sha256": "e969dfa8dced64d6edcf32047445a7044a2b0137ab174148a2cea8238c465113",
+    "storedBytes": 1402345,
+    "storedSha256": "543bf00edfa11591616cfaea4c93cb7453a7eaf6dec22354afbae95d46f5a1ce",
+    "compression": "gzip"
+  },
+  {
+    "path": "engine/licenses/@ghostery_adblocker-LICENSE",
+    "source": "/private/tmp/blanc-f12-native-assets/licenses/@ghostery_adblocker-LICENSE",
+    "bytes": 16789,
+    "sha256": "9a5743e68333a1959b266bee6905ee8ef1250f799c01a5f1bd98211e00cddd3a",
+    "storedBytes": 16789,
+    "storedSha256": "9a5743e68333a1959b266bee6905ee8ef1250f799c01a5f1bd98211e00cddd3a",
+    "compression": "none"
+  },
+  {
+    "path": "engine/licenses/@ghostery_adblocker-extended-selectors-LICENSE",
+    "source": "/private/tmp/blanc-f12-native-assets/licenses/@ghostery_adblocker-extended-selectors-LICENSE",
+    "bytes": 16789,
+    "sha256": "9a5743e68333a1959b266bee6905ee8ef1250f799c01a5f1bd98211e00cddd3a",
+    "storedBytes": 16789,
+    "storedSha256": "9a5743e68333a1959b266bee6905ee8ef1250f799c01a5f1bd98211e00cddd3a",
+    "compression": "none"
+  },
+  {
+    "path": "engine/licenses/@ghostery_url-parser-LICENSE",
+    "source": "/private/tmp/blanc-f12-native-assets/licenses/@ghostery_url-parser-LICENSE",
+    "bytes": 16786,
+    "sha256": "6e3496aca922d1041d0795f9f654a322b2fad023bb90eeed0ea59d6ad7176d23",
+    "storedBytes": 16786,
+    "storedSha256": "6e3496aca922d1041d0795f9f654a322b2fad023bb90eeed0ea59d6ad7176d23",
+    "compression": "none"
+  },
+  {
+    "path": "engine/licenses/@remusao_guess-url-type-LICENSE",
+    "source": "/private/tmp/blanc-f12-native-assets/licenses/@remusao_guess-url-type-LICENSE",
+    "bytes": 16725,
+    "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+    "storedBytes": 16725,
+    "storedSha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+    "compression": "none"
+  },
+  {
+    "path": "engine/licenses/@remusao_small-LICENSE",
+    "source": "/private/tmp/blanc-f12-native-assets/licenses/@remusao_small-LICENSE",
+    "bytes": 16725,
+    "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+    "storedBytes": 16725,
+    "storedSha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+    "compression": "none"
+  },
+  {
+    "path": "engine/licenses/@remusao_smaz-LICENSE",
+    "source": "/private/tmp/blanc-f12-native-assets/licenses/@remusao_smaz-LICENSE",
+    "bytes": 16725,
+    "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+    "storedBytes": 16725,
+    "storedSha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+    "compression": "none"
+  },
+  {
+    "path": "engine/licenses/@remusao_smaz-compress-LICENSE",
+    "source": "/private/tmp/blanc-f12-native-assets/licenses/@remusao_smaz-compress-LICENSE",
+    "bytes": 16725,
+    "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+    "storedBytes": 16725,
+    "storedSha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+    "compression": "none"
+  },
+  {
+    "path": "engine/licenses/@remusao_smaz-decompress-LICENSE",
+    "source": "/private/tmp/blanc-f12-native-assets/licenses/@remusao_smaz-decompress-LICENSE",
+    "bytes": 16725,
+    "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+    "storedBytes": 16725,
+    "storedSha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+    "compression": "none"
+  },
+  {
+    "path": "engine/licenses/@remusao_trie-LICENSE",
+    "source": "/private/tmp/blanc-f12-native-assets/licenses/@remusao_trie-LICENSE",
+    "bytes": 16725,
+    "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+    "storedBytes": 16725,
+    "storedSha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+    "compression": "none"
+  },
+  {
+    "path": "engine/licenses/tldts-experimental-LICENSE",
+    "source": "/private/tmp/blanc-f12-native-assets/licenses/tldts-experimental-LICENSE",
+    "bytes": 1078,
+    "sha256": "c64182d48160db948b6aa97a984f1a32974ce4d2053900361264cd33853796cb",
+    "storedBytes": 1078,
+    "storedSha256": "c64182d48160db948b6aa97a984f1a32974ce4d2053900361264cd33853796cb",
+    "compression": "none"
+  },
+  {
+    "path": "engine/manifest.json",
+    "source": "/private/tmp/blanc-f12-native-assets/manifest.json",
+    "bytes": 16271,
+    "sha256": "7522d2d382cd4f9fe221dfe1d84ed9e628bb298bd039ff9783871d2f7b3c65ea",
+    "storedBytes": 16271,
+    "storedSha256": "7522d2d382cd4f9fe221dfe1d84ed9e628bb298bd039ff9783871d2f7b3c65ea",
+    "compression": "none"
+  }
+]

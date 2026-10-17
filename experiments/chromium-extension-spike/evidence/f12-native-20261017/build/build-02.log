@@ -1,0 +1,90 @@
+Dry-run scheduled actions: 6 (generated outputs may add work). Plan: /Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/blanc-build-plan.log
+offline mode
+ninja: Entering directory `/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype'
+
+
+disable fast local for non-interactive: fastlocal=1->0
+ use `--fast_local` to enable fast local with non-interactive mode
+schedule pending:1+ready:0 (node:86853 edge:2)
+build start: Ready 1 Pending 1
+rebuild manifest finished
+
+loading build.ninja... done 771.505583ms
+load siso config done 13.591709ms
+schedule pending:1+ready:0 (node:433354 edge:2)
+build start: Ready 1 Pending 1
+rebuild manifest finished
+schedule pending:1+ready:0 (node:433354 edge:9)
+build start: Ready 8253 Pending 88010
+[0/28977] 2.63s S CXX obj/chrome/services/blanc_blocker/mojom/blocker.mojom.o
+[0/27347] 2.64s S CXX obj/chrome/services/blanc_blocker/service/blocker_service.o
+[0/12281] 2.88s S CXX obj/chrome/services/blanc_blocker/browser/blocker_proxy.o
+[0/10142] 2.92s S CXX obj/chrome/utility/utility/services.o
+[0/418] 3.16s S CXX obj/chrome/browser/core/chrome_content_browser_client.o
+[0/400] 3.81s F CXX obj/chrome/services/blanc_blocker/service/blocker_service.o
+[1/398] 4.05s F CXX obj/chrome/services/blanc_blocker/mojom/blocker.mojom.o
+[2/398] 5.33s E CXX obj/chrome/services/blanc_blocker/browser/blocker_proxy.o	
+FAILED: 2b363c99-35e8-45d7-940f-ddc829da1bd6 "./obj/chrome/services/blanc_blocker/browser/blocker_proxy.o" CXX obj/chrome/services/blanc_blocker/browser/blocker_proxy.o
+err: exit=1
+../../third_party/llvm-build/Release+Asserts/bin/clang++ -MMD -MF obj/chrome/services/blanc_blocker/browser/blocker_proxy.o.d -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FORTIFY_SOURCE=3 -D__ARM_NEON__=1 -DCR_XCODE_BUILD=27A9275 -DCR_CLANG_REVISION=\"llvmorg-24-init-7747-g62397f8b-67\" -D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE -D_LIBCPP_DISABLE_VISIBILITY_ANNOTATIONS -D_LIBCXXABI_DISABLE_VISIBILITY_ANNOTATIONS -D_LIBCPP_INSTRUMENTED_WITH_ASAN=0 -DCR_LIBCXX_REVISION=97b436da4c33663581d394f4ee0a5977fc38c2f4 -DDCHECK_ALWAYS_ON=1 -DNDEBUG -DNVALGRIND -DDYNAMIC_ANNOTATIONS_ENABLED=0 -DENABLE_IPC_FUZZER -DCHROMIUM -DLIBYUV_DISABLE_SME -DLIBYUV_DISABLE_LSX -DLIBYUV_DISABLE_LASX -DSK_ENABLE_SKSL -DSK_UNTIL_CRBUG_1187654_IS_FIXED -DSK_USER_CONFIG_HEADER=\"../../skia/config/SkUserConfig.h\" -DSK_USE_PARTITION_ALLOC -DSK_WIN_FONTMGR_NO_SIMULATIONS -DSK_ENABLE_LEGACY_SHADERCONTEXT -DSK_LEGACY_DESERIAL_IMAGE_PROC -DSK_CODEC_DECODES_PNG -DSK_CODEC_DECODES_PNG_WITH_RUST -DSK_CODEC_ENCODES_PNG -DSK_CODEC_ENCODES_PNG_WITH_RUST -DSK_CODEC_DECODES_BMP_WITH_RUST -DSK_CODEC_DECODES_ICO_WITH_RUST -DSK_CODEC_COLOR_PROFILE_PARSE_WITH_RUST -DSK_EXIF_PARSE_WITH_RUST -DSK_ENABLE_AVX512_OPTS -DSK_CODEC_DECODES_JPEG -DSK_CODEC_ENCODES_JPEG -DSK_BUILD_FOR_MAC -DSK_GAMMA_SRGB -DSK_GAMMA_CONTRAST=0.0 -DSK_GANESH -DSK_GPU_WORKAROUNDS_HEADER=\"gpu/config/gpu_driver_bug_workaround_autogen.h\" -DSK_GL -DSK_GRAPHITE -DSK_DAWN -DPROTOBUF_MESSAGE_GLOBALS_TEMPORARY_OPTOUT -DGOOGLE_PROTOBUF_NO_RTTI -DPROTOBUF_INTERNAL_BOUNDS_CHECK_MODE_ABORT -DHAVE_PTHREAD -DU_USING_ICU_NAMESPACE=0 -DU_ENABLE_DYLOAD=0 -DUSE_CHROMIUM_ICU=1 -DU_ENABLE_TRACING=1 -DU_ENABLE_RESOURCE_TRACING=0 -DU_STATIC_IMPLEMENTATION -DICU_UTIL_DATA_IMPL=ICU_UTIL_DATA_FILE -DPROTOBUF_ENABLE_DEBUG_LOGGING_MAY_LEAK_PII=0 -DWEBRTC_ENABLE_AVX2 -DWEBRTC_DEPRECATE_PLAN_B -DWEBRTC_CHROMIUM_BUILD -DWEBRTC_POSIX -DWEBRTC_MAC -DABSL_ALLOCATOR_NOTHROW=1 -DLOGGING_INSIDE_WEBRTC -DSKCMS_IMPLEMENTATION=1 -DLEVELDB_PLATFORM_CHROMIUM=1 -DCRASHPAD_ZLIB_SOURCE_EXTERNAL -DV8_USE_EXTERNAL_STARTUP_DATA -DV8_ARRAY_BUFFER_INTERNAL_FIELD_COUNT=0 -DV8_ARRAY_BUFFER_VIEW_INTERNAL_FIELD_COUNT=0 -DV8_PROMISE_INTERNAL_FIELD_COUNT=0 -DV8_USE_DEFAULT_HASHER_SECRET=true -DV8_ENABLE_MEMORY_ACCOUNTING_CHECKS -DV8_COMPRESS_POINTERS -DV8_COMPRESS_POINTERS_IN_SHARED_CAGE -DV8_31BIT_SMIS_ON_64BIT_ARCH -DV8_ENABLE_SANDBOX -DV8_DEPRECATION_WARNINGS -DV8_DISALLOW_JS_IN_API_INTERRUPTS_IS_CHECKED -DV8_USE_PERFETTO -DV8_USE_PERFETTO_JSON_EXPORT -DV8_SUPPORT_LA57 -DV8_HAVE_TARGET_OS -DV8_TARGET_OS_MACOS -DV8_TARGET_ARCH_ARM64 -DCPPGC_ENABLE_API_CHECKS -DCPPGC_SUPPORTS_OBJECT_NAMES -DCPPGC_CAGED_HEAP -DCPPGC_YOUNG_GENERATION -DCPPGC_POINTER_COMPRESSION -DCPPGC_ENABLE_LARGER_CAGE -DCPPGC_ENABLE_OBJECT_SECTION_GCINFO -DCPPGC_SLIM_WRITE_BARRIER -DFLATBUFFERS_LOCALE_INDEPENDENT=0 -DUSE_LIBCXX_MODULES -I../.. -Igen -I../../buildtools/third_party/libc++ -I../../third_party/perfetto/include -Igen/third_party/perfetto/build_config -Igen/third_party/perfetto -I../../net/third_party/quiche/overrides -I../../net/third_party/quiche/src/quiche/common/platform/default -I../../net/third_party/quiche/src -I../../third_party/libyuv/include -I../../third_party/skia -Igen/third_party/skia -I../../third_party/wuffs/src/release/c -Igen/third_party/dawn/include -I../../third_party/dawn/include -I../../third_party/khronos -I../../gpu -Igen/third_party/private_membership/src -Igen/third_party/shell-encryption/src -Igen/components/policy/proto -I../../base/allocator/partition_allocator/src -Igen/base/allocator/partition_allocator/src -I../../third_party/abseil-cpp -I../../third_party/boringssl/src/include -I../../third_party/protobuf/src -I../../third_party/protobuf/third_party/utf8_range -I../../third_party/ipcz/include -Igen/net/third_party/quiche/src -I../../third_party/re2/src -I../../third_party/ced/src -I../../third_party/icu/source/common -I../../third_party/icu/source/i18n -I../../third_party/webrtc_overrides -I../../third_party/webrtc -Igen/third_party/webrtc -I../../third_party/libwebm/source -I../../third_party/angle/include -I../../third_party/leveldatabase -I../../third_party/leveldatabase/src -I../../third_party/leveldatabase/src/include -I../../third_party/crashpad/crashpad -I../../third_party/crashpad/crashpad/compat/mac -I../../third_party/crashpad/crashpad/compat/non_win -I../../third_party/zlib -I../../third_party/libaom/source/libaom -I../../third_party/libaom/source/config/linux/arm64-cpu-detect -I../../v8/include -I../../third_party/flatbuffers/src/include -I../../third_party/flatbuffers/src/src -I../../third_party/flatbuffers/src -I../../third_party/flatbuffers/generated -Wall -Wextra -Wimplicit-fallthrough -Wextra-semi -Wunreachable-code-aggressive -Wgnu -Wno-gnu-anonymous-struct -Wno-gnu-conditional-omitted-operand -Wno-gnu-include-next -Wno-gnu-label-as-value -Wno-gnu-redeclared-enum -Wno-gnu-statement-expression -Wno-gnu-zero-variadic-macro-arguments -Wno-zero-length-array -Wthread-safety -Wno-unused-template -Wunguarded-availability -Wno-missing-field-initializers -Wno-unused-parameter -Wno-psabi -Wno-stringop-overread -Wloop-analysis -Wno-unneeded-internal-declaration -Wno-cast-function-type -Wno-thread-safety-reference-return -Wno-nontrivial-memcall -Wno-uninitialized-const-pointer -Wno-unused-but-set-global -Wexit-time-destructors -Wshadow -Werror -Werror=\#pragma-messages -fno-delete-null-pointer-checks -fno-strict-overflow -fno-ident -fno-math-errno -fno-strict-aliasing -fstack-protector -fcolor-diagnostics -fdiagnostics-show-inlining-chain -fmerge-all-constants -fcrash-diagnostics-dir=../clang-crashreports -fno-lifetime-dse -mllvm -instcombine-lower-dbg-declare=0 -mllvm -split-threshold-for-reg-with-hint=0 -ffp-contract=off -fcomplete-member-pointers --target=arm64-apple-macos -mno-outline -Wno-builtin-macro-redefined -D__DATE__= -D__TIME__= -D__TIMESTAMP__= -ffile-compilation-dir=. -no-canonical-prefixes -Xclang -fmodule-file-home-is-cwd -Xclang -fmodules-cache-path=/not_exist_dummy_dir --warning-suppression-mappings=../../build/config/warning_suppression.txt -ftrivial-auto-var-init=pattern -O2 -fno-omit-frame-pointer -g0 -isysroot sdk/xcode_links/MacOSX27.0.sdk -mmacos-version-min=13.0 -fsanitize=array-bounds -fsanitize-trap=array-bounds -fsanitize-ignore-for-ubsan-feature=array-bounds -Wno-unsafe-buffer-usage-in-static-sized-array -fsanitize=return -fsanitize-trap=return -fsanitize-ignore-for-ubsan-feature=return -fvisibility=hidden -Wheader-hygiene -Wstring-conversion -Wtautological-overlap-compare -Xclang -add-plugin -Xclang find-bad-constructs -Xclang -plugin-arg-find-bad-constructs -Xclang check-stack-allocated -Xclang -plugin-arg-find-bad-constructs -Xclang relax-ctor-checks-for-aggregates -Xclang -add-plugin -Xclang raw-ptr-plugin -Xclang -plugin-arg-raw-ptr-plugin -Xclang check-raw-ptr-to-stack-allocated -Xclang -plugin-arg-raw-ptr-plugin -Xclang disable-check-raw-ptr-to-stack-allocated-error -Xclang -plugin-arg-raw-ptr-plugin -Xclang raw-ptr-exclude-path=../../third_party/dawn/ -Xclang -plugin-arg-raw-ptr-plugin -Xclang raw-ptr-exclude-path=../../build/config/clang/chrome/test/fuzzing/webidl_fuzzing/ -Xclang -plugin-arg-raw-ptr-plugin -Xclang check-raw-ptr-fields -Xclang -plugin-arg-raw-ptr-plugin -Xclang check-span-fields -Xclang -plugin-arg-raw-ptr-plugin -Xclang check-raw-ref-fields -Xclang -plugin-arg-raw-ptr-plugin -Xclang config-path=../../build/config/raw_ptr_plugin_config.yaml -Xclang -plugin-arg-raw-ptr-plugin -Xclang no-special-treatment-for-oilpanized-paths -Xclang -plugin-arg-raw-ptr-plugin -Xclang check-raw-ptr-in-blink -DUNSAFE_BUFFERS_BUILD -Wunsafe-buffer-usage -Wno-error=unsafe-buffer-usage -Xclang -add-plugin -Xclang unsafe-buffers -Xclang -plugin-arg-unsafe-buffers -Xclang ../../build/config/unsafe_buffers_paths.txt -Wno-invalid-offsetof -Wenum-compare-conditional -Wno-nullability-completeness -std=c++23 -Wno-trigraphs -fno-exceptions -fno-rtti -nostdinc++ -isystem../../third_party/libc++/src/include -isystem../../third_party/libc++abi/src/include -fvisibility-inlines-hidden -fmodules -fno-implicit-module-maps -fno-implicit-modules -Xclang -fmodules-local-submodule-visibility -Wno-modules-ambiguous-internal-linkage -Wno-modules-import-nested-redundant -Xclang -fmodules-disable-diagnostic-validation -Wno-module-import-in-extern-c -fmodule-map-file=gen/build/modules/module.modulemap -fmodule-file=//build/modules:system=obj/build/modules/system/module.pcm -fmodule-name="//chrome/services/blanc_blocker:browser_Private" -c ../../chrome/services/blanc_blocker/blocker_proxy.cc -o obj/chrome/services/blanc_blocker/browser/blocker_proxy.o
+build step: cxx "./obj/chrome/services/blanc_blocker/browser/blocker_proxy.o"
+stderr:
+In module '//build/modules:system' imported from ../../chrome/services/blanc_blocker/blocker_proxy.cc:2:
+../../third_party/libc++/src/include/__memory/unique_ptr.h:72:19: error: invalid application of 'sizeof' to an incomplete type 'network::mojom::EarlyHints'
+   72 |     static_assert(sizeof(_Tp) >= 0, "cannot delete an incomplete type");
+      |                   ^~~~~~~~~~~
+../../third_party/libc++/src/include/__memory/unique_ptr.h:264:7: note: in instantiation of member function 'std::default_delete<network::mojom::EarlyHints>::operator()' requested here
+  264 |       __deleter_(__tmp);
+      |       ^
+../../third_party/libc++/src/include/__memory/unique_ptr.h:229:71: note: in instantiation of member function 'std::unique_ptr<network::mojom::EarlyHints>::reset' requested here
+  229 |   _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 ~unique_ptr() { reset(); }
+      |                                                                       ^
+../../mojo/public/cpp/bindings/struct_ptr.h:49:3: note: in instantiation of member function 'std::unique_ptr<network::mojom::EarlyHints>::~unique_ptr' requested here
+   49 |   ~StructPtr() = default;
+      |   ^
+../../chrome/services/blanc_blocker/blocker_proxy.cc:158:105: note: in defaulted destructor for 'mojo::StructPtr<network::mojom::EarlyHints>' first required here
+  158 |   void OnReceiveEarlyHints(network::mojom::EarlyHintsPtr hints) override { client_->OnReceiveEarlyHints(std::move(hints)); }
+      |                                                                                                         ^
+gen/services/network/public/mojom/early_hints.mojom-forward.h:27:7: note: forward declaration of 'network::mojom::EarlyHints'
+   27 | class EarlyHints;
+      |       ^
+In module '//build/modules:system' imported from ../../chrome/services/blanc_blocker/blocker_proxy.cc:2:
+../../third_party/libc++/src/include/__memory/unique_ptr.h:72:19: error: invalid application of 'sizeof' to an incomplete type 'network::mojom::URLResponseHead'
+   72 |     static_assert(sizeof(_Tp) >= 0, "cannot delete an incomplete type");
+      |                   ^~~~~~~~~~~
+../../third_party/libc++/src/include/__memory/unique_ptr.h:264:7: note: in instantiation of member function 'std::default_delete<network::mojom::URLResponseHead>::operator()' requested here
+  264 |       __deleter_(__tmp);
+      |       ^
+../../third_party/libc++/src/include/__memory/unique_ptr.h:229:71: note: in instantiation of member function 'std::unique_ptr<network::mojom::URLResponseHead>::reset' requested here
+  229 |   _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 ~unique_ptr() { reset(); }
+      |                                                                       ^
+../../mojo/public/cpp/bindings/struct_ptr.h:49:3: note: in instantiation of member function 'std::unique_ptr<network::mojom::URLResponseHead>::~unique_ptr' requested here
+   49 |   ~StructPtr() = default;
+      |   ^
+../../chrome/services/blanc_blocker/blocker_proxy.cc:161:32: note: in defaulted destructor for 'mojo::StructPtr<network::mojom::URLResponseHead>' first required here
+  161 |     client_->OnReceiveResponse(std::move(head), std::move(body), std::move(metadata));
+      |                                ^
+gen/services/network/public/mojom/url_response_head.mojom-forward.h:33:7: note: forward declaration of 'network::mojom::URLResponseHead'
+   33 | class URLResponseHead;
+      |       ^
+2 errors generated.
+
+
+[3/398] 5.35s - CXX obj/chrome/browser/core/chrome_content_browser_client.o
+[3/398] 5.35s - CXX obj/chrome/utility/utility/services.o
+build failed
+
+	
+noexec:0 local:3 remote:0 cache:0 skip:95865
+  cache-write:0(err:0) fallback:0 retry:0
+fs: ops: 862(err:8) / r:565(err:0) 2.84MiB / w:0(err:0) 0B
+
+
+shutdown cloud logging/monitoring done 5µs
+
+ 5.64s Build Failure: 3 done, 1 failed, 395 remaining - 0.53/s
+ 1 steps failed: exit=1
+see ./out/BlancPrototype/siso_output for full command line and output
+ or ./out/BlancPrototype/siso.INFO
+use ./out/BlancPrototype/siso_failed_commands.sh to re-run failed commands
+Blanc build guard: Build did not complete successfully (1). Cached work was preserved.

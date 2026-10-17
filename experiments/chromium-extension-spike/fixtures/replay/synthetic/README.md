@@ -1,4 +1,4 @@
-# Synthetic corpus and pre-integration Chromium control
+# Synthetic corpus and native Chromium comparison
 
 Owner approval: `tranche2-request.md` §8.1, reviewed at `68892cc1`.
 List-derived data and generated page content carry [../NOTICE](../NOTICE).
@@ -104,3 +104,22 @@ stays open. Native interception, independent context, expanded frame/path/type
 coverage, cosmetics, scriptlets, latency and the private real-page sample remain
 gaps. No native build, baseline promotion, deadline extension or private-page
 acquisition occurred in this checkpoint.
+
+## Native engine checkpoint
+
+`chromium-native.mjs CHROMIUM_EXE UI_ASSETS PLAYWRIGHT_MODULE ELECTRON_ORACLE
+NEW_EVIDENCE ENGINE_OUTPUT` runs the actual native factory/utility hook with
+independent context logs. `native-comparison.mjs` rejects engine failures,
+context/referrer mismatches, duplicates, unexpected traffic, incomplete response
+bytes and DOM/child-load failures. It does not route or cancel requests from
+Electron's recorded answers. The earlier `chromium.mjs` remains the explicit
+no-blocker negative control, not this adapter.
+
+[Native evidence](../../../evidence/f12-native-20261017/README.md): full corpus
+and no-referrer subset pass twice in regular and private profiles. The full
+corpus has 2,503 blocked / 2,620 allowed distinct candidates, with zero decision
+or native-context differences. Counts exclude repeats, controls and children.
+The broad coverage matrix remains incomplete, so `acceptance` stays false.
+Missing/tampered assets and utility termination fail closed in actual process
+probes. Latency-protocol, redirect, worker/SW, speculative, WebSocket/WebTransport,
+cosmetic and scriptlet gaps are explicitly retained.

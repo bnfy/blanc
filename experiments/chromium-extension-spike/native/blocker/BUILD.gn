@@ -1,0 +1,17 @@
+import("//mojo/public/tools/bindings/mojom.gni")
+mojom("mojom") {
+  sources = [ "blocker.mojom" ]
+  public_deps = [ "//sandbox/policy/mojom" ]
+}
+source_set("service") {
+  sources = [ "blocker_service.cc", "blocker_service.h" ]
+  configs += [ "//v8:external_startup_data" ]
+  deps = [ ":mojom", "//base", "//gin", "//mojo/public/cpp/bindings",
+           "//tools/v8_context_snapshot:buildflags", "//v8" ]
+}
+source_set("browser") {
+  sources = [ "blocker_proxy.cc", "blocker_proxy.h", "bundle_hash.h" ]
+  deps = [ ":mojom", "//base", "//content/public/browser", "//crypto",
+           "//mojo/public/cpp/bindings", "//net", "//services/network/public/cpp",
+           "//services/network/public/mojom", "//url" ]
+}

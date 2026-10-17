@@ -1,0 +1,18 @@
+✔ cold plans larger than the former capture limit retain their final count (107.078583ms)
+✔ streamed plans preserve safety markers crossing chunk boundaries (1.482125ms)
+✔ recognizes real Siso dry-run summary without a progress denominator (0.074541ms)
+✔ large and shrinking plans retain the conservative maximum (0.056791ms)
+✔ no-work plans return zero; missing or changed formats fail closed (0.066792ms)
+✔ detects same-path Xcode replacement and changed build arguments (0.391584ms)
+✔ added and missing environment inputs require review (0.052917ms)
+✔ large builds require an explicit override, small builds proceed (0.057125ms)
+✔ pending manifest regeneration cannot sneak past the size check (0.066417ms)
+✔ small plans with generated buildflags cannot conceal dependent compilation (0.097792ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 163.403459

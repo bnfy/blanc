@@ -1,0 +1,440 @@
+{
+  "referenceAppSha256": "5b4b78c8790c3af193a2c893564c674f2b05c75481d1b5673c0428dde60203ab",
+  "engineVersion": "2.18.2",
+  "bundleSha256": "e969dfa8dced64d6edcf32047445a7044a2b0137ab174148a2cea8238c465113",
+  "filtersSha256": "35cfb31efe041f8203e047f9339a59995083b7c33f19ee59e562739739240d7e",
+  "resourcesSha256": "e14b498f693c4166d27971f7fdfe49b167c139a8e659cc59bedc9ab29a2348f5",
+  "modules": [
+    {
+      "path": "@ghostery/adblocker-extended-selectors/dist/commonjs/eval.js",
+      "sha256": "0d40152fe605b9966b13b4ebd23eaaf441884b6f1d4824bc0e85e13a203d2814"
+    },
+    {
+      "path": "@ghostery/adblocker-extended-selectors/dist/commonjs/extended.js",
+      "sha256": "d216ec8013b244f200e7f2695e3b8548ff1b2665da806d6f5f4311a2a90490c1"
+    },
+    {
+      "path": "@ghostery/adblocker-extended-selectors/dist/commonjs/index.js",
+      "sha256": "d00c824af8a77451aae4dbc5e018e2fbd6a92a191574a4eaa38c8493721e8e31"
+    },
+    {
+      "path": "@ghostery/adblocker-extended-selectors/dist/commonjs/parse.js",
+      "sha256": "7264c0c1cfe963afa9d81c390af194238776f00f6a379a315911cedf5822d6bb"
+    },
+    {
+      "path": "@ghostery/adblocker-extended-selectors/dist/commonjs/types.js",
+      "sha256": "6b62af81f3199d5cb88bd50fffe19ca46589f5b8eb35dd9641d12f5a767f390a"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/codebooks/cosmetic-selector.js",
+      "sha256": "55288381eb0b54a3af1579e578f8e5dec56810b8bba0a8545ccd52eea4c8ee1e"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/codebooks/network-csp.js",
+      "sha256": "da023129229c6b2d0a9e5eface74e948024cd146cba3113092c8ef0c6731d1c0"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/codebooks/network-filter.js",
+      "sha256": "a72e4d011513c184ff6ee60a9e328302000463ad7cc6542c35584df5bee1060f"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/codebooks/network-hostname.js",
+      "sha256": "52694aca93fa8b96b346b20eed361bc5104d7e2fd0984bf4e807b644631510c1"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/codebooks/network-redirect.js",
+      "sha256": "4c108d1c379a4bc3f092bf814872547aa272d6a16db0419dd40d83f5c66c6266"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/codebooks/raw-cosmetic.js",
+      "sha256": "850c0771070427b777d812fae11d4b3b2a9d06b42c2856a0e76e772e9866777f"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/codebooks/raw-network.js",
+      "sha256": "6b39d9e1935bc3bda886558f5329ce2c76b1587d8957f739cdf18b44ad4c49a9"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/compact-set.js",
+      "sha256": "90fe6647491648c2d7f8d84bcc92bf0b82ef5f3705fe9b9278d22032e39e7786"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/compression.js",
+      "sha256": "5454011600b9643c9d266dc016a0f10256e9bba706a6bf98d36b2e0a95dae8e6"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/config.js",
+      "sha256": "7d9929c52ba3936d8e7e9d482fe66639ffdbb5104d86923cc4e5b77c54e40e25"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/crc32.js",
+      "sha256": "26e5cfa47ce94090dc28aa50a3fac4cc616ec54149aaedbb3214c3b73198b625"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/data-view.js",
+      "sha256": "0bb68e3fb3c2f65ac517a741441e72ff9a6fba2648598004a9e707d162f815b3"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/encoding.js",
+      "sha256": "a0e6d22b8f43b4b5d88e30dad8051325ef227c85c87f07f8036fd7fcb1d7b09b"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/engine/bucket/cosmetic.js",
+      "sha256": "b9b8e6dd5364912258af72b16a2773eb8d1c41e88de26cbbc7de8ed03c0b401a"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/engine/bucket/filters.js",
+      "sha256": "b74bfd53769f6d75fd130dc2b984ff965c309ad98bc2bfbc7a246c424f0c5092"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/engine/bucket/html.js",
+      "sha256": "42946d40981b069d9e7faf72bc9ca8a417f0bd41659a70435cc2094aa726a1b5"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/engine/bucket/network.js",
+      "sha256": "378bb435a423f39638584539ad2d17e159fd96e1320e48670011186fa1b1491d"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/engine/bucket/preprocessor.js",
+      "sha256": "cf5e217550d0e94fffdf1d7e14faa47b2a0f9f3a1031a7d1188c30943c800850"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/engine/domains.js",
+      "sha256": "bdd1fcba76c92b7a440bb9db5d3396f83a6795ddf5bf0d69972903567818b671"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/engine/engine.js",
+      "sha256": "26d80f75116e7ff5710fb54edb797ba4d399c5b3ce4125ca60935d01a5b20352"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/engine/map.js",
+      "sha256": "70f75f74f38c0aa30d0c59fe99ffef57dca42ef8ada36116588185a558b14608"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/engine/merger.js",
+      "sha256": "48d204194a641160fa98bc2b9b70d0c9b155f60d86b4cbf413e14b922164e2cf"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/engine/metadata.js",
+      "sha256": "9e33196f85a5ef7ca7a623a1807dae60553adbf16a38f64f91b1315dd5e92d40"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/engine/metadata/categories.js",
+      "sha256": "329b7355e7dcfef39a9d7bedc2d67298f958308d62d03c13210b15c44ec393ee"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/engine/metadata/organizations.js",
+      "sha256": "b30d24fbaca1001bad06292c772ba33a12bd229a0cd761bc72c8ad23c0ec49df"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/engine/metadata/patterns.js",
+      "sha256": "ba0a88c6983da957811de03da10bfbd5ba5ef6570476b9a00ccc961baec3c638"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/engine/optimizer.js",
+      "sha256": "d39359b88acf3ddce38b222c4bf16e81d6a51f68ac9b6b443140db4e67b089e7"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/engine/reverse-index.js",
+      "sha256": "f7fe879cd581e3fc024506849a7ae16678aa73809c5918ebfaf10eda3b9b12ff"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/events.js",
+      "sha256": "db5ee263307c6b116e57317441eb06b1f5ee35cc2e48be314f871cf974d52b01"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/fetch.js",
+      "sha256": "47f7e4aefd8acad89aa95c34ff671c879526814f240ffcd7e425f9bbcd5cbe1c"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/filters/cosmetic.js",
+      "sha256": "97e804db9dcb083bf19eb8b96ba37a27efe5c486090058ffa16c6e3f927b2382"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/filters/dsl.js",
+      "sha256": "21cfc836a5464bdaed62e542a6f5408fad1352faee30e20931d5417ce89b974b"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/filters/network.js",
+      "sha256": "f90c8f1b622cd909bd3aad702357a2df4840134e04a4d38c3b25a955df962a34"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/html-filtering.js",
+      "sha256": "db6d7738377c15fef34fc744a1c7abda35cffd61cdb16b2f8f17f62f65a8b641"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/index.js",
+      "sha256": "757dcb649cf0bdd0a25477f880c4ba6b5ccfbbf9afcc956bd537da2fdeafa9ae"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/lists.js",
+      "sha256": "4775ad94170f98d3f88b75e03a12ab9760213419ea99d3cde66c4a6994b01bac"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/preprocessor.js",
+      "sha256": "086d40d4e25f86c975b57e7d977fba50087788ffa59ed8c710ebf36067c3336a"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/punycode.js",
+      "sha256": "efe4446fc1a084556bd7f6d92c9373ddba65034f581b17aed74af4405751165f"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/queue-microtask.js",
+      "sha256": "67c21fde7033e78f524d564ea589fe5b5657841fb7b962e44a90faa4c3f15d64"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/request.js",
+      "sha256": "b649cd2498539cabf216ea3138208da3b64f49b2307018a1339efbbba04f1fa9"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/resources.js",
+      "sha256": "bc4b9720e7b2ea700a5f4f81499e41ad67f07d58767f7db8a77c65c2007eb3d9"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/tokens-buffer.js",
+      "sha256": "3f46ef983e16b4f9e94f37db169d07282771a9671cf54f06a11627af08137699"
+    },
+    {
+      "path": "@ghostery/adblocker/dist/commonjs/utils.js",
+      "sha256": "8d206d557aaf087dd8cdc3952eada7374ec1270aa8490917f30201c483b74d41"
+    },
+    {
+      "path": "@ghostery/url-parser/dist/commonjs/const.js",
+      "sha256": "71c67d6e57be9f0c09fc53a1629ff0a7ecb04d20ee81565e96e52264c180ad69"
+    },
+    {
+      "path": "@ghostery/url-parser/dist/commonjs/immutable-url.js",
+      "sha256": "8e84d80f51c4f35f7904447b1a8515616fa3f8824e97394d6c87f6cdd2fabbdb"
+    },
+    {
+      "path": "@ghostery/url-parser/dist/commonjs/index.js",
+      "sha256": "a68234dea9f9956df6a22f0912315dc85d35c82aacfd30582d83dd6bee3e01c7"
+    },
+    {
+      "path": "@ghostery/url-parser/dist/commonjs/search-params-wrapper.js",
+      "sha256": "2ff78b6c0f7229a482611241fac1ccd77380a352edfc888e76aef32c428e2fd3"
+    },
+    {
+      "path": "@ghostery/url-parser/dist/commonjs/url-search-params.js",
+      "sha256": "000167b3f229654a6a632b54952cc5125a568a38c26c9caa17c670fa37918052"
+    },
+    {
+      "path": "@ghostery/url-parser/dist/commonjs/url.js",
+      "sha256": "667d3d73e056edda75137dacbee50583bb6cd0a8b992f921baeff66fc93fe5f6"
+    },
+    {
+      "path": "@ghostery/url-parser/dist/commonjs/utils.js",
+      "sha256": "44f93c686f097873ad4875770738cb9637b944b5a36d41ecca06787684d9ab07"
+    },
+    {
+      "path": "@remusao/guess-url-type/dist/commonjs/extensions/documents.js",
+      "sha256": "3f30a01589a65b7ad4ffdfcd057ce314ce53f60f9d7bfbf954cde9341f7597af"
+    },
+    {
+      "path": "@remusao/guess-url-type/dist/commonjs/extensions/fonts.js",
+      "sha256": "e6ffbeaf378a3e1806d5576a4da876ef1d1a9cf03c4fb8c7fc556fee4e1f220b"
+    },
+    {
+      "path": "@remusao/guess-url-type/dist/commonjs/extensions/images.js",
+      "sha256": "4fca9be72df7211fba47b23128769d2ac17b4984ec17709cac15e72beaf48f1a"
+    },
+    {
+      "path": "@remusao/guess-url-type/dist/commonjs/extensions/medias.js",
+      "sha256": "d41327ab51ca8ab3e06c9d0415bdfa60d7f7caa32915d0925a58687dc7c981e6"
+    },
+    {
+      "path": "@remusao/guess-url-type/dist/commonjs/extensions/scripts.js",
+      "sha256": "fbfe5e85e2aa209d937c9eab174a89185d2a260120880fcbe9fe4a2e12d6a201"
+    },
+    {
+      "path": "@remusao/guess-url-type/dist/commonjs/extensions/stylesheets.js",
+      "sha256": "601a0837f468f667403a6ae682bab2410a78cddac43b7d83c6453f7aca61ca5b"
+    },
+    {
+      "path": "@remusao/guess-url-type/dist/commonjs/extname.js",
+      "sha256": "d298fe4b3621cb0fc19a49d7c13dc0a9a0448ea50406d0469803dba62e8a6528"
+    },
+    {
+      "path": "@remusao/guess-url-type/dist/commonjs/index.js",
+      "sha256": "8df3efc6c239c89518712c5caac5064b781f0c8c1685dc9c692ac8357dcab3f7"
+    },
+    {
+      "path": "@remusao/small/dist/commonjs/flv.js",
+      "sha256": "1af35b6ec6e6b3f88580c449cae03559b1989d74186722f5c3357483025b09d2"
+    },
+    {
+      "path": "@remusao/small/dist/commonjs/gif.js",
+      "sha256": "252f3ac2d0404f41a40c229829e387a0d985238ff3e13d91a3cef077032407b4"
+    },
+    {
+      "path": "@remusao/small/dist/commonjs/html.js",
+      "sha256": "6f2a757648a54a42dc7060e8dc295d38a195ebf73604e81c658218963cc65574"
+    },
+    {
+      "path": "@remusao/small/dist/commonjs/ico.js",
+      "sha256": "060af2335be42647d1425b95243f21b38c9b819cf30033c0474e4e33f4a934e6"
+    },
+    {
+      "path": "@remusao/small/dist/commonjs/index.js",
+      "sha256": "a6631a210331b28736f0e43dbf09ef8c91f1e2b179977752840b5bd1016cfb3f"
+    },
+    {
+      "path": "@remusao/small/dist/commonjs/javascript.js",
+      "sha256": "9c2e777c40c2fe1ab22e14f88abe65b271c937b9b74fbc4394656b0d91ed93d8"
+    },
+    {
+      "path": "@remusao/small/dist/commonjs/jpeg.js",
+      "sha256": "1c7b2063fd98c6d4a0d9ea55e58c98745741b87f5cfc25ad8e8b3122eb1cf4a5"
+    },
+    {
+      "path": "@remusao/small/dist/commonjs/json.js",
+      "sha256": "e008789f99838e52e84c892656aa7cc2416f193810dedec286aec4fd8e166649"
+    },
+    {
+      "path": "@remusao/small/dist/commonjs/mp3.js",
+      "sha256": "a30a23bed617061dc1cb14bfe06d05dc202a62468f20c4aba7348afe773b59de"
+    },
+    {
+      "path": "@remusao/small/dist/commonjs/mp4.js",
+      "sha256": "e6098a79de56f39ebc160bc568671f98a87efcd4ec671b0f8a9a6b1861ae84ed"
+    },
+    {
+      "path": "@remusao/small/dist/commonjs/pdf.js",
+      "sha256": "68dc1a3ff67fe847062dbbd860c660ef7acd8d68918c9b3218b89ff546aa5a7f"
+    },
+    {
+      "path": "@remusao/small/dist/commonjs/png.js",
+      "sha256": "603cb29a44d47459836a820682fb194efedce335736961b8bfd91c1160c7e5c6"
+    },
+    {
+      "path": "@remusao/small/dist/commonjs/svg.js",
+      "sha256": "8015bbfac6f0743081bdbdd463b1c2805dff1a9f10b048605c71ea131e6ee55c"
+    },
+    {
+      "path": "@remusao/small/dist/commonjs/txt.js",
+      "sha256": "a0e55a715a9f329c938e9e9cba4857abd7badd2a9033bcdf2ec2e2b02eccdfe3"
+    },
+    {
+      "path": "@remusao/small/dist/commonjs/types.js",
+      "sha256": "1401b4b8105734c6638a6d0e0c2524ea9ffd646ed4418afb8e0da6897e63896f"
+    },
+    {
+      "path": "@remusao/small/dist/commonjs/wav.js",
+      "sha256": "b06bedd32e5ef4ce108034a4d6fd76426c3d586a9467c8443048423e2691d5c9"
+    },
+    {
+      "path": "@remusao/small/dist/commonjs/webm.js",
+      "sha256": "b46a768153c38e083fec4f540030bc022609361b97ca8e3d8ecfd394c635ac21"
+    },
+    {
+      "path": "@remusao/small/dist/commonjs/webp.js",
+      "sha256": "28ec17a45a1c42526125dfe19e15544bffaf1affdf29b6181e7c47b9444767e2"
+    },
+    {
+      "path": "@remusao/small/dist/commonjs/wmv.js",
+      "sha256": "52796460d00a2a167bfcb781db2a8886765bb8b3da1f500acc89a665bfdc24f6"
+    },
+    {
+      "path": "@remusao/smaz-compress/dist/commonjs/index.js",
+      "sha256": "83e198bd52cc1799ed0dc845efc5559c848acb4864532919c377d4d52cdf3e06"
+    },
+    {
+      "path": "@remusao/smaz-decompress/dist/commonjs/index.js",
+      "sha256": "64c31813417102913a4282822d95f6713c5c58feb8ba06e5baa2bc4164c1dfab"
+    },
+    {
+      "path": "@remusao/smaz/dist/commonjs/index.js",
+      "sha256": "127c045a3add5321848b9411a98876d3bd04fe7239d8c02ca1b9a11999eb923b"
+    },
+    {
+      "path": "@remusao/trie/dist/commonjs/index.js",
+      "sha256": "09a5eacd18d6523cd9bc0ad059cbc858d0125265db6ed9809648a96512240cf1"
+    },
+    {
+      "path": "tldts-experimental/dist/cjs/index.js",
+      "sha256": "221fd34cb18e748eb105201f642605d4ebea89085e349341205b68fdb2ca3ae7"
+    }
+  ],
+  "decisionContract": "0 allow, 1 block, 2 unsupported resource redirect (fail closed); sourceUrl is actual request referrer, separately logged from initiator",
+  "packages": [
+    {
+      "name": "@ghostery/adblocker-extended-selectors",
+      "version": "2.18.2",
+      "license": "MPL-2.0",
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "@ghostery/adblocker",
+      "version": "2.18.2",
+      "license": "MPL-2.0",
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "@ghostery/url-parser",
+      "version": "1.3.1",
+      "license": "MPL-2.0",
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "@remusao/guess-url-type",
+      "version": "2.1.0",
+      "license": "MPL-2.0",
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "@remusao/small",
+      "version": "2.1.0",
+      "license": "MPL-2.0",
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "@remusao/smaz-compress",
+      "version": "2.2.0",
+      "license": "MPL-2.0",
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "@remusao/smaz-decompress",
+      "version": "2.2.0",
+      "license": "MPL-2.0",
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "@remusao/smaz",
+      "version": "2.2.0",
+      "license": "MPL-2.0",
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "@remusao/trie",
+      "version": "2.1.0",
+      "license": "MPL-2.0",
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "tldts-experimental",
+      "version": "7.4.10",
+      "license": "MIT",
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    }
+  ]
+}

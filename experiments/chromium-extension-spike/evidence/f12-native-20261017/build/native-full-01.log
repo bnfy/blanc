@@ -1,0 +1,9 @@
+{"stage":"regular-a-committed"}
+{"stage":"regular-a","counts":{"candidateUrls":5123,"electronBlocked":2503,"electronAllowed":2620,"blockToAllow":0,"allowToBlock":0,"matchedDecisions":5123,"coverageControls":4,"nativeRequests":6381},"parity":true,"acceptance":false}
+{"stage":"regular-b-committed"}
+{"stage":"regular-b","counts":{"candidateUrls":5123,"electronBlocked":2503,"electronAllowed":2620,"blockToAllow":0,"allowToBlock":0,"matchedDecisions":5123,"coverageControls":4,"nativeRequests":6381},"parity":true,"acceptance":false}
+{"stage":"private-a-committed"}
+{"stage":"private-a","counts":{"candidateUrls":5123,"electronBlocked":2503,"electronAllowed":2620,"blockToAllow":0,"allowToBlock":0,"matchedDecisions":5123,"coverageControls":4,"nativeRequests":6381},"parity":true,"acceptance":false}
+{"stage":"private-b-committed"}
+{"stage":"private-b","counts":{"candidateUrls":5123,"electronBlocked":2503,"electronAllowed":2620,"blockToAllow":0,"allowToBlock":0,"matchedDecisions":5123,"coverageControls":4,"nativeRequests":6381},"parity":true,"acceptance":false}
+{"passed":true,"evidencePath":"/private/tmp/blanc-f12-native-full-01","acceptance":false}

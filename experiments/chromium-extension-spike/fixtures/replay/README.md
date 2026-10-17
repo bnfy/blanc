@@ -1,10 +1,13 @@
-# Spike A replay contract — capture pending
+# Spike A replay contract and measured synthetic subset
 
-This directory contains a **dataset validator, synthetic unit tests and an
-authored HTTP/HTTPS transport pilot plus a controlled recording/replay pipeline**, not the acceptance corpus. Captured
-acceptance-corpus requests: **0**. The pilot has measured Electron observations;
-no full request-path coverage, fork block-rate, cosmetic or latency pass is claimed.
-The validator's success is necessary but insufficient for Spike A acceptance.
+This directory contains the dataset validator, authored transport pilots,
+recording/replay tools and the approved synthetic corpus. The latest
+[native checkpoint](../../evidence/f12-native-20261017/README.md) observes
+5,123 distinct candidate URLs (2,503 blocked / 2,620 allowed) with no native
+Chromium decision or context differences in two fresh runs per profile.
+This is synthetic fixture parity for four resource types in one main frame,
+not full Spike A acceptance or a real-web block rate. The historical public
+recording track still has zero admitted real-page corpus requests.
 
 ## Approved synthetic acceptance track
 
@@ -16,7 +19,7 @@ Rule predictions and generated counts are not oracle decisions. The 2,000
 blocked / 2,000 allowed floor counts distinct URLs, excluding repeated runs.
 Every candidate, including blocked ones, has authored response bytes; these
 are explicitly not recordings of the original site. Full acceptance remains
-pending, including the native fork adapter and uncovered request classes.
+pending, including uncovered request classes, cosmetics and latency.
 
 Option C iterations are stopped. A separate bounded private real-browser
 sample is authorized under §2.1 B, but is not implemented here and never
@@ -44,8 +47,8 @@ disposable browsers). Do not rewrite requests to localhost URLs. Both browsers
 must receive identical responses. Record server observations as well as blocker
 observations; an absent network request alone does not prove a blocking decision.
 The authored pilot and [controlled recorder/scrubber/stability pipeline](pipeline/README.md)
-exist. Real-page acquisition/admission and the fork replay adapter remain
-**pending**; the controlled probe does not establish their coverage.
+exist. Real-page acquisition/admission remains unmeasured. The synthetic native adapter
+is measured separately; this controlled probe does not establish its coverage.
 
 ## Acquisition, stability and oracle order
 

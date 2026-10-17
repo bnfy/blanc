@@ -486,3 +486,35 @@ prepare/GN invocation, upstream edit, private real-page capture, baseline
 promotion or deadline extension. Native budget not remeasured; row 0's cold
 column unchanged. Runtime brackets include harness overhead; owner/agent active
 attention is not measured. See summary for the remaining coverage matrix gaps.
+
+### Native blocker and paired synthetic subset — October 17, 2026
+
+[Evidence](evidence/f12-native-20261017/README.md): the opt-in native network
+factory hook calls pinned Ghostery 2.18.2 in a sandboxed, jitless Mojo utility.
+Two fresh regular and two private full runs match Electron on 5,123 distinct
+candidate URLs: 2,503 blocked / 2,620 allowed, zero decision or native-context
+differences. The 24-candidate no-referrer subset also passes all four runs (9/15).
+Cancellation, allowed-response hashes, DOM execution and script-child loads pass.
+Missing/tampered assets and an owned utility termination fail closed before the
+fixture server sees the denied requests. Raw failures and successful runs are
+retained, including the internal-WebUI interception and response-pipe lifetime
+bugs found and repaired during native testing.
+
+Five guarded incremental build invocations inspected 12, 6, 4, 2 and 1 actions;
+the first two failed compilation and the final three built. Siso wall times:
+4.54, 5.64, 44.33, 44.11 and 31.64 s. Wrapper/guard total 153.075 s. One GN
+generation used unchanged args; the final plan has zero actions. No new cold
+output, clean, environment re-record, toolchain change or large-build override.
+Budget 21/55 → 25 files/62 hunks; 151 dependency checkouts clean at their pins.
+Invocation records and source/framework hashes are committed with the evidence.
+Task 0's cold column and open upgrade gate are unchanged. Owner/agent attention
+is not measured; runtime brackets are not attention figures.
+
+55 replay + 15 validator + 10 build-guard + 11 budget tests pass; lint clean.
+This is **synthetic fixture parity for the measured subset**, not full F12
+acceptance. Redirect runtime coverage, subframes/opaque origins, 782 domain-scoped
+candidates, other resource types, broader first-party cases, workers/SW/cache,
+keepalive/teardown, speculative paths, WS/WT interception, resource redirects,
+CSP/cosmetics/scriptlets, formal latency protocol and private real-page sample
+remain gaps. Startup-delay/timeout injection and live recovery UX remain gaps.
+Profiles and fixture keys removed; 156/permanent profiles untouched; no promotion.
