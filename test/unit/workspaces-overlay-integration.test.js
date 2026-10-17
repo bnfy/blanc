@@ -42,3 +42,17 @@ test('the Private pill keeps its shortcut in the tooltip, not inline', () => {
   const hover = styles.match(/^\.footer-new:hover \{([\s\S]*?)\}/m)?.[1] ?? '';
   assert.doesNotMatch(hover, /opacity/, 'hover changes the fill, never fades the button');
 });
+
+test('Other devices is a plain text toggle, not a pill', () => {
+  const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../src/renderer/overlay.html'), 'utf8');
+  const button = html.match(/<button id="footerDevices"[\s\S]*?<\/button>/)?.[0] ?? '';
+  assert.match(button, /class="devices-caret"/, 'a chevron shows whether the drawer is open');
+  const base = styles.match(/^\.footer-new\.devices \{([\s\S]*?)\}/m)?.[1] ?? '';
+  assert.match(base, /background:\s*none;/);
+  assert.match(base, /border-radius:\s*var\(--radius-sm\);/);
+  const states = styles.match(/^\.footer-new\.devices:hover,[\s\S]*?\{([\s\S]*?)\}/m)?.[1] ?? '';
+  assert.ok(states, 'hover/open rule exists');
+  assert.match(states, /background:\s*none;/, 'no fill on hover, focus or open');
+  assert.doesNotMatch(states, /accent-dim/);
+  assert.match(styles, /\.footer-new\.devices\[aria-expanded="true"\] \.devices-caret \{[^}]*rotate\(180deg\)/);
+});

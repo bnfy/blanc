@@ -2896,18 +2896,29 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
 }
 .footer-new.private:hover { background: color-mix(in srgb, var(--text) 13%, transparent); }
 
-/* Other devices: a toggle for the drawer above the footer — dim until it is
-   hovered or its drawer is open. */
+/* Other devices: a plain text toggle, not a pill — dim until hovered,
+   focused or open, never filled. Its chevron points up at the drawer it
+   opens and turns over while the drawer is open. */
 .footer-new.devices {
-  margin-left: 2px;
+  margin-left: 4px;
+  padding: 0 6px;
+  border-radius: var(--radius-sm);
   background: none;
   color: var(--text-dim);
 }
 .footer-new.devices:hover,
+.footer-new.devices:focus-visible,
 .footer-new.devices[aria-expanded="true"] {
-  background: var(--accent-dim);
+  background: none;
   color: var(--text);
 }
+.footer-new.devices:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 0; }
+.footer-new.devices .devices-caret {
+  width: 10px;
+  height: 10px;
+  transition: transform 120ms ease;
+}
+.footer-new.devices[aria-expanded="true"] .devices-caret { transform: rotate(180deg); }
 .footer-new[hidden] { display: none; }
 
 /* The Other devices drawer, between the tab list and the footer. While the
@@ -3549,6 +3560,7 @@ body.fill-status-surface { background: transparent; }
   /* Quiet rows still un-dim on hover/focus, just without the fade. */
   .island-row.quiet,
   .vertical-tab-row.quiet { transition: none; }
+  .footer-new.devices .devices-caret { transition: none; }
   /* Peek still appears on hover/focus, just without the fade + pop. */
   .dot-peek { transition: none; }
   .island-ghead svg.caret { transition: none; }
