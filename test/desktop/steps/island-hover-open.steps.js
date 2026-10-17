@@ -102,7 +102,20 @@ When('I rest the pointer 100 pixels below the Island for 400 milliseconds', asyn
   await sleep(400);
 });
 
-Given('the Island panel opened with the test cursor over it', async function () {
+Given('the Island panel opened normally with the pointer outside it', async function () {
+  await this.call('openPanel');
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'panel',
+    'the ordinary panel open');
+  const outside = center(this.hoverIslandRect, 0, this.hoverIslandRect.height + 100);
+  await sendMove(this, outside, false);
+  assert.deepEqual(await this.call('islandHoverState'), {
+    inside: false,
+    armed: true,
+    dwelling: false,
+  });
+});
+
+Given('the test cursor is resting over the Island', async function () {
   const point = center(this.hoverIslandRect);
   const bounds = await this.call('windowContentBounds');
   assert.ok(bounds, 'the main window has no content bounds');
@@ -110,9 +123,6 @@ Given('the Island panel opened with the test cursor over it', async function () 
     x: bounds.x + point.x,
     y: bounds.y + point.y,
   }), true);
-  await enter(this);
-  await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'panel',
-    'the test pointer to open the Island');
 });
 
 When('I dismiss the panel without moving the pointer', async function () {

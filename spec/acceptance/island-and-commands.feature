@@ -60,7 +60,8 @@ Feature: Island chrome, command palette, and slash commands
   @F1-8 @F1 @desktop @island-hover
   Scenario: Closing under a resting pointer requires an exit before reopening
     Given Island hover-open is on
-    And the Island panel opened with the test cursor over it
+    And the Island panel opened normally with the pointer outside it
+    And the test cursor is resting over the Island
     When I dismiss the panel without moving the pointer
     Then the resting pointer is disarmed inside the Island
     When I send another move inside the Island
