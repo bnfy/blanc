@@ -352,6 +352,7 @@ function setupPages(hooks = {}) {
       onePasswordAccount,
       presentationDefaultsResetVersion,
       groupNamesRecasedVersion,
+      deviceNames,
       // Which bangs were used is the Island's business, not the page's.
       recentBangs: _recentBangs,
       ...rest
@@ -487,6 +488,7 @@ function setupPages(hooks = {}) {
   // Per-device consent for publishing this device's open tabs (spec §3) —
   // lives in sync.json, never settings.json, so it cannot cross sync.
   handle('pages:settings:sync-tabs-set', 'settings', (on) => sync.setSyncTabs(!!on));
+  handle('pages:settings:sync-device-name-set', 'settings', (name) => sync.setThisDeviceName(name));
   // Device pairing (design 2026-10-16): the pairing code crosses to the page
   // for display; the wrapped secret, the key and the recovery code never do.
   handle('pages:settings:sync-pair-begin', 'settings', async () => syncReply(await sync.beginPairing()));

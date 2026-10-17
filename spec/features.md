@@ -561,10 +561,22 @@ From the desktop `DEFAULTS`:
   name-and-passphrase path remains as the fallback. Design:
   `docs/superpowers/specs/2026-10-16-sync-device-pairing-design.md`. Mobile:
   the same route and code; a QR presentation may be added there.
+- **Device names:** every device has one display name, the name the person
+  gave it or else the name it publishes (the computer name). Right-clicking a
+  device header in the Other devices drawer offers **Rename Device…** (the
+  panel's field takes the shown name, selected; Enter saves, Esc cancels, an
+  empty name restores the published one); Settings → Sync renames the device
+  you are on, which the Island never lists. Names sync as one settings key
+  with a clock per device, so two devices renaming two different devices keep
+  both, and travel on the focus refresh. A device never publishes its chosen
+  name in place of its own. Design:
+  `docs/superpowers/specs/2026-10-16-island-lower-section-design.md` §7.
 - **Acceptance:** With sharing on on device A, device B lists A's tabs after a
   focus refresh and opens one as a new ungrouped local tab; toggling sharing
   off on A removes A's section from B after the next sync. Adding a device
   with a code stops at an invalid code and offers the passphrase fallback.
+  Renaming A on B shows the new name in B's drawer, Quick Switcher and start
+  page; renaming it to empty shows A's published name again.
 
 ## F28 — Vertical tabs
 

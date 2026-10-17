@@ -296,7 +296,9 @@ const {
 const { moveTab: resolveTabMove } = require('./tab-order');
 const { CLOSED_SECTION_ID, clampClosedSlot, reconcileClosedSlot, reorderGroupsWithClosed } = require('./closed-slot');
 const { normalizeGroupName, sameGroupName, recaseSessionData } = require('./group-name-case');
+const { deviceNamesEqual } = require('./device-names');
 const { attachGroupHeaderMenu } = require('./group-context-menu');
+const { attachDeviceHeaderMenu } = require('./device-context-menu');
 const { openLinkInGlance: openLinkInGlanceWith } = require('./glance-open-link');
 const { acceptOverlayDragState, resetOverlayDragState, overlayDragActive } = require('./overlay-drag-state');
 const {
@@ -3487,6 +3489,17 @@ function createOverlay() {
     resolveGroup: bindWindowRuntime(owner, (rawId) => rt().groups.find((g) => g.id === rawId) ?? null),
     actions: groupMenuContextActions(owner),
   });
+  // Device headers in the Other devices drawer: Rename Device….
+  attachDeviceHeaderMenu(rt().overlayView.webContents, {
+    isLive: overlayMenuGuardDeps.isOverlayLive,
+    getWindow: overlayMenuGuardDeps.getWindow,
+    getOffset: overlayMenuGuardDeps.getOverlayBounds,
+    acquireMenuGuard: overlayMenuGuardDeps.acquireMenuGuard,
+    releaseMenuGuard: overlayMenuGuardDeps.releaseMenuGuard,
+    t: mainI18n.t,
+    resolveDevice: (rawId) => knownRemoteDevices().find((device) => device.deviceId === rawId) ?? null,
+    actions: { rename: bindWindowRuntime(owner, (id) => beginRenameDevice(id)) },
+  });
 }
 
 /** The popup took focus from the overlay; hand it back if a panel/palette is
@@ -5312,6 +5325,22 @@ function ungroupGroup(groupId) {
   pruneEmptyGroups();
   broadcastTabs();
   scheduleMenuRebuild();
+}
+
+// The devices the drawer, the Quick Switcher and start pages list, and the
+// only ones the drawer can rename. Acceptance runs have no sync account; the
+// test hook stands its injected devices in for sync's.
+let remoteDevicesSource = null;
+function knownRemoteDevices() {
+  return remoteDevicesSource ? remoteDevicesSource() : sync.listRemoteDevices();
+}
+
+/** "Rename Device…": the panel's address field takes the device's shown name,
+ * all of it selected (the overlay's name prompt). */
+function beginRenameDevice(deviceId) {
+  const device = knownRemoteDevices().find((d) => d.deviceId === deviceId);
+  if (!device) return;
+  showOverlay('panel', { prefill: device.name, purpose: { renameDeviceId: deviceId } });
 }
 
 /** "Rename Group…": the panel's address field takes the group's name, all of
@@ -8205,7 +8234,8 @@ function registerIpcHandlers() {
   // Data + actions behind the island's slash commands and Quick Switcher.
   chromeHandle('chrome:history-list', (_e, opts) => history.listHistory(opts ?? {}));
   chromeHandle('chrome:favorites-list', () => bookmarks.listBookmarks());
-  chromeHandle('chrome:remote-tabs-list', () => sync.listRemoteDevices());
+  chromeHandle('chrome:remote-tabs-list', () => knownRemoteDevices());
+  chromeHandle('chrome:rename-device', (_e, id, name) => sync.renameRemoteDevice(id, name, knownRemoteDevices()));
   if (ONE_PASSWORD_AVAILABLE) {
     chromeHandle('chrome:onepassword-fill', () => fillLoginFromOnePassword());
   }
@@ -10736,7 +10766,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       blockedThisWeek: () => adblockWeekStats().data.blocked,
       blockedByDay: () => [...adblockWeekStats().data.days],
       blockedBarHeights: () => adblockStats.barHeights(adblockWeekStats().data.days),
-      remoteDevices: () => sync.listRemoteDevices(),
+      remoteDevices: () => knownRemoteDevices(),
       status: startPageStatus,
       visibleFor: (wc) => startPageViewVisible(tabs.get(tabIdByWebContentsId.get(wc.id))),
       migrationChecklistFor: (wc) => migrationChecklistForTab(
@@ -10931,7 +10961,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         const opener = tabs.get(tabId);
         return opener ? withWindowRuntime(windowRuntimes.runtimeForTab(opener) ?? rt(), () => openLinkInGlance(opener, url)) : false;
       },
-      groupTabByName, renameTab, beginRenameTab, beginRenameGroup, ungroupGroup, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab,
+      groupTabByName, renameTab, beginRenameTab, beginRenameGroup, beginRenameDevice, ungroupGroup, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab,
       closeGroup, newTabUrl,
       getOverlayDragging: () => overlayDragActive(rt()),
       selectTabAtIndex,
@@ -11186,6 +11216,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         sleepThresholdOverrideMs = Number.isFinite(ms) && ms >= 0 ? Number(ms) : null;
         return sleepThresholdOverrideMs;
       },
+      setRemoteDevicesSource: (fn) => { remoteDevicesSource = typeof fn === 'function' ? fn : null; },
     });
   }
 
@@ -11333,7 +11364,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // surfaces (overlay panel; any tab currently on the start page).
     const pushRemoteDevices = () => {
       forEachWindowRuntime((runtime) => {
-        const devices = sync.listRemoteDevices();
+        const devices = knownRemoteDevices();
         runtime.overlayView?.webContents.send('chrome:remote-tabs-updated', devices);
         for (const id of runtime.tabOrder) {
           const tab = tabs.get(id);
@@ -11344,6 +11375,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     };
     tabsync.onRemoteChanged(pushRemoteDevices);
     tabicons.onRemoteChanged(pushRemoteDevices);
+    // A device renamed here or on another Mac re-labels the same surfaces.
+    let shownDeviceNames = settings.getDeviceNames();
+    settings.onSettingsChanged((next) => {
+      if (deviceNamesEqual(shownDeviceNames, next.deviceNames)) return;
+      shownDeviceNames = next.deviceNames;
+      pushRemoteDevices();
+    });
 
     // Profile sync: sync-on-launch if configured, then follow local changes.
     // Failures are swallowed and surfaced only in Settings (never startup).

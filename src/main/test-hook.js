@@ -16,6 +16,7 @@ const path = require('node:path');
 const { app, Menu, clipboard, nativeImage, webContents } = require('electron');
 const { buildAddressMenu } = require('./address-menu-model');
 const { sameGroupName } = require('./group-name-case');
+const { resolveDeviceName } = require('./device-names');
 const { blockableHostname } = require('./adblock-exceptions');
 const { syncSnapshot } = require('./session-snapshot');
 const { installTestCallBridge } = require('./test-call-bridge');
@@ -86,6 +87,7 @@ function install(refs) {
     renameTab,
     beginRenameTab,
     beginRenameGroup,
+    beginRenameDevice,
     ungroupGroup,
     closeGroup,
     toggleGroupCollapsed,
@@ -165,6 +167,7 @@ function install(refs) {
     fillStatusState,
     readFillStatusDom,
     setSleepThresholdOverride,
+    setRemoteDevicesSource,
     getSleepSnapshots,
     getClosedEntries,
     clearClosedEntries,
@@ -225,11 +228,25 @@ function install(refs) {
     focusObservation = null;
   }
 
+  // Injected devices go through the same name resolution as
+  // sync.listRemoteDevices; main re-pushes them when a name changes.
+  let injectedDevices = [];
+  const shownInjectedDevices = () => {
+    const names = settings.getDeviceNames();
+    return injectedDevices.map((device) => ({
+      ...device,
+      name: resolveDeviceName(names, device.deviceId, device.name),
+    }));
+  };
   function pushRemoteDevices(devices) {
-    getOverlayWebContents()?.send('chrome:remote-tabs-updated', devices);
+    injectedDevices = devices;
+    // Main lists (and lets the drawer rename) exactly what was injected.
+    setRemoteDevicesSource(devices.length ? shownInjectedDevices : null);
+    const shown = shownInjectedDevices();
+    getOverlayWebContents()?.send('chrome:remote-tabs-updated', shown);
     for (const tab of tabs.values()) {
       if (urlOf(tab).startsWith('blanc://newtab')) {
-        tab.view?.webContents?.send('pages:start:remote-tabs', devices);
+        tab.view?.webContents?.send('pages:start:remote-tabs', shown);
       }
     }
   }
@@ -586,6 +603,11 @@ function install(refs) {
     groupTabByName(id, name) { groupTabByName(id, name); },
     renameTab(id, name) { renameTab(id, name); },
     beginRenameTab(id) { beginRenameTab(id); },
+    beginRenameDeviceByName(name) {
+      const device = shownInjectedDevices().find((d) => d.name === name);
+      if (device) beginRenameDevice(device.deviceId);
+      return !!device;
+    },
     beginRenameGroupByName(name) {
       const group = getGroups().find((g) => sameGroupName(g.name, name));
       if (group) beginRenameGroup(group.id);
@@ -2913,6 +2935,7 @@ function install(refs) {
                 }
                 return {
                   title: row.querySelector('.name')?.textContent ?? '',
+                  host: row.querySelector('.host')?.textContent ?? '',
                   href: row.href,
                   tileLetter: tile ? tile.textContent : '',
                   faviconHasIcon: !!(tile && tile.classList.contains('has-icon')),
@@ -3385,6 +3408,8 @@ function install(refs) {
       hideOverlay({ refocusContent: false });
       hideUtilitySheet();
       pushRemoteDevices([]);
+      // A device a scenario renamed shows its published name again.
+      for (const id of Object.keys(settings.getDeviceNames())) settings.setDeviceName(id, '');
       setWindowContentSize(1280, 800);
       // A fresh tab first so closing the rest never empties the window.
       const keep = createTab(newTabUrl());

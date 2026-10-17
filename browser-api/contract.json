@@ -2386,6 +2386,24 @@
       "doc": "List other devices' open tabs. Empty unless Profile Sync is on in the Personal profile."
     },
     {
+      "name": "renameDevice",
+      "group": "sync",
+      "kind": "invoke",
+      "channel": "chrome:rename-device",
+      "params": [
+        {
+          "name": "deviceId",
+          "type": "string"
+        },
+        {
+          "name": "name",
+          "type": "string | null"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Name another synced device as this profile's devices list it; an empty name or null restores the name it publishes. Refused (false) for a device the Other devices drawer does not list."
+    },
+    {
       "name": "cancelWorkspaceAction",
       "group": "workspaces",
       "kind": "send",

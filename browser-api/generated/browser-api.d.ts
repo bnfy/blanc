@@ -1061,6 +1061,11 @@ export interface BlancBrowserAPI {
    */
   listRemoteTabs(): Promise<RemoteDevice[]>;
   /**
+   * Name another synced device as this profile's devices list it; an empty name or null restores the name it publishes. Refused (false) for a device the Other devices drawer does not list.
+   * IPC: invoke `chrome:rename-device`.
+   */
+  renameDevice(deviceId: string, name: string | null): Promise<boolean>;
+  /**
    * Cancel a pending workspace action.
    * IPC: send `chrome:workspaces-cancel`.
    */

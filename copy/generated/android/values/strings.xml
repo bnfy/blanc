@@ -463,10 +463,12 @@
     <string name="tab_menu_duplicate">Duplicate Tab</string>
     <string name="tab_menu_rename">Rename Tab…</string>
     <string name="prompt_rename_group">Rename group · Enter saves · Esc cancels</string>
+    <string name="prompt_rename_device">Rename device · Enter saves · Esc cancels</string>
     <string name="group_menu_duplicate">A group named “%1$s” already exists</string>
     <string name="group_menu_close">Close Group</string>
     <string name="group_menu_ungroup">Ungroup</string>
     <string name="group_menu_rename">Rename Group…</string>
+    <string name="device_menu_rename">Rename Device…</string>
     <string name="tab_menu_reset_title">Reset Tab Title</string>
     <string name="tab_menu_pin">Pin Tab</string>
     <string name="tab_menu_unpin">Unpin Tab</string>
@@ -950,7 +952,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_general_home_page_hint">Leave empty for the built-in new tab page</string>
     <string name="settings_sync_title">Sync</string>
     <string name="settings_sync_sync_setup_title">Set up Sync</string>
-    <string name="settings_sync_sync_setup_intro">Sync your favorites and settings across your devices, and, if you choose, open tabs. Everything is end-to-end encrypted — Blanc can’t read it, and can’t recover it if you forget your passphrase.</string>
+    <string name="settings_sync_sync_setup_intro">Sync your favorites, settings and device names across your devices, and, if you choose, open tabs. Everything is end-to-end encrypted — Blanc can’t read it, and can’t recover it if you forget your passphrase.</string>
     <string name="settings_sync_sync_paths_aria_label">Choose how to set up Sync</string>
     <string name="settings_sync_start_syncing_from_this">Start syncing from this device</string>
     <string name="settings_sync_create_the_name_and">Create the name and passphrase you’ll use on your other devices.</string>
@@ -967,6 +969,8 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_sync_sync_try_again">Try again</string>
     <string name="settings_sync_sync_start_new">Start a new sync with these</string>
     <string name="settings_sync_sync_name">Sync name</string>
+    <string name="settings_sync_device_name">This device’s name</string>
+    <string name="settings_sync_device_name_hint">How your other devices list this one. Leave empty to use the computer’s name.</string>
     <string name="settings_sync_favorites_and_settings">Favorites and settings</string>
     <string name="settings_sync_this_devices_open_tabs">This device’s open tabs</string>
     <string name="settings_sync_last_error">Last error</string>
@@ -1166,13 +1170,13 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_sync_turning_on">Turning on sync…</string>
     <string name="settings_sync_connected_to">Connected to “%1$s”. Pulling your favorites and settings now.</string>
     <string name="settings_sync_joined_as">Joined your existing sync as “%1$s”.</string>
-    <string name="settings_sync_on">Sync is on. Your favorites and settings will sync as you change them.</string>
+    <string name="settings_sync_on">Sync is on. Your favorites, settings and device names will sync as you change them.</string>
     <string name="settings_sync_checking">Checking…</string>
     <string name="settings_sync_check_failed">Could not check sync. Try again.</string>
     <string name="settings_sync_syncing">Syncing…</string>
     <string name="settings_sync_notice_offline">Couldn’t reach the sync server. Check your connection and try again.</string>
     <string name="settings_sync_notice_rate_limited">Too many attempts. Wait a minute and try again.</string>
-    <string name="settings_sync_setup_intro">Sync your favorites and settings across your devices, and, if you choose, open tabs. Everything is end-to-end encrypted.</string>
+    <string name="settings_sync_setup_intro">Sync your favorites, settings and device names across your devices, and, if you choose, open tabs. Everything is end-to-end encrypted.</string>
     <string name="settings_sync_setup_code_title">Enter the code from your other device</string>
     <string name="settings_sync_setup_code_hint">It’s good for ten minutes.</string>
     <string name="settings_sync_add_this_device_hint">Get a code from a device that already syncs: Settings → Sync → Add another device.</string>
@@ -1241,7 +1245,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_trust_fact_crash_ledger">Crash ledger</string>
     <string name="settings_trust_build_packaged">%1$s (%2$s) · packaged</string>
     <string name="settings_trust_build_development">%1$s (%2$s) · development</string>
-    <string name="settings_trust_sync_scope">Favorites, selected settings · Personal only</string>
+    <string name="settings_trust_sync_scope">Favorites, selected settings, device names · Personal only</string>
     <string name="settings_trust_crash_ledger">Device only · automatic upload off · %1$s/%2$s events</string>
     <string name="settings_trust_checked">Receipt checked locally.</string>
     <string name="settings_trust_failed">Couldn’t build the local trust receipt.</string>

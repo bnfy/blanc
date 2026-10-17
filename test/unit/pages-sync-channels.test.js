@@ -18,6 +18,7 @@ const CHANNELS = [
   ['pages:settings:sync-join-code', 'sync.joinWithCode('],
   ['pages:settings:sync-switch-code', 'sync.switchWithCode('],
   ['pages:settings:sync-recovery-code-copy', 'sync.copyRecoveryCode('],
+  ['pages:settings:sync-device-name-set', 'sync.setThisDeviceName('],
 ];
 
 test('every pairing channel is registered for the settings page and maps to its sync entry point', () => {

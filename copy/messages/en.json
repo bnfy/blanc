@@ -1757,6 +1757,10 @@
     "message": "Rename group · Enter saves · Esc cancels",
     "note": "One line in the ⌘L panel while its field edits a group's name (after Rename Group…). Sentence case."
   },
+  "prompt.renameDevice": {
+    "message": "Rename device · Enter saves · Esc cancels",
+    "note": "One line in the ⌘L panel while its field edits another synced device's name (after Rename Device…). An empty name shows the name the device reports again. Sentence case."
+  },
   "groupMenu.duplicate": {
     "message": "A group named “{name}” already exists",
     "note": "Shown in the ⌘L panel when a group is renamed to a name another group in the window already has; {name} is what was typed."
@@ -1772,6 +1776,10 @@
   "groupMenu.rename": {
     "message": "Rename Group…",
     "note": "Item in a tab group header's right-click menu (⌘L panel and vertical tabs rail); opens the panel to rename the group. Menu items use title case, like Rename Tab…."
+  },
+  "deviceMenu.rename": {
+    "message": "Rename Device…",
+    "note": "Only item in the right-click menu of a synced device's header in the ⌘L panel's Other devices drawer; opens the panel to rename that device on every synced device. Menu items use title case, like Rename Group…."
   },
   "tabMenu.resetTitle": {
     "message": "Reset Tab Title",
@@ -3530,7 +3538,7 @@
     "note": "Settings → Sync → Set up Sync: card heading."
   },
   "settings.sync.syncSetupIntro": {
-    "message": "Sync your favorites and settings across your devices, and, if you choose, open tabs. Everything is end-to-end encrypted — Blanc can’t read it, and can’t recover it if you forget your passphrase.",
+    "message": "Sync your favorites, settings and device names across your devices, and, if you choose, open tabs. Everything is end-to-end encrypted — Blanc can’t read it, and can’t recover it if you forget your passphrase.",
     "note": "Settings → Sync → Set up Sync: text (p)."
   },
   "settings.sync.syncPaths.ariaLabel": {
@@ -3600,6 +3608,14 @@
   "settings.sync.syncName": {
     "message": "Sync name",
     "note": "Settings → Sync → Set up Sync: text (dt)."
+  },
+  "settings.sync.deviceName": {
+    "message": "This device’s name",
+    "note": "Settings → Sync, on: label (dt) of the field naming this device as the user's other devices list it (in their Island's Other devices, Quick Switcher and start page)."
+  },
+  "settings.sync.deviceNameHint": {
+    "message": "How your other devices list this one. Leave empty to use the computer’s name.",
+    "note": "Settings → Sync, on: hint under This device’s name. The field's placeholder shows the computer's name."
   },
   "settings.sync.favoritesAndSettings": {
     "message": "Favorites and settings",
@@ -4448,7 +4464,7 @@
     "note": "Settings → Sync: confirmation when starting sync found existing data under that name; {name} is the sync name."
   },
   "settings.sync.on": {
-    "message": "Sync is on. Your favorites and settings will sync as you change them.",
+    "message": "Sync is on. Your favorites, settings and device names will sync as you change them.",
     "note": "Settings → Sync: confirmation after turning sync on."
   },
   "settings.sync.checking": {
@@ -4472,7 +4488,7 @@
     "note": "Settings → Sync setup: error."
   },
   "settings.sync.setup.intro": {
-    "message": "Sync your favorites and settings across your devices, and, if you choose, open tabs. Everything is end-to-end encrypted.",
+    "message": "Sync your favorites, settings and device names across your devices, and, if you choose, open tabs. Everything is end-to-end encrypted.",
     "note": "Settings → Sync setup: introduction before a path is chosen."
   },
   "settings.sync.setup.codeTitle": {
@@ -4713,7 +4729,7 @@
     "note": "Settings → About & Trust: local trust receipt: build fact for a development run; {version} is the app version, {build} the build number."
   },
   "settings.trust.syncScope": {
-    "message": "Favorites, selected settings · Personal only",
+    "message": "Favorites, selected settings, device names · Personal only",
     "note": "Settings → About & Trust: local trust receipt: what Sync covers when it is on. “Personal” is the name of the built-in profile."
   },
   "settings.trust.crashLedger": {

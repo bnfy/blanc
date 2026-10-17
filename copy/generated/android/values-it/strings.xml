@@ -476,10 +476,12 @@
     <string name="tab_menu_duplicate">Duplica scheda</string>
     <string name="tab_menu_rename">Rinomina scheda…</string>
     <string name="prompt_rename_group">Rinomina gruppo · Invio salva · Esc annulla</string>
+    <string name="prompt_rename_device">Rinomina dispositivo · Invio salva · Esc annulla</string>
     <string name="group_menu_duplicate">Esiste già un gruppo chiamato «%1$s»</string>
     <string name="group_menu_close">Chiudi il gruppo</string>
     <string name="group_menu_ungroup">Separa gruppo</string>
     <string name="group_menu_rename">Rinomina gruppo…</string>
+    <string name="device_menu_rename">Rinomina dispositivo…</string>
     <string name="tab_menu_reset_title">Reimposta titolo scheda</string>
     <string name="tab_menu_pin">Fissa la scheda</string>
     <string name="tab_menu_unpin">Rilascia la scheda</string>
@@ -977,7 +979,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_general_home_page_hint">Lascia vuoto per usare la pagina nuova scheda integrata</string>
     <string name="settings_sync_title">Sincronizzazione</string>
     <string name="settings_sync_sync_setup_title">Configura la sincronizzazione</string>
-    <string name="settings_sync_sync_setup_intro">Sincronizza i tuoi preferiti e le impostazioni tra i tuoi dispositivi e, se vuoi, anche le schede aperte. Tutto è crittografato end-to-end: Blanc non può leggerlo né recuperarlo se dimentichi la passphrase.</string>
+    <string name="settings_sync_sync_setup_intro">Sincronizza tra i tuoi dispositivi i preferiti, le impostazioni e i loro nomi e, se vuoi, anche le schede aperte. Tutto è crittografato end-to-end: Blanc non può leggerlo né recuperarlo se dimentichi la passphrase.</string>
     <string name="settings_sync_sync_paths_aria_label">Scegli come configurare la sincronizzazione</string>
     <string name="settings_sync_start_syncing_from_this">Inizia a sincronizzare da questo dispositivo</string>
     <string name="settings_sync_create_the_name_and">Crea il nome e la passphrase che userai sugli altri dispositivi.</string>
@@ -994,6 +996,8 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_sync_sync_try_again">Riprova</string>
     <string name="settings_sync_sync_start_new">Nuova sincronizzazione con questi dati</string>
     <string name="settings_sync_sync_name">Nome della sincronizzazione</string>
+    <string name="settings_sync_device_name">Nome di questo dispositivo</string>
+    <string name="settings_sync_device_name_hint">Il nome con cui lo mostrano gli altri tuoi dispositivi. Lascia vuoto per usare il nome del computer.</string>
     <string name="settings_sync_favorites_and_settings">Preferiti e impostazioni</string>
     <string name="settings_sync_this_devices_open_tabs">Schede aperte su questo dispositivo</string>
     <string name="settings_sync_last_error">Ultimo errore</string>
@@ -1193,13 +1197,13 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_sync_turning_on">Attivazione della sincronizzazione…</string>
     <string name="settings_sync_connected_to">Connesso a «%1$s». Download di preferiti e impostazioni in corso.</string>
     <string name="settings_sync_joined_as">Collegato alla tua sincronizzazione esistente «%1$s».</string>
-    <string name="settings_sync_on">La sincronizzazione è attiva. I tuoi preferiti e le impostazioni si sincronizzeranno man mano che li modifichi.</string>
+    <string name="settings_sync_on">La sincronizzazione è attiva. I tuoi preferiti, le impostazioni e i nomi dei dispositivi si sincronizzeranno man mano che li modifichi.</string>
     <string name="settings_sync_checking">Verifica in corso…</string>
     <string name="settings_sync_check_failed">Impossibile verificare la sincronizzazione. Riprova.</string>
     <string name="settings_sync_syncing">Sincronizzazione in corso…</string>
     <string name="settings_sync_notice_offline">Impossibile raggiungere il server di sincronizzazione. Controlla la connessione e riprova.</string>
     <string name="settings_sync_notice_rate_limited">Troppi tentativi. Attendi un minuto e riprova.</string>
-    <string name="settings_sync_setup_intro">Sincronizza preferiti e impostazioni tra i tuoi dispositivi e, se vuoi, anche le schede aperte. Tutto è crittografato end-to-end.</string>
+    <string name="settings_sync_setup_intro">Sincronizza tra i tuoi dispositivi preferiti, impostazioni e i loro nomi e, se vuoi, anche le schede aperte. Tutto è crittografato end-to-end.</string>
     <string name="settings_sync_setup_code_title">Inserisci il codice dell’altro dispositivo</string>
     <string name="settings_sync_setup_code_hint">Vale per dieci minuti.</string>
     <string name="settings_sync_add_this_device_hint">Ottieni un codice da un dispositivo che sincronizza già: Impostazioni → Sincronizzazione → Aggiungi un altro dispositivo.</string>
@@ -1271,7 +1275,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_trust_fact_crash_ledger">Registro degli arresti anomali</string>
     <string name="settings_trust_build_packaged">%1$s (%2$s) · pacchettizzata</string>
     <string name="settings_trust_build_development">%1$s (%2$s) · sviluppo</string>
-    <string name="settings_trust_sync_scope">Preferiti, impostazioni selezionate · solo Personal</string>
+    <string name="settings_trust_sync_scope">Preferiti, impostazioni selezionate, nomi dei dispositivi · solo Personal</string>
     <string name="settings_trust_crash_ledger">Solo sul dispositivo · caricamento automatico disattivato · %1$s/%2$s eventi</string>
     <string name="settings_trust_checked">Ricevuta verificata localmente.</string>
     <string name="settings_trust_failed">Impossibile generare la ricevuta di attendibilità locale.</string>
