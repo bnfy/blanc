@@ -130,5 +130,85 @@
         "sha256": "5bef778e1132be74594285014442ec100412f88aa4b25082a850a20c461138fd"
       }
     }
-  ]
+  ],
+  "island": {
+    "method": "BLANC_CAPTURE_VERSION=1.36.0 node scripts/capture-installed-island.mjs against the installed public app above. Native window captures (2560×1600, kept out of the repository; their hashes are below) of live pages in a disposable profile with Blanc Blocker as shipped. The Island is opened with the same call a click makes and / is typed into it; the pointer is parked so no row shows a hover. Two lossless crops per state, both from the same window capture: 1400×1000 (left 580, top 0) for phones, the /features tiles and the gesture demo, and 1960×1400 (left 300, top 0) for the homepage stage, which is about 940 CSS px wide and was upscaled, and so blurry, from the 1400px crop on 2x screens; the site shows display copies from site/scripts/build-display-images.mjs. The wide crops were cut from this run's recorded window captures with the extract the script now performs. Replaces the v1.35.0 Island stage (docs/website-captures-v1.35.0.json, island): v1.36.0 redesigned the open Island's lower section (sentence case, the footer's Private pill, no hint line). The resting state is byte-identical to v1.35.0's, window capture included; it is re-recorded here so the stage's three states come from one release. A first run timed out before the opened states, as in v1.35.0, because the isolated window was not frontmost and the open Island closed with its focus; the script now brings that instance forward by process id before capturing, and the second run passed.",
+    "pages": [
+      {
+        "url": "https://www.si.edu/openaccess",
+        "title": "Smithsonian Open Access | Smithsonian Institution"
+      },
+      {
+        "url": "https://americanart.si.edu/artwork/grand-canyon-yellowstone-17831",
+        "title": "The Grand Canyon of the Yellowstone | Smithsonian American Art Museum"
+      },
+      {
+        "url": "https://americanart.si.edu/artwork/among-sierra-nevada-california-2059",
+        "title": "Among the Sierra Nevada, California | Smithsonian American Art Museum",
+        "active": true
+      }
+    ],
+    "rights": "The active page shows Albert Bierstadt, Among the Sierra Nevada, California (1868), Smithsonian American Art Museum, released CC0 through Smithsonian Open Access (marked Free to use on the page). The pages’ design, text and marks are the Smithsonian’s, shown as an ordinary view of a public website.",
+    "crop": {
+      "left": 580,
+      "top": 0,
+      "width": 1400,
+      "height": 1000
+    },
+    "captures": [
+      {
+        "state": "rest",
+        "windowSha256": "0641a80d3bcda499228c4baa0c8baae9b8c9800002c0aab3a0891ac948e33941",
+        "file": "site/public/revamp/island-smithsonian-rest-v1.36.0.webp",
+        "width": 1400,
+        "height": 1000,
+        "sha256": "4f4639cc5abd056eb160db156fb09265b438e643a45c882ec74869ba2ff29dc6",
+        "wide": {
+          "file": "site/public/revamp/island-smithsonian-rest-v1.36.0-wide.webp",
+          "width": 1960,
+          "height": 1400,
+          "sha256": "8327d0b930f43928029814414825fcc5e96774a40840b2ba48002efcdaa03f50"
+        }
+      },
+      {
+        "state": "tabs",
+        "windowSha256": "08da4f6dc79349df716fb36a8c7240d7841c93a84ce958529a5472ea3deddc17",
+        "file": "site/public/revamp/island-smithsonian-tabs-v1.36.0.webp",
+        "width": 1400,
+        "height": 1000,
+        "sha256": "de6f05858622097834127f07b267848b3a3dfd39195e7fca2c2a71183514cc00",
+        "wide": {
+          "file": "site/public/revamp/island-smithsonian-tabs-v1.36.0-wide.webp",
+          "width": 1960,
+          "height": 1400,
+          "sha256": "d3d1dbee0e0b121ad138b1b2b4f55810d018b11e01b7bbe9f16d8c223fcf5b42"
+        }
+      },
+      {
+        "state": "command",
+        "windowSha256": "920da4a20fb11674e6079b98d405094c2a2e9094650b2eeb403e9fdf3168aca7",
+        "file": "site/public/revamp/island-smithsonian-command-v1.36.0.webp",
+        "width": 1400,
+        "height": 1000,
+        "sha256": "73abb519594f82c05d7670a5cf73d336f01532f9d7d7e50a569647f382ef40a7",
+        "wide": {
+          "file": "site/public/revamp/island-smithsonian-command-v1.36.0-wide.webp",
+          "width": 1960,
+          "height": 1400,
+          "sha256": "d62337cceaa616027631d4b81b8c46e3bfe728dc0717515f8ef659c115ada451"
+        }
+      }
+    ],
+    "shownOn": [
+      "site/src/pages/index.astro",
+      "site/src/pages/features.astro",
+      "site/src/components/GestureDemo.astro"
+    ],
+    "wideCrop": {
+      "left": 300,
+      "top": 0,
+      "width": 1960,
+      "height": 1400
+    }
+  }
 }
