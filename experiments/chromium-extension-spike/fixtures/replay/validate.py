@@ -6,7 +6,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 CONTEXT = ('url', 'method', 'resource_type', 'initiator_origin',
-           'top_frame_origin', 'frame_role', 'redirect_index')
+           'top_frame_origin', 'frame_role', 'profile_kind', 'redirect_index')
 DECISIONS = ('allow', 'block')
 
 
@@ -34,6 +34,8 @@ def index_records(records, label, errors):
         for field in CONTEXT[:-1]:
             if not isinstance(context[field], str) or not context[field]:
                 errors.append(f'{label}/{key}: invalid {field}')
+        if context['profile_kind'] not in ('regular', 'private'):
+            errors.append(f'{label}/{key}: invalid profile_kind')
         if type(context['redirect_index']) is not int or context['redirect_index'] < 0:
             errors.append(f'{label}/{key}: invalid redirect_index')
         try:

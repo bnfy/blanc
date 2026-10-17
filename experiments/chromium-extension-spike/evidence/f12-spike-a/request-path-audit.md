@@ -85,3 +85,42 @@ Do not use the permanent 156/157 profiles or infer performance from unit mocks.
 Current source hashes are evidence, not installed-binary identity. The upcoming
 upgrade monitor must continue recording the actual binary/version used for each
 observation; tranche development cannot retroactively change Task 0 evidence.
+
+## Counter/replay review follow-up
+
+The initial 21/55 inventory above is retained as historical evidence. The revised
+counter classifies either side's content by NUL in its first 8,000 bytes and
+forces `--text` for text diffs; it records effective `diff` and `binary` attributes
+for each path. Attributes cannot silently turn several text hunks into one
+binary hunk. A content-identical mode-only change remains zero hunks.
+
+Dependency handling uses the review's conservative option: parse the literal
+`.gclient_entries` sync manifest without executing it, inspect every Git checkout,
+and **refuse the inventory** if a dependency is missing, dirty (including
+non-ignored untracked files) or has moved from its recorded pin. It does not yet
+aggregate intentional dependency patches: add that capability before making
+one. The manifest's hash and all checked revisions are recorded. Missing metadata
+or a changed root `DEPS` also stops the counter. The pins are the existing
+resolved sync record, not a fresh execution of `DEPS`. CIPD and downloaded GCS
+assets are listed separately, outside this Git-source patch count; this is not
+a package-integrity audit. An inventory refusal exits 2, over-budget exits 1,
+and a complete in-budget inventory exits 0. Never consume an older output file
+after a nonzero invocation.
+
+[Reviewed inventory](patch-budget-reviewed.json) confirms **21 files / 55 hunks**
+with all **151 Git dependencies clean at their resolved sync revisions**; 89
+non-Git download/package entries are listed separately. Every per-file hunk
+count matches the original checkpoint. Eleven counter tests and ten replay
+validator tests pass, including hostile attributes, NUL-boundary behavior,
+binary mode-only changes, dependency edits/revision drift, CLI refusal, and
+profile mismatches. No native build or checkout mutation was needed.
+
+Replay records now require actual `profile_kind: regular|private`, compared as
+part of the request context. No private-profile runtime pass is implied by the
+schema or its synthetic tests.
+
+After this PR merges, merge the new spike head into `codex/chromium157-rebase`
+and resolve the ledger once: keep its measured Rebase 0 record and open upgrade
+gate, and carry forward this tranche's separate incremental-build section.
+Do not replace the measured record with the spike branch's template or add
+routine work to the cold-build column.

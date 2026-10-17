@@ -192,3 +192,25 @@ PYTHONDONTWRITEBYTECODE=1 python3 experiments/chromium-extension-spike/fixtures/
 Next: resolve the audit's open paths and implement origin-preserving fixture
 transport and real Electron capture in disposable profiles. The audit and
 validator do not satisfy the request-path runtime coverage fixture requirement.
+
+
+### Spike A audit review corrections — October 17, 2026
+
+[Reviewed inventory](evidence/f12-spike-a/patch-budget-reviewed.json): **21 files /
+55 hunks**, unchanged per file; **151 Git dependencies** clean at the resolved
+sync manifest's pins. Classification now uses raw content (NUL in first 8,000
+bytes), text diffs force `--text`, and applicable `diff`/`binary` attributes are
+recorded. Dependency local changes, missing checkouts, pin drift or missing
+metadata refuse the inventory instead of silently returning a partial total.
+Intentional dependency patches cannot proceed until the counter supports them.
+
+Counter tests: **11 passed**. Replay validator tests: **10 passed**, including
+required `profile_kind: regular|private` and profile mismatch rejection.
+No native build, runtime coverage or capture; zero addition to the cold column.
+This review repair's active attention was not timed; not inferred from wall time.
+
+Post-merge action: merge the spike head into `codex/chromium157-rebase`, retaining
+that branch's measured Rebase 0 record and open upgrade gate while incorporating
+this separate tranche section. Resolve the expected ledger conflict once; never
+replace the measured record with this branch's template. This action is pending
+#907's merge, not performed by this correction.

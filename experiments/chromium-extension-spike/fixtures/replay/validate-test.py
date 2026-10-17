@@ -8,7 +8,7 @@ def records():
     return [{'id': str(i), 'context': {
         'url': f'https://fixture.example/request/{i}', 'method': 'GET',
         'resource_type': 'image', 'initiator_origin': 'https://page.example',
-        'top_frame_origin': 'https://page.example', 'frame_role': 'main',
+        'top_frame_origin': 'https://page.example', 'frame_role': 'main', 'profile_kind': 'regular',
         'redirect_index': 0}, 'decision': 'block' if i < 2000 else 'allow'}
         for i in range(4000)]
 
@@ -22,6 +22,19 @@ class ValidatorTests(unittest.TestCase):
         result = compare(self.oracle, self.observed)
         self.assertTrue(result['dataset_comparison_passed'])
         self.assertFalse(result['capture_provenance_verified'])
+
+    def test_profile_mismatch_and_invalid_profiles_fail(self):
+        self.observed[0]['context']['profile_kind'] = 'private'
+        self.assertTrue(compare(self.oracle, self.observed)['harness_faults'])
+        for kind in ('incognito', '', None, []):
+            self.oracle[0]['context']['profile_kind'] = kind
+            self.observed[0]['context']['profile_kind'] = kind
+            self.assertTrue(compare(self.oracle, self.observed)['harness_faults'])
+
+    def test_private_profile_records_compare(self):
+        for record in self.oracle + self.observed:
+            record['context']['profile_kind'] = 'private'
+        self.assertTrue(compare(self.oracle, self.observed)['dataset_comparison_passed'])
 
     def test_missing_decision_is_harness_fault(self):
         del self.observed[0]['decision']

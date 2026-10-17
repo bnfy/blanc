@@ -37,6 +37,7 @@ The transport and capture adapters are **not implemented** in this checkpoint.
     "initiator_origin": "https://page.example",
     "top_frame_origin": "https://page.example",
     "frame_role": "main",
+    "profile_kind": "regular",
     "redirect_index": 0
   },
   "decision": "block"
@@ -50,6 +51,13 @@ including repeated identical URLs; derive them from the harness's request graph
 without changing the URL or headers visible to the blocker. Record raw browser
 request IDs and the correlation mapping as separate evidence. Browser-specific
 numeric frame IDs are mapped to stable frame roles, with that mapping retained.
+
+`profile_kind` is required and accepts only `regular` or `private`. Record it
+from the actual originating session/BrowserContext, including worker requests;
+do not infer it from the visible window or copy the expected value. A profile
+mismatch is a harness fault. Profile identity enables the separate regular and
+private coverage probes; a corpus of only regular records does not establish
+private coverage even when its dataset comparison passes.
 
 Origin fields must be explicit. Use `opaque:<fixture-token>` for opaque origins
 and `absent` only when the hook genuinely receives no value; never substitute the
