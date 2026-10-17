@@ -7,7 +7,7 @@
 import * as bangsModule from './bangs.js';
 import dataUrl from '../data/bangs.json?url';
 import { filterBangs } from './bangs-directory.mjs';
-import { describeTryIt } from './bangs-tryit.mjs';
+import { describeTryIt, islandHintFor } from './bangs-tryit.mjs';
 
 // The pinned bangs.js is a dual-mode script: the production bundle wraps it
 // as CommonJS (its export arrives as the default), while the dev server runs
@@ -38,6 +38,7 @@ function loadData() {
 const tryInput = document.getElementById('bangs-try');
 const tryList = document.getElementById('bangs-try-list');
 const tryDest = document.getElementById('bangs-try-dest');
+const tryHint = document.getElementById('bangs-try-hint');
 const message = (kind) => document.querySelector(`[data-msg="${kind}"]`)?.textContent ?? '';
 
 function el(tag, className, text) {
@@ -47,7 +48,18 @@ function el(tag, className, text) {
   return node;
 }
 
-function renderTry(answer) {
+// overlay.js bangHeaderRow: an unfolded section header, caret first.
+const SVG_NS = 'http://www.w3.org/2000/svg';
+function caret() {
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  for (const [name, value] of Object.entries({ class: 'caret', viewBox: '0 0 10 10', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.4', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' })) svg.setAttribute(name, value);
+  const path = document.createElementNS(SVG_NS, 'path');
+  path.setAttribute('d', 'M3.5 2 L7 5 L3.5 8');
+  svg.append(path);
+  return svg;
+}
+
+function renderTry(answer, labels) {
   const nodes = [];
   if (answer.kind === 'bang') {
     const row = el('div', 'trow command hl');
@@ -56,7 +68,7 @@ function renderTry(answer) {
   }
   for (const { label, count, rows } of answer.sections ?? []) {
     const head = el('div', 'sec-head');
-    head.append(el('span', '', label), el('span', 'count', String(count)));
+    head.append(caret(), el('span', 'dim', label), el('span', 'count', String(count)));
     nodes.push(head);
     for (const { code, name, domain } of rows) {
       const row = el('div', 'trow command');
@@ -64,21 +76,20 @@ function renderTry(answer) {
       nodes.push(row);
     }
   }
-  if (answer.kind === 'other' || answer.kind === 'unknown-code') {
-    const row = el('div', 'trow');
-    row.append(el('span', 'empty', message(answer.kind)));
-    nodes.push(row);
-  }
   tryList.replaceChildren(...nodes);
+  if (tryHint) tryHint.textContent = islandHintFor(answer, labels);
+  // The page's own explanation goes under the Island, never inside it: the
+  // app draws no row for text that isn't a bang.
   tryDest.replaceChildren();
   if (answer.kind === 'bang') tryDest.append('Return would open ', el('code', '', answer.hint.url));
+  else if (answer.kind === 'other' || answer.kind === 'unknown-code') tryDest.append(message(answer.kind));
 }
 
 async function updateTry() {
   const data = await loadData();
   // Without the data the box keeps the example the page was built with.
   if (!data || !Bangs) return;
-  renderTry(describeTryIt(tryInput.value, Bangs, data.entries, data.popular, data.labels));
+  renderTry(describeTryIt(tryInput.value, Bangs, data.entries, data.popular, data.labels), data.labels);
 }
 
 if (tryInput && tryList && tryDest) {

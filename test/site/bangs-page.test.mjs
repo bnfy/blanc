@@ -74,8 +74,14 @@ test('the try-it box answers as the app does and goes nowhere', async () => {
     // Typing may fetch the page's own bang data asset, and nothing else.
     const typed = requests.slice(loaded).filter((request) => !/\/_astro\/bangs\.[^/]+\.json$/.test(request));
     assert.deepEqual(typed, [], 'typing sends nothing anywhere');
+    // The Island's hint line follows the app (overlay.js renderList): the
+    // bang hint while a bang is typed, the private-tab note otherwise.
+    assert.equal(await page.locator('#bangs-try-hint').innerText(), data.labels.hintBang);
     await page.locator('#bangs-try').fill('plain words');
-    await page.waitForFunction(() => document.querySelector('#bangs-try-list').textContent.includes('Not a bang'));
+    // The page's explanation sits under the Island; the app draws no row for it.
+    await page.waitForFunction(() => document.querySelector('#bangs-try-dest').textContent.includes('Not a bang'));
+    assert.equal(await page.locator('#bangs-try-list').innerText(), '');
+    assert.equal(await page.locator('#bangs-try-hint').innerText(), data.labels.hintPrivate);
   } finally { await context.close(); }
 });
 
@@ -157,11 +163,11 @@ test('try-it messages and the address show in full, clear of the example chips',
       assert.equal(layout.overlap, false, `${width}px: the address overlaps the chips`);
       for (const [text, needle] of [['plain words', 'Not a bang'], ['!zzqq lofi', 'No bang with that code']]) {
         await page.locator('#bangs-try').fill(text);
-        await page.waitForFunction((n) => document.querySelector('#bangs-try-list').textContent.includes(n), needle);
+        await page.waitForFunction((n) => document.querySelector('#bangs-try-dest').textContent.includes(n), needle);
         const cut = await page.evaluate(() => {
-          const message = document.querySelector('#bangs-try-list .empty');
-          const list = document.querySelector('#bangs-try-list').getBoundingClientRect();
-          return message.scrollWidth > message.clientWidth + 1 || message.getBoundingClientRect().right > list.right + 1;
+          const message = document.querySelector('#bangs-try-dest');
+          const a = message.getBoundingClientRect(), b = document.querySelector('.bangs-chips').getBoundingClientRect();
+          return message.scrollWidth > message.clientWidth + 1 || (a.bottom > b.top && a.top < b.bottom);
         });
         assert.equal(cut, false, `${width}px: “${needle}” is cut off`);
       }

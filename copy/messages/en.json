@@ -1415,7 +1415,7 @@
   },
   "slash.invite.copied": {
     "message": "Your mail app didn’t open, so the invite was copied. Paste it into a message.",
-    "note": "Notice in the ⌘L palette after /invite when no mail app could open the email; the invite text is now on the clipboard."
+    "note": "Shown when no mail app could open the invite email and the invite text is now on the clipboard: a notice in the ⌘L palette after /invite, and a short dialog after Help → Invite a Friend…."
   },
   "closed.header": {
     "message": "Recently closed",

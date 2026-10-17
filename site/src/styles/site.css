@@ -24,18 +24,12 @@
   --bg: #ffffff;
   --surface: #f7f7f7;
   --surface-raised: #ffffff;
-  --island-resting-surface: rgba(255,255,255,.94);
   --border: #dedede;
   --text: #0e0e0e;
   --text-dim: #6b6b6b;
   --accent: #111111;
   --accent-dim: rgba(17, 17, 17, 0.08);
-  --shadow-island-resting: inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24);
-  --island-resting-height: 44px;
-  --island-resting-radius: 17px;
   --island-panel-radius: 18px;
-  --island-strip-height: 68px;
-  --pill-zoom: 1.15;
 
   /* Website presentation only. --site-bg is Blanc White, the brand cream. revamp.css
      repeats the page, surface, raised, border, muted and gold values; keep them equal. */
@@ -142,7 +136,6 @@ a { color: inherit; }
 .hero .demo-stage { margin-top: 26px; }
 .demo-stage[data-theme="private"] {
   --bg: #0a0a0a; --surface: #131313; --surface-raised: #191919; --border: #333333;
-  --island-resting-surface: rgba(25,25,25,.94);
   --text: #f5f5f5; --text-dim: #9c9c9c; --accent: #f5f5f5; --accent-dim: rgba(245,245,245,0.12);
   background: var(--bg); border-color: var(--border);
 }
@@ -171,113 +164,10 @@ a { color: inherit; }
     inset 0 -6px 10px -8px rgba(14,14,14,0.12),
     inset 0 -1px 0 rgba(14,14,14,0.035);
 }
-/* The shipped proximity response is unified and vertical-only: every child
-   rises 2px and grows 2% together. The resting layer stays untransformed for
-   crisp text and glyph rasterization, and the copied shadow never changes. */
-.demo-island .pill {
-  position: relative; isolation: isolate;
-  height: calc(var(--island-resting-height) / var(--pill-zoom)); display: flex; align-items: center; gap: 10px; padding: 0 14px;
-  zoom: var(--pill-zoom);
-  background: transparent; border: 1px solid transparent; border-radius: calc(var(--island-resting-radius) / var(--pill-zoom));
-  transform-origin: 50% 0%;
-  transform: none;
-  transition:
-    transform 220ms cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 90ms ease;
-}
-.demo-island .pill::after {
-  content: ""; position: absolute; inset: -1px; z-index: -1; pointer-events: none;
-  background: var(--island-resting-surface); border: 1px solid var(--border); border-radius: inherit;
-  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
-  box-shadow: var(--shadow-island-resting);
-}
-.demo-stage[data-theme="private"] .demo-island .pill::after { border-style: dashed; border-color: var(--text-dim); }
-/* Open: the panel is the pill, grown. The pill goes out instantly underneath
-   rather than sliding away from it, and comes back the moment the panel has
-   finished shrinking into its place. */
-.demo-island.open .pill { opacity: 0; pointer-events: none; }
 /* Chromium resets letter-spacing on form controls, as the app notes. */
 .demo-island :is(button, input) { letter-spacing: inherit; }
 /* Counts and key caps keep Inter without the tracking, as in the app. */
-.demo-island :is(.shield-count, .pill-slash, .sec-head .count:not(.ago), .trow .kbd, .trow .enter, .foot-kbd) { font-family: var(--font-ui); letter-spacing: 0; }
-
-/* Pill dots: standalone pins followed by the active section, with spacing as
-   their only separator and one window-wide +N — the app's real presentation. */
-.demo-island .dots { display: flex; align-items: center; gap: 10px; }
-.demo-island .dots > span:not(.dot-more) { width: 6px; height: 6px; border-radius: 50%; background: var(--border); transition: background 160ms ease; }
-.demo-island .dots > span.cur { background: var(--accent); }
-
-/* Leading nav (back/forward) + trailing actions (reload/favorite) — quiet
-   ghost icon buttons, matching the app's island. */
-.demo-island .pnav, .demo-island .pacts { display: flex; align-items: center; gap: 1px; flex: 0 0 auto; }
-.demo-island .pbtn { width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; padding: 0; border: none; border-radius: 50%; background: transparent; color: var(--text-dim); cursor: pointer; }
-.demo-island .pbtn:disabled { color: var(--border); cursor: default; }
-.demo-island .pbtn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
-.demo-island .pbtn.heart.on { color: var(--accent); }
-.demo-island .pbtn.heart.on svg { fill: var(--accent); stroke: var(--accent); }
-.demo-island .psep { width: 1px; height: 15px; background: var(--border); flex: 0 0 auto; margin: 0 2px; }
-
-/* Private mode: hollow dots. */
-.demo-stage[data-theme="private"] .demo-island .dots > span:not(.dot-more) { background: transparent; border: 1px solid var(--text-dim); opacity: 0.85; }
-.demo-stage[data-theme="private"] .demo-island .dots > span.cur { border-color: var(--accent); background: var(--accent-dim); opacity: 1; }
-
-.demo-island .pill-fav { width: calc(16px / var(--pill-zoom)); height: calc(16px / var(--pill-zoom)); border-radius: 4px; background-color: transparent; background-size: cover; background-position: center; flex: 0 0 auto; }
-/* Inter, not mono, since 1.1.0 — the URL is read, not typed at. */
-.demo-island .domain { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-family: var(--font-app); font-size: calc(12.5px / var(--pill-zoom)); font-weight: 400; }
-
-/* Blanc Blocker. The app draws a 16px shield inside a 24px circle, cut edge to
-   edge by the diagonal from Blanc's own mark, with the blocked count lifted out
-   of the flow onto the shield's shoulder. Reproduced here at the demo pill's
-   slightly larger scale — the badge keeps the same overlap with the glyph, and
-   is anchored from the left so a two-digit count grows outward instead of back
-   across the shield. */
-.demo-island .shield { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; color: var(--text); flex: 0 0 auto; }
-.demo-island .shield svg { display: block; width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
-.demo-island .shield-count { position: absolute; top: 1.25px; left: 16.5px; display: flex; align-items: center; justify-content: center; min-width: 10px; height: 10px; padding: 0 2.5px; border-radius: 999px; background: var(--accent); box-shadow: 0 0 0 1.5px var(--surface-raised); color: var(--surface-raised); font-size: 7.5px; }
-.demo-island .shield-count:empty { display: none; }
-/* Protected but nothing blocked here yet: a quiet landmark, not a badge. */
-.demo-island .shield-quiet { color: var(--text-dim); }
-.demo-island .shield[hidden] { display: none; }
-
-/* The blank-tab resting state pairs Slash with the always-visible new-tab Plus.
-   The wash animation and reduced-motion fallback reproduce the app's own
-   numbers from styles.css rather than approximating the look of them. */
-.demo-island .pill-shortcuts { display: flex; align-items: center; gap: calc(4px / var(--pill-zoom)); flex: 0 0 auto; }
-.demo-island .pill-slash,
-.demo-island .pill-shortcut { width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: calc(5px / var(--pill-zoom)); color: var(--text-dim); background: transparent; flex: 0 0 auto; position: relative; cursor: pointer; }
-.demo-island .pill-slash { font-size: calc(10px / var(--pill-zoom)); line-height: 1; }
-.demo-island .pill-slash::before,
-.demo-island .pill-shortcut::before { content: ""; position: absolute; width: calc(18px / var(--pill-zoom)); height: calc(17px / var(--pill-zoom)); border: 1px solid var(--border); border-radius: calc(5px / var(--pill-zoom)); pointer-events: none; }
-.demo-island .pill-shortcut svg { width: calc(11px / var(--pill-zoom)); height: calc(11px / var(--pill-zoom)); fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; }
-.demo-island .pill-slash:hover,
-.demo-island .pill-shortcut:hover { color: var(--accent); background: transparent; }
-.demo-island .pill-slash:hover::before,
-.demo-island .pill-shortcut:hover::before { border-color: var(--accent); }
-.demo-island .pill-slash[hidden] { display: none; }
-/* Internal pages show no favicon at all: since 1.12.0 the app hides the pill's
-   slot on blanc:// pages (the chrome already reads as Blanc), so the demo does too. */
-.demo-island .pill-fav.internal { display: none; }
-.demo-island .domain.placeholder {
-  color: var(--text-dim);
-  background-image: linear-gradient(90deg, var(--text-dim) 0%, var(--text-dim) 35%, var(--text) 50%, var(--text-dim) 65%, var(--text-dim) 100%);
-  background-size: 300% 100%;
-  background-repeat: repeat;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: pill-placeholder-wash 2.6s linear infinite;
-}
-@keyframes pill-placeholder-wash {
-  from { background-position: 130% 0; }
-  to { background-position: -30% 0; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .demo-island .domain.placeholder { animation: none; background-image: none; -webkit-text-fill-color: currentColor; color: color-mix(in srgb, var(--text) 65%, var(--text-dim)); }
-}
-.demo-island .priv-chip { display: none; align-items: center; gap: 5px; font-size: 11.5px; padding: 2px 5px 2px 9px; border-radius: 999px; border: 1px dashed var(--accent); color: var(--accent); }
-.demo-island .priv-chip svg { display: block; width: 9px; height: 9px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.demo-island.private .priv-chip { display: flex; }
-.demo-island.private .domain, .demo-island.private .shield, .demo-island.private .pill-fav, .demo-island.private .pnav, .demo-island.private .psep, .demo-island.private .pacts { display: none; }
+.demo-island :is(.sec-head .count:not(.ago), .trow .kbd, .trow .enter, .foot-kbd) { font-family: var(--font-ui); letter-spacing: 0; }
 
 .demo-island .panel {
   position: absolute; top: 0; left: 50%; transform: translateX(-50%);
@@ -330,6 +220,11 @@ a { color: inherit; }
 .demo-island .foot-kbd { font-size: 11px; opacity: 0.6; margin-left: 1px; }
 .demo-island .foot-act { width: 28px; height: 28px; flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; padding: 0; border: none; border-radius: 8px; background: transparent; color: var(--text-dim); }
 .demo-island .foot-act svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+/* The hint line under the footer, as the app's #islandHint (overlay.js
+   renderList writes it: a bang hint, or the private-tab note). */
+.demo-island .island-hint { padding: 8px 10px 2px; color: var(--text-dim); font-size: 11.5px; }
+.demo-island .island-hint:empty { display: none; }
+.demo-island .sec-head .dim { opacity: 0.7; }
 .demo-island .foot-act.ws svg { width: 17px; height: 17px; stroke-width: 2; }
 /* The Other devices drawer, between the tab list and the footer. */
 .demo-island .drawer { margin-top: 6px; padding-top: 2px; border-top: 1px solid var(--border); }
@@ -413,8 +308,6 @@ a { color: inherit; }
   /* The bar's slide is decoration on a message that has to be readable either
      way — it simply appears and disappears instead. */
   .consent:not([hidden]) { animation: none; }
-  /* Keeps the base presentation scale — only the proximity reaction goes. */
-  .demo-island .pill { transform: none; transition: none; }
   .demo-island .panel { transition: none; }
 }
 
@@ -975,52 +868,24 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 }
 
 /* ---------- live-island figures (static product proof) ----------
-   Each figure reuses the hero demo's island chrome + private theming (the
-   .demo-stage / .demo-island rules above) frozen at one authored state, over a
-   real page shot that swaps to the 390px mobile crop under 560px via <picture>.
-   Because the pill is CSS rather than a raster, the island stays sharp and
-   legible at every width. It is always the desktop Island (Blanc is desktop
-   only): a narrow figure scales the drawing, it never reflows or sheds it.
-   These rules live at the end of the file so they win over the hero-only
-   .demo-stage breakpoints by source order. */
+   The open-panel figures reuse the .demo-stage / .demo-island rules above,
+   frozen at one authored state over a desktop page shot; the resting-Island
+   figures draw the app's own window (NativeWindowFigure.astro). Either way
+   it is always the desktop Island (Blanc is desktop only): a narrow figure
+   scales the drawing, it never reflows or sheds it, and the page behind it
+   stays the desktop capture. These rules live at the end of the file so they
+   win over the hero-only .demo-stage breakpoints by source order. */
 .island-figure { width: 100%; height: 300px; max-width: none; margin: 0; border: 0; border-radius: 8px; box-shadow: none; }
 .island-figure--panel { height: 456px; }
+/* The page behind a panel is the desktop capture at every width, cropped to
+   the stage like the scaled panel over it (never a phone layout), so it
+   outranks .product-capture img's natural height. */
+.island-figure .demo-shot { height: 100%; }
 /* Quiet Tabs figure: five rows of the expanded Island, two of them dimmed as
    quiet (.trow.quiet), the app's only quiet treatment. A short list needs
    less page beneath it than the full panel figures. */
 .island-figure--panel.island-figure--quiet { height: 340px; }
 
-/* A compact rendering of the current shield popover. The app anchors this
-   beneath the island; showing it in the capture makes the newer interaction
-   legible without adding another, competing browser surface. */
-.island-figure--site-controls { height: 354px; }
-.site-controls-island .site-controls-popover {
-  position: absolute;
-  top: 54px;
-  left: 50%;
-  width: 320px;
-  padding: 14px 16px;
-  transform: translateX(-50%);
-  border: 1px solid var(--border);
-  border-radius: 9px;
-  background: var(--surface-raised);
-  box-shadow: 0 18px 36px rgba(14,14,14,0.16);
-  color: var(--text);
-  font-size: 12.5px;
-  line-height: 1.35;
-  text-align: left;
-  white-space: normal;
-}
-.site-controls-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-.site-controls-head strong { display: block; overflow: hidden; font-size: 12px; font-weight: 400; text-overflow: ellipsis; white-space: nowrap; }
-.site-controls-head span:not(.site-controls-switch) { display: block; margin-top: 3px; }
-.site-controls-head b { font-weight: 600; }
-.site-controls-switch { position: relative; display: block; width: 34px; height: 20px; flex: 0 0 auto; border: 1px solid var(--accent); border-radius: 999px; background: var(--accent); }
-.site-controls-switch i { position: absolute; top: 2px; left: 16px; width: 14px; height: 14px; border-radius: 50%; background: var(--bg); }
-.site-controls-popover > p { margin: 9px 0 0; color: var(--text-dim); font-size: 11.5px; }
-.site-controls-popover > p + p { margin-top: 5px; }
-.site-controls-popover small { display: block; margin-top: 4px; color: var(--text-dim); font-size: 11.5px; }
-.site-controls-link { display: block; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border); color: var(--text-dim); font-size: 11.5px; }
 /* Panel figures carry no resting pill, so give the (absolutely positioned)
    island a full-width box for the centered panel to size against — otherwise
    it shrink-to-fits to zero and the panel collapses to a sliver. */
@@ -1037,9 +902,6 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 @container island-figure (max-width: 400px) { .demo-island .panel { zoom: 0.5; } }
 @container island-figure (max-width: 340px) { .demo-island .panel { zoom: 0.4; } }
 @container island-figure (max-width: 280px) { .demo-island .panel { zoom: 0.36; } }
-/* Figures are decorative: a <span> stands in for the demo's <button>s, so
-   mirror the disabled-arrow dimming with a class instead of :disabled. */
-.demo-island .pbtn.off { color: var(--border); }
 
 /* Tab groups figure: drag to reorder (shipped in v1.30.0). Netflix is dragged
    above YouTube, then YouTube back above Netflix, so the loop ends where it
@@ -1114,60 +976,17 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
   63%, 100% { transform: scale(1); }
 }
 
-/* ---------- resting-pill figures: model the real Blanc window ----------
-   In the app the resting pill lives in a slim top strip and the web page
-   begins BELOW it (page never sits behind the pill); the strip is color-
-   matched to the page's top edge so it reads as the page's own top margin,
-   not a browser bar. So here: push the page shot down by the strip height,
-   fill the strip band with the page's top-edge color (--fig-strip-bg, keyed
-   per figure via data-page-tone), and scale the pill to the same ratio the
-   shot itself is reduced to, so the island reads at true size rather than
-   oversized. Panel figures are exempt — their expanded panel genuinely
-   floats over the page (overlay view), so they stay full-bleed. */
-.island-figure { --fig-strip-h: 38px; --fig-strip-bg: var(--bg); }
-.island-figure[data-page-tone="light"]   { --fig-strip-bg: #ffffff; }
-.island-figure[data-page-tone="github"]  { --fig-strip-bg: #030442; }
-.island-figure[data-page-tone="netflix"] { --fig-strip-bg: #080706; }
-
-.island-figure:not(.island-figure--panel) { background: var(--fig-strip-bg); }
-.island-figure:not(.island-figure--panel) .demo-page,
-.island-figure:not(.island-figure--panel) .demo-shot { top: var(--fig-strip-h); height: auto; }
-.island-figure:not(.island-figure--panel) .demo-island {
-  top: calc(var(--fig-strip-h) / 2);
-  transform: translateX(-50%) translateY(-50%) scale(0.56);
-  transform-origin: center center;
-}
-
 @media (max-width: 640px) {
-  .island-figure { height: 244px; --fig-strip-h: 49px; }
   /* The scaled panel's tallest list still clears the bottom edge. */
   .island-figure--panel { height: 384px; }
-  .island-figure--site-controls { height: 290px; }
   .island-figure--panel.island-figure--quiet { height: 300px; }
 }
 
-/* ---------- vertical-tabs figure: the optional left rail ----------
-   The rail is window chrome below the strip (like the real app), so it starts
-   at the strip line; the page skeleton yields its left edge to the rail while
-   the resting pill keeps its usual spot. Rows are skeleton bars in the same
-   voice as .demo-page — a favicon square and a title bar, current row raised. */
-.island-figure--rail .demo-page { left: 170px; padding: 56px 44px 0; }
-.demo-rail { position: absolute; top: var(--fig-strip-h); bottom: 0; left: 0; z-index: 2; width: 170px; padding: 14px 10px; background: var(--surface); border-right: 1px solid var(--border); }
-.demo-rail .rail-row { display: flex; align-items: center; gap: 9px; padding: 8px 9px; margin-bottom: 4px; border: 1px solid transparent; border-radius: 7px; }
-.demo-rail .rail-row.cur { background: var(--surface-raised); border-color: var(--border); }
-.demo-rail .fav { flex: none; width: 9px; height: 9px; border-radius: 3px; background: var(--border); }
-.demo-rail .rail-row.cur .fav { background: var(--accent); }
-.demo-rail .ttl { height: 9px; border-radius: 4px; background: var(--border); opacity: 0.7; }
-.demo-rail .ttl.t1 { width: 72%; }
-.demo-rail .ttl.t2 { width: 58%; }
-.demo-rail .ttl.t3 { width: 84%; }
-.demo-rail .ttl.t4 { width: 49%; }
-.demo-rail .ttl.t5 { width: 66%; }
+/* ---------- native window figures (NativeWindowFigure.astro) ----------
+   The Blanc window draws itself inside its shadow root and sets its own
+   height from the scale it fits at, so the stage only frames it. */
+.island-figure.island-figure--native { height: auto; aspect-ratio: auto; background: none; }
 
-@media (max-width: 640px) {
-  .demo-rail { width: 116px; padding: 10px 7px; }
-  .island-figure--rail .demo-page { left: 116px; padding: 44px 26px 0; }
-}
 .sr-only { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
 /* ---------- measured memory comparison (media + ad-blocking feature) ---------- */
 /* One measure across five browsers, so the chart is a single-series emphasis

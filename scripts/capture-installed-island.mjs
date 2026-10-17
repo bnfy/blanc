@@ -16,8 +16,11 @@ import { captureOutputDirectory, installedBlanc, poll, run, settle, sha256, writ
 // pages actually loaded.
 //
 // Each state is a native macOS window capture (screencapture -l, 2560×1600),
-// kept whole as source evidence, with a lossless 1400×1000 center crop (left
-// 580, top 0) that the site's display copies are made from. Nothing in the
+// kept whole as source evidence, with two lossless center crops that the
+// site's display copies are made from: 1400×1000 (left 580, top 0) for phones
+// and small tiles, and 1960×1400 (left 300, top 0) for the homepage stage,
+// which is about 940 CSS px wide and so needs 1,880 pixels on a 2x screen to
+// stay sharp. Nothing in the
 // app, its DOM or its pixels is changed: the Island opens through the same
 // call a click on it makes (browserAPI.openIsland), and / is typed into it.
 //
@@ -34,6 +37,7 @@ const pages = {
   bierstadt: { url: 'https://americanart.si.edu/artwork/among-sierra-nevada-california-2059', title: 'Among the Sierra Nevada, California | Smithsonian American Art Museum' },
 };
 const crop = { left: 580, top: 0, width: 1400, height: 1000 };
+const wideCrop = { left: 300, top: 0, width: 1960, height: 1400 };
 
 const windowIdScript = path.join(scratch, 'window-id.swift');
 fs.writeFileSync(windowIdScript, `
@@ -42,6 +46,15 @@ let pid = Int32(CommandLine.arguments[1])!
 let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as! [[String: Any]]
 let front = list.first { ($0[kCGWindowOwnerPID as String] as? Int32) == pid && ($0[kCGWindowLayer as String] as? Int) == 0 }
 print(front.map { "\\($0[kCGWindowNumber as String]!)" } ?? "")
+`);
+// The open Island closes when its window loses focus, as in the app, so the
+// isolated instance is brought to the front by its process id (never by
+// bundle id, which would also match a Blanc the person is using).
+const activateScript = path.join(scratch, 'activate.swift');
+fs.writeFileSync(activateScript, `
+import AppKit
+let pid = Int32(CommandLine.arguments[1])!
+_ = NSRunningApplication(processIdentifier: pid)?.activate(options: [.activateIgnoringOtherApps])
 `);
 
 function seedProfile(profile) {
@@ -116,10 +129,14 @@ try {
     assert.deepEqual([width, height], [2560, 1600], `unexpected window capture ${width}×${height}`);
     const file = path.join(outputDirectory, `island-smithsonian-${state}-${suffix}.webp`);
     await sharp(raw).extract(crop).webp({ lossless: true }).toFile(file);
-    process.stdout.write(`Captured ${state}: window ${sha256(raw)}, crop ${path.basename(file)} ${sha256(file)}\n`);
+    const wide = path.join(outputDirectory, `island-smithsonian-${state}-${suffix}-wide.webp`);
+    await sharp(raw).extract(wideCrop).webp({ lossless: true }).toFile(wide);
+    process.stdout.write(`Captured ${state}: window ${sha256(raw)}, crop ${path.basename(file)} ${sha256(file)}, wide ${path.basename(wide)} ${sha256(wide)}\n`);
   };
 
   await chrome.bringToFront().catch(() => {});
+  await run('/usr/bin/swift', [activateScript, pid]);
+  await settle(1_000);
   await capture('rest');
 
   // Open the Island as a click on it does. (Shortcuts sent over the debugging

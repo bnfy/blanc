@@ -346,3 +346,102 @@ test('the Spaces demo switches like the app, walks once in under five seconds an
   assert.equal(still.dots.animations.length, 0);
   assert.equal(still.mark.animations.length, 0);
 });
+
+test('the resting-Island figures draw a native window in the tab states the app renders', async () => {
+  const {nativeWindowArt} = await load('site/src/lib/native-island-art.mjs');
+  const messages = JSON.parse(read('copy/messages/en.json'));
+  const verticalTabs = read('src/renderer/vertical-tabs.js');
+  const base = {...source, overlay: read('src/renderer/overlay.html'), verticalTabs, messages, panelLeft: '/panel-left.svg'};
+  const text = html => html.replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ');
+
+  // A site: its host and icon, Back live and Forward spent, the Plus, the shield.
+  const site = nativeWindowArt({...base, tab: {url: 'https://github.com/', favicon: '/favicons/github.com.ico', shield: 2}, dots: {count: 3, active: 1}});
+  assert.match(site.strip, /^<div id="strip">/);
+  assert.match(site.strip, /<span id="pillDomain">github\.com<\/span>/);
+  assert.match(site.strip, /id="pillFavicon" class="favicon has-icon" style="background-image:url\(\/favicons\/github\.com\.ico\)"/);
+  assert.match(site.strip, /<div id="pillNav" class="pill-btns"><button class="pill-btn">[\s\S]*?<\/button><button class="pill-btn" disabled>/);
+  assert.equal(site.strip.match(/class="island-dot/g).length, 3);
+  assert.match(site.strip, /<span id="pillShieldCount">2<\/span>/);
+  assert.match(site.strip, /id="pillNewTab"/);
+  assert.match(site.strip, /<button id="pillSlash"[^>]* hidden>/, 'a site hides the / keycap (renderPillLabel)');
+  assert.match(site.strip, /<button id="pillPrivateChip"[^>]* hidden>/);
+  assert.equal(site.rail, '');
+  assert.equal(site.popover, '');
+  const quiet = nativeWindowArt({...base, tab: {url: 'https://github.com/', favicon: '/f.ico', shield: 'quiet'}, dots: {count: 4, active: 1}});
+  assert.match(quiet.strip, /id="pillShield" class="shield shield-quiet"/);
+  assert.match(quiet.strip, /<span id="pillShieldCount"><\/span>/);
+
+  // A private new tab: the placeholder and / keycap, no favicon or shield,
+  // nowhere to go back to, hollow dots and the private chip and theme.
+  const priv = nativeWindowArt({...base, tab: {url: 'blanc://newtab/?private=1', private: true}, dots: {count: 3, active: 1}});
+  assert.ok(priv.strip.includes(`<span id="pillDomain" class="placeholder">${messages['pill.placeholder'].message}</span>`));
+  assert.match(priv.strip, /<button id="pillSlash"[^>]*>\/<\/button>/);
+  assert.doesNotMatch(priv.strip, /<button id="pillSlash"[^>]* hidden>/);
+  assert.match(priv.strip, /id="pillFavicon" class="favicon internal"/);
+  assert.match(priv.strip, /id="pillShield" class="shield" aria-expanded="false" hidden/);
+  assert.match(priv.strip, /<button class="pill-btn" disabled>[\s\S]*?<\/button><button class="pill-btn" disabled>/);
+  assert.equal(priv.strip.match(/class="island-dot( active)? private"/g).length, 3);
+  assert.doesNotMatch(priv.strip, /<button id="pillPrivateChip"[^>]* hidden>/);
+  for (const rule of ['.native-window[data-theme="private"] {', '[data-theme="private"] #islandPill::after {', '.island-dot.private {', '#islandPill #pillFavicon.internal {']) {
+    assert.ok(priv.css.includes(rule), rule);
+  }
+  // The placeholder is drawn still: the app's reduced-motion rule, not its shimmer.
+  assert.match(priv.css, /#pillDomain\.placeholder \{\s*animation: none;/);
+
+  // The shield popover open over a site, as the app's summary step.
+  const open = nativeWindowArt({...base, tab: {url: 'https://www.netflix.com/', favicon: '/f.ico', shield: 3}, dots: {count: 4, active: 1}, popover: {host: 'netflix.com', count: 3, mark: '/mark.png'}});
+  assert.match(open.strip, /id="islandPill" class="no-drag shield-open"/);
+  assert.match(open.strip, /id="pillShield" class="shield" aria-expanded="true"/);
+  assert.match(open.popover, /^<div class="native-shield-view"><div id="shieldPopPointer"/);
+  for (const expected of ['Site protection', 'netflix.com', 'Blanc Blocker', '3 ads & trackers blocked on this page', 'Uses HTTPS']) {
+    assert.ok(text(open.popover).includes(expected), expected);
+  }
+  assert.ok(open.css.includes('#islandPill.shield-open {'));
+
+  // Vertical tabs: the rail's own markup with sample rows, and the pill without dots or Plus.
+  const rail = nativeWindowArt({...base, tab: {url: 'https://github.com/', favicon: '/f.ico', shield: 'quiet'}, dots: {count: 2, active: 1},
+    rail: {active: 1, tabs: [{title: 'Notion', favicon: '/n.ico'}, {title: 'GitHub', favicon: '/g.ico'}]}});
+  assert.match(rail.rail, /^<aside id="verticalTabsRail" class="vertical-tabs-rail no-drag" aria-label="Vertical tabs">/);
+  assert.ok(rail.rail.includes(`<h2 class="vertical-tabs-section-heading">${messages['rail.section.tabs'].message}<span>2</span></h2>`));
+  assert.match(rail.rail, /<div class="vertical-tab-row active" role="listitem">[\s\S]*?GitHub/);
+  assert.ok(rail.rail.includes(verticalTabs.match(/\bclose: '(<svg[^']+)'/)[1]), 'rows close with vertical-tabs.js’s own glyph');
+  assert.match(rail.rail, /<kbd id="verticalTabsNewShortcut">⌘T<\/kbd>/);
+  assert.doesNotMatch(rail.rail, /data-i18n/);
+  for (const rule of ['.native-window[data-tab-layout="vertical"] #pillDots {', '.native-window[data-tab-layout="vertical"] #pillNewTab {', '.native-window.mac .vertical-tabs-toolbar {', '.vertical-tab-row.active {']) {
+    assert.ok(rail.css.includes(rule), rule);
+  }
+  assert.match(rail.css, /url\("\/panel-left\.svg"\)/);
+
+  // States the app never draws fail at build time.
+  assert.throws(() => nativeWindowArt({...base, tab: {url: 'blanc://newtab/', shield: 1}, dots: {count: 1, active: 0}}), /only a site shows the shield/);
+  assert.throws(() => nativeWindowArt({...base, tab: {url: 'blanc://newtab/?private=1', private: true}, dots: {count: 1, active: 0}, popover: {host: 'x', count: 1}}), /popover opens from a regular tab/);
+  assert.throws(() => nativeWindowArt({...base, document: source.document.replace('<aside id="verticalTabsRail"', '<aside id="x"'), tab: {url: 'https://a.b/', favicon: '/f', shield: 'quiet'}, dots: {count: 1, active: 0}, rail: {active: 0, tabs: []}}), /Missing native vertical tabs markup/);
+});
+
+test('the private-tabs figure draws the private Start Page captured from public v1.36.0', () => {
+  const crypto = require('node:crypto');
+  const capture = JSON.parse(read('docs/website-captures-v1.36.0.json')).privateStartPage;
+  const hash = file => crypto.createHash('sha256').update(fs.readFileSync(path.join(root, file))).digest('hex');
+  assert.equal(hash(capture.file), capture.sha256, capture.file);
+  assert.equal(hash(capture.webp.file), capture.webp.sha256, capture.webp.file);
+  const figure = read('site/src/pages/features/private-tabs.astro');
+  assert.ok(figure.includes(`shot="${capture.webp.file.replace('site/public', '')}"`), 'the figure draws the recorded capture');
+  // Private tabs keep the strip untinted (renderer.js applyStripTint), so the figure passes no tone.
+  assert.doesNotMatch(figure.match(/<NativeWindowFigure[\s\S]*?\/>/)[0], /\btone=/);
+});
+
+test('every resting-Island figure on the site is the native window, not a hand-drawn pill', () => {
+  const pages = ['island', 'ad-blocking', 'private-tabs', 'security', 'vertical-tabs'];
+  for (const page of pages) {
+    const markup = read(`site/src/pages/features/${page}.astro`);
+    assert.match(markup, /<NativeWindowFigure\b/, page);
+  }
+  const walk = dir => fs.readdirSync(path.join(root, dir), {withFileTypes: true})
+    .flatMap(entry => entry.isDirectory() ? walk(`${dir}/${entry.name}`) : [`${dir}/${entry.name}`]);
+  for (const file of walk('site/src').filter(file => file.endsWith('.astro'))) {
+    const markup = read(file);
+    assert.doesNotMatch(markup, /<div class="pill">|class="site-controls-popover"|class="demo-rail"/, `${file} draws an Island the app doesn't`);
+    // Blanc is desktop only: no figure swaps in a phone layout of the page.
+    assert.doesNotMatch(markup, /shots\/mobile\//, `${file} shows a phone layout`);
+  }
+});

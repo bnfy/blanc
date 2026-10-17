@@ -12,17 +12,15 @@
 /* ---------- try it ---------- */
 .bangs-try { margin-bottom: 96px; }
 .bangs-stage { height: 440px; }
-.bangs-stage .demo-island .panel { max-height: 310px; }
+.bangs-stage .demo-island .panel { max-height: none; }
 .bangs-field input {
   flex: 1 1 auto; min-width: 0; height: 100%; padding: 0; border: 0; outline: 0;
   background: transparent; color: var(--text); font: inherit;
 }
 /* The field's border carries focus, since the input itself draws none. */
 .bangs-field:focus-within { border-color: var(--text-dim); }
-.bangs-stage .list.command-directory { max-height: 236px; }
+.bangs-stage .list.command-directory { max-height: 200px; }
 .bangs-stage .trow .domain { flex: 0 0 auto; margin-left: auto; color: var(--text-dim); font-size: 11px; }
-/* The Island replica never wraps; these messages are sentences. */
-.bangs-stage .trow .empty { flex: 1 1 auto; min-width: 0; white-space: normal; }
 /* The address and the examples stack under the Island, so neither covers the
    other however the examples wrap; the address shows in full. */
 .bangs-under {

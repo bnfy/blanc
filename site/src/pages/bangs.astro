@@ -4,7 +4,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import data from '../data/bangs.json';
 import bangsSource from '../scripts/bangs.js?raw';
 import { directoryRows } from '../scripts/bangs-directory.mjs';
-import { describeTryIt } from '../scripts/bangs-tryit.mjs';
+import { describeTryIt, islandHintFor } from '../scripts/bangs-tryit.mjs';
+import IslandPanelActions from '../components/IslandPanelActions.astro';
+import IslandFooter from '../components/IslandFooter.astro';
 import '../styles/bangs.css';
 
 // The data is pinned to one build (site/scripts/build-bangs-data.mjs): the
@@ -20,6 +22,7 @@ const rows = directoryRows(data);
 const countText = data.count.toLocaleString('en-US');
 const versionText = data.release ? `Blanc ${data.release.replace(/^v/, '')}` : 'this build of Blanc';
 const example = describeTryIt('!yt lofi', Bangs, data.entries, data.popular, data.labels);
+const exampleHint = islandHintFor(example, data.labels);
 const SHOWN_ALIASES = 3;
 const shownAliases = (aliases) => aliases.slice(0, SHOWN_ALIASES).map((alias) => `!${alias}`);
 const moreAliases = (aliases) => (aliases.length > SHOWN_ALIASES ? `+${aliases.length - SHOWN_ALIASES}` : '');
@@ -57,12 +60,15 @@ const chips = ['!w golden retriever', '!a usb cable', '!gh electron', 'lofi !yt'
               <span class="sr-only">Try a bang</span>
               <input id="bangs-try" type="text" value="!yt lofi" maxlength="200" spellcheck="false" autocomplete="off" autocapitalize="off" />
             </label>
+            <IslandPanelActions />
           </div>
           <div class="list command-directory" id="bangs-try-list" aria-live="polite">
             {example.kind === 'bang' && (
               <div class="trow command hl"><span class="cmd">{`!${example.hint.code}`}</span><span class="hint">{example.hint.title}</span><span class="enter">↵</span></div>
             )}
           </div>
+          <IslandFooter />
+          <div class="island-hint" id="bangs-try-hint" aria-hidden="true">{exampleHint}</div>
         </div>
       </div>
       <div class="bangs-under">

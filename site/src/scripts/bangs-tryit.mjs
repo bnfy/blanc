@@ -50,3 +50,14 @@ export function describeTryIt(text, Bangs, entries, popular, labels) {
   if (sections.length) return { kind: 'picker', sections };
   return { kind: 'unknown-code' };
 }
+
+/**
+ * The Island's hint line under the footer for an answer, as overlay.js
+ * renderList writes #islandHint: the bang hint while bang input fills the
+ * list, else, in a private tab, the private-tab note (the try-it box draws a
+ * private tab's panel), else nothing.
+ */
+export function islandHintFor(answer, labels, { isPrivate = true } = {}) {
+  if (answer.kind === 'bang' || answer.kind === 'picker') return labels.hintBang;
+  return isPrivate ? labels.hintPrivate : '';
+}

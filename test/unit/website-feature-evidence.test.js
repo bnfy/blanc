@@ -543,19 +543,26 @@ test('Start Page captures are tied to public v1.35.0 and are all the homepage sh
     assert.equal(job?.sourceSha256, capture.sha256, `${capture.webp.file} is the display copy of ${capture.file}`);
   }
   // The Island stage's three states, over Smithsonian pages, with their
-  // display copies made from these exact files.
-  assert.deepEqual(manifest.island.captures.map(capture => capture.state), ['rest', 'tabs', 'command']);
-  assert.match(manifest.island.rights, /CC0/);
-  for (const capture of manifest.island.captures) {
+  // display copies made from these exact files: public v1.36.0, whose open
+  // Island's lower section changed (the v1.35.0 stage stays in its ledger).
+  const island = JSON.parse(read('docs/website-captures-v1.36.0.json')).island;
+  assert.deepEqual(island.captures.map(capture => capture.state), ['rest', 'tabs', 'command']);
+  assert.match(island.rights, /CC0/);
+  for (const capture of island.captures) {
     assert.equal(hash(capture.file), capture.sha256, capture.file);
     const jobs = display.filter(item => `site/public/${item.source}` === capture.file);
-    assert.equal(jobs.length, 2, `${capture.file} has a phone and a display copy`);
+    assert.equal(jobs.length, 2, `${capture.file} has a phone and a tile copy`);
     for (const job of jobs) assert.equal(job.sourceSha256, capture.sha256);
+    // The homepage stage shows the wide crop of the same window, 1:1 on 2x screens.
+    assert.equal(hash(capture.wide.file), capture.wide.sha256, capture.wide.file);
+    const wide = display.filter(item => `site/public/${item.source}` === capture.wide.file);
+    assert.deepEqual(wide.map(job => [job.output, job.width, job.sourceSha256]),
+      [[capture.wide.file.replace('site/public/', '').replace('-wide.webp', '-display.webp'), 1960, capture.wide.sha256]]);
   }
   const pin = read('site/src/pages/index.astro').split('id="island"')[1].split('</section>')[0];
   const pinned = [...pin.matchAll(/\/revamp\/island-[a-z0-9.-]+\.webp/g)].map(match => match[0]);
   assert.equal(pinned.length, 6);
-  for (const file of pinned) assert.match(file, /^\/revamp\/island-smithsonian-(rest|tabs|command)-v1\.35\.0-(800|display)\.webp$/);
+  for (const file of pinned) assert.match(file, /^\/revamp\/island-smithsonian-(rest|tabs|command)-v1\.36\.0-(800|display)\.webp$/);
   // Every Start Page capture on the homepage is one of these public captures.
   const homepage = read('site/src/pages/index.astro');
   const shown = [...homepage.matchAll(/\/feature-captures\/(?:home-wallpaper-|ledger-|billboard-|shelf-|tally-|\$\{name\.toLowerCase\(\)\}-)[^"`]*\.webp/g)].map(match => match[0]);
@@ -570,9 +577,9 @@ test('Start Page captures are tied to public v1.35.0 and are all the homepage sh
   const known = new Set([
     ...manifest.wallpapers.map(item => item.displayAsset.file),
     ...manifest.layouts.map(item => item.webp.file),
-    ...manifest.island.captures.map(item => item.file.replace('.webp', '-800.webp')),
+    ...island.captures.flatMap(item => ['-800.webp', '-1400.webp'].map(copy => item.file.replace('.webp', copy))),
   ].map(file => file.replace('site/public', '')));
-  const featureCaptures = [...features.matchAll(/\/(?:feature-captures|revamp)\/(?:home-wallpaper|ledger|billboard|shelf|tally|mahjong|island)[^"]*\.webp/g)].map(match => match[0]);
+  const featureCaptures = [...features.matchAll(/\/(?:feature-captures|revamp)\/(?:home-wallpaper|ledger|billboard|shelf|tally|mahjong|island)[^"\s,]*\.webp/g)].map(match => match[0]);
   assert.ok(featureCaptures.length >= 12);
-  for (const file of featureCaptures) assert.ok(known.has(file), `${file} on /features is not a v1.35.0 capture`);
+  for (const file of featureCaptures) assert.ok(known.has(file), `${file} on /features is not a v1.35.0 or v1.36.0 capture`);
 });

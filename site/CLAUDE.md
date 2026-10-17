@@ -45,10 +45,15 @@ October 17, 2026): copy each element, string and icon from
 `src/renderer/overlay.html`, `overlay.js`, `styles.css` and
 `copy/messages/en.json`, and invent no state, text or layout. The open panel's
 action buttons and footer come from `components/IslandPanelActions.astro` and
-`components/IslandFooter.astro`; the footer is one row. Blanc is desktop only,
+`components/IslandFooter.astro`; the footer is one row. Resting-Island figures
+(the Island, ad-blocking with its Site protection popover, private tabs,
+security, vertical tabs) are `components/NativeWindowFigure.astro`, which
+renders a whole Blanc window from the app's own markup and CSS
+(`nativeWindowArt` in `src/lib/native-island-art.mjs`) and scales it as one
+piece; never hand-draw a pill again. Blanc is desktop only,
 so a narrow figure shows the same 620px drawing scaled down (container steps on
 `.island-figure` in `site.css`), never a reflowed, icon-only or chrome-shedding
-"phone" version.
+"phone" version, and the page behind a figure is always a desktop capture.
 The display-headings rule at the end of `site.css` is what makes every
 heading display; `test/site/blubird-reach.test.mjs` and
 `test/unit/site-font-fallback.test.js` enforce the faces and the 0 tracking.
