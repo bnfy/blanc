@@ -1,9 +1,0 @@
-{"stage":"regular-a-committed"}
-{"stage":"regular-a","counts":{"candidateUrls":24,"electronBlocked":9,"electronAllowed":15,"blockToAllow":0,"allowToBlock":0,"matchedDecisions":24,"coverageControls":4,"nativeRequests":34},"parity":true,"acceptance":false}
-{"stage":"regular-b-committed"}
-{"stage":"regular-b","counts":{"candidateUrls":24,"electronBlocked":9,"electronAllowed":15,"blockToAllow":0,"allowToBlock":0,"matchedDecisions":24,"coverageControls":4,"nativeRequests":34},"parity":true,"acceptance":false}
-{"stage":"private-a-committed"}
-{"stage":"private-a","counts":{"candidateUrls":24,"electronBlocked":9,"electronAllowed":15,"blockToAllow":0,"allowToBlock":0,"matchedDecisions":24,"coverageControls":4,"nativeRequests":34},"parity":true,"acceptance":false}
-{"stage":"private-b-committed"}
-{"stage":"private-b","counts":{"candidateUrls":24,"electronBlocked":9,"electronAllowed":15,"blockToAllow":0,"allowToBlock":0,"matchedDecisions":24,"coverageControls":4,"nativeRequests":34},"parity":true,"acceptance":false}
-{"passed":true,"evidencePath":"/private/tmp/blanc-f12-native-probe-04","acceptance":false}

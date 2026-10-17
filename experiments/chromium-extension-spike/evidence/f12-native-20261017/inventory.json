@@ -387,49 +387,49 @@
     "compression": "gzip"
   },
   {
-    "path": "build/build-01.log",
+    "path": "build/build-01.log.gz",
     "source": "/private/tmp/blanc-f12-native-build/build-01.log",
     "bytes": 10553,
     "sha256": "00d98c263a0b726f648c4b6d2b06e14348f242313bb023139456221af2eb6211",
-    "storedBytes": 10553,
-    "storedSha256": "00d98c263a0b726f648c4b6d2b06e14348f242313bb023139456221af2eb6211",
-    "compression": "none"
+    "storedBytes": 3838,
+    "storedSha256": "00cac08eedfd9f8e97cc6382b1aad9209f8553cfec39359d24d4b2ba2f66657b",
+    "compression": "gzip"
   },
   {
-    "path": "build/build-02.log",
+    "path": "build/build-02.log.gz",
     "source": "/private/tmp/blanc-f12-native-build/build-02.log",
     "bytes": 14423,
     "sha256": "8b858f0ee18f756d9f0916c82f0c12cedd2a87eed6f0ef05f2fddb685fbabf13",
-    "storedBytes": 14423,
-    "storedSha256": "8b858f0ee18f756d9f0916c82f0c12cedd2a87eed6f0ef05f2fddb685fbabf13",
-    "compression": "none"
+    "storedBytes": 4835,
+    "storedSha256": "64aa9e8c55599aaba97e9ad10e5b9d76656d308b9af9d65faa56f8ad24b2d5f6",
+    "compression": "gzip"
   },
   {
-    "path": "build/build-03.log",
+    "path": "build/build-03.log.gz",
     "source": "/private/tmp/blanc-f12-native-build/build-03.log",
     "bytes": 2964,
     "sha256": "71a3a05d568523b2185820a933ba8f846335e433e95c69333b1e0781e52d6832",
-    "storedBytes": 2964,
-    "storedSha256": "71a3a05d568523b2185820a933ba8f846335e433e95c69333b1e0781e52d6832",
-    "compression": "none"
+    "storedBytes": 973,
+    "storedSha256": "97336f379346db0d5841b46c23ba9d890b1bcf0dd6edd9d356a39f27242a66bf",
+    "compression": "gzip"
   },
   {
-    "path": "build/build-04.log",
+    "path": "build/build-04.log.gz",
     "source": "/private/tmp/blanc-f12-native-build/build-04.log",
     "bytes": 2745,
     "sha256": "596b2c8ac81a2825c015b07eb8d7227e58f592e39b22a1fa8f637186a53ba764",
-    "storedBytes": 2745,
-    "storedSha256": "596b2c8ac81a2825c015b07eb8d7227e58f592e39b22a1fa8f637186a53ba764",
-    "compression": "none"
+    "storedBytes": 926,
+    "storedSha256": "6ce99f125678ec5ca471f3a83c5925c18a12315bdc1fc8379d599e27200d0412",
+    "compression": "gzip"
   },
   {
-    "path": "build/build-05.log",
+    "path": "build/build-05.log.gz",
     "source": "/private/tmp/blanc-f12-native-build/build-05.log",
     "bytes": 2586,
     "sha256": "19f758d21a5dc7ffd2ff26a01bdb10fb5ba27af93fd0535b858ce96d4181b282",
-    "storedBytes": 2586,
-    "storedSha256": "19f758d21a5dc7ffd2ff26a01bdb10fb5ba27af93fd0535b858ce96d4181b282",
-    "compression": "none"
+    "storedBytes": 887,
+    "storedSha256": "267d0ff37e4df0afc5e080c8ce39d5a7a97c373838a5bc9f74bf6beb68201b96",
+    "compression": "gzip"
   },
   {
     "path": "build/checkpoint-notes.md",
@@ -468,49 +468,49 @@
     "compression": "none"
   },
   {
-    "path": "build/failure-probe-01.log",
+    "path": "build/failure-probe-01.log.gz",
     "source": "/private/tmp/blanc-f12-native-build/failure-probe-01.log",
     "bytes": 551,
     "sha256": "d0954543f5fe1c8b373151b205e3475b064b8d963e7f1a8d815f1e76fc2b388f",
-    "storedBytes": 551,
-    "storedSha256": "d0954543f5fe1c8b373151b205e3475b064b8d963e7f1a8d815f1e76fc2b388f",
-    "compression": "none"
+    "storedBytes": 334,
+    "storedSha256": "4ec62c75008b733ac9d709da4ca888f55b77aba991d681d3b72734d8fd40d39f",
+    "compression": "gzip"
   },
   {
-    "path": "build/failure-probe-02.log",
+    "path": "build/failure-probe-02.log.gz",
     "source": "/private/tmp/blanc-f12-native-build/failure-probe-02.log",
     "bytes": 685,
     "sha256": "1d2d3348f6bbae8a6f9f2a044b6b109115184b34012dc7fa9dca30e31e58e2e5",
-    "storedBytes": 685,
-    "storedSha256": "1d2d3348f6bbae8a6f9f2a044b6b109115184b34012dc7fa9dca30e31e58e2e5",
-    "compression": "none"
+    "storedBytes": 294,
+    "storedSha256": "31f14456e40299f8800324cbe5c1ef0ada19056242f9a888adfc889a69b30e78",
+    "compression": "gzip"
   },
   {
-    "path": "build/final-plan-check.log",
+    "path": "build/final-plan-check.log.gz",
     "source": "/private/tmp/blanc-f12-native-build/final-plan-check.log",
     "bytes": 196,
     "sha256": "c5b2ea96710d515c3cb30bb0844fb07af778ec266c08943ed9a297707e8b6ab4",
-    "storedBytes": 196,
-    "storedSha256": "c5b2ea96710d515c3cb30bb0844fb07af778ec266c08943ed9a297707e8b6ab4",
-    "compression": "none"
+    "storedBytes": 176,
+    "storedSha256": "8c1996a00c9dc907f3d798f70c723f6de563a9fadecd256f3bb22295d81d833d",
+    "compression": "gzip"
   },
   {
-    "path": "build/gn-01.log",
+    "path": "build/gn-01.log.gz",
     "source": "/private/tmp/blanc-f12-native-build/gn-01.log",
     "bytes": 51,
     "sha256": "90d15cef0cab7e0a25d595ca6b14f8a1620fc3c590cae2dc797726527237921f",
-    "storedBytes": 51,
-    "storedSha256": "90d15cef0cab7e0a25d595ca6b14f8a1620fc3c590cae2dc797726527237921f",
-    "compression": "none"
+    "storedBytes": 71,
+    "storedSha256": "36b186751f1e29b15564aa5351eea82acdfc976681668e50c14092ac6ca7b1d4",
+    "compression": "gzip"
   },
   {
-    "path": "build/inspect-launch.log",
+    "path": "build/inspect-launch.log.gz",
     "source": "/private/tmp/blanc-f12-native-build/inspect-launch.log",
     "bytes": 5999,
     "sha256": "9243b9848d92c6f143910f9afff0eb3157fb0d5a423c0daf8321cd7b033335b8",
-    "storedBytes": 5999,
-    "storedSha256": "9243b9848d92c6f143910f9afff0eb3157fb0d5a423c0daf8321cd7b033335b8",
-    "compression": "none"
+    "storedBytes": 2110,
+    "storedSha256": "5d353763aaf9708eb06b74f01fe2077068dad82e167ec1d430c636db82fa9d16",
+    "compression": "gzip"
   },
   {
     "path": "build/inspect-launch.mjs",
@@ -522,13 +522,13 @@
     "compression": "none"
   },
   {
-    "path": "build/inspect-no-blocker.log",
+    "path": "build/inspect-no-blocker.log.gz",
     "source": "/private/tmp/blanc-f12-native-build/inspect-no-blocker.log",
     "bytes": 4172,
     "sha256": "0954c5aab9550f9223007b17a5dae2943be8976e84465b7f766c02c0755061d8",
-    "storedBytes": 4172,
-    "storedSha256": "0954c5aab9550f9223007b17a5dae2943be8976e84465b7f766c02c0755061d8",
-    "compression": "none"
+    "storedBytes": 1865,
+    "storedSha256": "0dfedbe3f844f6e2b6dbb7c64e31b3061929e7823541edaca1445ffe7ffa9557",
+    "compression": "gzip"
   },
   {
     "path": "build/inspect-no-blocker.mjs",
@@ -549,22 +549,22 @@
     "compression": "none"
   },
   {
-    "path": "build/lint-final.log",
+    "path": "build/lint-final.log.gz",
     "source": "/private/tmp/blanc-f12-native-build/lint-final.log",
     "bytes": 38,
     "sha256": "4f9a6e9e3ed52207dc0167aed1c586114894958d510ebf1d4f85c882b9f6362c",
-    "storedBytes": 38,
-    "storedSha256": "4f9a6e9e3ed52207dc0167aed1c586114894958d510ebf1d4f85c882b9f6362c",
-    "compression": "none"
+    "storedBytes": 54,
+    "storedSha256": "244be4ee239798194e03acc7b3cac2107f5737d6fe6db4a997cec85b2ca8009e",
+    "compression": "gzip"
   },
   {
-    "path": "build/lint-result.log",
+    "path": "build/lint-result.log.gz",
     "source": "/private/tmp/blanc-f12-native-build/lint-result.log",
     "bytes": 38,
     "sha256": "4f9a6e9e3ed52207dc0167aed1c586114894958d510ebf1d4f85c882b9f6362c",
-    "storedBytes": 38,
-    "storedSha256": "4f9a6e9e3ed52207dc0167aed1c586114894958d510ebf1d4f85c882b9f6362c",
-    "compression": "none"
+    "storedBytes": 54,
+    "storedSha256": "244be4ee239798194e03acc7b3cac2107f5737d6fe6db4a997cec85b2ca8009e",
+    "compression": "gzip"
   },
   {
     "path": "build/lint.mjs",
@@ -576,103 +576,103 @@
     "compression": "none"
   },
   {
-    "path": "build/native-full-01.log",
+    "path": "build/native-full-01.log.gz",
     "source": "/private/tmp/blanc-f12-native-build/native-full-01.log",
     "bytes": 1154,
     "sha256": "0c96ce16987dfefbaa632cf0a662db56fe5d54d3d66e340172203cc1a0d91dc4",
-    "storedBytes": 1154,
-    "storedSha256": "0c96ce16987dfefbaa632cf0a662db56fe5d54d3d66e340172203cc1a0d91dc4",
-    "compression": "none"
+    "storedBytes": 274,
+    "storedSha256": "e5cae9366daf581bc90b151e09d4307d72620f182afaa4273650fb534e8f18eb",
+    "compression": "gzip"
   },
   {
-    "path": "build/native-probe-01.log",
+    "path": "build/native-probe-01.log.gz",
     "source": "/private/tmp/blanc-f12-native-build/native-probe-01.log",
     "bytes": 18189,
     "sha256": "caf9f3670a82d6025cd1017bdb3120f9b8c9e5fa7ae0014d9623f152b7e89b63",
-    "storedBytes": 18189,
-    "storedSha256": "caf9f3670a82d6025cd1017bdb3120f9b8c9e5fa7ae0014d9623f152b7e89b63",
-    "compression": "none"
+    "storedBytes": 4280,
+    "storedSha256": "6dee06064a79a631d19fb0dc5fc7009f125ad6604f989137cdd599aa93ee5d1d",
+    "compression": "gzip"
   },
   {
-    "path": "build/native-probe-02.log",
+    "path": "build/native-probe-02.log.gz",
     "source": "/private/tmp/blanc-f12-native-build/native-probe-02.log",
     "bytes": 287,
     "sha256": "7fcb5e1d872e875486dfe8175dd0c63d34431cd3044ee945649f62a6f4335bcb",
-    "storedBytes": 287,
-    "storedSha256": "7fcb5e1d872e875486dfe8175dd0c63d34431cd3044ee945649f62a6f4335bcb",
-    "compression": "none"
+    "storedBytes": 225,
+    "storedSha256": "588aeea5e79e9a58261a6259c5c60d05f216aceab3250a6e841d86e1a038cd75",
+    "compression": "gzip"
   },
   {
-    "path": "build/native-probe-03.log",
+    "path": "build/native-probe-03.log.gz",
     "source": "/private/tmp/blanc-f12-native-build/native-probe-03.log",
     "bytes": 2943,
     "sha256": "72e65621af7682bee97852cdf76e6778b2f77ba575e511a28d6c163dcec1fd95",
-    "storedBytes": 2943,
-    "storedSha256": "72e65621af7682bee97852cdf76e6778b2f77ba575e511a28d6c163dcec1fd95",
-    "compression": "none"
+    "storedBytes": 1474,
+    "storedSha256": "f599a2e5906947005f6f3697e461a959ddb313a78f8c74239e60f79c99620737",
+    "compression": "gzip"
   },
   {
-    "path": "build/native-probe-04.log",
+    "path": "build/native-probe-04.log.gz",
     "source": "/private/tmp/blanc-f12-native-build/native-probe-04.log",
     "bytes": 1111,
     "sha256": "6fa70e4529807d9c7097ae4ec07329d5ba4146baf54590de147911cb5ef1beee",
-    "storedBytes": 1111,
-    "storedSha256": "6fa70e4529807d9c7097ae4ec07329d5ba4146baf54590de147911cb5ef1beee",
-    "compression": "none"
+    "storedBytes": 267,
+    "storedSha256": "80c1f88e1997949c66ca794c27a6951cef864af00f228e7ee9c0ee2954a938f1",
+    "compression": "gzip"
   },
   {
-    "path": "build/plan-01.log",
+    "path": "build/plan-01.log.gz",
     "source": "/private/tmp/blanc-f12-native-build/plan-01.log",
     "bytes": 197,
     "sha256": "8ad4f3a64966c14eb6160de305f494e36d3694c3753730141283e2cac7d23249",
-    "storedBytes": 197,
-    "storedSha256": "8ad4f3a64966c14eb6160de305f494e36d3694c3753730141283e2cac7d23249",
-    "compression": "none"
+    "storedBytes": 177,
+    "storedSha256": "330909c4eb6bd7ede386b0f2c0410bfa6048ae909292df451e1c67a0886385a2",
+    "compression": "gzip"
   },
   {
-    "path": "build/prepare-01.log",
+    "path": "build/prepare-01.log.gz",
     "source": "/private/tmp/blanc-f12-native-build/prepare-01.log",
     "bytes": 83,
     "sha256": "eacdfbf62e21d158a4dc6ba5a263a05bfe79c5e55693033c5e00f4a0e9143b54",
-    "storedBytes": 83,
-    "storedSha256": "eacdfbf62e21d158a4dc6ba5a263a05bfe79c5e55693033c5e00f4a0e9143b54",
-    "compression": "none"
+    "storedBytes": 93,
+    "storedSha256": "e89a1a642190816ba18f45ef1713e0bb95986eb6705e148903ecac02c7742580",
+    "compression": "gzip"
   },
   {
-    "path": "build/prepare-02.log",
+    "path": "build/prepare-02.log.gz",
     "source": "/private/tmp/blanc-f12-native-build/prepare-02.log",
     "bytes": 83,
     "sha256": "eacdfbf62e21d158a4dc6ba5a263a05bfe79c5e55693033c5e00f4a0e9143b54",
-    "storedBytes": 83,
-    "storedSha256": "eacdfbf62e21d158a4dc6ba5a263a05bfe79c5e55693033c5e00f4a0e9143b54",
-    "compression": "none"
+    "storedBytes": 93,
+    "storedSha256": "e89a1a642190816ba18f45ef1713e0bb95986eb6705e148903ecac02c7742580",
+    "compression": "gzip"
   },
   {
-    "path": "build/prepare-03.log",
+    "path": "build/prepare-03.log.gz",
     "source": "/private/tmp/blanc-f12-native-build/prepare-03.log",
     "bytes": 83,
     "sha256": "eacdfbf62e21d158a4dc6ba5a263a05bfe79c5e55693033c5e00f4a0e9143b54",
-    "storedBytes": 83,
-    "storedSha256": "eacdfbf62e21d158a4dc6ba5a263a05bfe79c5e55693033c5e00f4a0e9143b54",
-    "compression": "none"
+    "storedBytes": 93,
+    "storedSha256": "e89a1a642190816ba18f45ef1713e0bb95986eb6705e148903ecac02c7742580",
+    "compression": "gzip"
   },
   {
-    "path": "build/prepare-04.log",
+    "path": "build/prepare-04.log.gz",
     "source": "/private/tmp/blanc-f12-native-build/prepare-04.log",
     "bytes": 83,
     "sha256": "eacdfbf62e21d158a4dc6ba5a263a05bfe79c5e55693033c5e00f4a0e9143b54",
-    "storedBytes": 83,
-    "storedSha256": "eacdfbf62e21d158a4dc6ba5a263a05bfe79c5e55693033c5e00f4a0e9143b54",
-    "compression": "none"
+    "storedBytes": 93,
+    "storedSha256": "e89a1a642190816ba18f45ef1713e0bb95986eb6705e148903ecac02c7742580",
+    "compression": "gzip"
   },
   {
-    "path": "build/prepare-05.log",
+    "path": "build/prepare-05.log.gz",
     "source": "/private/tmp/blanc-f12-native-build/prepare-05.log",
     "bytes": 83,
     "sha256": "eacdfbf62e21d158a4dc6ba5a263a05bfe79c5e55693033c5e00f4a0e9143b54",
-    "storedBytes": 83,
-    "storedSha256": "eacdfbf62e21d158a4dc6ba5a263a05bfe79c5e55693033c5e00f4a0e9143b54",
-    "compression": "none"
+    "storedBytes": 93,
+    "storedSha256": "e89a1a642190816ba18f45ef1713e0bb95986eb6705e148903ecac02c7742580",
+    "compression": "gzip"
   },
   {
     "path": "build/run.py",
@@ -693,49 +693,49 @@
     "compression": "none"
   },
   {
-    "path": "build/tests-budget.log",
+    "path": "build/tests-budget.log.gz",
     "source": "/private/tmp/blanc-f12-native-build/tests-budget.log",
     "bytes": 110,
     "sha256": "ecf8fb99c77b87ced118077e709eaec45e00ef1ec214bf8d85e05e7d76a01b8f",
-    "storedBytes": 110,
-    "storedSha256": "ecf8fb99c77b87ced118077e709eaec45e00ef1ec214bf8d85e05e7d76a01b8f",
-    "compression": "none"
+    "storedBytes": 55,
+    "storedSha256": "49487354c4a1142ecf6437115bf8ef3221daab6481ddcb72e0fc22c3de38218c",
+    "compression": "gzip"
   },
   {
-    "path": "build/tests-build-guard.log",
+    "path": "build/tests-build-guard.log.gz",
     "source": "/private/tmp/blanc-f12-native-build/tests-build-guard.log",
     "bytes": 937,
     "sha256": "ef1faefa813c78c569f9cf6e8e458a7792def77f727986ce9b8d2a4c9339bc9c",
-    "storedBytes": 937,
-    "storedSha256": "ef1faefa813c78c569f9cf6e8e458a7792def77f727986ce9b8d2a4c9339bc9c",
-    "compression": "none"
+    "storedBytes": 536,
+    "storedSha256": "b5075b3d23d74b755f88f186a7c1823dc5cc43099f64cf76a1438a6703ced247",
+    "compression": "gzip"
   },
   {
-    "path": "build/tests-js-allowed.log",
+    "path": "build/tests-js-allowed.log.gz",
     "source": "/private/tmp/blanc-f12-native-build/tests-js-allowed.log",
     "bytes": 4919,
     "sha256": "8da4ef1f18148db76c5f6ef15785c9536e349d6bb2767e012c0456f92078c619",
-    "storedBytes": 4919,
-    "storedSha256": "8da4ef1f18148db76c5f6ef15785c9536e349d6bb2767e012c0456f92078c619",
-    "compression": "none"
+    "storedBytes": 2025,
+    "storedSha256": "cbd940ce9ba5fa75fb1e33d2d364937766ae4ef174c224b225b6fc1f7a422bee",
+    "compression": "gzip"
   },
   {
-    "path": "build/tests-js.log",
+    "path": "build/tests-js.log.gz",
     "source": "/private/tmp/blanc-f12-native-build/tests-js.log",
     "bytes": 9498,
     "sha256": "9b1aec58f96353eacec6bcd4af57e25faa30183ba45c341071e5aba6f4709548",
-    "storedBytes": 9498,
-    "storedSha256": "9b1aec58f96353eacec6bcd4af57e25faa30183ba45c341071e5aba6f4709548",
-    "compression": "none"
+    "storedBytes": 2449,
+    "storedSha256": "213e4d3ea0e42f0f627690cfaa95c0b4e693acc73be5e2b6a9a52279e12a032c",
+    "compression": "gzip"
   },
   {
-    "path": "build/tests-validator.log",
+    "path": "build/tests-validator.log.gz",
     "source": "/private/tmp/blanc-f12-native-build/tests-validator.log",
     "bytes": 114,
     "sha256": "f76d6dfb7bbf53a81cf86d2fceedd819a8da89e841a0a8e7dd42efc57d21cff0",
-    "storedBytes": 114,
-    "storedSha256": "f76d6dfb7bbf53a81cf86d2fceedd819a8da89e841a0a8e7dd42efc57d21cff0",
-    "compression": "none"
+    "storedBytes": 54,
+    "storedSha256": "7b64182851c0deba3f776780034488016a4169c0cdf37612f043f7316befc91a",
+    "compression": "gzip"
   },
   {
     "path": "engine/bundle_hash.h",
