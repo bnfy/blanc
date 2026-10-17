@@ -76,3 +76,10 @@ test('clearing history withdraws every icon the overlays were given', () => {
   assert.match(body, /for \(const host of bangIconHostsShown\) broadcastBangIcon\(host, null\);/);
   assert.match(body, /bangIconHostsShown\.clear\(\);/);
 });
+
+test('a custom bang\'s row uses visit icons only, never a stored server copy', () => {
+  const body = fn('bangIconsFor');
+  assert.match(body, /const customHosts = bangIconsPolicy\.customHostSet\(current\.customBangs, Bangs\);/);
+  assert.match(body, /const held = customHosts\.has\(host\) \? null : bangIcons\.held\(host\);/);
+  assert.ok(body.indexOf('const customHosts') < body.indexOf('for (const host of wanted)'), 'decided before the loop');
+});

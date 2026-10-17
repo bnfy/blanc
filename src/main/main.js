@@ -7922,6 +7922,9 @@ function bangIconsFor(hosts) {
       .map((host) => host.toLowerCase()),
   )].slice(0, MAX_BANG_ICON_HOSTS);
   const privateActive = tabs.get(rt().activeTabId)?.private === true;
+  const current = settings.getSettings();
+  // The person's own bangs use icons from their visits only (spec).
+  const customHosts = bangIconsPolicy.customHostSet(current.customBangs, Bangs);
   const heldVisitIcon = visitIconLookup();
   const answers = [];
   const fromStore = [];
@@ -7932,7 +7935,7 @@ function bangIconsFor(hosts) {
       answers.push({ host, icon: visit });
       continue;
     }
-    const held = bangIcons.held(host);
+    const held = customHosts.has(host) ? null : bangIcons.held(host);
     if (held) {
       answers.push({ host, icon: held.icon });
       fromStore.push(host);
@@ -7941,12 +7944,11 @@ function bangIconsFor(hosts) {
   }
   for (const answer of answers) bangIconHostsShown.add(answer.host);
   if (!privateActive) bangIcons.touch(fromStore);
-  const current = settings.getSettings();
   bangIcons.request(toAsk, {
     enabled: current.bangsEnabled !== false,
     setupComplete: settings.isFirstRunComplete(),
     privateActive,
-    customHosts: bangIconsPolicy.customHostSet(current.customBangs, Bangs),
+    customHosts,
   });
   return answers;
 }
