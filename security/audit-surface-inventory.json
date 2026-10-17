@@ -220,7 +220,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "ac7a97bce4ddc7d1b864339a4e661f64aa573a9c3e06fa129c5897626afb2170",
+      "sha256": "2156e015eb20f768a5b01fdc0a769ed60e1fdb29eccbb4bb70a1cfbc66fad9a6",
       "literalChannels": [
         "activate",
         "before-input-event",
@@ -297,7 +297,9 @@
         "fill:reply",
         "focus",
         "groups:move-closed",
+        "groups:rename",
         "groups:reorder",
+        "groups:ungroup",
         "input-event",
         "login",
         "open-file",
@@ -532,7 +534,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "0624b427b9414338dc8a1a106bcb54e379ef90a0848ff22b0f060e66f2ae30e4",
+      "sha256": "704c36523eab14d5f899b70f6eaf26ad486b9a73134298ed7e8386a0b6b501a8",
       "literalChannels": [
         "chrome:adblock-exempt-active",
         "chrome:adblock-toggle",
@@ -593,7 +595,9 @@
         "display-capture:picker-resolve",
         "display-capture:stop",
         "groups:move-closed",
+        "groups:rename",
         "groups:reorder",
+        "groups:ungroup",
         "overlay:close",
         "overlay:drag-state",
         "overlay:escape",

@@ -464,6 +464,11 @@
     <string name="tab_menu_copy_link">Copia link</string>
     <string name="tab_menu_duplicate">Duplica scheda</string>
     <string name="tab_menu_rename">Rinomina scheda…</string>
+    <string name="prompt_rename_group">Rinomina gruppo · Invio salva · Esc annulla</string>
+    <string name="group_menu_duplicate">Esiste già un gruppo chiamato «%1$s»</string>
+    <string name="group_menu_close">Chiudi il gruppo</string>
+    <string name="group_menu_ungroup">Separa gruppo</string>
+    <string name="group_menu_rename">Rinomina gruppo…</string>
     <string name="tab_menu_reset_title">Reimposta titolo scheda</string>
     <string name="tab_menu_pin">Fissa la scheda</string>
     <string name="tab_menu_unpin">Rilascia la scheda</string>

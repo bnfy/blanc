@@ -1649,6 +1649,26 @@
     "message": "Rinomina scheda…",
     "source": "sha256:465869570b3a7cdb56fc2bc4c0a5c54df738d89302224291ae83e73db1e91341"
   },
+  "prompt.renameGroup": {
+    "message": "Rinomina gruppo · Invio salva · Esc annulla",
+    "source": "sha256:c5474e46aa1c533cd52cacfa15f67a058c3990d4d6f70f048e22ac91d1c26713"
+  },
+  "groupMenu.duplicate": {
+    "message": "Esiste già un gruppo chiamato «{name}»",
+    "source": "sha256:45ff90bc26cdf4541799afe27f1c54d34d8a8830082969c43c088fa33a21b32e"
+  },
+  "groupMenu.close": {
+    "message": "Chiudi il gruppo",
+    "source": "sha256:83e3e03137c17ba411e52728a224422c1afa395ee4d992d8cdc5690e30efb973"
+  },
+  "groupMenu.ungroup": {
+    "message": "Separa gruppo",
+    "source": "sha256:af29c1ce7762334d04b10060ad2a4a6b11b87a9deaac8bdd4607c641f34f730f"
+  },
+  "groupMenu.rename": {
+    "message": "Rinomina gruppo…",
+    "source": "sha256:c296687065931c5eeab8175fc34ab9a52eb2c25f52ef27d947a40fb1e0bf4971"
+  },
   "tabMenu.resetTitle": {
     "message": "Reimposta titolo scheda",
     "source": "sha256:76a2178eb808c0e3393f888539b7e3f47961b061cb959281cacb9cd4b330691c"

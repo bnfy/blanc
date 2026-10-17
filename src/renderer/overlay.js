@@ -119,6 +119,10 @@
   // F46: the exact text a rename prompt was opened with. Enter on it unedited
   // changes nothing, even if the page has retitled itself since.
   let renamePrefill = null;
+  // A name prompt (spec 2026-10-16-island-lower-section §9.3): the address
+  // field edits a name instead of navigating. { kind: 'group', id, prefill,
+  // notice } — Rename Group… today, Rename Device… with Part 4.
+  let namePrompt = null;
   /** A click only reaches a row's handler when mousedown and mouseup land on
    * the same element. tabs:updated broadcasts arrive in bursts while any page
    * loads, and a replaceChildren between the two destroys the pressed row —
@@ -1680,6 +1684,17 @@
     visibleCommands = [];
     visibleResults = [];
 
+    // A name prompt owns the panel: one line saying what Enter does (or why
+    // a name was refused), and no switcher results for the name being typed.
+    if (namePrompt) {
+      const row = emptyRow(namePrompt.notice || blancI18n.t('prompt.renameGroup'));
+      row.classList.add('command-notice', 'name-prompt');
+      islandList.replaceChildren(row);
+      renderDevicesDrawer(false);
+      islandHint.textContent = '';
+      return;
+    }
+
     if (siteInfoOpen) {
       renderSiteInfo();
     } else if (inputTouched && value.startsWith('/')) {
@@ -1972,6 +1987,7 @@
         pendingGroupTabId = null;
         pendingRenameTabId = null;
         renamePrefill = null;
+        namePrompt = null;
         clearWorkspacePopoverEditors();
         closeWorkspaceSwitcher();
         addressInputComposing = false;
@@ -1995,6 +2011,12 @@
         pendingRenameTabId = purpose.renameTabId;
         pendingGroupTabId = null;
         renamePrefill = prefill ?? null;
+      }
+      // "Rename Group…": the same atomic payload makes the field a name prompt.
+      if (purpose && typeof purpose === 'object' && purpose.renameGroupId != null) {
+        namePrompt = { kind: 'group', id: purpose.renameGroupId, prefill: prefill ?? '', notice: '' };
+        pendingGroupTabId = null;
+        pendingRenameTabId = null;
       }
       // A workspace row's context menu (main process) has no other channel
       // back into an already-open panel — same atomic-payload reasoning as
@@ -2030,9 +2052,12 @@
         if (prefill) {
           // "Rename Tab…" selects only the current name, so typing replaces
           // it and the arrow keys edit it; other prefills park the cursor.
-          const from = pendingRenameTabId != null && prefill.startsWith('/rename ')
-            ? '/rename '.length
-            : prefill.length;
+          // A name prompt selects the whole name, so typing replaces it.
+          const from = namePrompt
+            ? 0
+            : pendingRenameTabId != null && prefill.startsWith('/rename ')
+              ? '/rename '.length
+              : prefill.length;
           addressInput.setSelectionRange(from, prefill.length);
         }
         else if (!reshow || !inputTouched) addressInput.select();
@@ -2580,6 +2605,7 @@
     pendingGroupTabId = null;
     pendingRenameTabId = null;
     renamePrefill = null;
+    namePrompt = null;
     clearWorkspacePopoverEditors();
     closeWorkspaceSwitcher();
     selectedResultIndex = -1;
@@ -2755,8 +2781,32 @@
     }
     renderList();
   });
+  /** Enter in a name prompt: an unchanged name just closes the panel; a
+   * refused one says why and keeps the prompt open. */
+  async function submitNamePrompt() {
+    const prompt = namePrompt;
+    const value = addressInput.value;
+    if (value.trim() === prompt.prefill.trim()) {
+      window.browserAPI.closeOverlay();
+      return;
+    }
+    const result = await window.browserAPI.renameGroup(prompt.id, value);
+    if (namePrompt !== prompt) return; // dismissed while main answered
+    if (result?.ok === false && result.error === 'duplicate') {
+      prompt.notice = blancI18n.t('groupMenu.duplicate', { name: value.trim() });
+      renderList();
+      return;
+    }
+    window.browserAPI.closeOverlay();
+  }
+
   addressInput.addEventListener('keydown', (e) => {
     if (e.isComposing) return;
+    if (namePrompt && e.key === 'Enter') {
+      e.preventDefault();
+      submitNamePrompt();
+      return;
+    }
     const unmodifiedArrow = !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey;
     if (
       unmodifiedArrow
@@ -2924,6 +2974,12 @@
     const workspaceRowEl = tabRowEl ? null : e.target.closest('.workspace-row[data-workspace-id]');
     window.__blancCtxRowTabId = tabRowEl?.dataset.tabId ?? null;
     window.__blancCtxWorkspaceId = workspaceRowEl?.dataset.workspaceId ?? null;
+    // A named group's header gets main's group menu (group-context-menu.js);
+    // the Recently closed band's header is not a group and has none.
+    const groupHeaderId = tabRowEl || workspaceRowEl
+      ? null
+      : e.target.closest('#islandList [data-drag-header][data-group-id]')?.dataset.groupId ?? null;
+    window.__blancCtxGroupId = groupHeaderId === dragApi.constants.CLOSED_SECTION_ID ? null : groupHeaderId;
     // A context-menu press never completes as a click, and a native menu
     // swallows its pointerup — macOS menus even keep key-window status, so
     // the blur fallback never fires either. Without this release, the
@@ -2935,6 +2991,7 @@
       !e.target.closest('#addressInput')
       && window.__blancCtxRowTabId == null
       && window.__blancCtxWorkspaceId == null
+      && window.__blancCtxGroupId == null
     ) {
       e.preventDefault();
     }

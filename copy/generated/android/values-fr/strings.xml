@@ -464,6 +464,11 @@
     <string name="tab_menu_copy_link">Copier le lien</string>
     <string name="tab_menu_duplicate">Dupliquer l’onglet</string>
     <string name="tab_menu_rename">Renommer l’onglet…</string>
+    <string name="prompt_rename_group">Renommer le groupe · Entrée enregistre · Échap annule</string>
+    <string name="group_menu_duplicate">Un groupe nommé « %1$s » existe déjà</string>
+    <string name="group_menu_close">Fermer le groupe</string>
+    <string name="group_menu_ungroup">Dégrouper</string>
+    <string name="group_menu_rename">Renommer le groupe…</string>
     <string name="tab_menu_reset_title">Réinitialiser le titre de l’onglet</string>
     <string name="tab_menu_pin">Épingler l’onglet</string>
     <string name="tab_menu_unpin">Détacher l’onglet</string>

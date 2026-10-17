@@ -239,6 +239,13 @@ export interface DisplayShareSummary {
   tabId: TabId | null;
 }
 
+/** Result of renameGroup, built by renameGroup() in main.js. */
+export interface GroupRenameResult {
+  ok: boolean;
+  /** Present when ok is false: another group already has the name, or the group is gone. */
+  error?: 'duplicate' | 'unknown';
+}
+
 /** Result of getAllTabs, built by the tabs:get-all handler in main.js. */
 export interface TabsSnapshot {
   tabs: TabEntry[];
@@ -740,6 +747,16 @@ export interface BlancBrowserAPI {
    * IPC: invoke `groups:move-closed`.
    */
   moveClosedSection(beforeGroupId: GroupId | null): Promise<boolean>;
+  /**
+   * Rename a group, keeping the case typed. An empty or unchanged name changes nothing; another group's name in this window (in any case) is refused.
+   * IPC: invoke `groups:rename`.
+   */
+  renameGroup(groupId: GroupId, name: string): Promise<GroupRenameResult>;
+  /**
+   * Make every tab in a group ungrouped; the empty group goes away.
+   * IPC: invoke `groups:ungroup`.
+   */
+  ungroupGroup(groupId: GroupId): Promise<void>;
   /**
    * Activate a tab from the vertical tab rail.
    * IPC: invoke `tabs:activate-from-rail`.

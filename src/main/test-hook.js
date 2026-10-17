@@ -85,6 +85,8 @@ function install(refs) {
     groupTabByName,
     renameTab,
     beginRenameTab,
+    beginRenameGroup,
+    ungroupGroup,
     closeGroup,
     toggleGroupCollapsed,
     moveTabTo,
@@ -584,6 +586,16 @@ function install(refs) {
     groupTabByName(id, name) { groupTabByName(id, name); },
     renameTab(id, name) { renameTab(id, name); },
     beginRenameTab(id) { beginRenameTab(id); },
+    beginRenameGroupByName(name) {
+      const group = getGroups().find((g) => sameGroupName(g.name, name));
+      if (group) beginRenameGroup(group.id);
+      return !!group;
+    },
+    ungroupGroupByName(name) {
+      const group = getGroups().find((g) => sameGroupName(g.name, name));
+      if (group) ungroupGroup(group.id);
+      return !!group;
+    },
     activateTab(id, focusContent = false) { setActiveTab(id, { focusContent: !!focusContent }); },
     focusTabContents(id) {
       const tab = tabs.get(id);
