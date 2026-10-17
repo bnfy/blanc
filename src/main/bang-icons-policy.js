@@ -45,6 +45,7 @@ function customHostSet(customBangs, Bangs) {
 
 function storedState(record, now) {
   if (!record) return 'missing';
+  if (!Number.isFinite(record.fetchedAt)) return 'stale';
   return now - record.fetchedAt > REFRESH_AFTER_MS ? 'stale' : 'fresh';
 }
 

@@ -36,7 +36,7 @@ function harness({ records = [], hosts = ['a.example', 'b.example', 'c.example',
       pending.set(url.split('/').pop(), d);
       return d.promise;
     },
-    sanitizeIconBytes: async (contentType, bytes) => (bytes ? `data:image/png;base64,${bytes.toString('base64')}` : null),
+    sanitizeIconBytes: async (contentType, bytes) => (bytes ? VALID_ICON : null),
   });
   const changes = [];
   service.onChange((host, icon) => changes.push([host, icon]));
@@ -47,12 +47,12 @@ function harness({ records = [], hosts = ['a.example', 'b.example', 'c.example',
 test('held returns a stored icon and marks it stale after 30 days', () => {
   const { service } = harness({
     records: [
-      { host: 'a.example', icon: 'A', fetchedAt: NOW - 1000, usedAt: NOW },
-      { host: 'b.example', icon: 'B', fetchedAt: NOW - REFRESH_AFTER_MS - 1, usedAt: NOW },
+      { host: 'a.example', icon: VALID_ICON, fetchedAt: NOW - 1000, usedAt: NOW },
+      { host: 'b.example', icon: VALID_ICON, fetchedAt: NOW - REFRESH_AFTER_MS - 1, usedAt: NOW },
     ],
   });
-  assert.deepEqual(service.held('a.example'), { icon: 'A', stale: false });
-  assert.deepEqual(service.held('b.example'), { icon: 'B', stale: true });
+  assert.deepEqual(service.held('a.example'), { icon: VALID_ICON, stale: false });
+  assert.deepEqual(service.held('b.example'), { icon: VALID_ICON, stale: true });
   assert.equal(service.held('c.example'), null);
 });
 
@@ -69,7 +69,7 @@ test('a fetched icon is stored and emitted once', async () => {
   service.request(['a.example'], ALLOW);
   pending.get('a.example').resolve({ contentType: 'image/png', bytes: Buffer.from('A') });
   await settle();
-  const icon = `data:image/png;base64,${Buffer.from('A').toString('base64')}`;
+  const icon = VALID_ICON;
   assert.deepEqual(changes, [['a.example', icon]]);
   assert.equal(store.data.records[0].host, 'a.example');
   assert.equal(store.data.records[0].icon, icon);
@@ -109,7 +109,7 @@ test('custom and unknown hosts are never fetched', () => {
 
 test('a refresh 404 drops the stored copy and emits null', async () => {
   const { service, pending, store, changes, settle } = harness({
-    records: [{ host: 'a.example', icon: 'A', fetchedAt: NOW - REFRESH_AFTER_MS - 1, usedAt: NOW }],
+    records: [{ host: 'a.example', icon: VALID_ICON, fetchedAt: NOW - REFRESH_AFTER_MS - 1, usedAt: NOW }],
   });
   service.request(['a.example'], ALLOW);
   pending.get('a.example').resolve({ status: 404 });
@@ -122,18 +122,18 @@ test('a refresh 404 drops the stored copy and emits null', async () => {
 
 test('a refresh failure keeps the stored copy', async () => {
   const { service, pending, store, changes, settle } = harness({
-    records: [{ host: 'a.example', icon: 'A', fetchedAt: NOW - REFRESH_AFTER_MS - 1, usedAt: NOW }],
+    records: [{ host: 'a.example', icon: VALID_ICON, fetchedAt: NOW - REFRESH_AFTER_MS - 1, usedAt: NOW }],
   });
   service.request(['a.example'], ALLOW);
   pending.get('a.example').resolve({ status: 503 });
   await settle();
-  assert.equal(store.data.records[0].icon, 'A');
+  assert.equal(store.data.records[0].icon, VALID_ICON);
   assert.deepEqual(changes, []);
 });
 
 test('a fetch finishing after clear is discarded', async () => {
   const { service, pending, store, changes, settle } = harness({
-    records: [{ host: 'b.example', icon: 'B', fetchedAt: NOW, usedAt: NOW }],
+    records: [{ host: 'b.example', icon: VALID_ICON, fetchedAt: NOW, usedAt: NOW }],
   });
   service.request(['a.example'], ALLOW);
   service.clear();
@@ -147,8 +147,8 @@ test('a fetch finishing after clear is discarded', async () => {
 test('touch moves used hosts to the front of the store', () => {
   const { service, store } = harness({
     records: [
-      { host: 'a.example', icon: 'A', fetchedAt: 1, usedAt: 1 },
-      { host: 'b.example', icon: 'B', fetchedAt: 1, usedAt: 1 },
+      { host: 'a.example', icon: VALID_ICON, fetchedAt: 1, usedAt: 1 },
+      { host: 'b.example', icon: VALID_ICON, fetchedAt: 1, usedAt: 1 },
     ],
   });
   service.touch(['b.example']);
@@ -197,4 +197,30 @@ test('test hooks list stored hosts and reset the run between scenarios', async (
   service.request(['a.example'], ALLOW);
   assert.deepEqual(service.requestedHosts(), ['a.example'], 'a 404 from before the reset is forgotten');
   assert.equal(calls.length, 2, 'the reset stub answers without the network');
+});
+
+// A real 32×32 PNG data URL (the history test fixture), so stored records pass
+// the PNG-only check on read.
+const VALID_ICON = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAABr0lEQVR4nLTWsUrDQBgH8O/7cmpr1aFj8Rmq+BSiaAdBqnZQfAlx8EnsIO1UcKhDfQkdbJd20EFBUKgFO0TTXM7vEhDR1ia55JZLLnC/u/93kBPKb57nSSkPj4+a9UZn5iQ3IhcUAYJxEzw7+k0IUT2vZmwcXvaXREG6nwrQXEBeu+5QPxASePC6feG0OpZYVK4EYwN5B9wpTyFpA7WJ/VLNbrUTMWivsm+POA1dBiJiTZHKNyvZjaJ0hygsHlAQv1kPnd5j935zp8TrRAVs6AkRsuWie/vi9J5IZEDHGHMfVnf2dLXjzd0McuUVfWq45okatOBYy1bho9V+K9VB11uHpQ69Ecyz4vPuOdLhetrpGIQ6F+TTkpKhp/CTTcugoEvPoO+nlAz6+ZKGQb/eEzfo71CyBo0dTdCgCeOJGROBpIz/gESMKYC5MR0wNEIBJkZYILYRAYhnRANiGJGBsMZVJbvOxnscIJSBmG8ezJfW8BnOIG7zz4niHDgNzoSTCWrKRnCTg6hFnr4Pxf94DGYPrtVGwBhjqwaOhOAuisY7GGNc3w12GzCS4C+fjS8AAAD///R8eLkAAAAGSURBVAMAqMIc5gOIAroAAAAASUVORK5CYII=';
+
+test('held never hands the chrome anything but a valid stored PNG', () => {
+  const { service } = harness({
+    records: [
+      { host: 'a.example', icon: 'data:image/svg+xml;base64,PHN2Zy8+', fetchedAt: NOW, usedAt: NOW },
+      { host: 'b.example', icon: 'not an icon', fetchedAt: NOW, usedAt: NOW },
+      { host: 'c.example', icon: VALID_ICON, fetchedAt: NOW, usedAt: NOW },
+    ],
+  });
+  assert.equal(service.held('a.example'), null, 'an SVG data URL from a hand-edited file is ignored');
+  assert.equal(service.held('b.example'), null);
+  assert.deepEqual(service.held('c.example'), { icon: VALID_ICON, stale: false });
+});
+
+test('a stored record without a valid time is stale, so it gets refreshed', () => {
+  const { service, calls } = harness({
+    records: [{ host: 'a.example', icon: VALID_ICON, usedAt: NOW }],
+  });
+  assert.deepEqual(service.held('a.example'), { icon: VALID_ICON, stale: true });
+  service.request(['a.example'], ALLOW);
+  assert.equal(calls.length, 1);
 });

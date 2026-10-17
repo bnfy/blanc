@@ -7,6 +7,7 @@
 // Design: docs/superpowers/specs/2026-10-17-bang-icons-in-app-design.md.
 
 const policy = require('./bang-icons-policy');
+const { validIconData } = require('./tabicons-model');
 
 /**
  * @param {{
@@ -29,7 +30,12 @@ function createBangIcons({ store, readIconBytes, sanitizeIconBytes, catalogHosts
   let reader = readIconBytes;
 
   const records = () => (Array.isArray(store.data.records) ? store.data.records : []);
-  const recordFor = (host) => records().find((record) => record.host === host) ?? null;
+  // The file can be edited by hand: only an inert 32px PNG ever reaches the
+  // chrome, like every other stored icon (validIconData on read).
+  const recordFor = (host) => {
+    const record = records().find((candidate) => candidate?.host === host);
+    return record && validIconData(record.icon) ? record : null;
+  };
   const setRecords = (next) => store.update((data) => { data.records = next; });
   const emit = (host, icon) => {
     for (const listener of listeners) {
@@ -84,7 +90,7 @@ function createBangIcons({ store, readIconBytes, sanitizeIconBytes, catalogHosts
     /** The stored server copy for a host, if any. */
     held(host) {
       const record = recordFor(host);
-      if (!record || typeof record.icon !== 'string') return null;
+      if (!record) return null;
       return { icon: record.icon, stale: policy.storedState(record, now()) === 'stale' };
     },
 
