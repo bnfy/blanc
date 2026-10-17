@@ -6,9 +6,10 @@ coordinator's provider decision method in that extracted copy. It does not
 replace request listeners, evaluate synthetic requests against an engine, or
 use the blocker-disabled `BLANC_TEST=1` mode. The installed app is read only.
 
-A loopback HTTP proxy serves only six exact fixture URLs, preserving their
+A loopback proxy serves only six exact HTTP or HTTPS fixture URLs, preserving their
 original scheme, authority, path and query. It never forwards unknown traffic.
-TLS CONNECT receives 502. Browser DNS is disabled except loopback as an extra
+HTTP mode refuses CONNECT. HTTPS mode terminates only known fixture authorities locally;
+unknown hosts/ports and mismatched SNI/Host are refused. Browser DNS is disabled except loopback as an extra
 restriction. The fixture page issues real script/fetch requests; allowed traffic
 must appear at the proxy under its original URL and Host, while blocked traffic
 must have a real provider decision and no proxy arrival. Both regular and private
@@ -18,7 +19,7 @@ This is an **authored fixture pilot**, not the required real-page capture corpus
 of 2,000 blocked and 2,000 allowed requests. It is also not signed-package
 acceptance: the instrumentation changes the unpackaged bootstrap and uses a
 stock Electron executable. No performance claim is valid from a synchronous
-logging wrapper. TLS, original-site response acquisition, request correlation,
+logging wrapper. Original-site response acquisition, request correlation,
 workers, service workers, redirects and post-teardown keepalive remain pending.
 
 The observer logs **every provider `onBeforeRequest` call**, including non-fixture
@@ -66,3 +67,38 @@ Proxy-only tests (require permission to bind a loopback socket):
 ```
 node --test pilot/proxy-test.mjs
 ```
+
+## HTTPS mode
+
+Set `BLANC_F12_TLS=1` on the same runner command. The fixtures and their embedded
+URLs become HTTPS; assertions continue to use those original origins. A fresh
+one-day CA and server leaf are generated with OpenSSL inside the disposable run
+directory. The leaf has exact fixture-host SANs. The proxy terminates TLS itself;
+it opens no outbound connection and never tunnels to a remote server.
+
+Only the disposable Electron Sessions install `setCertificateVerifyProc` through
+the extracted bootstrap. The callback checks the pinned generated leaf, its CA
+signature, exact allowed hostname/SAN and both certificates' validity windows;
+anything else is rejected. This is explicit session-local fixture trust, **not**
+a global certificate-error override or macOS trust-store import. Trust decisions
+retain Chromium's original verification error. No `--ignore-certificate-errors`
+or process-wide TLS verification disable is used. The temporary CA, private keys,
+app and profiles are removed when the owned browser exits. Keys are never evidence.
+
+The same TLS response bytes can serve the eventual 157 replay, but **157 fixture
+trust and browser replay are not implemented or tested here**. There is no claim
+that the production certificate-validation path passed: this is a fixture trust
+callback, deliberately limited to this ephemeral leaf and these offline hosts.
+
+Run transport and trust tests with:
+
+```
+node --test pilot/proxy-test.mjs pilot/tls-test.mjs
+```
+
+Tests cover trusted and untrusted TLS, unknown CONNECT hosts/ports, Host/tunnel
+mismatch, pinned-certificate/hostname/expiry rejection, and the original HTTP
+proxy restrictions. The actual browser run asserts encrypted allowed arrivals,
+correct initiators including no-referrer, unchanged real blocking decisions,
+and accepted fixture verification in both regular/private Sessions. This remains
+an authored transport pilot, not the real-page acceptance corpus.
