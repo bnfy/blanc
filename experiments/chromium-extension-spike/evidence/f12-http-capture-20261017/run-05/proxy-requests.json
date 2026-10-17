@@ -1,0 +1,20 @@
+[
+  {
+    "method": "GET",
+    "url": "http://page.blanc-fixture.test/pilot.html",
+    "host": "page.blanc-fixture.test",
+    "known": true
+  },
+  {
+    "method": "GET",
+    "url": "http://asset.blanc-fixture.test/control.js",
+    "host": "asset.blanc-fixture.test",
+    "known": true
+  },
+  {
+    "method": "GET",
+    "url": "http://asset.blanc-fixture.test/data.json",
+    "host": "asset.blanc-fixture.test",
+    "known": true
+  }
+]
