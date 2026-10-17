@@ -28,6 +28,10 @@ const OUT_LICENSE = path.join(ROOT, 'site', 'public', 'licenses', 'kagi-bangs-MI
 const CATALOG_PATH = 'src/renderer/pages/bangs-catalog.js';
 const MODULE_PATH = 'src/renderer/pages/bangs.js';
 const LICENSE_PATH = 'bangs/sources/kagi-bangs-LICENSE.txt';
+const MESSAGES_PATH = 'copy/messages/en.json';
+// The try-it box's hint and section labels, in the app's own English words
+// at the same ref, so a re-pin carries any copy change the release made.
+const LABEL_KEYS = { search: 'bang.search', open: 'bang.open', popular: 'bang.section.popular', all: 'bang.section.all' };
 
 // The catalog is about 1.5 MB; Node's default 1 MiB maxBuffer fails with ENOBUFS.
 function gitShow(ref, file) {
@@ -38,15 +42,19 @@ function resolveCommit(ref) {
   return execFileSync('git', ['rev-parse', `${ref}^{commit}`], { cwd: ROOT, encoding: 'utf8' }).trim();
 }
 
-const SITE_LIMIT = /site:|site%3A/i;
+// `site:` limits a search to one site; `-site:` only excludes one.
+const SITE_LIMIT = /(?<![-\w])(?:site|inurl)(?::|%3A)/i;
+const GOOGLE_SITE_PARAMS = ['cx', 'sitesearch', 'as_sitesearch', 'domains'];
 
 /**
- * The search engine a bang's template searches through, when the bang opens
- * an engine's search limited to one site (`site:`, `sites=`, or a Google
- * custom search `cx=`), else null. Google's own products (Maps, Images) and
- * the engines' own bangs are not engine searches of another site.
+ * The search engine a bang's template sends your words through, when the bang
+ * opens an engine's search of one site rather than the site itself: a
+ * `site:` or `inurl:` limit, `sites=`, Google's custom search `cx=` and its
+ * `sitesearch=`/`domains=`, or a DuckDuckGo `!bang` redirect. Google's own
+ * products (Maps, Images), exclusions (`-site:`) and the engines' own bangs
+ * (`name` names the engine) are not engine searches of another site.
  */
-function engineSearchVia(template) {
+function engineSearchVia(template, name = '') {
   let url;
   try {
     url = new URL(String(template).replace('%s', 'x'));
@@ -55,11 +63,13 @@ function engineSearchVia(template) {
   }
   const host = url.hostname.toLowerCase();
   const isGoogle = /^(www\.)?google\.[a-z.]+$/.test(host) || host === 'cse.google.com';
-  if (isGoogle && /^\/(search|cse|custom)/.test(url.pathname) && (SITE_LIMIT.test(template) || url.searchParams.has('cx'))) {
+  if (isGoogle && /^\/(search|cse|custom)/.test(url.pathname)
+    && (SITE_LIMIT.test(template) || GOOGLE_SITE_PARAMS.some((param) => url.searchParams.get(param)))) {
     return 'Google';
   }
-  if (/^(www\.)?duckduckgo\.com$/.test(host) && (url.searchParams.has('sites') || SITE_LIMIT.test(template))) {
-    return 'DuckDuckGo';
+  if (/^(www\.)?duckduckgo\.com$/.test(host)) {
+    const redirect = /^!/.test(url.searchParams.get('q') ?? '') && !/duckduckgo|\bddg\b/i.test(name);
+    if (url.searchParams.has('sites') || SITE_LIMIT.test(template) || redirect) return 'DuckDuckGo';
   }
   if (/(^|\.)bing\.com$/.test(host) && SITE_LIMIT.test(template)) return 'Bing';
   return null;
@@ -73,12 +83,21 @@ function evaluateCatalog(bytes) {
   return catalog;
 }
 
-function renderData({ ref, release, catalogBytes }) {
+function readLabels(messagesBytes) {
+  const messages = JSON.parse(messagesBytes.toString('utf8'));
+  return Object.fromEntries(Object.entries(LABEL_KEYS).map(([name, key]) => {
+    const message = messages[key]?.message;
+    if (typeof message !== 'string' || !message) throw new Error(`${MESSAGES_PATH} has no ${key}`);
+    return [name, message];
+  }));
+}
+
+function renderData({ ref, release, catalogBytes, messagesBytes }) {
   const catalog = evaluateCatalog(catalogBytes);
   const entries = JSON.parse(JSON.stringify([...catalog]));
   const via = {};
   for (const entry of entries) {
-    const tag = engineSearchVia(entry[4]);
+    const tag = engineSearchVia(entry[4], entry[2]);
     if (tag) via[entry[0]] = tag;
   }
   const head = {
@@ -87,6 +106,7 @@ function renderData({ ref, release, catalogBytes }) {
     catalogSha256: crypto.createHash('sha256').update(catalogBytes).digest('hex'),
     count: entries.length,
     popular: [...catalog.popular],
+    labels: readLabels(messagesBytes),
     via,
   };
   // One entry per line so a list update reads as a diff.
@@ -106,7 +126,7 @@ function buildOutputs({ ref, release }) {
   const commit = resolveCommit(ref);
   if (release && resolveCommit(release) !== commit) throw new Error(`--release ${release} is not ${ref}`);
   return [
-    [OUT_JSON, Buffer.from(renderData({ ref: commit, release: release ?? null, catalogBytes: gitShow(commit, CATALOG_PATH) }))],
+    [OUT_JSON, Buffer.from(renderData({ ref: commit, release: release ?? null, catalogBytes: gitShow(commit, CATALOG_PATH), messagesBytes: gitShow(commit, MESSAGES_PATH) }))],
     [OUT_MODULE, gitShow(commit, MODULE_PATH)],
     [OUT_LICENSE, gitShow(commit, LICENSE_PATH)],
   ];

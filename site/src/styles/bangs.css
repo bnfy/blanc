@@ -14,23 +14,31 @@
   flex: 1 1 auto; min-width: 0; height: 100%; padding: 0; border: 0; outline: 0;
   background: transparent; color: var(--text); font: inherit;
 }
+/* The field's border carries focus, since the input itself draws none. */
+.bangs-field:focus-within { border-color: var(--text-dim); }
 .bangs-stage .list.command-directory { max-height: 236px; }
 .bangs-stage .trow .domain { flex: 0 0 auto; margin-left: auto; color: var(--text-dim); font-family: var(--font-ui); font-size: 11px; }
-.bangs-dest {
-  position: absolute; left: 50%; bottom: 74px; width: min(560px, 90%); margin: 0; transform: translateX(-50%);
-  overflow: hidden; color: var(--text-dim); font-family: var(--font-ui); font-size: 12px; text-align: center;
-  text-overflow: ellipsis; white-space: nowrap;
-}
-.bangs-dest code { color: var(--text); font-family: var(--font-ui); }
-.bangs-chips {
-  position: absolute; left: 50%; bottom: 26px; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+/* The Island replica never wraps; these messages are sentences. */
+.bangs-stage .trow .empty { flex: 1 1 auto; min-width: 0; white-space: normal; }
+/* The address and the chips stack under the Island, so neither covers the
+   other however the chips wrap; the address shows in full. */
+.bangs-under {
+  position: absolute; left: 50%; bottom: 24px; display: flex; flex-direction: column; align-items: center; gap: 14px;
   width: min(620px, 92%); transform: translateX(-50%);
 }
+.bangs-dest {
+  max-width: 560px; margin: 0; color: var(--text-dim); font-family: var(--font-ui); font-size: 12px; line-height: 1.5;
+  text-align: center; overflow-wrap: anywhere;
+}
+.bangs-dest:empty { display: none; }
+.bangs-dest code { color: var(--text); font-family: var(--font-ui); }
+.bangs-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 .bangs-chips button {
   padding: 5px 11px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface-raised);
   color: var(--text); cursor: pointer; font-family: var(--font-ui); font-size: 12px;
 }
 .bangs-chips button:hover { border-color: var(--text-dim); }
+.bangs-chips button:focus-visible { outline-color: var(--text); }
 
 /* ---------- directory ---------- */
 .bangs-dir { max-width: 920px; margin: 120px auto 0; scroll-margin-top: calc(var(--site-header-h) + 24px); }
@@ -54,7 +62,8 @@
 }
 .bangs-rows li:first-child { border-top: 0; }
 .bangs-rows li[hidden] { display: none; }
-.bangs-rows b { overflow: hidden; font-family: var(--font-ui); font-size: 13px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+/* A code is what a visitor came for: long ones wrap rather than truncate. */
+.bangs-rows b { min-width: 0; font-family: var(--font-ui); font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
 .bangs-rows span { min-width: 0; overflow-wrap: anywhere; font-size: 14px; }
 .bangs-rows small, .bangs-rows em { min-width: 0; overflow: hidden; color: var(--site-text-dim); font-family: var(--font-ui); font-size: 11.5px; font-style: normal; text-overflow: ellipsis; white-space: nowrap; }
 .bangs-rows em { text-align: right; }
@@ -67,10 +76,14 @@
   padding: 9px 18px; border: 0; border-radius: 999px; background: var(--site-accent); color: var(--site-bg); cursor: pointer;
   font: inherit; font-size: 14px; font-weight: 500;
 }
-.bangs-showing { margin: 10px 0 0; color: var(--site-text-dim); font-size: 13px; }
+.bangs-showing { margin: 10px 0 0; color: var(--site-text-dim); font-size: 13px; overflow-wrap: anywhere; }
 .bangs-credit { max-width: 62ch; margin: 22px auto 0; color: var(--site-text-dim); font-size: 13px; line-height: 1.6; text-align: center; }
 
 /* ---------- narrow screens ---------- */
+/* iOS zooms into any field under 16px when it is tapped. */
+@media (max-width: 760px), (pointer: coarse) {
+  .bangs-field input, .bangs-search input { font-size: 16px; }
+}
 @media (max-width: 760px) {
   .bangs-stage { height: 460px; }
   .bangs-rows li { grid-template-columns: 7.5em minmax(0, 1fr); }

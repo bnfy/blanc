@@ -21,7 +21,7 @@ const plain = (value) => JSON.parse(JSON.stringify(value));
 
 async function describe(text) {
   const { describeTryIt } = await tryit();
-  return plain(describeTryIt(text, Bangs, data.entries, data.popular));
+  return plain(describeTryIt(text, Bangs, data.entries, data.popular, data.labels));
 }
 
 test('a known bang with words gives the hint row and the address', async () => {
@@ -61,6 +61,17 @@ test('unknown codes, and text that is not a bang, are told apart', async () => {
   for (const text of ['', '   ']) assert.equal((await describe(text)).kind, 'empty', JSON.stringify(text));
 });
 
+test('the hint and section labels are the pinned app copy, filled in literally', async () => {
+  const { describeTryIt } = await tryit();
+  const labels = { search: 'Find {query} on {site}', open: 'Go to {site}', popular: 'Popular', all: 'All bangs' };
+  const ask = (text) => plain(describeTryIt(text, Bangs, data.entries, data.popular, labels));
+  assert.equal(ask('!yt lofi').hint.title, 'Find lofi on YouTube');
+  assert.equal(ask('!yt $& $1').hint.title, 'Find $& $1 on YouTube');
+  assert.equal(ask('!yt').hint.title, 'Go to YouTube');
+  assert.deepEqual(ask('!').sections.map((s) => s.label), ['Popular']);
+  assert.ok(ask('!yt').sections.some((s) => s.label === 'All bangs'));
+});
+
 test('pasted whitespace collapses and long input is capped at 200 characters', async () => {
   assert.equal((await describe('!yt\tlo\nfi')).hint.title, 'Search YouTube for “lo fi”');
   const long = '!yt ' + 'a'.repeat(10000);
@@ -79,6 +90,15 @@ test('directoryRows derives the opened host and the engine tag', async () => {
   assert.equal(ubuntufr.via, 'Google');
   assert.equal(ubuntufr.host, 'www.google.fr');
   assert.equal(rows.find((row) => row.code === 'yt').via, null);
+});
+
+test('directoryRows sorts the whole list without stalling the page', async () => {
+  // A collator per comparison took ~290 ms on a fast Mac; one shared takes ~15.
+  const { directoryRows } = await directory();
+  const started = performance.now();
+  directoryRows(data);
+  const took = performance.now() - started;
+  assert.ok(took < 150, `directoryRows took ${Math.round(took)} ms`);
 });
 
 test('filterBangs finds a bang by site or by code, literally', async () => {

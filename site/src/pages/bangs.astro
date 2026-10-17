@@ -19,7 +19,7 @@ const Bangs = bangsContext.module.exports;
 const rows = directoryRows(data);
 const countText = data.count.toLocaleString('en-US');
 const versionText = data.release ? `Blanc ${data.release.replace(/^v/, '')}` : 'this build of Blanc';
-const example = describeTryIt('!yt lofi', Bangs, data.entries, data.popular);
+const example = describeTryIt('!yt lofi', Bangs, data.entries, data.popular, data.labels);
 const SHOWN_ALIASES = 3;
 const otherCodes = (aliases) => aliases.length <= SHOWN_ALIASES
   ? aliases.map((alias) => `!${alias}`).join(' ')
@@ -32,7 +32,7 @@ const chips = ['!w golden retriever', '!a usb cable', '!gh electron', 'lofi !yt'
   path="/bangs"
   page="bangs"
   current="features"
-  ogDescription={"Type a site's code with your search and Blanc opens its results directly, with any search engine."}
+  ogDescription={"Type a site's code before your search and Blanc opens its results directly, with any search engine."}
   ogImage="/feature-bangs.png"
   ogImageAlt={"Blanc's Island with !yt lofi typed and the hint row reading Search YouTube for lofi."}
 >
@@ -45,7 +45,7 @@ const chips = ['!w golden retriever', '!a usb cable', '!gh electron', 'lofi !yt'
 
   <section class="feature-hero feature-hero--detail feature-hero--text bangs-hero" aria-labelledby="bangs-title">
     <h1 id="bangs-title">Search the site. Skip the engine.</h1>
-    <p>Type an exclamation mark and a site’s code with your search, like <code>!yt lofi</code>, and Blanc opens YouTube’s results directly. It works with whichever search engine you use, and your words go straight to the address the bang opens, not through your search engine.</p>
+    <p>Type an exclamation mark and a site’s code before your search, like <code>!yt lofi</code>, and Blanc opens YouTube’s results directly. It works with whichever search engine you use, and your words go straight to the address the bang opens, not through your search engine.</p>
     <a class="text-link bangs-jump" href="#find-a-bang">Find a bang <span aria-hidden="true">›</span></a>
   </section>
 
@@ -66,9 +66,11 @@ const chips = ['!w golden retriever', '!a usb cable', '!gh electron', 'lofi !yt'
           </div>
         </div>
       </div>
-      <p class="bangs-dest" id="bangs-try-dest">{example.kind === 'bang' && <>Return would open <code>{example.hint.url}</code></>}</p>
-      <div class="bangs-chips" aria-label="Examples">
-        {chips.map((chip) => <button type="button" data-chip={chip}>{chip}</button>)}
+      <div class="bangs-under">
+        <p class="bangs-dest" id="bangs-try-dest">{example.kind === 'bang' && <>Return would open <code>{example.hint.url}</code></>}</p>
+        <div class="bangs-chips" role="group" aria-label="Examples">
+          {chips.map((chip) => <button type="button" data-chip={chip}>{chip}</button>)}
+        </div>
       </div>
     </div>
     <figcaption>Type a bang and the Island shows where it will go before you press Return. Nothing you type in this box leaves the page.</figcaption>
@@ -88,8 +90,8 @@ const chips = ['!w golden retriever', '!a usb cable', '!gh electron', 'lofi !yt'
   <section class="feature-copy-grid" aria-labelledby="bangs-privacy-title">
     <div><h2 id="bangs-privacy-title">Your words skip your search engine.</h2></div>
     <div class="feature-copy-list">
-      <article><h3>Straight to the bang’s address.</h3><p>A bang opens the address it names, and Blanc sends your words only there, never to your own search engine first. It works the same whichever engine you chose in Settings. A few bangs open another search engine’s search of one site; the list below marks them.</p></article>
-      <article><h3>No suggestions while you type a bang.</h3><p>Blanc doesn’t ask your search engine for suggestions while a bang is in the box, so <code>!yt lofi</code> isn’t sent anywhere until you press Return.</p></article>
+      <article><h3>Straight to the bang’s address.</h3><p>A bang opens the address it names, and Blanc sends your words only there, never to your own search engine first. It works the same whichever engine you chose in Settings. A few bangs send your words through Google or DuckDuckGo to search one site; the list below marks them.</p></article>
+      <article><h3>No suggestions while you type a bang.</h3><p>Blanc doesn’t ask your search engine for suggestions while a bang is in the box, so <code>!yt lofi</code> isn’t sent anywhere until you press Return. A bang typed at the end is different: the words before it may already have gone to your search engine as suggestions, unless suggestions are off in Settings.</p></article>
       <article><h3>The list is built in.</h3><p>Blanc doesn’t look bangs up online. The list ships inside the app and changes only with a Blanc update. The bangs you used recently stay on this computer, and private tabs don’t record them.</p></article>
     </div>
   </section>

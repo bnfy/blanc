@@ -6,7 +6,7 @@
 
 import * as bangsModule from './bangs.js';
 import dataUrl from '../data/bangs.json?url';
-import { directoryRows, filterBangs } from './bangs-directory.mjs';
+import { filterBangs } from './bangs-directory.mjs';
 import { describeTryIt } from './bangs-tryit.mjs';
 
 // The pinned bangs.js is a dual-mode script: the production bundle wraps it
@@ -15,7 +15,6 @@ import { describeTryIt } from './bangs-tryit.mjs';
 const Bangs = bangsModule.default ?? window.Bangs;
 
 const STEP = 50;
-const SECTION_LABELS = { popular: 'popular', all: 'all bangs' };
 const format = (n) => n.toLocaleString('en-US');
 
 // Fetch the data once the page is idle, so the first keystroke answers.
@@ -55,9 +54,9 @@ function renderTry(answer) {
     row.append(el('span', 'cmd', `!${answer.hint.code}`), el('span', 'hint', answer.hint.title), el('span', 'enter', '↵'));
     nodes.push(row);
   }
-  for (const { section, count, rows } of answer.sections ?? []) {
+  for (const { label, count, rows } of answer.sections ?? []) {
     const head = el('div', 'sec-head');
-    head.append(el('span', '', SECTION_LABELS[section] ?? section), el('span', 'count', String(count)));
+    head.append(el('span', '', label), el('span', 'count', String(count)));
     nodes.push(head);
     for (const { code, name, domain } of rows) {
       const row = el('div', 'trow command');
@@ -79,7 +78,7 @@ async function updateTry() {
   const data = await loadData();
   // Without the data the box keeps the example the page was built with.
   if (!data || !Bangs) return;
-  renderTry(describeTryIt(tryInput.value, Bangs, data.entries, data.popular));
+  renderTry(describeTryIt(tryInput.value, Bangs, data.entries, data.popular, data.labels));
 }
 
 if (tryInput && tryList && tryDest) {
@@ -146,9 +145,13 @@ if (list && search && countLine && showing && more) {
   render();
 
   // With the data, search sees every alias, not only the three a row shows.
+  // The rows are already in the build's order, so nothing is re-sorted here.
+  let adopted = false;
   const adopt = (data) => {
-    if (!data) return;
-    rows = directoryRows(data);
+    if (!data || adopted) return;
+    adopted = true;
+    const aliases = new Map(data.entries.map(([code, codes]) => [code, codes]));
+    rows = rows.map((row) => ({ ...row, aliases: aliases.get(row.code) ?? row.aliases }));
     if (query) render();
   };
   search.addEventListener('focus', () => loadData().then(adopt), { once: true });

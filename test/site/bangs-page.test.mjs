@@ -111,6 +111,17 @@ test('the directory searches by site and by code and keeps its counts truthful',
   } finally { await context.close(); }
 });
 
+test('once the data arrives, search finds a bang by an alias its row does not show', async () => {
+  const { context, page } = await open();
+  try {
+    assert.doesNotMatch(await page.locator('#bangs-rows li[data-code="alpha"] small').textContent(), /!wra\b/);
+    await page.locator('#bangs-search').focus();
+    await page.waitForLoadState('networkidle');
+    await page.locator('#bangs-search').fill('wra');
+    await page.waitForFunction(() => !!document.querySelector('#bangs-rows li[data-code="alpha"]:not([hidden])'));
+  } finally { await context.close(); }
+});
+
 test('bangs that search through another engine are marked', async () => {
   const { context, page } = await open({ javaScriptEnabled: false });
   try {
@@ -127,6 +138,87 @@ test('phones get no horizontal scroll', async () => {
   try {
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     assert.ok(overflow <= 0, `page overflows by ${overflow}px`);
+  } finally { await context.close(); }
+});
+
+test('try-it messages and the address show in full, clear of the example chips', async () => {
+  for (const width of [1280, 390, 360]) {
+    const { context, page } = await open({ viewport: { width, height: 900 } });
+    try {
+      await page.locator('#bangs-try').fill('!w golden retriever');
+      await page.waitForFunction(() => document.querySelector('#bangs-try-list').textContent.includes('golden retriever'));
+      const layout = await page.evaluate(() => {
+        const dest = document.querySelector('#bangs-try-dest');
+        const a = dest.getBoundingClientRect();
+        const b = document.querySelector('.bangs-chips').getBoundingClientRect();
+        return { clipped: dest.scrollWidth > dest.clientWidth + 1, overlap: a.bottom > b.top && a.top < b.bottom };
+      });
+      assert.equal(layout.clipped, false, `${width}px: the address is cut off`);
+      assert.equal(layout.overlap, false, `${width}px: the address overlaps the chips`);
+      for (const [text, needle] of [['plain words', 'Not a bang'], ['!zzqq lofi', 'No bang with that code']]) {
+        await page.locator('#bangs-try').fill(text);
+        await page.waitForFunction((n) => document.querySelector('#bangs-try-list').textContent.includes(n), needle);
+        const cut = await page.evaluate(() => {
+          const message = document.querySelector('#bangs-try-list .empty');
+          const list = document.querySelector('#bangs-try-list').getBoundingClientRect();
+          return message.scrollWidth > message.clientWidth + 1 || message.getBoundingClientRect().right > list.right + 1;
+        });
+        assert.equal(cut, false, `${width}px: “${needle}” is cut off`);
+      }
+    } finally { await context.close(); }
+  }
+});
+
+test('both search boxes are at least 16px on phones, so iOS does not zoom in', async () => {
+  const { context, page } = await open({ viewport: { width: 390, height: 844 } });
+  try {
+    for (const id of ['#bangs-try', '#bangs-search']) {
+      assert.ok(parseFloat(await page.locator(id).evaluate((el) => getComputedStyle(el).fontSize)) >= 16, id);
+    }
+  } finally { await context.close(); }
+});
+
+test('keyboard focus is visible on the try-it field and the example chips', async () => {
+  const { context, page } = await open();
+  try {
+    const ring = () => page.evaluate(() => {
+      const style = getComputedStyle(document.querySelector('.bangs-field'));
+      return `${style.boxShadow}|${style.outlineStyle}|${style.borderColor}`;
+    });
+    const resting = await ring();
+    await page.locator('#bangs-try').focus();
+    assert.notEqual(await ring(), resting, 'the field shows focus');
+    await page.keyboard.press('Tab');
+    const contrast = await page.evaluate(() => {
+      const chip = document.activeElement;
+      if (!chip?.matches('[data-chip]')) return 0;
+      const rgb = (value) => value.match(/[\d.]+/g).slice(0, 3).map(Number);
+      const lum = ([r, g, b]) => [r, g, b].map((c) => { c /= 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; })
+        .reduce((sum, c, i) => sum + c * [0.2126, 0.7152, 0.0722][i], 0);
+      const style = getComputedStyle(chip);
+      if (style.outlineStyle === 'none' || parseFloat(style.outlineWidth) === 0) return 0;
+      let node = chip.parentElement;
+      while (node && getComputedStyle(node).backgroundColor.match(/rgba\(.*, 0\)$|transparent/)) node = node.parentElement;
+      const [a, b] = [lum(rgb(style.outlineColor)), lum(rgb(getComputedStyle(node).backgroundColor))];
+      return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+    });
+    assert.ok(contrast >= 3, `chip focus ring contrast is ${contrast.toFixed(2)}`);
+    assert.equal(await page.locator('.bangs-chips[role="group"][aria-label="Examples"]').count(), 1);
+  } finally { await context.close(); }
+});
+
+test('a long pasted search never scrolls the page sideways, and long codes are never cut off', async () => {
+  const { context, page } = await open({ viewport: { width: 360, height: 780 } });
+  try {
+    await page.locator('#bangs-search').fill(`https://example.com/${'a'.repeat(400)}`);
+    await page.waitForFunction(() => /No bang matches/.test(document.querySelector('#bangs-showing').textContent));
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'page overflows');
+    const longest = data.entries.map((entry) => entry[0]).sort((a, b) => b.length - a.length)[0];
+    await page.locator('#bangs-search').fill(longest);
+    await page.waitForFunction((code) => document.querySelector('#bangs-rows li:not([hidden])')?.dataset.code === code, longest);
+    const row = page.locator(`#bangs-rows li[data-code="${longest}"]`);
+    await row.scrollIntoViewIfNeeded();
+    assert.equal(await row.locator('b').evaluate((el) => el.scrollWidth <= el.clientWidth + 1), true, `!${longest} is cut off`);
   } finally { await context.close(); }
 });
 

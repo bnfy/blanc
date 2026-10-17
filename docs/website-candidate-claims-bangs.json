@@ -31,7 +31,7 @@
         "test/unit/bang-resolution.test.js",
         "src/main/settings.js"
       ],
-      "qualification": "Blanc resolves the bang itself and opens the bang's own address, never the selected search engine first; 37 bangs at this commit open another search engine's search of one site and the directory marks them. No suggestion request is made while a bang-shaped token is in the box (text typed before a trailing bang may already have been sent). Recently used codes stay on the device, are never recorded from private tabs, and are cleared with history."
+      "qualification": "Blanc resolves the bang itself and opens the bang's own address, never the selected search engine first; 40 bangs at this commit send the words through Google or DuckDuckGo to search one site (site:, inurl:, sites=, cx=, sitesearch= or domains= limits, or a DuckDuckGo !bang redirect) and the directory marks them. No suggestion request is made while a bang-shaped token is in the box (text typed before a trailing bang may already have been sent). Recently used codes stay on the device, are never recorded from private tabs, and are cleared with history."
     },
     "bangsCustom": {
       "evidence": [
@@ -65,7 +65,7 @@
     {
       "id": "bangs-002",
       "source": "site/src/pages/bangs.astro",
-      "exactWording": "Type an exclamation mark and a site’s code with your search, like !yt lofi, and Blanc opens YouTube’s results directly. It works with whichever search engine you use, and your words go straight to the address the bang opens, not through your search engine.",
+      "exactWording": "Type an exclamation mark and a site’s code before your search, like !yt lofi, and Blanc opens YouTube’s results directly. It works with whichever search engine you use, and your words go straight to the address the bang opens, not through your search engine.",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsCore"
@@ -208,7 +208,7 @@
     {
       "id": "bangs-016",
       "source": "site/src/pages/bangs.astro",
-      "exactWording": "A bang opens the address it names, and Blanc sends your words only there, never to your own search engine first. It works the same whichever engine you chose in Settings. A few bangs open another search engine’s search of one site; the list below marks them.",
+      "exactWording": "A bang opens the address it names, and Blanc sends your words only there, never to your own search engine first. It works the same whichever engine you chose in Settings. A few bangs send your words through Google or DuckDuckGo to search one site; the list below marks them.",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsPrivacy",
@@ -230,7 +230,7 @@
     {
       "id": "bangs-018",
       "source": "site/src/pages/bangs.astro",
-      "exactWording": "Blanc doesn’t ask your search engine for suggestions while a bang is in the box, so !yt lofi isn’t sent anywhere until you press Return.",
+      "exactWording": "Blanc doesn’t ask your search engine for suggestions while a bang is in the box, so !yt lofi isn’t sent anywhere until you press Return. A bang typed at the end is different: the words before it may already have gone to your search engine as suggestions, unless suggestions are off in Settings.",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsPrivacy",
@@ -333,7 +333,7 @@
     {
       "id": "bangs-028",
       "source": "site/src/pages/bangs.astro",
-      "exactWording": "Type a site's code with your search and Blanc opens its results directly, with any search engine.",
+      "exactWording": "Type a site's code before your search and Blanc opens its results directly, with any search engine.",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsCore"
@@ -347,6 +347,58 @@
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsCore"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-030",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "Return would open",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsTryIt"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-031",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "10,624 bangs, exactly the list in this build of Blanc. Search by site or by code.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsList"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-032",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "Showing all 10,624",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsList"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-033",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "via Google",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsPrivacy",
+        "bangsList"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-034",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "via DuckDuckGo",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsPrivacy",
+        "bangsList"
       ],
       "verdict": "qualified"
     },
@@ -374,7 +426,7 @@
     {
       "id": "bangs-103",
       "source": "site/src/pages/features.astro",
-      "exactWording": "Put a site’s code before or after your search. Your words go straight to the address the bang opens, not through your search engine. A few bangs search one site through another engine; the list marks them.",
+      "exactWording": "Put a site’s code before your search. Your words go straight to the address the bang opens, not through your search engine. A few bangs search one site through Google or DuckDuckGo; the list marks them.",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsCore",

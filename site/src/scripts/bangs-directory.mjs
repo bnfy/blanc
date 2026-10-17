@@ -12,6 +12,10 @@ function openedHost(template) {
   }
 }
 
+// One collator for every comparison: building one per call made the sort of
+// 10,000 rows take a third of a second.
+const byName = new Intl.Collator('en', { sensitivity: 'base', ignorePunctuation: true });
+
 /** One row per bang, sorted by site name, for the directory and its search. */
 export function directoryRows(data) {
   const via = data.via ?? {};
@@ -24,7 +28,7 @@ export function directoryRows(data) {
       via: via[code] ?? null,
     }))
     // Leading punctuation (`_ Blender`, `.NET`, `/r/…`) sorts by the letters.
-    .sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base', ignorePunctuation: true }) || (a.code < b.code ? -1 : a.code > b.code ? 1 : 0));
+    .sort((a, b) => byName.compare(a.name, b.name) || (a.code < b.code ? -1 : a.code > b.code ? 1 : 0));
 }
 
 /**

@@ -152,7 +152,7 @@ original reports:
   bang list (MIT), bundled and changed only by a Blanc update, with no online
   lookup. Qualify every privacy claim: Blanc opens the bang's own address and
   never sends the words to the selected search engine first, but a few bangs
-  (37 in the first list) are another engine's search limited to one site, so
+  (40 in the first list) send the words through Google or DuckDuckGo to search one site, so
   never claim a bang avoids every search engine. No suggestions are requested
   while a bang is in the box; text typed before a trailing bang may already
   have been sent. Your bangs (Settings → General) sync only with Profile Sync

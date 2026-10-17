@@ -342,6 +342,37 @@ test('v1.35.0 site copy resolves to verified public v1.35.0 evidence', () => {
 // Bangs page copy, written before the release that ships bangs (owner
 // decision, October 17, 2026). Pinned to the bangs merge commit until that
 // release; then it becomes the release's ledger and this test goes.
+// The /bangs lines that bangs.astro builds from its pinned data, keyed by
+// their normalized source, expanded as the page expands them.
+function bangsPageDynamicLines() {
+  const bangData = JSON.parse(read('site/src/data/bangs.json'));
+  const countText = bangData.count.toLocaleString('en-US');
+  const versionText = bangData.release ? `Blanc ${bangData.release.replace(/^v/, '')}` : 'this build of Blanc';
+  return new Map([
+    ["{example.kind === 'bang' && Return would open {example.hint.url}}", ['Return would open']],
+    ['{chip}', []],
+    ['{`${countText} bangs, exactly the list in ${versionText}. Search by site or by code.`}', [`${countText} bangs, exactly the list in ${versionText}. Search by site or by code.`]],
+    ['{`!${row.code}`}{row.name}{otherCodes(row.aliases)}{row.host}{row.via && {`via ${row.via}`}}', [...new Set(Object.values(bangData.via))].map(via => `via ${via}`)],
+    ['{`Showing all ${countText}`}', [`Showing all ${countText}`]],
+  ]);
+}
+
+test('bangs privacy copy holds only for a code typed first, and names the engines some bangs use', () => {
+  // The app stops asking for suggestions only once a bang is in the box, so
+  // words typed before a trailing bang may already have gone to the engine.
+  const section = (source, id, end) => source.slice(source.indexOf(id), source.indexOf(end, source.indexOf(id)));
+  const features = read('site/src/pages/features.astro');
+  const pop = section(features, 'id="pop-bangs-title"', '</FeaturePop>');
+  assert.match(pop, /not through your search engine/);
+  assert.doesNotMatch(pop, /before or after/);
+  const page = read('site/src/pages/bangs.astro');
+  assert.match(section(page, 'id="bangs-title"', '</section>'), /code before your search/);
+  const privacy = section(page, 'id="bangs-privacy-title"', '</section>');
+  assert.match(privacy, /A bang typed at the end is different/);
+  assert.match(privacy, /through Google or DuckDuckGo/);
+  assert.doesNotMatch(privacy, /another search engine/);
+});
+
 test('candidate bangs copy resolves to the bangs merge commit', () => {
   const candidate = JSON.parse(read('docs/website-candidate-claims-bangs.json'));
   const bangsData = JSON.parse(read('site/src/data/bangs.json'));
@@ -351,11 +382,14 @@ test('candidate bangs copy resolves to the bangs merge commit', () => {
   assert.equal(execFileSync('git', ['rev-parse', `${candidate.sourceSha}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), candidate.sourceSha);
   execFileSync('git', ['merge-base', '--is-ancestor', 'v1.35.0', candidate.sourceSha], { cwd: root });
   assert.equal(candidate.sourceSha, bangsData.ref, 'the copy and the bang data are pinned to the same commit');
+  const builtFromData = new Set([...bangsPageDynamicLines().values()].flat());
   for (const claim of candidate.claims) {
     assert.equal(claim.verdict, 'qualified', claim.id);
     const source = read(claim.source);
     // Meta copy lives in the BaseLayout tag's attributes, which normalize() strips.
-    assert.ok(normalize(source).includes(claim.exactWording) || source.replace(/\s+/g, ' ').includes(claim.exactWording), `${claim.id}: exact wording drifted`);
+    const literal = normalize(source).includes(claim.exactWording) || source.replace(/\s+/g, ' ').includes(claim.exactWording);
+    const built = claim.source === 'site/src/pages/bangs.astro' && builtFromData.has(claim.exactWording);
+    assert.ok(literal || built, `${claim.id}: exact wording drifted`);
     for (const key of claim.evidenceGroups) {
       const group = candidate.evidenceGroups[key];
       assert.ok(group?.qualification && group.evidence.length, `${claim.id}: evidence and qualification`);
@@ -378,11 +412,19 @@ test('every sentence on the bangs page is recorded', () => {
   // From the hero on: the breadcrumb's labels are navigation, not claims.
   const markup = source.slice(source.indexOf('<section class="feature-hero'));
   const units = [...markup.matchAll(/<(h[1-6]|p|li|figcaption|strong|button|a)\b[^>]*>([\s\S]*?)<\/\1>/g)]
-    .map(match => normalize(match[2])).filter(text => text && !text.includes('{'));
-  assert.ok(units.length > 15, 'the page copy was found');
-  for (const unit of units) {
+    .map(match => normalize(match[2])).filter(Boolean);
+  // Lines built from data are expanded the way the page builds them; any
+  // other line with an expression fails rather than being skipped.
+  const dynamic = bangsPageDynamicLines();
+  const expanded = units.flatMap(unit => {
+    if (!unit.includes('{')) return [unit];
+    assert.ok(dynamic.has(unit), `bangs page line built from an expression is not expanded here: “${unit}”`);
+    return dynamic.get(unit);
+  });
+  assert.ok(expanded.length > 15, 'the page copy was found');
+  for (const unit of expanded) {
     if (recorded.some(wording => wording.includes(unit))) continue;
-    for (const sentence of unit.split(/(?<=[.?!])\s+(?=[A-Z“])/)) {
+    for (const sentence of unit.split(/(?<=[.?!])\s+(?=[A-Z“\d])/)) {
       assert.ok(recorded.some(wording => wording.includes(sentence)), `bangs page sentence is not recorded: “${sentence}”`);
     }
   }

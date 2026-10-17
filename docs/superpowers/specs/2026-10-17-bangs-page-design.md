@@ -38,10 +38,13 @@ heard the word, let them try it, and still be the lookup people bookmark.
 7. **Bangs takes Reopen closed tabs' place on the Features board** (area R3);
    Reopen closed tabs becomes a small tile with its pop-out.
 8. **The privacy copy is narrowed, and the bangs that search through another
-   engine are marked.** 37 shipped bangs (33 through Google, 4 through
+   engine are marked.** 40 shipped bangs (36 through Google, 4 through
    DuckDuckGo, at `081c965b`) open a search engine's search limited to one
-   site, such as `!ubuntufr` or `!boingboing`, so "your words go only to that
-   site" is not true for them. The copy says Blanc sends your words only to
+   site, such as `!ubuntufr`, `!boingboing` or `!nodejs` (a DuckDuckGo `!node`
+   redirect), so "your words go only to that site" is not true for them. (The
+   first count, 37, missed `sitesearch=`/`domains=`/`inurl:` limits and
+   DuckDuckGo redirects and wrongly counted a `-site:` exclusion; corrected in
+   the final review.) The copy says Blanc sends your words only to
    the address the bang opens, and those rows carry a *via Google* or *via
    DuckDuckGo* tag. The app does not change.
 9. **The headline makes Helium's idea ours.** Helium's homepage heads its
