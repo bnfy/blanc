@@ -1,0 +1,7 @@
+../../chrome/browser/ui/blanc_prototype_ui.cc:646:34: error: no member named 'extensions_container' in 'ToolbarView'
+../../chrome/browser/ui/blanc_prototype_ui.cc:872:42: error: no member named 'extensions_container' in 'ToolbarView'
+../../chrome/browser/ui/blanc_prototype_ui.cc:902:42: error: no member named 'extensions_container' in 'ToolbarView'
+../../chrome/browser/ui/blanc_prototype_ui.cc:1360:31: error: no member named 'extensions_container' in 'ToolbarView'
+../../chrome/browser/ui/blanc_prototype_ui.cc:1376:47: error: no member named 'extensions_container' in 'ToolbarView'
+noexec:434 local:54900 remote:0 cache:0 skip:37562
+ 1 steps failed: exit=1

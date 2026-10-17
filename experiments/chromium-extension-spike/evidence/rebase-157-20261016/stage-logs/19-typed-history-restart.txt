@@ -1,0 +1,34 @@
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+sqlite3.OperationalError: unable to open database file
+node:internal/errors:983
+  const err = new Error(message);
+              ^
+
+Error: Command failed: /usr/bin/python3 -c import sqlite3,json; c=sqlite3.connect('file:/private/tmp/blanc-task0/profile/Default/History?mode=ro',uri=True); print(json.dumps({'urls':c.execute('select url,visit_count,typed_count from urls').fetchall(),'segments':c.execute('select * from segments').fetchall()}))
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+sqlite3.OperationalError: unable to open database file
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:882:11)
+    at execFileSync (node:child_process:918:15)
+    at file:///private/tmp/blanc-task0/restart.mjs:3:13 {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    '',
+    'Traceback (most recent call last):\n' +
+      '  File "<string>", line 1, in <module>\n' +
+      'sqlite3.OperationalError: unable to open database file\n'
+  ],
+  pid: 73121,
+  stdout: '',
+  stderr: 'Traceback (most recent call last):\n' +
+    '  File "<string>", line 1, in <module>\n' +
+    'sqlite3.OperationalError: unable to open database file\n'
+}
+
+Node.js v22.14.0

@@ -1,151 +1,209 @@
 # Chromium rebase ledger
 
-One row per rebase of the prototype patch set onto a new upstream Chromium
-tag, plus one detail section per row. This is the measured record that
-`docs/chromium-migration-implementation-plan-2026-10-16.md` (§2 spike gate,
-§4 A2, §5 criterion 1, §6 Task 0) and the owner's Decision 2 read. **No
-rebase has been run yet; the table below is the template, and its first row
-is filled as Task 0 runs; the owner approved its cold build on
-October 16, 2026 (`task0-cold-build-request.md` §7).**
+Measured record for the migration plan's Task 0 and Decision 2. **Rebase 0 is
+in progress: Chromium 157 built successfully; scoped automated checks passed;
+native input, visible layout and extension installation/update checks are not
+run. The gate outcome remains open.** The owner approved the sibling checkout
+and one cold output on October 16, 2026 under `task0-cold-build-request.md` §7.
 
-Rules for filling it in:
+## Measurement rules
 
-- Every figure is measured on the machine named in the row, never estimated.
-  An unmeasured cell says `not measured`, not a guess.
-- Times are wall-clock unless the column says attention. **Owner attention**
-  is time the owner spent on the rebase (approvals, decisions, hands-on
-  fixes, watching a foreground build does not count); **agent time** is
-  the time Codex or Claude were actively working on it.
-- The **cold build** columns are a clean-build recovery benchmark for an
-  empty output directory with no configured compilation cache. **Cold-build
-  time is the accumulated runtime of the build process itself**: the sum of
-  the `build.mjs --build` invocations that bring the empty output to the
-  first complete `chrome` target, excluding repair time (editing sources
-  between invocations) and idle gaps (an interrupted build left overnight).
-  Log every invocation once in the invocation table, marked either
-  *cached continuation* (resuming the same build after an interruption, no
-  source change) or *recompilation after a fix* (a source change in
-  between); only the first kind counts toward the cold-build column, the
-  second kind counts toward compile fixes. The cold-build column is never
-  added into the routine cost columns (prepare, compile fixes, incremental
-  builds, re-verification), which are what recurs per milestone.
-- Chrome milestones ship every two weeks since Chrome 153; record the
-  cadence in force in the row so later readers can tell what each rebase
-  was keeping up with.
-- A stopped rebase is still a row: fill what was measured, mark the outcome
-  `stopped`, and say which criterion stopped it.
+- Record measured figures only; use `not measured` for missing measurements.
+  Times are wall-clock unless explicitly identified otherwise. Owner attention
+  means hands-on approvals, decisions and fixes, excluding passive watching.
+  Agent time means active work, not elapsed build time.
+- The cold-build column is a **clean-build recovery benchmark**: sum all guarded
+  build invocations from the empty output to the first complete `chrome` target.
+  Include same-cache continuations and identify recompilation after fixes in
+  separate invocation rows. Exclude editing time and gaps between invocations.
+  The runner includes guard preflights; identify Siso-only time separately when
+  available. A continuation can contain both unfinished cold work and recompiled
+  objects: do not call its whole duration routine incremental cost.
+- Keep clean-build recovery separate from routine patching, incremental compiling
+  and re-verification. Never add a repair invocation twice. Where the mixed
+  continuation cannot be split, routine incremental-only cost is `not measured`.
+- Record Siso counts as reported, including local/noexec distinctions. Their sum
+  across invocations is not a unique-object count; plans and live denominators
+  can change. Record prerequisite buildflag generation separately.
+- Record release cadence per row (two weeks since Chrome 153, as documented in
+  the approved request). A stopped rebase still gets a row and a reason.
+- Outcomes: `in progress`, `passed`, `passed with divergences`, or
+  `stopped (criterion N)`. Unperformed acceptance checks say `not run`.
 
 ## Summary table
 
-| # | Date | From tag | To tag (commit) | Cadence in force | Machine / toolchain | Anchors broken | Files patched before → after | Prepare and anchor fixes (wall / attention) | Cold build (accumulated build runtime, actions) | Compile errors | Compile fixes and incremental builds (wall) | Re-verification (wall, result) | Owner attention | Agent time | Calendar span | Outcome |
+| # | Date | From tag | To tag (commit) | Cadence | Machine / toolchain | Anchors broken | Upstream files before → after | Prepare and anchor fixes | Cold build: accumulated runtime, reported actions | Compile errors | Compile fixes / incremental builds | Re-verification | Owner attention | Agent time | Calendar span | Outcome |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 0 | — | `156.0.8078.36` (`5a93aa59e304`) | `157.0.8103.6` (`41520584daa6`) | two weeks (since Chrome 153) | owner's Mac, Xcode 27.1 (`27A9275`), Apple Silicon | — | 20 → — | — | — | — | — | — | — | — | — | approved October 16; not started |
+| 0 | 2026-10-16 | `156.0.8078.36` | `157.0.8103.6` (`41520584daa6`) | two weeks | Apple Silicon Mac; Xcode 27.1; Clang packaging 53 → 67 | 1 | 21 → 21 (19 text + 2 icon assets each) | prepare 3.701 s; editing/attention not measured | 9,587.120 s (2h39m47.120s); 57,664 summed steps across two invocations | 5 diagnostics, 1 failed object, 1 API change | mixed repair/unfinished-cold invocation 621.402 s, already included at left; pure incremental cost not measured | automated checkpoint 7m57.300s; scoped passes below; native checks not run | not measured | not measured | 3h24m04.890s through automated checkpoint; final span open | in progress |
 
-Column notes: *Anchors broken* counts `prepare.mjs` anchors that no longer
-matched (details below). *Files patched* counts upstream files `prepare.mjs`
-edits, excluding Blanc's own new files. *Cold build* is the accumulated
-runtime of the build invocations from the empty output to the first
-complete `chrome` target, cached continuations included, repair time and
-idle gaps excluded, with Siso's reported action count. *Calendar span* runs from the first fetch to the last re-verification
-result. *Outcome* is `passed`, `passed with divergences` (listed below),
-`stopped (criterion N)` or `not started`.
+Files count existing upstream files changed by preparation, excluding new Blanc
+files. The earlier estimate of 20 is corrected by the two checkout inventories:
+[patched-upstream-files.json](evidence/rebase-157-20261016/patched-upstream-files.json).
+Both contain 21 files; the GN file changed location, not count. This is a concrete
+inventory, not a newly approved patch-budget definition.
 
 ## Rebase 0: `156.0.8078.36` → `157.0.8103.6`
 
-Status: **approved, not started.** Approval: `task0-cold-build-request.md`
-§7, granted by the owner on October 16, 2026.
+Evidence: [checkpoint report](evidence/rebase-157-20261016/results.md),
+[invocations](evidence/rebase-157-20261016/invocations.jsonl),
+[runtime observations](evidence/rebase-157-20261016/runtime-evidence.json).
+All timestamps below are UTC; local date at build completion was October 16 EDT.
 
-### Environment
+### Environment and disk
 
-| | |
+| Field | Measurement |
 | --- | --- |
-| Source checkout | `/Users/anthonyjloria/Projects/BlancChromium157/src` (sibling; existing checkout untouched) |
-| Output | `/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype` |
-| `args.gn` | `is_debug=false is_component_build=false symbol_level=0 target_cpu="arm64"` (same digest as the existing output: `_______`) |
-| Xcode / SDK | `_______` |
-| Clang revision and version (`third_party/llvm-build/.../cr_build_revision`) | 156: `_______` · 157: `_______` · changed: yes / no |
-| Free space before / after | 480.7 GiB (October 16) / `_______` |
-| Checkout size / output size after | `_______` / `_______` |
+| Source | `/Users/anthonyjloria/Projects/BlancChromium157/src`, upstream `41520584daa68d0040db7746ae562a0ff82187f6` |
+| Baseline source | 156 at `5a93aa59e3043e747eff68659dcf7d20193d160e`; separate checkout preserved |
+| Output | sibling `src/out/BlancPrototype`; retained throughout failure and continuation |
+| GN arguments | `is_debug=false is_component_build=false symbol_level=0 target_cpu="arm64"`; digest `414e3baad6c84730b3c17f411ed82c5065561ba344fe2a202675654e1e18a057` matches baseline |
+| Machine | owner's Apple Silicon Mac, 10 CPU cores, 24 GiB RAM |
+| Xcode / SDK | Xcode 27.1 (`27A9275`), macOS SDK 27.0 (`26A425`); no global upgrade |
+| Clang 156 | `llvmorg-24-init-7747-g62397f8b-53` |
+| Clang 157 | `llvmorg-24-init-7747-g62397f8b-67` |
+| Toolchain comparison | LLVM revision prefix unchanged; packaging revision differs. Cross-version cache reuse and binary equivalence not measured |
+| depot_tools | sibling copy at `382c208a9973e1a6c0867b6d8664dc6dc9116e30`, auto-updates disabled |
+| Free disk before / checkpoint | 480.7 GiB / 408.17 GiB; endpoint measurements, not task-exclusive consumption |
+| New source including output / output alone | 57.26 GiB / 8.42 GiB allocated; output is included in source total, do not add again |
+| Peak disk | not measured |
 
-### Fetch and generation
+Disk uses `du -sk` and `df -k`; raw units, timestamp and exclusions are in
+[disk-checkpoint.json](evidence/rebase-157-20261016/disk-checkpoint.json).
+The actual source tree is larger than the request's estimate. Sibling depot_tools
+and `_bad_scm` outside `src` are not included in that source total. No existing
+checkout was deleted to make room. Existing 156 args, environment record and
+compiler revision hashes match [before](evidence/rebase-157-20261016/baseline156.json)
+and [after](evidence/rebase-157-20261016/baseline156-after.json).
 
-| Step | Wall-clock | Notes |
-| --- | --- | --- |
-| Fetch at tag + one-time hooks | `_______` | |
-| `prepare.mjs` first run | `_______` | refused unknown version until `expectedVersion` updated: yes / no |
-| `gn gen` (after prepare) | `_______` | re-run count if `BUILD.gn` changed again: `_______` |
-| `--record-environment` | `_______` | |
-| `--check` plan inspection | `_______` | planned actions: `_______`; buildflag-generation stop hit: yes / no |
+### Fetch, preparation and plan inspection
 
-### Anchors broken
+| Stage | Start → end (UTC) | Invocation runtime | Result / action |
+| --- | --- | --- | --- |
+| Source clone | Oct 16 23:34:42.463 → 23:38:05.511 | 203.046 s | shallow pinned tag; SHA verified |
+| First dependency sync | 23:38:05.601 → 23:44:58.508 | 412.906 s | failed: runner PATH omitted installed Homebrew git-lfs |
+| First resume | 23:46:08.646 → 23:46:15.106 | 6.460 s | failed: partially checked-out LiteRT |
+| Fresh LiteRT checkout repair | 23:47:10.140 → 23:47:14.867 | 4.727 s | restored this new dependency to DEPS SHA; downloads retained |
+| Final dependency resume | 23:47:14.867 → 23:55:27.009 | 492.136 s | passed |
+| One-time hooks | 23:56:11.135 → 23:56:44.453 | 33.318 s | passed; Mac toolchain installation skipped |
+| First prepare | 23:57:03.822 → 23:57:07.423 | 3.601 s | failed on moved BrowserView GN anchor |
+| Prepare after anchor fix | 23:57:51.038 → 23:57:51.139 | 0.100 s | passed |
+| GN generation | 23:57:55.621 → 23:58:01.323 | 5.702 s | passed; once, after prepare, unchanged args |
+| Environment recording | 23:58:01.323 → 23:58:02.347 | 1.024 s | passed; no compilation |
+| First plan | 23:58:02.348 → 23:58:24.480 | 22.132 s | failed at old 128 MiB capture limit |
+| Plan after guard repair | 23:59:13.453 → 23:59:43.283 | 29.830 s | 57,785 actions; expected buildflag stop |
+| Reported buildflags only | Oct 17 00:00:22.062 → 00:00:32.145 | 10.083 s | 120 requested headers, 122 actual Siso steps (initial plan 129); no native compilation |
+| Final cold preflight | 00:00:47.824 → 00:01:16.769 | 28.945 s | 57,663 planned actions; no regeneration/buildflags; normal >1,000 guard stop |
 
-One line per `prepare.mjs` anchor that no longer matched.
+Source fetch through completed dependency sync spans **20m44.546s**; recorded
+clone/sync/repair process runtimes sum to **1,119.275 s**. Gaps and one-time hooks
+are separate. Installed git-lfs was added to runner PATH; it was not upgraded.
+Only the fresh sibling LiteRT partial checkout was repaired.
 
-| Upstream file | Hunk (what the anchor targets) | Cause (moved / renamed / API changed / removed) | Fix | Minutes |
+The complete plan was 355,220,619 bytes. The guard now writes the dry run directly
+to disk and scans it with bounded memory, preserving regeneration, buildflag,
+unknown-plan and large-build stops. Ten guard tests pass, including a plan over
+128 MiB and markers spanning read boundaries. The targeted BrowserView `gn check`
+also passed. Buildflag stop handling was required; it was not bypassed by
+`--allow-large-build`. After the C++ fix no GN change occurred, so no second GN
+generation was required. Final post-build guarded inspection reported zero actions.
+
+### Broken anchors and compile repair
+
+| Upstream file | Hunk | Cause | Fix | Minutes |
 | --- | --- | --- | --- | --- |
-| | | | | |
+| `chrome/browser/ui/BUILD.gn` → `chrome/browser/ui/views/frame/BUILD.gn` | BrowserView source registration | BrowserView split into its own GN target | register bridge source in `browser_view`, expose header in `browser_view_header`, declare nine direct dependencies | not measured separately |
 
-Files patched before → after: 20 → `_______`. New native files unchanged /
-changed: `_______`.
+One old anchor failed. The first failed prepare ended at 23:57:07.423; repaired
+prepare ended at 23:57:51.139, a **43.716 s observation window**, not measured
+editing time or owner attention. All other prepare anchors applied. The two new
+Blanc native files remain; the `.cc` changed as follows, the header did not.
 
-### Cold build (clean-build recovery benchmark; not routine cost)
+| Error | Cause | Fix | Build result |
+| --- | --- | --- | --- |
+| `blanc_prototype_ui.cc:646,872,902,1360,1376`: no member `extensions_container` in `ToolbarView` | concrete accessor renamed in 157; generic interface lacks required View/model access | five calls use retained `extensions_container_for_testing()` with explanatory comment; no upstream header patch | repaired object compiled; entire target passed in invocation 2; actual extension popup checks not run |
 
-| | |
-| --- | --- |
-| Approved by the owner on | October 16, 2026 (`task0-cold-build-request.md` §7) |
-| First invocation started / first complete `chrome` target finished | `_______` / `_______` |
-| Accumulated build runtime (sum of the *cached continuation* rows below) | `_______` |
-| Calendar span of the above, for contrast (includes idle gaps) | `_______` |
-| Siso actions, total | `_______` |
-| Peak disk during build | `_______` |
+The API failure is one cause producing five diagnostics in one object. Guard
+capture failure is preparation tooling overhead, not another upstream anchor or
+native compile error. Editing time for both repairs was not separately measured.
 
-Build invocations, one row each, in order. *Kind* is `cold start`, `cached
-continuation` (same sources, resumed after an interruption) or
-`recompilation after fix` (sources changed since the previous invocation;
-counted under compile fixes, not here).
+### Cold build: clean-build recovery benchmark
 
-| # | Started | Runtime | Actions | Kind | `--allow-large-build` | Why it ended (complete / interrupted: cause) |
+| # | Start → end (Oct 17 UTC) | Guarded runtime | Siso counts | Kind | `--allow-large-build` | End |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | | | | cold start | yes | |
+| 1 | 00:01:37.405576 → 02:31:03.121811 | 8,965.718 s | 54,900 local + 434 noexec = 55,334 | cold start | yes | failed on accessor calls; cache retained |
+| 2 | 02:36:22.315629 → 02:46:43.716419 | 621.402 s; Siso alone 616.32 s | 1,990 local + 340 noexec = 2,330 | recompilation after fix plus unfinished cold work, same output | yes | complete |
 
-### Compile errors and incremental rebuilds
+**Sum: 9,587.120 s = 2h39m47.120s**, including guard preflights, excluding source
+editing and gaps. Counts sum to **57,664 reported steps** (56,890 local + 774
+noexec), not unique objects. The preceding 122 buildflag steps are separate.
+Calendar span between first invocation and successful completion is
+**2h45m06.311s**. There was no clean restart, no second cold output, and no
+source-unchanged interruption/resume invocation. Both invocations were above
+1,000 actions, so both used the approved large-build flag after inspection.
 
-| Error (file:line, one line) | Cause | Fix | Rebuild wall-clock, actions |
-| --- | --- | --- | --- |
-| | | | |
+Before invocation 2: repair prepare took 2.437 s; plan inspection took 6.075 s
+and reported 2,330 actions, no regeneration/buildflag stop. The **5m19.194s gap**
+between invocations includes diagnosis, editing, preparation, inspection and
+monitoring; it is not a direct measurement of editing or owner attention.
 
-### Re-verification
+The 621.402 s continuation is already included in the recovery sum. Its portion
+attributable only to the source fix is **not measured**. No separate ordinary
+incremental build benchmark is claimed. Raw compiler diagnostics and Siso tails:
+[first](evidence/rebase-157-20261016/08-cold-build-01-summary.txt),
+[second](evidence/rebase-157-20261016/11-build-after-api-fix-summary.txt).
 
-Same checks as the milestones in `results.md`; each is pass / fail /
-not run, with the evidence file.
+### Re-verification checkpoint
 
-| Check | Milestone it preserves | Result | Evidence |
-| --- | --- | --- | --- |
-| Prototype launches on a disposable `--user-data-dir`; Island renders; header tint follows the page | Island-only window | | |
-| Island tab control (create, switch, close, navigate, back, forward, reload, stop, ⌘L/⌘T/⌘A, Escape, type-to-open) | Island interaction | | |
-| Live Web Store install with the native permission prompt (one extension) | Web Store gate | | |
-| One extension update from Google's endpoint, surviving restart | Verified version upgrade | | |
-| Extension action popup opens from the Island's Extensions button and takes focus; Escape and ⌘L return focus to the Island | Expanded Island extensions view; four Island focus fixes | | |
-| Favorites: pill and panel hearts, ⌘D (including while the Island has focus), `/save [folder]`, Quick Switcher, live start-page refresh | Favorites, history and Island search; ⌘D | | |
-| History: `/history`, switcher ranking and dedup; `/clear` on the disposable profile expires every visit and the start page's recent sites refresh | `/clear` on a disposable profile | | |
-| Private window: no Favorites or history listed, hearts hidden, `/save`, `/clear` and ⌘D refused silently, keyboard checks pass | Private-window guards | | |
-| Pin, mute, reorder: row controls, `/pin`, `/mute`, drag, ⌥⇧↑/↓, pinned boundary respected | Pin, mute and reorder | | |
-| Named tab groups: `/group`, `/ungroup`, `/close-group`, headers fold/unfold, switcher focus, cross-group drag and reorder; grouping a pinned tab unpins it (known divergence) | Named tab groups | | |
-| Start page: four layouts and dynamic wallpaper selectable from Customize, choice persists across restart and propagates to another open start page; bookmarks and TopSites listed | Blanc start-page native integration | | |
-| Dock icon is Sunrise Dark from the bundle | Sunrise Dark Dock icon | | |
-| Build guard: `--check` plan inspection, lock, environment pin behave as before | Build cache safeguards | | |
-| Automated bridge and DOM checks (the milestone scripts) | all | | |
-| Native-input checklist (CGEvent mouse and keyboard) | all | | |
+Automated runtime session: Oct 17 **02:50:50.053 → 02:58:47.353 UTC**, a calendar
+span of **7m57.300s**, including relaunches and harness corrections. This is not
+active agent time or the final acceptance duration. Evidence below refers to the
+[report](evidence/rebase-157-20261016/results.md) and its linked observations,
+logs and assertion scripts. Renderer screenshots taken while locked do not prove
+native window geometry or visible refresh.
 
-New divergences from Electron found in this rebase: `_______`.
+| Check | Result | Scope / evidence |
+| --- | --- | --- |
+| Version, Blanc new-tab routing, Island iframe startup, extension slot | pass | CDP/bridge snapshot; slot 26 px; no physical interaction |
+| Create/navigation/back/forward/reload/stop | pass | automated bridge assertions |
+| Favorites creation and named-folder reuse | pass | automated assertions; no physical hearts or typed slash commands |
+| Pin/mute, pinned boundary, tab/group moves, group name reuse/fold/focus/ungroup/close | pass | bridge assertions; not native drag/keyboard |
+| Pin/order/group/Favorites/layout/dynamic wallpaper persistence | pass | restart assertions; mute not included, remains transient |
+| Four layout selections and cross-tab preference propagation | pass | DOM selection/state observations; screenshots included |
+| History-only clear, Favorite/cookie/localStorage preservation, cleared history after restart | pass | disposable profile only |
+| Native TopSites query cleared and same-document notification | pass | fresh service query assertion; recorded `sites` field is stale renderer state, not that fresh query |
+| Private data guards, silent heart APIs, hidden hearts after panel opens, clear refusal | pass | bridge and CSS assertions; regular history preserved |
+| Normal Web Store listing / enabled Add to Chrome button | pass | listing readiness only; install not initiated |
+| Guard regression tests and final plan | pass | 10 tests; final plan zero actions |
+| CGEvent Cmd-L/T/A/D/R/[; Escape, page typing and Island focus | not run | Mac locked |
+| Physical hearts, typed `/save`/`/history`, folder rejection, switcher ranking/dedup and late favicon | not run | Mac locked |
+| Native pin/mute audio, drag/keyboard reorder, group gestures | not run | Mac locked |
+| Visible start-page refresh, TopSites refresh, type-to-open bridge and all layouts | not run | hidden document lacked `layout-ready`; service notification is not visible proof |
+| Visible header tint, traffic lights, Island geometry and Dock icon | not run | native window checks require unlock |
+| Web Store install with native permission dialog | not run | Mac locked |
+| One Google-endpoint extension update surviving restart | not run | Mac locked |
+| Extension popup focus, Escape and Cmd-L interaction | not run | Mac locked |
 
-### Effort and outcome
+Harness failures are retained, not counted as passing runs. They include early
+TopSites assertions, hidden-page rendering expectations, unopened private-overlay
+state, incorrect wallpaper state lookup, an overbroad mute-persistence expectation,
+unavailable CDP browser-context creation and an immutable SQLite read correction.
+See the report and stage logs for qualifications. No new product divergence is
+confirmed by this checkpoint; the acceptance run remains incomplete.
 
-| | |
+### Effort, outcome and next rebase
+
+| Field | Current record |
 | --- | --- |
-| Owner attention | `_______` |
-| Agent time (Codex / Claude) | `_______` / `_______` |
-| Calendar span | `_______` |
-| Criterion 1 (plan §5: more than two owner-days of attention, or more than one calendar week including builds) | not hit / hit |
-| Outcome | `_______` |
-| What to change in `prepare.mjs` or the fork layout before the next rebase | `_______` |
+| Owner attention | not measured |
+| Active agent time (Codex / Claude) | not measured / not measured |
+| First fetch → last automated result | Oct 16 23:34:42.463 → Oct 17 02:58:47.353 UTC; 3h24m04.890s |
+| Final calendar span / total re-verification | open / not measured |
+| Criterion 1: >2 owner-days or >1 calendar week | week threshold not reached at checkpoint; owner-attention threshold cannot be quantified from these logs |
+| Outcome | **in progress; native acceptance checks not run** |
+| Next rebase preparation | account for BrowserView GN target and explicit deps; re-audit concrete extension-container API; retain bounded-memory plan scanner and normal stops |
+
+The approved 156 instance/profile/tabs remain untouched. Disposable 157 resources
+are retained for unlocked acceptance and will be removed only after those checks.
+The monitor is paused awaiting unlock. `CLAUDE.md` and the completed milestone
+record are not updated with a gate outcome. This ledger checkpoint does not
+approve a migration or another cold output.

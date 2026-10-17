@@ -1,0 +1,10 @@
+{"name":"automated-restart-persistence","pin":true,"groups":[{"collapsed":true,"id":"6B3E71AFD4DB711DFDB3F8767B49CD25","name":"persist"}],"layout":"shelf","dynamicWallpaper":true,"muted":false,"note":"Per-tab mute resets on restart. Prior 156 persistence test asserts pin/order, not mute; initial new test overreached that contract."}
+file:///private/tmp/blanc-task0/lib.mjs:17
+export async function until(fn,label,timeout=10000){const start=Date.now();while(Date.now()-start<timeout){const r=await fn();if(r)return r;await pause(150);}throw Error('Timed out: '+label);}
+                                                                                                                                                                    ^
+
+Error: Timed out: TopSites populated after restart
+    at until (file:///private/tmp/blanc-task0/lib.mjs:17:165)
+    at async file:///private/tmp/blanc-task0/persist-verify.mjs:5:469
+
+Node.js v22.14.0

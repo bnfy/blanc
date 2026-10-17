@@ -642,8 +642,11 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       active ? base::Value(sessions::SessionTabHelper::IdForTab(active).id())
              : base::Value();
   auto* browser_view = BrowserView::GetBrowserViewForBrowser(browser);
+  // Chromium 157 exposes the concrete Views container only through this
+  // accessor. The prototype reparents that view; the new generic interface
+  // does not expose view ownership or the toolbar model.
   auto* extensions = browser_view && browser_view->toolbar()
-      ? browser_view->toolbar()->extensions_container() : nullptr;
+      ? browser_view->toolbar()->extensions_container_for_testing() : nullptr;
   const int extension_width = extensions ? 26 : 0;
   return base::DictValue()
       .Set("extensionsWidth", extension_width)
@@ -869,7 +872,7 @@ class Handler : public content::WebUIMessageHandler {
     }
     if (method == "extensions" && args.empty()) {
       auto* container = BrowserView::GetBrowserViewForBrowser(browser)
-                            ->toolbar()->extensions_container();
+                            ->toolbar()->extensions_container_for_testing();
       base::ListValue items;
       auto* active = model->GetActiveWebContents();
       if (container && active) {
@@ -899,7 +902,7 @@ class Handler : public content::WebUIMessageHandler {
         return;
       }
       auto* container = BrowserView::GetBrowserViewForBrowser(browser)
-                            ->toolbar()->extensions_container();
+                            ->toolbar()->extensions_container_for_testing();
       auto* action = container ? container->GetToolbarViewModel()
           ->GetActionModelForId(args[0].GetString()) : nullptr;
       if (!action || !action->IsEnabled(active)) {
@@ -1357,7 +1360,7 @@ void RestoreExtensions(views::View* parent) {
   auto* browser_view = static_cast<BrowserView*>(parent);
   if (!browser_view->toolbar()) return;
   auto* toolbar = browser_view->toolbar();
-  auto* extensions = toolbar->extensions_container();
+  auto* extensions = toolbar->extensions_container_for_testing();
   // Restore original ownership before BrowserView tears down its children.
   if (extensions && extensions->parent() == parent)
     toolbar->AddChildView(parent->RemoveChildViewT(extensions));
@@ -1373,7 +1376,7 @@ void LayoutIsland(views::View* parent, int top) {
   if (!owner) return;
   auto* browser_view = static_cast<BrowserView*>(parent);
   if (!browser_view->toolbar()) return;
-  auto* extensions = browser_view->toolbar()->extensions_container();
+  auto* extensions = browser_view->toolbar()->extensions_container_for_testing();
   const bool page_fullscreen = IsPageFullscreen(browser_view->browser());
   view->SetVisible(!page_fullscreen);
   if (!extensions) return;

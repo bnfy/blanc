@@ -1,0 +1,1 @@
+{"name":"web-store-listing-ready","url":"https://chromewebstore.google.com/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi","button":[{"text":"Add to Chrome","disabled":false}],"qualification":"No install initiated; native consent and popup tests await unlock."}

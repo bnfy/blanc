@@ -1,6 +1,38 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { changedInputs, plannedActions, checkPlan } from './build.mjs';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { changedInputs, plannedActions, checkPlan, planSummary } from './build.mjs';
+
+test('cold plans larger than the former capture limit retain their final count', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-plan-test-'));
+  try {
+    const file = path.join(dir, 'plan.log');
+    fs.writeFileSync(file, '[0/58000] start\n');
+    fs.truncateSync(file, 129 * 1024 * 1024);
+    fs.appendFileSync(file, '\nBuild Succeeded: 55000 steps\n');
+    assert.equal(plannedActions(planSummary(file)), 58000);
+    assert.throws(() => checkPlan(planSummary(file)), /Large rebuild stopped/);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('streamed plans preserve safety markers crossing chunk boundaries', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-plan-test-'));
+  try {
+    const file = path.join(dir, 'plan.log');
+    fs.writeFileSync(file, ' '.repeat(65530) + '--regeneration gen .\nBuild Succeeded: 4 steps');
+    assert.throws(() => checkPlan(planSummary(file), true), /GN regeneration/);
+    fs.writeFileSync(file, ' '.repeat(65530) + 'write_buildflag_header.py\nBuild Succeeded: 4 steps');
+    assert.throws(() => checkPlan(planSummary(file)), /Generated build flags/);
+    fs.writeFileSync(file, 'unfinished plan');
+    assert.throws(() => plannedActions(planSummary(file)), /Cannot determine/);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
 
 test('recognizes real Siso dry-run summary without a progress denominator', () => {
   assert.equal(plannedActions('touch one\ntouch two\nnoexec:0 local:0 remote:0\n 0.11s Build Succeeded: 2 steps - 18.33/s'), 2);

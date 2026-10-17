@@ -7,7 +7,7 @@ import { prepareMacIcon } from './mac-icon.mjs';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, '../..');
 const chromium = path.resolve(process.argv[2] ?? '');
-const expectedVersion = '156.0.8078.36';
+const expectedVersion = '157.0.8103.6';
 const assetsOnly = process.argv.slice(3).includes('--assets-only');
 if (process.argv.slice(3).some(arg => arg !== '--assets-only')) throw new Error('Unknown prepare option');
 
@@ -179,11 +179,26 @@ function edit(relative, edits) {
   writeIfChanged(target, source);
 }
 
-edit('chrome/browser/ui/BUILD.gn', [{
-  anchor: '      "views/frame/browser_view.cc",\n',
-  replacement: '      "views/frame/browser_view.cc",\n      "blanc_prototype_ui.cc",\n      "blanc_prototype_ui.h",\n',
-  present: '      "blanc_prototype_ui.cc",\n',
-}]);
+// Chromium 157 split BrowserView out of the former monolithic UI target.
+// Keep the bridge implementation with BrowserView and expose its declarations
+// through BrowserView's header target, avoiding an implementation dependency cycle.
+edit('chrome/browser/ui/views/frame/BUILD.gn', [
+  {
+    anchor: '  public = [ "browser_view.h" ]\n',
+    replacement: '  public = [ "browser_view.h", "//chrome/browser/ui/blanc_prototype_ui.h" ]\n',
+    present: '"browser_view.h", "//chrome/browser/ui/blanc_prototype_ui.h"',
+  },
+  {
+    anchor: '  sources = [ "browser_view.cc" ]\n',
+    replacement: '  sources = [ "browser_view.cc", "//chrome/browser/ui/blanc_prototype_ui.cc" ]\n',
+    present: '"browser_view.cc", "//chrome/browser/ui/blanc_prototype_ui.cc"',
+  },
+  {
+    anchor: '  deps = [\n    ":app_menu_button",\n    ":browser_frame_view",\n',
+    replacement: '  deps = [\n    "//chrome/browser/bookmarks",\n    "//chrome/browser/history",\n    "//components/bookmarks/browser",\n    "//components/bookmarks/common",\n    "//components/history/core/browser",\n    "//components/input",\n    "//components/keyed_service/core",\n    "//components/tab_groups",\n    "//components/viz/common",\n    ":app_menu_button",\n    ":browser_frame_view",\n',
+    present: '  deps = [\n    "//chrome/browser/bookmarks",\n    "//chrome/browser/history",\n',
+  },
+]);
 
 edit('chrome/browser/ui/webui/chrome_web_ui_configs.cc', [
   {

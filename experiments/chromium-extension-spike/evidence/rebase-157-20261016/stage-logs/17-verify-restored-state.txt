@@ -1,0 +1,19 @@
+node:internal/modules/run_main:122
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
++ undefined
+- true
+
+    at file:///private/tmp/blanc-task0/persist-verify.mjs:5:156 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: true,
+  operator: 'strictEqual'
+}
+
+Node.js v22.14.0

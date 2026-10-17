@@ -1,0 +1,443 @@
+{
+  "version": "157.0.8103.6",
+  "checks": [
+    {
+      "name": "browser-version",
+      "at": "2026-10-17T02:51:13.339Z",
+      "protocolVersion": "1.3",
+      "product": "Chrome/157.0.8103.6",
+      "revision": "@0000000000000000000000000000000000000000",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+      "jsVersion": "15.7.112"
+    },
+    {
+      "name": "start-page-initial",
+      "at": "2026-10-17T02:51:13.346Z",
+      "url": "chrome://blanc-prototype/pages/newtab.html",
+      "title": "New Tab",
+      "text": "Friday, October 16\nBillboard start page\n10:51\nc\nWeb Store\nCustomize\n⌘L to go anywhere",
+      "state": {
+        "layout": "billboard",
+        "topSites": [
+          {
+            "key": "chrome.google.com",
+            "title": "Web Store",
+            "url": "https://chrome.google.com/webstore?hl=en"
+          }
+        ]
+      }
+    },
+    {
+      "name": "island-initial",
+      "at": "2026-10-17T02:51:13.360Z",
+      "snapshot": {
+        "activeTabId": "1593472883",
+        "adblockEnabled": false,
+        "closed": [],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "glanceTabId": null,
+        "groups": [],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==",
+            "groupId": null,
+            "id": "1593472883",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "title": "New Tab",
+            "url": "blanc://newtab/"
+          }
+        ]
+      },
+      "dom": {
+        "strip": true,
+        "overlay": true,
+        "status": ""
+      }
+    },
+    {
+      "name": "fixture-created",
+      "at": "2026-10-17T02:51:14.431Z",
+      "snapshot": {
+        "activeTabId": "1593472884",
+        "adblockEnabled": false,
+        "closed": [],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "glanceTabId": null,
+        "groups": [],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==",
+            "groupId": null,
+            "id": "1593472883",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "title": "New Tab",
+            "url": "blanc://newtab/"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+            "groupId": null,
+            "id": "1593472884",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "#f8f2df",
+            "pinned": false,
+            "private": false,
+            "title": "Rebase157 A",
+            "url": "http://127.0.0.1:8786/A"
+          }
+        ]
+      }
+    },
+    {
+      "name": "automated-navigation",
+      "at": "2026-10-17T02:51:50.938Z"
+    },
+    {
+      "name": "automated-favorite-folder-reuse",
+      "at": "2026-10-17T02:51:50.970Z",
+      "favorites": [
+        {
+          "addedAt": 1792205510946.09,
+          "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+          "folder": "Rebase Folder",
+          "id": "5",
+          "title": "Rebase157 B",
+          "url": "http://127.0.0.1:8786/B"
+        }
+      ]
+    },
+    {
+      "name": "automated-layout",
+      "at": "2026-10-17T02:51:51.280Z",
+      "layout": "billboard"
+    },
+    {
+      "name": "automated-layout",
+      "at": "2026-10-17T02:51:52.548Z",
+      "layout": "ledger"
+    },
+    {
+      "name": "automated-layout",
+      "at": "2026-10-17T02:51:54.066Z",
+      "layout": "shelf"
+    },
+    {
+      "name": "automated-layout",
+      "at": "2026-10-17T02:51:55.281Z",
+      "layout": "tally"
+    },
+    {
+      "name": "automated-layout-cross-tab",
+      "at": "2026-10-17T02:51:56.513Z"
+    },
+    {
+      "name": "automated-pin-mute-boundary",
+      "at": "2026-10-17T02:51:57.716Z"
+    },
+    {
+      "name": "automated-group-operations",
+      "at": "2026-10-17T02:51:57.911Z",
+      "state": {
+        "active": "1593472883",
+        "groups": [],
+        "tabs": [
+          {
+            "id": "1593472887",
+            "url": "http://127.0.0.1:8786/D",
+            "pinned": false,
+            "muted": false,
+            "groupId": null
+          },
+          {
+            "id": "1593472883",
+            "url": "blanc://newtab/",
+            "pinned": false,
+            "muted": false,
+            "groupId": null
+          },
+          {
+            "id": "1593472885",
+            "url": "blanc://newtab/",
+            "pinned": false,
+            "muted": false,
+            "groupId": null
+          },
+          {
+            "id": "1593472888",
+            "url": "http://127.0.0.1:8786/E",
+            "pinned": false,
+            "muted": false,
+            "groupId": null
+          },
+          {
+            "id": "1593472889",
+            "url": "http://127.0.0.1:8786/F",
+            "pinned": false,
+            "muted": false,
+            "groupId": null
+          }
+        ]
+      }
+    },
+    {
+      "name": "automated-failure",
+      "at": "2026-10-17T02:52:38.087Z",
+      "error": "Error: Timed out: TopSites populated\n    at until (file:///private/tmp/blanc-task0/lib.mjs:17:165)\n    at async file:///private/tmp/blanc-task0/automated.mjs:22:174"
+    },
+    {
+      "name": "history-before-clear",
+      "at": "2026-10-17T02:53:00.417Z",
+      "history": [
+        {
+          "favicon": null,
+          "title": "Rebase157 F",
+          "url": "http://127.0.0.1:8786/F",
+          "visitedAt": 1792205517411.324
+        },
+        {
+          "favicon": null,
+          "title": "Rebase157 E",
+          "url": "http://127.0.0.1:8786/E",
+          "visitedAt": 1792205517122.693
+        },
+        {
+          "favicon": null,
+          "title": "Rebase157 D",
+          "url": "http://127.0.0.1:8786/D",
+          "visitedAt": 1792205516839.668
+        },
+        {
+          "favicon": null,
+          "title": "Rebase157 C",
+          "url": "http://127.0.0.1:8786/C",
+          "visitedAt": 1792205516555.604
+        },
+        {
+          "favicon": null,
+          "title": "Rebase157 B",
+          "url": "http://127.0.0.1:8786/B",
+          "visitedAt": 1792205510414.229
+        },
+        {
+          "favicon": null,
+          "title": "Rebase157 A",
+          "url": "http://127.0.0.1:8786/A",
+          "visitedAt": 1792205508369.773
+        }
+      ]
+    },
+    {
+      "name": "topsites-before-clear",
+      "at": "2026-10-17T02:53:01.633Z",
+      "sites": [
+        {
+          "key": "chrome.google.com",
+          "title": "Web Store",
+          "url": "https://chrome.google.com/webstore?hl=en"
+        }
+      ]
+    },
+    {
+      "name": "history-failure",
+      "at": "2026-10-17T02:53:31.803Z",
+      "error": "Error: Timed out: deletion notification\n    at until (file:///private/tmp/blanc-task0/lib.mjs:17:165)\n    at async file:///private/tmp/blanc-task0/history.mjs:9:2"
+    },
+    {
+      "name": "automated-restart-persistence",
+      "at": "2026-10-17T02:54:45.916Z",
+      "pin": true,
+      "groups": [
+        {
+          "collapsed": true,
+          "id": "6B3E71AFD4DB711DFDB3F8767B49CD25",
+          "name": "persist"
+        }
+      ],
+      "layout": "shelf",
+      "dynamicWallpaper": true,
+      "muted": false,
+      "note": "Per-tab mute resets on restart. Prior 156 persistence test asserts pin/order, not mute; initial new test overreached that contract."
+    },
+    {
+      "name": "typed-topsites-fixture-seed",
+      "at": "2026-10-17T02:55:45.050Z"
+    },
+    {
+      "name": "history-before-clear",
+      "at": "2026-10-17T02:56:54.318Z",
+      "history": [
+        {
+          "favicon": null,
+          "title": "http://127.0.0.1:8786/D",
+          "url": "http://127.0.0.1:8786/D",
+          "visitedAt": 1792205770396.599
+        },
+        {
+          "favicon": null,
+          "title": "http://127.0.0.1:8786/E",
+          "url": "http://127.0.0.1:8786/E",
+          "visitedAt": 1792205769589.424
+        },
+        {
+          "favicon": null,
+          "title": "Rebase157 TypedTopSite",
+          "url": "http://127.0.0.1:8786/TypedTopSite",
+          "visitedAt": 1792205767378.392
+        },
+        {
+          "favicon": null,
+          "title": "Rebase157 Persist",
+          "url": "http://127.0.0.1:8786/Persist",
+          "visitedAt": 1792205767372.794
+        },
+        {
+          "favicon": null,
+          "title": "http://127.0.0.1:8786/F",
+          "url": "http://127.0.0.1:8786/F",
+          "visitedAt": 1792205630659.467
+        }
+      ]
+    },
+    {
+      "name": "topsites-before-clear",
+      "at": "2026-10-17T02:56:55.535Z",
+      "sites": [
+        {
+          "key": "127.0.0.1",
+          "title": "Rebase157 Persist",
+          "url": "http://127.0.0.1:8786/Persist"
+        },
+        {
+          "key": "chrome.google.com",
+          "title": "Web Store",
+          "url": "https://chrome.google.com/webstore?hl=en"
+        }
+      ]
+    },
+    {
+      "name": "history-failure",
+      "at": "2026-10-17T02:56:55.596Z",
+      "error": "AssertionError [ERR_ASSERTION]: false == true\n    at file:///private/tmp/blanc-task0/history.mjs:10:72"
+    },
+    {
+      "name": "private-heart-inspection",
+      "at": "2026-10-17T02:57:41.548Z",
+      "heart": [
+        {
+          "theme": "private",
+          "display": "none"
+        },
+        {
+          "display": "flex"
+        }
+      ]
+    },
+    {
+      "name": "native-data-clear-and-notification-pass",
+      "at": "2026-10-17T02:58:08.945Z",
+      "events": [
+        "topSites"
+      ],
+      "sites": [
+        {
+          "key": "127.0.0.1",
+          "title": "Rebase157 Persist",
+          "url": "http://127.0.0.1:8786/Persist"
+        },
+        {
+          "key": "chrome.google.com",
+          "title": "Web Store",
+          "url": "https://chrome.google.com/webstore?hl=en"
+        }
+      ],
+      "favorites": [
+        {
+          "addedAt": 1792205510946.09,
+          "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC8UlEQVR4nHxTS0hUURg+5z7n6mgNRdNojiJamYWElCVlC8NBhCjSFhaRC12ULty0KMoJrUVhVqAhFkHtrEAty9JMohaFVIJgD/ARPsYZHWe89859n9O9vhPth/P6z/9/3zn/+Q4B1jZodd0NBZkvag9lrPStNmItp9c7H6xocqoqqckrff8FaL2T62wuAmSVF2BrbWiainRdWwDAvY2ZdFfTMed6AJClqANkRnaxSTUHgBCGCC0xY7/kOCfOBPfiFdchMAbQRKesgIkp5Q1NE+kPyxPirE2Tm9YRoK15V0NusiwISd9efeyyCHobyyw/JJ5e20VnbcyrbPZm7C/x9sgExbTZN7vKrCRVkcIRQQxZcyEkl4o83+ztAXpXg+dwQBouN4lJ6yjwfVN+fCQkVIphsf1Uzdfu59XZhTg6ZmADx+w0VEOHNDM6PT6cUFzzvaXj3tECTZZzfGNjt0vvDvmX7oKxl2i99a5a4qVndsemNEKYqkt0OzcLszwYGQ9N0g5nOUOpPllUPIVXP1ctFa6jzuOSZTF9wu8f6B795Tt70FPKj/25D1QZJKUkGMFpHgwNj5Mxjo1gQ7y75MTFzscttTnxdprboZBkP5WUHC/MBic4loLFFamJX4YHJ4qk4AxgbKwRESRSkRWg6siQwjMkF80VfnqQNxgM8FmsjfqxFSgC1f623zWlEjDKxvQ5YoFb5Y00RbdFbBqNwLQKJQUChbBjRUOkPot2+34bcYEA6sO0ym5hCRelaRLLIrgNK7rHPykaGHKvSS4KRjABAyEdQEgBKtpuFQlFZIMllVAJwwBRV8ROCZGDS0W8cnr7PltszElNxykAQwH+o1GIzHyOIeBAeJbv5ihd9j4Z7J3bWdHQ9TOJLoNm3ICKPW9gbDdlos4zINoc5U2MdLm8fmBkTtqmCM2Gl5/RBFmUcEV+SqzTHXXEFOEFwlQzBHJ92Kd9uNn2k19MBAuxq38YXMYD4EbZnuNAw/qlR/0vwTr2FwAA///YYd3sAAAABklEQVQDANILY9YXCroYAAAAAElFTkSuQmCC",
+          "folder": "Rebase Folder",
+          "id": "5",
+          "title": "Rebase157 B",
+          "url": "http://127.0.0.1:8786/B"
+        }
+      ],
+      "data": {
+        "cookie": "rebaseSentinel=kept",
+        "storage": "kept"
+      },
+      "qualification": "Native TopSites is cleared and notification arrived in same document. Visible DOM refresh remains pending: locked-screen page is hidden without layout-ready class."
+    },
+    {
+      "name": "private-heart-inspection",
+      "at": "2026-10-17T02:58:10.611Z",
+      "heart": [
+        {
+          "theme": "private",
+          "display": "none"
+        },
+        {
+          "theme": "private",
+          "display": "none"
+        }
+      ]
+    },
+    {
+      "name": "automated-private-guards",
+      "at": "2026-10-17T02:58:10.617Z",
+      "heart": [
+        {
+          "theme": "private",
+          "display": "none"
+        },
+        {
+          "theme": "private",
+          "display": "none"
+        }
+      ],
+      "error": "Clear history from a regular window."
+    },
+    {
+      "name": "cleared-history-survives-restart",
+      "at": "2026-10-17T02:58:24.869Z",
+      "favoriteCount": 1
+    },
+    {
+      "name": "web-store-listing-ready",
+      "at": "2026-10-17T02:58:47.335Z",
+      "url": "https://chromewebstore.google.com/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi",
+      "button": [
+        {
+          "text": "Add to Chrome",
+          "disabled": false
+        }
+      ],
+      "qualification": "No install initiated; native consent and popup tests await unlock."
+    }
+  ]
+}

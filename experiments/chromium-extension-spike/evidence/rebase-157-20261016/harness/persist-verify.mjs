@@ -1,0 +1,5 @@
+import fs from 'node:fs';
+import {assert,record,snapshot,evaluate,targets,connect,pause,until} from './lib.mjs';
+const before=JSON.parse(fs.readFileSync('/private/tmp/blanc-task0/pre-restart.json'));const s=await snapshot(),p=s.tabs.find(t=>t.url.endsWith('/Persist'));
+assert.ok(p?.pinned);assert.ok(s.groups.some(g=>g.name==='persist'&&g.collapsed));assert.deepEqual(await evaluate('BlancPrototypeHost.api.listFavorites()'),before.favorites);
+const c=await connect((await targets()).find(t=>t.url==='chrome://newtab/'));try{assert.equal(await c.eval('document.body.dataset.layout'),'shelf');assert.equal(await c.eval('dynamicWallpaperEnabled'),true);record('automated-restart-persistence',{pin:p.pinned,groups:s.groups,layout:'shelf',dynamicWallpaper:true,muted:p.muted,note:'Per-tab mute resets on restart. Prior 156 persistence test asserts pin/order, not mute; initial new test overreached that contract.'});await until(async()=>(await c.eval('state.topSites')).some(t=>t.url.startsWith('http://127.0.0.1:8786/')),'TopSites populated after restart',30000);record('topsites-seeded-after-restart',{sites:await c.eval('state.topSites')});}finally{c.close()}

@@ -19,6 +19,37 @@ export function plannedActions(output) {
   if (/no work to do/i.test(output)) return 0;
   throw new Error('Cannot determine the dry-run action count; inspect the saved plan. No build started.');
 }
+// A cold plan prints every compiler command and can exceed spawnSync's output
+// limit. Keep the full log on disk; scan it with bounded memory for guard inputs.
+export function planSummary(file) {
+  const fd = fs.openSync(file, 'r');
+  const chunk = Buffer.alloc(64 * 1024);
+  let carry = '';
+  let actions = null;
+  let noWork = false;
+  let regeneration = false;
+  let buildflags = false;
+  try {
+    let bytes;
+    while ((bytes = fs.readSync(fd, chunk, 0, chunk.length, null)) > 0) {
+      const text = carry + chunk.toString('utf8', 0, bytes);
+      for (const match of text.matchAll(/\[\d+\/(\d+)\]|Build Succeeded: (\d+) steps/g)) {
+        actions = Math.max(actions ?? 0, Number(match[1] ?? match[2]));
+      }
+      noWork ||= /no work to do/i.test(text);
+      regeneration ||= /--regeneration\s+gen|Regenerating ninja files/.test(text);
+      buildflags ||= /write_buildflag_header\.py/.test(text);
+      carry = text.slice(-256);
+    }
+  } finally {
+    fs.closeSync(fd);
+  }
+  return [
+    actions !== null ? `Build Succeeded: ${actions} steps` : noWork ? 'no work to do' : '',
+    regeneration ? '--regeneration gen' : '',
+    buildflags ? 'write_buildflag_header.py' : '',
+  ].join('\n');
+}
 export function checkPlan(output, allowLarge = false) {
   if (/--regeneration\s+gen|Regenerating ninja files/.test(output)) {
     throw new Error('GN regeneration is pending. Regenerate with unchanged arguments after reviewing the environment, then rerun preflight. No compilation started.');
@@ -91,12 +122,17 @@ function main() {
     const siso = path.join(src, 'third_party/siso/cipd/siso');
     const args = ['ninja', '-offline', '-C', out];
     const planFile = path.join(out, 'blanc-build-plan.log');
-    const result = spawnSync(siso, [...args, '-n', 'chrome'], {
-      cwd: src, env, encoding: 'utf8', maxBuffer: 128 * 1024 * 1024,
-    });
-    const output = `${result.stdout || ''}\n${result.stderr || ''}`;
-    fs.writeFileSync(planFile, output);
-    if (result.error || result.status !== 0) throw new Error(`Dry run failed; inspect ${planFile}. No build started.`);
+    const planFd = fs.openSync(planFile, 'w');
+    let result;
+    try {
+      result = spawnSync(siso, [...args, '-n', 'chrome'], {
+        cwd: src, env, stdio: ['ignore', planFd, planFd],
+      });
+    } finally {
+      fs.closeSync(planFd);
+    }
+    if (result.error || result.status !== 0) throw new Error(`Dry run failed (${result.error?.message ?? result.status ?? result.signal}); inspect ${planFile}. No build started.`);
+    const output = planSummary(planFile);
     const actions = plannedActions(output);
     console.log(`Dry-run scheduled actions: ${actions} (generated outputs may add work). Plan: ${planFile}`);
     checkPlan(output, options.includes('--allow-large-build'));

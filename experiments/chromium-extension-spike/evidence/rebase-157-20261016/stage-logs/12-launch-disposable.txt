@@ -1,0 +1,1 @@
+{"pid":"70782","profile":"/private/tmp/blanc-task0/profile","tabs":[{"type":"page","url":"chrome://newtab/"},{"type":"page","url":"chrome://blanc-prototype/host.html"},{"type":"browser_ui","url":"chrome://omnibox-popup.top-chrome/"},{"type":"browser_ui","url":"chrome://webui-toolbar.top-chrome/"}]}

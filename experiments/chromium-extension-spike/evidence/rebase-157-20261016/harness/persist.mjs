@@ -1,0 +1,15 @@
+import fs from 'node:fs';
+import {execFileSync} from 'node:child_process';
+import {assert,record,snapshot,evaluate,targets,connect,pause,until} from './lib.mjs';
+const api=async(name,...args)=>evaluate(`BlancPrototypeHost.api[${JSON.stringify(name)}](...${JSON.stringify(args)})`);
+const nt=await connect((await targets()).find(t=>t.url==='chrome://newtab/'));
+await nt.eval(`bowserPages.start.setLayout('shelf');bowserPages.start.setDynamicWallpaper(true)`);
+await api('createTab','http://127.0.0.1:8786/Persist');await pause(600);let s=await snapshot();const id=s.activeTabId;await api('toggleTabPinned',id);await api('toggleTabMuted',id);
+const e=s.tabs.find(t=>t.url.endsWith('/E'));await api('groupTabByName',e.id,'persist');const g=(await snapshot()).groups.find(g=>g.name==='persist');await api('toggleGroupCollapsed',g.id);
+fs.writeFileSync('/private/tmp/blanc-task0/pre-restart.json',JSON.stringify({snapshot:await snapshot(),favorites:await api('listFavorites'),prefs:await nt.eval(`localStorage.getItem('blanc.prototype.start.preferences.v1')`)}));
+const pid=Number(fs.readFileSync('/private/tmp/blanc-task0/test.pid','utf8'));const proc=execFileSync('ps',['-p',String(pid),'-o','command='],{encoding:'utf8'});assert.ok(proc.includes('--user-data-dir=/private/tmp/blanc-task0/profile '));
+await nt.send('Browser.close').catch(()=>{});nt.close();await until(()=>{try{process.kill(pid,0);return false}catch{return true}},'isolated process exit');
+execFileSync('/usr/local/bin/node',['/private/tmp/blanc-task0/launch.mjs'],{timeout:30000});await pause(1200);
+s=await snapshot();const p=s.tabs.find(t=>t.url.endsWith('/Persist'));assert.ok(p?.pinned&&p?.muted);assert.ok(s.groups.some(g=>g.name==='persist'&&g.collapsed));assert.deepEqual(await api('listFavorites'),JSON.parse(fs.readFileSync('/private/tmp/blanc-task0/pre-restart.json')).favorites);
+const c=await connect((await targets()).find(t=>t.url==='chrome://newtab/'));assert.equal(await c.eval('document.body.dataset.layout'),'shelf');assert.equal(await c.eval('state.dynamicWallpaperEnabled'),true);record('automated-restart-persistence',{pin:p.pinned,mute:p.muted,groups:s.groups,layout:await c.eval('document.body.dataset.layout')});
+await until(async()=>(await c.eval('state.topSites')).some(t=>t.url.startsWith('http://127.0.0.1:8786/')),'TopSites populated after restart',30000);record('topsites-seeded-after-restart',{sites:await c.eval('state.topSites')});c.close();

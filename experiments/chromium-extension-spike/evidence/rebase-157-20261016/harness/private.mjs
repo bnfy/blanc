@@ -1,0 +1,9 @@
+import {execFileSync} from 'node:child_process';
+import {targets,connect,assert,record,snapshot,evaluate,pause,until} from './lib.mjs';
+const regular=await evaluate('BlancPrototypeHost.api.listHistory({limit:300})');
+const c=await connect((await targets()).find(t=>t.url==='chrome://newtab/'));
+let ctx;try{execFileSync('/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype.app/Contents/MacOS/Blanc Prototype',['--user-data-dir=/private/tmp/blanc-task0/profile','--incognito','http://127.0.0.1:8786/Private'],{timeout:10000});await until(async()=>{try{return (await snapshot(true)).tabs.some(t=>t.private)}catch{return false}},'private host');
+assert.deepEqual(await evaluate('BlancPrototypeHost.api.listFavorites()',true),[]);assert.deepEqual(await evaluate('BlancPrototypeHost.api.listHistory({limit:300})',true),[]);await evaluate('BlancPrototypeHost.api.toggleBookmark()',true);await evaluate("BlancPrototypeHost.api.saveFavorite('private')",true);
+const err=await evaluate(`BlancPrototypeHost.api.clearHistory().then(()=>null,e=>e.message)`,true);assert.equal(err,'Clear history from a regular window.');assert.deepEqual(await evaluate('BlancPrototypeHost.api.listHistory({limit:300})'),regular);
+await evaluate('BlancPrototypeHost.api.openIsland()',true);await pause(1000);const heart=await evaluate(`['strip','overlay'].map(id=>{const d=document.getElementById(id).contentDocument,e=d.querySelector(id==='strip'?'#pillHeart':'#heartBtn');return {theme:d.documentElement.dataset.theme,display:e?getComputedStyle(e).display:'absent'}})`,true);record('private-heart-inspection',{heart});assert.ok(heart.every(h=>h.display==='none'||h.display==='absent'));record('automated-private-guards',{heart,error:err});
+}finally{const t=(await targets()).find(t=>t.url==='http://127.0.0.1:8786/Private');if(t)await c.send('Target.closeTarget',{targetId:t.id});c.close()}

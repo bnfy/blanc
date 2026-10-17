@@ -1,0 +1,12 @@
+{"name":"history-before-clear","history":[{"favicon":null,"title":"Rebase157 F","url":"http://127.0.0.1:8786/F","visitedAt":1792205517411.324},{"favicon":null,"title":"Rebase157 E","url":"http://127.0.0.1:8786/E","visitedAt":1792205517122.693},{"favicon":null,"title":"Rebase157 D","url":"http://127.0.0.1:8786/D","visitedAt":1792205516839.668},{"favicon":null,"title":"Rebase157 C","url":"http://127.0.0.1:8786/C","visitedAt":1792205516555.604},{"favicon":null,"title":"Rebase157 B","url":"http://127.0.0.1:8786/B","visitedAt":1792205510414.229},{"favicon":null,"title":"Rebase157 A","url":"http://127.0.0.1:8786/A","visitedAt":1792205508369.773}]}
+{"name":"topsites-before-clear","sites":[{"key":"chrome.google.com","title":"Web Store","url":"https://chrome.google.com/webstore?hl=en"}]}
+{"name":"history-failure","error":"Error: Timed out: deletion notification\n    at until (file:///private/tmp/blanc-task0/lib.mjs:17:165)\n    at async file:///private/tmp/blanc-task0/history.mjs:9:2"}
+node:internal/modules/run_main:122
+    triggerUncaughtException(
+    ^
+
+Error: Timed out: deletion notification
+    at until (file:///private/tmp/blanc-task0/lib.mjs:17:165)
+    at async file:///private/tmp/blanc-task0/history.mjs:9:2
+
+Node.js v22.14.0
