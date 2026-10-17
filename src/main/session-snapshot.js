@@ -31,6 +31,14 @@ const { normalizeTabName, displayTitle } = require('./tab-name');
  * Favorites; live remote sources never survive a restart. */
 function persistableFavicon(favicon) { return validFavicon(favicon); }
 
+// Lazy to keep pinned-home's reuse of persistableUrl free of an initialization
+// cycle: session-snapshot is the lower-level URL policy module.
+function validPinnedHome(value) {
+  if (typeof value !== 'string') return null;
+  const { pinnedHomeFor } = require('./pinned-home');
+  return pinnedHomeFor(value, { localFile: value.startsWith('file:') });
+}
+
 /** session.json's meta entry for one tab (Quiet Tabs spec §10.1): what the
  * pill and the rail draw for a tab restored quiet, before it has any
  * webContents. Empty title for a tab sitting on our own error page —
@@ -46,6 +54,10 @@ function sessionTabMeta(tab) {
   // exactly as before and older builds simply ignore it.
   const customTitle = normalizeTabName(tab?.customTitle);
   if (customTitle) meta.customTitle = customTitle;
+  const pinnedHomeUrl = tab?.pinned && !tab?.private
+    ? validPinnedHome(tab.pinnedHomeUrl)
+    : null;
+  if (pinnedHomeUrl) meta.pinnedHomeUrl = pinnedHomeUrl;
   return meta;
 }
 
@@ -54,10 +66,17 @@ function sessionTabMeta(tab) {
  * group name, and stays. Null when nothing is worth keeping, so the caller
  * deletes the column exactly as it always has. */
 function metaAfterHistoryClear(meta) {
-  if (!Array.isArray(meta) || !meta.some((m) => normalizeTabName(m?.customTitle))) return null;
-  return meta.map((m) => {
-    const customTitle = normalizeTabName(m?.customTitle);
-    return customTitle ? { title: '', favicon: null, customTitle } : { title: '', favicon: null };
+  if (!Array.isArray(meta)) return null;
+  const retained = meta.map((m) => ({
+    customTitle: normalizeTabName(m?.customTitle),
+    pinnedHomeUrl: validPinnedHome(m?.pinnedHomeUrl),
+  }));
+  if (!retained.some(({ customTitle, pinnedHomeUrl }) => customTitle || pinnedHomeUrl)) return null;
+  return retained.map(({ customTitle, pinnedHomeUrl }) => {
+    const entry = { title: '', favicon: null };
+    if (customTitle) entry.customTitle = customTitle;
+    if (pinnedHomeUrl) entry.pinnedHomeUrl = pinnedHomeUrl;
+    return entry;
   });
 }
 
