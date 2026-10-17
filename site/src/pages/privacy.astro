@@ -93,6 +93,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <li><strong>Downloads.</strong> Pages with download controls ask GitHub's public API which artifacts exist. Choosing an artifact then requests Blanc's Cloudflare download Worker, which increments one aggregate counter for that UTC day and platform target and redirects to the matching GitHub release file. Blanc stores no download cookie, IP address, user agent, or per-user identifier in that counter. When the consented ChatGPT-ad reference described above is present, the same Worker also sends the limited conversion event to OpenAI. Cloudflare and GitHub still receive ordinary request data such as IP address and user agent under their own policies.</li>
     <li><strong>Hosting.</strong> Cloudflare Pages serves the site and processes ordinary request and security logs, including IP addresses, to deliver and protect it.</li>
     <li><strong>Fonts.</strong> Fonts are bundled and served by blanc.day; no font provider is contacted.</li>
+    <li><strong>Site icons.</strong> The bangs page shows site icons from blanc.day. Blanc’s server fetches each icon from the site, or from DuckDuckGo’s icon service, and keeps a copy, so your browser contacts neither.</li>
     <li><strong>Tab-handoff landing page.</strong> The <code>/import-tabs</code> utility page is excluded from the sitemap and loads no Google Analytics, Cloudflare Web Analytics beacon, conversion measurement, or consent script. Cloudflare still processes ordinary hosting and security logs.</li>
   </ul>
 
