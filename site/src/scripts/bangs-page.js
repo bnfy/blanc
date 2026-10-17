@@ -44,7 +44,7 @@ function watchIcon(img) {
 }
 
 function addIcon(tile, host) {
-  if (!tile || !host || tile.querySelector('img')) return;
+  if (tile.querySelector('img')) return;
   const img = document.createElement('img');
   img.alt = '';
   img.width = 32;

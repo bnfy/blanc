@@ -84,7 +84,7 @@
 }
 .bangs-rows li:first-child { border-top: 0; }
 .bangs-rows li[hidden] { display: none; }
-.bangs-rows .bangs-icon { align-self: center; width: 22px; height: 22px; border-radius: 6px; font-size: 12px; }
+.bangs-rows .bangs-icon { align-self: start; width: 22px; height: 22px; border-radius: 6px; font-size: 12px; }
 .bangs-rows .bangs-icon img { padding: 2px; }
 /* Each code is the chip, as in the app's bang picker rows. The row's own
    code is what a visitor came for: a long one wraps rather than truncates. */
@@ -126,13 +126,15 @@
 @media (max-width: 760px), (pointer: coarse) {
   .bangs-search input { font-size: 16px; }
 }
+/* Below 900px the two 13em columns would squeeze the site name into a
+   ribbon, so a row's other codes and host move under its name. */
 @media (max-width: 900px) {
   .bangs-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-}
-@media (max-width: 760px) {
   .bangs-rows li { grid-template-columns: 22px 7.5em minmax(0, 1fr); }
   .bangs-rows small, .bangs-rows em { grid-column: 3; }
   .bangs-rows em { text-align: left; }
+}
+@media (max-width: 760px) {
   .bangs-how ul { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 560px) {

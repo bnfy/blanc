@@ -3,6 +3,11 @@
 October 17, 2026. **Status: design, awaiting owner review.** Nothing here is
 built yet.
 
+> **Superseded in part (October 17, 2026):** the icon-first redesign
+> (`2026-10-17-bangs-page-redesign-design.md`) replaces this document's page
+> layout (sections 1 to 5) and removes the try-it box. Its data, directory,
+> engine-tag, credit and claims rules still hold.
+
 ## Why
 
 Bangs (F47, `!yt lofi`) merged on October 17 as `081c965b` (PR #876). They
