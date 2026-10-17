@@ -93,11 +93,42 @@ test('nothing on a Mail page scrolls sideways, from phones to wide screens', asy
     try {
       for (const [path] of pages) {
         await page.goto(`${baseURL}${path}`);
-        // Measure the settled page: before the web fonts swap in, fallback text
-        // can briefly be wider (CI caught a 10px overflow at 320px that way).
+        // Measure the settled page; the next test covers the stand-in font
+        // drawn before the web fonts arrive.
         await page.evaluate(() => document.fonts.ready);
         const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
         assert.ok(overflow <= 0, `${path} at ${width}px overflows by ${overflow}px`);
+      }
+    } finally { await context.close(); }
+  }
+});
+
+test('at 320px the bar fits whichever font draws it, and the page menu gives way first', async () => {
+  // At 320px the bar's row has no room to spare. Until the web fonts arrive it
+  // draws in a stand-in, and where Arial is missing (Linux, so CI) that is a
+  // wider sans: Join pushed /mail 12px past the window, which made the header
+  // suite fail at random. Verdana is about as wide; CI draws DejaVu Sans.
+  for (const font of [null, 'Verdana, "DejaVu Sans", sans-serif']) {
+    const { page, context } = await openPage('/mail', 320);
+    try {
+      for (const [path, label] of pages) {
+        await page.goto(`${baseURL}${path}`);
+        await page.evaluate(() => document.fonts.ready);
+        if (font) await page.addStyleTag({ content: `.mail-bar { font-family: ${font} !important; }` });
+        const bar = await page.evaluate(() => {
+          const inner = document.querySelector('.mail-bar-inner');
+          const end = inner.getBoundingClientRect().right - parseFloat(getComputedStyle(inner).paddingRight);
+          const name = document.querySelector('.mail-bar-pages-label');
+          return {
+            overflow: document.documentElement.scrollWidth - innerWidth,
+            joinInside: document.querySelector('.mail-bar-join').getBoundingClientRect().right <= end + 0.5,
+            truncated: name ? name.scrollWidth > name.clientWidth : null,
+          };
+        });
+        const state = `${path} ${font ? 'in a wide stand-in font' : 'settled'}`;
+        assert.ok(bar.overflow <= 0, `${state}: overflows by ${bar.overflow}px`);
+        assert.equal(bar.joinInside, true, `${state}: Join stays inside the bar's padding`);
+        if (!font) assert.equal(bar.truncated, false, `${state}: ${label} is shown whole`);
       }
     } finally { await context.close(); }
   }

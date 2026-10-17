@@ -25,7 +25,7 @@ const currentLabel = links.find(([href]) => href === path)?.[1] ?? 'Overview';
       {links.map(([href, label]) => <li><a href={href} aria-current={path === href ? 'page' : undefined}>{label}</a></li>)}
     </ul>
     <button class="mail-bar-pages" type="button" popovertarget="mail-bar-menu">
-      {currentLabel}<svg class="mail-bar-chevron" viewBox="0 0 12 12" aria-hidden="true"><path d="m3 4.5 3 3 3-3" /></svg>
+      <span class="mail-bar-pages-label">{currentLabel}</span><svg class="mail-bar-chevron" viewBox="0 0 12 12" aria-hidden="true"><path d="m3 4.5 3 3 3-3" /></svg>
     </button>
     <button class="mail-bar-join" type="button" popovertarget="mail-bar-waitlist">Join<span class="mail-bar-join-tail"> the waitlist</span></button>
   </nav>
