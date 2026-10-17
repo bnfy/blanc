@@ -6,6 +6,8 @@ import bangsSource from '../scripts/bangs.js?raw';
 import { directoryRows } from '../scripts/bangs-directory.mjs';
 import { describeTryIt } from '../scripts/bangs-tryit.mjs';
 import '../styles/bangs.css';
+// The Island drawing uses the app's interface face, from the app's own file.
+import appTextFont from '../../../src/renderer/pages/instrument-sans-latin-wdth-normal.woff2?url';
 
 // The data is pinned to one build (site/scripts/build-bangs-data.mjs): the
 // bangs merge commit while this page is a candidate, the release tag after.
@@ -119,5 +121,6 @@ const chips = ['!w golden retriever', '!a usb cable', '!gh electron', 'lofi !yt'
   <section class="feature-close" aria-labelledby="bangs-close-title"><h2 id="bangs-close-title">Try bangs in Blanc.</h2><a class="cta" href="/download" data-track="feature_cta_click" data-feature="bangs" data-cta-position="feature-close">download blanc</a></section>
 </main>
 
+<style is:inline set:html={`@font-face {font-family:"Instrument Sans";src:url('${appTextFont}') format('woff2');font-style:normal;font-weight:400 700;font-stretch:75% 100%;font-display:swap;}`} />
 <script src="../scripts/bangs-page.js"></script>
 </BaseLayout>

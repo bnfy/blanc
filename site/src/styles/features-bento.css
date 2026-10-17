@@ -173,10 +173,19 @@
 /* Bangs tile: three bangs and their hint rows, one at a time. The loop runs
    only on screen (feature-bento.js) and, without motion, rests on the first. */
 .ui-bangs { position: relative; min-height: 6.2em; }
+/* The tile and its popover demo draw the app, so they use its Instrument Sans
+   (declared on this page by the shield demo); each !code is the app's chip. */
+.ui-bangs, .demo-bangs { font-family: "Instrument Sans", var(--font-ui); font-variation-settings: "wdth" 98; letter-spacing: 0.01em; }
+.ui-bangs .ui-m, .demo-bangs .ui-m { font-family: var(--font-ui); font-variation-settings: normal; letter-spacing: 0; }
 .ui-bang-step { position: absolute; inset: 0; opacity: 0; }
 .ui-bang-step--1 { opacity: 1; }
 .ui-bang-in { margin: .7em .8em .3em; padding: .55em .8em; border: 1px solid rgba(18, 16, 11, .1); border-radius: .8em; background: #F7F7F7; }
-.ui-bang-code { flex: none; font-weight: 700; }
+/* .demo-bangs scope: outranks .demo-cmd's fixed width and weight. */
+.ui-bang-code, .demo-bangs .demo-bang {
+  flex: none; min-width: 0; padding: 0 .55em; border-radius: .45em; background: color-mix(in srgb, #14120E 7%, transparent);
+  font-weight: 550; line-height: 1.6;
+}
+.ui-row.is-on .ui-bang-code, .demo-bangs .ui-row.is-on .demo-bang { background: color-mix(in srgb, #14120E 12%, transparent); font-weight: 600; }
 @media (prefers-reduced-motion: no-preference) {
   /* Negative first delay: paused or not, the first bang is already showing. */
   .ui-bang-step { animation: bento-bang 9s linear infinite; animation-play-state: paused; }

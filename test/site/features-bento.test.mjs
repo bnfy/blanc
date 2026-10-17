@@ -347,6 +347,25 @@ test('the Bangs tile types its bangs only while on screen, and rests without mot
   } finally { await still.close(); }
 });
 
+test('the Bangs tile and its demo draw the app in Instrument Sans, with bang codes in chips', async () => {
+  const context = await contextFor();
+  const page = await context.newPage();
+  try {
+    await page.goto(`${baseURL}/features`);
+    for (const selector of ['.ui-bangs .ui-bang-code', '.ui-bangs .ui-bang-in', '.demo-bangs .demo-bang', '.demo-bangs .ui-t']) {
+      const style = await page.locator(selector).first().evaluate((el) => {
+        const s = getComputedStyle(el);
+        return { family: s.fontFamily, radius: s.borderTopLeftRadius, background: s.backgroundColor };
+      });
+      assert.match(style.family, /^"Instrument Sans"/, `${selector} is ${style.family}`);
+      if (/(\.ui-bang-code|\.demo-bang)$/.test(selector)) {
+        assert.notEqual(style.radius, '0px', `${selector} is a chip`);
+        assert.doesNotMatch(style.background, /rgba\(0, 0, 0, 0\)|transparent/, `${selector} is a chip`);
+      }
+    }
+  } finally { await context.close(); }
+});
+
 test('a closing popover hands back to a visible tile instead of an empty card', async () => {
   const context = await contextFor({ reducedMotion: 'no-preference' });
   const page = await context.newPage();

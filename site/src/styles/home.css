@@ -1261,9 +1261,15 @@
   background: var(--surface);
   font-size: 14px;
 }
+/* The selected row's !code in the app's chip (styles.css .island-row .row-cmd). */
 .bang-row b {
   flex: none;
+  padding: 0 7px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  font-size: 12px;
   font-weight: 600;
+  line-height: 20px;
 }
 .bang-row span {
   flex: 1;
@@ -1275,6 +1281,10 @@
   flex: none;
   color: #6f6a63;
   font: inherit;
+  /* Key caps stay Inter, as in the app. */
+  font-family: var(--font-ui);
+  font-variation-settings: normal;
+  letter-spacing: 0;
 }
 
 /* ---------- Comparison ---------- */

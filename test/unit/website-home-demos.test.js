@@ -46,6 +46,10 @@ test('the tools grid carries a wide Bangs card after 1Password that links to /ba
   assert.ok(at > tools.indexOf('<h3>1Password</h3>') && at < tools.indexOf('<h3>Mouse gestures</h3>'), 'Bangs sits between 1Password and Mouse gestures');
   const card = tools.slice(tools.lastIndexOf('<article', at), tools.indexOf('</article>', at));
   assert.match(card, /^<article class="tool-card tool-card-wide rise">\s*<div class="tool-media tool-illustration bang-scene" role="img" aria-label="[^"]+">/);
+  // The drawing keeps .tool-illustration's Instrument Sans, and the selected
+  // row's code sits in the app's chip.
+  assert.doesNotMatch(css, /\.bang-scene \{[^}]*font-family/);
+  assert.match(css, /\.bang-row b \{[^}]*border-radius: 6px;[^}]*background: color-mix\(in srgb, var\(--ink\) 12%, transparent\);/);
   assert.match(card, /<h3>Bangs<\/h3>\s*<p>Type a site’s code before your search, like <code>!yt lofi<\/code>, to go straight to its results\.<\/p>\s*<p class="tool-limit">Works with any search engine\.<\/p>\s*<a class="more-link" href="\/bangs">How bangs work <span aria-hidden="true">›<\/span><\/a>/);
 });
 
