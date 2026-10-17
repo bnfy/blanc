@@ -1,0 +1,35 @@
+EasyList / EasyPrivacy-derived replay corpus
+
+Copyright (c) The EasyList authors — https://easylist.to/
+
+The proposed synthetic corpus derives candidate URLs, data and generated
+page content from the pinned EasyList and EasyPrivacy sources. These
+list-derived artifacts are adaptations distributed under Creative Commons
+Attribution-ShareAlike 3.0 Unported or, at your option, any later version
+(CC BY-SA 3.0-or-later), following Blanc's existing choice of the Creative
+Commons option for the dual-licensed upstream lists.
+
+Upstream licence statement:
+https://easylist.to/pages/licence.html
+Licence text:
+https://creativecommons.org/licenses/by-sa/3.0/legalcode.en
+
+Sources:
+https://easylist.to/easylist/easylist.txt
+https://easylist.to/easylist/easyprivacy.txt
+Pinned copies and provenance: adblock/sources/ and adblock/sources/SOURCES.md
+(repository-relative paths). Generated manifests must identify the exact
+source hashes and describe the transformations, including rule-derived
+blocking, exception and near-miss candidates and their fixture pages.
+Preserve attribution, licence references and modification descriptions
+when redistributing the adaptations under the applicable share-alike terms.
+
+This notice applies to list-derived corpus artifacts. It does not relicense
+independently authored first-party generator, harness code or fixtures,
+which retain their existing terms, or change other third-party notices.
+List-derived data must not be described as covered solely by Blanc's MIT
+licence. Generated artifacts must identify their scope and provenance.
+
+Status: documentation for the proposed tranche2-request.md section 2.1
+amendment. Section 8.1 approval is pending; adding this notice authorizes
+no generation, capture or implementation and claims no completed corpus.

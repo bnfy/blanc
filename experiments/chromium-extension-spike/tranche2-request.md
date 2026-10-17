@@ -173,7 +173,14 @@ into acceptance data.
   pinned EasyList/EasyPrivacy snapshot: blocking rules, exception rules and
   near-miss negative controls. Commit the generator, seed, rule references,
   list hashes, fixture bytes and manifest under `fixtures/replay/`, with
-  the upstream notices and applicable list licensing preserved. Rules seed
+  list-derived URLs, data and generated page content licensed under
+  **CC BY-SA 3.0-or-later**, attributed to **The EasyList authors**, as
+  specified in `fixtures/replay/NOTICE`. Preserve source hashes, source
+  links and transformation descriptions with generated artifacts; the
+  first-party generator and independently authored harness code retain
+  their existing terms. Do not edit the packaged root
+  `THIRD-PARTY-NOTICES.md` from this spike branch; any future integration
+  into `main` must align its notices in that separate change. Rules seed
   candidates; they do not supply the expected block/allow answer.
 - Keep the minimum **2,000 distinct URLs observed blocked and 2,000 distinct
   URLs observed allowed** by the real Electron provider. Repetitions,
@@ -193,6 +200,17 @@ into acceptance data.
   explicit gaps, never implied passes or silently dropped rows. Explain
   genuinely inapplicable combinations. Meeting 4,000 URLs alone is not
   acceptance and does not close an unimplemented coverage path.
+  Prioritize renderer subresources by resource type, first- versus
+  third-party contexts, regular/private profiles and redirects, so the
+  highest-priority criterion 3 evidence is gathered first. This ordering
+  does not narrow criterion 3 or waive other cells. Given the unchanged
+  two-week box, a partial matrix with explicit gaps is an expected possible
+  deadline outcome, not a reason to extend the box or manufacture passes.
+  Report each cell as passed, failed, gap or inapplicable with its evidence
+  or reason; distinguish untested coverage from observed mismatches. A
+  stopped spike with gaps is a valid measurement deliverable, not completed
+  acceptance or a claim that criterion 3 passed. Apply the existing stop
+  and kill criteria to the evidence actually obtained.
 - Use actual browser loads, the real provider and startup gate, and the
   same origin-preserving offline transport with disposable fixture TLS in
   both browsers. No live upstream fallback. Observe each hook's actual
@@ -238,8 +256,12 @@ into acceptance data.
   and refusals; a failed page remains a failed observation.
 - Keep response bodies, full-URL observations and any transient identifiers
   only on this Mac, outside the repository and synced folders, under an
-  owner-only run directory such as `/private/tmp/blanc-f12-private-sanity/`
-  (directories 0700, files 0600). Do not persist Cookie, Set-Cookie,
+  owner-only run directory under
+  `~/Library/Caches/Blanc/F12PrivateSanity/<run-id>/`
+  (directories 0700, files 0600), with the expanded absolute path recorded
+  locally. This avoids relying on temporary-directory retention, but a
+  cache is not guaranteed storage: record any early eviction as lost
+  evidence, never as a completed check. Do not persist Cookie, Set-Cookie,
   Authorization, Proxy-Authorization or credential material in recordings;
   fresh-session cookies needed by the browser remain ephemeral. Do not
   export profiles, HARs, raw stderr, screenshots, keys or individual URLs
