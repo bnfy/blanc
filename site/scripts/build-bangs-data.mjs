@@ -25,6 +25,7 @@ const ROOT = path.resolve(path.dirname(SCRIPT_PATH), '..', '..');
 const OUT_JSON = path.join(ROOT, 'site', 'src', 'data', 'bangs.json');
 const OUT_MODULE = path.join(ROOT, 'site', 'src', 'scripts', 'bangs.js');
 const OUT_LICENSE = path.join(ROOT, 'site', 'public', 'licenses', 'kagi-bangs-MIT.txt');
+const OUT_HOSTS = path.join(ROOT, 'site', 'public', 'bang-hosts.json');
 const CATALOG_PATH = 'src/renderer/pages/bangs-catalog.js';
 const MODULE_PATH = 'src/renderer/pages/bangs.js';
 const LICENSE_PATH = 'bangs/sources/kagi-bangs-LICENSE.txt';
@@ -127,11 +128,21 @@ function renderData({ ref, release, catalogBytes, messagesBytes }) {
   return lines.join('\n');
 }
 
+// The hosts the icon server (cloudflare/bang-icons-worker) may answer for:
+// every bang's host, once, sorted. It reads this file from blanc.day, so a
+// re-pin and site deploy update it with no Worker deploy.
+function renderHosts(data) {
+  const hosts = [...new Set(data.entries.map((entry) => entry[3].toLowerCase()))].sort();
+  return `${JSON.stringify({ ref: data.ref, release: data.release, count: hosts.length, hosts }, null, 2)}\n`;
+}
+
 function buildOutputs({ ref, release }) {
   const commit = resolveCommit(ref);
   if (release && resolveCommit(release) !== commit) throw new Error(`--release ${release} is not ${ref}`);
+  const json = renderData({ ref: commit, release: release ?? null, catalogBytes: gitShow(commit, CATALOG_PATH), messagesBytes: gitShow(commit, MESSAGES_PATH) });
   return [
-    [OUT_JSON, Buffer.from(renderData({ ref: commit, release: release ?? null, catalogBytes: gitShow(commit, CATALOG_PATH), messagesBytes: gitShow(commit, MESSAGES_PATH) }))],
+    [OUT_JSON, Buffer.from(json)],
+    [OUT_HOSTS, Buffer.from(renderHosts(JSON.parse(json)))],
     [OUT_MODULE, gitShow(commit, MODULE_PATH)],
     [OUT_LICENSE, gitShow(commit, LICENSE_PATH)],
   ];
@@ -174,7 +185,7 @@ function run(argv = process.argv.slice(2)) {
   return 0;
 }
 
-export { engineSearchVia, renderData, run };
+export { engineSearchVia, renderData, renderHosts, run };
 
 if (process.argv[1] && path.resolve(process.argv[1]) === SCRIPT_PATH) {
   try {

@@ -83,3 +83,4 @@ ublock/adaptation.patch -whitespace
 /site/src/data/bangs.json text eol=lf
 /site/src/scripts/bangs.js text eol=lf
 /site/public/licenses/kagi-bangs-MIT.txt text eol=lf
+/site/public/bang-hosts.json text eol=lf
