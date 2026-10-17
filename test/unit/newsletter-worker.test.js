@@ -451,7 +451,9 @@ test('the Mail waitlist form, CSP and privacy disclosure describe the Worker con
   const privacy = site('src/pages/privacy.astro');
   assert.match(privacy, /<h3 id="mail-waitlist">Blanc Mail waitlist \(optional, double opt-in\)<\/h3>/);
   assert.match(privacy, /does not subscribe you to the newsletter/);
-  assert.match(privacy, /we delete the whole waitlist/);
+  assert.match(privacy, /we delete the whole waitlist and those notices/);
+  assert.match(privacy, /number of people on the waitlist/);
+  assert.match(privacy, /the number of subscribers/);
 });
 
 test('a large waitlist purges in bounded batches and exports from list metadata', async (t) => {
@@ -756,7 +758,7 @@ test('the Blanc Mail waitlist is never synced to Resend', async (t) => {
   assert.equal(calls, 0);
 });
 
-test('a first newsletter confirmation alerts SIGNUP_ALERT_TO; re-confirming and the waitlist do not', async (t) => {
+test('a first newsletter or waitlist confirmation alerts SIGNUP_ALERT_TO; re-confirming does not', async (t) => {
   const env = { ...environment(), SIGNUP_ALERT_TO: 'support@blanc.day' };
   const originalFetch = globalThis.fetch;
   const sent = [];
@@ -801,10 +803,16 @@ test('a first newsletter confirmation alerts SIGNUP_ALERT_TO; re-confirming and 
   assert.equal((await worker.fetch(new Request(secondLink), env)).status, 200);
   assert.equal(alerts().length, 3, 're-confirming does not alert');
 
+  // The Mail waitlist alerts too, with its own wording and its own total.
   await worker.fetch(waitlistRequest({ email: 'waiting@example.com' }), env);
   await confirmFromLastMail(/https:\/\/[^\s]+\/mail-waitlist\/confirm\?token=[A-Za-z0-9_-]{43}/);
   assert.ok(await env.SUBSCRIBERS.get('mailwait:waiting@example.com'));
-  assert.equal(alerts().length, 3, 'the Mail waitlist does not alert');
+  assert.equal(alerts().length, 4);
+  const waitlistAlert = alerts()[3];
+  assert.equal(waitlistAlert.subject, 'New Blanc Mail waitlist signup: waiting@example.com');
+  assert.match(waitlistAlert.text, /a place on the Blanc Mail waitlist/);
+  assert.match(waitlistAlert.text, /That makes 1 person on the waitlist\./);
+  assert.ok(waitlistAlert.html.includes('Blanc is built by Bananify.'));
 });
 
 test('a failed signup alert still confirms the subscription', async (t) => {
