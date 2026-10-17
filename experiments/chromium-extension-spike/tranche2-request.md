@@ -45,15 +45,39 @@ the patch budget, and with acceptable per-request latency?
   adopted) linked into the browser process as Brave does. Spike A builds at
   least the first; it builds the second only if the first's latency fails
   the bound below.
-- Request hook. The browser-process `URLLoaderThrottle` path
-  (`ContentBrowserClient::CreateURLLoaderThrottles`) for every subresource
-  and navigation request in regular and incognito profiles; no network-service
-  patch. Decisions must fail closed while the engine is loading, matching
-  `installStartupNavigationGate` in Electron.
-- Cosmetic filtering. Declarative CSS and the bundled scriptlets from
-  `adblock/sources/` injected per frame through a renderer-side agent
-  (`RenderFrameObserver`) or an isolated-world user script; measured, not
-  assumed, against the same fixtures.
+- **Request-path coverage audit, first.** The pinned 157 source routes
+  requests through more than one path, and a browser-process
+  `URLLoaderThrottle` does not see all of them: renderer-initiated
+  subresources, navigations, keepalive (`fetch` with `keepalive`, beacons),
+  prefetch and prerender, service-worker-initiated fetches, dedicated and
+  shared worker scripts, WebSocket and WebTransport handshakes each have
+  their own factory or service. Before any hook is written, the spike
+  enumerates every request path in the checkout with file and line, states
+  which interception point sees it (`CreateURLLoaderThrottles`,
+  `WillCreateURLLoaderFactory` proxying, or neither), and ships a coverage
+  fixture that issues one request of each kind and asserts it was
+  decided. The audit is a deliverable on its own; a path the hook cannot
+  reach is listed, never assumed covered.
+- Request hook. Browser-side interception at the points the audit names,
+  in regular and incognito profiles; the throttle path is the first
+  candidate and factory proxying the second; no network-service patch and
+  no extension-system patch. Decisions must fail closed while the engine
+  is loading, matching `installStartupNavigationGate` in Electron.
+- Cosmetic filtering, two separate mechanisms. **CSS** (element hiding and
+  procedural rules) is injected per frame as a user stylesheet or an
+  isolated-world style injection; the page's CSP must not be able to block
+  it, as it cannot block Electron's today. **Scriptlets** are different: the
+  bundled scriptlets in `adblock/sources/` patch page globals (`fetch`,
+  `XMLHttpRequest`, timers, `JSON.parse` and the like) and so must execute
+  in the **main world** at document start, where an isolated world cannot
+  reach those objects (Chrome's content-script model documents the
+  boundary: <https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts>).
+  The spike injects them from the renderer agent into the main world
+  (`RenderFrameObserver::DidCreateScriptContext` for world 0, or the
+  user-script path with main-world execution) as browser-privileged code
+  that the page's CSP does not govern, keeping the per-scriptlet isolation
+  `adblock-scriptlets.js` enforces in Electron. Each mechanism is measured
+  on its own fixtures, not assumed from the other.
 - Lists. The pinned, hash-verified EasyList/EasyPrivacy snapshot from
   `adblock/sources/`, nothing fetched at startup; the same inputs as
   Electron so the comparison is like for like.
@@ -62,11 +86,34 @@ the patch budget, and with acceptable per-request latency?
 
 | Measure | Method | Bound (from plan §5 criterion 3) |
 | --- | --- | --- |
-| Block rate | the `adUrls` and `normalUrls` sets in `test/unit/adblock-youtube.test.js` and the request fixtures behind `adblock-exceptions`, `adblock-events` and `adblock-engine-loader` tests, replayed through the fork and through Electron Blanc on the same lists | at least Electron Blanc's rate on the same set; any URL blocked by Electron and allowed by the fork is listed by name |
-| Cosmetic coverage | the cosmetic and scriptlet cases in `adblock-scriptlets.test.js` and the YouTube fixture page, visually and by DOM assertion | parity with Electron on the same pages |
+| Block rate | the **replay corpus** defined below, issued at the browser level through the fork and through Electron Blanc on the same lists | every request decided the same way in both, for blocked *and* allowed traffic; any divergence listed by URL, type and rule |
+| Cosmetic coverage | the corpus's **outcome pages**, checked in both browsers by DOM assertion and capture | parity with Electron on the same pages, CSS and scriptlet outcomes reported separately |
 | Decision latency | per-request p50/p99 for the throttle's decision, measured on a 200-request page load | p99 under 2 ms in-process; under 5 ms over Mojo; above that, the other engine placement is tried before concluding |
 | Patch count | files and hunks touched outside `src/blanc/`, counted by the same inventory script as the ledger | fits the A1 budget once A1 names it; reported either way |
 | Private windows | the same hook active in incognito, verified by the fixture | blocked, as Blanc Blocker protects private tabs today |
+
+**Replay corpus.** The unit tests named in the plan (`adblock-youtube`,
+`adblock-exceptions`, `adblock-events`, `adblock-engine-loader`) exercise the
+engine against mocks, not a browser; they seed URLs but cannot be the
+acceptance fixture. Spike A first builds `adblock/fixtures/replay/`
+(committed, reviewed like the list snapshot):
+
+- A request corpus of at least 2,000 requests the pinned lists block and
+  2,000 they allow, each with URL, resource type, initiator and frame
+  context, recorded from real page loads in Electron Blanc with the
+  blocker's own decision logged as the oracle, served back from a local
+  fixture server during replay so both browsers see identical traffic.
+- Outcome pages: the existing YouTube fixture page plus synthetic pages
+  that each exercise one class of cosmetic rule (element hiding,
+  procedural, `:has`, scriptlet-dependent behaviour such as a patched
+  `fetch` or a defused timer), with DOM assertions that state the
+  expected post-filter state.
+- A coverage page issuing one request of every path the audit found.
+
+Both browsers run the same corpus through the prototype's existing
+browser-level harness style (CDP plus the fixture server), never through
+unit-test mocks. The corpus and its Electron oracle run are the measured
+baseline; "Electron Blanc's rate" means that run.
 
 **Stop conditions for spike A:** the two-week box ends; or neither engine
 placement meets the latency bound; or the hook requires patching the
@@ -117,10 +164,13 @@ Lite is the third option to scope, as a separate request.
 ## 4. Items 3 to 6
 
 - **A1 patch-budget design** (document): the `src/blanc/` layout, override
-  files versus patches, the `patches/` apply script that fails on fuzz, the
-  budget (proposal to confirm: 40 files, 120 hunks, counted by the ledger's
-  inventory script), and CI reporting of the count on every PR. The move
-  itself is a build task for the tranche after Decision 2.
+  files versus patches, the `patches/` apply script that fails on fuzz, and
+  CI reporting of the count on every PR. The move itself is a build task
+  for the tranche after Decision 2. The budget number and counting rules
+  are **not** left to this document: §7 fixes them for the tranche so the
+  stop condition is enforceable from day one; A1 may propose a different
+  number for Decision 2, and may not retroactively relax a stop already
+  hit.
 - **Visual comparison**: Electron Blanc 1.36.0 and the 157 prototype at
   1200×900 and 600×420, light and dark, states resting / panel / palette /
   find / private, captured the same way, with every difference listed and
@@ -129,10 +179,18 @@ Lite is the third option to scope, as a separate request.
 - **VoiceOver pass**: the resting pill, the expanded panel, the Extensions
   view and the start page, with rotor order, labels and focus return after
   Escape; failures listed per control.
-- **Cost sheet**: Task 0's cold build, fetch, anchors, compile fixes and
-  calendar span, projected at one rebase per two weeks plus security
-  respins, against the evaluation's table, with every remaining unknown
-  named.
+- **Cost sheet**: Task 0's numbers against the evaluation's table, with
+  every remaining unknown named, in **three separate lines that are never
+  summed into one fortnightly figure**: (a) *clean-build recovery*, the
+  2h39m47s cold build, which recurs only on a new checkout, a toolchain
+  change or cache loss, not per milestone; (b) *routine per-milestone
+  maintenance*, the fetch, prepare anchors, compile fixes, incremental
+  builds and re-verification, which is the fortnightly cost and is
+  projected at the two-week cadence plus security respins; (c) the
+  *extension-release wait*, calendar latency on a third party's release
+  schedule that costs attention only at each daily check and is not
+  labour per milestone. Owner attention and agent time are reported as
+  measured or `not measured`, never inferred from calendar span.
 
 ## 5. Builds and the ledger
 
@@ -167,11 +225,22 @@ runtime in Electron; any public claim about the fork; Decision 2 itself.
 
 ## 7. Kill criteria that apply during this tranche
 
-From plan §5: criterion 2 (patch count exceeds the A1 budget and cannot be
-moved into overrides within one sprint) and criterion 3 (neither F12 option
-blocks at Blanc Blocker's rate on the fixture set within the budget). Either
-is recorded in the ledger and reported to the owner the day it is hit; the
-tranche does not continue past it without a new decision.
+**Provisional patch budget, fixed for this tranche:** **40 upstream files
+and 120 hunks**, counted as follows. A *file* is an existing upstream file
+that `prepare.mjs` (or, later, the `patches/` set) modifies; Blanc-owned
+new files do not count; the two icon assets count as files. A *hunk* is one
+contiguous replacement as `git diff --numstat`/`--stat` reports it against
+the pristine checkout. The count is produced by the same inventory method
+as `evidence/rebase-157-20261016/patched-upstream-files.json`, run before
+and after each spike, and recorded in the ledger. Today's count is **21
+files**; the hunk count is measured at the start of the tranche and
+recorded as the baseline. Each spike reports its own delta.
+
+From plan §5: criterion 2 (the count above exceeds 40 files or 120 hunks and
+cannot be moved into overrides within one sprint) and criterion 3 (neither
+F12 option blocks at Blanc Blocker's rate on the replay corpus within the
+budget). Either is recorded in the ledger and reported to the owner the day
+it is hit; the tranche does not continue past it without a new decision.
 
 ## 8. Approval
 
