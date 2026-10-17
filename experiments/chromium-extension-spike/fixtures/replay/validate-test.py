@@ -36,6 +36,23 @@ class ValidatorTests(unittest.TestCase):
             record['context']['profile_kind'] = 'private'
         self.assertTrue(compare(self.oracle, self.observed)['dataset_comparison_passed'])
 
+    def test_absent_and_opaque_initiators_are_not_interchangeable(self):
+        self.oracle[0]['context']['initiator_origin'] = 'absent'
+        self.observed[0]['context']['initiator_origin'] = 'opaque:frame-1'
+        result = compare(self.oracle, self.observed)
+        self.assertTrue(result['harness_faults'])
+        self.assertEqual(result['decision_differences'], [])
+
+    def test_browser_started_navigation_can_have_absent_initiator(self):
+        for dataset in (self.oracle, self.observed):
+            dataset[0]['context'].update(
+                resource_type='mainFrame', initiator_origin='absent',
+                top_frame_origin='https://fixture.example')
+        self.assertTrue(compare(self.oracle, self.observed)['dataset_comparison_passed'])
+        # A renderer-started navigation must not be flattened to absent.
+        self.observed[0]['context']['initiator_origin'] = 'https://page.example'
+        self.assertTrue(compare(self.oracle, self.observed)['harness_faults'])
+
     def test_missing_decision_is_harness_fault(self):
         del self.observed[0]['decision']
         self.assertTrue(compare(self.oracle, self.observed)['harness_faults'])
