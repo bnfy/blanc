@@ -41,7 +41,10 @@ test('every recent-bangs clear also clears bang icons', () => {
   assert.equal(main.match(/settings\.clearRecentBangs\(\)/g).length, 1);
   const body = fn('clearRecentBangsAndIcons');
   assert.match(body, /settings\.clearRecentBangs\(\);\s*bangIcons\.clear\(\);/);
-  assert.match(testHook, /settings\.clearRecentBangs\(\);\s*bangIcons\.clear\(\);/);
+  // The test hook's reset goes through the same path, so overlays drop the
+  // icons they hold between scenarios too.
+  assert.match(testHook, /clearRecentBangsAndIcons\(\);\s*bangIcons\.resetForTest\(\);/);
+  assert.doesNotMatch(testHook, /settings\.clearRecentBangs\(\)/);
 });
 
 test('the bang icon store is device scope and never synced or reported', () => {
@@ -58,4 +61,11 @@ test('only overlay views receive bang icon changes', () => {
 
 test('acceptance test mode never reaches the network for bang icons', () => {
   assert.match(main, /if \(acceptanceTestMode\) bangIcons\.setFetcherForTest\(async \(\) => null\);/);
+});
+
+test('clearing history withdraws every icon the overlays were given', () => {
+  assert.match(fn('bangIconsFor'), /for \(const answer of answers\) bangIconHostsShown\.add\(answer\.host\);/);
+  const body = fn('clearRecentBangsAndIcons');
+  assert.match(body, /for \(const host of bangIconHostsShown\) broadcastBangIcon\(host, null\);/);
+  assert.match(body, /bangIconHostsShown\.clear\(\);/);
 });

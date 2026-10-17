@@ -234,3 +234,44 @@ Feature: Island chrome, command palette, and slash commands
     When I press Arrow Down in the command bar
     Then the first picker row is highlighted
     And the highlighted picker row is scrolled into view
+
+  @F47-15 @F47 @desktop
+  Scenario: Picker rows show site icons from Blanc's icon server, each site asked once
+    Given Blanc's icon server has an icon for every popular bang
+    And a tab open on "bangs-start"
+    When I type "!" in the command bar
+    Then the first picker row shows a site icon
+    And Blanc's icon server was asked only for popular sites, once each
+    When I close the command bar and type "!" again
+    Then the first picker row shows a site icon
+    And Blanc's icon server was asked only for popular sites, once each
+
+  @F47-16 @F47 @desktop
+  Scenario: A private tab never asks Blanc's icon server
+    Given Blanc's icon server has an icon for every popular bang
+    And the active tab is private
+    When I type "!" in the command bar
+    Then the first picker row shows the site's letter
+    And Blanc's icon server has not been asked
+
+  @F47-17 @F47 @desktop
+  Scenario: A custom bang's site is never sent to Blanc's icon server
+    Given Blanc's icon server has an icon for every popular bang
+    And a custom bang "mine" named "Mine" for "https://intranet.example/?q=%s"
+    And a tab open on "bangs-start"
+    When I type "!mine" in the command bar
+    Then the bang hint row reads "Open Mine"
+    And Blanc's icon server has not been asked for "intranet.example"
+
+  @F47-18 @F47 @desktop
+  Scenario: Clearing history clears the kept bang icons
+    Given Blanc's icon server has an icon for every popular bang
+    And a tab open on "bangs-start"
+    When I type "!" in the command bar
+    Then the first picker row shows a site icon
+    And bang icons are kept on the device
+    When I run the slash command "/clear"
+    Then no bang icons are kept on the device
+    When I type "!" in the command bar
+    Then the first picker row shows a site icon
+    And Blanc's icon server was asked again for a site it answered before

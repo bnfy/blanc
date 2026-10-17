@@ -409,12 +409,19 @@ const bangIcons = createBangIcons({
 // The acceptance harness runs offline; scenarios stub the server through the
 // test hook instead.
 if (acceptanceTestMode) bangIcons.setFetcherForTest(async () => null);
-bangIcons.onChange((host, icon) => {
+// Every host whose icon an overlay was given since the last history clear,
+// so a clear can withdraw them from the overlays' memory too.
+const bangIconHostsShown = new Set();
+function broadcastBangIcon(host, icon) {
   forEachWindowRuntime((runtime) => {
     if (runtime.overlayView && !runtime.overlayView.webContents.isDestroyed()) {
       runtime.overlayView.webContents.send('bang-icons:changed', { host, icon });
     }
   }, { liveOnly: true });
+}
+bangIcons.onChange((host, icon) => {
+  if (icon) bangIconHostsShown.add(host);
+  broadcastBangIcon(host, icon);
 });
 // Interface language: resolved once at whenReady (first statement) and frozen
 // for this process; a change applies on relaunch through changeUiLanguage().
@@ -7929,6 +7936,7 @@ function bangIconsFor(hosts) {
     }
     toAsk.push(host);
   }
+  for (const answer of answers) bangIconHostsShown.add(answer.host);
   if (!privateActive) bangIcons.touch(fromStore);
   const current = settings.getSettings();
   bangIcons.request(toAsk, {
@@ -7945,6 +7953,8 @@ function bangIconsFor(hosts) {
 function clearRecentBangsAndIcons() {
   settings.clearRecentBangs();
   bangIcons.clear();
+  for (const host of bangIconHostsShown) broadcastBangIcon(host, null);
+  bangIconHostsShown.clear();
 }
 
 /** The bang settings changed (switch, the person's own bangs, recents): every
@@ -11125,6 +11135,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       t: mainI18n.t,
       continueUnsafeForSender,
       bangIcons,
+      clearRecentBangsAndIcons,
       forgetActiveCertificateException,
       certificateExceptions,
       blockingStatus: () => blockingProviders.status(rt().profileId),

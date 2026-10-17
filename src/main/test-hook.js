@@ -61,6 +61,7 @@ function install(refs) {
     // wrapped with it, once, mechanically, at the end of this function.
     bindRoot,
     bangIcons,
+    clearRecentBangsAndIcons,
     tabs,
     liveContents,
     getTabOrder,
@@ -3465,8 +3466,7 @@ function install(refs) {
         usagePing: false,
       });
       settings.setPatron(null);
-      settings.clearRecentBangs();
-      bangIcons.clear();
+      clearRecentBangsAndIcons();
       bangIcons.resetForTest();
       clearTestSearchSuggestionFixture();
       setTestSearchNavigationCapture(false);
