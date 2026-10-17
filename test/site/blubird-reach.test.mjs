@@ -69,7 +69,7 @@ test('the homepage, header and footer are Blubird over Inter, and other pages sh
 // Legal pages set their headline in Blubird Display; their section headings
 // read as part of the legal text, in Blubird Text.
 const legalRoutes = ['/privacy', '/terms'];
-const routes = ['/features', '/features/island', '/features/security', '/mail', '/features/ad-blocking', '/download', '/changelog', '/about', '/faq', '/media', '/ambassadors', '/roadmap', '/support', '/privacy', '/terms'];
+const routes = ['/features', '/features/island', '/features/security', '/mail', '/features/ad-blocking', '/download', '/changelog', '/about', '/faq', '/media', '/ambassadors', '/roadmap', '/support', '/patron', '/privacy', '/terms'];
 
 test('every page headline and section heading is Blubird Display at 0 tracking, text is Blubird Text, and nothing overflows', { timeout: 180000 }, async () => {
   const { page, context } = await openPage('/');
@@ -116,4 +116,33 @@ test('no page declares Newsreader any more', async () => {
       assert.equal(declared, false, `${route} declares no Newsreader face`);
     } finally { await context.close(); }
   }
+});
+
+test('the Patron page and the newsletter card set every heading in Blubird Display and their copy in Blubird Text', async () => {
+  const { page, context } = await openPage('/patron');
+  try {
+    const patron = await page.evaluate(() => ({
+      headings: [...document.querySelectorAll('main :is(h1, h2:not(.sr-only), h3), main summary')].map(el => [el.textContent.trim(), getComputedStyle(el).fontFamily, getComputedStyle(el).fontWeight]),
+      copy: [...document.querySelectorAll('main p, main .patron-button')].map(el => [el.textContent.trim().slice(0, 30), getComputedStyle(el).fontFamily]),
+    }));
+    for (const [title, family, weight] of patron.headings) {
+      assert.match(family, display, title);
+      assert.equal(weight, '400', title);
+    }
+    for (const [snippet, family] of patron.copy) {
+      if (!/^US\$\d/.test(snippet)) assert.match(family, text, snippet);
+    }
+    await page.goto(`${baseURL}/features`);
+    const card = await page.evaluate(() => {
+      const el = document.getElementById('newsletter-prompt');
+      return {
+        title: getComputedStyle(el.querySelector('h2')).fontFamily,
+        weight: getComputedStyle(el.querySelector('h2')).fontWeight,
+        copy: [...el.querySelectorAll('p, input[type="email"], button')].map(node => getComputedStyle(node).fontFamily),
+      };
+    });
+    assert.match(card.title, display, 'card title');
+    assert.equal(card.weight, '400', 'card title weight');
+    for (const family of card.copy) assert.match(family, text, 'card copy');
+  } finally { await context.close(); }
 });

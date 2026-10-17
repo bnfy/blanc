@@ -34,8 +34,7 @@ const questions = [
     <p>Blanc Patron is the optional subscription that funds Blanc’s development. Blanc has no venture funding and is not funded by selling ads, so Patrons help pay for its development directly. Every feature stays free for everyone.</p>
   </section>
 
-  <section class="patron-plans" aria-labelledby="patron-plans-title">
-    <h2 id="patron-plans-title" class="sr-only">Plans</h2>
+  <section class="patron-plans" aria-label="Plans">
     <div class="patron-plan-grid">
       <article class="patron-plan is-featured">
         <p class="patron-plan-name">Annual</p>
@@ -117,13 +116,13 @@ const questions = [
   .patron-steps ol { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; counter-reset: patron-step; }
   .patron-steps li { position: relative; padding: 20px 22px 20px 70px; border: 1px solid var(--site-border); border-radius: 18px; background: var(--site-surface); counter-increment: patron-step; }
   .patron-steps li::before { content: counter(patron-step); position: absolute; top: 18px; left: 22px; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--site-text); color: var(--site-bg); font-size: 15px; font-weight: 600; }
-  .patron-steps h3 { margin: 4px 0 0; font-size: 18px; font-weight: 500; }
+  .patron-steps h3 { margin: 2px 0 0; font-family: var(--site-font-display); font-size: 21px; font-weight: 400; letter-spacing: 0; line-height: 1.2; }
   .patron-steps li p { margin: 6px 0 0; color: var(--site-text-dim); font-size: 15px; line-height: 1.55; }
   .patron-steps-more, .patron-faq-more { margin: 18px 0 0; color: var(--site-text-dim); font-size: 15px; }
 
   .patron-faq details { border-top: 1px solid var(--site-border); }
   .patron-faq details:last-of-type { border-bottom: 1px solid var(--site-border); }
-  .patron-faq summary { padding: 18px 0; font-size: 17px; font-weight: 500; cursor: pointer; }
+  .patron-faq summary { padding: 18px 0; font-family: var(--site-font-display); font-size: 21px; font-weight: 400; letter-spacing: 0; line-height: 1.25; cursor: pointer; }
   .patron-faq details p { margin: 0 0 18px; color: var(--site-text-dim); font-size: 15px; line-height: 1.6; }
 
   @media (max-width: 600px) {
