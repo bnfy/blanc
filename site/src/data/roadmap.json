@@ -1,18 +1,11 @@
 {
-  "updated": "2026-10-14",
+  "updated": "2026-10-17",
   "stages": [
     { "id": "now", "label": "Now", "summary": "In the works" },
     { "id": "next", "label": "Next", "summary": "On the horizon" },
     { "id": "later", "label": "Later", "summary": "Further out" }
   ],
   "items": [
-    {
-      "id": "1password-windows-linux",
-      "stage": "now",
-      "product": "Blanc Browser",
-      "title": "1Password fill on Windows and Linux",
-      "line": "Built, and being tested on real PCs before we call it ready."
-    },
     {
       "id": "blanc-mail",
       "stage": "now",
