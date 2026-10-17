@@ -4,17 +4,20 @@ import fs from 'node:fs';import path from 'node:path';import os from 'node:os';i
 import {sha} from './generate.mjs';import {startSynthetic} from './transport.mjs';import {createCertificateSet} from './certificate-set.mjs';import {pageUrl,pageResponse} from './page.mjs';import {openSession,pause} from './session.mjs';import {percentiles,medianRepetitions,validateLatencyPage} from './latency-validate.mjs';
 function idleSnapshot(){const text=execFileSync('/usr/bin/top',['-l','2','-s','1','-n','0'],{encoding:'utf8'});const matches=[...text.matchAll(/CPU usage: ([\d.]+)% user, ([\d.]+)% sys, ([\d.]+)% idle/g)];assert(matches.length);const m=matches.at(-1);return {at:new Date().toISOString(),user:Number(m[1]),system:Number(m[2]),idle:Number(m[3])};}
 async function idleSamples(){const samples=[];for(let i=0;i<5;i++){await pause(2000);samples.push(idleSnapshot());if(samples.at(-1).idle>=90)break;}return samples;}
-const [configPath,oraclePath,evidence,only='both']=process.argv.slice(2),config=JSON.parse(fs.readFileSync(configPath));assert(evidence&&!fs.existsSync(evidence));fs.mkdirSync(evidence);
+const requireIdle=process.argv.includes('--require-idle');
+const [configPath,oraclePath,evidence,only='both']=process.argv.slice(2).filter(x=>x!=='--require-idle'),config=JSON.parse(fs.readFileSync(configPath));assert(evidence&&!fs.existsSync(evidence));fs.mkdirSync(evidence);
 const manifest=JSON.parse(fs.readFileSync(path.join(oraclePath,'candidate-manifest.json'))),fixtures=new Map(JSON.parse(fs.readFileSync(path.join(oraclePath,'responses.json'))));
 const pageSize=200,pages=[];for(let i=0;i<manifest.candidates.length;i+=pageSize)pages.push(manifest.candidates.slice(i,i+pageSize));
 const pageBodies=pages.map(c=>pageResponse(c,{concurrency:'natural'}));
 const root=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'blanc-f12-latency-'))),certificates=createCertificateSet(path.join(root,'certificates'),[...new Set([...fixtures.keys()].map(u=>new URL(u).hostname))]);
 const report={started:new Date().toISOString(),completed:false,protocol:'one discarded full warm-up then five full repetitions per profile in the same process; nearest-rank percentiles; median-of-five',pageScheduling:'26 sequential page loads per repetition, 200 candidates per page except last; each page issues its resources concurrently without pacing; full corpus unchanged; repeated roots excluded from unique URL floor',nativeClock:'base::TimeTicks from factory entry or redirect receipt through decision application; Mojo included',electronClock:'process.hrtime.bigint at JS provider-observer entry through real provider result; preceding Electron native dispatch excluded; reference only',fullAcceptance:false,sources:{},runs:[],profiles:{},gaps:['Electron native-entry TimeTicks unavailable through this observer','engine-internal timing not exposed separately']};
+report.requireIdle=requireIdle;
 for(const name of ['latency-run.mjs','latency-validate.mjs','session.mjs','page.mjs'])report.sources[name]=sha(fs.readFileSync(new URL(name,import.meta.url)));
 fs.writeFileSync(path.join(evidence,'page-layout.json'),JSON.stringify(pages.map((c,i)=>({index:i,candidateIds:c.map(x=>x.id),responseSha256:sha(pageBodies[i].body)})),null,2));fs.writeFileSync(path.join(evidence,'page-responses.json'),JSON.stringify(pageBodies,null,2));
 report.pageLayoutSha256=sha(fs.readFileSync(path.join(evidence,'page-layout.json')));report.baseFixtureBundleSha256=sha(JSON.stringify([...fixtures]));
 let session,replay;
 try{
+ if(requireIdle){report.idlePreflight=await idleSamples();assert(report.idlePreflight.at(-1).idle>=90,'Idle preflight failed: no browser measurement started');}
  for(const browserKind of (only==='both'?['electron','chromium']:[only]))for(const kind of ['regular','private']){
   const label=browserKind+'-'+kind,oracle=JSON.parse(fs.readFileSync(path.join(oraclePath,kind+'-stability.json')));assert(oracle.stable);
   const expectedAll=new Map(oracle.oracle.map(r=>[r.context.url,r])),reference=new Map(JSON.parse(fs.readFileSync(path.join(oraclePath,kind+'-a-run.json'))).records.map(r=>[r.url,r]));
@@ -23,6 +26,7 @@ try{
   report.profiles[label]={source:session.source,idleBeforeSession,repetitions:[],boundMs:browserKind==='chromium'?5:null};
   for(let rep=0;rep<6;rep++){
    await session.page.goto('about:blank');const idle=await idleSamples(),started=new Date().toISOString(),allTimes=[],pageResults=[];
+   if(requireIdle&&idle.at(-1).idle<90){report.idleStop={label,rep,samples:idle};throw Error('Idle condition failed before repetition; measurement stopped');}
    // A noisy idle baseline is retained and disqualifies the formal idle gate;
    // it does not silently disappear from measurements or alter the bound.
    for(let index=0;index<pages.length;index++){

@@ -47,7 +47,7 @@ Matching mirrors Electron's actual adapter: `Request.fromRawDetails` takes
 The native log records both separately. Main-frame requests are allowed only
 after readiness, matching Electron's adapter. Raw initiator absence stays
 separate from opaque `"null"`. Top-frame origin uses the request's URL for a
-main-frame navigation and the actual RenderFrameHost for subresources. Missing
+main-frame navigation and the actual RenderFrameHost snapshotted at request entry for subresources. Missing
 frame/worker attribution is `unresolved`, never a fabricated active-tab origin.
 
 Redirect responses pass through the same decision gate with the updated URL,
@@ -75,3 +75,11 @@ hash-pinned ASAR. Preparation reads through a descriptor, refuses symlinks, and
 atomically replaces changed files while preserving unchanged mtimes. The
 controlled recorder's fixture CA belongs to its TLS agent, not request data.
 See [remediation evidence](../../evidence/f12-codeql-20261017/README.md).
+
+Worker context investigation: [audit and regression evidence](../../evidence/f12-worker-context-20261017/README.md).
+Frame context is captured before the asynchronous engine decision, avoiding a
+later lookup after the frame disappears. Diagnostic factory/request isolation
+origins remain separate: a storage partition can reduce a top origin to a
+schemeful site and cannot supply the required document identity. Shared/service
+workers still lack independently correlated frame context in both observations;
+matching decisions do not close that acceptance gap.

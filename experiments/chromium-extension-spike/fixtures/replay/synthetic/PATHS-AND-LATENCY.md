@@ -42,7 +42,7 @@ paths, WebSocket/WebTransport, cosmetics and scriptlets.
 
 ## Latency
 
-`latency-run.mjs CONFIG_JSON FULL_ELECTRON_ORACLE NEW_EVIDENCE [both|electron|chromium]`
+`latency-run.mjs CONFIG_JSON FULL_ELECTRON_ORACLE NEW_EVIDENCE [both|electron|chromium] [--require-idle]`
 runs the complete candidate corpus, one discarded warm-up and five measured
 repetitions per regular/private profile in the same browser and engine process.
 The initial attempted single-page 5,123-candidate burst failed at the offline
@@ -82,3 +82,21 @@ with their measured conditions, but the otherwise-idle protocol gate remains
 open even when the numbers fall below 5 ms. A formal timing pass requires valid
 repetitions, the idle condition and the bound; it is still not full Spike A
 acceptance. Native rebuilds, if needed, use the unchanged guarded warm output.
+
+### Worker context and idle-stop follow-up
+
+Native frame identity is now snapshotted at request entry rather than resolved
+after the async decision. Raw `frame_state`, `factory_kind`,
+`factory_isolation_top_origin` and `request_isolation_top_origin` fields are
+recorded separately from the contract. Neither isolation metadata nor an
+apparently owning visible tab fills an unresolved top-frame or role. The gap
+report preserves each runtime's unresolved values. Shared/service-worker
+admission requires independently observed request-to-client lifecycle data,
+including cases with no single client; current hooks do not supply that proof.
+
+With `--require-idle`, the harness also checks idle before opening any browser
+and stops before a repetition if none of its five samples reaches 90%. The
+stopped report and cleanup result are retained. This does not relax the bound,
+change the corpus, or select favorable measurements from an invalid repetition.
+An approved temporary process pause must be recorded and restored; open user
+applications must not be terminated to make a benchmark pass.

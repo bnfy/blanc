@@ -14,6 +14,7 @@
 #include "chrome/services/blanc_blocker/blocker.mojom.h"
 #include "chrome/services/blanc_blocker/bundle_hash.h"
 #include "content/public/browser/browser_context.h"
+#include "content/public/browser/content_browser_client.h"
 #include "content/public/browser/render_frame_host.h"
 #include "content/public/browser/service_process_host.h"
 #include "crypto/hash.h"
@@ -129,7 +130,18 @@ struct Context {
   bool private_profile;
   content::GlobalRenderFrameHostId frame;
   int factory_type;
+  net::IsolationInfo isolation_info;
 };
+const char* FactoryKind(int value) {
+  using F = content::ContentBrowserClient::URLLoaderFactoryType;
+  switch (static_cast<F>(value)) {
+    case F::kWorkerMainResource: return "worker-script";
+    case F::kWorkerSubResource: return "worker-subresource";
+    case F::kServiceWorkerScript: return "service-worker-script";
+    case F::kServiceWorkerSubResource: return "service-worker-subresource";
+    default: return "other";
+  }
+}
 // One request owns both Mojo sides. Cancellation and disconnect delete it and
 // invalidate every pending decision callback. The underlying loader is never
 // started until the utility replies; redirect hops pass through the same gate.
@@ -141,6 +153,15 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
       const net::MutableNetworkTrafficAnnotationTag& annotation)
       : context_(context), factory_(std::move(factory)), id_(id), options_(options), request_(request),
         annotation_(annotation), receiver_(this, std::move(receiver)), client_(std::move(client)), incoming_(this) {
+    // Snapshot the actual originating frame before an asynchronous decision can
+    // outlive it. Worker factories may intentionally have no associated frame.
+    auto* frame = content::RenderFrameHost::FromID(context_.frame);
+    frame_state_ = frame ? "live-at-entry" : context_.frame == content::GlobalRenderFrameHostId()
+        ? "not-associated" : "gone-at-entry";
+    if (frame) {
+      top_origin_ = frame->GetMainFrame()->GetLastCommittedOrigin().Serialize();
+      frame_role_ = frame->GetParent() ? "sub" : "main";
+    }
     receiver_.set_disconnect_handler(base::BindOnce(&Request::Destroy, base::Unretained(this)));
     client_.set_disconnect_handler(base::BindOnce(&Request::Destroy, base::Unretained(this)));
   }
@@ -196,7 +217,6 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
   }
   void Log(int result) {
     const auto elapsed = base::TimeTicks::Now() - start_;
-    auto* frame = content::RenderFrameHost::FromID(context_.frame);
     const auto type = Type(request_);
     base::DictValue event;
     event.Set("event", "decision"); event.Set("url", request_.url.spec());
@@ -205,8 +225,17 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
     event.Set("initiator_present", request_.request_initiator.has_value());
     event.Set("initiator_origin", request_.request_initiator ? request_.request_initiator->Serialize() : "absent");
     event.Set("top_frame_origin", type == "mainFrame" ? url::Origin::Create(request_.url).Serialize() :
-              frame ? frame->GetMainFrame()->GetLastCommittedOrigin().Serialize() : "unresolved");
-    event.Set("frame_role", type == "mainFrame" ? "main" : frame ? (frame->GetParent() ? "sub" : "main") : "unresolved");
+              top_origin_);
+    event.Set("frame_role", type == "mainFrame" ? "main" : frame_role_);
+    event.Set("frame_state", frame_state_);
+    event.Set("factory_kind", FactoryKind(context_.factory_type));
+    // Isolation metadata is NOT a document/client origin. StorageKey can reduce
+    // it to a schemeful site; never substitute it for the required frame fields.
+    const auto& factory_top = context_.isolation_info.top_frame_origin();
+    event.Set("factory_isolation_top_origin", factory_top ? factory_top->Serialize() : "absent");
+    const auto request_top = request_.trusted_params
+        ? request_.trusted_params->isolation_info.top_frame_origin() : std::nullopt;
+    event.Set("request_isolation_top_origin", request_top ? request_top->Serialize() : "absent");
     event.Set("profile_kind", context_.private_profile ? "private" : "regular");
     event.Set("factory_type", context_.factory_type); event.Set("redirect_index", redirect_index_);
     event.Set("decision", result == 0 ? "allow" : "block"); event.Set("engine_result", result);
@@ -230,6 +259,9 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
     if (priority_) loader_->SetPriority(*priority_, intra_);
   }
   Context context_;
+  std::string top_origin_ = "unresolved";
+  std::string frame_role_ = "unresolved";
+  std::string frame_state_;
   scoped_refptr<network::SharedURLLoaderFactory> factory_;
   int32_t id_; uint32_t options_;
   network::ResourceRequest request_;
@@ -270,10 +302,11 @@ class Factory : public network::SelfDeletingURLLoaderFactory {
 };
 }
 void MaybeProxy(content::BrowserContext* context, content::RenderFrameHost* frame,
-                int factory_type, network::URLLoaderFactoryBuilder& builder) {
+                int factory_type, const net::IsolationInfo& isolation_info,
+                network::URLLoaderFactoryBuilder& builder) {
   if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-blocker-assets")) return;
   auto [receiver, remote] = builder.Append();
   base::MakeSelfDeleting<Factory>(std::move(receiver), std::move(remote),
-      Context{context->IsOffTheRecord(), frame ? frame->GetGlobalId() : content::GlobalRenderFrameHostId(), factory_type});
+      Context{context->IsOffTheRecord(), frame ? frame->GetGlobalId() : content::GlobalRenderFrameHostId(), factory_type, isolation_info});
 }
 }

@@ -16,3 +16,13 @@ test('missing whole case cannot silently pass',()=>{const x=sample();x.electron.
 test('engine failure is not a correct blocking answer',()=>{const x=sample();x.native.records[0].status='engine-error';assert(!compare(x).valid);});
 
 test('two recordings missing an allowed redirect successor are invalid',()=>{const x=sample();const target=url+'/target';x.fixtures.set(url,{body:'body',location:target});x.fixtures.set(target,{body:'target'});x.cases[0].hops.push(target);assert(!compare(x).valid);});
+
+test('partition metadata and visible tab never fill an absent worker frame',()=>{
+ const x=sample();x.electron.records[0].frame=null;x.electron.records[0].tabUrl=origin+'/unrelated';
+ Object.assign(x.native.records[0],{top_frame_origin:'unresolved',frame_role:'unresolved',frame_state:'not-associated',factory_kind:'service-worker-subresource',factory_isolation_top_origin:origin,request_isolation_top_origin:origin});
+ const r=compare(x);assert(r.valid);assert.equal(r.results[0].status,'gap');
+ assert.equal(r.results[0].gaps[0].electron.top,'unresolved');assert.equal(r.results[0].gaps[0].chromium.top,'unresolved');
+});
+test('native worker context alone cannot admit an unresolved Electron context',()=>{
+ const x=sample();x.electron.records[0].frame=null;assert.equal(compare(x).results[0].status,'gap');
+});

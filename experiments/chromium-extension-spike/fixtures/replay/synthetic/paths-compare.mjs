@@ -51,7 +51,7 @@ export function comparePathRuns(electronA,electronB,nativeA,nativeB,fixtures,cas
    if(!left||!right){differences.push({url,reason:'missing-observation'});continue;}
    observed.push({url,issued:true,decision:left.decision,hop:left.hop});
    for(const key of ['method','type','referrer','initiatorPresent','initiator','profile','hop','decision'])if(left[key]!==right[key])differences.push({url,field:key,electron:left[key],chromium:right[key]});
-   if([left.top,right.top,left.role,right.role].includes('unresolved'))gaps.push({url,reason:'top-frame-or-role-unresolved'});
+   if([left.top,right.top,left.role,right.role].includes('unresolved'))gaps.push({url,reason:'top-frame-or-role-unresolved',electron:{top:left.top,role:left.role},chromium:{top:right.top,role:right.role}});
    else for(const key of ['top','role'])if(left[key]!==right[key])differences.push({url,field:key,electron:left[key],chromium:right[key]});
   }
   if(c.kind!=='navigation'){

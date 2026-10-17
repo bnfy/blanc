@@ -1,0 +1,90 @@
+{
+  "started": "2026-10-17T20:49:27.814Z",
+  "completed": false,
+  "protocol": "one discarded full warm-up then five full repetitions per profile in the same process; nearest-rank percentiles; median-of-five",
+  "pageScheduling": "26 sequential page loads per repetition, 200 candidates per page except last; each page issues its resources concurrently without pacing; full corpus unchanged; repeated roots excluded from unique URL floor",
+  "nativeClock": "base::TimeTicks from factory entry or redirect receipt through decision application; Mojo included",
+  "electronClock": "process.hrtime.bigint at JS provider-observer entry through real provider result; preceding Electron native dispatch excluded; reference only",
+  "fullAcceptance": false,
+  "sources": {
+    "latency-run.mjs": "2419ef7bb4808eec533310cb1fb7a1a240d0655a9670ec15370abe0280553d59",
+    "latency-validate.mjs": "7826c7058f487d836afeeff0beb4fb8388eb184fc3dfd453b62ccd4757aca63e",
+    "session.mjs": "07b277905ef3aef6ea1b76b1cf0914f7dfb0fa0111156383d34ffac6273a2967",
+    "page.mjs": "f9cba4814df85c8adea3acdbc86a877392c7a69ecdc743d7917ede0d2c7ba6bc"
+  },
+  "runs": [],
+  "profiles": {
+    "chromium-regular": {
+      "source": {
+        "browserKind": "chromium",
+        "kind": "regular",
+        "isOffTheRecord": false,
+        "version": "157.0.8103.6"
+      },
+      "idleBeforeSession": {
+        "at": "2026-10-17T20:49:32.876Z",
+        "user": 3.73,
+        "system": 2.91,
+        "idle": 93.35
+      },
+      "repetitions": [],
+      "boundMs": 5
+    }
+  },
+  "gaps": [
+    "Electron native-entry TimeTicks unavailable through this observer",
+    "engine-internal timing not exposed separately"
+  ],
+  "requireIdle": true,
+  "pageLayoutSha256": "ddf5a81237bd3cfa2b6a3acea7730bdbc2e7a69c116690a5ca77eb2aa4cc42c4",
+  "baseFixtureBundleSha256": "d0b37595faa4d1354c2b54cc0b75e979567e825959a2d66a1a9c46c57094a15d",
+  "idlePreflight": [
+    {
+      "at": "2026-10-17T20:49:31.364Z",
+      "user": 3.24,
+      "system": 2.97,
+      "idle": 93.78
+    }
+  ],
+  "idleStop": {
+    "label": "chromium-regular",
+    "rep": 0,
+    "samples": [
+      {
+        "at": "2026-10-17T20:49:37.208Z",
+        "user": 7.48,
+        "system": 4.47,
+        "idle": 88.3
+      },
+      {
+        "at": "2026-10-17T20:49:40.744Z",
+        "user": 6.62,
+        "system": 3.58,
+        "idle": 89.78
+      },
+      {
+        "at": "2026-10-17T20:49:44.299Z",
+        "user": 8.75,
+        "system": 4.42,
+        "idle": 86.82
+      },
+      {
+        "at": "2026-10-17T20:49:47.840Z",
+        "user": 7.39,
+        "system": 7.75,
+        "idle": 84.85
+      },
+      {
+        "at": "2026-10-17T20:49:51.427Z",
+        "user": 24.13,
+        "system": 3.99,
+        "idle": 71.86
+      }
+    ]
+  },
+  "error": "Error: Idle condition failed before repetition; measurement stopped",
+  "cleanup": {
+    "removed": true
+  },
+  "finished": "2026-10-17T20:49:51.742Z"
+}

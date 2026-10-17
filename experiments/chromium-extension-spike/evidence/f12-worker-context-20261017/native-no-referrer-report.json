@@ -1,0 +1,103 @@
+{
+  "kind": "chromium-native-blocker-comparison",
+  "started": "2026-10-17T20:49:08.294Z",
+  "passed": true,
+  "nativeBlockerInstalled": true,
+  "acceptance": false,
+  "oraclePath": "blanc-f12-expanded-10",
+  "bundleSha256": "527430a60cd4c699466a80d85f1e0699d0e4011a7bff075cf9efc1d7350a8c48",
+  "sourceHashes": {
+    "chromium-native.mjs": "4a52c738b44b78902f48848d26d6a41b7ae2eeea38f380d80751b934056be1b1",
+    "native-comparison.mjs": "9a4f087155cf0bf402c8c28d95093377487f10f5011fbfbb1bc7c7a0e7acc1db",
+    "transport.mjs": "2232100bf834a499f133b1c2b2e905e95fbcf5f07180d2a35d38502e1a905e1c",
+    "certificate-set.mjs": "342f1ff63a111ef9536aa8250e213d972435c89b3445d285955e332ec7d0ad78"
+  },
+  "runs": [
+    {
+      "kind": "regular",
+      "letter": "a",
+      "runId": "f7fca60e-c904-4fec-81fa-b6ff9bcce006",
+      "counts": {
+        "candidateUrls": 24,
+        "electronBlocked": 9,
+        "electronAllowed": 15,
+        "blockToAllow": 0,
+        "allowToBlock": 0,
+        "matchedDecisions": 24,
+        "coverageControls": 4,
+        "nativeRequests": 34
+      },
+      "parity": true,
+      "acceptance": false
+    },
+    {
+      "kind": "regular",
+      "letter": "b",
+      "runId": "c95e4aab-03a9-42f3-bce4-46f95920d452",
+      "counts": {
+        "candidateUrls": 24,
+        "electronBlocked": 9,
+        "electronAllowed": 15,
+        "blockToAllow": 0,
+        "allowToBlock": 0,
+        "matchedDecisions": 24,
+        "coverageControls": 4,
+        "nativeRequests": 34
+      },
+      "parity": true,
+      "acceptance": false
+    },
+    {
+      "kind": "private",
+      "letter": "a",
+      "runId": "ed678616-a6af-4aa9-bdda-b7a06c149e13",
+      "counts": {
+        "candidateUrls": 24,
+        "electronBlocked": 9,
+        "electronAllowed": 15,
+        "blockToAllow": 0,
+        "allowToBlock": 0,
+        "matchedDecisions": 24,
+        "coverageControls": 4,
+        "nativeRequests": 34
+      },
+      "parity": true,
+      "acceptance": false
+    },
+    {
+      "kind": "private",
+      "letter": "b",
+      "runId": "9f10b6b7-4e86-44cc-8645-d89da167e444",
+      "counts": {
+        "candidateUrls": 24,
+        "electronBlocked": 9,
+        "electronAllowed": 15,
+        "blockToAllow": 0,
+        "allowToBlock": 0,
+        "matchedDecisions": 24,
+        "coverageControls": 4,
+        "nativeRequests": 34
+      },
+      "parity": true,
+      "acceptance": false
+    }
+  ],
+  "cleanup": {
+    "disposableTreeRemoved": true
+  },
+  "nativeBuilds": 0,
+  "trust": {
+    "mechanism": "ephemeral leaf SPKI list plus exact CONNECT/SNI/Host/URL allowlist",
+    "systemTrustChanged": false,
+    "leafFingerprints": [
+      "DD:DA:B0:7C:89:52:D1:6F:4C:74:0E:31:51:71:E2:B2:E9:F0:98:14:1C:72:89:67:F4:0E:F3:16:18:75:A7:3F"
+    ]
+  },
+  "gaps": [
+    "Request classes outside the current single-frame corpus unverified",
+    "Cosmetics, procedural rules and scriptlets unimplemented",
+    "Resource redirects refused; no public-web rate claimed",
+    "Latency acceptance protocol not yet run"
+  ],
+  "finished": "2026-10-17T20:49:21.396Z"
+}

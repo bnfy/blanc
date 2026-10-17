@@ -1195,3 +1195,42 @@ cold-output change. This is routine tranche-2 work, never Task 0 cold time.
 Six verified archives preserve 79 original files. No new latency qualification
 is claimed; earlier timings belong to aa26d71a. Broader F12 gaps and Task 0's
 upgrade gate remain open. Runtime brackets are not owner-attention measurements.
+
+
+### Worker context investigation and idle-stop attempts — October 17, 2026
+
+[Evidence](evidence/f12-worker-context-20261017/README.md) records a frame-context
+lifetime fix: snapshot the actual frame at request entry rather than after the
+async decision. Factory kind, frame state and partition/request isolation origins
+are diagnostic fields only. Neither partition metadata nor an apparent owner
+fills missing context. The audit explains Chromium's intentionally frameless
+worker factories and the Electron observer's missing request-to-client identity.
+**Shared/service-worker strict context remains GAP**, despite matching block/allow
+behavior. Multi-client/no-client lifecycle correlation and teardown remain open;
+no acceptance-contract relaxation or Electron rebuild was made.
+
+One guarded incremental build: two planned actions, seven executed steps,
+41.38 s Siso / 46.861 s wrapper; zero-action recheck. Budget unchanged at 25 files /
+62 hunks; 151 Git dependencies clean at pins. No GN, args, toolchain, environment-record,
+cold-output or large-build override. This is routine tranche 2, not Task 0 cold time.
+86 focused tests and 44-file lint pass. Full corpus passes twice per regular/private
+profile: 5,123 candidates, 2,503 blocked / 2,620 allowed, zero decision/context
+changes. All four no-referrer runs pass 24 candidates. GET redirect/dedicated-worker
+and fail-closed probes pass; shared/SW unresolved fields remain explicit.
+
+The owner approved temporary Spotlight/updater pauses and restoration. Spotlight
+was paused/restored for each attempt; root-owned Logitech updater could not be
+signaled and passwordless sudo required authentication, so it was never paused.
+The new --require-idle option retains and stops a run before any repetition below
+the existing 90% idle gate. Combined-browser attempt: preflight 92.19%, first
+Electron baseline 86.11–89.90%, stopped. Chromium-only attempt: preflight 93.78%,
+first baseline 71.86–89.78%, stopped. Both produced zero measured repetitions and
+cleaned disposable profiles/keys. No new latency result or qualification is
+claimed. Earlier aa26d71a busy-machine timings remain historical. An administrator
+authentication question is pending; no credential is collected by the harness.
+
+Lossless hashed archives preserve both stopped runs, pause/restoration records,
+build/regression logs, observations, audit and fingerprints. Existing 156/profile/
+tabs and Task 0's upgrade gate are unchanged. Runtime brackets are not attention
+measurements. Broader request coverage, cosmetics/scriptlets and private sanity
+sample gaps remain open.
