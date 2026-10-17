@@ -33,6 +33,13 @@ toolbar (Bowser Design System "Island Chrome").
   `find` (F8). Only the active state shows; Escape/back dismisses.
 - The panel's list area shows: the **tab switcher** at rest, **slash commands**
   (F7) when input starts with `/`, the **Quick Switcher** (F6) otherwise.
+- Below the list, one footer line holds **New tab** (the one solid pill, with
+  its shortcut), **Private**, the **Other devices** toggle (F27; hidden when no
+  other device shares its tabs) and the icon tools (Spaces, Favorites,
+  History, Downloads, tab layout, Settings). Other devices opens a drawer
+  between the list and the footer; it starts closed on every open and steps
+  aside while the input has text. Under the footer, a private tab adds a
+  one-line note that nothing is saved to history. Labels are sentence case.
 - **Platform note:** desktop draws this as a 68px strip + an always-on-top overlay
   view. Mobile renders it natively (SwiftUI / Compose) driven by shared design
   tokens (→ substrate). The *layout, contents, and states* are the contract; the
@@ -533,8 +540,8 @@ From the desktop `DEFAULTS`:
   its open tabs (url, title, group, pinned; http(s) only, bounded) plus a
   separately-budgeted E2EE sidecar of source-rasterized, bounded PNG favicons
   under the sync account. Favicon source URLs never cross devices and remote
-  surfaces never load them. Other devices browse it **read-only** — ⌘L panel (folded
-  per-device sections), Quick Switcher (ranked below local tabs and
+  surfaces never load them. Other devices browse it **read-only** — ⌘L panel (the Other
+  devices drawer, folded per-device sections), Quick Switcher (ranked below local tabs and
   favorites), start page — and open individual tabs locally. Never a merged
   live session: nothing force-opens or closes remotely. Private tabs never
   enter the snapshot. Toggle-off publishes a retraction; entries prune after

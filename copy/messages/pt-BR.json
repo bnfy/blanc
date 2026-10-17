@@ -526,12 +526,12 @@
     "source": "sha256:e7212a89cc03401aa92f8899f543dc8473f98916cd50a224de2f9f737e118b9e"
   },
   "rail.private.marker": {
-    "message": "privada",
-    "source": "sha256:1c851471076fb95bdb64a0f2b840b447e18f012ff9a8966e1a1af7bdd21d8fe5"
+    "message": "Privada",
+    "source": "sha256:1b95ad70e986255caa7b4634a5da2f2335dd282c28bfe62e10647ab96ff5a818"
   },
   "rail.section.pinned": {
-    "message": "fixadas",
-    "source": "sha256:9c9baf169aa2402bc3f8e019157d046ad4c8d263468127ba3e3624790d1898d0"
+    "message": "Fixadas",
+    "source": "sha256:d7a5f5be6676495d75cc63580b9379fe18c8a005c2fe66ef0d14995644b0c6fa"
   },
   "rail.section.tabs": {
     "message": "abas",
@@ -842,12 +842,20 @@
     "source": "sha256:df61005d5af90a138d642ddc54b03d0f03047e4b19b57aab441000049ad3839e"
   },
   "footer.newTab": {
-    "message": "nova aba",
-    "source": "sha256:feba5a0567244bc790b19fff9320c0895644d4cc5ad2aeb8ed6a392bd5d6d8dc"
+    "message": "Nova aba",
+    "source": "sha256:a6845f8d8ffc1bf34a273c1bb5f0c34ba3f2f5f1271d35b7b62b733fd9382f3a"
   },
   "footer.private": {
-    "message": "privada",
-    "source": "sha256:43c444ff49ddbe64847d8df70e34e13e99d32a2df67320d472867ca093e3cafc"
+    "message": "Privada",
+    "source": "sha256:a0281882c326afe7ab0ebb31d5ffc285d348dfc91745509ba0da3c18345b25c3"
+  },
+  "footer.devices": {
+    "message": "Dispositivos",
+    "source": "sha256:4af3928da6b11ca58a401529f0264a8ee79f66785d973ffa1eb89cf4afffef99"
+  },
+  "footer.devices.title": {
+    "message": "Abas abertas nos seus outros dispositivos",
+    "source": "sha256:1c5552b3d9c6be23f9968fdc2dc202dccb1fc4f775f8b2212929c709678a5614"
   },
   "footer.newPrivate.title": {
     "message": "Nova aba privada ({shortcut})",
@@ -1321,10 +1329,6 @@
     "message": "Reativar o som da aba",
     "source": "sha256:f6c522aa80b75241c2a403d2a3dab4b72714b001238f13a6b290bc8c6f495735"
   },
-  "row.glance": {
-    "message": "glance",
-    "source": "sha256:1d0003411ede87c53c55a91e44471849215cb33fa121091d1057c2c9b0efa206"
-  },
   "row.glanceOpen": {
     "message": "Abrir esta aba no Glance",
     "source": "sha256:ab2e1433aa5729822e7063ec36c52b2e12f0d8d788835340148b8109d7ca4711"
@@ -1390,28 +1394,28 @@
     "source": "sha256:c17f825f519dfcc810dffc79dc8d20833c01f89938a1e5944dc3399075e3f199"
   },
   "result.tag.tab": {
-    "message": "aba",
-    "source": "sha256:fd8a43d2ad2023b53d65cba56ce5c954c0041d69993d7d7ad68dccac7b29792f"
+    "message": "Aba",
+    "source": "sha256:007e2cd09a38b02e900379994aaf989f49da7c5b84b493ea59c562c87a28df2b"
   },
   "result.tag.favorite": {
-    "message": "favorito",
-    "source": "sha256:69f8323bc36492e0df1328b147f385312ef178a35384badff379feefe4b8a0d9"
+    "message": "Favorito",
+    "source": "sha256:423c820209fbc4f20108df058a4c41671d2d984f5280fc4f8010c4d6905b5236"
   },
   "result.tag.history": {
-    "message": "histórico",
-    "source": "sha256:ea72ce23e7ef39fe20829d02f3f11b8d596a87d9da4907b5ebada3451fa68d4b"
+    "message": "Histórico",
+    "source": "sha256:ac39b47af00a41a471b40609b47a3e55f1614e85ea28448b3c42c2f6134c68d9"
   },
   "result.tag.group": {
-    "message": "grupo",
-    "source": "sha256:d210da758e3eeaf1449350f5c224a048cc7a9fcea5f662dc4e60200c48bb9d22"
+    "message": "Grupo",
+    "source": "sha256:bb419a895dd45257c9c082528ae2fbb4b34e04461ec530a9d662cbcbcf6ff974"
   },
   "result.tag.remote": {
-    "message": "remota",
-    "source": "sha256:ed93bbf312aac9cfb6218b67d37a3a56c890871140f42557f4b9ac302cda64ec"
+    "message": "Remota",
+    "source": "sha256:f90c1bcdaa2d335994ca2af8dbf89a4fa7c0701fe4268914c4d1af830750ee51"
   },
   "siteInfo.localPage": {
-    "message": "página local",
-    "source": "sha256:afaf351361fc6ce5f91f9fe6edf1b274447283a97904902308f5d050c7b62f93"
+    "message": "Página local",
+    "source": "sha256:a4c65ccf3d25388349f60e4878104b8004c09a941a01add363a81028ba8230ae"
   },
   "siteInfo.cert.subject": {
     "message": "Certificado para",
@@ -1450,24 +1454,24 @@
     "source": "sha256:cda5318b566be09f3864f26d7a56525208a698966bbf403647f76d4579b738b1"
   },
   "siteInfo.hint.certError": {
-    "message": "não foi possível verificar este certificado",
-    "source": "sha256:a2ab4b3bda0cbb8f33645f53b441811d29a7bd3325c27a06a320e6f9e45d61de"
+    "message": "Não foi possível verificar este certificado",
+    "source": "sha256:2c5052eab0d52a29cf5445ab433d02460993e04f5758a50e6f6b3b05e0982295"
   },
   "siteInfo.hint.certException": {
-    "message": "você ignorou um aviso de certificado",
-    "source": "sha256:ff5969b3f60be54e48af68a01b5c35cdfac04c38cf893e7322f8f0c9c6babbd6"
+    "message": "Você ignorou um aviso de certificado",
+    "source": "sha256:95ee9282ab49ec4023f1b23a5b537099ddfe9602cccf6b8f79c5bb55c00b782c"
   },
   "siteInfo.hint.chromium": {
-    "message": "os detalhes da conexão são fornecidos pelo Chromium",
-    "source": "sha256:391e0418d31592418023c5aaf10e8967dd1d0e8a6417478e50d5f621601b95fc"
+    "message": "Os detalhes da conexão são fornecidos pelo Chromium",
+    "source": "sha256:e4cb8e61e1035d9bbc4db396dc3b42f24c0d9a547a7db928ab096de587e7635b"
   },
   "list.noCommand": {
-    "message": "nenhum comando correspondente",
-    "source": "sha256:9600022cab713f09fedfc2e1b7d2212d040308f6ee4b4ca713d6fe8bf6612576"
+    "message": "Nenhum comando correspondente",
+    "source": "sha256:76bf1f34e6774f79ae44cb9f0adcc1bf1678565947844aa009471af04315aa74"
   },
   "list.noMatches": {
-    "message": "nenhum resultado — ↵ abre como endereço ou pesquisa",
-    "source": "sha256:9228597eea4e330cdf99391128acb497ceabf682cb04a97c4208f0f772eb24f5"
+    "message": "Nenhum resultado — ↵ abre como endereço ou pesquisa",
+    "source": "sha256:3f44ddfbdf85ea27d5daf7053352c777ba64f77c481a7782fac86b884e23340a"
   },
   "bang.search": {
     "message": "Pesquisar “{query}” em {site}",
@@ -1478,20 +1482,20 @@
     "source": "sha256:61ba4ed601a6b2bd8bee6c0205873f02dc2bfa881250b2c7532b7d2be5f7a820"
   },
   "bang.yours": {
-    "message": "seu",
-    "source": "sha256:c33f26356d5d9c2add317866752a44e686f6ef3b7043f2a6d7782dc7cd4217db"
+    "message": "Seu",
+    "source": "sha256:13196d4cd1f8befec783e064133527c2361ecf82237fed954719639fd270e985"
   },
   "bang.section.recent": {
-    "message": "recentes",
-    "source": "sha256:491db91b69ec71d0a634885426a4779e787c7b7b5563b2387dab746ef528faa7"
+    "message": "Recentes",
+    "source": "sha256:7552fd6c2c213172e8a0c4a9b442ea6927497000c02eca43e9b2d21b54a7669c"
   },
   "bang.section.popular": {
-    "message": "populares",
-    "source": "sha256:ef89539344d4dec400f8a8684be93241adc354c63fd4026619dae977d42b7694"
+    "message": "Populares",
+    "source": "sha256:5e1be52c9c36b02cdec479b1ddea0c94dfc1421cf1c4f2b21d38023086784e60"
   },
   "bang.section.all": {
-    "message": "todos os bangs",
-    "source": "sha256:42ff40c52ffa0b382d8c774c4537611a7a727a924af681c41e60ccb8956fc453"
+    "message": "Todos os bangs",
+    "source": "sha256:6f912b6847f5cde150584c2f01110f1358afcfdbc723142266737bbdf166b033"
   },
   "bang.fold": {
     "message": "Recolher esta seção",
@@ -1503,27 +1507,19 @@
   },
   "hint.bang": {
     "message": "!code palavras pesquisa em um site · ! sozinho os lista",
-    "source": "sha256:879d3983c7e7f393cc23a6d57f532e0cf28261fd00572e2d2edc3e2e3c5fb949"
+    "source": "sha256:cc5f8409bd4b2ca49b74fdb071a8488f8736f0b459370e18a0dc0295cfe65b22"
   },
   "hint.private": {
-    "message": "privada · nada aqui é salvo no histórico",
-    "source": "sha256:feefda763965f9187e4eb9dd56a30b5b98c6c8794c7a3ad92f61d0dde8467299"
-  },
-  "hint.groups": {
-    "message": "/group move esta aba · {mod}1–9 pula entre as seções",
-    "source": "sha256:05b0db2c1933caa7bcabbb35df9ec4b899c4e586b9c9c272200e172d269c04cc"
-  },
-  "hint.default": {
-    "message": "{mod}L abre · / para comandos",
-    "source": "sha256:98a24b911d008f703429d923a2d30c3bfe7c76da8023abf7f4e1efa5195118e8"
+    "message": "Aba privada · Nada aqui é salvo no histórico",
+    "source": "sha256:70441a325c2a506ce0dcba9cf699b8fabb9c5050dc459ce6c576249548bbbb8a"
   },
   "result.groupCount": {
     "message": "{count, plural, one {# aba} many {# abas} other {# abas}}",
     "source": "sha256:8b02624af5db598735fb0be9f0cf76fa52854083bfe98681a4fb88a33c9ae2a7"
   },
   "result.tag.search": {
-    "message": "pesquisa",
-    "source": "sha256:4a9e353d79af51531dec5d47747b7d434ba44159ce7f6193bbc64e64d9defd7e"
+    "message": "Pesquisa",
+    "source": "sha256:4a7dcfce43596d4c2528ae99e29709118a90f7b7e3a606d65459a2e5c641bbdb"
   },
   "menu.newWindow": {
     "message": "Nova janela",
@@ -7070,8 +7066,8 @@
     "source": "sha256:222ceef2812aacb46d9bb7443eb378cd3f5e074452baf9e30ef0b7d4a16689d6"
   },
   "result.tag.space": {
-    "message": "space",
-    "source": "sha256:9aeaba183f6637f947feb34d9944c4351a9d82f5cb01e4f709ed6065af99afc0"
+    "message": "Space",
+    "source": "sha256:2428b2b38ae7629d27912f141499fea2721371677be922146b2a481b1187b843"
   },
   "workspaceMenu.edit": {
     "message": "Editar…",

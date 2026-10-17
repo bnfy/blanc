@@ -5942,85 +5942,85 @@
       }
     },
     "rail.private.marker": {
-      "comment": "Lowercase marker on a private tab's rail row.",
+      "comment": "Marker on a private tab's rail row. Sentence case.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "private"
+            "value": "Private"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "privat"
+            "value": "Privat"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "privada"
+            "value": "Privada"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "privé"
+            "value": "Privé"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "privata"
+            "value": "Privata"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "privada"
+            "value": "Privada"
           }
         }
       }
     },
     "rail.section.pinned": {
-      "comment": "Lowercase heading of the rail section holding pinned tabs that are not in a group.",
+      "comment": "Heading of the rail section holding pinned tabs that are not in a group. Sentence case.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "pinned"
+            "value": "Pinned"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "angeheftet"
+            "value": "Angeheftet"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "fijadas"
+            "value": "Fijadas"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "épinglés"
+            "value": "Épinglés"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "fissate"
+            "value": "Fissate"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "fixadas"
+            "value": "Fixadas"
           }
         }
       }
@@ -9260,85 +9260,169 @@
       }
     },
     "footer.newTab": {
-      "comment": "Lowercase launcher label in the Island footer.",
+      "comment": "Label of the New tab button at the left of the ⌘L panel footer; its shortcut follows it. Sentence case; keep it short.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "new tab"
+            "value": "New tab"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "neuer tab"
+            "value": "Neuer Tab"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "pestaña"
+            "value": "Pestaña"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "onglet"
+            "value": "Onglet"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "nuova scheda"
+            "value": "Nuova scheda"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "nova aba"
+            "value": "Nova aba"
           }
         }
       }
     },
     "footer.private": {
-      "comment": "Lowercase launcher label for a private tab in the Island footer.",
+      "comment": "Label of the button that opens a new private tab, beside New tab in the ⌘L panel footer. Sentence case; keep it short.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "private"
+            "value": "Private"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "privat"
+            "value": "Privat"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "privada"
+            "value": "Privada"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "privé"
+            "value": "Privé"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "privata"
+            "value": "Privata"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "privada"
+            "value": "Privada"
+          }
+        }
+      }
+    },
+    "footer.devices": {
+      "comment": "Footer toggle in the ⌘L panel that opens the list of tabs open on the person's other synced devices. Sentence case; keep it short — it shares one line with New tab, Private and six icons.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other devices"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Andere Geräte"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dispositivos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autres appareils"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dispositivi"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dispositivos"
+          }
+        }
+      }
+    },
+    "footer.devices.title": {
+      "comment": "Tooltip of the Other devices footer toggle.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs open on your other devices"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offene Tabs auf deinen anderen Geräten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pestañas abiertas en tus otros dispositivos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Onglets ouverts sur vos autres appareils"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schede aperte sugli altri tuoi dispositivi"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abas abertas nos seus outros dispositivos"
           }
         }
       }
@@ -14779,48 +14863,6 @@
         }
       }
     },
-    "row.glance": {
-      "comment": "Lowercase tab row button that opens the tab in Glance (a fixed product name).",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "glance"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "glance"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "glance"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "glance"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "glance"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "glance"
-          }
-        }
-      }
-    },
     "row.glanceOpen": {
       "comment": "Tooltip of that button.",
       "extractionState": "manual",
@@ -15590,253 +15632,253 @@
       }
     },
     "result.tag.tab": {
-      "comment": "Lowercase tag on a Quick Switcher result that is an open tab.",
+      "comment": "Tag on a Quick Switcher result that is an open tab. Sentence case.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "tab"
+            "value": "Tab"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "tab"
+            "value": "Tab"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "pestaña"
+            "value": "Pestaña"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "onglet"
+            "value": "Onglet"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "scheda"
+            "value": "Scheda"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "aba"
+            "value": "Aba"
           }
         }
       }
     },
     "result.tag.favorite": {
-      "comment": "Lowercase tag on a Quick Switcher result from Favorites.",
+      "comment": "Tag on a Quick Switcher result from Favorites. Sentence case.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "favorite"
+            "value": "Favorite"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "favorit"
+            "value": "Favorit"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "favorito"
+            "value": "Favorito"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "favori"
+            "value": "Favori"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "preferito"
+            "value": "Preferito"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "favorito"
+            "value": "Favorito"
           }
         }
       }
     },
     "result.tag.history": {
-      "comment": "Lowercase tag on a Quick Switcher result from History.",
+      "comment": "Tag on a Quick Switcher result from History. Sentence case.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "history"
+            "value": "History"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "verlauf"
+            "value": "Verlauf"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "historial"
+            "value": "Historial"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "historique"
+            "value": "Historique"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "cronologia"
+            "value": "Cronologia"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "histórico"
+            "value": "Histórico"
           }
         }
       }
     },
     "result.tag.group": {
-      "comment": "Lowercase tag on a Quick Switcher result that is a tab group.",
+      "comment": "Tag on a Quick Switcher result that is a tab group. Sentence case.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "group"
+            "value": "Group"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "gruppe"
+            "value": "Gruppe"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "grupo"
+            "value": "Grupo"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "groupe"
+            "value": "Groupe"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "gruppo"
+            "value": "Gruppo"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "grupo"
+            "value": "Grupo"
           }
         }
       }
     },
     "result.tag.remote": {
-      "comment": "Lowercase tag on a Quick Switcher result that is a tab on another device.",
+      "comment": "Tag on a Quick Switcher result that is a tab on another device. Sentence case.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "remote"
+            "value": "Remote"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "gerät"
+            "value": "Gerät"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "remota"
+            "value": "Remota"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "distant"
+            "value": "Distant"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "remota"
+            "value": "Remota"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "remota"
+            "value": "Remota"
           }
         }
       }
     },
     "siteInfo.localPage": {
-      "comment": "Site information origin line for a local page.",
+      "comment": "Site information origin line for a local page. Sentence case.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "local page"
+            "value": "Local page"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "lokale Seite"
+            "value": "Lokale Seite"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "página local"
+            "value": "Página local"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "page locale"
+            "value": "Page locale"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "pagina locale"
+            "value": "Pagina locale"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "página local"
+            "value": "Página local"
           }
         }
       }
@@ -16316,97 +16358,97 @@
       }
     },
     "siteInfo.hint.certError": {
-      "comment": "Lowercase hint under the site information card.",
+      "comment": "Hint under the site information card. Sentence case.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "this certificate could not be verified"
+            "value": "This certificate could not be verified"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "dieses Zertifikat konnte nicht überprüft werden"
+            "value": "Dieses Zertifikat konnte nicht überprüft werden"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "no se pudo verificar este certificado"
+            "value": "No se pudo verificar este certificado"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "ce certificat n’a pas pu être vérifié"
+            "value": "Ce certificat n’a pas pu être vérifié"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "non è stato possibile verificare questo certificato"
+            "value": "Non è stato possibile verificare questo certificato"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "não foi possível verificar este certificado"
+            "value": "Não foi possível verificar este certificado"
           }
         }
       }
     },
     "siteInfo.hint.certException": {
-      "comment": "Lowercase hint under the site information card.",
+      "comment": "Hint under the site information card. Sentence case.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "you continued past a certificate warning"
+            "value": "You continued past a certificate warning"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "du hast eine Zertifikatswarnung übergangen"
+            "value": "Du hast eine Zertifikatswarnung übergangen"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "continuaste pese a una advertencia del certificado"
+            "value": "Continuaste pese a una advertencia del certificado"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "vous avez ignoré un avertissement de certificat"
+            "value": "Vous avez ignoré un avertissement de certificat"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "hai proseguito nonostante un avviso sul certificato"
+            "value": "Hai proseguito nonostante un avviso sul certificato"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "você ignorou um aviso de certificado"
+            "value": "Você ignorou um aviso de certificado"
           }
         }
       }
     },
     "siteInfo.hint.chromium": {
-      "comment": "Lowercase hint under the site information card.",
+      "comment": "Hint under the site information card. Sentence case.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "connection details are supplied by Chromium"
+            "value": "Connection details are supplied by Chromium"
           }
         },
         "de": {
@@ -16424,103 +16466,103 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "les détails de connexion sont fournis par Chromium"
+            "value": "Les détails de connexion sont fournis par Chromium"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "i dettagli della connessione sono forniti da Chromium"
+            "value": "I dettagli della connessione sono forniti da Chromium"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "os detalhes da conexão são fornecidos pelo Chromium"
+            "value": "Os detalhes da conexão são fornecidos pelo Chromium"
           }
         }
       }
     },
     "list.noCommand": {
-      "comment": "Lowercase empty row in the slash command list.",
+      "comment": "Empty row in the slash command list. Sentence case.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "no matching command"
+            "value": "No matching command"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "kein passender Befehl"
+            "value": "Kein passender Befehl"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "ningún comando coincide"
+            "value": "Ningún comando coincide"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "aucune commande correspondante"
+            "value": "Aucune commande correspondante"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "nessun comando corrispondente"
+            "value": "Nessun comando corrispondente"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "nenhum comando correspondente"
+            "value": "Nenhum comando correspondente"
           }
         }
       }
     },
     "list.noMatches": {
-      "comment": "Lowercase empty row in the Quick Switcher.",
+      "comment": "Empty row in the Quick Switcher. Sentence case.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "no matches — ↵ opens as address or search"
+            "value": "No matches — ↵ opens as address or search"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "keine Treffer – ↵ öffnet als Adresse oder Suche"
+            "value": "Keine Treffer – ↵ öffnet als Adresse oder Suche"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "sin resultados: ↵ lo abre como dirección o búsqueda"
+            "value": "Sin resultados: ↵ lo abre como dirección o búsqueda"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "aucun résultat — ↵ l’ouvre comme adresse ou recherche"
+            "value": "Aucun résultat — ↵ l’ouvre comme adresse ou recherche"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "nessun risultato — ↵ apre come indirizzo o ricerca"
+            "value": "Nessun risultato — ↵ apre come indirizzo o ricerca"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "nenhum resultado — ↵ abre como endereço ou pesquisa"
+            "value": "Nenhum resultado — ↵ abre como endereço ou pesquisa"
           }
         }
       }
@@ -16610,169 +16652,169 @@
       }
     },
     "bang.yours": {
-      "comment": "Lowercase tag on a bang picker row for a bang the person added in Settings, where other rows show the site's domain.",
+      "comment": "Tag on a bang picker row for a bang the person added in Settings, where other rows show the site's domain. Sentence case.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "yours"
+            "value": "Yours"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "eigene"
+            "value": "Eigene"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "tuyo"
+            "value": "Tuyo"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "à vous"
+            "value": "À vous"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "tuo"
+            "value": "Tuo"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "seu"
+            "value": "Seu"
           }
         }
       }
     },
     "bang.section.recent": {
-      "comment": "Lowercase header of the bang picker's recently used section.",
+      "comment": "Header of the bang picker's recently used section. Sentence case, like the other ⌘L panel headers.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "recent"
+            "value": "Recent"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "zuletzt"
+            "value": "Zuletzt"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "recientes"
+            "value": "Recientes"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "récents"
+            "value": "Récents"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "recenti"
+            "value": "Recenti"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "recentes"
+            "value": "Recentes"
           }
         }
       }
     },
     "bang.section.popular": {
-      "comment": "Lowercase header of the bang picker's popular section.",
+      "comment": "Header of the bang picker's popular section. Sentence case.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "popular"
+            "value": "Popular"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "beliebt"
+            "value": "Beliebt"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "populares"
+            "value": "Populares"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "populaires"
+            "value": "Populaires"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "popolari"
+            "value": "Popolari"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "populares"
+            "value": "Populares"
           }
         }
       }
     },
     "bang.section.all": {
-      "comment": "Lowercase header of the bang picker's section of every other matching bang.",
+      "comment": "Header of the bang picker's section of every other matching bang. Sentence case.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "all bangs"
+            "value": "All bangs"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "alle Bangs"
+            "value": "Alle Bangs"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "todos los bangs"
+            "value": "Todos los bangs"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "tous les bangs"
+            "value": "Tous les bangs"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "tutti i bang"
+            "value": "Tutti i bang"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "todos os bangs"
+            "value": "Todos os bangs"
           }
         }
       }
@@ -16862,7 +16904,7 @@
       }
     },
     "hint.bang": {
-      "comment": "Lowercase hint under the Island list while a bang is typed. Keep !code and ! as typed.",
+      "comment": "Hint under the Island list while a bang is typed. Keep !code and ! as typed; the rest is sentence case.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -16874,7 +16916,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "!code wörter durchsucht eine Website · ! allein zeigt alle"
+            "value": "!code Wörter durchsucht eine Website · ! allein zeigt alle"
           }
         },
         "es": {
@@ -16904,127 +16946,43 @@
       }
     },
     "hint.private": {
-      "comment": "Lowercase hint under the Island list on a private tab.",
+      "comment": "Note under the ⌘L panel footer while the active tab is private. Sentence case.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "private · nothing here is saved to history"
+            "value": "Private tab · Nothing here is saved to history"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "privat · hier wird nichts im Verlauf gespeichert"
+            "value": "Privater Tab · Hier wird nichts im Verlauf gespeichert"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "privada · nada de aquí se guarda en el historial"
+            "value": "Pestaña privada · Nada de aquí se guarda en el historial"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "privé · rien ici n’est enregistré dans l’historique"
+            "value": "Onglet privé · Rien ici n’est enregistré dans l’historique"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "privata · nulla di quanto fai qui viene salvato nella cronologia"
+            "value": "Scheda privata · Nulla di quanto fai qui viene salvato nella cronologia"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "privada · nada aqui é salvo no histórico"
-          }
-        }
-      }
-    },
-    "hint.groups": {
-      "comment": "Lowercase hint under the Island list when groups exist; {mod} is ⌘ or ctrl+.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "/group moves this tab · %1$@1–9 jumps between sections"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "/group verschiebt diesen Tab · %1$@1–9 springt zwischen Abschnitten"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "/group mueve esta pestaña · %1$@1–9 salta entre secciones"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "/group déplace cet onglet · %1$@1–9 passe d’une section à l’autre"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "/group sposta questa scheda · %1$@1–9 salta tra le sezioni"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "/group move esta aba · %1$@1–9 pula entre as seções"
-          }
-        }
-      }
-    },
-    "hint.default": {
-      "comment": "Lowercase hint under the Island list; {mod} is ⌘ or ctrl+.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@L summons · / for commands"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@L ruft auf · / für Befehle"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@L la abre · / para comandos"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@L l’ouvre · / pour les commandes"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@L la richiama · / per i comandi"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@L abre · / para comandos"
+            "value": "Aba privada · Nada aqui é salvo no histórico"
           }
         }
       }
@@ -17168,43 +17126,43 @@
       }
     },
     "result.tag.search": {
-      "comment": "Lowercase tag on a Quick Switcher search row when the search engine's own name is not available.",
+      "comment": "Tag on a Quick Switcher search row when the search engine's own name is not available. Sentence case.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "search"
+            "value": "Search"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "suche"
+            "value": "Suche"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "búsqueda"
+            "value": "Búsqueda"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "recherche"
+            "value": "Recherche"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "ricerca"
+            "value": "Ricerca"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "pesquisa"
+            "value": "Pesquisa"
           }
         }
       }
@@ -80702,43 +80660,43 @@
       }
     },
     "result.tag.space": {
-      "comment": "Lowercase tag on a Quick Switcher result that is a space.",
+      "comment": "Tag on a Quick Switcher result that is a space. Sentence case.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "space"
+            "value": "Space"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "space"
+            "value": "Space"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "space"
+            "value": "Space"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "space"
+            "value": "Space"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "space"
+            "value": "Space"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "space"
+            "value": "Space"
           }
         }
       }

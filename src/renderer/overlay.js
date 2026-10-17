@@ -79,6 +79,9 @@
   const findCloseBtn = document.getElementById('findCloseBtn');
   const footerNewTab = document.getElementById('footerNewTab');
   const footerNewPrivate = document.getElementById('footerNewPrivate');
+  const footerDevices = document.getElementById('footerDevices');
+  const footerDevicesCount = document.getElementById('footerDevicesCount');
+  const islandDrawer = document.getElementById('islandDrawer');
   const footerWorkspace = document.getElementById('footerWorkspace');
   const workspaceSwitcher = document.getElementById('workspaceSwitcher');
   const workspaceSwitcherList = document.getElementById('workspaceSwitcherList');
@@ -154,6 +157,8 @@
   // Recently closed starts folded — one line like a synced device; unfold to
   // see the reopen rows (Claude island declutter iteration).
   let closedSectionOpen = false;
+  // The Other devices drawer; closed on every fresh open of the panel.
+  let devicesDrawerOpen = false;
   // Bangs (`!yt lofi`): the settings main projects (switch, the person's own
   // bangs, recents) and which picker sections are unfolded, for this window.
   let bangsState = { enabled: true, custom: [], recent: [] };
@@ -294,6 +299,9 @@
     // Reopen: a leftward return arrow — drawn, not the Unicode ↶, which sits
     // baseline-low and renders unevenly across platforms.
     reopen: '<svg viewBox="0 0 16 16"><path d="M3.5 6.75h6a3 3 0 0 1 0 6h-3"/><path d="M6.25 4 3.5 6.75l2.75 2.75"/></svg>',
+    // Glance: a page with a narrower page beside it — not the footer's
+    // sidebar glyph, which is the tab-layout toggle.
+    glance: '<svg viewBox="0 0 16 16"><rect x="2.25" y="3.25" width="7.5" height="9.5" rx="1.5"/><rect x="11.25" y="4.75" width="2.5" height="6.5" rx="1"/></svg>',
   };
   reloadBtn.innerHTML = ICONS.reload;
 
@@ -708,7 +716,7 @@
       const isGlance = tab.id === state.glanceTabId;
       glance.className = 'row-glance' + (isGlance ? ' on' : '');
       glance.dataset.noDrag = '';
-      glance.textContent = blancI18n.t('row.glance');
+      glance.innerHTML = ICONS.glance;
       glance.title = isGlance ? blancI18n.t('glance.close') : blancI18n.t('row.glanceOpen');
       glance.setAttribute('aria-label', blancI18n.t('row.actionLabel', { action: glance.title, title: label }));
       if (tab.title) glance.dataset.i18nIgnore = 'aria-label'; // carries the page title
@@ -922,12 +930,23 @@
     const ns = row.querySelectorAll('.ghead-n');
     ns[0].textContent = String(device.tabs.length);
     ns[1].textContent = timeAgo(device.updatedAt);
-    ns[1].style.marginLeft = 'auto';
+    ns[1].classList.add('ghead-ago');
+    ns[1].dataset.i18nIgnore = ''; // Intl-formatted in the interface locale, not catalog text
     row.title = open ? blancI18n.t('device.fold') : blancI18n.t('device.unfold');
-    row.addEventListener('click', () => {
+    row.dataset.deviceId = device.deviceId;
+    row.tabIndex = 0;
+    row.setAttribute('role', 'button');
+    row.setAttribute('aria-expanded', String(open));
+    const flip = () => {
       if (open) unfoldedDevices.delete(device.deviceId);
       else unfoldedDevices.add(device.deviceId);
       renderList();
+    };
+    row.addEventListener('click', flip);
+    row.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      flip();
     });
     return row;
   }
@@ -1666,6 +1685,9 @@
   // menu key / VoiceOver open the row menu from the focused row).
   function focusedRowAnchor() {
     const el = document.activeElement;
+    // A synced device's header in the Other devices drawer.
+    const device = el?.closest?.('[data-device-id]');
+    if (device && islandDrawer.contains(device)) return { deviceId: device.dataset.deviceId };
     const header = el?.closest?.('[data-drag-header]');
     if (header && islandList.contains(header)) return { groupId: header.dataset.groupId };
     const row = el && el.closest && el.closest('.island-row[data-tab-id]');
@@ -1916,35 +1938,49 @@
       placeClosed();
       if (!clusters.some(({ group }) => !group)) rows.push(dragEmptyZone('loose'));
 
-      const furniture = [];
-      for (const device of remoteDevices) {
-        furniture.push(remoteHeaderRow(device));
-        if (unfoldedDevices.has(device.deviceId)) {
-          furniture.push(...clusterRemoteTabs(device).map((t) => remoteTabRow(t, device)));
-        }
-      }
-      if (furniture.length) {
-        const wrap = document.createElement('div');
-        wrap.className = 'island-furniture';
-        wrap.append(...furniture);
-        rows.push(wrap);
-      }
       islandList.replaceChildren(...rows);
       // Only the resting tab list preserves row focus; the "/" command and
       // switcher branches drive focus from the input, not the rows.
       restoreRowFocus(rowAnchor);
     }
 
+    // The drawer shows only beside the resting list: typing a query or a
+    // command steps it aside until the field is clear again.
+    renderDevicesDrawer(!siteInfoOpen && !(inputTouched && (value.startsWith('/') || value.trim())), rowAnchor);
 
+    // The hint line keeps only the bang hint while a bang is typed and the
+    // private-tab note (and the site-info notes, written by renderSiteInfo);
+    // the address field and the Shortcuts sheet already teach "/" and ⌘1–9.
     if (!siteInfoOpen) {
       islandHint.textContent = bang
         ? blancI18n.t('hint.bang')
-        : activeTab()?.private
-          ? blancI18n.t('hint.private')
-          : state.groups.length
-            ? blancI18n.t('hint.groups', { mod: modKey })
-            : blancI18n.t('hint.default', { mod: modKey });
+        : activeTab()?.private ? blancI18n.t('hint.private') : '';
     }
+  }
+
+  /** Other devices (spec 2026-10-16 §6): the footer toggle, hidden with no
+   * other device to show, and the drawer between the list and the footer. */
+  function renderDevicesDrawer(resting, anchor = null) {
+    footerDevices.hidden = !remoteDevices.length;
+    footerDevicesCount.textContent = String(remoteDevices.length);
+    const show = resting && devicesDrawerOpen && remoteDevices.length > 0;
+    footerDevices.setAttribute('aria-expanded', String(show));
+    islandDrawer.hidden = !show;
+    if (!show) {
+      islandDrawer.replaceChildren();
+      return;
+    }
+    const rows = [];
+    for (const device of remoteDevices) {
+      rows.push(remoteHeaderRow(device));
+      if (unfoldedDevices.has(device.deviceId)) {
+        rows.push(...clusterRemoteTabs(device).map((t) => remoteTabRow(t, device)));
+      }
+    }
+    islandDrawer.replaceChildren(...rows);
+    // Unfolding a device, or any re-render while the drawer is open, keeps
+    // keyboard focus on the device header it was on.
+    if (anchor?.deviceId) islandDrawer.querySelector(`[data-device-id="${CSS.escape(anchor.deviceId)}"]`)?.focus();
   }
 
   function renderPanel() {
@@ -2109,6 +2145,7 @@
       if (!reshow) {
         siteInfoOpen = false;
         closedSectionOpen = false;
+        devicesDrawerOpen = false;
         pendingGroupTabId = null;
         pendingRenameTabId = null;
         renamePrefill = null;
@@ -2798,7 +2835,6 @@
   // These moved out of the scrollable list so they stay put while it shows
   // slash commands or Quick-Switcher results. Platform-correct shortcut hints.
   document.getElementById('footerNewTabKbd').textContent = `${modKey}T`;
-  document.getElementById('footerNewPrivateKbd').textContent = `${modShiftKey}N`;
   footerNewTab.title = blancI18n.t('pill.newTab.title', { shortcut: `${modKey}T` });
   footerNewPrivate.title = blancI18n.t('footer.newPrivate.title', { shortcut: `${modShiftKey}N` });
 
@@ -2811,6 +2847,11 @@
   footerNewPrivate.addEventListener('click', () => {
     window.browserAPI.closeOverlay();
     window.browserAPI.createTab(null, { private: true, focusAddress: false });
+  });
+  footerDevices.title = blancI18n.t('footer.devices.title');
+  footerDevices.addEventListener('click', () => {
+    devicesDrawerOpen = !devicesDrawerOpen;
+    renderList();
   });
   // Each shortcut opens its internal page; close first so main can re-show
   // the overlay cleanly where needed (mirrors runCommand for /favorites etc).

@@ -166,7 +166,9 @@ Then('the workspace list scrolls while creation controls remain visible', async 
     await page.waitForFunction(() => !document.querySelector('#islandPanel.morph-start, #islandPanel.morph-run, #islandPanel.retracting'));
     const geometry = await page.evaluate(() => {
       const footer = document.getElementById('islandFooter').getBoundingClientRect();
-      const rects = [...document.querySelectorAll('#islandFooter button')].map((button) => ({ id: button.id, rect: button.getBoundingClientRect().toJSON() }));
+      // A hidden button (Other devices with no device to show) takes no space.
+      const rects = [...document.querySelectorAll('#islandFooter button')].filter((button) => !button.hidden)
+        .map((button) => ({ id: button.id, rect: button.getBoundingClientRect().toJSON() }));
       const spaces = document.getElementById('footerWorkspace');
       return { viewport: { width: innerWidth, height: innerHeight }, footer: footer.toJSON(), rects, spacesText: spaces.textContent.trim(), spacesTitle: spaces.title };
     });
@@ -188,7 +190,16 @@ Then('the workspace list scrolls while creation controls remain visible', async 
     }
   };
   await ctx.app.evaluate(({ BrowserWindow }) => { const window = BrowserWindow.getAllWindows().find((w) => w.webContents.getURL() === 'blanc-chrome://index/'); window.setSize(640, 480); });
+  // Measure with the Other devices toggle showing: the longest footer line.
+  // Opening the panel reloads devices from the real (disabled) sync cache, so
+  // the fixture goes in once that refresh has settled.
+  const showDevices = async (overlay) => {
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    await this.call('injectRemoteDevices');
+    await overlay.locator('#footerDevices').waitFor({ state: 'visible' });
+  };
   await openOverlaySurface(this, 'openPanel', 'panel'); const page = await overlayPage();
+  await showDevices(page);
   await checkFooter(page); await evidence(page, 'compact-footer-long-name');
   await page.click('#footerWorkspace');
   const geometry = await page.evaluate(() => {
@@ -201,6 +212,7 @@ Then('the workspace list scrolls while creation controls remain visible', async 
   await evidence(page, 'long-workspace-list');
   await this.call('setTabLayout', 'vertical');
   await openOverlaySurface(this, 'openPanel', 'panel');
+  await showDevices(page);
   await page.waitForFunction(() => !document.querySelector('#islandPanel.morph-start, #islandPanel.morph-run, #islandPanel.retracting'));
   await page.click('#footerWorkspace');
   await ctx.app.evaluate(({ webContents }) => { webContents.getAllWebContents().find((wc) => wc.getURL() === 'blanc-chrome://overlay/').setZoomFactor(1.25); });
@@ -230,21 +242,22 @@ Then('the workspace list scrolls while creation controls remain visible', async 
   await checkFooter(page); await evidence(page, 'compact-footer-vertical-125percent', true);
   // Cover both native shortcut widths on every platform: macOS alone must
   // not let the longer Windows/Linux labels escape the regression check.
-  const nativeShortcuts = await page.evaluate(() => ['footerNewTabKbd', 'footerNewPrivateKbd'].map(id => document.getElementById(id).textContent));
+  // Only New tab shows its shortcut inline; Private carries it in the tooltip.
+  const privatePill = await page.evaluate(() => {
+    const button = document.getElementById('footerNewPrivate');
+    return { kbd: button.querySelectorAll('.footer-kbd').length, title: button.title };
+  });
+  assert.equal(privatePill.kbd, 0, 'the Private pill shows no inline shortcut');
+  assert.match(privatePill.title, /N\)$/, 'the Private pill names its shortcut in the tooltip');
+  const nativeShortcut = await page.evaluate(() => document.getElementById('footerNewTabKbd').textContent);
   try {
-    for (const shortcuts of [['⌘T', '⌘⇧N'], ['ctrl+T', 'ctrl+shift+N']]) {
-      await page.evaluate(values => {
-        document.getElementById('footerNewTabKbd').textContent = values[0];
-        document.getElementById('footerNewPrivateKbd').textContent = values[1];
-      }, shortcuts);
+    for (const shortcut of ['⌘T', 'ctrl+T']) {
+      await page.evaluate(value => { document.getElementById('footerNewTabKbd').textContent = value; }, shortcut);
       await checkFooter(page);
-      await evidence(page, shortcuts[0].startsWith('ctrl') ? 'compact-footer-control-labels-125percent' : 'compact-footer-command-labels-125percent', true);
+      await evidence(page, shortcut.startsWith('ctrl') ? 'compact-footer-control-labels-125percent' : 'compact-footer-command-labels-125percent', true);
     }
   } finally {
-    await page.evaluate(values => {
-      document.getElementById('footerNewTabKbd').textContent = values[0];
-      document.getElementById('footerNewPrivateKbd').textContent = values[1];
-    }, nativeShortcuts);
+    await page.evaluate(value => { document.getElementById('footerNewTabKbd').textContent = value; }, nativeShortcut);
   }
   await ctx.app.evaluate(({ BrowserWindow, webContents }) => { webContents.getAllWebContents().find((wc) => wc.getURL() === 'blanc-chrome://overlay/').setZoomFactor(1); BrowserWindow.getAllWindows().find((w) => w.webContents.getURL() === 'blanc-chrome://index/').setSize(1280, 800); });
   await this.call('setTabLayout', 'island');
