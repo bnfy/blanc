@@ -1367,7 +1367,7 @@
   },
   "slash.invite.copied": {
     "message": "Votre app de messagerie ne s’est pas ouverte ; l’invitation a donc été copiée. Collez-la dans un message.",
-    "source": "sha256:a3a79e34d44065dd60e736aec9e6fef01fb250e15b855895af66d19e1eaddab8"
+    "source": "sha256:d8722a96c5d81a0bc7e731f0e9883e3e438fe35ff0a903a7fc8da46c9bbb5761"
   },
   "closed.header": {
     "message": "Fermés récemment",

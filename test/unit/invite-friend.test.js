@@ -76,8 +76,24 @@ test('without a mail app the whole invite goes to the clipboard instead', async 
 
 test('Help → Invite a Friend… and /invite both reach the same main-process path', () => {
   const main = fs.readFileSync(path.join(repo, 'src/main/main.js'), 'utf8');
-  assert.match(main, /label: t\('menu\.inviteFriend'\), click: \(\) => \{ inviteFriendNow\(\); \}/);
+  assert.match(main, /label: t\('menu\.inviteFriend'\), click: \(\) => \{ inviteFriendFromMenu\(\); \}/);
   assert.match(main, /chromeHandle\('chrome:invite-friend', \(\) => inviteFriendNow\(\)\)/);
   const overlay = fs.readFileSync(path.join(repo, 'src/renderer/overlay.js'), 'utf8');
   assert.match(overlay, /cmd: '\/invite'.*window\.browserAPI\.inviteFriend\(\)/);
+});
+
+// Electron 44's shell.openExternal resolves on Linux even when xdg-open fails
+// (v1.36.0 hand check), so the copy fallback never ran there.
+test('on Linux the invite goes through xdg-open, whose exit status is real', () => {
+  const main = fs.readFileSync(path.join(repo, 'src/main/main.js'), 'utf8');
+  const body = main.match(/function inviteFriendNow\(\) \{[\s\S]*?\n\}/)[0];
+  assert.match(body, /process\.platform === 'linux' \? xdgOpen\(url\) : shell\.openExternal\(url\)/);
+});
+
+test('Help → Invite a Friend… says so when it copied the invite instead', () => {
+  const main = fs.readFileSync(path.join(repo, 'src/main/main.js'), 'utf8');
+  const body = main.match(/function inviteFriendFromMenu\(\) \{[\s\S]*?\n\}/)[0];
+  assert.match(body, /result !== 'copied'/);
+  assert.match(body, /t\('slash\.invite\.copied'\)/);
+  assert.match(body, /t\('dialog\.ok'\)/);
 });
