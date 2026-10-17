@@ -147,3 +147,134 @@ test('nothing usable is a miss', async () => {
   const { fetchImpl } = stubFetch({});
   assert.equal(await findIcon('example.org', fetchImpl), null);
 });
+
+// Workers KV, as the Worker uses it: binary values with metadata.
+class FakeKV {
+  constructor() { this.values = new Map(); this.puts = []; }
+  async getWithMetadata(key) {
+    const entry = this.values.get(key);
+    return entry ? { value: entry.value, metadata: entry.metadata } : { value: null, metadata: null };
+  }
+  async put(key, value, options = {}) {
+    this.puts.push({ key, options });
+    this.values.set(key, { value, metadata: options.metadata ?? null });
+  }
+}
+
+let hostListCount = 0;
+// Each test gets its own host-list address, so the Worker's in-memory copy of
+// one test's list never answers another test.
+function environment() {
+  hostListCount += 1;
+  return { ICONS: new FakeKV(), HOSTS_URL: `https://blanc.day/bang-hosts.json?test=${hostListCount}` };
+}
+
+async function serve(worker, env, url, method = 'GET') {
+  const pending = [];
+  const response = await worker.fetch(new Request(url, { method }), env, { waitUntil: (promise) => pending.push(promise) });
+  await Promise.all(pending);
+  return response;
+}
+
+// Swaps the global fetch for a stub for one test.
+function withFetch(t, routes) {
+  const original = globalThis.fetch;
+  const stub = stubFetch(routes);
+  globalThis.fetch = stub.fetchImpl;
+  t.after(() => { globalThis.fetch = original; });
+  return stub.calls;
+}
+const hostList = (...hosts) => () => new Response(JSON.stringify({ hosts }), { headers: { 'content-type': 'application/json' } });
+
+function assertLockedDown(response) {
+  assert.equal(response.headers.get('x-content-type-options'), 'nosniff');
+  assert.equal(response.headers.get('content-security-policy'), "default-src 'none'; sandbox");
+  assert.equal(response.headers.get('cross-origin-resource-policy'), 'same-site');
+}
+
+test('a known host is fetched once, then served from KV', async (t) => {
+  const { createWorker } = await load('index.js');
+  const env = environment();
+  const calls = withFetch(t, {
+    [env.HOSTS_URL]: hostList('example.org'),
+    'https://example.org/': page('<link rel="apple-touch-icon" href="/t.png">'),
+    'https://example.org/t.png': image(PNG_BYTES),
+  });
+  const worker = createWorker({ heldBack: [] });
+  const first = await serve(worker, env, 'https://blanc.day/bang-icons/example.org');
+  assert.equal(first.status, 200);
+  assert.equal(first.headers.get('content-type'), 'image/png');
+  assert.equal(first.headers.get('cache-control'), 'public, max-age=604800');
+  assertLockedDown(first);
+  assert.deepEqual([...new Uint8Array(await first.arrayBuffer())], [...PNG_BYTES]);
+  assert.equal(env.ICONS.puts[0].key, 'icon:example.org');
+  assert.equal(env.ICONS.puts[0].options.expirationTtl, 2592000);
+  assert.equal(env.ICONS.puts[0].options.metadata.type, 'image/png');
+  assert.equal(env.ICONS.puts[0].options.metadata.source, 'site');
+  const before = calls.length;
+  const second = await serve(worker, env, 'https://blanc.day/bang-icons/example.org');
+  assert.equal(second.status, 200);
+  assert.deepEqual([...new Uint8Array(await second.arrayBuffer())], [...PNG_BYTES]);
+  assert.equal(calls.length, before, 'the second request fetched upstream');
+});
+
+test('an unknown or held-back host is a 404 without fetching anything', async (t) => {
+  const { createWorker } = await load('index.js');
+  const env = environment();
+  const calls = withFetch(t, { [env.HOSTS_URL]: hostList('example.org', 'held.example.org') });
+  const worker = createWorker({ heldBack: ['held.example.org'] });
+  for (const host of ['other.example.org', 'held.example.org']) {
+    const response = await serve(worker, env, `https://blanc.day/bang-icons/${host}`);
+    assert.equal(response.status, 404, host);
+    assertLockedDown(response);
+  }
+  assert.deepEqual(calls.filter((url) => url !== env.HOSTS_URL), []);
+  assert.equal(env.ICONS.puts.length, 0);
+});
+
+test('a miss is remembered for a day', async (t) => {
+  const { createWorker } = await load('index.js');
+  const env = environment();
+  withFetch(t, { [env.HOSTS_URL]: hostList('example.org') });
+  let lookups = 0;
+  const worker = createWorker({ heldBack: [], findIconImpl: async () => { lookups += 1; return null; } });
+  const first = await serve(worker, env, 'https://blanc.day/bang-icons/example.org');
+  assert.equal(first.status, 404);
+  assert.equal(first.headers.get('cache-control'), 'public, max-age=86400');
+  assert.equal(env.ICONS.puts[0].options.expirationTtl, 86400);
+  assert.deepEqual(env.ICONS.puts[0].options.metadata, { miss: true });
+  assert.equal((await serve(worker, env, 'https://blanc.day/bang-icons/example.org')).status, 404);
+  assert.equal(lookups, 1);
+});
+
+test('a 200 HTML page is never served as an icon', async (t) => {
+  const { createWorker } = await load('index.js');
+  const env = environment();
+  withFetch(t, {
+    [env.HOSTS_URL]: hostList('example.org'),
+    'https://example.org/': page('<link rel="icon" href="/t.png">'),
+    'https://example.org/t.png': page('<!doctype html><title>Not found</title>'),
+    'https://example.org/favicon.ico': page('<!doctype html><title>Not found</title>'),
+    [DDG]: page('<!doctype html><title>Not found</title>'),
+  });
+  const response = await serve(createWorker({ heldBack: [] }), env, 'https://blanc.day/bang-icons/example.org');
+  assert.equal(response.status, 404);
+});
+
+test('an unreachable host list answers 503 and caches nothing', async (t) => {
+  const { createWorker } = await load('index.js');
+  const env = environment();
+  withFetch(t, { [env.HOSTS_URL]: () => new Response('down', { status: 502 }) });
+  const response = await serve(createWorker({ heldBack: [] }), env, 'https://blanc.day/bang-icons/example.org');
+  assert.equal(response.status, 503);
+  assert.equal(response.headers.get('cache-control'), 'no-store');
+  assert.equal(env.ICONS.puts.length, 0);
+});
+
+test('only GET and HEAD', async (t) => {
+  const { createWorker } = await load('index.js');
+  const env = environment();
+  withFetch(t, { [env.HOSTS_URL]: hostList('example.org') });
+  const response = await serve(createWorker({ heldBack: [] }), env, 'https://blanc.day/bang-icons/example.org', 'POST');
+  assert.equal(response.status, 405);
+});
