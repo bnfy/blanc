@@ -25,7 +25,13 @@
   "boundaries": [
     {
       "file": "cloudflare/newsletter-worker/src/index.js",
-      "sha256": "769af5d756d99b5a0cd1b920beae4390cbfd875c12f730191c19dfa2cfa272fd",
+      "sha256": "235c3ebf962023847f470d69fa7d84c7301b35fce06932edbaf4b18886b15080",
+      "literalChannels": [],
+      "role": "privileged implementation or service"
+    },
+    {
+      "file": "cloudflare/newsletter-worker/src/resend-sync.js",
+      "sha256": "338e55f741af0674e5b1ad55968ae0b884bbed97268de76c58fed24f46197c9f",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },

@@ -27,6 +27,43 @@ adding applicants to the newsletter or retaining an application database.
 - Missing mail or token secrets make enrollment return 503. There is no
   consent-bypassing fallback.
 
+## Resend sync
+
+Release notes and the win-back automation send from the Resend segment
+**Blanc release notes** (`RESEND_SEGMENT_ID` in `wrangler.toml`).
+`src/resend-sync.js` keeps it and the confirmed list in KV in step:
+
+- **Resend → Worker.** A Resend webhook posts `contact.updated` and
+  `contact.deleted` to `POST /resend-webhook`. A contact that is unsubscribed
+  or deleted in Resend loses its `sub:` record and removal lookup. Only a
+  request with a valid Svix signature (`RESEND_WEBHOOK_SECRET`, at most five
+  minutes old) can remove anyone; without the secret the endpoint returns 503.
+- **Worker → Resend**, only when `RESEND_CONTACTS_API_KEY` is set. Confirming
+  adds the address to the segment, creating the contact if Resend does not
+  have it. The Worker's own unsubscribe link and `DELETE /subscriber` remove it
+  from the segment. A failed call is logged by name, without the address, and
+  never undoes the person's confirmation or unsubscribe.
+
+Resend's `unsubscribed` flag covers the whole Resend account, which other
+brands share, so the Worker never sets or clears it; it changes only segment
+membership. One consequence: an address already unsubscribed in Resend that
+confirms here is removed again by the next webhook, and needs the flag cleared
+in Resend to rejoin. Removing a contact from the segment by hand in Resend does
+not remove it here; unsubscribe or delete it instead. The Blanc Mail waitlist
+is not synced.
+
+Contact calls need a full-access Resend key, so `RESEND_CONTACTS_API_KEY` is
+separate from the send-only `RESEND_API_KEY`, and the Worker runs without it
+(webhook direction only).
+
+Webhook setup: in Resend, add a webhook to
+`https://blanc-newsletter.bnfy-441.workers.dev/resend-webhook` for
+`contact.updated` and `contact.deleted`, then install its signing secret:
+
+```sh
+op run --env-file=../.env.1password -- npx wrangler secret put RESEND_WEBHOOK_SECRET
+```
+
 ## Blanc Mail waitlist
 
 - `POST /mail-waitlist` runs the newsletter's double opt-in against its own
@@ -80,12 +117,18 @@ Required Worker secrets:
 
 - `ADMIN_TOKEN` — protects export and administrative removal;
 - `NEWSLETTER_TOKEN_SECRET` — HMAC key for address cooldowns;
-- `RESEND_API_KEY` — restricted Resend key for confirmation delivery.
+- `RESEND_API_KEY` — restricted Resend key for confirmation delivery;
+- `RESEND_WEBHOOK_SECRET` — signing secret of the Resend contact webhook
+  (see *Resend sync*);
+- `RESEND_CONTACTS_API_KEY` (optional) — the full-access key that lets
+  confirmations and unsubscribes here update the Resend segment.
 
 The deployment process also requires `RESEND_DEPLOY_API_KEY` (a full-access
 Resend key capable of retrieving domain status) and `RESEND_DOMAIN_ID` in its
 local environment. The full-access deploy key is local preflight authority only:
-never install it as a Worker secret. The Worker keeps the separate restricted
+never install it as a Worker secret. `RESEND_CONTACTS_API_KEY`, when used, is
+its own full-access key, created for this Worker alone so it can be revoked
+without touching deploys. The Worker keeps the separate restricted
 `RESEND_API_KEY` for confirmation delivery.
 
 `.env.1password` in this directory supplies everything `npm run deploy` needs:
