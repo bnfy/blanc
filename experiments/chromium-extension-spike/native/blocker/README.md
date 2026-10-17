@@ -66,3 +66,5 @@ engine failure, duplicate observations and unexplained traffic invalidate the
 run. A wrong allow of an Electron-blocked script stays a blocking difference;
 its complete authored response executes and its child traffic is reported
 separately, never used to pad the corpus denominator.
+
+Redirect/worker and latency extension: see [measured results](../../evidence/f12-paths-latency-20261017/README.md). GET redirects and dedicated workers pass the bounded probes; shared/service worker identity and quiet-machine latency remain gaps.

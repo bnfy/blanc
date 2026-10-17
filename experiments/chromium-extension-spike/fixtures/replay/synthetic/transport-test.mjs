@@ -60,3 +60,9 @@ test('CONNECT selects the correct certificate shard; mismatched SNI is refused',
   assert(!/200 OK/.test(mismatched));assert.equal(replay.arrivals.length,2);
  }finally{await replay.close();}
 });
+
+test('authored redirect returns exact Location and refuses an unmanifested target',async()=>{
+ const target='https://page.fixture.test/final';const fixtures=new Map([['https://page.fixture.test/index.html',{status:302,contentType:'text/plain',body:'redirect',location:target}],[target,{status:200,contentType:'text/plain',body:'final'}]]);
+ const replay=await startSynthetic({fixtures,tlsMaterial:proxy});try{const response=await get(replay.port);assert.match(response,/302/);assert(response.includes('Location: '+target));assert.equal(replay.arrivals.length,1);}finally{await replay.close();}
+ fixtures.delete(target);await assert.rejects(()=>startSynthetic({fixtures,tlsMaterial:proxy}),/Unmanifested redirect/);
+});

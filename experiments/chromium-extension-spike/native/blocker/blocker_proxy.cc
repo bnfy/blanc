@@ -144,7 +144,7 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
     receiver_.set_disconnect_handler(base::BindOnce(&Request::Destroy, base::Unretained(this)));
     client_.set_disconnect_handler(base::BindOnce(&Request::Destroy, base::Unretained(this)));
   }
-  void Begin() { Gate(base::BindOnce(&Request::Start, weak_.GetWeakPtr())); }
+  void Begin(base::TimeTicks entered) { Gate(base::BindOnce(&Request::Start, weak_.GetWeakPtr()), entered); }
   ~Request() override = default;
   void FollowRedirect(network::HttpRequestHeadersUpdateParams headers, const std::optional<GURL>& url) override {
     // Forward all validation to the real loader. A caller-supplied replacement
@@ -163,13 +163,14 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
     client_->OnReceiveResponse(std::move(head), std::move(body), std::move(metadata));
   }
   void OnReceiveRedirect(const net::RedirectInfo& info, network::mojom::URLResponseHeadPtr head) override {
+    const auto entered = base::TimeTicks::Now();
     request_.UpdateOnRedirect(info); ++redirect_index_;
     Gate(base::BindOnce([](base::WeakPtr<Request> self, net::RedirectInfo redirect,
                           network::mojom::URLResponseHeadPtr response) {
       if (!self) return;
       self->redirect_pending_ = true;
       self->client_->OnReceiveRedirect(redirect, std::move(response));
-    }, weak_.GetWeakPtr(), info, std::move(head)));
+    }, weak_.GetWeakPtr(), info, std::move(head)), entered);
   }
   void OnUploadProgress(int64_t current, int64_t total, OnUploadProgressCallback cb) override { client_->OnUploadProgress(current, total, std::move(cb)); }
   void OnTransferSizeUpdated(int32_t diff) override { client_->OnTransferSizeUpdated(diff); }
@@ -183,9 +184,9 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
  private:
   void Destroy() { delete this; }
   void Complete(int error) { OnComplete(network::URLLoaderCompletionStatus(error)); }
-  void Gate(base::OnceClosure allowed) {
+  void Gate(base::OnceClosure allowed, base::TimeTicks entered) {
     if (!request_.url.SchemeIsHTTPOrHTTPS()) { std::move(allowed).Run(); return; }
-    start_ = base::TimeTicks::Now();
+    start_ = entered;
     timeout_.Start(FROM_HERE, base::Seconds(35), base::BindOnce(&Request::TimedOut, weak_.GetWeakPtr()));
     Engine::Get().Decide(request_.url.spec(), Type(request_), request_.referrer.spec(),
       base::BindOnce(&Request::Decided, weak_.GetWeakPtr(), std::move(allowed)));
@@ -194,6 +195,7 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
     Log(-1); Complete(net::ERR_BLOCKED_BY_CLIENT); Engine::Get().Fail();
   }
   void Log(int result) {
+    const auto elapsed = base::TimeTicks::Now() - start_;
     auto* frame = content::RenderFrameHost::FromID(context_.frame);
     const auto type = Type(request_);
     base::DictValue event;
@@ -209,14 +211,17 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
     event.Set("factory_type", context_.factory_type); event.Set("redirect_index", redirect_index_);
     event.Set("decision", result == 0 ? "allow" : "block"); event.Set("engine_result", result);
     event.Set("status", result == 0 || result == 1 ? "ready" : result == 2 ? "unsupported-resource-redirect" : "engine-error");
-    event.Set("hook_to_decision_us", (base::TimeTicks::Now() - start_).InMicrosecondsF());
+    event.Set("hook_to_decision_us", elapsed.InMicrosecondsF());
     Record(std::move(event));
   }
   void Decided(base::OnceClosure allowed, int result) {
     if (completed_) return;
-    timeout_.Stop(); Log(result);
-    if (result != 0) { Complete(net::ERR_BLOCKED_BY_CLIENT); return; }
-    std::move(allowed).Run();
+    timeout_.Stop();
+    // Measure through application of the decision, not just receipt of the Mojo
+    // reply. Capture time before optional context/logging work adds overhead.
+    if (result != 0) Complete(net::ERR_BLOCKED_BY_CLIENT);
+    else std::move(allowed).Run();
+    Log(result);
   }
   void Start() {
     factory_->CreateLoaderAndStart(loader_.BindNewPipeAndPassReceiver(), id_, options_, request_,
@@ -254,8 +259,9 @@ class Factory : public network::SelfDeletingURLLoaderFactory {
       target_->CreateLoaderAndStart(std::move(receiver), id, options, request, std::move(client), annotation);
       return;
     }
+    const auto entered = base::TimeTicks::Now();
     auto* proxy = new Request(context_, target_, std::move(receiver), id, options, request, std::move(client), annotation);
-    proxy->Begin();
+    proxy->Begin(entered);
   }
  private:
   ~Factory() override = default;

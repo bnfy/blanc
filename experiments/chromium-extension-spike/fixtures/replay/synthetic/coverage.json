@@ -99,7 +99,7 @@
         "browser-started-absent"
       ],
       "status": "gap",
-      "reason": "Native hop gate implemented, but per-hop corpus/correlation and allow-to-block, blocked-predecessor and multi-hop runtime cases remain gaps."
+      "reason": "Two fresh regular/private pairs pass authored GET main-frame, script and fetch chains, allow-to-block, blocked predecessor and two-hop cases with actual hop/context comparison. Non-GET/method-changing redirects, header mutations, replacement URLs and subframes remain gaps."
     },
     {
       "priority": 2,
@@ -139,7 +139,7 @@
         "worker-origin"
       ],
       "status": "gap",
-      "reason": "Worker identity and top-frame mapping pending."
+      "reason": "Dedicated worker creation, importScripts, fetch and redirect-to-block pass with a live owner in both profiles. Shared-worker decisions/behavior match but six subrequests lack top-frame/role identity, so shared coverage remains a gap. Owner teardown, multiple owners and other worker variants untested."
     },
     {
       "priority": 2,
@@ -159,7 +159,7 @@
         "worker-origin"
       ],
       "status": "gap",
-      "reason": "Registration/update/importScripts, independent network fetch, fetch-event network request and cache-only outcomes need separate probes."
+      "reason": "Registration/evaluation imports, activation and message-triggered independent fetch/redirect behavior match in both profiles. Seven observations lack top-frame/role identity and remain unadmitted gaps. Updates, controlled-client fetch events, cache-only outcomes and other import variants untested."
     },
     {
       "priority": 2,
@@ -270,6 +270,18 @@
       "evidence": "../../../evidence/f12-native-20261017/README.md",
       "status": "passed",
       "scope": "5123 candidate URLs; single main frame; script/xhr/image/stylesheet; two fresh regular and private runs; no-referrer subset separately",
+      "full_acceptance": false
+    },
+    {
+      "evidence": "../../../evidence/f12-paths-latency-20261017/README.md",
+      "status": "passed",
+      "scope": "Authored GET redirects and dedicated workers with live owner, two fresh regular/private pairs; shared/service observations remain gaps",
+      "full_acceptance": false
+    },
+    {
+      "evidence": "../../../evidence/f12-paths-latency-20261017/README.md",
+      "status": "gap",
+      "scope": "Full-corpus one warm-up plus five measured repetitions per profile: native warm p99 below 5 ms in every repetition, but quiet-machine condition never met; formal latency gate open",
       "full_acceptance": false
     }
   ]

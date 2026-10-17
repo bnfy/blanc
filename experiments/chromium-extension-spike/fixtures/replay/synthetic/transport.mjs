@@ -15,6 +15,11 @@ export function fixturesFor(candidates) {
   return fixtures;
 }
 export async function startSynthetic({fixtures,tlsMaterial}) {
+  // Redirect targets must be authored entries too; never forward or resolve them.
+  for(const response of fixtures.values()){
+    if(response.location && (!fixtures.has(response.location)||![301,302,303,307,308].includes(response.status)))throw new Error('Unmanifested redirect target or status');
+    if([301,302,303,307,308].includes(response.status)&&!response.location)throw new Error('Redirect missing location');
+  }
   const faults=[],arrivals=[];
   const hosts=[...new Set([...fixtures.keys()].map(u=>new URL(u).hostname))];
   const server=await serve({hosts,tlsMaterial,fault:(code,authority)=>faults.push({code,...(authority?{authority: /^[a-z0-9.:-]{1,200}$/.test(authority)?authority:'unrecorded-invalid-authority'}:{})}),respond:async(req,res,protocol)=>{
@@ -22,7 +27,7 @@ export async function startSynthetic({fixtures,tlsMaterial}) {
     const response=fixtures.get(url);
     if(req.method!=='GET'||!response){faults.push({code:'unmanifested-request',url});res.writeHead(502);res.end();return;}
     arrivals.push({url,sha256:sha(response.body),protocol:{browserToProxy:protocol,upstream:null}});
-    res.writeHead(response.status,{'Content-Type':response.contentType,'Access-Control-Allow-Origin':'*','Cache-Control':'no-store'});res.end(response.body);
+    res.writeHead(response.status,{'Content-Type':response.contentType,'Access-Control-Allow-Origin':'*','Cache-Control':'no-store',...(response.location?{Location:response.location}:{})});res.end(response.body);
   }});
   return {...server,arrivals,faults};
 }

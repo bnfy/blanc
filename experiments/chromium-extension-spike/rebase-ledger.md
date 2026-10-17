@@ -518,3 +518,38 @@ keepalive/teardown, speculative paths, WS/WT interception, resource redirects,
 CSP/cosmetics/scriptlets, formal latency protocol and private real-page sample
 remain gaps. Startup-delay/timeout injection and live recovery UX remain gaps.
 Profiles and fixture keys removed; 156/permanent profiles untouched; no promotion.
+
+### Redirect/worker paths and latency protocol — October 17, 2026
+
+[Evidence](evidence/f12-paths-latency-20261017/README.md) retains three path
+attempts and three latency attempts, including invalid harness runs. Final
+path run: two fresh Electron and Chromium runs in each profile; authored GET
+navigation/fetch/script redirects (allow-to-block, blocked predecessor, two-hop)
+and dedicated-worker imports/fetches pass. Shared and service worker behavior
+matches, including blocked imports and independent fetches, but unresolved
+frame identity leaves those cells **gap**, not admitted parity. No context is
+filled from referrer or the active tab.
+
+One guarded incremental timing fix measures factory/redirect entry through
+application of the decision, including Mojo. Plan: one action; Siso: six steps,
+29.98 s; guard/wrapper: 35.065 s. Final check: zero actions. No GN, args, toolchain,
+environment-record, cold output or large-build override. Budget remains 25/62.
+Missing/tampered assets and utility termination still fail closed.
+
+Full 5,123-candidate corpus, 26 authored page loads with natural concurrency per
+page, one discarded full warm-up then five full measured repetitions per
+profile. All 24 full repetitions validate decisions, contexts, response hashes
+and DOM/child outcomes. Native median p99: **1.484 ms regular / 2.108 ms private**;
+every warm measured native repetition is below 5 ms. The recorded quiet-machine
+condition failed before every repetition, so **formal latency qualification
+remains open**. Electron JS-observer reference excludes its earlier native
+entry and is not an equivalent clock. Cold first-200 figures and the private
+warm-up's 7.767 ms p99 are preserved separately, never used for the warm bound.
+
+79 focused replay tests pass; lint: 30 files, zero errors/warnings. Disposable
+profiles and certificate keys removed. Routine invocation records, fingerprints,
+all observations and failures are archived with hashes. Runtime brackets are
+not owner/agent attention measurements. Task 0's cold column, upgrade gate and
+156 baseline are unchanged. Subframes/opaque origins, worker identity/teardown,
+SW updates/fetch events/cache, keepalive/speculation, WS/WT, additional resource
+and rule contexts, cosmetics/scriptlets and private real-page sample remain gaps.

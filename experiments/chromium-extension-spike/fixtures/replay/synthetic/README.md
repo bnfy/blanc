@@ -123,3 +123,5 @@ The broad coverage matrix remains incomplete, so `acceptance` stays false.
 Missing/tampered assets and utility termination fail closed in actual process
 probes. Latency-protocol, redirect, worker/SW, speculative, WebSocket/WebTransport,
 cosmetic and scriptlet gaps are explicitly retained.
+
+Redirect/worker and latency extension: see [measured results](../../../evidence/f12-paths-latency-20261017/README.md). GET redirects and dedicated workers pass the bounded probes; shared/service worker identity and quiet-machine latency remain gaps.
