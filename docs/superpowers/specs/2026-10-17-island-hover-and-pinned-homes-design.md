@@ -52,9 +52,10 @@ islandHoverOpen: false
 ```
 
 It is not Profile Synced (keep it out of `SYNCED_KEYS`). Put it in
-**Settings → General**, immediately after **New tab layout**. Settings has no
-tab-layout control (the Island/vertical-tabs switch lives in the chrome), and
-the Island stays available in both layouts, so the row is always shown.
+**Settings → General**, immediately after **Tab layout** (`#tabLayoutSetting`).
+The Island stays available in both tab layouts, so the row is shown whenever
+the build supports the setting (`supports('islandHoverOpen')`), independent of
+the chosen layout.
 
 - Label: **Open the Island on hover**
 - Hint: **Rest the pointer on the Island to open it without clicking.**
