@@ -393,6 +393,57 @@
         "bangsCustom"
       ],
       "verdict": "qualified"
+    },
+    {
+      "id": "bangs-201",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Bangs",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsCore"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-202",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Type a site’s code before your search, like !yt lofi, to go straight to its results.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsCore"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-203",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Works with any search engine.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsCore",
+        "bangsPrivacy"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-204",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "How bangs work",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsCore"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-205",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Illustration of the open Island with !yt lofi typed and the hint row Search YouTube for “lofi” selected.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsCore"
+      ],
+      "verdict": "qualified"
     }
   ]
 }

@@ -222,7 +222,8 @@ test('the cinematic homepage copy resolves to public v1.34.0 evidence and dated 
 test('every sentence on the homepage is recorded in a claims ledger or named as a label', () => {
   const file = 'site/src/pages/index.astro';
   const source = read(file);
-  const recorded = [cinemaLedger, ledger, v132Ledger, v133Ledger, v134Ledger, JSON.parse(read('docs/website-reorder-claims-v1.30.json'))]
+  const recorded = [cinemaLedger, ledger, v132Ledger, v133Ledger, v134Ledger, JSON.parse(read('docs/website-reorder-claims-v1.30.json')),
+    JSON.parse(read('docs/website-candidate-claims-bangs.json'))]
     .flatMap(item => [...item.claims, ...(item.externalClaims || [])])
     .filter(claim => claim.source === file)
     .map(claim => claim.exactWording)
