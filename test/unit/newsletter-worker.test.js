@@ -60,7 +60,7 @@ const environment = () => ({
   NEWSLETTER_TOKEN_SECRET: 'token-secret',
   RESEND_API_KEY: 're_test',
   NEWSLETTER_FROM: 'Blanc <release-notes@updates.blancbrowser.com>',
-  AMBASSADOR_TO: 'support@blancbrowser.com',
+  AMBASSADOR_TO: 'support@blanc.day',
   AMBASSADOR_RATE_LIMITER: new FakeRateLimiter(),
 });
 
@@ -207,7 +207,7 @@ test('ambassador applications are validated and delivered without KV storage', a
   }), env);
 
   assert.equal(response.status, 202);
-  assert.equal(mail.to[0], 'support@blancbrowser.com');
+  assert.equal(mail.to[0], 'support@blanc.day');
   assert.equal(mail.reply_to, 'ada@example.com');
   assert.match(mail.text, /Creator profile: https:\/\/example\.com\/ada/);
   assert.deepEqual(
