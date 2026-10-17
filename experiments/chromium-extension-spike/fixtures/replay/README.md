@@ -352,3 +352,12 @@ Multiple clients, teardown, updates and fetch/cache behavior remain untested.
 The earlier debugger-barrier claim is corrected in PATHS-AND-LATENCY.md: requesting
 a breakpoint did not establish a pause; the authored readiness gate now provides
 explicit observed readiness and is excluded from latency.
+
+### Shared lifecycle checkpoint (October 17)
+
+[Evidence](../../evidence/f12-shared-lifecycle-20261017/README.md): two observed
+document clients and navigation-driven destruction of one exact owner now pass
+in regular/private profiles, twice per runtime. The prior authored path suite
+also remains green. The evidence does not generalize to more owners, embedded
+clients, explicit port transfer/close, target-close continuation, or teardown
+races. No native build was needed; latency remains deferred.

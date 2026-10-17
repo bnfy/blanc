@@ -1295,3 +1295,33 @@ source snapshot. Final source hashes match all three final reports. Disposable
 profiles/certificate keys removed; no owned probe remains. Latency deferred,
 156 and permanent tabs untouched, Task 0 upgrade gate open. Attention/agent time
 not measured.
+### Shared-worker multiple clients and owner teardown — October 17, 2026
+
+[Evidence](evidence/f12-shared-lifecycle-20261017/README.md). Two separately
+observed same-origin documents connect to one shared worker through distinct
+MessagePorts and challenges. The first phase reports two live documents/two
+ports. After one exact document realm is destroyed by navigation, later worker
+requests report one live document/port plus one ended document. Unique allow,
+block and redirect cases agree between Electron and Chromium in regular/private
+profiles, twice per runtime: eight final sessions and sixteen document instances.
+
+The first two attempts were retained after an over-strict pagehide wait stopped
+the run (17.774 s, 16.975 s). A third attempt passed each phase but exposed a
+nondeterministic one-time worker-script initiator between equivalent same-origin
+clients (23.970 s); it is not acceptance evidence. The corrected final run took
+20.307 s. The existing ten-case path regression passed in 20.647 s.
+
+127 focused tests pass with zero failures/skips; 55-file ESLint is clean. The
+guarded plan check took 5.686 s and reported zero scheduled actions, so no native
+compile ran. Native/framework/engine/args remain byte-identical to the preceding
+checkpoint. Seven evidence archives retain 63 files: the failed attempts, exact
+final sources, checks and final reports with verified hashes. No private keys or
+permanent profile data are present.
+
+This closes only the bounded two-client and navigation-driven exact-owner
+teardown cases. More owners, embedded/top-site combinations, port transfer/close
+and garbage collection, target/window-close continuation, in-flight teardown,
+opaque/subframe owners, rapid reconnect, worker recreation, and broader service
+worker behavior remain gaps. Formal latency stays deferred by the owner. The 156
+baseline, permanent profile/tabs and Task 0 upgrade gate remain unchanged.
+Attention and agent time are not measured.

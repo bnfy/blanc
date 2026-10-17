@@ -1,0 +1,381 @@
+{
+  "started": "2026-10-17T23:35:38.875Z",
+  "passed": true,
+  "acceptance": false,
+  "fixtureSha256": "57a475317f7538144dbb32d9ae2f977a2361ecf1dd41226d1157d14c1c9239e8",
+  "sources": {
+    "shared-lifecycle-run.mjs": "5b3e87be0ae935dd9e47202e7a156b33f8ed04c723f0edb7905d26380d5def53",
+    "shared-lifecycle-fixtures.mjs": "f42286e88a5d8278eee1dfbc18a3f64020a59325f07bde7eb491dafb404f5fc6",
+    "shared-lifecycle-compare.mjs": "31f5a6d91c13a166b88e5860b6583f9a925ea0f326c07d7a3cf4a2c224e502e7",
+    "session.mjs": "2b3c9199e55aa949767034aaa091d9e61e97398cdd269fc382b90385fe49df3a",
+    "transport.mjs": "2232100bf834a499f133b1c2b2e905e95fbcf5f07180d2a35d38502e1a905e1c",
+    "worker-observer.mjs": "1b844a9e269e32a2e08016a7f47d90b0f34d8e029abbf43eed4e3c75c9b57714",
+    "worker-context.mjs": "66c9783f6fef843639ad4a4d14243e90a74b732c11ced3415c72863600a00a9f",
+    "shared-client-observer.mjs": "ccc7128bffa85310af813ea309987392e8c061181bfd2b19e560eff4a8940fd9",
+    "shared-client-context.mjs": "ac628dfeccfb3903e85ce69f9cd55783b41a98f9a8d841b0066faf0ebecf0134"
+  },
+  "runs": [
+    {
+      "label": "electron-regular-a",
+      "requests": 12,
+      "phaseResults": {
+        "multi": {
+          "kind": "result",
+          "phase": "multi",
+          "results": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/multi-allow",
+              "outcome": "load",
+              "body": "authored allowed target"
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/shared-lifecycle/multi-block",
+              "outcome": "error"
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/multi-redirect",
+              "outcome": "error"
+            }
+          ]
+        },
+        "teardown": {
+          "kind": "result",
+          "phase": "teardown",
+          "results": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/teardown-allow",
+              "outcome": "load",
+              "body": "authored allowed target"
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/shared-lifecycle/teardown-block",
+              "outcome": "error"
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/teardown-redirect",
+              "outcome": "error"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "label": "electron-regular-b",
+      "requests": 12,
+      "phaseResults": {
+        "multi": {
+          "kind": "result",
+          "phase": "multi",
+          "results": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/multi-allow",
+              "outcome": "load",
+              "body": "authored allowed target"
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/shared-lifecycle/multi-block",
+              "outcome": "error"
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/multi-redirect",
+              "outcome": "error"
+            }
+          ]
+        },
+        "teardown": {
+          "kind": "result",
+          "phase": "teardown",
+          "results": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/teardown-allow",
+              "outcome": "load",
+              "body": "authored allowed target"
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/shared-lifecycle/teardown-block",
+              "outcome": "error"
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/teardown-redirect",
+              "outcome": "error"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "label": "electron-private-a",
+      "requests": 11,
+      "phaseResults": {
+        "multi": {
+          "kind": "result",
+          "phase": "multi",
+          "results": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/multi-allow",
+              "outcome": "load",
+              "body": "authored allowed target"
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/shared-lifecycle/multi-block",
+              "outcome": "error"
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/multi-redirect",
+              "outcome": "error"
+            }
+          ]
+        },
+        "teardown": {
+          "kind": "result",
+          "phase": "teardown",
+          "results": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/teardown-allow",
+              "outcome": "load",
+              "body": "authored allowed target"
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/shared-lifecycle/teardown-block",
+              "outcome": "error"
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/teardown-redirect",
+              "outcome": "error"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "label": "electron-private-b",
+      "requests": 11,
+      "phaseResults": {
+        "multi": {
+          "kind": "result",
+          "phase": "multi",
+          "results": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/multi-allow",
+              "outcome": "load",
+              "body": "authored allowed target"
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/shared-lifecycle/multi-block",
+              "outcome": "error"
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/multi-redirect",
+              "outcome": "error"
+            }
+          ]
+        },
+        "teardown": {
+          "kind": "result",
+          "phase": "teardown",
+          "results": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/teardown-allow",
+              "outcome": "load",
+              "body": "authored allowed target"
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/shared-lifecycle/teardown-block",
+              "outcome": "error"
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/teardown-redirect",
+              "outcome": "error"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "label": "chromium-regular-a",
+      "requests": 11,
+      "phaseResults": {
+        "multi": {
+          "kind": "result",
+          "phase": "multi",
+          "results": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/multi-allow",
+              "outcome": "load",
+              "body": "authored allowed target"
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/shared-lifecycle/multi-block",
+              "outcome": "error"
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/multi-redirect",
+              "outcome": "error"
+            }
+          ]
+        },
+        "teardown": {
+          "kind": "result",
+          "phase": "teardown",
+          "results": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/teardown-allow",
+              "outcome": "load",
+              "body": "authored allowed target"
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/shared-lifecycle/teardown-block",
+              "outcome": "error"
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/teardown-redirect",
+              "outcome": "error"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "label": "chromium-regular-b",
+      "requests": 11,
+      "phaseResults": {
+        "multi": {
+          "kind": "result",
+          "phase": "multi",
+          "results": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/multi-allow",
+              "outcome": "load",
+              "body": "authored allowed target"
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/shared-lifecycle/multi-block",
+              "outcome": "error"
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/multi-redirect",
+              "outcome": "error"
+            }
+          ]
+        },
+        "teardown": {
+          "kind": "result",
+          "phase": "teardown",
+          "results": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/teardown-allow",
+              "outcome": "load",
+              "body": "authored allowed target"
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/shared-lifecycle/teardown-block",
+              "outcome": "error"
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/teardown-redirect",
+              "outcome": "error"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "label": "chromium-private-a",
+      "requests": 11,
+      "phaseResults": {
+        "multi": {
+          "kind": "result",
+          "phase": "multi",
+          "results": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/multi-allow",
+              "outcome": "load",
+              "body": "authored allowed target"
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/shared-lifecycle/multi-block",
+              "outcome": "error"
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/multi-redirect",
+              "outcome": "error"
+            }
+          ]
+        },
+        "teardown": {
+          "kind": "result",
+          "phase": "teardown",
+          "results": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/teardown-allow",
+              "outcome": "load",
+              "body": "authored allowed target"
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/shared-lifecycle/teardown-block",
+              "outcome": "error"
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/teardown-redirect",
+              "outcome": "error"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "label": "chromium-private-b",
+      "requests": 11,
+      "phaseResults": {
+        "multi": {
+          "kind": "result",
+          "phase": "multi",
+          "results": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/multi-allow",
+              "outcome": "load",
+              "body": "authored allowed target"
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/shared-lifecycle/multi-block",
+              "outcome": "error"
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/multi-redirect",
+              "outcome": "error"
+            }
+          ]
+        },
+        "teardown": {
+          "kind": "result",
+          "phase": "teardown",
+          "results": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/teardown-allow",
+              "outcome": "load",
+              "body": "authored allowed target"
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/shared-lifecycle/teardown-block",
+              "outcome": "error"
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/teardown-redirect",
+              "outcome": "error"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "remainingGaps": [
+    "cross-origin and more than two shared clients",
+    "transferred ports and garbage collection",
+    "teardown racing an in-flight request",
+    "unobserved documents and opaque/subframe owners"
+  ],
+  "cleanup": {
+    "removed": true
+  },
+  "finished": "2026-10-17T23:35:59.055Z"
+}

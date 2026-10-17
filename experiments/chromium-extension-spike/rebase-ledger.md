@@ -678,3 +678,22 @@ source snapshot. Final source hashes match all three final reports. Disposable
 profiles/certificate keys removed; no owned probe remains. Latency deferred,
 156 and permanent tabs untouched, Task 0 upgrade gate open. Attention/agent time
 not measured.
+### Tranche 2: shared-worker multiple clients and owner teardown — October 17, 2026
+
+[Evidence](evidence/f12-shared-lifecycle-20261017/README.md). Harness-only
+checkpoint: two document owners and navigation-driven destruction of one exact
+owner pass in regular/private profiles, twice per runtime. The prior ten-case
+path regression remains green.
+
+- Native builds: none; guarded `--check` reported zero scheduled actions in
+  5.686 s. This is routine tranche work and never Task 0 cold-build time.
+- Verification: final lifecycle 20.307 s; path regression 20.647 s; 127 tests;
+  55-file lint clean. Failed/limited attempts of 17.774 s, 16.975 s and 23.970 s
+  are retained separately in seven verified archives containing 63 files.
+- Patch budget: no upstream or native file/hunk delta; prior measured footprint
+  remains in force.
+- Scope: bounded two-client and exact realm-destruction behavior only. Broader
+  ownership, port lifecycle, target-close continuation, teardown races and
+  service-worker behavior remain explicit gaps.
+- Latency: deferred by owner; no latency measurement or process pause occurred.
+- Owner attention / agent time: not measured.

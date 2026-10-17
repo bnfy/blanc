@@ -6,7 +6,7 @@ export const pause=ms=>new Promise(r=>setTimeout(r,ms));
 export async function until(fn,timeout=45000){const end=Date.now()+timeout;while(Date.now()<end){const value=await fn();if(value)return value;await pause(100);}throw Error('Probe wait timed out');}
 export async function openSession({config,browserKind,kind,label,root,transport,certificates,workerObservation=false,fixtureUrls=[]}){
  const pw=await import(pathToFileURL(config.playwright));const dir=path.join(root,label);fs.mkdirSync(dir);const profile=path.join(dir,'profile');fs.mkdirSync(profile);
- const log=path.join(dir,'decisions.jsonl');fs.writeFileSync(log,'',{mode:0o600});let app,context,privateContext,page,workerObserver;
+ const log=path.join(dir,'decisions.jsonl');fs.writeFileSync(log,'',{mode:0o600});let app,context,privateContext,page,workerObserver,active,createElectronPage;
  const args=[`--ignore-certificate-errors-spki-list=${spkiList(certificates)}`,'--use-mock-keychain',`--proxy-server=http://127.0.0.1:${transport.port}`,'--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1'];
  const source={browserKind,kind};const observerPort=workerObservation?await freePort():null;
  if(observerPort)args.push('--remote-debugging-address=127.0.0.1','--remote-debugging-port='+observerPort);
@@ -36,17 +36,19 @@ baseScrub.decision(checked);return row;}};`);
   app=await pw._electron.launch({executablePath:config.electron,args:[appPath,`--user-data-dir=${profile}`,...args],env,chromiumSandbox:true,timeout:60000});
   const state=await until(async()=>{const s=await app.evaluate(()=>globalThis.__blancF12Capture.state());assert.equal(fs.realpathSync(s.userData),fs.realpathSync(profile+'-Dev'));return s.activeGates===0&&s.providers.some(p=>p.status.id==='blanc'&&p.status.phase==='ready')&&s;});source.versions=state.versions;
   const island=await until(async()=>(await app.windows()).find(p=>p.url()==='blanc-chrome://index/'));await island.waitForFunction(()=>!!window.browserAPI);
-  await island.evaluate(isPrivate=>window.browserAPI.createTab('about:blank',{private:isPrivate}),kind==='private');
+  const isPrivate=kind==='private';createElectronPage=async()=>{const before=new Set(await app.windows());await island.evaluate(privateTab=>window.browserAPI.createTab('about:blank',{private:privateTab}),isPrivate);return until(async()=>(await app.windows()).find(candidate=>candidate.url()==='about:blank'&&!before.has(candidate)));};
+  await island.evaluate(privateTab=>window.browserAPI.createTab('about:blank',{private:privateTab}),isPrivate);
   page=await until(async()=>(await app.windows()).filter(p=>p.url()==='about:blank').at(-1));
  }else{
   context=await pw.chromium.launchPersistentContext(profile,{executablePath:config.chromium,headless:false,chromiumSandbox:true,args:[...args,`--blanc-blocker-assets=${config.engine}`,`--blanc-blocker-log=${log}`,`--blanc-prototype-assets=${config.ui}`,'--no-first-run','--no-default-browser-check','--disable-component-update','--disable-domain-reliability','--disable-sync'],timeout:60000});
-  const browser=context.browser();assert(browser.version().startsWith('157.'));let active=context;
+  const browser=context.browser();assert(browser.version().startsWith('157.'));active=context;
   if(kind==='private'){privateContext=await browser.newContext();active=privateContext;}
   page=await active.newPage();const cdp=await active.newCDPSession(page),session=await browser.newBrowserCDPSession();
   const info=await cdp.send('Target.getTargetInfo'),contexts=await session.send('Target.getBrowserContexts');source.isOffTheRecord=contexts.browserContextIds.includes(info.targetInfo.browserContextId);assert.equal(source.isOffTheRecord,kind==='private');source.version=browser.version();
  }
- if(workerObservation){workerObserver=await observeWorkers(observerPort,new Set(fixtureUrls));const cdp=await page.context().newCDPSession(page);const info=await cdp.send('Target.getTargetInfo');source.observedPageTarget=info.targetInfo;await workerObserver.attachPage(info.targetInfo.targetId);await cdp.detach();}
+ const observePage=async observed=>{assert(workerObserver);const cdp=await observed.context().newCDPSession(observed);const info=await cdp.send('Target.getTargetInfo');source.observedPageTargets??=[];if(!source.observedPageTargets.some(target=>target.targetId===info.targetInfo.targetId))source.observedPageTargets.push(info.targetInfo);source.observedPageTarget??=info.targetInfo;await workerObserver.attachPage(info.targetInfo.targetId);await cdp.detach();return info.targetInfo;};
+ if(workerObservation){workerObserver=await observeWorkers(observerPort,new Set(fixtureUrls));await observePage(page);}
  const records=()=>fs.readFileSync(log,'utf8').trim().split('\n').filter(Boolean).map(JSON.parse);
- return {page,source,records,workerEvidence:()=>workerObserver?{events:workerObserver.events,faults:workerObserver.faults}:null,close:async()=>{if(workerObserver)await workerObserver.close();if(privateContext)await privateContext.close();if(context)await context.close();if(app)await app.close();}};
+ return {page,source,records,workerEvidence:()=>workerObserver?{events:workerObserver.events,faults:workerObserver.faults}:null,newObservedPage:async()=>{assert(workerObserver);const next=browserKind==='electron'?await createElectronPage():await active.newPage();await observePage(next);return next;},close:async()=>{if(workerObserver)await workerObserver.close();if(privateContext)await privateContext.close();if(context)await context.close();if(app)await app.close();}};
  }catch(e){if(workerObserver)await workerObserver.close();if(privateContext)await privateContext.close();if(context)await context.close();if(app)await app.close();throw e;}
 }

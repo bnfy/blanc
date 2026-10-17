@@ -140,3 +140,14 @@ Multiple clients, teardown, updates and fetch/cache behavior remain untested.
 The earlier debugger-barrier claim is corrected in PATHS-AND-LATENCY.md: requesting
 a breakpoint did not establish a pause; the authored readiness gate now provides
 explicit observed readiness and is excluded from latency.
+
+### Shared lifecycle checkpoint (October 17)
+
+[Evidence](../../../evidence/f12-shared-lifecycle-20261017/README.md): two
+separately observed document clients connect to one shared worker through actual
+MessagePorts. After one exact owner realm is destroyed by navigation, later
+worker requests retain only the surviving owner. Regular/private comparisons
+pass twice per runtime, and the prior ten-case path regression remains green.
+This closes only the bounded two-client and navigation-driven teardown cases;
+broader ownership and teardown races remain gaps. No native build was needed,
+and formal latency remains deferred.

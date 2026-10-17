@@ -139,7 +139,7 @@
         "worker-origin"
       ],
       "status": "gap",
-      "reason": "Dedicated live-owner and six shared subrequests pass in default, controlled-service and no-referrer variants, twice per browser/profile. Shared clients correlate through actual MessagePort challenges and observed realms for one live document. Multi-document ownership, transferred ports and teardown remain gaps."
+      "reason": "Dedicated live-owner probes pass. Shared-worker subrequests pass for one live document, two same-origin document clients, and navigation-driven destruction of one exact owner realm, twice per runtime/profile. More than two owners, embedded/top-site combinations, port transfer/close/GC, target closure followed by requests, in-flight teardown races and opaque/subframe owners remain gaps."
     },
     {
       "priority": 2,

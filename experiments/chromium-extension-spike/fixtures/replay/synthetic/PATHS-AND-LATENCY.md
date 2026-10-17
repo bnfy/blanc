@@ -191,3 +191,26 @@ for default, controlled-client and no-referrer variants (24 fresh runs).
 Six shared subrequests and the initial service script now have complete evidence
 within those bounds; existing six service subrequests and redirects regress cleanly.
 The matrix's broad worker rows remain gaps. Latency remains deferred.
+## Shared-worker multiple clients and owner teardown — October 17, 2026
+
+[Evidence](../../../evidence/f12-shared-lifecycle-20261017/README.md) extends the
+strict worker-context contract to two separately observed same-origin document
+owners. Each document completes an actual MessagePort challenge with the shared
+worker and has an independently observed target/default realm. The multi-client
+phase reports two documents and two ports.
+
+One owner then navigates to `about:blank`. Destruction of that exact document
+realm is observed before the next worker requests, and the teardown phase reports
+one surviving document and port plus one ended document. A pagehide signal,
+port-close message, visible-tab origin, or storage-partition origin never removes
+an owner. Regular/private comparisons pass twice per runtime; the existing ten
+authored request-path cases also remain green.
+
+The result is deliberately bounded. More than two owners, embedded/top-site
+combinations, transferred or explicitly closed ports, garbage collection,
+target/window closure followed by later requests, in-flight teardown, opaque or
+subframe clients, rapid reconnect, and worker termination/recreation remain gaps.
+The broader service-worker update/fetch/cache matrix also remains open.
+
+No native source changed and the guarded build plan reports zero actions. Formal
+latency testing remains owner-deferred; the probe wall times are not latency data.

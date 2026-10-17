@@ -98,3 +98,11 @@ Multiple clients, teardown, updates and fetch/cache behavior remain untested.
 The earlier debugger-barrier claim is corrected in PATHS-AND-LATENCY.md: requesting
 a breakpoint did not establish a pause; the authored readiness gate now provides
 explicit observed readiness and is excluded from latency.
+
+### Shared lifecycle checkpoint (October 17)
+
+[Evidence](../../evidence/f12-shared-lifecycle-20261017/README.md): bounded
+two-document shared-worker ownership and navigation-driven destruction of one
+exact owner realm pass in regular/private profiles, twice per runtime. Engine
+inputs and native source are unchanged, and the guarded plan contains zero
+actions. Broader lifecycle coverage remains explicit; latency is deferred.
