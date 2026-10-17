@@ -102,6 +102,22 @@ test('a missing icon leaves the lettered tile', async () => {
   }
 });
 
+test('a loaded icon sits on the card with no tile, plate or edge around it', async () => {
+  const { context, page } = await open();
+  try {
+    await page.waitForFunction(() => document.querySelectorAll('#bangs-cards img.is-loaded').length === 19);
+    const looks = await page.locator('#bangs-cards .bangs-icon').evaluateAll((tiles) => tiles.map((tile) => {
+      const img = tile.querySelector('img');
+      return [getComputedStyle(tile).backgroundColor, getComputedStyle(tile).color, getComputedStyle(img).backgroundColor];
+    }));
+    for (const [tile, letter, plate] of looks) {
+      assert.equal(tile, 'rgba(0, 0, 0, 0)', 'the tile keeps its color behind a loaded icon');
+      assert.equal(letter, 'rgba(0, 0, 0, 0)', 'the letter shows behind a loaded icon');
+      assert.equal(plate, 'rgba(0, 0, 0, 0)', 'the icon has a plate');
+    }
+  } finally { await context.close(); }
+});
+
 test('phones get two card columns and no sideways scroll', async () => {
   const { context, page } = await open({ viewport: { width: 360, height: 780 } });
   try {
