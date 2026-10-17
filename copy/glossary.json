@@ -165,12 +165,12 @@
   },
   "sameAsSource": {
     "de": [
+      "about.chromium",
       "settings.language.system",
       "glance.eyebrow",
       "pill.downloads",
       "rail.section.tabs",
       "dialog.ok",
-      "row.glance",
       "result.tag.tab",
       "menu.downloads",
       "passkey.fallbackLabel",
@@ -213,14 +213,16 @@
       "spaces.color.sand",
       "spaces.symbol.code",
       "spaces.picker.hex",
-      "result.tag.space"
+      "result.tag.space",
+      "settings.general.bangs.label",
+      "settings.general.customBangs.name"
     ],
     "es": [
+      "about.chromium",
       "key.ctrl",
       "glance.eyebrow",
       "dialog.ok",
       "connection.local",
-      "row.glance",
       "key.alt",
       "key.escape",
       "settings.nav.general",
@@ -250,13 +252,14 @@
       "ws.editor.color",
       "spaces.color.iris",
       "spaces.picker.hex",
-      "result.tag.space"
+      "result.tag.space",
+      "settings.general.bangs.label"
     ],
     "fr": [
+      "about.chromium",
       "key.ctrl",
       "glance.eyebrow",
       "dialog.ok",
-      "row.glance",
       "key.alt",
       "menu.app.services",
       "menu.substitutions",
@@ -293,9 +296,12 @@
       "spaces.color.graphite",
       "spaces.symbol.code",
       "spaces.picker.hex",
-      "result.tag.space"
+      "result.tag.space",
+      "settings.general.bangs.label",
+      "settings.general.customBangs.code"
     ],
     "pt-BR": [
+      "about.chromium",
       "key.ctrl",
       "key.shift",
       "pill.downloads",
@@ -303,7 +309,6 @@
       "rail.widthValue",
       "dialog.ok",
       "connection.local",
-      "row.glance",
       "menu.downloads",
       "key.alt",
       "key.escape",
@@ -332,15 +337,16 @@
       "mahjong.live.combo",
       "mahjong.combo.combo",
       "spaces.picker.hex",
-      "result.tag.space"
+      "result.tag.space",
+      "settings.general.bangs.label"
     ],
     "it": [
+      "about.chromium",
       "key.ctrl",
       "glance.eyebrow",
       "dialog.ok",
       "ws.trigger.current",
       "glance.picker.optionLabel",
-      "row.glance",
       "row.actionLabel",
       "menu.downloads",
       "passkey.fallbackLabel",

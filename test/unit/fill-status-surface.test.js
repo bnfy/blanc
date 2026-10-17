@@ -328,3 +328,31 @@ test('notice replies restore focus and hide', async () => {
   assert.equal(surface.isShowing(), false);
   assert.equal(calls.restoreFocus, 1);
 });
+
+test('a pane navigation dismisses only a message about that pane', async () => {
+  // With Glance open each visible pane reports its own main-frame navigation
+  // with its tab id: the reference navigating must not cancel a question
+  // about the main page, and the other way round.
+  const { surface, target, calls } = harness();
+  const p = surface.decision(target, 'confirm-heuristic');
+  surface.invalidatePending(target.runtimeId, 't2');
+  let settled = false;
+  p.then(() => { settled = true; });
+  await tick();
+  assert.equal(settled, false, "the other pane's navigation must not cancel the decision");
+  surface.invalidatePending(target.runtimeId, target.tabId);
+  assert.equal(await p, 'cancel');
+  assert.equal(calls.restoreFocus, 0, 'a successor page keeps focus');
+});
+
+test('a pane navigation leaves a message about a popup window alone', async () => {
+  // A featureful window.open popup is its own window: no pane's navigation
+  // is its navigation. A window-wide invalidation still clears it.
+  const { surface, sent } = harness();
+  await surface.notice({ runtimeId: 11 }, 'no-match');
+  surface.invalidatePending(11, 't1');
+  assert.equal(surface.isShowing(), true, "a pane's navigation is not the popup's");
+  surface.invalidatePending(11);
+  assert.equal(surface.isShowing(), false);
+  assert.equal(hidden(sent).length, 1);
+});

@@ -33,15 +33,22 @@ test('phones get frameless, focused crops of every framed capture', () => {
   const phone = css.slice(start, css.indexOf('\n}\n', css.indexOf('@media (max-width: 760px)', start)));
   assert.match(phone, /\.device-frame \.device-shell \{\s*display: none;/);
   assert.match(phone, /aspect-ratio: 4 \/ 3;/);
-  assert.match(phone, /\.device-frame \.device-screen img \{[^}]*height: 100%;[^}]*transform: translateX\(-50%\)/);
+  assert.match(phone, /\.home-cinema \.device \{\s*padding-bottom: \d+px;/, 'the frameless capture needs space above the dark section');
+  // The scroll motion's home-screen keyframes end on transform: none and hold
+  // it, so the phone crop must center without a transform.
+  const img = phone.match(/\.device-frame \.device-screen img \{([^}]*)\}/);
+  assert.ok(img, 'phone capture rule not found');
+  assert.match(img[1], /height: 100%;/);
+  assert.match(img[1], /object-fit: cover;/);
+  assert.doesNotMatch(img[1], /transform/);
 });
 
 test('pages use the light copies while full-size links keep the pinned captures', () => {
   const read = file => fs.readFileSync(path.join(site, file), 'utf8');
   const home = read('src/pages/index.astro');
   for (const name of ['rest', 'tabs', 'command']) {
-    assert.match(home, new RegExp(`<source media="\\(max-width: 760px\\)" srcset="/revamp/island-roman-${name}-800\\.webp"`));
-    assert.match(home, new RegExp(`src="/revamp/island-roman-${name}-display\\.webp"`));
+    assert.match(home, new RegExp(`<source media="\\(max-width: 760px\\)" srcset="/revamp/island-smithsonian-${name}-v1.35.0-800\\.webp"`));
+    assert.match(home, new RegExp(`src="/revamp/island-smithsonian-${name}-v1.35.0-display\\.webp"`));
   }
   // Pages never load the pinned lossless originals directly.
   assert.doesNotMatch(home + read('src/components/GestureDemo.astro'), /src="\/revamp\/(island-roman-[a-z]+|champagne-desktop-v2|space-black-laptop-v2)\.webp"/);
@@ -52,7 +59,8 @@ test('pages use the light copies while full-size links keep the pinned captures'
   assert.match(guide, /href="\/feature-captures\/ledger-v1\.31\.0\.png"/);
   // Below the opening screen, captures wait until they are scrolled near.
   const escape = text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  for (const capture of ['glance-v1.30.1', 'home-wallpaper-dusk-v1.31.0', 'workspaces-v1.33.0']) {
+  // (The later wallpapers are lazy too: website-home-demos.test.js.)
+  for (const capture of ['billboard-v1.35.0']) {
     assert.match(home, new RegExp(`src="${escape(`/feature-captures/${capture}.webp`)}"[^>]*loading="lazy"`), capture);
   }
 });

@@ -58,6 +58,15 @@ Feature: Tabs and tab groups
     When I clear recently closed from the panel
     Then recently closed is empty
 
+  @F2-8 @F2 @desktop
+  Scenario: Recently closed sits folded under Pinned and folds again on every open
+    Given recently closed contains "older.example" and "newer.example"
+    When I open the command palette
+    Then Recently closed is folded directly under Pinned with 2 entries
+    When I unfold recently closed
+    And I close and reopen the command palette
+    Then Recently closed is folded directly under Pinned with 2 entries
+
   @F3-1 @F3 @all
   Scenario: Creating a group moves the active tab into it
     Given the active tab has no group
@@ -96,6 +105,37 @@ Feature: Tabs and tab groups
     When I pin "anchor"
     Then "anchor" is marked pinned
     And "anchor" is shown inside the group "work"
+
+  @F3-18 @F3 @desktop
+  Scenario: Rename Group… renames a group in the case typed
+    Given a tab open on "rename-first"
+    And the tab on "rename-first" is in a group named "research"
+    When I choose Rename Group… for "research"
+    Then the command bar reads "research" with "research" selected
+    And the panel says the field renames the group
+    When I type "Research Lab" and press Enter in the command bar
+    Then a group is named exactly "Research Lab"
+
+  @F3-19 @F3 @desktop
+  Scenario: A rename to another group's name is refused, not merged
+    Given a tab open on "rename-first"
+    And a tab open on "rename-other"
+    And the tab on "rename-first" is in a group named "Work"
+    And the tab on "rename-other" is in a group named "Play"
+    When I choose Rename Group… for "Play"
+    And I type "work" and press Enter in the command bar
+    Then the panel says a group named "work" already exists
+    And a group is named exactly "Play"
+
+  @F3-20 @F3 @desktop
+  Scenario: Ungroup from a group's header frees all of its tabs
+    Given a tab open on "rename-first"
+    And a tab open on "rename-other"
+    And the tab on "rename-first" is in a group named "Work"
+    And the tab on "rename-other" is in a group named "Work"
+    When I ungroup "Work" from its header
+    Then the group "Work" no longer exists
+    And the tabs on "rename-first" and "rename-other" are ungrouped
 
   @F46-1 @F46 @desktop
   Scenario: Rename Tab… names the right-clicked tab

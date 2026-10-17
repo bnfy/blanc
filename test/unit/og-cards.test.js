@@ -27,6 +27,7 @@ const CARDS = [
   'feature-quiet-tabs.png',
   'feature-security.png',
   'feature-sync.png',
+  'feature-bangs.png',
 ];
 
 function png(relativePath) {

@@ -214,44 +214,35 @@
 .handheld-note[hidden] {
   display: none;
 }
-.coming-from {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  margin: 26px 0 0;
-}
-.coming-from span {
-  padding: 8px 4px;
-  color: var(--dim);
-  font-size: 14px;
-}
-.home-cinema .coming-from a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  box-sizing: border-box;
-  padding: 0 16px;
-  border: 1px solid rgb(14 14 14 / 0.18);
-  border-radius: 999px;
-  color: var(--ink);
-  font-size: 14px;
-  text-decoration: none;
-}
-.home-cinema .coming-from a:hover {
-  border-color: var(--ink);
-}
 /* ---------- The device ---------- */
 .home-cinema .device {
   overflow: hidden;
-  padding: 24px 22px 0;
+  padding: 120px 22px 0;
   background: var(--paper);
+}
+.device-copy {
+  max-width: 1100px;
+  margin: 0 auto;
+  text-align: center;
+}
+.device-copy h2 {
+  margin: 0;
+  font-size: clamp(40px, 5vw, 72px);
+  line-height: 0.98;
+}
+.home-cinema .device-copy .lead {
+  max-width: 34em;
+  margin: 18px auto 0;
 }
 .device-frame {
   position: relative;
   max-width: 1180px;
-  margin: 72px auto 0;
+  margin: 56px auto 0;
+}
+/* The labels follow the scroll-driven wallpaper (motion below); without it
+   the screen stays at dawn, so they stay hidden. */
+.device-phases {
+  display: none;
 }
 .device-shell {
   position: relative;
@@ -279,6 +270,27 @@
   display: block;
   width: 105%;
   height: auto;
+}
+/* Time-of-day wallpaper: day, dusk and night fade in over dawn as the laptop
+   passes (motion below). Without scroll-driven animation, or with reduced
+   motion, the screen stays at dawn. */
+.device-screen :is(.wallpaper-day, .wallpaper-dusk, .wallpaper-night) {
+  opacity: 0;
+}
+/* The captures are native windows: a patch in the strip's own color (dawn
+   here; motion below follows the wallpaper) covers the traffic lights in the
+   top-left corner, x 0-5.6% and y 0-3.1% of each capture. The capture is
+   105% of the screen, so in screen widths the lights end 3.4% across and
+   2% down. */
+.device-screen::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4.2%;
+  aspect-ratio: 7 / 4;
+  background: rgb(248 240 231);
+  pointer-events: none;
 }
 
 /* ---------- First launch ---------- */
@@ -365,7 +377,9 @@
   color: var(--text);
   font-size: 19px;
 }
+/* The state's name sits on its own line, without a period. */
 .pin-media figcaption strong {
+  display: block;
   color: var(--ink);
   font-weight: 600;
 }
@@ -385,7 +399,7 @@
   gap: 56px;
 }
 .spaces-copy {
-  flex: 1 1 340px;
+  flex: 1 1 320px;
   min-width: 0;
 }
 .spaces h2 {
@@ -401,13 +415,22 @@
   color: var(--dim);
   font-size: 16px;
 }
-.spaces-shot {
-  flex: 1.4 1 520px;
+/* SpacesDemo: the app's own Island and Spaces menu, scaled to its column
+   (spaces-demo.js), on a surface card. */
+.spaces-demo {
+  display: grid;
+  flex: 2 1 560px;
+  grid-template-columns: minmax(0, 720px);
+  justify-content: center;
   min-width: 0;
-  width: 100%;
-  height: auto;
+  box-sizing: border-box;
+  padding: clamp(28px, 4vw, 52px) clamp(16px, 3vw, 40px) clamp(12px, 2vw, 24px);
   border-radius: 20px;
+  background: var(--surface);
   box-shadow: 0 40px 80px -40px rgb(21 20 17 / 0.45);
+}
+.spaces-native-demo {
+  min-width: 0; /* the demo scales to its column, never the reverse */
 }
 
 /* ---------- Privacy ---------- */
@@ -426,13 +449,80 @@
   margin: 28px auto 0;
   color: var(--night-dim);
 }
+/* The Blocker shield: the bronze artwork, turned once in 3D as it scrolls
+   by (horizon-shield.js), upright with reduced motion or without WebGL. */
+.horizon-study {
+  width: min(100%, 440px);
+  margin: 48px auto 0;
+}
+.horizon-stage {
+  position: relative;
+  padding: 24px 0 42px;
+  isolation: isolate;
+}
+.horizon-light {
+  position: absolute;
+  inset: -12% -20%;
+  z-index: -1;
+  background: radial-gradient(ellipse at 50% 48%, #e7bf7540, #e7bf7514 38%, transparent 66%);
+  pointer-events: none;
+}
+.horizon-turn {
+  position: relative;
+  aspect-ratio: 1;
+  width: 100%;
+  margin: auto;
+}
+.horizon-turn img,
+.horizon-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.horizon-turn img {
+  object-fit: contain;
+  user-select: none;
+}
+.horizon-turn.is-3d .horizon-fallback {
+  visibility: hidden;
+}
+.horizon-shadow {
+  position: absolute;
+  bottom: 6px;
+  left: 18%;
+  width: 64%;
+  height: 20px;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.55);
+  filter: blur(10px);
+  transform: scaleX(var(--shield-shadow, 1));
+}
+@media (prefers-reduced-motion: reduce) {
+  .horizon-shadow {
+    transform: none;
+  }
+}
+/* Four items that always divide evenly: four across where each gets about
+   220 px, two by two below that, one column on phones. */
 .privacy-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 44px;
   max-width: 1040px;
-  margin: 80px auto 0;
+  margin: 56px auto 0;
   text-align: left;
+}
+@media (min-width: 1080px) {
+  .privacy-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (max-width: 600px) {
+  .privacy-grid {
+    grid-template-columns: 1fr;
+  }
 }
 .privacy-grid h3 {
   display: flex;
@@ -550,15 +640,407 @@
   margin-top: 6px;
   font-size: 15px;
 }
+/* Start Page layouts: the four captures, one at a time (home.js). The
+   outgoing capture fades out on top (image-preview.js). */
+.tool-media {
+  position: relative;
+}
+.tool-media .scene-outgoing {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.home-cinema .layout-switch {
+  display: flex;
+  width: fit-content;
+  margin: 18px 0 4px;
+  background: rgb(255 255 255 / 0.08);
+}
+.home-cinema .layout-switch button {
+  min-height: 40px;
+  padding: 0 16px;
+  color: var(--night-text);
+  font-size: 14px;
+}
+.home-cinema .layout-switch button[aria-pressed="true"] {
+  background: var(--night-text);
+  color: var(--ink);
+}
+/* Live demos in place of a capture: Glance keeps the cards' 16:10 media,
+   its split centered on the surface; the wide gestures card sizes to its
+   stage. */
+.tool-card-wide .tool-demo,
+.tool-card-full .tool-demo {
+  aspect-ratio: auto;
+}
+/* Glance takes the full row, its split across the top, so its Island reads
+   near the app's size; the copy sits below. */
+.tool-card-full {
+  grid-column: 1 / -1;
+}
+.tool-card-full .tool-copy {
+  max-width: 44em;
+}
+.tool-card-wide {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
+  align-items: center;
+}
+
+/* Glance: the split drawn at 960 x 520 and scaled to its card, the divider
+   its one control (glance-demo.js). Site replicas keep Inter. */
+#glance {
+  height: 100%;
+}
+#glance .glance-demo {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: clamp(16px, 3vw, 36px);
+  background: var(--surface);
+}
+.glance-viewport {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 960 / 520;
+  --glance-scale: 1;
+}
+.glance-window {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  grid-template-columns: minmax(0, var(--split)) 12px minmax(0, 1fr);
+  grid-template-rows: 1fr;
+  width: 960px;
+  height: 520px;
+  overflow: hidden;
+  border: 1px solid #dfd7ca;
+  border-radius: 16px;
+  background: #fffcf7;
+  box-shadow: 0 18px 40px -28px #57452a55;
+  transform: scale(var(--glance-scale));
+  transform-origin: top left;
+  color: var(--ink);
+  font-family: var(--font-ui);
+}
+.glance-window.is-closed {
+  grid-template-columns: 1fr;
+}
+.glance-window.is-closed :is(.glance-divider, .glance-reference) {
+  display: none;
+}
+.glance-window.is-dragging {
+  user-select: none;
+}
+/* The panes are sections; none of the page's section spacing. */
+.home-cinema .glance-pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+.glance-chrome,
+.glance-reference-chrome {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  height: 52px;
+  overflow: hidden;
+  border-bottom: 1px solid #e3ddd2;
+  background: #fffcf7;
+}
+.glance-native-island {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.glance-window[data-main-page="copenhagen"] .glance-native-island[data-page="louisiana"],
+.glance-window[data-main-page="louisiana"] .glance-native-island[data-page="copenhagen"] {
+  display: none;
+}
+.glance-reference-chrome {
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 0 12px;
+  background: #fff;
+  font-size: 11px;
+}
+.glance-reference-chrome > span:first-child {
+  color: var(--dim);
+  font-size: 9px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+.reference-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.glance-close-mark {
+  margin-left: auto;
+  color: var(--dim);
+  font: 22px/1 var(--font-ui);
+}
+.glance-document {
+  flex: 1;
+  overflow: hidden;
+  background: #f5f4f2;
+  container-type: inline-size;
+}
+.glance-site {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.glance-site-nav {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 46px;
+  padding: 0 22px;
+}
+.glance-site-nav svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+.glance-copenhagen { display: flex; flex-direction: column; background: #f5f4f2; color: #101010; }
+.glance-copenhagen .glance-site-nav { flex: none; margin: 0 12px 16px; border-radius: 0 0 9px 9px; background: #fff; }
+.copenhagen-wordmark { font: 750 11px/0.94 var(--font-ui); letter-spacing: -0.04em; text-align: center; }
+.copenhagen-photo { flex: 1; min-height: 0; margin: 0 14px; overflow: hidden; border-radius: 10px; }
+.copenhagen-photo picture { display: block; height: 100%; }
+.copenhagen-photo img { width: 100%; height: 100%; object-fit: cover; }
+.copenhagen-title { padding: 18px 20px 24px; }
+.home-cinema .copenhagen-title h4 { margin: 0 0 9px; font: 750 35px/1.05 var(--font-ui); letter-spacing: -0.045em; }
+.copenhagen-title p { margin: 0; color: #262626; font: 500 12px/1.4 var(--font-ui); }
+.glance-louisiana { background: #131429; color: #fff; }
+.glance-louisiana::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, #0004, transparent 30%, #0002 50%, #000a); pointer-events: none; }
+.glance-louisiana .louisiana-photo { position: absolute; width: 100%; height: 100%; object-fit: cover; object-position: 50% 48%; }
+.louisiana-wordmark { font: 500 18px/1 var(--font-ui); letter-spacing: -0.03em; }
+.louisiana-title { position: absolute; z-index: 1; right: 24px; bottom: 36px; left: 24px; }
+.home-cinema .louisiana-title h4 { margin: 0 0 15px; color: #fff; font: 650 clamp(25px, 8.7cqi, 45px)/1.02 var(--font-ui); letter-spacing: -0.035em; text-transform: uppercase; overflow-wrap: anywhere; }
+.louisiana-title p { margin: 0; color: #fff; font: 400 12px/1.5 var(--font-ui); }
+.glance-divider {
+  position: relative;
+  z-index: 2;
+  border-inline: 1px solid #e3ddd2;
+  background: #fff;
+  cursor: col-resize;
+  touch-action: pan-y;
+  user-select: none;
+  outline-offset: -2px;
+}
+/* A 44px target at any scale. */
+.glance-divider::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 calc(50% - 22px / var(--glance-scale));
+  width: calc(44px / var(--glance-scale));
+}
+.glance-divider > span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 43px;
+  border-radius: 8px;
+  background: #c7b89f;
+  transform: translate(-50%, -50%);
+  transition: height 180ms, background 180ms;
+}
+.glance-divider:hover > span,
+.glance-divider:focus-visible > span,
+.glance-window.is-dragging .glance-divider > span {
+  height: 65px;
+  background: var(--gold);
+}
+.glance-divider:focus-visible {
+  outline: 2px solid var(--gold);
+}
+
+/* Mouse gestures: the stroke and its outcome share one stage
+   (gesture-demo.js), with the three choices below it. */
+.gesture-demo {
+  overflow: hidden;
+  isolation: isolate;
+  background: radial-gradient(ellipse at 80% 110%, #6d4b30 0, #302820 34%, #191817 72%);
+  color: #fff8ed;
+}
+.gesture-scene {
+  display: grid;
+  grid-template-columns: 0.8fr 1.7fr;
+  align-items: center;
+  min-height: 360px;
+  padding: 20px 0 0 36px;
+}
+.gesture-story {
+  position: relative;
+  z-index: 2;
+  padding-bottom: 25px;
+}
+.gesture-direction {
+  display: block;
+  color: #ddba86;
+  font-size: 13px;
+}
+.home-cinema .gesture-story h4 {
+  margin: 12px 0;
+  font-family: var(--font-brand-display);
+  font-size: clamp(44px, 4.6vw, 64px);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+.gesture-story p { max-width: 190px; margin: 0; color: #fff8ed; font-size: 15px; line-height: 1.5; }
+.gesture-visual {
+  position: relative;
+  width: 112%;
+  margin-left: -4%;
+  aspect-ratio: 1.6;
+}
+.gesture-window-stack {
+  position: absolute;
+  inset: 10% 4% 7% 6%;
+  transform: perspective(1100px) rotateY(-12deg) rotateX(5deg);
+  transform-style: preserve-3d;
+}
+.gesture-window-stack::before,
+.gesture-window-stack::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid #b6946d52;
+  border-radius: 13px;
+  background: #5b4a3b;
+  opacity: 0.45;
+  transform: translate(20px, -22px) scale(0.95);
+}
+.gesture-window-stack::before { opacity: 0.2; transform: translate(38px, -42px) scale(0.9); }
+.gesture-window {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  overflow: hidden;
+  border: 1px solid #c3b8a749;
+  border-radius: 13px;
+  background: #131212;
+  box-shadow: -20px 32px 46px #0007;
+}
+.gesture-page {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  transition: opacity 0.55s ease, transform 0.65s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.gesture-page-start { z-index: 1; }
+.gesture-demo[data-page="nasa"] .gesture-page-start { opacity: 0; transform: translateX(-8%); }
+.gesture-demo[data-page="start"] .gesture-page-nasa { opacity: 0; transform: translateX(8%); }
+.gesture-demo[data-gesture="new"][data-page="nasa"] .gesture-page-start { transform: translateY(35%); }
+.gesture-demo[data-phase="drawing"] .gesture-page { transition: none; }
+.gesture-motion { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; filter: drop-shadow(0 3px 6px #0006); }
+.gesture-trail,
+.gesture-trail-halo { fill: none; stroke: #e6b975; stroke-width: 5; stroke-linecap: round; }
+.gesture-trail { stroke-dasharray: 1; }
+.gesture-trail-halo { stroke-width: 14; opacity: 0.1; }
+.gesture-demo[data-phase="drawing"] .gesture-trail-halo { opacity: 0; }
+.gesture-origin { fill: #e6b975; }
+.gesture-cursor path { fill: #fff; stroke: #211b15; stroke-width: 1.5; stroke-linejoin: round; }
+.gesture-release { fill: none; stroke: #e6b975; stroke-width: 1.5; opacity: 0.5; }
+.gesture-demo[data-phase="drawing"] .gesture-release { opacity: 0; }
+.gesture-bottom {
+  display: flex;
+  justify-content: center;
+  padding: 10px 24px 24px;
+}
+.gesture-controls {
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.08);
+}
+.gesture-controls[hidden] {
+  display: none;
+}
+.gesture-controls button {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--night-text);
+  font: inherit;
+  font-size: 14px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.gesture-controls button span { display: inline-block; padding: 0 3px; color: #ddba86; }
+.gesture-controls button[aria-pressed="true"] { background: var(--night-text); color: var(--ink); }
+.gesture-controls button[aria-pressed="true"] span { color: #795b34; }
+@media (prefers-reduced-motion: reduce) {
+  .gesture-page,
+  .glance-divider > span {
+    transition: none;
+  }
+}
+@media (max-width: 900px) {
+  .tool-card-wide {
+    display: block;
+  }
+}
+@media (max-width: 760px) {
+  .gesture-scene {
+    display: block;
+    min-height: 0;
+    padding: 28px 0 0;
+  }
+  .gesture-story {
+    padding: 0 24px;
+  }
+  .gesture-story p {
+    max-width: none;
+    font-size: 14px;
+  }
+  .gesture-visual {
+    width: 110%;
+    margin: 12px 0 0;
+  }
+  .gesture-bottom {
+    padding: 8px 12px 16px;
+  }
+  .gesture-controls {
+    flex: 1;
+  }
+  .gesture-controls button {
+    flex: 1;
+    padding: 0 6px;
+    font-size: 13px;
+  }
+}
+
 /* Coded illustrations, drawn to the v1.34.0 interface: a quiet tab is a
    half-strength row in the open Island (never a dot), and the 1Password key
-   hint sits beside the shield in the resting Island. */
+   hint sits beside the shield in the resting Island. Their text is the app's
+   interface text since #840: Instrument Sans at width 98 and +0.01em (its
+   @font-face comes with SpacesDemo, from the app's own file). */
 .tool-illustration {
   position: relative;
   box-sizing: border-box;
   background: var(--surface);
   color: var(--ink);
-  font-family: var(--font-ui);
+  font-family: "Instrument Sans", var(--font-ui);
+  font-variation-settings: "wdth" 98;
+  letter-spacing: 0.01em;
 }
 .quiet-list {
   position: absolute;
@@ -735,6 +1217,74 @@
   border: 0;
   border-radius: 999px;
   background: var(--ink);
+}
+/* Bangs: the open Island with a bang typed and its hint row selected, in
+   the resting pill's white, shadow and type. */
+.bang-scene {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.bang-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: min(80%, 420px);
+  box-sizing: border-box;
+  padding: 10px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 24px 50px -28px rgb(21 20 17 / 0.45);
+}
+.bang-input {
+  display: flex;
+  align-items: center;
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  font-size: 15px;
+}
+.bang-input i {
+  width: 1.5px;
+  height: 18px;
+  margin-left: 2px;
+  background: var(--ink);
+}
+.bang-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 10px;
+  background: var(--surface);
+  font-size: 14px;
+}
+/* The selected row's !code in the app's chip (styles.css .island-row .row-cmd). */
+.bang-row b {
+  flex: none;
+  padding: 0 7px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 20px;
+}
+.bang-row span {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.bang-row kbd {
+  flex: none;
+  color: #6f6a63;
+  font: inherit;
+  /* Key caps stay Inter, as in the app. */
+  font-family: var(--font-ui);
+  font-variation-settings: normal;
+  letter-spacing: 0;
 }
 
 /* ---------- Comparison ---------- */
@@ -1264,6 +1814,10 @@ details[open] .faq-sign::after {
   .device-frame .device-shell {
     display: none;
   }
+  /* Without the laptop's base the capture would sit on the dark section. */
+  .home-cinema .device {
+    padding-bottom: 56px;
+  }
   .device-frame {
     margin-top: 40px;
   }
@@ -1276,11 +1830,18 @@ details[open] .faq-sign::after {
     border-radius: 20px;
     box-shadow: 0 30px 60px -30px rgb(21 20 17 / 0.45);
   }
+  /* Centered with object-fit, not a transform: the scroll motion's
+     home-screen keyframes end on transform: none and hold it, which would
+     undo a translateX centering. */
   .device-frame .device-screen img {
-    left: 50%;
-    width: auto;
+    left: 0;
+    width: 100%;
     height: 100%;
-    transform: translateX(-50%);
+    object-fit: cover;
+  }
+  /* The 4:3 crop already leaves the traffic lights out. */
+  .device-screen::after {
+    display: none;
   }
 }
 @media (max-width: 760px) {
@@ -1383,6 +1944,89 @@ details[open] .faq-sign::after {
       animation-timeline: view();
       animation-range: entry 0% contain 10%;
     }
+    /* The wallpaper: heading, laptop and phase labels share one pinned
+       screen while the screen moves from dawn to night, as the Island stage
+       does. overflow: clip, not hidden, so the section is no scroll
+       container and the stage can stick. The fades follow the section's own
+       timeline: the screen clips its images, which makes it their nearest
+       scroll container. */
+    .home-cinema .device {
+      height: 220vh;
+      box-sizing: border-box;
+      padding-top: 0;
+      padding-bottom: 0;
+      overflow: clip;
+      view-timeline: --device block;
+    }
+    .device-stage {
+      position: sticky;
+      top: var(--site-header-h);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: calc(100vh - var(--site-header-h));
+      height: calc(100svh - var(--site-header-h));
+      box-sizing: border-box;
+      padding: 24px 0;
+    }
+    .device-copy h2 {
+      font-size: clamp(32px, min(4.4vw, 6.5vh), 64px);
+    }
+    .home-cinema .device-copy .lead {
+      margin-top: 12px;
+      font-size: clamp(15px, 2.2vh, 19px);
+    }
+    /* The laptop (3:2) takes the height the copy and labels leave. */
+    .device-frame {
+      width: min(100%, 1180px, calc((100svh - var(--site-header-h) - 300px) * 1.5));
+      margin-top: clamp(16px, 3.5vh, 40px);
+    }
+    .device-phases {
+      display: flex;
+      gap: 10px;
+      margin-top: clamp(14px, 2.5vh, 24px);
+    }
+    .device-phases span {
+      width: 64px;
+      padding-top: 8px;
+      border-top: 3px solid rgb(14 14 14 / 0.15);
+      color: var(--dim);
+      font-size: 13px;
+      text-align: center;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: --device;
+      animation-range: contain 0% contain 100%;
+    }
+    .device-screen::after {
+      animation: screen-tint linear both;
+      animation-timeline: --device;
+      animation-range: contain 0% contain 100%;
+    }
+    .device-phases .phase-dawn { animation-name: phase-dawn; }
+    .device-phases .phase-day { animation-name: phase-day; }
+    .device-phases .phase-dusk { animation-name: phase-dusk; }
+    .device-phases .phase-night { animation-name: phase-night; }
+    @media (max-width: 760px) {
+      /* Phones show the capture alone, at 4:3. */
+      .device-frame {
+        width: min(100%, calc((100svh - var(--site-header-h) - 300px) * 4 / 3));
+      }
+    }
+    .device-screen :is(.wallpaper-day, .wallpaper-dusk, .wallpaper-night) {
+      animation: home-screen linear both, home-fade linear both;
+      animation-timeline: view(), --device;
+    }
+    .device-screen .wallpaper-day {
+      animation-range: entry 0% contain 10%, contain 18% contain 28%;
+    }
+    .device-screen .wallpaper-dusk {
+      animation-range: entry 0% contain 10%, contain 45% contain 55%;
+    }
+    .device-screen .wallpaper-night {
+      animation-range: entry 0% contain 10%, contain 72% contain 82%;
+    }
     .website-footer::before {
       animation: home-fade linear both;
       animation-timeline: view();
@@ -1390,8 +2034,11 @@ details[open] .faq-sign::after {
     }
 
     /* The Island: three captured states crossfade on a sticky stage. */
+    /* Room above the stage, so the heading doesn't arrive right under the
+       dark section before the stage pins. */
     .home-cinema .island-pin {
       height: 340vh;
+      padding-top: 96px;
       view-timeline-name: --island;
     }
     .pin-stage {
@@ -1428,6 +2075,22 @@ details[open] .faq-sign::after {
       max-width: 100%;
       max-height: calc(100vh - 420px);
       max-height: calc(100svh - 420px);
+    }
+    /* Desktops: each state fills the page width at 16:9, cropped from the
+       top, where the Island and its panels sit, so the Island reads at a
+       size close to the app's; the caption keeps to one line to leave the
+       height to the capture. */
+    @media (min-width: 761px) {
+      .pin-media img {
+        width: min(100%, 1100px, calc((100svh - 370px) * 16 / 9));
+        max-height: none;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+        object-position: top;
+      }
+      .pin-media figcaption {
+        max-width: 60em;
+      }
     }
     .pin-dots {
       display: flex;
@@ -1513,6 +2176,15 @@ details[open] .faq-sign::after {
 @keyframes sun-disc { 0%, 20% { transform: translateY(22%); } 54%, 100% { transform: none; } }
 @keyframes sun-rays { 0%, 44% { clip-path: circle(21% at 49.9% 64.2%); opacity: 0; } 48% { opacity: 1; } 70%, 100% { clip-path: circle(75% at 49.9% 64.2%); opacity: 1; } }
 @keyframes sun-copy { 0%, 72% { opacity: 0; transform: translateY(40px); } 100% { opacity: 1; transform: none; } }
+/* The strip color of each wallpaper capture as Chromium draws it, cross-
+   fading with the captures. */
+@keyframes screen-tint { 0%, 18% { background-color: rgb(248 240 231); } 28%, 45% { background-color: rgb(226 231 232); } 55%, 72% { background-color: rgb(240 230 222); } 82%, 100% { background-color: rgb(232 227 217); } }
+/* Each label is lit while its wallpaper shows: the fades run at 18–28%,
+   45–55% and 72–82% of the --device timeline. */
+@keyframes phase-dawn { 0%, 21% { color: var(--ink); border-top-color: var(--gold); } 25%, 100% { color: var(--dim); border-top-color: rgb(14 14 14 / 0.15); } }
+@keyframes phase-day { 0%, 21% { color: var(--dim); border-top-color: rgb(14 14 14 / 0.15); } 25%, 48% { color: var(--ink); border-top-color: var(--gold); } 52%, 100% { color: var(--dim); border-top-color: rgb(14 14 14 / 0.15); } }
+@keyframes phase-dusk { 0%, 48% { color: var(--dim); border-top-color: rgb(14 14 14 / 0.15); } 52%, 75% { color: var(--ink); border-top-color: var(--gold); } 79%, 100% { color: var(--dim); border-top-color: rgb(14 14 14 / 0.15); } }
+@keyframes phase-night { 0%, 75% { color: var(--dim); border-top-color: rgb(14 14 14 / 0.15); } 79%, 100% { color: var(--ink); border-top-color: var(--gold); } }
 @keyframes pin-a { 0%, 26% { opacity: 1; transform: none; } 36%, 100% { opacity: 0; transform: scale(0.96); } }
 @keyframes pin-b { 0%, 26% { opacity: 0; transform: scale(1.04); } 36%, 60% { opacity: 1; transform: none; } 70%, 100% { opacity: 0; transform: scale(0.96); } }
 @keyframes pin-c { 0%, 60% { opacity: 0; transform: scale(1.04); } 70%, 100% { opacity: 1; transform: none; } }

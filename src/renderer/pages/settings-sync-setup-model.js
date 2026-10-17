@@ -37,13 +37,26 @@
   }
 
   function createSyncSetupModel() {
-    return { path: null, phase: 'idle', handle: '', passphrase: '', token: 0, notice: null };
+    return { path: null, phase: 'idle', handle: '', passphrase: '', code: '', token: 0, notice: null };
   }
+
+  // Mirror of src/main/sync-pairing.js: a code is eight symbols from this
+  // alphabet (hyphen and spaces ignored) or a pasted recovery code.
+  const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTVWXYZ23456789';
+  function normalizeCode(input) {
+    if (typeof input !== 'string') return null;
+    const code = input.trim().toUpperCase().replace(/[-\s]/g, '');
+    if (code.length !== 8) return null;
+    for (const ch of code) if (!CODE_ALPHABET.includes(ch)) return null;
+    return code;
+  }
+  const isRecoveryCode = (input) => typeof input === 'string' && input.trim().startsWith('blanc-sync:');
+  const codeValid = (s) => !!normalizeCode(s.code) || isRecoveryCode(s.code);
 
   const valid = (s) => trimmed(s.handle).length >= 2 && passphraseStrong(String(s.passphrase ?? ''));
   const creds = (s) => ({ handle: trimmed(s.handle), passphrase: String(s.passphrase ?? '') });
   const none = (state) => ({ state, effect: null });
-  const busy = (s) => s.phase === 'pending' || s.phase === 'enabling';
+  const busy = (s) => s.phase === 'pending' || s.phase === 'enabling' || s.phase === 'joining';
   // Any move away from an in-flight attempt strands its reply.
   const nextToken = (s) => (busy(s) ? s.token + 1 : s.token);
   const enableEffect = (state) => ({
@@ -54,10 +67,22 @@
   function transition(state, event) {
     switch (event.type) {
       case 'choose':
-        if (event.path !== 'start' && event.path !== 'join') return none(state);
+        if (event.path !== 'start' && event.path !== 'join' && event.path !== 'code') return none(state);
         return none({ ...state, path: event.path, phase: 'idle', notice: null, token: nextToken(state) });
       case 'back':
-        return none({ ...state, path: null, phase: 'idle', notice: null, passphrase: '', token: nextToken(state) });
+        return none({ ...state, path: null, phase: 'idle', notice: null, passphrase: '', code: '', token: nextToken(state) });
+      case 'code-input':
+        return none({ ...state, code: String(event.code ?? ''), token: nextToken(state), phase: 'idle', notice: null });
+      case 'use-passphrase':
+        return none({ ...state, path: 'join', phase: 'idle', notice: null, token: nextToken(state) });
+      case 'join-code-reply':
+        if (state.phase !== 'joining' || event.token !== state.token) return none(state);
+        return none({
+          ...state,
+          phase: 'idle',
+          code: event.ok ? '' : state.code,
+          notice: event.ok ? null : { kind: String(event.outcome ?? 'error'), message: String(event.message ?? '') },
+        });
       case 'input':
         return none({
           ...state,
@@ -68,7 +93,13 @@
           notice: null,
         });
       case 'submit': {
-        if (!state.path || busy(state) || !valid(state)) return none(state);
+        if (!state.path || busy(state)) return none(state);
+        if (state.path === 'code') {
+          if (!codeValid(state)) return none(state);
+          const token = state.token + 1;
+          return { state: { ...state, token, phase: 'joining', notice: null }, effect: { type: 'join-code', token, code: state.code.trim() } };
+        }
+        if (!valid(state)) return none(state);
         const token = state.token + 1;
         if (state.path === 'start') return enableEffect({ ...state, token });
         return { state: { ...state, token, phase: 'pending', notice: null }, effect: { type: 'preflight', token, ...creds(state) } };
@@ -103,20 +134,26 @@
   function view(state) {
     const join = state.path === 'join';
     const start = state.path === 'start';
+    const code = state.path === 'code';
     return {
       pathChosen: !!state.path,
       path: state.path,
-      fieldsVisible: !!state.path,
-      setupTitle: join ? t('settings.sync.setup.joinTitle')
-        : (start ? t('settings.sync.startSyncingFromThis') : t('settings.sync.syncSetupTitle')),
-      setupIntro: join ? t('settings.sync.setup.joinIntro')
-        : (start ? t('settings.sync.syncSetupIntro') : t('settings.sync.setup.intro')),
+      codePath: code,
+      codeValue: state.code,
+      codeHint: t('settings.sync.setup.codeHint'),
+      fieldsVisible: join || start,
+      setupTitle: code ? t('settings.sync.setup.codeTitle')
+        : join ? t('settings.sync.setup.joinTitle')
+          : (start ? t('settings.sync.startSyncingFromThis') : t('settings.sync.syncSetupTitle')),
+      setupIntro: code ? t('settings.sync.addThisDeviceHint')
+        : join ? t('settings.sync.setup.joinIntro')
+          : (start ? t('settings.sync.syncSetupIntro') : t('settings.sync.setup.intro')),
       handleHint: join ? t('settings.sync.setup.joinHandleHint') : t('settings.sync.setup.handleHint'),
       passphraseHint: join ? t('settings.sync.setup.joinPassphraseHint') : t('settings.sync.setup.passphraseHint'),
-      submitLabel: join ? t('settings.sync.setup.connect') : t('settings.sync.syncSubmit'),
+      submitLabel: join || code ? t('settings.sync.setup.connect') : t('settings.sync.syncSubmit'),
       finishTitle: join ? t('settings.sync.setup.joinTitle') : t('settings.sync.syncFinishTitle'),
       finishHint: join ? t('settings.sync.setup.joinFinishHint') : t('settings.sync.syncFinishHint'),
-      submitDisabled: busy(state) || !valid(state),
+      submitDisabled: busy(state) || (code ? !codeValid(state) : !valid(state)),
       showNotFound: state.phase === 'notFound',
       noticeText: state.notice ? (NOTICES[state.notice.kind] ?? state.notice.message) : '',
     };

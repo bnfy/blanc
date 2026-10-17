@@ -66,7 +66,14 @@ const waitForRestoredUrls = async () => {
   assert.fail(`session URLs were not restored; saw ${JSON.stringify(urls)}`);
 };
 
-const waitForQuietRestore = async ({ label, expectQuiet, wakeQuiet }) => {
+// Group names keep the case typed since #877, and a candidate capitalizes an
+// all-lowercase saved name once. The group is therefore found ignoring case,
+// and a candidate must show the fixture's "research" as "Research". The public
+// baseline's spelling depends on its version, so it is not pinned.
+const savedGroupName = 'research';
+const recasedGroupName = 'Research';
+
+const waitForQuietRestore = async ({ label, expectQuiet, wakeQuiet, groupName }) => {
   const deadline = Date.now() + 15_000;
   let state = null;
   while (Date.now() < deadline) {
@@ -75,8 +82,9 @@ const waitForQuietRestore = async ({ label, expectQuiet, wakeQuiet }) => {
       state = await chrome.evaluate(() => window.browserAPI.getAllTabs());
       if (sessionUrls.every((expected) =>
         state.tabs.some((tab) => tab.url === expected))) {
-        const group = state.groups.find((entry) => entry.name === 'research');
+        const group = state.groups.find((entry) => entry.name.toLowerCase() === savedGroupName);
         assert.ok(group, `${label} should preserve the saved tab group`);
+        if (groupName) assert.equal(group.name, groupName, `${label} should show the saved group as “${groupName}”`);
         assert.ok(
           sessionUrls.every((url) => state.tabs.find((tab) => tab.url === url)?.groupId === group.id),
           `${label} should preserve tab membership in the saved group`,
@@ -199,7 +207,7 @@ try {
   // CDP page until activated. Assert the privileged chrome's authoritative
   // tab model first, then activate the quiet record and prove it wakes to the
   // saved URL instead of weakening the migration check to the one live tab.
-  await waitForQuietRestore({ label: 'candidate', expectQuiet: true, wakeQuiet: true });
+  await waitForQuietRestore({ label: 'candidate', expectQuiet: true, wakeQuiet: true, groupName: recasedGroupName });
 
   const settings = JSON.parse(
     fs.readFileSync(path.join(userDataDir, 'settings.json'), 'utf8')
@@ -250,7 +258,7 @@ try {
   await app.close();
   app = null;
   await launch(candidateExecutable);
-  await waitForQuietRestore({ label: 'candidate restart', expectQuiet: false, wakeQuiet: false });
+  await waitForQuietRestore({ label: 'candidate restart', expectQuiet: false, wakeQuiet: false, groupName: recasedGroupName });
   let chrome = app.pages().find(isChromePage);
   const restarted = await chrome.evaluate(() => window.browserAPI.listWorkspaces());
   assert.equal(restarted.items.find((workspace) => workspace.id === 'migration_workspace')?.active, true, 'the saved binding must survive a packaged restart');
@@ -262,7 +270,7 @@ try {
   const futureBytes = Buffer.from(JSON.stringify({ version: 999, workspaces: [{ futureField: 'preserve this exact fixture' }] }, null, 2));
   fs.writeFileSync(path.join(userDataDir, 'workspaces.json'), futureBytes);
   await launch(candidateExecutable);
-  await waitForQuietRestore({ label: 'future-format startup', expectQuiet: false, wakeQuiet: false });
+  await waitForQuietRestore({ label: 'future-format startup', expectQuiet: false, wakeQuiet: false, groupName: recasedGroupName });
   chrome = app.pages().find(isChromePage);
   const refused = await chrome.evaluate(async () => ({
     list: await window.browserAPI.listWorkspaces(),

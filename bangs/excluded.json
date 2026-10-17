@@ -1,0 +1,4 @@
+{
+  "$note": "Codes Blanc leaves out of the bundled catalog, each with a one-line reason. A primary code here drops its whole entry; an alias here drops that alias only. Kagi's categories do not mark adult, torrent or similar sites, so this file is where the owner removes a site they do not want listed inside Blanc.",
+  "codes": {}
+}

@@ -94,20 +94,32 @@ test('feature hub reaches all sixteen guides and Media kit downloads are real PN
     for (const route of ['island', 'start-page', 'glance', 'ad-blocking', 'private-tabs', 'command-palette', 'mouse-gestures', 'reopen-closed-tabs', 'tab-groups', 'workspaces', 'vertical-tabs', 'quiet-tabs', 'profiles', 'sync', 'security', '1password']) assert.ok(hrefs.has(`/features/${route}`), route);
     assert.equal(await page.locator('#small-details-title').innerText(), 'Smaller details that matter.');
     await page.goto(`${baseURL}/media`);
-    // The media kit downloads are native 2x captures of one release, the
-    // Sunrise mark in full color and in black, and the 1024px Blanc Mail app
-    // icon in its light and dark appearances.
+    // The media kit downloads are native 2x captures of one release, the Blanc
+    // logo in ink and white (each as SVG and a 3000 x 888 PNG), the Sunrise
+    // mark in full color and in black, and the 1024px Blanc Mail app icon in
+    // its light and dark appearances.
     const downloads = page.locator('.media-kit figcaption a[download]');
-    assert.equal(await downloads.count(), 6);
+    assert.equal(await downloads.count(), 10);
     for (const link of await downloads.all()) {
       const href = await link.getAttribute('href');
       const response = await context.request.get(new URL(href, baseURL).href);
       assert.equal(response.status(), 200, href);
       const bytes = await response.body();
-      assert.equal(bytes.subarray(1, 4).toString(), 'PNG');
+      if (href.endsWith('.svg')) {
+        assert.match(bytes.toString('utf8', 0, 200), /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg"/, href);
+        continue;
+      }
+      assert.equal(bytes.subarray(1, 4).toString(), 'PNG', href);
       const size = [bytes.readUInt32BE(16), bytes.readUInt32BE(20)].join('x');
-      assert.ok(['2560x1600', '4096x4096', '1024x1024'].includes(size), `${href}: ${size}`);
+      assert.ok(['2560x1600', '3000x888', '4096x4096', '1024x1024'].includes(size), `${href}: ${size}`);
     }
+    // After the checksums, the kit links the current fact sheet ahead of the
+    // dated 1.0 announcement.
+    const kitLinks = await page.locator('.media-kit-links a').evaluateAll(links => links.map(link => [link.textContent, link.getAttribute('href')]));
+    assert.deepEqual(kitLinks.slice(1), [
+      ['Read the press fact sheet', 'https://github.com/bnfy/blanc/blob/main/docs/press/fact-sheet.md'],
+      ['Read the 1.0 announcement', 'https://github.com/bnfy/blanc/blob/main/docs/press/press-release.md'],
+    ]);
     const downloaded = page.waitForEvent('download');
     const firstHref = await downloads.first().getAttribute('href');
     await downloads.first().click();

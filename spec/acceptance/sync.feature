@@ -12,7 +12,7 @@ Feature: Tab sync (open tabs from other devices)
   @F27-2 @F27 @all
   Scenario: A remote device's tab opens locally as a new ungrouped tab
     Given a synced device "MacBook Air" with 3 shared tabs
-    When I open the palette and unfold "MacBook Air"
+    When I open the palette, open Other devices and unfold "MacBook Air"
     And I choose its first remote tab
     Then it opens as a new ungrouped local tab
 
@@ -67,3 +67,78 @@ Feature: Tab sync (open tabs from other devices)
     When I close the Settings sheet
     Then the moving-in checklist briefly confirms completion
     And the moving-in checklist retires
+
+  @F27-8 @F27 @desktop
+  Scenario: Adding this device with a code stops at an invalid code
+    Given a profile that completed first run
+    When I run the slash command "/sync"
+    Then the Settings sheet is at the "sync" section
+    And the Sync card offers Add this device to my sync before Start syncing from this device
+    When I choose Add this device to my sync
+    Then the code field replaces the name and passphrase fields
+    When I type "K7MR-4PX" into the code field
+    Then Connect is disabled
+    When I type "K7MR-4PX2" into the code field
+    Then Connect is enabled
+    When I choose Use my sync name and passphrase instead
+    Then the name and passphrase fields replace the code field
+
+  @F27-9 @F27 @desktop
+  Scenario: Other devices opens above the footer and starts closed
+    Given another device is sharing its tabs
+    When I open the Island panel for other devices
+    Then the Other devices button shows 1
+    And the tab list shows no device rows
+    When I toggle Other devices
+    Then the Other devices drawer lists "Press Mac" between the tab list and the footer
+    When I unfold "Press Mac" from the keyboard
+    Then keyboard focus stays on the "Press Mac" header
+    When I toggle Other devices
+    Then the Other devices drawer is closed
+    When I toggle Other devices
+    And I close and reopen the Island panel
+    Then the Other devices drawer is closed
+
+  @F27-10 @F27 @desktop
+  Scenario: Typing steps the Other devices drawer aside
+    Given another device is sharing its tabs
+    When I open the Island panel for other devices
+    And I toggle Other devices
+    And I type "a" into the Island address field
+    Then the Other devices drawer is closed
+    When I clear the Island address field
+    Then the Other devices drawer lists "Press Mac" between the tab list and the footer
+
+  @F27-11 @F27 @desktop
+  Scenario: Without other devices there is no Other devices button
+    Given no other device is sharing its tabs
+    When I open the Island panel for other devices
+    Then there is no Other devices button
+
+  @F27-12 @F27 @desktop
+  Scenario: The Other devices drawer leaves the tab list room in a small window
+    Given ten tabs are open
+    And eight other devices are sharing their tabs
+    And the window is 640 by 480 with the Island at 125%
+    When I open the Island panel for other devices
+    And I toggle Other devices
+    Then the tab list keeps at least two rows and the footer stays in the window
+
+  @F27-13 @F27 @desktop
+  Scenario: Rename Device… names another device wherever it is listed
+    Given another device is sharing its tabs
+    When I open the Island panel for other devices
+    And I choose Rename Device… for "Press Mac"
+    Then the command bar reads "Press Mac" with "Press Mac" selected
+    And the panel says the field renames the device
+    When I type "Work laptop" and press Enter in the command bar
+    Then the start page lists "Remote press needle" from "Work laptop"
+    When I open the Island panel for other devices
+    And I toggle Other devices
+    Then the Other devices drawer lists "Work laptop" between the tab list and the footer
+    And the Quick Switcher lists "Remote press needle" from "Work laptop"
+    When I choose Rename Device… for "Work laptop"
+    And I clear the command bar and press Enter
+    And I open the Island panel for other devices
+    And I toggle Other devices
+    Then the Other devices drawer lists "Press Mac" between the tab list and the footer

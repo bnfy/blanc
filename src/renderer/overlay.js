@@ -79,6 +79,9 @@
   const findCloseBtn = document.getElementById('findCloseBtn');
   const footerNewTab = document.getElementById('footerNewTab');
   const footerNewPrivate = document.getElementById('footerNewPrivate');
+  const footerDevices = document.getElementById('footerDevices');
+  const footerDevicesCount = document.getElementById('footerDevicesCount');
+  const islandDrawer = document.getElementById('islandDrawer');
   const footerWorkspace = document.getElementById('footerWorkspace');
   const workspaceSwitcher = document.getElementById('workspaceSwitcher');
   const workspaceSwitcherList = document.getElementById('workspaceSwitcherList');
@@ -99,6 +102,8 @@
   /** @type {null | 'panel' | 'palette' | 'glance' | 'find' | 'shield' | 'capture' | 'spaces'} */
   let mode = null;
   let glancePickerPurpose = null;
+  /** The tab the find capsule searches (overlay:show purpose). */
+  let findTabId = null;
   // Advances on every fresh picker open and on hide, so a choice awaited
   // across a dismissal never paints its outcome onto a later picker.
   let glancePickerSession = 0;
@@ -114,6 +119,10 @@
   // F46: the exact text a rename prompt was opened with. Enter on it unedited
   // changes nothing, even if the page has retitled itself since.
   let renamePrefill = null;
+  // A name prompt (spec 2026-10-16-island-lower-section §9.3): the address
+  // field edits a name instead of navigating. { kind: 'group', id, prefill,
+  // notice } — Rename Group… today, Rename Device… with Part 4.
+  let namePrompt = null;
   /** A click only reaches a row's handler when mousedown and mouseup land on
    * the same element. tabs:updated broadcasts arrive in bursts while any page
    * loads, and a replaceChildren between the two destroys the pressed row —
@@ -152,6 +161,12 @@
   // Recently closed starts folded — one line like a synced device; unfold to
   // see the reopen rows (Claude island declutter iteration).
   let closedSectionOpen = false;
+  // The Other devices drawer; closed on every fresh open of the panel.
+  let devicesDrawerOpen = false;
+  // Bangs (`!yt lofi`): the settings main projects (switch, the person's own
+  // bangs, recents) and which picker sections are unfolded, for this window.
+  let bangsState = { enabled: true, custom: [], recent: [] };
+  const bangSectionsOpen = { recent: true, popular: true, all: true };
   // What Enter acts on — rebuilt on every list render.
   let visibleCommands = [];
   let visibleResults = [];
@@ -225,9 +240,13 @@
     const message = dragApi.describeMove(state, intent);
     let ok = false;
     try {
-      ok = intent.kind === 'group'
-        ? await window.browserAPI.reorderGroup(intent.id, intent.beforeGroupId)
-        : await window.browserAPI.moveTab(intent.id, { groupId: intent.groupId, beforeId: intent.beforeId });
+      if (intent.kind === 'group' && intent.id === dragApi.constants.CLOSED_SECTION_ID) {
+        ok = await window.browserAPI.moveClosedSection(intent.beforeGroupId);
+      } else {
+        ok = intent.kind === 'group'
+          ? await window.browserAPI.reorderGroup(intent.id, intent.beforeGroupId)
+          : await window.browserAPI.moveTab(intent.id, { groupId: intent.groupId, beforeId: intent.beforeId });
+      }
     } catch (error) {
       console.error('Island: move failed', error);
     }
@@ -256,7 +275,7 @@
     const header = event.target.closest?.('[data-drag-header]');
     const row = event.target.closest?.('.island-row[data-tab-id]');
     const result = header
-      ? dragApi.keyboardGroupMove(state, header.dataset.groupId, direction)
+      ? dragApi.keyboardGroupMove(state, header.dataset.groupId, direction, { withClosed: true })
       : row ? dragApi.keyboardTabMove(state, row.dataset.tabId, direction) : null;
     if (!result) return;
     event.preventDefault();
@@ -284,6 +303,9 @@
     // Reopen: a leftward return arrow — drawn, not the Unicode ↶, which sits
     // baseline-low and renders unevenly across platforms.
     reopen: '<svg viewBox="0 0 16 16"><path d="M3.5 6.75h6a3 3 0 0 1 0 6h-3"/><path d="M6.25 4 3.5 6.75l2.75 2.75"/></svg>',
+    // Glance: a page with a narrower page beside it — not the footer's
+    // sidebar glyph, which is the tab-layout toggle.
+    glance: '<svg viewBox="0 0 16 16"><rect x="2.25" y="3.25" width="7.5" height="9.5" rx="1.5"/><rect x="11.25" y="4.75" width="2.5" height="6.5" rx="1"/></svg>',
   };
   reloadBtn.innerHTML = ICONS.reload;
 
@@ -418,6 +440,7 @@
     glancePickerBusy = true;
     glancePickerError = '';
     renderGlancePicker();
+    if (tab.asleep) glancePickerLive.textContent = blancI18n.t('glance.picker.opening');
     const session = glancePickerSession;
     let selected = false;
     try {
@@ -472,20 +495,39 @@
       // picker impossible to use on a slow or long-lived navigation.
       title.textContent = tab.title || (tab.isLoading ? blancI18n.t('tab.loading') : blancI18n.t('tab.new'));
       if (tab.title) title.dataset.i18nIgnore = ''; // a page title is data
-      const metadata = [
-        tabDomain(tab),
-        groupById(tab.groupId)?.name,
-        tab.private ? blancI18n.t('rail.state.private') : '',
-        tab.asleep ? blancI18n.t('rail.state.quiet') : '',
-      ].filter(Boolean);
+      // The ⌘L panel's vocabulary: a quiet tab is dimmed (the word stays in
+      // the accessible name only), a private tab carries the chip, and the
+      // secondary line is the host and group.
+      const metadata = [tabDomain(tab), groupById(tab.groupId)?.name].filter(Boolean);
+      // Only a quiet tab has anything to wait for; an awake one attaches at once.
+      const opening = glancePickerBusy && tab.id === glancePickerSelectedId && !!tab.asleep;
       const sub = document.createElement('span');
       sub.className = 'glance-picker-option-sub';
-      sub.textContent = metadata.join(' · ') || blancI18n.t('glance.picker.openTab');
+      sub.textContent = opening
+        ? blancI18n.t('glance.picker.opening')
+        : metadata.join(' · ') || blancI18n.t('glance.picker.openTab');
       // Host and group name are data; the state words are translated.
-      if (tabDomain(tab) || tab.groupId) sub.dataset.i18nIgnore = '';
-      copy.append(title, sub);
+      if (!opening && metadata.length) sub.dataset.i18nIgnore = '';
+      const identity = document.createElement('span');
+      identity.className = 'glance-picker-option-identity';
+      identity.append(title);
+      if (tab.private) {
+        const chip = document.createElement('span');
+        chip.className = 'row-private';
+        chip.textContent = blancI18n.t('rail.state.private');
+        identity.append(chip);
+      }
+      copy.append(identity, sub);
       row.append(favicon, copy);
-      row.setAttribute('aria-label', blancI18n.t('glance.picker.optionLabel', { title: title.textContent, details: sub.textContent }));
+      row.classList.toggle('quiet', !!tab.asleep);
+      if (opening) row.dataset.opening = 'true';
+      row.title = [title.textContent, tabDomain(tab)].filter(Boolean).join(' — ');
+      const details = [
+        ...metadata,
+        tab.private ? blancI18n.t('rail.state.private') : '',
+        tab.asleep ? blancI18n.t('rail.state.quiet') : '',
+      ].filter(Boolean).join(', ') || blancI18n.t('glance.picker.openTab');
+      row.setAttribute('aria-label', blancI18n.t('glance.picker.optionLabel', { title: title.textContent, details }));
       row.addEventListener('pointerdown', (event) => event.preventDefault());
       row.addEventListener('mousemove', () => {
         if (glancePickerSelectedId !== tab.id) selectGlanceResult(tab.id);
@@ -534,13 +576,14 @@
     if (!results.length) return;
     const current = Math.max(0, results.findIndex((tab) => tab.id === glancePickerSelectedId));
     let next = current;
+    // Home and End stay the text field's own (the caret); the list's ends
+    // are reached with the arrows. Moving the highlight announces nothing:
+    // the active descendant speaks for itself, and only typing re-counts.
     if (event.key === 'ArrowDown') next = (current + 1) % results.length;
     else if (event.key === 'ArrowUp') next = (current - 1 + results.length) % results.length;
-    else if (event.key === 'Home') next = 0;
-    else if (event.key === 'End') next = results.length - 1;
     else return;
     event.preventDefault();
-    selectGlanceResult(results[next].id, { announce: true });
+    selectGlanceResult(results[next].id);
     glancePickerList.querySelector(`#${CSS.escape(glanceOptionId(results[next].id))}`)
       ?.scrollIntoView({ block: 'nearest' });
   });
@@ -677,7 +720,7 @@
       const isGlance = tab.id === state.glanceTabId;
       glance.className = 'row-glance' + (isGlance ? ' on' : '');
       glance.dataset.noDrag = '';
-      glance.textContent = blancI18n.t('row.glance');
+      glance.innerHTML = ICONS.glance;
       glance.title = isGlance ? blancI18n.t('glance.close') : blancI18n.t('row.glanceOpen');
       glance.setAttribute('aria-label', blancI18n.t('row.actionLabel', { action: glance.title, title: label }));
       if (tab.title) glance.dataset.i18nIgnore = 'aria-label'; // carries the page title
@@ -891,12 +934,23 @@
     const ns = row.querySelectorAll('.ghead-n');
     ns[0].textContent = String(device.tabs.length);
     ns[1].textContent = timeAgo(device.updatedAt);
-    ns[1].style.marginLeft = 'auto';
+    ns[1].classList.add('ghead-ago');
+    ns[1].dataset.i18nIgnore = ''; // Intl-formatted in the interface locale, not catalog text
     row.title = open ? blancI18n.t('device.fold') : blancI18n.t('device.unfold');
-    row.addEventListener('click', () => {
+    row.dataset.deviceId = device.deviceId;
+    row.tabIndex = 0;
+    row.setAttribute('role', 'button');
+    row.setAttribute('aria-expanded', String(open));
+    const flip = () => {
       if (open) unfoldedDevices.delete(device.deviceId);
       else unfoldedDevices.add(device.deviceId);
       renderList();
+    };
+    row.addEventListener('click', flip);
+    row.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      flip();
     });
     return row;
   }
@@ -1037,6 +1091,8 @@
     { cmd: '/patron', hint: blancI18n.t('slash.patron.hint'), run: () => window.browserAPI.openPage('settings', 'patron') },
     // /workspace was the command before the Blanc Spaces rename; it still works.
     { cmd: '/space', hint: blancI18n.t('slash.space.hint'), aliases: ['/workspace'], keepOverlay: true, clearInput: true, run: runWorkspaceCommand },
+    { cmd: '/glance', hint: blancI18n.t('slash.glance.hint'), keepOverlay: true, run: (input) => window.browserAPI.openGlancePicker(commandArgument(input)) },
+    { cmd: '/invite', hint: blancI18n.t('slash.invite.hint'), run: () => window.browserAPI.inviteFriend(), keepOverlay: true, clearInput: true, resultNotice: (result) => result === 'copied' ? blancI18n.t('slash.invite.copied') : '' },
   ];
 
   function runCommand(command) {
@@ -1108,25 +1164,60 @@
     return empty;
   }
 
-  /** "› recently closed 4" — one foldable line like a synced device. Clear
-   * stays reachable when unfolded. */
+  /** The Recently closed band (spec 2026-10-16 §4): a named group's band
+   * and header, placed among the groups where the user dragged it. It starts
+   * folded on every open, takes no ⌘ number, and holds no tabs. */
+  function closedBand(entries) {
+    const band = document.createElement('div');
+    band.className = 'island-group-band closed-band';
+    band.dataset.dragSection = 'closed';
+    band.dataset.groupId = dragApi.constants.CLOSED_SECTION_ID;
+    band.dataset.collapsed = String(!closedSectionOpen);
+    band.append(closedHeaderRow(entries.length));
+    if (closedSectionOpen) band.append(...entries.map(closedRow));
+    return band;
+  }
+
+  /** "› Recently closed 12": folds like a group header and drags like one.
+   * Clear all stays reachable when unfolded. */
   function closedHeaderRow(count) {
     const row = document.createElement('div');
     row.className = 'island-ghead';
-    row.innerHTML = `${CARET}<span class="ghead-name dim"></span><span class="ghead-n"></span>`;
-    row.querySelector('.ghead-name').textContent = blancI18n.t('closed.header');
-    row.querySelector('.caret').classList.toggle('open', closedSectionOpen);
-    row.querySelector('.ghead-n').textContent = String(count);
     row.title = closedSectionOpen ? blancI18n.t('closed.fold') : blancI18n.t('closed.unfold');
-    row.addEventListener('click', (e) => {
-      if (e.target.closest('button')) return;
+    row.dataset.dragHeader = '';
+    row.dataset.groupId = dragApi.constants.CLOSED_SECTION_ID;
+    row.dataset.dragTitle = blancI18n.t('closed.header');
+    // The row also holds Clear all, and a button's content is presentational
+    // to assistive tech, so the fold control is an inner button. Focusable so
+    // it folds from the keyboard and ⌥⇧↑/↓ can move the band.
+    const toggle = document.createElement('span');
+    toggle.className = 'ghead-toggle';
+    toggle.innerHTML = `${CARET}<span class="ghead-name"></span><span class="ghead-n"></span>`;
+    toggle.querySelector('.ghead-name').textContent = blancI18n.t('closed.header');
+    toggle.querySelector('.caret').classList.toggle('open', closedSectionOpen);
+    toggle.querySelector('.ghead-n').textContent = String(count);
+    toggle.tabIndex = 0;
+    toggle.setAttribute('role', 'button');
+    toggle.setAttribute('aria-expanded', String(closedSectionOpen));
+    row.append(toggle);
+    const flip = () => {
       closedSectionOpen = !closedSectionOpen;
       renderList();
+    };
+    row.addEventListener('click', (e) => {
+      if (e.target.closest('button')) return;
+      flip();
+    });
+    toggle.addEventListener('keydown', (event) => {
+      if (event.target !== toggle || (event.key !== 'Enter' && event.key !== ' ')) return;
+      event.preventDefault();
+      flip();
     });
     if (closedSectionOpen) {
       const clear = document.createElement('button');
       clear.type = 'button';
       clear.className = 'closed-clear';
+      clear.dataset.noDrag = '';
       clear.textContent = blancI18n.t('closed.clear');
       clear.title = blancI18n.t('closed.clearAll');
       clear.setAttribute('aria-label', clear.title);
@@ -1145,8 +1236,9 @@
    *  either proposed id, so a stale renderer action is a no-op. */
   function closedRow(entry) {
     const row = document.createElement('div');
-    row.className = 'island-row closed-row';
+    row.className = 'island-row closed-row in-group';
     row.setAttribute('role', 'button');
+    row.tabIndex = 0;
     row.title = blancI18n.t('closed.reopen');
     const glyph = document.createElement('span');
     glyph.className = 'closed-glyph';
@@ -1169,9 +1261,15 @@
       window.browserAPI.forgetClosedEntry(entry.id);
     });
     row.append(glyph, title, forget);
-    row.addEventListener('click', () => {
+    const reopen = () => {
       window.browserAPI.closeOverlay();
       window.browserAPI.reopenClosedEntry(entry.id);
+    };
+    row.addEventListener('click', reopen);
+    row.addEventListener('keydown', (event) => {
+      if (event.target !== row || (event.key !== 'Enter' && event.key !== ' ')) return;
+      event.preventDefault();
+      reopen();
     });
     return row;
   }
@@ -1374,6 +1472,8 @@
     if (result.kind === 'space') return `space:${result.workspace.id}`;
     if (result.kind === 'tab') return `tab:${result.tab.id}`;
     if (result.kind === 'search') return `search:${result.query.toLowerCase()}`;
+    if (result.kind === 'bang') return `bang:${result.code}:${result.query}`;
+    if (result.kind === 'bangPick') return `bangPick:${result.code}`;
     return `${result.kind}:${result.url}`;
   }
 
@@ -1381,6 +1481,14 @@
     // The Spaces menu closes the overlay itself after a switch, and keeps it
     // open when switching must first ask about this window's tabs.
     if (result.kind === 'space') { workspaceUI.switchTo(result.workspace); return; }
+    // A picker row fills the input and keeps the panel open; the hint row
+    // sends the typed text, not the URL, so main resolves the bang itself.
+    if (result.kind === 'bangPick') { fillBang(result.code); return; }
+    if (result.kind === 'bang') {
+      if (state.activeTabId) window.browserAPI.navigate(state.activeTabId, result.text);
+      window.browserAPI.closeOverlay();
+      return;
+    }
     if (result.kind === 'group') window.browserAPI.focusGroup(result.group.id);
     else if (result.kind === 'tab') window.browserAPI.switchTab(result.tab.id);
     else if (result.kind === 'remote') window.browserAPI.createTab(result.url, { focusAddress: false });
@@ -1447,6 +1555,131 @@
     return row;
   }
 
+  // --- Bangs: the hint row and the `!` picker ---
+
+  /** What the list shows for bang-shaped input, or null to fall through to
+   * the normal list: the hint row for a known code (with the Quick Switcher
+   * matches for the words under it), and, for a bare `!` or a bare code, the
+   * picker's sections and rows. Folded sections keep their header and
+   * count; only unfolded rows are drawn or selectable. */
+  function bangResults(value) {
+    if (!bangsState.enabled) return null;
+    const text = value.trim();
+    const parsed = Bangs.parseBang(text);
+    if (!parsed && text !== '!') return null;
+    const resolved = parsed ? Bangs.resolveBang(text, BangsCatalog, bangsState.custom) : null;
+    const hint = resolved
+      ? {
+        kind: 'bang',
+        code: resolved.code,
+        name: resolved.name,
+        query: resolved.query,
+        url: resolved.url,
+        text,
+        title: resolved.query
+          ? blancI18n.t('bang.search', { site: resolved.name, query: resolved.query })
+          : blancI18n.t('bang.open', { site: resolved.name }),
+      }
+      : null;
+    // The picker lists while only a code (or nothing) follows the `!`.
+    const prefix = !parsed ? '' : parsed.query || parsed.position === 'end' ? null : parsed.code;
+    if (!hint && prefix === null) return null;
+    const sections = [];
+    const picks = [];
+    if (prefix !== null) {
+      const rows = Bangs.matchBangs(prefix, BangsCatalog, bangsState.custom, bangsState.recent, BangsCatalog.popular);
+      for (const section of ['recent', 'popular', 'all']) {
+        const inSection = rows.filter((row) => row.section === section);
+        if (!inSection.length) continue;
+        const open = bangSectionsOpen[section] !== false;
+        sections.push({ section, count: inSection.length, open });
+        if (open) picks.push(...inSection.map((row) => ({ kind: 'bangPick', ...row })));
+      }
+    }
+    const local = parsed && parsed.query ? switcherResults(parsed.query.toLowerCase()) : [];
+    return { hint, sections, picks, local };
+  }
+
+  /** Where the first Arrow Down lands: past row 0 when that row is already
+   * the bare-Enter target (search text, a strong local match, a bang hint),
+   * on row 0 when nothing is (address-shaped text, a picker). */
+  function arrowStartIndex() {
+    const first = visibleResults[0];
+    if (!first) return 0;
+    if (first.kind === 'bangPick') return 0;
+    if (first.kind !== 'bang' && looksLikeAddress(addressInput.value)) return 0;
+    return Math.min(1, visibleResults.length - 1);
+  }
+
+  /** A picker row was chosen: the code goes into the input, the words come next. */
+  function fillBang(code) {
+    addressInput.value = `!${code} `;
+    inputTouched = true;
+    selectedResultIndex = -1;
+    addressInput.focus();
+    addressInput.setSelectionRange(addressInput.value.length, addressInput.value.length);
+    scheduleSearchSuggestions();
+    renderList();
+  }
+
+  /** The hint row, drawn like a slash command: the code in accent ink, then
+   * a plain sentence. */
+  function bangRow(result, isActive, isEnterTarget) {
+    const row = document.createElement('div');
+    row.className = 'island-row' + (isActive ? ' active' : '');
+    const code = document.createElement('span');
+    code.className = 'row-cmd';
+    code.textContent = `!${result.code}`;
+    code.dataset.i18nIgnore = '';
+    const hint = document.createElement('span');
+    hint.className = 'row-hint';
+    hint.textContent = result.title;
+    row.append(code, hint);
+    if (isEnterTarget) row.append(enterGlyph());
+    row.addEventListener('click', () => pickResult(result));
+    return row;
+  }
+
+  function bangPickRow(result, isActive) {
+    const row = document.createElement('div');
+    row.className = 'island-row' + (isActive ? ' active' : '');
+    const code = document.createElement('span');
+    code.className = 'row-cmd';
+    code.textContent = `!${result.code}`;
+    code.dataset.i18nIgnore = '';
+    const name = document.createElement('span');
+    name.className = 'row-hint';
+    name.textContent = result.name;
+    name.dataset.i18nIgnore = '';
+    const sub = document.createElement('span');
+    sub.className = 'row-sub';
+    sub.textContent = result.custom ? blancI18n.t('bang.yours') : result.domain;
+    if (!result.custom) sub.dataset.i18nIgnore = '';
+    row.append(code, name, sub);
+    row.addEventListener('click', () => pickResult(result));
+    return row;
+  }
+
+  /** A picker section header: the group-header look, folded or not, bound
+   * to this window's bangSectionsOpen rather than to a tab group. */
+  function bangHeaderRow(section, count) {
+    const row = document.createElement('div');
+    row.className = 'island-ghead';
+    row.innerHTML = `${CARET}<span class="ghead-name dim"></span><span class="ghead-n"></span>`;
+    const label = section === 'recent'
+      ? blancI18n.t('bang.section.recent')
+      : section === 'popular' ? blancI18n.t('bang.section.popular') : blancI18n.t('bang.section.all');
+    row.querySelector('.ghead-name').textContent = label;
+    row.querySelector('.caret').classList.toggle('open', bangSectionsOpen[section] !== false);
+    row.querySelector('.ghead-n').textContent = String(count);
+    row.title = bangSectionsOpen[section] !== false ? blancI18n.t('bang.fold') : blancI18n.t('bang.unfold');
+    row.addEventListener('click', () => {
+      bangSectionsOpen[section] = bangSectionsOpen[section] === false;
+      renderList();
+    });
+    return row;
+  }
+
   // --- List area: tabs at rest, commands on "/", switcher while typing ---
 
   // A tab-row action (pin, mute, close, or a context-menu item) triggers a
@@ -1457,6 +1690,9 @@
   // menu key / VoiceOver open the row menu from the focused row).
   function focusedRowAnchor() {
     const el = document.activeElement;
+    // A synced device's header in the Other devices drawer.
+    const device = el?.closest?.('[data-device-id]');
+    if (device && islandDrawer.contains(device)) return { deviceId: device.dataset.deviceId };
     const header = el?.closest?.('[data-drag-header]');
     if (header && islandList.contains(header)) return { groupId: header.dataset.groupId };
     const row = el && el.closest && el.closest('.island-row[data-tab-id]');
@@ -1468,7 +1704,9 @@
   function restoreRowFocus(anchor) {
     if (!anchor) return;
     if (anchor.groupId) {
-      islandList.querySelector(`[data-drag-header][data-group-id="${CSS.escape(anchor.groupId)}"]`)?.focus();
+      const header = islandList.querySelector(`[data-drag-header][data-group-id="${CSS.escape(anchor.groupId)}"]`);
+      // The Recently closed header's focus target is its inner toggle.
+      (header && header.tabIndex >= 0 ? header : header?.querySelector('[role="button"]'))?.focus();
       return;
     }
     const row = islandList.querySelector(
@@ -1585,9 +1823,51 @@
       : '';
     visibleCommands = [];
     visibleResults = [];
+    const bang = !siteInfoOpen && inputTouched && !value.startsWith('/') ? bangResults(value) : null;
+
+    // A name prompt owns the panel: one line saying what Enter does (or why
+    // a name was refused), and no switcher results for the name being typed.
+    if (namePrompt) {
+      const cue = namePrompt.kind === 'device' ? blancI18n.t('prompt.renameDevice') : blancI18n.t('prompt.renameGroup');
+      const row = emptyRow(namePrompt.notice || cue);
+      row.classList.add('command-notice', 'name-prompt');
+      islandList.replaceChildren(row);
+      renderDevicesDrawer(false);
+      islandHint.textContent = '';
+      return;
+    }
 
     if (siteInfoOpen) {
       renderSiteInfo();
+    } else if (bang) {
+      visibleResults = [...(bang.hint ? [bang.hint] : []), ...bang.picks, ...bang.local];
+      if (selectedKey) {
+        selectedResultIndex = visibleResults.findIndex((result) => resultKey(result) === selectedKey);
+      } else if (selectedResultIndex >= visibleResults.length) {
+        selectedResultIndex = -1;
+      }
+      // The hint row is the bare-Enter target; a picker has none until an
+      // arrow chooses a row.
+      const activeIndex = selectedResultIndex >= 0 ? selectedResultIndex : bang.hint ? 0 : -1;
+      const nodes = [];
+      let i = 0;
+      if (bang.hint) { nodes.push(bangRow(bang.hint, activeIndex === 0, activeIndex === 0)); i = 1; }
+      for (const { section, count, open } of bang.sections) {
+        nodes.push(bangHeaderRow(section, count));
+        if (!open) continue;
+        for (const pick of bang.picks.filter((p) => p.section === section)) {
+          nodes.push(bangPickRow(pick, i === activeIndex));
+          i += 1;
+        }
+      }
+      for (const result of bang.local) {
+        nodes.push(resultRow(result, i === activeIndex, i === activeIndex));
+        i += 1;
+      }
+      islandList.replaceChildren(...(nodes.length ? nodes : [emptyRow(blancI18n.t('list.noMatches'))]));
+      // The uncapped picker can outgrow the panel; an arrowed row must be
+      // where the person can see it, as the Glance picker already does.
+      islandList.querySelector('.island-row.active')?.scrollIntoView({ block: 'nearest' });
     } else if (inputTouched && value.startsWith('/')) {
       selectedResultIndex = -1;
       const slashWord = value.trim().split(/\s+/)[0];
@@ -1643,7 +1923,20 @@
 
       const clusters = clusterTabs();
       const shortcutOffset = pinned.length ? 1 : 0;
+      // Recently closed sits before the first group at or past its slot
+      // (main's closedSlot), else after the last group — never among the
+      // ungrouped tabs. Newest first; every entry Blanc keeps.
+      const closed = (state.closed ?? []).slice().reverse();
+      const closedSlot = dragApi.closedSlotIndex(state);
+      const groupIndex = new Map(state.groups.map((g, index) => [g.id, index]));
+      let closedPlaced = !closed.length;
+      const placeClosed = () => {
+        if (closedPlaced) return;
+        rows.push(closedBand(closed));
+        closedPlaced = true;
+      };
       for (const [clusterIndex, { group, tabs: gtabs }] of clusters.entries()) {
+        if (!group || groupIndex.get(group.id) >= closedSlot) placeClosed();
         if (group) {
           const bandNodes = [groupHeaderRow(group, gtabs.length, clusterIndex + shortcutOffset)];
           // Collapsed: header alone. Open: indent membership under the group.
@@ -1659,40 +1952,52 @@
           rows.push(dragSection('loose', gtabs.map(tabRow)));
         }
       }
+      placeClosed();
       if (!clusters.some(({ group }) => !group)) rows.push(dragEmptyZone('loose'));
 
-      const furniture = [];
-      for (const device of remoteDevices) {
-        furniture.push(remoteHeaderRow(device));
-        if (unfoldedDevices.has(device.deviceId)) {
-          furniture.push(...clusterRemoteTabs(device).map((t) => remoteTabRow(t, device)));
-        }
-      }
-      const closed = (state.closed ?? []).slice(-4).reverse(); // newest first
-      if (closed.length) {
-        furniture.push(closedHeaderRow(closed.length));
-        if (closedSectionOpen) furniture.push(...closed.map(closedRow));
-      }
-      if (furniture.length) {
-        const wrap = document.createElement('div');
-        wrap.className = 'island-furniture';
-        wrap.append(...furniture);
-        rows.push(wrap);
-      }
       islandList.replaceChildren(...rows);
       // Only the resting tab list preserves row focus; the "/" command and
       // switcher branches drive focus from the input, not the rows.
       restoreRowFocus(rowAnchor);
     }
 
+    // The drawer shows only beside the resting list: typing a query or a
+    // command steps it aside until the field is clear again.
+    renderDevicesDrawer(!siteInfoOpen && !(inputTouched && (value.startsWith('/') || value.trim())), rowAnchor);
 
+    // The hint line keeps only the bang hint while a bang is typed and the
+    // private-tab note (and the site-info notes, written by renderSiteInfo);
+    // the address field and the Shortcuts sheet already teach "/" and ⌘1–9.
     if (!siteInfoOpen) {
-      islandHint.textContent = activeTab()?.private
-        ? blancI18n.t('hint.private')
-        : state.groups.length
-          ? blancI18n.t('hint.groups', { mod: modKey })
-          : blancI18n.t('hint.default', { mod: modKey });
+      islandHint.textContent = bang
+        ? blancI18n.t('hint.bang')
+        : activeTab()?.private ? blancI18n.t('hint.private') : '';
     }
+  }
+
+  /** Other devices (spec 2026-10-16 §6): the footer toggle, hidden with no
+   * other device to show, and the drawer between the list and the footer. */
+  function renderDevicesDrawer(resting, anchor = null) {
+    footerDevices.hidden = !remoteDevices.length;
+    footerDevicesCount.textContent = String(remoteDevices.length);
+    const show = resting && devicesDrawerOpen && remoteDevices.length > 0;
+    footerDevices.setAttribute('aria-expanded', String(show));
+    islandDrawer.hidden = !show;
+    if (!show) {
+      islandDrawer.replaceChildren();
+      return;
+    }
+    const rows = [];
+    for (const device of remoteDevices) {
+      rows.push(remoteHeaderRow(device));
+      if (unfoldedDevices.has(device.deviceId)) {
+        rows.push(...clusterRemoteTabs(device).map((t) => remoteTabRow(t, device)));
+      }
+    }
+    islandDrawer.replaceChildren(...rows);
+    // Unfolding a device, or any re-render while the drawer is open, keeps
+    // keyboard focus on the device header it was on.
+    if (anchor?.deviceId) islandDrawer.querySelector(`[data-device-id="${CSS.escape(anchor.deviceId)}"]`)?.focus();
   }
 
   function renderPanel() {
@@ -1713,20 +2018,28 @@
     searchProviderLabel = null;
   }
 
+  /** Whether typed text may go to the suggestion service. Provider
+   * autocomplete is intentionally off in private tabs: typed prefixes stay
+   * local until the user explicitly submits a search. Bang-shaped text
+   * (known or not, bangs on or off) never goes: the words beside a bang are
+   * meant for one site. Main refuses the same text at its boundary. A name
+   * prompt (Rename Group…) is not a search at all. */
+  function suggestionsAllowed(query) {
+    return !namePrompt
+      && inputTouched
+      && query.length >= 2
+      && !query.startsWith('/')
+      && !looksLikeAddress(query)
+      && !activeTab()?.private
+      && !addressInputComposing
+      && !suppressProviderSuggestions
+      && Bangs.parseBang(query) === null;
+  }
+
   function scheduleSearchSuggestions() {
     resetSearchSuggestions();
     const query = addressInput.value.trim();
-    // Provider autocomplete is intentionally off in private tabs: typed
-    // prefixes stay local until the user explicitly submits a search.
-    if (
-      !inputTouched
-      || query.length < 2
-      || query.startsWith('/')
-      || looksLikeAddress(query)
-      || activeTab()?.private
-      || addressInputComposing
-      || suppressProviderSuggestions
-    ) return;
+    if (!suggestionsAllowed(query)) return;
 
     const generation = suggestionRequestGeneration;
     suggestionDebounce = setTimeout(async () => {
@@ -1832,6 +2145,7 @@
     renderQueued = false;
     mode = next;
     glancePickerPurpose = next === 'glance' ? purpose : null;
+    if (next === 'find') findTabId = purpose?.findTabId ?? state.activeTabId;
     document.body.dataset.mode = next ?? '';
     document.body.dataset.glancePurpose = glancePickerPurpose ?? '';
     if (next !== 'panel' && next !== 'palette' && next !== 'spaces') closeWorkspaceSwitcher();
@@ -1849,9 +2163,12 @@
     if (next === 'panel' || next === 'palette') {
       if (!reshow) {
         siteInfoOpen = false;
+        closedSectionOpen = false;
+        devicesDrawerOpen = false;
         pendingGroupTabId = null;
         pendingRenameTabId = null;
         renamePrefill = null;
+        namePrompt = null;
         clearWorkspacePopoverEditors();
         closeWorkspaceSwitcher();
         addressInputComposing = false;
@@ -1875,6 +2192,18 @@
         pendingRenameTabId = purpose.renameTabId;
         pendingGroupTabId = null;
         renamePrefill = prefill ?? null;
+      }
+      // "Rename Group…": the same atomic payload makes the field a name prompt.
+      if (purpose && typeof purpose === 'object' && purpose.renameGroupId != null) {
+        namePrompt = { kind: 'group', id: purpose.renameGroupId, prefill: prefill ?? '', notice: '' };
+        pendingGroupTabId = null;
+        pendingRenameTabId = null;
+      }
+      // "Rename Device…" from the Other devices drawer: the same prompt.
+      if (purpose && typeof purpose === 'object' && purpose.renameDeviceId != null) {
+        namePrompt = { kind: 'device', id: purpose.renameDeviceId, prefill: prefill ?? '', notice: '' };
+        pendingGroupTabId = null;
+        pendingRenameTabId = null;
       }
       // A workspace row's context menu (main process) has no other channel
       // back into an already-open panel — same atomic-payload reasoning as
@@ -1910,9 +2239,12 @@
         if (prefill) {
           // "Rename Tab…" selects only the current name, so typing replaces
           // it and the arrow keys edit it; other prefills park the cursor.
-          const from = pendingRenameTabId != null && prefill.startsWith('/rename ')
-            ? '/rename '.length
-            : prefill.length;
+          // A name prompt selects the whole name, so typing replaces it.
+          const from = namePrompt
+            ? 0
+            : pendingRenameTabId != null && prefill.startsWith('/rename ')
+              ? '/rename '.length
+              : prefill.length;
           addressInput.setSelectionRange(from, prefill.length);
         }
         else if (!reshow || !inputTouched) addressInput.select();
@@ -1923,7 +2255,8 @@
     } else if (next === 'glance') {
       if (!reshow) {
         glancePickerSession += 1;
-        glancePickerInput.value = '';
+        // /glance <text> opens the picker already filtered.
+        glancePickerInput.value = typeof prefill === 'string' ? prefill : '';
         glancePickerSelectedId = null;
         glancePickerError = '';
         glancePickerBusy = false;
@@ -2197,7 +2530,7 @@
   function resetFind() {
     findInput.value = '';
     findCount.textContent = '';
-    if (findLastQuery && state.activeTabId) window.browserAPI.stopFindInPage(state.activeTabId);
+    if (findLastQuery && findTabId) window.browserAPI.stopFindInPage(findTabId);
     findLastQuery = null;
   }
 
@@ -2231,8 +2564,15 @@
   let morphTimer = null;
   // Closing, the Spaces menu fades back into the Island's mark from where it
   // hung; body[data-closing] keeps that placement while main holds the view.
-  let spacesExitTimer = null;
-  function endSpacesExit() { clearTimeout(spacesExitTimer); spacesExitTimer = null; document.body.dataset.closing = ''; }
+  // The Glance picker shrinks back the same way, keeping its purpose's
+  // placement until main lets the view go.
+  let overlayExitTimer = null;
+  function endOverlayExit() {
+    clearTimeout(overlayExitTimer);
+    overlayExitTimer = null;
+    document.body.dataset.closing = '';
+    if (mode !== 'glance') document.body.dataset.glancePurpose = '';
+  }
   let morphFrame = 0;
   let morphGeneration = 0;
   let drawnGeneration = 0;
@@ -2342,7 +2682,7 @@
   });
   window.browserAPI.onOverlayShow(({ mode: next, prefill, purpose, pillRect }) => {
     const wasOpen = mode === next;
-    endSpacesExit();
+    endOverlayExit();
     // A quick close/reopen can arrive while the old retract timer is still
     // holding `pointer-events: none` on the panel. Cancel that stale exit
     // before constructing the new opening state, or the fresh panel renders
@@ -2413,10 +2753,11 @@
     const retracting = payload?.retract && (mode === 'panel' || mode === 'palette')
       && retractPanelIntoPill();
     if (mode === 'find') resetFind();
-    if (mode === 'spaces') {
-      endSpacesExit();
-      document.body.dataset.closing = 'spaces';
-      spacesExitTimer = setTimeout(endSpacesExit, RETRACT_MS);
+    const leaving = mode === 'spaces' || mode === 'glance' ? mode : null;
+    if (leaving) {
+      endOverlayExit();
+      document.body.dataset.closing = leaving;
+      overlayExitTimer = setTimeout(endOverlayExit, RETRACT_MS);
     }
     mode = null;
     glancePickerPurpose = null;
@@ -2425,7 +2766,8 @@
     glancePickerError = '';
     glancePickerBusy = false;
     document.body.dataset.mode = '';
-    document.body.dataset.glancePurpose = '';
+    // The leaving picker keeps its purpose's placement until the exit ends.
+    if (leaving !== 'glance') document.body.dataset.glancePurpose = '';
     backdrop.hidden = true;
     if (retracting) {
       // The anchor stays up until the panel has shrunk away. pointer-events
@@ -2450,6 +2792,7 @@
     pendingGroupTabId = null;
     pendingRenameTabId = null;
     renamePrefill = null;
+    namePrompt = null;
     clearWorkspacePopoverEditors();
     closeWorkspaceSwitcher();
     selectedResultIndex = -1;
@@ -2528,7 +2871,6 @@
   // These moved out of the scrollable list so they stay put while it shows
   // slash commands or Quick-Switcher results. Platform-correct shortcut hints.
   document.getElementById('footerNewTabKbd').textContent = `${modKey}T`;
-  document.getElementById('footerNewPrivateKbd').textContent = `${modShiftKey}N`;
   footerNewTab.title = blancI18n.t('pill.newTab.title', { shortcut: `${modKey}T` });
   footerNewPrivate.title = blancI18n.t('footer.newPrivate.title', { shortcut: `${modShiftKey}N` });
 
@@ -2541,6 +2883,11 @@
   footerNewPrivate.addEventListener('click', () => {
     window.browserAPI.closeOverlay();
     window.browserAPI.createTab(null, { private: true, focusAddress: false });
+  });
+  footerDevices.title = blancI18n.t('footer.devices.title');
+  footerDevices.addEventListener('click', () => {
+    devicesDrawerOpen = !devicesDrawerOpen;
+    renderList();
   });
   // Each shortcut opens its internal page; close first so main can re-show
   // the overlay cleanly where needed (mirrors runCommand for /favorites etc).
@@ -2621,8 +2968,38 @@
     }
     renderList();
   });
+  /** Enter in a name prompt: an unchanged name just closes the panel; a
+   * refused one says why and keeps the prompt open. A device saved with an
+   * empty name shows its published name again. */
+  async function submitNamePrompt() {
+    const prompt = namePrompt;
+    const value = addressInput.value;
+    if (value.trim() === prompt.prefill.trim()) {
+      window.browserAPI.closeOverlay();
+      return;
+    }
+    if (prompt.kind === 'device') {
+      await window.browserAPI.renameDevice(prompt.id, value);
+      if (namePrompt === prompt) window.browserAPI.closeOverlay();
+      return;
+    }
+    const result = await window.browserAPI.renameGroup(prompt.id, value);
+    if (namePrompt !== prompt) return; // dismissed while main answered
+    if (result?.ok === false && result.error === 'duplicate') {
+      prompt.notice = blancI18n.t('groupMenu.duplicate', { name: value.trim() });
+      renderList();
+      return;
+    }
+    window.browserAPI.closeOverlay();
+  }
+
   addressInput.addEventListener('keydown', (e) => {
     if (e.isComposing) return;
+    if (namePrompt && e.key === 'Enter') {
+      e.preventDefault();
+      submitNamePrompt();
+      return;
+    }
     const unmodifiedArrow = !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey;
     if (
       unmodifiedArrow
@@ -2632,9 +3009,7 @@
       e.preventDefault();
       if (selectedResultIndex < 0) {
         selectedResultIndex = e.key === 'ArrowDown'
-          // Search text already highlights its bare-Enter target, so Down moves
-          // past it. Address-shaped input has no such target and starts at row 0.
-          ? (looksLikeAddress(addressInput.value) ? 0 : Math.min(1, visibleResults.length - 1))
+          ? arrowStartIndex()
           : visibleResults.length - 1;
       } else {
         const delta = e.key === 'ArrowDown' ? 1 : -1;
@@ -2650,6 +3025,13 @@
       // Arrow navigation is an explicit choice, so it may select a completion,
       // weak local match, or local result while address-shaped text is typed.
       pickResult(visibleResults[selectedResultIndex]);
+    } else if (visibleResults[0]?.kind === 'bang') {
+      // The hint row is the bare-Enter target whatever the words look like.
+      pickResult(visibleResults[0]);
+    } else if (visibleResults[0]?.kind === 'bangPick' && addressInput.value.trim() === '!') {
+      // The picker alone: Enter does nothing rather than search for "!".
+      // A bare unknown code (`!ddgbang`) falls through to the final branch
+      // and searches as typed, as an unknown bang with words would.
     } else if (
       visibleResults.length
       && !looksLikeAddress(addressInput.value)
@@ -2673,11 +3055,11 @@
 
   function runFind(options) {
     const query = findInput.value;
-    if (!state.activeTabId || !query) {
+    if (!findTabId || !query) {
       findCount.textContent = '';
       return;
     }
-    window.browserAPI.findInPage(state.activeTabId, query, options);
+    window.browserAPI.findInPage(findTabId, query, options);
     findLastQuery = query;
   }
 
@@ -2689,7 +3071,7 @@
     if (!findInput.value) {
       findCount.textContent = '';
       findLastQuery = null;
-      if (state.activeTabId) window.browserAPI.stopFindInPage(state.activeTabId);
+      if (findTabId) window.browserAPI.stopFindInPage(findTabId);
       return;
     }
     runFind({ forward: true, findNext: true });
@@ -2710,16 +3092,18 @@
   // --- State sync ---
 
   async function refreshSwitcherData() {
-    const [favoritesList, historyList, remoteList, workspacesPayload] = await Promise.all([
+    const [favoritesList, historyList, remoteList, workspacesPayload, bangsPayload] = await Promise.all([
       window.browserAPI.listFavorites(),
       window.browserAPI.listHistory({ limit: 300 }),
       window.browserAPI.listRemoteTabs(),
       window.browserAPI.listWorkspaces(),
+      window.browserAPI.bangs(),
     ]);
     favorites = favoritesList;
     historyEntries = historyList;
     remoteDevices = remoteList;
     applyWorkspacesPayload(workspacesPayload);
+    bangsState = bangsPayload;
     // Data lands after the panel already rendered — refresh it.
     if (mode === 'panel' || mode === 'palette') renderList();
   }
@@ -2746,6 +3130,12 @@
   // when the panel-open refresh's pull lands (tab sync).
   window.browserAPI.onRemoteTabsUpdated((devices) => {
     remoteDevices = devices;
+    if (mode === 'panel' || mode === 'palette') renderList();
+  });
+  // The bang settings changed (Settings, Profile Sync, a bang used, history
+  // cleared): the hint row and picker follow without a relaunch.
+  window.browserAPI.onBangsChanged((payload) => {
+    bangsState = payload;
     if (mode === 'panel' || mode === 'palette') renderList();
   });
   // Freshness for the workspaces section: a switch/rename/delete anywhere
@@ -2790,6 +3180,17 @@
     const workspaceRowEl = tabRowEl ? null : e.target.closest('.workspace-row[data-workspace-id]');
     window.__blancCtxRowTabId = tabRowEl?.dataset.tabId ?? null;
     window.__blancCtxWorkspaceId = workspaceRowEl?.dataset.workspaceId ?? null;
+    // A named group's header gets main's group menu (group-context-menu.js);
+    // the Recently closed band's header is not a group and has none.
+    const groupHeaderId = tabRowEl || workspaceRowEl
+      ? null
+      : e.target.closest('#islandList [data-drag-header][data-group-id]')?.dataset.groupId ?? null;
+    window.__blancCtxGroupId = groupHeaderId === dragApi.constants.CLOSED_SECTION_ID ? null : groupHeaderId;
+    // A device header in the Other devices drawer gets Rename Device…
+    // (device-context-menu.js).
+    window.__blancCtxDeviceId = tabRowEl || workspaceRowEl
+      ? null
+      : e.target.closest('#islandDrawer .island-ghead[data-device-id]')?.dataset.deviceId ?? null;
     // A context-menu press never completes as a click, and a native menu
     // swallows its pointerup — macOS menus even keep key-window status, so
     // the blur fallback never fires either. Without this release, the
@@ -2801,6 +3202,8 @@
       !e.target.closest('#addressInput')
       && window.__blancCtxRowTabId == null
       && window.__blancCtxWorkspaceId == null
+      && window.__blancCtxGroupId == null
+      && window.__blancCtxDeviceId == null
     ) {
       e.preventDefault();
     }

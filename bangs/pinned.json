@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "date": "2026-10-16",
+  "source": {
+    "repository": "https://github.com/kagisearch/bangs",
+    "commit": "449cf7a18c6614b4472168004c9b8804331885cc",
+    "file": "data/bangs.json",
+    "license": "MIT"
+  },
+  "sha256": "5ecb2fb434fb471ce98c565fde27521284ca884f5c828c0066d25daacbfefcf4"
+}

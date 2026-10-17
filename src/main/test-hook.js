@@ -15,6 +15,8 @@ const bookmarks = require('./bookmarks');
 const path = require('node:path');
 const { app, Menu, clipboard, nativeImage, webContents } = require('electron');
 const { buildAddressMenu } = require('./address-menu-model');
+const { sameGroupName } = require('./group-name-case');
+const { resolveDeviceName } = require('./device-names');
 const { blockableHostname } = require('./adblock-exceptions');
 const { syncSnapshot } = require('./session-snapshot');
 const { installTestCallBridge } = require('./test-call-bridge');
@@ -77,10 +79,16 @@ function install(refs) {
     resizeGlanceAt,
     resetGlanceRatio: resetGlanceRatioAction,
     getGlanceTabId,
+    getFocusedPaneTabId,
     getGlanceGeometry,
+    getGlanceMinimums,
+    openLinkInGlance,
     groupTabByName,
     renameTab,
     beginRenameTab,
+    beginRenameGroup,
+    beginRenameDevice,
+    ungroupGroup,
     closeGroup,
     toggleGroupCollapsed,
     moveTabTo,
@@ -118,6 +126,9 @@ function install(refs) {
     openInternalPage,
     openFindBar,
     getOverlayMode,
+    getFindTargetTabId,
+    getOverlayViewBounds,
+    getOverlayViewAttached,
     prepareDisplayCaptureHelper,
     getResidentSpaces,
     getRoomPass,
@@ -156,6 +167,7 @@ function install(refs) {
     fillStatusState,
     readFillStatusDom,
     setSleepThresholdOverride,
+    setRemoteDevicesSource,
     getSleepSnapshots,
     getClosedEntries,
     clearClosedEntries,
@@ -183,7 +195,6 @@ function install(refs) {
   const isLoadingOf = (t) => { try { return t.view.webContents.isLoadingMainFrame(); } catch { return false; } };
   const sessionPersistentOf = (t) => { try { return t.view.webContents.session.isPersistent(); } catch { return null; } };
   const titleOf = (t) => { try { return t.view.webContents.getTitle(); } catch { return ''; } };
-  const lc = (s) => String(s).trim().toLowerCase();
   let focusObservation = null;
   let activeTabImportFixtureName = null;
   const projectRootTabImportSession = () =>
@@ -217,11 +228,25 @@ function install(refs) {
     focusObservation = null;
   }
 
+  // Injected devices go through the same name resolution as
+  // sync.listRemoteDevices; main re-pushes them when a name changes.
+  let injectedDevices = [];
+  const shownInjectedDevices = () => {
+    const names = settings.getDeviceNames();
+    return injectedDevices.map((device) => ({
+      ...device,
+      name: resolveDeviceName(names, device.deviceId, device.name),
+    }));
+  };
   function pushRemoteDevices(devices) {
-    getOverlayWebContents()?.send('chrome:remote-tabs-updated', devices);
+    injectedDevices = devices;
+    // Main lists (and lets the drawer rename) exactly what was injected.
+    setRemoteDevicesSource(devices.length ? shownInjectedDevices : null);
+    const shown = shownInjectedDevices();
+    getOverlayWebContents()?.send('chrome:remote-tabs-updated', shown);
     for (const tab of tabs.values()) {
       if (urlOf(tab).startsWith('blanc://newtab')) {
-        tab.view?.webContents?.send('pages:start:remote-tabs', devices);
+        tab.view?.webContents?.send('pages:start:remote-tabs', shown);
       }
     }
   }
@@ -529,7 +554,9 @@ function install(refs) {
         groups: getGroups().map((g) => ({ id: g.id, name: g.name, collapsed: !!g.collapsed })),
         activeTabId: getActiveTabId(),
         glanceTabId: getGlanceTabId(),
+        focusedPaneTabId: getFocusedPaneTabId(),
         glanceGeometry: getGlanceGeometry(),
+        glanceMinimums: getGlanceMinimums(),
       };
     },
 
@@ -558,6 +585,16 @@ function install(refs) {
       return setGlanceTabInWindow(String(runtimeId), String(tabId));
     },
     closeWindowGlance(runtimeId) { return closeGlanceInWindow(String(runtimeId)); },
+    // A window's first Glance layout, before its own strip has measured the
+    // Island: size the window, open Glance there and read the geometry in the
+    // same turn, ahead of any report from that strip.
+    async firstGlanceLayoutInWindow(runtimeId, tabId, width) {
+      return refs.runInWindowRuntime(String(runtimeId), async () => {
+        setWindowContentSize(Number(width), 800);
+        await setGlanceTab(String(tabId));
+        return getGlanceGeometry();
+      });
+    },
     closeTabInWindow(runtimeId, tabId) {
       return closeTabInWindowAction(String(runtimeId), String(tabId));
     },
@@ -566,6 +603,21 @@ function install(refs) {
     groupTabByName(id, name) { groupTabByName(id, name); },
     renameTab(id, name) { renameTab(id, name); },
     beginRenameTab(id) { beginRenameTab(id); },
+    beginRenameDeviceByName(name) {
+      const device = shownInjectedDevices().find((d) => d.name === name);
+      if (device) beginRenameDevice(device.deviceId);
+      return !!device;
+    },
+    beginRenameGroupByName(name) {
+      const group = getGroups().find((g) => sameGroupName(g.name, name));
+      if (group) beginRenameGroup(group.id);
+      return !!group;
+    },
+    ungroupGroupByName(name) {
+      const group = getGroups().find((g) => sameGroupName(g.name, name));
+      if (group) ungroupGroup(group.id);
+      return !!group;
+    },
     activateTab(id, focusContent = false) { setActiveTab(id, { focusContent: !!focusContent }); },
     focusTabContents(id) {
       const tab = tabs.get(id);
@@ -587,6 +639,51 @@ function install(refs) {
       return tab?.view ? tab.view.getBounds() : null;
     },
     focusedWebContentsId() { return webContents.getFocusedWebContents()?.id ?? null; },
+    zoomLevel(tabId) { return liveContents(tabs.get(tabId))?.getZoomLevel() ?? null; },
+    // A real mouse click on an element of a tab's page, so the page's own
+    // target=_blank / modifier handling decides the window-open disposition.
+    async clickInTab(tabId, selector, modifiers = []) {
+      const wc = liveContents(tabs.get(tabId));
+      if (!wc) return false;
+      const point = await wc.executeJavaScript(`(() => {
+        const rect = document.querySelector(${JSON.stringify(String(selector))})?.getBoundingClientRect();
+        return rect ? { x: Math.round(rect.x + rect.width / 2), y: Math.round(rect.y + rect.height / 2) } : null;
+      })()`);
+      if (!point) return false;
+      wc.focus();
+      const input = { ...point, button: 'left', clickCount: 1, modifiers: [...modifiers] };
+      wc.sendInputEvent({ ...input, type: 'mouseDown' });
+      wc.sendInputEvent({ ...input, type: 'mouseUp' });
+      return true;
+    },
+    // A browser command as a person presses it with this tab's page focused.
+    // Windows/Linux: the key reaches the page and main's before-input-event
+    // routes it by sender. macOS: the native menu item handles the key and
+    // carries no sender, so the focused pane decides — callers establish it
+    // first. Zoom and print exist only as menu items on every platform.
+    pressBrowserCommand(tabId, commandId) {
+      const wc = liveContents(tabs.get(tabId));
+      if (!wc) return false;
+      const menuOnly = { 'zoom-in': 'zoom-in', 'zoom-out': 'zoom-out', 'zoom-reset': 'zoom-reset' };
+      if (process.platform === 'darwin' || menuOnly[commandId]) {
+        const itemId = menuOnly[commandId] ?? `browser-${commandId}`;
+        const item = Menu.getApplicationMenu()?.getMenuItemById(itemId);
+        if (!item) throw new Error(`no menu item ${itemId}`);
+        item.click();
+        return true;
+      }
+      const keys = {
+        reload: ['R', ['control']], 'hard-reload': ['R', ['control', 'shift']],
+        'close-tab': ['W', ['control']], find: ['F', ['control']],
+        back: ['Left', ['alt']], forward: ['Right', ['alt']], 'new-tab': ['T', ['control']],
+      };
+      if (!keys[commandId]) throw new Error(`no key for ${commandId}`);
+      const [keyCode, modifiers] = keys[commandId];
+      wc.focus();
+      wc.sendInputEvent({ type: 'keyDown', keyCode, modifiers });
+      wc.sendInputEvent({ type: 'keyUp', keyCode, modifiers });
+      return true;
+    },
     railActivationSerial() { return getRailActivationSerial(); },
     toggleGroup(id) { toggleGroupCollapsed(id); },
     moveTab(id, target) { return moveTabTo(id, target); },
@@ -601,6 +698,7 @@ function install(refs) {
       if (typeof patch.favicon === 'string' || patch.favicon === null) tab.favicon = patch.favicon;
       if (typeof patch.isLoading === 'boolean') tab.isLoading = patch.isLoading;
       if (typeof patch.audible === 'boolean') tab.audible = patch.audible;
+      if (Number.isInteger(patch.blockedCount) && patch.blockedCount >= 0) tab.blockedCount = patch.blockedCount;
       if (typeof patch.muted === 'boolean') {
         tab.muted = patch.muted;
         tab.view?.webContents?.setAudioMuted(patch.muted);
@@ -680,14 +778,14 @@ function install(refs) {
     },
     beforeUnloadProbe(id) { return beforeUnloadProbes.get(id) ?? null; },
     closeTabsInGroupName(name) {
-      const g = getGroups().find((x) => x.name === lc(name));
+      const g = getGroups().find((x) => sameGroupName(x.name, name));
       if (!g) return;
       for (const [id, t] of tabs) if (t.groupId === g.id) closeTab(id);
     },
     // The atomic single-entry group close (F2-6) — distinct from
     // closeTabsInGroupName above, which models per-tab user closes.
     closeGroupByName(name) {
-      const g = getGroups().find((x) => x.name === lc(name));
+      const g = getGroups().find((x) => sameGroupName(x.name, name));
       if (g) closeGroup(g.id);
     },
     // Redacted closed-entry projection for the harness: tier facts only,
@@ -812,6 +910,9 @@ function install(refs) {
       return settings.setSettings({ searchEngine: 'custom', searchEngineTemplate: template }).searchEngine;
     },
     setSearchSuggestions(on) { settings.setSettings({ searchSuggestions: !!on }); },
+    setBangsEnabled(on) { settings.setSettings({ bangsEnabled: !!on }); },
+    setCustomBangs(list) { return settings.setSettings({ customBangs: list }).customBangs; },
+    recentBangs() { return settings.getSettings().recentBangs; },
     setUsagePing(on) { settings.setSettings({ usagePing: !!on }); },
     searchSuggestions() { return settings.getSettings().searchSuggestions; },
     settingsSyncValues() { return settings.exportForSync().values; },
@@ -2007,6 +2108,30 @@ function install(refs) {
     // Read through the real chrome DOM rather than the tab model: the point
     // of F37 is what the pill SHOWS, and a model-level proxy would pass even
     // if the placeholder never rendered.
+    // The computed motion of the Glance chrome: the strip's header and
+    // divider, and the overlay's picker when one is up.
+    // The page context menu's Open Link in Glance, which Playwright cannot
+    // click (a native menu): the same main-process action the item calls.
+    openLinkInGlance(tabId, url) { return openLinkInGlance(String(tabId), String(url)); },
+    async glanceHeaderMotion() {
+      const strip = getChromeWebContents();
+      if (!strip) return null;
+      const read = (selector) => `(() => {
+        const element = document.querySelector(${JSON.stringify(selector)});
+        if (!element) return null;
+        const style = getComputedStyle(element);
+        return { transition: style.transition, transform: style.transform, opacity: style.opacity, transformOrigin: style.transformOrigin, width: element.getBoundingClientRect().width };
+      })()`;
+      const header = await strip.executeJavaScript(read('#glanceHeader'));
+      const divider = await strip.executeJavaScript(read('#glanceDivider'));
+      const identity = await strip.executeJavaScript(`(() => {
+        const element = document.querySelector('#glanceHeader .glance-tab-identity');
+        return element ? { transition: getComputedStyle(element).transition, swapping: element.classList.contains('swapping') } : null;
+      })()`);
+      const overlay = getOverlayWebContents();
+      const picker = overlay && getOverlayMode() === 'glance' ? await overlay.executeJavaScript(read('#glancePicker')) : null;
+      return { header, divider, identity, picker };
+    },
     pillPlaceholderState() {
       const wc = getChromeWebContents();
       if (!wc) return null;
@@ -2161,6 +2286,8 @@ function install(refs) {
             bottom: rect.bottom,
             islandBottom: document.getElementById('islandPill').getBoundingClientRect().bottom,
             animatedProperties: [...new Set(parts.flatMap((p) => p.getAnimations()).flatMap((a) => a.effect.getKeyframes().flatMap((k) => Object.keys(k))))],
+            animations: parts.flatMap((p) => p.getAnimations()).map((a) => ({ kind: a.constructor.name, time: a.currentTime, duration: a.effect.getTiming().duration })),
+            reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
           };
         })()`);
       };
@@ -2251,6 +2378,45 @@ function install(refs) {
     openDownloads() { openInternalPage('blanc://downloads/'); },
     openHistorySheet() { openInternalPage('blanc://history/'); },
     openSettings() { openInternalPage('blanc://settings/'); },
+    // F47: Settings → General → Your bangs, through the page's own controls.
+    async settingsBangControls() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => ({
+        enabled: document.getElementById('bangsEnabled')?.checked ?? null,
+        rows: [...document.querySelectorAll('#customBangList .site-row')].map((row) => ({
+          code: row.querySelector('.custom-bang-code')?.textContent.replace(/^!/, '') ?? '',
+          name: row.querySelector('.site-row-name')?.textContent ?? '',
+          host: row.querySelector('.custom-bang-host')?.textContent ?? '',
+        })),
+        empty: !!document.querySelector('#customBangList .site-list-empty'),
+        error: document.getElementById('customBangError')?.hidden === false ? document.getElementById('customBangError').textContent : null,
+        replaces: document.getElementById('customBangReplaces')?.hidden === false ? document.getElementById('customBangReplaces').textContent : null,
+      }))()`);
+    },
+    async settingsAddBang(code, name, template) {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const set = (id, value) => { const el = document.getElementById(id); if (!el) return false; el.value = value; return true; };
+        if (!set('customBangCode', ${JSON.stringify(String(code))})) return false;
+        if (!set('customBangName', ${JSON.stringify(String(name))})) return false;
+        if (!set('customBangTemplate', ${JSON.stringify(String(template))})) return false;
+        document.getElementById('customBangAdd').click();
+        return true;
+      })()`);
+    },
+    async settingsRemoveBang(code) {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const row = [...document.querySelectorAll('#customBangList .site-row')]
+          .find((r) => r.querySelector('.custom-bang-code')?.textContent === '!' + ${JSON.stringify(String(code))});
+        if (!row) return false;
+        row.querySelector('.site-row-remove').click();
+        return true;
+      })()`);
+    },
     async settingsProfileRows() {
       const wc = getUtilitySheetWebContents();
       if (!wc) return [];
@@ -2362,6 +2528,9 @@ function install(refs) {
     openPalette() { showOverlay('palette'); },
     closeOverlay() { hideOverlay({ refocusContent: false }); },
     overlayMode() { return getOverlayMode(); },
+    findTabId() { return getFindTargetTabId(); },
+    overlayViewBounds() { return getOverlayViewBounds(); },
+    overlayViewAttached() { return getOverlayViewAttached(); },
     // The hidden display-capture helper is created on the first share
     // request; this creates it the same way, for tests that need it to exist.
     async prepareDisplayCaptureHelper() {
@@ -2417,6 +2586,38 @@ function install(refs) {
     // synced icon whose bytes are corrupt still yields a `has-icon` class and a
     // non-empty background-image, so only an actual decode separates a rendered
     // favicon from a broken one.
+    /** The ⌘L panel's section headers (groups, devices, the bang picker). */
+    async addressSectionHeaders() {
+      const wc = getOverlayWebContents();
+      if (!wc) return [];
+      return wc.executeJavaScript(`[...document.querySelectorAll('#islandList .island-ghead .ghead-name')].map((el) => el.textContent)`);
+    },
+    /** Whether the ⌘L list's highlighted row sits inside the list's scroll
+     * viewport (null when nothing is highlighted). */
+    async addressActiveRowVisible() {
+      const wc = getOverlayWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const list = document.getElementById('islandList');
+        const row = list?.querySelector('.island-row.active');
+        if (!list || !row) return null;
+        const l = list.getBoundingClientRect();
+        const r = row.getBoundingClientRect();
+        return r.top >= l.top - 1 && r.bottom <= l.bottom + 1;
+      })()`);
+    },
+    async addressInputValue() {
+      const wc = getOverlayWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`document.getElementById(${JSON.stringify(ADDRESS_INPUT_ID)})?.value ?? null`);
+    },
+    /** A suggestions request straight through the bridge, around the
+     * overlay's own guard, so main's refusal is what is tested. */
+    async requestSearchSuggestions(query) {
+      const wc = getOverlayWebContents();
+      if (!wc) throw new Error('overlay is not open');
+      return wc.executeJavaScript(`window.browserAPI.searchSuggestions(${JSON.stringify(String(query))})`);
+    },
     async addressResultRows() {
       const wc = getOverlayWebContents();
       if (!wc) return [];
@@ -2441,6 +2642,10 @@ function install(refs) {
           }
           return {
             title: row.querySelector('.row-title')?.textContent ?? '',
+            // Bang hint and picker rows carry a code and a sentence or name.
+            cmd: row.querySelector('.row-cmd')?.textContent ?? '',
+            hint: row.querySelector('.row-hint')?.textContent ?? '',
+            sub: row.querySelector('.row-sub')?.textContent ?? '',
             tag: row.querySelector('.row-tag')?.textContent ?? '',
             label: row.querySelector('.row-primary')?.getAttribute('aria-label') ?? '',
             quiet: row.classList.contains('quiet'),
@@ -2688,9 +2893,16 @@ function install(refs) {
       clearFocusObservation();
       return result;
     },
-    injectRemoteDevices() {
-      pushRemoteDevices(remoteFixture);
-      return structuredClone(remoteFixture);
+    /** `count` > 1 adds numbered copies of the fixture device, for a drawer
+     * taller than its height cap. */
+    injectRemoteDevices(count = 1) {
+      const devices = Array.from({ length: Math.max(1, count) }, (_, index) => (index === 0 ? remoteFixture[0] : {
+        ...remoteFixture[0],
+        deviceId: `${remoteFixture[0].deviceId}-${index + 1}`,
+        name: `${remoteFixture[0].name} ${index + 1}`,
+      }));
+      pushRemoteDevices(devices);
+      return structuredClone(devices);
     },
     clearRemoteDevices() { pushRemoteDevices([]); },
     // Mirrors addressResultRows' favicon reporting so the start page and the
@@ -2723,6 +2935,7 @@ function install(refs) {
                 }
                 return {
                   title: row.querySelector('.name')?.textContent ?? '',
+                  host: row.querySelector('.host')?.textContent ?? '',
                   href: row.href,
                   tileLetter: tile ? tile.textContent : '',
                   faviconHasIcon: !!(tile && tile.classList.contains('has-icon')),
@@ -2856,6 +3069,44 @@ function install(refs) {
       );
     },
     utilitySheetContentsId() { return getUtilitySheetWebContents()?.id ?? null; },
+    // Settings → Sync device pairing (design 2026-10-16): the off-state code
+    // path as the person sees it, and the clicks/typing that drive it. Reads
+    // DOM state only; the pairing code itself never appears in this record.
+    settingsSyncPairingDom() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc || !wc.getURL().startsWith('blanc://settings')) return null;
+      return wc.executeJavaScript(`(() => {
+        const byId = (id) => document.getElementById(id);
+        const visible = (el) => !!el && !el.hidden && el.offsetParent !== null;
+        return {
+          pathOrder: [...document.querySelectorAll('#syncPaths .sync-path')].map((b) => b.id),
+          pathsVisible: visible(byId('syncPaths')),
+          codeFormVisible: visible(byId('syncCodeForm')),
+          nameFormVisible: visible(byId('syncForm')),
+          connectDisabled: !!byId('syncCodeSubmit')?.disabled,
+          codeValue: byId('syncCode')?.value ?? '',
+          status: byId('syncCodeStatus')?.textContent ?? '',
+        };
+      })()`);
+    },
+    settingsSyncPairingAct(action, value) {
+      const wc = getUtilitySheetWebContents();
+      if (!wc || !wc.getURL().startsWith('blanc://settings')) return false;
+      return wc.executeJavaScript(`(() => {
+        const action = ${JSON.stringify(String(action))};
+        const value = ${JSON.stringify(String(value ?? ''))};
+        if (action === 'choose-code') { document.getElementById('syncPathCode').click(); return true; }
+        if (action === 'use-passphrase') { document.getElementById('syncUsePassphrase').click(); return true; }
+        if (action === 'back') { document.getElementById('syncCodeBack').click(); return true; }
+        if (action === 'type-code') {
+          const input = document.getElementById('syncCode');
+          input.value = value;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          return true;
+        }
+        return false;
+      })()`);
+    },
     async destroyUtilitySheetContents() {
       const wc = getUtilitySheetWebContents();
       if (!wc || wc.isDestroyed()) return false;
@@ -3157,6 +3408,8 @@ function install(refs) {
       hideOverlay({ refocusContent: false });
       hideUtilitySheet();
       pushRemoteDevices([]);
+      // A device a scenario renamed shows its published name again.
+      for (const id of Object.keys(settings.getDeviceNames())) settings.setDeviceName(id, '');
       setWindowContentSize(1280, 800);
       // A fresh tab first so closing the rest never empties the window.
       const keep = createTab(newTabUrl());
@@ -3184,6 +3437,8 @@ function install(refs) {
         verticalTabsWidth: 248,
         appIcon: 'sunrise',
         adblockExceptions: [],
+        bangsEnabled: true,
+        customBangs: [],
         onePasswordEnabled: false,
         onePasswordAccount: '',
         tabSleep: '1h',
@@ -3193,6 +3448,7 @@ function install(refs) {
         usagePing: false,
       });
       settings.setPatron(null);
+      settings.clearRecentBangs();
       clearTestSearchSuggestionFixture();
       setTestSearchNavigationCapture(false);
       broadcastTabs();

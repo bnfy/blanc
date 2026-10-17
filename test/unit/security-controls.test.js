@@ -153,7 +153,8 @@ test('public claims describe explicit website consent, 1Password boundaries, bun
   assert.match(privacy, /hash-pinned EasyList and EasyPrivacy snapshots ship inside/);
   assert.match(privacy, /load no Google Analytics script.*until you explicitly choose Allow/is);
   assert.match(privacy, /No thanks stops event dispatch.*reloads the page/is);
-  assert.match(privacy, /1Password login fill on macOS \(off by default\)/);
+  // Every platform since the October 16, 2026 announcement of v1.34.0's support.
+  assert.match(privacy, /1Password login fill \(off by default\)/);
   assert.match(privacy, /bounded check in an isolated world/i);
   assert.match(privacy, /reads form structure only—never field values, page text, or content/i);
   assert.match(privacy, /does not contact the 1Password SDK or credential broker/i);

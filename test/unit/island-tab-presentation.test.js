@@ -30,10 +30,12 @@ function extractFunction(name) {
 
 const islandTabPresentation = extractFunction('islandTabPresentation');
 
-function visibleDots(tabs, activeTabId) {
+function visibleDots(tabs, activeTabId, dotBudget = 8) {
   const sandbox = {
     state: { tabs, activeTabId },
     DOT_CAP: 8,
+    // fitIslandDots lowers this when a narrow pill cannot hold eight dots.
+    dotBudget,
     activeTab: () => tabs.find((tab) => tab.id === activeTabId) || null,
   };
   vm.runInNewContext(`${islandTabPresentation}\nthis.result = islandTabPresentation();`, sandbox);
@@ -180,4 +182,21 @@ test('overflow copy describes the window-wide remainder, not the active group', 
   assert.equal(catalog['pill.moreTabs'].message,
     '{count, plural, one {# more tab — open the list} other {# more tabs — open the list}}');
   assert.doesNotMatch(catalog['pill.moreTabs'].message, /in this group/);
+});
+
+test('a narrow Island shows fewer dots, keeps the active tab and counts the rest', () => {
+  const tabs = Array.from({ length: 12 }, (_, i) => ({ id: `t${i}`, groupId: null, pinned: false }));
+  const full = visibleDots(tabs, 't9');
+  assert.equal(full.shown.length, 8);
+  assert.equal(full.hidden, 4);
+  const narrow = visibleDots(tabs, 't9', 3);
+  assert.equal(narrow.shown.length, 3);
+  assert.ok(narrow.shown.some((tab) => tab.id === 't9'), 'the active tab lost its dot');
+  assert.equal(narrow.hidden, 9);
+  const single = visibleDots(tabs, 't9', 1);
+  assert.deepEqual(single.shown.map((tab) => tab.id), ['t9']);
+  assert.equal(single.hidden, 11);
+  // A standalone pin never pushes the active tab out at the smallest budget.
+  const pinnedFirst = visibleDots([{ id: 'pin', groupId: null, pinned: true }, ...tabs], 't9', 1);
+  assert.deepEqual(pinnedFirst.shown.map((tab) => tab.id), ['t9']);
 });

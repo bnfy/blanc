@@ -207,7 +207,8 @@ test('a void handler that starts returning a value is reported', () => {
 
 test('a boolean handler that can resolve to undefined is reported', () => {
   const problems = api.checkInvokeResults(api.loadContract(),
-    sendSources("chromeHandle('tabs:open-glance-picker', () => openGlancePicker());", "chromeHandle('tabs:open-glance-picker', () => { openGlancePicker(); });"));
+    sendSources("chromeHandle('tabs:open-glance-picker', (_e, query) => openGlancePicker(typeof query === 'string' ? query.slice(0, 200) : ''));",
+      "chromeHandle('tabs:open-glance-picker', (_e, query) => { openGlancePicker(typeof query === 'string' ? query.slice(0, 200) : ''); });"));
   assert.ok(problems.some((p) => p.includes('openGlancePicker result') && p.includes('undefined')), problems.join('\n'));
 });
 

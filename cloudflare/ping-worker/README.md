@@ -76,6 +76,16 @@ once D+1 has ended) starting from `NEXT_DAY_RETURN_FIRST_COHORT` in
 `src/index.js`, which must equal the UTC day the write path first deploys;
 earlier cohorts are omitted rather than shown as 0%.
 
+Week-two return is counted the same way from the launches the Worker already
+receives, with no new client data: an installation first seen on UTC day D that
+launches on any day from D+7 through D+13 bumps `return:w2:<D>` once,
+deduplicated by a keyed-hash marker `ret7:<D>:<hash>` that expires after eight
+days. `first:<id>` already records D, so cohorts from before the deploy count
+once their whole window falls after it. `/stats` reports `weekTwoReturn.byDay`
+(new installs, `returnedWeekTwo`, rate, and `complete` once D+13 has ended)
+starting from `WEEK_TWO_RETURN_FIRST_COHORT` in `src/index.js`: the first full
+UTC day after the deploy, minus seven.
+
 First-day signals: `{event:'day1_default'}` (Blanc is the default browser) and
 `{event:'day1_browsed'}` (three web pages opened in regular tabs) carry only the
 common launch fields. Desktop builds from `DAY_ONE_SIGNALS_MIN_VERSION` (1.31.0)

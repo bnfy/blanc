@@ -12,7 +12,7 @@ const history = require('./history');
 const downloads = require('./downloads');
 const settings = require('./settings');
 const { runOnePasswordVerify } = require('./onepassword-verify-flow');
-const { createDefaultBrowserStatus } = require('./default-browser-status');
+const { createDefaultBrowserStatus, requestDefaultBrowser } = require('./default-browser-status');
 const patron = require('./patron');
 const sync = require('./sync');
 const { syncErrorText } = require('./sync-messages');
@@ -351,6 +351,10 @@ function setupPages(hooks = {}) {
       onePasswordEnabled,
       onePasswordAccount,
       presentationDefaultsResetVersion,
+      groupNamesRecasedVersion,
+      deviceNames,
+      // Which bangs were used is the Island's business, not the page's.
+      recentBangs: _recentBangs,
       ...rest
     } = settings.getSettings();
     return {
@@ -484,6 +488,28 @@ function setupPages(hooks = {}) {
   // Per-device consent for publishing this device's open tabs (spec §3) —
   // lives in sync.json, never settings.json, so it cannot cross sync.
   handle('pages:settings:sync-tabs-set', 'settings', (on) => sync.setSyncTabs(!!on));
+  handle('pages:settings:sync-device-name-set', 'settings', (name) => sync.setThisDeviceName(name));
+  // Device pairing (design 2026-10-16): the pairing code crosses to the page
+  // for display; the wrapped secret, the key and the recovery code never do.
+  handle('pages:settings:sync-pair-begin', 'settings', async () => syncReply(await sync.beginPairing()));
+  handle('pages:settings:sync-pair-cancel', 'settings', () => sync.cancelPairing());
+  handle('pages:settings:sync-pair-state', 'settings', () => sync.pairingState());
+  handle('pages:settings:sync-join-code', 'settings', async (code) => {
+    const result = await sync.joinWithCode(String(code ?? ''));
+    if (result?.status?.enabled === true) settings.setSettings({ syncMigrationCompleted: true });
+    return syncReply(result);
+  });
+  handle('pages:settings:sync-switch-code', 'settings', async (payload) => syncReply(
+    await sync.switchWithCode(String(payload?.code ?? ''), { wipeRemote: !!payload?.wipeRemote })
+  ));
+  handle('pages:settings:sync-recovery-code-copy', 'settings', async () => syncReply(await sync.copyRecoveryCode({
+    texts: {
+      message: t('settings.sync.recovery.dialogMessage'),
+      detail: t('settings.sync.recovery.dialogDetail'),
+      copy: t('settings.sync.recovery.dialogCopy'),
+      cancel: t('settings.sync.recovery.cancel'),
+    },
+  })));
 
   handle('pages:app-version', 'newtab', () => app.getVersion());
 
@@ -591,6 +617,7 @@ function setupPages(hooks = {}) {
   handle('pages:start:migration-checklist-dismiss', 'newtab', () => hooks.startPage?.dismissMigrationChecklist?.() === true);
   // Patron upgrade pill: closing it snoozes it for 90 days (main owns the clock).
   handle('pages:start:patron-callout-dismiss', 'newtab', () => hooks.startPage?.dismissPatronCallout?.() === true);
+  handle('pages:start:whats-new-dismiss', 'newtab', () => hooks.startPage?.dismissWhatsNew?.() === true);
 
   // Standalone games invoke from their exact top-level document.
   handleEvent('pages:mahjong:played', ['mahjong'], (event) =>
@@ -607,21 +634,7 @@ function setupPages(hooks = {}) {
   // canSet guard is identical for both senders.
   handle('pages:default-browser:get', ['settings', 'newtab'], () => defaultBrowserStatus());
   handle('pages:default-browser:set', ['settings', 'newtab'], () => {
-    if (defaultBrowserStatus().canSet) {
-      if (process.platform === 'win32') {
-        // Windows 10+ ignores a programmatic http/https handler change: the
-        // user must pick the browser in Settings > Default apps, where Blanc
-        // is listed by the installer's StartMenuInternet registration
-        // (build/installer.nsh). Hand off to that page instead of writing a
-        // protocol handler that would only fool isDefaultProtocolClient.
-        shell.openExternal('ms-settings:defaultapps').catch(() => {});
-      } else {
-        // macOS raises its "change your default web browser?" prompt PER
-        // CALL, and answering it assigns the browser role — http and https
-        // together — so one call is the whole request.
-        app.setAsDefaultProtocolClient('http');
-      }
-    }
+    requestDefaultBrowser({ app, platform: process.platform, shell });
     hooks.defaultBrowserChanged?.();
     return defaultBrowserStatus();
   });

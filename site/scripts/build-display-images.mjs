@@ -22,6 +22,12 @@ const jobs = [
     // Full-size lossy copy for desktops; the lossless original stays pinned.
     { source: `revamp/island-roman-${name}.webp`, output: `revamp/island-roman-${name}-display.webp` },
   ]),
+  // The homepage's Island stage: public v1.35.0 over the Smithsonian American
+  // Art Museum (docs/website-captures-v1.35.0.json).
+  ...['rest', 'tabs', 'command'].flatMap(name => [
+    { source: `revamp/island-smithsonian-${name}-v1.35.0.webp`, output: `revamp/island-smithsonian-${name}-v1.35.0-800.webp`, width: 800 },
+    { source: `revamp/island-smithsonian-${name}-v1.35.0.webp`, output: `revamp/island-smithsonian-${name}-v1.35.0-display.webp` },
+  ]),
   // Glance demo: a phone copy of the wide Nyhavn photo. (A WebP copy of the
   // noisy Kusama JPEG came out larger than the original, so it stays as is.)
   { source: 'revamp/glance-nyhavn.webp', output: 'revamp/glance-nyhavn-800.webp', width: 800 },
@@ -33,6 +39,12 @@ const jobs = [
   ...['ledger', 'billboard', 'shelf', 'tally'].map(name => ({
     source: `feature-captures/${name}-v1.31.0.png`,
     output: `feature-captures/${name}-v1.31.0.webp`,
+  })),
+  // Public v1.35.0 captures shown on the homepage and /features
+  // (docs/website-captures-v1.35.0.json).
+  ...['ledger', 'billboard', 'shelf', 'tally', 'mahjong'].map(name => ({
+    source: `feature-captures/${name}-v1.35.0.png`,
+    output: `feature-captures/${name}-v1.35.0.webp`,
   })),
   { source: 'feature-captures/mahjong-v1.21.0.png', output: 'feature-captures/mahjong-v1.21.0.webp' },
   // Blanc Mail screenshots (capture-public-shots.sh in bnfy/blanc-mail):

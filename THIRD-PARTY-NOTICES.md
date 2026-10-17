@@ -63,6 +63,11 @@ All four font files remain under the SIL Open Font License, Version 1.1; Blanc's
 MIT grant does not supersede those terms. The font files and their full licence texts
 ship together inside packaged builds.
 
+The website serves a byte-identical copy of the Instrument Sans file at
+`site/public/fonts/instrument-sans/instrument-sans-latin-wdth-normal.woff2`
+for Blanc's emails, beside its full licence text in
+[site/public/fonts/instrument-sans/OFL.txt](site/public/fonts/instrument-sans/OFL.txt).
+
 ## Newsreader website source — SIL OFL 1.1
 
 The website uses Newsreader (variable, optical-size axis, regular weight) for
@@ -102,6 +107,18 @@ License, kept in `dark-reader/darkreader-LICENSE.txt` and shipped as
 `ThirdPartyLicenses/darkreader-LICENSE.txt`. The MIT License covers the code,
 not the Dark Reader name or logo. Upstream:
 <https://github.com/darkreader/darkreader>.
+
+## Kagi bangs — MIT
+
+Bangs (`!yt lofi`) resolve from Kagi Search's open bang list,
+`data/bangs.json` at commit `449cf7a18c6614b4472168004c9b8804331885cc`
+(October 15, 2026), committed verbatim as `bangs/sources/bangs.json` and
+pinned by hash in `bangs/pinned.json`; `bangs/build.mjs` compiles it into
+the generated `src/renderer/pages/bangs-catalog.js`. Copyright (c) 2024 Kagi
+Search. It remains under Kagi's MIT License, kept in `bangs/sources/kagi-bangs-LICENSE.txt`
+and shipped as `ThirdPartyLicenses/kagi-bangs-LICENSE.txt`. The MIT License covers the
+list, not the Kagi name or logo. Upstream:
+<https://github.com/kagisearch/bangs>.
 
 ## Runtime dependencies
 

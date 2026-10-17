@@ -53,6 +53,7 @@ xvfb-run -a npm run test:acceptance:desktop   # ...on a headless Linux/CI box
 
 npm run test:packaged:regressions    # deterministic signed-build release regressions
 npm run test:external-links          # isolated Electron URL/window lifecycle
+npm run test:pdf-viewer:desktop      # PDFs render in the built-in viewer with each blocker
 npm run test:packaged:external-links # interactive macOS LaunchServices + native foreground gate
 node test/desktop/packaged-media-smoke.mjs  # cross-platform packaged site grants + live fake audio/video tracks
 npm run test:packaged:native-media   # macOS-only real device/TCC check; records no audio

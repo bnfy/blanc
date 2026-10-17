@@ -10,7 +10,7 @@ import { chromium } from 'playwright';
 import { blubirdFontFaces } from './blubird-card-fonts.mjs';
 
 const SITE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const CAPTURE = path.join(SITE_ROOT, 'public/press/blanc-island-expanded-v1.31.0.png');
+const CAPTURE = path.join(SITE_ROOT, 'public/press/blanc-island-expanded-v1.35.0.png');
 const OUTPUT = path.join(SITE_ROOT, 'public/press/blanc-press-card.png');
 
 function dataUrl(file, mimeType) {

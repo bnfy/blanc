@@ -192,36 +192,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "site-132-features-02",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "Five interface languages",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "interfaceLanguages"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "site-132-features-06",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "Use Blanc in German, Spanish, French or Portuguese.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "interfaceLanguages"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "site-132-features-07",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "Blanc’s own interface is available in English, German, Spanish, French and Portuguese (Brazil). It follows your computer’s language when it matches one of them, or you can choose one in Settings → General → Language.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "interfaceLanguages"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "site-132-features-08",
       "source": "site/src/pages/features.astro",
       "exactWording": "The translations are machine-made, and a change applies after you relaunch Blanc. Blanc does not translate web pages.",
@@ -447,6 +417,39 @@
       ],
       "verdict": "qualified",
       "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "site-132-features-02",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Five interface languages",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "interfaceLanguages"
+      ],
+      "verdict": "qualified",
+      "reason": "October 16, 2026: Italian has been selectable since public v1.33.0, so the Features page lists six interface languages; the new wording is in docs/website-v1.35-claims.json."
+    },
+    {
+      "id": "site-132-features-06",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Use Blanc in German, Spanish, French or Portuguese.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "interfaceLanguages"
+      ],
+      "verdict": "qualified",
+      "reason": "October 16, 2026: Italian has been selectable since public v1.33.0, so the Features page lists six interface languages; the new wording is in docs/website-v1.35-claims.json."
+    },
+    {
+      "id": "site-132-features-07",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Blanc’s own interface is available in English, German, Spanish, French and Portuguese (Brazil). It follows your computer’s language when it matches one of them, or you can choose one in Settings → General → Language.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "interfaceLanguages"
+      ],
+      "verdict": "qualified",
+      "reason": "October 16, 2026: Italian has been selectable since public v1.33.0, so the Features page lists six interface languages; the new wording is in docs/website-v1.35-claims.json."
     }
   ]
 }

@@ -15,7 +15,8 @@ namespace_id = "120260902"
   limit = 4
   period = 60
 
-# ADMIN_TOKEN, NEWSLETTER_TOKEN_SECRET, and RESEND_API_KEY are secrets; see
+# ADMIN_TOKEN, NEWSLETTER_TOKEN_SECRET, RESEND_API_KEY, RESEND_WEBHOOK_SECRET
+# and the optional RESEND_CONTACTS_API_KEY are secrets; see
 # README.md for the 1Password-backed setup. ADMIN_TOKEN gates GET /subscribers
 # (export) and DELETE /subscriber (removal). Without it those endpoints refuse
 # every request (fail closed). NEWSLETTER_FROM is a non-secret verified Resend
@@ -24,7 +25,13 @@ namespace_id = "120260902"
 
 [vars]
 NEWSLETTER_FROM = "Blanc <release-notes@updates.blancbrowser.com>"
-AMBASSADOR_TO = "support@blancbrowser.com"
+AMBASSADOR_TO = "support@blanc.day"
+# Each genuinely new newsletter subscriber is announced here. Remove it to
+# turn the alert off.
+SIGNUP_ALERT_TO = "support@blanc.day"
+# The Resend segment "Blanc release notes" that src/resend-sync.js keeps in
+# step with the confirmed newsletter list. Not a secret.
+RESEND_SEGMENT_ID = "8793c0be-592a-4ef5-a932-6720e4bfa862"
 
 # Workers Logs — keeps a searchable history of invocations/exceptions in the
 # dashboard, so a runtime 500 can be diagnosed after the fact instead of

@@ -13,6 +13,16 @@ const IP_RATE_LIMIT = 120;                         // requests per client IP per
 
 const blobKey = (a, s) => `blob:${a}:${s}`;
 
+// Device pairing (design 2026-10-16 §5.3): a sender parks its wrapped sync
+// secret under a code-derived id; the first GET returns it and deletes it.
+// The Worker never sees the code or any key. Ten minutes, a few hundred
+// bytes, and a per-IP read limit that makes guessing the 39-bit code
+// pointless within the window.
+const PAIR_TTL_SECONDS = 600;
+const PAIR_MAX_REQUEST_BYTES = 4096;
+const PAIR_GET_LIMIT = 10;                         // pair GETs per client IP per minute
+const pairKey = (id) => `pair:${id}`;
+
 // Activity marker (storage budget design 2026-10-05): any successful read or
 // write keeps the account alive; one untouched for a year expires, and the
 // daily cleanup then deletes its blobs. Refreshed at most every 30 days so a
@@ -151,22 +161,22 @@ async function handleDelete(env, accountId) {
   return new Response(null, { status: 204 });
 }
 
-async function readBoundedJson(request) {
+async function readBoundedJson(request, maxBytes = MAX_REQUEST_BYTES) {
   const declared = request.headers.get('Content-Length');
-  if (declared && /^\d+$/.test(declared) && Number(declared) > MAX_REQUEST_BYTES) {
+  if (declared && /^\d+$/.test(declared) && Number(declared) > maxBytes) {
     try { await request.body?.cancel(); } catch {}
     return { response: json({ error: 'too large' }, 413) };
   }
   if (!request.body) return { response: json({ error: 'bad json' }, 400) };
   const reader = request.body.getReader();
   let size = 0;
-  const bytes = new Uint8Array(MAX_REQUEST_BYTES);
+  const bytes = new Uint8Array(maxBytes);
   try {
     while (true) {
       const { value, done } = await reader.read();
       if (done) break;
       size += value.byteLength;
-      if (size > MAX_REQUEST_BYTES) {
+      if (size > maxBytes) {
         try { await reader.cancel(); } catch {}
         return { response: json({ error: 'too large' }, 413) };
       }
@@ -179,16 +189,50 @@ async function readBoundedJson(request) {
   } finally { reader.releaseLock(); }
 }
 
+async function handlePairPost(env, id, body) {
+  if (!body || typeof body.blob !== 'object' || body.blob === null) return json({ error: 'bad blob' }, 400);
+  if (await env.SYNC.get(pairKey(id))) return json({ error: 'exists' }, 409);
+  await env.SYNC.put(pairKey(id), JSON.stringify({ blob: body.blob }), { expirationTtl: PAIR_TTL_SECONDS });
+  return json({}, 201);
+}
+
+async function handlePairGet(env, id, ip) {
+  if (ip && await bumpLimited(env, `pairrl:${ip}`, PAIR_GET_LIMIT)) return json({ error: 'rate-limited' }, 429);
+  const rec = await env.SYNC.get(pairKey(id), { type: 'json' });
+  if (!rec) return json({ error: 'not-found' }, 404);
+  await env.SYNC.delete(pairKey(id));
+  return json({ blob: rec.blob });
+}
+
+async function handlePairDelete(env, id) {
+  await env.SYNC.delete(pairKey(id));
+  return new Response(null, { status: 204 });
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    const ip = request.headers.get('CF-Connecting-IP');
+    const pair = url.pathname.match(/^\/v1\/pair\/([0-9a-f]{64})$/);
+    if (pair) {
+      if (await ipRateLimited(env, ip)) return json({ error: 'rate-limited' }, 429);
+      const [, id] = pair;
+      if (request.method === 'GET') return handlePairGet(env, id, ip);
+      if (request.method === 'DELETE') return handlePairDelete(env, id);
+      if (request.method === 'POST') {
+        const parsed = await readBoundedJson(request, PAIR_MAX_REQUEST_BYTES);
+        if (parsed.response) return parsed.response;
+        return handlePairPost(env, id, parsed.body);
+      }
+      return new Response('method not allowed', { status: 405 });
+    }
     const m = url.pathname.match(/^\/v1\/blob\/([0-9a-f]{64})(?:\/([a-z]+))?$/);
     if (!m) return new Response('not found', { status: 404 });
     const [, accountId, store] = m;
 
     // Per-IP throttle across ALL methods — the actual anti-guessing defense,
     // and it also caps unauthenticated PUT/DELETE against a known accountId.
-    if (await ipRateLimited(env, request.headers.get('CF-Connecting-IP'))) {
+    if (await ipRateLimited(env, ip)) {
       return json({ error: 'rate-limited' }, 429);
     }
 

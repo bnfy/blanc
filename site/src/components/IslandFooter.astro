@@ -1,0 +1,25 @@
+---
+// The open Island's footer, as in the app (src/renderer/overlay.html
+// #islandFooter): New tab and Private, then the Spaces, Favorites, History,
+// Downloads, vertical tabs and Settings buttons. `devices` adds the Other
+// devices toggle with that count, drawn open over the drawer above it.
+interface Props { devices?: number }
+const { devices } = Astro.props;
+---
+<div class="foot-bar">
+  <div class="foot-launchers">
+    <span class="foot-new"><svg viewBox="0 0 16 16"><path d="M8 3.25v9.5M3.25 8h9.5"/></svg><span>New tab</span><span class="foot-kbd">⌘T</span></span>
+    <span class="foot-new private"><svg viewBox="0 0 16 16"><path d="M1.75 8C3.1 5.4 5.4 3.75 8 3.75S12.9 5.4 14.25 8C12.9 10.6 10.6 12.25 8 12.25S3.1 10.6 1.75 8Z"/><circle cx="8" cy="8" r="1.75"/><path d="M3 3l10 10"/></svg><span>Private</span></span>
+    {devices && (
+      <span class="foot-new devices open"><svg viewBox="0 0 16 16"><rect x="2" y="3.5" width="8" height="6" rx="1"/><path d="M1.25 11.75h9.25"/><rect x="12.25" y="6" width="2.75" height="6.25" rx="0.75"/></svg><span>Other devices</span><span class="foot-kbd">{devices}</span><svg class="devices-caret" viewBox="0 0 16 16"><path d="M4.5 9.75 8 6.25l3.5 3.5"/></svg></span>
+    )}
+  </div>
+  <div class="foot-tools">
+    <span class="foot-act ws"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M20.29 13.84A11.3 3.1 27 1 1 5.64 6.37"/></svg></span>
+    <span class="foot-act"><svg viewBox="0 0 16 16"><path d="M4.25 2.75h7.5v10.5L8 10.5l-3.75 2.75z"/></svg></span>
+    <span class="foot-act"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.75"/><path d="M8 4.75V8l2.25 1.5"/></svg></span>
+    <span class="foot-act"><svg viewBox="0 0 16 16"><path d="M8 2.5v6.5M5.3 6.3 8 9l2.7-2.7M3.5 12.5h9"/></svg></span>
+    <span class="foot-act"><svg viewBox="0 0 16 16"><rect x="2.5" y="2.75" width="11" height="10.5" rx="1.5"/><path d="M6 2.75v10.5"/></svg></span>
+    <span class="foot-act"><svg viewBox="0 0 16 16"><path d="M2.5 4.75h6M12 4.75h1.5M2.5 11.25h1.5M7.5 11.25h6"/><circle cx="10.25" cy="4.75" r="1.75"/><circle cx="5.75" cy="11.25" r="1.75"/></svg></span>
+  </div>
+</div>

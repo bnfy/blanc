@@ -128,6 +128,13 @@
             <h2 id="migrationChecklistTitle" data-i18n="newtab.checklist.title">ready to move in?</h2>
           </div>
           <ul class="migration-checklist-tasks">
+            <li id="migrationDefaultTask" hidden>
+              <button id="migrationDefaultAction" class="migration-task" type="button">
+                <span class="migration-task-check" aria-hidden="true"></span>
+                <span class="migration-task-label" data-i18n="newtab.checklist.default">Make Blanc your default</span>
+                <span class="page-sr-only migration-task-status" data-i18n="newtab.checklist.notCompleted">Not completed</span>
+              </button>
+            </li>
             <li id="migrationSyncTask">
               <button id="migrationSyncAction" class="migration-task" type="button">
                 <span class="migration-task-check" aria-hidden="true"></span>
@@ -155,6 +162,12 @@
       <span id="patronCallout" class="patron-pill js-patron-callout" hidden>
         <a href="blanc://settings/#group-patron"><img class="patron-cta-mark" src="sunrise-mark.png" alt="" /><span data-i18n="newtab.patron.become">Become a Blanc Patron</span></a>
         <button id="patronCalloutHide" class="start-pill-close" type="button" aria-label="Hide the Blanc Patron invitation for 90 days" data-i18n-aria-label="newtab.patron.hide">
+          <svg viewBox="0 0 10 10" width="10" height="10" aria-hidden="true"><path d="M2 2l6 6M8 2l-6 6"></path></svg>
+        </button>
+      </span>
+      <span id="whatsNew" class="whats-new-pill js-whats-new" hidden>
+        <a id="whatsNewLink" href="https://blanc.day/changelog"><span id="whatsNewLabel"></span></a>
+        <button id="whatsNewHide" class="start-pill-close" type="button" aria-label="Hide What’s new" data-i18n-aria-label="newtab.whatsNew.hide">
           <svg viewBox="0 0 10 10" width="10" height="10" aria-hidden="true"><path d="M2 2l6 6M8 2l-6 6"></path></svg>
         </button>
       </span>

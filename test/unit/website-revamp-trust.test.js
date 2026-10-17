@@ -32,12 +32,14 @@ test("the October 2 transparency answers survive consolidation verbatim", () => 
     )[1],
   );
   // The only reviewed wording changes since, applied in order: the Blanc
-  // Spaces rename, free Blanc Spaces, then the v1.34.0 memory re-run. Each
+  // Spaces rename, free Blanc Spaces, the v1.34.0 memory re-run, then 1Password
+  // on every platform. Each
   // must still find its exact prior text, so no stale exception lingers.
   const supportAnswers = [
     "docs/website-blanc-spaces-rename-2026-10-11.json",
     "docs/website-blanc-spaces-free-2026-10-14.json",
     "docs/website-memory-rerun-2026-10-15.json",
+    "docs/website-1password-all-platforms-2026-10-16.json",
   ].flatMap((file) => JSON.parse(read(file)).supportAnswers);
   for (const { id, before, after } of supportAnswers) {
     const entry = original.find((candidate) => candidate.id === id);
@@ -104,7 +106,9 @@ test("home keeps product limits and links to detailed ownership, licensing and a
     "Built by Bananify, an independent software studio.",
     "MIT for Blanc’s own code",
     "Patron unlocks nothing.",
-    "Off by default. Needs the 1Password app and account on macOS.",
+    // 1Password fill on Windows and Linux announced October 16, 2026; the
+    // Windows on Arm limit travels with it.
+    "Off by default. Needs the 1Password app and account. Not on Windows on Arm.",
   ])
     assert.ok(home.includes(phrase), phrase);
   assert.match(home, /href="\/trust#engine"/);

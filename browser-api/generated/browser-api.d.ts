@@ -38,6 +38,9 @@ export type TabLayout = 'island' | 'vertical';
 /** Appearance preference. */
 export type ThemePreference = 'system' | 'light' | 'dark';
 
+/** How an invite left Blanc: opened in the person's mail app, or copied to the clipboard because no mail app opened. */
+export type InviteFriendResult = 'mail' | 'copied';
+
 /** Options for a new tab. Only `private` is read by main today. */
 export type CreateTabOptions = { private?: boolean };
 
@@ -239,6 +242,13 @@ export interface DisplayShareSummary {
   tabId: TabId | null;
 }
 
+/** Result of renameGroup, built by renameGroup() in main.js. */
+export interface GroupRenameResult {
+  ok: boolean;
+  /** Present when ok is false: another group already has the name, or the group is gone. */
+  error?: 'duplicate' | 'unknown';
+}
+
 /** Result of getAllTabs, built by the tabs:get-all handler in main.js. */
 export interface TabsSnapshot {
   tabs: TabEntry[];
@@ -246,6 +256,8 @@ export interface TabsSnapshot {
   glanceTabId: TabId | null;
   groups: TabGroup[];
   closed: ClosedEntrySummary[];
+  /** How many of groups sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). */
+  closedSlot: number;
   tabLayout: TabLayout;
   verticalTabsWidth: number;
   verticalTabsPreferredWidth: number;
@@ -261,6 +273,8 @@ export interface TabsUpdatedPayload {
   glanceTabId: TabId | null;
   groups: TabGroup[];
   closed: ClosedEntrySummary[];
+  /** How many of groups sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). */
+  closedSlot: number;
   tabLayout: TabLayout;
   adblockEnabled: boolean;
   shieldPopover: ShieldPopover | null;
@@ -295,6 +309,10 @@ export interface VerticalTabsMetrics {
 export interface GlanceLayout {
   direction: 'horizontal' | 'vertical';
   ratio: number;
+  /** The smallest main-pane share the divider allows; above 0.5 on macOS when the main pane needs room for the Island and the traffic lights. */
+  minRatio: number;
+  /** The largest main-pane share the divider allows: 0.78, or less so the reference keeps 300 px. */
+  maxRatio: number;
   page: Rect;
   primary: Rect;
   divider: Rect;
@@ -302,6 +320,8 @@ export interface GlanceLayout {
   glanceContent: Rect;
   /** Alias of glanceContent kept for older consumers. */
   glance: Rect;
+  /** Which pane holds keyboard focus. Present on chrome:glance-layout (glanceLayoutPayload() in glance-focus.js); calculateGlanceLayout() leaves it out. */
+  focusedPane?: 'main' | 'glance';
 }
 
 /** Named Workspaces storage status, from workspaces.js. */
@@ -529,6 +549,23 @@ export interface RemoteDevice {
   groups: RemoteGroup[];
 }
 
+/** A bang the person added in Settings, from settings.js normalizeCustomBangs(). */
+export interface CustomBang {
+  /** Lowercase; a letter or digit, then up to 31 letters, digits, hyphens or underscores. */
+  code: string;
+  name: string;
+  /** The search address with %s where the words go; the custom search address's rule. */
+  template: string;
+}
+
+/** The bang settings the Island draws its hint row and picker from, from bangsState() in main.js. */
+export interface BangsState {
+  enabled: boolean;
+  custom: CustomBang[];
+  /** Recently used primary codes, newest first, at most ten; device-local. */
+  recent: string[];
+}
+
 /** Search suggestions for the address bar, labelled with the engine that produced them. */
 export interface SearchSuggestions {
   engine: SearchEngineId;
@@ -584,6 +621,10 @@ export interface IslandRectReport {
   shieldAnchor?: ShieldAnchor;
   /** Present while the Spaces menu is open from the mark, so it follows the pill. */
   spacesAnchor?: SpacesAnchor;
+  /** With Glance side by side: the narrowest main pane that holds the slim Island with a readable address, its chips and clearance included. Main stops the divider there. */
+  minPrimaryWidth?: number;
+  /** With Glance side by side: the narrowest reference that holds the Glance header at its most compact, including the window-control space on Windows and Linux. Main stops the divider there. */
+  minReferenceWidth?: number;
 }
 
 /** Where the Spaces menu opens: the space mark's left and bottom edges in window coordinates. Main validates both. */
@@ -717,10 +758,25 @@ export interface BlancBrowserAPI {
    */
   moveTab(id: TabId, target: TabMoveTarget): Promise<boolean>;
   /**
-   * Move a group before another group, or to the end with null.
+   * Move a group before another group, directly above the Recently closed band with 'recently-closed', or to the end with null.
    * IPC: invoke `groups:reorder`.
    */
-  reorderGroup(id: GroupId, beforeGroupId: GroupId | null): Promise<boolean>;
+  reorderGroup(id: GroupId, beforeGroupId: GroupId | 'recently-closed' | null): Promise<boolean>;
+  /**
+   * Move the ⌘L panel's Recently closed band before a group, or after the last group with null.
+   * IPC: invoke `groups:move-closed`.
+   */
+  moveClosedSection(beforeGroupId: GroupId | null): Promise<boolean>;
+  /**
+   * Rename a group, keeping the case typed. An empty or unchanged name changes nothing; another group's name in this window (in any case) is refused.
+   * IPC: invoke `groups:rename`.
+   */
+  renameGroup(groupId: GroupId, name: string): Promise<GroupRenameResult>;
+  /**
+   * Make every tab in a group ungrouped; the empty group goes away.
+   * IPC: invoke `groups:ungroup`.
+   */
+  ungroupGroup(groupId: GroupId): Promise<void>;
   /**
    * Activate a tab from the vertical tab rail.
    * IPC: invoke `tabs:activate-from-rail`.
@@ -732,10 +788,11 @@ export interface BlancBrowserAPI {
    */
   setGlanceTab(id: TabId): Promise<boolean>;
   /**
-   * Open the Glance tab picker.
+   * Open the Glance tab picker, or the Change picker while Glance is open.
+   * @param query Text the picker's filter starts with (/glance <text>); main caps it at 200 characters.
    * IPC: invoke `tabs:open-glance-picker`.
    */
-  openGlancePicker(): Promise<boolean>;
+  openGlancePicker(query?: string): Promise<boolean>;
   /**
    * Close the Glance view.
    * IPC: invoke `tabs:close-glance`.
@@ -1004,6 +1061,11 @@ export interface BlancBrowserAPI {
    */
   listRemoteTabs(): Promise<RemoteDevice[]>;
   /**
+   * Name another synced device as this profile's devices list it; an empty name or null restores the name it publishes. Refused (false) for a device the Other devices drawer does not list.
+   * IPC: invoke `chrome:rename-device`.
+   */
+  renameDevice(deviceId: string, name: string | null): Promise<boolean>;
+  /**
    * Cancel a pending workspace action.
    * IPC: send `chrome:workspaces-cancel`.
    */
@@ -1064,6 +1126,16 @@ export interface BlancBrowserAPI {
    */
   searchSuggestions(query: string): Promise<SearchSuggestions>;
   /**
+   * The bang settings: the switch, the person's own bangs and the recently used codes.
+   * IPC: invoke `chrome:bangs`.
+   */
+  bangs(): Promise<BangsState>;
+  /**
+   * The bang settings changed. Same projection as bangs().
+   * IPC: event `bangs:changed`.
+   */
+  onBangsChanged(callback: (payload: BangsState) => void): () => void;
+  /**
    * Other devices' open tabs changed. Same projection as listRemoteTabs.
    * IPC: event `chrome:remote-tabs-updated`.
    */
@@ -1108,6 +1180,11 @@ export interface BlancBrowserAPI {
    * IPC: invoke `chrome:sleep-background-tabs`.
    */
   sleepBackgroundTabs(): Promise<TabId[]>;
+  /**
+   * Open a prefilled invite email in the person's own mail app (/invite). Blanc sends nothing; without a mail app the invite is copied instead.
+   * IPC: invoke `chrome:invite-friend`.
+   */
+  inviteFriend(): Promise<InviteFriendResult>;
   /**
    * Fill a login from 1Password (explicit invoke only). Resolves to false when the broker is unavailable.
    * IPC: invoke `chrome:onepassword-fill`.

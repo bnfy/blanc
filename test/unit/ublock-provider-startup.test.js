@@ -48,3 +48,16 @@ test('a failed verified install fails closed with the unchanged error and names 
   assert.deepEqual(Object.keys(failed.timings), ['cssHostLoad', 'cssHostReady', 'install']);
   assert.equal((await provider.decide('onBeforeRequest', { id: 2, url: 'https://example.org/', resourceType: 'mainFrame' })).cancel, true);
 });
+
+test("the built-in PDF viewer loads while uBO starts and once it is ready; other extensions stay refused", async t => {
+  const h = createProviderHarness(t);
+  const viewer = 'chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai';
+  const viewerRequest = (id, url) => h.provider.decide('onBeforeRequest', { id, url, resourceType: 'subFrame', webContentsId: 9 });
+  assert.notEqual((await viewerRequest(1, `${viewer}/index.html`)).cancel, true, 'the viewer page is not held at startup');
+  assert.equal((await h.provider.decide('onBeforeRequest',
+    { id: 2, url: 'chrome-extension://otherextension/page.html', resourceType: 'subFrame', webContentsId: 9 })).cancel, true);
+  assert.equal((await h.provider.initialize()).phase, 'ready');
+  const asked = h.requests().length;
+  assert.notEqual((await viewerRequest(3, `${viewer}/0f7c5a2e-6c3d-4a8e-9a43-3f2a1e7d9b10`)).cancel, true);
+  assert.equal(h.requests().length, asked, 'the viewer\'s own loads never go to uBO');
+});

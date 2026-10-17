@@ -1,6 +1,7 @@
 // Shared quiet-tab batch insertion and group resolution for both import paths.
 const crypto = require('node:crypto');
 const { normalizeGroupName } = require('./tab-import-apply');
+const { sameGroupName } = require('./group-name-case');
 
 function computeBatchInsertAt(tabOrder, activeTabId) {
   if (!Array.isArray(tabOrder) || !tabOrder.length) return 0;
@@ -25,7 +26,7 @@ function reorderTabOrderForBatch(tabOrder, createdIds, insertAt) {
 function resolveBatchGroupId(groups, groupName, createdGroupIds, randomId = () => crypto.randomUUID()) {
   const name = normalizeGroupName(groupName);
   if (!name) return null;
-  const existing = groups.find((group) => group.name === name);
+  const existing = groups.find((group) => sameGroupName(group.name, name));
   if (existing) return existing.id;
   const id = String(randomId() ?? '');
   if (!id) return null;

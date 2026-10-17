@@ -197,13 +197,13 @@ if (dialog && typeof dialog.showModal === 'function') {
   if (location.hash) requestAnimationFrame(openFromHash);
 }
 
-// Ambient tile loops (Quiet Tabs dimming, the wallpaper's dayparts) only run
-// while their tile is on screen.
+// Ambient tile loops (Quiet Tabs dimming, the wallpaper's dayparts, the
+// Bangs tile's bangs) only run while their tile is on screen.
 if ('IntersectionObserver' in window) {
   const inView = new IntersectionObserver(entries => {
     for (const entry of entries) entry.target.toggleAttribute('data-in-view', entry.isIntersecting);
   });
-  for (const tile of document.querySelectorAll('.bento-R1, .bento-R2')) inView.observe(tile);
+  for (const tile of document.querySelectorAll('.bento-R1, .bento-R2, .bento-R3')) inView.observe(tile);
 }
 
 // The ad-blocking demo draws the native Island and shield popover. As in the

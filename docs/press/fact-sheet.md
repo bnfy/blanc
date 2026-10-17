@@ -1,6 +1,6 @@
 # Blanc Browser — press fact sheet
 
-Last updated: October 9, 2026 (public Blanc 1.31.0)
+Last updated: October 16, 2026 (public Blanc 1.35.0)
 
 ## The short version
 
@@ -14,9 +14,10 @@ private tabs, Favorites, history, downloads, a command palette, named tab
 groups you can reorder by dragging, independent windows, isolated local
 profiles, a focused two-page Glance view, optional vertical tabs, Quiet Tabs,
 Recently Closed, four Start Page layouts with built-in Mahjong, mouse gestures,
-optional dark websites, Blanc Spaces for Patrons, end-to-end-encrypted
-Sync, trusted screen and system-audio sharing, and a private one-time handoff
-for bringing open tabs over from another browser. It does not ship an AI
+optional dark websites, free Blanc Spaces, tabs you can rename, optional
+1Password login fill, end-to-end-encrypted Sync, trusted screen and
+system-audio sharing, and a private one-time handoff for bringing open tabs
+over from another browser. It does not ship an AI
 assistant or a general extension runtime.
 
 ## Product facts
@@ -24,12 +25,14 @@ assistant or a general extension runtime.
 | Item | Fact |
 |---|---|
 | Product | Blanc Browser |
-| Current public release | [1.31.0](https://github.com/bnfy/blanc/releases/tag/v1.31.0), released October 9, 2026 |
+| Current public release | [1.35.0](https://github.com/bnfy/blanc/releases/tag/v1.35.0), released October 16, 2026 |
 | Platforms | macOS (Apple Silicon and Intel), Windows x64, and Linux x64 (AppImage) |
 | Price | Free |
-| Optional support | Blanc Patron subscription, US$30/year or $4/month, plus applicable taxes; unlocks Blanc Spaces on every platform. Founding supporters from the earlier one-time purchase keep their benefits permanently |
+| Optional support | Blanc Patron subscription, US$30/year or $4/month, plus applicable taxes. It supports development and unlocks nothing: every feature, including Blanc Spaces, is free (since 1.33.0). Founding supporters from the earlier one-time purchase keep their Patron status permanently |
 | Browser engine | Chromium through Electron |
-| Default search | DuckDuckGo; Google, Bing, and Brave Search are also available |
+| Default search | DuckDuckGo; Google, Bing, Brave Search, and Kagi (Kagi needs a Kagi account) are also available, or any engine through a custom search address with `%s` |
+| Interface languages | English, German, Spanish, French, Italian, and Portuguese (Brazil), machine-translated; Blanc does not translate web pages |
+| 1Password | Optional login fill from the installed 1Password app on macOS, Windows, and Linux (not Windows on Arm); off by default, and it fills only when asked |
 | Blocking | Blanc Blocker by default: reviewed, hash-pinned EasyList + EasyPrivacy snapshots bundled into each release, with browser-level request blocking, cosmetic CSS, and isolated blocker scriptlets. It always protects private tabs. Regular profiles can switch to the bundled full uBlock Origin 1.75.0 on Apple Silicon and native Intel Macs, Windows x64, and Linux x64 |
 | Sync | Optional, passphrase-derived end-to-end encryption for Favorites and eligible settings (search engine, blocking state and exceptions, home page, theme, Start Page layout, and dynamic wallpaper); open-tab sharing is a separate per-device opt-in |
 | Publisher | Bananify |
@@ -50,6 +53,10 @@ assistant or a general extension runtime.
 - **Glance** keeps one current-window tab visible as a temporary reference
   beside the main page without turning Blanc into a general split-view
   workspace manager.
+- **Tab names**: give any tab a name of your own (Rename Tab… or `/rename`).
+  It stays through navigation, Quiet Tabs, moving the tab to a new window,
+  Recently Closed, Blanc Spaces, and relaunch; History and Favorites keep the
+  page's own title.
 - **Quiet Tabs** frees the memory of background tabs left idle for a delay you
   choose (30 minutes, 1 hour by default, 6 hours, or off) and reloads them when
   you return. **Recently Closed** lets you reopen closed tabs and groups for a
@@ -101,7 +108,9 @@ produced it is `bench/memory/` in the repository.
 - Optional usage measurement contains a random install ID, a random per-launch
   session ID, version, platform, architecture, and coarse OS major. It counts
   launches plus a fixed allowlist: the first real Mahjong move and which of the
-  four Start Page layouts render, at most once each per app session. It contains
+  four Start Page layouts render, at most once each per app session, and two
+  first-day signals sent at most once per install within 24 hours of
+  installing (Blanc became the default browser; three web pages were opened). It contains
   no URLs, searches, history, page content, game state, or private-tab feature
   activity and can be disabled in Settings.
 - Private tabs use a separate, non-persistent in-memory browser session and stay
@@ -114,7 +123,7 @@ produced it is `bench/memory/` in the repository.
 
 ## Availability note
 
-Public 1.31.0 ships signed and notarized macOS builds for Apple Silicon and
+Public 1.35.0 ships signed and notarized macOS builds for Apple Silicon and
 Intel, a signed Windows x64 installer, and a Linux x64 AppImage. A platform is
 included in any new release only after its exact artifact passes the native
 release gate; each version's [release notes](https://github.com/bnfy/blanc/releases)

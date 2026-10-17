@@ -116,6 +116,18 @@ Feature: Drag to reorder tabs and groups
       | rail    |
       | island  |
 
+  @F3-17 @F3 @desktop
+  Scenario: Move Recently closed among the groups in the island
+    Given a loose tab has been closed
+    When I drag Recently closed above the "play" header in the island
+    Then in the island Recently closed sits before "play"
+    When I focus Recently closed in the island and press Alt+Shift+ArrowUp
+    Then in the island Recently closed sits directly under Pinned
+    When I drag Recently closed above the "play" header in the island
+    And I relaunch Blanc
+    And a loose tab has been closed
+    Then in the island Recently closed sits before "play"
+
   @F3-16 @F3 @desktop
   Scenario: Escape mid-drag keeps the island open
     When I start dragging the first "work" tab in the island

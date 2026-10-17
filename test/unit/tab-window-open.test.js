@@ -8,9 +8,13 @@ const vm = require('node:vm');
 
 const source = fs.readFileSync(path.join(__dirname, '../../src/main/tab-view.js'), 'utf8');
 const policySource = source.match(/  const applyWindowOpenPolicy = \(targetWc\) => \{[\s\S]*?\n  \};/)?.[0];
+// The shared "show a tab this page opened" step (also used by the page
+// context menu's Search for… and View Page Source).
+const showOpenedTabSource = source.match(/  const showOpenedTab = \(newId, role\) => \{[\s\S]*?\n  \};/)?.[0];
 
-function harness({ isPrivate = false } = {}) {
+function harness({ isPrivate = false, openerIsReference = false } = {}) {
   assert.ok(policySource, 'window-open policy must be exercised from the shipped source');
+  assert.ok(showOpenedTabSource, 'showOpenedTab must be exercised from the shipped source');
   let handler;
   const tabs = new Map();
   const created = [];
@@ -18,7 +22,8 @@ function harness({ isPrivate = false } = {}) {
   const scheduled = [];
   const adopted = [];
   const childWc = { isDestroyed: () => false };
-  const owner = { resident: false };
+  const owner = { resident: false, activeTabId: 'main', glanceTabId: openerIsReference ? 'opener' : null };
+  const glanced = [];
   const tab = { id: 'opener', private: isPrivate, groupId: 'group' };
   const sandbox = {
     tab, tabs,
@@ -43,15 +48,17 @@ function harness({ isPrivate = false } = {}) {
     },
     liveContents: (record) => record?.view?.webContents ?? null,
     setActiveTab: (id) => activated.push(id),
+    foregroundOpenRole: require('../../src/main/glance-focus').foregroundOpenRole,
+    deps: { setGlanceTab: (id) => { glanced.push(id); return Promise.resolve(true); } },
     setImmediate: (callback) => scheduled.push(callback),
   };
-  vm.runInNewContext(`${policySource}\nthis.install = applyWindowOpenPolicy;`, sandbox);
+  vm.runInNewContext(`${showOpenedTabSource}\n${policySource}\nthis.install = applyWindowOpenPolicy;`, sandbox);
   sandbox.install({
     getURL: () => 'https://example.test/source',
     setWindowOpenHandler: (callback) => { handler = callback; },
     on: () => {},
   });
-  return { handler, tab, childWc, created, activated, scheduled, adopted };
+  return { handler, tab, childWc, created, activated, scheduled, adopted, glanced };
 }
 
 for (const isPrivate of [false, true]) {
@@ -94,6 +101,20 @@ test('a foreground click with deferred contents also loads and activates a norma
   assert.equal(h.created[0].options.view ?? null, null);
   h.scheduled[0]();
   assert.deepEqual(h.activated, ['child']);
+});
+
+test('a foreground click in the Glance reference opens the new tab into Glance, not as the main page', () => {
+  const h = harness({ openerIsReference: true });
+  const response = h.handler({ url: 'https://example.test/target', disposition: 'foreground-tab' });
+  response.createWindow({});
+  h.scheduled[0]();
+  assert.deepEqual(h.glanced, ['child']);
+  assert.deepEqual(h.activated, [], 'the main page must not change');
+  // A background click from the reference stays a background tab.
+  const background = harness({ openerIsReference: true });
+  background.handler({ url: 'https://example.test/target', disposition: 'background-tab' }).createWindow({});
+  assert.deepEqual(background.scheduled, []);
+  assert.deepEqual(background.glanced, []);
 });
 
 test('deferred contents retain Chromium document sandbox flags and the full referrer policy', () => {

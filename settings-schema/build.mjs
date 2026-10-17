@@ -70,6 +70,7 @@ function genSwift() {
   out += `    public static let searchEngineTemplate: String = ${JSON.stringify(spec.defaults.searchEngineTemplate)}\n`;
   out += `    public static let searchSuggestions: Bool = ${spec.defaults.searchSuggestions}\n`;
   out += `    public static let adblockEnabled: Bool = ${spec.defaults.adblockEnabled}\n`;
+  out += `    public static let bangsEnabled: Bool = ${spec.defaults.bangsEnabled}\n`;
   out += `    public static let homePage: String = ${JSON.stringify(spec.defaults.homePage)}\n`;
   out += `    public static let theme: BlancThemePreference = .${swiftCase(spec.defaults.theme)}\n`;
   out += `    public static let newtabDynamicWallpaper: Bool = ${spec.defaults.newtabDynamicWallpaper}\n`;
@@ -109,6 +110,7 @@ function genKotlin() {
   out += `    const val searchEngineTemplate = ${JSON.stringify(spec.defaults.searchEngineTemplate)}\n`;
   out += `    const val searchSuggestions = ${spec.defaults.searchSuggestions}\n`;
   out += `    const val adblockEnabled = ${spec.defaults.adblockEnabled}\n`;
+  out += `    const val bangsEnabled = ${spec.defaults.bangsEnabled}\n`;
   out += `    const val homePage = ${JSON.stringify(spec.defaults.homePage)}\n`;
   out += `    val theme = BlancThemePreference.${upper(spec.defaults.theme)}\n`;
   out += `    const val newtabDynamicWallpaper = ${spec.defaults.newtabDynamicWallpaper}\n`;
@@ -162,6 +164,7 @@ function parseSettingsJs() {
     searchEngineTemplate: s(/^\s*searchEngineTemplate:\s*'([^']*)'/m),
     searchSuggestions: s(/^\s*searchSuggestions:\s*(true|false)/m),
     adblockEnabled: s(/^\s*adblockEnabled:\s*(true|false)/m),
+    bangsEnabled: s(/^\s*bangsEnabled:\s*(true|false)/m),
     homePage: s(/^\s*homePage:\s*'([^']*)'/m),
     theme: s(/^\s*theme:\s*'([^']*)'/m),
     newtabDynamicWallpaper: s(/^\s*newtabDynamicWallpaper:\s*(true|false)/m),
@@ -216,6 +219,7 @@ function check() {
   eq('searchEngineTemplate', jd.searchEngineTemplate, d.searchEngineTemplate);
   eq('searchSuggestions', jd.searchSuggestions, String(d.searchSuggestions));
   eq('adblockEnabled', jd.adblockEnabled, String(d.adblockEnabled));
+  eq('bangsEnabled', jd.bangsEnabled, String(d.bangsEnabled));
   eq('homePage', jd.homePage, d.homePage);
   eq('theme', jd.theme, d.theme);
   eq('newtabDynamicWallpaper', jd.newtabDynamicWallpaper, String(d.newtabDynamicWallpaper));

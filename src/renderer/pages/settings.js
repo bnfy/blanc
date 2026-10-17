@@ -288,6 +288,122 @@
       window.bowserPages.settings.set({ searchEngine: searchEngine.value }));
   }
 
+  // --- Bangs: the switch and the person's own bangs ---
+  if (supports('bangsEnabled')) {
+    const bangsEnabled = document.getElementById('bangsEnabled');
+    bangsEnabled.checked = settings.bangsEnabled !== false;
+    bangsEnabled.addEventListener('change', () =>
+      window.bowserPages.settings.set({ bangsEnabled: bangsEnabled.checked }));
+
+    const bangCode = document.getElementById('customBangCode');
+    const bangName = document.getElementById('customBangName');
+    const bangTemplate = document.getElementById('customBangTemplate');
+    const bangAdd = document.getElementById('customBangAdd');
+    const bangList = document.getElementById('customBangList');
+    const bangError = document.getElementById('customBangError');
+    const bangReplaces = document.getElementById('customBangReplaces');
+    const bangHost = (template) => {
+      try { return new URL(template.replace('%s', 'x')).host; } catch { return ''; }
+    };
+    const showBangNotice = (error, replaces) => {
+      bangError.hidden = !error;
+      if (error) bangError.textContent = error;
+      bangReplaces.hidden = !replaces;
+      if (replaces) bangReplaces.textContent = replaces;
+    };
+
+    function renderCustomBangs(list) {
+      bangList.replaceChildren();
+      if (list.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'site-list-empty';
+        empty.textContent = t('settings.general.customBangs.empty');
+        bangList.append(empty);
+        return;
+      }
+      list.forEach((bang, index) => {
+        const row = document.createElement('div');
+        row.className = 'site-row';
+        const code = document.createElement('span');
+        code.className = 'custom-bang-code';
+        code.textContent = `!${bang.code}`;
+        code.dataset.i18nIgnore = '';
+        const name = document.createElement('span');
+        name.className = 'site-row-name';
+        name.textContent = bang.name;
+        name.dataset.i18nIgnore = '';
+        const host = document.createElement('span');
+        host.className = 'custom-bang-host';
+        host.textContent = bangHost(bang.template);
+        host.dataset.i18nIgnore = '';
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'site-row-remove';
+        remove.textContent = '×';
+        remove.setAttribute('aria-label', t('settings.general.customBangs.remove', { code: bang.code }));
+        remove.addEventListener('click', async () => {
+          const hadFocus = document.activeElement === remove;
+          siteRemovals = siteRemovals.then(async () => {
+            const { settings: saved } = await window.bowserPages.settings.get();
+            const next = await window.bowserPages.settings.set({
+              customBangs: (saved.customBangs ?? []).filter((b) => b.code !== bang.code),
+            });
+            renderCustomBangs(next.customBangs ?? []);
+            showBangNotice('', '');
+          }).catch((error) => console.error(error));
+          await siteRemovals;
+          if (!hadFocus) return;
+          const buttons = bangList.querySelectorAll('.site-row-remove');
+          (buttons[Math.min(index, buttons.length - 1)] ?? bangCode).focus();
+        });
+        row.append(code, name, host, remove);
+        bangList.append(row);
+      });
+    }
+
+    // Main is the sole validator: send the row, then look for it in what was
+    // stored. A duplicate code is refused here first, because the stored list
+    // would keep the earlier row and make the add look accepted.
+    async function addCustomBang() {
+      const code = bangCode.value.trim().replace(/^!/, '').toLowerCase();
+      const name = bangName.value.trim();
+      const template = bangTemplate.value.trim();
+      if (!code && !name && !template) return;
+      const { settings: current } = await window.bowserPages.settings.get();
+      const existing = current.customBangs ?? [];
+      if (existing.some((b) => b.code === code)) {
+        showBangNotice(t('settings.general.customBangs.duplicate', { code }), '');
+        return;
+      }
+      const intended = { code, name, template };
+      const next = await window.bowserPages.settings.set({ customBangs: [...existing, intended] });
+      const stored = (next.customBangs ?? []).find((b) =>
+        b.code === intended.code && b.name === intended.name && b.template === intended.template);
+      if (!stored) {
+        showBangNotice(t('settings.general.customBangsError'), '');
+        return; // leaves the draft in the fields to correct
+      }
+      renderCustomBangs(next.customBangs ?? []);
+      bangCode.value = '';
+      bangName.value = '';
+      bangTemplate.value = '';
+      const builtIn = Bangs.findBang(code, BangsCatalog, []);
+      showBangNotice('', builtIn ? t('settings.general.customBangs.replaces', { code, site: builtIn.name }) : '');
+      bangCode.focus();
+    }
+
+    bangAdd.addEventListener('click', addCustomBang);
+    for (const field of [bangCode, bangName, bangTemplate]) {
+      field.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') addCustomBang();
+      });
+    }
+    renderCustomBangs(settings.customBangs ?? []);
+  } else {
+    document.getElementById('customBangsBlock')?.remove();
+    document.getElementById('bangsEnabled')?.closest('.setting')?.remove();
+  }
+
   // --- Tab presentation (desktop-only, device-local) ---
   if (supports('tabLayout')) {
     const tabLayout = document.getElementById('tabLayout');
@@ -1242,7 +1358,6 @@
       const setupIntro = document.getElementById('syncSetupIntro');
       const paths = document.getElementById('syncPaths');
       const pathStart = document.getElementById('syncPathStart');
-      const pathJoin = document.getElementById('syncPathJoin');
       const form = document.getElementById('syncForm');
       const handleEl = document.getElementById('syncHandle');
       const passEl = document.getElementById('syncPassphrase');
@@ -1259,6 +1374,7 @@
       const setupStatus = document.getElementById('syncSetupStatus');
       const activeStatus = document.getElementById('syncActiveStatus');
       const syncStatusHandle = document.getElementById('syncStatusHandle');
+      const deviceNameEl = document.getElementById('syncDeviceName');
       const syncStatusData = document.getElementById('syncStatusData');
       const syncStatusTabs = document.getElementById('syncStatusTabs');
       const syncStatusErrorRow = document.getElementById('syncStatusErrorRow');
@@ -1267,6 +1383,40 @@
       const disableBtn = document.getElementById('syncDisable');
       const wipeEl = document.getElementById('syncWipe');
       const tabsShareEl = document.getElementById('syncTabsShare');
+      // Device pairing (design 2026-10-16): the code path of the off state,
+      // and the on state's Add another device / Connect to a different sync /
+      // Copy recovery code. Driven by settings-sync-pairing-model.js.
+      const {
+        createPairingModel, pairingTransition, pairingView,
+        createSwitchModel, switchTransition, switchView,
+      } = window.blancSyncPairingModel;
+      const pathCode = document.getElementById('syncPathCode');
+      const codeForm = document.getElementById('syncCodeForm');
+      const codeEl = document.getElementById('syncCode');
+      const codeSubmit = document.getElementById('syncCodeSubmit');
+      const codeBack = document.getElementById('syncCodeBack');
+      const usePassphrase = document.getElementById('syncUsePassphrase');
+      const codeStatus = document.getElementById('syncCodeStatus');
+      const addDeviceBtn = document.getElementById('syncAddDevice');
+      const pairingPanel = document.getElementById('syncPairing');
+      const pairingCodeEl = document.getElementById('syncPairingCode');
+      const pairingRemaining = document.getElementById('syncPairingRemaining');
+      const pairingCopy = document.getElementById('syncPairingCopy');
+      const pairingCancel = document.getElementById('syncPairingCancel');
+      const pairingNotice = document.getElementById('syncPairingNotice');
+      const switchOpen = document.getElementById('syncSwitchOpen');
+      const switchForm = document.getElementById('syncSwitch');
+      const switchName = document.getElementById('syncSwitchName');
+      const switchBody = document.getElementById('syncSwitchBody');
+      const switchWipe = document.getElementById('syncSwitchWipe');
+      const switchWipeLabel = document.getElementById('syncSwitchWipeLabel');
+      const switchCode = document.getElementById('syncSwitchCode');
+      const switchSubmit = document.getElementById('syncSwitchSubmit');
+      const switchCancel = document.getElementById('syncSwitchCancel');
+      const switchNotice = document.getElementById('syncSwitchNotice');
+      const recoveryCopy = document.getElementById('syncRecoveryCopy');
+      const recoveryNote = document.getElementById('syncRecoveryNote');
+      let currentHandle = '';
 
       // On-state: one row per category; the error lives ONLY in its own row.
       function renderStatus(status, note) {
@@ -1275,7 +1425,11 @@
         active.hidden = !on;
         tabsShareEl.checked = !!status.syncTabs;
         if (on) {
+          currentHandle = status.handle;
           syncStatusHandle.textContent = status.handle;
+          // The chosen name, or empty with the computer's name as the hint.
+          if (document.activeElement !== deviceNameEl) deviceNameEl.value = status.deviceName || '';
+          deviceNameEl.placeholder = status.deviceNamePublished || '';
           const lastSynced = relativeSyncTime(status.lastSyncedAt);
           syncStatusData.textContent = lastSynced ? t('settings.sync.lastSynced', { when: lastSynced }) : t('settings.sync.notSynced');
           syncStatusTabs.textContent = status.syncTabs ? t('settings.sync.sharing') : t('settings.sync.notShared');
@@ -1294,6 +1448,12 @@
         setupIntro.textContent = v.setupIntro;
         paths.hidden = v.pathChosen;
         form.hidden = !v.fieldsVisible;
+        codeForm.hidden = !v.codePath;
+        if (v.codePath) {
+          codeSubmit.disabled = v.submitDisabled;
+          codeStatus.textContent = v.noticeText;
+          if (codeEl.value !== model.code) codeEl.value = model.code;
+        }
         handleHint.textContent = v.handleHint;
         passHint.textContent = v.passphraseHint;
         submitBtn.textContent = v.submitLabel;
@@ -1343,17 +1503,137 @@
         dispatch({ type: 'preflight-reply', token: effect.token, outcome: reply.outcome, message: reply.message });
       }
 
+      async function performJoinCode(effect) {
+        codeStatus.textContent = t('settings.sync.turningOn');
+        let res;
+        try {
+          res = await window.bowserPages.settings.syncJoinCode(effect.code);
+        } catch {
+          res = { ok: false, message: t('settings.sync.checkFailed') };
+        }
+        const current = model.phase === 'joining' && model.token === effect.token;
+        dispatch({ type: 'join-code-reply', token: effect.token, ok: res.ok, outcome: res.error, message: res.message });
+        if (res.status) {
+          renderStatus(res.status, current && res.ok ? t('settings.sync.connectedTo', { name: res.status.handle }) : null);
+        }
+      }
+
       function dispatch(event) {
         const { state: next, effect } = transition(model, event);
         model = next;
         renderSetup();
         if (effect?.type === 'preflight') performPreflight(effect);
         if (effect?.type === 'enable') performEnable(effect);
+        if (effect?.type === 'join-code') performJoinCode(effect);
       }
 
+      // --- On state: Add another device ---
+      let pairingModel = createPairingModel();
+      let pairingTimer = null;
+      function renderPairing() {
+        const pv = pairingView(pairingModel, Date.now());
+        pairingPanel.hidden = !pv.showing;
+        addDeviceBtn.hidden = !pv.beginVisible;
+        addDeviceBtn.disabled = pairingModel.phase === 'starting';
+        pairingCodeEl.textContent = pv.codeText;
+        pairingRemaining.textContent = pv.showing ? t('settings.sync.pairing.expiresIn', { time: pv.remainingText }) : '';
+        pairingNotice.textContent = pv.expired ? t('settings.sync.pairing.expired') : pv.noticeText;
+        pairingNotice.hidden = !pairingNotice.textContent;
+        if (pv.showing && !pairingTimer) pairingTimer = setInterval(() => dispatchPairing({ type: 'tick', now: Date.now() }), 1000);
+        if (!pv.showing && pairingTimer) { clearInterval(pairingTimer); pairingTimer = null; }
+      }
+      async function performPairBegin() {
+        let res;
+        try {
+          res = await window.bowserPages.settings.syncPairBegin();
+        } catch {
+          res = { ok: false, message: t('settings.sync.checkFailed') };
+        }
+        dispatchPairing({ type: 'began', ok: res.ok, code: res.code, expiresAt: res.expiresAt, message: res.message });
+      }
+      function dispatchPairing(event) {
+        const { state: next, effect } = pairingTransition(pairingModel, event);
+        pairingModel = next;
+        renderPairing();
+        if (effect?.type === 'pair-begin') performPairBegin();
+        if (effect?.type === 'pair-cancel') window.bowserPages.settings.syncPairCancel().catch(() => {});
+      }
+      addDeviceBtn.addEventListener('click', () => dispatchPairing({ type: 'begin' }));
+      pairingCancel.addEventListener('click', () => dispatchPairing({ type: 'cancel' }));
+      pairingCopy.addEventListener('click', () => {
+        // The pairing code is the one secret meant to travel; the recovery
+        // code never passes through this page.
+        navigator.clipboard?.writeText(pairingModel.code).catch(() => {});
+      });
+      // A reopened Settings sheet shows the code still counting down.
+      function resumePairing() {
+        window.bowserPages.settings.syncPairState()
+          .then((state) => dispatchPairing({ type: 'resume', ...state }))
+          .catch(() => {});
+      }
+
+      // --- On state: Connect to a different sync ---
+      let switchModel = createSwitchModel();
+      function renderSwitch() {
+        const sv = switchView(switchModel);
+        switchForm.hidden = !sv.open;
+        switchOpen.hidden = sv.open;
+        if (sv.open) {
+          switchName.textContent = t('settings.sync.switch.title', { name: currentHandle });
+          switchBody.textContent = t('settings.sync.switch.body', { name: currentHandle });
+          switchWipeLabel.textContent = t('settings.sync.switch.wipe', { name: currentHandle });
+          switchWipe.checked = sv.wipeRemote;
+          switchSubmit.disabled = sv.submitDisabled;
+          switchNotice.textContent = sv.noticeText;
+          if (switchCode.value !== sv.codeValue) switchCode.value = sv.codeValue;
+        }
+      }
+      async function performSwitch(effect) {
+        switchNotice.textContent = t('settings.sync.turningOn');
+        let res;
+        try {
+          res = await window.bowserPages.settings.syncSwitchCode({ code: effect.code, wipeRemote: effect.wipeRemote });
+        } catch {
+          res = { ok: false, message: t('settings.sync.checkFailed') };
+        }
+        const current = switchModel.phase === 'pending' && switchModel.token === effect.token;
+        dispatchSwitch({ type: 'switch-reply', token: effect.token, ok: res.ok, message: res.message });
+        if (res.status) {
+          renderStatus(res.status, current && res.ok ? t('settings.sync.connectedTo', { name: res.status.handle }) : null);
+        }
+      }
+      function dispatchSwitch(event) {
+        const { state: next, effect } = switchTransition(switchModel, event);
+        switchModel = next;
+        renderSwitch();
+        if (effect?.type === 'switch-code') performSwitch(effect);
+      }
+      switchOpen.addEventListener('click', () => { dispatchSwitch({ type: 'open' }); switchCode.focus(); });
+      switchCancel.addEventListener('click', () => dispatchSwitch({ type: 'cancel' }));
+      switchCode.addEventListener('input', () => dispatchSwitch({ type: 'code-input', code: switchCode.value }));
+      switchWipe.addEventListener('change', () => dispatchSwitch({ type: 'toggle-wipe', on: switchWipe.checked }));
+      switchForm.addEventListener('submit', (e) => { e.preventDefault(); dispatchSwitch({ type: 'submit' }); });
+
+      // --- On state: Copy recovery code (main shows the dialog and writes the clipboard) ---
+      recoveryCopy.addEventListener('click', async () => {
+        recoveryCopy.disabled = true;
+        let res;
+        try {
+          res = await window.bowserPages.settings.syncRecoveryCodeCopy();
+        } catch {
+          res = { ok: false };
+        }
+        recoveryCopy.disabled = false;
+        recoveryNote.textContent = res.ok ? t('settings.sync.recovery.copied') : (res.error === 'cancelled' ? '' : (res.message ?? ''));
+      });
+
       pathStart.addEventListener('click', () => { dispatch({ type: 'choose', path: 'start' }); handleEl.focus(); });
-      pathJoin.addEventListener('click', () => { dispatch({ type: 'choose', path: 'join' }); handleEl.focus(); });
+      pathCode.addEventListener('click', () => { dispatch({ type: 'choose', path: 'code' }); codeEl.focus(); });
       backBtn.addEventListener('click', () => dispatch({ type: 'back' }));
+      codeBack.addEventListener('click', () => dispatch({ type: 'back' }));
+      codeEl.addEventListener('input', () => dispatch({ type: 'code-input', code: codeEl.value }));
+      codeForm.addEventListener('submit', (e) => { e.preventDefault(); dispatch({ type: 'submit' }); });
+      usePassphrase.addEventListener('click', () => { dispatch({ type: 'use-passphrase' }); handleEl.focus(); });
       const onInput = () => dispatch({ type: 'input', handle: handleEl.value, passphrase: passEl.value });
       handleEl.addEventListener('input', onInput);
       passEl.addEventListener('input', onInput);
@@ -1361,7 +1641,13 @@
       tryAgainBtn.addEventListener('click', () => { dispatch({ type: 'input', handle: handleEl.value, passphrase: passEl.value }); passEl.focus(); });
       startNewBtn.addEventListener('click', () => dispatch({ type: 'start-new' }));
 
-      window.bowserPages.settings.syncGet().then((status) => { renderStatus(status); renderSetup(); }).catch(() => {});
+      window.bowserPages.settings.syncGet().then((status) => {
+        renderStatus(status);
+        renderSetup();
+        renderPairing();
+        renderSwitch();
+        if (status.enabled) resumePairing();
+      }).catch(() => {});
 
       nowBtn.addEventListener('click', async () => {
         nowBtn.disabled = true;
@@ -1376,12 +1662,22 @@
         // on the server copy) — leave the checkbox set for the retry and say why.
         wipeEl.checked = res.ok ? false : wipeEl.checked;
         model = createSyncSetupModel();
+        pairingModel = createPairingModel();
+        switchModel = createSwitchModel();
         renderStatus(res.status, res.ok ? null : res.message);
         renderSetup();
+        renderPairing();
+        renderSwitch();
       });
 
       tabsShareEl.addEventListener('change', async () => {
         renderStatus(await window.bowserPages.settings.syncTabsSet(tabsShareEl.checked));
+      });
+      deviceNameEl.addEventListener('change', async () => {
+        renderStatus(await window.bowserPages.settings.syncDeviceNameSet(deviceNameEl.value));
+      });
+      deviceNameEl.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') deviceNameEl.blur(); // commits through change
       });
     })();
   } else {

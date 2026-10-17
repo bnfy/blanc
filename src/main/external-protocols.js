@@ -1,5 +1,7 @@
 'use strict';
 
+const { PDF_VIEWER_ORIGIN } = require('./blocking-resources');
+
 // These familiar links retain the explicit typed-address shortcut.
 const DIRECT_HANDOFF_PROTOCOLS = new Set(['mailto:', 'tel:', 'facetime:', 'sms:']);
 
@@ -113,10 +115,19 @@ function createExternalHandoff({ getWindow, getApplicationName, showMessageBox, 
   return handOff;
 }
 
+// Chromium's built-in PDF viewer loads each document into a child frame from
+// its own origin; blocking that frame leaves every PDF an empty viewer. Only
+// the viewer itself can initiate it, so no web page can borrow this to reach
+// chrome-extension:.
+const isPdfViewerFrameLoad = (event) => event.isMainFrame === false
+  && event.initiator?.origin === PDF_VIEWER_ORIGIN
+  && event.url?.startsWith(`${PDF_VIEWER_ORIGIN}/`);
+
 // Install on managed tabs and real OAuth popup windows. Server redirects do
 // not emit will-navigate; iframe callbacks need will-frame-navigate too.
 function installExternalNavigationHandlers(wc, handOff, allowManagedNavigation = () => false) {
   const navigate = (event) => {
+    if (isPdfViewerFrameLoad(event)) return;
     const frame = event.initiator || event.frame;
     const source = frame?.url || wc.getURL();
     if (allowManagedNavigation(event.url, source, event)) return;

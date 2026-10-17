@@ -12,6 +12,10 @@ const COMMANDS = Object.freeze({
   find: { labelKey: 'menu.find', primary: 'CmdOrCtrl+F' },
   reload: { labelKey: 'menu.reloadTab', primary: 'CmdOrCtrl+R', aliases: ['F5'] },
   'hard-reload': { labelKey: 'menu.hardReloadTab', primary: 'CmdOrCtrl+Shift+R' },
+  // Windows/Linux leave Ctrl+[ / Ctrl+] to pages (Gmail, Docs, editors), as
+  // Chrome does, and go back and forward with Alt+Left/Right.
+  back: { labelKey: 'pill.back', primary: 'CmdOrCtrl+[', desktopPrimary: 'Alt+Left' },
+  forward: { labelKey: 'pill.forward', primary: 'CmdOrCtrl+]', desktopPrimary: 'Alt+Right' },
   history: { labelKey: 'menu.showHistory', primary: 'CmdOrCtrl+Y', desktopPrimary: 'Ctrl+H', aliases: ['Ctrl+Y'] },
   downloads: { labelKey: 'menu.downloads', primary: 'CmdOrCtrl+Shift+J', desktopPrimary: 'Ctrl+J', aliases: ['Ctrl+Shift+J'] },
   settings: { labelKey: 'menu.settings', primary: 'CmdOrCtrl+,' },
@@ -31,7 +35,9 @@ function browserCommandDefinition(id, platform = process.platform) {
 
 function acceleratorMatches(input, accelerator, platform) {
   const parts = accelerator.toLowerCase().split('+');
-  const key = parts.pop();
+  // Accelerators name arrow keys Left/Right; input events say ArrowLeft/Right.
+  const key = { left: 'arrowleft', right: 'arrowright' }[parts.at(-1)] ?? parts.at(-1);
+  parts.pop();
   const modifiers = new Set(parts.map(modifier => modifier === 'cmdorctrl'
     ? platform === 'darwin' ? 'meta' : 'ctrl'
     : modifier));
@@ -53,13 +59,15 @@ function matchBrowserShortcut(input, platform = process.platform) {
 }
 
 function createBrowserCommandExecutor(actions, { platform = process.platform } = {}) {
-  return (id, runtime) => {
+  return (id, runtime, sender = null) => {
     const action = Object.hasOwn(COMMANDS, id) ? actions[id] : null;
     if (!action || !runtime || runtime.closing || runtime.resident) return false;
     const detachedMacAction = platform === 'darwin' && !runtime.window &&
       ['new-window', 'new-tab', 'new-private-tab', 'reopen-tab'].includes(id);
     if (!detachedMacAction && (!runtime.window || runtime.window.isDestroyed())) return false;
-    action(runtime);
+    // The key event's webContents, so a command can act on the pane it was
+    // pressed in (glance-focus.js). Menu clicks pass none.
+    action(runtime, sender);
     return true;
   };
 }
@@ -75,7 +83,7 @@ function installBrowserShortcuts({ webContents, getRuntime, ownsSurface, execute
     // are consumed too, so holding Ctrl+W cannot close an entire workspace.
     event.preventDefault();
     if (input.isAutoRepeat) return;
-    const handled = execute(id, runtime);
+    const handled = execute(id, runtime, webContents);
     observe({ id, runtimeId: runtime.id, webContentsId: webContents.id, handled });
   });
 }

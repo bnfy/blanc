@@ -43,6 +43,9 @@ const presentation = `
   #islandPill {margin:0; flex:none; width:max-content; max-width:none;}
   .native-menu-row {margin-top:6px; padding-left:var(--menu-x, 9px);}
   #workspaceSwitcher.ws-switcher {position:relative; inset:auto; max-width:none; max-height:none;}
+  /* The app's list scrolls and contains its overscroll; the demo's four
+     spaces never overflow, and a page scroll over it must reach the page. */
+  #workspaceSwitcherList {overflow:visible; overscroll-behavior:auto;}
   .ws-cmd {cursor:default;}
 `;
 const raw = `<div class="native-stage"><div class="native-pill-row" aria-hidden="true" inert>${art.pill}</div><div class="native-menu-row">${art.menu}</div></div>`;
@@ -56,5 +59,5 @@ const { html, css } = namespaceNativeArt({ html: raw, css: art.css + presentatio
     <Fragment set:html={html} />
   </template>
 </blanc-spaces-demo>
-<script is:inline set:html={`(() => { const host = document.currentScript.previousElementSibling; host.dataset.appearance = document.documentElement.dataset.homeAppearance === 'dark' ? 'dark' : 'light'; (${fitSpacesDemo.toString()})(host, window); })();`} />
+<script is:inline set:html={`(() => { const host = document.currentScript.previousElementSibling; (${fitSpacesDemo.toString()})(host, window); })();`} />
 <script src="../scripts/spaces-demo.js"></script>

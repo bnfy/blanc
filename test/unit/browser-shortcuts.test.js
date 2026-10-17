@@ -78,3 +78,43 @@ test('macOS keeps detached-window creation and reopen menu actions', () => {
   assert.equal(createBrowserCommandExecutor(actions, { platform: 'win32' })('new-window', runtime), false);
   assert.deepEqual(calls, ['new-window', 'new-tab', 'new-private-tab', 'reopen-tab']);
 });
+
+test('the action receives the webContents the key came from, or null from a menu', () => {
+  const seen = [];
+  const execute = createBrowserCommandExecutor({ reload: (runtime, sender) => seen.push([runtime.id, sender]) }, { platform: 'win32' });
+  const runtime = { id: 'w', window: { isDestroyed: () => false } };
+  assert.equal(execute('reload', runtime, 'page-wc'), true);
+  assert.equal(execute('reload', runtime), true);
+  assert.deepEqual(seen, [['w', 'page-wc'], ['w', null]]);
+
+  const wc = Object.assign(new EventEmitter(), { id: 3, isDestroyed: () => false });
+  const delivered = [];
+  installBrowserShortcuts({
+    webContents: wc, getRuntime: () => runtime, ownsSurface: () => true, platform: 'linux',
+    execute: (id, _runtime, sender) => { delivered.push([id, sender]); return true; },
+  });
+  wc.emit('before-input-event', { preventDefault() {} }, input('r', { control: true }));
+  assert.deepEqual(delivered, [['reload', wc]]);
+});
+
+test('Back and Forward are browser commands labelled from the pill', () => {
+  assert.equal(browserCommandDefinition('back', 'darwin').primary, 'CmdOrCtrl+[');
+  assert.equal(browserCommandDefinition('forward', 'darwin').primary, 'CmdOrCtrl+]');
+  assert.equal(browserCommandDefinition('back', 'darwin').labelKey, 'pill.back');
+  assert.equal(matchBrowserShortcut(input('[', { meta: true }), 'darwin'), 'back');
+  assert.equal(matchBrowserShortcut(input(']', { meta: true }), 'darwin'), 'forward');
+});
+
+test('Windows and Linux go Back and Forward with Alt+Left/Right and leave Ctrl+[ / ] to pages', () => {
+  // Gmail, Google Docs and code editors use Ctrl+[ / Ctrl+]; Chrome leaves
+  // them to the page on these platforms.
+  for (const platform of ['win32', 'linux']) {
+    assert.equal(browserCommandDefinition('back', platform).primary, 'Alt+Left');
+    assert.equal(browserCommandDefinition('forward', platform).primary, 'Alt+Right');
+    assert.equal(matchBrowserShortcut(input('ArrowLeft', { alt: true }), platform), 'back');
+    assert.equal(matchBrowserShortcut(input('ArrowRight', { alt: true }), platform), 'forward');
+    assert.equal(matchBrowserShortcut(input('[', { control: true }), platform), null);
+    assert.equal(matchBrowserShortcut(input(']', { control: true }), platform), null);
+    assert.equal(matchBrowserShortcut(input('ArrowLeft', { alt: true, control: true }), platform), null);
+  }
+});

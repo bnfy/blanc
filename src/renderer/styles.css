@@ -255,10 +255,21 @@ button svg {
 #strip.glance-open #islandPill {
   max-width: calc((var(--glance-primary-width) - 24px) / var(--pill-zoom));
 }
+/* With Glance open the Island gives up its tab dots (and +N) entirely, to
+   keep room for the address and its controls in a narrower main pane; tabs
+   stay reachable from ⌘L, the rail and ⌘1–9. */
+#strip.glance-open #pillDots { display: none; }
 /* Stacked: centred over the full page, kept clear of the window controls on
    both sides so the centre line does not move. */
 #strip.glance-open[data-glance-direction="vertical"] #islandPill {
   max-width: calc((var(--glance-primary-width) - 2 * var(--window-controls-w) - 24px) / var(--pill-zoom));
+}
+/* macOS draws its traffic lights at the window's left edge, inside the main
+   pane's strip in both Glance layouts. Keep the same clearance the Island has
+   without Glance (#islandPill: 170px), split across both sides so the pill
+   stays centred. With vertical tabs the lights sit in the rail instead. */
+:root[data-platform="darwin"]:not([data-tab-layout="vertical"]) #strip.glance-open #islandPill {
+  max-width: calc((var(--glance-primary-width) - 170px) / var(--pill-zoom));
 }
 
 .glance-header {
@@ -277,8 +288,28 @@ button svg {
   container-type: inline-size;
 }
 
-.glance-header[hidden] { display: none; }
+/* Motion: the Spaces menu's vocabulary (opacity 140 ms, transform 340 ms on
+   the Spaces curve), through transition + @starting-style + display
+   allow-discrete. The header and divider slide 6 px in from the right side
+   by side and from below when stacked; the two page views take their
+   bounds at once. Reduce Motion keeps the fade only (the block near the
+   end of this file). */
+.glance-header,
+.glance-divider {
+  transition: opacity 140ms ease, transform 340ms cubic-bezier(.2, .9, .25, 1), display 340ms allow-discrete;
+}
+.glance-header[hidden] { display: none; opacity: 0; transform: translateX(6px); }
+.glance-header[data-direction="vertical"][hidden] { transform: translateY(6px); }
+@starting-style {
+  .glance-header:not([hidden]) { opacity: 0; transform: translateX(6px); }
+  .glance-header[data-direction="vertical"]:not([hidden]) { transform: translateY(6px); }
+}
 .glance-header.private { border-left-style: dashed; border-bottom-style: dashed; }
+/* The reference holds keyboard focus, so ⌘R, ⌘W, ⌘F … act on it. Quieter
+   than an outline: the eyebrow and the bottom hairline brighten. (The title
+   is already --text.) */
+.glance-header.focused { border-bottom-color: var(--text-dim); }
+.glance-header.focused .glance-eyebrow { color: var(--text); }
 .glance-copy {
   min-width: 0;
   flex: 1 1 auto;
@@ -303,10 +334,18 @@ button svg {
 .glance-tab-identity {
   min-width: 0;
   display: flex;
+  /* A new reference's favicon, title and chip fade in over 120 ms
+     (renderer.js adds .swapping for one frame, with no transition, so the
+     fade runs from 0). A fade already, so Reduce Motion keeps it. */
+  transition: opacity 120ms ease;
   align-items: center;
   gap: 8px;
 }
+.glance-tab-identity.swapping { opacity: 0; transition: none; }
 .glance-tab-identity .favicon { flex: 0 0 auto; }
+.glance-tab-identity .row-private { margin-left: 6px; }
+/* The chip's own display rule would otherwise outrank the hidden attribute. */
+.glance-tab-identity .row-private[hidden] { display: none; }
 #glanceTitle {
   min-width: 0;
   overflow: hidden;
@@ -333,6 +372,20 @@ button svg {
 .glance-action { padding: 0 8px; font-size: 11.5px; }
 .glance-promote svg { display: none; }
 .glance-close { width: 30px; padding: 0; }
+.glance-nav {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.glance-header .glance-nav-btn { width: 30px; padding: 0; }
+/* The pill's glyph size and stroke, so the two read as one control family. */
+.glance-nav-btn svg { width: 14px; height: 14px; stroke-width: 1.4; }
+.glance-header .glance-nav-btn:disabled {
+  color: var(--border);
+  background: transparent;
+  cursor: default;
+}
 .glance-header button:hover {
   background: var(--accent-dim);
   color: var(--text);
@@ -366,16 +419,29 @@ button svg {
 }
 .glance-header[data-direction="vertical"] .glance-eyebrow { display: none; }
 
+/* Measuring the Glance header (renderer.js measureGlanceFloors): the same
+   compaction as the two container queries below, at the width its contents
+   need. Containment is lifted so max-content sees the children. */
+.glance-header.measuring { container-type: normal; width: max-content !important; }
+.glance-header.measuring .glance-eyebrow { display: none; }
+.glance-header.measuring .glance-copy { gap: 8px; flex: 0 0 auto; }
+.glance-header.measuring #glanceTitle { display: none; }
+
 @container (max-width: 360px) {
   .glance-eyebrow { display: none; }
-  .glance-copy { gap: 0; }
+  /* Back and Reload still sit beside the title. */
+  .glance-copy { gap: 8px; }
 }
+/* Make main as its swap icon alone, in one place: while measuring the
+   header's floor, and when renderer.js fitGlanceHeader decides the title
+   needs the room (cut below about ten characters, or hidden by the tier
+   below). */
+.glance-header:is(.measuring, .promote-icon) .glance-promote { width: 30px; padding: 0; }
+.glance-header:is(.measuring, .promote-icon) .glance-promote svg { display: block; }
+.glance-header:is(.measuring, .promote-icon) .glance-promote span { display: none; }
 @container (max-width: 300px) {
   #glanceTitle { display: none; }
   .glance-copy { flex: 0 0 auto; }
-  .glance-promote { width: 30px; padding: 0; }
-  .glance-promote svg { display: block; }
-  .glance-promote span { display: none; }
 }
 
 /* The child page views deliberately leave this narrow gap uncovered, so the
@@ -390,7 +456,12 @@ button svg {
   box-shadow: inset 1px 0 var(--border), inset -1px 0 var(--border);
   touch-action: none;
 }
-.glance-divider[hidden] { display: none; }
+.glance-divider[hidden] { display: none; opacity: 0; transform: translateX(6px); }
+.glance-divider[data-direction="vertical"][hidden] { transform: translateY(6px); }
+@starting-style {
+  .glance-divider:not([hidden]) { opacity: 0; transform: translateX(6px); }
+  .glance-divider[data-direction="vertical"]:not([hidden]) { transform: translateY(6px); }
+}
 .glance-divider[data-direction="horizontal"] { cursor: col-resize; }
 .glance-divider[data-direction="vertical"] {
   cursor: row-resize;
@@ -401,6 +472,7 @@ button svg {
   height: 38px;
   border-radius: 999px;
   background: var(--border);
+  transition: background-color 120ms ease;
 }
 .glance-divider[data-direction="vertical"] > span {
   width: 38px;
@@ -478,6 +550,23 @@ button svg {
 
 :root[data-tab-layout="vertical"] #strip.glance-open #islandPill {
   max-width: calc((var(--glance-primary-width) - 24px) / var(--pill-zoom));
+}
+/* Stacked with the rail: the Island is centred over the whole page, which
+   reaches the window's right edge, where Windows and Linux draw their window
+   controls. Reserve them on both sides as the stacked rule above does; on
+   macOS --window-controls-w is 0 and the traffic lights are in the rail. */
+:root[data-tab-layout="vertical"] #strip.glance-open[data-glance-direction="vertical"] #islandPill {
+  max-width: calc((var(--glance-primary-width) - 2 * var(--window-controls-w) - 24px) / var(--pill-zoom));
+}
+/* When even the slim Island does not fit between those two reservations, it
+   gives up its centre line before its address (renderer.js fitIslandDots adds
+   .uncentred): the controls are reserved once, on their own side, and the
+   margin shifts the centred pill left by half their width. Windows and Linux
+   only; macOS has no controls on this edge. Written to outrank both stacked
+   rules above. */
+:root:not([data-platform="darwin"]) #strip.glance-open[data-glance-direction="vertical"] #islandPill.uncentred {
+  max-width: calc((var(--glance-primary-width) - var(--window-controls-w) - 24px) / var(--pill-zoom));
+  margin-right: calc(var(--window-controls-w) / var(--pill-zoom));
 }
 
 /* In vertical mode the rail is the persistent tab presentation. The Island
@@ -1139,6 +1228,14 @@ body > .tab-drag-ghost[aria-hidden="true"] {
    `display: none`; restore it (higher specificity) so the contextual
    downloads button can hide itself. */
 .pill-btn[hidden] { display: none; }
+/* A slim Island (a narrow Glance main pane) drops Forward and Favorite. */
+#islandPill.slim .pill-slim-hide { display: none; }
+/* Measuring the Island (renderer.js measureGlanceFloors): a filler shows the
+   room the max-width rules allow; the measuring state shows what the slim
+   Island needs with about ten characters of address. */
+.island-measure-filler { flex: 0 0 4000px; height: 1px; }
+#islandPill.measuring { max-width: none !important; flex-shrink: 0; }
+#islandPill.measuring #pillDomain { flex: 0 0 10ch; }
 :root[data-tab-layout="vertical"] #pillNewTab { display: none; }
 .pill-btn:hover { background: var(--accent-dim); color: var(--accent); }
 .pill-btn:disabled { color: var(--border); cursor: default; background: transparent; }
@@ -2008,16 +2105,30 @@ body[data-mode=""] #backdrop, #backdrop[hidden] { animation: none; }
   padding: 16px;
   background: var(--surface-raised);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: var(--island-panel-radius);
   box-shadow: var(--shadow-popover);
+  /* The Spaces menu's enter and exit, growing out of the top centre; the
+     Change picker grows out of the Change caret instead (below). While
+     closing (body[data-closing="glance"], main still holding the view) it
+     keeps its placement and shrinks back the same way. */
+  transform-origin: 50% 0;
+  transition: opacity 140ms ease, transform 340ms cubic-bezier(.2, .9, .25, 1), display 340ms allow-discrete;
 }
-.glance-picker[hidden] { display: none; }
+.glance-picker[hidden] { display: none; opacity: 0; transform: translateX(-50%) scale(.92) translateY(6px); pointer-events: none; }
+@starting-style {
+  .glance-picker:not([hidden]) { opacity: 0; transform: translateX(-50%) scale(.92) translateY(6px); }
+}
 body[data-glance-purpose="change"] .glance-picker {
   top: 54px;
   right: 24px;
   left: auto;
   width: min(420px, calc(100vw - 48px));
   transform: none;
+  transform-origin: calc(100% - 44px) 0;
+}
+body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92) translateY(6px); }
+@starting-style {
+  body[data-glance-purpose="change"] .glance-picker:not([hidden]) { transform: scale(.92) translateY(6px); }
 }
 .glance-picker-head {
   display: flex;
@@ -2081,16 +2192,37 @@ body[data-glance-purpose="change"] .glance-picker {
   gap: 10px;
   padding: 7px 10px;
   text-align: left;
-  border-radius: 9px;
+  border-radius: var(--radius);
   color: var(--text);
 }
 .glance-picker-option .favicon {
   width: 20px;
   height: 20px;
 }
-.glance-picker-option:hover,
-.glance-picker-option[aria-selected="true"] { background: var(--accent-dim); }
+/* The ⌘L panel's row vocabulary: the highlighted row takes the panel's
+   edge-faded wash and weight, never a second fill. mousemove moves the
+   highlight (renderer), so no :hover fill: a row is lit once. */
+.glance-picker-option[aria-selected="true"] {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--text) 4%, transparent) 14%,
+    color-mix(in srgb, var(--text) 4%, transparent) 86%,
+    transparent 100%
+  );
+}
+.glance-picker-option[aria-selected="true"] .glance-picker-option-title { font-weight: 600; }
+.glance-picker-option.quiet { opacity: .5; transition: opacity 120ms ease; }
+.glance-picker-option.quiet:hover,
+.glance-picker-option.quiet[aria-selected="true"] { opacity: 1; }
 .glance-picker-option:disabled { opacity: 0.55; cursor: wait; }
+.glance-picker-option[data-opening="true"] { opacity: 1; }
+.glance-picker-option-identity {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 .glance-picker-option-copy {
   min-width: 0;
   display: flex;
@@ -2104,10 +2236,10 @@ body[data-glance-purpose="change"] .glance-picker {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.glance-picker-option-title { font-size: 13.5px; color: var(--text); }
+.glance-picker-option-title { min-width: 0; font-size: 13px; color: var(--text); }
 .glance-picker-option-sub {
   font-family: var(--font-text);
-  font-size: 10.5px;
+  font-size: 11px;
   color: var(--text-dim);
 }
 .glance-picker-state {
@@ -2126,7 +2258,7 @@ body[data-glance-purpose="change"] .glance-picker {
   padding-top: 8px;
   border-top: 1px solid var(--border);
   font-family: var(--font-text);
-  font-size: 9.5px;
+  font-size: 11px;
   color: var(--text-dim);
 }
 @media (max-width: 560px) {
@@ -2325,11 +2457,27 @@ body[data-glance-purpose="change"] .glance-picker {
 .island-ghead .ghead-spacer { width: 10px; flex: 0 0 auto; }
 .island-ghead .closed-clear { margin-left: auto; }
 .island-ghead .ghead-n { margin-right: 0; }
+/* A synced device's "how long ago" sits at the right of its header. */
+.island-ghead .ghead-ago { margin-left: auto; }
 
 /* Named groups only: present --surface field (not empty whitespace). */
 .island-drag-section {
   display: flex;
   flex-direction: column;
+}
+
+/* Recently closed: the fold control inside its header row (Clear all sits
+   beside it, outside the button). */
+.island-ghead .ghead-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  border-radius: 4px;
+}
+.island-ghead .ghead-toggle:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .island-ghead:focus-visible {
@@ -2400,27 +2548,28 @@ body[data-glance-purpose="change"] .glance-picker {
 /* The per-tab group chip and its inline picker were retired when grouping
    moved into the tab rows' right-click context menu (Move to Group ▸). */
 
-/* Explicit Glance selection lives with the tab row actions. The active
-   reference stays labelled at rest; other rows reveal the action on
-   hover/focus so the ordinary switcher remains quiet. */
+/* Explicit Glance selection lives with the tab row actions: an icon like pin
+   and close, revealed on hover/focus. The tab showing in Glance keeps it
+   visible and filled at rest; clicking it there closes Glance. */
 .row-glance {
   opacity: 0;
+  width: 18px;
   height: 18px;
-  flex: 0 0 auto;
-  padding: 0 7px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: 50%;
   color: var(--text-dim);
-  font-family: var(--font-text);
-  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  flex: 0 0 auto;
 }
+.row-glance svg { width: 14px; height: 14px; stroke-width: 1.25; }
 .island-row:hover .row-glance,
 .island-row:focus-within .row-glance,
 .row-glance:focus-visible,
 .row-glance.on { opacity: 1; }
-.row-glance:hover,
-.row-glance.on { color: var(--accent); border-color: var(--accent); }
-.row-glance.on { background: var(--accent-dim); }
+.row-glance:hover { background: var(--border); color: var(--text); }
+.row-glance.on { color: var(--accent); background: var(--accent-dim); }
 
 /* Pin row button — reserved-space/hover-reveal convention shared with
    .row-close: always occupies layout width, opacity-faded until the row is
@@ -2510,9 +2659,7 @@ body[data-glance-purpose="change"] .glance-picker {
 .closed-clear {
   color: var(--text-dim);
   font-family: var(--font-text);
-  font-size: 10px;
-  letter-spacing: 0.04em;
-  text-transform: lowercase;
+  font-size: 11px;
   opacity: 0.7;
   padding: 2px 4px;
   flex: 0 0 auto;
@@ -2538,13 +2685,21 @@ body[data-glance-purpose="change"] .glance-picker {
   flex: 0 0 auto;
 }
 
-/* Slash-command rows */
+/* Slash-command and bang rows: the command or !code is a small chip */
 .island-row .row-cmd {
   font-family: var(--font-text);
-  font-size: 12.5px;
-  color: var(--accent);
+  font-size: 12px;
+  font-weight: 550;
+  line-height: 20px;
+  padding: 0 7px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+  color: var(--text);
   flex: 0 0 auto;
   white-space: nowrap;
+}
+.island-row.active .row-cmd {
+  background: color-mix(in srgb, var(--text) 12%, transparent);
 }
 .island-row .row-hint {
   font-size: 12.5px;
@@ -2589,7 +2744,7 @@ body[data-glance-purpose="change"] .glance-picker {
    private marker, and placed just before the row's ✕ so it lands in the same
    column on every row whether or not hover actions (glance) are present.
    (Quiet is dim-only — 2026-08-18 spec.) */
-.island-row .row-private {
+:is(.island-row, .glance-picker-option, .glance-tab-identity) .row-private {
   display: inline-flex;
   align-items: center;
   height: 16px;
@@ -2719,45 +2874,88 @@ body[data-glance-purpose="change"] .glance-picker {
 .footer-new {
   display: flex;
   align-items: center;
-  gap: 5px;
-  height: 28px;
-  padding: 0 12px;
-  border-radius: 999px;
-  border: 1px solid var(--accent);
+  gap: 6px;
+  height: 30px;
+  padding: 0 13px 0 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
   background: var(--accent);
   color: var(--surface-raised);
   font-family: var(--font-text);
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 12.5px;
+  font-weight: 550;
   white-space: nowrap;
   flex: 0 0 auto;
   cursor: pointer;
+  transition: background-color 120ms ease;
 }
-.footer-new:hover { opacity: 0.85; }
+/* Hover deepens the fill one step (lighter ink in light, darker in dark)
+   instead of fading the whole pill. */
+.footer-new:hover { background: color-mix(in srgb, var(--accent) 86%, var(--surface-raised)); }
 .footer-new svg { width: 13px; height: 13px; }
 
-/* Private launcher: the same geometry as a ghost — dashed, the marker that
-   denotes private throughout the chrome (so the label no longer needs its
-   own dashed underline). It must not read as a second primary action. */
+/* Private: the soft secondary pill (System v2). Dashes stay reserved for
+   "you are in a private tab", the private panel's own border. Its shortcut
+   lives in the tooltip. */
 .footer-new.private {
+  margin-left: 2px;
+  background: var(--accent-dim);
+  color: var(--text);
+}
+.footer-new.private:hover { background: color-mix(in srgb, var(--text) 13%, transparent); }
+
+/* Other devices: a plain text toggle, not a pill — dim until hovered,
+   focused or open, never filled. Its chevron points up at the drawer it
+   opens and turns over while the drawer is open. */
+.footer-new.devices {
   margin-left: 4px;
+  padding: 0 6px;
+  border-radius: var(--radius-sm);
   background: none;
   color: var(--text-dim);
-  border: 1px dashed var(--text-dim);
 }
-.footer-new.private:hover { opacity: 1; color: var(--text); border-color: var(--text); }
+.footer-new.devices:hover,
+.footer-new.devices:focus-visible,
+.footer-new.devices[aria-expanded="true"] {
+  background: none;
+  color: var(--text);
+}
+.footer-new.devices:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 0; }
+.footer-new.devices .devices-caret {
+  width: 10px;
+  height: 10px;
+  transition: transform 120ms ease;
+}
+.footer-new.devices[aria-expanded="true"] .devices-caret { transform: rotate(180deg); }
+.footer-new[hidden] { display: none; }
+
+/* The Other devices drawer, between the tab list and the footer. While the
+   panel has room it grows, as unfolding a group does; at the panel's maximum
+   the drawer keeps about six rows and the tab list above gives up the space.
+   In a short window the cap shrinks with it (about 290px of panel chrome plus
+   two list rows stay clear), never below two rows of its own. */
+#islandDrawer {
+  flex: 0 0 auto;
+  max-height: clamp(76px, calc(100vh - 290px), 204px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin-top: 6px;
+  padding-top: 2px;
+  border-top: 1px solid var(--border);
+}
+#islandDrawer[hidden] { display: none; }
 
 .footer-kbd {
   font-family: var(--font-ui);
-  font-size: 10.5px;
-  opacity: 0.55;
-  margin-left: 2px;
+  font-size: 11px;
+  opacity: 0.6;
+  margin-left: 1px;
 }
 
 .footer-act {
   width: 28px;
   height: 28px;
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2776,20 +2974,17 @@ body[data-glance-purpose="change"] .glance-picker {
 #footerWorkspace svg { width: 17px; height: 17px; stroke-width: 2; }
 /* No thick focus ring — keyboard focus uses the same surface cue as hover
    (island footer policy; global button:focus-visible outline is suppressed). */
-.footer-act:focus-visible,
-.footer-new:focus-visible {
+.footer-act:focus-visible {
   outline: none;
   background: var(--surface);
   color: var(--text);
 }
 .footer-new:focus-visible {
-  opacity: 0.85;
+  outline: none;
+  background: color-mix(in srgb, var(--accent) 86%, var(--surface-raised));
 }
 .footer-new.private:focus-visible {
-  opacity: 1;
-  color: var(--text);
-  border-color: var(--text);
-  background: none;
+  background: color-mix(in srgb, var(--text) 13%, transparent);
 }
 
 /* The Spaces button is icon-only like the other footer acts; the space's name
@@ -2805,11 +3000,11 @@ body[data-glance-purpose="change"] .glance-picker {
 
 #islandHint {
   font-family: var(--font-text);
-  font-size: 10.5px;
+  font-size: 11.5px;
   color: var(--text-dim);
-  opacity: 0.7;
   padding: 8px 10px 2px;
 }
+#islandHint:empty { display: none; }
 
 /* ---------- Platform menu + window controls (non-mac) ---------- */
 
@@ -3375,6 +3570,7 @@ body.fill-status-surface { background: transparent; }
   /* Quiet rows still un-dim on hover/focus, just without the fade. */
   .island-row.quiet,
   .vertical-tab-row.quiet { transition: none; }
+  .footer-new.devices .devices-caret { transition: none; }
   /* Peek still appears on hover/focus, just without the fade + pop. */
   .dot-peek { transition: none; }
   .island-ghead svg.caret { transition: none; }
@@ -3630,6 +3826,22 @@ body:is([data-mode="spaces"], [data-closing="spaces"]) #workspaceSwitcher.ws-swi
 #workspaceFeedback .ws-error { margin: 6px 0; color: var(--danger); font: 12.5px/1.45 var(--font-text); }
 
 @media (prefers-reduced-motion: reduce) {
+  /* Glance: the fade only, in both layouts (the stacked rules above carry
+     their own [hidden] offset, so they are named here too). The open picker
+     keeps the translate that centres it. */
+  .glance-header, .glance-header[hidden], .glance-header[data-direction="vertical"][hidden],
+  .glance-divider, .glance-divider[hidden], .glance-divider[data-direction="vertical"][hidden],
+  body[data-glance-purpose="change"] .glance-picker, body[data-glance-purpose="change"] .glance-picker[hidden] {
+    transform: none;
+    transition: opacity 140ms ease, display 140ms allow-discrete;
+  }
+  .glance-picker, .glance-picker[hidden] { transform: translateX(-50%); transition: opacity 140ms ease, display 140ms allow-discrete; }
+  @starting-style {
+    .glance-header:not([hidden]), .glance-header[data-direction="vertical"]:not([hidden]),
+    .glance-divider:not([hidden]), .glance-divider[data-direction="vertical"]:not([hidden]),
+    body[data-glance-purpose="change"] .glance-picker:not([hidden]) { transform: none; }
+    .glance-picker:not([hidden]) { transform: translateX(-50%); }
+  }
   #workspaceSwitcher.ws-switcher, #workspaceSwitcher.ws-switcher[hidden],
   #workspaceSwitcher.ws-switcher[data-side="below"][hidden],
   body:is([data-mode="spaces"], [data-closing="spaces"]) #workspaceSwitcher.ws-switcher[hidden] { transform: none; transition: opacity 140ms ease, display 140ms allow-discrete; }

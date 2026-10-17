@@ -2,6 +2,7 @@
 // folder anchors, embedding clusters, naming, and proposal validation.
 // No Electron.
 const crypto = require('node:crypto');
+const { groupNameKey, capitalizeFirst } = require('./group-name-case');
 
 const CLUSTER_THRESHOLD = 0.72;
 const MIN_GROUP_SIZE = 2;
@@ -51,10 +52,14 @@ function sanitizeCandidateInput(candidate) {
   };
 }
 
+/** Names keep their source's case (spec 2026-10-16 §9.1). */
 function normalizeGroupName(name) {
-  const collapsed = sanitizeText(name, MAX_GROUP_NAME_LEN).toLowerCase();
+  const collapsed = sanitizeText(name, MAX_GROUP_NAME_LEN);
   return collapsed ? collapsed.slice(0, MAX_GROUP_NAME_LEN) : '';
 }
+
+/** Placeholder names are recognized in any case. */
+const isGenericName = (name) => GENERIC_GROUP_NAMES.has(String(name ?? '').toLowerCase());
 
 function isUsableToken(token) {
   if (!token || token.length < 2) return false;
@@ -103,9 +108,9 @@ function folderDisplayName(folderPath) {
     .filter(Boolean);
   if (!segments.length) return null;
   const joined = normalizeGroupName(segments.join(' '));
-  if (joined && !GENERIC_GROUP_NAMES.has(joined)) return joined;
+  if (joined && !isGenericName(joined)) return joined;
   const leaf = segments[segments.length - 1];
-  return leaf && !GENERIC_GROUP_NAMES.has(leaf) ? leaf : null;
+  return leaf && !isGenericName(leaf) ? leaf : null;
 }
 
 function deriveGroupName(members) {
@@ -131,12 +136,13 @@ function deriveGroupName(members) {
     parts.push(token);
     const candidate = parts.join(' ');
     if (candidate.length > MAX_GROUP_NAME_LEN) break;
-    if (GENERIC_GROUP_NAMES.has(candidate)) continue;
+    if (isGenericName(candidate)) continue;
     if (parts.length >= 3) break;
   }
   const name = normalizeGroupName(parts.join(' '));
-  if (!name || GENERIC_GROUP_NAMES.has(name)) return null;
-  return name;
+  if (!name || isGenericName(name)) return null;
+  // Title and hostname tokens are lowercase; a derived name reads as a name.
+  return capitalizeFirst(name);
 }
 
 function folderPathKey(folderPath) {
@@ -327,14 +333,21 @@ function proposeFromSourceGroups(candidates, {
 } = {}) {
   const sanitized = candidates.map(sanitizeCandidateInput).filter((candidate) => candidate.candidateId);
   const buckets = new Map();
+  // One bucket per name in any case, shown in its first-seen spelling.
+  const bucketNames = new Map();
   for (const candidate of sanitized) {
     if (!candidate.sourceGroupName) continue;
-    if (!buckets.has(candidate.sourceGroupName)) buckets.set(candidate.sourceGroupName, []);
-    buckets.get(candidate.sourceGroupName).push(candidate);
+    const key = groupNameKey(candidate.sourceGroupName);
+    if (!buckets.has(key)) {
+      buckets.set(key, []);
+      bucketNames.set(key, candidate.sourceGroupName);
+    }
+    buckets.get(key).push(candidate);
   }
   const groupedIds = new Set();
   const groups = [];
-  for (const [name, members] of buckets) {
+  for (const [key, members] of buckets) {
+    const name = bucketNames.get(key);
     if (members.length < MIN_GROUP_SIZE) continue;
     const group = makeSuggestion(
       name,
@@ -389,7 +402,7 @@ function validateProposal(proposal, {
   for (const group of groups) {
     const name = normalizeGroupName(group?.name);
     if (!name) return { ok: false, reason: 'invalid-name' };
-    if (GENERIC_GROUP_NAMES.has(name)) return { ok: false, reason: 'generic-name' };
+    if (isGenericName(name)) return { ok: false, reason: 'generic-name' };
     const ids = Array.isArray(group?.candidateIds) ? group.candidateIds.map(String) : [];
     if (ids.length < MIN_GROUP_SIZE) return { ok: false, reason: 'group-too-small' };
     for (const id of ids) {
