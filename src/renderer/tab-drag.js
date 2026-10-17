@@ -75,7 +75,10 @@
     }
     let best = null;
     for (const slot of tabSlots(model, source.id)) {
-      if (!best || Math.abs(slot.y - y) < Math.abs(best.y - y)) best = slot;
+      const allowed = source.pinned ? slot.pinned : slot.unpinned;
+      const bestAllowed = best && (source.pinned ? best.pinned : best.unpinned);
+      if (!best || Math.abs(slot.y - y) < Math.abs(best.y - y) ||
+          (slot.y === best.y && allowed && !bestAllowed)) best = slot;
     }
     if (!best) return null;
     const allowed = source.pinned ? best.pinned : best.unpinned;

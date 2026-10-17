@@ -1,0 +1,78 @@
+{
+  "at": "2026-10-17T16:36:57.991484+00:00",
+  "source": "Google update service; compare recorded October16 versions; not installed profile inspection",
+  "extensions": [
+    {
+      "id": "aeblfdkhhhdcdjpifhhbdiojplfjncoa",
+      "name": "1Password \u2013 Password Manager",
+      "recorded156Version": "8.12.41.1",
+      "httpStatus": 200,
+      "response": [
+        {
+          "_esbAllowlist": "true",
+          "status": "noupdate"
+        }
+      ]
+    },
+    {
+      "id": "dhdgffkkebhmkfjojejmpbldmpobfkfo",
+      "name": "Tampermonkey",
+      "recorded156Version": "5.5.1",
+      "httpStatus": 200,
+      "response": [
+        {
+          "_esbAllowlist": "true",
+          "status": "noupdate"
+        }
+      ]
+    },
+    {
+      "id": "fmkadmapgofadopljbjfkapdkoienihi",
+      "name": "React Developer Tools",
+      "recorded156Version": "8.0.0",
+      "httpStatus": 200,
+      "response": [
+        {
+          "_esbAllowlist": "true",
+          "status": "noupdate"
+        }
+      ]
+    },
+    {
+      "id": "kbfnbcaeplbcioakkpcpgfkobkghlhen",
+      "name": "Grammarly: AI Writing Assistant and Grammar Checker App",
+      "recorded156Version": "14.1338.0",
+      "httpStatus": 200,
+      "response": [
+        {
+          "_esbAllowlist": "true",
+          "status": "noupdate"
+        }
+      ]
+    },
+    {
+      "id": "nkbihfbeogaeaoehlefnkodbefgpgknn",
+      "name": "MetaMask",
+      "recorded156Version": "13.52.0",
+      "httpStatus": 200,
+      "response": [
+        {
+          "_esbAllowlist": "true",
+          "status": "noupdate"
+        }
+      ]
+    },
+    {
+      "id": "nngceckbapebfimnlniiiahkandclblb",
+      "name": "Bitwarden Password Manager",
+      "recorded156Version": "2026.10.0",
+      "httpStatus": 200,
+      "response": [
+        {
+          "_esbAllowlist": "true",
+          "status": "noupdate"
+        }
+      ]
+    }
+  ]
+}

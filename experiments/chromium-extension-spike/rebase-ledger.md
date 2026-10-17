@@ -251,3 +251,25 @@ and sentinel site data were cleaned. The isolated 157 profile, one original
 disposable Favorite and installed Bitwarden are retained for the remaining
 upgrade. The monitor stays paused; no PR, baseline promotion or gate-outcome
 change to CLAUDE/AGENTS. The README pin moves only after complete acceptance.
+
+### Review follow-up: Electron ownership and bounded upgrade wait
+
+Installed Electron Blanc 1.36.0 produces the same coincident pinned/loose slots
+and rejects the first loose gap with the original resolver. The source function
+matches this branch. The correction therefore moved to shared
+`src/renderer/tab-drag.js`; the prototype transform was removed. Three shared
+regressions plus the existing suites pass (51 tests), and generated prototype
+bytes are unchanged from the native acceptance run. No native rebuild.
+[Measured model, corrected resolver and validation](evidence/rebase-157-native-20261017/electron-followup/results.md).
+
+The October 16 disposable 156 upgrade profile is missing; no permanent profile
+was copied and profile-forward migration is **not measured**. Google's update
+service returned HTTP 200 / noupdate for all six recorded extension versions. A
+no-change updater callback alone was not network evidence; raw HTTP/XML responses
+are now saved. The actual Google-endpoint version upgrade is still not run.
+
+The owner-directed bounded wait is active: daily at noon local time through
+November 3 inclusive, quiet unless actionable, pausing on completion, required
+owner action or expiry. No third-party CRX mirrors. If the bound expires, the
+row stays in progress; mechanism-only fallback requires the owner's separate
+decision. No 157 promotion, no CLAUDE/AGENTS outcome change.

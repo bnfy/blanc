@@ -448,3 +448,35 @@ test('session: releasing beside the list (over the page) is not a drop', async (
   assert.equal(h.named('onDrop').length, 0);
   assert.equal(h.session.phase(), 'idle');
 });
+
+// Geometry observed in installed Electron Blanc 1.36.0, not prototype CSS.
+const tieRow = (id, top, pinned = false) => ({ id, top, bottom: top + 32, pinned });
+const tieSection = (kind, top, bottom, rows) => ({ kind, groupId: null, top, bottom, rows });
+const tieTab = (id, pinned = false) => ({ kind: 'tab', id, pinned, groupId: null });
+
+test('empty pinned section cannot swallow the first loose-tab gap', () => {
+  const model = { top: 65, bottom: 161, sections: [
+    tieSection('pinned', 65, 65, []),
+    tieSection('loose', 65, 161, [tieRow('A', 65), tieRow('N', 97), tieRow('B', 129)]),
+  ] };
+  assert.equal(drag.resolveTabDrop(model, tieTab('B'), 73)?.intent.beforeId, 'A');
+});
+
+test('coincident boundary accepts each source only into its own bucket', () => {
+  const model = { top: 0, bottom: 128, sections: [
+    tieSection('pinned', 0, 64, [tieRow('P', 0, true), tieRow('Q', 32, true)]),
+    tieSection('loose', 64, 128, [tieRow('A', 64), tieRow('B', 96)]),
+  ] };
+  assert.equal(drag.resolveTabDrop(model, tieTab('B'), 64)?.intent.beforeId, 'A');
+  assert.equal(drag.resolveTabDrop(model, tieTab('P', true), 64)?.intent.beforeId, null);
+  assert.equal(drag.resolveTabDrop(model, tieTab('B'), 5), null);
+  assert.equal(drag.resolveTabDrop(model, tieTab('P', true), 120), null);
+});
+
+test('a pinned source still prefers the pinned section beside empty loose', () => {
+  const model = { top: 0, bottom: 64, sections: [
+    tieSection('pinned', 0, 64, [tieRow('P', 0, true), tieRow('Q', 32, true)]),
+    tieSection('loose', 64, 64, []),
+  ] };
+  assert.equal(drag.resolveTabDrop(model, tieTab('P', true), 64)?.intent.beforeId, null);
+});

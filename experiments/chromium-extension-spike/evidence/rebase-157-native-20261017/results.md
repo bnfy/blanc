@@ -37,3 +37,15 @@ Four focused drag tests plus ten build-guard tests pass (14/14). `prepare.mjs SR
 Harness corrections retained: observed page focus before typing; `createTab('chrome://newtab/')` incorrectly treated the internal URL as search (native Cmd-T used instead); first-character Unicode input; stale native extension-button accessible label after install; immutable read-only SQLite audit; reload/startup timing; restoring web tabs creates fresh history. Failed harness runs are not counted as passes.
 
 Fixture tabs/groups, additional Favorites/folders, and sentinel cookie/storage were cleaned. One original disposable Favorite and the isolated profile/Bitwarden remain for the pending upgrade; the fixture server and 157 output remain available. The final 157 window is left on its start page. Full disposable-profile removal follows upgrade acceptance. Monitor remains paused because repeating checks cannot supply the missing signed fixture. README pin and CLAUDE/AGENTS gate outcome remain unchanged.
+
+## Superseding review follow-up
+
+[Electron geometry and upgrade wait](electron-followup/results.md) confirms the
+drag bug also exists in installed Electron Blanc 1.36.0. The fix now lives in
+shared `src/renderer/tab-drag.js`, the prototype transform is removed, and
+51 shared/guard tests pass. The generated prototype asset is byte-identical to
+the previously tested fix. The old disposable 156 profile is missing, and all
+six recorded versions receive Google HTTP 200 / noupdate. Profile-forward migration
+is untested. The monitor is now active daily through November 3, with the gate
+open and third-party CRX mirrors excluded. This supersedes the prototype-only
+placement and paused-monitor descriptions above.
