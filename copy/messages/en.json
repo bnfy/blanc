@@ -476,6 +476,10 @@
     "message": "Moved group {group}",
     "note": "Announced after moving a tab group; {group} is its name."
   },
+  "drag.movedClosed": {
+    "message": "Moved Recently closed",
+    "note": "Announced after moving the Recently closed section of the ⌘L panel among the tab groups. \"Recently closed\" is that section's header (closed.header)."
+  },
   "drag.movedTab": {
     "message": "Moved {title}",
     "note": "Announced after reordering a tab; {title} is its title."

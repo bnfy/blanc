@@ -5161,6 +5161,48 @@
         }
       }
     },
+    "drag.movedClosed": {
+      "comment": "Announced after moving the Recently closed section of the ⌘L panel among the tab groups. \"Recently closed\" is that section's header (closed.header).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moved Recently closed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bereich „Zuletzt geschlossen“ verschoben"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sección Cerradas recientemente movida"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Section Fermés récemment déplacée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sezione Chiuse di recente spostata"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seção Fechadas recentemente movida"
+          }
+        }
+      }
+    },
     "drag.movedTab": {
       "comment": "Announced after reordering a tab; {title} is its title.",
       "extractionState": "manual",

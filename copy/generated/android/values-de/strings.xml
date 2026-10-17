@@ -126,6 +126,7 @@
     <string name="rail_move_top">Bereits ganz oben</string>
     <string name="rail_move_bottom">Bereits ganz unten</string>
     <string name="drag_moved_group">Gruppe %1$s verschoben</string>
+    <string name="drag_moved_closed">Bereich „Zuletzt geschlossen“ verschoben</string>
     <string name="drag_moved_tab">%1$s verschoben</string>
     <string name="drag_moved_tab_untitled">Tab verschoben</string>
     <string name="drag_moved_to">Nach %1$s verschoben</string>

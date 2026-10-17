@@ -129,6 +129,7 @@
     <string name="rail_move_top">Ya está arriba del todo</string>
     <string name="rail_move_bottom">Ya está abajo del todo</string>
     <string name="drag_moved_group">Grupo %1$s movido</string>
+    <string name="drag_moved_closed">Sección Cerradas recientemente movida</string>
     <string name="drag_moved_tab">%1$s movida</string>
     <string name="drag_moved_tab_untitled">Pestaña movida</string>
     <string name="drag_moved_to">Movida a %1$s</string>

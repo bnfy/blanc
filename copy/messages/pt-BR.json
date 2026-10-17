@@ -469,6 +469,10 @@
     "message": "Grupo {group} movido",
     "source": "sha256:19545591c1408872d02c5b5c51b87c2d911157160d36380d8f4cd9cd013264b0"
   },
+  "drag.movedClosed": {
+    "message": "Seção Fechadas recentemente movida",
+    "source": "sha256:34dd0bcd0106754da7ccb36e57cc2f7d72128207009d26b75c8a5710a70c9e2e"
+  },
   "drag.movedTab": {
     "message": "{title} movida",
     "source": "sha256:eb32cefa3da739d94eef246d4fedc83a37ef6706c8c38880556fb3207980cf73"
