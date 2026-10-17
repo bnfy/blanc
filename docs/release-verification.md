@@ -242,6 +242,13 @@ in `docs/release-incidents/2026-08-15-v1.4.0.md`; the v1.5.1 blocker/updater,
 operator-mode, waiver, and production-deploy lessons are recorded in
 `docs/release-incidents/2026-08-17-v1.5.1.md`.
 
+After the deploy, draft the release post for r/blancbrowser, Blanc's own
+subreddit, in the format of the v1.36.0 post in
+`docs/reddit-community/r-blancbrowser-setup.md`, and check every claim against
+the new release with `docs/marketing-claims.md`. The owner approves the exact
+text and posts it with the Release flair. It's the only post that goes out as
+part of a release.
+
 ## 1. Verify the files
 
 From the directory containing the release assets:
