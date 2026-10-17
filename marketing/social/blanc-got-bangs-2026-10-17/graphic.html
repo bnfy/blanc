@@ -5,8 +5,9 @@
 <title>Blanc got bangs</title>
 <!--
   "Blanc got bangs!" — 1080x1350 feed graphic for Bangs (shipped in v1.36.0).
-  The screen shows a real capture of https://blanc.day/bangs (bangs-page-capture-1280x720@2x.png,
-  taken 2026-10-17). The Sunrise mark is the shipped site asset, embedded verbatim. The iMac and
+  The screen shows a real capture of https://blanc.day/bangs (bangs-page-capture.png, taken
+  2026-10-17): the page's 1280px-wide layout, cropped to a 1000x563 window from just above the
+  search box, so the bang cards read larger. The Sunrise mark is the shipped site asset, embedded verbatim. The iMac and
   wig are drawn here; the wig's strands are generated with a fixed seed so every render matches.
   Render: node render.mjs   (needs the licensed Blubird fonts installed under site/public/fonts/blubird)
   Colorway: graphic.html?c=pink | blue | silver
@@ -15,6 +16,7 @@
   @font-face { font-family: 'Blubird Display'; src: url('../../../site/public/fonts/blubird/Blubird-RegularDisplay.woff2') format('woff2'); font-weight: 400; }
   @font-face { font-family: 'Blubird Text'; src: url('../../../site/public/fonts/blubird/Blubird-RegularText.woff2') format('woff2'); font-weight: 400; }
   @font-face { font-family: 'Blubird Text'; src: url('../../../site/public/fonts/blubird/Blubird-MediumText.woff2') format('woff2'); font-weight: 500; }
+  @font-face { font-family: 'Instrument Sans'; src: url('../../../site/public/fonts/instrument-sans/instrument-sans-latin-wdth-normal.woff2') format('woff2'); font-weight: 400 700; font-stretch: 75% 100%; }
 
   :root {
     --bg: #F8F2E8;
@@ -69,7 +71,15 @@
   .art svg { display: block; width: 100%; height: 100%; overflow: visible; }
   footer { position: relative; display: flex; flex-direction: column; align-items: center; gap: 26px; }
   .sub { font: 400 38px/1.25 'Blubird Text', sans-serif; color: var(--muted); }
-  .sub b { font-weight: 500; color: var(--ink); }
+  /* The site's .bang-chip (site.css), the app's bang chip */
+  .bang-chip {
+    display: inline-block; padding: 0.21em 0.58em; border-radius: 0.5em;
+    background: color-mix(in srgb, var(--ink) 7%, transparent); color: var(--ink);
+    font-family: 'Instrument Sans', sans-serif; font-size: 0.96em; line-height: 1.05;
+    font-variation-settings: "wdth" 98; font-weight: 550; letter-spacing: 0.01em; white-space: nowrap;
+  }
+  .sub { text-align: center; }
+  .chips { display: flex; justify-content: center; gap: 14px; margin-top: 16px; font: 400 38px/1.25 'Blubird Text', sans-serif; }
   .sign { display: flex; align-items: center; gap: 16px; font: 500 34px/1 'Blubird Text', sans-serif; color: var(--gold); }
   .sign img { width: 58px; height: 58px; display: block; }
 </style>
@@ -163,7 +173,7 @@
   <rect x="135" y="646" width="730" height="2" fill="#fff" opacity="0.55"/>
   <rect x="136" y="216" width="728" height="430" rx="14" fill="url(#bezel)"/>
   <rect x="155" y="237" width="690" height="389" rx="4" fill="#1A1A1A"/>
-  <image href="bangs-page-capture-1280x720@2x.png" x="156" y="238" width="688" height="387"
+  <image href="bangs-page-capture.png" x="156" y="238" width="688" height="387"
          preserveAspectRatio="xMidYMid slice" clip-path="url(#screenClip)"/>
   <rect x="136" y="216" width="728" height="430" rx="14" fill="url(#glare)" clip-path="url(#glassClip)"/>
 
@@ -185,7 +195,10 @@
 </div>
 
 <footer>
-  <p class="sub">Type <b>!yt lofi</b> to search YouTube directly.</p>
+  <div class="sub">
+    <p>Type a site’s code before your search<br>to go straight to its results.</p>
+    <p class="chips"><kbd class="bang-chip">!yt lofi</kbd><kbd class="bang-chip">!w otters</kbd><kbd class="bang-chip">!a usb cable</kbd></p>
+  </div>
   <div class="sign"><img src="../../../site/public/sunrise-hero-mark.png" alt="">blanc.day/bangs</div>
 </footer>
 
