@@ -418,6 +418,18 @@ test('the resting-Island figures draw a native window in the tab states the app 
   assert.throws(() => nativeWindowArt({...base, document: source.document.replace('<aside id="verticalTabsRail"', '<aside id="x"'), tab: {url: 'https://a.b/', favicon: '/f', shield: 'quiet'}, dots: {count: 1, active: 0}, rail: {active: 0, tabs: []}}), /Missing native vertical tabs markup/);
 });
 
+test('the private-tabs figure draws the private Start Page captured from public v1.36.0', () => {
+  const crypto = require('node:crypto');
+  const capture = JSON.parse(read('docs/website-captures-v1.36.0.json')).privateStartPage;
+  const hash = file => crypto.createHash('sha256').update(fs.readFileSync(path.join(root, file))).digest('hex');
+  assert.equal(hash(capture.file), capture.sha256, capture.file);
+  assert.equal(hash(capture.webp.file), capture.webp.sha256, capture.webp.file);
+  const figure = read('site/src/pages/features/private-tabs.astro');
+  assert.ok(figure.includes(`shot="${capture.webp.file.replace('site/public', '')}"`), 'the figure draws the recorded capture');
+  // Private tabs keep the strip untinted (renderer.js applyStripTint), so the figure passes no tone.
+  assert.doesNotMatch(figure.match(/<NativeWindowFigure[\s\S]*?\/>/)[0], /\btone=/);
+});
+
 test('every resting-Island figure on the site is the native window, not a hand-drawn pill', () => {
   const pages = ['island', 'ad-blocking', 'private-tabs', 'security', 'vertical-tabs'];
   for (const page of pages) {
