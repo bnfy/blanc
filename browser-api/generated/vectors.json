@@ -576,6 +576,23 @@
           ]
         },
         {
+          "label": "beforeGroupId = \"recently-closed\"",
+          "args": [
+            "group-id-1",
+            "recently-closed"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:reorder",
+              "args": [
+                "group-id-1",
+                "recently-closed"
+              ]
+            }
+          ]
+        },
+        {
           "label": "beforeGroupId = null",
           "args": [
             "group-id-1",
@@ -587,6 +604,51 @@
               "channel": "groups:reorder",
               "args": [
                 "group-id-1",
+                null
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
+    "moveClosedSection": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "groups:move-closed",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "group-id-1"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:move-closed",
+              "args": [
+                "group-id-1"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "beforeGroupId = null",
+          "args": [
+            null
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:move-closed",
+              "args": [
                 null
               ]
             }
@@ -1189,6 +1251,7 @@
           "glanceTabId": "tab-id-1",
           "groups": [],
           "closed": [],
+          "closedSlot": 1,
           "tabLayout": "island",
           "verticalTabsWidth": 1,
           "verticalTabsPreferredWidth": 1,
@@ -1267,6 +1330,7 @@
               "tabCount": 1
             }
           ],
+          "closedSlot": 1,
           "tabLayout": "island",
           "verticalTabsWidth": 1,
           "verticalTabsPreferredWidth": 1,
@@ -4504,6 +4568,7 @@
               "glanceTabId": "tab-id-1",
               "groups": [],
               "closed": [],
+              "closedSlot": 1,
               "tabLayout": "island",
               "adblockEnabled": true,
               "shieldPopover": {
@@ -4554,6 +4619,7 @@
                 "glanceTabId": "tab-id-1",
                 "groups": [],
                 "closed": [],
+                "closedSlot": 1,
                 "tabLayout": "island",
                 "adblockEnabled": true,
                 "shieldPopover": {
@@ -4671,6 +4737,7 @@
                   "tabCount": 1
                 }
               ],
+              "closedSlot": 1,
               "tabLayout": "island",
               "adblockEnabled": true,
               "shieldPopover": {
@@ -4804,6 +4871,7 @@
                     "tabCount": 1
                   }
                 ],
+                "closedSlot": 1,
                 "tabLayout": "island",
                 "adblockEnabled": true,
                 "shieldPopover": {

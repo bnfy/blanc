@@ -127,6 +127,7 @@
     <string name="rail_move_top">Bereits ganz oben</string>
     <string name="rail_move_bottom">Bereits ganz unten</string>
     <string name="drag_moved_group">Gruppe %1$s verschoben</string>
+    <string name="drag_moved_closed">Bereich „Zuletzt geschlossen“ verschoben</string>
     <string name="drag_moved_tab">%1$s verschoben</string>
     <string name="drag_moved_tab_untitled">Tab verschoben</string>
     <string name="drag_moved_to">Nach %1$s verschoben</string>
@@ -370,10 +371,10 @@
     <string name="slash_sleep_none">Gerade können keine Hintergrund-Tabs ruhen gelassen werden.</string>
     <string name="slash_sleep_failed">Hintergrund-Tabs konnten nicht ruhen gelassen werden.</string>
     <string name="slash_invite_copied">Deine Mail-App hat sich nicht geöffnet, deshalb wurde die Einladung kopiert. Füge sie in eine Nachricht ein.</string>
-    <string name="closed_header">zuletzt geschlossen</string>
+    <string name="closed_header">Zuletzt geschlossen</string>
     <string name="closed_fold">Zuletzt geschlossene einklappen</string>
     <string name="closed_unfold">Zuletzt geschlossene aufklappen</string>
-    <string name="closed_clear">leeren</string>
+    <string name="closed_clear">Alle leeren</string>
     <string name="closed_clear_all">Alle geschlossenen Tabs vergessen</string>
     <string name="closed_reopen">Geschlossenen Tab wieder öffnen</string>
     <plurals name="closed_group_title">

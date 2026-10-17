@@ -473,6 +473,10 @@
     "message": "Gruppo {group} spostato",
     "source": "sha256:19545591c1408872d02c5b5c51b87c2d911157160d36380d8f4cd9cd013264b0"
   },
+  "drag.movedClosed": {
+    "message": "Sezione Chiuse di recente spostata",
+    "source": "sha256:34dd0bcd0106754da7ccb36e57cc2f7d72128207009d26b75c8a5710a70c9e2e"
+  },
   "drag.movedTab": {
     "message": "{title} spostata",
     "source": "sha256:eb32cefa3da739d94eef246d4fedc83a37ef6706c8c38880556fb3207980cf73"
@@ -1362,8 +1366,8 @@
     "source": "sha256:a3a79e34d44065dd60e736aec9e6fef01fb250e15b855895af66d19e1eaddab8"
   },
   "closed.header": {
-    "message": "chiuse di recente",
-    "source": "sha256:cbc7e14f3edf5e1abe1feea365a75b19165b22cba9acfb0d22b2d6f624e4dcd9"
+    "message": "Chiuse di recente",
+    "source": "sha256:9cfbab6d492ba4e6d93c532046df707a7c2c95f05b64bf12016b6b0c0e9e2a25"
   },
   "closed.fold": {
     "message": "Comprimi le schede chiuse di recente",
@@ -1374,8 +1378,8 @@
     "source": "sha256:4bc30c90c25307eab3099bf53c8e5d704691f266093560c7f98518f33c0f550e"
   },
   "closed.clear": {
-    "message": "cancella",
-    "source": "sha256:15853a29b524a3eb5ac7f1839b7eb966f1f4dfcb667365906323b2bc1fe61d48"
+    "message": "Cancella tutto",
+    "source": "sha256:d7540eb44cd2f61961226dc03965999ac18f20d64fa36cf3ccc9fa8ad2134fc8"
   },
   "closed.clearAll": {
     "message": "Dimentica tutte le schede chiuse",

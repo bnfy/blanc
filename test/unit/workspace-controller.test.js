@@ -88,10 +88,10 @@ test('transferring membership retains exact tab/view identity, groups and window
   registry.resetForTests(); const source = registry.createRuntime({ id: 'a' }); const target = registry.createRuntime({ id: 'b' });
   const view = { draft: 'Keep this draft', storage: new Map([['draft', 'text']]) };
   const tab = { id: 't', view, runtimeId: 'a' }; const tabs = new Map([['t', tab]]);
-  source.tabOrder = ['t']; source.workspaceId = 'work'; source.activeTabId = 't'; source.groups = [{ id: 'g' }]; source.closedEntries = ['closed-a']; target.closedEntries = ['closed-b'];
+  source.tabOrder = ['t']; source.workspaceId = 'work'; source.activeTabId = 't'; source.groups = [{ id: 'g' }]; source.closedSlot = 1; source.closedEntries = ['closed-a']; target.closedEntries = ['closed-b'];
   registry.attachTab(source, 't'); transferSession(source, target, { tabs, registry });
   assert.equal(registry.runtimeForTab('t'), target); assert.equal(tabs.get('t').view, view);
-  assert.deepEqual(target.groups, [{ id: 'g' }]); assert.deepEqual(target.closedEntries, ['closed-b']); assert.deepEqual(source.closedEntries, ['closed-a']);
+  assert.deepEqual(target.groups, [{ id: 'g' }]); assert.equal(target.closedSlot, 1); assert.equal(source.closedSlot, 0); assert.deepEqual(target.closedEntries, ['closed-b']); assert.deepEqual(source.closedEntries, ['closed-a']);
   transferSession(target, source, { tabs, registry }); assert.equal(source.activeTabId, 't'); assert.equal(tab.view.draft, 'Keep this draft');
 });
 test('invalid membership is rejected before either runtime or valid ownership changes', () => {

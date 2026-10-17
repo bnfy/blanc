@@ -127,6 +127,7 @@
     <string name="rail_move_top">Already at the top</string>
     <string name="rail_move_bottom">Already at the bottom</string>
     <string name="drag_moved_group">Moved group %1$s</string>
+    <string name="drag_moved_closed">Moved Recently closed</string>
     <string name="drag_moved_tab">Moved %1$s</string>
     <string name="drag_moved_tab_untitled">Moved tab</string>
     <string name="drag_moved_to">Moved to %1$s</string>
@@ -370,10 +371,10 @@
     <string name="slash_sleep_none">No background tabs can be quieted right now.</string>
     <string name="slash_sleep_failed">Could not quiet background tabs.</string>
     <string name="slash_invite_copied">Your mail app didn’t open, so the invite was copied. Paste it into a message.</string>
-    <string name="closed_header">recently closed</string>
+    <string name="closed_header">Recently closed</string>
     <string name="closed_fold">Fold recently closed</string>
     <string name="closed_unfold">Unfold recently closed</string>
-    <string name="closed_clear">clear</string>
+    <string name="closed_clear">Clear all</string>
     <string name="closed_clear_all">Forget all closed tabs</string>
     <string name="closed_reopen">Reopen closed tab</string>
     <plurals name="closed_group_title">

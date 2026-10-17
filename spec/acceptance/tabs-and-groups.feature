@@ -58,6 +58,15 @@ Feature: Tabs and tab groups
     When I clear recently closed from the panel
     Then recently closed is empty
 
+  @F2-8 @F2 @desktop
+  Scenario: Recently closed sits folded under Pinned and folds again on every open
+    Given recently closed contains "older.example" and "newer.example"
+    When I open the command palette
+    Then Recently closed is folded directly under Pinned with 2 entries
+    When I unfold recently closed
+    And I close and reopen the command palette
+    Then Recently closed is folded directly under Pinned with 2 entries
+
   @F3-1 @F3 @all
   Scenario: Creating a group moves the active tab into it
     Given the active tab has no group

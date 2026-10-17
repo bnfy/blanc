@@ -147,7 +147,7 @@ Given('recently closed contains {string} and {string}', async function (older, n
 When('I unfold recently closed', async function () {
   await openOverlaySurface(this, 'openPalette', 'palette');
   const page = await overlayPage();
-  const header = page.locator('.island-ghead').filter({ hasText: 'recently closed' });
+  const header = page.locator('.island-ghead[data-group-id="recently-closed"]');
   await header.waitFor({ state: 'visible' });
   if (!await header.locator('.caret').evaluate((caret) => caret.classList.contains('open'))) {
     await header.click();
@@ -165,6 +165,23 @@ Then('recently closed exposes no recovery-tier jargon', async function () {
   assert.doesNotMatch(await rows.allTextContents().then((parts) => parts.join(' ')), /\bheld\b/i);
   assert.strictEqual(await page.locator('.closed-forget').count(), 2);
   assert.strictEqual(await page.locator('.closed-clear').count(), 1);
+});
+
+Then('Recently closed is folded directly under Pinned with {int} entries', async function (count) {
+  const page = await overlayPage();
+  const band = page.locator('#islandList > .closed-band');
+  await band.waitFor({ state: 'visible' });
+  const order = await page.locator('#islandList').evaluate((list) =>
+    [...list.querySelectorAll(':scope > [data-drag-section]')].map((el) => el.dataset.groupId || el.dataset.dragSection));
+  assert.equal(order.indexOf('recently-closed'), order.indexOf('pinned') + 1, `order: ${order.join(', ')}`);
+  assert.equal(await band.getAttribute('data-collapsed'), 'true');
+  assert.equal(await page.locator('.closed-row').count(), 0);
+  assert.equal(await band.locator('.ghead-n').first().textContent(), String(count));
+});
+
+When('I close and reopen the command palette', async function () {
+  await this.call('closeOverlay');
+  await openOverlaySurface(this, 'openPalette', 'palette');
 });
 
 When('I forget the newest recently closed tab', async function () {

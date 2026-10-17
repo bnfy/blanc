@@ -220,7 +220,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "2824afa88ac17067cb6d11816939efd997e92713ecda427b69a8bb6c1042dbbd",
+      "sha256": "609c159575528b4002731741d24b2edd2cf20dcc001050c3217a76bc071921aa",
       "literalChannels": [
         "activate",
         "bangs:changed",
@@ -299,6 +299,7 @@
         "display-capture:picker-resolve",
         "fill:reply",
         "focus",
+        "groups:move-closed",
         "groups:reorder",
         "input-event",
         "login",
@@ -534,7 +535,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "3f9d8e95e94baa7838d438abd98fccb40c42a413da09c9e2de8e98e63951c7ad",
+      "sha256": "0029d9ec5b52b7c6ff41977b940c98eb33218329da7fd53a7267e8bd86cd1fbe",
       "literalChannels": [
         "bangs:changed",
         "chrome:adblock-exempt-active",
@@ -597,6 +598,7 @@
         "chrome:workspaces-updated",
         "display-capture:picker-resolve",
         "display-capture:stop",
+        "groups:move-closed",
         "groups:reorder",
         "overlay:close",
         "overlay:drag-state",

@@ -130,6 +130,7 @@
     <string name="rail_move_top">Já está no topo</string>
     <string name="rail_move_bottom">Já está no fim</string>
     <string name="drag_moved_group">Grupo %1$s movido</string>
+    <string name="drag_moved_closed">Seção Fechadas recentemente movida</string>
     <string name="drag_moved_tab">%1$s movida</string>
     <string name="drag_moved_tab_untitled">Aba movida</string>
     <string name="drag_moved_to">Movida para %1$s</string>
@@ -380,10 +381,10 @@
     <string name="slash_sleep_none">Nenhuma aba em segundo plano pode entrar em repouso agora.</string>
     <string name="slash_sleep_failed">Não foi possível colocar as abas em segundo plano em repouso.</string>
     <string name="slash_invite_copied">Seu app de e-mail não abriu, então o convite foi copiado. Cole-o em uma mensagem.</string>
-    <string name="closed_header">fechadas recentemente</string>
+    <string name="closed_header">Fechadas recentemente</string>
     <string name="closed_fold">Recolher as fechadas recentemente</string>
     <string name="closed_unfold">Expandir as fechadas recentemente</string>
-    <string name="closed_clear">limpar</string>
+    <string name="closed_clear">Limpar tudo</string>
     <string name="closed_clear_all">Esquecer todas as abas fechadas</string>
     <string name="closed_reopen">Reabrir a aba fechada</string>
     <plurals name="closed_group_title">
