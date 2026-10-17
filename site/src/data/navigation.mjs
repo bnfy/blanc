@@ -2,7 +2,7 @@
 export const directLinks = [
   { href: '/features', key: 'features', label: 'Features' },
   { href: '/trust', key: 'privacy', label: 'Privacy & Security' },
-  { href: '/#patron', key: 'patron', label: 'Patron' },
+  { href: '/patron', key: 'patron', label: 'Patron' },
   { href: '/about', key: 'about', label: 'About' },
   { href: '/support', key: 'support', label: 'Support' },
   { href: '/mail', key: 'mail', label: 'Mail' },
