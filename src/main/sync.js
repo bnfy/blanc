@@ -93,7 +93,7 @@ function tabSyncContext() {
 // Order doesn't matter; each store syncs independently.
 const STORES = [
   { name: 'bookmarks', export: bookmarks.exportForSync, merge: bookmarks.mergeFromSync },
-  { name: 'settings', export: settings.exportForSync, merge: settings.mergeFromSync },
+  { name: 'settings', export: settings.exportForSync, merge: settings.mergeFromSync, equals: settings.syncPayloadEquals },
   {
     name: 'session',
     // ctx is the run-scoped context syncNow snapshotted — NOT re-resolved

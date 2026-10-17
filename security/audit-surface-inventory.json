@@ -423,7 +423,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "2705ad6e6899799feade1c3b70d0d72471ef9323ef27cdecceb81b4758d85a3f",
+      "sha256": "c47a4d9abadb23cfab7b0cec4c587457fc2992fc0cb3029d0147b0ded20027c3",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -736,7 +736,7 @@
     },
     {
       "file": "src/main/sync.js",
-      "sha256": "2ef3143f40b54652b278e102fa9137713f6654be511f1d684a772e5c004c4835",
+      "sha256": "692dd703d9e8f0bfca9feab74306e16bdd677878a1261c6d19ffbd6b9df6dc25",
       "literalChannels": [
         "before-quit"
       ],

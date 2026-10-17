@@ -352,6 +352,7 @@ function setupPages(hooks = {}) {
       onePasswordAccount,
       presentationDefaultsResetVersion,
       groupNamesRecasedVersion,
+      deviceNames,
       ...rest
     } = settings.getSettings();
     return {

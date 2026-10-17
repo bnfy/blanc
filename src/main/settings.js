@@ -12,6 +12,7 @@ const APP_ICON_ASSETS = require('./app-icon-assets');
 const { normalizeHomepage } = require('./top-level-url-policy');
 const { migrateSupporter, downgradeMirror, isRecordActive } = require('./patron-model');
 const { DEFAULT_MAPPING, mappingOrDefault, validMapping } = require('./mouse-gestures');
+const { normalizeDeviceNames, setDeviceNameEntry, mergeDeviceNames, deviceNamesEqual } = require('./device-names');
 const {
   isValidSearchTemplate,
   searchUrlFromTemplate,
@@ -70,7 +71,9 @@ const GROUP_NAMES_RECASE_VERSION = 1;
 // device's 1Password integration configuration
 // (device-local), usagePing (per-install consent), and supporter (never —
 // that would be license sharing).
-const SYNCED_KEYS = ['searchEngine', 'searchEngineTemplate', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions', 'newtabLayout', 'newtabDynamicWallpaper'];
+// deviceNames is merged entry by entry (device-names.js), never as one
+// last-writer-wins value, and only setDeviceName() writes it.
+const SYNCED_KEYS = ['searchEngine', 'searchEngineTemplate', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions', 'newtabLayout', 'newtabDynamicWallpaper', 'deviceNames'];
 
 // App icon variants — id maps to src/renderer/pages/icon-<id>.png; order here
 // is also the tile order Settings renders.
@@ -196,6 +199,10 @@ const DEFAULTS = {
   // Written only by setPatron() (the activation/validation flow), never by
   // the generic setSettings() path. See patron-model.js for the state machine.
   patron: null,
+  // Names the user gave synced devices: deviceId → { name, at, tie }, a clock
+  // per entry (device-names.js). Profile Synced; written only by
+  // setDeviceName(), never by the Settings page.
+  deviceNames: {},
   // Per-key last-write timestamps and equal-clock tie-breakers for sync's LWW
   // merge; only SYNCED_KEYS are ever stamped or transmitted. See
   // exportForSync/mergeFromSync.
@@ -373,6 +380,7 @@ function getSettings() {
   if (typeof data.onePasswordAccount !== 'string' || data.onePasswordAccount.length > 200) {
     data.onePasswordAccount = DEFAULTS.onePasswordAccount;
   }
+  data.deviceNames = normalizeDeviceNames(data.deviceNames);
   data.homePage = normalizeHomepage(data.homePage, DEFAULTS.homePage);
   data.verticalTabsWidth = normalizeVerticalTabsWidth(data.verticalTabsWidth);
   if (!isAppIconAllowed(data.appIcon)) data.appIcon = DEFAULTS.appIcon;
@@ -631,7 +639,12 @@ function exportForSync() {
   const d = ensureStore().data;
   const values = {}, meta = {}, tieBreakers = {};
   for (const k of SYNCED_KEYS) {
-    if (d[k] !== undefined) values[k] = d[k];
+    if (k === 'deviceNames') {
+      const names = normalizeDeviceNames(d.deviceNames);
+      if (Object.keys(names).length) values.deviceNames = names;
+    } else if (d[k] !== undefined) {
+      values[k] = d[k];
+    }
     if (validSyncTimestamp(d._syncMeta?.[k]) && d._syncMeta[k] > 0) {
       meta[k] = d._syncMeta[k];
       const tieBreaker = normalizeSyncTieBreaker(d._syncTieBreakers?.[k]);
@@ -646,8 +659,10 @@ function exportForSync() {
 // remote timestamp/tie-breaker are retained so ordering stays convergent.
 function mergeFromSync(remote) {
   const s = ensureStore();
+  const namesChanged = mergeDeviceNamesFromSync(s, remote);
   const winners = {};
   for (const k of SYNCED_KEYS) {
+    if (k === 'deviceNames') continue; // merged entry by entry above
     const rt = remote.meta?.[k];
     if (!validSyncTimestamp(rt) || rt === 0 || remote.values?.[k] === undefined) continue;
     const storedLocalTimestamp = s.data._syncMeta?.[k];
@@ -674,7 +689,10 @@ function mergeFromSync(remote) {
     }
   }
   const keys = Object.keys(winners);
-  if (!keys.length) return;
+  if (!keys.length) {
+    if (namesChanged) for (const fn of listeners) fn(getSettings());
+    return;
+  }
   const clean = sanitize(Object.fromEntries(keys.map((k) => [k, remote.values[k]])));
   s.update((data) => {
     Object.assign(data, clean);
@@ -689,7 +707,67 @@ function mergeFromSync(remote) {
     }
   });
   // Notify (→ app re-applies theme/adblock) only when something was adopted.
-  if (Object.keys(clean).length) for (const fn of listeners) fn(getSettings());
+  if (Object.keys(clean).length || namesChanged) for (const fn of listeners) fn(getSettings());
+}
+
+// Each device's name keeps its own clock, so two Macs renaming two devices
+// both keep their renames. The key's clock is the larger of both sides.
+function mergeDeviceNamesFromSync(s, remote) {
+  const remoteNames = remote?.values?.deviceNames;
+  if (remoteNames === undefined) return false;
+  const local = normalizeDeviceNames(s.data.deviceNames);
+  const merged = mergeDeviceNames(local, remoteNames);
+  const rt = validSyncTimestamp(remote.meta?.deviceNames) ? remote.meta.deviceNames : 0;
+  const lt = validSyncTimestamp(s.data._syncMeta?.deviceNames) ? s.data._syncMeta.deviceNames : 0;
+  const changed = !deviceNamesEqual(local, merged);
+  if (!changed && rt <= lt) return false;
+  s.update((data) => {
+    data.deviceNames = merged;
+    data._syncMeta ??= {};
+    data._syncMeta.deviceNames = Math.max(lt, rt);
+  });
+  return changed;
+}
+
+function getDeviceNames() {
+  return normalizeDeviceNames(ensureStore().data.deviceNames);
+}
+
+/** Give a synced device a name; an empty name clears it, so the device's
+ * published name shows again. The only writer of deviceNames. */
+function setDeviceName(deviceId, rawName, now = Date.now()) {
+  const s = ensureStore();
+  const current = normalizeDeviceNames(s.data.deviceNames);
+  const previous = Object.hasOwn(current, deviceId) ? current[deviceId] : null;
+  const next = setDeviceNameEntry(current, deviceId, rawName, {
+    at: nextSyncWriteTimestamp(previous?.at, now),
+    tie: crypto.randomUUID(),
+  });
+  const entry = Object.hasOwn(next, deviceId) ? next[deviceId] : null;
+  if (!entry || entry.name === (previous?.name ?? '')) return current;
+  s.update((data) => {
+    data.deviceNames = next;
+    data._syncMeta ??= {};
+    data._syncMeta.deviceNames = nextSyncWriteTimestamp(data._syncMeta.deviceNames, now);
+  });
+  for (const fn of listeners) fn(getSettings());
+  return next;
+}
+
+function stableJson(value) {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(',')}]`;
+  if (value && typeof value === 'object') {
+    return `{${Object.keys(value).sort().map((k) => `${JSON.stringify(k)}:${stableJson(value[k])}`).join(',')}}`;
+  }
+  return JSON.stringify(value) ?? 'null';
+}
+
+/** Sync's repair check: a remote blob identical to what this device would
+ * upload needs no PUT; anything else (a Blanc that predates a key dropped
+ * it, say) uploads again. */
+function syncPayloadEquals(exported, remote) {
+  if (!remote || typeof remote !== 'object') return false;
+  return stableJson(exported) === stableJson(remote);
 }
 
 /** The engine searches use now, after the read rule: { id, label, url(query) }.
@@ -752,4 +830,7 @@ module.exports = {
   getPatronRecord,
   exportForSync,
   mergeFromSync,
+  syncPayloadEquals,
+  getDeviceNames,
+  setDeviceName,
 };
