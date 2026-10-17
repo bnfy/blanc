@@ -257,7 +257,7 @@ into acceptance data.
 - Keep response bodies, full-URL observations and any transient identifiers
   only on this Mac, outside the repository and synced folders, under an
   owner-only run directory under
-  `~/Library/Caches/Blanc/F12PrivateSanity/<run-id>/`
+  `~/Library/Caches/me.bnfy.blanc-f12-private-sanity/<run-id>/`
   (directories 0700, files 0600), with the expanded absolute path recorded
   locally. This avoids relying on temporary-directory retention, but a
   cache is not guaranteed storage: record any early eviction as lost
