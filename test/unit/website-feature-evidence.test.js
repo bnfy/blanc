@@ -352,7 +352,9 @@ test('candidate bangs copy resolves to the bangs merge commit', () => {
   assert.equal(candidate.sourceSha, bangsData.ref, 'the copy and the bang data are pinned to the same commit');
   for (const claim of candidate.claims) {
     assert.equal(claim.verdict, 'qualified', claim.id);
-    assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: exact wording drifted`);
+    const source = read(claim.source);
+    // Meta copy lives in the BaseLayout tag's attributes, which normalize() strips.
+    assert.ok(normalize(source).includes(claim.exactWording) || source.replace(/\s+/g, ' ').includes(claim.exactWording), `${claim.id}: exact wording drifted`);
     for (const key of claim.evidenceGroups) {
       const group = candidate.evidenceGroups[key];
       assert.ok(group?.qualification && group.evidence.length, `${claim.id}: evidence and qualification`);
@@ -362,6 +364,30 @@ test('candidate bangs copy resolves to the bangs merge commit', () => {
   for (const [key, group] of Object.entries(candidate.evidenceGroups)) {
     assert.ok(group.qualification && group.evidence.length, key);
     for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${candidate.sourceSha}:${evidence}`], { cwd: root });
+  }
+});
+
+// Every sentence on /bangs, including the try-it messages and the page's
+// meta copy, is recorded against the pinned build (candidate for now).
+test('every sentence on the bangs page is recorded', () => {
+  const file = 'site/src/pages/bangs.astro';
+  const source = read(file);
+  const candidate = JSON.parse(read('docs/website-candidate-claims-bangs.json'));
+  const recorded = candidate.claims.filter(claim => claim.source === file).map(claim => claim.exactWording);
+  // From the hero on: the breadcrumb's labels are navigation, not claims.
+  const markup = source.slice(source.indexOf('<section class="feature-hero'));
+  const units = [...markup.matchAll(/<(h[1-6]|p|li|figcaption|strong|button|a)\b[^>]*>([\s\S]*?)<\/\1>/g)]
+    .map(match => normalize(match[2])).filter(text => text && !text.includes('{'));
+  assert.ok(units.length > 15, 'the page copy was found');
+  for (const unit of units) {
+    if (recorded.some(wording => wording.includes(unit))) continue;
+    for (const sentence of unit.split(/(?<=[.?!])\s+(?=[A-Z“])/)) {
+      assert.ok(recorded.some(wording => wording.includes(sentence)), `bangs page sentence is not recorded: “${sentence}”`);
+    }
+  }
+  for (const attribute of ['title', 'description', 'ogDescription', 'ogImageAlt']) {
+    const value = source.match(new RegExp(`\\b${attribute}=\\{"([^"]+)"\\}`))?.[1];
+    assert.ok(value && recorded.includes(value), `bangs page ${attribute} is not recorded`);
   }
 });
 

@@ -94,3 +94,14 @@ test('filterBangs finds a bang by site or by code, literally', async () => {
   for (const odd of ['c++', '(', '.*']) assert.doesNotThrow(() => filterBangs(rows, odd), odd);
   assert.equal(filterBangs(rows, '').length, rows.length);
 });
+
+test('directory order ignores leading punctuation in site names', async () => {
+  const { directoryRows } = await directory();
+  const rows = directoryRows(data);
+  assert.match(rows[0].name, /^[0-9a-z]/i, `first row is ${rows[0].name}`);
+  const index = (code) => rows.findIndex((row) => row.code === code);
+  const firstB = rows.findIndex((row) => /^b/i.test(row.name));
+  const blender = rows.findIndex((row) => row.name === '_ Blender Stack Exchange');
+  assert.ok(blender > firstB, '_ Blender Stack Exchange sorts with the B names');
+  assert.ok(index('yt') > 0);
+});

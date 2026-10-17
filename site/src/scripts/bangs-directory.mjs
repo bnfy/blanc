@@ -23,7 +23,8 @@ export function directoryRows(data) {
       host: openedHost(template),
       via: via[code] ?? null,
     }))
-    .sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }) || (a.code < b.code ? -1 : a.code > b.code ? 1 : 0));
+    // Leading punctuation (`_ Blender`, `.NET`, `/r/…`) sorts by the letters.
+    .sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base', ignorePunctuation: true }) || (a.code < b.code ? -1 : a.code > b.code ? 1 : 0));
 }
 
 /**

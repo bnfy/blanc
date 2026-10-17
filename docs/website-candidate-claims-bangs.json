@@ -51,5 +51,304 @@
       "qualification": "The list is Kagi's open bang list (MIT) at a pinned commit, bundled in the app and changed only by a Blanc update; Blanc makes no request for it. 10,624 bangs at this commit. Not an endorsement by Kagi."
     }
   },
-  "claims": []
+  "claims": [
+    {
+      "id": "bangs-001",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "Search the site. Skip the engine.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsCore"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-002",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "Type an exclamation mark and a site’s code with your search, like !yt lofi, and Blanc opens YouTube’s results directly. It works with whichever search engine you use, and your words go straight to the address the bang opens, not through your search engine.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsCore"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-003",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "Find a bang ›",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsList"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-004",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "Type a bang and the Island shows where it will go before you press Return. Nothing you type in this box leaves the page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsTryIt"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-005",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "Not a bang. Blanc treats this as it always does: an address, a command, or a search.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsTryIt"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-006",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "No bang with that code. Blanc would search for it as typed.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsTryIt"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-007",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "Type it first or last. Blanc takes it from there.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsCore"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-008",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "The sites you search most, one code away.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsCore"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-009",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "!w searches Wikipedia, !a Amazon, !gh GitHub. !yt lofi and lofi !yt do the same thing, and a code on its own, like !yt, opens the site’s home page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsCore"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-010",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "Don’t know the code? Type !.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsCore"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-011",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "The Island lists the bangs you used recently and a set of popular ones. Keep typing to search the whole list by code or by site name.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsPrivacy",
+        "bangsList"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-012",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "Add your own.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsCustom"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-013",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "Settings, General, Your bangs: pick a code, a name, and the site’s search address with %s where your words go, for example your own SearXNG server. With Profile Sync on, your bangs follow you to your other computers.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsCustom"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-014",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "Your words skip your search engine.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsPrivacy",
+        "bangsList"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-015",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "Straight to the bang’s address.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsPrivacy",
+        "bangsList"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-016",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "A bang opens the address it names, and Blanc sends your words only there, never to your own search engine first. It works the same whichever engine you chose in Settings. A few bangs open another search engine’s search of one site; the list below marks them.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsPrivacy",
+        "bangsList"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-017",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "No suggestions while you type a bang.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsPrivacy",
+        "bangsList"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-018",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "Blanc doesn’t ask your search engine for suggestions while a bang is in the box, so !yt lofi isn’t sent anywhere until you press Return.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsPrivacy",
+        "bangsList"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-019",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "The list is built in.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsPrivacy",
+        "bangsList"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-020",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "Blanc doesn’t look bangs up online. The list ships inside the app and changes only with a Blanc update. The bangs you used recently stay on this computer, and private tabs don’t record them.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsPrivacy",
+        "bangsList"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-021",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "Every bang in Blanc",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsList"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-022",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "Show more",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsList"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-023",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "The bang list comes from Kagi’s open-source bang collection (MIT), checked and bundled with each Blanc release.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsList"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-024",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "Try bangs in Blanc.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsCore"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-025",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "download blanc",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsCore"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-026",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "Bangs: Search Any Site From the Address Bar | Blanc Browser",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsCore"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-027",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "Type !yt lofi in Blanc to search YouTube directly, with any search engine. Try a bang, then search every one in Blanc's built-in list.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsCore"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-028",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "Type a site's code with your search and Blanc opens its results directly, with any search engine.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsCore"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-029",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "Blanc's Island with !yt lofi typed and the hint row reading Search YouTube for lofi.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsCore"
+      ],
+      "verdict": "qualified"
+    }
+  ]
 }
