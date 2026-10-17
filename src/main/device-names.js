@@ -10,6 +10,9 @@
 const MAX_DEVICE_NAME = 80; // device-name.js and tabsync-model.js cap names the same way
 const MAX_DEVICE_NAME_ENTRIES = 64;
 const MAX_TIE = 128;
+// settings.js MAX_SYNC_TIMESTAMP: a clock past it would win every merge and
+// leave the device impossible to rename or clear anywhere.
+const MAX_CLOCK = Date.UTC(3000, 0, 1);
 const DEVICE_ID = /^[A-Za-z0-9-]{1,64}$/;
 
 function normalizeName(raw) {
@@ -18,7 +21,7 @@ function normalizeName(raw) {
 
 function normalizeEntry(entry) {
   if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return null;
-  if (typeof entry.name !== 'string' || !Number.isSafeInteger(entry.at) || entry.at <= 0) return null;
+  if (typeof entry.name !== 'string' || !Number.isSafeInteger(entry.at) || entry.at <= 0 || entry.at >= MAX_CLOCK) return null;
   const tie = typeof entry.tie === 'string' && entry.tie.length <= MAX_TIE ? entry.tie : '';
   return { name: normalizeName(entry.name), at: entry.at, tie };
 }

@@ -26,14 +26,18 @@ function loadSettings(userData) {
   loaded.push({ userData, settings });
   return settings;
 }
-function freshProfile(t, name) {
+function freshProfile(t, name, stored = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), `blanc-device-names-${name}-`));
   t.after(() => {
     for (const { userData, settings } of loaded) if (userData === dir) settings.flushSettings();
     fs.rmSync(dir, { recursive: true, force: true });
   });
-  fs.writeFileSync(path.join(dir, 'settings.json'), JSON.stringify({ onboardingVersion: 1 }));
-  return loadSettings(dir);
+  fs.writeFileSync(path.join(dir, 'settings.json'), JSON.stringify({ onboardingVersion: 1, ...stored }));
+  const settings = loadSettings(dir);
+  // The store binds to the userData path on first use; bind it now, before
+  // another profile repoints the mocked path.
+  settings.getSettings();
+  return settings;
 }
 
 test.after(() => {
@@ -169,4 +173,44 @@ test('device names stay out of the Settings page and the mobile schema', () => {
 test('the sync engine skips the settings PUT on a true no-op', () => {
   const sync = fs.readFileSync(path.join(__dirname, '../../src/main/sync.js'), 'utf8');
   assert.match(sync, /name: 'settings', export: settings\.exportForSync, merge: settings\.mergeFromSync, equals: settings\.syncPayloadEquals/);
+});
+
+// One sync pass as sync.js runs it: pull and merge, export, and PUT unless
+// the remote already equals what this device would upload.
+function syncPass(mac, server) {
+  if (server.blob) mac.mergeFromSync(server.blob);
+  const exported = mac.exportForSync();
+  if (server.blob && mac.syncPayloadEquals(exported, server.blob)) return false;
+  server.blob = JSON.parse(JSON.stringify(exported));
+  return true;
+}
+
+test('two Macs that agree stop uploading, even with an old unclocked setting', (t) => {
+  // theme saved before sync stamped settings: no clock, so no peer adopts it.
+  const macA = freshProfile(t, 'round-a', { theme: 'dark' });
+  const macB = freshProfile(t, 'round-b');
+  macA.setSettings({ adblockExceptions: ['example.com'] });
+  macA.setDeviceName(NEO, 'Work laptop', 1000);
+  macB.setSettings({ newtabDynamicWallpaper: true });
+  macB.setDeviceName(MINI, 'Studio', 1001);
+  const server = { blob: null };
+  for (let round = 0; round < 2; round++) { syncPass(macA, server); syncPass(macB, server); }
+  assert.equal(syncPass(macA, server), false, 'Mac A has nothing to upload');
+  assert.equal(syncPass(macB, server), false, 'Mac B has nothing to upload');
+  for (const mac of [macA, macB]) {
+    assert.deepEqual(mac.getSettings().adblockExceptions, ['example.com']);
+    assert.equal(mac.getSettings().newtabDynamicWallpaper, true);
+    assert.deepEqual(Object.keys(mac.getDeviceNames()).sort(), [NEO, MINI].sort());
+  }
+});
+
+test('a remote with the same names and a later key clock adopts the clock quietly', (t) => {
+  const mac = freshProfile(t, 'clock-only');
+  mac.setDeviceName(NEO, 'Work laptop', 1000);
+  const names = mac.getDeviceNames();
+  let fired = 0;
+  mac.onSettingsChanged(() => { fired++; });
+  mac.mergeFromSync({ values: { deviceNames: names }, meta: { deviceNames: 9000 } });
+  assert.equal(mac.exportForSync().meta.deviceNames, 9000);
+  assert.equal(fired, 0);
 });

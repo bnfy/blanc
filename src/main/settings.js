@@ -762,12 +762,25 @@ function stableJson(value) {
   return JSON.stringify(value) ?? 'null';
 }
 
-/** Sync's repair check: a remote blob identical to what this device would
- * upload needs no PUT; anything else (a Blanc that predates a key dropped
- * it, say) uploads again. */
+// What a payload tells a peer: only clocked values are ever adopted
+// (mergeFromSync), so a value saved before sync stamped settings carries
+// nothing and two Macs that differ only there already agree.
+function adoptableSyncPayload(payload) {
+  const out = {};
+  for (const [k, at] of Object.entries(payload?.meta ?? {})) {
+    if (!validSyncTimestamp(at) || at === 0 || payload.values?.[k] === undefined) continue;
+    out[k] = { value: payload.values[k], at, tie: normalizeSyncTieBreaker(payload.tieBreakers?.[k]) };
+  }
+  return out;
+}
+
+/** Sync's repair check: a remote blob that already tells peers everything
+ * this device would upload needs no PUT; anything else (a Blanc that
+ * predates a key dropped it, say) uploads again. The focus refresh pulls
+ * settings once a minute, so this keeps it to a GET when nothing changed. */
 function syncPayloadEquals(exported, remote) {
   if (!remote || typeof remote !== 'object') return false;
-  return stableJson(exported) === stableJson(remote);
+  return stableJson(adoptableSyncPayload(exported)) === stableJson(adoptableSyncPayload(remote));
 }
 
 /** The engine searches use now, after the read rule: { id, label, url(query) }.

@@ -114,3 +114,15 @@ test('deviceNamesEqual ignores key order and invalid entries', () => {
   assert.equal(deviceNamesEqual(a, { [NEO]: { name: 'A', at: 1, tie: '' } }), false);
   assert.equal(deviceNamesEqual({}, undefined), true);
 });
+
+test('an entry clocked past the sync ceiling is dropped, so it can never pin a name', () => {
+  const settingsSource = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../src/main/settings.js'), 'utf8');
+  assert.match(settingsSource, /const MAX_SYNC_TIMESTAMP = Date\.UTC\(3000, 0, 1\);/, 'the same ceiling as every other sync clock');
+  const ceiling = Date.UTC(3000, 0, 1);
+  const poisoned = { [NEO]: { name: 'Poisoned', at: ceiling, tie: '' } };
+  assert.deepEqual(normalizeDeviceNames(poisoned), {});
+  const mine = setDeviceNameEntry({}, NEO, 'Mine', { at: 1000, tie: 'a' });
+  assert.equal(mergeDeviceNames(mine, poisoned)[NEO].name, 'Mine');
+  assert.equal(mergeDeviceNames(poisoned, mine)[NEO].name, 'Mine');
+  assert.equal(normalizeDeviceNames({ [NEO]: { name: 'Fine', at: ceiling - 1, tie: '' } })[NEO].name, 'Fine');
+});
