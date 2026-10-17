@@ -452,10 +452,12 @@
     <string name="tab_menu_duplicate">Tab duplizieren</string>
     <string name="tab_menu_rename">Tab umbenennen…</string>
     <string name="prompt_rename_group">Gruppe umbenennen · Enter speichert · Esc bricht ab</string>
+    <string name="prompt_rename_device">Gerät umbenennen · Enter speichert · Esc bricht ab</string>
     <string name="group_menu_duplicate">Es gibt schon eine Gruppe namens „%1$s“</string>
     <string name="group_menu_close">Gruppe schließen</string>
     <string name="group_menu_ungroup">Gruppierung aufheben</string>
     <string name="group_menu_rename">Gruppe umbenennen…</string>
+    <string name="device_menu_rename">Gerät umbenennen…</string>
     <string name="tab_menu_reset_title">Tabtitel zurücksetzen</string>
     <string name="tab_menu_pin">Tab anheften</string>
     <string name="tab_menu_unpin">Tab lösen</string>

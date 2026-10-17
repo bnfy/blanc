@@ -1653,6 +1653,10 @@
     "message": "Renommer le groupe · Entrée enregistre · Échap annule",
     "source": "sha256:c5474e46aa1c533cd52cacfa15f67a058c3990d4d6f70f048e22ac91d1c26713"
   },
+  "prompt.renameDevice": {
+    "message": "Renommer l’appareil · Entrée enregistre · Échap annule",
+    "source": "sha256:8e093f1b4b25b2be8c4066d120e98fab7c8b454ac8a8f050281a750201e6396c"
+  },
   "groupMenu.duplicate": {
     "message": "Un groupe nommé « {name} » existe déjà",
     "source": "sha256:45ff90bc26cdf4541799afe27f1c54d34d8a8830082969c43c088fa33a21b32e"
@@ -1668,6 +1672,10 @@
   "groupMenu.rename": {
     "message": "Renommer le groupe…",
     "source": "sha256:c296687065931c5eeab8175fc34ab9a52eb2c25f52ef27d947a40fb1e0bf4971"
+  },
+  "deviceMenu.rename": {
+    "message": "Renommer l’appareil…",
+    "source": "sha256:9470f0d246edc1b11317686ed5cdf1eba468c3b8ba205e80b536df97f3cd5ce0"
   },
   "tabMenu.resetTitle": {
     "message": "Réinitialiser le titre de l’onglet",

@@ -220,7 +220,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "44fbf878206a8aae9c01e36d87d74d0f3b20c944ef58634dc622f90da472e295",
+      "sha256": "988d45f0e80bee58d638e7dc6f3b7d55e121816da0dc354a1e30446b87b036d9",
       "literalChannels": [
         "activate",
         "before-input-event",
@@ -265,6 +265,7 @@
         "chrome:preview-vertical-tabs-width",
         "chrome:remote-tabs-list",
         "chrome:remote-tabs-updated",
+        "chrome:rename-device",
         "chrome:reset-glance",
         "chrome:resize-glance",
         "chrome:search-suggestions",
@@ -534,7 +535,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "704c36523eab14d5f899b70f6eaf26ad486b9a73134298ed7e8386a0b6b501a8",
+      "sha256": "b8168e8d7bc6e778a5067a025b1e652aacd2725040500cb4974b0df047c6d3a6",
       "literalChannels": [
         "chrome:adblock-exempt-active",
         "chrome:adblock-toggle",
@@ -570,6 +571,7 @@
         "chrome:preview-vertical-tabs-width",
         "chrome:remote-tabs-list",
         "chrome:remote-tabs-updated",
+        "chrome:rename-device",
         "chrome:reset-glance",
         "chrome:resize-glance",
         "chrome:search-suggestions",

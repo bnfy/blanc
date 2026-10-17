@@ -16,7 +16,7 @@ const path = require('node:path');
 const { app, Menu, clipboard, nativeImage, webContents } = require('electron');
 const { buildAddressMenu } = require('./address-menu-model');
 const { sameGroupName } = require('./group-name-case');
-const { resolveDeviceName, deviceNamesEqual } = require('./device-names');
+const { resolveDeviceName } = require('./device-names');
 const { blockableHostname } = require('./adblock-exceptions');
 const { syncSnapshot } = require('./session-snapshot');
 const { installTestCallBridge } = require('./test-call-bridge');
@@ -87,6 +87,7 @@ function install(refs) {
     renameTab,
     beginRenameTab,
     beginRenameGroup,
+    beginRenameDevice,
     ungroupGroup,
     closeGroup,
     toggleGroupCollapsed,
@@ -166,6 +167,7 @@ function install(refs) {
     fillStatusState,
     readFillStatusDom,
     setSleepThresholdOverride,
+    setRemoteDevicesSource,
     getSleepSnapshots,
     getClosedEntries,
     clearClosedEntries,
@@ -227,15 +229,20 @@ function install(refs) {
   }
 
   // Injected devices go through the same name resolution as
-  // sync.listRemoteDevices, and are re-pushed when a name changes.
+  // sync.listRemoteDevices; main re-pushes them when a name changes.
   let injectedDevices = [];
-  function pushRemoteDevices(devices) {
-    injectedDevices = devices;
+  const shownInjectedDevices = () => {
     const names = settings.getDeviceNames();
-    const shown = devices.map((device) => ({
+    return injectedDevices.map((device) => ({
       ...device,
       name: resolveDeviceName(names, device.deviceId, device.name),
     }));
+  };
+  function pushRemoteDevices(devices) {
+    injectedDevices = devices;
+    // Main lists (and lets the drawer rename) exactly what was injected.
+    setRemoteDevicesSource(devices.length ? shownInjectedDevices : null);
+    const shown = shownInjectedDevices();
     getOverlayWebContents()?.send('chrome:remote-tabs-updated', shown);
     for (const tab of tabs.values()) {
       if (urlOf(tab).startsWith('blanc://newtab')) {
@@ -243,12 +250,6 @@ function install(refs) {
       }
     }
   }
-  let pushedDeviceNames = settings.getDeviceNames();
-  settings.onSettingsChanged((next) => {
-    if (deviceNamesEqual(pushedDeviceNames, next.deviceNames)) return;
-    pushedDeviceNames = next.deviceNames;
-    if (injectedDevices.length) pushRemoteDevices(injectedDevices);
-  });
 
   async function readTabImportDom() {
     const wc = getUtilitySheetWebContents();
@@ -602,6 +603,11 @@ function install(refs) {
     groupTabByName(id, name) { groupTabByName(id, name); },
     renameTab(id, name) { renameTab(id, name); },
     beginRenameTab(id) { beginRenameTab(id); },
+    beginRenameDeviceByName(name) {
+      const device = shownInjectedDevices().find((d) => d.name === name);
+      if (device) beginRenameDevice(device.deviceId);
+      return !!device;
+    },
     beginRenameGroupByName(name) {
       const group = getGroups().find((g) => sameGroupName(g.name, name));
       if (group) beginRenameGroup(group.id);
@@ -2562,6 +2568,7 @@ function install(refs) {
           }
           return {
             title: row.querySelector('.row-title')?.textContent ?? '',
+            sub: row.querySelector('.row-sub')?.textContent ?? '',
             tag: row.querySelector('.row-tag')?.textContent ?? '',
             label: row.querySelector('.row-primary')?.getAttribute('aria-label') ?? '',
             quiet: row.classList.contains('quiet'),
@@ -2851,6 +2858,7 @@ function install(refs) {
                 }
                 return {
                   title: row.querySelector('.name')?.textContent ?? '',
+                  host: row.querySelector('.host')?.textContent ?? '',
                   href: row.href,
                   tileLetter: tile ? tile.textContent : '',
                   faviconHasIcon: !!(tile && tile.classList.contains('has-icon')),
@@ -3323,6 +3331,8 @@ function install(refs) {
       hideOverlay({ refocusContent: false });
       hideUtilitySheet();
       pushRemoteDevices([]);
+      // A device a scenario renamed shows its published name again.
+      for (const id of Object.keys(settings.getDeviceNames())) settings.setDeviceName(id, '');
       setWindowContentSize(1280, 800);
       // A fresh tab first so closing the rest never empties the window.
       const keep = createTab(newTabUrl());

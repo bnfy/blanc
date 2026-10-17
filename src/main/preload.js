@@ -131,6 +131,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   listHistory: (opts) => ipcRenderer.invoke('chrome:history-list', opts),
   listFavorites: () => ipcRenderer.invoke('chrome:favorites-list'),
   listRemoteTabs: () => ipcRenderer.invoke('chrome:remote-tabs-list'),
+  renameDevice: (deviceId, name) => ipcRenderer.invoke('chrome:rename-device', deviceId, name),
   cancelWorkspaceAction: () => ipcRenderer.send('chrome:workspaces-cancel'),
   listWorkspaces: () => ipcRenderer.invoke('chrome:workspaces-list'),
   saveWorkspaceAs: (name, identity) => ipcRenderer.invoke('chrome:workspaces-save-as', name, identity),

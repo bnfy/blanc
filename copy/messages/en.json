@@ -1709,6 +1709,10 @@
     "message": "Rename group · Enter saves · Esc cancels",
     "note": "One line in the ⌘L panel while its field edits a group's name (after Rename Group…). Sentence case."
   },
+  "prompt.renameDevice": {
+    "message": "Rename device · Enter saves · Esc cancels",
+    "note": "One line in the ⌘L panel while its field edits another synced device's name (after Rename Device…). An empty name shows the name the device reports again. Sentence case."
+  },
   "groupMenu.duplicate": {
     "message": "A group named “{name}” already exists",
     "note": "Shown in the ⌘L panel when a group is renamed to a name another group in the window already has; {name} is what was typed."
@@ -1724,6 +1728,10 @@
   "groupMenu.rename": {
     "message": "Rename Group…",
     "note": "Item in a tab group header's right-click menu (⌘L panel and vertical tabs rail); opens the panel to rename the group. Menu items use title case, like Rename Tab…."
+  },
+  "deviceMenu.rename": {
+    "message": "Rename Device…",
+    "note": "Only item in the right-click menu of a synced device's header in the ⌘L panel's Other devices drawer; opens the panel to rename that device on every synced device. Menu items use title case, like Rename Group…."
   },
   "tabMenu.resetTitle": {
     "message": "Reset Tab Title",

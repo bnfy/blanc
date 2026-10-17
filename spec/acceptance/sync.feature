@@ -123,3 +123,22 @@ Feature: Tab sync (open tabs from other devices)
     When I open the Island panel for other devices
     And I toggle Other devices
     Then the tab list keeps at least two rows and the footer stays in the window
+
+  @F27-13 @F27 @desktop
+  Scenario: Rename Device… names another device wherever it is listed
+    Given another device is sharing its tabs
+    When I open the Island panel for other devices
+    And I choose Rename Device… for "Press Mac"
+    Then the command bar reads "Press Mac" with "Press Mac" selected
+    And the panel says the field renames the device
+    When I type "Work laptop" and press Enter in the command bar
+    Then the start page lists "Remote press needle" from "Work laptop"
+    When I open the Island panel for other devices
+    And I toggle Other devices
+    Then the Other devices drawer lists "Work laptop" between the tab list and the footer
+    And the Quick Switcher lists "Remote press needle" from "Work laptop"
+    When I choose Rename Device… for "Work laptop"
+    And I clear the command bar and press Enter
+    And I open the Island panel for other devices
+    And I toggle Other devices
+    Then the Other devices drawer lists "Press Mac" between the tab list and the footer

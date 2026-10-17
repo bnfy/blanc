@@ -1687,7 +1687,8 @@
     // A name prompt owns the panel: one line saying what Enter does (or why
     // a name was refused), and no switcher results for the name being typed.
     if (namePrompt) {
-      const row = emptyRow(namePrompt.notice || blancI18n.t('prompt.renameGroup'));
+      const cue = namePrompt.kind === 'device' ? blancI18n.t('prompt.renameDevice') : blancI18n.t('prompt.renameGroup');
+      const row = emptyRow(namePrompt.notice || cue);
       row.classList.add('command-notice', 'name-prompt');
       islandList.replaceChildren(row);
       renderDevicesDrawer(false);
@@ -2017,6 +2018,12 @@
       // "Rename Group…": the same atomic payload makes the field a name prompt.
       if (purpose && typeof purpose === 'object' && purpose.renameGroupId != null) {
         namePrompt = { kind: 'group', id: purpose.renameGroupId, prefill: prefill ?? '', notice: '' };
+        pendingGroupTabId = null;
+        pendingRenameTabId = null;
+      }
+      // "Rename Device…" from the Other devices drawer: the same prompt.
+      if (purpose && typeof purpose === 'object' && purpose.renameDeviceId != null) {
+        namePrompt = { kind: 'device', id: purpose.renameDeviceId, prefill: prefill ?? '', notice: '' };
         pendingGroupTabId = null;
         pendingRenameTabId = null;
       }
@@ -2784,12 +2791,18 @@
     renderList();
   });
   /** Enter in a name prompt: an unchanged name just closes the panel; a
-   * refused one says why and keeps the prompt open. */
+   * refused one says why and keeps the prompt open. A device saved with an
+   * empty name shows its published name again. */
   async function submitNamePrompt() {
     const prompt = namePrompt;
     const value = addressInput.value;
     if (value.trim() === prompt.prefill.trim()) {
       window.browserAPI.closeOverlay();
+      return;
+    }
+    if (prompt.kind === 'device') {
+      await window.browserAPI.renameDevice(prompt.id, value);
+      if (namePrompt === prompt) window.browserAPI.closeOverlay();
       return;
     }
     const result = await window.browserAPI.renameGroup(prompt.id, value);
@@ -2982,6 +2995,11 @@
       ? null
       : e.target.closest('#islandList [data-drag-header][data-group-id]')?.dataset.groupId ?? null;
     window.__blancCtxGroupId = groupHeaderId === dragApi.constants.CLOSED_SECTION_ID ? null : groupHeaderId;
+    // A device header in the Other devices drawer gets Rename Device…
+    // (device-context-menu.js).
+    window.__blancCtxDeviceId = tabRowEl || workspaceRowEl
+      ? null
+      : e.target.closest('#islandDrawer .island-ghead[data-device-id]')?.dataset.deviceId ?? null;
     // A context-menu press never completes as a click, and a native menu
     // swallows its pointerup — macOS menus even keep key-window status, so
     // the blur fallback never fires either. Without this release, the
@@ -2994,6 +3012,7 @@
       && window.__blancCtxRowTabId == null
       && window.__blancCtxWorkspaceId == null
       && window.__blancCtxGroupId == null
+      && window.__blancCtxDeviceId == null
     ) {
       e.preventDefault();
     }
