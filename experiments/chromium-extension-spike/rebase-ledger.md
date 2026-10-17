@@ -207,3 +207,18 @@ are retained for unlocked acceptance and will be removed only after those checks
 The monitor is paused awaiting unlock. `CLAUDE.md` and the completed milestone
 record are not updated with a gate outcome. This ledger checkpoint does not
 approve a migration or another cold output.
+
+### Baseline decision after checkpoint review
+
+The owner chose **157 as the sole next baseline only after native acceptance
+passes**, preserving the 156 checkout as archival. Dual-version preparation is
+not requested. This branch's `prepare.mjs` targets 157; the spike README's 156 pin
+continues to describe the fully verified baseline until acceptance completes.
+Before landing this branch, complete the outstanding checks, record the outcome,
+and update the README pin to 157. This decision does not itself pass Task 0 or
+authorize another cold build.
+
+Before the unlocked session, record active agent start/stop intervals separately
+from process runtime. Record owner hands-on intervals only when observed or
+reported; mark these as partial coverage because earlier attention was not timed.
+Do not infer owner attention from the duration of the whole test session.
