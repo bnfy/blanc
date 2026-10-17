@@ -85,10 +85,15 @@ function listTopSites({ limit, offset } = {}) {
   }));
 }
 
-/** The locally cached icon for one site key (top-sites.js siteKey), or null.
- * Bang rows reuse it so a visited site's icon needs no request. */
+/** Every locally cached, validated icon by site key (top-sites.js siteKey),
+ * in one pass. Bang rows reuse them so a visited site needs no request. */
+function siteIconsByKey() {
+  return siteIconMap(ensureStore().data);
+}
+
+/** The locally cached icon for one site key, or null. */
 function siteIcon(key) {
-  return siteIconMap(ensureStore().data).get(key) ?? null;
+  return siteIconsByKey().get(key) ?? null;
 }
 
 /** Remember artwork Chromium already loaded for a normal tab. No lookup is
@@ -140,6 +145,7 @@ module.exports = {
   listTopSites,
   cacheSiteIcon,
   siteIcon,
+  siteIconsByKey,
   removeVisit,
   clearHistory,
 };

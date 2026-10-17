@@ -31,10 +31,17 @@ test('bangIconsFor decides private from main\'s tab model and writes nothing the
 });
 
 test('icons saved from visits come first and never come from private tabs', () => {
-  const body = fn('heldVisitIcon');
-  assert.match(body, /history\.siteIcon\(/);
+  const body = fn('visitIconLookup');
+  assert.match(body, /history\.siteIconsByKey\(\)/);
   assert.match(body, /bookmarks\.listBookmarks\(\)/);
-  assert.match(body, /!tab\.private/);
+  assert.match(body, /if \(tab\.profileId !== profileId \|\| tab\.private \|\| !tab\.favicon\) continue;/);
+});
+
+test('one ask builds the visit-icon index once, not once per host', () => {
+  const body = fn('bangIconsFor');
+  assert.equal(body.match(/visitIconLookup\(\)/g)?.length, 1);
+  const loop = body.slice(body.indexOf('for (const host of wanted)'));
+  assert.doesNotMatch(loop, /visitIconLookup\(\)|history\.|bookmarks\./);
 });
 
 test('every recent-bangs clear also clears bang icons', () => {

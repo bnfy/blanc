@@ -87,3 +87,15 @@ test('siteIcon returns the locally cached icon for a site key', () => {
   history.clearHistory();
   assert.equal(history.siteIcon('icons.example'), null);
 });
+
+test('siteIconsByKey returns every cached icon in one pass', () => {
+  history.clearHistory();
+  history.addVisit('https://one.example/', 'One');
+  history.cacheSiteIcon('https://one.example/', icon);
+  const icons = history.siteIconsByKey();
+  assert.ok(icons instanceof Map);
+  assert.equal(icons.get('one.example'), icon);
+  assert.equal(icons.size, 1);
+  history.clearHistory();
+  assert.equal(history.siteIconsByKey().size, 0);
+});

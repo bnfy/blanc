@@ -7888,24 +7888,26 @@ function broadcastWorkspacesUpdated() {
 // One ask covers the rows on screen; more is not a real list.
 const MAX_BANG_ICON_HOSTS = 40;
 
-/** An icon this profile already holds for the site from the person's own
- * visits: the history site-icon cache, a Favorite, or a live normal tab. No
- * request is ever made for these. */
-function heldVisitIcon(host) {
-  const key = topSiteKey(`https://${host}/`);
-  if (!key) return null;
-  const fromHistory = history.siteIcon(key);
-  if (fromHistory) return fromHistory;
+/** Icons this profile already holds from the person's own visits, by site
+ * key: the history site-icon cache, then Favorites, then live normal tabs
+ * (the start page's top-sites merge, in the same order). Built once per ask;
+ * no request is ever made for these. Returns host → icon or null. */
+function visitIconLookup() {
+  const byKey = new Map(history.siteIconsByKey());
   for (const favorite of bookmarks.listBookmarks()) {
-    if (favorite.favicon && topSiteKey(favorite.url) === key) return favorite.favicon;
+    const key = favorite.favicon ? topSiteKey(favorite.url) : null;
+    if (key && !byKey.has(key)) byKey.set(key, favorite.favicon);
   }
   const profileId = rt().profileId;
   for (const tab of tabs.values()) {
-    if (tab.profileId === profileId && !tab.private && tab.favicon && topSiteKey(tab.url) === key) {
-      return tab.favicon;
-    }
+    if (tab.profileId !== profileId || tab.private || !tab.favicon) continue;
+    const key = topSiteKey(tab.url);
+    if (key && !byKey.has(key)) byKey.set(key, tab.favicon);
   }
-  return null;
+  return (host) => {
+    const key = topSiteKey(`https://${host}/`);
+    return (key && byKey.get(key)) || null;
+  };
 }
 
 /** chrome:bang-icons: the icons already on the device for the bang rows on
@@ -7920,6 +7922,7 @@ function bangIconsFor(hosts) {
       .map((host) => host.toLowerCase()),
   )].slice(0, MAX_BANG_ICON_HOSTS);
   const privateActive = tabs.get(rt().activeTabId)?.private === true;
+  const heldVisitIcon = visitIconLookup();
   const answers = [];
   const fromStore = [];
   const toAsk = [];
