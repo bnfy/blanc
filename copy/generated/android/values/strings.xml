@@ -1986,5 +1986,10 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="result_tag_space">space</string>
     <string name="workspace_menu_edit">Edit…</string>
     <string name="newtab_checklist_space">Make your first space</string>
+    <string name="newtab_checklist_default">Make Blanc your default</string>
+    <string name="default_browser_reminder_title">Make Blanc your default browser?</string>
+    <string name="default_browser_reminder_body">Links you open from mail, chat and other apps will open in Blanc. You can change this anytime in Settings.</string>
+    <string name="default_browser_reminder_set">Set as default</string>
+    <string name="default_browser_reminder_later">Not now</string>
     <string name="ws_editor_retry">Try again</string>
 </resources>

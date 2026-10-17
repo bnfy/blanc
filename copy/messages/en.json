@@ -7341,6 +7341,28 @@
     "message": "Make your first space",
     "note": "Start page moving-in checklist task: opens the Spaces menu."
   },
+  "newtab.checklist.default": {
+    "message": "Make Blanc your default",
+    "note": "Start page moving-in checklist task: asks the OS to make Blanc the default browser. Shown only where Blanc can ask (macOS, Windows)."
+  },
+  "defaultBrowser.reminder.title": {
+    "message": "Make Blanc your default browser?",
+    "note": "Default-browser reminder: native dialog heading, shown once a few days after setup if Blanc still isn't the default."
+  },
+  "defaultBrowser.reminder.body": {
+    "message": "Links you open from mail, chat and other apps will open in Blanc. You can change this anytime in Settings.",
+    "note": "Default-browser reminder: native dialog explanation under the heading."
+  },
+  "defaultBrowser.reminder.set": {
+    "message": "Set as default",
+    "note": "Default-browser reminder: native dialog button that asks the OS to make Blanc the default.",
+    "maxLength": 20
+  },
+  "defaultBrowser.reminder.later": {
+    "message": "Not now",
+    "note": "Default-browser reminder: native dialog button that closes it; it is never shown again.",
+    "maxLength": 20
+  },
   "ws.editor.retry": {
     "message": "Try again",
     "note": "Space editor: button that sends an edit again after it failed to save.",

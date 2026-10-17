@@ -7,7 +7,16 @@ const os = require('os');
 const path = require('path');
 
 const settingsSchema = require('../../settings-schema/schema.json');
-const KEYS = ['migrationChecklistDismissed', 'syncMigrationCompleted', 'tabImportCompleted', 'spaceMigrationCompleted', 'spaceChecklistIntroduced'];
+const KEYS = [
+  'migrationChecklistDismissed',
+  'syncMigrationCompleted',
+  'tabImportCompleted',
+  'spaceMigrationCompleted',
+  'spaceChecklistIntroduced',
+  'defaultBrowserMigrationCompleted',
+  'defaultChecklistIntroduced',
+  'defaultBrowserReminderShown',
+];
 
 const electronId = require.resolve('electron');
 const originalElectron = require.cache[electronId];
@@ -55,4 +64,23 @@ test('checklist state defaults false, validates, persists, and never syncs', (t)
   fs.writeFileSync(file, JSON.stringify(data));
   settings = loadSettings(userData);
   for (const key of KEYS) assert.equal(settings.getSettings()[key], false, `${key} coerces corrupt data`);
+});
+
+test('first-run completion time is stamped once, by the privacy choice, and never syncs', (t) => {
+  const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-first-run-at-'));
+  t.after(() => fs.rmSync(userData, { recursive: true, force: true }));
+
+  const settings = loadSettings(userData);
+  assert.equal(settings.getSettings().firstRunCompletedAt, 0);
+  assert.equal(settingsSchema.internalDefaults.includes('firstRunCompletedAt'), true);
+  settings.setSettings({ firstRunCompletedAt: 123 });
+  assert.equal(settings.getSettings().firstRunCompletedAt, 0, 'generic writes cannot set it');
+
+  const before = Date.now();
+  assert.equal(settings.completeFirstRunPrivacyChoices({ searchSuggestions: true, usagePing: false }).completed, true);
+  const stamped = settings.getSettings().firstRunCompletedAt;
+  assert.ok(stamped >= before && stamped <= Date.now());
+  settings.completeFirstRunPrivacyChoices({ searchSuggestions: false, usagePing: false });
+  assert.equal(settings.getSettings().firstRunCompletedAt, stamped, 'a later save keeps the first time');
+  assert.equal(Object.hasOwn(settings.exportForSync().values, 'firstRunCompletedAt'), false);
 });

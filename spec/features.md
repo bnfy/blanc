@@ -310,6 +310,9 @@ From the desktop `DEFAULTS`:
 | `patronCalloutDismissedAt` | `0` | desktop-only time (ms) the start page's Patron pill was last closed; it stays hidden for 90 days; device-local, never synced |
 | `syncMigrationCompleted` | `false` | desktop-only boolean set once Sync credentials persist, including for already-enabled profiles; device-local, never synced |
 | `tabImportCompleted` | `false` | desktop-only boolean set after a Bring Your Tabs apply succeeds; device-local, never synced |
+| `defaultBrowserMigrationCompleted` | `false` | desktop-only boolean set once Blanc is seen as the default browser; device-local, never synced |
+| `firstRunCompletedAt` | `0` | desktop-only time (ms) this device first saved its privacy choices; 0 for profiles that finished first run before the field existed; device-local, never synced |
+| `defaultBrowserReminderShown` | `false` | desktop-only boolean set when the one later default-browser reminder is shown; device-local, never synced |
 | `usagePing` | `true` | boolean (F21) |
 | `supporter` | `null` | written only by the activation flow, never generic writes (F17) |
 

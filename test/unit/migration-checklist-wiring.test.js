@@ -11,7 +11,7 @@ const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), 'u
 test('main projects and guards the checklist at both start-page send sites', () => {
   const main = read('src/main/main.js');
 
-  assert.match(main, /migrationChecklist: migrationChecklistState\(\{\s*firstRunComplete: settings\.isFirstRunComplete\(\),\s*dismissed: current\.migrationChecklistDismissed,\s*syncComplete: current\.syncMigrationCompleted,\s*tabsComplete: current\.tabImportCompleted,\s*spaceComplete: current\.spaceMigrationCompleted,/);
+  assert.match(main, /migrationChecklist: migrationChecklistState\(\{\s*firstRunComplete: settings\.isFirstRunComplete\(\),\s*dismissed: current\.migrationChecklistDismissed,\s*syncComplete: current\.syncMigrationCompleted,\s*tabsComplete: current\.tabImportCompleted,\s*spaceComplete: current\.spaceMigrationCompleted,\s*defaultAvailable: defaultBrowserSettable\(\),\s*defaultComplete: current\.defaultBrowserMigrationCompleted,/);
   assert.match(main, /migrationChecklist: migrationChecklistForTab\(\s*status\.migrationChecklist,\s*tab,\s*DEFAULT_PROFILE_ID,/);
   assert.match(main, /migrationChecklistFor: \(wc\) => migrationChecklistForTab\(\s*startPageStatus\(\)\.migrationChecklist,\s*tabs\.get\(tabIdByWebContentsId\.get\(wc\.id\)\),\s*DEFAULT_PROFILE_ID,/);
   assert.match(main, /dismissMigrationChecklist: \(\) => \{\s*settings\.setSettings\(\{ migrationChecklistDismissed: true \}\);\s*return true;/);
@@ -54,4 +54,13 @@ test('the space task is introduced once at startup and completes on the first sp
   assert.ok(intro > 0 && intro < main.indexOf('settings.onSettingsChanged((s) => {'), 'before the settings fan-out, told whether Personal already has a space');
   assert.match(main, /function noteSpaceCreated\(\) \{[\s\S]{0,200}spaceMigrationCompleted: true/);
   assert.ok((main.match(/noteSpaceCreated\(\);/g) ?? []).length >= 3, 'save-as, create-blank and the Arc import each complete it');
+});
+
+test('the default-browser task is introduced once at startup and completes when Blanc is seen as the default', () => {
+  const main = read('src/main/main.js');
+  const intro = main.indexOf('const defaultTaskPatch = defaultTaskIntroduction(settings.getSettings());');
+  assert.ok(intro > 0 && intro < main.indexOf('settings.onSettingsChanged((s) => {'), 'before the settings fan-out');
+  assert.match(main, /if \(defaultTaskPatch\) settings\.setSettings\(defaultTaskPatch\);\s*noteDefaultBrowser\(\);\s*app\.on\('browser-window-focus', noteDefaultBrowserOnFocus\);/);
+  assert.match(main, /function noteDefaultBrowser\(\) \{[\s\S]{0,400}?settings\.setSettings\(\{ defaultBrowserMigrationCompleted: true \}\);/);
+  assert.match(main, /defaultBrowserChanged: \(\) => \{\s*noteDefaultBrowser\(\);\s*dayOneSignals\.checkDefault\(\);/);
 });

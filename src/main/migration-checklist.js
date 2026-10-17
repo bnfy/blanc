@@ -1,6 +1,9 @@
 'use strict';
 
-const TASKS = 3;
+// Sync, Bring your tabs and Make your first space are always listed. "Make
+// Blanc your default" joins them only where Blanc can ask the OS for the
+// role (default-browser-status.js: packaged, not Linux).
+const BASE_TASKS = 3;
 
 function migrationChecklistState({
   firstRunComplete,
@@ -8,15 +11,23 @@ function migrationChecklistState({
   syncComplete,
   tabsComplete,
   spaceComplete,
+  defaultAvailable,
+  defaultComplete,
 } = {}) {
+  const defaultShown = defaultAvailable === true;
+  const defaultDone = defaultShown && defaultComplete === true;
   const syncDone = syncComplete === true;
   const tabsDone = tabsComplete === true;
   const spaceDone = spaceComplete === true;
-  const completedCount = Number(syncDone) + Number(tabsDone) + Number(spaceDone);
+  const taskCount = BASE_TASKS + Number(defaultShown);
+  const completedCount = Number(defaultDone) + Number(syncDone) + Number(tabsDone) + Number(spaceDone);
 
   return {
-    visible: firstRunComplete === true && dismissed === false && completedCount < TASKS,
+    visible: firstRunComplete === true && dismissed === false && completedCount < taskCount,
     completedCount,
+    taskCount,
+    defaultAvailable: defaultShown,
+    defaultComplete: defaultDone,
     syncComplete: syncDone,
     tabsComplete: tabsDone,
     spaceComplete: spaceDone,
@@ -37,9 +48,29 @@ function spaceTaskIntroduction(settings = {}, { hasSpaces = false } = {}) {
   };
 }
 
+/** The same one-time patch for "Make Blanc your default": a checklist that
+ * already retired with its three tasks done stays retired. Whether Blanc is
+ * already the default is noted separately, on every launch. Null once
+ * applied. */
+function defaultTaskIntroduction(settings = {}) {
+  if (settings.defaultChecklistIntroduced === true) return null;
+  const retired = settings.syncMigrationCompleted === true
+    && settings.tabImportCompleted === true
+    && settings.spaceMigrationCompleted === true;
+  return {
+    defaultChecklistIntroduced: true,
+    ...(retired ? { migrationChecklistDismissed: true } : {}),
+  };
+}
+
 function migrationChecklistForTab(checklist, tab, defaultProfileId) {
   if (!checklist || !tab || tab.private || tab.profileId !== defaultProfileId) return null;
   return { ...checklist };
 }
 
-module.exports = { MIGRATION_CHECKLIST_TASKS: TASKS, migrationChecklistState, spaceTaskIntroduction, migrationChecklistForTab };
+module.exports = {
+  migrationChecklistState,
+  spaceTaskIntroduction,
+  defaultTaskIntroduction,
+  migrationChecklistForTab,
+};

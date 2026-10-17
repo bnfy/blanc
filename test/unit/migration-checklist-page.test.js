@@ -14,6 +14,8 @@ test('start page carries one shared accessible migration checklist', () => {
 
   assert.equal((html.match(/id="migrationChecklistShell"/g) ?? []).length, 1);
   assert.match(html, /id="migrationChecklistTitle">ready to move in\?<\/h2>/);
+  assert.match(html, /<li id="migrationDefaultTask" hidden>\s*<button id="migrationDefaultAction"[^>]*>[\s\S]*?Make Blanc your default/,
+    'the default-browser task leads the list and starts hidden until main says it applies');
   assert.match(html, /id="migrationSyncAction"[^>]*>[\s\S]*?Set up Sync/);
   assert.match(html, /id="migrationTabsAction"[^>]*href="blanc:\/\/tab-import\/"[\s\S]*?Bring your tabs/);
   assert.match(html, /id="migrationSpaceAction"[^>]*>[\s\S]*?Make your first space/);
@@ -107,7 +109,11 @@ test('renderer reflects progress, keeps completed rows actionable, and retires a
   const js = read('src/renderer/pages/newtab.js');
 
   assert.match(js, /function renderMigrationChecklist\(checklist\)/);
-  assert.match(js, /previous\.completedCount < MIGRATION_TASKS && checklist\.completedCount === MIGRATION_TASKS/);
+  assert.match(js, /previous\.completedCount < total && checklist\.completedCount === total/);
+  assert.match(js, /const migrationTaskCount = \(checklist\) => checklist\?\.taskCount \?\? 3;/,
+    'the task count comes from main\'s projection');
+  assert.match(js, /migrationDefaultTask\.hidden = checklist\.defaultAvailable !== true;/);
+  assert.match(js, /migrationDefaultAction\.addEventListener\('click', \(\) => \{\s*closeMigrationChecklistPopover\(\);\s*window\.bowserPages\?\.start\.setDefaultBrowser\(\)/);
   assert.match(js, /start\.openSpaces\(\)/);
   assert.match(js, /document\.hasFocus\(\)/,
     'completion waits until the start-page WebContents regains focus');

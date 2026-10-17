@@ -220,7 +220,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "61e508f5569f77eced8bbb40e409560dab0788914c0bf3bf80c70b25564c5d34",
+      "sha256": "831cc400771ac99bc95ba458491eae042688b7e32dcc7ab874ed1837bca91d9d",
       "literalChannels": [
         "activate",
         "bangs:changed",
@@ -423,7 +423,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "63023d4f735d212601fde42919e5caa3654c17bef09d9e27d075d25dd9588452",
+      "sha256": "616d9fd0474df8c8d9b9fbaa488e3c341e928a5535ab4e7e6abdfbea3a2d3dcb",
       "literalChannels": [
         "blanc",
         "pages:app-version",
