@@ -755,3 +755,75 @@ test('the Blanc Mail waitlist is never synced to Resend', async (t) => {
   assert.ok(await env.SUBSCRIBERS.get('mailwait:waiting@example.com'));
   assert.equal(calls, 0);
 });
+
+test('a first newsletter confirmation alerts SIGNUP_ALERT_TO; re-confirming and the waitlist do not', async (t) => {
+  const env = { ...environment(), SIGNUP_ALERT_TO: 'support@blanc.day' };
+  const originalFetch = globalThis.fetch;
+  const sent = [];
+  globalThis.fetch = async (_url, init) => {
+    sent.push(JSON.parse(init.body));
+    return new Response(JSON.stringify({ id: 'mail' }), { status: 200 });
+  };
+  t.after(() => { globalThis.fetch = originalFetch; });
+  const alerts = () => sent.filter((mail) => mail.to[0] === 'support@blanc.day');
+  const confirmFromLastMail = async (pattern) => {
+    const url = sent.at(-1).text.match(pattern)[0];
+    return worker.fetch(new Request(url), env);
+  };
+  const newsletterLink = /https:\/\/[^\s]+\/confirm\?token=[A-Za-z0-9_-]{43}/;
+
+  await worker.fetch(subscribeRequest({ email: 'first@example.com' }), env);
+  assert.equal(alerts().length, 0, 'no alert before confirmation');
+  assert.equal((await confirmFromLastMail(newsletterLink)).status, 200);
+  assert.equal(alerts().length, 1);
+  const [alert] = alerts();
+  assert.equal(alert.from, env.NEWSLETTER_FROM);
+  assert.match(alert.subject, /first@example\.com/);
+  assert.match(alert.text, /That makes 1 subscriber\./);
+  assert.ok(alert.html.includes('src="https://blanc.day/press/blanc-lockup-ink-480.png"'), 'alert is branded');
+  assert.ok(alert.html.includes('Blanc is built by Bananify.'));
+
+  await worker.fetch(subscribeRequest({ email: 'second@example.com' }), env);
+  await confirmFromLastMail(newsletterLink);
+  assert.equal(alerts().length, 2);
+  assert.match(alerts()[1].text, /That makes 2 subscribers\./);
+
+  // Two confirmation links for one address (the resend window passed before
+  // the first was used): only the first confirmation is a new subscriber.
+  await worker.fetch(subscribeRequest({ email: 'third@example.com' }), env);
+  const firstLink = sent.at(-1).text.match(newsletterLink)[0];
+  for (const { name } of (await env.SUBSCRIBERS.list({ prefix: 'sent:' })).keys) await env.SUBSCRIBERS.delete(name);
+  await worker.fetch(subscribeRequest({ email: 'third@example.com' }), env);
+  const secondLink = sent.at(-1).text.match(newsletterLink)[0];
+  assert.notEqual(firstLink, secondLink);
+  assert.equal((await worker.fetch(new Request(firstLink), env)).status, 200);
+  assert.equal(alerts().length, 3);
+  assert.equal((await worker.fetch(new Request(secondLink), env)).status, 200);
+  assert.equal(alerts().length, 3, 're-confirming does not alert');
+
+  await worker.fetch(waitlistRequest({ email: 'waiting@example.com' }), env);
+  await confirmFromLastMail(/https:\/\/[^\s]+\/mail-waitlist\/confirm\?token=[A-Za-z0-9_-]{43}/);
+  assert.ok(await env.SUBSCRIBERS.get('mailwait:waiting@example.com'));
+  assert.equal(alerts().length, 3, 'the Mail waitlist does not alert');
+});
+
+test('a failed signup alert still confirms the subscription', async (t) => {
+  const env = { ...environment(), SIGNUP_ALERT_TO: 'support@blanc.day' };
+  const errors = captureErrors(t);
+  const originalFetch = globalThis.fetch;
+  let mail;
+  globalThis.fetch = async (_url, init) => {
+    const body = JSON.parse(init.body);
+    if (body.to[0] === 'support@blanc.day') return new Response(JSON.stringify({ name: 'internal_server_error' }), { status: 500 });
+    mail = body;
+    return new Response('{}');
+  };
+  t.after(() => { globalThis.fetch = originalFetch; });
+
+  await worker.fetch(subscribeRequest({ email: 'person@example.com' }), env);
+  const url = mail.text.match(/https:\/\/[^\s]+\/confirm\?token=[A-Za-z0-9_-]{43}/)[0];
+  const confirmed = await worker.fetch(new Request(url), env);
+  assert.equal(confirmed.status, 200);
+  assert.ok(await env.SUBSCRIBERS.get('sub:person@example.com'));
+  assert.ok(errors.some((line) => line.includes('signup-alert-not-sent')));
+});
