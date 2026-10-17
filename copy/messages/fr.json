@@ -849,6 +849,14 @@
     "message": "Privé",
     "source": "sha256:a0281882c326afe7ab0ebb31d5ffc285d348dfc91745509ba0da3c18345b25c3"
   },
+  "footer.devices": {
+    "message": "Autres appareils",
+    "source": "sha256:4af3928da6b11ca58a401529f0264a8ee79f66785d973ffa1eb89cf4afffef99"
+  },
+  "footer.devices.title": {
+    "message": "Onglets ouverts sur vos autres appareils",
+    "source": "sha256:1c5552b3d9c6be23f9968fdc2dc202dccb1fc4f775f8b2212929c709678a5614"
+  },
   "footer.newPrivate.title": {
     "message": "Nouvel onglet privé ({shortcut})",
     "source": "sha256:f4a5361c85abec2519697e079fe31da39f4d234ff7923ac11b92a399766f73fc"

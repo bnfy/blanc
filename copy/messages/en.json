@@ -876,6 +876,15 @@
     "note": "Label of the button that opens a new private tab, beside New tab in the ⌘L panel footer. Sentence case; keep it short.",
     "maxLength": 10
   },
+  "footer.devices": {
+    "message": "Other devices",
+    "note": "Footer toggle in the ⌘L panel that opens the list of tabs open on the person's other synced devices. Sentence case; keep it short — it shares one line with New tab, Private and six icons.",
+    "maxLength": 16
+  },
+  "footer.devices.title": {
+    "message": "Tabs open on your other devices",
+    "note": "Tooltip of the Other devices footer toggle."
+  },
   "footer.newPrivate.title": {
     "message": "New private tab ({shortcut})",
     "note": "Tooltip of the private-tab launcher; {shortcut} is its keyboard shortcut."

@@ -79,6 +79,9 @@
   const findCloseBtn = document.getElementById('findCloseBtn');
   const footerNewTab = document.getElementById('footerNewTab');
   const footerNewPrivate = document.getElementById('footerNewPrivate');
+  const footerDevices = document.getElementById('footerDevices');
+  const footerDevicesCount = document.getElementById('footerDevicesCount');
+  const islandDrawer = document.getElementById('islandDrawer');
   const footerWorkspace = document.getElementById('footerWorkspace');
   const workspaceSwitcher = document.getElementById('workspaceSwitcher');
   const workspaceSwitcherList = document.getElementById('workspaceSwitcherList');
@@ -154,6 +157,8 @@
   // Recently closed starts folded — one line like a synced device; unfold to
   // see the reopen rows (Claude island declutter iteration).
   let closedSectionOpen = false;
+  // The Other devices drawer; closed on every fresh open of the panel.
+  let devicesDrawerOpen = false;
   // What Enter acts on — rebuilt on every list render.
   let visibleCommands = [];
   let visibleResults = [];
@@ -918,12 +923,22 @@
     const ns = row.querySelectorAll('.ghead-n');
     ns[0].textContent = String(device.tabs.length);
     ns[1].textContent = timeAgo(device.updatedAt);
-    ns[1].style.marginLeft = 'auto';
+    ns[1].classList.add('ghead-ago');
     row.title = open ? blancI18n.t('device.fold') : blancI18n.t('device.unfold');
-    row.addEventListener('click', () => {
+    row.dataset.deviceId = device.deviceId;
+    row.tabIndex = 0;
+    row.setAttribute('role', 'button');
+    row.setAttribute('aria-expanded', String(open));
+    const flip = () => {
       if (open) unfoldedDevices.delete(device.deviceId);
       else unfoldedDevices.add(device.deviceId);
       renderList();
+    };
+    row.addEventListener('click', flip);
+    row.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      flip();
     });
     return row;
   }
@@ -1747,25 +1762,15 @@
       placeClosed();
       if (!clusters.some(({ group }) => !group)) rows.push(dragEmptyZone('loose'));
 
-      const furniture = [];
-      for (const device of remoteDevices) {
-        furniture.push(remoteHeaderRow(device));
-        if (unfoldedDevices.has(device.deviceId)) {
-          furniture.push(...clusterRemoteTabs(device).map((t) => remoteTabRow(t, device)));
-        }
-      }
-      if (furniture.length) {
-        const wrap = document.createElement('div');
-        wrap.className = 'island-furniture';
-        wrap.append(...furniture);
-        rows.push(wrap);
-      }
       islandList.replaceChildren(...rows);
       // Only the resting tab list preserves row focus; the "/" command and
       // switcher branches drive focus from the input, not the rows.
       restoreRowFocus(rowAnchor);
     }
 
+    // The drawer shows only beside the resting list: typing a query or a
+    // command steps it aside until the field is clear again.
+    renderDevicesDrawer(!siteInfoOpen && !(inputTouched && (value.startsWith('/') || value.trim())));
 
     if (!siteInfoOpen) {
       islandHint.textContent = activeTab()?.private
@@ -1774,6 +1779,28 @@
           ? blancI18n.t('hint.groups', { mod: modKey })
           : blancI18n.t('hint.default', { mod: modKey });
     }
+  }
+
+  /** Other devices (spec 2026-10-16 §6): the footer toggle, hidden with no
+   * other device to show, and the drawer between the list and the footer. */
+  function renderDevicesDrawer(resting) {
+    footerDevices.hidden = !remoteDevices.length;
+    footerDevicesCount.textContent = String(remoteDevices.length);
+    const show = resting && devicesDrawerOpen && remoteDevices.length > 0;
+    footerDevices.setAttribute('aria-expanded', String(show));
+    islandDrawer.hidden = !show;
+    if (!show) {
+      islandDrawer.replaceChildren();
+      return;
+    }
+    const rows = [];
+    for (const device of remoteDevices) {
+      rows.push(remoteHeaderRow(device));
+      if (unfoldedDevices.has(device.deviceId)) {
+        rows.push(...clusterRemoteTabs(device).map((t) => remoteTabRow(t, device)));
+      }
+    }
+    islandDrawer.replaceChildren(...rows);
   }
 
   function renderPanel() {
@@ -1932,6 +1959,7 @@
       if (!reshow) {
         siteInfoOpen = false;
         closedSectionOpen = false;
+        devicesDrawerOpen = false;
         pendingGroupTabId = null;
         pendingRenameTabId = null;
         renamePrefill = null;
@@ -2633,6 +2661,11 @@
   footerNewPrivate.addEventListener('click', () => {
     window.browserAPI.closeOverlay();
     window.browserAPI.createTab(null, { private: true, focusAddress: false });
+  });
+  footerDevices.title = blancI18n.t('footer.devices.title');
+  footerDevices.addEventListener('click', () => {
+    devicesDrawerOpen = !devicesDrawerOpen;
+    renderList();
   });
   // Each shortcut opens its internal page; close first so main can re-show
   // the overlay cleanly where needed (mirrors runCommand for /favorites etc).

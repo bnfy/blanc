@@ -166,7 +166,9 @@ Then('the workspace list scrolls while creation controls remain visible', async 
     await page.waitForFunction(() => !document.querySelector('#islandPanel.morph-start, #islandPanel.morph-run, #islandPanel.retracting'));
     const geometry = await page.evaluate(() => {
       const footer = document.getElementById('islandFooter').getBoundingClientRect();
-      const rects = [...document.querySelectorAll('#islandFooter button')].map((button) => ({ id: button.id, rect: button.getBoundingClientRect().toJSON() }));
+      // A hidden button (Other devices with no device to show) takes no space.
+      const rects = [...document.querySelectorAll('#islandFooter button')].filter((button) => !button.hidden)
+        .map((button) => ({ id: button.id, rect: button.getBoundingClientRect().toJSON() }));
       const spaces = document.getElementById('footerWorkspace');
       return { viewport: { width: innerWidth, height: innerHeight }, footer: footer.toJSON(), rects, spacesText: spaces.textContent.trim(), spacesTitle: spaces.title };
     });
@@ -188,7 +190,16 @@ Then('the workspace list scrolls while creation controls remain visible', async 
     }
   };
   await ctx.app.evaluate(({ BrowserWindow }) => { const window = BrowserWindow.getAllWindows().find((w) => w.webContents.getURL() === 'blanc-chrome://index/'); window.setSize(640, 480); });
+  // Measure with the Other devices toggle showing: the longest footer line.
+  // Opening the panel reloads devices from the real (disabled) sync cache, so
+  // the fixture goes in once that refresh has settled.
+  const showDevices = async (overlay) => {
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    await this.call('injectRemoteDevices');
+    await overlay.locator('#footerDevices').waitFor({ state: 'visible' });
+  };
   await openOverlaySurface(this, 'openPanel', 'panel'); const page = await overlayPage();
+  await showDevices(page);
   await checkFooter(page); await evidence(page, 'compact-footer-long-name');
   await page.click('#footerWorkspace');
   const geometry = await page.evaluate(() => {
@@ -201,6 +212,7 @@ Then('the workspace list scrolls while creation controls remain visible', async 
   await evidence(page, 'long-workspace-list');
   await this.call('setTabLayout', 'vertical');
   await openOverlaySurface(this, 'openPanel', 'panel');
+  await showDevices(page);
   await page.waitForFunction(() => !document.querySelector('#islandPanel.morph-start, #islandPanel.morph-run, #islandPanel.retracting'));
   await page.click('#footerWorkspace');
   await ctx.app.evaluate(({ webContents }) => { webContents.getAllWebContents().find((wc) => wc.getURL() === 'blanc-chrome://overlay/').setZoomFactor(1.25); });

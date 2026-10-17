@@ -82,3 +82,33 @@ Feature: Tab sync (open tabs from other devices)
     Then Connect is enabled
     When I choose Use my sync name and passphrase instead
     Then the name and passphrase fields replace the code field
+
+  @F27-9 @F27 @desktop
+  Scenario: Other devices opens above the footer and starts closed
+    Given another device is sharing its tabs
+    When I open the Island panel for other devices
+    Then the Other devices button shows 1
+    And the tab list shows no device rows
+    When I toggle Other devices
+    Then the Other devices drawer lists "Press Mac" between the tab list and the footer
+    When I toggle Other devices
+    Then the Other devices drawer is closed
+    When I toggle Other devices
+    And I close and reopen the Island panel
+    Then the Other devices drawer is closed
+
+  @F27-10 @F27 @desktop
+  Scenario: Typing steps the Other devices drawer aside
+    Given another device is sharing its tabs
+    When I open the Island panel for other devices
+    And I toggle Other devices
+    And I type "a" into the Island address field
+    Then the Other devices drawer is closed
+    When I clear the Island address field
+    Then the Other devices drawer lists "Press Mac" between the tab list and the footer
+
+  @F27-11 @F27 @desktop
+  Scenario: Without other devices there is no Other devices button
+    Given no other device is sharing its tabs
+    When I open the Island panel for other devices
+    Then there is no Other devices button

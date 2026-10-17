@@ -232,6 +232,8 @@
     <string name="panel_collapse_label">Comprimi Island</string>
     <string name="footer_new_tab">Nuova scheda</string>
     <string name="footer_private">Privata</string>
+    <string name="footer_devices">Dispositivi</string>
+    <string name="footer_devices_title">Schede aperte sugli altri tuoi dispositivi</string>
     <string name="footer_new_private_title">Nuova scheda privata (%1$s)</string>
     <string name="footer_workspaces">Spaces</string>
     <string name="footer_favorites">Preferiti</string>

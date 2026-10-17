@@ -49,6 +49,7 @@
         </div>
       </div>
       <div id="islandList"></div>
+      <div id="islandDrawer" hidden></div>
       <div id="islandFooter">
         <div class="footer-launchers">
         <button id="footerNewTab" class="footer-new">
@@ -59,6 +60,11 @@
         <button id="footerNewPrivate" class="footer-new private">
           <svg viewBox="0 0 16 16"><path d="M1.75 8C3.1 5.4 5.4 3.75 8 3.75S12.9 5.4 14.25 8C12.9 10.6 10.6 12.25 8 12.25S3.1 10.6 1.75 8Z"/><circle cx="8" cy="8" r="1.75"/><path d="M3 3l10 10"/></svg>
           <span data-i18n="footer.private">Private</span>
+        </button>
+        <button id="footerDevices" class="footer-new devices" type="button" aria-expanded="false" aria-controls="islandDrawer" hidden>
+          <svg viewBox="0 0 16 16"><rect x="1.75" y="3.25" width="9" height="6.5" rx="1"/><path d="M1 12.25h11"/><rect x="11.75" y="5.75" width="3.25" height="6.5" rx="0.75"/></svg>
+          <span data-i18n="footer.devices">Other devices</span>
+          <span id="footerDevicesCount" class="footer-kbd" data-i18n-ignore></span>
         </button>
         </div>
         <div class="footer-tools">

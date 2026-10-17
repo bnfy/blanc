@@ -2457,6 +2457,8 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
 .island-ghead .ghead-spacer { width: 10px; flex: 0 0 auto; }
 .island-ghead .closed-clear { margin-left: auto; }
 .island-ghead .ghead-n { margin-right: 0; }
+/* A synced device's "how long ago" sits at the right of its header. */
+.island-ghead .ghead-ago { margin-left: auto; }
 
 /* Named groups only: present --surface field (not empty whitespace). */
 .island-drag-section {
@@ -2892,6 +2894,34 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
   color: var(--text);
 }
 .footer-new.private:hover { background: color-mix(in srgb, var(--text) 13%, transparent); }
+
+/* Other devices: a toggle for the drawer above the footer — dim until it is
+   hovered or its drawer is open. */
+.footer-new.devices {
+  margin-left: 2px;
+  background: none;
+  color: var(--text-dim);
+}
+.footer-new.devices:hover,
+.footer-new.devices[aria-expanded="true"] {
+  background: var(--accent-dim);
+  color: var(--text);
+}
+.footer-new[hidden] { display: none; }
+
+/* The Other devices drawer, between the tab list and the footer. While the
+   panel has room it grows, as unfolding a group does; at the panel's maximum
+   the drawer keeps about six rows and the tab list above gives up the space. */
+#islandDrawer {
+  flex: 0 0 auto;
+  max-height: 204px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin-top: 6px;
+  padding-top: 2px;
+  border-top: 1px solid var(--border);
+}
+#islandDrawer[hidden] { display: none; }
 
 .footer-kbd {
   font-family: var(--font-ui);

@@ -232,6 +232,8 @@
     <string name="panel_collapse_label">Recolher a Island</string>
     <string name="footer_new_tab">Nova aba</string>
     <string name="footer_private">Privada</string>
+    <string name="footer_devices">Dispositivos</string>
+    <string name="footer_devices_title">Abas abertas nos seus outros dispositivos</string>
     <string name="footer_new_private_title">Nova aba privada (%1$s)</string>
     <string name="footer_workspaces">Spaces</string>
     <string name="footer_favorites">Favoritos</string>
