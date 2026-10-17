@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Blanc got bangs</title>
+<!--
+  "Blanc got bangs!" — 1080x1350 feed graphic for Bangs (shipped in v1.36.0).
+  The screen shows a real capture of https://blanc.day/bangs (bangs-page-capture-1280x720@2x.png,
+  taken 2026-10-17). The Sunrise mark is the shipped site asset, embedded verbatim. The iMac and
+  wig are drawn here; the wig's strands are generated with a fixed seed so every render matches.
+  Render: node render.mjs   (needs the licensed Blubird fonts installed under site/public/fonts/blubird)
+  Colorway: graphic.html?c=pink | blue | silver
+-->
+<style>
+  @font-face { font-family: 'Blubird Display'; src: url('../../../site/public/fonts/blubird/Blubird-RegularDisplay.woff2') format('woff2'); font-weight: 400; }
+  @font-face { font-family: 'Blubird Text'; src: url('../../../site/public/fonts/blubird/Blubird-RegularText.woff2') format('woff2'); font-weight: 400; }
+  @font-face { font-family: 'Blubird Text'; src: url('../../../site/public/fonts/blubird/Blubird-MediumText.woff2') format('woff2'); font-weight: 500; }
+
+  :root {
+    --bg: #F8F2E8;
+    --ink: #12100B;
+    --muted: #6B6257;
+    --gold: #805D28;
+    /* pink colorway (default) */
+    --rim: #E9A9B1;
+    --chin-top: #F7CFD3;
+    --chin-bottom: #EFB8BE;
+    --stand-top: #C98990;
+    --stand: #EBB1B8;
+    --foot: #F4C7CC;
+  }
+  body.blue {
+    --rim: #9AB7DA; --chin-top: #C6D8EE; --chin-bottom: #ADC6E4;
+    --stand-top: #7F9CC2; --stand: #A6C0E0; --foot: #C0D3EB;
+  }
+  body.silver {
+    --rim: #CDCFD3; --chin-top: #ECEDEF; --chin-bottom: #DCDEE1;
+    --stand-top: #A9ABB0; --stand: #D5D7DB; --foot: #E5E6E9;
+  }
+  .c-chin-top { stop-color: var(--chin-top); }
+  .c-chin-bottom { stop-color: var(--chin-bottom); }
+  .c-stand-top { stop-color: var(--stand-top); }
+  .c-stand { stop-color: var(--stand); }
+  .foot { fill: var(--foot); }
+  .foot-edge { fill: var(--stand-top); }
+  .rim { fill: var(--rim); }
+
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1080px; height: 1350px; overflow: hidden; }
+  body {
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 78px 64px 64px;
+    color: var(--ink);
+  }
+  .glow {
+    position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(600px 480px at 540px 690px, #FFF9EF 0%, rgba(255, 249, 239, 0) 100%);
+  }
+  h1 {
+    position: relative;
+    font: 400 132px/1 'Blubird Display', serif;
+    letter-spacing: 0;
+    white-space: nowrap;
+  }
+  .art { position: relative; width: 1000px; margin-top: 4px; flex: 1; min-height: 0; }
+  .art svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  footer { position: relative; display: flex; flex-direction: column; align-items: center; gap: 26px; }
+  .sub { font: 400 38px/1.25 'Blubird Text', sans-serif; color: var(--muted); }
+  .sub b { font-weight: 500; color: var(--ink); }
+  .sign { display: flex; align-items: center; gap: 16px; font: 500 34px/1 'Blubird Text', sans-serif; color: var(--gold); }
+  .sign img { width: 58px; height: 58px; display: block; }
+</style>
+</head>
+<body>
+<div class="glow"></div>
+<h1>Blanc got bangs!</h1>
+
+<div class="art">
+<svg id="art" viewBox="0 40 1000 820" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="chin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" class="c-chin-top"/>
+      <stop offset="1" class="c-chin-bottom"/>
+    </linearGradient>
+    <linearGradient id="neck" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" class="c-stand-top"/>
+      <stop offset="0.45" class="c-stand"/>
+      <stop offset="1" class="c-stand"/>
+    </linearGradient>
+    <linearGradient id="bezel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FBFBFA"/>
+      <stop offset="1" stop-color="#F0F0EE"/>
+    </linearGradient>
+    <linearGradient id="glare" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.14"/>
+      <stop offset="0.4" stop-color="#fff" stop-opacity="0.03"/>
+      <stop offset="0.41" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- hair: light comes from the upper left -->
+    <radialGradient id="crown" gradientUnits="userSpaceOnUse" cx="420" cy="120" r="470">
+      <stop offset="0" stop-color="#F8DE9C"/>
+      <stop offset="0.38" stop-color="#EECB78"/>
+      <stop offset="0.72" stop-color="#DDAE55"/>
+      <stop offset="1" stop-color="#C38E3B"/>
+    </radialGradient>
+    <linearGradient id="fringeTips" gradientUnits="userSpaceOnUse" x1="0" y1="200" x2="0" y2="300">
+      <stop offset="0" stop-color="#9A6824" stop-opacity="0"/>
+      <stop offset="1" stop-color="#9A6824" stop-opacity="0.28"/>
+    </linearGradient>
+    <linearGradient id="side" gradientUnits="userSpaceOnUse" x1="0" y1="230" x2="0" y2="790">
+      <stop offset="0" stop-color="#E3B860"/>
+      <stop offset="0.6" stop-color="#E2B65D"/>
+      <stop offset="1" stop-color="#CB9643"/>
+    </linearGradient>
+    <linearGradient id="sideShade" gradientUnits="userSpaceOnUse" x1="60" y1="0" x2="210" y2="0">
+      <stop offset="0" stop-color="#8A5A1C" stop-opacity="0.36"/>
+      <stop offset="0.35" stop-color="#8A5A1C" stop-opacity="0"/>
+      <stop offset="0.75" stop-color="#8A5A1C" stop-opacity="0"/>
+      <stop offset="1" stop-color="#8A5A1C" stop-opacity="0.3"/>
+    </linearGradient>
+    <linearGradient id="spark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#E2BC72"/>
+      <stop offset="1" stop-color="#A97B33"/>
+    </linearGradient>
+
+    <filter id="hairShadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#3A2508" flood-opacity="0.3"/>
+    </filter>
+    <filter id="sideShadow" x="-40%" y="-10%" width="180%" height="130%">
+      <feDropShadow dx="0" dy="7" stdDeviation="7" flood-color="#3A2508" flood-opacity="0.22"/>
+    </filter>
+    <filter id="soft" x="-50%" y="-200%" width="200%" height="500%">
+      <feGaussianBlur stdDeviation="9"/>
+    </filter>
+    <filter id="blur3" x="-10%" y="-50%" width="120%" height="200%">
+      <feGaussianBlur stdDeviation="4"/>
+    </filter>
+    <filter id="bodyShadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#5A3E16" flood-opacity="0.16"/>
+    </filter>
+
+    <clipPath id="screenClip"><rect x="156" y="238" width="688" height="387" rx="3"/></clipPath>
+    <clipPath id="glassClip"><rect x="136" y="216" width="728" height="430" rx="14"/></clipPath>
+    <clipPath id="crownClip"><path id="crownClipPath"/></clipPath>
+    <clipPath id="sideClip"><path id="sideClipPath"/></clipPath>
+  </defs>
+
+  <!-- ground shadow -->
+  <ellipse cx="500" cy="846" rx="230" ry="14" fill="#5A3E16" opacity="0.18" filter="url(#soft)"/>
+
+  <!-- the computer -->
+  <g filter="url(#bodyShadow)">
+    <rect x="420" y="736" width="160" height="84" fill="url(#neck)"/>
+    <path d="M404 818 H596 L618 838 H382 Z" class="foot"/>
+    <path d="M382 838 H618 V843 H382 Z" class="foot-edge" opacity="0.75"/>
+    <rect x="130" y="210" width="740" height="532" rx="20" class="rim"/>
+  </g>
+  <path d="M135 646 H865 V718 Q865 737 846 737 H154 Q135 737 135 718 Z" fill="url(#chin)"/>
+  <rect x="135" y="646" width="730" height="2" fill="#fff" opacity="0.55"/>
+  <rect x="136" y="216" width="728" height="430" rx="14" fill="url(#bezel)"/>
+  <rect x="155" y="237" width="690" height="389" rx="4" fill="#1A1A1A"/>
+  <image href="bangs-page-capture-1280x720@2x.png" x="156" y="238" width="688" height="387"
+         preserveAspectRatio="xMidYMid slice" clip-path="url(#screenClip)"/>
+  <rect x="136" y="216" width="728" height="430" rx="14" fill="url(#glare)" clip-path="url(#glassClip)"/>
+
+  <!-- side hair, framing the screen -->
+  <g id="sideL" filter="url(#sideShadow)" transform="translate(-26 0)"></g>
+  <g id="sideR" filter="url(#sideShadow)" transform="translate(1026 0) scale(-1 1)"></g>
+
+  <!-- crown and blunt bangs -->
+  <g filter="url(#hairShadow)">
+    <path id="crownShape" fill="url(#crown)"/>
+  </g>
+  <g clip-path="url(#crownClip)">
+    <rect x="0" y="0" width="1000" height="400" fill="url(#fringeTips)"/>
+    <g id="crownStrands"></g>
+  </g>
+
+  <g id="sparkles" fill="url(#spark)"></g>
+</svg>
+</div>
+
+<footer>
+  <p class="sub">Type <b>!yt lofi</b> to search YouTube directly.</p>
+  <div class="sign"><img src="../../../site/public/sunrise-hero-mark.png" alt="">blanc.day/bangs</div>
+</footer>
+
+<script>
+const colorway = new URLSearchParams(location.search).get('c');
+if (colorway) document.body.classList.add(colorway);
+
+const NS = 'http://www.w3.org/2000/svg';
+const $ = (id) => document.getElementById(id);
+function el(tag, attrs, parent) {
+  const n = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+  if (parent) parent.appendChild(n);
+  return n;
+}
+// Fixed seed: every render draws the same strands.
+function rng(seed) {
+  return () => {
+    seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const f = (n) => n.toFixed(1);
+function cubic(p0, p1, p2, p3, t) {
+  const u = 1 - t;
+  return [0, 1].map((k) => u*u*u*p0[k] + 3*u*u*t*p1[k] + 3*u*t*t*p2[k] + t*t*t*p3[k]);
+}
+function sampleChain(segs, n) {
+  const pts = [];
+  for (let i = 0; i <= n; i++) {
+    const g = (i / n) * segs.length, s = Math.min(segs.length - 1, Math.floor(g));
+    pts.push(cubic(...segs[s], g - s));
+  }
+  return pts;
+}
+function smooth(pts) {
+  let d = `M${f(pts[0][0])} ${f(pts[0][1])}`;
+  for (let i = 1; i < pts.length - 1; i++) {
+    const mx = (pts[i][0] + pts[i + 1][0]) / 2, my = (pts[i][1] + pts[i + 1][1]) / 2;
+    d += ` Q${f(pts[i][0])} ${f(pts[i][1])} ${f(mx)} ${f(my)}`;
+  }
+  const last = pts[pts.length - 1];
+  return `${d} L${f(last[0])} ${f(last[1])}`;
+}
+const chainD = (segs) => `M${segs[0][0].join(' ')} ` + segs.map((s) => `C${s[1].join(' ')} ${s[2].join(' ')} ${s[3].join(' ')}`).join(' ');
+const reverse = (segs) => segs.slice().reverse().map(([a, b, c, d]) => [d, c, b, a]);
+
+/* ---------- side hair: a bob that flips out at the jaw (left drawn, right mirrored) ---------- */
+const outer = [
+  [[106, 232], [80, 330], [70, 470], [82, 590]],
+  [[82, 590], [90, 650], [80, 690], [34, 710]],
+];
+const inner = [
+  [[186, 262], [170, 330], [164, 400], [164, 480]],
+  [[164, 480], [164, 600], [176, 712], [206, 748]],
+];
+const under = [[206, 748], [160, 788], [62, 772], [34, 710]];
+const sideD = `${chainD(outer)} C${under[2].join(' ')} ${under[1].join(' ')} ${under[0].join(' ')} ` +
+  reverse(inner).map((s) => `C${s[1].join(' ')} ${s[2].join(' ')} ${s[3].join(' ')}`).join(' ') + ' Q140 222 106 232 Z';
+$('sideClipPath').setAttribute('d', sideD);
+
+function drawSide(group, seed) {
+  const r = rng(seed), rr = (a, b) => a + (b - a) * r();
+  el('path', { d: sideD, fill: 'url(#side)' }, group);
+  el('path', { d: sideD, fill: 'url(#sideShade)' }, group);
+  // the turned-under end shows its darker inside
+  el('path', { d: 'M40 712 C70 760 150 776 202 748 C150 760 90 752 40 712 Z', fill: '#A06D27', opacity: 0.5 }, group);
+  const o = sampleChain(outer, 60);
+  const n = sampleChain(inner, 60);
+  for (let i = 0; i < 30; i++) {
+    const t = rr(0.06, 0.94), a = Math.floor(rr(0, 10)), b = 60 - Math.floor(rr(0, 14));
+    const pts = [];
+    for (let j = a; j <= b; j++) pts.push([o[j][0] + (n[j][0] - o[j][0]) * t, o[j][1] + (n[j][1] - o[j][1]) * t]);
+    const light = r() < 0.4;
+    el('path', { d: smooth(pts), fill: 'none', 'stroke-linecap': 'round',
+      stroke: light ? '#FCE8B4' : '#A87428', 'stroke-width': f(rr(1.1, 2)),
+      opacity: f(light ? rr(0.3, 0.55) : rr(0.2, 0.42)) }, group);
+  }
+  // one soft highlight down the outer curve
+  const hp = [];
+  for (let j = 6; j <= 30; j++) hp.push([o[j][0] + (n[j][0] - o[j][0]) * 0.3, o[j][1] + (n[j][1] - o[j][1]) * 0.3]);
+  el('path', { d: smooth(hp), fill: 'none', stroke: '#FFF3CF', 'stroke-width': 10, 'stroke-linecap': 'round', opacity: 0.45, filter: 'url(#blur3)' }, group);
+  // highlight riding the top of the flip
+  el('path', { d: 'M84 640 C88 676 70 696 46 706', fill: 'none', stroke: '#FFF0C2', 'stroke-width': 5, 'stroke-linecap': 'round', opacity: 0.6 }, group);
+}
+drawSide($('sideL'), 11);
+drawSide($('sideR'), 29);
+
+/* ---------- crown and blunt bangs ---------- */
+const r = rng(47), rand = (a, b) => a + (b - a) * r();
+const arcY = (x) => 274 + 16 * (1 - Math.pow((x - 500) / 356, 2));
+const X0 = 132, X1 = 868;
+// clumps of uneven width, each ending in a soft point
+const widths = [];
+for (let x = X0; x < X1;) { const w = rand(34, 62); widths.push(w); x += w; }
+const scale = (X1 - X0) / widths.reduce((a, b) => a + b, 0);
+const notches = [];
+let x0 = X0, n0 = arcY(X0) - 4;
+let d = `M66 300 C86 286 104 ${f(n0)} ${X0} ${f(n0)}`;
+for (const raw of widths) {
+  const w = raw * scale, x1 = x0 + w;
+  const depth = rand(9, 15), tx = x0 + w * rand(0.36, 0.66);
+  const ty = arcY(tx) + rand(-2, 3), n1 = x1 >= X1 - 1 ? arcY(X1) - 4 : ty - depth;
+  d += ` C${f(x0 + w * 0.1)} ${f(n0 + depth * 0.8)} ${f(tx - w * 0.1)} ${f(ty - 3)} ${f(tx)} ${f(ty)}`;
+  d += ` C${f(tx + w * 0.1)} ${f(ty - 3)} ${f(x1 - w * 0.1)} ${f(n1 + depth * 0.8)} ${f(x1)} ${f(n1)}`;
+  notches.push([x1, n1]);
+  x0 = x1; n0 = n1;
+}
+d += ` C896 ${f(n0)} 914 286 934 300 C952 140 750 50 500 50 C250 50 48 140 66 300 Z`;
+$('crownShape').setAttribute('d', d);
+$('crownClipPath').setAttribute('d', d);
+
+const cs = $('crownStrands');
+// partings between clumps, rising from the notches
+for (const [nx, ny] of notches.slice(0, -1)) {
+  const lean = (nx - 500) * 0.1;
+  el('path', { d: `M${f(nx)} ${f(ny + 1)} C${f(nx - lean * 0.2)} ${f(ny - 20)} ${f(nx - lean * 0.7)} ${f(ny - 40)} ${f(nx - lean)} ${f(ny - rand(46, 76))}`,
+    fill: 'none', stroke: '#9E6C26', 'stroke-width': 1.8, 'stroke-linecap': 'round', opacity: 0.45 }, cs);
+}
+// strands fanning from the crown down to the bangs
+for (let i = 0; i < 76; i++) {
+  const ex = rand(78, 922), ey = (ex < X0 || ex > X1 ? 296 : arcY(ex)) - rand(4, 30);
+  const k = (ex - 500) / 356;
+  const sx = 500 + (ex - 500) * 0.28, sy = 70 + Math.abs(k) * 14;
+  const start = rand(0, 0.35);
+  const p0 = [sx, sy], p1 = [sx + (ex - 500) * 0.5, sy + 26], p2 = [ex + k * 4, ey - 100], p3 = [ex, ey];
+  const pts = [];
+  for (let s = 0; s <= 24; s++) pts.push(cubic(p0, p1, p2, p3, start + (1 - start) * s / 24));
+  const light = r() < 0.42;
+  el('path', { d: smooth(pts), fill: 'none', 'stroke-linecap': 'round',
+    stroke: light ? '#FFF1C8' : '#AF7D2E', 'stroke-width': f(rand(1, 2)),
+    opacity: f(light ? rand(0.28, 0.55) : rand(0.18, 0.36)) }, cs);
+}
+// glossy shine: one soft band, then a few crisp highlights where the light hits
+el('path', { d: 'M196 196 C290 120 710 120 804 196', fill: 'none', stroke: '#FFF6DA', 'stroke-width': 26,
+  'stroke-linecap': 'round', opacity: 0.42, filter: 'url(#blur3)' }, cs);
+for (const [a, b, w, o] of [[0.06, 0.24, 7, 0.8], [0.3, 0.5, 6, 0.7], [0.62, 0.7, 4, 0.45]]) {
+  const pts = [];
+  for (let s = 0; s <= 16; s++) pts.push(cubic([196, 196], [290, 120], [710, 120], [804, 196], a + (b - a) * s / 16));
+  el('path', { d: smooth(pts), fill: 'none', stroke: '#FFFAEA', 'stroke-width': w, 'stroke-linecap': 'round', opacity: o }, cs);
+}
+
+/* ---------- sparkles ---------- */
+function sparkle(cx, cy, s) {
+  const k = s * 0.16;
+  el('path', { d: `M${cx} ${cy - s} C${cx + k} ${cy - k} ${cx + k} ${cy - k} ${cx + s} ${cy} C${cx + k} ${cy + k} ${cx + k} ${cy + k} ${cx} ${cy + s} ` +
+    `C${cx - k} ${cy + k} ${cx - k} ${cy + k} ${cx - s} ${cy} C${cx - k} ${cy - k} ${cx - k} ${cy - k} ${cx} ${cy - s} Z` }, $('sparkles'));
+}
+sparkle(930, 110, 30);
+sparkle(974, 190, 14);
+sparkle(70, 132, 20);
+
+document.fonts.ready.then(() => { document.body.dataset.ready = '1'; });
+</script>
+</body>
+</html>
