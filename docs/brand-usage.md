@@ -25,7 +25,7 @@ limits beside the claims they qualify and keep deeper information easy to find.
 
 For full-color social artwork, use the original gold Sunrise asset at `site/public/sunrise-hero-mark.png`, preserving its geometry, transparency and gold detail. Use the Sunrise theme: Blanc White `#F8F2E8`, warm surfaces `#F2EADE`, near-black headings, muted brown-gray `#6B6257`, and restrained gold `#805D28`. The approved September 11 general Sunrise creative in `marketing/social/sunrise-milestone-2026-09-11/general-review-v2-1080x1350.png` is a visual reference for the treatment, not content to recycle.
 
-Use Newsreader regular for sentence-case headings and Inter for supporting text. On the website, every page uses Blubird instead (see *Blanc lockup*; owner direction, October 15, 2026): Blubird Display for headings, set at 0 letter-spacing, and Blubird Text for copy. Product replicas on the site keep Inter, the app's face. Choose title alignment to suit the composition; not every social asset should use the same centered poster layout. Keep generous clear space around the Sunrise symbol. Do not redraw it, replace it with a letterform, tint the original artwork, add a badge or place a glow immediately behind it. A subtle gold horizon may appear away from the symbol. Existing monochrome Sunrise site variants remain valid for the specifically documented placements below.
+**Owner direction, October 17, 2026:** Blanc no longer uses Newsreader or Inter in marketing; the Newsreader and Inter guidance below records earlier work and is superseded. Email uses Instrument Sans, the app's face (see *Email*). On the website, every page uses Blubird (see *Blanc lockup*; owner direction, October 15, 2026): Blubird Display for headings, set at 0 letter-spacing, and Blubird Text for copy. Product replicas on the site keep Inter, the app's face. Choose title alignment to suit the composition; not every social asset should use the same centered poster layout. Keep generous clear space around the Sunrise symbol. Do not redraw it, replace it with a letterform, tint the original artwork, add a badge or place a glow immediately behind it. A subtle gold horizon may appear away from the symbol. Existing monochrome Sunrise site variants remain valid for the specifically documented placements below.
 
 **Visual variety, September 12 owner direction:** A shared brand does not mean an identical layout. Give each editorial idea an appropriate composition, and let carousel panels progress through distinct visual structures. Use a restrained mix of imagery, useful diagrams, typography, light and dark Sunrise surfaces. Keep the exact mark, palette and type family coherent. Conceptual illustrations must not impersonate product footage or evidence.
 
@@ -317,12 +317,17 @@ carries the full lockup. `renderEmail()` in
 `cloudflare/newsletter-worker/src/email.js` is the one layout: the Display
 lockup (`site/public/press/blanc-lockup-ink-480.png`, drawn 160 × 47px and
 linked to blanc.day) on Blanc White `#F8F2E8`, one white card with a
-`#E1D7C9` border, a Newsreader heading falling back to Georgia, Inter text
-falling back to the system sans, ink `#111111` buttons with Blanc White
-labels, and a footer with the tagline “A little less browser.” in gold
-`#805D28` above muted `#6B6257` fine print. Email clients drop `<style>`
-blocks, web fonts, SVG and often WebP, so the layout is inline-styled tables
-and the lockup is a PNG; Blubird never appears in email. The Worker's
+`#E1D7C9` border, ink `#111111` buttons with Blanc White labels, and a footer
+with the tagline “A little less browser.” in gold `#805D28` above muted
+`#6B6257` fine print. All text is Instrument Sans at the app's width 98 and
++0.01em (headings at weight 500 and -0.01em), loaded from
+`site/public/fonts/instrument-sans/` on blanc.day, never from a font CDN,
+which would tell a third party whenever someone opens a Blanc email. Apple
+Mail, Outlook for Mac and Thunderbird show it; Gmail and Outlook for Windows
+ignore web fonts and fall back to the system sans. Many clients also drop
+SVG and WebP, so the layout is inline-styled tables and the lockup is a PNG.
+`site/public/_headers` lets other origins load the email lockup and font.
+Blubird never appears in email: its licence covers the website only. The Worker's
 confirmation emails use it directly, and Resend templates are rendered from
 the same function, so change them together. Copy follows
 `docs/marketing-claims.md` like any other channel.
@@ -408,9 +413,10 @@ website:
   controls require an offset, use the smallest optical shift that preserves
   the safe area and document it; do not push the whole composition visibly to
   one side when a narrower layout or platform-specific crop will solve it;
-- set titles in Newsreader at regular weight with restrained negative
-  tracking (about -0.02em) and a compact line height; the UI sans at 500
-  remains correct only for assets produced before 4 September 2026;
+- set titles at regular weight with restrained negative tracking and a
+  compact line height; Newsreader titles belong to assets produced before
+  October 17, 2026, when the owner retired Newsreader and Inter from
+  marketing;
 - place the explanatory subtitle below in a smaller regular-weight size and a
   muted neutral gray;
 - keep the title direct and let the subtitle explain the consequence or proof.
