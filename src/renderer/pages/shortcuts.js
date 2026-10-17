@@ -73,5 +73,9 @@ function section(title, pairs) {
   for (const [title, pairs] of byCategory) root.appendChild(section(title, pairs));
   const slashCommands = SLASH_COMMANDS
     .filter(([cmd]) => onePasswordAvailable || cmd !== '/1password');
-  root.appendChild(section(t('shortcuts.slashCommands'), slashCommands.map(([cmd, key]) => [t(key), cmd])));
+  root.appendChild(section(t('shortcuts.slashCommands'), [
+    ...slashCommands.map(([cmd, key]) => [t(key), cmd]),
+    // Bangs sit with the slash commands: both are typed into the same input.
+    [t('shortcuts.bangs'), '!code words'],
+  ]));
 })();

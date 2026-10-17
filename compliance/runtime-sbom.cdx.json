@@ -336,6 +336,46 @@
       ]
     },
     {
+      "type": "data",
+      "bom-ref": "asset:kagi-bangs-data",
+      "name": "Kagi bangs",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5ecb2fb434fb471ce98c565fde27521284ca884f5c828c0066d25daacbfefcf4"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "blanc:attribution",
+          "value": "Kagi Search and contributors; compiled into src/renderer/pages/bangs-catalog.js by bangs/build.mjs"
+        },
+        {
+          "name": "blanc:file",
+          "value": "bangs/sources/bangs.json"
+        },
+        {
+          "name": "blanc:licenseFile",
+          "value": "bangs/sources/kagi-bangs-LICENSE.txt"
+        }
+      ],
+      "version": "449cf7a18c66",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/kagisearch/bangs"
+        }
+      ]
+    },
+    {
       "type": "application",
       "bom-ref": "asset:ublock-origin",
       "name": "uBlock Origin managed extension (distribution clearance pending)",
@@ -1951,6 +1991,10 @@
     },
     {
       "ref": "asset:jetbrains-mono-font",
+      "dependsOn": []
+    },
+    {
+      "ref": "asset:kagi-bangs-data",
       "dependsOn": []
     },
     {

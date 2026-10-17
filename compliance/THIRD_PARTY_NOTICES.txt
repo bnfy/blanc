@@ -83,6 +83,10 @@ BUNDLED ASSETS AND DATA
   Attribution: Dark Reader Ltd. and contributors; the unmodified npm API build is embedded in src/main/dark-websites-preload.js
   Source: https://github.com/darkreader/darkreader
   Full text: ThirdPartyLicenses/darkreader-LICENSE.txt
+- Kagi bangs 449cf7a18c66 — MIT
+  Attribution: Kagi Search and contributors; compiled into src/renderer/pages/bangs-catalog.js by bangs/build.mjs
+  Source: https://github.com/kagisearch/bangs
+  Full text: ThirdPartyLicenses/kagi-bangs-LICENSE.txt
 
 MPL SOURCE AVAILABILITY
 

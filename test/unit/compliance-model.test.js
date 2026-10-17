@@ -28,7 +28,7 @@ test('runtime SBOM covers npm closure, Electron, fonts, and blocker provenance',
   const refs = new Set(sbom.components.map((component) => component['bom-ref']));
 
   assert.equal(generated.runtime.runtimePackages.length, 32);
-  assert.equal(sbom.components.length, 44);
+  assert.equal(sbom.components.length, 45);
   assert.ok(refs.has('asset:instrument-sans-font'));
   assert.ok(refs.has('asset:ublock-origin'));
   assert.ok(refs.has('pkg:npm/electron@44.8.0'));
@@ -42,6 +42,7 @@ test('runtime SBOM covers npm closure, Electron, fonts, and blocker provenance',
   assert.ok(refs.has('asset:ghostery-resources'));
   assert.ok(refs.has('asset:blanc-adblock-seed'));
   assert.ok(refs.has('asset:dark-reader-engine'));
+  assert.ok(refs.has('asset:kagi-bangs-data'));
   assert.equal([...refs].some((ref) => ref.includes('playwright')), false);
   assert.equal([...refs].some((ref) => ref.includes('electron-builder@')), false);
 
@@ -192,12 +193,12 @@ test('after-pack compliance payload contains SBOM, framework notices, and every 
     fs.readFileSync(path.join(resources, 'LICENSE.blanc.txt'), 'utf8'),
     fs.readFileSync(path.join(ROOT, 'LICENSE'), 'utf8')
   );
-  assert.equal(JSON.parse(fs.readFileSync(path.join(resources, 'runtime-sbom.cdx.json'))).components.length, 44);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(resources, 'runtime-sbom.cdx.json'))).components.length, 45);
   assert.equal(fs.readFileSync(path.join(resources, 'LICENSE.electron.txt'), 'utf8'), 'Electron MIT fixture\n');
   assert.equal(fs.readFileSync(path.join(resources, 'LICENSES.chromium.html'), 'utf8'), '<html>Chromium fixture</html>\n');
 
   const licenses = fs.readdirSync(path.join(resources, 'ThirdPartyLicenses'));
-  assert.equal(licenses.length, 40, '32 runtime npm records plus four OFL fonts, uBlock GPL/LGPL, Lucide and Dark Reader');
+  assert.equal(licenses.length, 41, '32 runtime npm records plus four OFL fonts, uBlock GPL/LGPL, Lucide, Dark Reader and Kagi bangs');
   assert.equal(fs.readFileSync(path.join(resources, 'ThirdPartyLicenses/LGPL-3.0.txt'), 'utf8'), fs.readFileSync(path.join(ROOT, 'ublock/licenses/LGPL-3.0.txt'), 'utf8'));
   assert.ok(licenses.includes('1password__sdk--0.5.0.txt'));
   assert.ok(licenses.includes('1password__sdk-core--0.5.0.txt'));
@@ -206,6 +207,7 @@ test('after-pack compliance payload contains SBOM, framework notices, and every 
   assert.equal(fs.readFileSync(path.join(resources, 'ThirdPartyLicenses/LICENSE.txt'), 'utf8'), fs.readFileSync(path.join(ROOT, 'ublock/LICENSE.txt'), 'utf8'));
   assert.equal(fs.readFileSync(path.join(resources, 'ThirdPartyLicenses/lucide-LICENSE.txt'), 'utf8'), fs.readFileSync(path.join(ROOT, 'src/renderer/ublock-popup-icons/lucide-LICENSE.txt'), 'utf8'));
   assert.equal(fs.readFileSync(path.join(resources, 'ThirdPartyLicenses/darkreader-LICENSE.txt'), 'utf8'), fs.readFileSync(path.join(ROOT, 'dark-reader/darkreader-LICENSE.txt'), 'utf8'));
+  assert.equal(fs.readFileSync(path.join(resources, 'ThirdPartyLicenses/kagi-bangs-LICENSE.txt'), 'utf8'), fs.readFileSync(path.join(ROOT, 'bangs/sources/kagi-bangs-LICENSE.txt'), 'utf8'));
   assert.ok(licenses.includes('jetbrains-mono-OFL.txt'));
   assert.ok(licenses.includes('caveat-OFL.txt'));
   const { createPackage } = require('@electron/asar');

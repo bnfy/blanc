@@ -13,7 +13,7 @@ function harness() {
   const checks = [];
   const settings = {
     SEARCH_ENGINES: { duckduckgo: { label: 'DuckDuckGo' } }, APP_ICON_LABELS: {},
-    getSettings: () => ({ supporter: { key: 'secret' }, patron: { key: 'secret' }, searchSuggestions: true }),
+    getSettings: () => ({ supporter: { key: 'secret' }, patron: { key: 'secret' }, searchSuggestions: true, bangsEnabled: true, customBangs: [{ code: 'm', name: 'M', template: 'https://m.example/?q=%s' }], recentBangs: ['yt'] }),
     isPatronActive: () => false,
   };
   const module = { exports: {} };
@@ -56,6 +56,14 @@ test('Settings receives only running non-secret build metadata', () => {
   });
   assert.equal(result.settings.supporter, undefined);
   assert.equal(result.settings.patron, undefined);
+});
+
+test('Settings receives the bang switch and custom list, never the recents', () => {
+  const h = harness();
+  const { settings } = h.handlers.get('pages:settings:get')(h.event());
+  assert.equal(settings.bangsEnabled, true);
+  assert.deepEqual(JSON.parse(JSON.stringify(settings.customBangs)), [{ code: 'm', name: 'M', template: 'https://m.example/?q=%s' }]);
+  assert.equal('recentBangs' in settings, false);
 });
 
 test('Settings update checks invoke the existing hook in the requesting runtime', () => {
