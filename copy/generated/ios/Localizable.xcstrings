@@ -19364,31 +19364,31 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zur angehefteten Startseite zurückkehren"
+            "value": "Zur Ausgangsseite des Tabs zurückkehren"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Volver a la página de inicio fijada"
+            "value": "Volver a la página de origen fijada"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Revenir à la page d’accueil épinglée"
+            "value": "Revenir à la page d’origine épinglée"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Torna alla pagina iniziale fissata"
+            "value": "Torna alla pagina d’origine fissata"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Voltar à página inicial fixada"
+            "value": "Voltar à página de origem fixada"
           }
         }
       }
@@ -19406,31 +19406,31 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Diese Seite als angeheftete Startseite festlegen"
+            "value": "Diese Seite als Ausgangsseite festlegen"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Usar esta página como inicio fijado"
+            "value": "Usar esta página como página de origen fijada"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Définir comme page d’accueil épinglée"
+            "value": "Définir comme page d’origine épinglée"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Imposta come pagina iniziale fissata"
+            "value": "Imposta come pagina d’origine fissata"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Definir como página inicial fixada"
+            "value": "Definir como página de origem fixada"
           }
         }
       }

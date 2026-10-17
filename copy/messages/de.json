@@ -1730,11 +1730,11 @@
     "source": "sha256:9d4454dac78cbfcc82689d9fad43f533edc9b26fef2759ab52253cb1d982e2b6"
   },
   "tabMenu.returnPinnedHome": {
-    "message": "Zur angehefteten Startseite zurückkehren",
+    "message": "Zur Ausgangsseite des Tabs zurückkehren",
     "source": "sha256:71e08d696d74d800919b3cd1ecc06c93babc001ee6a847f270e4f39d245c4672"
   },
   "tabMenu.setPinnedHome": {
-    "message": "Diese Seite als angeheftete Startseite festlegen",
+    "message": "Diese Seite als Ausgangsseite festlegen",
     "source": "sha256:2deb9c074d50f1a604f46c75259ac4fb172204ddd9bc44d2bb59d0fde7f4a036"
   },
   "tabMenu.unpin": {
