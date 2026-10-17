@@ -1482,20 +1482,20 @@
     "source": "sha256:61ba4ed601a6b2bd8bee6c0205873f02dc2bfa881250b2c7532b7d2be5f7a820"
   },
   "bang.yours": {
-    "message": "tuo",
-    "source": "sha256:c33f26356d5d9c2add317866752a44e686f6ef3b7043f2a6d7782dc7cd4217db"
+    "message": "Tuo",
+    "source": "sha256:13196d4cd1f8befec783e064133527c2361ecf82237fed954719639fd270e985"
   },
   "bang.section.recent": {
-    "message": "recenti",
-    "source": "sha256:491db91b69ec71d0a634885426a4779e787c7b7b5563b2387dab746ef528faa7"
+    "message": "Recenti",
+    "source": "sha256:7552fd6c2c213172e8a0c4a9b442ea6927497000c02eca43e9b2d21b54a7669c"
   },
   "bang.section.popular": {
-    "message": "popolari",
-    "source": "sha256:ef89539344d4dec400f8a8684be93241adc354c63fd4026619dae977d42b7694"
+    "message": "Popolari",
+    "source": "sha256:5e1be52c9c36b02cdec479b1ddea0c94dfc1421cf1c4f2b21d38023086784e60"
   },
   "bang.section.all": {
-    "message": "tutti i bang",
-    "source": "sha256:42ff40c52ffa0b382d8c774c4537611a7a727a924af681c41e60ccb8956fc453"
+    "message": "Tutti i bang",
+    "source": "sha256:6f912b6847f5cde150584c2f01110f1358afcfdbc723142266737bbdf166b033"
   },
   "bang.fold": {
     "message": "Comprimi questa sezione",
@@ -1507,7 +1507,7 @@
   },
   "hint.bang": {
     "message": "!code parole cerca su un sito · ! da solo li elenca",
-    "source": "sha256:879d3983c7e7f393cc23a6d57f532e0cf28261fd00572e2d2edc3e2e3c5fb949"
+    "source": "sha256:cc5f8409bd4b2ca49b74fdb071a8488f8736f0b459370e18a0dc0295cfe65b22"
   },
   "hint.private": {
     "message": "Scheda privata · Nulla di quanto fai qui viene salvato nella cronologia",

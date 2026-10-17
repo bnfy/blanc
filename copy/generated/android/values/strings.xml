@@ -406,10 +406,10 @@
     <string name="list_no_matches">No matches — ↵ opens as address or search</string>
     <string name="bang_search">Search %1$s for “%2$s”</string>
     <string name="bang_open">Open %1$s</string>
-    <string name="bang_yours">yours</string>
-    <string name="bang_section_recent">recent</string>
-    <string name="bang_section_popular">popular</string>
-    <string name="bang_section_all">all bangs</string>
+    <string name="bang_yours">Yours</string>
+    <string name="bang_section_recent">Recent</string>
+    <string name="bang_section_popular">Popular</string>
+    <string name="bang_section_all">All bangs</string>
     <string name="bang_fold">Fold this section</string>
     <string name="bang_unfold">Unfold this section</string>
     <string name="hint_bang">!code words searches one site · ! alone lists them</string>

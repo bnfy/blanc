@@ -16652,169 +16652,169 @@
       }
     },
     "bang.yours": {
-      "comment": "Lowercase tag on a bang picker row for a bang the person added in Settings, where other rows show the site's domain.",
+      "comment": "Tag on a bang picker row for a bang the person added in Settings, where other rows show the site's domain. Sentence case.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "yours"
+            "value": "Yours"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "eigene"
+            "value": "Eigene"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "tuyo"
+            "value": "Tuyo"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "à vous"
+            "value": "À vous"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "tuo"
+            "value": "Tuo"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "seu"
+            "value": "Seu"
           }
         }
       }
     },
     "bang.section.recent": {
-      "comment": "Lowercase header of the bang picker's recently used section.",
+      "comment": "Header of the bang picker's recently used section. Sentence case, like the other ⌘L panel headers.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "recent"
+            "value": "Recent"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "zuletzt"
+            "value": "Zuletzt"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "recientes"
+            "value": "Recientes"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "récents"
+            "value": "Récents"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "recenti"
+            "value": "Recenti"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "recentes"
+            "value": "Recentes"
           }
         }
       }
     },
     "bang.section.popular": {
-      "comment": "Lowercase header of the bang picker's popular section.",
+      "comment": "Header of the bang picker's popular section. Sentence case.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "popular"
+            "value": "Popular"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "beliebt"
+            "value": "Beliebt"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "populares"
+            "value": "Populares"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "populaires"
+            "value": "Populaires"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "popolari"
+            "value": "Popolari"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "populares"
+            "value": "Populares"
           }
         }
       }
     },
     "bang.section.all": {
-      "comment": "Lowercase header of the bang picker's section of every other matching bang.",
+      "comment": "Header of the bang picker's section of every other matching bang. Sentence case.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "all bangs"
+            "value": "All bangs"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "alle Bangs"
+            "value": "Alle Bangs"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "todos los bangs"
+            "value": "Todos los bangs"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "tous les bangs"
+            "value": "Tous les bangs"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "tutti i bang"
+            "value": "Tutti i bang"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "todos os bangs"
+            "value": "Todos os bangs"
           }
         }
       }
@@ -16904,7 +16904,7 @@
       }
     },
     "hint.bang": {
-      "comment": "Lowercase hint under the Island list while a bang is typed. Keep !code and ! as typed.",
+      "comment": "Hint under the Island list while a bang is typed. Keep !code and ! as typed; the rest is sentence case.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -16916,7 +16916,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "!code wörter durchsucht eine Website · ! allein zeigt alle"
+            "value": "!code Wörter durchsucht eine Website · ! allein zeigt alle"
           }
         },
         "es": {

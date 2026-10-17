@@ -418,10 +418,10 @@
     <string name="list_no_matches">Nenhum resultado — ↵ abre como endereço ou pesquisa</string>
     <string name="bang_search">Pesquisar “%2$s” em %1$s</string>
     <string name="bang_open">Abrir %1$s</string>
-    <string name="bang_yours">seu</string>
-    <string name="bang_section_recent">recentes</string>
-    <string name="bang_section_popular">populares</string>
-    <string name="bang_section_all">todos os bangs</string>
+    <string name="bang_yours">Seu</string>
+    <string name="bang_section_recent">Recentes</string>
+    <string name="bang_section_popular">Populares</string>
+    <string name="bang_section_all">Todos os bangs</string>
     <string name="bang_fold">Recolher esta seção</string>
     <string name="bang_unfold">Expandir esta seção</string>
     <string name="hint_bang">!code palavras pesquisa em um site · ! sozinho os lista</string>
