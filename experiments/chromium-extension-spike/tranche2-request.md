@@ -63,10 +63,14 @@ the patch budget, and with acceptable per-request latency?
   candidate and factory proxying the second; no network-service patch and
   no extension-system patch. Decisions must fail closed while the engine
   is loading, matching `installStartupNavigationGate` in Electron.
-- Cosmetic filtering, two separate mechanisms. **CSS** (element hiding and
-  procedural rules) is injected per frame as a user stylesheet or an
-  isolated-world style injection; the page's CSP must not be able to block
-  it, as it cannot block Electron's today. **Scriptlets** are different: the
+- Cosmetic filtering, three separate mechanisms. **Native CSS** (element
+  hiding and selectors a stylesheet can express) is injected per frame as
+  a user stylesheet or an isolated-world style injection; the page's CSP
+  must not be able to block it, as it cannot block Electron's today.
+  **Extended procedural rules** need a DOM evaluator in the renderer agent
+  with a mutation observer, since no stylesheet expresses them; its scope,
+  debounce and cost on dynamic pages are measured by the dynamic-node
+  tests below. **Scriptlets** are different: the
   bundled scriptlets in `adblock/sources/` patch page globals (`fetch`,
   `XMLHttpRequest`, timers, `JSON.parse` and the like) and so must execute
   in the **main world** at document start, where an isolated world cannot
@@ -88,31 +92,73 @@ the patch budget, and with acceptable per-request latency?
 | --- | --- | --- |
 | Block rate | the **replay corpus** defined below, issued at the browser level through the fork and through Electron Blanc on the same lists | every request decided the same way in both, for blocked *and* allowed traffic; any divergence listed by URL, type and rule |
 | Cosmetic coverage | the corpus's **outcome pages**, checked in both browsers by DOM assertion and capture | parity with Electron on the same pages, CSS and scriptlet outcomes reported separately |
-| Decision latency | per-request p50/p99 for the throttle's decision, measured on a 200-request page load | p99 under 2 ms in-process; under 5 ms over Mojo; above that, the other engine placement is tried before concluding |
+| Decision latency | see the latency protocol below | **proposed** acceptance bounds, not criterion 3: p99 under 2 ms in-process, under 5 ms over Mojo, on the warm steady-state run; above that, the other engine placement is tried before concluding. The owner may change the bounds at approval |
 | Patch count | files and hunks touched outside `src/blanc/`, counted by the same inventory script as the ledger | fits the A1 budget once A1 names it; reported either way |
 | Private windows | the same hook active in incognito, verified by the fixture | blocked, as Blanc Blocker protects private tabs today |
 
 **Replay corpus.** The unit tests named in the plan (`adblock-youtube`,
 `adblock-exceptions`, `adblock-events`, `adblock-engine-loader`) exercise the
 engine against mocks, not a browser; they seed URLs but cannot be the
-acceptance fixture. Spike A first builds `adblock/fixtures/replay/`
-(committed, reviewed like the list snapshot):
+acceptance fixture. Spike A first builds
+`experiments/chromium-extension-spike/fixtures/replay/` (committed under
+the experiments tree per §6, reviewed like the list snapshot; it moves out
+of `experiments/` only with a later decision):
 
 - A request corpus of at least 2,000 requests the pinned lists block and
-  2,000 they allow, each with URL, resource type, initiator and frame
-  context, recorded from real page loads in Electron Blanc with the
-  blocker's own decision logged as the oracle, served back from a local
-  fixture server during replay so both browsers see identical traffic.
+  2,000 they allow, each with URL, resource type, initiator origin,
+  first-party (top frame) origin and frame context, recorded from real page
+  loads in Electron Blanc with the blocker's own decision logged as the
+  oracle.
+- **Origin-preserving replay.** Serving the corpus from `localhost` would
+  change every domain and first-party/third-party relationship the rules
+  match on, so replay must present each request to the blocker under its
+  **original scheme, host and port**. The transport is a local MITM-style
+  proxy or host-resolver override (`--host-resolver-rules` plus a local
+  TLS fixture CA installed only in the disposable profiles) that answers
+  the recorded responses while the browser still believes it is talking to
+  the original origins; both browsers use the same transport. The harness
+  additionally **records the request context each blocker actually
+  received** (URL, type, initiator, top-frame origin, as the hook or
+  `webRequest` details report them) and diffs it against the corpus
+  record, so a context mismatch is caught as a harness fault rather than
+  counted as a blocking difference.
 - Outcome pages: the existing YouTube fixture page plus synthetic pages
-  that each exercise one class of cosmetic rule (element hiding,
-  procedural, `:has`, scriptlet-dependent behaviour such as a patched
-  `fetch` or a defused timer), with DOM assertions that state the
-  expected post-filter state.
+  that each exercise one class of cosmetic rule, in three separately
+  reported groups: **native CSS** (element hiding, `:has` and other
+  selectors the engine can render as a stylesheet), **extended procedural
+  rules** (`:has-text`, `:matches-css`, `:upward`, `:xpath` and the rest of
+  the procedural set, which a stylesheet cannot express and which need a
+  DOM evaluator run by the renderer agent), and **scriptlet-dependent
+  behaviour** (a patched `fetch`, a defused timer). Each page has DOM
+  assertions for the expected post-filter state. The procedural group
+  also has **dynamic-node tests**: nodes inserted, re-attributed or moved
+  after load and after a timer, so the evaluator's mutation handling
+  (observer scope, debounce and re-evaluation cost) is measured rather
+  than assumed; a procedural rule that holds at load and fails after
+  mutation is a fail.
 - A coverage page issuing one request of every path the audit found.
 
+**Latency protocol.** The thresholds above are new proposals for this
+tranche; plan §5 criterion 3 speaks only to block rate, so these bounds
+decide which engine placement is tried, not whether the tranche stops.
+Measurement: the timed interval is from the hook receiving the request
+(throttle `WillStartRequest` or the factory proxy's entry) to the
+block/allow decision being applied, **including** any Mojo round trip to a
+utility-process engine; engine-internal time is recorded separately when
+the engine exposes it. Runs: the corpus's 4,000+ requests replayed as page
+loads with the browser's natural concurrency (not serialized), five
+repetitions after one discarded warm-up repetition, on an otherwise idle
+machine; p50, p95 and p99 reported per repetition and as the median across
+repetitions. A **cold** figure is also recorded for the first 200 decisions
+after engine load, reported separately and not held to the warm bound.
+Clock: monotonic `base::TimeTicks` at both ends of the interval, logged by
+the hook itself, not by the harness. Electron Blanc's own decision latency
+is measured the same way where its `webRequest` path exposes it, for
+reference, not as a bound.
+
 Both browsers run the same corpus through the prototype's existing
-browser-level harness style (CDP plus the fixture server), never through
-unit-test mocks. The corpus and its Electron oracle run are the measured
+browser-level harness style (CDP plus the origin-preserving transport),
+never through unit-test mocks. The corpus and its Electron oracle run are the measured
 baseline; "Electron Blanc's rate" means that run.
 
 **Stop conditions for spike A:** the two-week box ends; or neither engine
@@ -229,8 +275,17 @@ runtime in Electron; any public claim about the fork; Decision 2 itself.
 and 120 hunks**, counted as follows. A *file* is an existing upstream file
 that `prepare.mjs` (or, later, the `patches/` set) modifies; Blanc-owned
 new files do not count; the two icon assets count as files. A *hunk* is one
-contiguous replacement as `git diff --numstat`/`--stat` reports it against
-the pristine checkout. The count is produced by the same inventory method
+`@@` section of a unified diff with zero context lines, produced
+deterministically by `git diff --unified=0 --no-color <pristine> <patched>`
+over the text files in the inventory and counted as the number of `@@`
+headers (`--stat` and `--numstat` count changed lines, not hunks, and are
+not used; see <https://git-scm.com/docs/git-diff>). Adjacent changes
+separated by at least one unchanged line are therefore separate hunks; a
+pure rename or mode change with no content change counts as zero hunks and
+one file. Binary files (the two icon assets) count as one file and one
+hunk each, since a binary diff has no `@@` sections. The counter is a
+script in the experiments tree, run against the same pristine checkout the
+inventory used, and its output is committed with each count. The count is produced by the same inventory method
 as `evidence/rebase-157-20261016/patched-upstream-files.json`, run before
 and after each spike, and recorded in the ledger. Today's count is **21
 files**; the hunk count is measured at the start of the tranche and
