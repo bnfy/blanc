@@ -5,6 +5,7 @@ const test = require('node:test');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const { trackJsonStores } = require('./support/track-json-stores');
 
 // A renamed build (product name other than Blanc) must not store data on
 // Bananify's sync server, but may still erase a copy it already put there.
@@ -57,12 +58,18 @@ fs.writeFileSync(path.join(tmp, 'sync.json'), JSON.stringify({
   syncTabs: false,
 }));
 
+const jsonStores = trackJsonStores();
 const sync = require('../../src/main/sync');
 const { englishT: t } = require('../support/english-t');
 const { syncErrorText } = require('../../src/main/sync-messages');
 sync.setTabStateReady(true);
 
 const creds = { handle: 'renamed-build', passphrase: 'a passphrase long enough to pass' };
+
+test.after(async () => {
+  await jsonStores.settle();
+  fs.rmSync(tmp, { recursive: true, force: true });
+});
 
 test.beforeEach(() => { fetchCalls = []; encryptCalls = 0; });
 

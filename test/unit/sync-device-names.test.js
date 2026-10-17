@@ -7,6 +7,7 @@ const test = require('node:test');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const { trackJsonStores } = require('./support/track-json-stores');
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-sync-device-names-'));
 const key = Buffer.alloc(32, 7);
@@ -67,6 +68,7 @@ fs.writeFileSync(path.join(tmp, 'tab-sync.json'), JSON.stringify({
   },
 }));
 
+const jsonStores = trackJsonStores();
 const settings = require('../../src/main/settings');
 const sync = require('../../src/main/sync');
 const tabsync = require('../../src/main/tabsync');
@@ -74,7 +76,7 @@ const { deviceName } = require('../../src/main/device-name');
 
 test.after(async () => {
   await sync.disable().catch(() => {}); // clears the optional-store retry timer
-  settings.flushSettings();
+  await jsonStores.settle();
   fs.rmSync(tmp, { recursive: true, force: true });
 });
 

@@ -127,6 +127,7 @@ function parkCode(code, payload = OTHER) {
 }
 
 test.after(async () => {
+  await sync.disable().catch(() => {}); // clears the optional-store retry timer
   await jsonStores.settle();
   fs.rmSync(tmp, { recursive: true, force: true });
 });

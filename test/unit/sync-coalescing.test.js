@@ -5,6 +5,7 @@ const test = require('node:test');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const { trackJsonStores } = require('./support/track-json-stores');
 
 // Regression coverage for the handoff between an in-flight pass and the one
 // coalesced behind it. The follow-up must begin only after the outer guard is
@@ -71,8 +72,14 @@ fs.writeFileSync(path.join(tmp, 'sync.json'), JSON.stringify({
   syncTabs: false,
 }));
 
+const jsonStores = trackJsonStores();
 const sync = require('../../src/main/sync');
 sync.setTabStateReady(true);
+
+test.after(async () => {
+  await jsonStores.settle();
+  fs.rmSync(tmp, { recursive: true, force: true });
+});
 
 test('an in-flight trigger runs one follow-up pass after releasing the guard', async () => {
   const first = sync.syncNow(['session']);
