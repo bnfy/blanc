@@ -1478,16 +1478,8 @@
     "source": "sha256:9228597eea4e330cdf99391128acb497ceabf682cb04a97c4208f0f772eb24f5"
   },
   "hint.private": {
-    "message": "privat · hier wird nichts im Verlauf gespeichert",
-    "source": "sha256:feefda763965f9187e4eb9dd56a30b5b98c6c8794c7a3ad92f61d0dde8467299"
-  },
-  "hint.groups": {
-    "message": "/group verschiebt diesen Tab · {mod}1–9 springt zwischen Abschnitten",
-    "source": "sha256:05b0db2c1933caa7bcabbb35df9ec4b899c4e586b9c9c272200e172d269c04cc"
-  },
-  "hint.default": {
-    "message": "{mod}L ruft auf · / für Befehle",
-    "source": "sha256:98a24b911d008f703429d923a2d30c3bfe7c76da8023abf7f4e1efa5195118e8"
+    "message": "Privater Tab · Hier wird nichts im Verlauf gespeichert",
+    "source": "sha256:70441a325c2a506ce0dcba9cf699b8fabb9c5050dc459ce6c576249548bbbb8a"
   },
   "result.groupCount": {
     "message": "{count, plural, one {# Tab} other {# Tabs}}",

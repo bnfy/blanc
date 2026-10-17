@@ -405,9 +405,7 @@
     <string name="site_info_hint_chromium">connection details are supplied by Chromium</string>
     <string name="list_no_command">no matching command</string>
     <string name="list_no_matches">no matches — ↵ opens as address or search</string>
-    <string name="hint_private">private · nothing here is saved to history</string>
-    <string name="hint_groups">/group moves this tab · %1$s1–9 jumps between sections</string>
-    <string name="hint_default">%1$sL summons · / for commands</string>
+    <string name="hint_private">Private tab · Nothing here is saved to history</string>
     <plurals name="result_group_count">
         <item quantity="one">%1$d tab</item>
         <item quantity="other">%1$d tabs</item>

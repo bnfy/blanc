@@ -417,9 +417,7 @@
     <string name="site_info_hint_chromium">os detalhes da conexão são fornecidos pelo Chromium</string>
     <string name="list_no_command">nenhum comando correspondente</string>
     <string name="list_no_matches">nenhum resultado — ↵ abre como endereço ou pesquisa</string>
-    <string name="hint_private">privada · nada aqui é salvo no histórico</string>
-    <string name="hint_groups">/group move esta aba · %1$s1–9 pula entre as seções</string>
-    <string name="hint_default">%1$sL abre · / para comandos</string>
+    <string name="hint_private">Aba privada · Nada aqui é salvo no histórico</string>
     <plurals name="result_group_count">
         <item quantity="one">%1$d aba</item>
         <item quantity="many">%1$d abas</item>

@@ -1772,12 +1772,11 @@
     // command steps it aside until the field is clear again.
     renderDevicesDrawer(!siteInfoOpen && !(inputTouched && (value.startsWith('/') || value.trim())));
 
+    // The hint line keeps only the private-tab note (and the site-info notes,
+    // written by renderSiteInfo); the address field and the Shortcuts sheet
+    // already teach "/" and ⌘1–9.
     if (!siteInfoOpen) {
-      islandHint.textContent = activeTab()?.private
-        ? blancI18n.t('hint.private')
-        : state.groups.length
-          ? blancI18n.t('hint.groups', { mod: modKey })
-          : blancI18n.t('hint.default', { mod: modKey });
+      islandHint.textContent = activeTab()?.private ? blancI18n.t('hint.private') : '';
     }
   }
 

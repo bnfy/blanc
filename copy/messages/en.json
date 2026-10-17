@@ -1534,16 +1534,8 @@
     "note": "Lowercase empty row in the Quick Switcher."
   },
   "hint.private": {
-    "message": "private · nothing here is saved to history",
-    "note": "Lowercase hint under the Island list on a private tab."
-  },
-  "hint.groups": {
-    "message": "/group moves this tab · {mod}1–9 jumps between sections",
-    "note": "Lowercase hint under the Island list when groups exist; {mod} is ⌘ or ctrl+."
-  },
-  "hint.default": {
-    "message": "{mod}L summons · / for commands",
-    "note": "Lowercase hint under the Island list; {mod} is ⌘ or ctrl+."
+    "message": "Private tab · Nothing here is saved to history",
+    "note": "Note under the ⌘L panel footer while the active tab is private. Sentence case."
   },
   "result.groupCount": {
     "message": "{count, plural, one {# tab} other {# tabs}}",

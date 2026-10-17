@@ -417,9 +417,7 @@
     <string name="site_info_hint_chromium">Chromium proporciona los detalles de la conexión</string>
     <string name="list_no_command">ningún comando coincide</string>
     <string name="list_no_matches">sin resultados: ↵ lo abre como dirección o búsqueda</string>
-    <string name="hint_private">privada · nada de aquí se guarda en el historial</string>
-    <string name="hint_groups">/group mueve esta pestaña · %1$s1–9 salta entre secciones</string>
-    <string name="hint_default">%1$sL la abre · / para comandos</string>
+    <string name="hint_private">Pestaña privada · Nada de aquí se guarda en el historial</string>
     <plurals name="result_group_count">
         <item quantity="one">%1$d pestaña</item>
         <item quantity="many">%1$d pestañas</item>

@@ -16610,127 +16610,43 @@
       }
     },
     "hint.private": {
-      "comment": "Lowercase hint under the Island list on a private tab.",
+      "comment": "Note under the ⌘L panel footer while the active tab is private. Sentence case.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "private · nothing here is saved to history"
+            "value": "Private tab · Nothing here is saved to history"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "privat · hier wird nichts im Verlauf gespeichert"
+            "value": "Privater Tab · Hier wird nichts im Verlauf gespeichert"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "privada · nada de aquí se guarda en el historial"
+            "value": "Pestaña privada · Nada de aquí se guarda en el historial"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "privé · rien ici n’est enregistré dans l’historique"
+            "value": "Onglet privé · Rien ici n’est enregistré dans l’historique"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "privata · nulla di quanto fai qui viene salvato nella cronologia"
+            "value": "Scheda privata · Nulla di quanto fai qui viene salvato nella cronologia"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "privada · nada aqui é salvo no histórico"
-          }
-        }
-      }
-    },
-    "hint.groups": {
-      "comment": "Lowercase hint under the Island list when groups exist; {mod} is ⌘ or ctrl+.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "/group moves this tab · %1$@1–9 jumps between sections"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "/group verschiebt diesen Tab · %1$@1–9 springt zwischen Abschnitten"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "/group mueve esta pestaña · %1$@1–9 salta entre secciones"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "/group déplace cet onglet · %1$@1–9 passe d’une section à l’autre"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "/group sposta questa scheda · %1$@1–9 salta tra le sezioni"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "/group move esta aba · %1$@1–9 pula entre as seções"
-          }
-        }
-      }
-    },
-    "hint.default": {
-      "comment": "Lowercase hint under the Island list; {mod} is ⌘ or ctrl+.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@L summons · / for commands"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@L ruft auf · / für Befehle"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@L la abre · / para comandos"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@L l’ouvre · / pour les commandes"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@L la richiama · / per i comandi"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@L abre · / para comandos"
+            "value": "Aba privada · Nada aqui é salvo no histórico"
           }
         }
       }

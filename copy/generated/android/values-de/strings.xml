@@ -405,9 +405,7 @@
     <string name="site_info_hint_chromium">Verbindungsdetails stammen von Chromium</string>
     <string name="list_no_command">kein passender Befehl</string>
     <string name="list_no_matches">keine Treffer – ↵ öffnet als Adresse oder Suche</string>
-    <string name="hint_private">privat · hier wird nichts im Verlauf gespeichert</string>
-    <string name="hint_groups">/group verschiebt diesen Tab · %1$s1–9 springt zwischen Abschnitten</string>
-    <string name="hint_default">%1$sL ruft auf · / für Befehle</string>
+    <string name="hint_private">Privater Tab · Hier wird nichts im Verlauf gespeichert</string>
     <plurals name="result_group_count">
         <item quantity="one">%1$d Tab</item>
         <item quantity="other">%1$d Tabs</item>

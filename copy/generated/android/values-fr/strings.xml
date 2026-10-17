@@ -417,9 +417,7 @@
     <string name="site_info_hint_chromium">les détails de connexion sont fournis par Chromium</string>
     <string name="list_no_command">aucune commande correspondante</string>
     <string name="list_no_matches">aucun résultat — ↵ l’ouvre comme adresse ou recherche</string>
-    <string name="hint_private">privé · rien ici n’est enregistré dans l’historique</string>
-    <string name="hint_groups">/group déplace cet onglet · %1$s1–9 passe d’une section à l’autre</string>
-    <string name="hint_default">%1$sL l’ouvre · / pour les commandes</string>
+    <string name="hint_private">Onglet privé · Rien ici n’est enregistré dans l’historique</string>
     <plurals name="result_group_count">
         <item quantity="one">%1$d onglet</item>
         <item quantity="many">%1$d onglets</item>
