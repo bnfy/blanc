@@ -348,10 +348,11 @@ function bangsPageDynamicLines() {
   const countText = bangData.count.toLocaleString('en-US');
   const versionText = bangData.release ? `Blanc ${bangData.release.replace(/^v/, '')}` : 'this build of Blanc';
   return new Map([
-    ["{example.kind === 'bang' && Return would open {example.hint.url}}", ['Return would open']],
-    ['{chip}', []],
+    // The featured cards: icon tile, host, name and codes, all from the data.
+    ["{tile.letter}{card.host.replace(/^www\\./, '')}{card.name}{card.codes.map((code) => {`!${code}`})}", []],
+    ['{`And ${moreText} more.`}', [`And ${(bangData.count - 19).toLocaleString('en-US')} more.`]],
     ['{`${countText} bangs, exactly the list in ${versionText}. Search by site or by code.`}', [`${countText} bangs, exactly the list in ${versionText}. Search by site or by code.`]],
-    ['{`!${row.code}`}{row.name}{shownAliases(row.aliases).map((code) => {code} )}{moreAliases(row.aliases)}{row.host}{row.via && {`via ${row.via}`}}', [...new Set(Object.values(bangData.via))].map(via => `via ${via}`)],
+    ['{tile.letter}{`!${row.code}`}{row.name}{shownAliases(row.aliases).map((code) => {code} )}{moreAliases(row.aliases)}{row.host}{row.via && {`via ${row.via}`}}', [...new Set(Object.values(bangData.via))].map(via => `via ${via}`)],
     ['{`Showing all ${countText}`}', [`Showing all ${countText}`]],
   ]);
 }
@@ -366,7 +367,7 @@ test('bangs privacy copy holds only for a code typed first, and names the engine
   assert.doesNotMatch(pop, /before or after/);
   const page = read('site/src/pages/bangs.astro');
   assert.match(section(page, 'id="bangs-title"', '</section>'), /code before your search/);
-  const privacy = section(page, 'id="bangs-privacy-title"', '</section>');
+  const privacy = section(page, 'id="bangs-how-title"', '</section>');
   assert.match(privacy, /A bang typed at the end is different/);
   assert.match(privacy, /through Google or DuckDuckGo/);
   assert.doesNotMatch(privacy, /another search engine/);
@@ -438,7 +439,7 @@ test('public product captures match their reviewed dimensions, hashes, and sourc
     ['docs/website-captures-v1.21.json', previousLedger.publicRelease, previousLedger.sourceSha, 5],
     ['docs/website-captures-v1.30.1.json', 'v1.30.1', '9e337ac583e81bae509cfc970b9d97a81f3287ba', 4],
     ['docs/website-captures-v1.31.0.json', 'v1.31.0', '5bb0e0da01e05d612382fa99a434524ed2c5b108', 4],
-    ['docs/website-captures-v1.36.0.json', 'v1.36.0', '3c214274958c15d8f3b28f8c61f2fac26937e333', 5],
+    ['docs/website-captures-v1.36.0.json', 'v1.36.0', '3c214274958c15d8f3b28f8c61f2fac26937e333', 6],
   ];
   for (const [file, release, sourceSha, expectedCount] of manifests) {
     const manifest = JSON.parse(read(file));

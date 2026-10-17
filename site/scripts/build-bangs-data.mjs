@@ -9,9 +9,10 @@
 //   node site/scripts/build-bangs-data.mjs --check
 //
 // Writes site/src/data/bangs.json (the catalog verbatim plus the engine-search
-// tags), and byte copies of that ref's src/renderer/pages/bangs.js (the
-// try-it box runs it) and Kagi's MIT license text (the page redistributes the
-// list). Without --ref it reuses the ref already in bangs.json.
+// tags), site/public/bang-hosts.json (the icon server's allowed hosts and the
+// featured ones) and a byte copy of Kagi's MIT license text (the page
+// redistributes the list). Without --ref it reuses the ref already in
+// bangs.json.
 
 import { execFileSync } from 'node:child_process';
 import crypto from 'node:crypto';
@@ -23,21 +24,10 @@ import { fileURLToPath } from 'node:url';
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const ROOT = path.resolve(path.dirname(SCRIPT_PATH), '..', '..');
 const OUT_JSON = path.join(ROOT, 'site', 'src', 'data', 'bangs.json');
-const OUT_MODULE = path.join(ROOT, 'site', 'src', 'scripts', 'bangs.js');
 const OUT_LICENSE = path.join(ROOT, 'site', 'public', 'licenses', 'kagi-bangs-MIT.txt');
 const OUT_HOSTS = path.join(ROOT, 'site', 'public', 'bang-hosts.json');
 const CATALOG_PATH = 'src/renderer/pages/bangs-catalog.js';
-const MODULE_PATH = 'src/renderer/pages/bangs.js';
 const LICENSE_PATH = 'bangs/sources/kagi-bangs-LICENSE.txt';
-const MESSAGES_PATH = 'copy/messages/en.json';
-// The try-it box's hint and section labels and the Island's hint line (a
-// bang typed, else the private-tab note the box's private panel shows), in
-// the app's own English words at the same ref, so a re-pin carries any copy
-// change the release made.
-const LABEL_KEYS = {
-  search: 'bang.search', open: 'bang.open', popular: 'bang.section.popular', all: 'bang.section.all',
-  hintBang: 'hint.bang', hintPrivate: 'hint.private',
-};
 
 // The catalog is about 1.5 MB; Node's default 1 MiB maxBuffer fails with ENOBUFS.
 function gitShow(ref, file) {
@@ -89,16 +79,8 @@ function evaluateCatalog(bytes) {
   return catalog;
 }
 
-function readLabels(messagesBytes) {
-  const messages = JSON.parse(messagesBytes.toString('utf8'));
-  return Object.fromEntries(Object.entries(LABEL_KEYS).map(([name, key]) => {
-    const message = messages[key]?.message;
-    if (typeof message !== 'string' || !message) throw new Error(`${MESSAGES_PATH} has no ${key}`);
-    return [name, message];
-  }));
-}
 
-function renderData({ ref, release, catalogBytes, messagesBytes }) {
+function renderData({ ref, release, catalogBytes }) {
   const catalog = evaluateCatalog(catalogBytes);
   const entries = JSON.parse(JSON.stringify([...catalog]));
   const via = {};
@@ -112,7 +94,6 @@ function renderData({ ref, release, catalogBytes, messagesBytes }) {
     catalogSha256: crypto.createHash('sha256').update(catalogBytes).digest('hex'),
     count: entries.length,
     popular: [...catalog.popular],
-    labels: readLabels(messagesBytes),
     via,
   };
   // One entry per line so a list update reads as a diff.
@@ -141,11 +122,10 @@ function renderHosts(data) {
 function buildOutputs({ ref, release }) {
   const commit = resolveCommit(ref);
   if (release && resolveCommit(release) !== commit) throw new Error(`--release ${release} is not ${ref}`);
-  const json = renderData({ ref: commit, release: release ?? null, catalogBytes: gitShow(commit, CATALOG_PATH), messagesBytes: gitShow(commit, MESSAGES_PATH) });
+  const json = renderData({ ref: commit, release: release ?? null, catalogBytes: gitShow(commit, CATALOG_PATH) });
   return [
     [OUT_JSON, Buffer.from(json)],
     [OUT_HOSTS, Buffer.from(renderHosts(JSON.parse(json)))],
-    [OUT_MODULE, gitShow(commit, MODULE_PATH)],
     [OUT_LICENSE, gitShow(commit, LICENSE_PATH)],
   ];
 }

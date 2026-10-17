@@ -79,6 +79,14 @@ const CARDS = [
     headline: 'Separate browsing identities. Keep every window independent.',
   },
   {
+    // /bangs has no Island figure of its own since its redesign, so the card
+    // shows the panel with a bang typed, captured from public v1.36.0.
+    out: 'feature-bangs.png',
+    capture: 'bangs-v1.36.0.png',
+    kicker: 'bangs',
+    headline: 'Search the site. Skip the engine.',
+  },
+  {
     out: 'feature-reopen-closed-tabs.png',
     capture: 'reopen-closed-tabs-v1.36.0.png',
     kicker: 'reopen closed tabs',
@@ -121,14 +129,6 @@ const CARDS = [
     figure: '.island-figure--panel',
     kicker: 'tab groups',
     headline: 'Named tab groups: keep the tabs you need. Tuck away the rest.',
-  },
-  {
-    out: 'feature-bangs.png',
-    page: '/bangs.html',
-    figure: '.island-figure--panel',
-    kicker: 'bangs',
-    headline: 'Search the site. Skip the engine.',
-    theme: 'dark',
   },
   {
     out: 'feature-quiet-tabs.png',

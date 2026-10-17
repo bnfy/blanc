@@ -1,36 +1,29 @@
 ---
-import vm from 'node:vm';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import data from '../data/bangs.json';
-import bangsSource from '../scripts/bangs.js?raw';
-import { directoryRows } from '../scripts/bangs-directory.mjs';
-import { describeTryIt, islandHintFor } from '../scripts/bangs-tryit.mjs';
-import IslandPanelActions from '../components/IslandPanelActions.astro';
-import IslandFooter from '../components/IslandFooter.astro';
+import { directoryRows, featuredCards, iconTile, iconUrl } from '../scripts/bangs-directory.mjs';
 import '../styles/bangs.css';
 
-// The data is pinned to one build (site/scripts/build-bangs-data.mjs): the
-// bangs merge commit while this page is a candidate, the release tag after.
-// The try-it box's first answer is rendered here with the same pinned copy of
-// the app's bangs.js the browser runs, so the page reads right without
-// JavaScript.
-const bangsContext = { module: { exports: null } };
-vm.runInNewContext(bangsSource, bangsContext);
-const Bangs = bangsContext.module.exports;
-
+// The data is pinned to one release (site/scripts/build-bangs-data.mjs). The
+// cards are the app's own popular bangs and the list holds every bang, so the
+// page reads right without JavaScript. Icons come from the icon server
+// (cloudflare/bang-icons-worker) at /bang-icons/<host>, over a lettered tile
+// that shows while one loads and stays when a site has none. The script
+// requests every icon (the cards' from data-src, the rows' as they are
+// shown), since only it can tell a failed icon from a loaded one; without it
+// the tiles are the page.
 const rows = directoryRows(data);
+const cards = featuredCards(data);
 const countText = data.count.toLocaleString('en-US');
+const moreText = (data.count - cards.length).toLocaleString('en-US');
 const versionText = data.release ? `Blanc ${data.release.replace(/^v/, '')}` : 'this build of Blanc';
-const example = describeTryIt('!yt lofi', Bangs, data.entries, data.popular, data.labels);
-const exampleHint = islandHintFor(example, data.labels);
 const SHOWN_ALIASES = 3;
 const shownAliases = (aliases) => aliases.slice(0, SHOWN_ALIASES).map((alias) => `!${alias}`);
 const moreAliases = (aliases) => (aliases.length > SHOWN_ALIASES ? `+${aliases.length - SHOWN_ALIASES}` : '');
-const chips = ['!w golden retriever', '!a usb cable', '!gh electron', 'lofi !yt', '!'];
 ---
 <BaseLayout
   title={"Bangs: Search Any Site From the Address Bar | Blanc Browser"}
-  description={"Type !yt lofi in Blanc to search YouTube directly, with any search engine. Try a bang, then search every one in Blanc's built-in list."}
+  description={"Type !yt lofi in Blanc to search YouTube directly, with any search engine. Find the code for any site in Blanc's built-in list."}
   path="/bangs"
   page="bangs"
   current="features"
@@ -47,78 +40,65 @@ const chips = ['!w golden retriever', '!a usb cable', '!gh electron', 'lofi !yt'
 
   <section class="feature-hero feature-hero--detail feature-hero--text bangs-hero" aria-labelledby="bangs-title">
     <h1 id="bangs-title">Search the site. Skip the engine.</h1>
-    <p>Type an exclamation mark and a site’s code before your search, like <kbd class="bang-chip">!yt lofi</kbd>, and Blanc opens YouTube’s results directly. It works with whichever search engine you use, and your words go straight to the address the bang opens, not through your search engine.</p>
-    <a class="text-link bangs-jump" href="#find-a-bang">Find a bang <span aria-hidden="true">›</span></a>
+    <p>Type a site’s code before your search, like <kbd class="bang-chip">!yt lofi</kbd>, to go straight to its results. Works with any search engine.</p>
   </section>
 
-  <figure class="product-capture feature-capture bangs-try">
-    <div class="demo-stage island-figure island-figure--panel bangs-stage" data-theme="private">
-      <div class="demo-island open">
-        <div class="panel">
-          <div class="panel-row">
-            <label class="field bangs-field">
-              <span class="sr-only">Try a bang</span>
-              <input id="bangs-try" type="text" value="!yt lofi" maxlength="200" spellcheck="false" autocomplete="off" autocapitalize="off" />
-            </label>
-            <IslandPanelActions />
-          </div>
-          <div class="list command-directory" id="bangs-try-list" aria-live="polite">
-            {example.kind === 'bang' && (
-              <div class="trow command hl"><span class="cmd">{`!${example.hint.code}`}</span><span class="hint">{example.hint.title}</span><span class="enter">↵</span></div>
-            )}
-          </div>
-          <IslandFooter />
-          <div class="island-hint" id="bangs-try-hint" aria-hidden="true">{exampleHint}</div>
-        </div>
-      </div>
-      <div class="bangs-under">
-        <p class="bangs-dest" id="bangs-try-dest">{example.kind === 'bang' && <>Return would open <code>{example.hint.url}</code></>}</p>
-        <div class="bangs-chips" role="group" aria-label="Examples">
-          {chips.map((chip) => <button type="button" class="bang-chip" data-chip={chip}>{chip}</button>)}
-        </div>
-      </div>
-    </div>
-    <figcaption>Type a bang and the Island shows where it will go before you press Return. Nothing you type in this box leaves the page.</figcaption>
-    <p hidden data-msg="other">Not a bang. Blanc treats this as it always does: an address, a command, or a search.</p>
-    <p hidden data-msg="unknown-code">No bang with that code. Blanc would search for it as typed.</p>
-  </figure>
+  <div class="bangs-search">
+    <label for="bangs-search" class="sr-only">Search bangs</label>
+    <input id="bangs-search" type="search" placeholder="Search bangs: youtube, yt, wikipedia…" autocomplete="off" spellcheck="false" />
+    <span id="bangs-count" aria-live="polite">{`${countText} bangs`}</span>
+  </div>
 
-  <section class="feature-copy-grid feature-copy-grid--top" aria-labelledby="bangs-how-title">
-    <div><h2 id="bangs-how-title">Type it first or last. Blanc takes it from there.</h2></div>
-    <div class="feature-copy-list">
-      <article><h3>The sites you search most, one code away.</h3><p><kbd class="bang-chip">!w</kbd> searches Wikipedia, <kbd class="bang-chip">!a</kbd> Amazon, <kbd class="bang-chip">!gh</kbd> GitHub. <kbd class="bang-chip">!yt lofi</kbd> and <kbd class="bang-chip">lofi !yt</kbd> do the same thing, and a code on its own, like <kbd class="bang-chip">!yt</kbd>, opens the site’s home page.</p></article>
-      <article><h3>Don’t know the code? Type <kbd class="bang-chip">!</kbd>.</h3><p>The Island lists the bangs you used recently and a set of popular ones. Keep typing to search the whole list by code or by site name.</p></article>
-      <article><h3>Add your own.</h3><p>Settings, General, Your bangs: pick a code, a name, and the site’s search address with <code>%s</code> where your words go, for example your own SearXNG server. With Sync on, your bangs follow you to your other computers.</p></article>
-    </div>
-  </section>
+  <ul class="bangs-cards" id="bangs-cards" aria-label="Popular bangs">
+    {cards.map((card) => {
+      const tile = iconTile(card.host, card.name);
+      return (
+        <li class="bangs-card" data-code={card.code}><span class={`bangs-icon t${tile.tone}`} aria-hidden="true">{tile.letter}<img data-src={iconUrl(card.host)} alt="" width="32" height="32" loading="lazy" decoding="async" /></span><span class="bangs-card-host">{card.host.replace(/^www\./, '')}</span><span class="bangs-card-name">{card.name}</span><span class="bangs-card-codes">{card.codes.map((code) => <kbd class="bang-chip">{`!${code}`}</kbd>)}</span></li>
+      );
+    })}
+  </ul>
 
-  <section class="feature-copy-grid" aria-labelledby="bangs-privacy-title">
-    <div><h2 id="bangs-privacy-title">Your words skip your search engine.</h2></div>
-    <div class="feature-copy-list">
-      <article><h3>Straight to the bang’s address.</h3><p>A bang opens the address it names, and Blanc sends your words only there, never to your own search engine first. It works the same whichever engine you chose in Settings. A few bangs send your words through Google or DuckDuckGo to search one site; the list below marks them.</p></article>
-      <article><h3>No suggestions while you type a bang.</h3><p>Blanc doesn’t ask your search engine for suggestions while a bang is in the box, so <kbd class="bang-chip">!yt lofi</kbd> isn’t sent anywhere until you press Return. A bang typed at the end is different: the words before it may already have gone to your search engine as suggestions, unless suggestions are off in Settings.</p></article>
-      <article><h3>The list is built in.</h3><p>Blanc doesn’t look bangs up online. The list ships inside the app and changes only with a Blanc update. The bangs you used recently stay on this computer, and private tabs don’t record them.</p></article>
+  <div class="bangs-fold" id="bangs-fold">
+    <p>{`And ${moreText} more.`}</p>
+    <div class="bangs-fold-actions">
+      <button type="button" id="bangs-search-them">Search them</button>
+      <button type="button" id="bangs-browse">Browse all</button>
     </div>
-  </section>
+  </div>
 
-  <section class="bangs-dir" id="find-a-bang" aria-labelledby="bangs-dir-title">
-    <h2 id="bangs-dir-title">Every bang in Blanc</h2>
-    <p class="bangs-dir-sub">{`${countText} bangs, exactly the list in ${versionText}. Search by site or by code.`}</p>
-    <div class="bangs-search">
-      <label for="bangs-search" class="sr-only">Search bangs</label>
-      <input id="bangs-search" type="search" placeholder="Search bangs: youtube, yt, wikipedia…" autocomplete="off" spellcheck="false" />
-      <span id="bangs-count" aria-live="polite">{`${countText} bangs`}</span>
+  <section class="bangs-list" id="bangs-list" aria-labelledby="bangs-dir-title">
+    <div class="bangs-list-head">
+      <h2 id="bangs-dir-title" tabindex="-1">Every bang in Blanc</h2>
+      <button type="button" id="bangs-back">Back to popular bangs</button>
     </div>
     <ol class="bangs-rows" id="bangs-rows">
-      {rows.map((row) => (
-        <li data-code={row.code}><b>{`!${row.code}`}</b><span>{row.name}</span><small>{shownAliases(row.aliases).map((code) => <><kbd>{code}</kbd> </>)}{moreAliases(row.aliases)}</small><em>{row.host}</em>{row.via && <i data-via>{`via ${row.via}`}</i>}</li>
-      ))}
+      {rows.map((row) => {
+        const tile = iconTile(row.host, row.name);
+        return (
+          <li data-code={row.code}><span class={`bangs-icon t${tile.tone}`}>{tile.letter}</span><b>{`!${row.code}`}</b><span>{row.name}</span><small>{shownAliases(row.aliases).map((code) => <><kbd>{code}</kbd> </>)}{moreAliases(row.aliases)}</small><em>{row.host}</em>{row.via && <i data-via>{`via ${row.via}`}</i>}</li>
+        );
+      })}
     </ol>
     <div class="bangs-more">
       <button type="button" id="bangs-more" hidden>Show more</button>
       <p id="bangs-showing" class="bangs-showing" aria-live="polite">{`Showing all ${countText}`}</p>
     </div>
+  </section>
+
+  <div class="bangs-facts">
+    <p class="bangs-dir-sub">{`${countText} bangs, exactly the list in ${versionText}. Search by site or by code.`}</p>
     <p class="bangs-credit">The bang list comes from <a href="https://github.com/kagisearch/bangs" rel="noopener">Kagi’s open-source bang collection</a> (<a href="/licenses/kagi-bangs-MIT.txt">MIT</a>), checked and bundled with each Blanc release.</p>
+  </div>
+
+  <section class="bangs-how" aria-labelledby="bangs-how-title">
+    <h2 id="bangs-how-title">How bangs work</h2>
+    <ul>
+      <li><strong>First or last.</strong> <kbd class="bang-chip">!yt lofi</kbd> and <kbd class="bang-chip">lofi !yt</kbd> do the same thing, and a code on its own, like <kbd class="bang-chip">!yt</kbd>, opens the site’s home page.</li>
+      <li><strong>Don’t know the code? Type <kbd class="bang-chip">!</kbd>.</strong> The Island lists the bangs you used recently and a set of popular ones.</li>
+      <li><strong>Your words skip your search engine.</strong> A bang opens the address it names, and Blanc sends your words only there, never to your own search engine first. A few bangs send your words through Google or DuckDuckGo to search one site; the list marks them.</li>
+      <li><strong>Add your own.</strong> Settings, General, Your bangs: pick a code, a name, and the site’s search address with <kbd class="bang-chip">%s</kbd> where your words go. With Sync on, your bangs follow you to your other computers.</li>
+    </ul>
+    <p class="bangs-how-note">The list ships inside Blanc and changes only with a Blanc update. Blanc doesn’t ask your search engine for suggestions while a bang is in the box. A bang typed at the end is different: the words before it may already have gone to your search engine as suggestions, unless suggestions are off in Settings.</p>
   </section>
 
   <section class="feature-close" aria-labelledby="bangs-close-title"><h2 id="bangs-close-title">Try bangs in Blanc.</h2><a class="cta" href="/download" data-track="feature_cta_click" data-feature="bangs" data-cta-position="feature-close">download blanc</a></section>

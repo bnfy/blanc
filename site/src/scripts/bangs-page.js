@@ -1,18 +1,12 @@
-// /bangs: the try-it box and the directory search. The page works without
-// this script (every row is in the HTML, the box shows its example); with
-// it, the box answers live through the pinned copy of the app's bangs.js and
-// the directory pages and filters. The only request this makes is for the
-// page's own data asset; what a visitor types never leaves the page.
+// /bangs: the search, the two views, and the icons. The page works without
+// this script (every card and row is in the HTML); with it, the popular bangs
+// show as cards until a visitor searches or presses Browse all, and the list
+// then pages through the matches. The only requests it makes are for the
+// page's own data asset and, as rows are shown, their icons from this site's
+// /bang-icons/; what a visitor types never leaves the page.
 
-import * as bangsModule from './bangs.js';
 import dataUrl from '../data/bangs.json?url';
-import { filterBangs } from './bangs-directory.mjs';
-import { describeTryIt, islandHintFor } from './bangs-tryit.mjs';
-
-// The pinned bangs.js is a dual-mode script: the production bundle wraps it
-// as CommonJS (its export arrives as the default), while the dev server runs
-// it as a plain script that publishes window.Bangs.
-const Bangs = bangsModule.default ?? window.Bangs;
+import { filterBangs, iconUrl } from './bangs-directory.mjs';
 
 const STEP = 50;
 const format = (n) => n.toLocaleString('en-US');
@@ -33,108 +27,84 @@ function loadData() {
   return dataPromise;
 }
 
-// ---------- try it ----------
+// ---------- icons ----------
 
-const tryInput = document.getElementById('bangs-try');
-const tryList = document.getElementById('bangs-try-list');
-const tryDest = document.getElementById('bangs-try-dest');
-const tryHint = document.getElementById('bangs-try-hint');
-const message = (kind) => document.querySelector(`[data-msg="${kind}"]`)?.textContent ?? '';
-
-function el(tag, className, text) {
-  const node = document.createElement(tag);
-  if (className) node.className = className;
-  if (text !== undefined) node.textContent = text;
-  return node;
-}
-
-// overlay.js bangHeaderRow: an unfolded section header, caret first.
-const SVG_NS = 'http://www.w3.org/2000/svg';
-function caret() {
-  const svg = document.createElementNS(SVG_NS, 'svg');
-  for (const [name, value] of Object.entries({ class: 'caret', viewBox: '0 0 10 10', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.4', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' })) svg.setAttribute(name, value);
-  const path = document.createElementNS(SVG_NS, 'path');
-  path.setAttribute('d', 'M3.5 2 L7 5 L3.5 8');
-  svg.append(path);
-  return svg;
-}
-
-function renderTry(answer, labels) {
-  const nodes = [];
-  if (answer.kind === 'bang') {
-    const row = el('div', 'trow command hl');
-    row.append(el('span', 'cmd', `!${answer.hint.code}`), el('span', 'hint', answer.hint.title), el('span', 'enter', '↵'));
-    nodes.push(row);
-  }
-  for (const { label, count, rows } of answer.sections ?? []) {
-    const head = el('div', 'sec-head');
-    head.append(caret(), el('span', 'dim', label), el('span', 'count', String(count)));
-    nodes.push(head);
-    for (const { code, name, domain } of rows) {
-      const row = el('div', 'trow command');
-      row.append(el('span', 'cmd', `!${code}`), el('span', 'hint', name), el('span', 'domain', domain));
-      nodes.push(row);
-    }
-  }
-  tryList.replaceChildren(...nodes);
-  if (tryHint) tryHint.textContent = islandHintFor(answer, labels);
-  // The page's own explanation goes under the Island, never inside it: the
-  // app draws no row for text that isn't a bang.
-  tryDest.replaceChildren();
-  if (answer.kind === 'bang') tryDest.append('Return would open ', el('code', '', answer.hint.url));
-  else if (answer.kind === 'other' || answer.kind === 'unknown-code') tryDest.append(message(answer.kind));
-}
-
-async function updateTry() {
-  const data = await loadData();
-  // Without the data the box keeps the example the page was built with.
-  if (!data || !Bangs) return;
-  renderTry(describeTryIt(tryInput.value, Bangs, data.entries, data.popular, data.labels), data.labels);
-}
-
-if (tryInput && tryList && tryDest) {
-  tryInput.addEventListener('focus', loadData, { once: true });
-  tryInput.addEventListener('input', updateTry);
-  // There is nowhere to go: Return in this box does nothing.
-  tryInput.addEventListener('keydown', (event) => { if (event.key === 'Enter') event.preventDefault(); });
-  for (const chip of document.querySelectorAll('[data-chip]')) {
-    chip.addEventListener('click', () => {
-      tryInput.value = chip.dataset.chip;
-      tryInput.focus();
-      updateTry();
-    });
+// An icon covers its lettered tile once it has loaded; one that fails is
+// removed, so the letter is what stays and no broken image ever shows.
+function watchIcon(img) {
+  const settle = () => {
+    if (img.naturalWidth > 0) img.classList.add('is-loaded');
+    else img.remove();
+  };
+  if (img.complete) settle();
+  else {
+    img.addEventListener('load', settle, { once: true });
+    img.addEventListener('error', () => img.remove(), { once: true });
   }
 }
 
-// ---------- directory ----------
+function addIcon(tile, host) {
+  if (tile.querySelector('img')) return;
+  const img = document.createElement('img');
+  img.alt = '';
+  img.width = 32;
+  img.height = 32;
+  img.loading = 'lazy';
+  img.decoding = 'async';
+  img.src = iconUrl(host);
+  tile.append(img);
+  watchIcon(img);
+}
 
+// The cards' icons wait in data-src, so a page without this script never
+// draws a broken image over a tile.
+document.querySelectorAll('#bangs-cards img[data-src]').forEach((img) => {
+  img.src = img.dataset.src;
+  watchIcon(img);
+});
+
+// ---------- views and the list ----------
+
+const main = document.querySelector('.bangs-page');
 const list = document.getElementById('bangs-rows');
 const search = document.getElementById('bangs-search');
 const countLine = document.getElementById('bangs-count');
 const showing = document.getElementById('bangs-showing');
 const more = document.getElementById('bangs-more');
+const browse = document.getElementById('bangs-browse');
+const searchThem = document.getElementById('bangs-search-them');
+const listSection = document.getElementById('bangs-list');
+const listTitle = document.getElementById('bangs-dir-title');
+const back = document.getElementById('bangs-back');
 
-if (list && search && countLine && showing && more) {
+if (main && list && search && countLine && showing && more && browse && searchThem && listSection && listTitle && back) {
   const items = [...list.children];
   const byCode = new Map(items.map((item) => [item.dataset.code, item]));
   // Until the data arrives, search what the rows themselves show.
   let rows = items.map((item) => ({
     code: item.dataset.code,
     aliases: (item.querySelector('small')?.textContent ?? '').split(/\s+/).filter((part) => part.startsWith('!')).map((part) => part.slice(1)),
-    name: item.querySelector('span')?.textContent ?? '',
+    name: item.querySelector(':scope > span:not(.bangs-icon)')?.textContent ?? '',
     host: item.querySelector('em')?.textContent ?? '',
   }));
+  const hostOf = new Map(rows.map((row) => [row.code, row.host]));
   let query = '';
+  let browsing = false;
   let limit = STEP;
   let reordered = false;
   let visible = new Set(items);
 
   function render() {
+    const listing = Boolean(query) || browsing;
+    main.dataset.view = listing ? 'list' : 'cards';
     const matched = filterBangs(rows, query);
     const shown = matched.slice(0, limit).map((row) => byCode.get(row.code)).filter(Boolean);
     const next = new Set(shown);
     for (const item of visible) if (!next.has(item)) item.hidden = true;
-    for (const item of shown) item.hidden = false;
+    for (const item of shown) {
+      item.hidden = false;
+      if (listing) addIcon(item.querySelector('.bangs-icon'), hostOf.get(item.dataset.code));
+    }
     visible = next;
     if (query) {
       // Best matches first: move the shown rows to the top, in order.
@@ -173,6 +143,9 @@ if (list && search && countLine && showing && more) {
     clearTimeout(timer);
     timer = setTimeout(() => {
       query = search.value;
+      // Clearing the search goes back to the cards, and a new search starts
+      // from the first page of matches.
+      if (!query) browsing = false;
       limit = STEP;
       render();
     }, 120);
@@ -181,5 +154,22 @@ if (list && search && countLine && showing && more) {
     limit += STEP;
     render();
   });
+  // Browse all hides itself, so focus moves to the list's heading; going
+  // back clears any search and returns focus to Browse all.
+  browse.addEventListener('click', () => {
+    browsing = true;
+    limit = STEP;
+    render();
+    listTitle.focus();
+  });
+  back.addEventListener('click', () => {
+    clearTimeout(timer);
+    search.value = '';
+    query = '';
+    browsing = false;
+    limit = STEP;
+    render();
+    browse.focus();
+  });
+  searchThem.addEventListener('click', () => search.focus());
 }
-

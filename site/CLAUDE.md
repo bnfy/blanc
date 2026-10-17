@@ -235,22 +235,31 @@ without that review.
 Roadmap copy describes plans, so keep each item's qualifier (testing, paused,
 depends on…) and follow `docs/marketing-claims.md`.
 
-**Bangs page (`/bangs`):** `src/pages/bangs.astro` explains bangs, runs a
-try-it box and lists every bang. Its data never comes from main's working
-tree, which runs ahead of the public release: `scripts/build-bangs-data.mjs`
-reads the app's `src/renderer/pages/bangs-catalog.js` and `bangs.js` at one
-pinned git ref and writes `src/data/bangs.json` (the directory, with the bangs
-that search through Google or DuckDuckGo tagged), `src/scripts/bangs.js` (a
-byte copy of the app's matcher, which answers the try-it box) and
-`public/licenses/kagi-bangs-MIT.txt`, plus the try-it's hint and section
-labels from the app's `copy/messages/en.json` at the same ref. Never hand-edit
-those three; `npm run site:bangs:check` and `test/unit/site-bangs-data.test.js`
-guard them. Since bangs shipped in public v1.36.0, the data is pinned to the
-latest release tag (`release` must equal `releases.json`'s newest tag, so a
-release's changelog refresh fails the data test until the page is re-pinned
-in the same follow-up), and the page's copy is recorded in
-`docs/website-v1.36-claims.json`. The try-it box never navigates and sends
-nothing; only the page's own data file is fetched.
+**Bangs page (`/bangs`):** `src/pages/bangs.astro` is icon-first (the
+redesign of October 17, 2026,
+`docs/superpowers/specs/2026-10-17-bangs-page-redesign-design.md`): a search,
+the app's own popular bangs as icon cards (`featuredCards` in
+`src/scripts/bangs-directory.mjs`, never hand-picked), a fold into the full
+list, and one short *How bangs work* section. Every bang it asks you to type is
+the app's chip (`.bang-chip` in `site.css`). Its data never comes from main's
+working tree, which runs ahead of the public release:
+`scripts/build-bangs-data.mjs` reads the app's
+`src/renderer/pages/bangs-catalog.js` at one pinned git ref and writes
+`src/data/bangs.json` (the directory, with the bangs that search through
+Google or DuckDuckGo tagged), `public/bang-hosts.json` (the hosts the icon
+server answers for, which it reads from blanc.day, so a re-pin plus a site
+deploy updates it with no Worker deploy) and
+`public/licenses/kagi-bangs-MIT.txt`. Never hand-edit those; `npm run site:bangs:check` and
+`test/unit/site-bangs-data.test.js` guard them. Since bangs shipped in public
+v1.36.0, the data is pinned to the latest release tag (`release` must equal
+`releases.json`'s newest tag, so a release's changelog refresh fails the data
+test until the page is re-pinned in the same follow-up), and the page's copy is
+recorded in `docs/website-v1.36-claims.json`. Site icons load from the same
+origin at `/bang-icons/<host>`, answered by the bang icons Worker
+(`cloudflare/bang-icons-worker/`), never by a third party; each sits on a
+lettered tile that stays when a site has none, and `scripts/verify-seo.mjs`
+skips those paths as it skips `/dl/*`. What a visitor types never leaves the
+page; it fetches only its own data file and the icons of the cards and of the rows it shows.
 
 **Slash-command lists:** the command palette page and its Support guide list
 commands through `src/lib/released-slash-commands.mjs`, never straight from

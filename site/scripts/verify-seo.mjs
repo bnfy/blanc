@@ -74,7 +74,9 @@ for (const file of htmlFiles) {
     if (url.origin === SITE_ORIGIN && url.hash) fragmentLinks.push({route, href, target: url.pathname.replace(/\/$/, '') || '/', id: decodeURIComponent(url.hash.slice(1))});
   }
   for (const [, src] of html.matchAll(/<img\b[^>]*\ssrc="([^"]+)"/g)) {
-    if (!src.startsWith('/')) continue;
+    // /bang-icons/* is answered by the bang icons Worker's route, not the
+    // build (cloudflare/bang-icons-worker), as /dl/* is by blanc-ping's.
+    if (!src.startsWith('/') || src.startsWith('/bang-icons/')) continue;
     try { await stat(path.join(DIST_ROOT, new URL(src, SITE_ORIGIN).pathname)); }
     catch { errors.push(`${route}: missing image ${src}`); }
   }
