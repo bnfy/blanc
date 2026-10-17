@@ -24,10 +24,13 @@
   border-radius: 9px; color: #fff; font-family: var(--site-font-display); font-size: 16px; line-height: 1;
 }
 .bangs-icon img {
-  position: absolute; inset: 0; width: 100%; height: 100%; padding: 3px; box-sizing: border-box; object-fit: contain;
-  background: var(--site-surface-raised); opacity: 0; transition: opacity 0.2s ease;
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain;
+  opacity: 0; transition: opacity 0.2s ease;
 }
 .bangs-icon img.is-loaded { opacity: 1; }
+/* Once the icon is in, the tile steps aside: no color, letter or plate is
+   left around it, so its antialiased corners can't show a faint ring. */
+.bangs-icon:has(img.is-loaded) { background: none; color: transparent; }
 .bangs-icon.t0 { background: #8a5a2b; }
 .bangs-icon.t1 { background: #4f6b5a; }
 .bangs-icon.t2 { background: #9b4a3a; }
@@ -89,7 +92,6 @@
 .bangs-rows li:first-child { border-top: 0; }
 .bangs-rows li[hidden] { display: none; }
 .bangs-rows .bangs-icon { align-self: start; width: 22px; height: 22px; border-radius: 6px; font-size: 12px; }
-.bangs-rows .bangs-icon img { padding: 2px; }
 /* Each code is the chip, as in the app's bang picker rows. The row's own
    code is what a visitor came for: a long one wraps rather than truncates. */
 .bangs-rows :is(b, kbd) {
