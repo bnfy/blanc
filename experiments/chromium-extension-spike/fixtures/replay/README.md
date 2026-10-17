@@ -89,7 +89,12 @@ If the same valid context was blocked by the oracle but allowed by the fork,
 the validator retains the **block→allow difference**. Its joined missing
 response is a `response_limitations` entry (`blocked-response-not-acquired`),
 not a reason to erase or invalidate that observed regression. Downstream
-behavior is untested; it must not be fabricated. Unknown/unjoined misses,
+behavior is untested; it must not be fabricated. In particular, a missed script
+receives a replay refusal instead of executing, so the requests it would cause
+are never issued. Any reported fork false-negative count/rate in this mode is a
+**lower bound**, not a complete estimate of downstream blocking regressions.
+Carry that qualification next to every blocking-rate report, even when no
+missing descendant appears in the observed log. Unknown/unjoined misses,
 misses on an oracle-allowed response, mismatched contexts, duplicates and other
 transport errors remain harness faults. Missing/extra descendants remain named
 faults too, alongside the proven blocking difference. Consumers must inspect
@@ -280,3 +285,9 @@ as the acceptance corpus or cited as browser coverage.
 0/10 initial documents passed the existing policy (7 Vary refusals, 3 unsupported
 statuses). No public bundle/oracle was persisted; this measures an admission
 barrier, not tracker distribution. General real-page capture is still pending.
+
+Repeat C after supported Vary, entrypoint preflight and empty-body handling:
+[category-first report](../../evidence/f12-public-feasibility-repeat-20261017/README.md).
+Still 0/10 documents admitted: 3 uncontrolled Vary, 4 encoded/opaque bodies,
+1 HTTP 401 and 2 HTTP 403. No redirects observed; script/xhr/image refusal rates
+remain unmeasurable, not zero. No body/identifier gate was relaxed.

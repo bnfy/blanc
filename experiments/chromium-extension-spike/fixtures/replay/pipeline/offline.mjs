@@ -1,7 +1,7 @@
 // No DNS, HTTP client, upstream imports or live fallback.
 import {createRequire} from 'node:module';
 import {serve} from './transport.mjs';
-const {digest,sanitizeExchange}=createRequire(import.meta.url)('./scrub.cjs');
+const {digest,sanitizeExchange,varySelection}=createRequire(import.meta.url)('./scrub.cjs');
 export function verifyBundle(bundle) {
   const {sha256,...payload}=bundle;
   if(payload.schema!==1||payload.kind!=='sanitized-response-recording'||!Array.isArray(payload.entries)||!payload.entries.length||digest(JSON.stringify(payload))!==sha256)throw new Error('Invalid bundle');
@@ -12,6 +12,7 @@ export function verifyBundle(bundle) {
     if(digest(decoded)!==row.sha256)throw new Error('Payload digest mismatch');
     const clean=sanitizeExchange({...row,requestHeaders:Object.entries(row.requestHeaders).flat(),
       responseHeaders:Object.entries(row.headers).flat(),body:decoded});
+    if(JSON.stringify(clean.varyRequest)!==JSON.stringify(row.varyRequest??{}))throw new Error('Invalid Vary selection');
     if(clean.body!==row.body || JSON.stringify(clean.headers)!==JSON.stringify(row.headers))throw new Error('Unsanitized bundle');
     if(!payload.hosts.includes(new URL(row.url).hostname))throw new Error('Bundle authority mismatch');
     entries.set(row.url,row);
@@ -24,6 +25,7 @@ export async function startReplay({bundle,tlsMaterial}) {
   const transport=await serve({hosts:bundle.hosts,tlsMaterial,fault,respond:async(req,res,downstream)=>{
     const url='https://'+req.headers.host+req.url,entry=entries.get(url);
     if(!entry||req.method!==entry.method){fault('unrecorded-request');res.writeHead(502);res.end('Replay miss');return;}
+    if(JSON.stringify(varySelection(url,req.rawHeaders,entry.headers.vary))!==JSON.stringify(entry.varyRequest??{})){fault('vary-mismatch');res.writeHead(502);res.end('Replay variant mismatch');return;}
     arrivals.push({url,method:req.method,sha256:entry.sha256,protocol:{downstream,upstream:null}});
     res.writeHead(entry.status,entry.headers);res.end(Buffer.from(entry.body,'base64'));
   }});

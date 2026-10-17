@@ -23,8 +23,9 @@ passed response admission ([results](../../../evidence/f12-public-feasibility-20
   acquisition decisions are **not** the oracle.
 - The scrubber is a conservative heuristic admission filter, **not a general
   anonymizer or proof that arbitrary public content has no identifiers**.
-  Encoded/opaque bodies, binary payloads, unsupported charsets, response Vary,
-  redirects and non-200 responses are refused. Human content/license review and
+  Encoded/opaque bodies, binary payloads, unsupported charsets, uncontrolled response Vary,
+  redirects and statuses other than 200/204 are refused. Genuinely empty 200/204
+  bodies may omit content type; nonempty untyped bodies still fail. Human content/license review and
   a broader public acquisition protocol are still needed before real pages.
 - `offline.mjs` has no outbound client, DNS lookup or recorder import. It
   verifies bundle/payload hashes and rechecks admitted content, serves only
@@ -123,3 +124,40 @@ retains that difference and labels the missing response as a downstream coverage
 limitation. It does not fabricate descendants, suppress unrelated harness faults,
 or use a URL-only match to excuse a miss. These paired-event tests are synthetic;
 no native fork adapter or real Chromium comparison is claimed.
+
+## Supported response handling and repeat C
+
+`Vary` may name only the recorder's explicitly controlled request headers.
+Accept-Encoding is always `identity` and Host comes from the preserved URL.
+Forwarded allowlisted headers (Accept, language, user agent, content type,
+referrer) are **not assumed identical between browsers**: `varyRequest` records
+values or explicit absence. Offline replay applies the same upstream-header
+projection and refuses a mismatch. `Vary: *`, Cookie, Authorization and unknown
+fields still refuse. The original Vary value remains with the entry, and bundle
+loading recomputes its selection. Repeated URL acquisitions still refuse, so no
+unrecorded alternative variant can silently replace the captured response.
+
+An explicit HTTPS-only entrypoint preflight performs at most six requests,
+checks every destination with the public-address/TLS/URL guards, reads headers
+only, and records scrub-safe original→final mappings and exact statuses. Loops,
+sensitive locations, unsupported scheme/port and hop limits refuse. Browser
+capture starts at the final URL as a new root. No redirect is admitted to the
+oracle or replay graph. Its declared preflight headers are saved separately;
+preflight and browser statuses can differ and are reported independently.
+
+The primary probe tables now group refusal reasons by Electron resource type
+and first/third-party classification. Classification uses tldts-experimental's
+registrable-domain calculation with private suffixes, against the observed top
+frame (main navigation uses its own URL). Missing/opaque/ambiguous context stays
+unknown. This is a diagnostic category, not a replacement for initiator or
+native request-context evidence. A bounded ephemeral in-process URL map joins
+proxy diagnostics to categories; rejected URLs are not persisted or hashed into
+public evidence. Unknown CONNECTs cannot be joined and remain separate transport
+faults. The entry/final-host allowlist is still bounded; it is not complete
+cross-origin capture. Zero observed subresources after refusing a document is
+reported as **unmeasurable**, never a zero-percent refusal rate.
+
+Any fork false-negative count/rate reported when blocked responses are missing
+is a **lower bound**. A mistakenly allowed script receives 502 and never runs,
+so requests its execution would cause remain unseen. The paired validator emits
+this qualification along with its differences and response limitations.

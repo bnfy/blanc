@@ -268,3 +268,24 @@ Checks: 14 pipeline + 5 controlled TLS/IP + 15 validator tests; targeted lint cl
 Controlled run-05 passes acquisition plus two regular/two private offline runs,
 matching final seven implementation hashes. Every invocation is in evidence.
 No native build/prepare/GN or cold-column change; active attention not measured.
+
+### Ordinary response handling and repeat C — October 17, 2026
+
+[Evidence](evidence/f12-public-feasibility-repeat-20261017/README.md): Vary now
+records controlled upstream selection and enforces forwarded-value equality
+on replay; wildcard/Cookie/unknown fields refuse. Empty untyped 200/204 bodies
+are admitted. Safe bounded HTTPS preflight maps original→final entrypoints
+without admitting redirects to the oracle. Exact status/resource/party fields
+are aggregate diagnostics only. Lower-bound false-negative qualification is
+emitted by the paired validator and required beside future blocking-rate reports.
+
+Repeat on the same ten entries: 0 admitted documents; 3 uncontrolled Vary,
+4 encoded/opaque body refusals, 1 HTTP 401 and 2 HTTP 403. No preflight redirect
+occurred. One additional other/unknown-party request was status 200 and body-type
+refused. Script/xhr/image first-/third-party distributions are unmeasurable
+because document admission prevented them, not zero-percent refusals. No raw
+public corpus, privacy relaxation or A/B decision. All process/key/profile/ASAR
+cleanup checks pass. Controlled run-06 passes both profile replay pairs and
+matches final source hashes. 16 pipeline + 7 network + 15 validator tests pass;
+lint clean. No native build/prepare/GN or cold-column change. Active attention
+not measured; invocation, runtime brackets and source hashes are in evidence.

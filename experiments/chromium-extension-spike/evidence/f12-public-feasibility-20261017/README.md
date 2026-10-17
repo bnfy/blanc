@@ -1,5 +1,9 @@
 # Owner-selected C: public recording feasibility — October 17, 2026
 
+Historical checkpoint `6f2aad42`; source-match statements refer to that revision.
+The [response-handling repeat](../f12-public-feasibility-repeat-20261017/README.md)
+records later changes and their source-matched controlled regression.
+
 The owner selected **C — Measure refusal rates first**. This measured the
 existing policy on ten fixed unauthenticated public entrypoints, with normal
 upstream TLS verification and the real Blanc Blocker. No policy relaxation,

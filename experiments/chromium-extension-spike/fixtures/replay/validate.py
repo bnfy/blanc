@@ -103,6 +103,7 @@ def compare(corpus, observations, transport_events=None):
             'oracle_counts': counts, 'minimum_counts_met': sufficient,
             'dataset_comparison_passed': not faults and not differences and sufficient,
             'capture_provenance_verified': False,
+            'false_negative_scope': 'Lower bound when an oracle-blocked response is unavailable: a missed script receives a refusal, so requests its execution would cause are not observed.',
             'note': 'Dataset comparison only; real capture, transport, coverage, cosmetics and latency require separate evidence.'}
 
 

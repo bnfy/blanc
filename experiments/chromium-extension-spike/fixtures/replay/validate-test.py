@@ -89,6 +89,7 @@ class ValidatorTests(unittest.TestCase):
         self.assertEqual(len(result['decision_differences']), 1)
         self.assertEqual(result['decision_differences'][0]['oracle'], 'block')
         self.assertEqual(len(result['response_limitations']), 1)
+        self.assertIn('Lower bound', result['false_negative_scope'])
         self.assertFalse(result['dataset_comparison_passed'])
 
     def test_transport_missing_or_wrong_join_cannot_exempt_fault(self):
@@ -107,6 +108,7 @@ class ValidatorTests(unittest.TestCase):
         self.assertTrue(result['harness_faults'])
         self.assertEqual(len(result['decision_differences']), 1)
         self.assertEqual(len(result['response_limitations']), 1)
+        self.assertIn('Lower bound', result['false_negative_scope'])
 
     def test_small_corpus_never_passes(self):
         result = compare(self.oracle[:2], self.observed[:2])

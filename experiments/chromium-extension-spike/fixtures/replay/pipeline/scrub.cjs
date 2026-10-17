@@ -31,11 +31,24 @@ function headers(raw, side) {
     if(Object.hasOwn(output,name)) refuse('duplicate-header');
     if(sensitive.test(value) || /[\r\n]/.test(value)) refuse('sensitive-header');
     if(name==='referer' && value) safeUrl(value);
-    if(name==='vary' && value.trim()) refuse('vary-unsupported');
+    if(name==='vary')varyFields(value);
     output[name]=value;
   }
   // Header names are untrusted too. Only aggregate counts leave memory.
   return {headers:output,removedCount:Object.values(removed).reduce((a,b)=>a+b,0)};
+}
+function controlledHeaders(url, raw) {
+  return {...headers(raw,'request').headers,host:new URL(url).host,'accept-encoding':'identity'};
+}
+function varyFields(value='') {
+  if(!value.trim())return [];
+  const fields=value.split(',').map(x=>x.trim().toLowerCase());
+  if(fields.some(x=>!x||(!requestAllowed.has(x)&&!['accept-encoding','host'].includes(x))))refuse('vary-unsupported');
+  return [...new Set(fields)].sort();
+}
+function varySelection(url, raw, value) {
+  const controlled=controlledHeaders(url,raw);
+  return Object.fromEntries(varyFields(value).map(field=>[field,controlled[field]??null]));
 }
 function decodeBody(body, encoding) {
   if(!Buffer.isBuffer(body) || body.length>LIMIT) refuse('body-limit');
@@ -49,13 +62,15 @@ function decodeBody(body, encoding) {
 }
 function sanitizeExchange({url,method,requestHeaders,status,responseHeaders,body,protocol}) {
   safeUrl(url); if(method!=='GET')refuse('method-unsupported');
-  if(status!==200)refuse('status-unsupported'); // Redirect correlation is not implemented.
+  if(![200,204].includes(status))refuse('status-unsupported'); // Redirect correlation is not implemented.
   const request=headers(requestHeaders,'request'),response=headers(responseHeaders,'response');
   const enc=[];for(let i=0;i<responseHeaders.length;i+=2)if(responseHeaders[i].toLowerCase()==='content-encoding')enc.push(responseHeaders[i+1]);
   if(enc.length>1)refuse('duplicate-encoding');
   const bytes=decodeBody(body,enc[0]);
+  if(status===204&&bytes.length)refuse('nonempty-204');
   const type=response.headers['content-type']||'';
-  if(!/^(?:text\/(?:html|plain|css|javascript)|application\/(?:javascript|json))(?:;|$)/i.test(type))refuse('body-type-unsupported');
+  const emptyUntyped=bytes.length===0&&!type;
+  if(!emptyUntyped&&!/^(?:text\/(?:html|plain|css|javascript)|application\/(?:javascript|json))(?:;|$)/i.test(type))refuse('body-type-unsupported');
   if(/charset\s*=\s*(?!utf-8(?:\s|;|$))[^;]+/i.test(type))refuse('charset-unsupported');
   let text;try{text=new TextDecoder('utf-8',{fatal:true}).decode(bytes);}catch{refuse('body-not-utf8');}
   if(/\\[ux][0-9a-f]{2,4}|[a-f0-9]{24,}|[A-Za-z0-9_-]{60,}/i.test(text))refuse('encoded-or-opaque-body');
@@ -63,6 +78,7 @@ function sanitizeExchange({url,method,requestHeaders,status,responseHeaders,body
   for(const match of text.matchAll(/https?:\/\/[^\s"'<>`\\]+/g))safeUrl(match[0]);
   return {url,method,status,requestHeaders:request.headers,headers:response.headers,
     body:bytes.toString('base64'),sha256:digest(bytes),protocol,
+    varyRequest:varySelection(url,requestHeaders,response.headers.vary),
     transformations:{removedRequestHeaders:request.removedCount,removedResponseHeaders:response.removedCount,decoded:enc[0]||'identity'}};
 }
 function decision(row) {
@@ -75,4 +91,4 @@ function decision(row) {
   if(sensitive.test(JSON.stringify(row)))refuse('sensitive-decision');
   return row;
 }
-module.exports={Refusal,refuse,safeUrl,headers,sanitizeExchange,decision,digest,LIMIT};
+module.exports={Refusal,refuse,safeUrl,headers,sanitizeExchange,decision,digest,LIMIT,controlledHeaders,varySelection};

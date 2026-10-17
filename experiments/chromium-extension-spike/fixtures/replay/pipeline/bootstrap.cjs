@@ -16,6 +16,8 @@ const coordinatorModule = require(modulePath);
 const create = coordinatorModule.createBlockingCoordinator;
 const providers = [];
 const summaryOnly = process.env.BLANC_F12_SUMMARY_ONLY === '1';
+const getDomain=summaryOnly?require('tldts-experimental').getDomain:null;
+const categories=new Map();
 const metrics = {decisions:{},faults:{},trust:{accepted:0,refused:0}};
 const increment = (map,key) => {map[key]=(map[key]||0)+1;};
 function saveFault(code) {
@@ -26,8 +28,13 @@ let excludedInternal = 0;
 function saveDecision(row) {
   if(summaryOnly){
     const type=['mainFrame','subFrame','script','image','stylesheet','xhr','font','ping','other'].includes(row.resourceType)?row.resourceType:'unknown';
+    let party='unknown';
+    try{const top=row.resourceType==='mainFrame'?row.url:row.frame?.topOrigin;const a=new URL(row.url).hostname,b=new URL(top).hostname;
+      if(b)party=(getDomain(a,{allowPrivateDomains:true})||a)===(getDomain(b,{allowPrivateDomains:true})||b)?'first-party':'third-party';}catch{ /* Missing or opaque top frame stays unknown. */ }
+    if(categories.size<10000){const value=JSON.stringify({resourceType:type,party});if(!categories.has(row.url))categories.set(row.url,new Set());categories.get(row.url).add(value);}
+    else increment(metrics.faults,'category-cap');
     let reason='admitted';try{scrub.decision(row);}catch(error){reason=error instanceof scrub.Refusal?error.code:'scrub-failed';}
-    increment(metrics.decisions,[type,row.result?.cancel===true?'block':'allow',reason].join('|'));
+    increment(metrics.decisions,[type,party,row.result?.cancel===true?'block':'allow',reason].join('|'));
     return;
   }
   try { fs.appendFileSync(log, JSON.stringify(scrub.decision(row))+'\n'); }
@@ -106,7 +113,8 @@ coordinatorModule.createBlockingCoordinator = function(...args) {
   return coordinator;
 };
 globalThis.__blancF12Capture = {
-  resetMetrics: () => {metrics.decisions={};metrics.faults={};metrics.trust={accepted:0,refused:0};},
+  classifyRequest: url => {const found=categories.get(url);return found?.size===1?JSON.parse([...found][0]):{resourceType:'unknown',party:'unknown'};},
+  resetMetrics: () => {categories.clear();metrics.decisions={};metrics.faults={};metrics.trust={accepted:0,refused:0};},
   state: () => ({ metrics, userData: app.getPath('userData'), versions: process.versions, activeGates: activeGates.size, excludedInternal,
     providers: providers.map(({session, provider}) => ({persistent: session.isPersistent(),
       status: provider.status()})) }),

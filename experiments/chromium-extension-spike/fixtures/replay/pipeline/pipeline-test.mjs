@@ -78,9 +78,10 @@ test('summary-only observer keeps decisions unchanged and never writes rejected 
  const writes=[];let observedProvider;
  const coordinator={setGate(){},setProvider(_session,provider){observedProvider=provider;}};
  const module={createBlockingCoordinator:()=>coordinator};
- const context={process:{env:{BLANC_TEST:'0',BLANC_F12_PROFILE:'/profile',BLANC_F12_LOG:'/never-write',BLANC_F12_SUMMARY_ONLY:'1'},versions:{}},
+ const context={URL,process:{env:{BLANC_TEST:'0',BLANC_F12_PROFILE:'/profile',BLANC_F12_LOG:'/never-write',BLANC_F12_SUMMARY_ONLY:'1'},versions:{}},
   require(name){
    if(name==='node:fs')return {realpathSync:x=>x,appendFileSync:(...args)=>writes.push(args)};
+   if(name==='tldts-experimental')return {getDomain:host=>host};
    if(name==='electron')return {app:{getPath:()=>'/profile'},webContents:{fromId:()=>null}};
    if(name==='./scrub.cjs')return createRequire(import.meta.url)('./scrub.cjs');
    if(name==='./src/main/blocking-coordinator.js')return module;
@@ -93,6 +94,25 @@ test('summary-only observer keeps decisions unchanged and never writes rejected 
  const returned=await observedProvider.decide('onBeforeRequest',{id:1,url:'https://a.example/?token=SECRET_SENTINEL',resourceType:'script',referrer:'',method:'GET'});
  assert.equal(returned,result);assert.equal(writes.length,0);
  const metrics=context.__blancF12Capture.state().metrics;
- assert.equal(metrics.decisions['script|block|identifier-query'],1);
+ assert.equal(metrics.decisions['script|unknown|block|identifier-query'],1);
  assert(!JSON.stringify(metrics).includes('SECRET_SENTINEL'));
+ const frame={url:'https://page.example/',origin:'https://page.example',top:{url:'https://page.example/',origin:'https://page.example'}};
+ await observedProvider.decide('onBeforeRequest',{id:2,url:'https://asset.example/a.js',resourceType:'script',referrer:'',method:'GET',frame});
+ await observedProvider.decide('onBeforeRequest',{id:3,url:'https://page.example/data',resourceType:'xhr',referrer:'',method:'GET',frame});
+ assert.equal(metrics.decisions['script|third-party|block|admitted'],1);assert.equal(metrics.decisions['xhr|first-party|block|admitted'],1);
+ assert.equal(context.__blancF12Capture.classifyRequest('https://asset.example/a.js').party,'third-party');
+ assert.equal(writes.length,0);
+});
+
+test('controlled Vary fields are explicit; wildcard, cookies and uncontrolled headers refuse',()=>{
+ const row=exchange();row.responseHeaders.push('Vary','Accept-Encoding, Host, Accept');
+ const clean=sanitizeExchange(row);assert.deepEqual(clean.varyRequest,{accept:'text/html','accept-encoding':'identity',host:'page.example'});
+ for(const vary of ['*','Cookie','Authorization','X-Unknown','Accept-Encoding,'])assert.throws(()=>sanitizeExchange({...exchange(),responseHeaders:['Content-Type','text/html','Vary',vary]}),/vary-unsupported/);
+ const payload={schema:1,kind:'sanitized-response-recording',hosts:['page.example'],entries:[clean]};
+ clean.varyRequest.accept='different';assert.throws(()=>verifyBundle({...payload,sha256:digest(JSON.stringify(payload))}),/Invalid Vary/);
+});
+test('only genuinely empty untyped 200 or 204 bodies are admitted',()=>{
+ for(const status of [200,204])assert.equal(sanitizeExchange({...exchange(),status,responseHeaders:[],body:Buffer.alloc(0)}).body,'');
+ assert.throws(()=>sanitizeExchange({...exchange(),status:204}),/nonempty-204/);
+ assert.throws(()=>sanitizeExchange({...exchange(),responseHeaders:[]}),/body-type-unsupported/);
 });

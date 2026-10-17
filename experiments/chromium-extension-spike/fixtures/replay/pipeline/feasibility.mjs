@@ -7,7 +7,7 @@ import os from 'node:os';
 import {createHash} from 'node:crypto';
 import {pathToFileURL} from 'node:url';
 import {createCertificates} from '../pilot/certificates.mjs';
-import {startRecorder} from './recorder.mjs';
+import {startRecorder,resolveEntrypoint} from './recorder.mjs';
 const [electronPath,asarPath,asarModulePath,playwrightModulePath,evidencePath]=process.argv.slice(2);
 assert(evidencePath&&!fs.existsSync(evidencePath),'Fresh evidence path required');
 const pages=[
@@ -22,7 +22,11 @@ const pages=[
   'https://arstechnica.com/',
   'https://www.nasa.gov/',
 ];
-const hosts=pages.map(url=>new URL(url).hostname);
+// Matches the controlled capture's measured browser UA; record preflight separately.
+const preflightHeaders={'user-agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36','accept':'text/html','accept-language':'en-US'};
+const preflightStarted=new Date().toISOString();
+const mappings=[];for(const page of pages)mappings.push(await resolveEntrypoint(page,preflightHeaders));
+const hosts=[...new Set(pages.concat(mappings.flatMap(m=>m.final?[m.final]:[])).map(url=>new URL(url).hostname))];
 const hash=data=>createHash('sha256').update(data).digest('hex');
 const originalSha=hash(fs.readFileSync(asarPath));
 const asar=await import(pathToFileURL(asarModulePath));
@@ -34,15 +38,18 @@ const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const alive=child=>child&&child.exitCode===null&&child.signalCode===null;
 async function until(fn){const end=Date.now()+45000;while(Date.now()<end){const result=await fn();if(result)return result;await pause(100);}throw new Error('probe-timeout');}
 const report={kind:'ten-public-page-feasibility',started:new Date().toISOString(),pages:[],
-  sourceAsarSha256:originalSha,sourceHashes:{},hosts,
-  policy:'existing scrub; explicit entry-host allowlist; no redirects; aggregate-only; real blocker enabled',
+  preflightStarted,sourceAsarSha256:originalSha,sourceHashes:{},hosts,mappings,preflightHeaders,
+  partyPolicy:'registrable-domain comparison with tldts-experimental and private suffixes; unknown without top frame',
+  policy:'supported Vary and empty responses; explicit entry/final-host allowlist; pre-resolved roots; no runtime redirects; aggregate-only; real blocker enabled',
   observation:'15 seconds after starting each navigation; no claim of page completeness',
   profileKind:'regular',acceptanceCorpusRequests:0,bundlesWritten:0,nativeBuilds:0};
 for(const name of ['feasibility.mjs','bootstrap.cjs','recorder.mjs','scrub.cjs','transport.mjs'])report.sourceHashes[name]=hash(fs.readFileSync(new URL('./'+name,import.meta.url)));
 const owned=[];
 try {
-  for(const [index,url] of pages.entries()){
-    const row={index,entrypoint:url,started:new Date().toISOString(),completed:false};
+  for(const [index,original] of pages.entries()){
+    const mapping=mappings[index];if(!mapping.final){report.pages.push({index,entrypoint:original,resolution:mapping,completed:false,error:'entrypoint-resolution-refused'});continue;}
+    const url=mapping.final;
+    const row={index,entrypoint:original,recordingEntrypoint:url,resolution:mapping,started:new Date().toISOString(),completed:false};
     const dir=path.join(temp,'page-'+index),appPath=path.join(dir,'app'),profile=path.join(dir,'profile');
     fs.mkdirSync(dir);asar.extractAll(asarPath,appPath);fs.mkdirSync(profile);fs.mkdirSync(profile+'-Dev');
     const pkg=JSON.parse(fs.readFileSync(path.join(appPath,'package.json')));assert.equal(pkg.version,'1.36.0');
@@ -56,7 +63,7 @@ try {
     delete env.ELECTRON_RUN_AS_NODE;delete env.NODE_OPTIONS;
     let recorder,app,child,stderrBytes=0;
     try {
-      recorder=await startRecorder({hosts,tlsMaterial}); // No testOrigin: actual public client.
+      recorder=await startRecorder({hosts,tlsMaterial,classifyRequest:async url=>app?app.evaluate((_,url)=>globalThis.__blancF12Capture.classifyRequest(url),url):{resourceType:'unknown',party:'unknown'}}); // No testOrigin: actual public client.
       app=await _electron.launch({executablePath:electronPath,args:[appPath,'--use-mock-keychain',`--user-data-dir=${profile}`,
         `--proxy-server=http://127.0.0.1:${recorder.port}`,'--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1'],env,chromiumSandbox:true,timeout:60000});
       child=app.process();owned.push(child);child.stderr.on('data',b=>stderrBytes+=b.length);
@@ -87,7 +94,7 @@ try {
       fs.writeFileSync(path.join(evidencePath,'report.json'),JSON.stringify(report,null,2),{mode:0o600});
       console.log(JSON.stringify({page:index+1,completed:row.completed,audit:row.transport?.audit,childExited:row.ownedChildExited}));
     }
-    if(!row.ownedChildExited||!row.rawObservationFilesAbsent)throw new Error('probe-cleanup-failed');
+    if(!row.completed||!row.ownedChildExited||!row.rawObservationFilesAbsent)throw new Error('probe-cleanup-failed');
   }
 } catch {report.error='feasibility-incomplete';process.exitCode=1;}
 finally {
