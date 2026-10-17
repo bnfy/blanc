@@ -11,9 +11,9 @@ routes = [
   { pattern = "www.blanc.day/bang-icons/*", zone_name = "blanc.day" }
 ]
 
-# Created by `npx wrangler kv namespace create ICONS` (see README.md).
+# Created by `npx wrangler kv namespace create ICONS` on October 17, 2026.
 kv_namespaces = [
-  { binding = "ICONS", id = "SET-ME-ICONS-NAMESPACE-ID" }
+  { binding = "ICONS", id = "26db766d42fa404685331fd016a9a0d7" }
 ]
 
 # A backstop on top of the parser's bounds: no request may spend more than
