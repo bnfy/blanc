@@ -20,6 +20,23 @@ keeping Blanc predictable.
 
 These are independent features and can ship separately.
 
+### Reddit request traceability
+
+The pinned-home work directly answers the request that pinned tabs behave like
+Zen/Arc by staying tied to the first URL chosen when the person comes back to
+the browser. In Blanc, that means:
+
+- the URL showing when **Pin Tab** is chosen becomes the tab's stable home;
+- browsing away from that home is allowed during the current session;
+- after quitting and reopening Blanc, the pinned tab opens at its home again;
+- the person can deliberately replace the home with **Make This the Pinned
+  Home**.
+
+This is the specific Zen/Arc-like behavior requested, not a promise to copy
+either browser's complete pinned-tab system. Blanc deliberately does not reset
+the tab on every selection, share one live pin across windows or Spaces, or
+discard the last page during crash recovery.
+
 ## 2. Goals
 
 - Let people who prefer pointer-driven navigation reveal the Island without a

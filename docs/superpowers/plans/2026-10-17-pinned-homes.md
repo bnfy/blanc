@@ -10,6 +10,23 @@
 
 **Spec:** `docs/superpowers/specs/2026-10-17-island-hover-and-pinned-homes-design.md` §5 (Milestone B). Independent of the hover-open plan; ship it in its own PR.
 
+## Reddit Request This Plan Must Satisfy
+
+The originating request was for pinned tabs to behave like Zen/Arc so a pin
+stays anchored to the first URL chosen when the person comes back to the
+browser. This plan satisfies that request only when the finished behavior
+proves all four points below:
+
+1. **Pin Tab** captures the current URL as a stable home.
+2. Navigating elsewhere does not silently replace that home.
+3. A clean relaunch opens the pinned tab at the captured home.
+4. **Make This the Pinned Home** is the explicit way to replace it.
+
+The implementation and acceptance tests must use this contract as the feature's
+definition of done. “Like Zen/Arc” does not expand scope to their complete
+pinned-tab interfaces; the deliberate Blanc differences in the spec still
+apply, especially preserving in-session history and crash recovery.
+
 ## Global Constraints
 
 - The home lives only in the session `meta` entry as optional `pinnedHomeUrl`; `session.json` `version` stays `2`; the flat rollback mirror is untouched.
