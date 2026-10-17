@@ -1,11 +1,12 @@
 'use strict';
-// JsonStore's routine saves are written off the main thread, and a store
-// queues a rewrite behind any write in flight. A test that removes its
-// temporary userData while one is still running races it: on Windows the open
-// temp file makes the removal fail (ENOTEMPTY), and a queued rewrite recreates
-// the folder everywhere. Call trackJsonStores() after mocking electron and
-// before requiring anything that creates a store; await settle() in teardown
-// before removing the folder.
+// JsonStore's routine saves are debounced, then written off the main thread,
+// and a store queues a rewrite behind any write in flight. A test that removes
+// its temporary userData while one is still running races it: on Windows the
+// open temp file makes the removal fail (ENOTEMPTY). A save still pending or
+// queued at removal (sync.disable() leaves three) recreates the folder after
+// it. Call trackJsonStores() after mocking electron and before requiring
+// anything that creates a store; await settle() in teardown before removing
+// the folder.
 
 function trackJsonStores() {
   const storeModule = require('../../../src/main/store');
