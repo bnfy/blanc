@@ -33,6 +33,13 @@ toolbar (Bowser Design System "Island Chrome").
   `find` (F8). Only the active state shows; Escape/back dismisses.
 - The panel's list area shows: the **tab switcher** at rest, **slash commands**
   (F7) when input starts with `/`, the **Quick Switcher** (F6) otherwise.
+- Below the list, one footer line holds **New tab** (the one solid pill, with
+  its shortcut), **Private**, the **Other devices** toggle (F27; hidden when no
+  other device shares its tabs) and the icon tools (Spaces, Favorites,
+  History, Downloads, tab layout, Settings). Other devices opens a drawer
+  between the list and the footer; it starts closed on every open and steps
+  aside while the input has text. Under the footer, a private tab adds a
+  one-line note that nothing is saved to history. Labels are sentence case.
 - **Platform note:** desktop draws this as a 68px strip + an always-on-top overlay
   view. Mobile renders it natively (SwiftUI / Compose) driven by shared design
   tokens (→ substrate). The *layout, contents, and states* are the contract; the
@@ -73,10 +80,14 @@ toolbar (Bowser Design System "Island Chrome").
 
 ## F3 — Tab groups
 
-- Groups have **names, not colors** — lowercase mono labels. A group exists only
-  while it holds ≥1 tab (auto-pruned when empty).
-- Create/join via `/group <name>` (find-or-create) or an inline picker on the
-  tab row; leave via `/ungroup`; close all via `/close-group`.
+- Groups have **names, not colors**, kept in the case typed and matched in any
+  case: `/group research` joins "Research", and two groups can't differ only
+  by case. A group exists only while it holds ≥1 tab (auto-pruned when empty).
+- Create/join via `/group <name>` (find-or-create; typing new capitals for an
+  existing group re-cases it) or an inline picker on the tab row; leave via
+  `/ungroup`; close all via `/close-group`. A group header's right-click menu
+  offers **Rename Group…** (a name another group already has is refused, not
+  merged), **Ungroup** and **Close Group**.
 - The pill's direct dots show standalone pins followed by the active section:
   the active named group, loose ungrouped tabs, or the pinned shelf itself.
   They share an eight-dot budget, always retain the active tab, and use `+N` to
@@ -536,8 +547,8 @@ From the desktop `DEFAULTS`:
   its open tabs (url, title, group, pinned; http(s) only, bounded) plus a
   separately-budgeted E2EE sidecar of source-rasterized, bounded PNG favicons
   under the sync account. Favicon source URLs never cross devices and remote
-  surfaces never load them. Other devices browse it **read-only** — ⌘L panel (folded
-  per-device sections), Quick Switcher (ranked below local tabs and
+  surfaces never load them. Other devices browse it **read-only** — ⌘L panel (the Other
+  devices drawer, folded per-device sections), Quick Switcher (ranked below local tabs and
   favorites), start page — and open individual tabs locally. Never a merged
   live session: nothing force-opens or closes remotely. Private tabs never
   enter the snapshot. Toggle-off publishes a retraction; entries prune after
@@ -553,10 +564,22 @@ From the desktop `DEFAULTS`:
   name-and-passphrase path remains as the fallback. Design:
   `docs/superpowers/specs/2026-10-16-sync-device-pairing-design.md`. Mobile:
   the same route and code; a QR presentation may be added there.
+- **Device names:** every device has one display name, the name the person
+  gave it or else the name it publishes (the computer name). Right-clicking a
+  device header in the Other devices drawer offers **Rename Device…** (the
+  panel's field takes the shown name, selected; Enter saves, Esc cancels, an
+  empty name restores the published one); Settings → Sync renames the device
+  you are on, which the Island never lists. Names sync as one settings key
+  with a clock per device, so two devices renaming two different devices keep
+  both, and travel on the focus refresh. A device never publishes its chosen
+  name in place of its own. Design:
+  `docs/superpowers/specs/2026-10-16-island-lower-section-design.md` §7.
 - **Acceptance:** With sharing on on device A, device B lists A's tabs after a
   focus refresh and opens one as a new ungrouped local tab; toggling sharing
   off on A removes A's section from B after the next sync. Adding a device
   with a code stops at an invalid code and offers the passphrase fallback.
+  Renaming A on B shows the new name in B's drawer, Quick Switcher and start
+  page; renaming it to empty shows A's published name again.
 
 ## F28 — Vertical tabs
 
@@ -1165,7 +1188,7 @@ Bring Your Tabs.
   bounded (32 MiB, 100,000 items, depth 32, 100 Spaces), read-only, refused
   if the file changes mid-read, and never asks Arc to quit.
 - **Mapping.** Loose pinned tabs become pinned tabs; each top-level folder
-  becomes a lowercase group (nested folders and split views fold into it);
+  becomes a group named as the folder is (nested folders and split views fold into it);
   Today tabs follow ungrouped. Only http(s) tabs come across; notes, Easels
   and other kinds are counted and skipped. At most 500 tabs and 50 groups per
   Space; extra tabs are counted, never silently dropped.

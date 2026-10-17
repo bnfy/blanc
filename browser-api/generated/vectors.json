@@ -660,6 +660,70 @@
         false
       ]
     },
+    "renameGroup": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "groups:rename",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "group-id-1",
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:rename",
+              "args": [
+                "group-id-1",
+                "example"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "ok": true
+        },
+        {
+          "ok": true,
+          "error": "duplicate"
+        }
+      ]
+    },
+    "ungroupGroup": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "groups:ungroup",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "group-id-1"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:ungroup",
+              "args": [
+                "group-id-1"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": []
+    },
     "activateTabFromRail": {
       "kind": "invoke",
       "platforms": [
@@ -2932,6 +2996,55 @@
         ]
       ]
     },
+    "renameDevice": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:rename-device",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example",
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:rename-device",
+              "args": [
+                "example",
+                "example"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "name = null",
+          "args": [
+            "example",
+            null
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:rename-device",
+              "args": [
+                "example",
+                null
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
     "cancelWorkspaceAction": {
       "kind": "send",
       "platforms": [
@@ -4306,6 +4419,32 @@
         [
           "tab-id-1"
         ]
+      ]
+    },
+    "inviteFriend": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:invite-friend",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:invite-friend",
+              "args": []
+            }
+          ]
+        }
+      ],
+      "replies": [
+        "mail",
+        "copied"
       ]
     },
     "fillLoginFromOnePassword": {

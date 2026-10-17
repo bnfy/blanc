@@ -63,6 +63,11 @@ All four font files remain under the SIL Open Font License, Version 1.1; Blanc's
 MIT grant does not supersede those terms. The font files and their full licence texts
 ship together inside packaged builds.
 
+The website serves a byte-identical copy of the Instrument Sans file at
+`site/public/fonts/instrument-sans/instrument-sans-latin-wdth-normal.woff2`
+for Blanc's emails, beside its full licence text in
+[site/public/fonts/instrument-sans/OFL.txt](site/public/fonts/instrument-sans/OFL.txt).
+
 ## Newsreader website source — SIL OFL 1.1
 
 The website uses Newsreader (variable, optical-size axis, regular weight) for

@@ -25,7 +25,7 @@
   "boundaries": [
     {
       "file": "cloudflare/newsletter-worker/src/index.js",
-      "sha256": "0a6c39dc08e2b92f71ac403149057c9f54647f0d926f72252cc2fb02c2be09b2",
+      "sha256": "769af5d756d99b5a0cd1b920beae4390cbfd875c12f730191c19dfa2cfa272fd",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -220,7 +220,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "831cc400771ac99bc95ba458491eae042688b7e32dcc7ab874ed1837bca91d9d",
+      "sha256": "c84ec9ccf19d9447b5081d4c2ce5898b04260ebdbf0b35defbfb554ce605ab49",
       "literalChannels": [
         "activate",
         "bangs:changed",
@@ -249,6 +249,7 @@
         "chrome:glance-status",
         "chrome:history-clear",
         "chrome:history-list",
+        "chrome:invite-friend",
         "chrome:island-covered",
         "chrome:island-proximity",
         "chrome:island-rect",
@@ -267,6 +268,7 @@
         "chrome:preview-vertical-tabs-width",
         "chrome:remote-tabs-list",
         "chrome:remote-tabs-updated",
+        "chrome:rename-device",
         "chrome:reset-glance",
         "chrome:resize-glance",
         "chrome:search-suggestions",
@@ -299,7 +301,9 @@
         "fill:reply",
         "focus",
         "groups:move-closed",
+        "groups:rename",
         "groups:reorder",
+        "groups:ungroup",
         "input-event",
         "login",
         "open-file",
@@ -423,7 +427,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "616d9fd0474df8c8d9b9fbaa488e3c341e928a5535ab4e7e6abdfbea3a2d3dcb",
+      "sha256": "cafc11c33bb2894b12ae4a6f8e59b5614d03fdedbfad6c0f0e63f9e5414c71ae",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -477,6 +481,7 @@
         "pages:settings:open-trust-link",
         "pages:settings:set",
         "pages:settings:supporter-activate",
+        "pages:settings:sync-device-name-set",
         "pages:settings:sync-disable",
         "pages:settings:sync-enable",
         "pages:settings:sync-get",
@@ -534,7 +539,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "65f2af1eeacf9577f9b110263b99fabf44611d833fe76d3e565f30e6e909ec56",
+      "sha256": "07c553e49a45449366e8e400d0a517690b684f2f22174dc5c207df83d5f82c76",
       "literalChannels": [
         "bangs:changed",
         "chrome:adblock-exempt-active",
@@ -554,6 +559,7 @@
         "chrome:glance-status",
         "chrome:history-clear",
         "chrome:history-list",
+        "chrome:invite-friend",
         "chrome:island-covered",
         "chrome:island-proximity",
         "chrome:island-rect",
@@ -572,6 +578,7 @@
         "chrome:preview-vertical-tabs-width",
         "chrome:remote-tabs-list",
         "chrome:remote-tabs-updated",
+        "chrome:rename-device",
         "chrome:reset-glance",
         "chrome:resize-glance",
         "chrome:search-suggestions",
@@ -597,7 +604,9 @@
         "display-capture:picker-resolve",
         "display-capture:stop",
         "groups:move-closed",
+        "groups:rename",
         "groups:reorder",
+        "groups:ungroup",
         "overlay:close",
         "overlay:drag-state",
         "overlay:escape",
@@ -736,7 +745,7 @@
     },
     {
       "file": "src/main/sync.js",
-      "sha256": "2ef3143f40b54652b278e102fa9137713f6654be511f1d684a772e5c004c4835",
+      "sha256": "3a69085a4194d116a98623a6116d7d43f6eebaf618daa32ffce1cdedcbb97006",
       "literalChannels": [
         "before-quit"
       ],
@@ -750,7 +759,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "e92bddef6b71b0dd7ac090e3f1aadca664b6c92648edb3aa971c1aad8d053757",
+      "sha256": "4c65aceda6d4e80b67333e9c87633cc5b9595518ee8927f458571014a3185198",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -805,6 +814,7 @@
         "pages:settings:open-trust-link",
         "pages:settings:set",
         "pages:settings:supporter-activate",
+        "pages:settings:sync-device-name-set",
         "pages:settings:sync-disable",
         "pages:settings:sync-enable",
         "pages:settings:sync-get",

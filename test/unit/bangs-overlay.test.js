@@ -51,6 +51,7 @@ function sandbox({ enabled = true, recent = [], custom = [], sectionsOpen = {} }
     bangSectionsOpen: { recent: true, popular: true, all: true, ...sectionsOpen },
     visibleResults: [],
     inputTouched: true,
+    namePrompt: null,
     addressInput: { value: '' },
     activeTab: () => ({ private: false }),
     addressInputComposing: false,

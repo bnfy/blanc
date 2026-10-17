@@ -55,6 +55,10 @@
       "ts": "'system' | 'light' | 'dark'",
       "doc": "Appearance preference."
     },
+    "InviteFriendResult": {
+      "ts": "'mail' | 'copied'",
+      "doc": "How an invite left Blanc: opened in the person's mail app, or copied to the clipboard because no mail app opened."
+    },
     "CreateTabOptions": {
       "ts": "{ private?: boolean }",
       "doc": "Options for a new tab. Only `private` is read by main today."
@@ -482,6 +486,19 @@
         },
         "tabId": {
           "type": "TabId | null"
+        }
+      }
+    },
+    "GroupRenameResult": {
+      "doc": "Result of renameGroup, built by renameGroup() in main.js.",
+      "fields": {
+        "ok": {
+          "type": "boolean"
+        },
+        "error": {
+          "type": "'duplicate' | 'unknown'",
+          "doc": "Present when ok is false: another group already has the name, or the group is gone.",
+          "optional": true
         }
       }
     },
@@ -1610,6 +1627,38 @@
       "doc": "Move the ⌘L panel's Recently closed band before a group, or after the last group with null."
     },
     {
+      "name": "renameGroup",
+      "group": "groups",
+      "kind": "invoke",
+      "channel": "groups:rename",
+      "params": [
+        {
+          "name": "groupId",
+          "type": "GroupId"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "returns": "GroupRenameResult",
+      "doc": "Rename a group, keeping the case typed. An empty or unchanged name changes nothing; another group's name in this window (in any case) is refused."
+    },
+    {
+      "name": "ungroupGroup",
+      "group": "groups",
+      "kind": "invoke",
+      "channel": "groups:ungroup",
+      "params": [
+        {
+          "name": "groupId",
+          "type": "GroupId"
+        }
+      ],
+      "returns": "void",
+      "doc": "Make every tab in a group ungrouped; the empty group goes away."
+    },
+    {
       "name": "activateTabFromRail",
       "group": "tabs",
       "kind": "invoke",
@@ -2337,6 +2386,24 @@
       "doc": "List other devices' open tabs. Empty unless Profile Sync is on in the Personal profile."
     },
     {
+      "name": "renameDevice",
+      "group": "sync",
+      "kind": "invoke",
+      "channel": "chrome:rename-device",
+      "params": [
+        {
+          "name": "deviceId",
+          "type": "string"
+        },
+        {
+          "name": "name",
+          "type": "string | null"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Name another synced device as this profile's devices list it; an empty name or null restores the name it publishes. Refused (false) for a device the Other devices drawer does not list."
+    },
+    {
       "name": "cancelWorkspaceAction",
       "group": "workspaces",
       "kind": "send",
@@ -2611,6 +2678,15 @@
       "params": [],
       "returns": "TabId[]",
       "doc": "Quiet all background tabs now. Resolves to the ids of the tabs that were quieted."
+    },
+    {
+      "name": "inviteFriend",
+      "group": "island",
+      "kind": "invoke",
+      "channel": "chrome:invite-friend",
+      "params": [],
+      "returns": "InviteFriendResult",
+      "doc": "Open a prefilled invite email in the person's own mail app (/invite). Blanc sends nothing; without a mail app the invite is copied instead."
     },
     {
       "name": "fillLoginFromOnePassword",

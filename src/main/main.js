@@ -301,6 +301,10 @@ const {
 } = require('./glance-focus');
 const { moveTab: resolveTabMove } = require('./tab-order');
 const { CLOSED_SECTION_ID, clampClosedSlot, reconcileClosedSlot, reorderGroupsWithClosed } = require('./closed-slot');
+const { normalizeGroupName, sameGroupName, recaseSessionData } = require('./group-name-case');
+const { deviceNamesEqual } = require('./device-names');
+const { attachGroupHeaderMenu } = require('./group-context-menu');
+const { attachDeviceHeaderMenu } = require('./device-context-menu');
 const { openLinkInGlance: openLinkInGlanceWith } = require('./glance-open-link');
 const { acceptOverlayDragState, resetOverlayDragState, overlayDragActive } = require('./overlay-drag-state');
 const {
@@ -309,6 +313,7 @@ const {
   popupPlatformMainMenu,
 } = require('./platform-main-menu');
 const { showAboutPanel } = require('./about-panel');
+const { inviteFriend } = require('./invite-friend');
 const { webUrlsFromArgv } = require('./startup-urls');
 const { bringExternalWindowToFront, externalWindowRuntime } = require('./window-activation');
 const { createExternalUrlHandoff } = require('./external-url-handoff');
@@ -2504,6 +2509,16 @@ function parkTabView(tab, entry) {
 /** `/sleep`: quiet every eligible background tab now. It bypasses only the
  * idle threshold; the ordinary safety predicate and teardown revalidation
  * remain authoritative. */
+// Help → Invite a Friend… and /invite: a prefilled email in the person's own
+// mail app (invite-friend.js), or the invite on the clipboard without one.
+function inviteFriendNow() {
+  return inviteFriend({
+    t: mainI18n.t,
+    openExternal: (url) => shell.openExternal(url),
+    writeClipboard: (text) => clipboard.writeText(text),
+  });
+}
+
 async function sleepBackgroundTabsNow() {
   if (isQuitting || sessionPersistenceSuspended || startupNavigationGateActive || !net.isOnline()) {
     return [];
@@ -3533,6 +3548,28 @@ function createOverlay() {
     resolveWorkspace: bindWindowRuntime(owner, (rawId) =>
       (typeof rawId === 'string' && rawId ? namedWorkspaces.get(rawId) : null)),
     actions: workspaceMenuContextActions(owner),
+  });
+  // Group headers in the panel: same webContents, guard and recording scheme.
+  attachGroupHeaderMenu(rt().overlayView.webContents, {
+    isLive: overlayMenuGuardDeps.isOverlayLive,
+    getWindow: overlayMenuGuardDeps.getWindow,
+    getOffset: overlayMenuGuardDeps.getOverlayBounds,
+    acquireMenuGuard: overlayMenuGuardDeps.acquireMenuGuard,
+    releaseMenuGuard: overlayMenuGuardDeps.releaseMenuGuard,
+    t: mainI18n.t,
+    resolveGroup: bindWindowRuntime(owner, (rawId) => rt().groups.find((g) => g.id === rawId) ?? null),
+    actions: groupMenuContextActions(owner),
+  });
+  // Device headers in the Other devices drawer: Rename Device….
+  attachDeviceHeaderMenu(rt().overlayView.webContents, {
+    isLive: overlayMenuGuardDeps.isOverlayLive,
+    getWindow: overlayMenuGuardDeps.getWindow,
+    getOffset: overlayMenuGuardDeps.getOverlayBounds,
+    acquireMenuGuard: overlayMenuGuardDeps.acquireMenuGuard,
+    releaseMenuGuard: overlayMenuGuardDeps.releaseMenuGuard,
+    t: mainI18n.t,
+    resolveDevice: (rawId) => knownRemoteDevices().find((device) => device.deviceId === rawId) ?? null,
+    actions: { rename: bindWindowRuntime(owner, (id) => beginRenameDevice(id)) },
   });
 }
 
@@ -5310,11 +5347,17 @@ function setTabGroup(tabId, groupId) {
 
 /** "/group work" — move a tab into the named group, creating it on first
  * use. Names are lowercase mono labels, per the design. */
-function groupTabByName(tabId, rawName) {
+/** Names keep the case typed and match without regard to it (spec
+ * 2026-10-16 §9.1). `adoptCase` (the /group command) re-cases a matching
+ * group to the capitals just typed — typing all lowercase has none, so a
+ * habitual `/group work` never lowers "Work"; reopening a closed tab never
+ * re-cases. */
+function groupTabByName(tabId, rawName, { adoptCase = false } = {}) {
   const tab = tabs.get(tabId);
-  const name = String(rawName ?? '').trim().toLowerCase().slice(0, 40);
+  const name = normalizeGroupName(rawName);
   if (!tab || !name) return;
-  let group = rt().groups.find((g) => g.name === name);
+  let group = rt().groups.find((g) => sameGroupName(g.name, name));
+  if (group && adoptCase && name !== name.toLowerCase()) group.name = name;
   if (!group) {
     group = { id: crypto.randomUUID(), name, collapsed: false };
     rt().groups.push(group);
@@ -5323,6 +5366,60 @@ function groupTabByName(tabId, rawName) {
   pruneEmptyGroups();
   broadcastTabs();
   scheduleMenuRebuild();
+}
+
+/** Rename a group (spec 2026-10-16 §9.3): the case typed, trimmed and capped.
+ * An empty or unchanged name changes nothing; a name another group in this
+ * window already has (in any case) is refused rather than merging them. */
+function renameGroup(groupId, rawName) {
+  const runtime = rt();
+  const group = runtime.groups.find((g) => g.id === groupId);
+  if (!group) return { ok: false, error: 'unknown' };
+  const name = normalizeGroupName(rawName);
+  if (!name || name === group.name) return { ok: true };
+  if (runtime.groups.some((g) => g !== group && sameGroupName(g.name, name))) return { ok: false, error: 'duplicate' };
+  group.name = name;
+  broadcastTabs();
+  scheduleMenuRebuild();
+  return { ok: true };
+}
+
+/** Ungroup a whole group from its header: every member becomes an ungrouped
+ * tab and the empty group goes away. */
+function ungroupGroup(groupId) {
+  const runtime = rt();
+  if (!runtime.groups.some((g) => g.id === groupId)) return;
+  for (const id of runtime.tabOrder) {
+    const tab = tabs.get(id);
+    if (tab?.groupId === groupId) tab.groupId = null;
+  }
+  pruneEmptyGroups();
+  broadcastTabs();
+  scheduleMenuRebuild();
+}
+
+// The devices the drawer, the Quick Switcher and start pages list, and the
+// only ones the drawer can rename. Acceptance runs have no sync account; the
+// test hook stands its injected devices in for sync's.
+let remoteDevicesSource = null;
+function knownRemoteDevices() {
+  return remoteDevicesSource ? remoteDevicesSource() : sync.listRemoteDevices();
+}
+
+/** "Rename Device…": the panel's address field takes the device's shown name,
+ * all of it selected (the overlay's name prompt). */
+function beginRenameDevice(deviceId) {
+  const device = knownRemoteDevices().find((d) => d.deviceId === deviceId);
+  if (!device) return;
+  showOverlay('panel', { prefill: device.name, purpose: { renameDeviceId: deviceId } });
+}
+
+/** "Rename Group…": the panel's address field takes the group's name, all of
+ * it selected (the overlay's name prompt). */
+function beginRenameGroup(groupId) {
+  const group = rt().groups.find((g) => g.id === groupId);
+  if (!group) return;
+  showOverlay('panel', { prefill: group.name, purpose: { renameGroupId: groupId } });
 }
 
 /** F46: give a tab the person's own name, or with an empty name hand it back
@@ -6890,7 +6987,7 @@ function clearClosedEntries() {
  *  inserted between those two. */
 function reopenGroupEntry(entry) {
   const runtime = rt();
-  let group = runtime.groups.find((g) => g.name === entry.group.name);
+  let group = runtime.groups.find((g) => sameGroupName(g.name, entry.group.name));
   if (!group) {
     group = { id: entry.group.id, name: entry.group.name, collapsed: !!entry.group.collapsed };
     runtime.groups.splice(Math.min(entry.group.index, runtime.groups.length), 0, group);
@@ -7265,6 +7362,22 @@ function moveTabTo(id, target) {
   broadcastTabs();
   scheduleMenuRebuild();
   return true;
+}
+
+/** Group names were saved lowercase until they kept their case; give every
+ * saved one a capital first letter once per device, windows and rollback
+ * mirror alike (spec 2026-10-16 §9.2). Spaces recase themselves on load. */
+function recaseSavedGroupNamesOnce() {
+  if (!settings.groupNamesRecaseDue()) return;
+  const store = ensureSessionStore();
+  const { data, changed } = recaseSessionData(store.data);
+  if (changed) {
+    store.updateAndFlush((current) => {
+      for (const key of Object.keys(current)) delete current[key];
+      Object.assign(current, data);
+    });
+  }
+  settings.markGroupNamesRecased();
 }
 
 /** Keep the ⌘L panel's Recently closed band where the user left it across
@@ -7742,6 +7855,15 @@ function sendWorkspaceAction(kind, workspaceId) {
   const wc = rt().overlayView?.webContents;
   if (wc && !wc.isDestroyed()) wc.send('overlay:workspace-action', { kind, id: workspaceId });
 }
+function groupMenuContextActions(owner) {
+  const b = (fn) => bindWindowRuntime(owner, fn);
+  return {
+    rename: b((id) => beginRenameGroup(id)),
+    ungroup: b((id) => ungroupGroup(id)),
+    closeGroup: b((id) => closeGroup(id)),
+  };
+}
+
 function workspaceMenuContextActions(owner) {
   const b = (fn) => bindWindowRuntime(owner, fn);
   return {
@@ -7981,11 +8103,13 @@ function registerIpcHandlers() {
   chromeHandle('tabs:move', (_e, id, target) => moveTabTo(id, target));
   chromeHandle('groups:reorder', (_e, id, beforeGroupId) => reorderGroupBefore(id, beforeGroupId));
   chromeHandle('groups:move-closed', (_e, beforeGroupId) => moveClosedSection(beforeGroupId));
+  chromeHandle('groups:rename', (_e, id, name) => renameGroup(id, name));
+  chromeHandle('groups:ungroup', (_e, id) => ungroupGroup(id));
   chromeOn('overlay:drag-state', (event, active) => {
     acceptOverlayDragState(rt(), event.sender, active);
   });
   chromeHandle('tabs:set-group', (_e, id, groupId) => setTabGroup(id, groupId ?? null));
-  chromeHandle('tabs:group-by-name', (_e, id, name) => groupTabByName(id, name));
+  chromeHandle('tabs:group-by-name', (_e, id, name) => groupTabByName(id, name, { adoptCase: true }));
   chromeHandle('tabs:toggle-group-collapsed', (_e, groupId) => toggleGroupCollapsed(groupId));
   chromeHandle('tabs:focus-group', (_e, groupId) => focusGroup(groupId));
   chromeHandle('tabs:close-group', (_e, groupId) => closeGroup(groupId));
@@ -8181,7 +8305,8 @@ function registerIpcHandlers() {
   // Data + actions behind the island's slash commands and Quick Switcher.
   chromeHandle('chrome:history-list', (_e, opts) => history.listHistory(opts ?? {}));
   chromeHandle('chrome:favorites-list', () => bookmarks.listBookmarks());
-  chromeHandle('chrome:remote-tabs-list', () => sync.listRemoteDevices());
+  chromeHandle('chrome:remote-tabs-list', () => knownRemoteDevices());
+  chromeHandle('chrome:rename-device', (_e, id, name) => sync.renameRemoteDevice(id, name, knownRemoteDevices()));
   if (ONE_PASSWORD_AVAILABLE) {
     chromeHandle('chrome:onepassword-fill', () => fillLoginFromOnePassword());
   }
@@ -8368,6 +8493,7 @@ function registerIpcHandlers() {
   });
   chromeHandle('chrome:site-info-forget-certificate-exception', () => forgetActiveCertificateException());
   chromeHandle('chrome:sleep-background-tabs', () => sleepBackgroundTabsNow());
+  chromeHandle('chrome:invite-friend', () => inviteFriendNow());
   chromeHandle('chrome:cycle-theme', (_event, requestedTheme) => {
     const order = ['system', 'light', 'dark'];
     const current = settings.getSettings().theme;
@@ -8559,6 +8685,7 @@ const SLASH_COMMANDS = [
   ['/patron', 'slash.patron.hint'],
   ['/space', 'slash.space.hint'],
   ['/glance <text>', 'slash.glance.doc'],
+  ['/invite', 'slash.invite.hint'],
 ];
 
 // A hand-picked subset of the full inventory (blanc://shortcuts/, via
@@ -8885,6 +9012,8 @@ function buildMenuForRuntime(runtime) {
             { label: t('menu.showAllShortcuts'), accelerator: 'CmdOrCtrl+/', click: bound(() => openInternalPage('blanc://shortcuts/')) },
           ],
         },
+        { type: 'separator' },
+        { label: t('menu.inviteFriend'), click: () => { inviteFriendNow(); } },
         ...(isMac ? [] : [
           { type: 'separator' },
           { label: t('menu.app.about', { app: app.name }), click: bound(() => showAboutPanel({ app, t })) },
@@ -9012,6 +9141,15 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
   rt().window.webContents.on('render-process-gone', bindWindowRuntime(runtime, (_event, details) => {
     diagnostics.recordRendererCrash('chrome', details);
   }));
+  // Group headers on the vertical tabs rail (chrome document coordinates).
+  attachGroupHeaderMenu(rt().window.webContents, {
+    isLive: () => true,
+    getWindow: bindWindowRuntime(runtime, () => rt().window),
+    getOffset: () => ({ x: 0, y: 0 }),
+    t: mainI18n.t,
+    resolveGroup: bindWindowRuntime(runtime, (rawId) => rt().groups.find((g) => g.id === rawId) ?? null),
+    actions: groupMenuContextActions(runtime),
+  });
   attachChromeMenu(rt().window.webContents, {
     t: mainI18n.t,
     getWindow: bindWindowRuntime(runtime, () => rt().window),
@@ -10710,7 +10848,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       blockedThisWeek: () => adblockWeekStats().data.blocked,
       blockedByDay: () => [...adblockWeekStats().data.days],
       blockedBarHeights: () => adblockStats.barHeights(adblockWeekStats().data.days),
-      remoteDevices: () => sync.listRemoteDevices(),
+      remoteDevices: () => knownRemoteDevices(),
       status: startPageStatus,
       visibleFor: (wc) => startPageViewVisible(tabs.get(tabIdByWebContentsId.get(wc.id))),
       migrationChecklistFor: (wc) => migrationChecklistForTab(
@@ -10905,7 +11043,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         const opener = tabs.get(tabId);
         return opener ? withWindowRuntime(windowRuntimes.runtimeForTab(opener) ?? rt(), () => openLinkInGlance(opener, url)) : false;
       },
-      groupTabByName, renameTab, beginRenameTab, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab,
+      groupTabByName, renameTab, beginRenameTab, beginRenameGroup, beginRenameDevice, ungroupGroup, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab,
       closeGroup, newTabUrl,
       getOverlayDragging: () => overlayDragActive(rt()),
       selectTabAtIndex,
@@ -11160,6 +11298,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         sleepThresholdOverrideMs = Number.isFinite(ms) && ms >= 0 ? Number(ms) : null;
         return sleepThresholdOverrideMs;
       },
+      setRemoteDevicesSource: (fn) => { remoteDevicesSource = typeof fn === 'function' ? fn : null; },
     });
   }
 
@@ -11307,7 +11446,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // surfaces (overlay panel; any tab currently on the start page).
     const pushRemoteDevices = () => {
       forEachWindowRuntime((runtime) => {
-        const devices = sync.listRemoteDevices();
+        const devices = knownRemoteDevices();
         runtime.overlayView?.webContents.send('chrome:remote-tabs-updated', devices);
         for (const id of runtime.tabOrder) {
           const tab = tabs.get(id);
@@ -11318,6 +11457,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     };
     tabsync.onRemoteChanged(pushRemoteDevices);
     tabicons.onRemoteChanged(pushRemoteDevices);
+    // A device renamed here or on another Mac re-labels the same surfaces.
+    let shownDeviceNames = settings.getDeviceNames();
+    settings.onSettingsChanged((next) => {
+      if (deviceNamesEqual(shownDeviceNames, next.deviceNames)) return;
+      shownDeviceNames = next.deviceNames;
+      pushRemoteDevices();
+    });
 
     // Profile sync: sync-on-launch if configured, then follow local changes.
     // Failures are swallowed and surfaced only in Settings (never startup).
@@ -11346,6 +11492,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // Snapshot the previous session before the local startup tab exists. Tab
   // broadcasts are temporarily prevented from overwriting this snapshot.
   await resumePendingProfileDeletions();
+  recaseSavedGroupNamesOnce();
   const { windows, activeWindowId, readOnly } = loadWorkspace(ensureSessionStore().data);
   sessionReadOnly = readOnly;
   const pendingProfileIds = new Set(profileDeletions.pendingProfileDeletions());
