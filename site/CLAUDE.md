@@ -246,8 +246,10 @@ working tree, which runs ahead of the public release:
 `scripts/build-bangs-data.mjs` reads the app's
 `src/renderer/pages/bangs-catalog.js` at one pinned git ref and writes
 `src/data/bangs.json` (the directory, with the bangs that search through
-Google or DuckDuckGo tagged) and `public/licenses/kagi-bangs-MIT.txt`. Never
-hand-edit those; `npm run site:bangs:check` and
+Google or DuckDuckGo tagged), `public/bang-hosts.json` (the hosts the icon
+server answers for, which it reads from blanc.day, so a re-pin plus a site
+deploy updates it with no Worker deploy) and
+`public/licenses/kagi-bangs-MIT.txt`. Never hand-edit those; `npm run site:bangs:check` and
 `test/unit/site-bangs-data.test.js` guard them. Since bangs shipped in public
 v1.36.0, the data is pinned to the latest release tag (`release` must equal
 `releases.json`'s newest tag, so a release's changelog refresh fails the data
@@ -257,7 +259,7 @@ origin at `/bang-icons/<host>`, answered by the bang icons Worker
 (`cloudflare/bang-icons-worker/`), never by a third party; each sits on a
 lettered tile that stays when a site has none, and `scripts/verify-seo.mjs`
 skips those paths as it skips `/dl/*`. What a visitor types never leaves the
-page; it fetches only its own data file and the icons of the rows it shows.
+page; it fetches only its own data file and the icons of the cards and of the rows it shows.
 
 **Slash-command lists:** the command palette page and its Support guide list
 commands through `src/lib/released-slash-commands.mjs`, never straight from

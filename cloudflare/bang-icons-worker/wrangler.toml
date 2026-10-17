@@ -1,0 +1,30 @@
+name = "blanc-bang-icons"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+# Same-origin icons for blanc.day/bangs: these routes carve /bang-icons/* out
+# of the blanc.day Pages site, as blanc-ping's do for /dl/*, so the site's
+# `img-src 'self'` policy needs no change. No workers.dev address.
+workers_dev = false
+routes = [
+  { pattern = "blanc.day/bang-icons/*", zone_name = "blanc.day" },
+  { pattern = "www.blanc.day/bang-icons/*", zone_name = "blanc.day" }
+]
+
+# Created by `npx wrangler kv namespace create ICONS` on October 17, 2026.
+kv_namespaces = [
+  { binding = "ICONS", id = "26db766d42fa404685331fd016a9a0d7" }
+]
+
+# A backstop on top of the parser's bounds: no request may spend more than
+# one second of CPU (wall time waiting on sites does not count). Needs the
+# Workers Paid plan, which the README's first deploy step checks.
+[limits]
+cpu_ms = 1000
+
+[vars]
+HOSTS_URL = "https://blanc.day/bang-hosts.json"
+
+# Nothing about visitors is kept: no Workers Logs.
+[observability]
+enabled = false

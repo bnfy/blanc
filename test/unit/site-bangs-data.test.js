@@ -93,5 +93,24 @@ test('the byte-checked bangs page files keep LF line endings on every checkout',
   for (const rule of [
     '/site/src/data/bangs.json text eol=lf',
     '/site/public/licenses/kagi-bangs-MIT.txt text eol=lf',
+    '/site/public/bang-hosts.json text eol=lf',
   ]) assert.ok(attributes.includes(rule), `missing Git attribute: ${rule}`);
+});
+
+// The icon server (cloudflare/bang-icons-worker) answers only for these hosts.
+test('the bang host list is every host in the data, once, sorted', async () => {
+  const d = data();
+  const list = JSON.parse(read('site/public/bang-hosts.json'));
+  const hosts = [...new Set(d.entries.map((entry) => entry[3].toLowerCase()))].sort();
+  assert.deepEqual(list.hosts, hosts);
+  assert.equal(list.count, hosts.length);
+  assert.equal(list.ref, d.ref);
+  assert.equal(list.release, d.release);
+  // The featured cards' hosts, in the app's order, for the icon server's
+  // coverage check against the live site.
+  const byCode = (code) => d.entries.find((entry) => entry[0] === code || entry[1].includes(code));
+  assert.deepEqual(list.popular, d.popular.map((code) => byCode(code)[3].toLowerCase()));
+  for (const host of list.hosts) assert.match(host, /^[a-z0-9.-]+$/, host);
+  const { renderHosts } = await load();
+  assert.equal(read('site/public/bang-hosts.json').toString('utf8'), renderHosts(d));
 });

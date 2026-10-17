@@ -9,8 +9,10 @@
 //   node site/scripts/build-bangs-data.mjs --check
 //
 // Writes site/src/data/bangs.json (the catalog verbatim plus the engine-search
-// tags) and a byte copy of Kagi's MIT license text (the page redistributes
-// the list). Without --ref it reuses the ref already in bangs.json.
+// tags), site/public/bang-hosts.json (the icon server's allowed hosts and the
+// featured ones) and a byte copy of Kagi's MIT license text (the page
+// redistributes the list). Without --ref it reuses the ref already in
+// bangs.json.
 
 import { execFileSync } from 'node:child_process';
 import crypto from 'node:crypto';
@@ -23,6 +25,7 @@ const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const ROOT = path.resolve(path.dirname(SCRIPT_PATH), '..', '..');
 const OUT_JSON = path.join(ROOT, 'site', 'src', 'data', 'bangs.json');
 const OUT_LICENSE = path.join(ROOT, 'site', 'public', 'licenses', 'kagi-bangs-MIT.txt');
+const OUT_HOSTS = path.join(ROOT, 'site', 'public', 'bang-hosts.json');
 const CATALOG_PATH = 'src/renderer/pages/bangs-catalog.js';
 const LICENSE_PATH = 'bangs/sources/kagi-bangs-LICENSE.txt';
 
@@ -106,11 +109,23 @@ function renderData({ ref, release, catalogBytes }) {
   return lines.join('\n');
 }
 
+// The hosts the icon server (cloudflare/bang-icons-worker) may answer for:
+// every bang's host, once, sorted. It reads this file from blanc.day, so a
+// re-pin and site deploy update it with no Worker deploy. `popular` is the
+// featured cards' hosts in the app's order, which its coverage check reads.
+function renderHosts(data) {
+  const hosts = [...new Set(data.entries.map((entry) => entry[3].toLowerCase()))].sort();
+  const popular = data.popular.map((code) => data.entries.find((entry) => entry[0] === code || entry[1].includes(code))[3].toLowerCase());
+  return `${JSON.stringify({ ref: data.ref, release: data.release, count: hosts.length, popular, hosts }, null, 2)}\n`;
+}
+
 function buildOutputs({ ref, release }) {
   const commit = resolveCommit(ref);
   if (release && resolveCommit(release) !== commit) throw new Error(`--release ${release} is not ${ref}`);
+  const json = renderData({ ref: commit, release: release ?? null, catalogBytes: gitShow(commit, CATALOG_PATH) });
   return [
-    [OUT_JSON, Buffer.from(renderData({ ref: commit, release: release ?? null, catalogBytes: gitShow(commit, CATALOG_PATH) }))],
+    [OUT_JSON, Buffer.from(json)],
+    [OUT_HOSTS, Buffer.from(renderHosts(JSON.parse(json)))],
     [OUT_LICENSE, gitShow(commit, LICENSE_PATH)],
   ];
 }
@@ -152,7 +167,7 @@ function run(argv = process.argv.slice(2)) {
   return 0;
 }
 
-export { engineSearchVia, renderData, run };
+export { engineSearchVia, renderData, renderHosts, run };
 
 if (process.argv[1] && path.resolve(process.argv[1]) === SCRIPT_PATH) {
   try {

@@ -189,6 +189,16 @@
       "data": ["email address", "request/confirmation time", "opaque confirmation and unsubscribe material", "edge address for short-lived rate limiting"],
       "retentionByBlanc": "pending request up to 24 hours; honeypot quarantine up to 30 days; confirmed record until one-click unsubscribe or deletion",
       "code": ["site/src/components/NewsletterForm.astro", "site/src/components/NewsletterPrompt.astro", "cloudflare/newsletter-worker/src/index.js"]
+    },
+    {
+      "id": "bang-icons",
+      "surface": "website",
+      "trigger": "showing the /bangs page's featured cards, or the list rows a search or Browse all shows",
+      "default": "on for that page",
+      "recipient": "Blanc Cloudflare Worker on blanc.day; the Worker, never the visitor, then asks the bang's site and, failing that, DuckDuckGo's icon service",
+      "data": ["the host whose icon is shown, from the page's own pinned list", "edge request metadata processed by Cloudflare"],
+      "retentionByBlanc": "each host's icon kept 30 days and a miss 1 day in Workers KV; nothing about visitors is stored and Workers Logs is off",
+      "code": ["cloudflare/bang-icons-worker/src/index.js", "cloudflare/bang-icons-worker/src/find-icon.js", "cloudflare/bang-icons-worker/src/hosts.js", "site/public/bang-hosts.json"]
     }
   ]
 }
