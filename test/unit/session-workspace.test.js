@@ -368,3 +368,11 @@ test('each restored window carries its own independent workspaceId (or none)', (
   assert.equal(byId.get('window_work').workspaceId, 'workspace_work');
   assert.equal(byId.get('window_scratch').workspaceId, null);
 });
+
+test('entryFrom keeps a valid Recently closed slot and omits anything else', () => {
+  assert.equal(entryFrom({ ...ENTRY, closedSlot: 2 }).closedSlot, 2);
+  for (const closedSlot of [-1, '2', 2.5, 0, null]) {
+    assert.equal('closedSlot' in entryFrom({ ...ENTRY, closedSlot }), false, String(closedSlot));
+  }
+  assert.deepEqual(entryFrom({ ...ENTRY }), ENTRY);
+});

@@ -280,7 +280,8 @@ const {
   focusedPane,
   glanceLayoutPayload,
 } = require('./glance-focus');
-const { moveTab: resolveTabMove, reorderGroup: resolveGroupReorder } = require('./tab-order');
+const { moveTab: resolveTabMove } = require('./tab-order');
+const { CLOSED_SECTION_ID, clampClosedSlot, reconcileClosedSlot, reorderGroupsWithClosed } = require('./closed-slot');
 const { openLinkInGlance: openLinkInGlanceWith } = require('./glance-open-link');
 const { acceptOverlayDragState, resetOverlayDragState, overlayDragActive } = require('./overlay-drag-state');
 const {
@@ -4450,6 +4451,11 @@ function captureWindowEntry(runtime, { previousActiveIndex = 0 } = {}) {
   // Private tabs leave no trail, error pages persist their real destination,
   // and url-less adopted children drop out in lockstep with their metadata.
   const entries = persistableEntries(runtime.tabOrder.map((id) => tabs.get(id)));
+  syncClosedSlot(runtime);
+  const persistedGroups = runtime.groups.filter((group) => entries.some((item) => item.groupId === group.id));
+  // The band's slot counts only groups that are written, so a group held
+  // only by private tabs never shifts it on the next launch.
+  const closedSlot = runtime.groups.slice(0, runtime.closedSlot).filter((group) => persistedGroups.includes(group)).length;
   const entry = {
     id: runtime.id,
     profileId: runtime.profileId,
@@ -4468,7 +4474,8 @@ function captureWindowEntry(runtime, { previousActiveIndex = 0 } = {}) {
     ...(entries.some((item) => tabs.get(item.id)?.localFile === true) ? {
       localFiles: entries.map((item) => tabs.get(item.id)?.localFile === true),
     } : {}),
-    groups: runtime.groups.filter((group) => entries.some((item) => item.groupId === group.id)),
+    groups: persistedGroups,
+    ...(closedSlot > 0 ? { closedSlot } : {}),
     activeIndex: previousActiveIndex,
   };
   // A private or provisional active tab preserves this window's last good
@@ -4726,11 +4733,13 @@ function currentTabsPayload() {
   // derived a single time per broadcast.
   const serialized = serializeTabs();
   const runtime = rt();
+  syncClosedSlot(runtime);
   return {
     tabs: serialized,
     activeTabId: runtime.activeTabId,
     glanceTabId: activeGlanceTab()?.id ?? null,
     groups: runtime.groups,
+    closedSlot: runtime.closedSlot,
     // Closed entries cross only as the five-field projection (spec §4.1);
     // snapshots, seeds, slot metadata, and view references stay in main.
     closed: projectEntries(runtime.closedEntries ?? []),
@@ -5788,6 +5797,8 @@ function applyWorkspaceToWindow(runtime, workspace) {
     runtime.groups = (Array.isArray(workspace.groups) ? workspace.groups : [])
       .filter((group) => group && typeof group.id === 'string' && typeof group.name === 'string')
       .map((group) => ({ id: group.id, name: group.name, collapsed: !!group.collapsed }));
+    runtime.closedSlot = clampClosedSlot(workspace.closedSlot, runtime.groups.length);
+    runtime.closedSlotIds = runtime.groups.map((group) => group.id);
 
     // 6. Drop utility/forbidden URLs and keep the parallel columns zipped —
     // exactly what releaseStartup does before creating anything.
@@ -7159,14 +7170,52 @@ function moveTabTo(id, target) {
   return true;
 }
 
+/** Keep the ⌘L panel's Recently closed band where the user left it across
+ * any change to this window's groups (spec 2026-10-16 §4.4). Groups change in
+ * many places; this one reconciliation runs before every payload and capture
+ * instead of each of them adjusting the slot. */
+function syncClosedSlot(runtime) {
+  const ids = runtime.groups.map((group) => group.id);
+  const known = runtime.closedSlotIds ?? [];
+  if (ids.length !== known.length || ids.some((id, index) => id !== known[index])) {
+    runtime.closedSlot = reconcileClosedSlot(known, runtime.closedSlot, ids);
+    runtime.closedSlotIds = ids;
+  }
+  runtime.closedSlot = clampClosedSlot(runtime.closedSlot, ids.length);
+}
+
 function reorderGroupBefore(id, beforeGroupId) {
   // rt().groups is per-window, so another window's group id simply fails.
-  const next = resolveGroupReorder(rt().groups, id, beforeGroupId);
+  // beforeGroupId may be the Recently closed band: the group lands directly
+  // above it. The band itself moves through moveClosedSection.
+  const runtime = rt();
+  if (id === CLOSED_SECTION_ID) return false;
+  syncClosedSlot(runtime);
+  const next = reorderGroupsWithClosed(runtime.groups.map((group) => group.id), runtime.closedSlot, id, beforeGroupId);
   if (!next) return false;
-  if (next.some((group, index) => rt().groups[index] !== group)) {
-    rt().groups = next;
+  const byId = new Map(runtime.groups.map((group) => [group.id, group]));
+  const groups = next.order.map((groupId) => byId.get(groupId));
+  if (next.slot !== runtime.closedSlot || groups.some((group, index) => runtime.groups[index] !== group)) {
+    runtime.groups = groups;
+    runtime.closedSlot = next.slot;
+    runtime.closedSlotIds = next.order;
     broadcastTabs();
     scheduleMenuRebuild();
+  }
+  return true;
+}
+
+/** Move the Recently closed band before `beforeGroupId` (null = after the
+ * last group). Group order never changes. */
+function moveClosedSection(beforeGroupId) {
+  const runtime = rt();
+  if (beforeGroupId === CLOSED_SECTION_ID) return false;
+  syncClosedSlot(runtime);
+  const next = reorderGroupsWithClosed(runtime.groups.map((group) => group.id), runtime.closedSlot, CLOSED_SECTION_ID, beforeGroupId);
+  if (!next) return false;
+  if (next.slot !== runtime.closedSlot) {
+    runtime.closedSlot = next.slot;
+    broadcastTabs();
   }
   return true;
 }
@@ -7821,6 +7870,7 @@ function registerIpcHandlers() {
   chromeHandle('tabs:stop', (_e, id) => liveContents(tabs.get(id))?.stop());
   chromeHandle('tabs:move', (_e, id, target) => moveTabTo(id, target));
   chromeHandle('groups:reorder', (_e, id, beforeGroupId) => reorderGroupBefore(id, beforeGroupId));
+  chromeHandle('groups:move-closed', (_e, beforeGroupId) => moveClosedSection(beforeGroupId));
   chromeOn('overlay:drag-state', (event, active) => {
     acceptOverlayDragState(rt(), event.sender, active);
   });
@@ -7841,11 +7891,12 @@ function registerIpcHandlers() {
       openInternalPage(`blanc://${name}/`);
     }
   });
-  chromeHandle('tabs:get-all', () => ({
+  chromeHandle('tabs:get-all', () => (syncClosedSlot(rt()), {
     tabs: serializeTabs(),
     activeTabId: rt().activeTabId,
     glanceTabId: activeGlanceTab()?.id ?? null,
     groups: rt().groups,
+    closedSlot: rt().closedSlot,
     closed: projectEntries(rt().closedEntries ?? []),
     tabLayout,
     ...verticalTabsMetrics(),
@@ -11176,6 +11227,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       meta: cleaned.meta,
       localFiles: cleaned.localFiles,
       activeIndex: cleaned.activeIndex,
+      closedSlot: saved.closedSlot ?? 0,
       groups: (Array.isArray(saved.groups) ? saved.groups : [])
         .filter((group) => group && typeof group.id === 'string' && typeof group.name === 'string')
         .map((group) => ({ id: group.id, name: group.name, collapsed: !!group.collapsed })),
@@ -11243,6 +11295,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     createMainWindow(runtime);
     withWindowRuntime(runtime, () => {
       runtime.groups = savedWorkspace ? saved.groups : [];
+      runtime.closedSlot = savedWorkspace ? clampClosedSlot(saved.closedSlot, saved.groups.length) : 0;
+      runtime.closedSlotIds = runtime.groups.map((group) => group.id);
       startupTabIds.set(runtime.id, createTab(NEW_TAB_URL));
     });
     startupRuntimes.push(runtime);

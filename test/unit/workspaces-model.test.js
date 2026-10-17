@@ -603,3 +603,12 @@ test('moveWorkspaceTo moves a space to an index, clamping only past the end, and
   }
   assert.equal(moveWorkspaceTo(file, 'nope', 0).error, 'not-found');
 });
+
+test('a Space keeps where its Recently closed band sits', () => {
+  const { captureColumns: columns } = require('../../src/main/workspaces-model');
+  assert.equal(normalizeWorkspace({ ...VALID(), closedSlot: 2 }).closedSlot, 2);
+  assert.equal('closedSlot' in normalizeWorkspace({ ...VALID(), closedSlot: -1 }), false);
+  assert.equal('closedSlot' in normalizeWorkspace(VALID()), false);
+  assert.equal(columns({ urls: [], closedSlot: 1 }).closedSlot, 1);
+  assert.equal('closedSlot' in columns({ urls: [], closedSlot: 0 }), false);
+});

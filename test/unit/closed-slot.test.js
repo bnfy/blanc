@@ -83,3 +83,16 @@ test('unknown ids are refused', () => {
   assert.equal(reorderGroupsWithClosed(['a', 'b'], 1, 'a', 'zz'), null);
   assert.equal(reorderGroupsWithClosed(['a', 'b'], 1, 'a', 42), null);
 });
+
+test('a new window keeps the band under Pinned as groups appear', () => {
+  assert.equal(reconcileClosedSlot([], 0, ['g']), 0);
+  assert.equal(reconcileClosedSlot(['g'], 0, ['g', 'h']), 0);
+});
+
+test('with nothing left to anchor to, the band returns to the top', () => {
+  assert.equal(reconcileClosedSlot(['a'], 1, ['n']), 0);
+});
+
+test('with only groups above it left, the band stays last', () => {
+  assert.equal(reconcileClosedSlot(['a', 'b'], 1, ['a', 'n']), 2);
+});

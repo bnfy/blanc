@@ -38,6 +38,10 @@ function sanitizeName(raw) {
 // Always a NEW array. Returning the caller's array by reference would let a
 // later updateCapture (or a store write) mutate the object we normalized from.
 const asArray = (value) => (Array.isArray(value) ? value.slice() : []);
+/** Where the Recently closed band sits among the Space's groups; the default
+ * (0, under Pinned) is never written. */
+const closedSlotColumn = (source) => (
+  Number.isInteger(source.closedSlot) && source.closedSlot > 0 ? { closedSlot: source.closedSlot } : {});
 
 /** One workspace record, repaired — or null when it cannot be trusted.
  * Rejects (rather than repairs) identity fields: a record with no id, no
@@ -70,6 +74,7 @@ function normalizeWorkspace(raw) {
     meta: meta.length === urls.length ? meta : [],
     ...(Array.isArray(raw.localFiles) && raw.localFiles.length === urls.length
       ? { localFiles: raw.localFiles.map((value) => value === true) } : {}),
+    ...closedSlotColumn(raw),
     // Identity fields only when valid; normalizeFile assigns the defaults.
     ...(Identity.normalizeHex(raw.color) ? { color: Identity.normalizeHex(raw.color) } : {}),
     ...(Identity.isSymbol(raw.symbol) ? { symbol: raw.symbol } : {}),
@@ -145,6 +150,7 @@ const captureColumns = (capture) => {
     meta: meta.length === urls.length ? meta : [],
     ...(Array.isArray(source.localFiles) && source.localFiles.length === urls.length
       ? { localFiles: source.localFiles.map((value) => value === true) } : {}),
+    ...closedSlotColumn(source),
   };
 };
 

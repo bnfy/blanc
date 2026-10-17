@@ -15,12 +15,18 @@ function clampClosedSlot(slot, groupCount) {
 /** Keep the band in place across a change from `prevIds` to `nextIds`: it
  * stays directly above the first surviving group that was below it, so groups
  * removed or reinserted above it move it with them and appended groups land
- * below it. `movedId` (a group being dragged) never anchors the band. */
+ * below it. With no group below left it stays last, and with nothing left to
+ * anchor to it returns to the top. `movedId` (a group being dragged) never
+ * anchors the band. */
 function reconcileClosedSlot(prevIds, slot, nextIds, movedId = null) {
-  const below = new Set(prevIds.slice(clampClosedSlot(slot, prevIds.length)));
+  const cut = clampClosedSlot(slot, prevIds.length);
+  const below = new Set(prevIds.slice(cut));
+  const above = new Set(prevIds.slice(0, cut));
   below.delete(movedId);
+  above.delete(movedId);
   const at = nextIds.findIndex((id) => below.has(id));
-  return at === -1 ? nextIds.length : at;
+  if (at !== -1) return at;
+  return nextIds.some((id) => above.has(id)) ? nextIds.length : 0;
 }
 
 /** Move `id` (a group id or the band itself) before `beforeId` — a group id,

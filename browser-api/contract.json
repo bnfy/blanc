@@ -503,6 +503,10 @@
         "closed": {
           "type": "ClosedEntrySummary[]"
         },
+        "closedSlot": {
+          "type": "number",
+          "doc": "How many of groups sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned)."
+        },
         "tabLayout": {
           "type": "TabLayout"
         },
@@ -540,6 +544,10 @@
         },
         "closed": {
           "type": "ClosedEntrySummary[]"
+        },
+        "closedSlot": {
+          "type": "number",
+          "doc": "How many of groups sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned)."
         },
         "tabLayout": {
           "type": "TabLayout"
@@ -1550,11 +1558,25 @@
         },
         {
           "name": "beforeGroupId",
+          "type": "GroupId | 'recently-closed' | null"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Move a group before another group, directly above the Recently closed band with 'recently-closed', or to the end with null."
+    },
+    {
+      "name": "moveClosedSection",
+      "group": "tabs",
+      "kind": "invoke",
+      "channel": "groups:move-closed",
+      "params": [
+        {
+          "name": "beforeGroupId",
           "type": "GroupId | null"
         }
       ],
       "returns": "boolean",
-      "doc": "Move a group before another group, or to the end with null."
+      "doc": "Move the ⌘L panel's Recently closed band before a group, or after the last group with null."
     },
     {
       "name": "activateTabFromRail",
