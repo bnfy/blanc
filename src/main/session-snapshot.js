@@ -101,6 +101,6 @@ function syncSnapshot(tabList, groups) {
 }
 
 module.exports = {
-  persistableEntries, syncSnapshot, sessionTabMeta, metaAfterHistoryClear,
+  persistableUrl, persistableEntries, syncSnapshot, sessionTabMeta, metaAfterHistoryClear,
   MAX_SYNC_TABS, MAX_SYNC_URL, MAX_SYNC_TITLE, MAX_META_TITLE, MAX_META_FAVICON,
 };
