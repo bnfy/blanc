@@ -2621,7 +2621,6 @@
   // These moved out of the scrollable list so they stay put while it shows
   // slash commands or Quick-Switcher results. Platform-correct shortcut hints.
   document.getElementById('footerNewTabKbd').textContent = `${modKey}T`;
-  document.getElementById('footerNewPrivateKbd').textContent = `${modShiftKey}N`;
   footerNewTab.title = blancI18n.t('pill.newTab.title', { shortcut: `${modKey}T` });
   footerNewPrivate.title = blancI18n.t('footer.newPrivate.title', { shortcut: `${modShiftKey}N` });
 

@@ -26,6 +26,19 @@ test('compact footer wraps launcher groups without shrinking individual buttons'
   const button = styles.match(/^\.footer-new \{([\s\S]*?)\}/m)?.[1];
   assert.ok(button);
   assert.match(button, /flex:\s*0 0 auto;/);
-  assert.match(button, /height:\s*28px;/);
+  assert.match(button, /height:\s*30px;/);
   assert.match(button, /white-space:\s*nowrap;/);
+});
+
+test('the Private pill keeps its shortcut in the tooltip, not inline', () => {
+  const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../src/renderer/overlay.html'), 'utf8');
+  const privateButton = html.match(/<button id="footerNewPrivate"[\s\S]*?<\/button>/)?.[0] ?? '';
+  assert.ok(privateButton, 'footerNewPrivate exists');
+  assert.doesNotMatch(privateButton, /footer-kbd/);
+  assert.match(overlay, /footerNewPrivate\.title = blancI18n\.t\('footer\.newPrivate\.title'/);
+  const pill = styles.match(/^\.footer-new \{([\s\S]*?)\}/m)?.[1] ?? '';
+  assert.match(pill, /font-weight:\s*550;/);
+  assert.match(pill, /font-size:\s*12\.5px;/);
+  const hover = styles.match(/^\.footer-new:hover \{([\s\S]*?)\}/m)?.[1] ?? '';
+  assert.doesNotMatch(hover, /opacity/, 'hover changes the fill, never fades the button');
 });

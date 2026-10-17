@@ -225,8 +225,8 @@
     <string name="panel_favorite_shortcut">Diese Seite zu den Favoriten hinzufügen (Strg/Cmd+D)</string>
     <string name="panel_collapse_title">Island einklappen (Esc)</string>
     <string name="panel_collapse_label">Island einklappen</string>
-    <string name="footer_new_tab">neuer tab</string>
-    <string name="footer_private">privat</string>
+    <string name="footer_new_tab">Neuer Tab</string>
+    <string name="footer_private">Privat</string>
     <string name="footer_new_private_title">Neuer privater Tab (%1$s)</string>
     <string name="footer_workspaces">Spaces</string>
     <string name="footer_favorites">Favoriten</string>

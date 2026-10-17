@@ -9260,85 +9260,85 @@
       }
     },
     "footer.newTab": {
-      "comment": "Lowercase launcher label in the Island footer.",
+      "comment": "Label of the New tab button at the left of the ⌘L panel footer; its shortcut follows it. Sentence case; keep it short.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "new tab"
+            "value": "New tab"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "neuer tab"
+            "value": "Neuer Tab"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "pestaña"
+            "value": "Pestaña"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "onglet"
+            "value": "Onglet"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "nuova scheda"
+            "value": "Nuova scheda"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "nova aba"
+            "value": "Nova aba"
           }
         }
       }
     },
     "footer.private": {
-      "comment": "Lowercase launcher label for a private tab in the Island footer.",
+      "comment": "Label of the button that opens a new private tab, beside New tab in the ⌘L panel footer. Sentence case; keep it short.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "private"
+            "value": "Private"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "privat"
+            "value": "Privat"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "privada"
+            "value": "Privada"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "privé"
+            "value": "Privé"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "privata"
+            "value": "Privata"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "privada"
+            "value": "Privada"
           }
         }
       }

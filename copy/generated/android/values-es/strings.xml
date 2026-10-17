@@ -230,8 +230,8 @@
     <string name="panel_favorite_shortcut">Añadir esta página a favoritos (Ctrl/Cmd+D)</string>
     <string name="panel_collapse_title">Contraer Island (Esc)</string>
     <string name="panel_collapse_label">Contraer Island</string>
-    <string name="footer_new_tab">pestaña</string>
-    <string name="footer_private">privada</string>
+    <string name="footer_new_tab">Pestaña</string>
+    <string name="footer_private">Privada</string>
     <string name="footer_new_private_title">Nueva pestaña privada (%1$s)</string>
     <string name="footer_workspaces">Spaces</string>
     <string name="footer_favorites">Favoritos</string>

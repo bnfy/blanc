@@ -2863,45 +2863,47 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
 .footer-new {
   display: flex;
   align-items: center;
-  gap: 5px;
-  height: 28px;
-  padding: 0 12px;
-  border-radius: 999px;
-  border: 1px solid var(--accent);
+  gap: 6px;
+  height: 30px;
+  padding: 0 13px 0 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
   background: var(--accent);
   color: var(--surface-raised);
   font-family: var(--font-text);
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 12.5px;
+  font-weight: 550;
   white-space: nowrap;
   flex: 0 0 auto;
   cursor: pointer;
+  transition: background-color 120ms ease;
 }
-.footer-new:hover { opacity: 0.85; }
+/* Hover deepens the fill one step (lighter ink in light, darker in dark)
+   instead of fading the whole pill. */
+.footer-new:hover { background: color-mix(in srgb, var(--accent) 86%, var(--surface-raised)); }
 .footer-new svg { width: 13px; height: 13px; }
 
-/* Private launcher: the same geometry as a ghost — dashed, the marker that
-   denotes private throughout the chrome (so the label no longer needs its
-   own dashed underline). It must not read as a second primary action. */
+/* Private: the soft secondary pill (System v2). Dashes stay reserved for
+   "you are in a private tab", the private panel's own border. Its shortcut
+   lives in the tooltip. */
 .footer-new.private {
-  margin-left: 4px;
-  background: none;
-  color: var(--text-dim);
-  border: 1px dashed var(--text-dim);
+  margin-left: 2px;
+  background: var(--accent-dim);
+  color: var(--text);
 }
-.footer-new.private:hover { opacity: 1; color: var(--text); border-color: var(--text); }
+.footer-new.private:hover { background: color-mix(in srgb, var(--text) 13%, transparent); }
 
 .footer-kbd {
   font-family: var(--font-ui);
-  font-size: 10.5px;
-  opacity: 0.55;
-  margin-left: 2px;
+  font-size: 11px;
+  opacity: 0.6;
+  margin-left: 1px;
 }
 
 .footer-act {
   width: 28px;
   height: 28px;
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2920,20 +2922,17 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
 #footerWorkspace svg { width: 17px; height: 17px; stroke-width: 2; }
 /* No thick focus ring — keyboard focus uses the same surface cue as hover
    (island footer policy; global button:focus-visible outline is suppressed). */
-.footer-act:focus-visible,
-.footer-new:focus-visible {
+.footer-act:focus-visible {
   outline: none;
   background: var(--surface);
   color: var(--text);
 }
 .footer-new:focus-visible {
-  opacity: 0.85;
+  outline: none;
+  background: color-mix(in srgb, var(--accent) 86%, var(--surface-raised));
 }
 .footer-new.private:focus-visible {
-  opacity: 1;
-  color: var(--text);
-  border-color: var(--text);
-  background: none;
+  background: color-mix(in srgb, var(--text) 13%, transparent);
 }
 
 /* The Spaces button is icon-only like the other footer acts; the space's name

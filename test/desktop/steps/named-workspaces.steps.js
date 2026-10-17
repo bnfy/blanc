@@ -230,21 +230,22 @@ Then('the workspace list scrolls while creation controls remain visible', async 
   await checkFooter(page); await evidence(page, 'compact-footer-vertical-125percent', true);
   // Cover both native shortcut widths on every platform: macOS alone must
   // not let the longer Windows/Linux labels escape the regression check.
-  const nativeShortcuts = await page.evaluate(() => ['footerNewTabKbd', 'footerNewPrivateKbd'].map(id => document.getElementById(id).textContent));
+  // Only New tab shows its shortcut inline; Private carries it in the tooltip.
+  const privatePill = await page.evaluate(() => {
+    const button = document.getElementById('footerNewPrivate');
+    return { kbd: button.querySelectorAll('.footer-kbd').length, title: button.title };
+  });
+  assert.equal(privatePill.kbd, 0, 'the Private pill shows no inline shortcut');
+  assert.match(privatePill.title, /N\)$/, 'the Private pill names its shortcut in the tooltip');
+  const nativeShortcut = await page.evaluate(() => document.getElementById('footerNewTabKbd').textContent);
   try {
-    for (const shortcuts of [['⌘T', '⌘⇧N'], ['ctrl+T', 'ctrl+shift+N']]) {
-      await page.evaluate(values => {
-        document.getElementById('footerNewTabKbd').textContent = values[0];
-        document.getElementById('footerNewPrivateKbd').textContent = values[1];
-      }, shortcuts);
+    for (const shortcut of ['⌘T', 'ctrl+T']) {
+      await page.evaluate(value => { document.getElementById('footerNewTabKbd').textContent = value; }, shortcut);
       await checkFooter(page);
-      await evidence(page, shortcuts[0].startsWith('ctrl') ? 'compact-footer-control-labels-125percent' : 'compact-footer-command-labels-125percent', true);
+      await evidence(page, shortcut.startsWith('ctrl') ? 'compact-footer-control-labels-125percent' : 'compact-footer-command-labels-125percent', true);
     }
   } finally {
-    await page.evaluate(values => {
-      document.getElementById('footerNewTabKbd').textContent = values[0];
-      document.getElementById('footerNewPrivateKbd').textContent = values[1];
-    }, nativeShortcuts);
+    await page.evaluate(value => { document.getElementById('footerNewTabKbd').textContent = value; }, nativeShortcut);
   }
   await ctx.app.evaluate(({ BrowserWindow, webContents }) => { webContents.getAllWebContents().find((wc) => wc.getURL() === 'blanc-chrome://overlay/').setZoomFactor(1); BrowserWindow.getAllWindows().find((w) => w.webContents.getURL() === 'blanc-chrome://index/').setSize(1280, 800); });
   await this.call('setTabLayout', 'island');

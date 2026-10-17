@@ -230,8 +230,8 @@
     <string name="panel_favorite_shortcut">Adicionar esta página aos favoritos (Ctrl/Cmd+D)</string>
     <string name="panel_collapse_title">Recolher a Island (Esc)</string>
     <string name="panel_collapse_label">Recolher a Island</string>
-    <string name="footer_new_tab">nova aba</string>
-    <string name="footer_private">privada</string>
+    <string name="footer_new_tab">Nova aba</string>
+    <string name="footer_private">Privada</string>
     <string name="footer_new_private_title">Nova aba privada (%1$s)</string>
     <string name="footer_workspaces">Spaces</string>
     <string name="footer_favorites">Favoritos</string>

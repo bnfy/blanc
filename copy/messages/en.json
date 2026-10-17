@@ -867,13 +867,13 @@
     "note": "Accessible name of the button that collapses the expanded Island."
   },
   "footer.newTab": {
-    "message": "new tab",
-    "note": "Lowercase launcher label in the Island footer.",
+    "message": "New tab",
+    "note": "Label of the New tab button at the left of the ⌘L panel footer; its shortcut follows it. Sentence case; keep it short.",
     "maxLength": 12
   },
   "footer.private": {
-    "message": "private",
-    "note": "Lowercase launcher label for a private tab in the Island footer.",
+    "message": "Private",
+    "note": "Label of the button that opens a new private tab, beside New tab in the ⌘L panel footer. Sentence case; keep it short.",
     "maxLength": 10
   },
   "footer.newPrivate.title": {

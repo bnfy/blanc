@@ -225,8 +225,8 @@
     <string name="panel_favorite_shortcut">Favorite this page (Ctrl/Cmd+D)</string>
     <string name="panel_collapse_title">Collapse island (Esc)</string>
     <string name="panel_collapse_label">Collapse island</string>
-    <string name="footer_new_tab">new tab</string>
-    <string name="footer_private">private</string>
+    <string name="footer_new_tab">New tab</string>
+    <string name="footer_private">Private</string>
     <string name="footer_new_private_title">New private tab (%1$s)</string>
     <string name="footer_workspaces">Spaces</string>
     <string name="footer_favorites">Favorites</string>

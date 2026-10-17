@@ -842,12 +842,12 @@
     "source": "sha256:df61005d5af90a138d642ddc54b03d0f03047e4b19b57aab441000049ad3839e"
   },
   "footer.newTab": {
-    "message": "nuova scheda",
-    "source": "sha256:feba5a0567244bc790b19fff9320c0895644d4cc5ad2aeb8ed6a392bd5d6d8dc"
+    "message": "Nuova scheda",
+    "source": "sha256:a6845f8d8ffc1bf34a273c1bb5f0c34ba3f2f5f1271d35b7b62b733fd9382f3a"
   },
   "footer.private": {
-    "message": "privata",
-    "source": "sha256:43c444ff49ddbe64847d8df70e34e13e99d32a2df67320d472867ca093e3cafc"
+    "message": "Privata",
+    "source": "sha256:a0281882c326afe7ab0ebb31d5ffc285d348dfc91745509ba0da3c18345b25c3"
   },
   "footer.newPrivate.title": {
     "message": "Nuova scheda privata ({shortcut})",

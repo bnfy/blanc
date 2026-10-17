@@ -230,8 +230,8 @@
     <string name="panel_favorite_shortcut">Ajouter cette page aux favoris (Ctrl/Cmd+D)</string>
     <string name="panel_collapse_title">Réduire l’Island (Échap)</string>
     <string name="panel_collapse_label">Réduire l’Island</string>
-    <string name="footer_new_tab">onglet</string>
-    <string name="footer_private">privé</string>
+    <string name="footer_new_tab">Onglet</string>
+    <string name="footer_private">Privé</string>
     <string name="footer_new_private_title">Nouvel onglet privé (%1$s)</string>
     <string name="footer_workspaces">Spaces</string>
     <string name="footer_favorites">Favoris</string>
