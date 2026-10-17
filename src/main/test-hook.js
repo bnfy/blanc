@@ -2344,6 +2344,45 @@ function install(refs) {
     openDownloads() { openInternalPage('blanc://downloads/'); },
     openHistorySheet() { openInternalPage('blanc://history/'); },
     openSettings() { openInternalPage('blanc://settings/'); },
+    // F47: Settings → General → Your bangs, through the page's own controls.
+    async settingsBangControls() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => ({
+        enabled: document.getElementById('bangsEnabled')?.checked ?? null,
+        rows: [...document.querySelectorAll('#customBangList .site-row')].map((row) => ({
+          code: row.querySelector('.custom-bang-code')?.textContent.replace(/^!/, '') ?? '',
+          name: row.querySelector('.site-row-name')?.textContent ?? '',
+          host: row.querySelector('.custom-bang-host')?.textContent ?? '',
+        })),
+        empty: !!document.querySelector('#customBangList .site-list-empty'),
+        error: document.getElementById('customBangError')?.hidden === false ? document.getElementById('customBangError').textContent : null,
+        replaces: document.getElementById('customBangReplaces')?.hidden === false ? document.getElementById('customBangReplaces').textContent : null,
+      }))()`);
+    },
+    async settingsAddBang(code, name, template) {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const set = (id, value) => { const el = document.getElementById(id); if (!el) return false; el.value = value; return true; };
+        if (!set('customBangCode', ${JSON.stringify(String(code))})) return false;
+        if (!set('customBangName', ${JSON.stringify(String(name))})) return false;
+        if (!set('customBangTemplate', ${JSON.stringify(String(template))})) return false;
+        document.getElementById('customBangAdd').click();
+        return true;
+      })()`);
+    },
+    async settingsRemoveBang(code) {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const row = [...document.querySelectorAll('#customBangList .site-row')]
+          .find((r) => r.querySelector('.custom-bang-code')?.textContent === '!' + ${JSON.stringify(String(code))});
+        if (!row) return false;
+        row.querySelector('.site-row-remove').click();
+        return true;
+      })()`);
+    },
     async settingsProfileRows() {
       const wc = getUtilitySheetWebContents();
       if (!wc) return [];
@@ -2513,6 +2552,24 @@ function install(refs) {
     // synced icon whose bytes are corrupt still yields a `has-icon` class and a
     // non-empty background-image, so only an actual decode separates a rendered
     // favicon from a broken one.
+    /** The ⌘L panel's section headers (groups, devices, the bang picker). */
+    async addressSectionHeaders() {
+      const wc = getOverlayWebContents();
+      if (!wc) return [];
+      return wc.executeJavaScript(`[...document.querySelectorAll('#islandList .island-ghead .ghead-name')].map((el) => el.textContent)`);
+    },
+    async addressInputValue() {
+      const wc = getOverlayWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`document.getElementById(${JSON.stringify(ADDRESS_INPUT_ID)})?.value ?? null`);
+    },
+    /** A suggestions request straight through the bridge, around the
+     * overlay's own guard, so main's refusal is what is tested. */
+    async requestSearchSuggestions(query) {
+      const wc = getOverlayWebContents();
+      if (!wc) throw new Error('overlay is not open');
+      return wc.executeJavaScript(`window.browserAPI.searchSuggestions(${JSON.stringify(String(query))})`);
+    },
     async addressResultRows() {
       const wc = getOverlayWebContents();
       if (!wc) return [];
