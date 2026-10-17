@@ -3,7 +3,7 @@ const hash=s=>createHash('sha256').update(s).digest('hex');
 const canonical=v=>JSON.stringify(v,Object.keys(v).sort());
 function normalize(run, faults) {
   const map=new Map();
-  if(!run.complete||!run.records?.length||run.faults?.length){faults.push('incomplete-or-faulted-run');return map;}
+  if(!run.complete||!Array.isArray(run.records)||!run.records.length||!Array.isArray(run.faults)||run.faults.length||!Array.isArray(run.arrivals)){faults.push('incomplete-or-faulted-run');return map;}
   const roots=new Map();
   for(const r of run.records)if(r.resourceType==='mainFrame'){
     if(roots.has(r.profileKind))faults.push('multiple-navigation-roots');
@@ -16,8 +16,9 @@ function normalize(run, faults) {
     if(!['regular','private'].includes(r.profileKind)||r.error||r.status?.phase!=='ready'||r.result?.redirectURL){faults.push('invalid-decision');continue;}
     if(!['mainFrame','script','xhr'].includes(r.resourceType)||!r.frame||r.frame.url!==r.frame.topUrl){faults.push('unsupported-frame-or-type');continue;}
     if(r.method!=='GET'||typeof r.initiatorOriginPresent!=='boolean'||(!r.initiatorOriginPresent&&r.initiatorOrigin!==null)){faults.push('invalid-context');continue;}
+    if(typeof r.referrer!=='string'||!r.result||typeof r.result!=='object'||Array.isArray(r.result)||('cancel' in r.result&&typeof r.result.cancel!=='boolean')){faults.push('incomplete-decision');continue;}
     const nav=r.resourceType==='mainFrame';
-    if(!nav&&(r.frame.topUrl!==root||r.frame.topOrigin==='null')){faults.push('unresolved-top-frame');continue;}
+    if(!nav&&(r.frame.topUrl!==root||typeof r.frame.topOrigin!=='string'||r.frame.topOrigin!==new URL(root).origin)){faults.push('unresolved-top-frame');continue;}
     if(r.initiatorOriginPresent&&(!r.initiatorOrigin||r.initiatorOrigin==='null')){faults.push('opaque-or-unresolved-initiator');continue;}
     const context={url:r.url,method:r.method,resource_type:r.resourceType,
       initiator_origin:r.initiatorOriginPresent?r.initiatorOrigin:'absent',
@@ -26,7 +27,7 @@ function normalize(run, faults) {
     const key=hash(canonical(context));
     if(map.has(key)){faults.push('ambiguous-repeated-request');continue;}
     const decision=r.result?.cancel?'block':'allow',arrival=arrivals.get(r.url);
-    if(decision==='allow'&&!arrival)faults.push('missing-allowed-response');
+    if(decision==='allow'&&(!arrival||typeof arrival.sha256!=='string'||!arrival.sha256))faults.push('missing-allowed-response');
     if(decision==='block'&&arrival)faults.push('blocked-request-arrived');
     map.set(key,{id:key,context,decision,parent:nav?null:root,
       responseSha256:arrival?.sha256||null,engineSource:r.referrer});

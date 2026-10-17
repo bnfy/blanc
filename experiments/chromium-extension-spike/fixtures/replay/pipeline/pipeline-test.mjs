@@ -65,3 +65,9 @@ test('transport misses, opaque origins and insufficient metadata cannot pass',()
 test('unique causally classified requests may arrive in a different order',()=>{
  const b=run('b');b.records.reverse();assert(compareReplays(run('a'),b).stable);
 });
+
+test('matching omissions cannot turn incomplete observations into a stable oracle',()=>{
+ for(const change of [r=>delete r.faults,r=>delete r.records[1].frame.topOrigin,r=>delete r.records[1].referrer,r=>delete r.records[1].result,r=>r.records[1].result.cancel='yes',r=>delete r.arrivals[0].sha256]){
+  const a=run('a'),b=run('b');change(a);change(b);assert(!compareReplays(a,b).stable);
+ }
+});
