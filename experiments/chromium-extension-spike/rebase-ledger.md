@@ -198,15 +198,16 @@ confirmed by this checkpoint; the acceptance run remains incomplete.
 | Owner attention | not measured |
 | Active agent time (Codex / Claude) | not measured / not measured |
 | First fetch → last automated result | Oct 16 23:34:42.463 → Oct 17 02:58:47.353 UTC; 3h24m04.890s |
-| Final calendar span / total re-verification | open / not measured |
+| Final calendar span / total re-verification | open, including the scheduled wait for a Google-endpoint extension upgrade / not measured |
 | Criterion 1: >2 owner-days or >1 calendar week | week threshold not reached at checkpoint; owner-attention threshold cannot be quantified from these logs |
 | Outcome | **in progress; real extension version-upgrade acceptance not run** |
-| Next rebase preparation | account for BrowserView GN target and explicit deps; re-audit concrete extension-container API; retain bounded-memory plan scanner and normal stops |
+| Next rebase preparation | account for BrowserView GN target and explicit deps; re-audit concrete extension-container API; retain bounded-memory plan scanner and normal stops; retain the previous-major disposable profile and record scheduled gate waits as specified below |
 
 The approved 156 instance/profile/tabs remain untouched. Disposable 157 resources
 are retained for unlocked acceptance and will be removed only after those checks.
-The monitor is paused awaiting an older signed extension fixture. `CLAUDE.md` and the completed milestone
-record are not updated with a gate outcome. This ledger checkpoint does not
+At this checkpoint the monitor was paused awaiting an older signed extension
+fixture; the bounded daily monitor below supersedes that pause. `CLAUDE.md` and
+the completed milestone record are not updated with a gate outcome. This ledger checkpoint does not
 approve a migration or another cold output.
 
 ### Baseline decision after checkpoint review
@@ -237,8 +238,8 @@ left it at that version, and the older signed CRX fixture is unavailable. This
 is not a failed browser updater, nor a version-upgrade pass.
 
 Native tests found an empty-pinned-section/first-loose-gap tie in the copied drag
-resolver. A prototype-only asset transform fixes that exact tie; four focused
-tests and ten guard tests pass. Assets-only preparation and native tab/group
+resolver. The initial prototype-only asset transform fixed that exact tie
+(superseded by the shared Electron fix below); four focused tests and ten guard tests pass. Assets-only preparation and native tab/group
 retests passed; no native build or cold-build time was added. This repair is
 recorded separately from the one upstream anchor and one native API change.
 Editing time was not separately measured. Timing records bracket the unlocked
@@ -249,8 +250,8 @@ owner attention remain unmeasured.
 The 156 baseline hashes still match. Fixture tabs/groups, added Favorites/folders
 and sentinel site data were cleaned. The isolated 157 profile, one original
 disposable Favorite and installed Bitwarden are retained for the remaining
-upgrade. The monitor stays paused; no PR, baseline promotion or gate-outcome
-change to CLAUDE/AGENTS. The README pin moves only after complete acceptance.
+upgrade. At this checkpoint the monitor remained paused (superseded below);
+no PR, baseline promotion or gate-outcome change to CLAUDE/AGENTS. The README pin moves only after complete acceptance.
 
 ### Review follow-up: Electron ownership and bounded upgrade wait
 
@@ -273,3 +274,26 @@ November 3 inclusive, quiet unless actionable, pausing on completion, required
 owner action or expiry. No third-party CRX mirrors. If the bound expires, the
 row stays in progress; mechanism-only fallback requires the owner's separate
 decision. No 157 promotion, no CLAUDE/AGENTS outcome change.
+
+### Carry forward to the next rebase
+
+- **Preserve a previous-major migration fixture.** Before retiring the previous
+  major's disposable test profile, close that test instance and retain a dated
+  snapshot in durable storage, with its path, browser version, installed extension
+  versions and fixture provenance recorded in the ledger. Do not rely solely on
+  `/private/tmp`. Copy that snapshot into a separate disposable directory for the
+  next major's profile-forward migration and extension-upgrade checks; retain the
+  original until those checks and their evidence are complete. Never substitute
+  the permanent profile. The retained 157 disposable profile should become the
+  next rebase's prior-major fixture; 156-to-157 migration remains **not run**.
+- **Record the mechanism and duration of external gate waits.** Rebase 0's wait
+  was recorded October 17, 2026. The existing heartbeat
+  `finish-blanc-chromium-157-rebase` checks daily at **12:00 America/New_York**
+  through **November 3, 2026 inclusive**. Record each actual observation's time
+  and result, and the eventual upgrade or bound-expiry time. The open calendar
+  span includes this wait for an eligible Google-endpoint upgrade; waiting is
+  not compilation, re-verification effort or measured owner/agent attention.
+  Preserve the separate build and test measurements. On expiry, report and
+  pause with the row still in progress; a mechanism-only fallback requires a
+  separate owner decision. Future rows should name their own schedule, bound
+  and completion condition rather than inherit these dates.
