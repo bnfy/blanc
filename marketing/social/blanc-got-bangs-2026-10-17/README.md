@@ -7,9 +7,10 @@ nothing is scheduled.
 
 - `blanc-got-bangs-1080x1350.png` is the graphic.
 - `bangs-page-capture-1280x720@2x.png` is the real https://blanc.day/bangs,
-  captured at 1280×720 on October 17, 2026, after the v1.36.0 site deploy. The
-  screen shows this capture unedited; only the bangs and side hair overlap its
-  edges.
+  captured at 1280×720 on October 17, 2026, after the page's redesign (#915,
+  #919) went live. The screen shows this capture unedited; only the bangs and
+  side hair overlap its edges. It includes the site icons the page itself shows
+  for Wikipedia, YouTube, Amazon and Google.
 - `graphic.html` draws the iMac, wig and sparkles in SVG. The wig's strands come
   from a fixed seed, so every render matches. `render.mjs` writes the PNG
   (`node marketing/social/blanc-got-bangs-2026-10-17/render.mjs [--scale=2]`).
