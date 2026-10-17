@@ -349,6 +349,50 @@
         "bangsCore"
       ],
       "verdict": "qualified"
+    },
+    {
+      "id": "bangs-101",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Bangs: search any site from the address bar",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsCore"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-102",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Type !yt lofi to search YouTube directly, with any search engine.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsCore",
+        "bangsPrivacy"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-103",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Put a site’s code before or after your search. Your words go straight to the address the bang opens, not through your search engine. A few bangs search one site through another engine; the list marks them.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsCore",
+        "bangsPrivacy",
+        "bangsList"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bangs-104",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Type ! on its own to see popular bangs, or add your own in Settings.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsCore",
+        "bangsCustom"
+      ],
+      "verdict": "qualified"
     }
   ]
 }

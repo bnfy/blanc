@@ -12924,6 +12924,28 @@
             "after": "Blanc’s own interface is available in English, German, Spanish, French, Italian and Portuguese (Brazil)."
           }
         ]
+      },
+      {
+        "source": "site/src/pages/features.astro",
+        "reason": "October 17, 2026: Bangs takes the Reopen closed tabs board slot (R3) with a live demo, and Reopen closed tabs becomes a small tile after the themes tile, its popover unchanged and moved after the themes popover. Not public until the release that ships bangs; recorded in docs/website-candidate-claims-bangs.json.",
+        "replacements": [
+          {
+            "before": "<h3>Reopen closed tabs, even whole groups</h3>",
+            "after": "<h3>Bangs: search any site from the address bar</h3>"
+          },
+          {
+            "before": "<h3>Light, dark or system</h3>",
+            "after": "<h3>Light, dark or system</h3>\n<h3>Reopen closed tabs, even whole groups</h3>"
+          },
+          {
+            "before": "<h2 id=\"pop-reopen-closed-tabs-title\">Reopen a closed tab or a whole group, sometimes without a reload.</h2>\n<p>Press ⌘⇧T, type /reopen, or choose from Recently Closed in the Island. For about 30 seconds, one eligible tab you closed can come back without loading again, which can keep its scroll position and the text you were typing.</p>\n<p class=\"pop-note\">On Windows and Linux, press Ctrl+Shift+T. After that window the tab reloads from a saved snapshot or its address. Each window keeps up to 25 entries for an hour, and private tabs are never recorded.</p>",
+            "after": "<h2 id=\"pop-bangs-title\">Type !yt lofi to search YouTube directly, with any search engine.</h2>\n<p>Put a site’s code before or after your search. Your words go straight to the address the bang opens, not through your search engine. A few bangs search one site through another engine; the list marks them.</p>\n<p class=\"pop-note\">Type ! on its own to see popular bangs, or add your own in Settings.</p>"
+          },
+          {
+            "before": "<p class=\"pop-note\">Websites that follow the system theme change too.</p>",
+            "after": "<p class=\"pop-note\">Websites that follow the system theme change too.</p>\n<h2 id=\"pop-reopen-closed-tabs-title\">Reopen a closed tab or a whole group, sometimes without a reload.</h2>\n<p>Press ⌘⇧T, type /reopen, or choose from Recently Closed in the Island. For about 30 seconds, one eligible tab you closed can come back without loading again, which can keep its scroll position and the text you were typing.</p>\n<p class=\"pop-note\">On Windows and Linux, press Ctrl+Shift+T. After that window the tab reloads from a saved snapshot or its address. Each window keeps up to 25 entries for an hour, and private tabs are never recorded.</p>"
+          }
+        ]
       }
     ]
   },

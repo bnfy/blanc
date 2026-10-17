@@ -11,6 +11,7 @@ import TabDragFigure from '../components/TabDragFigure.astro';
 import QuietDemo from '../components/bento/demos/QuietDemo.astro';
 import ReopenDemo from '../components/bento/demos/ReopenDemo.astro';
 import PrivateDemo from '../components/bento/demos/PrivateDemo.astro';
+import BangsDemo from '../components/bento/demos/BangsDemo.astro';
 import '../styles/features-bento.css';
 ---
 <BaseLayout
@@ -83,17 +84,13 @@ import '../styles/features-bento.css';
         <img slot="visual" class="bento-img bento-img--cover bento-pos-sunrise" src="/feature-hub/sunrise-hero.webp" width="1600" height="1001" alt="" />
         <img class="bento-mark" src="/demo-assets/sunrise-mark.png" width="680" height="680" alt="Blanc" />
       </BentoTile>
-      <BentoTile id="reopen-closed-tabs" href="/features/reopen-closed-tabs" feature="reopen-closed-tabs" area="R3">
-        <div slot="visual" class="ui ui-panel ui-panel--narrow">
-          <div class="ui-sec">this window · 3 tabs</div>
-          <div class="ui-row"><span class="ui-fav ui-fav--a">W</span><span class="ui-t">Typography — Wikipedia</span></div>
-          <div class="ui-row ui-extra"><span class="ui-fav ui-fav--e">V</span><span class="ui-t">Visit Copenhagen — Guide</span></div>
-          <div class="ui-row ui-extra"><span class="ui-fav ui-fav--c">F</span><span class="ui-t">Flight search</span></div>
-          <div class="ui-sec">⌄ recently closed 2</div>
-          <div class="ui-row is-on"><span class="ui-fav ui-fav--b">T</span><span class="ui-t">The New York Times</span><span class="ui-m">just now</span></div>
-          <div class="ui-row"><span>▸</span><span class="ui-t">research · 4 tabs</span><span class="ui-m">2 min</span></div>
+      <BentoTile id="bangs" href="/bangs" feature="bangs" area="R3">
+        <div slot="visual" class="ui ui-panel ui-panel--narrow ui-bangs">
+          <div class="ui-bang-step ui-bang-step--1"><div class="ui-bang-in">!yt lofi</div><div class="ui-row is-on"><span class="ui-bang-code">!yt</span><span class="ui-t">Search YouTube for “lofi”</span><span class="ui-m">↵</span></div></div>
+          <div class="ui-bang-step ui-bang-step--2"><div class="ui-bang-in">!w golden retriever</div><div class="ui-row is-on"><span class="ui-bang-code">!wikipedia</span><span class="ui-t">Search Wikipedia for “golden retriever”</span><span class="ui-m">↵</span></div></div>
+          <div class="ui-bang-step ui-bang-step--3"><div class="ui-bang-in">usb cable !a</div><div class="ui-row is-on"><span class="ui-bang-code">!a</span><span class="ui-t">Search Amazon.com for “usb cable”</span><span class="ui-m">↵</span></div></div>
         </div>
-        <h3>Reopen closed tabs, even whole groups</h3>
+        <h3>Bangs: search any site from the address bar</h3>
       </BentoTile>
       <BentoTile id="private-tabs" href="/features/private-tabs" feature="private-tabs" area="L4" tone="ink" label="top">
         <div slot="visual" class="ui ui-private"><span class="ui-private-pill">nytimes.com <span class="ui-private-chip">private ×</span></span><span class="ui-private-note">History stays untouched</span></div>
@@ -148,6 +145,7 @@ import '../styles/features-bento.css';
         <BentoSmall id="security" href="/features/security" feature="security" icon="box"><h3>Sandboxed pages</h3></BentoSmall>
         <BentoSmall id="signed-releases" href="/features/security" feature="signed-releases" icon="seal"><h3>Signed, verifiable releases</h3></BentoSmall>
         <BentoSmall id="themes" href="/features/island" feature="themes" icon="half"><h3>Light, dark or system</h3></BentoSmall>
+        <BentoSmall id="reopen-closed-tabs" href="/features/reopen-closed-tabs" feature="reopen-closed-tabs" icon="undo"><h3>Reopen closed tabs, even whole groups</h3></BentoSmall>
       </div>
     </div>
   </section>
@@ -204,11 +202,11 @@ import '../styles/features-bento.css';
           <p>Blanc is a desktop browser for macOS, Windows and Linux that keeps its controls in one small Island, blocks ads and trackers by default, and stays out of the way of the page you came for. It is free and open source.</p>
           <p class="pop-note">Built by Bananify, an independent studio.</p>
         </FeaturePop>
-        <FeaturePop id="reopen-closed-tabs" label="Reopen Closed Tab" feature="reopen-closed-tabs" href="/features/reopen-closed-tabs" linkText="Read more about reopening tabs" demo>
-          <ReopenDemo slot="visual" />
-          <h2 id="pop-reopen-closed-tabs-title">Reopen a closed tab or a whole group, sometimes without a reload.</h2>
-          <p>Press ⌘⇧T, type /reopen, or choose from Recently Closed in the Island. For about 30 seconds, one eligible tab you closed can come back without loading again, which can keep its scroll position and the text you were typing.</p>
-          <p class="pop-note">On Windows and Linux, press Ctrl+Shift+T. After that window the tab reloads from a saved snapshot or its address. Each window keeps up to 25 entries for an hour, and private tabs are never recorded.</p>
+        <FeaturePop id="bangs" label="Bangs" feature="bangs" href="/bangs" linkText="See every bang" demo>
+          <BangsDemo slot="visual" />
+          <h2 id="pop-bangs-title">Type !yt lofi to search YouTube directly, with any search engine.</h2>
+          <p>Put a site’s code before or after your search. Your words go straight to the address the bang opens, not through your search engine. A few bangs search one site through another engine; the list marks them.</p>
+          <p class="pop-note">Type ! on its own to see popular bangs, or add your own in Settings.</p>
         </FeaturePop>
         <FeaturePop id="private-tabs" label="Private tabs" feature="private-tabs" href="/features/private-tabs" linkText="Read more about private tabs" demo>
           <PrivateDemo slot="visual" />
@@ -384,6 +382,12 @@ import '../styles/features-bento.css';
           <h2 id="pop-themes-title">A look that follows your computer.</h2>
           <p>Choose light, dark or system, and Blanc’s own pages change with it. Change it in Settings or with /theme.</p>
           <p class="pop-note">Websites that follow the system theme change too.</p>
+        </FeaturePop>
+        <FeaturePop id="reopen-closed-tabs" label="Reopen Closed Tab" feature="reopen-closed-tabs" href="/features/reopen-closed-tabs" linkText="Read more about reopening tabs" demo>
+          <ReopenDemo slot="visual" />
+          <h2 id="pop-reopen-closed-tabs-title">Reopen a closed tab or a whole group, sometimes without a reload.</h2>
+          <p>Press ⌘⇧T, type /reopen, or choose from Recently Closed in the Island. For about 30 seconds, one eligible tab you closed can come back without loading again, which can keep its scroll position and the text you were typing.</p>
+          <p class="pop-note">On Windows and Linux, press Ctrl+Shift+T. After that window the tab reloads from a saved snapshot or its address. Each window keeps up to 25 entries for an hour, and private tabs are never recorded.</p>
         </FeaturePop>
       </div>
       <div class="pop-nav">

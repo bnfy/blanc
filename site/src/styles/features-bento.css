@@ -37,7 +37,7 @@
 .bento-C1 { grid-area: 1 / 3 / 5 / 5; } .bento-C2 { grid-area: 5 / 3 / 9 / 5; } .bento-C3 { grid-area: 9 / 3 / 11 / 4; }
 .bento-C4 { grid-area: 11 / 3 / 13 / 4; } .bento-C5 { grid-area: 9 / 4 / 13 / 5; }
 /* Right column 4 + 4 + 4: the two small tiles carry two-line labels and need
-   the extra row more than the Reopen panel does. */
+   the extra row more than the Bangs panel does. */
 .bento-R1 { grid-area: 1 / 5 / 5 / 6; } .bento-R2 { grid-area: 1 / 6 / 5 / 7; } .bento-R3 { grid-area: 5 / 5 / 9 / 7; }
 .bento-R4 { grid-area: 9 / 5 / 13 / 6; } .bento-R5 { grid-area: 9 / 6 / 13 / 7; }
 
@@ -170,6 +170,22 @@
 .bento-R1[data-in-view] .ui-quiet { animation-play-state: running; }
 .ui-quiet--2 { animation-delay: .5s; }
 @keyframes bento-quiet { 0%, 25% { opacity: 1; } 45%, 85% { opacity: .28; } 100% { opacity: 1; } }
+/* Bangs tile: three bangs and their hint rows, one at a time. The loop runs
+   only on screen (feature-bento.js) and, without motion, rests on the first. */
+.ui-bangs { position: relative; min-height: 6.2em; }
+.ui-bang-step { position: absolute; inset: 0; opacity: 0; }
+.ui-bang-step--1 { opacity: 1; }
+.ui-bang-in { margin: .7em .8em .3em; padding: .55em .8em; border: 1px solid rgba(18, 16, 11, .1); border-radius: .8em; background: #F7F7F7; }
+.ui-bang-code { flex: none; font-weight: 700; }
+@media (prefers-reduced-motion: no-preference) {
+  /* Negative first delay: paused or not, the first bang is already showing. */
+  .ui-bang-step { animation: bento-bang 9s linear infinite; animation-play-state: paused; }
+  .ui-bang-step--1 { animation-delay: -1s; }
+  .ui-bang-step--2 { animation-delay: 2s; }
+  .ui-bang-step--3 { animation-delay: 5s; }
+  .bento-R3[data-in-view] .ui-bang-step { animation-play-state: running; }
+}
+@keyframes bento-bang { 0% { opacity: 0; } 4%, 30% { opacity: 1; } 34%, 100% { opacity: 0; } }
 .ui-chips { display: grid; gap: .45em; width: 100%; }
 .ui-chip { display: flex; align-items: center; justify-content: space-between; padding: .55em .8em; border-radius: .8em; font-weight: 600; }
 .ui-chip--1 { background: #F6E2BF; color: #7A4E12; } .ui-chip--2 { margin-left: 12%; background: #F4EFE7; color: #6B6257; } .ui-chip--3 { margin-left: 24%; background: #F4EFE7; color: #6B6257; }
@@ -264,6 +280,8 @@
   .pop-hero-mark { width: 88px; margin-bottom: 28px; }
   .bento-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .bento-small { aspect-ratio: auto; min-height: 120px; gap: 18px; }
+  /* An odd count would leave the last tile alone in its row. */
+  .bento-small:last-child:nth-child(odd) { grid-column: 1 / -1; }
   .bento-icon--tile { width: 24px; }
   .pop-stage { height: 250px; padding: 20px; }
   /* The split keeps its two columns down to 721px; the copy column holds the

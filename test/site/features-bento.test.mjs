@@ -28,8 +28,9 @@ test('board keeps every anchor, every tile is a tracked link, and all 16 guides 
     const tiles = await page.locator('[data-pop]').evaluateAll(as => as.map(a => ({
       tag: a.tagName, id: a.id, pop: a.dataset.pop, href: a.getAttribute('href'),
       track: a.dataset.track, feature: a.dataset.feature, position: a.dataset.ctaPosition })));
-    // 15 board tiles and 20 small ones (Rename your tabs joined October 16, 2026).
-    assert.equal(tiles.length, 35);
+    // 15 board tiles and 21 small ones: Bangs took Reopen closed tabs' board slot
+    // (October 17, 2026), and Reopen became a small tile.
+    assert.equal(tiles.length, 36);
     for (const t of tiles) {
       assert.equal(t.tag, 'A', t.id);
       assert.equal(t.pop, t.id);
@@ -38,7 +39,9 @@ test('board keeps every anchor, every tile is a tracked link, and all 16 guides 
     const reachable = new Set(await page.locator('a[href^="/features/"]').evaluateAll(as => as.map(a => a.getAttribute('href'))));
     for (const guide of guides) assert.ok(reachable.has(`/features/${guide}`), guide);
     assert.equal(await page.locator('.bento-tile').count(), 15);
-    assert.equal(await page.locator('.bento-small').count(), 20);
+    assert.equal(await page.locator('.bento-small').count(), 21);
+    assert.equal(await page.locator('#bangs.bento-R3').count(), 1);
+    assert.equal(await page.locator('#reopen-closed-tabs.bento-small').count(), 1);
     assert.equal(await page.locator('h1').innerText(), 'Everything in Blanc.');
   } finally { await context.close(); }
 });
@@ -88,6 +91,28 @@ test('features page never scrolls sideways', { timeout: 60000 }, async () => {
       await page.setViewportSize({ width, height: 900 });
       await page.goto(`${baseURL}/features`);
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${width}px overflows`);
+    }
+  } finally { await context.close(); }
+});
+
+test('in two columns an odd last small tile spans the row instead of sitting alone', async () => {
+  const context = await contextFor({ viewport: { width: 390, height: 900 } });
+  const page = await context.newPage();
+  try {
+    await page.goto(`${baseURL}/features`);
+    const rows = await page.evaluate(() => {
+      const grid = document.querySelector('.bento-grid');
+      const byTop = new Map();
+      for (const tile of grid.querySelectorAll('.bento-small')) {
+        const box = tile.getBoundingClientRect();
+        const top = Math.round(box.top);
+        byTop.set(top, [...(byTop.get(top) ?? []), Math.round(box.width)]);
+      }
+      return { gridWidth: Math.round(grid.getBoundingClientRect().width), rows: [...byTop.values()] };
+    });
+    for (const widths of rows.rows) {
+      if (widths.length === 1) assert.equal(widths[0], rows.gridWidth, 'a lone small tile fills its row');
+      else assert.equal(widths.length, 2);
     }
   } finally { await context.close(); }
 });
@@ -190,7 +215,7 @@ test('each demo shows exactly its own step and rests on step 3 without motion', 
   const page = await context.newPage();
   try {
     await page.goto(`${baseURL}/features`);
-    for (const id of ['commands', 'ad-blocking', 'quiet-tabs', 'reopen-closed-tabs', 'private-tabs']) {
+    for (const id of ['commands', 'ad-blocking', 'quiet-tabs', 'reopen-closed-tabs', 'private-tabs', 'bangs']) {
       const stage = page.locator(`#pop-${id} .pop-stage`);
       assert.ok(await stage.locator('.demo [data-at], .demo [data-dim], .demo [data-on]').count() >= 3, `${id}: per-step states`);
       await page.locator(`#${id}`).click();
@@ -267,7 +292,7 @@ test('tiles announce a popup only with script, and a popover open is tracked und
   const page = await context.newPage();
   try {
     await page.goto(`${baseURL}/features`);
-    assert.equal(await page.locator('[data-pop][aria-haspopup="dialog"]').count(), 35);
+    assert.equal(await page.locator('[data-pop][aria-haspopup="dialog"]').count(), 36);
     const seen = await page.evaluate(() => new Promise(resolve => {
       document.addEventListener('click', event => resolve(event.target.closest('[data-track]')?.dataset.track), { once: true });
       document.getElementById('glance').click();
@@ -295,6 +320,31 @@ test('the Quiet Tabs and wallpaper tiles animate only while they are on screen',
     await page.waitForFunction(() => ['.bento-R1', '.bento-R2'].every(s => !document.querySelector(s).hasAttribute('data-in-view')));
     assert.deepEqual(await states(), Array(6).fill('paused'));
   } finally { await context.close(); }
+});
+
+test('the Bangs tile types its bangs only while on screen, and rests without motion', async () => {
+  const context = await contextFor({ reducedMotion: 'no-preference', viewport: { width: 1268, height: 900 } });
+  const page = await context.newPage();
+  try {
+    await page.goto(`${baseURL}/features`);
+    const states = () => page.evaluate(() => [...document.querySelectorAll('#bangs .ui-bang-step')].map(el => getComputedStyle(el).animationPlayState));
+    await page.locator('#bangs').scrollIntoViewIfNeeded();
+    await page.waitForFunction(() => document.querySelector('.bento-R3').hasAttribute('data-in-view'));
+    const running = await states();
+    assert.ok(running.length >= 3 && running.every(state => state === 'running'), JSON.stringify(running));
+    await page.locator('.bento-patron').scrollIntoViewIfNeeded();
+    await page.waitForFunction(() => !document.querySelector('.bento-R3').hasAttribute('data-in-view'));
+    assert.ok((await states()).every(state => state === 'paused'));
+  } finally { await context.close(); }
+  const still = await contextFor();
+  const quiet = await still.newPage();
+  try {
+    await quiet.goto(`${baseURL}/features`);
+    const shown = await quiet.evaluate(() => [...document.querySelectorAll('#bangs .ui-bang-step')]
+      .filter(el => getComputedStyle(el).opacity !== '0').map(el => el.textContent.replace(/\s+/g, ' ').trim()));
+    assert.equal(shown.length, 1, 'reduced motion shows one bang, still');
+    assert.match(shown[0], /!yt lofi/);
+  } finally { await still.close(); }
 });
 
 test('a closing popover hands back to a visible tile instead of an empty card', async () => {

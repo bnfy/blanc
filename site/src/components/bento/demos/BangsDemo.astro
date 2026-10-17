@@ -1,0 +1,11 @@
+---
+// Bangs, as the ⌘L panel draws them: a typed bang → its hint row → the
+// address Return opens. The hint shows the bang's primary code, as the app does.
+---
+<div class="demo ui demo-panel">
+  <div class="demo-in" data-at="1"><span>!yt lofi</span><span class="demo-caret"></span></div>
+  <div class="demo-in" data-at="2 3"><span>!yt lofi</span></div>
+  <div data-at="1"><div class="ui-sec">type a bang with your search</div></div>
+  <div data-at="2"><div class="ui-row is-on"><span class="demo-cmd">!yt</span><span class="ui-t">Search YouTube for “lofi”</span><span class="ui-m">↵</span></div></div>
+  <div data-at="3"><div class="ui-row is-on"><span class="demo-cmd">!yt</span><span class="ui-t">Search YouTube for “lofi”</span><span class="ui-m">↵</span></div><div class="ui-sec">opens youtube.com/results?search_query=lofi</div></div>
+</div>
