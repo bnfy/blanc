@@ -90,3 +90,10 @@ test('the tab record and acceptance hook expose the home only inside main', () =
   const serialize = namedSection(main, 'function serializeTabs()', 'function broadcastTabs()');
   assert.doesNotMatch(serialize, /pinnedHomeUrl/);
 });
+
+test('returning to a local-file home never invents a new file grant', () => {
+  const context = namedSection(main, 'function tabContextData(', '/** The action closures');
+  const actions = namedSection(main, 'function menuContextActions(', 'function createMainWindow(');
+  assert.match(context, /!home\.startsWith\('file:'\)/);
+  assert.match(actions, /pinnedHomeUrl\.startsWith\('file:'\)[\s\S]*?return false/);
+});

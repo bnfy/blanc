@@ -9249,7 +9249,10 @@ function tabContextData(tab, owner) {
       asleep: !!tab.asleep, bookmarked: !!tab.bookmarked,
       groupId: tab.groupId ?? null, capturing: !!tab.capturing,
       pinnedHome: {
-        canReturn: !!tab.pinned && !!home && persistableUrl(tab.url) !== home,
+        // A file grant belongs only to the live tab while it is on that file.
+        // Returning from a website must not invent a fresh local-file grant.
+        canReturn: !!tab.pinned && !!home && !home.startsWith('file:')
+          && persistableUrl(tab.url) !== home,
         canSet: !!tab.pinned && candidate !== null && candidate !== home,
       },
     },
@@ -9279,7 +9282,7 @@ function menuContextActions(owner) {
     togglePin: b((id) => toggleTabPinned(id)),
     returnPinnedHome: b((id) => {
       const tab = tabs.get(id);
-      if (!tab?.pinned || !tab.pinnedHomeUrl) return false;
+      if (!tab?.pinned || !tab.pinnedHomeUrl || tab.pinnedHomeUrl.startsWith('file:')) return false;
       navigateTabToAddress(id, tab.pinnedHomeUrl);
       return true;
     }),
@@ -11278,6 +11281,22 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       }),
       navigateTabToAddress, liveContents, tabs, getTabOrder: () => rt().tabOrder, getGroups: () => rt().groups, getActiveTabId: () => rt().activeTabId, getIslandRect: () => rt().islandRect, clusterSlots,
       createTab, setActiveTab, closeTab, duplicateTab, toggleTabPinned, toggleTabMuted,
+      goBack: (id) => {
+        const tab = tabs.get(id);
+        if (!tab) return false;
+        if (tab.asleep) {
+          const snapshot = sleepSnapshots.get(id);
+          wakeTab(id, { atIndex: snapshot ? snapshot.index - 1 : null }).catch(() => {});
+          return true;
+        }
+        const navigation = liveContents(tab)?.navigationHistory;
+        if (!navigation?.canGoBack()) return false;
+        navigation.goBack();
+        return true;
+      },
+      pinnedHomeActions: () => menuContextActions(rt()),
+      chooseSessionRecovery: (choice) => chooseSessionRecovery(choice),
+      getSessionRecoveryState: () => ({ ...sessionRecoveryState }),
       setGlanceTab, closeGlance, promoteGlance, resizeGlanceAt, resetGlanceRatio,
       getGlanceTabId: () => rt().glanceTabId,
       getFocusedPaneTabId: () => rt().focusedPaneTabId,

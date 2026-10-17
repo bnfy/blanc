@@ -205,3 +205,61 @@ Feature: Tabs and tab groups
     Given a tab on "rename-first" named "Budget"
     When the page on "rename-first" starts loading
     Then the command panel row for "rename-first" reads "Budget"
+
+  @F48-1 @F48 @pinned-home @desktop
+  Scenario: Browsing a pinned tab keeps its session history
+    Given a pinned tab whose home is "pinned-a"
+    When that pinned tab goes to "pinned-b"
+    And I switch away from and back to the pinned tab
+    Then the pinned tab is still on "pinned-b"
+    When I go Back in the pinned tab
+    Then the pinned tab reaches its home "pinned-a"
+
+  @F48-2 @F48 @pinned-home @desktop
+  Scenario: A clean relaunch returns a pinned tab to its home
+    Given a pinned tab whose slow home is "pinned-slow-home"
+    And that pinned tab has gone to "pinned-last-page"
+    When I relaunch Blanc
+    Then the restored pinned tab starts loading "pinned-slow-home" with the saved title "pinned-last-page"
+
+  @F48-3 @F48 @pinned-home @desktop
+  Scenario: Pin controls deliberately change the home
+    Given a pinned tab whose home is "pinned-a"
+    When that pinned tab goes to "pinned-b"
+    And I unpin and re-pin that tab
+    Then its pinned home is "pinned-b"
+    When that pinned tab goes to "pinned-c"
+    And I make the current page its pinned home
+    And I relaunch Blanc
+    Then the restored pinned tab is on "pinned-c"
+    When that pinned tab goes to "pinned-d"
+    And I return it to its pinned home
+    Then the pinned tab is on "pinned-c"
+
+  @F48-4 @F48 @pinned-home @desktop
+  Scenario: Quiet and private tabs keep the pinned-home privacy rules
+    Given a pinned background tab on "pinned-quiet"
+    When I quiet that pinned tab
+    Then its pinned home is "pinned-quiet"
+    When I pin a private tab on "pinned-secret"
+    Then session.json contains neither the private page nor its pinned home
+
+  @F48-5 @F48 @pinned-home @desktop
+  Scenario: Tab and Space transfers retain the pinned home
+    Given a pinned tab whose home is "pinned-a"
+    When that pinned tab goes to "pinned-b"
+    Then duplicate, reopen, move-window, and Space copies retain its pinned home
+
+  @F48-6 @F48 @pinned-home @desktop
+  Scenario: Clearing history does not clear a pinned home
+    Given a pinned tab whose home is "pinned-a"
+    When that pinned tab goes to "pinned-b"
+    And I clear browsing history
+    And I relaunch Blanc
+    Then the restored pinned tab is on "pinned-a"
+
+  @F48-7 @F48 @pinned-home @desktop
+  Scenario: A local-file home follows the normal file-access policy
+    Given a pinned local HTML file
+    When that pinned tab goes to "pinned-web-page"
+    Then Return to Pinned Home follows the local-file access policy

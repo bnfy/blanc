@@ -324,6 +324,12 @@ jobs:
       - name: Tab views keep drawing (Windows)
         if: ${{ !cancelled() && runner.os != 'Linux' }}
         run: npm run test:tab-view-drawing:desktop
+      - name: Pinned-home crash recovery (Linux)
+        if: ${{ !cancelled() && runner.os == 'Linux' }}
+        run: xvfb-run -a npm run test:pinned-home-recovery:desktop
+      - name: Pinned-home crash recovery (Windows)
+        if: ${{ !cancelled() && runner.os != 'Linux' }}
+        run: npm run test:pinned-home-recovery:desktop
 
   browser-shortcuts:
     needs: changes
