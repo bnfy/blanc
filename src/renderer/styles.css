@@ -2685,13 +2685,21 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
   flex: 0 0 auto;
 }
 
-/* Slash-command rows */
+/* Slash-command and bang rows: the command or !code is a small chip */
 .island-row .row-cmd {
   font-family: var(--font-text);
-  font-size: 12.5px;
-  color: var(--accent);
+  font-size: 12px;
+  font-weight: 550;
+  line-height: 20px;
+  padding: 0 7px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+  color: var(--text);
   flex: 0 0 auto;
   white-space: nowrap;
+}
+.island-row.active .row-cmd {
+  background: color-mix(in srgb, var(--text) 12%, transparent);
 }
 .island-row .row-hint {
   font-size: 12.5px;
