@@ -26,6 +26,9 @@ namespace_id = "120260902"
 [vars]
 NEWSLETTER_FROM = "Blanc <release-notes@updates.blancbrowser.com>"
 AMBASSADOR_TO = "support@blanc.day"
+# Each genuinely new newsletter subscriber is announced here. Remove it to
+# turn the alert off.
+SIGNUP_ALERT_TO = "support@blanc.day"
 # The Resend segment "Blanc release notes" that src/resend-sync.js keeps in
 # step with the confirmed newsletter list. Not a secret.
 RESEND_SEGMENT_ID = "8793c0be-592a-4ef5-a932-6720e4bfa862"
