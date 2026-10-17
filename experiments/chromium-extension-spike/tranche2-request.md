@@ -5,7 +5,8 @@ its audit and recording checkpoints have started. The corpus amendment in
 §2.1 was explicitly approved on October 17, 2026 at `68892cc1` (§8.1).
 The owner authorized recording approval, merging #916 once CI is green,
 and resuming implementation within the amended scope. Further option C
-runs remain stopped.** Task 0 measured a rebase (`rebase-ledger.md`, row 0: 2h39m47s
+runs remain stopped. Spike A implementation is in progress on draft #920;
+the current checkpoint is `4eaad3c7` and is mapped below.** Task 0 measured a rebase (`rebase-ledger.md`, row 0: 2h39m47s
 cold build, one broken anchor, one API change, 21 upstream files) and its
 native acceptance passed except the extension version-upgrade observation,
 which stays under daily check through November 3. That open gate blocks 157's
@@ -32,6 +33,28 @@ Order: 1 and 2 start first and run in parallel where the single builder
 allows (one build at a time; the spikes alternate, they never overlap a build).
 3 runs alongside as a document. 4, 5 and 6 fill the gaps. The tranche ends
 when every row has its artifact, or when a kill criterion is hit and recorded.
+
+### 1.1 Progress checkpoint — October 17, 2026 (`4eaad3c7`)
+
+This table is the live map from implementation work back to the approved plan.
+Detailed measurements remain in `rebase-ledger.md`; test outcomes and evidence
+links remain in `results.md`. A row marked in progress is not acceptance.
+
+| Item | Status | Evidence / next gate |
+| --- | --- | --- |
+| 1. Spike A | **In progress** | Request-path audit, origin-preserving replay, synthetic 2,000/2,000 corpus, browser-process factory proxy, sandboxed Mojo Ghostery engine, regular/private network parity, fail-closed probes, GET redirects, dedicated workers, bounded service-worker identity, two shared-worker clients and one exact-owner teardown are measured. Current evidence is linked from `results.md`, including `evidence/f12-shared-lifecycle-20261017/`. Remaining acceptance work includes the rest of the request-path matrix, CSS/procedural cosmetics/scriptlets, the private real-page sanity sample and qualified quiet-machine latency. The final aggregate `evidence/f12-spike-a/` report is pending. |
+| 2. Spike B | **Not started** | MV2 gate audit and uBO runtime report remain required. No Spike B build has run. Start the source audit without overlapping any Spike A build. |
+| 3. A1 patch-budget design | **Not started** | Current measured upstream footprint remains 25 files / 62 hunks; this checkpoint changes only experiment harness/docs and adds no upstream file or hunk. Design artifact remains required. |
+| 4. Visual comparison | **Not started** | Fixed-size Electron/Chromium capture matrix remains required. |
+| 5. VoiceOver pass | **Not started** | Island rotor, labels, order and Escape focus-return checklist remains required. |
+| 6. Cost sheet | **Not started** | Task 0 clean recovery, fortnightly maintenance and extension-release wait must remain three separate lines. |
+
+No tranche kill criterion has been observed at this checkpoint. Spike A remains
+inside the fixed 40-file / 120-hunk budget. Every native build used the existing
+157 output and the guarded incremental procedure; `4eaad3c7` itself needed no
+compile because the guarded plan reported zero actions. The 156 checkout,
+toolchain, GN arguments, permanent profile and Task 0 upgrade gate remain
+unchanged. Formal latency is owner-deferred and is still an open Spike A gate.
 
 ## 2. F12 spike A: Blanc Blocker on Chromium's network stack
 
