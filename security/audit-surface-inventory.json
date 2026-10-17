@@ -220,7 +220,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "74887722f727cb14d9e9ed42efbec352b9d2c05562cd2f0a8fb8f833b2410bed",
+      "sha256": "44fbf878206a8aae9c01e36d87d74d0f3b20c944ef58634dc622f90da472e295",
       "literalChannels": [
         "activate",
         "before-input-event",
@@ -736,7 +736,7 @@
     },
     {
       "file": "src/main/sync.js",
-      "sha256": "692dd703d9e8f0bfca9feab74306e16bdd677878a1261c6d19ffbd6b9df6dc25",
+      "sha256": "3a69085a4194d116a98623a6116d7d43f6eebaf618daa32ffce1cdedcbb97006",
       "literalChannels": [
         "before-quit"
       ],

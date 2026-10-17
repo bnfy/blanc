@@ -283,6 +283,7 @@ const {
 const { moveTab: resolveTabMove } = require('./tab-order');
 const { CLOSED_SECTION_ID, clampClosedSlot, reconcileClosedSlot, reorderGroupsWithClosed } = require('./closed-slot');
 const { normalizeGroupName, sameGroupName, recaseSessionData } = require('./group-name-case');
+const { deviceNamesEqual } = require('./device-names');
 const { attachGroupHeaderMenu } = require('./group-context-menu');
 const { openLinkInGlance: openLinkInGlanceWith } = require('./glance-open-link');
 const { acceptOverlayDragState, resetOverlayDragState, overlayDragActive } = require('./overlay-drag-state');
@@ -11272,6 +11273,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     };
     tabsync.onRemoteChanged(pushRemoteDevices);
     tabicons.onRemoteChanged(pushRemoteDevices);
+    // A device renamed here or on another Mac re-labels the same surfaces.
+    let shownDeviceNames = settings.getDeviceNames();
+    settings.onSettingsChanged((next) => {
+      if (deviceNamesEqual(shownDeviceNames, next.deviceNames)) return;
+      shownDeviceNames = next.deviceNames;
+      pushRemoteDevices();
+    });
 
     // Profile sync: sync-on-launch if configured, then follow local changes.
     // Failures are swallowed and surfaced only in Settings (never startup).

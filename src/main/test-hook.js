@@ -16,6 +16,7 @@ const path = require('node:path');
 const { app, Menu, clipboard, nativeImage, webContents } = require('electron');
 const { buildAddressMenu } = require('./address-menu-model');
 const { sameGroupName } = require('./group-name-case');
+const { resolveDeviceName, deviceNamesEqual } = require('./device-names');
 const { blockableHostname } = require('./adblock-exceptions');
 const { syncSnapshot } = require('./session-snapshot');
 const { installTestCallBridge } = require('./test-call-bridge');
@@ -225,14 +226,29 @@ function install(refs) {
     focusObservation = null;
   }
 
+  // Injected devices go through the same name resolution as
+  // sync.listRemoteDevices, and are re-pushed when a name changes.
+  let injectedDevices = [];
   function pushRemoteDevices(devices) {
-    getOverlayWebContents()?.send('chrome:remote-tabs-updated', devices);
+    injectedDevices = devices;
+    const names = settings.getDeviceNames();
+    const shown = devices.map((device) => ({
+      ...device,
+      name: resolveDeviceName(names, device.deviceId, device.name),
+    }));
+    getOverlayWebContents()?.send('chrome:remote-tabs-updated', shown);
     for (const tab of tabs.values()) {
       if (urlOf(tab).startsWith('blanc://newtab')) {
-        tab.view?.webContents?.send('pages:start:remote-tabs', devices);
+        tab.view?.webContents?.send('pages:start:remote-tabs', shown);
       }
     }
   }
+  let pushedDeviceNames = settings.getDeviceNames();
+  settings.onSettingsChanged((next) => {
+    if (deviceNamesEqual(pushedDeviceNames, next.deviceNames)) return;
+    pushedDeviceNames = next.deviceNames;
+    if (injectedDevices.length) pushRemoteDevices(injectedDevices);
+  });
 
   async function readTabImportDom() {
     const wc = getUtilitySheetWebContents();
