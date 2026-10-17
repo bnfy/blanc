@@ -1753,6 +1753,26 @@
     "message": "Rename Tab…",
     "note": "Tab context menu command that opens the ⌘L bar to type a custom name for the tab."
   },
+  "prompt.renameGroup": {
+    "message": "Rename group · Enter saves · Esc cancels",
+    "note": "One line in the ⌘L panel while its field edits a group's name (after Rename Group…). Sentence case."
+  },
+  "groupMenu.duplicate": {
+    "message": "A group named “{name}” already exists",
+    "note": "Shown in the ⌘L panel when a group is renamed to a name another group in the window already has; {name} is what was typed."
+  },
+  "groupMenu.close": {
+    "message": "Close Group",
+    "note": "Item in a tab group header's right-click menu; closes every tab in the group."
+  },
+  "groupMenu.ungroup": {
+    "message": "Ungroup",
+    "note": "Item in a tab group header's right-click menu; every tab in the group becomes an ungrouped tab."
+  },
+  "groupMenu.rename": {
+    "message": "Rename Group…",
+    "note": "Item in a tab group header's right-click menu (⌘L panel and vertical tabs rail); opens the panel to rename the group. Menu items use title case, like Rename Tab…."
+  },
   "tabMenu.resetTitle": {
     "message": "Reset Tab Title",
     "note": "Tab context menu command shown only on a renamed tab; removes the custom name so the tab shows the page’s own title again."

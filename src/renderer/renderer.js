@@ -21,7 +21,11 @@
       e.target.closest('.vertical-tab-row[data-tab-id]')?.dataset.tabId
       ?? (onGlanceHeader ? state.glanceTabId : null)
       ?? null;
-    if (!e.target.closest('#islandPill') && window.__blancCtxRowTabId == null) {
+    // A rail group header gets main's group menu (group-context-menu.js).
+    window.__blancCtxGroupId = window.__blancCtxRowTabId == null
+      ? e.target.closest('.vertical-tabs-group-header[data-group-id]')?.dataset.groupId ?? null
+      : null;
+    if (!e.target.closest('#islandPill') && window.__blancCtxRowTabId == null && window.__blancCtxGroupId == null) {
       e.preventDefault();
     }
   });

@@ -52,7 +52,7 @@ test('proposeFromSourceGroups preserves eligible named groups without inventing 
     { candidateId: 'd', title: 'D', hostname: 'd.example', sourceGroupName: null },
   ], { randomId });
   assert.equal(proposal.groups.length, 1);
-  assert.equal(proposal.groups[0].name, 'project atlas');
+  assert.equal(proposal.groups[0].name, 'Project Atlas', 'one bucket, the first-seen case');
   assert.deepEqual(proposal.groups[0].candidateIds, ['a', 'b']);
   assert.deepEqual(proposal.ungroupedCandidateIds, ['c', 'd']);
   assert.equal(JSON.stringify(proposal).includes('imported tabs'), false);
@@ -165,4 +165,19 @@ test('constants match organizer bounds', () => {
   assert.equal(MIN_GROUP_SIZE, 2);
   assert.equal(MAX_GROUPS, 12);
   assert.equal(CLUSTER_THRESHOLD, 0.72);
+});
+
+test('a name derived from titles starts with a capital; folder names keep their case', () => {
+  const members = ['guide', 'notes', 'rollout'].map((word, index) => sanitizeCandidateInput({
+    candidateId: String(index), title: `Kubernetes deployment ${word}`, hostname: 'kubernetes.io',
+  }));
+  assert.equal(deriveGroupName(members), 'Kubernetes deployment io');
+  assert.equal(deriveGroupName([
+    { title: 'A', folderPath: ['iOS Apps'], hostname: 'a.example' },
+    { title: 'B', folderPath: ['iOS Apps'], hostname: 'b.example' },
+  ]), 'iOS Apps');
+  assert.equal(deriveGroupName([
+    { title: 'Misc things', folderPath: ['MISC'], hostname: 'a.example' },
+    { title: 'Misc stuff', folderPath: ['MISC'], hostname: 'a.example' },
+  ]), null, 'generic names are recognized in any case');
 });

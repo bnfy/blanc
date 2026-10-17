@@ -220,6 +220,10 @@
       "state": "guarded",
       "allow": []
     },
+    "src/main/group-context-menu-model.js": {
+      "state": "guarded",
+      "allow": []
+    },
     "src/main/browser-shortcuts.js": {
       "state": "guarded",
       "allow": []

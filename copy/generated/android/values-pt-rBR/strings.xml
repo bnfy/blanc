@@ -475,6 +475,11 @@
     <string name="tab_menu_copy_link">Copiar link</string>
     <string name="tab_menu_duplicate">Duplicar aba</string>
     <string name="tab_menu_rename">Renomear aba…</string>
+    <string name="prompt_rename_group">Renomear grupo · Enter salva · Esc cancela</string>
+    <string name="group_menu_duplicate">Já existe um grupo chamado “%1$s”</string>
+    <string name="group_menu_close">Fechar o grupo</string>
+    <string name="group_menu_ungroup">Desagrupar</string>
+    <string name="group_menu_rename">Renomear grupo…</string>
     <string name="tab_menu_reset_title">Redefinir título da aba</string>
     <string name="tab_menu_pin">Fixar aba</string>
     <string name="tab_menu_unpin">Desafixar aba</string>

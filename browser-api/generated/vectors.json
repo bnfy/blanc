@@ -660,6 +660,70 @@
         false
       ]
     },
+    "renameGroup": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "groups:rename",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "group-id-1",
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:rename",
+              "args": [
+                "group-id-1",
+                "example"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "ok": true
+        },
+        {
+          "ok": true,
+          "error": "duplicate"
+        }
+      ]
+    },
+    "ungroupGroup": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "groups:ungroup",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "group-id-1"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:ungroup",
+              "args": [
+                "group-id-1"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": []
+    },
     "activateTabFromRail": {
       "kind": "invoke",
       "platforms": [

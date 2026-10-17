@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-113 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
+115 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -23,6 +23,8 @@
 | `moveTab` | tabs | invoke | `tabs:move` | `(id: TabId, target: TabMoveTarget) => Promise<boolean>` | all |
 | `reorderGroup` | tabs | invoke | `groups:reorder` | `(id: GroupId, beforeGroupId: GroupId \| 'recently-closed' \| null) => Promise<boolean>` | all |
 | `moveClosedSection` | tabs | invoke | `groups:move-closed` | `(beforeGroupId: GroupId \| null) => Promise<boolean>` | all |
+| `renameGroup` | groups | invoke | `groups:rename` | `(groupId: GroupId, name: string) => Promise<GroupRenameResult>` | all |
+| `ungroupGroup` | groups | invoke | `groups:ungroup` | `(groupId: GroupId) => Promise<void>` | all |
 | `activateTabFromRail` | tabs | invoke | `tabs:activate-from-rail` | `(id: TabId) => Promise<boolean>` | all |
 | `setGlanceTab` | glance | invoke | `tabs:set-glance` | `(id: TabId) => Promise<boolean>` | all |
 | `openGlancePicker` | glance | invoke | `tabs:open-glance-picker` | `(query?: string) => Promise<boolean>` | all |
@@ -440,6 +442,15 @@ A screen share, projected by projectDisplayShares() in display-capture-indicator
 | `surfaceKind` | `string \| null` |  |
 | `computerAudio` | `boolean` |  |
 | `tabId` | `TabId \| null` |  |
+
+### `GroupRenameResult`
+
+Result of renameGroup, built by renameGroup() in main.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `ok` | `boolean` |  |
+| `error?` | `'duplicate' \| 'unknown'` | Present when ok is false: another group already has the name, or the group is gone. |
 
 ### `TabsSnapshot`
 

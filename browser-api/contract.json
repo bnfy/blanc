@@ -489,6 +489,19 @@
         }
       }
     },
+    "GroupRenameResult": {
+      "doc": "Result of renameGroup, built by renameGroup() in main.js.",
+      "fields": {
+        "ok": {
+          "type": "boolean"
+        },
+        "error": {
+          "type": "'duplicate' | 'unknown'",
+          "doc": "Present when ok is false: another group already has the name, or the group is gone.",
+          "optional": true
+        }
+      }
+    },
     "TabsSnapshot": {
       "doc": "Result of getAllTabs, built by the tabs:get-all handler in main.js.",
       "fields": {
@@ -1612,6 +1625,38 @@
       ],
       "returns": "boolean",
       "doc": "Move the ⌘L panel's Recently closed band before a group, or after the last group with null."
+    },
+    {
+      "name": "renameGroup",
+      "group": "groups",
+      "kind": "invoke",
+      "channel": "groups:rename",
+      "params": [
+        {
+          "name": "groupId",
+          "type": "GroupId"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "returns": "GroupRenameResult",
+      "doc": "Rename a group, keeping the case typed. An empty or unchanged name changes nothing; another group's name in this window (in any case) is refused."
+    },
+    {
+      "name": "ungroupGroup",
+      "group": "groups",
+      "kind": "invoke",
+      "channel": "groups:ungroup",
+      "params": [
+        {
+          "name": "groupId",
+          "type": "GroupId"
+        }
+      ],
+      "returns": "void",
+      "doc": "Make every tab in a group ungrouped; the empty group goes away."
     },
     {
       "name": "activateTabFromRail",

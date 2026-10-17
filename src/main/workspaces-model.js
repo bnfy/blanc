@@ -5,6 +5,7 @@
 // repair rules; workspaces.js owns the store, main.js owns the tabs.
 
 const { validProfileId } = require('./local-profile-model');
+const { recaseWorkspacesFile } = require('./group-name-case');
 // A workspace id must survive a round-trip through session.json's
 // `workspaceId` binding pointer, so the rule is DEFINED in session-workspace
 // and imported here — one direction only. Defining it here and importing it
@@ -24,7 +25,10 @@ const MAX_NAME_LENGTH = 60;
 
 /** A fresh empty file. Returns a NEW object each call — a shared default
  * would let one profile's store mutate another's. */
-const EMPTY_FILE = () => ({ version: WORKSPACES_VERSION, workspaces: [], deleted: [] });
+// groupNamesRecased: group names here were given their capital first letter
+// once (spec 2026-10-16-island-lower-section §9.2); a file without it predates
+// case-keeping group names.
+const EMPTY_FILE = () => ({ version: WORKSPACES_VERSION, groupNamesRecased: 1, workspaces: [], deleted: [] });
 
 /** The user's handle for switching: trimmed, whitespace-collapsed, capped.
  * Null when nothing survives, which is what makes an empty name a rejection
@@ -120,6 +124,7 @@ function normalizeFile(raw) {
   const identified = withIdentities(workspaces);
   return {
     version: WORKSPACES_VERSION,
+    groupNamesRecased: 1,
     workspaces: identified,
     deleted: deleted.map((entry) => ({ ...entry, workspace: withIdentities([entry.workspace], identified)[0] })),
   };
@@ -132,7 +137,11 @@ function loadFile(raw) {
   if (!raw || typeof raw !== 'object' || !Array.isArray(raw.workspaces)) {
     return { status: 'corrupt', file: EMPTY_FILE() };
   }
-  return { status: 'supported', file: normalizeFile(raw) };
+  const file = normalizeFile(raw);
+  // Names saved before group names kept their case get a capital once; the
+  // stamp normalizeFile writes means this never runs on the file again.
+  if (raw.groupNamesRecased !== 1) return { status: 'supported', file: recaseWorkspacesFile(file).file };
+  return { status: 'supported', file };
 }
 
 const OPTIONAL_CAPTURE_COLUMNS = ['localFiles', 'closedSlot'];

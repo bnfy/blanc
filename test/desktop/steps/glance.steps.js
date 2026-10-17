@@ -623,13 +623,13 @@ Given('four ordinary tabs with the third open in Glance', async function () {
 Given('the main page and the fourth tab share a group', async function () {
   await this.call('groupTabByName', this.glanceMainId, 'Research');
   await this.call('groupTabByName', this.glanceReplacementId, 'Research');
-  await this.waitForState((state) => state.groups.some((group) => group.name === 'research'));
+  await this.waitForState((state) => state.groups.some((group) => group.name === 'Research'));
 });
 
 Given('the main page and the reference share a group', async function () {
   await this.call('groupTabByName', this.glanceMainId, 'Research');
   await this.call('groupTabByName', this.glanceReferenceId, 'Research');
-  await this.waitForState((state) => state.groups.some((group) => group.name === 'research'));
+  await this.waitForState((state) => state.groups.some((group) => group.name === 'Research'));
 });
 
 When('I close that group', async function () {

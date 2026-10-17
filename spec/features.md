@@ -80,10 +80,14 @@ toolbar (Bowser Design System "Island Chrome").
 
 ## F3 — Tab groups
 
-- Groups have **names, not colors** — lowercase mono labels. A group exists only
-  while it holds ≥1 tab (auto-pruned when empty).
-- Create/join via `/group <name>` (find-or-create) or an inline picker on the
-  tab row; leave via `/ungroup`; close all via `/close-group`.
+- Groups have **names, not colors**, kept in the case typed and matched in any
+  case: `/group research` joins "Research", and two groups can't differ only
+  by case. A group exists only while it holds ≥1 tab (auto-pruned when empty).
+- Create/join via `/group <name>` (find-or-create; typing new capitals for an
+  existing group re-cases it) or an inline picker on the tab row; leave via
+  `/ungroup`; close all via `/close-group`. A group header's right-click menu
+  offers **Rename Group…** (a name another group already has is refused, not
+  merged), **Ungroup** and **Close Group**.
 - The pill's direct dots show standalone pins followed by the active section:
   the active named group, loose ungrouped tabs, or the pinned shelf itself.
   They share an eight-dot budget, always retain the active tab, and use `+N` to
@@ -1169,7 +1173,7 @@ Bring Your Tabs.
   bounded (32 MiB, 100,000 items, depth 32, 100 Spaces), read-only, refused
   if the file changes mid-read, and never asks Arc to quit.
 - **Mapping.** Loose pinned tabs become pinned tabs; each top-level folder
-  becomes a lowercase group (nested folders and split views fold into it);
+  becomes a group named as the folder is (nested folders and split views fold into it);
   Today tabs follow ungrouped. Only http(s) tabs come across; notes, Easels
   and other kinds are counted and skipped. At most 500 tabs and 50 groups per
   Space; extra tabs are counted, never silently dropped.

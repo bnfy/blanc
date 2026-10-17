@@ -15,6 +15,7 @@ const bookmarks = require('./bookmarks');
 const path = require('node:path');
 const { app, Menu, clipboard, nativeImage, webContents } = require('electron');
 const { buildAddressMenu } = require('./address-menu-model');
+const { sameGroupName } = require('./group-name-case');
 const { blockableHostname } = require('./adblock-exceptions');
 const { syncSnapshot } = require('./session-snapshot');
 const { installTestCallBridge } = require('./test-call-bridge');
@@ -84,6 +85,8 @@ function install(refs) {
     groupTabByName,
     renameTab,
     beginRenameTab,
+    beginRenameGroup,
+    ungroupGroup,
     closeGroup,
     toggleGroupCollapsed,
     moveTabTo,
@@ -189,7 +192,6 @@ function install(refs) {
   const isLoadingOf = (t) => { try { return t.view.webContents.isLoadingMainFrame(); } catch { return false; } };
   const sessionPersistentOf = (t) => { try { return t.view.webContents.session.isPersistent(); } catch { return null; } };
   const titleOf = (t) => { try { return t.view.webContents.getTitle(); } catch { return ''; } };
-  const lc = (s) => String(s).trim().toLowerCase();
   let focusObservation = null;
   let activeTabImportFixtureName = null;
   const projectRootTabImportSession = () =>
@@ -584,6 +586,16 @@ function install(refs) {
     groupTabByName(id, name) { groupTabByName(id, name); },
     renameTab(id, name) { renameTab(id, name); },
     beginRenameTab(id) { beginRenameTab(id); },
+    beginRenameGroupByName(name) {
+      const group = getGroups().find((g) => sameGroupName(g.name, name));
+      if (group) beginRenameGroup(group.id);
+      return !!group;
+    },
+    ungroupGroupByName(name) {
+      const group = getGroups().find((g) => sameGroupName(g.name, name));
+      if (group) ungroupGroup(group.id);
+      return !!group;
+    },
     activateTab(id, focusContent = false) { setActiveTab(id, { focusContent: !!focusContent }); },
     focusTabContents(id) {
       const tab = tabs.get(id);
@@ -744,14 +756,14 @@ function install(refs) {
     },
     beforeUnloadProbe(id) { return beforeUnloadProbes.get(id) ?? null; },
     closeTabsInGroupName(name) {
-      const g = getGroups().find((x) => x.name === lc(name));
+      const g = getGroups().find((x) => sameGroupName(x.name, name));
       if (!g) return;
       for (const [id, t] of tabs) if (t.groupId === g.id) closeTab(id);
     },
     // The atomic single-entry group close (F2-6) — distinct from
     // closeTabsInGroupName above, which models per-tab user closes.
     closeGroupByName(name) {
-      const g = getGroups().find((x) => x.name === lc(name));
+      const g = getGroups().find((x) => sameGroupName(x.name, name));
       if (g) closeGroup(g.id);
     },
     // Redacted closed-entry projection for the harness: tier facts only,
