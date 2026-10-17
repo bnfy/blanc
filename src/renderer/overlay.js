@@ -167,6 +167,32 @@
   // bangs, recents) and which picker sections are unfolded, for this window.
   let bangsState = { enabled: true, custom: [], recent: [] };
   const bangSectionsOpen = { recent: true, popular: true, all: true };
+  // Site icons for bang rows, by lowercased host: what main answered or
+  // pushed (icons from the person's visits, or from Blanc's icon server).
+  // Main decides what may be fetched; this only draws.
+  const bangIconCache = new Map();
+  // Rows must stay on screen this long before their icons are asked for
+  // (BANG icons policy VISIBLE_DELAY_MS in src/main/bang-icons-policy.js).
+  const BANG_ICON_VISIBLE_MS = 300;
+  const bangIconRequester = createBangIconRequester({
+    delayMs: BANG_ICON_VISIBLE_MS,
+    setTimer: (fn, ms) => setTimeout(fn, ms),
+    clearTimer: (timer) => clearTimeout(timer),
+    send: (hosts) => {
+      window.browserAPI.bangIcons(hosts)
+        .then((answers) => { for (const answer of answers || []) applyBangIconChange(answer); })
+        .catch(() => {});
+    },
+  });
+  // Bang icon cells on screen, by host: several codes can share one site,
+  // and its wait ends only when none of its rows is on screen.
+  const bangIconVisibleCells = new Map();
+  // Whether the active tab was private when the rows last asked: main
+  // decides per ask, so a switch lets them ask again.
+  let bangIconsPrivate = false;
+  // The document's viewport, not the list: a row scrolled out of the panel is
+  // clipped by its scrolling ancestor and so counts as off screen.
+  const bangIconObserver = new IntersectionObserver((entries) => bangIconVisibility(entries));
   // What Enter acts on — rebuilt on every list render.
   let visibleCommands = [];
   let visibleResults = [];
@@ -1568,11 +1594,14 @@
     const parsed = Bangs.parseBang(text);
     if (!parsed && text !== '!') return null;
     const resolved = parsed ? Bangs.resolveBang(text, BangsCatalog, bangsState.custom) : null;
+    const record = resolved ? Bangs.findBang(resolved.code, BangsCatalog, bangsState.custom) : null;
     const hint = resolved
       ? {
         kind: 'bang',
         code: resolved.code,
         name: resolved.name,
+        domain: record?.domain ?? '',
+        custom: record?.custom === true,
         query: resolved.query,
         url: resolved.url,
         text,
@@ -1622,6 +1651,126 @@
     renderList();
   }
 
+  function bangIconHost(domain) {
+    return typeof domain === 'string' ? domain.toLowerCase() : '';
+  }
+
+  /** A bang row's leading site icon: the cached icon, else the site's letter
+   * (the same slot as Quick Switcher favicons). Decorative; the row's text
+   * names the site. */
+  function bangIconCell(domain) {
+    const host = bangIconHost(domain);
+    const cell = document.createElement('span');
+    cell.setAttribute('aria-hidden', 'true');
+    if (host) cell.dataset.bangHost = host;
+    setFavicon(cell, { url: `https://${host}/`, favicon: bangIconCache.get(host) || null });
+    return cell;
+  }
+
+  /** An icon arrived (or, with icon null, was withdrawn): repaint that host's
+   * rows in place, without redrawing the list. */
+  function applyBangIconChange(change) {
+    const host = bangIconHost(change?.host);
+    if (!host) return;
+    if (typeof change.icon === 'string' && change.icon) {
+      bangIconCache.set(host, change.icon);
+    } else {
+      bangIconCache.delete(host);
+      // Withdrawn (a history clear, or the server dropped it): a row on
+      // screen asks again, so an icon from Favorites or an open tab returns.
+      bangIconRequester.forget(host);
+      if (bangIconVisibleCells.has(host)) bangIconRequester.visible(host);
+    }
+    for (const cell of islandList.querySelectorAll(`[data-bang-host="${CSS.escape(host)}"]`)) {
+      setFavicon(cell, { url: `https://${host}/`, favicon: bangIconCache.get(host) || null });
+    }
+  }
+
+  /** Asks main for the icons of bang rows that stay on screen `delayMs`:
+   * rows typed or scrolled past sooner ask for nothing, and the rows that
+   * stayed go out as one batch. Each host is sent once per overlay open
+   * (main refreshes a stale copy on that ask). */
+  function createBangIconRequester({ delayMs, setTimer, clearTimer, send }) {
+    const waiting = new Map();
+    const sent = new Set();
+    let batch = [];
+    let flushTimer = null;
+    const flush = () => {
+      flushTimer = null;
+      const hosts = batch;
+      batch = [];
+      if (hosts.length) send(hosts);
+    };
+    return {
+      visible(host) {
+        if (!host || sent.has(host) || waiting.has(host)) return;
+        waiting.set(host, setTimer(() => {
+          waiting.delete(host);
+          sent.add(host);
+          batch.push(host);
+          if (flushTimer === null) flushTimer = setTimer(flush, 0);
+        }, delayMs));
+      },
+      hidden(host) {
+        if (!waiting.has(host)) return;
+        clearTimer(waiting.get(host));
+        waiting.delete(host);
+      },
+      /** The host may be asked for again this open. */
+      forget(host) {
+        sent.delete(host);
+      },
+      /** After a redraw: rows whose host is still listed keep their wait. */
+      retain(hosts) {
+        for (const host of [...waiting.keys()]) if (!hosts.has(host)) this.hidden(host);
+      },
+      reset() {
+        for (const timer of waiting.values()) clearTimer(timer);
+        waiting.clear();
+        sent.clear();
+        batch = [];
+      },
+    };
+  }
+
+  function bangIconVisibility(entries) {
+    for (const entry of entries) {
+      const host = entry.target.dataset.bangHost;
+      if (!host) continue;
+      const cells = bangIconVisibleCells.get(host) ?? new Set();
+      if (entry.isIntersecting) cells.add(entry.target);
+      else cells.delete(entry.target);
+      if (cells.size) {
+        bangIconVisibleCells.set(host, cells);
+        bangIconRequester.visible(host);
+      } else {
+        bangIconVisibleCells.delete(host);
+        bangIconRequester.hidden(host);
+      }
+    }
+  }
+
+  /** The active tab switched between private and normal: rows already asked
+   * for may ask again, and main answers by the new tab. */
+  function noteBangIconPrivacy() {
+    const isPrivate = activeTab()?.private === true;
+    if (isPrivate === bangIconsPrivate) return;
+    bangIconsPrivate = isPrivate;
+    bangIconRequester.reset();
+    observeBangIconRows();
+  }
+
+  /** After every list draw: watch the bang rows now listed. A host still
+   * listed keeps its wait; one that left cancels it. */
+  function observeBangIconRows() {
+    bangIconObserver.disconnect();
+    // The observer reports every watched cell afresh.
+    bangIconVisibleCells.clear();
+    const cells = [...islandList.querySelectorAll('[data-bang-host]')];
+    bangIconRequester.retain(new Set(cells.map((cell) => cell.dataset.bangHost)));
+    for (const cell of cells) bangIconObserver.observe(cell);
+  }
+
   /** The hint row, drawn like a slash command: the code in accent ink, then
    * a plain sentence. */
   function bangRow(result, isActive, isEnterTarget) {
@@ -1634,7 +1783,7 @@
     const hint = document.createElement('span');
     hint.className = 'row-hint';
     hint.textContent = result.title;
-    row.append(code, hint);
+    row.append(bangIconCell(result.domain), code, hint);
     if (isEnterTarget) row.append(enterGlyph());
     row.addEventListener('click', () => pickResult(result));
     return row;
@@ -1655,7 +1804,7 @@
     sub.className = 'row-sub';
     sub.textContent = result.custom ? blancI18n.t('bang.yours') : result.domain;
     if (!result.custom) sub.dataset.i18nIgnore = '';
-    row.append(code, name, sub);
+    row.append(bangIconCell(result.domain), code, name, sub);
     row.addEventListener('click', () => pickResult(result));
     return row;
   }
@@ -1834,6 +1983,7 @@
       islandList.replaceChildren(row);
       renderDevicesDrawer(false);
       islandHint.textContent = '';
+      observeBangIconRows();
       return;
     }
 
@@ -1973,6 +2123,7 @@
         ? blancI18n.t('hint.bang')
         : activeTab()?.private ? blancI18n.t('hint.private') : '';
     }
+    observeBangIconRows();
   }
 
   /** Other devices (spec 2026-10-16 §6): the footer toggle, hidden with no
@@ -2749,6 +2900,8 @@
 
   window.browserAPI.onOverlayHide((payload) => {
     islandDrag.cancel();
+    // The next open may ask again (main refreshes stale copies on an ask).
+    bangIconRequester.reset();
     drawnGeneration += 1;
     const retracting = payload?.retract && (mode === 'panel' || mode === 'palette')
       && retractPanelIntoPill();
@@ -3111,6 +3264,7 @@
   window.browserAPI.onTabsUpdated((payload) => {
     const activeTabChanged = payload.activeTabId !== state.activeTabId;
     state = payload;
+    noteBangIconPrivacy();
     islandDrag.notePayload(payload);
     if (mode === 'panel' || mode === 'palette') {
       if (!inputTouched) addressInput.value = addressDisplayValue(activeTab());
@@ -3138,6 +3292,8 @@
     bangsState = payload;
     if (mode === 'panel' || mode === 'palette') renderList();
   });
+  // A bang site's icon arrived from Blanc's icon server, or was withdrawn.
+  window.browserAPI.onBangIconsChanged(applyBangIconChange);
   // Freshness for the workspaces section: a switch/rename/delete anywhere
   // (another window, or this one) must not leave a pull-once list showing a
   // stale "active" row or a name that no longer matches.

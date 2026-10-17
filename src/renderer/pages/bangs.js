@@ -185,7 +185,7 @@
     return rows;
   }
 
-  const api = { BANG_CODE, ENCODE, PLUS, DEFAULT_ENCODING, isBangCode, parseBang, encodeQuery, findBang, resolveBang, matchBangs };
+  const api = { BANG_CODE, ENCODE, PLUS, DEFAULT_ENCODING, isBangCode, parseBang, encodeQuery, findBang, resolveBang, matchBangs, templateHost };
   if (typeof module !== 'undefined') module.exports = api;
   else root.Bangs = api;
 })(typeof window !== 'undefined' ? window : globalThis);

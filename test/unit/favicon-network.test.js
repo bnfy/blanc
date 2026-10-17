@@ -8,6 +8,7 @@ const {
   redirectSource,
   resolvePinnedTarget,
   pinnedLookup,
+  responseOutcome,
 } = require('../../src/main/favicon-network');
 
 test('favicon redirects resolve relative locations and reject non-web targets', () => {
@@ -116,4 +117,23 @@ test('the isolated reader sends a generic browser identity without cookies or re
   );
   assert.equal('Cookie' in FAVICON_REQUEST_HEADERS, false);
   assert.equal('Referer' in FAVICON_REQUEST_HEADERS, false);
+});
+
+test('responseOutcome reads 200, follows redirects and reports status only on request', () => {
+  assert.equal(responseOutcome(200, undefined, 'https://a.example/x', {}), 'read');
+  assert.deepEqual(responseOutcome(302, '/y', 'https://a.example/x', {}), { redirect: 'https://a.example/y' });
+  assert.equal(responseOutcome(404, undefined, 'https://a.example/x', {}), null);
+  assert.deepEqual(responseOutcome(404, undefined, 'https://a.example/x', { statusResult: true }), { status: 404 });
+  assert.deepEqual(responseOutcome(503, undefined, 'https://a.example/x', { statusResult: true }), { status: 503 });
+});
+
+test('readIconBytes keeps its defaults for existing callers', () => {
+  // Bang icons pass their own limits; every other caller keeps 3 s and five
+  // checked redirects.
+  const source = require('node:fs').readFileSync(
+    require('node:path').join(__dirname, '../../src/main/favicon-network.js'),
+    'utf8',
+  );
+  assert.match(source, /timeoutMs = TIMEOUT_MS/);
+  assert.match(source, /maxRedirects = MAX_REDIRECTS/);
 });

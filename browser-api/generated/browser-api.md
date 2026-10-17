@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-116 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
+118 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -96,6 +96,8 @@
 | `searchSuggestions` | search | invoke | `chrome:search-suggestions` | `(query: string) => Promise<SearchSuggestions>` | all |
 | `bangs` | search | invoke | `chrome:bangs` | `() => Promise<BangsState>` | all |
 | `onBangsChanged` | search | event | `bangs:changed` | `(payload: BangsState) => void` | all |
+| `bangIcons` | search | invoke | `chrome:bang-icons` | `(hosts: string[]) => Promise<BangIcon[]>` | all |
+| `onBangIconsChanged` | search | event | `bang-icons:changed` | `(payload: BangIcon) => void` | all |
 | `onRemoteTabsUpdated` | sync | event | `chrome:remote-tabs-updated` | `(payload: RemoteDevice[]) => void` | all |
 | `onWorkspacesUpdated` | workspaces | event | `chrome:workspaces-updated` | `(payload: WorkspacesPayload) => void` | all |
 | `onWorkspaceAction` | workspaces | event | `overlay:workspace-action` | `(payload: WorkspaceActionEvent) => void` | all |
@@ -831,6 +833,15 @@ The bang settings the Island draws its hint row and picker from, from bangsState
 | `enabled` | `boolean` |  |
 | `custom` | `CustomBang[]` |  |
 | `recent` | `string[]` | Recently used primary codes, newest first, at most ten; device-local. |
+
+### `BangIcon`
+
+A site icon for the bang rows on the Island: an inert 32px PNG data URL already on the device or just fetched from Blanc's icon server. In a bang-icons:changed push, null means the server no longer has one and the row shows its letter.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `host` | `string` | The bang's site, lowercased as in the bundled catalog. |
+| `icon` | `string \| null` |  |
 
 ### `SearchSuggestions`
 

@@ -566,6 +566,13 @@ export interface BangsState {
   recent: string[];
 }
 
+/** A site icon for the bang rows on the Island: an inert 32px PNG data URL already on the device or just fetched from Blanc's icon server. In a bang-icons:changed push, null means the server no longer has one and the row shows its letter. */
+export interface BangIcon {
+  /** The bang's site, lowercased as in the bundled catalog. */
+  host: string;
+  icon: string | null;
+}
+
 /** Search suggestions for the address bar, labelled with the engine that produced them. */
 export interface SearchSuggestions {
   engine: SearchEngineId;
@@ -1135,6 +1142,16 @@ export interface BlancBrowserAPI {
    * IPC: event `bangs:changed`.
    */
   onBangsChanged(callback: (payload: BangsState) => void): () => void;
+  /**
+   * Icons already on the device for the bang rows on screen (at most 40 hosts). Main may then ask Blanc's icon server for the others, never from a private tab, for a custom bang or before setup is saved; arrivals come through onBangIconsChanged.
+   * IPC: invoke `chrome:bang-icons`.
+   */
+  bangIcons(hosts: string[]): Promise<BangIcon[]>;
+  /**
+   * A bang site's icon arrived from Blanc's icon server, or was withdrawn (icon null). Sent only to overlay views.
+   * IPC: event `bang-icons:changed`.
+   */
+  onBangIconsChanged(callback: (payload: BangIcon) => void): () => void;
   /**
    * Other devices' open tabs changed. Same projection as listRemoteTabs.
    * IPC: event `chrome:remote-tabs-updated`.

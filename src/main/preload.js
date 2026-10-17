@@ -153,6 +153,12 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
     ipcRenderer.on('bangs:changed', listener);
     return () => ipcRenderer.removeListener('bangs:changed', listener);
   },
+  bangIcons: (hosts) => ipcRenderer.invoke('chrome:bang-icons', hosts),
+  onBangIconsChanged: (callback) => {
+    const listener = (_event, change) => callback(change);
+    ipcRenderer.on('bang-icons:changed', listener);
+    return () => ipcRenderer.removeListener('bang-icons:changed', listener);
+  },
   onRemoteTabsUpdated: (callback) => {
     const listener = (_event, devices) => callback(devices);
     ipcRenderer.on('chrome:remote-tabs-updated', listener);

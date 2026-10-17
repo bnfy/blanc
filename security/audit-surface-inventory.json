@@ -250,9 +250,10 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "a14763f8d03494ddfb8f73daa50ea9e526236f9be7f2a04efd3e66977d685f2c",
+      "sha256": "4565c833c9a80917bc0ef9e2a1e714146e6452e70f4d5208e64f4b2cc36016cf",
       "literalChannels": [
         "activate",
+        "bang-icons:changed",
         "bangs:changed",
         "before-input-event",
         "before-mouse-event",
@@ -265,6 +266,7 @@
         "capture:stop",
         "chrome:adblock-exempt-active",
         "chrome:adblock-toggle",
+        "chrome:bang-icons",
         "chrome:bangs",
         "chrome:blocking-popup",
         "chrome:blocking-provider",
@@ -570,11 +572,13 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "07c553e49a45449366e8e400d0a517690b684f2f22174dc5c207df83d5f82c76",
+      "sha256": "6819cea78ee6ac18c778f20e8c0919879ea351cd1e68ef48482cdc2a31f84f93",
       "literalChannels": [
+        "bang-icons:changed",
         "bangs:changed",
         "chrome:adblock-exempt-active",
         "chrome:adblock-toggle",
+        "chrome:bang-icons",
         "chrome:bangs",
         "chrome:blocking-popup",
         "chrome:blocking-provider",

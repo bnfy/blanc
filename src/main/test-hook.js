@@ -14,6 +14,8 @@ const history = require('./history');
 const bookmarks = require('./bookmarks');
 const path = require('node:path');
 const { app, Menu, clipboard, nativeImage, webContents } = require('electron');
+// A 1×1 PNG the bang icon server stub answers with (stubBangIconServer).
+const TEST_BANG_ICON_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==';
 const { buildAddressMenu } = require('./address-menu-model');
 const { sameGroupName } = require('./group-name-case');
 const { resolveDeviceName } = require('./device-names');
@@ -58,6 +60,8 @@ function install(refs) {
     // `(fn) => bindWindowRuntime(primaryRuntime, fn)`; every method below is
     // wrapped with it, once, mechanically, at the end of this function.
     bindRoot,
+    bangIcons,
+    clearRecentBangsAndIcons,
     tabs,
     liveContents,
     getTabOrder,
@@ -913,6 +917,20 @@ function install(refs) {
     setBangsEnabled(on) { settings.setSettings({ bangsEnabled: !!on }); },
     setCustomBangs(list) { return settings.setSettings({ customBangs: list }).customBangs; },
     recentBangs() { return settings.getSettings().recentBangs; },
+    // Blanc's icon server for bang rows, stubbed per host: 'png' answers a
+    // real 1×1 PNG (converted to the stored 32px icon), 'not-found' a 404,
+    // anything else fails. Test mode never reaches the network.
+    stubBangIconServer(map) {
+      const png = nativeImage.createFromDataURL(TEST_BANG_ICON_PNG).toPNG();
+      bangIcons.setFetcherForTest(async (url) => {
+        const answer = map?.[url.split('/').pop()];
+        if (answer === 'png') return { contentType: 'image/png', bytes: png };
+        if (answer === 'not-found') return { status: 404 };
+        return null;
+      });
+    },
+    bangIconRequests() { return bangIcons.requestedHosts(); },
+    bangIconStore() { return bangIcons.storedHostsForTest(); },
     setUsagePing(on) { settings.setSettings({ usagePing: !!on }); },
     searchSuggestions() { return settings.getSettings().searchSuggestions; },
     settingsSyncValues() { return settings.exportForSync().values; },
@@ -3448,7 +3466,8 @@ function install(refs) {
         usagePing: false,
       });
       settings.setPatron(null);
-      settings.clearRecentBangs();
+      clearRecentBangsAndIcons();
+      bangIcons.resetForTest();
       clearTestSearchSuggestionFixture();
       setTestSearchNavigationCapture(false);
       broadcastTabs();

@@ -1271,6 +1271,19 @@ engine, without passing through it. Design:
   or not, on or off, in the overlay or at main's boundary. Recently used
   codes are device-local, never recorded from private tabs, and cleared
   with history.
+- **Icons** (design `docs/superpowers/specs/2026-10-17-bang-icons-in-app-design.md`).
+  Each hint and picker row leads with the site's icon: first one the device
+  already holds from the person's own visits (history, Favorites, an open
+  tab), then a copy kept from Blanc's icon server
+  (`blanc.day/bang-icons/<host>`), else that server is asked, only for rows
+  on screen for 300 ms and only for hosts in the bundled catalog. Never from
+  a private tab, for a custom bang's host, with bangs off, or before the
+  first-run privacy choices are saved. A 404 means no icon (the site's
+  letter shows) until the next launch; a failure may retry twice, 30 s
+  apart; a kept copy is asked for again after 30 days and dropped on a 404.
+  Copies are 32px PNGs kept per device (at most 300, least recently used
+  dropped), never synced, and cleared with recent bangs, which also
+  withdraws the icons the open command bars hold.
 - **Portability.** `src/renderer/pages/bangs.js` (the parser, resolver and
   matcher) and the generated catalog have no Electron, Node or DOM
   dependency, so another browser core takes them unchanged.
@@ -1278,4 +1291,5 @@ engine, without passing through it. Design:
   [`acceptance/island-and-commands.feature`](./acceptance/island-and-commands.feature)
   (`@F47`, bound in `test/desktop/steps/bangs.steps.js`);
   `test/unit/bangs.test.js`, `bangs-build.test.js`, `bangs-settings.test.js`,
-  `bang-resolution.test.js` and `bangs-overlay.test.js`.
+  `bang-resolution.test.js`, `bangs-overlay.test.js`, `bang-icons-policy.test.js`,
+  `bang-icons.test.js` and `bang-icons-main.test.js`.
