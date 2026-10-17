@@ -2464,6 +2464,20 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
   flex-direction: column;
 }
 
+/* Recently closed: the fold control inside its header row (Clear all sits
+   beside it, outside the button). */
+.island-ghead .ghead-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  border-radius: 4px;
+}
+.island-ghead .ghead-toggle:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .island-ghead:focus-visible {
   outline: 1px solid var(--accent);
   outline-offset: -1px;

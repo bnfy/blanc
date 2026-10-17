@@ -232,7 +232,7 @@ When('I drag Recently closed above the {string} header in the island', async fun
 
 When('I focus Recently closed in the island and press Alt+Shift+ArrowUp', async function () {
   this.dragSurface = await surfaceFor(this, 'island');
-  await headerFor(this.dragSurface.list, CLOSED).focus();
+  await headerFor(this.dragSurface.list, CLOSED).locator('[role="button"]').focus();
   await this.dragSurface.page.keyboard.press('Alt+Shift+ArrowUp');
 });
 

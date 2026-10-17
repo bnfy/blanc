@@ -135,6 +135,8 @@ function loadFile(raw) {
   return { status: 'supported', file: normalizeFile(raw) };
 }
 
+const OPTIONAL_CAPTURE_COLUMNS = ['localFiles', 'closedSlot'];
+
 /** The tab columns a capture carries, copied so the record never aliases the
  * live arrays main.js built it from. */
 const captureColumns = (capture) => {
@@ -241,6 +243,10 @@ function updateCapture(file, id, capture, now) {
     return { file: clean, workspace: existing, unchanged: true };
   }
   const workspace = { ...existing, ...columns, updatedAt: now, revision: existing.revision + 1 };
+  // Optional columns are written only when they carry something, so one the
+  // new capture omits must not survive from the old record (a band moved back
+  // under Pinned, a local file closed).
+  for (const key of OPTIONAL_CAPTURE_COLUMNS) if (!(key in columns)) delete workspace[key];
   return {
     file: withWorkspaces(clean, clean.workspaces.map((w) => (w.id === id ? workspace : w))),
     workspace,

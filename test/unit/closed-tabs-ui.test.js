@@ -76,3 +76,21 @@ test('the clear action is sentence case, not forced lowercase', () => {
   assert.doesNotMatch(rule, /text-transform/);
   assert.doesNotMatch(rule, /letter-spacing/);
 });
+
+test('the band header keeps Clear all outside its button', () => {
+  const overlay = read('src/renderer/overlay.js');
+  const header = overlay.match(/function closedHeaderRow\([\s\S]*?\n  \}/)?.[0] ?? '';
+  assert.doesNotMatch(header, /row\.setAttribute\('role', 'button'\)/, 'the row holds a button, so it is not one');
+  assert.match(header, /toggle\.setAttribute\('role', 'button'\)/);
+  assert.match(header, /toggle\.tabIndex = 0/);
+  assert.match(header, /toggle\.setAttribute\('aria-expanded'/);
+  assert.match(header, /clear\.dataset\.noDrag = ''/, 'pressing Clear all never starts a band drag');
+  const restore = overlay.match(/function restoreRowFocus\([\s\S]*?\n  \}/)?.[0] ?? '';
+  assert.match(restore, /\[role="button"\]/, 'focus returns to the band toggle after a move');
+});
+
+test('a closed row reopens with Enter or Space', () => {
+  const overlay = read('src/renderer/overlay.js');
+  const row = overlay.match(/function closedRow\([\s\S]*?\n  \}/)?.[0] ?? '';
+  assert.match(row, /event\.key !== 'Enter' && event\.key !== ' '/);
+});

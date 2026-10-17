@@ -612,3 +612,24 @@ test('a Space keeps where its Recently closed band sits', () => {
   assert.equal(columns({ urls: [], closedSlot: 1 }).closedSlot, 1);
   assert.equal('closedSlot' in columns({ urls: [], closedSlot: 0 }), false);
 });
+
+test('a Space saves its Recently closed band moving back under Pinned', () => {
+  const start = createWorkspace(EMPTY_FILE(), {
+    name: 'Work', profileId: 'default', capture: { ...CAPTURE(), closedSlot: 2 }, now: 1, id: 'ws_1',
+  }).file;
+  assert.equal(start.workspaces[0].closedSlot, 2);
+  const moved = updateCapture(start, 'ws_1', CAPTURE(), 5);
+  assert.equal('closedSlot' in moved.workspace, false, 'slot 0 is not left at the old value');
+  const again = updateCapture(moved.file, 'ws_1', CAPTURE(), 6);
+  assert.equal(again.unchanged, true, 'an identical capture is not another write');
+  assert.equal(again.workspace.revision, moved.workspace.revision);
+});
+
+test('a Space drops local-file marks once its tabs no longer need them', () => {
+  const start = createWorkspace(EMPTY_FILE(), {
+    name: 'Work', profileId: 'default', capture: { ...CAPTURE(), localFiles: [true] }, now: 1, id: 'ws_1',
+  }).file;
+  const next = updateCapture(start, 'ws_1', CAPTURE(), 5);
+  assert.equal('localFiles' in next.workspace, false);
+  assert.equal(updateCapture(next.file, 'ws_1', CAPTURE(), 6).unchanged, true);
+});

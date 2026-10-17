@@ -1155,35 +1155,41 @@
   function closedHeaderRow(count) {
     const row = document.createElement('div');
     row.className = 'island-ghead';
-    row.innerHTML = `${CARET}<span class="ghead-name"></span><span class="ghead-n"></span>`;
-    row.querySelector('.ghead-name').textContent = blancI18n.t('closed.header');
-    row.querySelector('.caret').classList.toggle('open', closedSectionOpen);
-    row.querySelector('.ghead-n').textContent = String(count);
     row.title = closedSectionOpen ? blancI18n.t('closed.fold') : blancI18n.t('closed.unfold');
     row.dataset.dragHeader = '';
     row.dataset.groupId = dragApi.constants.CLOSED_SECTION_ID;
     row.dataset.dragTitle = blancI18n.t('closed.header');
-    // Focusable so it folds from the keyboard and ⌥⇧↑/↓ can move it.
-    row.tabIndex = 0;
-    row.setAttribute('role', 'button');
-    row.setAttribute('aria-expanded', String(closedSectionOpen));
-    const toggle = () => {
+    // The row also holds Clear all, and a button's content is presentational
+    // to assistive tech, so the fold control is an inner button. Focusable so
+    // it folds from the keyboard and ⌥⇧↑/↓ can move the band.
+    const toggle = document.createElement('span');
+    toggle.className = 'ghead-toggle';
+    toggle.innerHTML = `${CARET}<span class="ghead-name"></span><span class="ghead-n"></span>`;
+    toggle.querySelector('.ghead-name').textContent = blancI18n.t('closed.header');
+    toggle.querySelector('.caret').classList.toggle('open', closedSectionOpen);
+    toggle.querySelector('.ghead-n').textContent = String(count);
+    toggle.tabIndex = 0;
+    toggle.setAttribute('role', 'button');
+    toggle.setAttribute('aria-expanded', String(closedSectionOpen));
+    row.append(toggle);
+    const flip = () => {
       closedSectionOpen = !closedSectionOpen;
       renderList();
     };
     row.addEventListener('click', (e) => {
       if (e.target.closest('button')) return;
-      toggle();
+      flip();
     });
-    row.addEventListener('keydown', (event) => {
-      if (event.target !== row || (event.key !== 'Enter' && event.key !== ' ')) return;
+    toggle.addEventListener('keydown', (event) => {
+      if (event.target !== toggle || (event.key !== 'Enter' && event.key !== ' ')) return;
       event.preventDefault();
-      toggle();
+      flip();
     });
     if (closedSectionOpen) {
       const clear = document.createElement('button');
       clear.type = 'button';
       clear.className = 'closed-clear';
+      clear.dataset.noDrag = '';
       clear.textContent = blancI18n.t('closed.clear');
       clear.title = blancI18n.t('closed.clearAll');
       clear.setAttribute('aria-label', clear.title);
@@ -1233,7 +1239,7 @@
     };
     row.addEventListener('click', reopen);
     row.addEventListener('keydown', (event) => {
-      if (event.target !== row || event.key !== 'Enter') return;
+      if (event.target !== row || (event.key !== 'Enter' && event.key !== ' ')) return;
       event.preventDefault();
       reopen();
     });
@@ -1532,7 +1538,9 @@
   function restoreRowFocus(anchor) {
     if (!anchor) return;
     if (anchor.groupId) {
-      islandList.querySelector(`[data-drag-header][data-group-id="${CSS.escape(anchor.groupId)}"]`)?.focus();
+      const header = islandList.querySelector(`[data-drag-header][data-group-id="${CSS.escape(anchor.groupId)}"]`);
+      // The Recently closed header's focus target is its inner toggle.
+      (header && header.tabIndex >= 0 ? header : header?.querySelector('[role="button"]'))?.focus();
       return;
     }
     const row = islandList.querySelector(
