@@ -93,7 +93,7 @@ the patch budget, and with acceptable per-request latency?
 | Block rate | the **replay corpus** defined below, issued at the browser level through the fork and through Electron Blanc on the same lists | every request decided the same way in both, for blocked *and* allowed traffic; any divergence listed by URL, type and rule |
 | Cosmetic coverage | the corpus's **outcome pages**, checked in both browsers by DOM assertion and capture | parity with Electron on the same pages, CSS and scriptlet outcomes reported separately |
 | Decision latency | see the latency protocol below | **proposed** acceptance bounds, not criterion 3: p99 under 2 ms in-process, under 5 ms over Mojo, on the warm steady-state run; above that, the other engine placement is tried before concluding. The owner may change the bounds at approval |
-| Patch count | files and hunks touched outside `src/blanc/`, counted by the same inventory script as the ledger | fits the A1 budget once A1 names it; reported either way |
+| Patch count | upstream files and hunks, counted by the §7 rules and counter before and after the spike | within §7's fixed tranche budget (40 files, 120 hunks); reported either way |
 | Private windows | the same hook active in incognito, verified by the fixture | blocked, as Blanc Blocker protects private tabs today |
 
 **Replay corpus.** The unit tests named in the plan (`adblock-youtube`,
@@ -161,8 +161,10 @@ browser-level harness style (CDP plus the origin-preserving transport),
 never through unit-test mocks. The corpus and its Electron oracle run are the measured
 baseline; "Electron Blanc's rate" means that run.
 
-**Stop conditions for spike A:** the two-week box ends; or neither engine
-placement meets the latency bound; or the hook requires patching the
+**Stop conditions for spike A** (each stops spike A only; spike B and items
+3–6 continue, and only §7's kill criteria stop the tranche): the two-week
+box ends; or neither engine placement meets the proposed latency bound; or
+the hook requires patching the
 network service or the extension system (plan §4 A, "never fork the
 extension system"). A stop is recorded with the measurements taken.
 
@@ -202,7 +204,7 @@ compounds every two weeks).
 **Stop conditions for spike B:** the audit shows `webRequestBlocking` or MV2
 loading cannot be restored without patching the extension system's core
 (plan §4 A rule 3); or the two-week box ends; or the runtime spike needs
-more than the A1 budget on its own. A stop is recorded with the audit.
+more than §7's fixed tranche budget on its own. A stop is recorded with the audit; like spike A's, it stops spike B only.
 
 **Not in spike B:** uBO Lite (MV3) as a provider. If both spikes stop, uBO
 Lite is the third option to scope, as a separate request.
@@ -276,13 +278,28 @@ and 120 hunks**, counted as follows. A *file* is an existing upstream file
 that `prepare.mjs` (or, later, the `patches/` set) modifies; Blanc-owned
 new files do not count; the two icon assets count as files. A *hunk* is one
 `@@` section of a unified diff with zero context lines, produced
-deterministically by `git diff --unified=0 --no-color <pristine> <patched>`
-over the text files in the inventory and counted as the number of `@@`
-headers (`--stat` and `--numstat` count changed lines, not hunks, and are
+deterministically by
+
+```sh
+GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 git diff \
+  --unified=0 --inter-hunk-context=0 --diff-algorithm=myers \
+  --no-indent-heuristic --no-renames --no-ext-diff --no-textconv --no-color \
+  <upstream-tag> -- <inventory paths>
+```
+
+run inside the patched checkout (or the same options with `--no-index`
+against a pristine copy). Every option that shapes hunk boundaries is pinned
+on the command line, which overrides repository, user and system
+configuration, and user and system configuration are also excluded: without
+the pins, settings such as `diff.interHunkContext` or `diff.algorithm` change
+the count (reproduced: two changes separated by two unchanged lines count as
+two hunks by default and one with `diff.interHunkContext=5`; the pinned
+command counts two under a hostile user or repository configuration). The
+counter records the Git version with each count. The count is taken over
+the text files in the inventory, as the number of `@@` headers (`--stat` and `--numstat` count changed lines, not hunks, and are
 not used; see <https://git-scm.com/docs/git-diff>). Adjacent changes
-separated by at least one unchanged line are therefore separate hunks; a
-pure rename or mode change with no content change counts as zero hunks and
-one file. Binary files (the two icon assets) count as one file and one
+separated by at least one unchanged line are therefore separate hunks; `prepare.mjs` edits files in place and never renames them, so rename
+detection is off; a mode-only change counts as zero hunks and one file. Binary files (the two icon assets) count as one file and one
 hunk each, since a binary diff has no `@@` sections. The counter is a
 script in the experiments tree, run against the same pristine checkout the
 inventory used, and its output is committed with each count. The count is produced by the same inventory method
