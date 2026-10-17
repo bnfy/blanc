@@ -82,7 +82,7 @@ test('without JavaScript every bang and card is in the page', async () => {
 
 test('a missing icon leaves the lettered tile', async () => {
   for (const javaScriptEnabled of [true, false]) {
-    const { context, page } = await open({ javaScriptEnabled }, { icons: 'missing' });
+    const { context, page, requests } = await open({ javaScriptEnabled }, { icons: 'missing' });
     try {
       await page.waitForTimeout(400);
       const letters = await page.locator('#bangs-cards .bangs-icon').evaluateAll((tiles) => tiles.map((tile) => tile.textContent.trim()));
@@ -92,7 +92,11 @@ test('a missing icon leaves the lettered tile', async () => {
         const broken = await page.evaluate(() => [...document.querySelectorAll('#bangs-cards img')].filter((img) => img.complete && img.naturalWidth === 0).length);
         assert.equal(broken, 0, 'a broken image stayed in the page');
       } else {
-        assert.deepEqual([...new Set(await page.locator('#bangs-cards img').evaluateAll((imgs) => imgs.map((img) => img.getAttribute('alt'))))], ['']);
+        // Without the script nothing can tell a failed icon from a loaded
+        // one, so no icon is requested and the letters are the page.
+        assert.equal(requests.filter((address) => new URL(address).pathname.startsWith('/bang-icons/')).length, 0);
+        const shown = await page.locator('#bangs-cards img').evaluateAll((imgs) => imgs.filter((img) => img.getAttribute('src') || getComputedStyle(img).opacity !== '0').length);
+        assert.equal(shown, 0, 'an icon image is drawn over a tile');
       }
     } finally { await context.close(); }
   }
@@ -161,6 +165,32 @@ test('Browse all opens the full list and Search them focuses the box', async () 
     await page.reload();
     await page.locator('#bangs-search-them').click();
     assert.equal(await page.evaluate(() => document.activeElement?.id), 'bangs-search');
+  } finally { await context.close(); }
+});
+
+test('Browse all moves focus to the list and can be closed', async () => {
+  const { context, page } = await open();
+  try {
+    await page.locator('#bangs-browse').focus();
+    await page.keyboard.press('Enter');
+    assert.equal(await page.evaluate(() => document.activeElement?.id), 'bangs-dir-title');
+    assert.equal((await page.locator('#bangs-dir-title').innerText()).trim(), 'Every bang in Blanc');
+    assert.equal(await page.locator('#bangs-back').isVisible(), true);
+    await page.locator('#bangs-back').click();
+    assert.equal(await page.locator('#bangs-cards').isVisible(), true);
+    assert.equal(await page.locator('#bangs-list').isVisible(), false);
+    assert.equal(await page.evaluate(() => document.activeElement?.id), 'bangs-browse');
+    await search(page, 'youtube');
+    await page.locator('#bangs-back').click();
+    assert.equal(await page.locator('#bangs-search').inputValue(), '', 'going back clears the search');
+    assert.equal(await page.locator('#bangs-cards').isVisible(), true);
+  } finally { await context.close(); }
+});
+
+test('the fold leaves the last cards readable', async () => {
+  const { context, page } = await open();
+  try {
+    assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('#bangs-fold'), '::before').content), 'none');
   } finally { await context.close(); }
 });
 

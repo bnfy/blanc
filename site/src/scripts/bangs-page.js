@@ -56,7 +56,12 @@ function addIcon(tile, host) {
   watchIcon(img);
 }
 
-document.querySelectorAll('#bangs-cards img').forEach(watchIcon);
+// The cards' icons wait in data-src, so a page without this script never
+// draws a broken image over a tile.
+document.querySelectorAll('#bangs-cards img[data-src]').forEach((img) => {
+  img.src = img.dataset.src;
+  watchIcon(img);
+});
 
 // ---------- views and the list ----------
 
@@ -69,8 +74,10 @@ const more = document.getElementById('bangs-more');
 const browse = document.getElementById('bangs-browse');
 const searchThem = document.getElementById('bangs-search-them');
 const listSection = document.getElementById('bangs-list');
+const listTitle = document.getElementById('bangs-dir-title');
+const back = document.getElementById('bangs-back');
 
-if (main && list && search && countLine && showing && more && browse && searchThem && listSection) {
+if (main && list && search && countLine && showing && more && browse && searchThem && listSection && listTitle && back) {
   const items = [...list.children];
   const byCode = new Map(items.map((item) => [item.dataset.code, item]));
   // Until the data arrives, search what the rows themselves show.
@@ -147,11 +154,22 @@ if (main && list && search && countLine && showing && more && browse && searchTh
     limit += STEP;
     render();
   });
+  // Browse all hides itself, so focus moves to the list's heading; going
+  // back clears any search and returns focus to Browse all.
   browse.addEventListener('click', () => {
     browsing = true;
     limit = STEP;
     render();
-    listSection.scrollIntoView({ block: 'start' });
+    listTitle.focus();
+  });
+  back.addEventListener('click', () => {
+    clearTimeout(timer);
+    search.value = '';
+    query = '';
+    browsing = false;
+    limit = STEP;
+    render();
+    browse.focus();
   });
   searchThem.addEventListener('click', () => search.focus());
 }

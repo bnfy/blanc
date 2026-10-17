@@ -463,6 +463,16 @@
         "bangsList"
       ],
       "verdict": "qualified"
+    },
+    {
+      "id": "v136-048",
+      "source": "site/src/pages/bangs.astro",
+      "exactWording": "Back to popular bangs",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "bangsList"
+      ],
+      "verdict": "qualified"
     }
   ]
 }

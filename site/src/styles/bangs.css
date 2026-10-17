@@ -17,7 +17,8 @@
 /* ---------- icons ---------- */
 /* A tile with the site's first letter on one of six warm tones; the icon
    covers it once it has loaded (bangs-page.js marks it), and a missing one
-   is removed, so the letter is what stays. */
+   is removed, so the letter is what stays. Without the script no icon is
+   requested and the tile is all there is. */
 .bangs-icon {
   position: relative; display: grid; place-items: center; flex: none; width: 32px; height: 32px; overflow: hidden;
   border-radius: 9px; color: #fff; font-family: var(--site-font-display); font-size: 16px; line-height: 1;
@@ -27,7 +28,6 @@
   background: var(--site-surface-raised); opacity: 0; transition: opacity 0.2s ease;
 }
 .bangs-icon img.is-loaded { opacity: 1; }
-@media (scripting: none) { .bangs-icon img { opacity: 1; } }
 .bangs-icon.t0 { background: #8a5a2b; }
 .bangs-icon.t1 { background: #4f6b5a; }
 .bangs-icon.t2 { background: #9b4a3a; }
@@ -51,13 +51,7 @@
 .bangs-card-codes { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 8px; font-size: 13px; }
 
 /* ---------- the fold ---------- */
-/* The last cards fade into the rest of the list, as a hint that there is
-   more; only with JavaScript, since without it the list follows. */
-.bangs-fold { position: relative; max-width: 920px; margin: 0 auto; padding-top: 18px; text-align: center; }
-.bangs-page[data-view] .bangs-fold::before {
-  content: ""; position: absolute; left: 0; right: 0; bottom: 100%; height: 96px; pointer-events: none;
-  background: linear-gradient(rgba(var(--site-bg-rgb), 0), var(--site-bg));
-}
+.bangs-fold { max-width: 920px; margin: 0 auto; padding-top: 22px; text-align: center; }
 .bangs-fold p { margin: 0; font-size: 18px; }
 .bangs-fold-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 14px; }
 .bangs-page:not([data-view]) .bangs-fold-actions { display: none; }
@@ -74,6 +68,16 @@
 
 /* ---------- the list ---------- */
 .bangs-list { max-width: 920px; margin: 22px auto 0; scroll-margin-top: calc(var(--site-header-h) + 24px); }
+.bangs-list-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; margin-bottom: 12px; }
+#bangs-dir-title { margin: 0; font-size: 22px; scroll-margin-top: calc(var(--site-header-h) + 24px); }
+#bangs-dir-title:focus { outline: none; }
+#bangs-dir-title:focus-visible { outline: 2px solid var(--site-text); outline-offset: 4px; }
+#bangs-back {
+  padding: 6px 14px; border: 1px solid var(--site-border); border-radius: 999px; background: var(--site-surface-raised);
+  color: var(--site-text); cursor: pointer; font: inherit; font-size: 13px;
+}
+#bangs-back:focus-visible { outline: 2px solid var(--site-text); outline-offset: 2px; }
+.bangs-page:not([data-view]) #bangs-back { display: none; }
 .bangs-rows {
   margin: 0; padding: 0; list-style: none; overflow: hidden;
   border: 1px solid var(--site-border); border-radius: 16px; background: var(--site-surface-raised);

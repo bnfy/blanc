@@ -8,8 +8,10 @@ import '../styles/bangs.css';
 // cards are the app's own popular bangs and the list holds every bang, so the
 // page reads right without JavaScript. Icons come from the icon server
 // (cloudflare/bang-icons-worker) at /bang-icons/<host>, over a lettered tile
-// that shows while one loads and stays when a site has none; list rows get
-// theirs from the script as they are shown.
+// that shows while one loads and stays when a site has none. The script
+// requests every icon (the cards' from data-src, the rows' as they are
+// shown), since only it can tell a failed icon from a loaded one; without it
+// the tiles are the page.
 const rows = directoryRows(data);
 const cards = featuredCards(data);
 const countText = data.count.toLocaleString('en-US');
@@ -51,7 +53,7 @@ const moreAliases = (aliases) => (aliases.length > SHOWN_ALIASES ? `+${aliases.l
     {cards.map((card) => {
       const tile = iconTile(card.host, card.name);
       return (
-        <li class="bangs-card" data-code={card.code}><span class={`bangs-icon t${tile.tone}`} aria-hidden="true">{tile.letter}<img src={iconUrl(card.host)} alt="" width="32" height="32" loading="lazy" decoding="async" /></span><span class="bangs-card-host">{card.host.replace(/^www\./, '')}</span><span class="bangs-card-name">{card.name}</span><span class="bangs-card-codes">{card.codes.map((code) => <kbd class="bang-chip">{`!${code}`}</kbd>)}</span></li>
+        <li class="bangs-card" data-code={card.code}><span class={`bangs-icon t${tile.tone}`} aria-hidden="true">{tile.letter}<img data-src={iconUrl(card.host)} alt="" width="32" height="32" loading="lazy" decoding="async" /></span><span class="bangs-card-host">{card.host.replace(/^www\./, '')}</span><span class="bangs-card-name">{card.name}</span><span class="bangs-card-codes">{card.codes.map((code) => <kbd class="bang-chip">{`!${code}`}</kbd>)}</span></li>
       );
     })}
   </ul>
@@ -65,7 +67,10 @@ const moreAliases = (aliases) => (aliases.length > SHOWN_ALIASES ? `+${aliases.l
   </div>
 
   <section class="bangs-list" id="bangs-list" aria-labelledby="bangs-dir-title">
-    <h2 id="bangs-dir-title" class="sr-only">Every bang in Blanc</h2>
+    <div class="bangs-list-head">
+      <h2 id="bangs-dir-title" tabindex="-1">Every bang in Blanc</h2>
+      <button type="button" id="bangs-back">Back to popular bangs</button>
+    </div>
     <ol class="bangs-rows" id="bangs-rows">
       {rows.map((row) => {
         const tile = iconTile(row.host, row.name);
