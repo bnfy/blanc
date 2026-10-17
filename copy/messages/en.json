@@ -1529,7 +1529,7 @@
     "note": "Empty row in the Quick Switcher. Sentence case."
   },
   "bang.search": {
-    "message": "Search {site} for \u201c{query}\u201d",
+    "message": "Search {site} for “{query}”",
     "note": "The Island's bang hint row while a bang with words is typed (!yt lofi); {site} is the site's name, {query} the words."
   },
   "bang.open": {
@@ -1537,23 +1537,23 @@
     "note": "The Island's bang hint row for a bare code (!yt): Enter opens the site's front page."
   },
   "bang.yours": {
-    "message": "yours",
-    "note": "Lowercase tag on a bang picker row for a bang the person added in Settings, where other rows show the site's domain.",
+    "message": "Yours",
+    "note": "Tag on a bang picker row for a bang the person added in Settings, where other rows show the site's domain. Sentence case.",
     "maxLength": 10
   },
   "bang.section.recent": {
-    "message": "recent",
-    "note": "Lowercase header of the bang picker's recently used section.",
+    "message": "Recent",
+    "note": "Header of the bang picker's recently used section. Sentence case, like the other ⌘L panel headers.",
     "maxLength": 22
   },
   "bang.section.popular": {
-    "message": "popular",
-    "note": "Lowercase header of the bang picker's popular section.",
+    "message": "Popular",
+    "note": "Header of the bang picker's popular section. Sentence case.",
     "maxLength": 22
   },
   "bang.section.all": {
-    "message": "all bangs",
-    "note": "Lowercase header of the bang picker's section of every other matching bang.",
+    "message": "All bangs",
+    "note": "Header of the bang picker's section of every other matching bang. Sentence case.",
     "maxLength": 22
   },
   "bang.fold": {
@@ -1566,7 +1566,7 @@
   },
   "hint.bang": {
     "message": "!code words searches one site · ! alone lists them",
-    "note": "Lowercase hint under the Island list while a bang is typed. Keep !code and ! as typed."
+    "note": "Hint under the Island list while a bang is typed. Keep !code and ! as typed; the rest is sentence case."
   },
   "hint.private": {
     "message": "Private tab · Nothing here is saved to history",
