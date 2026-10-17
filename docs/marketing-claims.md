@@ -296,13 +296,12 @@ original reports:
   metadata, never field values or page text, and does not contact 1Password.
   Credential lookup and fill remain explicit user actions. This is not
   automatic fill, a general extension runtime, or a Blanc password manager.
-- **1Password on Windows and Linux:** Since v1.32.0 public Blanc enables the
-  same fill on Windows and Linux, but it is deliberately unannounced. Its evidence comes
-  from x64 Windows Blanc and 1Password under Arm emulation in a VM, and an
-  ARM64 Linux development build, under the waiver in
-  [the 1Password integration doc](1password-integration.md). Do not announce
-  or list it as shipped until the real-account matrix passes on a real x64
-  Windows PC and a packaged x64 Linux AppImage.
+- **1Password on Windows and Linux:** Since v1.34.0 public Blanc enables the
+  same fill on Windows and Linux (not on Windows on Arm), announced on the
+  website on October 16, 2026. Its evidence comes from Windows and Linux
+  virtual machines under the waiver in
+  [the 1Password integration doc](1password-integration.md); keep any claim
+  within that evidence and name the Windows on Arm limit.
 - **Interface languages:** Blanc's own interface is available in German,
   Spanish, French and Portuguese (Brazil) since v1.32.0, and in Italian since
   v1.33.0, all machine-translated. Blanc
