@@ -4,25 +4,35 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { after, before, test } from 'node:test';
 import { chromium } from 'playwright';
+import { directoryRows, filterBangs } from '../../site/src/scripts/bangs-directory.mjs';
 
-// /bangs: the explainer, the try-it box and the full directory
-// (docs/superpowers/specs/2026-10-17-bangs-page-design.md).
+// /bangs: the headline, a search, the app's popular bangs as icon cards, the
+// full list, and one short How bangs work section
+// (docs/superpowers/specs/2026-10-17-bangs-page-redesign-design.md).
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const data = JSON.parse(fs.readFileSync(path.join(ROOT, 'site/src/data/bangs.json'), 'utf8'));
 const baseURL = process.env.BLANC_SITE_URL || 'http://127.0.0.1:4322';
 const url = `${baseURL}/bangs`;
 const countText = data.count.toLocaleString('en-US');
+// The icon server is a separate Worker; here a 1×1 PNG stands in for it.
+const PIXEL = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64');
 let browser;
 before(async () => { browser = await chromium.launch(); });
 after(async () => { await browser?.close(); });
 
-async function open(options = {}, { blockData = false } = {}) {
+async function open(options = {}, { blockData = false, icons = 'png' } = {}) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce', ...options });
   const requests = [];
   await context.route('**/*', (route) => {
     const request = route.request();
-    if (new URL(request.url()).origin !== new URL(baseURL).origin) return route.abort();
+    const address = new URL(request.url());
+    if (address.origin !== new URL(baseURL).origin) return route.abort();
+    if (address.pathname.startsWith('/bang-icons/')) {
+      return icons === 'png'
+        ? route.fulfill({ status: 200, contentType: 'image/png', body: PIXEL })
+        : route.fulfill({ status: 404, body: '' });
+    }
     if (blockData && /bangs\.[^/]*\.json$/.test(request.url())) return route.fulfill({ status: 404, body: '' });
     return route.continue();
   });
@@ -34,86 +44,171 @@ async function open(options = {}, { blockData = false } = {}) {
 }
 
 const visibleRows = (page) => page.locator('#bangs-rows li:not([hidden])');
+const search = async (page, text) => {
+  await page.locator('#bangs-search').fill(text);
+  await page.waitForTimeout(250);
+};
 
-test('the page leads with its headline, breadcrumb and a jump to the directory', async () => {
+test('the page leads with its headline, search and the popular bangs', async () => {
   const { context, page } = await open();
   try {
-    assert.equal(await page.locator('h1').count(), 1);
     assert.equal((await page.locator('h1').innerText()).trim(), 'Search the site. Skip the engine.');
     assert.equal((await page.locator('.breadcrumb').innerText()).replace(/\s+/g, ' ').trim(), 'home / features / bangs');
-    assert.equal(await page.locator('a[href="#find-a-bang"]').count(), 1);
-    assert.equal(await page.locator('#find-a-bang').count(), 1);
+    assert.equal(
+      (await page.locator('.bangs-hero p').innerText()).replace(/\s+/g, ' ').trim(),
+      'Type a site’s code before your search, like !yt lofi, to go straight to its results. Works with any search engine.',
+    );
+    const order = await page.evaluate(() => {
+      const at = (selector) => document.querySelector(selector);
+      return at('#bangs-search').compareDocumentPosition(at('#bangs-cards')) & Node.DOCUMENT_POSITION_FOLLOWING;
+    });
+    assert.ok(order, 'the search comes before the cards');
+    assert.deepEqual(await page.locator('#bangs-cards li').evaluateAll((cards) => cards.map((card) => card.dataset.code)), data.popular);
+    assert.equal(await page.locator('#bangs-cards a').count(), 0, 'cards are not links');
+    assert.equal(await page.locator('#bangs-try, a[href="#find-a-bang"]').count(), 0);
   } finally { await context.close(); }
 });
 
-test('without JavaScript every bang is in the page and the try-it box shows its example', async () => {
+test('without JavaScript every bang and card is in the page', async () => {
   const { context, page } = await open({ javaScriptEnabled: false });
   try {
+    assert.equal(await page.locator('#bangs-cards li').count(), 19);
     assert.equal(await page.locator('#bangs-rows li').count(), data.count);
-    assert.match(await page.locator('#bangs-try-list').innerText(), /!yt[\s\S]*Search YouTube for “lofi”/);
+    assert.equal(await page.locator('#bangs-search-them').isVisible(), false);
+    assert.equal(await page.locator('#bangs-browse').isVisible(), false);
     assert.match(await page.locator('.bangs-dir-sub').innerText(), new RegExp(countText));
   } finally { await context.close(); }
 });
 
-test('the try-it box answers as the app does and goes nowhere', async () => {
-  const { context, page, requests } = await open();
+test('a missing icon leaves the lettered tile', async () => {
+  for (const javaScriptEnabled of [true, false]) {
+    const { context, page } = await open({ javaScriptEnabled }, { icons: 'missing' });
+    try {
+      await page.waitForTimeout(400);
+      const letters = await page.locator('#bangs-cards .bangs-icon').evaluateAll((tiles) => tiles.map((tile) => tile.textContent.trim()));
+      assert.equal(letters.length, 19);
+      for (const letter of letters) assert.match(letter, /^[\p{L}\p{N}?]$/u);
+      if (javaScriptEnabled) {
+        const broken = await page.evaluate(() => [...document.querySelectorAll('#bangs-cards img')].filter((img) => img.complete && img.naturalWidth === 0).length);
+        assert.equal(broken, 0, 'a broken image stayed in the page');
+      } else {
+        assert.deepEqual([...new Set(await page.locator('#bangs-cards img').evaluateAll((imgs) => imgs.map((img) => img.getAttribute('alt'))))], ['']);
+      }
+    } finally { await context.close(); }
+  }
+});
+
+test('phones get two card columns and no sideways scroll', async () => {
+  const { context, page } = await open({ viewport: { width: 360, height: 780 } });
   try {
-    const before = page.url();
-    await page.waitForLoadState('networkidle');
-    const loaded = requests.length;
-    await page.locator('#bangs-try').fill('!w golden retriever');
-    await page.waitForFunction(() => document.querySelector('#bangs-try-list').textContent.includes('golden retriever'));
-    const list = await page.locator('#bangs-try-list').innerText();
-    assert.match(list, /!wikipedia/);
-    assert.match(list, /Search Wikipedia for “golden retriever”/);
-    assert.match(await page.locator('#bangs-try-dest').innerText(), /Return would open https:\/\/wikipedia\.org\/w\/index\.php\?search=golden\+retriever/);
-    await page.locator('#bangs-try').press('Enter');
-    await page.waitForTimeout(300);
-    assert.equal(page.url(), before);
-    assert.equal(context.pages().length, 1);
-    // Typing may fetch the page's own bang data asset, and nothing else.
-    const typed = requests.slice(loaded).filter((request) => !/\/_astro\/bangs\.[^/]+\.json$/.test(request));
-    assert.deepEqual(typed, [], 'typing sends nothing anywhere');
-    // The Island's hint line follows the app (overlay.js renderList): the
-    // bang hint while a bang is typed, the private-tab note otherwise.
-    assert.equal(await page.locator('#bangs-try-hint').innerText(), data.labels.hintBang);
-    await page.locator('#bangs-try').fill('plain words');
-    // The page's explanation sits under the Island; the app draws no row for it.
-    await page.waitForFunction(() => document.querySelector('#bangs-try-dest').textContent.includes('Not a bang'));
-    assert.equal(await page.locator('#bangs-try-list').innerText(), '');
-    assert.equal(await page.locator('#bangs-try-hint').innerText(), data.labels.hintPrivate);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    assert.ok(overflow <= 0, `page overflows by ${overflow}px`);
+    const tops = await page.locator('#bangs-cards li').evaluateAll((cards) => cards.slice(0, 3).map((card) => Math.round(card.getBoundingClientRect().top)));
+    assert.equal(tops[0], tops[1], 'the first two cards share a row');
+    assert.notEqual(tops[1], tops[2], 'the third card starts a new row');
   } finally { await context.close(); }
 });
 
-test('pasted text is capped at 200 characters and the page stays responsive', async () => {
+test('How bangs work comes after the index', async () => {
   const { context, page } = await open();
   try {
-    await page.locator('#bangs-try').fill(`!yt ${'a'.repeat(5000)}`);
-    assert.equal((await page.locator('#bangs-try').inputValue()).length, 200);
-    const started = Date.now();
-    await page.evaluate(() => 1);
-    assert.ok(Date.now() - started < 1000);
+    const after = await page.evaluate(() => !!(document.querySelector('#bangs-list').compareDocumentPosition(document.querySelector('.bangs-how')) & Node.DOCUMENT_POSITION_FOLLOWING));
+    assert.ok(after);
+    assert.equal((await page.locator('.bangs-how h2').innerText()).trim(), 'How bangs work');
+    assert.equal(await page.locator('.bangs-how li').count(), 4);
+    const how = await page.locator('.bangs-how').textContent();
+    assert.match(how, /A bang typed at the end is different/);
+    assert.match(how, /Google or DuckDuckGo/);
+  } finally { await context.close(); }
+});
+
+test('typing shows matching rows instead of the cards', async () => {
+  const { context, page } = await open();
+  try {
+    assert.equal(await page.locator('#bangs-cards').isVisible(), true, 'the cards show first');
+    assert.equal(await page.locator('#bangs-list').count(), 1);
+    assert.equal(await page.locator('#bangs-list').isVisible(), false, 'the list starts folded away');
+    await search(page, 'youtube');
+    assert.equal(await page.locator('#bangs-cards').isVisible(), false);
+    assert.equal(await page.locator('#bangs-list').isVisible(), true);
+    assert.equal(await visibleRows(page).first().getAttribute('data-code'), 'yt');
+    const n = filterBangs(directoryRows(data), 'youtube').length;
+    assert.equal((await page.locator('#bangs-count').innerText()).trim(), `${n.toLocaleString('en-US')} bangs`);
+  } finally { await context.close(); }
+});
+
+test('clearing the search brings the cards back and resets the list', async () => {
+  const { context, page } = await open();
+  try {
+    await search(page, 'a');
+    await page.locator('#bangs-more').click();
+    assert.equal(await visibleRows(page).count(), 100);
+    await search(page, '');
+    assert.equal(await page.locator('#bangs-cards').isVisible(), true);
+    assert.equal(await page.locator('#bangs-list').isVisible(), false);
+    await search(page, 'a');
+    assert.equal(await visibleRows(page).count(), 50);
+  } finally { await context.close(); }
+});
+
+test('Browse all opens the full list and Search them focuses the box', async () => {
+  const { context, page } = await open();
+  try {
+    await page.locator('#bangs-browse').click();
+    assert.equal(await page.locator('#bangs-list').isVisible(), true);
+    assert.equal(await visibleRows(page).count(), 50);
+    assert.match(await page.locator('#bangs-showing').innerText(), new RegExp(`Showing 50 of ${countText}`));
+    await page.reload();
+    await page.locator('#bangs-search-them').click();
+    assert.equal(await page.evaluate(() => document.activeElement?.id), 'bangs-search');
+  } finally { await context.close(); }
+});
+
+test('only shown rows ask for icons', async () => {
+  const { context, page, requests } = await open();
+  try {
+    await page.locator('#bangs-browse').click();
+    await page.waitForTimeout(500);
+    const icons = requests.filter((address) => new URL(address).pathname.startsWith('/bang-icons/'));
+    assert.ok(icons.length <= 50 + 19, `${icons.length} icon requests`);
+    for (const address of icons) assert.equal(new URL(address).origin, new URL(baseURL).origin);
+    const rowIcons = await visibleRows(page).evaluateAll((rows) => rows.filter((row) => row.querySelector('.bangs-icon img')).length);
+    assert.equal(rowIcons, 50, 'every shown row has its icon');
+    assert.equal(await page.locator('#bangs-rows li[hidden] img').count(), 0, 'hidden rows have no icon');
+  } finally { await context.close(); }
+});
+
+test('keyboard focus shows on the search box and the fold buttons', async () => {
+  const { context, page } = await open();
+  try {
+    const ring = (selector) => page.locator(selector).evaluate((el) => {
+      const style = getComputedStyle(el);
+      return `${style.outlineStyle}|${style.outlineWidth}|${style.boxShadow}|${style.borderColor}`;
+    });
+    const resting = await ring('.bangs-search');
+    await page.locator('#bangs-search').focus();
+    assert.notEqual(await ring('.bangs-search'), resting, 'the search shows focus');
+    for (const id of ['#bangs-search-them', '#bangs-browse']) {
+      await page.locator(id).focus();
+      await page.keyboard.press('Shift+Tab');
+      await page.keyboard.press('Tab');
+      const style = await page.locator(id).evaluate((el) => ({ focused: el.matches(':focus-visible'), outline: getComputedStyle(el).outlineStyle }));
+      assert.ok(style.focused && style.outline !== 'none', `${id} has no focus ring`);
+    }
   } finally { await context.close(); }
 });
 
 test('the directory searches by site and by code and keeps its counts truthful', async () => {
   const { context, page } = await open();
   try {
-    assert.equal(await visibleRows(page).count(), 50);
-    assert.match(await page.locator('#bangs-showing').innerText(), new RegExp(`Showing 50 of ${countText}`));
     for (const query of ['youtube', 'yt']) {
       await page.locator('#bangs-search').fill(query);
       await page.waitForFunction(() => document.querySelector('#bangs-rows li:not([hidden])')?.dataset.code === 'yt');
     }
-    await page.locator('#bangs-search').fill('goo');
-    await page.waitForTimeout(200);
+    await search(page, 'goo');
     if (await page.locator('#bangs-more').isVisible()) await page.locator('#bangs-more').click();
     const shown = await visibleRows(page).count();
     assert.match(await page.locator('#bangs-showing').innerText(), new RegExp(`Showing ${shown.toLocaleString('en-US')} of`));
-    await page.locator('#bangs-search').fill('');
-    await page.waitForTimeout(200);
-    assert.equal(await visibleRows(page).count(), 50);
-    assert.match(await page.locator('#bangs-showing').innerText(), new RegExp(`Showing 50 of ${countText}`));
   } finally { await context.close(); }
 });
 
@@ -139,77 +234,10 @@ test('bangs that search through another engine are marked', async () => {
   } finally { await context.close(); }
 });
 
-test('phones get no horizontal scroll', async () => {
-  const { context, page } = await open({ viewport: { width: 360, height: 780 } });
-  try {
-    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
-    assert.ok(overflow <= 0, `page overflows by ${overflow}px`);
-  } finally { await context.close(); }
-});
-
-test('try-it messages and the address show in full, clear of the example chips', async () => {
-  for (const width of [1280, 390, 360]) {
-    const { context, page } = await open({ viewport: { width, height: 900 } });
-    try {
-      await page.locator('#bangs-try').fill('!w golden retriever');
-      await page.waitForFunction(() => document.querySelector('#bangs-try-list').textContent.includes('golden retriever'));
-      const layout = await page.evaluate(() => {
-        const dest = document.querySelector('#bangs-try-dest');
-        const a = dest.getBoundingClientRect();
-        const b = document.querySelector('.bangs-chips').getBoundingClientRect();
-        return { clipped: dest.scrollWidth > dest.clientWidth + 1, overlap: a.bottom > b.top && a.top < b.bottom };
-      });
-      assert.equal(layout.clipped, false, `${width}px: the address is cut off`);
-      assert.equal(layout.overlap, false, `${width}px: the address overlaps the chips`);
-      for (const [text, needle] of [['plain words', 'Not a bang'], ['!zzqq lofi', 'No bang with that code']]) {
-        await page.locator('#bangs-try').fill(text);
-        await page.waitForFunction((n) => document.querySelector('#bangs-try-dest').textContent.includes(n), needle);
-        const cut = await page.evaluate(() => {
-          const message = document.querySelector('#bangs-try-dest');
-          const a = message.getBoundingClientRect(), b = document.querySelector('.bangs-chips').getBoundingClientRect();
-          return message.scrollWidth > message.clientWidth + 1 || (a.bottom > b.top && a.top < b.bottom);
-        });
-        assert.equal(cut, false, `${width}px: “${needle}” is cut off`);
-      }
-    } finally { await context.close(); }
-  }
-});
-
-test('both search boxes are at least 16px on phones, so iOS does not zoom in', async () => {
+test('the search box is at least 16px on phones, so iOS does not zoom in', async () => {
   const { context, page } = await open({ viewport: { width: 390, height: 844 } });
   try {
-    for (const id of ['#bangs-try', '#bangs-search']) {
-      assert.ok(parseFloat(await page.locator(id).evaluate((el) => getComputedStyle(el).fontSize)) >= 16, id);
-    }
-  } finally { await context.close(); }
-});
-
-test('keyboard focus is visible on the try-it field and the example chips', async () => {
-  const { context, page } = await open();
-  try {
-    const ring = () => page.evaluate(() => {
-      const style = getComputedStyle(document.querySelector('.bangs-field'));
-      return `${style.boxShadow}|${style.outlineStyle}|${style.borderColor}`;
-    });
-    const resting = await ring();
-    await page.locator('#bangs-try').focus();
-    assert.notEqual(await ring(), resting, 'the field shows focus');
-    await page.keyboard.press('Tab');
-    const contrast = await page.evaluate(() => {
-      const chip = document.activeElement;
-      if (!chip?.matches('[data-chip]')) return 0;
-      const rgb = (value) => value.match(/[\d.]+/g).slice(0, 3).map(Number);
-      const lum = ([r, g, b]) => [r, g, b].map((c) => { c /= 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; })
-        .reduce((sum, c, i) => sum + c * [0.2126, 0.7152, 0.0722][i], 0);
-      const style = getComputedStyle(chip);
-      if (style.outlineStyle === 'none' || parseFloat(style.outlineWidth) === 0) return 0;
-      let node = chip.parentElement;
-      while (node && getComputedStyle(node).backgroundColor.match(/rgba\(.*, 0\)$|transparent/)) node = node.parentElement;
-      const [a, b] = [lum(rgb(style.outlineColor)), lum(rgb(getComputedStyle(node).backgroundColor))];
-      return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
-    });
-    assert.ok(contrast >= 3, `chip focus ring contrast is ${contrast.toFixed(2)}`);
-    assert.equal(await page.locator('.bangs-chips[role="group"][aria-label="Examples"]').count(), 1);
+    assert.ok(parseFloat(await page.locator('#bangs-search').evaluate((el) => getComputedStyle(el).fontSize)) >= 16);
   } finally { await context.close(); }
 });
 
@@ -228,17 +256,14 @@ test('a long pasted search never scrolls the page sideways, and long codes are n
   } finally { await context.close(); }
 });
 
-test('the Island drawing and every bang are set in the app\'s Instrument Sans with its chips, and the page around it in Blubird', async () => {
+test('every bang is set in the app\'s Instrument Sans with its chip, and the page around it in Blubird', async () => {
   const { context, page } = await open();
   try {
-    await page.locator('#bangs-try').fill('!w golden retriever');
-    await page.waitForFunction(() => document.querySelector('#bangs-try-list').textContent.includes('golden retriever'));
+    await search(page, 'youtube');
     const family = (selectors) => page.evaluate((list) => Object.fromEntries(
       list.map((selector) => [selector, getComputedStyle(document.querySelector(selector)).fontFamily])), selectors);
-    // The drawing of the app's Island, and every bang the page asks you to
-    // type, use the app's face; the page is the website's.
-    const bangs = ['[data-chip]', '#bangs-rows li b', '#bangs-rows li[data-code="yt"] small kbd', '.bangs-hero .bang-chip', '.feature-copy-list .bang-chip'];
-    for (const [selector, value] of Object.entries(await family(['#bangs-try', '#bangs-try-list .cmd', '#bangs-try-list .hint', ...bangs]))) {
+    const bangs = ['.bangs-card-codes .bang-chip', '#bangs-rows li b', '#bangs-rows li[data-code="yt"] small kbd', '.bangs-hero .bang-chip', '.bangs-how .bang-chip'];
+    for (const [selector, value] of Object.entries(await family(bangs))) {
       assert.match(value, /^"Instrument Sans"/, `${selector} is ${value}`);
     }
     for (const selector of bangs) {
@@ -246,27 +271,17 @@ test('the Island drawing and every bang are set in the app\'s Instrument Sans wi
       assert.ok(parseFloat(style.radius) > 0, `${selector} is not round`);
       assert.doesNotMatch(style.background, /rgba\(0, 0, 0, 0\)|transparent/, `${selector} has no chip`);
     }
-    for (const [selector, value] of Object.entries(await family(['#bangs-try-dest', '#bangs-search', '#bangs-rows li em', '#bangs-count']))) {
+    for (const [selector, value] of Object.entries(await family(['#bangs-search', '#bangs-rows li em', '#bangs-count', '.bangs-card-name']))) {
       assert.match(value, /^"Blubird Text"/, `${selector} is ${value}`);
     }
-    assert.ok(await page.evaluate(() => [...document.fonts].some((face) => face.family.replace(/"/g, '') === 'Instrument Sans')), 'the page declares Instrument Sans');
-    const chip = await page.locator('#bangs-try-list .cmd').evaluate((el) => {
-      const style = getComputedStyle(el);
-      return { radius: style.borderTopLeftRadius, background: style.backgroundColor };
-    });
-    assert.equal(chip.radius, '6px');
-    assert.doesNotMatch(chip.background, /rgba\(0, 0, 0, 0\)|transparent/);
   } finally { await context.close(); }
 });
 
-test('if the data asset fails, search still works from the page and the box keeps its example', async () => {
+test('if the data asset fails, search still works from the page', async () => {
   const { context, page } = await open({}, { blockData: true });
   try {
     await page.locator('#bangs-search').fill('youtube');
     await page.waitForFunction(() => document.querySelector('#bangs-rows li:not([hidden])')?.dataset.code === 'yt');
-    await page.locator('#bangs-try').fill('!w x');
-    await page.waitForTimeout(300);
-    assert.match(await page.locator('#bangs-try-list').innerText(), /Search YouTube for “lofi”/);
     assert.equal(await page.locator('.bangs-error, [role="alert"]').count(), 0);
   } finally { await context.close(); }
 });
