@@ -11,6 +11,8 @@
   wig are drawn here; the wig's strands are generated with a fixed seed so every render matches.
   Render: node render.mjs   (needs the licensed Blubird fonts installed under site/public/fonts/blubird)
   Colorway: graphic.html?c=pink | blue | silver
+  Video: graphic.html?format=story lays out 1080x1920; render-video.mjs steps window.__setTime(t)
+  through the timeline at the end of the script and encodes the MP4.
 -->
 <style>
   @font-face { font-family: 'Blubird Display'; src: url('../../../site/public/fonts/blubird/Blubird-RegularDisplay.woff2') format('woff2'); font-weight: 400; }
@@ -82,6 +84,20 @@
   .chips { display: flex; justify-content: center; gap: 14px; margin-top: 16px; font: 400 38px/1.25 'Blubird Text', sans-serif; }
   .sign { display: flex; align-items: center; gap: 16px; font: 500 34px/1 'Blubird Text', sans-serif; color: var(--gold); }
   .sign img { width: 58px; height: 58px; display: block; }
+
+  /* 1080x1920 for TikTok and Reels: content kept clear of the apps' top bar and
+     bottom caption area. JS animates through --in-* custom properties. */
+  html.story, body.story { height: 1920px; }
+  body.story { padding: 250px 40px 330px; justify-content: center; }
+  body.story .art { flex: 0 0 940px; width: 1040px; margin-top: 24px; }
+  body.story footer { margin-top: 36px; gap: 32px; }
+  body.story .sub, body.story .chips { font-size: 44px; }
+  body.story h1 { opacity: var(--in-h1, 1); transform: translateY(calc((1 - var(--in-h1, 1)) * 40px)); }
+  body.story .sub > p:first-child { opacity: var(--in-sub, 1); transform: translateY(calc((1 - var(--in-sub, 1)) * 30px)); }
+  body.story .chips .bang-chip:nth-child(1) { opacity: min(1, var(--in-c1, 1) * 2); transform: scale(var(--in-c1, 1)); }
+  body.story .chips .bang-chip:nth-child(2) { opacity: min(1, var(--in-c2, 1) * 2); transform: scale(var(--in-c2, 1)); }
+  body.story .chips .bang-chip:nth-child(3) { opacity: min(1, var(--in-c3, 1) * 2); transform: scale(var(--in-c3, 1)); }
+  body.story .sign { opacity: var(--in-sign, 1); }
 </style>
 </head>
 <body>
@@ -173,10 +189,13 @@
   <rect x="135" y="646" width="730" height="2" fill="#fff" opacity="0.55"/>
   <rect x="136" y="216" width="728" height="430" rx="14" fill="url(#bezel)"/>
   <rect x="155" y="237" width="690" height="389" rx="4" fill="#1A1A1A"/>
-  <image href="bangs-page-capture.png" x="156" y="238" width="688" height="387"
-         preserveAspectRatio="xMidYMid slice" clip-path="url(#screenClip)"/>
+  <g clip-path="url(#screenClip)">
+    <image id="screenImage" href="bangs-page-capture.png" x="156" y="238" width="688" height="387"
+           preserveAspectRatio="xMidYMid slice"/>
+  </g>
   <rect x="136" y="216" width="728" height="430" rx="14" fill="url(#glare)" clip-path="url(#glassClip)"/>
 
+  <g id="wig">
   <!-- side hair, framing the screen -->
   <g id="sideL" filter="url(#sideShadow)" transform="translate(-26 0)"></g>
   <g id="sideR" filter="url(#sideShadow)" transform="translate(1026 0) scale(-1 1)"></g>
@@ -188,6 +207,8 @@
   <g clip-path="url(#crownClip)">
     <rect x="0" y="0" width="1000" height="400" fill="url(#fringeTips)"/>
     <g id="crownStrands"></g>
+  </g>
+
   </g>
 
   <g id="sparkles" fill="url(#spark)"></g>
@@ -346,12 +367,59 @@ for (const [a, b, w, o] of [[0.06, 0.24, 7, 0.8], [0.3, 0.5, 6, 0.7], [0.62, 0.7
 /* ---------- sparkles ---------- */
 function sparkle(cx, cy, s) {
   const k = s * 0.16;
-  el('path', { d: `M${cx} ${cy - s} C${cx + k} ${cy - k} ${cx + k} ${cy - k} ${cx + s} ${cy} C${cx + k} ${cy + k} ${cx + k} ${cy + k} ${cx} ${cy + s} ` +
+  return el('path', { 'data-cx': cx, 'data-cy': cy, d: `M${cx} ${cy - s} C${cx + k} ${cy - k} ${cx + k} ${cy - k} ${cx + s} ${cy} C${cx + k} ${cy + k} ${cx + k} ${cy + k} ${cx} ${cy + s} ` +
     `C${cx - k} ${cy + k} ${cx - k} ${cy + k} ${cx - s} ${cy} C${cx - k} ${cy - k} ${cx - k} ${cy - k} ${cx} ${cy - s} Z` }, $('sparkles'));
 }
 sparkle(930, 110, 30);
 sparkle(974, 190, 14);
 sparkle(70, 132, 20);
+
+/* ---------- video timeline (format=story) ---------- */
+const params = new URLSearchParams(location.search);
+if (params.get('format') === 'story') {
+  document.documentElement.classList.add('story');
+  document.body.classList.add('story');
+  // The screen scrolls the real page: a taller capture from the same 1280px layout.
+  const img = $('screenImage');
+  img.setAttribute('href', 'bangs-page-scroll.png');
+  img.setAttribute('height', f(688 * 1160 / 1000));
+  img.setAttribute('preserveAspectRatio', 'xMidYMin meet');
+}
+const clamp = (v) => Math.max(0, Math.min(1, v));
+const span = (t, a, b) => clamp((t - a) / (b - a));
+const easeInOut = (x) => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const easeOutBack = (x) => 1 + 2.4 * Math.pow(x - 1, 3) + 1.4 * Math.pow(x - 1, 2);
+function easeOutBounce(x) {
+  const n = 7.5625, d = 2.75;
+  if (x < 1 / d) return n * x * x;
+  if (x < 2 / d) return n * (x -= 1.5 / d) * x + 0.75;
+  if (x < 2.5 / d) return n * (x -= 2.25 / d) * x + 0.9375;
+  return n * (x -= 2.625 / d) * x + 0.984375;
+}
+window.__duration = 10;
+window.__setTime = (t) => {
+  const css = document.body.style;
+  // 0.3-1.3 s: the wig drops on and bounces
+  const drop = easeOutBounce(span(t, 0.3, 1.3));
+  $('wig').setAttribute('transform', `translate(0 ${f((1 - drop) * -1500)})`);
+  // 1.2 s: the headline lands; sparkles pop, then twinkle
+  css.setProperty('--in-h1', easeOutBack(span(t, 1.2, 1.7)).toFixed(3));
+  [...$('sparkles').children].forEach((node, i) => {
+    const pop = easeOutBack(span(t, 1.35 + i * 0.15, 1.75 + i * 0.15));
+    const k = pop * (1 + 0.14 * Math.sin((t - 1.35) * 4.2 + i * 2.1) * span(t, 2, 2.6));
+    const cx = node.dataset.cx, cy = node.dataset.cy;
+    node.setAttribute('transform', `translate(${cx} ${cy}) scale(${k.toFixed(3)}) translate(${-cx} ${-cy})`);
+  });
+  // 2.2-6.6 s: the screen scrolls down the bang cards to "And 10,605 more." (540 of the capture's 1160px)
+  const scroll = easeInOut(span(t, 2.2, 6.6));
+  $('screenImage').setAttribute('y', f(238 - scroll * 540 * 688 / 1000));
+  // 3.4 s on: the caption, then each chip, then the address
+  css.setProperty('--in-sub', easeOutBack(span(t, 3.4, 3.9)).toFixed(3));
+  css.setProperty('--in-c1', easeOutBack(span(t, 4.2, 4.6)).toFixed(3));
+  css.setProperty('--in-c2', easeOutBack(span(t, 4.7, 5.1)).toFixed(3));
+  css.setProperty('--in-c3', easeOutBack(span(t, 5.2, 5.6)).toFixed(3));
+  css.setProperty('--in-sign', span(t, 6.0, 6.5).toFixed(3));
+};
 
 document.fonts.ready.then(() => { document.body.dataset.ready = '1'; });
 </script>

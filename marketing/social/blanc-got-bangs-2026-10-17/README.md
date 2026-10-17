@@ -13,6 +13,15 @@ nothing is scheduled.
   page's headline sits out of frame; nothing in it is edited. Only the bangs and side
   hair overlap its edges. It includes the site icons the page itself shows
   for Wikipedia, YouTube, Amazon and Google.
+- `blanc-got-bangs-1080x1920.mp4` is the 10-second vertical video for TikTok,
+  Instagram Reels and Facebook Reels (H.264, 30 fps, silent so each app's sound
+  can be added). The bare iMac sits on screen, the wig drops on and bounces,
+  the headline lands, the screen scrolls the real page from its search box to
+  "And 10,605 more.", then the caption and its three chips pop in.
+  `blanc-got-bangs-cover-1080x1920.png` is its last frame, for a cover image.
+  `bangs-page-scroll.png` is the taller capture it scrolls (the same 1280px
+  layout, 1000×1160 from just above the search box). `render-video.mjs`
+  renders both from `graphic.html?format=story` and needs `ffmpeg`.
 - `graphic.html` draws the iMac, wig and sparkles in SVG. The wig's strands come
   from a fixed seed, so every render matches. `render.mjs` writes the PNG
   (`node marketing/social/blanc-got-bangs-2026-10-17/render.mjs [--scale=2]`).
