@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "status": "public",
+  "release": "v1.36.0",
+  "sourceSha": "3c214274958c15d8f3b28f8c61f2fac26937e333",
+  "captureDate": "2026-10-17",
+  "timezone": "America/New_York",
+  "replaces": "Captures taken before v1.35.0, when the app's interface text moved to Instrument Sans (#840): workspaces-v1.33.0 and workspaces-edit-v1.33.0 (docs/website-captures-v1.33.0.json), profiles-v1.30.1 and profile-window-v1.30.1 (docs/website-captures-v1.30.1.json), and profiles.png, profile-window.png and reopen-closed-tabs.png (docs/website-captures-v1.15.json). The older files stay in place with their ledgers.",
+  "source": {
+    "artifact": "/Applications/Blanc.app",
+    "version": "1.36.0",
+    "bundleBuild": "1360",
+    "architecture": "arm64",
+    "executableSha256": "d79882af7e12b1a64adde38422d232b77b2d95085165385354515f86d16b1963",
+    "publisher": "Developer ID Application: Anthony Loria (XYGUCY4498)",
+    "teamId": "XYGUCY4498",
+    "verification": "On October 17, 2026, strict deep codesign verification passed, Gatekeeper accepted the app (Notarized Developer ID) and stapler validated the notarization ticket stapled to the installed app. Each capture launched it as a separate instance in a disposable profile; the owner's own profile was not used.",
+    "releaseEvidence": "docs/release-incidents/2026-10-17-v1.36.0.md"
+  },
+  "settings": {
+    "usagePing": false,
+    "searchSuggestions": false,
+    "adblockEnabled": true,
+    "theme": "light",
+    "profile": "Isolated disposable user-data directory per script",
+    "sync": "not configured",
+    "patron": "not configured"
+  },
+  "method": "BLANC_CAPTURE_VERSION=1.36.0 npm run capture:spaces:installed, npm run capture:profiles-workspaces:installed and node scripts/capture-installed-reopen-closed-tabs.mjs, each in a disposable profile seeded only with the fixtures below. Over Chromium's debugging surface the scripts call shipped preload actions and click shipped controls; nothing is patched. Each state is captured natively with screencapture -o -x -l for that window (2560×1600), uniformly resized to 1440×900 and converted from Display P3 to sRGB with sharp. Native transparent corners are kept; no controls, text or states are retouched. Each PNG has a WebP companion (quality 85) encoded from it for inline display; the PNG stays the linked full-size file. The window came out inactive (grey title-bar controls) in the Spaces and Reopen Closed Tabs captures because another app was frontmost. The owner approved the five captures and the share cards made from them on October 17, 2026.",
+  "fixtures": {
+    "spaces": "Four synthetic spaces (Work, Home, Painting class and Lisbon trip, each with a preset colour and symbol and a short list of public pages) and a window bound to Painting class. The active page is The Met's public-domain Wheat Field with Cypresses, live at capture time; its blocked-request count is the one Blanc Blocker measured on that page.",
+    "profiles": "Personal and a synthetic Studio profile, four sample Favorites with visits, one named group, two saved spaces, and a seeded weekly blocked total of 328 on the Start Page, so that number is not a measurement.",
+    "reopenClosedTabs": "A Painting class group holding The Met's Wheat Field with Cypresses (active) and Wikipedia's Impasto article, Wikipedia's Vincent van Gogh article on its own, and a Lisbon trip group of two pages. The script closed the Van Gogh tab and then the whole Lisbon trip group through the shipped close actions, so Blanc recorded both Recently closed entries itself."
+  },
+  "captures": [
+    {
+      "file": "site/public/feature-captures/workspaces-v1.36.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "2cdedbe3493d3ae675ba919e5c6d32a4fd5e2776fcf8ec74994faedca2894786",
+      "capturedAt": "2026-10-17T15:24:20Z",
+      "state": "The window in the Painting class space on The Met's Wheat Field with Cypresses page, with the Spaces menu opened from the Island's space mark: Work (4 tabs), Home (3), Painting class (3, current, checked) and Lisbon trip (2), each with its colour and symbol, and New space….",
+      "evidence": [
+        "v1.36.0:src/renderer/renderer.js",
+        "v1.36.0:src/renderer/workspace-ui.js",
+        "v1.36.0:src/renderer/space-identity.js",
+        "v1.36.0:src/renderer/overlay.html",
+        "docs/release-incidents/2026-10-17-v1.36.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/workspaces-v1.36.0.webp",
+        "sha256": "7aeb095af5d4a1b8d5b892a45b4ab982caab16ab38388fd9f73eac568f0c0c21"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/workspaces-edit-v1.36.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "a0b6c6b502eaed302ee42a4eedd8aa5a5834412ffe728fb57027836385d07b22",
+      "capturedAt": "2026-10-17T15:24:24Z",
+      "state": "The same window with the menu reshaped into Painting class's editor (Edit space): the name field, the eight preset colour swatches and the custom colour swatch with purple selected, the sixteen symbols with the graduation cap selected, and Delete space and Done.",
+      "evidence": [
+        "v1.36.0:src/renderer/renderer.js",
+        "v1.36.0:src/renderer/workspace-ui.js",
+        "v1.36.0:src/renderer/space-identity.js",
+        "v1.36.0:src/renderer/overlay.html",
+        "docs/release-incidents/2026-10-17-v1.36.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/workspaces-edit-v1.36.0.webp",
+        "sha256": "00d968e1c82002e0cdf00fb8b67f8468ce030c5b5ad718b7c299a2ed2e37bc52"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/profiles-v1.36.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "9cd229c7fca50f73ec6570822c9066090b41e4ad46051d318a536a9201292ef6",
+      "capturedAt": "2026-10-17T15:24:46Z",
+      "state": "The Settings sheet on its Profiles section, opened through the shipped Settings action and the sheet's own navigation: the permanent Personal profile and the named Studio profile, over the Billboard Start Page.",
+      "evidence": [
+        "v1.36.0:src/renderer/pages/settings.html",
+        "v1.36.0:src/renderer/pages/settings.js",
+        "v1.36.0:src/main/local-profiles.js",
+        "docs/release-incidents/2026-10-17-v1.36.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/profiles-v1.36.0.webp",
+        "sha256": "ea1956cf7d5e110454abcc27210992cbc54ffa17f2047ba8709c64d18726ed6c"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/profile-window-v1.36.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "c89d01a819b549f018eb11aaff700a31ee64a29af589e8983bd2f12e9a312ee5",
+      "capturedAt": "2026-10-17T15:24:50Z",
+      "state": "The Studio profile in its own window, opened with the profile row's Open button: a Billboard Start Page with no Favorites and no groups from Personal, and the What's new in 1.36.0 pill in its footer.",
+      "evidence": [
+        "v1.36.0:src/renderer/pages/settings.js",
+        "v1.36.0:src/main/local-profiles.js",
+        "v1.36.0:src/renderer/pages/newtab.js",
+        "docs/release-incidents/2026-10-17-v1.36.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/profile-window-v1.36.0.webp",
+        "sha256": "9106c633cd9258903b9703b5d58f98ae9592ff36ab02162795ddba9b24a841bb"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/reopen-closed-tabs-v1.36.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "4f4d9c4021a4e6f604aafd1be52451750c92f45c0dd2c51dc594c99403e3fe6b",
+      "capturedAt": "2026-10-17T15:28:31Z",
+      "state": "The Island panel over The Met's Wheat Field with Cypresses page, with the Recently closed band unfolded by a click on its header: Lisbon trip · 2 tabs (a closed group) and Vincent van Gogh - Wikipedia (a closed tab), above the open Painting class group. No exact-state recovery is shown or claimed.",
+      "evidence": [
+        "v1.36.0:src/renderer/overlay.js",
+        "v1.36.0:src/main/closed-tabs.js",
+        "v1.36.0:src/main/closed-slot.js",
+        "docs/release-incidents/2026-10-17-v1.36.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/reopen-closed-tabs-v1.36.0.webp",
+        "sha256": "5bef778e1132be74594285014442ec100412f88aa4b25082a850a20c461138fd"
+      }
+    }
+  ]
+}
