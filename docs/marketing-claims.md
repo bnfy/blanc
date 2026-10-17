@@ -271,7 +271,13 @@ original reports:
 - **Invite a Friend:** Since v1.36.0 Help → Invite a Friend… and `/invite`
   open a new email in the user's default mail app with a short invite and the
   link `https://blanc.day/?ref=invite`; the user chooses the recipient and
-  sends it. If no mail app opens, the text is copied. Blanc sends nothing and
+  sends it. Without a mail app, Windows asks which app to use. Blanc copies
+  the text only when the system reports that no mail app opened. That fallback
+  wasn't hand-checked on macOS, and on Linux v1.36.0 it never runs: Electron
+  reports the hand-off as successful even when no mail app is set up, so
+  nothing happens. Don't claim the copy fallback on Linux until a release
+  fixes it.
+  Blanc sends nothing and
   learns nothing about who was invited; the link is the same for everyone, so
   invite landings can only be counted in aggregate by the website's
   consent-gated analytics. Do not describe referral rewards, per-person
