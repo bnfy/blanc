@@ -4048,6 +4048,87 @@
         }
       ]
     },
+    "bangIcons": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:bang-icons",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            []
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:bang-icons",
+              "args": [
+                []
+              ]
+            }
+          ]
+        },
+        {
+          "label": "hosts = [\"example\"]",
+          "args": [
+            [
+              "example"
+            ]
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:bang-icons",
+              "args": [
+                [
+                  "example"
+                ]
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        [],
+        [
+          {
+            "host": "bang-icon-1",
+            "icon": "bang-icon-1"
+          }
+        ]
+      ]
+    },
+    "onBangIconsChanged": {
+      "kind": "event",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "bang-icons:changed",
+      "deliveries": [
+        {
+          "emit": [
+            {
+              "host": "bang-icon-1",
+              "icon": "bang-icon-1"
+            }
+          ],
+          "callbacks": [
+            [
+              {
+                "host": "bang-icon-1",
+                "icon": "bang-icon-1"
+              }
+            ]
+          ]
+        }
+      ]
+    },
     "onRemoteTabsUpdated": {
       "kind": "event",
       "platforms": [

@@ -77,3 +77,13 @@ test('history eviction also evicts artwork with no retained visit', () => {
   const old = history.listTopSites().find((site) => site.key === 'old.example');
   assert.equal(old.favicon, null);
 });
+
+test('siteIcon returns the locally cached icon for a site key', () => {
+  history.clearHistory();
+  history.addVisit('https://www.icons.example/', 'Icons Example');
+  history.cacheSiteIcon('https://www.icons.example/', icon);
+  assert.equal(history.siteIcon('icons.example'), icon);
+  assert.equal(history.siteIcon('unknown.example'), null);
+  history.clearHistory();
+  assert.equal(history.siteIcon('icons.example'), null);
+});

@@ -18,10 +18,10 @@ const policy = require('./bang-icons-policy');
  * }} options
  */
 function createBangIcons({ store, readIconBytes, sanitizeIconBytes, catalogHosts, now = Date.now }) {
-  const run = policy.createRunState();
+  let run = policy.createRunState();
   const listeners = new Set();
   const queue = [];
-  const requested = [];
+  let requested = [];
   let active = 0;
   // Bumped by clear(): a fetch that started before it must not refill the
   // store the person just emptied.
@@ -136,6 +136,15 @@ function createBangIcons({ store, readIconBytes, sanitizeIconBytes, catalogHosts
     },
     requestedHosts() {
       return requested.slice();
+    },
+    storedHostsForTest() {
+      return records().map((record) => record.host);
+    },
+    resetForTest() {
+      this.clear();
+      run = policy.createRunState();
+      requested = [];
+      reader = async () => null;
     },
   };
 }

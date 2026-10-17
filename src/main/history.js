@@ -85,6 +85,12 @@ function listTopSites({ limit, offset } = {}) {
   }));
 }
 
+/** The locally cached icon for one site key (top-sites.js siteKey), or null.
+ * Bang rows reuse it so a visited site's icon needs no request. */
+function siteIcon(key) {
+  return siteIconMap(ensureStore().data).get(key) ?? null;
+}
+
 /** Remember artwork Chromium already loaded for a normal tab. No lookup is
  * made here; setTabFavicon supplies the sanitized, inert PNG while the user is
  * already visiting the site. */
@@ -133,6 +139,7 @@ module.exports = {
   listHistory,
   listTopSites,
   cacheSiteIcon,
+  siteIcon,
   removeVisit,
   clearHistory,
 };

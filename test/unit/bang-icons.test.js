@@ -180,3 +180,21 @@ test('a host still queued when history is cleared can be asked again', async () 
   service.request(['e.example'], ALLOW);
   assert.ok(calls.some((call) => call.url.endsWith('/e.example')), 'e.example was dropped from the queue, not stuck in flight');
 });
+
+test('test hooks list stored hosts and reset the run between scenarios', async () => {
+  const { service, calls, pending, settle } = harness();
+  service.request(['a.example'], ALLOW);
+  pending.get('a.example').resolve({ status: 404 });
+  await settle();
+  assert.deepEqual(service.storedHostsForTest(), []);
+  service.request(['b.example'], ALLOW);
+  pending.get('b.example').resolve({ contentType: 'image/png', bytes: Buffer.from('B') });
+  await settle();
+  assert.deepEqual(service.storedHostsForTest(), ['b.example']);
+  service.resetForTest();
+  assert.deepEqual(service.requestedHosts(), []);
+  assert.deepEqual(service.storedHostsForTest(), []);
+  service.request(['a.example'], ALLOW);
+  assert.deepEqual(service.requestedHosts(), ['a.example'], 'a 404 from before the reset is forgotten');
+  assert.equal(calls.length, 2, 'the reset stub answers without the network');
+});

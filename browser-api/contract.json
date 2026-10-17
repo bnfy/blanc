@@ -1154,6 +1154,18 @@
         }
       }
     },
+    "BangIcon": {
+      "doc": "A site icon for the bang rows on the Island: an inert 32px PNG data URL already on the device or just fetched from Blanc's icon server. In a bang-icons:changed push, null means the server no longer has one and the row shows its letter.",
+      "fields": {
+        "host": {
+          "type": "string",
+          "doc": "The bang's site, lowercased as in the bundled catalog."
+        },
+        "icon": {
+          "type": "string | null"
+        }
+      }
+    },
     "SearchSuggestions": {
       "doc": "Search suggestions for the address bar, labelled with the engine that produced them.",
       "fields": {
@@ -2599,6 +2611,28 @@
       "channel": "bangs:changed",
       "payload": "BangsState",
       "doc": "The bang settings changed. Same projection as bangs()."
+    },
+    {
+      "name": "bangIcons",
+      "group": "search",
+      "kind": "invoke",
+      "channel": "chrome:bang-icons",
+      "params": [
+        {
+          "name": "hosts",
+          "type": "string[]"
+        }
+      ],
+      "returns": "BangIcon[]",
+      "doc": "Icons already on the device for the bang rows on screen (at most 40 hosts). Main may then ask Blanc's icon server for the others, never from a private tab, for a custom bang or before setup is saved; arrivals come through onBangIconsChanged."
+    },
+    {
+      "name": "onBangIconsChanged",
+      "group": "search",
+      "kind": "event",
+      "channel": "bang-icons:changed",
+      "payload": "BangIcon",
+      "doc": "A bang site's icon arrived from Blanc's icon server, or was withdrawn (icon null). Sent only to overlay views."
     },
     {
       "name": "onRemoteTabsUpdated",

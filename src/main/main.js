@@ -153,7 +153,8 @@ const tabsync = require('./tabsync');
 const tabicons = require('./tabicons');
 const iconRaster = require('./icon-raster');
 const { releaseHiddenWindowsOnLastClose } = require('./last-window-close');
-const { sanitizeFavicon } = require('./favicon-sanitizer');
+const { sanitizeFavicon, sanitizeIconBytes } = require('./favicon-sanitizer');
+const { readIconBytes } = require('./favicon-network');
 const {
   resolvedFavicon,
   shouldClearFaviconOnNavigate,
@@ -186,6 +187,8 @@ const Bangs = require('../renderer/pages/bangs');
 const bangsCatalog = require('../renderer/pages/bangs-catalog');
 const { createBangResolver } = require('./bang-resolution');
 const bangResolver = createBangResolver({ settings, catalog: bangsCatalog, Bangs });
+const { createBangIcons } = require('./bang-icons');
+const bangIconsPolicy = require('./bang-icons-policy');
 /** The chrome documents' view of the bang settings (chrome:bangs and the
  * bangs:changed push share this one literal so the bridge check can read it). */
 function bangsState() {
@@ -392,6 +395,27 @@ const certificateExceptions = createCertificateExceptions({
 // Exact, unpackaged-only gate for the Electron acceptance harness. A stray
 // BLANC_TEST=0/false in a real launch must not weaken normal chrome behavior.
 const acceptanceTestMode = !app.isPackaged && process.env.BLANC_TEST === '1';
+
+// Site icons on the ⌘L panel's bang rows: icons saved from visits first,
+// then copies kept from Blanc's icon server, then that server on demand.
+// Device-level like recent bangs, cleared with them, never synced. Design:
+// docs/superpowers/specs/2026-10-17-bang-icons-in-app-design.md.
+const bangIcons = createBangIcons({
+  store: new JsonStore('bang-icons', { records: [] }),
+  readIconBytes,
+  sanitizeIconBytes,
+  catalogHosts: bangIconsPolicy.catalogHostSet(bangsCatalog),
+});
+// The acceptance harness runs offline; scenarios stub the server through the
+// test hook instead.
+if (acceptanceTestMode) bangIcons.setFetcherForTest(async () => null);
+bangIcons.onChange((host, icon) => {
+  forEachWindowRuntime((runtime) => {
+    if (runtime.overlayView && !runtime.overlayView.webContents.isDestroyed()) {
+      runtime.overlayView.webContents.send('bang-icons:changed', { host, icon });
+    }
+  }, { liveOnly: true });
+});
 // Interface language: resolved once at whenReady (first statement) and frozen
 // for this process; a change applies on relaunch through changeUiLanguage().
 // Resolution only returns registry codes, so the dynamic paths are bounded.
@@ -7854,6 +7878,75 @@ function broadcastWorkspacesUpdated() {
   }, { liveOnly: true });
 }
 
+// One ask covers the rows on screen; more is not a real list.
+const MAX_BANG_ICON_HOSTS = 40;
+
+/** An icon this profile already holds for the site from the person's own
+ * visits: the history site-icon cache, a Favorite, or a live normal tab. No
+ * request is ever made for these. */
+function heldVisitIcon(host) {
+  const key = topSiteKey(`https://${host}/`);
+  if (!key) return null;
+  const fromHistory = history.siteIcon(key);
+  if (fromHistory) return fromHistory;
+  for (const favorite of bookmarks.listBookmarks()) {
+    if (favorite.favicon && topSiteKey(favorite.url) === key) return favorite.favicon;
+  }
+  const profileId = rt().profileId;
+  for (const tab of tabs.values()) {
+    if (tab.profileId === profileId && !tab.private && tab.favicon && topSiteKey(tab.url) === key) {
+      return tab.favicon;
+    }
+  }
+  return null;
+}
+
+/** chrome:bang-icons: the icons already on the device for the bang rows on
+ * screen, then a request to Blanc's icon server for the rest where the rules
+ * allow. Whether the window's tab is private is decided here, never by the
+ * overlay; a private tab reads what is held and writes nothing. */
+function bangIconsFor(hosts) {
+  if (!Array.isArray(hosts)) return [];
+  const wanted = [...new Set(
+    hosts
+      .filter((host) => typeof host === 'string' && host.length > 0 && host.length <= 253)
+      .map((host) => host.toLowerCase()),
+  )].slice(0, MAX_BANG_ICON_HOSTS);
+  const privateActive = tabs.get(rt().activeTabId)?.private === true;
+  const answers = [];
+  const fromStore = [];
+  const toAsk = [];
+  for (const host of wanted) {
+    const visit = heldVisitIcon(host);
+    if (visit) {
+      answers.push({ host, icon: visit });
+      continue;
+    }
+    const held = bangIcons.held(host);
+    if (held) {
+      answers.push({ host, icon: held.icon });
+      fromStore.push(host);
+    }
+    toAsk.push(host);
+  }
+  if (!privateActive) bangIcons.touch(fromStore);
+  const current = settings.getSettings();
+  bangIcons.request(toAsk, {
+    enabled: current.bangsEnabled !== false,
+    setupComplete: settings.isFirstRunComplete(),
+    privateActive,
+    customHosts: bangIconsPolicy.customHostSet(current.customBangs, Bangs),
+  });
+  return answers;
+}
+
+/** Which bangs were used goes with the history, and the bang icons with it
+ * (taken together they hint at which bangs someone looked at). */
+function clearRecentBangsAndIcons() {
+  settings.clearRecentBangs();
+  bangIcons.clear();
+}
+
 /** The bang settings changed (switch, the person's own bangs, recents): every
  * live window's strip and overlay redraw their hint row and picker. */
 function broadcastBangsChanged() {
@@ -8495,9 +8588,10 @@ function registerIpcHandlers() {
     clearSessionMeta();
     // Which bangs were used goes with the history (the History page's own
     // clear does the same through onHistoryCleared).
-    settings.clearRecentBangs();
+    clearRecentBangsAndIcons();
   });
   chromeHandle('chrome:bangs', () => bangsState());
+  chromeHandle('chrome:bang-icons', (_event, hosts) => bangIconsFor(hosts));
   chromeHandle('chrome:adblock-toggle', () => runBlockAdsCommand());
   chromeHandle('chrome:adblock-exempt-active', () => runAllowAdsCommand());
   chromeHandle('chrome:dark-site-active', () => {
@@ -10772,7 +10866,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     onDataChanged: refreshBookmarkFlags,
     onHistoryCleared: () => {
       clearSessionMeta();
-      settings.clearRecentBangs();
+      clearRecentBangsAndIcons();
     },
     // Parent for the favorites-import file dialog (evaluated lazily at click).
     getMainWindow: () => (hasLiveWindow() ? rt().window : undefined),
@@ -11030,6 +11124,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       i18nState: () => mainI18n.state(),
       t: mainI18n.t,
       continueUnsafeForSender,
+      bangIcons,
       forgetActiveCertificateException,
       certificateExceptions,
       blockingStatus: () => blockingProviders.status(rt().profileId),
