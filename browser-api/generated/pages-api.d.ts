@@ -51,6 +51,8 @@ export interface NewtabPagesAPI {
     dismissMigrationChecklist: () => Promise<unknown>;
     /** Hide the start page's Patron upgrade pill for 90 days. IPC: invoke `pages:start:patron-callout-dismiss`. */
     dismissPatronCallout: () => Promise<unknown>;
+    /** Hide the start page's What's new pill for the current update. IPC: invoke `pages:start:whats-new-dismiss`. */
+    dismissWhatsNew: () => Promise<unknown>;
     /** Default-browser status, for onboarding. IPC: invoke `pages:default-browser:get`. */
     defaultBrowser: () => Promise<unknown>;
     /** Ask to become the default browser (opens system settings on Windows). IPC: invoke `pages:default-browser:set`. */

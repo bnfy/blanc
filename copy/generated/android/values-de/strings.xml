@@ -1323,6 +1323,8 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="newtab_checklist_task_not_completed">%1$s – nicht erledigt</string>
     <string name="newtab_patron_become">Blanc Patron werden</string>
     <string name="newtab_patron_hide">Einladung zu Blanc Patron für 90 Tage ausblenden</string>
+    <string name="newtab_whats_new_label">Neu in %1$s</string>
+    <string name="newtab_whats_new_hide">Hinweis auf Neuerungen ausblenden</string>
     <string name="newtab_customize_button">Anpassen</string>
     <string name="newtab_customize_label">Startseite anpassen</string>
     <string name="newtab_customize_layout">Layout</string>

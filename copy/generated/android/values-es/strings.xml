@@ -1360,6 +1360,8 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="newtab_checklist_task_not_completed">%1$s: sin completar</string>
     <string name="newtab_patron_become">Hazte Blanc Patron</string>
     <string name="newtab_patron_hide">Ocultar la invitación a Blanc Patron durante 90 días</string>
+    <string name="newtab_whats_new_label">Novedades de la %1$s</string>
+    <string name="newtab_whats_new_hide">Ocultar las novedades</string>
     <string name="newtab_customize_button">Personalizar</string>
     <string name="newtab_customize_label">Personalizar la página de inicio</string>
     <string name="newtab_customize_layout">Diseño</string>

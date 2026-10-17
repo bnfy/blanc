@@ -473,6 +473,17 @@
         "doc": "Hide the start page's Patron upgrade pill for 90 days."
       },
       {
+        "name": "start.dismissWhatsNew",
+        "kind": "invoke",
+        "channel": "pages:start:whats-new-dismiss",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Hide the start page's What's new pill for the current update."
+      },
+      {
         "name": "start.defaultBrowser",
         "kind": "invoke",
         "channel": "pages:default-browser:get",

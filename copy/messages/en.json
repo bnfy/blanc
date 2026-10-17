@@ -4965,6 +4965,15 @@
     "message": "Hide the Blanc Patron invitation for 90 days",
     "note": "Start page footer: accessible name of the × on the Patron pill."
   },
+  "newtab.whatsNew.label": {
+    "message": "What’s new in {version}",
+    "note": "Start page footer: pill shown for a week after Blanc updates, linking to that release on the website changelog; {version} is the new version number, such as 1.36.0.",
+    "maxLength": 33
+  },
+  "newtab.whatsNew.hide": {
+    "message": "Hide What’s new",
+    "note": "Start page footer: accessible name of the × on the What’s new pill."
+  },
   "newtab.customize.button": {
     "message": "Customize",
     "note": "Start page footer: button that opens the layout and wallpaper popover.",

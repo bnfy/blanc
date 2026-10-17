@@ -44,6 +44,8 @@ const TAB_SLEEP_DELAYS = ['off', '30m', '1h', '6h'];
 // Interface language: 'system' or a BCP 47 language code. Device-local (never
 // in SYNCED_KEYS) and written ONLY by setUiLanguage(): the generic whitelist
 // has no entry, so pages:settings:set cannot bypass the relaunch flow.
+// An app version as package.json writes it (lastRunVersion, whatsNewVersion).
+const APP_VERSION_RE = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?$/;
 const UI_LANGUAGE_CODE = /^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$/;
 const isUiLanguageValue = (value) => value === 'system' || (typeof value === 'string' && UI_LANGUAGE_CODE.test(value));
 // Unix milliseconds beyond this point are corrupted sync metadata, not a
@@ -225,6 +227,13 @@ const DEFAULTS = {
   // epoch; 0 = never). It stays hidden for 90 days (patron-callout.js).
   // Device-local, never Profile Synced.
   patronCalloutDismissedAt: 0,
+  // The start page's What's new pill after an update (whats-new.js): the
+  // version that last launched on this device, the update whose pill is
+  // showing ('' for none), and when that update first launched (ms since the
+  // epoch). Device-local, never Profile Synced.
+  lastRunVersion: '',
+  whatsNewVersion: '',
+  whatsNewSince: 0,
   // Blanc Supporter license — null, or { key, activationId, activatedAt }.
   // Written only by setSupporter() (the Polar activation flow), never by
   // the generic setSettings() path. Once set, trusted forever — offline OK.
@@ -387,6 +396,10 @@ function getSettings() {
   if (!Number.isFinite(data.patronCalloutDismissedAt) || data.patronCalloutDismissedAt < 0) {
     data.patronCalloutDismissedAt = DEFAULTS.patronCalloutDismissedAt;
   }
+  for (const key of ['lastRunVersion', 'whatsNewVersion']) {
+    if (typeof data[key] !== 'string' || (data[key] && !APP_VERSION_RE.test(data[key]))) data[key] = DEFAULTS[key];
+  }
+  if (!Number.isFinite(data.whatsNewSince) || data.whatsNewSince < 0) data.whatsNewSince = DEFAULTS.whatsNewSince;
   if (!TAB_LAYOUTS.includes(data.tabLayout)) data.tabLayout = DEFAULTS.tabLayout;
   if (typeof data.islandSiteColors !== 'boolean') data.islandSiteColors = DEFAULTS.islandSiteColors;
   if (typeof data.darkWebsites !== 'boolean') data.darkWebsites = DEFAULTS.darkWebsites;
@@ -461,6 +474,10 @@ function sanitize(partial) {
   if (Number.isFinite(partial.patronCalloutDismissedAt) && partial.patronCalloutDismissedAt >= 0) {
     clean.patronCalloutDismissedAt = partial.patronCalloutDismissedAt;
   }
+  for (const key of ['lastRunVersion', 'whatsNewVersion']) {
+    if (typeof partial[key] === 'string' && (partial[key] === '' || APP_VERSION_RE.test(partial[key]))) clean[key] = partial[key];
+  }
+  if (Number.isFinite(partial.whatsNewSince) && partial.whatsNewSince >= 0) clean.whatsNewSince = partial.whatsNewSince;
   if (typeof partial.homePage === 'string') {
     clean.homePage = normalizeHomepage(partial.homePage.trim(), DEFAULTS.homePage);
   }
