@@ -315,6 +315,7 @@ const {
 } = require('./platform-main-menu');
 const { showAboutPanel } = require('./about-panel');
 const { inviteFriend } = require('./invite-friend');
+const { xdgOpen } = require('./xdg-open');
 const { webUrlsFromArgv } = require('./startup-urls');
 const { bringExternalWindowToFront, externalWindowRuntime } = require('./window-activation');
 const { createExternalUrlHandoff } = require('./external-url-handoff');
@@ -2512,12 +2513,26 @@ function parkTabView(tab, entry) {
  * remain authoritative. */
 // Help → Invite a Friend… and /invite: a prefilled email in the person's own
 // mail app (invite-friend.js), or the invite on the clipboard without one.
+// On Linux, shell.openExternal resolves even when no app takes the link, so
+// xdg-open's own exit status decides (xdg-open.js).
 function inviteFriendNow() {
   return inviteFriend({
     t: mainI18n.t,
-    openExternal: (url) => shell.openExternal(url),
+    openExternal: (url) => (process.platform === 'linux' ? xdgOpen(url) : shell.openExternal(url)),
     writeClipboard: (text) => clipboard.writeText(text),
   });
+}
+
+// The menu has no palette to show /invite's notice in, so a copied invite
+// gets the same words in a native dialog on the focused window.
+function inviteFriendFromMenu() {
+  inviteFriendNow().then((result) => {
+    if (result !== 'copied') return;
+    const win = (focusedRuntime ?? primaryRuntime)?.window;
+    const t = mainI18n.t;
+    const options = { type: 'info', message: t('slash.invite.copied'), buttons: [t('dialog.ok')], noLink: true };
+    return win && !win.isDestroyed() ? dialog.showMessageBox(win, options) : dialog.showMessageBox(options);
+  }).catch(() => {});
 }
 
 async function sleepBackgroundTabsNow() {
@@ -9014,7 +9029,7 @@ function buildMenuForRuntime(runtime) {
           ],
         },
         { type: 'separator' },
-        { label: t('menu.inviteFriend'), click: () => { inviteFriendNow(); } },
+        { label: t('menu.inviteFriend'), click: () => { inviteFriendFromMenu(); } },
         ...(isMac ? [] : [
           { type: 'separator' },
           { label: t('menu.app.about', { app: app.name }), click: bound(() => showAboutPanel({ app, t })) },

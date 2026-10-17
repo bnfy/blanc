@@ -226,7 +226,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "51482916921dd14cfe34b6028857e64699ed3b6c145c280074733ad27c43b8c5",
+      "sha256": "a14763f8d03494ddfb8f73daa50ea9e526236f9be7f2a04efd3e66977d685f2c",
       "literalChannels": [
         "activate",
         "bangs:changed",
