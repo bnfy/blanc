@@ -26,7 +26,7 @@
     "sync": "not configured",
     "patron": "not configured"
   },
-  "method": "BLANC_CAPTURE_VERSION=1.36.0 npm run capture:spaces:installed, npm run capture:profiles-workspaces:installed and node scripts/capture-installed-reopen-closed-tabs.mjs, each in a disposable profile seeded only with the fixtures below. Over Chromium's debugging surface the scripts call shipped preload actions and click shipped controls; nothing is patched. Each state is captured natively with screencapture -o -x -l for that window (2560×1600), uniformly resized to 1440×900 and converted from Display P3 to sRGB with sharp. Native transparent corners are kept; no controls, text or states are retouched. Each PNG has a WebP companion (quality 85) encoded from it for inline display; the PNG stays the linked full-size file. The window came out inactive (grey title-bar controls) in the Spaces and Reopen Closed Tabs captures because another app was frontmost. The owner approved the five captures and the share cards made from them on October 17, 2026.",
+  "method": "BLANC_CAPTURE_VERSION=1.36.0 npm run capture:spaces:installed, npm run capture:profiles-workspaces:installed, node scripts/capture-installed-reopen-closed-tabs.mjs and node scripts/capture-installed-bangs.mjs, each in a disposable profile seeded only with the fixtures below. Over Chromium's debugging surface the scripts call shipped preload actions and click shipped controls; nothing is patched. Each state is captured natively with screencapture -o -x -l for that window (2560×1600), uniformly resized to 1440×900 and converted from Display P3 to sRGB with sharp. Native transparent corners are kept; no controls, text or states are retouched. Each PNG has a WebP companion (quality 85) encoded from it for inline display; the PNG stays the linked full-size file. The window came out inactive (grey title-bar controls) in the Spaces and Reopen Closed Tabs captures because another app was frontmost. The owner approved the five captures and the share cards made from them on October 17, 2026. The bangs capture (the panel with !yt lofi typed, for the /bangs share card) was added on October 17, 2026 with the /bangs redesign; the owner reviews it in that pull request.",
   "fixtures": {
     "spaces": "Four synthetic spaces (Work, Home, Painting class and Lisbon trip, each with a preset colour and symbol and a short list of public pages) and a window bound to Painting class. The active page is The Met's public-domain Wheat Field with Cypresses, live at capture time; its blocked-request count is the one Blanc Blocker measured on that page.",
     "profiles": "Personal and a synthetic Studio profile, four sample Favorites with visits, one named group, two saved spaces, and a seeded weekly blocked total of 328 on the Start Page, so that number is not a measurement.",
@@ -128,6 +128,24 @@
       "webp": {
         "file": "site/public/feature-captures/reopen-closed-tabs-v1.36.0.webp",
         "sha256": "5bef778e1132be74594285014442ec100412f88aa4b25082a850a20c461138fd"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/bangs-v1.36.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "9225c3a7d48fef5f429939c47b72fda016dad475620dfc339bfd0e7ef8459bd4",
+      "capturedAt": "2026-10-17T18:24:47Z",
+      "state": "The Island panel over the Start Page of a fresh profile, with !yt lofi typed into its field with real key events and the shipped bang hint row, !yt Search YouTube for “lofi”, selected. Used for the /bangs share card.",
+      "evidence": [
+        "v1.36.0:src/renderer/overlay.js",
+        "v1.36.0:src/renderer/pages/bangs.js",
+        "docs/release-incidents/2026-10-17-v1.36.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/bangs-v1.36.0.webp",
+        "sha256": "cca71e02ee776647f132b2fe3646472469a0e39bac98e1377438b4153dd0bbc6"
       }
     }
   ],
