@@ -116,3 +116,8 @@ test('only genuinely empty untyped 200 or 204 bodies are admitted',()=>{
  assert.throws(()=>sanitizeExchange({...exchange(),status:204}),/nonempty-204/);
  assert.throws(()=>sanitizeExchange({...exchange(),responseHeaders:[]}),/body-type-unsupported/);
 });
+
+test('query prefixes and sensitive substrings retain distinct refusal semantics',()=>{
+ for(const key of ['utm_source','x-amz-date','x-goog-credential','prefixTokenSuffix','mySessionValue','aClientIdB'])assert.throws(()=>safeUrl('https://page.test/?'+key+'=value'));
+ for(const key of ['autm_source','ax-amz-date','ax-goog-name','title'])assert.equal(safeUrl('https://page.test/?'+key+'=value'),'https://page.test/?'+key+'=value');
+});

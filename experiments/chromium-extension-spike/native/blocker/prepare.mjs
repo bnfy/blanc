@@ -1,12 +1,12 @@
 // Separate, explicit opt-in to the experimental blocker in the preserved 157 output.
 import fs from 'node:fs';
+import {writeIfChanged as write} from './write-file.mjs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 const [src,assets]=process.argv.slice(2), here=path.dirname(fileURLToPath(import.meta.url));
 if(!src||!assets)throw Error('usage: prepare.mjs CHROMIUM_SRC AUTHENTICATED_ENGINE_ASSETS');
 const version=Object.fromEntries(fs.readFileSync(path.join(src,'chrome/VERSION'),'utf8').trim().split('\n').map(line=>line.split('=')));
 if(['MAJOR','MINOR','BUILD','PATCH'].map(k=>version[k]).join('.')!=='157.0.8103.6')throw Error('exact approved 157 pin required');
-const write=(file,data)=>{if(fs.existsSync(file)&&fs.readFileSync(file).equals(Buffer.from(data)))return;fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,data);};
 for(const name of ['BUILD.gn','blocker.mojom','blocker_service.cc','blocker_service.h','blocker_proxy.cc','blocker_proxy.h'])write(path.join(src,'chrome/services/blanc_blocker',name),fs.readFileSync(path.join(here,name)));
 write(path.join(src,'chrome/services/blanc_blocker/bundle_hash.h'),fs.readFileSync(path.join(assets,'bundle_hash.h')));
 function patch(relative,marker,before,after){const file=path.join(src,relative),text=fs.readFileSync(file,'utf8');if(text.includes(marker))return;if(text.split(before).length!==2)throw Error('anchor mismatch '+relative+' '+marker);write(file,text.replace(before,after));}

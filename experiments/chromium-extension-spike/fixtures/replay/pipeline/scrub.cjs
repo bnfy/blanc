@@ -16,7 +16,8 @@ function safeUrl(value) {
   if(sensitive.test(decoded) || /[a-f0-9]{24,}|[A-Za-z0-9_-]{40,}|\d{10,}/i.test(decoded)) refuse('identifier-url');
   for(const [key,val] of u.searchParams) {
     if(/(?:^|[_-])(?:id|uid|sid|token|key|auth|session|email|user|cookie|clickid|gclid|fbclid|msclkid|signature|sig)(?:$|[_-])/i.test(key) ||
-       /^(?:utm_|x-amz-|x-goog-)|(?:token|session|userid|clientid|deviceid|visitorid|trackingid)/i.test(key) || sensitive.test(val)) refuse('identifier-query');
+       /^(?:utm_|x-amz-|x-goog-)/i.test(key) ||
+       /(?:token|session|userid|clientid|deviceid|visitorid|trackingid)/i.test(key) || sensitive.test(val)) refuse('identifier-query');
   }
   return value; // Never normalize or rewrite blocker-visible URLs.
 }

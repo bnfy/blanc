@@ -1,5 +1,6 @@
 // NETWORK-ENABLED acquisition tool. Offline replay never imports this module.
 import https from 'node:https';
+import tls from 'node:tls';
 import dns from 'node:dns/promises';
 import fs from 'node:fs';
 import {createRequire} from 'node:module';
@@ -24,11 +25,15 @@ async function acquire(url, requestHeaders, testOrigin, headersOnly=false) {
     if(!resolved.length || resolved.some(r=>!publicIPv4(r.address)))throw new Refusal('nonpublic-upstream');
     address=resolved[0].address;
   }
+  // A controlled-origin CA is local trust configuration, never request data.
+  // Keep it out of the outbound request options; production uses system trust.
+  const secureContext = testOrigin ? tls.createSecureContext({ca:testOrigin.ca}) : undefined;
+  const agent = new https.Agent({secureContext, rejectUnauthorized:true, keepAlive:false});
   return new Promise((resolve,reject)=>{
     const req=https.request({hostname:u.hostname,port:testOrigin?.port||443,path:u.pathname+u.search,
       method:'GET',signal:AbortSignal.timeout(15000),headers:{...requestHeaders,host:u.host,'accept-encoding':'identity'},
-      servername:u.hostname,ca:testOrigin?.ca,rejectUnauthorized:true,
-      lookup:(_host,opts,callback)=>opts.all?callback(null,[{address,family:4}]):callback(null,address,4),agent:false,ALPNProtocols:['http/1.1']},res=>{
+      servername:u.hostname,rejectUnauthorized:true,
+      lookup:(_host,opts,callback)=>opts.all?callback(null,[{address,family:4}]):callback(null,address,4),agent,ALPNProtocols:['http/1.1']},res=>{
       const upstream={httpVersion:res.httpVersion,alpn:res.socket?.alpnProtocol||null};
       if(headersOnly){resolve({status:res.statusCode,responseHeaders:res.rawHeaders,upstream});res.destroy();return;}
       const chunks=[];let count=0;

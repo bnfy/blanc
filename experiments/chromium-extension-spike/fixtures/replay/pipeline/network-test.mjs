@@ -38,6 +38,7 @@ test('record once, strip before write/forward, close origin and replay frozen by
   const first=await get(rec.port,'/index.html','Cookie: SECRET_SENTINEL\r\nAuthorization: SECRET_SENTINEL\r\n');
   assert.match(first,/200 OK/);assert(!first.includes('SECRET_SENTINEL'));
   assert(!up.hits[0].cookie&&!up.hits[0].authorization);
+  assert(!JSON.stringify(up.hits).includes('BEGIN CERTIFICATE')); // CA stays local to TLS trust.
   const file=path.join(dir,'bundle.json'),bundle=rec.freeze(file);
   assert(!fs.readFileSync(file,'utf8').includes('SECRET_SENTINEL'));
   assert.equal(bundle.entries[0].protocol.upstream.httpVersion,'1.1');

@@ -1,3 +1,4 @@
+import {scriptLiteral} from '../../../script-literal.mjs';
 // Authored redirect/worker graph. Labels describe probes, not expected decisions.
 export const origin='https://page.blanc-fixture.test';
 const url=p=>origin+'/blanc-fixture/paths/'+p;
@@ -23,11 +24,11 @@ export function pathFixtures(){
   const redirect=chain(kind+'-redirect',1,redirectBlock);
   const importAllow=allowed(kind+'-import.js','application/javascript','self.imported=true;'),importBlock=blocked(kind+'-import-block.js','application/javascript','self.blockedImport=true;');
   const requests=[fetchAllow,fetchBlock,redirect];
-  let code=`async function run(){const result={fetches:[],imports:[]};for(const u of ${JSON.stringify([importAllow,importBlock])}){try{importScripts(u);result.imports.push({url:u,outcome:'load'});}catch{result.imports.push({url:u,outcome:'error'});}}for(const u of ${JSON.stringify(requests)}){try{const r=await fetch(u);result.fetches.push({url:u,outcome:'load',body:await r.text()});}catch{result.fetches.push({url:u,outcome:'error'});}}return result;}\n`;
+  let code=`async function run(){const result={fetches:[],imports:[]};for(const u of ${scriptLiteral([importAllow,importBlock])}){try{importScripts(u);result.imports.push({url:u,outcome:'load'});}catch{result.imports.push({url:u,outcome:'error'});}}for(const u of ${scriptLiteral(requests)}){try{const r=await fetch(u);result.fetches.push({url:u,outcome:'load',body:await r.text()});}catch{result.fetches.push({url:u,outcome:'error'});}}return result;}\n`;
   if(kind==='service'){
    // Imports are first observed during worker evaluation, before installation.
-   code=code.replace('async function run(){const result={fetches:[],imports:[]};','const imports=[];const init={imports};'+`for(const u of ${JSON.stringify([importAllow,importBlock])}){try{importScripts(u);imports.push({url:u,outcome:'load'});}catch{imports.push({url:u,outcome:'error'});}}`+'async function run(){const result={fetches:[],imports};');
-   const repeat=`for(const u of ${JSON.stringify([importAllow,importBlock])}){try{importScripts(u);result.imports.push({url:u,outcome:'load'});}catch{result.imports.push({url:u,outcome:'error'});}}`;
+   code=code.replace('async function run(){const result={fetches:[],imports:[]};','const imports=[];const init={imports};'+`for(const u of ${scriptLiteral([importAllow,importBlock])}){try{importScripts(u);imports.push({url:u,outcome:'load'});}catch{imports.push({url:u,outcome:'error'});}}`+'async function run(){const result={fetches:[],imports};');
+   const repeat=`for(const u of ${scriptLiteral([importAllow,importBlock])}){try{importScripts(u);result.imports.push({url:u,outcome:'load'});}catch{result.imports.push({url:u,outcome:'error'});}}`;
    code=code.replace(repeat,'');
    code+='oninstall=e=>e.waitUntil(skipWaiting());onactivate=e=>e.waitUntil(clients.claim());onmessage=e=>e.waitUntil(run().then(result=>e.ports[0].postMessage(result)));';
   }else code+=kind==='dedicated'?'run().then(result=>postMessage(result));':'onconnect=e=>{const p=e.ports[0];p.start();run().then(result=>p.postMessage(result));};';
@@ -35,7 +36,7 @@ export function pathFixtures(){
   operations.push(item(kind,kind,worker,[worker,importAllow,importBlock,fetchAllow,fetchBlock,redirect,redirectBlock]));
  }
  const body=`<!doctype html><meta charset="utf-8"><link rel="icon" href="data:,"><title>Redirect and worker probes</title><script>
-window.pathScripts=[];window.pathProbe={done:false,results:[]};(async()=>{for(const c of ${JSON.stringify(operations)}){
+window.pathScripts=[];window.pathProbe={done:false,results:[]};(async()=>{for(const c of ${scriptLiteral(operations)}){
  const result=await new Promise(resolve=>{let w;let done=false;const finish=r=>{if(done)return;done=true;clearTimeout(timer);if(c.kind==='dedicated')w?.terminate();if(c.kind==='shared')w?.port.close();resolve({id:c.id,...r});};const timer=setTimeout(()=>finish({outcome:'timeout'}),15000);
  if(c.kind==='fetch'){fetch(c.url).then(async r=>finish({outcome:'load',body:await r.text()}),()=>finish({outcome:'error'}));}
  else if(c.kind==='script'){const s=document.createElement('script');s.onload=()=>finish({outcome:'load'});s.onerror=()=>finish({outcome:'error'});s.src=c.url;document.head.append(s);}

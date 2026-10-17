@@ -1,3 +1,4 @@
+import {scriptLiteral} from '../../script-literal.mjs';
 // Bundle unchanged CommonJS engine modules from the installed, verified reference.
 // No Node APIs are exposed to the utility V8 isolate. Source hashes and licences
 // are retained; list-derived bytes retain their upstream CC BY-SA terms.
@@ -25,7 +26,7 @@ function add(file){
  if(file.endsWith('.json')){factories[id]=`function(module){module.exports=${bytes.toString()};}`;return id;}
  const req=createRequire(file),deps={};
  for(const m of bytes.toString().matchAll(/\brequire\(["']([^"']+)["']\)/g))deps[m[1]]=add(req.resolve(m[1]));
- factories[id]=`function(module,exports,load){const deps=${JSON.stringify(deps)};const require=name=>{if(!(name in deps))throw Error('unbundled dependency');return load(deps[name]);};\n${bytes}\n}`;
+ factories[id]=`function(module,exports,load){const deps=${scriptLiteral(deps)};const require=name=>{if(!(name in deps))throw Error('unbundled dependency');return load(deps[name]);};\n${bytes}\n}`;
  return id;
 }
 const engineId=add(createRequire(path.join(base,'entry.cjs')).resolve('@ghostery/adblocker'));
@@ -38,7 +39,7 @@ if(sha(resources)!==pinned.ghosteryResources.sha256)throw Error('resources hash'
 let script=`class TextEncoder{encode(s=''){return blancEncode(String(s));}encodeInto(s,d){let read=0,written=0;for(const c of String(s)){const b=this.encode(c);if(written+b.length>d.length)break;d.set(b,written);written+=b.length;read+=c.length;}return {read,written};}}
 class TextDecoder{constructor(label,options){if(label!=='utf8'||!options.ignoreBOM)throw Error('unsupported decoder');}decode(bytes){return blancDecode(bytes);}}
 function btoa(s){const alphabet='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';let out='';for(let i=0;i<s.length;i+=3){const a=s.charCodeAt(i),b=s.charCodeAt(i+1),c=s.charCodeAt(i+2);if(a>255||b>255||c>255)throw Error('non latin1');const n=(a<<16)|((b||0)<<8)|(c||0);out+=alphabet[(n>>>18)&63]+alphabet[(n>>>12)&63]+(i+1<s.length?alphabet[(n>>>6)&63]:'=')+(i+2<s.length?alphabet[n&63]:'=');}return out;}
-(()=>{const factories=[${factories.join(',\n')}],cache={};function load(id){if(cache[id])return cache[id].exports;const m={exports:{}};cache[id]=m;factories[id](m,m.exports,load);return m.exports;}\nconst {FiltersEngine,Request}=load(${engineId});const engine=FiltersEngine.parse(${JSON.stringify(raw)});engine.updateResources(${JSON.stringify(resources.toString())},${JSON.stringify(pinned.ghosteryResources.sha256)});\nglobalThis.blancDecide=(url,type,sourceUrl)=>{const r=Request.fromRawDetails({url,type,sourceUrl});if(engine.config.guessRequestTypeFromUrl&&r.type==='other')r.guessTypeOfRequest();if(r.isMainFrame())return 0;const result=engine.match(r);if(result.redirect)return 2;return result.match?1:0;};})();\n`;
+(()=>{const factories=[${factories.join(',\n')}],cache={};function load(id){if(cache[id])return cache[id].exports;const m={exports:{}};cache[id]=m;factories[id](m,m.exports,load);return m.exports;}\nconst {FiltersEngine,Request}=load(${engineId});const engine=FiltersEngine.parse(${scriptLiteral(raw)});engine.updateResources(${scriptLiteral(resources.toString())},${scriptLiteral(pinned.ghosteryResources.sha256)});\nglobalThis.blancDecide=(url,type,sourceUrl)=>{const r=Request.fromRawDetails({url,type,sourceUrl});if(engine.config.guessRequestTypeFromUrl&&r.type==='other')r.guessTypeOfRequest();if(r.isMainFrame())return 0;const result=engine.match(r);if(result.redirect)return 2;return result.match?1:0;};})();\n`;
 const context=vm.createContext({blancEncode:s=>new TextEncoder().encode(s),blancDecode:b=>new TextDecoder('utf8',{ignoreBOM:true}).decode(b)});vm.runInContext(script,context,{timeout:30000});
 if(context.blancDecide('https://000491b06a.com/blanc-fixture/resource.js','stylesheet','https://page.blanc-fixture.test/')!==1)throw Error('engine smoke');
 fs.mkdirSync(out,{recursive:true});fs.writeFileSync(path.join(out,'engine.js'),script);

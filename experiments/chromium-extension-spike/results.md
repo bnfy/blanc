@@ -1170,3 +1170,28 @@ not owner/agent attention measurements. Task 0's cold column, upgrade gate and
 156 baseline are unchanged. Subframes/opaque origins, worker identity/teardown,
 SW updates/fetch events/cache, keepalive/speculation, WS/WT, additional resource
 and rule contexts, cosmetics/scriptlets and private real-page sample remain gaps.
+
+
+### CodeQL remediation and regression — October 17, 2026
+
+[Evidence](evidence/f12-codeql-20261017/README.md) records fixes for seven CodeQL
+findings at aa26d71a: preserve query refusal semantics with separate regexes;
+replace exists/read/write with descriptor-based reads and atomic publication;
+encode embedded JSON literals for script/HTML boundaries; isolate the local
+fixture CA in the TLS agent's secure context. No suppressions or query exclusions.
+New-head CodeQL is pending, not inferred from local tests.
+
+84 focused tests pass, seven TLS/network tests pass on rerun, and 44-file lint
+is clean. VM decision comparison: 12,830 unchanged. Authored response bytes:
+5,123 candidates plus four controls and all 37 path fixtures unchanged. Fresh
+native full and no-referrer comparisons pass twice per profile with zero decision
+or context differences; GET redirects/dedicated workers and fail-closed probes
+pass. Shared/service-worker identity remains a gap.
+
+One guarded incremental bundle-hash build: one planned action, six executed
+steps, 29.95 s Siso / 34.983 s wrapper; final plan zero. Budget 25 files / 62 hunks;
+151 dependencies clean at pins. No GN, args, toolchain, environment-record or
+cold-output change. This is routine tranche-2 work, never Task 0 cold time.
+Six verified archives preserve 79 original files. No new latency qualification
+is claimed; earlier timings belong to aa26d71a. Broader F12 gaps and Task 0's
+upgrade gate remain open. Runtime brackets are not owner-attention measurements.

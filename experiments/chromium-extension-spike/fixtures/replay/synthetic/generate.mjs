@@ -1,3 +1,4 @@
+import {scriptLiteral} from '../../../script-literal.mjs';
 // First-party generator; generated list-derived artifacts carry ../NOTICE.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -48,7 +49,7 @@ export function parseSeed(line) {
 export function authoredResponse(candidate) {
   const id=candidate.id;
   if (candidate.resourceType==='script') return {status:200,contentType:'application/javascript',body:
-    `window.blancFixtureExecuted=(window.blancFixtureExecuted||[]).concat(${JSON.stringify(id)});\nfetch(${JSON.stringify(candidate.descendantUrl)},{credentials:'omit'}).then(r=>{if(!r.ok)throw new Error('Fixture child failed');return r.text();}).then(()=>{window.blancFixtureChildren=(window.blancFixtureChildren||[]).concat(${JSON.stringify(id)});}).catch(()=>{});\n`};
+    `window.blancFixtureExecuted=(window.blancFixtureExecuted||[]).concat(${scriptLiteral(id)});\nfetch(${scriptLiteral(candidate.descendantUrl)},{credentials:'omit'}).then(r=>{if(!r.ok)throw new Error('Fixture child failed');return r.text();}).then(()=>{window.blancFixtureChildren=(window.blancFixtureChildren||[]).concat(${scriptLiteral(id)});}).catch(()=>{});\n`};
   if (candidate.resourceType==='xhr') return {status:200,contentType:'application/json',body:'{"fixture":"authored-response"}'};
   if (candidate.resourceType==='stylesheet') return {status:200,contentType:'text/css',body:`#fixture-probe { color: rgb(11, 22, 33); }\n`};
   if (candidate.resourceType==='image') return {status:200,contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" width="2" height="2"><rect width="2" height="2" fill="red"/></svg>'};
