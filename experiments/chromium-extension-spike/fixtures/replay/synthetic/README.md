@@ -127,3 +127,16 @@ cosmetic and scriptlet gaps are explicitly retained.
 Redirect/worker and latency extension: see [measured results](../../../evidence/f12-paths-latency-20261017/README.md). GET redirects and dedicated workers pass the bounded probes; shared/service worker identity and quiet-machine latency remain gaps.
 
 Explicit worker-context follow-up: [evidence](../../../evidence/f12-worker-identity-20261017/README.md). Six service-worker subrequests now compare with independently observed worker identity and controlled-client sets in both profiles. Shared connected-client lifecycle and the initial service-worker script remain gaps. Engine inputs are unchanged; latency stays deferred.
+
+### Worker ownership checkpoint (October 17)
+
+[Evidence](../../../evidence/f12-worker-ownership-20261017/README.md): shared-worker clients now correlate through actual
+MessagePort challenges and independently observed document/worker realms; the
+initial service script joins the new worker's DevTools token and lifecycle.
+All ten authored path cases match in three variants, regular/private, twice per
+runtime. This closes the two bounded gaps, not the broad worker matrix.
+Multiple clients, teardown, updates and fetch/cache behavior remain untested.
+122 focused tests pass. No native build or engine-input change; latency deferred.
+The earlier debugger-barrier claim is corrected in PATHS-AND-LATENCY.md: requesting
+a breakpoint did not establish a pause; the authored readiness gate now provides
+explicit observed readiness and is excluded from latency.

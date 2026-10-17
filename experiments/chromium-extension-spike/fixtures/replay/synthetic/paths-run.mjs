@@ -1,12 +1,12 @@
 import fs from 'node:fs';import path from 'node:path';import os from 'node:os';import assert from 'node:assert/strict';
 import {sha} from './generate.mjs';import {pathFixtures,entryUrl} from './paths-fixtures.mjs';import {startSynthetic} from './transport.mjs';import {createCertificateSet} from './certificate-set.mjs';import {openSession,pause} from './session.mjs';
 import {comparePathRuns} from './paths-compare.mjs';
-const [configPath,evidence,mode]=process.argv.slice(2),config=JSON.parse(fs.readFileSync(configPath));assert(evidence&&!fs.existsSync(evidence));fs.mkdirSync(evidence);
-const root=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'blanc-f12-paths-')));const {fixtures,cases}=pathFixtures({controlledService:mode==='controlled'});
+const [configPath,evidence,mode]=process.argv.slice(2),config=JSON.parse(fs.readFileSync(configPath));assert([undefined,'controlled','no-referrer'].includes(mode));assert(evidence&&!fs.existsSync(evidence));fs.mkdirSync(evidence);
+const root=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'blanc-f12-paths-')));const {fixtures,cases}=pathFixtures({controlledService:mode==='controlled',noReferrer:mode==='no-referrer'});
 const certificates=createCertificateSet(path.join(root,'certificates'),[...new Set([...fixtures.keys()].map(u=>new URL(u).hostname))]);
 fs.writeFileSync(path.join(evidence,'fixtures.json'),JSON.stringify([...fixtures],null,2));fs.writeFileSync(path.join(evidence,'cases.json'),JSON.stringify(cases,null,2));
 const report={mode:mode||'uncontrolled',started:new Date().toISOString(),passed:false,acceptance:false,fixtureSha256:sha(JSON.stringify([...fixtures])),sources:{},runs:[],remainingGaps:['service-worker controlled fetch/cache and update variants','worker sender teardown','opaque/subframes','redirect method/header mutation and replacement URLs']};
-for(const name of ['paths-run.mjs','paths-fixtures.mjs','paths-compare.mjs','session.mjs','transport.mjs','worker-observer.mjs','worker-context.mjs'])report.sources[name]=sha(fs.readFileSync(new URL(name,import.meta.url)));
+for(const name of ['paths-run.mjs','paths-fixtures.mjs','paths-compare.mjs','session.mjs','transport.mjs','worker-observer.mjs','worker-context.mjs','shared-client-observer.mjs','shared-client-context.mjs','service-script-context.mjs'])report.sources[name]=sha(fs.readFileSync(new URL(name,import.meta.url)));
 let session,replay;
 try{
  for(const browserKind of ['electron','chromium'])for(const kind of ['regular','private'])for(const letter of ['a','b']){

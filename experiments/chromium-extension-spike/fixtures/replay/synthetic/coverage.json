@@ -139,7 +139,7 @@
         "worker-origin"
       ],
       "status": "gap",
-      "reason": "Dedicated-worker live-owner probes pass. Independent shared-worker request identities now observed, but six subrequests lack connected-client lifecycle evidence in Electron and remain gaps. Owner teardown/multiple owners untested."
+      "reason": "Dedicated live-owner and six shared subrequests pass in default, controlled-service and no-referrer variants, twice per browser/profile. Shared clients correlate through actual MessagePort challenges and observed realms for one live document. Multi-document ownership, transferred ports and teardown remain gaps."
     },
     {
       "priority": 2,
@@ -159,7 +159,7 @@
         "worker-origin"
       ],
       "status": "gap",
-      "reason": "Six service imports/fetch/redirect observations match with explicit worker identity and independently observed empty or single controlled-page sets, twice per runtime/profile/variant. Initial service-worker script correlation remains a gap. Updates, multi-client/teardown, controlled-client fetch events and cache-only outcomes untested."
+      "reason": "Initial script correlates through the new worker target token and pre-install lifecycle; six imports/fetch/redirect observations match with independently observed empty or single controlled-page sets. Three variants, twice per runtime/profile. Updates, failed scripts without a realm, multi-client/teardown, controlled fetch events and cache-only outcomes remain gaps."
     },
     {
       "priority": 2,
@@ -288,6 +288,12 @@
       "evidence": "../../../evidence/f12-worker-identity-20261017/README.md",
       "status": "passed",
       "scope": "Six service-worker subrequests per regular/private profile with independently observed empty or single-client sets; initial service script and shared connected clients remain gaps; latency deferred",
+      "full_acceptance": false
+    },
+    {
+      "evidence": "../../../evidence/f12-worker-ownership-20261017/README.md",
+      "status": "passed",
+      "scope": "Actual shared-port client proof and new initial service-script token correlation; default, controlled-client and no-referrer; 24 fresh runs; broad worker matrix and latency still open",
       "full_acceptance": false
     }
   ]

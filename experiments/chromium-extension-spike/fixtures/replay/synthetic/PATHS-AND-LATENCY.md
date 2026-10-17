@@ -114,11 +114,16 @@ in the controlled variant, an observed `controllerchange`). This is not a
 service-worker fetch-event or cache interception test.
 
 `worker-observer.mjs` attaches to worker targets on the disposable browser's
-loopback CDP endpoint, with Network and Runtime enabled before execution. A
-one-shot `beforeScriptExecution` debugger barrier enables Network again once the
-worker renderer is ready, then resumes it. This fixes an observed missing first
-shared-worker import event. The instrumentation changes scheduling and is
-**never enabled by the latency runner**. `workerObservation` defaults to false.
+loopback CDP endpoint. The authored shared-worker probe installs a connection
+observer before its own connect handler and waits for the independently attached
+Runtime binding before issuing requests. This changes scheduling and is **never
+used by the latency runner**. `workerObservation` defaults to false.
+
+Correction to the a97cec27 checkpoint: requesting a first-script debugger
+breakpoint did not prove it fired. Neither exploratory attempt in the next
+checkpoint observed a pause; shared-client correlation correctly remained gaps.
+The debugger barrier has been removed. The current proof requires the actual
+agent-installed event and browser-created MessagePort observations instead.
 Only declared fixture request metadata is retained; arbitrary headers, cookies,
 certificates and response bodies are not logged by this sidecar.
 
@@ -148,10 +153,41 @@ The sidecar establishes comparison evidence, not a change to the blocker's
 engine inputs: both engines still receive their actual hook inputs. No worker
 client origin replaces the referrer, initiator or raw unresolved top frame.
 
-Measured: six service-worker subrequest observations (allowed/blocked imports,
-fetches and allow-to-block redirect) per profile and variant match with explicit
-worker contexts. The initial service-worker script request remains uncorrelated.
-Shared-worker request identities are observed but CDP does not expose the
-connected-document lifecycle; all six shared subrequests remain gaps. A native
-SharedWorkerService observer alone would not close them: equivalent independent
-Electron evidence is required. No client set is inferred from fixture intent.
+### Shared-client ownership and initial service script
+
+For shared workers, a random challenge passes from the actual SharedWorker
+constructor's returned port to a port from the worker's actual `connect` event.
+The two Runtime bindings identify their execution realms independently; a URL,
+worker name, expected fixture owner or visible tab is never ownership evidence.
+The comparator requires the observed page's default realm, a unique challenge
+and peer, observation before the request, all observed connections accounted
+for, and no close/pagehide/realm destruction through the request and completed
+handshake. An unmatched construction, connection, duplicate, late observer,
+unknown target or opaque origin stays a gap. Process-local IDs/nonces are proof
+only; compared client members contain role, origin and port count.
+
+This is a **single live observed document** measurement, not a complete registry
+of arbitrary clients. It does not establish multi-document ownership, transferred
+ports, garbage-collected ports, owner teardown or unobserved realms. The authored
+observer sends only its control challenge; it does not replace request decisions
+or provide expected client sets. Both browsers execute identical authored bytes.
+
+For the initial service script, Chromium assigns the new worker's DevTools token
+to the ResourceRequest ID before the loader starts. The native record therefore
+joins directly to that target even without a Network event. Electron joins its
+unique target-scoped Network event with that same target token and its own actual
+hook record (URL, method, type and bounded time). CDP's initial RequestSent event
+serializes request.headers and omits the separate ResourceRequest.referrer;
+that omitted CDP header is not used for this join. The two hooks' actual
+referrers still compare exactly. A new starting version, empty pre-install
+controlled-client set, matching profile, initial hop and later unique realm are
+required. The explicit phase is `initial-script-fetch`; controlled clients are
+`not-applicable-before-installation`, not an invented document top frame.
+Failed/blocked scripts without a realm, installed versions and updates stay gaps.
+
+[Measured checkpoint](../../../evidence/f12-worker-ownership-20261017/README.md):
+all ten authored path cases match in regular/private profiles, twice per runtime,
+for default, controlled-client and no-referrer variants (24 fresh runs).
+Six shared subrequests and the initial service script now have complete evidence
+within those bounds; existing six service subrequests and redirects regress cleanly.
+The matrix's broad worker rows remain gaps. Latency remains deferred.

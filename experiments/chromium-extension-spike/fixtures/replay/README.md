@@ -339,3 +339,16 @@ Repeat C after supported Vary, entrypoint preflight and empty-body handling:
 Still 0/10 documents admitted: 3 uncontrolled Vary, 4 encoded/opaque bodies,
 1 HTTP 401 and 2 HTTP 403. No redirects observed; script/xhr/image refusal rates
 remain unmeasurable, not zero. No body/identifier gate was relaxed.
+
+### Worker ownership checkpoint (October 17)
+
+[Evidence](../../evidence/f12-worker-ownership-20261017/README.md): shared-worker clients now correlate through actual
+MessagePort challenges and independently observed document/worker realms; the
+initial service script joins the new worker's DevTools token and lifecycle.
+All ten authored path cases match in three variants, regular/private, twice per
+runtime. This closes the two bounded gaps, not the broad worker matrix.
+Multiple clients, teardown, updates and fetch/cache behavior remain untested.
+122 focused tests pass. No native build or engine-input change; latency deferred.
+The earlier debugger-barrier claim is corrected in PATHS-AND-LATENCY.md: requesting
+a breakpoint did not establish a pause; the authored readiness gate now provides
+explicit observed readiness and is excluded from latency.

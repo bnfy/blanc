@@ -1,9 +1,10 @@
+import {workerAgent} from './shared-client-observer.mjs';
 import {scriptLiteral} from '../../../script-literal.mjs';
 // Authored redirect/worker graph. Labels describe probes, not expected decisions.
 export const origin='https://page.blanc-fixture.test';
 const url=p=>origin+'/blanc-fixture/paths/'+p;
 export const entryUrl=url('start.html'),finalUrl=url('index.html');
-export function pathFixtures({controlledService=false}={}){
+export function pathFixtures({controlledService=false,noReferrer=false}={}){
  const fixtures=new Map(),cases=[];
  const add=(u,body,type='text/plain',location=null)=>{if(fixtures.has(u))throw Error('duplicate');fixtures.set(u,{status:location?302:200,contentType:type,body,...(location?{location}:{})});return u;};
  const blocked=(id,type='text/plain',body='authored blocked target')=>add('https://000491b06a.com/blanc-fixture/paths/'+id,body,type);
@@ -25,6 +26,7 @@ export function pathFixtures({controlledService=false}={}){
   const importAllow=allowed(kind+'-import.js','application/javascript','self.imported=true;'),importBlock=blocked(kind+'-import-block.js','application/javascript','self.blockedImport=true;');
   const requests=[fetchAllow,fetchBlock,redirect];
   let code=`async function run(){const result={fetches:[],imports:[]};for(const u of ${scriptLiteral([importAllow,importBlock])}){try{importScripts(u);result.imports.push({url:u,outcome:'load'});}catch{result.imports.push({url:u,outcome:'error'});}}for(const u of ${scriptLiteral(requests)}){try{const r=await fetch(u);result.fetches.push({url:u,outcome:'load',body:await r.text()});}catch{result.fetches.push({url:u,outcome:'error'});}}return result;}\n`;
+  if(kind==='shared')code=`const ownershipReady=(${workerAgent.toString()})();\n`+code.replace('async function run(){','async function run(){await ownershipReady;');
   if(kind==='service'){
    // Imports are first observed during worker evaluation, before installation.
    code=code.replace('async function run(){const result={fetches:[],imports:[]};','const imports=[];const init={imports};'+`for(const u of ${scriptLiteral([importAllow,importBlock])}){try{importScripts(u);imports.push({url:u,outcome:'load'});}catch{imports.push({url:u,outcome:'error'});}}`+'async function run(){const result={fetches:[],imports};');
@@ -35,7 +37,7 @@ export function pathFixtures({controlledService=false}={}){
   const worker=allowed(kind+'.js','application/javascript',code);
   operations.push(item(kind,kind,worker,[worker,importAllow,importBlock,fetchAllow,fetchBlock,redirect,redirectBlock]));
  }
- const body=`<!doctype html><meta charset="utf-8"><link rel="icon" href="data:,"><title>Redirect and worker probes</title><script>
+ const body=`<!doctype html><meta charset="utf-8">${noReferrer?'<meta name="referrer" content="no-referrer">':''}<link rel="icon" href="data:,"><title>Redirect and worker probes</title><script>
 window.pathScripts=[];window.pathProbe={done:false,results:[]};(async()=>{for(const c of ${scriptLiteral(operations)}){
  const result=await new Promise(resolve=>{let w;let done=false;const finish=r=>{if(done)return;done=true;clearTimeout(timer);if(c.kind==='dedicated')w?.terminate();if(c.kind==='shared')w?.port.close();resolve({id:c.id,...r});};const timer=setTimeout(()=>finish({outcome:'timeout'}),15000);
  if(c.kind==='fetch'){fetch(c.url).then(async r=>finish({outcome:'load',body:await r.text()}),()=>finish({outcome:'error'}));}

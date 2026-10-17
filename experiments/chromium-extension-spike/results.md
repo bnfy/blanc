@@ -1265,3 +1265,33 @@ Correction to the earlier checkpoint: administrator authentication is no longer
 pending. Multi-client/teardown, service-worker fetch-event/cache/update behavior
 and other F12 gaps remain open. The 156 baseline and Task 0 upgrade gate remain
 unchanged. Attention/agent time is not measured.
+
+### Worker ownership and initial service script — October 17, 2026
+
+[Evidence](evidence/f12-worker-ownership-20261017/README.md). Actual MessagePort
+challenges now link shared-worker connections to independently observed page and
+worker realms. Initial service scripts join the new worker's DevTools target token
+and pre-install lifecycle; no document top frame is invented. Actual hook inputs
+and referrers remain compared, including the no-referrer variant.
+
+All ten authored cases pass in default, controlled-client and no-referrer variants,
+twice per runtime and regular/private profile (24 final runs). Six shared
+subrequests and the initial service script close within these bounds; broad
+multi-client/teardown, updates, failed scripts without a realm and fetch/cache
+behavior remain gaps. No full corpus or formal latency re-claim.
+
+Two exploratory runs retained shared gaps (25.552 s, 20.700 s), then the authored
+readiness gate passed (21.172 s); final runs took 21.028 s, 21.371 s, 51.223 s.
+These are probe invocation times, not decision latency or owner attention.
+Correction: a97cec27's requested debugger barrier did not establish a pause;
+current evidence uses observed agent readiness and actual port handshakes.
+
+122 focused tests pass; 52-file lint clean. No native build, prepare, GN, args,
+toolchain or environment change. Framework/native/engine hashes equal a97cec27;
+zero added upstream files/hunks, preceding footprint 25/62. This is routine
+tranche-2 work, never Task 0 cold time. Eleven verified archives retain 223 files,
+including nonclosing attempts and the explicitly incomplete exploratory paths-02
+source snapshot. Final source hashes match all three final reports. Disposable
+profiles/certificate keys removed; no owned probe remains. Latency deferred,
+156 and permanent tabs untouched, Task 0 upgrade gate open. Attention/agent time
+not measured.
