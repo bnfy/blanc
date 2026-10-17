@@ -282,7 +282,7 @@ const {
 } = require('./glance-focus');
 const { moveTab: resolveTabMove } = require('./tab-order');
 const { CLOSED_SECTION_ID, clampClosedSlot, reconcileClosedSlot, reorderGroupsWithClosed } = require('./closed-slot');
-const { normalizeGroupName, sameGroupName } = require('./group-name-case');
+const { normalizeGroupName, sameGroupName, recaseSessionData } = require('./group-name-case');
 const { openLinkInGlance: openLinkInGlanceWith } = require('./glance-open-link');
 const { acceptOverlayDragState, resetOverlayDragState, overlayDragActive } = require('./overlay-drag-state');
 const {
@@ -7175,6 +7175,22 @@ function moveTabTo(id, target) {
   return true;
 }
 
+/** Group names were saved lowercase until they kept their case; give every
+ * saved one a capital first letter once per device, windows and rollback
+ * mirror alike (spec 2026-10-16 §9.2). Spaces recase themselves on load. */
+function recaseSavedGroupNamesOnce() {
+  if (!settings.groupNamesRecaseDue()) return;
+  const store = ensureSessionStore();
+  const { data, changed } = recaseSessionData(store.data);
+  if (changed) {
+    store.updateAndFlush((current) => {
+      for (const key of Object.keys(current)) delete current[key];
+      Object.assign(current, data);
+    });
+  }
+  settings.markGroupNamesRecased();
+}
+
 /** Keep the ⌘L panel's Recently closed band where the user left it across
  * any change to this window's groups (spec 2026-10-16 §4.4). Groups change in
  * many places; this one reconciliation runs before every payload and capture
@@ -11212,6 +11228,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // Snapshot the previous session before the local startup tab exists. Tab
   // broadcasts are temporarily prevented from overwriting this snapshot.
   await resumePendingProfileDeletions();
+  recaseSavedGroupNamesOnce();
   const { windows, activeWindowId, readOnly } = loadWorkspace(ensureSessionStore().data);
   sessionReadOnly = readOnly;
   const pendingProfileIds = new Set(profileDeletions.pendingProfileDeletions());

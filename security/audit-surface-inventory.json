@@ -220,7 +220,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "29c0ebf176c9ee8958e90d7ae083080e6485119b0136e273d358a18718cb1a83",
+      "sha256": "ac7a97bce4ddc7d1b864339a4e661f64aa573a9c3e06fa129c5897626afb2170",
       "literalChannels": [
         "activate",
         "before-input-event",
@@ -421,7 +421,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "4aa264988913bbe51def6c4aa9fef58053a5e872aae84bcd5efc9ece93541259",
+      "sha256": "2705ad6e6899799feade1c3b70d0d72471ef9323ef27cdecceb81b4758d85a3f",
       "literalChannels": [
         "blanc",
         "pages:app-version",

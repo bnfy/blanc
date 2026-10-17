@@ -60,6 +60,10 @@ const FIRST_RUN_VERSION = 1;
 // as Blanc's new presentation defaults. Existing profiles without this marker
 // are reset once; choices made afterward survive every later update.
 const PRESENTATION_DEFAULTS_RESET_VERSION = 1;
+// Tab group names were saved lowercase until this marker's release; an
+// existing profile gives them a capital first letter once (main.js
+// recaseSavedGroupNamesOnce; spec 2026-10-16-island-lower-section §9.2).
+const GROUP_NAMES_RECASE_VERSION = 1;
 
 // Keys that sync across devices (see the profile-sync spec). Deliberately
 // excludes tabLayout, verticalTabsWidth, appIcon, searchSuggestions, and the
@@ -138,6 +142,8 @@ const DEFAULTS = {
   appIcon: 'sunrise',
   // Device-local migration marker; never user-writable or Profile Synced.
   presentationDefaultsResetVersion: PRESENTATION_DEFAULTS_RESET_VERSION,
+  // Device-local migration marker (group names keep case); never user-writable or synced.
+  groupNamesRecasedVersion: GROUP_NAMES_RECASE_VERSION,
   // Lowercased hostnames, no protocol/path/www. prefix.
   adblockExceptions: [],
   // Dark websites: darken sites without their own dark mode while Blanc is
@@ -255,7 +261,15 @@ function ensureStore() {
     const storedPresentationResetVersion = Number.isInteger(
       storedSettings?.presentationDefaultsResetVersion,
     ) ? storedSettings.presentationDefaultsResetVersion : 0;
+    const storedGroupNamesRecasedVersion = Number.isInteger(
+      storedSettings?.groupNamesRecasedVersion,
+    ) ? storedSettings.groupNamesRecasedVersion : 0;
     store = new JsonStore('settings', DEFAULTS);
+    // DEFAULTS stamp a fresh profile as already recased; an existing profile
+    // without the stamp still owes main its one pass over session.json.
+    if (profileAlreadyExisted && storedGroupNamesRecasedVersion < GROUP_NAMES_RECASE_VERSION) {
+      store.update((data) => { data.groupNamesRecasedVersion = storedGroupNamesRecasedVersion; });
+    }
     // Remove the unreleased city preference from development profiles. The
     // wallpaper follows this machine's clock and retains no location choice.
     if (Object.prototype.hasOwnProperty.call(store.data, 'newtabWallpaperCity')) {
@@ -698,7 +712,20 @@ function searchUrlFor(query) {
   return currentSearchEngine().url(query);
 }
 
+/** Whether main still owes this profile its one capitalization of saved
+ * group names. */
+function groupNamesRecaseDue() {
+  ensureStore();
+  return !(store.data.groupNamesRecasedVersion >= GROUP_NAMES_RECASE_VERSION);
+}
+
+function markGroupNamesRecased() {
+  ensureStore().updateAndFlush((data) => { data.groupNamesRecasedVersion = GROUP_NAMES_RECASE_VERSION; });
+}
+
 module.exports = {
+  groupNamesRecaseDue,
+  markGroupNamesRecased,
   SEARCH_ENGINES,
   TAB_LAYOUTS,
   NEWTAB_LAYOUTS,

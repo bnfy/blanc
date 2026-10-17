@@ -40,7 +40,7 @@ const VALID = () => ({
 
 test('EMPTY_FILE is a versioned, empty, non-shared shape', () => {
   const a = EMPTY_FILE();
-  assert.deepEqual(a, { version: WORKSPACES_VERSION, workspaces: [], deleted: [] });
+  assert.deepEqual(a, { version: WORKSPACES_VERSION, groupNamesRecased: 1, workspaces: [], deleted: [] });
   assert.equal(WORKSPACES_VERSION, 2);
   // A fresh object each call — a shared default would let one profile's
   // store mutate another's.
