@@ -2,13 +2,15 @@
 // candidate membership into preview-ordered tab specs;
 // Electron-owned mutation remains in main.js.
 const { validFavicon } = require('./bookmark-validate');
+const { normalizeGroupName: normalizeName, groupNameKey } = require('./group-name-case');
 
 const MAX_CANDIDATES = 500;
 const MAX_GROUPS = 12;
 
+/** Group names keep their case; matching ignores it (spec 2026-10-16 §9.1). */
 function normalizeGroupName(value) {
   if (typeof value !== 'string') return '';
-  return value.trim().toLowerCase().slice(0, 40);
+  return normalizeName(value);
 }
 
 function isHttpUrl(value) {
@@ -20,14 +22,15 @@ function isHttpUrl(value) {
   }
 }
 
+/** Existing groups by comparison key, each with the name it is shown as. */
 function existingNameSet(existingGroupNames) {
   if (!Array.isArray(existingGroupNames)) return null;
-  const names = new Set();
+  const names = new Map();
   for (const entry of existingGroupNames) {
     const rawName = typeof entry === 'string' ? entry : entry?.name;
     const name = normalizeGroupName(rawName);
     if (!name) return null;
-    names.add(name);
+    if (!names.has(groupNameKey(name))) names.set(groupNameKey(name), name);
   }
   return names;
 }
@@ -72,14 +75,17 @@ function planTabImportApply({
       || group.candidateIds.length > MAX_CANDIDATES) {
       return invalidPlan();
     }
-    let plannedGroup = groupByName.get(name);
+    const key = groupNameKey(name);
+    let plannedGroup = groupByName.get(key);
     if (!plannedGroup) {
+      // A merge keeps the existing group's name; a new group keeps the
+      // proposal's first spelling.
       plannedGroup = {
-        name,
+        name: existingNames.get(key) ?? name,
         candidateIds: [],
-        action: existingNames.has(name) ? 'merge' : 'create',
+        action: existingNames.has(key) ? 'merge' : 'create',
       };
-      groupByName.set(name, plannedGroup);
+      groupByName.set(key, plannedGroup);
     }
     for (const candidateId of group.candidateIds) {
       if (typeof candidateId !== 'string' || !candidateById.has(candidateId)
@@ -87,7 +93,7 @@ function planTabImportApply({
         return invalidPlan();
       }
       seen.add(candidateId);
-      groupNameByCandidateId.set(candidateId, name);
+      groupNameByCandidateId.set(candidateId, plannedGroup.name);
       plannedGroup.candidateIds.push(candidateId);
     }
   }

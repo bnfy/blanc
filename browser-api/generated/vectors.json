@@ -576,6 +576,23 @@
           ]
         },
         {
+          "label": "beforeGroupId = \"recently-closed\"",
+          "args": [
+            "group-id-1",
+            "recently-closed"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:reorder",
+              "args": [
+                "group-id-1",
+                "recently-closed"
+              ]
+            }
+          ]
+        },
+        {
           "label": "beforeGroupId = null",
           "args": [
             "group-id-1",
@@ -597,6 +614,115 @@
         true,
         false
       ]
+    },
+    "moveClosedSection": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "groups:move-closed",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "group-id-1"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:move-closed",
+              "args": [
+                "group-id-1"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "beforeGroupId = null",
+          "args": [
+            null
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:move-closed",
+              "args": [
+                null
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
+    "renameGroup": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "groups:rename",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "group-id-1",
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:rename",
+              "args": [
+                "group-id-1",
+                "example"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "ok": true
+        },
+        {
+          "ok": true,
+          "error": "duplicate"
+        }
+      ]
+    },
+    "ungroupGroup": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "groups:ungroup",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "group-id-1"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:ungroup",
+              "args": [
+                "group-id-1"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": []
     },
     "activateTabFromRail": {
       "kind": "invoke",
@@ -1189,6 +1315,7 @@
           "glanceTabId": "tab-id-1",
           "groups": [],
           "closed": [],
+          "closedSlot": 1,
           "tabLayout": "island",
           "verticalTabsWidth": 1,
           "verticalTabsPreferredWidth": 1,
@@ -1267,6 +1394,7 @@
               "tabCount": 1
             }
           ],
+          "closedSlot": 1,
           "tabLayout": "island",
           "verticalTabsWidth": 1,
           "verticalTabsPreferredWidth": 1,
@@ -2868,6 +2996,55 @@
         ]
       ]
     },
+    "renameDevice": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:rename-device",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example",
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:rename-device",
+              "args": [
+                "example",
+                "example"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "name = null",
+          "args": [
+            "example",
+            null
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:rename-device",
+              "args": [
+                "example",
+                null
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
     "cancelWorkspaceAction": {
       "kind": "send",
       "platforms": [
@@ -4244,6 +4421,32 @@
         ]
       ]
     },
+    "inviteFriend": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:invite-friend",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:invite-friend",
+              "args": []
+            }
+          ]
+        }
+      ],
+      "replies": [
+        "mail",
+        "copied"
+      ]
+    },
     "fillLoginFromOnePassword": {
       "kind": "invoke",
       "platforms": [
@@ -4478,6 +4681,7 @@
               "glanceTabId": "tab-id-1",
               "groups": [],
               "closed": [],
+              "closedSlot": 1,
               "tabLayout": "island",
               "adblockEnabled": true,
               "shieldPopover": {
@@ -4528,6 +4732,7 @@
                 "glanceTabId": "tab-id-1",
                 "groups": [],
                 "closed": [],
+                "closedSlot": 1,
                 "tabLayout": "island",
                 "adblockEnabled": true,
                 "shieldPopover": {
@@ -4645,6 +4850,7 @@
                   "tabCount": 1
                 }
               ],
+              "closedSlot": 1,
               "tabLayout": "island",
               "adblockEnabled": true,
               "shieldPopover": {
@@ -4778,6 +4984,7 @@
                     "tabCount": 1
                   }
                 ],
+                "closedSlot": 1,
                 "tabLayout": "island",
                 "adblockEnabled": true,
                 "shieldPopover": {

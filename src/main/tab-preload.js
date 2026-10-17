@@ -99,6 +99,7 @@ if (window.location.protocol === 'blanc:') {
         openSettings: (section) => invoke('pages:start:open-settings', section),
         dismissMigrationChecklist: () => invoke('pages:start:migration-checklist-dismiss'),
         dismissPatronCallout: () => invoke('pages:start:patron-callout-dismiss'),
+        dismissWhatsNew: () => invoke('pages:start:whats-new-dismiss'),
         onUtilitySheetVisibility: (callback) => {
           ipcRenderer.on('pages:start:utility-sheet-visibility', (_event, visible) => callback(visible === true));
         },
@@ -224,6 +225,7 @@ if (window.location.protocol === 'blanc:') {
         syncDisable: (opts) => invoke('pages:settings:sync-disable', opts),
         syncNow: () => invoke('pages:settings:sync-now'),
         syncTabsSet: (on) => invoke('pages:settings:sync-tabs-set', on),
+        syncDeviceNameSet: (name) => invoke('pages:settings:sync-device-name-set', name),
         syncPairBegin: () => invoke('pages:settings:sync-pair-begin'),
         syncPairCancel: () => invoke('pages:settings:sync-pair-cancel'),
         syncPairState: () => invoke('pages:settings:sync-pair-state'),

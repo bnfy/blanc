@@ -38,6 +38,9 @@ export type TabLayout = 'island' | 'vertical';
 /** Appearance preference. */
 export type ThemePreference = 'system' | 'light' | 'dark';
 
+/** How an invite left Blanc: opened in the person's mail app, or copied to the clipboard because no mail app opened. */
+export type InviteFriendResult = 'mail' | 'copied';
+
 /** Options for a new tab. Only `private` is read by main today. */
 export type CreateTabOptions = { private?: boolean };
 
@@ -239,6 +242,13 @@ export interface DisplayShareSummary {
   tabId: TabId | null;
 }
 
+/** Result of renameGroup, built by renameGroup() in main.js. */
+export interface GroupRenameResult {
+  ok: boolean;
+  /** Present when ok is false: another group already has the name, or the group is gone. */
+  error?: 'duplicate' | 'unknown';
+}
+
 /** Result of getAllTabs, built by the tabs:get-all handler in main.js. */
 export interface TabsSnapshot {
   tabs: TabEntry[];
@@ -246,6 +256,8 @@ export interface TabsSnapshot {
   glanceTabId: TabId | null;
   groups: TabGroup[];
   closed: ClosedEntrySummary[];
+  /** How many of groups sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). */
+  closedSlot: number;
   tabLayout: TabLayout;
   verticalTabsWidth: number;
   verticalTabsPreferredWidth: number;
@@ -261,6 +273,8 @@ export interface TabsUpdatedPayload {
   glanceTabId: TabId | null;
   groups: TabGroup[];
   closed: ClosedEntrySummary[];
+  /** How many of groups sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). */
+  closedSlot: number;
   tabLayout: TabLayout;
   adblockEnabled: boolean;
   shieldPopover: ShieldPopover | null;
@@ -744,10 +758,25 @@ export interface BlancBrowserAPI {
    */
   moveTab(id: TabId, target: TabMoveTarget): Promise<boolean>;
   /**
-   * Move a group before another group, or to the end with null.
+   * Move a group before another group, directly above the Recently closed band with 'recently-closed', or to the end with null.
    * IPC: invoke `groups:reorder`.
    */
-  reorderGroup(id: GroupId, beforeGroupId: GroupId | null): Promise<boolean>;
+  reorderGroup(id: GroupId, beforeGroupId: GroupId | 'recently-closed' | null): Promise<boolean>;
+  /**
+   * Move the ⌘L panel's Recently closed band before a group, or after the last group with null.
+   * IPC: invoke `groups:move-closed`.
+   */
+  moveClosedSection(beforeGroupId: GroupId | null): Promise<boolean>;
+  /**
+   * Rename a group, keeping the case typed. An empty or unchanged name changes nothing; another group's name in this window (in any case) is refused.
+   * IPC: invoke `groups:rename`.
+   */
+  renameGroup(groupId: GroupId, name: string): Promise<GroupRenameResult>;
+  /**
+   * Make every tab in a group ungrouped; the empty group goes away.
+   * IPC: invoke `groups:ungroup`.
+   */
+  ungroupGroup(groupId: GroupId): Promise<void>;
   /**
    * Activate a tab from the vertical tab rail.
    * IPC: invoke `tabs:activate-from-rail`.
@@ -1032,6 +1061,11 @@ export interface BlancBrowserAPI {
    */
   listRemoteTabs(): Promise<RemoteDevice[]>;
   /**
+   * Name another synced device as this profile's devices list it; an empty name or null restores the name it publishes. Refused (false) for a device the Other devices drawer does not list.
+   * IPC: invoke `chrome:rename-device`.
+   */
+  renameDevice(deviceId: string, name: string | null): Promise<boolean>;
+  /**
    * Cancel a pending workspace action.
    * IPC: send `chrome:workspaces-cancel`.
    */
@@ -1146,6 +1180,11 @@ export interface BlancBrowserAPI {
    * IPC: invoke `chrome:sleep-background-tabs`.
    */
   sleepBackgroundTabs(): Promise<TabId[]>;
+  /**
+   * Open a prefilled invite email in the person's own mail app (/invite). Blanc sends nothing; without a mail app the invite is copied instead.
+   * IPC: invoke `chrome:invite-friend`.
+   */
+  inviteFriend(): Promise<InviteFriendResult>;
   /**
    * Fill a login from 1Password (explicit invoke only). Resolves to false when the broker is unavailable.
    * IPC: invoke `chrome:onepassword-fill`.

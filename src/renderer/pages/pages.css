@@ -1385,6 +1385,37 @@ a.ledger-label:hover { color: var(--accent); }
   object-fit: contain;
 }
 
+/* What's new pill after an update, in the Patron pill's place while it
+   shows. Same shape, outlined in the neutral border: it is news, not an
+   invitation. */
+.js-whats-new {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  font-family: var(--font-text);
+  transition: border-color 120ms ease;
+}
+.js-whats-new[hidden] { display: none; }
+.js-whats-new:hover { border-color: var(--text-dim); }
+.js-whats-new a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 3px 4px 3px 10px;
+  border-radius: 999px;
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+.js-whats-new a:hover { color: var(--text); background: transparent; }
+.js-whats-new a:focus-visible {
+  outline: 1px solid var(--text-dim);
+  outline-offset: 0;
+}
+
 /* A single moving-in checklist replaces the separate Sync and tab-import
    promos. It is a pill in the footer's left group whose popover holds the
    full list (frame section, which also owns its motion). */
@@ -4208,6 +4239,11 @@ body[data-layout="shelf"] #layoutShelf { display: grid; }
 .sync-status-list > div { display: contents; }
 .sync-status-list dt { color: var(--text-dim); }
 .sync-status-list dd { margin: 0; }
+.sync-status-list dd > input { width: 100%; max-width: 320px; }
+/* A field row: its label lines up with the text inside the input. */
+.sync-status-list dt:has(> label),
+.sync-status-list dt:has(> label) + dd { align-self: baseline; }
+.sync-device-name-hint { display: block; margin-top: 4px; color: var(--text-dim); font-size: 12px; }
 .sync-code-input {
   font-family: "Inter", var(--font-text);
   font-variant-numeric: tabular-nums;

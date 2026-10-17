@@ -35,6 +35,7 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `start.openSettings` | invoke | `pages:start:open-settings` | newtab | Open Settings at a section. |
 | `start.dismissMigrationChecklist` | invoke | `pages:start:migration-checklist-dismiss` | newtab | Dismiss the migration checklist. |
 | `start.dismissPatronCallout` | invoke | `pages:start:patron-callout-dismiss` | newtab | Hide the start page's Patron upgrade pill for 90 days. |
+| `start.dismissWhatsNew` | invoke | `pages:start:whats-new-dismiss` | newtab | Hide the start page's What's new pill for the current update. |
 | `start.defaultBrowser` | invoke | `pages:default-browser:get` | newtab | Default-browser status, for onboarding. |
 | `start.setDefaultBrowser` | invoke | `pages:default-browser:set` | newtab | Ask to become the default browser (opens system settings on Windows). |
 | `start.onboardingSet` | invoke | `pages:start:onboarding-set` | newtab | Save onboarding progress. |
@@ -86,6 +87,7 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `settings.syncDisable` | invoke | `pages:settings:sync-disable` | settings | Turn off Profile Sync. |
 | `settings.syncNow` | invoke | `pages:settings:sync-now` | settings | Sync now, then return the new status. |
 | `settings.syncTabsSet` | invoke | `pages:settings:sync-tabs-set` | settings | Turn open-tab sync on or off; main coerces to boolean. |
+| `settings.syncDeviceNameSet` | invoke | `pages:settings:sync-device-name-set` | settings | Name this device as the user's other devices list it, then return the new status. An empty name restores the computer's name; main ignores a non-string. |
 | `settings.syncPairBegin` | invoke | `pages:settings:sync-pair-begin` | settings | Park this device's wrapped sync secret under a fresh pairing code; returns the code and expiry for display. No key crosses. |
 | `settings.syncPairCancel` | invoke | `pages:settings:sync-pair-cancel` | settings | Retract the current pairing code. |
 | `settings.syncPairState` | invoke | `pages:settings:sync-pair-state` | settings | The live pairing code and expiry, so a reopened Settings page can resume the countdown. |

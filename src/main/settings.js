@@ -12,6 +12,7 @@ const APP_ICON_ASSETS = require('./app-icon-assets');
 const { normalizeHomepage } = require('./top-level-url-policy');
 const { migrateSupporter, downgradeMirror, isRecordActive } = require('./patron-model');
 const { DEFAULT_MAPPING, mappingOrDefault, validMapping } = require('./mouse-gestures');
+const { normalizeDeviceNames, setDeviceNameEntry, mergeDeviceNames, deviceNamesEqual } = require('./device-names');
 const {
   isValidSearchTemplate,
   searchUrlFromTemplate,
@@ -44,6 +45,8 @@ const TAB_SLEEP_DELAYS = ['off', '30m', '1h', '6h'];
 // Interface language: 'system' or a BCP 47 language code. Device-local (never
 // in SYNCED_KEYS) and written ONLY by setUiLanguage(): the generic whitelist
 // has no entry, so pages:settings:set cannot bypass the relaunch flow.
+// An app version as package.json writes it (lastRunVersion, whatsNewVersion).
+const APP_VERSION_RE = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?$/;
 const UI_LANGUAGE_CODE = /^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$/;
 const isUiLanguageValue = (value) => value === 'system' || (typeof value === 'string' && UI_LANGUAGE_CODE.test(value));
 // Unix milliseconds beyond this point are corrupted sync metadata, not a
@@ -62,13 +65,31 @@ const FIRST_RUN_VERSION = 1;
 // as Blanc's new presentation defaults. Existing profiles without this marker
 // are reset once; choices made afterward survive every later update.
 const PRESENTATION_DEFAULTS_RESET_VERSION = 1;
+// Tab group names were saved lowercase until this marker's release; an
+// existing profile gives them a capital first letter once (main.js
+// recaseSavedGroupNamesOnce; spec 2026-10-16-island-lower-section §9.2).
+const GROUP_NAMES_RECASE_VERSION = 1;
+
+// Device-local moving-in checklist and default-browser reminder flags.
+const CHECKLIST_FLAGS = [
+  'migrationChecklistDismissed',
+  'syncMigrationCompleted',
+  'tabImportCompleted',
+  'spaceMigrationCompleted',
+  'spaceChecklistIntroduced',
+  'defaultBrowserMigrationCompleted',
+  'defaultChecklistIntroduced',
+  'defaultBrowserReminderShown',
+];
 
 // Keys that sync across devices (see the profile-sync spec). Deliberately
 // excludes tabLayout, verticalTabsWidth, appIcon, searchSuggestions, and the
 // device's 1Password integration configuration
 // (device-local), usagePing (per-install consent), and supporter (never —
 // that would be license sharing).
-const SYNCED_KEYS = ['searchEngine', 'searchEngineTemplate', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions', 'newtabLayout', 'newtabDynamicWallpaper', 'bangsEnabled', 'customBangs'];
+// deviceNames is merged entry by entry (device-names.js), never as one
+// last-writer-wins value, and only setDeviceName() writes it.
+const SYNCED_KEYS = ['searchEngine', 'searchEngineTemplate', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions', 'newtabLayout', 'newtabDynamicWallpaper', 'bangsEnabled', 'customBangs', 'deviceNames'];
 
 // App icon variants — id maps to src/renderer/pages/icon-<id>.png; order here
 // is also the tile order Settings renders.
@@ -184,6 +205,8 @@ const DEFAULTS = {
   appIcon: 'sunrise',
   // Device-local migration marker; never user-writable or Profile Synced.
   presentationDefaultsResetVersion: PRESENTATION_DEFAULTS_RESET_VERSION,
+  // Device-local migration marker (group names keep case); never user-writable or synced.
+  groupNamesRecasedVersion: GROUP_NAMES_RECASE_VERSION,
   // Lowercased hostnames, no protocol/path/www. prefix.
   adblockExceptions: [],
   // Dark websites: darken sites without their own dark mode while Blanc is
@@ -211,6 +234,11 @@ const DEFAULTS = {
   // pre-existing settings file is first opened; only a truly missing
   // settings file starts at 0.
   onboardingVersion: 0,
+  // When this device first saved its privacy choices (ms since the epoch;
+  // 0 = before this field existed, or never). Written only by
+  // completeFirstRunPrivacyChoices(); the default-browser reminder measures
+  // install age from it, so it needs no telemetry state.
+  firstRunCompletedAt: 0,
   // Device-local moving-in checklist state. Completion means the migration
   // action succeeded at least once; it is not cleared if the feature is later
   // turned off or used again. None of these keys are Profile Synced.
@@ -221,10 +249,23 @@ const DEFAULTS = {
   // that task (so a checklist that already retired stays retired).
   spaceMigrationCompleted: false,
   spaceChecklistIntroduced: false,
+  // "Make Blanc your default" completed (Blanc was seen as the default at
+  // least once), the one-time introduction of that task, and whether the
+  // single later reminder (default-browser-reminder.js) was already shown.
+  defaultBrowserMigrationCompleted: false,
+  defaultChecklistIntroduced: false,
+  defaultBrowserReminderShown: false,
   // When the start page's Patron upgrade pill was last closed (ms since the
   // epoch; 0 = never). It stays hidden for 90 days (patron-callout.js).
   // Device-local, never Profile Synced.
   patronCalloutDismissedAt: 0,
+  // The start page's What's new pill after an update (whats-new.js): the
+  // version that last launched on this device, the update whose pill is
+  // showing ('' for none), and when that update first launched (ms since the
+  // epoch). Device-local, never Profile Synced.
+  lastRunVersion: '',
+  whatsNewVersion: '',
+  whatsNewSince: 0,
   // Blanc Supporter license — null, or { key, activationId, activatedAt }.
   // Written only by setSupporter() (the Polar activation flow), never by
   // the generic setSettings() path. Once set, trusted forever — offline OK.
@@ -236,6 +277,10 @@ const DEFAULTS = {
   // Written only by setPatron() (the activation/validation flow), never by
   // the generic setSettings() path. See patron-model.js for the state machine.
   patron: null,
+  // Names the user gave synced devices: deviceId → { name, at, tie }, a clock
+  // per entry (device-names.js). Profile Synced; written only by
+  // setDeviceName(), never by the Settings page.
+  deviceNames: {},
   // Per-key last-write timestamps and equal-clock tie-breakers for sync's LWW
   // merge; only SYNCED_KEYS are ever stamped or transmitted. See
   // exportForSync/mergeFromSync.
@@ -301,7 +346,15 @@ function ensureStore() {
     const storedPresentationResetVersion = Number.isInteger(
       storedSettings?.presentationDefaultsResetVersion,
     ) ? storedSettings.presentationDefaultsResetVersion : 0;
+    const storedGroupNamesRecasedVersion = Number.isInteger(
+      storedSettings?.groupNamesRecasedVersion,
+    ) ? storedSettings.groupNamesRecasedVersion : 0;
     store = new JsonStore('settings', DEFAULTS);
+    // DEFAULTS stamp a fresh profile as already recased; an existing profile
+    // without the stamp still owes main its one pass over session.json.
+    if (profileAlreadyExisted && storedGroupNamesRecasedVersion < GROUP_NAMES_RECASE_VERSION) {
+      store.update((data) => { data.groupNamesRecasedVersion = storedGroupNamesRecasedVersion; });
+    }
     // Remove the unreleased city preference from development profiles. The
     // wallpaper follows this machine's clock and retains no location choice.
     if (Object.prototype.hasOwnProperty.call(store.data, 'newtabWallpaperCity')) {
@@ -381,11 +434,18 @@ function getSettings() {
   if (!Number.isInteger(data.onboardingVersion) || data.onboardingVersion < 0) {
     data.onboardingVersion = DEFAULTS.onboardingVersion;
   }
-  for (const key of ['migrationChecklistDismissed', 'syncMigrationCompleted', 'tabImportCompleted', 'spaceMigrationCompleted', 'spaceChecklistIntroduced']) {
+  for (const key of CHECKLIST_FLAGS) {
     if (typeof data[key] !== 'boolean') data[key] = DEFAULTS[key];
   }
   if (!Number.isFinite(data.patronCalloutDismissedAt) || data.patronCalloutDismissedAt < 0) {
     data.patronCalloutDismissedAt = DEFAULTS.patronCalloutDismissedAt;
+  }
+  for (const key of ['lastRunVersion', 'whatsNewVersion']) {
+    if (typeof data[key] !== 'string' || (data[key] && !APP_VERSION_RE.test(data[key]))) data[key] = DEFAULTS[key];
+  }
+  if (!Number.isFinite(data.whatsNewSince) || data.whatsNewSince < 0) data.whatsNewSince = DEFAULTS.whatsNewSince;
+  if (!Number.isFinite(data.firstRunCompletedAt) || data.firstRunCompletedAt < 0) {
+    data.firstRunCompletedAt = DEFAULTS.firstRunCompletedAt;
   }
   if (!TAB_LAYOUTS.includes(data.tabLayout)) data.tabLayout = DEFAULTS.tabLayout;
   if (typeof data.islandSiteColors !== 'boolean') data.islandSiteColors = DEFAULTS.islandSiteColors;
@@ -408,6 +468,7 @@ function getSettings() {
   if (typeof data.onePasswordAccount !== 'string' || data.onePasswordAccount.length > 200) {
     data.onePasswordAccount = DEFAULTS.onePasswordAccount;
   }
+  data.deviceNames = normalizeDeviceNames(data.deviceNames);
   data.homePage = normalizeHomepage(data.homePage, DEFAULTS.homePage);
   data.verticalTabsWidth = normalizeVerticalTabsWidth(data.verticalTabsWidth);
   if (!isAppIconAllowed(data.appIcon)) data.appIcon = DEFAULTS.appIcon;
@@ -455,12 +516,16 @@ function sanitize(partial) {
   if (typeof partial.adblockEnabled === 'boolean') clean.adblockEnabled = partial.adblockEnabled;
   if (['blanc', 'ublock-origin'].includes(partial.adblockProvider)) clean.adblockProvider = partial.adblockProvider;
   if (typeof partial.usagePing === 'boolean') clean.usagePing = partial.usagePing;
-  for (const key of ['migrationChecklistDismissed', 'syncMigrationCompleted', 'tabImportCompleted', 'spaceMigrationCompleted', 'spaceChecklistIntroduced']) {
+  for (const key of CHECKLIST_FLAGS) {
     if (typeof partial[key] === 'boolean') clean[key] = partial[key];
   }
   if (Number.isFinite(partial.patronCalloutDismissedAt) && partial.patronCalloutDismissedAt >= 0) {
     clean.patronCalloutDismissedAt = partial.patronCalloutDismissedAt;
   }
+  for (const key of ['lastRunVersion', 'whatsNewVersion']) {
+    if (typeof partial[key] === 'string' && (partial[key] === '' || APP_VERSION_RE.test(partial[key]))) clean[key] = partial[key];
+  }
+  if (Number.isFinite(partial.whatsNewSince) && partial.whatsNewSince >= 0) clean.whatsNewSince = partial.whatsNewSince;
   if (typeof partial.homePage === 'string') {
     clean.homePage = normalizeHomepage(partial.homePage.trim(), DEFAULTS.homePage);
   }
@@ -595,11 +660,13 @@ function completeFirstRunPrivacyChoices(partial = {}) {
     searchSuggestions: s.data.searchSuggestions,
     usagePing: s.data.usagePing,
     onboardingVersion: s.data.onboardingVersion,
+    firstRunCompletedAt: s.data.firstRunCompletedAt,
   };
   s.update((data) => {
     data.searchSuggestions = partial.searchSuggestions;
     data.usagePing = partial.usagePing;
     data.onboardingVersion = FIRST_RUN_VERSION;
+    if (!(data.firstRunCompletedAt > 0)) data.firstRunCompletedAt = Date.now();
   });
   if (!s.flush()) {
     Object.assign(s.data, previous);
@@ -702,7 +769,12 @@ function exportForSync() {
   const d = ensureStore().data;
   const values = {}, meta = {}, tieBreakers = {};
   for (const k of SYNCED_KEYS) {
-    if (d[k] !== undefined) values[k] = d[k];
+    if (k === 'deviceNames') {
+      const names = normalizeDeviceNames(d.deviceNames);
+      if (Object.keys(names).length) values.deviceNames = names;
+    } else if (d[k] !== undefined) {
+      values[k] = d[k];
+    }
     if (validSyncTimestamp(d._syncMeta?.[k]) && d._syncMeta[k] > 0) {
       meta[k] = d._syncMeta[k];
       const tieBreaker = normalizeSyncTieBreaker(d._syncTieBreakers?.[k]);
@@ -717,8 +789,10 @@ function exportForSync() {
 // remote timestamp/tie-breaker are retained so ordering stays convergent.
 function mergeFromSync(remote) {
   const s = ensureStore();
+  const namesChanged = mergeDeviceNamesFromSync(s, remote);
   const winners = {};
   for (const k of SYNCED_KEYS) {
+    if (k === 'deviceNames') continue; // merged entry by entry above
     const rt = remote.meta?.[k];
     if (!validSyncTimestamp(rt) || rt === 0 || remote.values?.[k] === undefined) continue;
     const storedLocalTimestamp = s.data._syncMeta?.[k];
@@ -745,7 +819,10 @@ function mergeFromSync(remote) {
     }
   }
   const keys = Object.keys(winners);
-  if (!keys.length) return;
+  if (!keys.length) {
+    if (namesChanged) for (const fn of listeners) fn(getSettings());
+    return;
+  }
   const clean = sanitize(Object.fromEntries(keys.map((k) => [k, remote.values[k]])));
   s.update((data) => {
     Object.assign(data, clean);
@@ -760,7 +837,80 @@ function mergeFromSync(remote) {
     }
   });
   // Notify (→ app re-applies theme/adblock) only when something was adopted.
-  if (Object.keys(clean).length) for (const fn of listeners) fn(getSettings());
+  if (Object.keys(clean).length || namesChanged) for (const fn of listeners) fn(getSettings());
+}
+
+// Each device's name keeps its own clock, so two Macs renaming two devices
+// both keep their renames. The key's clock is the larger of both sides.
+function mergeDeviceNamesFromSync(s, remote) {
+  const remoteNames = remote?.values?.deviceNames;
+  if (remoteNames === undefined) return false;
+  const local = normalizeDeviceNames(s.data.deviceNames);
+  const merged = mergeDeviceNames(local, remoteNames);
+  const rt = validSyncTimestamp(remote.meta?.deviceNames) ? remote.meta.deviceNames : 0;
+  const lt = validSyncTimestamp(s.data._syncMeta?.deviceNames) ? s.data._syncMeta.deviceNames : 0;
+  const changed = !deviceNamesEqual(local, merged);
+  if (!changed && rt <= lt) return false;
+  s.update((data) => {
+    data.deviceNames = merged;
+    data._syncMeta ??= {};
+    data._syncMeta.deviceNames = Math.max(lt, rt);
+  });
+  return changed;
+}
+
+function getDeviceNames() {
+  return normalizeDeviceNames(ensureStore().data.deviceNames);
+}
+
+/** Give a synced device a name; an empty name clears it, so the device's
+ * published name shows again. The only writer of deviceNames. */
+function setDeviceName(deviceId, rawName, now = Date.now()) {
+  const s = ensureStore();
+  const current = normalizeDeviceNames(s.data.deviceNames);
+  const previous = Object.hasOwn(current, deviceId) ? current[deviceId] : null;
+  const next = setDeviceNameEntry(current, deviceId, rawName, {
+    at: nextSyncWriteTimestamp(previous?.at, now),
+    tie: crypto.randomUUID(),
+  });
+  const entry = Object.hasOwn(next, deviceId) ? next[deviceId] : null;
+  if (!entry || entry.name === (previous?.name ?? '')) return current;
+  s.update((data) => {
+    data.deviceNames = next;
+    data._syncMeta ??= {};
+    data._syncMeta.deviceNames = nextSyncWriteTimestamp(data._syncMeta.deviceNames, now);
+  });
+  for (const fn of listeners) fn(getSettings());
+  return next;
+}
+
+function stableJson(value) {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(',')}]`;
+  if (value && typeof value === 'object') {
+    return `{${Object.keys(value).sort().map((k) => `${JSON.stringify(k)}:${stableJson(value[k])}`).join(',')}}`;
+  }
+  return JSON.stringify(value) ?? 'null';
+}
+
+// What a payload tells a peer: only clocked values are ever adopted
+// (mergeFromSync), so a value saved before sync stamped settings carries
+// nothing and two Macs that differ only there already agree.
+function adoptableSyncPayload(payload) {
+  const out = {};
+  for (const [k, at] of Object.entries(payload?.meta ?? {})) {
+    if (!validSyncTimestamp(at) || at === 0 || payload.values?.[k] === undefined) continue;
+    out[k] = { value: payload.values[k], at, tie: normalizeSyncTieBreaker(payload.tieBreakers?.[k]) };
+  }
+  return out;
+}
+
+/** Sync's repair check: a remote blob that already tells peers everything
+ * this device would upload needs no PUT; anything else (a Blanc that
+ * predates a key dropped it, say) uploads again. The focus refresh pulls
+ * settings once a minute, so this keeps it to a GET when nothing changed. */
+function syncPayloadEquals(exported, remote) {
+  if (!remote || typeof remote !== 'object') return false;
+  return stableJson(adoptableSyncPayload(exported)) === stableJson(adoptableSyncPayload(remote));
 }
 
 /** The engine searches use now, after the read rule: { id, label, url(query) }.
@@ -783,7 +933,20 @@ function searchUrlFor(query) {
   return currentSearchEngine().url(query);
 }
 
+/** Whether main still owes this profile its one capitalization of saved
+ * group names. */
+function groupNamesRecaseDue() {
+  ensureStore();
+  return !(store.data.groupNamesRecasedVersion >= GROUP_NAMES_RECASE_VERSION);
+}
+
+function markGroupNamesRecased() {
+  ensureStore().updateAndFlush((data) => { data.groupNamesRecasedVersion = GROUP_NAMES_RECASE_VERSION; });
+}
+
 module.exports = {
+  groupNamesRecaseDue,
+  markGroupNamesRecased,
   SEARCH_ENGINES,
   TAB_LAYOUTS,
   NEWTAB_LAYOUTS,
@@ -810,6 +973,9 @@ module.exports = {
   getPatronRecord,
   exportForSync,
   mergeFromSync,
+  syncPayloadEquals,
+  getDeviceNames,
+  setDeviceName,
   normalizeCustomBangs,
   recordRecentBang,
   clearRecentBangs,

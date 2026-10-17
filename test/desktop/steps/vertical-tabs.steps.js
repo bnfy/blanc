@@ -901,7 +901,7 @@ Given('another device has shared open tabs', async function () {
 
 Then('ungrouped pinned rows appear first', async function () {
   const snapshot = await railSnapshot(this.railPage);
-  assert.equal(snapshot.sections[0].label, 'pinned');
+  assert.equal(snapshot.sections[0].label, 'Pinned');
   assert.deepEqual(snapshot.sections[0].rows.map((row) => row.id), [
     this.canonicalRail.standalonePin,
   ]);
@@ -1011,12 +1011,12 @@ Then('remote-device tabs remain available in the Quick Switcher and start page',
   assert.equal(await this.call('editAddressInput', 'docs.example'), true);
   const favoriteRows = await waitForValue(
     () => this.call('addressResultRows'),
-    (rows) => rows.some((row) => row.tag === 'favorite' && row.title === 'docs.example'
+    (rows) => rows.some((row) => row.tag === 'Favorite' && row.title === 'docs.example'
       && row.faviconHasIcon
       && row.faviconDecoded === `${SYNC_ICON_SIZE}x${SYNC_ICON_SIZE}`),
     'decoded favorite favicon in Quick Switcher'
   );
-  const favoriteRow = favoriteRows.find((row) => row.tag === 'favorite' && row.title === 'docs.example');
+  const favoriteRow = favoriteRows.find((row) => row.tag === 'Favorite' && row.title === 'docs.example');
   assert.equal(favoriteRow.faviconHasIcon, true, 'favorite should render its favicon');
   assert.equal(
     favoriteRow.faviconDecoded,
@@ -1161,7 +1161,7 @@ Then('the loading row exposes loading state', async function () {
 Then('the private row exposes private state', async function () {
   const row = this.railPage.locator(`.vertical-tab-row[data-tab-id="${this.stateRows.privateTab}"]`);
   assert.equal(await row.evaluate((element) => element.classList.contains('private')), true);
-  assert.equal(await row.locator('.vertical-tab-private').textContent(), 'private');
+  assert.equal(await row.locator('.vertical-tab-private').textContent(), 'Private');
   assert.equal(
     await row.locator('.vertical-tab-favicon').evaluate((element) => element.style.backgroundImage),
     '',

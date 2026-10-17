@@ -5,6 +5,7 @@
 // repair rules; workspaces.js owns the store, main.js owns the tabs.
 
 const { validProfileId } = require('./local-profile-model');
+const { recaseWorkspacesFile } = require('./group-name-case');
 // A workspace id must survive a round-trip through session.json's
 // `workspaceId` binding pointer, so the rule is DEFINED in session-workspace
 // and imported here — one direction only. Defining it here and importing it
@@ -24,7 +25,10 @@ const MAX_NAME_LENGTH = 60;
 
 /** A fresh empty file. Returns a NEW object each call — a shared default
  * would let one profile's store mutate another's. */
-const EMPTY_FILE = () => ({ version: WORKSPACES_VERSION, workspaces: [], deleted: [] });
+// groupNamesRecased: group names here were given their capital first letter
+// once (spec 2026-10-16-island-lower-section §9.2); a file without it predates
+// case-keeping group names.
+const EMPTY_FILE = () => ({ version: WORKSPACES_VERSION, groupNamesRecased: 1, workspaces: [], deleted: [] });
 
 /** The user's handle for switching: trimmed, whitespace-collapsed, capped.
  * Null when nothing survives, which is what makes an empty name a rejection
@@ -38,6 +42,10 @@ function sanitizeName(raw) {
 // Always a NEW array. Returning the caller's array by reference would let a
 // later updateCapture (or a store write) mutate the object we normalized from.
 const asArray = (value) => (Array.isArray(value) ? value.slice() : []);
+/** Where the Recently closed band sits among the Space's groups; the default
+ * (0, under Pinned) is never written. */
+const closedSlotColumn = (source) => (
+  Number.isInteger(source.closedSlot) && source.closedSlot > 0 ? { closedSlot: source.closedSlot } : {});
 
 /** One workspace record, repaired — or null when it cannot be trusted.
  * Rejects (rather than repairs) identity fields: a record with no id, no
@@ -70,6 +78,7 @@ function normalizeWorkspace(raw) {
     meta: meta.length === urls.length ? meta : [],
     ...(Array.isArray(raw.localFiles) && raw.localFiles.length === urls.length
       ? { localFiles: raw.localFiles.map((value) => value === true) } : {}),
+    ...closedSlotColumn(raw),
     // Identity fields only when valid; normalizeFile assigns the defaults.
     ...(Identity.normalizeHex(raw.color) ? { color: Identity.normalizeHex(raw.color) } : {}),
     ...(Identity.isSymbol(raw.symbol) ? { symbol: raw.symbol } : {}),
@@ -115,6 +124,7 @@ function normalizeFile(raw) {
   const identified = withIdentities(workspaces);
   return {
     version: WORKSPACES_VERSION,
+    groupNamesRecased: 1,
     workspaces: identified,
     deleted: deleted.map((entry) => ({ ...entry, workspace: withIdentities([entry.workspace], identified)[0] })),
   };
@@ -127,8 +137,14 @@ function loadFile(raw) {
   if (!raw || typeof raw !== 'object' || !Array.isArray(raw.workspaces)) {
     return { status: 'corrupt', file: EMPTY_FILE() };
   }
-  return { status: 'supported', file: normalizeFile(raw) };
+  const file = normalizeFile(raw);
+  // Names saved before group names kept their case get a capital once; the
+  // stamp normalizeFile writes means this never runs on the file again.
+  if (raw.groupNamesRecased !== 1) return { status: 'supported', file: recaseWorkspacesFile(file).file };
+  return { status: 'supported', file };
 }
+
+const OPTIONAL_CAPTURE_COLUMNS = ['localFiles', 'closedSlot'];
 
 /** The tab columns a capture carries, copied so the record never aliases the
  * live arrays main.js built it from. */
@@ -145,6 +161,7 @@ const captureColumns = (capture) => {
     meta: meta.length === urls.length ? meta : [],
     ...(Array.isArray(source.localFiles) && source.localFiles.length === urls.length
       ? { localFiles: source.localFiles.map((value) => value === true) } : {}),
+    ...closedSlotColumn(source),
   };
 };
 
@@ -235,6 +252,10 @@ function updateCapture(file, id, capture, now) {
     return { file: clean, workspace: existing, unchanged: true };
   }
   const workspace = { ...existing, ...columns, updatedAt: now, revision: existing.revision + 1 };
+  // Optional columns are written only when they carry something, so one the
+  // new capture omits must not survive from the old record (a band moved back
+  // under Pinned, a local file closed).
+  for (const key of OPTIONAL_CAPTURE_COLUMNS) if (!(key in columns)) delete workspace[key];
   return {
     file: withWorkspaces(clean, clean.workspaces.map((w) => (w.id === id ? workspace : w))),
     workspace,

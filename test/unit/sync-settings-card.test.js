@@ -28,7 +28,7 @@ test('the off state offers two explicit paths and a not-found choice', () => {
   assert.match(html, /<button id="syncTryAgain" type="button">Try again<\/button>/);
   assert.match(html, /<button id="syncStartNew" type="button" class="quiet">Start a new sync with these<\/button>/);
   assert.match(html, /Nothing was found under that name and passphrase\. Check for typos, including capital letters, then try again\./);
-  assert.match(html, /Sync your favorites and settings across your devices, and, if you choose, open tabs\.\s+Everything is end-to-end encrypted/);
+  assert.match(html, /Sync your favorites, settings and device names across your devices, and, if you choose, open tabs\.\s+Everything is end-to-end encrypted/);
   assert.match(html, /Blanc can’t read it/);
   assert.doesNotMatch(html, /can recover|tamper|never lose/i);
 });
@@ -56,6 +56,9 @@ test('the setup form follows the selected three-step visual guide', () => {
 test('the on state lists categories and keeps the error in one conditional row', () => {
   const html = read('src/renderer/pages/settings.html');
   assert.match(html, /<dt>Sync name<\/dt><dd id="syncStatusHandle">/);
+  // This device's name sits right after Sync name: the Island never lists
+  // the device you are on, so it is renamed here (island lower-section §7.1).
+  assert.match(html, /<dd id="syncStatusHandle"><\/dd><\/div>\s*<div><dt><label for="syncDeviceName">This device’s name<\/label><\/dt><dd><input id="syncDeviceName" type="text" maxlength="80" autocomplete="off" spellcheck="false" aria-describedby="syncDeviceNameHint" \/><span class="sync-device-name-hint" id="syncDeviceNameHint">How your other devices list this one\. Leave empty to use the computer’s name\.<\/span><\/dd><\/div>/);
   assert.match(html, /<dt>Favorites and settings<\/dt><dd id="syncStatusData">/);
   assert.match(html, /<dt>This device’s open tabs<\/dt><dd id="syncStatusTabs">/);
   assert.match(html, /<div id="syncStatusErrorRow" hidden><dt>Last error<\/dt><dd id="syncStatusError">/);
@@ -66,6 +69,10 @@ test('the on state lists categories and keeps the error in one conditional row',
   assert.match(js, /syncStatusData\.textContent = lastSynced \? t\('settings\.sync\.lastSynced', \{ when: lastSynced \}\) : t\('settings\.sync\.notSynced'\);/);
   assert.doesNotMatch(js, /toLocaleString\(\)[\s\S]{0,80}syncStatusData/);
   assert.match(js, /syncStatusErrorRow\.hidden = !status\.lastError/);
+  assert.match(js, /if \(document\.activeElement !== deviceNameEl\) deviceNameEl\.value = status\.deviceName \|\| '';/,
+    'a status refresh never overwrites a name being typed');
+  assert.match(js, /deviceNameEl\.placeholder = status\.deviceNamePublished \|\| '';/);
+  assert.match(js, /deviceNameEl\.addEventListener\('change',[\s\S]*?settings\.syncDeviceNameSet\(deviceNameEl\.value\)/);
 });
 
 test('the visual redesign preserves every established on-state control and handler', () => {

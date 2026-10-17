@@ -404,6 +404,42 @@ test('/stats reports next-day return per new-install cohort from the first track
   }
 });
 
+test('/stats reports week-two return per new-install cohort', async (t) => {
+  const env = { PINGS: fakeKV(), INSTALL_HASH_SECRET: 'test-secret', STATS_TOKEN: 't' };
+  const OTHER_ID = '11111111-2222-4333-8444-555555555555';
+  t.mock.timers.enable({ apis: ['Date'], now: Date.parse('2026-10-12T15:00:00Z') });
+  await ping(env, PING_BODY);
+  await ping(env, { ...PING_BODY, installId: OTHER_ID });
+  // A cohort before the first tracked one is omitted, not shown as 0%.
+  await env.PINGS.put('new:day:2026-10-11', '5');
+
+  t.mock.timers.setTime(Date.parse('2026-10-15T09:00:00Z'));
+  await ping(env, { ...PING_BODY, sessionId: 43 }); // day 3: too early
+  t.mock.timers.setTime(Date.parse('2026-10-20T09:00:00Z'));
+  await ping(env, { ...PING_BODY, sessionId: 44 }); // day 8: counts
+  t.mock.timers.setTime(Date.parse('2026-10-23T09:00:00Z'));
+  await ping(env, { ...PING_BODY, sessionId: 45 }); // day 11: already counted
+
+  const read = async () => (await worker.fetch(
+    new Request('https://ping.test/stats', { headers: { Authorization: 'Bearer t' } }),
+    env, { waitUntil() {} },
+  )).json();
+
+  let stats = await read();
+  assert.equal(stats.weekTwoReturn.firstCohort, '2026-10-12');
+  assert.deepEqual(Object.keys(stats.weekTwoReturn.byDay), ['2026-10-12']);
+  assert.deepEqual(stats.weekTwoReturn.byDay['2026-10-12'], {
+    newInstalls: 2, returnedWeekTwo: 1, rate: 0.5, complete: false,
+  });
+
+  t.mock.timers.setTime(Date.parse('2026-10-26T00:30:00Z'));
+  stats = await read();
+  assert.equal(stats.weekTwoReturn.byDay['2026-10-12'].complete, true);
+  for (const key of env.PINGS.map.keys()) {
+    assert.ok(!key.includes(RAW_ID), `raw id must not appear in any key: ${key}`);
+  }
+});
+
 test('a day-one signal counts once, only on the install day, and never reaches GA', async (t) => {
   const env = { PINGS: fakeKV(), INSTALL_HASH_SECRET: 'test-secret', GA_API_SECRET: 'ga' };
   t.mock.timers.enable({ apis: ['Date'], now: Date.parse('2027-01-10T15:00:00Z') });

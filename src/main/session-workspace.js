@@ -66,6 +66,9 @@ function entryFrom(source, fallbackId = PRIMARY_WINDOW_ID) {
     meta: Array.isArray(source.meta) && source.meta.length === urls.length ? source.meta : [],
     ...(Array.isArray(source.localFiles) && source.localFiles.length === urls.length
       ? { localFiles: source.localFiles.map((value) => value === true) } : {}),
+    // Recently closed band position among the groups (0 = under Pinned, the
+    // default, which is never written).
+    ...(Number.isInteger(source.closedSlot) && source.closedSlot > 0 ? { closedSlot: source.closedSlot } : {}),
   };
 }
 

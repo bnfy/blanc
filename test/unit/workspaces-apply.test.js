@@ -12,6 +12,7 @@ const vm = require('node:vm');
 // restoreTargetId and workspaces-model/window-runtime-registry are genuinely
 // pure (no require('electron')) and imported for real, not stubbed.
 const { filterRestoredSession, restoreTargetId } = require('../../src/main/session-restore');
+const { clampClosedSlot } = require('../../src/main/closed-slot');
 
 const NEW_TAB_URL = 'blanc://newtab/';
 
@@ -84,6 +85,7 @@ function applyHarness(runtime) {
     setActiveTab: (id, opts) => calls.push(['setActiveTab', id, opts]),
     restorableUblockTool: () => false,
     filterRestoredSession,
+    clampClosedSlot,
     restoreTargetId,
     isUtilityUrl: () => false,
     isForbiddenTopLevelUrl: () => false,
@@ -122,6 +124,18 @@ test('runtime.groups is assigned from the workspace before the first createTab',
   assert.deepEqual(h.groupsAtFirstCreate(), [{ id: 'g1', name: 'work', collapsed: true }],
     'checklist point 5: createTab silently drops groupId unless the group already exists ' +
     'on the runtime, so groups must be swapped in before the FIRST createTab, not after');
+});
+
+test('switching to a Space brings back its own Recently closed position', () => {
+  const runtime = { tabOrder: [], groups: [], closedSlot: 0, closedSlotIds: [] };
+  const groups = [{ id: 'g1', name: 'work', collapsed: false }, { id: 'g2', name: 'play', collapsed: false }];
+  applyHarness(runtime).apply(WORKSPACE({ groups, closedSlot: 1 }));
+  assert.equal(runtime.closedSlot, 1);
+  assert.deepEqual(runtime.closedSlotIds, ['g1', 'g2']);
+  applyHarness(runtime).apply(WORKSPACE({ groups, closedSlot: 9 }));
+  assert.equal(runtime.closedSlot, 2, 'a slot past the end is clamped');
+  applyHarness(runtime).apply(WORKSPACE({ groups }));
+  assert.equal(runtime.closedSlot, 0, 'a Space saved before the band existed starts it under Pinned');
 });
 
 test('an empty filtered set still yields exactly one createTab (blanc://newtab, never tabless)', () => {

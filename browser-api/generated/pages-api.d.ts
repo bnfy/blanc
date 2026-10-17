@@ -51,6 +51,8 @@ export interface NewtabPagesAPI {
     dismissMigrationChecklist: () => Promise<unknown>;
     /** Hide the start page's Patron upgrade pill for 90 days. IPC: invoke `pages:start:patron-callout-dismiss`. */
     dismissPatronCallout: () => Promise<unknown>;
+    /** Hide the start page's What's new pill for the current update. IPC: invoke `pages:start:whats-new-dismiss`. */
+    dismissWhatsNew: () => Promise<unknown>;
     /** Default-browser status, for onboarding. IPC: invoke `pages:default-browser:get`. */
     defaultBrowser: () => Promise<unknown>;
     /** Ask to become the default browser (opens system settings on Windows). IPC: invoke `pages:default-browser:set`. */
@@ -207,6 +209,8 @@ export interface SettingsPagesAPI {
     syncNow: () => Promise<unknown>;
     /** Turn open-tab sync on or off; main coerces to boolean. IPC: invoke `pages:settings:sync-tabs-set`. */
     syncTabsSet: (on: unknown) => Promise<unknown>;
+    /** Name this device as the user's other devices list it, then return the new status. An empty name restores the computer's name; main ignores a non-string. IPC: invoke `pages:settings:sync-device-name-set`. */
+    syncDeviceNameSet: (name: unknown) => Promise<unknown>;
     /** Park this device's wrapped sync secret under a fresh pairing code; returns the code and expiry for display. No key crosses. IPC: invoke `pages:settings:sync-pair-begin`. */
     syncPairBegin: () => Promise<unknown>;
     /** Retract the current pairing code. IPC: invoke `pages:settings:sync-pair-cancel`. */

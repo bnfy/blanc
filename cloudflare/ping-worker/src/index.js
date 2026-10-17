@@ -33,6 +33,7 @@ import {
 import {
   markFirstSeen,
   markNextDayReturn,
+  markWeekTwoReturn,
   markDayOneEligible,
   markDayOneSignal,
   DAY_ONE_SIGNALS,
@@ -89,6 +90,11 @@ const NEXT_DAY_RETURN_FIRST_COHORT = '2026-10-03';
 // `signals` section rather than zeros. Set to the UTC day AFTER the collector
 // deploy.
 const DAY_ONE_SIGNALS_FIRST_COHORT = '2026-10-12';
+
+// First cohort whose week-two return is fully counted: the return:w2 write
+// path must be live for all of D+7 through D+13. first:<id> already holds the
+// install day, so this is the first full UTC day after the deploy minus 7.
+const WEEK_TWO_RETURN_FIRST_COHORT = '2026-10-12';
 // First desktop version that sends the first-day signals. Installs first seen
 // on this version or later form the `eligible` comparison group; release prep
 // updates it if that release ships under another number.
@@ -331,6 +337,7 @@ async function handlePing(request, env, ctx, now) {
       markFirstSeen(env.PINGS, hashedId, dayBucket(now), bump).then((isNew) =>
         isNew && sendsDayOneSignals(version) && markDayOneEligible(env.PINGS, hashedId, dayBucket(now), bump)),
       markNextDayReturn(env.PINGS, hashedId, dayBucket(now), prevDayBucket(now), bump),
+      markWeekTwoReturn(env.PINGS, hashedId, dayBucket(now), bump),
       markActive(env.PINGS, 'day', dayBucket(now), hashedId, DAY_SEEN_TTL),
       markActive(env.PINGS, 'week', weekBucket(now), hashedId, WEEK_SEEN_TTL),
       markActive(env.PINGS, 'month', monthBucket(now), hashedId, MONTH_SEEN_TTL)
@@ -587,6 +594,26 @@ function nextDayReturnByCohort(newByDay, returnD1ByDay, today, dayOneByDay = {})
   return { firstCohort: NEXT_DAY_RETURN_FIRST_COHORT, byDay };
 }
 
+// Week-two return per new-install cohort day: installs first seen on D that
+// launched again on any day D+7 through D+13 (UTC). The newest 30 install days
+// from the first tracked cohort; `complete` is false until D+13 has ended.
+function weekTwoReturnByCohort(newByDay, returnW2ByDay, today) {
+  const byDay = {};
+  const days = Object.keys(newByDay).sort().slice(-30).filter((day) => day >= WEEK_TWO_RETURN_FIRST_COHORT);
+  for (const day of days) {
+    const newInstalls = newByDay[day];
+    const returnedWeekTwo = returnW2ByDay[day] ?? 0;
+    const lastDay = dayBucket(new Date(Date.parse(`${day}T00:00:00Z`) + 13 * 86400000));
+    byDay[day] = {
+      newInstalls,
+      returnedWeekTwo,
+      rate: newInstalls ? Number((returnedWeekTwo / newInstalls).toFixed(4)) : 0,
+      complete: lastDay < today,
+    };
+  }
+  return { firstCohort: WEEK_TWO_RETURN_FIRST_COHORT, byDay };
+}
+
 // GET /stats — bearer-token-gated readout so the counts are visible
 // without opening the Cloudflare dashboard's KV browser.
 async function handleStats(request, env, now) {
@@ -596,7 +623,7 @@ async function handleStats(request, env, now) {
 
   const [
     total, byDay, byVersion, byPlatform, byOsVersion,
-    daily, weekly, monthly, dlFlat, newByDay, returnD1ByDay, productUsage,
+    daily, weekly, monthly, dlFlat, newByDay, returnD1ByDay, returnW2ByDay, productUsage,
   ] = await Promise.all([
     env.PINGS.get('total'),
     readMap(env.PINGS, 'day:'),
@@ -612,6 +639,7 @@ async function handleStats(request, env, now) {
     // No other key family starts 'new:'.
     readMap(env.PINGS, 'new:day:'),
     readMap(env.PINGS, 'return:d1:'),
+    readMap(env.PINGS, 'return:w2:'),
     readProductUsage(env.PINGS),
   ]);
 
@@ -658,6 +686,7 @@ async function handleStats(request, env, now) {
       byDay: pickRecent(newByDay, 60),
     },
     nextDayReturn: nextDayReturnByCohort(newByDay, returnD1ByDay, dayBucket(now), dayOneByDay),
+    weekTwoReturn: weekTwoReturnByCohort(newByDay, returnW2ByDay, dayBucket(now)),
     productUsage,
   };
   return new Response(JSON.stringify(stats, null, 2), {

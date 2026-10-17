@@ -6,6 +6,7 @@ const bookmarks = require('./bookmarks');
 const tabsync = require('./tabsync');
 const tabicons = require('./tabicons');
 const { deviceName } = require('./device-name');
+const { resolveDeviceName } = require('./device-names');
 const { deriveKeys, encrypt, decrypt } = require('./sync-crypto');
 const pairingCodes = require('./sync-pairing');
 const { wipeDecision } = require('./sync-wipe');
@@ -93,7 +94,7 @@ function tabSyncContext() {
 // Order doesn't matter; each store syncs independently.
 const STORES = [
   { name: 'bookmarks', export: bookmarks.exportForSync, merge: bookmarks.mergeFromSync },
-  { name: 'settings', export: settings.exportForSync, merge: settings.mergeFromSync },
+  { name: 'settings', export: settings.exportForSync, merge: settings.mergeFromSync, equals: settings.syncPayloadEquals },
   {
     name: 'session',
     // ctx is the run-scoped context syncNow snapshotted — NOT re-resolved
@@ -195,10 +196,21 @@ class SyncError extends Error {}
 function status() {
   if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID, status);
   const d = ensureStore().data;
+  const chosen = d.deviceId ? settings.getDeviceNames()[d.deviceId] : null;
   return {
     enabled: d.enabled, handle: d.handle, lastSyncedAt: d.lastSyncedAt,
     lastError: keyProtectionError || d.lastError, syncTabs: !!d.syncTabs,
+    // What this device is called on the others ('' = no chosen name) and the
+    // name it publishes, which stays the computer's (device-name.js).
+    deviceName: chosen?.name ?? '', deviceNamePublished: deviceName(),
   };
+}
+
+/** Name this device as the others list it; '' restores the computer's name. */
+function setThisDeviceName(name) {
+  if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID, () => setThisDeviceName(name));
+  if (typeof name === 'string') settings.setDeviceName(tabSyncContext().deviceId, name);
+  return status();
 }
 
 // length OR variety — a client-side nudge (spec §14), not a security boundary
@@ -792,9 +804,11 @@ function setSyncTabs(on) {
 
 let lastSessionRefresh = 0;
 /** Freshness pull on window focus / panel open (spec §6), throttled to one
- * per minute. Session + icon-sidecar only: keeps it off favorites/settings
- * and inside the worker's per-account GET limit. Errors stay silent — this
- * is a background freshness path, not a user-initiated sync. */
+ * per minute. Session, the icon sidecar and settings, which carry device
+ * names (island lower-section spec §7.2): three GETs a minute stays inside
+ * the worker's per-account limit, and Favorites wait for a full sync. Errors
+ * stay silent — this is a background freshness path, not a user-initiated
+ * sync. */
 function refreshSession() {
   if (!isDefaultLocalProfile()) return;
   if (!tabStateReady) return;
@@ -803,7 +817,7 @@ function refreshSession() {
   const now = Date.now();
   if (now - lastSessionRefresh < 60_000) return;
   lastSessionRefresh = now;
-  syncNow(['session', 'icons']).catch(() => {});
+  syncNow(['session', 'icons', 'settings']).catch(() => {});
 }
 
 /** A generation-bound capture run. Favicon rasterization is asynchronous,
@@ -851,7 +865,18 @@ function listRemoteDevices() {
   const d = ensureStore().data;
   if (!d.enabled) return [];
   const ctx = tabSyncContext();
-  return tabicons.attachToRemoteDevices(tabsync.getRemoteDevices(ctx), ctx);
+  const names = settings.getDeviceNames();
+  return tabicons.attachToRemoteDevices(tabsync.getRemoteDevices(ctx), ctx)
+    .map((device) => ({ ...device, name: resolveDeviceName(names, device.deviceId, device.name) }));
+}
+
+/** Rename a device the Other devices drawer lists ('' or null restores its
+ * published name). Any other id, this device's included, is refused. */
+function renameRemoteDevice(deviceId, name, devices = listRemoteDevices()) {
+  if (name !== null && typeof name !== 'string') return false;
+  if (!devices.some((device) => device.deviceId === deviceId)) return false;
+  settings.setDeviceName(deviceId, name ?? '');
+  return true;
 }
 
 function init() {
@@ -912,5 +937,7 @@ module.exports = {
   setTabStateReady,
   refreshSession,
   listRemoteDevices,
+  renameRemoteDevice,
+  setThisDeviceName,
   captureTabIcon,
 };

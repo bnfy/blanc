@@ -34,3 +34,15 @@
 
 /blanc-email-signature-48.png
   ! Cross-Origin-Resource-Policy
+
+# The email lockup and font load inside mail apps and webmail on other
+# origins; fonts also need CORS.
+/press/blanc-lockup-ink-480.png
+  ! Cross-Origin-Resource-Policy
+
+/press/blanc-lockup-white-480.png
+  ! Cross-Origin-Resource-Policy
+
+/fonts/instrument-sans/*
+  ! Cross-Origin-Resource-Policy
+  Access-Control-Allow-Origin: *

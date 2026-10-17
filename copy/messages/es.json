@@ -137,6 +137,10 @@
     "message": "Abrir el selector de Glance, filtrado por el texto",
     "source": "sha256:fdecc3708ced17c473a2ebc7b37080a50eb0daec012e2672521b99676bee4f9e"
   },
+  "slash.invite.hint": {
+    "message": "Enviar por correo a alguien un enlace para descargar Blanc",
+    "source": "sha256:c4f70308ea3c465ba739c8c921b54ac8d7165a1be31cfd920cfad687e28d71d7"
+  },
   "settings.language.label": {
     "message": "Idioma",
     "source": "sha256:f0879385146ff54dfc9d1707c76f07c9b9cd66f9057ea176c076ab2b1b7b1cb8"
@@ -469,6 +473,10 @@
     "message": "Grupo {group} movido",
     "source": "sha256:19545591c1408872d02c5b5c51b87c2d911157160d36380d8f4cd9cd013264b0"
   },
+  "drag.movedClosed": {
+    "message": "Sección Cerradas recientemente movida",
+    "source": "sha256:34dd0bcd0106754da7ccb36e57cc2f7d72128207009d26b75c8a5710a70c9e2e"
+  },
   "drag.movedTab": {
     "message": "{title} movida",
     "source": "sha256:eb32cefa3da739d94eef246d4fedc83a37ef6706c8c38880556fb3207980cf73"
@@ -522,12 +530,12 @@
     "source": "sha256:e7212a89cc03401aa92f8899f543dc8473f98916cd50a224de2f9f737e118b9e"
   },
   "rail.private.marker": {
-    "message": "privada",
-    "source": "sha256:1c851471076fb95bdb64a0f2b840b447e18f012ff9a8966e1a1af7bdd21d8fe5"
+    "message": "Privada",
+    "source": "sha256:1b95ad70e986255caa7b4634a5da2f2335dd282c28bfe62e10647ab96ff5a818"
   },
   "rail.section.pinned": {
-    "message": "fijadas",
-    "source": "sha256:9c9baf169aa2402bc3f8e019157d046ad4c8d263468127ba3e3624790d1898d0"
+    "message": "Fijadas",
+    "source": "sha256:d7a5f5be6676495d75cc63580b9379fe18c8a005c2fe66ef0d14995644b0c6fa"
   },
   "rail.section.tabs": {
     "message": "pestañas",
@@ -838,12 +846,20 @@
     "source": "sha256:df61005d5af90a138d642ddc54b03d0f03047e4b19b57aab441000049ad3839e"
   },
   "footer.newTab": {
-    "message": "pestaña",
-    "source": "sha256:feba5a0567244bc790b19fff9320c0895644d4cc5ad2aeb8ed6a392bd5d6d8dc"
+    "message": "Pestaña",
+    "source": "sha256:a6845f8d8ffc1bf34a273c1bb5f0c34ba3f2f5f1271d35b7b62b733fd9382f3a"
   },
   "footer.private": {
-    "message": "privada",
-    "source": "sha256:43c444ff49ddbe64847d8df70e34e13e99d32a2df67320d472867ca093e3cafc"
+    "message": "Privada",
+    "source": "sha256:a0281882c326afe7ab0ebb31d5ffc285d348dfc91745509ba0da3c18345b25c3"
+  },
+  "footer.devices": {
+    "message": "Dispositivos",
+    "source": "sha256:4af3928da6b11ca58a401529f0264a8ee79f66785d973ffa1eb89cf4afffef99"
+  },
+  "footer.devices.title": {
+    "message": "Pestañas abiertas en tus otros dispositivos",
+    "source": "sha256:1c5552b3d9c6be23f9968fdc2dc202dccb1fc4f775f8b2212929c709678a5614"
   },
   "footer.newPrivate.title": {
     "message": "Nueva pestaña privada ({shortcut})",
@@ -1317,10 +1333,6 @@
     "message": "Activar el sonido de la pestaña",
     "source": "sha256:f6c522aa80b75241c2a403d2a3dab4b72714b001238f13a6b290bc8c6f495735"
   },
-  "row.glance": {
-    "message": "glance",
-    "source": "sha256:1d0003411ede87c53c55a91e44471849215cb33fa121091d1057c2c9b0efa206"
-  },
   "row.glanceOpen": {
     "message": "Abrir esta pestaña en Glance",
     "source": "sha256:ab2e1433aa5729822e7063ec36c52b2e12f0d8d788835340148b8109d7ca4711"
@@ -1353,9 +1365,13 @@
     "message": "No se pudieron poner en reposo las pestañas en segundo plano.",
     "source": "sha256:37d383571027c67881018ba394feb3a5cb1585f4339ac130044ebd1922cf1c23"
   },
+  "slash.invite.copied": {
+    "message": "Tu aplicación de correo no se abrió, así que se copió la invitación. Pégala en un mensaje.",
+    "source": "sha256:a3a79e34d44065dd60e736aec9e6fef01fb250e15b855895af66d19e1eaddab8"
+  },
   "closed.header": {
-    "message": "cerradas recientemente",
-    "source": "sha256:cbc7e14f3edf5e1abe1feea365a75b19165b22cba9acfb0d22b2d6f624e4dcd9"
+    "message": "Cerradas recientemente",
+    "source": "sha256:9cfbab6d492ba4e6d93c532046df707a7c2c95f05b64bf12016b6b0c0e9e2a25"
   },
   "closed.fold": {
     "message": "Contraer las cerradas recientemente",
@@ -1366,8 +1382,8 @@
     "source": "sha256:4bc30c90c25307eab3099bf53c8e5d704691f266093560c7f98518f33c0f550e"
   },
   "closed.clear": {
-    "message": "borrar",
-    "source": "sha256:15853a29b524a3eb5ac7f1839b7eb966f1f4dfcb667365906323b2bc1fe61d48"
+    "message": "Borrar todo",
+    "source": "sha256:d7540eb44cd2f61961226dc03965999ac18f20d64fa36cf3ccc9fa8ad2134fc8"
   },
   "closed.clearAll": {
     "message": "Olvidar todas las pestañas cerradas",
@@ -1386,28 +1402,28 @@
     "source": "sha256:c17f825f519dfcc810dffc79dc8d20833c01f89938a1e5944dc3399075e3f199"
   },
   "result.tag.tab": {
-    "message": "pestaña",
-    "source": "sha256:fd8a43d2ad2023b53d65cba56ce5c954c0041d69993d7d7ad68dccac7b29792f"
+    "message": "Pestaña",
+    "source": "sha256:007e2cd09a38b02e900379994aaf989f49da7c5b84b493ea59c562c87a28df2b"
   },
   "result.tag.favorite": {
-    "message": "favorito",
-    "source": "sha256:69f8323bc36492e0df1328b147f385312ef178a35384badff379feefe4b8a0d9"
+    "message": "Favorito",
+    "source": "sha256:423c820209fbc4f20108df058a4c41671d2d984f5280fc4f8010c4d6905b5236"
   },
   "result.tag.history": {
-    "message": "historial",
-    "source": "sha256:ea72ce23e7ef39fe20829d02f3f11b8d596a87d9da4907b5ebada3451fa68d4b"
+    "message": "Historial",
+    "source": "sha256:ac39b47af00a41a471b40609b47a3e55f1614e85ea28448b3c42c2f6134c68d9"
   },
   "result.tag.group": {
-    "message": "grupo",
-    "source": "sha256:d210da758e3eeaf1449350f5c224a048cc7a9fcea5f662dc4e60200c48bb9d22"
+    "message": "Grupo",
+    "source": "sha256:bb419a895dd45257c9c082528ae2fbb4b34e04461ec530a9d662cbcbcf6ff974"
   },
   "result.tag.remote": {
-    "message": "remota",
-    "source": "sha256:ed93bbf312aac9cfb6218b67d37a3a56c890871140f42557f4b9ac302cda64ec"
+    "message": "Remota",
+    "source": "sha256:f90c1bcdaa2d335994ca2af8dbf89a4fa7c0701fe4268914c4d1af830750ee51"
   },
   "siteInfo.localPage": {
-    "message": "página local",
-    "source": "sha256:afaf351361fc6ce5f91f9fe6edf1b274447283a97904902308f5d050c7b62f93"
+    "message": "Página local",
+    "source": "sha256:a4c65ccf3d25388349f60e4878104b8004c09a941a01add363a81028ba8230ae"
   },
   "siteInfo.cert.subject": {
     "message": "Certificado para",
@@ -1446,24 +1462,24 @@
     "source": "sha256:cda5318b566be09f3864f26d7a56525208a698966bbf403647f76d4579b738b1"
   },
   "siteInfo.hint.certError": {
-    "message": "no se pudo verificar este certificado",
-    "source": "sha256:a2ab4b3bda0cbb8f33645f53b441811d29a7bd3325c27a06a320e6f9e45d61de"
+    "message": "No se pudo verificar este certificado",
+    "source": "sha256:2c5052eab0d52a29cf5445ab433d02460993e04f5758a50e6f6b3b05e0982295"
   },
   "siteInfo.hint.certException": {
-    "message": "continuaste pese a una advertencia del certificado",
-    "source": "sha256:ff5969b3f60be54e48af68a01b5c35cdfac04c38cf893e7322f8f0c9c6babbd6"
+    "message": "Continuaste pese a una advertencia del certificado",
+    "source": "sha256:95ee9282ab49ec4023f1b23a5b537099ddfe9602cccf6b8f79c5bb55c00b782c"
   },
   "siteInfo.hint.chromium": {
     "message": "Chromium proporciona los detalles de la conexión",
-    "source": "sha256:391e0418d31592418023c5aaf10e8967dd1d0e8a6417478e50d5f621601b95fc"
+    "source": "sha256:e4cb8e61e1035d9bbc4db396dc3b42f24c0d9a547a7db928ab096de587e7635b"
   },
   "list.noCommand": {
-    "message": "ningún comando coincide",
-    "source": "sha256:9600022cab713f09fedfc2e1b7d2212d040308f6ee4b4ca713d6fe8bf6612576"
+    "message": "Ningún comando coincide",
+    "source": "sha256:76bf1f34e6774f79ae44cb9f0adcc1bf1678565947844aa009471af04315aa74"
   },
   "list.noMatches": {
-    "message": "sin resultados: ↵ lo abre como dirección o búsqueda",
-    "source": "sha256:9228597eea4e330cdf99391128acb497ceabf682cb04a97c4208f0f772eb24f5"
+    "message": "Sin resultados: ↵ lo abre como dirección o búsqueda",
+    "source": "sha256:3f44ddfbdf85ea27d5daf7053352c777ba64f77c481a7782fac86b884e23340a"
   },
   "bang.search": {
     "message": "Buscar «{query}» en {site}",
@@ -1474,20 +1490,20 @@
     "source": "sha256:61ba4ed601a6b2bd8bee6c0205873f02dc2bfa881250b2c7532b7d2be5f7a820"
   },
   "bang.yours": {
-    "message": "tuyo",
-    "source": "sha256:c33f26356d5d9c2add317866752a44e686f6ef3b7043f2a6d7782dc7cd4217db"
+    "message": "Tuyo",
+    "source": "sha256:13196d4cd1f8befec783e064133527c2361ecf82237fed954719639fd270e985"
   },
   "bang.section.recent": {
-    "message": "recientes",
-    "source": "sha256:491db91b69ec71d0a634885426a4779e787c7b7b5563b2387dab746ef528faa7"
+    "message": "Recientes",
+    "source": "sha256:7552fd6c2c213172e8a0c4a9b442ea6927497000c02eca43e9b2d21b54a7669c"
   },
   "bang.section.popular": {
-    "message": "populares",
-    "source": "sha256:ef89539344d4dec400f8a8684be93241adc354c63fd4026619dae977d42b7694"
+    "message": "Populares",
+    "source": "sha256:5e1be52c9c36b02cdec479b1ddea0c94dfc1421cf1c4f2b21d38023086784e60"
   },
   "bang.section.all": {
-    "message": "todos los bangs",
-    "source": "sha256:42ff40c52ffa0b382d8c774c4537611a7a727a924af681c41e60ccb8956fc453"
+    "message": "Todos los bangs",
+    "source": "sha256:6f912b6847f5cde150584c2f01110f1358afcfdbc723142266737bbdf166b033"
   },
   "bang.fold": {
     "message": "Contraer esta sección",
@@ -1499,27 +1515,19 @@
   },
   "hint.bang": {
     "message": "!code palabras busca en un sitio · ! solo los muestra",
-    "source": "sha256:879d3983c7e7f393cc23a6d57f532e0cf28261fd00572e2d2edc3e2e3c5fb949"
+    "source": "sha256:cc5f8409bd4b2ca49b74fdb071a8488f8736f0b459370e18a0dc0295cfe65b22"
   },
   "hint.private": {
-    "message": "privada · nada de aquí se guarda en el historial",
-    "source": "sha256:feefda763965f9187e4eb9dd56a30b5b98c6c8794c7a3ad92f61d0dde8467299"
-  },
-  "hint.groups": {
-    "message": "/group mueve esta pestaña · {mod}1–9 salta entre secciones",
-    "source": "sha256:05b0db2c1933caa7bcabbb35df9ec4b899c4e586b9c9c272200e172d269c04cc"
-  },
-  "hint.default": {
-    "message": "{mod}L la abre · / para comandos",
-    "source": "sha256:98a24b911d008f703429d923a2d30c3bfe7c76da8023abf7f4e1efa5195118e8"
+    "message": "Pestaña privada · Nada de aquí se guarda en el historial",
+    "source": "sha256:70441a325c2a506ce0dcba9cf699b8fabb9c5050dc459ce6c576249548bbbb8a"
   },
   "result.groupCount": {
     "message": "{count, plural, one {# pestaña} many {# pestañas} other {# pestañas}}",
     "source": "sha256:8b02624af5db598735fb0be9f0cf76fa52854083bfe98681a4fb88a33c9ae2a7"
   },
   "result.tag.search": {
-    "message": "búsqueda",
-    "source": "sha256:4a9e353d79af51531dec5d47747b7d434ba44159ce7f6193bbc64e64d9defd7e"
+    "message": "Búsqueda",
+    "source": "sha256:4a7dcfce43596d4c2528ae99e29709118a90f7b7e3a606d65459a2e5c641bbdb"
   },
   "menu.newWindow": {
     "message": "Nueva ventana",
@@ -1684,6 +1692,34 @@
   "tabMenu.rename": {
     "message": "Cambiar nombre de pestaña…",
     "source": "sha256:465869570b3a7cdb56fc2bc4c0a5c54df738d89302224291ae83e73db1e91341"
+  },
+  "prompt.renameGroup": {
+    "message": "Renombrar grupo · Intro guarda · Esc cancela",
+    "source": "sha256:c5474e46aa1c533cd52cacfa15f67a058c3990d4d6f70f048e22ac91d1c26713"
+  },
+  "prompt.renameDevice": {
+    "message": "Renombrar dispositivo · Intro guarda · Esc cancela",
+    "source": "sha256:8e093f1b4b25b2be8c4066d120e98fab7c8b454ac8a8f050281a750201e6396c"
+  },
+  "groupMenu.duplicate": {
+    "message": "Ya existe un grupo llamado «{name}»",
+    "source": "sha256:45ff90bc26cdf4541799afe27f1c54d34d8a8830082969c43c088fa33a21b32e"
+  },
+  "groupMenu.close": {
+    "message": "Cerrar el grupo",
+    "source": "sha256:83e3e03137c17ba411e52728a224422c1afa395ee4d992d8cdc5690e30efb973"
+  },
+  "groupMenu.ungroup": {
+    "message": "Desagrupar",
+    "source": "sha256:af29c1ce7762334d04b10060ad2a4a6b11b87a9deaac8bdd4607c641f34f730f"
+  },
+  "groupMenu.rename": {
+    "message": "Cambiar nombre del grupo…",
+    "source": "sha256:c296687065931c5eeab8175fc34ab9a52eb2c25f52ef27d947a40fb1e0bf4971"
+  },
+  "deviceMenu.rename": {
+    "message": "Cambiar nombre del dispositivo…",
+    "source": "sha256:9470f0d246edc1b11317686ed5cdf1eba468c3b8ba205e80b536df97f3cd5ce0"
   },
   "tabMenu.resetTitle": {
     "message": "Restablecer título de pestaña",
@@ -2617,6 +2653,26 @@
     "message": "Mostrar todos los atajos…",
     "source": "sha256:74f9fe1ce3e762ed4893bb1141e00b21f991cb7297a0bcd0f198bf6a1648b8b4"
   },
+  "menu.inviteFriend": {
+    "message": "Invitar a un amigo…",
+    "source": "sha256:e1165674176013e02fdfdf0c40e53ce8322388ef4da7078634eb725ee4ddc36a"
+  },
+  "invite.email.subject": {
+    "message": "Prueba Blanc, el navegador que uso",
+    "source": "sha256:48d184ec5d2bc7f2e8efd53fa81a63a5a9169454b54ed22054fcd29dbc45ed4c"
+  },
+  "invite.email.greeting": {
+    "message": "Hola:",
+    "source": "sha256:a0f86fa2330bb6ce10b8f3b75ebb5fe166e82877dcd364e9c0cb9343c7f4d3de"
+  },
+  "invite.email.pitch": {
+    "message": "Uso Blanc, un navegador web gratuito y de código abierto para Mac, Windows y Linux. Bloquea de forma predeterminada los anuncios y rastreadores conocidos, sin instalar nada más.",
+    "source": "sha256:6a78f6ae1d5baec83bae098cc3d26d57b898b3c360a8dc4f3e222f1d0b2321f1"
+  },
+  "invite.email.link": {
+    "message": "Puedes descargarlo aquí: {url}",
+    "source": "sha256:0ca21dd851237f30e261b840f1c67abfaa27c52d76ca2a0d5650ff067de49d75"
+  },
   "shortcuts.island": {
     "message": "Island",
     "source": "sha256:4ab6acf10b67faae79c0f8b6ff76a616e90ae1bbedb0091bcca4eab3e95cda0f"
@@ -3382,8 +3438,8 @@
     "source": "sha256:67f95923387928a3c9f5eecc13dcf0ee651624107f1f9f00e4abb0c8513bc7f8"
   },
   "settings.sync.syncSetupIntro": {
-    "message": "Sincroniza tus favoritos y tus ajustes entre tus dispositivos y, si quieres, también las pestañas abiertas. Todo está cifrado de extremo a extremo: Blanc no puede leerlo ni recuperarlo si olvidas tu frase de contraseña.",
-    "source": "sha256:5029f3a12c9b9570cf8c9d1d21b7d9e6a2533837f4e81c7e050fa9565fb21c77"
+    "message": "Sincroniza entre tus dispositivos tus favoritos, tus ajustes y sus nombres y, si quieres, también las pestañas abiertas. Todo está cifrado de extremo a extremo: Blanc no puede leerlo ni recuperarlo si olvidas tu frase de contraseña.",
+    "source": "sha256:9b27e3ef39e00e02289ca868e21aa6b947cedd507fa40fd9c38caf11d07aaeef"
   },
   "settings.sync.syncPaths.ariaLabel": {
     "message": "Elige cómo configurar la sincronización",
@@ -3448,6 +3504,14 @@
   "settings.sync.syncName": {
     "message": "Nombre de sincronización",
     "source": "sha256:102c09945d3514a97bd684db0a5b1298689a14b06ce77ff37569249ea2ce9591"
+  },
+  "settings.sync.deviceName": {
+    "message": "Nombre de este dispositivo",
+    "source": "sha256:1a8bb7c111ba9a5ec6f7037d5e05abdd05d435ddff620a2d0cc98113d0bda58f"
+  },
+  "settings.sync.deviceNameHint": {
+    "message": "Así lo ven tus otros dispositivos. Déjalo vacío para usar el nombre del ordenador.",
+    "source": "sha256:00b062f722c450745e1ae0f72529c015df823df8d6b7f5dfcf7408a434765597"
   },
   "settings.sync.favoritesAndSettings": {
     "message": "Favoritos y ajustes",
@@ -4246,8 +4310,8 @@
     "source": "sha256:896763a6465a2e0244557c548d089378fed1283b434ccc383fcab8969e081b9e"
   },
   "settings.sync.on": {
-    "message": "La sincronización está activada. Tus favoritos y ajustes se sincronizarán cuando los cambies.",
-    "source": "sha256:836859840bdb7bafe33153c76196171f34c63b4b9c17d3351d3a93d79e5fd32a"
+    "message": "La sincronización está activada. Tus favoritos, ajustes y nombres de dispositivos se sincronizarán cuando los cambies.",
+    "source": "sha256:2f989c767007f6b124ad2fe66aa86b6e0b563758902f0e2edc296e038720f3e2"
   },
   "settings.sync.checking": {
     "message": "Comprobando…",
@@ -4270,8 +4334,8 @@
     "source": "sha256:9548a27590036ec76dd6499c31e2941df5cb4635cdbc0816df43ecac7004a312"
   },
   "settings.sync.setup.intro": {
-    "message": "Sincroniza tus favoritos y tus ajustes entre tus dispositivos y, si quieres, también las pestañas abiertas. Todo está cifrado de extremo a extremo.",
-    "source": "sha256:1b3bb5e6a29c0d154ded7c5232b9430ae6e4660d34d4745f40322a7ac9419b02"
+    "message": "Sincroniza entre tus dispositivos tus favoritos, tus ajustes y sus nombres y, si quieres, también las pestañas abiertas. Todo está cifrado de extremo a extremo.",
+    "source": "sha256:76b6e822f8ef2be6f7b1fd153bf1469c3c3f92c12268658c0bd717ded71ab24e"
   },
   "settings.sync.setup.codeTitle": {
     "message": "Escribe el código de tu otro dispositivo",
@@ -4510,8 +4574,8 @@
     "source": "sha256:5f48d473b4e4c94dc83230f7ce0108e0f20f22ac8410f23fd60f05db372e3f71"
   },
   "settings.trust.syncScope": {
-    "message": "Favoritos, ajustes seleccionados · solo Personal",
-    "source": "sha256:65ce3d502b10a2b660dad5554cef0d0d2b14027288117873ec782d98ef10de60"
+    "message": "Favoritos, ajustes seleccionados, nombres de dispositivos · solo Personal",
+    "source": "sha256:3396c89c8bb35f5a84e8b6588b88305b22f1166c831a9f4d69c1ebd134d28682"
   },
   "settings.trust.crashLedger": {
     "message": "Solo en el dispositivo · envío automático desactivado · {count}/{limit} eventos",
@@ -4772,6 +4836,14 @@
   "newtab.patron.hide": {
     "message": "Ocultar la invitación a Blanc Patron durante 90 días",
     "source": "sha256:04a0a1e02ff9336de15171f566dca19334d81e04c7d45d681cd0f761354eadd4"
+  },
+  "newtab.whatsNew.label": {
+    "message": "Novedades de la {version}",
+    "source": "sha256:8987c31b7707a91e32be215c9e185ab853e5b532c962547de0fa2b303c6389fc"
+  },
+  "newtab.whatsNew.hide": {
+    "message": "Ocultar las novedades",
+    "source": "sha256:ff76a4615a80f1a3cb1c8dca9e892dfd9987742f7c3ac13660d503b2cdb830e7"
   },
   "newtab.customize.button": {
     "message": "Personalizar",
@@ -7066,8 +7138,8 @@
     "source": "sha256:222ceef2812aacb46d9bb7443eb378cd3f5e074452baf9e30ef0b7d4a16689d6"
   },
   "result.tag.space": {
-    "message": "space",
-    "source": "sha256:9aeaba183f6637f947feb34d9944c4351a9d82f5cb01e4f709ed6065af99afc0"
+    "message": "Space",
+    "source": "sha256:2428b2b38ae7629d27912f141499fea2721371677be922146b2a481b1187b843"
   },
   "workspaceMenu.edit": {
     "message": "Editar…",
@@ -7076,6 +7148,26 @@
   "newtab.checklist.space": {
     "message": "Crea tu primer Space",
     "source": "sha256:583985cb0e68a2239263fe8514fdcb31951707ada14a96ca9bc48b5ba5e47940"
+  },
+  "newtab.checklist.default": {
+    "message": "Haz de Blanc tu navegador predeterminado",
+    "source": "sha256:9eaa1e0647ec0b136740c720baf1cf4be4fd90aea1d340002acc075dba515b0e"
+  },
+  "defaultBrowser.reminder.title": {
+    "message": "¿Usar Blanc como navegador predeterminado?",
+    "source": "sha256:4661c2d1b52d2ffddd6160004d0df77de69eb51ef4300ebe8bf310c4d05241a9"
+  },
+  "defaultBrowser.reminder.body": {
+    "message": "Los enlaces que abras desde el correo, los chats y otras apps se abrirán en Blanc. Puedes cambiarlo cuando quieras en Configuración.",
+    "source": "sha256:fec392aebf53480f6c0fcfd25fd32e10e5f8491bba3f40a6e2c8e717b07139c6"
+  },
+  "defaultBrowser.reminder.set": {
+    "message": "Usar por defecto",
+    "source": "sha256:16bdbae9501a21a2a057e0fb3e6e26396e10c0845b96e9563ab228361fd3c1e8"
+  },
+  "defaultBrowser.reminder.later": {
+    "message": "Ahora no",
+    "source": "sha256:35c26e295f15b25156f1ccfef5abebe3097e80794f4a1cd3307d37e3c0396eea"
   },
   "ws.editor.retry": {
     "message": "Reintentar",

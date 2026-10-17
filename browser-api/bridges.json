@@ -473,6 +473,17 @@
         "doc": "Hide the start page's Patron upgrade pill for 90 days."
       },
       {
+        "name": "start.dismissWhatsNew",
+        "kind": "invoke",
+        "channel": "pages:start:whats-new-dismiss",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Hide the start page's What's new pill for the current update."
+      },
+      {
         "name": "start.defaultBrowser",
         "kind": "invoke",
         "channel": "pages:default-browser:get",
@@ -1200,6 +1211,22 @@
         ],
         "returns": "unknown",
         "doc": "Turn open-tab sync on or off; main coerces to boolean."
+      },
+      {
+        "name": "settings.syncDeviceNameSet",
+        "kind": "invoke",
+        "channel": "pages:settings:sync-device-name-set",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "name",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Name this device as the user's other devices list it, then return the new status. An empty name restores the computer's name; main ignores a non-string."
       },
       {
         "name": "settings.syncPairBegin",

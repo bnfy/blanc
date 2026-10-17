@@ -448,3 +448,72 @@ test('session: releasing beside the list (over the page) is not a drop', async (
   assert.equal(h.named('onDrop').length, 0);
   assert.equal(h.session.phase(), 'idle');
 });
+
+// Recently closed band, top to bottom: work (header 0-20, W1 20-40),
+// the band (header 40-60, no rows), play collapsed (header 60-80), loose L1 (80-100).
+const bandModel = {
+  top: 0, bottom: 100, left: 0, right: 600,
+  sections: [
+    { kind: 'group', groupId: 'work', collapsed: false, top: 0, bottom: 40, header: { top: 0, bottom: 20 },
+      rows: [{ id: 'W1', pinned: false, top: 20, bottom: 40 }] },
+    { kind: 'closed', groupId: 'recently-closed', collapsed: true, top: 40, bottom: 60, header: { top: 40, bottom: 60 }, rows: [] },
+    { kind: 'group', groupId: 'play', collapsed: true, top: 60, bottom: 80, header: { top: 60, bottom: 80 }, rows: [] },
+    { kind: 'loose', groupId: null, collapsed: false, top: 80, bottom: 100, header: null,
+      rows: [{ id: 'L1', pinned: false, top: 80, bottom: 100 }] },
+  ],
+};
+const bandSnapshot = {
+  groups: [{ id: 'work', name: 'work', collapsed: false }, { id: 'solo', name: 'solo', collapsed: false }],
+  closedSlot: 1,
+  closed: [{ id: 'x', title: 'X', favicon: null, tabCount: 1 }],
+  tabs: [{ id: 'W1', groupId: 'work', pinned: false, title: 'W1' }, { id: 'S1', groupId: 'solo', pinned: false, title: 'S1' }],
+};
+
+test('the closed band is never a tab drop target', () => {
+  for (let y = 40; y <= 60; y += 5) {
+    const drop = drag.resolveTabDrop(bandModel, { kind: 'tab', id: 'L1', pinned: false, groupId: null }, y);
+    assert.notEqual(drop?.intent.groupId, 'recently-closed', `y=${y}`);
+  }
+});
+
+test('a group dropped onto the band slot lands above it', () => {
+  assert.deepEqual(drag.resolveGroupDrop(bandModel, 'play', 45).intent,
+    { kind: 'group', id: 'play', beforeGroupId: 'recently-closed' });
+});
+
+test('a group dropped just below the band lands below it', () => {
+  assert.deepEqual(drag.resolveGroupDrop(bandModel, 'work', 65).intent,
+    { kind: 'group', id: 'work', beforeGroupId: 'play' });
+});
+
+test('keyboard moves step past the band in the island only', () => {
+  assert.deepEqual(drag.keyboardGroupMove(bandSnapshot, 'work', 'down', { withClosed: true }).intent,
+    { kind: 'group', id: 'work', beforeGroupId: 'solo' });
+  assert.deepEqual(drag.keyboardGroupMove(bandSnapshot, 'solo', 'up', { withClosed: true }).intent,
+    { kind: 'group', id: 'solo', beforeGroupId: 'recently-closed' });
+  assert.deepEqual(drag.keyboardGroupMove(bandSnapshot, 'work', 'down').intent,
+    { kind: 'group', id: 'work', beforeGroupId: null }, 'the rail keeps today\'s result');
+});
+
+test('the band itself moves with the keyboard', () => {
+  assert.deepEqual(drag.keyboardGroupMove(bandSnapshot, 'recently-closed', 'up', { withClosed: true }).intent,
+    { kind: 'group', id: 'recently-closed', beforeGroupId: 'work' });
+  assert.deepEqual(drag.keyboardGroupMove({ ...bandSnapshot, closedSlot: 0 }, 'recently-closed', 'up', { withClosed: true }),
+    { stop: 'top' });
+  assert.equal(drag.keyboardGroupMove({ ...bandSnapshot, closed: [] }, 'recently-closed', 'up', { withClosed: true }), null);
+});
+
+test('describeMove names a band move', () => {
+  assert.equal(drag.describeMove(bandSnapshot, { kind: 'group', id: 'recently-closed', beforeGroupId: 'solo' }),
+    'Moved Recently closed');
+});
+
+test('closedSlotIndex clamps', () => {
+  assert.equal(drag.closedSlotIndex({ ...bandSnapshot, closedSlot: 5 }), 2);
+  assert.equal(drag.closedSlotIndex({ groups: [] }), 0);
+  assert.equal(drag.closedSlotIndex({ ...bandSnapshot, closedSlot: -3 }), 0);
+});
+
+test('CLOSED_SECTION_ID matches main', () => {
+  assert.equal(drag.constants.CLOSED_SECTION_ID, require('../../src/main/closed-slot').CLOSED_SECTION_ID);
+});

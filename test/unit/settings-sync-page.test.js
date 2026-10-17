@@ -58,3 +58,13 @@ test('settings.js renders the code from the view, drives the countdown, and neve
 test('the pairing model script loads before settings.js', () => {
   assert.ok(at('settings-sync-pairing-model.js') < at('<script src="settings.js">'));
 });
+
+test('this device’s name is edited in the on state and reaches main through the Settings bridge', () => {
+  const on = html.slice(at('id="syncActive"'), at('id="syncNow"'));
+  assert.ok(on.includes('id="syncDeviceName"'), 'the field is in the on-state status list');
+  assert.ok(on.includes('data-i18n="settings.sync.deviceName"'));
+  assert.ok(on.includes('data-i18n="settings.sync.deviceNameHint"'));
+  assert.ok(/id="syncDeviceName"[^>]*data-i18n-ignore="placeholder"/.test(on), 'the placeholder is the computer’s name, not catalog text');
+  const preload = fs.readFileSync(path.join(__dirname, '../../src/main/tab-preload.js'), 'utf8');
+  assert.ok(preload.includes("syncDeviceNameSet: (name) => invoke('pages:settings:sync-device-name-set', name)"));
+});
