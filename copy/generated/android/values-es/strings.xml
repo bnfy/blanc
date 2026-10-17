@@ -1530,6 +1530,7 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="downloads_show_label">Mostrar en carpeta %1$s</string>
     <string name="shortcuts_title">Atajos de teclado</string>
     <string name="shortcuts_slash_commands">Comandos de barra</string>
+    <string name="shortcuts_bangs">Buscar directamente en un sitio; ! solo los muestra</string>
     <string name="sheet_close">Cerrar</string>
     <string name="tab_import_title">Trae tus pestañas</string>
     <string name="tab_import_heading">Trae tus pestañas</string>

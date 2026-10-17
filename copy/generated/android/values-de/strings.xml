@@ -1486,6 +1486,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="downloads_show_label">Im Ordner zeigen: %1$s</string>
     <string name="shortcuts_title">Tastenkürzel</string>
     <string name="shortcuts_slash_commands">Slash-Befehle</string>
+    <string name="shortcuts_bangs">Direkt auf einer Website suchen; ! allein zeigt alle</string>
     <string name="sheet_close">Schließen</string>
     <string name="tab_import_title">Tabs mitbringen</string>
     <string name="tab_import_heading">Tabs mitbringen</string>

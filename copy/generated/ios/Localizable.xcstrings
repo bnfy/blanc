@@ -60547,6 +60547,48 @@
         }
       }
     },
+    "shortcuts.bangs": {
+      "comment": "Keyboard shortcuts page, slash-commands section: the row for bangs, shown beside the key cap \"!code words\".",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search one site directly; ! alone lists them"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Direkt auf einer Website suchen; ! allein zeigt alle"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar directamente en un sitio; ! solo los muestra"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chercher directement sur un site ; ! seul les liste"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cerca direttamente su un sito; ! da solo li elenca"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pesquisar diretamente em um site; ! sozinho os lista"
+          }
+        }
+      }
+    },
     "sheet.close": {
       "comment": "Settings, Favorites, History, Downloads and Shortcuts pages: accessible name of the ✕ that closes the page.",
       "extractionState": "manual",

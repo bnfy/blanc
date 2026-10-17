@@ -1486,6 +1486,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="downloads_show_label">Show in folder %1$s</string>
     <string name="shortcuts_title">Keyboard Shortcuts</string>
     <string name="shortcuts_slash_commands">Slash Commands</string>
+    <string name="shortcuts_bangs">Search one site directly; ! alone lists them</string>
     <string name="sheet_close">Close</string>
     <string name="tab_import_title">Bring Your Tabs</string>
     <string name="tab_import_heading">Bring your tabs</string>

@@ -1530,6 +1530,7 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="downloads_show_label">Mostrar na pasta %1$s</string>
     <string name="shortcuts_title">Atalhos de teclado</string>
     <string name="shortcuts_slash_commands">Comandos de barra</string>
+    <string name="shortcuts_bangs">Pesquisar diretamente em um site; ! sozinho os lista</string>
     <string name="sheet_close">Fechar</string>
     <string name="tab_import_title">Traga suas abas</string>
     <string name="tab_import_heading">Traga suas abas</string>

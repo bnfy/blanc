@@ -5564,6 +5564,10 @@
     "message": "Slash Commands",
     "note": "Keyboard shortcuts page: heading above the slash commands typed in the Island."
   },
+  "shortcuts.bangs": {
+    "message": "Search one site directly; ! alone lists them",
+    "note": "Keyboard shortcuts page, slash-commands section: the row for bangs, shown beside the key cap \"!code words\"."
+  },
   "sheet.close": {
     "message": "Close",
     "note": "Settings, Favorites, History, Downloads and Shortcuts pages: accessible name of the ✕ that closes the page."

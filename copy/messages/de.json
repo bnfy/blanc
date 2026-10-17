@@ -5369,6 +5369,10 @@
     "message": "Slash-Befehle",
     "source": "sha256:c0d8774ec8ed706bdb744ee37bfd9b4a8db9f2ef28bdce2bc1a019a2494a9601"
   },
+  "shortcuts.bangs": {
+    "message": "Direkt auf einer Website suchen; ! allein zeigt alle",
+    "source": "sha256:9f04e5c300d7672f9976d10fd4474e690f29dc43eaef90a4966fd4d7d3b0b80a"
+  },
   "sheet.close": {
     "message": "Schließen",
     "source": "sha256:edbb96b55189c4c04f4f19c36cca89d6e6f5d9cd48ce389a3af1a5b8769917b4"

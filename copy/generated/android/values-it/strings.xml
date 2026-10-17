@@ -1530,6 +1530,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="downloads_show_label">Mostra in cartella %1$s</string>
     <string name="shortcuts_title">Scorciatoie da tastiera</string>
     <string name="shortcuts_slash_commands">Comandi slash</string>
+    <string name="shortcuts_bangs">Cerca direttamente su un sito; ! da solo li elenca</string>
     <string name="sheet_close">Chiudi</string>
     <string name="tab_import_title">Porta le tue schede</string>
     <string name="tab_import_heading">Porta le tue schede</string>

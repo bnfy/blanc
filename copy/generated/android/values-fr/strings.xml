@@ -1530,6 +1530,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="downloads_show_label">Voir dans le dossier %1$s</string>
     <string name="shortcuts_title">Raccourcis clavier</string>
     <string name="shortcuts_slash_commands">Commandes slash</string>
+    <string name="shortcuts_bangs">Chercher directement sur un site ; ! seul les liste</string>
     <string name="sheet_close">Fermer</string>
     <string name="tab_import_title">Récupérez vos onglets</string>
     <string name="tab_import_heading">Récupérez vos onglets</string>
