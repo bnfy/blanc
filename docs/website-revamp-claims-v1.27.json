@@ -12927,7 +12927,7 @@
       },
       {
         "source": "site/src/pages/features.astro",
-        "reason": "October 17, 2026: Bangs takes the Reopen closed tabs board slot (R3) with a live demo, and Reopen closed tabs becomes a small tile after the themes tile, its popover unchanged and moved after the themes popover. Not public until the release that ships bangs; recorded in docs/website-candidate-claims-bangs.json.",
+        "reason": "October 17, 2026: Bangs takes the Reopen closed tabs board slot (R3) with a live demo, and Reopen closed tabs becomes a small tile after the themes tile, its popover unchanged and moved after the themes popover. Shipped in public v1.36.0; recorded in docs/website-v1.36-claims.json.",
         "replacements": [
           {
             "before": "<h3>Reopen closed tabs, even whole groups</h3>",

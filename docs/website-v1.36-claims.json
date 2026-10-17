@@ -1,11 +1,8 @@
 {
-  "status": "candidate",
-  "candidateFor": "the release that ships bangs (F47)",
-  "release": null,
-  "sourceSha": "081c965bb35058be5fc4d789e53c11c6ce38d607",
-  "sourceNote": "main at Bangs (#876), the merge that added bangs; the /bangs page's data is pinned to the same commit (site/src/data/bangs.json)",
-  "ownerDecision": "On October 17, 2026 the owner chose to build the bangs page, its Features board tile and its homepage card now, and to merge and deploy them only after the release that ships bangs is public, so no visitor reads about bangs before they can use them.",
-  "publishGate": "Do not merge or deploy while release is null. Once the release that ships bangs is public, move these claims to a ledger tied to that release's tag, regenerate site/src/data/bangs.json at the tag, and retire this file and its test (plan docs/superpowers/plans/2026-10-17-bangs-page.md, Task 9).",
+  "publicRelease": "v1.36.0",
+  "sourceSha": "3c214274958c15d8f3b28f8c61f2fac26937e333",
+  "releaseEvidence": "docs/release-incidents/2026-10-17-v1.36.0.md",
+  "scope": "Site copy verified against public v1.36.0: the Bangs page (/bangs), its Features board tile and homepage card. Written before the release as candidates in docs/website-candidate-claims-bangs.json (owner decision, October 17, 2026) and moved here once v1.36.0 shipped; the bang data, the try-it module and the labels are pinned to the v1.36.0 tag.",
   "evidenceGroups": {
     "bangsCore": {
       "evidence": [
@@ -53,107 +50,117 @@
   },
   "claims": [
     {
-      "id": "bangs-001",
+      "id": "v136-001",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "Search the site. Skip the engine.",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsCore"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-001"
     },
     {
-      "id": "bangs-002",
+      "id": "v136-002",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "Type an exclamation mark and a site’s code before your search, like !yt lofi, and Blanc opens YouTube’s results directly. It works with whichever search engine you use, and your words go straight to the address the bang opens, not through your search engine.",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsCore"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-002"
     },
     {
-      "id": "bangs-003",
+      "id": "v136-003",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "Find a bang ›",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsList"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-003"
     },
     {
-      "id": "bangs-004",
+      "id": "v136-004",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "Type a bang and the Island shows where it will go before you press Return. Nothing you type in this box leaves the page.",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsTryIt"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-004"
     },
     {
-      "id": "bangs-005",
+      "id": "v136-005",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "Not a bang. Blanc treats this as it always does: an address, a command, or a search.",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsTryIt"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-005"
     },
     {
-      "id": "bangs-006",
+      "id": "v136-006",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "No bang with that code. Blanc would search for it as typed.",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsTryIt"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-006"
     },
     {
-      "id": "bangs-007",
+      "id": "v136-007",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "Type it first or last. Blanc takes it from there.",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsCore"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-007"
     },
     {
-      "id": "bangs-008",
+      "id": "v136-008",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "The sites you search most, one code away.",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsCore"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-008"
     },
     {
-      "id": "bangs-009",
+      "id": "v136-009",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "!w searches Wikipedia, !a Amazon, !gh GitHub. !yt lofi and lofi !yt do the same thing, and a code on its own, like !yt, opens the site’s home page.",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsCore"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-009"
     },
     {
-      "id": "bangs-010",
+      "id": "v136-010",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "Don’t know the code? Type !.",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsCore"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-010"
     },
     {
-      "id": "bangs-011",
+      "id": "v136-011",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "The Island lists the bangs you used recently and a set of popular ones. Keep typing to search the whole list by code or by site name.",
       "subject": "Blanc",
@@ -161,30 +168,33 @@
         "bangsPrivacy",
         "bangsList"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-011"
     },
     {
-      "id": "bangs-012",
+      "id": "v136-012",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "Add your own.",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsCustom"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-012"
     },
     {
-      "id": "bangs-013",
+      "id": "v136-013",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "Settings, General, Your bangs: pick a code, a name, and the site’s search address with %s where your words go, for example your own SearXNG server. With Sync on, your bangs follow you to your other computers.",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsCustom"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-013"
     },
     {
-      "id": "bangs-014",
+      "id": "v136-014",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "Your words skip your search engine.",
       "subject": "Blanc",
@@ -192,10 +202,11 @@
         "bangsPrivacy",
         "bangsList"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-014"
     },
     {
-      "id": "bangs-015",
+      "id": "v136-015",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "Straight to the bang’s address.",
       "subject": "Blanc",
@@ -203,10 +214,11 @@
         "bangsPrivacy",
         "bangsList"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-015"
     },
     {
-      "id": "bangs-016",
+      "id": "v136-016",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "A bang opens the address it names, and Blanc sends your words only there, never to your own search engine first. It works the same whichever engine you chose in Settings. A few bangs send your words through Google or DuckDuckGo to search one site; the list below marks them.",
       "subject": "Blanc",
@@ -214,10 +226,11 @@
         "bangsPrivacy",
         "bangsList"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-016"
     },
     {
-      "id": "bangs-017",
+      "id": "v136-017",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "No suggestions while you type a bang.",
       "subject": "Blanc",
@@ -225,10 +238,11 @@
         "bangsPrivacy",
         "bangsList"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-017"
     },
     {
-      "id": "bangs-018",
+      "id": "v136-018",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "Blanc doesn’t ask your search engine for suggestions while a bang is in the box, so !yt lofi isn’t sent anywhere until you press Return. A bang typed at the end is different: the words before it may already have gone to your search engine as suggestions, unless suggestions are off in Settings.",
       "subject": "Blanc",
@@ -236,10 +250,11 @@
         "bangsPrivacy",
         "bangsList"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-018"
     },
     {
-      "id": "bangs-019",
+      "id": "v136-019",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "The list is built in.",
       "subject": "Blanc",
@@ -247,10 +262,11 @@
         "bangsPrivacy",
         "bangsList"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-019"
     },
     {
-      "id": "bangs-020",
+      "id": "v136-020",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "Blanc doesn’t look bangs up online. The list ships inside the app and changes only with a Blanc update. The bangs you used recently stay on this computer, and private tabs don’t record them.",
       "subject": "Blanc",
@@ -258,130 +274,143 @@
         "bangsPrivacy",
         "bangsList"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-020"
     },
     {
-      "id": "bangs-021",
+      "id": "v136-021",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "Every bang in Blanc",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsList"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-021"
     },
     {
-      "id": "bangs-022",
+      "id": "v136-022",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "Show more",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsList"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-022"
     },
     {
-      "id": "bangs-023",
+      "id": "v136-023",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "The bang list comes from Kagi’s open-source bang collection (MIT), checked and bundled with each Blanc release.",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsList"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-023"
     },
     {
-      "id": "bangs-024",
+      "id": "v136-024",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "Try bangs in Blanc.",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsCore"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-024"
     },
     {
-      "id": "bangs-025",
+      "id": "v136-025",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "download blanc",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsCore"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-025"
     },
     {
-      "id": "bangs-026",
+      "id": "v136-026",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "Bangs: Search Any Site From the Address Bar | Blanc Browser",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsCore"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-026"
     },
     {
-      "id": "bangs-027",
+      "id": "v136-027",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "Type !yt lofi in Blanc to search YouTube directly, with any search engine. Try a bang, then search every one in Blanc's built-in list.",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsCore"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-027"
     },
     {
-      "id": "bangs-028",
+      "id": "v136-028",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "Type a site's code before your search and Blanc opens its results directly, with any search engine.",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsCore"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-028"
     },
     {
-      "id": "bangs-029",
+      "id": "v136-029",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "Blanc's Island with !yt lofi typed and the hint row reading Search YouTube for lofi.",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsCore"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-029"
     },
     {
-      "id": "bangs-030",
+      "id": "v136-030",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "Return would open",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsTryIt"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-030"
     },
     {
-      "id": "bangs-031",
+      "id": "v136-031",
       "source": "site/src/pages/bangs.astro",
-      "exactWording": "10,624 bangs, exactly the list in this build of Blanc. Search by site or by code.",
+      "exactWording": "10,624 bangs, exactly the list in Blanc 1.36.0. Search by site or by code.",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsList"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-031"
     },
     {
-      "id": "bangs-032",
+      "id": "v136-032",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "Showing all 10,624",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsList"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-032"
     },
     {
-      "id": "bangs-033",
+      "id": "v136-033",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "via Google",
       "subject": "Blanc",
@@ -389,10 +418,11 @@
         "bangsPrivacy",
         "bangsList"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-033"
     },
     {
-      "id": "bangs-034",
+      "id": "v136-034",
       "source": "site/src/pages/bangs.astro",
       "exactWording": "via DuckDuckGo",
       "subject": "Blanc",
@@ -400,20 +430,22 @@
         "bangsPrivacy",
         "bangsList"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-034"
     },
     {
-      "id": "bangs-101",
+      "id": "v136-035",
       "source": "site/src/pages/features.astro",
       "exactWording": "Bangs: search any site from the address bar",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsCore"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-101"
     },
     {
-      "id": "bangs-102",
+      "id": "v136-036",
       "source": "site/src/pages/features.astro",
       "exactWording": "Type !yt lofi to search YouTube directly, with any search engine.",
       "subject": "Blanc",
@@ -421,10 +453,11 @@
         "bangsCore",
         "bangsPrivacy"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-102"
     },
     {
-      "id": "bangs-103",
+      "id": "v136-037",
       "source": "site/src/pages/features.astro",
       "exactWording": "Put a site’s code before your search. Your words go straight to the address the bang opens, not through your search engine. A few bangs search one site through Google or DuckDuckGo; the list marks them.",
       "subject": "Blanc",
@@ -433,10 +466,11 @@
         "bangsPrivacy",
         "bangsList"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-103"
     },
     {
-      "id": "bangs-104",
+      "id": "v136-038",
       "source": "site/src/pages/features.astro",
       "exactWording": "Type ! on its own to see popular bangs, or add your own in Settings.",
       "subject": "Blanc",
@@ -444,30 +478,33 @@
         "bangsCore",
         "bangsCustom"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-104"
     },
     {
-      "id": "bangs-201",
+      "id": "v136-039",
       "source": "site/src/pages/index.astro",
       "exactWording": "Bangs",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsCore"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-201"
     },
     {
-      "id": "bangs-202",
+      "id": "v136-040",
       "source": "site/src/pages/index.astro",
       "exactWording": "Type a site’s code before your search, like !yt lofi, to go straight to its results.",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsCore"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-202"
     },
     {
-      "id": "bangs-203",
+      "id": "v136-041",
       "source": "site/src/pages/index.astro",
       "exactWording": "Works with any search engine.",
       "subject": "Blanc",
@@ -475,27 +512,30 @@
         "bangsCore",
         "bangsPrivacy"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-203"
     },
     {
-      "id": "bangs-204",
+      "id": "v136-042",
       "source": "site/src/pages/index.astro",
       "exactWording": "How bangs work",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsCore"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-204"
     },
     {
-      "id": "bangs-205",
+      "id": "v136-043",
       "source": "site/src/pages/index.astro",
       "exactWording": "Illustration of the open Island with !yt lofi typed and the hint row Search YouTube for “lofi” selected.",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsCore"
       ],
-      "verdict": "qualified"
+      "verdict": "qualified",
+      "replaces": "bangs-205"
     }
   ]
 }
