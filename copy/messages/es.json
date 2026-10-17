@@ -3161,6 +3161,16 @@
     "message": "Tiñe la barra de la Island con el color de la página en la que estás. Si está desactivado, mantiene el fondo de tu tema.",
     "source": "sha256:78d7d211d0d40ad09c99bc03626c7ba30ce3b94cd37749872d38aaf2b2bc0bc4"
   },
+  "settings.general.islandHoverOpen.label": {
+    "message": "Abrir la Island al pasar el cursor",
+    "note": "Settings → General: setting name.",
+    "source": "sha256:6a7c19599cd0297c49ec7a223b7955dd347fe495bf16f8b2167768c947ad99a2"
+  },
+  "settings.general.islandHoverOpen.hint": {
+    "message": "Deja el puntero sobre la Island para abrirla sin hacer clic.",
+    "note": "Settings → General: explanation under a setting.",
+    "source": "sha256:348ec8bdef8d3cf456e1cce2f00593c8f5419b03876292eb247ce2abac32493b"
+  },
   "settings.general.darkWebsites.label": {
     "message": "Sitios web oscuros",
     "source": "sha256:5ba3e96a469e569d1c139dcb0fdd7044a0a933c3f99cb9e87b59724cdd0c7763"

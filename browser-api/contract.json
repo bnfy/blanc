@@ -1260,6 +1260,11 @@
         "height": {
           "type": "number"
         },
+        "hoverCapable": {
+          "type": "boolean",
+          "optional": true,
+          "doc": "Whether the device currently exposes a hover-capable fine pointer."
+        },
         "shieldAnchor": {
           "type": "ShieldAnchor",
           "optional": true,

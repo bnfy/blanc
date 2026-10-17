@@ -161,6 +161,8 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
      * the cursor spends most of its life over the page, which is a different
      * view from the one the pill lives in, so the chrome never sees it. */
     islandRect: null,
+    islandHoverCapable: false,
+    islandHover: null,
     /** Last proximity actually sent, so an unchanged value costs no IPC. */
     islandProximity: { k: 0 },
     islandProximitySentAt: 0,

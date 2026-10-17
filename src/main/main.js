@@ -311,6 +311,7 @@ const { attachGroupHeaderMenu } = require('./group-context-menu');
 const { attachDeviceHeaderMenu } = require('./device-context-menu');
 const { openLinkInGlance: openLinkInGlanceWith } = require('./glance-open-link');
 const { acceptOverlayDragState, resetOverlayDragState, overlayDragActive } = require('./overlay-drag-state');
+const { HOVER_OPEN_DWELL_MS, initialHoverState, pointInRect, hoverStep } = require('./island-hover-open');
 const {
   installPlatformMainMenuShortcut,
   menuLabelText,
@@ -3065,6 +3066,58 @@ function updateIslandProximity(point) {
   }), 16 - since);
 }
 
+function islandHoverRecord(runtime) {
+  if (!runtime.islandHover) runtime.islandHover = { state: initialHoverState(), timer: null, point: null };
+  return runtime.islandHover;
+}
+
+function islandHoverEligible(runtime) {
+  return settings.getSettings().islandHoverOpen === true && runtime.islandHoverCapable === true &&
+    runtime.window && !runtime.window.isDestroyed() && runtime.window.isFocused() &&
+    !runtime.overlayMode && !runtime.utilitySheetUrl && !runtime.glanceTabId &&
+    !runtime.permissionViewAttached && !!runtime.islandRect && !overlayDragActive(runtime);
+}
+
+function clearIslandHoverTimer(runtime) {
+  const hover = islandHoverRecord(runtime);
+  if (hover.timer) clearTimeout(hover.timer);
+  hover.timer = null;
+}
+
+function applyIslandHoverStep(runtime, event) {
+  const hover = islandHoverRecord(runtime);
+  const next = hoverStep(hover.state, event);
+  hover.state = next.state;
+  if (next.effect === 'cancel') clearIslandHoverTimer(runtime);
+  if (next.effect === 'start') {
+    clearIslandHoverTimer(runtime);
+    hover.timer = setTimeout(bindWindowRuntime(runtime, () => {
+      hover.timer = null;
+      if (!islandHoverEligible(runtime) || !pointInRect(hover.point, runtime.islandRect)) {
+        applyIslandHoverStep(runtime, { type: 'ineligible' });
+        return;
+      }
+      const fired = hoverStep(hover.state, { type: 'fired' });
+      hover.state = fired.state;
+      if (fired.effect === 'open') showOverlay('panel');
+    }), HOVER_OPEN_DWELL_MS);
+  }
+  return next;
+}
+
+function updateIslandHover(runtime, point, { buttonsDown = false, sampled = false } = {}) {
+  const hover = islandHoverRecord(runtime);
+  hover.point = point;
+  return applyIslandHoverStep(runtime, {
+    type: 'move', inside: pointInRect(point, runtime.islandRect),
+    eligible: islandHoverEligible(runtime), buttonsDown, sampled,
+  });
+}
+
+function suppressIslandHover(runtime = rt()) {
+  if (runtime) applyIslandHoverStep(runtime, { type: 'ineligible' });
+}
+
 /**
  * Watch one view's mouse moves. `offset` maps its coordinates into the window's
  * (a function when the offset can move, as it does with vertical tabs). `bind`
@@ -3075,7 +3128,11 @@ function watchCursorFor(wc, offset, bind) {
   wc.on('input-event', bind((_event, input) => {
     if (!input || input.type !== 'mouseMove') return;
     if (!hasLiveWindow()) return;
-    updateIslandProximity(toWindowPoint(input, typeof offset === 'function' ? offset() : offset));
+    const point = toWindowPoint(input, typeof offset === 'function' ? offset() : offset);
+    updateIslandProximity(point);
+    updateIslandHover(rt(), point, {
+      buttonsDown: input.modifiers?.some((modifier) => /buttondown$/i.test(modifier)) === true,
+    });
   }));
 }
 
@@ -3577,6 +3634,7 @@ function createOverlay() {
   // Tab-row context menu, same webContents; shares the guard above.
   attachRowMenu(rt().overlayView.webContents, {
     ...overlayMenuGuardDeps,
+    suppressIslandHover: bindWindowRuntime(owner, () => suppressIslandHover(owner)),
     t: mainI18n.t,
     resolveTab: bindWindowRuntime(owner, (rawId) => {
       const id = tabs.has(rawId) ? rawId : (tabs.has(Number(rawId)) ? Number(rawId) : null);
@@ -3603,6 +3661,7 @@ function createOverlay() {
     getOffset: overlayMenuGuardDeps.getOverlayBounds,
     acquireMenuGuard: overlayMenuGuardDeps.acquireMenuGuard,
     releaseMenuGuard: overlayMenuGuardDeps.releaseMenuGuard,
+    suppressIslandHover: bindWindowRuntime(owner, () => suppressIslandHover(owner)),
     t: mainI18n.t,
     resolveGroup: bindWindowRuntime(owner, (rawId) => rt().groups.find((g) => g.id === rawId) ?? null),
     actions: groupMenuContextActions(owner),
@@ -3631,6 +3690,7 @@ function refocusOverlayAfterMenu() {
 
 function showOverlay(mode, { prefill, purpose } = {}) {
   if (!hasLiveWindow() || !rt().overlayView) return;
+  suppressIslandHover();
   closeUblockPopup(rt().id);
   if (rt().overlayMode === 'display-share'
       && (mode !== 'display-share' || purpose?.requestId !== rt().overlayPurpose?.requestId)) {
@@ -3786,7 +3846,9 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
       // pill flat under a resting cursor until the mouse twitched.
       const cursor = screen.getCursorScreenPoint();
       const content = rt().window.getContentBounds();
-      updateIslandProximity({ x: cursor.x - content.x, y: cursor.y - content.y });
+      const point = { x: cursor.x - content.x, y: cursor.y - content.y };
+      updateIslandProximity(point);
+      updateIslandHover(rt(), point, { sampled: true });
     }
   }
 }
@@ -8291,6 +8353,8 @@ function registerIpcHandlers() {
     }
     const ok = rect && ['x', 'y', 'width', 'height'].every((f) => Number.isFinite(rect[f]));
     rt().islandRect = ok && rect.width > 0 ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : null;
+    rt().islandHoverCapable = rect?.hoverCapable === true;
+    if (!rt().islandHoverCapable || !rt().islandRect) suppressIslandHover();
     const popup = ublockPopups.get(rt().id);
     if (popup && event.sender === rt().window?.webContents && rect?.shieldAnchor?.trigger === 'shield') {
       popup.anchor = rect.shieldAnchor; layoutUblockPopup(popup);
@@ -9271,6 +9335,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     isLive: () => true,
     getWindow: bindWindowRuntime(runtime, () => rt().window),
     getOffset: () => ({ x: 0, y: 0 }),
+    suppressIslandHover: bindWindowRuntime(runtime, () => suppressIslandHover(runtime)),
     t: mainI18n.t,
     resolveGroup: bindWindowRuntime(runtime, (rawId) => rt().groups.find((g) => g.id === rawId) ?? null),
     actions: groupMenuContextActions(runtime),
@@ -9278,6 +9343,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
   attachChromeMenu(rt().window.webContents, {
     t: mainI18n.t,
     getWindow: bindWindowRuntime(runtime, () => rt().window),
+    suppressIslandHover: bindWindowRuntime(runtime, () => suppressIslandHover(runtime)),
     resolveActiveTab: bindWindowRuntime(runtime, () =>
       tabContextData(tabs.get(rt().activeTabId), runtime)),
     // Vertical-rail rows: same string→number id coercion as the overlay rows.
@@ -9309,6 +9375,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     // Activation can hand a pane focus without that pane's 'focus' event.
     setImmediate(() => syncFocusedPane(runtime));
   }));
+  rt().window.on('blur', bindWindowRuntime(runtime, () => suppressIslandHover(runtime)));
   const dockReopenLifecycle = createDockReopenLifecycle({
     platform: process.platform,
     runtime,
@@ -9362,6 +9429,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
   });
   rt().window.on('close', bindWindowRuntime(runtime, dockReopenLifecycle.onWindowClose));
   rt().window.on('closed', bindWindowRuntime(runtime, () => {
+    clearIslandHoverTimer(runtime);
     // The macOS primary runtime survives close for Dock reopen; the drag flag
     // must not outlive the window it was set in.
     resetOverlayDragState(runtime);
@@ -11302,6 +11370,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         : Promise.resolve({ available: false, loaded: false, processCount: 0 }),
       runBlockAdsCommand, runAllowAdsCommand,
       getOverlayMode: () => rt().overlayMode, showOverlay, hideOverlay, getPrivateBrowsingSession,
+      getIslandHoverState: () => ({ ...islandHoverRecord(rt()).state }),
+      setIslandHoverOpen: (on) => settings.setSettings({ islandHoverOpen: !!on }).islandHoverOpen,
       // The spaces set aside after a switch (D22), oldest first, and whether
       // each of their tabs is loaded or quiet.
       getResidentSpaces: () => windowRuntimes.all().filter((r) => r.resident && !r.closing)
@@ -11481,6 +11551,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // 'pages:settings:set' IPC handler — not only from already-bound callers here.
   settings.onRecentBangsChanged(() => broadcastBangsChanged());
   settings.onSettingsChanged((s) => {
+    if (!s.islandHoverOpen) {
+      for (const runtime of windowRuntimes.all()) suppressIslandHover(runtime);
+    }
     const nextOnePasswordConfigurationKey = JSON.stringify([
       s.onePasswordEnabled,
       s.onePasswordAccount,

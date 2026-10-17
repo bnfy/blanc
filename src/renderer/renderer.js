@@ -1362,6 +1362,7 @@
   // itself: closer reads as bigger reads as closer.
   const ISLAND_SCALE = 0.02;    // keep in step with #islandPill in styles.css
   const ISLAND_RISE = 2;
+  const hoverQuery = matchMedia('(any-hover: hover) and (any-pointer: fine)');
 
   let lastIslandReport = '';
   const reportIslandRect = () => {
@@ -1379,6 +1380,7 @@
       y: r.top + ISLAND_RISE * k,
       width,
       height,
+      hoverCapable: hoverQuery.matches,
       ...(trigger ? { shieldAnchor: shieldAnchorFor(trigger) } : {}),
       ...(pillSpace.getAttribute('aria-expanded') === 'true' ? { spacesAnchor: spacesAnchor() } : {}),
       ...(islandFloor != null ? { minPrimaryWidth: islandFloor } : {}),
@@ -1395,6 +1397,7 @@
   // morph (and proximity glow) anchored to where the centre USED to be,
   // visibly growing out of the left or right instead of the pill.
   window.addEventListener('resize', reportIslandRect);
+  hoverQuery.addEventListener('change', reportIslandRect);
   requestAnimationFrame(reportIslandRect);
 
   // Main's value is a target, and it arrives on main's clock (at most ~60 a
