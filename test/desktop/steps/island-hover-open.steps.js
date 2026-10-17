@@ -1,7 +1,8 @@
 const assert = require('node:assert/strict');
-const { Given, When, Then } = require('@cucumber/cucumber');
+const { After, Given, When, Then } = require('@cucumber/cucumber');
 const { waitForValue } = require('../support/poll');
-const { chromePage, frontChromeWindow } = require('../support/tab-drag');
+const { frontChromeWindow } = require('../support/tab-drag');
+const ctx = require('../support/context');
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const center = (rect, dx = 0, dy = 0) => ({
@@ -80,11 +81,20 @@ When('I cross the Island in 150 milliseconds', async function () {
 });
 
 When('I move within the Island every 50 milliseconds', async function () {
+  const started = Date.now();
+  const deadline = started + 600;
   await enter(this, -Math.min(10, this.hoverIslandRect.width / 4));
-  for (const offset of [-5, 0, 5, 10, 0]) {
+  let move = 0;
+  while (Date.now() < deadline) {
     await sleep(50);
-    await sendMove(this, center(this.hoverIslandRect, offset), true);
+    if (await this.call('overlayMode') === 'panel') {
+      this.hoverOpenedDuringMotion = Date.now() - started < 600;
+      return;
+    }
+    const offsets = [-10, -5, 0, 5, 10, 5, 0, -5];
+    await sendMove(this, center(this.hoverIslandRect, offsets[move++ % offsets.length]), true);
   }
+  this.hoverOpenedDuringMotion = false;
 });
 
 When('I rest the pointer 100 pixels below the Island for 400 milliseconds', async function () {
@@ -92,12 +102,17 @@ When('I rest the pointer 100 pixels below the Island for 400 milliseconds', asyn
   await sleep(400);
 });
 
-Given('the Island panel opened under the real pointer', async function () {
-  const page = await chromePage();
+Given('the Island panel opened with the test cursor over it', async function () {
   const point = center(this.hoverIslandRect);
-  await page.mouse.move(point.x, point.y);
+  const bounds = await this.call('windowContentBounds');
+  assert.ok(bounds, 'the main window has no content bounds');
+  assert.equal(await this.call('setTestCursorPoint', {
+    x: bounds.x + point.x,
+    y: bounds.y + point.y,
+  }), true);
+  await enter(this);
   await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'panel',
-    'the real pointer to open the Island');
+    'the test pointer to open the Island');
 });
 
 When('I dismiss the panel without moving the pointer', async function () {
@@ -107,13 +122,14 @@ When('I dismiss the panel without moving the pointer', async function () {
 });
 
 When('I leave and re-enter the Island', async function () {
-  const page = await chromePage();
   const outside = center(this.hoverIslandRect, 0, this.hoverIslandRect.height + 100);
   const inside = center(this.hoverIslandRect);
-  await page.mouse.move(outside.x, outside.y);
-  await waitForValue(() => this.call('islandHoverState'), (state) => state && !state.inside,
-    'the pointer to leave the Island');
-  await page.mouse.move(inside.x, inside.y);
+  await sendMove(this, outside, false);
+  await sendMove(this, inside, true);
+});
+
+When('I send another move inside the Island', async function () {
+  await sendMove(this, center(this.hoverIslandRect, 5), true);
 });
 
 When('I open the Island normally during its hover dwell', async function () {
@@ -143,6 +159,33 @@ When('I turn Island hover-open off halfway through its dwell', async function ()
   await this.call('setIslandHoverOpen', false);
 });
 
+When('a site requests geolocation', async function () {
+  const url = this.fixtureUrl('permission');
+  this.hoverPermissionTabId = await this.call('openTab', url, {});
+  await this.waitForState((state) => {
+    const tab = state.tabs.find((candidate) => candidate.id === this.hoverPermissionTabId);
+    return tab && !tab.loading && tab.loadedUrl === url;
+  });
+  const page = await waitForValue(
+    () => Promise.resolve(ctx.app.windows().find((candidate) => !candidate.isClosed() && candidate.url() === url)),
+    Boolean,
+    'the geolocation fixture page',
+  );
+  await page.evaluate(() => {
+    navigator.geolocation.getCurrentPosition(() => {}, () => {});
+  });
+});
+
+Then('the Blanc permission prompt for geolocation is shown', async function () {
+  this.hoverPermissionPrompt = await waitForValue(
+    () => Promise.resolve(ctx.app.windows().find((candidate) =>
+      !candidate.isClosed() && candidate.url() === 'blanc-chrome://permission/')),
+    Boolean,
+    'the Blanc permission prompt',
+  );
+  await this.hoverPermissionPrompt.locator('#permBlockBtn').waitFor({ state: 'visible' });
+});
+
 Then('the Island panel stays closed', async function () {
   await assertClosed(this);
 });
@@ -158,6 +201,20 @@ Then('the Island panel opens from hover', async function () {
   assert.equal(mode, 'panel');
 });
 
+Then('the Island panel opened during continuous motion', async function () {
+  assert.equal(this.hoverOpenedDuringMotion, true,
+    'the panel did not open while pointer moves were still arriving');
+  assert.equal(await this.call('overlayMode'), 'panel');
+});
+
+Then('the resting pointer is disarmed inside the Island', async function () {
+  assert.deepEqual(await this.call('islandHoverState'), {
+    inside: true,
+    armed: false,
+    dwelling: false,
+  });
+});
+
 Then('exactly one Island panel is open', async function () {
   assert.equal(await this.call('overlayMode'), 'panel');
   assert.equal(await this.call('overlayShowCount'), 1);
@@ -168,4 +225,15 @@ Then('the shield popover remains open without the Island panel', async function 
   assert.equal((await this.call('shieldPopoverState'))?.visible, true);
   assert.equal(await this.call('overlayMode'), 'shield');
   assert.equal(await this.call('overlayShowCount'), 1, 'hover tried to replace the shield popover');
+});
+
+Then('the permission prompt remains open without the Island panel', async function () {
+  assert.equal(await this.call('overlayMode'), null);
+  assert.equal(await this.hoverPermissionPrompt.locator('#permBlockBtn').isVisible(), true);
+});
+
+After({ tags: '@island-hover' }, async function () {
+  await this.call('setTestCursorPoint', null).catch(() => {});
+  const block = this.hoverPermissionPrompt?.locator('#permBlockBtn');
+  if (block && await block.isVisible().catch(() => false)) await block.click();
 });

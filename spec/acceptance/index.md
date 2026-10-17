@@ -61,6 +61,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F1-10 | Shield popover blocks hover-open | D28 | ✅ | ➖ | ➖ |
 | F1-11 | Hover-open works with vertical tabs | D28 | ✅ | ➖ | ➖ |
 | F1-12 | Disabling hover-open cancels its dwell | D28 | ✅ | ➖ | ➖ |
+| F1-13 | A pending permission prompt blocks hover-open | D28 | ✅ | ➖ | ➖ |
 | F2-1 | Reopen closed restores URL | — | ✅ | ⬜ | ⬜ |
 | F2-2 | Duplicate tab | — | ✅ | ⬜ | ⬜ |
 | F2-3 | Pin orders ahead of unpinned | — | ✅ | ⬜ | ⬜ |

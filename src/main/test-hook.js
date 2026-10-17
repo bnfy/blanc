@@ -72,6 +72,7 @@ function install(refs) {
     setIslandHoverOpen,
     getOverlayShowCount,
     resetOverlayShowCount,
+    setTestCursorPoint,
     runBlockAdsCommand,
     runAllowAdsCommand,
     clusterSlots,
@@ -518,6 +519,7 @@ function install(refs) {
     setIslandHoverOpen(on) { return setIslandHoverOpen(on); },
     overlayShowCount() { return getOverlayShowCount(); },
     resetOverlayShowCount() { resetOverlayShowCount(); },
+    setTestCursorPoint(point) { return setTestCursorPoint(point); },
     sendChromeMouseInput(input) {
       const wc = getChromeWebContents();
       if (!wc || wc.isDestroyed()) return false;
@@ -3434,6 +3436,7 @@ function install(refs) {
       }
       getSleepSnapshots().clear();
       getPermissionPrompts().clear();
+      setTestCursorPoint(null);
       beforeUnloadProbes.clear();
       setSleepThresholdOverride(null);
       // No scenario inherits another's open surface.

@@ -2909,6 +2909,7 @@ let testSearchSuggestionFixture = null;
 let testSearchSuggestionRequests = [];
 let testSearchNavigationCapture = false;
 let testSearchSubmission = null;
+let testCursorPoint = null;
 
 function setTestSearchSuggestionFixture(suggestions) {
   if (!acceptanceTestMode) return;
@@ -3847,7 +3848,9 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
       // Wake proximity from where the cursor is now. Moves over the expanded
       // overlay are never watched, so waiting for the next one would leave the
       // pill flat under a resting cursor until the mouse twitched.
-      const cursor = screen.getCursorScreenPoint();
+      const cursor = acceptanceTestMode && testCursorPoint
+        ? testCursorPoint
+        : screen.getCursorScreenPoint();
       const content = rt().window.getContentBounds();
       const point = { x: cursor.x - content.x, y: cursor.y - content.y };
       updateIslandProximity(point);
@@ -11377,6 +11380,16 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       setIslandHoverOpen: (on) => settings.setSettings({ islandHoverOpen: !!on }).islandHoverOpen,
       getOverlayShowCount: () => rt().testOverlayShowCount ?? 0,
       resetOverlayShowCount: () => { rt().testOverlayShowCount = 0; },
+      setTestCursorPoint: (point) => {
+        if (!acceptanceTestMode) return false;
+        if (point == null) {
+          testCursorPoint = null;
+          return true;
+        }
+        if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) return false;
+        testCursorPoint = { x: point.x, y: point.y };
+        return true;
+      },
       // The spaces set aside after a switch (D22), oldest first, and whether
       // each of their tabs is loaded or quiet.
       getResidentSpaces: () => windowRuntimes.all().filter((r) => r.resident && !r.closing)

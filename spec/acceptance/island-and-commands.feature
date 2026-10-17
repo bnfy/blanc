@@ -49,7 +49,7 @@ Feature: Island chrome, command palette, and slash commands
   Scenario: Motion inside the Island does not postpone opening
     Given Island hover-open is on
     When I move within the Island every 50 milliseconds
-    Then the Island panel opens from hover
+    Then the Island panel opened during continuous motion
 
   @F1-7 @F1 @desktop @island-hover
   Scenario: The proximity band does not count as hovering the Island
@@ -60,8 +60,10 @@ Feature: Island chrome, command palette, and slash commands
   @F1-8 @F1 @desktop @island-hover
   Scenario: Closing under a resting pointer requires an exit before reopening
     Given Island hover-open is on
-    And the Island panel opened under the real pointer
+    And the Island panel opened with the test cursor over it
     When I dismiss the panel without moving the pointer
+    Then the resting pointer is disarmed inside the Island
+    When I send another move inside the Island
     Then the Island panel stays closed after 600 milliseconds
     When I leave and re-enter the Island
     Then the Island panel opens from hover
@@ -91,6 +93,14 @@ Feature: Island chrome, command palette, and slash commands
     Given Island hover-open is on
     When I turn Island hover-open off halfway through its dwell
     Then the Island panel stays closed after 400 milliseconds
+
+  @F1-13 @F1 @desktop @island-hover
+  Scenario: A pending permission prompt blocks hover-open
+    Given Island hover-open is on
+    When a site requests geolocation
+    Then the Blanc permission prompt for geolocation is shown
+    When I rest the pointer over the Island for 400 milliseconds
+    Then the permission prompt remains open without the Island panel
 
   @F6-1 @F6 @all
   Scenario: The Quick Switcher matches open tabs and favorites

@@ -26,6 +26,13 @@ test('closing the panel samples and disarms a pointer already over the Island', 
   assert.match(main, /updateIslandHover\(rt\(\), point, \{ sampled: true \}\)/);
 });
 
+test('the acceptance cursor override is gated and reset', () => {
+  assert.match(main, /acceptanceTestMode && testCursorPoint/);
+  assert.match(main, /setTestCursorPoint: \(point\) => \{\s*if \(!acceptanceTestMode\) return false;/);
+  const hook = fs.readFileSync(path.join(ROOT, 'src/main/test-hook.js'), 'utf8');
+  assert.match(hook, /getPermissionPrompts\(\)\.clear\(\);\s*setTestCursorPoint\(null\);/);
+});
+
 test('blur, disabled settings, and native menus suppress hover opening', () => {
   assert.match(main, /window\.on\('blur',[\s\S]*?suppressIslandHover\(runtime\)/);
   assert.match(main, /if \(!islandHoverOpen\) \{[\s\S]*?suppressIslandHover\(runtime\)/);
