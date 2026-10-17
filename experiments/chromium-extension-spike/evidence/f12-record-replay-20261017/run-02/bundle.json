@@ -1,0 +1,140 @@
+{
+  "schema": 1,
+  "kind": "sanitized-response-recording",
+  "networkMode": "controlled-origin",
+  "hosts": [
+    "page.blanc-fixture.test",
+    "asset.blanc-fixture.test",
+    "ad.doubleclick.net",
+    "doubleclick.net"
+  ],
+  "entries": [
+    {
+      "url": "https://asset.blanc-fixture.test/control.js",
+      "method": "GET",
+      "status": 200,
+      "requestHeaders": {
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+        "accept": "*/*",
+        "referer": "https://page.blanc-fixture.test/",
+        "accept-language": "en-US"
+      },
+      "headers": {
+        "content-type": "text/javascript",
+        "access-control-allow-origin": "*"
+      },
+      "body": "d2luZG93LnBpbG90LmFsbG93ZWRTY3JpcHQgPSB0cnVlOw==",
+      "sha256": "eb166445a1ba0c1450efa1a738b53bded6a1a354249709929c5061aa286a23a7",
+      "protocol": {
+        "downstream": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": {
+          "httpVersion": "1.1",
+          "alpn": "http/1.1"
+        }
+      },
+      "transformations": {
+        "removedRequestHeaders": 9,
+        "removedResponseHeaders": 4,
+        "decoded": "identity"
+      }
+    },
+    {
+      "url": "https://asset.blanc-fixture.test/data.json",
+      "method": "GET",
+      "status": 200,
+      "requestHeaders": {
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+        "accept": "*/*",
+        "referer": "https://page.blanc-fixture.test/",
+        "accept-language": "en-US"
+      },
+      "headers": {
+        "content-type": "application/json",
+        "access-control-allow-origin": "*"
+      },
+      "body": "eyJmaXh0dXJlIjoiYWxsb3dlZCJ9",
+      "sha256": "69fa5e6f7532946e1eb8d6b5651f75fa4857aefc75a3f59d9ea892188f9f5214",
+      "protocol": {
+        "downstream": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": {
+          "httpVersion": "1.1",
+          "alpn": "http/1.1"
+        }
+      },
+      "transformations": {
+        "removedRequestHeaders": 10,
+        "removedResponseHeaders": 4,
+        "decoded": "identity"
+      }
+    },
+    {
+      "url": "https://asset.blanc-fixture.test/no-referrer.json",
+      "method": "GET",
+      "status": 200,
+      "requestHeaders": {
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+        "accept": "*/*",
+        "accept-language": "en-US"
+      },
+      "headers": {
+        "content-type": "application/json",
+        "access-control-allow-origin": "*"
+      },
+      "body": "eyJmaXh0dXJlIjoibm8tcmVmZXJyZXIifQ==",
+      "sha256": "4039753a2aa3a4ada43910872201b07389b12c9d207f5c1eb9b16eb575c0b7a8",
+      "protocol": {
+        "downstream": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": {
+          "httpVersion": "1.1",
+          "alpn": "http/1.1"
+        }
+      },
+      "transformations": {
+        "removedRequestHeaders": 10,
+        "removedResponseHeaders": 4,
+        "decoded": "identity"
+      }
+    },
+    {
+      "url": "https://page.blanc-fixture.test/pilot.html",
+      "method": "GET",
+      "status": 200,
+      "requestHeaders": {
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "accept-language": "en-US"
+      },
+      "headers": {
+        "content-type": "text/html",
+        "access-control-allow-origin": "*"
+      },
+      "body": "PCFkb2N0eXBlIGh0bWw+PG1ldGEgY2hhcnNldD0idXRmLTgiPjxsaW5rIHJlbD0iaWNvbiIgaHJlZj0iZGF0YTppbWFnZS9zdmcreG1sLCUzQ3N2ZyUyMHhtbG5zJTNEJTIyaHR0cCUzQSUyRiUyRnd3dy53My5vcmclMkYyMDAwJTJGc3ZnJTIyJTIwd2lkdGglM0QlMjIzMiUyMiUyMGhlaWdodCUzRCUyMjMyJTIyJTNFJTNDcmVjdCUyMHdpZHRoJTNEJTIyMzIlMjIlMjBoZWlnaHQlM0QlMjIzMiUyMiUyMGZpbGwlM0QlMjJyZWQlMjIlMkYlM0UlM0MlMkZzdmclM0UiPjx0aXRsZT5CbGFuYyBjYXB0dXJlIHBpbG90PC90aXRsZT4KPHA+RGlzcG9zYWJsZSBibG9ja2VyIGNhcHR1cmUgZml4dHVyZTwvcD48c2NyaXB0Pgp3aW5kb3cucGlsb3QgPSB7IGFsbG93ZWRTY3JpcHQ6IGZhbHNlLCBvdXRjb21lczoge30sIGRvbmU6IGZhbHNlIH07CmZ1bmN0aW9uIHNjcmlwdCh1cmwsIG5hbWUpIHsgcmV0dXJuIG5ldyBQcm9taXNlKHJlc29sdmUgPT4gewogIGNvbnN0IHMgPSBkb2N1bWVudC5jcmVhdGVFbGVtZW50KCdzY3JpcHQnKTsgcy5zcmMgPSB1cmw7CiAgcy5vbmxvYWQgPSAoKSA9PiB7IHBpbG90Lm91dGNvbWVzW25hbWVdID0gJ2xvYWRlZCc7IHJlc29sdmUoKTsgfTsKICBzLm9uZXJyb3IgPSAoKSA9PiB7IHBpbG90Lm91dGNvbWVzW25hbWVdID0gJ2Vycm9yJzsgcmVzb2x2ZSgpOyB9OwogIGRvY3VtZW50LmhlYWQuYXBwZW5kKHMpOwp9KTsgfQpQcm9taXNlLmFsbChbCiAgc2NyaXB0KCJodHRwczovL2Fzc2V0LmJsYW5jLWZpeHR1cmUudGVzdC9jb250cm9sLmpzIiwgJ2FsbG93ZWRTY3JpcHQnKSwKICBzY3JpcHQoImh0dHBzOi8vYWQuZG91YmxlY2xpY2submV0L2FkdmVydGlzZW1lbnQuanMiLCAnYmxvY2tlZFNjcmlwdCcpLAogIGZldGNoKCJodHRwczovL2Fzc2V0LmJsYW5jLWZpeHR1cmUudGVzdC9kYXRhLmpzb24iKS50aGVuKHIgPT4gci50ZXh0KCkpLnRoZW4odCA9PiBwaWxvdC5vdXRjb21lcy5kYXRhID0gdCwgKCkgPT4gcGlsb3Qub3V0Y29tZXMuZGF0YSA9ICdlcnJvcicpLAogIGZldGNoKCJodHRwczovL2Fzc2V0LmJsYW5jLWZpeHR1cmUudGVzdC9uby1yZWZlcnJlci5qc29uIiwge3JlZmVycmVyUG9saWN5Oiduby1yZWZlcnJlcid9KS50aGVuKHIgPT4gci50ZXh0KCkpLnRoZW4odCA9PiBwaWxvdC5vdXRjb21lcy5ub1JlZmVycmVyRGF0YSA9IHQsICgpID0+IHBpbG90Lm91dGNvbWVzLm5vUmVmZXJyZXJEYXRhID0gJ2Vycm9yJyksCiAgZmV0Y2goImh0dHBzOi8vZG91YmxlY2xpY2submV0L3BhZ2VhZC9hZHM/Y2xpZW50PWZpeHR1cmUiKS50aGVuKHIgPT4gci50ZXh0KCkpLnRoZW4odCA9PiBwaWxvdC5vdXRjb21lcy5ibG9ja2VkRGF0YSA9IHQsICgpID0+IHBpbG90Lm91dGNvbWVzLmJsb2NrZWREYXRhID0gJ2Vycm9yJykKXSkudGhlbigoKSA9PiBwaWxvdC5kb25lID0gdHJ1ZSk7Cjwvc2NyaXB0Pg==",
+      "sha256": "fa88b84a629f641535f59a066c73500a8deb9b438130486f4f813b79ada1da6d",
+      "protocol": {
+        "downstream": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": {
+          "httpVersion": "1.1",
+          "alpn": "http/1.1"
+        }
+      },
+      "transformations": {
+        "removedRequestHeaders": 9,
+        "removedResponseHeaders": 4,
+        "decoded": "identity"
+      }
+    }
+  ],
+  "sha256": "f66e3dbdad0c86563bf10356e129f322c6124b0382806200b2fdcaa64e7b42a7"
+}

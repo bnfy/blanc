@@ -368,3 +368,121 @@ Merged spike head `176b9ace` after #909 and #907 passed CI and were squash-merge
 under owner authorization. Preserved the entire measured Rebase 0 record above;
 added the separate tranche section. The extension-upgrade gate stays open.
 No native preparation, build, source/output or profile changes.
+
+### HTTPS fixture transport checkpoint — October 17, 2026
+
+After owner-authorized squash merges #909 (`5120969d`) and #907 (`176b9ace`),
+the 157 branch took spike head `176b9ace` as merge `cc1edca2`. Its entire measured
+Rebase 0 record was retained and the separate tranche audit section appended;
+the predicted ledger conflict is resolved. The existing native build and open
+extension-upgrade gate were not changed.
+
+[HTTPS capture evidence](evidence/f12-https-capture-20261017/README.md): three HTTPS
+runs and one HTTP regression passed using the real Electron provider in fresh
+regular/private profiles, with session-scoped fixture trust and all fixtures
+served offline. Twelve fixture decisions per run, 8 allow / 4 cancel; these are
+not acceptance-corpus requests. Transport/trust tests **8/8**. Source hashes,
+proxy arrivals, certificate decisions and cleanup are saved. Invocations and
+run wall clocks are in the evidence; active attention is **not measured**.
+No native build/prepare/GN invocation, no new native patch, no cold-column change.
+157 replay, real-page corpus and remaining request-path admission stay pending.
+
+### Controlled recording and offline stability — October 17, 2026
+
+#912 merged as `2af25c66` after all 21 current-head jobs passed. The separate
+recorder/scrubber/offline modules now have [controlled evidence](evidence/f12-record-replay-20261017/README.md):
+one failed acquisition retained, then three successful acquisition rounds with two fresh
+replays per regular/private profile, upstream shut down before replay. Each pair
+matches six decisions (four allow, two cancel), with zero harness faults. Tests:
+13 pipeline + 4 controlled TLS network. Public-page capture, general correlation,
+Chromium replay, cosmetics and latency remain pending; corpus count zero.
+
+No native build, prepare or GN invocation; no native patch or cold-column delta.
+Runtime interval and all seven source hashes are in run-04/report.json; active
+attention is not measured. Existing Chromium checkouts and profiles are untouched.
+
+### Review and owner-selected public feasibility C — October 17, 2026
+
+[Committed aggregate evidence](evidence/f12-public-feasibility-20261017/README.md):
+actual public client exercised on ten fixed unauthenticated entrypoints with
+unchanged scrub policy and real Electron blocker. Initial documents: 0 admitted,
+7 refused at Vary and 3 at status; one other request refused at body type. No
+tracker distribution or block-rate result follows because documents never passed
+recording admission. No public bundle, raw observations or raw corpus retained.
+Profile/key cleanup and installed ASAR preservation passed. A/B remains undecided.
+
+Paired validator now accepts optional causally joined transport events: a valid
+oracle-blocked/fork-allowed observation remains a block→allow difference, with
+its absent response marked a downstream limitation. Unknown/unjoined misses
+remain faults. Electron oracle stability admission stays strict. Native adapter
+and causal transport join remain unimplemented; tests here are synthetic.
+IPv4 exclusions corrected to the documentation /24s; IPv6 remains unsupported.
+
+Checks: 14 pipeline + 5 controlled TLS/IP + 15 validator tests; targeted lint clean.
+Controlled run-05 passes acquisition plus two regular/two private offline runs,
+matching final seven implementation hashes. Every invocation is in evidence.
+No native build/prepare/GN or cold-column change; active attention not measured.
+
+### Ordinary response handling and repeat C — October 17, 2026
+
+[Evidence](evidence/f12-public-feasibility-repeat-20261017/README.md): Vary now
+records controlled upstream selection and enforces forwarded-value equality
+on replay; wildcard/Cookie/unknown fields refuse. Empty untyped 200/204 bodies
+are admitted. Safe bounded HTTPS preflight maps original→final entrypoints
+without admitting redirects to the oracle. Exact status/resource/party fields
+are aggregate diagnostics only. Lower-bound false-negative qualification is
+emitted by the paired validator and required beside future blocking-rate reports.
+
+Repeat on the same ten entries: 0 admitted documents; 3 uncontrolled Vary,
+4 encoded/opaque body refusals, 1 HTTP 401 and 2 HTTP 403. No preflight redirect
+occurred. One additional other/unknown-party request was status 200 and body-type
+refused. Script/xhr/image first-/third-party distributions are unmeasurable
+because document admission prevented them, not zero-percent refusals. No raw
+public corpus, privacy relaxation or A/B decision. All process/key/profile/ASAR
+cleanup checks pass. Controlled run-06 passes both profile replay pairs and
+matches final source hashes. 16 pipeline + 7 network + 15 validator tests pass;
+lint clean. No native build/prepare/GN or cold-column change. Active attention
+not measured; invocation, runtime brackets and source hashes are in evidence.
+
+### Approved synthetic corpus checkpoint — October 17, 2026
+
+Owner approved the corpus amendment at `68892cc1`, recorded at `4abb4509`.
+The explicit matrix was committed before capture (`cf3f0abe`). Generation
+produces 5,905 candidate URLs, not oracle decisions. Final 24-case resource
+probe passed two fresh regular and two fresh private offline Electron replays:
+8 blocked / 16 allowed candidate URLs, with authored script descendants and
+saved DOM outcomes. Two failed fixture attempts are retained, followed by
+three passing attempts of progressively broader evidence. See
+[evidence/f12-synthetic-20261017/README.md](evidence/f12-synthetic-20261017/README.md).
+No native build, private real-page acquisition, deadline extension or baseline
+promotion. Full threshold/matrix and native fork comparison remain pending.
+Runtime start/end timestamps are in each report. Agent/owner attention was not
+measured and is not inferred from calendar time. These harness operations do
+not alter row 0's cold-build column.
+
+### Expanded synthetic oracle and Chromium control — October 17, 2026
+
+[Committed evidence](evidence/f12-expanded-20261017/README.md): 5,123 eligible
+list-derived URLs ran twice in fresh regular and private Electron profiles.
+Each profile observed 2,503 blocked / 2,620 allowed unique candidates, excluding
+four first-party controls, child requests and repeats. Another 782 domain-scoped
+candidates remain excluded. The 24-case no-referrer subset is stable at 9/15;
+the unchanged initiator and changed referrer produce a real exception difference.
+The matching Ghostery Electron artifact uses referrer as Request.sourceUrl.
+
+Chromium 157 ran the same complete authored bytes twice per profile as an
+explicit **no-blocker negative control**: all 5,123 candidates loaded, including
+2,503 Electron-blocked ones, and 1,211 additional script children executed and
+loaded each time. This validates observable false negatives/descendants in the
+harness, not native blocking parity or criterion-3 acceptance. Native engine,
+interception and independent request_initiator observations are still absent.
+No frame/referrer substitution is used; fully admitted paired URLs remain zero.
+
+All attempts, including certificate and fixture-completion failures, are kept
+losslessly with hashes. Scoped ephemeral leaf-key trust passes pinned/unpinned
+browser controls; system trust remains unchanged. 48 replay tests and 15 paired
+validator tests pass; targeted lint and whitespace checks pass. No native build,
+prepare/GN invocation, upstream edit, private real-page capture, baseline
+promotion or deadline extension. Native budget not remeasured; row 0's cold
+column unchanged. Runtime brackets include harness overhead; owner/agent active
+attention is not measured. See summary for the remaining coverage matrix gaps.

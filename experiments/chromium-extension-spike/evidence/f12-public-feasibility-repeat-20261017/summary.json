@@ -1,0 +1,88 @@
+{
+  "documents_attempted": 10,
+  "documents_admitted": 0,
+  "refusal_categories": [
+    {
+      "resource_type": "mainFrame",
+      "party": "first-party",
+      "reason": "vary-unsupported",
+      "status": 200,
+      "count": 3
+    },
+    {
+      "resource_type": "mainFrame",
+      "party": "first-party",
+      "reason": "encoded-or-opaque-body",
+      "status": 200,
+      "count": 4
+    },
+    {
+      "resource_type": "mainFrame",
+      "party": "first-party",
+      "reason": "status-unsupported",
+      "status": 401,
+      "count": 1
+    },
+    {
+      "resource_type": "mainFrame",
+      "party": "first-party",
+      "reason": "status-unsupported",
+      "status": 403,
+      "count": 2
+    },
+    {
+      "resource_type": "other",
+      "party": "unknown",
+      "reason": "body-type-unsupported",
+      "status": 200,
+      "count": 1
+    }
+  ],
+  "primary_subresource_output": [
+    {
+      "resource_type": "script",
+      "party": "first-party",
+      "observed": 0,
+      "refusal_rate": null,
+      "reason": "document-admission-prevented-measurement"
+    },
+    {
+      "resource_type": "script",
+      "party": "third-party",
+      "observed": 0,
+      "refusal_rate": null,
+      "reason": "document-admission-prevented-measurement"
+    },
+    {
+      "resource_type": "xhr",
+      "party": "first-party",
+      "observed": 0,
+      "refusal_rate": null,
+      "reason": "document-admission-prevented-measurement"
+    },
+    {
+      "resource_type": "xhr",
+      "party": "third-party",
+      "observed": 0,
+      "refusal_rate": null,
+      "reason": "document-admission-prevented-measurement"
+    },
+    {
+      "resource_type": "image",
+      "party": "first-party",
+      "observed": 0,
+      "refusal_rate": null,
+      "reason": "document-admission-prevented-measurement"
+    },
+    {
+      "resource_type": "image",
+      "party": "third-party",
+      "observed": 0,
+      "refusal_rate": null,
+      "reason": "document-admission-prevented-measurement"
+    }
+  ],
+  "entrypoint_redirects_observed": 0,
+  "acceptance_corpus_requests": 0,
+  "raw_public_recordings_persisted": 0
+}

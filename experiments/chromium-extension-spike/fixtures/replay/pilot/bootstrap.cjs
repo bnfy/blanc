@@ -14,18 +14,34 @@ const modulePath = './src/main/blocking-coordinator.js';
 const coordinatorModule = require(modulePath);
 const create = coordinatorModule.createBlockingCoordinator;
 const providers = [];
+const fixtureTrust = process.env.BLANC_F12_TRUST && JSON.parse(fs.readFileSync(process.env.BLANC_F12_TRUST));
+const verifyFixture = fixtureTrust && require('./fixture-trust.cjs').createVerifier(fixtureTrust);
+const trustedSessions = new WeakSet();
+function installFixtureTrust(session) {
+  if (!verifyFixture || trustedSessions.has(session)) return;
+  session.setCertificateVerifyProc((request, callback) => {
+    const accepted = verifyFixture(request.hostname, request.certificate.data);
+    fs.appendFileSync(process.env.BLANC_F12_TRUST_LOG, JSON.stringify({hostname:request.hostname,
+      accepted,profileKind:session.isPersistent()?'regular':'private',
+      originalResult:request.verificationResult})+'\n');
+    callback(accepted ? 0 : -2);
+  });
+  trustedSessions.add(session);
+}
 const activeGates = new Set();
 const safe = fn => { try { return fn() ?? null; } catch { return null; } };
 coordinatorModule.createBlockingCoordinator = function(...args) {
   const coordinator = create(...args);
   const setGate = coordinator.setGate;
   coordinator.setGate = function(session, listener) {
+    installFixtureTrust(session);
     if (listener) activeGates.add(session); else activeGates.delete(session);
     return setGate(session, listener);
   };
   const set = coordinator.setProvider;
   const wrapped = new WeakMap();
   coordinator.setProvider = function(session, provider) {
+    installFixtureTrust(session);
     if (!provider) return set(session, provider);
     if (!wrapped.has(provider)) {
       const observer = Object.create(provider);
