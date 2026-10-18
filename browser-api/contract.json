@@ -68,11 +68,11 @@
       "fields": {
         "groupId": {
           "type": "GroupId | null",
-          "doc": "Target group, or null for the loose section / standalone pins."
+          "doc": "Target group, or null for an ungrouped place / standalone pins."
         },
         "beforeId": {
-          "type": "TabId | null",
-          "doc": "Land before this tab of the target bucket; null means that bucket's end."
+          "type": "TabId | 'recently-closed' | null",
+          "doc": "Land before this tab of the target bucket; null means that bucket's end. An unpinned tab going ungrouped may name a loose tab, a group's first drawn tab (above that group), itself (ungrouped in place) or 'recently-closed' (directly above the band); null is then the end of the list."
         }
       }
     },
@@ -316,7 +316,7 @@
       }
     },
     "TabGroup": {
-      "doc": "A tab group. Groups have names, not colors.",
+      "doc": "A tab group: a name, and optionally one of the Spaces preset colors.",
       "fields": {
         "id": {
           "type": "GroupId"
@@ -325,6 +325,18 @@
           "type": "string"
         },
         "collapsed": {
+          "type": "boolean"
+        },
+        "color": {
+          "type": "string | null",
+          "doc": "A Spaces preset hex (#rrggbb), or null for no color."
+        }
+      }
+    },
+    "GroupColorResult": {
+      "doc": "Result of setGroupColor, built by setGroupColor() in main.js.",
+      "fields": {
+        "ok": {
           "type": "boolean"
         }
       }
@@ -522,7 +534,7 @@
         },
         "closedSlot": {
           "type": "number",
-          "doc": "How many of groups sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned)."
+          "doc": "How many top-level items (groups and ungrouped tabs) sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned)."
         },
         "tabLayout": {
           "type": "TabLayout"
@@ -564,7 +576,7 @@
         },
         "closedSlot": {
           "type": "number",
-          "doc": "How many of groups sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned)."
+          "doc": "How many top-level items (groups and ungrouped tabs) sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned)."
         },
         "tabLayout": {
           "type": "TabLayout"
@@ -1292,6 +1304,20 @@
         }
       }
     },
+    "GroupMenuAnchor": {
+      "doc": "Where a group menu opens from the side list: the header row's right, top and bottom edges in window coordinates. Main validates all three.",
+      "fields": {
+        "right": {
+          "type": "number"
+        },
+        "top": {
+          "type": "number"
+        },
+        "bottom": {
+          "type": "number"
+        }
+      }
+    },
     "SpacesAnchor": {
       "doc": "Where the Spaces menu opens: the space mark's left and bottom edges in window coordinates. Main validates both.",
       "fields": {
@@ -1614,7 +1640,7 @@
         }
       ],
       "returns": "boolean",
-      "doc": "Move a tab within its bucket or into another group's matching bucket. Never changes pinned state. Resolves false for a rejected request."
+      "doc": "Move a tab within its bucket, into another group's matching bucket, or to an ungrouped place above, between or below groups. Never changes pinned state. Resolves false for a rejected request."
     },
     {
       "name": "reorderGroup",
@@ -1628,11 +1654,11 @@
         },
         {
           "name": "beforeGroupId",
-          "type": "GroupId | 'recently-closed' | null"
+          "type": "GroupId | TabId | 'recently-closed' | null"
         }
       ],
       "returns": "boolean",
-      "doc": "Move a group before another group, directly above the Recently closed band with 'recently-closed', or to the end with null."
+      "doc": "Move a group before another group, an ungrouped tab, the Recently closed band ('recently-closed'), or to the end with null."
     },
     {
       "name": "moveClosedSection",
@@ -1642,11 +1668,11 @@
       "params": [
         {
           "name": "beforeGroupId",
-          "type": "GroupId | null"
+          "type": "GroupId | TabId | null"
         }
       ],
       "returns": "boolean",
-      "doc": "Move the ⌘L panel's Recently closed band before a group, or after the last group with null."
+      "doc": "Move the ⌘L panel's Recently closed band before a group or an ungrouped tab, or to the end with null."
     },
     {
       "name": "renameGroup",
@@ -1665,6 +1691,52 @@
       ],
       "returns": "GroupRenameResult",
       "doc": "Rename a group, keeping the case typed. An empty or unchanged name changes nothing; another group's name in this window (in any case) is refused."
+    },
+    {
+      "name": "setGroupColor",
+      "group": "groups",
+      "kind": "invoke",
+      "channel": "groups:set-color",
+      "params": [
+        {
+          "name": "groupId",
+          "type": "GroupId"
+        },
+        {
+          "name": "color",
+          "type": "string | null"
+        }
+      ],
+      "returns": "GroupColorResult",
+      "doc": "Give a group one of the Spaces preset colors, or none with null. Anything else is refused and changes nothing."
+    },
+    {
+      "name": "newTabInGroup",
+      "group": "groups",
+      "kind": "invoke",
+      "channel": "groups:new-tab",
+      "params": [
+        {
+          "name": "groupId",
+          "type": "GroupId"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Open a new tab at the end of a group and select it. Resolves false for an unknown group."
+    },
+    {
+      "name": "moveGroupToNewWindow",
+      "group": "groups",
+      "kind": "invoke",
+      "channel": "groups:move-to-new-window",
+      "params": [
+        {
+          "name": "groupId",
+          "type": "GroupId"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Move every tab of a group, in order, into a new window with the same group. Refused (false) when the group holds every tab in its window or a member is changing quiet state."
     },
     {
       "name": "ungroupGroup",
@@ -2240,6 +2312,23 @@
         }
       ],
       "doc": "Open the Spaces menu from the Island's space mark."
+    },
+    {
+      "name": "openGroupMenu",
+      "group": "groups",
+      "kind": "send",
+      "channel": "chrome:open-group-menu",
+      "params": [
+        {
+          "name": "groupId",
+          "type": "GroupId"
+        },
+        {
+          "name": "anchor",
+          "type": "GroupMenuAnchor"
+        }
+      ],
+      "doc": "Open a group's menu (name, color, actions) beside its header in the side list."
     },
     {
       "name": "captureStop",

@@ -64,8 +64,15 @@ toolbar (Bowser Design System "Island Chrome").
   **mute/unmute**. A plain new tab (F7 `/new`, panel row, new-tab shortcut) always
   opens **ungrouped** and to the newtab page (F16), regardless of the active tab's
   group.
-- `window.open` / context-menu children **inherit the opener's group** (F3) and
-  privacy (F4).
+- `window.open` / context-menu children inherit the opener's privacy (F4) but
+  **not its group**: like a plain new tab they open **ungrouped**, after the
+  other ungrouped tabs (F3).
+- The tab menu also offers **New Tab Below** (directly under the tab, inside
+  its group if it has one), **Close Tabs Above** and **Close Tabs Below**
+  (unpinned tabs across the window, one undo step), and **Mute Site** /
+  **Unmute Site** (every tab on that exact host, until Blanc quits; private tabs
+  keep their own). Unmuting one tab on a muted site overrides the site for that
+  tab until it leaves the host.
 - Switching tabs never loses an inactive tab's identity. On every platform an
   inactive tab may have its renderer discarded to reclaim memory — on desktop
   deliberately, after an idle delay the person controls (F31); on mobile because
@@ -88,16 +95,21 @@ toolbar (Bowser Design System "Island Chrome").
 
 ## F3 — Tab groups
 
-- Groups have **names, not colors**, kept in the case typed and matched in any
+- Groups have **names**, kept in the case typed and matched in any
   case: `/group research` joins "Research", and two groups can't differ only
   by case. A group exists only while it holds ≥1 tab (auto-pruned when empty).
 - Create/join via `/group <name>` (find-or-create; typing new capitals for an
   existing group re-cases it) or an inline picker on the tab row; leave via
-  `/ungroup`; close all via `/close-group`. A group header's right-click menu
-  offers **Rename Group…** (a name another group already has is refused, not
-  merged), **Ungroup** and **Close Group**.
+  `/ungroup`; close all via `/close-group`. A group's menu (below) renames it;
+  a name another group already has is refused, not merged.
+- A group may have an optional **color**, one of the eight Spaces presets, off
+  by default. A colored group's block takes a light tint of it, a dot sits
+  before its name, and the Island's dots take it. Right-clicking a group header
+  or its ⋮ opens the group menu: the name, the colors, New Tab in Group, Move
+  Group to New Window, Ungroup and Close Group.
 - The pill's direct dots show standalone pins followed by the active section:
-  the active named group, loose ungrouped tabs, or the pinned shelf itself.
+  the active named group, the active tab's run of ungrouped tabs, or the
+  pinned shelf itself.
   They share an eight-dot budget, always retain the active tab, and use `+N` to
   count every other tab in the window. A group's pinned tabs stay inside it and
   lead its rows/dots; only ungrouped pins use the standalone pinned section.
@@ -105,14 +117,28 @@ toolbar (Bowser Design System "Island Chrome").
   collapsed group shows an "N tabs tucked away" row).
 - The Quick Switcher (F6) matches group names, ranked above tabs; picking a group
   focuses it (unfolding if collapsed). The nth-cluster shortcut (D7) focuses the
-  nth *group's* first tab when groups exist.
+  nth *section's* first tab when groups exist.
+- **Ungrouped tabs anywhere:** the window's tab order is the order drawn.
+  Ungrouped tabs may sit above, between or below groups; each run of ungrouped
+  tabs with no group between them is its own section, numbered with the groups
+  top to bottom. A new group appears where its tab was (directly below the
+  group that tab left, if any); Remove from Group lands a tab directly below
+  its group; Ungroup leaves the tabs where they were. New tabs still land at the
+  bottom. A window saved before this order is laid out as before: groups, then
+  ungrouped tabs.
 - New **private** tabs are never grouped.
+- A tab opened from a link in a grouped tab (`window.open` / `target=_blank`,
+  Open Link in New Tab, Open Link in Glance) opens **ungrouped**, in the same
+  place as a plain new tab: after the other ungrouped tabs. It joins a group
+  only when the person moves it there.
 - **Drag to reorder** (rail and expanded island, same gesture): drag a tab
   within its section, into another group's section or onto any group header
-  (appends; a collapsed group stays collapsed), or out to the loose section.
-  Dragging never changes pinned state. Drag a group header to reorder groups;
+  (appends; a collapsed group stays collapsed), or into any gap above, between
+  or below groups, where it becomes ungrouped. Dragging never changes pinned
+  state. Drag a group header to reorder groups, including past ungrouped tabs;
   cluster order (⌘1–9, ⌥⌘↑/↓, pill dots) follows. ⌥⇧↑/↓ does the same from the
-  keyboard, skipping collapsed groups and stopping at either end. Dragging out
+  keyboard, stopping in each gap between groups, skipping collapsed groups (but
+  not the gaps beside them) and stopping at either end. Dragging out
   over page content does nothing and gives the page no data.
 - **Acceptance:** With one standalone pin, 2 tabs in `work`, and 3 tabs in
   `play`, activating `work` shows 3 direct dots and `+3`; activating `play`
@@ -414,7 +440,8 @@ From the desktop `DEFAULTS`:
 ## F19 — Context menu (link/page actions)
 
 - Link/page actions: open in new tab, open in **background** tab, copy link,
-  save/relevant page actions. Children inherit group + privacy (F2/F4). OS hand-off
+  save/relevant page actions. Children inherit privacy (F4) and open ungrouped
+  (F2/F3). OS hand-off
   (D4) honored for `mailto:` etc. Gesture entry point diverges (D7 — long-press on
   mobile vs right-click on desktop).
 - **URL-bar menu (desktop only — D20):** the command bar's address input offers
@@ -425,7 +452,7 @@ From the desktop `DEFAULTS`:
   OS hand-off, search-vs-URL heuristic, utility-sheet routing — then the island
   closes).
 - **Acceptance:** Long-press/right-click a link → "open in background tab" opens it
-  without switching away, inheriting the opener's group.
+  without switching away, ungrouped even when the opener is in a group.
 - **Acceptance (desktop):** Copy Clean Link on a URL with `utm_*`/click-id
   params yields the URL without them, other params intact; Paste and Go with a
   URL on the clipboard navigates the active tab and closes the island.
@@ -622,8 +649,9 @@ From the desktop `DEFAULTS`:
   divider rules. `⌘⌥V` on macOS / `Ctrl+Alt+V` elsewhere toggles the layout
   from anywhere.
 - The rail renders local tabs from the canonical tab order: ungrouped pins,
-  named groups (group pins first), then loose tabs, followed by the new-tab
-  action. Rows expose favicon and title plus active, loading, private, pinned,
+  then named groups (group pins first) and runs of ungrouped tabs in tab order,
+  followed by the new-tab action. As in the island, each group is a tinted
+  block and runs of ungrouped tabs are plain rows with no heading. Rows expose favicon and title plus active, loading, private, pinned,
   audible, and muted states. Directly hovering a genuinely truncated title
   starts a delayed, reduced-motion-aware reading pass to its hidden end;
   fully visible titles stay still and pointer exit restores the ellipsis.
@@ -632,7 +660,7 @@ From the desktop `DEFAULTS`:
   become rail rows.
 - Pointer actions switch, close, middle-click close, create a new tab, and
   fold/unfold groups. Drag reorder follows F3's rule: tabs may move between
-  groups and the loose section, never across the pinned boundary; a
+  groups and the ungrouped places between them, never across the pinned boundary; a
   pin-crossing drop is rejected without changing order, membership or pinned
   state. Pin/unpin, mute/unmute, duplicate, and group membership editing
   remain available through the Island and native menus in the first rail
@@ -804,7 +832,7 @@ From the desktop `DEFAULTS`:
   `/glance <text>` opens it filtered to the text; a link's context menu offers
   **Open Link in Glance** after **Open Link in New Tab**, with the same
   hand-off and forbidden-URL guards, opening the link as the reference in the
-  opener's profile, private flag and group. The picker is a dialog named by
+  opener's profile and private flag, ungrouped (F3). The picker is a dialog named by
   its heading; its rows share the ⌘L panel's vocabulary (quiet tabs dimmed
   with the word only in the accessible name, private tabs with the chip, a
   tooltip of title and host, names joined with commas), arrow keys move the

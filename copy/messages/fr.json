@@ -538,8 +538,8 @@
     "source": "sha256:d7a5f5be6676495d75cc63580b9379fe18c8a005c2fe66ef0d14995644b0c6fa"
   },
   "rail.section.tabs": {
-    "message": "onglets",
-    "source": "sha256:704f23bf7936e2c4b698a4a7b81bf9f6055cc96b9c8fdf0c5730c3c053590139"
+    "message": "Onglets",
+    "source": "sha256:6bf30acb368c93dd4f08830602dcb77610e62601a6cfc7f1a9899f673e7011ad"
   },
   "permission.surfaceTitle": {
     "message": "Autorisation",
@@ -1713,9 +1713,29 @@
     "message": "Dégrouper",
     "source": "sha256:af29c1ce7762334d04b10060ad2a4a6b11b87a9deaac8bdd4607c641f34f730f"
   },
-  "groupMenu.rename": {
-    "message": "Renommer le groupe…",
-    "source": "sha256:c296687065931c5eeab8175fc34ab9a52eb2c25f52ef27d947a40fb1e0bf4971"
+  "groupMenu.options": {
+    "message": "Options du groupe",
+    "source": "sha256:44bee872fd7b73fb2b595ec9f000b5d307085ad86accf8ae848e039c69aee491"
+  },
+  "groupMenu.nameLabel": {
+    "message": "Nom du groupe",
+    "source": "sha256:e1b9944a6502d55e7428d23b88af19d1a501e75678611d88b39f5bf6bd6b71d5"
+  },
+  "groupMenu.colorLabel": {
+    "message": "Couleur",
+    "source": "sha256:fa86326f49f7613b0bdc4950fdad310c131a042e5b2d7c5cd7d3a68038f9626d"
+  },
+  "groupMenu.colorNone": {
+    "message": "Aucune couleur",
+    "source": "sha256:c88258721050eac487087bf0deb28db9a980545858d06f2e208246a063a30b66"
+  },
+  "groupMenu.newTab": {
+    "message": "Nouvel onglet dans le groupe",
+    "source": "sha256:e5414b5bd7f380fd319bb66f07ac9fb59ccd2c9b44aaf2b73cf500819b64dbc9"
+  },
+  "groupMenu.moveToNewWindow": {
+    "message": "Déplacer le groupe dans une nouvelle fenêtre",
+    "source": "sha256:a68d093b78aba09b02776d83c51d2069d4055bf849ab2dc059c4d330b5f1084d"
   },
   "deviceMenu.rename": {
     "message": "Renommer l’appareil…",
@@ -1748,6 +1768,26 @@
   "tabMenu.unmute": {
     "message": "Rétablir le son de l’onglet",
     "source": "sha256:d96b53fb09f68554b67ce357d217e9ae6c75db0251a8bdb63ca1db22ff030638"
+  },
+  "tabMenu.newTabBelow": {
+    "message": "Nouvel onglet en dessous",
+    "source": "sha256:6234fff57e84fdf7b6fd2e7e1fa77875e9d363a0288417f9f2fcd15bed50e3a0"
+  },
+  "tabMenu.closeAbove": {
+    "message": "Fermer les onglets au-dessus",
+    "source": "sha256:8fd8daaca7bf1023a8f85466bdeed85f00a4b1d553e4ed6569d122bd1f77e23a"
+  },
+  "tabMenu.closeBelow": {
+    "message": "Fermer les onglets en dessous",
+    "source": "sha256:55fb46ae42937065a14e74c499ac9ccad1d6af0deb7e32c3d113ee03b7250e1a"
+  },
+  "tabMenu.muteSite": {
+    "message": "Couper le son du site",
+    "source": "sha256:e4dad8db606521203389598b62e6f3b49db3c4408c3d6e48c20cd80cdabc47f5"
+  },
+  "tabMenu.unmuteSite": {
+    "message": "Rétablir le son du site",
+    "source": "sha256:5367abbe41758f81d11e6ba0ce2e2a2825505d9b19e06822e8ec13a0a725657d"
   },
   "tabMenu.saveFavorite": {
     "message": "Enregistrer dans les favoris",

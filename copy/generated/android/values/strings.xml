@@ -149,7 +149,7 @@
     <string name="rail_group_expanded">expanded</string>
     <string name="rail_private_marker">Private</string>
     <string name="rail_section_pinned">Pinned</string>
-    <string name="rail_section_tabs">tabs</string>
+    <string name="rail_section_tabs">Tabs</string>
     <string name="permission_surface_title">Permission</string>
     <string name="permission_label">Site permission request</string>
     <string name="permission_allow">Allow</string>
@@ -467,7 +467,12 @@
     <string name="group_menu_duplicate">A group named “%1$s” already exists</string>
     <string name="group_menu_close">Close Group</string>
     <string name="group_menu_ungroup">Ungroup</string>
-    <string name="group_menu_rename">Rename Group…</string>
+    <string name="group_menu_options">Group options</string>
+    <string name="group_menu_name_label">Group name</string>
+    <string name="group_menu_color_label">Color</string>
+    <string name="group_menu_color_none">No color</string>
+    <string name="group_menu_new_tab">New Tab in Group</string>
+    <string name="group_menu_move_to_new_window">Move Group to New Window</string>
     <string name="device_menu_rename">Rename Device…</string>
     <string name="tab_menu_reset_title">Reset Tab Title</string>
     <string name="tab_menu_pin">Pin Tab</string>
@@ -476,6 +481,11 @@
     <string name="tab_menu_unpin">Unpin Tab</string>
     <string name="tab_menu_mute">Mute Tab</string>
     <string name="tab_menu_unmute">Unmute Tab</string>
+    <string name="tab_menu_new_tab_below">New Tab Below</string>
+    <string name="tab_menu_close_above">Close Tabs Above</string>
+    <string name="tab_menu_close_below">Close Tabs Below</string>
+    <string name="tab_menu_mute_site">Mute Site</string>
+    <string name="tab_menu_unmute_site">Unmute Site</string>
     <string name="tab_menu_save_favorite">Save to Favorites</string>
     <string name="tab_menu_remove_favorite">Remove from Favorites</string>
     <string name="tab_menu_move_to_group">Move to Group</string>

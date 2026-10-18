@@ -154,7 +154,7 @@
     <string name="rail_group_expanded">déplié</string>
     <string name="rail_private_marker">Privé</string>
     <string name="rail_section_pinned">Épinglés</string>
-    <string name="rail_section_tabs">onglets</string>
+    <string name="rail_section_tabs">Onglets</string>
     <string name="permission_surface_title">Autorisation</string>
     <string name="permission_label">Demande d’autorisation du site</string>
     <string name="permission_allow">Autoriser</string>
@@ -480,7 +480,12 @@
     <string name="group_menu_duplicate">Un groupe nommé « %1$s » existe déjà</string>
     <string name="group_menu_close">Fermer le groupe</string>
     <string name="group_menu_ungroup">Dégrouper</string>
-    <string name="group_menu_rename">Renommer le groupe…</string>
+    <string name="group_menu_options">Options du groupe</string>
+    <string name="group_menu_name_label">Nom du groupe</string>
+    <string name="group_menu_color_label">Couleur</string>
+    <string name="group_menu_color_none">Aucune couleur</string>
+    <string name="group_menu_new_tab">Nouvel onglet dans le groupe</string>
+    <string name="group_menu_move_to_new_window">Déplacer le groupe dans une nouvelle fenêtre</string>
     <string name="device_menu_rename">Renommer l’appareil…</string>
     <string name="tab_menu_reset_title">Réinitialiser le titre de l’onglet</string>
     <string name="tab_menu_pin">Épingler l’onglet</string>
@@ -489,6 +494,11 @@
     <string name="tab_menu_unpin">Détacher l’onglet</string>
     <string name="tab_menu_mute">Couper le son de l’onglet</string>
     <string name="tab_menu_unmute">Rétablir le son de l’onglet</string>
+    <string name="tab_menu_new_tab_below">Nouvel onglet en dessous</string>
+    <string name="tab_menu_close_above">Fermer les onglets au-dessus</string>
+    <string name="tab_menu_close_below">Fermer les onglets en dessous</string>
+    <string name="tab_menu_mute_site">Couper le son du site</string>
+    <string name="tab_menu_unmute_site">Rétablir le son du site</string>
     <string name="tab_menu_save_favorite">Enregistrer dans les favoris</string>
     <string name="tab_menu_remove_favorite">Retirer des favoris</string>
     <string name="tab_menu_move_to_group">Déplacer dans le groupe</string>

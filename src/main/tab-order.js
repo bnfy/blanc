@@ -1,6 +1,9 @@
 // Pure tab/group order policy for drag and keyboard moves. The main process
 // remains the sole mutator; these helpers only return a proposed order.
 
+const { sectionsOf } = require('../renderer/tab-sections');
+const { reorderGroupsWithClosed } = require('./closed-slot');
+
 function tabFor(tabs, id) {
   if (tabs instanceof Map) return tabs.get(id);
   return tabs?.[id];
@@ -25,6 +28,7 @@ function moveTab(order, tabs, groups, id, target) {
   if (beforeId !== null && typeof beforeId !== 'string') return null;
 
   const pinned = !!source.pinned;
+  if (groupId === null && !pinned) return moveLoose(order, tabs, id, beforeId);
   const inTarget = (tabId) => {
     const tab = tabFor(tabs, tabId);
     return !!tab && (tab.groupId ?? null) === groupId && !!tab.pinned === pinned;
@@ -54,6 +58,44 @@ function moveTab(order, tabs, groups, id, target) {
   return { order: next, groupId };
 }
 
+/**
+ * An unpinned tab becoming (or staying) ungrouped can land anywhere between
+ * groups (spec 2026-10-17): before a loose tab, before a group's first drawn
+ * tab (above that group), at its own place (ungrouping in place), or at the
+ * end (null). Any other beforeId would split a group, so it is refused.
+ */
+function moveLoose(order, tabs, id, beforeId) {
+  if (beforeId === id) return { order: [...order], groupId: null };
+  const next = order.filter((tabId) => tabId !== id);
+  if (beforeId === null) {
+    next.push(id);
+    return { order: next, groupId: null };
+  }
+  const target = tabFor(tabs, beforeId);
+  if (!target || !next.includes(beforeId)) return null;
+  let at;
+  if (!target.groupId && !target.pinned) {
+    at = next.indexOf(beforeId);
+  } else if (target.groupId) {
+    const list = order.map((tabId) => tabFor(tabs, tabId)).filter(Boolean)
+      .map((tab) => ({ id: tab.id, groupId: tab.groupId ?? null, pinned: !!tab.pinned }));
+    const section = sectionsOf(list).find((candidate) => candidate.groupId === target.groupId);
+    if (section?.tabIds[0] !== beforeId) return null;
+    at = next.findIndex((tabId) => tabFor(tabs, tabId)?.groupId === target.groupId);
+  } else {
+    return null;
+  }
+  next.splice(at, 0, id);
+  return { order: next, groupId: null };
+}
+
+/** Move one top-level item (a group id, a loose tab id or the Recently closed
+ * band) before another item, or to the end with null. `slot` is the band's
+ * item index. Returns { order, slot } or null for an unknown id. */
+function reorderItems(itemIds, slot, id, beforeId) {
+  return reorderGroupsWithClosed(itemIds, slot, id, beforeId);
+}
+
 /** Move group `id` before `beforeGroupId` (null = end). Returns a fresh array
  * holding the same group records, or null for an invalid request. */
 function reorderGroup(groups, id, beforeGroupId) {
@@ -69,4 +111,4 @@ function reorderGroup(groups, id, beforeGroupId) {
   return next;
 }
 
-module.exports = { moveTab, reorderGroup };
+module.exports = { moveTab, reorderGroup, reorderItems };

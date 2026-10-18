@@ -42,6 +42,6 @@ test('the temporary guard is derived into audible state but never projected as m
     source.indexOf('function serializeTabs()'),
     source.indexOf('\nfunction activeShieldPopover')
   );
-  assert.match(serializeBody, /audible: tab\.audible && !\(tab\.muted \|\| tab\.backgroundAutoplayMuted\)/);
+  assert.match(serializeBody, /audible: tab\.audible && !\(tab\.muted \|\| tab\.backgroundAutoplayMuted \|\| \(tab\.siteMuted && !tab\.siteUnmuted\)\)/);
   assert.doesNotMatch(serializeBody, /backgroundAutoplayMuted\s*:/);
 });

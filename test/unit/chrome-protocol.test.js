@@ -39,6 +39,17 @@ test('chrome protocol exposes only the reviewed resources for each host', () => 
   );
 });
 
+test('only the rail and island documents can load the shared tab sections', () => {
+  const asset = path.join(renderer, 'tab-sections.js');
+  assert.equal(chromeResourcePath('blanc-chrome://index/tab-sections.js'), asset);
+  assert.equal(chromeResourcePath('blanc-chrome://overlay/tab-sections.js'), asset);
+  for (const url of [
+    'blanc-chrome://permission/tab-sections.js',
+    'blanc-chrome://fill-status/tab-sections.js',
+    'blanc-chrome://display-capture-helper/tab-sections.js',
+  ]) assert.equal(chromeResourcePath(url), null, url);
+});
+
 test('only the rail and island documents can load the shared tab-drag controller', () => {
   const asset = path.join(renderer, 'tab-drag.js');
   assert.equal(chromeResourcePath('blanc-chrome://index/tab-drag.js'), asset);

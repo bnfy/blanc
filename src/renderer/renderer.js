@@ -21,11 +21,16 @@
       e.target.closest('.vertical-tab-row[data-tab-id]')?.dataset.tabId
       ?? (onGlanceHeader ? state.glanceTabId : null)
       ?? null;
-    // A rail group header gets main's group menu (group-context-menu.js).
-    window.__blancCtxGroupId = window.__blancCtxRowTabId == null
-      ? e.target.closest('.vertical-tabs-group-header[data-group-id]')?.dataset.groupId ?? null
+    // A rail group header opens its group menu (tab group colors spec §6).
+    const groupHeader = window.__blancCtxRowTabId == null
+      ? e.target.closest('.vertical-tabs-group-row')?.querySelector('.vertical-tabs-group-header[data-group-id]')
       : null;
-    if (!e.target.closest('#islandPill') && window.__blancCtxRowTabId == null && window.__blancCtxGroupId == null) {
+    if (groupHeader) {
+      e.preventDefault();
+      window.blancRailGroupMenu?.open(groupHeader.dataset.groupId);
+      return;
+    }
+    if (!e.target.closest('#islandPill') && window.__blancCtxRowTabId == null) {
       e.preventDefault();
     }
   });
@@ -777,11 +782,12 @@
     // Reserve one slot for the active tab before applying pinned-first
     // priority. Any additional standalone pins remain included in +N.
     const pinned = standalonePins.slice(0, Math.max(0, dotBudget - 1));
-    const sectionMembers = tab.groupId
-      ? state.tabs
-        .filter((t) => t.groupId === tab.groupId)
-        .sort((a, b) => Number(b.pinned) - Number(a.pinned))
-      : state.tabs.filter((t) => !t.groupId && !t.pinned);
+    // The active tab's group, or its run of ungrouped tabs (tab-sections.js:
+    // ungrouped tabs between groups form separate runs, spec 2026-10-17).
+    const byId = new Map(state.tabs.map((t) => [t.id, t]));
+    const sectionMembers = (TabSections.sectionsOf(state.tabs)
+      .find((entry) => entry.tabIds.includes(tab.id))?.tabIds ?? [tab.id])
+      .map((id) => byId.get(id));
     const section = activeWindow(sectionMembers, dotBudget - pinned.length);
     const shown = [...pinned, ...section];
     return {
@@ -825,6 +831,8 @@
         active: t.id === state.activeTabId,
         loading: t.isLoading,
         private: t.private,
+        // A colored group's dots take its color (tab group colors spec §5).
+        color: t.groupId ? (state.groups || []).find((g) => g.id === t.groupId)?.color ?? null : null,
         title: t.title || 'untitled',
         // While loading, setFavicon deliberately ignores both URL and favicon;
         // omit them here too so an irrelevant favicon event cannot churn the
@@ -845,11 +853,14 @@
     // Stable identity lets trusted chrome tests and future focus restoration
     // address a dot without relying on page titles, which are not unique.
     dot.dataset.tabId = t.id;
+    // A colored group's dots take its color (tab group colors spec §5).
+    const dotGroup = t.groupId ? (state.groups || []).find((g) => g.id === t.groupId) : null;
     dot.className =
       'island-dot' +
       (t.id === state.activeTabId ? ' active' : '') +
       (t.isLoading ? ' loading' : '') +
       (t.private ? ' private' : '');
+    TabSections.paintGroup(dot, dotGroup, 'dot-group-colored');
     const dotTitle = t.title || blancI18n.t('tab.untitled');
     dot.title = dotTitle;
     // A tab title is page data, not interface copy (pseudo-locale sweep).
@@ -1334,6 +1345,11 @@
     if (restoreTrigger === 'shield') pillShield.focus();
     else if (restoreTrigger === 'insecure') pillInsecure.focus();
     if (restoreTrigger === 'spaces') pillSpace.focus();
+    // The side list's group menu closed: its header row forgets the open
+    // state, and Escape hands focus back to that header's ⋮.
+    if (mode === null && typeof trigger === 'string' && trigger.startsWith('group-menu:')) {
+      window.blancRailGroupMenu?.closed(trigger.slice('group-menu:'.length), { focus: restoreTrigger === 'group-menu' });
+    }
     render();
   });
   window.browserAPI.onDownloadsActivity((payload) => {

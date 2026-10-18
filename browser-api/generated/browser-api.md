@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-118 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
+122 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -21,9 +21,12 @@
 | `reload` | navigation | invoke | `tabs:reload` | `(id: TabId) => Promise<boolean \| undefined>` | all |
 | `stop` | navigation | invoke | `tabs:stop` | `(id: TabId) => Promise<void>` | all |
 | `moveTab` | tabs | invoke | `tabs:move` | `(id: TabId, target: TabMoveTarget) => Promise<boolean>` | all |
-| `reorderGroup` | tabs | invoke | `groups:reorder` | `(id: GroupId, beforeGroupId: GroupId \| 'recently-closed' \| null) => Promise<boolean>` | all |
-| `moveClosedSection` | tabs | invoke | `groups:move-closed` | `(beforeGroupId: GroupId \| null) => Promise<boolean>` | all |
+| `reorderGroup` | tabs | invoke | `groups:reorder` | `(id: GroupId, beforeGroupId: GroupId \| TabId \| 'recently-closed' \| null) => Promise<boolean>` | all |
+| `moveClosedSection` | tabs | invoke | `groups:move-closed` | `(beforeGroupId: GroupId \| TabId \| null) => Promise<boolean>` | all |
 | `renameGroup` | groups | invoke | `groups:rename` | `(groupId: GroupId, name: string) => Promise<GroupRenameResult>` | all |
+| `setGroupColor` | groups | invoke | `groups:set-color` | `(groupId: GroupId, color: string \| null) => Promise<GroupColorResult>` | all |
+| `newTabInGroup` | groups | invoke | `groups:new-tab` | `(groupId: GroupId) => Promise<boolean>` | all |
+| `moveGroupToNewWindow` | groups | invoke | `groups:move-to-new-window` | `(groupId: GroupId) => Promise<boolean>` | all |
 | `ungroupGroup` | groups | invoke | `groups:ungroup` | `(groupId: GroupId) => Promise<void>` | all |
 | `activateTabFromRail` | tabs | invoke | `tabs:activate-from-rail` | `(id: TabId) => Promise<boolean>` | all |
 | `setGlanceTab` | glance | invoke | `tabs:set-glance` | `(id: TabId) => Promise<boolean>` | all |
@@ -68,6 +71,7 @@
 | `openBlockingPopup` | blocking | invoke | `chrome:blocking-popup` | `() => Promise<boolean>` | all |
 | `openCapturePopover` | capture | send | `chrome:open-capture` | `(anchor: CaptureAnchor)` | all |
 | `openSpacesMenu` | workspaces | send | `chrome:open-spaces` | `(anchor: SpacesAnchor)` | all |
+| `openGroupMenu` | groups | send | `chrome:open-group-menu` | `(groupId: GroupId, anchor: GroupMenuAnchor)` | all |
 | `captureStop` | capture | send | `chrome:capture-stop` | `(surfaceId: CaptureSurfaceId)` | all |
 | `captureFocus` | capture | send | `chrome:capture-focus` | `(surfaceId: CaptureSurfaceId)` | all |
 | `stopDisplayShare` | capture | send | `display-capture:stop` | `(shareId: DisplayShareId)` | all |
@@ -217,8 +221,8 @@ Where a dragged or keyboard-moved tab should land. The pinned state never change
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `groupId` | `GroupId \| null` | Target group, or null for the loose section / standalone pins. |
-| `beforeId` | `TabId \| null` | Land before this tab of the target bucket; null means that bucket's end. |
+| `groupId` | `GroupId \| null` | Target group, or null for an ungrouped place / standalone pins. |
+| `beforeId` | `TabId \| 'recently-closed' \| null` | Land before this tab of the target bucket; null means that bucket's end. An unpinned tab going ungrouped may name a loose tab, a group's first drawn tab (above that group), itself (ungrouped in place) or 'recently-closed' (directly above the band); null is then the end of the list. |
 
 ### `OpenWorkspaceOptions`
 
@@ -342,13 +346,22 @@ One tab in tabs:updated, projected by serializeTabs() in main.js. Main-only stat
 
 ### `TabGroup`
 
-A tab group. Groups have names, not colors.
+A tab group: a name, and optionally one of the Spaces preset colors.
 
 | Field | Type | Notes |
 | --- | --- | --- |
 | `id` | `GroupId` |  |
 | `name` | `string` |  |
 | `collapsed` | `boolean` |  |
+| `color` | `string \| null` | A Spaces preset hex (#rrggbb), or null for no color. |
+
+### `GroupColorResult`
+
+Result of setGroupColor, built by setGroupColor() in main.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `ok` | `boolean` |  |
 
 ### `ClosedEntrySummary`
 
@@ -466,7 +479,7 @@ Result of getAllTabs, built by the tabs:get-all handler in main.js.
 | `glanceTabId` | `TabId \| null` |  |
 | `groups` | `TabGroup[]` |  |
 | `closed` | `ClosedEntrySummary[]` |  |
-| `closedSlot` | `number` | How many of groups sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). |
+| `closedSlot` | `number` | How many top-level items (groups and ungrouped tabs) sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). |
 | `tabLayout` | `TabLayout` |  |
 | `verticalTabsWidth` | `number` |  |
 | `verticalTabsPreferredWidth` | `number` |  |
@@ -485,7 +498,7 @@ The tabs:updated broadcast, built by currentTabsPayload() in main.js.
 | `glanceTabId` | `TabId \| null` |  |
 | `groups` | `TabGroup[]` |  |
 | `closed` | `ClosedEntrySummary[]` |  |
-| `closedSlot` | `number` | How many of groups sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). |
+| `closedSlot` | `number` | How many top-level items (groups and ungrouped tabs) sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). |
 | `tabLayout` | `TabLayout` |  |
 | `adblockEnabled` | `boolean` |  |
 | `shieldPopover` | `ShieldPopover \| null` |  |
@@ -915,6 +928,16 @@ The resting pill's rectangle as the strip reports it, plus the open shield popov
 | `spacesAnchor?` | `SpacesAnchor` | Present while the Spaces menu is open from the mark, so it follows the pill. |
 | `minPrimaryWidth?` | `number` | With Glance side by side: the narrowest main pane that holds the slim Island with a readable address, its chips and clearance included. Main stops the divider there. |
 | `minReferenceWidth?` | `number` | With Glance side by side: the narrowest reference that holds the Glance header at its most compact, including the window-control space on Windows and Linux. Main stops the divider there. |
+
+### `GroupMenuAnchor`
+
+Where a group menu opens from the side list: the header row's right, top and bottom edges in window coordinates. Main validates all three.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `right` | `number` |  |
+| `top` | `number` |  |
+| `bottom` | `number` |  |
 
 ### `SpacesAnchor`
 

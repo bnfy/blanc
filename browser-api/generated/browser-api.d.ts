@@ -46,10 +46,10 @@ export type CreateTabOptions = { private?: boolean };
 
 /** Where a dragged or keyboard-moved tab should land. The pinned state never changes. */
 export interface TabMoveTarget {
-  /** Target group, or null for the loose section / standalone pins. */
+  /** Target group, or null for an ungrouped place / standalone pins. */
   groupId: GroupId | null;
-  /** Land before this tab of the target bucket; null means that bucket's end. */
-  beforeId: TabId | null;
+  /** Land before this tab of the target bucket; null means that bucket's end. An unpinned tab going ungrouped may name a loose tab, a group's first drawn tab (above that group), itself (ungrouped in place) or 'recently-closed' (directly above the band); null is then the end of the list. */
+  beforeId: TabId | 'recently-closed' | null;
 }
 
 /** Options for opening or creating a workspace; creation also takes a colour and symbol. */
@@ -163,11 +163,18 @@ export interface TabEntry {
   siteInfo: SiteInfo;
 }
 
-/** A tab group. Groups have names, not colors. */
+/** A tab group: a name, and optionally one of the Spaces preset colors. */
 export interface TabGroup {
   id: GroupId;
   name: string;
   collapsed: boolean;
+  /** A Spaces preset hex (#rrggbb), or null for no color. */
+  color: string | null;
+}
+
+/** Result of setGroupColor, built by setGroupColor() in main.js. */
+export interface GroupColorResult {
+  ok: boolean;
 }
 
 /** A closed entry as renderers see it, projected by projectEntries() in closed-tabs.js. */
@@ -256,7 +263,7 @@ export interface TabsSnapshot {
   glanceTabId: TabId | null;
   groups: TabGroup[];
   closed: ClosedEntrySummary[];
-  /** How many of groups sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). */
+  /** How many top-level items (groups and ungrouped tabs) sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). */
   closedSlot: number;
   tabLayout: TabLayout;
   verticalTabsWidth: number;
@@ -273,7 +280,7 @@ export interface TabsUpdatedPayload {
   glanceTabId: TabId | null;
   groups: TabGroup[];
   closed: ClosedEntrySummary[];
-  /** How many of groups sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). */
+  /** How many top-level items (groups and ungrouped tabs) sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). */
   closedSlot: number;
   tabLayout: TabLayout;
   adblockEnabled: boolean;
@@ -638,6 +645,13 @@ export interface IslandRectReport {
   minReferenceWidth?: number;
 }
 
+/** Where a group menu opens from the side list: the header row's right, top and bottom edges in window coordinates. Main validates all three. */
+export interface GroupMenuAnchor {
+  right: number;
+  top: number;
+  bottom: number;
+}
+
 /** Where the Spaces menu opens: the space mark's left and bottom edges in window coordinates. Main validates both. */
 export interface SpacesAnchor {
   left: number;
@@ -764,25 +778,40 @@ export interface BlancBrowserAPI {
    */
   stop(id: TabId): Promise<void>;
   /**
-   * Move a tab within its bucket or into another group's matching bucket. Never changes pinned state. Resolves false for a rejected request.
+   * Move a tab within its bucket, into another group's matching bucket, or to an ungrouped place above, between or below groups. Never changes pinned state. Resolves false for a rejected request.
    * IPC: invoke `tabs:move`.
    */
   moveTab(id: TabId, target: TabMoveTarget): Promise<boolean>;
   /**
-   * Move a group before another group, directly above the Recently closed band with 'recently-closed', or to the end with null.
+   * Move a group before another group, an ungrouped tab, the Recently closed band ('recently-closed'), or to the end with null.
    * IPC: invoke `groups:reorder`.
    */
-  reorderGroup(id: GroupId, beforeGroupId: GroupId | 'recently-closed' | null): Promise<boolean>;
+  reorderGroup(id: GroupId, beforeGroupId: GroupId | TabId | 'recently-closed' | null): Promise<boolean>;
   /**
-   * Move the ⌘L panel's Recently closed band before a group, or after the last group with null.
+   * Move the ⌘L panel's Recently closed band before a group or an ungrouped tab, or to the end with null.
    * IPC: invoke `groups:move-closed`.
    */
-  moveClosedSection(beforeGroupId: GroupId | null): Promise<boolean>;
+  moveClosedSection(beforeGroupId: GroupId | TabId | null): Promise<boolean>;
   /**
    * Rename a group, keeping the case typed. An empty or unchanged name changes nothing; another group's name in this window (in any case) is refused.
    * IPC: invoke `groups:rename`.
    */
   renameGroup(groupId: GroupId, name: string): Promise<GroupRenameResult>;
+  /**
+   * Give a group one of the Spaces preset colors, or none with null. Anything else is refused and changes nothing.
+   * IPC: invoke `groups:set-color`.
+   */
+  setGroupColor(groupId: GroupId, color: string | null): Promise<GroupColorResult>;
+  /**
+   * Open a new tab at the end of a group and select it. Resolves false for an unknown group.
+   * IPC: invoke `groups:new-tab`.
+   */
+  newTabInGroup(groupId: GroupId): Promise<boolean>;
+  /**
+   * Move every tab of a group, in order, into a new window with the same group. Refused (false) when the group holds every tab in its window or a member is changing quiet state.
+   * IPC: invoke `groups:move-to-new-window`.
+   */
+  moveGroupToNewWindow(groupId: GroupId): Promise<boolean>;
   /**
    * Make every tab in a group ungrouped; the empty group goes away.
    * IPC: invoke `groups:ungroup`.
@@ -1006,6 +1035,11 @@ export interface BlancBrowserAPI {
    * IPC: send `chrome:open-spaces`.
    */
   openSpacesMenu(anchor: SpacesAnchor): void;
+  /**
+   * Open a group's menu (name, color, actions) beside its header in the side list.
+   * IPC: send `chrome:open-group-menu`.
+   */
+  openGroupMenu(groupId: GroupId, anchor: GroupMenuAnchor): void;
   /**
    * Stop capture on a surface.
    * IPC: send `chrome:capture-stop`.

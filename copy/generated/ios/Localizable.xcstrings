@@ -6068,43 +6068,43 @@
       }
     },
     "rail.section.tabs": {
-      "comment": "Lowercase heading of the rail section holding ungrouped tabs.",
+      "comment": "Accessible name of each run of ungrouped tabs in the rail (not shown on screen).",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "tabs"
+            "value": "Tabs"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "tabs"
+            "value": "Tabs"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "pestañas"
+            "value": "Pestañas"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "onglets"
+            "value": "Onglets"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "schede"
+            "value": "Schede"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "abas"
+            "value": "Abas"
           }
         }
       }
@@ -19183,44 +19183,254 @@
         }
       }
     },
-    "groupMenu.rename": {
-      "comment": "Item in a tab group header's right-click menu (⌘L panel and vertical tabs rail); opens the panel to rename the group. Menu items use title case, like Rename Tab….",
+    "groupMenu.options": {
+      "comment": "Accessible name of a tab group’s menu and of the ⋮ button on its header that opens it.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rename Group…"
+            "value": "Group options"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gruppe umbenennen…"
+            "value": "Gruppenoptionen"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cambiar nombre del grupo…"
+            "value": "Opciones del grupo"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Renommer le groupe…"
+            "value": "Options du groupe"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rinomina gruppo…"
+            "value": "Opzioni del gruppo"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Renomear grupo…"
+            "value": "Opções do grupo"
+          }
+        }
+      }
+    },
+    "groupMenu.nameLabel": {
+      "comment": "Accessible name of the name field at the top of a tab group’s menu.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Group name"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gruppenname"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nombre del grupo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nom du groupe"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nome del gruppo"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nome do grupo"
+          }
+        }
+      }
+    },
+    "groupMenu.colorLabel": {
+      "comment": "Accessible name of the row of color swatches in a tab group’s menu.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Color"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Farbe"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Color"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couleur"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Colore"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cor"
+          }
+        }
+      }
+    },
+    "groupMenu.colorNone": {
+      "comment": "Accessible name of the swatch that removes a tab group’s color.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No color"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Farbe"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin color"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune couleur"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessun colore"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sem cor"
+          }
+        }
+      }
+    },
+    "groupMenu.newTab": {
+      "comment": "Item in a tab group’s menu; opens a new tab at the end of the group. Title case, like other menu items.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Tab in Group"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer Tab in Gruppe"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nueva pestaña en el grupo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvel onglet dans le groupe"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuova scheda nel gruppo"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nova aba no grupo"
+          }
+        }
+      }
+    },
+    "groupMenu.moveToNewWindow": {
+      "comment": "Item in a tab group’s menu; moves every tab of the group, in order, into a new window.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move Group to New Window"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gruppe in neues Fenster verschieben"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mover el grupo a una ventana nueva"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déplacer le groupe dans une nouvelle fenêtre"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sposta il gruppo in una nuova finestra"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mover o grupo para uma nova janela"
           }
         }
       }
@@ -19557,6 +19767,216 @@
           "stringUnit": {
             "state": "translated",
             "value": "Reativar o som da aba"
+          }
+        }
+      }
+    },
+    "tabMenu.newTabBelow": {
+      "comment": "Tab context menu command; opens a new tab directly under this one (inside its group, if any).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Tab Below"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer Tab darunter"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nueva pestaña debajo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvel onglet en dessous"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuova scheda sotto"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nova aba abaixo"
+          }
+        }
+      }
+    },
+    "tabMenu.closeAbove": {
+      "comment": "Tab context menu command; closes every unpinned tab listed above this one in the window.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close Tabs Above"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs darüber schließen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cerrar las pestañas de arriba"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fermer les onglets au-dessus"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiudi le schede sopra"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fechar as abas acima"
+          }
+        }
+      }
+    },
+    "tabMenu.closeBelow": {
+      "comment": "Tab context menu command; closes every unpinned tab listed below this one in the window.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close Tabs Below"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs darunter schließen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cerrar las pestañas de abajo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fermer les onglets en dessous"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiudi le schede sotto"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fechar as abas abaixo"
+          }
+        }
+      }
+    },
+    "tabMenu.muteSite": {
+      "comment": "Tab context menu command; mutes every tab on this website (exact host) until Blanc quits.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mute Site"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Website stummschalten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Silenciar el sitio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couper le son du site"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disattiva l’audio del sito"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Silenciar o site"
+          }
+        }
+      }
+    },
+    "tabMenu.unmuteSite": {
+      "comment": "Tab context menu command; undoes Mute Site for this website.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unmute Site"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Website-Ton einschalten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activar el sonido del sitio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rétablir le son du site"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riattiva l’audio del sito"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reativar o som do site"
           }
         }
       }

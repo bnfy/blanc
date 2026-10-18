@@ -103,6 +103,10 @@ function install(refs) {
     beginRenameGroup,
     beginRenameDevice,
     ungroupGroup,
+    setGroupColor,
+    newTabBelow,
+    closeTabsBeside,
+    toggleSiteMute,
     closeGroup,
     toggleGroupCollapsed,
     moveTabTo,
@@ -550,7 +554,10 @@ function install(refs) {
           favicon: t.favicon || null,
           groupId: t.groupId ?? null,
           pinned: !!t.pinned,
-          muted: !!t.muted,
+          // What the tab shows as muted, a site mute included (tab-audio.js
+          // shownMuted), and what its page's audio really is.
+          muted: !!(t.muted || (t.siteMuted && !t.siteUnmuted)),
+          audioMuted: liveContents(t)?.isAudioMuted?.() ?? null,
           audible: !!t.audible,
           // Projection of the one-time hidden-start autoplay guard; a visible
           // pane must never carry it.
@@ -580,7 +587,7 @@ function install(refs) {
           groupId: slot.group?.id ?? null,
           tabIds: [...slot.tabIds],
         })),
-        groups: getGroups().map((g) => ({ id: g.id, name: g.name, collapsed: !!g.collapsed })),
+        groups: getGroups().map((g) => ({ id: g.id, name: g.name, collapsed: !!g.collapsed, color: g.color ?? null })),
         activeTabId: getActiveTabId(),
         glanceTabId: getGlanceTabId(),
         focusedPaneTabId: getFocusedPaneTabId(),
@@ -644,6 +651,14 @@ function install(refs) {
       const group = getGroups().find((g) => sameGroupName(g.name, name));
       if (group) beginRenameGroup(group.id);
       return !!group;
+    },
+    // Tab menu additions (spec 2026-10-17-tab-menu-additions-design.md).
+    newTabBelow(id) { return newTabBelow(id); },
+    closeTabsBeside(id, direction) { closeTabsBeside(id, direction); return true; },
+    toggleSiteMute(id) { return toggleSiteMute(id); },
+    setGroupColorByName(name, color) {
+      const group = getGroups().find((g) => sameGroupName(g.name, name));
+      return group ? setGroupColor(group.id, color).ok : false;
     },
     ungroupGroupByName(name) {
       const group = getGroups().find((g) => sameGroupName(g.name, name));

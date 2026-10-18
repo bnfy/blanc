@@ -149,7 +149,7 @@
     <string name="rail_group_expanded">ausgeklappt</string>
     <string name="rail_private_marker">Privat</string>
     <string name="rail_section_pinned">Angeheftet</string>
-    <string name="rail_section_tabs">tabs</string>
+    <string name="rail_section_tabs">Tabs</string>
     <string name="permission_surface_title">Berechtigung</string>
     <string name="permission_label">Berechtigungsanfrage einer Website</string>
     <string name="permission_allow">Erlauben</string>
@@ -467,7 +467,12 @@
     <string name="group_menu_duplicate">Es gibt schon eine Gruppe namens „%1$s“</string>
     <string name="group_menu_close">Gruppe schließen</string>
     <string name="group_menu_ungroup">Gruppierung aufheben</string>
-    <string name="group_menu_rename">Gruppe umbenennen…</string>
+    <string name="group_menu_options">Gruppenoptionen</string>
+    <string name="group_menu_name_label">Gruppenname</string>
+    <string name="group_menu_color_label">Farbe</string>
+    <string name="group_menu_color_none">Keine Farbe</string>
+    <string name="group_menu_new_tab">Neuer Tab in Gruppe</string>
+    <string name="group_menu_move_to_new_window">Gruppe in neues Fenster verschieben</string>
     <string name="device_menu_rename">Gerät umbenennen…</string>
     <string name="tab_menu_reset_title">Tabtitel zurücksetzen</string>
     <string name="tab_menu_pin">Tab anheften</string>
@@ -476,6 +481,11 @@
     <string name="tab_menu_unpin">Tab lösen</string>
     <string name="tab_menu_mute">Tab stummschalten</string>
     <string name="tab_menu_unmute">Ton einschalten</string>
+    <string name="tab_menu_new_tab_below">Neuer Tab darunter</string>
+    <string name="tab_menu_close_above">Tabs darüber schließen</string>
+    <string name="tab_menu_close_below">Tabs darunter schließen</string>
+    <string name="tab_menu_mute_site">Website stummschalten</string>
+    <string name="tab_menu_unmute_site">Website-Ton einschalten</string>
     <string name="tab_menu_save_favorite">Zu Favoriten hinzufügen</string>
     <string name="tab_menu_remove_favorite">Aus Favoriten entfernen</string>
     <string name="tab_menu_move_to_group">In Gruppe verschieben</string>

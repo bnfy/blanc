@@ -72,7 +72,7 @@ for (const isPrivate of [false, true]) {
     assert.equal(h.created.length, 1);
     assert.equal(h.created[0].url, 'https://example.test/target');
     assert.equal(h.created[0].options.private, isPrivate);
-    assert.equal(h.created[0].options.groupId, h.tab.groupId);
+    assert.equal(h.created[0].options.groupId ?? null, null, 'a link child opens ungrouped, like a plain new tab');
     assert.equal(h.created[0].options.view ?? null, null, 'normal createTab owns construction and navigation');
     assert.equal(h.created[0].options.openerTabId ?? null, null, 'deferred contents have no adopted opener family');
     assert.equal(h.adopted.length, 0);
@@ -89,6 +89,7 @@ test('an existing window.open child is adopted and activated without losing its 
   assert.deepEqual(h.adopted, [existing]);
   assert.equal(h.created[0].options.view.webContents, existing);
   assert.equal(h.created[0].options.openerTabId, h.tab.id);
+  assert.equal(h.created[0].options.groupId ?? null, null, 'an adopted window.open child keeps its opener but not its group');
   assert.equal(h.scheduled.length, 1);
   h.scheduled[0]();
   assert.deepEqual(h.activated, ['child']);

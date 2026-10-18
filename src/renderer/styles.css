@@ -708,9 +708,8 @@ body.mac .vertical-tabs-toolbar {
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
-  padding: 7px 8px 12px;
+  /* The side gutters (see .island-scroll below) stand in for side padding. */
+  padding: 7px 0 12px;
 }
 
 .vertical-tabs-section {
@@ -740,6 +739,60 @@ body.mac .vertical-tabs-toolbar {
 .vertical-tabs-section-heading span {
   opacity: 0.65;
 }
+
+/* Tab group colors (spec 2026-10-17-tab-group-colors-design.md): a colored
+   group's block (panel and side list) takes its color as a wash instead of the
+   neutral surface, and a dot before the name. Text stays --text. The only value
+   set from script is --group-color, always a Spaces preset. */
+.group-colored { --group-wash: 15%; }
+@media (prefers-color-scheme: dark) {
+  .group-colored { --group-wash: 20%; }
+}
+:root[data-theme="private"] .group-colored { --group-wash: 20%; }
+.island-group-band.group-colored,
+.vertical-tabs-group.group-colored {
+  background: color-mix(in srgb, var(--group-color) var(--group-wash), transparent);
+}
+.group-color-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  background: var(--group-color);
+}
+/* A Quick Switcher group result: the caret takes the group's color. */
+.row-group-mark.group-colored-mark { color: var(--group-color); }
+/* The Island's dots for a colored group: the color, fuller when active. */
+.island-dot.dot-group-colored { background: color-mix(in srgb, var(--group-color) 45%, transparent); }
+.island-dot.dot-group-colored.active { background: var(--group-color); }
+.island-dot.dot-group-colored.private { background: transparent; border-color: var(--group-color); }
+.island-dot.dot-group-colored.private.active { background: color-mix(in srgb, var(--group-color) 45%, transparent); }
+
+/* Groups are tinted blocks, as in the island (.island-group-band), so runs of
+   ungrouped tabs between them need no heading (owner, 2026-10-17). */
+.vertical-tabs-group {
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 2px 0 4px;
+}
+/* Inside the block the header and rows darken the tint instead of repeating
+   it, and rows lose their own corners, as in the island. */
+.vertical-tabs-group .vertical-tabs-group-header:hover,
+.vertical-tabs-group .vertical-tabs-group-header.contains-active {
+  background: transparent;
+}
+.vertical-tabs-group .vertical-tab-row { border-radius: 0; }
+.vertical-tabs-group .vertical-tab-row:hover,
+.vertical-tabs-group .vertical-tab-row:focus-within {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--text) 5.5%, transparent) 12%,
+    color-mix(in srgb, var(--text) 5.5%, transparent) 88%,
+    transparent 100%
+  );
+}
+.vertical-tabs-group .vertical-tab-row.active { background: var(--accent-dim); }
 
 .vertical-tabs-group-header {
   width: 100%;
@@ -2326,6 +2379,43 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+  /* Its side gutters (shared rule below) sit in the panel's padding, so rows
+     line up with the address field above whether or not the list scrolls. */
+  margin-inline: -8px;
+}
+
+/* Scroll containers whose rows carry trailing controls (shortcut hints, pin,
+   close). macOS overlay scroll bars take no space, so they painted over the
+   rows' right edge; a styled ::-webkit-scrollbar is always a classic one, so
+   it takes the same reserved 8px on macOS (either "Show scroll bars" choice),
+   Windows and Linux. Reserving the gutter on both edges keeps the left inset
+   equal to the right, and the gutter is there even when the list fits, so
+   nothing shifts when it starts scrolling.
+   (Chromium ignores these pseudo-elements on an element that sets
+   scrollbar-width or scrollbar-color.) */
+#islandList,
+#islandDrawer,
+.vertical-tabs-list {
+  scrollbar-gutter: stable both-edges;
+}
+#islandList::-webkit-scrollbar,
+#islandDrawer::-webkit-scrollbar,
+.vertical-tabs-list::-webkit-scrollbar {
+  width: 8px;
+  background: transparent;
+}
+#islandList::-webkit-scrollbar-thumb,
+#islandDrawer::-webkit-scrollbar-thumb,
+.vertical-tabs-list::-webkit-scrollbar-thumb {
+  /* A 4px bar centered in the gutter, clear of the rows on both sides. */
+  border: 2px solid transparent;
+  border-radius: 4px;
+  background: var(--border) padding-box;
+}
+#islandList::-webkit-scrollbar-thumb:hover,
+#islandDrawer::-webkit-scrollbar-thumb:hover,
+.vertical-tabs-list::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-dim);
 }
 
 .island-row {
@@ -2940,8 +3030,11 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
   overflow-y: auto;
   overscroll-behavior: contain;
   margin-top: 6px;
+  margin-inline: -8px;
   padding-top: 2px;
-  border-top: 1px solid var(--border);
+  /* The divider, drawn inside the gutters so it stays as wide as the
+     footer's border-top (a border would run under the gutters). */
+  background: linear-gradient(var(--border), var(--border)) top / 100% 1px no-repeat;
 }
 #islandDrawer[hidden] { display: none; }
 
@@ -3928,3 +4021,88 @@ body:is([data-mode="spaces"], [data-closing="spaces"]) #workspaceSwitcher.ws-swi
 :root[data-space-tint="island"] .space-mark[data-state="space"] .space-mark-name { display: none; }
 :root[data-space-tint="frame"] #strip { background-image: linear-gradient(180deg, var(--space-band-wash, transparent), transparent); }
 :root[data-space-tint="frame"] .vertical-tabs-rail { background-image: linear-gradient(180deg, var(--space-band-wash, transparent), transparent 70%); }
+
+/* Group menu (tab group colors spec §6): the name, the color row and the
+   group actions, beside the header that opened it. The ⌘L panel hosts it in
+   place; from the side list it is the whole 'group-menu' overlay. */
+.group-menu {
+  position: fixed;
+  z-index: 6;
+  left: var(--group-menu-left, 8px);
+  top: var(--group-menu-top, 8px);
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  font-family: var(--font-text);
+  color: var(--text);
+  background: var(--surface-raised);
+  border: 1px solid color-mix(in srgb, var(--text) 6%, transparent);
+  border-radius: var(--island-panel-radius);
+  box-shadow: var(--shadow-popover);
+  pointer-events: auto;
+}
+.group-menu[hidden] { display: none; }
+.group-menu-name {
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  font: 13.5px/1 var(--font-text);
+}
+.group-menu-name:focus { outline: none; border-color: var(--text-dim); }
+.group-menu-notice { padding: 0 2px; color: var(--text-dim); font: 11.5px/1.4 var(--font-text); }
+.group-menu-notice[hidden] { display: none; }
+.group-menu-colors { display: flex; justify-content: space-between; padding: 2px 4px; }
+.ws-swatch.none { background: var(--surface); box-shadow: inset 0 0 0 1px var(--border); }
+.ws-swatch.none::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 3px;
+  bottom: 3px;
+  width: 1.5px;
+  background: var(--text-dim);
+  transform: translateX(-50%) rotate(45deg);
+}
+.group-menu-actions { display: flex; flex-direction: column; gap: 2px; padding-top: 6px; border-top: 1px solid var(--border); }
+.group-menu-action:disabled { color: var(--text-dim); cursor: default; background: none; }
+body[data-mode="group-menu"] { background: transparent; }
+
+/* The ⋮ on a group header shows on hover and keyboard focus, and while its
+   menu is open, so the resting list stays calm. */
+.ghead-more,
+.vertical-tabs-group-more {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  opacity: 0;
+}
+.ghead-more svg,
+.vertical-tabs-group-more svg { width: 14px; height: 14px; fill: currentColor; stroke: none; }
+.island-ghead:hover .ghead-more,
+.island-ghead:focus-within .ghead-more,
+.island-ghead.menu-open .ghead-more,
+.vertical-tabs-group-row:hover .vertical-tabs-group-more,
+.vertical-tabs-group-row:focus-within .vertical-tabs-group-more,
+.vertical-tabs-group-row.menu-open .vertical-tabs-group-more { opacity: 1; }
+.ghead-more:hover,
+.ghead-more:focus-visible,
+.vertical-tabs-group-more:hover,
+.vertical-tabs-group-more:focus-visible { color: var(--text); background: color-mix(in srgb, var(--text) 7%, transparent); outline: none; }
+
+.island-ghead .ghead-more + .ghead-kbd { margin-left: 4px; }
+.vertical-tabs-group-row { display: flex; align-items: center; gap: 2px; }
+.vertical-tabs-group-row .vertical-tabs-group-header { flex: 1 1 auto; min-width: 0; }
+.vertical-tabs-group-more { margin: 0 4px 0 0; flex: 0 0 auto; }

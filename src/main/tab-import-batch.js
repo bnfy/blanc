@@ -30,7 +30,7 @@ function resolveBatchGroupId(groups, groupName, createdGroupIds, randomId = () =
   if (existing) return existing.id;
   const id = String(randomId() ?? '');
   if (!id) return null;
-  groups.push({ id, name, collapsed: false });
+  groups.push({ id, name, collapsed: false, color: null });
   createdGroupIds.push(id);
   return id;
 }

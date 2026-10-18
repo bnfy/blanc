@@ -41,7 +41,7 @@ While reviewing the mockups the owner also asked to rename the other devices who
 - **A narrower address field.** The owner ruled this out when labeled New tab and Private pills were proposed for the address row.
 - New tab or Private that people don't recognize as new-tab buttons. Icon-only round buttons were mocked and rejected for this.
 - A footer pushed out of the window, or a drawer that hides the tab list entirely, when the Other devices drawer opens.
-- Ungrouped tabs appearing between groups, or anything else that breaks the list's order (pinned → groups → ungrouped).
+- Ungrouped tabs appearing between groups, or anything else that breaks the list's order (pinned → groups → ungrouped). *(Reversed by the owner on 2026-10-17: ungrouped tabs may sit between groups; see [2026-10-17 ungrouped tab placement](2026-10-17-ungrouped-tab-placement-design.md).)*
 - New, unfamiliar visual vocabulary. Recently closed reuses the group band; the drawer is an ordinary toggle opening an ordinary list.
 - A rename that shows on one Mac and not another, or two Macs that permanently disagree about a device's name.
 
@@ -71,7 +71,7 @@ While reviewing the mockups the owner also asked to rename the other devices who
 
 ### 4.1 Order
 
-The resting list is, top to bottom: Pinned (ungrouped pins, plain header as today) → named groups and the Recently closed band, in the user's order → ungrouped tabs. Recently closed starts directly under Pinned (or first, when nothing is pinned). Ungrouped tabs never sit between bands.
+The resting list is, top to bottom: Pinned (ungrouped pins, plain header as today) → named groups and the Recently closed band, in the user's order → ungrouped tabs. Recently closed starts directly under Pinned (or first, when nothing is pinned). Ungrouped tabs never sit between bands. *(Reversed 2026-10-17: ungrouped tabs may sit between bands, and the band's place counts them; see the 2026-10-17 ungrouped tab placement spec.)*
 
 Remote devices and the old "recently closed" furniture rows leave the bottom of the list (`renderList`'s `.island-furniture` block).
 

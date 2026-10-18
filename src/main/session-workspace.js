@@ -69,6 +69,12 @@ function entryFrom(source, fallbackId = PRIMARY_WINDOW_ID) {
     // Recently closed band position among the groups (0 = under Pinned, the
     // default, which is never written).
     ...(Number.isInteger(source.closedSlot) && source.closedSlot > 0 ? { closedSlot: source.closedSlot } : {}),
+    // The order is the order drawn, with ungrouped tabs between groups (spec
+    // 2026-10-17). Without it the window is laid out as earlier builds drew it.
+    ...(source.sectionOrder === true ? { sectionOrder: true } : {}),
+    // The band's place among groups and ungrouped tabs; closedSlot above
+    // stays the rollback copy, counting groups only.
+    ...(Number.isInteger(source.closedIndex) && source.closedIndex > 0 ? { closedIndex: source.closedIndex } : {}),
   };
 }
 

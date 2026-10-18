@@ -13,6 +13,7 @@ const vm = require('node:vm');
 // pure (no require('electron')) and imported for real, not stubbed.
 const { filterRestoredSession, restoreTargetId } = require('../../src/main/session-restore');
 const { clampClosedSlot } = require('../../src/main/closed-slot');
+const { groupRecord } = require('../../src/main/group-color');
 
 const NEW_TAB_URL = 'blanc://newtab/';
 
@@ -82,10 +83,12 @@ function applyHarness(runtime) {
       return id;
     },
     pruneEmptyGroups: () => calls.push(['pruneEmptyGroups']),
+    applySavedLayout: (_runtime, workspace, ids) => calls.push(['applySavedLayout', workspace, [...ids]]),
     setActiveTab: (id, opts) => calls.push(['setActiveTab', id, opts]),
     restorableUblockTool: () => false,
     filterRestoredSession,
     clampClosedSlot,
+    groupRecord,
     restoreTargetId,
     isUtilityUrl: () => false,
     isForbiddenTopLevelUrl: () => false,
@@ -121,7 +124,7 @@ test('runtime.groups is assigned from the workspace before the first createTab',
   const workspace = WORKSPACE({ groups: [{ id: 'g1', name: 'work', collapsed: true }] });
   const h = applyHarness(runtime);
   h.apply(workspace);
-  assert.deepEqual(h.groupsAtFirstCreate(), [{ id: 'g1', name: 'work', collapsed: true }],
+  assert.deepEqual(h.groupsAtFirstCreate(), [{ id: 'g1', name: 'work', collapsed: true, color: null }],
     'checklist point 5: createTab silently drops groupId unless the group already exists ' +
     'on the runtime, so groups must be swapped in before the FIRST createTab, not after');
 });
@@ -234,3 +237,16 @@ test('a save-as whose session binding fails reports the durable workspace id tru
 });
 
 // Switching/guard coverage imports workspace-controller directly.
+
+test('a Space is laid out from its saved order before a tab is selected', () => {
+  const runtime = { tabOrder: [], groups: [], closedSlot: 0, closedSlotIds: [] };
+  const harness = applyHarness(runtime);
+  const workspace = WORKSPACE();
+  harness.apply(workspace);
+  const names = harness.calls.map(([name]) => name);
+  const layout = harness.calls.find(([name]) => name === 'applySavedLayout');
+  assert.ok(layout, 'applySavedLayout was not called');
+  assert.equal(layout[1], workspace);
+  assert.deepEqual(layout[2], harness.calls.filter(([name]) => name === 'createTab').map((call) => call[3]).slice(0, layout[2].length));
+  assert.ok(names.indexOf('applySavedLayout') < names.indexOf('setActiveTab'));
+});

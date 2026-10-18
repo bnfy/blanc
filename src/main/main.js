@@ -160,7 +160,10 @@ const {
   shouldClearFaviconOnNavigate,
   updateFaviconAfterDomReady,
 } = require('./favicon-policy');
-const { effectiveTabMuted, revealTabAudio } = require('./tab-audio');
+const { effectiveTabMuted, shownMuted, revealTabAudio } = require('./tab-audio');
+const { hostOf, siteMuteKey, createSiteMutes } = require('./site-mute');
+// Mute Site: hosts muted until Blanc quits (tab menu additions spec §4).
+const siteMutes = createSiteMutes();
 const { shouldSamplePageTint, isPageTintSignal } = require('./page-tint-policy');
 const { createPageTintController } = require('./page-tint-controller');
 const { validFavicon } = require('./bookmark-validate');
@@ -176,7 +179,7 @@ const { installDockMenu } = require('./dock-menu');
 const { createDockReopenLifecycle } = require('./dock-reopen');
 /** Handle from installDockMenu ({ update }); null until app-ready (macOS). */
 let dockMenuHandle = null;
-const { closableTabIds, pickSurvivorTabId } = require('./tab-context-menu-model');
+const { closableTabIds, closableBeside, pickSurvivorTabId } = require('./tab-context-menu-model');
 const { attachChromeMenu, attachRowMenu } = require('./tab-context-menu');
 const { attachWorkspaceRowMenu } = require('./workspace-context-menu');
 const settings = require('./settings');
@@ -304,11 +307,12 @@ const {
   focusedPane,
   glanceLayoutPayload,
 } = require('./glance-focus');
-const { moveTab: resolveTabMove } = require('./tab-order');
-const { CLOSED_SECTION_ID, clampClosedSlot, reconcileClosedSlot, reorderGroupsWithClosed } = require('./closed-slot');
+const { moveTab: resolveTabMove, reorderItems } = require('./tab-order');
+const { CLOSED_SECTION_ID, clampClosedSlot, reconcileClosedSlot } = require('./closed-slot');
+const { sectionsOf, normalizeOrder, itemsOf, layoutItems, legacyOrder, placeInGroup } = require('../renderer/tab-sections');
 const { normalizeGroupName, sameGroupName, recaseSessionData } = require('./group-name-case');
+const { sanitizeGroupColor, groupRecord } = require('./group-color');
 const { deviceNamesEqual } = require('./device-names');
-const { attachGroupHeaderMenu } = require('./group-context-menu');
 const { attachDeviceHeaderMenu } = require('./device-context-menu');
 const { openLinkInGlance: openLinkInGlanceWith } = require('./glance-open-link');
 const { acceptOverlayDragState, resetOverlayDragState, overlayDragActive } = require('./overlay-drag-state');
@@ -1276,7 +1280,10 @@ function applyTabImport(sessionId, request = {}) {
 
   tabImportApplyBroadcasted = false;
   const priorTabOrder = [...rt().tabOrder];
-  const insertAt = computeBatchInsertAt(rt().tabOrder, rt().activeTabId);
+  // Imported tabs and groups land at the bottom, like any new tab: the tab
+  // order is drawn as is, so splicing beside the active tab would pull a
+  // same-named group up or split a run (spec 2026-10-17).
+  const insertAt = rt().tabOrder.length;
   const batch = createQuietTabsBatch(rt(), plan.tabs, { insertAt });
   if (batch.error) return batch;
 
@@ -3253,6 +3260,12 @@ function overlayBounds() {
       rowCount: captureRowCount(),
     });
   }
+  // The side list's group menu: a transparent layer over the whole window,
+  // so the menu can sit beside the header and a click anywhere else closes it.
+  if (rt().overlayMode === 'group-menu') {
+    const { width, height } = rt().window.getContentBounds();
+    return { x: 0, y: 0, width, height };
+  }
   if (rt().overlayMode === 'spaces') {
     return calculateSpacesBounds({
       windowWidth: rt().window.getContentBounds().width,
@@ -3556,7 +3569,8 @@ function createOverlay() {
     if (overlayDragActive(rt())) return;
     if (rt().overlayMode && input.type === 'keyDown' && input.key === 'Escape') {
       event.preventDefault();
-      if ((rt().workspaceSwitcherOpen || rt().overlayMode === 'shield') && rt().overlayView && !rt().overlayView.webContents.isDestroyed()) {
+      if ((rt().workspaceSwitcherOpen || rt().overlayMode === 'shield' || rt().overlayMode === 'group-menu')
+        && rt().overlayView && !rt().overlayView.webContents.isDestroyed()) {
         rt().overlayView.webContents.send('overlay:escape');
         return;
       }
@@ -3659,17 +3673,6 @@ function createOverlay() {
     actions: workspaceMenuContextActions(owner),
   });
   // Group headers in the panel: same webContents, guard and recording scheme.
-  attachGroupHeaderMenu(rt().overlayView.webContents, {
-    isLive: overlayMenuGuardDeps.isOverlayLive,
-    getWindow: overlayMenuGuardDeps.getWindow,
-    getOffset: overlayMenuGuardDeps.getOverlayBounds,
-    acquireMenuGuard: overlayMenuGuardDeps.acquireMenuGuard,
-    releaseMenuGuard: overlayMenuGuardDeps.releaseMenuGuard,
-    suppressIslandHover: bindWindowRuntime(owner, () => suppressIslandHover(owner)),
-    t: mainI18n.t,
-    resolveGroup: bindWindowRuntime(owner, (rawId) => rt().groups.find((g) => g.id === rawId) ?? null),
-    actions: groupMenuContextActions(owner),
-  });
   // Device headers in the Other devices drawer: Rename Device….
   attachDeviceHeaderMenu(rt().overlayView.webContents, {
     isLive: overlayMenuGuardDeps.isOverlayLive,
@@ -3715,6 +3718,13 @@ function showOverlay(mode, { prefill, purpose } = {}) {
     // panel. The strip snaps its own pill to rest on the same island-state.
     cancelPendingIslandProximity(rt());
     if (rt().islandProximity.k !== 0) sendIslandProximity(rt(), { k: 0 });
+  }
+  // Another surface replacing the side list's group menu: that header forgets
+  // its open state, as it does when the menu closes (hideOverlay).
+  if (rt().overlayMode === 'group-menu' && mode !== 'group-menu' && typeof rt().overlayPurpose?.groupId === 'string') {
+    rt().window.webContents.send('chrome:island-state', {
+      mode: null, trigger: `group-menu:${rt().overlayPurpose.groupId}`, restoreTrigger: null,
+    });
   }
   rt().overlayMode = mode;
   rt().overlayPrefill = prefill ?? null;
@@ -3835,6 +3845,7 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
           closingMode === 'shield' ? closingTrigger
             : closingMode === 'capture' ? 'capture'
               : closingMode === 'spaces' ? 'spaces'
+              : closingMode === 'group-menu' ? 'group-menu'
               // The Change control only exists while Glance is still open —
               // if the reference tab closed under the picker, fall through to
               // the ordinary content refocus instead of a hidden button.
@@ -3843,7 +3854,11 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
         )
       : null;
     if (restoreTrigger) rt().window.webContents.focus();
-    rt().window.webContents.send('chrome:island-state', { mode: null, trigger: null, restoreTrigger });
+    // The side list's group menu names its group so that header can forget
+    // its open state (and take focus back after Escape).
+    const closedTrigger = closingMode === 'group-menu' && typeof closingPurpose?.groupId === 'string'
+      ? `group-menu:${closingPurpose.groupId}` : null;
+    rt().window.webContents.send('chrome:island-state', { mode: null, trigger: closedTrigger, restoreTrigger });
     if (refocusContent && !restoreTrigger) liveContents(tabs.get(rt().activeTabId))?.focus();
     if (retracts) {
       // Wake proximity from where the cursor is now. Moves over the expanded
@@ -4547,11 +4562,13 @@ function serializeTabs() {
         blockedCount: tab.blockedCount,
         private: tab.private,
         pinned: tab.pinned,
-        muted: tab.muted,
+        // shownMuted() in tab-audio.js, spelled out: this projection stays
+        // self-contained for the tests that lift it.
+        muted: !!(tab.muted || (tab.siteMuted && !tab.siteUnmuted)),
         // isCurrentlyAudible() describes a playing stream even when Electron
         // has muted its output. Chrome should report sound only when it can
         // actually reach the speakers.
-        audible: tab.audible && !(tab.muted || tab.backgroundAutoplayMuted),
+        audible: tab.audible && !(tab.muted || tab.backgroundAutoplayMuted || (tab.siteMuted && !tab.siteUnmuted)),
         groupId: tab.groupId,
         pageBg: islandSiteColors ? tab.pageBg : null,
         themeColor: islandSiteColors ? tab.themeColor : null,
@@ -4700,12 +4717,18 @@ app.on('before-quit', () => {
 function captureWindowEntry(runtime, { previousActiveIndex = 0 } = {}) {
   // Private tabs leave no trail, error pages persist their real destination,
   // and url-less adopted children drop out in lockstep with their metadata.
+  syncTabLayout(runtime);
   const entries = persistableEntries(runtime.tabOrder.map((id) => tabs.get(id)));
-  syncClosedSlot(runtime);
   const persistedGroups = runtime.groups.filter((group) => entries.some((item) => item.groupId === group.id));
-  // The band's slot counts only groups that are written, so a group held
-  // only by private tabs never shifts it on the next launch.
-  const closedSlot = runtime.groups.slice(0, runtime.closedSlot).filter((group) => persistedGroups.includes(group)).length;
+  // The band's place counts only items that are written, so a private tab or
+  // a group held only by private tabs never shifts it on the next launch.
+  // closedIndex counts groups and ungrouped tabs; closedSlot, the rollback
+  // copy, counts groups only.
+  const persistedIds = new Set(entries.map((item) => item.id));
+  const above = itemsOf(tabLayoutList(runtime)).slice(0, runtime.closedSlot)
+    .filter((item) => (item.groupId ? persistedGroups.some((group) => group.id === item.id) : persistedIds.has(item.id)));
+  const closedIndex = above.length;
+  const closedSlot = above.filter((item) => item.groupId).length;
   const entry = {
     id: runtime.id,
     profileId: runtime.profileId,
@@ -4726,6 +4749,8 @@ function captureWindowEntry(runtime, { previousActiveIndex = 0 } = {}) {
     } : {}),
     groups: persistedGroups,
     ...(closedSlot > 0 ? { closedSlot } : {}),
+    sectionOrder: true,
+    ...(closedIndex > 0 ? { closedIndex } : {}),
     activeIndex: previousActiveIndex,
   };
   // A private or provisional active tab preserves this window's last good
@@ -4983,7 +5008,7 @@ function currentTabsPayload() {
   // derived a single time per broadcast.
   const serialized = serializeTabs();
   const runtime = rt();
-  syncClosedSlot(runtime);
+  syncTabLayout(runtime);
   return {
     tabs: serialized,
     activeTabId: runtime.activeTabId,
@@ -5398,34 +5423,30 @@ function scheduleSampleTint(tab) {
 
 // --- Tab groups (Island Tab Groups design) ---
 
-/** Pill/panel cluster order: each non-empty group in group order, then a
- * trailing pseudo-cluster of ungrouped, unpinned tabs. Pinned members stay
- * inside their named group and lead that group's rows; only ungrouped pins
- * use the standalone pinned shelf. Cmd/Ctrl+1–9 jump by this. */
+/** One window's tabs as tab-sections.js reads them, in tab order. */
+function tabLayoutList(runtime) {
+  return runtime.tabOrder
+    .map((id) => tabs.get(id))
+    .filter(Boolean)
+    .map((tab) => ({ id: tab.id, groupId: tab.groupId ?? null, pinned: !!tab.pinned }));
+}
+
+/** Pill/panel cluster order: groups and runs of ungrouped tabs, in tab order
+ * (spec 2026-10-17). Pinned members stay inside their named group and lead
+ * that group's rows; only ungrouped pins use the standalone pinned shelf.
+ * Cmd/Ctrl+1–9 jump by this. A run's `key` is 'run:' + its first tab id. */
 function clusterList() {
-  const list = [];
-  for (const g of rt().groups) {
-    const members = rt().tabOrder.filter((id) => tabs.get(id)?.groupId === g.id);
-    const tabIds = [
-      ...members.filter((id) => tabs.get(id)?.pinned),
-      ...members.filter((id) => !tabs.get(id)?.pinned),
-    ];
-    if (tabIds.length) list.push({ group: g, tabIds });
-  }
-  const loose = rt().tabOrder.filter((id) => tabs.get(id) && !tabs.get(id).groupId && !tabs.get(id).pinned);
-  if (loose.length) list.push({ group: null, tabIds: loose });
-  return list;
+  const byId = new Map(rt().groups.map((group) => [group.id, group]));
+  return sectionsOf(tabLayoutList(rt()))
+    .map(({ key, groupId, tabIds }) => ({ key, group: groupId ? byId.get(groupId) ?? null : null, tabIds }))
+    .filter(({ group, key }) => group || key.startsWith('run:'));
 }
 
 /** clusterList() plus a leading pseudo-cluster for ungrouped pinned tabs,
  * each slot tagged with a stable key — the one definition of "cluster order"
  * shared by Cmd/Ctrl+1–9 and the ⌥⌘ arrow navigation. */
 function clusterSlots() {
-  const slots = clusterList().map(({ group, tabIds }) => ({
-    key: group ? group.id : 'loose',
-    group,
-    tabIds,
-  }));
+  const slots = clusterList().map(({ key, group, tabIds }) => ({ key, group, tabIds }));
   const pinnedIds = rt().tabOrder.filter((id) => tabs.get(id)?.pinned && !tabs.get(id)?.groupId);
   if (pinnedIds.length) slots.unshift({ key: 'pinned', group: null, tabIds: pinnedIds });
   return slots;
@@ -5437,7 +5458,9 @@ function clusterSlots() {
 // first tab wins.
 
 function clusterKeyForTab(tab) {
-  return tab.groupId ?? (tab.pinned ? 'pinned' : 'loose');
+  if (tab.groupId) return tab.groupId;
+  if (tab.pinned) return 'pinned';
+  return sectionsOf(tabLayoutList(rt())).find((section) => section.tabIds.includes(tab.id))?.key ?? 'loose';
 }
 
 /** A group exists only while it holds tabs — closing or moving out the
@@ -5455,7 +5478,14 @@ function setTabGroup(tabId, groupId) {
   // A requested group that no longer exists (a picker click racing the
   // group's dissolution) is a no-op — it must not ungroup the tab instead.
   if (groupId && !rt().groups.some((g) => g.id === groupId)) return;
-  tab.groupId = groupId || null;
+  const from = tab.groupId ?? null;
+  const to = groupId || null;
+  if (from !== to) {
+    // Joining lands at the end of the group; leaving lands directly below the
+    // group left (spec 2026-10-17 §5.3).
+    rt().tabOrder = placeInGroup(rt().tabOrder, tabLayoutList(rt()), tabId, to ?? from);
+  }
+  tab.groupId = to;
   pruneEmptyGroups();
   broadcastTabs();
   scheduleMenuRebuild();
@@ -5474,9 +5504,15 @@ function groupTabByName(tabId, rawName, { adoptCase = false } = {}) {
   if (!tab || !name) return;
   let group = rt().groups.find((g) => sameGroupName(g.name, name));
   if (group && adoptCase && name !== name.toLowerCase()) group.name = name;
+  const from = tab.groupId ?? null;
   if (!group) {
-    group = { id: crypto.randomUUID(), name, collapsed: false };
+    group = { id: crypto.randomUUID(), name, collapsed: false, color: null };
     rt().groups.push(group);
+    // A new group appears where its tab was; a tab leaving another group
+    // first moves directly below that group (spec 2026-10-17 §3.3).
+    if (from) rt().tabOrder = placeInGroup(rt().tabOrder, tabLayoutList(rt()), tabId, from);
+  } else if (from !== group.id) {
+    rt().tabOrder = placeInGroup(rt().tabOrder, tabLayoutList(rt()), tabId, group.id);
   }
   tab.groupId = group.id;
   pruneEmptyGroups();
@@ -5495,6 +5531,20 @@ function renameGroup(groupId, rawName) {
   if (!name || name === group.name) return { ok: true };
   if (runtime.groups.some((g) => g !== group && sameGroupName(g.name, name))) return { ok: false, error: 'duplicate' };
   group.name = name;
+  broadcastTabs();
+  scheduleMenuRebuild();
+  return { ok: true };
+}
+
+/** Give a group one of the Spaces preset colors, or none with null (spec
+ * 2026-10-17-tab-group-colors-design.md). Anything but a preset is refused
+ * and changes nothing. */
+function setGroupColor(groupId, color) {
+  const group = rt().groups.find((g) => g.id === groupId);
+  if (!group) return { ok: false };
+  const next = sanitizeGroupColor(color);
+  if (color != null && next === null) return { ok: false };
+  group.color = next;
   broadcastTabs();
   scheduleMenuRebuild();
   return { ok: true };
@@ -5608,8 +5658,10 @@ function closeGroup(groupId) {
   // Capture EVERYTHING first: pruneEmptyGroups destroys the record mid-loop
   // otherwise, and quiet members must be snapshotted, never woken (§2.2).
   const entry = buildGroupEntry({
-    id: group.id, name: group.name, collapsed: group.collapsed,
-    index: runtime.groups.indexOf(group),
+    // The group's place among the window's top-level items (groups and
+    // ungrouped tabs), so it reopens where it was (spec 2026-10-17).
+    id: group.id, name: group.name, collapsed: group.collapsed, color: group.color ?? null,
+    index: itemsOf(tabLayoutList(runtime)).findIndex((item) => item.id === group.id),
     activeMemberIndex: Math.max(0, ids.indexOf(runtime.activeTabId)),
   }, ids.map(closedMemberRecord), Date.now());
   const anchorIndex = runtime.tabOrder.indexOf(ids[0]);
@@ -5658,7 +5710,7 @@ function workspaceCapture(runtime, { previousActiveIndex = 0 } = {}) {
   const entry = captureWindowEntry(runtime, { previousActiveIndex });
   return {
     ...entry,
-    groups: entry.groups.map((group) => ({ id: group.id, name: group.name, collapsed: !!group.collapsed })),
+    groups: entry.groups.map(groupRecord),
   };
 }
 
@@ -6107,7 +6159,7 @@ function applyWorkspaceToWindow(runtime, workspace) {
     // mirror image of workspaceCapture's fix above, on the read side).
     runtime.groups = (Array.isArray(workspace.groups) ? workspace.groups : [])
       .filter((group) => group && typeof group.id === 'string' && typeof group.name === 'string')
-      .map((group) => ({ id: group.id, name: group.name, collapsed: !!group.collapsed }));
+      .map(groupRecord);
     runtime.closedSlot = clampClosedSlot(workspace.closedSlot, runtime.groups.length);
     runtime.closedSlotIds = runtime.groups.map((group) => group.id);
 
@@ -6138,6 +6190,7 @@ function applyWorkspaceToWindow(runtime, workspace) {
       managedExtension: restorableUblockTool(url),
     }));
     pruneEmptyGroups();
+    applySavedLayout(runtime, workspace, restoredIds);
     const target = restoreTargetId(restoredIds, cleaned.activeIndex);
     // 8. A workspace with nothing left after filtering (or saved empty) must
     // never leave the window tabless. NEW_TAB_URL, not newTabUrl() — the
@@ -6206,6 +6259,12 @@ function toggleTabPinned(id) {
   tab.pinnedHomeUrl = tab.pinned
     ? pinnedHomeFor(tab.url, { localFile: tab.localFile === true })
     : null;
+  // Ungrouped pins sit first in the tab order; an unpinned one goes to the
+  // bottom with the other new ungrouped tabs, not above every group.
+  if (!tab.pinned && !tab.groupId) {
+    const runtime = windowRuntimes.runtimeForTab(id) ?? rt();
+    runtime.tabOrder = [...runtime.tabOrder.filter((tabId) => tabId !== id), id];
+  }
   broadcastTabs();
   scheduleMenuRebuild();
   return tab.pinned;
@@ -6214,14 +6273,21 @@ function toggleTabPinned(id) {
 function toggleTabMuted(id) {
   const tab = tabs.get(id);
   if (!tab) return false;
-  tab.muted = !tab.muted;
+  // Unmuting a tab on a muted site overrides the site for this tab only
+  // (tab menu additions spec §4); muting it again is the person's own mute.
+  if (shownMuted(tab)) {
+    tab.muted = false;
+    if (tab.siteMuted) tab.siteUnmuted = true;
+  } else {
+    tab.muted = true;
+  }
   // An explicit user choice supersedes the temporary background-autoplay
   // guard. This keeps the visible mute control truthful in both directions.
   tab.backgroundAutoplayMuted = false;
   liveContents(tab)?.setAudioMuted(effectiveTabMuted(tab));
   broadcastTabs();
   scheduleMenuRebuild();
-  return tab.muted;
+  return shownMuted(tab);
 }
 
 function duplicateTab(id) {
@@ -6259,6 +6325,7 @@ function duplicateTab(id) {
  */
 function onMainFrameCommit(tab, { url, httpResponseCode }) {
   if (!isSupportedLocalHtmlUrl(url)) tab.localFile = false;
+  refreshSiteMute(tab, url);
   // "This document has played media" is cleared ONLY here — clearing on pause
   // would unprotect exactly the paused video this rule exists to protect.
   tab.usedMedia = false;
@@ -6571,6 +6638,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     httpEntryCount: 0,        // http(s) entries in navigationHistory
   };
   tabs.set(id, tab);
+  refreshSiteMute(tab, url); // a muted site's new tab starts muted (Mute Site)
   // A background-created tab (cmd-click, session restore, window.open child)
   // never passes through setActiveTab, so it would otherwise never be stamped.
   // A foreground creation overwrites this the moment it is deactivated.
@@ -6787,7 +6855,7 @@ function setActiveTab(id, {
   // Find state is per-tab; a stale capsule over a different page misleads.
   // The shield popover describes one tab's site — same rule. The Spaces menu
   // describes this window, but a switch away from it is a fresh context too.
-  if (['find', 'shield', 'capture', 'spaces'].includes(rt().overlayMode)) {
+  if (['find', 'shield', 'capture', 'spaces', 'group-menu'].includes(rt().overlayMode)) {
     hideOverlay({ refocusContent: false });
   }
 
@@ -7118,7 +7186,7 @@ function reopenGroupEntry(entry) {
   const runtime = rt();
   let group = runtime.groups.find((g) => sameGroupName(g.name, entry.group.name));
   if (!group) {
-    group = { id: entry.group.id, name: entry.group.name, collapsed: !!entry.group.collapsed };
+    group = groupRecord(entry.group);
     runtime.groups.splice(Math.min(entry.group.index, runtime.groups.length), 0, group);
   }
   const ids = entry.tabs.map((member) => {
@@ -7140,6 +7208,9 @@ function reopenGroupEntry(entry) {
     return id;
   }).filter(Boolean);
   if (ids.length === 0) return;
+  const items = itemsOf(tabLayoutList(runtime)).map((item) => item.id).filter((id) => id !== group.id);
+  items.splice(Math.min(Math.max(entry.group.index, 0), items.length), 0, group.id);
+  runtime.tabOrder = layoutItems(items, tabLayoutList(runtime));
   setActiveTab(ids[Math.min(entry.activeMemberIndex, ids.length - 1)]);
   broadcastTabs();
   scheduleMenuRebuild();
@@ -7371,6 +7442,87 @@ function sleepTabNow(id) {
  * doomed tabs; closeTab's own comment forbids that caller pattern), close
  * with record/selectReplacement off, then record ONE batch entry so a single
  * ⌘⇧T undoes the whole action instead of flooding the 25-entry history. */
+/** Close Tabs Above / Below (tab menu additions spec §3): every unpinned
+ * tab before or after `keepId` in the window's order, as one Recently closed
+ * entry, keeping the selection on `keepId`. */
+function closeTabsBeside(keepId, direction) {
+  if (!tabs.has(keepId) || windowRuntimes.runtimeForTab(keepId) !== rt()) return;
+  if (direction !== 'above' && direction !== 'below') return;
+  const doomed = closableBeside({ tabOrder: [...rt().tabOrder], tabsById: tabs, keepId, direction });
+  if (!doomed.length) return;
+  const entry = buildBatchEntry(doomed.map(closedMemberRecord), Date.now());
+  if (rt().activeTabId !== keepId) setActiveTab(keepId, { focusContent: false });
+  for (const id of doomed) closeTab(id, { record: false, selectReplacement: false });
+  if (entry.tabs.length > 0) pushClosedEntry(entry);
+  broadcastTabs();
+  scheduleMenuRebuild();
+}
+
+/** New Tab Below (tab menu additions spec §2): a new tab directly under
+ * `tabId`, inside its group if it has one. Under a pin it opens as the first
+ * tab after the pins (the group's for a grouped pin). A private tab makes a
+ * private tab, never grouped. */
+function newTabBelow(tabId) {
+  const runtime = rt();
+  const source = tabs.get(tabId);
+  if (!source || !runtime.tabOrder.includes(tabId)) return null;
+  const isPrivate = !!source.private;
+  const groupId = isPrivate ? null : (source.groupId ?? null);
+  const id = createTab(isPrivate ? PRIVATE_NEW_TAB_URL : newTabUrl(), { private: isPrivate, groupId });
+  if (!id) return null;
+  const order = runtime.tabOrder.filter((tid) => tid !== id);
+  const isShelfPin = (tid) => !!tabs.get(tid)?.pinned && !tabs.get(tid)?.groupId;
+  let at;
+  if (!source.pinned) {
+    at = order.indexOf(tabId) + 1;
+  } else if (groupId) {
+    const firstUnpinned = order.findIndex((tid) => tabs.get(tid)?.groupId === groupId && !tabs.get(tid)?.pinned);
+    at = firstUnpinned !== -1 ? firstUnpinned : order.findLastIndex((tid) => tabs.get(tid)?.groupId === groupId) + 1;
+  } else {
+    at = order.findLastIndex(isShelfPin) + 1;
+  }
+  order.splice(at, 0, id);
+  runtime.tabOrder = order;
+  setActiveTab(id, { focusContent: false, focusAddress: true });
+  broadcastTabs();
+  return id;
+}
+
+/** Mute Site / Unmute Site: toggles the tab's exact host for its profile
+ * (private tabs apart) until Blanc quits, on every matching tab. */
+function toggleSiteMute(tabId) {
+  const tab = tabs.get(tabId);
+  const host = hostOf(tab?.url);
+  if (!tab || !host) return false;
+  const key = siteMuteKey(tab);
+  const muted = siteMutes.toggle(key, host);
+  for (const other of tabs.values()) {
+    if (siteMuteKey(other) !== key || hostOf(other.url) !== host) continue;
+    other.siteMuted = muted;
+    other.siteUnmuted = false;
+    other.siteMuteHost = host;
+    liveContents(other)?.setAudioMuted(effectiveTabMuted(other));
+  }
+  broadcastTabs();
+  scheduleMenuRebuild();
+  return muted;
+}
+
+/** After a navigation: a tab on a muted host is muted; moving to another
+ * host drops a one-tab unmute. */
+function refreshSiteMute(tab, url = tab.url) {
+  // Compare what the page hears, not just the flag: a one-tab unmute that
+  // ends on another muted site changes the audio while siteMuted stays true.
+  const before = effectiveTabMuted(tab);
+  const host = hostOf(url);
+  if (host !== (tab.siteMuteHost ?? null)) {
+    tab.siteUnmuted = false;
+    tab.siteMuteHost = host;
+  }
+  tab.siteMuted = siteMutes.has(siteMuteKey(tab), host);
+  if (effectiveTabMuted(tab) !== before) liveContents(tab)?.setAudioMuted(effectiveTabMuted(tab));
+}
+
 function closeOtherTabsInWindow(keepId) {
   if (!tabs.has(keepId) || windowRuntimes.runtimeForTab(keepId) !== rt()) return;
   const doomed = closableTabIds({ tabOrder: [...rt().tabOrder], tabsById: tabs, keepId });
@@ -7455,6 +7607,14 @@ function finishReopen(id, entry) {
     order.splice(from, 1);
     order.splice(Math.min(entry.index, order.length), 0, id);
   }
+  // A tab back beside a member of its group keeps that slot; one that came
+  // back outside its group's block rejoins at the group's end, so it never
+  // drags the group to where it landed.
+  const groupId = tabs.get(id)?.groupId;
+  const at = rt().tabOrder.indexOf(id);
+  const besideMember = [rt().tabOrder[at - 1], rt().tabOrder[at + 1]]
+    .some((neighbour) => neighbour && tabs.get(neighbour)?.groupId === groupId);
+  if (groupId && !besideMember) rt().tabOrder = placeInGroup(rt().tabOrder, tabLayoutList(rt()), id, groupId);
   if (!tabs.get(id)?.groupId && entry.groupName) groupTabByName(id, entry.groupName);
   setActiveTab(id);
   broadcastTabs();
@@ -7478,19 +7638,53 @@ function moveTabTo(id, target) {
   if (typeof beforeId === 'string' && windowRuntimes.runtimeForTab(beforeId) !== rt()) return false;
   // Renderer input is only a proposal. Main re-resolves every id against its
   // live model; a stale/cross-window/pin-crossing target is rejected.
-  const result = resolveTabMove(rt().tabOrder, tabs, rt().groups, id, target);
+  const runtime = rt();
+  syncTabLayout(runtime);
+  // An ungrouped place directly above or below the Recently closed band
+  // resolves to the same tab order, so the band side travels separately:
+  // beforeId 'recently-closed' means directly above the band, and the first
+  // item below the band means directly below it (spec 2026-10-17 §6).
+  const items = itemsOf(tabLayoutList(runtime)).map((item) => item.id);
+  const others = items.filter((itemId) => itemId !== id);
+  const ownAt = items.indexOf(id);
+  const firstBelow = others[runtime.closedSlot - (ownAt !== -1 && ownAt < runtime.closedSlot ? 1 : 0)] ?? null;
+  const itemOf = (tabId) => tabs.get(tabId)?.groupId ?? tabId;
+  // Only an unpinned tab going ungrouped can sit beside the band.
+  const toLoose = target?.groupId === null && !tabs.get(id)?.pinned;
+  let bandSide = null;
+  let resolved = target;
+  if (toLoose && target.beforeId === CLOSED_SECTION_ID) {
+    // The first item below the band is a loose tab or a group (its first tab).
+    const lead = firstBelow === null || tabs.has(firstBelow) ? firstBelow
+      : sectionsOf(tabLayoutList(runtime)).find((section) => section.groupId === firstBelow)?.tabIds[0] ?? null;
+    resolved = { ...target, beforeId: lead };
+    bandSide = 'after';
+  } else if (toLoose && typeof target.beforeId === 'string' && firstBelow !== null
+    && itemOf(target.beforeId) === firstBelow) {
+    bandSide = 'before';
+  } else if (toLoose && target.beforeId === null && firstBelow === null) {
+    // The end of the list, below a band that sits last.
+    bandSide = 'before';
+  }
+  const result = resolveTabMove(runtime.tabOrder, tabs, runtime.groups, id, resolved);
   if (!result) return false;
   const tab = tabs.get(id);
   const groupChanged = (tab.groupId ?? null) !== result.groupId;
-  const orderChanged = result.order.some((tabId, index) => rt().tabOrder[index] !== tabId);
-  if (!groupChanged && !orderChanged) return true;
-  rt().tabOrder = result.order;
+  const orderChanged = result.order.some((tabId, index) => runtime.tabOrder[index] !== tabId);
+  if (!groupChanged && !orderChanged && !bandSide) return true;
+  runtime.tabOrder = result.order;
   if (groupChanged) {
     // Same effect as Move to Group (setTabGroup): a group whose last tab
     // left dissolves; the target keeps its collapsed state.
     tab.groupId = result.groupId;
     pruneEmptyGroups();
   }
+  const after = itemsOf(tabLayoutList(runtime)).map((item) => item.id);
+  const movedAt = after.indexOf(id);
+  runtime.closedSlot = bandSide && movedAt !== -1
+    ? movedAt + (bandSide === 'after' ? 1 : 0)
+    : reconcileClosedSlot(items, runtime.closedSlot, after, id);
+  runtime.closedSlotIds = after;
   broadcastTabs();
   scheduleMenuRebuild();
   return true;
@@ -7512,12 +7706,27 @@ function recaseSavedGroupNamesOnce() {
   settings.markGroupNamesRecased();
 }
 
-/** Keep the ⌘L panel's Recently closed band where the user left it across
- * any change to this window's groups (spec 2026-10-16 §4.4). Groups change in
- * many places; this one reconciliation runs before every payload and capture
- * instead of each of them adjusting the slot. */
-function syncClosedSlot(runtime) {
-  const ids = runtime.groups.map((group) => group.id);
+/** Keep one order for this window (spec 2026-10-17): the tab order becomes
+ * groups and runs of ungrouped tabs exactly as drawn, `groups` follows it,
+ * and the ⌘L panel's Recently closed band stays where the user left it
+ * (spec 2026-10-16 §4.4). The band's slot is an item index: the number of
+ * groups and ungrouped tabs above it. Tabs and groups change in many places;
+ * this one reconciliation runs before every payload and capture instead of
+ * each of them adjusting the order. */
+function syncTabLayout(runtime) {
+  const list = tabLayoutList(runtime);
+  const live = new Set(list.map((tab) => tab.id));
+  const order = [...normalizeOrder(list), ...runtime.tabOrder.filter((id) => !live.has(id))];
+  if (order.some((id, index) => runtime.tabOrder[index] !== id)) runtime.tabOrder = order;
+  const rank = new Map(sectionsOf(list).filter((s) => s.groupId).map((s, index) => [s.groupId, index]));
+  const ranked = (group) => rank.get(group.id) ?? rank.size;
+  if (runtime.groups.some((group, index) => index > 0 && ranked(runtime.groups[index - 1]) > ranked(group))) {
+    runtime.groups = runtime.groups
+      .map((group, index) => ({ group, index }))
+      .sort((a, b) => ranked(a.group) - ranked(b.group) || a.index - b.index)
+      .map(({ group }) => group);
+  }
+  const ids = itemsOf(list).map((item) => item.id);
   const known = runtime.closedSlotIds ?? [];
   if (ids.length !== known.length || ids.some((id, index) => id !== known[index])) {
     runtime.closedSlot = reconcileClosedSlot(known, runtime.closedSlot, ids);
@@ -7526,34 +7735,67 @@ function syncClosedSlot(runtime) {
   runtime.closedSlot = clampClosedSlot(runtime.closedSlot, ids.length);
 }
 
-function reorderGroupBefore(id, beforeGroupId) {
+/** Lay out a window just restored from a saved entry (session or Space).
+ * An entry saved by a build before sections (no `sectionOrder`) is drawn as
+ * that build drew it: groups in saved order, then ungrouped tabs, with the
+ * band's slot counting groups. Otherwise the saved order already is the
+ * drawn order and `closedIndex` counts the restored items above the band;
+ * any other tab in the window (the startup tab) is new to it and the band
+ * keeps its place relative to the restored items (spec 2026-10-17 §4). */
+function applySavedLayout(runtime, saved, restoredIds) {
+  const groupIds = runtime.groups.map((group) => group.id);
+  if (saved?.sectionOrder !== true) {
+    const savedOrder = (Array.isArray(saved?.groups) ? saved.groups : []).map((group) => group?.id);
+    const live = new Set(tabLayoutList(runtime).map((tab) => tab.id));
+    runtime.tabOrder = [
+      ...legacyOrder(tabLayoutList(runtime), savedOrder),
+      ...runtime.tabOrder.filter((id) => !live.has(id)),
+    ];
+    // Laid out as groups then ungrouped tabs, the old slot (groups above the
+    // band) already is the item index; record the items so nothing reconciles.
+    const known = savedOrder.filter((id) => groupIds.includes(id));
+    runtime.closedSlot = clampClosedSlot(saved?.closedSlot ?? 0, known.length);
+    runtime.closedSlotIds = itemsOf(tabLayoutList(runtime)).map((item) => item.id);
+  } else {
+    const restored = new Set(restoredIds);
+    const ids = itemsOf(tabLayoutList(runtime).filter((tab) => restored.has(tab.id))).map((item) => item.id);
+    runtime.closedSlot = clampClosedSlot(saved.closedIndex ?? 0, ids.length);
+    runtime.closedSlotIds = ids;
+  }
+  syncTabLayout(runtime);
+}
+
+function reorderGroupBefore(id, beforeId) {
   // rt().groups is per-window, so another window's group id simply fails.
-  // beforeGroupId may be the Recently closed band: the group lands directly
-  // above it. The band itself moves through moveClosedSection.
+  // beforeId is a top-level item: a group, an ungrouped tab (the group lands
+  // directly above it), the Recently closed band, or null for the end. The
+  // band itself moves through moveClosedSection.
   const runtime = rt();
-  if (id === CLOSED_SECTION_ID) return false;
-  syncClosedSlot(runtime);
-  const next = reorderGroupsWithClosed(runtime.groups.map((group) => group.id), runtime.closedSlot, id, beforeGroupId);
+  if (id === CLOSED_SECTION_ID || !runtime.groups.some((group) => group.id === id)) return false;
+  syncTabLayout(runtime);
+  const items = itemsOf(tabLayoutList(runtime)).map((item) => item.id);
+  const next = reorderItems(items, runtime.closedSlot, id, beforeId);
   if (!next) return false;
-  const byId = new Map(runtime.groups.map((group) => [group.id, group]));
-  const groups = next.order.map((groupId) => byId.get(groupId));
-  if (next.slot !== runtime.closedSlot || groups.some((group, index) => runtime.groups[index] !== group)) {
-    runtime.groups = groups;
+  const order = layoutItems(next.order, tabLayoutList(runtime));
+  if (next.slot !== runtime.closedSlot || order.some((tabId, index) => runtime.tabOrder[index] !== tabId)) {
+    runtime.tabOrder = order;
     runtime.closedSlot = next.slot;
     runtime.closedSlotIds = next.order;
+    syncTabLayout(runtime);
     broadcastTabs();
     scheduleMenuRebuild();
   }
   return true;
 }
 
-/** Move the Recently closed band before `beforeGroupId` (null = after the
- * last group). Group order never changes. */
-function moveClosedSection(beforeGroupId) {
+/** Move the Recently closed band before a top-level item (a group or an
+ * ungrouped tab), or to the end with null. The tab order never changes. */
+function moveClosedSection(beforeId) {
   const runtime = rt();
-  if (beforeGroupId === CLOSED_SECTION_ID) return false;
-  syncClosedSlot(runtime);
-  const next = reorderGroupsWithClosed(runtime.groups.map((group) => group.id), runtime.closedSlot, CLOSED_SECTION_ID, beforeGroupId);
+  if (beforeId === CLOSED_SECTION_ID) return false;
+  syncTabLayout(runtime);
+  const items = itemsOf(tabLayoutList(runtime)).map((item) => item.id);
+  const next = reorderItems(items, runtime.closedSlot, CLOSED_SECTION_ID, beforeId);
   if (!next) return false;
   if (next.slot !== runtime.closedSlot) {
     runtime.closedSlot = next.slot;
@@ -8064,15 +8306,6 @@ function sendWorkspaceAction(kind, workspaceId) {
   const wc = rt().overlayView?.webContents;
   if (wc && !wc.isDestroyed()) wc.send('overlay:workspace-action', { kind, id: workspaceId });
 }
-function groupMenuContextActions(owner) {
-  const b = (fn) => bindWindowRuntime(owner, fn);
-  return {
-    rename: b((id) => beginRenameGroup(id)),
-    ungroup: b((id) => ungroupGroup(id)),
-    closeGroup: b((id) => closeGroup(id)),
-  };
-}
-
 function workspaceMenuContextActions(owner) {
   const b = (fn) => bindWindowRuntime(owner, fn);
   return {
@@ -8221,9 +8454,9 @@ function registerIpcHandlers() {
   chromeHandle('tabs:create', (_e, url, opts) => {
     const isPrivate = !!opts?.private;
     // A plain new tab is deliberately ungrouped — createTab defaults groupId
-    // to null and we intentionally don't pass one. Only window.open/context-
-    // menu children inherit the opener's group (see CLAUDE.md → Tab groups);
-    // don't copy that `groupId: tab.groupId` pattern into new-tab entry points.
+    // to null and we intentionally don't pass one. Link children
+    // (window.open, context menu) open ungrouped too (see CLAUDE.md → Tab
+    // groups); only explicit grouping moves a tab into a group.
     const id = createTab(url || (isPrivate ? PRIVATE_NEW_TAB_URL : newTabUrl()), {
       private: isPrivate,
     });
@@ -8313,6 +8546,9 @@ function registerIpcHandlers() {
   chromeHandle('groups:reorder', (_e, id, beforeGroupId) => reorderGroupBefore(id, beforeGroupId));
   chromeHandle('groups:move-closed', (_e, beforeGroupId) => moveClosedSection(beforeGroupId));
   chromeHandle('groups:rename', (_e, id, name) => renameGroup(id, name));
+  chromeHandle('groups:set-color', (_e, id, color) => setGroupColor(id, color));
+  chromeHandle('groups:new-tab', (_e, id) => newTabInGroup(id) !== null);
+  chromeHandle('groups:move-to-new-window', (_e, id) => moveGroupToNewWindow(id));
   chromeHandle('groups:ungroup', (_e, id) => ungroupGroup(id));
   chromeOn('overlay:drag-state', (event, active) => {
     acceptOverlayDragState(rt(), event.sender, active);
@@ -8334,7 +8570,7 @@ function registerIpcHandlers() {
       openInternalPage(`blanc://${name}/`);
     }
   });
-  chromeHandle('tabs:get-all', () => (syncClosedSlot(rt()), {
+  chromeHandle('tabs:get-all', () => (syncTabLayout(rt()), {
     tabs: serializeTabs(),
     activeTabId: rt().activeTabId,
     glanceTabId: activeGlanceTab()?.id ?? null,
@@ -8444,6 +8680,15 @@ function registerIpcHandlers() {
   // The Island's space mark opens the Spaces menu on its own, tight around it.
   // Escape, blur, a click outside, a tab switch or a space switch close it;
   // focus returns to the mark.
+  // The side list's group menu (tab group colors spec §6), beside the header
+  // that opened it. The renderer's group id and header box are re-checked.
+  chromeOn('chrome:open-group-menu', (_e, groupId, anchor) => {
+    if (!rt().groups.some((group) => group.id === groupId)) return;
+    const { width, height } = rt().window?.getContentBounds() ?? { width: 0, height: 0 };
+    const inside = (value, max) => Number.isFinite(value) && value >= 0 && value <= max;
+    if (!anchor || !inside(anchor.right, width) || !inside(anchor.top, height) || !inside(anchor.bottom, height)) return;
+    showOverlay('group-menu', { purpose: { groupId, anchor: { right: anchor.right, top: anchor.top, bottom: anchor.bottom } } });
+  });
   chromeOn('chrome:open-spaces', (_e, anchor) => {
     if (rt().overlayMode === 'spaces') return hideOverlay({ refocusContent: false }); // re-click toggles shut
     // A press that began on the open menu has already closed it (the overlay's
@@ -9252,7 +9497,7 @@ function tabContextData(tab, owner) {
   return {
     tab: {
       id: tab.id, url: tab.url, title: tab.title, customTitle: tab.customTitle ?? null,
-      pinned: !!tab.pinned, muted: !!tab.muted, private: !!tab.private,
+      pinned: !!tab.pinned, muted: shownMuted(tab), private: !!tab.private,
       asleep: !!tab.asleep, bookmarked: !!tab.bookmarked,
       groupId: tab.groupId ?? null, capturing: !!tab.capturing,
       pinnedHome: {
@@ -9269,6 +9514,10 @@ function tabContextData(tab, owner) {
     canCloseOthers: closableTabIds({ tabOrder: owner.tabOrder, tabsById: tabs, keepId: tab.id }).length > 0,
     canMoveToNewWindow: owner.tabOrder.length > 1,
     canQuiet: explicitSleepEligible(tab, owner),
+    canCloseAbove: closableBeside({ tabOrder: owner.tabOrder, tabsById: tabs, keepId: tab.id, direction: 'above' }).length > 0,
+    canCloseBelow: closableBeside({ tabOrder: owner.tabOrder, tabsById: tabs, keepId: tab.id, direction: 'below' }).length > 0,
+    // null: not a web page, so no site to mute.
+    siteMuted: hostOf(tab.url) ? siteMutes.has(siteMuteKey(tab), hostOf(tab.url)) : null,
   };
 }
 
@@ -9317,6 +9566,9 @@ function menuContextActions(owner) {
     newTab: b(() => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true })),
     newPrivateTab: b(() => setActiveTab(createTab(PRIVATE_NEW_TAB_URL, { private: true }), { focusContent: false, focusAddress: true })),
     closeOthers: b((id) => closeOtherTabsInWindow(id)),
+    closeBeside: b((id, direction) => closeTabsBeside(id, direction)),
+    newTabBelow: b((id) => newTabBelow(id)),
+    toggleSiteMute: b((id) => toggleSiteMute(id)),
     moveToNewWindow: b((id) => moveTabToNewWindow(id)),
     reopenClosed: b(() => reopenClosedTab()),
     close: b((id) => closeTab(id)),
@@ -9385,15 +9637,6 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     diagnostics.recordRendererCrash('chrome', details);
   }));
   // Group headers on the vertical tabs rail (chrome document coordinates).
-  attachGroupHeaderMenu(rt().window.webContents, {
-    isLive: () => true,
-    getWindow: bindWindowRuntime(runtime, () => rt().window),
-    getOffset: () => ({ x: 0, y: 0 }),
-    suppressIslandHover: bindWindowRuntime(runtime, () => suppressIslandHover(runtime)),
-    t: mainI18n.t,
-    resolveGroup: bindWindowRuntime(runtime, (rawId) => rt().groups.find((g) => g.id === rawId) ?? null),
-    actions: groupMenuContextActions(runtime),
-  });
   attachChromeMenu(rt().window.webContents, {
     t: mainI18n.t,
     getWindow: bindWindowRuntime(runtime, () => rt().window),
@@ -9738,26 +9981,34 @@ function openNewWindow(options = {}) {
   createMainWindow(runtime);
   return withWindowRuntime(runtime, () => {
     let tabId = null;
-    if (options.adoptTabId != null && tabs.has(options.adoptTabId)) {
-      // Adopt an existing tab (Move Tab to New Window) instead of seeding a
-      // fresh one — the caller has already detached it from its old window.
-      tabId = options.adoptTabId;
-      const tab = tabs.get(tabId);
-      tab.runtimeId = runtime.id;
-      windowRuntimes.attachTab(runtime, tabId);
-      runtime.tabOrder = [tabId];
-      // Re-home the per-tab listener set: wireTabView binds its owner runtime
-      // once at attach time, so without this every media/find/beforeunload/
-      // window.open handler would keep acting on the OLD window. A retained-
-      // storage quiet tab keeps a live, still-wired WebContents in its sleep
-      // snapshot (wakeTab's retained branch deliberately skips rewiring), so
-      // that view needs the same treatment as an awake one.
-      const wiredView = liveContents(tab) ? tab.view : (sleepSnapshots.get(tabId)?.view ?? null);
-      const wiredWc = wiredView?.webContents;
-      if (wiredWc && !wiredWc.isDestroyed()) {
-        unwireTabView(wiredWc);
-        wireTabView(tab, wiredView, { owner: runtime, adopted: !!tab.adopted });
+    const adoptIds = (options.adoptTabIds ?? (options.adoptTabId != null ? [options.adoptTabId] : []))
+      .filter((id) => tabs.has(id));
+    if (adoptIds.length) {
+      // Adopt existing tabs (Move Tab / Move Group to New Window) instead of
+      // seeding a fresh one — the caller has already detached them from
+      // their old window, in order.
+      runtime.tabOrder = [...adoptIds];
+      // A moved group arrives whole: the same record (name, color, fold).
+      if (options.group) runtime.groups = [groupRecord(options.group)];
+      for (const id of adoptIds) {
+        const tab = tabs.get(id);
+        tab.runtimeId = runtime.id;
+        if (options.group) tab.groupId = options.group.id;
+        windowRuntimes.attachTab(runtime, id);
+        // Re-home the per-tab listener set: wireTabView binds its owner runtime
+        // once at attach time, so without this every media/find/beforeunload/
+        // window.open handler would keep acting on the OLD window. A retained-
+        // storage quiet tab keeps a live, still-wired WebContents in its sleep
+        // snapshot (wakeTab's retained branch deliberately skips rewiring), so
+        // that view needs the same treatment as an awake one.
+        const wiredView = liveContents(tab) ? tab.view : (sleepSnapshots.get(id)?.view ?? null);
+        const wiredWc = wiredView?.webContents;
+        if (wiredWc && !wiredWc.isDestroyed()) {
+          unwireTabView(wiredWc);
+          wireTabView(tab, wiredView, { owner: runtime, adopted: !!tab.adopted });
+        }
       }
+      tabId = adoptIds.includes(options.activeTabId) ? options.activeTabId : adoptIds[0];
       setActiveTab(tabId); // attaches (and wakes a discarded quiet tab) here
     } else {
       tabId = options.private
@@ -9775,33 +10026,22 @@ function openNewWindow(options = {}) {
   });
 }
 
-/** "Move Tab to New Window": detach the tab from its window and adopt it into
- * a fresh one via openNewWindow's adoptTabId mode (shared scaffold = shared
- * guards and bring-up sequencing). Ungrouped on move — a group spanning two
- * windows isn't a modeled concept (context-menus design §6). Pin and mute
- * state travel with the tab. */
-function moveTabToNewWindow(id) {
+/** Detach a tab from `source` before it moves to a new window: cancel its
+ * permission prompts, hand off Glance and the selection, drop it from the
+ * order and ungroup it (a group spanning two windows isn't modeled). Shared
+ * by Move Tab and Move Group to New Window. */
+function detachTabForMove(source, id) {
   const tab = tabs.get(id);
-  if (!tab) return;
-  // Never mid-sleep-transition: teardown/wake own the view lifecycle, and
-  // sleepTab's revalidation now also refuses a tab that changed runtimes.
-  if (tab.sleeping || tab.waking) return;
-  const source = windowRuntimes.runtimeForTab(id);
-  if (!source || source.tabOrder.length <= 1) return; // sole tab — no-op
-  // Checked BEFORE the source surgery: openNewWindow throws on a pending
-  // profile deletion, which would otherwise strand a detached tab.
-  if (profileDeletions.hasPendingProfileDeletion(source.profileId)) return;
-
-  // 1. Detach from the source window. A pending permission prompt belongs to
-  //    this window's runtime and would float over unrelated content (and its
-  //    per-tab cancel path could never find it again post-move) — cancel it,
-  //    same as closeTab; the page re-requests in the new window. If the tab
-  //    is the Glance pane, close that; if active with a reference beside it,
-  //    promote the reference (closeTab's rule); otherwise hand focus to the
-  //    MRU survivor with the right-neighbour as fallback. The view is hidden
-  //    at that point (active → survivor selection, Glance → closeGlance). On
-  //    Linux a view shown here before stays a child of this window until the
-  //    new one attaches it (tab-view-lifecycle.js).
+  // Detach from the source window. A pending permission prompt belongs to
+  // this window's runtime and would float over unrelated content (and its
+  // per-tab cancel path could never find it again post-move) — cancel it,
+  // same as closeTab; the page re-requests in the new window. If the tab
+  // is the Glance pane, close that; if active with a reference beside it,
+  // promote the reference (closeTab's rule); otherwise hand focus to the
+  // MRU survivor with the right-neighbour as fallback. The view is hidden
+  // at that point (active → survivor selection, Glance → closeGlance). On
+  // Linux a view shown here before stays a child of this window until the
+  // new one attaches it (tab-view-lifecycle.js).
   withWindowRuntime(source, () => {
     cancelPermissionPromptsForTab(id);
     if (rt().glanceTabId === id) closeGlance({ focusContent: false });
@@ -9825,11 +10065,75 @@ function moveTabToNewWindow(id) {
     pruneEmptyGroups();
     broadcastTabs(); // persists the session as part of the broadcast
   });
+}
+
+/** "Move Tab to New Window": detach the tab from its window and adopt it into
+ * a fresh one via openNewWindow's adoptTabId mode (shared scaffold = shared
+ * guards and bring-up sequencing). Ungrouped on move — a group spanning two
+ * windows isn't a modeled concept (context-menus design §6). Pin and mute
+ * state travel with the tab. */
+function moveTabToNewWindow(id) {
+  const tab = tabs.get(id);
+  if (!tab) return;
+  // Never mid-sleep-transition: teardown/wake own the view lifecycle, and
+  // sleepTab's revalidation now also refuses a tab that changed runtimes.
+  if (tab.sleeping || tab.waking) return;
+  const source = windowRuntimes.runtimeForTab(id);
+  if (!source || source.tabOrder.length <= 1) return; // sole tab — no-op
+  // Checked BEFORE the source surgery: openNewWindow throws on a pending
+  // profile deletion, which would otherwise strand a detached tab.
+  if (profileDeletions.hasPendingProfileDeletion(source.profileId)) return;
+
+  // 1. Detach from the source window (detachTabForMove).
+  detachTabForMove(source, id);
 
   // 2. Shared window bring-up + adoption (runtimeId, attachTab, listener
   //    rewire, activation, focus, menu) all live in openNewWindow's adopt
   //    branch, keeping guards and sequencing in one place.
   openNewWindow({ profileId: source.profileId, adoptTabId: id });
+}
+
+/** "New Tab in Group" (group menu): a new tab at the end of the group,
+ * selected with the address field focused. */
+function newTabInGroup(groupId) {
+  const runtime = rt();
+  if (!runtime.groups.some((group) => group.id === groupId)) return null;
+  const id = createTab(newTabUrl(), { groupId });
+  if (!id) return null;
+  runtime.tabOrder = placeInGroup(runtime.tabOrder, tabLayoutList(runtime), id, groupId);
+  setActiveTab(id, { focusContent: false, focusAddress: true });
+  broadcastTabs();
+  return id;
+}
+
+/** "Move Group to New Window" (group menu): every member, in order, into a
+ * fresh window with the same group record. Refused while a member is mid
+ * sleep transition, when the group holds every tab in its window, or while
+ * the profile is being deleted. */
+function moveGroupToNewWindow(groupId) {
+  const source = rt();
+  const group = source.groups.find((g) => g.id === groupId);
+  if (!group) return false;
+  const ids = source.tabOrder.filter((id) => tabs.get(id)?.groupId === groupId);
+  if (!ids.length || ids.length >= source.tabOrder.length) return false;
+  if (ids.some((id) => tabs.get(id)?.sleeping || tabs.get(id)?.waking)) return false;
+  if (profileDeletions.hasPendingProfileDeletion(source.profileId)) return false;
+  const record = groupRecord(group);
+  const activeTabId = ids.includes(source.activeTabId) ? source.activeTabId : null;
+  // Select a tab that stays first, so detaching never selects (and wakes)
+  // a member that is about to leave too.
+  if (activeTabId) {
+    withWindowRuntime(source, () => {
+      if (rt().glanceTabId && ids.includes(rt().glanceTabId)) closeGlance({ focusContent: false });
+      const stays = (tid) => !ids.includes(tid) && tabs.has(tid) && windowRuntimes.runtimeForTab(tid) === source;
+      const survivor = previousSurvivor(source.activationHistory, stays)
+        ?? source.tabOrder.find(stays);
+      if (survivor) setActiveTab(survivor, { focusContent: false });
+    });
+  }
+  for (const id of ids) detachTabForMove(source, id);
+  openNewWindow({ profileId: source.profileId, adoptTabIds: ids, group: record, activeTabId });
+  return true;
 }
 
 function openNewProfileWindow(name) {
@@ -10146,7 +10450,7 @@ function windowRuntimeSnapshots() {
       const tab = tabs.get(id);
       return tab ? { id, url: tab.url, private: !!tab.private } : null;
     }).filter(Boolean),
-    groups: runtime.groups.map(({ id, name, collapsed }) => ({ id, name, collapsed })),
+    groups: runtime.groups.map(({ id, name, collapsed, color }) => ({ id, name, collapsed, color: color ?? null })),
     attached: !!runtime.window && !runtime.window.isDestroyed(),
   }));
 }
@@ -11070,6 +11374,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         .map(({ group, tabIds }) => ({
           id: group.id,
           name: group.name,
+          color: group.color ?? null,
           count: tabIds.filter((id) => !tabs.get(id)?.private).length,
         }))
         .filter((g) => g.count > 0),
@@ -11323,7 +11628,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         const opener = tabs.get(tabId);
         return opener ? withWindowRuntime(windowRuntimes.runtimeForTab(opener) ?? rt(), () => openLinkInGlance(opener, url)) : false;
       },
-      groupTabByName, renameTab, beginRenameTab, beginRenameGroup, beginRenameDevice, ungroupGroup, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab,
+      groupTabByName, renameTab, beginRenameTab, beginRenameGroup, beginRenameDevice, ungroupGroup, setGroupColor, newTabBelow, closeTabsBeside, toggleSiteMute, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab,
       closeGroup, newTabUrl,
       getOverlayDragging: () => overlayDragActive(rt()),
       selectTabAtIndex,
@@ -11818,7 +12123,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       closedSlot: saved.closedSlot ?? 0,
       groups: (Array.isArray(saved.groups) ? saved.groups : [])
         .filter((group) => group && typeof group.id === 'string' && typeof group.name === 'string')
-        .map((group) => ({ id: group.id, name: group.name, collapsed: !!group.collapsed })),
+        .map(groupRecord),
     };
   });
   if (!savedWindows.length) {
@@ -12055,6 +12360,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           managedExtension: restorableUblockTool(url),
         }));
         pruneEmptyGroups();
+        applySavedLayout(runtime, saved, restoredIds);
         // This window's tabs now exist, so it's safe to check whether the
         // saved binding still points at a real workspace. namedWorkspaces.get
         // resolves through the ambient activeLocalProfileId(), which
