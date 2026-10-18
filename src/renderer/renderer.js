@@ -755,11 +755,12 @@
 
   /** Faux header: paint the strip with the active page's own top-edge
    * color so it reads as a continuation of the site, not a chrome bar.
-   * Private tabs keep the private theme untinted. */
+   * Private tabs take only a sampled Start Page wallpaper (main samples
+   * nothing else for them); a private site's theme-color never tints. */
   function applyStripTint(tab) {
     // A theme handoff invalidates the previous website sample. Ignore any
     // stale tabs:updated payload still in flight until main clears/resamples it.
-    const tint = (!themeHandoffPending && !tab?.private && (tab?.pageBg || tab?.themeColor)) || null;
+    const tint = (!themeHandoffPending && (tab?.private ? tab.pageBg : (tab?.pageBg || tab?.themeColor))) || null;
     if (!tint) {
       // Private keeps its dedicated token scope. For ordinary tabs, paint the
       // newly selected theme immediately instead of waiting for Electron to
@@ -1373,7 +1374,8 @@
   });
   window.browserAPI.onPageTint(({ id, color }) => {
     const tab = activeTab();
-    if (!tab || tab.id !== id || tab.private || !/^#[0-9a-f]{6}$/i.test(color)) return;
+    // Main samples a private tab only on its Start Page (page-tint-policy.js).
+    if (!tab || tab.id !== id || !/^#[0-9a-f]{6}$/i.test(color)) return;
     tab.pageBg = color;
     applyStripTint(tab);
   });

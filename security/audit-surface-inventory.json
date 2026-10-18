@@ -453,7 +453,7 @@
     },
     {
       "file": "src/main/page-tint-policy.js",
-      "sha256": "bef10df06b717292e20a13b54bc0ad7e32ac0f4794c5f159322d7dfd9665439b",
+      "sha256": "482979bdc155e8f7782c130fe07dc8b108628e9f193331219df9b8bb701eb487",
       "literalChannels": [],
       "role": "foreground/main-frame eligibility policy"
     },
