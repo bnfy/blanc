@@ -3233,29 +3233,49 @@ body:not([data-layout="ledger"]) .ledger-footer {
   font: 400 18px/1 var(--font-text);
 }
 .wallpaper-options { margin-top: 12px; }
-.wallpaper-options-grid {
-  display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
+.wallpaper-picker-row {
+  display: flex;
   align-items: center;
-  column-gap: 14px;
-  row-gap: 12px;
+  gap: 18px;
+}
+/* Stacked in the room the two missing layout cards leave. */
+.wallpaper-image-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.wallpaper-tone {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  column-gap: 24px;
+}
+.wallpaper-tone-column {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.wallpaper-style-grid {
+  display: grid;
+  grid-template-columns: repeat(2, max-content);
+  justify-content: start;
+  gap: 6px;
+}
+/* Each chip fills its column, so the 2×2 grid lines up. */
+.wallpaper-style-grid .wallpaper-style { width: 100%; }
+.wallpaper-fade-column { align-items: center; }
+/* A short vertical Fade: top is the full wash, bottom the bare image. */
+.wallpaper-fade {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  width: 18px;
+  height: 64px;
+  margin: 0;
+  accent-color: var(--text);
 }
 .wallpaper-option-label {
   color: var(--text-dim);
   font-size: 11px;
-}
-.wallpaper-option-controls {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 10px;
-}
-#customWallpaperStyleRow { gap: 6px; }
-.wallpaper-fade {
-  width: 100%;
-  min-width: 140px;
-  margin: 0;
-  accent-color: var(--text);
 }
 .wallpaper-action {
   min-height: 24px;

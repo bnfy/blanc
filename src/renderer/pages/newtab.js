@@ -884,6 +884,7 @@ const customWallpaperToggle = document.getElementById('customWallpaperToggle');
 const sunriseWallpaperPick = document.getElementById('sunriseWallpaperPick');
 const customWallpaperRow = document.getElementById('customWallpaperRow');
 const customWallpaperThumb = document.getElementById('customWallpaperThumb');
+const customWallpaperActions = document.getElementById('customWallpaperActions');
 const customWallpaperChange = document.getElementById('customWallpaperChange');
 const customWallpaperRemove = document.getElementById('customWallpaperRemove');
 const customWallpaperError = document.getElementById('customWallpaperError');
@@ -914,6 +915,7 @@ function renderWallpaperControls() {
   wallpaperToggle.hidden = custom;
   wallpaperToggle.setAttribute('aria-pressed', String(dynamicWallpaperEnabled));
   customWallpaperRow.hidden = !custom;
+  customWallpaperActions.hidden = !custom;
   // The card previews your picture whenever one is stored.
   customWallpaperThumb.classList.toggle('has-image', Boolean(wallpaperState.image));
   if (wallpaperState.image) customWallpaperThumb.style.setProperty('--wallpaper-thumb', `url("${wallpaperState.image}")`);
