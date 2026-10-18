@@ -1,7 +1,7 @@
 # Tab menu additions: New Tab Below, Close Tabs Above/Below, Mute Site
 
 **Date:** 2026-10-17
-**Status:** the owner decided D1–D3 on 2026-10-17 (§6); ready for the owner's review before a plan. Nothing is built.
+**Status:** the owner decided D1–D3 on 2026-10-17 (§6) and asked for it to be built; implementation plan in `docs/superpowers/plans/2026-10-17-tab-menu-additions.md`.
 **Builds on:** [2026-10-17 ungrouped tab placement](2026-10-17-ungrouped-tab-placement-design.md) (PR #933: a window's tab order is its display order).
 **Reference:** Helium's tab right-click menu, shared by the owner on 2026-10-17. Of its items, Blanc lacks only these four. Blanc already has the rest: Glance is the split view, Quiet is Hibernate, and Move to Group ▸ New Group… covers Add Tab to New Group.
 
