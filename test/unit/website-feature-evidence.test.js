@@ -339,6 +339,32 @@ test('v1.35.0 site copy resolves to verified public v1.35.0 evidence', () => {
   }
 });
 
+// Tab group colors, the group menu, ungrouped placement and ungrouped link
+// children, recorded against public v1.37.0 once it shipped.
+test('v1.37.0 tab group copy resolves to verified public v1.37.0 evidence', () => {
+  const v137 = JSON.parse(read('docs/website-v1.37-claims.json'));
+  assert.equal(v137.publicRelease, 'v1.37.0');
+  assert.equal(execFileSync('git', ['rev-parse', `${v137.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), v137.sourceSha);
+  assert.ok(read(v137.releaseEvidence).includes(v137.sourceSha));
+  for (const claim of v137.claims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: exact wording drifted`);
+    for (const key of claim.evidenceGroups) {
+      const group = v137.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, `${claim.id}: evidence and qualification`);
+      for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${v137.publicRelease}:${evidence}`], { cwd: root });
+    }
+  }
+  // The retired wording stays off both pages.
+  for (const file of new Set(v137.claims.map(claim => claim.source))) {
+    const text = normalize(read(file));
+    for (const retired of v137.prohibitedClaims) assert.ok(!text.includes(retired), `${file}: still says “${retired}”`);
+  }
+  const notes = execFileSync('git', ['show', `${v137.publicRelease}:docs/press/release-notes/v1.37.0.md`], { cwd: root, encoding: 'utf8' });
+  assert.match(notes, /\*\*Tab group colors\.\*\*/);
+  assert.match(notes, /\*\*Links open as ungrouped tabs\.\*\*/);
+});
+
 // Bangs page copy, written before v1.36.0 as candidates (owner decision,
 // October 17, 2026) and recorded against public v1.36.0 once it shipped.
 // The /bangs lines that bangs.astro builds from its pinned data, keyed by

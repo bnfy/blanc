@@ -1,0 +1,257 @@
+{
+  "publicRelease": "v1.37.0",
+  "sourceSha": "70a4cc14db6ef77d11ca26b88ae58c2a13580ac5",
+  "releaseEvidence": "docs/release-incidents/2026-10-18-v1.37.0.md",
+  "scope": "Site copy verified against public v1.37.0 on October 18, 2026: tab group colors and the group menu, ungrouped tabs above, between and below groups, and links from grouped tabs opening ungrouped, on /features/tab-groups and its support guide. Also a shorter hero on that page (owner request). Replaces the v1.27 wording that groups have no colors and that links join their group.",
+  "prohibitedClaims": [
+    "Groups have names, not colors.",
+    "Links join the group.",
+    "joins the same group"
+  ],
+  "evidenceGroups": {
+    "groupColors": {
+      "evidence": [
+        "spec/features.md",
+        "src/main/group-color.js",
+        "test/unit/group-color.test.js",
+        "spec/acceptance/tabs-and-groups.feature",
+        "docs/press/release-notes/v1.37.0.md"
+      ],
+      "qualification": "A group may carry one of the eight Spaces preset colors or none, off by default, chosen from the group menu; the color tints the group's block in the ⌘L panel and side list, adds a dot before its name and colors its tabs' Island dots. Desktop only (#936)."
+    },
+    "groupMenu": {
+      "evidence": [
+        "spec/features.md",
+        "src/renderer/overlay.js",
+        "spec/acceptance/tabs-and-groups.feature",
+        "docs/press/release-notes/v1.37.0.md"
+      ],
+      "qualification": "Right-clicking a group header or pressing its ⋮ opens one menu with the name field, the colors, New Tab in Group, Move Group to New Window, Ungroup and Close Group (#936). Move Group to New Window is covered by desktop scenarios but wasn't hand-checked on Linux before release, so the site names it without claiming a platform check."
+    },
+    "ungroupedPlacement": {
+      "evidence": [
+        "spec/features.md",
+        "src/renderer/tab-sections.js",
+        "test/unit/tab-sections.test.js",
+        "spec/acceptance/tab-drag.feature",
+        "docs/press/release-notes/v1.37.0.md"
+      ],
+      "qualification": "Since v1.37.0 a window's tab order is its drawn order: ungrouped tabs can be dragged or moved with ⌥⇧↑/↓ above, between or below groups, each run is its own section for ⌘1–9, and new tabs still land at the bottom (#933)."
+    },
+    "linkChildren": {
+      "evidence": [
+        "spec/features.md",
+        "test/unit/tab-window-open.test.js",
+        "spec/acceptance/tabs-and-groups.feature",
+        "docs/press/release-notes/v1.37.0.md"
+      ],
+      "qualification": "Link children (target=_blank, window.open, Open Link in New Tab, Open Link in Glance) open ungrouped at the end of the tab order, like a plain new tab; private and opener relationships are unchanged (#928)."
+    },
+    "namedGroups": {
+      "evidence": [
+        "spec/features.md",
+        "src/renderer/tab-sections.js",
+        "spec/acceptance/tabs-and-groups.feature"
+      ],
+      "qualification": "Named groups are user-created through /group or the tab menu; the resting Island shows the active group's tabs and other groups can be folded in the ⌘L panel. Blanc does not create or name groups by itself."
+    }
+  },
+  "claims": [
+    {
+      "id": "v137-018",
+      "source": "site/src/pages/features/tab-groups.astro",
+      "exactWording": "Named tab groups for the task at hand.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "namedGroups"
+      ],
+      "verdict": "qualified",
+      "replaces": "seo-2026-10-05-tab-groups-01"
+    },
+    {
+      "id": "v137-019",
+      "source": "site/src/pages/features/tab-groups.astro",
+      "exactWording": "Blanc keeps the group you’re working in on the Island and folds the rest away.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "namedGroups"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v137-001",
+      "source": "site/src/pages/features/tab-groups.astro",
+      "exactWording": "Groups have names, and colors if you want them.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "groupColors"
+      ],
+      "verdict": "qualified",
+      "replaces": "revamp-copy-118"
+    },
+    {
+      "id": "v137-002",
+      "source": "site/src/pages/features/tab-groups.astro",
+      "exactWording": "Give a group a color.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "groupColors"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v137-003",
+      "source": "site/src/pages/features/tab-groups.astro",
+      "exactWording": "Right-click a group’s header, or press its ⋮, and pick one of eight colors. The group’s block takes a light tint, and its tabs’ dots in the Island take the color. Groups start without one.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "groupColors"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v137-004",
+      "source": "site/src/pages/features/tab-groups.astro",
+      "exactWording": "One menu for each group.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "groupMenu"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v137-005",
+      "source": "site/src/pages/features/tab-groups.astro",
+      "exactWording": "The same menu holds the group’s name and color, New Tab in Group, Move Group to New Window, Ungroup and Close Group.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "groupMenu"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v137-006",
+      "source": "site/src/pages/features/tab-groups.astro",
+      "exactWording": "Place loose tabs anywhere.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "ungroupedPlacement"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v137-007",
+      "source": "site/src/pages/features/tab-groups.astro",
+      "exactWording": "Tabs outside a group can sit above, between or below your groups. New tabs still start at the bottom.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "ungroupedPlacement"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v137-008",
+      "source": "site/src/pages/features/tab-groups.astro",
+      "exactWording": "When you have groups, ⌘1 to ⌘9 on a Mac, or Ctrl+1 to Ctrl+9 on Windows and Linux, jump to each group, and each run of ungrouped tabs, in order.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "ungroupedPlacement"
+      ],
+      "verdict": "qualified",
+      "replaces": "seo-2026-10-05-tab-groups-07"
+    },
+    {
+      "id": "v137-009",
+      "source": "site/src/pages/features/tab-groups.astro",
+      "exactWording": "Links open outside the group.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "linkChildren"
+      ],
+      "verdict": "qualified",
+      "replaces": "seo-2026-10-05-tab-groups-08"
+    },
+    {
+      "id": "v137-010",
+      "source": "site/src/pages/features/tab-groups.astro",
+      "exactWording": "A link you open in a new tab from a grouped tab opens outside any group, at the bottom, like a new tab you start yourself.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "linkChildren"
+      ],
+      "verdict": "qualified",
+      "replaces": "seo-2026-10-05-tab-groups-09"
+    },
+    {
+      "id": "v137-011",
+      "source": "site/src/components/guides/tab-groups.astro",
+      "exactWording": "Groups have names, and colors if you want them.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "groupColors"
+      ],
+      "verdict": "qualified",
+      "replaces": "feature-retained-revamp-copy-118"
+    },
+    {
+      "id": "v137-012",
+      "source": "site/src/components/guides/tab-groups.astro",
+      "exactWording": "Give a group a color.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "groupColors"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v137-013",
+      "source": "site/src/components/guides/tab-groups.astro",
+      "exactWording": "Right-click a group’s header, or press its ⋮, and pick one of eight colors. The group’s block takes a light tint, and its tabs’ dots in the Island take the color. Groups start without one.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "groupColors"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v137-014",
+      "source": "site/src/components/guides/tab-groups.astro",
+      "exactWording": "One menu for each group.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "groupMenu"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v137-015",
+      "source": "site/src/components/guides/tab-groups.astro",
+      "exactWording": "The same menu holds the group’s name and color, New Tab in Group, Move Group to New Window, Ungroup and Close Group.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "groupMenu"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v137-016",
+      "source": "site/src/components/guides/tab-groups.astro",
+      "exactWording": "Place loose tabs anywhere.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "ungroupedPlacement"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v137-017",
+      "source": "site/src/components/guides/tab-groups.astro",
+      "exactWording": "Tabs outside a group can sit above, between or below your groups. New tabs still start at the bottom.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "ungroupedPlacement"
+      ],
+      "verdict": "qualified"
+    }
+  ]
+}
