@@ -34,23 +34,21 @@ allows (one build at a time; the spikes alternate, they never overlap a build).
 3 runs alongside as a document. 4, 5 and 6 fill the gaps. The tranche ends
 when every row has its artifact, or when a kill criterion is hit and recorded.
 
-### 1.1 Progress checkpoint — October 18, 2026 UTC (renderer document token)
+### 1.1 Progress checkpoint — October 18, 2026 UTC (lifecycle coverage)
 
-The browser now carries the verified document's Blink token through injection
-IPC; the renderer checks at eligibility and immediately before execution after
-permission replies. Eight bounded runtime cases pass: deliberate mismatch versus
-matching-token controls at all runAt stages, a legacy control, deferred release,
-and three real queued-navigation replacements with untouched replacement DOM.
-Fault injection is explicitly separate from naturally occurring IPC-race evidence;
-permission-dialog, BFCache/prerender, crash and async effects remain unqualified.
-Eleven browser-target, six helper and four completion regressions also pass.
-281 tests and 135 module lint checks pass. Two incremental builds (162.37 s and
-34.30 s); final zero-action guard. Footprint **40 files / 91 hunks**, at the file
-ceiling; no further existing upstream file may be added without consolidation or
-a new owner decision. Evidence: `evidence/f12-renderer-target-20261018/`.
-Latency remains deferred and the Electron diagnostic build remains unapproved.
-Detailed measurements remain in `rebase-ledger.md`; test outcomes and evidence
-links remain in `results.md`. A row marked in progress is not acceptance.
+The unchanged renderer-token build now has bounded regular main-frame BFCache
+and renderer-crash evidence: same-document persisted restoration, cached/stale
+target refusal, pending document_end cancellation on a real crash, and new-document
+recovery with untouched DOM and a positive current-target control. Prerender
+activation remains a gap even with a raw background-only observer; its cause
+is unresolved. Ordinary navigation is never a pass.
+287 regression tests and 139 module lint checks pass. No native edits or compilation; zero-action guard.
+Footprint remains **40 files / 91 hunks**, at the file ceiling. Evidence and
+failed harness attempts: `evidence/f12-lifecycle-20261018/`.
+Broader lifecycle, original caller identity, permission replies and asynchronous
+scriptlet effects remain unqualified. Latency remains deferred and the Electron
+diagnostic build remains unapproved/unstarted. Detailed measurements remain in
+`rebase-ledger.md`; test outcomes remain in `results.md`. In progress is not acceptance.
 
 | Item | Status | Evidence / next gate |
 | --- | --- | --- |

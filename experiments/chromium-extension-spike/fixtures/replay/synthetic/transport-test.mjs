@@ -72,3 +72,10 @@ test('authored policy headers are exact and arbitrary or split headers refused',
  const replay=await startSynthetic({fixtures,tlsMaterial:proxy});try{assert((await get(replay.port)).includes("Content-Security-Policy: script-src 'none'"));}finally{await replay.close();}
  for(const policyHeaders of [{'Set-Cookie':'secret=1'},{'Content-Security-Policy':'none\r\nSet-Cookie: bad'}, {'Content-Security-Policy':null}]){response.policyHeaders=policyHeaders;await assert.rejects(startSynthetic({fixtures,tlsMaterial:proxy}),/policy header/);}
 });
+
+test('authored response gate holds bytes after arrival until explicitly released',async()=>{
+ const url='https://page.fixture.test/index.html',fixtures=new Map([[url,{status:200,contentType:'text/plain',body:'released'}]]);let release;const gates=new Map([[url,new Promise(resolve=>{release=resolve;})]]);
+ const replay=await startSynthetic({fixtures,tlsMaterial:proxy,gates});let response,finished=false;
+ try{response=get(replay.port).then(r=>{finished=true;return r;});for(let i=0;i<100&&replay.arrivals.length===0;i++)await new Promise(r=>setTimeout(r,10));assert.equal(replay.arrivals.length,1);assert.equal(finished,false);release();assert.match(await response,/released/);assert.equal(replay.faults.length,0);}
+ finally{release();if(response)await response;await replay.close();}
+});
