@@ -215,6 +215,7 @@ button svg {
    so the rule above hands every child `none` — naming the rect directly beats
    that inherited value whatever the button's own `svg` selector says. */
 .stop-mark { fill: currentColor; }
+.glance-mark { fill: currentColor; stroke: none; }
 
 /* ---------- Sampled safe-area gutter: a slim main-pane margin the resting
    pill floats in without covering website pixels. The vertical rail paints
@@ -2500,9 +2501,10 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
 
 .island-row .row-close {
   opacity: 0;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  margin-block: -3px; /* 24px hover box without growing the row */
+  border-radius: var(--radius);
   color: var(--text-dim);
   display: flex;
   align-items: center;
@@ -2517,7 +2519,7 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
    the one close you reach for without hunting. */
 .island-row.active .row-close { opacity: 1; }
 .island-row .row-close:hover { background: var(--border); color: var(--text); }
-.island-row .row-close svg { width: 12px; height: 12px; stroke-width: 1.75; }
+.island-row .row-close svg { width: 14px; height: 14px; stroke-width: 1.75; }
 
 /* Group header: caret · name · count · ⌘n. Click folds/unfolds. */
 .island-ghead {
@@ -2643,9 +2645,10 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
    visible and filled at rest; clicking it there closes Glance. */
 .row-glance {
   opacity: 0;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  margin-block: -3px; /* 24px hover box without growing the row */
+  border-radius: var(--radius);
   color: var(--text-dim);
   display: flex;
   align-items: center;
@@ -2653,13 +2656,39 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
   padding: 0;
   flex: 0 0 auto;
 }
-.row-glance svg { width: 14px; height: 14px; stroke-width: 1.25; }
+.row-glance svg { width: 16px; height: 16px; stroke-width: 1.25; }
 .island-row:hover .row-glance,
 .island-row:focus-within .row-glance,
 .row-glance:focus-visible,
 .row-glance.on { opacity: 1; }
 .row-glance:hover { background: var(--border); color: var(--text); }
 .row-glance.on { color: var(--accent); background: var(--accent-dim); }
+
+/* The overlay's own tooltip for the Island's buttons (overlay.js
+   islandTip): native title tooltips came late or never here because the
+   panel rebuilds on every tab update. */
+.island-tip {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  max-width: 240px;
+  padding: 4px 8px;
+  border-radius: var(--radius);
+  background: var(--text);
+  color: var(--bg);
+  font-family: var(--font-text);
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 120ms ease-out;
+}
+.island-tip.show { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .island-tip { transition: none; } }
 
 /* Pin row button — reserved-space/hover-reveal convention shared with
    .row-close: always occupies layout width, opacity-faded until the row is
@@ -2671,9 +2700,10 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
    the accent treatment. */
 .row-pin,
 .row-mute {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  margin-block: -3px; /* 24px hover box without growing the row */
+  border-radius: var(--radius);
   color: var(--text-dim);
   display: flex;
   align-items: center;
@@ -2683,7 +2713,7 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
 }
 .row-pin { opacity: 0; }
 .row-pin svg,
-.row-mute svg { width: 14px; height: 14px; stroke-width: 1.25; }
+.row-mute svg { width: 16px; height: 16px; stroke-width: 1.25; }
 .island-row:hover .row-pin,
 .island-row:focus-within .row-pin,
 .row-pin:focus-visible { opacity: 1; }

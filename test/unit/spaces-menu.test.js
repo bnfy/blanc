@@ -197,7 +197,7 @@ test('Recently Deleted shows each space as it was, with when it went, Restore an
   const bin = h.byKey('forget:r');
   assert.equal(bin.textContent, '', 'a trash button, not the long label');
   assert.equal(bin.attrs['aria-label'], 'Delete Reading list for the weekend permanently…', 'named, so each row\'s button is distinct to a screen reader');
-  assert.equal(bin.title, 'Delete permanently…');
+  assert.equal(bin.dataset.tooltip, 'Delete permanently…');
   assert.equal(h.byKey('restore:r').attrs['aria-label'], 'Restore Reading list for the weekend');
   assert.ok(bin.querySelector('.ws-glyph'), 'drawn as a trash can');
   bin.click();
@@ -364,8 +364,8 @@ test('the footer button never shows a space name: it lives in the tooltip and ac
   assert.doesNotMatch(button, /<span/, 'no text-bearing child in the Spaces button');
   const h = harness();
   assert.equal(h.trigger.textContent, '');
-  assert.match(h.trigger.title, /First/);
-  assert.equal(h.trigger.getAttribute('aria-label'), h.trigger.title);
+  assert.match(h.trigger.dataset.tooltip, /First/);
+  assert.equal(h.trigger.getAttribute('aria-label'), h.trigger.dataset.tooltip);
   assert.equal(h.trigger.classList.contains('bound'), true, 'the fill still shows the window is in a space');
 });
 
