@@ -96,6 +96,18 @@
         });
         continue;
       }
+      // A heading above a shelf's or run's rows (the rail draws one) is the
+      // top of that section, so hovering it never means the section above.
+      if (section.kind !== 'group' && section.top < rows[0].top) {
+        slots.push({
+          y: section.top,
+          groupId: section.groupId,
+          pinned: section.kind === 'pinned',
+          unpinned: section.kind === 'loose',
+          pinnedBefore: firstOther(0, pinCount),
+          unpinnedBefore: firstOther(0, rows.length) ?? looseEnd,
+        });
+      }
       for (let i = 0; i <= rows.length; i += 1) {
         slots.push({
           y: i < rows.length ? rows[i].top : rows[rows.length - 1].bottom,

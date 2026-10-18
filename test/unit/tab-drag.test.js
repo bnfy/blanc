@@ -691,3 +691,19 @@ test('keyboard steps a tab across the band one place at a time in the island', (
   assert.deepEqual(drag.keyboardTabMove(snap, 'L2', 'up').intent,
     { kind: 'tab', id: 'L2', groupId: null, beforeId: 'L1' }, 'the rail has no band');
 });
+
+// The rail draws each run under a "tabs" heading (measured in installed dev
+// Blanc): hovering that heading is the top of the run, not the end of the
+// group above it.
+test('a run\'s heading is the top of its run', () => {
+  const railModel = { top: 140, bottom: 330, sections: [
+    { kind: 'group', groupId: 'work', firstTabId: 'W1', collapsed: false, top: 145, bottom: 249, header: { top: 145, bottom: 173 },
+      rows: [{ id: 'W1', pinned: false, top: 175, bottom: 211 }, { id: 'W2', pinned: false, top: 213, bottom: 249 }] },
+    { kind: 'loose', groupId: null, collapsed: false, top: 257, bottom: 319, header: null,
+      rows: [{ id: 'L1', pinned: false, top: 283, bottom: 319 }] },
+  ] };
+  assert.deepEqual(drag.resolveTabDrop(railModel, tabSource('W1', false, 'work'), 258).intent,
+    { kind: 'tab', id: 'W1', groupId: null, beforeId: 'L1' });
+  assert.deepEqual(drag.resolveTabDrop(railModel, tabSource('W1', false, 'work'), 251).intent,
+    { kind: 'tab', id: 'W1', groupId: 'work', beforeId: null }, 'just under the group still joins it');
+});
