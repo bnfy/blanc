@@ -44,3 +44,13 @@ test('parity observer preserves original decisions and copies input before mutat
  }
  }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });
+
+test('document start uses a lazy module after readiness and splits main world from late injection',()=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'ubo-document-test-')),out=path.join(dir,'payload');
+ try{generateComponent(out,true,false,true);
+ const start=fs.readFileSync(path.join(out,'js/start.js'),'utf8'),filter=fs.readFileSync(path.join(out,'js/scriptlet-filtering.js'),'utf8');
+ assert(start.includes("await blancGuard.activate(selfieIsValid);\n(await import('./blanc-document-start.js')).start();"));
+ assert(filter.includes('details.frameId === 0 ? scriptletDetails.isolatedCode : scriptletDetails.code'));
+ assert(filter.includes('mainWorld: scriptletDetails.mainWorld'));
+ }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});

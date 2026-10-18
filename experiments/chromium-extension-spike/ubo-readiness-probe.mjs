@@ -25,7 +25,7 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));
 try{
  const manifest=fs.readFileSync(payload+'/manifest.json','utf8').replace(/[\u007f-\uffff]/g,c=>'\\u'+c.charCodeAt(0).toString(16).padStart(4,'0'));
  context=await chromium.launchPersistentContext(root+'/profile',{executablePath:config.chromium,headless:false,chromiumSandbox:true,ignoreDefaultArgs:['--disable-extensions','--disable-component-extensions-with-background-pages'],args:[
-  '--use-mock-keychain','--blanc-ubo-component-probe='+payload,'--blanc-ubo-component-manifest='+manifest,'--blanc-ubo-offline-probe','--blanc-ubo-reload-probe',
+  ...(config.documentStart?['--blanc-ubo-document-start']:[]),'--use-mock-keychain','--blanc-ubo-component-probe='+payload,'--blanc-ubo-component-manifest='+manifest,'--blanc-ubo-offline-probe','--blanc-ubo-reload-probe',
   '--blanc-blocker-log='+log,'--blanc-blocker-assets='+config.engine,'--blanc-prototype-assets='+config.ui,
   '--proxy-server=http://127.0.0.1:'+server.address().port,'--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1','--disable-sync','--disable-component-update']});
  if(process.argv.includes('--unready')){

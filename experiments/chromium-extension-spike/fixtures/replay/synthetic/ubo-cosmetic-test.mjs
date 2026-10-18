@@ -6,3 +6,5 @@ test('unexpected fixture miss is rejected',()=>{const r=sample();r[0].faults.pus
 test('fetch bypass cannot be hidden by its DOM response',()=>{const r=sample();r[0].arrivals.push({url:'/prevented'});assert.throws(()=>verifyCosmetics(r));});
 test('negative-control overblocking fails',()=>{const r=sample();r[0].results[0].snapshots[0].value.elements.control.display='none';assert.throws(()=>verifyCosmetics(r));});
 test('cross-runtime timing difference is reported',()=>{const r=sample();r[2].results[0].snapshots[0].value.startFlag=true;assert.throws(()=>verifyCosmetics(r));});
+
+test('separate timing report retains a mismatch without weakening late assertions',()=>{const r=sample();r[2].results[0].snapshots[0].value.startFlag=true;const result=verifyCosmetics(r,{separateTiming:true});assert.equal(result.documentStartParity,false);assert.equal(result.boundedParityPassed,false);assert.equal(result.boundedLateParityPassed,true);r[2].results[0].snapshots[0].value.elements.control.display='none';assert.throws(()=>verifyCosmetics(r,{separateTiming:true}));});

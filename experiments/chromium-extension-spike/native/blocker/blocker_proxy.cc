@@ -1,5 +1,12 @@
 #include "chrome/services/blanc_blocker/blocker_proxy.h"
 #include <deque>
+#include <map>
+#include "base/json/json_reader.h"
+#include "base/task/single_thread_task_runner.h"
+#include "content/public/browser/document_service.h"
+#include "content/public/browser/web_contents.h"
+#include "components/sessions/content/session_tab_helper.h"
+#include "services/network/public/cpp/resource_request_body.h"
 #include <memory>
 #include "base/command_line.h"
 #include "base/files/file_util.h"
@@ -156,6 +163,7 @@ UboHold& UboState(content::BrowserContext* context) {
   }
   return *state;
 }
+#include "chrome/services/blanc_blocker/document_start.inc"
 bool UboProbe() {
   return base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-ubo-reload-probe");
 }
@@ -208,6 +216,36 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
   void Begin(base::TimeTicks entered) {
     if (UboProbe() && request_.url.host() == "blanc-ubo-control.invalid") {
       bool ok = false;
+      if (base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-ubo-document-start") && UboBackground(context_, request_) && request_.url.SchemeIs("http") && !request_.url.has_port()) {
+        uint64_t generation = 0; auto& state = UboState(context_.browser_context.get());
+        const bool current = base::StringToUint64(request_.url.query(), &generation) && generation == state.generation && state.ready && state.document.AsRenderFrameHostIfValid() == content::RenderFrameHost::FromID(context_.frame);
+        if (request_.url.path() == "/work" && request_.method == "GET") {
+          base::ListValue work;
+          if (current) for (auto& [id, job] : Jobs(context_.browser_context.get()).jobs) {
+            if (job.offered || job.generation != generation || !job.document.AsRenderFrameHostIfValid()) continue;
+            job.offered = true; base::DictValue value; value.Set("token", id); value.Set("url", job.url); value.Set("tabId", job.tab_id); work.Append(std::move(value));
+          }
+          ReplyControl(current ? 200 : 409, base::WriteJson(work).value_or("[]")); return;
+        }
+        if (request_.url.path() == "/script" && request_.method == "POST") {
+          std::string body;
+          if (request_.request_body) for (const auto& element : *request_.request_body->elements()) {
+            if (element.type() != network::DataElement::Tag::kBytes) { body.clear(); break; }
+            body += element.As<network::DataElementBytes>().AsStringView();
+            if (body.size() > 1024 * 1024) { body.clear(); break; }
+          }
+          auto parsed = base::JSONReader::ReadDict(body, base::JSON_PARSE_RFC);
+          if (current && parsed) {
+            const auto* token = parsed->FindString("token"); const auto* code = parsed->FindString("code");
+            auto& jobs = Jobs(context_.browser_context.get()).jobs;
+            auto it = token ? jobs.find(*token) : jobs.end();
+            if (it != jobs.end() && code && it->second.offered && it->second.generation == generation && it->second.document.AsRenderFrameHostIfValid()) {
+              auto callback = std::move(it->second.callback); jobs.erase(it); ok = true; std::move(callback).Run(true, *code);
+            }
+          }
+          ReplyControl(ok ? 204 : 403, ""); return;
+        }
+      }
       if (UboBackground(context_, request_) && request_.method == "GET" &&
           request_.url.SchemeIs("http") && !request_.url.has_port()) {
         uint64_t generation = 0;
@@ -218,7 +256,7 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
           if (request_.url.path() == "/begin" && ((!same && generation == 1) ||
               (same && generation == state.generation + 1))) {
             state.document = frame->GetWeakDocumentPtr();
-            state.generation = generation; state.ready = false; ok = true;
+            state.generation = generation; state.ready = false; CancelScripts(context_.browser_context.get()); ok = true;
           } else if (request_.url.path() == "/ready" && same && generation == state.generation) {
             state.ready = true; ok = true;
           }
@@ -278,6 +316,15 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
     // another; do not destroy the proxy while the response is being consumed.
   }
  private:
+  void ReplyControl(int status, const std::string& body) {
+    auto head = network::mojom::URLResponseHead::New();
+    head->headers = net::HttpResponseHeaders::TryToCreate("HTTP/1.1 " + base::NumberToString(status) + " Result\r\nContent-Type: application/json\r\nAccess-Control-Allow-Origin: chrome-extension://oddhmofgkplblkmckempfepikkophank\r\n\r\n");
+    mojo::ScopedDataPipeProducerHandle producer; mojo::ScopedDataPipeConsumerHandle consumer;
+    MojoCreateDataPipeOptions options{sizeof(options), MOJO_CREATE_DATA_PIPE_FLAG_NONE, 1, static_cast<uint32_t>(std::max<size_t>(body.size(), 1))};
+    if (mojo::CreateDataPipe(&options, producer, consumer) != MOJO_RESULT_OK) { Complete(net::ERR_FAILED); return; }
+    if (!body.empty()) { size_t written = 0; if (producer->WriteData(base::as_byte_span(body), MOJO_WRITE_DATA_FLAG_ALL_OR_NONE, written) != MOJO_RESULT_OK) { Complete(net::ERR_FAILED); return; } }
+    producer.reset(); client_->OnReceiveResponse(std::move(head), std::move(consumer), std::nullopt); Complete(net::OK);
+  }
   void Destroy() { delete this; }
   void Complete(int error) { OnComplete(network::URLLoaderCompletionStatus(error)); }
   void Gate(base::OnceClosure allowed, base::TimeTicks entered) {
@@ -391,6 +438,9 @@ class Factory : public network::SelfDeletingURLLoaderFactory {
   Context context_;
   scoped_refptr<network::SharedURLLoaderFactory> target_;
 };
+}
+void BindDocumentStart(content::RenderFrameHost* frame, mojo::PendingReceiver<mojom::DocumentStart> receiver) {
+  new DocumentScript(*frame, std::move(receiver));
 }
 void MaybeProxy(content::BrowserContext* context, content::RenderFrameHost* frame,
                 int factory_type, const net::IsolationInfo& isolation_info,

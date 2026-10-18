@@ -28,7 +28,7 @@ export function prepareComponent(edit){
     CHECK_EQ(Add(manifest, root), "${componentId}");
   }`,present:'// Blanc admission-only probe:'}]);
 }
-export function generateComponent(output, reloadGuard=false, observe=false){
+export function generateComponent(output, reloadGuard=false, observe=false, documentStart=false){
  const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..'),pin=JSON.parse(fs.readFileSync(path.join(repo,'ublock/pinned.json')));
  const files=pin.files.map(file=>{assert(!path.isAbsolute(file.path)&&!file.path.split('/').includes('..'));const bytes=fs.readFileSync(path.join(repo,'ublock/upstream',file.path));assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'),file.sha256);return {file,bytes};});
  fs.mkdirSync(output);for(const {file,bytes} of files){const target=path.join(output,file.path);fs.mkdirSync(path.dirname(target),{recursive:true});fs.writeFileSync(target,bytes);}
@@ -44,6 +44,15 @@ export function generateComponent(output, reloadGuard=false, observe=false){
   replace('js/start.js','webRequest.start();','webRequest.start();\nawait blancGuard.activate(selfieIsValid);\nglobalThis.__blancUboProbe = { reload: () => µb.loadFilterLists(), begin: blancGuard.begin, complete: blancGuard.complete, state: () => ({readyToFilter: µb.readyToFilter}), setFilters: text => { µb.inMemoryFilters = text.split("\\n"); µb.inMemoryFiltersCompiled = ""; } };');
   changes.push('js/storage.js: acknowledged begin before reset, complete after freeze','js/start.js: release after observers start','js/blanc-reload-guard.js');
  }
+ if(documentStart){
+  assert(reloadGuard,'document gate requires reload guard');
+  const replace=(file,from,to)=>{const target=path.join(output,file),text=fs.readFileSync(target,'utf8');assert.equal(text.split(from).length,2,'document-start anchor '+file);fs.writeFileSync(target,text.replace(from,to));};
+  fs.copyFileSync(new URL('./ubo-document-start.js',import.meta.url),path.join(output,'js/blanc-document-start.js'));
+  replace('js/scriptlet-filtering.js','            bcSecret,','            bcSecret,\n            mainWorld: scriptletDetails.mainWorld || "",\n            isolatedCode: scriptletDetails.isolatedWorld ? isolatedWorldInjector.assemble(hostname, scriptletDetails) : "",');
+  replace('js/scriptlet-filtering.js','const contentScript = [ scriptletDetails.code ];','const contentScript = [ details.frameId === 0 ? scriptletDetails.isolatedCode : scriptletDetails.code ];');
+  replace('js/start.js','await blancGuard.activate(selfieIsValid);',"await blancGuard.activate(selfieIsValid);\n(await import('./blanc-document-start.js')).start();");
+  changes.push('main-frame main-world document-bound synchronous gate; isolated/subframes retain upstream path','js/blanc-document-start.js');
+ }
  if(observe){
   assert(reloadGuard,'observer requires readiness guard');
   const target=path.join(output,'js/traffic.js'),text=fs.readFileSync(target,'utf8'),anchor='vAPI.net.setSuspendableListener(onBeforeRequest);';assert.equal(text.split(anchor).length,2);
@@ -58,4 +67,4 @@ export function generateComponent(output, reloadGuard=false, observe=false){
  }
  return {componentId,version:pin.version,verifiedFiles:files.length,changes,scope:reloadGuard?'offline reload-protection prototype; acceptance pending':'offline component admission only; no reload hold or provider acceptance'};
 }
-if(process.argv[1]===fileURLToPath(import.meta.url))console.log(JSON.stringify(generateComponent(process.argv[2],process.argv.includes('--reload-guard'),process.argv.includes('--observe')),null,2));
+if(process.argv[1]===fileURLToPath(import.meta.url))console.log(JSON.stringify(generateComponent(process.argv[2],process.argv.includes('--reload-guard'),process.argv.includes('--observe'),process.argv.includes('--document-start')),null,2));

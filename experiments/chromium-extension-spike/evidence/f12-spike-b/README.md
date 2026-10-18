@@ -172,3 +172,31 @@ with generation/document binding, and an independent loader-registration join
 in both runtimes. 142 tests / 77-file lint pass; archives independently verified.
 Guard zero actions, no native compile/cold cost; footprint unchanged. Latency
 deferred; owner attention/agent time unmeasured. Plan acceptance unchanged.
+
+
+### Native document-start and update-loader implementation — October 17, 2026
+
+See [evidence](../f12-document-gate-20261017/README.md). Chromium now passes
+12/12 first-inline constant/getter and immediate-fetch checks across normal/CSP,
+reload and fresh documents; Electron remains 0/12. Seven document/profile/filter
+safety probes and ten prior reload/ownership checks plus unready startup pass.
+Static/has-text/late-fetch regressions pass; early timing difference is explicitly
+reported, not hidden as parity. Native-only loader tokens prove eight unchanged
+same-URL collision checks and four changed-byte updates; Electron's independent
+identity and cross-runtime acceptance remain gaps. Eight changed-byte sessions
+retain controlled-fetch and failed-initial-loader proofs.
+
+162 tests and 84-file lint pass. Four guarded incremental attempts: 55.62 s
+stopped after an unexpectedly expanded header rebuild, 15.65 s compile failure,
+13.26 s API-spelling failure, 43.98 s success / 10 steps; final guard zero actions.
+128.51 s total invocation wall time is routine repair/build overhead, not cold
+cost. Exact pristine header bytes and their recorded checkout metadata were
+restored to avoid needless recompilation; proof is archived. No output, args or
+toolchain reset. Footprint 31 files / 74 hunks (limit 40/120). Initial payload
+import-order timeout is retained; final lazy initialization passes. All seven
+archives independently verify and disposable profiles/keys were removed.
+
+Main-frame guarantee only; synchronous gate/polling overhead remains unqualified.
+Electron correction, subframes/opaque contexts, broader scriptlets/paths/lifecycle,
+component containment and recovery remain open. Latency deferred; owner attention
+and agent time unmeasured. Task 0 outcome/baseline and 156/permanent data unchanged.

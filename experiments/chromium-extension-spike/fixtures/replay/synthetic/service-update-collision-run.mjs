@@ -1,3 +1,4 @@
+import {updateLoaderIdentity} from './update-loader-identity.mjs';
 // Two real registrations share one script URL. Capture phase boundaries without
 // treating call order, scope hints, URL or time as a hook-to-registration join.
 import fs from 'node:fs';import path from 'node:path';import os from 'node:os';import assert from 'node:assert/strict';
@@ -27,6 +28,8 @@ try{for(const browserKind of ['electron','chromium'])for(const kind of ['regular
  for(const id of identities)assert(registrations.some(r=>r.registrationId===id.registrationId&&scopes.includes(r.scopeURL)));
  const updates=scripts.slice(2).map(row=>({hookRequestId:row.requestId??row.loader_request_id,factory:row.factory_instance??null,correlation:correlateWorker(run,row)}));assert(updates.every(r=>r.correlation.status==='gap'));
  assert.equal(replay.arrivals.filter(a=>a.url===worker).length,4);assert(replay.arrivals.filter(a=>a.url===worker).every(a=>a.sha256===sha(body)));
- fs.writeFileSync(path.join(evidence,label+'.json'),JSON.stringify({...run,identities,updates},null,2));report.runs.push({label,registrations:2,scriptRequests:4,updateGaps:updates.map(r=>r.correlation.reason)});await replay.close();replay=null;session=null;console.log(label+' captured two distinct registrations; update identities remain gaps');
+ run.nativeUpdateProof=scripts.slice(2).map(row=>updateLoaderIdentity(run,row));
+ if(config.workerUpdateIdentity&&browserKind==='chromium')assert(run.nativeUpdateProof.every(p=>p.status==='proven-native'));
+ fs.writeFileSync(path.join(evidence,label+'.json'),JSON.stringify({...run,identities,updates},null,2));report.runs.push({label,registrations:2,scriptRequests:4,nativeIdentity: run.nativeUpdateProof,updateGaps:updates.map(r=>r.correlation.reason)});await replay.close();replay=null;session=null;console.log(label+' captured two distinct registrations; update identities remain gaps');
 }report.completed=true;}catch(error){report.error=String(error);process.exitCode=1;}
 finally{if(session){fs.writeFileSync(path.join(evidence,'partial.json'),JSON.stringify({source:session.source,records:session.records(),workerEvidence:session.workerEvidence(),arrivals:replay?.arrivals},null,2));await session.close();}if(replay)await replay.close();fs.rmSync(root,{recursive:true,force:true});report.cleanup={removed:!fs.existsSync(root)};report.finished=new Date().toISOString();fs.writeFileSync(path.join(evidence,'report.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(report));}

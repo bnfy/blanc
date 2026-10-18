@@ -7,3 +7,7 @@ interface Blocker {
   Initialize(string script) => (bool ready);
   Decide(string url, string resource_type, string referrer) => (int32 decision);
 };
+// Explicit prototype switch only; the browser binds this to the current document.
+interface DocumentStart {
+  [Sync] GetScript(string url) => (bool ready, string code);
+};

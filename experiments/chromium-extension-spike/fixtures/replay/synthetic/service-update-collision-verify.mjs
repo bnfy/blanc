@@ -1,3 +1,4 @@
+import {updateLoaderIdentity} from './update-loader-identity.mjs';
 // Reconstruct identities and explicit gaps from raw lifecycle and hook evidence.
 import fs from 'node:fs';import path from 'node:path';import assert from 'node:assert/strict';import {correlateWorker} from './worker-context.mjs';import {sha} from './generate.mjs';
 const root=process.argv[2],report=JSON.parse(fs.readFileSync(path.join(root,'report.json')));assert(report.completed);assert(report.cleanup.removed);assert.equal(report.runs.length,8);
@@ -11,6 +12,7 @@ for(const kind of ['electron','chromium'])for(const profile of ['regular','priva
  const regs=r.workerEvidence.events.flatMap(e=>e.method==='ServiceWorker.workerRegistrationUpdated'?e.params.registrations:[]);for(const v of ids)assert(regs.some(x=>x.registrationId===v.registrationId&&r.before.some(b=>b.scope===x.scopeURL)));
  const rows=r.records.filter(v=>v.url===worker);assert.equal(rows.length,4);const updates=rows.slice(2).map(row=>correlateWorker(r,row));assert(updates.every(x=>x.status==='gap'));assert.deepEqual(updates,r.updates.map(x=>x.correlation));
  const arrivals=r.arrivals.filter(v=>v.url===worker);assert.equal(arrivals.length,4);assert(arrivals.every(v=>v.sha256===sha(fixtures.get(worker).body)));
- proof.push({label,registrations:2,updateIdentity:'gap',reasons:updates.map(x=>x.reason)});
+ const native=rows.slice(2).map(row=>updateLoaderIdentity(r,row));if(r.nativeUpdateProof){assert.deepEqual(native,r.nativeUpdateProof);if(kind==='chromium')assert(native.every(p=>p.status==='proven-native'));}
+ proof.push({label,registrations:2,nativeIdentity:native,updateIdentity:'gap',reasons:updates.map(x=>x.reason)});
 }
 console.log(JSON.stringify({verified:true,sessions:8,updateRequests:16,contextAcceptance:false,phaseOrderIsNotRegistrationIdentity:true,proof},null,2));
