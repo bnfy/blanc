@@ -729,6 +729,116 @@
         }
       ]
     },
+    "setGroupColor": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "groups:set-color",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "group-id-1",
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:set-color",
+              "args": [
+                "group-id-1",
+                "example"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "color = null",
+          "args": [
+            "group-id-1",
+            null
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:set-color",
+              "args": [
+                "group-id-1",
+                null
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "ok": true
+        }
+      ]
+    },
+    "newTabInGroup": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "groups:new-tab",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "group-id-1"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:new-tab",
+              "args": [
+                "group-id-1"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
+    "moveGroupToNewWindow": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "groups:move-to-new-window",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "group-id-1"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:move-to-new-window",
+              "args": [
+                "group-id-1"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
     "ungroupGroup": {
       "kind": "invoke",
       "platforms": [
@@ -1415,7 +1525,8 @@
             {
               "id": "group-id-1",
               "name": "tab-group-1",
-              "collapsed": true
+              "collapsed": true,
+              "color": "tab-group-1"
             }
           ],
           "closed": [
@@ -2533,6 +2644,42 @@
                   "left": 1,
                   "bottom": 1,
                   "closing": true
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "openGroupMenu": {
+      "kind": "send",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:open-group-menu",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "group-id-1",
+            {
+              "right": 1,
+              "top": 1,
+              "bottom": 1
+            }
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:open-group-menu",
+              "args": [
+                "group-id-1",
+                {
+                  "right": 1,
+                  "top": 1,
+                  "bottom": 1
                 }
               ]
             }
@@ -4954,7 +5101,8 @@
                 {
                   "id": "group-id-1",
                   "name": "tab-group-1",
-                  "collapsed": true
+                  "collapsed": true,
+                  "color": "tab-group-1"
                 }
               ],
               "closed": [
@@ -5088,7 +5236,8 @@
                   {
                     "id": "group-id-1",
                     "name": "tab-group-1",
-                    "collapsed": true
+                    "collapsed": true,
+                    "color": "tab-group-1"
                   }
                 ],
                 "closed": [

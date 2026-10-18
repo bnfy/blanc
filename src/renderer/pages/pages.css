@@ -4333,3 +4333,8 @@ body[data-layout="shelf"] #layoutShelf { display: grid; }
 .ob-quiet-island { display: block; width: 100%; height: auto; }
 .ob-content .ob-island-hint { margin: 14px 0 24px; text-align: center; font-size: 12px; }
 .ob-island-hint .ob-kbd { color: var(--text); }
+
+/* Tab group colors (spec 2026-10-17-tab-group-colors-design.md): a colored
+   group's dots on the Start Page take its color. */
+.cluster.group-colored i,
+.chip-dots.group-colored i { background: var(--group-color); opacity: 1; }

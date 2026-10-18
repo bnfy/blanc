@@ -316,7 +316,7 @@
       }
     },
     "TabGroup": {
-      "doc": "A tab group. Groups have names, not colors.",
+      "doc": "A tab group: a name, and optionally one of the Spaces preset colors.",
       "fields": {
         "id": {
           "type": "GroupId"
@@ -325,6 +325,18 @@
           "type": "string"
         },
         "collapsed": {
+          "type": "boolean"
+        },
+        "color": {
+          "type": "string | null",
+          "doc": "A Spaces preset hex (#rrggbb), or null for no color."
+        }
+      }
+    },
+    "GroupColorResult": {
+      "doc": "Result of setGroupColor, built by setGroupColor() in main.js.",
+      "fields": {
+        "ok": {
           "type": "boolean"
         }
       }
@@ -1287,6 +1299,20 @@
         }
       }
     },
+    "GroupMenuAnchor": {
+      "doc": "Where a group menu opens from the side list: the header row's right, top and bottom edges in window coordinates. Main validates all three.",
+      "fields": {
+        "right": {
+          "type": "number"
+        },
+        "top": {
+          "type": "number"
+        },
+        "bottom": {
+          "type": "number"
+        }
+      }
+    },
     "SpacesAnchor": {
       "doc": "Where the Spaces menu opens: the space mark's left and bottom edges in window coordinates. Main validates both.",
       "fields": {
@@ -1660,6 +1686,52 @@
       ],
       "returns": "GroupRenameResult",
       "doc": "Rename a group, keeping the case typed. An empty or unchanged name changes nothing; another group's name in this window (in any case) is refused."
+    },
+    {
+      "name": "setGroupColor",
+      "group": "groups",
+      "kind": "invoke",
+      "channel": "groups:set-color",
+      "params": [
+        {
+          "name": "groupId",
+          "type": "GroupId"
+        },
+        {
+          "name": "color",
+          "type": "string | null"
+        }
+      ],
+      "returns": "GroupColorResult",
+      "doc": "Give a group one of the Spaces preset colors, or none with null. Anything else is refused and changes nothing."
+    },
+    {
+      "name": "newTabInGroup",
+      "group": "groups",
+      "kind": "invoke",
+      "channel": "groups:new-tab",
+      "params": [
+        {
+          "name": "groupId",
+          "type": "GroupId"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Open a new tab at the end of a group and select it. Resolves false for an unknown group."
+    },
+    {
+      "name": "moveGroupToNewWindow",
+      "group": "groups",
+      "kind": "invoke",
+      "channel": "groups:move-to-new-window",
+      "params": [
+        {
+          "name": "groupId",
+          "type": "GroupId"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Move every tab of a group, in order, into a new window with the same group. Refused (false) when the group holds every tab in its window or a member is changing quiet state."
     },
     {
       "name": "ungroupGroup",
@@ -2235,6 +2307,23 @@
         }
       ],
       "doc": "Open the Spaces menu from the Island's space mark."
+    },
+    {
+      "name": "openGroupMenu",
+      "group": "groups",
+      "kind": "send",
+      "channel": "chrome:open-group-menu",
+      "params": [
+        {
+          "name": "groupId",
+          "type": "GroupId"
+        },
+        {
+          "name": "anchor",
+          "type": "GroupMenuAnchor"
+        }
+      ],
+      "doc": "Open a group's menu (name, color, actions) beside its header in the side list."
     },
     {
       "name": "captureStop",

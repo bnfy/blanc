@@ -136,6 +136,7 @@ function buildGroupEntry(group, members, now = 0) {
       id: group.id,
       name: group.name,
       collapsed: !!group.collapsed,
+      color: typeof group.color === 'string' ? group.color : null,
       index: Number.isInteger(group.index) ? group.index : 0,
     },
     activeMemberIndex: Number.isInteger(group.activeMemberIndex) ? group.activeMemberIndex : 0,

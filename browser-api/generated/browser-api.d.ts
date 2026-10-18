@@ -163,11 +163,18 @@ export interface TabEntry {
   siteInfo: SiteInfo;
 }
 
-/** A tab group. Groups have names, not colors. */
+/** A tab group: a name, and optionally one of the Spaces preset colors. */
 export interface TabGroup {
   id: GroupId;
   name: string;
   collapsed: boolean;
+  /** A Spaces preset hex (#rrggbb), or null for no color. */
+  color: string | null;
+}
+
+/** Result of setGroupColor, built by setGroupColor() in main.js. */
+export interface GroupColorResult {
+  ok: boolean;
 }
 
 /** A closed entry as renderers see it, projected by projectEntries() in closed-tabs.js. */
@@ -636,6 +643,13 @@ export interface IslandRectReport {
   minReferenceWidth?: number;
 }
 
+/** Where a group menu opens from the side list: the header row's right, top and bottom edges in window coordinates. Main validates all three. */
+export interface GroupMenuAnchor {
+  right: number;
+  top: number;
+  bottom: number;
+}
+
 /** Where the Spaces menu opens: the space mark's left and bottom edges in window coordinates. Main validates both. */
 export interface SpacesAnchor {
   left: number;
@@ -781,6 +795,21 @@ export interface BlancBrowserAPI {
    * IPC: invoke `groups:rename`.
    */
   renameGroup(groupId: GroupId, name: string): Promise<GroupRenameResult>;
+  /**
+   * Give a group one of the Spaces preset colors, or none with null. Anything else is refused and changes nothing.
+   * IPC: invoke `groups:set-color`.
+   */
+  setGroupColor(groupId: GroupId, color: string | null): Promise<GroupColorResult>;
+  /**
+   * Open a new tab at the end of a group and select it. Resolves false for an unknown group.
+   * IPC: invoke `groups:new-tab`.
+   */
+  newTabInGroup(groupId: GroupId): Promise<boolean>;
+  /**
+   * Move every tab of a group, in order, into a new window with the same group. Refused (false) when the group holds every tab in its window or a member is changing quiet state.
+   * IPC: invoke `groups:move-to-new-window`.
+   */
+  moveGroupToNewWindow(groupId: GroupId): Promise<boolean>;
   /**
    * Make every tab in a group ungrouped; the empty group goes away.
    * IPC: invoke `groups:ungroup`.
@@ -1004,6 +1033,11 @@ export interface BlancBrowserAPI {
    * IPC: send `chrome:open-spaces`.
    */
   openSpacesMenu(anchor: SpacesAnchor): void;
+  /**
+   * Open a group's menu (name, color, actions) beside its header in the side list.
+   * IPC: send `chrome:open-group-menu`.
+   */
+  openGroupMenu(groupId: GroupId, anchor: GroupMenuAnchor): void;
   /**
    * Stop capture on a surface.
    * IPC: send `chrome:capture-stop`.

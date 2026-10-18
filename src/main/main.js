@@ -308,8 +308,8 @@ const { moveTab: resolveTabMove, reorderItems } = require('./tab-order');
 const { CLOSED_SECTION_ID, clampClosedSlot, reconcileClosedSlot } = require('./closed-slot');
 const { sectionsOf, normalizeOrder, itemsOf, layoutItems, legacyOrder, placeInGroup } = require('../renderer/tab-sections');
 const { normalizeGroupName, sameGroupName, recaseSessionData } = require('./group-name-case');
+const { sanitizeGroupColor, groupRecord } = require('./group-color');
 const { deviceNamesEqual } = require('./device-names');
-const { attachGroupHeaderMenu } = require('./group-context-menu');
 const { attachDeviceHeaderMenu } = require('./device-context-menu');
 const { openLinkInGlance: openLinkInGlanceWith } = require('./glance-open-link');
 const { acceptOverlayDragState, resetOverlayDragState, overlayDragActive } = require('./overlay-drag-state');
@@ -3257,6 +3257,12 @@ function overlayBounds() {
       rowCount: captureRowCount(),
     });
   }
+  // The side list's group menu: a transparent layer over the whole window,
+  // so the menu can sit beside the header and a click anywhere else closes it.
+  if (rt().overlayMode === 'group-menu') {
+    const { width, height } = rt().window.getContentBounds();
+    return { x: 0, y: 0, width, height };
+  }
   if (rt().overlayMode === 'spaces') {
     return calculateSpacesBounds({
       windowWidth: rt().window.getContentBounds().width,
@@ -3560,7 +3566,8 @@ function createOverlay() {
     if (overlayDragActive(rt())) return;
     if (rt().overlayMode && input.type === 'keyDown' && input.key === 'Escape') {
       event.preventDefault();
-      if ((rt().workspaceSwitcherOpen || rt().overlayMode === 'shield') && rt().overlayView && !rt().overlayView.webContents.isDestroyed()) {
+      if ((rt().workspaceSwitcherOpen || rt().overlayMode === 'shield' || rt().overlayMode === 'group-menu')
+        && rt().overlayView && !rt().overlayView.webContents.isDestroyed()) {
         rt().overlayView.webContents.send('overlay:escape');
         return;
       }
@@ -3663,17 +3670,6 @@ function createOverlay() {
     actions: workspaceMenuContextActions(owner),
   });
   // Group headers in the panel: same webContents, guard and recording scheme.
-  attachGroupHeaderMenu(rt().overlayView.webContents, {
-    isLive: overlayMenuGuardDeps.isOverlayLive,
-    getWindow: overlayMenuGuardDeps.getWindow,
-    getOffset: overlayMenuGuardDeps.getOverlayBounds,
-    acquireMenuGuard: overlayMenuGuardDeps.acquireMenuGuard,
-    releaseMenuGuard: overlayMenuGuardDeps.releaseMenuGuard,
-    suppressIslandHover: bindWindowRuntime(owner, () => suppressIslandHover(owner)),
-    t: mainI18n.t,
-    resolveGroup: bindWindowRuntime(owner, (rawId) => rt().groups.find((g) => g.id === rawId) ?? null),
-    actions: groupMenuContextActions(owner),
-  });
   // Device headers in the Other devices drawer: Rename Device….
   attachDeviceHeaderMenu(rt().overlayView.webContents, {
     isLive: overlayMenuGuardDeps.isOverlayLive,
@@ -3719,6 +3715,13 @@ function showOverlay(mode, { prefill, purpose } = {}) {
     // panel. The strip snaps its own pill to rest on the same island-state.
     cancelPendingIslandProximity(rt());
     if (rt().islandProximity.k !== 0) sendIslandProximity(rt(), { k: 0 });
+  }
+  // Another surface replacing the side list's group menu: that header forgets
+  // its open state, as it does when the menu closes (hideOverlay).
+  if (rt().overlayMode === 'group-menu' && mode !== 'group-menu' && typeof rt().overlayPurpose?.groupId === 'string') {
+    rt().window.webContents.send('chrome:island-state', {
+      mode: null, trigger: `group-menu:${rt().overlayPurpose.groupId}`, restoreTrigger: null,
+    });
   }
   rt().overlayMode = mode;
   rt().overlayPrefill = prefill ?? null;
@@ -3839,6 +3842,7 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
           closingMode === 'shield' ? closingTrigger
             : closingMode === 'capture' ? 'capture'
               : closingMode === 'spaces' ? 'spaces'
+              : closingMode === 'group-menu' ? 'group-menu'
               // The Change control only exists while Glance is still open —
               // if the reference tab closed under the picker, fall through to
               // the ordinary content refocus instead of a hidden button.
@@ -3847,7 +3851,11 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
         )
       : null;
     if (restoreTrigger) rt().window.webContents.focus();
-    rt().window.webContents.send('chrome:island-state', { mode: null, trigger: null, restoreTrigger });
+    // The side list's group menu names its group so that header can forget
+    // its open state (and take focus back after Escape).
+    const closedTrigger = closingMode === 'group-menu' && typeof closingPurpose?.groupId === 'string'
+      ? `group-menu:${closingPurpose.groupId}` : null;
+    rt().window.webContents.send('chrome:island-state', { mode: null, trigger: closedTrigger, restoreTrigger });
     if (refocusContent && !restoreTrigger) liveContents(tabs.get(rt().activeTabId))?.focus();
     if (retracts) {
       // Wake proximity from where the cursor is now. Moves over the expanded
@@ -5493,7 +5501,7 @@ function groupTabByName(tabId, rawName, { adoptCase = false } = {}) {
   if (group && adoptCase && name !== name.toLowerCase()) group.name = name;
   const from = tab.groupId ?? null;
   if (!group) {
-    group = { id: crypto.randomUUID(), name, collapsed: false };
+    group = { id: crypto.randomUUID(), name, collapsed: false, color: null };
     rt().groups.push(group);
     // A new group appears where its tab was; a tab leaving another group
     // first moves directly below that group (spec 2026-10-17 §3.3).
@@ -5518,6 +5526,20 @@ function renameGroup(groupId, rawName) {
   if (!name || name === group.name) return { ok: true };
   if (runtime.groups.some((g) => g !== group && sameGroupName(g.name, name))) return { ok: false, error: 'duplicate' };
   group.name = name;
+  broadcastTabs();
+  scheduleMenuRebuild();
+  return { ok: true };
+}
+
+/** Give a group one of the Spaces preset colors, or none with null (spec
+ * 2026-10-17-tab-group-colors-design.md). Anything but a preset is refused
+ * and changes nothing. */
+function setGroupColor(groupId, color) {
+  const group = rt().groups.find((g) => g.id === groupId);
+  if (!group) return { ok: false };
+  const next = sanitizeGroupColor(color);
+  if (color != null && next === null) return { ok: false };
+  group.color = next;
   broadcastTabs();
   scheduleMenuRebuild();
   return { ok: true };
@@ -5633,7 +5655,7 @@ function closeGroup(groupId) {
   const entry = buildGroupEntry({
     // The group's place among the window's top-level items (groups and
     // ungrouped tabs), so it reopens where it was (spec 2026-10-17).
-    id: group.id, name: group.name, collapsed: group.collapsed,
+    id: group.id, name: group.name, collapsed: group.collapsed, color: group.color ?? null,
     index: itemsOf(tabLayoutList(runtime)).findIndex((item) => item.id === group.id),
     activeMemberIndex: Math.max(0, ids.indexOf(runtime.activeTabId)),
   }, ids.map(closedMemberRecord), Date.now());
@@ -5683,7 +5705,7 @@ function workspaceCapture(runtime, { previousActiveIndex = 0 } = {}) {
   const entry = captureWindowEntry(runtime, { previousActiveIndex });
   return {
     ...entry,
-    groups: entry.groups.map((group) => ({ id: group.id, name: group.name, collapsed: !!group.collapsed })),
+    groups: entry.groups.map(groupRecord),
   };
 }
 
@@ -6132,7 +6154,7 @@ function applyWorkspaceToWindow(runtime, workspace) {
     // mirror image of workspaceCapture's fix above, on the read side).
     runtime.groups = (Array.isArray(workspace.groups) ? workspace.groups : [])
       .filter((group) => group && typeof group.id === 'string' && typeof group.name === 'string')
-      .map((group) => ({ id: group.id, name: group.name, collapsed: !!group.collapsed }));
+      .map(groupRecord);
     runtime.closedSlot = clampClosedSlot(workspace.closedSlot, runtime.groups.length);
     runtime.closedSlotIds = runtime.groups.map((group) => group.id);
 
@@ -6819,7 +6841,7 @@ function setActiveTab(id, {
   // Find state is per-tab; a stale capsule over a different page misleads.
   // The shield popover describes one tab's site — same rule. The Spaces menu
   // describes this window, but a switch away from it is a fresh context too.
-  if (['find', 'shield', 'capture', 'spaces'].includes(rt().overlayMode)) {
+  if (['find', 'shield', 'capture', 'spaces', 'group-menu'].includes(rt().overlayMode)) {
     hideOverlay({ refocusContent: false });
   }
 
@@ -7150,7 +7172,7 @@ function reopenGroupEntry(entry) {
   const runtime = rt();
   let group = runtime.groups.find((g) => sameGroupName(g.name, entry.group.name));
   if (!group) {
-    group = { id: entry.group.id, name: entry.group.name, collapsed: !!entry.group.collapsed };
+    group = groupRecord(entry.group);
     runtime.groups.splice(Math.min(entry.group.index, runtime.groups.length), 0, group);
   }
   const ids = entry.tabs.map((member) => {
@@ -8189,15 +8211,6 @@ function sendWorkspaceAction(kind, workspaceId) {
   const wc = rt().overlayView?.webContents;
   if (wc && !wc.isDestroyed()) wc.send('overlay:workspace-action', { kind, id: workspaceId });
 }
-function groupMenuContextActions(owner) {
-  const b = (fn) => bindWindowRuntime(owner, fn);
-  return {
-    rename: b((id) => beginRenameGroup(id)),
-    ungroup: b((id) => ungroupGroup(id)),
-    closeGroup: b((id) => closeGroup(id)),
-  };
-}
-
 function workspaceMenuContextActions(owner) {
   const b = (fn) => bindWindowRuntime(owner, fn);
   return {
@@ -8438,6 +8451,9 @@ function registerIpcHandlers() {
   chromeHandle('groups:reorder', (_e, id, beforeGroupId) => reorderGroupBefore(id, beforeGroupId));
   chromeHandle('groups:move-closed', (_e, beforeGroupId) => moveClosedSection(beforeGroupId));
   chromeHandle('groups:rename', (_e, id, name) => renameGroup(id, name));
+  chromeHandle('groups:set-color', (_e, id, color) => setGroupColor(id, color));
+  chromeHandle('groups:new-tab', (_e, id) => newTabInGroup(id) !== null);
+  chromeHandle('groups:move-to-new-window', (_e, id) => moveGroupToNewWindow(id));
   chromeHandle('groups:ungroup', (_e, id) => ungroupGroup(id));
   chromeOn('overlay:drag-state', (event, active) => {
     acceptOverlayDragState(rt(), event.sender, active);
@@ -8562,6 +8578,15 @@ function registerIpcHandlers() {
   // The Island's space mark opens the Spaces menu on its own, tight around it.
   // Escape, blur, a click outside, a tab switch or a space switch close it;
   // focus returns to the mark.
+  // The side list's group menu (tab group colors spec §6), beside the header
+  // that opened it. The renderer's group id and header box are re-checked.
+  chromeOn('chrome:open-group-menu', (_e, groupId, anchor) => {
+    if (!rt().groups.some((group) => group.id === groupId)) return;
+    const { width, height } = rt().window?.getContentBounds() ?? { width: 0, height: 0 };
+    const inside = (value, max) => Number.isFinite(value) && value >= 0 && value <= max;
+    if (!anchor || !inside(anchor.right, width) || !inside(anchor.top, height) || !inside(anchor.bottom, height)) return;
+    showOverlay('group-menu', { purpose: { groupId, anchor: { right: anchor.right, top: anchor.top, bottom: anchor.bottom } } });
+  });
   chromeOn('chrome:open-spaces', (_e, anchor) => {
     if (rt().overlayMode === 'spaces') return hideOverlay({ refocusContent: false }); // re-click toggles shut
     // A press that began on the open menu has already closed it (the overlay's
@@ -9503,15 +9528,6 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     diagnostics.recordRendererCrash('chrome', details);
   }));
   // Group headers on the vertical tabs rail (chrome document coordinates).
-  attachGroupHeaderMenu(rt().window.webContents, {
-    isLive: () => true,
-    getWindow: bindWindowRuntime(runtime, () => rt().window),
-    getOffset: () => ({ x: 0, y: 0 }),
-    suppressIslandHover: bindWindowRuntime(runtime, () => suppressIslandHover(runtime)),
-    t: mainI18n.t,
-    resolveGroup: bindWindowRuntime(runtime, (rawId) => rt().groups.find((g) => g.id === rawId) ?? null),
-    actions: groupMenuContextActions(runtime),
-  });
   attachChromeMenu(rt().window.webContents, {
     t: mainI18n.t,
     getWindow: bindWindowRuntime(runtime, () => rt().window),
@@ -9856,26 +9872,34 @@ function openNewWindow(options = {}) {
   createMainWindow(runtime);
   return withWindowRuntime(runtime, () => {
     let tabId = null;
-    if (options.adoptTabId != null && tabs.has(options.adoptTabId)) {
-      // Adopt an existing tab (Move Tab to New Window) instead of seeding a
-      // fresh one — the caller has already detached it from its old window.
-      tabId = options.adoptTabId;
-      const tab = tabs.get(tabId);
-      tab.runtimeId = runtime.id;
-      windowRuntimes.attachTab(runtime, tabId);
-      runtime.tabOrder = [tabId];
-      // Re-home the per-tab listener set: wireTabView binds its owner runtime
-      // once at attach time, so without this every media/find/beforeunload/
-      // window.open handler would keep acting on the OLD window. A retained-
-      // storage quiet tab keeps a live, still-wired WebContents in its sleep
-      // snapshot (wakeTab's retained branch deliberately skips rewiring), so
-      // that view needs the same treatment as an awake one.
-      const wiredView = liveContents(tab) ? tab.view : (sleepSnapshots.get(tabId)?.view ?? null);
-      const wiredWc = wiredView?.webContents;
-      if (wiredWc && !wiredWc.isDestroyed()) {
-        unwireTabView(wiredWc);
-        wireTabView(tab, wiredView, { owner: runtime, adopted: !!tab.adopted });
+    const adoptIds = (options.adoptTabIds ?? (options.adoptTabId != null ? [options.adoptTabId] : []))
+      .filter((id) => tabs.has(id));
+    if (adoptIds.length) {
+      // Adopt existing tabs (Move Tab / Move Group to New Window) instead of
+      // seeding a fresh one — the caller has already detached them from
+      // their old window, in order.
+      runtime.tabOrder = [...adoptIds];
+      // A moved group arrives whole: the same record (name, color, fold).
+      if (options.group) runtime.groups = [groupRecord(options.group)];
+      for (const id of adoptIds) {
+        const tab = tabs.get(id);
+        tab.runtimeId = runtime.id;
+        if (options.group) tab.groupId = options.group.id;
+        windowRuntimes.attachTab(runtime, id);
+        // Re-home the per-tab listener set: wireTabView binds its owner runtime
+        // once at attach time, so without this every media/find/beforeunload/
+        // window.open handler would keep acting on the OLD window. A retained-
+        // storage quiet tab keeps a live, still-wired WebContents in its sleep
+        // snapshot (wakeTab's retained branch deliberately skips rewiring), so
+        // that view needs the same treatment as an awake one.
+        const wiredView = liveContents(tab) ? tab.view : (sleepSnapshots.get(id)?.view ?? null);
+        const wiredWc = wiredView?.webContents;
+        if (wiredWc && !wiredWc.isDestroyed()) {
+          unwireTabView(wiredWc);
+          wireTabView(tab, wiredView, { owner: runtime, adopted: !!tab.adopted });
+        }
       }
+      tabId = adoptIds.includes(options.activeTabId) ? options.activeTabId : adoptIds[0];
       setActiveTab(tabId); // attaches (and wakes a discarded quiet tab) here
     } else {
       tabId = options.private
@@ -9893,33 +9917,22 @@ function openNewWindow(options = {}) {
   });
 }
 
-/** "Move Tab to New Window": detach the tab from its window and adopt it into
- * a fresh one via openNewWindow's adoptTabId mode (shared scaffold = shared
- * guards and bring-up sequencing). Ungrouped on move — a group spanning two
- * windows isn't a modeled concept (context-menus design §6). Pin and mute
- * state travel with the tab. */
-function moveTabToNewWindow(id) {
+/** Detach a tab from `source` before it moves to a new window: cancel its
+ * permission prompts, hand off Glance and the selection, drop it from the
+ * order and ungroup it (a group spanning two windows isn't modeled). Shared
+ * by Move Tab and Move Group to New Window. */
+function detachTabForMove(source, id) {
   const tab = tabs.get(id);
-  if (!tab) return;
-  // Never mid-sleep-transition: teardown/wake own the view lifecycle, and
-  // sleepTab's revalidation now also refuses a tab that changed runtimes.
-  if (tab.sleeping || tab.waking) return;
-  const source = windowRuntimes.runtimeForTab(id);
-  if (!source || source.tabOrder.length <= 1) return; // sole tab — no-op
-  // Checked BEFORE the source surgery: openNewWindow throws on a pending
-  // profile deletion, which would otherwise strand a detached tab.
-  if (profileDeletions.hasPendingProfileDeletion(source.profileId)) return;
-
-  // 1. Detach from the source window. A pending permission prompt belongs to
-  //    this window's runtime and would float over unrelated content (and its
-  //    per-tab cancel path could never find it again post-move) — cancel it,
-  //    same as closeTab; the page re-requests in the new window. If the tab
-  //    is the Glance pane, close that; if active with a reference beside it,
-  //    promote the reference (closeTab's rule); otherwise hand focus to the
-  //    MRU survivor with the right-neighbour as fallback. The view is hidden
-  //    at that point (active → survivor selection, Glance → closeGlance). On
-  //    Linux a view shown here before stays a child of this window until the
-  //    new one attaches it (tab-view-lifecycle.js).
+  // Detach from the source window. A pending permission prompt belongs to
+  // this window's runtime and would float over unrelated content (and its
+  // per-tab cancel path could never find it again post-move) — cancel it,
+  // same as closeTab; the page re-requests in the new window. If the tab
+  // is the Glance pane, close that; if active with a reference beside it,
+  // promote the reference (closeTab's rule); otherwise hand focus to the
+  // MRU survivor with the right-neighbour as fallback. The view is hidden
+  // at that point (active → survivor selection, Glance → closeGlance). On
+  // Linux a view shown here before stays a child of this window until the
+  // new one attaches it (tab-view-lifecycle.js).
   withWindowRuntime(source, () => {
     cancelPermissionPromptsForTab(id);
     if (rt().glanceTabId === id) closeGlance({ focusContent: false });
@@ -9943,11 +9956,75 @@ function moveTabToNewWindow(id) {
     pruneEmptyGroups();
     broadcastTabs(); // persists the session as part of the broadcast
   });
+}
+
+/** "Move Tab to New Window": detach the tab from its window and adopt it into
+ * a fresh one via openNewWindow's adoptTabId mode (shared scaffold = shared
+ * guards and bring-up sequencing). Ungrouped on move — a group spanning two
+ * windows isn't a modeled concept (context-menus design §6). Pin and mute
+ * state travel with the tab. */
+function moveTabToNewWindow(id) {
+  const tab = tabs.get(id);
+  if (!tab) return;
+  // Never mid-sleep-transition: teardown/wake own the view lifecycle, and
+  // sleepTab's revalidation now also refuses a tab that changed runtimes.
+  if (tab.sleeping || tab.waking) return;
+  const source = windowRuntimes.runtimeForTab(id);
+  if (!source || source.tabOrder.length <= 1) return; // sole tab — no-op
+  // Checked BEFORE the source surgery: openNewWindow throws on a pending
+  // profile deletion, which would otherwise strand a detached tab.
+  if (profileDeletions.hasPendingProfileDeletion(source.profileId)) return;
+
+  // 1. Detach from the source window (detachTabForMove).
+  detachTabForMove(source, id);
 
   // 2. Shared window bring-up + adoption (runtimeId, attachTab, listener
   //    rewire, activation, focus, menu) all live in openNewWindow's adopt
   //    branch, keeping guards and sequencing in one place.
   openNewWindow({ profileId: source.profileId, adoptTabId: id });
+}
+
+/** "New Tab in Group" (group menu): a new tab at the end of the group,
+ * selected with the address field focused. */
+function newTabInGroup(groupId) {
+  const runtime = rt();
+  if (!runtime.groups.some((group) => group.id === groupId)) return null;
+  const id = createTab(newTabUrl(), { groupId });
+  if (!id) return null;
+  runtime.tabOrder = placeInGroup(runtime.tabOrder, tabLayoutList(runtime), id, groupId);
+  setActiveTab(id, { focusContent: false, focusAddress: true });
+  broadcastTabs();
+  return id;
+}
+
+/** "Move Group to New Window" (group menu): every member, in order, into a
+ * fresh window with the same group record. Refused while a member is mid
+ * sleep transition, when the group holds every tab in its window, or while
+ * the profile is being deleted. */
+function moveGroupToNewWindow(groupId) {
+  const source = rt();
+  const group = source.groups.find((g) => g.id === groupId);
+  if (!group) return false;
+  const ids = source.tabOrder.filter((id) => tabs.get(id)?.groupId === groupId);
+  if (!ids.length || ids.length >= source.tabOrder.length) return false;
+  if (ids.some((id) => tabs.get(id)?.sleeping || tabs.get(id)?.waking)) return false;
+  if (profileDeletions.hasPendingProfileDeletion(source.profileId)) return false;
+  const record = groupRecord(group);
+  const activeTabId = ids.includes(source.activeTabId) ? source.activeTabId : null;
+  // Select a tab that stays first, so detaching never selects (and wakes)
+  // a member that is about to leave too.
+  if (activeTabId) {
+    withWindowRuntime(source, () => {
+      if (rt().glanceTabId && ids.includes(rt().glanceTabId)) closeGlance({ focusContent: false });
+      const stays = (tid) => !ids.includes(tid) && tabs.has(tid) && windowRuntimes.runtimeForTab(tid) === source;
+      const survivor = previousSurvivor(source.activationHistory, stays)
+        ?? source.tabOrder.find(stays);
+      if (survivor) setActiveTab(survivor, { focusContent: false });
+    });
+  }
+  for (const id of ids) detachTabForMove(source, id);
+  openNewWindow({ profileId: source.profileId, adoptTabIds: ids, group: record, activeTabId });
+  return true;
 }
 
 function openNewProfileWindow(name) {
@@ -10264,7 +10341,7 @@ function windowRuntimeSnapshots() {
       const tab = tabs.get(id);
       return tab ? { id, url: tab.url, private: !!tab.private } : null;
     }).filter(Boolean),
-    groups: runtime.groups.map(({ id, name, collapsed }) => ({ id, name, collapsed })),
+    groups: runtime.groups.map(({ id, name, collapsed, color }) => ({ id, name, collapsed, color: color ?? null })),
     attached: !!runtime.window && !runtime.window.isDestroyed(),
   }));
 }
@@ -11188,6 +11265,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         .map(({ group, tabIds }) => ({
           id: group.id,
           name: group.name,
+          color: group.color ?? null,
           count: tabIds.filter((id) => !tabs.get(id)?.private).length,
         }))
         .filter((g) => g.count > 0),
@@ -11441,7 +11519,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         const opener = tabs.get(tabId);
         return opener ? withWindowRuntime(windowRuntimes.runtimeForTab(opener) ?? rt(), () => openLinkInGlance(opener, url)) : false;
       },
-      groupTabByName, renameTab, beginRenameTab, beginRenameGroup, beginRenameDevice, ungroupGroup, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab,
+      groupTabByName, renameTab, beginRenameTab, beginRenameGroup, beginRenameDevice, ungroupGroup, setGroupColor, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab,
       closeGroup, newTabUrl,
       getOverlayDragging: () => overlayDragActive(rt()),
       selectTabAtIndex,
@@ -11936,7 +12014,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       closedSlot: saved.closedSlot ?? 0,
       groups: (Array.isArray(saved.groups) ? saved.groups : [])
         .filter((group) => group && typeof group.id === 'string' && typeof group.name === 'string')
-        .map((group) => ({ id: group.id, name: group.name, collapsed: !!group.collapsed })),
+        .map(groupRecord),
     };
   });
   if (!savedWindows.length) {

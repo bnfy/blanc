@@ -467,7 +467,12 @@
     <string name="group_menu_duplicate">A group named “%1$s” already exists</string>
     <string name="group_menu_close">Close Group</string>
     <string name="group_menu_ungroup">Ungroup</string>
-    <string name="group_menu_rename">Rename Group…</string>
+    <string name="group_menu_options">Group options</string>
+    <string name="group_menu_name_label">Group name</string>
+    <string name="group_menu_color_label">Color</string>
+    <string name="group_menu_color_none">No color</string>
+    <string name="group_menu_new_tab">New Tab in Group</string>
+    <string name="group_menu_move_to_new_window">Move Group to New Window</string>
     <string name="device_menu_rename">Rename Device…</string>
     <string name="tab_menu_reset_title">Reset Tab Title</string>
     <string name="tab_menu_pin">Pin Tab</string>

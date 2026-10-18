@@ -254,3 +254,9 @@ test('closed entries omit invalid, unpinned, and private pinned homes', () => {
     assert.equal(Object.hasOwn(buildTabEntry(candidate, SNAP), 'pinnedHomeUrl'), false);
   }
 });
+
+test('buildGroupEntry keeps the color', () => {
+  const local = { url: 'https://a.test/', title: 'A', pinned: false, muted: false, private: false, snapshot: null };
+  assert.equal(buildGroupEntry({ id: 'g', name: 'Work', color: '#376694', index: 0 }, [local], 0).group.color, '#376694');
+  assert.equal(buildGroupEntry({ id: 'g', name: 'Work', index: 0 }, [local], 0).group.color, null);
+});

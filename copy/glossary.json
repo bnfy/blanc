@@ -253,7 +253,8 @@
       "spaces.color.iris",
       "spaces.picker.hex",
       "result.tag.space",
-      "settings.general.bangs.label"
+      "settings.general.bangs.label",
+      "groupMenu.colorLabel"
     ],
     "fr": [
       "about.chromium",

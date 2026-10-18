@@ -80,3 +80,32 @@ test('placeInGroup keeps a member inside its block', () => {
   const alone = [loose('L1'), member('ONLY', 'g9')];
   assert.deepEqual(placeInGroup(ids(alone), alone, 'ONLY', 'g9'), ['L1', 'ONLY']);
 });
+
+// Tab group colors: one shared painter for the panel band, the side-list
+// block and the Island's dots (spec 2026-10-17-tab-group-colors-design.md).
+function fakeElement() {
+  const classes = new Set();
+  const props = new Map();
+  return {
+    classList: { add: (c) => classes.add(c), remove: (c) => classes.delete(c), contains: (c) => classes.has(c) },
+    style: { setProperty: (k, v) => props.set(k, v), removeProperty: (k) => props.delete(k), getPropertyValue: (k) => props.get(k) ?? '' },
+    classes, props,
+  };
+}
+
+test('a colored band carries the color and its class', () => {
+  const { paintGroup } = require('../../src/renderer/tab-sections');
+  const el = fakeElement();
+  paintGroup(el, { id: 'g', color: '#376694' }, 'group-colored');
+  assert.ok(el.classes.has('group-colored'));
+  assert.equal(el.props.get('--group-color'), '#376694');
+});
+
+test('an uncolored band is unchanged', () => {
+  const { paintGroup } = require('../../src/renderer/tab-sections');
+  const el = fakeElement();
+  paintGroup(el, { id: 'g', color: null }, 'group-colored');
+  paintGroup(el, null, 'group-colored');
+  assert.equal(el.classes.size, 0);
+  assert.equal(el.props.size, 0);
+});

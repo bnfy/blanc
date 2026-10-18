@@ -119,7 +119,18 @@
     return next;
   }
 
-  const api = { sectionsOf, normalizeOrder, itemsOf, layoutItems, legacyOrder, firstTabOf, placeInGroup };
+  /** Mark an element with a group's color (spec 2026-10-17-tab-group-colors-
+   * design.md): `className` plus the --group-color custom property, which the
+   * stylesheet turns into the tint, dot or dot fill. An uncolored group (or
+   * none) leaves the element untouched. Main only ever sends a preset hex. */
+  function paintGroup(el, group, className) {
+    const color = group?.color;
+    if (typeof color !== 'string' || !/^#[0-9a-f]{6}$/.test(color)) return;
+    el.classList.add(className);
+    el.style.setProperty('--group-color', color);
+  }
+
+  const api = { sectionsOf, normalizeOrder, itemsOf, layoutItems, legacyOrder, firstTabOf, placeInGroup, paintGroup };
   if (typeof module !== 'undefined') module.exports = api;
   else root.TabSections = api;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -171,7 +171,7 @@
     },
     {
       "file": "src/main/closed-tabs.js",
-      "sha256": "9dae916a3d34616bd7f5288e305ee2e45ee5490e152d25b7f42d705b33668510",
+      "sha256": "39cc28483a1fd0368b7124e4fee8ecec8ef7f2672e568ecaa4f5c1370c71aaae",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "759c409adc6a09c43bb6c1fb6014135dbf8468ac3e76112599682125d0d42d57",
+      "sha256": "f6322ae566715a3157d932c676e20504a4b4bbc78330b25900865ecfbe3bca2a",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -290,6 +290,7 @@
         "chrome:onepassword-fill",
         "chrome:open-capture",
         "chrome:open-find",
+        "chrome:open-group-menu",
         "chrome:open-island",
         "chrome:open-island-commands",
         "chrome:open-island-typing",
@@ -333,8 +334,11 @@
         "fill:reply",
         "focus",
         "groups:move-closed",
+        "groups:move-to-new-window",
+        "groups:new-tab",
         "groups:rename",
         "groups:reorder",
+        "groups:set-color",
         "groups:ungroup",
         "input-event",
         "login",
@@ -572,7 +576,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "6819cea78ee6ac18c778f20e8c0919879ea351cd1e68ef48482cdc2a31f84f93",
+      "sha256": "1b184a585910d8ac4a1c76279637afcf9ec9c949db0bdc14d124099d514a57f8",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -603,6 +607,7 @@
         "chrome:onepassword-fill",
         "chrome:open-capture",
         "chrome:open-find",
+        "chrome:open-group-menu",
         "chrome:open-island",
         "chrome:open-island-commands",
         "chrome:open-island-typing",
@@ -639,8 +644,11 @@
         "display-capture:picker-resolve",
         "display-capture:stop",
         "groups:move-closed",
+        "groups:move-to-new-window",
+        "groups:new-tab",
         "groups:rename",
         "groups:reorder",
+        "groups:set-color",
         "groups:ungroup",
         "overlay:close",
         "overlay:drag-state",

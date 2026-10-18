@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-118 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
+122 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -24,6 +24,9 @@
 | `reorderGroup` | tabs | invoke | `groups:reorder` | `(id: GroupId, beforeGroupId: GroupId \| TabId \| 'recently-closed' \| null) => Promise<boolean>` | all |
 | `moveClosedSection` | tabs | invoke | `groups:move-closed` | `(beforeGroupId: GroupId \| TabId \| null) => Promise<boolean>` | all |
 | `renameGroup` | groups | invoke | `groups:rename` | `(groupId: GroupId, name: string) => Promise<GroupRenameResult>` | all |
+| `setGroupColor` | groups | invoke | `groups:set-color` | `(groupId: GroupId, color: string \| null) => Promise<GroupColorResult>` | all |
+| `newTabInGroup` | groups | invoke | `groups:new-tab` | `(groupId: GroupId) => Promise<boolean>` | all |
+| `moveGroupToNewWindow` | groups | invoke | `groups:move-to-new-window` | `(groupId: GroupId) => Promise<boolean>` | all |
 | `ungroupGroup` | groups | invoke | `groups:ungroup` | `(groupId: GroupId) => Promise<void>` | all |
 | `activateTabFromRail` | tabs | invoke | `tabs:activate-from-rail` | `(id: TabId) => Promise<boolean>` | all |
 | `setGlanceTab` | glance | invoke | `tabs:set-glance` | `(id: TabId) => Promise<boolean>` | all |
@@ -68,6 +71,7 @@
 | `openBlockingPopup` | blocking | invoke | `chrome:blocking-popup` | `() => Promise<boolean>` | all |
 | `openCapturePopover` | capture | send | `chrome:open-capture` | `(anchor: CaptureAnchor)` | all |
 | `openSpacesMenu` | workspaces | send | `chrome:open-spaces` | `(anchor: SpacesAnchor)` | all |
+| `openGroupMenu` | groups | send | `chrome:open-group-menu` | `(groupId: GroupId, anchor: GroupMenuAnchor)` | all |
 | `captureStop` | capture | send | `chrome:capture-stop` | `(surfaceId: CaptureSurfaceId)` | all |
 | `captureFocus` | capture | send | `chrome:capture-focus` | `(surfaceId: CaptureSurfaceId)` | all |
 | `stopDisplayShare` | capture | send | `display-capture:stop` | `(shareId: DisplayShareId)` | all |
@@ -342,13 +346,22 @@ One tab in tabs:updated, projected by serializeTabs() in main.js. Main-only stat
 
 ### `TabGroup`
 
-A tab group. Groups have names, not colors.
+A tab group: a name, and optionally one of the Spaces preset colors.
 
 | Field | Type | Notes |
 | --- | --- | --- |
 | `id` | `GroupId` |  |
 | `name` | `string` |  |
 | `collapsed` | `boolean` |  |
+| `color` | `string \| null` | A Spaces preset hex (#rrggbb), or null for no color. |
+
+### `GroupColorResult`
+
+Result of setGroupColor, built by setGroupColor() in main.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `ok` | `boolean` |  |
 
 ### `ClosedEntrySummary`
 
@@ -914,6 +927,16 @@ The resting pill's rectangle as the strip reports it, plus the open shield popov
 | `spacesAnchor?` | `SpacesAnchor` | Present while the Spaces menu is open from the mark, so it follows the pill. |
 | `minPrimaryWidth?` | `number` | With Glance side by side: the narrowest main pane that holds the slim Island with a readable address, its chips and clearance included. Main stops the divider there. |
 | `minReferenceWidth?` | `number` | With Glance side by side: the narrowest reference that holds the Glance header at its most compact, including the window-control space on Windows and Linux. Main stops the divider there. |
+
+### `GroupMenuAnchor`
+
+Where a group menu opens from the side list: the header row's right, top and bottom edges in window coordinates. Main validates all three.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `right` | `number` |  |
+| `top` | `number` |  |
+| `bottom` | `number` |  |
 
 ### `SpacesAnchor`
 
