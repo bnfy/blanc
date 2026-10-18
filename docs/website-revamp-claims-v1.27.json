@@ -4298,16 +4298,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "revamp-copy-118",
-      "source": "site/src/components/guides/tab-groups.astro",
-      "exactWording": "Groups have names, not colors.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "revamp-copy-119",
       "source": "site/src/components/guides/tab-groups.astro",
       "exactWording": "Name the task, then keep moving.",
@@ -7113,16 +7103,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "feature-retained-revamp-copy-118",
-      "source": "site/src/pages/features/tab-groups.astro",
-      "exactWording": "Groups have names, not colors.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "feature-retained-revamp-copy-119",
       "source": "site/src/pages/features/tab-groups.astro",
       "exactWording": "Name the task, then keep moving.",
@@ -8140,36 +8120,6 @@
       "id": "seo-2026-10-05-tab-groups-06",
       "source": "site/src/pages/features/tab-groups.astro",
       "exactWording": "Jump straight to a group.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "seoGuideBehaviors"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "seo-2026-10-05-tab-groups-07",
-      "source": "site/src/pages/features/tab-groups.astro",
-      "exactWording": "When you have groups, ⌘1 to ⌘9 on a Mac, or Ctrl+1 to Ctrl+9 on Windows and Linux, jump to each group in order.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "seoGuideBehaviors"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "seo-2026-10-05-tab-groups-08",
-      "source": "site/src/pages/features/tab-groups.astro",
-      "exactWording": "Links join the group.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "seoGuideBehaviors"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "seo-2026-10-05-tab-groups-09",
-      "source": "site/src/pages/features/tab-groups.astro",
-      "exactWording": "A link you open in a new tab from a grouped tab joins the same group. A new tab you start yourself opens outside any group.",
       "subject": "Blanc",
       "evidenceGroups": [
         "seoGuideBehaviors"
@@ -10339,6 +10289,61 @@
       ],
       "verdict": "qualified",
       "reason": "October 17, 2026: the privacy page now also names the website's discreet newsletter signup card, which submits to the same Worker as the footer form, and records the browser-local entry it keeps. The replacement wording is recorded in docs/website-v1.35-claims.json."
+    },
+    {
+      "id": "revamp-copy-118",
+      "source": "site/src/components/guides/tab-groups.astro",
+      "exactWording": "Groups have names, not colors.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "October 18, 2026, after public v1.37.0: groups can carry an optional color (#936), ⌘1–9 also numbers runs of ungrouped tabs (#933), and a link opened from a grouped tab opens ungrouped (#928). The replacement wording is recorded in docs/website-v1.37-claims.json."
+    },
+    {
+      "id": "feature-retained-revamp-copy-118",
+      "source": "site/src/pages/features/tab-groups.astro",
+      "exactWording": "Groups have names, not colors.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "October 18, 2026, after public v1.37.0: groups can carry an optional color (#936), ⌘1–9 also numbers runs of ungrouped tabs (#933), and a link opened from a grouped tab opens ungrouped (#928). The replacement wording is recorded in docs/website-v1.37-claims.json."
+    },
+    {
+      "id": "seo-2026-10-05-tab-groups-07",
+      "source": "site/src/pages/features/tab-groups.astro",
+      "exactWording": "When you have groups, ⌘1 to ⌘9 on a Mac, or Ctrl+1 to Ctrl+9 on Windows and Linux, jump to each group in order.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "seoGuideBehaviors"
+      ],
+      "verdict": "qualified",
+      "reason": "October 18, 2026, after public v1.37.0: groups can carry an optional color (#936), ⌘1–9 also numbers runs of ungrouped tabs (#933), and a link opened from a grouped tab opens ungrouped (#928). The replacement wording is recorded in docs/website-v1.37-claims.json."
+    },
+    {
+      "id": "seo-2026-10-05-tab-groups-08",
+      "source": "site/src/pages/features/tab-groups.astro",
+      "exactWording": "Links join the group.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "seoGuideBehaviors"
+      ],
+      "verdict": "qualified",
+      "reason": "October 18, 2026, after public v1.37.0: groups can carry an optional color (#936), ⌘1–9 also numbers runs of ungrouped tabs (#933), and a link opened from a grouped tab opens ungrouped (#928). The replacement wording is recorded in docs/website-v1.37-claims.json."
+    },
+    {
+      "id": "seo-2026-10-05-tab-groups-09",
+      "source": "site/src/pages/features/tab-groups.astro",
+      "exactWording": "A link you open in a new tab from a grouped tab joins the same group. A new tab you start yourself opens outside any group.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "seoGuideBehaviors"
+      ],
+      "verdict": "qualified",
+      "reason": "October 18, 2026, after public v1.37.0: groups can carry an optional color (#936), ⌘1–9 also numbers runs of ungrouped tabs (#933), and a link opened from a grouped tab opens ungrouped (#928). The replacement wording is recorded in docs/website-v1.37-claims.json."
     }
   ],
   "supersededCandidateClaims": [
@@ -12955,6 +12960,36 @@
           {
             "before": "<p>Uses HTTPS</p>\n          <p>3 requests blocked</p>",
             "after": ""
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/tab-groups.astro",
+        "reason": "October 18, 2026, after public v1.37.0: groups can carry an optional color and have a group menu (#936), ungrouped tabs can sit above, between or below groups and ⌘1–9 numbers each run of them (#933), and a link opened from a grouped tab now opens ungrouped (#928). The heading, the jump and link articles are corrected and three articles added; the replacement wording is recorded in docs/website-v1.37-claims.json.",
+        "replacements": [
+          {
+            "before": "<div><h2 id=\"group-behavior-title\">Groups have names, not colors.</h2></div>",
+            "after": "<div><h2 id=\"group-behavior-title\">Groups have names, and colors if you want them.</h2></div>"
+          },
+          {
+            "before": "<article><h3>Name the task, then keep moving.</h3><p>Use <code>/group work</code> to create or join a named group from the active tab. A group exists only while it has tabs in it.</p></article>",
+            "after": "<article><h3>Name the task, then keep moving.</h3><p>Use <code>/group work</code> to create or join a named group from the active tab. A group exists only while it has tabs in it.</p></article>\n      <article><h3>Give a group a color.</h3><p>Right-click a group&rsquo;s header, or press its ⋮, and pick one of eight colors. The group&rsquo;s block takes a light tint, and its tabs&rsquo; dots in the Island take the color. Groups start without one.</p></article>"
+          },
+          {
+            "before": "<article><h3>Right-click any tab.</h3><p>Choose Move to Group to start a new group, move the tab into one you already have, or remove it from its group.</p></article>",
+            "after": "<article><h3>Right-click any tab.</h3><p>Choose Move to Group to start a new group, move the tab into one you already have, or remove it from its group.</p></article>\n      <article><h3>One menu for each group.</h3><p>The same menu holds the group&rsquo;s name and color, New Tab in Group, Move Group to New Window, Ungroup and Close Group.</p></article>"
+          },
+          {
+            "before": "<article><h3>Drag tabs and groups into order.</h3><p>In the expanded Island or in vertical tabs, drag a tab to reorder it within its group, move it into another group, or take it out of its group. Drop a tab on a group&rsquo;s header to add it, even when the group is folded. Drag a header to move the whole group; ⌘1 to ⌘9 on a Mac, or Ctrl+1 to Ctrl+9 on Windows and Linux, follow the new order.</p></article>",
+            "after": "<article><h3>Drag tabs and groups into order.</h3><p>In the expanded Island or in vertical tabs, drag a tab to reorder it within its group, move it into another group, or take it out of its group. Drop a tab on a group&rsquo;s header to add it, even when the group is folded. Drag a header to move the whole group; ⌘1 to ⌘9 on a Mac, or Ctrl+1 to Ctrl+9 on Windows and Linux, follow the new order.</p></article>\n      <article><h3>Place loose tabs anywhere.</h3><p>Tabs outside a group can sit above, between or below your groups. New tabs still start at the bottom.</p></article>"
+          },
+          {
+            "before": "<article><h3>Jump straight to a group.</h3><p>When you have groups, ⌘1 to ⌘9 on a Mac, or Ctrl+1 to Ctrl+9 on Windows and Linux, jump to each group in order.</p></article>",
+            "after": "<article><h3>Jump straight to a group.</h3><p>When you have groups, ⌘1 to ⌘9 on a Mac, or Ctrl+1 to Ctrl+9 on Windows and Linux, jump to each group, and each run of ungrouped tabs, in order.</p></article>"
+          },
+          {
+            "before": "<article><h3>Links join the group.</h3><p>A link you open in a new tab from a grouped tab joins the same group. A new tab you start yourself opens outside any group.</p></article>",
+            "after": "<article><h3>Links open outside the group.</h3><p>A link you open in a new tab from a grouped tab opens outside any group, at the bottom, like a new tab you start yourself.</p></article>"
           }
         ]
       }
