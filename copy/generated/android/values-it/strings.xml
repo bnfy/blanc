@@ -52,7 +52,7 @@
     <string name="pill_domain_default">nuova scheda</string>
     <string name="pill_placeholder">Cerca o digita un URL</string>
     <string name="pill_commands">Comandi (/)</string>
-    <string name="pill_private_chip">privata</string>
+    <string name="pill_private_chip">Privata</string>
     <string name="pill_private_title">Esci dalla modalità privata — chiude questa scheda</string>
     <string name="pill_source_chip">sorgente</string>
     <string name="pill_source_title">Chiudi questa vista del codice sorgente</string>
@@ -1394,7 +1394,6 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="newtab_layout_tally">Tally</string>
     <string name="newtab_customize_wallpaper">Sfondo dinamico</string>
     <string name="newtab_mahjong">Mahjong</string>
-    <string name="newtab_private_tab">Scheda privata</string>
     <string name="newtab_go_anywhere">%1$s per andare ovunque</string>
     <string name="newtab_private_footer">nessuna cronologia · separata dalle schede normali · si chiude all’uscita, passkey create qui comprese</string>
     <string name="newtab_version">v%1$s</string>

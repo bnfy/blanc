@@ -52,7 +52,7 @@
     <string name="pill_domain_default">nouvel onglet</string>
     <string name="pill_placeholder">Rechercher ou saisir une URL</string>
     <string name="pill_commands">Commandes (/)</string>
-    <string name="pill_private_chip">privé</string>
+    <string name="pill_private_chip">Privé</string>
     <string name="pill_private_title">Quitter la navigation privée — ferme cet onglet</string>
     <string name="pill_source_chip">code source</string>
     <string name="pill_source_title">Fermer cet affichage du code source</string>
@@ -1394,7 +1394,6 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="newtab_layout_tally">Tally</string>
     <string name="newtab_customize_wallpaper">Fond dynamique</string>
     <string name="newtab_mahjong">Mahjong</string>
-    <string name="newtab_private_tab">Onglet privé</string>
     <string name="newtab_go_anywhere">%1$s pour aller n’importe où</string>
     <string name="newtab_private_footer">aucun historique · séparé des onglets ordinaires · se termine à la fermeture, clés d’accès créées ici comprises</string>
     <string name="newtab_version">v%1$s</string>

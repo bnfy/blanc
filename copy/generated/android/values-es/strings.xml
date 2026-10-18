@@ -52,7 +52,7 @@
     <string name="pill_domain_default">nueva pestaña</string>
     <string name="pill_placeholder">Busca o escribe una URL</string>
     <string name="pill_commands">Comandos (/)</string>
-    <string name="pill_private_chip">privado</string>
+    <string name="pill_private_chip">Privado</string>
     <string name="pill_private_title">Salir del modo privado: cierra esta pestaña</string>
     <string name="pill_source_chip">código</string>
     <string name="pill_source_title">Cerrar esta vista del código fuente</string>
@@ -1394,7 +1394,6 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="newtab_layout_tally">Tally</string>
     <string name="newtab_customize_wallpaper">Fondo dinámico</string>
     <string name="newtab_mahjong">Mahjong</string>
-    <string name="newtab_private_tab">Pestaña privada</string>
     <string name="newtab_go_anywhere">%1$s para ir a cualquier sitio</string>
     <string name="newtab_private_footer">sin historial · separada de las pestañas normales · termina al salir, también las llaves de acceso creadas aquí</string>
     <string name="newtab_version">v%1$s</string>

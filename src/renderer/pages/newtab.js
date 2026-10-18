@@ -46,16 +46,13 @@ function rememberHiddenTopSite(key) {
 // and the ledger's margin copy explains the deal instead of stats.
 if (isPrivate) document.documentElement.dataset.theme = 'private';
 
-// Shared by every layout through the single Sunrise header.
-const dateText = isPrivate
-  ? t('newtab.privateTab')
-  : new Date().toLocaleDateString(blancI18n.formatLocale(), { weekday: 'long', month: 'long', day: 'numeric' });
+// Shared by every layout through the single Sunrise header. Private tabs show
+// the date too; the Island's Private chip already marks the mode.
+const dateText = new Date().toLocaleDateString(blancI18n.formatLocale(), { weekday: 'long', month: 'long', day: 'numeric' });
 
 document.getElementById('startDate').textContent = dateText;
 // The date comes from the locale's own formats, not the catalog.
-if (!isPrivate) document.getElementById('startDate').dataset.i18nIgnore = '';
-// The same dashed capsule that marks private mode in the island.
-document.getElementById('startDate').classList.toggle('private', isPrivate);
+document.getElementById('startDate').dataset.i18nIgnore = '';
 
 const islandShortcut = isMac ? '⌘L' : `${t('key.ctrl')}+L`;
 document.getElementById('goAnywhere').textContent = t('newtab.goAnywhere', { shortcut: islandShortcut });

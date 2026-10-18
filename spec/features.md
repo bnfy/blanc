@@ -154,8 +154,8 @@ toolbar (Bowser Design System "Island Chrome").
 - Private tabs share a dedicated **non-persistent web session** with one another,
   isolated from normal tabs. Cookies, storage, cache, service workers, HTTP auth,
   and permission decisions remain memory-only and disappear when Blanc quits.
-- While the active tab is private, chrome uses the **private theme** (F15): dashed
-  pill border, hollow dots, and a "private" chip that closes the tab (quick exit).
+- While the active tab is private, chrome uses the **private theme** (F15): deeper
+  ink, hollow dots, and a "private" chip that closes the tab (quick exit).
 - Shield counts and downloads behave normally. Existing Favorites can be
   opened in private tabs, but Blanc does not add Favorites from private
   browsing because that would create a persistent record.
@@ -164,7 +164,7 @@ toolbar (Bowser Design System "Island Chrome").
   **ephemeral** — unusable after Blanc quits (D16).
 - **Acceptance:** Open a private tab, visit a site → it does not appear in history
   or share normal-session site data; closing and reopen-closed does not bring it
-  back; the pill shows the private chip and dashed styling.
+  back; the pill shows the private chip and the private theme.
 
 ## F5 — Address input & search
 

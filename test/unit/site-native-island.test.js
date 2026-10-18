@@ -382,7 +382,7 @@ test('the resting-Island figures draw a native window in the tab states the app 
   assert.match(priv.strip, /<button class="pill-btn" disabled>[\s\S]*?<\/button><button class="pill-btn" disabled>/);
   assert.equal(priv.strip.match(/class="island-dot( active)? private"/g).length, 3);
   assert.doesNotMatch(priv.strip, /<button id="pillPrivateChip"[^>]* hidden>/);
-  for (const rule of ['.native-window[data-theme="private"] {', '[data-theme="private"] #islandPill::after {', '.island-dot.private {', '#islandPill #pillFavicon.internal {']) {
+  for (const rule of ['.native-window[data-theme="private"] {', '.island-dot.private {', '#islandPill #pillFavicon.internal {']) {
     assert.ok(priv.css.includes(rule), rule);
   }
   // The placeholder is drawn still: the app's reduced-motion rule, not its shimmer.
@@ -426,7 +426,8 @@ test('the private-tabs figure draws the private Start Page captured from public 
   assert.equal(hash(capture.webp.file), capture.webp.sha256, capture.webp.file);
   const figure = read('site/src/pages/features/private-tabs.astro');
   assert.ok(figure.includes(`shot="${capture.webp.file.replace('site/public', '')}"`), 'the figure draws the recorded capture');
-  // Private tabs keep the strip untinted (renderer.js applyStripTint), so the figure passes no tone.
+  // v1.36.0 kept the private strip untinted, so the figure passes no tone. Later
+  // builds tint it to the private Start Page's wallpaper; re-capture after release.
   assert.doesNotMatch(figure.match(/<NativeWindowFigure[\s\S]*?\/>/)[0], /\btone=/);
 });
 

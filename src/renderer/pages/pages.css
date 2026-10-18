@@ -110,7 +110,7 @@
 }
 
 /* Private mode — same neutral ink, deeper than dark mode; told apart by
-   dashed borders and a "private" chip, not a color cast. Applied by pages
+   that depth and a "private" chip, not a color cast. Applied by pages
    loaded in a private tab (keep in sync with styles.css). */
 :root[data-theme="private"] {
   --bg: #0a0a0a;
@@ -3537,13 +3537,6 @@ body[data-layout="tally"] #layoutTally { display: grid; }
   font: 500 12px/1.3 var(--font-text);
   letter-spacing: 0;
   text-transform: none;
-}
-/* Private tabs: the date becomes a dashed "Private tab" capsule, matching the
-   island's private chip and outline. */
-.start-brand-date.private {
-  padding: 3px 10px;
-  border: 1px dashed currentColor;
-  border-radius: var(--radius-full);
 }
 .fav .name { font-size: 14px; line-height: 1.45; font-weight: 450; letter-spacing: 0; }
 .fav .host,

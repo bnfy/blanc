@@ -52,7 +52,7 @@
     <string name="pill_domain_default">nova aba</string>
     <string name="pill_placeholder">Pesquise ou digite uma URL</string>
     <string name="pill_commands">Comandos (/)</string>
-    <string name="pill_private_chip">privada</string>
+    <string name="pill_private_chip">Privada</string>
     <string name="pill_private_title">Sair do modo privado — fecha esta aba</string>
     <string name="pill_source_chip">código</string>
     <string name="pill_source_title">Fechar esta visualização do código-fonte</string>
@@ -1394,7 +1394,6 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="newtab_layout_tally">Tally</string>
     <string name="newtab_customize_wallpaper">Fundo dinâmico</string>
     <string name="newtab_mahjong">Mahjong</string>
-    <string name="newtab_private_tab">Aba privada</string>
     <string name="newtab_go_anywhere">%1$s para ir a qualquer lugar</string>
     <string name="newtab_private_footer">sem histórico · separada das abas comuns · termina ao sair, inclusive as chaves de acesso criadas aqui</string>
     <string name="newtab_version">v%1$s</string>

@@ -52,7 +52,7 @@
     <string name="pill_domain_default">neuer Tab</string>
     <string name="pill_placeholder">Suchen oder URL eingeben</string>
     <string name="pill_commands">Befehle (/)</string>
-    <string name="pill_private_chip">privat</string>
+    <string name="pill_private_chip">Privat</string>
     <string name="pill_private_title">Privaten Modus verlassen – schließt diesen Tab</string>
     <string name="pill_source_chip">quelltext</string>
     <string name="pill_source_title">Quelltextansicht dieser Seite schließen</string>
@@ -1357,7 +1357,6 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="newtab_layout_tally">Tally</string>
     <string name="newtab_customize_wallpaper">Dynamischer Hintergrund</string>
     <string name="newtab_mahjong">Mahjong</string>
-    <string name="newtab_private_tab">Privater Tab</string>
     <string name="newtab_go_anywhere">%1$s, um überallhin zu gelangen</string>
     <string name="newtab_private_footer">kein Verlauf · getrennt von normalen Tabs · endet beim Beenden, auch hier erstellte Passkeys</string>
     <string name="newtab_version">v%1$s</string>

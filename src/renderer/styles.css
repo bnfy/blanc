@@ -1,6 +1,6 @@
 /* Neutral monochrome: pure paper/ink with graphite grays, no hue anywhere
-   (matches the website redesign). Private mode is told apart by
-   dashed borders + a "private" chip, not by a color cast. The theme follows
+   (matches the website redesign). Private mode is told apart by its
+   deeper ink and a "Private" chip, not by a color cast. The theme follows
    Electron's nativeTheme (Settings → Appearance), which drives
    prefers-color-scheme here. */
 @font-face {
@@ -101,6 +101,7 @@
     --text-dim: #9c9c9c;
     --accent: #f5f5f5;
     --accent-dim: rgba(245, 245, 245, 0.12);
+    --shadow-island-resting: inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24);
     --sunrise-bg: #17130f;
     --sunrise-surface: #2d251d;
     --sunrise-surface-raised: #221d17;
@@ -115,7 +116,7 @@
 }
 
 /* Private mode — same neutral ink, deeper than dark mode; told apart by
-   dashed borders and an explicit "private" chip rather than a color cast.
+   that depth and an explicit "private" chip rather than a color cast.
    Applied while the active tab is private (keep in sync with pages.css). */
 :root[data-theme="private"] {
   --bg: #0a0a0a;
@@ -127,6 +128,9 @@
   --text-dim: #9c9c9c;
   --accent: #f5f5f5;
   --accent-dim: rgba(245, 245, 245, 0.12);
+  /* The Island's top catch-light, toned down to a hairline on the deeper
+     private ink, where the light themes' bright edge reads as a glare. */
+  --shadow-island-resting: inset 0 1px 0 rgba(255,255,255,.07), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24);
   --sunrise-bg: #100d0b;
   --sunrise-surface: #251d17;
   --sunrise-surface-raised: #1a1511;
@@ -305,7 +309,6 @@ button svg {
   .glance-header:not([hidden]) { opacity: 0; transform: translateX(6px); }
   .glance-header[data-direction="vertical"]:not([hidden]) { transform: translateY(6px); }
 }
-.glance-header.private { border-left-style: dashed; border-bottom-style: dashed; }
 /* The reference holds keyboard focus, so ⌘R, ⌘W, ⌘F … act on it. Quieter
    than an outline: the eyebrow and the bottom hairline brighten. (The title
    is already --text.) */
@@ -879,7 +882,6 @@ body.mac .vertical-tabs-toolbar {
 }
 
 .vertical-tab-row.private {
-  border-style: dashed;
   border-color: var(--border);
 }
 
@@ -957,7 +959,7 @@ body.mac .vertical-tabs-toolbar {
   color: var(--text-dim);
 }
 
-/* The rail's private marker: the same dashed capsule as the ⌘L row tag.
+/* The rail's private marker: the same filled capsule as the ⌘L row tag.
    (Quiet is dim-only — 2026-08-18 spec.) */
 .vertical-tab-private {
   display: inline-flex;
@@ -967,7 +969,7 @@ body.mac .vertical-tabs-toolbar {
   padding: 0 5px;
   overflow: hidden;
   color: var(--text-dim);
-  border: 1px dashed var(--text-dim);
+  background: var(--accent-dim);
   border-radius: 999px;
   font-family: var(--font-text);
   font-size: 9px;
@@ -1527,11 +1529,9 @@ body > .tab-drag-ghost[aria-hidden="true"] {
 .pill-shortcut:hover::before { border-color: var(--accent); }
 .pill-slash[hidden] { display: none; }
 
-[data-theme="private"] #islandPill::after { border: 1px dashed var(--text-dim); }
-
 /* Quick exit chips — clicking one closes the tab. Shared geometry; the
-   private chip keeps the dashed accent treatment that marks the mode, while
-   the source chip stays quiet (solid, dim) since it's only a view. */
+   private chip is a quiet label that fills in on hover, while the source
+   chip stays outlined and dim since it's only a view. */
 #pillPrivateChip,
 #pillSourceChip {
   display: flex;
@@ -1545,21 +1545,30 @@ body > .tab-drag-ghost[aria-hidden="true"] {
   padding: 0 4px 0 7px;
   flex: 0 0 auto;
 }
-/* Same dashed ink as the island's own private outline, so the chip echoes the
-   frame instead of shouting over it. Hover fills and firms the edge: the chip
-   is the way out of private mode, and should read as pressable. */
+/* A quiet label at rest: dim text, no capsule, so it marks the mode without
+   drawing a second frame inside the Island. Its ✕ keeps its space but stays
+   invisible until hover or keyboard focus, when the capsule fills in around
+   both — the chip is the way out of private mode, and reads as pressable
+   only when it's being reached for. Reserving the ✕'s width keeps the pill
+   from shifting under the cursor. */
 #pillPrivateChip {
+  color: var(--text-dim);
+  font-size: 9.5px;
+  height: 15px;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+#pillPrivateChip svg {
+  color: var(--text-dim);
+  opacity: 0;
+  transition: opacity 120ms ease, color 120ms ease;
+}
+#pillPrivateChip:hover,
+#pillPrivateChip:focus-visible {
   color: var(--text);
-  border: 1px dashed var(--text-dim);
-  transition: background-color 120ms ease, border-color 120ms ease;
-}
-#pillPrivateChip svg { color: var(--text-dim); transition: color 120ms ease; }
-#pillPrivateChip:hover {
   background: var(--accent-dim);
-  border-color: var(--text);
-  border-style: solid;
 }
-#pillPrivateChip:hover svg { color: var(--text); }
+#pillPrivateChip:hover svg,
+#pillPrivateChip:focus-visible svg { opacity: 1; color: var(--text); }
 #pillSourceChip {
   color: var(--text-dim);
   border: 1px solid var(--border);
@@ -2140,8 +2149,6 @@ body[data-mode="palette"] #backdrop {
 #islandPanel.retracting { opacity: 0; }
 #islandPanel.retracting > * { opacity: 0; transition: opacity 90ms ease; }
 body[data-mode=""] #backdrop, #backdrop[hidden] { animation: none; }
-
-[data-theme="private"] #islandPanel { border: 1px dashed var(--text-dim); }
 
 /* Dedicated local-tab chooser for Glance. It is deliberately separate from
    #islandPanel: this surface filters only tabs in the current runtime and has
@@ -2871,9 +2878,9 @@ body.tooltip-surface { background: transparent; }
   stroke-linejoin: round;
 }
 
-/* "private" tag on private tabs in the switcher list: dashed like every other
-   private marker, and placed just before the row's ✕ so it lands in the same
-   column on every row whether or not hover actions (glance) are present.
+/* "private" tag on private tabs in the switcher list: a filled capsule like
+   the rail's marker, and placed just before the row's ✕ so it lands in the
+   same column on every row whether or not hover actions (glance) are present.
    (Quiet is dim-only — 2026-08-18 spec.) */
 :is(.island-row, .glance-picker-option, .glance-tab-identity) .row-private {
   display: inline-flex;
@@ -2883,7 +2890,7 @@ body.tooltip-surface { background: transparent; }
   font-size: 10px;
   line-height: 1;
   color: var(--text-dim);
-  border: 1px dashed var(--text-dim);
+  background: var(--accent-dim);
   border-radius: 999px;
   padding: 0 6px;
   flex: 0 0 auto;
@@ -3395,7 +3402,7 @@ body.tooltip-surface { background: transparent; }
 #shieldPopProviderScope { margin: 8px 0 0; padding-top: 10px; border-top: 1px solid var(--border); white-space: pre-line; }
 #shieldPop button:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 2px; }
 
-:root[data-theme="private"] #shieldPop { border-style: dashed; color-scheme: dark; }
+:root[data-theme="private"] #shieldPop { color-scheme: dark; }
 
 /* ---------- Permission prompt capsule (in the strip, beside the pill) ---------- */
 
