@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-118 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
+119 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -24,6 +24,7 @@
 | `reorderGroup` | tabs | invoke | `groups:reorder` | `(id: GroupId, beforeGroupId: GroupId \| TabId \| 'recently-closed' \| null) => Promise<boolean>` | all |
 | `moveClosedSection` | tabs | invoke | `groups:move-closed` | `(beforeGroupId: GroupId \| TabId \| null) => Promise<boolean>` | all |
 | `renameGroup` | groups | invoke | `groups:rename` | `(groupId: GroupId, name: string) => Promise<GroupRenameResult>` | all |
+| `setGroupColor` | groups | invoke | `groups:set-color` | `(groupId: GroupId, color: string \| null) => Promise<GroupColorResult>` | all |
 | `ungroupGroup` | groups | invoke | `groups:ungroup` | `(groupId: GroupId) => Promise<void>` | all |
 | `activateTabFromRail` | tabs | invoke | `tabs:activate-from-rail` | `(id: TabId) => Promise<boolean>` | all |
 | `setGlanceTab` | glance | invoke | `tabs:set-glance` | `(id: TabId) => Promise<boolean>` | all |
@@ -342,13 +343,22 @@ One tab in tabs:updated, projected by serializeTabs() in main.js. Main-only stat
 
 ### `TabGroup`
 
-A tab group. Groups have names, not colors.
+A tab group: a name, and optionally one of the Spaces preset colors.
 
 | Field | Type | Notes |
 | --- | --- | --- |
 | `id` | `GroupId` |  |
 | `name` | `string` |  |
 | `collapsed` | `boolean` |  |
+| `color` | `string \| null` | A Spaces preset hex (#rrggbb), or null for no color. |
+
+### `GroupColorResult`
+
+Result of setGroupColor, built by setGroupColor() in main.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `ok` | `boolean` |  |
 
 ### `ClosedEntrySummary`
 

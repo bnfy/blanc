@@ -13,6 +13,7 @@ const vm = require('node:vm');
 // pure (no require('electron')) and imported for real, not stubbed.
 const { filterRestoredSession, restoreTargetId } = require('../../src/main/session-restore');
 const { clampClosedSlot } = require('../../src/main/closed-slot');
+const { groupRecord } = require('../../src/main/group-color');
 
 const NEW_TAB_URL = 'blanc://newtab/';
 
@@ -87,6 +88,7 @@ function applyHarness(runtime) {
     restorableUblockTool: () => false,
     filterRestoredSession,
     clampClosedSlot,
+    groupRecord,
     restoreTargetId,
     isUtilityUrl: () => false,
     isForbiddenTopLevelUrl: () => false,
@@ -122,7 +124,7 @@ test('runtime.groups is assigned from the workspace before the first createTab',
   const workspace = WORKSPACE({ groups: [{ id: 'g1', name: 'work', collapsed: true }] });
   const h = applyHarness(runtime);
   h.apply(workspace);
-  assert.deepEqual(h.groupsAtFirstCreate(), [{ id: 'g1', name: 'work', collapsed: true }],
+  assert.deepEqual(h.groupsAtFirstCreate(), [{ id: 'g1', name: 'work', collapsed: true, color: null }],
     'checklist point 5: createTab silently drops groupId unless the group already exists ' +
     'on the runtime, so groups must be swapped in before the FIRST createTab, not after');
 });

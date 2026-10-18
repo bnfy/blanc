@@ -171,7 +171,7 @@
     },
     {
       "file": "src/main/closed-tabs.js",
-      "sha256": "9dae916a3d34616bd7f5288e305ee2e45ee5490e152d25b7f42d705b33668510",
+      "sha256": "39cc28483a1fd0368b7124e4fee8ecec8ef7f2672e568ecaa4f5c1370c71aaae",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "759c409adc6a09c43bb6c1fb6014135dbf8468ac3e76112599682125d0d42d57",
+      "sha256": "a834fd617af13de311db1ce0bc1950ae4c658227b29faea4fcc0ba52c8afb83b",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -335,6 +335,7 @@
         "groups:move-closed",
         "groups:rename",
         "groups:reorder",
+        "groups:set-color",
         "groups:ungroup",
         "input-event",
         "login",
@@ -572,7 +573,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "6819cea78ee6ac18c778f20e8c0919879ea351cd1e68ef48482cdc2a31f84f93",
+      "sha256": "8a73e83a006ee2053d67eca38101870394942f38e85b05a8d19f3e328f3c49ca",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -641,6 +642,7 @@
         "groups:move-closed",
         "groups:rename",
         "groups:reorder",
+        "groups:set-color",
         "groups:ungroup",
         "overlay:close",
         "overlay:drag-state",

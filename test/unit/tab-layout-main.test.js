@@ -17,7 +17,7 @@ const lift = (name) => mainSource.match(new RegExp(`function ${name}\\([^)]*\\) 
 const names = [
   'tabLayoutList', 'syncTabLayout', 'clusterList', 'clusterKeyForTab', 'setTabGroup', 'groupTabByName',
   'ungroupGroup', 'reopenGroupEntry', 'reorderGroupBefore', 'moveClosedSection', 'applySavedLayout',
-  'moveTabTo', 'finishReopen', 'toggleTabPinned',
+  'moveTabTo', 'finishReopen', 'toggleTabPinned', 'setGroupColor',
 ];
 const sources = names.map(lift);
 
@@ -52,6 +52,7 @@ function harness(spec, { groups = null, closedSlot: slot = 0 } = {}) {
     resolveTabMove: tabOrder.moveTab,
     windowRuntimes: { runtimeForTab: () => runtime },
     pinnedHomeFor: () => null,
+    ...require('../../src/main/group-color'),
     ...tabSections,
     ...groupNameCase,
     pruneEmptyGroups: () => {
@@ -305,4 +306,25 @@ test('unpinning a grouped pin keeps it in its group', () => {
   h.sync();
   assert.equal(h.tabs.get('p').groupId, 'g1');
   assert.deepEqual(h.order(), ['L0', 'p', 'a']);
+});
+
+test('setGroupColor sets a preset, clears it, and refuses anything else', () => {
+  const h = harness(['a:g1']);
+  assert.deepEqual(plain(h.setGroupColor('g1', '#376694')), { ok: true });
+  assert.equal(h.runtime.groups[0].color, '#376694');
+  assert.deepEqual(plain(h.setGroupColor('g1', '#123456')), { ok: false });
+  assert.equal(h.runtime.groups[0].color, '#376694', 'a refused color changes nothing');
+  assert.deepEqual(plain(h.setGroupColor('g1', null)), { ok: true });
+  assert.equal(h.runtime.groups[0].color, null);
+  assert.deepEqual(plain(h.setGroupColor('nope', '#376694')), { ok: false });
+});
+
+test('a reopened group keeps its color', () => {
+  const h = harness(['L0']);
+  h.reopenGroupEntry({
+    group: { id: 'g2', name: 'Work', collapsed: false, color: '#376694', index: 0 },
+    activeMemberIndex: 0,
+    tabs: [{ url: 'x' }],
+  });
+  assert.equal(h.runtime.groups.find((g) => g.id === 'g2').color, '#376694');
 });

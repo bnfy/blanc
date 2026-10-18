@@ -308,6 +308,7 @@ const { moveTab: resolveTabMove, reorderItems } = require('./tab-order');
 const { CLOSED_SECTION_ID, clampClosedSlot, reconcileClosedSlot } = require('./closed-slot');
 const { sectionsOf, normalizeOrder, itemsOf, layoutItems, legacyOrder, placeInGroup } = require('../renderer/tab-sections');
 const { normalizeGroupName, sameGroupName, recaseSessionData } = require('./group-name-case');
+const { sanitizeGroupColor, groupRecord } = require('./group-color');
 const { deviceNamesEqual } = require('./device-names');
 const { attachGroupHeaderMenu } = require('./group-context-menu');
 const { attachDeviceHeaderMenu } = require('./device-context-menu');
@@ -5493,7 +5494,7 @@ function groupTabByName(tabId, rawName, { adoptCase = false } = {}) {
   if (group && adoptCase && name !== name.toLowerCase()) group.name = name;
   const from = tab.groupId ?? null;
   if (!group) {
-    group = { id: crypto.randomUUID(), name, collapsed: false };
+    group = { id: crypto.randomUUID(), name, collapsed: false, color: null };
     rt().groups.push(group);
     // A new group appears where its tab was; a tab leaving another group
     // first moves directly below that group (spec 2026-10-17 §3.3).
@@ -5518,6 +5519,20 @@ function renameGroup(groupId, rawName) {
   if (!name || name === group.name) return { ok: true };
   if (runtime.groups.some((g) => g !== group && sameGroupName(g.name, name))) return { ok: false, error: 'duplicate' };
   group.name = name;
+  broadcastTabs();
+  scheduleMenuRebuild();
+  return { ok: true };
+}
+
+/** Give a group one of the Spaces preset colors, or none with null (spec
+ * 2026-10-17-tab-group-colors-design.md). Anything but a preset is refused
+ * and changes nothing. */
+function setGroupColor(groupId, color) {
+  const group = rt().groups.find((g) => g.id === groupId);
+  if (!group) return { ok: false };
+  const next = sanitizeGroupColor(color);
+  if (color != null && next === null) return { ok: false };
+  group.color = next;
   broadcastTabs();
   scheduleMenuRebuild();
   return { ok: true };
@@ -5633,7 +5648,7 @@ function closeGroup(groupId) {
   const entry = buildGroupEntry({
     // The group's place among the window's top-level items (groups and
     // ungrouped tabs), so it reopens where it was (spec 2026-10-17).
-    id: group.id, name: group.name, collapsed: group.collapsed,
+    id: group.id, name: group.name, collapsed: group.collapsed, color: group.color ?? null,
     index: itemsOf(tabLayoutList(runtime)).findIndex((item) => item.id === group.id),
     activeMemberIndex: Math.max(0, ids.indexOf(runtime.activeTabId)),
   }, ids.map(closedMemberRecord), Date.now());
@@ -5683,7 +5698,7 @@ function workspaceCapture(runtime, { previousActiveIndex = 0 } = {}) {
   const entry = captureWindowEntry(runtime, { previousActiveIndex });
   return {
     ...entry,
-    groups: entry.groups.map((group) => ({ id: group.id, name: group.name, collapsed: !!group.collapsed })),
+    groups: entry.groups.map(groupRecord),
   };
 }
 
@@ -6132,7 +6147,7 @@ function applyWorkspaceToWindow(runtime, workspace) {
     // mirror image of workspaceCapture's fix above, on the read side).
     runtime.groups = (Array.isArray(workspace.groups) ? workspace.groups : [])
       .filter((group) => group && typeof group.id === 'string' && typeof group.name === 'string')
-      .map((group) => ({ id: group.id, name: group.name, collapsed: !!group.collapsed }));
+      .map(groupRecord);
     runtime.closedSlot = clampClosedSlot(workspace.closedSlot, runtime.groups.length);
     runtime.closedSlotIds = runtime.groups.map((group) => group.id);
 
@@ -7150,7 +7165,7 @@ function reopenGroupEntry(entry) {
   const runtime = rt();
   let group = runtime.groups.find((g) => sameGroupName(g.name, entry.group.name));
   if (!group) {
-    group = { id: entry.group.id, name: entry.group.name, collapsed: !!entry.group.collapsed };
+    group = groupRecord(entry.group);
     runtime.groups.splice(Math.min(entry.group.index, runtime.groups.length), 0, group);
   }
   const ids = entry.tabs.map((member) => {
@@ -8438,6 +8453,7 @@ function registerIpcHandlers() {
   chromeHandle('groups:reorder', (_e, id, beforeGroupId) => reorderGroupBefore(id, beforeGroupId));
   chromeHandle('groups:move-closed', (_e, beforeGroupId) => moveClosedSection(beforeGroupId));
   chromeHandle('groups:rename', (_e, id, name) => renameGroup(id, name));
+  chromeHandle('groups:set-color', (_e, id, color) => setGroupColor(id, color));
   chromeHandle('groups:ungroup', (_e, id) => ungroupGroup(id));
   chromeOn('overlay:drag-state', (event, active) => {
     acceptOverlayDragState(rt(), event.sender, active);
@@ -11936,7 +11952,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       closedSlot: saved.closedSlot ?? 0,
       groups: (Array.isArray(saved.groups) ? saved.groups : [])
         .filter((group) => group && typeof group.id === 'string' && typeof group.name === 'string')
-        .map((group) => ({ id: group.id, name: group.name, collapsed: !!group.collapsed })),
+        .map(groupRecord),
     };
   });
   if (!savedWindows.length) {

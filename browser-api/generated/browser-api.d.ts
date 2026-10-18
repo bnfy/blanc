@@ -163,11 +163,18 @@ export interface TabEntry {
   siteInfo: SiteInfo;
 }
 
-/** A tab group. Groups have names, not colors. */
+/** A tab group: a name, and optionally one of the Spaces preset colors. */
 export interface TabGroup {
   id: GroupId;
   name: string;
   collapsed: boolean;
+  /** A Spaces preset hex (#rrggbb), or null for no color. */
+  color: string | null;
+}
+
+/** Result of setGroupColor, built by setGroupColor() in main.js. */
+export interface GroupColorResult {
+  ok: boolean;
 }
 
 /** A closed entry as renderers see it, projected by projectEntries() in closed-tabs.js. */
@@ -781,6 +788,11 @@ export interface BlancBrowserAPI {
    * IPC: invoke `groups:rename`.
    */
   renameGroup(groupId: GroupId, name: string): Promise<GroupRenameResult>;
+  /**
+   * Give a group one of the Spaces preset colors, or none with null. Anything else is refused and changes nothing.
+   * IPC: invoke `groups:set-color`.
+   */
+  setGroupColor(groupId: GroupId, color: string | null): Promise<GroupColorResult>;
   /**
    * Make every tab in a group ungrouped; the empty group goes away.
    * IPC: invoke `groups:ungroup`.
