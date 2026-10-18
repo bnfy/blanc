@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-122 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
+124 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -52,6 +52,8 @@
 | `onPermissionPrompt` | permissions | event | `permissions:prompt` | `(payload: PermissionPromptPayload) => void` | all |
 | `reportChromeLayout` | layout | send | `chrome:layout` | `(height: number)` | all |
 | `reportIslandRect` | layout | send | `chrome:island-rect` | `(rect: IslandRectReport)` | all |
+| `showTooltip` | layout | send | `chrome:tooltip-show` | `(tip: TooltipRequest)` | all |
+| `hideTooltip` | layout | send | `chrome:tooltip-hide` | `()` | all |
 | `onShieldAnchor` | layout | event | `overlay:shield-anchor` | `(payload: ShieldAnchorUpdate) => void` | all |
 | `onIslandProximity` | layout | event | `chrome:island-proximity` | `(payload: number) => void` | all |
 | `setTabLayout` | layout | invoke | `chrome:set-tab-layout` | `(layout: TabLayout) => Promise<TabLayout>` | all |
@@ -997,3 +999,15 @@ The overlay's answer to the screen-share picker, read by display-capture-picker.
 | `sourceId?` | `string \| null` | The chosen source. Ignored on Linux, where the system portal chooses. |
 | `computerAudioApproved?` | `boolean` | Only honored when the page asked for audio. |
 | `cancelled?` | `boolean` | true cancels the request. The overlay cancels through closeOverlay instead. |
+
+### `TooltipRequest`
+
+A strip tooltip: its text, the button it belongs to and the size the strip measured for it.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `text` | `string` |  |
+| `anchor` | `Rect` | The button's rectangle in the strip. |
+| `width` | `number` | The measured tooltip width; main caps it. |
+| `height` | `number` | The measured tooltip height; main caps it. |
+| `privateTheme?` | `boolean` | Whether the strip is in its private theme. |

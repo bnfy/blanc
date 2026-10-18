@@ -8,6 +8,88 @@
   document.documentElement.dataset.platform = platform;
   if (isMac) document.body.classList.add('mac');
 
+  // Tooltips for the strip's buttons (the pill, the Glance header, the side
+  // list). Each carries data-tooltip rather than a native title, like the
+  // overlay's (overlay.js islandTip), so the two look and time alike. The
+  // strip is only 68px tall and the page view covers anything past it, so
+  // main draws the tip in its own small view (tooltip.html): this measures it
+  // with the same .island-tip styles and asks main to float it under the
+  // button. Visual only; each button's aria-label already says the same.
+  const stripTipMeasure = document.createElement('div');
+  stripTipMeasure.className = 'island-tip';
+  stripTipMeasure.setAttribute('aria-hidden', 'true');
+  document.body.append(stripTipMeasure);
+  const STRIP_TIP_DELAY_MS = 350;
+  let stripTipTarget = null;
+  let stripTipTimer = 0;
+  let stripTipShown = false;
+  let stripTipPointer = null;
+
+  function showStripTip(el) {
+    const text = el.dataset.tooltip;
+    if (!text || !el.isConnected) return;
+    stripTipMeasure.textContent = text;
+    const tip = stripTipMeasure.getBoundingClientRect();
+    const box = el.getBoundingClientRect();
+    window.browserAPI.showTooltip({
+      text,
+      anchor: { x: box.x, y: box.y, width: box.width, height: box.height },
+      width: tip.width,
+      height: tip.height,
+      privateTheme: document.documentElement.dataset.theme === 'private',
+    });
+    stripTipShown = true;
+  }
+
+  function hideStripTip() {
+    clearTimeout(stripTipTimer);
+    stripTipTarget = null;
+    if (!stripTipShown) return;
+    stripTipShown = false;
+    window.browserAPI.hideTooltip();
+  }
+
+  function aimStripTip(el, delay) {
+    if (el === stripTipTarget) return;
+    hideStripTip();
+    if (!el || !el.dataset.tooltip) return;
+    stripTipTarget = el;
+    if (delay) stripTipTimer = setTimeout(() => showStripTip(el), delay);
+    else showStripTip(el);
+  }
+
+  document.addEventListener('pointermove', (e) => {
+    stripTipPointer = { x: e.clientX, y: e.clientY };
+    aimStripTip(e.target.closest?.('[data-tooltip]') || null, STRIP_TIP_DELAY_MS);
+  });
+  document.documentElement.addEventListener('pointerleave', () => {
+    stripTipPointer = null;
+    hideStripTip();
+  });
+  document.addEventListener('pointerdown', hideStripTip, true);
+  document.addEventListener('focusin', (e) => {
+    const el = e.target.closest?.('[data-tooltip]');
+    if (el && el.matches(':focus-visible')) aimStripTip(el, 0);
+  });
+  document.addEventListener('focusout', (e) => {
+    if (e.target === stripTipTarget) hideStripTip();
+  });
+  // The strip redraws its buttons on every tab update: carry the tip over to
+  // whatever button now sits under a still pointer, and keep a shown tip's
+  // text current (a download count, Reload turning into Stop).
+  new MutationObserver((mutations) => {
+    if (!stripTipTarget) return;
+    if (!stripTipTarget.isConnected) {
+      const shown = stripTipShown;
+      const under = stripTipPointer
+        && document.elementFromPoint(stripTipPointer.x, stripTipPointer.y)?.closest('[data-tooltip]');
+      hideStripTip();
+      if (under) aimStripTip(under, shown ? 0 : STRIP_TIP_DELAY_MS);
+    } else if (stripTipShown && mutations.some((m) => m.target === stripTipTarget && m.type === 'attributes')) {
+      showStripTip(stripTipTarget);
+    }
+  }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-tooltip'] });
+
   // Right-click opens the pill's unified menu, or a vertical-rail row's tab
   // menu (both native, built in main). Everywhere else on the strip — window
   // controls, empty drag band — shows nothing. Rail rows record their tab id
@@ -49,7 +131,7 @@
   const fillHintLabel = blancI18n.t('pill.fillHint', {
     shortcut: isMac ? '⌥⌘P' : `${blancI18n.t('key.ctrl')}+${blancI18n.t('key.shift')}+P`,
   });
-  pillFillHint.title = fillHintLabel;
+  pillFillHint.dataset.tooltip = fillHintLabel;
   pillFillHint.setAttribute('aria-label', fillHintLabel);
   const pillShield = document.getElementById('pillShield');
   const pillShieldCount = document.getElementById('pillShieldCount');
@@ -145,7 +227,7 @@
     const b = document.createElement('button');
     b.className = 'pill-btn';
     b.innerHTML = PILL_ICONS[iconKey];
-    b.title = title;
+    b.dataset.tooltip = title;
     b.setAttribute('aria-label', title);
     // Don't let a mouse click focus the button. Reload (and friends) retain
     // focus after a click since they don't navigate away; a later keypress
@@ -296,9 +378,10 @@
       : active > 0 && totalBytes > 0 ? Math.min(1, receivedBytes / totalBytes) : 0;
     downloadsBtn.style.setProperty('--dl-progress', String(pct));
 
-    downloadsBtn.title = active > 0
+    downloadsBtn.dataset.tooltip = active > 0
       ? blancI18n.t('pill.downloading', { count: active })
       : heldFull ? blancI18n.t('pill.downloadDone') : blancI18n.t('pill.downloads');
+    downloadsBtn.setAttribute('aria-label', downloadsBtn.dataset.tooltip);
   }
   renderDownloads();
 
@@ -617,7 +700,7 @@
       glanceReload.dataset.mode = glanceReloadMode;
       glanceReload.innerHTML = PILL_ICONS[glanceReloadMode];
       const label = blancI18n.t(glanceReloadMode === 'stop' ? 'pill.stop' : 'pill.reload');
-      glanceReload.title = label;
+      glanceReload.dataset.tooltip = label;
       glanceReload.setAttribute('aria-label', label);
     }
     // Keep an already-known title visible while the reference navigates —
@@ -808,8 +891,8 @@
       const more = document.createElement('button');
       more.className = 'pill-overflow';
       more.textContent = `+${hidden}`;
-      more.title = blancI18n.t('pill.moreTabs', { count: hidden });
-      more.setAttribute('aria-label', more.title);
+      more.dataset.tooltip = blancI18n.t('pill.moreTabs', { count: hidden });
+      more.setAttribute('aria-label', more.dataset.tooltip);
       more.addEventListener('click', (e) => { e.stopPropagation(); window.browserAPI.openIsland(); });
       nodes.push(more);
     }
@@ -862,7 +945,7 @@
       (t.private ? ' private' : '');
     TabSections.paintGroup(dot, dotGroup, 'dot-group-colored');
     const dotTitle = t.title || blancI18n.t('tab.untitled');
-    dot.title = dotTitle;
+    dot.dataset.tooltip = dotTitle;
     // A tab title is page data, not interface copy (pseudo-locale sweep).
     if (t.title) dot.dataset.i18nIgnore = '';
     // A dot is a switch target, not a status field: quiet is carried by the
@@ -929,15 +1012,15 @@
       pillSpace.style.setProperty('--space-on', painted.on);
       pillSpace.dataset.edge = String(painted.edge);
       document.documentElement.style.setProperty('--space-band-wash', SpaceIdentity.wash(painted.fill, theme));
-      pillSpace.title = blancI18n.t('spaces.mark.current', { name: bound.name });
+      pillSpace.dataset.tooltip = blancI18n.t('spaces.mark.current', { name: bound.name });
     } else {
       pillSpace.style.removeProperty('--space-fill');
       pillSpace.style.removeProperty('--space-on');
       delete pillSpace.dataset.edge;
       document.documentElement.style.removeProperty('--space-band-wash');
-      pillSpace.title = blancI18n.t('footer.workspaces');
+      pillSpace.dataset.tooltip = blancI18n.t('footer.workspaces');
     }
-    pillSpace.setAttribute('aria-label', pillSpace.title);
+    pillSpace.setAttribute('aria-label', pillSpace.dataset.tooltip);
     const symbol = bound ? (SpaceIdentity.isSymbol(bound.symbol) ? bound.symbol : SpaceIdentity.SYMBOL_IDS[0]) : 'neutral';
     if (pillSpaceSymbol.dataset.symbol !== symbol) {
       pillSpaceSymbol.replaceChildren(symbolSvg(bound ? SpaceIdentity.SYMBOLS[symbol] : SpaceIdentity.SPACES_GLYPH));
@@ -1005,7 +1088,8 @@
     if (reloadBtn.dataset.mode !== reloadMode) {
       reloadBtn.dataset.mode = reloadMode;
       reloadBtn.innerHTML = PILL_ICONS[reloadMode];
-      reloadBtn.title = reloadMode === 'stop' ? blancI18n.t('pill.stop') : blancI18n.t('pill.reload');
+      reloadBtn.dataset.tooltip = reloadMode === 'stop' ? blancI18n.t('pill.stop') : blancI18n.t('pill.reload');
+      reloadBtn.setAttribute('aria-label', reloadBtn.dataset.tooltip);
     }
     // Nothing to close with no tabs. This has to ride the tab render pass:
     // renderDownloads() only runs on download broadcasts, so a session with
@@ -1017,7 +1101,8 @@
     const favoritable = /^https?:\/\//.test(tab?.url || '');
     favoriteBtn.disabled = !favoritable;
     favoriteBtn.classList.toggle('on', favoritable && !!tab?.bookmarked);
-    favoriteBtn.title = tab?.bookmarked ? blancI18n.t('pill.unfavorite') : blancI18n.t('pill.favorite');
+    favoriteBtn.dataset.tooltip = tab?.bookmarked ? blancI18n.t('pill.unfavorite') : blancI18n.t('pill.favorite');
+    favoriteBtn.setAttribute('aria-label', favoriteBtn.dataset.tooltip);
 
     // The dot row is fitted after renderGlance below: the pill's width
     // depends on the Glance geometry it applies.
@@ -1029,8 +1114,8 @@
     // old page's security state can't linger under a "Loading…" domain).
     const securityWarning = ['insecure', 'certificate-error', 'certificate-exception'].includes(tab?.siteInfo?.state);
     pillInsecure.hidden = !securityWarning;
-    pillInsecure.title = tab?.siteInfo?.title ?? blancI18n.t('pill.insecure.fallback');
-    pillInsecure.setAttribute('aria-label', blancI18n.t('pill.insecure.open', { title: pillInsecure.title }));
+    pillInsecure.dataset.tooltip = tab?.siteInfo?.title ?? blancI18n.t('pill.insecure.fallback');
+    pillInsecure.setAttribute('aria-label', blancI18n.t('pill.insecure.open', { title: pillInsecure.dataset.tooltip }));
 
     pillPrivateChip.hidden = !tab?.private;
     // A view-source tab is opened fresh, so Back is dead and the island has
@@ -1055,7 +1140,7 @@
     pillShield.classList.toggle('shield-quiet', shield.mode === 'quiet');
     pillShield.classList.toggle('shield-restarting', shield.mode === 'restarting');
     pillShieldCount.textContent = shield.mode === 'count' ? String(shield.count) : '';
-    pillShield.title = shield.title;
+    pillShield.dataset.tooltip = shield.title;
     pillShield.setAttribute('aria-label', shield.title);
 
     // Capture chip: WINDOW-WIDE — lit while any tab or popup captures
@@ -1068,7 +1153,7 @@
     pillCaptureCam.toggleAttribute('hidden', !cap.video);
     const capTitle = cap.audio && cap.video ? blancI18n.t('capture.both')
       : cap.video ? blancI18n.t('capture.camera') : blancI18n.t('capture.microphone');
-    pillCapture.title = capTitle;
+    pillCapture.dataset.tooltip = capTitle;
     pillCapture.setAttribute('aria-label', capTitle);
 
     // Display-share chip: WINDOW-WIDE — pending picker or active share on
@@ -1079,7 +1164,7 @@
       : shares[0].pending ? blancI18n.t('share.choosing')
         : shares[0].surfaceLabel ? blancI18n.t('share.sharing', { surface: shares[0].surfaceLabel })
           : blancI18n.t('share.sharingScreen');
-    pillDisplayShare.title = shareTitle;
+    pillDisplayShare.dataset.tooltip = shareTitle;
     pillDisplayShare.setAttribute('aria-label', shareTitle);
 
     // The private theme scope follows the active tab.

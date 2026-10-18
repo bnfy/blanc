@@ -15,6 +15,7 @@ const CHROME_INDEX_URL = `${CHROME_SCHEME}://index/`;
 const CHROME_OVERLAY_URL = `${CHROME_SCHEME}://overlay/`;
 const CHROME_PERMISSION_URL = `${CHROME_SCHEME}://permission/`;
 const CHROME_FILL_STATUS_URL = `${CHROME_SCHEME}://fill-status/`;
+const CHROME_TOOLTIP_URL = `${CHROME_SCHEME}://tooltip/`;
 const CHROME_DISPLAY_CAPTURE_HELPER_URL = `${CHROME_SCHEME}://display-capture-helper/`;
 const RENDERER_DIR = path.join(__dirname, '../renderer');
 // Interface strings: /strings.js is virtual — the handler answers it with the
@@ -84,6 +85,11 @@ const HOST_ASSETS = new Map([
     ['/', 'fill-status.html'],
     ['/fill-status.js', 'fill-status.js'],
     ['/fill-status-copy.js', 'fill-status-copy.js'],
+  ])],
+  // The resting pill's tooltip: a document with no script and no preload.
+  // Main writes the text into it; it draws with the shared stylesheet.
+  ['tooltip', new Map([
+    ['/', 'tooltip.html'],
   ])],
   ['display-capture-helper', new Map([
     ['/', 'display-capture-helper.html'],
@@ -155,6 +161,7 @@ module.exports = {
   CHROME_OVERLAY_URL,
   CHROME_PERMISSION_URL,
   CHROME_FILL_STATUS_URL,
+  CHROME_TOOLTIP_URL,
   CHROME_DISPLAY_CAPTURE_HELPER_URL,
   STRINGS_VIRTUAL_PATH,
   chromeResourcePath,

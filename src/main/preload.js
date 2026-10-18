@@ -72,6 +72,8 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
 
   reportChromeLayout: (height) => ipcRenderer.send('chrome:layout', { height }),
   reportIslandRect: (rect) => ipcRenderer.send('chrome:island-rect', rect),
+  showTooltip: (tip) => ipcRenderer.send('chrome:tooltip-show', tip),
+  hideTooltip: () => ipcRenderer.send('chrome:tooltip-hide'),
   onShieldAnchor: (callback) => {
     const listener = (_event, anchor) => callback(anchor);
     ipcRenderer.on('overlay:shield-anchor', listener);

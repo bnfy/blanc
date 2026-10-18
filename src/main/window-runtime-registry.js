@@ -128,6 +128,12 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     fillStatusView: null,
     fillStatusViewAttached: false,
     fillStatusViewLoaded: false,
+    /** The resting pill's tooltip (tooltip.html), floated under the pill
+     * while the strip asks for it; `tooltipGeneration` drops a show that a
+     * later hide or show overtook while its text was being written. */
+    tooltipView: null,
+    tooltipViewAttached: false,
+    tooltipGeneration: 0,
     tabsWantingAddressBarFocus: new Set(),
     addressFocusGeneration: 0,
     /** Tab ids in activation order, most recent last, one occurrence per id.
@@ -230,6 +236,8 @@ function detachWindow(runtime) {
   runtime.fillStatusView = null;
   runtime.fillStatusViewAttached = false;
   runtime.fillStatusViewLoaded = false;
+  runtime.tooltipView = null;
+  runtime.tooltipViewAttached = false;
 }
 
 /** A user-closed secondary window has no dock-reopen contract. Remove every
