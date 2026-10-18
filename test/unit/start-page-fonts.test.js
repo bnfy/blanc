@@ -20,7 +20,7 @@ test('product UI uses Inter while Mahjong tile faces retain their separate font'
   for (const css of [pages, chrome, handoff, mahjong]) {
     assert.doesNotMatch(css, /--font-mono|--font-kbd/);
   }
-  assert.match(mahjong, /--mj-face-font:\s*"JetBrains Mono"/);
+  assert.match(mahjong, /--mj-face-font:\s*"Inter"/);
   assert.match(newtab, /<body class="ledger-body"/);
   assert.match(game, /<body class="mahjong-body"/);
 });
@@ -122,8 +122,8 @@ test('Instrument Sans sets the page copy, headings and clock; Inter keeps figure
 
   assert.doesNotMatch(chrome, /Blubird|--font-display|Newsreader/);
   assert.doesNotMatch(mahjong, /Blubird|--font-display/);
-  assert.match(mahjong, /\.mahjong-body \{[^}]*--font-text: var\(--font-ui\);/, 'Mahjong maps shared --font-text rules back to Inter');
-  assert.match(mahjong, /\.mahjong-body \{[^}]*--text-word-spacing: normal;[^}]*--text-tracking: normal;/, 'Mahjong keeps Inter spacing');
+  const mahjongBody = mahjong.match(/\.mahjong-body \{([^}]*)\}/)[1];
+  assert.doesNotMatch(mahjongBody, /--font-text\s*:|--text-tracking\s*:/, 'Mahjong uses the shared Instrument Sans text face (owner choice, October 17)');
 });
 
 test('Instrument Sans ships in the repository with its OFL license', () => {

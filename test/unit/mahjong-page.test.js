@@ -167,7 +167,7 @@ test('winds and dragons unite all motif and compass-seal designs at their intend
   assert.doesNotMatch(controller, /const BLANC_MARK_PATHS/);
   assert.doesNotMatch(controller, /for \(const d of BLANC_MARK_PATHS\)/);
   assert.match(styles, /\.mj-wind-source,\s*\.mj-dragon-source,\s*\.mj-bonus-source\s*\{[^}]*image-rendering:\s*auto;[^}]*drop-shadow/);
-  assert.match(styles, /\.mj-wind-direction-label\s*\{[^}]*fill:\s*#fff8e6;[^}]*font-weight:\s*820/);
+  assert.match(styles, /\.mj-wind-direction-label\s*\{[^}]*fill:\s*#fff8e6;[^}]*font-weight:\s*700;[^}]*letter-spacing:\s*-0\.01em/);
   for (const direction of ['n', 'e', 's', 'w']) {
     assert.match(styles, new RegExp(`\\.mj-wind-direction-${direction} rect\\s*\\{[^}]*fill:`));
   }
@@ -207,7 +207,8 @@ test('character numerals fill their tile faces in ink without underline marks', 
   assert.doesNotMatch(controller, /family === 'chr'[\s\S]{0,180}el\('rect'/);
   assert.match(styles, /\.mj-tile\[data-suit="chr"\]\s*\{\s*color:\s*var\(--mj-tile-ink\);\s*\}/);
   assert.doesNotMatch(styles, /\.mj-tile\[data-suit="chr"\][^{]*\{[^}]*var\(--mj-red\)/);
-  assert.match(styles, /\.mj-character-number\s*\{[^}]*font-weight:\s*800;[^}]*stroke-width:\s*0\.7px;[^}]*paint-order:\s*stroke fill;/);
+  assert.match(styles, /\.mj-character-number\s*\{[^}]*font-weight:\s*700;[^}]*fill:\s*currentColor;/);
+  assert.doesNotMatch(styles, /\.mj-character-number\s*\{[^}]*stroke:/, 'no lacquer gold outline on numerals');
 });
 
 test('the bamboo suit uses a panda emblem plus the supplied jade and gold stick artwork', () => {
@@ -789,15 +790,18 @@ test('the Records sheet opens from the dock and R, paints from the pure summary,
   assert.match(english('mahjong.records.clearedCount'), /other \{cleared # of the last 28 dailies\}/);
 });
 
-test('tile-face type stays JetBrains Mono while the game chrome uses Inter', () => {
-  // Numerals and wind badge letters alone keep the bundled Mono face.
-  assert.match(mahjongStyles, /\.mahjong-body\s*\{[^}]*--mj-face-font:\s*"JetBrains Mono", ui-monospace/);
-  assert.match(mahjongStyles, /\.mj-face text\s*\{[^}]*font-family:\s*var\(--mj-face-font\)/);
-  assert.match(mahjongStyles, /\.mj-character-number\s*\{[^}]*font-family:\s*var\(--mj-face-font\);[^}]*font-weight:\s*800;[^}]*font-variation-settings:\s*"wght" 800;/);
-  // The bundled JetBrains Mono file carries wght 400–800; the shared @font-face
-  // must expose the full range or 800 silently clamps to 700.
+test('tile numerals are Inter Bold while the game UI uses Instrument Sans', () => {
+  // Owner choice, October 17, 2026: Inter Bold numerals replace JetBrains Mono,
+  // and the game's interface joins the internal pages on Instrument Sans.
+  assert.match(mahjongStyles, /\.mahjong-body\s*\{[^}]*--mj-face-font:\s*"Inter"/);
+  assert.match(mahjongStyles, /text\.mj-character-number\s*\{[^}]*font-weight:\s*700;[^}]*letter-spacing:\s*-0\.02em;/);
+  assert.doesNotMatch(mahjongStyles, /--font-text:\s*var\(--font-ui\)/);
+  assert.doesNotMatch(mahjongStyles, /JetBrains Mono/);
+  assert.match(mahjongStyles, /\.mahjong-body\s*\{[^}]*font-family:\s*var\(--font-text\);/);
+  // Counts stay Inter with tabular numerals.
+  assert.match(mahjongStyles, /\.mj-meter strong\s*\{[^}]*font:[^;]*var\(--font-ui\);[^}]*font-variant-numeric:\s*tabular-nums;/);
+  // JetBrains Mono stays bundled for now; its @font-face keeps the full range.
   assert.match(styles, /font-family:\s*"JetBrains Mono";\s*src:\s*url\("jetbrains-mono-latin\.woff2"\)[^}]*font-weight:\s*400 800;/);
-  assert.doesNotMatch(mahjongStyles, /\.mj-character-number\s*\{[^}]*var\(--font-ui\)/);
   assert.doesNotMatch(mahjongStyles, /--font-mono/);
 });
 

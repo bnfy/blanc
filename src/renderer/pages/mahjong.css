@@ -3,13 +3,9 @@
    contributes only bundled fonts and the [hidden] contract. */
 
 .mahjong-body {
-  /* Tile faces alone keep JetBrains Mono; game controls use Inter. Shared
-     pages.css rules set copy in --font-text, the licensed page face, so the
-     game maps it back to Inter. */
-  --font-text: var(--font-ui);
-  --text-word-spacing: normal;
-  --text-tracking: normal;
-  --mj-face-font: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  /* Interface copy uses the shared Instrument Sans text face; tile numerals,
+     counts and scores use Inter Bold (owner choice, October 17, 2026). */
+  --mj-face-font: "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
   --mj-sky-1: #cfe6f7;
   --mj-sky-2: #f3ecf0;
   --mj-sky-3: #fde4cc;
@@ -51,7 +47,7 @@
   overflow: auto;
   color: var(--mj-text);
   background: linear-gradient(180deg, var(--mj-sky-1) 0%, var(--mj-sky-2) 45%, var(--mj-sky-3) 80%, var(--mj-sky-4) 100%) fixed;
-  font-family: var(--font-ui);
+  font-family: var(--font-text);
   color-scheme: light;
 }
 
@@ -155,7 +151,7 @@
   border-radius: 999px;
   color: var(--mj-text);
   background: var(--mj-surface);
-  font: 600 12px/1 var(--font-ui);
+  font: 600 12px/1 var(--font-text);
   text-decoration: none;
   transition: translate 160ms ease;
 }
@@ -198,7 +194,7 @@
   align-items: center;
   gap: 7px;
   color: var(--mj-text);
-  font: 650 clamp(16px, 1.55vw, 20px)/1 var(--font-ui);
+  font: 650 clamp(16px, 1.55vw, 20px)/1 var(--font-text);
   letter-spacing: -0.03em;
   text-decoration: none;
   text-shadow: none;
@@ -223,7 +219,7 @@
   border: 1px solid var(--mj-edge);
   border-radius: 999px;
   color: var(--mj-accent-ink);
-  font: 720 10px/1 var(--font-ui);
+  font: 720 10px/1 var(--font-text);
   letter-spacing: 0.11em;
   text-transform: uppercase;
 }
@@ -254,7 +250,7 @@
   color: var(--mj-text-muted);
   background: var(--mj-pill);
   box-shadow: 0 8px 22px var(--mj-pill-shadow);
-  font: 600 13px/1 var(--font-ui);
+  font: 600 13px/1 var(--font-text);
   letter-spacing: 0.025em;
   white-space: nowrap;
 }
@@ -274,7 +270,7 @@
   border: 1px solid var(--mj-surface-line);
   border-radius: 999px;
   color: var(--mj-accent-ink);
-  font: 700 8px/1 var(--font-ui);
+  font: 700 8px/1 var(--font-text);
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -307,7 +303,7 @@
 .mj-tray-kicker,
 .mj-overline {
   color: var(--mj-text-muted);
-  font: 740 9px/1 var(--font-ui);
+  font: 740 9px/1 var(--font-text);
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
@@ -504,15 +500,10 @@
    never won, so the numeral's declared weight had silently never applied. */
 .mj-face text.mj-character-number {
   font-family: var(--mj-face-font);
-  font-weight: 800;
-  font-variation-settings: "wght" 800;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   fill: currentColor;
-  stroke: rgba(153, 111, 44, 0.62);
-  stroke-width: 0.7px;
-  paint-order: stroke fill;
-  filter:
-    drop-shadow(0 -0.55px 0 rgba(255, 255, 255, 0.48))
-    drop-shadow(0 1px 0.35px rgba(0, 24, 18, 0.48));
+  filter: drop-shadow(0 -0.5px 0 rgba(255, 255, 255, 0.55));
 }
 .mj-bamboo-source {
   image-rendering: auto;
@@ -537,7 +528,8 @@
   stroke-width: 0.55px;
   paint-order: stroke fill;
   font-family: var(--font-ui);
-  font-weight: 820;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   letter-spacing: 0;
 }
 .mj-wind-direction-n rect { fill: #244f72; }
@@ -664,12 +656,12 @@
 .mj-combo-callout::before {
   content: "✦";
   color: var(--mj-accent-ink);
-  font: 760 12px/1 var(--font-ui);
+  font: 760 12px/1 var(--font-text);
   text-shadow: 0 0 12px color-mix(in srgb, var(--mj-accent) 66%, transparent);
 }
 .mj-combo-callout span {
   color: var(--mj-accent-ink);
-  font: 760 10px/1 var(--font-ui);
+  font: 760 10px/1 var(--font-text);
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
@@ -837,7 +829,7 @@
   color: var(--mj-text-muted);
   background: var(--mj-pill);
   box-shadow: inset 0 2px 5px var(--mj-pill-shadow);
-  font: 600 9px/1 var(--font-ui);
+  font: 600 9px/1 var(--font-text);
 }
 
 .mj-tray-slot::before {
@@ -883,7 +875,7 @@
 }
 
 .mj-tray-best { justify-self: end; flex-direction: column; align-items: flex-end; gap: 6px; }
-.mj-tray-best span { color: var(--mj-text-muted); font: 650 8px/1 var(--font-ui); letter-spacing: 0.13em; text-transform: uppercase; }
+.mj-tray-best span { color: var(--mj-text-muted); font: 650 8px/1 var(--font-text); letter-spacing: 0.13em; text-transform: uppercase; }
 .mj-tray-best strong { color: var(--mj-text); font: 650 12px/1 var(--font-ui); font-variant-numeric: tabular-nums; }
 
 .mj-feedback { min-height: 18px; display: grid; place-items: center; }
@@ -903,7 +895,7 @@
   color: var(--mj-pill-text);
   background: var(--mj-pill);
   box-shadow: 0 2px 8px var(--mj-pill-shadow);
-  font: 500 11px/1.45 var(--font-ui);
+  font: 500 11px/1.45 var(--font-text);
   text-align: center;
 }
 .mj-notice button {
@@ -942,7 +934,7 @@
   border-radius: 13px;
   color: var(--mj-text-muted);
   cursor: pointer;
-  font: 600 9px/1 var(--font-ui);
+  font: 600 9px/1 var(--font-text);
   letter-spacing: 0.04em;
   text-transform: capitalize;
   transition: color 130ms ease, background 130ms ease, translate 130ms ease;
@@ -976,7 +968,7 @@
   color: var(--mj-text);
   background: var(--mj-surface);
   box-shadow: 0 9px 22px var(--mj-pill-shadow);
-  font: 650 10px/1 var(--font-ui);
+  font: 650 10px/1 var(--font-text);
   letter-spacing: 0.035em;
   text-transform: none;
   white-space: nowrap;
@@ -1057,7 +1049,7 @@
 .mj-card-overlay h1 {
   margin: 9px 0 0;
   color: var(--mj-text);
-  font: 660 clamp(30px, 3.6vw, 40px)/1.06 var(--font-ui);
+  font: 660 clamp(30px, 3.6vw, 40px)/1.06 var(--font-text);
   letter-spacing: -0.035em;
   text-wrap: balance;
   text-shadow: none;
@@ -1081,7 +1073,7 @@
   color: var(--mj-text-muted);
   background: var(--mj-fill);
   cursor: pointer;
-  font: 350 25px/1 var(--font-ui);
+  font: 350 25px/1 var(--font-text);
 }
 .mj-close:hover { color: var(--mj-text); border-color: var(--mj-edge); }
 
@@ -1096,7 +1088,7 @@
   width: 100%;
   margin-bottom: 10px;
   color: var(--mj-text-muted);
-  font: 680 11px/1 var(--font-ui);
+  font: 680 11px/1 var(--font-text);
   letter-spacing: 0.13em;
   text-transform: uppercase;
 }
@@ -1140,7 +1132,7 @@
 
 .mj-choice > span:last-child { display: grid; gap: 4px; }
 .mj-choice strong { font-size: 15px; font-weight: 660; }
-.mj-choice small { color: var(--mj-text-muted); font: 520 11px/1.35 var(--font-ui); }
+.mj-choice small { color: var(--mj-text-muted); font: 520 11px/1.35 var(--font-text); }
 
 .mj-layout-mini {
   position: relative;
@@ -1287,7 +1279,7 @@
   min-height: 30px;
   margin: 9px 2px 0;
   color: var(--mj-text-muted);
-  font: 500 12px/1.5 var(--font-ui);
+  font: 500 12px/1.5 var(--font-text);
 }
 
 .mj-accessibility-toggle {
@@ -1471,7 +1463,7 @@
 .mj-win-rules {
   margin: 0;
   color: var(--mj-text-muted);
-  font: 680 11px/1 var(--font-ui);
+  font: 680 11px/1 var(--font-text);
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -1491,7 +1483,7 @@
   max-width: 360px;
   margin: 24px auto 0;
   color: var(--mj-text-muted);
-  font: 550 14px/1.6 var(--font-ui);
+  font: 550 14px/1.6 var(--font-text);
   text-wrap: balance;
 }
 .mj-win-zen[hidden] { display: none; }
@@ -1509,7 +1501,7 @@
   -webkit-text-stroke: 0;
   text-shadow: none;
 }
-.mj-win-unit { margin-top: 11px; color: var(--mj-text-muted); font: 720 10px/1 var(--font-ui); letter-spacing: 0.17em; text-transform: uppercase; }
+.mj-win-unit { margin-top: 11px; color: var(--mj-text-muted); font: 720 10px/1 var(--font-text); letter-spacing: 0.17em; text-transform: uppercase; }
 .mj-win-best {
   min-height: 28px;
   display: inline-flex;
@@ -1520,7 +1512,7 @@
   border-radius: 999px;
   color: var(--mj-accent-ink);
   background: color-mix(in srgb, var(--mj-accent) 8%, transparent);
-  font: 650 11px/1 var(--font-ui);
+  font: 650 11px/1 var(--font-text);
 }
 .mj-layout-choice:disabled {
   opacity: 0.45;
@@ -1536,7 +1528,7 @@
   display: block;
   margin-top: 9px;
   color: var(--mj-text-muted);
-  font: 600 10px/1.4 var(--font-ui);
+  font: 600 10px/1.4 var(--font-text);
   letter-spacing: 0.04em;
 }
 .mj-win-daily[hidden] { display: none; }
@@ -1560,7 +1552,7 @@
   box-shadow: 0 8px 18px var(--mj-pill-shadow);
   text-align: center;
 }
-.mj-records-overview small { color: var(--mj-text-muted); font: 660 10px/1 var(--font-ui); letter-spacing: 0.12em; text-transform: uppercase; }
+.mj-records-overview small { color: var(--mj-text-muted); font: 660 10px/1 var(--font-text); letter-spacing: 0.12em; text-transform: uppercase; }
 .mj-records-overview strong { color: var(--mj-text); font: 760 22px/1 var(--font-ui); font-variant-numeric: tabular-nums; }
 
 .mj-records-table {
@@ -1568,14 +1560,14 @@
   margin-top: 22px;
   border-collapse: collapse;
   color: var(--mj-text);
-  font: 520 12px/1.4 var(--font-ui);
+  font: 520 12px/1.4 var(--font-text);
   font-variant-numeric: tabular-nums;
 }
 .mj-records-table caption {
   caption-side: top;
   padding-bottom: 9px;
   color: var(--mj-text-muted);
-  font: 660 10px/1 var(--font-ui);
+  font: 660 10px/1 var(--font-text);
   letter-spacing: 0.14em;
   text-align: left;
   text-transform: uppercase;
@@ -1589,7 +1581,7 @@
 }
 .mj-records-table th[scope="col"] {
   color: var(--mj-text-muted);
-  font: 600 10px/1 var(--font-ui);
+  font: 600 10px/1 var(--font-text);
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -1610,7 +1602,7 @@
 .mj-record-variants > span + span { margin-top: 5px; }
 .mj-record-variants small {
   color: var(--mj-text-muted);
-  font: 650 8px/1 var(--font-ui);
+  font: 650 8px/1 var(--font-text);
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -1638,7 +1630,7 @@
   outline: 1px solid var(--mj-text);
   outline-offset: 1px;
 }
-.mj-records-days p { margin: 9px 0 0; color: var(--mj-text-muted); font: 520 11px/1.4 var(--font-ui); }
+.mj-records-days p { margin: 9px 0 0; color: var(--mj-text-muted); font: 520 11px/1.4 var(--font-text); }
 .mj-win-best.is-record {
   border-color: var(--mj-accent);
   color: var(--mj-accent-ink);
@@ -1659,7 +1651,7 @@
   box-shadow: 0 8px 18px var(--mj-pill-shadow);
 }
 .mj-win-stats span[hidden] { display: none; }
-.mj-win-stats small { color: var(--mj-text-muted); font: 660 10px/1 var(--font-ui); letter-spacing: 0.12em; text-transform: uppercase; }
+.mj-win-stats small { color: var(--mj-text-muted); font: 660 10px/1 var(--font-text); letter-spacing: 0.12em; text-transform: uppercase; }
 .mj-win-stats strong { color: var(--mj-text); font: 760 22px/1 var(--font-ui); font-variant-numeric: tabular-nums; }
 .mj-overlay-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 22px; }
 .mj-overlay-actions .mj-button { min-height: 52px; }

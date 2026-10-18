@@ -53,17 +53,26 @@ The authoritative product/site tokens remain in `site/src/styles/site.css` and
 `src/renderer/styles.css`. Retired feature-specific colorways are not part of
 the general Blanc brand palette.
 
-### Mahjong: classic lacquer
+### Mahjong: Dawn sky
 
-Mahjong is a deliberately scoped in-product exception to the neutral product
-palette. Its restored lacquer table uses `#0B3D31` and the locally bundled
-`mahjong-lacquer.webp` background, with `#0A392F` panels, ivory `#F8F1DC`
-type, and brass `#D8B969` accents. Private Mahjong retains its separate muted
-purple treatment and prominent private chip. These game-local values do not
-replace shared product or website tokens.
+**Owner decision, October 17, 2026** (design:
+`docs/superpowers/specs/2026-10-17-mahjong-visual-refresh-design.md`).
+Mahjong is a scoped in-product exception to the neutral product palette. By
+day its table is a Dawn sky gradient (`#CFE6F7` → `#F3ECF0` → `#FDE4CC` →
+`#FBD7B4`) with white tiles, warm peach edges, white pill controls and a warm
+orange `#FF9F43` accent. In dark mode it becomes an Evening sky (`#1C2340` →
+`#2E2A4A` → `#5A3A46` → `#7A4A3C`) with light tiles, frosted controls and an
+amber `#FFB35C` accent. Private Mahjong uses a lilac version of both and keeps
+its prominent private chip. Tile numerals and counts are Inter Bold; all other
+game text is Instrument Sans. These game-local values do not replace shared
+product or website tokens.
 The header uses the unmodified Sunrise artwork with clear space and no glow.
 The B motif on the white-dragon tile remains an intentional historical game
 detail, not a mark for new Blanc creative.
+
+*Superseded 2026-10-17:* "Mahjong: classic lacquer" (`#0B3D31` table,
+`mahjong-lacquer.webp`, `#0A392F` panels, ivory `#F8F1DC` type, brass `#D8B969`
+accents).
 
 ### Sunrise palette for website and marketing
 
@@ -256,9 +265,11 @@ its license in `src/renderer/pages/`) at width 98 and +0.01em letter spacing.
 Large lines tighten slightly: the Billboard clock to -0.02em and Ledger's
 "Where to?" to -0.015em. Inter stays for key caps, which need ⌘ ⌥ ⇧ ⌃ and
 arrows that Instrument Sans lacks, and for counters and license keys tuned on
-its tabular figures; use a slashed zero for the Patron license key. Only
-Mahjong tile faces keep JetBrains Mono through `--mj-face-font`, and the game
-keeps Inter for its controls. Buttons and form fields must inherit the page's
+its tabular figures; use a slashed zero for the Patron license key. Mahjong
+tile numerals and counts use Inter Bold through `--mj-face-font`, and the rest
+of the game's text is Instrument Sans (October 17, 2026; this supersedes the
+earlier "tile faces keep JetBrains Mono, the game keeps Inter for its
+controls"). Buttons and form fields must inherit the page's
 letter and word spacing explicitly, because Chromium resets them. The app
 ships no commercially licensed font: Blubird is a website and wordmark face
 only. System v2 radii stand: 8px small, 10px control/row, 14px card/group,
