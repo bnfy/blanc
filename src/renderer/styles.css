@@ -708,9 +708,8 @@ body.mac .vertical-tabs-toolbar {
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
-  padding: 7px 8px 12px;
+  /* The side gutters (see .island-scroll below) stand in for side padding. */
+  padding: 7px 0 12px;
 }
 
 .vertical-tabs-section {
@@ -2326,6 +2325,43 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+  /* Its side gutters (shared rule below) sit in the panel's padding, so rows
+     line up with the address field above whether or not the list scrolls. */
+  margin-inline: -8px;
+}
+
+/* Scroll containers whose rows carry trailing controls (shortcut hints, pin,
+   close). macOS overlay scroll bars take no space, so they painted over the
+   rows' right edge; a styled ::-webkit-scrollbar is always a classic one, so
+   it takes the same reserved 8px on macOS (either "Show scroll bars" choice),
+   Windows and Linux. Reserving the gutter on both edges keeps the left inset
+   equal to the right, and the gutter is there even when the list fits, so
+   nothing shifts when it starts scrolling.
+   (Chromium ignores these pseudo-elements on an element that sets
+   scrollbar-width or scrollbar-color.) */
+#islandList,
+#islandDrawer,
+.vertical-tabs-list {
+  scrollbar-gutter: stable both-edges;
+}
+#islandList::-webkit-scrollbar,
+#islandDrawer::-webkit-scrollbar,
+.vertical-tabs-list::-webkit-scrollbar {
+  width: 8px;
+  background: transparent;
+}
+#islandList::-webkit-scrollbar-thumb,
+#islandDrawer::-webkit-scrollbar-thumb,
+.vertical-tabs-list::-webkit-scrollbar-thumb {
+  /* A 4px bar centered in the gutter, clear of the rows on both sides. */
+  border: 2px solid transparent;
+  border-radius: 4px;
+  background: var(--border) padding-box;
+}
+#islandList::-webkit-scrollbar-thumb:hover,
+#islandDrawer::-webkit-scrollbar-thumb:hover,
+.vertical-tabs-list::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-dim);
 }
 
 .island-row {
@@ -2940,8 +2976,11 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
   overflow-y: auto;
   overscroll-behavior: contain;
   margin-top: 6px;
+  margin-inline: -8px;
   padding-top: 2px;
-  border-top: 1px solid var(--border);
+  /* The divider, drawn inside the gutters so it stays as wide as the
+     footer's border-top (a border would run under the gutters). */
+  background: linear-gradient(var(--border), var(--border)) top / 100% 1px no-repeat;
 }
 #islandDrawer[hidden] { display: none; }
 
