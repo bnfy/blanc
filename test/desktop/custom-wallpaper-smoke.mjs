@@ -31,8 +31,11 @@ try {
   const page = await waitForValue(async () => (await app.windows()).find((p) => p.url() === 'blanc://newtab/'), Boolean, 'new tab');
   await page.waitForLoadState('domcontentloaded');
   await page.waitForFunction(() => !document.getElementById('customWallpaperToggle').disabled);
-  assert.deepEqual(await page.evaluate(() => window.bowserPages.start.wallpaper()),
-    { source: 'sunrise', hasImage: false, image: null, wash: 100, style: 'auto' });
+  const initial = await page.evaluate(() => window.bowserPages.start.wallpaper());
+  assert.deepEqual({ ...initial, color: undefined },
+    { source: 'sunrise', hasImage: false, image: null, wash: 100, style: 'auto', color: undefined });
+  assert.deepEqual({ preset: initial.color.preset, followSpace: initial.color.followSpace, inSpace: initial.color.inSpace, fill: initial.color.paint.fill },
+    { preset: 'sage', followSpace: false, inSpace: false, fill: 'gradient' });
 
   // Fixtures, made by Electron itself: a wide photo tagged "rotate 90°" with
   // a fake GPS block, an oversized one, and a file that is not an image.
@@ -132,7 +135,7 @@ try {
   await privatePage.waitForLoadState('domcontentloaded');
   await privatePage.waitForFunction(() => window.bowserPages && document.getElementById('customWallpaperRow').hidden);
   const privateState = await privatePage.evaluate(() => window.bowserPages.start.data().then((d) => d.wallpaper));
-  assert.deepEqual(privateState, { source: 'sunrise', hasImage: true, image: null, wash: 40, style: 'dark' });
+  assert.deepEqual(privateState, { source: 'sunrise', hasImage: true, image: null, wash: 40, style: 'dark', color: null });
   assert.notEqual(await privatePage.evaluate(() => document.body.dataset.wallpaperPhase), 'custom');
   const publicId = (await callTestHook(app, 'state')).tabs.find((tab) => tab.url === 'blanc://newtab/').id;
   await callTestHook(app, 'activateTab', [publicId, true]);
@@ -166,7 +169,50 @@ try {
   await waitForValue(async () => settingsFile(), (value) => value.newtabCustomWallpaper === false, 'saved removal');
   assert.equal(await loads(page, `${state.image}&after-remove`), false);
   await callTestHook(app, 'chooseWallpaperFile', [null]);
-  console.log('custom-wallpaper-smoke PASS: refusals, choose, upright drawing, metadata strip, owner-only file, Fade slider bounds and save, wash styles, unguessable address, private exclusion, Sunrise/your-image choice with scoped options, Settings remove with live Start Page update');
+
+  // Color: a Spaces preset, its fill, and the window's space color on request.
+  const cssVar = (name) => page.evaluate((n) => getComputedStyle(document.body).getPropertyValue(n).trim(), name);
+  await page.getByRole('button', { name: 'Color', exact: true }).click();
+  await page.waitForFunction(() => document.body.dataset.wallpaperFill === 'gradient'
+    && !document.getElementById('colorWallpaperOptions').hidden);
+  assert.equal(await clockSwitch.isHidden(), true, 'no clock switch beside a color');
+  assert.equal(await page.locator('.wallpaper-swatch').count(), 8);
+  await waitForValue(async () => settingsFile(), (value) => value.newtabColorWallpaper === true, 'saved color choice');
+  await page.getByRole('button', { name: 'Sky', exact: true }).click();
+  await page.waitForFunction(() => document.body.style.getPropertyValue('--start-color-base') === '#376694');
+  await page.getByRole('button', { name: 'Solid', exact: true }).click();
+  await page.waitForFunction(() => document.body.dataset.wallpaperFill === 'solid');
+  assert.equal(await page.evaluate(() => getComputedStyle(document.body).backgroundColor), 'rgb(55, 102, 148)');
+  assert.equal(await cssVar('--text'), '#ffffff', 'white ink on Sky');
+  assert.equal(await page.getByRole('button', { name: 'Sky', exact: true }).getAttribute('aria-pressed'), 'true');
+  assert.equal((await page.evaluate(() => window.bowserPages.start.setWallpaperColor('teal'))).color.preset, 'sky');
+  assert.equal((await page.evaluate(() => window.bowserPages.start.setWallpaperFill('noise'))).color.paint.fill, 'solid');
+  await waitForValue(async () => settingsFile(), (value) => value.newtabWallpaperColor === 'sky' && value.newtabWallpaperFill === 'solid', 'saved color and fill');
+  // Following the space: nothing changes outside one; saving the window as a
+  // space (its first color is Sage) and recoloring it repaint the page live.
+  const follow = page.getByRole('button', { name: 'Match each space’s color', exact: true });
+  await follow.click();
+  await page.waitForFunction(() => document.getElementById('colorWallpaperFollow').getAttribute('aria-pressed') === 'true');
+  assert.equal(await page.evaluate(() => document.body.style.getPropertyValue('--start-color-base')), '#376694');
+  const saved2 = await callTestHook(app, 'workspaceAction', ['save', 'Color test']);
+  assert.equal(saved2.ok, true);
+  await page.waitForFunction(() => document.body.style.getPropertyValue('--start-color-base') === '#426c4c');
+  assert.equal(await page.locator('#colorWallpaperFollowHint').textContent(), 'This window’s space color is showing.');
+  assert.equal(await page.evaluate(() => document.getElementById('colorWallpaperSwatches').classList.contains('is-overridden')), true);
+  assert.equal((await callTestHook(app, 'workspaceAction', ['update', saved2.workspace.id, { color: '#9b4761' }])).ok, true);
+  await page.waitForFunction(() => document.body.style.getPropertyValue('--start-color-base') === '#9b4761');
+  // The page learns only the color, never the space's name.
+  assert.equal(JSON.stringify(await page.evaluate(() => window.bowserPages.start.wallpaper())).includes('Color test'), false);
+  // A private Start Page never takes a color.
+  await privatePage.reload();
+  await privatePage.waitForFunction(() => window.bowserPages && document.getElementById('colorWallpaperOptions').hidden);
+  assert.equal((await privatePage.evaluate(() => window.bowserPages.start.data().then((d) => d.wallpaper))).color, null);
+  assert.equal(await privatePage.evaluate(() => document.body.dataset.wallpaperFill), undefined);
+  // Back to Sunrise clears the color everywhere this account syncs.
+  await page.getByRole('button', { name: 'Sunrise', exact: true }).click();
+  await page.waitForFunction(() => document.body.dataset.wallpaperFill === undefined);
+  await waitForValue(async () => settingsFile(), (value) => value.newtabColorWallpaper === false, 'saved Sunrise');
+  console.log('custom-wallpaper-smoke PASS: refusals, choose, upright drawing, metadata strip, owner-only file, Fade slider bounds and save, wash styles, unguessable address, private exclusion, Sunrise/your-image choice with scoped options, Settings remove with live Start Page update, Color presets/fill/space following');
 } finally {
   if (app) await app.close();
   const errors = fs.existsSync(uncaught) ? fs.readFileSync(uncaught, 'utf8').trim() : '';

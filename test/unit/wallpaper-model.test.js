@@ -22,15 +22,23 @@ test('effective source: custom needs an image and never reaches a private tab', 
     [{ dynamic: false, custom: true, hasImage: false, isPrivate: false }, 'sunrise'],
     [{ dynamic: false, custom: true, hasImage: true, isPrivate: true }, 'sunrise'],
     [{ dynamic: true, custom: true, hasImage: true, isPrivate: true }, 'time-of-day'],
+    // A synced color beats the time-of-day switch, but not this device's image.
+    [{ dynamic: true, color: true, custom: false, hasImage: false, isPrivate: false }, 'color'],
+    [{ dynamic: false, color: true, custom: true, hasImage: true, isPrivate: false }, 'custom'],
+    [{ dynamic: false, color: true, custom: true, hasImage: false, isPrivate: false }, 'color'],
+    // A private Start Page never takes a color.
+    [{ dynamic: false, color: true, custom: false, hasImage: false, isPrivate: true }, 'sunrise'],
+    [{ dynamic: true, color: true, custom: false, hasImage: false, isPrivate: true }, 'time-of-day'],
   ];
   for (const [input, expected] of cases) assert.equal(effectiveSource(input), expected, JSON.stringify(input));
 });
 
 test('choosing a source writes only the settings it needs', () => {
-  assert.deepEqual(SOURCES, ['sunrise', 'time-of-day', 'custom']);
+  assert.deepEqual(SOURCES, ['sunrise', 'time-of-day', 'color', 'custom']);
   assert.deepEqual(settingsForSource('custom'), { newtabCustomWallpaper: true });
-  assert.deepEqual(settingsForSource('time-of-day'), { newtabDynamicWallpaper: true, newtabCustomWallpaper: false });
-  assert.deepEqual(settingsForSource('sunrise'), { newtabDynamicWallpaper: false, newtabCustomWallpaper: false });
+  assert.deepEqual(settingsForSource('color'), { newtabColorWallpaper: true, newtabCustomWallpaper: false });
+  assert.deepEqual(settingsForSource('time-of-day'), { newtabDynamicWallpaper: true, newtabColorWallpaper: false, newtabCustomWallpaper: false });
+  assert.deepEqual(settingsForSource('sunrise'), { newtabDynamicWallpaper: false, newtabColorWallpaper: false, newtabCustomWallpaper: false });
   for (const bad of [undefined, null, '', 'Custom', 'night', 1, {}]) assert.equal(settingsForSource(bad), null);
 });
 

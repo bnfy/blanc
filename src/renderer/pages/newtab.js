@@ -891,14 +891,31 @@ const customWallpaperError = document.getElementById('customWallpaperError');
 const customWallpaperWash = document.getElementById('customWallpaperWash');
 const customWallpaperStyleRow = document.getElementById('customWallpaperStyleRow');
 const customWallpaperStyles = [...customWallpaperStyleRow.querySelectorAll('[data-wallpaper-style-pick]')];
+const colorWallpaperPick = document.getElementById('colorWallpaperPick');
+const colorWallpaperOptions = document.getElementById('colorWallpaperOptions');
+const colorWallpaperSwatches = document.getElementById('colorWallpaperSwatches');
+const colorWallpaperFills = [...document.querySelectorAll('[data-wallpaper-fill-pick]')];
+const colorWallpaperFollow = document.getElementById('colorWallpaperFollow');
+const colorWallpaperFollowHint = document.getElementById('colorWallpaperFollowHint');
+// The Spaces color names, shared with the Spaces menu.
+const SWATCH_NAMES = {
+  sage: 'spaces.color.sage', sky: 'spaces.color.sky', iris: 'spaces.color.iris', rose: 'spaces.color.rose',
+  clay: 'spaces.color.clay', sand: 'spaces.color.sand', slate: 'spaces.color.slate', graphite: 'spaces.color.graphite',
+};
+// Main's finished paint for the Color wallpaper, as pages.css custom properties.
+const COLOR_PAINT_PROPERTIES = {
+  base: '--start-color-base', glow: '--start-color-glow', deep: '--start-color-deep',
+  ink: '--start-color-ink', dim: '--start-color-dim', softLight: '--start-color-soft-light', softDark: '--start-color-soft-dark',
+};
 const WALLPAPER_ERRORS = {
   'too-large': 'newtab.wallpaper.error.tooLarge',
   unsupported: 'newtab.wallpaper.error.unsupported',
   unreadable: 'newtab.wallpaper.error.unreadable',
 };
 let dynamicWallpaperEnabled = false;
-// Main's projection for this page (F49): { source, hasImage, image }.
-let wallpaperState = { source: 'sunrise', hasImage: false, image: null, wash: 100, style: 'auto' };
+// Main's projection for this page (F49): { source, hasImage, image, wash,
+// style, color }; `color` is null in a private tab.
+let wallpaperState = { source: 'sunrise', hasImage: false, image: null, wash: 100, style: 'auto', color: null };
 let washDragging = false;
 // The wash is a 0–1 multiplier on the theme's image overlay in pages.css.
 const washPercent = new Intl.NumberFormat(blancI18n.formatLocale(), { style: 'percent' });
@@ -913,17 +930,69 @@ if (isPrivate) {
   document.getElementById('wallpaperSourcePicker').hidden = true;
   customWallpaperCover.hidden = true;
 }
+// One swatch per Spaces preset, in main's order, named in this language.
+function renderColorSwatches(presets) {
+  if (colorWallpaperSwatches.childElementCount === presets.length) return;
+  colorWallpaperSwatches.replaceChildren(...presets.map(({ id, hex }) => {
+    const swatch = document.createElement('button');
+    swatch.type = 'button';
+    swatch.className = 'wallpaper-swatch';
+    swatch.dataset.wallpaperColorPick = id;
+    swatch.setAttribute('aria-label', SWATCH_NAMES[id] ? t(SWATCH_NAMES[id]) : id);
+    swatch.style.setProperty('--swatch', hex);
+    swatch.addEventListener('click', () => updateWallpaper(async () => applyWallpaper(
+      await window.bowserPages.start.setWallpaperColor(id))));
+    return swatch;
+  }));
+}
+function renderColorControls(color) {
+  if (!color) return;
+  renderColorSwatches(color.presets ?? []);
+  for (const swatch of colorWallpaperSwatches.children) {
+    swatch.setAttribute('aria-pressed', String(swatch.dataset.wallpaperColorPick === color.preset));
+  }
+  const paint = color.paint;
+  // While this window shows its space's color, the swatches apply only
+  // outside spaces, so they step back.
+  colorWallpaperSwatches.classList.toggle('is-overridden', paint?.fromSpace === true);
+  for (const button of colorWallpaperFills) {
+    button.setAttribute('aria-pressed', String(button.dataset.wallpaperFillPick === paint?.fill));
+  }
+  colorWallpaperFollow.setAttribute('aria-pressed', String(color.followSpace === true));
+  colorWallpaperFollowHint.textContent = color.followSpace && color.inSpace
+    ? t('newtab.wallpaper.followSpaceShowing')
+    : t('newtab.wallpaper.followSpaceHint');
+  if (!paint) return;
+  for (const [key, property] of Object.entries(COLOR_PAINT_PROPERTIES)) {
+    document.body.style.setProperty(property, paint[key]);
+  }
+  customWallpaperCover.dataset.fill = paint.fill;
+}
 function renderWallpaperControls() {
   const custom = wallpaperState.source === 'custom';
-  sunriseWallpaperPick.setAttribute('aria-pressed', String(!custom));
+  const color = wallpaperState.source === 'color';
+  sunriseWallpaperPick.setAttribute('aria-pressed', String(!custom && !color));
+  colorWallpaperPick.setAttribute('aria-pressed', String(color));
   customWallpaperToggle.setAttribute('aria-pressed', String(custom));
   // Each wallpaper shows only its own options.
-  wallpaperToggle.hidden = custom;
+  wallpaperToggle.hidden = custom || color;
   wallpaperToggle.setAttribute('aria-pressed', String(dynamicWallpaperEnabled));
+  colorWallpaperOptions.hidden = !color;
   customWallpaperRow.hidden = !custom;
   customWallpaperActions.hidden = !custom;
+  renderColorControls(wallpaperState.color);
+  // pages.css paints the page from the color only while it is the wallpaper.
+  const paint = color ? wallpaperState.color?.paint : null;
+  if (paint) {
+    document.body.dataset.wallpaperFill = paint.fill;
+    // Light ink takes the dark text set, dark ink the light one.
+    document.body.dataset.wallpaperInk = paint.ink === '#ffffff' ? 'light' : 'dark';
+  } else {
+    delete document.body.dataset.wallpaperFill;
+    delete document.body.dataset.wallpaperInk;
+  }
   // The cover previews whatever the Start Page shows.
-  customWallpaperCover.dataset.source = custom ? 'custom' : 'sunrise';
+  customWallpaperCover.dataset.source = custom ? 'custom' : color ? 'color' : 'sunrise';
   if (wallpaperState.image) customWallpaperCover.style.setProperty('--wallpaper-thumb', `url("${wallpaperState.image}")`);
   else customWallpaperCover.style.removeProperty('--wallpaper-thumb');
   const style = wallpaperState.style ?? 'auto';
@@ -938,7 +1007,8 @@ function renderWallpaperControls() {
     customWallpaperWash.value = String(wallpaperState.wash);
     paintWash(wallpaperState.wash);
   }
-  for (const control of [wallpaperToggle, sunriseWallpaperPick, customWallpaperToggle, customWallpaperChange, customWallpaperRemove, ...customWallpaperStyles]) {
+  for (const control of [wallpaperToggle, sunriseWallpaperPick, colorWallpaperPick, customWallpaperToggle, customWallpaperChange,
+    customWallpaperRemove, ...customWallpaperStyles, ...colorWallpaperSwatches.children, ...colorWallpaperFills, colorWallpaperFollow]) {
     control.disabled = wallpaperUpdatePending;
   }
 }
@@ -949,8 +1019,9 @@ function applyWallpaper(state) {
 }
 function applyDynamicWallpaper(enabled) {
   dynamicWallpaperEnabled = enabled === true;
-  // The synced switch decides the artwork unless this device shows its own image.
-  if (wallpaperState.source === 'custom') renderWallpaperControls();
+  // The synced switch decides the artwork unless a color or this device's own
+  // image shows instead.
+  if (wallpaperState.source === 'custom' || wallpaperState.source === 'color') renderWallpaperControls();
   else applyWallpaper({ ...wallpaperState, source: dynamicWallpaperEnabled ? 'time-of-day' : 'sunrise' });
 }
 function showWallpaperError(code) {
@@ -980,7 +1051,7 @@ wallpaperToggle.addEventListener('click', () => updateWallpaper(async () => {
 }));
 sunriseWallpaperPick.addEventListener('click', () => {
   showWallpaperError(null);
-  if (wallpaperState.source !== 'custom') return;
+  if (wallpaperState.source !== 'custom' && wallpaperState.source !== 'color') return;
   // Back to Sunrise, keeping whatever the time-of-day switch says.
   updateWallpaper(async () => applyWallpaper(
     await window.bowserPages.start.setWallpaper(dynamicWallpaperEnabled ? 'time-of-day' : 'sunrise')));
@@ -995,6 +1066,17 @@ customWallpaperToggle.addEventListener('click', () => {
   }
 });
 customWallpaperChange.addEventListener('click', () => chooseWallpaperImage());
+colorWallpaperPick.addEventListener('click', () => {
+  showWallpaperError(null);
+  if (wallpaperState.source === 'color') return;
+  updateWallpaper(async () => applyWallpaper(await window.bowserPages.start.setWallpaper('color')));
+});
+for (const button of colorWallpaperFills) {
+  button.addEventListener('click', () => updateWallpaper(async () => applyWallpaper(
+    await window.bowserPages.start.setWallpaperFill(button.dataset.wallpaperFillPick))));
+}
+colorWallpaperFollow.addEventListener('click', () => updateWallpaper(async () => applyWallpaper(
+  await window.bowserPages.start.setWallpaperFollowSpace(wallpaperState.color?.followSpace !== true))));
 for (const button of customWallpaperStyles) {
   button.addEventListener('click', () => updateWallpaper(async () => applyWallpaper(
     await window.bowserPages.start.setWallpaperStyle(button.dataset.wallpaperStylePick))));

@@ -11,6 +11,7 @@ const {
 const APP_ICON_ASSETS = require('./app-icon-assets');
 const { normalizeHomepage } = require('./top-level-url-policy');
 const { normalizeWash, normalizeWashStyle } = require('./wallpaper-model');
+const { normalizePreset, normalizeFill } = require('./start-page-paint');
 const { migrateSupporter, downgradeMirror, isRecordActive } = require('./patron-model');
 const { DEFAULT_MAPPING, mappingOrDefault, validMapping } = require('./mouse-gestures');
 const { normalizeDeviceNames, setDeviceNameEntry, mergeDeviceNames, deviceNamesEqual } = require('./device-names');
@@ -90,7 +91,7 @@ const CHECKLIST_FLAGS = [
 // that would be license sharing).
 // deviceNames is merged entry by entry (device-names.js), never as one
 // last-writer-wins value, and only setDeviceName() writes it.
-const SYNCED_KEYS = ['searchEngine', 'searchEngineTemplate', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions', 'newtabLayout', 'newtabDynamicWallpaper', 'bangsEnabled', 'customBangs', 'deviceNames'];
+const SYNCED_KEYS = ['searchEngine', 'searchEngineTemplate', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions', 'newtabLayout', 'newtabDynamicWallpaper', 'newtabColorWallpaper', 'newtabWallpaperColor', 'newtabWallpaperFill', 'newtabFollowSpaceColor', 'bangsEnabled', 'customBangs', 'deviceNames'];
 
 // App icon variants — id maps to src/renderer/pages/icon-<id>.png; order here
 // is also the tile order Settings renders.
@@ -188,6 +189,12 @@ const DEFAULTS = {
   // alternatives from the design system's "New tab v2" handoff.
   newtabLayout: 'billboard',
   newtabDynamicWallpaper: false,
+  // A Spaces preset color instead of the artwork, its fill, and whether a
+  // window in a Space takes that Space's color. Synced like the layout.
+  newtabColorWallpaper: false,
+  newtabWallpaperColor: 'sage',
+  newtabWallpaperFill: 'gradient',
+  newtabFollowSpaceColor: false,
   // Show this device's own image on the Start Page when one is stored
   // (wallpaper.js). Device-local like the image itself, so not Profile Synced.
   newtabCustomWallpaper: false,
@@ -463,6 +470,10 @@ function getSettings() {
   data.darkWebsitesExceptions = normalizeHostnameList(data.darkWebsitesExceptions);
   if (typeof data.newtabDynamicWallpaper !== 'boolean') data.newtabDynamicWallpaper = false;
   if (typeof data.newtabCustomWallpaper !== 'boolean') data.newtabCustomWallpaper = false;
+  if (typeof data.newtabColorWallpaper !== 'boolean') data.newtabColorWallpaper = false;
+  if (normalizePreset(data.newtabWallpaperColor) === null) data.newtabWallpaperColor = DEFAULTS.newtabWallpaperColor;
+  if (normalizeFill(data.newtabWallpaperFill) === null) data.newtabWallpaperFill = DEFAULTS.newtabWallpaperFill;
+  if (typeof data.newtabFollowSpaceColor !== 'boolean') data.newtabFollowSpaceColor = false;
   if (normalizeWash(data.newtabWallpaperWash) === null) data.newtabWallpaperWash = DEFAULTS.newtabWallpaperWash;
   if (normalizeWashStyle(data.newtabWallpaperStyle) === null) data.newtabWallpaperStyle = DEFAULTS.newtabWallpaperStyle;
   if (!NEWTAB_LAYOUTS.includes(data.newtabLayout)) data.newtabLayout = DEFAULTS.newtabLayout;
@@ -545,6 +556,10 @@ function sanitize(partial) {
   if (THEMES.includes(partial.theme)) clean.theme = partial.theme;
   if (typeof partial.newtabDynamicWallpaper === 'boolean') clean.newtabDynamicWallpaper = partial.newtabDynamicWallpaper;
   if (typeof partial.newtabCustomWallpaper === 'boolean') clean.newtabCustomWallpaper = partial.newtabCustomWallpaper;
+  if (typeof partial.newtabColorWallpaper === 'boolean') clean.newtabColorWallpaper = partial.newtabColorWallpaper;
+  if (normalizePreset(partial.newtabWallpaperColor) !== null) clean.newtabWallpaperColor = partial.newtabWallpaperColor;
+  if (normalizeFill(partial.newtabWallpaperFill) !== null) clean.newtabWallpaperFill = partial.newtabWallpaperFill;
+  if (typeof partial.newtabFollowSpaceColor === 'boolean') clean.newtabFollowSpaceColor = partial.newtabFollowSpaceColor;
   if (normalizeWash(partial.newtabWallpaperWash) !== null) clean.newtabWallpaperWash = partial.newtabWallpaperWash;
   if (normalizeWashStyle(partial.newtabWallpaperStyle) !== null) clean.newtabWallpaperStyle = partial.newtabWallpaperStyle;
   if (NEWTAB_LAYOUTS.includes(partial.newtabLayout)) clean.newtabLayout = partial.newtabLayout;

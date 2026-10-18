@@ -1372,6 +1372,14 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="newtab_wallpaper_style_light">Light</string>
     <string name="newtab_wallpaper_style_dark">Dark</string>
     <string name="newtab_wallpaper_style_spotlight">Spotlight</string>
+    <string name="newtab_wallpaper_color">Color</string>
+    <string name="newtab_wallpaper_fill_label">Fill</string>
+    <string name="newtab_wallpaper_fill_soft">Soft</string>
+    <string name="newtab_wallpaper_fill_solid">Solid</string>
+    <string name="newtab_wallpaper_fill_gradient">Gradient</string>
+    <string name="newtab_wallpaper_follow_space">Match each space’s color</string>
+    <string name="newtab_wallpaper_follow_space_hint">In a space, the Start Page takes that space’s color.</string>
+    <string name="newtab_wallpaper_follow_space_showing">This window’s space color is showing.</string>
     <string name="newtab_wallpaper_choose_title">Choose a Start Page image</string>
     <string name="newtab_wallpaper_filter">Images</string>
     <string name="newtab_wallpaper_error_too_large">That image is larger than 25 MB.</string>

@@ -1409,6 +1409,14 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="newtab_wallpaper_style_light">Clair</string>
     <string name="newtab_wallpaper_style_dark">Sombre</string>
     <string name="newtab_wallpaper_style_spotlight">Projecteur</string>
+    <string name="newtab_wallpaper_color">Couleur</string>
+    <string name="newtab_wallpaper_fill_label">Remplissage</string>
+    <string name="newtab_wallpaper_fill_soft">Doux</string>
+    <string name="newtab_wallpaper_fill_solid">Uni</string>
+    <string name="newtab_wallpaper_fill_gradient">Dégradé</string>
+    <string name="newtab_wallpaper_follow_space">Suivre la couleur de chaque Space</string>
+    <string name="newtab_wallpaper_follow_space_hint">Dans un Space, la page d’accueil prend la couleur de ce Space.</string>
+    <string name="newtab_wallpaper_follow_space_showing">La couleur du Space de cette fenêtre est affichée.</string>
     <string name="newtab_wallpaper_choose_title">Choisissez une image pour la page d’accueil</string>
     <string name="newtab_wallpaper_filter">Images</string>
     <string name="newtab_wallpaper_error_too_large">Cette image dépasse 25 Mo.</string>

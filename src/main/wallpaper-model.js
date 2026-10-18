@@ -3,7 +3,7 @@
 // the fork ports these rules (and reuses the unit tests as vectors), while
 // wallpaper.js is the replaceable Electron adapter.
 
-const SOURCES = Object.freeze(['sunrise', 'time-of-day', 'custom']);
+const SOURCES = Object.freeze(['sunrise', 'time-of-day', 'color', 'custom']);
 // The wash over your image: auto follows the app theme; light and dark force
 // that wash (and matching text) whatever the theme; spotlight follows the
 // theme but covers only the area behind the content, leaving the edges bare.
@@ -29,10 +29,12 @@ function normalizeWash(value) {
 /**
  * Which wallpaper a Start Page draws. `custom` needs an image on this device
  * and never reaches a private tab; a device without one falls back to the
- * bundled artwork the synced time-of-day choice selects.
+ * synced choice: a color (never in a private tab either), else the bundled
+ * artwork the time-of-day switch selects.
  */
-function effectiveSource({ dynamic, custom, hasImage, isPrivate }) {
+function effectiveSource({ dynamic, custom, color, hasImage, isPrivate }) {
   if (custom === true && hasImage === true && isPrivate !== true) return 'custom';
+  if (color === true && isPrivate !== true) return 'color';
   return dynamic === true ? 'time-of-day' : 'sunrise';
 }
 
@@ -42,8 +44,10 @@ function effectiveSource({ dynamic, custom, hasImage, isPrivate }) {
  */
 function settingsForSource(source) {
   if (source === 'custom') return { newtabCustomWallpaper: true };
-  if (source === 'time-of-day') return { newtabDynamicWallpaper: true, newtabCustomWallpaper: false };
-  if (source === 'sunrise') return { newtabDynamicWallpaper: false, newtabCustomWallpaper: false };
+  // A color is a synced choice, like the time-of-day switch it leaves alone.
+  if (source === 'color') return { newtabColorWallpaper: true, newtabCustomWallpaper: false };
+  if (source === 'time-of-day') return { newtabDynamicWallpaper: true, newtabColorWallpaper: false, newtabCustomWallpaper: false };
+  if (source === 'sunrise') return { newtabDynamicWallpaper: false, newtabColorWallpaper: false, newtabCustomWallpaper: false };
   return null;
 }
 

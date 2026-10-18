@@ -1409,6 +1409,14 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="newtab_wallpaper_style_light">Claro</string>
     <string name="newtab_wallpaper_style_dark">Escuro</string>
     <string name="newtab_wallpaper_style_spotlight">Holofote</string>
+    <string name="newtab_wallpaper_color">Cor</string>
+    <string name="newtab_wallpaper_fill_label">Preenchimento</string>
+    <string name="newtab_wallpaper_fill_soft">Suave</string>
+    <string name="newtab_wallpaper_fill_solid">Sólido</string>
+    <string name="newtab_wallpaper_fill_gradient">Gradiente</string>
+    <string name="newtab_wallpaper_follow_space">Usar a cor de cada Space</string>
+    <string name="newtab_wallpaper_follow_space_hint">Em um Space, a página inicial usa a cor desse Space.</string>
+    <string name="newtab_wallpaper_follow_space_showing">A cor do Space desta janela está aparecendo.</string>
     <string name="newtab_wallpaper_choose_title">Escolha uma imagem para a página inicial</string>
     <string name="newtab_wallpaper_filter">Imagens</string>
     <string name="newtab_wallpaper_error_too_large">A imagem tem mais de 25 MB.</string>

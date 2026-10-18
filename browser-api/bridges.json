@@ -387,6 +387,54 @@
         "doc": "Choose the wash over the Start Page image: auto, light, dark or spotlight."
       },
       {
+        "name": "start.setWallpaperColor",
+        "kind": "invoke",
+        "channel": "pages:start:set-wallpaper-color",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "preset",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Choose the Color wallpaper's Spaces preset (sage, sky, iris, rose, clay, sand, slate or graphite)."
+      },
+      {
+        "name": "start.setWallpaperFill",
+        "kind": "invoke",
+        "channel": "pages:start:set-wallpaper-fill",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "fill",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Choose how the Color wallpaper is drawn: soft, solid or gradient."
+      },
+      {
+        "name": "start.setWallpaperFollowSpace",
+        "kind": "invoke",
+        "channel": "pages:start:set-wallpaper-follow-space",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "enabled",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Whether a window in a Space draws that Space's color as the Color wallpaper."
+      },
+      {
         "name": "start.chooseWallpaper",
         "kind": "invoke",
         "channel": "pages:start:choose-wallpaper",
