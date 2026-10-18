@@ -144,8 +144,8 @@ CSS filter" fallback.
   part of this work.
 - Game UI: drop the `--font-text: var(--font-ui)` remap at the top of
   `mahjong.css` so shared page rules use Instrument Sans as everywhere else.
-  Counts and key caps follow the internal-page rule (they stay Inter). Score,
-  timer and pair counts are counts, so they stay Inter with tabular numerals.
+  Every non-tile game label, count and score uses Instrument Sans. Tile-face
+  numerals and direction badges alone use Inter Bold.
 - Both changes **supersede recorded decisions** in `docs/brand-usage.md`: the
   "Mahjong: classic lacquer" exception (`#0B3D31`, `mahjong-lacquer.webp`,
   brass) and System v3's (Oct 15) "the game keeps Inter for its controls."
@@ -251,8 +251,8 @@ card with a still glow and no particles.
 1. Private tabs get a lilac version of Dawn and Evening skies.
 2. Tile art is refreshed by a reproducible script from today's PNGs, not
    redrawn by hand. Any asset that can't reach the finish gets flagged.
-3. Score, timer and counts stay Inter (tabular), consistent with the
-   internal-page rule. All other game text moves to Instrument Sans.
+3. Score, timer, counts and every other non-tile game string use Instrument
+   Sans. Only tile-face content uses Inter Bold.
 4. Wind badge letters follow the numerals to Inter Bold.
 5. Combo tiers scale the trail subtly. Zen and quiet wins get a gentler
    celebration.

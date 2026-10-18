@@ -26,7 +26,7 @@
 - Evening sky: `#1c2340` 0%, `#2e2a4a` 45%, `#5a3a46` 80%, `#7a4a3c` 100%. Tile face `#f7f0e5`→`#ece2d2`, edge `#b9875f`, shadow `rgba(0,0,0,.35)`. Pills `rgba(255,255,255,.1)`, pill text `#eadfce`. Accent `#ffb35c`.
 - Private tabs: the same structure shifted to lilac. Starting values: day `#e3dcf5`, `#f3eef8`, `#f6e3ef`, `#efd3e6`, accent `#b07ce0`; night `#1d1830`, `#2b2140`, `#4a2f4f`, `#5e3a52`, accent `#d2a8f0`.
 - Suit inks keep ≥ 4.5:1 contrast on both tile faces (`#fdf7ef` and `#ece2d2`).
-- Character numerals: Inter 700, about -0.02em. Every other game string uses Instrument Sans via shared `--font-text`. Score, timer, pair counts and key caps stay Inter with `font-variant-numeric: tabular-nums`.
+- Tile-face numerals and direction badges: Inter 700. Every other game string, including scores, timers and counts, uses Instrument Sans via shared `--font-text`.
 - JetBrains Mono stays bundled (removal is a separate follow-up).
 - The Blanc "B" on the white dragon tiles must remain.
 - Any new visible or announced string goes in `copy/messages/en.json` and every shipped language (de, es, fr, pt-BR, it) in the same PR, with `npm run copy:ack -- <locale> <keys>`. This plan adds none if followed as written.
@@ -174,8 +174,8 @@ assert.match(mahjongStyles, /\.mahjong-body\s*\{[^}]*--mj-face-font:\s*"Inter"/)
 assert.match(mahjongStyles, /text\.mj-character-number\s*\{[^}]*font-weight:\s*700;[^}]*letter-spacing:\s*-0\.02em;/);
 assert.doesNotMatch(mahjongStyles, /--font-text:\s*var\(--font-ui\)/);
 assert.doesNotMatch(mahjongStyles, /JetBrains Mono/);
-// counts stay Inter, tabular
-assert.match(mahjongStyles, /\.mj-meter strong\s*\{[^}]*font-family:\s*var\(--font-ui\);[^}]*font-variant-numeric:\s*tabular-nums;/);
+// counts join the rest of the interface on Instrument Sans
+assert.match(mahjongStyles, /\.mj-meter strong\s*\{[^}]*font:[^;]*var\(--font-text\);/);
 ```
 
 Keep the existing `pages.css` assertion that JetBrains Mono's `@font-face` declares `400 800`, since the font stays bundled. In `start-page-fonts.test.js`, replace line 23 with `assert.match(mahjong, /--mj-face-font:\s*"Inter"/)`. Replace lines 125–126 with an assertion that `.mahjong-body` sets neither `--font-text` nor `--text-tracking`, with the message `'Mahjong uses the shared Instrument Sans text face (owner choice, October 17)'`.
@@ -187,7 +187,7 @@ Expected: FAIL.
 
 - [ ] **Step 3: Implement**
 
-Adjust the selector `.mj-meter strong` in the test to the real element that holds score, timer and pairs values if it differs, and apply Inter plus tabular numerals there and on key caps. Tune `.mj-wind-direction-label` to weight 700 with -0.01em so it sits with the numerals.
+Adjust the selector `.mj-meter strong` in the test to the real element that holds score, timer and pair values if it differs, and apply Instrument Sans there. Tune `.mj-wind-direction-label` to weight 700 with -0.01em so it sits with the tile numerals.
 
 - [ ] **Step 4: Update `docs/brand-usage.md`**
 

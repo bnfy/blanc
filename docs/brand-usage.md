@@ -63,8 +63,8 @@ The playfield uses the real bundled `start-page-sunrise.png` landscape under a
 quiet warm wash instead of inventing a blue or lilac "sunrise" palette. Dark
 and private modes use the product's warm dark Sunrise surfaces; private mode is
 distinguished by its chip and dashed playfield border, not a purple color cast.
-Tile numerals and counts are Inter Bold; all other game text is Instrument
-Sans. The header and board-cleared moment use the unmodified Sunrise artwork
+Tile faces use Inter Bold; every other game label, count and score uses
+Instrument Sans. The header and board-cleared moment use the unmodified Sunrise artwork
 with clear space and no redraw.
 The B motif on the white-dragon tile remains an intentional historical game
 detail, not a mark for new Blanc creative.
@@ -265,8 +265,8 @@ Large lines tighten slightly: the Billboard clock to -0.02em and Ledger's
 "Where to?" to -0.015em. Inter stays for key caps, which need ⌘ ⌥ ⇧ ⌃ and
 arrows that Instrument Sans lacks, and for counters and license keys tuned on
 its tabular figures; use a slashed zero for the Patron license key. Mahjong
-tile numerals and counts use Inter Bold through `--mj-face-font`, and the rest
-of the game's text is Instrument Sans (October 17, 2026; this supersedes the
+tile faces use Inter Bold through `--mj-face-font`, and every other game label,
+count and score uses Instrument Sans (October 17, 2026; this supersedes the
 earlier "tile faces keep JetBrains Mono, the game keeps Inter for its
 controls"). Buttons and form fields must inherit the page's
 letter and word spacing explicitly, because Chromium resets them. The app

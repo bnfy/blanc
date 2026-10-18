@@ -401,7 +401,7 @@ test('combo feedback restores animated tiles and removes immediately for reduced
   assert.doesNotMatch(controller, /for \(const slot of rippleSlots\)[^{]*\{[^}]*offsetWidth/);
   assert.match(controller, /result\.comboCount >= 15 \? 860[\s\S]*result\.milestone \? 760[\s\S]*result\.comboCount > 1 \? 660[\s\S]*: 560/);
   assert.match(styles, /\.mj-combo-fx\s*\{[^}]*contain:\s*layout paint;[^}]*isolation:\s*isolate;/);
-  assert.match(styles, /\.mj-combo-callout strong\s*\{[^}]*font:\s*820[^}]*-webkit-text-stroke:[^}]*text-shadow:/);
+  assert.match(styles, /\.mj-combo-callout strong\s*\{[^}]*font:\s*700[^}]*var\(--font-text\)[^}]*-webkit-text-stroke:[^}]*text-shadow:/);
   assert.doesNotMatch(styles, /\.mj-(?:combo-particles|combo-glint|tray-burst)[^{]*\{[^}]*mix-blend-mode:/);
 });
 
@@ -419,7 +419,7 @@ test('desktop game header promotes session identity and status hierarchy', () =>
   assert.match(styles, /\.mj-head\s*\{[^}]*min-height:\s*52px/);
   assert.match(styles, /\.mj-session\s*\{[^}]*min-height:\s*40px[^}]*border-radius:\s*999px[^}]*font:\s*600 13px/);
   assert.match(styles, /\.mj-meters\s*\{[^}]*min-height:\s*50px[^}]*border:[^}]*border-radius:\s*15px/);
-  assert.match(styles, /\.mj-meter strong\s*\{[^}]*font:\s*740 16px/);
+  assert.match(styles, /\.mj-meter strong\s*\{[^}]*font:\s*700 16px[^}]*var\(--font-text\)/);
   assert.match(styles, /\.mj-chain-meter \.mj-chain\s*\{[^}]*font-size:\s*18px[^}]*text-shadow:/);
   assert.match(styles, /\.mj-combo-bar\s*\{[^}]*width:\s*90px[^}]*height:\s*6px/);
   assert.match(responsiveHeader, /\.mj-head\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\) auto/);
@@ -793,14 +793,18 @@ test('the Records sheet opens from the dock and R, paints from the pure summary,
 
 test('tile numerals are Inter Bold while the game UI uses Instrument Sans', () => {
   // Owner choice, October 17, 2026: Inter Bold numerals replace JetBrains Mono,
-  // and the game's interface joins the internal pages on Instrument Sans.
+  // and every non-tile game label, count and score uses Instrument Sans.
   assert.match(mahjongStyles, /\.mahjong-body\s*\{[^}]*--mj-face-font:\s*"Inter"/);
   assert.match(mahjongStyles, /text\.mj-character-number\s*\{[^}]*font-weight:\s*700;[^}]*letter-spacing:\s*-0\.02em;/);
   assert.doesNotMatch(mahjongStyles, /--font-text:\s*var\(--font-ui\)/);
   assert.doesNotMatch(mahjongStyles, /JetBrains Mono/);
   assert.match(mahjongStyles, /\.mahjong-body\s*\{[^}]*font-family:\s*var\(--font-text\);/);
-  // Counts stay Inter with tabular numerals.
-  assert.match(mahjongStyles, /\.mj-meter strong\s*\{[^}]*font:[^;]*var\(--font-ui\);[^}]*font-variant-numeric:\s*tabular-nums;/);
+  for (const selector of ['\\.mj-meter strong', '\\.mj-burst-score strong', '\\.mj-win-score', '\\.mj-records-overview strong', '\\.mj-win-stats strong']) {
+    assert.match(mahjongStyles, new RegExp(`${selector}\\s*\\{[^}]*font:[^;]*var\\(--font-text\\);`), `${selector} uses Instrument Sans`);
+  }
+  const interUiRules = [...mahjongStyles.matchAll(/font(?:-family)?:\s*[^;]*var\(--font-ui\)/g)];
+  assert.equal(interUiRules.length, 1, 'only a tile-face direction badge may use Inter directly');
+  assert.match(mahjongStyles, /\.mj-wind-direction-label\s*\{[^}]*font-family:\s*var\(--font-ui\);[^}]*font-weight:\s*700;/);
   // JetBrains Mono stays bundled for now; its @font-face keeps the full range.
   assert.match(styles, /font-family:\s*"JetBrains Mono";\s*src:\s*url\("jetbrains-mono-latin\.woff2"\)[^}]*font-weight:\s*400 800;/);
   assert.doesNotMatch(mahjongStyles, /--font-mono/);
