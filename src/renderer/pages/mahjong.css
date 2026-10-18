@@ -1,4 +1,5 @@
-/* Mahjong owns its classic lacquer visual language. The shared pages.css
+/* Mahjong's Dawn sky: a light morning sky by day, an Evening sky in dark
+   mode, and a lilac variant of both in private tabs. The shared pages.css
    contributes only bundled fonts and the [hidden] contract. */
 
 .mahjong-body {
@@ -9,32 +10,49 @@
   --text-word-spacing: normal;
   --text-tracking: normal;
   --mj-face-font: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
-  --mj-table: #0b3d31;
-  --mj-table-deep: #04251f;
-  --mj-table-ink: #021914;
-  --mj-panel: rgba(5, 42, 34, 0.88);
-  --mj-panel-solid: #0a392f;
-  --mj-panel-soft: rgba(240, 229, 197, 0.07);
-  --mj-line: rgba(232, 205, 139, 0.22);
-  --mj-line-strong: rgba(232, 205, 139, 0.48);
-  --mj-brass: #d8b969;
-  --mj-brass-bright: #f2db9a;
-  --mj-ivory: #f8f1dc;
-  --mj-ivory-deep: #e4d7b8;
-  --mj-ink: #132a27;
-  --mj-muted: rgba(246, 237, 211, 0.64);
-  --mj-shadow: rgba(0, 10, 8, 0.48);
-  --mj-tile-top: #fffaf0;
-  --mj-tile-bottom: #eee2c5;
-  --mj-tile-edge: #b7aa88;
-  --mj-tile-side: #85a99c;
-  --mj-red: #a63730;
-  --mj-green: #1f6d50;
-  --mj-blue: #275d86;
-  --mj-flower: #9f3657;
-  --mj-season: #8a5a18;
-  --mj-focus: #ffe3a0;
+  --mj-sky-1: #cfe6f7;
+  --mj-sky-2: #f3ecf0;
+  --mj-sky-3: #fde4cc;
+  --mj-sky-4: #fbd7b4;
+  --mj-text: #2a2017;
+  --mj-text-muted: rgba(42, 32, 23, 0.66);
+  --mj-pill: #ffffffd9;
+  --mj-pill-text: #6b5440;
+  --mj-pill-line: rgba(128, 93, 40, 0.16);
+  --mj-pill-shadow: rgba(128, 93, 40, 0.14);
+  --mj-surface: rgba(255, 253, 249, 0.95);
+  --mj-surface-line: #ecdcc8;
+  --mj-accent: #ff9f43;
+  --mj-accent-soft: rgba(255, 159, 67, 0.26);
+  --mj-tile-top: #ffffff;
+  --mj-tile-bottom: #fdf7ef;
+  --mj-tile-edge: #ecc9a2;
+  --mj-tile-shadow: rgba(160, 100, 50, 0.18);
+  --mj-red: #b73723;
+  --mj-green: #1b724b;
+  --mj-blue: #2c65b0;
+  --mj-flower: #b4345f;
+  --mj-season: #895b16;
   --mj-hint: #8db7c2;
+
+  /* removed in Task 2: lacquer-era aliases */
+  --mj-table: var(--mj-surface);
+  --mj-table-deep: var(--mj-sky-1);
+  --mj-table-ink: var(--mj-text);
+  --mj-panel: var(--mj-surface);
+  --mj-panel-solid: var(--mj-surface);
+  --mj-panel-soft: var(--mj-accent-soft);
+  --mj-line: var(--mj-surface-line);
+  --mj-line-strong: var(--mj-pill-line);
+  --mj-brass: var(--mj-accent);
+  --mj-brass-bright: var(--mj-accent);
+  --mj-ivory: var(--mj-text);
+  --mj-ivory-deep: var(--mj-text-muted);
+  --mj-ink: var(--mj-text);
+  --mj-muted: var(--mj-text-muted);
+  --mj-shadow: var(--mj-pill-shadow);
+  --mj-tile-side: var(--mj-tile-edge);
+  --mj-focus: var(--mj-accent);
 
   position: relative;
   isolation: isolate;
@@ -43,74 +61,67 @@
   height: 100vh;
   min-height: 420px;
   overflow: auto;
-  color: var(--mj-ivory);
-  background: var(--mj-table-ink);
+  color: var(--mj-text);
+  background: linear-gradient(180deg, var(--mj-sky-1) 0%, var(--mj-sky-2) 45%, var(--mj-sky-3) 80%, var(--mj-sky-4) 100%) fixed;
   font-family: var(--font-ui);
-  color-scheme: dark;
-}
-
-/* The original bundled lacquer grain and board vignette. */
-.mahjong-body::before {
-  content: "";
-  position: fixed;
-  z-index: -2;
-  inset: 0;
-  background-image:
-    radial-gradient(ellipse at 50% 32%, rgba(65, 146, 111, 0.34), transparent 55%),
-    linear-gradient(155deg, rgba(3, 20, 17, 0.05), rgba(1, 13, 11, 0.72)),
-    url("mahjong-lacquer.webp");
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-}
-
-.mahjong-body::after {
-  content: "";
-  position: fixed;
-  z-index: -1;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.62;
-  background:
-    radial-gradient(ellipse at 50% 22%, transparent 28%, rgba(0, 15, 12, 0.28) 74%, rgba(0, 8, 7, 0.7) 100%),
-    linear-gradient(90deg, transparent 49.8%, rgba(239, 201, 111, 0.035) 50%, transparent 50.2%);
+  color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   .mahjong-body {
-    --mj-table: #082f28;
-    --mj-table-deep: #031d19;
-    --mj-panel: rgba(3, 29, 25, 0.91);
-    --mj-panel-solid: #072b25;
-    --mj-shadow: rgba(0, 0, 0, 0.62);
-    --mj-tile-top: #f5eedb;
-    --mj-tile-bottom: #dacdae;
+    --mj-sky-1: #1c2340;
+    --mj-sky-2: #2e2a4a;
+    --mj-sky-3: #5a3a46;
+    --mj-sky-4: #7a4a3c;
+    --mj-text: #f7f0e5;
+    --mj-text-muted: rgba(247, 240, 229, 0.7);
+    --mj-pill: rgba(255, 255, 255, 0.1);
+    --mj-pill-text: #eadfce;
+    --mj-pill-line: rgba(255, 255, 255, 0.14);
+    --mj-pill-shadow: rgba(0, 0, 0, 0.25);
+    --mj-surface: rgba(30, 28, 50, 0.92);
+    --mj-surface-line: rgba(255, 255, 255, 0.12);
+    --mj-accent: #ffb35c;
+    --mj-accent-soft: rgba(255, 179, 92, 0.28);
+    --mj-tile-top: #f7f0e5;
+    --mj-tile-bottom: #ece2d2;
+    --mj-tile-edge: #b9875f;
+    --mj-tile-shadow: rgba(0, 0, 0, 0.35);
+    color-scheme: dark;
   }
 }
 
 :root[data-theme="private"] .mahjong-body {
-  --mj-table: #292239;
-  --mj-table-deep: #15111e;
-  --mj-table-ink: #0b0910;
-  --mj-panel: rgba(27, 22, 38, 0.92);
-  --mj-panel-solid: #211b2e;
-  --mj-panel-soft: rgba(220, 207, 244, 0.07);
-  --mj-line: rgba(203, 177, 228, 0.23);
-  --mj-line-strong: rgba(217, 190, 241, 0.5);
-  --mj-brass: #c4a5d6;
-  --mj-brass-bright: #e4c9f1;
-  --mj-muted: rgba(235, 226, 243, 0.64);
-  --mj-tile-side: #9181a7;
-  --mj-focus: #e9d0f4;
-  background: var(--mj-table-ink);
+  --mj-sky-1: #e3dcf5;
+  --mj-sky-2: #f3eef8;
+  --mj-sky-3: #f6e3ef;
+  --mj-sky-4: #efd3e6;
+  --mj-pill-text: #5e4a72;
+  --mj-pill-line: rgba(110, 80, 150, 0.18);
+  --mj-pill-shadow: rgba(110, 80, 150, 0.16);
+  --mj-surface-line: #e2d6ee;
+  --mj-accent: #b07ce0;
+  --mj-accent-soft: rgba(176, 124, 224, 0.26);
+  --mj-tile-edge: #dcc6ea;
+  --mj-tile-shadow: rgba(110, 80, 150, 0.18);
 }
 
-:root[data-theme="private"] .mahjong-body::before {
-  background-image:
-    radial-gradient(ellipse at 50% 30%, rgba(105, 78, 139, 0.36), transparent 55%),
-    linear-gradient(155deg, rgba(11, 8, 16, 0.12), rgba(7, 5, 11, 0.78)),
-    url("mahjong-lacquer.webp");
-  filter: grayscale(0.25) hue-rotate(67deg) saturate(0.72);
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="private"] .mahjong-body {
+    --mj-sky-1: #1d1830;
+    --mj-sky-2: #2b2140;
+    --mj-sky-3: #4a2f4f;
+    --mj-sky-4: #5e3a52;
+    --mj-pill-text: #e6dcf1;
+    --mj-pill-line: rgba(255, 255, 255, 0.14);
+    --mj-pill-shadow: rgba(0, 0, 0, 0.3);
+    --mj-surface: rgba(34, 26, 50, 0.92);
+    --mj-surface-line: rgba(255, 255, 255, 0.12);
+    --mj-accent: #d2a8f0;
+    --mj-accent-soft: rgba(210, 168, 240, 0.28);
+    --mj-tile-edge: #9a7bb4;
+    --mj-tile-shadow: rgba(0, 0, 0, 0.38);
+  }
 }
 
 .mahjong-body button,

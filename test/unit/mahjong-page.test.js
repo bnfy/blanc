@@ -441,29 +441,45 @@ test('hints use safe selection, cycle Classic pairs, and include a parked Burst 
   assert.match(styles, /--mj-hint:\s*#8db7c2/);
 });
 
-test('mahjong restores its local lacquer palette and board backdrop without a remote data path', () => {
+function contrast(a, b) {
+  const lum = (hex) => {
+    const [r, g, bl] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
+      .map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+    return 0.2126 * r + 0.7152 * g + 0.0722 * bl;
+  };
+  const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+test('mahjong paints a local Dawn sky with an Evening sky in dark mode', () => {
   assert.match(html, /<link rel="stylesheet" href="mahjong\.css"/);
   assert.match(html, /connect-src 'none'/);
   assert.match(html, /<script src="mahjong-state\.js"><\/script>/);
-  assert.match(styles, /url\("mahjong-lacquer\.webp"\)/);
-  const backdrop = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/mahjong-lacquer.webp'));
-  assert.equal(backdrop.subarray(0, 4).toString(), 'RIFF');
-  assert.equal(backdrop.subarray(8, 12).toString(), 'WEBP');
-  assert.ok(backdrop.length < 400_000, 'the bundled backdrop should stay bounded');
-  for (const token of ['#0b3d31', '#04251f', '#0a392f', '#f8f1dc', '#d8b969', '#292239']) {
-    assert.ok(styles.includes(token), `missing game-local lacquer token ${token}`);
-  }
-  assert.doesNotMatch(styles, /mahjong-dusk\.webp/);
+  assert.doesNotMatch(mahjongStyles, /mahjong-lacquer|\.mahjong-body::(before|after)/, 'no backdrop image or grain layers');
+  assert.ok(!fs.existsSync(path.join(__dirname, '../../src/renderer/pages/mahjong-lacquer.webp')));
+  for (const token of ['#cfe6f7', '#f3ecf0', '#fde4cc', '#fbd7b4', '#ff9f43']) assert.ok(mahjongStyles.includes(token), token);
+  const dark = mediaBlocks('(prefers-color-scheme: dark)').join('\n');
+  for (const token of ['#1c2340', '#2e2a4a', '#5a3a46', '#7a4a3c', '#ffb35c']) assert.ok(dark.includes(token), token);
+  assert.match(mahjongStyles, /\.mahjong-body\s*\{[^}]*color-scheme:\s*light;/);
+  assert.match(dark, /color-scheme:\s*dark;/);
+  assert.match(mahjongStyles, /:root\[data-theme="private"\] \.mahjong-body\s*\{[^}]*--mj-sky-1:\s*#e3dcf5/);
   assert.doesNotMatch(styles, /\.mj-brand-mark\s*\{[^}]*filter:/);
   for (const hook of ['mj-pair-remove', 'mj-tray-travel', 'mj-score-pulse', 'mj-shuffle-cascade']) {
     assert.match(styles, new RegExp(`@keyframes ${hook}`));
   }
   assert.match(controller, /classList\.add\('shuffle-cascade'\)/);
   assert.match(controller, /button\.classList\.add\(className\)/);
-  assert.match(styles, /:root\[data-theme="private"\] \.mahjong-body/);
   assert.match(html, /src="mahjong-combo-particles\.png"/);
   assert.match(html, /src="mahjong-combo-glint\.png"/);
   assert.match(styles, /@keyframes mj-auto-clear/);
+});
+
+test('suit inks stay legible on both tile faces', () => {
+  const inks = ['--mj-red', '--mj-green', '--mj-blue', '--mj-flower', '--mj-season'].map((name) =>
+    mahjongStyles.match(new RegExp(`${name}:\\s*(#[0-9a-f]{6})`, 'i'))[1]);
+  for (const ink of inks) for (const face of ['#fdf7ef', '#ece2d2']) {
+    assert.ok(contrast(ink, face) >= 4.5, `${ink} on ${face}: ${contrast(ink, face).toFixed(2)}`);
+  }
 });
 
 test('layout-card hover and focus preserve readable lacquer text colors', () => {
