@@ -1265,6 +1265,11 @@
           "optional": true,
           "doc": "Whether the device currently exposes a hover-capable fine pointer."
         },
+        "hoverRect": {
+          "type": "Rect",
+          "optional": true,
+          "doc": "The pill's favicon and domain area at full pill height, unscaled like the pill rectangle: hover-open's only target."
+        },
         "shieldAnchor": {
           "type": "ShieldAnchor",
           "optional": true,

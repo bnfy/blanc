@@ -75,7 +75,7 @@ the build supports the setting (`supports('islandHoverOpen')`), independent of
 the chosen layout.
 
 - Label: **Open the Island on hover**
-- Hint: **Rest the pointer on the Island to open it without clicking.**
+- Hint: **Rest the pointer on the Island’s address to open it without clicking.**
 
 Default is off. Existing users do not acquire a new interaction unexpectedly.
 
@@ -85,7 +85,12 @@ When the setting is on and all of these conditions remain true for 300 ms:
 
 - the window is focused;
 - the Island is collapsed;
-- the pointer is inside the resting `#islandPill` hit box;
+- the pointer is inside the resting pill's address area: the favicon and
+  domain (`#pillFavicon` + `#pillDomain`) at full pill height, or the domain
+  alone while the Not-secure badge shows between them. The pill's buttons,
+  tab dots, Space mark, shield and other chips never start the dwell, so
+  they stay reachable with the setting on (changed after owner testing on
+  2026-10-17; the first build used the whole pill);
 - the device reports a hover-capable fine pointer (see §4.3);
 - no native context menu, drag, permission prompt, Glance, utility sheet or
   other Island popover is active (`overlayMode` is null and no utility sheet
@@ -95,7 +100,7 @@ Blanc opens `showOverlay('panel')`, exactly as a click on the pill does.
 
 The timer is cancelled when any condition stops being true. Re-entering starts
 a fresh 300 ms dwell. The dwell fires once per entry; after the panel closes,
-the pointer must leave the resting pill and enter it again before hover can
+the pointer must leave the address area and enter it again before hover can
 open it a second time. This prevents an outside-click close from immediately
 reopening the panel under a stationary pointer.
 

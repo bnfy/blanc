@@ -27,11 +27,13 @@ async function prepare(world, { enabled, layout = 'island' }) {
   await world.call('closeOverlay');
   await world.call('resetOverlayShowCount');
   await frontChromeWindow(world);
+  // Hover-open's target is the favicon + domain area, not the whole pill.
   const rect = await waitForValue(
-    () => world.call('islandRect'),
+    () => world.call('islandHoverRect'),
     (value) => value && value.width > 0 && value.height > 0,
-    'the resting Island rectangle',
+    'the Island URL area rectangle',
   );
+  world.islandPillRect = await world.call('islandRect');
   await sendMove(world, center(rect, 0, rect.height + 100), false);
   world.hoverIslandRect = rect;
   return rect;
@@ -194,6 +196,17 @@ Then('the Blanc permission prompt for geolocation is shown', async function () {
     'the Blanc permission prompt',
   );
   await this.hoverPermissionPrompt.locator('#permBlockBtn').waitFor({ state: 'visible' });
+});
+
+When('I rest the pointer on the Island buttons beside the address for 400 milliseconds', async function () {
+  const pill = this.islandPillRect;
+  const area = this.hoverIslandRect;
+  assert.ok(pill, 'the resting Island rectangle');
+  // The trailing action cluster: on the pill, clear of the URL area.
+  const point = { x: Math.round(pill.x + pill.width - 8), y: Math.round(pill.y + pill.height / 2) };
+  assert.ok(point.x > area.x + area.width, 'the action cluster sits beyond the URL area');
+  await sendMove(this, point, false);
+  await sleep(400);
 });
 
 Then('the Island panel stays closed', async function () {

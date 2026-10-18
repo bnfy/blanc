@@ -910,6 +910,7 @@ The resting pill's rectangle as the strip reports it, plus the open shield popov
 | `width` | `number` |  |
 | `height` | `number` |  |
 | `hoverCapable?` | `boolean` | Whether the device currently exposes a hover-capable fine pointer. |
+| `hoverRect?` | `Rect` | The pill's favicon and domain area at full pill height, unscaled like the pill rectangle: hover-open's only target. |
 | `shieldAnchor?` | `ShieldAnchor` | Present while the shield popover is open, so a uBlock Origin popup can follow the pill. |
 | `spacesAnchor?` | `SpacesAnchor` | Present while the Spaces menu is open from the mark, so it follows the pill. |
 | `minPrimaryWidth?` | `number` | With Glance side by side: the narrowest main pane that holds the slim Island with a readable address, its chips and clearance included. Main stops the divider there. |

@@ -3253,7 +3253,7 @@
     "note": "Settings → General: setting name."
   },
   "settings.general.islandHoverOpen.hint": {
-    "message": "Rest the pointer on the Island to open it without clicking.",
+    "message": "Rest the pointer on the Island’s address to open it without clicking.",
     "note": "Settings → General: explanation under a setting."
   },
   "settings.general.darkWebsites.label": {

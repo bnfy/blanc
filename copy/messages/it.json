@@ -3175,9 +3175,9 @@
     "source": "sha256:6a7c19599cd0297c49ec7a223b7955dd347fe495bf16f8b2167768c947ad99a2"
   },
   "settings.general.islandHoverOpen.hint": {
-    "message": "Lascia il puntatore sull’Island per aprirla senza fare clic.",
+    "message": "Lascia il puntatore sull’indirizzo dell’Island per aprirla senza fare clic.",
     "note": "Settings → General: explanation under a setting.",
-    "source": "sha256:348ec8bdef8d3cf456e1cce2f00593c8f5419b03876292eb247ce2abac32493b"
+    "source": "sha256:6a86198b7bfd2f7ff14e2ef0eb16790a53a6f2b428fc5600f8a9e417e3504936"
   },
   "settings.general.darkWebsites.label": {
     "message": "Siti web scuri",

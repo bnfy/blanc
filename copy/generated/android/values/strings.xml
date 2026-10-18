@@ -886,7 +886,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_general_island_site_colors_label">Match site colors</string>
     <string name="settings_general_island_site_colors_hint">Tint the Island bar with the color of the page you’re on. Off keeps it on your theme’s background.</string>
     <string name="settings_general_island_hover_open_label">Open the Island on hover</string>
-    <string name="settings_general_island_hover_open_hint">Rest the pointer on the Island to open it without clicking.</string>
+    <string name="settings_general_island_hover_open_hint">Rest the pointer on the Island’s address to open it without clicking.</string>
     <string name="settings_general_dark_websites_label">Dark websites</string>
     <string name="settings_general_dark_websites_hint">While Blanc is dark, darken websites that have no dark mode of their own. Uses the open-source Dark Reader engine.</string>
     <string name="settings_general_sites_listed_here_keep">Sites listed here keep their own colors. Type /dark-site on a site to add or remove it.</string>

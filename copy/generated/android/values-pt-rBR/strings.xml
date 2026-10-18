@@ -913,7 +913,7 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="settings_general_island_site_colors_label">Usar as cores do site</string>
     <string name="settings_general_island_site_colors_hint">Tinge a barra da Island com a cor da página em que você está. Desativado, ela mantém o fundo do seu tema.</string>
     <string name="settings_general_island_hover_open_label">Abrir a Island ao passar o cursor</string>
-    <string name="settings_general_island_hover_open_hint">Deixe o ponteiro sobre a Island para abri-la sem clicar.</string>
+    <string name="settings_general_island_hover_open_hint">Deixe o ponteiro sobre o endereço da Island para abri-la sem clicar.</string>
     <string name="settings_general_dark_websites_label">Sites escuros</string>
     <string name="settings_general_dark_websites_hint">Enquanto o Blanc está escuro, escurece os sites que não têm modo escuro próprio. Usa o motor de código aberto Dark Reader.</string>
     <string name="settings_general_sites_listed_here_keep">Os sites listados aqui mantêm as próprias cores. Digite /dark-site em um site para adicioná-lo ou removê-lo.</string>

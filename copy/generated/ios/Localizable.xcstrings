@@ -35864,37 +35864,37 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rest the pointer on the Island to open it without clicking."
+            "value": "Rest the pointer on the Island’s address to open it without clicking."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lass den Zeiger auf der Island ruhen, um sie ohne Klick zu öffnen."
+            "value": "Lass den Zeiger auf der Adresse in der Island ruhen, um sie ohne Klick zu öffnen."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Deja el puntero sobre la Island para abrirla sin hacer clic."
+            "value": "Deja el puntero sobre la dirección de la Island para abrirla sin hacer clic."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Laissez le pointeur sur l’Island pour l’ouvrir sans cliquer."
+            "value": "Laissez le pointeur sur l’adresse de l’Island pour l’ouvrir sans cliquer."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lascia il puntatore sull’Island per aprirla senza fare clic."
+            "value": "Lascia il puntatore sull’indirizzo dell’Island per aprirla senza fare clic."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Deixe o ponteiro sobre a Island para abri-la sem clicar."
+            "value": "Deixe o ponteiro sobre o endereço da Island para abri-la sem clicar."
           }
         }
       }

@@ -68,6 +68,7 @@ function install(refs) {
     getGroups,
     getActiveTabId,
     getIslandRect,
+    getIslandHoverRect,
     getIslandHoverState,
     setIslandHoverOpen,
     getOverlayShowCount,
@@ -519,6 +520,7 @@ function install(refs) {
      * tests assert the morph/proximity anchor tracks the real pill (it went
      * stale across window resizes when only a pill ResizeObserver fed it). */
     islandRect() { const r = getIslandRect(); return r ? { ...r } : null; },
+    islandHoverRect() { const r = getIslandHoverRect(); return r ? { ...r } : null; },
     islandHoverState() { return getIslandHoverState(); },
     setIslandHoverOpen(on) { return setIslandHoverOpen(on); },
     overlayShowCount() { return getOverlayShowCount(); },

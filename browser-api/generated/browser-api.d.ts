@@ -626,6 +626,8 @@ export interface IslandRectReport {
   height: number;
   /** Whether the device currently exposes a hover-capable fine pointer. */
   hoverCapable?: boolean;
+  /** The pill's favicon and domain area at full pill height, unscaled like the pill rectangle: hover-open's only target. */
+  hoverRect?: Rect;
   /** Present while the shield popover is open, so a uBlock Origin popup can follow the pill. */
   shieldAnchor?: ShieldAnchor;
   /** Present while the Spaces menu is open from the mark, so it follows the pill. */

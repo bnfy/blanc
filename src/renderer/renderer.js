@@ -1365,6 +1365,20 @@
   const hoverQuery = matchMedia('(any-hover: hover) and (any-pointer: fine)');
 
   let lastIslandReport = '';
+  // Hover-open's target: the favicon and domain, full pill height, never the
+  // buttons, dots or chips around them. Unscaled like the pill rectangle (the
+  // swell grows from the top center). The Not-secure badge between favicon
+  // and domain is a button of its own, so while it shows only the domain counts.
+  const islandUrlArea = (pill, scale, y, height) => {
+    const parts = [pillDomain.getBoundingClientRect()];
+    if (pillInsecure.hidden) parts.push(pillFavicon.getBoundingClientRect());
+    const visible = parts.filter((part) => part.width > 0);
+    if (!visible.length) return null;
+    const left = Math.min(...visible.map((part) => part.left));
+    const right = Math.max(...visible.map((part) => part.right));
+    const center = pill.left + pill.width / 2;
+    return { x: center + (left - center) / scale, y, width: (right - left) / scale, height };
+  };
   const reportIslandRect = () => {
     const r = islandPill.getBoundingClientRect();
     if (!r.width) return;
@@ -1375,12 +1389,15 @@
     const height = r.height / scale;
     const trigger = pillShield.getAttribute('aria-expanded') === 'true' ? 'shield'
       : pillInsecure.getAttribute('aria-expanded') === 'true' ? 'insecure' : null;
+    const y = r.top + ISLAND_RISE * k;
+    const hoverRect = islandUrlArea(r, scale, y, height);
     const rect = {
       x: (r.left + r.width / 2) - width / 2,
-      y: r.top + ISLAND_RISE * k,
+      y,
       width,
       height,
       hoverCapable: hoverQuery.matches,
+      ...(hoverRect ? { hoverRect } : {}),
       ...(trigger ? { shieldAnchor: shieldAnchorFor(trigger) } : {}),
       ...(pillSpace.getAttribute('aria-expanded') === 'true' ? { spacesAnchor: spacesAnchor() } : {}),
       ...(islandFloor != null ? { minPrimaryWidth: islandFloor } : {}),
