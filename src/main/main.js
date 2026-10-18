@@ -7484,8 +7484,14 @@ function finishReopen(id, entry) {
     order.splice(from, 1);
     order.splice(Math.min(entry.index, order.length), 0, id);
   }
+  // A tab back beside a member of its group keeps that slot; one that came
+  // back outside its group's block rejoins at the group's end, so it never
+  // drags the group to where it landed.
   const groupId = tabs.get(id)?.groupId;
-  if (groupId) rt().tabOrder = placeInGroup(rt().tabOrder, tabLayoutList(rt()), id, groupId);
+  const at = rt().tabOrder.indexOf(id);
+  const besideMember = [rt().tabOrder[at - 1], rt().tabOrder[at + 1]]
+    .some((neighbour) => neighbour && tabs.get(neighbour)?.groupId === groupId);
+  if (groupId && !besideMember) rt().tabOrder = placeInGroup(rt().tabOrder, tabLayoutList(rt()), id, groupId);
   if (!tabs.get(id)?.groupId && entry.groupName) groupTabByName(id, entry.groupName);
   setActiveTab(id);
   broadcastTabs();

@@ -253,3 +253,24 @@ test('imported tabs land at the bottom, never inside or above the user\'s sectio
   assert.ok(call, 'the Bring Your Tabs batch call was not found — update this test with it');
   assert.equal(call[1], 'rt().tabOrder.length');
 });
+
+test('a reopened tab returns to its slot inside its group', () => {
+  // Group [a, b, c]: closing a then reopening it puts it first again
+  // (final review, Important 3).
+  for (const [closed, index, expected] of [['a', 0, ['a', 'b', 'c']], ['b', 1, ['a', 'b', 'c']]]) {
+    const h = harness(['a:g1', 'b:g1', 'c:g1', 'L1']);
+    h.runtime.tabOrder = h.runtime.tabOrder.filter((id) => id !== closed);
+    h.runtime.tabOrder.push(closed); // createTab appends
+    h.finishReopen(closed, { index });
+    h.sync();
+    assert.deepEqual(h.order().slice(0, 3), expected, `reopening ${closed}`);
+  }
+});
+
+test('a reopened tab outside its group block rejoins at the group\'s end', () => {
+  const h = harness(['L0', 'a:g1', 'b:g1', 'L1']);
+  h.runtime.tabOrder = ['b', 'L1', 'L0', 'a'];
+  h.finishReopen('a', { index: 2 }); // between L1 and L0: no group neighbour
+  h.sync();
+  assert.deepEqual(h.order(), ['b', 'a', 'L1', 'L0']);
+});
