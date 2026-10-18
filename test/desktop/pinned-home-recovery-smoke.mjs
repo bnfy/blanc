@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import http from 'node:http';
 import os from 'node:os';
@@ -46,6 +47,19 @@ async function waitFor(read, accept, label, timeout = 15_000) {
   throw new Error(`${label} timed out; last value: ${JSON.stringify(last)}`);
 }
 
+function killTree(child) {
+  if (process.platform === 'win32') {
+    try {
+      execFileSync('taskkill.exe', ['/pid', String(child.pid), '/t', '/f'], { stdio: 'ignore' });
+      return true;
+    } catch {
+      // Fall through to Playwright's ordinary process termination if the
+      // process disappeared while taskkill was walking the tree.
+    }
+  }
+  return child.kill('SIGKILL');
+}
+
 async function launch(profilePaths, { recoveryChoice = null } = {}) {
   const { ELECTRON_RUN_AS_NODE: _ignored, ...cleanEnv } = process.env;
   void _ignored;
@@ -90,7 +104,7 @@ async function launch(profilePaths, { recoveryChoice = null } = {}) {
 async function crash(app, profilePaths) {
   const child = app.process();
   const exited = new Promise((resolve) => child.once('exit', resolve));
-  assert.equal(child.kill('SIGKILL'), true, 'Electron main process accepted SIGKILL');
+  assert.equal(killTree(child), true, 'Electron process tree accepted forced termination');
   await exited;
   apps.delete(app);
   const ledger = JSON.parse(fs.readFileSync(path.join(profilePaths.actual, 'crash-ledger.json'), 'utf8'));
@@ -170,7 +184,7 @@ try {
   console.log('Pinned-home recovery smoke passed (restore, clean start, and fresh recovery).');
 } finally {
   for (const app of apps) {
-    try { app.process().kill('SIGKILL'); } catch {}
+    try { killTree(app.process()); } catch {}
   }
   await new Promise((resolve) => server.close(resolve));
   for (const dir of profiles) {
