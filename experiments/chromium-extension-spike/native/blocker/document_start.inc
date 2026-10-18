@@ -3,6 +3,8 @@ struct PendingScript {
   content::WeakDocumentPtr document;
   uint64_t generation;
   int tab_id;
+  int frame_id;
+  base::ListValue ancestors;
   std::string url;
   bool offered = false;
   base::OnceCallback<void(bool, const std::string&)> callback;
@@ -35,12 +37,16 @@ void DocumentScript::GetScript(const std::string& url, GetScriptCallback callbac
     auto& frame = render_frame_host(); auto* context = frame.GetBrowserContext();
     if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-ubo-document-start") || context->IsOffTheRecord()) { std::move(callback).Run(true, ""); return; }
     auto& state = UboState(context);
-    if (frame.GetParent() || !frame.GetLastCommittedURL().SchemeIsHTTPOrHTTPS() || frame.GetLastCommittedURL().spec() != url || !state.ready || !state.document.AsRenderFrameHostIfValid()) { std::move(callback).Run(false, ""); return; }
+    if (!frame.GetLastCommittedURL().SchemeIsHTTPOrHTTPS() || frame.GetLastCommittedURL().spec() != url || !state.ready || !state.document.AsRenderFrameHostIfValid()) { std::move(callback).Run(false, ""); return; }
     auto& jobs = Jobs(context).jobs;
     if (jobs.size() >= 64) { std::move(callback).Run(false, ""); return; }
     const auto id = base::UnguessableToken::Create().ToString();
+    base::ListValue ancestors;
+    for (auto* parent = frame.GetParent(); parent; parent = parent->GetParent()) {
+      ancestors.Append(parent->GetLastCommittedURL().spec());
+    }
     jobs.emplace(id, PendingScript{frame.GetWeakDocumentPtr(), state.generation,
-        sessions::SessionTabHelper::IdForTab(content::WebContents::FromRenderFrameHost(&frame)).id(), url, false, std::move(callback)});
+        sessions::SessionTabHelper::IdForTab(content::WebContents::FromRenderFrameHost(&frame)).id(), extensions::ExtensionApiFrameIdMap::GetFrameId(&frame), std::move(ancestors), url, false, std::move(callback)});
     base::SingleThreadTaskRunner::GetCurrentDefault()->PostDelayedTask(FROM_HERE, base::BindOnce([](base::WeakPtr<content::BrowserContext> context, std::string id) {
       if (!context) return; auto& jobs = Jobs(context.get()).jobs; auto it = jobs.find(id); if (it == jobs.end()) return;
       auto callback = std::move(it->second.callback); jobs.erase(it); std::move(callback).Run(false, "");

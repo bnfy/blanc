@@ -48,10 +48,11 @@ export function generateComponent(output, reloadGuard=false, observe=false, docu
   assert(reloadGuard,'document gate requires reload guard');
   const replace=(file,from,to)=>{const target=path.join(output,file),text=fs.readFileSync(target,'utf8');assert.equal(text.split(from).length,2,'document-start anchor '+file);fs.writeFileSync(target,text.replace(from,to));};
   fs.copyFileSync(new URL('./ubo-document-start.js',import.meta.url),path.join(output,'js/blanc-document-start.js'));
+  replace('js/scriptlet-filtering.js','let scriptletDetails = this.scriptletCache.lookup(hostname);','let scriptletDetails = request.nocache === true ? undefined : this.scriptletCache.lookup(hostname);');
   replace('js/scriptlet-filtering.js','            bcSecret,','            bcSecret,\n            mainWorld: scriptletDetails.mainWorld || "",\n            isolatedCode: scriptletDetails.isolatedWorld ? isolatedWorldInjector.assemble(hostname, scriptletDetails) : "",');
-  replace('js/scriptlet-filtering.js','const contentScript = [ scriptletDetails.code ];','const contentScript = [ details.frameId === 0 ? scriptletDetails.isolatedCode : scriptletDetails.code ];');
+  replace('js/scriptlet-filtering.js','const contentScript = [ scriptletDetails.code ];','const contentScript = [ /^https?:/.test(details.url) ? scriptletDetails.isolatedCode : scriptletDetails.code ];');
   replace('js/start.js','await blancGuard.activate(selfieIsValid);',"await blancGuard.activate(selfieIsValid);\n(await import('./blanc-document-start.js')).start();");
-  changes.push('main-frame main-world document-bound synchronous gate; isolated/subframes retain upstream path','js/blanc-document-start.js');
+  changes.push('HTTP(S) frame main-world document-bound synchronous gate; ancestor-aware uncached selection; isolated/non-HTTP retain upstream path','js/blanc-document-start.js');
  }
  if(observe){
   assert(reloadGuard,'observer requires readiness guard');

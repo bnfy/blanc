@@ -1,0 +1,30 @@
+[
+  {
+    "runtime": "electron",
+    "cases": 8,
+    "early": 0,
+    "late": 6,
+    "crossRuntimeAcceptance": false
+  },
+  {
+    "runtime": "electron",
+    "cases": 8,
+    "early": 0,
+    "late": 6,
+    "crossRuntimeAcceptance": false
+  },
+  {
+    "runtime": "chromium",
+    "cases": 8,
+    "early": 8,
+    "late": 8,
+    "crossRuntimeAcceptance": false
+  },
+  {
+    "runtime": "chromium",
+    "cases": 8,
+    "early": 8,
+    "late": 8,
+    "crossRuntimeAcceptance": false
+  }
+]

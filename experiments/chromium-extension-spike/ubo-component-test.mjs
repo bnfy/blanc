@@ -50,7 +50,8 @@ test('document start uses a lazy module after readiness and splits main world fr
  try{generateComponent(out,true,false,true);
  const start=fs.readFileSync(path.join(out,'js/start.js'),'utf8'),filter=fs.readFileSync(path.join(out,'js/scriptlet-filtering.js'),'utf8');
  assert(start.includes("await blancGuard.activate(selfieIsValid);\n(await import('./blanc-document-start.js')).start();"));
- assert(filter.includes('details.frameId === 0 ? scriptletDetails.isolatedCode : scriptletDetails.code'));
+ assert(filter.includes('/^https?:/.test(details.url) ? scriptletDetails.isolatedCode : scriptletDetails.code'));
  assert(filter.includes('mainWorld: scriptletDetails.mainWorld'));
+ assert(filter.includes('request.nocache === true ? undefined : this.scriptletCache.lookup(hostname)'));
  }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });

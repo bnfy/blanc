@@ -8,7 +8,7 @@ class BlancFrameLifetime : public content::RenderFrameObserver {
 BlancFrameLifetime::BlancFrameLifetime(content::RenderFrame* frame) : RenderFrameObserver(frame) {}
 void BlancFrameLifetime::OnDestruct() { alive = false; }
 static bool BlancDocumentStart(content::RenderFrame* frame) {
-  if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-ubo-document-start") || !frame->IsMainFrame()) return true;
+  if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-ubo-document-start")) return true;
   const GURL url(frame->GetWebFrame()->GetDocument().Url());
   if (!url.SchemeIsHTTPOrHTTPS()) return true;
   BlancFrameLifetime lifetime(frame);

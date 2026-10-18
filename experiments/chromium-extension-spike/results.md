@@ -1524,3 +1524,31 @@ Main-frame guarantee only; synchronous gate/polling overhead remains unqualified
 Electron correction, subframes/opaque contexts, broader scriptlets/paths/lifecycle,
 component containment and recovery remain open. Latency deferred; owner attention
 and agent time unmeasured. Task 0 outcome/baseline and 156/permanent data unchanged.
+
+
+### Subframe scriptlets and cross-runtime update tracing — October 17, 2026
+
+See [evidence](evidence/f12-subframe-trace-20261017/README.md). Native HTTP(S)
+subframes use browser frame IDs/ancestor chains and uncached current-engine
+selection: 16/16 first-inline constant/getter, ancestor and immediate-fetch cases
+pass across same-origin, cross-origin, nested CSP, fresh navigation, exception
+and changed/restored ancestor cases. Electron early 0/16; late 12/16 versus
+Chromium 16/16. Shipping Electron remains unchanged. Main-frame 12/12 and seven
+safety regressions pass on the new binary.
+
+Eight same-URL collision sessions with native ServiceWorker tracing complete.
+Eight native update joins pass; eight Electron identities remain gaps. Stock
+checker constructor traces expose script URLs, not the independent registration,
+checked-version or hook-token join needed to close the cross-runtime gate. No
+URL/time/order or numeric trace-ID equivalence is inferred. First trace attempt
+stopped on a two-second flush deadline and remains excluded; final ten-second
+bounded flush requires actual completion. Old unit job fixtures were corrected
+to carry the now-required frame ID/ancestors; 172 tests and 89-file lint pass.
+
+One guarded incremental build: 37.57 s wrapper / 33.65 s Siso, eight steps, no
+failure or cold output. Final guard zero actions, footprint unchanged 31/74.
+All build wall time is routine tranche work, separate from Task 0 cold cost.
+Owner attention/agent time not measured. Latency including gate overhead remains
+deferred. Private subframes, opaque/non-HTTP/fenced contexts, broader scriptlets,
+component containment, recovery UX and independent Electron identity remain
+open. No Task 0 outcome/baseline promotion or change to 156/permanent profiles.

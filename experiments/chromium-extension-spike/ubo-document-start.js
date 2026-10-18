@@ -12,15 +12,19 @@ async function poll() {
     const jobs = await response.json();
     if ( !Array.isArray(jobs) || jobs.length > 64 ) { throw Error('Invalid document jobs'); }
     for ( const job of jobs ) {
-        if ( typeof job.token !== 'string' || !Number.isInteger(job.tabId) ||
+        if ( typeof job.token !== 'string' || !Number.isInteger(job.tabId) || !Number.isInteger(job.frameId) ||
+             !Array.isArray(job.ancestors) || job.ancestors.some(url => typeof url !== 'string') ||
              typeof job.url !== 'string' || !/^https?:\/\//.test(job.url) ) { throw Error('Invalid document job'); }
         const store = µb.pageStoreFromTabId(job.tabId);
         // A missing page store is not an exemption. The browser gate times out.
         if ( !store ) { continue; }
         const hostname = hostnameFromURI(job.url);
         const details = store.getNetFilteringSwitch() ? scriptletFilteringEngine.retrieve({
-            tabId: job.tabId, frameId: 0, url: job.url, hostname,
-            domain: domainFromHostname(hostname), ancestors: [],
+            tabId: job.tabId, frameId: job.frameId, nocache: true, url: job.url, hostname,
+            domain: domainFromHostname(hostname), ancestors: job.ancestors.map(url => {
+                const hostname = hostnameFromURI(url);
+                return { hostname, domain: domainFromHostname(hostname) };
+            }),
         }) : undefined;
         const now = current();
         if ( !now.ready || now.generation !== state.generation ) { return; }

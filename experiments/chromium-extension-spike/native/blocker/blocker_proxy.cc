@@ -29,6 +29,7 @@
 #include "content/public/browser/service_process_host.h"
 #include "crypto/hash.h"
 #include "extensions/browser/process_manager.h"
+#include "extensions/browser/extension_api_frame_id_map.h"
 #include "mojo/public/cpp/bindings/callback_helpers.h"
 #include "mojo/public/cpp/bindings/receiver.h"
 #include "mojo/public/cpp/bindings/remote.h"
@@ -223,7 +224,7 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
           base::ListValue work;
           if (current) for (auto& [id, job] : Jobs(context_.browser_context.get()).jobs) {
             if (job.offered || job.generation != generation || !job.document.AsRenderFrameHostIfValid()) continue;
-            job.offered = true; base::DictValue value; value.Set("token", id); value.Set("url", job.url); value.Set("tabId", job.tab_id); work.Append(std::move(value));
+            job.offered = true; base::DictValue value; value.Set("token", id); value.Set("url", job.url); value.Set("tabId", job.tab_id); value.Set("frameId", job.frame_id); value.Set("ancestors", job.ancestors.Clone()); work.Append(std::move(value));
           }
           ReplyControl(current ? 200 : 409, base::WriteJson(work).value_or("[]")); return;
         }

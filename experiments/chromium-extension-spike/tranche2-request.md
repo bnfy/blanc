@@ -34,7 +34,7 @@ allows (one build at a time; the spikes alternate, they never overlap a build).
 3 runs alongside as a document. 4, 5 and 6 fill the gaps. The tranche ends
 when every row has its artifact, or when a kill criterion is hit and recorded.
 
-### 1.1 Progress checkpoint — October 17, 2026 (native document-start gate and update-loader token measured)
+### 1.1 Progress checkpoint — October 17, 2026 (subframe gate and cross-runtime trace measured)
 
 This table is the live map from implementation work back to the approved plan.
 Detailed measurements remain in `rebase-ledger.md`; test outcomes and evidence
@@ -43,23 +43,25 @@ links remain in `results.md`. A row marked in progress is not acceptance.
 | Item | Status | Evidence / next gate |
 | --- | --- | --- |
 | 1. Spike A | **In progress** | Request-path audit, origin-preserving replay, synthetic 2,000/2,000 corpus, browser-process factory proxy, sandboxed Mojo Ghostery engine, regular/private network parity, fail-closed probes, GET redirects, dedicated workers, bounded service-worker identity, two shared-worker clients and one exact-owner teardown are measured. Current evidence is linked from `results.md`, including `evidence/f12-shared-lifecycle-20261017/`. Remaining acceptance work includes the rest of the request-path matrix, CSS/procedural cosmetics/scriptlets, the private real-page sanity sample and qualified quiet-machine latency. The final aggregate `evidence/f12-spike-a/` report is pending. |
-| 2. Spike B | **In progress: full synthetic network parity** | `evidence/f12-ubo-reload-20261017/` records sandboxed component readiness, bundled-list local replacement, authored-rule blocking, acknowledged pre-reset cancellation, stale/page/popup rejection, background-target loss and independent private Blanc Blocker. Profile lifetime and empty-body response bugs were caught and repaired incrementally. No extension-core MV2 override. `evidence/f12-ubo-parity-20261017/` adds two fresh runs per runtime over 5,123 candidates plus four controls: 2,113 blocks / 3,014 allows, zero context/decision/fixture differences. `evidence/f12-ubo-cosmetics-20261017/` adds eight matching regular main-frame pages: static CSS, has-text mutations and late fetch scriptlets pass; historical document-start failure is superseded for Chromium main frames by `evidence/f12-document-gate-20261017/`: 12/12 early constant/fetch passes versus Electron 0/12, seven safety probes and 12 native-only update-loader joins. Cross-runtime identity remains open. Broader cosmetics/scriptlets/paths, exhaustive failures/lifecycle, privilege containment and production recovery UX remain open. |
+| 2. Spike B | **In progress: full synthetic network parity** | `evidence/f12-ubo-reload-20261017/` records sandboxed component readiness, bundled-list local replacement, authored-rule blocking, acknowledged pre-reset cancellation, stale/page/popup rejection, background-target loss and independent private Blanc Blocker. Profile lifetime and empty-body response bugs were caught and repaired incrementally. No extension-core MV2 override. `evidence/f12-ubo-parity-20261017/` adds two fresh runs per runtime over 5,123 candidates plus four controls: 2,113 blocks / 3,014 allows, zero context/decision/fixture differences. `evidence/f12-ubo-cosmetics-20261017/` adds eight matching regular main-frame pages: static CSS, has-text mutations and late fetch scriptlets pass; historical document-start failure is superseded for Chromium main frames by `evidence/f12-document-gate-20261017/`: 12/12 early constant/fetch passes versus Electron 0/12, seven safety probes and 12 native-only update-loader joins. The subframe follow-up `evidence/f12-subframe-trace-20261017/` adds 16/16 early native cases and identifies two late Electron ancestor misses per session. Cross-runtime identity remains open. Broader cosmetics/scriptlets/paths, exhaustive failures/lifecycle, privilege containment and production recovery UX remain open. |
 | 3. A1 patch-budget design | **Not started** | Current measured upstream footprint is 31 files / 74 hunks, including the document-start callback and local update-factory wrapper. Design artifact remains required. |
 | 4. Visual comparison | **Not started** | Fixed-size Electron/Chromium capture matrix remains required. |
 | 5. VoiceOver pass | **Not started** | Island rotor, labels, order and Escape focus-return checklist remains required. |
 | 6. Cost sheet | **Not started** | Task 0 clean recovery, fortnightly maintenance and extension-release wait must remain three separate lines. |
 
-Current follow-up: opt-in browser-authorized main-frame scriptlets now execute
-before page scripts on Chromium. Normal/CSP/reload/fresh tests pass 12/12, while
-Electron remains 0/12. Native update-check tokens prove eight unchanged-byte
-same-URL collision requests and four changed-byte requests. Electron has no
-independent matching signal, so paired acceptance stays open. Seven safety
-probes, bounded cosmetic regressions and existing reload protections pass. See
-`evidence/f12-document-gate-20261017/`; 162 tests / 84-file lint pass. Incremental
-build success 43.98 s after documented repair attempts; final guard zero actions.
+Current follow-up: the HTTP(S) document gate now carries actual browser frame
+IDs/ancestor chains and bypasses hostname-only scriptlet cache reuse. Sixteen
+native subframe cases pass first-inline/fetch and ancestor checks; Electron
+passes 0/16 early and 12/16 late. Main-frame 12/12 and seven safety checks regress
+cleanly. Eight same-URL regular/private update sessions retain eight native joins;
+stock trace constructors expose URLs but no proven Electron hook/registration
+join. Eight Electron update identities remain gaps. See
+`evidence/f12-subframe-trace-20261017/`; 172 tests/89-file lint pass. One guarded
+incremental build 37.57s/eight steps; final guard zero actions, footprint 31/74.
 No cold output. Latency remains deferred, including synchronous gate overhead.
-Next: Electron correction/identity through its separately reviewed shipping path,
-broader subframe/opaque/scriptlet/lifecycle tests and component containment.
+Next: independent Electron native update instrumentation and separately reviewed
+shipping early/ancestor-cache correction; private/opaque/non-HTTP/fenced frames,
+broader scriptlets/lifecycle and component containment.
 Following paragraphs are historical.
 
 Service lifecycle behavior is now measured in eight fresh regular/private
