@@ -84,6 +84,11 @@
     return GHOSTS.map(([t, size, alpha, rgb, kind]) => ({ x: sun.x + dx * t, y: sun.y + dy * t, size, alpha, rgb, kind }));
   }
 
+  // The shaft sprite is blurred and drawn scaled, so a bounded size looks the
+  // same on a 5K display without allocating hundreds of megabytes.
+  const SHAFT_MAX = 768;
+  const shaftLength = (w, h) => Math.min(SHAFT_MAX, Math.round(Math.max(w, h) * 0.75));
+
   const REST = { sun: 0.58, moon: 0.4 };
   const COLUMN = { sun: 0.36, moon: 0.62 };
   function risePath(p, w, h, kind) {
@@ -270,6 +275,7 @@
       ctx.globalAlpha = rays;
       ctx.translate(sun.x, sun.y);
       ctx.rotate(t * 0.00005);
+      ctx.scale(scene.shaftScale, scene.shaftScale);
       ctx.drawImage(shafts, -shafts.width / 2, -shafts.height / 2);
       ctx.restore();
     }
@@ -374,7 +380,7 @@
     const R = Math.min(w, h) * (night ? 0.075 : 0.085) * (TIER_SCALE[tier] || 1);
     const scene = night
       ? { R, dpr, moon: moonTexture(Math.round(R * 2), seed), stars: starField(seed, 90) }
-      : { R, dpr, quiet: tier === 'quiet', shafts: shaftSprite(Math.round(Math.max(w, h) * 0.75), seed) };
+      : { R, dpr, quiet: tier === 'quiet', shafts: tier === 'quiet' ? null : shaftSprite(shaftLength(w, h), seed), shaftScale: Math.max(w, h) * 0.75 / shaftLength(w, h) };
     const paint = night ? paintMoonrise : paintSunrise;
     const started = performance.now();
     let frame = 0;
@@ -391,7 +397,7 @@
     };
   }
 
-  const exports = { rng, moonFeatures, starField, flareGhosts, risePath, easeOutCubic, animate };
+  const exports = { rng, moonFeatures, starField, flareGhosts, risePath, easeOutCubic, shaftLength, animate };
   if (typeof module !== 'undefined' && module.exports) module.exports = exports;
   else window.MahjongSky = exports;
 })();

@@ -10,6 +10,7 @@ const {
   flareGhosts,
   risePath,
   easeOutCubic,
+  shaftLength,
 } = require('../../src/renderer/pages/mahjong-sky');
 
 test('rng is deterministic per seed and stays in [0, 1)', () => {
@@ -63,4 +64,10 @@ test('celestial bodies rise from below the frame to their resting height', () =>
   assert.equal(easeOutCubic(0), 0);
   assert.equal(easeOutCubic(1), 1);
   assert.ok(easeOutCubic(0.5) > 0.5);
+});
+
+test('the light-shaft sprite stays bounded on large displays', () => {
+  assert.equal(shaftLength(1000, 600), 750);
+  assert.equal(shaftLength(5120, 2880), 768, 'capped: the sprite is blurred and scaled up anyway');
+  assert.equal(shaftLength(5120, 2880) * 2 <= 1536, true);
 });

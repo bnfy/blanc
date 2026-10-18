@@ -94,6 +94,41 @@ try {
     'undo clearing an in-flight trail',
   );
   assert.equal(trailCleared, true);
+  // A fresh win plays the celebration; a key skips to the results card, and
+  // Undo during the celebration cancels it with no card left behind.
+  const winToLastPair = `(async () => {
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    startGame({ layoutId: 'peaks', mode: 'classic', seed: 7 }, { soundCue: false, rememberPreferences: false });
+    await wait(300);
+    while (game.removed.filter((r) => !r).length > 2) {
+      const [a, b] = E.availableMoves(game)[0];
+      E.selectTile(game, a);
+      E.selectTile(game, b);
+    }
+    refreshTiles();
+    const [a, b] = E.availableMoves(game)[0];
+    activateTile(a);
+    activateTile(b);
+    const layer = document.getElementById('mjCelebrate');
+    for (let i = 0; i < 40 && layer.hidden; i++) await wait(25);
+    return { celebrating: !layer.hidden, card: !document.getElementById('mjWin').hidden };
+  })()`;
+  const mahjongJs = (js) => app.evaluate(async ({ webContents }, source) => webContents.getAllWebContents()
+    .find((candidate) => candidate.getURL().startsWith('blanc://mahjong/')).executeJavaScript(source), js);
+  assert.deepEqual(await mahjongJs(winToLastPair), { celebrating: true, card: false }, 'a fresh win celebrates before the card');
+  assert.deepEqual(await mahjongJs(`(() => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift' }));
+    return { celebrating: !document.getElementById('mjCelebrate').hidden, card: !document.getElementById('mjWin').hidden,
+      leftover: document.body.classList.contains('is-celebrating') };
+  })()`), { celebrating: false, card: true, leftover: false }, 'a key skips straight to the card');
+  assert.deepEqual(await mahjongJs(winToLastPair), { celebrating: true, card: false });
+  assert.deepEqual(await mahjongJs(`(async () => {
+    document.getElementById('mjUndo').click();
+    await new Promise((r) => setTimeout(r, 1700));
+    return { celebrating: !document.getElementById('mjCelebrate').hidden, card: !document.getElementById('mjWin').hidden,
+      leftover: document.body.classList.contains('is-celebrating') };
+  })()`), { celebrating: false, card: false, leftover: false }, 'undo mid-celebration leaves no card or overlay');
+
   const savedGameUrl = (await app.evaluate(() => globalThis.__blanc.state()))
     .tabs.find((tab) => tab.id === launched.activeTabId)?.loadedUrl;
   assert.ok(savedGameUrl?.startsWith('blanc://mahjong/'));
