@@ -415,18 +415,6 @@
     return section;
   }
 
-  /** A run of ungrouped tabs: plain rows between groups, with no heading
-   * (spec 2026-10-17 §5.6). */
-  function looseRun(tabs, activeTabId) {
-    const section = document.createElement('section');
-    section.dataset.dragSection = 'loose';
-    section.className = 'vertical-tabs-section vertical-tabs-run';
-    section.setAttribute('role', 'group');
-    section.setAttribute('aria-label', blancI18n.t('rail.section.tabs'));
-    for (const tab of tabs) section.appendChild(tabRow(tab, activeTabId));
-    return section;
-  }
-
   function groupSection(group, members, activeTabId, index) {
     if (!members.length) return null;
     const section = document.createElement('section');
@@ -609,7 +597,9 @@
         if (section) fragment.appendChild(section);
         endsInRun = false;
       } else {
-        fragment.appendChild(looseRun(members.filter((tab) => !tab.pinned), activeTabId));
+        // Each run keeps the "tabs" heading and its own count, wherever it sits.
+        fragment.appendChild(staticBucket(blancI18n.t('rail.section.tabs'), 'loose',
+          members.filter((tab) => !tab.pinned), activeTabId));
         endsInRun = true;
       }
     }
