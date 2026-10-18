@@ -2089,3 +2089,56 @@ unchanged gaps. Latency (including snapshot overhead) stays deferred. Electron
 diagnostic build §8 unchecked/unstarted. Spikes A/B in progress; items 3–6 not
 started. No baseline promotion. Disposable profiles and fixture keys removed.
 Evidence: `evidence/f12-document-target-20261018/`.
+
+## Renderer document-token guard — October 18, 2026
+
+Browser validation now resolves the actual Blink DocumentToken only from a live,
+active, non-error committed document after verifying the API document ID in the
+executor's own tab. An optional immutable token travels in ExecuteCodeParams.
+The renderer checks WebDocument.Token() when the injection becomes eligible and,
+for the experimental uBO component, immediately before execution after delayed
+permission replies. Other extensions retain their permission-reply path. The
+new content helper avoids exposing RFHImpl through the extensions layer.
+
+Eight bounded offline cases pass: three deliberate transport-token mismatches
+(document_start/end/idle), each with a matching-token positive control; a legacy
+unconstrained control; a genuinely deferred document_end release; and same-URL,
+cross-path and cross-origin replacements while document_end work is queued.
+Replacement markers remain untouched. Navigation callbacks return [null], which
+is recorded as teardown behavior, not evidence that the old document never
+began executing. Two failed harness attempts expected an error/empty array;
+they are retained, not counted as passes. The final validator requires actual
+replacement identity and untouched DOM as well as the non-positive callback.
+
+The mismatch switch is opt-in, exact-component and exact-source-marker gated,
+and only corrupts an already-present token. It cannot bypass the guard. These
+three denials are diagnostic fault injection, not an observation of a naturally
+occurring IPC race. The permission-reply recheck is source-audited, not exercised
+through a native permission dialog. BFCache/prerender, crashes, original caller
+identity before the browser snapshot and asynchronous scriptlet effects remain
+unqualified. No all-path atomicity or full acceptance claim.
+
+281 focused regression tests and 135 module lint checks pass. Two incremental
+builds: 162.37 s wrapper / 158.51 s Siso / 251 steps, then 34.30 s wrapper /
+29.69 s Siso / six steps to narrow the permission recheck to this component.
+The initial 89-action plan expanded/pruned after Mojo generation; both retained
+the existing cache. GN regeneration followed the added header's BUILD.gn edit,
+with unchanged arguments/toolchain. Final guard zero actions (4.26 s).
+Footprint: **40 upstream files / 91 hunks**, at the file ceiling of 40 / 120.
+The five added existing paths are content public BUILD.gn, RFHImpl.cc, frame.mojom,
+programmatic_script_injector.cc and script_injection.cc; the new Blanc header is
+separately inventoried. Any further upstream-file addition needs consolidation
+within the budget or a new owner decision. No cold output.
+
+Latency stays deferred, including token-check overhead. Electron diagnostic build
+§8 remains unchecked/unstarted. Spikes A/B in progress, items 3–6 not started;
+Task 0 upgrade gate and baseline promotion unchanged. Evidence and failed attempts:
+`evidence/f12-renderer-target-20261018/`.
+
+Final binary regressions also pass: eleven browser document-target checks, six
+logger/noscript/picker checks and four native/upstream completion schedules. Each
+report has an independent verifier. Repeated preparation leaves all 40 existing
+upstream files and the new Blanc header byte-identical.
+
+Archive verification: 108 members (338,786 compressed bytes), hashes checked; all
+four report proofs pass using extracted archived sources and reports.

@@ -34,20 +34,21 @@ allows (one build at a time; the spikes alternate, they never overlap a build).
 3 runs alongside as a document. 4, 5 and 6 fill the gaps. The tranche ends
 when every row has its artifact, or when a kill criterion is hit and recorded.
 
-### 1.1 Progress checkpoint — October 18, 2026 UTC (native/upstream delivery ordering)
+### 1.1 Progress checkpoint — October 18, 2026 UTC (renderer document token)
 
-This table is the live map from implementation work back to the approved plan.
-The current evidence is `evidence/f12-delivery-order-20261018/`: native execution
-acknowledgement and upstream API completion now join the reload drain. Four
-controlled schedules pass, with timeout/retry and combined pending work observed.
-The upstream diagnostic holds acknowledgement after actual API settlement; it is
-not exact-document or asynchronous-effect acceptance. The 45 static schedules,
-ordinary identity, CSP and readiness regressions pass. 268 tests / 139-file lint;
-one 45.70-second incremental build; fresh footprint 31/74 and final zero-action guard.
-Previous-head 79588947 CodeQL passed, but oauth-compatibility failed in wallpaper
-smoke (private fade wait, 30 seconds). No job was rerun. This checkpoint needs its
-own CI. Broader lifecycle, upstream navigation identity, other injection channels,
-changed-rule and asynchronous semantics remain open.
+The browser now carries the verified document's Blink token through injection
+IPC; the renderer checks at eligibility and immediately before execution after
+permission replies. Eight bounded runtime cases pass: deliberate mismatch versus
+matching-token controls at all runAt stages, a legacy control, deferred release,
+and three real queued-navigation replacements with untouched replacement DOM.
+Fault injection is explicitly separate from naturally occurring IPC-race evidence;
+permission-dialog, BFCache/prerender, crash and async effects remain unqualified.
+Eleven browser-target, six helper and four completion regressions also pass.
+281 tests and 135 module lint checks pass. Two incremental builds (162.37 s and
+34.30 s); final zero-action guard. Footprint **40 files / 91 hunks**, at the file
+ceiling; no further existing upstream file may be added without consolidation or
+a new owner decision. Evidence: `evidence/f12-renderer-target-20261018/`.
+Latency remains deferred and the Electron diagnostic build remains unapproved.
 Detailed measurements remain in `rebase-ledger.md`; test outcomes and evidence
 links remain in `results.md`. A row marked in progress is not acceptance.
 
@@ -55,12 +56,12 @@ links remain in `results.md`. A row marked in progress is not acceptance.
 | --- | --- | --- |
 | 1. Spike A | **In progress** | Request-path audit, origin-preserving replay, synthetic 2,000/2,000 corpus, browser-process factory proxy, sandboxed Mojo Ghostery engine, regular/private network parity, fail-closed probes, GET redirects, dedicated workers, bounded service-worker identity, two shared-worker clients and one exact-owner teardown are measured. Current evidence is linked from `results.md`, including `evidence/f12-shared-lifecycle-20261017/`. Remaining acceptance work includes the rest of the request-path matrix, CSS/procedural cosmetics/scriptlets, the private real-page sanity sample and qualified quiet-machine latency. The final aggregate `evidence/f12-spike-a/` report is pending. |
 | 2. Spike B | **In progress: full synthetic network parity** | `evidence/f12-ubo-reload-20261017/` records sandboxed component readiness, bundled-list local replacement, authored-rule blocking, acknowledged pre-reset cancellation, stale/page/popup rejection, background-target loss and independent private Blanc Blocker. Profile lifetime and empty-body response bugs were caught and repaired incrementally. No extension-core MV2 override. `evidence/f12-ubo-parity-20261017/` adds two fresh runs per runtime over 5,123 candidates plus four controls: 2,113 blocks / 3,014 allows, zero context/decision/fixture differences. `evidence/f12-ubo-cosmetics-20261017/` adds eight matching regular main-frame pages: static CSS, has-text mutations and late fetch scriptlets pass; historical document-start failure is superseded for Chromium main frames by `evidence/f12-document-gate-20261017/`: 12/12 early constant/fetch passes versus Electron 0/12, seven safety probes and 12 native-only update-loader joins. The subframe follow-up `evidence/f12-subframe-trace-20261017/` adds 16/16 early native cases and identifies two late Electron ancestor misses per session. Cross-runtime identity remains open. Broader cosmetics/scriptlets/paths, exhaustive failures/lifecycle, privilege containment and production recovery UX remain open. |
-| 3. A1 patch-budget design | **Not started** | Current measured upstream footprint is 31 files / 74 hunks, including the document-start callback and local update-factory wrapper. Design artifact remains required. |
+| 3. A1 patch-budget design | **Not started** | Current measured upstream footprint is 40 files / 91 hunks; the renderer token follows the document-start and local update-factory patches. Design artifact remains required. |
 | 4. Visual comparison | **Not started** | Fixed-size Electron/Chromium capture matrix remains required. |
 | 5. VoiceOver pass | **Not started** | Island rotor, labels, order and Escape focus-return checklist remains required. |
 | 6. Cost sheet | **Not started** | Task 0 clean recovery, fortnightly maintenance and extension-release wait must remain three separate lines. |
 
-Current follow-up: `evidence/f12-static-integration-20261017/` integrates
+Earlier follow-up: `evidence/f12-static-integration-20261017/` integrates
 static origin fallback with actual MessageSender identity, browser-owned live
 precursor/ancestor context and generation checks around real engine selection.
 Two fresh profiles: 36 automatic non-HTTP late deliveries + four HTTP controls,
@@ -573,7 +574,7 @@ all unchanged limits above; anything beyond them requires another decision.
 Merging alone was not approval. The owner separately authorized merging
 #916 once CI on its current head is green and resuming the amended work.
 
-Current follow-up: browser-side pre-dispatch document constraints pass eleven
+Earlier follow-up: browser-side pre-dispatch document constraints pass eleven
 runtime checks across same-document, same-URL, cross-path and cross-origin
 navigation, plus six helper/four completion regressions. Readiness leases cover
 browser snapshots and bounded all-frame fanout; stale IDs are rejected after file
