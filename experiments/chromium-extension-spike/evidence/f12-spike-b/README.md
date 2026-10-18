@@ -91,3 +91,32 @@ Assessment outcome: candidate integration identified, **runtime admission not ye
 established**. Keep Spike B in progress. If it needs core gate/event-dispatch
 patches or cannot meet the scoped fail-closed hold, apply the approved stop rule;
 do not silently relax it. No production or baseline decision follows.
+
+## Reload ordering and runtime experiment boundary — October 17, 2026
+
+The hold must be acknowledged **before** the packaged loader calls the original
+loadFilterLists and before storage.js resets the engines. An asynchronous
+"reloading" notification emitted after reset is not sufficient: a browser request
+could already pass the gate. A prototype wrapper must acquire a profile-scoped
+generation/lease, wait for the browser acknowledgement, perform the load, then
+release only that generation on success. Overlapping loads, stale acknowledgements,
+background destruction and rejected promises must never release a newer hold.
+Startup begins held before component admission; private requests stay on Blanc
+Blocker and cannot release the regular-profile gate.
+
+The minimum runtime experiment should use an immutable, hash-verified generated
+copy of the pinned GPL payload, stable manifest key, ordinary browser allowlisting
+and an ID/document/profile-bound readiness bridge. Do not edit the pinned upstream
+copy, use developer AddOrReplace, or relax global MV2 gates. A generated preload
+must install the wrapper before the first load; observing an already-running
+background page is too late for startup proof. Pinned list acquisition must be
+explicitly permitted without exempting arbitrary page traffic. Component feature
+auto-grants remain a trust expansion; source integrity/review is not a sandbox or
+proof of least privilege. No runtime experiment or bridge was implemented here.
+
+This gives a testable design within browser-owned integration, but not proof that
+it can be completed without extension-core edits. The next runtime checkpoint must
+first inventory the actual admission/bridge patches against the fixed budget and
+core-patch rule. Required failure probes: delayed startup, held reload with page
+traffic, overlapping reloads, background crash, stale release, private-profile
+isolation and restart. Passing a component load alone cannot close Spike B.

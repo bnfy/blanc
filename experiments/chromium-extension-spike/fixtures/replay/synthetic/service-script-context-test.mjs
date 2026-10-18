@@ -16,3 +16,14 @@ test('a new version with controlled clients is contradictory evidence',()=>{cons
 test('a worker in another profile cannot supply initial script evidence',()=>{const {run,row,events}=fixture();events[0].params.targetInfo.browserContextId='elsewhere';assert.equal(serviceScriptContext(run,row).status,'gap');});
 test('failed worker execution remains a gap instead of fabricating a realm',()=>{const {run,row,events}=fixture();events.pop();assert.equal(serviceScriptContext(run,row).status,'gap');});
 test('a stale Electron URL/time correlation stays a gap',()=>{const {run,row}=fixture('electron');row.timestamp=new Date(0).toISOString();assert.equal(serviceScriptContext(run,row).status,'gap');});
+test('missing update CDP event cannot let repeated Electron hooks borrow the initial token',()=>{const {run,row}=fixture('electron');run.records=[row,{...row}];assert.equal(serviceScriptContext(run,row).reason,'service-script-hook-occurrences-ambiguous');});
+test('HTTP failure plus exact-token response and detach proves loader identity, never an execution realm',()=>{
+ for(const kind of ['electron','chromium']){
+  const {run,row,events}=fixture(kind);events.pop();
+  events.push({method:'Network.responseReceived',sessionId:'s',params:{requestId:'token',url:row.url,status:404},sequence:3},{method:'Target.detachedFromTarget',params:{sessionId:'s',targetId:'token'},sequence:4});
+  const r=serviceScriptContext(run,row);assert.equal(r.status,'resolved');assert.equal(r.context.kind,'service_worker_script_loader');assert.equal(r.context.executionRealm,'unobserved');assert(!('executionOrigin' in r.context));
+  events[3].params.requestId='wrong';assert.equal(serviceScriptContext(run,row).status,'gap');
+  events[3].params.requestId='token';events[3].params.status=200;assert.equal(serviceScriptContext(run,row).status,'gap');
+  events[3].params.status=404;events[4].sequence=2;assert.equal(serviceScriptContext(run,row).status,'gap');
+ }
+});

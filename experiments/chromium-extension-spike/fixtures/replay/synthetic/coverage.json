@@ -159,7 +159,7 @@
         "worker-origin"
       ],
       "status": "gap",
-      "reason": "Initial script and bounded imports/fetch/redirect contexts were measured previously. Same-URL changed-byte update behavior passes. Sixteen unique allowed/blocked fetch contexts now match across eight fresh sessions with one stable controlled client. Proven page events are distinct from worker network events; unknown duplicates still fail. Failed-startup, update-script and cache-only attribution, unchanged-byte/cache-validator updates, multi-client/teardown and restart remain gaps. See evidence/f12-service-context-20261017."
+      "reason": "Initial script and bounded imports/fetch/redirect contexts were measured previously. Same-URL update behavior and 16 controlled-fetch contexts pass. Eight token-linked HTTP 404 initial loaders now resolve with execution realm unobserved. Repeated Electron hook occurrences cannot borrow an initial token; all update contexts remain gaps. Other startup failures, cache-only attribution, unchanged-byte/cache-validator updates, multi-client/teardown and restart remain gaps. See evidence/f12-service-loader-20261017."
     },
     {
       "priority": 2,

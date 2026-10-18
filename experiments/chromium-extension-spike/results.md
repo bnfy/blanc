@@ -1397,3 +1397,26 @@ retained with the fresh context run. No native build, upstream patch delta or
 new output; latency deferred. Evidence archives/member hashes and source hashes
 verified. Plan and coverage updated. Owner attention/agent time not measured;
 156, permanent profiles/tabs and Task 0 upgrade gate remain unchanged.
+
+### HTTP-failed loader identities and update-correlation guard — October 17, 2026
+
+[Evidence](evidence/f12-service-loader-20261017/README.md): eight token-linked
+HTTP 404 initial-script loader identities resolve across fresh runtime/profile
+sessions. Execution realm is explicitly unobserved, never invented. The 16
+controlled-fetch contexts and same-URL update behavior still pass. Broader failed
+startup and update-script attribution are not closed.
+
+Update investigation found a false Electron match when two same-URL hook
+occurrences shared one initial Network event. The new hook/event bijection guard
+rejects it; all eight captured updates remain gaps. Source inspection confirms the
+native update checker lacks a frame/tab and recorded DevTools ID, so a later worker
+with the same URL cannot establish its identity. Negative tests cover mismatched
+HTTP tokens, non-failure responses, event ordering and repeated hook occurrences.
+
+The [uBO assessment](evidence/f12-spike-b/README.md) now specifies browser hold
+acknowledgement before engine reset, generation-safe release, fail-closed startup
+and failure probes. These are runtime prerequisites, not implemented protection.
+95 focused tests pass, 58-file lint clean; final worker-path regression retained.
+Three archives verified with source hashes. No native build or patch delta;
+latency deferred. Plan/coverage updated. Owner attention/agent time not measured;
+156, permanent profiles/tabs and Task 0 upgrade gate unchanged.

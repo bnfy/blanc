@@ -34,7 +34,7 @@ allows (one build at a time; the spikes alternate, they never overlap a build).
 3 runs alongside as a document. 4, 5 and 6 fill the gaps. The tranche ends
 when every row has its artifact, or when a kill criterion is hit and recorded.
 
-### 1.1 Progress checkpoint — October 17, 2026 (component design and controlled-fetch contexts)
+### 1.1 Progress checkpoint — October 17, 2026 (failed-loader identity and update guard)
 
 This table is the live map from implementation work back to the approved plan.
 Detailed measurements remain in `rebase-ledger.md`; test outcomes and evidence
@@ -65,6 +65,13 @@ authenticated fail-closed reload-hold design requirement; neither is implemented
 `evidence/f12-service-context-20261017/README.md` closes 16 unique controlled
 worker fetch contexts across eight fresh sessions. Failed-startup, update-script,
 cache-only and broader lifecycle attribution remain explicit gaps.
+The failed-loader follow-up (`evidence/f12-service-loader-20261017/README.md`)
+now resolves eight token-linked HTTP 404 loader identities with execution realm
+explicitly unobserved. It also fixes false Electron update correlation when a
+repeated hook occurrence could borrow the initial token; all eight update contexts
+remain rejected. Other startup failures are gaps. Spike B now records the required
+acknowledgement-before-reset reload protocol and its runtime failure probes;
+component loading/bridge protection are still not implemented.
 
 No tranche kill criterion has been observed at this checkpoint. Spike A remains
 inside the fixed 40-file / 120-hunk budget. Every native build used the existing

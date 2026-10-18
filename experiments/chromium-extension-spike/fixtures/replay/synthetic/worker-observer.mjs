@@ -23,6 +23,9 @@ export async function observeWorkers(port,fixtures){
    if(!fixtures.has(params.request.url))return;
    // Do not archive cookies, arbitrary headers, response certificates or bodies.
    saved={requestId:params.requestId,url:params.request.url,method:params.request.method,referrer:params.request.headers.Referer||'',type:params.type,documentURL:params.documentURL,frameId:params.frameId||null,wallTime:params.wallTime,timestamp:params.timestamp,redirectFrom:params.redirectResponse?.url||null};
+  }else if(method==='Network.responseReceived'&&fixtures.has(params.response.url)){
+   // Response identity/status only: no headers, cookies or certificate material.
+   saved={requestId:params.requestId,url:params.response.url,status:params.response.status,type:params.type,frameId:params.frameId||null};
   }else if(method==='Runtime.bindingCalled'&&params.name==='__blancWorkerOwnership'){
    try{const value=JSON.parse(params.payload);assert(['page-agent-installed','client-created','client-port-close','client-document-gone','worker-agent-installed','worker-connect','worker-peer','worker-port-close'].includes(value.type));saved={executionContextId:params.executionContextId,type:value.type};for(const key of ['token','portToken'])if(value[key]!==undefined){assert(typeof value[key]==='string'&&/^[0-9a-f-]{36}$/.test(value[key]));saved[key]=value[key];}assert(Object.keys(value).every(k=>['type','token','portToken'].includes(k)));}catch(error){faults.push('Invalid ownership observation: '+error);}
   }else if(method==='Debugger.paused')saved={reason:params.reason,hitBreakpoints:params.hitBreakpoints};

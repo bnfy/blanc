@@ -15,6 +15,9 @@ export function serviceScriptContext(run,row){
  if(run.browserKind==='chromium'&&row.redirect_index!==0)return gap('service-script-not-initial-hop');
  if(row.url!==target.url||row.method!=='GET'||(row.resource_type||row.resourceType)!=='script')return gap('service-script-request-mismatch');
  if(run.browserKind==='electron'){
+  // Electron exposes no native/CDP join ID. A missing update CDP event must
+  // not let the second hook occurrence borrow the first script's token.
+  if(run.records&&run.records.filter(r=>r.url===row.url).length!==1)return gap('service-script-hook-occurrences-ambiguous');
   const requests=events.filter(e=>e.method==='Network.requestWillBeSent'&&e.params.url===row.url);
   if(requests.length!==1)return gap('service-script-request-ambiguous');
   const p=requests[0].params,time=Date.parse(row.timestamp);
@@ -24,6 +27,14 @@ export function serviceScriptContext(run,row){
   // actual referrers from both blocking hooks still compare exactly.
  }
  const contexts=events.filter(e=>e.method==='Runtime.executionContextCreated'&&e.sessionId===session);
+ if(contexts.length===0){
+  const responses=events.filter(e=>e.method==='Network.responseReceived'&&e.sessionId===session&&e.params.requestId===target.targetId&&e.params.url===row.url);
+  const detached=events.filter(e=>e.method==='Target.detachedFromTarget'&&e.params.sessionId===session&&e.params.targetId===target.targetId);
+  if(responses.length===1&&Number.isInteger(responses[0].params.status)&&responses[0].params.status>=400&&responses[0].params.status<=599&&detached.length===1&&detached[0].sequence>responses[0].sequence){
+   // A loader identity, not a fabricated worker realm or executing origin.
+   return {status:'resolved',context:{kind:'service_worker_script_loader',phase:'http-failed-initial-script',scriptUrl:target.url,profileKind:run.kind,documentFrame:'not-associated',executionRealm:'unobserved',responseStatus:responses[0].params.status},proof:{targetId:target.targetId,join:run.browserKind==='chromium'?'native-main-script-token-http-failure':'electron-main-script-event-token-http-failure',responseSequence:responses[0].sequence,detachSequence:detached[0].sequence}};
+  }
+ }
  if(contexts.length!==1)return gap('worker-execution-context-ambiguous');
  const versions=events.flatMap(e=>e.method==='ServiceWorker.workerVersionUpdated'?e.params.versions.filter(v=>v.targetId===target.targetId).map(v=>({...v,sequence:e.sequence})):[]);
  if(new Set(versions.map(v=>v.versionId)).size!==1||versions.some(v=>v.scriptURL!==row.url)||versions[0]?.status!=='new'||!versions.some(v=>v.status==='new'&&v.runningStatus==='starting'&&Array.isArray(v.controlledClients)&&v.controlledClients.length===0&&v.sequence<contexts[0].sequence))return gap('service-script-new-version-unproved');
