@@ -160,7 +160,10 @@ const {
   shouldClearFaviconOnNavigate,
   updateFaviconAfterDomReady,
 } = require('./favicon-policy');
-const { effectiveTabMuted, revealTabAudio } = require('./tab-audio');
+const { effectiveTabMuted, shownMuted, revealTabAudio } = require('./tab-audio');
+const { hostOf, siteMuteKey, createSiteMutes } = require('./site-mute');
+// Mute Site: hosts muted until Blanc quits (tab menu additions spec §4).
+const siteMutes = createSiteMutes();
 const { shouldSamplePageTint, isPageTintSignal } = require('./page-tint-policy');
 const { createPageTintController } = require('./page-tint-controller');
 const { validFavicon } = require('./bookmark-validate');
@@ -176,7 +179,7 @@ const { installDockMenu } = require('./dock-menu');
 const { createDockReopenLifecycle } = require('./dock-reopen');
 /** Handle from installDockMenu ({ update }); null until app-ready (macOS). */
 let dockMenuHandle = null;
-const { closableTabIds, pickSurvivorTabId } = require('./tab-context-menu-model');
+const { closableTabIds, closableBeside, pickSurvivorTabId } = require('./tab-context-menu-model');
 const { attachChromeMenu, attachRowMenu } = require('./tab-context-menu');
 const { attachWorkspaceRowMenu } = require('./workspace-context-menu');
 const settings = require('./settings');
@@ -4559,11 +4562,13 @@ function serializeTabs() {
         blockedCount: tab.blockedCount,
         private: tab.private,
         pinned: tab.pinned,
-        muted: tab.muted,
+        // shownMuted() in tab-audio.js, spelled out: this projection stays
+        // self-contained for the tests that lift it.
+        muted: !!(tab.muted || (tab.siteMuted && !tab.siteUnmuted)),
         // isCurrentlyAudible() describes a playing stream even when Electron
         // has muted its output. Chrome should report sound only when it can
         // actually reach the speakers.
-        audible: tab.audible && !(tab.muted || tab.backgroundAutoplayMuted),
+        audible: tab.audible && !(tab.muted || tab.backgroundAutoplayMuted || (tab.siteMuted && !tab.siteUnmuted)),
         groupId: tab.groupId,
         pageBg: islandSiteColors ? tab.pageBg : null,
         themeColor: islandSiteColors ? tab.themeColor : null,
@@ -6268,14 +6273,21 @@ function toggleTabPinned(id) {
 function toggleTabMuted(id) {
   const tab = tabs.get(id);
   if (!tab) return false;
-  tab.muted = !tab.muted;
+  // Unmuting a tab on a muted site overrides the site for this tab only
+  // (tab menu additions spec §4); muting it again is the person's own mute.
+  if (shownMuted(tab)) {
+    tab.muted = false;
+    if (tab.siteMuted) tab.siteUnmuted = true;
+  } else {
+    tab.muted = true;
+  }
   // An explicit user choice supersedes the temporary background-autoplay
   // guard. This keeps the visible mute control truthful in both directions.
   tab.backgroundAutoplayMuted = false;
   liveContents(tab)?.setAudioMuted(effectiveTabMuted(tab));
   broadcastTabs();
   scheduleMenuRebuild();
-  return tab.muted;
+  return shownMuted(tab);
 }
 
 function duplicateTab(id) {
@@ -6313,6 +6325,7 @@ function duplicateTab(id) {
  */
 function onMainFrameCommit(tab, { url, httpResponseCode }) {
   if (!isSupportedLocalHtmlUrl(url)) tab.localFile = false;
+  refreshSiteMute(tab, url);
   // "This document has played media" is cleared ONLY here — clearing on pause
   // would unprotect exactly the paused video this rule exists to protect.
   tab.usedMedia = false;
@@ -7428,6 +7441,86 @@ function sleepTabNow(id) {
  * doomed tabs; closeTab's own comment forbids that caller pattern), close
  * with record/selectReplacement off, then record ONE batch entry so a single
  * ⌘⇧T undoes the whole action instead of flooding the 25-entry history. */
+/** Close Tabs Above / Below (tab menu additions spec §3): every unpinned
+ * tab before or after `keepId` in the window's order, as one Recently closed
+ * entry, keeping the selection on `keepId`. */
+function closeTabsBeside(keepId, direction) {
+  if (!tabs.has(keepId) || windowRuntimes.runtimeForTab(keepId) !== rt()) return;
+  if (direction !== 'above' && direction !== 'below') return;
+  const doomed = closableBeside({ tabOrder: [...rt().tabOrder], tabsById: tabs, keepId, direction });
+  if (!doomed.length) return;
+  const entry = buildBatchEntry(doomed.map(closedMemberRecord), Date.now());
+  if (rt().activeTabId !== keepId) setActiveTab(keepId, { focusContent: false });
+  for (const id of doomed) closeTab(id, { record: false, selectReplacement: false });
+  if (entry.tabs.length > 0) pushClosedEntry(entry);
+  broadcastTabs();
+  scheduleMenuRebuild();
+}
+
+/** New Tab Below (tab menu additions spec §2): a new tab directly under
+ * `tabId`, inside its group if it has one. Under a pin it opens as the first
+ * tab after the pins (the group's for a grouped pin). A private tab makes a
+ * private tab, never grouped. */
+function newTabBelow(tabId) {
+  const runtime = rt();
+  const source = tabs.get(tabId);
+  if (!source || !runtime.tabOrder.includes(tabId)) return null;
+  const isPrivate = !!source.private;
+  const groupId = isPrivate ? null : (source.groupId ?? null);
+  const id = createTab(isPrivate ? PRIVATE_NEW_TAB_URL : newTabUrl(), { private: isPrivate, groupId });
+  if (!id) return null;
+  const order = runtime.tabOrder.filter((tid) => tid !== id);
+  const isShelfPin = (tid) => !!tabs.get(tid)?.pinned && !tabs.get(tid)?.groupId;
+  let at;
+  if (!source.pinned) {
+    at = order.indexOf(tabId) + 1;
+  } else if (groupId) {
+    const firstUnpinned = order.findIndex((tid) => tabs.get(tid)?.groupId === groupId && !tabs.get(tid)?.pinned);
+    at = firstUnpinned !== -1 ? firstUnpinned : order.findLastIndex((tid) => tabs.get(tid)?.groupId === groupId) + 1;
+  } else {
+    at = order.findLastIndex(isShelfPin) + 1;
+  }
+  order.splice(at, 0, id);
+  runtime.tabOrder = order;
+  setActiveTab(id, { focusContent: false, focusAddress: true });
+  broadcastTabs();
+  return id;
+}
+
+/** Mute Site / Unmute Site: toggles the tab's exact host for its profile
+ * (private tabs apart) until Blanc quits, on every matching tab. */
+function toggleSiteMute(tabId) {
+  const tab = tabs.get(tabId);
+  const host = hostOf(tab?.url);
+  if (!tab || !host) return false;
+  const key = siteMuteKey(tab);
+  const muted = siteMutes.toggle(key, host);
+  for (const other of tabs.values()) {
+    if (siteMuteKey(other) !== key || hostOf(other.url) !== host) continue;
+    other.siteMuted = muted;
+    other.siteUnmuted = false;
+    other.siteMuteHost = host;
+    liveContents(other)?.setAudioMuted(effectiveTabMuted(other));
+  }
+  broadcastTabs();
+  scheduleMenuRebuild();
+  return muted;
+}
+
+/** After a navigation: a tab on a muted host is muted; moving to another
+ * host drops a one-tab unmute. */
+function refreshSiteMute(tab, url = tab.url) {
+  const host = hostOf(url);
+  if (host !== (tab.siteMuteHost ?? null)) {
+    tab.siteUnmuted = false;
+    tab.siteMuteHost = host;
+  }
+  const muted = siteMutes.has(siteMuteKey(tab), host);
+  if (muted === !!tab.siteMuted) return;
+  tab.siteMuted = muted;
+  liveContents(tab)?.setAudioMuted(effectiveTabMuted(tab));
+}
+
 function closeOtherTabsInWindow(keepId) {
   if (!tabs.has(keepId) || windowRuntimes.runtimeForTab(keepId) !== rt()) return;
   const doomed = closableTabIds({ tabOrder: [...rt().tabOrder], tabsById: tabs, keepId });
@@ -9395,7 +9488,7 @@ function tabContextData(tab, owner) {
   return {
     tab: {
       id: tab.id, url: tab.url, title: tab.title, customTitle: tab.customTitle ?? null,
-      pinned: !!tab.pinned, muted: !!tab.muted, private: !!tab.private,
+      pinned: !!tab.pinned, muted: shownMuted(tab), private: !!tab.private,
       asleep: !!tab.asleep, bookmarked: !!tab.bookmarked,
       groupId: tab.groupId ?? null, capturing: !!tab.capturing,
       pinnedHome: {
@@ -9412,6 +9505,10 @@ function tabContextData(tab, owner) {
     canCloseOthers: closableTabIds({ tabOrder: owner.tabOrder, tabsById: tabs, keepId: tab.id }).length > 0,
     canMoveToNewWindow: owner.tabOrder.length > 1,
     canQuiet: explicitSleepEligible(tab, owner),
+    canCloseAbove: closableBeside({ tabOrder: owner.tabOrder, tabsById: tabs, keepId: tab.id, direction: 'above' }).length > 0,
+    canCloseBelow: closableBeside({ tabOrder: owner.tabOrder, tabsById: tabs, keepId: tab.id, direction: 'below' }).length > 0,
+    // null: not a web page, so no site to mute.
+    siteMuted: hostOf(tab.url) ? siteMutes.has(siteMuteKey(tab), hostOf(tab.url)) : null,
   };
 }
 
@@ -9460,6 +9557,9 @@ function menuContextActions(owner) {
     newTab: b(() => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true })),
     newPrivateTab: b(() => setActiveTab(createTab(PRIVATE_NEW_TAB_URL, { private: true }), { focusContent: false, focusAddress: true })),
     closeOthers: b((id) => closeOtherTabsInWindow(id)),
+    closeBeside: b((id, direction) => closeTabsBeside(id, direction)),
+    newTabBelow: b((id) => newTabBelow(id)),
+    toggleSiteMute: b((id) => toggleSiteMute(id)),
     moveToNewWindow: b((id) => moveTabToNewWindow(id)),
     reopenClosed: b(() => reopenClosedTab()),
     close: b((id) => closeTab(id)),

@@ -23,6 +23,7 @@ function runTabContextMenuItem(id, { tab, groupId, cleanedUrl, actions }) {
     case 'return-pinned-home': return actions.returnPinnedHome(tab.id);
     case 'set-pinned-home': return actions.setPinnedHome(tab.id);
     case 'toggle-mute': return actions.toggleMute(tab.id);
+    case 'toggle-site-mute': return actions.toggleSiteMute(tab.id);
     case 'toggle-favorite': return actions.toggleFavorite(tab.id);
     case 'group-move': return actions.setGroup(tab.id, groupId);
     case 'group-none': return actions.setGroup(tab.id, null);
@@ -30,9 +31,12 @@ function runTabContextMenuItem(id, { tab, groupId, cleanedUrl, actions }) {
     case 'glance': return actions.glance(tab.id);
     case 'close-glance': return actions.closeGlance();
     case 'quiet': return actions.quiet(tab.id);
+    case 'new-tab-below': return actions.newTabBelow(tab.id);
     case 'new-tab': return actions.newTab();
     case 'new-private-tab': return actions.newPrivateTab();
     case 'close-others': return actions.closeOthers(tab.id);
+    case 'close-above': return actions.closeBeside(tab.id, 'above');
+    case 'close-below': return actions.closeBeside(tab.id, 'below');
     case 'move-new-window': return actions.moveToNewWindow(tab.id);
     case 'reopen-closed': return actions.reopenClosed();
     case 'close': return actions.close(tab.id);

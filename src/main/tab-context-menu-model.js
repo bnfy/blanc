@@ -35,7 +35,7 @@ function buildGroupSubmenu(tab, groups, t) {
   return sub;
 }
 
-function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null, surface, canCloseOthers, canMoveToNewWindow, canQuiet, t }) {
+function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null, surface, canCloseOthers, canMoveToNewWindow, canQuiet, canCloseAbove = false, canCloseBelow = false, siteMuted = null, t }) {
   const isActive = tab.id === activeTabId;
   const items = [];
 
@@ -72,6 +72,11 @@ function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null
     });
   }
   items.push({ id: 'toggle-mute', label: t(tab.muted ? 'tabMenu.unmute' : 'tabMenu.mute') });
+  // Mute Site: until Blanc quits, by exact host; only web pages have a site
+  // (siteMuted is null otherwise). Tab menu additions spec §4.
+  if (typeof siteMuted === 'boolean') {
+    items.push({ id: 'toggle-site-mute', label: t(siteMuted ? 'tabMenu.unmuteSite' : 'tabMenu.muteSite') });
+  }
   items.push({
     id: 'toggle-favorite',
     label: t(tab.bookmarked ? 'tabMenu.removeFavorite' : 'tabMenu.saveFavorite'),
@@ -92,11 +97,14 @@ function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null
     items.push({ type: 'separator' });
   }
 
+  items.push({ id: 'new-tab-below', label: t('tabMenu.newTabBelow') });
   items.push({ id: 'new-tab', label: t('menu.newTab'), accelerator: ACCEL.newTab });
   items.push({ id: 'new-private-tab', label: t('menu.newPrivateTab'), accelerator: ACCEL.newPrivateTab });
   items.push({ type: 'separator' });
 
   items.push({ id: 'close-others', label: t('tabMenu.closeOthers'), enabled: !!canCloseOthers });
+  items.push({ id: 'close-above', label: t('tabMenu.closeAbove'), enabled: !!canCloseAbove });
+  items.push({ id: 'close-below', label: t('tabMenu.closeBelow'), enabled: !!canCloseBelow });
   items.push({ id: 'move-new-window', label: t('tabMenu.moveToNewWindow'), enabled: !!canMoveToNewWindow });
   items.push({ type: 'separator' });
 
@@ -110,6 +118,15 @@ function closableTabIds({ tabOrder, tabsById, keepId }) {
   return tabOrder.filter((id) => id !== keepId && tabsById.get(id) && !tabsById.get(id).pinned);
 }
 
+/** Close Tabs Above / Below: the unpinned tabs before or after `keepId` in
+ * the window's (display) order. */
+function closableBeside({ tabOrder, tabsById, keepId, direction }) {
+  const at = tabOrder.indexOf(keepId);
+  if (at === -1) return [];
+  const side = direction === 'above' ? tabOrder.slice(0, at) : tabOrder.slice(at + 1);
+  return side.filter((id) => tabsById.get(id) && !tabsById.get(id).pinned);
+}
+
 /** When a tab leaves a window, which of the remaining tabs should the source
  * window select? The neighbour after it, else the one before. null if it was
  * the only tab (the caller disables Move-to-New-Window in that case). */
@@ -119,4 +136,4 @@ function pickSurvivorTabId(tabOrder, movedId) {
   return tabOrder[i + 1] ?? tabOrder[i - 1] ?? null;
 }
 
-module.exports = { buildTabContextMenu, closableTabIds, pickSurvivorTabId };
+module.exports = { buildTabContextMenu, closableTabIds, closableBeside, pickSurvivorTabId };

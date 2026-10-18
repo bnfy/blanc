@@ -1,7 +1,7 @@
 'use strict';
 const assert = require('node:assert/strict');
 const test = require('node:test');
-const { buildTabContextMenu, closableTabIds } = require('../../src/main/tab-context-menu-model');
+const { buildTabContextMenu, closableTabIds, closableBeside } = require('../../src/main/tab-context-menu-model');
 const { englishT } = require('../support/english-t');
 
 const baseTab = {
@@ -18,6 +18,9 @@ const build = (over = {}) => buildTabContextMenu({
   canCloseOthers: over.canCloseOthers ?? true,
   canMoveToNewWindow: over.canMoveToNewWindow ?? true,
   canQuiet: over.canQuiet ?? true,
+  canCloseAbove: over.canCloseAbove ?? true,
+  canCloseBelow: over.canCloseBelow ?? true,
+  siteMuted: over.siteMuted === undefined ? false : over.siteMuted,
   t: englishT,
 });
 const ids = (items) => items.filter((i) => i.id).map((i) => i.id);
@@ -27,9 +30,9 @@ test('core items present, in order, for a row on a non-active tab', () => {
   const m = build({ activeTabId: 2, surface: 'row' });
   assert.deepEqual(ids(m), [
     'copy-link', 'copy-clean-link', 'reload', 'duplicate', 'rename',
-    'toggle-pin', 'toggle-mute', 'toggle-favorite', 'group',
-    'glance', 'quiet', 'new-tab', 'new-private-tab',
-    'close-others', 'move-new-window', 'reopen-closed', 'close',
+    'toggle-pin', 'toggle-mute', 'toggle-site-mute', 'toggle-favorite', 'group',
+    'glance', 'quiet', 'new-tab-below', 'new-tab', 'new-private-tab',
+    'close-others', 'close-above', 'close-below', 'move-new-window', 'reopen-closed', 'close',
   ]);
 });
 
@@ -153,4 +156,38 @@ test('the current Glance reference offers Close Glance instead of Open in Glance
   const other = build({ activeTabId: 2, surface: 'row', glanceTabId: 3 });
   assert.equal(byId(other, 'glance').label, 'Open in Glance');
   assert.equal(byId(other, 'close-glance'), undefined);
+});
+
+// Tab menu additions (spec 2026-10-17-tab-menu-additions-design.md).
+test('the menu offers New Tab Below first in the new-tab section', () => {
+  const m = build();
+  const at = m.findIndex((i) => i.id === 'new-tab-below');
+  assert.equal(m[at - 1].type, 'separator');
+  assert.equal(m[at + 1].id, 'new-tab');
+  assert.equal(byId(m, 'new-tab-below').label, 'New Tab Below');
+});
+
+test('Close Tabs Above and Below sit after Close Other Tabs and follow their enabled state', () => {
+  const m = build({ canCloseAbove: false, canCloseBelow: true });
+  assert.equal(byId(m, 'close-above').label, 'Close Tabs Above');
+  assert.equal(byId(m, 'close-above').enabled, false);
+  assert.equal(byId(m, 'close-below').enabled, true);
+});
+
+test('nothing to close disables the item', () => {
+  assert.equal(byId(build({ canCloseBelow: false }), 'close-below').enabled, false);
+});
+
+test('the site-mute label follows the site\'s state and hides for non-web tabs', () => {
+  assert.equal(byId(build({ siteMuted: false }), 'toggle-site-mute').label, 'Mute Site');
+  assert.equal(byId(build({ siteMuted: true }), 'toggle-site-mute').label, 'Unmute Site');
+  assert.equal(byId(build({ siteMuted: null }), 'toggle-site-mute'), undefined);
+});
+
+test('closableBeside skips pins and the kept tab', () => {
+  const tabsById = new Map([['p', { pinned: true }], ['a', {}], ['k', {}], ['b', {}], ['q', { pinned: true }], ['c', {}]]);
+  const tabOrder = ['p', 'a', 'k', 'b', 'q', 'c'];
+  assert.deepEqual(closableBeside({ tabOrder, tabsById, keepId: 'k', direction: 'above' }), ['a']);
+  assert.deepEqual(closableBeside({ tabOrder, tabsById, keepId: 'k', direction: 'below' }), ['b', 'c']);
+  assert.deepEqual(closableBeside({ tabOrder, tabsById, keepId: 'c', direction: 'below' }), []);
 });

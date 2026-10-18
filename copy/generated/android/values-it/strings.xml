@@ -494,6 +494,11 @@
     <string name="tab_menu_unpin">Rilascia la scheda</string>
     <string name="tab_menu_mute">Disattiva l’audio della scheda</string>
     <string name="tab_menu_unmute">Riattiva l’audio della scheda</string>
+    <string name="tab_menu_new_tab_below">Nuova scheda sotto</string>
+    <string name="tab_menu_close_above">Chiudi le schede sopra</string>
+    <string name="tab_menu_close_below">Chiudi le schede sotto</string>
+    <string name="tab_menu_mute_site">Disattiva l’audio del sito</string>
+    <string name="tab_menu_unmute_site">Riattiva l’audio del sito</string>
     <string name="tab_menu_save_favorite">Salva nei Preferiti</string>
     <string name="tab_menu_remove_favorite">Rimuovi dai Preferiti</string>
     <string name="tab_menu_move_to_group">Sposta nel gruppo</string>

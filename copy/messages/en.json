@@ -1829,6 +1829,26 @@
     "message": "Unmute Tab",
     "note": "Tab context menu command."
   },
+  "tabMenu.newTabBelow": {
+    "message": "New Tab Below",
+    "note": "Tab context menu command; opens a new tab directly under this one (inside its group, if any)."
+  },
+  "tabMenu.closeAbove": {
+    "message": "Close Tabs Above",
+    "note": "Tab context menu command; closes every unpinned tab listed above this one in the window."
+  },
+  "tabMenu.closeBelow": {
+    "message": "Close Tabs Below",
+    "note": "Tab context menu command; closes every unpinned tab listed below this one in the window."
+  },
+  "tabMenu.muteSite": {
+    "message": "Mute Site",
+    "note": "Tab context menu command; mutes every tab on this website (exact host) until Blanc quits."
+  },
+  "tabMenu.unmuteSite": {
+    "message": "Unmute Site",
+    "note": "Tab context menu command; undoes Mute Site for this website."
+  },
   "tabMenu.saveFavorite": {
     "message": "Save to Favorites",
     "note": "Tab context menu command that adds the page to Favorites."
