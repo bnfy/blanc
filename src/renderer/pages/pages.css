@@ -3232,6 +3232,16 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .wallpaper-action:hover { color: var(--text); }
 .wallpaper-action:focus-visible { outline-offset: 3px; }
 .wallpaper-action:disabled { cursor: default; opacity: 0.6; }
+/* Change… is the row's main action, so it reads as a button like the Wash
+   chips; Remove stays a quiet link. */
+.wallpaper-action-primary {
+  min-height: 22px;
+  padding: 2px 10px;
+  border: 1px solid var(--text-dim);
+  border-radius: 999px;
+  color: var(--text);
+}
+.wallpaper-action-primary:hover { border-color: var(--text); }
 .wallpaper-styles {
   display: flex;
   flex-wrap: wrap;
