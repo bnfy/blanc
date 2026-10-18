@@ -1017,7 +1017,8 @@
       button.textContent = label;
       button.disabled = disabled;
       button.addEventListener('click', async () => {
-        await commitGroupName({ close: false });
+        // A refused name keeps the menu open with its notice; nothing runs.
+        if (!(await commitGroupName({ close: false }))) return;
         closeGroupMenu({ commit: false, closeOverlay: true });
         run();
       });
@@ -1053,7 +1054,8 @@
         return false;
       }
     }
-    if (close) closeGroupMenu({ commit: false, closeOverlay: true });
+    // Enter is a keyboard close: focus goes back to the header's ⋮.
+    if (close) closeGroupMenu({ commit: false, closeOverlay: true, reason: 'cancel' });
     return true;
   }
 
@@ -2515,7 +2517,11 @@
     document.body.dataset.mode = next ?? '';
     document.body.dataset.glancePurpose = glancePickerPurpose ?? '';
     if (next !== 'panel' && next !== 'palette' && next !== 'spaces') closeWorkspaceSwitcher();
-    if (groupMenu?.host === 'panel' && next !== 'panel' && next !== 'palette') closeGroupMenu();
+    // A group menu belongs to the surface that opened it: the panel's goes
+    // when the panel does, the side list's when any other mode replaces it.
+    if (groupMenu && (groupMenu.host === 'mode' ? next !== 'group-menu' : next !== 'panel' && next !== 'palette')) {
+      closeGroupMenu({ commit: true });
+    }
     backdrop.hidden = next !== 'panel' && next !== 'palette';
     panelAnchor.hidden = next !== 'panel' && next !== 'palette';
     findBar.hidden = next !== 'find';

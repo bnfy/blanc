@@ -320,3 +320,12 @@ Feature: Tabs and tab groups
     When I choose "Move Group to New Window" in the group menu for "work"
     Then a new window holds the group "work" with 3 tabs and the color "clay"
     And the first window no longer has the group "work"
+
+  @F3-32 @F3 @desktop
+  Scenario: Opening the panel closes a side-list group menu
+    Given a group "work" with 2 tabs
+    When I open the group menu for "work" in the rail
+    And the island panel opens over it
+    Then no group menu is open
+    And no side-list group header is marked open
+    And a click in the island panel keeps it open

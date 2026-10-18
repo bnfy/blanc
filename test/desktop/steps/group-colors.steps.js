@@ -136,3 +136,25 @@ Then('the first window no longer has the group {string}', async function (name) 
   assert.equal(runtimes[0].groups.some((group) => group.name.toLowerCase() === name.toLowerCase()), false);
   assert.ok(runtimes[0].tabs.length >= 1, 'the first window keeps its other tabs');
 });
+
+When('the island panel opens over it', async function () {
+  await this.call('openPanel');
+  await waitForValue(() => this.call('overlayRendererMode'), (mode) => mode === 'panel', 'the panel');
+});
+
+Then('no group menu is open', async function () {
+  const page = await overlayPage();
+  await waitForValue(() => page.locator('#groupMenu').evaluate((el) => el.hidden), (hidden) => hidden === true, 'the group menu closed');
+});
+
+Then('no side-list group header is marked open', async function () {
+  const page = await chromePage();
+  await waitForValue(() => page.locator('.vertical-tabs-group-row.menu-open').count(), (n) => n === 0, 'no header marked open');
+});
+
+Then('a click in the island panel keeps it open', async function () {
+  const page = await overlayPage();
+  await page.locator('#islandList').click({ position: { x: 5, y: 5 } }).catch(() => {});
+  await new Promise((resolve) => setTimeout(resolve, 300));
+  assert.equal(await this.call('overlayRendererMode'), 'panel');
+});

@@ -3716,6 +3716,13 @@ function showOverlay(mode, { prefill, purpose } = {}) {
     cancelPendingIslandProximity(rt());
     if (rt().islandProximity.k !== 0) sendIslandProximity(rt(), { k: 0 });
   }
+  // Another surface replacing the side list's group menu: that header forgets
+  // its open state, as it does when the menu closes (hideOverlay).
+  if (rt().overlayMode === 'group-menu' && mode !== 'group-menu' && typeof rt().overlayPurpose?.groupId === 'string') {
+    rt().window.webContents.send('chrome:island-state', {
+      mode: null, trigger: `group-menu:${rt().overlayPurpose.groupId}`, restoreTrigger: null,
+    });
+  }
   rt().overlayMode = mode;
   rt().overlayPrefill = prefill ?? null;
   rt().overlayPurpose = purpose ?? null;

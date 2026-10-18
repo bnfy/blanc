@@ -95,3 +95,11 @@ test('Ungroup moves every member to the ungrouped tabs and the group goes away',
   assert.deepEqual([...h.tabs.values()].map((tab) => tab.groupId), [null, null, 'b']);
   assert.deepEqual(h.runtime.groups.map((group) => group.id), ['b']);
 });
+
+test('a refused name stops the action, and Enter hands focus back to the header', () => {
+  const overlay = read('src/renderer/overlay.js');
+  const build = overlay.slice(overlay.indexOf('function buildGroupMenu('), overlay.indexOf('async function commitGroupName('));
+  assert.match(build, /if \(!\(await commitGroupName\(\{ close: false \}\)\)\) return;/);
+  const commit = overlay.slice(overlay.indexOf('async function commitGroupName('), overlay.indexOf('function closeGroupMenu('));
+  assert.match(commit, /closeGroupMenu\(\{ commit: false, closeOverlay: true, reason: 'cancel' \}\)/);
+});
