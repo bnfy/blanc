@@ -187,6 +187,8 @@ const { attachWorkspaceRowMenu } = require('./workspace-context-menu');
 const settings = require('./settings');
 const wallpaper = require('./wallpaper');
 const { effectiveSource } = require('./wallpaper-model');
+const { colorWallpaper } = require('./start-page-paint');
+const SpaceIdentity = require('../renderer/space-identity');
 // Bangs: the pure grammar and the generated catalog the Island shares with
 // main, and main's resolver over the settings (spec
 // docs/superpowers/specs/2026-10-16-bangs-design.md).
@@ -8278,7 +8280,11 @@ function workspacesProjection() {
  * can plausibly render the list — mirroring how chrome:island-proximity
  * targets the window's webContents and chrome:remote-tabs-updated targets
  * the overlay's. */
+// Set once the Start Page hooks exist: a Space created, switched or recolored
+// repaints any Start Page following its Space's color.
+let onSpacesChangedForStartPage = () => {};
 function broadcastWorkspacesUpdated() {
+  onSpacesChangedForStartPage();
   forEachWindowRuntime((runtime) => {
     const payload = workspacesProjection();
     runtime.window.webContents.send('chrome:workspaces-updated', payload);
@@ -11309,14 +11315,23 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     windowCount: 0,
     error: null,
   };
+  // The color of the Space a tab's window is in, or null. Only the hex
+  // reaches the page, never the Space's name or id.
+  const spaceColorForTab = (tab) => {
+    if (!tab || tab.private) return null;
+    const runtime = windowRuntimes.runtimeForTab(tab.id);
+    if (!runtime?.workspaceId) return null;
+    return withWindowRuntime(runtime, () => namedWorkspaces.get(runtime.workspaceId)?.color ?? null);
+  };
   // F49: what a Start Page draws. A private tab never receives the custom
-  // image; `hasImage` lets the page offer Change/Remove.
-  const wallpaperState = (isPrivate) => {
+  // image or a color; `hasImage` lets the page offer Change/Remove.
+  const wallpaperState = (isPrivate, spaceColor = null) => {
     const current = settings.getSettings();
     const hasImage = wallpaper.current() !== null;
     const source = effectiveSource({
       dynamic: current.newtabDynamicWallpaper,
       custom: current.newtabCustomWallpaper,
+      color: current.newtabColorWallpaper,
       hasImage,
       isPrivate,
     });
@@ -11327,6 +11342,21 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       image: hasImage && !isPrivate ? wallpaper.imageUrl() : null,
       wash: current.newtabWallpaperWash,
       style: current.newtabWallpaperStyle,
+      // The Color wallpaper: the chosen preset and fill, whether a window in a
+      // Space takes its color, and the finished paint (also while another
+      // wallpaper shows, for the Color pane's preview).
+      color: isPrivate ? null : {
+        preset: current.newtabWallpaperColor,
+        followSpace: current.newtabFollowSpaceColor,
+        inSpace: spaceColor !== null,
+        paint: colorWallpaper({
+          preset: current.newtabWallpaperColor,
+          fill: current.newtabWallpaperFill,
+          followSpace: current.newtabFollowSpaceColor,
+          spaceColor,
+        }),
+        presets: SpaceIdentity.PRESETS.map(({ id, hex }) => ({ id, hex })),
+      },
     };
   };
   const startPageStatus = () => {
@@ -11379,7 +11409,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       if (!tab.url?.startsWith('blanc://newtab')) continue;
       liveContents(tab)?.send('pages:start:status', {
         ...status,
-        wallpaper: tab.private ? wallpaperState(true) : status.wallpaper,
+        wallpaper: tab.private ? wallpaperState(true) : wallpaperState(false, spaceColorForTab(tab)),
         migrationChecklist: migrationChecklistForTab(
           status.migrationChecklist,
           tab,
@@ -11391,6 +11421,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // A layout picked in Settings (or arriving from Profile Sync) must reach
   // every open start page, not just the one that made the change.
   settings.onSettingsChanged(() => broadcastStartPageStatus());
+  onSpacesChangedForStartPage = () => broadcastStartPageStatus();
   // pages.js's IPC surface derives runtime ownership from the sender before
   // any window-local hook runs. A background window's ledger/sheet can never
   // read or mutate the focused window's groups or overlay.
@@ -11534,7 +11565,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       status: startPageStatus,
       visibleFor: (wc) => startPageViewVisible(tabs.get(tabIdByWebContentsId.get(wc.id))),
       // The Settings sheet is no tab, so it gets the ordinary (non-private) state.
-      wallpaperFor: (wc) => wallpaperState(tabs.get(tabIdByWebContentsId.get(wc.id))?.private === true),
+      wallpaperFor: (wc) => {
+        const tab = tabs.get(tabIdByWebContentsId.get(wc.id));
+        return wallpaperState(tab?.private === true, spaceColorForTab(tab));
+      },
       wallpaperChanged: () => broadcastStartPageStatus(),
       migrationChecklistFor: (wc) => migrationChecklistForTab(
         startPageStatus().migrationChecklist,

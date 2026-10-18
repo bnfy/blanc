@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "5a9d312ed805ae3e5205f3460a55168aec400bc50e0baa6c8b7dc81e61481cf9",
+      "sha256": "b06cc2333bfe4eea3541cabad4262284296ec71b59e2a05aa686c0297b866ffb",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -465,7 +465,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "1d39f6257622c26eba7209b5e93bcdb8a1d91c3839a56234b9f6cb254ecebd50",
+      "sha256": "c56be347fc3f5a604a465bcaedc4d002eb6b3814f6e5da44c84ea11cba09a2d8",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -552,6 +552,9 @@
         "pages:start:set-dynamic-wallpaper",
         "pages:start:set-layout",
         "pages:start:set-wallpaper",
+        "pages:start:set-wallpaper-color",
+        "pages:start:set-wallpaper-fill",
+        "pages:start:set-wallpaper-follow-space",
         "pages:start:set-wallpaper-style",
         "pages:start:set-wallpaper-wash",
         "pages:start:startup-continue",
@@ -812,7 +815,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "1da99a1c61dac752abd921451c45be27356d707977eb0ce4b49da6267315f4f4",
+      "sha256": "f8ee7753b345305ff37da3ff6fc3aab51dc2fdbd39e9410bfdadafbf00ef4d29",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -901,6 +904,9 @@
         "pages:start:set-dynamic-wallpaper",
         "pages:start:set-layout",
         "pages:start:set-wallpaper",
+        "pages:start:set-wallpaper-color",
+        "pages:start:set-wallpaper-fill",
+        "pages:start:set-wallpaper-follow-space",
         "pages:start:set-wallpaper-style",
         "pages:start:set-wallpaper-wash",
         "pages:start:startup-continue",

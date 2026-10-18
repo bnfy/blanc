@@ -1409,6 +1409,14 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="newtab_wallpaper_style_light">Claro</string>
     <string name="newtab_wallpaper_style_dark">Oscuro</string>
     <string name="newtab_wallpaper_style_spotlight">Foco</string>
+    <string name="newtab_wallpaper_color">Color</string>
+    <string name="newtab_wallpaper_fill_label">Relleno</string>
+    <string name="newtab_wallpaper_fill_soft">Suave</string>
+    <string name="newtab_wallpaper_fill_solid">Sólido</string>
+    <string name="newtab_wallpaper_fill_gradient">Degradado</string>
+    <string name="newtab_wallpaper_follow_space">Usar el color de cada Space</string>
+    <string name="newtab_wallpaper_follow_space_hint">En un Space, la página de inicio toma el color de ese Space.</string>
+    <string name="newtab_wallpaper_follow_space_showing">Se muestra el color del Space de esta ventana.</string>
     <string name="newtab_wallpaper_choose_title">Elige una imagen para la página de inicio</string>
     <string name="newtab_wallpaper_filter">Imágenes</string>
     <string name="newtab_wallpaper_error_too_large">La imagen pesa más de 25 MB.</string>

@@ -39,6 +39,12 @@ export interface NewtabPagesAPI {
     setWallpaperWash: (wash: unknown) => Promise<unknown>;
     /** Choose the wash over the Start Page image: auto, light, dark or spotlight. IPC: invoke `pages:start:set-wallpaper-style`. */
     setWallpaperStyle: (style: unknown) => Promise<unknown>;
+    /** Choose the Color wallpaper's Spaces preset (sage, sky, iris, rose, clay, sand, slate or graphite). IPC: invoke `pages:start:set-wallpaper-color`. */
+    setWallpaperColor: (preset: unknown) => Promise<unknown>;
+    /** Choose how the Color wallpaper is drawn: soft, solid or gradient. IPC: invoke `pages:start:set-wallpaper-fill`. */
+    setWallpaperFill: (fill: unknown) => Promise<unknown>;
+    /** Whether a window in a Space draws that Space's color as the Color wallpaper. IPC: invoke `pages:start:set-wallpaper-follow-space`. */
+    setWallpaperFollowSpace: (enabled: unknown) => Promise<unknown>;
     /** Pick an image file for the Start Page wallpaper and show it. IPC: invoke `pages:start:choose-wallpaper`. */
     chooseWallpaper: () => Promise<unknown>;
     /** Delete the stored Start Page image and return to Sunrise. IPC: invoke `pages:start:remove-wallpaper`. */

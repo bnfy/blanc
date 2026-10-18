@@ -591,6 +591,20 @@ function setupPages(hooks = {}) {
     settings.setSettings({ newtabWallpaperStyle: style });
     return wallpaperReply(event);
   });
+  // The Color wallpaper (synced): a Spaces preset id, a fill, and whether a
+  // window in a Space takes that Space's color. Anything else is ignored.
+  handleEvent('pages:start:set-wallpaper-color', 'newtab', (event, preset) => {
+    settings.setSettings({ newtabWallpaperColor: preset });
+    return wallpaperReply(event);
+  });
+  handleEvent('pages:start:set-wallpaper-fill', 'newtab', (event, fill) => {
+    settings.setSettings({ newtabWallpaperFill: fill });
+    return wallpaperReply(event);
+  });
+  handleEvent('pages:start:set-wallpaper-follow-space', 'newtab', (event, enabled) => {
+    if (typeof enabled === 'boolean') settings.setSettings({ newtabFollowSpaceColor: enabled });
+    return wallpaperReply(event);
+  });
   handleEvent('pages:start:choose-wallpaper', ['newtab', 'settings'], async (event) => {
     let file = hooks.wallpaperTestFile?.() ?? null;
     if (!file) {

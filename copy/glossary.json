@@ -259,7 +259,8 @@
       "settings.general.bangs.label",
       "groupMenu.colorLabel",
       "newtab.wallpaper.styleAuto",
-      "newtab.wallpaper.sunrise"
+      "newtab.wallpaper.sunrise",
+      "newtab.wallpaper.color"
     ],
     "fr": [
       "about.chromium",

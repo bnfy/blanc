@@ -1389,3 +1389,30 @@ General → Start Page image offers the same.
   dependency; `src/main/wallpaper.js` is the Electron adapter.
 - **Acceptance:** `test/desktop/custom-wallpaper-smoke.mjs`,
   `test/unit/wallpaper-model.test.js` and `test/unit/newtab-wallpaper.test.js`.
+
+## F50 — Start Page color wallpaper (desktop)
+
+F49's Wallpaper choice gains a third option, **Color**, between Sunrise and
+Your image. It paints the Start Page with one of the eight Spaces presets
+(Sage, Sky, Iris, Rose, Clay, Sand, Slate, Graphite) instead of artwork.
+
+- **Fill.** Soft tints the theme's own background and keeps its text; Solid
+  is the color exactly; Gradient runs from a lighter glow to a deeper corner
+  of it. Solid and Gradient switch the page to the text set that suits the
+  color and use its ink (white for every preset). Every stop keeps that ink
+  and its quieter dim tone at 4.5:1 or better, and Soft keeps the theme's dim
+  text at 4.5:1.
+- **Match each space's color.** While Color shows, a window in a Blanc Space
+  draws that Space's color with the chosen fill, live as the Space is saved or
+  recolored. The swatches then apply only outside Spaces. The page receives
+  the color alone, never the Space's name or id.
+- **Sync.** The choice, the preset, the fill and the switch are synced
+  (`newtabColorWallpaper`, `newtabWallpaperColor`, `newtabWallpaperFill`,
+  `newtabFollowSpaceColor`). This device's own image (F49) still wins on this
+  device. Older builds ignore these keys and show Sunrise or time of day.
+- **Private tabs** never show a color.
+- **Portability.** `src/main/start-page-paint.js` (the stops, inks and soft
+  tints, with no Electron dependency) decides every color; the page applies
+  the finished values.
+- **Acceptance:** `test/desktop/custom-wallpaper-smoke.mjs`,
+  `test/unit/start-page-paint.test.js` and `test/unit/wallpaper-model.test.js`.

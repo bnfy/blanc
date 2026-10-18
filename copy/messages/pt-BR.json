@@ -4999,6 +4999,38 @@
     "message": "Holofote",
     "source": "sha256:adba11996fa4271e3e1e9ab7cf52a73668efa24ceb18c85fbeacb2a43b198596"
   },
+  "newtab.wallpaper.color": {
+    "message": "Cor",
+    "source": "sha256:07213006f6d754b4798b1ec73bd69ddbb86f630866f39659dd28c936b9d207fc"
+  },
+  "newtab.wallpaper.fillLabel": {
+    "message": "Preenchimento",
+    "source": "sha256:947d3c5589fb32ec9830cd231ab2189b65e3e913d9936ebcb181466450ad0c91"
+  },
+  "newtab.wallpaper.fillSoft": {
+    "message": "Suave",
+    "source": "sha256:213d322379a16a7440d5b7d296e9cf8da484ed303efd72f28a5d7adf51cf9a9d"
+  },
+  "newtab.wallpaper.fillSolid": {
+    "message": "Sólido",
+    "source": "sha256:16911588b66997b3480aa8329296628d601861e6168e8014fd27a931460079f2"
+  },
+  "newtab.wallpaper.fillGradient": {
+    "message": "Gradiente",
+    "source": "sha256:0118c3167d80d8241077decd4e2e17df8f727b84f78ded5136fac0d77f8071de"
+  },
+  "newtab.wallpaper.followSpace": {
+    "message": "Usar a cor de cada Space",
+    "source": "sha256:1ff58717c6e6174c1e7576b685f5c33c4857be8a33d512f4133561564b693c7b"
+  },
+  "newtab.wallpaper.followSpaceHint": {
+    "message": "Em um Space, a página inicial usa a cor desse Space.",
+    "source": "sha256:a070e3bf734a99bae92e05a99f50969c4e43acee8b885948239af0ba1c16b940"
+  },
+  "newtab.wallpaper.followSpaceShowing": {
+    "message": "A cor do Space desta janela está aparecendo.",
+    "source": "sha256:659dbca731d3cba78aa16bf8e424582c618ed8216a75769ff38c34fe5dbdbf44"
+  },
   "newtab.wallpaper.chooseTitle": {
     "message": "Escolha uma imagem para a página inicial",
     "source": "sha256:2000a47e1b32ca9c3334a4dfbe7be6b03538908d7b38a355a8313e2ad46db5cb"

@@ -5174,6 +5174,43 @@
     "note": "Wash choice: wash only behind the clock and content, leaving the image’s edges clear.",
     "maxLength": 14
   },
+  "newtab.wallpaper.color": {
+    "message": "Color",
+    "note": "Start page → Customize popover, under Wallpaper: choice that paints the Start Page with one of the Spaces colors, between “Sunrise” and “Your image”. Also the label of the row of color swatches.",
+    "maxLength": 14
+  },
+  "newtab.wallpaper.fillLabel": {
+    "message": "Fill",
+    "note": "Start page → Customize popover, under Color: short label before the Soft / Solid / Gradient choice, which sets how the color is drawn.",
+    "maxLength": 14
+  },
+  "newtab.wallpaper.fillSoft": {
+    "message": "Soft",
+    "note": "Start page → Customize popover, under Color → Fill: a faint tint of the color over the usual light or dark background.",
+    "maxLength": 10
+  },
+  "newtab.wallpaper.fillSolid": {
+    "message": "Solid",
+    "note": "Start page → Customize popover, under Color → Fill: the color exactly, edge to edge.",
+    "maxLength": 10
+  },
+  "newtab.wallpaper.fillGradient": {
+    "message": "Gradient",
+    "note": "Start page → Customize popover, under Color → Fill: a gradient from a lighter to a deeper shade of the color.",
+    "maxLength": 10
+  },
+  "newtab.wallpaper.followSpace": {
+    "message": "Match each space’s color",
+    "note": "Start page → Customize popover, under Color: switch; when on, a window that is in a Blanc space shows that space’s color instead of the color chosen above."
+  },
+  "newtab.wallpaper.followSpaceHint": {
+    "message": "In a space, the Start Page takes that space’s color.",
+    "note": "Start page → Customize popover: hint under the “Match each space’s color” switch."
+  },
+  "newtab.wallpaper.followSpaceShowing": {
+    "message": "This window’s space color is showing.",
+    "note": "Start page → Customize popover: hint under the “Match each space’s color” switch while it is on and this window is in a space, so the swatches above apply only outside spaces."
+  },
   "newtab.wallpaper.chooseTitle": {
     "message": "Choose a Start Page image",
     "note": "Title of the native file picker for the Start Page wallpaper image."

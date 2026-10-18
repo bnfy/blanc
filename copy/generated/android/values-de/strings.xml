@@ -1372,6 +1372,14 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="newtab_wallpaper_style_light">Hell</string>
     <string name="newtab_wallpaper_style_dark">Dunkel</string>
     <string name="newtab_wallpaper_style_spotlight">Spotlight</string>
+    <string name="newtab_wallpaper_color">Farbe</string>
+    <string name="newtab_wallpaper_fill_label">Füllung</string>
+    <string name="newtab_wallpaper_fill_soft">Sanft</string>
+    <string name="newtab_wallpaper_fill_solid">Vollton</string>
+    <string name="newtab_wallpaper_fill_gradient">Verlauf</string>
+    <string name="newtab_wallpaper_follow_space">Farbe des jeweiligen Space übernehmen</string>
+    <string name="newtab_wallpaper_follow_space_hint">In einem Space zeigt die Startseite dessen Farbe.</string>
+    <string name="newtab_wallpaper_follow_space_showing">Die Farbe des Space dieses Fensters ist zu sehen.</string>
     <string name="newtab_wallpaper_choose_title">Bild für die Startseite wählen</string>
     <string name="newtab_wallpaper_filter">Bilder</string>
     <string name="newtab_wallpaper_error_too_large">Das Bild ist größer als 25 MB.</string>

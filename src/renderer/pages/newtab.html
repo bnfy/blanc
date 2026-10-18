@@ -196,13 +196,12 @@
         </div>
         <hr class="customize-divider" />
         <div id="customizeWallpaperLabel" class="customize-label" data-i18n="newtab.customize.wallpaperHeading">Wallpaper</div>
-        <!-- Two wallpapers; each shows only its own options, so the clock
-             switch can never look like it applies to your image. -->
         <!-- A cover preview of what the Start Page will show. Only the chosen
              wallpaper's options appear, so the clock switch can never look
              like it applies to your image. -->
         <div id="wallpaperSourcePicker" class="wallpaper-seg" role="group" aria-labelledby="customizeWallpaperLabel">
           <button id="sunriseWallpaperPick" type="button" aria-pressed="true" disabled data-i18n="newtab.wallpaper.sunrise">Sunrise</button>
+          <button id="colorWallpaperPick" type="button" aria-pressed="false" disabled data-i18n="newtab.wallpaper.color">Color</button>
           <button id="customWallpaperToggle" type="button" aria-pressed="false" disabled data-i18n="newtab.wallpaper.custom">Your image</button>
         </div>
         <div id="customWallpaperCover" class="wallpaper-cover" data-source="sunrise"></div>
@@ -211,6 +210,27 @@
         <div id="customWallpaperActions" class="wallpaper-caption" role="group" aria-label="Image" data-i18n-aria-label="newtab.wallpaper.imageLabel" hidden>
           <button id="customWallpaperChange" class="wallpaper-caption-action" type="button" data-i18n="newtab.wallpaper.chooseAnother">Choose another image…</button>
           <button id="customWallpaperRemove" class="wallpaper-caption-action wallpaper-caption-quiet" type="button" data-i18n="newtab.wallpaper.remove">Remove</button>
+        </div>
+        <!-- Color: the Spaces presets as swatches (built by the page script from
+             main's list), how the color is drawn, and whether a window in a
+             space takes that space's color instead. -->
+        <div id="colorWallpaperOptions" class="wallpaper-color" hidden>
+          <div id="colorWallpaperSwatches" class="wallpaper-swatches" role="group" aria-label="Color" data-i18n-aria-label="newtab.wallpaper.color"></div>
+          <div class="wallpaper-line wallpaper-fill-line">
+            <span id="colorWallpaperFillLabel" class="wallpaper-line-label" data-i18n="newtab.wallpaper.fillLabel">Fill</span>
+            <div id="colorWallpaperFillRow" class="wallpaper-seg wallpaper-seg-fill" role="group" aria-labelledby="colorWallpaperFillLabel">
+              <button type="button" data-wallpaper-fill-pick="soft" aria-pressed="false" data-i18n="newtab.wallpaper.fillSoft">Soft</button>
+              <button type="button" data-wallpaper-fill-pick="solid" aria-pressed="false" data-i18n="newtab.wallpaper.fillSolid">Solid</button>
+              <button type="button" data-wallpaper-fill-pick="gradient" aria-pressed="true" data-i18n="newtab.wallpaper.fillGradient">Gradient</button>
+            </div>
+          </div>
+          <div class="wallpaper-follow">
+            <button id="colorWallpaperFollow" class="wallpaper-toggle" type="button" aria-pressed="false" aria-describedby="colorWallpaperFollowHint">
+              <span class="wallpaper-toggle-track" aria-hidden="true"></span>
+              <span data-i18n="newtab.wallpaper.followSpace">Match each space’s color</span>
+            </button>
+            <p id="colorWallpaperFollowHint" class="wallpaper-follow-hint" data-i18n="newtab.wallpaper.followSpaceHint">In a space, the Start Page takes that space’s color.</p>
+          </div>
         </div>
         <div class="wallpaper-lines">
           <button id="dynamicWallpaperToggle" class="wallpaper-toggle" type="button" aria-pressed="false" disabled>

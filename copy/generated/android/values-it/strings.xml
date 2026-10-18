@@ -1409,6 +1409,14 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="newtab_wallpaper_style_light">Chiaro</string>
     <string name="newtab_wallpaper_style_dark">Scuro</string>
     <string name="newtab_wallpaper_style_spotlight">Riflettore</string>
+    <string name="newtab_wallpaper_color">Colore</string>
+    <string name="newtab_wallpaper_fill_label">Riempimento</string>
+    <string name="newtab_wallpaper_fill_soft">Tenue</string>
+    <string name="newtab_wallpaper_fill_solid">Pieno</string>
+    <string name="newtab_wallpaper_fill_gradient">Sfumato</string>
+    <string name="newtab_wallpaper_follow_space">Usa il colore di ogni Space</string>
+    <string name="newtab_wallpaper_follow_space_hint">In uno Space, la pagina iniziale prende il colore di quello Space.</string>
+    <string name="newtab_wallpaper_follow_space_showing">È visibile il colore dello Space di questa finestra.</string>
     <string name="newtab_wallpaper_choose_title">Scegli un’immagine per la pagina iniziale</string>
     <string name="newtab_wallpaper_filter">Immagini</string>
     <string name="newtab_wallpaper_error_too_large">L’immagine supera i 25 MB.</string>

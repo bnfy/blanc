@@ -1,7 +1,7 @@
 # Start Page color backgrounds and Space wallpapers — design
 
 Date: October 18, 2026. Status: **direction A chosen by the owner on October 18, 2026** (Color as a
-third wallpaper, plus Match each space's color). Not implemented yet. Follows F49 (PR #945, unreleased), whose spec
+third wallpaper, plus Match each space's color). Implemented as F50 on `claude/start-page-color-spaces-design`, unreleased; see *As built* at the end. Follows F49 (PR #945, unreleased), whose spec
 (`2026-10-18-custom-wallpaper-design.md`) lists both as later phases:
 
 1. Solid and gradient backgrounds built from the eight Space presets.
@@ -139,3 +139,30 @@ ask for different images per Space; nothing in A blocks it.
 Two-color gradients, an eyedropper or free color picker on the Start Page,
 grain/noise, animated gradients, and an Island accent color (the Island stays
 neutral).
+
+## As built (October 18, 2026)
+
+Changes from the plan above, made while implementing direction A:
+
+- **Four synced keys, not three.** `newtabColorWallpaper` (boolean: Color is
+  the wallpaper) is separate from `newtabWallpaperColor` (the preset, default
+  Sage), so going back to Sunrise keeps the chosen preset for next time.
+  `newtabWallpaperFill` defaults to Gradient; `newtabFollowSpaceColor` to off.
+- **Following applies only while Color shows.** The switch lives in the Color
+  pane, so it never silently changes Sunrise or Your image. Precedence on a
+  device: your image > Color (the Space's color when following and in a Space,
+  else the preset) > time of day > Sunrise.
+- **Main sends finished hex values.** `start-page-paint.js` in `src/main/`
+  computes base, glow, deep, ink, dim and the two Soft tints; `blanc://` pages
+  cannot load `src/renderer/space-identity.js`, and computing in one place
+  keeps every contrast in a unit test. The glow is capped at 5.2:1 against the
+  ink so the dim tone (dates, labels) can stay at 4.5:1 on every stop; that
+  keeps the gradient subtle on the mid-dark presets. Soft is a 12% tint in
+  light and 36% in dark, cut back further where the theme's dim text would
+  fall below 4.5:1 (Graphite in light).
+- **The popover follows the page.** On Solid and Gradient the page takes the
+  text set that suits its ink (the same set as F49's Light/Dark wash), so the
+  Customize popover turns dark over white-ink colors rather than keeping the
+  light material the mock-up showed.
+- **Settings page unchanged.** Color is offered in the Customize popover
+  only; Settings → General → Start Page image still covers your image.
