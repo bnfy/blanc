@@ -34,7 +34,7 @@ allows (one build at a time; the spikes alternate, they never overlap a build).
 3 runs alongside as a document. 4, 5 and 6 fill the gaps. The tranche ends
 when every row has its artifact, or when a kill criterion is hit and recorded.
 
-### 1.1 Progress checkpoint — October 17, 2026 (bounded uBO cosmetics; document-start and update identity still open)
+### 1.1 Progress checkpoint — October 17, 2026 (early scriptlet failure reproduced; update identity loss boundary located)
 
 This table is the live map from implementation work back to the approved plan.
 Detailed measurements remain in `rebase-ledger.md`; test outcomes and evidence
@@ -49,12 +49,13 @@ links remain in `results.md`. A row marked in progress is not acceptance.
 | 5. VoiceOver pass | **Not started** | Island rotor, labels, order and Escape focus-return checklist remains required. |
 | 6. Cost sheet | **Not started** | Task 0 clean recovery, fortnightly maintenance and extension-release wait must remain three separate lines. |
 
-Current follow-up: bounded uBO cosmetic parity is measured, with a shared
-first-inline-script timing failure kept separate from matching late behavior.
-Eight two-registration same-script sessions leave all 16 update identities as
-explicit gaps; lifecycle success is not registration correlation. See
-`evidence/f12-ubo-cosmetics-20261017/`. No native compilation (guard zero actions).
-Latency remains deferred. Following paragraphs are historical checkpoints.
+Current follow-up: 48 normal/CSP document loads (with and without an injection
+observer) miss the first-inline constant and immediate fetch protections in both
+runtimes, including reloads. Later injection succeeds. Source audit locates the
+update identity loss: version omitted and scope reduced to origin before the
+factory hook. Neither gate is resolved. See `evidence/f12-scriptlet-start-20261017/`
+for explicit implementation directions and evidence, not a claimed fix. Guard:
+zero actions; no compilation. Latency deferred. Following paragraphs are historical.
 
 Service lifecycle behavior is now measured in eight fresh regular/private
 Electron/Chromium sessions: failed registration, controlled network fetch, cache

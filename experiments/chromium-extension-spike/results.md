@@ -1482,3 +1482,17 @@ identities remain ambiguous gaps. No URL/order/timing join introduced.
 compilations, no cold cost. Native footprint unchanged. Reports give session
 brackets only; owner attention/agent time unmeasured. Latency deferred. Full
 Spike A/B acceptance, Task 0 outcome and baseline promotion remain unchanged.
+
+
+### Document-start / update-identity follow-up — October 17, 2026
+
+See [evidence](evidence/f12-scriptlet-start-20261017/README.md). Two four-session sets (with/without injection
+observer), 48 loads across normal/CSP, first visit/reload/fresh navigation:
+0 early constant and 0 immediate-fetch prevention passes; later getter/constant
+succeed. Both gates remain open; no fixture delay or fabricated identity fix.
+Pinned source shows update version omitted and full scope collapsed to origin
+before factory interception. Correct fixes require pre-page-script registration
+with generation/document binding, and an independent loader-registration join
+in both runtimes. 142 tests / 77-file lint pass; archives independently verified.
+Guard zero actions, no native compile/cold cost; footprint unchanged. Latency
+deferred; owner attention/agent time unmeasured. Plan acceptance unchanged.

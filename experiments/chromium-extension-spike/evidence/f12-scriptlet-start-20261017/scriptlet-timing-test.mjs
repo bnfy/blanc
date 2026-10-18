@@ -1,0 +1,6 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {verifyTiming} from './scriptlet-timing-verify.mjs';
+function sample(){return ['electron-a','electron-b','chromium-a','chromium-b'].map(label=>({label,faults:[],pages:['normal','csp'].flatMap(mode=>['cold','reload','fresh'].map(stage=>{const id=mode+'-'+(stage==='reload'?'cold':stage);return {mode,stage,url:'https://fixture.test/'+id,early:{ready:'loading',flag:false,getter:false},late:{flag:true,getter:true},fetch:'NETWORK LEAK',arrivals:[{url:'https://fixture.test/prevented-'+id}],injections:null};}))}));}
+test('late success never promotes early requirements',()=>{const r=verifyTiming(sample());assert.equal(r.earlyConstantPasses,0);assert.equal(r.earlyFetchPasses,0);assert.equal(r.documentStartPassed,false);});
+test('response forgery cannot conceal early network escape',()=>{const r=sample();r[0].pages[0].fetch='';assert.throws(()=>verifyTiming(r));});
+test('post-load sample is not document-start evidence',()=>{const r=sample();r[0].pages[0].early.ready='complete';assert.throws(()=>verifyTiming(r));});
+test('actual early pass is recognized without requiring a failure',()=>{const r=sample();for(const x of r)for(const p of x.pages){p.early.flag=true;p.early.getter=true;p.fetch='';p.arrivals=[];}assert(verifyTiming(r).documentStartPassed);});
