@@ -38,7 +38,7 @@ export function createDeliveryBarrier(timeoutMs = 3000) {
                     querying = true;
                     try {
                         for ( const [token, lease] of [...pending] ) {
-                            const gone = await destroyed(lease.documentId);
+                            const gone = lease.documentId ? await destroyed(lease.documentId) : false;
                             if ( active && gone === true && pending.get(token) === lease ) {
                                 pending.delete(token);
                             }
@@ -56,3 +56,6 @@ export function createDeliveryBarrier(timeoutMs = 3000) {
     };
 }
 export const staticDeliveries = createDeliveryBarrier();
+
+// API completion leases have no document-destruction shortcut.
+export const upstreamDeliveries = createDeliveryBarrier();

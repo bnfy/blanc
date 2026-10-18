@@ -1,6 +1,6 @@
 // Generated payload integration, used only by the offline component prototype.
 // GPL-3.0-or-later when combined with the pinned uBO payload.
-import { staticDeliveries } from './blanc-static-delivery.js';
+import { staticDeliveries, upstreamDeliveries } from './blanc-static-delivery.js';
 let generation = 0, initialized = false, loaded = false, ready = false, starting = false;
 async function command(action, epoch) {
     const response = await fetch(`http://blanc-ubo-control.invalid/${action}?${epoch}`, { cache: 'no-store' });
@@ -13,7 +13,22 @@ async function destroyed(documentId) {
     const value = await response.json();
     return value.documentId === documentId && value.exists === false;
 }
-const drain = () => staticDeliveries.drain(destroyed);
+let earlyEnabled = false;
+export function enableEarlyDrain() { earlyEnabled = true; }
+async function drainEarly() {
+    if ( !earlyEnabled ) { return; }
+    const deadline = Date.now() + 3000;
+    do {
+        const response = await fetch(`http://blanc-ubo-control.invalid/early-deliveries?${generation}`, {cache:'no-store'});
+        if ( response.status !== 200 ) { throw Error('Native delivery state unavailable; reload remains held'); }
+        const value = await response.json();
+        if ( value.pending === 0 ) { return; }
+        if ( !Number.isSafeInteger(value.pending) || value.pending < 0 ) { throw Error('Invalid native delivery state'); }
+        await new Promise(resolve => setTimeout(resolve, 20));
+    } while ( Date.now() < deadline );
+    throw Error('Native delivery unacknowledged; reload remains held');
+}
+const drain = () => Promise.all([staticDeliveries.drain(destroyed), upstreamDeliveries.drain(), drainEarly()]);
 const requireEpoch = epoch => {
     if ( starting || epoch !== generation ) { throw Error('Superseded reload completion'); }
 };

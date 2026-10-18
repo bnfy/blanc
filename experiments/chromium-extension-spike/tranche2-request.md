@@ -34,18 +34,20 @@ allows (one build at a time; the spikes alternate, they never overlap a build).
 3 runs alongside as a document. 4, 5 and 6 fill the gaps. The tranche ends
 when every row has its artifact, or when a kill criterion is hit and recorded.
 
-### 1.1 Progress checkpoint — October 18, 2026 UTC (lost acknowledgement recovery and reload lifecycle)
+### 1.1 Progress checkpoint — October 18, 2026 UTC (native/upstream delivery ordering)
 
 This table is the live map from implementation work back to the approved plan.
-The prior CodeQL remediation head b99334c7 passed all 22 checks, none skipped.
-The current checkpoint is `evidence/f12-static-recovery-20261018/`: 45 controlled
-schedules plus destroyed-document recovery, live-receiver fail-closed timeout and
-retry, shared reload promise and stale-completion rejection pass. Browser absence
-is used only for document IDs previously verified by LateContext; inactive/cached
-or retained crashed documents are not treated as gone. Native early/upstream
-atomicity, changed-rule semantics and runtime BFCache/crash coverage remain gaps.
-260 tests pass; one 34.59-second incremental build, fresh footprint31/74 and final
-zero-action guard. CI pending this checkpoint.
+The current evidence is `evidence/f12-delivery-order-20261018/`: native execution
+acknowledgement and upstream API completion now join the reload drain. Four
+controlled schedules pass, with timeout/retry and combined pending work observed.
+The upstream diagnostic holds acknowledgement after actual API settlement; it is
+not exact-document or asynchronous-effect acceptance. The 45 static schedules,
+ordinary identity, CSP and readiness regressions pass. 268 tests / 139-file lint;
+one 45.70-second incremental build; fresh footprint 31/74 and final zero-action guard.
+Previous-head 79588947 CodeQL passed, but oauth-compatibility failed in wallpaper
+smoke (private fade wait, 30 seconds). No job was rerun. This checkpoint needs its
+own CI. Broader lifecycle, upstream navigation identity, other injection channels,
+changed-rule and asynchronous semantics remain open.
 Detailed measurements remain in `rebase-ledger.md`; test outcomes and evidence
 links remain in `results.md`. A row marked in progress is not acceptance.
 
@@ -571,11 +573,11 @@ all unchanged limits above; anything beyond them requires another decision.
 Merging alone was not approval. The owner separately authorized merging
 #916 once CI on its current head is green and resuming the amended work.
 
-Current follow-up limitation: static-delivery/reset ordering and bounded lost-ack
-recovery now pass. A previously verified destroyed document can retire its lease;
-a live receiver cannot be retired on timeout. Overlapping begin and stale completion
-reject, shared loads coalesce through native acknowledgement and retry after failure.
-Native early/upstream in-flight injection, in-place changed rules, async effects,
-BFCache/prerender/crash runtime coverage and full recovery/containment remain open.
-See `evidence/f12-static-recovery-20261018/`. Broader request-path/frame/CSP gaps
-remain explicit. Latency deferred; Electron diagnostic build §8 unchecked/unstarted.
+Current follow-up: bounded native early and upstream completion ordering now join
+static-delivery/reset ordering and lost-ack recovery. Four controlled schedules pass;
+upstream tests delay actual API completion acknowledgement, not renderer execution.
+Exact upstream document targeting across navigation, other injection channels,
+changed-rule/async semantics, BFCache/prerender/crash and background-recreation runtime
+coverage, and full containment remain gaps. Spikes A/B remain in progress; items 3–6
+are not started. See `evidence/f12-delivery-order-20261018/`. Latency stays deferred;
+Electron diagnostic build §8 remains unchecked/unstarted. No promotion or gate closure.

@@ -50,6 +50,12 @@ export function generateComponent(output, reloadGuard=false, observe=false, docu
  if(documentStart){
   assert(reloadGuard,'document gate requires reload guard');
   const replace=(file,from,to)=>{const target=path.join(output,file),text=fs.readFileSync(target,'utf8');assert.equal(text.split(from).length,2,'document-start anchor '+file);fs.writeFileSync(target,text.replace(from,to));};
+  replace('js/blanc-reload-guard.js','let earlyEnabled = false;','let earlyEnabled = true;');
+  fs.copyFileSync(new URL('./ubo-upstream-delivery.js',import.meta.url),path.join(output,'js/blanc-upstream-delivery.js'));
+  replace('js/scriptlet-filtering.js',"import µb from './background.js';", "import µb from './background.js';\nimport { executeScript as blancExecuteScript } from './blanc-upstream-delivery.js';");
+  replace('js/scriptlet-filtering.js','vAPI.tabs.executeScript(details.tabId, {','blancExecuteScript(details.tabId, {');
+  replace('js/scriptlet-filtering.js','vAPI.tabs.executeScript(tab.id, {','blancExecuteScript(tab.id, {');
+  replace('js/start.js','await blancGuard.activate(selfieIsValid);','blancGuard.enableEarlyDrain();\nawait blancGuard.activate(selfieIsValid);');
   const onceKey = '__blancUboOnce_' + crypto.randomBytes(16).toString('hex');
   const wrapperSource = wrapMainWorld.toString();
   replace('js/scriptlet-filtering.js','        const contentScript = [];', `        if (scriptletDetails.mainWorld) scriptletDetails.mainWorld = (${wrapperSource})(scriptletDetails.mainWorld, ${JSON.stringify(onceKey)}, ${JSON.stringify(observe)});\n        const contentScript = [];`);

@@ -228,6 +228,14 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
           }
           ReplyControl(current ? 200 : 409, base::WriteJson(work).value_or("[]")); return;
         }
+        if (request_.url.path() == "/early-deliveries" && request_.method == "GET") {
+          const bool owner = base::StringToUint64(request_.url.query(), &generation) && generation > 0 && generation == state.generation &&
+              state.document.AsRenderFrameHostIfValid() == content::RenderFrameHost::FromID(context_.frame);
+          if (!owner) { ReplyControl(403, "{}"); return; }
+          base::DictValue result; result.Set("pending", static_cast<int>(PendingDeliveries(context_.browser_context.get())));
+          base::DictValue event = result.Clone(); event.Set("event", "ubo-early-deliveries"); Record(std::move(event));
+          ReplyControl(200, base::WriteJson(result).value_or("{}")); return;
+        }
         // Lifetime query is available while held, but only to the same live
         // provider document/generation. The JS barrier queries only document IDs
         // previously validated by LateContext, never arbitrary absent IDs.
@@ -278,7 +286,10 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
             auto& jobs = Jobs(context_.browser_context.get()).jobs;
             auto it = token ? jobs.find(*token) : jobs.end();
             if (it != jobs.end() && code && it->second.offered && it->second.generation == generation && it->second.document.AsRenderFrameHostIfValid()) {
-              auto callback = std::move(it->second.callback); jobs.erase(it); ok = true; std::move(callback).Run(true, *code);
+              // Establish the lease before replying to the synchronous renderer call.
+              const std::string delivery = code->empty() ? "" : *token;
+              if (!delivery.empty()) Jobs(context_.browser_context.get()).deliveries.emplace(delivery, it->second.document);
+              auto callback = std::move(it->second.callback); jobs.erase(it); ok = true; std::move(callback).Run(true, *code, delivery);
             }
           }
           ReplyControl(ok ? 204 : 403, ""); return;
@@ -295,7 +306,7 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
               (same && generation == state.generation + 1))) {
             state.document = frame->GetWeakDocumentPtr();
             state.generation = generation; state.ready = false; CancelScripts(context_.browser_context.get()); ok = true;
-          } else if (request_.url.path() == "/ready" && same && generation == state.generation) {
+          } else if (request_.url.path() == "/ready" && same && generation == state.generation && PendingDeliveries(context_.browser_context.get()) == 0) {
             state.ready = true; ok = true;
           }
         }

@@ -1350,3 +1350,32 @@ zero actions **4.39 s**. Fresh footprint **31 files / 74 hunks**. Four archives,
 pre-final runtime retained and excluded; all disposable roots/private keys removed.
 No full network, Electron or meta-CSP rerun. Latency remains deferred; Electron
 build §8 unchecked/unstarted. Task0/items3–6 unchanged; CI pending this checkpoint.
+
+## Native early and upstream completion ordering — October 18, 2026 UTC
+
+[Evidence and limits](evidence/f12-delivery-order-20261018/README.md).
+Native nonempty GetScript responses retain a document-bound token through synchronous
+renderer execution and completion acknowledgement. Begin cancels only undispatched
+jobs; provider reset/ready drains dispatched work, and native ready refuses pending
+deliveries. Generated initial startup also drains native leases. Upstream scriptlet
+injection and log-level API calls synchronously acquire completion leases, released
+only when the pinned API settles. Missing completion times out held, not expired.
+
+Four controlled schedules pass: two inside native ExecuteScript (with queued upstream
+work also pending), two after actual exact-tab upstream API settlement but before
+acknowledgement release. Both paths block actual filter reload, remain held on timeout
+and recover on completion/retry; no duplicate main-world bodies. The upstream two
+are completion-boundary diagnostics, not a renderer execution pause or exact-document
+identity proof. Attempts 01/02 failed to pause upstream; attempt 03 caught empty-result
+about:blank work; all are retained/excluded. Final attempt 04 requires positive exact-tab
+API results. Broader lifecycle/navigation/async effects and non-scriptlet injection
+channels remain gaps; native destruction recovery is source-backed, not runtime-tested.
+
+Regressions: 45 static schedules and lost-ack controls; 18 late + two HTTP + 13 identity
+checks; 15 header/inherited CSP; ten readiness + one startup. 268 tests / 139-file lint.
+One incremental build 45.70 s wrapper / 41.73 s Siso, 19 steps; final guard zero actions
+4.98 s. Fresh footprint 31 files / 74 hunks. No cold/args/toolchain changes. Full network,
+Electron and meta-CSP matrices not rerun. Latency deferred; Electron build §8 unchecked.
+Previous-head 79588947 CodeQL passed with no new alerts; oauth-compatibility failed in
+wallpaper smoke line 151 (30 s private fade wait), not OAuth itself. No rerun. Current
+checkpoint CI remains to be evaluated. Plan items 3–6 and Task0 promotion gate unchanged.

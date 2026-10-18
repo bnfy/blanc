@@ -1,0 +1,12 @@
+{
+  "verified": true,
+  "nativeExecutionSchedules": 2,
+  "upstreamAcknowledgementSchedules": 2,
+  "combinedPendingObserved": true,
+  "timeoutAndRetry": true,
+  "duplicateBodies": 0,
+  "upstreamDocumentIdentity": false,
+  "asyncEffectsCovered": false,
+  "fullAcceptance": false,
+  "latencyMeasured": false
+}

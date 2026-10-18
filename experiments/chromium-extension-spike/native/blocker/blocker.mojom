@@ -9,5 +9,6 @@ interface Blocker {
 };
 // Explicit prototype switch only; the browser binds this to the current document.
 interface DocumentStart {
-  [Sync] GetScript(string url) => (bool ready, string code);
+  [Sync] GetScript(string url) => (bool ready, string code, string token);
+  [Sync] Complete(string token) => (bool accepted);
 };

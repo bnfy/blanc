@@ -7,15 +7,17 @@ struct PendingScript {
   base::ListValue ancestors;
   std::string url;
   bool offered = false;
-  base::OnceCallback<void(bool, const std::string&)> callback;
+  base::OnceCallback<void(bool, const std::string&, const std::string&)> callback;
 };
 struct ScriptJobs : base::SupportsUserData::Data {
   std::map<std::string, PendingScript> jobs;
+  // Dispatched responses survive reload cancellation until execution completes.
+  std::map<std::string, content::WeakDocumentPtr> deliveries;
   ScriptJobs();
   ~ScriptJobs() override;
 };
 ScriptJobs::ScriptJobs() = default;
-ScriptJobs::~ScriptJobs() { for (auto& [id, job] : jobs) std::move(job.callback).Run(false, ""); }
+ScriptJobs::~ScriptJobs() { for (auto& [id, job] : jobs) std::move(job.callback).Run(false, "", ""); }
 ScriptJobs& Jobs(content::BrowserContext* context) {
   static const char key = 0;
   auto* jobs = static_cast<ScriptJobs*>(context->GetUserData(&key));
@@ -24,7 +26,12 @@ ScriptJobs& Jobs(content::BrowserContext* context) {
 }
 void CancelScripts(content::BrowserContext* context) {
   auto jobs = std::move(Jobs(context).jobs);
-  for (auto& [id, job] : jobs) std::move(job.callback).Run(false, "");
+  for (auto& [id, job] : jobs) std::move(job.callback).Run(false, "", "");
+}
+size_t PendingDeliveries(content::BrowserContext* context) {
+  auto& deliveries = Jobs(context).deliveries;
+  std::erase_if(deliveries, [](const auto& item) { return !item.second.AsRenderFrameHostIfValid(); });
+  return deliveries.size();
 }
 std::optional<GURL> ScriptSelection(content::RenderFrameHost& frame, const std::string& url) {
     // Non-network rule selection uses only browser-owned committed context.
@@ -84,18 +91,27 @@ class DocumentScript : public content::DocumentService<blanc::mojom::DocumentSta
  public:
   DocumentScript(content::RenderFrameHost& frame, mojo::PendingReceiver<blanc::mojom::DocumentStart> receiver);
   void GetScript(const std::string& url, GetScriptCallback callback) override;
+  void Complete(const std::string& token, CompleteCallback callback) override;
 };
 DocumentScript::DocumentScript(content::RenderFrameHost& frame, mojo::PendingReceiver<blanc::mojom::DocumentStart> receiver)
     : DocumentService(frame, std::move(receiver)) {}
+void DocumentScript::Complete(const std::string& token, CompleteCallback callback) {
+  auto& frame = render_frame_host();
+  auto& deliveries = Jobs(frame.GetBrowserContext()).deliveries;
+  auto it = deliveries.find(token);
+  const bool accepted = it != deliveries.end() && it->second.AsRenderFrameHostIfValid() == &frame;
+  if (accepted) deliveries.erase(it);
+  std::move(callback).Run(accepted);
+}
 void DocumentScript::GetScript(const std::string& url, GetScriptCallback callback) {
     auto& frame = render_frame_host(); auto* context = frame.GetBrowserContext();
-    if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-ubo-document-start") || context->IsOffTheRecord()) { std::move(callback).Run(true, ""); return; }
+    if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-ubo-document-start") || context->IsOffTheRecord()) { std::move(callback).Run(true, "", ""); return; }
     const auto selection = ScriptSelection(frame, url);
-    if (!selection) { std::move(callback).Run(!frame.GetLastCommittedURL().SchemeIsHTTPOrHTTPS(), ""); return; }
+    if (!selection) { std::move(callback).Run(!frame.GetLastCommittedURL().SchemeIsHTTPOrHTTPS(), "", ""); return; }
     auto& state = UboState(context);
-    if (!state.ready || !state.document.AsRenderFrameHostIfValid()) { std::move(callback).Run(false, ""); return; }
+    if (!state.ready || !state.document.AsRenderFrameHostIfValid()) { std::move(callback).Run(false, "", ""); return; }
     auto& jobs = Jobs(context).jobs;
-    if (jobs.size() >= 64) { std::move(callback).Run(false, ""); return; }
+    if (jobs.size() + PendingDeliveries(context) >= 64) { std::move(callback).Run(false, "", ""); return; }
     const auto id = base::UnguessableToken::Create().ToString();
     base::ListValue ancestors;
     for (auto* parent = frame.GetParent(); parent; parent = parent->GetParent()) {
@@ -105,6 +121,6 @@ void DocumentScript::GetScript(const std::string& url, GetScriptCallback callbac
         sessions::SessionTabHelper::IdForTab(content::WebContents::FromRenderFrameHost(&frame)).id(), extensions::ExtensionApiFrameIdMap::GetFrameId(&frame), std::move(ancestors), selection->spec(), false, std::move(callback)});
     base::SingleThreadTaskRunner::GetCurrentDefault()->PostDelayedTask(FROM_HERE, base::BindOnce([](base::WeakPtr<content::BrowserContext> context, std::string id) {
       if (!context) return; auto& jobs = Jobs(context.get()).jobs; auto it = jobs.find(id); if (it == jobs.end()) return;
-      auto callback = std::move(it->second.callback); jobs.erase(it); std::move(callback).Run(false, "");
+      auto callback = std::move(it->second.callback); jobs.erase(it); std::move(callback).Run(false, "", "");
     }, context->GetWeakPtr(), id), base::Seconds(3));
   }

@@ -640,3 +640,11 @@ zero actions **4.39 s**. Fresh footprint **31 files / 74 hunks**. Four archives,
 pre-final runtime retained and excluded; all disposable roots/private keys removed.
 No full network, Electron or meta-CSP rerun. Latency remains deferred; Electron
 build §8 unchecked/unstarted. Task0/items3–6 unchanged; CI pending this checkpoint.
+
+## Native/upstream completion ordering follow-up
+
+[October 18 evidence](../f12-delivery-order-20261018/README.md) adds native
+execution acknowledgement and upstream API completion drains. Four diagnostic
+schedules and prior static/CSP/readiness regressions pass. Exact upstream document
+identity, lifecycle/async/other injection coverage and full acceptance remain open.
+Latency deferred; Electron diagnostic build §8 remains unapproved/unstarted.

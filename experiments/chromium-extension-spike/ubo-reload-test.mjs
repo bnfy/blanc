@@ -6,7 +6,7 @@ import {createDeliveryBarrier} from './ubo-static-delivery.mjs';
 const source=fs.readFileSync(new URL('./ubo-reload-guard.js',import.meta.url),'utf8');
 async function guard(fetch,staticDeliveries=createDeliveryBarrier()){
  const code=source.replace(/^import .*;\n/gm,'').replaceAll('export ', '');
- return vm.runInNewContext(`(async()=>{${code};return {begin,complete,activate,current};})()`,{fetch,staticDeliveries});
+ return vm.runInNewContext(`(async()=>{${code};return {begin,complete,activate,current,enableEarlyDrain};})()`,{fetch,staticDeliveries,upstreamDeliveries:createDeliveryBarrier(),setTimeout,Date});
 }
 test('startup release requires successful list completion and observer activation',async()=>{
  const calls=[];const g=await guard(async url=>{calls.push(url);return {status:204};});
@@ -54,4 +54,12 @@ test('only exact destroyed-document reply can retire a verified lease',async()=>
   const sender={id:'provider',documentId:'doc'};b.acquire(sender);
   if(reply?.documentId==='doc'&&reply.exists===false){await g.begin();assert.equal(b.size(),0);}else {await assert.rejects(g.begin(),/remains held/);assert.equal(b.size(),1);}
  }
+});
+
+test('native completion polling gates reset and rejects untrusted replies',async()=>{
+ let pending=1,queries=0;
+ const g=await guard(async url=>url.includes('/early-deliveries?')?{status:200,json:async()=>{queries++;return {pending};}}:{status:204});
+ g.enableEarlyDrain();let reset=false;const begun=g.begin().then(()=>{reset=true;});
+ await new Promise(r=>setTimeout(r,30));assert(queries>0);assert(!reset);pending=0;await begun;assert(reset);
+ const bad=await guard(async url=>url.includes('/early-deliveries?')?{status:403}:{status:204});bad.enableEarlyDrain();await assert.rejects(bad.begin(),/remains held/);assert(!bad.current().ready);
 });
