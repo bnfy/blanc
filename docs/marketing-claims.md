@@ -372,15 +372,15 @@ original reports:
   Spotlight) and Fade controls. Blanc stores a copy fitted inside 3840 px with
   every metadata field except orientation removed, owner-only on this device.
   The image and its controls are never synced, and private tabs never show
-  it. The Windows and Linux hand checks (file picker, phone photos staying
-  upright) are pending in the release report; until it records them, don't
-  claim hands-on verification on those platforms.
+  it. The owner hand-checked it on Windows; the Linux hand check (file
+  picker, phone photos staying upright) was waived, not passed, so don't
+  claim hands-on Linux verification.
 - **Start Page color:** Since v1.38.0 the Wallpaper section offers Color: one
   of the eight Spaces presets as a Soft, Solid or Gradient fill, plus Match
   each space's color, which paints a window that belongs to a space in that
   space's color. These choices sync with Profile Sync; a device's own image
   still takes priority on that device, and private tabs never show a color.
-  Windows and Linux hand checks are pending as above. Don't describe a
+  Hand-checked on Windows; the Linux check was waived as above. Don't describe a
   separate image per space; that isn't shipped.
 - **Linux AppImage:** v1.24.0 removes the host FUSE 2 library dependency and
   fixes sandbox-disabling packaged desktop arguments. Existing integrated
