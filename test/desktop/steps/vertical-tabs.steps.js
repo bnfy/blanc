@@ -934,7 +934,7 @@ Then('each run of ungrouped rows keeps its place in tab order around the named g
     .filter((index) => index >= 0);
   const runs = snapshot.sections
     .map((section, index) => ({ section, index }))
-    .filter(({ section }) => section.label === 'tabs');
+    .filter(({ section }) => section.label === 'Tabs');
   assert.equal(runs.length, 2);
   assert.ok(runs[0].index < Math.min(...groupIndexes));
   assert.ok(runs[1].index > Math.max(...groupIndexes));

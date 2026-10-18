@@ -154,7 +154,7 @@
     <string name="rail_group_expanded">déplié</string>
     <string name="rail_private_marker">Privé</string>
     <string name="rail_section_pinned">Épinglés</string>
-    <string name="rail_section_tabs">onglets</string>
+    <string name="rail_section_tabs">Onglets</string>
     <string name="permission_surface_title">Autorisation</string>
     <string name="permission_label">Demande d’autorisation du site</string>
     <string name="permission_allow">Autoriser</string>

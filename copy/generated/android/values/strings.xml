@@ -149,7 +149,7 @@
     <string name="rail_group_expanded">expanded</string>
     <string name="rail_private_marker">Private</string>
     <string name="rail_section_pinned">Pinned</string>
-    <string name="rail_section_tabs">tabs</string>
+    <string name="rail_section_tabs">Tabs</string>
     <string name="permission_surface_title">Permission</string>
     <string name="permission_label">Site permission request</string>
     <string name="permission_allow">Allow</string>

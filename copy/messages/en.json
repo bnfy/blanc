@@ -547,8 +547,8 @@
     "maxLength": 14
   },
   "rail.section.tabs": {
-    "message": "tabs",
-    "note": "Lowercase heading of the rail section holding ungrouped tabs.",
+    "message": "Tabs",
+    "note": "Heading of each rail section holding ungrouped tabs. Sentence case.",
     "maxLength": 10
   },
   "permission.surfaceTitle": {
