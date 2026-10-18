@@ -4678,16 +4678,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "website-115-108",
-      "source": "site/src/pages/features/glance.astro",
-      "exactWording": "Checking a reference should not mean losing sight of your work. Glance keeps another open tab alongside your main page, with room to read both.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "website-115-109",
       "source": "site/src/pages/features/glance.astro",
       "exactWording": "The main page and reference share one window. You choose the reference.",
@@ -4721,16 +4711,6 @@
       "id": "website-115-150",
       "source": "site/src/pages/features/profiles.astro",
       "exactWording": "Separate browsing identities. Keep every window independent.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "profiles"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-151",
-      "source": "site/src/pages/features/profiles.astro",
-      "exactWording": "Keep a work login separate from your personal browsing, and give each window its own tabs. Local profiles create distinct browsing identities without requiring an account.",
       "subject": "Blanc",
       "evidenceGroups": [
         "profiles"
@@ -4809,17 +4789,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "website-115-244",
-      "source": "site/src/pages/features/sync.astro",
-      "exactWording": "Turn on sync once per device with a sync name and passphrase. Favorites and settings follow you. Flip one more switch and each machine also publishes what it has open, to browse from the island, the Quick Switcher, or the start page.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "sync",
-        "profiles"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "website-115-259",
       "source": "site/src/pages/features/start-page.astro",
       "exactWording": "Standalone Mahjong — Bridge / Burst",
@@ -4850,16 +4819,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "reddit-451",
-      "source": "site/src/pages/features/security.astro",
-      "exactWording": "Blanc’s privacy is structural: what the browser blocks, what it refuses to run, and how it handles the data you care about.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "reddit-452",
       "source": "site/src/pages/features/security.astro",
       "exactWording": "The shield shows blocking inside the browser. This illustration uses a sample count of two blocked requests.",
@@ -4873,16 +4832,6 @@
       "id": "reddit-498",
       "source": "site/src/pages/features/security.astro",
       "exactWording": "A quieter browser, with the quiet parts documented.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-500",
-      "source": "site/src/pages/features/ad-blocking.astro",
-      "exactWording": "Blanc Blocker uses built-in lists to stop ads and known trackers at the browser level. Its shield on the island — a shield cut by the diagonal from Blanc’s own mark — opens direct controls for the site you are visiting.",
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
         "trust"
@@ -10345,6 +10294,62 @@
       ],
       "verdict": "qualified",
       "reason": "October 18, 2026: the owner asked for a more concise, less repetitive hero on the tab groups page. The replacement wording is recorded in docs/website-v1.37-claims.json."
+    },
+    {
+      "id": "website-115-108",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Checking a reference should not mean losing sight of your work. Glance keeps another open tab alongside your main page, with room to read both.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages. The replacement wording is recorded in docs/website-v1.37-claims.json."
+    },
+    {
+      "id": "website-115-151",
+      "source": "site/src/pages/features/profiles.astro",
+      "exactWording": "Keep a work login separate from your personal browsing, and give each window its own tabs. Local profiles create distinct browsing identities without requiring an account.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles"
+      ],
+      "verdict": "qualified",
+      "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages. The replacement wording is recorded in docs/website-v1.37-claims.json."
+    },
+    {
+      "id": "website-115-244",
+      "source": "site/src/pages/features/sync.astro",
+      "exactWording": "Turn on sync once per device with a sync name and passphrase. Favorites and settings follow you. Flip one more switch and each machine also publishes what it has open, to browse from the island, the Quick Switcher, or the start page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sync",
+        "profiles"
+      ],
+      "verdict": "qualified",
+      "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages. The replacement wording is recorded in docs/website-v1.37-claims.json."
+    },
+    {
+      "id": "reddit-451",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Blanc’s privacy is structural: what the browser blocks, what it refuses to run, and how it handles the data you care about.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages. The replacement wording is recorded in docs/website-v1.37-claims.json."
+    },
+    {
+      "id": "reddit-500",
+      "source": "site/src/pages/features/ad-blocking.astro",
+      "exactWording": "Blanc Blocker uses built-in lists to stop ads and known trackers at the browser level. Its shield on the island — a shield cut by the diagonal from Blanc’s own mark — opens direct controls for the site you are visiting.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages. The replacement wording is recorded in docs/website-v1.37-claims.json."
     }
   ],
   "supersededCandidateClaims": [
@@ -12995,6 +13000,96 @@
           {
             "before": "<article><h3>Links join the group.</h3><p>A link you open in a new tab from a grouped tab joins the same group. A new tab you start yourself opens outside any group.</p></article>",
             "after": "<article><h3>Links open outside the group.</h3><p>A link you open in a new tab from a grouped tab opens outside any group, at the bottom, like a new tab you start yourself.</p></article>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/1password.astro",
+        "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages; this page's hero lede is shortened. The replacement wording is recorded in docs/website-v1.37-claims.json.",
+        "replacements": [
+          {
+            "before": "<p>Use the logins you already keep in 1Password. Blanc’s built-in integration fills a matching Login item from your installed desktop app when you ask.</p>",
+            "after": "<p>Blanc fills a matching login from your installed 1Password app when you ask.</p>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/glance.astro",
+        "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages; this page's hero lede is shortened. The replacement wording is recorded in docs/website-v1.37-claims.json.",
+        "replacements": [
+          {
+            "before": "<p>Checking a reference should not mean losing sight of your work. Glance keeps another open tab alongside your main page, with room to read both.</p>",
+            "after": "<p>Glance shows another open tab beside your main page, with room to read both.</p>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/mouse-gestures.astro",
+        "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages; this page's hero lede is shortened. The replacement wording is recorded in docs/website-v1.37-claims.json.",
+        "replacements": [
+          {
+            "before": "<p>Enable Mouse gestures, hold one button, draw a direction over the page, then release. Go back, open a tab, or run another assigned action while your pointer stays where you are.</p>",
+            "after": "<p>Turn on Mouse gestures, then hold one button and draw a direction over the page to go back, open a tab or run another assigned action.</p>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/profiles.astro",
+        "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages; this page's hero lede is shortened. The replacement wording is recorded in docs/website-v1.37-claims.json.",
+        "replacements": [
+          {
+            "before": "<p>Keep a work login separate from your personal browsing, and give each window its own tabs. Local profiles create distinct browsing identities without requiring an account.</p>",
+            "after": "<p>Keep work logins apart from your personal browsing, with no account needed.</p>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/quiet-tabs.astro",
+        "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages; this page's hero lede is shortened. The replacement wording is recorded in docs/website-v1.37-claims.json.",
+        "replacements": [
+          {
+            "before": "<section class=\"feature-hero feature-hero--detail feature-hero--text\" aria-labelledby=\"quiet-title\"><h1 id=\"quiet-title\">Tabs you are not using give their memory back.</h1><p>Leave a tab alone long enough and Blanc hands its page back to your computer. The tab stays exactly where it was in your session, and it reloads the moment you return to it.</p></section>",
+            "after": "<section class=\"feature-hero feature-hero--detail feature-hero--text\" aria-labelledby=\"quiet-title\"><h1 id=\"quiet-title\">Tabs you are not using give their memory back.</h1><p>The tab keeps its place in your session and reloads when you return to it.</p></section>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/security.astro",
+        "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages; this page's hero lede is shortened. The replacement wording is recorded in docs/website-v1.37-claims.json.",
+        "replacements": [
+          {
+            "before": "<section class=\"feature-hero feature-hero--detail feature-hero--text\" aria-labelledby=\"security-title\"><h1 id=\"security-title\">Private by architecture.</h1><p>Blanc&rsquo;s privacy is structural: what the browser blocks, what it refuses to run, and how it handles the data you care about.</p></section>",
+            "after": "<section class=\"feature-hero feature-hero--detail feature-hero--text\" aria-labelledby=\"security-title\"><h1 id=\"security-title\">Private by architecture.</h1><p>See what Blanc blocks, what it refuses to run, and how it handles your data.</p></section>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/sync.astro",
+        "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages; this page's hero lede and heading are shortened. The replacement wording is recorded in docs/website-v1.37-claims.json.",
+        "replacements": [
+          {
+            "before": "<section class=\"feature-hero feature-hero--detail feature-hero--text\" aria-labelledby=\"sync-title\"><h1 id=\"sync-title\">Your favorites and settings on your other devices, and, if you choose, your open tabs.</h1><p>Turn on sync once per device with a sync name and passphrase. Favorites and settings follow you. Flip one more switch and each machine also publishes what it has open, to browse from the island, the Quick Switcher, or the start page.</p></section>",
+            "after": "<section class=\"feature-hero feature-hero--detail feature-hero--text\" aria-labelledby=\"sync-title\"><h1 id=\"sync-title\">Your favorites and settings on your other devices.</h1><p>Turn it on once per device. One more switch shares your open tabs too.</p></section>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/ad-blocking.astro",
+        "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages; this page's hero lede is shortened. The replacement wording is recorded in docs/website-v1.37-claims.json.",
+        "replacements": [
+          {
+            "before": "<p>Blanc Blocker uses built-in lists to stop ads and known trackers at the browser level. Its shield on the island — a shield cut by the diagonal from Blanc&rsquo;s own mark — opens direct controls for the site you are visiting.</p>",
+            "after": "<p>Blanc Blocker stops ads and known trackers with built-in lists. The shield on the Island opens its controls for the site you&rsquo;re on.</p>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/workspaces.astro",
+        "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages; this page's hero lede is shortened. The replacement wording is recorded in docs/website-v1.37-claims.json.",
+        "replacements": [
+          {
+            "before": "<p>When one window holds everything, tabs pile up and get in each other’s way. Give each part of your day its own space, then switch from the Island. Its tabs and groups come back, even after you restart.</p>",
+            "after": "<p>Switch spaces from the Island. Each space&rsquo;s tabs and groups come back, even after you restart.</p>"
           }
         ]
       }

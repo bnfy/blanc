@@ -258,17 +258,6 @@
       "replaces": "onepassword-126-025"
     },
     {
-      "id": "v134-1p-011",
-      "source": "site/src/pages/features/1password.astro",
-      "exactWording": "Use the logins you already keep in 1Password. Blanc’s built-in integration fills a matching Login item from your installed desktop app when you ask.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "onePassword"
-      ],
-      "verdict": "qualified",
-      "replaces": "onepassword-126-002"
-    },
-    {
       "id": "v134-1p-012",
       "source": "site/src/pages/features/1password.astro",
       "exactWording": "Requires the 1Password desktop app and account. Off by default. Available on macOS, Windows and Linux, but not on Windows on Arm.",
@@ -446,6 +435,18 @@
       "verdict": "qualified",
       "replaces": "trust-125-296",
       "reason": "October 17, 2026: the privacy page now also names the website's discreet newsletter signup card, which submits to the same Worker as the footer form, and records the browser-local entry it keeps. The replacement wording is recorded in docs/website-v1.35-claims.json."
+    },
+    {
+      "id": "v134-1p-011",
+      "source": "site/src/pages/features/1password.astro",
+      "exactWording": "Use the logins you already keep in 1Password. Blanc’s built-in integration fills a matching Login item from your installed desktop app when you ask.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onePassword"
+      ],
+      "verdict": "qualified",
+      "replaces": "onepassword-126-002",
+      "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages. The replacement wording is recorded in docs/website-v1.37-claims.json."
     }
   ]
 }
