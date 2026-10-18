@@ -2,7 +2,7 @@
   "publicRelease": "v1.37.0",
   "sourceSha": "70a4cc14db6ef77d11ca26b88ae58c2a13580ac5",
   "releaseEvidence": "docs/release-incidents/2026-10-18-v1.37.0.md",
-  "scope": "Site copy verified against public v1.37.0 on October 18, 2026: tab group colors and the group menu, ungrouped tabs above, between and below groups, and links from grouped tabs opening ungrouped, on /features/tab-groups and its support guide. Replaces the v1.27 wording that groups have no colors and that links join their group.",
+  "scope": "Site copy verified against public v1.37.0 on October 18, 2026: tab group colors and the group menu, ungrouped tabs above, between and below groups, and links from grouped tabs opening ungrouped, on /features/tab-groups and its support guide. Also a shorter hero on that page (owner request). Replaces the v1.27 wording that groups have no colors and that links join their group.",
   "prohibitedClaims": [
     "Groups have names, not colors.",
     "Links join the group.",
@@ -46,9 +46,38 @@
         "docs/press/release-notes/v1.37.0.md"
       ],
       "qualification": "Link children (target=_blank, window.open, Open Link in New Tab, Open Link in Glance) open ungrouped at the end of the tab order, like a plain new tab; private and opener relationships are unchanged (#928)."
+    },
+    "namedGroups": {
+      "evidence": [
+        "spec/features.md",
+        "src/renderer/tab-sections.js",
+        "spec/acceptance/tabs-and-groups.feature"
+      ],
+      "qualification": "Named groups are user-created through /group or the tab menu; the resting Island shows the active group's tabs and other groups can be folded in the ⌘L panel. Blanc does not create or name groups by itself."
     }
   },
   "claims": [
+    {
+      "id": "v137-018",
+      "source": "site/src/pages/features/tab-groups.astro",
+      "exactWording": "Named tab groups for the task at hand.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "namedGroups"
+      ],
+      "verdict": "qualified",
+      "replaces": "seo-2026-10-05-tab-groups-01"
+    },
+    {
+      "id": "v137-019",
+      "source": "site/src/pages/features/tab-groups.astro",
+      "exactWording": "Blanc keeps the group you’re working in on the Island and folds the rest away.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "namedGroups"
+      ],
+      "verdict": "qualified"
+    },
     {
       "id": "v137-001",
       "source": "site/src/pages/features/tab-groups.astro",

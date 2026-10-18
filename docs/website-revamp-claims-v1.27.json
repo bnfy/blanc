@@ -8077,16 +8077,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "seo-2026-10-05-tab-groups-01",
-      "source": "site/src/pages/features/tab-groups.astro",
-      "exactWording": "Named tab groups: keep the tabs you need. Tuck away the rest.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "seoGuideBehaviors"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "seo-2026-10-05-tab-groups-03",
       "source": "site/src/pages/features/tab-groups.astro",
       "exactWording": "Group, jump, close, and bring it back.",
@@ -10344,6 +10334,17 @@
       ],
       "verdict": "qualified",
       "reason": "October 18, 2026, after public v1.37.0: groups can carry an optional color (#936), ⌘1–9 also numbers runs of ungrouped tabs (#933), and a link opened from a grouped tab opens ungrouped (#928). The replacement wording is recorded in docs/website-v1.37-claims.json."
+    },
+    {
+      "id": "seo-2026-10-05-tab-groups-01",
+      "source": "site/src/pages/features/tab-groups.astro",
+      "exactWording": "Named tab groups: keep the tabs you need. Tuck away the rest.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "seoGuideBehaviors"
+      ],
+      "verdict": "qualified",
+      "reason": "October 18, 2026: the owner asked for a more concise, less repetitive hero on the tab groups page. The replacement wording is recorded in docs/website-v1.37-claims.json."
     }
   ],
   "supersededCandidateClaims": [
@@ -12965,8 +12966,12 @@
       },
       {
         "source": "site/src/pages/features/tab-groups.astro",
-        "reason": "October 18, 2026, after public v1.37.0: groups can carry an optional color and have a group menu (#936), ungrouped tabs can sit above, between or below groups and ⌘1–9 numbers each run of them (#933), and a link opened from a grouped tab now opens ungrouped (#928). The heading, the jump and link articles are corrected and three articles added; the replacement wording is recorded in docs/website-v1.37-claims.json.",
+        "reason": "October 18, 2026, after public v1.37.0: groups can carry an optional color and have a group menu (#936), ungrouped tabs can sit above, between or below groups and ⌘1–9 numbers each run of them (#933), and a link opened from a grouped tab now opens ungrouped (#928). The hero is tightened at the owner's request, the section heading and the jump and link articles are corrected, and three articles are added; the replacement wording is recorded in docs/website-v1.37-claims.json.",
         "replacements": [
+          {
+            "before": "<section class=\"feature-hero feature-hero--detail feature-hero--text\" aria-labelledby=\"groups-title\"><h1 id=\"groups-title\">Named tab groups: keep the tabs you need. Tuck away the rest.</h1><p>Name a group for the task in front of you. Blanc keeps that group on the island and leaves the rest close, not constantly visible.</p></section>",
+            "after": "<section class=\"feature-hero feature-hero--detail feature-hero--text\" aria-labelledby=\"groups-title\"><h1 id=\"groups-title\">Named tab groups for the task at hand.</h1><p>Blanc keeps the group you&rsquo;re working in on the Island and folds the rest away.</p></section>"
+          },
           {
             "before": "<div><h2 id=\"group-behavior-title\">Groups have names, not colors.</h2></div>",
             "after": "<div><h2 id=\"group-behavior-title\">Groups have names, and colors if you want them.</h2></div>"
