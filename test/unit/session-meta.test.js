@@ -18,14 +18,17 @@ const fnSource = mainSource.match(/function persistSession\(\) \{[\s\S]*?\n\}/)?
 // extraction, reused by Named Workspaces' capture path) — lift it too, so
 // the sandbox mirrors real module scope instead of one function's text.
 const captureSource = mainSource.match(/function captureWindowEntry\([\s\S]*?\n\}/)?.[0];
-// captureWindowEntry reconciles the Recently closed band's slot first.
-const syncSource = mainSource.match(/function syncClosedSlot\([\s\S]*?\n\}/)?.[0];
+// captureWindowEntry reconciles the tab order and the Recently closed band first.
+const syncSource = mainSource.match(/function syncTabLayout\([\s\S]*?\n\}/)?.[0];
+const layoutListSource = mainSource.match(/function tabLayoutList\([\s\S]*?\n\}/)?.[0];
 const closedSlotModel = require('../../src/main/closed-slot');
+const tabSections = require('../../src/renderer/tab-sections');
 
 test('persistSession is still liftable out of main.js', () => {
   assert.ok(fnSource, 'persistSession not found — update this test with it');
   assert.ok(captureSource, 'captureWindowEntry not found — update this test with it');
-  assert.ok(syncSource, 'syncClosedSlot not found — update this test with it');
+  assert.ok(syncSource, 'syncTabLayout not found — update this test with it');
+  assert.ok(layoutListSource, 'tabLayoutList not found — update this test with it');
 });
 
 function run(tabList, activeTabId, {
@@ -64,8 +67,9 @@ function run(tabList, activeTabId, {
     // runs without needing to know that store exists.
     autosaveWorkspaceBindings: () => {},
     ...closedSlotModel,
+    ...tabSections,
   };
-  vm.runInNewContext(`${syncSource}\n${captureSource}\n${fnSource}\nthis.__fn = persistSession;`, sandbox);
+  vm.runInNewContext(`${layoutListSource}\n${syncSource}\n${captureSource}\n${fnSource}\nthis.__fn = persistSession;`, sandbox);
   sandbox.__fn();
   return data;
 }
