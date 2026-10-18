@@ -279,7 +279,7 @@ export function nativeWindowArt({ styles, document, renderer, overlay, verticalT
     // The placeholder's shimmer is motion; a still figure draws its
     // reduced-motion state.
     scoped('#pillDomain.placeholder', { last: true }),
-    scoped(':root[data-theme="private"]'), scoped('[data-theme="private"] #islandPill::after'),
+    scoped(':root[data-theme="private"]'),
     ...(rail ? [scoped(':root[data-tab-layout="vertical"] #strip'), scoped(':root[data-tab-layout="vertical"] #pillDots'),
       scoped(':root[data-tab-layout="vertical"] #pillNewTab'), scoped(':root[data-theme="private"] .vertical-tabs-rail::after'),
       scoped('body.mac .vertical-tabs-toolbar'),

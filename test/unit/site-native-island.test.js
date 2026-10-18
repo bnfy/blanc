@@ -382,7 +382,7 @@ test('the resting-Island figures draw a native window in the tab states the app 
   assert.match(priv.strip, /<button class="pill-btn" disabled>[\s\S]*?<\/button><button class="pill-btn" disabled>/);
   assert.equal(priv.strip.match(/class="island-dot( active)? private"/g).length, 3);
   assert.doesNotMatch(priv.strip, /<button id="pillPrivateChip"[^>]* hidden>/);
-  for (const rule of ['.native-window[data-theme="private"] {', '[data-theme="private"] #islandPill::after {', '.island-dot.private {', '#islandPill #pillFavicon.internal {']) {
+  for (const rule of ['.native-window[data-theme="private"] {', '.island-dot.private {', '#islandPill #pillFavicon.internal {']) {
     assert.ok(priv.css.includes(rule), rule);
   }
   // The placeholder is drawn still: the app's reduced-motion rule, not its shimmer.

@@ -52,7 +52,7 @@
     <string name="pill_domain_default">nueva pestaña</string>
     <string name="pill_placeholder">Busca o escribe una URL</string>
     <string name="pill_commands">Comandos (/)</string>
-    <string name="pill_private_chip">privado</string>
+    <string name="pill_private_chip">Privado</string>
     <string name="pill_private_title">Salir del modo privado: cierra esta pestaña</string>
     <string name="pill_source_chip">código</string>
     <string name="pill_source_title">Cerrar esta vista del código fuente</string>

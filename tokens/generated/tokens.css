@@ -80,6 +80,7 @@
     --sunrise-accent-dim: rgba(212, 173, 102, 0.2);
     --danger: #ff453a;
     --on-danger: #0e0e0e;
+    --shadow-island-resting: inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24);
   }
 }
 :root[data-theme="private"] {
@@ -102,6 +103,7 @@
   --sunrise-accent-dim: rgba(212, 173, 102, 0.2);
   --danger: #ff453a;
   --on-danger: #0a0a0a;
+  --shadow-island-resting: inset 0 1px 0 rgba(255,255,255,.07), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24);
 }
 
 /* pages — src/renderer/pages/pages.css */

@@ -210,8 +210,8 @@
     "source": "sha256:3298d0be254b7df3b28b6175fff28a11cde367811c884377bb9cad9e81a7964f"
   },
   "pill.private.chip": {
-    "message": "privado",
-    "source": "sha256:f142af345cb5cb5891f2e5f1db810c74762c828152fcf3fb5d2286eb93ea20c9"
+    "message": "Privado",
+    "source": "sha256:b47cfb257559a7ef7051b59eae61130d357b9f54921a25de9e9c1817ab3b4a4e"
   },
   "pill.private.title": {
     "message": "Salir del modo privado: cierra esta pestaña",

@@ -52,7 +52,7 @@
     <string name="pill_domain_default">new tab</string>
     <string name="pill_placeholder">Search or type a URL</string>
     <string name="pill_commands">Commands (/)</string>
-    <string name="pill_private_chip">private</string>
+    <string name="pill_private_chip">Private</string>
     <string name="pill_private_title">Leave private mode — closes this tab</string>
     <string name="pill_source_chip">source</string>
     <string name="pill_source_title">Close this page source view</string>

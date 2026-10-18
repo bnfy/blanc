@@ -52,7 +52,7 @@
     <string name="pill_domain_default">nova aba</string>
     <string name="pill_placeholder">Pesquise ou digite uma URL</string>
     <string name="pill_commands">Comandos (/)</string>
-    <string name="pill_private_chip">privada</string>
+    <string name="pill_private_chip">Privada</string>
     <string name="pill_private_title">Sair do modo privado — fecha esta aba</string>
     <string name="pill_source_chip">código</string>
     <string name="pill_source_title">Fechar esta visualização do código-fonte</string>

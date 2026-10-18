@@ -102,6 +102,11 @@ object BlancTokens {
         BlancTheme.DARK -> "#0e0e0e"
         BlancTheme.PRIVATE -> "#0a0a0a"
     }
+    fun shadowIslandResting(theme: BlancTheme): String = when (theme) {
+        BlancTheme.LIGHT -> "inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24)"
+        BlancTheme.DARK -> "inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24)"
+        BlancTheme.PRIVATE -> "inset 0 1px 0 rgba(255,255,255,.07), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24)"
+    }
     fun selectCaret(theme: BlancTheme): String = when (theme) {
         BlancTheme.LIGHT -> "url(\"select-caret.svg\")"
         BlancTheme.DARK -> "url(\"select-caret-dark.svg\")"
@@ -133,7 +138,6 @@ object BlancTokens {
     const val typeSheetSectionSize: String = "21px"
     const val shadowPopover: String = "inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -6px 10px -8px rgba(14,14,14,0.12), inset 0 -1px 0 rgba(14,14,14,0.035), 0 10px 44px -4px rgba(14,14,14,0.12)"
     const val shadowPill: String = "inset 0 1px 0 rgba(255,255,255,0.65), inset 1px 0 0.5px -0.5px rgba(255,255,255,0.28), inset -1px 0 0.5px -0.5px rgba(255,255,255,0.28), inset 0 -5px 7px -6px rgba(14,14,14,0.16), inset 0 -1px 0 rgba(14,14,14,0.045), 0 2px 16px -3px rgba(14,14,14,0.10)"
-    const val shadowIslandResting: String = "inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24)"
     const val stripH: String = "68px"
     const val pillZoom: String = "1.15"
     const val radius: String = "6px"

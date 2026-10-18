@@ -2144,43 +2144,43 @@
       }
     },
     "pill.private.chip": {
-      "comment": "Lowercase chip in the pill on a private tab; clicking it closes the tab.",
+      "comment": "Sentence-case chip in the pill on a private tab; clicking it closes the tab.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "private"
+            "value": "Private"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "privat"
+            "value": "Privat"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "privado"
+            "value": "Privado"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "privé"
+            "value": "Privé"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "privata"
+            "value": "Privata"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "privada"
+            "value": "Privada"
           }
         }
       }

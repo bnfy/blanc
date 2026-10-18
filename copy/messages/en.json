@@ -212,8 +212,8 @@
     "note": "Tooltip and accessible name of the pill's slash button that opens commands."
   },
   "pill.private.chip": {
-    "message": "private",
-    "note": "Lowercase chip in the pill on a private tab; clicking it closes the tab.",
+    "message": "Private",
+    "note": "Sentence-case chip in the pill on a private tab; clicking it closes the tab.",
     "maxLength": 10
   },
   "pill.private.title": {

@@ -52,7 +52,7 @@
     <string name="pill_domain_default">nouvel onglet</string>
     <string name="pill_placeholder">Rechercher ou saisir une URL</string>
     <string name="pill_commands">Commandes (/)</string>
-    <string name="pill_private_chip">privé</string>
+    <string name="pill_private_chip">Privé</string>
     <string name="pill_private_title">Quitter la navigation privée — ferme cet onglet</string>
     <string name="pill_source_chip">code source</string>
     <string name="pill_source_title">Fermer cet affichage du code source</string>
