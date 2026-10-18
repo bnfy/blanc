@@ -144,3 +144,17 @@ both disposable profiles; the interrupted updater-hold run is retained. This
 closes the bounded full-corpus network comparison, not cosmetics/scriptlets,
 component containment or production lifecycle/recovery acceptance. Update-check
 identity remains open even though unchanged and changed bytes behave correctly.
+
+
+### Cosmetic checkpoint — October 17, 2026
+
+See [evidence](../f12-ubo-cosmetics-20261017/README.md). Four fresh uBO sessions / eight normal+CSP pages match on static CSS,
+`has-text` mutations and late constant/fetch scriptlets. First-inline constant
+check fails in both runtimes on all eight pages; document-start acceptance stays
+open. Initial favicon misses retained; final fixture explicitly serves them.
+Eight same-URL/two-registration update sessions pass behavior; all 16 update
+identities remain ambiguous gaps. No URL/order/timing join introduced.
+138 focused tests and 73-file lint pass; guard schedules zero actions, zero native
+compilations, no cold cost. Native footprint unchanged. Reports give session
+brackets only; owner attention/agent time unmeasured. Latency deferred. Full
+Spike A/B acceptance, Task 0 outcome and baseline promotion remain unchanged.

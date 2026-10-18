@@ -1,0 +1,38 @@
+{
+  "started": "2026-10-18T00:54:12.376Z",
+  "scope": "authored uBO CSS, has-text mutations, document-start constant and fetch scriptlet; regular main frame",
+  "nativeBuilds": 0,
+  "latencyMeasured": false,
+  "fullAcceptance": false,
+  "runs": [
+    {
+      "label": "electron-a"
+    },
+    {
+      "label": "electron-b"
+    },
+    {
+      "label": "chromium-a"
+    },
+    {
+      "label": "chromium-b"
+    }
+  ],
+  "sources": {
+    "ubo-cosmetic-run.mjs": "5135864452f53ca6ad7c7e3a04049e70ed0a6335585f8fdce59cd5e15ebf3fba",
+    "ubo-cosmetic-fixtures.mjs": "493031b4369355b72fe80bd4494db0a8f1b5efd9b5e9e40c4c6e347a25636688",
+    "session.mjs": "0c90108c2a0fcab0fcd272a985f2a591e61e3230ea2577f8eeb56f73f0b83311",
+    "transport.mjs": "2232100bf834a499f133b1c2b2e905e95fbcf5f07180d2a35d38502e1a905e1c"
+  },
+  "gaps": [
+    "other procedural operators and scriptlets",
+    "subframes and opaque origins",
+    "navigation/recreation lifecycle",
+    "private uBO intentionally disabled"
+  ],
+  "completed": true,
+  "cleanup": {
+    "removed": true
+  },
+  "finished": "2026-10-18T00:54:43.778Z"
+}

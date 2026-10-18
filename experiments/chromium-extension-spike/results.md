@@ -1468,3 +1468,17 @@ update-check contexts remain gaps. Identical bytes keep one observed worker targ
 so a new-realm join cannot be assumed. 128 tests pass, 67-file lint clean; zero
 native builds and zero-action guarded check. Latency deferred, footprint unchanged
 at 27/65; Task 0 upgrade gate and the verified 156 baseline unchanged.
+
+
+### Bounded uBO cosmetics and update collision — October 17, 2026
+
+See [evidence/f12-ubo-cosmetics-20261017](evidence/f12-ubo-cosmetics-20261017/README.md). Four fresh uBO sessions / eight normal+CSP pages match on static CSS,
+`has-text` mutations and late constant/fetch scriptlets. First-inline constant
+check fails in both runtimes on all eight pages; document-start acceptance stays
+open. Initial favicon misses retained; final fixture explicitly serves them.
+Eight same-URL/two-registration update sessions pass behavior; all 16 update
+identities remain ambiguous gaps. No URL/order/timing join introduced.
+138 focused tests and 73-file lint pass; guard schedules zero actions, zero native
+compilations, no cold cost. Native footprint unchanged. Reports give session
+brackets only; owner attention/agent time unmeasured. Latency deferred. Full
+Spike A/B acceptance, Task 0 outcome and baseline promotion remain unchanged.
