@@ -2,7 +2,7 @@
   "publicRelease": "v1.37.0",
   "sourceSha": "70a4cc14db6ef77d11ca26b88ae58c2a13580ac5",
   "releaseEvidence": "docs/release-incidents/2026-10-18-v1.37.0.md",
-  "scope": "Site copy verified against public v1.37.0 on October 18, 2026: tab group colors and the group menu, ungrouped tabs above, between and below groups, and links from grouped tabs opening ungrouped, on /features/tab-groups and its support guide. Also a shorter hero on that page (owner request). Replaces the v1.27 wording that groups have no colors and that links join their group.",
+  "scope": "Site copy verified against public v1.37.0 on October 18, 2026: tab group colors and the group menu, ungrouped tabs above, between and below groups, and links from grouped tabs opening ungrouped, on /features/tab-groups and its support guide. Also a shorter hero on that page (owner request). Replaces the v1.27 wording that groups have no colors and that links join their group. Also, at the owner's request, shorter hero ledes on nine feature pages and a shorter Sync heading.",
   "prohibitedClaims": [
     "Groups have names, not colors.",
     "Links join the group.",
@@ -54,6 +54,74 @@
         "spec/acceptance/tabs-and-groups.feature"
       ],
       "qualification": "Named groups are user-created through /group or the tab menu; the resting Island shows the active group's tabs and other groups can be folded in the ⌘L panel. Blanc does not create or name groups by itself."
+    },
+    "heroOnePassword": {
+      "evidence": [
+        "docs/1password-integration.md",
+        "src/main/onepassword-availability.js"
+      ],
+      "qualification": "Explicit-invoke fill from the user's installed 1Password app through the Blanc Credential Broker; off by default, unavailable on Windows on Arm (the page's availability line is unchanged)."
+    },
+    "heroGlance": {
+      "evidence": [
+        "spec/features.md",
+        "src/main/glance-layout.js",
+        "spec/acceptance/glance.feature"
+      ],
+      "qualification": "Glance shows another open tab beside the main page in a resizable split; the reference pane can be read alongside."
+    },
+    "heroGestures": {
+      "evidence": [
+        "spec/features.md",
+        "src/main/mouse-gestures.js"
+      ],
+      "qualification": "Mouse gestures are off by default; with them on, holding the gesture button and drawing a direction over the page runs that direction's assigned action, such as Back or New Tab."
+    },
+    "heroProfiles": {
+      "evidence": [
+        "spec/features.md",
+        "src/main/local-profiles.js",
+        "spec/acceptance/local-profiles.feature"
+      ],
+      "qualification": "Local profiles keep Favorites, history, downloads metadata, permissions and site sessions separate per profile, created on the device with no account."
+    },
+    "heroQuietTabs": {
+      "evidence": [
+        "src/main/tab-sleep.js",
+        "spec/acceptance/quiet-tabs.feature"
+      ],
+      "qualification": "An eligible idle background tab gives back its renderer; it keeps its place in the tab order and reloads when activated."
+    },
+    "heroSecurity": {
+      "evidence": [
+        "src/main/adblock.js",
+        "src/main/permissions.js",
+        "docs/release-verification.md"
+      ],
+      "qualification": "The page describes blocking, the permission and runtime policy, and data handling; the lede introduces those sections."
+    },
+    "heroSync": {
+      "evidence": [
+        "src/main/sync.js",
+        "src/main/sync-crypto.js",
+        "spec/acceptance/sync.feature"
+      ],
+      "qualification": "Opt-in end-to-end-encrypted sync of Favorites and settings, set up once per device; open-tab sharing is a separate, off-by-default switch."
+    },
+    "heroBlocking": {
+      "evidence": [
+        "src/main/adblock.js",
+        "spec/acceptance/ad-blocking.feature"
+      ],
+      "qualification": "Blanc Blocker compiles bundled, hash-verified EasyList and EasyPrivacy snapshots; the Island's shield opens per-site controls."
+    },
+    "heroSpaces": {
+      "evidence": [
+        "src/main/workspaces.js",
+        "src/renderer/space-identity.js",
+        "spec/acceptance/F41-named-workspaces.feature"
+      ],
+      "qualification": "Spaces are switched from the Island's space mark; a bound space saves its tabs and groups and restores them after a restart."
     }
   },
   "claims": [
@@ -252,6 +320,114 @@
         "ungroupedPlacement"
       ],
       "verdict": "qualified"
+    },
+    {
+      "id": "v137-020",
+      "source": "site/src/pages/features/1password.astro",
+      "exactWording": "Blanc fills a matching login from your installed 1Password app when you ask.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "heroOnePassword"
+      ],
+      "verdict": "qualified",
+      "replaces": "v134-1p-011"
+    },
+    {
+      "id": "v137-021",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Glance shows another open tab beside your main page, with room to read both.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "heroGlance"
+      ],
+      "verdict": "qualified",
+      "replaces": "website-115-108"
+    },
+    {
+      "id": "v137-022",
+      "source": "site/src/pages/features/mouse-gestures.astro",
+      "exactWording": "Turn on Mouse gestures, then hold one button and draw a direction over the page to go back, open a tab or run another assigned action.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "heroGestures"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v137-023",
+      "source": "site/src/pages/features/profiles.astro",
+      "exactWording": "Keep work logins apart from your personal browsing, with no account needed.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "heroProfiles"
+      ],
+      "verdict": "qualified",
+      "replaces": "website-115-151"
+    },
+    {
+      "id": "v137-024",
+      "source": "site/src/pages/features/quiet-tabs.astro",
+      "exactWording": "The tab keeps its place in your session and reloads when you return to it.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "heroQuietTabs"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v137-025",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "See what Blanc blocks, what it refuses to run, and how it handles your data.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "heroSecurity"
+      ],
+      "verdict": "qualified",
+      "replaces": "reddit-451"
+    },
+    {
+      "id": "v137-026",
+      "source": "site/src/pages/features/sync.astro",
+      "exactWording": "Your favorites and settings on your other devices.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "heroSync"
+      ],
+      "verdict": "qualified",
+      "replaces": "website-115-244"
+    },
+    {
+      "id": "v137-027",
+      "source": "site/src/pages/features/sync.astro",
+      "exactWording": "Turn it on once per device. One more switch shares your open tabs too.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "heroSync"
+      ],
+      "verdict": "qualified",
+      "replaces": "website-115-244"
+    },
+    {
+      "id": "v137-028",
+      "source": "site/src/pages/features/ad-blocking.astro",
+      "exactWording": "Blanc Blocker stops ads and known trackers with built-in lists. The shield on the Island opens its controls for the site you’re on.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "heroBlocking"
+      ],
+      "verdict": "qualified",
+      "replaces": "reddit-500"
+    },
+    {
+      "id": "v137-029",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Switch spaces from the Island. Each space’s tabs and groups come back, even after you restart.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "heroSpaces"
+      ],
+      "verdict": "qualified",
+      "replaces": "site-133-workspaces-10"
     }
   ]
 }
