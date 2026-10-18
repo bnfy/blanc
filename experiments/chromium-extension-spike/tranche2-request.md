@@ -34,16 +34,18 @@ allows (one build at a time; the spikes alternate, they never overlap a build).
 3 runs alongside as a document. 4, 5 and 6 fill the gaps. The tranche ends
 when every row has its artifact, or when a kill criterion is hit and recorded.
 
-### 1.1 Progress checkpoint — October 18, 2026 UTC (static delivery drain and broader CSP)
+### 1.1 Progress checkpoint — October 18, 2026 UTC (lost acknowledgement recovery and reload lifecycle)
 
 This table is the live map from implementation work back to the approved plan.
 The prior CodeQL remediation head b99334c7 passed all 22 checks, none skipped.
-The current checkpoint is `evidence/f12-static-drain-20261018/`: 45 controlled
-reload schedules serialize nine committed static deliveries before reset, with
-36 pre-dispatch drops; a destroyed receiver leaves reload held. Fifteen new
-header/inherited CSP cases retain page-policy controls. This is bounded static
-ordering, not all-path atomicity or full containment. Lost-acknowledgement recovery
-remains open. 253 tests pass; zero-action guard, no compile; new-head CI pending.
+The current checkpoint is `evidence/f12-static-recovery-20261018/`: 45 controlled
+schedules plus destroyed-document recovery, live-receiver fail-closed timeout and
+retry, shared reload promise and stale-completion rejection pass. Browser absence
+is used only for document IDs previously verified by LateContext; inactive/cached
+or retained crashed documents are not treated as gone. Native early/upstream
+atomicity, changed-rule semantics and runtime BFCache/crash coverage remain gaps.
+260 tests pass; one 34.59-second incremental build, fresh footprint31/74 and final
+zero-action guard. CI pending this checkpoint.
 Detailed measurements remain in `rebase-ledger.md`; test outcomes and evidence
 links remain in `results.md`. A row marked in progress is not acceptance.
 
@@ -569,12 +571,11 @@ all unchanged limits above; anything beyond them requires another decision.
 Merging alone was not approval. The owner separately authorized merging
 #916 once CI on its current head is green and resuming the amended work.
 
-Current follow-up limitation: the static-delivery barrier serializes committed
-receiver execution before engine reset (45 controlled schedules and one lost
-receiver). It does not revoke code already sent. Native early/upstream in-flight
-injection, changed-rule semantics, lost-ack recovery and broader lifecycle remain
-open. Fifteen header/inherited and 15 meta CSP cases demonstrate extension privilege
-while page controls stay enforced, not full containment. Mixed-owner/unknown
-precursors, top-level non-HTTP, broader CSP combinations and arbitrary scriptlets
-remain unqualified. See `evidence/f12-static-drain-20261018/`. Latency deferred;
-Electron diagnostic build §8 remains unchecked/unstarted.
+Current follow-up limitation: static-delivery/reset ordering and bounded lost-ack
+recovery now pass. A previously verified destroyed document can retire its lease;
+a live receiver cannot be retired on timeout. Overlapping begin and stale completion
+reject, shared loads coalesce through native acknowledgement and retry after failure.
+Native early/upstream in-flight injection, in-place changed rules, async effects,
+BFCache/prerender/crash runtime coverage and full recovery/containment remain open.
+See `evidence/f12-static-recovery-20261018/`. Broader request-path/frame/CSP gaps
+remain explicit. Latency deferred; Electron diagnostic build §8 unchecked/unstarted.

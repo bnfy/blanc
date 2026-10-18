@@ -1946,3 +1946,36 @@ adversarial/deeper/combined CSP and full containment, broader coverage and Elect
 identity. Latency remains deferred; Electron diagnostic build §8 stays unchecked
 and unstarted. Task0/items3–6 unchanged. Parent b99334c7 passed all 22 CI checks,
 none skipped, CodeQL no new alerts; this checkpoint awaits its own CI.
+
+
+## Lost acknowledgement recovery and reload lifecycle — October 18, 2026 UTC
+
+[Evidence and limits](evidence/f12-static-recovery-20261018/README.md).
+A held reload can now retire a static lease after the browser proves the exact
+previously verified document is absent. This proof chain starts with actual
+MessageSender identity and two LateContext checks; an arbitrary absent ID is not
+destruction proof. The authenticated query preserves inactive/BFCache/retained
+crash documents as present, based on the pinned source audit. Runtime BFCache,
+prerender and crash cases remain unqualified.
+
+**45 controlled schedules pass**, retaining 36 pre-dispatch drops / nine drained
+committed deliveries and zero duplicate bodies. Additional runtime checks prove:
+live receiver timeout keeps page fetches blocked; two real load calls share a
+promise through acknowledgement; overlapping begin and stale completion reject;
+receiver acknowledgement allows retry after failure; destroyed receiver permits
+actual reload recovery with exact native lifetime evidence. Malformed ID,
+stale/malformed generation and popup query controls reject.
+
+Generated uBO clears its shared load promise after native readiness acknowledgement
+on success or failure; completion uses the epoch returned by begin. This broadens
+reload lifecycle coverage but does not close native early/upstream non-static
+injection atomicity, changed-rule semantics, asynchronous effects or full recovery UX.
+
+**260 tests / 133-file lint**, ordinary **18 late + two HTTP + 13 identity**,
+**15 header/inherited CSP**, and **ten readiness + one startup** checks pass.
+One guarded incremental **34.59 s wrapper / 30.82 s Siso, six steps**; final guard
+zero actions **4.39 s**. Fresh footprint **31 files / 74 hunks**. Four archives,
+236 members, four independent extracted proofs. Initial test/harness failures and
+pre-final runtime retained and excluded; all disposable roots/private keys removed.
+No full network, Electron or meta-CSP rerun. Latency remains deferred; Electron
+build §8 unchecked/unstarted. Task0/items3–6 unchanged; CI pending this checkpoint.

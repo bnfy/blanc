@@ -36,7 +36,22 @@ test('document payload availability is revoked before reset and restored after a
 test('engine reset and ready wait for dispatch drain; timeout keeps ready false',async()=>{
  const b=createDeliveryBarrier(10),calls=[],g=await guard(async url=>{calls.push(url);return {status:204};},b);
  await g.activate(true);const sender={id:'provider',documentId:'doc'},token=b.acquire(sender);let reset=false;
- await assert.rejects(g.begin().then(()=>{reset=true;}),/remains held/);assert(!reset);assert.equal(g.current().ready,false);assert(calls.at(-1).includes('/begin?'));
+ await assert.rejects(g.begin().then(()=>{reset=true;}),/remains held/);assert(!reset);assert.equal(g.current().ready,false);assert(calls.filter(x=>!x.includes('/delivery-document?')).at(-1).includes('/begin?'));
  await assert.rejects(g.complete(),/remains held/);assert.equal(g.current().ready,false);assert(!calls.at(-1).includes('/ready?'));
  b.acknowledge(token,sender);await g.begin();await g.complete();assert.equal(g.current().ready,true);
+});
+
+test('overlapping begin is rejected and stale completion cannot release newer epoch',async()=>{
+ const b=createDeliveryBarrier(1000),g=await guard(async()=>({status:204}),b);await g.activate(true);
+ const sender={id:'provider',documentId:'doc'},token=b.acquire(sender),first=g.begin();
+ await assert.rejects(g.begin(),/already pending/);await assert.rejects(g.complete(),/Superseded/);
+ b.acknowledge(token,sender);const old=await first;await g.begin();await assert.rejects(g.complete(old),/Superseded/);assert.equal(g.current().ready,false);
+ await g.complete();assert(g.current().ready);
+});
+test('only exact destroyed-document reply can retire a verified lease',async()=>{
+ for(const reply of [{documentId:'doc',exists:false},{documentId:'other',exists:false},{documentId:'doc',exists:true},{documentId:'doc'},null]){
+  const b=createDeliveryBarrier(5);const g=await guard(async url=>url.includes('/delivery-document?')?{status:200,json:async()=>reply}:{status:204},b);
+  const sender={id:'provider',documentId:'doc'};b.acquire(sender);
+  if(reply?.documentId==='doc'&&reply.exists===false){await g.begin();assert.equal(b.size(),0);}else {await assert.rejects(g.begin(),/remains held/);assert.equal(b.size(),1);}
+ }
 });

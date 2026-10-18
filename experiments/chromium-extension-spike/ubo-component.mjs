@@ -40,8 +40,9 @@ export function generateComponent(output, reloadGuard=false, observe=false, docu
   fs.copyFileSync(new URL('./ubo-static-delivery.mjs',import.meta.url),path.join(output,'js/blanc-static-delivery.js'));
   fs.copyFileSync(new URL('./ubo-reload-guard.js',import.meta.url),path.join(output,'js/blanc-reload-guard.js'));
   replace('js/storage.js',"import * as sfp from './static-filtering-parser.js';","import * as sfp from './static-filtering-parser.js';\nimport * as blancGuard from './blanc-reload-guard.js';");
-  replace('js/storage.js','loadingPromise = this.loadRedirectResources().then(( ) => {','loadingPromise = blancGuard.begin().then(() => this.loadRedirectResources()).then(( ) => {');
-  replace('js/storage.js','            onDone();\n        });','            onDone();\n            return blancGuard.complete();\n        });');
+  replace('js/storage.js','loadingPromise = this.loadRedirectResources().then(( ) => {','let blancEpoch; loadingPromise = blancGuard.begin().then(epoch => { blancEpoch = epoch; return this.loadRedirectResources(); }).then(( ) => {');
+  replace('js/storage.js','            onDone();\n        });','            onDone();\n            return blancGuard.complete(blancEpoch);\n        }).finally(() => { loadingPromise = undefined; });');
+  replace('js/storage.js','        loadingPromise = undefined;','        // Shared load remains pending through native readiness acknowledgement.');
   replace('js/start.js',"import './vapi-common.js';","import * as blancGuard from './blanc-reload-guard.js';\nimport './vapi-common.js';");
   replace('js/start.js','webRequest.start();','webRequest.start();\nawait blancGuard.activate(selfieIsValid);\nglobalThis.__blancUboProbe = { reload: () => µb.loadFilterLists(), begin: blancGuard.begin, complete: blancGuard.complete, state: () => ({readyToFilter: µb.readyToFilter}), setFilters: text => { µb.inMemoryFilters = text.split("\\n"); µb.inMemoryFiltersCompiled = ""; } };');
   changes.push('js/storage.js: acknowledged begin before reset, complete after freeze','js/start.js: release after observers start','js/blanc-reload-guard.js');

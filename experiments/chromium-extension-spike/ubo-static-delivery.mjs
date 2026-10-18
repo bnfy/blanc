@@ -9,27 +9,47 @@ export function createDeliveryBarrier(timeoutMs = 3000) {
         acquire(sender) {
             if ( pending.size >= 64 ) { return; }
             const token = crypto.randomUUID();
-            pending.set(token, identity(sender));
+            pending.set(token, {key: identity(sender), documentId: sender.documentId});
             return token;
         },
         acknowledge(token, sender) {
             if ( typeof token !== 'string' || !pending.has(token) ||
-                 pending.get(token) !== identity(sender) ) { return false; }
+                 pending.get(token).key !== identity(sender) ) { return false; }
             pending.delete(token);
             if ( pending.size === 0 ) {
                 for ( const resolve of waiters ) { resolve(); }
             }
             return true;
         },
-        drain() {
+        drain(destroyed) {
             if ( pending.size === 0 ) { return Promise.resolve(); }
             return new Promise((resolve, reject) => {
-                const done = () => { clearTimeout(timer); waiters.delete(done); resolve(); };
+                let active = true, querying = false;
+                const stop = () => { active = false; clearTimeout(timer); clearInterval(poll); waiters.delete(done); };
+                const done = () => { stop(); resolve(); };
                 const timer = setTimeout(() => {
-                    waiters.delete(done);
+                    stop();
                     reject(Error('Static delivery unacknowledged; reload remains held'));
                 }, timeoutMs);
+                // Never retire on a timeout, transport error, inactive frame,
+                // missing reply or a document ID supplied by the page.
+                const check = async () => {
+                    if ( !active || querying || !destroyed ) { return; }
+                    querying = true;
+                    try {
+                        for ( const [token, lease] of [...pending] ) {
+                            const gone = await destroyed(lease.documentId);
+                            if ( active && gone === true && pending.get(token) === lease ) {
+                                pending.delete(token);
+                            }
+                        }
+                        if ( active && pending.size === 0 ) { for ( const resolve of waiters ) { resolve(); } }
+                    } catch { /* unknown remains held */ }
+                    finally { querying = false; }
+                };
+                const poll = setInterval(check, 100);
                 waiters.add(done);
+                void check();
             });
         },
         size() { return pending.size; },

@@ -22,3 +22,14 @@ test('dispatch bounds memory and tokens are unique',()=>{
  const b=createDeliveryBarrier(),tokens=Array.from({length:64},()=>b.acquire(sender));assert.equal(new Set(tokens).size,64);assert.equal(b.acquire(sender),undefined);
  for(const token of tokens)assert(b.acknowledge(token,sender));assert.equal(b.size(),0);
 });
+
+test('destroyed proof is polled; live, unknown and failed queries retain leases',async()=>{
+ const b=createDeliveryBarrier(10),token=b.acquire(sender);let asked;
+ await assert.rejects(b.drain(async id=>{asked=id;return false;}),/remains held/);assert.equal(asked,sender.documentId);assert.equal(b.size(),1);
+ await assert.rejects(b.drain(async()=>{throw Error('unreachable');}),/remains held/);assert.equal(b.size(),1);
+ await b.drain(async()=>true);assert.equal(b.size(),0);assert(!b.acknowledge(token,sender));
+});
+test('late lifetime response after timeout cannot silently retire a lease',async()=>{
+ const b=createDeliveryBarrier(5);b.acquire(sender);let resolve;
+ await assert.rejects(b.drain(()=>new Promise(r=>{resolve=r;})),/remains held/);resolve(true);await new Promise(r=>setImmediate(r));assert.equal(b.size(),1);
+});

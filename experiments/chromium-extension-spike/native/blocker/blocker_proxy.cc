@@ -228,6 +228,32 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
           }
           ReplyControl(current ? 200 : 409, base::WriteJson(work).value_or("[]")); return;
         }
+        // Lifetime query is available while held, but only to the same live
+        // provider document/generation. The JS barrier queries only document IDs
+        // previously validated by LateContext, never arbitrary absent IDs.
+        if (request_.url.path() == "/delivery-document" && request_.method == "POST") {
+          std::string body;
+          if (request_.request_body) for (const auto& element : *request_.request_body->elements()) {
+            if (element.type() != network::DataElement::Tag::kBytes) { body.clear(); break; }
+            body += element.As<network::DataElementBytes>().AsStringView();
+            if (body.size() > 1024) { body.clear(); break; }
+          }
+          auto parsed = base::JSONReader::ReadDict(body, base::JSON_PARSE_RFC);
+          const auto* document = parsed ? parsed->FindString("documentId") : nullptr;
+          auto id = extensions::ExtensionApiFrameIdMap::DocumentIdFromString(document ? *document : "");
+          const bool owner = base::StringToUint64(request_.url.query(), &generation) && generation > 0 && generation == state.generation &&
+              state.document.AsRenderFrameHostIfValid() == content::RenderFrameHost::FromID(context_.frame);
+          if (!owner || !document || id.is_empty()) { ReplyControl(403, "{}"); return; }
+          auto* frame = extensions::ExtensionApiFrameIdMap::Get()->GetRenderFrameHostByDocumentId(id);
+          if (frame && frame->GetBrowserContext() != context_.browser_context.get()) { ReplyControl(403, "{}"); return; }
+          // No IsActive/renderer-live check: BFCache, prerender and crashed-but-
+          // retained documents must not be mistaken for destroyed documents.
+          base::DictValue result; result.Set("documentId", *document);
+          result.Set("exists", frame != nullptr);
+          base::DictValue event = result.Clone(); event.Set("event", "ubo-delivery-document");
+          event.Set("active", frame && frame->IsActive()); Record(std::move(event));
+          ReplyControl(200, base::WriteJson(result).value_or("{}")); return;
+        }
         if (request_.url.path() == "/late-context" && request_.method == "POST") {
           std::string body;
           if (request_.request_body) for (const auto& element : *request_.request_body->elements()) {
