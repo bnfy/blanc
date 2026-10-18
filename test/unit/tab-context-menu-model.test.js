@@ -53,6 +53,23 @@ test('pin/mute/favorite labels reflect state', () => {
   assert.equal(byId(build({ tab: { bookmarked: true } }), 'toggle-favorite').label, 'Remove from Favorites');
 });
 
+test('pinned-home commands appear directly after pin and mirror main eligibility', () => {
+  const unpinned = build();
+  assert.equal(byId(unpinned, 'return-pinned-home'), undefined);
+  assert.equal(byId(unpinned, 'set-pinned-home'), undefined);
+
+  const pinned = build({
+    tab: { pinned: true, pinnedHome: { canReturn: true, canSet: false } },
+  });
+  const itemIds = ids(pinned);
+  const pinIndex = itemIds.indexOf('toggle-pin');
+  assert.deepEqual(itemIds.slice(pinIndex, pinIndex + 3), [
+    'toggle-pin', 'return-pinned-home', 'set-pinned-home',
+  ]);
+  assert.equal(byId(pinned, 'return-pinned-home').enabled, true);
+  assert.equal(byId(pinned, 'set-pinned-home').enabled, false);
+});
+
 test('save-to-favorites disabled for private and non-http tabs', () => {
   assert.equal(byId(build(), 'toggle-favorite').enabled, true);
   assert.equal(byId(build({ tab: { private: true } }), 'toggle-favorite').enabled, false);

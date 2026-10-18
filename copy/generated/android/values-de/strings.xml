@@ -471,6 +471,8 @@
     <string name="device_menu_rename">Gerät umbenennen…</string>
     <string name="tab_menu_reset_title">Tabtitel zurücksetzen</string>
     <string name="tab_menu_pin">Tab anheften</string>
+    <string name="tab_menu_return_pinned_home">Zur Ausgangsseite des Tabs zurückkehren</string>
+    <string name="tab_menu_set_pinned_home">Diese Seite als Ausgangsseite festlegen</string>
     <string name="tab_menu_unpin">Tab lösen</string>
     <string name="tab_menu_mute">Tab stummschalten</string>
     <string name="tab_menu_unmute">Ton einschalten</string>

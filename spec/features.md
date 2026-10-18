@@ -1299,3 +1299,25 @@ engine, without passing through it. Design:
   `test/unit/bangs.test.js`, `bangs-build.test.js`, `bangs-settings.test.js`,
   `bang-resolution.test.js`, `bangs-overlay.test.js`, `bang-icons-policy.test.js`,
   `bang-icons.test.js` and `bang-icons-main.test.js`.
+
+## F48 — Pinned homes (desktop)
+
+A pinned tab remembers the page where it was pinned as its home, matching the
+bounded Zen/Arc behavior described in the design spec without turning pins into
+shared bookmarks or resetting them on every selection.
+
+- **During a session.** Browsing away keeps the tab's ordinary history and its
+  current page. Switching tabs, windows, or Spaces does not reset it.
+- **On a clean launch.** The tab opens its pinned home. Crash recovery restores
+  the last page instead, so recovering work remains the priority.
+- **Deliberate changes.** Unpinning clears the home; pinning again records the
+  current page. A pinned tab's context menu offers **Return to Pinned Home**
+  and **Make This the Pinned Home** when each action is applicable.
+- **Lifetime and privacy.** The home stays with Duplicate, Reopen Closed Tab,
+  window moves, Spaces and history clearing. Private tabs may use it only in
+  memory. Tab Sync never receives it.
+- **Acceptance:**
+  [`acceptance/tabs-and-groups.feature`](./acceptance/tabs-and-groups.feature)
+  (`@F48`, bound in `test/desktop/steps/pinned-home.steps.js`), plus
+  `test/desktop/pinned-home-recovery-smoke.mjs` and
+  `test/unit/pinned-home*.test.js`.

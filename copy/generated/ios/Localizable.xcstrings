@@ -19351,6 +19351,90 @@
         }
       }
     },
+    "tabMenu.returnPinnedHome": {
+      "comment": "Tab context menu command.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Return to Pinned Home"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zur Ausgangsseite des Tabs zurückkehren"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volver a la página de origen fijada"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revenir à la page d’origine épinglée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Torna alla pagina d’origine fissata"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voltar à página de origem fixada"
+          }
+        }
+      }
+    },
+    "tabMenu.setPinnedHome": {
+      "comment": "Tab context menu command.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Make This the Pinned Home"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Seite als Ausgangsseite festlegen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usar esta página como página de origen fijada"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Définir comme page d’origine épinglée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imposta come pagina d’origine fissata"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Definir como página de origem fixada"
+          }
+        }
+      }
+    },
     "tabMenu.unpin": {
       "comment": "Tab context menu command.",
       "extractionState": "manual",

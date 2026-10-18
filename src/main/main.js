@@ -201,7 +201,8 @@ const { groupFavoritesForMenu, mayWriteFavoriteFavicon } = require('./bookmark-d
 const history = require('./history');
 const { siteKey: topSiteKey } = require('./top-sites');
 const { JsonStore, discardProfileStoreEntries, enableTempSweep } = require('./store');
-const { persistableEntries, sessionTabMeta, metaAfterHistoryClear } = require('./session-snapshot');
+const { persistableUrl, persistableEntries, sessionTabMeta, metaAfterHistoryClear } = require('./session-snapshot');
+const { pinnedHomeFor, applyPinnedHomes } = require('./pinned-home');
 const { normalizeTabName, displayTitle, resolveTabRename } = require('./tab-name');
 const {
   PRIMARY_WINDOW_ID,
@@ -5588,6 +5589,7 @@ function closedMemberRecord(id) {
   return {
     url: tab.url, title: tab.title, favicon: tab.favicon ?? null,
     customTitle: tab.customTitle ?? null,
+    pinnedHomeUrl: tab.pinnedHomeUrl ?? null,
     localFile: tab.localFile === true,
     openerSandboxFlags: tab.openerSandboxFlags ?? 0,
     pinned: !!tab.pinned, muted: !!tab.muted, private: !!tab.private, snapshot,
@@ -6131,6 +6133,7 @@ function applyWorkspaceToWindow(runtime, workspace) {
       title: cleaned.meta?.[index]?.title ?? '',
       favicon: cleaned.meta?.[index]?.favicon ?? null,
       customTitle: cleaned.meta?.[index]?.customTitle ?? null,
+      pinnedHomeUrl: cleaned.meta?.[index]?.pinnedHomeUrl ?? null,
       allowLocalFile: cleaned.localFiles?.[index] === true,
       managedExtension: restorableUblockTool(url),
     }));
@@ -6200,6 +6203,9 @@ function toggleTabPinned(id) {
   const tab = tabs.get(id);
   if (!tab) return false;
   tab.pinned = !tab.pinned;
+  tab.pinnedHomeUrl = tab.pinned
+    ? pinnedHomeFor(tab.url, { localFile: tab.localFile === true })
+    : null;
   broadcastTabs();
   scheduleMenuRebuild();
   return tab.pinned;
@@ -6235,6 +6241,7 @@ function duplicateTab(id) {
     openerSandboxFlags: source.openerSandboxFlags,
     groupId: source.groupId,
     pinned: source.pinned,
+    pinnedHomeUrl: source.pinnedHomeUrl,
     muted: source.muted,
     // Only worth restoring if there's more than just the current page.
     restoreHistory: entries.length > 1 ? { entries, index: activeIndex } : null,
@@ -6437,7 +6444,7 @@ initTabView({
   notePopupChild,
 });
 
-function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, customTitle = null, adoptView = null, allowLocalFile = false, openerSandboxFlags = 0, httpReferrer = null, managedExtension = false } = {}) {
+function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, customTitle = null, pinnedHomeUrl = null, adoptView = null, allowLocalFile = false, openerSandboxFlags = 0, httpReferrer = null, managedExtension = false } = {}) {
   if (/^chrome-extension:/i.test(url) && (isPrivate || !managedExtension)) return null;
   const admittedLocalFile = allowLocalFile && isSupportedLocalHtmlUrl(url);
   if (isForbiddenTopLevelUrl(url) && !admittedLocalFile) url = NEW_TAB_URL;
@@ -6469,6 +6476,12 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   // opener relationship, so none of the window.open family rules apply.
   const adopting = !adopted && !!adoptView;
   if (adopting) view = adoptView;
+  const suppliedPinnedHome = pinnedHomeFor(pinnedHomeUrl, {
+    localFile: typeof pinnedHomeUrl === 'string' && pinnedHomeUrl.startsWith('file:'),
+  });
+  const pinnedHome = pinned
+    ? (suppliedPinnedHome ?? pinnedHomeFor(url, { localFile: admittedLocalFile }))
+    : null;
   // Session restore builds every tab quiet: no view, renderer process, or
   // navigation — only the record the chrome draws. An adopted child is
   // already live and can never be born quiet.
@@ -6489,6 +6502,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     // `title` stays the page's own; restore paths hand in file contents, so
     // the name is normalized here too.
     customTitle: normalizeTabName(customTitle),
+    pinnedHomeUrl: pinnedHome,
     url,
     // Main-process grant, never copied from an IPC option. Cleared when the
     // document leaves this local file; only an OS handoff can originate it.
@@ -7111,6 +7125,7 @@ function reopenGroupEntry(entry) {
     const id = createTab(member.url, {
       groupId: group.id, pinned: member.pinned, muted: member.muted,
       asleep: true, title: member.title, favicon: member.favicon, customTitle: member.customTitle,
+      pinnedHomeUrl: member.pinnedHomeUrl,
       allowLocalFile: member.localFile === true,
       openerSandboxFlags: member.openerSandboxFlags,
     });
@@ -7142,6 +7157,7 @@ function reopenBatchEntry(entry) {
     const id = createTab(member.url, {
       groupId, pinned: member.pinned, muted: member.muted,
       asleep: true, title: member.title, favicon: member.favicon, customTitle: member.customTitle,
+      pinnedHomeUrl: member.pinnedHomeUrl,
       allowLocalFile: member.localFile === true,
       openerSandboxFlags: member.openerSandboxFlags,
     });
@@ -7397,6 +7413,7 @@ function reopenEntry(entry) {
     : null;
   const common = {
     pinned: entry.pinned, muted: entry.muted, groupId: resolvedGroupId, customTitle: entry.customTitle,
+    pinnedHomeUrl: entry.pinnedHomeUrl,
     openerSandboxFlags: entry.openerSandboxFlags,
     managedExtension: restorableUblockTool(entry.url),
   };
@@ -9223,12 +9240,21 @@ function buildMenuForRuntime(runtime) {
  * is the window runtime the menu belongs to. Null if the tab isn't in it. */
 function tabContextData(tab, owner) {
   if (!tab || tab.runtimeId !== owner.id) return null;
+  const home = tab.pinnedHomeUrl;
+  const candidate = pinnedHomeFor(tab.url, { localFile: tab.localFile === true });
   return {
     tab: {
       id: tab.id, url: tab.url, title: tab.title, customTitle: tab.customTitle ?? null,
       pinned: !!tab.pinned, muted: !!tab.muted, private: !!tab.private,
       asleep: !!tab.asleep, bookmarked: !!tab.bookmarked,
       groupId: tab.groupId ?? null, capturing: !!tab.capturing,
+      pinnedHome: {
+        // A file grant belongs only to the live tab while it is on that file.
+        // Returning from a website must not invent a fresh local-file grant.
+        canReturn: !!tab.pinned && !!home && !home.startsWith('file:')
+          && persistableUrl(tab.url) !== home,
+        canSet: !!tab.pinned && candidate !== null && candidate !== home,
+      },
     },
     groups: owner.groups.map((g) => ({ id: g.id, name: g.name })),
     activeTabId: owner.activeTabId,
@@ -9254,6 +9280,21 @@ function menuContextActions(owner) {
     }),
     duplicate: b((id) => duplicateTab(id)),
     togglePin: b((id) => toggleTabPinned(id)),
+    returnPinnedHome: b((id) => {
+      const tab = tabs.get(id);
+      if (!tab?.pinned || !tab.pinnedHomeUrl || tab.pinnedHomeUrl.startsWith('file:')) return false;
+      navigateTabToAddress(id, tab.pinnedHomeUrl);
+      return true;
+    }),
+    setPinnedHome: b((id) => {
+      const tab = tabs.get(id);
+      if (!tab?.pinned) return false;
+      const candidate = pinnedHomeFor(tab.url, { localFile: tab.localFile === true });
+      if (!candidate || candidate === tab.pinnedHomeUrl) return false;
+      tab.pinnedHomeUrl = candidate;
+      persistSession();
+      return true;
+    }),
     toggleMute: b((id) => toggleTabMuted(id)),
     toggleFavorite: b((id) => toggleBookmarkForTab(id)),
     setGroup: b((id, gid) => setTabGroup(id, gid)),
@@ -11240,6 +11281,22 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       }),
       navigateTabToAddress, liveContents, tabs, getTabOrder: () => rt().tabOrder, getGroups: () => rt().groups, getActiveTabId: () => rt().activeTabId, getIslandRect: () => rt().islandRect, clusterSlots,
       createTab, setActiveTab, closeTab, duplicateTab, toggleTabPinned, toggleTabMuted,
+      goBack: (id) => {
+        const tab = tabs.get(id);
+        if (!tab) return false;
+        if (tab.asleep) {
+          const snapshot = sleepSnapshots.get(id);
+          wakeTab(id, { atIndex: snapshot ? snapshot.index - 1 : null }).catch(() => {});
+          return true;
+        }
+        const navigation = liveContents(tab)?.navigationHistory;
+        if (!navigation?.canGoBack()) return false;
+        navigation.goBack();
+        return true;
+      },
+      pinnedHomeActions: () => menuContextActions(rt()),
+      chooseSessionRecovery: (choice) => chooseSessionRecovery(choice),
+      getSessionRecoveryState: () => ({ ...sessionRecoveryState }),
       setGlanceTab, closeGlance, promoteGlance, resizeGlanceAt, resetGlanceRatio,
       getGlanceTabId: () => rt().glanceTabId,
       getFocusedPaneTabId: () => rt().focusedPaneTabId,
@@ -11730,16 +11787,20 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   const { windows, activeWindowId, readOnly } = loadWorkspace(ensureSessionStore().data);
   sessionReadOnly = readOnly;
   const pendingProfileIds = new Set(profileDeletions.pendingProfileDeletions());
+  // Read the crash ledger once, before either recovery branch can resolve it.
+  // A clean launch returns pinned tabs home; recovery keeps their last pages.
+  const cleanStart = !diagnostics.sessionRecoveryPending();
   const savedWindows = windows
     .filter((saved) => !pendingProfileIds.has(saved.profileId))
     .map((saved) => {
+    const prepared = applyPinnedHomes(saved, { cleanStart });
     const cleaned = filterRestoredSession(
-      saved,
+      prepared,
       (url, _index, localFile) => isUtilityUrl(url)
         || (isForbiddenTopLevelUrl(url) && !(localFile && restorableLocalHtmlUrl(url)))
     );
     return {
-      ...saved,
+      ...prepared,
       profileId: localProfiles.getLocalProfile(saved.profileId)?.id ?? DEFAULT_PROFILE_ID,
       urls: cleaned.urls,
       groupIds: cleaned.groupIds,
@@ -11761,7 +11822,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     : savedWindows[0].id;
   const recoverySummary = summarizeRecoveryWindows(savedWindows, { newTabUrl: NEW_TAB_URL });
   const recoveryRequired = !sessionReadOnly &&
-    diagnostics.sessionRecoveryPending() &&
+    !cleanStart &&
     recoverySummary.hasRecoverableContent;
   if (recoveryRequired) {
     sessionRecoveryState = {
@@ -11771,7 +11832,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       windowCount: recoverySummary.windowCount,
       error: null,
     };
-  } else if (diagnostics.sessionRecoveryPending()) {
+  } else if (!cleanStart) {
     // A single disposable blank tab has no meaningful recovery choice.
     diagnostics.resolveSessionRecovery();
   }
@@ -11982,6 +12043,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           title: saved.meta?.[index]?.title ?? '',
           favicon: saved.meta?.[index]?.favicon ?? null,
           customTitle: saved.meta?.[index]?.customTitle ?? null,
+          pinnedHomeUrl: saved.meta?.[index]?.pinnedHomeUrl ?? null,
           allowLocalFile: saved.localFiles?.[index] === true,
           managedExtension: restorableUblockTool(url),
         }));

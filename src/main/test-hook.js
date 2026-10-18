@@ -82,6 +82,10 @@ function install(refs) {
     duplicateTab,
     toggleTabPinned,
     toggleTabMuted,
+    goBack,
+    pinnedHomeActions,
+    chooseSessionRecovery,
+    getSessionRecoveryState,
     setGlanceTab,
     closeGlance: closeGlanceAction,
     promoteGlance: promoteGlanceAction,
@@ -526,6 +530,9 @@ function install(refs) {
       wc.sendInputEvent(input);
       return true;
     },
+    pinnedHome(tabId) { return tabs.get(String(tabId))?.pinnedHomeUrl ?? null; },
+    chooseSessionRecovery(choice) { return chooseSessionRecovery(String(choice)); },
+    sessionRecoveryState() { return getSessionRecoveryState(); },
     state() {
       const list = [];
       for (const [id, t] of tabs) {
@@ -593,6 +600,9 @@ function install(refs) {
     },
     duplicateActive() { duplicateTab(getActiveTabId()); },
     pinTab(id) { toggleTabPinned(id); },
+    returnPinnedHome(id) { return pinnedHomeActions().returnPinnedHome(String(id)); },
+    setPinnedHome(id) { return pinnedHomeActions().setPinnedHome(String(id)); },
+    goBack(id) { return goBack(String(id)); },
     muteTab(id) { toggleTabMuted(id); },
     closeTab(id) { closeTab(id); },
     reopenClosed() { reopenClosedTab(); },

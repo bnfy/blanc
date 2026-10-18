@@ -484,6 +484,8 @@
     <string name="device_menu_rename">Renommer l’appareil…</string>
     <string name="tab_menu_reset_title">Réinitialiser le titre de l’onglet</string>
     <string name="tab_menu_pin">Épingler l’onglet</string>
+    <string name="tab_menu_return_pinned_home">Revenir à la page d’origine épinglée</string>
+    <string name="tab_menu_set_pinned_home">Définir comme page d’origine épinglée</string>
     <string name="tab_menu_unpin">Détacher l’onglet</string>
     <string name="tab_menu_mute">Couper le son de l’onglet</string>
     <string name="tab_menu_unmute">Rétablir le son de l’onglet</string>

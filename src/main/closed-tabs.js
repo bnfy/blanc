@@ -6,6 +6,7 @@
 
 const { cloneEntryMarks } = require('./certificate-history');
 const { normalizeTabName } = require('./tab-name');
+const { pinnedHomeFor } = require('./pinned-home');
 
 /** Held views live this long before degrading to their snapshot (§2.1). */
 const CLOSED_GRACE_MS = 30_000;
@@ -18,6 +19,13 @@ const MAX_HELD_VIEWS = 1;
 
 let entrySeq = 0;
 const nextEntryId = () => `closed-${++entrySeq}`;
+
+function closedPinnedHome(tab) {
+  if (!tab?.pinned || tab.private || typeof tab.pinnedHomeUrl !== 'string') return null;
+  return pinnedHomeFor(tab.pinnedHomeUrl, {
+    localFile: tab.pinnedHomeUrl.startsWith('file:'),
+  });
+}
 
 /**
  * Highest tier a closing tab qualifies for. 'refuse' means the close is not
@@ -74,7 +82,8 @@ function sanitizeSnapshot(snapshot, { restorableCommit = false } = {}) {
 /** One closed-tab entry. `view`/`heldAt`/`wcId` stay null here; only the
  *  impure half may park a live view into them. */
 function buildTabEntry(tab, snapshot, slot = {}, now = 0) {
-  return {
+  const pinnedHomeUrl = closedPinnedHome(tab);
+  const entry = {
     kind: 'tab',
     id: nextEntryId(),
     closedAt: now,
@@ -83,6 +92,7 @@ function buildTabEntry(tab, snapshot, slot = {}, now = 0) {
     openerSandboxFlags: tab.openerSandboxFlags ?? 0,
     title: typeof tab.title === 'string' && tab.title ? tab.title : tab.url,
     customTitle: normalizeTabName(tab.customTitle),
+    ...(pinnedHomeUrl ? { pinnedHomeUrl } : {}),
     favicon: typeof tab.favicon === 'string' ? tab.favicon : null,
     pinned: !!tab.pinned,
     muted: !!tab.muted,
@@ -112,6 +122,7 @@ function buildTabEntry(tab, snapshot, slot = {}, now = 0) {
     wcId: null,
     expiryTimer: null,
   };
+  return entry;
 }
 
 /** One entry for a whole group close (§2.2). Private members are dropped
@@ -130,17 +141,22 @@ function buildGroupEntry(group, members, now = 0) {
     activeMemberIndex: Number.isInteger(group.activeMemberIndex) ? group.activeMemberIndex : 0,
     tabs: members
       .filter((m) => !m.private)
-      .map((m) => ({
-        url: m.url,
-        localFile: m.localFile === true,
-        openerSandboxFlags: m.openerSandboxFlags ?? 0,
-        title: typeof m.title === 'string' && m.title ? m.title : m.url,
-        customTitle: normalizeTabName(m.customTitle),
-        favicon: typeof m.favicon === 'string' ? m.favicon : null,
-        pinned: !!m.pinned,
-        muted: !!m.muted,
-        snapshot: m.snapshot ?? null,
-      })),
+      .map((m) => {
+        const pinnedHomeUrl = closedPinnedHome(m);
+        const member = {
+          url: m.url,
+          localFile: m.localFile === true,
+          openerSandboxFlags: m.openerSandboxFlags ?? 0,
+          title: typeof m.title === 'string' && m.title ? m.title : m.url,
+          customTitle: normalizeTabName(m.customTitle),
+          ...(pinnedHomeUrl ? { pinnedHomeUrl } : {}),
+          favicon: typeof m.favicon === 'string' ? m.favicon : null,
+          pinned: !!m.pinned,
+          muted: !!m.muted,
+          snapshot: m.snapshot ?? null,
+        };
+        return member;
+      }),
     view: null,
     heldAt: null,
     wcId: null,
@@ -159,18 +175,23 @@ function buildBatchEntry(members, now = 0) {
     closedAt: now,
     tabs: members
       .filter((m) => !m.private)
-      .map((m) => ({
-        url: m.url,
-        localFile: m.localFile === true,
-        openerSandboxFlags: m.openerSandboxFlags ?? 0,
-        title: typeof m.title === 'string' && m.title ? m.title : m.url,
-        customTitle: normalizeTabName(m.customTitle),
-        favicon: typeof m.favicon === 'string' ? m.favicon : null,
-        pinned: !!m.pinned,
-        muted: !!m.muted,
-        snapshot: m.snapshot ?? null,
-        groupId: m.groupId ?? null,
-      })),
+      .map((m) => {
+        const pinnedHomeUrl = closedPinnedHome(m);
+        const member = {
+          url: m.url,
+          localFile: m.localFile === true,
+          openerSandboxFlags: m.openerSandboxFlags ?? 0,
+          title: typeof m.title === 'string' && m.title ? m.title : m.url,
+          customTitle: normalizeTabName(m.customTitle),
+          ...(pinnedHomeUrl ? { pinnedHomeUrl } : {}),
+          favicon: typeof m.favicon === 'string' ? m.favicon : null,
+          pinned: !!m.pinned,
+          muted: !!m.muted,
+          snapshot: m.snapshot ?? null,
+          groupId: m.groupId ?? null,
+        };
+        return member;
+      }),
     view: null,
     heldAt: null,
     wcId: null,

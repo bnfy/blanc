@@ -1789,6 +1789,14 @@
     "message": "Pin Tab",
     "note": "Tab context menu command."
   },
+  "tabMenu.returnPinnedHome": {
+    "message": "Return to Pinned Home",
+    "note": "Tab context menu command."
+  },
+  "tabMenu.setPinnedHome": {
+    "message": "Make This the Pinned Home",
+    "note": "Tab context menu command."
+  },
   "tabMenu.unpin": {
     "message": "Unpin Tab",
     "note": "Tab context menu command."

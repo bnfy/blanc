@@ -231,3 +231,26 @@ test('closed entries keep a custom name and label themselves with it', () => {
   assert.equal(projectEntries([entry])[0].title, 'Budget');
   assert.equal(projectEntries([buildTabEntry(baseTab(), SNAP)])[0].title, 'A');
 });
+
+test('closed pinned tab, group, and batch entries keep the pinned home', () => {
+  const pinned = baseTab({
+    pinned: true,
+    url: 'https://b.example/',
+    pinnedHomeUrl: 'https://a.example/',
+  });
+  assert.equal(buildTabEntry(pinned, SNAP).pinnedHomeUrl, 'https://a.example/');
+  const group = buildGroupEntry({ id: 'g', name: 'work' }, [pinned]);
+  const batch = buildBatchEntry([pinned]);
+  assert.equal(group.tabs[0].pinnedHomeUrl, 'https://a.example/');
+  assert.equal(batch.tabs[0].pinnedHomeUrl, 'https://a.example/');
+});
+
+test('closed entries omit invalid, unpinned, and private pinned homes', () => {
+  for (const candidate of [
+    baseTab({ pinned: false, pinnedHomeUrl: 'https://a.example/' }),
+    baseTab({ pinned: true, private: true, pinnedHomeUrl: 'https://a.example/' }),
+    baseTab({ pinned: true, pinnedHomeUrl: 'blanc://settings/' }),
+  ]) {
+    assert.equal(Object.hasOwn(buildTabEntry(candidate, SNAP), 'pinnedHomeUrl'), false);
+  }
+});

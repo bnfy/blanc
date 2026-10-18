@@ -484,6 +484,8 @@
     <string name="device_menu_rename">Cambiar nombre del dispositivo…</string>
     <string name="tab_menu_reset_title">Restablecer título de pestaña</string>
     <string name="tab_menu_pin">Fijar pestaña</string>
+    <string name="tab_menu_return_pinned_home">Volver a la página de origen fijada</string>
+    <string name="tab_menu_set_pinned_home">Usar esta página como página de origen fijada</string>
     <string name="tab_menu_unpin">Soltar pestaña</string>
     <string name="tab_menu_mute">Silenciar pestaña</string>
     <string name="tab_menu_unmute">Activar el sonido de la pestaña</string>
