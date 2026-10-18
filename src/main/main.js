@@ -7628,9 +7628,11 @@ function applySavedLayout(runtime, saved, restoredIds) {
       ...legacyOrder(tabLayoutList(runtime), savedOrder),
       ...runtime.tabOrder.filter((id) => !live.has(id)),
     ];
+    // Laid out as groups then ungrouped tabs, the old slot (groups above the
+    // band) already is the item index; record the items so nothing reconciles.
     const known = savedOrder.filter((id) => groupIds.includes(id));
     runtime.closedSlot = clampClosedSlot(saved?.closedSlot ?? 0, known.length);
-    runtime.closedSlotIds = known;
+    runtime.closedSlotIds = itemsOf(tabLayoutList(runtime)).map((item) => item.id);
   } else {
     const restored = new Set(restoredIds);
     const ids = itemsOf(tabLayoutList(runtime).filter((tab) => restored.has(tab.id))).map((item) => item.id);

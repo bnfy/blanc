@@ -274,3 +274,14 @@ test('a reopened tab outside its group block rejoins at the group\'s end', () =>
   h.sync();
   assert.deepEqual(h.order(), ['b', 'a', 'L1', 'L0']);
 });
+
+test('a legacy band after the last group stays above the ungrouped tabs', () => {
+  // v1.36.0 drew groups, the band (slot = groups.length), then ungrouped tabs
+  // (final review, Important 4).
+  const h = harness(['L1', 'a:g1', 'b:g2', 'L2'], { groups: ['g1', 'g2'] });
+  h.runtime.closedSlot = 2;
+  h.runtime.closedSlotIds = ['g1', 'g2'];
+  h.applySavedLayout(h.runtime, { groups: [{ id: 'g1' }, { id: 'g2' }], closedSlot: 2 }, ['L1', 'a', 'b', 'L2']);
+  assert.deepEqual(h.order(), ['a', 'b', 'L1', 'L2']);
+  assert.equal(h.runtime.closedSlot, 2, 'between g2 and L1');
+});
