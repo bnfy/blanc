@@ -1730,12 +1730,12 @@
     "source": "sha256:9d4454dac78cbfcc82689d9fad43f533edc9b26fef2759ab52253cb1d982e2b6"
   },
   "tabMenu.returnPinnedHome": {
-    "message": "Zur Ausgangsseite des Tabs zurückkehren",
-    "source": "sha256:71e08d696d74d800919b3cd1ecc06c93babc001ee6a847f270e4f39d245c4672"
+    "message": "Zurück zur angehefteten Seite",
+    "source": "sha256:1e1c884ff578c54ef323c01fd172e60d745eeb5775e2f5fe3d6a5d2e304774b1"
   },
   "tabMenu.setPinnedHome": {
-    "message": "Diese Seite als Ausgangsseite festlegen",
-    "source": "sha256:2deb9c074d50f1a604f46c75259ac4fb172204ddd9bc44d2bb59d0fde7f4a036"
+    "message": "Angeheftete Seite durch aktuelle ersetzen",
+    "source": "sha256:153a34ea004a0f18125d5b5a26e13ef92e234cb6f9bacd9d882d9f0d61fdad3d"
   },
   "tabMenu.unpin": {
     "message": "Tab lösen",

@@ -1790,11 +1790,11 @@
     "note": "Tab context menu command."
   },
   "tabMenu.returnPinnedHome": {
-    "message": "Return to Pinned Home",
+    "message": "Back to Pinned Page",
     "note": "Tab context menu command."
   },
   "tabMenu.setPinnedHome": {
-    "message": "Make This the Pinned Home",
+    "message": "Replace Pinned Page with Current",
     "note": "Tab context menu command."
   },
   "tabMenu.unpin": {

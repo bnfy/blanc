@@ -1313,8 +1313,8 @@ shared bookmarks or resetting them on every selection.
 - **On a clean launch.** The tab opens its pinned home. Crash recovery restores
   the last page instead, so recovering work remains the priority.
 - **Deliberate changes.** Unpinning clears the home; pinning again records the
-  current page. A pinned tab's context menu offers **Return to Pinned Home**
-  and **Make This the Pinned Home** when each action is applicable.
+  current page. A pinned tab's context menu offers **Back to Pinned Page**
+  and **Replace Pinned Page with Current** when each action is applicable.
 - **Lifetime and privacy.** The home stays with Duplicate, Reopen Closed Tab,
   window moves, Spaces and history clearing. Private tabs may use it only in
   memory. Tab Sync never receives it.

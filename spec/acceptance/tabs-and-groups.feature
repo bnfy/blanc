@@ -262,4 +262,4 @@ Feature: Tabs and tab groups
   Scenario: A local-file home follows the normal file-access policy
     Given a pinned local HTML file
     When that pinned tab goes to "pinned-web-page"
-    Then Return to Pinned Home follows the local-file access policy
+    Then Back to Pinned Page follows the local-file access policy

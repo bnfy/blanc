@@ -29,8 +29,7 @@ the browser. In Blanc, that means:
 - the URL showing when **Pin Tab** is chosen becomes the tab's stable home;
 - browsing away from that home is allowed during the current session;
 - after quitting and reopening Blanc, the pinned tab opens at its home again;
-- the person can deliberately replace the home with **Make This the Pinned
-  Home**.
+- the person can deliberately replace the home with **Replace Pinned Page with Current**.
 
 This is the specific Zen/Arc-like behavior requested, not a promise to copy
 either browser's complete pinned-tab system. Blanc deliberately does not reset
@@ -194,13 +193,19 @@ persistable URL as `pinnedHomeUrl`.
 
 Add two items to the existing tab context menu for a pinned tab:
 
-- **Return to Pinned Home** — enabled when the current persistable URL differs
+- **Back to Pinned Page** — enabled when the current persistable URL differs
   from the home; navigates there in the current tab.
-- **Make This the Pinned Home** — enabled when the current URL is a supported
+- **Replace Pinned Page with Current** — enabled when the current URL is a supported
   persistable destination and differs from the home; updates the home without
   requiring an unpin/re-pin cycle.
 
 The commands apply to both the resting pill and an expanded-Island tab row.
+
+The labels follow the words people already know from other browsers: Arc
+calls this a tab's pinned page or pinned URL, and Zen offers **Replace Pinned
+URL with Current**. The first build said "Return to Pinned Home" and "Make
+This the Pinned Home"; the owner renamed them on 2026-10-17. "Pinned home"
+stays the internal term (`pinnedHomeUrl`, F48), like Favorites and `bookmarks`.
 
 ### 5.2 Supported homes
 
@@ -300,7 +305,7 @@ it. No bulk migration or one-time marker is needed.
 
 ### 5.6 Navigation and failure behaviour
 
-`Return to Pinned Home` uses the normal top-level navigation policy. If the
+`Back to Pinned Page` uses the normal top-level navigation policy. If the
 home cannot load, Blanc shows the existing error page and retains the home so
 Retry and the next launch still target the intended site.
 
@@ -314,8 +319,8 @@ falls back to the stored current URL. It never opens an unsupported scheme.
 2. A clean relaunch restores the pinned tab at A.
 3. Crash recovery restores it at B.
 4. Unpinning clears the home; re-pinning on B records B.
-5. **Make This the Pinned Home** changes A to B and persists it.
-6. **Return to Pinned Home** navigates from B to A through the normal policy.
+5. **Replace Pinned Page with Current** changes A to B and persists it.
+6. **Back to Pinned Page** navigates from B to A through the normal policy.
 7. An old pinned session without the field uses its saved URL as the home.
 8. Lazy/asleep restore paints the saved title/favicon while its eventual load
    targets the home.

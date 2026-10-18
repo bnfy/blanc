@@ -484,8 +484,8 @@
     <string name="device_menu_rename">Renomear dispositivo…</string>
     <string name="tab_menu_reset_title">Redefinir título da aba</string>
     <string name="tab_menu_pin">Fixar aba</string>
-    <string name="tab_menu_return_pinned_home">Voltar à página de origem fixada</string>
-    <string name="tab_menu_set_pinned_home">Definir como página de origem fixada</string>
+    <string name="tab_menu_return_pinned_home">Voltar à página fixada</string>
+    <string name="tab_menu_set_pinned_home">Substituir a página fixada pela atual</string>
     <string name="tab_menu_unpin">Desafixar aba</string>
     <string name="tab_menu_mute">Silenciar aba</string>
     <string name="tab_menu_unmute">Reativar o som da aba</string>

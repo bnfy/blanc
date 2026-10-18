@@ -484,8 +484,8 @@
     <string name="device_menu_rename">Rinomina dispositivo…</string>
     <string name="tab_menu_reset_title">Reimposta titolo scheda</string>
     <string name="tab_menu_pin">Fissa la scheda</string>
-    <string name="tab_menu_return_pinned_home">Torna alla pagina d’origine fissata</string>
-    <string name="tab_menu_set_pinned_home">Imposta come pagina d’origine fissata</string>
+    <string name="tab_menu_return_pinned_home">Torna alla pagina fissata</string>
+    <string name="tab_menu_set_pinned_home">Sostituisci la pagina fissata con quella attuale</string>
     <string name="tab_menu_unpin">Rilascia la scheda</string>
     <string name="tab_menu_mute">Disattiva l’audio della scheda</string>
     <string name="tab_menu_unmute">Riattiva l’audio della scheda</string>

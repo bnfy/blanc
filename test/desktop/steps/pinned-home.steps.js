@@ -213,7 +213,7 @@ Then('duplicate, reopen, move-window, and Space copies retain its pinned home', 
   assert.equal(await this.call('pinnedHome', spaceTab.id), home);
 });
 
-Then('Return to Pinned Home follows the local-file access policy', async function () {
+Then('Back to Pinned Page follows the local-file access policy', async function () {
   const current = this.fixtureUrl('pinned-web-page');
   assert.equal(await this.call('returnPinnedHome', this.pinnedTabId), false);
   await new Promise((resolve) => setTimeout(resolve, 400));
