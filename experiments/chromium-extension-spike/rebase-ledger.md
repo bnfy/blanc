@@ -804,3 +804,24 @@ passes; provider readiness/reload protection and update-script identity remain
 open. Budget 25/62 before, 27/65 after. Context regression 95/95, component 3/3.
 These costs belong to routine tranche work, never Task 0's cold column. Latency
 deferred; owner attention/agent effort not measured.
+# Tranche 2 routine uBO reload safeguard — October 17, 2026
+
+See [runtime and failed-attempt evidence](evidence/f12-ubo-reload-20261017/README.md).
+Preparation copied only Blanc-owned blocker sources and generated GPL payload
+integration. Unchanged-args GN added the existing extensions/browser dependency
+(3.724 s). Guard check reported one initial action. Build invocations:
+
+| Invocation | Result | Elapsed | Classification |
+| --- | --- | --- | --- |
+| hold-build | raw-pointer annotation compile failure | 5.84 s | routine incremental |
+| hold-repair-build | success, six steps | 31.07 s | routine incremental |
+| hold-pipe-build | empty response-body pipe repair, success, six steps | 31.64 s | routine incremental |
+| hold-lifetime-build | weak profile context and profile-owned state, success, six steps | 31.29 s | routine incremental |
+
+No cold build, cache reset, GN argument or toolchain change. Footprint 27/65,
+unchanged from component admission. Test/retry session timestamps and failed
+records are archived separately; owner attention/agent effort remain unmeasured.
+No costs enter Task 0's cold column. Bounded runtime proof passes; full uBO parity,
+broader worker/request coverage and update-script identity remain open. Latency
+remains deferred. 156 and permanent profiles are untouched; disposable cleanup
+includes the fixture-server connection-reset abort.

@@ -7,21 +7,27 @@
 #include "base/json/json_writer.h"
 #include "base/no_destructor.h"
 #include "base/memory/weak_ptr.h"
+#include "base/supports_user_data.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/string_util.h"
 #include "base/task/thread_pool.h"
 #include "base/timer/timer.h"
+#include "base/unguessable_token.h"
 #include "chrome/services/blanc_blocker/blocker.mojom.h"
 #include "chrome/services/blanc_blocker/bundle_hash.h"
 #include "content/public/browser/browser_context.h"
 #include "content/public/browser/content_browser_client.h"
 #include "content/public/browser/render_frame_host.h"
+#include "content/public/browser/weak_document_ptr.h"
 #include "content/public/browser/service_process_host.h"
 #include "crypto/hash.h"
+#include "extensions/browser/process_manager.h"
 #include "mojo/public/cpp/bindings/callback_helpers.h"
 #include "mojo/public/cpp/bindings/receiver.h"
 #include "mojo/public/cpp/bindings/remote.h"
+#include "mojo/public/cpp/system/data_pipe.h"
 #include "net/base/net_errors.h"
+#include "net/http/http_response_headers.h"
 #include "net/url_request/redirect_info.h"
 #include "services/network/public/cpp/resource_request.h"
 #include "services/network/public/cpp/self_deleting_url_loader_factory.h"
@@ -127,11 +133,45 @@ std::string Type(const network::ResourceRequest& request) {
   }
 }
 struct Context {
+  base::WeakPtr<content::BrowserContext> browser_context;
+  std::string factory_instance;
   bool private_profile;
   content::GlobalRenderFrameHostId frame;
   int factory_type;
   net::IsolationInfo isolation_info;
 };
+// Offline component prototype only. Cancel while unready; never queue a request
+// which might already have traversed an empty extension webRequest engine.
+struct UboHold : public base::SupportsUserData::Data {
+  content::WeakDocumentPtr document;
+  uint64_t generation = 0;
+  bool ready = false;
+};
+UboHold& UboState(content::BrowserContext* context) {
+  static const char key = 0;
+  auto* state = static_cast<UboHold*>(context->GetUserData(&key));
+  if (!state) {
+    auto owned = std::make_unique<UboHold>();
+    state = owned.get(); context->SetUserData(&key, std::move(owned));
+  }
+  return *state;
+}
+bool UboProbe() {
+  return base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-ubo-reload-probe");
+}
+bool UboBackground(const Context& context, const network::ResourceRequest& request) {
+  if (!context.browser_context) return false;
+  auto* frame = content::RenderFrameHost::FromID(context.frame);
+  const GURL background("chrome-extension://oddhmofgkplblkmckempfepikkophank/background.html");
+  auto* manager = extensions::ProcessManager::Get(context.browser_context.get());
+  return !context.private_profile && frame && !frame->GetParent() &&
+      manager && manager->GetBackgroundHostForRenderFrameHost(frame) &&
+      manager->GetBackgroundHostForRenderFrameHost(frame) ==
+          manager->GetBackgroundHostForExtension("oddhmofgkplblkmckempfepikkophank") &&
+      frame->GetBrowserContext() == context.browser_context.get() &&
+      frame->GetLastCommittedURL() == background && request.request_initiator &&
+      *request.request_initiator == url::Origin::Create(background);
+}
 const char* FactoryKind(int value) {
   using F = content::ContentBrowserClient::URLLoaderFactoryType;
   switch (static_cast<F>(value)) {
@@ -165,7 +205,42 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
     receiver_.set_disconnect_handler(base::BindOnce(&Request::Destroy, base::Unretained(this)));
     client_.set_disconnect_handler(base::BindOnce(&Request::Destroy, base::Unretained(this)));
   }
-  void Begin(base::TimeTicks entered) { Gate(base::BindOnce(&Request::Start, weak_.GetWeakPtr()), entered); }
+  void Begin(base::TimeTicks entered) {
+    if (UboProbe() && request_.url.host() == "blanc-ubo-control.invalid") {
+      bool ok = false;
+      if (UboBackground(context_, request_) && request_.method == "GET" &&
+          request_.url.SchemeIs("http") && !request_.url.has_port()) {
+        uint64_t generation = 0;
+        auto* frame = content::RenderFrameHost::FromID(context_.frame);
+        auto& state = UboState(context_.browser_context.get());
+        const bool same = state.document.AsRenderFrameHostIfValid() == frame;
+        if (base::StringToUint64(request_.url.query(), &generation) && generation > 0) {
+          if (request_.url.path() == "/begin" && ((!same && generation == 1) ||
+              (same && generation == state.generation + 1))) {
+            state.document = frame->GetWeakDocumentPtr();
+            state.generation = generation; state.ready = false; ok = true;
+          } else if (request_.url.path() == "/ready" && same && generation == state.generation) {
+            state.ready = true; ok = true;
+          }
+        }
+      }
+      base::DictValue event; event.Set("event", "ubo-control");
+      event.Set("action", request_.url.path()); event.Set("accepted", ok); Record(std::move(event));
+      if (!ok) { Complete(net::ERR_BLOCKED_BY_CLIENT); return; }
+      auto head = network::mojom::URLResponseHead::New();
+      head->headers = net::HttpResponseHeaders::TryToCreate(
+          "HTTP/1.1 204 No Content\r\nAccess-Control-Allow-Origin: chrome-extension://oddhmofgkplblkmckempfepikkophank\r\n\r\n");
+      mojo::ScopedDataPipeProducerHandle producer;
+      mojo::ScopedDataPipeConsumerHandle consumer;
+      if (mojo::CreateDataPipe(nullptr, producer, consumer) != MOJO_RESULT_OK) {
+        Complete(net::ERR_FAILED); return;
+      }
+      producer.reset();
+      client_->OnReceiveResponse(std::move(head), std::move(consumer), std::nullopt);
+      Complete(net::OK); return;
+    }
+    Gate(base::BindOnce(&Request::Start, weak_.GetWeakPtr()), entered);
+  }
   ~Request() override = default;
   void FollowRedirect(network::HttpRequestHeadersUpdateParams headers, const std::optional<GURL>& url) override {
     // Forward all validation to the real loader. A caller-supplied replacement
@@ -206,8 +281,19 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
   void Destroy() { delete this; }
   void Complete(int error) { OnComplete(network::URLLoaderCompletionStatus(error)); }
   void Gate(base::OnceClosure allowed, base::TimeTicks entered) {
+    if (!context_.browser_context) { Complete(net::ERR_BLOCKED_BY_CLIENT); return; }
     if (!request_.url.SchemeIsHTTPOrHTTPS()) { std::move(allowed).Run(); return; }
     start_ = entered;
+    if (UboProbe() && !context_.private_profile) {
+      // Exact background-document list acquisition must not deadlock the hold.
+      auto& state = UboState(context_.browser_context.get());
+      const bool ready = state.ready && state.document.AsRenderFrameHostIfValid();
+      if (!ready && !UboBackground(context_, request_)) {
+        base::DictValue event; event.Set("event", "ubo-hold-cancel"); Record(std::move(event));
+        Complete(net::ERR_BLOCKED_BY_CLIENT); return;
+      }
+      std::move(allowed).Run(); return;
+    }
     timeout_.Start(FROM_HERE, base::Seconds(35), base::BindOnce(&Request::TimedOut, weak_.GetWeakPtr()));
     Engine::Get().Decide(request_.url.spec(), Type(request_), request_.referrer.spec(),
       base::BindOnce(&Request::Decided, weak_.GetWeakPtr(), std::move(allowed)));
@@ -229,6 +315,9 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
     event.Set("frame_role", type == "mainFrame" ? "main" : frame_role_);
     event.Set("frame_state", frame_state_);
     event.Set("factory_kind", FactoryKind(context_.factory_type));
+    // Transport identity only: never substitute for a worker/client context.
+    event.Set("factory_instance", context_.factory_instance);
+    event.Set("loader_request_id", id_);
     event.Set("devtools_request_id", request_.devtools_request_id.value_or("absent"));
     // Isolation metadata is NOT a document/client origin. StorageKey can reduce
     // it to a schemeful site; never substitute it for the required frame fields.
@@ -246,6 +335,7 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
   }
   void Decided(base::OnceClosure allowed, int result) {
     if (completed_) return;
+    if (!context_.browser_context) { Complete(net::ERR_BLOCKED_BY_CLIENT); return; }
     timeout_.Stop();
     // Measure through application of the decision, not just receipt of the Mojo
     // reply. Capture time before optional context/logging work adds overhead.
@@ -305,9 +395,9 @@ class Factory : public network::SelfDeletingURLLoaderFactory {
 void MaybeProxy(content::BrowserContext* context, content::RenderFrameHost* frame,
                 int factory_type, const net::IsolationInfo& isolation_info,
                 network::URLLoaderFactoryBuilder& builder) {
-  if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-blocker-assets")) return;
+  if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-blocker-assets") && !UboProbe()) return;
   auto [receiver, remote] = builder.Append();
   base::MakeSelfDeleting<Factory>(std::move(receiver), std::move(remote),
-      Context{context->IsOffTheRecord(), frame ? frame->GetGlobalId() : content::GlobalRenderFrameHostId(), factory_type, isolation_info});
+      Context{context->GetWeakPtr(), base::UnguessableToken::Create().ToString(), context->IsOffTheRecord(), frame ? frame->GetGlobalId() : content::GlobalRenderFrameHostId(), factory_type, isolation_info});
 }
 }

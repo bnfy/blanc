@@ -1,0 +1,169 @@
+{
+  "scope": "bounded offline blocking and cancellation hold",
+  "checks": [
+    {
+      "name": "bundled-list-original-transfer-suppressed",
+      "passed": true,
+      "pinnedDecision": {
+        "status": 200,
+        "url": "data:text/plain;base64,Cg==",
+        "bytes": 1
+      }
+    },
+    {
+      "name": "real-ubo-filter",
+      "passed": true,
+      "initial": {
+        "allowed": 200,
+        "blocked": "blocked"
+      }
+    },
+    {
+      "name": "page-cannot-release",
+      "passed": true
+    },
+    {
+      "name": "stale-generation-refused",
+      "passed": true
+    },
+    {
+      "name": "same-extension-popup-cannot-release",
+      "passed": true
+    },
+    {
+      "name": "hold-cancels",
+      "passed": true,
+      "held": {
+        "allowed": "blocked",
+        "blocked": "blocked"
+      },
+      "epoch": 4
+    },
+    {
+      "name": "release-preserves-filtering",
+      "passed": true,
+      "released": {
+        "allowed": 200,
+        "blocked": "blocked"
+      }
+    },
+    {
+      "name": "actual-list-reload",
+      "passed": true,
+      "reloaded": {
+        "allowed": 200,
+        "blocked": "blocked"
+      }
+    },
+    {
+      "name": "background-document-loss-fails-closed",
+      "passed": true,
+      "departed": {
+        "allowed": "blocked",
+        "blocked": "blocked"
+      }
+    }
+  ],
+  "hits": [
+    "http://page.blanc-fixture.test/baseline",
+    "http://page.blanc-fixture.test/favicon.ico",
+    "http://page.blanc-fixture.test/",
+    "http://page.blanc-fixture.test/favicon.ico",
+    "http://allowed.blanc-fixture.test/initial",
+    "http://allowed.blanc-fixture.test/released",
+    "http://allowed.blanc-fixture.test/reloaded"
+  ],
+  "profileRemoved": true,
+  "startupNavigationErrors": [
+    "Error: page.evaluate: Target page, context or browser has been closed"
+  ],
+  "state": {
+    "readyToFilter": true
+  },
+  "pinnedDecision": {
+    "status": 200,
+    "url": "data:text/plain;base64,Cg==",
+    "bytes": 1
+  },
+  "backgroundClose": {
+    "success": true
+  },
+  "passed": true,
+  "events": [
+    {
+      "accepted": true,
+      "action": "/begin",
+      "event": "ubo-control"
+    },
+    {
+      "accepted": true,
+      "action": "/begin",
+      "event": "ubo-control"
+    },
+    {
+      "accepted": true,
+      "action": "/begin",
+      "event": "ubo-control"
+    },
+    {
+      "accepted": true,
+      "action": "/ready",
+      "event": "ubo-control"
+    },
+    {
+      "accepted": true,
+      "action": "/begin",
+      "event": "ubo-control"
+    },
+    {
+      "accepted": true,
+      "action": "/ready",
+      "event": "ubo-control"
+    },
+    {
+      "accepted": false,
+      "action": "/ready",
+      "event": "ubo-control"
+    },
+    {
+      "accepted": true,
+      "action": "/begin",
+      "event": "ubo-control"
+    },
+    {
+      "accepted": false,
+      "action": "/ready",
+      "event": "ubo-control"
+    },
+    {
+      "accepted": false,
+      "action": "/ready",
+      "event": "ubo-control"
+    },
+    {
+      "event": "ubo-hold-cancel"
+    },
+    {
+      "accepted": true,
+      "action": "/ready",
+      "event": "ubo-control"
+    },
+    {
+      "accepted": true,
+      "action": "/begin",
+      "event": "ubo-control"
+    },
+    {
+      "accepted": true,
+      "action": "/ready",
+      "event": "ubo-control"
+    },
+    {
+      "event": "ubo-hold-cancel"
+    },
+    {
+      "event": "ubo-hold-cancel"
+    }
+  ],
+  "refusedHostCount": 1
+}

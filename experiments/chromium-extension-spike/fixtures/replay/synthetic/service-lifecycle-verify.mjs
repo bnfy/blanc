@@ -11,7 +11,12 @@ for(const summary of report.runs){
   for(const e of run.workerEvidence.events.filter(e=>e.method==='Observer.detachedDuringSetup'))assert(run.workerEvidence.events.some(d=>d.method==='Target.detachedFromTarget'&&d.params.sessionId===e.params.sessionId&&d.params.targetId===e.params.targetId));
   const scripts=run.records.filter(row=>row.url.endsWith('/worker.js'));assert.equal(scripts.length,2);
   const update=correlateWorker({...run,browserKind:run.source.browserKind,kind:run.source.kind},scripts[1]);assert.equal(update.status,'gap');
-  updateGaps.push({label:summary.label,hookOccurrence:2,devtoolsRequestId:scripts[1].devtools_request_id??'not-exposed-by-electron',reason:update.reason});
+  const transport=scripts.map(row=>row.factory_instance===undefined?null:({factory:row.factory_instance,requestId:row.loader_request_id}));
+  if(!electron&&transport.every(Boolean)){
+   assert(transport.every(t=>typeof t.factory==='string'&&t.factory.length>0&&Number.isInteger(t.requestId)));
+   assert.notDeepEqual(transport[0],transport[1],'initial and update transport identities must differ');
+  }
+  updateGaps.push({label:summary.label,hookOccurrence:2,devtoolsRequestId:scripts[1].devtools_request_id??'not-exposed-by-electron',transportIdentity:transport,transportIsWorkerIdentity:false,reason:update.reason});
  }
  for(const [suffix,decision] of [['/network','allow'],['/blocked','block'],['/missing.js','allow']]){
   const rows=run.records.filter(row=>row.url.endsWith(suffix));assert.equal(rows.length,1,summary.label+suffix);const row=rows[0];

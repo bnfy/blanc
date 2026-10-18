@@ -20,3 +20,13 @@ test('admission uses normal Add and only browser component integration',()=>{
  assert(edits.every(e=>e.file.startsWith('chrome/browser/extensions/')));
  const code=edits.flatMap(e=>e.patches.map(p=>p.replacement)).join('\n');assert(code.includes('Add(manifest, root)'));assert(!code.includes('AddOrReplace'));assert(code.includes('!profile_->IsOffTheRecord()'));assert(code.includes('blanc-ubo-offline-probe'));
 });
+test('reload integration is generated from verified upstream with guarded anchors',()=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'ubo-guard-test-')),out=path.join(dir,'payload');
+ try{const result=generateComponent(out,true);assert(result.changes.some(c=>c.includes('js/storage.js')));
+ const storage=fs.readFileSync(path.join(out,'js/storage.js'),'utf8'),start=fs.readFileSync(path.join(out,'js/start.js'),'utf8');
+ assert(storage.includes('blancGuard.begin().then(() => this.loadRedirectResources())'));
+ assert(storage.includes('onDone();\n            return blancGuard.complete();'));
+ assert(start.includes('webRequest.start();\nawait blancGuard.activate(selfieIsValid);'));
+ assert(fs.readFileSync(path.join(out,'LICENSE.txt'),'utf8').includes('GNU GENERAL PUBLIC LICENSE'));
+ }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});

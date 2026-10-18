@@ -1,0 +1,30 @@
+{
+  "scope": "bounded offline blocking and cancellation hold",
+  "started": "2026-10-18T00:33:42.284Z",
+  "chromiumSandbox": true,
+  "checks": [
+    {
+      "name": "missing-startup-handshake-fails-closed",
+      "passed": true
+    }
+  ],
+  "hits": [],
+  "profileRemoved": true,
+  "sources": {
+    "ubo-readiness-probe.mjs": "7b46f1a8f3811fbd841f1cf3ce4e473a1f93e8601a430460fe1a18786af2cbac",
+    "ubo-component.mjs": "464132100aa22f01db868fa39b4a1c26641710cbb764444ca1abfc30424de99a",
+    "ubo-reload-guard.js": "cc312bb4b83ccb738541dfbe2d74ac2df3c929c36e21cd66cdbf222efb9da2f8",
+    "native/blocker/blocker_proxy.cc": "1e7002d7fd0f1c0273f65f719299e37952d493c9adb3e4f2d32f355dda51aa6a"
+  },
+  "passed": true,
+  "events": [
+    {
+      "event": "ubo-hold-cancel"
+    }
+  ],
+  "refusedHostCount": 1,
+  "socketErrors": [
+    "ECONNRESET"
+  ],
+  "finished": "2026-10-18T00:33:43.537Z"
+}

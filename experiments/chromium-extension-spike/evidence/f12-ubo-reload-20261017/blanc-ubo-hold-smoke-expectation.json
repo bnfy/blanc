@@ -1,0 +1,40 @@
+{
+  "scope": "bounded offline blocking and cancellation hold",
+  "checks": [],
+  "hits": [
+    "http://page.blanc-fixture.test/baseline",
+    "http://page.blanc-fixture.test/favicon.ico"
+  ],
+  "profileRemoved": true,
+  "startupNavigationErrors": [
+    "Error: page.evaluate: Target page, context or browser has been closed"
+  ],
+  "state": {
+    "readyToFilter": true
+  },
+  "passed": false,
+  "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n200 !== 'blocked'\n",
+  "events": [
+    {
+      "accepted": true,
+      "action": "/begin",
+      "event": "ubo-control"
+    },
+    {
+      "accepted": true,
+      "action": "/begin",
+      "event": "ubo-control"
+    },
+    {
+      "accepted": true,
+      "action": "/begin",
+      "event": "ubo-control"
+    },
+    {
+      "accepted": true,
+      "action": "/ready",
+      "event": "ubo-control"
+    }
+  ],
+  "refusedHostCount": 1
+}

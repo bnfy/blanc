@@ -1,0 +1,13 @@
+{
+  "componentId": "oddhmofgkplblkmckempfepikkophank",
+  "version": "1.75.0",
+  "verifiedFiles": 658,
+  "changes": [
+    "manifest.key",
+    "manifest.incognito=not_allowed",
+    "js/storage.js: acknowledged begin before reset, complete after freeze",
+    "js/start.js: release after observers start",
+    "js/blanc-reload-guard.js"
+  ],
+  "scope": "offline reload-protection prototype; acceptance pending"
+}

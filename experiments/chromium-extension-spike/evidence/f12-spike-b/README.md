@@ -122,6 +122,12 @@ traffic, overlapping reloads, background crash, stale release, private-profile
 isolation and restart. Passing a component load alone cannot close Spike B.
 # Component admission follow-up
 
+The later [bounded readiness/reload checkpoint](../f12-ubo-reload-20261017/README.md)
+adds actual blocking smoke checks and a browser-authenticated cancellation hold,
+including private-profile teardown and background-document loss. Full corpus
+parity, broader failure/recovery and privilege containment remain open; the
+earlier unproven-readiness statements below describe the admission-only stage.
+
 The [offline admission checkpoint](../f12-component-admission-20261017/README.md)
 now proves pinned uBO 1.75.0 background target, popup and runtime identity through
 normal ComponentLoader::Add with a switch-gated fixed-ID allowlist. Earlier

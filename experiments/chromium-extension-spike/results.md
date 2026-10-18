@@ -1431,3 +1431,24 @@ and three component tests pass. Update-script identity remains unresolved;
 no initial-token borrowing or URL-based attribution was admitted. Blocking parity,
 authenticated startup/reload hold and privilege containment remain open. Latency
 stays deferred and 156/permanent profiles remain untouched.
+# Bounded uBO readiness and reload protection — October 17, 2026
+
+[Evidence](evidence/f12-ubo-reload-20261017/README.md) records the opt-in native
+cancellation hold and generated GPL payload integration. The browser authenticates
+the registered uBO background host, committed document, initiator, profile and
+reload generation; acknowledges before engine reset; and releases only after
+filters freeze and startup observers are installed. Missing readiness and lost
+background documents fail closed for new intercepted HTTP(S) requests.
+
+Sandboxed tests pass for actual authored-rule blocking/allowed control, bundled
+list suppression via a local data replacement, reload cancellation/release,
+stale/page/popup release rejection, background-target destruction and private
+Blanc Blocker independence including private-profile teardown. A separate missing
+handshake run cancels startup traffic. Full synthetic corpus parity is not claimed.
+Failed build, response-pipe crash, profile lifetime fault and harness attempts are
+retained. Final native repair: 31.29 s / six steps; only incremental output used.
+103 focused tests pass; lint clean. Footprint remains 27 files / 65 hunks.
+
+Eight fresh service lifecycle sessions retain 16 controlled contexts and eight
+failed-loader identities. Native initial/update factory/request IDs are distinct;
+all eight cross-runtime update-script contexts remain gaps. Latency deferred.

@@ -1,0 +1,38 @@
+{
+  "scope": "bounded offline blocking and cancellation hold",
+  "checks": [],
+  "hits": [
+    "http://page.blanc-fixture.test/baseline",
+    "http://page.blanc-fixture.test/favicon.ico"
+  ],
+  "profileRemoved": true,
+  "startupNavigationErrors": [],
+  "state": {
+    "readyToFilter": true
+  },
+  "passed": false,
+  "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(pinnedDecision==='blocked'||pinnedDecision.url.startsWith('chrome-extension://oddhmofgkplblkmckempfepikkophank/'))\n",
+  "events": [
+    {
+      "accepted": true,
+      "action": "/begin",
+      "event": "ubo-control"
+    },
+    {
+      "accepted": true,
+      "action": "/begin",
+      "event": "ubo-control"
+    },
+    {
+      "accepted": true,
+      "action": "/begin",
+      "event": "ubo-control"
+    },
+    {
+      "accepted": true,
+      "action": "/ready",
+      "event": "ubo-control"
+    }
+  ],
+  "refusedHostCount": 1
+}

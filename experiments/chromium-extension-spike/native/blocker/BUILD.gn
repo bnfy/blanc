@@ -11,7 +11,7 @@ source_set("service") {
 }
 source_set("browser") {
   sources = [ "blocker_proxy.cc", "blocker_proxy.h", "bundle_hash.h" ]
-  deps = [ ":mojom", "//base", "//content/public/browser", "//crypto",
+  deps = [ ":mojom", "//base", "//content/public/browser", "//crypto", "//extensions/browser",
            "//mojo/public/cpp/bindings", "//net", "//services/network/public/cpp",
            "//services/network/public/mojom", "//url" ]
 }
