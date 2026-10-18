@@ -2651,6 +2651,42 @@
         }
       ]
     },
+    "openGroupMenu": {
+      "kind": "send",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:open-group-menu",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "group-id-1",
+            {
+              "right": 1,
+              "top": 1,
+              "bottom": 1
+            }
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:open-group-menu",
+              "args": [
+                "group-id-1",
+                {
+                  "right": 1,
+                  "top": 1,
+                  "bottom": 1
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
     "captureStop": {
       "kind": "send",
       "platforms": [

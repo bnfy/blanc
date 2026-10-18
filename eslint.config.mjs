@@ -60,7 +60,7 @@ export default [
     // pages/bangs-catalog.js first; they publish window.WorkspaceUI,
     // window.Bangs and window.BangsCatalog.
     files: ['src/renderer/overlay.js'],
-    languageOptions: { globals: { WorkspaceUI: 'readonly', Bangs: 'readonly', BangsCatalog: 'readonly' } },
+    languageOptions: { globals: { WorkspaceUI: 'readonly', Bangs: 'readonly', BangsCatalog: 'readonly', SpaceIdentity: 'readonly' } },
   },
   {
     // settings.html loads bangs.js and bangs-catalog.js before settings.js.

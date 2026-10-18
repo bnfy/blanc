@@ -99,7 +99,7 @@
   const glancePickerLive = document.getElementById('glancePickerLive');
 
   let state = { tabs: [], activeTabId: null, glanceTabId: null, groups: [], closed: [] };
-  /** @type {null | 'panel' | 'palette' | 'glance' | 'find' | 'shield' | 'capture' | 'spaces'} */
+  /** @type {null | 'panel' | 'palette' | 'glance' | 'find' | 'shield' | 'capture' | 'spaces' | 'group-menu'} */
   let mode = null;
   let glancePickerPurpose = null;
   /** The tab the find capsule searches (overlay:show purpose). */
@@ -320,6 +320,8 @@
     // every row in the list carries.
     stop: '<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5"/><rect class="stop-mark" x="6.05" y="6.05" width="3.9" height="3.9" rx="0.8"/></svg>',
     close: '<svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>',
+    // The group header's ⋮ (tab group colors spec §6).
+    more: '<svg viewBox="0 0 16 16"><circle cx="8" cy="3.75" r="1.1"/><circle cx="8" cy="8" r="1.1"/><circle cx="8" cy="12.25" r="1.1"/></svg>',
     pin: '<svg viewBox="0 0 16 16"><path d="M5 3h6l-1 5 2 2v1H4v-1l2-2z"/><path d="M8 11v3"/></svg>',
     mute: '<svg viewBox="0 0 16 16"><path d="M2.75 6.25h2.5L9 3.25v9.5l-3.75-3H2.75z" stroke-linejoin="round"/><path d="M11.25 6.5l3 3M14.25 6.5l-3 3"/></svg>',
     search: '<svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.25"/><path d="m10.25 10.25 3 3"/></svg>',
@@ -882,13 +884,203 @@
     row.setAttribute('aria-expanded', String(!group.collapsed));
     row.addEventListener('click', () => window.browserAPI.toggleGroupCollapsed(group.id));
     row.addEventListener('keydown', (event) => {
+      if (event.target !== row) return;
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
         window.browserAPI.toggleGroupCollapsed(group.id);
       }
     });
+    // The group menu: this ⋮ or a right-click on the header (spec §6).
+    const more = document.createElement('button');
+    more.type = 'button';
+    more.className = 'ghead-more';
+    more.dataset.noDrag = '';
+    more.innerHTML = ICONS.more;
+    more.setAttribute('aria-label', blancI18n.t('groupMenu.options'));
+    more.setAttribute('aria-haspopup', 'dialog');
+    more.addEventListener('click', (event) => {
+      event.stopPropagation();
+      toggleGroupMenu(group.id, row);
+    });
+    more.addEventListener('keydown', (event) => event.stopPropagation());
+    row.querySelector('.ghead-kbd').before(more);
+    if (groupMenu?.groupId === group.id) row.classList.add('menu-open');
     return row;
   }
+
+  // --- Group menu (tab group colors spec §6) ---
+  // One menu per group: its name, its color and its actions. In the panel it
+  // floats in this document beside the header; from the side list main opens
+  // the 'group-menu' mode, a transparent layer over the window, and this
+  // document shows only the menu at the header main passed.
+  const groupMenuEl = document.getElementById('groupMenu');
+  /** @type {null | { groupId: string, host: 'panel' | 'mode', cancelled: boolean }} */
+  let groupMenu = null;
+  const GROUP_MENU_GAP = 4;
+  const GROUP_MENU_MARGIN = 8;
+  const GROUP_MENU_KEBAB = 30; // the ⋮ button and its inset
+
+  function toggleGroupMenu(groupId, header) {
+    if (groupMenu?.groupId === groupId && groupMenu.host === 'panel') { closeGroupMenu(); return; }
+    const r = header.getBoundingClientRect();
+    openGroupMenu(groupId, { right: r.right, top: r.top, bottom: r.bottom }, 'panel');
+  }
+
+  function openGroupMenu(groupId, anchor, host) {
+    const group = groupById(groupId);
+    if (!group) return;
+    if (groupMenu) closeGroupMenu();
+    groupMenu = { groupId, host, cancelled: false };
+    // Escape reaches this document while the menu is open in the panel.
+    if (host === 'panel') window.browserAPI.setWorkspaceSwitcherOpen(true);
+    buildGroupMenu(group);
+    groupMenuEl.hidden = false;
+    placeGroupMenu(anchor, host);
+    document.querySelector(`#islandList .island-ghead[data-group-id="${CSS.escape(groupId)}"]`)?.classList.add('menu-open');
+    const input = groupMenuEl.querySelector('.group-menu-name');
+    input.focus();
+    input.select();
+  }
+
+  /** Below the header (above it when there is no room). In the panel its
+   * right edge meets the header's; from the side list it starts at the ⋮
+   * and opens toward the page, as Helium's does. */
+  function placeGroupMenu(anchor, host) {
+    const width = groupMenuEl.offsetWidth;
+    const height = groupMenuEl.offsetHeight;
+    const wanted = host === 'mode' ? anchor.right - GROUP_MENU_KEBAB : anchor.right - width;
+    const left = Math.max(GROUP_MENU_MARGIN, Math.min(wanted, window.innerWidth - width - GROUP_MENU_MARGIN));
+    const below = anchor.bottom + GROUP_MENU_GAP;
+    const top = below + height <= window.innerHeight - GROUP_MENU_MARGIN
+      ? below
+      : Math.max(GROUP_MENU_MARGIN, anchor.top - GROUP_MENU_GAP - height);
+    groupMenuEl.style.setProperty('--group-menu-left', `${Math.round(left)}px`);
+    groupMenuEl.style.setProperty('--group-menu-top', `${Math.round(top)}px`);
+  }
+
+  function buildGroupMenu(group) {
+    groupMenuEl.replaceChildren();
+    groupMenuEl.setAttribute('aria-label', blancI18n.t('groupMenu.options'));
+    const name = document.createElement('input');
+    name.type = 'text';
+    name.className = 'group-menu-name';
+    name.value = group.name;
+    name.spellcheck = false;
+    name.setAttribute('aria-label', blancI18n.t('groupMenu.nameLabel'));
+    name.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        commitGroupName({ close: true });
+      }
+    });
+    const notice = document.createElement('div');
+    notice.className = 'group-menu-notice';
+    notice.setAttribute('role', 'status');
+    notice.hidden = true;
+
+    const colors = document.createElement('div');
+    colors.className = 'group-menu-colors';
+    colors.setAttribute('role', 'radiogroup');
+    colors.setAttribute('aria-label', blancI18n.t('groupMenu.colorLabel'));
+    const swatch = (hex, label) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = hex ? 'ws-swatch' : 'ws-swatch none';
+      button.dataset.color = hex ?? '';
+      button.setAttribute('role', 'radio');
+      button.setAttribute('aria-label', label);
+      button.setAttribute('aria-checked', String((group.color ?? null) === hex));
+      if (hex) button.style.setProperty('--swatch', hex);
+      button.addEventListener('click', async () => {
+        for (const other of colors.children) other.setAttribute('aria-checked', String(other === button));
+        await window.browserAPI.setGroupColor(group.id, hex);
+      });
+      return button;
+    };
+    colors.append(swatch(null, blancI18n.t('groupMenu.colorNone')));
+    for (const preset of SpaceIdentity.PRESETS) colors.append(swatch(preset.hex, blancI18n.t(`spaces.color.${preset.id}`)));
+    colors.addEventListener('keydown', (event) => {
+      const items = [...colors.children];
+      const at = items.indexOf(document.activeElement);
+      const step = event.key === 'ArrowRight' || event.key === 'ArrowDown' ? 1
+        : event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 0;
+      if (!step || at === -1) return;
+      event.preventDefault();
+      items[(at + step + items.length) % items.length].focus();
+    });
+
+    const holdsEveryTab = state.tabs.length > 0 && state.tabs.every((tab) => tab.groupId === group.id);
+    const action = (label, run, { disabled = false } = {}) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'ws-cmd group-menu-action';
+      button.textContent = label;
+      button.disabled = disabled;
+      button.addEventListener('click', async () => {
+        await commitGroupName({ close: false });
+        closeGroupMenu({ commit: false, closeOverlay: true });
+        run();
+      });
+      return button;
+    };
+    const actions = document.createElement('div');
+    actions.className = 'group-menu-actions';
+    actions.append(
+      action(blancI18n.t('groupMenu.newTab'), () => window.browserAPI.newTabInGroup(group.id)),
+      action(blancI18n.t('groupMenu.moveToNewWindow'), () => window.browserAPI.moveGroupToNewWindow(group.id), { disabled: holdsEveryTab }),
+      action(blancI18n.t('groupMenu.ungroup'), () => window.browserAPI.ungroupGroup(group.id)),
+      action(blancI18n.t('groupMenu.close'), () => window.browserAPI.closeGroup(group.id)),
+    );
+    groupMenuEl.append(name, notice, colors, actions);
+  }
+
+  /** Save the typed name if it changed. A name another group has keeps the
+   * menu open with the refusal; resolves false then. */
+  async function commitGroupName({ close }) {
+    if (!groupMenu) return true;
+    const group = groupById(groupMenu.groupId);
+    const input = groupMenuEl.querySelector('.group-menu-name');
+    const value = input?.value ?? '';
+    if (group && value.trim() && value !== group.name) {
+      const result = await window.browserAPI.renameGroup(group.id, value);
+      if (result && result.ok === false && result.error === 'duplicate') {
+        const notice = groupMenuEl.querySelector('.group-menu-notice');
+        if (notice && groupMenu) {
+          notice.textContent = blancI18n.t('groupMenu.duplicate', { name: value.trim() });
+          notice.hidden = false;
+          input.focus();
+        }
+        return false;
+      }
+    }
+    if (close) closeGroupMenu({ commit: false, closeOverlay: true });
+    return true;
+  }
+
+  /** `commit` saves a changed name first; Escape passes false. */
+  function closeGroupMenu({ commit = true, closeOverlay = false, reason = null } = {}) {
+    if (!groupMenu) return;
+    const { host, groupId } = groupMenu;
+    if (commit) commitGroupName({ close: false });
+    groupMenu = null;
+    groupMenuEl.hidden = true;
+    groupMenuEl.replaceChildren();
+    document.querySelectorAll('#islandList .island-ghead.menu-open').forEach((el) => el.classList.remove('menu-open'));
+    if (host === 'panel') {
+      if (!workspaceSwitcherOpen) window.browserAPI.setWorkspaceSwitcherOpen(false);
+      document.querySelector(`#islandList .island-ghead[data-group-id="${CSS.escape(groupId)}"] .ghead-more`)?.focus();
+    } else if (closeOverlay && mode === 'group-menu') {
+      window.browserAPI.closeOverlay(reason ?? undefined);
+    }
+  }
+
+  document.addEventListener('mousedown', (event) => {
+    if (!groupMenu || event.target.closest('#groupMenu')) return;
+    if (groupMenu.host === 'panel' && event.target.closest('.ghead-more')) return; // its own toggle
+    const fromMode = groupMenu.host === 'mode';
+    closeGroupMenu({ commit: true });
+    if (fromMode) window.browserAPI.closeOverlay('cancel');
+  }, true);
 
   // --- Workspaces (Blanc Spaces) ---
   //
@@ -2323,6 +2515,7 @@
     document.body.dataset.mode = next ?? '';
     document.body.dataset.glancePurpose = glancePickerPurpose ?? '';
     if (next !== 'panel' && next !== 'palette' && next !== 'spaces') closeWorkspaceSwitcher();
+    if (groupMenu?.host === 'panel' && next !== 'panel' && next !== 'palette') closeGroupMenu();
     backdrop.hidden = next !== 'panel' && next !== 'palette';
     panelAnchor.hidden = next !== 'panel' && next !== 'palette';
     findBar.hidden = next !== 'find';
@@ -2437,6 +2630,9 @@
       }
       renderGlancePicker({ announce: !reshow });
       glancePickerInput.focus();
+    } else if (next === 'group-menu') {
+      // The side list's group menu: the whole overlay is this one menu.
+      if (purpose?.groupId && purpose.anchor) openGroupMenu(purpose.groupId, purpose.anchor, 'mode');
     } else if (next === 'spaces') {
       // The menu is the whole overlay here; data refreshes behind the first paint.
       refreshSwitcherData();
@@ -2871,6 +3067,12 @@
   // Main's overlay before-input owns Escape; when the workspace popover is
   // open it forwards here instead of hideOverlay so editors dismiss first.
   window.browserAPI.onOverlayEscape(() => {
+    if (groupMenu) {
+      const fromMode = groupMenu.host === 'mode';
+      closeGroupMenu({ commit: false });
+      if (fromMode) window.browserAPI.closeOverlay('escape');
+      return;
+    }
     if (mode === 'shield') {
       if (shieldChoosing) cancelShieldChoice();
       else window.browserAPI.closeOverlay('escape');
@@ -2923,6 +3125,8 @@
 
   window.browserAPI.onOverlayHide((payload) => {
     islandDrag.cancel();
+    // Closing the overlay any other way than Escape keeps a typed name.
+    closeGroupMenu({ commit: true });
     // The next open may ask again (main refreshes stale copies on an ask).
     bangIconRequester.reset();
     drawnGeneration += 1;
@@ -3289,6 +3493,12 @@
     state = payload;
     noteBangIconPrivacy();
     islandDrag.notePayload(payload);
+    // A group that closed or dissolved under its open menu takes the menu along.
+    if (groupMenu && !groupById(groupMenu.groupId)) {
+      const fromMode = groupMenu.host === 'mode';
+      closeGroupMenu({ commit: false });
+      if (fromMode) window.browserAPI.closeOverlay('cancel');
+    }
     if (mode === 'panel' || mode === 'palette') {
       if (!inputTouched) addressInput.value = addressDisplayValue(activeTab());
       if (activeTabChanged) {
@@ -3359,12 +3569,18 @@
     const workspaceRowEl = tabRowEl ? null : e.target.closest('.workspace-row[data-workspace-id]');
     window.__blancCtxRowTabId = tabRowEl?.dataset.tabId ?? null;
     window.__blancCtxWorkspaceId = workspaceRowEl?.dataset.workspaceId ?? null;
-    // A named group's header gets main's group menu (group-context-menu.js);
-    // the Recently closed band's header is not a group and has none.
-    const groupHeaderId = tabRowEl || workspaceRowEl
+    // A named group's header opens its group menu (tab group colors spec
+    // §6); the Recently closed band's header is not a group and has none.
+    const groupHeader = tabRowEl || workspaceRowEl
       ? null
-      : e.target.closest('#islandList [data-drag-header][data-group-id]')?.dataset.groupId ?? null;
-    window.__blancCtxGroupId = groupHeaderId === dragApi.constants.CLOSED_SECTION_ID ? null : groupHeaderId;
+      : e.target.closest('#islandList [data-drag-header][data-group-id]');
+    if (groupHeader && groupHeader.dataset.groupId !== dragApi.constants.CLOSED_SECTION_ID) {
+      e.preventDefault();
+      releasePointerHold();
+      const r = groupHeader.getBoundingClientRect();
+      openGroupMenu(groupHeader.dataset.groupId, { right: r.right, top: r.top, bottom: r.bottom }, 'panel');
+      return;
+    }
     // A device header in the Other devices drawer gets Rename Device…
     // (device-context-menu.js).
     window.__blancCtxDeviceId = tabRowEl || workspaceRowEl
@@ -3381,7 +3597,6 @@
       !e.target.closest('#addressInput')
       && window.__blancCtxRowTabId == null
       && window.__blancCtxWorkspaceId == null
-      && window.__blancCtxGroupId == null
       && window.__blancCtxDeviceId == null
     ) {
       e.preventDefault();

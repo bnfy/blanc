@@ -1713,9 +1713,29 @@
     "message": "Dégrouper",
     "source": "sha256:af29c1ce7762334d04b10060ad2a4a6b11b87a9deaac8bdd4607c641f34f730f"
   },
-  "groupMenu.rename": {
-    "message": "Renommer le groupe…",
-    "source": "sha256:c296687065931c5eeab8175fc34ab9a52eb2c25f52ef27d947a40fb1e0bf4971"
+  "groupMenu.options": {
+    "message": "Options du groupe",
+    "source": "sha256:44bee872fd7b73fb2b595ec9f000b5d307085ad86accf8ae848e039c69aee491"
+  },
+  "groupMenu.nameLabel": {
+    "message": "Nom du groupe",
+    "source": "sha256:e1b9944a6502d55e7428d23b88af19d1a501e75678611d88b39f5bf6bd6b71d5"
+  },
+  "groupMenu.colorLabel": {
+    "message": "Couleur",
+    "source": "sha256:fa86326f49f7613b0bdc4950fdad310c131a042e5b2d7c5cd7d3a68038f9626d"
+  },
+  "groupMenu.colorNone": {
+    "message": "Aucune couleur",
+    "source": "sha256:c88258721050eac487087bf0deb28db9a980545858d06f2e208246a063a30b66"
+  },
+  "groupMenu.newTab": {
+    "message": "Nouvel onglet dans le groupe",
+    "source": "sha256:e5414b5bd7f380fd319bb66f07ac9fb59ccd2c9b44aaf2b73cf500819b64dbc9"
+  },
+  "groupMenu.moveToNewWindow": {
+    "message": "Déplacer le groupe dans une nouvelle fenêtre",
+    "source": "sha256:a68d093b78aba09b02776d83c51d2069d4055bf849ab2dc059c4d330b5f1084d"
   },
   "deviceMenu.rename": {
     "message": "Renommer l’appareil…",

@@ -310,7 +310,6 @@ const { sectionsOf, normalizeOrder, itemsOf, layoutItems, legacyOrder, placeInGr
 const { normalizeGroupName, sameGroupName, recaseSessionData } = require('./group-name-case');
 const { sanitizeGroupColor, groupRecord } = require('./group-color');
 const { deviceNamesEqual } = require('./device-names');
-const { attachGroupHeaderMenu } = require('./group-context-menu');
 const { attachDeviceHeaderMenu } = require('./device-context-menu');
 const { openLinkInGlance: openLinkInGlanceWith } = require('./glance-open-link');
 const { acceptOverlayDragState, resetOverlayDragState, overlayDragActive } = require('./overlay-drag-state');
@@ -3258,6 +3257,12 @@ function overlayBounds() {
       rowCount: captureRowCount(),
     });
   }
+  // The side list's group menu: a transparent layer over the whole window,
+  // so the menu can sit beside the header and a click anywhere else closes it.
+  if (rt().overlayMode === 'group-menu') {
+    const { width, height } = rt().window.getContentBounds();
+    return { x: 0, y: 0, width, height };
+  }
   if (rt().overlayMode === 'spaces') {
     return calculateSpacesBounds({
       windowWidth: rt().window.getContentBounds().width,
@@ -3561,7 +3566,8 @@ function createOverlay() {
     if (overlayDragActive(rt())) return;
     if (rt().overlayMode && input.type === 'keyDown' && input.key === 'Escape') {
       event.preventDefault();
-      if ((rt().workspaceSwitcherOpen || rt().overlayMode === 'shield') && rt().overlayView && !rt().overlayView.webContents.isDestroyed()) {
+      if ((rt().workspaceSwitcherOpen || rt().overlayMode === 'shield' || rt().overlayMode === 'group-menu')
+        && rt().overlayView && !rt().overlayView.webContents.isDestroyed()) {
         rt().overlayView.webContents.send('overlay:escape');
         return;
       }
@@ -3664,17 +3670,6 @@ function createOverlay() {
     actions: workspaceMenuContextActions(owner),
   });
   // Group headers in the panel: same webContents, guard and recording scheme.
-  attachGroupHeaderMenu(rt().overlayView.webContents, {
-    isLive: overlayMenuGuardDeps.isOverlayLive,
-    getWindow: overlayMenuGuardDeps.getWindow,
-    getOffset: overlayMenuGuardDeps.getOverlayBounds,
-    acquireMenuGuard: overlayMenuGuardDeps.acquireMenuGuard,
-    releaseMenuGuard: overlayMenuGuardDeps.releaseMenuGuard,
-    suppressIslandHover: bindWindowRuntime(owner, () => suppressIslandHover(owner)),
-    t: mainI18n.t,
-    resolveGroup: bindWindowRuntime(owner, (rawId) => rt().groups.find((g) => g.id === rawId) ?? null),
-    actions: groupMenuContextActions(owner),
-  });
   // Device headers in the Other devices drawer: Rename Device….
   attachDeviceHeaderMenu(rt().overlayView.webContents, {
     isLive: overlayMenuGuardDeps.isOverlayLive,
@@ -3840,6 +3835,7 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
           closingMode === 'shield' ? closingTrigger
             : closingMode === 'capture' ? 'capture'
               : closingMode === 'spaces' ? 'spaces'
+              : closingMode === 'group-menu' ? 'group-menu'
               // The Change control only exists while Glance is still open —
               // if the reference tab closed under the picker, fall through to
               // the ordinary content refocus instead of a hidden button.
@@ -3848,7 +3844,11 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
         )
       : null;
     if (restoreTrigger) rt().window.webContents.focus();
-    rt().window.webContents.send('chrome:island-state', { mode: null, trigger: null, restoreTrigger });
+    // The side list's group menu names its group so that header can forget
+    // its open state (and take focus back after Escape).
+    const closedTrigger = closingMode === 'group-menu' && typeof closingPurpose?.groupId === 'string'
+      ? `group-menu:${closingPurpose.groupId}` : null;
+    rt().window.webContents.send('chrome:island-state', { mode: null, trigger: closedTrigger, restoreTrigger });
     if (refocusContent && !restoreTrigger) liveContents(tabs.get(rt().activeTabId))?.focus();
     if (retracts) {
       // Wake proximity from where the cursor is now. Moves over the expanded
@@ -6834,7 +6834,7 @@ function setActiveTab(id, {
   // Find state is per-tab; a stale capsule over a different page misleads.
   // The shield popover describes one tab's site — same rule. The Spaces menu
   // describes this window, but a switch away from it is a fresh context too.
-  if (['find', 'shield', 'capture', 'spaces'].includes(rt().overlayMode)) {
+  if (['find', 'shield', 'capture', 'spaces', 'group-menu'].includes(rt().overlayMode)) {
     hideOverlay({ refocusContent: false });
   }
 
@@ -8204,15 +8204,6 @@ function sendWorkspaceAction(kind, workspaceId) {
   const wc = rt().overlayView?.webContents;
   if (wc && !wc.isDestroyed()) wc.send('overlay:workspace-action', { kind, id: workspaceId });
 }
-function groupMenuContextActions(owner) {
-  const b = (fn) => bindWindowRuntime(owner, fn);
-  return {
-    rename: b((id) => beginRenameGroup(id)),
-    ungroup: b((id) => ungroupGroup(id)),
-    closeGroup: b((id) => closeGroup(id)),
-  };
-}
-
 function workspaceMenuContextActions(owner) {
   const b = (fn) => bindWindowRuntime(owner, fn);
   return {
@@ -8580,6 +8571,15 @@ function registerIpcHandlers() {
   // The Island's space mark opens the Spaces menu on its own, tight around it.
   // Escape, blur, a click outside, a tab switch or a space switch close it;
   // focus returns to the mark.
+  // The side list's group menu (tab group colors spec §6), beside the header
+  // that opened it. The renderer's group id and header box are re-checked.
+  chromeOn('chrome:open-group-menu', (_e, groupId, anchor) => {
+    if (!rt().groups.some((group) => group.id === groupId)) return;
+    const { width, height } = rt().window?.getContentBounds() ?? { width: 0, height: 0 };
+    const inside = (value, max) => Number.isFinite(value) && value >= 0 && value <= max;
+    if (!anchor || !inside(anchor.right, width) || !inside(anchor.top, height) || !inside(anchor.bottom, height)) return;
+    showOverlay('group-menu', { purpose: { groupId, anchor: { right: anchor.right, top: anchor.top, bottom: anchor.bottom } } });
+  });
   chromeOn('chrome:open-spaces', (_e, anchor) => {
     if (rt().overlayMode === 'spaces') return hideOverlay({ refocusContent: false }); // re-click toggles shut
     // A press that began on the open menu has already closed it (the overlay's
@@ -9521,15 +9521,6 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     diagnostics.recordRendererCrash('chrome', details);
   }));
   // Group headers on the vertical tabs rail (chrome document coordinates).
-  attachGroupHeaderMenu(rt().window.webContents, {
-    isLive: () => true,
-    getWindow: bindWindowRuntime(runtime, () => rt().window),
-    getOffset: () => ({ x: 0, y: 0 }),
-    suppressIslandHover: bindWindowRuntime(runtime, () => suppressIslandHover(runtime)),
-    t: mainI18n.t,
-    resolveGroup: bindWindowRuntime(runtime, (rawId) => rt().groups.find((g) => g.id === rawId) ?? null),
-    actions: groupMenuContextActions(runtime),
-  });
   attachChromeMenu(rt().window.webContents, {
     t: mainI18n.t,
     getWindow: bindWindowRuntime(runtime, () => rt().window),

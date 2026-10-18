@@ -643,6 +643,13 @@ export interface IslandRectReport {
   minReferenceWidth?: number;
 }
 
+/** Where a group menu opens from the side list: the header row's right, top and bottom edges in window coordinates. Main validates all three. */
+export interface GroupMenuAnchor {
+  right: number;
+  top: number;
+  bottom: number;
+}
+
 /** Where the Spaces menu opens: the space mark's left and bottom edges in window coordinates. Main validates both. */
 export interface SpacesAnchor {
   left: number;
@@ -1026,6 +1033,11 @@ export interface BlancBrowserAPI {
    * IPC: send `chrome:open-spaces`.
    */
   openSpacesMenu(anchor: SpacesAnchor): void;
+  /**
+   * Open a group's menu (name, color, actions) beside its header in the side list.
+   * IPC: send `chrome:open-group-menu`.
+   */
+  openGroupMenu(groupId: GroupId, anchor: GroupMenuAnchor): void;
   /**
    * Stop capture on a surface.
    * IPC: send `chrome:capture-stop`.

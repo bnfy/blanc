@@ -1299,6 +1299,20 @@
         }
       }
     },
+    "GroupMenuAnchor": {
+      "doc": "Where a group menu opens from the side list: the header row's right, top and bottom edges in window coordinates. Main validates all three.",
+      "fields": {
+        "right": {
+          "type": "number"
+        },
+        "top": {
+          "type": "number"
+        },
+        "bottom": {
+          "type": "number"
+        }
+      }
+    },
     "SpacesAnchor": {
       "doc": "Where the Spaces menu opens: the space mark's left and bottom edges in window coordinates. Main validates both.",
       "fields": {
@@ -2293,6 +2307,23 @@
         }
       ],
       "doc": "Open the Spaces menu from the Island's space mark."
+    },
+    {
+      "name": "openGroupMenu",
+      "group": "groups",
+      "kind": "send",
+      "channel": "chrome:open-group-menu",
+      "params": [
+        {
+          "name": "groupId",
+          "type": "GroupId"
+        },
+        {
+          "name": "anchor",
+          "type": "GroupMenuAnchor"
+        }
+      ],
+      "doc": "Open a group's menu (name, color, actions) beside its header in the side list."
     },
     {
       "name": "captureStop",

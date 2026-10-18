@@ -21,11 +21,16 @@
       e.target.closest('.vertical-tab-row[data-tab-id]')?.dataset.tabId
       ?? (onGlanceHeader ? state.glanceTabId : null)
       ?? null;
-    // A rail group header gets main's group menu (group-context-menu.js).
-    window.__blancCtxGroupId = window.__blancCtxRowTabId == null
-      ? e.target.closest('.vertical-tabs-group-header[data-group-id]')?.dataset.groupId ?? null
+    // A rail group header opens its group menu (tab group colors spec §6).
+    const groupHeader = window.__blancCtxRowTabId == null
+      ? e.target.closest('.vertical-tabs-group-row')?.querySelector('.vertical-tabs-group-header[data-group-id]')
       : null;
-    if (!e.target.closest('#islandPill') && window.__blancCtxRowTabId == null && window.__blancCtxGroupId == null) {
+    if (groupHeader) {
+      e.preventDefault();
+      window.blancRailGroupMenu?.open(groupHeader.dataset.groupId);
+      return;
+    }
+    if (!e.target.closest('#islandPill') && window.__blancCtxRowTabId == null) {
       e.preventDefault();
     }
   });
@@ -1338,6 +1343,11 @@
     if (restoreTrigger === 'shield') pillShield.focus();
     else if (restoreTrigger === 'insecure') pillInsecure.focus();
     if (restoreTrigger === 'spaces') pillSpace.focus();
+    // The side list's group menu closed: its header row forgets the open
+    // state, and Escape hands focus back to that header's ⋮.
+    if (mode === null && typeof trigger === 'string' && trigger.startsWith('group-menu:')) {
+      window.blancRailGroupMenu?.closed(trigger.slice('group-menu:'.length), { focus: restoreTrigger === 'group-menu' });
+    }
     render();
   });
   window.browserAPI.onDownloadsActivity((payload) => {

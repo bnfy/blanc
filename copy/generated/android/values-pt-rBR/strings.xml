@@ -480,7 +480,12 @@
     <string name="group_menu_duplicate">Já existe um grupo chamado “%1$s”</string>
     <string name="group_menu_close">Fechar o grupo</string>
     <string name="group_menu_ungroup">Desagrupar</string>
-    <string name="group_menu_rename">Renomear grupo…</string>
+    <string name="group_menu_options">Opções do grupo</string>
+    <string name="group_menu_name_label">Nome do grupo</string>
+    <string name="group_menu_color_label">Cor</string>
+    <string name="group_menu_color_none">Sem cor</string>
+    <string name="group_menu_new_tab">Nova aba no grupo</string>
+    <string name="group_menu_move_to_new_window">Mover o grupo para uma nova janela</string>
     <string name="device_menu_rename">Renomear dispositivo…</string>
     <string name="tab_menu_reset_title">Redefinir título da aba</string>
     <string name="tab_menu_pin">Fixar aba</string>

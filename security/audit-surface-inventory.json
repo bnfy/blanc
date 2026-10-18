@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "db60ed7ad30b0d9bdef9869dec701d8bdcb1058edb70b84f43c5ae479f7593f3",
+      "sha256": "80fabbedcb2c12a5c143ad27a27949452b4a5f84a157b12b0f4c8f3a2e462018",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -290,6 +290,7 @@
         "chrome:onepassword-fill",
         "chrome:open-capture",
         "chrome:open-find",
+        "chrome:open-group-menu",
         "chrome:open-island",
         "chrome:open-island-commands",
         "chrome:open-island-typing",
@@ -575,7 +576,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "569e2b63a66ad9e0db3aed7163fb672f2d6fe2821b7be5d546c0901041772d1f",
+      "sha256": "1b184a585910d8ac4a1c76279637afcf9ec9c949db0bdc14d124099d514a57f8",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -606,6 +607,7 @@
         "chrome:onepassword-fill",
         "chrome:open-capture",
         "chrome:open-find",
+        "chrome:open-group-menu",
         "chrome:open-island",
         "chrome:open-island-commands",
         "chrome:open-island-typing",

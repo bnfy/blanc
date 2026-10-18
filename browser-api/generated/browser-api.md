@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-121 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
+122 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -71,6 +71,7 @@
 | `openBlockingPopup` | blocking | invoke | `chrome:blocking-popup` | `() => Promise<boolean>` | all |
 | `openCapturePopover` | capture | send | `chrome:open-capture` | `(anchor: CaptureAnchor)` | all |
 | `openSpacesMenu` | workspaces | send | `chrome:open-spaces` | `(anchor: SpacesAnchor)` | all |
+| `openGroupMenu` | groups | send | `chrome:open-group-menu` | `(groupId: GroupId, anchor: GroupMenuAnchor)` | all |
 | `captureStop` | capture | send | `chrome:capture-stop` | `(surfaceId: CaptureSurfaceId)` | all |
 | `captureFocus` | capture | send | `chrome:capture-focus` | `(surfaceId: CaptureSurfaceId)` | all |
 | `stopDisplayShare` | capture | send | `display-capture:stop` | `(shareId: DisplayShareId)` | all |
@@ -926,6 +927,16 @@ The resting pill's rectangle as the strip reports it, plus the open shield popov
 | `spacesAnchor?` | `SpacesAnchor` | Present while the Spaces menu is open from the mark, so it follows the pill. |
 | `minPrimaryWidth?` | `number` | With Glance side by side: the narrowest main pane that holds the slim Island with a readable address, its chips and clearance included. Main stops the divider there. |
 | `minReferenceWidth?` | `number` | With Glance side by side: the narrowest reference that holds the Glance header at its most compact, including the window-control space on Windows and Linux. Main stops the divider there. |
+
+### `GroupMenuAnchor`
+
+Where a group menu opens from the side list: the header row's right, top and bottom edges in window coordinates. Main validates all three.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `right` | `number` |  |
+| `top` | `number` |  |
+| `bottom` | `number` |  |
 
 ### `SpacesAnchor`
 

@@ -1,5 +1,6 @@
 'use strict';
-// A tab group header's right-click menu (spec 2026-10-16-island-lower-section §9.3).
+// A tab group's menu: right-click a header or press its ⋮ (tab group colors
+// spec §6). The menu replaced the native Rename/Ungroup/Close menu.
 const assert = require('node:assert/strict');
 const test = require('node:test');
 const fs = require('node:fs');
@@ -7,29 +8,31 @@ const path = require('node:path');
 const vm = require('node:vm');
 const crypto = require('node:crypto');
 const groupNameCase = require('../../src/main/group-name-case');
-const { buildGroupContextMenu } = require('../../src/main/group-context-menu-model');
-
-const t = (key) => ({ 'groupMenu.rename': 'Rename Group…', 'groupMenu.ungroup': 'Ungroup', 'groupMenu.close': 'Close Group' })[key];
-
-test('the header menu offers Rename Group…, Ungroup and Close Group', () => {
-  assert.deepEqual(buildGroupContextMenu(t), [
-    { id: 'rename', label: 'Rename Group…' },
-    { type: 'separator' },
-    { id: 'ungroup', label: 'Ungroup' },
-    { id: 'close-group', label: 'Close Group' },
-  ]);
-});
 
 const read = (file) => fs.readFileSync(path.join(__dirname, '../..', file), 'utf8');
 
-test('the panel and the rail record the right-clicked group header for main', () => {
+test('the native group menu is gone and both lists open the group menu instead', () => {
+  assert.equal(fs.existsSync(path.join(__dirname, '../../src/main/group-context-menu.js')), false);
   const overlay = read('src/renderer/overlay.js');
-  assert.match(overlay, /window\.__blancCtxGroupId = /);
+  assert.doesNotMatch(overlay, /__blancCtxGroupId/);
+  assert.match(overlay, /openGroupMenu\(groupHeader\.dataset\.groupId/, 'a header right-click opens the menu');
   assert.match(overlay, /CLOSED_SECTION_ID/, 'the Recently closed band has no group menu');
-  assert.match(overlay, /window\.__blancCtxGroupId == null/, 'a recorded header keeps the native menu');
   const renderer = read('src/renderer/renderer.js');
-  assert.match(renderer, /\.vertical-tabs-group-header\[data-group-id\]/);
-  assert.match(renderer, /window\.__blancCtxGroupId == null/);
+  assert.doesNotMatch(renderer, /__blancCtxGroupId/);
+  assert.match(renderer, /blancRailGroupMenu\?\.open\(/);
+  const rail = read('src/renderer/vertical-tabs.js');
+  assert.match(rail, /api\.openGroupMenu\(groupId/);
+});
+
+test('the menu offers the name, the colors and the four actions', () => {
+  const overlay = read('src/renderer/overlay.js');
+  const build = overlay.slice(overlay.indexOf('function buildGroupMenu('), overlay.indexOf('async function commitGroupName('));
+  for (const key of ['groupMenu.nameLabel', 'groupMenu.colorLabel', 'groupMenu.colorNone', 'groupMenu.newTab',
+    'groupMenu.moveToNewWindow', 'groupMenu.ungroup', 'groupMenu.close']) {
+    assert.match(build, new RegExp(key.replace('.', '\\.')), key);
+  }
+  assert.match(build, /SpaceIdentity\.PRESETS/, 'the eight Spaces presets');
+  assert.match(build, /disabled: holdsEveryTab/, 'Move Group to New Window is off when the group holds every tab');
 });
 
 // main.js cannot be required under node --test; lift the shipped functions.

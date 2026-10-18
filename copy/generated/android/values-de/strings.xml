@@ -467,7 +467,12 @@
     <string name="group_menu_duplicate">Es gibt schon eine Gruppe namens „%1$s“</string>
     <string name="group_menu_close">Gruppe schließen</string>
     <string name="group_menu_ungroup">Gruppierung aufheben</string>
-    <string name="group_menu_rename">Gruppe umbenennen…</string>
+    <string name="group_menu_options">Gruppenoptionen</string>
+    <string name="group_menu_name_label">Gruppenname</string>
+    <string name="group_menu_color_label">Farbe</string>
+    <string name="group_menu_color_none">Keine Farbe</string>
+    <string name="group_menu_new_tab">Neuer Tab in Gruppe</string>
+    <string name="group_menu_move_to_new_window">Gruppe in neues Fenster verschieben</string>
     <string name="device_menu_rename">Gerät umbenennen…</string>
     <string name="tab_menu_reset_title">Tabtitel zurücksetzen</string>
     <string name="tab_menu_pin">Tab anheften</string>
