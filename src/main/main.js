@@ -11619,7 +11619,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         const opener = tabs.get(tabId);
         return opener ? withWindowRuntime(windowRuntimes.runtimeForTab(opener) ?? rt(), () => openLinkInGlance(opener, url)) : false;
       },
-      groupTabByName, renameTab, beginRenameTab, beginRenameGroup, beginRenameDevice, ungroupGroup, setGroupColor, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab,
+      groupTabByName, renameTab, beginRenameTab, beginRenameGroup, beginRenameDevice, ungroupGroup, setGroupColor, newTabBelow, closeTabsBeside, toggleSiteMute, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab,
       closeGroup, newTabUrl,
       getOverlayDragging: () => overlayDragActive(rt()),
       selectTabAtIndex,

@@ -329,3 +329,28 @@ Feature: Tabs and tab groups
     Then no group menu is open
     And no side-list group header is marked open
     And a click in the island panel keeps it open
+  @F2-9 @F2 @desktop
+  Scenario: New Tab Below opens inside the group, directly below
+    Given a group "work" with 2 tabs
+    When I choose New Tab Below on the first "work" tab
+    Then a new tab is selected directly below the first "work" tab, in "work"
+
+  @F2-10 @F2 @desktop
+  Scenario: Close Tabs Below is one step to undo
+    Given a tab open on "keep-here"
+    And a tab open on "gone-one"
+    And a tab open on "gone-two"
+    When I choose Close Tabs Below on the tab on "keep-here"
+    Then the tabs on "gone-one" and "gone-two" are closed and "keep-here" is selected
+    When I reopen the last closed tab
+    Then the tabs on "gone-one" and "gone-two" are open again
+
+  @F2-11 @F2 @desktop
+  Scenario: Mute Site lasts until Blanc quits
+    Given tabs open on "site-a" and "site-b"
+    When I choose Mute Site on the tab on "site-a"
+    Then the tabs on "site-a" and "site-b" are muted
+    When I open a tab on "site-c"
+    Then the tab on "site-c" is muted
+    When I relaunch Blanc
+    Then the tab on "site-a" is not muted

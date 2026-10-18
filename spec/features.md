@@ -65,6 +65,12 @@ toolbar (Bowser Design System "Island Chrome").
 - `window.open` / context-menu children inherit the opener's privacy (F4) but
   **not its group**: like a plain new tab they open **ungrouped**, after the
   other ungrouped tabs (F3).
+- The tab menu also offers **New Tab Below** (directly under the tab, inside
+  its group if it has one), **Close Tabs Above** and **Close Tabs Below**
+  (unpinned tabs across the window, one undo step), and **Mute Site** /
+  **Unmute Site** (every tab on that exact host, until Blanc quits; private tabs
+  keep their own). Unmuting one tab on a muted site overrides the site for that
+  tab until it leaves the host.
 - Switching tabs never loses an inactive tab's identity. On every platform an
   inactive tab may have its renderer discarded to reclaim memory — on desktop
   deliberately, after an idle delay the person controls (F31); on mobile because
