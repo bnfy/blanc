@@ -62,8 +62,9 @@ toolbar (Bowser Design System "Island Chrome").
   **mute/unmute**. A plain new tab (F7 `/new`, panel row, new-tab shortcut) always
   opens **ungrouped** and to the newtab page (F16), regardless of the active tab's
   group.
-- `window.open` / context-menu children **inherit the opener's group** (F3) and
-  privacy (F4).
+- `window.open` / context-menu children inherit the opener's privacy (F4) but
+  **not its group**: like a plain new tab they open **ungrouped**, after the
+  other ungrouped tabs (F3).
 - Switching tabs never loses an inactive tab's identity. On every platform an
   inactive tab may have its renderer discarded to reclaim memory — on desktop
   deliberately, after an idle delay the person controls (F31); on mobile because
@@ -105,6 +106,10 @@ toolbar (Bowser Design System "Island Chrome").
   focuses it (unfolding if collapsed). The nth-cluster shortcut (D7) focuses the
   nth *group's* first tab when groups exist.
 - New **private** tabs are never grouped.
+- A tab opened from a link in a grouped tab (`window.open` / `target=_blank`,
+  Open Link in New Tab, Open Link in Glance) opens **ungrouped**, in the same
+  place as a plain new tab: after the other ungrouped tabs. It joins a group
+  only when the person moves it there.
 - **Drag to reorder** (rail and expanded island, same gesture): drag a tab
   within its section, into another group's section or onto any group header
   (appends; a collapsed group stays collapsed), or out to the loose section.
@@ -412,7 +417,8 @@ From the desktop `DEFAULTS`:
 ## F19 — Context menu (link/page actions)
 
 - Link/page actions: open in new tab, open in **background** tab, copy link,
-  save/relevant page actions. Children inherit group + privacy (F2/F4). OS hand-off
+  save/relevant page actions. Children inherit privacy (F4) and open ungrouped
+  (F2/F3). OS hand-off
   (D4) honored for `mailto:` etc. Gesture entry point diverges (D7 — long-press on
   mobile vs right-click on desktop).
 - **URL-bar menu (desktop only — D20):** the command bar's address input offers
@@ -423,7 +429,7 @@ From the desktop `DEFAULTS`:
   OS hand-off, search-vs-URL heuristic, utility-sheet routing — then the island
   closes).
 - **Acceptance:** Long-press/right-click a link → "open in background tab" opens it
-  without switching away, inheriting the opener's group.
+  without switching away, ungrouped even when the opener is in a group.
 - **Acceptance (desktop):** Copy Clean Link on a URL with `utm_*`/click-id
   params yields the URL without them, other params intact; Paste and Go with a
   URL on the clipboard navigates the active tab and closes the island.
@@ -802,7 +808,7 @@ From the desktop `DEFAULTS`:
   `/glance <text>` opens it filtered to the text; a link's context menu offers
   **Open Link in Glance** after **Open Link in New Tab**, with the same
   hand-off and forbidden-URL guards, opening the link as the reference in the
-  opener's profile, private flag and group. The picker is a dialog named by
+  opener's profile and private flag, ungrouped (F3). The picker is a dialog named by
   its heading; its rows share the ⌘L panel's vocabulary (quiet tabs dimmed
   with the word only in the accessible name, private tabs with the chip, a
   tooltip of title and host, names joined with commas), arrow keys move the
