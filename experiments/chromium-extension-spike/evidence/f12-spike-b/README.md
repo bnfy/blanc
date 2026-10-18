@@ -650,3 +650,5 @@ identity, lifecycle/async/other injection coverage and full acceptance remain op
 Latency deferred; Electron diagnostic build §8 remains unapproved/unstarted.
 
 - October 18: [procedural helper completion evidence](../f12-helper-delivery-20261018/README.md): two new controlled schedules plus four ordering regressions; remaining channel/lifecycle gaps explicit.
+
+Latest: [helper runtime and post-execution navigation identity](../f12-helper-channels-20261018/README.md). Pre-dispatch document targeting remains open.

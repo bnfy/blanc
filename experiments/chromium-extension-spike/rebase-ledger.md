@@ -1384,3 +1384,35 @@ checkpoint CI remains to be evaluated. Plan items 3–6 and Task0 promotion gate
 ## Procedural helper completion drains — October 18, 2026
 
 Four additional messaging API sites join the upstream barrier; awaited results are preserved. Two procedural drain/timeout schedules and four existing native/upstream schedules pass. 272 regression tests pass; 127 scoped lint checks pass. Zero-action guard in 5.06 s, no compile; binary hashes unchanged. Runtime durations are diagnostic execution brackets, not latency or owner-attention measurements. Logger/noscript/picker runtime, exact document identity, other injection channels and lifecycle/async semantics remain gaps. Latency deferred; Electron build unapproved. See [evidence](evidence/f12-helper-delivery-20261018/README.md). Task 0 and baseline unchanged.
+
+## Logger, noscript, picker and navigation checkpoint — October 18, 2026
+
+Six disposable regular-profile Chromium schedules pass: logger, noscript and
+picker each drain normally and fail closed on an intentionally withheld API
+acknowledgement, then recover after release/retry. These exercise the real helper
+files. Noscript replaces its authored fallback; picker preserves its awaited
+reply and does not return early. Logger coverage proves helper execution and
+completion ordering, not the logger UI or every logged cosmetic rule.
+
+Two additional picker schedules navigate after actual helper execution while its
+acknowledgement is withheld: same URL and another path on the same origin. The
+actual extension MessageSender documentId matches webNavigation's old document;
+the new document has a different ID and cannot retire the old pending lease.
+These are post-execution identity observations, not document-bound pre-dispatch
+targeting. Legacy executeScript loads the file asynchronously and targets a frame;
+ScriptExecutor explicitly notes its preallocated document ID can become stale.
+Pre-dispatch navigation, cross-origin/BFCache/lifecycle races, async effects and
+other injection channels remain gaps. No full atomicity or acceptance claim.
+
+Diagnostic payloads only add exact helper-entry observations and controlled
+completion holds; no production/native changes. First attempt failed because the
+picker hold intercepted initialization instead of the requested picker helper;
+the corrected harness arms picker after initialization. The failed attempt and
+intermediate pass remain archived; the final source passes all six cases with
+the document observer enabled. Independent verification rejects eight corrupted
+evidence variants. 272 regression tests pass; 127 scoped lint files clean;
+zero-action build guard, no compilation, binary hashes unchanged from 249b086c.
+Fresh disposable profiles/certificate keys removed. See
+[evidence](evidence/f12-helper-channels-20261018/README.md).
+Latency deferred; Electron diagnostic build approval remains unchecked. Spikes
+A/B remain in progress, items 3–6 not started, no baseline promotion.
