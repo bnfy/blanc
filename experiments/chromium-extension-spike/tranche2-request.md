@@ -34,7 +34,7 @@ allows (one build at a time; the spikes alternate, they never overlap a build).
 3 runs alongside as a document. 4, 5 and 6 fill the gaps. The tranche ends
 when every row has its artifact, or when a kill criterion is hit and recorded.
 
-### 1.1 Progress checkpoint — October 17, 2026 (opaque late delivery and duplicate suppression measured)
+### 1.1 Progress checkpoint — October 17, 2026 (static origin-fallback delivery investigated)
 
 This table is the live map from implementation work back to the approved plan.
 Detailed measurements remain in `rebase-ledger.md`; test outcomes and evidence
@@ -49,19 +49,20 @@ links remain in `results.md`. A row marked in progress is not acceptance.
 | 5. VoiceOver pass | **Not started** | Island rotor, labels, order and Escape focus-return checklist remains required. |
 | 6. Cost sheet | **Not started** | Task 0 clean recovery, fortnightly maintenance and extension-release wait must remain three separate lines. |
 
-Current follow-up: `evidence/f12-opaque-late-20261017/` records two fresh
-native regular profiles, 32 document cases: eight real extension repeat-delivery
-passes for data/nested-data, eight opaque-srcdoc permission-denied gaps and
-16 blob identity/delivery gaps. A separate direct diagnostic in each of the
-32 realms proves one body execution after repeated payload evaluation; those
-mechanism passes do not close extension delivery gaps. Raw callbacks, sender
-metadata and exact real-engine payloads are archived, with strict negative tests.
-209 tests / 109-file lint pass. No native/payload changes; zero-action guarded
-plan, unchanged binary hashes, no compilation. Last measured footprint remains
-31 files / 74 hunks. Previous corpus/private/safety results stay historical.
-Latency deferred. Electron diagnostic build §8 remains unchecked/unstarted.
-Next: production late-delivery reachability, containment and broader lifecycle/
-CSP boundaries. No permission bypass or guessed frame/origin correlation added.
+Current follow-up: `evidence/f12-origin-fallback-20261017/` compares two
+fixture-only diagnostic manifest entries, with unchanged extension permissions.
+About-only mode has four positive-control passes and 16 receiver gaps. Static
+origin fallback reaches opaque srcdoc and several blob kinds: 14 diagnostic
+late-delivery passes / six receiver gaps, repeated in two fresh profiles (28/12).
+Actual browser sender identity and main-world counters prove late delivery with
+one body execution; no direct evaluation. Static data/nested-data/nested-blob
+receivers remain gaps. Unmatched HTTP/opaque controls pass in all three profiles.
+This is mechanism evidence, not provider integration: fixture-supplied rule context
+must be replaced by authenticated selection and lifetime/generation/CSP checks.
+216 tests / 114-file lint pass; zero-action guard and unchanged native binaries,
+no compilation. The existing prototype payload is untouched. Latency deferred;
+Electron diagnostic build §8 unchecked/unstarted. Footprint remains last-measured
+31 files / 74 hunks; broader acceptance and containment remain open.
 Following paragraphs are historical.
 
 Service lifecycle behavior is now measured in eight fresh regular/private

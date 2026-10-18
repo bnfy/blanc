@@ -1,0 +1,10 @@
+{
+  "verified": true,
+  "mode": "about",
+  "diagnosticStaticDeliveryPasses": 4,
+  "missingReceiverGaps": 16,
+  "outsideScopeControls": 2,
+  "productionIntegration": false,
+  "fullAcceptance": false,
+  "latencyMeasured": false
+}
