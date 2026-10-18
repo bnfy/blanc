@@ -297,10 +297,10 @@ original reports:
 - **Pinned pages:** Since v1.37.0 a pinned tab remembers the page it was
   pinned on and starts there again after a normal quit and relaunch; after a
   crash it reopens on the last page. Back to Pinned Page and Replace Pinned
-  Page with Current are in the tab menu. The Windows updater handoff (no
-  recovery prompt, pinned tabs at their pinned pages after Restart Now) is
-  still to be confirmed, so don't claim pinned pages survive an update on
-  Windows until the release report records it.
+  Page with Current are in the tab menu. The owner confirmed on Windows that
+  after a v1.36.0 → v1.37.0 Restart Now there was no recovery prompt and
+  pinned tabs reopened at their pinned pages; that's a single machine, so
+  don't present it as tested across Windows setups.
 - **Open the Island on hover:** Since v1.37.0 an opt-in setting (off by
   default, Settings → General) opens the ⌘L panel when the pointer rests on
   the Island's address for 300 ms. It never opens from the rest of the Island.
