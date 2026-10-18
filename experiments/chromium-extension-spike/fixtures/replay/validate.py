@@ -50,7 +50,7 @@ def index_records(records, label, errors):
     return indexed
 
 
-def compare(corpus, observations):
+def compare(corpus, observations, transport_events=None):
     faults = []
     expected = index_records(corpus, 'oracle', faults)
     actual = index_records(observations, 'observed', faults)
@@ -69,13 +69,41 @@ def compare(corpus, observations):
             if left['decision'] != right['decision']:
                 differences.append({'id': key, 'url': left['context']['url'],
                                     'oracle': left['decision'], 'observed': right['decision']})
+    # Transport never erases an independently observed blocking difference.
+    # request_id must come from the adapter's causal join, never a URL-only guess.
+    limitations = []
+    if transport_events is not None:
+        if not isinstance(transport_events, list):
+            faults.append('transport: expected an array')
+        else:
+            seen = set()
+            for event in transport_events:
+                if not isinstance(event, dict) or set(event) != {'code', 'request_id'}:
+                    faults.append('transport: invalid event')
+                    continue
+                key = event['request_id']
+                if not isinstance(key, str) or not key or key in seen:
+                    faults.append('transport: missing or duplicate request join')
+                    continue
+                seen.add(key)
+                left, right = expected.get(key), actual.get(key)
+                if (event['code'] == 'unrecorded-request' and left and right
+                        and left.get('context') == right.get('context')
+                        and left.get('decision') == 'block'
+                        and right.get('decision') == 'allow'
+                        and any(d['id'] == key for d in differences)):
+                    limitations.append({'id': key, 'code': 'blocked-response-not-acquired',
+                                        'downstream_behavior_tested': False})
+                else:
+                    faults.append(f'transport fault: {key}')
     counts = {decision: sum(r.get('decision') == decision for r in expected.values())
               for decision in sorted(DECISIONS)}
     sufficient = all(count >= 2000 for count in counts.values())
-    return {'harness_faults': faults, 'decision_differences': differences,
+    return {'harness_faults': faults, 'response_limitations': limitations, 'decision_differences': differences,
             'oracle_counts': counts, 'minimum_counts_met': sufficient,
             'dataset_comparison_passed': not faults and not differences and sufficient,
             'capture_provenance_verified': False,
+            'false_negative_scope': 'Lower bound when an oracle-blocked response is unavailable: a missed script receives a refusal, so requests its execution would cause are not observed.',
             'note': 'Dataset comparison only; real capture, transport, coverage, cosmetics and latency require separate evidence.'}
 
 
@@ -83,9 +111,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('oracle', type=Path)
     parser.add_argument('observed', type=Path)
+    parser.add_argument('--transport', type=Path, help='Causally joined transport events; never raw URL-only misses')
     args = parser.parse_args()
     try:
-        result = compare(json.loads(args.oracle.read_text()), json.loads(args.observed.read_text()))
+        result = compare(json.loads(args.oracle.read_text()), json.loads(args.observed.read_text()),
+                         json.loads(args.transport.read_text()) if args.transport else None)
     except (OSError, json.JSONDecodeError) as error:
         parser.exit(2, f'{error}\n')
     print(json.dumps(result, indent=2))

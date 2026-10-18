@@ -1,7 +1,7 @@
 # Spike A replay contract — capture pending
 
 This directory contains a **dataset validator, synthetic unit tests and an
-authored HTTP/HTTPS transport pilot**, not the acceptance corpus. Captured
+authored HTTP/HTTPS transport pilot plus a controlled recording/replay pipeline**, not the acceptance corpus. Captured
 acceptance-corpus requests: **0**. The pilot has measured Electron observations;
 no full request-path coverage, fork block-rate, cosmetic or latency pass is claimed.
 The validator's success is necessary but insufficient for Spike A acceptance.
@@ -23,8 +23,9 @@ transport (local proxy or resolver override and a fixture CA trusted only by the
 disposable browsers). Do not rewrite requests to localhost URLs. Both browsers
 must receive identical responses. Record server observations as well as blocker
 observations; an absent network request alone does not prove a blocking decision.
-The authored pilot transport exists. Real-page acquisition, scrub/stability
-gates and the fork replay adapter are **not implemented** in this checkpoint.
+The authored pilot and [controlled recorder/scrubber/stability pipeline](pipeline/README.md)
+exist. Real-page acquisition/admission and the fork replay adapter remain
+**pending**; the controlled probe does not establish their coverage.
 
 ## Acquisition, stability and oracle order
 
@@ -32,7 +33,8 @@ The live acquisition run is **not the oracle**. Its decisions may be saved as
 sanitized diagnostics, but never count toward the 2,000/2,000 acceptance totals.
 A distinct recording tool may connect upstream using normal server certificate
 and hostname verification; the offline replay tool must contain no upstream
-forwarding or fallback. The current pilot is the latter only.
+forwarding or fallback. The current pilot is offline; the separate pipeline
+recorder has only been exercised against a controlled local upstream.
 
 1. Record a public, unauthenticated page load in a fresh disposable profile.
    Capture response bytes and metadata with the per-field persistence gate below.
@@ -69,6 +71,35 @@ missing-response limitation; do not conceal either or fabricate its descendants.
 Do not treat a 502 page as a successful replay. Real recordings may require a
 separately declared response-acquisition policy to cover requests blocked by the
 recording run; that policy has not been implemented or measured yet.
+
+### Electron stability versus the paired comparison
+
+`pipeline/stability.mjs` admits two Electron replays into the oracle. It stays
+strict: a transport fault there means the oracle is not stable. Never run the
+fork through that oracle-admission function or discard the fork's decision log
+because its transport failed.
+
+`validate.py` compares independent oracle/fork decisions and optionally accepts
+`--transport EVENTS.json`. Each event is `{ "code": "unrecorded-request",
+"request_id": "causally-joined-request-hop-id" }`. The adapter must establish
+that join from actual request/hop evidence, not guess from a matching URL. The
+157 adapter and this join have not been implemented or exercised yet.
+
+If the same valid context was blocked by the oracle but allowed by the fork,
+the validator retains the **block→allow difference**. Its joined missing
+response is a `response_limitations` entry (`blocked-response-not-acquired`),
+not a reason to erase or invalidate that observed regression. Downstream
+behavior is untested; it must not be fabricated. In particular, a missed script
+receives a replay refusal instead of executing, so the requests it would cause
+are never issued. Any reported fork false-negative count/rate in this mode is a
+**lower bound**, not a complete estimate of downstream blocking regressions.
+Carry that qualification next to every blocking-rate report, even when no
+missing descendant appears in the observed log. Unknown/unjoined misses,
+misses on an oracle-allowed response, mismatched contexts, duplicates and other
+transport errors remain harness faults. Missing/extra descendants remain named
+faults too, alongside the proven blocking difference. Consumers must inspect
+both lists rather than convert a faulted run into "no result". The comparison
+never passes when a blocking difference exists.
 
 ### Protocol and timing metadata
 
@@ -113,9 +144,11 @@ bounded public-site allowlist; no personal profile, login flow or credentials.
   If a transformation changes page behavior so the load is unstable or context
   cannot be correlated, reject it rather than fill gaps with expected values.
 
-The scrubber, protocol recorder, graph correlator and stability admission tool
-need tests and a runtime probe before any live acquisition starts. This section
-is the implementation contract, not a claim that these gates already execute.
+The pipeline now exercises a narrow scrubber, per-leg protocol recorder and
+single-frame stability matcher with unit/network tests and actual Electron
+replays. General causal correlation, public-page completion, broader content
+admission and request-path coverage still need implementation and runtime proof
+before real-page acquisition. This section remains the full contract.
 
 ## Decision records
 
@@ -245,3 +278,16 @@ PYTHONDONTWRITEBYTECODE=1 python3 experiments/chromium-extension-spike/fixtures/
 
 The generated records in those tests are synthetic and must never be installed
 as the acceptance corpus or cited as browser coverage.
+
+## Public feasibility result (owner-selected C)
+
+[Ten-entrypoint probe](../../evidence/f12-public-feasibility-20261017/README.md):
+0/10 initial documents passed the existing policy (7 Vary refusals, 3 unsupported
+statuses). No public bundle/oracle was persisted; this measures an admission
+barrier, not tracker distribution. General real-page capture is still pending.
+
+Repeat C after supported Vary, entrypoint preflight and empty-body handling:
+[category-first report](../../evidence/f12-public-feasibility-repeat-20261017/README.md).
+Still 0/10 documents admitted: 3 uncontrolled Vary, 4 encoded/opaque bodies,
+1 HTTP 401 and 2 HTTP 403. No redirects observed; script/xhr/image refusal rates
+remain unmeasurable, not zero. No body/identifier gate was relaxed.
