@@ -202,6 +202,8 @@ git commit -m "Set Mahjong numerals in Inter Bold and its interface in Instrumen
 
 ### Task 4: Refreshed tile art (owner review stop)
 
+> **Dropped (owner decision, 2026-10-17).** The original tile art stays; the owner will have it redone separately. Nothing from this task shipped.
+
 **Files:**
 - Create: `scripts/build-mahjong-art.mjs`
 - Create: `assets/mahjong-art/source/` (move the current 18 tile PNGs here unchanged: `mahjong-{bamboo-gold,bamboo-jade,bamboo-one,dot-pip,dragon-*,flower,season,wind-*}.png`; the combo glint and particles stay where they are)

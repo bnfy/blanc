@@ -103,6 +103,11 @@ tile face.
 
 ## Tile artwork
 
+> **Out of scope (owner decision, 2026-10-17).** The original tile art ships
+> unchanged in this refresh. Tone-mapped treatments were reviewed and
+> rejected; the owner will have the art redone separately. The section below
+> is kept as the original intent.
+
 Keep each illustration's silhouette, composition and motif exactly. Change the
 finish:
 - Brighter, cleaner jade, red and black; lift the dark shadows inside the art.
