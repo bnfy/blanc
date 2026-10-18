@@ -1,0 +1,11 @@
+{
+  "ownedBrowserProcesses": [],
+  "ephemeralRootsRemoved": [
+    true,
+    true,
+    true
+  ],
+  "permanentProfilesTouched": false,
+  "nativeInputClaimed": false,
+  "latencyMeasured": false
+}

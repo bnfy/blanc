@@ -1552,3 +1552,43 @@ Owner attention/agent time not measured. Latency including gate overhead remains
 deferred. Private subframes, opaque/non-HTTP/fenced contexts, broader scriptlets,
 component containment, recovery UX and independent Electron identity remain
 open. No Task 0 outcome/baseline promotion or change to 156/permanent profiles.
+
+
+### Private/opaque frames and Electron instrumentation assessment — October 17, 2026
+
+See [evidence](evidence/f12-opaque-electron-audit-20261017/README.md) and the
+[source-backed Electron assessment](electron-update-instrumentation.md).
+Eight fresh sessions (two per runtime/profile) complete 56 frame cases. The
+24 private script-enabled cases keep uBO disabled, permit the allowed control
+and reject the blocked probe with zero blocked arrivals. Eighteen have actual
+private Blanc Blocker cancellation records; six Electron srcdoc/data cases
+remain attribution gaps because the existing observer scrub rejects non-HTTP
+frame metadata. This does not count as private uBO scriptlet acceptance.
+
+Four native regular HTTP/sandbox-HTTP cases pass first-inline constant/getter
+and fetch suppression. Eight native non-HTTP regular cases lack the tested
+early effects; Electron's 12 regular script-enabled cases lack them too.
+Late effects differ: Electron HTTP/sandbox-HTTP/about:blank flags appear, while
+srcdoc/data flags do not; Chromium non-HTTP flags do not appear. Eight sandbox
+no-script cases prevent authored script execution; this is sandbox enforcement,
+not successful scriptlet coverage. Actual opaque origins stay literal `null`.
+
+The Electron v44.8.0 source pin is Chromium 152.0.7977.167. The assessment maps
+browser-owned update metadata → per-load token → ResourceRequest → real Electron
+webRequest hook, with collision/profile/old-version/lifetime safeguards and
+required negative tests. It is unimplemented/uncompiled and needs a separately
+approved Electron diagnostic build. Existing native joins retain their prior
+meaning; independent Electron update identity stays open.
+
+Two incomplete matrix attempts remain archived (opaque frame-name lookup,
+then about:blank navigation replacing document.write); the corrected harness
+uses element.contentFrame and writes to the default blank document. The first
+unit invocation hit nine sandbox loopback EPERM errors; the authorized loopback
+rerun passes all 181 tests. Lint: 93 files, zero issues. No native edits or
+compilation; the existing output's final guarded plan has zero actions. Last
+measured footprint 31 files/74 hunks is unchanged by these harness/docs changes.
+All profiles/CA private keys and owned browser processes are removed. No native
+mouse/keyboard or latency claim. Latency stays deferred; broader opaque/fenced
+coverage, scriptlets, containment, recovery, worker contexts and both full
+acceptance gates stay open. Plan items 3–6 remain unstarted; no Task 0/baseline
+promotion and no 156/permanent-profile changes. Attention/agent time unmeasured.

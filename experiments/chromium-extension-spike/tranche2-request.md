@@ -34,7 +34,7 @@ allows (one build at a time; the spikes alternate, they never overlap a build).
 3 runs alongside as a document. 4, 5 and 6 fill the gaps. The tranche ends
 when every row has its artifact, or when a kill criterion is hit and recorded.
 
-### 1.1 Progress checkpoint — October 17, 2026 (subframe gate and cross-runtime trace measured)
+### 1.1 Progress checkpoint — October 17, 2026 (private/opaque frames and Electron instrumentation assessed)
 
 This table is the live map from implementation work back to the approved plan.
 Detailed measurements remain in `rebase-ledger.md`; test outcomes and evidence
@@ -49,19 +49,21 @@ links remain in `results.md`. A row marked in progress is not acceptance.
 | 5. VoiceOver pass | **Not started** | Island rotor, labels, order and Escape focus-return checklist remains required. |
 | 6. Cost sheet | **Not started** | Task 0 clean recovery, fortnightly maintenance and extension-release wait must remain three separate lines. |
 
-Current follow-up: the HTTP(S) document gate now carries actual browser frame
-IDs/ancestor chains and bypasses hostname-only scriptlet cache reuse. Sixteen
-native subframe cases pass first-inline/fetch and ancestor checks; Electron
-passes 0/16 early and 12/16 late. Main-frame 12/12 and seven safety checks regress
-cleanly. Eight same-URL regular/private update sessions retain eight native joins;
-stock trace constructors expose URLs but no proven Electron hook/registration
-join. Eight Electron update identities remain gaps. See
-`evidence/f12-subframe-trace-20261017/`; 172 tests/89-file lint pass. One guarded
-incremental build 37.57s/eight steps; final guard zero actions, footprint 31/74.
-No cold output. Latency remains deferred, including synchronous gate overhead.
-Next: independent Electron native update instrumentation and separately reviewed
-shipping early/ancestor-cache correction; private/opaque/non-HTTP/fenced frames,
-broader scriptlets/lifecycle and component containment.
+Current follow-up: `evidence/f12-opaque-electron-audit-20261017/` records
+56 cases in eight fresh sessions. All 24 private script-enabled cases preserve
+uBO-disabled policy and network outcomes; 18 have private Blanc cancellation
+records and six Electron non-HTTP metadata cases remain attribution gaps.
+Four native regular HTTP/sandbox-HTTP early checks pass; eight native non-HTTP
+and 12 Electron regular early checks lack the tested effects. Eight sandbox
+script-denial checks are not scriptlet passes. The pinned-source Electron
+assessment identifies an opt-in update metadata/token/hook export path, but
+implementation and a separately approved Electron diagnostic build remain
+required. Cross-runtime update identity stays open. See
+`electron-update-instrumentation.md`; 181 tests/93-file lint pass, no native
+compilation, final guard zero actions. Footprint last measured 31/74, unchanged
+by this harness/docs-only follow-up. Latency remains deferred.
+Next: non-HTTP document-start design and observer context handling, independent
+Electron instrumentation proposal, broader frame/lifecycle/containment coverage.
 Following paragraphs are historical.
 
 Service lifecycle behavior is now measured in eight fresh regular/private
