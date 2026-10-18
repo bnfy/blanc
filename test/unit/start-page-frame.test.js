@@ -41,6 +41,10 @@ test('the header row holds the brand, in flow', () => {
   );
   const css = frameCss();
   assert.match(css, /\.start-header \{[^}]*display: flex;[^}]*justify-content: space-between;/s);
+  assert.match(css, /\.start-header \{[^}]*padding: clamp\(30px, 5vh, 48px\) var\(--start-edge\) 0;/s,
+    'the brand row shares the footer\'s window-edge inset');
+  assert.doesNotMatch(css.match(/\.start-header \{[^}]*\}/)[0], /max-width/, 'the brand row is not centred on the content measure');
+  assert.match(read('src/renderer/pages/pages.css'), /\.ledger-footer,\s*body:not\(\[data-layout="ledger"\]\) \.ledger-footer \{[^}]*padding: 11px var\(--start-edge\);/s);
   assert.doesNotMatch(read('src/renderer/pages/pages.css'), /\.start-brand \{[^}]*position: fixed/s,
     'the brand no longer floats over content');
 });
@@ -146,7 +150,7 @@ test('surfaces follow one weight ladder with accessibility fallbacks', () => {
   assert.match(css, /\.shelf-tile,\s*\.shelf-card \{[^}]*background: var\(--start-card-fill\);[^}]*box-shadow: var\(--start-shadow-card\), var\(--start-card-highlight\);[^}]*backdrop-filter: blur\(12px\) saturate\(140%\);/s);
   assert.match(css, /\.group-chip \{[^}]*background: transparent;[^}]*backdrop-filter: none;/s);
   assert.match(css, /\.ledger-footer,\s*body:not\(\[data-layout="ledger"\]\) \.ledger-footer \{ border-top: 0; \}/);
-  assert.match(css, /\.ledger-footer::before \{[^}]*height: 24px;[^}]*opacity: 0;/s);
+  assert.match(css, /\.ledger-footer::before \{[^}]*inset: -28px 0 0;[^}]*opacity: 0;/s);
   assert.match(css, /body\.has-underflow \.ledger-footer::before \{ opacity: 1; \}/);
   assert.match(js, /new IntersectionObserver\(/);
   assert.match(css, /@media \(prefers-reduced-transparency: reduce\) \{[\s\S]*?backdrop-filter: none;/);
