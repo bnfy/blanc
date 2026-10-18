@@ -306,7 +306,7 @@ const {
 } = require('./glance-focus');
 const { moveTab: resolveTabMove, reorderItems } = require('./tab-order');
 const { CLOSED_SECTION_ID, clampClosedSlot, reconcileClosedSlot } = require('./closed-slot');
-const { sectionsOf, normalizeOrder, itemsOf, layoutItems, placeInGroup } = require('../renderer/tab-sections');
+const { sectionsOf, normalizeOrder, itemsOf, layoutItems, legacyOrder, placeInGroup } = require('../renderer/tab-sections');
 const { normalizeGroupName, sameGroupName, recaseSessionData } = require('./group-name-case');
 const { deviceNamesEqual } = require('./device-names');
 const { attachGroupHeaderMenu } = require('./group-context-menu');
@@ -4701,12 +4701,18 @@ app.on('before-quit', () => {
 function captureWindowEntry(runtime, { previousActiveIndex = 0 } = {}) {
   // Private tabs leave no trail, error pages persist their real destination,
   // and url-less adopted children drop out in lockstep with their metadata.
-  const entries = persistableEntries(runtime.tabOrder.map((id) => tabs.get(id)));
   syncTabLayout(runtime);
+  const entries = persistableEntries(runtime.tabOrder.map((id) => tabs.get(id)));
   const persistedGroups = runtime.groups.filter((group) => entries.some((item) => item.groupId === group.id));
-  // The band's slot counts only groups that are written, so a group held
-  // only by private tabs never shifts it on the next launch.
-  const closedSlot = runtime.groups.slice(0, runtime.closedSlot).filter((group) => persistedGroups.includes(group)).length;
+  // The band's place counts only items that are written, so a private tab or
+  // a group held only by private tabs never shifts it on the next launch.
+  // closedIndex counts groups and ungrouped tabs; closedSlot, the rollback
+  // copy, counts groups only.
+  const persistedIds = new Set(entries.map((item) => item.id));
+  const above = itemsOf(tabLayoutList(runtime)).slice(0, runtime.closedSlot)
+    .filter((item) => (item.groupId ? persistedGroups.some((group) => group.id === item.id) : persistedIds.has(item.id)));
+  const closedIndex = above.length;
+  const closedSlot = above.filter((item) => item.groupId).length;
   const entry = {
     id: runtime.id,
     profileId: runtime.profileId,
@@ -4727,6 +4733,8 @@ function captureWindowEntry(runtime, { previousActiveIndex = 0 } = {}) {
     } : {}),
     groups: persistedGroups,
     ...(closedSlot > 0 ? { closedSlot } : {}),
+    sectionOrder: true,
+    ...(closedIndex > 0 ? { closedIndex } : {}),
     activeIndex: previousActiveIndex,
   };
   // A private or provisional active tab preserves this window's last good
@@ -6152,6 +6160,7 @@ function applyWorkspaceToWindow(runtime, workspace) {
       managedExtension: restorableUblockTool(url),
     }));
     pruneEmptyGroups();
+    applySavedLayout(runtime, workspace, restoredIds);
     const target = restoreTargetId(restoredIds, cleaned.activeIndex);
     // 8. A workspace with nothing left after filtering (or saved empty) must
     // never leave the window tabless. NEW_TAB_URL, not newTabUrl() — the
@@ -7558,6 +7567,34 @@ function syncTabLayout(runtime) {
     runtime.closedSlotIds = ids;
   }
   runtime.closedSlot = clampClosedSlot(runtime.closedSlot, ids.length);
+}
+
+/** Lay out a window just restored from a saved entry (session or Space).
+ * An entry saved by a build before sections (no `sectionOrder`) is drawn as
+ * that build drew it: groups in saved order, then ungrouped tabs, with the
+ * band's slot counting groups. Otherwise the saved order already is the
+ * drawn order and `closedIndex` counts the restored items above the band;
+ * any other tab in the window (the startup tab) is new to it and the band
+ * keeps its place relative to the restored items (spec 2026-10-17 §4). */
+function applySavedLayout(runtime, saved, restoredIds) {
+  const groupIds = runtime.groups.map((group) => group.id);
+  if (saved?.sectionOrder !== true) {
+    const savedOrder = (Array.isArray(saved?.groups) ? saved.groups : []).map((group) => group?.id);
+    const live = new Set(tabLayoutList(runtime).map((tab) => tab.id));
+    runtime.tabOrder = [
+      ...legacyOrder(tabLayoutList(runtime), savedOrder),
+      ...runtime.tabOrder.filter((id) => !live.has(id)),
+    ];
+    const known = savedOrder.filter((id) => groupIds.includes(id));
+    runtime.closedSlot = clampClosedSlot(saved?.closedSlot ?? 0, known.length);
+    runtime.closedSlotIds = known;
+  } else {
+    const restored = new Set(restoredIds);
+    const ids = itemsOf(tabLayoutList(runtime).filter((tab) => restored.has(tab.id))).map((item) => item.id);
+    runtime.closedSlot = clampClosedSlot(saved.closedIndex ?? 0, ids.length);
+    runtime.closedSlotIds = ids;
+  }
+  syncTabLayout(runtime);
 }
 
 function reorderGroupBefore(id, beforeId) {
@@ -12085,6 +12122,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           managedExtension: restorableUblockTool(url),
         }));
         pruneEmptyGroups();
+        applySavedLayout(runtime, saved, restoredIds);
         // This window's tabs now exist, so it's safe to check whether the
         // saved binding still points at a real workspace. namedWorkspaces.get
         // resolves through the ambient activeLocalProfileId(), which

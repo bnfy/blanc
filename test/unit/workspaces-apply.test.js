@@ -82,6 +82,7 @@ function applyHarness(runtime) {
       return id;
     },
     pruneEmptyGroups: () => calls.push(['pruneEmptyGroups']),
+    applySavedLayout: (_runtime, workspace, ids) => calls.push(['applySavedLayout', workspace, [...ids]]),
     setActiveTab: (id, opts) => calls.push(['setActiveTab', id, opts]),
     restorableUblockTool: () => false,
     filterRestoredSession,
@@ -234,3 +235,16 @@ test('a save-as whose session binding fails reports the durable workspace id tru
 });
 
 // Switching/guard coverage imports workspace-controller directly.
+
+test('a Space is laid out from its saved order before a tab is selected', () => {
+  const runtime = { tabOrder: [], groups: [], closedSlot: 0, closedSlotIds: [] };
+  const harness = applyHarness(runtime);
+  const workspace = WORKSPACE();
+  harness.apply(workspace);
+  const names = harness.calls.map(([name]) => name);
+  const layout = harness.calls.find(([name]) => name === 'applySavedLayout');
+  assert.ok(layout, 'applySavedLayout was not called');
+  assert.equal(layout[1], workspace);
+  assert.deepEqual(layout[2], harness.calls.filter(([name]) => name === 'createTab').map((call) => call[3]).slice(0, layout[2].length));
+  assert.ok(names.indexOf('applySavedLayout') < names.indexOf('setActiveTab'));
+});

@@ -16,7 +16,7 @@ const mainSource = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'
 const lift = (name) => mainSource.match(new RegExp(`function ${name}\\([^)]*\\) \\{[\\s\\S]*?\\n\\}`))?.[0];
 const names = [
   'tabLayoutList', 'syncTabLayout', 'clusterList', 'clusterKeyForTab', 'setTabGroup', 'groupTabByName',
-  'ungroupGroup', 'reopenGroupEntry', 'reorderGroupBefore', 'moveClosedSection',
+  'ungroupGroup', 'reopenGroupEntry', 'reorderGroupBefore', 'moveClosedSection', 'applySavedLayout',
 ];
 const sources = names.map(lift);
 
@@ -175,4 +175,26 @@ test('the band moves between two loose tabs', () => {
   assert.equal(h.moveClosedSection('L2'), true);
   assert.equal(h.runtime.closedSlot, 1);
   assert.deepEqual(h.order(), ['L1', 'L2', 'a']);
+});
+
+test('legacy order normalizes to groups then loose', () => {
+  // Saved before sections: loose tabs among group members, groups[] in its own order.
+  const h = harness(['L1', 'b:g2', 'L2', 'a:g1', 'L3'], { groups: ['g1', 'g2'], closedSlot: 1 });
+  h.runtime.closedSlotIds = ['g1', 'g2'];
+  h.applySavedLayout(h.runtime, { groups: [{ id: 'g1' }, { id: 'g2' }], closedSlot: 1 }, ['L1', 'b', 'L2', 'a', 'L3']);
+  assert.deepEqual(h.order(), ['a', 'b', 'L1', 'L2', 'L3']);
+  assert.equal(h.runtime.closedSlot, 1, 'the band stays between the two groups');
+});
+
+test('sectionOrder keeps loose tabs between groups', () => {
+  const h = harness(['L1', 'a:g1', 'L2', 'b:g2']);
+  h.applySavedLayout(h.runtime, { sectionOrder: true, closedIndex: 2, groups: [] }, ['L1', 'a', 'L2', 'b']);
+  assert.deepEqual(h.order(), ['L1', 'a', 'L2', 'b']);
+  assert.equal(h.runtime.closedSlot, 2);
+});
+
+test('closedIndex counts only the restored items when a startup tab leads', () => {
+  const h = harness(['START', 'L1', 'a:g1']);
+  h.applySavedLayout(h.runtime, { sectionOrder: true, closedIndex: 1, groups: [] }, ['L1', 'a']);
+  assert.equal(h.runtime.closedSlot, 2, 'directly above g1, below the startup tab and L1');
 });
