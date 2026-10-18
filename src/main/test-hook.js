@@ -2161,7 +2161,8 @@ function install(refs) {
         return {
           hidden: !!el.hidden,
           off: el.classList.contains('shield-off'),
-          title: el.title,
+          // The Island's own tooltip (#938) replaced the native title.
+          title: el.dataset.tooltip ?? el.title,
         };
       })()`);
     },
@@ -2764,7 +2765,8 @@ function install(refs) {
         const button = document.getElementById('footerTabLayout');
         if (!button) return null;
         return {
-          title: button.title,
+          // The Island's own tooltip (#938) replaced the native title.
+          title: button.dataset.tooltip ?? button.title,
           label: button.getAttribute('aria-label'),
           pressed: button.getAttribute('aria-pressed')
         };
