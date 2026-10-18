@@ -1898,3 +1898,18 @@ Zero-action guard **4.57 s**, no compile; last upstream footprint31/74 unchanged
 not remeasured. Initial lint and all runtime attempts retained. No full network,
 Electron/private/safety reruns. Parent32790e0b CodeQL four alerts remain unresolved.
 Latency deferred; Electron build §8 unchecked/unstarted; Task0/items3–6 unchanged.
+
+
+## Four CodeQL remediations — October 17, 2026
+
+[Changes, evidence and limits](evidence/f12-codeql-final-20261017/README.md):
+readiness fixture HTTPS, exact parsed-host checks in probe/verifier, and HTML-safe
+marker literals in the self-contained generated wrapper. No suppressions.
+**10 readiness + one startup check**, **18 late deliveries + two HTTP controls +
+13 identity checks**, **15 CSP cases**, **242 tests / 128-file lint** pass. Initial
+mixed-content-short-circuit attempt and lint failure retained and excluded.
+The final page HTTPS control proves native fail-closed rejection, not isolated
+sender authorization. Native source unchanged; **zero actions / 4.29 s**, no build.
+CI must confirm the four alerts clear on the pushed head. After-delivery atomicity,
+broader acceptance/containment and Electron identity gaps remain; latency deferred,
+Electron build §8 unchecked/unstarted; Task0/items3–6 unchanged.

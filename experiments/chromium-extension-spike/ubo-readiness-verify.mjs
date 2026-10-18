@@ -1,18 +1,21 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
+import {parseReadinessUrl,isBlockedReadinessUrl} from './ubo-readiness-fixtures.mjs';
 const [runtimePath,unreadyPath]=process.argv.slice(2);
 const runtime=JSON.parse(fs.readFileSync(runtimePath)),unready=JSON.parse(fs.readFileSync(unreadyPath));
 assert(runtime.passed&&runtime.profileRemoved&&unready.passed&&unready.profileRemoved);
+for(const r of [runtime,unready]){assert.equal(r.fixtureTransport.scheme,'https');assert(r.fixtureTransport.offline&&r.fixtureTransport.leafSpki);}
 const expected=['bundled-list-original-transfer-suppressed','real-ubo-filter','page-cannot-release','stale-generation-refused','same-extension-popup-cannot-release','hold-cancels','private-blanc-blocker-independent-of-hold','release-preserves-filtering','actual-list-reload','background-document-loss-fails-closed'];
 assert.deepEqual(runtime.checks.map(c=>c.name),expected);assert(runtime.checks.every(c=>c.passed));
+const pageControl=runtime.checks.find(c=>c.name==='page-cannot-release');assert.equal(pageControl.transport,'https');assert(pageControl.nativeRejectionObserved);assert.equal(pageControl.isolatedSenderAuthorization,false);
 assert.equal(runtime.state.readyToFilter,true);assert.equal(runtime.backgroundClose.success,true);
 assert(runtime.events.filter(e=>e.event==='ubo-control'&&!e.accepted).length>=3);
 assert(runtime.events.filter(e=>e.event==='ubo-control'&&e.action==='/begin'&&e.accepted).length>=3);
 assert(runtime.events.filter(e=>e.event==='ubo-control'&&e.action==='/ready'&&e.accepted).length>=3);
 assert(runtime.events.filter(e=>e.event==='ubo-hold-cancel').length>=3);
 assert(runtime.events.some(e=>e.event==='decision'&&e.profile_kind==='private'&&e.url.endsWith('gpt.js?private')&&e.decision==='block'));
-assert(!runtime.hits.some(u=>u.includes('blocked.blanc-fixture.test')||u.includes('securepubads.g.doubleclick.net')||u.endsWith('/held')||u.endsWith('/background-departed')));
-for(const suffix of ['initial','released','reloaded'])assert(runtime.hits.includes('http://allowed.blanc-fixture.test/'+suffix));
+assert(!runtime.hits.some(u=>isBlockedReadinessUrl(u)||['/held','/background-departed'].includes(parseReadinessUrl(u).pathname)));
+for(const suffix of ['initial','released','reloaded'])assert(runtime.hits.includes('https://allowed.blanc-fixture.test/'+suffix));
 assert(unready.checks.some(c=>c.name==='missing-startup-handshake-fails-closed'&&c.passed));
 assert(unready.events.some(e=>e.event==='ubo-hold-cancel'));
 assert(!unready.events.some(e=>e.event==='ubo-control'&&e.action==='/ready'&&e.accepted));

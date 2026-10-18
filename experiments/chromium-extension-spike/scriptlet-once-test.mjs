@@ -4,3 +4,11 @@ test('native and late payload bodies execute once in a realm',()=>{const c=vm.cr
 test('new document gets its own execution and normal payload has no counters',()=>{const code=wrapMainWorld('globalThis.effects=1;',key);for(let i=0;i<2;i++){const c=vm.createContext({});vm.runInContext(code,c);assert.equal(c.effects,1);assert.equal(c.__blancScriptletGateCounts,undefined);}});
 test('empty selection cannot suppress a later payload',()=>{assert.equal(wrapMainWorld('',key),'');assert.throws(()=>wrapMainWorld('1','bad'));});
 test('throwing body is not replayed by a late path',()=>{const c=vm.createContext({});const code=wrapMainWorld('throw Error("probe");',key,true);assert.throws(()=>vm.runInContext(code,c));vm.runInContext(code,c);assert.equal(c.__blancScriptletGateCounts.bodies,1);});
+test('marker rejects HTML terminators, line suffixes and object coercion',()=>{
+ for(const invalid of [key+'\n',key+'\r',key+'\u2028',key+'\u2029','</script>',key+'";globalThis.injected=true;//',{toString:()=>key}])assert.throws(()=>wrapMainWorld('globalThis.effects=1;',invalid));
+});
+test('serialized wrapper has no external helper dependency and preserves body bytes',()=>{
+ const isolated=vm.runInNewContext('('+wrapMainWorld.toString()+')');
+ const body='globalThis.text="quotes \\" & < >";globalThis.effects=(globalThis.effects||0)+1;';
+ const code=isolated(body,key,true);assert(code.includes(body));const c=vm.createContext({});vm.runInContext(code,c);vm.runInContext(code,c);assert.equal(c.effects,1);assert.equal(c.__blancScriptletGateCounts.bodies,1);
+});

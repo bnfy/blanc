@@ -34,9 +34,11 @@ allows (one build at a time; the spikes alternate, they never overlap a build).
 3 runs alongside as a document. 4, 5 and 6 fill the gaps. The tranche ends
 when every row has its artifact, or when a kill criterion is hit and recorded.
 
-### 1.1 Progress checkpoint — October 17, 2026 (static fallback reload scheduling and CSP measured)
+### 1.1 Progress checkpoint — October 17, 2026 (CodeQL remediation and static fallback regressions)
 
 This table is the live map from implementation work back to the approved plan.
+Four CodeQL remediations and bounded runtime regressions are recorded in
+`evidence/f12-codeql-final-20261017/`; current-head CI confirmation is pending.
 Detailed measurements remain in `rebase-ledger.md`; test outcomes and evidence
 links remain in `results.md`. A row marked in progress is not acceptance.
 
