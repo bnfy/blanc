@@ -218,7 +218,7 @@ Where a dragged or keyboard-moved tab should land. The pinned state never change
 | Field | Type | Notes |
 | --- | --- | --- |
 | `groupId` | `GroupId \| null` | Target group, or null for an ungrouped place / standalone pins. |
-| `beforeId` | `TabId \| null` | Land before this tab of the target bucket; null means that bucket's end. An unpinned tab going ungrouped may name a loose tab, a group's first drawn tab (above that group) or itself (ungrouped in place); null is then the end of the list. |
+| `beforeId` | `TabId \| 'recently-closed' \| null` | Land before this tab of the target bucket; null means that bucket's end. An unpinned tab going ungrouped may name a loose tab, a group's first drawn tab (above that group), itself (ungrouped in place) or 'recently-closed' (directly above the band); null is then the end of the list. |
 
 ### `OpenWorkspaceOptions`
 

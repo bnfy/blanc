@@ -302,7 +302,7 @@
     const row = event.target.closest?.('.island-row[data-tab-id]');
     const result = header
       ? dragApi.keyboardGroupMove(state, header.dataset.groupId, direction, { withClosed: true })
-      : row ? dragApi.keyboardTabMove(state, row.dataset.tabId, direction) : null;
+      : row ? dragApi.keyboardTabMove(state, row.dataset.tabId, direction, { withClosed: true }) : null;
     if (!result) return;
     event.preventDefault();
     event.stopPropagation();

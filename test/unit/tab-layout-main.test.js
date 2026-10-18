@@ -17,6 +17,7 @@ const lift = (name) => mainSource.match(new RegExp(`function ${name}\\([^)]*\\) 
 const names = [
   'tabLayoutList', 'syncTabLayout', 'clusterList', 'clusterKeyForTab', 'setTabGroup', 'groupTabByName',
   'ungroupGroup', 'reopenGroupEntry', 'reorderGroupBefore', 'moveClosedSection', 'applySavedLayout',
+  'moveTabTo', 'finishReopen', 'toggleTabPinned',
 ];
 const sources = names.map(lift);
 
@@ -48,6 +49,9 @@ function harness(spec, { groups = null, closedSlot: slot = 0 } = {}) {
     clampClosedSlot: closedSlot.clampClosedSlot,
     reconcileClosedSlot: closedSlot.reconcileClosedSlot,
     reorderItems: tabOrder.reorderItems,
+    resolveTabMove: tabOrder.moveTab,
+    windowRuntimes: { runtimeForTab: () => runtime },
+    pinnedHomeFor: () => null,
     ...tabSections,
     ...groupNameCase,
     pruneEmptyGroups: () => {
@@ -197,4 +201,45 @@ test('closedIndex counts only the restored items when a startup tab leads', () =
   const h = harness(['START', 'L1', 'a:g1']);
   h.applySavedLayout(h.runtime, { sectionOrder: true, closedIndex: 1, groups: [] }, ['L1', 'a']);
   assert.equal(h.runtime.closedSlot, 2, 'directly above g1, below the startup tab and L1');
+});
+
+// Recently closed band and tab moves (final review, Important 1). Items:
+// L1, L2, [band], L3, L4.
+function bandHarness() {
+  const h = harness(['L1', 'L2', 'L3', 'L4'], { closedSlot: 2 });
+  h.sync();
+  return h;
+}
+
+test('a tab moved to the top leaves the band where it was', () => {
+  const h = bandHarness();
+  assert.equal(h.moveTabTo('L3', { groupId: null, beforeId: 'L1' }), true);
+  h.sync();
+  assert.deepEqual(h.order(), ['L3', 'L1', 'L2', 'L4']);
+  assert.equal(h.runtime.closedSlot, 3, 'still directly above L4');
+});
+
+test('a tab dropped directly above the band lands above it', () => {
+  const h = bandHarness();
+  assert.equal(h.moveTabTo('L4', { groupId: null, beforeId: 'recently-closed' }), true);
+  h.sync();
+  assert.deepEqual(h.order(), ['L1', 'L2', 'L4', 'L3']);
+  assert.equal(h.runtime.closedSlot, 3, 'directly below L4');
+});
+
+test('a tab dropped directly below the band lands below it', () => {
+  const h = bandHarness();
+  assert.equal(h.moveTabTo('L1', { groupId: null, beforeId: 'L3' }), true);
+  h.sync();
+  assert.deepEqual(h.order(), ['L2', 'L1', 'L3', 'L4']);
+  assert.equal(h.runtime.closedSlot, 1, 'directly above L1');
+});
+
+test('the end of the list is below a band that sits last', () => {
+  const h = harness(['L1', 'L2'], { closedSlot: 2 });
+  h.sync();
+  assert.equal(h.moveTabTo('L1', { groupId: null, beforeId: null }), true);
+  h.sync();
+  assert.deepEqual(h.order(), ['L2', 'L1']);
+  assert.equal(h.runtime.closedSlot, 1, 'the band stays above the dropped tab');
 });

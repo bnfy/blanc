@@ -47,11 +47,23 @@
   /** Every gap a tab could land in, with which pinned states may use it. */
   function tabSlots(model, sourceId) {
     const slots = [];
-    const listed = model.sections.filter((section) => section.kind !== 'closed');
+    const listed = model.sections;
     for (const [index, section] of listed.entries()) {
       const next = listed[index + 1];
-      // What a loose tab dropped at the end of this section sits above.
-      const nextLead = next && next.kind !== 'pinned' ? leadOf(next) : null;
+      // What a loose tab dropped at the end of this section sits above: the
+      // Recently closed band says so by its id (main keeps the tab above it).
+      const nextLead = !next || next.kind === 'pinned' ? null
+        : next.kind === 'closed' ? constants.CLOSED_SECTION_ID : leadOf(next);
+      if (section.kind === 'closed') {
+        // The band never takes tabs, but the places directly above and below
+        // it do, ungrouped.
+        slots.push({
+          y: section.top, groupId: null, pinned: false, unpinned: true,
+          pinnedBefore: null, unpinnedBefore: constants.CLOSED_SECTION_ID,
+        });
+        if (!next) slots.push(gapBelow(section));
+        continue;
+      }
       if (section.kind === 'group') {
         // The gap directly above a group takes an unpinned tab, ungrouped.
         const lead = leadOf(section);
@@ -171,7 +183,7 @@
    * for each gap between groups with no run in it; a loose bucket's
    * `endBefore` is what a tab at its end sits above. Collapsed groups (other
    * than the tab's own) are skipped, but the gaps around them are not. */
-  function eligibleBuckets(snapshot, pinned, ownGroupId) {
+  function eligibleBuckets(snapshot, pinned, ownGroupId, withClosed = false) {
     const tabs = snapshot.tabs || [];
     const groups = snapshot.groups || [];
     const collapsed = (groupId) => !!groups.find((g) => g.id === groupId)?.collapsed && groupId !== ownGroupId;
@@ -186,28 +198,48 @@
       }
       return buckets;
     }
+    // Top-level units in order: each ungrouped tab, each group, and (in the
+    // island) the Recently closed band at its item index.
+    const units = [];
+    for (const section of list) {
+      if (section.groupId) units.push({ section });
+      else for (const tabId of section.tabIds) units.push({ tab: byId.get(tabId) });
+    }
+    if (withClosed && snapshot.closed?.length) units.splice(closedSlotIndex(snapshot), 0, { band: true });
+    let run = null;
     let needGap = true;
-    for (const [index, section] of list.entries()) {
-      const endBefore = list[index + 1]?.tabIds[0] ?? null;
-      if (!section.groupId) {
-        buckets.push({ groupId: null, members: section.tabIds.map((id) => byId.get(id)), endBefore });
+    for (const unit of units) {
+      if (unit.tab) {
+        if (!run) {
+          run = { groupId: null, members: [], endBefore: null };
+          buckets.push(run);
+        }
+        run.members.push(unit.tab);
         needGap = false;
         continue;
       }
-      if (needGap) buckets.push({ groupId: null, members: [], endBefore: section.tabIds[0] });
+      const lead = unit.band ? constants.CLOSED_SECTION_ID : unit.section.tabIds[0];
+      if (run) run.endBefore = lead;
+      else if (needGap) buckets.push({ groupId: null, members: [], endBefore: lead });
+      run = null;
       needGap = true;
-      if (collapsed(section.groupId)) continue;
-      buckets.push({ groupId: section.groupId, members: section.tabIds.map((id) => byId.get(id)).filter((t) => !t.pinned) });
+      if (unit.band || collapsed(unit.section.groupId)) continue;
+      buckets.push({
+        groupId: unit.section.groupId,
+        members: unit.section.tabIds.map((tabId) => byId.get(tabId)).filter((t) => !t.pinned),
+      });
     }
     if (needGap) buckets.push({ groupId: null, members: [], endBefore: null });
     return buckets;
   }
 
-  function keyboardTabMove(snapshot, id, direction) {
+  /** `withClosed`: the island, where the Recently closed band splits a run
+   * and a tab steps across it one place at a time. */
+  function keyboardTabMove(snapshot, id, direction, { withClosed = false } = {}) {
     const tab = (snapshot?.tabs || []).find((t) => t.id === id);
     if (!tab) return null;
     const pinned = !!tab.pinned;
-    const buckets = eligibleBuckets(snapshot, pinned, tab.groupId ?? null);
+    const buckets = eligibleBuckets(snapshot, pinned, tab.groupId ?? null, withClosed);
     const bi = buckets.findIndex((b) => b.members.some((t) => t.id === id));
     if (bi === -1) return null;
     const members = buckets[bi].members;

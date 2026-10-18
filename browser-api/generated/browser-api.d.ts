@@ -48,8 +48,8 @@ export type CreateTabOptions = { private?: boolean };
 export interface TabMoveTarget {
   /** Target group, or null for an ungrouped place / standalone pins. */
   groupId: GroupId | null;
-  /** Land before this tab of the target bucket; null means that bucket's end. An unpinned tab going ungrouped may name a loose tab, a group's first drawn tab (above that group) or itself (ungrouped in place); null is then the end of the list. */
-  beforeId: TabId | null;
+  /** Land before this tab of the target bucket; null means that bucket's end. An unpinned tab going ungrouped may name a loose tab, a group's first drawn tab (above that group), itself (ungrouped in place) or 'recently-closed' (directly above the band); null is then the end of the list. */
+  beforeId: TabId | 'recently-closed' | null;
 }
 
 /** Options for opening or creating a workspace; creation also takes a colour and symbol. */

@@ -7506,19 +7506,53 @@ function moveTabTo(id, target) {
   if (typeof beforeId === 'string' && windowRuntimes.runtimeForTab(beforeId) !== rt()) return false;
   // Renderer input is only a proposal. Main re-resolves every id against its
   // live model; a stale/cross-window/pin-crossing target is rejected.
-  const result = resolveTabMove(rt().tabOrder, tabs, rt().groups, id, target);
+  const runtime = rt();
+  syncTabLayout(runtime);
+  // An ungrouped place directly above or below the Recently closed band
+  // resolves to the same tab order, so the band side travels separately:
+  // beforeId 'recently-closed' means directly above the band, and the first
+  // item below the band means directly below it (spec 2026-10-17 §6).
+  const items = itemsOf(tabLayoutList(runtime)).map((item) => item.id);
+  const others = items.filter((itemId) => itemId !== id);
+  const ownAt = items.indexOf(id);
+  const firstBelow = others[runtime.closedSlot - (ownAt !== -1 && ownAt < runtime.closedSlot ? 1 : 0)] ?? null;
+  const itemOf = (tabId) => tabs.get(tabId)?.groupId ?? tabId;
+  // Only an unpinned tab going ungrouped can sit beside the band.
+  const toLoose = target?.groupId === null && !tabs.get(id)?.pinned;
+  let bandSide = null;
+  let resolved = target;
+  if (toLoose && target.beforeId === CLOSED_SECTION_ID) {
+    // The first item below the band is a loose tab or a group (its first tab).
+    const lead = firstBelow === null || tabs.has(firstBelow) ? firstBelow
+      : sectionsOf(tabLayoutList(runtime)).find((section) => section.groupId === firstBelow)?.tabIds[0] ?? null;
+    resolved = { ...target, beforeId: lead };
+    bandSide = 'after';
+  } else if (toLoose && typeof target.beforeId === 'string' && firstBelow !== null
+    && itemOf(target.beforeId) === firstBelow) {
+    bandSide = 'before';
+  } else if (toLoose && target.beforeId === null && firstBelow === null) {
+    // The end of the list, below a band that sits last.
+    bandSide = 'before';
+  }
+  const result = resolveTabMove(runtime.tabOrder, tabs, runtime.groups, id, resolved);
   if (!result) return false;
   const tab = tabs.get(id);
   const groupChanged = (tab.groupId ?? null) !== result.groupId;
-  const orderChanged = result.order.some((tabId, index) => rt().tabOrder[index] !== tabId);
-  if (!groupChanged && !orderChanged) return true;
-  rt().tabOrder = result.order;
+  const orderChanged = result.order.some((tabId, index) => runtime.tabOrder[index] !== tabId);
+  if (!groupChanged && !orderChanged && !bandSide) return true;
+  runtime.tabOrder = result.order;
   if (groupChanged) {
     // Same effect as Move to Group (setTabGroup): a group whose last tab
     // left dissolves; the target keeps its collapsed state.
     tab.groupId = result.groupId;
     pruneEmptyGroups();
   }
+  const after = itemsOf(tabLayoutList(runtime)).map((item) => item.id);
+  const movedAt = after.indexOf(id);
+  runtime.closedSlot = bandSide && movedAt !== -1
+    ? movedAt + (bandSide === 'after' ? 1 : 0)
+    : reconcileClosedSlot(items, runtime.closedSlot, after, id);
+  runtime.closedSlotIds = after;
   broadcastTabs();
   scheduleMenuRebuild();
   return true;

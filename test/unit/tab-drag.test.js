@@ -658,3 +658,36 @@ test('closedSlotIndex counts groups and ungrouped tabs', () => {
   assert.equal(drag.closedSlotIndex({ ...gapSnapshot, closedSlot: 9 }), 6);
   assert.equal(drag.closedSlotIndex({ ...gapSnapshot, closedSlot: 2 }), 2);
 });
+
+// Recently closed between ungrouped tabs (final review, Important 1): the
+// place directly above the band says so; directly below names the next item.
+const bandRunModel = {
+  top: 0, bottom: 100,
+  sections: [
+    { kind: 'loose', groupId: null, collapsed: false, top: 0, bottom: 40, header: null, rows: [row('L1', 0), row('L2', 20)] },
+    { kind: 'closed', groupId: 'recently-closed', collapsed: true, top: 44, bottom: 60, header: { top: 44, bottom: 60 }, rows: [] },
+    { kind: 'loose', groupId: null, collapsed: false, top: 64, bottom: 84, header: null, rows: [row('L3', 64)] },
+  ],
+};
+
+test('the end of the run above the band is directly above the band', () => {
+  assert.deepEqual(drag.resolveTabDrop(bandRunModel, tabSource('L3', false, null), 41).intent,
+    { kind: 'tab', id: 'L3', groupId: null, beforeId: 'recently-closed' });
+  assert.deepEqual(drag.resolveTabDrop(bandRunModel, tabSource('L1', false, null), 63).intent,
+    { kind: 'tab', id: 'L1', groupId: null, beforeId: 'L3' }, 'directly below the band');
+});
+
+test('keyboard steps a tab across the band one place at a time in the island', () => {
+  const snap = {
+    groups: [],
+    closedSlot: 1,
+    closed: [{ id: 'x', title: 'X', favicon: null, tabCount: 1 }],
+    tabs: [{ id: 'L1', groupId: null, pinned: false, title: 'L1' }, { id: 'L2', groupId: null, pinned: false, title: 'L2' }],
+  };
+  assert.deepEqual(drag.keyboardTabMove(snap, 'L2', 'up', { withClosed: true }).intent,
+    { kind: 'tab', id: 'L2', groupId: null, beforeId: 'recently-closed' });
+  assert.deepEqual(drag.keyboardTabMove(snap, 'L1', 'down', { withClosed: true }).intent,
+    { kind: 'tab', id: 'L1', groupId: null, beforeId: 'L2' });
+  assert.deepEqual(drag.keyboardTabMove(snap, 'L2', 'up').intent,
+    { kind: 'tab', id: 'L2', groupId: null, beforeId: 'L1' }, 'the rail has no band');
+});
